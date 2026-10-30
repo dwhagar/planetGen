@@ -9,7 +9,7 @@
 
 const VERSION_QUERY = new URL(import.meta.url).search;
 const { TIER_NAMES } = await import(`./poiicons.js${VERSION_QUERY}`);
-const { PLANET_CLASS_LETTERS } = await import(`./galaxymarkers.js${VERSION_QUERY}`);
+const { PLANET_CLASS_LETTERS, LIFE_CLASS_IDS } = await import(`./galaxymarkers.js${VERSION_QUERY}`);
 
 // The distance from the system's centre, in radii of the system, at which the body symbols come in and at which they go (the camera
 // that has just flown in to fit the system sits about four radii away, so the symbols are there from the first view).
@@ -19,7 +19,7 @@ export const HANDOFF_OFF = 10;
 // The reasons (ids of INTEREST_REASONS) a body of the system scene has, strongest first, each `{reason, tier}` with the tier index of its
 // habitability (0 Blue to 3 Red, or null); `[]` for a body with no symbol (a star, a comet, an unscored terrestrial body with no life and
 // no class). Mirrors planetgen.db.interests.REASONS for one body, in the same order: an inhabited world, a civilization, sentient life,
-// life, a habitable world (Yellow or better), a barren scored one, a gas giant, its planet class; a belt is an asteroid field (MAP.321,
+// life, a habitable world (Yellow or better), a barren scored one, a gas giant, its planet class, the life class that lives on it; a belt is an asteroid field (MAP.321,
 // MAP.311, MAP.220, MAP.343). The life fields are the stored scores as they are (0 none to 9 abundant, or missing).
 export function reasonsOfBody(body) {
   if (!body) return [];
@@ -41,6 +41,7 @@ export function reasonsOfBody(body) {
     add("uninhabitable", true);
   }
   if (body.planet_class && PLANET_CLASS_LETTERS.indexOf(body.planet_class) >= 0) add("class-" + body.planet_class, false);
+  if (body.life_class_id && LIFE_CLASS_IDS.indexOf(body.life_class_id) >= 0) add("lifeclass-" + body.life_class_id, false);
   return found;
 }
 

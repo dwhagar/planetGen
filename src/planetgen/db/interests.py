@@ -9,7 +9,7 @@ the reason's score. A system has a row for each reason it has at least one body 
 """
 
 from planetgen import tuning
-from planetgen.physics import habitability
+from planetgen.physics import habitability, life_classes
 
 INHABITED = "inhabited"
 CIVILIZATION = "civilization"
@@ -114,11 +114,36 @@ for _letter in sorted(tuning.PLANET_CLASSES):
     }
 del _letter
 
-CLASS_REASONS = tuple(reason for reason in REASONS if reason.startswith(CLASS_PREFIX))
-"""tuple: The class reasons, one for each planet class, in letter order."""
+LIFE_CLASS_PREFIX = "lifeclass-"
+"""str: A life class's reason is this and the class id ("lifeclass-1a", "lifeclass-6"): a system with a planet or moon on which that life class
+lives (`life_class` and `life_class_variant`, the class the `life` facet of the search reads, MAP.351). Like the planet classes, the visitor
+chooses which of them the map shows, and they come after every reason above."""
 
-BASE_REASONS = tuple(reason for reason in REASONS if not reason.startswith(CLASS_PREFIX))
-"""tuple: The reasons that are not a class: what every node lists whatever the visitor chose."""
+
+def life_class_reason(class_id):
+    """The reason id of life class `class_id` (such as `"1a"` or `"6"`)."""
+    return LIFE_CLASS_PREFIX + class_id
+
+
+for _definition in life_classes.CLASSES:
+    REASONS[life_class_reason(_definition.id)] = {
+        "planets": "p.life_class = ? AND COALESCE(p.life_class_variant, '') = ?",
+        "moons": "m.life_class = ? AND COALESCE(m.life_class_variant, '') = ?", "score": None,
+        "params": (_definition.number, _definition.variant or ""),
+    }
+del _definition
+
+CLASS_REASONS = tuple(reason for reason in REASONS if reason.startswith(CLASS_PREFIX))
+"""tuple: The planet class reasons, one for each planet class, in letter order."""
+
+LIFE_CLASS_REASONS = tuple(reason for reason in REASONS if reason.startswith(LIFE_CLASS_PREFIX))
+"""tuple: The life class reasons, one for each class of `physics/life_classes.py`, in order."""
+
+PER_CLASS_PREFIXES = (CLASS_PREFIX, LIFE_CLASS_PREFIX)
+"""tuple: The prefixes of the reasons a node lists a few systems for each, and not by the bodies behind them (the planet and life classes)."""
+
+BASE_REASONS = tuple(reason for reason in REASONS if not reason.startswith(PER_CLASS_PREFIXES))
+"""tuple: The reasons that are neither a planet class nor a life class: what every node lists whatever the visitor chose."""
 
 
 def reason_ids():

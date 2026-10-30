@@ -125,15 +125,20 @@ GLYPHS.civilization = discWith(function (ctx, size) {
 // two lists to each other. A class's reason is "class-" and its letter, the same id the server's `system_interests` rows use.
 export const PLANET_CLASS_LETTERS = "ABCDEFGHIJKLMNOPQSTV".split("");
 
+// The life classes the map can mark (MAP.351): `planetgen.physics.life_classes.CLASSES`' ids; tests/test_system_interests.py holds the two lists to
+// each other. A life class's reason is "lifeclass-" and its id, the same id the server's `system_interests` rows use.
+export const LIFE_CLASS_IDS = ["1a", "1b", "1c", "2", "3a", "3b", "4a", "4b", "4c", "5a", "5b", "6", "7", "8", "9"];
+
 // The biggest block (shells) whose node lists the class reasons (`planetgen.db.nodes.CLASS_ABOVE`): a bigger block has too many systems.
 export const CLASS_MAX_BLOCK = 3;
 
 // The colour of every class glyph (the letter tells them apart) and of the letter on it.
 const CLASS_COLOR = "#e3a63b";
+const LIFE_CLASS_COLOR = "#5fc77a";
 const CLASS_LETTER_COLOR = "#14161f";
 
 // A class's glyph: a disc ringed in the outline colour with the class letter on it.
-function classGlyph(letter) {
+function classGlyph(letter) {   // `letter` is the text on the disc: a planet class letter or a life class id
   return function (ctx, size, color, outline) {
     const c = size / 2;
     ctx.beginPath();
@@ -145,7 +150,7 @@ function classGlyph(letter) {
     ctx.fillStyle = color;
     ctx.fill();
     ctx.fillStyle = CLASS_LETTER_COLOR;
-    ctx.font = "bold " + Math.round(size * 0.64) + "px sans-serif";
+    ctx.font = "bold " + Math.round(size * (letter.length > 1 ? 0.5 : 0.64)) + "px sans-serif";
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
     ctx.fillText(letter, c, c + size * 0.04);
@@ -153,6 +158,7 @@ function classGlyph(letter) {
 }
 
 PLANET_CLASS_LETTERS.forEach(function (letter) { GLYPHS["class-" + letter] = classGlyph(letter); });
+LIFE_CLASS_IDS.forEach(function (id) { GLYPHS["lifeclass-" + id] = classGlyph(id); });
 
 // MAP.339: black holes are chosen for the view, not for the whole list: every node lists its own, whatever its distance, so the
 // heaviest 240 were mostly far from what the camera looks at (237 of 240 at a 10 pc zoom). The rule, with `d` the distance from the
@@ -320,6 +326,20 @@ export const INTEREST_REASONS = [
     family: "class",
     defaultOn: false,
     describe: function (reason) { return reason.n + (reason.n === 1 ? " class " + letter + " world" : " class " + letter + " worlds"); },
+  };
+})).concat(LIFE_CLASS_IDS.map(function (id) {
+  return {
+    id: "lifeclass-" + id,
+    label: "Class " + id + " life",
+    body: "world with class " + id + " life",
+    glyph: "lifeclass-" + id,
+    color: LIFE_CLASS_COLOR,
+    maxBlock: CLASS_MAX_BLOCK,
+    family: "lifeclass",
+    defaultOn: false,
+    describe: function (reason) {
+      return reason.n + (reason.n === 1 ? " world with class " + id + " life" : " worlds with class " + id + " life");
+    },
   };
 }));
 

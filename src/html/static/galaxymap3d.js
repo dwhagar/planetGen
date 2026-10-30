@@ -3666,6 +3666,7 @@ function initGalaxyMap3d(canvasEl, data) {
   var markerKinds = createMarkerKinds();
   var POI_GROUP = "Points of interest";
   var CLASS_GROUP = "World classes";   // MAP.220: one optional marker for each planet class, all off until chosen
+  var LIFE_CLASS_GROUP = "Life classes";   // MAP.351: one optional marker for each life class, all off until chosen
   var TECH_GROUP = "Civilization technology";   // MAP.344: one optional marker for each technology band of a civilization, all off until chosen
   var INHABITED_MARKER_KIND = INTEREST_KINDS.find(function (kind) { return kind.interest === "inhabited"; });
   var markerLayer = null;
@@ -3679,16 +3680,17 @@ function initGalaxyMap3d(canvasEl, data) {
     markerLayer.setOutsideShare(hiddenCell ? SECTOR_OUTSIDE_SHARE : 1);    // MAP.341: a sector may be open before the layer exists
     stageView.layers.bulkGroup(POI_GROUP);
     stageView.layers.bulkGroup(CLASS_GROUP);
+    stageView.layers.bulkGroup(LIFE_CLASS_GROUP);
     stageView.layers.bulkGroup(TECH_GROUP);
     // The Menu lists a group's layers together, so the technology bands (registered ahead of the Civilizations kind, which they pre-empt) come
     // after the points of interest.
-    var familyOrder = { tech: 1, "class": 2 };
+    var familyOrder = { tech: 1, "class": 2, lifeclass: 3 };
     markerKinds.kinds().map(function (kind, index) { return { kind: kind, index: index }; }).sort(function (p, q) {
       return (familyOrder[p.kind.family] || 0) - (familyOrder[q.kind.family] || 0) || p.index - q.index;
     }).map(function (entry) { return entry.kind; }).forEach(function (kind) {
       stageView.layers.register({
         id: kind.id, label: kind.label, modes: ["galaxy"], forward: !!kind.interest && !kind.family,
-        group: kind.family === "class" ? CLASS_GROUP : kind.family === "tech" ? TECH_GROUP : kind.interest ? POI_GROUP : "Markers",
+        group: kind.family === "class" ? CLASS_GROUP : kind.family === "lifeclass" ? LIFE_CLASS_GROUP : kind.family === "tech" ? TECH_GROUP : kind.interest ? POI_GROUP : "Markers",
         data: { marker: kind.glyph || kind.icon },
         defaultOn: kind.defaultOn, urlKey: "hide", urlKeyOn: "show", fadedWithSectors: false,
         title: "Show or hide the " + kind.label.toLowerCase() + " markers", legend: markerLegendOf(kind),

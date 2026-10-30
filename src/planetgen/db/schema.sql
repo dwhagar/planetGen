@@ -1505,6 +1505,8 @@
 --   complexity index of the class, `physics/life_complexity.py`); the classes a body supports are the child tables `planet_life_class_scores` and `moon_life_class_scores` (one row for each class
 --   with a score of 1 or more); `species.life_chemical` becomes `species.life_class` (the id). A row made before v175 keeps the class its chemistry stood for and nothing else
 --   (see `migrations/versions/0175_life_classes.py`); the rest comes when the galaxy is regenerated.
+-- v176 (MAP.351): `system_interests` also takes the reasons `lifeclass-1a` to `lifeclass-9`, one for each life class that lives on a planet or moon of the system (`life_class` and
+--   `life_class_variant`), no score kept; no column changes, the migration fills them from the planets and moons already stored.
 --
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
