@@ -121,10 +121,13 @@ def _expand(conn, run_id, index):
     if step.params.get(FINISHED_BY):
         _carry_finished_stage(conn, run_id, index, step, started)
         return 0
+    if _is_referred_to(runrecord.read_steps(conn, run_id), key):
+        runrecord.set_opened_clock(conn, run_id, index, _database_clock(step.params))
+    params = resolve_params(conn, run_id, step.params)
     prepare = commands.prepare_function(step.kind)
     if prepare is not None:
-        prepare(step.params)
-    expansion = commands.expand_function(step.kind)(step.params)
+        prepare(params)
+    expansion = commands.expand_function(step.kind)(params)
     cost = sum(unit_cost for _args, unit_cost in expansion.units)
     runrecord.set_stage_plan(conn, run_id, index, len(expansion.units), cost,
                              {"kind": step.kind, "units": len(expansion.units), "cost": cost,
@@ -138,6 +141,80 @@ def _expand(conn, run_id, index):
                         expected_seconds=json.loads(runrecord._s(conn.hget(runrecord.run_key(run_id), "stages")))[index]
                         .get("expected_seconds"))
     return len(expansion.units)
+
+
+DEFERRED = "deferred"
+"""str: The key of a deferred parameter (PERF.213): a step's parameter that is a dict with this key is not a value but the name of
+a resolver in `RESOLVERS`, and the stage is given its value when it opens (`resolve_params`), not when the run is built."""
+
+
+def opened_by(key):
+    """A deferred parameter (PERF.213): the database's clock when stage `key` of the run opened, as text, so a stage that works on
+    "the sectors the run saved" takes the clock of the sectors stage, not of the moment its followers were built."""
+    return {DEFERRED: "stage-clock", "stage": key}
+
+
+def is_deferred(value):
+    """Whether a parameter value is a deferred one."""
+    return isinstance(value, dict) and DEFERRED in value
+
+
+def _is_referred_to(recorded, key):
+    """Whether any step of the run (`runrecord.read_steps`) has a deferred parameter that needs the clock of stage `key`."""
+    return any(is_deferred(value) and value.get("stage") == key and value[DEFERRED] == "stage-clock"
+               for item in recorded for value in (item.get("params") or {}).values())
+
+
+def _database_clock(params):
+    """The database's own clock now, as text (`store.database_now`), for the stage whose `params` name the database."""
+    from planetgen.db import store
+    conn = store.get_connection(_mysql_config(params["database"]))
+    try:
+        return store.database_now(conn).isoformat(sep=" ")
+    finally:
+        conn.close()
+
+
+class Unresolved(LookupError):
+    """A deferred parameter whose value is not there (yet)."""
+
+
+def _stage_clock(conn, run_id, marker):
+    """The clock stage `marker["stage"]` recorded when it opened (`runrecord.set_opened_clock`)."""
+    declared = json.loads(runrecord._s(conn.hget(runrecord.run_key(run_id), "stages")))
+    keys = [runrecord._s(item["key"]) for item in declared]
+    if marker["stage"] not in keys:
+        raise Unresolved(f"the run has no stage {marker['stage']!r} to take the clock of")
+    clock = runrecord.opened_clock(conn, run_id, keys.index(marker["stage"]))
+    if clock is None:
+        raise Unresolved(f"stage {marker['stage']!r} has not opened, so it has no clock")
+    return clock
+
+
+RESOLVERS = {"stage-clock": _stage_clock}
+"""dict: Each deferred parameter's name to `resolver(conn, run_id, marker)`, which gives its value (or raises `Unresolved`). A
+command that needs a value worked out when its stage opens adds its resolver here."""
+
+
+def resolve_params(conn, run_id, params, strict=True):
+    """
+    `params` with each deferred parameter (`opened_by`) replaced by its value as the run record has it now. With `strict` false a
+    parameter that cannot be resolved yet stays as it is (`generation.finish_run` copies the steps of a run that stopped before
+    some stage opened).
+
+    Raises:
+        Unresolved: A deferred parameter has no value and `strict` is true.
+    """
+    out = {}
+    for name, value in params.items():
+        if is_deferred(value):
+            try:
+                value = RESOLVERS[value[DEFERRED]](conn, run_id, value)
+            except Unresolved:
+                if strict:
+                    raise
+        out[name] = value
+    return out
 
 
 FINISHED_BY = "finished_by"
@@ -183,7 +260,7 @@ def _stage_step(conn, run_id, index):
     declared = json.loads(runrecord._s(conn.hget(runrecord.run_key(run_id), "stages")))[index]
     step = next(commands.Step.from_dict(item) for item in runrecord.read_steps(conn, run_id)
                 if item["key"] == declared["key"])
-    return declared, step
+    return declared, commands.Step(step.key, step.kind, step.label, resolve_params(conn, run_id, step.params))
 
 
 def _stage_results(conn, run_id, index):

@@ -43,6 +43,8 @@ All are in `src/planetgen/datasets/catalogue.py`, fetched by `planetgen datasets
 
 Setup entries built by Sources 1 (#3808, 9:18 PM EDT 10-29, as the lane reported): `planetgen.datasets.harris_clusters` (GEN.297), `noaa_proton_events` (GEN.747), `baraffe_isochrones` (GEN.936 and GEN.948); registry rows SC4 to SC6. Section 3 rows for these three are now S, not P.
 
+Setup entry built by Star 1 (GEN.943): `planetgen.datasets.mamajek_sequence`, the Pecaut and Mamajek mean dwarf spectral-type sequence (version 2022.04.16, 56 kB, 67 whole-number types O3V to M9V), read by `stellar_evolution.spectral_letter_and_subclass`; registry row PS12.
+
 Wiring rule (Sources 1, GEN.754): a new lock-free module, dataset reader, data file or registry row that nothing reads yet needs one line in `docs/design/research/wiring-register.md` naming its open wiring item (`python scripts/wiring_guard.py --check`); a new L3 or L4 registry row needs a line in `docs/design/research/burn-down-register.md`.
 
 ## 3. Held in the project files (P)

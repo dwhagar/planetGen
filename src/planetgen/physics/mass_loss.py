@@ -18,18 +18,17 @@ The drawn distances of a white dwarf's planets are the ones the planets formed a
 """
 
 from planetgen import tuning
-from planetgen.physics import constants
+from planetgen.physics import constants, remnant_mass
 
 
 def progenitor_mass_sol(remnant_mass_sol, initial_mass_sol=None):
     """The mass, solar masses, of the star a white dwarf of `remnant_mass_sol` was born as: `initial_mass_sol` when
-    the model gave one, else the remnant relation inverted (`WHITE_DWARF_REMNANT_MASS_SOL`), kept inside
+    the model gave one, else the initial-final relation inverted (`remnant_mass.progenitor_mass_sol`), kept inside
     `WD_PROGENITOR_MASS_RANGE_SOL`."""
     if initial_mass_sol is not None:
         return initial_mass_sol
-    relation = tuning.WHITE_DWARF_REMNANT_MASS_SOL
     low, high = tuning.WD_PROGENITOR_MASS_RANGE_SOL
-    return min(high, max(low, (remnant_mass_sol - relation["intercept"]) / relation["slope"]))
+    return min(high, max(low, remnant_mass.progenitor_mass_sol(remnant_mass_sol)))
 
 
 def engulfment_radius_au(progenitor_sol):

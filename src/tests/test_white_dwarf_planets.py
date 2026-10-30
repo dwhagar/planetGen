@@ -12,7 +12,7 @@ from planetgen import tuning
 from planetgen.generation import remnant_orbits
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
-from planetgen.physics import constants, mass_loss, planets as planet_physics
+from planetgen.physics import constants, mass_loss, planets as planet_physics, remnant_mass
 from planetgen.util import draw
 
 WHITE_DWARF_TYPE = "O7VII"
@@ -54,9 +54,8 @@ def test_a_planet_in_the_mass_loss_keeps_its_share_of_the_total():
 
 
 def test_a_progenitor_is_the_models_or_the_remnant_relation_inverted_inside_its_range():
-    relation = tuning.WHITE_DWARF_REMNANT_MASS_SOL
     assert mass_loss.progenitor_mass_sol(0.6, initial_mass_sol=2.2) == 2.2
-    assert mass_loss.progenitor_mass_sol(relation["intercept"] + relation["slope"] * 3.0) == pytest.approx(3.0)
+    assert mass_loss.progenitor_mass_sol(remnant_mass.white_dwarf_mass_sol(3.0)) == pytest.approx(3.0)
     low, high = tuning.WD_PROGENITOR_MASS_RANGE_SOL
     assert mass_loss.progenitor_mass_sol(0.45) == low
     assert mass_loss.progenitor_mass_sol(1.4) == high

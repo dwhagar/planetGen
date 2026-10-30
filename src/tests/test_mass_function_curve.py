@@ -13,6 +13,7 @@ import re
 import pytest
 
 from planetgen import tuning
+from planetgen.physics import imf
 from tests.audit import mass_curve as curve
 from tests.audit import prevalence as census
 
@@ -58,11 +59,19 @@ def test_the_system_function_peaks_higher_in_mass_than_the_single_star_function(
     assert system[0] < single[0] and system[-1] > single[-1]
 
 
-def test_the_kroupa_curve_is_the_shape_the_generator_rows_carry_today(spec):
-    """The curve file's copy of Kroupa 2001 is the one `tuning` holds (the generator's present rows), so a change of the rows is
-    seen against the published curve and not against itself."""
-    shape = spec["curves"]["kroupa2001"]
-    assert tuple(shape["breaks_sol"]) == tuning.IMF_BREAKS_SOL and tuple(shape["slopes"]) == tuning.IMF_SLOPES
+def test_the_chabrier_individual_curve_is_the_shape_the_generator_rows_carry_today(spec):
+    """The curve file's copy of Chabrier 2003 (individual stars) is the function `tuning` holds (GEN.927), so a change of the
+    rows is seen against the published curve and not against itself: the generator's bins are the curve's, to the
+    chord error of the segments."""
+    shape = spec["curves"]["chabrier2003_individual"]
+    assert (shape["m_c"], shape["sigma"], shape["break_sol"]) == (
+        tuning.IMF_BELL_CENTRE_SOL, tuning.IMF_BELL_WIDTH_DEX, tuning.IMF_BELL_TOP_SOL)
+    assert shape["power_law_x"] + 1.0 == tuning.IMF_HIGH_SLOPE
+    edges = spec["bins"]["edges_sol"]
+    published = curve.bin_shares(shape, edges)
+    held = [imf.number(a, b) for a, b in zip(edges, edges[1:])]
+    held = [h / sum(held) for h in held]
+    assert held == pytest.approx(published, rel=0.01)
 
 
 def test_the_power_law_curve_matches_a_hand_integral(spec):

@@ -10,7 +10,7 @@ systems for the Milky Way) in place of GEN.78's flat 0.1% floor. It is half the 
 fifth to 340,000th of it at 20 to 262 kpc, and it changes no cell's chance of a star inside the outline.
 
 GEN.79: old disk and bulge giants reach the 1000 Lsun bright-star threshold
-(the top of their branch, `tuning.GIANT_BRANCH_TIP_LUMINOSITY_SOL`), so a galaxy with a
+(the top of their branch in the MIST tracks), so a galaxy with a
 large bulge gets bright stars far above the plane (more than 485 pc).
 """
 
@@ -157,7 +157,7 @@ def test_the_halo_does_not_widen_the_outline():
     extents, outer, _confirmed = build_shell_extents(mathcheck._reference_galaxy_shape(), EDGE_PC, 1.0 / E_VALUE)
     assert outer == 3454
     assert len(extents) == 3455
-    assert sum(high for _shell, high in extents) == 865333
+    assert sum(high for _shell, high in extents) == 865311
 
 
 def _halo_and_edge_cells(shape):

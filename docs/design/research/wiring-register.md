@@ -11,13 +11,8 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | dataset | harris_clusters | GEN.297 | the Harris catalog of 157 globular clusters; the calibration of the cluster generator reads it |
 | dataset | noaa_proton_events | GEN.805 | the 265 NOAA solar proton events; the solar particle event model fits its rate and slope to them |
 | dataset | baraffe_isochrones | GEN.936 | the Baraffe 2015 isochrones; the 0.08 to 0.1 solar mass main sequence (GEN.936) and the brown dwarf radius by age (GEN.948) read them |
-| reader | neutron_star_matter.equations_of_state | GEN.968 | the 21 equations of state are read by a test only; the TOV integration reads them |
-| module | planetgen.physics.neutron_star_structure | GEN.969 | the TOV integration and the reduced curves; the neutron star radius and crust will read them in place of the Miller et al. radius band |
-| data | neutron_star_curves.json | GEN.969 | the mass-radius curves and crusts of the 21 equations of state, read by `physics/neutron_star_structure.py` only |
 | dataset | stellar_spectra | GEN.971 | the ATLAS9 and PHOENIX-ACES spectra reduced to band shares; the star's UV shares and map colour will read them in place of the blackbody |
 | module | planetgen.physics.stellar_library | GEN.971 | the band lookup and the corona's far ultraviolet; replaces the seeded UV-C share of `activity.generate_activity` once wired |
-| row | 6.32:NS1 | GEN.969 | `neutron_star_structure.CRUST_CORE_DENSITY_FM3`, not read until the radius and crust are wired |
-| row | 6.32:NS2 | GEN.969 | `neutron_star_structure.NEUTRON_DRIP_DENSITY_FM3`, not read until the radius and crust are wired |
 | row | 6.33:SL2 | GEN.971 | `stellar_library.FUV_OVER_XUV`, not read until the UV shares are wired |
 | row | 6.33:SL3 | GEN.971 | `stellar_library.FUV_IN_UV_C`, not read until the UV shares are wired |
 | module | planetgen.physics.alpha_tracks | GEN.744 | the equivalent [Fe/H] of an alpha-enhanced star; the track lookup of a high-alpha star will read it |
