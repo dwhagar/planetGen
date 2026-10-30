@@ -40,7 +40,7 @@ from planetgen import tuning
 from planetgen.galaxy import scales
 from planetgen.generation import possibility_table as pt
 from planetgen.physics import (bulk_composition, bulk_structure, comet_population, compaction, composition_text, constants, delivered_water, elements,
-                               hydrosphere, moon_composition, stellar_abundances, stellar_composition)
+                               hydrosphere, ice_species, moon_composition, stellar_abundances, stellar_composition)
 from planetgen.util import draw
 from planetgen.util.random import log_uniform
 
@@ -55,7 +55,7 @@ RANGES = {
     "core_light_elements": (0.03, 0.12),
     "graphite_over_rock": (0.05, 0.40),
     "porosity": (0.0, 0.30),
-    "other_ice_comet_class": "jupiter_family",
+    "other_ice_comet_class": ice_species.COMET_CLASS,
 }
 """dict: The drawn ranges.
 
@@ -321,18 +321,23 @@ def _rocky_water(body):
 
 
 def _water_and_ice(body):
-    """Water as a share of the whole body: the Bern delivery law for a rocky body, the icy range for one beyond the snow line, and the other ices beside it for an icy body."""
+    """
+    Water as a share of the whole body, the other ices beside it and those ices' shares by species (`ice_species`): the Bern delivery law for a rocky
+    body, the icy range for one beyond the snow line, whose other ices follow the comet volatiles it draws. `(water, ice, shares)`; the shares are
+    `None` for a body with no other ice.
+    """
     if origin_of(body) == ICY:
         water = log_uniform(*tuning.ICY_WATER_MASS_FRACTION)
     else:
         water = _rocky_water(body)
-    ice = 0.0
+    ice, shares = 0.0, None
     if origin_of(body) == ICY:
         volatiles = comet_population.draw_volatiles(RANGES["other_ice_comet_class"])
         ice = water * sum(volatiles.percent.values()) / 100.0
+        shares = ice_species.shares_of_percent(volatiles.percent)
         scale = min(1.0, 0.95 / (water + ice))
         water, ice = water * scale, ice * scale
-    return water, ice
+    return water, ice, shares
 
 
 def _porosity(body):
@@ -395,14 +400,14 @@ def draw_terrestrial(body, radius_given, mass_given):
     inverse = radius_given and mass_given
     origin = None if inverse else getattr(body, "moon_origin", None)
     # A moon that holds its origin (GEN.466) takes its water, ice, rock and metal from it, not from the range of its parent's origin
-    water, ice = (0.0, 0.0) if origin else _water_and_ice(body)
+    water, ice, ice_shares = (0.0, 0.0, None) if origin else _water_and_ice(body)
     feo = draw.uniform(*RANGES["rock_feo"])
     light = draw.uniform(*RANGES["core_light_elements"])
     porosity = None if origin else _porosity(body)
     graphite = draw.uniform(*RANGES["graphite_over_rock"]) if carbon_rock else 0.0
 
     if inverse:
-        _draw_inverse(body, ratios, water, ice, feo, light, carbon_rock, graphite)
+        _draw_inverse(body, ratios, water, ice, ice_shares, feo, light, carbon_rock, graphite)
         return
 
     ratios = iron_branch_ratios(body, ratios, feo, light, carbon_rock, graphite)
@@ -413,7 +418,7 @@ def draw_terrestrial(body, radius_given, mass_given):
     metal, rock = _normalise(part.metal, part.rock, water, ice)
     bulk = bulk_composition.BulkFractions(
         metal=metal, rock=rock, water=water, ice=ice, envelope=0.0, rock_feo=part.rock_feo, rock_al2o3=part.rock_al2o3,
-        rock_mg_si=part.rock_mg_si, porosity=porosity, carbon_rock=carbon_rock, origin="drawn")
+        rock_mg_si=part.rock_mg_si, porosity=porosity, carbon_rock=carbon_rock, origin="drawn", ice_shares=ice_shares)
     _settle(body, bulk, mass_given)
 
 
@@ -478,7 +483,7 @@ def _store(body, bulk):
     body.density = body.mass / volume_m3 / 1000.0
 
 
-def _draw_inverse(body, ratios, water, ice, feo, light, carbon_rock, graphite):
+def _draw_inverse(body, ratios, water, ice, ice_shares, feo, light, carbon_rock, graphite):
     """A body given both a mass and a radius: the core mass fraction from the mass and the radius."""
     part = dry_partition(ratios, feo, light, carbon_rock, graphite)
     x_fe = bulk_structure.x_fe_from_feo_mass_fraction(part.rock_feo) if part.rock_feo else 0.0
@@ -490,5 +495,6 @@ def _draw_inverse(body, ratios, water, ice, feo, light, carbon_rock, graphite):
         cmf = MAX_CMF if radius_earth < bulk_structure.radius_fit_earth(mass_earth, MAX_CMF, x_fe, 1.0) else 0.0
     bulk = bulk_composition.BulkFractions(
         metal=cmf * (1.0 - wet), rock=(1.0 - cmf) * (1.0 - wet), water=water, ice=ice, envelope=0.0, rock_feo=part.rock_feo,
-        rock_al2o3=part.rock_al2o3, rock_mg_si=part.rock_mg_si, porosity=None, carbon_rock=carbon_rock, origin="inverse")
+        rock_al2o3=part.rock_al2o3, rock_mg_si=part.rock_mg_si, porosity=None, carbon_rock=carbon_rock, origin="inverse",
+        ice_shares=ice_shares)
     _store(body, bulk)
