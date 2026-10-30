@@ -29,6 +29,9 @@ BOOLEANS = {"is_moon", "long_lived_geology", "ocean_present", "water_lost", "co2
             "sep_reducing", "lightning", "gas_has_co_h2s", "has_solid_ground", "h2o_present", "carbon_bearing", "h2_air",
             "thin_disc_fgk", "planetesimals_early"}
 
+SOLAR_HOST = {"n_over_c": 1.0, "ar_over_c": 1.0, "s_over_c": 1.0}
+"""dict: The host ratios a comet's species rows read (GEN.1005, k7), at the proto-solar values."""
+
 
 def document():
     with open(ar.DATA_FILE, encoding="utf-8") as handle:
@@ -101,7 +104,7 @@ def test_every_row_has_a_source_a_state_and_a_gate_and_the_states_follow_the_rul
             assert set(entry.labels) <= {"READ", "COMPUTED", "DATA"}, (entry.id, entry.labels)
         if entry.state == pt.OPEN_STATE:
             assert entry.status == "DESIGN" and entry.items, entry.id
-    assert RECIPES.state_counts() == {"verified": 37, "partly verified": 51, "open": 0, "stand-in": 16}
+    assert RECIPES.state_counts() == {"verified": 37, "partly verified": 54, "open": 0, "stand-in": 13}
 
 
 def test_every_research_item_gen_480_to_494_is_answered_by_a_row_state():
@@ -110,7 +113,7 @@ def test_every_research_item_gen_480_to_494_is_answered_by_a_row_state():
     assert RECIPES.open_rows() == [], "no row waits on research any more"
     researched = {r for entry in RECIPES.entries for r in entry.research}
     assert researched == set(RECIPES.research), "every research item concerns at least one row"
-    builders = {f"GEN.{n}" for n in range(509, 526)} | {"GEN.595", "GEN.1005"}      # GEN.1005: the rows GEN.1002 flagged (a1, a2, b1, k7)
+    builders = {f"GEN.{n}" for n in range(509, 526)} | {"GEN.595", "GEN.1021"}      # GEN.1021: the 67P calibration of row k7 (GEN.1005 replaced the rest with models)
     for entry in RECIPES.entries:
         if entry.state == pt.STAND_IN:
             assert entry.replacement in builders, (entry.id, entry.replacement)
@@ -119,8 +122,9 @@ def test_every_research_item_gen_480_to_494_is_answered_by_a_row_state():
 def test_the_stand_ins_are_rows_with_no_measurement_or_built_from_solar_system_bodies():
     stand_ins = {e.id: e.replacement for e in RECIPES.entries if e.state == pt.STAND_IN}
     assert {"b5", "n7", "o3"} <= set(stand_ins)
-    # GEN.1002: a row whose weights rest on Solar System bodies is a flagged stand-in with its replacing item, GEN.482 and GEN.520 notwithstanding
-    assert {e: stand_ins[e] for e in ("a1", "a2", "b1", "k7")} == {"a1": "GEN.1005", "a2": "GEN.1005", "b1": "GEN.1005", "k7": "GEN.1005"}
+    # GEN.1002: a row whose weights rest on Solar System bodies is a flagged stand-in with its replacing item; GEN.1005 replaced a1, a2 and b1 with models
+    # (the bodies are their tests) and left k7 resting on the one comet measured, until GEN.1021
+    assert stand_ins["k7"] == "GEN.1021" and not {"a1", "a2", "b1"} & set(stand_ins)
     assert not {"k1", "k2", "k3", "k4", "k5"} & set(stand_ins), "the comet rows follow the Robinson database (GEN.520)"
     assert not {"m3", "m4", "m11"} & set(stand_ins), "the life-linked gases are design flags (GEN.525)"
     assert not {"a3", "a4", "f7", "p6"} & set(stand_ins), "rows with a published statistic are not stand-ins"
@@ -157,28 +161,29 @@ def test_example_a_the_redox_classes_at_one_drawn_value():
     p = probs("a", "terrestrial", redox_diw=0.5)
     assert p["a5"] == pytest.approx(0.159, abs=5e-4) and p["a6"] == pytest.approx(0.841, abs=5e-4)
     assert p.get("a7", 0) == pytest.approx(0.0, abs=5e-4)
-    # M = 0.05: the magma-ocean mean is -1.13
-    assert RECIPES.entry("a1").spec["dist"]["mu"].startswith("clamp")
+    # GEN.1005: the magma-ocean mean is the model of physics.magma_ocean_redox, called from the row
+    assert RECIPES.entry("a1").spec["dist"]["mu"] == "magma_ocean_diw(mass_earth)"
     d = RECIPES._dist_of(RECIPES.entry("a1"), Subject("terrestrial", {"mass_earth": 0.05}))
-    assert d["mu"] == pytest.approx(-1.1263, abs=1e-3)
+    assert d["mu"] == pytest.approx(-1.0743, abs=1e-3)
     d = RECIPES._dist_of(RECIPES.entry("a1"), Subject("terrestrial", {"mass_earth": 1.0}))
-    assert d["mu"] == pytest.approx(0.5)
+    assert d["mu"] == pytest.approx(1.0724, abs=1e-3)
     later = RECIPES._dist_of(RECIPES.entry("a2"), Subject("terrestrial", {"mass_earth": 1.0}))
-    assert later["mu"] == pytest.approx(3.5) and later["sigma"] == 1.0
+    assert later["mu"] == pytest.approx(3.4724, abs=1e-3) and later["sigma"] == 1.0
 
 
-def test_the_magma_ocean_redox_follows_the_first_hand_ranges_and_rises_above_one_earth_mass_gen_482b():
-    """Hirschmann 2022 section 6.3 and Deng 2020: Moon about -2, Mars about -0.6, Earth about +0.3 to +0.5, width 0.5 to 0.9."""
+def test_the_magma_ocean_redox_follows_the_model_and_the_first_hand_ranges_it_is_tested_against_gen_1005():
+    """The row calls physics.magma_ocean_redox; the Moon, Mars and Earth ranges of Hirschmann 2022 section 6.3 and Deng 2020 are checks (tests/test_magma_ocean_redox.py)."""
+    from planetgen.physics import magma_ocean_redox as mor
+
     def a1(mass):
         return RECIPES._dist_of(RECIPES.entry("a1"), Subject("terrestrial", {"mass_earth": mass}))
 
-    assert a1(0.0123)["mu"] == pytest.approx(-1.89, abs=0.01) and a1(0.107)["mu"] == pytest.approx(-0.71, abs=0.01)
-    assert a1(0.1)["sigma"] == pytest.approx(0.5) and a1(1.0)["sigma"] == pytest.approx(0.9) and a1(0.01)["sigma"] == pytest.approx(0.5)
-    assert a1(5.4)["mu"] == pytest.approx(0.5 + math.log10(5.4), abs=1e-3), "1.0 per dex above one Earth mass"
-    assert a1(30.0)["mu"] == pytest.approx(a1(5.4)["mu"], abs=1e-3), "held where the base pressure passes the 140 GPa of Deng 2020"
-    assert a1(30.0)["sigma"] == pytest.approx(0.9)
+    for mass in (0.0123, 0.107, 1.0, 5.4):
+        assert a1(mass)["mu"] == pytest.approx(mor.surface_diw(mass)) and a1(mass)["sigma"] == pytest.approx(mor.diw_sigma(mass))
+    assert -2.2 - a1(0.0123)["sigma"] <= a1(0.0123)["mu"] <= -1.5 + a1(0.0123)["sigma"]
+    assert a1(30.0)["mu"] == pytest.approx(a1(6.0)["mu"]), "held where the base pressure passes the 140 GPa of Deng 2020"
     later = RECIPES._dist_of(RECIPES.entry("a2"), Subject("terrestrial", {"mass_earth": 30.0}))
-    assert later["mu"] == pytest.approx(3.5), "no source for the later mantle of a super-Earth: the Earth value is held"
+    assert later["mu"] == pytest.approx(mor.later_mantle_diw(1.0)), "no source for the later mantle of a super-Earth: the value at one Earth mass is held"
 
 
 
@@ -354,13 +359,13 @@ def test_example_j_the_frost_and_evolved_atmospheres_are_outputs_of_the_retentio
 
 
 def test_example_k_the_coma_classes_and_the_carbon_dioxide_to_water_bins():
-    comet = Subject("comet", {"perihelion_au": 1.0, "family": "x"})
+    comet = Subject("comet", {"perihelion_au": 1.0, "family": "x", **SOLAR_HOST})
     assert dict(RECIPES.probabilities("k", comet)) == pytest.approx({"k1": 0.52, "k2": 0.36, "k3": 0.12}, abs=1e-3)
     assert [round(b[2], 3) for b in RECIPES.bins("k4", comet)] == [0.136, 0.335, 0.335, 0.194]
-    quiet = Subject("comet", {"perihelion_au": 5.0, "family": "x"})
+    quiet = Subject("comet", {"perihelion_au": 5.0, "family": "x", **SOLAR_HOST})
     with draw.bound(2):
         assert RECIPES.draw_group("k", quiet).name == "none"
-    icy = Subject("asteroid", {"perihelion_au": 2.0, "family": "icy"})
+    icy = Subject("asteroid", {"perihelion_au": 2.0, "family": "icy", **SOLAR_HOST})
     assert set(dict(RECIPES.probabilities("k", icy))) == {"k1", "k2", "k3"}
 
 
@@ -464,7 +469,7 @@ def test_a_row_with_several_values_draws_a_dict_and_the_log_uniform_ranges_hold(
         got = [RECIPES.draw_value("k6", s) for _ in range(200)]
     assert set(got[0]) == {"CH3OH", "NH3", "HCN"}
     assert all(0.002 <= g["CH3OH"] <= 0.026 and 0.001 <= g["NH3"] <= 0.0073 and 0.0009 <= g["HCN"] <= 0.0029 for g in got)
-    species = RECIPES.draw_value("k7", s)
+    species = RECIPES.draw_value("k7", Subject("comet", dict(SOLAR_HOST)))
     assert set(species) == {"CH4", "C2H6", "H2CO", "H2S", "N2", "O2", "OCS", "SO2", "Ar", "Kr", "Xe"}
 
 

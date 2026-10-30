@@ -488,7 +488,10 @@
    "subject": {
     "body_class": "comet",
     "quantities": {
-     "perihelion_au": 1.0
+     "perihelion_au": 1.0,
+     "n_over_c": 1.0,
+     "ar_over_c": 1.0,
+     "s_over_c": 1.0
     }
    },
    "fill_id": "GEN.520",
@@ -516,7 +519,10 @@
    "subject": {
     "body_class": "comet",
     "quantities": {
-     "perihelion_au": 1.0
+     "perihelion_au": 1.0,
+     "n_over_c": 1.0,
+     "ar_over_c": 1.0,
+     "s_over_c": 1.0
     }
    },
    "fill_id": "GEN.520",
@@ -544,7 +550,10 @@
    "subject": {
     "body_class": "comet",
     "quantities": {
-     "perihelion_au": 1.0
+     "perihelion_au": 1.0,
+     "n_over_c": 1.0,
+     "ar_over_c": 1.0,
+     "s_over_c": 1.0
     }
    },
    "fill_id": "GEN.520",
@@ -572,7 +581,10 @@
    "subject": {
     "body_class": "comet",
     "quantities": {
-     "perihelion_au": 1.0
+     "perihelion_au": 1.0,
+     "n_over_c": 1.0,
+     "ar_over_c": 1.0,
+     "s_over_c": 1.0
     }
    },
    "fill_id": "GEN.520",
@@ -600,7 +612,10 @@
    "subject": {
     "body_class": "comet",
     "quantities": {
-     "perihelion_au": 1.0
+     "perihelion_au": 1.0,
+     "n_over_c": 1.0,
+     "ar_over_c": 1.0,
+     "s_over_c": 1.0
     }
    },
    "fill_id": "GEN.520",
@@ -628,7 +643,10 @@
    "subject": {
     "body_class": "comet",
     "quantities": {
-     "perihelion_au": 1.0
+     "perihelion_au": 1.0,
+     "n_over_c": 1.0,
+     "ar_over_c": 1.0,
+     "s_over_c": 1.0
     }
    },
    "fill_id": "GEN.520",
@@ -656,7 +674,10 @@
    "subject": {
     "body_class": "comet",
     "quantities": {
-     "perihelion_au": 1.0
+     "perihelion_au": 1.0,
+     "n_over_c": 1.0,
+     "ar_over_c": 1.0,
+     "s_over_c": 1.0
     }
    },
    "fill_id": "GEN.520",
@@ -684,7 +705,10 @@
    "subject": {
     "body_class": "comet",
     "quantities": {
-     "perihelion_au": 1.0
+     "perihelion_au": 1.0,
+     "n_over_c": 1.0,
+     "ar_over_c": 1.0,
+     "s_over_c": 1.0
     }
    },
    "fill_id": "GEN.520",
