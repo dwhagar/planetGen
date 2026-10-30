@@ -259,3 +259,31 @@ def test_a_comets_organics_take_the_shared_tables_density_not_a_separate_one():
     assert sb.REFRACTORY_DENSITIES == {"silicate_dust": 3500.0}
     organics_only = compaction.grain_density_kg_m3({"complex_organics": 1.0})
     assert organics_only == pytest.approx(1500.0)
+
+
+def test_a_belt_names_the_chondrite_group_its_mean_grains_are_nearest():
+    """GEN.475: the group is written into the draw's detail, and it is a group of the map or `none`; a dry inner belt is never named a carbonaceous group's ice-rich kin."""
+    from planetgen.physics import meteorite_groups
+    allowed = {*meteorite_groups.CHONDRITE_GROUPS, meteorite_groups.NONE}
+    dry = _belts(0.5, 40, 5)
+    wet = _belts(3.0, 40, 6)
+    assert all(b.detail["group"] in allowed and b.detail["group_distance"] >= 0.0 for b in dry + wet)
+    assert len({b.detail["group"] for b in dry}) > 1, "the group follows the draw, it is not one fixed word"
+    assert {b.detail["group"] for b in wet} == {meteorite_groups.NONE}, "an icy belt is far from every chondrite group"
+
+
+def test_the_group_axes_of_a_pure_mix_are_the_volume_shares_of_its_rows():
+    pure_metal = sb.group_axes({"kamacite": 0.6, "taenite": 0.4})
+    assert pure_metal[0] is None and pure_metal[1] == pytest.approx(100.0) and pure_metal[2:] == (0.0, 0.0)
+    olivine = sb.group_axes({"forsterite": 0.8, "fayalite": 0.2, "serpentine": 0.0})
+    assert olivine[0] is not None and 5.0 < olivine[0] < 30.0 and olivine[1:] == (0.0, 0.0, 0.0)
+
+
+def test_the_group_costs_no_draw():
+    with draw.bound(11):
+        first = sb.draw_belt(2.0, SUN_W, AL26)
+        after_first = draw.uniform(0.0, 1.0)
+    with draw.bound(11):
+        sb.draw_belt(2.0, SUN_W, AL26)
+        assert draw.uniform(0.0, 1.0) == after_first
+    assert first.detail["group"]

@@ -99,9 +99,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.36:PA10 | GEN.728 | `GIANT_INWARD_MIGRATION_SIGMA_LN, GIANT_CLEARING_SPACING`, read by `planet_architecture`, which `system.py` calls at the wiring |
 | row | 6.36:PA11 | GEN.728 | `PLANET_MIN_MASS_*`, read by `planet_architecture`, which `system.py` calls at the wiring |
 | row | 6.36:PA12 | GEN.728 | `DISC_SOLIDS_SCATTER_DEX, INNER_SYSTEM_FRACTION_ANCHORS`, read by `planet_architecture`, which `system.py` calls at the wiring |
-| module | planetgen.physics.meteorite_groups | GEN.475 | the chondrite groups as regions of a composition space with a nearest-group label (lock-free); the wiring step labels belts and fields from the derived bulk and replaces `taxon_kernel` TK6's fixed within-family splits |
-| row | 6.44:MG1 | GEN.475 | `meteorite_groups.CHONDRITE_GROUPS`, read when the wiring step lands |
-| row | 6.44:MG2 | GEN.475 | `meteorite_groups.AXIS_SCALES, NEAREST_LIMIT`, read when the wiring step lands |
 | module | planetgen.physics.acid_medium | GEN.888 | the sulfuric acid cloud layer and pool reader; `habitability_world.values_from_body` adds `acid_medium` and the Class 5 and 9 rules read it once the wiring rides train 2 |
 | module | planetgen.physics.comet_ice_budget | GEN.595 | the CO2/H2O and CO/H2O of a comet's ice from the disc zone it formed in (lock-free); the wiring step has `comet_population.draw_volatiles` take its CO and CO2 medians from the zone and the interstellar bracket from the disc's carbon and oxygen |
 | row | 6.46:CI1 | GEN.595 | `comet_ice_budget.ICE_LINES_K, DISK_T0_K, DISK_INDEX`, read when the wiring step lands |

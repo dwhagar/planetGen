@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 437 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 438 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -44,8 +44,8 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T6 | 39 | 13 | 7 | 28 | 0 | 87 |
 | T7 | 17 | 3 | 1 | 7 | 0 | 28 |
 | T8 | 0 | 0 | 0 | 1 | 1 | 2 |
-| T9 | 1 | 0 | 2 | 27 | 19 | 49 |
-| All | 283 | 36 | 17 | 77 | 24 | 437 |
+| T9 | 1 | 1 | 2 | 27 | 19 | 50 |
+| All | 283 | 37 | 17 | 77 | 24 | 438 |
 
 ## How the labels were given
 
@@ -645,7 +645,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | TK3 | P | T6 | L2 | taxon_kernel.IMPLANT_FRACTION 0.08 (the share of each family's mass moved to its neighbours by giant-planet scattering) | 0 to 0.2 | belts with a giant; none without | a C share of the inner belt or an S share of the outer one more than 0.1 from Table 6 | a scattering model of the system's own giants (Walsh et al. 2011, Raymond and Izidoro 2017, not read) | test_taxon_kernel::test_the_solar_systems_zones_come_back_as_one_realisation_of_the_derived_kernel | - | - |
 | TK4 | P | T5 | L0 | taxon_kernel.MELT_ENERGY_J_PER_KG 1.2e6 and ALUMINIUM_MASS_FRACTION 0.0100 (the heat that melts a chondritic body and its aluminium, which with the decay energy of 26Al give the melting ratio 1.1e-5) | energy 0.8e6 to 2e6; aluminium 0.0086 to 0.0113 | dry chondritic bodies | a melting ratio more than 3 times from the isotopic modelling of planetesimal heating (Lichtenberg et al. 2016) | the heat balance of the planetesimal with its size and conduction | test_taxon_kernel::test_the_melting_ratio_is_a_few_times_the_galactic_mean_and_a_third_of_the_solar_systems | - | - |
 | TK5 | P | T4 | L3 | taxon_kernel.ACCRETION_SPREAD_MYR 3 (the spread of the accretion times of the planetesimals of a zone after the isotope formed; the irons of the Solar System accreted under 0.5 Myr, the chondrites over 2 Myr, recalled) | 1 to 4 Myr | all zones | a melted share more than a third from the iron meteorite parent body count against the chondrites | a planetesimal formation model (streaming instability, the time of first formation) | test_taxon_kernel::test_the_melting_ratio_is_a_few_times_the_galactic_mean_and_a_third_of_the_solar_systems | - | no data |
-| TK6 | P | T9 | L4 | taxon_kernel.DRY_SPLIT (S 0.85, K 0.10, L 0.05), IGNEOUS_SPLIT (M 0.25, A 0.65, V 0.10) and HYDRATED_SPLIT (C 0.85, B 0.15): how the taxa of a family share its mass | each within 0.1 | all belts | the mass of the taxa of a measured belt outside these shares by more than 0.2 | the chondrite group fractions by mass and the metal and crust fractions of a melted body (GEN.475) | test_taxon_kernel::test_a_belt_round_a_star_born_without_aluminium_26_has_no_igneous_taxa | - | replace (GEN.475) |
+| TK6 | P | T9 | L4 | taxon_kernel.DRY_SPLIT (S 0.85, K 0.10, L 0.05), IGNEOUS_SPLIT (M 0.25, A 0.65, V 0.10) and HYDRATED_SPLIT (C 0.85, B 0.15): how the taxa of a family share its mass | each within 0.1 | all belts | the mass of the taxa of a measured belt outside these shares by more than 0.2 | the chondrite group fractions by mass and the metal and crust fractions of a melted body (the map of GEN.475 names the group of the mix but cannot give the splits, which stay a stand-in) | test_taxon_kernel::test_a_belt_round_a_star_born_without_aluminium_26_has_no_igneous_taxa | - | no data |
 
 ## 6.42 Stand-ins of the brackets the research items GEN.480 and GEN.489 to GEN.493 leave
 
@@ -675,8 +675,9 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| MG1 | P | T1 | L0 | meteorite_groups.CHONDRITE_GROUPS (the group averages of Weisberg, McCoy and Krot 2006 Table 1: fayalite mol percent, metal, refractory inclusions and matrix volume percent; a range is taken at its midpoint, CO and CV have no olivine average) | per group, the table's own ranges | chondrite groups of the Solar System's collection | a group average outside the table's range | the oxygen-isotope and chondrule-size axes, which the table holds and the map leaves out | test_meteorite_groups::test_every_group_is_its_own_nearest_group_except_the_pair_the_table_cannot_tell_apart | GEN.475 | - |
-| MG2 | P | T9 | L4 | meteorite_groups.AXIS_SCALES (10, 15, 5, 30) and NEAREST_LIMIT 1.5 (the width of each axis and the distance past which a body is labelled none) | scales 0.5 to 2 times; near 1 to 3 | all bodies | the share of drawn bodies labelled none outside what the groups are meant to cover | the spread of each group in the collection (the table has only ranges) | test_meteorite_groups::test_the_ordinary_chondrites_are_told_apart_by_their_oxidation | GEN.475 | no data |
+| MG1 | P | T1 | L0 | meteorite_groups.CHONDRITE_GROUPS (the group averages of Weisberg, McCoy and Krot 2006 Table 1: fayalite mol percent, metal, refractory inclusions and matrix volume percent; a range is taken at its midpoint, CO and CV have no olivine average) | per group, the table's own ranges | chondrite groups of the Solar System's collection | a group average outside the table's range | the oxygen-isotope and chondrule-size axes, which the table holds and the map leaves out | test_meteorite_groups::test_every_group_is_its_own_nearest_group_except_the_pair_the_table_cannot_tell_apart | - | - |
+| MG2 | P | T9 | L4 | meteorite_groups.AXIS_SCALES (10, 15, 5, 30) and NEAREST_LIMIT 1.5 (the width of each axis and the distance past which a body is labelled none) | scales 0.5 to 2 times; near 1 to 3 | all bodies | the share of drawn bodies labelled none outside what the groups are meant to cover | the spread of each group in the collection (the table has only ranges) | test_meteorite_groups::test_the_ordinary_chondrites_are_told_apart_by_their_oxidation | - | no data |
+| MG3 | P | T9 | L1 | small_body_composition.OLIVINE_MIN_VOLUME 0.05 and ICE_MAX 0.05 (the olivine volume share below which a mix has no oxidation state to place on the map, and the ice and water mass share from which a mix is called none because the groups are rocks) | olivine 0.02 to 0.10; ice 0.02 to 0.15 | belts and fields | a belt of 5 to 10 percent ice that a measured spectrum puts in a carbonaceous group | the water and ice share of the hydrated chondrites (CI 20 to 30 percent water by mass in the table's matrix) | test_small_body_composition::test_a_belt_names_the_chondrite_group_its_mean_grains_are_nearest | - | - |
 
 ## 6.45 Stand-ins of the rock types from bulk oxides
 

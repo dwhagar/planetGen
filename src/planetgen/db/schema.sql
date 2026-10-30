@@ -1506,7 +1506,8 @@
 --   with a score of 1 or more); `species.life_chemical` becomes `species.life_class` (the id). A row made before v175 keeps the class its chemistry stood for and nothing else
 --   (see `migrations/versions/0175_life_classes.py`); the rest comes when the galaxy is regenerated.
 -- v176 (GEN.474): `planets` and `moons` gain `ground_intermediate_fraction`, the areal share of intermediate (andesitic) ground, a ground type the volcanic crust of a body takes when the melt of its mantle
---   is 52 to 63 percent silica; NULL on a row made before v176 (the regenerated galaxy replaces it; see `migrations/versions/0176_ground_intermediate.py`).
+--   is 52 to 63 percent silica; NULL on a row made before v176 (the regenerated galaxy replaces it; see `migrations/versions/0176_ground_intermediate.py`). (GEN.475) `asteroid_belts` and `asteroid_fields`
+--   also gain `chondrite_group`, the nearest meteorite group of the body's mean composition (`none` far from every group), NULL before v176.
 --
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
@@ -2931,6 +2932,7 @@ CREATE TABLE IF NOT EXISTS asteroid_belts (
 
     parent_type                 VARCHAR(16) NOT NULL DEFAULT 'system',  -- v140 (DB.73): what it orbits, see the v140 note
     parent_id                   BIGINT UNSIGNED NULL,  -- v140 (DB.73)
+    chondrite_group             VARCHAR(4) NULL,  -- v176 (GEN.475): the nearest chondrite group of the belt's mean composition (CI, CM, H, L ...), `none` far from every group, NULL before v176
 
     UNIQUE KEY uq_asteroid_belts_uid (uid),
     KEY idx_asteroid_belts_parent (parent_type, parent_id),
@@ -3824,6 +3826,7 @@ CREATE TABLE IF NOT EXISTS asteroid_fields (
 
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     modified_at         TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+    chondrite_group     VARCHAR(4) NULL,  -- v176 (GEN.475): the nearest chondrite group of the field's mean composition, `none` far from every group, NULL before v176
     -- v58: this object's unique ID, see the header comment's "v58" note. NULL for a row saved before v58.
     uid                   BINARY(12),
 

@@ -42,7 +42,7 @@ from dataclasses import dataclass, field
 
 from planetgen import tuning
 from planetgen.generation import possibility_table as pt
-from planetgen.physics import comet_population, compaction, condensate_shares, elements, materials, taxon_kernel
+from planetgen.physics import comet_population, compaction, condensate_shares, elements, materials, meteorite_groups, taxon_kernel
 from planetgen.util import draw
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -293,6 +293,44 @@ def draw_belt(distance_au, luminosity_w, al26_ratio, kind=BELT, concentration=DI
     return _from_taxa(kind, names, weights, concentration, {"temperature_k": temperature_k, "al26_ratio": al26_ratio})
 
 
+METAL_ROWS = ("kamacite", "taenite", "schreibersite")
+"""tuple: The rows of the materials table that are the iron-nickel metal of the group map's metal axis."""
+
+REFRACTORY_ROWS = ("spinel", "anorthite")
+"""tuple: The rows that stand for the refractory inclusions (calcium-aluminium-rich) of its refractory axis."""
+
+MATRIX_ROWS = ("serpentine", "magnetite", "complex_organics", "calcite")
+"""tuple: The rows of the fine-grained matrix of its matrix axis: the water-altered minerals and the organics (ice is not matrix; an icy mix is far from every group, `ICE_MAX`)."""
+
+OLIVINE_MIN_VOLUME = 0.05
+"""float: The share of the grains' volume below which a mix has no olivine to give an oxidation state. [Stand-in MG3, tier T9, tweak L1.]"""
+
+ICE_MAX = 0.05
+"""float: The ice (and water) mass share from which a mix is far from every chondrite group: the groups are rocks, and the nearest one would mislabel an icy body. [Stand-in MG3, tier T9, tweak L1.]"""
+
+
+def group_axes(components):
+    """
+    `(fayalite mol percent or None, metal, refractory, matrix volume percent)` of a mix of grains, the axes of `meteorite_groups`: the olivine's iron against magnesium from its two
+    rows, and the volume percent of the metal, refractory and matrix rows of `components` (mass fractions of rows of the materials table).
+    """
+    volumes = {name: share / (compaction.grain_density_kg_m3({name: 1.0})) for name, share in components.items() if share > 0.0}
+    total = math.fsum(volumes.values())
+    percent = lambda rows: 100.0 * math.fsum(volumes.get(name, 0.0) for name in rows) / total    # noqa: E731
+    fayalite = components.get("fayalite", 0.0) / (materials.material("fayalite").molar_mass * 1000.0)
+    forsterite = components.get("forsterite", 0.0) / (materials.material("forsterite").molar_mass * 1000.0)
+    olivine_volume = percent(("fayalite", "forsterite"))
+    iron = 100.0 * fayalite / (fayalite + forsterite) if olivine_volume >= 100.0 * OLIVINE_MIN_VOLUME else None
+    return iron, percent(METAL_ROWS), percent(REFRACTORY_ROWS), percent(MATRIX_ROWS)
+
+
+def chondrite_group(components):
+    """The nearest chondrite group of a mix of grains (`meteorite_groups.nearest_group` of `group_axes`) and its distance: `none` for a mix far from every group or with `ICE_MAX` of ice."""
+    group, distance = meteorite_groups.nearest_group(*group_axes(components))
+    ice = math.fsum(share for name, share in components.items() if group_of(name) in ("water", "ice"))
+    return (meteorite_groups.NONE if ice >= ICE_MAX else group), distance
+
+
 def _from_taxa(kind, names, weights, concentration, detail, porosity=None):
     """
     The makeup of a mixture of the taxa `names` around the centre `weights`: the Dirichlet shares, then a porosity for each taxon
@@ -318,6 +356,8 @@ def _from_taxa(kind, names, weights, concentration, detail, porosity=None):
     mean_porosity = math.fsum(shares[t] * taxon_porosity[t] for t in names)
     albedo = math.fsum(shares[t] * TAXON_DATA[t].albedo for t in names)
     makeup = _makeup(kind, components, 0.0, albedo)
+    group, group_distance = chondrite_group(makeup.components)
+    detail = dict(detail, group=group, group_distance=group_distance)
     # the belt's own figures: the grains' mixing density of the whole belt and the mass-weighted bulk density of its taxa
     return SmallBodyMakeup(kind, makeup.components, makeup.metal, makeup.rock, makeup.water, makeup.ice, mean_porosity,
                            makeup.grain_density_kg_m3, mean_bulk, albedo,

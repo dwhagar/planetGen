@@ -80,6 +80,7 @@ class AsteroidBelt:
         body_type (str): Always 'a' for an asteroid belt.
         density (str): The density of the asteroid belt ('dense', 'sparse', 'typical'): its mass per area against the median belt of its age (GEN.477).
         mass_kg (float): What its disc's solids leave after the star's age of collisions (`belt_mass.belt_state`, Wyatt et al. 2007).
+        chondrite_group (str): The nearest meteorite group of the mean composition (`small_body_composition.chondrite_group`, GEN.475): `CI`, `CM`, `H`, `L` ..., or `none` far from every group.
         composition (list): A list of (component, concentration) tuples -- contrast
                             `Planet.composition`, a descriptive string (same name,
                             unrelated shape, on the two classes). The words of the
@@ -89,7 +90,7 @@ class AsteroidBelt:
                             None for a belt read back from a store that predates it.
     """
 
-    SERIALIZABLE_FIELDS = ["distance", "lower_limit", "upper_limit", "body_type", "density", "mass_kg"]
+    SERIALIZABLE_FIELDS = ["distance", "lower_limit", "upper_limit", "body_type", "density", "mass_kg", "chondrite_group"]
     """
     Every attribute set by `__init__`, excluding `system_config` (a shared
     back-reference), `composition` (handled separately in `to_dict`/
@@ -117,6 +118,7 @@ class AsteroidBelt:
         log.choice("Asteroid belt density", self.density, f"{self.mass_kg:.4g} kg left of the disc's solids after {star.age:.4g} Gy, its largest body {largest_km:.4g} km (stand-in)")
         self.makeup = small_body_composition.draw_belt(distance, star.luminosity, _star_al26_ratio(system_config, star))
         self.composition = small_body_composition.describe(self.makeup)
+        self.chondrite_group = self.makeup.detail["group"]
 
     def to_dict(self):
         """

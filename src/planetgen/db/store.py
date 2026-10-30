@@ -3278,7 +3278,7 @@ BELT_FIELDS = (
                          lambda belt, context: planet_parent(context["star_id"], context["star_system_id"])),
     object_rows.scaled("distance_km", "distance", _AU_KM), object_rows.scaled("lower_limit_km", "lower_limit", _AU_KM),
     object_rows.scaled("upper_limit_km", "upper_limit", _AU_KM),
-    object_rows.attr("density"), object_rows.attr("mass_kg"),
+    object_rows.attr("density"), object_rows.attr("mass_kg"), object_rows.optional("chondrite_group"),
     object_rows.computed("composition_summary", lambda belt, context: belt.get_composition_summary()),
     # GEN.337: a belt is a ring about its star, so its point is the star's (the system centre) and it carries no vector
     # of its own.
@@ -3822,6 +3822,7 @@ def insert_interstellar_comet(conn, comet: InterstellarComet, sector_id=None, pl
 ASTEROID_FIELD_FIELDS = (
     object_rows.context("sector_id"), object_rows.attr("name"), object_rows.attr("field_class"),
     object_rows.attr("composition_family"), object_rows.attr("density"), object_rows.attr("radius_ly"),
+    object_rows.optional("chondrite_group"),
     object_rows.computed("composition_summary", lambda field, context: field.get_composition_summary()),
     _FREE_VECTOR_FIELD, object_rows.computed("mass_kg", lambda field, context: 0.0), _GALACTIC_ORBIT_FIELD,
     _PLACEMENT_FIELD,
