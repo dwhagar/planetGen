@@ -13950,6 +13950,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.1053, GEN.1047. Related: GEN.1033.
   Design: [docs/design/systems/weird-worlds.md](design/systems/weird-worlds.md)
 
+- [ ] **GEN.1059 The GEN.412 inversion of a stored giant row ignores the giant's own heat, so its stored albedo and greenhouse factor no longer reproduce its temperature from starlight alone (bug)**
+  Found by Aux 5 on TEST.484 (relayed 4:20 PM EDT 2026-10-30 as the lane
+  reported). Since GEN.816 a giant carries its own internal heat; the
+  inversion that recovers the albedo or the greenhouse factor from a
+  stored giant row (GEN.412) does not include it. Do: include the
+  internal heat in the inversion (or store the factors it needs), with a
+  round-trip test (draw a giant, invert, reproduce its temperature).
+  Done: the round trip holds for giants of every mass; it may change
+  outputs, so a lock turn if so. Owner: Air 1 (assigned by TODO, while
+  in the giant column with GEN.1030/1033). Version 8.1.
+  Prerequisites: none. Related: GEN.1030, GEN.1033, GEN.412, GEN.816.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -18717,23 +18729,6 @@ clears each one.
   TEST.481) or any free lane. Version 8.1.
   Prerequisites: none. Related: PERF.203.
 
-- [ ] **TEST.484 Four tests red on clean main: climate draws [c], habitability world scored consistently, life sweep class D "supports 3b, drew no life", and the moon-helper Hill sphere test (bug)**
-  Found by Air 1 comparing a 94 file run against clean main (relayed
-  3:16 PM EDT 2026-10-30 as the lane reported). Red on main too, not Air
-  1's: test_climate_draws[c]; test_habitability_world
-  scored_consistently; test_sweep_life class D "supports 3b, drew no
-  life"; and test_gen_moon_helpers shrinking_the_hill_sphere (already
-  named in TEST.481, fix there). Do: triage each (stale expectation
-  after the star epoch, a real regression, or a moved seed) and fix the
-  right side without skipping or loosening beyond the property. Done:
-  all pass on main. Owner: Bug 2 (after TEST.483) or any free lane.
-  Version 8.1.
-  Owner (idle lanes) (3:21 PM EDT 2026-10-30): Aux 5 (assigned by TODO
-  after TEST.481 merged as PR #4096; test-only, lock-free, separate
-  branch, merge it yourself). The Hill sphere moon test is done in
-  TEST.481, so only the other three remain.
-  Prerequisites: none. Related: TEST.481, TEST.483.
-
 - [ ] **TEST.485 test_planets h-0: atmospheric_pressure 0.99999999993 sits under the 1.0 floor (bug)**
   Found by Bug 2's train 4 merge (PR #4105; relayed 3:37 PM EDT
   2026-10-30 as the lane reported), red after the merge. The drawn
@@ -18793,6 +18788,9 @@ clears each one.
   to fix at the cause) and test_moon_composition disk moon ice (the
   sample now holds only two disk moons: widen the sample), both red on
   clean main c563ce591 (as the lane reported).
+  Owner (4:20 PM EDT 2026-10-30): Aux 5 (assigned by TODO after TEST.484
+  merged as PR #4120; test-only unless a cause is a real bug, separate
+  branch, merge it yourself).
   Prerequisites: none. Related: TEST.391, TEST.472, TEST.484.
 
 - [ ] **TEST.490 Oddity plausibility harness (src/tests/oddity_plausibility_cli.py): force each oddity on 200 bodies with a fixed seed and assert the general invariants (energy, structure, stability, air, class derived, no NaN) and each row's own**

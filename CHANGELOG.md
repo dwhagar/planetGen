@@ -2,6 +2,32 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2743] - 2026-10-30
+
+**Headline:** The rule that makes a planet's ring come from its own history, a moon that fell inside the Roche limit or a comet that passed inside it, now exists as a tested calculation.
+
+### Changed
+- **Ring origin from history (GEN.1054, first part).** A new module (`physics/ring_origin`) says whether a planet has a ring from what happened to it: a moon the tide drew inside the Roche limit leaves a share of its mass as a ring, a comet that passed inside it leaves a smaller share, each ring spreads away over about half a billion years, a planet closer than 0.1 AU to its star keeps none, and a giant with nothing in its past has none. A Mimas-sized moon that fell 150 million years ago leaves Saturn's ring mass to a factor of two; Phobos would leave Mars a faint ring. The older chances of a ring (every giant, one terrestrial planet in a hundred) are re-registered as hand-tuned until the module is wired in (GEN.1057). Nothing reads the module yet.
+
+generation-output: unchanged
+
+## [8.0.2742] - 2026-10-30
+
+**Headline:** The generator now has a table of the 51 liquids a surface can hold, from liquid helium and methane seas to brines, sulfur, molten salts, metals and lavas, with their windows, densities and viscosities.
+
+### Added
+- **`physics/surface_liquids.py` and `physics/data/surface_liquids.json` (GEN.1035).** For a temperature and a pressure it lists the liquids stable there (the window from the melting point to the boiling point at that pressure, from the saturation curves of `saturation.py` for the 19 species that have them and Clausius-Clapeyron for the rest), picks which liquid a world has (a volatile at saturation in the air condenses; otherwise the body's reservoir of the liquid ranks it), gives the mole fractions and density of a mixed methane-ethane-nitrogen sea, and a density and viscosity for every row. Rows are added by adding a line to the file, so mercury, a new lava or a molten salt are rows. Nothing puts a surface liquid on a world yet; the stored `surface_liquid`, its coverage and the text are the rest of GEN.1035.
+- **Stand-in rows LQ1 to LQ10** in the gap-filling plan (section 6.69) and the stand-in list.
+
+## [8.0.2741] - 2026-10-30
+
+**Headline:** The size of the open-ocean tide a world's moons and star would raise now exists as a tested calculation, ready to give each ocean world its tide range.
+
+### Changed
+- **The open-ocean equilibrium tide (GEN.1034, first part).** A new module (`physics/ocean_tides`) gives the tide each moon and the star raise on a world, from their mass and distance (0.54 m for the Moon on the Earth and 0.25 m for the Sun, as published), the spring range with every raiser in line and the neap range with the largest against the rest, the larger and smaller range at an eccentric orbit's closest and farthest approach, the floor that rises with the tide and the weight of the sea itself. A raiser the world is locked to raises no oscillating tide, an ice-covered ocean has none, and a liquid too heavy for a thin layer (mercury) is refused. It is the equilibrium value only; the range on a coast depends on the basin and is not modelled. Nothing reads it yet: the stored columns come on a later generation train.
+
+generation-output: unchanged
+
 ## [8.0.2740] - 2026-10-30
 
 **Headline:** Four tests that failed on a clean main are fixed on the test side: radiation gear for an ultraviolet Red, worlds whose life has not begun, a giant's own heat, and a hot airless world.
