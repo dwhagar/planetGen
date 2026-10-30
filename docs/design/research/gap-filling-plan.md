@@ -1320,6 +1320,19 @@ A star's luminosity, temperature and radius after the main sequence are read fro
 | XF5 | P | T6 | L1 | tuning.STELLAR_XFE_SIGMA Ca high-alpha over thin 1.10 (Mg's old ratio 0.073/0.066; the table holds too few thick-disc dwarfs for its own) | 1.0 to 1.4 | thick-disc stars | a thick-disc [Ca/Fe] scatter more than 0.02 dex from the thin-disc one times 1.1 | the thick-disc scatter of a survey with ages | test_stellar_xfe_brewer_fischer::test_the_generated_scatter_is_within_half_again_of_the_tables_robust_scatter_in_every_bin |
 <!-- xfe-refit-standins:end -->
 
+### 6.57 Stand-ins of the arm contrast of each stellar population (GEN.931)
+
+Rows ARM1 to ARM4. The single hand value of 0.0 for the old disk and the unsourced 0.9 and 0.4 for the young and intermediate populations (`tuning.STELLAR_POPULATION_ARM_AMPLITUDE`) are replaced by values derived from the gas ratio and the Kennicutt-Schmidt index (young), the observed old disk (Eilers 2020; Drimmel and Spergel 2001), and a fall with the log of the age between them (intermediate). Effect at the reference inter-arm place: the young share of the mix 0.12% to 0.32%, A stars 0.087% to 0.103%, B stars 0.013% to 0.020% (30,000 draws each); the A-star deficit is the star formation history's (GEN.898), not the arms'. Tiers T1 to T9 and tweak levels L0 to L4 as in 6.6a (GEN.725); the lane's reading (Bug 1), for the owner to confirm.
+
+<!-- arm-contrast-standins:begin -->
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
+|---|---|---|---|---|---|---|---|---|---|
+| ARM1 | P | T1 | L0 | tuning.ARM_CONTRAST_OLD_DISK 0.10: the old disk's arm contrast `A` in `1 + A cos(arm phase)` | 0.09 to 0.14 | old disk stars (red giants, near-infrared light) near the solar radius | an arm to inter-arm surface density ratio outside 1.2 to 1.35 for an old sample at the solar radius | a contrast by age from Gaia samples of A, F and G stars when one is published | READ (Eilers et al. 2020, ApJ 900:186, abstract: a surface mass density contrast of about +-10% at the solar radius; Drimmel and Spergel 2001, ApJ 556:181, section 4.3: arm to inter-arm 1.2 in J and 1.32 in K; Siebert et al. 2012: 14%) |
+| ARM2 | D | T5 | L0 | tuning.ARM_GAS_TO_INTERARM_RATIO 4.0 raised to tuning.STAR_FORMATION_LAW_EXPONENT 1.4, as an amplitude (the young population's `A`, 0.749) | gas ratio 2 to 5 (A 0.45 to 0.80) | stars under 0.1 Gy, which have not left the gas they formed in | an arm to inter-arm ratio of young upper main sequence stars outside 3 to 12 | a number from the Gaia maps of young stars (Poggio et al. 2021 give maps and no number) | RECALLED (Koda et al. 2009, ApJ 700:L132: CO arm to inter-arm contrasts of about 2 to 5; Kennicutt 1998 index 1.4, a surface-density law applied here to the volume ratio) |
+| ARM3 | P | T7 | L0 | the intermediate population's `A` (0.418): the fall of the contrast with the log of the age from the young value at 0.05 Gy to the old one at the old window's geometric mean age (5.5 Gy), read at the intermediate window's (0.55 Gy) | none | stars of 0.1 to 3 Gy | an observed arm contrast of A and F stars far from 0.2 to 0.6 | a contrast by age from a published sample | an inference from the two ends: stars drift out of their birth arm in a few hundred Myr, and the contrast of A and F stars is not published as a number |
+| ARM4 | P | T5 | L0 | tuning.ARM_CONTRAST_AGE_YOUNG_GY 0.05 | 0.03 to 0.07 | the young population | none | the age law of the disk history | the middle of the young window, 0 to 0.1 Gy |
+<!-- arm-contrast-standins:end -->
+
 ## 7. Gemini's first batch
 
 ### 7.1 Counts and recommendation
