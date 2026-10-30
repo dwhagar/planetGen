@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2613] - 2026-10-30
+
+**Headline:** A design note describes how a Generate job will become one run instead of one run per command.
+
+### Changed
+
+- PERF.203: added docs/design/operations/one-run-per-job.md, the plan for making the Generate page and the API start one run over all the selected commands, with job_runner following it. Nothing in the program changes yet.
+
 ## [8.0.2612] - 2026-10-30
 
 **Headline:** Worlds around stars younger than 0.1 billion years no longer hold life.
