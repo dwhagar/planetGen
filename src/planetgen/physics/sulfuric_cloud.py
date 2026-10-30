@@ -94,6 +94,17 @@ def optical_depth(mass_kg_m2, radius_um):
     return 3.0 * aerosols.CLOUD_Q_EXT * mass_kg_m2 / (4.0 * number("density_kg_m3") * radius_um * 1.0e-6)
 
 
+GOLDEN = 1.6180339887498949
+"""float: The multiplier that makes the depth draw from the one stored `aerosol_draw` (fractional part of `aerosol_draw x GOLDEN`), so depth and
+radius are not the same number."""
+
+
+def radius_um(radius_draw):
+    """The droplet effective radius, micron, for a draw in [0, 1): log-uniform on the published mode radii."""
+    low, high = number("radius_low_um"), number("radius_high_um")
+    return math.exp(math.log(low) + radius_draw * (math.log(high) - math.log(low)))
+
+
 def draw(column, temperature_k, tau_draw, radius_draw, skin=None):
     """
     `(tau_cloud, cloud_cover)` of the acid cloud for two draws in [0, 1): the depth within the published bracket and the droplet radius within
@@ -103,7 +114,15 @@ def draw(column, temperature_k, tau_draw, radius_draw, skin=None):
     if limit <= 0.0:
         return 0.0, 0.0
     low, high = number("optical_depth_low"), number("optical_depth_high")
-    radius_low, radius_high = number("radius_low_um"), number("radius_high_um")
-    radius = math.exp(math.log(radius_low) + radius_draw * (math.log(radius_high) - math.log(radius_low)))
-    tau = min(low + tau_draw * (high - low), optical_depth(limit, radius))
+    tau = min(low + tau_draw * (high - low), optical_depth(limit, radius_um(radius_draw)))
     return tau, number("cover")
+
+
+def of_draw(column, temperature_k, aerosol_draw, skin=None):
+    """
+    `(tau_550, cloud_cover, radius_um)` of the acid cloud of a body from its stored `aerosol_draw` (the depth from its fractional part times
+    `GOLDEN`, the radius from the draw itself), so the stored aerosol values repeat the cloud with no other column. `(0, 0, radius)` without a cloud.
+    """
+    radius = radius_um(aerosol_draw)
+    tau, cover = draw(column, temperature_k, (aerosol_draw * GOLDEN) % 1.0, aerosol_draw, skin)
+    return tau, cover, radius

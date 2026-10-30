@@ -21,7 +21,7 @@ The reduction is the band mean of the k-distribution: all the (wavenumber, g) va
 opacity is cut at the new g edges, and each interval's mean is the new k (this keeps the band's total absorption).
 
 Limits (stated, and in the stand-in registry of docs/design/research/gap-filling-plan.md section 6): the tables cut each line at 25 cm-1 from its
-centre, so the far wings of a dense carbon dioxide air (Venus) are missing (`line_opacity.CO2_FAR_WING_M2_KG` stands in); the
+centre, so the far wings of a dense carbon dioxide air (Venus) are missing (`co2_far_wing` adds them in `line_opacity`); the
 broadening is the tables' own (air-like for H2O and CO2, so an air of hydrogen and helium is under-broadened); the temperature grid
 holds 100 K as its lowest point and 100 bar as its highest pressure, beyond which a lookup holds the edge value.
 
