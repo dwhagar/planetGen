@@ -4719,6 +4719,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   add the Harris file to the setup catalogue (or a reduced committed
   table; Boss decides, the licence is free if the source is named) so a
   fresh server has it, then the reader and the calibration test.
+  Setup entry (2026-10-29 9:15 PM EDT): The setup catalogue entry for
+  the Harris file is built by Sources 1 (with the NOAA and Baraffe
+  entries), then the reader and the calibration test are Core 4's.
   Prerequisites: none. Related: GEN.160, GEN.237, GEN.162.
 
 - [ ] **GEN.300 Every quantity in the code moves onto the Quantity class, and hand conversions are removed**
@@ -11496,6 +11499,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   set (255 events) is held only in the project files; add it to the
   setup catalogue (or a reduced committed table, licence is Boss's) so a
   fresh server has it before the lane that takes this item starts.
+  Setup entry (2026-10-29 9:15 PM EDT): The setup catalogue entry for
+  the NOAA proton events is built by Sources 1 unless Aux 7's branch
+  claude/gen746-749 already carries one.
   Prerequisites: none. Related: GEN.436, GEN.444.
 
 - [ ] **GEN.748 Ozone: temperature-dependent Chappuis cross sections and a spread no wider than the paper's**
@@ -12312,6 +12318,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   is already started elsewhere, the lane tells TODO before taking it.
   Lock-free parts first; the part that changes generated output rides a
   train.
+  Owner (full build, corrected) (2026-10-29 9:15 PM EDT): Core 4.
+  Already built in Core 4's parked branch claude/project-thread-wm6oti
+  (physics/giant_structure.py, datasets/hhe_eos.py, core_heat.py),
+  waiting for a train; nobody rebuilds it. This replaces the owner line
+  above.
   Prerequisites: GEN.733. Related: GEN.801, GEN.735.
 
 - [ ] **GEN.811 The description of a giant says what its interior is (G3, step 3)**
@@ -12574,6 +12585,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   is already started elsewhere, the lane tells TODO before taking it.
   Lock-free parts first; the part that changes generated output rides a
   train.
+  Owner (full build, corrected) (2026-10-29 9:15 PM EDT): Core 4.
+  Already built in Core 4's parked branch claude/project-thread-wm6oti
+  (physics/giant_structure.py, datasets/hhe_eos.py, core_heat.py),
+  waiting for a train; nobody rebuilds it. This replaces the owner line
+  above.
   Prerequisites: none. Related: GEN.735, GEN.763.
 
 - [ ] **GEN.839 The hydrosphere ice shell and the surface composition volcanism gate still read the provisional-age heat, so they disagree with the final-age heat GEN.763 stores (bug)**
@@ -12596,6 +12612,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   is already started elsewhere, the lane tells TODO before taking it.
   Lock-free parts first; the part that changes generated output rides a
   train.
+  Owner (full build, corrected) (2026-10-29 9:15 PM EDT): Core 4.
+  Already built in Core 4's parked branch claude/project-thread-wm6oti
+  (physics/giant_structure.py, datasets/hhe_eos.py, core_heat.py),
+  waiting for a train; nobody rebuilds it. This replaces the owner line
+  above.
   Prerequisites: none. Related: GEN.763, GEN.735.
 
 - [ ] **GEN.842 Follow-ups to elliptical orbits, tidal heating and planet spin: the approximations GEN.727, GEN.737 and GEN.731 left**
@@ -13712,6 +13733,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   catalogue entry with a source URL (raw data never in the repo; licence
   note is Boss's, DATA-LICENSE.md), so a fresh server has it. The
   age-dependent brown dwarf radius is GEN.948.
+  Setup entry (2026-10-29 9:15 PM EDT): The setup catalogue entry for
+  the Baraffe 2015 table is built by Sources 1 (with the Harris and NOAA
+  entries); Bug 1 starts its other steps meanwhile.
   Prerequisites: none. Related: GEN.922, GEN.932.
 
 - [ ] **GEN.939 Wolf-Rayet luminosity follows the present mass by the helium-star mass-luminosity relation (low priority)**
@@ -13983,6 +14007,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   only a research pass today (GEN.468). Do: the water share of solids by
   distance reads the table. Low priority. Stand-in tier Verified (L0)
   once read. Owner: none yet. Version 8.4.
+  Owner (full build) (2026-10-29 9:15 PM EDT): Sources 1. This replaces
+  any earlier owner line.
   Prerequisites: none. Related: GEN.944, GEN.468.
 
 - [ ] **GEN.951 Companion mass ratio depends on the primary mass and the orbital period, with the twin excess (Moe and Di Stefano 2017 Table 13) instead of a flat 0.1 to 1 (low priority)**
@@ -14236,6 +14262,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and a lane waiting for a train can do it. Every stand-in it adds gets
   a GEN.725 registry row with tier and tweak level (L0 to L4). Owner:
   Aux 3 (giants chain GEN.801, GEN.809 to GEN.811). Version 8.1.
+  Owner (full build, corrected) (2026-10-29 9:15 PM EDT): Core 4.
+  Already built in Core 4's parked branch claude/project-thread-wm6oti
+  (physics/giant_structure.py, datasets/hhe_eos.py, core_heat.py),
+  waiting for a train; nobody rebuilds it. This replaces the owner line
+  above.
   Prerequisites: none. Related: GEN.733.
 
 - [ ] **GEN.965 H-He equation of state tables (b): replace the n=1 polytrope in the giant interior solver with the tables**
@@ -14249,6 +14280,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Every stand-in it adds gets a GEN.725 registry row with tier and tweak
   level (L0 to L4). Owner: Aux 3 (giants chain GEN.801, GEN.809 to
   GEN.811). Version 8.1.
+  Owner (full build, corrected) (2026-10-29 9:15 PM EDT): Core 4.
+  Already built in Core 4's parked branch claude/project-thread-wm6oti
+  (physics/giant_structure.py, datasets/hhe_eos.py, core_heat.py),
+  waiting for a train; nobody rebuilds it. This replaces the owner line
+  above.
   Prerequisites: GEN.964. Related: GEN.733.
 
 - [ ] **GEN.966 Dynamo field (a): a pure module giving field strength and lifetime from core heat flow and spin, with tests on Earth, Mercury, Ganymede, Jupiter and Mars (dead)**
@@ -14262,6 +14298,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   can do it. Every stand-in it adds gets a GEN.725 registry row with
   tier and tweak level (L0 to L4). Owner: Aux 4 (magnetosphere chain
   GEN.800). Version 8.1.
+  Start point (2026-10-29 9:15 PM EDT): Core 4's parked branch
+  claude/project-thread-wm6oti has core_heat.py: a core thermal model
+  whose dipole moment comes from the core's buoyancy flux and whose
+  dynamo lifetime is the history of the liquid shell (tested on Earth, a
+  dead Mars and a super-Earth). Aux 4 starts from it: add the Ganymede
+  and Jupiter tests and the dipole at the final star age.
   Prerequisites: none. Related: GEN.736.
 
 - [ ] **GEN.967 Dynamo field (b): the stored field strength, moment and lifetime come from the dynamo module and feed the radiation shielding**
@@ -14275,6 +14317,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   --affects, rides a train. Every stand-in it adds gets a GEN.725
   registry row with tier and tweak level (L0 to L4). Owner: Aux 4
   (magnetosphere chain GEN.800). Version 8.1.
+  Start point (2026-10-29 9:15 PM EDT): Core 4's parked branch
+  claude/project-thread-wm6oti has core_heat.py: a core thermal model
+  whose dipole moment comes from the core's buoyancy flux and whose
+  dynamo lifetime is the history of the liquid shell (tested on Earth, a
+  dead Mars and a super-Earth). Aux 4 starts from it: add the Ganymede
+  and Jupiter tests and the dipole at the final star age.
   Prerequisites: GEN.966. Related: GEN.736.
 
 - [ ] **GEN.968 Neutron star structure (a): a TOV integration over the equation-of-state tables held on disk, tested against NICER radii**
@@ -19316,6 +19364,8 @@ clears each one.
   and the scatter, not the real joint distribution. Do: a test comparing
   the generated [X/Fe] distribution against the held table. Low
   priority. Owner: none yet. Version 8.4.
+  Owner (full build) (2026-10-29 9:15 PM EDT): Sources 1. This replaces
+  any earlier owner line.
   Prerequisites: none. Related: TEST.455.
 
 - [ ] **TEST.459 The point_phenomena links browser test is red on clean main (bug)**
