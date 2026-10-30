@@ -2,8 +2,6 @@
     view is HTML from planetgen/web/maps/phenomenonrender.py or planetgen/web/maps/phenomenonmap.py
     (escaped there); an asteroid field has none. -#}
 {% extends "base.html" %}
-{#- UX.238: the "On this page" bar sits under the tab bar (static/pagetoc.js), not in a column at the left. -#}
-{% block main_class %} toc-top{% endblock %}
 {% from "partials/admin_menu.html" import admin_menu_button, admin_dialogs, add_edit_actions with context %}
 {% from "partials/action_bar.html" import action_bar %}
 {% from "partials/pick_banner.html" import pick_banner %}

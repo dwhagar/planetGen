@@ -1,8 +1,6 @@
 {#- One star, planet, moon, belt, comet or facility (/object/<ref>, web/item_pages.py, UX.143, UX.170): where it is, its property
     sheet, what the description says about it and the tree of what belongs to it. -#}
 {% extends "base.html" %}
-{#- UX.238: the "On this page" bar sits under the tab bar (static/pagetoc.js), not in a column at the left. -#}
-{% block main_class %} toc-top{% endblock %}
 {% from "partials/admin_menu.html" import admin_menu_button, admin_dialogs, add_edit_actions with context %}
 {% from "partials/action_bar.html" import action_bar %}
 {% from "partials/poi_key.html" import poi_key_panel with context %}

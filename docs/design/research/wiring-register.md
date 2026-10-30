@@ -196,12 +196,12 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.92:RC2 | GEN.1049 | a constant of the resonant chains module, read when its wiring step lands |
 | row | 6.92:RC3 | GEN.1049 | a constant of the resonant chains module, read when its wiring step lands |
 | row | 6.92:RC4 | GEN.1049 | a constant of the resonant chains module, read when its wiring step lands |
-| module | planetgen.physics.belt_density | UX.240 | the objects per square AU above a diameter, the mass per square AU and the size-table bins of a belt; the belt page data builder reads it |
-| row | 6.99:BD1 | UX.240 | a constant of the belt density module, read when its wiring step lands |
-| row | 6.99:BD2 | UX.240 | a constant of the belt density module, read when its wiring step lands |
-| row | 6.99:BD3 | UX.240 | a constant of the belt density module, read when its wiring step lands |
-| row | 6.99:BD4 | UX.240 | a constant of the belt density module, read when its wiring step lands |
-| row | 6.99:BD5 | UX.240 | a constant of the belt density module, read when its wiring step lands |
+| module | planetgen.physics.belt_density | UX.241 | the objects per square AU above a diameter, the mass per square AU and the size-table bins of a belt; the belt page data builder reads it |
+| row | 6.99:BD1 | UX.241 | a constant of the belt density module, read when its wiring step lands |
+| row | 6.99:BD2 | UX.241 | a constant of the belt density module, read when its wiring step lands |
+| row | 6.99:BD3 | UX.241 | a constant of the belt density module, read when its wiring step lands |
+| row | 6.99:BD4 | UX.241 | a constant of the belt density module, read when its wiring step lands |
+| row | 6.99:BD5 | UX.241 | a constant of the belt density module, read when its wiring step lands |
 | module | planetgen.physics.band_winds | GEN.1110 | the mean surface wind by day and by night in each latitude band; the seven-band climate (GEN.1108) will feed it band temperatures, and GEN.1110's storage step reads it |
 | row | 6.98:BW1 | GEN.1110 | a constant of the band winds module, read when its wiring step lands |
 | row | 6.98:BW2 | GEN.1110 | a constant of the band winds module, read when its wiring step lands |
@@ -369,3 +369,8 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.119:CP1 | GEN.1083 | `captured_composition.FEEDING_ZONE_HILL_RADII`, read when the captured-moon wiring lands |
 | row | 6.119:CP3 | GEN.1083 | `captured_composition.PARENT_LUMPS`, read when the captured-moon wiring lands |
 | row | 6.119:CP2 | GEN.1083 | `belt_history.SURFACE_DENSITY_SLOPE`, read by the captured composition when the captured-moon wiring lands |
+| module | planetgen.physics.belt_page | UX.241 | the data of a belt's information page (lock-free, UX.240); the page route and the API field call `build` |
+| row | 6.120:BP1 | UX.241 | `belt_page.BIN_EDGES_KM, BIN_LOW_KM`, read when the page route lands |
+| row | 6.120:BP2 | UX.241 | `belt_page.DENSITY_DIAMETERS_KM`, read when the page route lands |
+| row | 6.120:BP3 | UX.241 | `belt_page.L2_FLOOR_KG`, read when the page route lands |
+| row | 6.120:BP4 | UX.241 | `belt_page.SHARE_SAMPLES, MIN_SHARE`, read when the page route lands |
