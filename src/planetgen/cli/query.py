@@ -19,6 +19,33 @@ from planetgen.util.format import format_distance_km, format_distance_ly, format
 from planetgen.db.store import add_mysql_connection_args, mysql_config_from_args
 
 
+DEFAULT_PAGE = 100
+"""int: How many planets or moons a listing shows unless `--limit` says otherwise (PERF.207)."""
+
+
+def _add_paging(parser, kind):
+    """The `--limit` and `--after` of a listing that can be very long (PERF.207)."""
+    parser.add_argument('--limit', type=int, default=DEFAULT_PAGE,
+                        help=f"How many {kind}s to show (default {DEFAULT_PAGE}; 0 shows every one, which on a big galaxy "
+                             "reads them all).")
+    parser.add_argument('--after', metavar='ID',
+                        help=f"Carry on after this {kind} (the ID the previous listing ended on, which it prints).")
+
+
+def _page(args):
+    """`(rows to ask for, rows to show)` for a listing: one row more than shown, to know whether another page follows;
+    both `None` for `--limit 0`."""
+    if args.limit < 0:
+        raise SystemExit("Error: --limit must be 0 or more.")
+    return (None, None) if args.limit == 0 else (args.limit + 1, args.limit)
+
+
+def _show(conn, kind, rows, shown):
+    """The rows to print, and after them the `--after` to carry on with when more follow."""
+    return rows if shown is None else rows[:shown], (
+        None if shown is None or len(rows) <= shown else _printed(conn, kind, rows[shown - 1]["id"]))
+
+
 def process_args():
     """
     Parses command-line arguments for the three subcommands: `sectors`,
@@ -68,6 +95,7 @@ def process_args():
     planets_parser.add_argument('--max-radius-km', type=float, help="Only planets at most this large.")
     planets_parser.add_argument('--sector-id', help="Only planets whose system is in this sector.")
     planets_parser.add_argument('--system-id', help="Only planets in this one system.")
+    _add_paging(planets_parser, "planet")
 
     moons_parser = subparsers.add_parser(
         'moons', help="List moons, optionally filtered by class, radius, sector, or system.",
@@ -78,6 +106,7 @@ def process_args():
     moons_parser.add_argument('--max-radius-km', type=float, help="Only moons at most this large.")
     moons_parser.add_argument('--sector-id', help="Only moons whose system is in this sector.")
     moons_parser.add_argument('--system-id', help="Only moons in this one system.")
+    _add_paging(moons_parser, "moon")
 
     log.add_debug_arguments(parser)
     args = parser.parse_args()
@@ -158,30 +187,38 @@ def main():
                   f"{result['not_generated_total']} more in range are not generated yet.")
 
         elif args.command == 'planets':
+            ask, shown = _page(args)
             planets = list_planets(
                 conn, planet_class=args.planet_class, min_radius_km=args.min_radius_km,
                 max_radius_km=args.max_radius_km, sector_id=_row(conn, "sector", args.sector_id),
-                system_id=_row(conn, "system", args.system_id),
+                system_id=_row(conn, "system", args.system_id), limit=ask, after=_row(conn, "planet", args.after),
             )
             if not planets:
-                print("No matching planets.")
+                print("No matching planets." if args.after is None else "No more planets.")
                 return
+            planets, carry_on = _show(conn, "planet", planets, shown)
             for planet in planets:
                 print(f"[{_printed(conn, 'planet', planet['id'])}] {planet['name']} (Class {planet['planet_class']}, "
                       f"{format_distance_km(planet['radius_km'])}) -- {planet['system_name']}")
+            if carry_on:
+                print(f"{len(planets)} shown; more follow: carry on with --after {carry_on}")
 
         elif args.command == 'moons':
+            ask, shown = _page(args)
             moons = list_moons(
                 conn, planet_class=args.planet_class, min_radius_km=args.min_radius_km,
                 max_radius_km=args.max_radius_km, sector_id=_row(conn, "sector", args.sector_id),
-                system_id=_row(conn, "system", args.system_id),
+                system_id=_row(conn, "system", args.system_id), limit=ask, after=_row(conn, "moon", args.after),
             )
             if not moons:
-                print("No matching moons.")
+                print("No matching moons." if args.after is None else "No more moons.")
                 return
+            moons, carry_on = _show(conn, "moon", moons, shown)
             for moon in moons:
                 print(f"[{_printed(conn, 'moon', moon['id'])}] {moon['name']} (Class {moon['planet_class']}, "
                       f"{format_distance_km(moon['radius_km'])}) -- {moon['system_name']} / {moon['planet_name']}")
+            if carry_on:
+                print(f"{len(moons)} shown; more follow: carry on with --after {carry_on}")
     finally:
         conn.close()
 

@@ -927,8 +927,37 @@ def _body_filter_clause(table_alias, planet_class, min_radius_km, max_radius_km,
     return where_sql, params
 
 
+def _bodies_after(conn, kind, where_sql, params, after):
+    """
+    The keyset condition for `list_planets` and `list_moons` (PERF.207): the bodies after the one with row id `after` in
+    their order (`kind` `"planet"` or `"moon"`), as `(where_sql, params)` with it added; unchanged when `after` is `None`
+    or names nothing, so the page then starts at the top.
+
+    A planet's order is system name, system, orbit and id; a moon's adds its planet's orbit before its own.
+    """
+    if after is None:
+        return where_sql, params
+    if kind == "planet":
+        found = conn.execute(
+            "SELECT ss.name AS name, p.star_system_id AS system_id, p.orbital_index AS orbit FROM planets p "
+            "JOIN star_systems ss ON ss.id = p.star_system_id WHERE p.id = ?", (after,)).fetchone()
+        columns, id_column = ["ss.name", "p.star_system_id", "p.orbital_index"], "p.id"
+        values = None if found is None else [found["name"], found["system_id"], found["orbit"]]
+    else:
+        found = conn.execute(
+            "SELECT ss.name AS name, m.star_system_id AS system_id, p.orbital_index AS planet_orbit, m.orbital_index AS orbit "
+            "FROM moons m JOIN planets p ON p.id = m.planet_id JOIN star_systems ss ON ss.id = m.star_system_id "
+            "WHERE m.id = ?", (after,)).fetchone()
+        columns, id_column = ["ss.name", "m.star_system_id", "p.orbital_index", "m.orbital_index"], "m.id"
+        values = None if found is None else [found["name"], found["system_id"], found["planet_orbit"], found["orbit"]]
+    if values is None:
+        return where_sql, params
+    condition, keyset_params = _keyset_condition(columns, values, False, id_column, after)
+    return _and_where(where_sql, condition), params + keyset_params
+
+
 def list_planets(conn, planet_class=None, min_radius_km=None, max_radius_km=None,
-                  sector_id=None, system_id=None, limit=None, offset=None):
+                  sector_id=None, system_id=None, limit=None, offset=None, after=None):
     """
     Returns planets (never asteroid belts -- `body_type` is always `'t'`/
     `'g'` here, `schema.sql`'s `planets` table holds only those), optionally
@@ -948,7 +977,9 @@ def list_planets(conn, planet_class=None, min_radius_km=None, max_radius_km=None
         limit (int, optional): Caps the number of rows returned. `None`
             (the default) returns every matching planet.
         offset (int, optional): Skips this many rows first. Ignored
-            unless `limit` is also given.
+            unless `limit` is also given, and when `after` is.
+        after (int, optional): The row id of the planet the previous page ended on: the page starts after it in the
+            order (system name, system, orbit, id) and `offset` is not used, so any page costs the same (PERF.207).
 
     Returns:
         list[dict]: One row per matching planet, with `id`, `name`,
@@ -956,22 +987,23 @@ def list_planets(conn, planet_class=None, min_radius_km=None, max_radius_km=None
             `system_name`.
     """
     where_sql, params = _body_filter_clause("p", planet_class, min_radius_km, max_radius_km, sector_id, system_id)
+    where_sql, params = _bodies_after(conn, "planet", where_sql, params, after)
     query = f"""
         SELECT p.id, p.name, p.planet_class, p.body_type, p.radius_km, p.star_system_id, ss.name AS system_name
         FROM planets p
         JOIN star_systems ss ON ss.id = p.star_system_id{where_sql}
-        ORDER BY ss.name, p.orbital_index
+        ORDER BY ss.name, p.star_system_id, p.orbital_index, p.id
         """
     if limit is not None:
         query += " LIMIT ? OFFSET ?"
-        params = params + [limit, offset or 0]
+        params = params + [limit, 0 if after is not None else offset or 0]
 
     rows = conn.execute(query, params).fetchall()
     return [dict(r) for r in rows]
 
 
 def list_moons(conn, planet_class=None, min_radius_km=None, max_radius_km=None,
-                sector_id=None, system_id=None, limit=None, offset=None):
+                sector_id=None, system_id=None, limit=None, offset=None, after=None):
     """
     Returns moons, optionally filtered by class, radius range, sector,
     and/or system -- the `moons` counterpart of `list_planets` above (see
@@ -987,7 +1019,9 @@ def list_moons(conn, planet_class=None, min_radius_km=None, max_radius_km=None,
         limit (int, optional): Caps the number of rows returned. `None`
             (the default) returns every matching moon.
         offset (int, optional): Skips this many rows first. Ignored
-            unless `limit` is also given.
+            unless `limit` is also given, and when `after` is.
+        after (int, optional): The row id of the moon the previous page ended on: the page starts after it in the order
+            (system name, system, its planet's orbit, its orbit, id) and `offset` is not used (PERF.207).
 
     Returns:
         list[dict]: One row per matching moon, with `id`, `name`,
@@ -995,17 +1029,18 @@ def list_moons(conn, planet_class=None, min_radius_km=None, max_radius_km=None,
             `system_name`, `planet_name` (its parent planet's name).
     """
     where_sql, params = _body_filter_clause("m", planet_class, min_radius_km, max_radius_km, sector_id, system_id)
+    where_sql, params = _bodies_after(conn, "moon", where_sql, params, after)
     query = f"""
         SELECT m.id, m.name, m.planet_class, m.body_type, m.radius_km, m.star_system_id,
                ss.name AS system_name, p.name AS planet_name
         FROM moons m
         JOIN planets p ON p.id = m.planet_id
         JOIN star_systems ss ON ss.id = m.star_system_id{where_sql}
-        ORDER BY ss.name, p.orbital_index, m.orbital_index
+        ORDER BY ss.name, m.star_system_id, p.orbital_index, m.orbital_index, m.id
         """
     if limit is not None:
         query += " LIMIT ? OFFSET ?"
-        params = params + [limit, offset or 0]
+        params = params + [limit, 0 if after is not None else offset or 0]
 
     rows = conn.execute(query, params).fetchall()
     return [dict(r) for r in rows]
