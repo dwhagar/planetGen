@@ -154,16 +154,28 @@ def _ref(kind, object_id):
 
 def _systems_in_reach(conn, center, distance):
     """Every placed system whose position is within `distance` of `center`:
-    `{id: {...}}` with `name`, `sector_id`, `point`, `distance`."""
-    columns = "p.id, p.name, p.sector_id, p.galaxy_x_pc, p.galaxy_y_pc, p.galaxy_z_pc"
+    `{id: {...}}` with `point` and `distance`. Only the columns of the covering cell index are read (PERF.217): the name and
+    sector of a system are not in it, and a sphere of 60,000 systems read them from the table row by row, three times the cost
+    of the id list; `_system_labels` reads them for the systems of one page."""
+    columns = "p.id, p.galaxy_x_pc, p.galaxy_y_pc, p.galaxy_z_pc"
     position = ("p.galaxy_x_pc", "p.galaxy_y_pc", "p.galaxy_z_pc")
     found = {}
     for row in region.region_rows(conn, "star_systems", columns, position, center, distance):
         point = (row["galaxy_x_pc"], row["galaxy_y_pc"], row["galaxy_z_pc"])
         away = detmath.dist(center, point)
         if away <= distance:
-            found[row["id"]] = {"name": row["name"], "sector_id": row["sector_id"], "point": point, "distance": away}
+            found[row["id"]] = {"point": point, "distance": away}
     return found
+
+
+def _system_labels(conn, system_ids):
+    """`{id: (name, sector_id)}` of the systems of one page (a read by id, never a search)."""
+    labels = {}
+    for chunk in _chunks(sorted(system_ids)):
+        for row in conn.execute(f"SELECT id, name, sector_id FROM star_systems WHERE id IN ({_marks(len(chunk))})",
+                                tuple(chunk)).fetchall():
+            labels[row["id"]] = (row["name"], row["sector_id"])
+    return labels
 
 
 def _sector_names(conn, sector_ids):
@@ -225,10 +237,10 @@ def _body_counts(conn, system_ids, wanted):
     return counts
 
 
-def _bodies_of(conn, system_id, system, wanted):
+def _bodies_of(conn, system_id, system_name, wanted):
     """The wanted bodies of one system, in `BODY_KINDS` order, then id."""
     rows = []
-    parent = {"ref": _ref("system", system_id), "kind": "system", "name": system["name"]}
+    parent = {"ref": _ref("system", system_id), "kind": "system", "name": system_name}
     if "star" in wanted:
         for row in conn.execute("SELECT id, name FROM stars WHERE star_system_id = ? ORDER BY id", (system_id,)).fetchall():
             rows.append(("star", row["id"], row["name"], parent))
@@ -256,7 +268,8 @@ def _bodies_of(conn, system_id, system, wanted):
 
 def _facilities(conn, center, distance, systems):
     """Facilities within reach: `(distance, id, name, parent, point)`; a standalone one's `parent` carries its
-    `sector_id` until the page names it."""
+    `sector_id` until the page names it, and one in a system has the system's name left `None` until the page is made
+    (`_system_labels`)."""
     found = []
     for chunk in _chunks(systems):
         rows = conn.execute(
@@ -265,7 +278,7 @@ def _facilities(conn, center, distance, systems):
         for row in rows:
             system = systems[row["star_system_id"]]
             found.append((system["distance"], row["id"], row["name"],
-                          {"ref": _ref("system", row["star_system_id"]), "kind": "system", "name": system["name"]},
+                          {"ref": _ref("system", row["star_system_id"]), "kind": "system", "name": None},
                           system["point"]))
     position = ("p.center_x_pc", "p.center_y_pc", "p.center_z_pc")
     for row in region.region_rows(conn, "facilities", "p.id, p.name, p.sector_id, p.center_x_pc, p.center_y_pc, p.center_z_pc",
@@ -377,6 +390,17 @@ def objects_within(conn, place, distance_pc, kinds=None, limit=DEFAULT_LIMIT, of
         sizes.append(size)
     total = sum(sizes)
 
+    on_page = set()                     # the systems the page names: its own, its bodies' and its facilities' parents
+    position = 0
+    for entry, size in zip(entries, sizes):
+        if position + size > offset and position < offset + limit:
+            if entry[3] in ("system", "bodies"):
+                on_page.add(entry[2])
+            elif entry[3] == FACILITY_KIND and entry[4][1] and entry[4][1]["kind"] == "system":
+                on_page.add(object_ref.parse(entry[4][1]["ref"])[1])
+        position += size
+    labels = _system_labels(conn, on_page)
+
     rows = []
     position = 0
     for entry, size in zip(entries, sizes):
@@ -387,16 +411,18 @@ def objects_within(conn, place, distance_pc, kinds=None, limit=DEFAULT_LIMIT, of
             break
         away, _rank, object_id, what, extra = entry
         if what == "system":
-            system = systems[object_id]
-            made = [("system", object_id, system["name"],
-                     {"ref": _ref("sector", system["sector_id"]), "kind": "sector", "name": None}
-                     if system["sector_id"] is not None else None)]
+            name, sector_id = labels.get(object_id, (None, None))
+            made = [("system", object_id, name,
+                     {"ref": _ref("sector", sector_id), "kind": "sector", "name": None} if sector_id is not None else None)]
             home = object_id
         elif what == "bodies":
-            made = _bodies_of(conn, object_id, systems[object_id], body_wanted)
+            made = _bodies_of(conn, object_id, labels.get(object_id, (None, None))[0], body_wanted)
             home = object_id
         elif what == FACILITY_KIND:
-            made = [(FACILITY_KIND, object_id, extra[0], extra[1])]
+            parent = extra[1]
+            if parent and parent["kind"] == "system":
+                parent = dict(parent, name=labels.get(object_ref.parse(parent["ref"])[1], (None, None))[0])
+            made = [(FACILITY_KIND, object_id, extra[0], parent)]
             home = (object_ref.parse(extra[1]["ref"])[1] if extra[1] and extra[1]["kind"] == "system" else None)
         else:
             made = [(extra[0], object_id, extra[1], None)]

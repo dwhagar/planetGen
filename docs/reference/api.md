@@ -217,13 +217,13 @@ connectivity to that specific schema rather than the default one.
   kind, sort or order, a `limit` or `sector_id` that is not a number, a `from` under another sort, or an `after` that is not an object ID
   (`objectlist.list_objects`).
 - `GET /api/uncharted-systems/<bright star id>` — one scattered star (UX.114): the fields of a list item,
-  `system_id` (the system built around it, `null` while it is uncharted), `hosted_nebula` (the nebula the star lights, the one
+  `rotation_period_hours` (GEN.846: its spin period; `null` on a row made before schema v185), `system_id` (the system built around it, `null` while it is uncharted), `hosted_nebula` (the nebula the star lights, the one
   its sector builds: `name`, `nebula_class`, `nebula_type`, `class_name`, `radius_ly`, `age_myr`; `null` for a star that
-  lights none or is built, GEN.530) and, for a star with company that is not built, `members` (`member_no`, `kind`, `state`, `mass_solar`, `parent_node_no`, `flags`) and `nodes` (`node_no`,
+  lights none or is built, GEN.530) and, for a star with company that is not built, `members` (`member_no`, `kind`, `state`, `mass_solar`, `parent_node_no`, `flags`, `radius_au`: GEN.952, `null` on a row made before schema v184) and `nodes` (`node_no`,
   `parent_node_no`, `kind` of `close`, `wide`, `compact` or `group`, `mass_solar`, `separation_au`,
   `period_years`, `eccentricity`, `interaction`, `flags`) and `compact_pairs` (UX.186: one per accreting neutron star or black hole
   with a companion or ablating pulsar with its companion: `node_no`, `kind` of `high-mass-xray-binary`, `be-xray-binary`,
-  `low-mass-xray-binary`, `black-widow` or `redback`, `compact` and `companion` (member numbers) and `microquasar`). 404 for an id that is no row (`queryDb.uncharted_system_detail`).
+  `low-mass-xray-binary`, `black-widow` or `redback`, `compact` and `companion` (member numbers), `microquasar` and `x_ray_luminosity_w`: GEN.952, the watts an accreting pair radiates, worked out on read from the stored masses, radii and orbit, `null` for a spider pair and for a tree stored before v184). 404 for an id that is no row (`queryDb.uncharted_system_detail`).
 - `GET /api/systems/<id>` — one system's full display detail: `id`,
   `name`, `sector_id`, `quadrant`, `location`, `is_binary`, `binary_type`,
   `binary_configuration` (`"close"`/`"wide"`/`null`),
@@ -552,8 +552,10 @@ connectivity to that specific schema rather than the default one.
   list on to the map's browser cache.
 - `GET /api/phenomena?limit=<n>&offset=<n>&after=<scatter id>|<type>:<ID>` — every exotic phenomenon (`after`, the `scatter_id` of a scattered
   row, starts the page after it in the tail of unbuilt scattered phenomena and ignores `offset`, PERF.75; `after=<type>:<ID>`, the `type` and `id` of a
-  built row, starts it after that row in the name order and then the tail, PERF.205: the first page by name and every page after a built row cost the
-  same at any depth, and the other sorts read the whole union as before; anything else is a 400;
+  built row, starts it after that row in the order of `sort` and then the tail, PERF.205, PERF.211: the first page of every sort (`name`, `type`,
+  `descriptor`, `radius`, `placed`, `sector`) and every page after a built row cost the same at any depth, each table read on an index ending in
+  `name` and the best rows of all taken, a tie settling by name, type and id in the direction of the sort; a page by `offset` past the first still
+  sorts the whole union of built rows; anything else is a 400;
   `from=<scatter id>`, PERF.135, lists that tail from the row with that id on, `total` counting from there; a value that is not a whole number from 1 up
   is a 400, and one past the end answers the last page of the tail, `past_end` true and `total` its length),
   across every sector and regardless of galaxy placement (unlike

@@ -127,7 +127,8 @@ def galaxy_totals(workers=None, shells=None):
 
 
 def _wr_draw_job(job):
-    """`(population, hits, draws)` for `draws` living stars of 8 solar masses or more of one population."""
+    """`(population, hits, draws)` for `draws` systems of one population whose primary is born with 8 solar masses or more:
+    the Wolf-Rayet stars in them, primaries and companions."""
     from planetgen.generation import star_population
     from planetgen.physics import wolf_rayet
     from planetgen.util import draw
@@ -135,7 +136,23 @@ def _wr_draw_job(job):
     population, chunk, draws = job
     draw.set_run_seed(census.seed_for("wolf-rayet", population, chunk))
     stars = star_population.sample_mass_band_stars(draws, _wr_floor(), None, population=population)
-    return population, sum(1 for star in stars if star["yerkes_class"] == wolf_rayet.CLASS), draws
+    return population, sum(_wolf_rayets_of_system(star, draw) for star in stars), draws
+
+
+def _wolf_rayets_of_system(primary, rng):
+    """The Wolf-Rayet stars in the system built around `primary`: the primary and each companion of the star-count table
+    (GEN.928: a companion is a star born lighter than its primary, drawn as `multistar` draws it, and evolved to the system's age)."""
+    from planetgen.generation import multistar
+    from planetgen.generation.phenomena import hosts
+    from planetgen.physics import stellar_evolution, wolf_rayet
+
+    found = 1 if primary["yerkes_class"] == wolf_rayet.CLASS else 0
+    birth, age_gy = primary["initial_mass_sol"], primary["age_gy"]
+    low, high = multistar.companion_ratio_range(birth)
+    for _companion in range(hosts.draw_star_count(multistar.companion_class(birth), 1.0, rng) - 1):
+        state = stellar_evolution.evolve_star(birth * rng.uniform(low, high), age_gy, rng, fe_h=primary["metallicity_fe_h"])
+        found += 1 if state is not None and state["yerkes_class"] == wolf_rayet.CLASS else 0
+    return found
 
 
 def _wr_floor():

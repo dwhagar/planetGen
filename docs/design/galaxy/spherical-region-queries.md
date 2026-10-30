@@ -343,6 +343,40 @@ What it says.
 
 Not covered: a generated galaxy of several runs (the copies repeat 120 systems), concurrent queries, `uid`-bearing rows, and a buffer pool of 128 MB (the setting did not take effect on the live server; the cold run used the 1 GB the configuration gives).
 
+### 8.2 Where the time went, and the cheaper statement (PERF.216)
+
+The 3 to 10 times gap of section 8.1 was not the index. On the 3 million row table, 50 pc, 219 runs, 87,000 candidate rows, 62,700 inside (median of six centres):
+
+| What | ms |
+|---|---|
+| Plan (`sphere_runs`, Python) | 4 |
+| Join the runs to the covering index and count the candidates, no distance test | 46 (0.5 µs a candidate, the research's 2 million rows a second) |
+| The same with the distance test in `WHERE` | 260 to 280 |
+| `capped_count` as built (a `UNION ALL` of the two branches, `LIMIT`, `d2` selected) | 410 to 550 |
+
+The distance test costs 2.7 µs a candidate, five times the index read. MySQL evaluates an expression tree node by node and does not share a repeated sub-expression: `(x - cx) * (x - cx)` works out `x - cx` twice, and the statement tested the distance in `WHERE` and then selected it as `d2` (the whole expression again for each row kept), and `capped_count` selected `d2` it never used. About 1.8 million expression nodes were evaluated for 87,000 candidates. The research tables used the same expression on a quiet machine, so what is left of the gap after this change (4 times at 50 pc) is this machine and a 3 million row table, not the statement.
+
+The statement now (`planetgen/db/region.py`):
+
+- The squared distance is `POW(axis - c, 2)` per axis (`x - c` once), worked out once per candidate, in the select list, and the test is `HAVING d2 <= r²` on that column.
+- `capped_count` selects `1` and tests in `WHERE`; it does not compute `d2`.
+- Nothing about the plan changes (the plan-shape test passes unchanged): same runs, same covering index, same join order, same loose test. Systems returned are identical to the product form's, including a system exactly `radius` away: `test_the_distance_is_worked_out_once_per_candidate_and_returns_the_same_systems` compares the id sets and the capped count on the test galaxy, and the benchmark's check of the three designs held at every one of the 16 centres and 5 radii.
+
+Warm, 3 million rows, ms (before from section 8.1, same machine; the median of 16 centres):
+
+| | 1 pc | 5 pc | 10 pc | 25 pc | 50 pc |
+|---|---|---|---|---|---|
+| `COUNT(*)`, before | 5.8 | 9.0 | 13.6 | 64.5 | 427.5 |
+| `COUNT(*)`, after | 6.6 | 9.3 | 10.1 | 32.1 | 177.5 |
+| Rows returned (`p.id`), before | 5.6 | 9.7 | 17.3 | 82.4 | 600.2 |
+| Rows returned (`p.id`), after | 5.9 | 8.3 | 14.5 | 69.1 | 425.5 |
+
+So the count at 50 pc is 2.4 times faster, at 25 pc 2 times, and the early stop at a cap of 20,000 is 3 times faster (220 to 74 ms in the profiling run). The 1 and 5 pc times are the planning and are unchanged. The count at 50 pc is still 4 times the research's 42 ms, which is the index read (46 ms) plus the test on the 87,000 candidates at the new price (about 1.5 µs).
+
+What was tried and not taken. Splitting the runs into cubes wholly inside the sphere (counted with no test) and cubes the surface crosses (tested): about half the candidates are in each, so it saves a further 40 ms of 260 at the price of a second `VALUES` list and a second return from `sphere_runs`; not worth the code. A prefilter on each axis's distance added work. `x * (x - 2c) + Σc²` is 1.5 times slower than `POW` and loses digits.
+
+Seen on the way and not changed here: `near._systems_in_reach` selects `p.name` and `p.sector_id`, which are not in the covering index, so the 50 pc list reads the clustered row of each of the 62,000 systems: 1,170 ms against 360 ms for the ids alone (profiling run). Listing the ids by the covering index and reading names for the page only would take that to the cost of the count; that is a change to the caller, filed separately.
+
 ## 9. Proposed TODO items (working titles; the TODO thread assigns the numbers)
 
 1. **Cell key and covering index on every positioned table** (Core). In GEN.223's migration: `cell_key` generated column, `idx_cell (cell_key, x, y, z)` on `star_systems`, the standalone phenomenon tables, standalone facilities, interstellar comets, asteroid fields and the scatter tables. Equality test: SQL key equals the Python key on a million random points including the box edges and just outside it; the `NULL` guard; tests that no position can be written without its key.

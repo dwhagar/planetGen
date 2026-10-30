@@ -217,7 +217,8 @@ def _hot_row(point_pc, address, k):
             "temperature_k": params["temperature_k"], "luminosity_w": params["luminosity_w"],
             "age_gy": params["age_gy"], "lifespan_gy": params["lifespan_gy"],
             "initial_mass_sol": params["initial_mass_sol"], "phase_end_age_gy": params["phase_end_age_gy"],
-            "seed": 12345 + k, "metallicity_fe_h": -0.1}
+            "seed": 12345 + k, "metallicity_fe_h": -0.1,
+            "rotation_period_hours": brightStars.rotation_period_hours(12345 + k, params)}
 
 
 @pytest.mark.db

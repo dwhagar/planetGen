@@ -1474,9 +1474,9 @@ def phenomena():
     `total` counts the rows that pass the filters (`total_capped`: it stopped at 10,000, PERF.69).
     `after=<scatter id>` (the `scatter_id` of a scattered row) starts the page after that row in the tail of
     unbuilt scattered phenomena instead of skipping `offset` rows (PERF.75). `after=<type>:<ID>` (the `type` and `id`
-    of a built row, such as `nebula:0008000000-3000000-000`) starts it after that row in the name order, then the
-    tail (PERF.205: any page costs the same, `offset` and `sort` are ignored with it; the first page by name needs no
-    `after` and costs the same too). `from=<scatter id>` (PERF.135, the
+    of a built row, such as `nebula:0008000000-3000000-000`) starts it after that row in the order of `sort`, then
+    the tail (PERF.205, PERF.211: any page costs the same, `offset` is ignored with it; the first page of any sort needs
+    no `after` and costs the same too, while a page by `offset` past the first sorts the whole set of built rows). `from=<scatter id>` (PERF.135, the
     jump-by-value box) lists that tail from the row with that id on (the built phenomena come before it and are not
     listed); a value that is not a whole number from 1 up is a 400, and one past the last scattered row answers the last
     page of the tail, `total` its length and `past_end` true.

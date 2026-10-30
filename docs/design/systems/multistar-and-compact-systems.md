@@ -492,6 +492,11 @@ comets): N-1 Kepler solves per system. `physics/body_positions.positions_at` and
 `static/orbitpositions.js` change together (`tests/test_js_unit.py` checks the two
 agree).
 
+As built (MAP.255): `orbitpositions.js` walks the scene's `tree` the way `system_tree.member_offsets_au` does (the slot-1 child of a node
+on the node's Kepler orbit, both children about the node's centre by the other's mass, a group node's members at its centre, the
+wide pair's first star shifted to the origin) and `relativeAt` answers each star relative to the star its scene orbit names, or to
+the frame's origin. A scene with stars and no tree is refused.
+
 ### 6.3 Naming (extends GEN.62)
 
 Outside conventions are [R], not searched: the Washington Double Star catalogue

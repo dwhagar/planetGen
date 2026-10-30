@@ -41,7 +41,7 @@ GROUPS = {
     "identity": "Identity", "orbit": "Orbit", "physical": "Physical", "rotation": "Rotation",
     "composition": "Composition", "atmosphere": "Atmosphere", "climate": "Climate", "water": "Water",
     "magnetism": "Magnetic field", "radiation": "Radiation", "habitability": "Habitability", "life": "Life",
-    "zones": "Zones and limits", "stellar": "Stellar activity", "galactic": "Galactic orbit", "disk": "Debris disk",
+    "zones": "Zones and limits", "stellar": "Stellar activity", "galactic": "Galactic orbit", "disk": "Disk",
     "radiogenic": "Radiogenic heat", "gas": "Gas and light", "compact": "Compact object", "activity": "Activity",
     "ratings": "Ratings",
 }
@@ -810,6 +810,11 @@ _STAR_RULES = [
     (("flare_alpha", "uv_c_share", "log_lx_lbol", "lifespan_gy"), lambda klass, row: row is None or row.get("yerkes_class") != "VII",
      "a white dwarf has no corona and no flares, so no X-ray share, flare law or UV-C draw, and it does not leave the stage it is in, "
      "so its lifespan has no end"),
+    (("disk_kind", "disk_inner_au", "disk_outer_au"), lambda klass, row: row is None or row.get("disk_kind") is not None,
+     "most stars hold no disk: only a young star (class 0 to II), a main-sequence star with a cold debris belt (about one in seven "
+     "to one in four) and the pair inside a planetary nebula do"),
+    (("disk_mass_solar",), lambda klass, row: row is None or row.get("disk_kind") not in (None, "debris"),
+     "the mass of a debris disk is not measured, only the light of its dust, so a star with a debris belt has no mass for it"),
     (("wide_binary_a_crit_km",), lambda klass, row: row is None or row.get("role") != "single",
      "the critical orbit radius is set by a companion star, so a single star has none"),
 ]
@@ -832,7 +837,6 @@ OPEN_GAPS = {
         ("energy_flux_w_m2", "GEN.784"), ("flux_variation", "GEN.784"))},
     **{("star", key): item for key, item in (
         ("state", "GEN.786"), ("decay_age_yr", "GEN.785"), ("lethal_event_rate_per_gyr", "GEN.785"),
-        ("disk_kind", "GEN.787"), ("disk_mass_solar", "GEN.787"), ("disk_inner_au", "GEN.787"), ("disk_outer_au", "GEN.787"),
         ("wide_binary_a_crit_km", "GEN.789"))},
 }
 """dict: The columns known to be empty where they apply (UX.208), `{(kind, key): item id}`: each is a gap in the generation

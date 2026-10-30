@@ -66,3 +66,6 @@ Commit each file came from:
 - v180: 50dfa10d9 (DB.70 moon origin and giant disk, before PERF.208 sector sort keys)
 - v181: e35bbdf12 (PERF.208 sector sort keys, before GEN.848 temperature swings)
 - v182: 99577440c (GEN.848 temperature swings, before GEN.834 ice species)
+- v183: 3060f1059 (GEN.834 ice species, before GEN.952 member radius)
+- v184: 94dbe2b6 (GEN.952 member radius, before GEN.846 star rotation period; rebuilt from v185 by dropping `bright_stars.rotation_period_hours`)
+- v185: 452eb9f1 (GEN.846 star rotation period, before PERF.211 phenomenon sort indexes)

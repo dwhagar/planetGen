@@ -6,7 +6,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from planetgen.physics import bulk_composition as bc, constants, giant_draw, giant_radius
+from planetgen.physics import bulk_composition as bc, constants, giant_draw, giant_radius, orbit_elements
 from planetgen.util import draw
 
 JUPITER_MASS_KG = constants.JUPITER_MASS_TO_KG
@@ -20,7 +20,7 @@ def _star(**extra):
 
 
 def _giant(mass_kg, distance=5.2, **extra):
-    fields = dict(radius=None, mass=mass_kg, star=_star(), is_moon=False, distance=distance)
+    fields = dict(radius=None, mass=mass_kg, star=_star(), is_moon=False, distance=distance, eccentricity=0.0)
     fields.update(extra)
     return SimpleNamespace(**fields)
 
@@ -137,3 +137,83 @@ def test_a_giants_own_heat_fades_with_age_and_grows_with_mass():
     light = giant_draw.own_flux_w_m2(_giant(0.3 * JUPITER_MASS_KG, radius=constants.JUPITER_RADIUS_KM))
     assert young > old
     assert giant_draw.own_flux_w_m2(_giant(JUPITER_MASS_KG, radius=constants.JUPITER_RADIUS_KM)) > light
+
+
+# --- GEN.961: a table giant is sized again once the star's age and the orbit are final ------------------------------------------------------
+
+def _drawn_giant(seed, mass_earth=300.0, distance=5.2, age=1.0, eccentricity=0.0):
+    draw.set_run_seed(seed)
+    body = _giant(mass_earth * constants.EARTH_MASS_TO_KG, distance=distance, star=_star(age=age), eccentricity=eccentricity)
+    giant_draw.draw_giant(body, False, _fallback)
+    assert getattr(body, giant_draw.SETTLE_ATTRIBUTE) is not None, "this giant was not sized from the tables"
+    return body
+
+
+def _table_radius_at(body, age, eccentricity=0.0):
+    drawn = getattr(body, giant_draw.SETTLE_ATTRIBUTE)
+    mass_earth = body.mass / constants.EARTH_MASS_TO_KG
+    core = giant_radius.table_core_mass_earth(mass_earth, drawn.heavy_earth, drawn.envelope_z)
+    distance = orbit_elements.flux_distance_au(body.distance, eccentricity)
+    light = body.star.luminosity / (4.0 * 3.141592653589793 * (distance * constants.AU_TO_KM) ** 2) / 1e6
+    return giant_radius.radius_km(mass_earth, core, light / giant_radius.flux_w_m2(1.0), age)
+
+
+def test_a_giant_drawn_young_is_settled_to_the_tables_radius_at_the_final_age():
+    body = _drawn_giant(21, mass_earth=100.0, distance=0.3)
+    drawn_radius = body.radius
+    body.star.age = 9.0
+    assert giant_draw.settle(body) is True
+    assert body.radius < drawn_radius
+    assert body.radius == pytest.approx(_table_radius_at(body, 9.0), rel=1e-9)
+    assert getattr(body, giant_draw.SETTLE_ATTRIBUTE).radius_km == body.radius
+    assert body.density == pytest.approx(body.mass / (4 / 3 * 3.141592653589793 * (body.radius * 1000) ** 3) / 1000)
+    assert sum(bc.bulk_fractions(body).shares().values()) == pytest.approx(1.0, abs=1e-9)
+
+
+def test_a_giant_whose_age_did_not_move_is_left_as_drawn():
+    body = _drawn_giant(22)
+    before = (body.radius, body.density, body.composition, body.metal_mass_fraction)
+    assert giant_draw.settle(body) is False
+    assert (body.radius, body.density, body.composition, body.metal_mass_fraction) == before
+
+
+def test_a_giant_on_an_eccentric_orbit_is_sized_at_the_mean_light():
+    body = _drawn_giant(23, mass_earth=300.0, distance=0.05)
+    body.eccentricity = 0.6
+    assert giant_draw.settle(body) is True
+    assert body.radius == pytest.approx(_table_radius_at(body, body.star.age, 0.6), rel=1e-9)
+
+
+def test_a_change_under_the_tolerance_keeps_the_interior():
+    body = _drawn_giant(24, mass_earth=100.0, distance=5.2)
+    before = (body.radius, body.composition)
+    body.star.age = 1.0 + 1e-6
+    assert giant_draw.settle(body) is False
+    assert (body.radius, body.composition) == before
+
+
+def test_giants_the_tables_do_not_size_are_not_settled():
+    draw.set_run_seed(25)
+    for body in (_giant(17.0 * constants.EARTH_MASS_TO_KG, distance=19.0, eccentricity=0.0),
+                 _giant(JUPITER_MASS_KG, radius=65000.0, eccentricity=0.0),
+                 _giant(JUPITER_MASS_KG, is_moon=True, eccentricity=0.0)):
+        giant_draw.draw_giant(body, body.radius is not None, _fallback)
+        radius = body.radius
+        body.star.age = 9.0
+        assert giant_draw.settle(body) is False and body.radius == radius
+
+
+def test_settling_is_the_same_for_the_same_giant_and_leaves_the_run_stream_where_it_was():
+    after = []
+    for settle in (True, False):
+        body = _drawn_giant(26, mass_earth=100.0, distance=0.3)
+        body.star.age = 9.0
+        if settle:
+            giant_draw.settle(body)
+            first = (body.radius, body.composition, body.metal_mass_fraction)
+        after.append(draw.random())
+    assert after[0] == after[1]
+    again = _drawn_giant(26, mass_earth=100.0, distance=0.3)
+    again.star.age = 9.0
+    giant_draw.settle(again)
+    assert (again.radius, again.composition, again.metal_mass_fraction) == first

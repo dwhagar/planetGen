@@ -3186,19 +3186,18 @@ code {
   color: var(--text-muted);
 }
 
-/* MAP.315: the region a pick lies in, each name a button that looks like a link. */
+/* MAP.315, MAP.349: the region a pick lies in and its family, a line each with its own Go to. */
 .map-info-region {
   margin: 0 0 0.6em;
 }
 
-.map-info-region-link {
-  padding: 0;
-  border: 0;
-  background: none;
-  color: var(--link, inherit);
-  font: inherit;
-  text-decoration: underline;
-  cursor: pointer;
+.map-info-place {
+  margin: 0 0 0.3em;
+}
+
+/* MAP.349: a Go to button beside the name of a container or a place in a card's lines and lists. */
+.map-info-go {
+  margin-left: 0.25em;
 }
 
 @media (max-width: 40rem) {
@@ -6040,4 +6039,58 @@ p.hint a {
 
 .location-inside {
   margin: 0.25rem 0 0;
+}
+
+/* MAP.348: the hover preview (static/mappick.js createHoverPreview): the card's first view (name, kind, up to three values) in a corner of the
+   map, clear of the pointer, the hovered thing and the open card. It takes no pointer event. */
+.map-hover-preview {
+  position: absolute;
+  z-index: 3;
+  width: max-content;
+  max-width: min(calc(100% - 1rem), 22rem);
+  padding: 0.5rem 0.7rem;
+  font-size: 0.95rem;
+  background: color-mix(in srgb, var(--bg-elevated) 92%, transparent);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  overflow-wrap: anywhere;
+  pointer-events: none;
+}
+
+.map-hover-preview[hidden] {
+  display: none;
+}
+
+.map-hover-preview h3 {
+  margin: 0 0 0.1em;
+  font-size: 1.05em;
+  line-height: 1.25;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.map-hover-preview .map-info-kind {
+  margin: 0 0 0.25em;
+  line-height: 1.2;
+  color: var(--text-muted);
+}
+
+.map-hover-preview dl {
+  margin: 0;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.1rem 0.6rem;
+  line-height: 1.25;
+}
+
+.map-hover-preview dt {
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.map-hover-preview dd {
+  margin: 0;
 }

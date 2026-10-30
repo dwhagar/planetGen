@@ -27,12 +27,12 @@ def mist(monkeypatch):
 def test_the_derived_file_keeps_only_main_sequence_rows(mist, cache):
     assert not (cache / "isochrones" / isochrones.ARCHIVE).exists()
     with np.load(cache / "isochrones" / isochrones.DERIVED) as data:
-        assert list(data["fe_h"]) == [-1.0, 0.0] and data["rows_0"].shape == (120, 5)
+        assert list(data["fe_h"]) == [-1.0, 0.0] and data["rows_0"].shape == (120, 6)
         assert data["rows_0"][:, 1].max() <= 10 ** ((10 - 8.0) / 2.5) + 1e-3
 
 
 def test_a_main_sequence_point_interpolates_in_mass_age_and_metallicity(mist):
-    log_l, log_teff, log_r = isochrones.main_sequence_point(0.5, 1.0, 0.0)
+    log_l, log_teff, log_r, present_mass = isochrones.main_sequence_point(0.5, 1.0, 0.0)
     assert log_l == pytest.approx(4 * np.log10(0.5), abs=0.02)
     assert log_teff == pytest.approx(3.7 + 0.5 * np.log10(0.5), abs=0.005)
     assert log_r == pytest.approx(0.8 * np.log10(0.5), abs=0.01)
@@ -46,6 +46,16 @@ def test_a_star_that_left_the_main_sequence_or_is_outside_the_ages_gets_none(mis
     assert isochrones.main_sequence_point(0.5, 1e-5, 0.0) is None    # younger than the grid
     assert isochrones.main_sequence_point(0.5, 200.0, 0.0) is None   # older than the grid
     assert isochrones.main_sequence_point(0.1, 1.0, 0.0) is None     # lighter than the grid's lowest mass
+
+
+def test_the_arrival_on_the_main_sequence_is_read_from_the_contracting_rows(mist):
+    """GEN.947: the age at which the heaviest star still in phase -1 has fallen to the mass, in the log of the mass."""
+    assert isochrones.pre_main_sequence_arrival_yr(0.9, 0.0) == pytest.approx(1.0e8, rel=1e-6)
+    assert isochrones.pre_main_sequence_arrival_yr(0.35, 0.0) == pytest.approx(1.0e9, rel=1e-6)
+    halfway = (np.log10(0.5) - np.log10(0.9)) / (np.log10(0.35) - np.log10(0.9))
+    assert isochrones.pre_main_sequence_arrival_yr(0.5, 0.0) == pytest.approx(10 ** (8.0 + halfway), rel=1e-6)
+    assert isochrones.pre_main_sequence_arrival_yr(2.0, 0.0) is None     # heavier than any contracting star of the rows
+    assert isochrones.pre_main_sequence_arrival_yr(0.05, 0.0) is None    # lighter than the oldest isochrone's
 
 
 def test_the_lifetime_follows_the_turn_off_and_metallicity_is_clamped(mist):
@@ -163,7 +173,7 @@ def test_the_neutron_star_readers_say_so_when_nothing_was_downloaded(cache):
 def test_the_catalogue_lists_the_datasets_with_distinct_fills():
     assert [dataset.key for dataset in catalogue.ALL] == [
         "isochrones", "white_dwarf_models", "neutron_star_matter", "ozone_uv", "ir_ktables", "ir_cia", "harris_clusters", "noaa_proton_events",
-        "baraffe_isochrones", "stellar_spectra"]
-    assert [dataset.fill for dataset in catalogue.ALL] == ["SC1", "SC2", "SC3", "AD9", "AD10", "AD11", "SC4", "SC5", "SC6", "SL1"]
+        "baraffe_isochrones", "stellar_spectra", "mamajek_dwarf_sequence"]
+    assert [dataset.fill for dataset in catalogue.ALL] == ["SC1", "SC2", "SC3", "AD9", "AD10", "AD11", "SC4", "SC5", "SC6", "SL1", "PS12"]
     assert len(neutron_star_matter.DATASET.pieces) == 1 + neutron_star_matter.EOS_COUNT
     assert all(piece.url.startswith("https://") for dataset in catalogue.ALL for piece in dataset.pieces)

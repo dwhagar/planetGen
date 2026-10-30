@@ -1411,10 +1411,10 @@ def _roster(placed, age_yr, rng, max_stars, n_stars, prevalence, companion=_DRAW
             units[0] = (0, len(leaves) - 1)
         units.extend(range(1, count + brown))
         return leaves, units
-    base = {"black-hole": _remnant_leaf("black-hole", birth, placed.mass_solar, _placed_direct_collapse(placed)),
-            "intermediate-mass-black-hole": _remnant_leaf("black-hole", birth, placed.mass_solar, True),
-            "neutron-star": _remnant_leaf("neutron-star", birth, placed.mass_solar),
-            "white-dwarf": _remnant_leaf("white-dwarf", birth, placed.mass_solar)}[placed.kind]
+    base = {"black-hole": lambda: _remnant_leaf("black-hole", birth, placed.mass_solar, _placed_direct_collapse(placed)),
+            "intermediate-mass-black-hole": lambda: _remnant_leaf("black-hole", birth, placed.mass_solar, True),
+            "neutron-star": lambda: _remnant_leaf("neutron-star", birth, placed.mass_solar),
+            "white-dwarf": lambda: _remnant_leaf("white-dwarf", birth, placed.mass_solar)}[placed.kind]()
     leaves = [base]
     if placed.kind == "white-dwarf" and draw_white_dwarf_merger(age_yr, rng.random()):
         base.flags |= MEMBER_MERGER_PRODUCT

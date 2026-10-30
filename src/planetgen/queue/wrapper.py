@@ -192,7 +192,26 @@ def _stage_clock(conn, run_id, marker):
     return clock
 
 
-RESOLVERS = {"stage-clock": _stage_clock,
+def plan_detail(key, field):
+    """A deferred parameter (PERF.214): `field` of the summary stage `key` made of itself when it was cut (`commands.Expansion.plan`,
+    what a worker worked out when the stage opened), so a stage after it reads what the stage planned."""
+    return {DEFERRED: "plan-detail", "stage": key, "field": field}
+
+
+def _plan_field(conn, run_id, marker):
+    """The `marker["field"]` of the plan summary stage `marker["stage"]` recorded (`runrecord.set_stage_plan`)."""
+    declared = json.loads(runrecord._s(conn.hget(runrecord.run_key(run_id), "stages")))
+    keys = [runrecord._s(item["key"]) for item in declared]
+    if marker["stage"] not in keys:
+        raise Unresolved(f"the run has no stage {marker['stage']!r} to read the plan of")
+    plan = runrecord.read_plan(conn, run_id, keys.index(marker["stage"]))
+    detail = (plan or {}).get("detail") or {}
+    if marker["field"] not in detail:
+        raise Unresolved(f"stage {marker['stage']!r} has not planned {marker['field']!r}")
+    return detail[marker["field"]]
+
+
+RESOLVERS = {"stage-clock": _stage_clock, "plan-detail": _plan_field,
              "scatter-settings": "planetgen.generation.run_plan:resolve_scatter_settings"}
 """dict: Each deferred parameter's name to `resolver(conn, run_id, marker)`, which gives its value (or raises `Unresolved`), or to
 `"module:function"` naming it, for a resolver in a module that imports this one. A command that needs a value worked out when its

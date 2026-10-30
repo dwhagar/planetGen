@@ -2,6 +2,261 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2697] - 2026-10-30
+
+**Headline:** The nine registered rows that rest on a Solar System body now have rows in the stand-in list, with their source tier, tweak level and the item that will replace them.
+
+### Changed
+
+- GEN.1002 (the registry half): `docs/design/research/gap-filling-plan.md` section 6.56 holds one stand-in row for each of the nine rows `tests/data/solar_system_rows.json` lists as pending: `atmosphere-a` a1 and a2 (oxygen fugacity tuned to Moon, Mars and Earth), `atmosphere-b` b1 (dry carbon tuned to the bulk silicate Earth), `atmosphere-k` k7 (the species of one comet), and the five ground types of `surface-ground-types` (the crust assemblages of Hu, Ehlmann and Seager 2012). Redox, carbon and comet rows name GEN.1005 as their replacement, the ground types GEN.474. `docs/design/research/stand-in-values.md` is rebuilt, and `tests/test_solar_system_standin_rows.py` requires a registry row for every pending row. The state flips on the table rows (which change their digests) ride a merge train. No stored value changes.
+
+## [8.0.2696] - 2026-10-30
+
+**Headline:** The browser test site builds again, so the map browser tests run.
+
+### Fixed
+- **Every `site_app` browser test errored in setup with "Column count doesn't match value count" (TEST.474).** The bright stars `tests/test_web_a11y.py` writes lacked the `rotation_period_hours` column GEN.846 added to `bright_stars`; the rows now carry it (no rotation). Test-only.
+
+## [8.0.2695] - 2026-10-30
+
+**Headline:** Listing what is near a place reads each system's name only for the page shown, so a wide search in a dense area is about three times faster.
+
+### Changed
+
+- PERF.217: `planetgen.db.near` lists the systems of a sphere from the covering cell index (id and position) and reads the name and sector of a system only for the systems on the page (`_system_labels`, a read by id), instead of reading the table row of every system in the sphere. At 50 pc around the Sun's density (62,000 systems) the list took 1,170 ms with the name and 360 ms for the ids alone in the profile of PERF.216. The rows, their order, names, parents and counts are the same; a test compares every page of a sphere with the names read directly and checks that the system list asks for no name. No stored value changes.
+
+## [8.0.2694] - 2026-10-30
+
+**Headline:** The stored-tree pair tests build the placed star the way a scatter row does, so they pass again.
+
+### Fixed
+- **Three `test_gen_stored_trees` tests failed on main (TEST.345).** The tests drew the tree of the placed star at its birth mass and the reference [Fe/H] but built the star at [Fe/H] 0.1, where the star model gives it slightly less than its birth mass on the main sequence, so the built primary and the built companion were not the stored members and the pair was left out. The tests now draw the tree for the placed star's present mass and [Fe/H], as a scatter row stores it. Test-only; the named test of the item, `test_a_fill_builds_each_row_from_its_stored_tree`, passes on main.
+
+## [8.0.2693] - 2026-10-30
+
+**Headline:** The system map places a wide pair's second star on its real eccentric orbit and not on a circle.
+
+### Fixed
+- **The browser drew a wide pair on a circle while the server placed it on its stored ellipse (MAP.255).** `orbitpositions.js` now places every star where the scene's tree of orbits puts it, as `body_positions.positions_at` does: each node is the Kepler orbit (eccentric, tilted, from the node's own epoch) of its slot-1 child about its slot-0 child, the two children either side of the node's centre by the other's mass, and a wide pair's frame has its first star at the origin. A triple or a deeper tree is placed the same way. `tests/test_js_unit.py` checks the Python and JavaScript positions of an eccentric wide pair and of a triple at nine times each.
+
+## [8.0.2692] - 2026-10-30
+
+**Headline:** A generation run can now plan its sectors when the sectors stage opens, so a whole job can be one run.
+
+### Changed
+
+- **Sectors planned inside the run (PERF.214).** The sector planner counted, estimated and asked about the sectors in the process that started the run, so the run could only be built once the galaxy it reads existed. It can now be left to the stage: for the shell, band, span, course and block modes, a single sector (and its neighborhood), a neighborhood round a centre sector and random starts, the stage works its sectors out in a worker when it opens, and the neighborhood after a random start reads the starts the stage before it chose. The sectors saved are the ones the old plan makes; nothing the commands do today changes (the planner is used the old way until the one-run Generate job asks for the new one). A run carried on with finish-run keeps the random starts it picked.
+
+## [8.0.2691] - 2026-10-30
+
+**Headline:** Every sort of the Phenomena table and the Species table now answers a page in milliseconds, however many rows there are.
+
+### Changed
+- **The Phenomena table** sorted by type, descriptor, radius, placed or sector used to sort every phenomenon of all eight kinds for each page (the first page by type took 56 s with 8,000,000 phenomena). Each kind now has indexes for these sorts, built when you run ./update.sh (migration 0186: expression indexes make the database hold writes to that table while they build, so run it with generation stopped), and the first page and every page after a row take 3 to 41 ms. The sector sort reads the sectors by name and sorts only their phenomena. Where two rows tie in a sort, the order now follows the direction of the sort (name, then type, then ID); before, a descending sort listed ties from A to Z.
+- **The Species table** sorted by homeworld or system now walks the planets or systems by name and sorts only their species (1,000,000 species: 8 to 13 ms for a page deep in the list).
+- **`GET /api/phenomena?after=<type>:<ID>`** carries on in the order of `sort`, not only by name; the table's Next link does so in every sort.
+- **`planetgen sectors` and `planetgen systems`** list 100 rows at a time like `planets` and `moons`: `--limit N` (0 lists all) and `--after ID`, and the last line prints the `--after` to carry on with.
+
+## [8.0.2690] - 2026-10-30
+
+**Headline:** Every line of a Galaxy Map card that names a place now has its own Go to button.
+
+### Added
+- **A Go to on every container and place line of a card (MAP.349).** The "Region:" and "In:" lines on a card (and on a region's own card) each have their own Go to, which flies the camera to that region or to its larger family. Each system in a card's list of nearest systems has a Go to that opens its sector and the system, and each member of a crowd of marks has one that flies to it. They use the same Go to as the find box and the crumbs. The name on these lines is plain text now; the Go to button is what goes.
+
+## [8.0.2689] - 2026-10-30
+
+**Headline:** Stars now follow the published mass function at every mass: a Chabrier curve for single stars, a derived curve for the stars that begin a system, and white dwarfs, neutron stars and black holes drawn from the same curve.
+
+### Changed
+- **One mass function for every star-like object (GEN.927).** The two-segment function (1.3 below half a solar mass, 2.3 above) is replaced by Chabrier (2003): a log-normal below one solar mass (it turns over at 0.079, as the counts of M dwarfs do) and a 2.3 power law above. G dwarfs are now 3.4% of stars (3.1% before; observed 4.1% to 5.0%), and the massive stars (8 solar masses and up) are 0.71% of the stars born (0.64% before).
+- **The star a system is built around comes from its own curve (GEN.928).** A system's companions are stars too, so the stars born at each mass are the primaries of that mass plus the companions of heavier primaries. The primary curve is worked out from the single-star curve and the companion draw (`generation/primary_mass_function.py`), not set: 0.70 systems per star born, 1.43 stars to a system. The stars of all systems together follow the single-star curve, which the old draw did not do (it counted every massive star twice, once as a primary and again as a companion). Documented in `docs/design/galaxy/stellar-mass-function.md`; stand-in rows MF1 to MF3.
+- **Systems per solar mass and the galaxy's star count are one number (GEN.929).** The placed systems' mean mass at birth is 1 over the systems per solar mass of the primary curve (0.887 solar masses), so the galaxy's system count follows its own star formation history and no second anchor is left.
+- **White dwarfs, neutron stars and black holes follow the curve (GEN.930).** One white dwarf initial-final mass relation (Cummings et al. 2018, from MIST) for the star model, the member draw, the disk history and the mass return (0.384 returned, 0.371 before); neutron star masses from the Gaussian of the slow pulsars (1.49 +- 0.19, Ozel and Freire 2016) held to 1.1 to 2.2 solar masses. The neutron stars' bound count is fixed by the census, so the share of the massive stars left to fail grows with the massive share: the middle failed share is 17.5% (13.6% before) and a busy shell holds 1.6 neutron stars to a black hole (2.1 before); a galaxy of 5e10 solar masses of stars holds 1.0e8 black holes.
+- **A planet's host ratios and the star's own makeup read one draw (GEN.984).** The key of a star's abundance draws no longer holds the star's age. The age rises once after a star's planets are made, and every planet's bulk draw had read the draw of the younger age, so a planet's host ratios did not match the star's own composition.
+- **Census:** Wolf-Rayet stars are counted in the systems built around a massive primary, companions included (890 against 1100 to 1500 observed; tagged GEN.995). White dwarf mean mass is 0.703 solar masses (0.55 to 0.70; tagged GEN.996). The primaries at 0.6 to 0.8 solar masses are 6.8% against 7.7% to 12% (tagged GEN.951). The G dwarf tag is cleared.
+
+generation-output: changed
+
+TODO items resolved: GEN.927, GEN.928, GEN.929, GEN.930, GEN.984.
+
+## [8.0.2688] - 2026-10-30
+
+**Headline:** A neutron star's radius now comes from 21 modelled equations of state, weighted by the NICER measurements, not from a normal band.
+
+### Changed
+- **Neutron star radius from the equations of state (GEN.969).** A star's radius is drawn as a weighted quantile over the radii, at its mass, of the 21 equations of state that hold it (`physics/neutron_star_structure.py`), weighted by how well each fits Miller et al. 2021 (R at 1.4 and 2.08 solar masses) and the mass of PSR J0740+6620. A 1.4 solar mass star has a median radius near 12.8 km and a spread of 11.8 to 13.8 km. Every neutron star's radius changes. Stand-in NS4 registered.
+
+## [8.0.2687] - 2026-10-30
+
+**Headline:** Thin-disc oxygen now levels off at the metal-rich end as the Brewer and Fischer 2016 stars do, instead of falling on without end.
+
+### Changed
+
+- **Thin-disc [O/Fe] refitted (GEN.991).** The oxygen line (Nissen 2014) fell to -0.14 dex at [Fe/H] 0.3, where the table's stars stay near -0.03, so generated [O/Fe] sat 0.03 to 0.09 dex under the table in every bin. It is now a plateau and a rise below it fitted to the 803 thin-disc dwarfs of the table (the oxygen scatter is refitted with it: 0.102 thin disc, 0.128 high-alpha). The C/O median of the solar neighbourhood is 0.38 by mass (table 0.37), and a solar-metallicity thin-disc star holds the Sun's metals again to 2 percent. Registry row XF1.
+
+## [8.0.2686] - 2026-10-30
+
+**Headline:** The star-to-star scatter of carbon, oxygen and silicon in a star's composition is raised to the Brewer and Fischer 2016 level.
+
+### Changed
+
+- **Carbon, oxygen, silicon and magnesium scatter refitted (GEN.990).** The residual scatter of C, O and Si was about half the table's (0.044, 0.052 and 0.042 dex in the thin disc). Each is now the scale that puts the generated variance of every populous [Fe/H] bin on the table's robust spread: C 0.095, O 0.101, Si 0.072, and Mg 0.046 (it was 0.066, over the table's body) in the thin disc, with the branch ratios kept. Registry row XF2; `scripts/fit_stellar_xfe_refit.py` gives the numbers again.
+
+## [8.0.2685] - 2026-10-30
+
+**Headline:** Thin-disc stars of solar metallicity now carry the magnesium and silicon Brewer and Fischer 2016 measure, 0.06 and 0.03 dex under the Sun's.
+
+### Changed
+
+- **Thin-disc [Mg/Fe] and [Si/Fe] refitted (GEN.989).** The thin-disc magnesium trend sat 0.05 to 0.07 dex above the table from [Fe/H] -0.2 up and the silicon 0.03 to 0.05 dex above it. Both are refitted by robust least squares to the 805 thin-disc dwarfs of the table, together, so the rock's Mg/Si does not drop by the magnesium alone. The solar-neighbourhood median of Fe/Si is now 1.82 (the table's 1.81, 0.19 below before), Mg/Si 0.98 (0.93) and C/O 0.40 (0.385). A solar-metallicity thin-disc star holds 3.2 percent less metal than the Sun's Z. Registry row XF1.
+
+## [8.0.2684] - 2026-10-30
+
+**Headline:** Calcium, sulfur and argon now vary from star to star, as the other element abundances do.
+
+### Changed
+
+- **Calcium, sulfur and argon scatter (GEN.988).** Calcium had no scatter at all (and sulfur and argon followed it), so every star of one metallicity and branch had the same alpha-element budget. Calcium now has a residual of its own (0.032 dex thin disc, 0.035 high-alpha), correlated with carbon, oxygen, magnesium and silicon by the residual correlation of the full Brewer and Fischer 2016 table, and sulfur and argon take calcium's whole offset. The calcium normal is the last draw of a star's abundance stream, so no earlier draw moves. Registry rows XF2 to XF5.
+
+## [8.0.2683] - 2026-10-30
+
+**Headline:** Giants are sized at their star's final age and the light of their real orbit, so their radius, density, gravity, interior and air agree.
+
+### Changed
+- **Giants are settled once the star's age is final (GEN.961, GEN.976, GEN.985).** A giant's radius was read from the star's age as it stood when the giant was drawn, but the star's age rises afterwards when the planets need time (for life, for instance). About 28 percent of the giants sized from the radius tables had a radius over 1 percent too large and the worst 9.3 percent. After the age is final a giant is sized again at that age and at the mean light of its orbit (an eccentric orbit gives more light than the circle at its semi-major axis), and when that moves its radius by more than a tenth of a percent its density, gravity, interior layers, composition and air are made again to the new radius. The giant keeps its mass and heavy elements; a moon it can no longer hold is dropped. The same pass takes the tides of every planet's and captured moon's orbit again at the star's final age, so a close-in planet of a star whose age rose has the smaller eccentricity that age gives (GEN.985); its position on the orbit is made again on the new ellipse. A system whose planets the age did not move is unchanged.
+
+generation-output: changed
+
+## [8.0.2682] - 2026-10-30
+
+**Headline:** The Compact binaries panel of an unbuilt system now gives the X-ray luminosity of each accreting pair.
+
+### Changed
+- **Stored member radius and X-ray luminosity (GEN.952).** Every member of a stored companion tree keeps its radius (`scatter_members.radius_au`, schema v184). An accreting neutron star or black hole with a companion now shows the power it radiates in X-rays in the Compact binaries panel of the system page and as `x_ray_luminosity_w` in the API, worked out from the masses, radii and orbit of the pair with the same law the generator uses. Systems made before this change have no radius and show a dash until the galaxy is regenerated.
+
+generation-output: changed
+
+## [8.0.2681] - 2026-10-30
+
+**Headline:** Young stars take as long to settle onto the main sequence as the MIST models say: stars of 1.5 solar masses and up, and of 0.2, stay young about twice as long.
+
+### Changed
+- **GEN.947: pre-main-sequence contraction times from MIST.** The contraction model reached the main sequence about twice too soon from 1.5 solar masses up and at 0.2 solar masses (a 2 solar mass star in 4.2 Myr where MIST takes 9 to 10). Setup now also keeps the heaviest still-contracting star of every MIST isochrone age (the derived `main_sequence.npz` is rebuilt by `update.sh`), and the model's clock is stretched so each star arrives when MIST's does. A 0.2 solar mass dwarf is a pre-main-sequence star for about 750 Myr, not 350; more of the youngest stars of 1.5 to 5 solar masses are pre-main-sequence, and their `phase_end` and the early radiation history of their planets shift with it.
+
+## [8.0.2680] - 2026-10-30
+
+**Headline:** A star's spectral type now follows the real dwarf sequence: the Sun is G2, the K/M boundary is at 3,900 K, and metal-poor halo stars are labelled subdwarfs (VI).
+
+### Changed
+- **GEN.943: spectral letters and subclasses from the Pecaut and Mamajek table.** Subclasses were spread evenly in temperature inside each letter, so the Sun read G3, a 5,270 K star G8 instead of K0 and a 3,850 K star K8 instead of M0 (half of the standard types came out one to three steps off). The type of a star is now the nearest of the 67 whole-number types O3V to M9V of the Pecaut and Mamajek dwarf sequence (a 56 kB table the setup step downloads, `datasets fetch mamajek_dwarf_sequence`); the K/M boundary is 3,890 K, the Sun is G2 and a B3 star is B3. O2, O1 and O0 are stand-ins at 50,000 to 60,000 K. Every star's displayed subclass can change, and the temperature bands the star map shades with and the class pages show follow the new letter edges. Registry rows PS12, PS13.
+- **Subdwarfs (Yerkes VI) are generated.** A main-sequence star 0.3 dex or more under the luminosity of a solar-metallicity dwarf of its temperature, as a metal-poor halo star is, is labelled VI; none was ever generated before. A forced `VI` type draws from them and from hot horizontal-branch stars. Registry row PS14.
+
+## [8.0.2679] - 2026-10-30
+
+**Headline:** A star type you ask for (G2V, K2III, B0V) is now a star the model makes, with the mass, brightness and age such a star really has.
+
+### Changed
+- **GEN.941: forced star types come from the star model.** A forced type (`+star_type=K2III`) was built from hand-set tables: a luminosity drawn where two range tables overlapped, a mass drawn evenly across a range per class and an age from a lifespan fraction. It is now drawn from the star model that makes random stars: the mass function and the time a star spends in each state decide which mass and age a type has, so a K2 giant is a 1 to 2 solar mass star on its giant branch, 8 to 11 billion years old, not a star of any mass in 0.8 to 8. A type the model never makes (a B giant, an M hypergiant) is the model's nearest star of that class by temperature, at the temperature you asked for. `IA+` and `D` are the hypergiant and white dwarf classes under their own names. A subdwarf (VI) is a metal-poor halo star at least 8 billion years old or, for the hot letters, a hot horizontal-branch star. Registry rows PS10 and PS11.
+- The class reference pages for the spectral letters and luminosity classes read their mass and luminosity ranges, and a share of all stars, from the same model.
+
+### Removed
+- The luminosity, mass and spectral-share range tables the old forced-type and random-star branches read, the lifespan-fraction age draw, the white dwarf and subdwarf age windows, the evolved-mass resampler, the dead random branch of the star generator and the `mass_override` option nothing passed.
+
+## [8.0.2678] - 2026-10-30
+
+**Headline:** A star now has the mass it has lost: a horizontal-branch star of an old cluster is 0.6 solar masses, not the 0.9 it was born with.
+
+### Changed
+- **GEN.940: present mass for giants, horizontal-branch, asymptotic and massive stars.** A main-sequence star takes MIST's present mass (a 40 solar mass star has lost 5 percent of it by the end of its hydrogen burning). A star heavier than 8 solar masses keeps the winds of the track (a 20 solar mass red supergiant is 13). A lighter star loses on the red giant branch what the Reimers wind of McDonald and Zijlstra 2015 takes (efficiency 0.477 against MIST's 0.1), so a one solar mass star is 0.83 at the tip and 0.78 on the horizontal branch, and a 0.85 solar mass one of an old cluster 0.58; on the asymptotic branch its mass falls to the white dwarf it becomes. This changes the surface gravity, the orbital periods and the habitable zone and Hill sphere of the planets of every giant, and the mass in every star's record.
+- The main-sequence reader `isochrones.main_sequence_point` and `main_sequence.State` carry the present mass as a fourth value (setup already kept the column).
+
+## [8.0.2677] - 2026-10-30
+
+**Headline:** A Wolf-Rayet star's light now follows its mass: a 25 solar mass one is 5e5 Lsun and a 40 solar mass one 1e6, not a draw over 1e5 to 1e6 whatever the star.
+
+### Changed
+- **GEN.939: Wolf-Rayet luminosity from the present mass.** The present mass of a Wolf-Rayet star is its track's (GEN.940), no longer 0.4 to 0.6 of its birth mass drawn at random, and its luminosity follows that mass by the helium-star relation fitted to MIST's own Wolf-Rayet rows (log L = 4.31 + 1.16 log M, 0.064 dex scatter), cut at 1e5 to 3e6 Lsun (it was 1e5 to 1e6, log-uniform, for every star). The chance a Wolf-Rayet star clears a bright-star floor follows its mass. Registry row PS9.
+
+## [8.0.2676] - 2026-10-30
+
+**Headline:** Giants and supergiants now have the luminosity, temperature and size of the MIST stellar tracks, so a 3 solar mass giant is 113 to 144 times the Sun's light instead of 970.
+
+### Changed
+- **GEN.935: stars after the main sequence follow the MIST v1.2 tracks.** Setup now rebuilds, from the isochrones it already downloads, a track for 130 masses from 0.8 to 300 solar masses (`post_main_sequence.npz`, derive version 2). A subgiant, giant, core-helium-burning giant, asymptotic giant or supergiant takes its luminosity, temperature, radius, surface hydrogen and carbon from that track at the point its age puts it, instead of from hand-set ranges. Stars of 2.2 solar masses and more now burn helium in their cores as giants. Supergiants cool from the hot end of the main sequence to red below the Humphreys-Davidson limit of 320,000 solar luminosities and stay hot above it; none is smaller than it was leaving the main sequence. Giants and supergiants born with 3 to 13 solar masses in the instability strip are flagged as classical Cepheids.
+- **The bright-star tables read the tracks.** The ages a star is brighter than a scatter's floor are found from the track itself, so every floor, population and mass band sees the same stars the generator would draw.
+- **Setup and import need no downloaded data.** The solar neighbourhood terms (`place_terms.SOLAR_NEIGHBOURHOOD`) are built on first use, so `datasets fetch` runs on a machine with an empty data folder.
+
+### Removed
+- The hand-set giant, asymptotic giant and supergiant luminosity and temperature constants and the functions that drew from them (`GIANT_TEMPERATURE_RANGE_K`, `BRIGHT_GIANT_LUMINOSITY_RANGE_SOL`, `AGB_LUMINOSITY_RANGE_SOL`, `RED_SUPERGIANT_*`, `BLUE_SUPERGIANT_*` and the rest listed in `docs/design/galaxy/post-main-sequence-stars.md`). No shim.
+
+## [8.0.2675] - 2026-10-30
+
+**Headline:** Every star in the galaxy now has a rotation period, including the ones nothing has built yet.
+
+### Changed
+- **A rotation period for every star (GEN.846).** A star the scatter places is given a spin period when it is placed, by the cascade a built star uses (a white dwarf about a day, a giant slow, a cool dwarf by how its age slows it, a hot star by a drawn speed under breakup) and from a stream of its own seed, so the scatter's other draws do not move. The star that is built from the row keeps that period. The uncharted star page and the API give it (`rotation_period_hours`). Rows made before this change have none until the galaxy is regenerated.
+
+generation-output: changed
+
+## [8.0.2674] - 2026-10-30
+
+**Headline:** A rocky rogue planet now turns at the rate its building impacts left it, and the mixture draw's default light is the orbit's mean light.
+
+### Changed
+- **Rogue rocky planets use the spin law (GEN.842, GEN.731).** A rocky free planet drew a day log-uniform over 8 to 48 hours; it now has the birth spin the giant impacts that built a planet leave (`spin.accretion_spin`: a rate scaled to its breakup rate and held under the breakup fraction, and an angle from the galactic pole that is isotropic), with no tide since there is no star. A rogue giant keeps the gas-giant day.
+- **The mixture draw's default distance is the circle that gives the orbit's mean light (GEN.842, GEN.727).** `mixture_subject` took a planet's semi-major axis when no distance was handed in; the live generation path already hands in the mean-light circle, so only a direct call changes.
+
+generation-output: changed
+
+## [8.0.2673] - 2026-10-30
+
+**Headline:** About one main-sequence star in six or seven now holds a cold debris belt, like the Kuiper belt but bigger, and the star page says where it lies.
+
+### Changed
+- **Debris disks (GEN.787).** A main-sequence star or subgiant holds a cold belt of planetesimals and dust at the share the Herschel DEBRIS survey found for its kind: 2 percent of the red dwarfs, 13 percent of the K stars, 14 percent of the G stars, 24 percent of the F stars and of the A stars and hotter. The belt is a ring at about 1.7 times the distance where a blackbody grain would sit at the temperature drawn for its dust (a median near 40 AU round a Sun-like star), spanning 0.7 to 1.5 of that distance. The star page and the API give its kind, inner edge and outer edge. The mass of a debris belt is not given (only its dust light is measured), and the sheet says so; no body is placed in the ring.
+
+generation-output: changed
+
+## [8.0.2672] - 2026-10-30
+
+**Headline:** A world whose star is younger than the first step of its life schedule is no longer given a life class, so the map and the object pages no longer show life that has not started.
+
+### Fixed
+
+- GEN.1001: when a body's schedule puts abiogenesis after its star's age (cold, slow worlds round a young star), the life pass stores no class, schedule, stage or complexity for it, as for a world no class supports; before, it kept the class with no stage, and the class markers, the Has Class N life line and the class filters showed life that had not begun. This changes what is drawn for those worlds, so it takes a generator epoch (affects fill). The standing test that a body with a class has a stage no longer expects to fail.
+
+## [8.0.2671] - 2026-10-30
+
+**Headline:** The test for `planetgen query near` with no distance now checks the exit code and the usage message the way the command-line parser reports them.
+
+### Changed
+
+- TEST.471: `test_the_command_line_asks_for_the_nearest_few` expected the message in the exit value; the parser exits with code 2 and writes the reason ("give --distance ...") to stderr, so the test failed on main. It now asserts the exit code and reads the message from captured stderr, as TEST.465 does. Test only.
+
+## [8.0.2670] - 2026-10-30
+
+**Headline:** The "what is near here" search works out each candidate's distance once instead of twice with the subtraction repeated, so a 50 pc count is about 2.4 times faster.
+
+### Changed
+
+- PERF.216: `planetgen.db.region.region_statement` computes the squared distance as `POW(axis - c, 2)` once per candidate and tests it with `HAVING d2 <= r²`; `capped_count` (the early stop count of NAV.61) no longer computes a distance it does not use (`with_distance=False`). On a 3 million row table the count of a 50 pc sphere (62,000 systems) takes 178 ms instead of 428, the same sphere with the rows returned 425 instead of 600, and 25 pc 32 instead of 65. The systems returned and the counts are the same as before, a system exactly on the radius included; the plan is the same. The design note `docs/design/galaxy/spherical-region-queries.md` section 8.2 has the profile. No stored value changes.
+
+## [8.0.2669] - 2026-10-30
+
+**Headline:** Hovering a star, system, region or nebula on the Galaxy Map now shows a small preview of it.
+
+### Added
+- **A hover preview on the Galaxy Map (MAP.348).** Rest the pointer on a star, a star system, a region, a nebula, a black hole or another mark and a small card appears in a corner of the map with its name, what kind of thing it is and up to three values, the same layout as the first view of its info card. It sits in whichever corner keeps clear of the pointer, of the thing you are pointing at, of the open card and of the map's controls, it never takes a click (a click still picks the thing), and it goes when you press, scroll, press a key or move off. A touch screen has no hover, so it shows nothing extra there.
+
+## [8.0.2668] - 2026-10-30
+
+**Headline:** The link, backfill, settle and block totals stages of a generation run now work on the sectors saved since the sectors stage opened, not since the run was built.
+
+### Changed
+
+- **Sectors of the run, by the clock of their stage (PERF.213).** A galaxy or sectors run used to take "the sectors saved since the run started" from the database's clock read when the run was built, before it waited for the machine and before the sectors stage opened. The link, bright-star backfill, sector path settle and block totals stages now take the clock when the first sectors stage opens (a step parameter worked out at that moment, so a stage of the same run can take it from another), and a run carried on with finish-run keeps the clock the stopped run took. The same sectors are linked, backfilled and settled, so nothing stored changes; a run that waited in the queue no longer takes in sectors another run saved meanwhile.
+
 ## [8.0.2667] - 2026-10-30
 
 **Headline:** The region query is timed on a table of three million real star system rows, and the design note records the figures.

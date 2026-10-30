@@ -90,6 +90,8 @@ export function createSectorStage(host) {
       enabled: function () { return state.fade >= PICKABLE_SHARE && (!layer.enabled || layer.enabled()); },
       tooltip: tooltipText,
       hover: function (entry) {
+        // MAP.348: the hover preview says the card's first view of what is under the pointer.
+        if (host.preview) host.preview(entry ? function () { return infoSpec(entry, state.data, null); } : null, entry);
         if (!entry) {
           hoverRing.hide();
           state.hovered = null;

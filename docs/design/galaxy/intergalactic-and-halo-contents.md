@@ -364,6 +364,8 @@ Consequences for the profile (section 5.3): emission, reflection, Wolf-Rayet and
 
 ### 5.11 Wolf-Rayet stars and nebulae
 
+**Superseded in part (GEN.939 and GEN.940, 2026-10-30).** A Wolf-Rayet star's present mass is its track's and its luminosity follows that mass by the helium-star relation of MIST's Wolf-Rayet rows, cut at 1e5 to 3e6 Lsun; the log-uniform 1e5 to 1e6 range and the 0.4 to 0.6 of the initial mass below describe the model before that change. See `post-main-sequence-stars.md`.
+
 **Why they do not exist.** They were never built, and nothing in the repository or its history decides against them. They appear first in the anomalies research of 2026-10-09 (`anomalies.md`, GEN.113's output) as Tier 2 item 3, "Wolf-Rayet class and ring bubble", with the note "needs a W spectral class in the star model"; GEN.113's Done clause was the list, no build item was filed from it, and MAP.132 only mentions a Wolf-Rayet marker. The star model is the blocker: `evolve_star` has main-sequence, supergiant, subgiant, giant and remnant states and no W state, `SPECTRAL_PROBABILITIES_LARGE_STAR` stops at O, and `NEBULA_CLASSES` has no wind-blown class [S].
 
 **The star: a state of massive stars, not a new scatter.** A Wolf-Rayet star is a very massive star in the last stretch of its life, stripped to a hot helium core with a dense wind (temperature 30,000 to 200,000 K, luminosity 1e5 to 1e6 solar [R]). The model:

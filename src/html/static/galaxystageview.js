@@ -40,7 +40,8 @@
 //   with an "Uncharted" mark when the scatters left objects in it (MAP.162);
 // - fetchSystemScene(href): a Promise of GET /system/<id>/scene's JSON, a
 //   system of the open sector opened in place (MAP.125; galaxysystem.js); lightBackground,
-//   pixelRatio(), showInfo(spec), hideCell(bounds or null);
+//   pixelRatio(), showInfo(spec), hideCell(bounds or null), preview(facts, entry) (the hover preview of a thing of the open
+//   sector: `facts()` is its card's spec, null with no entry when the pointer leaves it; MAP.348);
 // - els: {crumbs, tooltip, notice, address, matches, controls}
 //   (any may be missing).
 
@@ -1540,7 +1541,7 @@ export function createStageView(host) {
     accentColor: host.accentColor || "#4f5fe8", lightBackground: !!host.lightBackground,
     pixelRatio: host.pixelRatio || function () { return 1; },
     fetchScene: host.fetchSectorScene, fetchUnchartedScene: host.fetchUnchartedScene, showInfo: host.showInfo || function () {}, navPick: host.navPick || null,
-    hideCell: host.hideCell || function () {},
+    hideCell: host.hideCell || function () {}, preview: host.preview || null,
     viewport: host.viewport || null, opened: host.opened, closed: host.closed, kindsChanged: kindsChanged,
     deselected: function () { host.showHint(pinned && host.restingHint ? host.restingHint : hintFor(resolved)); },
     closeness: function () { return view && view.zoom > 0 ? 1 / view.zoom : 1; },
