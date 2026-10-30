@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 541 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 545 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -36,16 +36,16 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 64 | 1 | 5 | 1 | 0 | 71 |
+| T1 | 66 | 1 | 5 | 1 | 0 | 73 |
 | T2 | 81 | 8 | 0 | 1 | 0 | 90 |
-| T3 | 65 | 19 | 5 | 11 | 0 | 100 |
+| T3 | 66 | 19 | 5 | 11 | 0 | 101 |
 | T4 | 27 | 0 | 0 | 4 | 4 | 35 |
 | T5 | 31 | 9 | 1 | 0 | 0 | 41 |
-| T6 | 41 | 26 | 10 | 32 | 0 | 109 |
+| T6 | 42 | 26 | 10 | 32 | 0 | 110 |
 | T7 | 24 | 7 | 7 | 7 | 0 | 45 |
 | T8 | 0 | 0 | 0 | 1 | 2 | 3 |
 | T9 | 1 | 0 | 2 | 25 | 19 | 47 |
-| All | 334 | 70 | 30 | 82 | 25 | 541 |
+| All | 338 | 70 | 30 | 82 | 25 | 545 |
 
 ## How the labels were given
 
@@ -800,7 +800,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | GM9 | P | T1 | L0 | tuning.MUTUAL_HILL_RADII_SEPARATION 10 mutual Hill radii between neighbouring planets | 8 to 12 | evenly spaced multi-planet systems of comparable mass | a population of five-planet systems at 10 mutual Hill radii that go unstable within 1e9 orbits | a per-system stability time from the planet masses (GEN.1006 ledger) | Obertas, Van Laerhoven and Tamayo 2017 (arXiv 1703.08426) read: time to a first close encounter grows as log(t_c/t_0) = b Delta + c up to Delta of about 8 (Chambers et al. 1996, second-hand through this paper), and over 5,000 five-planet systems with Delta > 8 survive 1e9 to 1e10 orbits; 10 is the project's margin above the threshold | - | - |
 | GM10 | P | T1 | L0 | mass_loss.expansion_factor: the orbit of a body around a star that loses mass slowly grows by (M_initial + m) / (M_final + m) | adiabatic regime only: mass-loss time-scale long against the orbital period | planets, moons and wide companions of giants and white dwarfs | a mass loss faster than the orbit (a supernova), or a strongly eccentric orbit, where Veras et al. 2011 show the adiabatic form fails | the non-adiabatic equations of Veras et al. 2011 for a fast loss (a supernova channel) | Veras, Wyatt, Mustill, Bonsor and Eldridge 2011 (MNRAS 417, 2104) read in the publisher PDF supplied by Boss 10-30, sections 1 and 2.4: a = a0 (1 - alpha t / mu0)^-1 (a planet doubles its separation if its 1 solar-mass parent loses half its mass) | - | - |
 | GM11 | P | T1 | L0 | roche.roche_lobe_fraction, the Eggleton (1983) Roche-lobe radius over the separation, 0.49 q^(2/3) / (0.6 q^(2/3) + ln(1 + q^(1/3))) | none: q from 0 to infinity | any pair of stars or star and compact object | none; the formula is within 1 percent of the exact lobe | none | Eggleton 1983 (ApJ 268, 368), Equation 2, read in the ADS scan | - | - |
-| GM12 | P | T1 | L3 | stability.mardling_aarseth_pericentre_ratio, C = 2.8 in R_p / a_in = C [(1 + q_out)(1 + e_out) / (1 - e_out)^(1/2)]^(2/5), times (1 - 0.3 i / pi) | q_out up to 5 (the paper's own limit; GEN.1028 files that the code does not enforce it) | hierarchical triples, outer mass over inner mass up to 5 | an N-body triple set with q_out above 5 where the criterion's verdict is wrong more often than 15 percent | Equation 4 of Vynatheya et al. 2022 inside its fit range (already the `auto` choice) | Mardling and Aarseth 2001 (MNRAS 321, 398), Equation 90, read in the ADS scan: C = 2.8 is empirical, the formula holds for q_out <= 5, inclined orbits can be up to about 30 percent closer; the inclination factor is the code's reading of that sentence | - | - |
+| GM12 | P | T1 | L3 | stability.mardling_aarseth_pericentre_ratio, C = 2.8 in R_p / a_in = C [(1 + q_out)(1 + e_out) / (1 - e_out)^(1/2)]^(2/5), times (1 - 0.3 i / pi) | q_out up to 5 (the paper's own limit; GEN.1028 files that the code does not enforce it) | hierarchical triples, outer mass over inner mass up to 5 | an N-body triple set with q_out above 5 where the criterion's verdict is wrong more often than 15 percent | Equation 4 of Vynatheya et al. 2022 inside its fit range (already the `auto` choice) | Mardling and Aarseth 2001 (MNRAS 321, 398), Equation 90, read in the ADS scan: C = 2.8 is empirical, the formula holds for q_out <= 5, inclined orbits can be up to about 30 percent closer; the inclination factor is the code's reading of that sentence | - | replace (GEN.1028) |
 
 ## 6.61 Stand-ins of the potassium depletion by body class
 
@@ -837,6 +837,15 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | CF5 | P | T3 | L0 | the acid strength read for the optics, 80 percent (`DEFAULT_WEIGHT_PERCENT`), linearly between the 76 and 81 percent tables | 75 to 85 | clouds of 75 to 90 percent | the strength of the acid drawn from the air's water (acid_medium) differs from 80 | `acid_medium.weight_percent` at the cloud level | Gillmann and others 2024: 80 percent at the equator; Arney and Kane 2018: 75 to 85 | - | - |
 | FW6 | P | T4 | L0 | the half widths of minor-gas lines broadened by carbon dioxide at 296 K and 1 atm (`co2_far_wing.json` `minor_gamma_cm1_atm`): water 0.13, sulfur dioxide 0.10, carbon monoxide 0.065 cm-1 | water 0.09 to 0.15; SO2 0.07 to 0.13; CO 0.05 to 0.08 | minor gases in carbon dioxide air | HITRAN CO2-broadened widths outside the knobs | the HITRAN line list | recalled, not read; no open source found (the arXiv search was blocked by robots.txt, the Ptashnik 2019 CO2-broadened continuum and Takagi 2010 are behind paywalls) | - | - |
 | FW7 | P | T6 | L1 | `minor_uses_chi` 1: the minor-gas wings take the carbon dioxide self factor chi, weighted by the carbon dioxide share of the air (so Earth-like air adds nothing and keeps the MT_CKD continuum), and in a carbon dioxide air they partly double the continuum of `line_opacity` | 0 (pure Lorentz) to 1 | minor gases in carbon dioxide air | a measured CO2-broadened water continuum differing from the wing plus the MT_CKD foreign continuum by more than a factor of 2 | the measured CO2-broadened H2O continuum | none found; the wings add under 1 K at 30 ppm of water, so the bracket 0 to 1 does not move a result that matters | - | - |
+
+## 6.65 Stand-ins of the 3+1 quadruple stability network
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| QS1 | D | T1 | L0 | the 8,301 weights and biases of `quadruple_stability_3p1_weights.json`, the authors' own trained network, to nine significant digits | none | 3+1 quadruples with masses within a factor 10, eccentricities to 0.95, near the Mardling-Aarseth boundary | an N-body sample of the same kind whose classification score falls more than 10 points below the paper's 93 percent | a network or table fitted to our own N-body runs | the forward pass equals scikit-learn on five stored cases and 2000 random ones (read 10-30); my REBOUND check of 331 systems with the paper's labelling rule: network right 95 percent against 49 percent for nested MA01, but precision for stable only 0.57 on the near-boundary sample (paper 0.91; the sample is small and labelled differently); the repository of the authors has no licence file (Boss handles DATA-LICENSE.md) | - | - |
+| QS2 | P | T1 | L0 | the meaning of "stable": bound and not chaotic over 100 outer orbits (a twin with the inner axis larger by 1e-6 au diverging by under 1 percent in the inner axis), `outer_orbits` 100 and `divergence_limit` 0.01 | none | systems that are stable for a stellar lifetime only if nothing slower acts | a system stable at 100 outer orbits that the N-body code breaks at 10^4 outer orbits | a long-integration label | paper section 2, read | - | - |
+| QS3 | P | T3 | L0 | the documented range: `q_mid_max` 3 and `q_out_max` 2 from the help text of the authors' script ("best if < ~3", "< ~2"), `q_in_min` 0.1 and `eccentricity_max` 0.95 from the paper | q_mid up to 5 by the paper's masses | 3+1 systems inside the range | a system outside it that the network classifies against an N-body run | the range of a bigger training set | classify_quad_3p1.py help text and paper section 3.1, read | - | - |
+| QS4 | P | T6 | L0 | the training distribution: orbital angles isotropic, arguments of periapsis and mean anomalies not inputs, systems kept near the Mardling-Aarseth boundary of the two nested triples, 20 percent of the MA01-unstable draws kept | none | the verdict of a system near the boundary; far from it (very wide or very tight) the network extrapolates | a very hierarchical system (alpha under 0.05) called unstable by the network with all else benign | the nested triple test far from the boundary | paper section 3.1, read | - | - |
 
 ## 6.64 Stand-ins of the NH3 active-Sun factor
 
