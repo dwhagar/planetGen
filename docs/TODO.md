@@ -14797,16 +14797,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   PERF.149.
   Prerequisites: none. Related: PERF.149.
 
-- [ ] **PERF.207 planetgen planets and moons take --limit and --after (keyset), replacing OFFSET listing (slice 4 of the PERF.137 OFFSET audit)**
-  Slice 4 of the PERF.137 audit (report
-  /mnt/project-files/reports/limit-offset-audit-2026-10-29.md, Core 5,
-  2026-10-29): the planetgen planets and moons list commands page with
-  OFFSET. Do: add --limit and --after (the last id seen) with keyset
-  paging and print the next --after value, update docs/reference/cli.md
-  and the command tests. No generated-output change. Owner: Core 5.
-  Version 8.1.
-  Prerequisites: none. Related: PERF.137.
-
 - [ ] **PERF.208 A stored, indexed sector system count, density and quadrant so the remaining Sectors list sorts page by key (slice 5 of the PERF.137 OFFSET audit)**
   Slice 5 of the PERF.137 audit (report
   /mnt/project-files/reports/limit-offset-audit-2026-10-29.md, Core 5,
@@ -14910,6 +14900,19 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner (2026-10-30 2:54 AM EDT): Core 3 takes this after PERF.213
   (TODO); lock-free, no stored-output change
   Prerequisites: PERF.203. Related: PERF.203, PERF.212, PERF.213.
+
+- [ ] **PERF.215 An unfiltered planets or moons list pages by key: an index on planets (star_system_id, orbital_index) so the name-then-orbit order is served by the index**
+  Core 5 (as the lane reported, 3:17 AM EDT 2026-10-30), after PERF.207
+  (#3935; planetgen planets and moons take --limit and --after): at
+  6,000,000 planets a filtered list by system, sector or class costs
+  about 40 ms a page, but the unfiltered list still costs 18 s a page
+  because the name-then-orbit order has no index. Do: add the index (and
+  the moons equivalent), page the unfiltered list by key, and measure at
+  6,000,000 planets. Done: an unfiltered page answers in under 100 ms at
+  that size. An index only, no stored value, no epoch; it takes a
+  migration number, so build it with PERF.208's migration in the same
+  sitting. Size S. Owner: Core 5.
+  Prerequisites: PERF.208. Related: PERF.207, PERF.208.
 
 ## DB: Database and schema
 
