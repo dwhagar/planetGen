@@ -171,3 +171,24 @@ def test_generated_bodies_store_a_composition_that_gives_their_density():
                     assert bulk.envelope == 0.0 and body.water_mass_fraction == bulk.water
                 seen_classes.add(body.planet_class)
     assert len(seen_classes) >= 3
+
+
+def test_the_core_light_elements_cover_earth_and_mars_inside_two_sigma():
+    """GEN.993: Earth's core (0.05 to 0.10 of the metal, Hirose 2021) and Mars's (about 0.07 to 0.20, Yoshizaki and McDonough 2020) are both within two sigma of the median."""
+    low = bulk_draw.CORE_LIGHT_MEDIAN * 10.0 ** (-2.0 * bulk_draw.CORE_LIGHT_SIGMA_DEX)
+    high = bulk_draw.CORE_LIGHT_MEDIAN * 10.0 ** (2.0 * bulk_draw.CORE_LIGHT_SIGMA_DEX)
+    assert low <= 0.05 and 0.20 <= high
+    clip_low, clip_high = bulk_draw.RANGES["core_light_elements"]
+    assert (clip_low, clip_high) == (0.02, 0.25)
+
+
+def test_the_core_light_elements_are_log_normal_and_clipped():
+    with draw.bound(7):
+        values = [bulk_draw._core_light_elements() for _ in range(4000)]
+    low, high = bulk_draw.RANGES["core_light_elements"]
+    assert all(low <= v <= high for v in values)
+    logs = sorted(math.log10(v) for v in values)
+    median = logs[len(logs) // 2]
+    assert median == pytest.approx(math.log10(bulk_draw.CORE_LIGHT_MEDIAN), abs=0.02)
+    inside = sum(1 for v in values if 0.05 <= v <= 0.20) / len(values)
+    assert 0.6 < inside < 0.9

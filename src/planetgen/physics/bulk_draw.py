@@ -52,7 +52,7 @@ SOURCES = {
 RANGES = {
     "enriched_cmf": (0.5, 0.8),
     "rock_feo": (0.02, 0.18),
-    "core_light_elements": (0.03, 0.12),
+    "core_light_elements": (0.02, 0.25),
     "graphite_over_rock": (0.05, 0.40),
     "porosity": (0.0, 0.30),
     "other_ice_comet_class": "jupiter_family",
@@ -64,13 +64,21 @@ RANGES = {
 - `rock_feo`: FeO as a mass fraction of the rock, uniform. Earth's bulk silicate has 0.081, the Moon about 0.10, Mars 0.18
   (Khan and Connolly 2008); Mercury, under 0.01 (Nittler et al. 2011), is outside it: the Mercury-like range belonged to class B,
   a class the generator no longer draws, and no condition of the body says it is reduced (a stand-in, tier "from needed output").
-- `core_light_elements`: light elements (S, Si, O, C, H) as a mass fraction of the metal, uniform; Earth's core has 0.05 to
-  0.10 (Hirose et al. 2021).
+- `core_light_elements`: the clip of the light elements (S, Si, O, C, H) as a mass fraction of the metal, drawn log-normal
+  (`CORE_LIGHT_MEDIAN`, `CORE_LIGHT_SIGMA_DEX`); Earth's core has 0.05 to 0.10 (Hirose et al. 2021) and Mars's about 0.07 to 0.20
+  (Yoshizaki and McDonough 2020; the InSight core density), both inside two sigma of the median (GEN.993, stand-in BC18).
 - `graphite_over_rock`: a carbon body's graphite against its silicon carbide and oxide rock, uniform; a stand-in range until the
   carbon mantle's equation of state (GEN.428's open item) says what the interiors hold.
 - `porosity`: the void share of a small icy body, uniform; a stand-in until viscous compaction (lane K) replaces it.
 - `other_ice_comet_class`: whose volatile proportions an icy body takes for its ices other than water.
 """
+
+CORE_LIGHT_MEDIAN = 0.08
+"""float: The median of the core's light-element mass fraction of the metal (GEN.993; Earth's outer core 0.05 to 0.10, Hirose et al. 2021).
+[Stand-in BC18, tier T7, tweak L1.]"""
+CORE_LIGHT_SIGMA_DEX = 0.25
+"""float: The width, in dex, of the log-normal draw of the core's light elements: the Earth's range and Mars's (about 0.07 to 0.20) both sit
+inside two sigma (GEN.993; the widest range of two sources in question). [Stand-in BC18, tier T7, tweak L1.]"""
 
 IRON_SCATTER_DEX = 0.05
 """float: The scatter of a star-matched planet's Fe/Mg about its star's, dex (a normal draw): GEN.512 (`docs/design/composition/iron-branch-tuning.md`
@@ -383,7 +391,7 @@ def draw_terrestrial(body, radius_given, mass_given):
     # A moon that holds its origin (GEN.466) takes its water, ice, rock and metal from it, not from the range of its parent's origin
     water, ice = (0.0, 0.0) if origin else _water_and_ice(body)
     feo = draw.uniform(*RANGES["rock_feo"])
-    light = draw.uniform(*RANGES["core_light_elements"])
+    light = _core_light_elements()
     porosity = None if origin else _porosity(body)
     graphite = draw.uniform(*RANGES["graphite_over_rock"]) if carbon_rock else 0.0
 
@@ -401,6 +409,12 @@ def draw_terrestrial(body, radius_given, mass_given):
         metal=metal, rock=rock, water=water, ice=ice, envelope=0.0, rock_feo=part.rock_feo, rock_al2o3=part.rock_al2o3,
         rock_mg_si=part.rock_mg_si, porosity=porosity, carbon_rock=carbon_rock, origin="drawn")
     _settle(body, bulk, mass_given)
+
+
+def _core_light_elements():
+    """The light elements' share of the metal's mass: log-normal about `CORE_LIGHT_MEDIAN`, clipped to `RANGES["core_light_elements"]`."""
+    low, high = RANGES["core_light_elements"]
+    return min(max(CORE_LIGHT_MEDIAN * 10.0 ** draw.normal(0.0, CORE_LIGHT_SIGMA_DEX), low), high)
 
 
 def _draw_moon(body, origin, part, mass_given):
