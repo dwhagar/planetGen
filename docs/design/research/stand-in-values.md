@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 593 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 597 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -38,14 +38,14 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 |---|---|---|---|---|---|---|
 | T1 | 70 | 1 | 5 | 1 | 0 | 77 |
 | T2 | 89 | 8 | 0 | 1 | 0 | 98 |
-| T3 | 68 | 20 | 5 | 9 | 0 | 102 |
+| T3 | 69 | 21 | 5 | 9 | 0 | 104 |
 | T4 | 27 | 0 | 0 | 13 | 6 | 46 |
 | T5 | 39 | 11 | 0 | 0 | 0 | 50 |
-| T6 | 47 | 28 | 11 | 33 | 0 | 119 |
-| T7 | 27 | 8 | 8 | 7 | 0 | 50 |
+| T6 | 47 | 28 | 12 | 33 | 0 | 120 |
+| T7 | 27 | 8 | 8 | 8 | 0 | 51 |
 | T8 | 0 | 0 | 0 | 1 | 2 | 3 |
 | T9 | 2 | 0 | 2 | 25 | 19 | 48 |
-| All | 369 | 76 | 31 | 90 | 27 | 593 |
+| All | 370 | 77 | 32 | 91 | 27 | 597 |
 
 ## How the labels were given
 
@@ -970,7 +970,16 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | DP4 | P | T3 | L0 | disintegrating_planet.DUTY_CYCLE 0.5: the share of the time the planet loses mass at its maximum rate | 0.5 | KIC 12557548 b | a measured duty cycle | the cycle of the dust tail's transits | Perez-Becker and Chiang 2013, section 3.3 (read) | GEN.1050 | - |
 | DP5 | B | T3 | L0 | disintegrating_planet.DIVIDING_MASS_EARTH 0.11, MIN_DAYSIDE_TEMPERATURE_K 2000 and MAX_PERIOD_D 1.0: the gate of the oddity | 0.1 to 0.11 Earth mass; the full model's divide is about 0.08 | rocky bodies | a disintegrating planet over 0.11 Earth mass or under 2000 K | the module's own lifetime (a body whose lifetime is under its age) | the abstract and section 3.3 (read); the period gate is the design note's | GEN.1050 | - |
 
-## 6.74 Stand-ins of the nightside collapse of a locked planet's air
+## 6.74 Stand-ins of atmosphere retention
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| SH1 | B | T3 | L1 | atmosphere_retention.SHORELINE_K 3.85e-4: the geometric middle of the window 3.0e-4 to 6.6e-4 that Titan, Pluto and Triton (lower bound) and Ganymede (upper bound) leave | 3.0e-4 to 6.6e-4 (SHORELINE_K_WINDOW) | the 13 Solar System bodies of the design table | 55 Cnc e and TOI-561 b, which hold air at K 12 to 190 times higher (JWST) | the logistic of the atmosphere recipes (GEN.511), tuned to 917 planets | Zahnle and Catling 2017, the shoreline separates bodies with and without air along cumulative insolation over the fourth power of the escape velocity; the constant is fitted to the 13 bodies here | GEN.963 | - |
+| SH2 | P | T6 | L2 | atmosphere_retention.VERDICT_EDGES (0.7, 1.0, 2.5, 30.0): the shoreline ratios under which a body holds a dense, moderate, tenuous or trace air and over which it holds none | none | a body of one star age | a body that holds air at a ratio over 30 | the logistic of GEN.511 | edges placed so the 13 bodies fall on the observed side: Earth, Venus, Titan and Triton dense, Pluto moderate, Mars, Io and Ganymede tenuous, Callisto and Europa trace, Mercury, the Moon and Ceres none | GEN.963 | - |
+| SH3 | P | T7 | L3 | atmosphere_retention.PRESSURE_CAPS_PA (none, 1e4, 1e3, 1, 0): the surface pressure each verdict allows, 0.1 bar, 10 mbar, 10 micro-bar | none | pressure caps of a body of one star | a measured pressure over its cap | the supply-limited pressure of the pressure stage | design: Mars holds 6 mbar at a ratio of 1.8 and Pluto 10 micro-bar at 0.78 (the pressure is capped, supply and vapour set the rest) | GEN.963 | no data |
+| SH4 | D | T3 | L0 | atmosphere_retention.JEANS_KEEP 30: a gas of this Jeans parameter or more at the exobase stays for the age of a body | 15 (lost in about 1 Gyr) to 30 | a thermal escape of a gas at the exobase | a gas of 30 or more that is lost | the lifetime integral of `thermosphere.kept_shares` | Catling and Kasting 2017 (second-hand, from the design note) | GEN.963 | - |
+
+## 6.75 Stand-ins of the nightside collapse of a locked planet's air
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|

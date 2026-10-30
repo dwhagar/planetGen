@@ -1,6 +1,6 @@
 # Nightside collapse of a locked planet's air (GEN.1044, oddity W19)
 
-Status: lock-free module, written 2026-10-30 (as the lane reported) by the Aux 3 lane. `src/planetgen/physics/nightside_collapse.py`; tests in `src/tests/test_nightside_collapse.py`; registry rows NC1 to NC6 (section 6.74 of the gap-filling plan). The wiring is GEN.1051, after the climate solver, with the bistable branch of W20.
+Status: lock-free module, written 2026-10-30 (as the lane reported) by the Aux 3 lane. `src/planetgen/physics/nightside_collapse.py`; tests in `src/tests/test_nightside_collapse.py`; registry rows NC1 to NC6 (section 6.75 of the gap-filling plan). The wiring is GEN.1051, after the climate solver, with the bistable branch of W20.
 
 ## 1. What it answers
 
