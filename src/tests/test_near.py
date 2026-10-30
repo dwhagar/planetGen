@@ -347,6 +347,36 @@ def test_api_near_answers_and_refuses(client, galaxy):
         assert client.get(bad).status_code == 400, bad
 
 
+def test_the_distance_is_worked_out_once_per_candidate_and_returns_the_same_systems(galaxy):
+    """PERF.216: the statement tests the distance as `POW(axis - c, 2)` once (MySQL does not share `(axis - c) * (axis - c)`, and a test in
+    `WHERE` plus the select list worked it out twice more), and the systems it returns are those of the product form, a system exactly
+    `radius` away included."""
+    from planetgen.db import region
+    from planetgen.galaxy import cellkey
+    position = ("p.galaxy_x_pc", "p.galaxy_y_pc", "p.galaxy_z_pc")
+    sql, _runs = region.region_statement("star_systems", "p.id", position, (8200.0, 0.0, 0.0), 20.0)
+    assert sql.count("POW(") == 6 and sql.count(" AS d2") == 2 and sql.count("HAVING d2 <= ") == 2 and ") * (" not in sql
+    counting, _runs = region.region_statement("star_systems", "1 AS one", position, (8200.0, 0.0, 0.0), 20.0, with_distance=False)
+    assert counting.count("POW(") == 6 and "d2" not in counting and "HAVING" not in counting
+    conn = _conn(galaxy)
+    try:
+        systems = _systems(conn)
+        points = [point for _name, point in systems.values()]
+        for center in points[:3] + [sector_position_pc(*ADDRESSES[0], EDGE_PC)]:
+            for radius in (0.0, 3.0, 12.0, 50.0, *(math.dist(center, other) for other in points[:4])):
+                runs = cellkey.sphere_runs(center, radius)
+                reach = radius * (1.0 + region.SLACK) + region.SLACK
+                product = " + ".join(f"({axis} - {c!r}) * ({axis} - {c!r})" for axis, c in zip(position, center))
+                expected = {row["id"] for row in conn.execute(
+                    f"SELECT p.id FROM ({region.values_list(runs)}) AS rg(lo, hi) STRAIGHT_JOIN star_systems p FORCE INDEX (idx_star_systems_cell) "
+                    f"ON p.cell_key BETWEEN rg.lo AND rg.hi WHERE {product} <= {reach * reach!r}").fetchall()} if runs else set()
+                found = {row["id"] for row in region.region_rows(conn, "star_systems", "p.id", position, center, radius, runs=runs)}
+                assert found == expected, (center, radius)
+                assert region.capped_count(conn, "star_systems", position, center, radius, 10_000) == len(expected), (center, radius)
+    finally:
+        conn.close()
+
+
 def test_the_early_stop_count_counts_up_to_its_cap(galaxy):
     """NAV.61: `capped_count` is the sphere's real count below the cap and the cap above it."""
     from planetgen.db import region
