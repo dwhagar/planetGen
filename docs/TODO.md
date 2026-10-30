@@ -13646,6 +13646,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   merge train. No shim.
   Prerequisites: TEST.477, GEN.1011. Related: GEN.1006, GEN.1004,
   TEST.476.
+  Sources 1 (GEN.1018 report, as the lane reported) (2026-10-30 11:36 AM
+  EDT): Port the 2023 3+1 network of Vynatheya, Mardling and Hamers (11
+  inputs, 4x50 logistic, 8,301 numbers, 93 percent accurate) as a
+  weights table with a numpy forward pass, no scikit-learn or pickle;
+  nested triples stay the first screen at margin 1.0, outside the
+  network's range fall back to margin 1.5 flagged lower confidence. The
+  first part must compare the numpy port with the authors' scikit-learn
+  call. The weights are not committed: the authors' repository has no
+  licence file, so DATA-LICENSE and the setup fetch are Boss's call.
+  Report:
+  /mnt/project-files/reports/gen1018-multistar-stability-2026-10-30.md;
+  registry rows GM1 to GM8 in section 6.60.
 
 - [ ] **GEN.1017 Overlap-free stars P0: give the star tree the primary's [Fe/H] (and the build's age and mass) so the tree and the build evolve each companion the same way (replaces the dropped GEN.1007)**
   Root cause found by running it (GEN.1006 revised design,
@@ -13660,23 +13672,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   census re-tag on a merge train. First output-changing part of
   GEN.1006; it can go before P3. Owner: Bug 1 (star lane) after GEN.951.
   Prerequisites: none. Related: GEN.1006, GEN.1004, GEN.1009, TEST.476.
-
-- [ ] **GEN.1018 Overlap-free stars research part: port a 3+1 quadruple stability criterion and verify the sources from the papers (GEN.1006)**
-  Free research part of GEN.1006
-  (/mnt/project-files/design-drafts/overlap-free-systems-gen1006-2026-10-30.md
-  sections 7, 12 and 13). The nested-triple stability test over-predicts
-  stable 3+1 quadruples (Vynatheya, Mardling and Hamers 2023, read):
-  read the 2023 quadruple models and decide how to port a 3+1 criterion
-  without a machine-learning dependency. Verify from the papers (a lane
-  with access, second-hand rule otherwise): Domingos 2006 (moon Hill
-  fractions, eccentricity terms, retrograde limit), Eggleton 1983,
-  Mardling and Aarseth 2001, Eggleton and Kiseleva 1995 and Chambers
-  1996. Done: a report with the criterion, the checked constants and
-  their GEN.725 tier and tweak rows (the engulfment constants that sit
-  below Mustill and Villaver 2012, the 3+1 margin), and the sources
-  marked Verified or kept below it. No generator change. Owner: Sources
-  1 or Sources 2 (data lanes) or the first free lane.
-  Prerequisites: none. Related: GEN.1006, GEN.725, GEN.1012, GEN.1014.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
