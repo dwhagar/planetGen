@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 713 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 717 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,12 +40,12 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T2 | 100 | 17 | 0 | 1 | 0 | 118 |
 | T3 | 74 | 26 | 5 | 9 | 0 | 114 |
 | T4 | 36 | 2 | 0 | 15 | 6 | 59 |
-| T5 | 39 | 12 | 0 | 0 | 0 | 51 |
-| T6 | 62 | 33 | 12 | 34 | 0 | 141 |
+| T5 | 40 | 12 | 0 | 0 | 0 | 52 |
+| T6 | 64 | 33 | 13 | 34 | 0 | 144 |
 | T7 | 26 | 8 | 8 | 8 | 0 | 50 |
 | T8 | 0 | 1 | 0 | 1 | 2 | 4 |
 | T9 | 5 | 1 | 4 | 33 | 19 | 62 |
-| All | 446 | 103 | 35 | 102 | 27 | 713 |
+| All | 449 | 103 | 36 | 102 | 27 | 717 |
 
 ## How the labels were given
 
@@ -948,11 +948,15 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | LQ3 | B | T4 | L4 | surface_liquids.json rows of kind brine and the ammonia-water eutectic: eutectic temperatures recalled (176, 198, 206, 223, 236, 252.1 and 268.4 K), with densities, viscosities and boiling points that are stand-ins | eutectic 3 K; density 15 percent; viscosity a factor of 5 | cold icy surfaces, Mars and the ocean worlds | a measured brine density or viscosity outside the stand-in by more than a factor of 2 | the brine property tables of the Mars and Europa literature (Kargel 1991; Hanley et al. 2012) | design (the eutectic points are RECALLED; the properties are argued from the salt strength) | - | no data |
 | LQ4 | B | T3 | L0 | surface_liquids.json rows of kind silicate and carbonate: basaltic, komatiitic, peridotitic, rhyolitic and natrocarbonatite lavas, with their liquidus, density, and a viscosity curve that is steep in temperature | liquidus 100 K; viscosity two orders of magnitude | molten surfaces and magma oceans | a lava viscosity outside the row by more than three orders of magnitude | the melt viscosity model of Giordano et al. 2008 from the composition | RECALLED (textbook liquidus and viscosity of lavas; the boiling points are stand-ins at 3000 to 3600 K) | - | - |
 | LQ5 | B | T4 | L4 | surface_liquids.json rows of kind sulfide: molten iron sulfide and the iron-sulfur eutectic melt | density 20 percent; viscosity a factor of 3 | metal-sulfide melts | none better than a measurement | measured Fe-S melt properties (Terasaki et al.) | design (the melting points are RECALLED; the rest are stand-ins) | - | no data |
-| LQ6 | P | T6 | L2 | surface_liquids.SOLUBILITY_FACTOR {N2: 0.3}: the share of Raoult's ideal mole fraction a permanent gas keeps in a cold hydrocarbon sea | 0.1 to 0.6 | Titan-like seas at 90 to 110 K | test_surface_liquids::test_a_titan_like_world_draws_a_hydrocarbon_sea; a sea nitrogen fraction outside 0.05 to 0.25 | the nitrogen solubility of a methane-ethane mixture from a real-fluid equation of state (Cordier et al. 2009; Glein and Shock 2013) | RECALLED (Cordier et al. 2009 give 0.1 to 0.2; 0.3 of the ideal value lands there) | GEN.1035 | - |
+| LQ6 | P | T6 | L2 | surface_liquids.SOLUBILITY_FACTOR {N2: 0.3}: the share of Raoult's ideal mole fraction a permanent gas keeps in a cold hydrocarbon sea | 0.1 to 0.6 | Titan-like seas at 90 to 110 K | test_surface_liquids::test_a_titan_like_world_draws_a_hydrocarbon_sea; a sea nitrogen fraction outside 0.05 to 0.25 | the nitrogen solubility of a methane-ethane mixture from a real-fluid equation of state (Cordier et al. 2009; Glein and Shock 2013) | RECALLED (Cordier et al. 2009 give 0.1 to 0.2; 0.3 of the ideal value lands there) | - | - |
 | LQ7 | D | T5 | L0 | surface_liquids.ideal_sea: Raoult's law x = p / P_sat for every volatile, the involatile ethane taking the rest | none | a sea in equilibrium with its air | the ideal-mixing density test; a non-ideal mixture that differs by more than 30 percent | an activity-coefficient model of the methane-ethane-nitrogen system | COMPUTED (Raoult's law; the ideal-solution density) | - | - |
 | LQ8 | P | T6 | L0 | surface_liquids.candidates: a volatile in the air at saturation condenses and ranks first; otherwise the body's reservoir of the liquid ranks it by amount | none | any world | a world that the rule gives no liquid but that has a sea, or the reverse | a mass balance of the species between the air, the ice and the sea | design (the physics is condensation; the ranking by reservoir amount is argued) | - | - |
 | LQ9 | P | T5 | L0 | surface_liquids.boiling_k: Clausius-Clapeyron from the boiling point at one bar with a constant heat of vaporization, capped at the critical temperature, for every row with no saturation curve | none | pressures within a decade of one bar | the boiling point of a row at 10 bar more than 10 percent from its measured value | the Antoine or Wagner fit of the row | COMPUTED (the integrated Clausius-Clapeyron law) | - | - |
 | LQ10 | P | T6 | L0 | surface_liquids.density_kg_m3: linear in temperature from a reference point, held to 0.3 of it (MIN_DENSITY_SHARE) | expansion 30 percent | the liquid well under its critical point | a density at 1.3 reference range temperatures more than 10 percent from the NIST value | a saturated-liquid density equation of the row | design (a line; the floor is argued) | - | - |
+| LQ11 | P | T6 | L2 | surface_liquid_world.SURFACE_SHARE_OF_ICE 3e-4: the share of a body's ice of a volatile that lies on its surface as the liquid, spread over the surface like water | 1e-4 to 1e-3 | a cold body that holds a volatile ice and an air that keeps its liquid stable | test_surface_liquid_world::test_a_titan_like_body_holds_a_methane_sea_from_its_ice; Titan's cover outside 1 to 3 percent | a mass balance of the volatile between the ice, the crust, the air and the sea (Hayes 2016; Lorenz et al. 2008) | RECALLED (Hayes 2016: seas and lakes cover 1.6 percent of Titan; the 1 percent methane ice of the test body is a guess) | - | - |
+| LQ12 | P | T6 | L0 | surface_liquid_world.LAVA_OF_GROUND: a surface at or over the liquidus of its ground's rock is molten all over (ultramafic ground to komatiite, felsic to rhyolite, the rest to basalt; over the peridotite liquidus a magma ocean) | none | a mean surface temperature in a lava window | a body with a molten mean surface that the rule leaves solid, or the reverse | a mixed-ground melt fraction curve (the solidus to liquidus interval) with a partial cover | design (the liquidus of the dominant rock stands for the whole surface; the cover is 1) | - | - |
+| LQ13 | P | T6 | L0 | surface_liquid_world.LAVA_MIN_PRESSURE_PA 1e5: a lava surface holds in its own vapour, so its window is checked at no less than one bar; its depth is not known | none | a molten surface with a thin or no air | a lava world with the surface liquid stored as none because of a missing air | the vapour pressure of the melt (mixture_lava) in place of the floor | design (the floor is argued; the depth is left NULL) | - | - |
+| LQ14 | D | T5 | L0 | surface_liquid_world._sea: the liquid that condenses out of an air over saturation lies at (p - p_sat) / g kg per square metre, spread by the water hypsometry | none | an air whose volatile stands over its saturation pressure | a condensing sea whose mass differs from the excess column by more than 30 percent | a rainout and surface-reservoir model of the volatile | COMPUTED (the column mass of the excess partial pressure) | - | - |
 
 ## 6.70 Stand-ins of the ring origin
 
