@@ -235,13 +235,18 @@ def test_opening_a_sector_is_one_continuous_view_with_a_filled_panel(moving_page
     assert page.evaluate("window.__sameDocument") is True, "the page reloaded while the sector opened"
     opened = parse_qs(urlparse(page.url).query).get("sector", [None])[0]
     assert opened and page.url.endswith(f"?sector={opened}&open=1"), page.url
-    opened_detail = detail if opened == code else _sector(site_app, opened)
+    # TEST.450: at the core the cells are small and close, so the camera can as well come up to a neighbouring cell nothing was generated in
+    # but the scatters left objects in (MAP.162), which opens as an uncharted sector: no detail, and its own heading.
+    charted = detail if opened == code else site_app.test_client().get(f"/api/sectors/{opened}").get_json()
     panel = page.evaluate("window.__panel")
     assert all(text for _query, text in panel if text is not None), f"the panel went empty: {panel}"
     heading = page.locator(f"{INFO} h3").inner_text()
-    assert heading == opened_detail["name"], (heading, opened, code)
     assert page.locator(INFO).inner_text().strip(), "the panel is empty"
-    assert any(page.eval_on_selector_all(f"{INFO} a", "els => els.map(e => e.textContent)")), "the panel offers no link"
+    if charted.get("placed"):
+        assert heading == charted["name"], (heading, opened, code)
+        assert any(page.eval_on_selector_all(f"{INFO} a", "els => els.map(e => e.textContent)")), "the panel offers no link"
+    else:
+        assert heading == "Uncharted sector", (heading, opened, code, charted)
 
 
 def _selects_a_star(page, base_url, site_app, detail):
