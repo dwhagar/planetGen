@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 388 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 390 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -36,7 +36,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 46 | 0 | 3 | 0 | 0 | 49 |
+| T1 | 48 | 0 | 3 | 0 | 0 | 51 |
 | T2 | 69 | 3 | 0 | 1 | 0 | 73 |
 | T3 | 52 | 5 | 2 | 10 | 0 | 69 |
 | T4 | 16 | 0 | 0 | 2 | 0 | 18 |
@@ -45,7 +45,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T7 | 17 | 3 | 1 | 7 | 0 | 28 |
 | T8 | 0 | 0 | 0 | 0 | 1 | 1 |
 | T9 | 1 | 0 | 2 | 24 | 16 | 43 |
-| All | 261 | 26 | 13 | 71 | 17 | 388 |
+| All | 263 | 26 | 13 | 71 | 17 | 390 |
 
 ## How the labels were given
 
@@ -600,3 +600,10 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | PA10 | P | T6 | L3 | tuning.GIANT_INWARD_MIGRATION_SIGMA_LN 0.9281, GIANT_CLEARING_SPACING 8 and GIANT_HOT_ORBIT_AU 0.1 (how far a giant that does not become a hot Jupiter moves in, the spacing within which it scatters planets, the orbit that counts as hot) | sigma 0.3 to 1.2; spacing 4 to 10 | giants | test_planet_architecture::test_a_hot_jupiter_has_nothing_inside_its_orbit_and_a_moved_giant_clears_its_neighbours; a giant occurrence not peaking at 1 to 3 AU | a migration model | Fulton 2021 and Cumming et al. 2008 (arXiv:0803.3357, READ: the occurrence rises by a factor of 4 at 1 AU and peaks at 1 to 3 AU) | GEN.728 | no data |
 | PA11 | P | T6 | L3 | tuning.PLANET_MIN_MASS_OUTER_EARTH 0.6649 and PLANET_MIN_MASS_EARTH 0.1 (the lightest oligarch that is a planet, beyond and inside the snow line) | outer 0.3 to 1.5; inner 0.05 to 0.2 | all chains | test_planet_architecture::test_a_star_gets_its_planets_in_order_with_the_masses_a_planet_has_and_a_seeded_run_repeats; a planet count beyond 2 AU outside the microlensing counts | a belt formation and size-frequency model | design (Mercury is 0.055 Earth masses); the outer floor tuned to the count of the Neptune-mass planets beyond the snow line (Suzuki et al. 2016, recalled) | GEN.728 | no data |
 | PA12 | P | T7 | L0 | planet_occurrence.json `disc_dust_scatter` 0.7 dex and tuning.DISC_SOLIDS_SCATTER_DEX 0.7; INNER_SYSTEM_FRACTION_ANCHORS ((0.15, 0.85), (0.6, 0.75), (1.0, 0.30), (1.4, 0.30)) (the scatter of the solids and the share of stars with an inner system by mass) | scatter 0.5 to 0.9; shares inside the bands | all hosts | test_planet_architecture::test_the_share_of_stars_with_an_inner_system_follows_the_observed_anchors | the formation model that gives the share from the disc (GEN.729 follow-up) | Andrews et al. 2013 (arXiv:1305.5262, READ: 0.7 dex); Zhu 2018 (30 percent Sun-like); Yang 2020 (75 percent under 5000 K, 35 percent over 6500 K) | GEN.728 | - |
+
+## 6.37 Stand-ins of the brown dwarf ceiling
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| SB1 | P | T1 | L0 | substellar_ceiling.LIMIT_MASS_SOLAR 0.07 (the hydrogen-burning limit of the solar-metallicity models; the table also holds 0.072) | none | solar metallicity | a model whose limit lies more than 0.005 solar masses from 0.07 (the limit rises at low [Fe/H], GEN.936) | the limit as a function of [Fe/H] from the Baraffe table (GEN.936) | test_substellar_ceiling::test_the_limit_mass_is_hottest_at_ten_million_years_as_the_paper_says | GEN.494 | - |
+| SB2 | P | T1 | L0 | substellar_ceiling.HOTTEST_K 2950 (the highest temperature the limit mass reaches; the table has 2946 K at 10 Myr) | none | any age from 0.5 Myr to 10 Gyr | an isochrone set whose limit mass peaks more than 100 K from 2950 K | a later set of models | test_substellar_ceiling::test_the_limit_mass_is_hottest_at_ten_million_years_as_the_paper_says | GEN.494 | - |

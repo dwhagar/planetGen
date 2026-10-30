@@ -158,6 +158,7 @@ REGISTRY = _commands(
     CommandSpec("rescore-habitability", "Re-score the habitability: one unit per run of ids",
                 unit=("planetgen.generation.run_plan", "rescore_habitability_unit"),
                 expand=("planetgen.generation.run_plan", "expand_rescore_habitability"),
+                conclude=("planetgen.generation.run_plan", "conclude_rescore_habitability"),
                 unit_seconds=25),
     CommandSpec("clean-nebula-field", "Clean up the nebula field: one unit",
                 unit=("planetgen.generation.run_plan", "clean_nebula_field_unit"),
