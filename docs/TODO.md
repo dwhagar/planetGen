@@ -14893,7 +14893,31 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   tweak level, and list every reader that moves. Changes generated
   output if the value moves: epoch and --affects fill. Owner: Sources 2.
   Version 8.1.
+  Sources 2 answer (as the lane reported 11:33 PM EDT) (2026-10-29 11:33
+  PM EDT): the 0.85 Gy is the default small galaxy (5.8e9 solar masses,
+  772 pc); a Milky Way mass disc gives 1.46 Gy against 4.2 Gy measured
+  because the Kennicutt law has no low-density threshold. The quantity
+  is right and the value about 3 times short; it is registered as 6.49
+  AL1 and the fix is filed as GEN.999. Close this item when the registry
+  row AL1 lands with the train 7 wiring branch.
   Prerequisites: none. Related: GEN.469, GEN.476, GEN.477.
+
+- [ ] **GEN.999 Give the disc gas law a low-density threshold so a Milky Way mass disc depletes its gas in about 4.2 Gy, not 1.46 Gy**
+  Sources 2 answer on GEN.998 (as the lane reported 11:33 PM EDT
+  2026-10-29). The default small galaxy (5.8e9 solar masses, 772 pc)
+  gives a gas depletion time of 0.85 Gy, and a Milky Way mass disc gives
+  1.46 Gy against 4.2 Gy measured, because the Kennicutt law the
+  generator uses has no low-density threshold. The quantity is right,
+  the value is about 3 times short; it is registered as stand-in row
+  6.49 AL1 for now. Do: replace the law with a threshold law (a
+  Kennicutt-Schmidt law with a low-density cut) fitted to the measured
+  depletion time, then re-measure every reader of gas_now: radiogenic
+  aluminium-26 (GEN.476), star_formation.py and core_gas.py, which all
+  move. Changes generated output: epoch, --affects
+  plan,scatter,fill,population and a census re-baseline; rides the
+  star-side train after GEN.932 (Bug 1 owns star_formation.py). Owner:
+  Sources 2 with Bug 1. Version 8.1.
+  Prerequisites: GEN.932. Related: GEN.998, GEN.476, GEN.469.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
