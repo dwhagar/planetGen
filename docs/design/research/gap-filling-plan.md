@@ -2141,7 +2141,7 @@ The remainder the Rogues level leaves unmatched becomes thin clouds of small rub
 | TF3 | P | T9 | L3 | topup_field.SPEED_KM_S_RANGE 0.3 to 3, MIN_RADIUS_LY 0.25: the rms speed the field spreads at (log-uniform) and the least rms radius (the radius is drawn between this and the one light year of retirement, IF15, and the age follows from it) | speed 0.1 to 10; radius 0.1 to 0.5 | a field placed in a sector | none (a field is not observed) | the dispersion of a real source (IF12) | Boss, 5:42 PM EDT 2026-10-30: a larger volume |
 | TF4 | P | T9 | L3 | topup_field.MIN_FIELD_MASS_KG 1e21, MAX_FIELD_MASS_KG 1.2e24, MAX_FIELDS 12: the lightest field drawn, the heaviest drawn before the last one takes the rest (0.2 Earth masses, under the 0.27 a collision field keeps at most), and the most fields in a sector's top-up | min 1e19 to 1e22; max 1e23 to 1e25; count 4 to 40 | the mass the rogues leave unmatched | none | the unmatched mass of a smaller or a different galaxy model | chosen to keep a sector's top-up to a dozen clouds (IF6 for the 0.27) |
 
-### 6.115 Stand-ins of the resonance and chaotic-zone map of a belt (GEN.1062)
+### 6.116 Stand-ins of the resonance and chaotic-zone map of a belt (GEN.1062)
 
 The zones a belt keeps of its giants (`physics/resonance_gaps.py`; design `belt-evolution.md` sections 2.3 and 2.4, sources `belt-sources.md` BR1 to BR3). The chaotic-zone and resonance-width laws are read in Mustill and Wyatt 2012 (arXiv:1110.1282); the drift is Bennu's, scaled (Vokrouhlicky et al. 2015). Not read: Wisdom 1980 and 1982, Murray and Dermott's resonance widths for higher orders, Wyatt et al. 1999 for the forced eccentricity. The Solar System's Kirkwood gaps and Neptune's zone are test targets only.
 
