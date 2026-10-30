@@ -217,7 +217,7 @@ def generated_moons():
             system = StarSystem(system_config=config)
             for planet in system.planets + system.secondary_planets:
                 if planet.body_type != "a":
-                    moons.extend(planet.moons)
+                    moons.extend(getattr(planet, "_born_moons", None) or planet.moons)      # the moons as generated: the tide has since removed some (GEN.959)
     return moons
 
 
@@ -236,8 +236,9 @@ def test_every_generated_moon_has_a_composition_from_its_origin(generated_moons)
 
 def test_a_disk_moon_gains_ice_past_its_disks_ice_line(generated_moons):
     disk = [moon for moon in generated_moons if moon.moon_origin == "disk"]
-    near = [m.water_mass_fraction for m in disk if m.distance * 1.495978707e8 < 0.3 * m.moon_disk_system.ice_line_km]
-    far = [m.water_mass_fraction for m in disk if m.distance * 1.495978707e8 > 1.5 * m.moon_disk_system.ice_line_km]
+    # a moon's makeup is set where it formed (`_birth_distance_au`); the tide has since moved it (`moon_history`, GEN.959)
+    near = [m.water_mass_fraction for m in disk if m._birth_distance_au * 1.495978707e8 < 0.3 * m.moon_disk_system.ice_line_km]
+    far = [m.water_mass_fraction for m in disk if m._birth_distance_au * 1.495978707e8 > 1.5 * m.moon_disk_system.ice_line_km]
     assert near and far
     assert max(near) < 0.05
     assert sum(far) / len(far) > sum(near) / len(near) + 0.1
