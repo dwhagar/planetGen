@@ -469,7 +469,7 @@ def generate_dose(body):
     distance = getattr(body, "_star_distance_au", None)
     pressure_pa = getattr(body, "atmospheric_pressure", None) or 0.0
     column = column_g_cm2(pressure_pa, getattr(body, "gravity", None))
-    moment = (getattr(body, "magnetic_moment_a_m2", None) or 0.0) * magnetism.body_dipole_share(body)
+    moment = getattr(body, "magnetic_moment_a_m2", None) or 0.0
     cutoff = cutoff_rigidity_gv(moment, body.radius)
     modulation = log_uniform(*tuning.GCR_SOLAR_MODULATION_RANGE)
     gcr = gcr_dose_msv_yr(column, cutoff, modulation)

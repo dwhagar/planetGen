@@ -115,3 +115,14 @@ def test_an_ice_giant_lands_within_a_factor_of_ten_of_neptunes_moment():
 
 def test_the_spin_of_a_body_from_its_period():
     assert gd.spin_rad_s(24.0) == pytest.approx(7.2722e-5, rel=1e-4)
+
+
+def test_a_drawn_ice_giant_has_a_region_and_a_field_of_the_size_of_neptunes():
+    """GEN.967: an ice giant's layers are placed, so its conducting mantle is a region; Neptune's 2e24 A m2 is within a factor of five."""
+    from tests.test_giant_interior import NEPTUNE
+    for seed in range(1, 6):
+        body = interior(NEPTUNE, seed)
+        region = gd.region_of(body, 24764e3)
+        assert region is not None and region.layer == "ice_mantle"
+        found = gd.giant_field(body, 24764e3, 1.0e15, gd.spin_rad_s(16.1))
+        assert 2.0e24 / 5.0 < found.field.moment_a_m2 < 2.0e24 * 10.0
