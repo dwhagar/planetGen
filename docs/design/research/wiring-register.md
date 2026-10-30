@@ -143,12 +143,15 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.61:KD4 | GEN.492 | `potassium_depletion.MAX_DEPLETION`, not read until `radiogenic` calls the module |
 | data | co2_far_wing.json | GEN.1019 | the carbon dioxide far-wing rules (Perrin and Hartmann chi, widths, reach); `line_opacity` will read them when the wing replaces IR3 |
 | module | planetgen.physics.co2_far_wing | GEN.1019 | the far wing of carbon dioxide; replaces the flat `CO2_FAR_WING_M2_KG` of IR3 once `line_opacity` calls it |
+| module | planetgen.physics.clearance | GEN.1016 | the independent overlap checker (audit of a stored system, TEST.477); read by tests/test_clearance.py now and by the stability gate of GEN.1016 once it lands |
 | data | sulfuric_cloud.json | GEN.1019 | the sulfuric acid cloud rules (base temperature, published depth and radius brackets, cover); `aerosols.draw_cloud` will read them in the wiring step |
 | module | planetgen.physics.sulfuric_cloud | GEN.1019 | the acid cloud of an air with sulfur; `aerosols.draw_cloud` will add it to the condensate cloud once wired |
 | data | acid_cloud_optics.json | GEN.850 | the acid droplets' infrared optics per band (made by `scripts/build_acid_cloud_optics.py`); `radiative_convective` will read it through `cloud_infrared` in the wiring step |
 | module | planetgen.physics.cloud_infrared | GEN.850 | the acid cloud's infrared depth in the layers of a column; called by the column solver once the cloud is wired |
 | module | planetgen.physics.mie | by design | Mie spheres, used by the optics builder script only; the generator reads the table it makes, so this stays unread by the app (delete when the builder moves out of the repo) |
+| module | planetgen.physics.pair_history | GEN.1012 | the history rule of a pair of members; `multistar.classify_pair` will read it once the member record (GEN.1009) provides each member's largest mass and radius |
 | row | 6.63:CF3 | GEN.850 | `cloud_infrared.TOP_OVER_BASE_PRESSURE`, read when the column solver calls the cloud |
 | data | quadruple_stability_3p1.json | GEN.1016 | the 3+1 quadruple stability rules (validity ranges, the stability definition); `multistar` limits will read them through `quadruple_stability` in the wiring step |
 | data | quadruple_stability_3p1_weights.json | GEN.1016 | the 8,301 numbers of the authors' network (made by `scripts/build_quadruple_stability.py`); read by `quadruple_stability` |
 | module | planetgen.physics.quadruple_stability | GEN.1016 | the stability verdict of a 3+1 quadruple; the stability margin and quadruple fit (P10) will call it |
+| module | planetgen.generation.member_record | GEN.1009 | the frozen member record (one evolution of a member); the tree, the build and the stored tree will read it once GEN.1009's wiring merges on its train |
