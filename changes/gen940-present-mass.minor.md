@@ -1,5 +1,0 @@
-**Headline:** A star now has the mass it has lost: a horizontal-branch star of an old cluster is 0.6 solar masses, not the 0.9 it was born with.
-
-### Changed
-- **GEN.940: present mass for giants, horizontal-branch, asymptotic and massive stars.** A main-sequence star takes MIST's present mass (a 40 solar mass star has lost 5 percent of it by the end of its hydrogen burning). A star heavier than 8 solar masses keeps the winds of the track (a 20 solar mass red supergiant is 13). A lighter star loses on the red giant branch what the Reimers wind of McDonald and Zijlstra 2015 takes (efficiency 0.477 against MIST's 0.1), so a one solar mass star is 0.83 at the tip and 0.78 on the horizontal branch, and a 0.85 solar mass one of an old cluster 0.58; on the asymptotic branch its mass falls to the white dwarf it becomes. This changes the surface gravity, the orbital periods and the habitable zone and Hill sphere of the planets of every giant, and the mass in every star's record.
-- The main-sequence reader `isochrones.main_sequence_point` and `main_sequence.State` carry the present mass as a fourth value (setup already kept the column).
