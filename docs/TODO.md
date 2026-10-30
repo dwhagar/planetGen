@@ -13686,21 +13686,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   No output change. Wiring turn (train 9) is next, Aux 4.
   Prerequisites: GEN.1034. Related: GEN.1034, GEN.461, GEN.894.
 
-- [ ] **GEN.1037 Confirm the oddity rates and thresholds marked [R] (W3, W4, W5, W10, W14, W15, W20 first) against papers, write the literature table with sources, register the stand-ins**
-  Weird worlds build (Boss, 4:15 PM EDT 2026-10-30, goal issue #4117;
-  design docs/design/systems/weird-worlds.md). Secondary and tertiary
-  sources and stand-ins are accepted when each is registered in GEN.725
-  with tier and tweak level; every rate marked [R] in the design must be
-  confirmed by the lane that builds it. Do: read the papers (secondary
-  accepted), fix each number and its source in a table in
-  docs/design/research/ (new note) and register what stays unconfirmed
-  in GEN.725 (T2 or T3, L0 to L1, falsifier "replace when a survey
-  statistic is read"). Done: no [R] left in the design without a table
-  row; registry rows in. Lock-free. Owner: Sources 1 (after GEN.1031;
-  separate branch, merge it yourself). Version 8.1.
-  Prerequisites: none.
-  Design: [docs/design/systems/weird-worlds.md](design/systems/weird-worlds.md)
-
 - [ ] **GEN.1040 W10 module: collisional mantle stripping to an iron-rich (Mercury type) core fraction, pure function (Marcus 2010, Benz 2007 scaling)**
   Weird worlds build (Boss, 4:15 PM EDT 2026-10-30, goal issue #4117;
   design docs/design/systems/weird-worlds.md). Secondary and tertiary
@@ -13712,32 +13697,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   tests. Done: tests pass, registry rows in. Lock-free. Owner: Planets 1
   (after the oddity table). Version 8.1.
   Prerequisites: GEN.1036.
-  Design: [docs/design/systems/weird-worlds.md](design/systems/weird-worlds.md)
-
-- [ ] **GEN.1042 W15 module: super-puff radius and its fade with age (Lee and Chiang 2016, Millholland 2019), pure function**
-  Weird worlds build (Boss, 4:15 PM EDT 2026-10-30, goal issue #4117;
-  design docs/design/systems/weird-worlds.md). Secondary and tertiary
-  sources and stand-ins are accepted when each is registered in GEN.725
-  with tier and tweak level; every rate marked [R] in the design must be
-  confirmed by the lane that builds it. Do: physics/super_puff.py:
-  low-density inflated radius for a young low-mass planet on a 10 to 100
-  d orbit with hazes, fading as the star ages, bounded by Lopez and
-  Fortney 2014 scaling elsewhere; tests on Kepler-51 b c d and WASP-107
-  b. Lock-free. Owner: Core 4 (after W14). Version 8.1.
-  Prerequisites: GEN.1036.
-  Design: [docs/design/systems/weird-worlds.md](design/systems/weird-worlds.md)
-
-- [ ] **GEN.1045 W16 audit: does envelope_escape fractionate helium (hydrogen escapes first, leaving a helium-dominated air; Hu 2015, Malsky and Rogers 2020)? Add the fractionation if not**
-  Weird worlds build (Boss, 4:15 PM EDT 2026-10-30, goal issue #4117;
-  design docs/design/systems/weird-worlds.md). Secondary and tertiary
-  sources and stand-ins are accepted when each is registered in GEN.725
-  with tier and tweak level; every rate marked [R] in the design must be
-  confirmed by the lane that builds it. Do: read envelope_escape, add a
-  test of helium enrichment after strong XUV loss above 90 percent of
-  the envelope, and a pure fractionation module if missing; the lock
-  step rides the oddity wiring. Lock-free. Owner: Core 4 (after W15).
-  Version 8.1.
-  Prerequisites: none.
   Design: [docs/design/systems/weird-worlds.md](design/systems/weird-worlds.md)
 
 - [ ] **GEN.1046 W20 design: the two-branch climate output (snowball or warm, runaway or temperate) from the ice-albedo feedback and the CO2 exit rule, as a history draw between branches**
@@ -13775,7 +13734,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   1 integrates. Done: tests per oddity, the harness passes, the census
   shares sit in the literature ranges. Owner: Aux 7 (W1, W2), Planets 1
   (W10), Core 4 (W15). Version 8.1.
-  Prerequisites: GEN.1040, GEN.1042, GEN.1047.
+  Prerequisites: GEN.1040, GEN.1047.
   Design: [docs/design/systems/weird-worlds.md](design/systems/weird-worlds.md)
 
 - [ ] **GEN.1049 Wire W5 resonance heating and the W3 high-eccentricity and W4 misaligned-orbit tails in planet_architecture**
@@ -13829,22 +13788,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.1035, GEN.955. Related: GEN.1034, GEN.1035.
   Design: [docs/design/systems/weird-worlds.md](design/systems/weird-worlds.md)
 
-- [ ] **GEN.1053 G1 module: the giant-impact tilt of an ice giant (Uranus 98 degrees), a tail row on the spin lever with its ring and moon plane following the equator (Slattery 1992, Morbidelli 2012, Kegerreis 2018), pure function**
-  Weird worlds build (Boss, 4:17 PM EDT 2026-10-30, goal issue #4117;
-  design docs/design/systems/weird-worlds.md sections 8 and 9).
-  Secondary and tertiary sources and stand-ins are accepted when each is
-  registered in GEN.725 with tier and tweak level; [R] rates are
-  confirmed by the lane that builds it. Do: physics/giant_tilt.py: the
-  chance and size of a tilt above 60 degrees for a 5 to 30 Earth mass
-  giant with a recorded outer-chain merger, a stand-in rate (T4, L3,
-  about 1 in 5 in the Solar System, unknown elsewhere), the moon and
-  ring plane set to the equator. Done: tests give Uranus-like and
-  Neptune-like cases; registry rows in. Lock-free module; wiring rides
-  the wiring items. Owner: Core 4 (giants chain, after W16). Version
-  8.1.
-  Prerequisites: GEN.1036. Related: GEN.1033, GEN.732.
-  Design: [docs/design/systems/weird-worlds.md](design/systems/weird-worlds.md)
-
 - [ ] **GEN.1055 Ring age and pollution darkening: a ring stores its age and its ice share and darkness follow from pollution over time (R6); ring shadow climate hook (R8)**
   Weird worlds build (Boss, 4:17 PM EDT 2026-10-30, goal issue #4117;
   design docs/design/systems/weird-worlds.md sections 8 and 9).
@@ -13880,7 +13823,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   confirmed by the lane that builds it. Lock work, train 13 (with the
   W5, W3, W4 wiring). Done: tests, harness, census. Owner: Core 4.
   Version 8.1.
-  Prerequisites: GEN.1053, GEN.1047. Related: GEN.1033.
+  Prerequisites: GEN.1047. Related: GEN.1033.
   Design: [docs/design/systems/weird-worlds.md](design/systems/weird-worlds.md)
 
 - [ ] **GEN.1059 The GEN.412 inversion of a stored giant row ignores the giant's own heat, so its stored albedo and greenhouse factor no longer reproduce its temperature from starlight alone (bug)**
@@ -19757,20 +19700,6 @@ clears each one.
   branch, merge it yourself).
   Prerequisites: none. Related: TEST.391, TEST.472, TEST.484.
 
-- [ ] **TEST.490 Oddity plausibility harness (src/tests/oddity_plausibility_cli.py): force each oddity on 200 bodies with a fixed seed and assert the general invariants (energy, structure, stability, air, class derived, no NaN) and each row's own**
-  Weird worlds build (Boss, 4:15 PM EDT 2026-10-30, goal issue #4117;
-  design docs/design/systems/weird-worlds.md). Secondary and tertiary
-  sources and stand-ins are accepted when each is registered in GEN.725
-  with tier and tweak level; every rate marked [R] in the design must be
-  confirmed by the lane that builds it. Do: design section 5, modelled
-  on physical_plausibility_cli.py and phenomena_plausibility.py, first
-  with a stub effect and the general list; the isolation test (dial 0
-  changes no other draw). Done: the harness runs on a stub row and fails
-  on a deliberately broken one. Lock-free. Owner: Core 1 (after its TEST
-  queue; separate branch, merge it yourself). Version 8.1.
-  Prerequisites: GEN.1036.
-  Design: [docs/design/systems/weird-worlds.md](design/systems/weird-worlds.md)
-
 - [ ] **TEST.492 Census re-baseline for every oddity share and the prevalence suite rows (one pass after each of trains 12, 13 and 14)**
   Weird worlds build (Boss, 4:15 PM EDT 2026-10-30, goal issue #4117;
   design docs/design/systems/weird-worlds.md). Secondary and tertiary
@@ -19784,17 +19713,6 @@ clears each one.
   shares (GEN.1054 to GEN.1058, design section 9) and the giant tilt
   (GEN.1053, GEN.1058): one pass after each of trains 12, 13 and 14.
   Prerequisites: GEN.1047.
-  Design: [docs/design/systems/weird-worlds.md](design/systems/weird-worlds.md)
-
-- [ ] **TEST.494 Ring invariants in the plausibility harness: ring mass under 1e-4 of the planet, ring inside the Roche limit unless R4 names its resonance, optical depth an output, no ring inside 0.1 AU, ring plane in the equator**
-  Weird worlds build (Boss, 4:17 PM EDT 2026-10-30, goal issue #4117;
-  design docs/design/systems/weird-worlds.md sections 8 and 9).
-  Secondary and tertiary sources and stand-ins are accepted when each is
-  registered in GEN.725 with tier and tweak level; [R] rates are
-  confirmed by the lane that builds it. Do: add the ring list to the
-  oddity plausibility harness. Lock-free. Owner: Core 1 (with the
-  harness item). Version 8.1.
-  Prerequisites: TEST.490. Related: GEN.732.
   Design: [docs/design/systems/weird-worlds.md](design/systems/weird-worlds.md)
 
 - [ ] **TEST.495 Designation for captured bodies: the belt-member designation `<belt ID>.<rank hex>` is kept with a parent link, outside-reservoir bodies print `<planet ID>.<rank hex>`; both pure and round-trip through parse_id**
