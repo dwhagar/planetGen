@@ -146,11 +146,11 @@ def test_no_page_shows_two_contents_lists(browser, base_url, page_targets, admin
     finally:
         context.close()
 
-def test_the_contents_menu_stands_at_the_left_of_a_wide_page_and_above_a_narrow_one(browser, base_url, page_targets, admin_token):
-    """UX.215: on a wide window the contents list is a menu down the left side that stays in view as the page scrolls; on a phone it is
-    a list under the title."""
+def test_the_contents_bar_of_an_object_page_stays_under_the_tab_bar_and_marks_the_section_in_view(browser, base_url, page_targets, admin_token):
+    """UX.238 (replacing UX.215's column at the left): on a wide window and on a phone the contents list is a row of links under
+    the tab bar that stays there as the page scrolls, marks the link of the section in view, and the page does not scroll sideways."""
     path, _needs_admin = page_targets["web.object_page"]
-    for width, beside in ((1280, True), (390, False)):
+    for width in (1280, 390):
         context = browser.new_context(viewport={"width": width, "height": 900}, reduced_motion="reduce")
         context.add_cookies([{"name": SESSION_COOKIE_NAME, "value": admin_token, "url": base_url}])
         page = context.new_page()
@@ -158,15 +158,27 @@ def test_the_contents_menu_stands_at_the_left_of_a_wide_page_and_above_a_narrow_
             page.goto(base_url + path, wait_until="load")
             toc = page.locator("nav.page-toc[aria-label='On this page']")
             toc.wait_for(state="attached")
-            menu = toc.bounding_box()
             first = page.locator("main .panel").first.bounding_box()
-            if beside:
-                assert menu["x"] + menu["width"] <= first["x"] + 1, (menu, first)
-                page.mouse.wheel(0, 1500)
-                page.wait_for_timeout(300)
-                assert toc.bounding_box()["y"] >= 0 and toc.bounding_box()["y"] < 200, "the menu scrolled out of view"
-            else:
-                assert menu["y"] + menu["height"] <= first["y"] + 1, (menu, first)
+            menu = toc.bounding_box()
+            assert menu["y"] + menu["height"] <= first["y"] + 1, (width, menu, first)
+            assert menu["x"] < first["x"] + first["width"] and menu["width"] >= first["width"] - 40, (width, menu, first)
+            page.mouse.wheel(0, 1500)
+            page.wait_for_timeout(300)
+            menu = toc.bounding_box()
+            header = page.locator(".site-header").bounding_box()
+            assert abs(menu["y"] - (header["y"] + header["height"])) <= 2, (width, "the bar is not under the tab bar", menu, header)
+            current = toc.locator("a[aria-current='location']")
+            assert current.count() == 1, width
+            heading_id = current.get_attribute("href")[1:]
+            assert page.evaluate("id => document.getElementById(id).getBoundingClientRect().top", heading_id) < 400
+            last = toc.locator("a").last
+            last.scroll_into_view_if_needed()
+            last.click()
+            page.wait_for_timeout(400)
+            assert toc.locator("a[aria-current='location']").get_attribute("href") == last.get_attribute("href"), width
+            target = page.evaluate("id => document.getElementById(id).getBoundingClientRect().top",
+                                   last.get_attribute("href")[1:])
+            assert target >= header["height"] + menu["height"] - 2, (width, "the heading is under the bars", target)
             assert page.evaluate("document.documentElement.scrollWidth <= window.innerWidth + 1"), "the page scrolls sideways"
         finally:
             context.close()
