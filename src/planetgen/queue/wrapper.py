@@ -75,13 +75,14 @@ def step_for(args, key, label, params):
     return step, listing[:later] + [step] + listing[later:]
 
 
-def plan_steps(args, parts):
+def plan_steps(args, parts, settings=None):
     """
     The steps of a run that follows several stages (PERF.172), and the run's whole list with them: `parts` is
     `(key, label, params)` for each stage the run queues, in order, `params` what the stage needs besides the request's
     own settings (`step_for` for one). A stage the request's list holds takes that step's label and settings; one it
     does not (a luminosity redo with no scatter stored yet needs the massive stars too) is added to the list before the
-    luminosity pass, where `step_for` puts it.
+    luminosity pass, where `step_for` puts it. `settings` (`{key: settings}`, PERF.203) are the settings of the stages of a run of
+    several commands, each the ones its own command was given, in place of `stages.stage_settings(key, args)` of the run's.
 
     Returns:
         tuple: `(steps, listing)`.
@@ -92,8 +93,10 @@ def plan_steps(args, parts):
     steps = []
     for key, label, params in parts:
         found = next((step for step in listing if step.key == key), None)
+        own = (settings or {}).get(key)
         steps.append(commands.Step(key, commands.KIND_OF_STAGE[key], found.label if found else label,
-                                   {**(found.params if found else stages.stage_settings(key, args)), **params}))
+                                   {**(found.params if found else own if own is not None
+                                       else stages.stage_settings(key, args)), **params}))
     by_key = {step.key: step for step in steps}
     listing = [by_key.pop(item.key, item) if item.key in by_key else item for item in listing]
     if by_key:
@@ -255,11 +258,18 @@ def _resolver(name):
     return found
 
 
+def scatter_settings_name(marker):
+    """The name a `scatter-settings` marker's value is kept under in the run record (`cached`): its scatter's scope and tag, so the
+    scatters of one run (a job holds several, PERF.203) keep theirs apart."""
+    return marker["scope"] + marker.get("tag", "")
+
+
 def resolve_params(conn, run_id, params, strict=True):
     """
     `params` with each deferred parameter (`opened_by`) replaced by its value as the run record has it now. With `strict` false a
     parameter that cannot be resolved yet stays as it is (`generation.finish_run` copies the steps of a run that stopped before
-    some stage opened).
+    some stage opened), and so does a `scatter-settings` parameter no stage has worked out yet: reading the database for a stage that
+    has not opened would keep a value the stages before it may still change (a clear, a mass pass that stores the limit).
 
     Raises:
         Unresolved: A deferred parameter has no value and `strict` is true.
@@ -268,6 +278,10 @@ def resolve_params(conn, run_id, params, strict=True):
     out = {}
     for name, value in params.items():
         if is_deferred(value):
+            if (not strict and value[DEFERRED] == "scatter-settings"
+                    and conn.hget(runrecord.run_key(run_id), f"deferred:{scatter_settings_name(value)}") is None):
+                out[name] = value
+                continue
             try:
                 found = _resolver(value[DEFERRED])(conn, run_id, value)
             except (Unresolved, RuntimeError):      # a RuntimeError is a resolver's refusal (the galaxy has no skeleton, say)

@@ -50,7 +50,7 @@ class SearchFake(FakeData):
         results = self.results or {
             "sectors": _result([{"id": 5, "name": "Kepler <Reach>", "edge_mpc": 3.07}]) if texts.get("sector_q") else None,
             "systems": _result([{"id": 7, "name": "Kepler-42", "sector_id": None, "is_binary": 0,
-                                 "star_summary": "M5V"}]) if texts.get("system_q") else None,
+                                 "star_summary": "M5V", "star_count": 1, "object_count": 6, "has_habitable_world": True}]) if texts.get("system_q") else None,
             "stars": _result([{"id": 3, "ref": "star:FE81000A2B-0000005-001", "name": "Kepler-42 A", "role": "primary", "star_type": "M5V", "radius_km": 118000.4,
                                "star_system_id": 7, "system_name": "Kepler-42", "sector_id": 5}])
             if texts.get("star_q") or tags.get("spectral") else None,

@@ -42,7 +42,7 @@ Use:
 
 import math
 
-from planetgen.physics import constants as physical_constants, moon_composition, unit_registry as units
+from planetgen.physics import condensate_shares, constants as physical_constants, moon_composition, unit_registry as units
 from planetgen.util import draw
 from planetgen.util.random import log_uniform
 
@@ -238,7 +238,7 @@ def apply_rogue(rogue):
         parent = moon_composition.GIANT
     else:
         parent = moon_composition.DWARF_PLANET if rogue.mass_kg < moon_composition.DWARF_PLANET_MAX_MASS_KG else moon_composition.TERRESTRIAL
-    cold = rogue.effective_temperature_k < physical_constants.SNOW_LINE_TEMPERATURE_K
+    cold = rogue.effective_temperature_k < condensate_shares.ICE_CONDENSATION_K["H2O"]
     return _store(rogue, draw_ring(parent, rogue.radius_km, rogue.mass_kg, cold))
 
 

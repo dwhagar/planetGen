@@ -24,7 +24,7 @@ from planetgen.generation import forced_star
 from planetgen.generation.config import SystemConfig
 from planetgen.physics import constants
 from planetgen.physics import (activity, age_metallicity, debris_disk, formation, imf, metallicity, pre_main_sequence,
-                              spin)
+                              spin, stellar_state)
 from planetgen.util import draw
 from planetgen.util import log
 from planetgen.physics.stellar_evolution import (YERKES_CLASS_NAMES, birth_fe_h, evolve_star, sample_living_star,
@@ -341,6 +341,8 @@ class Star(StellarObject):
                 else self.galactic_center_dist_ly,
                 draw.Stream(f"metallicity:{self.mass!r}:{self.age!r}:{self.galactic_center_dist_ly!r}"),
                 peaks=getattr(self.system_config, "FE_H_PEAKS", None))
+        # GEN.786 and GEN.785: its evolutionary state and, for a white dwarf, the age since it stopped burning (no draw).
+        stellar_state.set_state(self)
         # GEN.458: this star's own snow line, drawn once around the blackbody position and stored; its stream is its
         # own, like the [Fe/H] above, so no older draw moves.
         self.snow_line_au = formation.draw_snow_line_au(
@@ -397,6 +399,7 @@ class Star(StellarObject):
             # alive rather than redraw it at another age: the pair shares
             # one age (GEN.53).
             while state is None and initial_mass_sol > imf.lowest_mass_sol():
+                draw.redrawn("star.mass_lightened")
                 initial_mass_sol = max(initial_mass_sol * 0.8, imf.lowest_mass_sol())
                 state = evolve_star(initial_mass_sol, age, fe_h=fe_h, population=population, fe_h_peaks=fe_h_peaks,
                                     galactic_center_dist_ly=self.galactic_center_dist_ly)

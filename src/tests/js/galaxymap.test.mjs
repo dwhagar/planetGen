@@ -634,42 +634,13 @@ test("the wheel zooms a free stage, within 1/8 to 2.5 times its fit", async () =
   const wheel = (deltaY, deltaMode) => m.view.onWheel(new FakeEvent("wheel", { deltaY, deltaMode: deltaMode || 0 }));
   assert.equal(wheel(100), true);
   assert.ok(lastCamera(m).dist > fit, "scrolling down zooms out");
-  // Up to each limit; one more tick there carries the zoom to the next stage (MAP.152, tested below).
+  // Up to each limit.
   // MAP.334: no wall stops the tick that reaches a hand-over: it may carry the camera a tick's share past (a tick of 200 is 1.65 times the
   // distance, one of -3 lines 0.78 of it).
   for (let n = 0; n < 50 && lastCamera(m).dist < fit * SV.MAX_ZOOM * (1 - 1e-6); n++) wheel(200);
   assert.ok(lastCamera(m).dist >= fit * SV.MAX_ZOOM * (1 - 1e-6) && lastCamera(m).dist < fit * SV.MAX_ZOOM * 1.7);
   for (let n = 0; n < 100 && lastCamera(m).dist > fit * SV.MIN_ZOOM * (1 + 1e-6); n++) wheel(-3, 1);
   assert.ok(lastCamera(m).dist <= fit * SV.MIN_ZOOM * (1 + 1e-6) && lastCamera(m).dist > fit * SV.MIN_ZOOM * 0.75);
-});
-
-test("the wheel past the end of a window's zoom goes on into the block under the pointer, with no stop and no flight (MAP.152, MAP.263)", async () => {
-  const m = await freeStage();
-  const fit = lastCamera(m).dist;
-  const wheel = (deltaY, deltaMode, at) => m.view.onWheel(new FakeEvent("wheel", Object.assign({ deltaY, deltaMode: deltaMode || 0 }, at || {})));
-  for (let n = 0; n < 100 && lastCamera(m).dist > fit * SV.MIN_ZOOM * (1 + 1e-6); n++) wheel(-3, 1);
-  assert.equal(m.view.stage().win.centre.m, 81, "still in the window at its closest");
-  const at = lastCamera(m);
-  wheel(-3, 1);
-  await arrive(m);
-  assert.equal(m.view.stage().win.centre.m, 27, "one tick more takes the block: the window one size down");
-  const after = lastCamera(m);
-  assert.deepEqual(after.quaternion, at.quaternion, "the turn is not reset");
-  assert.ok(Math.abs(after.dist - at.dist) < 1e-9 * at.dist, "nor the distance");
-  assert.deepEqual(after.target, at.target, "nor the middle");
-  // No gesture gate: the ticks go on at once, down to the closest of the new window, and across the next.
-  for (let n = 0; n < 200 && m.view.stage().win.centre.m === 27; n++) {
-    wheel(-3, 1);
-    await arrive(m);
-  }
-  assert.equal(m.view.stage().win.centre.m, 9, "a glide of ticks runs on across the next stage too");
-  // And back out, tick after tick, to the parent window.
-  for (let n = 0; n < 400 && m.view.stage().win.centre.m < 81; n++) {
-    wheel(3, 1);
-    await arrive(m);
-  }
-  assert.ok(m.view.stage().win.centre.m >= 81, "out the same way");
-  assert.deepEqual(lastCamera(m).quaternion, at.quaternion, "the turn kept all the way");
 });
 
 test("the wheel zooms toward the point under the pointer, which stays under it (MAP.225)", async () => {
@@ -755,16 +726,16 @@ test("Reset view flies back to the stage's own view", async () => {
   assert.deepEqual(back.target, fit.target);
 });
 
-test("a pinch zooms a free stage within the same limits", async () => {
+test("a pinch zooms a free stage in and out past the stage's own range, the zoom being the camera's alone (MAP.337)", async () => {
   const m = await freeStage();
   const fit = lastCamera(m).dist;
   const touch = (type, id, x, y) => m.view["onPointer" + type](new FakeEvent("pointer" + type.toLowerCase(), { clientX: x, clientY: y, pointerId: id, button: 0, pointerType: "touch" }));
   touch("Down", 1, 300, 300);
   touch("Down", 2, 500, 300);
   touch("Move", 2, 5000, 300);
-  assert.ok(Math.abs(lastCamera(m).dist - fit * SV.MIN_ZOOM) < 1e-6 * fit, "spread apart: closest zoom");
+  assert.ok(lastCamera(m).dist <= fit * SV.MIN_ZOOM * (1 + 1e-6), "spread apart: in to the stage's closest zoom at least");
   touch("Move", 2, 301, 300);
-  assert.ok(Math.abs(lastCamera(m).dist - fit * SV.MAX_ZOOM) < 1e-6 * fit, "pinched together: furthest zoom");
+  assert.ok(lastCamera(m).dist >= fit * SV.MAX_ZOOM * (1 - 1e-6), "pinched together: out to the stage's furthest zoom at least (MAP.337: the zoom is the camera's alone, so no end of range holds it)");
   touch("Up", 2, 301, 300);
   touch("Up", 1, 300, 300);
 });

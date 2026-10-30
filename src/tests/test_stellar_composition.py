@@ -214,11 +214,11 @@ def test_a_brown_dwarf_reports_its_limits():
     detail = makeup.detail
     assert detail["mass_jupiter"] == pytest.approx(52.4, abs=0.1)
     assert detail["burned_deuterium"] and not detail["burned_lithium"] and not detail["burns_hydrogen"]
-    assert detail["radius_solar_at_1_gy"] == pytest.approx(0.0960)
+    assert detail["radius_solar"] == pytest.approx(0.0960, rel=0.05)         # at the star's 1 Gy, from the Baraffe table (GEN.948)
     heavy = sc.star_makeup(sc.BROWN_DWARF, 0.0, 1.0, 0.065, "bd")
     assert heavy.detail["burned_lithium"] and not heavy.detail["burns_hydrogen"]
     light = sc.star_makeup(sc.BROWN_DWARF, 0.0, 1.0, 0.02, "bd")
-    assert light.detail["radius_solar_at_1_gy"] is None and not light.detail["burned_lithium"]
+    assert light.detail["radius_solar"] is not None and not light.detail["burned_lithium"]
     assert light.detail["burned_deuterium"] is (light.detail["mass_jupiter"] > light.detail["deuterium_limit_mj"])
 
 
@@ -321,6 +321,7 @@ def test_a_black_hole_stores_no_metallicity_and_has_none():
     (sc.MAIN_SEQUENCE, 0.0, 1.0, {}, "SC1"),
     (sc.WHITE_DWARF, 0.0, 0.6, {"teff_k": 9000.0}, "SC2"),
     (sc.NEUTRON_STAR, None, 1.4, {}, "SC3"),
+    (sc.BROWN_DWARF, 0.0, 0.05, {}, "SC6"),
 ])
 def test_a_kind_that_reads_a_downloaded_file_refuses_when_it_was_not_downloaded(tmp_path, monkeypatch, kind, fe_h, mass, kwargs, fill):
     support.reset_caches(tmp_path / "nothing-downloaded", monkeypatch)
@@ -330,7 +331,7 @@ def test_a_kind_that_reads_a_downloaded_file_refuses_when_it_was_not_downloaded(
 
 @pytest.mark.parametrize("kind, fe_h, mass", [
     (sc.PROTOSTAR, 0.0, 1.0), (sc.PRE_MAIN_SEQUENCE, 0.0, 1.0), (sc.SUBGIANT, 0.0, 1.5), (sc.RED_GIANT, 0.0, 1.5),
-    (sc.ASYMPTOTIC_GIANT, 0.0, 2.0), (sc.SUPERGIANT, 0.0, 15.0), (sc.BROWN_DWARF, 0.0, 0.05), (sc.BLACK_HOLE, None, 10.0),
+    (sc.ASYMPTOTIC_GIANT, 0.0, 2.0), (sc.SUPERGIANT, 0.0, 15.0), (sc.BLACK_HOLE, None, 10.0),
 ])
 def test_a_kind_that_reads_no_file_does_not_need_them(tmp_path, monkeypatch, kind, fe_h, mass):
     support.reset_caches(tmp_path / "nothing-downloaded", monkeypatch)
@@ -361,12 +362,13 @@ def test_the_kind_comes_from_the_stored_class():
 # --- The sweep ---------------------------------------------------------------------------------------------------------
 
 def test_a_sweep_of_every_kind_of_star_the_generator_makes_adds_up_and_follows_the_relations(monkeypatch):
-    # The sweep draws stars from 0.04 to 80 solar masses through `evolve_star`, which reads the MIST grid (GEN.652): the
+    # The sweep draws stars from 0.072 to 80 solar masses (0.072 is a brown dwarf at solar metallicity) through `evolve_star`, which reads the MIST grid (GEN.652) and, under its
+    # 0.1 solar masses, the Baraffe table (GEN.936; a lighter object is a brown dwarf, which cools out of the table's stars): the
     # fixture grid holds 0.2 solar masses and up to a one-solar-mass turn-off, so the sweep reads the downloaded files.
     monkeypatch.undo()
     stream = draw.Stream("gen440-sweep")
     seen = set()
-    masses = [0.04, 0.06, 0.09, 0.3, 0.8, 1.0, 1.5, 2.5, 5.0, 9.0, 15.0, 25.0, 40.0, 80.0]
+    masses = [0.072, 0.075, 0.09, 0.3, 0.8, 1.0, 1.5, 2.5, 5.0, 9.0, 15.0, 25.0, 40.0, 80.0]
     ages = [0.0002, 0.005, 0.05, 0.5, 2.0, 5.0, 9.0, 11.0, 13.0]
     count = 0
     for mass in masses:
