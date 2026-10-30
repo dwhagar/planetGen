@@ -83,7 +83,7 @@ def _cut(follower, mysql_config, **more):
 
 def test_the_random_starts_are_the_starts_of_the_starters_plan_and_the_draws_after_them_are_the_same(mysql_config):
     _plan_wide_galaxy(mysql_config)
-    args = _args("--neighborhoods", "2", "--radius-pc", "4", "--max-shell", "60", "--num-systems", "1", *mysql_argv(mysql_config))
+    args = _args("--neighborhoods", "2", "--radius-pc", "8", "--max-shell", "60", "--num-systems", "1", *mysql_argv(mysql_config))
     progress = run_common._generation_progress(disable=True)
     draw.set_run_seed(4321)
     with progress as shown:
@@ -100,6 +100,11 @@ def test_the_random_starts_are_the_starts_of_the_starters_plan_and_the_draws_aft
     starts, plan = _cut(deferred[0], mysql_config)
     assert starts == starter[0].items and 1 <= len(starts) // 3 <= 2
     assert plan["centers"] == [list(starts[place:place + 3]) for place in range(0, len(starts), 3)]
+    batch_density = run_galaxy._BatchDensity(mysql_config)
+    for place in range(0, len(starts), 3):          # the stage before saves the starts, then the neighborhoods are cut
+        address = tuple(starts[place:place + 3])
+        position = run_galaxy.sector_position_pc(*address, EDGE_PC)
+        run_galaxy.generate_and_save_sector_at(batch_density.resolve(args, address, position), address, position, EDGE_PC)
     around, _plan = _cut(deferred[1], mysql_config, centers=plan["centers"])
     expected, _plan = _cut(starter[1], mysql_config)
     assert around == expected and around
@@ -116,7 +121,7 @@ def test_a_shell_cut_when_the_stage_opens_is_the_sectors_the_outline_holds_less_
 
 def test_a_single_sector_that_exists_is_not_cut_again_and_one_beyond_the_reach_is_refused(mysql_config):
     _plan_wide_galaxy(mysql_config)
-    args = _args("--shell", "1", "--band", "0", "--wedge", "0", "--num-systems", "1", *mysql_argv(mysql_config))
+    args = _args("--shell", "1", "--band", "0", "--wedge", "0", *mysql_argv(mysql_config))
     [follower] = run_galaxy._plan_sectors(args, EDGE_PC, deferred=True)
     assert _cut(follower, mysql_config)[0] == [1, 0, 0]
     run_galaxy.generate_and_save_sector_at(
@@ -170,7 +175,11 @@ def test_a_random_start_planned_when_its_stage_opens_is_a_start_and_the_sectors_
 
 
 def test_a_single_sector_and_its_neighborhood_planned_when_the_stages_open(mysql_config, monkeypatch, deferred, redis_server):
+    # Shell 30, as the single-address test of test_galaxy_gen does: the toy shape's dense bulge makes a neighborhood of thousands of systems.
+    from planetgen.galaxy.spherical import enumerate_sectors_within_radius
     _plan_wide_galaxy(mysql_config)
-    _main(monkeypatch, mysql_config, "sectors", "--shell", "1", "--band", "0", "--wedge", "0", "--radius-pc", "4", "--num-systems", "1")
-    addresses = _addresses(mysql_config)
-    assert (1, 0, 0) in addresses and len(addresses) > 1
+    _main(monkeypatch, mysql_config, "sectors", "--shell", "30", "--band", "0", "--wedge", "4", "--radius-pc", "5")
+    addresses = set(_addresses(mysql_config))
+    assert (30, 0, 4) in addresses and len(addresses) > 1
+    center = run_galaxy.sector_position_pc(30, 0, 4, EDGE_PC)
+    assert addresses <= {(s, b, w) for s, b, w, *_ in enumerate_sectors_within_radius(center, 5.0, EDGE_PC)}

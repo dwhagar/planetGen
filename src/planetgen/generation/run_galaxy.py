@@ -1423,11 +1423,11 @@ def _planned_around_centers(args, centers, edge_pc, config, batch_density):
     return [index for address, _suffix in located for index in address], [suffix for _address, suffix in located]
 
 
-def _planned_single(args, edge_pc, config, batch_density):
-    """The sector of a "single" stage (PERF.214), `[shell, band, wedge]`, or `[]` when it exists: the address `--shell --band --wedge` names,
-    anywhere in the grid's reach (GEN.235). The part of `_plan_single_sector` that reads the database, at the time the stage opens."""
-    address = (args.shell, args.band, args.wedge)
-    _require_in_reach(batch_density.bounds, args.shell, args.band, _format_address(address))
+def _planned_single(address, config, batch_density):
+    """The sector of a "single" stage (PERF.214), `[shell, band, wedge]`, or `[]` when it exists: the `address` `--shell --band --wedge` names
+    (the stage's own arguments are the defaults of `sector`, not the run's), anywhere in the grid's reach (GEN.235). The part of
+    `_plan_single_sector` that reads the database, at the time the stage opens."""
+    _require_in_reach(batch_density.bounds, address[0], address[1], _format_address(address))
     conn = store.get_connection(config)
     try:
         exists = store.get_sector_id_at(conn, *address) is not None
@@ -1478,7 +1478,7 @@ def planned_items(params):
     config = store.mysql_config_from_args(args)
     batch_density = _BatchDensity(config)
     if params["planned"] == "single":
-        return _planned_single(args, edge_pc, config, batch_density), []
+        return _planned_single(tuple(params["address"]), config, batch_density), []
     if params["planned"] == "random-start":
         return _planned_starts(args, edge_pc, config, batch_density, params["run_seed"]), []
     if params["planned"] == "neighborhood" and params.get("centers") is not None:
@@ -2801,7 +2801,7 @@ def _deferred_sectors(args, edge_pc):
             run_sector._log_summary(saved["summary"])
 
         followers = [SectorsFollower(args, "sectors", label, edge_pc, count=0, bar_description=label, base_args=single, collect=True,
-                                     planned="single", finish=saved_line)]
+                                     planned="single", extra={"address": list(address)}, finish=saved_line)]
         if args.radius_pc is not None:
             followers.append(_deferred_neighborhood(args, edge_pc, [list(address)]))
         return followers
