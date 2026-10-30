@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2754] - 2026-10-30
+
+**Headline:** A new test audits the giant planets' mass tail, the hot Neptune desert and the derived giant rows, and records one bug: a metal-rich 1.5 to 2 solar-mass host can draw a giant above the 13 Jupiter-mass edge.
+
+### Changed
+
+- TEST.493: `tests/test_giant_oddity_audit.py` checks that runaway giants reach 10 Jupiter masses (a few tenths of a percent for a Sun-like host, where the ceiling is 0.01 of the star, 10.5 Jupiter masses) and stop at the brown dwarf edge; that a light star makes none; that Neptune-mass planets inside 3 days are a third or fewer of those at 3 to 10 days, with survivors left; that hot Jupiters are a few percent of giants; that the oddity table carries no row for the derived giant outputs (G2 to G6, G8, G10, G11) and none on a giant's internal heat (GEN.1033's). One test is a strict expected failure for the bug it found: `planet_mass.gas_outcome` returns the larger of the runaway mass and the core, the core is capped at 0.01 of the star, not at the brown dwarf edge (4 of 3,000 draws at 1.5 to 2 solar masses and twice the solar metals reach 15 to 21 Jupiter masses). No generated output changes.
+
 ## [8.0.2753] - 2026-10-30
 
 **Headline:** The Galaxy Map's wheel no longer hops from one block window to the next; the camera's zoom carries it, and the picture does not change.
