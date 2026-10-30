@@ -51,6 +51,13 @@ def _pass(floor=FLOOR):
     return fractions, [scatter_limits.PassBand(floor, None, None)]
 
 
+SMALL_SATELLITE_MASS = 2.0e7
+"""A Cloud a tenth the default's mass: it still places ten thousand stars, and a test that draws it five times takes a minute and not twelve."""
+
+YOUNG_SATELLITE_MASS = 5.0e7
+"""The least Cloud mass at which the gas-rich Cloud places young massive stars at this floor (2e7 draws none of them)."""
+
+
 def _stars(found, seed=SEED, floor=FLOOR, **kwargs):
     fractions, bands = _pass(floor)
     return list(component_pass.scatter_stars(found, EDGE, seed, fractions, bands, **kwargs))
@@ -89,7 +96,7 @@ def test_the_count_is_the_systems_times_the_share_the_population_keeps():
 
 
 def test_a_stars_row_sits_in_its_cell_and_is_a_star_of_its_components_population():
-    rows = _stars([_cluster(), _satellite()])
+    rows = _stars([_cluster(), _satellite(mass=YOUNG_SATELLITE_MASS)])
     assert len(rows) > 100
     columns = dict(zip(store.BRIGHT_STAR_COLUMNS, rows[0]))
     assert columns["population"] in component_field.POPULATIONS_IN_THE_GATE
@@ -103,7 +110,7 @@ def test_a_stars_row_sits_in_its_cell_and_is_a_star_of_its_components_population
 
 
 def test_the_same_seed_gives_the_same_stars_and_a_component_does_not_depend_on_the_others():
-    first, second = _cluster(), _satellite()
+    first, second = _cluster(), _satellite(mass=SMALL_SATELLITE_MASS)
     both = _stars([first, second])
     assert both == _stars([first, second]) and both != _stars([first, second], seed=SEED + 1)
     by_population = lambda rows, population: [row for row in rows if row[6] == population]
