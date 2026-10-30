@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.238 |
 | MAP | MAP.350 |
 | NAV | NAV.65 |
-| GEN | GEN.980 |
+| GEN | GEN.981 |
 | PERF | PERF.209 |
 | DB | DB.110 |
 | API | API.38 |
@@ -1704,7 +1704,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.951 | Companion mass ratio depends on the primary mass and the orbital period, with the twin excess (Moe and Di Stefano 2017 Table 13) instead of a flat 0.1 to 1 (low priority) | none | open |
 | GEN.952 | Store each scatter member's radius (scatter_members.radius_au) so a page can show the X-ray luminosity of an accreting pair without guessing | none | open |
 | GEN.953 | Birth spin retune: a scale on the rocky planet birth rotation so free days fall in the Solar System range | none | open |
-| GEN.954 | Tides stage 1a (lock-free): a rheology module giving k2 and Q from temperature, melt fraction and tide frequency | none | open |
+| GEN.954 | Tides stage 1a (lock-free): a rheology module giving k2 and Q from temperature, melt fraction and tide frequency | none | done, PR #3799 |
 | GEN.955 | Tides stage 1b: wire the rheology into tidal_heating, interior_heat and circularisation | none | open |
 | GEN.956 | Tides stage 2a (lock-free): a torque-sum module for planet spin: star, moon and atmospheric thermal torques with floors and an attractor | none | open |
 | GEN.957 | Tides stage 2b: wire the torque sum into planet spin, with the moon-on-planet tide after the moons exist | none | open |
@@ -1730,6 +1730,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.977 | Guard test: a seeded sweep fails if the generator ever makes a table-sized giant with light over 300 times Earth's and eccentricity over 0.3 | none | open |
 | GEN.978 | Birth spin derivation (a): a module for the last-impact mass ratio gamma by planet mass, from the N-body impact statistics | none | open |
 | GEN.979 | Birth spin derivation (b): the birth rotation of a rocky planet follows Kokubo and Genda eq. 4 with the gamma law, replacing the scale factor of GEN.953 | none | open |
+| GEN.980 | The stored class of 4 to 8 bodies differs from the class their final body gives (stored Q, conditions give D; stored P or K, derived D or P): the class is derived before the air is final (bug) | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
