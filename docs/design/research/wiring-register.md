@@ -149,3 +149,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | module | planetgen.physics.cloud_infrared | GEN.850 | the acid cloud's infrared depth in the layers of a column; called by the column solver once the cloud is wired |
 | module | planetgen.physics.mie | by design | Mie spheres, used by the optics builder script only; the generator reads the table it makes, so this stays unread by the app (delete when the builder moves out of the repo) |
 | row | 6.63:CF3 | GEN.850 | `cloud_infrared.TOP_OVER_BASE_PRESSURE`, read when the column solver calls the cloud |
+| data | quadruple_stability_3p1.json | GEN.1016 | the 3+1 quadruple stability rules (validity ranges, the stability definition); `multistar` limits will read them through `quadruple_stability` in the wiring step |
+| data | quadruple_stability_3p1_weights.json | GEN.1016 | the 8,301 numbers of the authors' network (made by `scripts/build_quadruple_stability.py`); read by `quadruple_stability` |
+| module | planetgen.physics.quadruple_stability | GEN.1016 | the stability verdict of a 3+1 quadruple; the stability margin and quadruple fit (P10) will call it |
