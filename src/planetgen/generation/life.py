@@ -63,13 +63,7 @@ def _apply(planet, keep_stored):
     scores = life_classes.score_classes(planet)
     chosen, kept = _choose(planet, scores, keep_stored)
     if chosen is None:
-        _set_best(planet, scores)
-        _set_class(planet, None)
-        _set_schedule(planet, None, None)
-        _set_evolutionary_state(planet, None)
-        planet.life_animal_grade = planet.life_complexity = None
-        habitability_world.rescore(planet)  # GEN.217: the score of a lifeless world is still redone once everything is final
-        log.debug("Life class: none, no class is supported")
+        _lifeless(planet, scores, "no class is supported")
         return
     row = life_classes.describe(chosen.id)
     if kept:
@@ -81,6 +75,9 @@ def _apply(planet, keep_stored):
     # The schedule is drawn once; the life sentence, the timeline and the stored columns all read it.
     if not (kept and all(getattr(planet, field, None) is not None for field in evolution.SCHEDULE_FIELDS[:2]) and planet.evolutionary_pace):
         _draw_schedule(planet, row)
+    if not _life_has_begun(planet):
+        _lifeless(planet, scores, f"class {row.id} is supported but its first step comes after the star's age")
+        return
     _build_air(planet, row)
     final = life_classes.score_classes(planet)             # the conditions after the oxygen the life has made
     _set_best(planet, final)
@@ -95,6 +92,26 @@ def _apply(planet, keep_stored):
     log.choice("Life complexity", f"{complexity.index:.3g}", f"yield {complexity.oxidant_yield:.2f}, rate factor {complexity.rate_factor:.2f}, "
                f"animal grade {complexity.grade}, highest stage {complexity.top_stage}")
     habitability_world.rescore(planet)  # GEN.207: Suitability reads the life that was just drawn
+
+
+def _lifeless(planet, scores, why):
+    """A world with no life: no class, no schedule, no stage, no complexity, and the score of a lifeless world redone once everything is final
+    (GEN.217). `scores` are still stored as the classes the conditions support."""
+    _set_best(planet, scores)
+    _set_class(planet, None)
+    _set_schedule(planet, None, None)
+    _set_evolutionary_state(planet, None)
+    planet.life_animal_grade = planet.life_complexity = None
+    habitability_world.rescore(planet)
+    log.debug(f"Life class: none, {why}")
+
+
+def _life_has_begun(planet):
+    """Whether the first step of the body's schedule (abiogenesis) is at or before its star's age. A world that has not reached it has no life
+    yet, whatever its conditions support, so it is given no class (GEN.1001); a forced civilization is always reached."""
+    first = evolution.get_evolutionary_state(planet.star, tuple(getattr(planet, field) for field in evolution.SCHEDULE_FIELDS),
+                                             max_stage=evolution.MILESTONE_KEYS[0])
+    return first["stage"] is not None
 
 
 def _choose(planet, scores, keep_stored):
