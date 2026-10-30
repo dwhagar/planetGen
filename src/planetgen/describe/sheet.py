@@ -815,7 +815,6 @@ OPEN_GAPS = {
     **{(kind, key): item for kind in ("planet", "moon") for key, item in (
         ("tidal_flux_w_m2", "GEN.778"), ("porosity", "GEN.780"), ("hp_ice_km", "GEN.781"), ("outside_hours", "GEN.768"),
         ("energy_flux_w_m2", "GEN.784"), ("flux_variation", "GEN.784"))},
-    ("moon", "induced_moment_a_m2"): "GEN.779",
     **{("planet", key): "GEN.904" for key in ("solar_day_hours", "daylight_hours", "day_share_equator")},
     **{("planet", key): "GEN.905" for key in ("mantle_redox", "mantle_delta_iw")},
     **{("star", key): item for key, item in (
