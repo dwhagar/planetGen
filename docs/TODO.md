@@ -14032,6 +14032,22 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.1006. Related: GEN.1006, GEN.1016, GEN.725,
   GEN.1028.
 
+- [ ] **GEN.1030 Methane pseudo-adiabat in the giant planet column, so Uranus-like and Neptune-like one-bar temperatures match Voyager (GEN.852 tropopause and condensables family)**
+  Found by Air 1 (relayed 3:16 PM EDT 2026-10-30 as the lane reported).
+  test_giant_one_bar_temperature: Uranus-like 95 K and Neptune-like 84 K
+  against Voyager 76 K and 72 K (tolerance 10 to 12 percent; Jupiter
+  passes). Cause is the model, not the fit: with the real Uranus inputs
+  the column gives 89.5 K (table 83), +18 percent, because the column
+  has only a dry or water adiabat while methane condenses near 1.3 bar
+  and halves the real lapse rate. The drawn internal heat of the test
+  giants (0.33 to 0.37 W/m2 against near zero for Uranus) adds about 5
+  percent. Do: a methane pseudo-adiabat in the column and a refit of the
+  table (about a day of lane compute); the two tolerances are not
+  loosened and the test is not skipped. Done:
+  test_giant_one_bar_temperature passes at its tolerances. Owner: Air 1
+  (rides train 6, lock work). Version 8.1.
+  Prerequisites: none. Related: GEN.852, TEST.479.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -18860,6 +18876,19 @@ clears each one.
   property. Done: all of them pass on main. Owner: Bug 2 (after
   TEST.481) or any free lane. Version 8.1.
   Prerequisites: none. Related: PERF.203.
+
+- [ ] **TEST.484 Four tests red on clean main: climate draws [c], habitability world scored consistently, life sweep class D "supports 3b, drew no life", and the moon-helper Hill sphere test (bug)**
+  Found by Air 1 comparing a 94 file run against clean main (relayed
+  3:16 PM EDT 2026-10-30 as the lane reported). Red on main too, not Air
+  1's: test_climate_draws[c]; test_habitability_world
+  scored_consistently; test_sweep_life class D "supports 3b, drew no
+  life"; and test_gen_moon_helpers shrinking_the_hill_sphere (already
+  named in TEST.481, fix there). Do: triage each (stale expectation
+  after the star epoch, a real regression, or a moved seed) and fix the
+  right side without skipping or loosening beyond the property. Done:
+  all pass on main. Owner: Bug 2 (after TEST.483) or any free lane.
+  Version 8.1.
+  Prerequisites: none. Related: TEST.481, TEST.483.
 
 ## USR: User accounts
 
