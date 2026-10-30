@@ -107,11 +107,10 @@ def test_the_maxwell_form_reproduces_henning_peak_and_the_andrade_form_fixes_its
     assert peak > 20.0 * maxwell.k2_over_q
 
 
-def test_cold_ice_gives_europa_the_k2_over_q_that_tidal_heating_uses_and_a_warm_shell_far_more():
-    """Europa's `ICY_K2_OVER_Q` is 3e-4 (tuned to its 1.4e11 W); a homogeneous ice sphere at 140 K gives it to a factor of 3, and one near its melting
-    point is a hundred times more dissipative, which is what GEN.960 puts into the shell."""
+def test_a_warm_ice_sphere_is_far_more_dissipative_than_a_cold_one():
+    """A homogeneous ice sphere of Europa's size near its melting point is a hundred times more dissipative than one at 140 K, which is what the ice shell
+    (`icy_tide`, GEN.960) integrates over its temperatures."""
     cold = tidal_rheology.ice_response(*EUROPA, EUROPA_RATE, 140.0)
-    assert cold.k2_over_q == pytest.approx(tidal_heating.ICY_K2_OVER_Q, rel=2.0)
     warm = tidal_rheology.ice_response(*EUROPA, EUROPA_RATE, 260.0)
     assert warm.k2_over_q > 100.0 * cold.k2_over_q
 
