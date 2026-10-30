@@ -15232,35 +15232,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (NO FIXED CONTENT). Catalog section 3.
   Prerequisites: none. Related: GEN.961, GEN.763, GEN.839.
 
-- [ ] **GEN.978 Birth spin derivation (a): a module for the last-impact mass ratio gamma by planet mass, from the N-body impact statistics**
-  Boss, 8:48 PM EDT 2026-10-29 ('Yes, build it': build the birth-spin
-  derivation, not only the scale tweak). Spin-down report
-  /mnt/project-files/reports/gen842-spin-down-2026-10-29.md section on
-  sources and 'What this changes'. The Kokubo and Genda 2010 spin law
-  (eq. 4) already has the impactor mass ratio gamma in it, so a
-  Mars-sized embryo hit by small bodies comes out slow without a fitted
-  scale; the missing piece is the distribution of gamma of the last
-  impacts by planet mass. Do: a pure module returning that distribution
-  by planet mass from the N-body statistics (Kokubo and Ida 2007, Agnor
-  et al. 1999; secondary sources accepted). Where Miguel and Brunini
-  2010 (most planets 10 to 10,000 hours) and Kokubo and Genda (2 to 3
-  hours) disagree, use the widest range (Boss's rule for two sources in
-  question) and record both in the registry. Tests: the Solar System
-  rocky planets fall inside the distribution, Mars is reachable, the
-  free-day median is in the Vesta, Ceres and Earth-Moon range. Changes
-  no generated output, so it merges freely. Stand-in tier T1 for the
-  formula and T6 for the gamma law. Every stand-in it adds gets a
-  GEN.725 registry row with tier and tweak level (L0 to L4). Owner:
-  Tides 1 (Boss's word 8:48 PM EDT, relayed by the coordinator). Version
-  8.1.
-  Data we hold (2026-10-29 8:55 PM EDT): No dataset of rocky-planet
-  rotations or tides is held (none exists); the measurement scripts and
-  censuses are in reports/gen842-tides-2026-10-29, reports/gen842 and
-  reports/gen842-eccentricity-first-2026-10-29-files; Fortney 2007 radii
-  serve the giant radius; Solar System statistics may check, never copy
-  (NO FIXED CONTENT). Catalog section 3.
-  Prerequisites: none. Related: GEN.953, GEN.842, GEN.731.
-
 - [ ] **GEN.979 Birth spin derivation (b): the birth rotation of a rocky planet follows Kokubo and Genda eq. 4 with the gamma law, replacing the scale factor of GEN.953**
   Boss, 8:48 PM EDT 2026-10-29 ('Yes, build it': build the birth-spin
   derivation, not only the scale tweak). Do: accretion_spin draws the
@@ -15283,7 +15254,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   reports/gen842-eccentricity-first-2026-10-29-files; Fortney 2007 radii
   serve the giant radius; Solar System statistics may check, never copy
   (NO FIXED CONTENT). Catalog section 3.
-  Prerequisites: GEN.978, GEN.953. Related: GEN.953, GEN.842, GEN.731.
+  Prerequisites: GEN.953. Related: GEN.953, GEN.842, GEN.731.
 
 - [ ] **GEN.980 The stored class of 4 to 8 bodies differs from the class their final body gives (stored Q, conditions give D; stored P or K, derived D or P): the class is derived before the air is final (bug)**
   Found by Bug 2 on train 1 (as the lane reported, 8:53 PM EDT
