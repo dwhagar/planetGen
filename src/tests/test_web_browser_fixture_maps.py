@@ -2616,8 +2616,14 @@ def test_galaxy_map_draws_point_phenomena_that_link_to_their_pages(page, map_sit
         spot = _screen_of(page, (point["x"], point["y"], point["z"]))
         assert spot, point["name"]
         # The pulsar sits inside the fixture nebula over the field, whose core takes a click on the line
-        # through it first: a few pixels to the side, still inside the point's reach, finds it.
+        # through it first, and a click beside it can land on another point of the map (TEST.459): the pointer is moved over the
+        # pixels around the spot until the tooltip names the point, and only that click is made.
+        tip = page.locator("#galaxymap3d-tooltip")
         for dx, dy in ((0, 0), (4, 0), (-4, 0), (0, 4), (0, -4), (4, 4), (-4, -4), (4, -4), (-4, 4)):
+            page.mouse.move(spot[0] + dx, spot[1] + dy)
+            page.wait_for_timeout(100)
+            if not (tip.is_visible() and tip.inner_text().startswith(point["name"])):
+                continue
             page.wait_for_timeout(DOUBLE_CLICK_GAP_MS)   # clicks this close in time would be a double click (MAP.226)
             page.mouse.click(spot[0] + dx, spot[1] + dy)
             heading = page.locator("#galaxymap3d-info h3")
