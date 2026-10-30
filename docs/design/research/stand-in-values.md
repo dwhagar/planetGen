@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 753 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 754 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -41,11 +41,11 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T3 | 74 | 28 | 5 | 9 | 0 | 116 |
 | T4 | 36 | 2 | 0 | 15 | 6 | 59 |
 | T5 | 40 | 12 | 0 | 0 | 0 | 52 |
-| T6 | 63 | 39 | 12 | 34 | 0 | 148 |
+| T6 | 63 | 40 | 12 | 34 | 0 | 149 |
 | T7 | 26 | 8 | 8 | 8 | 0 | 50 |
 | T8 | 0 | 1 | 1 | 3 | 2 | 7 |
 | T9 | 7 | 1 | 4 | 34 | 19 | 65 |
-| All | 468 | 117 | 36 | 105 | 27 | 753 |
+| All | 468 | 118 | 36 | 105 | 27 | 754 |
 
 ## How the labels were given
 
@@ -1213,6 +1213,12 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | RSM3 | D | T6 | L1 | rogue_density.YOUNG_AGE_MYR 100: rogues ejected within this long keep the donor's structure; the share is this over the population's history (ejections uniform in time) | 30 to 300 Myr | sectors of any galaxy | a time-resolved ejection rate (planet scattering peaks early, so the share is higher in young populations) | the ejection-time distribution of the yield table (R1) | the design note's "younger than about 100 Myr" and its uniform-in-donor-age test (recalled from rogue-planet-drift.md) | GEN.1111 | - |
 | RSM4 | P | T9 | L0 | rogue_density.RING_STEPS 16: points round a ring (exact for fewer than 16 arms or bar ends), with 3 nodes each in radius and height | 8 to 64 | every smoothing | not applicable (a quadrature) | a finer rule if a density with finer azimuthal structure is added | the design note's "about 16 density evaluations" | GEN.1111 | - |
 
+## 6.104 Stand-ins of the dwarf planet population
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| DPM1 | P | T6 | L1 | dwarf_population.ICE_BODY_FRACTION 0.5: the ice mass fraction at and above which a body is as weak as pure ice; the round mass runs log-linearly from the rock value at no ice to the ice value here | 0.3 to 1.0 | belt members and dwarf planets | a body of 20 to 40 percent ice whose measured shape is far from the mixed round mass (Ceres, round at 9.4e20 kg and about a quarter water, sits inside it) | the relaxed hydrostatic mass from the body's strength and heat (BR9) | educated guess from physics (a mixture is as weak as its weak phase once that phase is half the mass) | GEN.1092 | - |
+
 ## 6.95 Stand-ins of the belt sources
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
@@ -1222,10 +1228,10 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | BR3 | P | T2 | L0 | loss in unstable resonances after the planets settle: logarithmic in time, about 50 percent of the large (10 km and more) bodies lost since 1 My, 30 percent of the present number in each of 10 to 200 My and 0.2 to 4 Gy | 30 to 60 percent over 4 Gy | belts under a giant, bodies of 10 km and more | a belt whose old bodies show a loss history far from logarithmic | an N-body loss law for the actual giant orbits (Moons and Morbidelli 1995 not reached) | Minton and Malhotra 2010 (arXiv:0909.3875, READ); stands for Moons and Morbidelli 1995 | - | - |
 | BR4 | P | T2 | L1 | survival of the belt after a Grand Tack type event: 2e-3 to 1e-2 of the primordial mass (a factor of several hundred; primordial about 1 Earth mass, now 4.0e-4) | one decade each way | belts of systems whose giants migrated through them | a system with a Grand Tack history whose belt is outside the range | N-body migration runs with the system's own giants (GEN.1054 origin table) | Walsh et al. 2011 (arXiv:1201.5177, READ); Morbidelli et al. 2015 (arXiv:1501.06204, READ) | - | - |
 | BR5 | P | T2 | L1 | survival of a belt in a giant-planet instability alone: 0.1 to 0.5 of the mass (50 to 90 percent lost), then half of the rest by resonances (BR3) | 0.05 to 0.7 | belts of systems with a Nice type instability | a belt of such a system outside the range | N-body instability runs with the system's giants | Walsh et al. 2011 (READ); Morbidelli et al. 2015 (READ) | - | - |
-| BR6 | P | T1 | L0 | Soter's planet discriminant: a body with mu = M over the mass of the others in its zone above 100 is a planet | threshold 10 to 1000 (the gap is 4 to 5 orders) | bodies orbiting a star in a mature system | a system whose bodies fill the gap between mu 1 and 100 | Margot's discriminant (BR7) as the cross-check | Soter 2006 (arXiv:astro-ph/0608359, READ) | - | - |
-| BR7 | P | T1 | L0 | Margot's orbit-clearing mass: 1.9e-4 C^(3/2) (a over 1 au)^(9/8) (M* over Msun)^(5/2) Earth masses with C = 2 sqrt 3; planet if Pi = M over this is at least 1 | none (printed) | bodies orbiting a main-sequence star | a body with Pi above 1 that has not cleared its zone in the star's lifetime | the same with the star's own lifetime (exponent 5/8 and 3/4 form) | Margot 2015 (arXiv:1507.06300, READ) | - | - |
+| BR6 | P | T1 | L0 | dwarf_population.SOTER_MU_PLANET 100: Soter's planet discriminant: a body with mu = M over the mass of the others in its zone above 100 is a planet | threshold 10 to 1000 (the gap is 4 to 5 orders) | bodies orbiting a star in a mature system | a system whose bodies fill the gap between mu 1 and 100 | Margot's discriminant (BR7) as the cross-check | Soter 2006 (arXiv:astro-ph/0608359, READ) | GEN.1092 | - |
+| BR7 | P | T1 | L0 | dwarf_population.MARGOT_COEFFICIENT_EARTH 1.9e-4 and dwarf_population.MARGOT_C 2 sqrt 3: Margot's orbit-clearing mass: 1.9e-4 C^(3/2) (a over 1 au)^(9/8) (M* over Msun)^(5/2) Earth masses with C = 2 sqrt 3; planet if Pi = M over this is at least 1 | none (printed) | bodies orbiting a main-sequence star | a body with Pi above 1 that has not cleared its zone in the star's lifetime | the same with the star's own lifetime (exponent 5/8 and 3/4 form) | Margot 2015 (arXiv:1507.06300, READ) | GEN.1092 | - |
 | BR8 | P | T2 | L0 | the radius where a solid body turns round (potato radius): 200 km for ice, 300 km for rock (3.3e19 kg and 3.4e20 kg) | 150 to 400 km | icy and rocky small bodies | a measured round body well below the radius or a lumpy one well above | the relaxed hydrostatic mass from the body's strength and heat (BR9) | Lineweaver and Norman 2010 (arXiv:1004.1091, READ); stands for Thomas 2010 | - | - |
-| BR9 | P | T4 | L1 | the mass of a fully relaxed hydrostatic body: ice 1e20 to 1e21 kg, rock 1e21 to 1e22 kg (the dwarf planet band) | one decade each way | dwarf planets and large minor bodies | a body inside the band with a measured shape that is not an equilibrium figure | Bierson and Nimmo 2019 and Thomas 2010 read and fitted to composition and heat | design band; Bierson and Nimmo and Thomas not reached for this table | - | - |
+| BR9 | P | T4 | L1 | dwarf_population.ROUND_MASS_ICE_KG 3.2e20 and dwarf_population.ROUND_MASS_ROCK_KG 3.2e21: the mass of a fully relaxed hydrostatic body: ice 1e20 to 1e21 kg, rock 1e21 to 1e22 kg (the dwarf planet band, geometric centres) | one decade each way | dwarf planets and large minor bodies | a body inside the band with a measured shape that is not an equilibrium figure | Bierson and Nimmo 2019 and Thomas 2010 read and fitted to composition and heat | design band; Bierson and Nimmo and Thomas not reached for this table | GEN.1092 | - |
 | BR10 | P | T2 | L0 | the largest body a young icy disc grows: radius about 1 750 km, at most 3 to 4 percent of the initial solids, nearly independent of disc mass, stellar mass and age | 1 000 to 2 500 km | icy discs at 30 to 150 au round 1 to 3 solar mass stars | a Kuiper-type disc whose largest body is outside this radius | the order statistic of the size law (GEN.1061) checked against it | Kenyon and Bromley 2008 (arXiv:0807.1134, READ) | - | - |
 | BR11 | P | T1 | L0 | the Kuiper belt size law: cold bright-end slope 1.5 (+0.4 -0.2), break H_B 6.9; hot slope 0.87, break 7.7; faint-end slope near 0.2; masses hot 0.01 and cold 3e-4 Earth masses; classical belt 0.010 Earth masses, mostly near 100 km, its largest 2 percent of its mass | measured errors | Kuiper-type discs | a belt whose size law is outside the errors | a size law derived from the disc's own collisional equilibrium | Fraser et al. 2014 (arXiv:1401.2157, READ); Bernstein et al. 2004 (arXiv:astro-ph/0308467, READ) | - | - |
 | BR12 | P | T2 | L0 | post-main-sequence survival of a planet or belt: inside about 5 au it is lost, beyond it survives and its orbit widens by M_initial over M_final | 3 to 8 au | stars of 1 to 8 solar masses | a planet or belt measured near a white dwarf inside 3 au | the engulfment radius of the star's own giant branch (built for white dwarfs: widen_for_mass_loss) | Debes and Sigurdsson 2002 (arXiv:astro-ph/0202273, READ) | - | - |
