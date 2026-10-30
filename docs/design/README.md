@@ -207,6 +207,7 @@ A note's own status line, at its top, is the authority; this page only points at
 |---|---|---|
 | [orbital-updates.md](orbits/orbital-updates.md) | Moving things: positions, thresholds, gravity, collisions and spin | partly built |
 | [tidal-chain.md](orbits/tidal-chain.md) | The tide chain (GEN.842, GEN.954 to GEN.960): rheology from temperature and melt, spin torques of moons and air, moon orbit evolution and ice, in lock-free and wiring steps | partly built (stage 1a, GEN.954) |
+| [ocean-tides.md](orbits/ocean-tides.md) | Ocean tide height and range at a world's surface from each moon and the star (GEN.1034): the equilibrium formula, the loading factor and its refusal for heavy liquids, the stand-ins | module built (physics/ocean_tides.py, lock-free); columns on train 7 |
 | [orbital-solvers-and-integrators.md](orbits/orbital-solvers-and-integrators.md) | Kepler solvers, integrators, thresholds and the influence search | research |
 | [orbital-update-check-2026-10-18.md](orbits/orbital-update-check-2026-10-18.md) | Boss's four orbital motion update steps checked against the design, with the F1 to F5 answers | research |
 | [collisions-and-mergers.md](orbits/collisions-and-mergers.md) | How often bodies collide and how to detect it | research |
