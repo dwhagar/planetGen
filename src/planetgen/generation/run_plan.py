@@ -2233,65 +2233,68 @@ def fill_map_luminosity_unit(params, report):
         conn.close()
 
 
-def _batches_on_queue(args, key, label, params, bar_label, on_plan_line, noun):
+class BatchFollower(followed.Follower):
     """
-    A stage of batch units on the new queue (PERF.106): the wrapper selects the stage's command from this run's
-    steps and cuts and queues the units, this process follows their results with a bar of the ids they cover and
-    stores the stage's row through the unit that completes it.
+    A stage of batch units over ids as a stage of a run (PERF.106, PERF.202): the wrapper selects the stage's command from
+    this run's steps and cuts and queues the units, and this side follows their results with a bar of the ids they cover.
+    The unit that completes the stage stores the stage's row.
 
-    Args:
-        key (str): The stage (`map-luminosity` or `habitability`).
-        bar_label (str): The bar's text.
-        on_plan_line (callable): `on_plan_line(detail)` gives the line to log when the stage is cut.
-        noun (str): What the units' `filled` or `updated` result counts, the result key.
+    A subclass names the stage's `key`, `label`, `bar_label` and `noun` (the key of the count in a unit's result) and gives
+    `plan_line(detail)`, the line to log when the stage is cut.
 
-    Returns:
-        int: The sum of the units' counts.
+    Attributes:
+        total (int): The sum of the units' counts.
     """
-    mysql_config = store.mysql_config_from_args(args)
-    workers = run_common._worker_count(args)
-    step, listing = wrapper.step_for(args, key, label, {**params, "workers": workers,
-                                                        "database": wrapper.database_args(mysql_config)})
-    row = stages.hand_over_open_stage()
-    total = [0]
-    with run_common._generation_progress() as progress:
-        log.set_console(progress.console)
-        try:
-            with steps.Step(bar_label, key, 1, args=args, progress=progress, workers=workers) as bar:
-                def on_plan(_index, plan):
-                    log.normal(on_plan_line(plan["detail"]))
-                    bar.update(total=max(plan["detail"]["top"], 1))
 
-                def on_result(_index, _unit, result):
-                    total[0] += result[noun]
-                    bar.update(advance=result["ids"])
+    bar_label = ""
+    noun = ""
 
-                try:
-                    wrapper.run(label, [step], on_plan, on_result, workers_count=workers,
-                                who=getattr(args, "who", None), database=mysql_config.database,
-                                argv=getattr(args, "argv", None), seed=None, listing=listing,
-                                rows=None if row is None else {key: row})
-                finally:
-                    run_common._finish_stats(args)
-        finally:
-            log.reset_console()
-    return total[0]
+    def __init__(self, args):
+        super().__init__(args)
+        self.total = 0
+        self.bar = None
+
+    def plan_line(self, detail):
+        raise NotImplementedError
+
+    def on_plan(self, plan):
+        log.normal(self.plan_line(plan["detail"]))
+        self.bar = self.hold(steps.Step(self.bar_label, self.key, 1, args=self.args, progress=self.progress,
+                                        workers=self.workers))
+        self.bar.update(total=max(plan["detail"]["top"], 1))
+
+    def on_result(self, unit, result):
+        self.total += result[self.noun]
+        self.bar.update(advance=result["ids"])
+
+
+class MapLuminosityFollower(BatchFollower):
+    """The map luminosity fill (`fill_map_luminosity_unit`) as a stage of a run."""
+
+    key = "map-luminosity"
+    label = "Map luminosity"
+    bar_label = "Filling the map luminosity"
+    noun = "filled"
+
+    def plan_line(self, detail):
+        return f"Map luminosity: {detail['remaining']:,} scattered rows have a mass and no value yet."
+
+    def on_done(self, conclusion):
+        log.normal(f"Filled the map luminosity of {self.total:,} scattered rows.")
 
 
 def fill_map_luminosity(args):
     """
     Fills `phenomenon_scatter.map_luminosity_sol` for the rows that have a mass and no value yet, on the new queue:
-    the `fill-map-luminosity` command, a unit per id range (`fill_map_luminosity_unit`).
+    the `fill-map-luminosity` command, a unit per id range (`fill_map_luminosity_unit`), then the Galaxy Map's block light
+    totals made again (`BlockLightsFollower`).
 
     Returns:
         int: The rows filled.
     """
-    filled = _batches_on_queue(
-        args, "map-luminosity", "Map luminosity", {}, "Filling the map luminosity",
-        lambda detail: f"Map luminosity: {detail['remaining']:,} scattered rows have a mass and no value yet.", "filled")
-    log.normal(f"Filled the map luminosity of {filled:,} scattered rows.")
-    refresh_block_lights(store.mysql_config_from_args(args), args)
-    return filled
+    follower = MapLuminosityFollower(args)
+    followed.run_followed(args, [follower, BlockLightsFollower(args)], "Map luminosity")
+    return follower.total
 
 
 HABITABILITY_BATCH_SYSTEMS = 500
@@ -2341,6 +2344,35 @@ def rescore_habitability_unit(params, report):
         conn.close()
 
 
+class HabitabilityFollower(BatchFollower):
+    """The habitability re-score (`rescore_habitability_unit`) as a stage of a run."""
+
+    key = "habitability"
+    label = "Habitability"
+    bar_label = "Re-scoring habitability"
+    noun = "updated"
+
+    def plan_line(self, detail):
+        return f"Habitability: {detail['total']:,} systems to re-score."
+
+    def on_done(self, conclusion):
+        log.normal(f"Re-scored the habitability of {self.total:,} bodies.")
+
+
+def conclude_rescore_habitability(params, plan, results, seconds):
+    """
+    The `conclude` of the `rescore-habitability` command (PERF.202): makes the blocks' habitable-world totals follow the
+    sectors' counts (MAP.143, `block_stats.rebuild`), once, when every range is done.
+    """
+    conn = store.get_connection(_mysql_config_of(params))
+    try:
+        block_stats.rebuild(conn)
+        conn.commit()
+    finally:
+        conn.close()
+    return {}
+
+
 def fill_habitability(args):
     """
     Re-derives the stored habitability numbers of an existing galaxy (GEN.217) on the new queue: the
@@ -2349,17 +2381,9 @@ def fill_habitability(args):
     Returns:
         int: The bodies updated.
     """
-    updated = _batches_on_queue(
-        args, "habitability", "Habitability", {}, "Re-scoring habitability",
-        lambda detail: f"Habitability: {detail['total']:,} systems to re-score.", "updated")
-    log.normal(f"Re-scored the habitability of {updated:,} bodies.")
-    conn = store.get_connection(store.mysql_config_from_args(args))
-    try:
-        block_stats.rebuild(conn)    # MAP.143: the blocks' habitable-world totals follow the sectors' counts
-        conn.commit()
-    finally:
-        conn.close()
-    return updated
+    follower = HabitabilityFollower(args)
+    followed.run_followed(args, [follower], "Habitability")
+    return follower.total
 
 
 def refresh_block_lights(mysql_config, args=None):
@@ -3102,9 +3126,8 @@ def run_clear_scatter(args):
 
 
 def run_fill_map_luminosity(args):
-    """`planetgen fill-map-luminosity` (PERF.122): `fill_map_luminosity`, the one stage of its run."""
+    """`planetgen fill-map-luminosity` (PERF.122): `fill_map_luminosity`, its stage and the block light totals."""
     stages.begin(stages.for_command("fill-map-luminosity", args), args, "fill-map-luminosity")
-    stages.enter("map-luminosity")
     fill_map_luminosity(args)
     stages.finish()
 
@@ -3112,7 +3135,6 @@ def run_fill_map_luminosity(args):
 def run_rescore_habitability(args):
     """`planetgen rescore-habitability` (PERF.122): `fill_habitability`, the one stage of its run."""
     stages.begin(stages.for_command("rescore-habitability", args), args, "rescore-habitability")
-    stages.enter("habitability")
     fill_habitability(args)
     stages.finish()
 
