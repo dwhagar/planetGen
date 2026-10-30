@@ -137,7 +137,7 @@ _RUNTIME_ONLY = {
            "state", "decay_age_yr"},    # derived with no draw at __init__ from the class and the phase (GEN.785, GEN.786); the store writes the columns
     Planet: {"system_config", "star", "moons", "spatial", "_staged_au", "_staged_velocity_kms",
              "primary_mass_kg", "_star_distance_au", "phi_bio", "phi_cpx",
-             "moon_disk_system", "formation_distance_au", "_orbit_birth", "_giant_draw"},
+             "moon_disk_system", "formation_distance_au", "_orbit_birth", "_giant_draw", "_age_drawn"},
     AsteroidBelt: {"system_config", "composition", "makeup"},
 }
 

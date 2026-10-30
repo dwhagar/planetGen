@@ -373,7 +373,10 @@ def haze_absorbed_share(tau_550, star_temperature_k):
     weight = stellar_spectrum.blackbody_fraction(edges[:-1], edges[1:], star_temperature_k)
     centres = 0.5 * (edges[:-1] + edges[1:])
     absorption = tau_550 * (1.0 - HAZE_OMEGA_550) * _haze_absorption_shape(centres)
-    share = float(np.sum(weight * -np.expm1(-HAZE_AIR_MASS * absorption)) / np.sum(weight))
+    total = float(np.sum(weight))
+    if total <= 0.0:
+        return 0.0      # a star too cold to send light in these bands (a black hole's Hawking temperature) has no sunlight to absorb
+    share = float(np.sum(weight * -np.expm1(-HAZE_AIR_MASS * absorption)) / total)
     return min(share, HAZE_SHARE_CAP)
 
 
