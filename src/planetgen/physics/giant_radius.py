@@ -209,4 +209,5 @@ def heavy_mass_earth(mass_earth, rng=draw):
         value = predicted * (1.0 + CHACHAN_SCATTER * rng.gauss(0.0, 1.0))
         if low <= value <= high:
             return value
+        draw.redrawn("giant.heavy_mass")
     return min(max(value, low), high)

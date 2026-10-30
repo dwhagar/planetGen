@@ -1,17 +1,20 @@
 #!/usr/bin/env python3
 """
-Builds `src/planetgen/physics/data/quadruple_stability_3p1_weights.json` (GEN.1029): the weights of the 3+1 quadruple stability classifier of Vynatheya,
-Mardling and Hamers 2023 (MNRAS 525, 3 ; arXiv 2301.09930) as plain numbers, so the generator needs no machine-learning library.
+Builds `src/planetgen/physics/data/quadruple_stability_3p1_weights.json` (GEN.1029) and `quadruple_stability_2p2_weights.json` (GEN.1031): the weights
+of the 3+1 and 2+2 quadruple stability classifiers of Vynatheya, Mardling and Hamers 2023 (MNRAS 525, 3 ; arXiv 2301.09930) as plain numbers, so the
+generator needs no machine-learning library.
 
-    python scripts/build_quadruple_stability.py /path/to/mlp_model_3p1_ghost_v1.2.2.pkl
+    python scripts/build_quadruple_stability.py 3p1 /path/to/mlp_model_3p1_ghost_v1.2.2.pkl
+    python scripts/build_quadruple_stability.py 2p2 /path/to/mlp_model_2p2_ghost_v1.2.2.pkl
 
-The pickle is https://github.com/pavanvyn/quadruple-stability/blob/main/mlp_model_3p1_ghost_v1.2.2.pkl (209 KB, never committed). A pickle can run code
+The pickles are https://github.com/pavanvyn/quadruple-stability/blob/main/mlp_model_3p1_ghost_v1.2.2.pkl and the same name with 2p2 (209 KB each, never committed). A pickle can run code
 when it is loaded, so it is read with an unpickler that refuses every global except the array constructors of numpy and replaces every scikit-learn
 class with a bag that only keeps its state; nothing else is executed. The state of a scikit-learn `MLPClassifier` holds the weight matrices
 (`coefs_`), the biases (`intercepts_`) and the activation names; the script refuses a model that is not 11 inputs, four hidden layers of 50 and one
 output, all logistic. Numbers are written to nine significant digits (a relative change under 1e-9, a change of the probability under 1e-8).
 
-The validity ranges and the tier and tweak level of every number are in `quadruple_stability_3p1.json`, which this script does not touch.
+The validity ranges and the tier and tweak level of every number are in `quadruple_stability_3p1.json` and `quadruple_stability_2p2.json`, which this script
+does not touch. Both networks have the same shape (11 inputs, four hidden layers of 50, one output); only the meaning of the inputs differs.
 """
 
 import json
@@ -22,7 +25,8 @@ import sys
 import numpy as np
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-OUTPUT = os.path.join(HERE, "..", "src", "planetgen", "physics", "data", "quadruple_stability_3p1_weights.json")
+DATA = os.path.join(HERE, "..", "src", "planetgen", "physics", "data")
+KINDS = ("3p1", "2p2")
 LAYERS = (11, 50, 50, 50, 50, 1)
 
 
@@ -77,11 +81,13 @@ def network(state):
 
 
 def main():
-    path = sys.argv[1]
-    with open(OUTPUT, "w", encoding="utf-8") as handle:
-        json.dump(network(read_state(path)), handle, separators=(",", ":"))
+    if len(sys.argv) != 3 or sys.argv[1] not in KINDS:
+        sys.exit(f"usage: build_quadruple_stability.py {'|'.join(KINDS)} /path/to/model.pkl")
+    output = os.path.join(DATA, f"quadruple_stability_{sys.argv[1]}_weights.json")
+    with open(output, "w", encoding="utf-8") as handle:
+        json.dump(network(read_state(sys.argv[2])), handle, separators=(",", ":"))
         handle.write("\n")
-    print(f"wrote {OUTPUT}")
+    print(f"wrote {output}")
 
 
 if __name__ == "__main__":

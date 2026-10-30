@@ -160,8 +160,9 @@ def test_sector_and_system_pages_use_a_fixed_number_of_queries(mysql_config, mon
 
         counter.count = 0
         rows = queryDb.list_systems(conn, limit=50)
-        assert len(rows) == 7 and counter.count <= 3
+        assert len(rows) == 7 and counter.count <= 5   # rows, star types, sector names, object counts, habitable worlds
         assert all(row["star_summary"] for row in rows), rows
+        assert all(row["star_count"] >= 1 and row["object_count"] >= row["star_count"] for row in rows), rows
     finally:
         conn.close()
 
