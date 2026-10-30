@@ -347,6 +347,54 @@ def test_api_near_answers_and_refuses(client, galaxy):
         assert client.get(bad).status_code == 400, bad
 
 
+def test_the_list_reads_the_names_of_one_page_and_names_every_row_as_before(galaxy, monkeypatch):
+    """PERF.217: the sphere's systems are listed from the covering cell index (id and position), and the name and sector of a system
+    are read for the systems of the page only; every row, on every page, carries what it carried when the whole sphere's rows were read."""
+    from planetgen.db import region
+    conn = _conn(galaxy)
+    try:
+        center = sector_position_pc(*ADDRESSES[0], EDGE_PC)
+        place = near.place_from_point(center)
+        listed = []
+        real = region.region_rows
+
+        def watching(conn_, table, columns, *rest, **keyword):
+            listed.append((table, columns))
+            return real(conn_, table, columns, *rest, **keyword)
+
+        monkeypatch.setattr(region, "region_rows", watching)
+        everything = near.objects_within(conn, place, 40.0, limit=near.MAX_LIMIT)
+        assert ("star_systems", "p.id, p.galaxy_x_pc, p.galaxy_y_pc, p.galaxy_z_pc") in listed
+        assert not any(table == "star_systems" and "name" in columns for table, columns in listed)
+        assert everything["total"] >= 10 and len({row["kind"] for row in everything["rows"]}) >= 2
+
+        labels = {row["id"]: (row["name"], row["sector_id"]) for row in conn.execute("SELECT id, name, sector_id FROM star_systems").fetchall()}
+        for row in everything["rows"]:
+            if row["kind"] == "system":
+                name, sector_id = labels[row["id"]]
+                assert row["name"] == name
+                assert row["parent"] == ({"ref": f"sector:{sector_id}", "kind": "sector", "name": row["parent"]["name"]}
+                                         if sector_id is not None else None)
+            elif row["parent"] and row["parent"]["kind"] == "system":
+                assert row["parent"]["name"] == labels[int(row["parent"]["ref"].split(":")[1])][0]
+        assert any(row["parent"] and row["parent"]["kind"] == "system" for row in everything["rows"]), "the sphere holds a body of a system"
+
+        # Pages cut from the same sphere are the same rows, and each is named by its own reads.
+        paged = []
+        for offset in range(0, everything["total"], 7):
+            page = near.objects_within(conn, place, 40.0, limit=7, offset=offset)
+            assert page["total"] == everything["total"] and page["by_kind"] == everything["by_kind"]
+            paged.extend(page["rows"])
+        assert len(paged) == everything["total"] and paged[:len(everything["rows"])] == everything["rows"]
+        for row in paged:           # all of them, past the first page of the whole sphere too
+            if row["kind"] == "system":
+                assert row["name"] == labels[row["id"]][0]
+            elif row["parent"] and row["parent"]["kind"] == "system":
+                assert row["parent"]["name"] == labels[int(row["parent"]["ref"].split(":")[1])][0]
+    finally:
+        conn.close()
+
+
 def test_the_distance_is_worked_out_once_per_candidate_and_returns_the_same_systems(galaxy):
     """PERF.216: the statement tests the distance as `POW(axis - c, 2)` once (MySQL does not share `(axis - c) * (axis - c)`, and a test in
     `WHERE` plus the select list worked it out twice more), and the systems it returns are those of the product form, a system exactly
