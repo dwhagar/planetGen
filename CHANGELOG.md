@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2723] - 2026-10-30
+
+**Headline:** Internal: a star's evolved state is now one frozen record that the system tree and the build will both read (GEN.1009, first piece).
+
+### Changed
+- **Member record (GEN.1009).** A new record holds a member's present and largest radius and mass from one evolution under its own seed, so the tree that draws the orbits and the build that makes the star cannot disagree. Nothing reads it yet; the wiring is the next change, so generated systems do not change here.
+
 ## [8.0.2722] - 2026-10-30
 
 **Headline:** The rule that tells whether two stars went through a common envelope in the past now exists as a tested module, ready to replace the white-dwarf-only test.
