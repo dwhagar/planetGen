@@ -18475,6 +18475,12 @@ clears each one.
   test_db_persistence bright-star tests (column count mismatch, the same
   cause as the cache warmup reds) on a clean main (as the lane
   reported).
+  Also red on main (Tides 1) (4:15 PM EDT 2026-10-30):
+  test_orbital_motion reflex offset (settle_orbit moves a captured
+  moon's position and nobody refreshes the planet's offset: a real bug
+  to fix at the cause) and test_moon_composition disk moon ice (the
+  sample now holds only two disk moons: widen the sample), both red on
+  clean main c563ce591 (as the lane reported).
   Prerequisites: none. Related: TEST.391, TEST.472, TEST.484.
 
 ## USR: User accounts
