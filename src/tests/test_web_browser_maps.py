@@ -1234,16 +1234,15 @@ def test_a_locked_moon_in_the_system_map_keeps_its_day_side_toward_its_planet(pa
         scene = client.get(f"/api/systems/{system['id']}/scene").get_json()
         for planet in scene["planets"]:
             if any(moon["look"].get("locked") for moon in planet.get("moons", [])):
-                found = (system["id"], planet["name"])
+                found = (system["id"], planet["id"])
                 break
         if found:
             break
     if not found:
         pytest.skip("no generated moon is tidally locked")
-    system_id, planet_name = found
+    system_id, planet_id = found
     page.emulate_media(reduced_motion="no-preference")
-    _open(page, f"{base_url}/system/{system_id}", "#sysmap-root")
-    _click_body(page.locator(f'#sysmap-root .sysmap-svg[data-scene="system"] [data-kind="planet"][data-name="{planet_name}"]').first)
+    _open(page, f"{base_url}/system/{system_id}?scene=planet-{planet_id}", "#sysmap-root")
     page.wait_for_function("() => { const c = document.querySelector('#sysmap-spheres-canvas');"
                            " return c && c.__spins && c.__spins().some((s) => s.kind === 'moon' && s.locked && s.toward); }")
     spins = page.evaluate("() => document.querySelector('#sysmap-spheres-canvas').__spins()")
