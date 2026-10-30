@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2826] - 2026-10-30
+
+**Headline:** The "On this page" menu is a grouped list of sections and subsections again
+
+### Changed
+
+On the pages of one object (system, star, planet, sector, phenomenon, polity) the menu is back to a column down the left on a wide window and a list under the title on a narrow one, with subsections under their sections. The single row of links that scrolled sideways is gone.
+
 ## [8.0.2825] - 2026-10-30
 
 **Headline:** The Search page's star spectral and luminosity tags now list every star type the generator can produce.
