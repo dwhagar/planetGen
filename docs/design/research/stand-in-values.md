@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 317 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 326 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -37,15 +37,15 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
 | T1 | 38 | 0 | 3 | 0 | 0 | 41 |
-| T2 | 56 | 0 | 0 | 1 | 0 | 57 |
-| T3 | 48 | 3 | 2 | 10 | 0 | 63 |
+| T2 | 60 | 0 | 0 | 1 | 0 | 61 |
+| T3 | 48 | 4 | 2 | 10 | 0 | 64 |
 | T4 | 15 | 0 | 0 | 2 | 0 | 17 |
 | T5 | 14 | 5 | 1 | 0 | 0 | 20 |
-| T6 | 28 | 7 | 2 | 12 | 0 | 49 |
+| T6 | 31 | 7 | 2 | 13 | 0 | 53 |
 | T7 | 16 | 3 | 0 | 7 | 0 | 26 |
 | T8 | 0 | 0 | 0 | 0 | 1 | 1 |
 | T9 | 1 | 0 | 2 | 24 | 16 | 43 |
-| All | 216 | 18 | 10 | 56 | 17 | 317 |
+| All | 223 | 19 | 10 | 57 | 17 | 326 |
 
 ## How the labels were given
 
@@ -474,3 +474,17 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | CC8 | P | T5 | L0 | surface_air.VACUUM_PRESSURE_PA 1 (below it the fixed point has no air to equilibrate: the body keeps an exosphere and is airless) | 0.1 to 10 | rocky bodies | test_surface_air::test_a_pressure_that_falls_to_a_vacuum_is_airless | an exosphere model | READ-level fact (the Moon and Mercury hold 1e-10 Pa and under); the edge is the solver's |
 | CC9 | P | T4 | L0 | tuning.GIVEN_MASS_KG_BOUNDS (1e12, 2.47e28) and GIVEN_RADIUS_KM_BOUNDS (0.5, 200000) (the mass and radius a caller may give; outside them the request is an error) | none | given inputs only | test_gen_moon_helpers::test_a_radius_or_mass_that_cannot_be_a_planet_raises | none | design (the lightest body the bulk draw builds to 13 Jupiter masses and the largest inflated giant) |
 | CC10 | P | T9 | L3 | tuning.HABITABLE_REQUEST_FREE_ATTEMPTS 8 and HABITABLE_REQUEST_MASS_EARTH (0.5, 2.0) (a request for a habitable world draws freely, then draws Earth-like masses) | free attempts 4 to 16; masses 0.3 to 3 | the request only | test_gen_builder_internals::test_a_habitable_request_turns_to_earth_like_masses_after_its_free_draws; a request met in under 80 percent of systems around a K or A star | the PHI-6 steering of habitable requests (a follow-up of GEN.688) | design (needed output: a free draw in the ecosphere of an M5 dwarf gave a life class in none of 30, an Earth-like mass in 20 of 30) |
+
+## 6.23 Stand-ins of the tidal rheology
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
+|---|---|---|---|---|---|---|---|---|---|
+| TR1 | P | T2 | L0 | tidal_rheology.MELT_VISCOSITY_FACTOR 26 (a partly molten mantle is exp(-26 phi) times as viscous as its solid) | 20 to 31 | a rocky mantle between the solidus and the critical melt fraction | test_tidal_rheology::test_viscosity_is_arrhenius_then_weakened_by_melt_then_a_liquid_at_full_melt | a melt-fraction viscosity law that depends on the grain size and the melt's shape | Hirth and Kohlstedt 2003 (diffusion creep, 26) and Mei et al. 2002 (26 to 31), recalled, not opened |
+| TR2 | P | T3 | L1 | tidal_rheology.CRITICAL_MELT_FRACTION 0.4 (the melt share at which the crystals stop touching and the mush becomes a suspension) | 0.2 to 0.5 | a rocky mantle | test_tidal_rheology::test_viscosity_is_arrhenius_then_weakened_by_melt_then_a_liquid_at_full_melt | a rheological transition that depends on the crystal size | the range in Arzi 1978 (0.2 to 0.4) and the 0.4 of Henning et al. 2009, recalled; the top of the range |
+| TR3 | T | T6 | L3 | tidal_rheology.rigidity_pa and MELT_RIGIDITY_FLOOR 1e-3 (rigidity mu0 (1 - phi / phi_c)^2 down to a floor of a thousandth of the solid's) | floor 1e-4 to 1e-2 | a partly molten mantle | test_tidal_rheology::test_rigidity_falls_with_melt_to_a_floor | a shear modulus from the melt's geometry (Hashin-Shtrikman bounds) | physics fixes the form (a suspension has no static rigidity), the size is argued; the floor is the lowest value that keeps the Io state's k2 under the fluid 3/2 |
+| TR4 | P | T2 | L0 | tidal_rheology.ANDRADE_EXPONENT 0.3 (the transient creep of grain boundaries) | 0.2 to 0.4 | a rocky mantle at tidal frequencies | test_tidal_rheology::test_the_moon_comes_out_with_the_lunar_laser_ranging_k2_and_q | the exponent from the grain size and the temperature | laboratory olivine 0.2 to 0.4; 0.3 in Jackson and Faul 2010 and Castillo-Rogez et al. 2011, recalled |
+| TR5 | P | T6 | L0 | tidal_rheology.ANDRADE_TIMESCALE_RATIO 1 (the Andrade timescale over the Maxwell time) | 0.01 to 100 | a rocky mantle | test_tidal_rheology::test_the_moon_comes_out_with_the_lunar_laser_ranging_k2_and_q | the ratio measured for a mantle rock | 1 in Efroimsky 2012; Renaud and Henning 2018 explore 0.01 to 100; the Moon's Q of 38 to 60 is reproduced at 1 without tuning |
+| TR6 | T | T6 | L0 | tidal_rheology.love_number (a homogeneous incompressible sphere with the complex rigidity: one temperature and one melt share stand for the whole mantle; the core, the cold lid and Io's thin warm layer are not separate) | none | any body that is mostly one material | test_tidal_rheology::test_the_solid_earth_has_the_semidiurnal_tide_of_a_q_of_a_few_hundred | a layered Love number (propagator-matrix) | the form of Love 1911 with the correspondence principle; the solid Earth's k2 comes out 0.5 against the real 0.30 |
+| TR7 | T | T6 | L0 | tidal_rheology.viscosity_pa_s above CRITICAL_MELT_FRACTION (a straight line in log10 viscosity to a liquid's 1 Pa s at full melt) | none | a mush above the critical melt fraction | test_tidal_rheology::test_a_magma_ocean_tends_to_the_fluid_love_number_and_no_dissipation | a suspension law (Roscoe-Einstein) | the form is chosen to be continuous at phi_c; the end points are the solid's value there and a silicate liquid |
+| TR8 | P | T2 | L0 | tidal_rheology.LIQUID_VISCOSITY_PA_S 1 (a silicate liquid) | 0.1 to 10 | a fully molten mantle | test_tidal_rheology::test_viscosity_is_arrhenius_then_weakened_by_melt_then_a_liquid_at_full_melt | a liquid viscosity from the melt's composition | komatiite to basalt melt, 0.1 to 10 Pa s, recalled |
+| TR9 | P | T2 | L0 | tidal_rheology.ICE (rigidity 3.3e9 Pa), ICE_ACTIVATION_J_MOL 4.9e4, ICE_MELTING_VISCOSITY_PA_S 1e14 (ice I) | rigidity 3.3 to 3.5 GPa; activation 40 to 60 kJ/mol; viscosity 1e13 to 1e15 | an ice body or shell | test_tidal_rheology::test_cold_ice_gives_europa_the_k2_over_q_that_tidal_heating_uses_and_a_warm_shell_far_more | the shell treatment of GEN.960 (grain size, a shell on an ocean) | Gammon et al. 1983 (rigidity), Goldsby and Kohlstedt 2001 and McCarthy and Castillo-Rogez 2013 (creep), Ojakangas and Stevenson 1989 (viscosity), all second-hand |
