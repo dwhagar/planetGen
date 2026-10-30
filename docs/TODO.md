@@ -2259,30 +2259,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   nothing in 8.1.
   Prerequisites: MAP.312, DB.106. Related: MAP.312, MAP.309, MAP.170.
 
-- [ ] **MAP.329 System Map stepping reaches systems across a sector's edge**
-  Follow-up from MAP.121 (Core 2, #3430, 12:13 PM EDT 2026-10-28 as the
-  lane reported): with a system opened, the six step buttons and keys
-  open the nearest system of the open sector inside a 60 degree cone
-  about north, south, east, west, out or in; systems across the sector's
-  edge are not reached because the sector scene holds only its own
-  systems. Do: read the neighbouring sectors' nodes or scenes so a step
-  can cross the edge, and draw the neighbouring systems faint as context
-  (MAP.141's context rule), keeping the scale. Optional until Boss asks.
-  The 60 degree cone is a display tweak with no source (L4 on the tweak
-  scale, noted in the code and docs/reference/html-interface.md); change
-  it only if Boss wants another. Done: from a system at a sector edge a
-  step in the direction of the edge opens the nearest system across it,
-  with a browser test. Owner: Core 2 when free. Rules: no
-  backward-compat shims; reuse stageView.openSector and
-  galaxyprisms.neighbourBlock.
-  Research (2026-10-09): OWNER Core 2 (assigned 5:21 PM EDT 2026-10-29
-  by TODO as the lane's one lock-free item while it waits for the
-  generation lock, Boss's standing order of 7:33 PM EDT 2026-10-28 and
-  his ask at 5:18 PM EDT; separate branch, no generated-output change;
-  if the lane already holds a lock-free item it finishes that first). If
-  this step turns out to change a stored value, stop and tell TODO.
-  Prerequisites: none. Related: MAP.121, MAP.141.
-
 - [ ] **MAP.337 Zoom redesign Z4: delete the stage code and stage URLs and rewrite the stage browser tests**
   Size M. Boss answered the research cards at 6:19 PM EDT 2026-10-28
   (1.1 quick fixes then the full rebuild, 2.1 one verb Go to, 3.1
