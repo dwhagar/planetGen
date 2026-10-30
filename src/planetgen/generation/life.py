@@ -120,7 +120,7 @@ def _anoxic_animals(planet, row, keep_stored):
 def _set_best(planet, scores):
     """Stores the classes the body supports: the best one (the largest likelihood), its score and the score of every class at or above the line."""
     top = life_classes.best(scores)
-    setattr(planet, life_classes.SCORES_FIELD, {class_id: result.score for class_id, result in scores.items() if result.score > 0} if scores else None)
+    setattr(planet, life_classes.SCORES_FIELD, {class_id: result.score for class_id, result in scores.items() if result.score > 0} or None)
     planet.life_class_best = top.id if top else None
     planet.life_class_best_score = (top.score if top else 0) if scores else None
 
