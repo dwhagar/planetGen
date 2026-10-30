@@ -553,6 +553,9 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | TEST.455 | A completeness gate: every numeric constant in the generation and physics modules has a stand-in registry row or is read from a table; the list of unregistered constants may only shrink | GEN.945 |  |
 | TEST.461 | test_db_column_round_trip fails on planets.porosity: the column is never written (bug) |  |  |
 | TEST.463 | Reds on main reported by Core 5 at 10:33 PM EDT 2026-10-29: triage each one and fix or assign it (bug) |  |  |
+| TEST.481 | Three tests red on clean main: the Hill sphere moon drop, the halo evolutionary flux counts and the large component phenomena unit (bug) |  |  |
+| TEST.480 | test_gen_builder_internals::test_slot_planet_honours_class_and_moon_count gets class J where it forced class I at a cold slot (bug) |  |  |
+| TEST.479 | test_radiative_convective_real::test_earth_sends_out_what_it_absorbs fails on the train 4 branch: the Earth tropopause temperature is 168.33 K against the test bound of 170 to 230 K (bug) |  |  |
 | PERF.218 | run_plan._draw_sector_bands recomputes the bright-star band table for every capped cell: memoise it per (shell, luminosity floor) |  |  |
 | TEST.476 | A test that measures how often items are redrawn or regenerated to make them fit: stars in a tree, planets, moons and belts |  |  |
 | GEN.1004 | A triple system whose third star cannot be found: it may sit inside another star or on an orbit that is not drawn (bug) | TEST.162 |  |
