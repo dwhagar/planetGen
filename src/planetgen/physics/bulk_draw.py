@@ -18,7 +18,7 @@ body's origin (`origin_of`: formed beyond its star's snow line or not) and its s
 2. **What is drawn** is only what the star cannot say, in this order: the kind of rock (`ROCK_KIND_TABLE`, a gated possibility
    table: silicate, or silicon carbide and graphite for a star with C/O of 0.8 or more, Bond et al. 2010; Unterborn et al.
    2014), the water share (a rocky body's from the Bern delivery law by its mass and the snow lines it formed at, `delivered_water`, GEN.849; an
-   icy body's log-uniform over `tuning.ICY_WATER_MASS_FRACTION`), for an icy body the other ices (`comet_population`'s volatiles against the water), the mantle's FeO, the core's
+   icy body's log-uniform from `tuning.ICY_WATER_MASS_FRACTION_FLOOR` up to the water share of the solids at its formation temperature, GEN.950), for an icy body the other ices (`comet_population`'s volatiles against the water), the mantle's FeO, the core's
    light elements, a small icy body's porosity, a carbon body's graphite, and then the iron branch of a rocky planet (`IRON_BRANCH_TABLE`: its
    iron follows the star's with a scatter, or is enriched, GEN.512). Every range is in `RANGES` with where it comes from.
 3. **Radius from mass.** The mass is fixed and `bulk_structure.structure` gives the radius the composition holds it at. A caller that
@@ -39,7 +39,7 @@ from dataclasses import dataclass
 from planetgen import tuning
 from planetgen.galaxy import scales
 from planetgen.generation import possibility_table as pt
-from planetgen.physics import (bulk_composition, bulk_structure, comet_population, compaction, composition_text, constants, crust_porosity, delivered_water, elements,
+from planetgen.physics import (bulk_composition, bulk_structure, comet_population, compaction, composition_text, condensate_shares, constants, crust_porosity, delivered_water, elements,
                                hydrosphere, ice_species, moon_composition, stellar_abundances, stellar_composition)
 from planetgen.util import draw
 from planetgen.util.random import log_uniform
@@ -320,6 +320,21 @@ def _rocky_water(body):
     return delivered_water.sample_fraction(mass_earth, 0.5 if ratio is None else ratio)
 
 
+def _icy_water_range(body):
+    """
+    The range of an icy body's water as a share of its mass: from `tuning.ICY_WATER_MASS_FRACTION_FLOOR` up to the share of the solids that
+    is water at the disk temperature of its formation distance (`condensate_shares.water_share_of_solids`; the temperature falls as the
+    square root of the distance, from the water condensation temperature at the star's own snow line).
+    """
+    distance = getattr(body, "formation_distance_au", None)
+    if distance is None:
+        distance = body.distance
+    water_line = condensate_shares.ICE_CONDENSATION_K["H2O"]
+    temperature = min(water_line * math.sqrt(body.star.snow_line_au / distance), math.nextafter(water_line, 0.0))
+    top = condensate_shares.water_share_of_solids(temperature)
+    return min(tuning.ICY_WATER_MASS_FRACTION_FLOOR, top), top
+
+
 def _water_and_ice(body):
     """
     Water as a share of the whole body, the other ices beside it and those ices' shares by species (`ice_species`): the Bern delivery law for a rocky
@@ -327,7 +342,7 @@ def _water_and_ice(body):
     `None` for a body with no other ice.
     """
     if origin_of(body) == ICY:
-        water = log_uniform(*tuning.ICY_WATER_MASS_FRACTION)
+        water = log_uniform(*_icy_water_range(body))
     else:
         water = _rocky_water(body)
     ice, shares = 0.0, None

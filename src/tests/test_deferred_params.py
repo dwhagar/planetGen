@@ -4,6 +4,7 @@ stage that takes it as its parameter, what `finish_run` keeps of it, and the fol
 The autouse `_run_queue_inline` fixture gives each test a queue of its own and runs the waiting units in this process."""
 
 import datetime
+import json
 
 import pytest
 
@@ -39,8 +40,11 @@ def _unit(args, report):
 
 
 def _cut(params):
-    CALLS.append(("cut", params["name"], params.get("since")))
-    return commands.Expansion([({"stage": params["name"], "n": n}, 1.0) for n in range(params["count"])], {"name": params["name"]})
+    CALLS.append(("cut", params["name"], params.get("since"), params.get("centers")))
+    detail = {"name": params["name"]}
+    if params.get("planned") == "random-start":
+        detail["centers"] = [[4, 5, 6], [7, 8, 9]]
+    return commands.Expansion([({"stage": params["name"], "n": n}, 1.0) for n in range(params["count"])], detail)
 
 
 @pytest.fixture(autouse=True)
@@ -102,6 +106,16 @@ def test_a_stage_that_has_not_opened_has_no_clock_to_take(conn):
     run_id = _run([_step("a"), _step("b", since=wrapper.opened_by("a"))])
     with pytest.raises(wrapper.Unresolved):
         wrapper.resolve_params(conn, run_id, {"since": wrapper.opened_by("b")})
+
+
+def test_scatter_settings_of_a_stage_that_has_not_opened_are_left_for_when_it_opens_when_not_strict(conn):
+    """PERF.203 step 5: finishing a run plans its stages from the record with `strict=False`; settings that only the scatter's own
+    stage works out (from the galaxy as the stages before it leave it) must not be worked out then."""
+    marker = {"deferred": "scatter-settings", "scope": "bright-stars", "stage": "mass"}
+    run_id = _run([_step("a")])
+    assert wrapper.resolve_params(conn, run_id, {"settings": marker}, strict=False) == {"settings": marker}
+    conn.hset(runrecord.run_key(run_id), f"deferred:{wrapper.scatter_settings_name(marker)}", json.dumps({"mass": {"limit": 8.0}}))
+    assert wrapper.resolve_params(conn, run_id, {"settings": marker}, strict=False) == {"settings": {"limit": 8.0}}
 
 
 def test_other_parameters_pass_through_unchanged(conn):
@@ -174,3 +188,37 @@ def test_the_galaxy_run_gives_every_stage_that_works_on_its_sectors_the_clock_of
     sincers = [f for f in followers if "since" in f.params()]
     assert {f.key for f in sincers} == {"link", "backfill", "settle", "run-blocks"}
     assert all(f.params()["since"] == marker for f in sincers)
+
+
+# --- a parameter that reads the plan of an earlier stage (PERF.214) --------------------------------------------------------------
+
+def _centers_of(name):
+    return next(call[3] for call in CALLS if call[1] == name)
+
+
+def test_a_stage_reads_what_the_stage_before_it_planned(conn):
+    _run([_step("start", planned="random-start"), _step("neighborhood", centers=wrapper.plan_detail("start", "centers"))])
+    assert _centers_of("neighborhood") == [[4, 5, 6], [7, 8, 9]]
+
+
+def test_a_plan_field_the_stage_did_not_plan_is_an_error(conn):
+    run_id = _run([_step("start"), _step("neighborhood")])
+    with pytest.raises(wrapper.Unresolved):
+        wrapper.resolve_params(conn, run_id, {"centers": wrapper.plan_detail("start", "centers")})
+    with pytest.raises(wrapper.Unresolved):
+        wrapper.resolve_params(conn, run_id, {"centers": wrapper.plan_detail("nowhere", "centers")})
+
+
+def test_a_run_carried_on_keeps_the_random_starts_the_stopped_run_picked(conn):
+    steps = [_step("start", planned="random-start", items=[]), _step("neighborhood", centers=wrapper.plan_detail("start", "centers"))]
+    run_id = _stopped(conn, steps, "start", 1)
+    found = finish_run.plan(conn, run_id, SEED, BUILD, DATABASE)
+    assert found.steps[0].params["planned"] == "" and found.steps[0].params["items"] == [4, 5, 6, 7, 8, 9]
+    assert found.steps[1].params["centers"] == [[4, 5, 6], [7, 8, 9]]
+
+
+def test_a_stage_stopped_before_it_planned_its_starts_plans_them_again(conn):
+    steps = [_step("first"), _step("start", planned="random-start", items=[])]
+    run_id = _stopped(conn, steps, "first", 0)
+    found = finish_run.plan(conn, run_id, SEED, BUILD, DATABASE)
+    assert found.steps[1].params["planned"] == "random-start"

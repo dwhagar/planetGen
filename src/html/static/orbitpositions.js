@@ -6,10 +6,11 @@
 // body `years` past the scene's epoch along its stored orbit and answers
 // {ref: [x, y, z]} in kilometres: planets and moons by their stored state
 // vectors moved with the universal-variable Kepler step (GEN.289), a pair's
-// second star on a circular orbit (phase plus 360 degrees a period), comets on
-// Kepler or Barker orbits, a close pair either side of the barycenter by the
-// other's mass fraction. tests/test_js_unit.py checks the two copies against
-// each other.
+// stars where the scene's tree of orbits puts them (GEN.311, MAP.255: each node
+// the Kepler orbit, eccentric when it is, of its slot-1 child about its slot-0
+// child, the two children either side of the node's centre by the other's
+// mass), comets on Kepler or Barker orbits. tests/test_js_unit.py checks the
+// two copies against each other.
 
 // Imported with this module's own `?v=` query, as systemmap.js explains.
 const VERSION_QUERY = new URL(import.meta.url).search;
@@ -66,12 +67,6 @@ export function solveBarker(parabolicMeanAnomaly) {
   const w = 1.5 * parabolicMeanAnomaly;
   const s = Math.abs(w) < 1e150 ? Math.sqrt(w * w + 1) : Math.abs(w);
   return cubeRoot(w + s) + cubeRoot(w - s);
-}
-
-function relativeCircularKm(orbit, years) {
-  const phase = orbit.phase_deg + wrappedTurnDeg(years, orbit.period_years);
-  const p = orbitalPosition(orbit.distance_km / AU_KM, orbit.inclination_deg, orbit.ascending_node_deg, ((phase % 360) + 360) % 360);
-  return [p[0] * AU_KM, p[1] * AU_KM, p[2] * AU_KM];
 }
 
 // The degrees an orbit of `period` turns in `elapsed`, whole orbits dropped first so a long step keeps its fraction
@@ -203,28 +198,43 @@ function relativeStateKm(orbit, years, sceneEpochUnix) {
   return universalStep(orbit.position_km, orbit.velocity_kms, mu, years * SECONDS_PER_YEAR + offset).position;
 }
 
+// The position on an elliptical orbit of perihelion distance `q` and eccentricity `e` at mean anomaly `meanAnomaly`
+// (radians), in the units of `q` (kepler.comet_orbital_state, elliptical).
+function ellipticalPosition(q, e, meanAnomaly, inclinationDeg, ascendingNodeDeg, argPeriapsisDeg) {
+  const a = q / (1 - e);
+  const ecc = solveEccentricAnomaly(meanAnomaly, e);
+  const trueAnomaly = 2 * Math.atan2(Math.sqrt(1 + e) * Math.sin(ecc / 2), Math.sqrt(1 - e) * Math.cos(ecc / 2));
+  const distance = a * (1 - e * Math.cos(ecc));
+  const latitude = deg(rad(argPeriapsisDeg) + trueAnomaly) % 360;
+  return orbitalPosition(distance, inclinationDeg, ascendingNodeDeg, latitude);
+}
+
 function cometRelativeKm(orbit, years) {
   const k = orbit.kepler;
   const q = k.perihelion_distance_km / AU_KM;
-  let trueAnomaly;
-  let distance;
+  let p;
   if (orbit.type === "elliptical") {
     const anomaly = rad(k.mean_anomaly_deg + wrappedTurnDeg(years, k.period_years));
-    const a = q / (1 - k.eccentricity);
-    const ecc = solveEccentricAnomaly(anomaly, k.eccentricity);
-    trueAnomaly = 2 * Math.atan2(
-      Math.sqrt(1 + k.eccentricity) * Math.sin(ecc / 2),
-      Math.sqrt(1 - k.eccentricity) * Math.cos(ecc / 2));
-    distance = a * (1 - k.eccentricity * Math.cos(ecc));
+    p = ellipticalPosition(q, k.eccentricity, anomaly, k.inclination_deg, k.ascending_node_deg, k.arg_periapsis_deg);
   } else {
     const mu = MU_AU3_YR2_PER_SOLAR_MASS * k.primary_mass_solar;
     const anomaly = k.parabolic_mean_anomaly + Math.sqrt(mu / (2 * q ** 3)) * years;
     const d = solveBarker(anomaly);
-    trueAnomaly = 2 * Math.atan(d);
-    distance = q * (1 + d * d);
+    const latitude = deg(rad(k.arg_periapsis_deg) + 2 * Math.atan(d)) % 360;
+    p = orbitalPosition(q * (1 + d * d), k.inclination_deg, k.ascending_node_deg, latitude);
   }
-  const latitude = deg(rad(k.arg_periapsis_deg) + trueAnomaly) % 360;
-  const p = orbitalPosition(distance, k.inclination_deg, k.ascending_node_deg, latitude);
+  return [p[0] * AU_KM, p[1] * AU_KM, p[2] * AU_KM];
+}
+
+// The slot-1 child of a tree node relative to its slot-0 child at `unix`, km, in the system's frame
+// (system_tree.node_relative_au). The mean anomaly runs from the node's own epoch, a whole number of orbits dropped first.
+function nodeRelativeKm(node, unix) {
+  const anomaly = node.period_years > 0
+    ? node.mean_anomaly_deg + wrappedTurnDeg(unix - node.epoch_unix, node.period_years * SECONDS_PER_YEAR)
+    : node.mean_anomaly_deg;
+  const periapsis = (node.separation_km / AU_KM) * (1 - node.eccentricity);
+  const p = ellipticalPosition(periapsis, node.eccentricity, rad(((anomaly % 360) + 360) % 360),
+    node.inclination_deg, node.ascending_node_deg, node.arg_periapsis_deg);
   return [p[0] * AU_KM, p[1] * AU_KM, p[2] * AU_KM];
 }
 
@@ -235,26 +245,128 @@ export const COMET_PATH_LIMIT_AU = 2000;
 
 const add = (a, b) => [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
 
+// The scene's tree of orbits as the walk needs it, built once per scene: each node's children by slot (a member or a node),
+// the one root, and the ref of the member at the origin (system_tree.member_offsets_au).
+const TREES = new WeakMap();
+
+function treeLayout(tree) {
+  let layout = TREES.get(tree);
+  if (layout) return layout;
+  const children = new Map();
+  const slotsOf = (nodeNo) => {
+    if (!children.has(nodeNo)) children.set(nodeNo, new Map());
+    return children.get(nodeNo);
+  };
+  for (const member of tree.members) slotsOf(member.parent_node_no).set(member.slot, { member });
+  for (const node of tree.nodes) {
+    if (node.parent_node_no != null) slotsOf(node.parent_node_no).set(node.slot, { node });
+  }
+  const roots = tree.nodes.filter((node) => node.parent_node_no == null);
+  if (tree.nodes.length && roots.length !== 1) throw new Error(`a tree has exactly one root node, found ${roots.length}`);
+  layout = { children, root: roots[0] || null };
+  TREES.set(tree, layout);
+  return layout;
+}
+
+// The node centres and the offset of each star from its node's centre, `years` after the scene's epoch, km, in the
+// tree's own frame (the root's centre of mass at the origin): {centres: Map(node_no -> [x, y, z]), offsets: {ref: [x, y, z]},
+// shares: Map(node_no -> {low, high})}. The tree's nodes hold their phase at their own epoch; the scene's epoch is the time
+// zero of `years`, the first node's when the scene has none (body_positions._star_positions_km,
+// system_tree.member_offsets_au). A group node's members sit at the node's centre.
+function treeAt(scene, years) {
+  const tree = scene.tree;
+  if (!tree) throw new Error("the scene carries no tree of orbits for its stars");
+  const { children, root } = treeLayout(tree);
+  const centres = new Map();
+  const offsets = {};
+  const shares = new Map();
+  if (!root) {
+    for (const member of tree.members) offsets[member.ref] = [0, 0, 0];
+    return { centres: centres, offsets: offsets, shares: shares };
+  }
+  const start = scene.epoch_unix == null ? tree.nodes[0].epoch_unix : scene.epoch_unix;
+  const unix = start + years * SECONDS_PER_YEAR;
+  centres.set(root.node_no, [0, 0, 0]);
+  const pending = [root];
+  while (pending.length) {
+    const node = pending.pop();
+    const slots = children.get(node.node_no) || new Map();
+    if (node.kind === "group") {
+      for (const child of slots.values()) {
+        if (child.node) {
+          centres.set(child.node.node_no, centres.get(node.node_no));
+          pending.push(child.node);
+        } else {
+          offsets[child.member.ref] = [0, 0, 0];
+        }
+      }
+      continue;
+    }
+    const low = slots.get(0);
+    const high = slots.get(1);
+    if (!low || !high) throw new Error(`node ${node.node_no} needs a child in slot 0 and in slot 1`);
+    const massLow = (low.member || low.node).mass_solar;
+    const massHigh = (high.member || high.node).mass_solar;
+    const relative = nodeRelativeKm(node, unix);
+    const total = massLow + massHigh;
+    shares.set(node.node_no, { low: -massHigh / total, high: massLow / total, relative: relative });
+    for (const [child, share] of [[low, -massHigh / total], [high, massLow / total]]) {
+      const offset = relative.map((c) => c * share);
+      if (child.node) {
+        centres.set(child.node.node_no, add(centres.get(node.node_no), offset));
+        pending.push(child.node);
+      } else {
+        offsets[child.member.ref] = offset;
+      }
+    }
+  }
+  const missing = tree.members.filter((member) => !offsets[member.ref]).map((member) => member.member_no);
+  if (missing.length) throw new Error(`members ${missing} hang from no node of the tree`);
+  return { centres: centres, offsets: offsets, shares: shares };
+}
+
+// The ref a tree node's centre of mass goes by in relativeAt()'s answer (it is a point, not a body).
+export const nodeRef = (nodeNo) => `node:${nodeNo}`;
+
+// Every star's position `years` after the scene's epoch, km, in the scene's frame: {ref: [x, y, z]}, the first star of a
+// wide pair at the origin (body_positions._star_positions_km).
+function starPositionsKm(scene, years) {
+  const { centres, offsets } = treeAt(scene, years);
+  const parents = new Map(scene.tree.members.map((member) => [member.ref, member.parent_node_no]));
+  const out = {};
+  for (const ref of Object.keys(offsets)) {
+    const parent = parents.get(ref);
+    out[ref] = centres.has(parent) ? add(centres.get(parent), offsets[ref]) : offsets[ref];
+  }
+  const shift = out[scene.tree.origin] || [0, 0, 0];
+  for (const ref of Object.keys(out)) out[ref] = out[ref].map((c, axis) => c - shift[axis]);
+  return out;
+}
+
 // Where every body is, `years` after the scene's epoch, as a position
 // relative to what it goes round: {ref: {around, rel: [x, y, z] km}}.
-// `around` is "barycenter" or another body's ref; a close pair's stars sit
-// either side of the barycenter. Belts have no single point and are left out.
+// `around` is "barycenter" or another body's ref. The stars hang in the tree
+// of orbits (GEN.311): each is placed relative to the centre of mass of the
+// node it hangs from, and each node's centre relative to its parent node's,
+// the root's at the barycenter. A node's centre is a point, not a body: its
+// entry is `virtual` and its ref is `nodeRef(node_no)`. A group node's centre
+// is its parent's. Belts have no single point and are left out.
 export function relativeAt(scene, years) {
   const out = {};
-  for (const star of scene.stars) {
-    if (!star.orbit) out[star.ref] = { around: "barycenter", rel: [0, 0, 0] };
-  }
-  for (const star of scene.stars) {
-    if (!star.orbit) continue;
-    const relative = relativeCircularKm(star.orbit, years);
-    if (star.orbit.around === "barycenter") {
-      const f = star.orbit.secondary_mass_fraction;
-      out[star.ref] = { around: "barycenter", rel: relative.map((c) => c * (1 - f)) };
-      for (const other of scene.stars) {
-        if (!other.orbit) out[other.ref] = { around: "barycenter", rel: relative.map((c) => -c * f) };
-      }
-    } else {
-      out[star.ref] = { around: star.orbit.around, rel: relative };
+  if (scene.stars.length) {
+    const { centres, offsets } = treeAt(scene, years);
+    const parentOf = new Map(scene.tree.nodes.map((node) => [node.node_no, node.parent_node_no]));
+    for (const [nodeNo, centre] of centres) {
+      const parent = parentOf.get(nodeNo);
+      const parentCentre = parent == null ? [0, 0, 0] : centres.get(parent);
+      out[nodeRef(nodeNo)] = {
+        around: parent == null ? "barycenter" : nodeRef(parent), rel: centre.map((c, axis) => c - parentCentre[axis]), virtual: true,
+      };
+    }
+    const memberNode = new Map(scene.tree.members.map((member) => [member.ref, member.parent_node_no]));
+    for (const star of scene.stars) {
+      const node = memberNode.get(star.ref);
+      out[star.ref] = { around: centres.has(node) ? nodeRef(node) : "barycenter", rel: offsets[star.ref] };
     }
   }
   for (const planet of scene.planets) {
@@ -272,17 +384,63 @@ export function relativeAt(scene, years) {
 }
 
 // {ref: [x, y, z]} km, `years` after the scene's epoch (negative: before),
-// in the scene's frame.
+// in the scene's frame: the stars where the tree puts them, the first star of
+// a wide pair at the origin, every other body at the sum of its offsets up
+// what it goes round. Tree node centres are not bodies and are left out.
 export function positionsAt(scene, years) {
   const relative = relativeAt(scene, years);
-  const out = {};
+  const out = scene.stars.length ? starPositionsKm(scene, years) : {};
   const resolve = (ref) => {
     if (out[ref]) return out[ref];
     const { around, rel } = relative[ref];
     out[ref] = around === "barycenter" ? rel : add(resolve(around), rel);
     return out[ref];
   };
-  for (const ref of Object.keys(relative)) resolve(ref);
+  for (const ref of Object.keys(relative)) {
+    if (!relative[ref].virtual) resolve(ref);
+  }
+  return out;
+}
+
+// The paths the nodes of the scene's tree trace in their own frames (MAP.213), for a view to draw: one per child of each
+// node, {ref, around, points}, the child's ref (a star's, or `nodeRef` of a sub-pair's centre), the node centre it goes round
+// (`nodeRef`) and its path about that centre in km, `samples` points from periapsis, the first repeated at the end. A node's
+// child on the slot-0 side sits opposite the slot-1 child, each at the other's share of the separation. A group node has no
+// orbit and no paths.
+export function nodePaths(scene, samples = 128) {
+  const tree = scene.tree;
+  const { children } = treeLayout(tree);
+  const out = [];
+  for (const node of tree.nodes) {
+    if (node.kind === "group") continue;
+    const slots = children.get(node.node_no);
+    const low = slots.get(0);
+    const high = slots.get(1);
+    const massLow = (low.member || low.node).mass_solar;
+    const massHigh = (high.member || high.node).mass_solar;
+    const total = massLow + massHigh;
+    const path = nodeOrbitPath(node, samples);
+    for (const [child, share] of [[low, -massHigh / total], [high, massLow / total]]) {
+      out.push({
+        ref: child.member ? child.member.ref : nodeRef(child.node.node_no), around: nodeRef(node.node_no),
+        points: path.map((point) => point.map((c) => c * share)),
+      });
+    }
+  }
+  return out;
+}
+
+// The points of one tree node's relative orbit, km: the slot-1 child about the slot-0 child (nodeRelativeKm over a whole
+// turn), `samples` points from periapsis, the first repeated at the end.
+function nodeOrbitPath(node, samples) {
+  const e = node.eccentricity || 0;
+  const semiLatus = (node.separation_km / AU_KM) * (1 - e * e);
+  const out = [];
+  for (let n = 0; n <= samples; n += 1) {
+    const nu = (2 * Math.PI * n) / samples;
+    const p = orbitalPosition(semiLatus / (1 + e * Math.cos(nu)), node.inclination_deg, node.ascending_node_deg, deg(rad(node.arg_periapsis_deg) + nu));
+    out.push([p[0] * AU_KM, p[1] * AU_KM, p[2] * AU_KM]);
+  }
   return out;
 }
 

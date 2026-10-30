@@ -34,6 +34,7 @@ from planetgen.web.lib.fmt import (
 )
 from planetgen.web.lib.datatable import Column, Facet, Result, Table, read_from_start
 from planetgen.web.maps.starmap import HYPERVELOCITY_EXPECTED_STAR
+from planetgen.web import system_orbits_view
 from planetgen.web.scatter_members_view import members_view
 from planetgen.web.maps.phenomenonmap import render_phenomenon_map_panel
 from planetgen.web.maps.phenomenonrender import render_nebula_view_panel, render_phenomenon_view_panel, view_kind
@@ -334,6 +335,7 @@ def system(system_id):
         glance=glance.system_rows(detail, facilities, habitability_symbol_row),
         tree=tree,
         tree_marks=tree_marks,
+        orbits=system_orbits_view.orbit_rows(detail),
         territory=_territory(db, system_id),
         admin=admin,
         facilities=system_facilities.facility_rows(facilities),
@@ -385,8 +387,8 @@ def _title_case(value):
 
 def _phenomena_load(state, limit, offset, want_facets, after=None):
     """The Phenomena table's page of rows (`lib/datatable.Result`); `next` is the last scattered row's id when the
-    page ends inside the scattered tail, which every page after it is read from by key (PERF.75), and for the name
-    sort the `<type>:<id>` of the last built row (PERF.205)."""
+    page ends inside the scattered tail, which every page after it is read from by key (PERF.75), and otherwise the
+    `<type>:<id>` of the last built row, whatever the sort (PERF.205, PERF.211)."""
     filters = {"types": state.filters["type"], "descriptors": state.filters["descriptor"]}
     envelope, note = read_from_start(
         lambda start: apiclient.get_phenomena(
@@ -417,7 +419,7 @@ def _phenomena_load(state, limit, offset, want_facets, after=None):
     following = None
     if last and last["scattered"]:
         following = last["scatter_id"]
-    elif last and state.sort in (None, "", "name"):     # by name the built rows page by key too (PERF.205)
+    elif last:      # the built rows page by key too, in the order of any sort (PERF.205, PERF.211)
         following = f"{last['type']}:{last['id']}"
     return Result(rows, envelope["total"], facets, envelope.get("total_capped", False), following, note)
 

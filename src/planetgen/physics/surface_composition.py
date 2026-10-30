@@ -103,26 +103,29 @@ VACUUM_ICE_PA = saturation.pressure_pa("H2O", hydrosphere.VACUUM_ICE_MAX_K)
 """float: The vapour pressure at which an ice survives in vacuum for billions of years: water's at the 220 K that
 `hydrosphere` already uses, so every ice shares one criterion."""
 
+# GEN.474 replaces the five stand-in rows below.
+GROUND_TYPES_DERIVED = "ground types derived from the bulk composition and the melting of the mantle"
+
 # The assemblages of Hu et al. 2012 Table 2, on rows of the materials table. Hu's Mg-smectite has no row (kaolinite, the clay row
 # with a measured albedo, stands in), its pyrite none (troilite and kamacite, the sulfide and the metal, stand in), its glass is
 # the quenched melt (`basalt powder`) and its augite `diopside`; the others are the minerals Hu names.
 GROUND_TYPES = pt.REGISTRY.register(pt.Table(
     "surface-ground-types", 1,
     [
-        pt.Row("ultramafic", (pt.ANY_CLASS,), 1.0, SOURCES["hu2012"], fractions={"olivine": 0.60, "enstatite": 0.40},
+        pt.Row("ultramafic", (pt.ANY_CLASS,), 1.0, SOURCES["hu2012"], state=pt.STAND_IN, replacement=GROUND_TYPES_DERIVED, fractions={"olivine": 0.60, "enstatite": 0.40},
                notes="primary crust after mantle overturn"),
-        pt.Row("anorthositic", (pt.ANY_CLASS,), 1.0, SOURCES["hu2012"],
+        pt.Row("anorthositic", (pt.ANY_CLASS,), 1.0, SOURCES["hu2012"], state=pt.STAND_IN, replacement=GROUND_TYPES_DERIVED,
                fractions={"plagioclase": 0.97, "diopside": 0.03}, notes="primary flotation crust, no overturn"),
-        pt.Row("basaltic", (pt.ANY_CLASS,), 1.0, SOURCES["hu2012"],
+        pt.Row("basaltic", (pt.ANY_CLASS,), 1.0, SOURCES["hu2012"], state=pt.STAND_IN, replacement=GROUND_TYPES_DERIVED,
                fractions={"plagioclase": 0.76, "diopside": 0.08, "enstatite": 0.06, "basalt_powder": 0.05, "olivine": 0.01},
                notes="secondary crust of decompression melting; Hu's glass is `basalt powder`"),
-        pt.Row("felsic", (pt.ANY_CLASS,), 1.0, SOURCES["hu2012"],
+        pt.Row("felsic", (pt.ANY_CLASS,), 1.0, SOURCES["hu2012"], state=pt.STAND_IN, replacement=GROUND_TYPES_DERIVED,
                fractions={"orthoclase": 0.40, "quartz": 0.35, "plagioclase": 0.20, "biotite": 0.05},
                notes="granitoid tertiary crust; Hu's K-feldspar is `orthoclase`"),
         pt.Row("clay", (pt.ANY_CLASS,), 1.0, SOURCES["hu2012"], state=pt.PARTLY_VERIFIED,
                limit="Hu's Mg-smectite has no row; kaolinite stands in",
                fractions={"kaolinite": 0.50, "serpentine": 0.50}, notes="aqueous alteration of basalt"),
-        pt.Row("oxidised", (pt.ANY_CLASS,), 1.0, SOURCES["hu2012"],
+        pt.Row("oxidised", (pt.ANY_CLASS,), 1.0, SOURCES["hu2012"], state=pt.STAND_IN, replacement=GROUND_TYPES_DERIVED,
                fractions={"hematite_fine": 0.50, "plagioclase": 0.38, "diopside": 0.04, "enstatite": 0.03,
                           "basalt_powder": 0.03, "olivine": 0.02}, notes="Hu's 50/50 nanophase hematite and basalt"),
         pt.Row("metal", (pt.ANY_CLASS,), 1.0, SOURCES["hu2012"], state=pt.PARTLY_VERIFIED,

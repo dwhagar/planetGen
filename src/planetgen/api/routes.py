@@ -90,6 +90,7 @@ from planetgen.db.query import (
     nebula_shape as query_nebula_shape,
     nebula_surroundings as query_nebula_surroundings,
     search as run_search,
+    parse_star_count,
     sector_detail as query_sector_detail,
     system_detail as query_system_detail,
 )
@@ -558,13 +559,12 @@ MAX_START_LENGTH = 80
 def systems():
     """
     The systems, by name, paginated; `star_type` and `sector_id` filter them.
-    The Systems tables (UX.41) also take `sort` (`name`, `sector`, `octant`
-    or `binary`) with `order=asc|desc`, the filters `binary=yes|no`,
+    The Systems tables (UX.41) also take `sort` (`name`, `sector` or `octant`) with `order=asc|desc`, the filters `binary=yes|no`,
     `placement=sector|standalone` and `octant` (repeatable), and `facets=1`
     for the filter menus' option counts (`facets`: `placement`, `binary`,
     `octant`). `total` counts the systems that pass the filters. `after=<system ID>` starts the page after that system in the
-    sort instead of skipping `offset` rows (PERF.75, PERF.206: page 40,000 costs what page 1 does, in the name, sector,
-    octant and binary sorts; a list filtered by star type or sector reads by `offset`). `from=<text>` is the
+    sort instead of skipping `offset` rows (PERF.75, PERF.206: page 40,000 costs what page 1 does, in the name, sector
+    and octant sorts; a list filtered by star type or sector reads by `offset`). `from=<text>` is the
     jump-by-value box (PERF.75): with the `name` sort the list begins at the first name from that text on (a letter, or
     the start of a name), with the `sector` sort at the first sector from it on, in the sort's direction; `total`
     counts the systems from there and `offset` and `after` count from there too. The other sorts ignore it.
@@ -1474,9 +1474,9 @@ def phenomena():
     `total` counts the rows that pass the filters (`total_capped`: it stopped at 10,000, PERF.69).
     `after=<scatter id>` (the `scatter_id` of a scattered row) starts the page after that row in the tail of
     unbuilt scattered phenomena instead of skipping `offset` rows (PERF.75). `after=<type>:<ID>` (the `type` and `id`
-    of a built row, such as `nebula:0008000000-3000000-000`) starts it after that row in the name order, then the
-    tail (PERF.205: any page costs the same, `offset` and `sort` are ignored with it; the first page by name needs no
-    `after` and costs the same too). `from=<scatter id>` (PERF.135, the
+    of a built row, such as `nebula:0008000000-3000000-000`) starts it after that row in the order of `sort`, then
+    the tail (PERF.205, PERF.211: any page costs the same, `offset` is ignored with it; the first page of any sort needs
+    no `after` and costs the same too, while a page by `offset` past the first sorts the whole set of built rows). `from=<scatter id>` (PERF.135, the
     jump-by-value box) lists that tail from the row with that id on (the built phenomena come before it and are not
     listed); a value that is not a whole number from 1 up is a 400, and one past the last scattered row answers the last
     page of the tail, `total` its length and `past_end` true.
@@ -1775,6 +1775,10 @@ def search():
     names; `none` for no panel at all, which still answers the facets and name suggestions) runs just those
     panels, the rest answering `null`; the Search page fetches each panel on its own so one slow panel
     times out alone (UX.97).
+
+    UX.239: `stars` keeps the systems with that many stars: a count (`stars=3`, exactly three), a count and a plus (`stars=3+`, three or more)
+    or a name (`single`, `binary`, `trinary`, `quaternary`: exactly that many; `quintenary`: five or more). The Systems panel runs for it with
+    or without a name; each row carries `star_count`. Anything else is a 400.
     """
     args = request.args
     texts = {
@@ -1803,7 +1807,11 @@ def search():
     if args.get("panels"):
         only = {panel for panel in args["panels"].split(",") if panel in SEARCH_RESULT_PANELS}  # "none": no panel
     sorts = {entity: args.get(f"{entity}_sort") for entity in ("planet", "moon") if args.get(f"{entity}_sort")}
-    return jsonify(run_search(get_db(), texts, tags, sizes=sizes, limit=limit, offsets=offsets, only=only, sorts=sorts))
+    try:
+        stars = parse_star_count(args.get("stars"))
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
+    return jsonify(run_search(get_db(), texts, tags, sizes=sizes, limit=limit, offsets=offsets, only=only, sorts=sorts, stars=stars))
 
 
 # ---------------------------------------------------------------------

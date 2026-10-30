@@ -249,6 +249,7 @@ def _carbon_oxides(period_class, interstellar):
         co, co2 = total * share, total * (1.0 - share)
         if co_bounds.lo_percent <= co <= co_bounds.hi_percent and co2_bounds.lo_percent <= co2 <= co2_bounds.hi_percent:
             return co, co2
+        draw.redrawn("comet.composition")
     raise PopulationError(f"no CO and CO2 inside the observed bounds in {MAX_ATTEMPTS} draws for {period_class}")
 
 

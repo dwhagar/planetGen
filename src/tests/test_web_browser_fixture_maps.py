@@ -1045,24 +1045,24 @@ def _window_size(page):
 
 @pytest.mark.names_hidden
 def test_galaxy_map_infobox_names_the_region_and_flies_to_it(page, map_site):
-    """MAP.315: a pick inside a charted region says "Region: <name> (in <family>)", each name a button that flies the
-    camera to that block (the region's 9-block, then its 81-block family), and a pick in no charted region has no such
-    line."""
+    """MAP.315, MAP.349: a pick inside a charted region says "Region: <name>" and "In: <family>", each line with its own Go to that flies
+    the camera to that block (the region's 9-block, then its 81-block family), and a pick in no charted region has no such lines."""
     _open_galaxy(page, map_site, OPEN_PRIME)
     info = page.locator("#galaxymap3d-info")
     page.wait_for_function("() => document.querySelector('#galaxymap3d-info h3')")
     assert info.locator("h3").inner_text() == "Fixture Prime"
     line = info.locator(".map-info-region")
-    _expand_card(page)    # the region line is behind Expand
+    _expand_card(page)    # the region lines are behind Expand
     line.wait_for(state="visible", timeout=20000)
-    assert line.inner_text() == "Region: Fixture Beez Region (in Fixture Reach)"
+    places = info.locator(".map-info-region .map-info-place")
+    assert [t.replace("\nGo to", " Go to") for t in places.all_inner_texts()] == ["Region: Fixture Beez Region Go to", "In: Fixture Reach Go to"], places.all_inner_texts()
     # The family first: its 81-block, then the region itself from the same card, framed by its extent (MAP.319).
-    info.locator(".map-info-region-link", has_text="Fixture Reach").click()
+    places.filter(has_text="Fixture Reach").locator(".map-info-go").click()
     _settle(page)
     assert _window_size(page) == 81, _query(page)
     _open_galaxy(page, map_site, OPEN_PRIME)
     _expand_card(page)
-    info.locator(".map-info-region-link", has_text="Fixture Beez Region").click()
+    info.locator(".map-info-place", has_text="Fixture Beez Region").locator(".map-info-go").click()
     page.wait_for_function("() => !document.querySelector('#galaxymap3d-canvas').galaxyMoving()", timeout=30000)
     _settle(page)
     from planetgen.galaxy.spherical import sector_position_pc
@@ -3244,7 +3244,7 @@ def test_galaxy_map_marks_gas_giants_and_a_system_with_two_reasons_once_and_list
     page.mouse.move(*spot)
     page.mouse.move(spot[0] + 1, spot[1])
     page.mouse.click(*spot)
-    assert page.locator("#galaxymap3d-info h3").inner_text() == "Fixture Eden"
+    page.wait_for_function("() => (document.querySelector('#galaxymap3d-info h3') || {}).textContent === 'Fixture Eden'", timeout=10000)
     _expand_card(page)    # all the reasons are behind Expand
     info = page.locator("#galaxymap3d-info").inner_text()
     assert "2 habitable worlds, best Green" in info and "1 gas giant" in info, info
