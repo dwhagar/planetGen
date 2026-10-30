@@ -189,6 +189,18 @@ the anchored relation of GEN.34), then the interior (`draw_interior`) whose whol
 Stand-ins, each named in `giant_draw`: the envelope metallicity range, the I and T heavy-element shares, the water share of the
 heavy elements beyond the snow line and the ammonia and methane proportions to it, the single Bond albedo (Li et al. 2018's 0.503),
 the own heat flux (the cooling law through Jupiter and Neptune of `rogue_surface.giant_internal_flux_w_m2`, `giant_draw.own_flux_w_m2`, GEN.816: L ~ M^1.65 below a Jupiter mass, t^-1.3 in age; it has no helium-rain share until GEN.810, so a Saturn-like giant comes out near 115 K against 134 K) and the one-bar over effective temperature (1.33, from Jupiter's 166 K over
-125 K). The radius is set before the planet's final orbit is validated, so a planet moved afterwards keeps the starlight it was drawn
-with. A giant moon (the host's distance is not carried) takes the anchored relation and a 130 K one-bar temperature. The interior
+125 K). A giant moon (the host's distance is not carried) takes the anchored relation and a 130 K one-bar temperature. The interior
 is stored (DB.89, `giant_interior.body_values`); the old stand-in envelope and core shares (`bulk_draw.draw_giant`) are removed.
+
+**Settled once the age and the orbit are final (GEN.961, GEN.976).** The draw above reads the star's age and the starlight of the circle at the
+semi-major axis, and the star's age rises when the planets are in (`Star.adjust_age_for_planets`; the eccentricity is drawn after the
+radius, which it needs). Left alone, 28 percent of the table-sized giants of 138 measured had a stored radius over 1 percent too large and
+the worst 9.3 percent. After the age is final and the placed bodies are trimmed, the "giant settle pass" of `StarSystem`
+(`planets.settle_giant`, `giant_draw.settle`) takes the table radius again at the final age and the mean light of the orbit
+(`orbit_elements.flux_distance_au`, no draw), and a giant that it moves by more than `SETTLE_TOLERANCE` (0.1 percent) has its volume,
+density, gravity, interior (layers, bulk composition and text, one-bar temperature at the mean light) and air made again. The star's ratios,
+the envelope's Z and the heavy-element mass are the draws it keeps (`DrawnGiant`); the interior and the air are drawn from streams of the giant's own
+(`giant_draw.settle_stream`, keyed by its mass, distance, star and the age and radius it settles from), so the run's stream does not move and
+a system whose giants the age did not move is bit-identical. Giants the tables do not size (ice giants, giants under 17 Earth masses, a
+given radius, a moon) are not touched. Not settled, and filed: the giant's own eccentricity (circularised for the provisional age), its spin, the
+heat of its moons' tide (their parent's radius), and the other age-dependent stages of rocky planets (`reports/gen961-stale-age-audit-2026-10-30.md`).

@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 457 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 458 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -39,13 +39,13 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T1 | 56 | 0 | 3 | 0 | 0 | 59 |
 | T2 | 77 | 6 | 0 | 1 | 0 | 84 |
 | T3 | 56 | 9 | 3 | 10 | 0 | 78 |
-| T4 | 22 | 0 | 0 | 3 | 4 | 29 |
+| T4 | 23 | 0 | 0 | 3 | 4 | 30 |
 | T5 | 25 | 6 | 1 | 0 | 0 | 32 |
 | T6 | 40 | 15 | 8 | 30 | 0 | 93 |
 | T7 | 18 | 6 | 1 | 7 | 0 | 32 |
 | T8 | 0 | 0 | 0 | 1 | 2 | 3 |
 | T9 | 1 | 0 | 2 | 25 | 19 | 47 |
-| All | 295 | 42 | 18 | 77 | 25 | 457 |
+| All | 296 | 42 | 18 | 77 | 25 | 458 |
 
 ## How the labels were given
 
@@ -308,7 +308,8 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | OE9 | P | T3 | L0 | orbit_elements.GIANT_TIDAL_Q, GIANT_TIDAL_LOVE_NUMBER_K2 | 1e5 and 0.3, fixed | the tide of a gas giant | a Q and k2 from the body's temperature and frequency | Jupiter: k2 about 0.38 and Q from 3.5e4 to about 1e6 from the Galilean moons' orbits (recalled; GEN.731 gives every body its own) | - | - |
 | OE10 | T | T5 | L0 | orbit_elements.circularisation_time_yr | the rows of 6.13 | every planet and captured moon (a regular moon's forced eccentricity is kept) | a Q and k2 from the body's temperature and frequency | the circularisation time of a synchronously rotating body, tau = (2/21)(Q/k2)(m/M)(a/R)^5/n (Goldreich and Soter 1966), with the body's own Q and k2 (`tidal_heating.response`, GEN.731: rows TH2, TH3, TH4 and the giant's) | - | - |
 | OE11 | T | T6 | L0 | insolation.companion_swing | in phase, fixed | planets of a binary | a time series of the sum | the swing of the planet's own orbit and the companion's are taken in phase, the largest the pair can give; their periods differ and the extremes meet only now and then | - | - |
-| OE12 | T | T6 | L0 | giant_draw._radius_km | 300 times Earth's light and e 0.3, fixed | table-sized giants | a settle-giants pass after the eccentricity (GEN.961) | the table radius of a giant is read at the light of its semi-major axis, not at the mean light of its orbit (`orbit_elements.mean_flux_factor`), because the eccentricity is drawn after the radius; measured against the mean light the radius moves under 1% unless the giant gets more than 300 times Earth's light and an eccentricity over 0.3 together (a 300 Earth-mass giant at 300 times Earth's light and e 0.3: 1.3%; the 790 systems of reports/gen842-eccentricity-first-2026-10-29.md put the brightest giant at 0.7 times Earth's light), guarded by test_giant_light_and_eccentricity (GEN.977) | - | - |
+| OE12 | T | T6 | L0 | giant_draw.draw_giant | 300 times Earth's light and e 0.3, fixed | the provisional radius of a table-sized giant | the settle pass (GEN.961) | the table radius of a giant is read at the light of its semi-major axis, not at the mean light of its orbit (`orbit_elements.mean_flux_factor`), because the eccentricity is drawn after the radius; measured against the mean light the radius moves under 1% unless the giant gets more than 300 times Earth's light and an eccentricity over 0.3 together (a 300 Earth-mass giant at 300 times Earth's light and e 0.3: 1.3%; the 790 systems of reports/gen842-eccentricity-first-2026-10-29.md put the brightest giant at 0.7 times Earth's light), guarded by test_giant_light_and_eccentricity (GEN.977); since GEN.961 the settle pass takes the radius again at the mean light (row OE13), so the bound limits only the provisional radius | - | - |
+| OE13 | P | T4 | L0 | giant_draw.SETTLE_TOLERANCE | 0.001, fixed | table-sized giants | none needed | design: the table radius is good to a few percent, and a giant that the final age and the mean light move by less than a tenth of a percent keeps its radius and interior, so that a system whose giants the star's age did not move is unchanged (GEN.961); measured on 138 table-sized giants, 28 percent were off by more than 1 percent before the settle | - | - |
 
 ## 6.13 Stand-ins of the tidal heating
 
