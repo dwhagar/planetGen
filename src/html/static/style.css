@@ -2213,6 +2213,15 @@ a.btn.btn-secondary.btn-active:visited {
   color: var(--text-muted);
 }
 
+/* UX.237: the class of the life that lives on a body, after its four scores. */
+.hab-life-class {
+  font-size: 0.75em;
+  line-height: 1;
+  padding: 0.1em 0.35em;
+  border: 1px solid currentColor;
+  border-radius: 0.6em;
+}
+
 /* UX.181: a symbol, life score or chip that opens its section of the habitability page. The link adds nothing to
    the shape's own look (no underline, no link colour); a hover or keyboard focus rings it. */
 a.help-link,
@@ -5615,7 +5624,8 @@ p.hint a {
   border-bottom: 1px solid var(--border);
 }
 
-.sheet-group > summary h3 {
+.sheet-group > summary h3,
+.sheet-group > summary h4 {
   display: inline;
   font-size: 1rem;
   margin: 0;
@@ -5623,6 +5633,19 @@ p.hint a {
 
 .sheet-table {
   margin: 0.25rem 0 0.5rem;
+}
+
+/* UX.237: the four lines of what a life class drinks, eats, breathes and gives off. */
+.life-class-lines {
+  margin: 0.5rem 0;
+}
+
+.life-class-lines dt {
+  font-weight: 600;
+}
+
+.life-class-lines dd {
+  margin: 0 0 0.4rem;
 }
 
 .sheet-missing {
