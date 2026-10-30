@@ -356,6 +356,7 @@ def search():
         state=state,
         name_fields=searchpage.NAME_FIELDS,
         size_entities=searchpage.SIZE_ENTITIES,
+        star_choices=searchpage.STAR_COUNT_CHOICES,
         autocomplete=data["autocomplete"],
         tag_groups=searchpage.tag_groups(state, data["facets"]),
         chips=searchpage.active_filters(state, data["facet_labels"]),
