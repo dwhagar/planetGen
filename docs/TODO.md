@@ -20271,6 +20271,20 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   5:07 PM EDT 2026-10-23.
   Prerequisites: none. Related: OPS.56, OPS.1.
 
+- [ ] **OPS.79 Web app stops booting when a downloaded dataset is missing: update.sh took 52 minutes in stage 3 with the new code already serving and every page returned 500 (DataMissing mamajek_dwarf_sequence) (bug)**
+  Boss live update.sh on hal, 2026-10-30 (as the lane reported): stage 1
+  pulled the new code but the Mamajek dwarf sequence was only downloaded
+  at the end of stage 3, 52 minutes later; in between mod_wsgi reloaded
+  wsgi.py on the new code and create_app() died at boot with DataMissing
+  from classref.catalog() in web.init_app, so every page was a 500. Fix:
+  PR #4258 (classref.preload() builds the catalog at start when it can,
+  logs a warning on DataMissing and lets the site boot; the first
+  /classes request after the download builds it). Done: PR #4258 merged.
+  Lock-free. A daemon crash (Truncated or oversized response headers,
+  7:11 PM EDT) is still being diagnosed with Boss and may become a
+  second item.
+  Prerequisites: none.
+
 ## DOC: Documentation
 
 - [ ] **DOC.6 A static help section in the web interface: page template, index, per-page help links and a coverage test**
