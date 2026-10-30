@@ -14146,6 +14146,21 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   8.1.
   Prerequisites: GEN.992. Related: GEN.992, PERF.209.
 
+- [ ] **PERF.218 run_plan._draw_sector_bands recomputes the bright-star band table for every capped cell: memoise it per (shell, luminosity floor)**
+  Found by Aux 3 (relayed 11:57 AM EDT 2026-10-30 as the lane reported,
+  while fixing TEST.475): the slow part of the first sector fill since
+  the star epoch is not the sample galaxy but
+  `run_plan._draw_sector_bands` calling
+  `star_population.bright_band_fraction` and
+  `post_main_sequence.bright_pieces` for each capped cell, minutes of
+  band-table work per first sector fill. Do: memoise the band table per
+  (shell, luminosity floor), keyed so a changed input invalidates it.
+  Done: a first sector fill on a capped cell no longer redoes the band
+  table (a timing test with a stated ceiling), and the generated output
+  is identical (the golden digest does not move). Lock-free. Owner: Bug
+  1 (star lane) or Core 3.
+  Prerequisites: none. Related: PERF.188, TEST.475.
+
 ## DB: Database and schema
 
 DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
@@ -18484,19 +18499,6 @@ clears each one.
   TEST.417.
   Prerequisites: none. Related: TEST.463, TEST.468, TEST.469, TEST.470.
 
-- [ ] **TEST.475 tests/test_web_nearby.py: four of eight tests error in fixture setup at 900 s because the client fixture generates two sectors per test (bug)**
-  Found by Aux 3 (relayed 9:46 AM EDT 2026-10-30 as the lane reported,
-  while landing PERF.217): the nav section, unknown place 404, crowded
-  sphere and page walk tests of test_web_nearby.py error in fixture
-  setup with the 900 s timeout on a loaded lane machine, not on an
-  assertion; the function-scoped client fixture generates two sectors
-  per test (over 15 minutes there). Not checked on main. Do: build the
-  sample galaxy once per module (module-scoped fixture, read only in the
-  tests that do not write), keeping the tests independent; run the file
-  once on a fast machine. Done: all 8 tests pass in a few minutes on a
-  lane machine. Owner: Aux 3 when free, or Bug 2 in the train gate.
-  Prerequisites: none. Related: PERF.217, TEST.417.
-
 - [ ] **TEST.476 A test that measures how often items are redrawn or regenerated to make them fit: stars in a tree, planets, moons and belts**
   Boss (2026-10-30, 10:51 AM EDT): a test that measures how often we
   redraw or regenerate items to make them fit. Do: count every redraw (a
@@ -18540,6 +18542,17 @@ clears each one.
   STARS=4 forced runs and reports the failures by class. Lock-free (a
   test and a module, no output change). Owner: Bug 2 or any free lane.
   Prerequisites: none. Related: GEN.1006, GEN.1004, TEST.476.
+
+- [ ] **TEST.478 tests/test_api.py _bright_row (and its row near line 1491) is one value short since GEN.846 added bright_stars.rotation_period_hours (bug)**
+  Found by Aux 3 (relayed 11:57 AM EDT 2026-10-30):
+  test_galaxy_bright_stars_in_box_matches_a_brute_force_search fails on
+  main with pymysql 1136 (column count), the same fault TEST.474 fixed
+  in test_web_a11y.py. Do: give `_bright_row` and its row the new
+  rotation_period_hours value, or build both from the column list so the
+  next column cannot break them, and grep the tests for other hand-built
+  bright_stars rows. Done: the test passes on main. Lock-free, test
+  only. Owner: Bug 2 or any free lane.
+  Prerequisites: none. Related: TEST.474, GEN.846.
 
 ## USR: User accounts
 
