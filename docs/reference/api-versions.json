@@ -122,6 +122,18 @@
         "GET /api/systems/<id>: planets and moons have no life_chemical; they have life_class (the class number), life_class_variant, life_class_best, life_class_best_score, life_animal_grade and life_complexity (the columns), and life_class_id (such as 1a) and life_class_scores (the score of every class the body supports)",
         "the species of GET /api/planets/<id>/species and GET /api/planets/<id>/habitable-species have life_class (the class id) in place of life_chemical"
       ]
+    },
+    {
+      "version": 11,
+      "first_release": null,
+      "pending": true,
+      "items": [
+        "API.33"
+      ],
+      "summary": "The sizes of a backup archive and of its parts say they are in bytes.",
+      "changes": [
+        "GET /api/admin/backups and GET /api/admin/backups/<name>: an archive and each of its parts have size_bytes where they had size"
+      ]
     }
   ]
 }
