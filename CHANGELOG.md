@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2828] - 2026-10-30
+
+**Headline:** A planet of a close pair inside a triple now orbits the pair's centre, and a multiple system says what it is made of
+
+### Changed
+
+- The 3D system view drew a planet that goes round a close pair (such as Abralinar I, round Abralinar A / B) about the centre of the whole system, so its orbit ellipse circled nothing. It is now drawn about the pair's own centre of mass, in the true and the compressed scale, and the position maths does the same.
+- The system's overview and "At a glance" say what a multiple system is ("Triple star system: a close pair of A and B, orbited by C in a wide orbit").
+- In the Stars and bodies list, the bodies that go round the A / B pair and the further stars say "Orbits Abralinar A / B".
+
 ## [8.0.2827] - 2026-10-30
 
 **Headline:** A tidally locked moon in the System Map now keeps its face toward its planet, and the object page's picture of a locked world says so on the picture itself.
