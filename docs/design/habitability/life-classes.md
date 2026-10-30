@@ -149,6 +149,8 @@ Flora is macroscopic photosynthesis or a surface mat route (Classes 1 and 2); Fa
 
 ### 5.2 Prevalence targets (Boss 9:13 PM EDT)
 
+**A civilization is never forced (Boss, 5:08 PM EDT 2026-10-30).** Adjusting the prevalence, or asking for intelligent life, only tweaks the probabilities: nothing places a civilization, redraws a system until one appears, or squeezes a timeline to make one fit. A request that no draw meets says so plainly.
+
 Sentient is the rarest outcome and most life ends at microbes, plants or animals. The anchor is Core 1's timing review, which Boss chose at 9:03 PM EDT (complex cells 2.5, animals 3, civilization 60 Gyr, scale 1.0): for worlds with oxygenic life, G stars give about 21 in 100 animals and 0.6 civilizations, K about 33 and 1.5, M about 23 and 0.7. Animals to civilizations is therefore about 20 to 40 to 1. These are the bands the census (TEST.435, moved into 8.1) should hold. They are stand-ins, T9 and L3, set from Boss's rule and Core 1's model, not from observation.
 
 | Population | Target band | Why |
