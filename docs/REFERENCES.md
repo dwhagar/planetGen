@@ -12,21 +12,17 @@ This page is written by `scripts/build_references.py` from `docs/reference/refer
 
 ## Contents
 
-- [Papers and books](#papers-and-books) ([other](#md-0), [A](#md-A), [B](#md-B), [C](#md-C), [D](#md-D), [E](#md-E), [F](#md-F), [G](#md-G), [H](#md-H), [I](#md-I), [J](#md-J), [K](#md-K), [L](#md-L), [M](#md-M), [N](#md-N), [O](#md-O), [P](#md-P), [Q](#md-Q), [R](#md-R), [S](#md-S), [T](#md-T), [U](#md-U), [V](#md-V), [W](#md-W), [X](#md-X), [Y](#md-Y), [Z](#md-Z))
+- [Papers and books](#papers-and-books) ([other](#no-author-listed-publisher-or-organisation), [A](#a), [B](#b), [C](#c), [D](#d), [E](#e), [F](#f), [G](#g), [H](#h), [I](#i), [J](#j), [K](#k), [L](#l), [M](#m), [N](#n), [O](#o), [P](#p), [Q](#q), [R](#r), [S](#s), [T](#t), [U](#u), [V](#v), [W](#w), [X](#x), [Y](#y), [Z](#z))
 - [Datasets, catalogs, archives and tools](#datasets-catalogs-archives-and-tools)
 - [Citations not yet resolved to a paper](#citations-not-yet-resolved-to-a-paper)
 
 ## Papers and books
-
-<a id="md-0"></a>
 
 ### No author listed (publisher or organisation)
 
 - Oxford University Press (OUP) 1995, Abundances at high redshift: ionization correction factors, MNRAS, doi:10.1093/mnras/276.1.268. [paper](https://doi.org/10.1093/mnras/276.1.268) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1093/mnras/276.1.268/abstract)
 - SAGE Publications 2007, Preface, Executive Summary and Glossary, AnICRP, 37, 9, doi:10.1016/j.icrp.2007.10.003. [paper](https://doi.org/10.1016/j.icrp.2007.10.003) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1016/j.icrp.2007.10.003/abstract)
 - Springer International Publishing 2017, Outskirts of Galaxies, Astrophysics and Space Science Library, doi:10.1007/978-3-319-56570-5. [paper](https://doi.org/10.1007/978-3-319-56570-5) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1007/978-3-319-56570-5/abstract)
-
-<a id="md-A"></a>
 
 ### A
 
@@ -120,8 +116,6 @@ This page is written by `scripts/build_references.py` from `docs/reference/refer
 - Ayers, G. P., Gillett, R. W., & Gras, J. L. 1980, On the vapor pressure of sulfuric acid, GeoRL, 7, 433, doi:10.1029/gl007i006p00433. [paper](https://doi.org/10.1029/gl007i006p00433) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1029/gl007i006p00433/abstract)
 - Azzollini, R., Trujillo, I., & Beckman, J. E. 2008a, Color Profiles of Disk Galaxies since z ~ 1: Probing Outer Disk Formation Scenarios, ApJ, 679, L69, doi:10.1086/589283, arXiv:0804.2336. [paper](https://doi.org/10.1086/589283) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1086/589283/abstract)
 - Azzollini, R., Trujillo, I., & Beckman, J. E. 2008b, Cosmic Evolution of Stellar Disk Truncations: Fromz ∼ 1 to the Local Universe, ApJ, 684, 1026, doi:10.1086/590142, arXiv:0805.2259. [paper](https://doi.org/10.1086/590142) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1086/590142/abstract)
-
-<a id="md-B"></a>
 
 ### B
 
@@ -338,8 +332,6 @@ This page is written by `scripts/build_references.py` from `docs/reference/refer
 - Byrne, B. & Goldblatt, C. 2014, Radiative forcings for 28 potential Archean greenhouse gases, Copernicus GmbH, doi:10.5194/cpd-10-2011-2014, arXiv:1409.1880. [paper](https://doi.org/10.5194/cpd-10-2011-2014) · [ADS](https://ui.adsabs.harvard.edu/abs/10.5194/cpd-10-2011-2014/abstract)
 - Byrne, R. A. & Fraser, M. 2022, Nothing to see here: failed supernovae are faint or rare, MNRAS, 514, 1188, doi:10.1093/mnras/stac1308, arXiv:2201.12187. [paper](https://doi.org/10.1093/mnras/stac1308) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1093/mnras/stac1308/abstract)
 
-<a id="md-C"></a>
-
 ### C
 
 - Cahoy, K. L., Marley, M. S., & Fortney, J. J. 2010, EXOPLANET ALBEDO SPECTRA AND COLORS AS A FUNCTION OF PLANET PHASE, SEPARATION, AND METALLICITY, ApJ, 724, 189, doi:10.1088/0004-637x/724/1/189, arXiv:1009.3071. [paper](https://doi.org/10.1088/0004-637x/724/1/189) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1088/0004-637x/724/1/189/abstract)
@@ -501,8 +493,6 @@ This page is written by `scripts/build_references.py` from `docs/reference/refer
 - Cuzzi, J. N., Hogan, R. C., & Bottke, W. F. 2010, Towards initial mass functions for asteroids and Kuiper Belt Objects, Icarus, 208, 518, doi:10.1016/j.icarus.2010.03.005, arXiv:1004.0270. [paper](https://doi.org/10.1016/j.icarus.2010.03.005) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1016/j.icarus.2010.03.005/abstract)
 - Czekaj, M. A., Robin, A. C., Figueras, F., Luri, X., & Haywood, M. 2014, The Besançon Galaxy model renewed, A&A, 564, A102, doi:10.1051/0004-6361/201322139. [paper](https://doi.org/10.1051/0004-6361/201322139) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1051/0004-6361/201322139/abstract)
 
-<a id="md-D"></a>
-
 ### D
 
 - Dadachova, E., et al. 2007, Ionizing Radiation Changes the Electronic Properties of Melanin and Enhances the Growth of Melanized Fungi, PLoS ONE, 2, e457, doi:10.1371/journal.pone.0000457. [paper](https://doi.org/10.1371/journal.pone.0000457) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1371/journal.pone.0000457/abstract)
@@ -613,8 +603,6 @@ This page is written by `scripts/build_references.py` from `docs/reference/refer
 - Dwek, E., et al. 1995, Morphology, near-infrared luminosity, and mass of the Galactic bulge from COBE DIRBE observations, ApJ, 445, 716, doi:10.1086/175734. [paper](https://doi.org/10.1086/175734) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1086/175734/abstract)
 - Dye, S. T. 2012, Geoneutrinos and the radioactive power of the Earth, Reviews of Geophysics, 50, 2012RG000400, doi:10.1029/2012rg000400, arXiv:1111.6099. [paper](https://doi.org/10.1029/2012rg000400) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1029/2012rg000400/abstract)
 
-<a id="md-E"></a>
-
 ### E
 
 - Ebel, D. S. & Stewart, S. T. 2018, The Elusive Origin of Mercury, in Mercury, Cambridge University Press, doi:10.1017/9781316650684.019, arXiv:1712.08234. [paper](https://doi.org/10.1017/9781316650684.019) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1017/9781316650684.019/abstract)
@@ -669,8 +657,6 @@ This page is written by `scripts/build_references.py` from `docs/reference/refer
 - Etiope, G., Ehlmann, B. L., & Schoell, M. 2013, Low temperature production and exhalation of methane from serpentinized rocks on Earth: A potential analog for methane production on Mars, Icarus, 224, 276, doi:10.1016/j.icarus.2012.05.009. [paper](https://doi.org/10.1016/j.icarus.2012.05.009) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1016/j.icarus.2012.05.009/abstract)
 - Ewen, H. I. & Purcell, E. M. 1951, Observation of a Line in the Galactic Radio Spectrum: Radiation from Galactic Hydrogen at 1,420 Mc./sec., Nature, 168, 356, doi:10.1038/168356a0. [paper](https://doi.org/10.1038/168356a0) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1038/168356a0/abstract)
 - Eylen, V. V., et al. 2019, The Orbital Eccentricity of Small Planet Systems, AJ, 157, 61, doi:10.3847/1538-3881/aaf22f, arXiv:1807.00549. [paper](https://doi.org/10.3847/1538-3881/aaf22f) · [ADS](https://ui.adsabs.harvard.edu/abs/10.3847/1538-3881/aaf22f/abstract)
-
-<a id="md-F"></a>
 
 ### F
 
@@ -760,8 +746,6 @@ This page is written by `scripts/build_references.py` from `docs/reference/refer
 - Fumagalli, M., da Silva, R. L., & Krumholz, M. R. 2011a, STOCHASTIC STAR FORMATION AND A (NEARLY) UNIFORM STELLAR INITIAL MASS FUNCTION, ApJ, 741, L26, doi:10.1088/2041-8205/741/2/l26. [paper](https://doi.org/10.1088/2041-8205/741/2/l26) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1088/2041-8205/741/2/l26/abstract)
 - Fumagalli, M., O'Meara, J. M., Prochaska, J. X., Rafelski, M., & Kanekar, N. 2014, Directly imaging damped Ly α galaxies at z &gt; 2 – III. The star formation rates of neutral gas reservoirs at z ∼ 2.7, MNRAS, 446, 3178, doi:10.1093/mnras/stu2325. [paper](https://doi.org/10.1093/mnras/stu2325) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1093/mnras/stu2325/abstract)
 - Fumagalli, M., et al. 2011b, Absorption-line systems in simulated galaxies fed by cold streams, MNRAS, 418, 1796, doi:10.1111/j.1365-2966.2011.19599.x. [paper](https://doi.org/10.1111/j.1365-2966.2011.19599.x) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1111/j.1365-2966.2011.19599.x/abstract)
-
-<a id="md-G"></a>
 
 ### G
 
@@ -883,8 +867,6 @@ This page is written by `scripts/build_references.py` from `docs/reference/refer
 - Gutiérrez, L., Erwin, P., Aladro, R., & Beckman, J. E. 2011, THE OUTER DISKS OF EARLY-TYPE GALAXIES. II. SURFACE-BRIGHTNESS PROFILES OF UNBARRED GALAXIES AND TRENDS WITH HUBBLE TYPE, AJ, 142, 145, doi:10.1088/0004-6256/142/5/145, arXiv:1108.3662. [paper](https://doi.org/10.1088/0004-6256/142/5/145) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1088/0004-6256/142/5/145/abstract)
 - Guzmán-Marmolejo, A., Segura, A., & Escobar-Briones, E. 2013, Abiotic Production of Methane in Terrestrial Planets, AsBio, 13, 550, doi:10.1089/ast.2012.0817. [paper](https://doi.org/10.1089/ast.2012.0817) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1089/ast.2012.0817/abstract)
 - Gvaramadze, V. V., et al. 2009, Discovery of a new Wolf���Rayet star and its ring nebula in Cygnus, MNRAS, 400, 524, doi:10.1111/j.1365-2966.2009.15492.x, arXiv:0909.0621. [paper](https://doi.org/10.1111/j.1365-2966.2009.15492.x) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1111/j.1365-2966.2009.15492.x/abstract)
-
-<a id="md-H"></a>
 
 ### H
 
@@ -1024,8 +1006,6 @@ This page is written by `scripts/build_references.py` from `docs/reference/refer
 - Huxor, A. P., et al. 2014, The outer halo globular cluster system of M31 – I. The final PAndAS catalogue, MNRAS, 442, 2165, doi:10.1093/mnras/stu771. [paper](https://doi.org/10.1093/mnras/stu771) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1093/mnras/stu771/abstract)
 - Hwang, H. C., Ting, Y. S., Schlaufman, K. C., Zakamska, N. L., & Wyse, R. F. G. 2020, The non-monotonic, strong metallicity dependence of the wide-binary fraction, MNRAS, 501, 4329, doi:10.1093/mnras/staa3854, arXiv:2010.02920. [paper](https://doi.org/10.1093/mnras/staa3854) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1093/mnras/staa3854/abstract)
 
-<a id="md-I"></a>
-
 ### I
 
 - Ianjamasimanana, R., de Blok, W. J. G., Walter, F., & Heald, G. H. 2012, THE SHAPES OF THE H I VELOCITY PROFILES OF THE THINGS GALAXIES, AJ, 144, 96, doi:10.1088/0004-6256/144/4/96. [paper](https://doi.org/10.1088/0004-6256/144/4/96) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1088/0004-6256/144/4/96/abstract)
@@ -1056,8 +1036,6 @@ This page is written by `scripts/build_references.py` from `docs/reference/refer
 - Izotov, Y. I., et al. 2016a, Eight per cent leakage of Lyman continuum photons from a compact, star-forming dwarf galaxy, Nature, 529, 178, doi:10.1038/nature16456. [paper](https://doi.org/10.1038/nature16456) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1038/nature16456/abstract)
 - Izotov, Y. I., et al. 2016b, Detection of high Lyman continuum leakage from four low-redshift compact star-forming galaxies, MNRAS, 461, 3683, doi:10.1093/mnras/stw1205. [paper](https://doi.org/10.1093/mnras/stw1205) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1093/mnras/stw1205/abstract)
 - Izumi, N., et al. 2014, DISCOVERY OF STAR FORMATION IN THE EXTREME OUTER GALAXY POSSIBLY INDUCED BY A HIGH-VELOCITY CLOUD IMPACT, ApJ, 795, 66, doi:10.1088/0004-637x/795/1/66. [paper](https://doi.org/10.1088/0004-637x/795/1/66) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1088/0004-637x/795/1/66/abstract)
-
-<a id="md-J"></a>
 
 ### J
 
@@ -1108,8 +1086,6 @@ This page is written by `scripts/build_references.py` from `docs/reference/refer
 - Jura, M. & Young, E. 2014, Extrasolar Cosmochemistry, AREPS, 42, 45, doi:10.1146/annurev-earth-060313-054740. [paper](https://doi.org/10.1146/annurev-earth-060313-054740) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1146/annurev-earth-060313-054740/abstract)
 - Just, A. & Rybizki, J. 2016, Dynamical and chemical evolution of the thin disc, AN, 337, 880, doi:10.1002/asna.201612390. [paper](https://doi.org/10.1002/asna.201612390) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1002/asna.201612390/abstract)
 - Jutzi, M., Michel, P., Benz, W., & Richardson, D. C. 2010, Fragment properties at the catastrophic disruption threshold: The effect of the parent body’s internal structure, Icarus, 207, 54, doi:10.1016/j.icarus.2009.11.016, arXiv:0911.3937. [paper](https://doi.org/10.1016/j.icarus.2009.11.016) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1016/j.icarus.2009.11.016/abstract)
-
-<a id="md-K"></a>
 
 ### K
 
@@ -1257,8 +1233,6 @@ This page is written by `scripts/build_references.py` from `docs/reference/refer
 - Kummer, F., Toonen, S., & de Koter, A. 2023, The Main Evolutionary Pathways of Massive Hierarchical Triple Stars, arXiv:2306.09400. [paper](https://arxiv.org/abs/2306.09400) · [ADS](https://ui.adsabs.harvard.edu/abs/arXiv:2306.09400/abstract)
 - Kwok, S. 2024, Planetary Nebulae Research: Past, Present, and Future, Galax, 12, 39, doi:10.3390/galaxies12040039, arXiv:2408.06448. [paper](https://doi.org/10.3390/galaxies12040039) · [ADS](https://ui.adsabs.harvard.edu/abs/10.3390/galaxies12040039/abstract)
 
-<a id="md-L"></a>
-
 ### L
 
 - Lacis, A. A. & Oinas, V. 1991, A description of the correlated k distribution method for modeling nongray gaseous absorption, thermal emission, and multiple scattering in vertically inhomogeneous atmospheres, JGRD, 96, 9027, doi:10.1029/90jd01945. [paper](https://doi.org/10.1029/90jd01945) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1029/90jd01945/abstract)
@@ -1371,8 +1345,6 @@ This page is written by `scripts/build_references.py` from `docs/reference/refer
 - Lynden-Bell, D. & Kalnajs, A. J. 1972, On the Generating Mechanism of Spiral Structure, MNRAS, 157, 1, doi:10.1093/mnras/157.1.1. [paper](https://doi.org/10.1093/mnras/157.1.1) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1093/mnras/157.1.1/abstract)
 - Lynds, B. T. 1962, Catalogue of Dark Nebulae., ApJS, 7, 1, doi:10.1086/190072. [paper](https://doi.org/10.1086/190072) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1086/190072/abstract)
 - Lyubetskaya, T. & Korenaga, J. 2007, Chemical composition of Earth's primitive mantle and its variance: 1. Method and results, JGRB, 112, 2005JB004223, doi:10.1029/2005jb004223. [paper](https://doi.org/10.1029/2005jb004223) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1029/2005jb004223/abstract)
-
-<a id="md-M"></a>
 
 ### M
 
@@ -1591,8 +1563,6 @@ This page is written by `scripts/build_references.py` from `docs/reference/refer
 - Myhre, G., Highwood, E. J., Shine, K. P., & Stordal, F. 1998, New estimates of radiative forcing due to well mixed greenhouse gases, GeoRL, 25, 2715, doi:10.1029/98gl01908. [paper](https://doi.org/10.1029/98gl01908) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1029/98gl01908/abstract)
 - Mysen, B. O. 2011, Amorphous Materials: An experimental study of phosphorous and aluminosilicate speciation in and partitioning between aqueous fluids and silicate melts determined in-situ at high temperature and pressure, American Mineralogist, 96, 1636, doi:10.2138/am.2011.3728. [paper](https://doi.org/10.2138/am.2011.3728) · [ADS](https://ui.adsabs.harvard.edu/abs/10.2138/am.2011.3728/abstract)
 
-<a id="md-N"></a>
-
 ### N
 
 - Naab, T. & Ostriker, J. P. 2006, A simple model for the evolution of disc galaxies: the Milky Way, MNRAS, 366, 899, doi:10.1111/j.1365-2966.2005.09807.x. [paper](https://doi.org/10.1111/j.1365-2966.2005.09807.x) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1111/j.1365-2966.2005.09807.x/abstract)
@@ -1633,8 +1603,6 @@ This page is written by `scripts/build_references.py` from `docs/reference/refer
 - Notesco, G. & Bar-Nun, A. 2005, A ∼25 K temperature of formation for the submicron ice grains which formed comets, Icarus, 175, 546, doi:10.1016/j.icarus.2004.12.001. [paper](https://doi.org/10.1016/j.icarus.2004.12.001) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1016/j.icarus.2004.12.001/abstract)
 - Notsu, Y., et al. 2019, Do Kepler Superflare Stars Really Include Slowly Rotating Sun-like Stars?—Results Using APO 3.5 m Telescope Spectroscopic Observations and Gaia-DR2 Data, ApJ, 876, 58, doi:10.3847/1538-4357/ab14e6, arXiv:1904.00142. [paper](https://doi.org/10.3847/1538-4357/ab14e6) · [ADS](https://ui.adsabs.harvard.edu/abs/10.3847/1538-4357/ab14e6/abstract)
 
-<a id="md-O"></a>
-
 ### O
 
 - Öberg, K. I., Murray-Clay, R., & Bergin, E. A. 2011, THE EFFECTS OF SNOWLINES ON C/O IN PLANETARY ATMOSPHERES, ApJ, 743, L16, doi:10.1088/2041-8205/743/1/l16, arXiv:1110.5567. [paper](https://doi.org/10.1088/2041-8205/743/1/l16) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1088/2041-8205/743/1/l16/abstract)
@@ -1672,8 +1640,6 @@ This page is written by `scripts/build_references.py` from `docs/reference/refer
 - Ozaki, K., Tajika, E., Hong, P. K., Nakagawa, Y., & Reinhard, C. T. 2017, Effects of primitive photosynthesis on Earth’s early climate system, NatGe, 11, 55, doi:10.1038/s41561-017-0031-2, arXiv:1907.12995. [paper](https://doi.org/10.1038/s41561-017-0031-2) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1038/s41561-017-0031-2/abstract)
 - Özel, F. & Freire, P. 2016, Masses, Radii, and the Equation of State of Neutron Stars, ARA&A, 54, 401, doi:10.1146/annurev-astro-081915-023322, arXiv:1603.02698. [paper](https://doi.org/10.1146/annurev-astro-081915-023322) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1146/annurev-astro-081915-023322/abstract)
 - Özel, F., Psaltis, D., Narayan, R., & McClintock, J. E. 2010, THE BLACK HOLE MASS DISTRIBUTION IN THE GALAXY, ApJ, 725, 1918, doi:10.1088/0004-637x/725/2/1918, arXiv:1006.2834. [paper](https://doi.org/10.1088/0004-637x/725/2/1918) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1088/0004-637x/725/2/1918/abstract)
-
-<a id="md-P"></a>
 
 ### P
 
@@ -1790,16 +1756,12 @@ This page is written by `scripts/build_references.py` from `docs/reference/refer
 - Putman, M. E., et al. 2009, THE DISRUPTION AND FUELING OF M33, ApJ, 703, 1486, doi:10.1088/0004-637x/703/2/1486, arXiv:0812.3093. [paper](https://doi.org/10.1088/0004-637x/703/2/1486) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1088/0004-637x/703/2/1486/abstract)
 - Putorti Jr, A., Mensch, A., Bryner, N., & Braga, G. 2013, Thermal Performance of SelfContained Breathing Apparatus Facepiece Lenses Exposed to Radiant Heat Flux, National Institute of Standards and Technology, doi:10.6028/nist.tn.1785. [paper](https://doi.org/10.6028/nist.tn.1785) · [ADS](https://ui.adsabs.harvard.edu/abs/10.6028/nist.tn.1785/abstract)
 
-<a id="md-Q"></a>
-
 ### Q
 
 - Quarles, B., Bhaskar, H. G., & Li, G. 2024, Main-sequence systems: orbital stability in stellar binaries, arXiv:2407.13901. [paper](https://arxiv.org/abs/2407.13901) · [ADS](https://ui.adsabs.harvard.edu/abs/arXiv:2407.13901/abstract)
 - Quillen, A. C., Hasan, I., & Moore, A. 2012, Capture of irregular satellites via binary planetesimal exchange reactions in migrating planetary systems, MNRAS, 425, 2507, doi:10.1111/j.1365-2966.2012.21716.x, arXiv:1112.0577. [paper](https://doi.org/10.1111/j.1365-2966.2012.21716.x) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1111/j.1365-2966.2012.21716.x/abstract)
 - Quintana, A. L., Wright, N. J., & García, J. M. 2025, A census of OB stars within 1 kpc and the star formation and core collapse supernova rates of the Milky Way, arXiv:2503.08286. [paper](https://arxiv.org/abs/2503.08286) · [ADS](https://ui.adsabs.harvard.edu/abs/arXiv:2503.08286/abstract)
 - Quintana, E. V., Barclay, T., Borucki, W. J., Rowe, J. F., & Chambers, J. E. 2016, THE FREQUENCY OF GIANT IMPACTS ON EARTH-LIKE WORLDS, ApJ, 821, 126, doi:10.3847/0004-637x/821/2/126, arXiv:1511.03663. [paper](https://doi.org/10.3847/0004-637x/821/2/126) · [ADS](https://ui.adsabs.harvard.edu/abs/10.3847/0004-637x/821/2/126/abstract)
-
-<a id="md-R"></a>
 
 ### R
 
@@ -1925,8 +1887,6 @@ This page is written by `scripts/build_references.py` from `docs/reference/refer
 - Rupke, D. S. N., Kewley, L. J., & Barnes, J. E. 2010, GALAXY MERGERS AND THE MASS-METALLICITY RELATION: EVIDENCE FOR NUCLEAR METAL DILUTION AND FLATTENED GRADIENTS FROM NUMERICAL SIMULATIONS, ApJ, 710, L156, doi:10.1088/2041-8205/710/2/l156. [paper](https://doi.org/10.1088/2041-8205/710/2/l156) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1088/2041-8205/710/2/l156/abstract)
 - Rutkowski, M. J., et al. 2016, LYMAN CONTINUUM ESCAPE FRACTION OF STAR-FORMING DWARF GALAXIES AT z ∼ 1, ApJ, 819, 81, doi:10.3847/0004-637x/819/1/81. [paper](https://doi.org/10.3847/0004-637x/819/1/81) · [ADS](https://ui.adsabs.harvard.edu/abs/10.3847/0004-637x/819/1/81/abstract)
 - Ryan, E. L., et al. 2009, THE ASTEROID DISTRIBUTION IN THE ECLIPTIC, AJ, 137, 5134, doi:10.1088/0004-6256/137/6/5134, arXiv:0903.4479. [paper](https://doi.org/10.1088/0004-6256/137/6/5134) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1088/0004-6256/137/6/5134/abstract)
-
-<a id="md-S"></a>
 
 ### S
 
@@ -2124,8 +2084,6 @@ This page is written by `scripts/build_references.py` from `docs/reference/refer
 - Sweeney, D., Tuthill, P., Sharma, S., & Hirai, R. 2022, The Galactic underworld: the spatial distribution of compact remnants, MNRAS, 516, 4971, doi:10.1093/mnras/stac2092, arXiv:2210.04241. [paper](https://doi.org/10.1093/mnras/stac2092) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1093/mnras/stac2092/abstract)
 - Swihart, S. J., et al. 2022, A New Flaring Black Widow Candidate and Demographics of Black Widow Millisecond Pulsars in the Galactic Field, ApJ, 941, 199, doi:10.3847/1538-4357/aca2ac, arXiv:2210.16295. [paper](https://doi.org/10.3847/1538-4357/aca2ac) · [ADS](https://ui.adsabs.harvard.edu/abs/10.3847/1538-4357/aca2ac/abstract)
 
-<a id="md-T"></a>
-
 ### T
 
 - Tabazadeh, A., Toon, O. B., Clegg, S. L., & Hamill, P. 1997, A new parameterization of H2SO4/H2O aerosol composition: Atmospheric implications, GeoRL, 24, 1931, doi:10.1029/97gl01879. [paper](https://doi.org/10.1029/97gl01879) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1029/97gl01879/abstract)
@@ -2204,8 +2162,6 @@ This page is written by `scripts/build_references.py` from `docs/reference/refer
 - Turner, J. E. 2007, Atoms, Radiation, and Radiation Protection, Wiley, doi:10.1002/9783527616978. [paper](https://doi.org/10.1002/9783527616978) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1002/9783527616978/abstract)
 - Turrini, D., Marzari, F., & Beust, H. 2008, A new perspective on the irregular satellites of Saturn - I. Dynamical and collisional history, MNRAS, 391, 1029, doi:10.1111/j.1365-2966.2008.13909.x, arXiv:1011.5655. [paper](https://doi.org/10.1111/j.1365-2966.2008.13909.x) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1111/j.1365-2966.2008.13909.x/abstract)
 
-<a id="md-U"></a>
-
 ### U
 
 - Umemoto, K. & Wentzcovitch, R. M. 2011, Two-stage dissociation in MgSiO3 post-perovskite, E&PSL, 311, 225, doi:10.1016/j.epsl.2011.09.032. [paper](https://doi.org/10.1016/j.epsl.2011.09.032) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1016/j.epsl.2011.09.032/abstract)
@@ -2213,8 +2169,6 @@ This page is written by `scripts/build_references.py` from `docs/reference/refer
 - Unterborn, C. T., et al. 2022, Mantle Degassing Lifetimes through Galactic Time and the Maximum Age Stagnant-lid Rocky Exoplanets Can Support Temperate Climates, ApJL, 930, L6, doi:10.3847/2041-8213/ac6596, arXiv:2204.04243. [paper](https://doi.org/10.3847/2041-8213/ac6596) · [ADS](https://ui.adsabs.harvard.edu/abs/10.3847/2041-8213/ac6596/abstract)
 - Unterborn, C. T., Johnson, J. A., & Panero, W. R. 2015, Thorium Abundances in Solar Twins and Analogues: Implications for the Habitability of Extrasolar Planetary Systems, arXiv:1505.00280. [paper](https://arxiv.org/abs/1505.00280) · [ADS](https://ui.adsabs.harvard.edu/abs/arXiv:1505.00280/abstract)
 - Unterborn, C. T. & Panero, W. R. 2017, The Effects of Mg/Si on the Exoplanetary Refractory Oxygen Budget, ApJ, 845, 61, doi:10.3847/1538-4357/aa7f79, arXiv:1604.08309. [paper](https://doi.org/10.3847/1538-4357/aa7f79) · [ADS](https://ui.adsabs.harvard.edu/abs/10.3847/1538-4357/aa7f79/abstract)
-
-<a id="md-V"></a>
 
 ### V
 
@@ -2277,8 +2231,6 @@ This page is written by `scripts/build_references.py` from `docs/reference/refer
 - Vorburger, A., et al. 2019, Three‐Dimensional Modeling of Callisto's Surface Sputtered Exosphere Environment, JGRA, 124, 7157, doi:10.1029/2019ja026610, arXiv:1909.01014. [paper](https://doi.org/10.1029/2019ja026610) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1029/2019ja026610/abstract)
 - Vynatheya, P., Hamers, A. S., Mardling, R. A., & Bellinger, E. P. 2022, Algebraic and machine learning approach to hierarchical triple-star stability, MNRAS, 516, 4146, doi:10.1093/mnras/stac2540, arXiv:2207.03151. [paper](https://doi.org/10.1093/mnras/stac2540) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1093/mnras/stac2540/abstract)
 - Vynatheya, P., Mardling, R. A., & Hamers, A. S. 2023, Quadruple-star systems are not always nested triples: a machine learning approach to dynamical stability, arXiv:2301.09930. [paper](https://arxiv.org/abs/2301.09930) · [ADS](https://ui.adsabs.harvard.edu/abs/arXiv:2301.09930/abstract)
-
-<a id="md-W"></a>
 
 ### W
 
@@ -2388,8 +2340,6 @@ This page is written by `scripts/build_references.py` from `docs/reference/refer
 - Wyatt, M. C., et al. 2007, Transience of Hot Dust around Sun‐like Stars, ApJ, 658, 569, doi:10.1086/510999, arXiv:astro-ph/0610102. [paper](https://doi.org/10.1086/510999) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1086/510999/abstract)
 - Wyder, T. K., et al. 2009, THE STAR FORMATION LAW AT LOW SURFACE DENSITY, ApJ, 696, 1834, doi:10.1088/0004-637x/696/2/1834. [paper](https://doi.org/10.1088/0004-637x/696/2/1834) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1088/0004-637x/696/2/1834/abstract)
 
-<a id="md-X"></a>
-
 ### X
 
 - Xapsos, M., Summers, G., Barth, J., Stassinopoulos, E., & Burke, E. 2000, Probability model for cumulative solar proton event fluences, IEEE Trans. Nucl. Sci., 47, 486, doi:10.1109/23.856469. [paper](https://doi.org/10.1109/23.856469) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1109/23.856469/abstract)
@@ -2398,8 +2348,6 @@ This page is written by `scripts/build_references.py` from `docs/reference/refer
 - Xu, S., Rogers, L. K., & Blouin, S. 2024, The chemistry of extra-solar materials from white dwarf planetary systems, arXiv:2404.15425. [paper](https://arxiv.org/abs/2404.15425) · [ADS](https://ui.adsabs.harvard.edu/abs/arXiv:2404.15425/abstract)
 - Xu 许偲, S. 艺., et al. 2019, Compositions of Planetary Debris around Dusty White Dwarfs, AJ, 158, 242, doi:10.3847/1538-3881/ab4cee. [paper](https://doi.org/10.3847/1538-3881/ab4cee) · [ADS](https://ui.adsabs.harvard.edu/abs/10.3847/1538-3881/ab4cee/abstract)
 - Xue, X. X., et al. 2008, The Milky Way’s Circular Velocity Curve to 60 kpc and an Estimate of the Dark Matter Halo Mass from the Kinematics of ∼2400 SDSS Blue Horizontal‐Branch Stars, ApJ, 684, 1143, doi:10.1086/589500, arXiv:0801.1232. [paper](https://doi.org/10.1086/589500) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1086/589500/abstract)
-
-<a id="md-Y"></a>
 
 ### Y
 
@@ -2433,8 +2381,6 @@ This page is written by `scripts/build_references.py` from `docs/reference/refer
 - Yun, M. S., Ho, P. T. P., & Lo, K. Y. 1994, A high-resolution image of atomic hydrogen in the M81 group of galaxies, Nature, 372, 530, doi:10.1038/372530a0. [paper](https://doi.org/10.1038/372530a0) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1038/372530a0/abstract)
 - Yurchenko, S. N. & Tennyson, J. 2014, ExoMol line lists – IV. The rotation–vibration spectrum of methane up to 1500 K, MNRAS, 440, 1649, doi:10.1093/mnras/stu326. [paper](https://doi.org/10.1093/mnras/stu326) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1093/mnras/stu326/abstract)
 - Yzer, M. J., Visser, R. G., & Dominik, C. 2023, The influence of a static planetary atmosphere on spin transfer during pebble accretion, A&A, 678, A37, doi:10.1051/0004-6361/202346229, arXiv:2307.11847. [paper](https://doi.org/10.1051/0004-6361/202346229) · [ADS](https://ui.adsabs.harvard.edu/abs/10.1051/0004-6361/202346229/abstract)
-
-<a id="md-Z"></a>
 
 ### Z
 

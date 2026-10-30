@@ -680,6 +680,12 @@ def datasets_for_render(c):
     return out
 
 
+def _slug(heading):
+    heading = re.sub(r"[*~]", "", heading).strip().lower()
+    heading = re.sub(r"[^\w\- ]", "", heading)
+    return heading.replace(" ", "-")
+
+
 def render_all(c):
     ents = {k: e for k, e in c["entries"].items() if e.get("authors") or e.get("title")}
     papers = {k: e for k, e in ents.items() if e.get("type") != "dataset"}
@@ -700,11 +706,11 @@ def render_all(c):
           "[REFERENCES.html](REFERENCES.html) is built from the same data. Do not edit either by hand.", "",
           "**%d papers and books, %d datasets with their own DOI, %d archives, catalogs and tools, and %d citations still to be settled.**" %
           (stats["papers"], stats["datasets"], stats["archives"], stats["unresolved"]), "",
-          "## Contents", "", "- [Papers and books](#papers-and-books) (" + ", ".join("[%s](#md-%s)" % (L if L != "0" else "other", L) for L in sorted(letters)) + ")",
+          "## Contents", "", "- [Papers and books](#papers-and-books) (" + ", ".join("[%s](#%s)" % (L if L != "0" else "other", _slug(names.get(L, L))) for L in sorted(letters)) + ")",
           "- [Datasets, catalogs, archives and tools](#datasets-catalogs-archives-and-tools)",
           "- [Citations not yet resolved to a paper](#citations-not-yet-resolved-to-a-paper)", "", "## Papers and books", ""]
     for L in sorted(letters):
-        md += ['<a id="md-%s"></a>' % L, "", "### %s" % names.get(L, L), ""]
+        md += ["### %s" % names.get(L, L), ""]
         for k, e in letters[L]:
             md.append(md_entry(entry_parts(e, suffix.get(k, ""))))
         md.append("")
@@ -734,7 +740,7 @@ def render_all(c):
     # ---- html
     h = html.escape
     out = ['<!doctype html>', '<html lang="en">', '<head>', '<meta charset="utf-8">', '<meta name="viewport" content="width=device-width, initial-scale=1">',
-           '<title>PlanetGen references</title>', '<style>', HTML_CSS, '</style>', '</head>', '<body><main>', '<h1>References</h1>',
+           '<title>PlanetGen references</title>', '<meta name="description" content="Every paper, book, dataset and archive the PlanetGen design and generator cite, in AAS and ADS style, for anyone checking a source.">', '<style>', HTML_CSS, '</style>', '</head>', '<body><main>', '<p><a href="index.html">Docs index</a></p>', '<h1>References</h1>',
            '<p class="intro">%s</p>' % h(INTRO), '<h2>How to read this list</h2>', '<p>%s</p>' % h(CONVENTIONS),
            '<p>This page is written by <code>scripts/build_references.py</code> from <code>docs/reference/references-data.json</code>; its Markdown twin '
            '<a href="REFERENCES.md">REFERENCES.md</a> is built from the same data. Do not edit either by hand.</p>',
