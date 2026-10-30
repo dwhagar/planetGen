@@ -14574,6 +14574,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   at setup and read by nothing (ir_ktables.npz, ir_cia.npz); gases.json,
   nasa_glenn_species.json and saturation_pressure.json are in the repo.
   Catalog sections 1 and 2.
+  GEN.975 note (Air 1, #3895, as the lane reported) (2026-10-30 12:34 AM
+  EDT): the climate sweep test src/tests/test_climate_sweep.py holds the
+  lower bound (0.54 K per W/m2) as a strict xfail naming GEN.972,
+  GEN.973 and GEN.974; the response today is about 0.4 K per W/m2. When
+  the last of the three lands the test passes, the strict xfail fails
+  the run, and this item removes the mark.
   Prerequisites: none. Related: GEN.752, GEN.462.
 
 - [ ] **GEN.973 Climate feedback 2: water vapour on the fixed point (a warmer ocean world holds more vapour and warms further, up to the runaway limit of GEN.639)**
@@ -14590,6 +14596,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   at setup and read by nothing (ir_ktables.npz, ir_cia.npz); gases.json,
   nasa_glenn_species.json and saturation_pressure.json are in the repo.
   Catalog sections 1 and 2.
+  GEN.975 note (Air 1, #3895, as the lane reported) (2026-10-30 12:34 AM
+  EDT): the climate sweep test src/tests/test_climate_sweep.py holds the
+  lower bound (0.54 K per W/m2) as a strict xfail naming GEN.972,
+  GEN.973 and GEN.974; the response today is about 0.4 K per W/m2. When
+  the last of the three lands the test passes, the strict xfail fails
+  the run, and this item removes the mark.
   Prerequisites: GEN.972. Related: GEN.752, GEN.639.
 
 - [ ] **GEN.974 Climate feedback 3: cloud albedo on the fixed point (cloud cover changes the reflected share)**
@@ -14606,22 +14618,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   at setup and read by nothing (ir_ktables.npz, ir_cia.npz); gases.json,
   nasa_glenn_species.json and saturation_pressure.json are in the repo.
   Catalog sections 1 and 2.
+  GEN.975 note (Air 1, #3895, as the lane reported) (2026-10-30 12:34 AM
+  EDT): the climate sweep test src/tests/test_climate_sweep.py holds the
+  lower bound (0.54 K per W/m2) as a strict xfail naming GEN.972,
+  GEN.973 and GEN.974; the response today is about 0.4 K per W/m2. When
+  the last of the three lands the test passes, the strict xfail fails
+  the run, and this item removes the mark.
   Prerequisites: GEN.973. Related: GEN.752, GEN.684.
-
-- [ ] **GEN.975 Climate sensitivity sweep test: the fixed point converges on a cooling and a warming sweep and stays inside the published range of Earth's climate sensitivity**
-  Boss, 8:16 PM EDT 2026-10-29 (full build in 8.1: build all of it;
-  secondary sources accepted by default; registered stand-ins allowed).
-  Split of GEN.752 (its test). Do: a test that runs the fixed point on a
-  cooling and a warming sweep of a planet, checks it converges, that the
-  sensitivity of an Earth-like case sits inside the published range, and
-  that the snowball and runaway thresholds match the literature.
-  Lock-free: it only reads. Owner: Air 1. Version 8.1.
-  Data we hold (2026-10-29 8:55 PM EDT): ExoMol correlated-k tables
-  (H2O, CO2, CH4) and HITRAN collision-induced absorption are downloaded
-  at setup and read by nothing (ir_ktables.npz, ir_cia.npz); gases.json,
-  nasa_glenn_species.json and saturation_pressure.json are in the repo.
-  Catalog sections 1 and 2.
-  Prerequisites: GEN.972, GEN.973, GEN.974. Related: GEN.752.
 
 - [ ] **GEN.976 A giant's radius is read at the star's age before the age is moved: 28 percent of table-sized giants have a stored radius over 1 percent too large, up to 9.3 percent (bug)**
   Found by the eccentricity-first research
