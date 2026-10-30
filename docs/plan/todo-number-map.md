@@ -1752,7 +1752,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.999 | Give the disc gas law a low-density threshold so a Milky Way mass disc depletes its gas in about 4.2 Gy, not 1.46 Gy | none | open |
 | GEN.1000 | Draw the largest body of every belt from the small body size law (replaces the stand-in largest-body size in the GEN.477 belt mass) | none | open |
 | GEN.1001 | A world whose star is younger than the first step of its life schedule is stored with a life class but no life stage, so the map markers, the object page line and the class filters show life that has not started (bug) | none | done, PR #3984 |
-| GEN.1002 | Registered table rows that rest on a Solar System body are flagged stand-in with a replacement item, or re-sourced | none | open |
+| GEN.1002 | Registered table rows that rest on a Solar System body are flagged stand-in with a replacement item, or re-sourced | none | done, PR #4038 |
 | GEN.1003 | The gas equilibrium solver can stall with no convergence on a hot hydrogen-oxygen mixture (EquilibriumError at 725.97 K and 1.0 bar) (bug) | none | open |
 | GEN.1004 | A triple system whose third star cannot be found: it may sit inside another star or on an orbit that is not drawn (bug) | none | open |
 | GEN.1005 | Replace the Solar System-anchored redox, dry carbon and comet species rows with models that carry the physics (replaces the Solar System-resting rows of GEN.1002 that GEN.474 does not cover) | none | open |
