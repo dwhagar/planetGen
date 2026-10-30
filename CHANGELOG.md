@@ -2,6 +2,45 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2584] - 2026-10-30
+
+**Headline:** The water share of a disk's solids by temperature is now computed from Lodders 2003 (not yet used by the generator).
+
+### Changed
+
+- New library `physics/condensate_shares.py`: the condensation temperatures of water, ammonia and methane ice and the mass each condensate makes (Lodders 2003 Tables 10 and 11), the water share of the solids by disk temperature and by distance, and the ice lines of a star. Nothing in generation reads it yet; the wiring step (snow line temperature, ice boost, water range of an icy body) follows with the epoch train.
+
+## [8.0.2583] - 2026-10-30
+
+**Headline:** The generator can now name a star's evolutionary state and the age since a white dwarf stopped burning.
+
+### Added
+- **Evolutionary state and age since it stopped burning (GEN.785 and GEN.786, definitions).** `physics/stellar_state.py` maps a star's Yerkes class and phase to one of twelve state words (main-sequence, red-giant, helium-burning, white-dwarf and so on) and gives a white dwarf's age since it stopped burning. Nothing in generation calls it yet; the wiring rides the star epoch.
+
+## [8.0.2582] - 2026-10-30
+
+**Headline:** A test now holds the generated star abundances to the Brewer and Fischer 2016 table of 1,615 dwarfs, and shows where they differ.
+
+### Added
+- **TEST.456.** `test_stellar_xfe_brewer_fischer.py` compares the generated [C/Fe], [O/Fe], [Mg/Fe], [Si/Fe] and [Ca/Fe] with the table by [Fe/H] bin (medians within 0.10 dex, scatter within a factor of three). The table is reduced to bands by `scripts/build_brewer_fischer_bands.py` (stars not kept). It finds two gaps, held as strict expected failures: calcium (and sulfur and argon, which follow it) has no scatter where the table has 0.04 to 0.10 dex, and the generated [Mg/Fe] sits 0.05 to 0.07 dex above the table from [Fe/H] -0.2 up.
+
+### Changed
+- **The wiring register** names the photolysis table against GEN.982 and the radiation belts against GEN.983.
+
+## [8.0.2581] - 2026-10-30
+
+**Headline:** The burn-down register names what each hand-tuned birth-spin stand-in needs before it can go.
+
+### Changed
+- **Burn-down register lines for GS4, GS5 and GS6** (the isolation mass, the giant-impact mass-ratio range and the planetesimal range of `impact_spin`, GEN.978), each naming GEN.979 and the N-body distribution of the last impactor that replaces it; the stand-in list is regenerated.
+
+## [8.0.2580] - 2026-10-30
+
+**Headline:** The generator can now read an alpha-enhanced star off a solar-scaled track and tie a disc star's metallicity to its age.
+
+### Added
+- **Alpha-enhanced equivalent metallicity and the age-metallicity relation (GEN.744, lock-free step).** `physics/alpha_tracks.py` gives the [Fe/H] a high-alpha star reads on the solar-scaled MIST grid (Salaris et al. 1993: about +0.29 dex at [alpha/Fe] +0.4) and `physics/age_metallicity.py` the disc's mean [Fe/H] by age on the thin and thick branches (0.025 and 0.15 dex per Gyr, Haywood et al. 2013). Nothing in generation calls them yet; the wiring rides the star epoch. Stand-ins AL1, AR1 to AR3 registered.
+
 ## [8.0.2579] - 2026-10-30
 
 **Headline:** The light of a star can now be looked up from model-atmosphere spectra by temperature and gravity, with the corona's far ultraviolet added from the MUSCLES stars.

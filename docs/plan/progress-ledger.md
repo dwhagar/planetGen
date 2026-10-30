@@ -1826,3 +1826,5 @@ Baseline: PR #1817.
 | GEN.754 | 8.1 | Mixture and stored values |
 | GEN.724 | 8.1 | Mixture and stored values |
 | GEN.978 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.456 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.722 | 8.1 | Tuned draws and selection models |

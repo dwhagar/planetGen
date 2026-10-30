@@ -11412,36 +11412,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   TODO thread; nobody has started it).
   Prerequisites: none. Related: GEN.699, GEN.461.
 
-- [ ] **GEN.722 Radius valley follow-up to GEN.509: the mechanism choice, the stellar-mass slope (e-link) and the width stand-ins**
-  Split from GEN.509 by Lane Draws (merged #3025 at about 2:14 PM EDT
-  2026-10-24 as the lane reported): GEN.509 tuned rows e1 and e2 to
-  Petigura 2022 (slope -0.11, 1.84 Earth radii at 10 days, along one
-  degenerate ridge) and wrote the rest in
-  docs/design/composition/radius-valley-tuning.md. Left open there:
-  which mechanism makes the valley (photoevaporation or core-powered
-  mass loss), the stellar-mass slope of the valley (the e-link), and the
-  valley width stand-ins. Do: choose the mechanism from the sources in
-  the design note under the standing source rules, tune the stellar-mass
-  slope and the widths, and register any stand-in in the gap plan
-  registry. Done: the three open points in the design note are closed or
-  registered as labelled stand-ins. Owner: Lane Draws (after GEN.510 and
-  GEN.512).
-  Owner (2026-10-09): Boss 1:45 AM EDT 2026-10-25: idle or blocked lanes
-  take one-off 8.1 items. Owner: Aux 7 takes it when free.
-  Owner (full build) (2026-10-29 8:30 PM EDT): Planets 1 (new lane,
-  proposed by TODO). This replaces any earlier owner line (pool,
-  unowned, retired lane or 'after 8.1'). If it is already started
-  elsewhere, the lane tells TODO before taking it. Lock-free parts
-  first; the part that changes generated output rides a train.
-  Data we hold (2026-10-29 8:55 PM EDT): Kepler DR25 recovery,
-  mass-radius sample, JWST selection fits are in the repo as harness
-  JSONs (kepler_recovery.json, mass_radius_sample.json,
-  jwst_selection.json); the 2,000-system class distribution check and
-  its data are in reports/data/planet-class-distribution; the Bern
-  synthesis binned fit is ngpps_formation_water.json. No occurrence
-  dataset is held as a setup dataset. Catalog sections 1, 3 and 4.
-  Prerequisites: none. Related: GEN.509, GEN.510.
-
 - [ ] **GEN.728 Planet count from the observed multiplicity and occurrence distributions by star mass and metallicity**
   From the physics gaps report (reports/physics-gaps-2026-10-24.md, row
   F1; relayed by the coordinator 3:43 PM EDT 2026-10-24; filed by the
@@ -14769,6 +14739,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Brewer and Fischer 2016 star table (1,615 stars, 15 elements, held as
   a TSV) are in the project files, read once by the GEN.465/468 research
   pass. Catalog sections 1 and 3.
+  Lock-free step merged; snow line decision (2026-10-29 9:40 PM EDT):
+  Sources 1 merged the lock-free step (#3821):
+  physics/condensate_shares.py (Lodders 2003 Tables 10 and 11: ice lines
+  182, 131 and 41 K, water share of solids 0.539, 0.494 and 0.384),
+  registry rows CS1 to CS3 (Verified, L0). Stays open for the wiring
+  step (train 7): SNOW_LINE_TEMPERATURE_K 170 to 182 K, the 30/7 ice
+  boost to 2.17, the ICY_WATER_MASS_FRACTION range of
+  bulk_draw._water_and_ice; moves life, air and class shares, needs the
+  epoch and a re-baselined census. DECISION (TODO under Boss's 8:16 PM
+  EDT source rule, physics found in research wins): take 182 K from the
+  paper; Boss's 10-24 choice of the 170 K centre (GEN.468 findings)
+  predates that rule.
   Prerequisites: none. Related: GEN.944, GEN.468.
 
 - [ ] **GEN.951 Companion mass ratio depends on the primary mass and the orbital period, with the twin excess (Moe and Di Stefano 2017 Table 13) instead of a flat 0.1 to 1 (low priority)**
@@ -15382,6 +15364,44 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   giant whose radius moved. Changes generated output: epoch, --affects
   fill, rides train 3 after GEN.961. Owner: Aux 7. Version 8.1.
   Prerequisites: GEN.961. Related: GEN.961, GEN.962, GEN.958.
+
+- [ ] **GEN.988 Give Ca, S and Ar a star-to-star scatter like the other generated [X/Fe] abundances (bug)**
+  Finding 1 of TEST.456 (Sources 1, #3817, as the lane reported 9:30 PM
+  EDT 2026-10-29): the new test holds generated stellar [X/Fe] to the
+  Brewer and Fischer 2016 table by [Fe/H] bin (bands from the
+  project-file VizieR TSV). Changes generated output (star compositions,
+  so every planet's bulk draw): epoch, --affects fill, rides train 3
+  with the star epoch; the abundance fits are in stellar_abundances.
+  Every constant it changes gets a GEN.725 registry row (tier and tweak
+  level). Owner: Sources 1. Version 8.1. Today Ca, S and Ar carry no
+  scatter at all. Do: scatter from the Brewer and Fischer 2016 table,
+  per [Fe/H] bin, the same way the other elements get theirs.
+  Prerequisites: none. Related: TEST.456, GEN.948, GEN.984, GEN.932.
+
+- [ ] **GEN.989 Lower generated [Mg/Fe] by 0.05 to 0.07 dex for [Fe/H] above -0.2 to match Brewer and Fischer 2016 (bug)**
+  Finding 2 of TEST.456 (Sources 1, #3817, as the lane reported 9:30 PM
+  EDT 2026-10-29): the new test holds generated stellar [X/Fe] to the
+  Brewer and Fischer 2016 table by [Fe/H] bin (bands from the
+  project-file VizieR TSV). Changes generated output (star compositions,
+  so every planet's bulk draw): epoch, --affects fill, rides train 3
+  with the star epoch; the abundance fits are in stellar_abundances.
+  Every constant it changes gets a GEN.725 registry row (tier and tweak
+  level). Owner: Sources 1. Version 8.1. Generated [Mg/Fe] sits 0.05 to
+  0.07 dex above the table for [Fe/H] of -0.2 and up. Do: refit the Mg
+  trend in that range to the table (secondary sources accepted).
+  Prerequisites: none. Related: TEST.456, GEN.984, GEN.932.
+
+- [ ] **GEN.990 Raise the C, O and Si abundance scatter, now about half the Brewer and Fischer 2016 scatter (bug)**
+  Finding 3 of TEST.456 (Sources 1, #3817, as the lane reported 9:30 PM
+  EDT 2026-10-29): the new test holds generated stellar [X/Fe] to the
+  Brewer and Fischer 2016 table by [Fe/H] bin (bands from the
+  project-file VizieR TSV). Changes generated output (star compositions,
+  so every planet's bulk draw): epoch, --affects fill, rides train 3
+  with the star epoch; the abundance fits are in stellar_abundances.
+  Every constant it changes gets a GEN.725 registry row (tier and tweak
+  level). Owner: Sources 1. Version 8.1. Do: set the scatter of C, O and
+  Si to the table's per-bin scatter.
+  Prerequisites: none. Related: TEST.456, GEN.984, GEN.932.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -20322,20 +20342,6 @@ clears each one.
   radius valley RV2, RV3, SEP rows, neutron star anchors, cluster laws).
   Catalog sections 1 and 4.
   Prerequisites: GEN.945. Related: GEN.725, GEN.754, GEN.945.
-
-- [ ] **TEST.456 A test that the generated [X/Fe] abundances match the Brewer and Fischer 2016 table, not only its trend and scatter (low priority)**
-  Found by the data-use audit (rank 9, 10-29): the fit keeps the trend
-  and the scatter, not the real joint distribution. Do: a test comparing
-  the generated [X/Fe] distribution against the held table. Low
-  priority. Owner: none yet. Version 8.4.
-  Owner (full build) (2026-10-29 8:35 PM EDT): Sources 1. This replaces
-  any earlier owner line.
-  Data we hold (2026-10-29 8:55 PM EDT): Lodders 2003 Table 11 and
-  condensation temperatures, Weisberg 2006 chondrite groups and the
-  Brewer and Fischer 2016 star table (1,615 stars, 15 elements, held as
-  a TSV) are in the project files, read once by the GEN.465/468 research
-  pass. Catalog sections 1 and 3.
-  Prerequisites: none. Related: TEST.455.
 
 - [ ] **TEST.459 The point_phenomena links browser test is red on clean main (bug)**
   Found by Core 2 while merging MAP.336 (as the lane reported 7:11 PM

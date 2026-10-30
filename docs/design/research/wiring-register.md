@@ -28,10 +28,11 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.34:AR1 | GEN.744 | `age_metallicity.THIN_BIRTH_FE_H`, not read until the [Fe/H] draw follows the age |
 | row | 6.34:AR2 | GEN.744 | `age_metallicity.THICK_ANCHOR_FE_H`, not read until the [Fe/H] draw follows the age |
 | row | 6.34:AR3 | GEN.744 | `age_metallicity.SIGMA`, not read until the [Fe/H] draw follows the age |
+| module | planetgen.physics.stellar_state | GEN.786 | the state word of a star and the age since it stopped burning (GEN.785); `Star.__init__` fills `stars.state` and `stars.decay_age_yr` once Star 1's GEN.935 phases are in the star epoch |
 | module | planetgen.physics.line_opacity | GEN.850 | the band opacities of the greenhouse model, called only by `radiative_convective` |
 | module | planetgen.physics.radiative_convective | GEN.850 | the greenhouse column, replaces the `infrared_opacity.py` plateau code once wired |
-| module | planetgen.physics.photolysis | GEN.455 | the photolysis lifetime table for the exosphere and the coma losses; no caller yet |
-| data | photolysis_lifetimes.json | GEN.455 | read by `physics/photolysis.py` only |
+| module | planetgen.physics.photolysis | GEN.982 | the photolysis lifetime table for the exosphere and the coma losses; no caller yet |
+| data | photolysis_lifetimes.json | GEN.982 | read by `physics/photolysis.py` only |
 | module | planetgen.physics.mixture_trace | GEN.524 | the trace gases of an air drawn after the life stage; no caller yet |
 | module | planetgen.physics.design_flags | GEN.524 | gates the trace rows `mixture_trace` draws |
 | data | design_flags.json | GEN.524 | read by `physics/design_flags.py` only |
@@ -39,7 +40,7 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | module | planetgen.physics.ground_albedo | GEN.462 | the colour of the ground by band, wired by the ground albedo item |
 | module | planetgen.physics.outside_hours | GEN.768 | the hours a person can be outside in a day, stored per planet by the item |
 | module | planetgen.physics.surface_dose | GEN.444 | the ground-level dose kernels, wired by the surface radiation item |
-| module | planetgen.physics.radiation_belts | GEN.800 | trapped radiation belts of a magnetised body, read when the stored magnetosphere reaches dose |
+| module | planetgen.physics.radiation_belts | GEN.983 | trapped radiation belts of a magnetised body, read when the stored magnetosphere reaches dose |
 | module | planetgen.galaxy.influence | GEN.342 | the influence set of an object, read by the acceleration kernel of the orbital update |
 | module | planetgen.physics.closest_approach | GEN.197 | the pair closest-approach library, read by the orbital event writer |
 | module | planetgen.physics.collision_outcome | GEN.197 | what a collision does, read by the orbital event writer |
@@ -56,13 +57,13 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.8:OH9 | GEN.768 | `protection_limits.GARMENTS` cooling and heating power, read by `outside_hours` |
 | row | 6.10:RV2 | GEN.722 | `radius_valley.CORE_MASS_SIGMA`, a width of the simulated survey, read by the follow-up |
 | row | 6.10:RV3 | GEN.722 | `radius_valley.ENVELOPE_SIGMA`, a width of the simulated survey, read by the follow-up |
-| row | 6.15:RB1 | GEN.800 | `radiation_belts.WIND_EDGE_FRACTION`, read when the belts are |
-| row | 6.15:RB2 | GEN.800 | `radiation_belts.ROTATION_EDGE_FACTOR`, read when the belts are |
-| row | 6.15:RB3 | GEN.800 | `radiation_belts.WIND_PEAK_FRACTION`, read when the belts are |
-| row | 6.15:RB4 | GEN.800 | `radiation_belts.INNER_PEAK_FRACTION`, read when the belts are |
-| row | 6.15:RB5 | GEN.800 | `radiation_belts.ATMOSPHERE_EDGE_SCALE_HEIGHTS`, read when the belts are |
-| row | 6.15:RB6 | GEN.800 | `radiation_belts.EARTH_OUTER_PEAK_GY_YR`, read when the belts are |
-| row | 6.15:RB7 | GEN.800 | `radiation_belts.OUTER_RISE_EXPONENT`, read when the belts are |
+| row | 6.15:RB1 | GEN.983 | `radiation_belts.WIND_EDGE_FRACTION`, read when the belts are |
+| row | 6.15:RB2 | GEN.983 | `radiation_belts.ROTATION_EDGE_FACTOR`, read when the belts are |
+| row | 6.15:RB3 | GEN.983 | `radiation_belts.WIND_PEAK_FRACTION`, read when the belts are |
+| row | 6.15:RB4 | GEN.983 | `radiation_belts.INNER_PEAK_FRACTION`, read when the belts are |
+| row | 6.15:RB5 | GEN.983 | `radiation_belts.ATMOSPHERE_EDGE_SCALE_HEIGHTS`, read when the belts are |
+| row | 6.15:RB6 | GEN.983 | `radiation_belts.EARTH_OUTER_PEAK_GY_YR`, read when the belts are |
+| row | 6.15:RB7 | GEN.983 | `radiation_belts.OUTER_RISE_EXPONENT`, read when the belts are |
 | module | planetgen.physics.tidal_rheology | GEN.955 | the rheology of a rocky or icy body under a tide (stage 1a, lock-free); stage 1b wires it into tidal heating, interior heat and circularisation |
 | module | planetgen.physics.spin_torques | GEN.957 | the star, moon and thermal-tide torques on a planet's spin (stage 2a, lock-free); stage 2b wires the sum into planet spin |
 | module | planetgen.physics.moon_orbits | GEN.959 | moon orbit drift, spiral-in and the Roche fall (stage 3a, lock-free); stage 3b wires the history into the planet |
@@ -84,3 +85,7 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.26:GS4 | GEN.979 | a constant of the birth-spin module, read when its wiring step lands |
 | row | 6.26:GS5 | GEN.979 | a constant of the birth-spin module, read when its wiring step lands |
 | row | 6.26:GS6 | GEN.979 | a constant of the birth-spin module, read when its wiring step lands |
+| module | planetgen.physics.condensate_shares | GEN.950 | Lodders 2003 condensates by temperature and the water share of the solids (lock-free); the wiring step reads the snow line temperature, the ice boost of the surface density and the water range of an icy body from it |
+| row | 6.35:CS1 | GEN.950 | `condensate_shares.ICE_CONDENSATION_K`, read when the wiring step lands |
+| row | 6.35:CS2 | GEN.950 | `condensate_shares.TABLE_11_MASS_PERCENT`, read when the wiring step lands |
+| row | 6.35:CS3 | GEN.950 | `condensate_shares.ROCK_OXYGEN_SHARE`, read when the wiring step lands |
