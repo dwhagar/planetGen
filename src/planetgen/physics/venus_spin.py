@@ -47,7 +47,7 @@ Table 1): a planet whose `tau` is longer than the age has not reached an equilib
 
 **What it does not do.** Tilt is not integrated (the split rule stands for the paper's simulations). The planet is taken to have no large moon (a moon's tide
 holds a planet's spin, as the Earth's), and spin-orbit resonances such as Mercury's 3:2 are `tidal_spin` and `spin_torques`. The paper's eccentricity limit is 0.3
-(`PAPER_MAX_ECCENTRICITY`): beyond it the result is computed at 0.3 and flagged. Stand-ins are in `docs/design/research/gap-filling-plan.md` section 6.80.
+(`PAPER_MAX_ECCENTRICITY`): beyond it the result is computed at 0.3 and flagged. Stand-ins are in `docs/design/research/gap-filling-plan.md` section 6.90.
 """
 
 import math

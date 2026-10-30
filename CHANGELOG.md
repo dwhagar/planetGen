@@ -2,6 +2,86 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2758] - 2026-10-30
+
+**Headline:** The code now knows how a young low-mass planet can be as big as Neptune or Saturn with a density under 0.1, and how it shrinks as it ages.
+
+### Changed
+- **The super-puff module (GEN.1042).** `physics/super_puff.py` gives the radius of a young planet of a few Earth masses under a thick hydrogen envelope (the law of Lopez and Fortney 2014 inside its range, the giant tables past it, so WASP-107 b comes out at its measured 10.7 Earth radii), the envelope a measured radius needs (Kepler-51 d: 41 percent for 9.3 Earth radii, Kepler-51 b: 16 percent for 7.1), the extra radius that obliquity tides give a hot close-in planet (Millholland 2019, from 20 Earth fluxes up, at most a factor 2), the radius at a later age with the envelope the star's XUV leaves it, and the gate of the oddity. It changes no generated world: the oddity that uses it is a later wiring step (GEN.1048).
+- **Stand-ins recorded.** Rows PF1 to PF4 in the stand-in registry (GEN.725): the gate, the envelope range, the occurrence share (not confirmed, no survey statistic found) and the tidal inflation.
+
+## [8.0.2757] - 2026-10-30
+
+**Headline:** The Galaxy Map is now always 95% of the browser window's height, recomputed on every resize.
+
+### Changed
+
+- MAP.350 follow-up: the Galaxy Map's height was the window less 40 pixels; it is now 95% of the window's height (less a header held at the top of the window), with the rest split above and below, and the page still scrolls past or before the map. `mapfit.js` `fillHeight` takes `FILL_SHARE` and `fillBuffer` gives the margin. No generated output changes.
+
+## [8.0.2756] - 2026-10-30
+
+**Headline:** The generator now has the physics of the seasons: how far a place swings between summer and winter from the planet's tilt, orbit, sea and air.
+
+### Added
+- **`physics/seasonal_swing.py` (GEN.1039).** For a latitude it gives the temperature through the year from the stored tilt and eccentricity, the sea's mixed layer, the ground and the air's heat capacity, and the heat the air carries away: the Earth's tropics barely move while 60 degrees swings tens of kelvin, a dry thin-air planet like Mars follows its light, and above a tilt of about 55 degrees the pole is the hottest place in summer. It also gives the share of the year above freezing and the peak wet-bulb temperature. Nothing puts the swing on a world yet; that is the weird-worlds wiring (GEN.1048).
+- **Stand-in rows SS1 to SS3** in the gap-filling plan (section 6.91) and the stand-in list.
+
+### Changed
+- **The registry section of the Venus-type spin is 6.90** (it shared 6.80 with the quadruple stability rows).
+
+## [8.0.2755] - 2026-10-30
+
+**Headline:** The help text of `planetgen run-job` and the replacement shown for the five ground-type rows no longer carry item codes.
+
+### Fixed
+- **TODO codes in text a user sees (TEST.487).** The `run-job` description named PERF.203 and the five stand-in rows of the surface ground types named GEN.474 as the replacement. The help now says what the command does without the code, and the rows say "ground types derived from the bulk composition and the melting of the mantle"; the item code stays in a comment. `test_no_todo_codes_shown` passes. Nothing generated changes.
+
+generation-output: unchanged
+
+TODO items resolved: TEST.487.
+
+## [8.0.2754] - 2026-10-30
+
+**Headline:** A new test audits the giant planets' mass tail, the hot Neptune desert and the derived giant rows, and records one bug: a metal-rich 1.5 to 2 solar-mass host can draw a giant above the 13 Jupiter-mass edge.
+
+### Changed
+
+- TEST.493: `tests/test_giant_oddity_audit.py` checks that runaway giants reach 10 Jupiter masses (a few tenths of a percent for a Sun-like host, where the ceiling is 0.01 of the star, 10.5 Jupiter masses) and stop at the brown dwarf edge; that a light star makes none; that Neptune-mass planets inside 3 days are a third or fewer of those at 3 to 10 days, with survivors left; that hot Jupiters are a few percent of giants; that the oddity table carries no row for the derived giant outputs (G2 to G6, G8, G10, G11) and none on a giant's internal heat (GEN.1033's). One test is a strict expected failure for the bug it found: `planet_mass.gas_outcome` returns the larger of the runaway mass and the core, the core is capped at 0.01 of the star, not at the brown dwarf edge (4 of 3,000 draws at 1.5 to 2 solar masses and twice the solar metals reach 15 to 21 Jupiter masses). No generated output changes.
+
+## [8.0.2753] - 2026-10-30
+
+**Headline:** The Galaxy Map's wheel no longer hops from one block window to the next; the camera's zoom carries it, and the picture does not change.
+
+### Changed
+- **The wheel's stage-crossing code is gone from the Galaxy Map (MAP.337, step 1 of 4).** `galaxystageview.js` no longer finds the block under the wheel, asks for the next window ahead of the camera, or swaps the displayed window as the wheel nears the end of a stage's range (`acrossAtMiddle`, `blockUnderWheel`, `windowAcrossFrom`, `prefetchAcross`). Since the zoom range became global (MAP.334) and the sector and system scenes come up from the camera's place (MAP.335), the wheel only zooms, opens the sector and the system where the camera is, and goes back out of them; a wheel turned in the whole-galaxy view zooms the camera straight in.
+
+## [8.0.2752] - 2026-10-30
+
+**Headline:** A test of the least pressure a planet's air has no longer fails on a thin air stored a part in a billion under 1 Pa.
+
+### Fixed
+- **The thin-air floor in test_planets (TEST.485).** A thin regime caps the air at exactly 1 Pa (`surface_air.VACUUM_PRESSURE_PA`) and the solve then drops every gas whose partial is under a billionth of the total (`STORE_MIN_FRACTION`), so the stored sum came out as 0.99999999993 Pa and the check for at least 1.0 failed. About one planet in forty of a plain G2V sweep stores a pressure like that. The floor is now 1 Pa less that billionth share of each gas the registry knows, with a test that the floor allows the trim and no more. Nothing generated changes.
+
+generation-output: unchanged
+
+TODO items resolved: TEST.485.
+
+## [8.0.2751] - 2026-10-30
+
+**Headline:** A new test checks that an M dwarf world that lost its water can keep an oxygen air with no life, and that oxygen alone never makes a life class live there.
+
+### Changed
+
+- TEST.491: `tests/test_w21_abiotic_oxygen.py` samples M dwarf ecosphere worlds across ages and masses (only the abiotic-oxygen family holds more than a trace of oxygen, up to the 95 percent cap, and no G or K host gets that family) and scores finished bodies with an oxygen air (a world too hot or too cold for any solvent supports no class; oxygen adds only the classes that breathe it). It passes: no bug to file. No generated output changes.
+
+## [8.0.2750] - 2026-10-30
+
+**Headline:** A 2+2 quadruple star system can now be tested for stability with a published classifier, as the 3+1 one already can.
+
+### Changed
+- `physics/quadruple_stability.py` (GEN.1031) also holds the 2+2 quadruple stability network of Vynatheya, Mardling and Hamers 2023 as plain numbers and a numpy forward pass (functions with the suffix `_2p2`, no machine-learning library). On my N-body check of 185 systems drawn like the paper's it agreed with the integration 91 percent of the time against 82 percent for the nested-triple test. It is lenient near the stability boundary (it calls some weakly chaotic systems stable), which the design note says. Nothing in generation calls it yet (GEN.1016 wires it), so no generated world changes.
+- `scripts/build_quadruple_stability.py` now takes `3p1` or `2p2` and the model file; registry rows QT1 to QT4 (section 6.81) and the design note `docs/design/systems/quadruple-stability-2p2.md`.
+
 ## [8.0.2749] - 2026-10-30
 
 **Headline:** The generator now has the physics of a Venus-type world, a thick-air planet whose slow or backward spin comes from the star's tide on its air.
