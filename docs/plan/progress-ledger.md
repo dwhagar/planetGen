@@ -1961,3 +1961,4 @@ Baseline: PR #1817.
 | TEST.302 | 8.1 | Bugs and flaky tests |
 | TEST.219 | 8.1 | Bugs and flaky tests |
 | TEST.478 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.1020 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
