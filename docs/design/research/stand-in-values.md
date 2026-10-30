@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 330 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 332 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -37,7 +37,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
 | T1 | 39 | 0 | 3 | 0 | 0 | 42 |
-| T2 | 59 | 0 | 0 | 1 | 0 | 60 |
+| T2 | 60 | 1 | 0 | 1 | 0 | 62 |
 | T3 | 51 | 4 | 2 | 10 | 0 | 67 |
 | T4 | 15 | 0 | 0 | 2 | 0 | 17 |
 | T5 | 15 | 5 | 1 | 0 | 0 | 21 |
@@ -45,7 +45,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T7 | 17 | 3 | 0 | 7 | 0 | 27 |
 | T8 | 0 | 0 | 0 | 0 | 1 | 1 |
 | T9 | 1 | 0 | 2 | 25 | 16 | 44 |
-| All | 225 | 20 | 11 | 57 | 17 | 330 |
+| All | 226 | 21 | 11 | 57 | 17 | 332 |
 
 ## How the labels were given
 
@@ -497,3 +497,10 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
 |---|---|---|---|---|---|---|---|---|---|
 | SCC1 | D | T5 | L0 | star_population.reference_fe_h: a population's counts are worked out at its mean [Fe/H] at the Sun's distance (the disc has no radial gradient here, a component has no value of its own in the counts) | none | the bright fraction is nearly linear in [Fe/H] over the range of a population (25 to 45 percent between 0 and -1.5 at 500 Lsun), so the fraction at the mean stands for the mixture | a population whose spread is wide enough that the fraction at the mean differs from the mean of the fractions by more than the count noise | counts worked out per component at its own [Fe/H] and per disc radius | COMPUTED (the bright fraction of the isochrone tables at [Fe/H] 0 and -1.5, test_star_population) |
+
+## 6.25 Stand-ins of the star class edges and the brown dwarf companion
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
+|---|---|---|---|---|---|---|---|---|---|
+| SC1 | P | T2 | L1 | constants.TEMP_RANGES: the A/F edge 7200 K and the K/M edge 3900 K (before, 7500 K and 3700 K); the F/G and G/K edges 6000 K and 5200 K are as they were | 100 K each | main-sequence stars of the solar neighbourhood | the star census mix of K, M and A against RECONS (`tests/audit/prevalence_stars.py`) | the spectral-type temperature table of Pecaut and Mamajek read in full | RECALLED (Pecaut and Mamajek 2013: F0V 7220 K, M0V 3850 K, rounded to 100 K; the luminosity ranges already put the K/M edge at 0.08 solar luminosities, about 3900 K) |
+| SC2 | P | T2 | L0 | tuning.BROWN_DWARF_COMPANION_CHANCE 0.03: the share of drawn trees that hold one brown dwarf more than the table's stars | 0.01 to 0.06 | stars heavier than 0.08 solar masses, trees a directive does not count | test_multistar.test_the_stars_of_a_tree_are_the_tables_count_and_a_brown_dwarf_is_one_more_member | a brown dwarf companion survey of M dwarfs | RECALLED (Metchev and Hillenbrand 2009: 3.2 percent of solar-type stars with a companion of 0.013 to 0.075 solar masses at 28 to 1590 AU) |

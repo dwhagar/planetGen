@@ -15,7 +15,7 @@ import pytest
 from planetgen import tuning
 from planetgen.generation import multistar
 from planetgen.generation.phenomena import hosts
-from planetgen.physics import brown_dwarf, ms_lifetime, stability, stellar_evolution as evolution
+from planetgen.physics import brown_dwarf, mass_boundaries, ms_lifetime, stability, stellar_evolution as evolution
 from planetgen.util import draw
 
 OLD = 8.0e9
@@ -180,13 +180,39 @@ def test_a_collapsed_placed_star_is_refused():
 
 def test_brown_dwarfs_keep_clear_of_the_stars_they_orbit():
     inside, total = 0, 0
-    for seed in range(1500):
-        tree = _tree(multistar.Placed("star", 0.5), 3.0e9, seed, n_stars=2)
+    for seed in range(4000):
+        tree = _tree(multistar.Placed("star", 0.5), 3.0e9, seed)
         for member in tree.members[1:]:
-            if member.kind == "brown-dwarf":
+            if member.kind == "brown-dwarf" and tree.member_count == 2:     # a pair of the star and the dwarf
                 total += 1
                 inside += tree.nodes[0].separation_au < multistar.BROWN_DWARF_DESERT_AU
     assert total > 20 and inside / total < 0.1
+
+
+@pytest.mark.parametrize("birth", [0.12, 0.25, 0.5, 1.0])
+def test_the_stars_of_a_tree_are_the_tables_count_and_a_brown_dwarf_is_one_more_member(birth):
+    """GEN.899: a companion under the hydrogen-burning limit used to use up one of the table's places (an M2V primary kept
+    13% of its 27%). Every star of a tree is a star; the brown dwarfs come at `tuning.BROWN_DWARF_COMPANION_CHANCE`."""
+    draws = 3000
+    table = multistar.star_count_weights(birth)
+    stars, dwarfs = Counter(), 0
+    for seed in range(draws):
+        tree = _tree(multistar.Placed("star", birth), 3.0e9, seed)
+        kinds = Counter(member.kind == "brown-dwarf" for member in tree.members[1:])
+        dwarfs += kinds[True]
+        stars[1 + kinds[False]] += 1
+        assert all(member.initial_mass_solar >= mass_boundaries.sol("hydrogen_burning_limit")
+                   for member in tree.members[1:] if member.kind != "brown-dwarf")
+    share = 1.0 - table[0] / sum(table)
+    assert abs((1.0 - stars[1] / draws) - share) < 4.0 * math.sqrt(share * (1.0 - share) / draws) + 0.005
+    chance = tuning.BROWN_DWARF_COMPANION_CHANCE
+    assert abs(dwarfs / draws - chance) < 4.0 * math.sqrt(chance * (1.0 - chance) / draws) + 0.005
+
+
+def test_a_forced_count_is_of_stars_and_adds_no_brown_dwarf():
+    for seed in range(300):
+        tree = _tree(multistar.Placed("star", 0.2), 3.0e9, seed, n_stars=2)
+        assert tree.member_count == 2 and tree.members[1].kind != "brown-dwarf"
 
 
 def test_the_companion_table_is_consistent():
