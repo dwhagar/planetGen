@@ -1944,3 +1944,4 @@ Baseline: PR #1817.
 | PERF.211 | 8.1 | The headline closes |
 | PERF.214 | 8.1 | Queue, caches and performance |
 | MAP.255 | 8.1 | Multi-star and compact systems |
+| TEST.345 | 8.1 | Bugs and flaky tests |
