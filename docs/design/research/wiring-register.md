@@ -116,3 +116,10 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.38:BR5 | GEN.476 | `birth_radioisotopes.EVENT_YIELD_SIGMA_LN`, read when the wiring step lands |
 | module | planetgen.physics.saturation_time | GEN.493 | the X-ray saturation time by stellar mass and initial rotation percentile from Johnstone et al. 2021 (lock-free); the wiring step has row p6 and the activity table's `t_sat` read it with the star's own mass |
 | row | 6.39:RS1 | GEN.493 | `saturation_time.ANCHORS_MYR`, read when the wiring step lands |
+| module | planetgen.physics.taxon_kernel | GEN.473 | the taxa of a belt from the disk's ice lines and the early heating by aluminium-26 (lock-free); the wiring step replaces `small_body_composition.kernel` with it and hands it the belt's temperature and the star's 26Al ratio |
+| row | 6.40:TK1 | GEN.473 | `taxon_kernel.WATER_LINE_K, AMMONIA_LINE_K`, read when the wiring step lands |
+| row | 6.40:TK2 | GEN.473 | `taxon_kernel.PRIMITIVE_BELOW_K, WIDTH_LN_T`, read when the wiring step lands |
+| row | 6.40:TK3 | GEN.473 | `taxon_kernel.IMPLANT_FRACTION`, read when the wiring step lands |
+| row | 6.40:TK4 | GEN.473 | `taxon_kernel.MELT_ENERGY_J_PER_KG, ALUMINIUM_MASS_FRACTION`, read when the wiring step lands |
+| row | 6.40:TK5 | GEN.473 | `taxon_kernel.ACCRETION_SPREAD_MYR`, read when the wiring step lands |
+| row | 6.40:TK6 | GEN.473 | `taxon_kernel.DRY_SPLIT, IGNEOUS_SPLIT, HYDRATED_SPLIT`, read when the wiring step lands |

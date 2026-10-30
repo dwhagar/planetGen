@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 396 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 402 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -36,16 +36,16 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 51 | 0 | 3 | 0 | 0 | 54 |
+| T1 | 52 | 0 | 3 | 0 | 0 | 55 |
 | T2 | 70 | 3 | 0 | 1 | 0 | 74 |
 | T3 | 53 | 5 | 2 | 10 | 0 | 70 |
-| T4 | 16 | 0 | 0 | 2 | 0 | 18 |
-| T5 | 21 | 5 | 1 | 0 | 0 | 27 |
-| T6 | 39 | 9 | 6 | 27 | 0 | 81 |
+| T4 | 16 | 0 | 0 | 3 | 0 | 19 |
+| T5 | 22 | 5 | 1 | 0 | 0 | 28 |
+| T6 | 39 | 9 | 7 | 28 | 0 | 83 |
 | T7 | 17 | 3 | 1 | 7 | 0 | 28 |
 | T8 | 0 | 0 | 0 | 0 | 1 | 1 |
-| T9 | 1 | 0 | 2 | 24 | 16 | 43 |
-| All | 268 | 25 | 15 | 71 | 17 | 396 |
+| T9 | 1 | 0 | 2 | 24 | 17 | 44 |
+| All | 270 | 25 | 16 | 73 | 18 | 402 |
 
 ## How the labels were given
 
@@ -623,3 +623,14 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | RS1 | P | T3 | L0 | saturation_time.ANCHORS_MYR (thirteen masses by three percentiles, read off the published figure by pixel position; the fast curve at 0.1 solar masses by eye) | each value within about 10 percent; the steep 1.1 to 1.2 solar mass edge of the fast curve within 30 percent | solar metallicity, 0.1 to 1.2 solar masses | a star sample with a saturated fraction against age and mass differing from the model's by more than a third (Medina 2022 gives 2.4 +- 0.3 Gyr for 0.1 to 0.3 solar masses, and the tests keep the median curve near it) | the tracks of the model itself (Johnstone's MIT-licensed code) or a measured saturated fraction against mass | test_saturation_time::test_the_published_curves_are_reproduced_at_their_anchors; test_saturation_time::test_the_mid_to_late_m_dwarfs_stay_saturated_for_gigayears_as_medina_2022_finds | GEN.493 | - |
+
+## 6.40 Stand-ins of the derived taxon kernel
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| TK1 | P | T1 | L0 | taxon_kernel.WATER_LINE_K 182 and AMMONIA_LINE_K 131 (the ice lines of Lodders 2003 that change the family: dry to hydrated, primitive to ice-rich) | none | a gas of solar composition at 10^-4 bar | a belt whose families change more than 15 K from the lines | a pressure-dependent line (Fray and Schmitt 2009, held second-hand) | test_taxon_kernel::test_the_families_change_at_the_ice_lines_of_lodders; test_taxon_kernel::test_the_trojans_sit_at_the_ammonia_line_and_the_belt_changes_at_the_snow_line | GEN.473 | - |
+| TK2 | P | T6 | L3 | taxon_kernel.PRIMITIVE_BELOW_K 166 and WIDTH_LN_T 0.05 (where hydrated bodies give way to primitive ones, which has no condensation line, and how soft a line is) | boundary 150 to 175 K; width 0.02 to 0.1 | all belts | a family share by zone more than 0.3 from Table 6 | a model of aqueous alteration against ice content and heating | test_taxon_kernel::test_the_solar_systems_zones_come_back_as_one_realisation_of_the_derived_kernel | GEN.473 | no data |
+| TK3 | P | T6 | L2 | taxon_kernel.IMPLANT_FRACTION 0.08 (the share of each family's mass moved to its neighbours by giant-planet scattering) | 0 to 0.2 | belts with a giant; none without | a C share of the inner belt or an S share of the outer one more than 0.1 from Table 6 | a scattering model of the system's own giants (Walsh et al. 2011, Raymond and Izidoro 2017, not read) | test_taxon_kernel::test_the_solar_systems_zones_come_back_as_one_realisation_of_the_derived_kernel | GEN.473 | - |
+| TK4 | P | T5 | L0 | taxon_kernel.MELT_ENERGY_J_PER_KG 1.2e6 and ALUMINIUM_MASS_FRACTION 0.0100 (the heat that melts a chondritic body and its aluminium, which with the decay energy of 26Al give the melting ratio 1.1e-5) | energy 0.8e6 to 2e6; aluminium 0.0086 to 0.0113 | dry chondritic bodies | a melting ratio more than 3 times from the isotopic modelling of planetesimal heating (Lichtenberg et al. 2016) | the heat balance of the planetesimal with its size and conduction | test_taxon_kernel::test_the_melting_ratio_is_a_few_times_the_galactic_mean_and_a_third_of_the_solar_systems | GEN.473 | - |
+| TK5 | P | T4 | L3 | taxon_kernel.ACCRETION_SPREAD_MYR 3 (the spread of the accretion times of the planetesimals of a zone after the isotope formed; the irons of the Solar System accreted under 0.5 Myr, the chondrites over 2 Myr, recalled) | 1 to 4 Myr | all zones | a melted share more than a third from the iron meteorite parent body count against the chondrites | a planetesimal formation model (streaming instability, the time of first formation) | test_taxon_kernel::test_the_melting_ratio_is_a_few_times_the_galactic_mean_and_a_third_of_the_solar_systems | GEN.473 | no data |
+| TK6 | P | T9 | L4 | taxon_kernel.DRY_SPLIT (S 0.85, K 0.10, L 0.05), IGNEOUS_SPLIT (M 0.25, A 0.65, V 0.10) and HYDRATED_SPLIT (C 0.85, B 0.15): how the taxa of a family share its mass | each within 0.1 | all belts | the mass of the taxa of a measured belt outside these shares by more than 0.2 | the chondrite group fractions by mass and the metal and crust fractions of a melted body (GEN.475) | test_taxon_kernel::test_a_belt_round_a_star_born_without_aluminium_26_has_no_igneous_taxa | GEN.473 | replace (GEN.475) |
