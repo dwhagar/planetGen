@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2757] - 2026-10-30
+
+**Headline:** The Galaxy Map is now always 95% of the browser window's height, recomputed on every resize.
+
+### Changed
+
+- MAP.350 follow-up: the Galaxy Map's height was the window less 40 pixels; it is now 95% of the window's height (less a header held at the top of the window), with the rest split above and below, and the page still scrolls past or before the map. `mapfit.js` `fillHeight` takes `FILL_SHARE` and `fillBuffer` gives the margin. No generated output changes.
+
 ## [8.0.2756] - 2026-10-30
 
 **Headline:** The generator now has the physics of the seasons: how far a place swings between summer and winter from the planet's tilt, orbit, sea and air.
