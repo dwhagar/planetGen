@@ -299,3 +299,4 @@ def test_every_gas_of_the_table_has_a_heat_capacity_on_the_grid():
 def test_an_air_with_carbonyl_sulphide_makes_a_column():
     column = rc.Column({"N2": 0.8e5, "CO2": 0.1e5, "OCS": 50.0}, 9.8)
     assert column.cp_dry[0] > 0
+
