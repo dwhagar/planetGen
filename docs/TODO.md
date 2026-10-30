@@ -1040,6 +1040,14 @@ with `clamp()`.
   class page goes to a Core lane), when the class data is ready (GEN.889
   and GEN.891). Aux 6 (old Aux 11) finishes UX.215 to UX.222 and
   retires.
+  Part 1 merged (#3885, Core 5, 12:15 AM EDT as the lane reported)
+  (2026-10-30 12:15 AM EDT): the planet and moon Life section names the
+  supported classes with scores, the class that lives there, its stage,
+  and a collapsed drinks, eats, breathes, gives-off block; class number
+  follows the life icons. Still open: part 2 (air-through-the-ages
+  chart, an additive route, no API version bump) and the adaptation
+  traits, which wait on GEN.875 and GEN.876 because no trait data is
+  stored.
   Prerequisites: none. Related: UX.221.
 
 - [ ] **UX.238 The "On this page" table of contents on object pages goes under the tab bar, not off to the left (bug)**
@@ -12970,6 +12978,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   organosulfur gases) are not filed: nothing reads them and no
   source-backed row exists; file them only if Boss wants those gases
   shown.
+  Aux 2 built (as the lane reported 12:01 AM EDT) (2026-10-30 12:01 AM
+  EDT): branch claude/gen894-strange-classes, no PR yet, golden
+  untouched, moves generated output so it rides train 2 with --affects:
+  classes 5, 8, 9 read acid_medium, a worked-out ammonia share of the
+  water and a silicon-rich-crust flag; new sulfur_supply for the acid
+  eaters; ledger rows for classes 4, 5, 7, 9 built; registry LF61 text
+  and new LF62. A 2,338-body sample shows no class 5, 7, 8 or 9 world:
+  generated worlds are too wet for acid (SO2 worlds hold 0.1 to 60
+  percent water) and no body reaches 10 percent ammonia (best 4.6
+  percent), so Class 8 stays unreachable unless the 10 percent gate is
+  lowered. Not tuned; asked Boss.
   Prerequisites: GEN.888.
 
 - [ ] **GEN.897 K dwarfs are 19.4% of stars against 11.6% to 12.9% observed (G 3.1% against 4.1% to 5.0%): the K class range reaches down to 3700 K (bug)**
@@ -14874,22 +14893,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the star-side train after GEN.932. Owner: Bug 1 (reassignable to Star
   1). Version 8.1.
   Prerequisites: none. Related: GEN.932, GEN.995.
-
-- [ ] **GEN.997 A moon of a planet around a very young star (under 0.06 Gy) holds a life class: test_planets_respect_their_stars_age_and_history is red on main (bug)**
-  Aux 4 report (as the lane reported 10:58 PM EDT 2026-10-29):
-  src/tests/test_star_population.py::test_planets_respect_their_stars_age_and_history
-  fails on main b8ad6a6ce because a moon of a planet around a
-  pre-main-sequence star under 0.06 Gy has a life class (example: planet
-  class Q with life 1, moon with life 3). Life must start only after the
-  life-stage schedule allows it (GEN.649, GEN.750 timeline), so a star
-  this young can hold none anywhere. Do: find which path gives the moon
-  a life class that the planet's own path withholds (the moon is
-  probably finished with the star's provisional age or without the stage
-  gate), fix it, and keep the test green with the same seed. Changes
-  generated output only if the gate moves a stored life class: epoch and
-  --affects fill if so. Owner: Aux 2 (life from conditions). Version
-  8.1.
-  Prerequisites: none. Related: GEN.992, GEN.750, TEST.463.
 
 - [ ] **GEN.998 The default galaxy disc gas depletion time is 0.85 Gy against the 4.2 Gy the Galaxy measures: check the value and its source (bug)**
   Sources 2 finding (as the lane reported 11:22 PM EDT 2026-10-29),
@@ -19875,6 +19878,17 @@ clears each one.
   species setup hit one random failure in the gas solver
   (gas_equilibrium np.diag) that passed alone: find the input that makes
   np.diag fail and fix it or file it. Not Core 5's.
+  Another red (Sources 2, as the lane reported 12:11 AM EDT) (2026-10-30
+  12:11 AM EDT):
+  test_object_rows::test_planets_moons_belts_and_comets_are_read_back
+  fails on main with KeyError score in the life_class loader (the
+  life-class fields were reshaped by API.37 #3871 or the earlier class
+  work); find the commit and fix it or hand it to its owner.
+  Gate-finish note (Core 5, as the lane reported 12:15 AM EDT)
+  (2026-10-30 12:15 AM EDT): the 8 test_habitability_end_to_end_browser
+  tests error in the habitable_galaxy fixture on a slow machine (900 s
+  setup timeout in the gas solver), so they did not run to assertions
+  there; the train gate or a fast machine must run them.
   Prerequisites: none. Related: MAP.345, GEN.980, TEST.461.
 
 - [ ] **TEST.464 Cache band_fractions between calls so test_gen_component_pass and the whole-sphere census fixtures finish inside the gate (bug)**

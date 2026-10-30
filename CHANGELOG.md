@@ -2,6 +2,21 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2612] - 2026-10-30
+
+**Headline:** Worlds around stars younger than 0.1 billion years no longer hold life.
+
+### Fixed
+
+- GEN.997: since the planet class became a result of the finished body, nothing kept life off the worlds and moons of a very young star, so a planet around a star under 0.1 billion years old could hold a life class (the star-population test caught it). The life step now gives no class, schedule or timeline to any body whose star is younger than the 0.1 billion years a crust and oceans take, planets and moons alike.
+
+## [8.0.2611] - 2026-10-30
+
+**Headline:** A planet's or moon's page says which life classes it supports, which one lives there and what that life eats, drinks, breathes and gives off.
+
+### Changed
+- **The Life section of a planet or moon page names the life class.** It lists "Supports Class 1a life (oxygenic light-eaters), score 7 of 9", the other classes it supports with their scores, and "Has Class 1a life, at the stage of small mobile animals (animal grade A2)", then a collapsed block with what that class drinks, eats, breathes and gives off. The class number (1a) now follows the four life icons on the object page and the system page. The chart of the air through the ages and the adaptation traits follow in later changes.
+
 ## [8.0.2610] - 2026-10-30
 
 **Headline:** The inner-system share anchors of the planet architecture are two ordered tuples, so the constants test passes again.

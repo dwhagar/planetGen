@@ -276,6 +276,7 @@ def planet_sections(name, row, sheet, species, piece):
     return {
         "summary": [trusted_html(sentence) for sentence in planet_summary.summary_sentences(name, row or {}, values, raw)],
         "life": trusted_html(blocks_html(parts["life"], _ref_link)),
+        "life_class": planet_layout.life_class_view(row),
         "civilization": [trusted_html(sentence) for sentence in planet_layout.civilization_sentences(row, species)],
         "notes": trusted_html(blocks_html(parts["rest"], _ref_link)),
         "phi6_blocks": trusted_html(blocks_html(parts["phi6"], _ref_link)),
@@ -626,7 +627,7 @@ def render_item(kind, printed_id):
         description=f"The {label.lower()} {name}: where it is, what it is like and everything stored about it.",
         kind=kind,
         kind_label=label,
-        habitability=found if kind in ("planet", "moon") else None,
+        habitability={**found, "life_class_id": (row or {}).get("life_class_id")} if kind in ("planet", "moon") else None,
         chips=trusted_html(chips_html(row, page_url("habitability_levels"))) if kind in ("planet", "moon") and row else "",
         facilities=hosted_facilities(db, system_id, kind, row) if row is not None else "",
         species=species,
