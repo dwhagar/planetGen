@@ -6176,7 +6176,11 @@ def _life_class_clause(alias, class_ids, clauses, params):
     """Adds the filter on the life classes `class_ids` (ids such as `"1a"`, `"6"`) of the table `alias`."""
     if not class_ids:
         return
-    pairs = sorted((int(class_id[:1]), class_id[1:]) for class_id in class_ids)
+    known = [class_id for class_id in class_ids if class_id in life_classes.BY_ID]   # a stray value matches nothing
+    if not known:
+        clauses.append("1 = 0")
+        return
+    pairs = sorted((int(class_id[:1]), class_id[1:]) for class_id in known)
     clauses.append(f"({alias}.life_class, COALESCE({alias}.life_class_variant, '')) IN ({','.join('(?, ?)' for _ in pairs)})")
     for number, variant in pairs:
         params.extend((number, variant))
