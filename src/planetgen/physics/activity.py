@@ -33,7 +33,7 @@ sections 2.1 to 2.4; every rate here is a design default good to about
 
 import math
 
-from planetgen.physics import constants, stellar_spectrum, unit_registry as units
+from planetgen.physics import constants, stellar_library, stellar_spectrum, unit_registry as units
 from planetgen.util import draw
 
 _au_to_m = units.converter("au", "m")
@@ -288,8 +288,6 @@ def generate_activity(star):
     """Sets `STAR_ACTIVITY_FIELDS` on an ordinary star (main sequence,
     subgiant, subdwarf, giant or white dwarf)."""
     set_galactic_hazard(star)
-    # GEN.443: the UV-C share of the blackbody (R17), from the star's own stream so no draw of the run's moves.
-    star.uv_c_share = stellar_spectrum.draw_uv_c_share(draw.Stream(f"uv_c_share:{star.mass!r}:{star.age!r}:{star.temperature!r}"))
     mass_sol = star.mass / constants.SOLAR_MASS_TO_KG
     luminosity = star.luminosity or 0.0
     age = max(star.age or 0.0, 1e-4)
@@ -317,6 +315,32 @@ def generate_activity(star):
         star.xuv_fluence_j = _yr_to_s(_gyr_to_yr((coronal_xuv_w(ratio * luminosity) + photosphere) * age))
     star.log_lx_lbol = math.log10(ratio)
     star.l_xuv_w = coronal_xuv_w(ratio * luminosity) + photosphere
+    star.uv_c_share = _uv_c_share(star)
+
+
+def uv_shares_of(star):
+    """
+    The UV-C, UV-B and UV-A power of an ordinary star as multiples of its blackbody's (GEN.971, `stellar_library.uv_shares`): the
+    model atmosphere of its effective temperature and surface gravity plus the far ultraviolet of its corona, which is its coronal
+    XUV (`log_lx_lbol`; the photosphere's own XUV is in the model). None when the star lacks one of those quantities or the library
+    is missing and the run disregards that.
+    """
+    mass, radius = getattr(star, "mass", None), getattr(star, "radius", None)
+    temperature, luminosity = getattr(star, "temperature", None), getattr(star, "luminosity", None)
+    if not (mass and radius and temperature and luminosity):
+        return None
+    log_ratio = getattr(star, "log_lx_lbol", None)
+    corona = 0.0 if log_ratio is None else coronal_xuv_w(10 ** log_ratio * luminosity) / luminosity
+    return stellar_library.uv_shares(mass, radius, temperature, corona)
+
+
+def _uv_c_share(star):
+    """The star's `uv_c_share`: the library's (GEN.971); the seeded GEN.443 share, from the star's own stream so no draw of the run's
+    moves, for a run that disregards a missing library."""
+    shares = uv_shares_of(star)
+    if shares is not None:
+        return shares["uv_c"]
+    return stellar_spectrum.draw_uv_c_share(draw.Stream(f"uv_c_share:{star.mass!r}:{star.age!r}:{star.temperature!r}"))
 
 
 def _set_remnant(star, l_xuv_w, age_gy):

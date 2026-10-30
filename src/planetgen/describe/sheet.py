@@ -154,7 +154,7 @@ _STAR = (
     *_rows("rotation", ("rotation_period_hours", "Rotation period"), ("axial_tilt_deg", "Axial tilt")),
     *_rows("stellar", ("log_lx_lbol", "X-ray to bolometric luminosity, log"), ("l_xuv_w", "X-ray and ultraviolet power"),
            ("xuv_saturated", "X-ray output saturated", FLAG), ("xuv_fluence_j", "X-ray and ultraviolet energy emitted"),
-           ("uv_c_share", "Share of the ultraviolet that is UV-C"),
+           ("uv_c_share", "UV-C power against its blackbody's"),
            ("flare_n33_per_yr", "Large flares a year"), ("flare_alpha", "Flare size distribution slope"),
            ("lethal_event_rate_per_gyr", "Lethal events per billion years")),
     *_rows("galactic", ("galactic_orbital_period_gy", "Galactic orbital period"),

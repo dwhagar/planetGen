@@ -13,10 +13,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | dataset | baraffe_isochrones | GEN.936 | the Baraffe 2015 isochrones; the 0.08 to 0.1 solar mass main sequence (GEN.936) and the brown dwarf radius by age (GEN.948) read them |
 | dataset | hitran_cia | GEN.850 | the HITRAN collision-induced absorption is reduced at setup and read by `line_opacity`, which the greenhouse step does not call yet |
 | dataset | ir_ktables | GEN.850 | the ExoMol correlated-k tables are reduced at setup and read by `line_opacity`, which the greenhouse step does not call yet |
-| dataset | stellar_spectra | GEN.971 | the ATLAS9 and PHOENIX-ACES spectra reduced to band shares; the star's UV shares and map colour will read them in place of the blackbody |
-| module | planetgen.physics.stellar_library | GEN.971 | the band lookup and the corona's far ultraviolet; replaces the seeded UV-C share of `activity.generate_activity` once wired |
-| row | 6.33:SL2 | GEN.971 | `stellar_library.FUV_OVER_XUV`, not read until the UV shares are wired |
-| row | 6.33:SL3 | GEN.971 | `stellar_library.FUV_IN_UV_C`, not read until the UV shares are wired |
 | module | planetgen.physics.alpha_tracks | GEN.744 | the equivalent [Fe/H] of an alpha-enhanced star; the track lookup of a high-alpha star will read it |
 | module | planetgen.physics.age_metallicity | GEN.744 | the disc's age-metallicity relation by branch; the star's [Fe/H] draw will follow its age |
 | row | 6.34:AL1 | GEN.744 | `alpha_tracks.ALPHA_SHARE`, not read until the track lookup is wired |
