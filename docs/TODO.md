@@ -12744,7 +12744,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   life classes are in reports/life-chemistry-review-2026-10-28-files;
   the registry holds the life-class stand-in rows (LF*). Catalog
   sections 3 and 4.
-  Prerequisites: GEN.862, UX.237, API.37.
+  Prerequisites: GEN.862, UX.237.
 
 - [ ] **GEN.864 Sentient life per life class: sentient species and civilizations draw from the life class scores of a world**
   Boss (2026-10-28, 7:41 PM EDT): the sentient life portion is left for
@@ -15378,6 +15378,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   change. Owner: Aux 5. Version 8.1.
   Prerequisites: none. Related: TEST.403, PERF.188, GEN.935.
 
+- [ ] **PERF.210 Cut the cost of GEN.992: re-finish only the bodies whose result can change after the star age is final**
+  Aux 7 report (as the lane reported 11:12 PM EDT 2026-10-29). GEN.992
+  makes every rocky planet and moon again when it was made at an age
+  more than 2 percent younger than the final age; every re-run is a full
+  air solve, so system generation on a G2V takes 64 percent longer (12
+  systems: 28.8 s to 47.3 s, 232 bodies made again). Do: find which
+  bodies cannot change (for example an airless body, or one whose air,
+  class and field do not read the age) and skip them, reuse an unchanged
+  air solve, or cache what the re-run shares with the first pass; keep
+  every result identical to GEN.992 with the same seeds. Rides after
+  GEN.992 merges (it edits the same function). Owner: Aux 7. Version
+  8.1.
+  Prerequisites: GEN.992. Related: GEN.992, PERF.209.
+
 ## DB: Database and schema
 
 DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
@@ -16415,20 +16429,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   changed --resume.
   Prerequisites: API.35. Related: GEN.825, DB.107, GEN.826,
   API.35, MAP.314, MAP.315, UX.231.
-
-- [ ] **API.37 API fields for the life class: life_class, variant, best, best score, per-class scores and the animal grade, with an API version bump**
-  Life class system design (design thread, Boss 9:10 to 9:13 PM EDT
-  2026-10-28): docs/design/habitability/life-classes.md. ORDER FINAL (Boss, 9:20 PM EDT: all four design cards answered option 1). L10 part 1 (testing mode allows the bump); the
-  API compatibility page lists it.
-  Research (2026-10-09): OWNER Core 5 (assigned 5:14 PM EDT 2026-10-29
-  by TODO on Boss's ask at 5:13 PM EDT for a lock-free 8.1 chain for
-  Core 5; the former owner lane is retired). Step 1 of 10 in Core 5's
-  chain: API.37, MAP.345 (then UX.237 when GEN.891 merges), UX.205,
-  UX.186, UX.187, API.33, UX.164, PERF.179, PERF.178, PERF.180, with
-  PERF.137's slices (PERF.205 to PERF.208) alongside. Display, API and
-  progress-line work only: no generated-output change and no lock turn;
-  if any step turns out to change a stored value, stop and tell TODO.
-  Prerequisites: none.
 
 ## ADM: Admin tools
 
@@ -19821,6 +19821,13 @@ clears each one.
   owns the code; the Core 3 group goes to Core 3 first. Some may be this
   machine's MariaDB or the flaky class-mismatch (GEN.980, fixed on Core
   1's branch for train 2). Owner: Bug 2. Version 8.1.
+  More reds from Core 5 (as the lane reported 11:17 PM EDT) (2026-10-29
+  11:17 PM EDT): test_maintenance map rebuild and
+  test_db_column_round_trip test_every_column_is_written (the porosity
+  column, GEN.980/TEST.461 on train 2) are red on main; test_population
+  species setup hit one random failure in the gas solver
+  (gas_equilibrium np.diag) that passed alone: find the input that makes
+  np.diag fail and fix it or file it. Not Core 5's.
   Prerequisites: none. Related: MAP.345, GEN.980, TEST.461.
 
 - [ ] **TEST.464 Cache band_fractions between calls so test_gen_component_pass and the whole-sphere census fixtures finish inside the gate (bug)**

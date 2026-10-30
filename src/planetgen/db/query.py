@@ -39,7 +39,7 @@ import zlib
 import pymysql
 
 from planetgen.db.store import (
-    STATEMENT_TIMEOUT_ERRORS, compact_host_of_star, escape_like, get_connection, get_galaxy_bounds, get_galaxy_shape, sector_deletions, surrounding_cloud,
+    STATEMENT_TIMEOUT_ERRORS, body_class_scores, compact_host_of_star, escape_like, get_connection, get_galaxy_bounds, get_galaxy_shape, sector_deletions, surrounding_cloud,
     with_gases,
 )
 from planetgen.db import compact_pairs, countcache, hostednebula, interests, nebula_blocks, point_columns
@@ -3432,10 +3432,13 @@ def system_detail(conn, system_id):
         "SELECT * FROM planets WHERE star_system_id = ? ORDER BY orbital_index", (system_id,)
     ).fetchall(), False)
     colonized = colonized_body_ids(conn, system_id)
-    moons_by_planet = {}
-    for moon in with_gases(conn, conn.execute(
+    moon_rows = with_gases(conn, conn.execute(
         "SELECT * FROM moons WHERE star_system_id = ? ORDER BY planet_id, orbital_index", (system_id,)
-    ).fetchall(), True):
+    ).fetchall(), True)
+    planet_scores = body_class_scores(conn, [planet["id"] for planet in planet_rows], False)
+    moon_scores = body_class_scores(conn, [moon["id"] for moon in moon_rows], True)
+    moons_by_planet = {}
+    for moon in moon_rows:
         moons_by_planet.setdefault(moon["planet_id"], []).append(moon)
     planets = []
     hosts = {}  # one lookup per host star, not per planet
@@ -3443,8 +3446,8 @@ def system_detail(conn, system_id):
         if planet["star_id"] not in hosts:
             hosts[planet["star_id"]] = compact_host_of_star(conn, planet["star_id"])
         host = hosts[planet["star_id"]]
-        planet_dict = _with_life_fields(_with_printed_uid(planet), colonized["planets"], host)
-        planet_dict["moons"] = [_with_life_fields(_with_printed_uid(m), colonized["moons"], host)
+        planet_dict = _with_life_fields(_with_printed_uid(planet), colonized["planets"], host, planet_scores.get(planet["id"]))
+        planet_dict["moons"] = [_with_life_fields(_with_printed_uid(m), colonized["moons"], host, moon_scores.get(m["id"]))
                                 for m in moons_by_planet.get(planet["id"], [])]
         planets.append(planet_dict)
 
@@ -3508,7 +3511,7 @@ def system_detail(conn, system_id):
     }
 
 
-def _with_life_fields(body, colonized=(), compact_host=None):
+def _with_life_fields(body, colonized=(), compact_host=None, class_scores=None):
     """
     Adds the system page's per-body life summary to one `planets`/`moons`
     row dict: `habitable` (its overall PHI-6 colour is Blue or Green, `habitability.is_habitable`, the same test
@@ -3519,8 +3522,12 @@ def _with_life_fields(body, colonized=(), compact_host=None):
     the page only ever describes a timeline for a habitable class, see
     `Planet._generate_life_and_flavor_paragraphs` -- or a colony stands on
     it: `colonized` is that table's ids from `colonized_body_ids`, schema
-    v42).
+    v42), `life_class_id` (the class that lives on it as one id such as `"1a"`, or `None`) and `life_class_scores`
+    (`{class id: score 1 to 9}` for every class it supports, from `class_scores`, the body's
+    `planet_life_class_scores` or `moon_life_class_scores` rows; empty when it supports none, API.37).
     """
+    body["life_class_id"] = life_classes.class_id(body.get("life_class"), body.get("life_class_variant"))
+    body["life_class_scores"] = dict(sorted((class_scores or {}).items()))
     body["habitable_class"] = body["planet_class"] in HABITABLE_PLANET_CLASSES
     body["habitable"] = habitability.is_habitable(body.get("phi4"))
     body["life_stage"] = body["life_stage"] if body["habitable_class"] else None
