@@ -1770,34 +1770,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   checks one of each kind.
   Prerequisites: MAP.207. Related: GEN.237, GEN.209, MAP.145.
 
-- [ ] **MAP.234 Galaxy Map key: a Key section in the help dialog and an on-map key that names everything the map draws**
-  Boss (2026-10-16, 7:16 PM EDT, timeline): "ON the galaxy map, I just
-  realized there is no key, but what are the greenish colored spheroid
-  shapes? They seem to be 2 intersecting elipses to define a space. What
-  are those?" Found by the read-only "galaxy map shapes" thread: they
-  are superbubbles (GEN.254, merged #1814), each drawn as three faint
-  great circles (`static/galaxymap3d.js`, "Superbubbles (GEN.254)",
-  colour 0x6fb3d8, opacity 0.14, always on, never picked, no hover, no
-  legend entry). The help dialog (`GALAXY_MAP_HELP` in
-  `src/planetgen/web/maps/galaxymap3d.py`, "Reading the map") covers
-  only density blocks and stars; it does not mention superbubbles,
-  nebula clouds, supernova remnants, territory balls, course lines or
-  the made-sector rings. The only on-map legends today are the Color by
-  gradient bar (MAP.131) and the course key (NAV.20). Done: a Key
-  section in the help dialog and a small on-map key (collapsible) naming
-  every drawn thing with its colour and shape: density blocks, stars,
-  nebula clouds, remnants, superbubbles, territories, the course line
-  and the made-sector rings; each entry appears only when that thing is
-  drawn at the current view; a browser test that every kind drawn on the
-  map has a key entry (so a new layer cannot be added without one). Not
-  covered elsewhere: DOC.7 is the help page (it lists "nebula and
-  territory overlays" but not superbubbles) and MAP.217 gives a legend
-  per toggled layer, but superbubbles are not a toggled layer today. The
-  superbubble toggle, hover name and radius are MAP.235. Owner: Core 2
-  (the Galaxy Map and its help dialog).
-  Prerequisites: none. Related: MAP.131, NAV.20, MAP.217, DOC.7,
-  GEN.254.
-
 - [ ] **MAP.235 Superbubbles as a registered Galaxy Map layer: a toggle, a hover name and radius, and a key row**
   Split from MAP.234 (2026-10-16, 7:21 PM EDT). Superbubbles (GEN.254)
   are drawn always on as faint great circles with no toggle, no picking
@@ -1817,6 +1789,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 2
   held it before; this replaces any earlier owner line).
+  Update (Core 2, MAP.234 #3978) (2026-10-30 6:14 AM EDT): The Key is
+  merged; a test now requires every new layer to have a legend line, key
+  line or stated reason. Territory balls have no line yet because they
+  are not drawn. The superbubble toggle and hover is this item.
   Prerequisites: none. Related: MAP.234, MAP.217, GEN.254.
 
 - [ ] **MAP.242 The Galaxy Map and its key draw what the family has: arms and bar only where they exist, a spheroid shell, a lens or a clumpy body**

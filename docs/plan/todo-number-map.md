@@ -1987,7 +1987,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.231 | The Sector Map and the System Map use the label engine | none | done, PR #3001 |
 | MAP.232 | Names for the big features: spiral arms, bar, bulge, halo, satellites and clusters | none | open |
 | MAP.233 | Names for nebulae on the Galaxy Map | none | done, PR #2980 |
-| MAP.234 | Galaxy Map key: a Key section in the help dialog and an on-map key that names everything the map draws | none | open |
+| MAP.234 | Galaxy Map key: a Key section in the help dialog and an on-map key that names everything the map draws | none | done, PR #3978 |
 | MAP.235 | Superbubbles as a registered Galaxy Map layer: a toggle, a hover name and radius, and a key row | none | open |
 | MAP.236 | Superbubbles need clearer bounds and slightly more transparency on the Galaxy Map | none | done, PR #3739 |
 | MAP.237 | The Galaxy Map's "Charted only" view is invisible again, and charted regions are shown by colour and opacity, not outlined blocks (bug) | none | done, PR #FOLDED |
