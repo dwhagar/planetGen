@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2682] - 2026-10-30
+
+**Headline:** The Compact binaries panel of an unbuilt system now gives the X-ray luminosity of each accreting pair.
+
+### Changed
+- **Stored member radius and X-ray luminosity (GEN.952).** Every member of a stored companion tree keeps its radius (`scatter_members.radius_au`, schema v184). An accreting neutron star or black hole with a companion now shows the power it radiates in X-rays in the Compact binaries panel of the system page and as `x_ray_luminosity_w` in the API, worked out from the masses, radii and orbit of the pair with the same law the generator uses. Systems made before this change have no radius and show a dash until the galaxy is regenerated.
+
+generation-output: changed
+
 ## [8.0.2681] - 2026-10-30
 
 **Headline:** Young stars take as long to settle onto the main sequence as the MIST models say: stars of 1.5 solar masses and up, and of 0.2, stay young about twice as long.
