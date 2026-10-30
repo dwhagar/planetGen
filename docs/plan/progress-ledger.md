@@ -1954,3 +1954,4 @@ Baseline: PR #1817.
 | PERF.212 | 8.1 | Queue, caches and performance |
 | GEN.1008 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | GEN.1007 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.1002 | 8.1 | Stand-in replacements |
