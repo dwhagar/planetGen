@@ -1,5 +1,0 @@
-**Headline:** The code now knows how a small planet that has lost most of its hydrogen to its star is left with an air that is mostly helium.
-
-### Changed
-- **The helium fractionation module (GEN.1045).** `physics/helium_fractionation.py` splits an envelope's mass loss between hydrogen and helium (Hu et al. 2015, Malsky et al. 2023): while the loss is under the diffusion-limited flux only hydrogen leaves, and over it the two leave in a mix that is richer in hydrogen the stronger the loss. A planet that loses over 90 percent of its envelope at a rate near that flux comes out more than 80 percent helium by mass; a 10 Earth-mass planet losing half a 0.5 percent envelope in 5 Gyr gains helium to 0.29. The audit of `envelope_escape` found it follows the envelope's mass and keeps it a solar mix, so it cannot do this; the new module takes its loss history and changes nothing in it. No generated world changes: the oddity that uses it is a later wiring step (GEN.1047).
-- **Stand-ins recorded.** Rows HF1 to HF3 in the stand-in registry (GEN.725): the diffusion coefficient, the homopause values and the starting helium share.
