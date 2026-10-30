@@ -374,3 +374,9 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.120:BP2 | UX.241 | `belt_page.DENSITY_DIAMETERS_KM`, read when the page route lands |
 | row | 6.120:BP3 | UX.241 | `belt_page.L2_FLOOR_KG`, read when the page route lands |
 | row | 6.120:BP4 | UX.241 | `belt_page.SHARE_SAMPLES, MIN_SHARE`, read when the page route lands |
+| module | planetgen.physics.trojans | GEN.1149 | what may sit at L4 and L5 of a pair: mass rule, libration, swarm split, map label (lock-free); the generator draw and the map icon call it |
+| row | 6.121:TJ1 | GEN.1149 | `trojans.MU_CRIT`, read when the swarm draw lands |
+| row | 6.121:TJ2 | GEN.1149 | `trojans.stable`, read when the swarm draw lands |
+| row | 6.121:TJ3 | GEN.1149 | `trojans.libration_period, TADPOLE_LIMIT_DEG`, read when the orbit overlay lands |
+| row | 6.121:TJ4 | GEN.1149 | `trojans.LEADING_SHARE_RANGE`, read when the swarm draw lands |
+| row | 6.121:TJ5 | GEN.1149 | `trojans.ECC_MAX, INCLINATION_MAX_DEG`, read when the swarm draw lands |
