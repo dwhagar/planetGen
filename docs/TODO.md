@@ -13840,6 +13840,34 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   train. Owner: Star 2 (after GEN.744 part A merges).
   Prerequisites: GEN.944. Related: GEN.944, GEN.744, GEN.405.
 
+- [ ] **GEN.1026 Carbon star and S star flags on the star sheet from the thermal-pulse and dredge-up count of the post-main-sequence track**
+  Split from GEN.944 by Star 2 (relayed 2:33 PM EDT 2026-10-30 as the
+  lane reported). The variability flags (Cepheid, Mira and semiregular,
+  T Tauri, Herbig Ae/Be) are in draft PR #4082; carbon stars and S stars
+  need the thermal-pulse count and the third dredge-up from the
+  post-main-sequence track (the carbon-star abundances already exist in
+  the composition code). Do: count the thermal pulses and dredge-up on
+  the asymptotic giant branch track, derive the carbon-to-oxygen ratio
+  from it, and flag a star with C/O above 1 as a carbon star and one
+  near 1 with s-process enhancement as an S star, as a derived row on
+  the star sheet. Done: the flags follow from the track and the
+  composition, with a test over a mass and metallicity sweep, and the
+  stand-ins are registered in GEN.725 with tier and tweak level. Owner:
+  Star 2 (after GEN.944 flags merge).
+  Prerequisites: GEN.944. Related: GEN.944, GEN.725.
+
+- [ ] **GEN.1027 Ap and Am stars: a chemically peculiar branch of the A-star draw with rotation and magnetic field**
+  Split from GEN.944 by Star 2 (relayed 2:33 PM EDT 2026-10-30 as the
+  lane reported). Ap and Am stars need a chemically peculiar branch with
+  slow rotation and, for Ap, a strong magnetic field. Do: add the branch
+  to the A-star draw (share of A stars, slow rotation, field strength
+  range) from published statistics, flag the star on the sheet, and
+  register the stand-ins in GEN.725 with tier and tweak level. Done: A
+  stars carry the flag at the published share with the matching rotation
+  and field, with a test. Changes generated output, so it rides a train.
+  Owner: Star 2 (after GEN.1024).
+  Prerequisites: GEN.944. Related: GEN.944, GEN.725.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
