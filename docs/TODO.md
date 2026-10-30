@@ -12970,6 +12970,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   organosulfur gases) are not filed: nothing reads them and no
   source-backed row exists; file them only if Boss wants those gases
   shown.
+  Aux 2 built (as the lane reported 12:01 AM EDT) (2026-10-30 12:01 AM
+  EDT): branch claude/gen894-strange-classes, no PR yet, golden
+  untouched, moves generated output so it rides train 2 with --affects:
+  classes 5, 8, 9 read acid_medium, a worked-out ammonia share of the
+  water and a silicon-rich-crust flag; new sulfur_supply for the acid
+  eaters; ledger rows for classes 4, 5, 7, 9 built; registry LF61 text
+  and new LF62. A 2,338-body sample shows no class 5, 7, 8 or 9 world:
+  generated worlds are too wet for acid (SO2 worlds hold 0.1 to 60
+  percent water) and no body reaches 10 percent ammonia (best 4.6
+  percent), so Class 8 stays unreachable unless the 10 percent gate is
+  lowered. Not tuned; asked Boss.
   Prerequisites: GEN.888.
 
 - [ ] **GEN.897 K dwarfs are 19.4% of stars against 11.6% to 12.9% observed (G 3.1% against 4.1% to 5.0%): the K class range reaches down to 3700 K (bug)**
@@ -14929,6 +14940,19 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   star-side train after GEN.932 (Bug 1 owns star_formation.py). Owner:
   Sources 2 with Bug 1. Version 8.1.
   Prerequisites: GEN.932. Related: GEN.998, GEN.476, GEN.469.
+
+- [ ] **GEN.1000 Draw the largest body of every belt from the small body size law (replaces the stand-in largest-body size in the GEN.477 belt mass)**
+  Sources 2 finding (as the lane reported 11:53 PM EDT 2026-10-29): the
+  belt mass of GEN.477 needs the belt's largest body, which nothing in
+  the generator provides. The size law is researched (GEN.566, done) but
+  not built. GEN.477 wiring goes ahead with a registered stand-in
+  largest-body size (T9, L3, GEN.725). Do: build the size-frequency law
+  of GEN.566 as a pure module with tests, draw each belt's largest body
+  from it (own random stream, via draw.py), feed GEN.477 and the belt
+  detail, and retire the stand-in registry row. Changes generated output
+  (belt mass): epoch, --affects fill, rides the train after GEN.477
+  wiring. Owner: Sources 2. Version 8.1.
+  Prerequisites: GEN.477. Related: GEN.477, GEN.566, GEN.725.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
