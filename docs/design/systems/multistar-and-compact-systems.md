@@ -492,6 +492,18 @@ comets): N-1 Kepler solves per system. `physics/body_positions.positions_at` and
 `static/orbitpositions.js` change together (`tests/test_js_unit.py` checks the two
 agree).
 
+As built (TEST.477, the overlap verifier): `physics/clearance.py` `audit(rows)` reads only what a finished system stores (its stars,
+the nodes of its tree, planets, moons and belts, `stored_rows` reads them with plain SELECTs) and lists every place two bodies
+overlap or a limit the generator promises is broken (a **hard** violation: Roche fill at pericentre, overlap of a node's two sides,
+stability by Mardling and Aarseth, Eggleton and Kiseleva and Vynatheya et al. 2022 together, node masses, a planet inside its
+star, the Holman and Wiegert S-type and P-type axes, planets crossing or under 10 mutual Hill radii apart, moons outside 0.4895 of
+the Hill radius or touching their planet, a belt over a planet's orbit) and the physical limits it does not promise today (an
+**advisory**: the rigid-body Roche limit of a planet or moon). It imports no placement or screening code and re-derives every form;
+`tests/test_clearance.py` holds each form against the generator's own copy and sweeps stored systems of one to five stars
+(`PLANETGEN_CLEARANCE_SCALE=12` gave 864: one hard failure, `triple-208`, a planet pair 9.93 mutual Hill radii apart where the
+generator promises 10; it is the one entry of `KNOWN`, expected to fail). Not yet checked, because the rows do not hold what it needs:
+the history rule, the Kozai-Lidov screen and the 3+1 quadruple margin (GEN.1006 4.3 and section 5).
+
 As built (MAP.255): `orbitpositions.js` walks the scene's `tree` the way `system_tree.member_offsets_au` does (the slot-1 child of a node
 on the node's Kepler orbit, both children about the node's centre by the other's mass, a group node's members at its centre, the
 wide pair's first star shifted to the origin) and `relativeAt` answers each star relative to the star its scene orbit names, or to
