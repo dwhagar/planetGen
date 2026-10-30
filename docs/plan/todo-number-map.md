@@ -16,13 +16,13 @@ release is stamped.
 | UX | UX.245 |
 | MAP | MAP.354 |
 | NAV | NAV.65 |
-| GEN | GEN.1119 |
+| GEN | GEN.1120 |
 | PERF | PERF.219 |
 | DB | DB.110 |
 | API | API.38 |
 | ADM | ADM.135 |
 | SEC | SEC.37 |
-| TEST | TEST.499 |
+| TEST | TEST.500 |
 | USR | USR.32 |
 | OPS | OPS.78 |
 | DOC | DOC.83 |
@@ -1859,16 +1859,17 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1106 | Field render: a 3D view for the field page (today _NO_VIEW), the sector map drawing the cloud or annulus plus the individual points at v x age, the render seed from the uid not the database id | none | open |
 | GEN.1107 | Bring-to-epoch for fields: age advances, radius follows, retirement past 1 ly marks or deletes the row (Boss to pick; default retire) | none | open |
 | GEN.1108 | Climate by latitude band for every body in seven bands (the equator, three above, three below, the poles inside the outermost band each side), the temperature categories of regional_temperature.py extended to seven: day and night length and the temperature range by day and by night (bug) | none | open |
-| GEN.1109 | Review rogue planet generation so physics drives it: where the counts, masses and properties rest on stand-ins or flat rates, and what replaces each (ejection from the architecture, scattering, the mass function, the survival of moons and air) | none | open |
+| GEN.1109 | Review rogue planet generation so physics drives it: where the counts, masses and properties rest on stand-ins or flat rates, and what replaces each (ejection from the architecture, scattering, the mass function, the survival of moons and air) | none | done, PR #4176 |
 | GEN.1110 | Average wind speeds by day and by night in each of the seven latitude bands: the day-to-night thermal wind from the pressure difference, zonal jets and trade winds from the equator-to-pole temperature difference and the Rossby number, faded out below about 1 kPa | none | open |
 | GEN.1111 | Rogue rows created from the architecture's ejections: mass, composition, moons kept, ejection speed, age and the parent system, with the flat rate becoming a test target | none | open |
 | GEN.1112 | Replace the rogue-planet defaults one by one with their physical derivations (mass function from ejection, gas-giant threshold from the envelope fraction, age from the ejecting system, envelope and water share from formation, tidal flux from kept moons, radiogenic inputs from the parent star), each a small pure module | none | open |
 | GEN.1113 | Rogue ejection kick research (D1): read the full texts, extract ejection speed against perturber mass and orbit, direction statistics and moon survival, replace the kick stand-in, test against Sayed et al. | none | open |
-| GEN.1114 | physics/rogue_drift.py (D2): the closed-form drift of an ejected planet (the wrap rule and the velocity), checked against a direct orbit integration to 1 kpc and against hill_drift.py | none | open |
+| GEN.1114 | physics/rogue_drift.py (D2): the closed-form drift of an ejected planet (the wrap rule and the velocity), checked against a direct orbit integration to 1 kpc and against hill_drift.py | none | done, PR #4178 |
 | GEN.1115 | Smoothed star-density function for rogues (D3): ring average plus radial smoothing, shared by the sector draw and the low-zoom map | none | open |
 | GEN.1116 | Regenerate a rogue's donor on demand from its seed (D5): the history sentence and the parent record shown on the object page | none | open |
 | GEN.1117 | Register the rogue drift and kick stand-ins in GEN.725 (D7): the rows of design section 8, each with tier and tweak level and a burn-down line where L3 or L4 | none | open |
 | GEN.1118 | Design study: one galaxy-wide object store generated in region work units (bands within the sphere), with sectors as a navigation table that flags whether each is charted and where its uncharted part lies | none | open |
+| GEN.1119 | RP1: classify every architecture loss as ejected, collided or bound by the Safronov number and return an ejection record (mass, composition, kept moons, orbit at ejection, time), counting the small bodies the chain deletes today | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -3541,6 +3542,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.496 | test_the_wheel_carries_the_map_from_the_whole_galaxy_into_a_system fails on main in its wheel-out leg (the URL keeps sector= after wheeling out) (bug) | none | open |
 | TEST.497 | test_planet_physical_properties e-3 fails on an unseeded star (air pressure 0.99999 Pa against a floor of 1.0), the same cause as TEST.486 (bug) | none | done, PR #4165 |
 | TEST.498 | A rogue planet is functionally and programmatically identical to a bound planet: the same columns, the same moon and composition generation, the same classes, differing only in the rogue note and having no host star | none | open |
+| TEST.499 | RP9: rogue yield calibration against microlensing and the terrestrial scale: rogues per star against Sumi 2023 (central 21, lower 1 sigma 8 over the probed range), the Mroz 2017 Jupiter limit and Barclay 2017's 2.5 terrestrial bodies per star | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
