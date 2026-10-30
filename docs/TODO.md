@@ -1678,38 +1678,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.302. Related: ADM.57, NAV.45.
   Design: [docs/design/interface/edit-everything.md](design/interface/edit-everything.md)
 
-- [ ] **MAP.213 Scene, maps and the JavaScript twin for trees: per-node zoom, log-radial overview and positions_at in JavaScript**
-  Split from GEN.129 (2026-10-16, Boss 1:07 PM EDT: look at each item
-  for smaller chunks and shared work). The System Map and scene draw two
-  stars at most. Draw a tree: the scene places every member from the
-  nodes, the map zooms per node and has a log-radial overview so a
-  10,000 AU outer pair and a 0.1 AU inner pair both read, and static/
-  gets the JavaScript twin of positions_at, held equal by the existing
-  twin tests. Done: a triple and a seven-star system draw with every
-  member at the right place and zoom level, the JavaScript and Python
-  positions agree in the twin test, and the page lists the tree.
-  Owner: Core 3 (Boss, 2026-10-16, 2:42 PM EDT: Core 3 takes the 8.1 new
-  generate scatters line after GEN.280; the multi-star train follows its
-  spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
-  line on this item.
-  Owner: Core 4 (handed over from Core 3 by Boss's "Split it", 2026-10-16,
-  4:49 PM EDT; Core 3 agreed 4:53 PM EDT; GEN.311 merged as #2481). Core 4 asks Core 3
-  before touching stellar evolution constants in tuning.py. A line here
-  that named Core 3 or Core 4 earlier is replaced by this one.
-  Owner: Core 3 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue is
-  in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
-  owner line).
-  Progress (2026-10-30 1:34 PM EDT): Core 3 (as the lane reported 1:36
-  PM EDT): slice A merged in #4065: the 3D system view draws a triple or
-  deeper tree of stars node by node, each star about the centre of its
-  own pair and each pair about its parent, on the real eccentric tilted
-  ellipse from the stored tree; in the compressed view each pair is
-  drawn wide enough for its stars to clear each other at closest
-  approach. A browser test loads a triple. Next: slice B (System Map
-  diagram, systemmap.py), slice C (system page lists the tree), then
-  TEST.477.
-  Prerequisites: none. Related: GEN.129.
-
 - [ ] **MAP.215 Nebulae tint the stars seen through them, with soft translucent boundaries**
   Split from MAP.191 (2026-10-16, Boss 1:07 PM EDT: look at each item
   for smaller chunks and shared work). In the default Galaxy Map view
@@ -3464,7 +3432,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generate scatters line after GEN.280; the multi-star train follows its
   spine, 3:00 PM EDT). This replaces any earlier Core or Core 1 owner
   line on this item.
-  Prerequisites: GEN.312, MAP.213, GEN.313.
+  Prerequisites: GEN.312, GEN.313.
 
 - [ ] **GEN.139 Orbit-update thresholds: per-object epoch, path-length rule and what the 0.01 mpc applies to (GEN.106 built)**
   Follow-up to GEN.106: (a) struck 2026-10-16 (a per-object `epoch_unix`
@@ -17755,6 +17723,9 @@ clears each one.
   test_runaway_history.py::test_the_surface_water_a_planet_keeps_is_what_its_class_gave_less_what_it_lost
   fails because lost_any is False for all 6 seeds, so no M3V Earth-zone
   planet loses surface water.
+  Seen again (3:52 PM EDT 2026-10-30): Core 3 found test_runaway_history
+  surface water red on a clean origin/main again (relayed 3:52 PM EDT
+  2026-10-30 as the lane reported).
   Prerequisites: none. Related: TEST.384, GEN.738.
 
 - [ ] **TEST.395 A planet distribution test with observed-rate bands, run after the class cut-over on the final classes and on galaxy-placed stars: giants and hot Jupiters per host mass, planets per mass bin, 1 to 20 Earth-mass planets per star, habitable-class bodies per star, and a rule for classes O, P and Q**
@@ -18219,6 +18190,9 @@ clears each one.
   past what the change explains. Done: all four pass on main. Related:
   TEST.463, TEST.468, TEST.469, TEST.470. Owner: Bug 2 (proposed), after
   TEST.417.
+  Seen again (3:52 PM EDT 2026-10-30): test_migration_albedo_greenhouse
+  is still red after train 4 (Bug 2, relayed 3:52 PM EDT 2026-10-30 as
+  the lane reported).
   Prerequisites: none. Related: TEST.463, TEST.468, TEST.469, TEST.470.
 
 - [ ] **TEST.476 A test that measures how often items are redrawn or regenerated to make them fit: stars in a tree, planets, moons and belts**
@@ -18348,16 +18322,17 @@ clears each one.
   TEST.476; test-only or lock-free, separate branch, merge it yourself).
   Prerequisites: none. Related: TEST.484.
 
-- [ ] **TEST.488 test_migration_albedo_greenhouse is red on clean main (bug)**
-  Found by Bug 2's train 4 merge (PR #4105; relayed 3:37 PM EDT
-  2026-10-30 as the lane reported), red after the merge. Do: triage
-  (stale expectation after the migrations since, a real regression, or a
-  moved seed) and fix the right side without skipping or loosening
-  beyond the property. Done: the test passes on main. Owner: Core 1
-  (after TEST.476) or any free lane; lock-free. Version 8.1.
-  Owner (3:43 PM EDT 2026-10-30): Core 1 (assigned by TODO after
-  TEST.476; test-only or lock-free, separate branch, merge it yourself).
-  Prerequisites: none. Related: TEST.484.
+- [ ] **TEST.489 Reds on clean main found by Core 3: test_cache_warmup (nodes_to_warm, full_cache_leaves, nodes_family: insert_bright_stars column count mismatch), test_satellites (2), test_activity (stored field and exposure), test_sector_gen research rates per star (black-hole rate 0.00123 over the 0.0012 cap) (bug)**
+  Found by Core 3 on MAP.213 slice C (relayed 3:52 PM EDT 2026-10-30 as
+  the lane reported); each is also red on a clean origin/main.
+  test_runaway_history surface water is already TEST.391. Do: triage
+  each (stale expectation, a real regression, a moved seed, or a cap
+  that needs its source) and fix the right side without skipping or
+  loosening beyond the property; the black-hole rate cap needs its
+  source or a GEN.725 row. Done: all pass on main. Owner: Bug 2 (after
+  TEST.483 and TEST.484) or any free lane; lock-free unless a cause is a
+  generator change. Version 8.1.
+  Prerequisites: none. Related: TEST.391, TEST.472, TEST.484.
 
 ## USR: User accounts
 
