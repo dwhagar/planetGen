@@ -262,7 +262,7 @@ def settle_giant(planet):
     """
     Settles a giant sized from the radius tables once the star's age and the orbit are final (GEN.961, `giant_draw.settle`): when its
     radius moves, the volume and the gravity follow, and the air is made again from a stream of its own (the gravity sets its scale
-    height; the run's stream is not touched). The class is derived later (`apply_class` in the life data pass).
+    height; the run's stream is not touched), then the class, the dose, the colour and the habitability score that follow the air.
 
     Returns:
         bool: Whether the giant's radius moved.
@@ -275,6 +275,11 @@ def settle_giant(planet):
                          f"{float(planet.star.age)!r}:{float(planet.radius)!r}")
     with draw.bound(stream):
         calculate_atmospheric_conditions(planet)
+        apply_class(planet)
+        # what `generate_spin` makes last, from the air above: the dose, the colour and the habitability score (the field is of the mass)
+        radiation.generate_dose(planet)
+        body_colour.generate(planet)
+        habitability_world.generate(planet, internal_heat_flux_w_m2(planet))
     return True
 
 

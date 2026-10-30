@@ -58,6 +58,7 @@ def test_settling_a_giant_sets_its_radius_volume_gravity_and_air_together(host_s
     assert planet.gravity == pytest.approx(constants.G * planet.mass / (planet.radius * 1000) ** 2 / constants.EARTH_GRAVITY, rel=1e-6)
     assert planet.density == pytest.approx(planet.mass / (4 / 3 * math.pi * (planet.radius * 1000) ** 3) / 1000, rel=1e-9)
     assert planet.surface_temperature is not None and planet.scale_height is not None
+    assert planet.planet_class is not None
 
 
 def test_a_settled_giant_is_settled_for_good(host_star):
