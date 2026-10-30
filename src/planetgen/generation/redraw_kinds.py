@@ -40,7 +40,7 @@ KINDS = {
     # --- the companion set of a system (system.StarSystem.__init__ and _companions_fit) ------------------------------------------------
     "companions.star_count": Kind("system", False, "the companions drawn again because the star count is not the one the directives force"),
     "companions.pair_kind": Kind("system", False, "the companions drawn again because the pair is not the close or wide kind the directives ask for"),
-    "companions.overlap": Kind("system", True, "the companions drawn again because a star as built is wider than its orbit (the GEN.1004 quick fix)"),
+    "companions.overlap": Kind("system", True, "the companions drawn again because a star as built is wider than its orbit (the quick fix that redraws the whole set)"),
     "companions.circumbinary_floor": Kind("system", False, "the companions drawn again because a close pair leaves no habitable zone outside its stability limit"),
     # --- the planets of a system -------------------------------------------------------------------------------------------------------
     "system.planets_regenerated": Kind("system", False, "every planet drawn again because the forced habitable world, belt or class is not there"),

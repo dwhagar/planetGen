@@ -165,7 +165,7 @@ def _fake_sector(db, sector_id):
     return SECTOR
 
 
-def _fake_search(db, texts, tags, sizes=None, limit=None, offsets=None, panels=None, sorts=None):
+def _fake_search(db, texts, tags, sizes=None, limit=None, offsets=None, panels=None, sorts=None, stars=None):
     offsets = offsets or {}
     offset = offsets.get("sectors", 0)
     rows = [{"id": i, "name": f"Found {i:03d}", "edge_mpc": 3.07} for i in range(120)]
@@ -173,6 +173,15 @@ def _fake_search(db, texts, tags, sizes=None, limit=None, offsets=None, panels=N
              "offset": offset, "truncated": False}
     results = {name: None for name in ("sectors", "systems", "stars", "planets", "moons", "belts", "phenomena")}
     results["sectors"] = panel
+    if stars:       # UX.239: known systems of one, two, three and four stars
+        from planetgen.util import star_count
+        least, most = star_count.parse_star_count(stars)
+        known = [("Lone Fixture", 1), ("Binary Fixture", 2), ("Triple Fixture", 3), ("Quad Fixture", 4)]
+        kept = [(name, n) for name, n in known if n >= least and (most is None or n <= most)]
+        results["sectors"] = None
+        results["systems"] = {"rows": [{"id": 900 + n, "name": name, "sector_id": None, "is_binary": int(n == 2), "star_summary": "G2V",
+                                        "star_count": n, "object_count": n + 3, "has_habitable_world": False} for name, n in kept],
+                              "total": len(kept), "total_capped": False, "limit": limit, "offset": 0, "truncated": False}
     if texts.get("planet_q"):
         tiers = {f"tier_{d}": i % 4 for i, d in enumerate(("pressure", "temperature", "air", "water", "radiation",
                                                            "suitability"))}
@@ -819,3 +828,21 @@ def test_every_filtered_table_keeps_its_apply_button(page, table_site, admin_sit
         assert page.goto(f"{base}{path}", wait_until="load").status == 200
         page.locator(f"{root} [data-datatable][data-enhanced='true']").wait_for(state="attached", timeout=15000)
         assert page.locator(f"{root} .datatable-apply").is_visible(), root
+
+
+def test_search_finds_a_known_binary_and_a_known_triple_by_the_stars_filter(page, table_site):
+    """UX.239: the Stars menu of the search form, and `stars:3` typed into the search box."""
+    assert page.goto(f"{table_site}/search", wait_until="load").status == 200
+    page.select_option("#search-star-count", label="Trinary")
+    page.locator("#search-filters-form button[type=submit]").click()
+    page.wait_for_url("**/search?stars=3")
+    systems = page.locator("#search-systems")
+    systems.wait_for(state="attached", timeout=15000)
+    assert "Triple Fixture" in systems.inner_text()
+    assert "Binary Fixture" not in systems.inner_text() and "Quad Fixture" not in systems.inner_text()
+
+    assert page.goto(f"{table_site}/search?q=stars:binary", wait_until="load").status == 200
+    systems = page.locator("#search-systems")
+    systems.wait_for(state="attached", timeout=15000)
+    assert "Binary Fixture" in systems.inner_text() and "Triple Fixture" not in systems.inner_text()
+    assert "Stars: Binary" in page.locator(".active-filters").inner_text()
