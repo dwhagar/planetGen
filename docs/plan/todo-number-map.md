@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.245 |
 | MAP | MAP.354 |
 | NAV | NAV.65 |
-| GEN | GEN.1131 |
+| GEN | GEN.1134 |
 | PERF | PERF.219 |
 | DB | DB.110 |
 | API | API.38 |
@@ -779,7 +779,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.26 | Rogue planet surface conditions | none | done, PR #263 (schema v48; design docs/design/systems/rogue-planet-surface.md) |
 | GEN.27 | Class P (glaciated world) only in the habitable zone, and fitting there | none | dropped (classes are derived from the finished body (cut-over epoch 121); Core 4 classifier re-read 2026-10-30, reports/core4-classifier-reread-2026-10-30.md: the clause is a fixed letter rule the derived classes make moot) |
 | GEN.28 | Seven new planet classes in the letter gaps (R, S, U, W, X, Y, Z) | none | dropped (revoked by Boss's full-build sweep 8:16 PM EDT 10-29: new class letters R, U, W, X, Y and Z conflict with conditions-based classes (10-23) and 'all 20 letters stay' (10-28); the part that stands is GEN.963) |
-| GEN.29 | Sweep every planet class for sense once the new ones are in (bug) | none | open |
+| GEN.29 | Sweep every planet class for sense once the new ones are in (bug) | none | done (sweep report reports/core4-class-sweep-2026-10-30.md, items GEN.1131, GEN.1132, GEN.1133) |
 | GEN.30 | Bright-star thresholds: 1000 L_sun galaxy-wide, tiered backfill around generated sectors | none | done, PRs #295, #296 |
 | GEN.31 | A point just under layer 0's top face lands in layer 1 (bug) | none | done, PR #353 |
 | GEN.32 | Re-running an interrupted bright-star band draws it twice (bug) | none | done, PR #371 |
@@ -1881,6 +1881,9 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1128 | Region run command: a sphere of a given radius from a start point becomes whole sectors, cut into units of a block of sectors by the galaxy's own (shell, band) arcs, nearest bands first, with `--grow-shells K`, all writing the chart ledger | none | open |
 | GEN.1129 | Fingerprint split: a sector's digest (GEN.58) becomes "made here" and "arrived here" so rogues landing from other sectors do not change the sector's own digest | none | open |
 | GEN.1130 | The +intelligent_life and +habitable_world request options become probability tweaks only: they raise the odds of such a world in the generated system and never force a placement, a ladder of adaptations or a civilization | none | open |
+| GEN.1131 | Class descriptions for N, K and Q agree with the bodies their rules select | none | open |
+| GEN.1132 | Assess retiring Class Q: what depends on it, which bodies it covers, and whether eccentricity belongs in a separate orbit or climate flag, with a recommendation | none | open |
+| GEN.1133 | Rocky rogue planets of 10 to 16 Earth masses come out up to 17,600 km, past class S's 11,468 km top: apply Core 4's recommendation so the size range and the class agree | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
