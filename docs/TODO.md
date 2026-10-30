@@ -14374,6 +14374,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   tables. Record the before and after times in the item. The progress
   output exists (PERF.189), so the log lines show where the time goes.
   Owner: Aux 16 (Performance).
+  OWNER Aux 5 (assigned 6:43 AM EDT 2026-10-30 by TODO as the lane's one
+  lock-free item; replaces the retired Aux 16 line; separate branch)
+  (2026-10-30 6:43 AM EDT): Measure first and record before and after
+  times. A speed-up that builds the shell list from the plan outline in
+  code is lock-free. An index on bright_stars or phenomenon_scatter
+  needs a migration, so stop and tell TODO before adding one: it rides a
+  train.
   Prerequisites: none. Related: MAP.259.
 
 - [ ] **PERF.195 Generation timing records are shown or no longer recorded: object_timing_stats and object_timing_samples (G5)**
