@@ -2,6 +2,48 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2643] - 2026-10-30
+
+**Headline:** The map's info popup is now a short card that shows what a thing is at a glance, with an Expand button for the rest.
+
+### Changed
+- **The info popup is redesigned (MAP.347).** Pick a star, system, region, nebula, black hole or sector and the card shows its first view only: the name with the ☆ and Close beside it, what kind of thing it is, the three most useful values, and its main buttons (View, the course pick button, Go to). That first view is never taller than a quarter of the map on a large screen and never scrolls. Everything else (the other values, More, the region line, the nearest systems, Start Here and End Here, What's within 10 pc, Generate) is behind **Expand**, in a region that scrolls on its own, so the name and the buttons stay in view. The text no longer shrinks to fit; it stays at a reading size. On a phone the card takes the full width the zoom controls leave. Expand stays open from one pick to the next until you press Collapse.
+
+## [8.0.2642] - 2026-10-30
+
+**Headline:** Dead settings and unused helper functions are gone, and a test now fails if a tuning constant has no reader.
+
+### Changed
+- **Nine tuning constants nothing read are deleted (OPS.73).** `HABITABLE_ZONE_BUFFER_AU`, `ROUND_RADIUS_KM`, `RADIUS_KM_SCIENTIFIC_NOTATION_THRESHOLD`, `STELLAR_PROTO_HELIUM_OFFSET_DEX`, `MAX_FLAVOR_PLANET`, `NAV_COURSE_DECIMAL_PLACES`, `STELLAR_U_TH_UNCERTAINTY`, `CLOUD_ENRICHMENT_REFERENCE_RATIO` and `CHUNKS_PER_WORKER`. No generated value changes. A new test (`tests/test_tuning_readers.py`) fails when a constant in `tuning.py` has no reader; the one that waits for its item (the neutron star mass Gaussians, GEN.930) is listed there with the item.
+- **Seven functions nothing called are deleted (OPS.74).** `draw_mass`, `mantle_mass_kg`, `shell_chunks`, `build_sector_configs` (`iter_sector_configs` does its work), `get_galaxy_phenomena`, `read_config`, `settings_hash` and `mass_limit_argv`. `class_allowed_in_zone` was already gone. `build_nodes` stays (the tile prefetch queue calls it by name) and `register_card_renderer` stays (VIEW.3 installs its card drawer there).
+
+## [8.0.2641] - 2026-10-30
+
+**Headline:** The hours a person can be outside in a day can now be worked out from a body's stored columns; nothing is stored or shown yet.
+
+### Changed
+
+- GEN.768 part 2, prepared: `outside_hours.for_body` takes the equipment levels, the stored `daylight_hours`, the stored day-night swing and, for a tidally locked world, the terminator belt's temperature and 24 hours of light (stand-in row OH11), and gives the hours and the binding limit, or none when the columns do not say. Tests for Earth, a hot desert, a cold world, a high-dose world, a vacuum world, a locked world and a world that needs a vehicle. No column, migration or epoch yet: storing the value, the sheet relabel and the pages ride a train, so a world's output does not change.
+
+## [8.0.2640] - 2026-10-30
+
+**Headline:** `planetgen planets` and `planetgen moons` show a page at a time instead of reading every planet or moon in the galaxy.
+
+### Changed
+- **The planets and moons listings take `--limit` and `--after`.** Each prints 100 rows by default and, when more match, the `--after` to carry on with; the next page starts after that row in the same order, so a page deep in the list costs what the first does. Before, the commands read every matching row, which at a full galaxy meant millions. Filtered by system, sector or class a page takes about 40 milliseconds with 6,000,000 planets. Unfiltered, the order (system name, then orbit) still sorts every planet, so the first page of the whole galaxy takes seconds.
+
+## [8.0.2639] - 2026-10-30
+
+**Headline:** `planetgen query near` rejects a missing distance before it opens the database, a document written to standard output starts at its first line, and ten tests that were red on main are green.
+
+### Fixed
+
+- **`planetgen query near` with neither `--distance` nor `--nearest` is a command-line error (TEST.465).** It exits 2 with the usage text whatever the state of the database; before, it opened the database first and exited 1 when it could not.
+- **`planetgen system --output -` starts at the first line of the document (TEST.466).** The finished progress display wrote a blank line to standard output ahead of the text; a run that writes the document to standard output draws no bar.
+- **Two saves of the same names at once no longer fail with "Transaction characteristics can't be changed while a transaction is in progress" (TEST.463).** The save ends the connection's open transaction before it sets READ COMMITTED.
+- **The radiative-convective water table names its own limit (TEST.463).** The 640 K top of the table is `WATER_TABLE_TOP_K`, a numerical limit just under the critical temperature that `physics/saturation.py` holds; no vapour-pressure constant lives outside the saturation module. The cosmic-ray thin-air curve reads `GCR_PEAK_G_CM2` where it joins the first shower run (the same 100 g/cm2), so the registry row CR4 has a reader.
+- **Tests that were red on main (TEST.463).** The step-kind registry test no longer reads a queue command's name as a progress step kind; the SQL portability list names the interest-count migrations that already use `VALUES()`; the object-row round trip reads a binary pair's stars, not the proxy that stands for both; `/api/auth/me` has an avatar field; the map-rebuild test stubs the sliced warm stages; the sector page test expects a second neighbourhood job to wait in the one waiting list (PERF.154); the wiring register no longer names `surface_dose`, which the code reads now.
+
 ## [8.0.2638] - 2026-10-30
 
 **Headline:** Drawing the nebula field can now follow another stage in the same run, the part of one run per Generate job that needs no other change.

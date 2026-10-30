@@ -2293,33 +2293,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   precision loss.
   Prerequisites: MAP.335. Related: MAP.257, MAP.240.
 
-- [ ] **MAP.347 Galaxy Map info popup redesign: it is hard to read and scrolls off the screen even on a maximized 1080p display (bug)**
-  Boss, 7:22 PM EDT 2026-10-29 (relayed by the coordinator): "we HAVE to
-  redesign the info popup, it is not working at all, it's difficult to
-  read, it scrolls off the screen even on my large 1080p display
-  maximized because the galactic map is so short but if it isn't so
-  short then we lose needed UX." A live observation, so a bug, and a
-  real redesign rather than a patch: the layout, how much shows at once,
-  where it sits, and how it scrolls. The map area is short because the
-  surrounding page chrome takes the height, and making the map taller
-  would lose needed UX, so the popup must work in the space the map has:
-  for example a compact summary that fits without scrolling, with a
-  clearly marked way to expand, a placement that does not cover the
-  thing selected, and a size that follows the map window (MAP.295).
-  Earlier fixes are patches on the same box: MAP.332 (card cut off at
-  the bottom), MAP.315 (region and parent line), MAP.296 (nearest
-  systems list). Do: measure the popup at 1080p maximized and at phone
-  width for a star, a system, a region, a nebula and a black hole;
-  design the card so its first view (name, kind, the Go to buttons, the
-  three most useful values) fits in a quarter of the map height without
-  scrolling; the rest is reached by an Expand control or a side panel
-  that scrolls on its own, never the whole card; a browser test per kind
-  at 1080p and at phone width checks that the first view is fully
-  visible and the card never leaves the viewport. Owner: Core 2 (owns
-  the map code; after MAP.336, TEST.450 and MAP.329). Version 8.1.
-  Prerequisites: none. Related: MAP.332, MAP.315, MAP.295, MAP.296,
-  MAP.336.
-
 - [ ] **MAP.348 Galaxy Map hover preview: pointing at a place shows a small preview before the click**
   Left unbuilt by MAP.336 (zoom redesign Z3, #3778, as Core 2 reported
   7:11 PM EDT 2026-10-29) and approved by Boss (7:22 PM EDT): hovering a
@@ -2331,6 +2304,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Done: a browser test hovers one of each kind and finds the preview,
   and a touch screen (no hover) shows nothing extra. Owner: Core 2
   (after the info popup redesign). Version 8.1.
+  Core 2 (MAP.347 merged #3940) (2026-10-30 4:00 AM EDT): reuse the
+  first view of the new info popup (name, kind, three values, main
+  buttons) for the hover preview
   Prerequisites: none. Related: MAP.336.
 
 - [ ] **MAP.349 Galaxy Map panels: a Go to button on every container line (the region, the parent, each listed place) **
@@ -2342,6 +2318,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   crumbs and the results list. Done: a browser test clicks the Go to on
   a region line, a parent line and a listed place and the camera lands
   on each. Owner: Core 2 (with the info popup redesign). Version 8.1.
+  Core 2 (MAP.347 merged #3940) (2026-10-30 4:00 AM EDT): Go to on the
+  region and parent lines now lives inside the Expand part of the popup;
+  Start Here and End Here also moved behind Expand (one extra click the
+  first time). Boss to say if the region and parent Go to lines should
+  be in the first view instead
   Prerequisites: none. Related: MAP.336.
 
 - [ ] **MAP.352 Back to a system in a different sector fails when pressed before the first Back has finished (bug)**
@@ -14797,16 +14778,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   PERF.149.
   Prerequisites: none. Related: PERF.149.
 
-- [ ] **PERF.207 planetgen planets and moons take --limit and --after (keyset), replacing OFFSET listing (slice 4 of the PERF.137 OFFSET audit)**
-  Slice 4 of the PERF.137 audit (report
-  /mnt/project-files/reports/limit-offset-audit-2026-10-29.md, Core 5,
-  2026-10-29): the planetgen planets and moons list commands page with
-  OFFSET. Do: add --limit and --after (the last id seen) with keyset
-  paging and print the next --after value, update docs/reference/cli.md
-  and the command tests. No generated-output change. Owner: Core 5.
-  Version 8.1.
-  Prerequisites: none. Related: PERF.137.
-
 - [ ] **PERF.208 A stored, indexed sector system count, density and quadrant so the remaining Sectors list sorts page by key (slice 5 of the PERF.137 OFFSET audit)**
   Slice 5 of the PERF.137 audit (report
   /mnt/project-files/reports/limit-offset-audit-2026-10-29.md, Core 5,
@@ -14910,6 +14881,19 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner (2026-10-30 2:54 AM EDT): Core 3 takes this after PERF.213
   (TODO); lock-free, no stored-output change
   Prerequisites: PERF.203. Related: PERF.203, PERF.212, PERF.213.
+
+- [ ] **PERF.215 An unfiltered planets or moons list pages by key: an index on planets (star_system_id, orbital_index) so the name-then-orbit order is served by the index**
+  Core 5 (as the lane reported, 3:17 AM EDT 2026-10-30), after PERF.207
+  (#3935; planetgen planets and moons take --limit and --after): at
+  6,000,000 planets a filtered list by system, sector or class costs
+  about 40 ms a page, but the unfiltered list still costs 18 s a page
+  because the name-then-orbit order has no index. Do: add the index (and
+  the moons equivalent), page the unfiltered list by key, and measure at
+  6,000,000 planets. Done: an unfiltered page answers in under 100 ms at
+  that size. An index only, no stored value, no epoch; it takes a
+  migration number, so build it with PERF.208's migration in the same
+  sitting. Size S. Owner: Core 5.
+  Prerequisites: PERF.208. Related: PERF.207, PERF.208.
 
 ## DB: Database and schema
 
@@ -19261,6 +19245,19 @@ clears each one.
   radiative_convective.py) is red on clean main; Aux 5 also saw
   test_aquifers and test_sweep_classes red on clean main. The query_db
   exit code red is filed as TEST.465
+  Bug 2 merged #3932 (about 3:15 AM EDT as the lane reported)
+  (2026-10-30 3:16 AM EDT): closes the step registry, SQL portability
+  (interest migrations), object-rows binary star, /api/auth/me avatar,
+  map-rebuild stubs (PERF.180 slices), sector page second job (waits in
+  the PERF.154 list, test updated), the save transaction error in
+  test_db_batching (store commits before SET TRANSACTION),
+  test_saturation_single_source (water table limit renamed, value
+  unchanged) and test_wiring_guard (CR4 read via GCR_PEAK_G_CM2;
+  surface_dose line dropped from the register).
+  test_star_composition_sweep and test_aquifers pass on a clean run.
+  Still open: the gas solver np.diag random failure (needs the failing
+  input), the habitability browser fixture 900 s timeouts on slow
+  machines, planets.porosity (TEST.461, Core 1)
   Prerequisites: none. Related: MAP.345, GEN.980, TEST.461.
 
 - [ ] **TEST.464 Cache band_fractions between calls so test_gen_component_pass and the whole-sphere census fixtures finish inside the gate (bug)**
@@ -19273,34 +19270,6 @@ clears each one.
   tests before and after, and keep every result identical. Owner: Bug 2.
   Version 8.1.
   Prerequisites: none. Related: TEST.463, GEN.935.
-
-- [ ] **TEST.465 test_admin_script_cli: query_db exits 1 instead of 2 for an incomplete command line when the database is not reachable (bug)**
-  Bug 1 (as the lane reported, 1:53 AM EDT 2026-10-30) listed
-  test_admin_script_cli as red and not its own. Reproduced by the TODO
-  thread on a machine with no MySQL:
-  test_query_db_rejects_an_incomplete_command_line[argv1] fails with
-  assert 1 == 2 (tests/test_admin_script_cli.py line 200) because the
-  script prints 'could not open the database (2003, Connection refused)'
-  and exits 1 before it checks the command line. Do: check the arguments
-  before the script opens the database, so a bad command line exits 2
-  whatever the database state; if the cause is something else on a
-  machine that has MySQL, say so on this item. Done: the test passes
-  with and without a reachable database. Distinct from TEST.298 (a
-  finalizer flake). Owner: Bug 2. Version 8.1. Also noted by Bug 1:
-  test_saturation_single_source (WATER_CRITICAL_K) is already listed
-  under TEST.463.
-  Prerequisites: none. Related: TEST.298, TEST.463.
-
-- [ ] **TEST.466 test_generate_py_system_output_writes_a_file_and_no_database: the plain system output starts with a newline (bug)**
-  Core 3 (as the lane reported, 2:03 AM EDT 2026-10-30) found
-  test_generate_py_system_output_writes_a_file_and_no_database red on
-  clean main: the plain system output starts with a newline. Do: find
-  the commit that added the leading newline, fix the output or the test,
-  whichever the intended format says. Done: the test passes and the
-  cause is on this item. Owner: Bug 2. Version 8.1. The other red Core 3
-  named, the item code at stellar_spectra.py line 198 (GEN.443), is
-  fixed by Star 2's #3831 on train 3.
-  Prerequisites: none. Related: TEST.463.
 
 ## USR: User accounts
 
@@ -19967,86 +19936,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   bump_version tests pass. Owner: none yet (pool, 8.2). Source: Boss,
   5:07 PM EDT 2026-10-23.
   Prerequisites: none. Related: OPS.56, OPS.1.
-
-- [ ] **OPS.72 Delete the dead tuning knobs and uncalled helpers the unused-values audit found (G7)**
-  Unused stored values audit (the "Find stored values nothing uses"
-  thread, report reports/unused-stored-values-audit-2026-10-24.md,
-  relayed 10:33 PM EDT 2026-10-24 as the thread reported), filed for
-  Boss's 10:16 PM EDT instruction to file every stored or calculated
-  value nothing uses that is not already in the works. None of it is a
-  wrong number on a page today. G7. Constants in tuning.py with no
-  reader: HABITABLE_ZONE_BUFFER_AU, ROUND_RADIUS_KM,
-  RADIUS_KM_SCIENTIFIC_NOTATION_THRESHOLD,
-  STELLAR_PROTO_HELIUM_OFFSET_DEX, MAX_FLAVOR_PLANET,
-  NAV_COURSE_DECIMAL_PLACES (and STELLAR_U_TH_UNCERTAINTY, read only in
-  a docstring). Defined and never called:
-  generation/validation.class_allowed_in_zone,
-  generation/run_sector.build_sector_configs,
-  generation/run_plan.shell_chunks,
-  generation/phenomenon_scatter.draw_mass,
-  physics/surface_pressure.mantle_mass_kg,
-  web/lib/tileprefetch.build_nodes,
-  web/lib/apiclient.get_galaxy_phenomena,
-  web/seo_pages.register_card_renderer, util/settings.read_config and
-  settings_hash, web/generate_page.mass_limit_argv. Delete each (no
-  shims), or wire it where the knob says something a page should honour;
-  check first that no item still needs it. Done: the knobs and helpers
-  are gone, the tests pass, and a scan finds no tuning constant without
-  a reader. Version 8.1. Owner: any free pool lane (small, one gate).
-  Rules: no backward-compat shims; every number has a unit or scale
-  (GEN.772); draws through draw.py; a changed generated value carries
-  `tests.golden_update --reason ... --affects <stage>` and the next
-  epoch; tests are `scripts/test.py changed --resume`; stand-ins get
-  GEN.725 registry rows.
-  Research (2026-10-09): Lock-free item given to Aux 3 (6:14 PM EDT
-  2026-10-29) while it waits for its GEN.816 lock turn; MAP.299 merged
-  (#3754). Owner: Aux 3. No output change; tuning.py is also edited by
-  the star lanes, so rebase before the PR.
-  Prerequisites: OPS.73, OPS.74. Related: GEN.754, OPS.73, OPS.74.
-
-- [ ] **OPS.73 Delete the dead tuning knobs (HABITABLE_ZONE_BUFFER_AU, ROUND_RADIUS_KM, RADIUS_KM_SCIENTIFIC_NOTATION_THRESHOLD, STELLAR_PROTO_HELIUM_OFFSET_DEX, MAX_FLAVOR_PLANET, NAV_COURSE_DECIMAL_PLACES, STELLAR_U_TH_UNCERTAINTY) (G7, step 1)**
-  Unused stored values audit chain
-  (reports/unused-stored-values-audit-2026-10-24.md, Boss 10:16 PM EDT
-  and 10:35 PM EDT 2026-10-24: make each a chain, with a GitHub goal
-  issue). Constants in tuning.py with no reader
-  (STELLAR_U_TH_UNCERTAINTY is read only in a docstring). Check no open
-  item needs each, delete it, and add a test that no tuning constant
-  lacks a reader. Done: the knobs are gone and the scan test passes.
-  Version 8.1. Owner: any free pool lane. Rules: no backward-compat
-  shims; every number has a unit or scale (GEN.772); a changed generated
-  value carries `tests.golden_update --reason ... --affects <stage>` and
-  the next epoch; tests are `scripts/test.py changed --resume`.
-  Research (2026-10-09): Lock-free item given to Aux 3 (6:14 PM EDT
-  2026-10-29) while it waits for its GEN.816 lock turn; MAP.299 merged
-  (#3754). Owner: Aux 3. No output change; tuning.py is also edited by
-  the star lanes, so rebase before the PR.
-  Prerequisites: none. Related: OPS.72.
-
-- [ ] **OPS.74 Delete the uncalled helpers (class_allowed_in_zone, build_sector_configs, shell_chunks, draw_mass, mantle_mass_kg, build_nodes, get_galaxy_phenomena, register_card_renderer, read_config, settings_hash, mass_limit_argv) (G7, step 2)**
-  Unused stored values audit chain
-  (reports/unused-stored-values-audit-2026-10-24.md, Boss 10:16 PM EDT
-  and 10:35 PM EDT 2026-10-24: make each a chain, with a GitHub goal
-  issue). Defined and never called:
-  generation/validation.class_allowed_in_zone,
-  generation/run_sector.build_sector_configs,
-  generation/run_plan.shell_chunks,
-  generation/phenomenon_scatter.draw_mass,
-  physics/surface_pressure.mantle_mass_kg,
-  web/lib/tileprefetch.build_nodes,
-  web/lib/apiclient.get_galaxy_phenomena,
-  web/seo_pages.register_card_renderer, util/settings.read_config and
-  settings_hash, web/generate_page.mass_limit_argv. Delete each, or wire
-  it where it says something a page should honour; check no open item
-  needs it. Done: gone, tests green. Version 8.1. Owner: any free pool
-  lane. Rules: no backward-compat shims; every number has a unit or
-  scale (GEN.772); a changed generated value carries
-  `tests.golden_update --reason ... --affects <stage>` and the next
-  epoch; tests are `scripts/test.py changed --resume`.
-  Research (2026-10-09): Lock-free item given to Aux 3 (6:14 PM EDT
-  2026-10-29) while it waits for its GEN.816 lock turn; MAP.299 merged
-  (#3754). Owner: Aux 3. No output change; tuning.py is also edited by
-  the star lanes, so rebase before the PR.
-  Prerequisites: none. Related: OPS.72.
 
 ## DOC: Documentation
 
