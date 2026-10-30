@@ -1,5 +1,5 @@
 {
- "api_version": 9,
+ "api_version": 10,
  "routes": [
   "/api/admin/backups GET",
   "/api/admin/backups POST",
