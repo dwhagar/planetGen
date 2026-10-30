@@ -3014,10 +3014,6 @@ RADIOGENIC_K_DEPLETION_RANGE = (0.03, 1.0)
 inside it; the range itself is a placeholder tied to the large K differences of Solar System bodies (Nimmo et al. 2020), not a measured
 spread (radiation-model.md R15, part E 3.3)."""
 
-RADIOGENIC_AL26_FACTOR_RANGE = (0.1, 10.0)
-"""tuple: The 26Al/27Al at formation over the Solar System's 5.23e-5, drawn log-uniformly (Lichtenberg et al. 2019). A stand-in until
-GEN.476 derives it from the star's formation environment."""
-
 INTERIOR_VISCOSITY_PREFACTOR_RANGE_PA_S = (2.6e10, 5.3e13)
 """tuple: The mantle viscosity prefactor `eta0` of `eta = eta0 exp(Ea / R T)`, Pa s, drawn uniformly: the bounds Guimond, Rudge and
 Shorttle 2022 take (arXiv:2201.05636 section 2.2.3; READ), wet olivine's 1.6e11 Karato and Wu 1993 less an order of magnitude to dry

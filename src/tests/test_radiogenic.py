@@ -158,8 +158,7 @@ def test_the_draws_stay_in_their_ranges_and_always_use_the_same_number_of_draws(
     ratios = [c.k0_ppm / (radiogenic.formation_mix("K")[1]) / (c.u0_ppm / radiogenic.formation_mix("U")[1]) / radiogenic.CI_CHONDRITE_K_OVER_U
               for c in contents]
     assert all(tuning.RADIOGENIC_K_DEPLETION_RANGE[0] * 0.999 <= r <= tuning.RADIOGENIC_K_DEPLETION_RANGE[1] * 1.001 for r in ratios)
-    low, high = (radiogenic.SOLAR_AL26_RATIO * f for f in tuning.RADIOGENIC_AL26_FACTOR_RANGE)
-    assert all(low * 0.999 <= c.al26_ratio <= high * 1.001 for c in contents)
+    assert all(c.al26_ratio >= 0.0 for c in contents)
     assert min(r for r in ratios) < 0.1 and max(r for r in ratios) > 0.5  # the depletion spans the range
 
 
@@ -268,3 +267,21 @@ def test_a_rocky_body_heats_with_its_own_rock_share_and_aluminium():
     stand_in = radiogenic.rock_of(body)
     assert stand_in == radiogenic.Rock(tuning.RADIOGENIC_SILICATE_MASS_FRACTION, 1.0 - tuning.RADIOGENIC_SILICATE_MASS_FRACTION, 0.0,
                                        radiogenic.BULK_SILICATE_EARTH_AL_MASS_FRACTION)
+
+
+def test_the_aluminium_26_of_a_star_is_a_spiky_sum_of_decayed_additions_about_its_regions_mean():
+    """GEN.476: the median star is born with far less than the region's mean and a few with many times more, and the mean follows the gas depletion time and the star's aluminium."""
+    mean = radiogenic.al26_mean()
+    stream = draw.Stream("al26-spiky")
+    ratios = sorted(radiogenic.draw_content(0.0, rng=stream).al26_ratio for _ in range(1500))
+    assert ratios[len(ratios) // 2] < 0.3 * mean and ratios[-1] > 5.0 * mean
+    assert 0.3 * mean < sum(ratios) / len(ratios) < 3.0 * mean
+    assert radiogenic.al26_mean(fe_h=0.3) == pytest.approx(radiogenic.al26_mean() / 10.0 ** 0.3)
+    assert radiogenic.al26_mean(fe_h=None) == radiogenic.al26_mean()
+
+
+def test_the_given_mean_sets_the_scale_and_one_seed_gives_one_ratio():
+    low = [radiogenic.draw_content(0.0, rng=draw.Stream(f"m{i}"), al26_mean_ratio=1e-7).al26_ratio for i in range(200)]
+    high = [radiogenic.draw_content(0.0, rng=draw.Stream(f"m{i}"), al26_mean_ratio=1e-5).al26_ratio for i in range(200)]
+    assert sum(high) > 20 * sum(low)
+    assert radiogenic.draw_content(0.0, rng=draw.Stream("same")).al26_ratio == radiogenic.draw_content(0.0, rng=draw.Stream("same")).al26_ratio
