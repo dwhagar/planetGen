@@ -1,5 +1,0 @@
-**Headline:** Dead settings and unused helper functions are gone, and a test now fails if a tuning constant has no reader.
-
-### Changed
-- **Nine tuning constants nothing read are deleted (OPS.73).** `HABITABLE_ZONE_BUFFER_AU`, `ROUND_RADIUS_KM`, `RADIUS_KM_SCIENTIFIC_NOTATION_THRESHOLD`, `STELLAR_PROTO_HELIUM_OFFSET_DEX`, `MAX_FLAVOR_PLANET`, `NAV_COURSE_DECIMAL_PLACES`, `STELLAR_U_TH_UNCERTAINTY`, `CLOUD_ENRICHMENT_REFERENCE_RATIO` and `CHUNKS_PER_WORKER`. No generated value changes. A new test (`tests/test_tuning_readers.py`) fails when a constant in `tuning.py` has no reader; the one that waits for its item (the neutron star mass Gaussians, GEN.930) is listed there with the item.
-- **Seven functions nothing called are deleted (OPS.74).** `draw_mass`, `mantle_mass_kg`, `shell_chunks`, `build_sector_configs` (`iter_sector_configs` does its work), `get_galaxy_phenomena`, `read_config`, `settings_hash` and `mass_limit_argv`. `class_allowed_in_zone` was already gone. `build_nodes` stays (the tile prefetch queue calls it by name) and `register_card_renderer` stays (VIEW.3 installs its card drawer there).
