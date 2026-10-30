@@ -1083,6 +1083,20 @@ The planet architecture (`physics/planet_architecture.py`, `docs/design/composit
 | SB2 | P | T1 | L0 | substellar_ceiling.HOTTEST_K 2950 (the highest temperature the limit mass reaches; the table has 2946 K at 10 Myr) | none | any age from 0.5 Myr to 10 Gyr | an isochrone set whose limit mass peaks more than 100 K from 2950 K | a later set of models | test_substellar_ceiling::test_the_limit_mass_is_hottest_at_ten_million_years_as_the_paper_says |
 <!-- substellar-ceiling-standins:end -->
 
+### 6.38 Stand-ins of the aluminium-26 and iron-60 at birth (GEN.476)
+
+`physics/birth_radioisotopes.py` builds the ratio of aluminium-26 and iron-60 to their stable partners at a star's birth from the Galaxy's gamma-ray masses of the two (the yield per mass of stars formed), the depletion time of the star's region and the granularity of the sources, replacing the log-uniform 0.1 to 10 times the Solar System's own 5.23e-5 of `radiogenic`. The Solar System ratio (and the iron-60 ratio of 1.0e-8) are test points only.
+
+<!-- birth-radioisotopes-standins:begin -->
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
+|---|---|---|---|---|---|---|---|---|---|
+| BR1 | P | T1 | L0 | birth_radioisotopes.MEAN_LIFE_YR (26Al 1.035 Myr, 60Fe 3.78 Myr) | none | any region | a measured half-life differing by more than 5 percent | the next evaluation of the half-lives | test_birth_radioisotopes::test_the_yields_per_mass_formed_are_the_gamma_ray_mass_over_rate_and_mean_life |
+| BR2 | P | T1 | L0 | birth_radioisotopes.GALAXY_AL26_MASS_SOLAR 2.0 and FE60_AL26_FLUX_RATIO 0.15 (the gamma-ray masses of the two isotopes in the Galaxy; the 26Al mass is 1.7 to 3) | 26Al mass 1.7 to 3 | massive-star nucleosynthesis at about solar metallicity | a gamma-ray mass differing from 2.0 by more than 40 percent | a later INTEGRAL mass or a yield model (Limongi and Chieffi) | test_birth_radioisotopes::test_the_mean_ratio_is_about_ten_times_under_the_solar_systems |
+| BR3 | P | T1 | L0 | birth_radioisotopes.GALAXY_STAR_FORMATION_SOLAR_MASSES_PER_YR 1.65 (the Galaxy's star formation rate, +-0.19) | 1.46 to 1.84 | the rate the gamma-ray masses are divided by | a rate differing by more than 20 percent | a later meta-analysis | test_birth_radioisotopes::test_the_yields_per_mass_formed_are_the_gamma_ray_mass_over_rate_and_mean_life |
+| BR4 | P | T2 | L0 | birth_radioisotopes.RECURRENCE_RANGE_YR 5 to 10 Myr (the time between core-collapse additions to a region's gas, as Meyer and Clayton give it, read second-hand in Lugaro et al. 2018) | 5 to 10 Myr | a region with cluster formation at the Galactic rate | a cluster formation rate that puts the recurrence outside 3 to 15 Myr | a recurrence from the region's own cluster formation rate | test_birth_radioisotopes::test_the_draws_keep_the_mean_and_are_spiky_for_the_short_lived_isotope |
+| BR5 | P | T6 | L2 | birth_radioisotopes.EVENT_YIELD_SIGMA_LN 1.0 (the log-normal spread of the yield of one addition, the richness of the cluster) | 0.5 to 1.5 | all regions | a Solar System ratio outside the 90th to 99.9th percentile of the draws, or a share of stars with more than a tenth of it outside 4 to 66 percent (row o6) | a cluster mass function and its yields (GEN.476 follow-up) | test_birth_radioisotopes::test_the_solar_system_ratio_is_in_the_upper_tail_of_the_distribution |
+<!-- birth-radioisotopes-standins:end -->
+
 ## 7. Gemini's first batch
 
 ### 7.1 Counts and recommendation
