@@ -108,3 +108,4 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.43:BM2 | no data | - | the words dense, sparse and typical are labels for the spread of belt masses at one age; no survey resolves the masses of belts of asteroids, and the factor of 3 is a choice of where the words change |
 | 6.44:MG2 | no data | - | the widths of the axes and the distance past which a body is called none are choices; the collection's spread inside each group is not in the table, which gives averages and ranges only |
 | 6.47:SE4 | no data | - | the tail slope of the largest solar particle events is fitted to one Carrington-class event in 500 years; a longer proxy record of the largest events (nitrates, cosmogenic isotopes) would replace it |
+| 6.51:PS14 | no data | - | the label is a margin between the model's own solar-metallicity and metal-poor stars; no survey count of subdwarfs by luminosity deficit is held, and the first one replaces the margin |
