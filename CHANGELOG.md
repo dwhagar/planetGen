@@ -2,6 +2,36 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2719] - 2026-10-30
+
+**Headline:** A system of many stars shows each further star as its own marker on the System Map, however the stars lie.
+
+### Fixed
+- **Six further stars in nearly the same direction drew on top of each other on the System Map (MAP.213, slice B).** A further star's marker stepped in toward the middle until it cleared the markers already drawn, and when that line was full it stayed on the last one it tried. It now turns to the nearest free direction when its own line is full, so a seven-star system gets seven markers, each opening its own scene; a marker keeps its real direction whenever there is room. The tree's own pairs already reach the map through the member scenes of MAP.290; the 3D view draws the tree node by node (slice A).
+
+## [8.0.2718] - 2026-10-30
+
+**Headline:** An independent check now proves that the stars, planets and moons of a generated system do not overlap.
+
+### Added
+- **The overlap verifier (TEST.477, GEN.1006 part P2).** `planetgen.physics.clearance.audit` reads only what a finished system stores and lists every overlap or broken limit: stars filling their Roche lobes at closest approach, the two sides of a node meeting, hierarchical stability by three published criteria, node masses, planets inside their star, the Holman and Wiegert axes, crossing or crowded planets, moons beyond the Hill limit or touching their planet, and belts over a planet's orbit; it also counts the physical limits the generator does not promise yet (rigid-body Roche limits) as advisories. It imports none of the generator's placement or screening code. `tests/test_clearance.py` holds each form against the generator's own and sweeps stored systems of one to five stars; the long sweep (864 systems) found one failure, a planet pair 9.93 mutual Hill radii apart where the generator promises 10, listed as the one expected failure.
+
+## [8.0.2717] - 2026-10-30
+
+**Headline:** The ammonia active-Sun factor is computed from measured solar spectra instead of taken from an unchecked value.
+
+### Changed
+- The NH3 active-Sun factor of the photolysis table (GEN.794) is 1.07, computed by `scripts/nh3_activity_factor.py` from the Leiden NH3 photodissociation cross section and the daily solar irradiance of SORCE SOLSTICE, UARS SUSIM and UARS SOLSTICE (strongest year over weakest year of each record: 1.066, 1.083 and 1.060). It replaces the unchecked 1.078; the registry rows NA1 and NA2 give its tier, tweak level and bracket (1.05 to 1.15). No generated world changes: no generation code reads the active-Sun factor.
+- The wiring register names GEN.850 for the acid cloud's column modules (GEN.1020 was retired), so the register check passes again.
+
+## [8.0.2716] - 2026-10-30
+
+**Headline:** The 3D system view draws a triple or a deeper tree of stars node by node, each star on the real orbit the tree gives it.
+
+### Changed
+- **A tree of stars is drawn orbit by orbit (MAP.213, slice A).** The browser now places every star about the centre of mass of the node it hangs from, and each node's centre about its parent node's, as the server's `positions_at` does. A star's path is the real eccentric, tilted ellipse of its node and no longer a circle. In the compressed view each node is drawn on its own scale, wide enough for its two sides to clear each other at periapsis (a star with planets going round it needs their whole span, a sub-pair the reach of its own orbit), so a 10,000 AU outer pair and a 0.1 AU inner pair both read; a wide pair with planets round its stars no longer has its second star inside the first star's planets. True scale draws the real distances. A triple's third star is drawn where the tree puts it and is no longer on the first star.
+- `positionsAt` and the checks in `tests/test_js_unit.py` still equal the server's positions; the browser test `test_system_page_3d_view_draws_a_triple_with_every_star_clear_of_the_others` loads a triple scene.
+
 ## [8.0.2715] - 2026-10-30
 
 **Headline:** The infrared model's carbon dioxide far wing is now the sourced Perrin and Hartmann one, and the column takes an acid cloud; no stored world changes.

@@ -495,6 +495,7 @@ Moved into 8.1 from 9.0 phase 3 by Boss, 5:48 PM EDT 2026-10-23: build the entir
 | GEN.474 | Replace the Earth rock-type library, measured on Earth, by ground types derived from the bulk composition and the melting of the mantle |  | Boss 1:43 AM EDT, Stand-in only: replace the Earth rock-type library by derived ground types. |
 | GEN.1005 | Replace the Solar System-anchored redox, dry carbon and comet species rows with models that carry the physics (replaces the Solar System-resting rows of GEN.1002 that GEN.474 does not cover) | GEN.474 |  |
 | GEN.1021 | Replace the 67P calibration of the comet species factors with a second comet or a laboratory trapping table | GEN.1005 |  |
+| GEN.1022 | One latent ice formation temperature per comet drives its CO/H2O, N2 and Ar together (option B of the comet species model) | GEN.1021 |  |
 | GEN.475 | Meteorite groups become outputs and not inputs: regions of composition space reachable from the drawn bulk, with the measured groups kept as calibration | GEN.473, GEN.474 | Boss 1:43 AM EDT, Stand-in only: R3, meteorite groups as outputs of the drawn chemistry. |
 | GEN.476 | Aluminium-26 and iron-60 follow from the star's formation environment, not from the Solar System's own value and range |  | Boss 1:43 AM EDT, Stand-in only: R4, Al-26 and Fe-60 from the formation environment. |
 
@@ -529,14 +530,15 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.728 | Planet count from the observed multiplicity and occurrence distributions by star mass and metallicity |  |  |
 | GEN.1006 | Stars and bodies in one system never overlap by design: every member knows the others when any is rebuilt, then fit and adjust afterwards |  |  |
 | GEN.1017 | Overlap-free stars P0: give the star tree the primary's [Fe/H] (and the build's age and mass) so the tree and the build evolve each companion the same way (replaces the dropped GEN.1007) |  |  |
-| GEN.1016 | Overlap-free stars P10: per-level hierarchical stability margin and the 2+2 quadruple fit, if the verifier shows it is needed | TEST.477, GEN.1011 |  |
+| GEN.1016 | Overlap-free stars P10: per-level hierarchical stability margin and the 2+2 quadruple fit, if the verifier shows it is needed | GEN.1011 |  |
 | GEN.1015 | Overlap-free stars P9: delete the GEN.1004 quick fix (built_tree_clears, the clearance branch of _companions_fit, _built_stars_clear), no shim | GEN.1011, GEN.1014 |  |
 | GEN.1014 | Overlap-free stars P8: a clearance ledger and planet, moon and belt sampling from it | GEN.1009, GEN.1011 |  |
+| GEN.1023 | Two planets of a close pair in triple seed 208 sit 9.93 mutual Hill radii apart where the generator promises 10 (bug) |  |  |
 | GEN.1013 | Overlap-free stars P7: keep compact members and brown dwarfs in the tree for the orbit draw | GEN.1009 |  |
 | GEN.1012 | Overlap-free stars P6: a general history rule replacing the white-dwarf-only engulfment test in classify_pair | GEN.1009 |  |
 | GEN.1011 | Overlap-free stars P5: truncated sampling of period and eccentricity, deleting the 60-try loop and the tree restart loop | GEN.1009, GEN.1010 |  |
 | GEN.1010 | Overlap-free stars P4: one keep-out rule at every depth of the star tree, replacing the Roche-or-extent split | GEN.1009 |  |
-| GEN.1009 | Overlap-free stars P3: evolve each star once into a frozen MemberRecord that the tree, the build and the planets all read (replaces GEN.1007 and GEN.1008) | TEST.476, TEST.477 |  |
+| GEN.1009 | Overlap-free stars P3: evolve each star once into a frozen MemberRecord that the tree, the build and the planets all read (replaces GEN.1007 and GEN.1008) | TEST.476 |  |
 | GEN.828 | Giant planet occurrence falls with host mass and rises with metallicity, and hot Jupiters are rare: giants per M dwarf are about 0.48 today against 0.03 to 0.06 observed, hot Jupiters 0.117 per M dwarf and 0.026 per FGK star against under 0.002 and 0.005 to 0.01 |  |  |
 | GEN.829 | A 2 to 20 Earth-mass population exists: sub-Neptunes with a hydrogen envelope, 0.5 to 1 planets per FGK star inside 1 AU against 0.195 today, and the mass function falls steadily above about 10 Earth masses |  |  |
 | TEST.395 | A planet distribution test with observed-rate bands, run after the class cut-over on the final classes and on galaxy-placed stars: giants and hot Jupiters per host mass, planets per mass bin, 1 to 20 Earth-mass planets per star, habitable-class bodies per star, and a rule for classes O, P and Q | GEN.689, GEN.828, GEN.829, GEN.728 |  |
@@ -551,8 +553,10 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | TEST.455 | A completeness gate: every numeric constant in the generation and physics modules has a stand-in registry row or is read from a table; the list of unregistered constants may only shrink | GEN.945 |  |
 | TEST.461 | test_db_column_round_trip fails on planets.porosity: the column is never written (bug) |  |  |
 | TEST.463 | Reds on main reported by Core 5 at 10:33 PM EDT 2026-10-29: triage each one and fix or assign it (bug) |  |  |
+| TEST.481 | Three tests red on clean main: the Hill sphere moon drop, the halo evolutionary flux counts and the large component phenomena unit (bug) |  |  |
+| TEST.480 | test_gen_builder_internals::test_slot_planet_honours_class_and_moon_count gets class J where it forced class I at a cold slot (bug) |  |  |
+| TEST.479 | test_radiative_convective_real::test_earth_sends_out_what_it_absorbs fails on the train 4 branch: the Earth tropopause temperature is 168.33 K against the test bound of 170 to 230 K (bug) |  |  |
 | PERF.218 | run_plan._draw_sector_bands recomputes the bright-star band table for every capped cell: memoise it per (shell, luminosity floor) |  |  |
-| TEST.477 | The overlap verifier: audit() of a generated system and a seed-sweep test over forced triples, quadruples and ordinary systems (GEN.1006 P2) |  |  |
 | TEST.476 | A test that measures how often items are redrawn or regenerated to make them fit: stars in a tree, planets, moons and belts |  |  |
 | GEN.1004 | A triple system whose third star cannot be found: it may sit inside another star or on an orbit that is not drawn (bug) | TEST.162 |  |
 | TEST.472 | Four migration tests are red on clean main: aerosols same-seed draws, albedo_greenhouse saved-system temperature, and two gas_tables tests (AsteroidBelt has no attribute moons) (bug) |  |  |
@@ -589,7 +593,6 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.854 | Most class M planets do not look habitable: only a tiny share are, and most need a hardened pressure suit (bug) |  |  |
 | GEN.852 | Infrared opacity leftovers: Venus clouds and wings (the IR3 far wing is a labelled stand-in), more gas tables, tropopause quantisation, and species without data in the cp over R path (OCS and others) |  |  |
 | GEN.1019 | Venus clouds and the CO2 far-wing line shape in the infrared model (the IR3 far wing is a labelled stand-in) | GEN.852 |  |
-| GEN.1020 | Infrared opacity of the acid cloud and the SO2, CO and H2O line wings, so a Venus-like air reaches its published surface temperature once the sourced CO2 far wing replaces IR3 | GEN.1019 |  |
 | GEN.982 | Wire the photolysis lifetimes (physics/photolysis.py and photolysis_lifetimes.json) into the atmosphere chemistry |  |  |
 | GEN.851 | Wire haze into the air from aerosols.tau_haze (haze share and pressure are caller inputs today) |  |  |
 | GEN.850 | Wire radiative_convective.warming into generation behind a lookup table of the model answers, and delete the infrared_opacity.py plateau code |  |  |
@@ -649,7 +652,6 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | DB.101 | Storage and units for every physics rectification output: a column, a column_units entry and a migration shipped with its item |  |  |
 | GEN.839 | The hydrosphere ice shell and the surface composition volcanism gate still read the provisional-age heat, so they disagree with the final-age heat GEN.763 stores (bug) |  |  |
 | GEN.838 | A separate core temperature: the interior heat model keeps one mantle temperature, so the core heat flow, inner-core growth and the dynamo cannot follow their own cooling |  |  |
-| GEN.794 | Replace the NH3 photolysis activity factor 1.078 (GEN.501, registry stand-in 1.05 to 1.10) with the Huebner and Mukherjee 2015 rates or a computation from the Cheng 2006 cross section |  | Citations lane, GEN.793: pool, after 8.1. |
 | GEN.800 | Wire the stored magnetosphere and stellar activity outputs into escape, dose and habitability (G2) | GEN.804, GEN.805, GEN.806, GEN.807, GEN.808 | Unused stored values audit (report of 10:33 PM EDT 2026-10-24), Boss 10:16 PM EDT: file each. |
 | GEN.804 | Atmosphere escape and retention read the stored XUV exposure, flare irradiation and magnetopause (G2, step 1) |  | Unused stored values audit (report of 10:33 PM EDT 2026-10-24), Boss 10:16 PM EDT: file each; chain GEN.800, Boss 10:35 PM EDT. |
 | GEN.805 | The surface dose and the habitability radiation component read the stored flare irradiation index and magnetopause (G2, step 2) | GEN.804 | Unused stored values audit (report of 10:33 PM EDT 2026-10-24), Boss 10:16 PM EDT: file each; chain GEN.800, Boss 10:35 PM EDT. |

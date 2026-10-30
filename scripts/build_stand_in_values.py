@@ -147,6 +147,8 @@ SECTIONS = (
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.63", "6.63 Stand-ins of the acid cloud's infrared optics and the minor-gas wings",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.64", "6.64 Stand-ins of the NH3 active-Sun factor",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.56", "6.56 Stand-ins of the registered rows that rest on a Solar System body",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.57", "6.57 Stand-ins of the magma-ocean redox model",

@@ -16,13 +16,13 @@ release is stamped.
 | UX | UX.240 |
 | MAP | MAP.353 |
 | NAV | NAV.65 |
-| GEN | GEN.1022 |
+| GEN | GEN.1024 |
 | PERF | PERF.219 |
 | DB | DB.110 |
 | API | API.38 |
 | ADM | ADM.135 |
 | SEC | SEC.37 |
-| TEST | TEST.479 |
+| TEST | TEST.482 |
 | USR | USR.32 |
 | OPS | OPS.78 |
 | DOC | DOC.83 |
@@ -1544,7 +1544,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.791 | Generator switch that forces a planet or moon class so a sample can hold at least 30 of every class (random generation gives under 30 of classes O, P, T, V, E, K, L, N, F, G) | none | done, PR #3592 |
 | GEN.792 | File the GEN.725 registry rows from the second-hand citations report: first-hand sources, second-hand fallbacks and the final open list | none | done, PR #3212 |
 | GEN.793 | Settle two source flags in the registry: CFC-12 forcing coefficient 0.32 (IPCC TAR) against 0.33 (gap plan), and the NH3 1.078 factor against Irwin 2019 | none | done, PR #3212 |
-| GEN.794 | Replace the NH3 photolysis activity factor 1.078 (GEN.501, registry stand-in 1.05 to 1.10) with the Huebner and Mukherjee 2015 quiet and active NH3 rates, or a computation from the Cheng 2006 cross section and measured solar spectra | none | open |
+| GEN.794 | Replace the NH3 photolysis activity factor 1.078 (GEN.501, registry stand-in 1.05 to 1.10) with the Huebner and Mukherjee 2015 quiet and active NH3 rates, or a computation from the Cheng 2006 cross section and measured solar spectra | none | done, PR #4069 |
 | GEN.795 | The day and night temperature swing reads as a range: "±9.07 K" (or "±9.07 C degrees") or the full low to high temperatures, never a bare difference (bug) | none | done, PR #3487 |
 | GEN.796 | Each regional temperature (polar, northern, equatorial, southern, mean and the rest) shows its actual range: the low and the high with the stated value at the middle | none | done, PR #3487 |
 | GEN.797 | Register the GEN.327 young group stand-ins in the GEN.725 registry: member count weights, group radius, 2.5 km/s velocity dispersion, 300 AU remnant cap, with tier and tweak level | none | done, PR #3384 |
@@ -1770,8 +1770,10 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1017 | Overlap-free stars P0: give the star tree the primary's [Fe/H] (and the build's age and mass) so the tree and the build evolve each companion the same way (replaces the dropped GEN.1007) | none | open |
 | GEN.1018 | Overlap-free stars research part: port a 3+1 quadruple stability criterion and verify the sources from the papers (GEN.1006) | none | done, PR #4043 |
 | GEN.1019 | Venus clouds and the CO2 far-wing line shape in the infrared model (the IR3 far wing is a labelled stand-in) | none | open |
-| GEN.1020 | Infrared opacity of the acid cloud and the SO2, CO and H2O line wings, so a Venus-like air reaches its published surface temperature once the sourced CO2 far wing replaces IR3 | none | open |
+| GEN.1020 | Infrared opacity of the acid cloud and the SO2, CO and H2O line wings, so a Venus-like air reaches its published surface temperature once the sourced CO2 far wing replaces IR3 | none | done, PR #4061 |
 | GEN.1021 | Replace the 67P calibration of the comet species factors with a second comet or a laboratory trapping table | none | open |
+| GEN.1022 | One latent ice formation temperature per comet drives its CO/H2O, N2 and Ar together (option B of the comet species model) | none | open |
+| GEN.1023 | Two planets of a close pair in triple seed 208 sit 9.93 mutual Hill radii apart where the generator promises 10 (bug) | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -3416,8 +3418,11 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.474 | tests/test_web_a11y.py::_add_bright_stars fails with pymysql 1136 "Column count doesn't match value count" and errors every site_app browser test in setup (bug) | none | done, PR #4023 |
 | TEST.475 | tests/test_web_nearby.py: four of eight tests error in fixture setup at 900 s because the client fixture generates two sectors per test (bug) | none | done, PR #4049 |
 | TEST.476 | A test that measures how often items are redrawn or regenerated to make them fit: stars in a tree, planets, moons and belts | none | open |
-| TEST.477 | The overlap verifier: audit() of a generated system and a seed-sweep test over forced triples, quadruples and ordinary systems (GEN.1006 P2) | none | open |
+| TEST.477 | The overlap verifier: audit() of a generated system and a seed-sweep test over forced triples, quadruples and ordinary systems (GEN.1006 P2) | none | done, PR #4071 |
 | TEST.478 | tests/test_api.py _bright_row (and its row near line 1491) is one value short since GEN.846 added bright_stars.rotation_period_hours (bug) | none | done, PR #4056 |
+| TEST.479 | test_radiative_convective_real::test_earth_sends_out_what_it_absorbs fails on the train 4 branch: the Earth tropopause temperature is 168.33 K against the test bound of 170 to 230 K (bug) | none | open |
+| TEST.480 | test_gen_builder_internals::test_slot_planet_honours_class_and_moon_count gets class J where it forced class I at a cold slot (bug) | none | open |
+| TEST.481 | Three tests red on clean main: the Hill sphere moon drop, the halo evolutionary flux counts and the large component phenomena unit (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
