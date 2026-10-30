@@ -85,8 +85,8 @@ def test_the_wing_ends_at_the_reach(tmp_path, monkeypatch):
     for reach in (120.0, 500.0, 1.0e5):
         monkeypatch.setitem(fw.NUMBERS["reach_cm1"], "value", reach)
         totals.append(fw.cross_section_cm2(one_band(0), EDGES, [300.0], [5.0e6], [1.0])[0])
-    assert np.all(totals[0] <= totals[1]) and np.all(totals[1] <= totals[2])
-    assert totals[0][6:].sum() == 0.0 and totals[1][8:].sum() == 0.0 and totals[2][9] > 0.0
+    assert np.all(totals[0] <= totals[1] + 1e-30) and np.all(totals[1] <= totals[2] + 1e-30)
+    assert totals[0][4:].sum() < 1e-30 and totals[1][7:].sum() < 1e-30 and totals[2][9] > totals[1][9] + 1e-34
 
 
 def test_a_nitrogen_air_has_a_smaller_wing_than_a_pure_carbon_dioxide_one():

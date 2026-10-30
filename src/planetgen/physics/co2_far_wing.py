@@ -10,8 +10,7 @@ the cutoff, times the sub-Lorentzian factor `chi` of Perrin and Hartmann 1989 (J
 
     kappa_i = sum_j S_j  < (1/pi) [x_c gamma_c chi_cc(d) + (1 - x_c) gamma_f chi_cn(d)] / (gamma^2 + d^2) >    for cutoff <= d <= reach
 
-with `d` the distance between a point of band `i` and a point of band `j` (the average runs over a few points of each band, which
-spreads a band's strength over its width), `gamma = x_c gamma_c + (1 - x_c) gamma_f` the Lorentz half width at the pressure and
+with `d` the distance between a point of band `i` and a point of band `j` (averaged over both bands, a band's strength spread evenly over its width), `gamma = x_c gamma_c + (1 - x_c) gamma_f` the Lorentz half width at the pressure and
 temperature, and `chi` the four-piece exponential of Simonetti and others 2021 (their equations 12 to 15):
 `chi = 1` to `sigma1`, then `exp(-b1 (d - sigma1))`, `exp(-b1 (sigma2 - sigma1) - b2 (d - sigma2))`, and beyond `sigma3` the same with `b3`;
 `b_i(T) = alpha_i + beta_i exp(-epsilon_i T)`, held at 190 to 800 K, the temperatures it was measured at.
@@ -40,8 +39,8 @@ ATMOSPHERE_PA = 101325.0
 """float: One standard atmosphere, Pa, the pressure the half widths are stated at."""
 REFERENCE_K = 296.0
 """float: The temperature the half widths are stated at (HITRAN's)."""
-SUBSAMPLES = 3
-"""int: Points of a band used on each side of a band pair; the spread of a band's strength over its width."""
+GRID_STEP_CM1 = 0.5
+"""float: The step of the grid the tail is integrated on, cm-1."""
 
 
 class FarWingError(ValueError):
@@ -106,18 +105,19 @@ def band_strengths(k_mean_cm2, edges_cm1):
     return np.asarray(k_mean_cm2, dtype=float) * np.diff(edges_cm1)
 
 
-def _distances(edges_cm1, samples=SUBSAMPLES):
-    """The distances between the sample points of every band pair: shape (band i, band j, samples ** 2)."""
-    edges = np.asarray(edges_cm1, dtype=float)
-    fractions = (np.arange(samples) + 0.5) / samples
-    points = edges[:-1, None] + np.diff(edges)[:, None] * fractions[None, :]
-    return np.abs(points[:, None, :, None] - points[None, :, None, :]).reshape(len(points), len(points), samples * samples)
+def _second_integral(distance, tail, step):
+    """`F2(u)` on the grid `distance`: the integral from 0 of `F1(v) dv`, `F1` the integral from 0 of the tail `f` (trapezoids)."""
+    first = np.concatenate([[0.0], np.cumsum(0.5 * (tail[1:] + tail[:-1]) * step)])
+    return np.concatenate([[0.0], np.cumsum(0.5 * (first[1:] + first[:-1]) * step)])
 
 
-@np.errstate(all="ignore")
 def cross_section_cm2(strengths, edges_cm1, temperature_k, pressure_pa, co2_fraction):
     """
     The far-wing cross section of carbon dioxide, cm2 per molecule, in each band, for a stack of layers.
+
+    The strength of band `j` is spread evenly over its width and the wing is averaged evenly over band `i`, so the weight of the pair is
+    the double integral of the tail `f(d)` over the two intervals, `F2(b - c) - F2(a - c) - F2(b - d) + F2(a - d)` divided by both widths
+    (`F2` the second integral of `f`, even), which does not depend on how the bands are sampled.
 
     Args:
         strengths (ndarray): Each layer's band strengths (layers, bands), cm per molecule (`band_strengths`).
@@ -131,18 +131,28 @@ def cross_section_cm2(strengths, edges_cm1, temperature_k, pressure_pa, co2_frac
     temperature = np.atleast_1d(np.asarray(temperature_k, dtype=float))
     pressure = np.atleast_1d(np.asarray(pressure_pa, dtype=float))
     fraction = np.atleast_1d(np.asarray(co2_fraction, dtype=float))
-    distance = _distances(edges_cm1)
-    inside = (distance >= number("cutoff_cm1")) & (distance <= number("reach_cm1"))
+    edges = np.asarray(edges_cm1, dtype=float)
+    width = np.diff(edges)
+    cutoff, reach = number("cutoff_cm1"), number("reach_cm1")
+    step = GRID_STEP_CM1
+    distance = np.arange(0.0, edges[-1] - edges[0] + 2.0 * step, step)
+    inside = (distance >= cutoff) & (distance <= reach)
+    lower, upper = edges[:-1], edges[1:]
     result = np.zeros(strengths.shape)
     for layer in range(len(temperature)):
         if fraction[layer] <= 0.0 or pressure[layer] <= 0.0:
             continue
-        gamma = half_width_cm1(temperature[layer], pressure[layer], fraction[layer])
-        x = fraction[layer]
-        weight = x * number("gamma_self_cm1_atm") * chi(distance, temperature[layer], "co2_co2") \
-            + (1.0 - x) * number("gamma_foreign_cm1_atm") * chi(distance, temperature[layer], "co2_n2")
-        scale = (pressure[layer] / ATMOSPHERE_PA) * (REFERENCE_K / temperature[layer]) ** number("gamma_exponent")
-        shape = np.where(inside, scale * weight / (np.pi * (gamma ** 2 + distance ** 2)), 0.0)
-        kernel = shape.mean(axis=2)
-        result[layer] = kernel @ strengths[layer]
-    return result
+        x, t = fraction[layer], temperature[layer]
+        gamma = half_width_cm1(t, pressure[layer], x)
+        scale = (pressure[layer] / ATMOSPHERE_PA) * (REFERENCE_K / t) ** number("gamma_exponent")
+        weight = x * number("gamma_self_cm1_atm") * chi(distance, t, "co2_co2") + (1.0 - x) * number("gamma_foreign_cm1_atm") * chi(distance, t, "co2_n2")
+        tail = np.where(inside, scale * weight / (np.pi * (gamma ** 2 + distance ** 2)), 0.0)
+        f2 = _second_integral(distance, tail, step)
+
+        def at(u):
+            return np.interp(np.abs(u), distance, f2)
+
+        pair = at(upper[:, None] - lower[None, :]) - at(lower[:, None] - lower[None, :]) \
+            - at(upper[:, None] - upper[None, :]) + at(lower[:, None] - upper[None, :])
+        result[layer] = (pair / (width[:, None] * width[None, :])) @ strengths[layer]
+    return np.maximum(result, 0.0)
