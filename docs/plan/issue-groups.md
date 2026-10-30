@@ -15,7 +15,7 @@ Rules:
 
 | Issue | State | Goal | Items |
 |---|---|---|---|
-| [#4088](https://github.com/dwhagar/planetGen/issues/4088) | open | Multi-star systems never overlap, by design (GEN.1006) | GEN.1006, GEN.1004, GEN.1017, TEST.476, TEST.477, GEN.1009, GEN.1010, GEN.1011, GEN.1012, GEN.1013, GEN.1014, GEN.1015, GEN.1016, GEN.1023, GEN.1028, GEN.1029 |
+| [#4088](https://github.com/dwhagar/planetGen/issues/4088) | open | Multi-star systems never overlap, by design (GEN.1006) | GEN.1006, GEN.1004, GEN.1017, TEST.476, TEST.477, GEN.1009, GEN.1010, GEN.1011, GEN.1012, GEN.1013, GEN.1014, GEN.1015, GEN.1016, GEN.1031, GEN.1023, GEN.1028 |
 | [#3790](https://github.com/dwhagar/planetGen/issues/3790) | open | Tides and spin built out in full: rheology, torque sum, moon orbits, ice, birth spin and the eccentricity-first order (8.1) | GEN.842, GEN.953, GEN.954, GEN.955, GEN.956, GEN.957, GEN.958, GEN.959, GEN.960, GEN.961, GEN.976, GEN.977, GEN.978, GEN.979, GEN.778, GEN.985, GEN.986, GEN.987, GEN.992 |
 | [#3244](https://github.com/dwhagar/planetGen/issues/3244) | open | Generator residuals and small stand-in fixes | GEN.634, GEN.635, GEN.669, GEN.673, GEN.705, GEN.706, GEN.708, GEN.716, GEN.720, GEN.721, GEN.722, GEN.723, DOC.79 |
 | [#3243](https://github.com/dwhagar/planetGen/issues/3243) | open | Day and night time shares and hours a person can be outside | GEN.767, GEN.768 |
