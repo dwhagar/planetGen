@@ -2344,19 +2344,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   on each. Owner: Core 2 (with the info popup redesign). Version 8.1.
   Prerequisites: none. Related: MAP.336.
 
-- [ ] **MAP.350 The Galaxy Map window fills the screen with only about 20 pixels of buffer at the top and bottom, so the whole window shows with no page scrolling (bug)**
-  Boss, 8:58 PM EDT 2026-10-29 (live observation): make the top and
-  bottom of the map window buffered by only about 20 pixels so the whole
-  window is visible with no page scrolling; the controls now live on the
-  map itself, so the window can expand to fill the screen. Do: size the
-  map window to the viewport height minus about 20 pixels above and
-  below (no page scroll at 1080p maximized, and a sensible minimum on
-  short windows), check every layer and the Go to box and the key still
-  fit, and keep it working with the info popup redesign MAP.347 (the
-  popup was scrolling off the screen for the same reason). Lock-free: no
-  generated output. Owner: Core 2 (with MAP.347). Version 8.1.
-  Prerequisites: none. Related: MAP.347, MAP.348, MAP.349.
-
 - [ ] **MAP.352 Back to a system in a different sector fails when pressed before the first Back has finished (bug)**
   Core 2 report (as the lane reported 11:35 PM EDT 2026-10-29), found
   while fixing TEST.450: pressing Back to a system in a different sector
