@@ -171,10 +171,10 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.74:SH2 | GEN.963 | `atmosphere_retention.VERDICT_EDGES`, not read until the pressure stage takes its cap from the module |
 | row | 6.74:SH3 | GEN.963 | `atmosphere_retention.PRESSURE_CAPS_PA`, not read until the pressure stage takes its cap from the module |
 | row | 6.74:SH4 | GEN.963 | `atmosphere_retention.JEANS_KEEP`, not read until the pressure stage takes its cap from the module |
-| module | planetgen.physics.nightside_collapse | GEN.1044 | whether a locked planet's air freezes onto its night side and how much stays; the oddity wiring (GEN.1051) will call it after the climate solver |
-| row | 6.75:NC1 | GEN.1044 | a constant of the nightside collapse module, read when its wiring step lands |
-| row | 6.75:NC3 | GEN.1044 | a constant of the nightside collapse module, read when its wiring step lands |
-| row | 6.75:NC6 | GEN.1044 | a constant of the nightside collapse module, read when its wiring step lands |
+| module | planetgen.physics.nightside_collapse | GEN.1051 | whether a locked planet's air freezes onto its night side and how much stays; the oddity wiring (GEN.1051) will call it after the climate solver |
+| row | 6.75:NC1 | GEN.1051 | a constant of the nightside collapse module, read when its wiring step lands |
+| row | 6.75:NC3 | GEN.1051 | a constant of the nightside collapse module, read when its wiring step lands |
+| row | 6.75:NC6 | GEN.1051 | a constant of the nightside collapse module, read when its wiring step lands |
 | module | planetgen.physics.ring_origin | GEN.1057 | the ring as a result of a fallen moon or a comet inside the Roche limit; the conditional ring draw (GEN.1057) will call it and replace the `rings.draw_ring` chances |
 | row | 6.70:RO1 | GEN.1057 | a constant of the ring origin module, read when its wiring step lands |
 | module | planetgen.physics.venus_spin | GEN.1048 | the spin equilibria of a thick-air planet (thermal tide against the solid tide, Cunha, Correia and Laskar 2015); the weird-worlds wiring (W2) will give a not-locked thick-air planet its slow or retrograde spin |
@@ -206,6 +206,14 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.76:PF2 | GEN.1048 | a constant of the super-puff module, read when its wiring step lands |
 | row | 6.76:PF3 | GEN.1048 | a constant of the super-puff module, read when its wiring step lands |
 | row | 6.76:PF4 | GEN.1048 | a constant of the super-puff module, read when its wiring step lands |
+| module | planetgen.physics.helium_fractionation | GEN.1047 | the helium share of an envelope that loses hydrogen first (W16); the oddity row reads it when the oddity wiring lands |
+| row | 6.77:HF1 | GEN.1047 | a constant of the helium fractionation module, read when its wiring step lands |
+| row | 6.77:HF2 | GEN.1047 | a constant of the helium fractionation module, read when its wiring step lands |
+| row | 6.77:HF3 | GEN.1047 | a constant of the helium fractionation module, read when its wiring step lands |
+| module | planetgen.physics.giant_tilt | GEN.1058 | the tilt a giant merger gives an ice giant and the ring and moon plane that follow the equator (G1); the spin draw reads it when the wiring lands |
+| row | 6.78:GT1 | GEN.1058 | a constant of the giant tilt module, read when its wiring step lands |
+| row | 6.78:GT2 | GEN.1058 | a constant of the giant tilt module, read when its wiring step lands |
+| row | 6.78:GT3 | GEN.1058 | a constant of the giant tilt module, read when its wiring step lands |
 | module | planetgen.physics.mantle_stripping | GEN.1048 | the iron-rich core of a giant impact (Marcus and others 2010 scaling); the weirdness wiring (W10) gives a rocky planet that had a recorded merger a core fraction from the impacts the architecture recorded |
 | row | 6.93:MT4 | GEN.1048 | `mantle_stripping.Q_STAR_SCALE` of the mantle stripping module, read when its wiring step lands |
 | row | 6.93:MT6 | GEN.1048 | `mantle_stripping.MAX_CORE_MASS_FRACTION` of the mantle stripping module, read when its wiring step lands |

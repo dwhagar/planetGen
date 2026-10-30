@@ -2,6 +2,28 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2762] - 2026-10-30
+
+**Headline:** A harness forces each weird-world oddity on 200 bodies and checks that every outcome stays physical, including rings; it runs today on stub rows and fails on deliberately broken ones.
+
+### Added
+- **The oddity plausibility harness (TEST.490).** `src/tests/oddity_plausibility_cli.py` draws a gated body for a row, applies the row's effect with the row's own stream, and checks the six general invariants of the weird-worlds design (energy, structure, stability, air, class derived and total, no NaN) and the row's own limits. Stub rows pass and nine deliberately broken rows each fail at the invariant they break; the isolation tests show that rolling a row reads nothing from the run's stream at any dial. A module that implements a row registers its effect in `EFFECTS`, and the shipped table is held to the same checks as rows arrive.
+- **The ring list (TEST.494).** Ring mass under 1e-4 of the planet, the outer edge inside the Roche limit unless the body names the R4 resonance, an optical depth that is the formula's output, no ring inside 0.1 AU, the ring plane in the equator, and no ring field on a body with no ring; five broken ring rows show each can fail.
+
+No generator output changes.
+
+generation-output: unchanged
+
+TODO items resolved: TEST.490, TEST.494.
+
+## [8.0.2761] - 2026-10-30
+
+**Headline:** The code now knows how a small planet that has lost most of its hydrogen to its star is left with an air that is mostly helium.
+
+### Changed
+- **The helium fractionation module (GEN.1045).** `physics/helium_fractionation.py` splits an envelope's mass loss between hydrogen and helium (Hu et al. 2015, Malsky et al. 2023): while the loss is under the diffusion-limited flux only hydrogen leaves, and over it the two leave in a mix that is richer in hydrogen the stronger the loss. A planet that loses over 90 percent of its envelope at a rate near that flux comes out more than 80 percent helium by mass; a 10 Earth-mass planet losing half a 0.5 percent envelope in 5 Gyr gains helium to 0.29. The audit of `envelope_escape` found it follows the envelope's mass and keeps it a solar mix, so it cannot do this; the new module takes its loss history and changes nothing in it. No generated world changes: the oddity that uses it is a later wiring step (GEN.1047).
+- **Stand-ins recorded.** Rows HF1 to HF3 in the stand-in registry (GEN.725): the diffusion coefficient, the homopause values and the starting helium share.
+
 ## [8.0.2760] - 2026-10-30
 
 **Headline:** The rates behind the planned weird worlds are now checked against papers, and three of the recalled ones were wrong.

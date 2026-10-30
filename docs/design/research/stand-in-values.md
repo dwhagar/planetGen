@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 634 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 640 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -37,15 +37,15 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
 | T1 | 86 | 2 | 6 | 1 | 0 | 95 |
-| T2 | 90 | 9 | 0 | 1 | 0 | 100 |
-| T3 | 72 | 25 | 5 | 9 | 0 | 111 |
-| T4 | 30 | 0 | 0 | 13 | 6 | 49 |
+| T2 | 92 | 9 | 0 | 1 | 0 | 102 |
+| T3 | 73 | 26 | 5 | 9 | 0 | 113 |
+| T4 | 30 | 1 | 0 | 14 | 6 | 51 |
 | T5 | 38 | 12 | 0 | 0 | 0 | 50 |
 | T6 | 52 | 30 | 12 | 33 | 0 | 127 |
 | T7 | 26 | 8 | 8 | 8 | 0 | 50 |
 | T8 | 0 | 1 | 0 | 1 | 2 | 4 |
 | T9 | 2 | 0 | 2 | 25 | 19 | 48 |
-| All | 396 | 87 | 33 | 91 | 27 | 634 |
+| All | 399 | 89 | 33 | 92 | 27 | 640 |
 
 ## How the labels were given
 
@@ -1004,12 +1004,12 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| NC1 | P | T1 | L0 | nightside_collapse.FIT_COEFFICIENTS (c1 to c4 for 1 and 10 Earth masses), FIT_FLUX_RANGE_W_M2 273.2 to 4098 and FIT_ALBEDO 0.2 | the paper's own least-squares scatter | a pure CO2 air on a flat rocky locked planet with no ocean or cloud, 0.01 to 10 bar, flux 0.2 to 3.0 times 1366 W/m2 | a 3D run of a locked planet with a non-condensing background gas whose critical pressure lies below the fit by more than a factor of three | a fit that includes N2 and the ocean (Wordsworth's later work, not yet read) | Wordsworth 2015 (arXiv 1412.5575), Table 2 and Eq. 43, READ in full text: Earth-flux, Earth-mass value 0.14 bar as the abstract says; the paper calls the fit a conservative upper limit; its own text says collapse at all pressures at the lowest flux while the fit gives 2.9 bar there; test_nightside_collapse::test_the_fit_gives_the_paper_s_critical_pressure_at_earth_s_flux | GEN.1044 | - |
+| NC1 | P | T1 | L0 | nightside_collapse.FIT_COEFFICIENTS (c1 to c4 for 1 and 10 Earth masses), FIT_FLUX_RANGE_W_M2 273.2 to 4098 and FIT_ALBEDO 0.2 | the paper's own least-squares scatter | a pure CO2 air on a flat rocky locked planet with no ocean or cloud, 0.01 to 10 bar, flux 0.2 to 3.0 times 1366 W/m2 | a 3D run of a locked planet with a non-condensing background gas whose critical pressure lies below the fit by more than a factor of three | a fit that includes N2 and the ocean (Wordsworth's later work, not yet read) | Wordsworth 2015 (arXiv 1412.5575), Table 2 and Eq. 43, READ in full text: Earth-flux, Earth-mass value 0.14 bar as the abstract says; the paper calls the fit a conservative upper limit; its own text says collapse at all pressures at the lowest flux while the fit gives 2.9 bar there; test_nightside_collapse::test_the_fit_gives_the_paper_s_critical_pressure_at_earth_s_flux | GEN.1051 | - |
 | NC2 | P | T7 | L1 | nightside_collapse._fit_coefficients: the coefficients linear in the log of the mass between 1 and 10 Earth masses, held outside | none | planets from 1 to 10 Earth masses | a run at 3 Earth masses whose critical pressure is not between the two | fits at more masses | the paper gives two masses only; the 10 Earth-mass fit is higher than the 1 (more collapse), as the text says | - | - |
-| NC3 | P | T1 | L0 | nightside_collapse.KAPPA_M2_KG 5e-5 and COS_ALPHA 0.5 (the grey optical depth of the thin-air night side) | none | CO2 air under about 1 bar | the paper's 125.2 K at 0.1 bar, Earth's flux, albedo 0.2 (our Eq. 25 gives 126.9 K) | a correlated-k night-side temperature | Wordsworth 2015 Eq. 10, 25 and 27, READ; test_nightside_collapse::test_the_night_side_of_a_tenth_of_a_bar_is_the_paper_s_125_k | GEN.1044 | - |
+| NC3 | P | T1 | L0 | nightside_collapse.KAPPA_M2_KG 5e-5 and COS_ALPHA 0.5 (the grey optical depth of the thin-air night side) | none | CO2 air under about 1 bar | the paper's 125.2 K at 0.1 bar, Earth's flux, albedo 0.2 (our Eq. 25 gives 126.9 K) | a correlated-k night-side temperature | Wordsworth 2015 Eq. 10, 25 and 27, READ; test_nightside_collapse::test_the_night_side_of_a_tenth_of_a_bar_is_the_paper_s_125_k | GEN.1051 | - |
 | NC4 | P | T9 | L2 | nightside_collapse._calibration: the factor (about 1.24 at Earth's flux) on the grey night-side temperature that makes the balance first lose CO2 at the fit's critical pressure | none | CO2 below the fit's critical pressure | the fit's own critical pressure disagreeing with the balance by a factor over 2 in pressure at another flux | the night-side temperature from the 3D runs | tuned to the published threshold (NC1), so the two agree there and the retained share rises continuously to 1 at it | - | - |
 | NC5 | P | T7 | L0 | nightside_collapse.collapse for a gas other than CO2: the same grey balance, not calibrated | none | N2 and other gases the paper leaves to later work | a 3D run of an N2 air whose collapse pressure differs from this by a factor over 3 | the N2 collapse pressures of a later Wordsworth or Leconte paper | the paper says N2 collapse is left to future work (Section 3.6); N2 freezes under 126 K so at Earth's flux it holds at any pressure here | - | - |
-| NC6 | P | T9 | L0 | nightside_collapse.COLLAPSED_BELOW_RETAINED 0.5: a world keeping under half its gas is called collapsed | 0.1 to 0.9 | any gas | a page text that reads wrongly at the cut | none (the retained share is the number to use) | needed output: the share, not the flag, is the physics | GEN.1044 | - |
+| NC6 | P | T9 | L0 | nightside_collapse.COLLAPSED_BELOW_RETAINED 0.5: a world keeping under half its gas is called collapsed | 0.1 to 0.9 | any gas | a page text that reads wrongly at the cut | none (the retained share is the number to use) | needed output: the share, not the flag, is the physics | GEN.1051 | - |
 
 ## 6.90 Stand-ins of the Venus-type spin
 
@@ -1049,6 +1049,22 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | PF2 | D | T3 | L0 | super_puff.PUFF_ENVELOPE (0.07, 0.45): the envelope fractions | Kepler-51 b 0.07 to 0.28, Kepler-79 d 0.33 to 0.40 (Lee and Chiang Sec. 4, after Lopez and Fortney); the module solves 0.16 for Kepler-51 b and 0.41 for Kepler-51 d | planets of 2 to 10 Earth masses | a super-puff with an envelope outside it | the formation model of Lee and Chiang (dust-free accretion in the outer disk) | Lee and Chiang 2016 Sec. 4 (read), Libby-Roberts et al. 2025 abstract (read) | GEN.1048 | - |
 | PF3 | P | T8 | L1 | super_puff.OCCURRENCE_SHARE 0.005: the share of sub-Neptunes that are super-puffs | under 1 percent (the design table, [R]); Lee and Chiang bound the planets over 4 Earth radii inside 50 days to under a tenth of the smaller ones, so the true share is under about 9 percent | sub-Neptunes | a survey statistic of planets under 0.1 g/cc | a measured occurrence from Kepler or TESS | design table; Lee and Chiang 2016 Sec. 4 (read). The [R] rate is not confirmed: no occurrence statistic was found | GEN.1048 | - |
 | PF4 | T | T3 | L1 | super_puff.TIDAL_MIN_FLUX_EARTH 20, TIDAL_MIN_LUMINOSITY_RATIO 1e-5, TIDAL_MAX_RATIO 2 and the fit of eq. 14: the tidal inflation | her fit is of her own radii and its exponents are not the quotient of eqs. 12 and 13; here it multiplies the radius of Lopez and Fortney | flux over 20 Earth fluxes, planets of 1 to 30 Earth masses | a planet whose radius is measured against its obliquity | the full structure model with the tidal heat in the core | Millholland 2019 eqs. 11, 14 and Sec. 4.1 (read) | GEN.1048 | - |
+
+## 6.77 Stand-ins of the helium enrichment of a thinning envelope
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| HF1 | D | T2 | L0 | helium_fractionation.DIFFUSION_A_CM 1.04e18 and DIFFUSION_EXPONENT 0.732: the binary diffusion coefficient of hydrogen in helium | none (both papers quote Mason and Marrero 1970) | 3,000 to 10,000 K | a measured diffusion coefficient at the homopause | the table of Mason and Marrero 1970 | Hu et al. 2015 eq. 9, Malsky et al. 2023 A3 (read) | GEN.1047 | - |
+| HF2 | T | T3 | L1 | helium_fractionation.HOMOPAUSE_TEMPERATURE_K 1e4, IONISED_SHARE 0.1 and HOMOPAUSE_RADIUS_OVER_TRANSIT 1.1: the homopause; and b' = b / (1 + x), which gives the paper's 8.0e20 cm^-1 s^-1 at 1e4 K and x = 0.1 | T 3,000 to 10,000 K (the weaker fractionation is at the higher T); x 0 to 0.5 | planets of 4 to 20 Earth masses with a thin envelope | the ion-neutral frequency of Schunk and Nagy 1980 in the full b' | b' from the ionisation fraction at the homopause at each step (Malsky et al. 2023 A3) | Hu et al. 2015 Sec. 2.1; Malsky et al. 2023 A.1, A.4 (read); the form 1/(1 + x) is a fit to the one value of Hu | GEN.1047 | - |
+| HF3 | B | T3 | L0 | helium_fractionation.SOLAR_ENVELOPE_HELIUM 0.245 and MIN_HELIUM_FOR_ENHANCED 0.4: the starting helium share and the line of the enhanced planets | start 0.24 to 0.27 | hydrogen-helium envelopes | a measured primordial envelope helium | the solar mix of the star's own composition | Malsky et al. 2023 Introduction and A (X 0.74, Y 0.24) (read) | GEN.1047 | - |
+
+## 6.78 Stand-ins of the giant-impact tilt of an ice giant
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| GT1 | D | T2 | L0 | giant_tilt.DEFAULT_IMPACT_SPEED_KM_S 5: the speed at infinity; and the angular momentum of an impact at contact `mu v_c R_c sin(theta)` | 1 to 9 km/s (their test: no significant change) | ice giants of 5 to 30 Earth masses hit by 0.3 to 3.6 Earth masses | an impact simulation of the same masses with a different angular momentum | the angular momentum of the SPH runs of Kegerreis et al. 2018 as a function of b | Kegerreis et al. 2018 Sec. 2.3 and Appendix B (read); contact at the sum of the radii is the module's | GEN.1058 | - |
+| GT2 | D | T4 | L1 | giant_tilt.MOMENT_OF_INERTIA_FACTOR 0.225, RETAINED_SHARE 0.9 and PRE_IMPACT_SPIN_BREAKUP 0.2: the planet's moment of inertia, the share of the angular momentum it keeps and the spin before | I 0.22 to 0.24; kept 0.8 to 1; spin 0 (Kegerreis) to 0.3 | Uranus and Neptune | an interior model of a given ice giant, or a run that measures the debris angular momentum | the Helled et al. 2010 interior models and the debris of an SPH run | Kegerreis et al. 2018 Sec. 2.1, 3.4 (read); I is recalled, not read | GEN.1058 | - |
+| GT3 | P | T4 | L3 | giant_tilt.MERGER_SHARE 0.55, IMPACTOR_SHARE (0.02, 0.25) and MASS_RANGE_EARTH (5, 30): the share of ice giants with a recorded giant merger, the impactor's mass share log-uniform, and the masses | merger share 0.3 to 1; impactor share 0.01 to 0.5 | the draw of the tilt tail | a survey of obliquities of giants; a population synthesis with impact histories | the impact history of the outer chain (GEN.1058) | design table G1 (Uranus 98 degrees, one ice giant in five; tuned so the share tilted over 60 degrees is 0.2), Kegerreis et al. 2018 Sec. 2.1 and Morbidelli et al. 2012 Sec. 5 (read) | GEN.1058 | replace (GEN.1058) |
 
 ## 6.93 Stand-ins of the collisional mantle stripping
 
