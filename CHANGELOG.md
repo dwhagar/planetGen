@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2566] - 2026-10-30
+
+**Headline:** The browser test that clicks a black hole, a neutron star and a quasar on the Galaxy Map finds each by its tooltip, so a wheel step that moves them a few pixels no longer sends its click elsewhere.
+
+### Fixed
+
+- **The point-phenomena link test no longer clicks blind (TEST.459).** `test_galaxy_map_draws_point_phenomena_that_link_to_their_pages` computed where the map draws each point and clicked there and at eight offsets around it, taking the first click that named the point. Since the wheel heads for the crowd of stars in front of the pointer (MAP.301) the steps in land the view a few pixels differently, the neutron star's spot fell under the fixture nebula's core, and the next offset clicked empty space beside it, which opens the sector block under the pointer and flies the camera there, so the quasar was selected and the test left the map. The test now moves the pointer over the same offsets and clicks only where the tooltip names the point. No map behaviour, stored value or generated output changes.
+
 ## [8.0.2565] - 2026-10-29
 
 **Headline:** A new Properties page in the Help menu explains where every value on a planet, moon or star page comes from.
