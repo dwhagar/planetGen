@@ -241,3 +241,65 @@ def parse_id(text, layout=LAYOUT):
     if len(cleaned) != digits or not re.fullmatch(r"[0-9A-F]+", cleaned):
         raise ValueError(f"an object ID is {digits} hex digits, got {text!r}")
     return int(cleaned, 16)
+
+
+# --- members of a belt (GEN.1065, docs/design/systems/belt-evolution.md section 9) -----------------------------------------------
+
+MEMBER_SEPARATOR = "."
+"""str: Between a belt's printed ID and the rank of one of its members."""
+MEMBER_RANK_DIGITS = 4
+"""int: The fewest hex digits a printed rank has (zero-padded: `...-000.0042`); a rank past `FFFF` takes as many more as it needs."""
+MAX_MEMBER_RANK = 16 ** 8 - 1
+"""int: The largest rank a belt member has (eight hex digits)."""
+
+
+def _check_member(belt_id, rank, layout):
+    _check("object ID", belt_id, layout.total_bits)
+    if body_of(belt_id, layout) == 0:
+        raise ValueError(f"{format_id(belt_id, layout)} is a system's own ID, not a belt's (a belt is a body of the system)")
+    if isinstance(rank, bool) or not isinstance(rank, int) or not 1 <= rank <= MAX_MEMBER_RANK:
+        raise ValueError(f"a member rank is a whole number from 1 to {MAX_MEMBER_RANK}, got {rank!r}")
+
+
+def designation(belt_id, rank, layout=LAYOUT):
+    """
+    The designation of the member of a belt that has `rank` by mass (1 is the heaviest), `<belt ID>.<rank hex>` such as `FE81000A2B-0000005-003.0042`.
+    A pure function of the two numbers: no name, no salad name, no codec name, and no draw, so one member always prints one text. The rank is
+    the member's place by the mass drawn once at birth, so it stays the same as the belt evolves (a body that is no longer there keeps its number).
+
+    Args:
+        belt_id (int): The belt's object ID (a body of its system).
+        rank (int): From 1; a rank above the belt's individual count (`is_on_demand`) addresses a body drawn on demand and never stored.
+
+    Raises:
+        ValueError: A belt ID that is a system's own, or a rank outside 1 to `MAX_MEMBER_RANK`.
+    """
+    _check_member(belt_id, rank, layout)
+    return f"{format_id(belt_id, layout)}{MEMBER_SEPARATOR}{rank:0{MEMBER_RANK_DIGITS}X}"
+
+
+def parse_designation(text, layout=LAYOUT):
+    """
+    `(belt_id, rank)` of a member designation: the belt's ID read by `parse_id` and the rank in hex. The case is not significant; the rank has the digits
+    `designation` prints (at least `MEMBER_RANK_DIGITS`, no leading zeros beyond them), so a member has one text.
+
+    Raises:
+        ValueError: Text that is not exactly a belt's ID, a point and a canonical rank.
+    """
+    head, point, tail = str(text).strip().upper().partition(MEMBER_SEPARATOR)
+    if not point or MEMBER_SEPARATOR in tail:
+        raise ValueError(f"a member designation is <belt ID>{MEMBER_SEPARATOR}<rank hex>, got {text!r}")
+    belt_id = parse_id(head, layout)
+    if not re.fullmatch(r"[0-9A-F]+", tail):
+        raise ValueError(f"a member rank is hex digits, got {tail!r} in {text!r}")
+    rank = int(tail, 16)
+    _check_member(belt_id, rank, layout)
+    if tail != f"{rank:0{MEMBER_RANK_DIGITS}X}":
+        raise ValueError(f"the rank of {text!r} is written {rank:0{MEMBER_RANK_DIGITS}X}")
+    return belt_id, rank
+
+
+def is_on_demand(rank, individual_count):
+    """Whether the member of this rank is drawn on demand and never stored: its rank is above the number of individually stored bodies of its belt."""
+    return rank > individual_count
+
