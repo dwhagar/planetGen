@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2777] - 2026-10-30
+
+**Headline:** The generator can now estimate the average wind in each latitude band, by day and by night, for any world with air.
+
+### Added
+- **`physics/band_winds.py` (GEN.1110).** From the temperatures of the latitude bands by day and by night, the air's pressure and mass, the planet's size and its spin, it gives an order-of-magnitude mean surface wind in metres a second for each band, by day and by night: the heat-engine speed of the day-night and equator-to-pole differences, the thermal wind where the world turns fast, a share of it reaching the ground (less at night), a fade below about 1 kPa, and a name for the regime (trades, westerlies, polar, overturning for a slow spinner, or the day-to-night flow of a locked world). The Earth comes out at 5 to 7 m/s in the mid-latitudes, Mars at a few, Venus under half a metre a second. Nothing feeds it yet; the seven-band climate (GEN.1108) does.
+- **Stand-in rows BW1 to BW6** in the gap-filling plan (section 6.98), the stand-in list and the burn-down register.
+
 ## [8.0.2776] - 2026-10-30
 
 **Headline:** Every belt can now say where it came from: the rule that names a belt's cause, and the sentence for its page, are built and tested.
