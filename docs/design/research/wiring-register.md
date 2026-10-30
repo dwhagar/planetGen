@@ -224,3 +224,9 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.94:IZ1 | GEN.1076 | a constant of the irregular zone module, read when its wiring step lands |
 | row | 6.94:IZ2 | GEN.1076 | a constant of the irregular zone module, read when its wiring step lands |
 | row | 6.94:IZ3 | GEN.1076 | a constant of the irregular zone module, read when its wiring step lands |
+| module | planetgen.physics.scatter | GEN.1092 | the shares of an outer disc's mass in each scattered population, the rule of the scatter phase; the wiring step feeds it the architecture's giants |
+| row | 6.83:SX1 | GEN.1092 | a constant of the scatter module, read when its wiring step lands |
+| row | 6.83:SX2 | GEN.1092 | a constant of the scatter module, read when its wiring step lands |
+| row | 6.83:SX3 | GEN.1092 | a constant of the scatter module, read when its wiring step lands |
+| row | 6.83:SX4 | GEN.1092 | a constant of the scatter module, read when its wiring step lands |
+| row | 6.83:SX5 | GEN.1092 | a constant of the scatter module, read when its wiring step lands |

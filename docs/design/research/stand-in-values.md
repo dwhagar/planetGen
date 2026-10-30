@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 646 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 651 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -41,11 +41,11 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T3 | 74 | 26 | 5 | 9 | 0 | 114 |
 | T4 | 31 | 1 | 0 | 14 | 6 | 52 |
 | T5 | 38 | 12 | 0 | 0 | 0 | 50 |
-| T6 | 52 | 30 | 12 | 33 | 0 | 127 |
+| T6 | 53 | 30 | 12 | 33 | 0 | 128 |
 | T7 | 26 | 8 | 8 | 8 | 0 | 50 |
 | T8 | 0 | 1 | 0 | 1 | 2 | 4 |
-| T9 | 2 | 0 | 2 | 25 | 19 | 48 |
-| All | 404 | 90 | 33 | 92 | 27 | 646 |
+| T9 | 2 | 0 | 2 | 29 | 19 | 52 |
+| All | 405 | 90 | 33 | 96 | 27 | 651 |
 
 ## How the labels were given
 
@@ -1085,6 +1085,16 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | HC1 | B | T4 | L0 | hycean_candidate.HYCEAN_MASS_EARTH (1, 10), HYCEAN_RADIUS_EARTH (1.4, 2.6), HYCEAN_TEMPERATURE_K (150, 500) and HYCEAN_DENSITY_G_CM3 (1.5, 3.0): the box | the radius edge 2.6 puts K2-18 b (2.61, measured) just outside | sub-Neptunes of 1 to 10 Earth masses | the ranges of the defining paper, once read | Madhusudhan et al. 2021 (to be read) | the item GEN.963 and its re-read (2026-10-30); not read from the paper | GEN.1047 | - |
+
+## 6.83 Stand-ins of the scatter step of an outer disc
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| SX1 | D | T6 | L0 | scatter.ZONE_COEFFICIENT 1.3 and DISC_SLOPE 1.5: the half-width of the giant's chaotic zone over a q^(2/7), and the surface density a^-1.5 | zone 1.3 (Wisdom 1980) to 1.8 (Mustill and Wyatt 2012, recalled); slope 1 to 2 | one giant, a disc of planetesimals | an N-body clearing of a disc by one giant | the resonance map of GEN.1062 | the design table (belt-origins.md section 3) [R]; not opened | GEN.1092 | - |
+| SX2 | P | T9 | L3 | scatter.RESONANCE_CAPTURE 0.25 with the 3:2 and 2:1 resonances: the share of the mass in a swept resonance span that is captured | 0.1 to 0.5 | outward migration through a disc | a migration run that counts the captured mass | a population synthesis with Neptune migration (Levison et al. 2008, arXiv:0712.0553) | educated guess from physics | GEN.1092 | no data |
+| SX3 | P | T9 | L3 | scatter.THETA_EJECT 10: the Safronov number at which 63 percent of the swept mass is ejected | 3 to 30 | giants of Safronov number 1 to 20 | the ejected share of a scattering run at a given giant | Levison et al. 2008 | educated guess from physics (Safronov 1972 ejection by planets of high escape speed) | GEN.1092 | no data |
+| SX4 | P | T9 | L3 | scatter.HOT_SHARE 0.4: the share of the unswept cold disc that is excited after a full instability | 0.1 to 0.7 | systems with an instability | an observed hot-to-cold ratio from a survey | OSSOS (arXiv:2107.06120) hot and cold populations | educated guess from physics | GEN.1092 | no data |
+| SX5 | P | T9 | L3 | scatter.SWEPT_SPLIT (scattered 0.62, centaurs 0.25, detached 0.10, trojans 0.002, implanted 0.02, moons 0.008): how the swept mass that stays bound is shared | each within a factor of 3 | the swept mass | a population synthesis | Levison et al. 2008 | educated guess from needed output | GEN.1092 | no data |
 
 ## 6.94 Stand-ins of the irregular zone
 
