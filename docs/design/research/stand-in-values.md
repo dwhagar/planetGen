@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 504 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 508 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -38,14 +38,14 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 |---|---|---|---|---|---|---|
 | T1 | 60 | 0 | 5 | 0 | 0 | 65 |
 | T2 | 79 | 9 | 0 | 1 | 0 | 89 |
-| T3 | 59 | 15 | 3 | 11 | 0 | 88 |
+| T3 | 59 | 15 | 5 | 11 | 0 | 90 |
 | T4 | 25 | 0 | 0 | 4 | 4 | 33 |
 | T5 | 28 | 7 | 1 | 0 | 0 | 36 |
-| T6 | 40 | 21 | 10 | 32 | 0 | 103 |
+| T6 | 40 | 23 | 10 | 32 | 0 | 105 |
 | T7 | 24 | 6 | 3 | 7 | 0 | 40 |
 | T8 | 0 | 0 | 0 | 1 | 2 | 3 |
 | T9 | 1 | 0 | 2 | 25 | 19 | 47 |
-| All | 316 | 58 | 24 | 81 | 25 | 504 |
+| All | 316 | 60 | 26 | 81 | 25 | 508 |
 
 ## How the labels were given
 
@@ -797,6 +797,15 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | GM6 | P | T6 | L1 | the stable-axis ratio of Holman and Wiegert 1999 (Equations 1 and 3) in `orbits`, used for a pair outside the fit range | fit range mu 0.1 to 0.9, e up to 0.8, coplanar, 1e4 periods | binary-star planets with mu below 0.1 or e above 0.8 | an N-body run of a planet at a pair with mu 0.05 or e 0.9 whose critical axis differs from the extrapolation by more than 20 percent | an N-body-fitted ratio over a wider range | Holman and Wiegert 1999 read (astro-ph/9809315); the extension is ours | - | - |
 | GM7 | P | T6 | L3 | the 3+1 quadruple margin: where the 3+1 network of Vynatheya, Mardling and Hamers 2023 does not apply, the nested-triple test at 1.5 times the required axis ratio and the node flagged lower confidence (not built) | 1.0 to 3.0 | 3+1 hierarchies outside mass ratios of ten, q_mid 3, q_out 2 | the network's verdict on a sample of such systems disagrees with the margin in more than 25 percent | the network itself, once its table is licensed and fetched at setup (GEN.1006 build) | the report's sweep of 4e4 coplanar systems against the network: margin 1.5 gives precision 0.78 and recall 0.53; 1.0 gives 0.74 and 0.98 | - | replace (GEN.1006) |
 | GM8 | P | T6 | L1 | the per-level stability margin of a nested-triple test in a deeper tree, 1.0 (none) until the build sets it (not built) | 1.0 to 1.5 | 2+2 and deeper trees | the 2+2 network of the same paper (94 percent accurate) disagrees with the margin | the 2+2 network, as GM7 | Vynatheya, Mardling and Hamers 2023: nested triples are 88 percent accurate for 2+2 | - | - |
+
+## 6.61 Stand-ins of the potassium depletion by body class
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| KD1 | P | T3 | L2 | potassium_depletion.statistics_of(True): the planet class (0.03 Earth masses or more), log10 depletion normal with mean -0.727 (0.19) and predictive spread 0.148 dex, from Earth, Mars and Mercury | spread 0.1 to 0.3 dex | rocky planets of 0.03 Earth masses and up | a fourth planet of that class (Venus from a first-hand K/U, a measured exoplanet K) outside two sigma, or K/U of Mercury confirmed on the bulk silicate by BepiColombo outside 0.1 to 0.35 | a trend with formation distance, mass or heating once more than six bodies are measured | test_potassium_depletion; Dauphas et al. 2022 Table 1 read, three bodies | - | - |
+| KD2 | P | T3 | L2 | potassium_depletion.statistics_of(False): bodies under 0.03 Earth masses, log10 depletion normal with mean -1.815 (0.015) and predictive spread 0.94 dex, from the Moon, Vesta and the angrite parent body | spread 0.6 to 1.3 dex | moons, dwarf planets and planetesimals that melted | an undifferentiated or lightly heated small body whose K/U is above 0.5 CI (the ordinary and enstatite chondrites of the same table, 0.85 to 1.24, are such bodies) is not drawn here | a class for undifferentiated small bodies, or a depletion tied to the heating that melted the body | test_potassium_depletion; Dauphas et al. 2022 Table 1 read, three bodies | - | - |
+| KD3 | P | T6 | L1 | potassium_depletion.CLASS_MASS_EARTH 0.03: the mass that separates the two classes (the gap in the table runs from the Moon, 0.0123, to Mercury, 0.0553) | 0.0123 to 0.0553 | all bodies | a body between 0.0123 and 0.0553 Earth masses measured on either side | a depletion that varies continuously with mass | test_potassium_depletion; the gap in Table 1 | GEN.492 | - |
+| KD4 | P | T6 | L1 | potassium_depletion.MAX_DEPLETION 1.0 and no undepleted channel: no body keeps more potassium than CI chondrites, and none is drawn near 1 more often than the normal gives | none | rocky bodies | the white dwarf pollutants of Harrison et al. 2021 (arXiv 2103.05713, READ): 38 of 50 systems with sodium measured show none of the sodium depletion the Solar System planets show; a measured K/U of an exoplanet above 0.5 CI | an undepleted channel of weight near 0.5 to 0.76 once the pollutant sample is corrected for what a white dwarf's sodium line can detect | test_potassium_depletion; Harrison et al. 2021 section 3 | GEN.492 | - |
 
 ## 6.56 Stand-ins of the registered rows that rest on a Solar System body
 
