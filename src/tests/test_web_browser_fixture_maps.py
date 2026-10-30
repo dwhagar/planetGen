@@ -5353,3 +5353,70 @@ def test_the_wheel_heads_for_the_crowd_in_front_of_the_zoom_and_does_not_fly_thr
     # middle. Where it rests within the region depends on the frames the approach took, so the test holds the region, not a point.
     assert came < DENSE_HALO_RADIUS_PC / 2, f"the camera came into the region ({came:.2f} pc from its middle)"
     assert math.dist(eye, DENSE_CENTER_PC) < DENSE_HALO_RADIUS_PC, f"and rests in it, not beyond ({eye})"
+
+
+SECTOR_KIND_OF_PHENOMENON = {
+    "nebula": "nebula", "neutron_star": "neutronStar", "rogue_planet": "roguePlanet", "black_hole": "blackHole",
+    "asteroid_field": "asteroidField", "supernova_remnant": "supernovaRemnant", "interstellar_comet": "interstellarComet", "quasar": "quasar",
+}
+"""The kind the Sector Map gives each type of phenomenon the fixture sector holds (`sectorscene.js`'s `kindOf`)."""
+
+HOVER_AT = """([x, y]) => {
+    const canvas = document.querySelector("#galaxymap3d-canvas");
+    const tip = document.querySelector("#galaxymap3d-tooltip");
+    canvas.dispatchEvent(new PointerEvent("pointermove", {clientX: x, clientY: y, bubbles: true, pointerType: "mouse"}));
+    return tip.hidden ? "" : tip.textContent;
+}"""
+
+
+def _picks_by_hover(page, entry):
+    """Whether a hover at, or a few pixels round, the screen point where `entry` is drawn names it; returns that point or None."""
+    spot = page.evaluate("([x, y, z]) => document.querySelector('#galaxymap3d-canvas').galaxyScreenOf(x, y, z)", [entry["x"], entry["y"], entry["z"]])
+    if not spot:
+        return None
+    for dx, dy in [(0, 0)] + [(a, b) for a in (-4, 0, 4) for b in (-4, 0, 4) if a or b]:
+        point = [spot["x"] + dx, spot["y"] + dy]
+        if page.evaluate("([x, y]) => document.elementFromPoint(x, y) === document.querySelector('#galaxymap3d-canvas')", point) and \
+                entry["name"] in page.evaluate(HOVER_AT, point):
+            return point
+    return None
+
+
+def test_the_opened_sector_draws_and_picks_one_of_every_kind_it_holds(page, map_site):
+    """MAP.302: at sector zoom (the sector opened in place) every kind of thing the fixture sector holds is in the scene, drawn on the
+    map, named when the pointer is over it and picked by a click: stars (a binary and a brown dwarf among them), a nebula, a supernova
+    remnant, an asteroid field, a black hole, a neutron star, a quasar, rogue planets and an interstellar comet. Rogue planets are the one kind
+    the Menu leaves off until asked for (they outnumber the stars), so the page is opened with them shown."""
+    page.add_init_script(NO_WALL_ICONS)
+    page.set_viewport_size(VIEWPORT)
+    _open(page, f"{map_site}/galaxy?sector={PRIME_CODE}&open=1&show=roguePlanet", GALAXY_CANVAS)
+    page.wait_for_function("() => { const open = document.querySelector('#galaxymap3d-canvas').galaxyOpenSector();"
+                           " return !!open && open.share >= 0.999; }", timeout=30000)
+    _settle(page)
+    entries = page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxySectorEntries()")
+    held = {"star"} | {SECTOR_KIND_OF_PHENOMENON[p["type"]] for p in PHENOMENA}
+    assert held <= {entry["kind"] for entry in entries}, f"the scene lacks {sorted(held - {e['kind'] for e in entries})}"
+    assert not [e for e in entries if e["hidden"]], "with the rogue planets shown (they are off until asked for) nothing is left off the map"
+    names = {entry["name"] for entry in entries}
+    assert {name for _id, name, *_rest in SYSTEMS} | {p["name"] for p in PHENOMENA} <= names
+
+    box = page.locator(GALAXY_CANVAS).bounding_box()
+    page.evaluate("() => document.querySelector('#galaxymap3d-canvas').scrollIntoView({block: 'center'})")
+    missed = []
+    for kind in sorted(held):
+        of_kind = [entry for entry in entries if entry["kind"] == kind and not entry["hidden"]]
+        found = None
+        for entry in of_kind:
+            point = _picks_by_hover(page, entry)
+            if point:
+                found = (entry, point)
+                break
+        if not found:
+            missed.append(kind)
+            continue
+        entry, point = found
+        page.mouse.click(*point)
+        title = _info_title(page)
+        assert title == entry["name"], f"a click on the {kind} {entry['name']!r} picked {title!r}"
+        page.mouse.click(box["x"] + 3, box["y"] + 3)  # empty space between picks (it keeps the selection; the next pick replaces it)
+    assert not missed, f"no hover named a {missed} where it is drawn"
