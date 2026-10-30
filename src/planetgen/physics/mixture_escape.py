@@ -83,7 +83,8 @@ def apply(subject, result):
     flux = thermosphere.xuv_flux_earth(subject)
     mass_sol, luminosity = subject.get("host_mass_solar"), subject.get("luminosity_solar")
     kept, exobase = thermosphere.kept_shares(result.mole_fractions, mass, radius, teq, pressure, age, flux, mass_sol,
-                                             luminosity * constants.SOLAR_LUMINOSITY if luminosity else None)
+                                             luminosity * constants.SOLAR_LUMINOSITY if luminosity else None,
+                                             magnetopause_rp=subject.get("magnetopause_rp"), log_lx_lbol=subject.get("log_lx_lbol"))
     left = {formula: fraction * kept[formula] for formula, fraction in result.mole_fractions.items() if kept[formula] >= LOST_BELOW}
     left = {formula: value for formula, value in left.items() if value > MIN_FRACTION}
     total = sum(left.values())

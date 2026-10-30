@@ -37,7 +37,8 @@ import math
 from dataclasses import dataclass, field
 
 from planetgen.physics import (
-    atmosphere, atmosphere_state, clathrate_brine, constants, gas_equilibrium, gases, giant_draw, greenhouse, hydrosphere, interior_heat, mixture_draw, mixture_rocky,
+    aerosols, atmosphere, atmosphere_state, clathrate_brine, constants, gas_equilibrium, gases, giant_draw, greenhouse, hydrosphere, interior_heat, mixture_draw,
+    mixture_rocky,
     mixture_sinks, mixture_subject, radiogenic, saturation, sulfur_balance, surface_pressure, waterworld_carbon,
 )
 from planetgen import tuning
@@ -168,6 +169,9 @@ class Setting:
             holds guest gases in the cages of its ice skin).
         subject_of (callable): `(ts_k, pressure_bar, ocean_present, long_lived_geology) -> Subject` of the mixture draw.
         giant (bool): The body has no surface (a giant).
+        haze_draws (HazeDraws or None): The body's haze draws (`aerosols.draw_haze_draws` of `aerosols.haze_stream_of`), `None` for a setting
+            whose air makes no haze (the haze takes sunlight aloft, GEN.851).
+        star_temperature_k (float or None): The star's effective temperature, whose blackbody the haze's share of the sunlight is weighted by.
     """
 
     gravity_m_s2: float
@@ -185,6 +189,8 @@ class Setting:
     bulk_water_fraction: float = 0.0
     giant: bool = False
     internal_flux_w_m2: float = 0.0
+    haze_draws: object = None
+    star_temperature_k: object = None
 
     @property
     def area_m2(self):
@@ -211,6 +217,7 @@ class Air:
         pressure_pa (float): Their sum.
         temperature_k (float): The surface temperature.
         warming (Warming or None): The greenhouse of the last step (`None` for a body with no air).
+        haze (Haze): The haze the last step took sunlight aloft with (`aerosols.NO_HAZE` for none).
         state (AirState or None): The density, mean molar mass and scale height.
         condensed_kg (dict): Formula -> the mass the freeze-out took out of the air, kg (the ocean and the caps).
         steps (int): The steps taken.
@@ -230,6 +237,7 @@ class Air:
     converged: bool
     ocean_present: bool
     constants: dict = field(default_factory=dict)
+    haze: object = aerosols.NO_HAZE
 
     @property
     def greenhouse_factor(self):
@@ -596,11 +604,15 @@ def solve(setting, start_temperature_k):
         if new_pressure <= 0.0:
             return _airless(setting, mixture, step, design, ocean)
 
-        warming = atmosphere_state.greenhouse_warming(partials, setting.gravity_m_s2, setting.radiated_flux_w_m2)
+        haze = aerosols.NO_HAZE if setting.haze_draws is None else aerosols.haze_of(partials, setting.gravity_m_s2, temperature, setting.haze_draws,
+                                                                                  setting.star_temperature_k)
+        # the haze takes a share of the starlight; the flux the air radiates also holds a giant's own heat, so the share of that flux is smaller
+        aloft_share = haze.absorbed_share * setting.absorbed_flux_w_m2 / setting.radiated_flux_w_m2
+        warming = atmosphere_state.greenhouse_warming(partials, setting.gravity_m_s2, setting.radiated_flux_w_m2, aloft_share, haze.pressure_pa)
         new_temperature = min(max(constants.COSMIC_BACKGROUND_TEMPERATURE_K, warming.surface_temperature_k), MAX_SURFACE_TEMPERATURE_K)
         change_p = abs(math.log(new_pressure) - ln_pressure)
         change_t = abs(new_temperature - temperature)
-        last = (mixture, partials, new_pressure, new_temperature, warming, condensed_kg, ocean)
+        last = (mixture, partials, new_pressure, new_temperature, warming, condensed_kg, ocean, haze)
         if setting.giant or (change_p < TOLERANCE_LN_P and change_t < TOLERANCE_K):
             break
         residual = (math.log(new_pressure) - ln_pressure, new_temperature - temperature)
@@ -616,11 +628,11 @@ def solve(setting, start_temperature_k):
         else:
             ln_pressure += step_p
         temperature = max(constants.COSMIC_BACKGROUND_TEMPERATURE_K, temperature + step_t)
-    mixture, partials, pressure, temperature_k, warming, condensed_kg, ocean = last
+    mixture, partials, pressure, temperature_k, warming, condensed_kg, ocean, haze = last
     state = atmosphere_state.air_state(partials, temperature_k, setting.gravity_m_s2)
     converged = setting.giant or (change_p < TOLERANCE_LN_P and change_t < TOLERANCE_K)
     return Air(mixture=mixture, partials_pa=partials, pressure_pa=pressure, temperature_k=temperature_k, warming=warming, state=state,
-               condensed_kg=condensed_kg, steps=step, converged=converged, ocean_present=ocean, constants=design)
+               condensed_kg=condensed_kg, steps=step, converged=converged, ocean_present=ocean, constants=design, haze=haze)
 
 
 def _retention_cap_pa(mixture, subject):
@@ -673,4 +685,6 @@ def setting_of(body, *, albedo, starlight_w_m2, star_distance_au, heat, surface_
         mantle_water_kg=0.0 if giant else max(0.0, (body.water_mass_fraction or 0.0) * body.mass - surface_w * body.mass),
         subject_of=subject_of, age_gy=age_gy,
         bulk_water_fraction=0.0 if giant else (body.water_mass_fraction or 0.0), giant=giant,
-        internal_flux_w_m2=giant_draw.own_flux_w_m2(body) if giant else 0.0)
+        internal_flux_w_m2=giant_draw.own_flux_w_m2(body) if giant else 0.0,
+        haze_draws=aerosols.draw_haze_draws(aerosols.haze_stream_of(body)),
+        star_temperature_k=getattr(getattr(body, "star", None), "temperature", None))
