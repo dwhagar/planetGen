@@ -40,6 +40,7 @@ this API instead.
 
 Every `/api` answer carries the API version in the `X-PlanetGen-API-Version` header, and `/api/health` reports it as `api_version` (`src/planetgen/api/version.py`, API.22). A breaking change bumps it, the route snapshot `src/tests/fixtures/api_routes.json` moves with it, and it gets a line here and a row in [api-compatibility.md](api-compatibility.md) (API.4: each version, the release that first carried it, the routes and payload formats it changed, and which clients speak it), which is built from `docs/reference/api-versions.json`.
 
+- **11** (API.33): `GET /api/admin/backups` and `GET /api/admin/backups/<name>`: an archive and each of its parts have `size_bytes` where they had `size`.
 - **10** (API.37): `GET /api/systems/<id>`: a planet and a moon no longer have `life_chemical`. They have `life_class` (the number of the class that lives on them), `life_class_variant` (its letter), `life_class_best` and `life_class_best_score` (the class they support best and its score, 0 to 9), `life_animal_grade` (0 none to 3 large and active) and `life_complexity`, and `life_class_id` (the class and variant as one id such as `1a`, or `null`) and `life_class_scores` (`{class id: score 1 to 9}` for every class the body supports, empty for none). A species has `life_class` where it had `life_chemical`.
 - **9** (MAP.287): `GET /api/systems/<id>/scene`: a star, planet and moon no longer has `color`; it has `look`, the body look record (`bodylook.py`), which holds its `color` and everything the painters need. A comet keeps `color`.
 - **8** (MAP.262): `GET /api/galaxy/tiles` is gone: the map's data is read by sector-block node (`GET /api/galaxy/nodes`), and `GET /api/galaxy/changes` no longer has `tiles` (it has `nodes`).
@@ -55,7 +56,7 @@ The sector grid changed to shells, bands and wedges on 2026-10-15 (the spherical
 
 ## Units of the numbers
 
-Every number the API takes or returns says what it measures. A response field named after a stored column carries its unit as the name's suffix (`radius_km`, `age_gy`, `position_x_mpc`, `period_years`), the same unit the column registry declares (`db/column_units.py`, DB.76). A request body field either has the suffix too (`distance_km`, `phase_deg`, `offset_ly`, `radius_ly`, `edge_ly`, `expires_days`) or a description starting "Unit:" in its schema: a count (`num_orbits`, the worker `count`), an id (`type_id`, `affiliation_polity_id`), an index (`sort_order`), `position` in light-years from the sector's centre, and the facility type field values, whose unit is the one the field itself declares (`unit`). `tests/test_api_field_units.py` fails for a request field that is a number and names no unit.
+Every number the API takes or returns says what it measures. A response field named after a stored column carries its unit as the name's suffix (`radius_km`, `age_gy`, `position_x_mpc`, `period_years`), the same unit the column registry declares (`db/column_units.py`, DB.76). A request body field either has the suffix too (`distance_km`, `phase_deg`, `offset_ly`, `radius_ly`, `edge_ly`, `expires_days`) or a description starting "Unit:" in its schema: a count (`num_orbits`, the worker `count`), an id (`type_id`, `affiliation_polity_id`), an index (`sort_order`), `position` in light-years from the sector's centre, and the facility type field values, whose unit is the one the field itself declares (`unit`). `tests/test_api_field_units.py` fails for a request field that is a number and names no unit. For answers, `tests/test_api_response_units.py` reads the real answers of the sector, system, search and galaxy routes and fails for a number whose key (or the key of the map holding it) neither ends in a unit suffix, nor is a column the registry gives a unit that says what it is (a fraction, a score of 9, an optical depth, a pH), nor is listed in the test with the thing it counts or names (a count, an id, a grid address, an eccentricity, a spin-axis part).
 
 ## The User-Agent and the version header
 
@@ -968,8 +969,8 @@ forced credential change. They back the admin stats page
   `config.update` audit row per changed option. The Owner's and the command
   line's options are refused with their reason until accounts (8.2).
 - `GET /api/admin/backups` — the backup archives (ADM.85): `{"problem",
-  "archives": [{"name", "taken_at", "taken_by", "reason", "version", "size",
-  "complete", "readable", "parts": [{"name", "label", "size", "files",
+  "archives": [{"name", "taken_at", "taken_by", "reason", "version", "size_bytes",
+  "complete", "readable", "parts": [{"name", "label", "size_bytes", "files",
   "known"}]}], "kept", "parts": [{"name", "label"}], "can_download",
   "file_hash"}`. `POST /api/admin/backups` (`{}`) makes one now, of every
   part (`backup.take` audit row; 409 when the folder can't be written).
