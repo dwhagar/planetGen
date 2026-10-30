@@ -1106,26 +1106,6 @@ with `clamp()`.
   The prerequisite on UX.226 is dropped for this slice.
   Prerequisites: none. Related: UX.226, UX.227, GEN.728, TEST.162.
 
-- [ ] **UX.240 Belt page data builder: the designated individual bodies (designation, mass, size, status, composition), the size table of the rest of the belt mass (counts, mass share and typical composition by diameter bin), and the density factor, as one pure structure**
-  Asteroid belt information page (Boss, 4:37 PM EDT 2026-10-30: "an
-  asteroid belt information page that will show the bodies in the
-  asteroid belt that are named and the contents and sizes of the rest of
-  the mass of the asteroid belt, as well as a density factor in
-  object/square (something, not sure which unit)"; design
-  docs/design/systems/belt-evolution.md section 12, goal #4130). Belt
-  members have a designation, not a name (Boss 4:21 PM EDT), so the list
-  is the individually tracked bodies by designation. Do:
-  describe/belt_page.py over the ledger and belt record: three blocks
-  the page and the API read. The remaining mass is shown as bins from
-  the on-demand tier and the population tier (design section 3), summing
-  to the belt mass. Done: tests (mass of listed bodies plus bins equals
-  the stored belt mass, the unit text accompanies every number).
-  Lock-free until the page route. Where we think it belongs (best guess,
-  can move): Core 2 (map and pages lane, separate branch), after the
-  ledger and the density module.
-  Prerequisites: GEN.1061.
-  Design: [docs/design/systems/belt-evolution.md](design/systems/belt-evolution.md)
-
 - [ ] **UX.241 Asteroid belt information page: route, template and API field showing the individually tracked bodies (by designation, each linked to its member page), the contents and sizes of the rest of the belt mass, and the density factor with its unit; link from the system page and the belt row**
   Asteroid belt information page (Boss, 4:37 PM EDT 2026-10-30: "an
   asteroid belt information page that will show the bodies in the
@@ -1140,7 +1120,7 @@ with `clamp()`.
   number, a link from the system page. No backward-compat shim. Where we
   think it belongs (best guess, can move): Core 2, train 7 (after the
   members are stored on train 7).
-  Prerequisites: UX.240, GEN.1070, GEN.1069.
+  Prerequisites: GEN.1070, GEN.1069.
   Design: [docs/design/systems/belt-evolution.md](design/systems/belt-evolution.md)
 
 - [ ] **UX.243 Day-and-night counter on every object page: a clock counting the object's own day at its real rate, with the state word, shown separately from the spin animation speed (spin.js compresses periods onto 20 s to 10 min per turn, stand-in SP1, L4)**
@@ -14767,29 +14747,28 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   temperate-ocean count per class.
   Prerequisites: GEN.1135, GEN.1136. Related: GEN.1142.
 
-- [ ] **GEN.1146 Upstream water inventory and land share: temperate bodies with air nearly always keep their water, so no desert world (Class H) exists; decide whether the generator should produce dry temperate planets (only if GEN.1145 shows H stays empty)**
-  Class index thread, 7:05 PM EDT 2026-10-30, Boss: Class H (desert,
-  under 20 percent available surface water) must exist. If the spread of
-  GEN.1145 shows H stays empty after widening the line, the fix is
-  upstream, not another class line: the water inventory delivered to and
-  kept by temperate bodies, and the land share (continents versus ocean
-  basins, which sets the ocean fraction at a given water mass). Do: a
-  short research and design report on what physics sets the ocean
-  fraction (water inventory, mantle storage, basin volume, Lehmer-type
-  land fraction laws), the current values, and a proposal; Boss decides
-  before any code. Prerequisite: GEN.1145 result. Report only
-  (lock-free); the fix would be lock work. Where we think it belongs
-  (best guess, can move): Aux 3 (bulk composition) with Aux 2.
-  GEN.1145 result (Aux 2, 300 systems, as the lane reported) (2026-10-30
-  7:07 PM EDT): 83 bodies at 273.15 to 320 K with air; ocean share is
-  two humps with a hole at 50 to 80 percent (0 to 20 percent: 48 bodies,
-  80 percent or more: 25 bodies, only 10 bodies between the lines). So H
-  can fill by its new line, but M would get only about 10 of 83
-  temperate air bodies (3 percent of the sample), even after V and Q
-  move. The water inventory and land share upstream is the lever for a
-  more common M: this report is NOT conditional any more, start it now
-  (lock-free report). Owner changed to Aux 2.
-  Prerequisites: GEN.1145. Related: GEN.1142, GEN.909, GEN.1145.
+- [ ] **GEN.1147 Ocean-fraction law: replace the sqrt cover law with a two-level hypsometry plus the mantle water cap by mass (2 to 8 oceans), in one epoch (BOSS DECIDES before any code)**
+  Aux 2, GEN.1146 report
+  reports/ocean-fraction-physics-gen1146-2026-10-30.md (as the lane
+  reported, 1,000 systems): 16 percent of temperate air-bearing bodies
+  (36 of 223) have a 20 to 80 percent ocean, 48 percent under 20 and 35
+  percent over 80, a hole at 50 to 80. Causes: the cover law is steep in
+  the water (sqrt law, 20 to 80 percent over a factor of 16 in water
+  layer, full cover at about two Earth oceans) and the Bern water prior
+  is two-humped (46 percent hold under one Earth ocean, 43 percent over
+  ten, only the 1 to 10 ocean window, 11 percent, is Earth-like). Side
+  calculations: a two-level hypsometry (Cowan and Abbot 2014) lifts 20
+  to 80 percent only from 24 to 26 percent, a late-delivery term for dry
+  bodies leaves it at 19 to 22, the mantle cap by mass changes nothing.
+  No physics lever makes Earth types common. Option 1 (Aux 2
+  recommends): replace the sqrt law with a two-level hypsometry plus the
+  mantle cap by mass (Guimond: 2 to 8 oceans) in one epoch, report the
+  share as a physics result, leave the Bern law alone. Option 2: add
+  late delivery for dry bodies. Option 3: change nothing. Do NOT build
+  until Boss picks. Lock work if built (epoch, golden, census). Where we
+  think it belongs (best guess, can move): Aux 2 with Aux 3, a later
+  train window.
+  Prerequisites: none. Related: GEN.1146, GEN.1142, GEN.909.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -20270,20 +20249,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   bump_version tests pass. Owner: none yet (pool, 8.2). Source: Boss,
   5:07 PM EDT 2026-10-23.
   Prerequisites: none. Related: OPS.56, OPS.1.
-
-- [ ] **OPS.79 Web app stops booting when a downloaded dataset is missing: update.sh took 52 minutes in stage 3 with the new code already serving and every page returned 500 (DataMissing mamajek_dwarf_sequence) (bug)**
-  Boss live update.sh on hal, 2026-10-30 (as the lane reported): stage 1
-  pulled the new code but the Mamajek dwarf sequence was only downloaded
-  at the end of stage 3, 52 minutes later; in between mod_wsgi reloaded
-  wsgi.py on the new code and create_app() died at boot with DataMissing
-  from classref.catalog() in web.init_app, so every page was a 500. Fix:
-  PR #4258 (classref.preload() builds the catalog at start when it can,
-  logs a warning on DataMissing and lets the site boot; the first
-  /classes request after the download builds it). Done: PR #4258 merged.
-  Lock-free. A daemon crash (Truncated or oversized response headers,
-  7:11 PM EDT) is still being diagnosed with Boss and may become a
-  second item.
-  Prerequisites: none.
 
 ## DOC: Documentation
 
