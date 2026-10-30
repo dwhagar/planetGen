@@ -523,6 +523,19 @@ class StarSystem:
         else:
             log.debug("System flavor text: none (roll failed FLAVOR_CHANCE_SYSTEM or MAX_FLAVOR_TOTAL reached)")
 
+        # A giant sized from the radius tables was drawn at the star's provisional age, which rose with the planets in (GEN.961): it is
+        # sized again at the final age and the light of its orbit, and its interior and air are drawn again to the new radius. The
+        # tides of every planet's and captured moon's orbit are taken again at that age (GEN.985).
+        with log.timed_phase("settle pass"):
+            for obj in self.all_planets:
+                if obj.body_type == 'a':  # a belt is not a body
+                    continue
+                if obj.body_type == 'g' and not obj.is_moon and planetPhysics.settle_giant(obj):
+                    log.debug(f"{obj.name}: settled to {obj.radius:.0f} km at the star's age of {obj.star.age:.3g} Gyr")
+                for body in (obj, *obj.moons):
+                    if planetPhysics.settle_orbit(body):
+                        log.debug(f"{body.name}: eccentricity settled to {body.eccentricity:.4f} at the star's age of {obj.star.age:.3g} Gyr")
+
         # All planets and moons are generated without life data (see physics.planets's
         # module docstring). Apply it now, in one pass over the finished system, so
         # evolutionary timelines are computed against the star's final, planet-adjusted
@@ -533,7 +546,7 @@ class StarSystem:
             for obj in self.all_planets:
                 if obj.body_type == 'a':  # A belt is not a body; GEN.442 gives it the stored line to read.
                     continue
-                obj.born_beyond_snow_line = obj.distance >= obj.star.snow_line_au
+                obj.born_beyond_snow_line = bool(obj.distance >= obj.star.snow_line_au)
                 for moon in obj.moons:
                     moon.born_beyond_snow_line = obj.born_beyond_snow_line
 

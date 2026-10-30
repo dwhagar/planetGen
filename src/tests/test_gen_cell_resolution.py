@@ -14,7 +14,7 @@ from planetgen import tuning
 from planetgen.api import routes
 from planetgen.cli import generate as generate_cli
 from planetgen.db import store
-from planetgen.galaxy import resolution, structure_draw, system_mass
+from planetgen.galaxy import resolution, seed as galaxySeed, structure_draw, system_mass
 from planetgen.galaxy.profile import profile_at, sector_profile
 from planetgen.galaxy.spherical import sector_position_pc
 from planetgen.generation import bright_stars as brightStars, run_galaxy
@@ -167,7 +167,9 @@ def test_a_cell_above_the_ceiling_is_filled_down_to_the_cap_and_no_further(mysql
     conn = store.get_connection(mysql_config)
     try:
         skeleton = store.get_galaxy_shape(conn)
-        found = resolution.cell_resolution(sector_profile(address, skeleton), 100.0, cap)
+        with galaxySeed.seeded(skeleton.galaxy_seed, "sector", address,
+                               disk_scale_length_pc=skeleton.shape.disk_scale_length_pc, shape=skeleton.shape):
+            found = resolution.cell_resolution(sector_profile(address, skeleton), 100.0, cap)
         assert found.capped and found.expected_systems == pytest.approx(expected, rel=0.01)
         stars = conn.execute(
             "SELECT MAX(s.luminosity_w) AS w FROM stars s JOIN star_systems ss ON ss.id = s.star_system_id"
@@ -198,7 +200,9 @@ def test_a_capped_cell_run_without_the_scatter_makes_the_systems_the_resolution_
     conn = store.get_connection(mysql_config)
     try:
         skeleton = store.get_galaxy_shape(conn)
-        found = resolution.cell_resolution(sector_profile(address, skeleton), 60.0, cap)
+        with galaxySeed.seeded(skeleton.galaxy_seed, "sector", address,
+                               disk_scale_length_pc=skeleton.shape.disk_scale_length_pc, shape=skeleton.shape):
+            found = resolution.cell_resolution(sector_profile(address, skeleton), 60.0, cap)
         made = conn.execute("SELECT COUNT(*) AS n FROM star_systems WHERE sector_id = ?",
                             (result["sector_id"],)).fetchone()["n"]
     finally:

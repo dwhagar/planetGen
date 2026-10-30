@@ -109,3 +109,4 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.47:SE4 | no data | - | the tail slope of the largest solar particle events is fitted to one Carrington-class event in 500 years; a longer proxy record of the largest events (nitrates, cosmogenic isotopes) would replace it |
 | 6.14:SP11 | replace | GEN.979 | Kokubo and Genda 2010 equation 4 with the distribution of the last impacts' mass ratio (GEN.978, `impact_spin`) replaces the interim scale |
 | 6.14:SP12 | replace | GEN.979 | the chance of a giant impact by planet mass (`impact_spin.giant_impact_probability`, GEN.978) replaces the interim small-planet factor |
+| 6.51:PS14 | no data | - | the label is a margin between the model's own solar-metallicity and metal-poor stars; no survey count of subdwarfs by luminosity deficit is held, and the first one replaces the margin |

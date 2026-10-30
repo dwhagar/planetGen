@@ -52,7 +52,7 @@ import math
 
 import numpy as np
 
-from planetgen.physics import constants, metallicity
+from planetgen.physics import constants, metallicity, spin
 from planetgen.physics.stellar_evolution import birth_fe_h
 from planetgen import tuning
 from planetgen.galaxy import scatter_limits as scatterLimits
@@ -270,6 +270,23 @@ def center_fe_h(population, center_pc, rng):
     return lambda index: birth_fe_h(rng, population, None, distance_ly)
 
 
+SPIN_SEED_MIX = 0x5D1E_0846_9E37_79B9
+"""int: What `rotation_period_hours` mixes into a star's seed, so its spin comes from a stream of its own (GEN.846): the draws of
+the scatter and of the fill are the same with or without it."""
+
+
+def rotation_period_hours(seed, params):
+    """
+    A star's rotation period in hours (GEN.846), by the cascade of `physics.spin.star_rotation_period_hours` (a white dwarf, a
+    giant, gyrochronology for a cool dwarf, a hot star's speed) from the star's `params` and a stream seeded from its own `seed`,
+    so the same star always spins the same. The fill builds a stored star with this period (`star_params`), so the star and its
+    row agree.
+    """
+    with draw.bound(draw.Stream(seed ^ SPIN_SEED_MIX)):
+        return spin.star_rotation_period_hours(params["mass_kg"], params["radius_km"], params["temperature_k"],
+                                               params["age_gy"], params["yerkes_class"])
+
+
 def _row(shell_index, band_index, wedge, point, population, params, rng):
     """One star in `store.BRIGHT_STAR_COLUMNS` order."""
     x, y, z = point
@@ -281,6 +298,7 @@ def _row(shell_index, band_index, wedge, point, population, params, rng):
         params["radius_km"], params["temperature_k"], params["luminosity_w"],
         params["age_gy"], _finite_or_none(params["lifespan_gy"]), params["initial_mass_sol"],
         _finite_or_none(params["phase_end_age_gy"]), seed, star_fe_h(params),
+        rotation_period_hours(seed, params),
     )
 
 
@@ -1344,7 +1362,7 @@ def star_params(row):
         "radius_km": row["radius_km"], "temperature_k": row["temperature_k"],
         "luminosity_w": row["luminosity_w"], "age_gy": row["age_gy"], "lifespan_gy": lifespan,
         "initial_mass_sol": row["initial_mass_sol"], "phase_end_age_gy": phase_end,
-        "metallicity_fe_h": row.get("metallicity_fe_h"),
+        "metallicity_fe_h": row.get("metallicity_fe_h"), "rotation_period_hours": row.get("rotation_period_hours"),
     }
 
 

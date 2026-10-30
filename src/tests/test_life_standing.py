@@ -142,8 +142,6 @@ def stage_without_class(body):
     return []
 
 
-@pytest.mark.xfail(strict=True, reason="a world whose star is younger than the first step of its schedule (abiogenesis not yet reached, a cold slow world "
-                                      "round a young star) is stored with a life class and no stage; reported to TODO as a bug, the fix changes what is drawn")
 def test_a_body_with_a_life_class_has_a_life_stage():
     problems = [f"{label}: {problem}" for label, body in _lived() for problem in class_without_stage(body)]
     assert not problems, "\n".join(problems[:20])

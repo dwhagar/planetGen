@@ -96,15 +96,15 @@ def test_the_black_hole_inputs_lie_inside_the_published_ranges():
     per_solar_mass_formed = holes / imf.integral(1.0, tuning.IMF_BREAKS_SOL[0], high)
     widest = remnant_progenitors.number("black-hole", 0.0, tuning.BLACK_HOLE_FAILED_SHARE_SOLAR_RANGE[1])
     assert 1.0e8 <= 5.0e10 * widest / imf.integral(1.0, tuning.IMF_BREAKS_SOL[0], high) <= 1.0e9
-    assert 2.0e7 <= 5.0e10 * per_solar_mass_formed < 1.0e8, "the gap: the middle draw's count is under the published range"
+    assert 1.0e8 <= 5.0e10 * per_solar_mass_formed < 1.0e9
 
 
 def test_the_black_holes_carry_the_share_of_the_second_moment_the_design_note_records():
     disk = [(1.0, tuning.STAR_FORMATION_AGE_RANGE_GY)]
     stars = place_terms.mass_weighted_perturber_mass_solar(disk, remnants=False)
     everything = place_terms.mass_weighted_perturber_mass_solar(disk)
-    assert stars == pytest.approx(0.55, abs=0.06)
-    assert everything == pytest.approx(1.01, abs=0.06)
+    assert stars == pytest.approx(0.57, abs=0.06)
+    assert everything == pytest.approx(1.19, abs=0.06)
 
 
 def test_a_young_population_has_the_heavier_perturbers():
@@ -134,8 +134,8 @@ def test_the_limits_scale_the_way_the_formulas_do():
 def test_the_design_notes_table_follows():
     # docs/design/generation/placement-by-population.md 3.3, 2 solar masses, 10 Gyr, the default perturber mass (<M^2> / <M> of the
     # whole disk with remnants).
-    for density, sigma, encounter, tide in ((0.048, 30, 16_400, 500_000), (6.9, 120, 456, 95_000),
-                                            (77, 120, 41, 42_000), (660, 120, 4.8, 21_000)):
+    for density, sigma, encounter, tide in ((0.048, 30, 13_900, 496_000), (6.9, 120, 387, 94_600),
+                                            (77, 120, 35, 42_400), (660, 120, 4.0, 20_700)):
         terms = place_terms.PlaceTerms(density, float(sigma))
         assert place_terms.encounter_limit_au(terms, 2.0, 10.0) == pytest.approx(encounter, rel=0.1)
         assert place_terms.tidal_limit_au(terms, 2.0) == pytest.approx(tide, rel=0.1)

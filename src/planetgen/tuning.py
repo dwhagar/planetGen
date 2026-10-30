@@ -24,6 +24,8 @@ names the test lets through); or is stored as a positive "fall" (how far
 down, not minus how far) and subtracted where it is used.
 """
 
+import math as _math
+
 from planetgen.generation.phenomena import registry as _phenomena_registry
 from planetgen.physics import constants as _physical_constants
 from planetgen.physics import mass_boundaries as _boundaries
@@ -585,46 +587,14 @@ ROUND_TEMPERATURE_NEAREST_HUNDRED = -2
 
 # --- Star Generation Parameters ---
 # The current age of the universe (~13.8 Gy, standard cosmological
-# consensus) -- an absolute ceiling on any star's age, regardless of how
-# long its own spectral class could theoretically keep burning. Without
-# this, extremely long-lived classes (M dwarfs: STAR_EVOLUTION["M"]'s
-# lifespan_gy runs up to 5500 Gy, a real theoretical figure -- no red dwarf
-# has ever actually died of old age) could roll an "age" of hundreds of
-# billions of years. That age is still less than the star's own enormous
-# lifespan (the existing age <= lifespan invariant holds), but far older
-# than any star that could actually exist yet, since the universe itself
-# isn't old enough. White dwarfs already have their own bounded cooling-age
-# range (WHITE_DWARF_MIN/MAX_AGE_GY) and don't need this cap.
+# consensus) -- an absolute ceiling on any star's age: no star is older, however
+# long its own track could keep it shining (an M dwarf's runs to trillions of years).
 UNIVERSE_AGE_GY = 13.8
-MIN_INITIAL_STAR_AGE_GY = 0.1
-MIN_INITIAL_STAR_AGE_LIFESPAN_RATIO = 0.01
-MAX_INITIAL_STAR_AGE_LIFESPAN_RATIO = 0.9
 UNREACHABLE_PLANET_AGE_MIN_LIFESPAN_RATIO = 0.85
 OLD_STAR_AGE_LIFESPAN_RATIO = 1/3
 YOUNG_STAR_AGE_LIFESPAN_RATIO = 1/3
 MAX_PLANET_AGE_ADJUSTMENT_FACTOR = 0.95
 WHITE_DWARF_AGE_ADDITION_GY = 5
-# White dwarf cooling-age bounds: a WD's spectral letter reflects its current
-# temperature, not its progenitor's mass, so its age can't be drawn as a
-# fraction of a STAR_EVOLUTION main-sequence lifespan the way other classes
-# are. The oldest known white dwarfs (e.g. in globular cluster M4) have
-# cooling ages of ~12-13 Gy, close to the age of the universe.
-WHITE_DWARF_MIN_AGE_GY = 0.1
-WHITE_DWARF_MAX_AGE_GY = 12.0
-# For any evolved-star Yerkes class other than main-sequence (V), white
-# dwarf (VII/D), or subdwarf (VI, see below) -- giants, subgiants, bright
-# giants, supergiants, hypergiants -- the current spectral letter reflects
-# only present-day temperature, not a lifespan (see
-# get_star_evolutionary_profile in utils.py for the same issue on the
-# planet-life side). Instead, the star's own already-generated mass is run
-# through the main-sequence lifetime of physics/ms_lifetime.py (the fit of
-# Hurley, Pols and Tout 2000 to detailed models, GEN.467; the STAR_EVOLUTION
-# table above was derived from the older t = 10 Gy * (M/Msun)^-2.5 law),
-# then extended by the standard rule-of-thumb that a star spends about 90%
-# of its total lifetime on the main sequence -- so the star must already be
-# at least as old as that main-sequence lifespan (it has to have finished
-# that phase to be observed as an evolved class), and at most its total
-# (MS + post-MS) lifespan.
 # The heavy-element mass fraction the lifetime's [Fe/H] is measured from:
 # the proto-solar Z of the composition scale, Asplund 2021 (stellar-
 # composition.md D1). A solar mass lasts 10.2 Gy at it.
@@ -632,44 +602,38 @@ MS_LIFETIME_REFERENCE_Z = 0.0154
 MS_LIFETIME_Z_RANGE = (1.0e-4, 0.03)
 """tuple: The metallicities (mass fraction of metals, Z) Hurley, Pols and Tout 2000 fitted their formulae over (the
 paper's abstract: 0.0001 to 0.03); `ms_lifetime.zeta` holds a star's to it (GEN.651)."""
-MS_LIFESPAN_FRACTION_OF_TOTAL = 0.9
-# Subdwarfs (Yerkes VI, e.g. real sdB/sdO stars) are excluded from the
-# mass-derived model above -- not just from its mass-sampling rejection
-# check (_sample_evolved_star_mass_sol), but from the model itself. Real
-# subdwarfs are thought to form via binary mass-stripping near the tip of a
-# lower/intermediate-mass progenitor's red-giant branch, not through
-# ordinary single-star post-main-sequence evolution, so a star's *current*
-# (post-strip) mass has no direct relationship to its progenitor's own
-# main-sequence lifespan the way it does for an ordinary giant/supergiant --
-# using it that way is what let a generated subdwarf's age come out older
-# than the universe (formerly tracked in TODO.md's Future Ideas). Real
-# subdwarf progenitors are typically old, low-mass population stars (a
-# short-lived, higher-mass star wouldn't have had time to reach the RGB
-# tip and get stripped), so age is instead drawn directly from an
-# old-population-biased range, independent of this star's own mass. The
-# core-helium-burning subdwarf phase itself is short relative to that age
-# (real sdB stars: roughly 0.05-0.3 Gy) -- see
-# Star._calculate_initial_star_age_and_lifespan's Yerkes-VI branch.
-SUBDWARF_MIN_AGE_GY = 1.0
-SUBDWARF_MAX_AGE_GY = 13.5
-SUBDWARF_REMAINING_PHASE_MIN_GY = 0.05
-SUBDWARF_REMAINING_PHASE_MAX_GY = 0.3
-# A sub-solar-mass progenitor (roughly under ~0.93 Msun, per the
-# ms_lifetime.py lifetime above) already has
-# a main-sequence lifespan longer than the universe itself -- it couldn't
-# possibly have evolved off the main sequence yet, so it must never be
-# accepted as an evolved-class star's progenitor mass in the first place
-# (see Star._sample_evolved_star_mass_sol, used by Star.generate_star).
-# This caps the reject-and-resample loop that enforces that, the same way
-# SECTOR_MAX_PLACEMENT_ATTEMPTS caps SpaceSector's own reject-and-resample
-# loop: most classes' allowed mass range sits entirely clear of the cutoff
-# (so the very first draw is accepted) and only the class III (Giant) low
-# end (0.8-~0.93 Msun, out of an 0.8-8 Msun range) ever needs a resample,
-# so 100 attempts leaves effectively zero chance of exhausting this for any
-# class it's actually applied to.
-EVOLVED_STAR_MASS_MAX_RESAMPLE_ATTEMPTS = 100
-SPECTRAL_PROBABILITIES_LARGE_STAR = {'O': 10, 'B': 20, 'A': 30, 'F': 30, 'G': 10, 'K': 0, 'M': 0}
-SPECTRAL_PROBABILITIES_NORMAL = {'O': 0.0001, 'B': 0.12, 'A': 0.6, 'F': 3.0, 'G': 7.6, 'K': 12.1, 'M': 76.45}
+# The spectral types hotter than O3, which the Pecaut and Mamajek sequence does not hold (GEN.943): the
+# effective temperatures of O2, O1 and O0 (stand-ins, an extrapolation of the sequence's step of about 2,000 K a
+# type to 5,000 K, the hot end of the observed O2 stars near 50,000 K, Walborn et al. 2002; Martins et al. 2005).
+HOT_O_SUBCLASS_TEMPERATURES_K = {0: 60000.0, 1: 55000.0, 2: 50000.0}
+# A main-sequence star this far below the luminosity of a solar-metallicity dwarf of its temperature (log10 of the
+# luminosity) is a subdwarf, Yerkes VI (GEN.943). Subdwarfs lie one to two magnitudes below the dwarf sequence in
+# visual magnitude (Gizis 1997; Yerkes/MK class sd); in bolometric terms the model's metal-poor stars are 0.4 dex dimmer
+# (F and G), 0.6 (K) and 1.0 (M) at [Fe/H] -1.5, while a solar-metallicity M dwarf of the model sits 0.17 dex under the
+# sequence (95 percent within 0.23), so 0.3 labels the first and not the second.
+SUBDWARF_LUMINOSITY_DEFICIT_DEX = 0.3
+# A forced star type (GEN.941, generation/forced_star.py) is a star the model
+# makes. A subdwarf (Yerkes VI) is a main-sequence star under-luminous for its
+# temperature (SUBDWARF_LUMINOSITY_DEFICIT_DEX), which a metal-poor star of the
+# halo is: Gizis 1997 define the sd classes as metal-poor dwarfs, [Fe/H] below
+# about -1; the range runs to the halo's lower edge. For the hot letters it is
+# also a hot horizontal-branch star (sdB and sdO stars are helium-burning cores,
+# Heber 2016) from SUBDWARF_HOT_MIN_TEMPERATURE_K, the extreme horizontal
+# branch's floor (HORIZONTAL_BRANCH_COLOUR_TEMPERATURE_RANGE_K).
+SUBDWARF_FE_H_RANGE = (-2.0, -1.0)
+SUBDWARF_HOT_MIN_TEMPERATURE_K = 20000.0
+# The scan the forced-type table is built from: masses log-spaced across the
+# mass function, and per mass the ages of the main sequence, of the stretch
+# after it and the white dwarf cooling (log-spaced), each count a resolution of
+# the scan, not a physical value. A cell is jittered by up to half its size
+# before the star is evolved, tried FORCED_STAR_JITTER_TRIES times before the
+# cell's own star is taken. A type the model never makes takes the nearest
+# model star of its Yerkes class by temperature, among those within
+# FORCED_STAR_NEAREST_SLACK (in ln T) of the nearest.
+FORCED_STAR_MASS_STEPS = 140
+FORCED_STAR_AGE_STEPS = (60, 300, 80)
+FORCED_STAR_JITTER_TRIES = 40
+FORCED_STAR_NEAREST_SLACK = 0.03
 
 # Real stellar-multiplicity surveys consistently find binary/multiple
 # companionship rising with primary mass, not a single flat rate: low-mass
@@ -728,32 +692,60 @@ and two or more (triples and quadruples). The chance of a companion is 1 - `sing
 # luminosity. SPECTRAL_PROBABILITIES_NORMAL above is kept as the census the
 # model is tested against, not as a draw.
 
-# Kroupa (2001), MNRAS 322:231 -- the initial mass function as a broken
-# power law dN/dM ~ M^-alpha: alpha = 1.3 from 0.08 to 0.5 Msun and 2.3
-# above, up to the ~150 Msun upper limit of real stars. IMF_BREAKS_SOL are
-# the segment edges and IMF_SLOPES each segment's alpha.
-IMF_BREAKS_SOL = (_boundaries.sol("hydrogen_burning_limit"), 0.5, 150.0)
-IMF_SLOPES = (1.3, 2.3)
+# The single-star initial mass function (GEN.927): Chabrier (2003), PASP 115:763, Table 2, the Galactic disk, individual stars:
+# a log-normal in log mass below 1 Msun and a power law above it, joined continuously. All four are recalled, not read in the
+# paper (tier Confident Unverified, level L0; docs/design/galaxy/stellar-mass-function.md).
+IMF_BELL_CENTRE_SOL = 0.079
+"""float: The solar mass at which the log-normal part of the single-star mass function peaks per logarithm of mass (Chabrier
+2003, Table 2, disk, individual stars: `m_c` = 0.079; the systems' own function, 0.22, is derived here, not set)."""
+IMF_BELL_WIDTH_DEX = 0.69
+"""float: The width of that log-normal in dex of mass (Chabrier 2003: `sigma` = 0.69)."""
+IMF_BELL_TOP_SOL = 1.0
+"""float: The mass at which the log-normal gives way to the power law above it (Chabrier 2003: 1 solar mass)."""
+IMF_HIGH_SLOPE = 2.3
+"""float: The power law above `IMF_BELL_TOP_SOL`, `dN/dM ~ M^-2.3` (Chabrier 2003: `x` = 1.3 per logarithm of mass; Kroupa 2001:
+2.3 above 0.5). A birth function: the steeper 2.7 of the field (Kroupa, Tout and Gilmore 1993) counts stars still alive and
+is what the disk history reproduces from this and the ages (docs/design/galaxy/stellar-mass-function.md)."""
+IMF_NODE_SPACING_DEX = 0.05
+"""float: The spacing of the nodes the log-normal is cut into, each pair joined by a power law through the function at both
+(the function is kept as a continuous piecewise power law, `physics/imf.py`); at 0.05 dex the chord is within 0.07% of
+the log-normal."""
+
+
+def _bell_rows():
+    """`(breaks, slopes)` of the log-normal below `IMF_BELL_TOP_SOL` cut into power-law segments at `IMF_NODE_SPACING_DEX`
+    (a segment's slope is the chord of `ln dN/dM` against `ln M` between its nodes), then the high power law up to 150 Msun."""
+    low = _boundaries.sol("hydrogen_burning_limit")
+    cells = int(_math.ceil(_math.log10(IMF_BELL_TOP_SOL / low) / IMF_NODE_SPACING_DEX))
+    breaks = [low * (IMF_BELL_TOP_SOL / low) ** (i / cells) for i in range(cells + 1)]
+
+    def log_density(mass):
+        return -(_math.log10(mass) - _math.log10(IMF_BELL_CENTRE_SOL)) ** 2 / (2.0 * IMF_BELL_WIDTH_DEX ** 2) - _math.log(mass)
+
+    slopes = [-(log_density(b) - log_density(a)) / _math.log(b / a) for a, b in zip(breaks, breaks[1:])]
+    return tuple(breaks) + (150.0,), tuple(slopes) + (IMF_HIGH_SLOPE,)
+
+
+IMF_BREAKS_SOL, IMF_SLOPES = _bell_rows()
+"""tuple: The segment edges (solar masses) and each segment's `alpha` (`dN/dM ~ M^-alpha`) of the single-star function."""
 
 # The default star-formation history: ages uniform over the thin disk's
 # 0-10 Gy. Population-dependent ages by position come on top of this (the
 # sector fill passes an age instead of letting the star draw one).
 STAR_FORMATION_AGE_RANGE_GY = (0.0, 10.0)
 
-# Post-main-sequence phases, as multiples of the main-sequence lifetime
-# (physics/ms_lifetime.py, above). A star lighter than HELIUM_FLASH_MASS_SOL
-# burns helium in its core after the red giant branch (the horizontal branch)
-# and then climbs the asymptotic giant branch before it becomes a white dwarf
-# (GEN.286). For it the subgiant phase ends at, and the red giant branch ends
-# at, the times of physics/giant_branch.py (GEN.502, Hurley, Pols and Tout
-# 2000: 1.05 and 1.12 of the main-sequence lifetime at a solar mass, from the
-# core-mass-luminosity relation of the branch), and HORIZONTAL_BRANCH_DURATION_GY
-# and AGB_MS_FRACTION are added for it. A heavier star keeps the two figures
-# below, a subgiant phase up to 1.1 and a giant or supergiant phase up to 1.2,
-# then a remnant (real post-MS phases take roughly 10-20% of the
-# main-sequence time) [R]: its core helium burning is not modelled.
-SUBGIANT_PHASE_END_MS_FRACTION = 1.1
-GIANT_PHASE_END_MS_FRACTION = 1.2
+# Post-main-sequence phases (physics/post_main_sequence.py, GEN.935). The main-sequence lifetime is
+# physics/ms_lifetime.py's. A star lighter than HELIUM_FLASH_MASS_SOL burns helium in its core after the red giant branch
+# (the horizontal branch) and then climbs the asymptotic giant branch before it becomes a white dwarf (GEN.286). For it
+# the subgiant phase ends at, and the red giant branch ends at, the times of physics/giant_branch.py (GEN.502, Hurley,
+# Pols and Tout 2000: 1.05 and 1.12 of the main-sequence lifetime at a solar mass, from the core-mass-luminosity
+# relation of the branch), and HORIZONTAL_BRANCH_DURATION_GY and AGB_MS_FRACTION are added for it. A star from
+# HELIUM_FLASH_MASS_SOL up to SUPERGIANT_MIN_MASS_SOL has the same two times (0.6 and 1.2% of the main-sequence
+# lifetime at 3 solar masses), then burns helium in its core and climbs the asymptotic giant branch for as long as the
+# MIST track (Choi et al. 2016) does, as a share of the main-sequence lifetime (24% and 2% at 3 solar masses, 14% and 1%
+# at 5); a star of SUPERGIANT_MIN_MASS_SOL or more has one supergiant phase as long as the MIST track's, from the end
+# of the main sequence to the end of core helium burning (about 11% at 15 solar masses). The luminosity, temperature and
+# radius in every phase are the MIST track's. [V]
 HELIUM_FLASH_MASS_SOL = 2.2
 # Core helium burning lasts the same 100 Myr in every star that ignites it in a
 # flash, since the degenerate core is about 0.5 solar masses whatever the star's
@@ -768,33 +760,24 @@ AGB_MS_FRACTION = 0.002
 SUPERGIANT_MIN_MASS_SOL = _boundaries.sol("core_collapse_limit")
 # Giants at or above this initial mass are bright giants (II), not III.
 BRIGHT_GIANT_MIN_MASS_SOL = 4.0
-# Giant-branch luminosities (Lsun) and temperatures (K). A giant lighter than
-# HELIUM_FLASH_MASS_SOL is on the red giant branch of physics/giant_branch.py
-# (GEN.502): the helium core grows by the hydrogen shell burning at the star's
-# luminosity, dMc/dt = A_H L, and the luminosity climbs with the core mass as
-# L = min(B Mc^q, D Mc^p) (Hurley, Pols and Tout 2000, eq. 37, p = 6 and q = 3
-# at low mass), so the time at each luminosity, the branch's duration and its
-# tip (where the core helium ignites, about 2,700 Lsun at the reference
-# composition, 1,900 at Z 0.0001 against Serenelli et al. 2017's 1,650 to
-# 1,780) follow from the relation, the slope flattening from -0.83 to -0.67
-# along the branch [V]. It reproduces the paper's Table 1 durations
-# and the observed ratio of horizontal-branch stars to red giants brighter
-# than the horizontal branch, 1.44 +- 0.06 for the 41 halo clusters of Salaris
-# et al. 2004, table 2 (1.51 +- 0.05 for all 57) [P]. The shares of the branch
-# spent above 50, 100, 500 and 1,000 Lsun (8.7, 4.7, 1.0 and 0.42%) are 10 to
-# 30% under the 9.6, 5.5, 1.3 and 0.59% of the fit of arXiv 2503.17772
-# (eq. 1, one data point [P]), whose slope flattens further, to -0.56 at the tip.
-# The two figures below are what is left of the older single-exponent law
-# (GEN.287): the intermediate-mass giants, lighter than
-# BRIGHT_GIANT_MIN_MASS_SOL but not lighter than HELIUM_FLASH_MASS_SOL, rise from
-# SUBGIANT_MAX_BRIGHTENING times the main-sequence luminosity to the tip, the
-# time at each luminosity falling as L^-GIANT_BRANCH_TIME_SLOPE per unit of ln L,
-# and the asymptotic giant branch (AGB_LUMINOSITY_RANGE_SOL) takes the same slope
-# [R, recalled, unconfirmed: Refsdal and Weigert 1970; Salaris and Cassisi 2005].
-GIANT_BRANCH_TIP_LUMINOSITY_SOL = 2500.0
-GIANT_BRANCH_TIME_SLOPE = 0.78
-BRIGHT_GIANT_LUMINOSITY_RANGE_SOL = (1000.0, 10000.0)  # log-uniform
-GIANT_TEMPERATURE_RANGE_K = (3500.0, 5000.0)
+# A giant or supergiant on its track is a classical Cepheid inside the instability strip (a luminous star between a red
+# edge near 5,000 K and a blue edge near 7,000 K), at least this luminous (the shortest-period classical Cepheids,
+# about one day, are M_V near -2, a few hundred to a thousand Lsun) and born with at most this mass (classical Cepheids
+# are 3 to 13 solar masses; the yellow stars of 20 to 45 are supergiants and hypergiants, not pulsators of that kind)
+# [R, recalled, unconfirmed: the instability strip of Bono et al. 2000 and Turner 2010; the star class audit of
+# 2026-10-29 section 1, H1]. The horizontal branch's own RR Lyrae stars have their colour
+# (HORIZONTAL_BRANCH_COLOUR_TEMPERATURE_RANGE_K).
+CEPHEID_TEMPERATURE_RANGE_K = (5000.0, 7000.0)
+CEPHEID_MIN_LUMINOSITY_SOL = 500.0
+CEPHEID_MAX_INITIAL_MASS_SOL = 13.0
+# The mass a star has lost by a point on its track (GEN.940). MIST (Choi et al. 2016, section 3.7.1) takes Reimers (1975)
+# mass loss on the red giant branch with eta_R = 0.1, tuned to the white dwarf initial-final mass relation, and a star
+# that loses that little is 0.954 solar masses at the tip from 1; globular clusters want a horizontal branch of 0.55 to
+# 0.7. McDonald and Zijlstra 2015 (MNRAS 446, 2226) fit eta_R = 0.477 +- 0.070 to the horizontal-branch morphology of 22
+# clusters, so the loss of the first ascent is the track's times their eta over MIST's. Above SUPERGIANT_MIN_MASS_SOL the
+# track's winds (Vink et al., Nugis and Lamers) are kept as they are.
+RED_GIANT_BRANCH_REIMERS_ETA = 0.477
+MIST_REIMERS_ETA = 0.1
 # The horizontal branch (core helium burning): one luminosity range, whatever
 # the colour; the colour (temperature) is drawn from [Fe/H] and age
 # (HORIZONTAL_BRANCH_COLOURS below). Red clump and red horizontal-branch stars
@@ -833,20 +816,6 @@ HORIZONTAL_BRANCH_COLOURS = (
 # dex per Gy indirectly (Lee et al. 1999, 2001; Catelan 2009) [R].
 HORIZONTAL_BRANCH_AGE_SHIFT_DEX_PER_GY = 0.1
 HORIZONTAL_BRANCH_REFERENCE_AGE_GY = 12.0
-# The asymptotic giant branch: the same time-at-luminosity law, between these.
-AGB_LUMINOSITY_RANGE_SOL = (100.0, 2500.0)
-# A subgiant brightens to about three and a half times its main-sequence luminosity (the
-# zero-age relation under-counts the turn-off star's own brightening, and the base
-# of the red giant branch of an old 0.85 solar mass star is near 2 to 3 Lsun)
-# and cools toward the base of the giant branch while crossing.
-SUBGIANT_MAX_BRIGHTENING = 3.5
-SUBGIANT_END_TEMPERATURE_K = 5000.0
-# Massive stars evolve at nearly constant luminosity; about a third of
-# observed supergiants are red (K/M), the rest blue or white (O/B/A).
-SUPERGIANT_LUMINOSITY_GROWTH_RANGE = (1.0, 1.5)
-RED_SUPERGIANT_FRACTION = 1 / 3
-RED_SUPERGIANT_TEMPERATURE_RANGE_K = (3500.0, 4500.0)
-BLUE_SUPERGIANT_TEMPERATURE_RANGE_K = (9000.0, 35000.0)
 # Supergiant Yerkes class by luminosity (Lsun, lowest first): below the
 # first threshold IB, then IAB, IA, and 0 (hypergiant) at the top.
 SUPERGIANT_YERKES_THRESHOLDS_SOL = {"IAB": 10000.0, "IA": 50000.0, "0": 500000.0}
@@ -865,8 +834,6 @@ WR_PHASE_MYR = 0.3
 WR_MAX_SUPERGIANT_SHARE = 0.5
 """float: The phase never takes more than this share of the supergiant window it replaces, so the heaviest stars,
 whose whole post-main-sequence life is short, still pass through a supergiant phase first."""
-WR_PRESENT_MASS_FRACTION_RANGE = (0.4, 0.6)
-"""tuple: The present mass of a Wolf-Rayet star over its initial mass, drawn uniformly [R]."""
 WR_SUBTYPE_PHASE_SHARES = (("WN", 0.6), ("WC", 0.3), ("WO", 0.1))
 """tuple: The subtype by the share of the phase gone: nitrogen-rich first, then carbon-rich, then the oxygen-rich last
 tenth (only for stars of `WO_MIN_INITIAL_MASS_SOL` or more; lighter ones stay WC to the end)."""
@@ -877,8 +844,10 @@ WR_TEMPERATURE_RANGE_K = {"WN": (30000.0, 100000.0), "WC": (40000.0, 120000.0), 
 note, split by subtype [R, I]."""
 WR_SUBCLASS_RANGE = {"WN": (2, 9), "WC": (4, 9), "WO": (1, 4)}
 """dict: The subclass numbers of each subtype, hottest first (WN2 to WN9, WC4 to WC9, WO1 to WO4)."""
-WR_LUMINOSITY_RANGE_SOL = (1.0e5, 1.0e6)
-"""tuple: The luminosity of a Wolf-Rayet star, solar luminosities, log-uniform [R]."""
+WR_LUMINOSITY_RANGE_SOL = (1.0e5, 3.0e6)
+"""tuple: The range of the luminosity of a Wolf-Rayet star, solar luminosities: the helium-star relation of its present mass
+(`wolf_rayet.state`, GEN.939) cut at both ends. It was 1e5 to 1e6 for a star of any mass; a present mass of 40 gives
+2e6 [R]."""
 WR_COMPANION_CHANCE = {"WN": 0.52, "WC": 0.90, "WO": 0.90}
 """dict: The share of Wolf-Rayet stars with a companion, by subtype (Dsilva et al., a spectroscopic multiplicity survey of
 Galactic Wolf-Rayet stars: 52% of WN, 96% of WC, capped at 0.9 as in the phenomena catalogue; WO takes WC's)."""
@@ -914,11 +883,20 @@ MASSLESS_MARKER_MASS_SOL = 1.0
 SUN_EFFECTIVE_TEMPERATURE_K = 5772.0
 
 # White dwarfs: final mass from the initial-final mass relation of
-# Kalirai et al. (2008), ApJ 676:594 (M_f = 0.109 M_i + 0.394), clamped to
-# the observed range; luminosity from Mestel cooling,
-# L = WD_COOLING_L0 * (M/0.6) * t_cool^-1.4 (Lsun, t_cool in Gy), clamped.
-WD_IFMR_SLOPE = 0.109
-WD_IFMR_INTERCEPT_SOL = 0.394
+# Cummings et al. (2018), ApJ 866:21 (arXiv 1809.01673), the MIST-based fit, equations 4 to 6, read; luminosity from Mestel
+# cooling, L = WD_COOLING_L0 * (M/0.6) * t_cool^-1.4 (Lsun, t_cool in Gy), clamped.
+WD_IFMR_PIECES = (
+    (0.83, 2.85, 0.080, 0.489),
+    (2.85, 3.60, 0.187, 0.184),
+    (3.60, 7.20, 0.107, 0.471),
+)
+"""tuple: The white dwarf initial-final mass relation, `(low, high, slope, intercept)` per piece: the final mass is
+`intercept + slope * M_i` solar masses for an initial mass between `low` and `high` (Cummings et al. 2018, equations 4, 5
+and 6, the fit to the MIST tracks; the pieces join at 2.85 and 3.60). The first piece is carried down to the lightest
+progenitor (`WHITE_DWARF_PROGENITOR_SOL`) and the last up to the core collapse limit. Verified (read in the paper); one
+relation, read by the star model, the member draw, the disk history and `mass_loss`. The relation of Kalirai et al. (2008)
+the generator used before runs 0.04 to 0.06 under it, and Weidemann (2000), the disk history's, 0.1 to 0.16 under at 5 to 7
+solar masses (the audit of the star classes, M2)."""
 WD_MASS_RANGE_SOL = (0.5, 1.35)
 WD_COOLING_L0_SOL = 1.0e-3
 WD_COOLING_EXPONENT = -1.4
@@ -1068,6 +1046,26 @@ WATER_PER_HYDROGEN_MASS = 8.94
 DISK_MASS_FRACTION_RANGE = (0.01, 0.3)
 DISK_OUTER_RADIUS_RANGE_AU = (10.0, 300.0)
 DISK_DUST_SUBLIMATION_K = 1500.0
+# The cold debris disk of a main-sequence star (GEN.787, physics/debris_disk.py). Sibthorpe et al. 2018 (MNRAS 475, 3046, the
+# Herschel DEBRIS survey; arXiv:1803.00072, sections 2.5 and 3 and Tables 1 and 2 read 2026-10-30): the share of stars with a
+# detected cold disk is F 23.9, G 14.3 and K 13.0 percent (47 discs round 275), M 2.2 percent (89 stars) and, raw, 24 percent for
+# A stars. `DEBRIS_DISK_INCIDENCE` is the share for each mass band, the bands ending at the masses of
+# `DEBRIS_DISK_INCIDENCE_MASS_LIMITS_SOL` (the last band has no upper mass). The masses are the spectral types'
+# (M under 0.45, K to 0.8, G to 1.04, F to 1.4, A and hotter above); Matthews et al. 2014 find the dust shows no clear dependence on
+# type from late B to M, so a hotter star takes the A figure.
+DEBRIS_DISK_INCIDENCE_MASS_LIMITS_SOL = (0.45, 0.8, 1.04, 1.4)
+DEBRIS_DISK_INCIDENCE = (0.022, 0.130, 0.143, 0.239, 0.24)
+BLACKBODY_AT_ONE_AU_K = 278.3
+# The dust temperature of a detected disk: the 47 discs of Sibthorpe 2018 Table 1 have blackbody radii from 0.63 to 280 AU with a
+# median of 23 AU (7 to 40 AU for most), which at one solar luminosity is a median of 58 K; the log-normal width 0.45 puts the
+# middle two thirds of Sun-like stars at about 7 to 40 AU (a stand-in fitted to that statement, not a fit to the table).
+DEBRIS_DISK_TEMPERATURE_MEDIAN_K = 58.0
+DEBRIS_DISK_TEMPERATURE_LOG_SIGMA = 0.45
+# The belt lies further out than a blackbody grain would: the paper's 7 to 40 AU blackbody radii "scale to about 40 AU for realistic
+# dust properties", about 1.7 times the median 23 AU. The edges at 0.7 and 1.5 of the belt radius are a design choice (a ring about
+# as wide as it is far out), not read from a source.
+DEBRIS_RADIUS_OVER_BLACKBODY = 1.74
+DEBRIS_DISK_EDGES_OVER_RADIUS = (0.7, 1.5)
 # Companions of a protostar: the multiplicity fraction of Perseus' Class 0
 # (0.57) and Class I (0.23) protostars, Tobin et al. 2016 (ApJ 818:73,
 # arXiv:1601.00692, abstract read 2026-10-17).
@@ -1168,9 +1166,6 @@ follows the stellar mass the halo's growth builds."""
 HALO_GROWTH_RATE_AT_1E12_MSUN_YR = 46.1
 """float: That fit's amplitude, solar masses per year for a halo of 1e12 solar masses at z = 0. It only sets how the
 halo's mass went back in time; the disk's inflow is scaled to the stars it must build, so its size drops out."""
-WHITE_DWARF_REMNANT_MASS_SOL = {"intercept": 0.444, "slope": 0.084}
-"""dict: A star of 1 to 7 solar masses leaves a white dwarf of `intercept + slope * m` (Weidemann 2000's initial-final masses
-as Madau and Dickinson 2014, ARA&A 52, 415, arXiv 1403.0007, quote them, read)."""
 NEUTRON_STAR_RETURN_REMNANT_SOL = 1.4
 """float: The remnant of a star of 8 to `BLACK_HOLE_RETURN_MASS_SOL` solar masses (the same source's choice)."""
 BLACK_HOLE_RETURN_MASS_SOL = 40.0
@@ -1247,11 +1242,13 @@ STELLAR_FE_H_FIT_RANGE = {"thin": (-0.9, 0.5), "high-alpha": (-1.6, 0.1)}
 """dict: The [Fe/H] each branch's [X/Fe] fits were made over; outside it the fit is held at its edge (flagged)."""
 # [X/Fe] means by branch, as ("linear", a, b): a + b F; ("min", c, b, k): c + b min(F - k, 0), the thin disc's plateau above k
 # and rise below; ("max", p, s, k): p + s max(F - k, 0), the high-alpha plateau below k. Fitted to Bensby 2014 (Mg, Si, Ca,
-# Al), Nissen 2014 NLTE (C, O) and Battistini and Bensby 2016 (Eu), part A 2.7.
+# Al), Nissen 2014 NLTE (C, O) and Battistini and Bensby 2016 (Eu), part A 2.7. The thin-disc Mg and Si are refitted to Brewer and
+# Fischer 2016 (GEN.989, and the thin-disc O of GEN.991; `scripts/fit_stellar_xfe_refit.py`): their stars sit 0.06 dex under the Sun in
+# Mg, 0.03 in Si and 0.03 in O at [Fe/H] above solar, where Bensby's plateau is at the Sun and Nissen's O line goes on falling.
 STELLAR_XFE_FITS = {
     "thin": {
-        "Mg": ("min", 0.006, -0.343, 0.03), "Si": ("min", 0.017, -0.166, -0.07), "Ca": ("min", -0.041, -0.163, 0.42),
-        "O": ("linear", -0.011, -0.373), "C": ("linear", -0.030, -0.163), "Al": ("min", 0.032, -0.029, 0.06),
+        "Mg": ("min", -0.067, -0.284, 0.06), "Si": ("min", -0.047, -0.298, -0.07), "Ca": ("min", -0.041, -0.163, 0.42),
+        "O": ("min", -0.028, -0.414, 0.07), "C": ("linear", -0.030, -0.163), "Al": ("min", 0.032, -0.029, 0.06),
         "Eu": ("linear", 0.060, -0.404)},
     "high-alpha": {
         "Mg": ("max", 0.357, -0.373, -0.73), "Si": ("max", 0.253, -0.199, -0.99), "Ca": ("max", 0.282, -0.251, -0.99),
@@ -1259,16 +1256,21 @@ STELLAR_XFE_FITS = {
         "Eu": ("max", 0.446, -0.290, -0.93)},
 }
 STELLAR_XFE_SIGMA = {
-    "thin": {"C": 0.044, "O": 0.052, "Mg": 0.066, "Si": 0.042, "Eu": 0.077},
-    "high-alpha": {"C": 0.050, "O": 0.065, "Mg": 0.073, "Si": 0.073, "Eu": 0.084}}
-"""dict: Residual scatter (dex) of the fits above, by branch."""
+    "thin": {"C": 0.095, "O": 0.102, "Mg": 0.046, "Si": 0.072, "Ca": 0.032, "Eu": 0.077},
+    "high-alpha": {"C": 0.108, "O": 0.128, "Mg": 0.051, "Si": 0.126, "Ca": 0.035, "Eu": 0.084}}
+"""dict: Residual scatter (dex) of the fits above, by branch. C, O, Mg, Si and Ca are refitted to Brewer and Fischer 2016 (1,615 dwarfs,
+`scripts/fit_stellar_xfe_refit.py`, GEN.988 and GEN.990): the scale of each that puts the generated variance of every populous [Fe/H] bin
+on the table's robust one, the means and the branch mixture included; the ratio between the branches is the old one, and calcium's is
+magnesium's. Eu is Battistini and Bensby 2016's."""
 STELLAR_XFE_CORRELATION = (
-    (1.00, 0.56, 0.69, 0.71),
-    (0.56, 1.00, 0.36, 0.37),
-    (0.69, 0.36, 1.00, 0.77),
-    (0.71, 0.37, 0.77, 1.00))
-"""tuple: Residual correlation of C, O, Mg and Si (Brewer and Fischer 2016, 844 dwarfs), so Mg/Si, a ratio of two correlated
-terms, has its narrow real scatter."""
+    (1.00, 0.47, 0.57, 0.64, 0.35),
+    (0.47, 1.00, 0.26, 0.42, 0.41),
+    (0.57, 0.26, 1.00, 0.68, 0.02),
+    (0.64, 0.42, 0.68, 1.00, 0.30),
+    (0.35, 0.41, 0.02, 0.30, 1.00))
+"""tuple: Residual correlation of C, O, Mg, Si and Ca (Brewer and Fischer 2016, 1,558 dwarfs of the full table with all five, the residual
+being [X/Fe] less its median in the 0.1 dex bin of [Fe/H]), so Mg/Si, a ratio of two correlated terms, has its narrow real scatter. The
+844-dwarf table of the first fit gave 0.56, 0.69, 0.71, 0.36, 0.37, 0.77 for the C, O, Mg, Si pairs; calcium is new (GEN.988)."""
 STELLAR_CEMP = {"fe_h_below": -2.0, "probability": 0.25, "carbon_fe_min": 0.7, "carbon_fe_span": 1.3, "rich_probability_below": -4.0}
 """dict: Carbon-enhanced metal-poor stars (Frebel and Norris 2015): below [Fe/H] -2 a fraction `probability` have [C/Fe] of
 `carbon_fe_min` plus a uniform share of `carbon_fe_span`. The literature's rise to 1 below -4 is unreachable under the stored
@@ -1651,6 +1653,10 @@ to build, which the worker warm pays for every bin of every population (GEN.651)
 BRIGHT_TABLE_BOUND_MARGIN = 1.1
 """float: What a table's cell bound is multiplied by so a star anywhere in its [Fe/H] bin is under it (calibrated by
 `tests/test_star_population.py`, which draws masses and compositions across every bin and checks the ratio)."""
+BRIGHT_TABLE_EVOLVED_MARGIN = 2.0
+"""float: What the greatest measure of the windows after the main sequence read at a cell's masses is multiplied by to bound
+every mass of the cell (GEN.935): the pieces of a track as spiky as the thermal pulses fall differently for each mass, a
+few tens of percent either way. `tests/test_star_population.py` draws masses and compositions across every bin and checks it."""
 BRIGHT_TABLE_MAIN_SEQUENCE_SLACK = 1.1
 """float: How much brighter than its threshold a cell's bound reads the main sequence (GEN.652): the MIST rows step by a
 few percent over a few tenths of a percent of mass, so the end of a cell's main sequence is read a tenth brighter."""
@@ -2424,15 +2430,6 @@ Only these two windows are sourced. A galaxy that fails a smaller share shrinks 
 larger share keeps them and adds the top of the mass range down to the mass that makes up the share (the widest verified
 share, 45%, reaches down to about 14.5 solar masses, where Ertl et al. 2016, quoting Ugliano et al. 2012, put the lowest
 island) [S, stand-in: the nesting of the windows is not sourced]."""
-
-# Neutron star radius (GEN.463, physics/neutron_star.py): the centre and the
-# spread, km, at two masses, from Miller et al. 2021 (ApJL 918:L28,
-# arXiv:2105.06979): R(1.4 Msun) = 12.45 +- 0.65 and R(2.08 Msun) = 12.35 +-
-# 0.75, the full range of the 68% intervals over three equation-of-state
-# frameworks; a star draws a normal deviation about the line between them,
-# clipped at NEUTRON_STAR_RADIUS_CLIP_SIGMA deviations (the 95% band).
-NEUTRON_STAR_RADIUS_ANCHORS = ((1.4, 12.45, 0.65), (2.08, 12.35, 0.75))
-NEUTRON_STAR_RADIUS_CLIP_SIGMA = 2.0
 
 # Pulsar spin period, in milliseconds, split into the two real observed
 # populations (Lorimer 2008, "Binary and Millisecond Pulsars", Living
@@ -3296,14 +3293,14 @@ PREVALENCE_DRAW_SHARES = {
     "wide_binary": 0.810,       # pairs that are wide (S-type: an axis of 0.25 AU or more)
     "moons": 0.429,             # planets with at least one moon
     "max_planets": 0.037,       # stars that get the most orbits they can hold
-    "multi_star": 0.0045,       # systems with five or more stars (see below)
+    "multi_star": 0.0044,       # systems with five or more stars (see below)
 }
 # `multi_star` is not measured from generated systems: `StarSystem` builds only a
 # single star, a close pair or a wide pair until the member-tree host lands
 # (GEN.630), so no run yet has five stars. It is the `star-count` table's
 # five-or-more columns (`generation.multistar.star_count_weights`) averaged over the
-# placed star's initial mass function (`IMF_BREAKS_SOL`, `IMF_SLOPES`, 2,000 log bins
-# from 0.08 to 150 solar masses), before any age or remnant, 0.447% of systems.
+# placed star's primary mass function (`imf.PRIMARY`, GEN.928; 400 log bins
+# from 0.08 to 150 solar masses), before any age or remnant, 0.442% of systems.
 # Remeasure it from generated systems once GEN.630 merges.
 
 # The most stars a system may hold (`SystemConfig.MAX_STARS`, GEN.267; the
@@ -3719,7 +3716,7 @@ BLACK_HOLE_UNBOUND_FRACTION = 0.02
 
 CORE_COLLAPSE_MASS_RANGE_SOL = (SUPERGIANT_MIN_MASS_SOL, IMF_BREAKS_SOL[-1])
 """tuple: The initial masses that end as a neutron star or a black hole, solar masses: 8 (the supergiants' edge) to the
-top of the IMF, 150 (GEN.560). 0.637% of the stars born."""
+top of the IMF, 150 (GEN.560). 0.713% of the stars born (GEN.927)."""
 
 BLACK_HOLE_FAILED_SHARE_SOLAR_RANGE = (0.0, 0.45)
 """tuple: The share of the massive stars of solar metallicity that fail to explode and leave a black hole: the widest

@@ -100,19 +100,21 @@ def test_a_terrestrial_planet_seldom_has_a_ring_and_the_same_seed_gives_the_same
     assert first == again
 
 
-def _systems():
+def _systems(count=40):
     cfg = SystemConfig()
     cfg.PLANETS = True
     cfg.MAX_PLANETS = True
     cfg.BINARY_SYSTEM = False
-    for seed in range(40):
+    for seed in range(count):
         with draw.bound(seed):
             yield StarSystem(system_config=cfg)
 
 
 def test_generated_giants_have_rings_and_moons_and_belts_have_none():
     giants = ringed = 0
-    for system in _systems():
+    for system in _systems(count=200):
+        if giants >= 10:      # giants are rarer since the ice boost fell to 2.17 (GEN.950): generate systems until there are enough to count
+            break
         for planet in system.all_planets:
             if planet.body_type == "a":
                 assert getattr(planet, "ring_kind", None) is None
@@ -124,7 +126,7 @@ def test_generated_giants_have_rings_and_moons_and_belts_have_none():
                 ringed += planet.ring_kind is not None
                 if planet.ring_kind is not None:
                     assert planet.ring_inner_km < planet.ring_outer_km
-    assert giants > 5 and ringed >= 0.8 * giants   # 40 systems hold about 10 giants since the ice boost fell to 2.17 (GEN.950)
+    assert giants >= 10 and ringed >= 0.8 * giants
 
 
 def test_a_body_regenerated_as_another_class_loses_its_ring():

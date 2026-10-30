@@ -12,8 +12,7 @@
   }
  },
  "anomalies": {
-  "GEN.914": "G dwarfs are 3.1% of stars against 4.1% to 5.0% observed (the K and M shares are fixed: the K/M edge of constants.TEMP_RANGES moved from 3700 K to 3900 K, K 10.8%, M 76.7%). The shortfall is the mass function: the stars of 0.86 to 1.1 solar masses are 3.2% of births in the Kroupa slope of 2.3 above 0.5 solar masses, and widening the G range to hit the norm would take it past the surveys' own edges (G0V 5930 K to K0V 5270 K)",
-  "GEN.898": "A stars are 0.15% of stars against 0.6% (Mamajek) to 1.1% (RECONS): the A/F edge moved to 7200 K (F0V) and the share rose from 0.11%, the rest is the recent star formation. At the reference solar position (the inter-arm minimum) the mix is 87% old, 12% intermediate, 0.1% young, which is the disk history of the Milky Way-like galaxy: its present rate over its mean is 0.27 to 0.38 against the observed 0.20, and its B share 0.02 to 0.05% against 0.04%, so more recent stars would break both; a constant history gives A 0.3%, and the observed figure is 4 stars of 378 (a 95% interval of 0.3% to 2.7%)"
+   "GEN.898": "A stars are 0.15% of stars against 0.6% (Mamajek) to 1.1% (RECONS): the A/F edge moved to 7200 K (F0V) and the share rose from 0.11%, the rest is the recent star formation. At the reference solar position (the inter-arm minimum) the mix is 87% old, 12% intermediate, 0.1% young, which is the disk history of the Milky Way-like galaxy: its present rate over its mean is 0.27 to 0.38 against the observed 0.20, and its B share 0.02 to 0.05% against 0.04%, so more recent stars would break both; a constant history gives A 0.3%, and the observed figure is 4 stars of 378 (a 95% interval of 0.3% to 2.7%)"
  },
  "hangs": {"anomaly": ""},
  "errors": {"anomaly": ""},
@@ -23,7 +22,7 @@
   "K": {"norm_min": 0.10, "norm_max": 0.14, "kind": "observed",
         "source": "RECONS 44 of 378 = 0.116; Mamajek 0.129"},
   "G": {"norm_min": 0.035, "norm_max": 0.065, "kind": "observed",
-        "source": "RECONS 19 of 378 = 0.050; Mamajek 0.041", "anomaly": "GEN.914"},
+        "source": "RECONS 19 of 378 = 0.050; Mamajek 0.041"},
   "F": {"norm_min": 0.012, "norm_max": 0.040, "kind": "observed",
         "source": "RECONS 7 of 378 = 0.019; Mamajek 0.031"},
   "A": {"norm_min": 0.004, "norm_max": 0.016, "kind": "observed",

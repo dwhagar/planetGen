@@ -439,6 +439,18 @@ def begin_stage(conn, run_id, index, now=None):
         kind=logrecord.STAGE_START, now=now, stage=index, stages=len(declared))
 
 
+def set_opened_clock(conn, run_id, index, clock):
+    """Records the database's clock (as text) when stage `index` opened, for a stage a later step's parameter refers to
+    (`wrapper.opened_by`, PERF.213)."""
+    conn.hset(stage_key(run_id, index), "opened_clock", clock)
+
+
+def opened_clock(conn, run_id, index):
+    """The database's clock when stage `index` opened (`set_opened_clock`), `None` for a stage that recorded none."""
+    value = conn.hget(stage_key(run_id, index), "opened_clock")
+    return _s(value) if value else None
+
+
 def end_stage(conn, run_id, index, now=None):
     """Marks stage `index` as ended now: the end of a stage that had no unit to end it."""
     conn.hset(stage_key(run_id, index), mapping={"ended": _now(now)})
