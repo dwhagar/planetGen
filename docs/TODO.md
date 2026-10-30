@@ -14230,26 +14230,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Aux 2 (owns GEN.768 hours outside), train 7.
   Prerequisites: none. Related: GEN.768, GEN.957.
 
-- [ ] **GEN.1101 physics/field_rates.py: the four source rates (collision, supernova-unbound belts, and the others), the hosted rule for unbound belts, the labelled floor dial keeping both figures**
-  Interstellar asteroid fields from rogue-planet collisions and the
-  other sources (Boss, 4:40 PM EDT 2026-10-30; design
-  docs/design/systems/interstellar-asteroid-fields.md, goal #4130). Rate
-  choice and two small questions (retire past 1 ly versus keep a record
-  row; the remnant planet) are with Boss; the lane builds the modules
-  with the rate as a labelled dial and registers every stand-in in
-  GEN.725. Do: design F4 and section 8. Registers the stand-ins. Boss
-  picks the rate; the dial default follows his answer. Lock-free. Where
-  we think it belongs (best guess, can move): Aux 4.
-  Boss decision (2026-10-30 4:55 PM EDT): Boss decided 4:54 PM EDT
-  2026-10-30: option 1, physics only, no labelled game rate; fields come
-  only from physical sources (supernova-unbound belts and the other
-  physical sources), a retired field past 1 ly is marked retired, and
-  the leftover planet of a collision is its own rogue planet. Drop the
-  floor dial: the rates are the physical ones and nothing else; no field
-  is drawn at a made-up per-sector rate.
-  Prerequisites: GEN.1098.
-  Design: [docs/design/systems/interstellar-asteroid-fields.md](design/systems/interstellar-asteroid-fields.md)
-
 - [ ] **GEN.1102 Field composition from two differentiated parents (iron, silicate, ice shards) replacing draw_field("collisional")**
   Interstellar asteroid fields from rogue-planet collisions and the
   other sources (Boss, 4:40 PM EDT 2026-10-30; design
@@ -14282,7 +14262,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   physical sources), a retired field past 1 ly is marked retired, and
   the leftover planet of a collision is its own rogue planet. The field
   density no longer comes from a flat table at all.
-  Prerequisites: GEN.1101, GEN.1102.
+  Prerequisites: GEN.1102.
   Design: [docs/design/systems/interstellar-asteroid-fields.md](design/systems/interstellar-asteroid-fields.md)
 
 - [ ] **GEN.1104 Supernova host rule: a young supernova remnant and its remnant core draw the unbound belt as a field, like NEBULA_HOST_RULES**
@@ -14727,32 +14707,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.1120. Lock-free. Where we think it belongs (best guess, can move):
   Core 5 (sectors and fill), separate branch.
   Prerequisites: none. Related: GEN.1118, GEN.1120.
-
-- [ ] **GEN.1125 Rogue top-up planner: a pure module that, from a sector's mass shortfall and the Rogues level cap, says how many rogues to place, their masses by the existing mass bins (96 percent terrestrial, 4 percent gas giant), and gives each a placement inside the sector, a realistic velocity and an apparent origin marked "apparent"**
-  Region object store (Boss, 5:15 to 5:42 PM EDT 2026-10-30; study
-  GEN.1118, design draft region-object-store-gen1118-2026-10-30.md, goal
-  #4130). Defaults taken until Boss changes them: whole sectors are the
-  unit of randomness and a region is rounded up to whole sectors (no
-  partial sectors); work units are the galaxy's own (shell, band) arcs;
-  a moved rogue keeps the ID of its birth position, with history; the
-  top-up fills the shortfall only up to the Rogues level. Stage 3 of the
-  generation order (study section 8.5), run once per region run after
-  every sector has finished stages 0 to 2. Level ceilings (internal
-  numbers, never shown, accepted by Boss 5:39 PM EDT): None 0, Few 2.5,
-  Normal 4.3, Many 10 terrestrial rogues per star; the shortfall is the
-  mass the sector is missing and the level is the ceiling. Each rogue is
-  placed uniformly inside the sector, then given a velocity (donor-frame
-  isotropic kick added to galactic motion, as in rogue_kick.py) and an
-  apparent origin (distance and direction back along its drifted path,
-  ejection age, shown on the object page as "ejected about N Gyr ago
-  from about D pc away"); no donor row is claimed. The placement is one
-  registered stand-in ROGUE_TOPUP_PLACEMENT plus the level table, both
-  in tuning.py (GEN.725, L3, burn-down line). Done: tests for each
-  level, the cap, mass conserved to the shortfall, apparent origin never
-  a donor link. Lock-free (pure module, nothing calls it). Where we
-  think it belongs (best guess, can move): Aux 7 (owner of rogue_kick.py
-  and rogue_age.py), separate branch.
-  Prerequisites: none. Related: GEN.1118, GEN.1120, GEN.1112.
 
 - [ ] **GEN.1126 Top-up asteroid field kind: lighter interstellar asteroid fields made when the Rogues cap leaves sector mass unmatched, smaller bodies, lower density, a larger volume, no full body history, origin a registered stand-in "unbound remnant"**
   Region object store (Boss, 5:15 to 5:42 PM EDT 2026-10-30; study
