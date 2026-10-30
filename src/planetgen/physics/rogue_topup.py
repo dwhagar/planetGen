@@ -47,7 +47,7 @@ GALACTOCENTRIC_RADIUS_PC = 8000.0
 ORIGIN = "apparent"
 """str: The origin every top-up rogue carries; a donor link never exists for it."""
 
-_JUPITER = (1.8982e27, 7.1492e7)
+_JUPITER_KG = constants.JUPITER_MASS_TO_KG
 _NORMAL = NormalDist()
 
 
@@ -183,17 +183,16 @@ def apparent_donor(kick, time_myr, galactocentric_radius_pc, galaxy=rogue_drift.
     return (r * (math.cos(ring.azimuth_rad) - 1.0) - ring.radial_pc, -r * math.sin(ring.azimuth_rad), -ring.vertical_pc)
 
 
-def apparent_history(rng, host_masses_kg, age_law, dispersion, radius_pc):
+def apparent_history(rng, age_law, dispersion, radius_pc):
     """
     What an object placed in a sector would have if it had come from another one: its velocity relative to the local standard of rest `(U, V, W)`, km/s, and its `ApparentOrigin`.
-    The draws, in order: the age and time since ejection, the host (of `host_masses_kg`), the scatterer's distance, the ejection speed, the direction and the host's velocity (the
+    The draws, in order: the age and time since ejection, the scatterer's distance, the ejection speed, the direction and the host's velocity (the
     rogue top-up and the lighter asteroid-field top-up, GEN.1126, share it).
     """
     ages = rogue_age.rogue_age(age_law, rng.random(), rng.random())
-    host_mass = host_masses_kg[min(int(rng.random() * len(host_masses_kg)), len(host_masses_kg) - 1)]
     low, high = SCATTERER_AU_RANGE
     scatter_au = low * (high / low) ** rng.random()
-    speed = rogue_kick.ejection_speed_km_s(rng.random(), host_mass, scatter_au, *_JUPITER)
+    speed = rogue_kick.ejection_speed_km_s(rng.random(), _JUPITER_KG, scatter_au)
     direction = rogue_kick.isotropic_direction(rng.random(), rng.random())
     kick = rogue_kick.kick(speed, direction)
     host_velocity = tuple(sigma * _gauss(rng) for sigma in dispersion)
@@ -204,9 +203,9 @@ def apparent_history(rng, host_masses_kg, age_law, dispersion, radius_pc):
     return velocity, ApparentOrigin(distance, unit, ages.age_gy, ages.since_ejection_gy, speed)
 
 
-def _rogue(mass_earth, rng, sector_edge_pc, host_masses_kg, age_law, dispersion, placement, radius_pc):
+def _rogue(mass_earth, rng, sector_edge_pc, age_law, dispersion, placement, radius_pc):
     position = place_in_sector(rng, sector_edge_pc, placement)
-    velocity, origin = apparent_history(rng, host_masses_kg, age_law, dispersion, radius_pc)
+    velocity, origin = apparent_history(rng, age_law, dispersion, radius_pc)
     return TopUpRogue(mass_earth, mass_bin_of(mass_earth), position, velocity, origin)
 
 
@@ -248,7 +247,7 @@ def plan(rng, level, stars, shortfall_kg, host_masses_kg, rogues_present=0, sect
         last = mass_kg >= remaining
         if last:
             mass_kg, mass = remaining, remaining / constants.EARTH_MASS_TO_KG
-        rogues.append(_rogue(mass, rng, sector_edge_pc, tuple(host_masses_kg), age_law, dispersion_km_s, placement, galactocentric_radius_pc))
+        rogues.append(_rogue(mass, rng, sector_edge_pc, age_law, dispersion_km_s, placement, galactocentric_radius_pc))
         placed += mass_kg
         remaining -= mass_kg
         if last:

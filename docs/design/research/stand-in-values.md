@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 794 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 810 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -36,16 +36,16 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 125 | 7 | 6 | 1 | 0 | 139 |
-| T2 | 105 | 21 | 0 | 1 | 0 | 127 |
-| T3 | 77 | 31 | 5 | 9 | 0 | 122 |
+| T1 | 127 | 10 | 7 | 1 | 0 | 145 |
+| T2 | 106 | 23 | 0 | 1 | 0 | 130 |
+| T3 | 77 | 31 | 5 | 10 | 0 | 123 |
 | T4 | 36 | 3 | 0 | 15 | 6 | 60 |
 | T5 | 41 | 13 | 0 | 0 | 0 | 54 |
-| T6 | 67 | 46 | 12 | 36 | 0 | 161 |
+| T6 | 69 | 49 | 13 | 36 | 0 | 167 |
 | T7 | 26 | 8 | 8 | 8 | 0 | 50 |
-| T8 | 0 | 1 | 1 | 6 | 2 | 10 |
-| T9 | 7 | 3 | 4 | 38 | 19 | 71 |
-| All | 484 | 133 | 36 | 114 | 27 | 794 |
+| T8 | 0 | 1 | 1 | 5 | 2 | 9 |
+| T9 | 8 | 3 | 4 | 38 | 19 | 72 |
+| All | 490 | 141 | 38 | 114 | 27 | 810 |
 
 ## How the labels were given
 
@@ -1027,8 +1027,14 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| RK1 | P | T8 | L3 | rogue_kick.ENERGY_STEP_SCALE 0.3, the fractional orbital-energy step of an encounter in units of min(1, v_esc,p / v_orb) | 0.15 to 1 | planets ejected by planets | ejection speeds from the architecture's own scattering records (GEN.1119, GEN.1113) whose median is not within a factor of two of the model's | the speeds read from the ejection records and from the N-body papers of GEN.1113 | tuned so giants at 5 to 30 AU give a median of 2.5 to 6 km/s, the drift note's 3 km/s and Sayed et al.'s 0.7 to 10.7 km/s | GEN.1111 | replace (GEN.1113) |
+| RK1 | P | T1 | L0 | rogue_kick.SCATTER_SPEED_KM_S 3, the ejection speed scale of a Jupiter-mass scatterer at 1 AU, km/s; `v_c` goes as the square root of the scatterer's mass over its distance | 2.5 to 3.5 | planets ejected by scattering planets, stars 100 to 1000 times the scatterer's mass | an N-body set of scattering giants whose mean ejection speed is not within 30 percent of `v_c` | the speeds read from the architecture's own ejection records (GEN.1119) | Huang and Lai 2025 (arXiv:2508.18239, READ in full), Eq. 19, 24 and 26; checked against Kramer and Profumo 2026 (arXiv:2608.02945, READ), means 1.15 and 3.5 km/s at 5.2 AU against `v_c` of 1.32 and 4.16 | GEN.1111 | - |
 | RK2 | P | T6 | L0 | rogue_kick.EJECTION_SAFRONOV_NUMBER 1, the Safronov number above which a scatterer ejects | 0.5 to 2 | scattering planets | a scatterer with Theta under 1 that ejects most of what it scatters in an N-body run | the scattering simulations read by GEN.1089 | Safronov 1972; Ford and Rasio 2008 use the same cut, recalled | GEN.1111 | - |
+| RK3 | P | T1 | L1 | rogue_kick.MEAN_OVER_SCALE 0.87, the mean ejection speed in units of `v_c` | 0.8 to 0.95 | as RK1 | a mean outside 0.75 to 1 `v_c` for a 1 to 10 Jupiter-mass scatterer at 5.2 AU | as RK1 | Kramer and Profumo 2026 Sec. 4.1 to 4.2: 1.15 km/s (1 Jupiter mass) and 3.4 to 3.6 (10), 0.87 and 0.84 of `v_c`; no trend in the ejected mass over four decades | GEN.1111 | - |
+| RK4 | P | T6 | L2 | rogue_kick.SPEED_SIGMA_LN 0.51, the ln-width of the ejection speed in units of `v_c`, set so the 99th percentile is 2.5 `v_c` | 0.4 to 0.7 | as RK1, two-planet systems | an N-body speed distribution (percentiles) with a 99th percentile outside 2 to 3.5 `v_c` | the percentiles of a rerun of the scattering runs, or of the ejection records (GEN.1119) | Huang and Lai Sec. 4.3: the two-planet distributions range from 0 to 2.5 `v_c` with a peak near 1, read from figures; the paper prints no percentile | GEN.1111 | - |
+| RK5 | P | T1 | L1 | rogue_kick.MOON_LOSS_FRACTION 0.5, the share of the Hill sphere that the closest approach leaves a moon, inside which it stays | 0.3 to 1 | moons of ejected planets | a moon-carrying N-body run whose survivors differ from the rule by more than 20 percent | an N-body run with moons (the paper simulates none) | Huang and Lai Eq. 4: `r_moon < f r_min (m_2/m_12)^(1/3)`, "a high survival probability requires f ~ 1/2" | GEN.1111 | - |
+| RK6 | P | T1 | L2 | rogue_kick.CLOSEST_APPROACH_MEDIAN_HILL 0.089 mutual Hill radii at CLOSEST_APPROACH_REFERENCE_JUPITERS 10 (ejecting a tenth of the scatterer's mass) | 0.06 to 0.12 | as RK5, two-planet systems spaced by 2 mutual Hill radii | a median closest approach outside 0.05 to 0.15 for that setup | the closest approaches of the architecture's own scatterings (GEN.1119) | Huang and Lai Sec. 4.2, Fig. 2 (median 0.089); the 0.089 depends strongly on the planet spacing (0.60 at 2.5, 0.051 at 1) and the inclination (0.0030 at 0.01 R_H/a), which this model does not carry | GEN.1111 | - |
+| RK7 | P | T3 | L3 | rogue_kick.CLOSEST_APPROACH_MASS_INDEX 1.13, the median closest approach goes as the scatterer's mass to this power | 0.8 to 1.5 | scatterers of 1 to 10 Jupiter masses at a mass ratio of 10 | medians at other masses that fall off this line by more than a factor of 2 | the closest approaches of the architecture's own scatterings (GEN.1119) | Huang and Lai Fig. 2: 0.089, 0.034, 0.0066 at 10, 5, 1 Jupiter masses; a line through two ends of three points | GEN.1111 | replace (GEN.1119) |
+| RK8 | P | T1 | L1 | rogue_kick.CLOSEST_APPROACH_SIGMA_LN 2.35, the ln-width of the closest approach | 2.0 to 2.7 | as RK6 | a closest-approach distribution whose 16 to 84 percent range is not within a factor of 5 of the log-normal's | as RK6 | Huang and Lai Sec. 7: 48 percent of runs above 0.1 and 82 percent above 0.01 mutual Hill radii, which a log-normal of median 0.089 matches at 2.3 and 2.4 | GEN.1111 | - |
 
 ## 6.88 Stand-ins of the rogue planet age
 
@@ -1248,13 +1254,21 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | RY1 | P | T6 | L3 | rogue_radiogenic.ACTIVE_HEAT_FLUX_W_M2 0.04 W/m2: a rocky rogue whose heat flow reaches it is geologically active | 0.02 to 0.087 | rocky rogues of 0.01 to 3 Earth masses | a model of when a stagnant lid stops erupting that puts the cut far from 0.04 for an Earth-mass body | a stagnant-lid eruption model on the interior heat (mantle potential temperature against the solidus at the lid's base) | between Mars (about 0.02 W/m2, recalled, InSight) and the Earth (0.087, Pollack et al. 1993, recalled); the old `ROGUE_ACTIVE_HEAT_FLUX_W_M2`, moved here unchanged | GEN.1111 | no data |
 
+## 6.115 Stand-ins of the composition of a belt member
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| MC1 | P | T6 | L1 | belt_member._filling: the filling of a stored member (one minus its porosity) is the compacted density of `compaction` over the compaction's own grain density at the member's rock fraction, applied to the taxon's grain density | the taper endpoints (`compaction.TAPER_START_KG`, `TAPER_END_KG`, stand-ins of decision S9) | members of 1e19 to 1e21 kg | a measured bulk density of a main-belt asteroid of that taxon and mass far from grain density times this filling (Carry 2012 densities by taxon) | the structure solver and viscous compaction (GEN.429) | the taper closes the pores of the Bierson and Nimmo ice and silicate mix (rock 3500, ice 920 kg/m3); using it as a filling for other grains is ours | - | - |
+| MC2 | P | T6 | L0 | belt_member._filling: a member under 1e19 kg takes a porosity drawn uniformly in its taxon family's range, 0.25 to 0.55 for the carbonaceous taxa and 0.10 to 0.35 for the rocky ones (`small_body_composition.POROSITY_RANGES`) | the ranges | on-demand members of 1e15 to 1e19 kg | a rubble pile of that size and taxon with a porosity far outside the range (Britt and Consolmagno 2003; Carry 2012) | the porosity from the size law and the collisional history of the belt | the ranges are `small_body_composition`'s (parametrisations of Britt and Consolmagno 2003 and Carry 2012); the uniform draw inside them is ours | - | - |
+| MC3 | P | T6 | L0 | belt_member._filling: a member's rock fraction for the compaction is its rock and metal, held to the table's 0.3 to 0.95 (`compaction.ROCK_FRACTION_RANGE`), the metal counted with the rock | the metal share counted with the ice instead | every taxon (the iron M taxon is held at 0.95) | a metal-rich member whose compaction filling differs from a rock one's by more than the grain density does | a compaction table with metal as a third component | the habit of `moon_composition.density_kg_m3` | - | - |
+
 ## 6.94 Stand-ins of the irregular zone
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| IZ1 | P | T2 | L1 | irregular_zone.PROGRADE_STABLE_FRACTION 0.4, the share of the Hill radius out to which a prograde orbit is stable | 0.4 to 0.5 | prograde irregulars of the four giants | a stable prograde body found beyond 0.5 of the Hill radius | an integration-fitted limit by planet, star mass and eccentricity (Nesvorny et al. 2003) | numerical surveys quoted by Jewitt and Haghighipour 2007 give about 0.4; the 0.4895 of the moon code is Hamilton and Burns 1991 for a circular regular moon | GEN.1076 | - |
-| IZ2 | P | T1 | L0 | irregular_zone.RETROGRADE_STABLE_FRACTION 0.55, the share of the Hill radius out to which a retrograde orbit is stable | 0.5 to 0.6 | retrograde irregulars of the four giants | a stable retrograde body found beyond 0.6 of the Hill radius | the same integration-fitted limit | Vokrouhlicky, Nesvorny and Levison 2008, quoting Nesvorny et al. 2003: 0.5 to 0.6 depending on the mean eccentricity; 0.55 is the middle | GEN.1076 | - |
-| IZ3 | P | T1 | L0 | irregular_zone.INNER_EDGE_FACTOR 1.0, the multiple of the outermost regular moon's distance a pericentre must exceed | 1.0 to 1.5 | the giants with regular moons | an irregular with a pericentre inside Callisto's, Iapetus's or Oberon's orbit that has survived | a collision-rate cut against the regular moon's size | Vokrouhlicky, Nesvorny and Levison 2008: q greater than 0.013 AU at Jupiter, 0.023 at Saturn, 0.004 at Uranus | GEN.1076 | - |
+| IZ1 | P | T2 | L1 | irregular_zone.PROGRADE_STABLE_FRACTION 0.4, the share of the Hill radius out to which a prograde orbit is stable | 0.4 to 0.5 | prograde irregulars of the four giants | a stable prograde body found beyond 0.5 of the Hill radius | an integration-fitted limit by planet, star mass and eccentricity (Nesvorny et al. 2003) | numerical surveys quoted by Jewitt and Haghighipour 2007 give about 0.4; the 0.4895 of the moon code is Hamilton and Burns 1991 for a circular regular moon | GEN.1083 | - |
+| IZ2 | P | T1 | L0 | irregular_zone.RETROGRADE_STABLE_FRACTION 0.55, the share of the Hill radius out to which a retrograde orbit is stable | 0.5 to 0.6 | retrograde irregulars of the four giants | a stable retrograde body found beyond 0.6 of the Hill radius | the same integration-fitted limit | Vokrouhlicky, Nesvorny and Levison 2008, quoting Nesvorny et al. 2003: 0.5 to 0.6 depending on the mean eccentricity; 0.55 is the middle | GEN.1083 | - |
+| IZ3 | P | T1 | L0 | irregular_zone.INNER_EDGE_FACTOR 1.0, the multiple of the outermost regular moon's distance a pericentre must exceed | 1.0 to 1.5 | the giants with regular moons | an irregular with a pericentre inside Callisto's, Iapetus's or Oberon's orbit that has survived | a collision-rate cut against the regular moon's size | Vokrouhlicky, Nesvorny and Levison 2008: q greater than 0.013 AU at Jupiter, 0.023 at Saturn, 0.004 at Uranus | GEN.1083 | - |
 
 ## 6.102 Stand-ins of the smoothed rogue density
 
@@ -1305,6 +1319,18 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | TF2 | P | T9 | L3 | topup_field.LARGEST_BODY_MASS_KG 1e17, BULK_DENSITY_KG_M3 1500: the largest body of a light field (a rubble pile about 50 km across, a hundredth of the ledger cut of 1e19) and its bulk density (a porous pile, half of the silicate pieces of IF17) | mass 1e16 to 1e18; density 1000 to 2500 | rubble fields made to fill a mass budget | a survey of the size distribution of interstellar debris | the size-frequency law of the collisional fields (GEN.1102) | Boss, 5:42 PM EDT 2026-10-30: smaller bodies and lower density | GEN.1120 | replace (GEN.1105) |
 | TF3 | P | T9 | L3 | topup_field.SPEED_KM_S_RANGE 0.3 to 3, MIN_RADIUS_LY 0.25: the rms speed the field spreads at (log-uniform) and the least rms radius (the radius is drawn between this and the one light year of retirement, IF15, and the age follows from it) | speed 0.1 to 10; radius 0.1 to 0.5 | a field placed in a sector | none (a field is not observed) | the dispersion of a real source (IF12) | Boss, 5:42 PM EDT 2026-10-30: a larger volume | GEN.1120 | no data |
 | TF4 | P | T9 | L3 | topup_field.MIN_FIELD_MASS_KG 1e21, MAX_FIELD_MASS_KG 1.2e24, MAX_FIELDS 12: the lightest field drawn, the heaviest drawn before the last one takes the rest (0.2 Earth masses, under the 0.27 a collision field keeps at most), and the most fields in a sector's top-up | min 1e19 to 1e22; max 1e23 to 1e25; count 4 to 40 | the mass the rogues leave unmatched | none | the unmatched mass of a smaller or a different galaxy model | chosen to keep a sector's top-up to a dozen clouds (IF6 for the 0.27) | GEN.1120 | no data |
+
+## 6.116 Stand-ins of the resonance and chaotic-zone map of a belt
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| RGP1 | P | T1 | L0 | resonance_gaps.CHAOTIC_ZONE_COEFFICIENT 1.3, resonance_gaps.EXTENDED_ZONE_COEFFICIENT 1.8, resonance_gaps.CRITICAL_ECCENTRICITY_COEFFICIENT 0.21, resonance_gaps.MAX_ECCENTRICITY_COEFFICIENT 2.1, resonance_gaps.LOW_ECCENTRICITY_WIDTH 3.2 and resonance_gaps.HIGH_ECCENTRICITY_WIDTH 7.78: the chaotic zone half-width over a giant's distance 1.3 mu^(2/7) (1.8 (e mu)^(1/5) above e_crit = 0.21 mu^(3/7), crossing above 2.1 mu^(1/4)) and a first-order resonance's width 3.2 mu^(2/3) j^(1/3) (7.78 (e mu j)^(1/2) above) | coefficient 1.3 to 1.4 (numerically 1.35 mu^0.278); 0.86 mu^0.208 numerically for the extended zone | planets of mu 1e-6 to 1e-2, particles of low to moderate eccentricity | a numerical zone differing from the law by more than 20 percent | the eccentricity-dependent zone from the system's own N-body maps | Mustill and Wyatt 2012 (arXiv:1110.1282, READ), after Wisdom 1980 (not reached) | GEN.1069 | - |
+| RGP2 | P | T6 | L1 | resonance_gaps.ORDER_WIDTH_EXPONENT 0.5: a resonance of order k is narrower than a first-order one by e^(0.5 (k - 1)) | exponent 0.3 to 0.7; a factor 0.3 to 3 on the width | resonances of order 2 to 4 | a measured Kirkwood gap width ratio far from the scaling (3:1 against 2:1) | the order-dependent libration widths from Murray and Dermott's resonance Hamiltonians, read | the libration width of a resonance of order k goes as e^(k/2) (recalled); no coefficient taken | GEN.1069 | - |
+| RGP3 | P | T2 | L1 | resonance_gaps.RESONANCE_CLEARING_MYR 10: a belt older than this has emptied its resonance zones | 1 to 100 Myr | belts under a giant | a belt a few Myr old with its zones already empty, or a Gyr belt with them full | the logarithmic loss history of Minton and Malhotra 2010 applied to each zone | the design note's "1 to 10 Myr" (Wisdom 1982 and Moons and Morbidelli 1995, not reached); Minton and Malhotra 2010 (arXiv:0909.3875, READ) for the tail | GEN.1069 | - |
+| RGP4 | P | T9 | L0 | resonance_gaps.MAX_ORDER 4 and resonance_gaps.MAX_P 12: the highest order and ratio listed | order 3 to 6; p 8 to 20 | every belt | not applicable (a list bound) | a strength cut instead of an order cut | needed output (the Kirkwood list is order 4 and below) | GEN.1069 | - |
+| RGP5 | P | T2 | L0 | resonance_gaps.FORCED_ECCENTRICITY_COEFFICIENT 1.25: the eccentricity a giant forces on a belt, 5/4 (a / a_giant) e_giant / (1 - e_giant^2) | 1.0 to 1.5 | belts on either side of an eccentric giant, a / a_giant not near 1 | a belt whose measured forced eccentricity differs from the law by more than a factor 2 | the Laplace-Lagrange solution of the system's own planets | Wyatt et al. 1999 (recalled, not opened); the leading secular term | GEN.1069 | - |
+| RGP6 | P | T2 | L1 | resonance_gaps.YARKOVSKY_COEFFICIENT_AU_KM_PER_MYR 9.3e-4 and resonance_gaps.YARKOVSKY_REFERENCE_AU 1.1: da/dt times D at 1.1 au, scaled with 1/a^2 | coefficient 0.5 to 2 times; flux exponent 1 to 3 | bodies of 0.1 to 40 km | the same as BR1 of 6.95 | the thermal-parameter model of Vokrouhlicky 2015 | Vokrouhlicky et al. 2015 (arXiv:1502.01249, READ); Bennu's measured drift | GEN.1069 | - |
+| RGP7 | P | T6 | L1 | resonance_gaps.ZONE_ECCENTRICITY_FLOOR 0.005: the least free eccentricity the zones and widths are worked out for | 0.001 to 0.02 | cold belts | a measured free eccentricity of a cold belt far from it | the belt's own self-stirred eccentricity from its size law (Kenyon and Bromley 2008) | educated guess from physics (a cold disc, the cold classical belt's e under 0.05) | GEN.1069 | - |
 
 ## 6.95 Stand-ins of the belt sources
 

@@ -2,6 +2,58 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2806] - 2026-10-30
+
+**Headline:** A belt's gaps can now be worked out from its giants: where the resonances and chaotic zones are, how small the bodies must be to have drifted out, and how stirred it is (not used by the generator yet).
+
+### Changed
+- **Resonance and chaotic-zone map (GEN.1062).** New `physics/resonance_gaps.py`: resonance positions and widths (Jupiter gives the Kirkwood gaps at 2.50, 2.82, 2.96 and 3.27 AU), the chaotic zone round each giant, the belt left outside them, the Yarkovsky size cut that grows with age, and the eccentricity the giants force. Nothing calls it yet.
+
+generation-output: unchanged
+
+## [8.0.2805] - 2026-10-30
+
+**Headline:** The generator can now say what each stored asteroid in a belt is made of, changing with its distance from the star instead of one mix for the whole belt.
+
+### Added
+- **`physics/belt_member.py` (GEN.1067).** For one belt member: its taxon drawn from the taxon kernel at its own distance (drier and rockier in, icier out), whether it is a melted body (only when its star was born with enough aluminium-26), its grains, and its density and radius from the compaction taper (heavier bodies close their pores). Nothing reads it yet; the belt wiring of the taxa (GEN.473) does.
+- **Stand-in rows MC1 to MC3** in the gap-filling plan (section 6.115), the stand-in list and the wiring register.
+
+generation-output: unchanged
+
+## [8.0.2804] - 2026-10-30
+
+**Headline:** The speed a rogue planet leaves its star with is now taken from published scattering simulations instead of a guess, and a calculation for how often its moons stay bound exists; no world uses either yet.
+
+### Changed
+- **Rogue ejection speed (GEN.1113).** `physics/rogue_kick` now gives the speed of an ejected planet from the scatterer's mass and orbit, as the two N-body papers read in full (Huang and Lai 2025, Kramer and Profumo 2026) agree: about 1.2 km/s for a Jupiter at 5.2 AU, 3.5 km/s for ten Jupiter masses, falling with distance, independent of the star and of the planet thrown out. The earlier energy-step guess (median 6 km/s for a Jupiter) is gone. The median over giants of 0.3 to 10 Jupiter masses at 1 to 30 AU stays inside the 0.7 to 10.7 km/s of Sayed and others. The tail that eccentric giants and three-planet systems add is not modelled yet.
+
+### Added
+- **Moon survival (GEN.1113).** A moon of an ejected planet stays bound if it lies inside half the Hill sphere the closest approach leaves it (Huang and Lai Eq. 4); the closest approach is drawn from their simulated median and spread, and the share of ejections that keep a moon at a given distance is given. Registry rows RK1 and RK3 to RK8 (section 6.87) record the numbers, and the report `docs/design/research/rogue-ejection-kick.md` the reading. Nothing reads any of this yet (GEN.1111).
+
+generation-output: unchanged
+
+## [8.0.2803] - 2026-10-30
+
+**Headline:** The Systems tables show how many stars and objects a system holds and whether it has a Yellow-or-better world.
+
+### Changed
+- **The Systems tables' Binary column is now Stars.** It counts every star-like object in the system (stars, brown dwarfs, white dwarfs, neutron stars, black holes). The Binary / Single star filter stays. The Binary sort goes with the column (the new columns are not sortable). Two columns follow: Objects (stars, planets, moons and asteroid belts) and Habitable world (a planet or moon with an overall habitability score of Yellow or better). The search page's Systems panel shows the same columns. The figures are read from the stored rows; nothing generated changes.
+
+generation-output: unchanged
+
+TODO items resolved: UX.242.
+
+## [8.0.2802] - 2026-10-30
+
+**Headline:** The generator can now give a thrown-out planet the long-lived radioactive heat of the star it left, the same way it does for a bound planet of that star.
+
+### Added
+- **`physics/rogue_radiogenic.py` (GEN.1134).** A rogue rock's thorium, uranium, potassium and aluminium-26 come from the ejecting star's iron content, age and galaxy (the offset and the r-process enrichment a bound planet of that star uses), so a rogue and a bound rocky planet of one star have the same content. Its heat at its age is the interior model's. The "geologically active" cut stays a heat flow (0.04 W/m2) but is now registered: the interior model's mantle temperature does not tell bodies apart.
+- **Stand-in row RY1** in the gap-filling plan (section 6.114), the stand-in list, the burn-down register and the wiring register. Nothing reads the module yet; the rogue rows (GEN.1111) wire it and remove the placeholder draw.
+
+generation-output: unchanged
+
 ## [8.0.2801] - 2026-10-30
 
 **Headline:** The sentences of classes N, K and Q now say what their rules select.
