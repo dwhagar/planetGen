@@ -229,6 +229,11 @@ REQUEST_MAX_PLANET_ATTEMPTS = 40
 # gave a life class in none of 30 and an Earth-like mass in 20 of 30.
 HABITABLE_REQUEST_FREE_ATTEMPTS = 8
 HABITABLE_REQUEST_MASS_EARTH = (0.5, 2.0)
+CLASS_REQUEST_FREE_ATTEMPTS = 8
+CLASS_REQUEST_MASS_EARTH = (0.05, 1000.0)
+"""int, tuple: A request for a planet class (a slot's `planet_class`, `FORCE_CLASS`) is first left to chance for this many draws; the draws
+after it take a mass log-uniform over this range in Earth masses, so a class the disc rarely makes at that slot (an ice giant at a cold
+one) is still reached inside `REQUEST_MAX_PLANET_ATTEMPTS`. A planetGen stand-in (tier T9, tweak L3; registry row PA14)."""
 # What a request for a habitable world asks of a finished planet or moon (GEN.916, `generation/habitable_request.py`): conditions, not a
 # class letter. The surface temperature range is the liquid-water range, the pressure floor is the air a world must hold to count as having
 # any (10 kPa), and the water a surface ocean; the target is the middle of the range, where a draw that missed by its temperature aims the
