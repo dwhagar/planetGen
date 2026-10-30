@@ -16,13 +16,13 @@ release is stamped.
 | UX | UX.240 |
 | MAP | MAP.353 |
 | NAV | NAV.65 |
-| GEN | GEN.1019 |
-| PERF | PERF.218 |
+| GEN | GEN.1021 |
+| PERF | PERF.219 |
 | DB | DB.110 |
 | API | API.38 |
 | ADM | ADM.135 |
 | SEC | SEC.37 |
-| TEST | TEST.478 |
+| TEST | TEST.479 |
 | USR | USR.32 |
 | OPS | OPS.78 |
 | DOC | DOC.83 |
@@ -1769,6 +1769,8 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1016 | Overlap-free stars P10: per-level hierarchical stability margin and the 2+2 quadruple fit, if the verifier shows it is needed | none | open |
 | GEN.1017 | Overlap-free stars P0: give the star tree the primary's [Fe/H] (and the build's age and mass) so the tree and the build evolve each companion the same way (replaces the dropped GEN.1007) | none | open |
 | GEN.1018 | Overlap-free stars research part: port a 3+1 quadruple stability criterion and verify the sources from the papers (GEN.1006) | none | done, PR #4043 |
+| GEN.1019 | Venus clouds and the CO2 far-wing line shape in the infrared model (the IR3 far wing is a labelled stand-in) | none | open |
+| GEN.1020 | Infrared opacity of the acid cloud and the SO2, CO and H2O line wings, so a Venus-like air reaches its published surface temperature once the sourced CO2 far wing replaces IR3 | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -2479,6 +2481,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.215 | An unfiltered planets or moons list pages by key: an index on planets (star_system_id, orbital_index) so the name-then-orbit order is served by the index | none | done, PR #3949 |
 | PERF.216 | Find where the 50 pc spherical region count spends its time: the key statement is 3x to 10x slower than the research figure | none | done, PR #3992 |
 | PERF.217 | The near list (near._systems_in_reach) reads the full row of every system in reach: list ids by the covering index and read names for the page only | none | done, PR #4019 |
+| PERF.218 | run_plan._draw_sector_bands recomputes the bright-star band table for every capped cell: memoise it per (shell, luminosity floor) | none | open |
 | POP.1 | Government ownership of systems | 12 (2026-09-24 01:32Z to 02:18Z); 9 (2026-09-24 01:57Z to 02:02Z); 7 (2026-09-24 02:25Z to 05:38Z); 6 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 15 (2026-09-30 16:44Z); 16 (2026-09-30 16:49Z); 17 (2026-09-30 16:51Z to 18:09Z); 34 (2026-09-30 18:14Z); 39 (2026-09-30 18:39Z to 18:41Z); 59 (2026-09-30 19:02Z to 19:17Z); 63 (2026-09-30 20:01Z to 20:27Z); 46 (2026-09-30 20:07Z); 50 (2026-09-30 20:08Z to 20:48Z); 51 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 (optional since 7.58.2, PR #180) |
 | POP.2 | Names for dominant species on living worlds | 13 (2026-09-24 01:32Z to 02:18Z); 10 (2026-09-24 01:57Z to 02:02Z); 8 (2026-09-24 02:25Z to 05:38Z); 7 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 16 (2026-09-30 16:44Z); 17 (2026-09-30 16:49Z); 18 (2026-09-30 16:51Z to 18:09Z); 35 (2026-09-30 18:14Z); 40 (2026-09-30 18:39Z to 18:41Z); 60 (2026-09-30 19:02Z to 19:17Z); 64 (2026-09-30 20:01Z to 20:27Z); 47 (2026-09-30 20:07Z); 51 (2026-09-30 20:08Z to 20:48Z); 52 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 |
 | POP.3 | Database of spacefaring species | 14 (2026-09-24 01:32Z to 02:18Z); 11 (2026-09-24 01:57Z to 02:02Z); 9 (2026-09-24 02:25Z to 05:38Z); 8 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 17 (2026-09-30 16:44Z); 18 (2026-09-30 16:49Z); 19 (2026-09-30 16:51Z to 18:09Z); 36 (2026-09-30 18:14Z); 41 (2026-09-30 18:39Z to 18:41Z); 61 (2026-09-30 19:02Z to 19:17Z); 65 (2026-09-30 20:01Z to 20:27Z); 48 (2026-09-30 20:07Z); 52 (2026-09-30 20:08Z to 20:48Z); 53 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 |
@@ -3154,7 +3157,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.216 | `test_systems_inside_a_nebula_point_at_it_and_the_innermost_wins` failed in the full parallel gate: the nested system's `inside_nebula_id` was None, and it passes alone (bug) | none | done, PR #2124 |
 | TEST.217 | `test_every_column_is_written` found a NULL in every row of `moons.evolutionary_speed` in the full parallel gate, and passes alone (bug) | none | done, PR #1989 |
 | TEST.218 | `test_first_control_connections_at_once` leaves 3 idle connections open on `planetgen_test_*` when its fixture ends: the test should close its own connections (bug) | none | done, PR #2899 |
-| TEST.219 | Browser pages still have 1 to 7 requests running 8 s after the server stops: find what keeps them busy and make it faster | none | open |
+| TEST.219 | Browser pages still have 1 to 7 requests running 8 s after the server stops: find what keeps them busy and make it faster | none | done, PR #4052 |
 | TEST.220 | test_the_scatter_lists_each_shells_phenomena_by_kind_like_the_star_scatter finds `neutron-star` inside `magnetar neutron-star` (bug) | none | done, PR #2214 |
 | TEST.221 | test_a_runaway_system_moves_beyond_the_rotation_curve_and_its_stars_and_bodies_share_it raises StopIteration when the first system's only planet entry is an asteroid belt (bug) | none | done, PR #2070 |
 | TEST.222 | Remove the NumPy 2.5 deprecation filter around the skimage marching-cubes call once scikit-image stops raising it | none | open |
@@ -3238,7 +3241,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.299 | test_api_species_tech_filters fails once in a full run: the first species of the tech-descending list has tech 6.55, not the 6.0 the test set (bug) | none | done, PR #2945 |
 | TEST.300 | End-to-end browser tests for the habitability system: symbols on lists, sector colouring and habitable-world markers | none | open |
 | TEST.301 | Tests for the condition-based classes: every planet and moon class from its conditions, class and PHI-6 agreement, reclassification after an edit, determinism | none | done, PR #3619 |
-| TEST.302 | benchmark_suite.stop_workers() kills other tests' queue workers: test_benchmark_suite fails or breaks test_queue_pause, test_reset_jobs, test_workers and test_api_jobs with exit -9 when the data sets are fetched (bug) | none | open |
+| TEST.302 | benchmark_suite.stop_workers() kills other tests' queue workers: test_benchmark_suite fails or breaks test_queue_pause, test_reset_jobs, test_workers and test_api_jobs with exit -9 when the data sets are fetched (bug) | none | done, PR #4042 |
 | TEST.303 | test_update_database_step::test_a_failed_migration_stops_the_step_and_keeps_the_version fails on untouched main on the lane machines because the test database user lacks GRANT (bug) | none | dropped (Debug mode thread, 2:21 PM EDT 2026-10-24 as the lane reported: its own test MySQL user lacked GRANT OPTION) |
 | TEST.304 | Nine Playwright test files are not marked browser, so they run in the all-core phase | none | done, PR #2945 |
 | TEST.305 | The sector-map browser tests wait 120 s for the star list and fail on a fresh four-core box (bug) | none | closed, no change (not reproduced: the file passes 103 of 103 alone on a clean four-core machine, Bug Hunt 7:38 AM EDT 2026-10-24; load-bound, see TEST.302) |
@@ -3339,7 +3342,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.400 | test_habitability_fill::test_the_command_re_scores_every_system is red on main: Namespace has no attribute 'command' in generate.validate_fill_args (bug) | none | done, PR #3358 |
 | TEST.401 | test_atmosphere_mixture_escape (abiotic oxygen) and test_atmosphere_mixture_rocky (delivered-water class) are red on main (bug) | none | done, PR #3381 |
 | TEST.402 | test_db_column_round_trip fails once under load: the stars' disk columns read back NULL (bug) | none | done, PR #3689 |
-| TEST.403 | Three scatter tests are far too slow: test_a_galaxy_with_no_scatter_still_rolls_its_own runs over 4.5 minutes, and two others hang for an hour under -n 4 (bug) | none | open |
+| TEST.403 | Three scatter tests are far too slow: test_a_galaxy_with_no_scatter_still_rolls_its_own runs over 4.5 minutes, and two others hang for an hour under -n 4 (bug) | none | done, PR #4041 |
 | TEST.404 | golden_update's first run wrote galaxy.json with the sector section made before the epoch bump, so test_golden_seed failed until a second run on the same tree (bug) | none | done, PR #3358 |
 | TEST.405 | The system page tests and the migration 0148 habitable_systems test are red on main (bug) | none | done, PR #3689 |
 | TEST.406 | Four tests are red on main: test_surface_air stored-partials sum (1e-9 relative) and test_resume_across_builds, test_progress_log (2), test_redis_cleanup fail with an unexpected keyword on_child (bug) | none | done, PR #3689 |
@@ -3410,9 +3413,10 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.472 | Four migration tests are red on clean main: aerosols same-seed draws, albedo_greenhouse saved-system temperature, and two gas_tables tests (AsteroidBelt has no attribute moons) (bug) | none | open |
 | TEST.473 | test_star_census_raises_no_new_flag is red on main: G stars 2.90 percent against the 3.13 to 6.99 percent range, and the A0V companion rate 0.7456 against up to 0.7367 (bug) | none | done, PR #4031 |
 | TEST.474 | tests/test_web_a11y.py::_add_bright_stars fails with pymysql 1136 "Column count doesn't match value count" and errors every site_app browser test in setup (bug) | none | done, PR #4023 |
-| TEST.475 | tests/test_web_nearby.py: four of eight tests error in fixture setup at 900 s because the client fixture generates two sectors per test (bug) | none | open |
+| TEST.475 | tests/test_web_nearby.py: four of eight tests error in fixture setup at 900 s because the client fixture generates two sectors per test (bug) | none | done, PR #4049 |
 | TEST.476 | A test that measures how often items are redrawn or regenerated to make them fit: stars in a tree, planets, moons and belts | none | open |
 | TEST.477 | The overlap verifier: audit() of a generated system and a seed-sweep test over forced triples, quadruples and ordinary systems (GEN.1006 P2) | none | open |
+| TEST.478 | tests/test_api.py _bright_row (and its row near line 1491) is one value short since GEN.846 added bright_stars.rotation_period_hours (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

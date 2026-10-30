@@ -1,0 +1,49 @@
+{
+ "version": 1,
+ "title": "The sulfuric acid cloud rules",
+ "description": "The cloud of sulfuric acid droplets of an air that holds sulfur dioxide, an oxidiser and water (GEN.1019, docs/design/composition/line-opacity.md; the supply gates are those of physics/data/acid_medium.json). The numbers are the brackets of the published Venus cloud models, used as the range a Venus-like air draws from; nothing in the generator names Venus. Every number carries its source tier (T1 to T9) and tweak level (L0 to L4).",
+ "numbers": {
+  "base_temperature_k": {
+   "value": 367.0,
+   "tier": "T3",
+   "tweak": "L1",
+   "basis": "The temperature at the cloud base: Arney and Kane 2018 (arXiv 1804.05889) Table 1 gives the lower cloud at 47.5 to 50.5 km, 367 to 345 K and 1.39 to 0.98 bar, and say acid vapour exists down to about 38 km (4 bar, temperature not printed). The base is the first level going up the dry adiabat where the air is this cool, the ground where it already is"
+  },
+  "optical_depth_low": {
+   "value": 20.0,
+   "tier": "T3",
+   "tweak": "L0",
+   "basis": "The lowest total depth of the three cloud layers: the per-layer depths of Arney and Kane 2018 Table 1 (0.63 micron) are 6 to 8 (upper), 8 to 10 (middle) and 6 to 12 (lower), so 20 to 30 together; taken as the depth at 550 nm of the grey cloud (0.63 against 0.55 micron is not corrected)"
+  },
+  "optical_depth_high": {
+   "value": 30.0,
+   "tier": "T3",
+   "tweak": "L0",
+   "basis": "The highest total depth, the same sum (8 + 10 + 12 would be 30; the upper limit of the three ranges added)"
+  },
+  "radius_low_um": {
+   "value": 0.3,
+   "tier": "T3",
+   "tweak": "L0",
+   "basis": "The smallest mode radius: Gillmann and others 2024 (arXiv 2404.07669, section 3.5.2) give a mean radius of 0.30 micron for mode 1; the papers disagree (0.4 and 0.49 in Arney and Kane), so the widest range is used"
+  },
+  "radius_high_um": {
+   "value": 3.85,
+   "tier": "T3",
+   "tweak": "L0",
+   "basis": "The largest mode radius: Arney and Kane 2018 Table 2 (Crisp 1986) effective radius of mode 3, 3.85 micron (Gillmann and others: 3.0 to 4.0). The radius only sets how much acid a given depth needs"
+  },
+  "density_kg_m3": {
+   "value": 1800.0,
+   "tier": "T3",
+   "tweak": "L0",
+   "basis": "The density of the droplets: Dai and others 2022 (arXiv 2207.10238, section 2.1) take 1.8 g/cm3 for a 75 to 98 percent solution"
+  },
+  "cover": {
+   "value": 1.0,
+   "tier": "T5",
+   "tweak": "L1",
+   "basis": "The share of the sky under the acid cloud: Gillmann and others 2024 say the one world they describe is completely enshrouded between 45 and 70 km; no other world is known, so a cloud that forms is taken to cover the sky"
+  }
+ }
+}

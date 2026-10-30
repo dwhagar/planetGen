@@ -87,7 +87,6 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | TEST.194 | `test_system_map_selection_drill_and_measure` failed once in the browser phase of a full run under load and passed alone: find the cause and make it robust (bug) |  | Flaky test finding from the Settings lane, 5:47 PM EDT. Bug Hunt proposed (Boss started the lane, 10:20 PM EDT). |
 | TEST.237 | The wheel-anchor browser test failed alone at box load 9.7 (call 5.47 s) after the TEST.231 fix merged (bug) |  |  |
 | TEST.254 | test_core_ball_batch_fill_makes_planets builds 4 systems instead of 3 for some random galaxy seeds (bug) |  |  |
-| TEST.302 | benchmark_suite.stop_workers() kills other tests' queue workers: test_benchmark_suite fails or breaks test_queue_pause, test_reset_jobs, test_workers and test_api_jobs with exit -9 when the data sets are fetched (bug) |  |  |
 | TEST.262 | test_a_double_click_flies_even_when_the_page_is_slow_to_answer_the_first_click fails once under load: the camera target stays at (3.56, -1.36, -0.29) instead of (0, 0, 0) (bug) |  |  |
 | TEST.284 | test_an_uncharted_black_hole_page_names_its_class fails under parallel load in the changed gate: the page renders without the class name (bug) |  |  |
 | TEST.287 | test_web_browser_fixture_maps.py::test_galaxy_breadcrumb_always_matches_the_view_its_url_names times out in the browser phase under load (bug) |  | Bug Hunt; Core 2 finding |
@@ -100,7 +99,6 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | TEST.234 | test_the_review_and_error_pages_are_accessible[admin] found 606 px of width on a 390 px page once, at the site gear dropdown (bug) |  |  |
 | TEST.229 | The browser phase of a gate stalls for minutes at one test with a headless_shell gpu process near 200% CPU (bug) |  |  |
 | GEN.542 | scripts/star_type_by_radius.py fails with a TypeError because the plan arguments now default the disk and arm options to None (bug) |  |  |
-| TEST.219 | Browser pages still have 1 to 7 requests running 8 s after the server stops: find what keeps them busy and make it faster |  | Core 1 finding at #1997: browser pages still have requests running 8 s after the server stops. |
 | TEST.198 | `test_galaxy_map_does_not_prefetch_on_a_data_saving_connection` failed with a `/galaxy/tiles` net::ERR under load and passed alone: find the cause and make it robust (bug) |  | Flaky test finding from Core 3, 6:22 PM EDT. Bug Hunt proposed (Boss started the lane, 10:20 PM EDT). |
 | GEN.396 | Revisit the Yerkes class III luminosity range: 50 to 1000 solar luminosities sits above many dim red giants |  | Core 3 finding, 2026-10-16 10:00 PM EDT; any Core lane. |
 
@@ -541,7 +539,6 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.828 | Giant planet occurrence falls with host mass and rises with metallicity, and hot Jupiters are rare: giants per M dwarf are about 0.48 today against 0.03 to 0.06 observed, hot Jupiters 0.117 per M dwarf and 0.026 per FGK star against under 0.002 and 0.005 to 0.01 |  |  |
 | GEN.829 | A 2 to 20 Earth-mass population exists: sub-Neptunes with a hydrogen envelope, 0.5 to 1 planets per FGK star inside 1 AU against 0.195 today, and the mass function falls steadily above about 10 Earth masses |  |  |
 | TEST.395 | A planet distribution test with observed-rate bands, run after the class cut-over on the final classes and on galaxy-placed stars: giants and hot Jupiters per host mass, planets per mass bin, 1 to 20 Earth-mass planets per star, habitable-class bodies per star, and a rule for classes O, P and Q | GEN.689, GEN.828, GEN.829, GEN.728 |  |
-| TEST.403 | Three scatter tests are far too slow: test_a_galaxy_with_no_scatter_still_rolls_its_own runs over 4.5 minutes, and two others hang for an hour under -n 4 (bug) |  |  |
 | TEST.408 | test_gen_fill_stages::test_a_saved_fill_stores_the_pulsar_systems_and_marks_every_scatter_row_built hangs more than 20 minutes at 98 percent CPU on clean main and the 900 second timeout does not stop it (bug) |  |  |
 | TEST.409 | test_web_population::test_real_population errors in setup: "could not generate a system with a civilization", 7.75 minutes, every run on clean main (bug) |  |  |
 | TEST.411 | Three map browser tests flake on a loaded 4-core box after a long run and pass alone: the indexeddb revisit test and two sector_reach double-click flight tests (bug) |  |  |
@@ -553,9 +550,10 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | TEST.455 | A completeness gate: every numeric constant in the generation and physics modules has a stand-in registry row or is read from a table; the list of unregistered constants may only shrink | GEN.945 |  |
 | TEST.461 | test_db_column_round_trip fails on planets.porosity: the column is never written (bug) |  |  |
 | TEST.463 | Reds on main reported by Core 5 at 10:33 PM EDT 2026-10-29: triage each one and fix or assign it (bug) |  |  |
+| TEST.478 | tests/test_api.py _bright_row (and its row near line 1491) is one value short since GEN.846 added bright_stars.rotation_period_hours (bug) |  |  |
+| PERF.218 | run_plan._draw_sector_bands recomputes the bright-star band table for every capped cell: memoise it per (shell, luminosity floor) |  |  |
 | TEST.477 | The overlap verifier: audit() of a generated system and a seed-sweep test over forced triples, quadruples and ordinary systems (GEN.1006 P2) |  |  |
 | TEST.476 | A test that measures how often items are redrawn or regenerated to make them fit: stars in a tree, planets, moons and belts |  |  |
-| TEST.475 | tests/test_web_nearby.py: four of eight tests error in fixture setup at 900 s because the client fixture generates two sectors per test (bug) |  |  |
 | GEN.1004 | A triple system whose third star cannot be found: it may sit inside another star or on an orbit that is not drawn (bug) | TEST.162 |  |
 | TEST.472 | Four migration tests are red on clean main: aerosols same-seed draws, albedo_greenhouse saved-system temperature, and two gas_tables tests (AsteroidBelt has no attribute moons) (bug) |  |  |
 | TEST.470 | test_orbit_elements fails on main: the moon-light test (relative error 6e-6) and the ellipse tests (a lunar-range problem) (bug) |  |  |
@@ -590,6 +588,8 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | TEST.435 | Prevalence tests for the life classes: the share of worlds in each life class and stage inside researched ranges | GEN.863, TEST.430 | Extends the TEST.430 suite; moved to 8.1 (Boss 9:20 PM EDT); sentient the rarest rung, animals to civilizations at least 20 to 1. |
 | GEN.854 | Most class M planets do not look habitable: only a tiny share are, and most need a hardened pressure suit (bug) |  |  |
 | GEN.852 | Infrared opacity leftovers: Venus clouds and wings (the IR3 far wing is a labelled stand-in), more gas tables, tropopause quantisation, and species without data in the cp over R path (OCS and others) |  |  |
+| GEN.1019 | Venus clouds and the CO2 far-wing line shape in the infrared model (the IR3 far wing is a labelled stand-in) | GEN.852 |  |
+| GEN.1020 | Infrared opacity of the acid cloud and the SO2, CO and H2O line wings, so a Venus-like air reaches its published surface temperature once the sourced CO2 far wing replaces IR3 | GEN.1019 |  |
 | GEN.982 | Wire the photolysis lifetimes (physics/photolysis.py and photolysis_lifetimes.json) into the atmosphere chemistry |  |  |
 | GEN.851 | Wire haze into the air from aerosols.tau_haze (haze share and pressure are caller inputs today) |  |  |
 | GEN.850 | Wire radiative_convective.warming into generation behind a lookup table of the model answers, and delete the infrared_opacity.py plateau code |  |  |

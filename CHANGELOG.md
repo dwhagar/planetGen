@@ -2,6 +2,61 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2710] - 2026-10-30
+
+**Headline:** A sourced carbon dioxide far wing and a sulfuric acid cloud are built and tested, ready for the infrared model and the cloud draw; no world changes yet.
+
+### Changed
+
+- **Carbon dioxide far wing (GEN.1019, lock-free step).** `co2_far_wing` adds back what the infrared k-tables' 25 cm-1 line cutoff drops from a dense carbon dioxide air: each band's Lorentz tail times the sub-Lorentzian factor of Perrin and Hartmann 1989, out to 500 cm-1, with the band strengths read from the carbon dioxide table. Nothing calls it yet; `line_opacity` keeps the flat wing of stand-in IR3 until the wiring step. Registry rows FW1 to FW5.
+- **Sulfuric acid cloud (GEN.1019, lock-free step).** `sulfuric_cloud` draws the acid cloud of an air that holds sulfur dioxide, an oxidiser and water: a base where the dry adiabat is cooler than 367 K, a depth of 20 to 30 and droplet radii of 0.3 to 3.85 micron from the published Venus cloud models, held to the acid the sulfur can make; an air with no sulfur gets none. Nothing calls it yet. `acid_medium.skin_k` is now public. Registry rows SC1 to SC5.
+
+## [8.0.2709] - 2026-10-30
+
+**Headline:** The Generate page's line under the dials is worked out once for the same dials, and the test server's warning about requests left running names each route.
+
+### Changed
+- **TEST.219: what the browser pages left running after the server stopped (kind: perf and test).** The TEST.193 warning now names every request still running by method and path. In `test_web_generate_alignment.py` and `test_web_browser_controls.py` they were `GET /admin/generate/shape-report` (10 at once in one page, each working the whole plan outline out: 3 to 10 s warm, 12 to 116 s cold on a busy machine) and a few Shoelace files under `/static/` that a closing page had stopped reading. The shape report is now kept (`generate_page._shape_preview`, 32 answers): the same dials are answered at once and a repeat of dials still being worked out waits for the one answer instead of making its own. Requests under `/static/` hold no database connection, so the server stop no longer waits for them or counts them. Nothing the generator makes changes.
+
+generation-output: unchanged
+
+TODO items resolved: TEST.219.
+
+## [8.0.2708] - 2026-10-30
+
+**Headline:** The benchmark suite stops only its own queue workers, so it no longer kills the workers other tests started on the same machine.
+
+### Changed
+- **TEST.302: `benchmark_suite.stop_workers` is scoped to the run's own control database.** It ended every process whose command line held `planetgen.cli.worker`, so a benchmark run beside the queue tests killed their workers and those tests failed with exit -9. It now ends only the workers started with the run's `PLANETGEN_CONTROL_DATABASE` (the scratch one its steps hand on), and a test starts two stand-in workers to show a foreign one survives. Nothing the generator makes changes.
+
+generation-output: unchanged
+
+TODO items resolved: TEST.302.
+
+## [8.0.2707] - 2026-10-30
+
+**Headline:** The bright-star scatter tests build their sectors in a small galaxy, so the file runs in minutes instead of an hour.
+
+### Changed
+- **TEST.403: the slow scatter tests no longer build thousands of systems.** `make_sector` took the profile's own system count even when a test asked for one (a density overrode it); a test that asks for a count now gets it. The tests that make whole sectors and check what is done around them, not what is in them, use a galaxy of 20 systems per sector at density 1 instead of 2,000, so a sector's fill builds a few dozen pre-placed stars' systems, not about a thousand (the biggest, `test_going_down_a_band_gives_backfilled_sectors_only_what_they_lack`, fell from 10 minutes to 4; the plan-scatter test from 4.5 minutes to 1). Nothing the generator makes changes.
+
+## [8.0.2706] - 2026-10-30
+
+**Headline:** An air with carbonyl sulphide, acetylene, hydrogen chloride and other gases the greenhouse model could not handle no longer stops the model.
+
+### Changed
+
+- **Heat capacity of every gas (GEN.852, part 4).** The radiative-convective model looked up each gas's heat capacity by the name of the NASA database, so an air holding carbonyl sulphide (OCS), acetylene, aluminium oxides and 40 other gases of the table failed with a lookup error. It now looks the gas up by its table formula, falls back to the gas table's heat capacities at 100, 300 and 1000 K, and last to a count of the atoms. Airs that already worked give the same answer. Registry row IR9.
+- **Tropopause level (GEN.852, part 3).** The tropopause the model reports is one of its 40 pressure levels, so it moves in steps of about 26 percent. Nothing reads it, and the surface temperature moves by under 0.1 K when it steps; a test now holds that, and the limit is registry row IR10. No change to any world.
+
+## [8.0.2705] - 2026-10-30
+
+**Headline:** The nearby page tests build their little galaxy in minutes instead of hours on a slow machine.
+
+### Changed
+
+- TEST.475: `test_web_nearby.py` fills its two sectors without the deepest floor of the first fill and without the bright-star bands of a capped cell (the page tests do not read either), so the file runs in about six minutes where four of its eight tests timed out in setup at 900 s on a slow machine. Its hand-placed bright star carries the rotation period column GEN.846 added (the row had one value too few).
+
 ## [8.0.2704] - 2026-10-30
 
 **Headline:** A sourced potassium depletion by body class is built and tested, ready for the generator; no world changes yet.

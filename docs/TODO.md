@@ -12020,6 +12020,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   at setup and read by nothing (ir_ktables.npz, ir_cia.npz); gases.json,
   nasa_glenn_species.json and saturation_pressure.json are in the repo.
   Catalog sections 1 and 2.
+  Progress (2026-10-30 12:22 PM EDT): Sources 1 (as the lane reported):
+  part 4 (cp for every gas in the table, registry IR9) and part 3
+  (tropopause step is a model level nothing reads, surface temperature
+  moves under 0.1 K when it steps, registry IR10, no code change) merged
+  in #4048 at 12:20 PM EDT. Part 2 (NH3, SO2, H2S, CO and HCN ExoMol
+  k-tables in the setup download, about 2 GB more, derive_version 2) is
+  on claude/gen852-tables head ea5dbe456 and rides a train (new epoch,
+  --affects the air and greenhouse stage, no migration). Part 1 (Venus
+  clouds and the CO2 far wing) moved to its own item, GEN.1019.
 
 - [ ] **GEN.854 Most class M planets do not look habitable: only a tiny share are, and most need a hardened pressure suit (bug)**
   Boss, 6:59 PM EDT 2026-10-28 (relayed by the coordinator), live
@@ -13686,6 +13695,48 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.1006; it can go before P3. Owner: Bug 1 (star lane) after GEN.951.
   Prerequisites: none. Related: GEN.1006, GEN.1004, GEN.1009, TEST.476.
 
+- [ ] **GEN.1019 Venus clouds and the CO2 far-wing line shape in the infrared model (the IR3 far wing is a labelled stand-in)**
+  Split from GEN.852 part 1 by Sources 1 (relayed 12:19 PM EDT
+  2026-10-30 as the lane reported). A far-wing line shape for CO2 needs
+  a chi-factor or line-wing treatment; the HITRAN CO2 line list is not
+  held in reduced form, and a Venus cloud needs a sulphuric-acid cloud
+  layer in the aerosol model. Do: (1) source a published CO2 far-wing
+  treatment (second-hand is fine, widest range when two are in question)
+  and use it in place of the labelled IR3 stand-in; (2) add a
+  sulphuric-acid cloud layer to the aerosol model from published Venus
+  cloud models (mode sizes, optical depth, base and top heights) so a
+  Venus-like air gets its cloud, drawn from the air and not from Venus
+  itself (no fixed Solar System content); (3) register every stand-in in
+  GEN.725 with tier and tweak level. Done: a thick-CO2 test air gets a
+  surface temperature inside the published range for the model, an air
+  with no sulphur gets no acid cloud, and the registry rows exist. The
+  pure module, tests and registry rows are lock-free; wiring that
+  changes stored output rides a train. Owner: Sources 1.
+  Prerequisites: GEN.852. Related: GEN.715, GEN.852, GEN.725.
+
+- [ ] **GEN.1020 Infrared opacity of the acid cloud and the SO2, CO and H2O line wings, so a Venus-like air reaches its published surface temperature once the sourced CO2 far wing replaces IR3**
+  Follow-on of GEN.1019, asked for by Sources 1 (relayed 12:50 PM EDT
+  2026-10-30 as the lane reported). The sourced Perrin and Hartmann CO2
+  far wing alone takes the clear-sky Venus-like test air to 539 K (no
+  wing 489 K), where the flat IR3 stand-in gave about 735 K; the gap
+  needs the infrared opacity of the sulfuric-acid cloud and the SO2, CO
+  and H2O wings, which the model lacks. Do: (1) give the acid cloud of
+  GEN.1019 an infrared opacity from published Venus cloud optical models
+  (mode radii, refractive indices of sulfuric acid, column optical
+  depth), (2) add the SO2, CO and H2O far-wing terms from published
+  line-shape work (second-hand is fine, widest range when two are in
+  question), (3) register every stand-in in GEN.725 with tier and tweak
+  level. Done: the Venus-like test air with the sourced wing, the acid
+  cloud and the added wings lands inside the published
+  surface-temperature range for the model, and an air with no sulfur and
+  no dense CO2 is unchanged. Decision (TODO, 12:51 PM EDT 2026-10-30;
+  physics found in research wins): IR3 is replaced by the sourced wing,
+  and the wiring of GEN.1019 and this item ride one train together so
+  the worse intermediate never ships. Lock-free module and tests first;
+  the wiring that moves output (new epoch, --affects the aerosols and
+  greenhouse stages, no migration) rides a train. Owner: Sources 1.
+  Prerequisites: GEN.1019. Related: GEN.1019, GEN.852, GEN.725.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -14145,6 +14196,28 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.992 merges (it edits the same function). Owner: Aux 7. Version
   8.1.
   Prerequisites: GEN.992. Related: GEN.992, PERF.209.
+
+- [ ] **PERF.218 run_plan._draw_sector_bands recomputes the bright-star band table for every capped cell: memoise it per (shell, luminosity floor)**
+  Found by Aux 3 (relayed 11:57 AM EDT 2026-10-30 as the lane reported,
+  while fixing TEST.475): the slow part of the first sector fill since
+  the star epoch is not the sample galaxy but
+  `run_plan._draw_sector_bands` calling
+  `star_population.bright_band_fraction` and
+  `post_main_sequence.bright_pieces` for each capped cell, minutes of
+  band-table work per first sector fill. Do: memoise the band table per
+  (shell, luminosity floor), keyed so a changed input invalidates it.
+  Done: a first sector fill on a capped cell no longer redoes the band
+  table (a timing test with a stated ceiling), and the generated output
+  is identical (the golden digest does not move). Lock-free. Owner: Bug
+  1 (star lane) or Core 3.
+  Owner (2026-10-30 12:50 PM EDT): Aux 5 (assigned by TODO; Aux 3 is on
+  GEN.1005). Lock-free, separate branch, merge it yourself; if the
+  generated output or the golden digest moves, stop and tell TODO. Check
+  PERF.188 and TEST.464 first: PERF.188 is the same band table build (60
+  s) and TEST.464 found the first table build, not repeat calls, is the
+  cost, so fold the work into one change if they are the same fix and
+  retire the others with it.
+  Prerequisites: none. Related: PERF.188, TEST.475.
 
 ## DB: Database and schema
 
@@ -16732,30 +16805,6 @@ clears each one.
   harness; TEST.209, TEST.210, TEST.211 and TEST.212 are four rule sets
   over it, not four builds.
 
-- [ ] **TEST.219 Browser pages still have 1 to 7 requests running 8 s after the server stops: find what keeps them busy and make it faster**
-  Found by Core 1 (2026-10-17, 5:19 AM EDT as the lane reported, #1997
-  gate), filed by the TODO thread. The new TEST.193 warnings list
-  browser test files whose pages still had 1 to 7 requests running 8 s
-  after the server stopped: test_web_generate_alignment 7,
-  test_web_browser_controls 7, others 1 to 2. A request that is still
-  running 8 s after its page closed is worth a look by whoever owns the
-  Generate and map pages; kind perf under load (load average 6 to 8 from
-  other lanes), not blocking, and the same shape as the
-  `/api/galaxy/tiles` request Core 1 found holding the lock behind
-  TEST.193 (every tile piece at most 0.1 s, the request loops over many
-  tiles). Do: find which routes the leftover requests are (the warning
-  names the files, not the routes), time them alone and under load, and
-  either stop the work when the client has gone or make the loop
-  cheaper. Done: the warnings no longer list those files in a full run,
-  or each remaining request is named with the reason it runs long. Fails
-  on main: yes. Frequency: every full run. Reproducer: run
-  `scripts/test.py changed` with the browser files selected and read the
-  TEST.193 warnings. Owner: none proposed (a Generate and map page
-  owner).
-  Owner: Bug Hunt (bugs only, Boss, 2026-10-17, 10:06 AM EDT). This
-  replaces any earlier owner line on this item.
-  Prerequisites: none. Related: TEST.193, TEST.195, PERF.88.
-
 - [ ] **TEST.222 Remove the NumPy 2.5 deprecation filter around the skimage marching-cubes call once scikit-image stops raising it**
   Found by Core 5 while fixing TEST.188 (2026-10-17, 12:50 PM EDT as the
   lane reported; merged #2050), filed by the TODO thread. The NumPy 2.5
@@ -17544,69 +17593,6 @@ clears each one.
   remaining parts.
   Prerequisites: MAP.220. Related: UX.100, MAP.143, MAP.220.
 
-- [ ] **TEST.302 benchmark_suite.stop_workers() kills other tests' queue workers: test_benchmark_suite fails or breaks test_queue_pause, test_reset_jobs, test_workers and test_api_jobs with exit -9 when the data sets are fetched (bug)**
-  Finding of the Setup script lane (2026-10-23, report
-  /mnt/project-files/reports/test-isolation-benchmark-suite-kills-workers-2026-10-23.md),
-  filed by the TODO thread. Kind: test isolation bug; fails on main when
-  the data sets are fetched; every scripts/test.py changed run (4
-  workers, 6 runs) on such a machine, on Python 3.12 and 3.14; each test
-  passes alone. Test:
-  src/tests/test_benchmark_suite.py::test_a_real_run_of_the_plan_writes_the_json_and_drops_its_databases
-  (real_queue, real_datasets, fresh_database; it skips when the data
-  sets are missing, so a machine without them never sees it). Cause:
-  planetgen.cli.benchmark_suite.stop_workers() SIGKILLs every process on
-  the machine whose command line contains planetgen.cli.worker, not only
-  the benchmark's own, so it kills the real queue workers other xdist
-  workers started. Symptom: AssertionError: assert -9 == 0 on
-  process.wait(60) or done.returncode. Fix (either): stop_workers()
-  kills only workers of the suite's own Redis database or process group,
-  or the benchmark test never runs beside queue tests (xdist_group or
-  serial). Reproducer: python3 -m planetgen.cli.datasets fetch, then
-  pytest -n 4 src/tests/test_benchmark_suite.py
-  src/tests/test_queue_pause.py src/tests/test_workers.py. Done: the
-  killer is scoped (preferred) with a test that a foreign worker
-  survives a benchmark run, and the four queue tests pass beside it.
-  Owner: none (pool); Bug Hunt proposed.
-  Update (2026-10-09): Lane M (2026-10-23): under load (another test job
-  running) test_api_job_runs, test_parallel_generation,
-  test_phenomenon_scatter, test_order_independence and
-  test_update_database_step can fail; all pass alone. Treat them with
-  the same isolation fix.
-  Research (2026-10-09, Update): Update 3:22 AM EDT 2026-10-24 (as Core
-  2 reported):
-  test_web_browser_sector_open.py::test_a_star_in_a_sector_far_from_the_core_is_selectable
-  also fails under load and passes alone; the same isolation fix
-  applies.
-  Research (2026-10-09, Update): Update 4:12 AM EDT 2026-10-24 (as Core
-  2 reported on MAP.264):
-  test_a_black_hole_in_the_halo_is_picked_on_the_whole_galaxy_view and
-  test_a_star_in_the_halo_is_picked_and_the_wheel_opens_the_window_round_it
-  in test_web_browser_fixture_maps.py pass alone and fail under load;
-  the same isolation fix applies.
-  Research (2026-10-09, Update): Core 3 (5:30 AM EDT 2026-10-24, as the
-  lane reported): test_web_a11y sample_params errored 164 times on one
-  xdist worker in a broad run (KeyError 'planets') and passes alone: a
-  possible load flake of the same kind. Also, scripts/test.py changed
-  needed over 120 minutes and the background tool kills at 120, so a
-  resume re-ran the browser phase.
-  Research (2026-10-09, Update): Habitability lane B (6:12 AM EDT
-  2026-10-24, as the lane reported):
-  test_order_independence::test_a_sector_reached_by_the_backfill_comes_out_the_same_in_either_order
-  failed in the parallel pass of a full --check and was not rerun alone;
-  treat as a load flake until it fails alone. test_update_database_step
-  is TEST.303.
-  Research (2026-10-09, Update): Core 5 (6:51 AM EDT 2026-10-24, as the
-  lane's clock reads): test_web_browser_sector_open fails under load on
-  main and passes alone (the MAP.209 retest area); treat as a load flake
-  of the same kind.
-  Research (2026-10-09, Update): Bug Hunt (7:38 AM EDT 2026-10-24, as
-  the lane reported): test_web_browser_fixture_maps.py alone on a fresh
-  four-core machine at main c2cf8b97 plus #2945 passes 103 of 103 in 15
-  min 47 s, so the 41 sector-map browser failures (TEST.305, TEST.323,
-  both closed as not reproduced) are load-bound, the known
-  browser-under-load flake of this item.
-  Prerequisites: none.
-
 - [ ] **TEST.307 test_systems.py::test_asteroid_belt_and_habitable_world_forced_together_both_succeed[A0V] fails about once in 5 to 8 runs (bug)**
   Found by Habitability lane F (relayed 2026-10-23, 9:20 PM EDT): this
   test fails about 1 run in 5 to 8 when run alone, unrelated to
@@ -18017,31 +18003,6 @@ clears each one.
   its data are in reports/data/planet-class-distribution; the Bern
   synthesis binned fit is ngpps_formation_water.json. No occurrence
   dataset is held as a setup dataset. Catalog sections 1, 3 and 4.
-
-- [ ] **TEST.403 Three scatter tests are far too slow: test_a_galaxy_with_no_scatter_still_rolls_its_own runs over 4.5 minutes, and two others hang for an hour under -n 4 (bug)**
-  Found by Aux 5 (Lane H, as the lane reported 4:18 AM EDT 2026-10-25)
-  on clean main:
-  tests/test_phenomenon_scatter.py::test_a_galaxy_with_no_scatter_still_rolls_its_own
-  runs over 4.5 minutes, stuck in store.nearest and
-  refresh_nearest_systems;
-  test_a_plan_records_its_cut_and_a_fill_draws_below_it and
-  test_built_neutron_stars_sit_where_the_scatter_put_them hang for an
-  hour under -n 4. Do: profile the three, find the shared slow call
-  (store.nearest or refresh_nearest_systems doing a full scan, a missing
-  index, a galaxy size too large for the fixture) and make the fixture
-  smaller or the call indexed so each finishes in seconds; no test is
-  skipped. Done: the three tests each finish within the per-test time
-  limit under -n 4. Owner: Aux 16 (performance) if still running,
-  otherwise a free lane (PERF.174/175 family). Rules: no backward-compat
-  shims; never skip or quarantine a test; scripts/test.py changed
-  --resume.
-  Research (2026-10-09): OWNER Aux 5 (assigned 5:21 PM EDT 2026-10-29 by
-  TODO as the lane's one lock-free item while it waits for the
-  generation lock, Boss's standing order of 7:33 PM EDT 2026-10-28 and
-  his ask at 5:18 PM EDT; separate branch, no generated-output change;
-  if the lane already holds a lock-free item it finishes that first). If
-  this step turns out to change a stored value, stop and tell TODO.
-  Prerequisites: none. Related: PERF.174, PERF.175, PERF.193.
 
 - [ ] **TEST.408 test_gen_fill_stages::test_a_saved_fill_stores_the_pulsar_systems_and_marks_every_scatter_row_built hangs more than 20 minutes at 98 percent CPU on clean main and the 900 second timeout does not stop it (bug)**
   Found by Core 4 (as the lane reported 7:25 AM EDT 2026-10-28, report
@@ -18484,19 +18445,6 @@ clears each one.
   TEST.417.
   Prerequisites: none. Related: TEST.463, TEST.468, TEST.469, TEST.470.
 
-- [ ] **TEST.475 tests/test_web_nearby.py: four of eight tests error in fixture setup at 900 s because the client fixture generates two sectors per test (bug)**
-  Found by Aux 3 (relayed 9:46 AM EDT 2026-10-30 as the lane reported,
-  while landing PERF.217): the nav section, unknown place 404, crowded
-  sphere and page walk tests of test_web_nearby.py error in fixture
-  setup with the 900 s timeout on a loaded lane machine, not on an
-  assertion; the function-scoped client fixture generates two sectors
-  per test (over 15 minutes there). Not checked on main. Do: build the
-  sample galaxy once per module (module-scoped fixture, read only in the
-  tests that do not write), keeping the tests independent; run the file
-  once on a fast machine. Done: all 8 tests pass in a few minutes on a
-  lane machine. Owner: Aux 3 when free, or Bug 2 in the train gate.
-  Prerequisites: none. Related: PERF.217, TEST.417.
-
 - [ ] **TEST.476 A test that measures how often items are redrawn or regenerated to make them fit: stars in a tree, planets, moons and belts**
   Boss (2026-10-30, 10:51 AM EDT): a test that measures how often we
   redraw or regenerate items to make them fit. Do: count every redraw (a
@@ -18540,6 +18488,17 @@ clears each one.
   STARS=4 forced runs and reports the failures by class. Lock-free (a
   test and a module, no output change). Owner: Bug 2 or any free lane.
   Prerequisites: none. Related: GEN.1006, GEN.1004, TEST.476.
+
+- [ ] **TEST.478 tests/test_api.py _bright_row (and its row near line 1491) is one value short since GEN.846 added bright_stars.rotation_period_hours (bug)**
+  Found by Aux 3 (relayed 11:57 AM EDT 2026-10-30):
+  test_galaxy_bright_stars_in_box_matches_a_brute_force_search fails on
+  main with pymysql 1136 (column count), the same fault TEST.474 fixed
+  in test_web_a11y.py. Do: give `_bright_row` and its row the new
+  rotation_period_hours value, or build both from the column list so the
+  next column cannot break them, and grep the tests for other hand-built
+  bright_stars rows. Done: the test passes on main. Lock-free, test
+  only. Owner: Bug 2 or any free lane.
+  Prerequisites: none. Related: TEST.474, GEN.846.
 
 ## USR: User accounts
 

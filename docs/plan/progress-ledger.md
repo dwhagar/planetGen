@@ -1956,3 +1956,7 @@ Baseline: PR #1817.
 | GEN.1007 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | GEN.1002 | 8.1 | Stand-in replacements |
 | GEN.1018 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.475 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.403 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.302 | 8.1 | Bugs and flaky tests |
+| TEST.219 | 8.1 | Bugs and flaky tests |

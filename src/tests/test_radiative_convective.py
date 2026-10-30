@@ -259,3 +259,44 @@ def test_a_haze_that_takes_sunlight_high_up_lowers_the_warming_factor():
 def test_the_factor_never_goes_negative_even_when_the_model_does_not_converge():
     warm = rc.warming({"N2": 5.0e4, "CO2": 1.0e4}, 9.81, 240.0, aloft_share=0.999, aloft_pressure_pa=2.0e3)
     assert warm.factor >= 0.0 and math.isfinite(warm.surface_temperature_k)
+
+
+# ---- the heat capacity of every gas of the table (GEN.852, row IR9) ----
+
+def test_a_gas_the_database_writes_under_another_name_takes_its_nasa_fit():
+    from planetgen.physics import species_thermo
+    ocs = species_thermo.species("COS")
+    low, high = ocs.range_k
+    assert rc._cp_over_r("OCS")[10] == pytest.approx(ocs.cp_over_r(min(max(rc._CP_GRID[10], low), high)))
+    assert rc._cp_over_r("C2H2")[10] == pytest.approx(species_thermo.species("C2H2,acetylene").cp_over_r(rc._CP_GRID[10]))
+
+
+def test_a_gas_without_a_fit_takes_the_table_heat_capacities_held_at_the_ends():
+    cp = rc._cp_over_r("HCl")
+    assert rc._CP_GRID[10] == pytest.approx(300.0)
+    assert cp[10] * rc.R == pytest.approx(29.14, rel=1e-3)
+    assert cp[-1] * rc.R == pytest.approx(31.63, rel=1e-3)
+    assert cp[0] * rc.R == pytest.approx(29.12, rel=1e-3)
+
+
+def test_a_gas_with_no_heat_capacity_at_all_counts_its_atoms():
+    assert rc._cp_over_r("HC3N")[0] == pytest.approx(4.0 + 0.5 * (3 * 5 - 6))
+    assert rc._cp_over_r("NH4Cl")[0] == pytest.approx(4.0 + 0.5 * (3 * 6 - 6))
+
+
+def test_every_gas_of_the_table_has_a_heat_capacity_on_the_grid():
+    import json
+    from planetgen.physics import gases
+    with open(gases.DATA_FILE, encoding="utf-8") as handle:
+        rows = json.load(handle)
+    rows = rows["gases"] if isinstance(rows, dict) else rows
+    assert len(rows) > 100
+    for row in rows:
+        cp = rc._cp_over_r(row["formula"])
+        assert cp.shape == rc._CP_GRID.shape and (cp > 0).all(), row["formula"]
+
+
+def test_an_air_with_carbonyl_sulphide_makes_a_column():
+    column = rc.Column({"N2": 0.8e5, "CO2": 0.1e5, "OCS": 50.0}, 9.8)
+    assert column.cp_dry[0] > 0
+

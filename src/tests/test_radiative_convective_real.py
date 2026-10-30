@@ -6,6 +6,7 @@ whose cache folder does not hold the two infrared datasets (`python3 -m planetge
 `test_line_opacity.py` and `test_radiative_convective.py` cover the code.
 """
 
+import numpy as np
 import pytest
 
 from planetgen.datasets import fetch, hitran_cia, ir_ktables
@@ -90,3 +91,16 @@ def test_the_warming_factor_is_the_model_in_the_repos_variable(earth):
     assert warm.surface_temperature_k == pytest.approx(earth.surface_temperature_k)
     assert warm.factor == pytest.approx((warm.surface_temperature_k / warm.effective_temperature_k) ** 4 - 1.0)
     assert warm.effective_temperature_k == pytest.approx((EARTH_FLUX / SIGMA) ** 0.25)
+
+
+# ---- the tropopause is a model level (GEN.852 part 3, row IR10) ----
+
+def test_the_surface_temperature_does_not_jump_when_the_tropopause_moves_to_another_level():
+    air = {"N2": 0.78e5, "O2": 0.21e5, "CO2": 40.0, "H2O": 1500.0}
+    fluxes = (237.0, 238.0, 239.0, 240.0, 241.0)
+    solutions = [rc.solve(air, 9.81, f) for f in fluxes]
+    pressures = [s.tropopause_pressure_pa for s in solutions]
+    assert len(set(pressures)) > 1                    # the sweep crosses a change of level (the sweep of 237 to 241 W/m2 moves it between 12.7 and 20 kPa)
+    steps = np.diff([s.surface_temperature_k for s in solutions])
+    assert (steps > 0).all()
+    assert steps.max() - steps.min() < 0.15           # about 0.4 K per W/m2 throughout; the move of a level costs under a tenth of a kelvin
