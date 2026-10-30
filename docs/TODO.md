@@ -14086,15 +14086,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.1070, GEN.1071.
   Design: [docs/design/systems/belt-origins.md](design/systems/belt-origins.md)
 
-- [ ] **GEN.1094 Read Goldberg and Batygin 2023 for the librating share of near-resonant pairs (the share of pairs that are heating-capable, W5), and register the number**
-  Weird worlds (goal #4117), found by Sources 1 in GEN.1037:
-  near-resonance is 15 percent of neighbouring pairs and 70 percent in
-  young systems, but the share that librates is not in the paper read.
-  Done: the share with source in docs/design/research/oddity-rates.md
-  and a GEN.725 row. Lock-free. Where we think it belongs (best guess):
-  Sources 1 (separate branch, merge it yourself), version 8.1.
-  Prerequisites: none. Related: GEN.1043.
-
 - [ ] **GEN.1096 planet_mass.gas_outcome returns max(runaway, core) and the core is capped at 0.01 of the star, not at the 13 Jupiter-mass edge: a 1.5 to 2 solar-mass host at twice solar metals draws 15 to 21 Jupiter masses (4 in 3,000 draws) (bug)**
   Found by Aux 3 in TEST.493 (PR #4138): the case is a strict xfail in
   tests/test_giant_oddity_audit.py. A Sun-like host ceiling is 10.5
