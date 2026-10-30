@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 427 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 432 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -37,15 +37,15 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
 | T1 | 54 | 0 | 3 | 0 | 0 | 57 |
-| T2 | 71 | 3 | 0 | 1 | 0 | 75 |
+| T2 | 73 | 4 | 0 | 1 | 0 | 78 |
 | T3 | 53 | 8 | 3 | 10 | 0 | 74 |
 | T4 | 22 | 0 | 0 | 3 | 4 | 29 |
-| T5 | 23 | 6 | 1 | 0 | 0 | 30 |
-| T6 | 39 | 12 | 7 | 28 | 0 | 86 |
+| T5 | 24 | 6 | 1 | 0 | 0 | 31 |
+| T6 | 39 | 13 | 7 | 28 | 0 | 87 |
 | T7 | 17 | 3 | 1 | 7 | 0 | 28 |
 | T8 | 0 | 0 | 0 | 1 | 1 | 2 |
 | T9 | 1 | 0 | 2 | 24 | 19 | 46 |
-| All | 280 | 32 | 17 | 74 | 24 | 427 |
+| All | 283 | 34 | 17 | 74 | 24 | 432 |
 
 ## How the labels were given
 
@@ -684,3 +684,13 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | RT1 | P | T5 | L1 | rock_types.MELT_STAGES (the norm's minerals grouped by when they melt: the low-melting feldspars, quartz and pyroxene together in the proportions the rock holds them, then orthopyroxene, then olivine) | the grouping; stage order fixed by the eutectic | silicate rocks at crustal and upper-mantle pressure | a phase-equilibrium melt (MELTS or pMELTS) of the same rock more than 10 percent in SiO2 or MgO from the staged melt | a MELTS or pMELTS fit of the first melts of peridotite as a function of pressure | test_rock_types::test_the_melt_of_a_mantle_is_a_basalt_at_the_degrees_of_melting_a_mantle_reaches; test_rock_types::test_a_great_degree_of_melting_makes_a_magnesian_liquid_of_komatiite_kind | GEN.474 | - |
 | RT2 | P | T2 | L0 | rock_types.ANORTHOSITE_PLAGIOCLASE 0.90, ULTRABASIC_SILICA 45, KOMATIITE_MAGNESIA 18, BASIC_SILICA 52, ACID_SILICA 63 (the IUGS limit of anorthosite and the silica bands of the total alkali-silica diagram, Le Bas et al. 1986) | none: classification limits | volcanic and plutonic silicate rocks | a rock the diagram names against its band | none | test_rock_types::test_the_earths_crusts_and_the_moons_highlands_get_their_ground_types | GEN.474 | - |
 | RT3 | P | T5 | L0 | rock_types.INCOMPATIBLE_D 0 (the bulk partition coefficient of K, Th and U between peridotite and its melt) | 0 to 0.01 | batch melting of peridotite | a measured partition coefficient above 0.01 | measured bulk partition coefficients (Hofmann 1988, not read) | test_rock_types::test_the_heat_producers_of_the_earths_basalt_and_mantle_agree_with_one_degree_of_melting | GEN.474 | - |
+
+## 6.46 Stand-ins of the comet ice budget
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| CI1 | P | T2 | L0 | comet_ice_budget.ICE_LINES_K (H2O 135, CO2 47, CO 20) and DISK_T0_K 200, DISK_INDEX 0.62 (Oberg et al. 2011 Table 1 and Andrews and Williams 2007, average disc) | lines 120-150, 42-52, 18-22 K; T0 100 to 300 K; index 0.4 to 0.75 | protoplanetary discs round FGK stars | a disc whose CO snow line is measured outside 20 to 80 AU round a Sun-like star | a disc model with the star's accretion and age | test_comet_ice_budget::test_the_snow_lines_of_a_sun_like_star_are_those_oberg_et_al_give | GEN.595 | - |
+| CI2 | P | T5 | L0 | comet_ice_budget.LUMINOSITY_EXPONENT 0.25 (radiative equilibrium, T goes as L to the quarter) | 0.2 to 0.3 | discs heated by the star | a measured line distance against luminosity with another slope | a disc model with the star's luminosity | test_comet_ice_budget::test_a_more_luminous_star_pushes_every_line_out_by_the_same_factor | GEN.595 | - |
+| CI3 | P | T2 | L0 | comet_ice_budget.NEBULA_PER_1E4_H (H2O 0.9, CO2 0.3, CO 1.5 molecules per 10^4 H; Pontoppidan 2006 via Oberg et al.) | O in CO 0.9 to 2; CO2 and H2O as printed | one disc's ice and gas | a second disc's ice inventory differing by a factor of 3 | an ice survey of discs (Pontoppidan 2006 not read) | test_comet_ice_budget::test_the_nebula_holds_a_third_as_much_co2_and_one_and_two_thirds_as_much_co_as_water | GEN.595 | - |
+| CI4 | P | T2 | L1 | comet_ice_budget.TRAPPED_FRACTION 0.075 (the share of CO above its snow line trapped in water ice, Fayolle et al. 2011 via Oberg et al.; the same value for CO2 above its line is an assumption) | 0.05 to 0.10 | amorphous water ice | a lab trapping fraction outside 5 to 10 percent for the temperatures of the disc | Fayolle et al. 2011 (not read) and a CO2 trapping measurement | test_comet_ice_budget::test_each_zone_keeps_what_its_temperature_lets_it | GEN.595 | - |
+| CI5 | P | T6 | L1 | comet_ice_budget.zone_shares: equal masses of planetesimals form in equal intervals of ln r (a solids surface density as 1 / r) | surface density index 0.5 to 1.5 | planetesimal discs | a measured planetesimal mass distribution with distance | the disc model of the solids (GEN.950 wiring) | test_comet_ice_budget::test_equal_masses_form_in_equal_intervals_of_ln_r | - | - |
