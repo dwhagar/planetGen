@@ -2,6 +2,39 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2784] - 2026-10-30
+
+**Headline:** The generator can now say how fast a planet leaves its system when it is thrown out, and how fast the rogue then moves through the Galaxy.
+
+### Added
+- **`physics/rogue_kick.py` (GEN.1112, RP6).** From the star, the planet that scatters, and the distance it scatters at, it gives the speed the ejected planet leaves with (a giant at 5 AU: a median of 6 km/s and a tail to 15; at 30 AU, 2.5 km/s), whether that scatterer can eject at all (its Safronov number is above 1), an even-in-all-directions default for the direction (still Boss's question), and the rogue's velocity through the Galaxy as its star's plus the drift's. Rogues of ordinary thin-disc stars come out at a median of about 40 km/s past the Sun, with 'Oumuamua's 26 and Borisov's 32 km/s inside the usual spread. Nothing reads it yet; the rogue rows (GEN.1111) do.
+- **Stand-in rows RK1 and RK2** in the gap-filling plan (section 6.87), the stand-in list and the burn-down register.
+
+## [8.0.2783] - 2026-10-30
+
+**Headline:** A new audit script counts the Class D bodies, small moons, dwarf-size bodies and belts the generator makes per system, for each census star type.
+
+### Changed
+
+- GEN.1087: `tests/audit/dwarf_census.py` (`python3 -m tests.audit.dwarf_census --count 100`) draws full systems per star type and reports means and shares of Class D bodies (planets and moons), moons of 50 to 500 km, bodies of 400 to 2,500 km, belts and belt widths, with radius histograms. The first run (700 systems) is in the project reports: moons are 79 to 98 percent of the Class D bodies, nothing smaller than 215 km exists, no free-orbiting dwarf planet exists and a belt has no members. It measures only; no generated output changes.
+
+## [8.0.2782] - 2026-10-30
+
+**Headline:** More of the planned weird-world rates are now checked against papers, and the carbon-planet rate drops 30 times.
+
+### Changed
+- `docs/design/research/oddity-rates.md` (GEN.1095): the rates of W6, W7, W9, W12, W16, W21, W22, W23, W26, G1 and G7 read in papers. The carbon-rich star share is under 0.13 percent (not 3), the helium-rich air has no 90 percent loss trigger, the Hycean 'third of sub-Neptunes' has no source, circumbinary planets are found only round binaries of 5 d or longer; circumbinary occurrence (10 percent), trojans (none confirmed), the WASP-12 b decay and the TrES-2 b albedo stand. Registry rows WR8 to WR19 (section 6.101). No code changes and no generated world changes.
+
+generation-output: unchanged
+
+## [8.0.2781] - 2026-10-30
+
+**Headline:** The generator can now say how old a rogue planet is and how long ago it was thrown out of its system.
+
+### Added
+- **`physics/rogue_age.py` (GEN.1112, RP5).** A rogue planet is as old as the star it formed with, so its age is drawn from the galaxy's star-formation history instead of a flat 0.1 to 10 Gy, the moment it was thrown out is placed after its formation (most ejections early, an even share of each decade of time), and the time since ejection is what is left. Those three numbers feed the cooling of a giant, the heat its star gave it before the ejection, how far it has drifted, and the history sentence on its page. Nothing reads it yet; the rogue rows (GEN.1111) do.
+- **Stand-in rows RG1 and RG2** in the gap-filling plan (section 6.88), the stand-in list and the burn-down register.
+
 ## [8.0.2780] - 2026-10-30
 
 **Headline:** A belt's biggest bodies can now be drawn one by one from the belt's mass and size law, and the mass left over is kept, so nothing is lost or counted twice (not used by the generator yet).

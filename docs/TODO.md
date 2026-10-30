@@ -13786,60 +13786,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   in the giant column with GEN.1030/1033). Version 8.1.
   Prerequisites: none. Related: GEN.1030, GEN.1033, GEN.412, GEN.816.
 
-- [ ] **GEN.1060 Belt research read: open the nine sources of design section 8 (Bottke 2006, Wisdom 1980 and 1982, Moons and Morbidelli 1995, Walsh 2011, Raymond and Izidoro 2017, Stern and Levison 2002, Soter 2006, Margot 2015, Thomas 2010, Kenyon and Bromley 2008, Debes and Sigurdsson 2002, Zuckerman 2010, Koester 2014, Ida and Guillot 2016, Gladman and Volk 2021), one register row per number used**
-  Asteroid belt evolution (Boss, 4:19 PM EDT 2026-10-30, plan every item
-  so belts evolve and say where we think each belongs; design
-  docs/design/systems/belt-evolution.md). The mass cut for an individual
-  object is the RULE, never a fixed count (Boss, 4:27 PM EDT: "I like
-  the rule"): store every body above 1e19 kg; if that is fewer than the
-  bodies needed to cover 90 percent of the belt mass, add the next
-  heaviest up to 300 per belt; bodies below are drawn on demand and
-  never stored. The cut values are stand-ins registered in GEN.725.
-  Stand-ins accepted when registered with tier and tweak level; a number
-  marked [R] in the design is read from its source by the lane that
-  builds it. The Solar System belt, Kuiper belt, Ceres, Pluto and Eris
-  are test targets, never inputs. Do: read each source (second-hand
-  where Boss cannot access it, via reports/secondhand-citations), write
-  a report with the numbers the belt items need (Yarkovsky da/dt,
-  chaotic zone half-width, resonance loss times, instability survival
-  fraction, roundness masses, Soter mu and Margot Pi thresholds, white
-  dwarf pollution rates) and register every stand-in in GEN.725 (T2 or
-  T3, L0 to L1). Done: report and registry rows merged; no [R] left in
-  the design without a row. Lock-free. Where we think it belongs (best
-  guess, can move): Sources 2 (belt owner, GEN.473 and GEN.477),
-  separate branch, merge it yourself, version 8.1, starts now.
-  Added reads (belt-origins design) (2026-10-30 4:35 PM EDT): Also read
-  Bottke and Morbidelli on the belt size distribution, Fraser 2014 and
-  Bernstein 2004 totals, Grundy 2019 roundness, Levison 2008, Sibthorpe
-  2018 and Marshall 2014 (arXiv:1403.6186); register every number used.
-  Prerequisites: none.
-  Design: [docs/design/systems/belt-evolution.md](design/systems/belt-evolution.md)
-
-- [ ] **GEN.1061 physics/belt_ledger.py: the size-law top-end order statistic, the individual-object draw by the cut rule with mass conserved, and the Dc iteration with belt_mass**
-  Asteroid belt evolution (Boss, 4:19 PM EDT 2026-10-30, plan every item
-  so belts evolve and say where we think each belongs; design
-  docs/design/systems/belt-evolution.md). The mass cut for an individual
-  object is the RULE, never a fixed count (Boss, 4:27 PM EDT: "I like
-  the rule"): store every body above 1e19 kg; if that is fewer than the
-  bodies needed to cover 90 percent of the belt mass, add the next
-  heaviest up to 300 per belt; bodies below are drawn on demand and
-  never stored. The cut values are stand-ins registered in GEN.725.
-  Stand-ins accepted when registered with tier and tweak level; a number
-  marked [R] in the design is read from its source by the lane that
-  builds it. The Solar System belt, Kuiper belt, Ceres, Pluto and Eris
-  are test targets, never inputs. Do: design section 3.1 steps 1 to 4
-  and 11.1 rule: N(>m) from the size laws (Ivezic 2001, Fraser 2014),
-  the top body as the order statistic, M_belt(t) from belt_mass_earth
-  with Dc iterated once, the L1 list by the rule, ranks stable (sorted
-  on a mass drawn once at birth). Pure function, no wiring. Done: tests
-  with the Solar System main belt and Kuiper belt as targets (about 10
-  to 30 objects above 1e19 kg in the main belt), mass sums to the
-  budget, rank stability across calls. Lock-free. Where we think it
-  belongs (best guess, can move): Sources 2, after the research read
-  (separate branch).
-  Prerequisites: GEN.1060. Related: GEN.477.
-  Design: [docs/design/systems/belt-evolution.md](design/systems/belt-evolution.md)
-
 - [ ] **GEN.1062 physics/resonance_gaps.py: the resonance and chaotic-zone map from the giants' orbits and the size-dependent Yarkovsky cut**
   Asteroid belt evolution (Boss, 4:19 PM EDT 2026-10-30, plan every item
   so belts evolve and say where we think each belongs; design
@@ -13981,7 +13927,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   think it belongs (best guess, can move): Planets 1, train 15 (after
   the GEN.1014 wiring on train 10 and the ledger, gaps and history
   modules).
-  Prerequisites: GEN.1014, GEN.1061, GEN.1062, GEN.1064. Related:
+  Prerequisites: GEN.1014, GEN.1062, GEN.1064. Related:
   GEN.728.
   Belt origins (2026-10-30 4:35 PM EDT): Each belt also stores where we
   think it came from (the cause from physics/belt_origin.py) and a
@@ -14041,7 +13987,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   scatter tag once the scatter phase is wired (GEN.1092).
   Belt page (Boss 4:37 PM EDT) (2026-10-30 4:38 PM EDT): Each stored
   member is linked from the asteroid belt information page UX.241.
-  Prerequisites: GEN.1061, GEN.1063, GEN.1067, GEN.1069.
+  Prerequisites: GEN.1063, GEN.1067, GEN.1069.
   Design: [docs/design/systems/belt-evolution.md](design/systems/belt-evolution.md)
 
 - [ ] **GEN.1071 Outer (Kuiper-type) disc built as a belt from the same chain, linked to the debris descriptor so the descriptor and the belt are one thing**
@@ -14324,7 +14270,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   detached) are generated from the cold outer disc and swept by the
   scatter step, with dwarf planets drawn from the size law (GEN.1090),
   the outer disc being the belt of GEN.1071.
-  Prerequisites: GEN.1061, GEN.1087.
+  Prerequisites: GEN.1087.
   Design: [docs/design/systems/belt-origins.md](design/systems/belt-origins.md)
 
 - [ ] **GEN.1091 Rewrite the Class D wording in tuning.PLANET_CLASSES["D"] and the docs to match the conditions rule plus the ledger scope (docs only)**
