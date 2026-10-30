@@ -983,6 +983,7 @@ def generate_moons(planet, moon_count=None):
                           distance_override=planet.distance, is_moon=True, primary_mass_kg=planet.mass,
                           moon_origin=origin, moon_disk_system=disk_system, host_eccentricity=planet.eccentricity)
         if new_moon.radius > limit_radius_km:    # denser or lighter than the parent could hold; its slot stays open
+            draw.redrawn("moon.too_large")
             rejected += 1
             if rejected >= MOON_REJECTION_LIMIT:
                 break

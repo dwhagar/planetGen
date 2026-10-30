@@ -430,6 +430,7 @@ class Planet(PlanetaryObject):
             planetPhysics.apply_class(self)
             if not (system_config.HABITABLE_WORLD is False and self.zone == 'e' and habitable_request.meets(self)):
                 break
+            draw.redrawn("planet.barred_world")
         planetPhysics.generate_orbital_motion_properties(self, primary_mass_kg)
         self._age_drawn = star.age  # the age this body was made at; the star's rises once the planets are in (`planets.refinish_rocky`, GEN.992)
 

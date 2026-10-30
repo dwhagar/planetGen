@@ -310,6 +310,8 @@ def envelope_loss_fraction(m_e, r_e, cum_xuv_j_m2, eps=0.1):
     return eps * math.pi * (r_e * RE) ** 3 * cum_xuv_j_m2 / (G * (m_e * ME) ** 2)
 ```
 
+**Built (GEN.355, `physics/atmosphere_retention.py`, registry 6.74).** The snippet above is now a library: `shoreline_ratio`, `verdict_of`, `pressure_cap_pa`, `held_species`, `minimum_molar_mass_kg_mol`, `cold_side_k` (the vapour curves of `physics/saturation.py`, so CO2 at 0.6 kPa gives the Mars frost point and N2 at 1 Pa the Pluto figure) and `energy_limited_loss_fraction`. The exobase temperature is the thermosphere model's, not the one-line fit of 3.2 (that fit was a calibration, and the model the generator already runs replaced it). The answer to "when is an atmosphere possible" is: a shoreline ratio under 30 (under 0.7 for a dense one), a gas of Jeans parameter 30 or more at the exobase, a surface warmer than the gas's condensation temperature at its partial pressure, and an envelope or ocean whose energy-limited loss over the star's life is under the share the body can spare. `tests/test_atmosphere_retention.py` carries the 13 bodies. The generator's pressure stage still takes its shoreline from the logistic of rows d (GEN.511); GEN.963 is the item that reads this module.
+
 Draw `k` log-uniformly from 3.0e-4 to 6.6e-4 per planet (or per system) to
 reproduce the scatter between Titan and Ganymede. `P_retention` is the only
 new piece of the final pressure `min(P_supply, P_vapour(T_surf, gas),

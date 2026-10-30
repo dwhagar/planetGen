@@ -1631,7 +1631,7 @@ def build_parser():
 
     run_job_parser = subparsers.add_parser(
         'run-job',
-        description="Runs a Generate job as one run (PERF.203): the commands of SPEC, a JSON list of {\"command\", \"argv\"} "
+        description="Runs a Generate job as one run: the commands of SPEC, a JSON list of {\"command\", \"argv\"} "
                     "(argv: the command's options, what follows its name on its own command line), put together as the stages "
                     "of one run in the work queue, with one stage list and one estimate. A command's checks are made when "
                     "its own stage opens, so a job can plan the galaxy and scatter it. A job holds "
