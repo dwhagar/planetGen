@@ -573,7 +573,6 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | TEST.461 | test_db_column_round_trip fails on planets.porosity: the column is never written (bug) |  |  |
 | TEST.463 | Reds on main reported by Core 5 at 10:33 PM EDT 2026-10-29: triage each one and fix or assign it (bug) |  |  |
 | TEST.483 | test_disregard_missing_data (6 tests) and test_rq_time_limits::test_the_generate_pages_job_gets_a_limit_from_the_time_its_steps_are_recorded_to_take (3 params) are red on clean main (bug) |  |  |
-| TEST.489 | Reds on clean main found by Core 3: test_cache_warmup (nodes_to_warm, full_cache_leaves, nodes_family: insert_bright_stars column count mismatch), test_satellites (2), test_activity (stored field and exposure), test_sector_gen research rates per star (black-hole rate 0.00123 over the 0.0012 cap) (bug) |  |  |
 | TEST.486 | test_planets c-2: a life class is kept but life_class_scores is None when no class scores above the line after the oxygen build (bug) |  |  |
 | TEST.480 | test_gen_builder_internals::test_slot_planet_honours_class_and_moon_count gets class J where it forced class I at a cold slot (bug) |  |  |
 | TEST.479 | test_radiative_convective_real::test_earth_sends_out_what_it_absorbs fails on the train 4 branch: the Earth tropopause temperature is 168.33 K against the test bound of 170 to 230 K (bug) |  |  |
@@ -619,11 +618,11 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.1034 | Ocean tide data: the open-ocean equilibrium tide height and range at a world's surface from each moon and the star, for worlds with a surface ocean |  |  |
 | GEN.1035 | Surface liquid inventory: which liquid a cold or hot world holds as a sea (methane-ethane-nitrogen, liquid nitrogen, liquid CO2, ammonia-water, sulfur) from its temperature, pressure, ice and air, so non-water oceans can have tides | GEN.1034 |  |
 | TEST.499 | RP9: rogue yield calibration against microlensing and the terrestrial scale: rogues per star against Sumi 2023 (central 21, lower 1 sigma 8 over the probed range), the Mroz 2017 Jupiter limit and Barclay 2017's 2.5 terrestrial bodies per star | GEN.1111 |  |
-| TEST.500 | test_moon_composition::test_a_disk_moon_gains_ice_past_its_disks_ice_line fails on a clean main (reported by Aux 4 on PR #4184) (bug) |  |  |
 | TEST.502 | test_orbital_motion::test_moon_having_planet_reflex_offset_matches_manual_formula fails on a clean main: settle_orbit moves captured moons without refreshing the planet offset (bug) |  |  |
 | GEN.1119 | RP1: classify every architecture loss as ejected, collided or bound by the Safronov number and return an ejection record (mass, composition, kept moons, orbit at ejection, time), counting the small bodies the chain deletes today |  |  |
 | GEN.1135 | Retire Class Q: remove the row from planet_classes.json, tuning.PLANET_CLASSES and HABITABLE_PLANET_CLASSES, and show the orbit swing as the stored flux_variation plus an "At a glance" flag when it is very high |  |  |
 | GEN.1136 | Move the Class V gravity line from 1.25 g to 2 g so Earth-sized and super-Earth temperate worlds can land in Class M, and register the line in GEN.725 |  |  |
+| GEN.1137 | cooling_track (GEN.948) jumps for a mass just under the lowest mass the table holds: 0.0699 solar masses at 5 Gy gives 1220 K, 0.07 gives 1627 K, so the temperature cap never binds below the limit mass (bug) |  |  |
 | GEN.1133 | Rocky rogue planets of 10 to 16 Earth masses come out up to 17,600 km, past class S's 11,468 km top: apply Core 4's recommendation so the size range and the class agree |  |  |
 | GEN.1130 | The +intelligent_life and +habitable_world request options become probability tweaks only: they raise the odds of such a world in the generated system and never force a placement, a ladder of adaptations or a civilization |  |  |
 | GEN.1129 | Fingerprint split: a sector's digest (GEN.58) becomes "made here" and "arrived here" so rogues landing from other sectors do not change the sector's own digest |  |  |

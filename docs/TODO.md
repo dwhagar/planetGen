@@ -14659,6 +14659,19 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   with GEN.1135.
   Prerequisites: none. Related: GEN.1135, GEN.1132, GEN.909, GEN.911.
 
+- [ ] **GEN.1137 cooling_track (GEN.948) jumps for a mass just under the lowest mass the table holds: 0.0699 solar masses at 5 Gy gives 1220 K, 0.07 gives 1627 K, so the temperature cap never binds below the limit mass (bug)**
+  Sources 2, 6:35 PM EDT 2026-10-30 (as the lane reported), found while
+  wiring GEN.494: the track extrapolates at t^-0.32 from the age at
+  which the table drops the mass, so a body just below the lowest held
+  mass is far too cool and the cap for brown dwarfs and rogues does not
+  bind there. Do: extend the table down in mass or extrapolate in mass
+  as well as in age so the temperature at a fixed age is continuous
+  across the table edge; test that 0.0699 and 0.07 solar masses at 5 Gy
+  differ by a few percent, not 25 percent. Lock work if stored
+  temperatures change (epoch, golden). Where we think it belongs (best
+  guess, can move): Bug 1 (owner of GEN.948), train 6.
+  Prerequisites: none. Related: GEN.948, GEN.494.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -19385,32 +19398,6 @@ clears each one.
   if the output moves).
   Prerequisites: none. Related: TEST.484.
 
-- [ ] **TEST.489 Reds on clean main found by Core 3: test_cache_warmup (nodes_to_warm, full_cache_leaves, nodes_family: insert_bright_stars column count mismatch), test_satellites (2), test_activity (stored field and exposure), test_sector_gen research rates per star (black-hole rate 0.00123 over the 0.0012 cap) (bug)**
-  Found by Core 3 on MAP.213 slice C (relayed 3:52 PM EDT 2026-10-30 as
-  the lane reported); each is also red on a clean origin/main.
-  test_runaway_history surface water is already TEST.391. Do: triage
-  each (stale expectation, a real regression, a moved seed, or a cap
-  that needs its source) and fix the right side without skipping or
-  loosening beyond the property; the black-hole rate cap needs its
-  source or a GEN.725 row. Done: all pass on main. Owner: Bug 2 (after
-  TEST.483 and TEST.484) or any free lane; lock-free unless a cause is a
-  generator change. Version 8.1.
-  Also red on main (4:06 PM EDT 2026-10-30): Aux 2 found
-  test_property_sheet moon_disk columns (5 unlisted columns) and 5
-  test_db_persistence bright-star tests (column count mismatch, the same
-  cause as the cache warmup reds) on a clean main (as the lane
-  reported).
-  Also red on main (Tides 1) (4:15 PM EDT 2026-10-30):
-  test_orbital_motion reflex offset (settle_orbit moves a captured
-  moon's position and nobody refreshes the planet's offset: a real bug
-  to fix at the cause) and test_moon_composition disk moon ice (the
-  sample now holds only two disk moons: widen the sample), both red on
-  clean main c563ce591 (as the lane reported).
-  Owner (4:20 PM EDT 2026-10-30): Aux 5 (assigned by TODO after TEST.484
-  merged as PR #4120; test-only unless a cause is a real bug, separate
-  branch, merge it yourself).
-  Prerequisites: none. Related: TEST.391, TEST.472, TEST.484.
-
 - [ ] **TEST.492 Census re-baseline for every oddity share and the prevalence suite rows (one pass after train 9)**
   Weird worlds build (Boss, 4:15 PM EDT 2026-10-30, goal issue #4117;
   design docs/design/systems/weird-worlds.md). Secondary and tertiary
@@ -19461,24 +19448,6 @@ clears each one.
   Prerequisites: GEN.1111.
   Design: [docs/design/research/rogue-planet-review.md](design/research/rogue-planet-review.md)
 
-- [ ] **TEST.500 test_moon_composition::test_a_disk_moon_gains_ice_past_its_disks_ice_line fails on a clean main (reported by Aux 4 on PR #4184) (bug)**
-  Aux 4, 5:28 PM EDT 2026-10-30: the test fails on main without the
-  change of PR #4184 (GEN.1081); my lane run of the single test gave a
-  collection error (the nltk data step), so the failure text is Aux 4's
-  to attach. Do: reproduce on a lane machine with the datasets fetched,
-  find which merge broke it (the ice line of a disk moon), and fix the
-  test or the code, whichever is wrong; if the generated moon
-  composition is wrong, say so and it becomes a GEN bug. Lock-free
-  unless the code changes output. Where we think it belongs (best guess,
-  can move): Core 1 (test owner), separate branch.
-  Failure text (Aux 4) (2026-10-30 5:33 PM EDT): The test fails in its
-  own body at `assert near and far`: the generated moons have no disk
-  moon far enough past the ice line, so the list is empty (not a
-  collection error; my lane run had a missing nltk data step). So either
-  the generator no longer makes such a moon in the seeded system, or the
-  test seed is stale.
-  Prerequisites: none.
-
 - [ ] **TEST.501 Order-independence test: chart region A then B and B then A and compare the union of real-donor objects and each sector's made-here digest; chart a region twice and nothing changes; the top-up checked as "same stored state in, same objects out"**
   Region object store (Boss, 5:15 to 5:42 PM EDT 2026-10-30; study
   GEN.1118, design draft region-object-store-gen1118-2026-10-30.md, goal
@@ -19505,6 +19474,16 @@ clears each one.
   it becomes a GEN bug. Lock-free unless the code changes output. Where
   we think it belongs (best guess, can move): Core 1 (test owner),
   separate branch, after TEST.500.
+  Aux 5, 6:35 PM EDT (as the lane reported) (2026-10-30 6:38 PM EDT):
+  the cause is real: a planet wobble from its moons is made when the
+  moons are, then the moons move (orbits settle, GEN.992 remake), so 24
+  of 117 planets had a stale reflex_offset_*. Fix is 4 lines in
+  StarSystem.__init__ (refresh each planet offset together with the
+  stars), 0 of 104 off after, test_orbital_motion 40/40; branch
+  claude/aux5-test489-reflex, written by Aux 5, NOT merged because it
+  changes generated output (planets with moons). Lock work for train 6,
+  --affects fill,population (stored reflex columns), golden. Owner Aux
+  5; Bug 2 takes it into train 6.
   Prerequisites: none.
 
 ## USR: User accounts
