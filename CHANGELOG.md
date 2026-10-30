@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2700] - 2026-10-30
+
+**Headline:** The census tests know which of their shifts came with the star and giant changes of epoch 125.
+
+### Changed
+- **Census ranges tagged after train 3 (TEST.473).** The class, system and observed-rate censuses (68, 10 and 1 ranges) name the epoch-125 star changes (GEN.941, GEN.728) as the cause of the shifts they flag, the star mix names GEN.943 for the G share and TEST.473 for the A0V companion rate, and the Wolf-Rayet note keeps an item code in its anomaly field. The filled-sector star sweep needs two kinds of star, not three (giants are under 1 percent of the population model's stars).
+
 ## [8.0.2699] - 2026-10-30
 
 **Headline:** A test run works out the generator battery digest once for all its workers, and not again while the code and data are unchanged.
