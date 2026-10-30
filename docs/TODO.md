@@ -13447,6 +13447,21 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and System Map SVG side is MAP.213 slice B and is not yet checked.
   This may be the whole cause; confirm with Boss on a rebuilt map before
   closing.
+  Investigation thread (relayed by the coordinator, PR #4026, branch
+  claude/project-thread-xhsx5n) (2026-10-30 9:54 AM EDT): Cause found in
+  the generator: a drawn star tree is rebuilt from each member's birth
+  mass and the system age, and a member the tree had evolved (for
+  example a white dwarf of a post-common-envelope pair, born 1.38 Msun
+  at 4.39 Gy) is rebuilt as a still-living giant of 0.033 AU radius
+  while its orbit with its partner is 0.0088 AU, so the partner or a
+  third star sits inside it. Seen in about 1 of 150 forced triples and 1
+  of 50 forced quadruples. Fix: multistar.built_tree_clears runs the
+  Roche and extent screen on the built radii and masses and the draw
+  loop redraws a tree that fails. Changes what rare seeds generate:
+  needs an epoch (--affects fill) and a golden refresh, so it rides
+  train 4; do not merge before. The browser-side barycenter fault
+  (MAP.255) was a second, separate cause for stars with no stored pair
+  orbit.
   Prerequisites: TEST.162. Related: TEST.162, GEN.728, MAP.255.
 
 - [ ] **GEN.1005 Replace the Solar System-anchored redox, dry carbon and comet species rows with models that carry the physics (replaces the Solar System-resting rows of GEN.1002 that GEN.474 does not cover)**
