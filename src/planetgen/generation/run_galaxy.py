@@ -1503,6 +1503,11 @@ def expand_generate_sectors(params):
     generate them; for a stage that is `planned`, the ones `planned_items` works out when the stage opens) in about `SECTOR_UNITS_MAX` static chunks of consecutive sectors, the same at any worker count.
     A unit's cost is its sectors.
     """
+    warning = None
+    if params.get("check_plan"):        # the stage of a run that plans the galaxy first (PERF.203) finds the plan when it opens
+        problem, warning = _plan_check(store.mysql_config_from_args(_sector_args_of(params)), params["edge_pc"])
+        if problem:
+            raise RuntimeError(problem)
     items, suffixes = planned_items(params) if params.get("planned") else (params["items"], [])
     count = len(items) // 3
     size = max(1, -(-count // SECTOR_UNITS_MAX))
@@ -1516,6 +1521,8 @@ def expand_generate_sectors(params):
             unit["suffixes"] = suffixes[start:start + size]
         units.append((unit, float(len(chunk) // 3)))
     detail = {"sectors": count}
+    if warning:
+        detail["warning"] = warning
     if params.get("planned") == "random-start":
         detail["centers"] = [list(items[place:place + 3]) for place in range(0, len(items), 3)]       # the neighborhood stage reads them
     return commands.Expansion(units, detail)
@@ -1633,6 +1640,8 @@ class SectorsFollower(followed.Follower):
 
     def on_plan(self, plan):
         sectors = plan["detail"]["sectors"]
+        if plan["detail"].get("warning"):
+            log.normal(f"Warning: {plan['detail']['warning']}")
         if not self.collect:
             log.normal(f"Generating {sectors:,} sector(s) with {self.workers} worker(s); each is reported below as "
                        f"it is saved, so the first report can take a while in a dense region.")
@@ -2714,28 +2723,35 @@ def course_cells(config, from_ref, to_ref, border=False):
         conn.close()
 
 
-def _check_plan(args, edge_pc):
-    """Refuses a run of a galaxy that was never planned (at the standard sector edge, with shells); warns when it would
-    extend a mixed-version galaxy."""
-    conn = store.get_connection(store.mysql_config_from_args(args))
+def _plan_check(config, edge_pc):
+    """What the stored plan says to a run of sectors: `(problem, warning)`, the words that refuse a galaxy that was never planned (at
+    the standard sector edge, with shells) or `None`, and the heads-up about extending a mixed-version galaxy (DB.7) or `None`."""
+    conn = store.get_connection(config)
     try:
         bounds = store.get_galaxy_bounds(conn)
         warning = version_check.galaxy_warning(conn, compute_battery=True)
     finally:
         conn.close()
+    if bounds is None:
+        return ("The galaxy has never been planned -- run 'planetgen plan' first, so every sector "
+                "can be checked against the galaxy's bounds before it is generated."), warning
+    if not math.isclose(bounds.edge_pc, edge_pc):
+        return (f"The stored plan was built with {bounds.edge_pc:g} pc sectors, not the standard "
+                f"{edge_pc:g} pc -- re-run 'planetgen plan'."), warning
+    if not bounds:
+        return ("The stored plan has no shells at all (nothing in this galaxy shape expects a star "
+                "per sector) -- re-run 'planetgen plan' with a different shape."), warning
+    return None, warning
+
+
+def _check_plan(args, edge_pc):
+    """Refuses a run of a galaxy that was never planned (at the standard sector edge, with shells); warns when it would
+    extend a mixed-version galaxy."""
+    problem, warning = _plan_check(store.mysql_config_from_args(args), edge_pc)
     if warning:
         log.normal(f"Warning: {warning}")  # DB.7: a heads-up before it extends a mixed-version galaxy
-    if bounds is None:
-        log.error("The galaxy has never been planned -- run 'planetgen plan' first, so every sector "
-                  "can be checked against the galaxy's bounds before it is generated.")
-        raise SystemExit(1)
-    if not math.isclose(bounds.edge_pc, edge_pc):
-        log.error(f"The stored plan was built with {bounds.edge_pc:g} pc sectors, not the standard "
-                  f"{edge_pc:g} pc -- re-run 'planetgen plan'.")
-        raise SystemExit(1)
-    if not bounds:
-        log.error("The stored plan has no shells at all (nothing in this galaxy shape expects a star "
-                  "per sector) -- re-run 'planetgen plan' with a different shape.")
+    if problem:
+        log.error(problem)
         raise SystemExit(1)
 
 

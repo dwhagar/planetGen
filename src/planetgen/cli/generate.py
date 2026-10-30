@@ -70,6 +70,7 @@ from planetgen.generation import star_population
 from planetgen.generation.star_population import bright_star_fraction
 from planetgen.generation import stages
 from planetgen.generation import finish_run as finishRun
+from planetgen.generation import job as generationJob
 from planetgen.generation import run_common
 from planetgen.generation import run_galaxy
 from planetgen.generation import run_phenomenon
@@ -1628,6 +1629,21 @@ def build_parser():
                                     "them, for a sector a black hole or neutron star was added to ('planetgen "
                                     "phenomenon --sector-id' saves no paths itself).")
 
+    run_job_parser = subparsers.add_parser(
+        'run-job',
+        description="Runs a Generate job as one run (PERF.203): the commands of SPEC, a JSON list of {\"command\", \"argv\"} "
+                    "(argv: the command's options, what follows its name on its own command line), put together as the stages "
+                    "of one run in the work queue, with one stage list and one estimate. A command's checks are made when "
+                    "its own stage opens, so a job can plan the galaxy and scatter it. A job holds "
+                    + ", ".join(generationJob.JOB_COMMANDS) + ".",
+        help="Run a list of generation commands as one run.")
+    run_job_parser.add_argument('spec', metavar='SPEC', help="The job as JSON, or @FILE to read it from a file.")
+    run_job_parser.add_argument('--workers', type=int, default=None,
+                                help="How many worker processes the run uses at most. Default: 80%% of this machine's cores "
+                                     "(one fewer when MySQL runs here too), or PLANETGEN_WORKERS.")
+    store.add_mysql_connection_args(run_job_parser)
+    add_logging_arguments(run_job_parser)
+
     finish_run_parser = subparsers.add_parser(
         'finish-run',
         description="Carries on a generation run that stopped partway (a killed process, an out-of-memory database, a "
@@ -1787,6 +1803,7 @@ def build_parser():
         'link': link_parser,
         'backfill': backfill_parser,
         'settle': settle_parser,
+        'run-job': run_job_parser,
         'phenomenon': phenomenon_parser,
         'finish-run': finish_run_parser,
         'population': population_parser,
@@ -1820,6 +1837,22 @@ def process_args():
     # --mysql-port's range (1 to 65535) is checked by its argparse type,
     # planetgen.db.store._mysql_port (OPS.6).
 
+    validate_command(args, command_parser)
+    if args.command == 'run-job':
+        try:
+            args.job = generationJob.parse_entries(args.spec, args, command_parsers, validate_command)
+        except ValueError as exc:
+            command_parser.error(str(exc))
+
+    return args
+
+
+def validate_command(args, command_parser):
+    """
+    Validates the arguments of the subcommand `args.command` through its own `validate_*_args` function(s), calling
+    `command_parser.error` (which exits) on the first problem. A command with none needs none. A job (`run-job`) validates each
+    of its commands' with this too.
+    """
     if args.command == 'system':
         validate_system_args(args, command_parser)
     elif args.command == 'sector':
@@ -1841,8 +1874,8 @@ def process_args():
         validate_fill_args(args, command_parser)
     elif args.command == 'phenomenon':
         validate_phenomenon_args(args, command_parser)
-
-    return args
+    elif args.command == 'run-job' and args.workers is not None and args.workers < 0:
+        command_parser.error("--workers must be 0 (automatic) or more.")
 
 
 def run_fingerprint(args):
@@ -1925,7 +1958,7 @@ READ_ONLY_COMMANDS = ("check-db", "check-math", "fingerprint", "versions", "benc
 (no activity log lines or run history)."""
 
 
-BULK_COMMANDS = ("galaxy", "plan", "scatter", "population", "territories", "finish-run")
+BULK_COMMANDS = ("galaxy", "plan", "scatter", "population", "territories", "finish-run", "run-job")
 """tuple: Subcommands that always generate in bulk, so the data check runs
 first (GEN.590); `sector` joins them when it makes more than one sector
 (`is_bulk_run`)."""
@@ -1963,6 +1996,7 @@ _COMMAND_HANDLERS = {
     'link': run_galaxy.run_link,
     'backfill': run_galaxy.run_backfill,
     'settle': run_galaxy.run_settle,
+    'run-job': generationJob.run_job,
     'phenomenon': run_phenomenon.run_phenomenon,
     'finish-run': finishRun.run_finish,
     'population': run_population.run_population,
@@ -1986,7 +2020,8 @@ generation; any other writing command is `generated`."""
 def _note_data_changed(args, database):
     """Tells the page cache what this run changed (PERF.104), so the pages read it at once instead of at the next
     check of the galaxy's content stamp. A run that stopped part-way changed what it had written."""
-    kinds = list(DATA_CHANGES.get(args.command, ("generated",)))
+    commands = [command for command, _args in args.job] if args.command == "run-job" else [args.command]
+    kinds = list(dict.fromkeys(kind for command in commands for kind in DATA_CHANGES.get(command, ("generated",))))
     for kind in kinds:
         dataversion.record(database, kind)
 
@@ -2147,6 +2182,10 @@ def _run_line_seed(args):
     """
     if getattr(args, "seed", None) is not None and args.command == "plan":
         return args.seed
+    if args.command == "run-job":       # a job that plans the galaxy names the seed it plans with
+        seeds = [entry.seed for command, entry in args.job if command == "plan" and getattr(entry, "seed", None) is not None]
+        if seeds:
+            return seeds[0]
     try:
         conn = store.get_connection(store.mysql_config_from_args(args), ensure_schema=False)
     except Exception as exc:  # noqa: BLE001 -- the run reports its own database errors
