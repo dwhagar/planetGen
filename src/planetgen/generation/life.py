@@ -92,8 +92,9 @@ def _apply(planet, keep_stored):
     planet.life_complexity = complexity.index
     animals = planet.life_stage in ("multicellularity", "technological_civilization")
     planet.life_animal_grade = complexity.grade if animals else 0
-    log.choice("Life complexity", f"{complexity.index:.3g}", f"yield {complexity.oxidant_yield:.2f}, rate factor {complexity.rate_factor:.2f}, "
-               f"animal grade {complexity.grade}, highest stage {complexity.top_stage}")
+    log.choice("Life complexity", f"{complexity.index:.3g} x Earth's net primary production",
+               f"oxidant yield {complexity.oxidant_yield:.2f} of 1, temperature rate factor {complexity.rate_factor:.2f}, "
+               f"animal grade {complexity.grade} of 3, highest stage {complexity.top_stage}")
     habitability_world.rescore(planet)  # GEN.207: Suitability reads the life that was just drawn
 
 
@@ -154,7 +155,8 @@ def _draw_schedule(planet, row):
         waits = life_timeline.unit_waits()
     waits = (waits[0], waits[1] * row.life["first_step_scale"], *waits[2:])
     ages = life_timeline.schedule(waits, factor, delay, at_start)
-    log.choice("Evolutionary schedule", ages, f"hard steps at rate factor {factor:.3g}, oxygen "
+    log.choice("Evolutionary schedule", ", ".join("never" if age is None else f"{age:.3g} Gyr" for age in ages),
+               f"hard steps at temperature rate factor {factor:.3g}, oxygen "
                f"{'not needed' if not needs_oxygen else 'from the start' if at_start else 'after ' + str(delay) + ' Gyr of photosynthesis'}")
     _set_schedule(planet, ages, life_timeline.pace_of(factor))
 

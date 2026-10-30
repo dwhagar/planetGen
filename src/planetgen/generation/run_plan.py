@@ -332,11 +332,13 @@ def plan_skeleton_unit(params, report):
         built = planOutline.build(shape_args, galaxy_seed, edge_pc, reach_shell_index)
         shape, drawn, found, young, dwarfs = built.shape, built.drawn, built.clusters, built.young, built.satellites
         say(
-            f"Building skeleton: edge_pc={edge_pc:g} stellar_mass={drawn.chain.stellar_mass_solar:.3g} ({drawn.stage}-type) "
-            f"disk_scale_length_pc={shape.disk_scale_length_pc:.0f} disk_scale_height_pc={shape.disk_scale_height_pc:.0f} "
-            f"bulge_scale_radius_pc={shape.bulge_scale_radius_pc:.0f} bulge_to_total={drawn.bulge_to_total:.3f} "
-            f"arm_count={shape.arm_count} pitch_angle_deg={drawn.pitch_angle_deg:.1f} "
-            f"k_norm={shape.k_norm:.4f} threshold_rho={threshold_rho:.6f}"
+            f"Building skeleton: edge {edge_pc:g} pc, stellar mass {drawn.chain.stellar_mass_solar:.3g} solar masses "
+            f"({drawn.stage}-type), disk scale length {shape.disk_scale_length_pc:.0f} pc, "
+            f"disk scale height {shape.disk_scale_height_pc:.0f} pc, "
+            f"bulge scale radius {shape.bulge_scale_radius_pc:.0f} pc, bulge-to-total mass ratio {drawn.bulge_to_total:.3f}, "
+            f"{shape.arm_count} spiral arms, pitch angle {drawn.pitch_angle_deg:.1f} degrees, "
+            f"density normalisation {shape.k_norm:.4f} (a factor, no unit), "
+            f"lowest density kept {threshold_rho:.6f} x the local average"
         )
         say(f"{dials.describe_pins(shapeDraw.pins_of(shape_args, shape.disk_scale_length_pc))}.")
         with timer.step("the report lines (pins, halo, outline)"):
@@ -359,8 +361,8 @@ def plan_skeleton_unit(params, report):
         conn.close()
     with timer.step("the system counts of the 'Drew' line"):
         say(f"Drew {len(found):,} globular clusters holding {sum(c.expected_systems for c in found):,.0f} systems, "
-            f"{len(young):,} young open clusters holding {sum(c.expected_systems for c in young):,.0f} "
-            f"and placed {len(dwarfs):,} satellite galaxies holding {sum(c.expected_systems for c in dwarfs):,.0f}.")
+            f"{len(young):,} young open clusters holding {sum(c.expected_systems for c in young):,.0f} systems "
+            f"and placed {len(dwarfs):,} satellite galaxies holding {sum(c.expected_systems for c in dwarfs):,.0f} systems.")
 
     extents, outer_shell_index, edge_confirmed = built.extents, built.outer_shell_index, built.edge_confirmed
     elapsed = built.elapsed_s
