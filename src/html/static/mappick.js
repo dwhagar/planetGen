@@ -261,8 +261,9 @@ export function pageLink(href, label, className) {
 // style.css lays it over the map, in the corner farthest from where the reader last pressed (`data-corner`).
 // `data-state` is "rest" (nothing picked, not drawn), "selected" or "closed" (the reader pressed Close).
 // `reveal()` draws what a map wrote into the panel itself (a measurement) as the popup.
-export const MIN_INFO_SCALE = 0.9;
-export const INFO_SCALE_STEP = 0.05;
+// MAP.347: the card's first view is its name, what kind of thing it is, this many of its values, and its buttons; the rest of what it says
+// is behind the Expand button, in a region that scrolls on its own.
+export const FIRST_FIELDS = 3;
 
 export function createInfoPanel(panelEl) {
   const hostIds = panelEl && panelEl.hasAttribute("data-overlay") ? (panelEl.dataset.overlay || "").split(/\s+/).filter(Boolean) : null;
@@ -273,6 +274,11 @@ export function createInfoPanel(panelEl) {
   // The corner of the map farthest from where the reader last pressed on it, so the popup does not cover what was just
   // picked (top right until the pointer has been used).
   let pressed = null;
+  // The card's parts: `rest` holds what is behind Expand (null while the card has none), `expanded` is the reader's choice, kept from one
+  // card to the next.
+  let rest = null;
+  let expandButton = null;
+  let expanded = false;
   hosts.forEach(function (host) {
     host.addEventListener("pointerdown", function (event) {
       if (panelEl.contains(event.target)) return;
@@ -286,11 +292,11 @@ export function createInfoPanel(panelEl) {
     ["pointerdown", "mousedown", "click", "dblclick", "touchstart"].forEach(function (type) {
       panelEl.addEventListener(type, function (event) { event.stopPropagation(); }, { passive: true });
     });
-    // The wheel scrolls the popup while it has more to show that way (MAP.295, `data-scroll`); at the end of its
-    // scroll, or when it has none, the turn goes on to the map under it, so a popup never takes the zoom away.
+    // The wheel scrolls the expanded region while it has more to show that way (MAP.295); at the end of its scroll, or when the card
+    // has none, the turn goes on to the map under it, so a popup never takes the zoom away.
     panelEl.addEventListener("wheel", function (event) {
       event.stopPropagation();
-      const room = event.deltaY < 0 ? panelEl.scrollTop > 0 : panelEl.scrollTop + panelEl.clientHeight < panelEl.scrollHeight - 1;
+      const room = rest && !rest.hidden && (event.deltaY < 0 ? rest.scrollTop > 0 : rest.scrollTop + rest.clientHeight < rest.scrollHeight - 1);
       if (room) return;
       const host = panelEl.parentElement;
       const canvas = host && host.querySelector("canvas");
@@ -324,6 +330,8 @@ export function createInfoPanel(panelEl) {
   // Draws what a map wrote into the panel itself (the System Map's measurement) as the popup, with its Close.
   function reveal() {
     if (!overlay) return;
+    rest = null;
+    expandButton = null;
     place();
     if (!panelEl.querySelector(".map-info-close")) {
       const row = el("p", "page-actions map-info-actions");
@@ -333,45 +341,39 @@ export function createInfoPanel(panelEl) {
     fit();
   }
 
-  // MAP.295: the popup says all it has to say inside the map's window. Its text shrinks a step at a time (the
-  // --info-scale of style.css) until it fits, and what still does not fit at the smallest scale scrolls.
-  function overflows() {
-    return panelEl.scrollHeight > panelEl.clientHeight + 1 || panelEl.scrollWidth > panelEl.clientWidth + 1;
-  }
-  // The smallest text that still fits the card in the room it has; what is left scrolls.
-  function shrinkToFit() {
-    panelEl.style.removeProperty("--info-scale");
-    delete panelEl.dataset.scroll;
-    let scale = 1;
-    while (overflows() && scale > MIN_INFO_SCALE + 1e-6) {
-      scale = Math.round((scale - INFO_SCALE_STEP) * 100) / 100;
-      panelEl.style.setProperty("--info-scale", String(scale));
-    }
-    if (overflows()) panelEl.dataset.scroll = "";
-  }
-  // MAP.332: a card keeps clear of the zoom controls and the legend in the map's lower corners, which leaves a short window little
-  // height. A card that does not fit above them takes the map's whole height instead, standing beside the controls (`data-tall`,
-  // style.css), when the window is wide enough for it; else it scrolls inside the room it has.
-  const TALL_BESIDE_REM = 24;
+  // MAP.347: the card says its first view and nothing more until the reader presses Expand; what is behind it scrolls inside the card
+  // (`.map-info-rest`), never the card. An expanded card stands beside the zoom controls at the map's whole height (`data-beside`,
+  // style.css) when the window is wide enough for it, else it takes the room above them. MAP.332: a card keeps clear of the zoom
+  // controls and the legend in the map's lower corners.
+  const BESIDE_REM = 24;
   function fit() {
-    if (!overlay || panelEl.dataset.state !== "selected" || typeof panelEl.scrollHeight !== "number") return;
-    delete panelEl.dataset.tall;
-    shrinkToFit();
-    if (!panelEl.hasAttribute("data-scroll") && !overflows()) {
+    if (!overlay || panelEl.dataset.state !== "selected") return;
+    delete panelEl.dataset.beside;
+    delete panelEl.dataset.expanded;
+    panelEl.style.removeProperty("--info-pad-clear");
+    const has = !!rest && Array.prototype.some.call(rest.children, function (node) { return !node.hidden; });
+    if (expandButton) {
+      expandButton.hidden = !has;
+      expandButton.textContent = expanded ? "Collapse" : "Expand";
+      expandButton.setAttribute("aria-expanded", expanded && has ? "true" : "false");
+    }
+    if (rest) rest.hidden = !(expanded && has);
+    if (!rest || rest.hidden) {
       clearOfPress();
       return;
     }
+    panelEl.dataset.expanded = "";
     const view = panelEl.parentElement;
     const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
-    if (!view || view.clientWidth < TALL_BESIDE_REM * rem) return;
-    // The zoom controls: the direction star's pad and (MAP.336) the log ruler above it, whichever reaches farther in.
-    const reach = [".starmap-navpad", ".starmap-ruler"].map(function (selector) {
-      const control = view.querySelector(selector);
-      return control ? view.getBoundingClientRect().right - control.getBoundingClientRect().left + 8 : 0;
-    });
-    if (Math.max.apply(null, reach) > 0) panelEl.style.setProperty("--info-pad-clear", Math.ceil(Math.max.apply(null, reach)) + "px");
-    panelEl.dataset.tall = "";
-    shrinkToFit();
+    if (view && view.clientWidth >= BESIDE_REM * rem) {
+      // The zoom controls: the direction star's pad and (MAP.336) the log ruler above it, whichever reaches farther in.
+      const reach = [".starmap-navpad", ".starmap-ruler"].map(function (selector) {
+        const control = view.querySelector(selector);
+        return control ? view.getBoundingClientRect().right - control.getBoundingClientRect().left + 8 : 0;
+      });
+      if (Math.max.apply(null, reach) > 0) panelEl.style.setProperty("--info-pad-clear", Math.ceil(Math.max.apply(null, reach)) + "px");
+      panelEl.dataset.beside = "";
+    }
     clearOfPress();
   }
   // The card sits on the side of the map away from the press, but a card wide enough, or standing beside the zoom controls, can still lie
@@ -415,30 +417,42 @@ export function createInfoPanel(panelEl) {
   }
 
   // Every action in one wrapping row, so the space between two buttons
-  // is the same across and down (--btn-gap): the pick button or the NAV
-  // links, the ☆, page links and buttons.
-  function actions(spec) {
+  // is the same across and down (--btn-gap): the View button, the pick button, the Go to buttons and Expand (MAP.347; the ☆ sits by the name). The
+  // other NAV buttons and the page links are a second row at the top of what is behind Expand (`extra`), with the same spacing.
+  function actions(spec, secondary) {
     const row = el("p", "page-actions map-info-actions");
+    const extra = secondary || row;
     if (spec.view) row.appendChild(pageLink(spec.view.href, spec.view.label, "btn btn-small map-info-view"));
     (spec.nav || []).forEach(function (action) {
+      const into = action.primary ? row : extra;
       if (action.href) {
-        row.appendChild(pageLink(action.href, action.label, action.primary ? "btn starmap-pick" : "btn btn-small btn-secondary"));
+        into.appendChild(pageLink(action.href, action.label, action.primary ? "btn starmap-pick" : "btn btn-small btn-secondary"));
         return;
       }
       const node = el("button", action.primary ? "btn starmap-pick" : "btn btn-small btn-secondary", action.label);
       node.type = "button";
       node.addEventListener("click", action.onClick);
-      row.appendChild(node);
+      into.appendChild(node);
     });
-    if (spec.bookmark) row.appendChild(bookmarkToggle(spec.bookmark));
-    (spec.links || []).forEach(function (link) { row.appendChild(pageLink(link.href, link.label, "btn btn-small btn-secondary")); });
+    if (spec.bookmark && !overlay) row.appendChild(bookmarkToggle(spec.bookmark));
+    (spec.links || []).forEach(function (link) { extra.appendChild(pageLink(link.href, link.label, "btn btn-small btn-secondary")); });
     (spec.buttons || []).forEach(function (button) {
       const node = el("button", "btn btn-small btn-secondary", button.label);
       node.type = "button";
       node.addEventListener("click", button.onClick);
       row.appendChild(node);
     });
-    if (overlay) row.appendChild(closeButton());
+    if (overlay) {
+      expandButton = el("button", "btn btn-small btn-secondary map-info-expand", "Expand");
+      expandButton.type = "button";
+      expandButton.setAttribute("aria-expanded", "false");
+      expandButton.hidden = true;
+      expandButton.addEventListener("click", function () {
+        expanded = !expanded;
+        fit();
+      });
+      row.appendChild(expandButton);
+    }
     if (row.childNodes.length) panelEl.appendChild(row);
   }
 
@@ -446,12 +460,42 @@ export function createInfoPanel(panelEl) {
     if (!panelEl) return;
     panelEl.textContent = "";
     bookmarkEntry = null;
+    rest = null;
+    expandButton = null;
     if (overlay) place();
-    panelEl.appendChild(el("h3", null, spec.title || "Unknown"));
-    if (spec.fields && spec.fields.length) {
+    // The name, with the ☆ and the Close beside it so the buttons below keep to one row.
+    const head = el("div", "map-info-head");
+    head.appendChild(el("h3", null, spec.title || "Unknown"));
+    if (overlay && spec.bookmark) head.appendChild(bookmarkToggle(spec.bookmark));
+    if (overlay) head.appendChild(closeButton());
+    panelEl.appendChild(head);
+    // The kind: named by the card or by its "Type" row, which then is not repeated as a row.
+    const fields = (spec.fields || []).filter(function (field) { return field[1] !== null && field[1] !== undefined && field[1] !== ""; });
+    let kind = spec.kind || null;
+    if (!kind) {
+      const typed = fields.findIndex(function (field) { return field[0] === "Type"; });
+      if (typed >= 0) kind = fields.splice(typed, 1)[0][1];
+    }
+    if (kind) panelEl.appendChild(el("p", "map-info-kind", String(kind)));
+    const first = overlay ? fields.slice(0, FIRST_FIELDS) : fields;
+    if (first.length) {
       const dl = document.createElement("dl");
-      spec.fields.forEach(function (field) { addField(dl, field[0], field[1]); });
+      first.forEach(function (field) { addField(dl, field[0], field[1]); });
       panelEl.appendChild(dl);
+    }
+    // What the card says beyond its first view sits in one region, hidden until Expand (MAP.347); a card of a map with no popup shows it all.
+    const behind = overlay ? el("div", "map-info-rest") : panelEl;
+    const extra = overlay ? el("p", "page-actions map-info-actions map-info-secondary") : null;
+    if (overlay) {
+      behind.hidden = true;
+      rest = behind;
+    }
+    actions(spec, extra);
+    if (overlay && extra.childNodes.length) behind.appendChild(extra);
+    if (overlay && fields.length > FIRST_FIELDS) {
+      const dl = document.createElement("dl");
+      fields.slice(FIRST_FIELDS).forEach(function (field) { addField(dl, field[0], field[1]); });
+      behind.appendChild(dl);
     }
     // MAP.325: the facts a reader rarely needs sit behind a More that starts collapsed.
     const more = (spec.more || []).filter(function (field) { return field[1] !== null && field[1] !== undefined && field[1] !== ""; });
@@ -461,13 +505,12 @@ export function createInfoPanel(panelEl) {
       const list = document.createElement("dl");
       more.forEach(function (field) { addField(list, field[0], field[1]); });
       fold.appendChild(list);
-      fold.addEventListener("toggle", fit);
-      panelEl.appendChild(fold);
+      behind.appendChild(fold);
     }
-    (spec.after || []).forEach(function (node) { panelEl.appendChild(node); });
-    actions(spec);
-    if (spec.generate) panelEl.appendChild(spec.generate);
-    if (spec.hint) hint(spec.hint, true);
+    (spec.after || []).forEach(function (node) { behind.appendChild(node); });
+    if (spec.generate) behind.appendChild(spec.generate);
+    if (spec.hint) behind.appendChild(el("p", "hint", spec.hint));
+    if (overlay) panelEl.appendChild(behind);
     fit();
   }
 
@@ -476,9 +519,11 @@ export function createInfoPanel(panelEl) {
     if (!keep) {
       panelEl.textContent = "";
       bookmarkEntry = null;
+      rest = null;
+      expandButton = null;
       if (overlay) panelEl.dataset.state = "rest";
     }
-    panelEl.appendChild(el("p", "hint", text));
+    (keep && rest ? rest : panelEl).appendChild(el("p", "hint", text));
     fit();
   }
 

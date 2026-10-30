@@ -300,6 +300,7 @@ function showPlacedInfo(entry) {
   var relativeDensity = placedRelativeDensity(entry, sceneData.referenceDensityPerLy3);
   showInfo(withRegion({
     title: entry.name || "Unnamed sector",
+    kind: "Sector",
     fields: [
       ["Systems", entry.system_count != null ? entry.system_count : 0],
       ["Density", relativeDensity != null ? relativeDensity.toFixed(2) + "× local average" : null],
@@ -498,6 +499,7 @@ function phenomenonActions(item) {
 function showRegionInfo(blob) {
   showInfo({
     title: blob.name || "Charted region",
+    kind: "Region",
     fields: [
       ["Charted", chartedText(blob.share)],
       ["Sectors generated", blob.sectorCount + " of " + blob.capacity],
@@ -629,6 +631,7 @@ function nearestSystemsNode(systemId) {
 function showInterestSystemInfo(system) {
   var spec = {
     title: system.name || "Star system",
+    kind: "Star system",
     fields: interestLines(system).map(function (line) { return [line.label, line.text]; }).concat([
       ["Distance from core", formatDistancePc(Math.hypot(system.x, system.y, system.z))],
     ]),
@@ -650,6 +653,7 @@ function showInterestSystemInfo(system) {
 function showStarInfo(star, nearby) {
   var spec = {
     title: star.name || "Star",
+    kind: "Star",
     fields: [
       ["Luminosity", formatLuminositySol(star.luminosity_sol)],
       ["Temperature", star.temperature_k != null ? formatNumber(star.temperature_k) + " K" : null],
@@ -3967,7 +3971,8 @@ function initGalaxyMap3d(canvasEl, data) {
         var belt = entry.item.follow.body;     // a belt is not a body to pick: its card says where it is
         showInfo({
           title: entry.item.name || "Asteroid belt",
-          fields: [["Kind", "Asteroid belt"], ["Inner edge", formatDistanceKm(belt.inner_km)], ["Outer edge", formatDistanceKm(belt.outer_km)]],
+          kind: "Asteroid belt",
+          fields: [["Inner edge", formatDistanceKm(belt.inner_km)], ["Outer edge", formatDistanceKm(belt.outer_km)]],
         });
       } else {
         stageView.selectBodyRef(entry.item.bodyRef);   // a body's own symbol picks the body (MAP.321)
