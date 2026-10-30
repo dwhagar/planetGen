@@ -1143,22 +1143,6 @@ with `clamp()`.
   Prerequisites: UX.240, GEN.1070, GEN.1069.
   Design: [docs/design/systems/belt-evolution.md](design/systems/belt-evolution.md)
 
-- [ ] **UX.242 Systems tables: Stars, Objects and Habitable world columns replace the Binary column (All systems table and the search Systems panel)**
-  Boss, 4:45 PM EDT 2026-10-30. PR #4142 (open, merges alone): stars =
-  every row of stars in the system, objects = stars + planets + moons +
-  belts, habitable world = a planet or moon at Yellow or better;
-  /api/systems carries star_count, object_count, has_habitable_world;
-  derived at read time, no migration, no generated output. Its tests
-  were only compiled in the thread container: a lane machine runs
-  scripts/test.py changed --resume, then merges it. Lock-free. Owner:
-  Core 1 (runs the tests and merges; separate from its TEST queue).
-  Boss 5:49 PM EDT 10-30 (priority) (2026-10-30 5:50 PM EDT): Boss has
-  not yet tested the third-star fix and needs this merged first so he
-  can find those systems: top priority for Core 1. He also needs the
-  star count searchable from the search box (UX.239 first slice, same
-  owner).
-  Prerequisites: none.
-
 - [ ] **UX.243 Day-and-night counter on every object page: a clock counting the object's own day at its real rate, with the state word, shown separately from the spin animation speed (spin.js compresses periods onto 20 s to 10 min per turn, stand-in SP1, L4)**
   Boss, 4:47 PM EDT 2026-10-30. The counter reads the state of the
   day-and-night item and counts the object's own day in real time (time
@@ -14481,47 +14465,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.1014. Related: GEN.291, GEN.557, GEN.728.
   Design: [docs/design/systems/interstellar-asteroid-fields.md](design/systems/interstellar-asteroid-fields.md)
 
-- [ ] **GEN.1113 Rogue ejection kick research (D1): read the full texts, extract ejection speed against perturber mass and orbit, direction statistics and moon survival, replace the kick stand-in, test against Sayed et al.**
-  Rogue planet drift and storage (Boss, 5:06 PM EDT 2026-10-30, ejection
-  vector research; design docs/design/systems/rogue-planet-drift.md,
-  goal #4130). Finding: a rogue ejected with a few km/s spreads along
-  the galactic orbit by roughly 1 kpc per 0.5 Gyr, so almost none is
-  near its donor; the recommended storage is virtual donors (each sector
-  draws its own ejection events and runs a closed-form drift, so the
-  rogue lands in the sector where it is, with no real donor needed).
-  Done: report and GEN.725 rows. Lock-free. Where we think it belongs
-  (best guess, can move): Planets 1 (with the rogue review GEN.1109),
-  separate branch.
-  Boss answer (5:29 PM EDT) (2026-10-30 5:31 PM EDT): The kick direction
-  question is answered: isotropic in the origin planet's frame, using
-  the planet's actual movement vector plus the system's motion; check
-  the research for the speed against the perturber and moon survival
-  only.
-  Region study (5:46 PM EDT) (2026-10-30 5:46 PM EDT): Unchanged by the
-  region study; its kick answer is the origin planet's actual motion
-  plus the scattering kick.
-  Owner (5:56 PM EDT) (2026-10-30 5:56 PM EDT): Moved to Aux 7 (built
-  rogue_kick.py; row RK1 names this item), separate branch, together
-  with GEN.1117.
-  Prerequisites: none. Related: GEN.1111, GEN.1109.
-  Design: [docs/design/systems/rogue-planet-drift.md](design/systems/rogue-planet-drift.md)
-
-- [ ] **GEN.1117 Register the rogue drift and kick stand-ins in GEN.725 (D7): the rows of design section 8, each with tier and tweak level and a burn-down line where L3 or L4**
-  Rogue planet drift and storage (Boss, 5:06 PM EDT 2026-10-30, ejection
-  vector research; design docs/design/systems/rogue-planet-drift.md,
-  goal #4130). Finding: a rogue ejected with a few km/s spreads along
-  the galactic orbit by roughly 1 kpc per 0.5 Gyr, so almost none is
-  near its donor; the recommended storage is virtual donors (each sector
-  draws its own ejection events and runs a closed-form drift, so the
-  rogue lands in the sector where it is, with no real donor needed).
-  Done: registry rows and burn-down lines merged. Lock-free (docs).
-  Where we think it belongs (best guess, can move): Whoever builds D1
-  and D2, in the same PRs.
-  Owner (5:56 PM EDT) (2026-10-30 5:56 PM EDT): Moved to Aux 7, in the
-  same PRs as GEN.1113.
-  Prerequisites: none. Related: GEN.1111, GEN.1109.
-  Design: [docs/design/systems/rogue-planet-drift.md](design/systems/rogue-planet-drift.md)
-
 - [ ] **GEN.1119 RP1: classify every architecture loss as ejected, collided or bound by the Safronov number and return an ejection record (mass, composition, kept moons, orbit at ejection, time), counting the small bodies the chain deletes today**
   Rogue planet physics (goal #4130, review report
   docs/design/research/rogue-planet-review.md, GEN.1109 merged).
@@ -14724,53 +14667,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Aux 2 (life), after the life class build, a later train.
   Prerequisites: none. Related: GEN.648, GEN.688, GEN.644.
 
-- [ ] **GEN.1131 Class descriptions for N, K and Q agree with the bodies their rules select**
-  Class sweep (GEN.29, report reports/core4-class-sweep-2026-10-30.md,
-  1,788 bodies; Boss answered 5:51 PM EDT 2026-10-30). Class N says hot
-  and CO2/sulfur dominated but its rule is only 10 bar (only 38 of 105
-  are CO2 or SO2 half or more, 35 have over 30 percent hydrogen, 30 are
-  under 400 K); class K says cold desert but 43 of 44 are ice-covered
-  ocean; class Q says swings between extremes but its line is
-  eccentricity 0.06 (128 bodies, 29 percent of those with air). Boss:
-  yes, edit the descriptions. Do: rewrite the three sentences
-  (tuning.PLANET_CLASSES text, the class pages, the design docs) to say
-  what the rule selects, changing no class and no threshold; Q keeps its
-  line for now (Boss: do not raise it to 0.5 until the Q assessment is
-  read). Done: the sentences match the sample numbers of the report,
-  tests that read the descriptions pass. Lock-free if only text changes
-  (otherwise note generation-output). Where we think it belongs (best
-  guess, can move): Core 4, separate branch.
-  Prerequisites: none. Related: GEN.29, GEN.1132.
-
-- [ ] **GEN.1132 Assess retiring Class Q: what depends on it, which bodies it covers, and whether eccentricity belongs in a separate orbit or climate flag, with a recommendation**
-  Class sweep (GEN.29, report reports/core4-class-sweep-2026-10-30.md,
-  1,788 bodies; Boss answered 5:51 PM EDT 2026-10-30). Boss: "do we even
-  need a Class Q? I'm not sure we should have a class that is basically
-  just an orbit." Do not change Q to 0.5 for now. Do: list every
-  dependence on class Q (tuning rows, life classes, habitability, the
-  class census and tests, pages, the map legend, searches, design docs);
-  the 128 bodies it covers in the 1,788-body sample and what class each
-  would take by composition and conditions if Q were retired (the class
-  follows the finished body, GEN.644 to 648); whether eccentricity
-  swings should become a flag or field on the orbit or climate sheet
-  instead (the seven-band climate of GEN.1108 could carry it); the cost
-  of retiring a letter (all 20 letters stay was Boss's earlier rule,
-  8:16 PM EDT 10-29, so retiring needs his word). Done: a short report
-  with a recommendation and the questions for Boss. Lock-free
-  (research). Where we think it belongs (best guess, can move): Core 4,
-  or a research lane if Core 4 is full.
-  Boss 5:52 PM EDT 10-30 (2026-10-30 5:52 PM EDT): Boss: the planet's
-  orbital information can just store the eccentricity value, and "at a
-  glance" can flag it when it is very high. That points to retiring
-  Class Q and covering the extreme-orbit case with the stored value plus
-  an at-a-glance flag. Fold into the assessment: what depends on Q
-  today, the high-eccentricity threshold for the flag, which bodies the
-  128 Q bodies become, and the epoch impact of retiring the class (the
-  class is derived from the finished body, so the derivation changes; an
-  epoch with --affects). A recommendation to retire Q still needs the
-  Boss word that the 20-letter rule changes.
-  Prerequisites: none. Related: GEN.29, GEN.1131, GEN.1108.
-
 - [ ] **GEN.1133 Rocky rogue planets of 10 to 16 Earth masses come out up to 17,600 km, past class S's 11,468 km top: apply Core 4's recommendation so the size range and the class agree**
   Class sweep (GEN.29, report reports/core4-class-sweep-2026-10-30.md,
   1,788 bodies; Boss answered 5:51 PM EDT 2026-10-30). Boss: yes, apply
@@ -14790,21 +14686,40 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   can move): Core 4, a later train.
   Prerequisites: none. Related: GEN.29, GEN.1111.
 
-- [ ] **GEN.1134 Rogue radiogenic inputs from the ejecting star's composition: the long-lived heat (Th, U, K) and 26Al of an ejected planet from the parent star's stored composition, replacing the sigma 0.22 dex offsets and ROGUE_ACTIVE_HEAT_FLUX_W_M2**
-  Row 12 of the rogue review
-  (docs/design/research/rogue-planet-review.md) was in nobody's RP list,
-  found by Sources 1 after GEN.1112 RP2 to RP7 merged. Do: a pure module
-  that takes the ejecting star's stored composition ([Fe/H] and the
-  alpha and r-process proxies it holds) and the planet's age since
-  formation and gives the radiogenic heat production and the 26Al
-  contribution, using the same source values the bound planets use (so a
-  rogue stays identical to a bound planet); register the stand-ins in
-  GEN.725 and remove the placeholder offsets by the wiring in GEN.1111.
-  Done: tests against the bound-planet value for the same star and a
-  spread within the sourced uncertainty. Lock-free (pure module). Where
-  we think it belongs (best guess, can move): Sources 1, separate
-  branch.
-  Prerequisites: none. Related: GEN.1111, GEN.1119.
+- [ ] **GEN.1135 Retire Class Q: remove the row from planet_classes.json, tuning.PLANET_CLASSES and HABITABLE_PLANET_CLASSES, and show the orbit swing as the stored flux_variation plus an "At a glance" flag when it is very high**
+  Boss, 6:07 PM EDT 2026-10-30: retire Class Q entirely; eccentricity
+  stays in the orbit data with an at-a-glance flag when very high.
+  Assessment: reports/core4-class-q-assessment-2026-10-30.md (GEN.1132).
+  What depends on Q: the Q row of planet_classes.json (name, sentence,
+  basis, flux_variation minimum 0.25, the quantity and the reserve list;
+  the order of rows decides ties, Q sits between N and V);
+  tuning.PLANET_CLASSES['Q'] (read by generation/life.py into
+  planet.description) and tuning.HABITABLE_PLANET_CLASSES (Q is listed);
+  a map colour; the forced-class request; and the tests
+  test_planet_classes (the Q case of the quantity table),
+  test_class_sample (its letter list) and audit/sweep_classes. The 128 Q
+  bodies of the 1,788-body sample go to V 59, K 34, P 22, B 6, F 3, O 3,
+  M 1, so the stored class letter changes for about 7 percent of bodies,
+  plus the description text and habitable_class for B; positions,
+  masses, climates and life do not change. The letter Q stays reserved
+  (the 20-letter rule is changed by Boss: 19 classes in use). Default
+  taken until Boss gives the line: the flag shows a row "Seasonal swing
+  of starlight: very high" in the glance panel of planets and moons only
+  at flux_variation 0.75 or more (4 percent of bodies; 0.5 would flag 12
+  percent, 0.25 would flag 36 percent), with the number on the full
+  sheet as now. Done: row and description removed, flag in the glance
+  panel, tests, golden update, census re-baseline. Lock work (epoch with
+  --affects for the class column and description, golden). Where we
+  think it belongs (best guess, can move): Core 4, in the classes window
+  with the Class M fix (train 9; train 6 if the Class M research reports
+  before its freeze).
+  Class M (6:08 PM EDT) (2026-10-30 6:08 PM EDT): Boss, 6:07 PM EDT:
+  investigate how to fix the Class M problem (Class M never appears: 0
+  of 3,164 bodies in Aux 2's sweep, 1 of 1,788 in Core 4's) since no one
+  knows how rare Earth-type planets are in the actual universe. A
+  research thread is being started by the coordinator; its items are
+  filed when it reports and ride the same window as this item.
+  Prerequisites: none. Related: GEN.1132, GEN.1131, GEN.854.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
