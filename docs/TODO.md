@@ -14888,6 +14888,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   separate commands (reset, plan, sectors, link, scatters, settle...),
   each its own run; jobs.job_runs(job_id) lists several runs and
   job_runner follows the job's processes, not one run. Follows PERF.202.
+  Step 1 merged (Aux 2, #3923, as the lane reported) (2026-10-30 2:49 AM
+  EDT): each single-stage verb (skeleton, scatters, map luminosity,
+  habitability, nebula field, clear scatter, link, backfill, settle,
+  population, territories) builds its run as a followed.Planned and
+  starts it with run_planned; no behaviour or stored-output change, no
+  epoch; new tests/test_planned_runs.py. Next: step 2 (start-time checks
+  into prepare hooks); the item stays open for the later steps
 
 - [ ] **PERF.204 An admin's visit to an uncharted cell queues a one-sector generation run by itself, and the page says queued (the later option 2 of PERF.149 rule 2)**
   Boss (1:19 PM EDT 2026-10-29), asked by Core 5 what a visit to an
