@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 669 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 682 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -36,16 +36,16 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 94 | 2 | 6 | 1 | 0 | 103 |
-| T2 | 98 | 13 | 0 | 1 | 0 | 112 |
+| T1 | 95 | 2 | 6 | 1 | 0 | 104 |
+| T2 | 98 | 14 | 0 | 1 | 0 | 113 |
 | T3 | 74 | 26 | 5 | 9 | 0 | 114 |
-| T4 | 32 | 2 | 0 | 14 | 6 | 54 |
-| T5 | 38 | 12 | 0 | 0 | 0 | 50 |
-| T6 | 53 | 30 | 12 | 33 | 0 | 128 |
+| T4 | 36 | 2 | 0 | 14 | 6 | 58 |
+| T5 | 39 | 12 | 0 | 0 | 0 | 51 |
+| T6 | 58 | 31 | 12 | 33 | 0 | 134 |
 | T7 | 26 | 8 | 8 | 8 | 0 | 50 |
 | T8 | 0 | 1 | 0 | 1 | 2 | 4 |
 | T9 | 4 | 0 | 2 | 29 | 19 | 54 |
-| All | 419 | 94 | 33 | 96 | 27 | 669 |
+| All | 430 | 96 | 33 | 96 | 27 | 682 |
 
 ## How the labels were given
 
@@ -1126,3 +1126,21 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | BR16 | P | T4 | L0 | a belt at the snow line (a pressure bump where rock-rich planetesimals form when the pebble flux is above a critical value in a low-viscosity disc): no rate is read; the origin table keeps its own weight | none | discs with alpha under 1e-3 | a survey of belt radii against the snow line | a disc model with the pebble flux (GEN.1054) | Ida and Guillot 2016 (arXiv:1610.09643, READ), qualitative | - | - |
 | BR17 | P | T9 | L0 | the mass cuts of a belt's ledger: individual bodies above 1e19 kg (about 200 km of rock), reproducible on demand from 1e15 kg (about 10 km) | 1e18 to 1e20 kg; 1e14 to 1e16 kg | every belt and outer disc | not applicable (a storage rule) | a cut from the cost of storing a belt | Boss's rule of 4:27 PM EDT 2026-10-30 (belt-evolution.md section 11) | - | - |
 | BR18 | P | T9 | L0 | the coverage rule of a belt's ledger: store the heaviest bodies until 90 percent of the belt mass is covered, at most 300 bodies per belt | 80 to 95 percent; 100 to 1000 | every belt and outer disc | not applicable (a storage rule) | a cut from the cost of storing a belt | Boss's rule of 4:27 PM EDT 2026-10-30 (belt-evolution.md section 11) | - | - |
+
+## 6.96 Stand-ins of the belt origins
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| BG1 | P | T6 | L0 | belt_origin.GAP_SPACING_K 40, the spacing in mutual Hill radii beyond which the chain has a gap | 25 to 60 | chains the architecture has thinned | a chain with a planet-free stretch of 40 Hill radii or more that the architecture's own spacing law says is normal | the spacing distribution of the architecture census (a gap is a spacing above its 95th percentile) | the thinned chains cluster at 12 to 20 mutual Hill radii (Pu and Wu 2015, as read in the `planet_architecture` text); 40 is twice the top of that | GEN.1092 | - |
+| BG2 | P | T6 | L0 | belt_origin.MIN_BELT_RATIO 1.1, the least outer over inner distance of a belt | 1.05 to 1.3 | every belt | a belt of the ledger narrower than 10 percent in distance | the ledger's own minimum belt width | the ledger keeps `MIN_ASTEROID_BELT_SEPARATION` of 0.05 AU between a belt and a planet; 10 percent is the width at which one stretch is still a ring | GEN.1092 | - |
+| BG3 | P | T6 | L0 | belt_origin.MIN_BELT_MASS_EARTH 1e-6, the least primordial mass of a belt (about 6e18 kg) | 1e-7 to 1e-5 | every belt | a belt of the census with fewer than one body above the individual-tier cut | the cut of row BR17 (1e19 kg) | one body of the individual tier of the ledger (belt-evolution section 3) | GEN.1092 | - |
+| BG4 | P | T4 | L0 | belt_origin.SNOW_BUMP_WIDTH 0.15, the half-width of the snow-line pile-up as a share of the snow line | 0.05 to 0.4 | discs with a quiet snow line | a survey of belt radii against the snow line that finds them outside 15 percent | a disc model with the pebble flux and the viscosity | Ida and Guillot 2016 (row BR16, READ) say a pressure bump forms at the snow line but give no width | GEN.1092 | - |
+| BG5 | P | T1 | L0 | belt_origin.CHAOTIC_ZONE_COEFFICIENT 1.3, the chaotic zone round a giant reaches 1.3 mu^(2/7) times its distance each side | 1.3 to 1.95 | low eccentricity particles | a numerical zone differing from it by more than 20 percent | the eccentricity-dependent width (row BR2) | Wisdom 1980, read in Morrison and Malhotra 2015 (arXiv:1411.1378): half-width c mu^(2/7) a with c = 1.3, and full clearing out to 1.5 to 1.95 (row BR2, Mustill and Wyatt 2012, READ) | GEN.1092 | - |
+| BG6 | D | T5 | L0 | belt_origin.RESONANCES 4:1, 3:1, 5:2, 7:3 and 2:1, the gaps a giant cuts in a belt inside its orbit, at `a_g (q/p)^(2/3)` | none | belts inside a giant | a giant whose belt is cleared at another ratio | a resonance map from an N-body run of the system's giants | Kepler's third law gives 2.06, 2.50, 2.82, 2.96 and 3.28 AU for a giant at 5.2 AU, the Kirkwood gaps | - | - |
+| BG7 | P | T6 | L1 | belt_origin.RESONANCE_HALF_WIDTH 0.015, the half-width of a resonance gap as a share of its distance for a giant of 9.5e-4 of its star, scaling as the square root of the giant's mass ratio | 0.005 to 0.04 | giants of 0.1 to 10 Jupiter masses | a belt whose gaps are more than twice as wide or narrow at the same giant | the resonance width from the pendulum model with the belt's eccentricity | the Kirkwood gaps are about 1 to 3 percent of their distance; the square root is the width of a first-order resonance in the pendulum model | GEN.1092 | - |
+| BG8 | P | T6 | L0 | belt_origin.STIR_ZONE_WIDTHS 3.0, a belt within 3 chaotic half-widths of a giant is stirred by it | 2 to 5 | belts near giants | a belt 3 half-widths out with a flat, cold size distribution | the stirring of the belt's eccentricity from the secular model | Morrison and Malhotra 2015 (read) follow the clearing out to 3.0 mu^(2/7) a | GEN.1092 | - |
+| BG9 | P | T2 | L1 | belt_origin.INSTABILITY_SURVIVAL_RANGE 0.002 to 0.01, the share of the swept stretch a giant that migrated through it leaves, log-uniform | one decade each way | belts of systems whose giants migrated through them | a system with a migration history whose belt is outside the range | N-body migration runs of the system's own giants | row BR4: Walsh et al. 2011 (READ) and Morbidelli et al. 2015 (READ); a Nice type instability alone leaves 0.1 to 0.5 (row BR5), not used until the architecture records instabilities (GEN.1082) | GEN.1092 | - |
+| BG10 | P | T4 | L0 | belt_origin.DESTROYED_RETAINED_SHARE 0.5, the share of a destroyed planet's mass that stays in orbit as a belt | 0.1 to 0.9 | planets destroyed by collision or tide | a collision run of a planet that leaves under 10 percent in orbit | the retained share of `collision_outcome` for the event | no source; the rest is ejected or falls onto the star | GEN.1092 | - |
+| BG11 | P | T6 | L0 | belt_origin.DEBRIS_MIN_WIDTH 0.05, the least half-width of a belt of debris as a share of its distance | 0.02 to 0.2 | belts of debris | a debris belt that stays narrower than 5 percent for a Gyr | the spread from the energy of the event | the relative speed of the pieces is of the order of the escape speed, a few percent of the orbital speed | GEN.1092 | - |
+| BG12 | P | T4 | L0 | belt_origin.COLLISIONAL_DEBRIS_PER_GYR 0.003, the chance per Gyr that a system has a standing belt of rubble from a collision of large bodies (1.3 percent over 4.5 Gyr) | 0.001 to 0.01 | systems of any age | a census of hot or warm dust that needs more than three times the rate | the occurrence of transient dust of the debris-disc surveys | no source; hot dust under 4 AU is thought to come from transient events (Sibthorpe 2018, row BR15) | GEN.1092 | - |
+| BG13 | P | T4 | L0 | belt_origin.COLLISIONAL_DEBRIS_MASS_EARTH 1e-4, the mass of a belt of collision rubble (6e20 kg) | 1e-5 to 1e-2 | collisions of large bodies | a rubble belt of the census well outside the range | the mass of the colliding pair | no source; the size of the family of a Ceres-class parent | GEN.1092 | - |
