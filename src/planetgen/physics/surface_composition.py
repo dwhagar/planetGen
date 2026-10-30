@@ -43,7 +43,7 @@ from dataclasses import dataclass, field
 
 from planetgen import tuning
 from planetgen.generation import possibility_table as pt
-from planetgen.physics import bulk_draw, comet_population, constants, hydrosphere, materials, mixture, saturation
+from planetgen.physics import constants, hydrosphere, ice_species, materials, mixture, saturation
 from planetgen.util import draw
 from planetgen.util.random import log_uniform
 
@@ -529,14 +529,14 @@ def inputs_of(body):
 
 
 def _volatile_shares(body):
-    """The other ices' proportions: a stand-in until the species are stored, the mean comet volatiles (`bulk_draw.RANGES`) of the
-    body's non-water ice, as shares of that ice."""
+    """The other ices' proportions as shares of that ice by materials row: the stored amounts per species (`ice_species`, GEN.834), or for a body
+    saved before them the comet volatiles at the medians (`ice_species.median_shares`); the ices with no row of their own are left out."""
     if not (getattr(body, "ice_mass_fraction", None) or 0.0) > 0.0:
         return {}
-    percent = comet_population.median_volatiles(bulk_draw.RANGES["other_ice_comet_class"])
-    shares = {ICE_ROW_OF_FORMULA[name]: value for name, value in percent.items() if name in ICE_ROW_OF_FORMULA and value > 0.0}
-    total = math.fsum(shares.values())
-    return {name: value / total for name, value in shares.items()} if total > 0.0 else {}
+    shares = ice_species.shares_of(body) or ice_species.median_shares()
+    rows = {ICE_ROW_OF_FORMULA[name]: value for name, value in shares.items() if name in ICE_ROW_OF_FORMULA}
+    total = math.fsum(rows.values())
+    return {name: value / total for name, value in rows.items()} if total > 0.0 else {}
 
 
 def generate_surface(body):

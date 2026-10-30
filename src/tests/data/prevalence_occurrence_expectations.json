@@ -1,5 +1,6 @@
 {
  "anomalies": {
+  "GEN.646": "the class cut-over (GEN.646) builds giants less often at 2 to 8 AU than the California Legacy Survey finds (0.05 of K stars against 0.056 to 0.228); Core 4's combined giants change (GEN.733, GEN.964, GEN.965) is the fix",
   "GEN.728": "stars with a Kepler-like planet are 60 to 70 percent against 30 observed (the count is a uniform integer, not an occurrence law); the number of Kepler-like planets of a host is not drawn from a multiplicity law; planets of 1 to 20 Earth radii per star are not the observed number; planets of 1 to 4 Earth radii per M dwarf are not the observed number"
  },
  "errors": {
@@ -31,6 +32,7 @@
   "F": {
    "measures": {
     "inner_fraction": {
+     "anomaly": "GEN.728",
      "kind": "observed",
      "max": 0.5668,
      "min": 0.1332,
@@ -95,6 +97,7 @@
   "K": {
    "measures": {
     "giants_2_8_au": {
+     "anomaly": "GEN.646",
      "kind": "observed",
      "max": 0.2283,
      "min": 0.0556,

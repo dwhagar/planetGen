@@ -613,4 +613,5 @@ def test_regression_api_key_non_string_label_is_a_400(admin_client, label):
 def test_shared_admin_client_still_logged_in(admin_client):
     """Guards the module's other tests: nothing above logged the shared
     client out or rotated its credentials."""
-    assert admin_client.get(_ME).get_json() == {"username": ADMIN_USERNAME, "must_change_credentials": False}
+    me = admin_client.get(_ME).get_json()
+    assert me["username"] == ADMIN_USERNAME and me["must_change_credentials"] is False

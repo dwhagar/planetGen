@@ -9,7 +9,7 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | kind | name | item | reason |
 |---|---|---|---|
 | dataset | harris_clusters | GEN.297 | the Harris catalog of 157 globular clusters; the calibration of the cluster generator reads it |
-| dataset | noaa_proton_events | GEN.747 | the 265 NOAA solar proton events; the solar particle event model fits its rate and slope to them |
+| dataset | noaa_proton_events | GEN.805 | the 265 NOAA solar proton events; the solar particle event model fits its rate and slope to them |
 | dataset | baraffe_isochrones | GEN.936 | the Baraffe 2015 isochrones; the 0.08 to 0.1 solar mass main sequence (GEN.936) and the brown dwarf radius by age (GEN.948) read them |
 | dataset | hitran_cia | GEN.850 | the HITRAN collision-induced absorption is reduced at setup and read by `line_opacity`, which the greenhouse step does not call yet |
 | dataset | ir_ktables | GEN.850 | the ExoMol correlated-k tables are reduced at setup and read by `line_opacity`, which the greenhouse step does not call yet |
@@ -37,9 +37,9 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | module | planetgen.physics.design_flags | GEN.524 | gates the trace rows `mixture_trace` draws |
 | data | design_flags.json | GEN.524 | read by `physics/design_flags.py` only |
 | module | planetgen.physics.equilibrium_edges | GEN.994 | the edges of the hot-Jupiter chemistry regimes, sourced and wired with the hot-giant thermochemistry |
-| module | planetgen.physics.ground_albedo | GEN.462 | the colour of the ground by band, wired by the ground albedo item |
+| module | planetgen.physics.ground_albedo | GEN.684 | the colour of the ground by band, wired by the ground albedo item |
+| module | planetgen.physics.giant_dynamo | GEN.809 | the dynamo region and field of a giant from its interior layers (lock-free); the wiring step has `magnetism.generate_field` take a giant's moment from it in place of the three anchors, once the structure of GEN.733 has placed an ice giant's layers (GEN.967 wires `dynamo` for the rest) |
 | module | planetgen.physics.outside_hours | GEN.768 | the hours a person can be outside in a day, stored per planet by the item |
-| module | planetgen.physics.surface_dose | GEN.444 | the ground-level dose kernels, wired by the surface radiation item |
 | module | planetgen.physics.radiation_belts | GEN.983 | trapped radiation belts of a magnetised body, read when the stored magnetosphere reaches dose |
 | module | planetgen.galaxy.influence | GEN.342 | the influence set of an object, read by the acceleration kernel of the orbital update |
 | module | planetgen.physics.closest_approach | GEN.197 | the pair closest-approach library, read by the orbital event writer |
@@ -51,10 +51,10 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | module | planetgen.generation.class_sample | by design | a sample that holds every class, a helper of the sheet audit tests |
 | module | planetgen.generation.plausibility | by design | the anomaly finder engine; run by the plausibility tests and their command line wrapper in `src/tests` |
 | module | planetgen.generation.phenomena_plausibility | by design | the exotic-phenomena counterpart of the anomaly finder, run by its tests |
-| data | ngpps_formation_water.json | by design | the binned Bern synthesis shares that `test_water_delivery` and `test_atmosphere_recipes` hold the delivered water to |
 | row | 6.7:AM18 | GEN.524 | `mixture_trace.ABUNDANCES`, not drawn until the trace gases are wired |
 | row | 6.8:OH8 | GEN.768 | `protection_limits.GARMENTS` insulation, read by `outside_hours` |
 | row | 6.8:OH9 | GEN.768 | `protection_limits.GARMENTS` cooling and heating power, read by `outside_hours` |
+| row | 6.8:OH11 | GEN.768 | `outside_hours.LOCKED_BELT_LIGHT_HOURS`, read by `outside_hours.for_body`, which nothing calls until the stored columns are wired |
 | row | 6.10:RV2 | by design | `radius_valley.CORE_MASS_SIGMA`, a width of the simulated survey, read by the tuning tests |
 | row | 6.10:RV3 | by design | `radius_valley.ENVELOPE_SIGMA`, a width of the simulated survey, read by the tuning tests |
 | row | 6.15:RB1 | GEN.983 | `radiation_belts.WIND_EDGE_FRACTION`, read when the belts are |
@@ -130,7 +130,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.44:MG1 | GEN.475 | `meteorite_groups.CHONDRITE_GROUPS`, read when the wiring step lands |
 | row | 6.44:MG2 | GEN.475 | `meteorite_groups.AXIS_SCALES, NEAREST_LIMIT`, read when the wiring step lands |
 | module | planetgen.physics.rock_types | GEN.474 | the CIPW norm, the staged melt of a rock and the ground type of its oxides (lock-free); the wiring step has the surface draw take the crust from the stored mantle through it, replacing the fixed assemblages of `surface_composition.GROUND_TYPES` |
-| module | planetgen.physics.acid_medium | GEN.888 | the sulfuric acid cloud layer and pool reader; `habitability_world.values_from_body` adds `acid_medium` and the Class 5 and 9 rules read it once the wiring rides train 2 |
 | row | 6.45:RT1 | GEN.474 | `rock_types.MELT_STAGES`, read when the wiring step lands |
 | row | 6.45:RT2 | GEN.474 | `rock_types.ANORTHOSITE_PLAGIOCLASE, ULTRABASIC_SILICA, KOMATIITE_MAGNESIA, BASIC_SILICA, ACID_SILICA`, read when the wiring step lands |
 | row | 6.45:RT3 | GEN.474 | `rock_types.INCOMPATIBLE_D`, read when the wiring step lands |

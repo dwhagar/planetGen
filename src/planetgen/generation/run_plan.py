@@ -332,11 +332,13 @@ def plan_skeleton_unit(params, report):
         built = planOutline.build(shape_args, galaxy_seed, edge_pc, reach_shell_index)
         shape, drawn, found, young, dwarfs = built.shape, built.drawn, built.clusters, built.young, built.satellites
         say(
-            f"Building skeleton: edge_pc={edge_pc:g} stellar_mass={drawn.chain.stellar_mass_solar:.3g} ({drawn.stage}-type) "
-            f"disk_scale_length_pc={shape.disk_scale_length_pc:.0f} disk_scale_height_pc={shape.disk_scale_height_pc:.0f} "
-            f"bulge_scale_radius_pc={shape.bulge_scale_radius_pc:.0f} bulge_to_total={drawn.bulge_to_total:.3f} "
-            f"arm_count={shape.arm_count} pitch_angle_deg={drawn.pitch_angle_deg:.1f} "
-            f"k_norm={shape.k_norm:.4f} threshold_rho={threshold_rho:.6f}"
+            f"Building skeleton: edge {edge_pc:g} pc, stellar mass {drawn.chain.stellar_mass_solar:.3g} solar masses "
+            f"({drawn.stage}-type), disk scale length {shape.disk_scale_length_pc:.0f} pc, "
+            f"disk scale height {shape.disk_scale_height_pc:.0f} pc, "
+            f"bulge scale radius {shape.bulge_scale_radius_pc:.0f} pc, bulge-to-total mass ratio {drawn.bulge_to_total:.3f}, "
+            f"{shape.arm_count} spiral arms, pitch angle {drawn.pitch_angle_deg:.1f} degrees, "
+            f"density normalisation {shape.k_norm:.4f} (a factor, no unit), "
+            f"lowest density kept {threshold_rho:.6f} x the local average"
         )
         say(f"{dials.describe_pins(shapeDraw.pins_of(shape_args, shape.disk_scale_length_pc))}.")
         with timer.step("the report lines (pins, halo, outline)"):
@@ -359,8 +361,8 @@ def plan_skeleton_unit(params, report):
         conn.close()
     with timer.step("the system counts of the 'Drew' line"):
         say(f"Drew {len(found):,} globular clusters holding {sum(c.expected_systems for c in found):,.0f} systems, "
-            f"{len(young):,} young open clusters holding {sum(c.expected_systems for c in young):,.0f} "
-            f"and placed {len(dwarfs):,} satellite galaxies holding {sum(c.expected_systems for c in dwarfs):,.0f}.")
+            f"{len(young):,} young open clusters holding {sum(c.expected_systems for c in young):,.0f} systems "
+            f"and placed {len(dwarfs):,} satellite galaxies holding {sum(c.expected_systems for c in dwarfs):,.0f} systems.")
 
     extents, outer_shell_index, edge_confirmed = built.extents, built.outer_shell_index, built.edge_confirmed
     elapsed = built.elapsed_s
@@ -805,48 +807,16 @@ class _ShellTracker:
 CHANNEL_INTERVAL_SECONDS = 0.25
 """float: How often a worker drawing a task reports its stars (PERF.4)."""
 
-CHUNKS_PER_WORKER = 32
-"""int: About how many tasks of equal expected work a scatter is cut into for each worker, so that no worker is left
-with a big one at the end while the others sit idle."""
-
 MAX_SHELLS_PER_CHUNK = 64
 """int: The most consecutive shells one task draws, so the progress moves steadily at the thin edge of the galaxy,
 where thousands of shells hold almost nothing."""
-
-
-def shell_chunks(rows, workers):
-    """
-    Cuts the outline into tasks of consecutive shells with about equal
-    expected work. A shell draws from a stream of its own, so how the shells
-    are grouped changes nothing in what is drawn; only how well the workers
-    are kept busy.
-
-    Args:
-        rows (list): `(shell_index, high_band, weight)`, innermost shell first.
-        workers (int): How many workers share the run.
-
-    Returns:
-        list[list]: The rows of each task, the heaviest task first.
-    """
-    total = sum(weight for _shell, _high, weight in rows)
-    target = total / max(workers, 1) / CHUNKS_PER_WORKER
-    chunks, current, weight = [], [], 0.0
-    for row in rows:
-        current.append(row)
-        weight += row[2]
-        if weight >= target or len(current) >= MAX_SHELLS_PER_CHUNK:
-            chunks.append(current)
-            current, weight = [], 0.0
-    if current:
-        chunks.append(current)
-    return sorted(chunks, key=lambda chunk: -sum(row[2] for row in chunk))
 
 
 def static_shell_chunks(rows):
     """
     The units of a scatter on the new queue (PERF.97): the outline cut into runs of consecutive shells of about
     equal expected work, from the rows alone (`units.static_chunks`), so the same galaxy is the same units at any
-    worker count. The heaviest unit first, as `shell_chunks`.
+    worker count. The heaviest unit first.
 
     Args:
         rows (list): `(shell_index, high_band, weight)`, innermost shell first.
@@ -2037,6 +2007,9 @@ def _nebula_field_task(payload):
     return {"written": written, "counts": counts, "shells": shells}
 
 
+SKELETON_NEVER_BUILT = "The galaxy's skeleton has never been built -- run 'planetgen plan' first."
+"""str: What a stage that needs the plan says when the galaxy has none (said when the stage opens, PERF.203)."""
+
 NEBULA_DRAW_KEY = "nebula-draw"
 """str: The key of the step that draws the nebula field: a step of a run of its own, not a stage the plan lists."""
 
@@ -2056,7 +2029,7 @@ def expand_draw_nebula_field(params):
     """
     The `draw-nebula-field` command's stage (PERF.106, DB.24): a unit per first-index slab of the field's cells (a run of
     consecutive slabs per unit in a galaxy with more than `units.MAX_UNITS` of them, PERF.192), from the stored galaxy
-    alone. `detail` holds the cell edge, so a follower can name a slab's extent.
+    alone. `detail` holds the cell edge, so a follower can name a slab's extent. A galaxy with no outline has no unit.
     """
     conn = store.get_connection(_mysql_config_of(params))
     try:
@@ -2064,6 +2037,10 @@ def expand_draw_nebula_field(params):
         extents = _outline(conn)
     finally:
         conn.close()
+    if skeleton is None:
+        raise RuntimeError(SKELETON_NEVER_BUILT)
+    if not extents:
+        return commands.Expansion([], {"cell_pc": program_constants.NEBULA_FIELD_CELL_PC, "slabs": 0})
     outer_shell = max(shell for shell, _high in extents)
     radius_pc, half_height_pc = nebulaField.field_extent_pc(skeleton.edge_pc, extents)
     edge = program_constants.NEBULA_FIELD_CELL_PC
@@ -2166,10 +2143,20 @@ class NebulaFieldFollower(followed.Follower):
 
 
 def prepare_draw_nebula_field(params):
-    """The `prepare` of the `draw-nebula-field` command (PERF.172), when its stage opens: empties the earlier table."""
+    """
+    The `prepare` of the `draw-nebula-field` command (PERF.172), when its stage opens: empties the earlier table. A galaxy with
+    no outline has nothing to draw and nothing is emptied (PERF.203, checked here and not when the run starts, because an
+    earlier stage of the same run may be what builds the plan).
+
+    Raises:
+        RuntimeError: The galaxy's skeleton has never been built.
+    """
     conn = store.get_connection(_mysql_config_of(params))
     try:
-        store.clear_nebula_field(conn)
+        if store.get_galaxy_shape(conn) is None:
+            raise RuntimeError(SKELETON_NEVER_BUILT)
+        if _outline(conn):
+            store.clear_nebula_field(conn)
     finally:
         conn.close()
 
@@ -2183,6 +2170,8 @@ def conclude_draw_nebula_field(params, plan, results, seconds):
     Returns:
         dict: `linked` (nebulae linked) and `blocks` (block totals made).
     """
+    if not plan["slabs"]:
+        return {"linked": 0, "blocks": 0}
     conn = store.get_connection(_mysql_config_of(params))
     try:
         store.record_scatter_epoch(conn, "nebula-field", params.get("run_id"))
@@ -2632,15 +2621,13 @@ def redraw_nebula_field(args):
     Returns:
         int: The rows written (0 for a galaxy with no outline).
     """
-    conn = store.get_connection(store.mysql_config_from_args(args))
     try:
-        if store.get_galaxy_shape(conn) is None:
-            raise RuntimeError("The galaxy's skeleton has never been built -- run 'planetgen plan' first.")
-        if not _outline(conn):
-            return 0
-    finally:
-        conn.close()
-    return followed.run_planned(args, planned_nebula_field(args))
+        return followed.run_planned(args, planned_nebula_field(args))
+    except units.RunStopped as exc:
+        marker = "RuntimeError: "
+        if marker not in str(exc):
+            raise
+        raise RuntimeError(str(exc).split(marker, 1)[1]) from exc
 
 
 def planned_nebula_field(args):

@@ -477,6 +477,13 @@ def get_system(db, system_id):
     return _request(f"/systems/{system_id}", {"db": db})
 
 
+def get_life_air(db, kind, body_id):
+    """Returns `GET /api/planets/<id>/life-air` (or `moons`)'s `{id, life_class_id, life_air}`: the data of the Life and air chart,
+    `life_air` being `None` when the body has nothing to chart (UX.237)."""
+    _require_db(db)
+    return _request(f"/{kind}s/{body_id}/life-air", {"db": db})
+
+
 def get_system_text(db, system_id, fmt):
     """Returns `GET /api/systems/<id>/text`'s `{id, format, content}` --
     the system's description as `fmt` (`"markdown"` or `"text"`)."""
@@ -568,14 +575,6 @@ def get_galaxy_made(db, since, until=None):
     if until is not None:
         params["until"] = until
     return _request("/galaxy/made", params)
-
-
-def get_galaxy_phenomena(db):
-    """Returns `GET /api/galaxy/phenomena`'s `items` list (every
-    galaxy-placed nebula/asteroid field) -- see `db.query.
-    galaxy_placed_phenomena`'s docstring for the shape."""
-    _require_db(db)
-    return _request("/galaxy/phenomena", {"db": db})["items"]
 
 
 def get_galaxy_shape(db):

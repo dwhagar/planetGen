@@ -127,7 +127,7 @@ def _system(seed):
 
 @_pytest.mark.parametrize("seed", [1, 2, 3])
 def test_a_star_is_read_back_as_the_dict_it_was_written_from(seed):
-    star = _system(seed).star
+    star = _system(seed).primary_star       # a binary pair is saved as its two stars, not as the proxy that stands for both
     row = _stored(store.STAR_FIELDS, star, _STAR_CONTEXT)
     loaded = store._star_row_to_dict(row, 12.5)
     assert loaded["galactic_orbital_speed_kms"] == 12.5

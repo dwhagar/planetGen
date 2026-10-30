@@ -261,3 +261,28 @@ def test_a_nebula_field_unit_of_several_slabs_draws_what_a_unit_per_slab_draws(m
     result = commands.run_alone("draw-nebula-field", {**single[0], "i": start, "count": 3})
     assert result["count"] == 3 and [drawn["slab"] for drawn in result["drawn"]] == [start, start + 1, start + 2]
     assert wanted(_table(mysql_config)) == expected
+
+
+# --- PERF.203: the nebula field's start-time checks run when its stage opens ------------------------------------------
+
+def test_redrawing_the_field_still_refuses_a_galaxy_with_no_skeleton(mysql_config):
+    with pytest.raises(RuntimeError, match="skeleton has never been built"):
+        run_plan.redraw_nebula_field(_scatter_args(mysql_config))
+
+
+def test_redrawing_the_field_of_a_galaxy_with_no_outline_writes_nothing_and_keeps_the_table(mysql_config):
+    _seed_galaxy(mysql_config)
+    run_plan.scatter_phenomena(_scatter_args(mysql_config))
+    kept = _table(mysql_config)
+    assert kept
+    store.replace_galaxy_shells([], config=mysql_config)
+    assert run_plan.redraw_nebula_field(_scatter_args(mysql_config)) == 0
+    assert _table(mysql_config) == kept
+
+
+def test_the_field_can_follow_another_stage_in_the_same_run(mysql_config):
+    from planetgen.generation import followed
+    _seed_galaxy(mysql_config)
+    args = _scatter_args(mysql_config)
+    followed.run_followed(args, [run_plan.HabitabilityFollower(args), run_plan.NebulaFieldFollower(args)], "Two verbs")
+    assert _table(mysql_config)

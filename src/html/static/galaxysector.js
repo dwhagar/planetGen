@@ -388,6 +388,8 @@ export function createSectorStage(host) {
     deselect: deselect,
     // The open sector's entry with this key ("rogue_planet:12"), or null.
     entryByKey: function (key) { return live() ? open.sector.entryByKey.get(key) || null : null; },
+    // The kind (one of KINDS' keys) of an entry of the scene.
+    kindOf: kindOf,
     // The kinds of object in the open sector, [{kind, label, count}] (MAP.79).
     kinds: function () { return live() ? open.sector.kinds() : []; },
     setKindHidden: setKindHidden,

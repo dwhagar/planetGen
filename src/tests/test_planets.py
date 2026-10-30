@@ -19,7 +19,7 @@ from planetgen.generation.planet import Planet
 from planetgen.generation.star import Star
 from planetgen import tuning as prog_c
 from planetgen.physics import constants, planet_classes
-from planetgen.generation import life as planetLife
+from planetgen.generation import habitable_request, life as planetLife
 from tests import class_support
 
 ZONE_CHARS = "hec"
@@ -154,7 +154,7 @@ def test_habitable_world_false_forbids_habitable_classes_in_ecosphere(host_star)
     distance = distance_for_zone(host_star, 'e')
     for seed in range(15):
         planet = class_support.draw_planet(host_star, distance, seed, cfg)
-        assert planet.planet_class not in prog_c.HABITABLE_PLANET_CLASSES
+        assert not habitable_request.meets(planet)         # GEN.916: the bar is on the conditions of a habitable world, not a class letter
 
 
 @pytest.mark.parametrize("zone", list(ZONE_CHARS))
@@ -167,7 +167,7 @@ def test_fully_random_planet_respects_zone_and_habitable_world(host_star, zone, 
         planet = class_support.draw_planet(host_star, distance, seed, cfg)
         assert planet.zone == zone
         if habitable_world is False and zone == 'e':  # the bar is on the ecosphere; a hot or cold body's conditions are its own
-            assert planet.planet_class not in prog_c.HABITABLE_PLANET_CLASSES
+            assert not habitable_request.meets(planet)
 
 
 def test_a_moon_keeps_its_orbit_around_its_parent(host_star):

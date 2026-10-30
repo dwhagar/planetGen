@@ -141,3 +141,18 @@ def test_a_class_that_breathes_oxygen_but_makes_none_stops_at_photosynthesis_in_
 def test_the_first_light_comes_earlier_for_a_simpler_way_of_harvesting_it():
     """The first-step scale keeps anoxygenic photosynthesis (Class 2) before the oxygenic kind (Class 1)."""
     assert life_classes.describe("2").life["first_step_scale"] < life_classes.describe("1a").life["first_step_scale"]
+
+
+def test_the_life_log_lines_say_what_their_numbers_are(monkeypatch):
+    """API.33: the complexity and the schedule a world logs name their units (an index is a share of Earth's, ages are Gyr)."""
+    from planetgen.util import log
+    lines = []
+    monkeypatch.setattr(log, "choice", lambda description, chosen, reason: lines.append((description, str(chosen), reason)))
+    for body in _bodies(60, HABITABLE_WORLD=True):
+        if body.life_class:
+            break
+    complexity = [line for line in lines if line[0] == "Life complexity"]
+    schedule = [line for line in lines if line[0] == "Evolutionary schedule"]
+    assert complexity and schedule
+    assert all("Earth's net primary production" in chosen and "of 3" in reason for _, chosen, reason in complexity)
+    assert all(part.strip().endswith("Gyr") or part.strip() == "never" for _, chosen, _ in schedule for part in chosen.split(","))

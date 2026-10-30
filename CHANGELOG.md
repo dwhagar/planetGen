@@ -2,6 +2,247 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2665] - 2026-10-30
+
+**Headline:** A request for a habitable world now gets a temperate world with air and a sea in nearly every system (a temperate sea world was present in 5 of 30 G2V systems before and 30 of 30 now), and the class of a world with life always matches the air it ends up with.
+
+### Changed
+- **A habitable request asks for conditions, not a class letter (GEN.916).** `generation/habitable_request.py`: a planet or moon meets the request when its solved surface is 273 to 323 K, its air at least 10 kPa and its water a surface ocean. The system retry, the forced and natural habitable slots, `build_planet` and the redraw that bars habitable worlds (`HABITABLE_WORLD` False) use it. The classes that "can carry life" included a hot reducing world, a glaciated one and a carbon dioxide one, so the letter was no test. The request is judged again on the finished bodies after the life pass (life changes the air and so the climate), and an unmet request says so in `unmet_requirements`.
+- **The orbit of a habitable request is aimed by the climate the draw solved (GEN.911).** After two misses, each next draw goes to where the star's light would give 298 K (the distance goes as the square of the ratio of temperatures), kept inside the zone; the solve decides what each draw is. With the request on, 30 systems each: a temperate sea world is present in G2V 5 to 30 and K5V 2 to 28; the PHI-6 answer (aim/fallback/unmet) moved G2V 0/8/22 to 0/10/20 and K5V 0/5/25 to 2/13/15, because air and radiation, not climate, limit it now. Registry rows CC11 and CC12.
+- **A stored class always matches the air it ends with (GEN.980).** The gas ledger of epoch 122 changes the air of hydrogen-eating (Class 3) worlds after their class was derived, so 25 of 2,835 bodies in a 120-system scan kept the class of the air before life. The class is now derived again after life changes the air.
+- **Planet porosity (TEST.461).** `planets.porosity` is never written because a planet starts at the mass a body stops being a heap of grains; the round-trip test now says so and names GEN.780, which fills surface and crust porosity. No schema change.
+
+generation-output: changed
+
+TODO items resolved: GEN.916, GEN.911, GEN.980. Added: stand-in registry rows CC11 and CC12.
+
+## [8.0.2664] - 2026-10-30
+
+**Headline:** Acid-world, ammonia-water and silicon-in-acid life can now arise on worlds whose conditions fit, and sulfur, acid and cold-hydrogen life now change the air.
+
+### Changed
+
+- GEN.894: Classes 5, 8 and 9 now read real quantities instead of waiting for them. A world holds the acid medium of Classes 5 and 9 when its air makes a sulfuric acid cloud layer or pool (GEN.888); Class 8 reads the ammonia of its water, worked out from its ice and water shares; Class 9 also needs a silicon-rich crust (rock Mg/Si at or under 1). The acid classes get a reduced-sulfur supply from the air's sulfur dioxide, and the pool class (5b) and Class 9 need a pool, not just a cloud layer.
+- The gas ledger of sulfur-eating life (Class 4) and acid-eating life (Classes 5 and 9) now draws hydrogen sulfide down, and the acid eaters turn it into sulfur dioxide; Class 7 draws hydrogen down and makes methane of it. These are stand-in numbers, each with a tier and tweak level in the registry (LF61 and LF62).
+- Changes generated worlds (a new generator epoch); the quantities are worked out, nothing new is stored.
+
+## [8.0.2663] - 2026-10-30
+
+**Headline:** A rocky planet's own water now follows the same delivery law as its air: more water the farther from the star and the heavier it is.
+
+### Changed
+- **GEN.849: a rocky body's bulk water is drawn from the Bern delivery model (`physics/delivered_water`).** The body takes a water class (dry, low, high or rich) from the law the atmosphere recipes b1 to b4 already read, by its mass and the snow lines it formed at, then a log-uniform share inside the class (the rich class runs from 10 percent to a cap of 50 percent of its mass). It replaces the old 97 percent dry range and 3 percent of ocean-world draw, which did not look at the planet's mass or how near the snow line it formed. A rocky planet formed close to the star is now mostly dry and more of those formed near the snow line hold an ocean's worth or more. Bodies beyond the snow line keep their ice-and-rock range. `tuning.DRY_WATER_MASS_FRACTION` and `WATER_WORLD_*` are gone; the registry rows are CC3 (the icy range) and DW1 to DW3.
+
+generation-output: changed
+
+## [8.0.2662] - 2026-10-30
+
+**Headline:** Every temperature on a world's page now shows the day and night range of its own place.
+
+### Changed
+- **GEN.848: a day and night swing is stored for every place that has a temperature.** Until now only the equator had one, so the polar, northern, southern and mean temperatures read "no day and night range stored for this place". Seven new columns on planets and moons (`temp_polar_swing_k`, `temp_north_swing_k`, `temp_south_swing_k`, `temp_mean_swing_k`, `temp_day_side_swing_k`, `temp_terminator_swing_k`, `temp_night_side_swing_k`; migration, schema v182) hold them. A band's swing is the equator's cut by the cosine of its latitude (the daily variation of the sunlight, which the ground and air carry linearly), the mean swing is the area-weighted mean of the bands, and a tidally locked world, which turns once an orbit and has no day, stores 0 for its three zones and says so on its page. The regions object of the API gains the same swings by name (`polar_swing`, `mean_swing`, ...). The climate sentence already states the equator's low and high and agrees with the page; it is unchanged.
+- **Migration 0182 adds the columns empty;** a galaxy made earlier gets them when it is regenerated.
+
+generation-output: changed
+
+## [8.0.2661] - 2026-10-30
+
+**Headline:** A body's frozen gases are now stored one by one, so a page can say how much of its ice is carbon dioxide, methane, nitrogen or ammonia.
+
+### Changed
+- **GEN.834: the ice that is not water is stored by species.** A planet or moon now keeps eight amounts, each a share of its whole mass: carbon dioxide, methane, ammonia, nitrogen, sulfur dioxide, carbon monoxide and hydrogen cyanide ice, and the rest (ethane, methanol, formaldehyde, hydrogen sulfide). They add up to the ice mass fraction it already held. A body formed beyond the snow line keeps the split of the comet volatiles it drew; a moon, giant or small body whose ice was not drawn species by species takes the comet medians (registry row IS1). The ground draw reads the stored split instead of the medians, the sheet lists the eight amounts under Composition, and the object page's mass table lists each one above zero as a part of the ice. Migration adds the eight columns, empty for a galaxy made before; a regenerated galaxy fills them.
+
+generation-output: changed
+
+## [8.0.2660] - 2026-10-30
+
+**Headline:** A cold moon that holds its water as ice is covered by the ice it holds, not by a toy ocean cover.
+
+### Changed
+- **GEN.833: the ground draw of a frozen body reads the real ice cover.** A body in the state `ice` or `ice-covered ocean` now stores as its ocean fraction the cover of all the water it holds at ice's density (`hydrosphere.frozen_cover`), with the relief capped at 10.5 km (observed icy relief is a few to 20 km at any gravity), not the cover of the part of its water a liquid ocean would have had. A 200 km moon with a fifth of its mass as water used to draw bare basalt over two thirds of its surface under a 130 km ice shell and is now all ice; a rocky world with little water keeps a partial cover. The planets and moons whose results move are the ones in those two states below Earth's gravity or with mantle-buffered water.
+
+generation-output: changed
+
+## [8.0.2659] - 2026-10-30
+
+**Headline:** Rocky planets are born spinning more slowly, so a free planet's day is now typically 7 hours instead of 3 and a Mars-sized planet can turn in a day.
+
+### Changed
+- **Birth spin retune, the interim of GEN.953.** The width of the Gaussian components of a rocky planet's birth spin (Kokubo and Genda 2010) is scaled by 0.4, and a planet under 0.3 Earth masses is slowed further in proportion to its mass. The median free day of a planet of 0.1 to 5 Earth masses goes from 2.9 hours to about 7 hours (Vesta 5.3 h, Ceres 9.1 h, the Earth after the Moon-forming impact about 5 h), more planets are tide-locked and the day and night swing, daylight and work-day readers move with the day. The random stream does not move (three Gaussian draws as before); values do. Registry rows SP11 and SP12 (tweak level L3) name Kokubo and Genda equation 4 with the last-impact mass-ratio law (GEN.978) as their replacement in GEN.979.
+
+generation-output: changed
+
+## [8.0.2658] - 2026-10-30
+
+**Headline:** Two of the slowest tests finish in minutes (the pulsar fill test from 93 minutes to 73 seconds, the single-sector backfill test from 15 minutes to 2).
+
+### Fixed
+
+- **The pulsar fill test no longer draws the toy galaxy's thousands of first-fill stars (TEST.417).** `test_a_saved_fill_stores_the_pulsar_systems_and_marks_every_scatter_row_built` filled the busiest cell with the first fill (GEN.633) on, as the two other scatter tests already skip it (`first_fill.without_the_deepest_floor`); it took 5586 s and now takes 73 s. It still checks that the pulsar systems are stored and that every scatter row is marked built.
+- **The single-sector backfill test fills shell 30, not the dense shell 4 (TEST.417).** The two sector fills took 15 minutes near the centre and take two minutes there. It still checks that a sector filled with `backfill=False` leaves the backfill to the end of the run and that the next one calls it once.
+
+## [8.0.2657] - 2026-10-30
+
+**Headline:** INSTALL.md now says to raise MySQL's redo log capacity on a machine that runs the full test gate.
+
+### Changed
+
+- DOC.73: INSTALL.md names `innodb_redo_log_capacity`, the value (2 GB instead of the 100 MB default, in `mysqld.cnf` or with `SET GLOBAL` on MySQL 8.0.30 and later) and why (under the parallel gate the log checkpointer lags and tests can lose their connection), in the requirements and in the development setup. Documentation only.
+
+## [8.0.2656] - 2026-10-30
+
+**Headline:** The README now lists every external data file the program needs, with its URL and how to install it, and a test keeps the list complete.
+
+### Changed
+
+- DOC.72: the README has an "External files" section: every dataset the setup step downloads (ten sets, 62 files) with its source, the exact URLs, the cache folder (`/var/cache/planetgen/datasets` or `PLANETGEN_DATA_DIR`), the fetch command, what it replaces and the labelled fallback `--disregard-missing-data` uses, plus how to see where each stands, what a bulk run does when a file is missing (it refuses, naming the set, the URLs and the setup command, unless told to disregard missing data), and how to install a set by hand on a machine with no network. The list is written from the catalogue by `scripts/readme_external_files.py --write`, and `src/tests/test_readme_external_files.py` fails when a dataset or URL is added or changed without it, or when the statements no longer match the code. The deployment guide links to it. The program reads no other external file, so nothing is provided by hand. Documentation and a check only: no stored value changes.
+
+## [8.0.2655] - 2026-10-30
+
+**Headline:** The limit on the nightly update's local offset is written down and pinned by a test.
+
+### Changed
+
+- TEST.200: the orbital-updates design note says how good the offset stored after a nightly rotation is (one unit in the last place of the absolute coordinate: 28 km at the Sun, 898 km of rounding at the 262 kpc reach, 3.4e5 to 1.1e7 times below the smallest stored move) and what to do if generating anywhere needs finer offsets. tests/test_local_offset_limit.py pins it at 8, 26 and 262 kpc over random centres, offsets, rotations up to a whole orbit and landing sectors; the worst error found is exactly one ulp. Tests and documentation only: the update and every stored value are unchanged.
+
+## [8.0.2654] - 2026-10-30
+
+**Headline:** New tests show the stored block totals do not depend on the order the sectors are added in.
+
+### Changed
+
+- TEST.201: tests/test_block_stats_order.py adds the same generated sectors to the block sums in several random orders (`block_stats.accumulate`), through a rebuild on a database whose sectors were inserted in each order, and as one block of 3000 terms spanning six decades. The counts must be identical and the real sums (expected systems, age, luminosity, mass) within a relative 1e-12, the error of a 64-bit sum of this many terms. All pass, so the totals are order independent within that bound; compensated sums stay with GEN.109. Tests only: no stored value changes.
+
+## [8.0.2653] - 2026-10-30
+
+**Headline:** The command line and the run log now say what every number they print counts or measures.
+
+### Changed
+- **The skeleton line of a plan run** reads "Building skeleton: edge 12000 pc, stellar mass 5.2e10 solar masses, disk scale length 2600 pc, ... 4 spiral arms, pitch angle 12.3 degrees ..." instead of `edge_pc=` and `k_norm=` style pairs, and the three counts of the "Drew" line each end in "systems".
+- **`planetgen near`** ends with "5 objects found within 10 pc; 3 more objects in range are not generated yet", and **`planetgen planets` and `planetgen moons`** end a page with "100 planets shown" or "100 moons shown" before the `--after` to carry on with.
+- **The verbose log of a world's life** gives its complexity as "x Earth's net primary production" with the yield, rate factor and grade as "of 1" and "of 3", and its schedule as ages in Gyr.
+
+## [8.0.2652] - 2026-10-30
+
+**Headline:** New tests hold each kind's system chance to its table, and keep planets and moons out of a scatter row before its sector fills.
+
+### Changed
+
+- TEST.161: tests/test_fill_pass_guards.py checks that the share of every kind's objects that roll a system follows the host tables within four Poisson sigma (a kind the table gives nothing never rolls one), that a rogue planet keeps its moon at the table's chance, that a scatter row has no column for a planet, moon or belt, that a scatter stores its rows and writes no planet, moon, belt or rogue planet before its sector fills, that a filled sector with a black hole holds no planet of its own, and that a body past the orbit ceiling goes outermost first. The stream independence and same-seed same-system checks already in test_gen_fill_stages.py cover the other two items. Tests only: no generated value changes.
+
+## [8.0.2651] - 2026-10-30
+
+**Headline:** A measured Solar System target can no longer be a row of a generator table, and a test lists every row that rests on a Solar System body.
+
+### Changed
+
+- TEST.215: a possibility-table row has a `calibration_only` flag, and the registry refuses a table that holds one, so the Earth, Mars, Moon, Galilean-moon and Sirius B targets live in a test file and never in a table. No registered row had it set, so nothing moved and no table value, weight or digest changes. A new test scans every registered row's source and limit for a Solar System body and requires each to be a flagged stand-in with a replacement item (checked), a row marked pending for a decision, or a row reviewed as not resting on a body (with its reason); a new row that names a body and is in none of them fails. The pending rows are listed for the TODO thread to decide.
+
+## [8.0.2650] - 2026-10-30
+
+**Headline:** A giant's page opens its interior section with one sentence that says what the interior is.
+
+### Changed
+
+- GEN.811: the interior section of a giant's page now starts with a sentence in the voice of the pages that names the kind (gas giant, ice giant, brown dwarf) and the layers it has: the metallic hydrogen where a gas giant's field is made, the dilute core, the helium shell and the helium rain, or an ice giant's conducting water mantle. Three giants read differently, and a test pins the wording keys so a layer kind added later has to be worded. The sentence reads the layers already stored; no generated value changes. The sentences for each layer follow as before.
+
+## [8.0.2649] - 2026-10-30
+
+**Headline:** A planet's or moon's Life section now has a Life and air chart: how its oxygen, carbon dioxide and methane changed as the life took hold.
+
+### Changed
+- **The Life and air chart.** Under the Life section of a planet or moon whose life changed its air there is a collapsed block, "Life and air through the ages". It plots the partial pressure of oxygen, carbon dioxide and methane against the age of the star, with the stages of the life (first life, producers, complex cells, animals) numbered on the chart and the same figures in a table. The air is worked out backwards from the air the world has now, when you open the page; nothing new is stored. A class with tuned numbers (Classes 6 to 9 and others at tweak level L3 or L4) is marked "Speculative chemistry" with its tier. A world whose life did not change its air shows no chart.
+- **`GET /api/planets/<id>/life-air` and `GET /api/moons/<id>/life-air`** give the chart's data (new routes; the API version does not change).
+
+## [8.0.2648] - 2026-10-30
+
+**Headline:** The Sectors list opens any page as fast as the first when sorted by systems, density or galaxy position, and `planetgen planets` and `moons` page without a filter too.
+
+### Changed
+- **The Sectors table pages by key in every sort.** Sorted by systems, density or galaxy position, the page links carry the sector the page before ended on and the list carries on from it, so a page deep in the list costs what the first does. Each sector's system count, density and Quadrant are now stored and indexed (`sector_system_counts` gains `system_density` and `quadrant`, and holds a row for every sector). With 1,000,000 sectors a page took 2.5 to 8 seconds in these sorts and now takes 2 to 40 milliseconds. Sectors that tie now follow the sort's direction by ID instead of by distance. A sector made since the stored figures were last refreshed is listed after the others until they are. `GET /api/sectors?after=<sector ID>` now works in these sorts as well. The migration (0181) fills the stored figures again.
+- **`planetgen planets` and `planetgen moons` page without a filter too (PERF.215).** The page walks the systems by name in chunks and sorts only the bodies of each chunk, where the listing sorted every planet or moon of the galaxy for a page: with 6,000,000 planets the first page took 48 seconds and any page now takes 5 to 33 milliseconds.
+
+## [8.0.2647] - 2026-10-30
+
+**Headline:** A giant's dynamo region and field can now be worked out from its interior layers (built, not wired in yet; nothing generated changes).
+
+### Changed
+- **The dynamo region of a giant (GEN.809, the lock-free half).** `physics/giant_dynamo.py` takes a giant's interior layers, its radius, the heat it radiates and its spin, finds the shell that carries its dynamo (the metallic hydrogen layer of a gas giant or brown dwarf, the conducting water of an ice giant's mantle; the helium gradient, helium shell and dilute core under a gas giant's are stable and left out) and gives the field of `dynamo.py` for it. Jupiter-like draws land within a factor of four of Jupiter's moment and differ with the drawn metallization pressure; a Saturn-like giant comes out weaker than a Jupiter-like one (still several times Saturn's own, the stable layer above its dynamo is not modelled); a slowly turning hot giant is multipolar; a Neptune-like ice giant lands within a factor of ten of Neptune's moment but as a dipole, which Neptune's field is not. The generator does not call it yet: the wiring step replaces the three giant anchors of `magnetism` and rides a train after the giant structure of GEN.733.
+
+## [8.0.2646] - 2026-10-30
+
+**Headline:** Pressing Back twice quickly across a sector change now lands on the right system.
+
+### Fixed
+- **Two quick presses of Back across a sector change (MAP.352).** Pressing Back twice in quick succession, the second time to a system in a different sector than the one the first press was moving to, lost the system: the second entry's open request was handed to the display the first move was arriving at and dropped. A move still under way is now finished before the next history entry is read, and a sector or system still loading for the view being left is cancelled when the next view is taken up, so the second press lands on its system.
+
+## [8.0.2645] - 2026-10-30
+
+**Headline:** A browser test now holds that at sector zoom every kind of thing a sector holds is drawn, named under the pointer and picked by a click.
+
+### Changed
+- **Sector zoom draws and picks every kind (MAP.302).** On the fixture sector (now with a brown dwarf, a black hole, an asteroid field, a supernova remnant, an interstellar comet and a quasar beside its stars, nebula, neutron star and rogue planets) the opened sector is checked kind by kind: each is in the scene, a hover where it is drawn names it, and a click picks it and opens its panel. Nothing was missing in the drawing; rogue planets stay off until asked for in the Menu (they outnumber the stars), so the test opens the page with them shown. Clusters and facilities are not sector contents yet (a globular cluster is a galaxy-scale container; stations and facilities are MAP.307, 8.3).
+
+## [8.0.2644] - 2026-10-30
+
+**Headline:** The component pass test that took over 900 s on a four-core machine now takes about 35 s, and the register names the open item for two more unread things.
+
+### Fixed
+
+- **The same-seed component test draws a smaller Cloud (TEST.464).** The test drew a satellite galaxy of 2e8 solar masses (138,000 stars, 150 s a draw) five times; it now draws one of 2e7 (10,000 stars), so the same-seed, order-free and per-component-stream checks run in about 35 s instead of over 900 s. The row test draws 5e7, the least at which the gas-rich Cloud places young massive stars. Nothing the generator draws changes.
+- **The whole-sphere component census fills 30 sectors of each region, not 100 (TEST.464).** The rates are dialed up, so thirty show every kind the disk makes; the fixture no longer runs past the 900 s setup limit.
+- **The wiring register points `noaa_proton_events` at GEN.805 and `ground_albedo` at GEN.684,** the open items that will read them, now that GEN.747 and GEN.462 are closed.
+
+## [8.0.2643] - 2026-10-30
+
+**Headline:** The map's info popup is now a short card that shows what a thing is at a glance, with an Expand button for the rest.
+
+### Changed
+- **The info popup is redesigned (MAP.347).** Pick a star, system, region, nebula, black hole or sector and the card shows its first view only: the name with the ☆ and Close beside it, what kind of thing it is, the three most useful values, and its main buttons (View, the course pick button, Go to). That first view is never taller than a quarter of the map on a large screen and never scrolls. Everything else (the other values, More, the region line, the nearest systems, Start Here and End Here, What's within 10 pc, Generate) is behind **Expand**, in a region that scrolls on its own, so the name and the buttons stay in view. The text no longer shrinks to fit; it stays at a reading size. On a phone the card takes the full width the zoom controls leave. Expand stays open from one pick to the next until you press Collapse.
+
+## [8.0.2642] - 2026-10-30
+
+**Headline:** Dead settings and unused helper functions are gone, and a test now fails if a tuning constant has no reader.
+
+### Changed
+- **Nine tuning constants nothing read are deleted (OPS.73).** `HABITABLE_ZONE_BUFFER_AU`, `ROUND_RADIUS_KM`, `RADIUS_KM_SCIENTIFIC_NOTATION_THRESHOLD`, `STELLAR_PROTO_HELIUM_OFFSET_DEX`, `MAX_FLAVOR_PLANET`, `NAV_COURSE_DECIMAL_PLACES`, `STELLAR_U_TH_UNCERTAINTY`, `CLOUD_ENRICHMENT_REFERENCE_RATIO` and `CHUNKS_PER_WORKER`. No generated value changes. A new test (`tests/test_tuning_readers.py`) fails when a constant in `tuning.py` has no reader; the one that waits for its item (the neutron star mass Gaussians, GEN.930) is listed there with the item.
+- **Seven functions nothing called are deleted (OPS.74).** `draw_mass`, `mantle_mass_kg`, `shell_chunks`, `build_sector_configs` (`iter_sector_configs` does its work), `get_galaxy_phenomena`, `read_config`, `settings_hash` and `mass_limit_argv`. `class_allowed_in_zone` was already gone. `build_nodes` stays (the tile prefetch queue calls it by name) and `register_card_renderer` stays (VIEW.3 installs its card drawer there).
+
+## [8.0.2641] - 2026-10-30
+
+**Headline:** The hours a person can be outside in a day can now be worked out from a body's stored columns; nothing is stored or shown yet.
+
+### Changed
+
+- GEN.768 part 2, prepared: `outside_hours.for_body` takes the equipment levels, the stored `daylight_hours`, the stored day-night swing and, for a tidally locked world, the terminator belt's temperature and 24 hours of light (stand-in row OH11), and gives the hours and the binding limit, or none when the columns do not say. Tests for Earth, a hot desert, a cold world, a high-dose world, a vacuum world, a locked world and a world that needs a vehicle. No column, migration or epoch yet: storing the value, the sheet relabel and the pages ride a train, so a world's output does not change.
+
+## [8.0.2640] - 2026-10-30
+
+**Headline:** `planetgen planets` and `planetgen moons` show a page at a time instead of reading every planet or moon in the galaxy.
+
+### Changed
+- **The planets and moons listings take `--limit` and `--after`.** Each prints 100 rows by default and, when more match, the `--after` to carry on with; the next page starts after that row in the same order, so a page deep in the list costs what the first does. Before, the commands read every matching row, which at a full galaxy meant millions. Filtered by system, sector or class a page takes about 40 milliseconds with 6,000,000 planets. Unfiltered, the order (system name, then orbit) still sorts every planet, so the first page of the whole galaxy takes seconds.
+
+## [8.0.2639] - 2026-10-30
+
+**Headline:** `planetgen query near` rejects a missing distance before it opens the database, a document written to standard output starts at its first line, and ten tests that were red on main are green.
+
+### Fixed
+
+- **`planetgen query near` with neither `--distance` nor `--nearest` is a command-line error (TEST.465).** It exits 2 with the usage text whatever the state of the database; before, it opened the database first and exited 1 when it could not.
+- **`planetgen system --output -` starts at the first line of the document (TEST.466).** The finished progress display wrote a blank line to standard output ahead of the text; a run that writes the document to standard output draws no bar.
+- **Two saves of the same names at once no longer fail with "Transaction characteristics can't be changed while a transaction is in progress" (TEST.463).** The save ends the connection's open transaction before it sets READ COMMITTED.
+- **The radiative-convective water table names its own limit (TEST.463).** The 640 K top of the table is `WATER_TABLE_TOP_K`, a numerical limit just under the critical temperature that `physics/saturation.py` holds; no vapour-pressure constant lives outside the saturation module. The cosmic-ray thin-air curve reads `GCR_PEAK_G_CM2` where it joins the first shower run (the same 100 g/cm2), so the registry row CR4 has a reader.
+- **Tests that were red on main (TEST.463).** The step-kind registry test no longer reads a queue command's name as a progress step kind; the SQL portability list names the interest-count migrations that already use `VALUES()`; the object-row round trip reads a binary pair's stars, not the proxy that stands for both; `/api/auth/me` has an avatar field; the map-rebuild test stubs the sliced warm stages; the sector page test expects a second neighbourhood job to wait in the one waiting list (PERF.154); the wiring register no longer names `surface_dose`, which the code reads now.
+
+## [8.0.2638] - 2026-10-30
+
+**Headline:** Drawing the nebula field can now follow another stage in the same run, the part of one run per Generate job that needs no other change.
+
+### Changed
+
+- PERF.203 step 2: the nebula field stage says "the galaxy's skeleton has never been built" and skips a galaxy with no outline when the stage opens (its `prepare` and `expand`), not when the command starts, so an earlier stage of the same run may be what builds the plan. `planetgen scatter --nebula-field` refuses and draws exactly what it did. The other fills (map luminosity, habitability, population, territories) had no start-time check to move. The scatters, link, settle and the sectors planner read the database to build their stages and are PERF.212 to PERF.214.
+
 ## [8.0.2637] - 2026-10-30
 
 **Headline:** The All systems list opens any page as fast as the first when sorted by sector, octant or binary, as it already did by name.

@@ -665,6 +665,48 @@ def system_text(system_id):
     return jsonify({"id": system_id, "format": fmt, "content": content})
 
 
+def _life_air(table, body_id):
+    """Shared body of `planet_life_air` and `moon_life_air`."""
+    from planetgen.generation import evolution
+    from planetgen.physics import life_air, life_classes
+
+    conn = get_db()
+    row = conn.execute(f"SELECT star_system_id, life_class, life_class_variant, life_stage FROM {table} WHERE id = ?", (body_id,)).fetchone()
+    if row is None:
+        raise ApiError(f"no such {table[:-1]}: {body_id}", status_code=404)
+    class_id = life_classes.living_class_id(row["life_class"], row["life_class_variant"], row["life_stage"])
+    history = None
+    if class_id in life_classes.BY_ID:
+        system = store.load_star_system(conn, row["star_system_id"])
+        bodies = [planet for planet in system.planets if hasattr(planet, "moons")]
+        bodies += [moon for planet in bodies for moon in planet.moons]
+        body = next((b for b in bodies if getattr(b, "db_id", None) == body_id and (b.is_moon == (table == "moons"))), None)
+        if body is not None:
+            ages = dict(zip(evolution.MILESTONE_KEYS, (getattr(body, field, None) for field in evolution.SCHEDULE_FIELDS)))
+            history = life_air.air_history(body, life_classes.BY_ID[class_id], ages)
+    return jsonify({"id": ids.printed(conn, table[:-1], body_id), "life_class_id": class_id, "life_air": history})
+
+
+@bp.route("/planets/<uid:planet_id>/life-air")
+def planet_life_air(planet_id):
+    """
+    `GET /api/planets/<id>/life-air` -- the Life and air chart's data (UX.237, `physics.life_air.air_history`): the planet's air through the
+    age of its star as far as the life class that lives on it changed it, worked out from the stored air on request and stored nowhere. `{"id",
+    "life_class_id", "life_air"}`; `life_air` is `null` for a world with no living class, a giant, or an air the life did not change.
+    Otherwise it has `age_gyr` (the star's age, Gyr), `producers_gyr` and `rose_gyr` (the ages the producers began and the oxygen rose,
+    Gyr, the latter `null` for a class that makes none), `gases` (`{"formula", "name", "steps": [[age_gyr, partial_pressure_kpa], ...]}`, each
+    value holding until the next age), `stages` (`{"key", "age_gyr"}` for each milestone the schedule reaches) and `speculative` (the
+    ledger's `{"tier", "tweak"}` for a class whose numbers are tuned, else `null`).
+    """
+    return _life_air("planets", planet_id)
+
+
+@bp.route("/moons/<uid:moon_id>/life-air")
+def moon_life_air(moon_id):
+    """`GET /api/moons/<id>/life-air` -- the same for a moon (see `planet_life_air`)."""
+    return _life_air("moons", moon_id)
+
+
 @bp.route("/near")
 def near():
     """

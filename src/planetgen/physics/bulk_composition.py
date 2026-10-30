@@ -27,6 +27,8 @@ Use:
 
 from dataclasses import dataclass
 
+from planetgen.physics import ice_species
+
 SUM_TOLERANCE = 1e-9
 """float: How far the five fractions may be from 1."""
 
@@ -55,8 +57,8 @@ envelope-only giant, a porosity of a planet)."""
 
 FLAG_ATTRIBUTES = {"carbon_rock": "carbon_rock", "origin": "composition_origin"}
 
-BODY_FIELDS = (*FRACTION_ATTRIBUTES.values(), *DETAIL_ATTRIBUTES.values(), *FLAG_ATTRIBUTES.values())
-"""tuple: Every attribute (and column) a body holds for its bulk composition."""
+BODY_FIELDS = (*FRACTION_ATTRIBUTES.values(), *DETAIL_ATTRIBUTES.values(), *FLAG_ATTRIBUTES.values(), *ice_species.BODY_FIELDS)
+"""tuple: Every attribute (and column) a body holds for its bulk composition; the last eight split `ice_mass_fraction` by species (GEN.834)."""
 
 
 NEW_FIELDS = tuple(name for name in BODY_FIELDS if name != "water_mass_fraction")
@@ -86,6 +88,8 @@ class BulkFractions:
         porosity (float or None): Void share of a small body's volume.
         carbon_rock (bool): The rock is silicon carbide and graphite, not silicate.
         origin (str): One of `ORIGINS`.
+        ice_shares (dict or None): The non-water ice by species as shares of `ice` (`ice_species.SPECIES` and `OTHER`), adding up to 1; `None`
+            where the ice was not drawn species by species (`to_attributes` then splits it by `ice_species.median_shares`).
     """
 
     metal: float
@@ -101,6 +105,7 @@ class BulkFractions:
     porosity: float | None = None
     carbon_rock: bool = False
     origin: str = "drawn"
+    ice_shares: dict | None = None
 
     def __post_init__(self):
         shares = self.shares()
@@ -127,6 +132,7 @@ class BulkFractions:
         values = {}
         for name, attribute in (*FRACTION_ATTRIBUTES.items(), *DETAIL_ATTRIBUTES.items(), *FLAG_ATTRIBUTES.items()):
             values[attribute] = getattr(self, name)
+        values.update(ice_species.attributes(self.ice, self.ice_shares))
         return values
 
 
@@ -152,4 +158,5 @@ def bulk_fractions(body):
         values[name] = None if value is None else float(value)
     values["carbon_rock"] = bool(getattr(body, "carbon_rock", False))
     values["origin"] = getattr(body, "composition_origin", None) or "drawn"
+    values["ice_shares"] = ice_species.shares_of(body)
     return BulkFractions(**values)

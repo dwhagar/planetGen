@@ -125,10 +125,12 @@ EQUIPMENT_LEVELS = (
 
 REGIONAL_TEMPERATURES = (
     "temp_polar_k", "temp_north_k", "temp_equator_k", "temp_south_k", "temp_swing_k", "temp_day_side_k", "temp_terminator_k",
-    "temp_night_side_k",
+    "temp_night_side_k", "temp_polar_swing_k", "temp_north_swing_k", "temp_south_swing_k", "temp_mean_swing_k",
+    "temp_day_side_swing_k", "temp_terminator_swing_k", "temp_night_side_swing_k",
 )
 """tuple: The regional temperatures and the day and night swing on `planets` and `moons` (GEN.656), kelvin."""
-TEMPERATURE_DIFFERENCES = ("temp_swing_k",)
+TEMPERATURE_DIFFERENCES = ("temp_swing_k", "temp_polar_swing_k", "temp_north_swing_k", "temp_south_swing_k", "temp_mean_swing_k",
+                           "temp_day_side_swing_k", "temp_terminator_swing_k", "temp_night_side_swing_k")
 """tuple: The columns of `REGIONAL_TEMPERATURES` that are a size and not a place on the scale: the swing between the
 hottest and the coldest hour is in kelvin of difference (`dK`), so it is never shown as -264 °C."""
 
@@ -445,7 +447,7 @@ TABLES = {
         "ppm": ("c_k0_ppm", "c_th0_ppm", "c_u0_ppm"),
         "frac": (
             "water_mass_fraction", "ocean_fraction", "land_fraction", "flux_variation", "urey_ratio", "cloud_cover",
-            "bond_albedo", "metal_mass_fraction", "rock_mass_fraction", "ice_mass_fraction", "envelope_mass_fraction",
+            "bond_albedo", "metal_mass_fraction", "rock_mass_fraction", "ice_mass_fraction", "ice_co2_mass_fraction", "ice_ch4_mass_fraction", "ice_nh3_mass_fraction", "ice_n2_mass_fraction", "ice_so2_mass_fraction", "ice_co_mass_fraction", "ice_hcn_mass_fraction", "ice_other_mass_fraction", "envelope_mass_fraction",
             "rock_feo_fraction", "rock_al2o3_fraction", "envelope_helium_fraction", "envelope_z_fraction", "porosity",
             "ring_ice_fraction",
             "helium_depletion",
@@ -693,7 +695,7 @@ TABLES = {
         "ppm": ("c_k0_ppm", "c_th0_ppm", "c_u0_ppm"),
         "frac": (
             "water_mass_fraction", "ocean_fraction", "land_fraction", "flux_variation", "urey_ratio", "cloud_cover",
-            "bond_albedo", "metal_mass_fraction", "rock_mass_fraction", "ice_mass_fraction", "envelope_mass_fraction",
+            "bond_albedo", "metal_mass_fraction", "rock_mass_fraction", "ice_mass_fraction", "ice_co2_mass_fraction", "ice_ch4_mass_fraction", "ice_nh3_mass_fraction", "ice_n2_mass_fraction", "ice_so2_mass_fraction", "ice_co_mass_fraction", "ice_hcn_mass_fraction", "ice_other_mass_fraction", "envelope_mass_fraction",
             "rock_feo_fraction", "rock_al2o3_fraction", "envelope_helium_fraction", "envelope_z_fraction", "porosity",
             "ring_ice_fraction",
             "helium_depletion",
@@ -830,6 +832,7 @@ TABLES = {
     "sector_system_counts": {
         "id": ("sector_id",),
         "count": ("system_count",),
+        "ratio": ("system_density",),
     },
     "sector_tree_nodes": {
         "index": ("level", "shell_index", "band_index"),
@@ -1012,8 +1015,8 @@ SUFFIX_EXCEPTIONS = {
     ("planets", "l_rad"): "radiation tolerance, a score of 0 to 1; the name ends in rad but it is not radians",
     ("moons", "l_rad"): "radiation tolerance, a score of 0 to 1; the name ends in rad but it is not radians",
     ("rogue_planets", "l_rad"): "radiation tolerance, a score of 0 to 1; the name ends in rad but it is not radians",
-    ("planets", "temp_swing_k"): "a temperature difference (kelvin of swing), not a temperature",
-    ("moons", "temp_swing_k"): "a temperature difference (kelvin of swing), not a temperature",
+    **{(table, name): "a temperature difference (kelvin of swing), not a temperature"
+       for table in ("planets", "moons") for name in TEMPERATURE_DIFFERENCES},
     ("nebula_field", "cell_k"): "the third axis of a cell's index, not kelvin",
     ("orbital_events", "hydrogen_limit_sol"): "a mass (the hydrogen-burning limit in solar masses), though the name has no 'mass'",
 }

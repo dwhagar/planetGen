@@ -17,9 +17,15 @@ from planetgen.util.format import three_figures_or_tiny
 PHI6_CAPTIONS = ("Radiation", "Survival equipment")
 """tuple: The captions of the description's facts tables that belong with the PHI-6 rating."""
 
+ICE_KEYS = (("ice_co2_mass_fraction", "Carbon dioxide ice, part of the ice"), ("ice_ch4_mass_fraction", "Methane ice, part of the ice"),
+            ("ice_nh3_mass_fraction", "Ammonia ice, part of the ice"), ("ice_n2_mass_fraction", "Nitrogen ice, part of the ice"),
+            ("ice_so2_mass_fraction", "Sulfur dioxide ice, part of the ice"), ("ice_co_mass_fraction", "Carbon monoxide ice, part of the ice"),
+            ("ice_hcn_mass_fraction", "Hydrogen cyanide ice, part of the ice"), ("ice_other_mass_fraction", "Other ices, part of the ice"))
+"""tuple: The non-water ices of a body by species and how the table words each."""
+
 MASS_KEYS = (("metal_mass_fraction", "Metal (iron and nickel core)"), ("rock_mass_fraction", "Rock (silicate mantle and crust)"),
-             ("ice_mass_fraction", "Ice"), ("envelope_mass_fraction", "Gas envelope"))
-"""tuple: The stored mass fractions of a body and what each is, in the order the table lists them."""
+             ("ice_mass_fraction", "Ice"), *ICE_KEYS, ("envelope_mass_fraction", "Gas envelope"))
+"""tuple: The stored mass fractions of a body and what each is, in the order the table lists them; the ice's species (GEN.834) are the parts of the ice."""
 
 MASS_SHARED_KEYS = frozenset(key for key, _label in MASS_KEYS)
 """frozenset: The sheet rows the mass table shows, which the Properties list leaves out."""
@@ -74,7 +80,7 @@ def gas_table(sheet):
 
 def mass_table(sheet):
     """The make-up of a body by mass as `[{"name", "share"}]`: each stored mass fraction above zero as a percent of its mass
-    (the four parts add up to the whole body). Empty when none is stored."""
+    (the four parts add up to the whole body; the ice's species add up to the ice). Empty when none is stored."""
     rows = {row["key"]: row for row in _rows(sheet, "composition")}
     table = []
     for key, label in MASS_KEYS:

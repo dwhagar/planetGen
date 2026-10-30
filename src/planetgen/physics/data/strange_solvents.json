@@ -1,0 +1,19 @@
+{
+ "version": 1,
+ "title": "The strange-solvent quantities",
+ "description": "The two quantities the rules of Classes 8 and 9 read besides the acid (GEN.894, docs/design/habitability/life-classes.md 8.3): the ammonia of a body's water, as a share of the water's mass, and whether its crust is silicon-rich. Every number carries its source tier (T1 to T9) and tweak level (L0 to L4) next to it.",
+ "numbers": {
+  "nh3_share_of_ice": {
+   "value": 0.1,
+   "tier": "T8",
+   "tweak": "L4",
+   "basis": "The share of a body's non-water ice (bulk_composition.ice, the CO2, NH3, CH4, CO, N2 and organics together) that is ammonia: the solar nitrogen to oxygen number ratio of 0.14 would make at most 0.24 of the water's mass if all the nitrogen were ammonia; comet ices hold under 1 percent of water as ammonia and Titan's interior models take about 5 percent; one tenth of the other ices lands between them"
+  },
+  "silicon_rich_mg_si_max": {
+   "value": 1.0,
+   "tier": "T7",
+   "tweak": "L2",
+   "basis": "The molar Mg/Si of the rock at or under which the crust counts as silicon-rich: under 1 the magnesium cannot take all the silicon into olivine and pyroxene, and the rest is free silica (Bond et al. 2010 and Carter-Bond et al. 2012 on the stellar Mg/Si of 0.4 to 3, recalled); Earth's bulk is 1.07 (recalled)"
+  }
+ }
+}

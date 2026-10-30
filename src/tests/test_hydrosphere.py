@@ -221,3 +221,35 @@ def test_the_tide_is_in_the_chemical_energy_of_an_ocean_under_ice():
     heat = 0.002 + body.tidal_flux_w_m2
     assert hw.energy_flux_w_m2(values, None, None, heat) == pytest.approx(hw.CHEMICAL_SHARE * 0.006)
     assert hw.energy_flux_w_m2(values, None, None, heat) > 2.5 * hw.energy_flux_w_m2(values, None, None, 0.002)
+
+
+def test_gen833_a_small_icy_moon_that_holds_a_thick_ice_shell_is_covered_by_it():
+    """GEN.833: a cold moon of 200 km radius with a fifth of its mass as water is ice through its outer layers; the ground draw
+    reads its cover and it is all of the surface, not the toy cover of the water a liquid ocean would have had."""
+    for seed in range(8):
+        draw.set_run_seed(seed)
+        moon = _body("D", 70.0, 0.0, mass_earth=3.0e-6, radius_km=200.0, is_moon=True, water_mass_fraction=0.2,
+                     primary_mass_kg=constants.JUPITER_MASS_TO_KG, distance=0.01)
+        _generate_hydrosphere(moon, 0.002)
+        assert moon.hydrosphere in hy.FROZEN_COVER_STATES
+        assert moon.ocean_fraction == 1.0 and moon.land_fraction == 0.0
+
+
+def test_gen833_the_cover_follows_the_water_the_body_holds():
+    """GEN.833: a frozen body with little water is covered in part, and one with more water is covered more."""
+    covers = []
+    for water in (1e-5, 1e-4, 1e-3, 1e-2, 0.2):
+        body = types.SimpleNamespace(mass=3.0e-6 * EARTH, radius=200.0, water_mass_fraction=water)
+        gravity = 3.0e-6 / (200.0 / 6371.0) ** 2 * constants.EARTH_GRAVITY
+        covers.append(hy.frozen_cover(body, gravity))
+    assert covers == sorted(covers) and covers[0] < 0.5 and covers[-1] == 1.0
+    assert hy.frozen_cover(types.SimpleNamespace(mass=EARTH, radius=6371.0, water_mass_fraction=0.0), constants.EARTH_GRAVITY) == 0.0
+
+
+def test_gen833_below_earths_gravity_ice_relief_does_not_grow_but_a_rock_basins_does():
+    layer_km = 5.0
+    small = 0.05 * constants.EARTH_GRAVITY
+    assert hy.ocean_fraction(layer_km, small, icy=True) == pytest.approx(min(1.0, (2 * layer_km / hy.EARTH_RELIEF_KM) ** 0.5))
+    assert hy.ocean_fraction(layer_km, small, icy=True) > hy.ocean_fraction(layer_km, small)
+    heavy = 3.0 * constants.EARTH_GRAVITY
+    assert hy.ocean_fraction(layer_km, heavy, icy=True) == hy.ocean_fraction(layer_km, heavy)

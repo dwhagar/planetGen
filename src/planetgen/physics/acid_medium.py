@@ -127,7 +127,7 @@ def medium(values):
     if share.get("SO2", 0.0) < number("so2_min_share") or share.get("O2", 0.0) + share.get("CO2", 0.0) < number("oxidant_min_share") \
             or share.get("H2O", 0.0) < number("water_min_share"):
         return AcidMedium()
-    column = air_column.from_partials(gas, gravity)
+    column = air_column.from_partials(air_column.partials_pa(values), gravity)
     mixing = share.get("H2O", 0.0)
     low, high = number("liquid_low_k"), number("liquid_high_k")
     strong = number("concentrated_wt_percent")
