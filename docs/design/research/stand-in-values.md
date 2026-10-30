@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 829 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 833 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -41,11 +41,11 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T3 | 77 | 31 | 5 | 10 | 0 | 123 |
 | T4 | 36 | 4 | 0 | 15 | 6 | 61 |
 | T5 | 42 | 13 | 0 | 0 | 0 | 55 |
-| T6 | 69 | 51 | 13 | 39 | 0 | 172 |
+| T6 | 70 | 53 | 13 | 40 | 0 | 176 |
 | T7 | 26 | 8 | 8 | 8 | 0 | 50 |
 | T8 | 0 | 1 | 1 | 5 | 2 | 9 |
 | T9 | 10 | 5 | 4 | 39 | 19 | 77 |
-| All | 497 | 149 | 38 | 118 | 27 | 829 |
+| All | 498 | 151 | 38 | 119 | 27 | 833 |
 
 ## How the labels were given
 
@@ -1280,6 +1280,15 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | IP12 | P | T9 | L1 | irregular_population.STORE_FLOOR_KG 1e16 and STORE_MAX_BODIES 100: every irregular above 1e16 kg is an object, then the next heaviest until belt_ledger.LEDGER_COVERAGE of the population's mass, at most 100 | floor 3e15 to 3e16; cap 50 to 200 | the irregular list of every planet | a page of a real giant that needs more than the floor to show its known irregulars | the belt design's storage rule when it merges (one rule for belts and irregulars) | row CM15 (Boss decision 4:34 PM EDT 2026-10-30) | GEN.1083 | - |
 | IP13 | D | T5 | L0 | irregular_population.intrinsic_probability: the intrinsic collision probability of the zone is sqrt(2) times the circular speed at the zone's radius over the volume of that sphere, the radius the median of the orbits (irregular_orbits.median_before_survival) held inside the prograde limit; no concentration factor | the model comes out 1.4 to 6 times under the 3.8e-15 to 1.6e-14 that Bottke et al. 2010 compute | the four giants | a computed intrinsic probability for a generated planet over 10 times or under 0.3 times the model's | the eccentric, inclined orbits' intrinsic probability from the planet's own irregulars | row CM9 (Bottke et al. 2010, READ); the formula is the plain Opik one, derived here | - | - |
 | IP14 | D | T4 | L1 | irregular_population.collision_time_yr and surviving_fraction: N(t) = N0 / (1 + t / t_c) with t_c = 1 / (P_i (R (1 + ratio))^2 N0(> ratio R)), the projectile count the initial one | law as in belt_mass (Wyatt et al. 2007) | irregulars of the giants | a cascade run of a captured population that keeps over 10 times or under a tenth of the model's share at 4.5 Gyr | a cascade of the generator's own captured population with its size-dependent strength | row CM9; the law is the repo's belt grinding (belt_mass_earth); the projectile count is not ground, which overstates the loss of the larger bodies | - | - |
+
+## 6.119 Stand-ins of the composition of captured bodies
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| CP1 | P | T6 | L0 | captured_composition.FEEDING_ZONE_HILL_RADII 2 sqrt(3): a gas-era capture draws its body from the planet's neighbourhood, this many Hill radii either side of its orbit (held at a tenth of the planet's distance at the inner end) | 2 to 5 | gas giants in the last stage of formation | a gas-era captured family whose members' taxa match a zone further than 5 Hill radii from the planet | the planet's feeding zone from the disc model (GEN.1005 flip) | the isolation spacing of planetesimal accretion, recalled, not read; the gas that slows a body is dense only near the planet (row CM18) | GEN.1083 | - |
+| CP2 | P | T6 | L1 | belt_history.SURFACE_DENSITY_SLOPE 1.5 (row BHS2) as the weight of a body's source distance in the annulus: the mass up to a goes as a^(2 - slope), so a little more of it is near the inner edge | slope 1 to 2 | every reservoir annulus | a captured population whose source distances sit far from this weighting | the annulus's own surface density from the architecture's disc | row BHS2 (minimum-mass nebula); no new constant | GEN.1083 | - |
+| CP3 | P | T6 | L3 | captured_composition.PARENT_LUMPS 4: a family's parent is this many lumps, each from its own distance in the annulus with its own taxon, and a fragment is one lump | 3 to 8 | families of irregular moons | a family whose members are far more or less alike than the lumps give | the parent's formation as a rubble of the disc's bodies (belt design) | Sharkey et al. 2025 abstract (read): the Himalia group's members differ in phyllosilicate content; the number is the group's four known members | GEN.1083 | no data |
+| CP4 | D | T6 | L1 | a captured body's composition is belt_member.member (the GEN.473 taxon kernel) at its source distance and mass, then its water ice is reduced by moon_composition.CAPTURE_ICE_LOSS (uniform 0 to 0.5), one loss for a whole parent | loss 0 to 0.5 | every captured small body | a captured body whose volatiles are far from the kernel at its source after the loss | a heating model of the capture (energy deposited in the gas era or by the encounters) | Barr and Schwamb 2016, qualitative (the existing captured-moon rule); the kernel is GEN.473 (rows TK1 to TK6) | - | - |
 
 ## 6.94 Stand-ins of the irregular zone
 
