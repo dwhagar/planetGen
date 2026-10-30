@@ -13745,7 +13745,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   with no sulphur gets no acid cloud, and the registry rows exist. The
   pure module, tests and registry rows are lock-free; wiring that
   changes stored output rides a train. Owner: Sources 1.
-  Progress (2026-10-30 1:40 PM EDT): Sources 1 (as the lane reported
+  Progress (2026-10-30 1:38 PM EDT): Sources 1 (as the lane reported
   1:37 PM EDT): GEN.1020 lock-free merged in #4061 (Mie, acid-cloud
   infrared optics from the HITRAN acid indices, SO2/CO/H2O wings, rows
   CF1 to CF5, FW6, FW7) and #4063 (the infrared column uses the sourced
@@ -13784,7 +13784,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the module; the swap changes comet composition output, so it rides a
   train. Waits on GEN.1005 k7 (the rows exist after it). Owner: none
   yet; released pool, low priority.
-  Owner (2026-10-30 1:40 PM EDT): Sources 1 (assigned by TODO 1:40 PM
+  Owner (2026-10-30 1:38 PM EDT): Sources 1 (assigned by TODO 1:40 PM
   EDT 2026-10-30; Aux 3 skipped it). Research first, lock-free: find a
   second comet or a laboratory trapping table by formation temperature.
   The swap in comet_species.py needs the GEN.1005 flip (branch
