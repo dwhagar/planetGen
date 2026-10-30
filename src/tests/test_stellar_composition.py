@@ -188,12 +188,13 @@ def test_a_wo_star_is_carbon_and_oxygen_rich_and_every_row_adds_up_at_both_ends_
             assert math.fsum(fractions.values()) == pytest.approx(1.0) and min(fractions.values()) >= 0.0, (name, u)
 
 
-def test_every_wolf_rayet_star_the_generator_makes_has_a_composition_that_adds_up():
+def test_every_wolf_rayet_star_the_generator_makes_has_a_composition_that_adds_up(monkeypatch):
+    monkeypatch.setattr(isochrones, "helium_star_relation", lambda: (4.31, 1.16, 0.064))   # the fixture grid holds no Wolf-Rayet row
     stream = draw.Stream("gen831")
     seen = set()
     for index in range(200):
         age = 0.003 + 0.001 * stream.random()
-        state = wolf_rayet.state(40.0 + 40.0 * stream.random(), age, 0.003, 0.004, stream)
+        state = wolf_rayet.state(40.0 + 40.0 * stream.random(), 15.0 + 20.0 * stream.random(), age, 0.003, 0.004, stream)
         text = f"{state['wr_subtype']}{wolf_rayet.subclass(state['wr_subtype'], state['temperature_k'])}"
         key = sc.abundance_key(mass=state["mass_sol"], distance_ly=26000.0 + index)
         by_text = sc.star_makeup(sc.kind_of(state["yerkes_class"], state["mass_sol"]), 0.0, age, state["mass_sol"], key,

@@ -58,8 +58,8 @@ def population():
 # sampling noise and later tuning of the letter boundaries.
 EXPECTED_SHARES = [
     ("M dwarf", 68.0, 80.0),
-    # GEN.897: the K/M edge is 3900 K (M0V), so K is the observed 12% of the main-sequence stars, 8.6% of this sample, which also
-    # holds the pre-main-sequence stars, white dwarfs and giants (K was 11 to 18% with the edge at 3700 K, where it ran to 19%)
+    # GEN.897 and GEN.943: the K/M edge is 3,890 to 3,900 K (M0V), so K is the observed 12% of the main-sequence stars, 8.6% of this sample,
+    # which also holds the pre-main-sequence stars, white dwarfs and giants (K was 11 to 18% with the edge at 3700 K, where it ran to 19%)
     ("K dwarf", 7.0, 12.0),
     ("G dwarf", 2.0, 6.0),
     ("F dwarf", 1.2, 3.0),
@@ -271,15 +271,16 @@ def test_a_bright_star_is_drawn_at_any_composition_that_can_make_one(fe_h):
     assert kept == 5
 
 
-def test_a_metal_poor_place_has_no_giant_that_bright_in_its_window_and_its_metal_rich_tail_makes_them_all():
-    """GEN.651: a place's bright stars are its prior times each composition's bright share, so a halo-poor place with a
-    metal-rich tail gets its 2500 Lsun giants from the tail."""
+def test_a_metal_rich_place_has_no_giant_that_bright_in_its_window_and_its_metal_poor_tail_makes_them_all():
+    """GEN.651: a place's bright stars are its prior times each composition's bright share, so a metal-rich place with a
+    metal-poor tail gets its 6000 Lsun giants from the tail (the MIST thermal pulses of a metal-poor star reach higher than a
+    metal-rich one's: none of the latter in an old window does)."""
     rng = random.Random(8)
-    fe_hs = [-1.4] * 3 + [0.1]
+    fe_hs = [0.1] * 3 + [-1.4]
     seen = iter(range(10 ** 6))
-    drawn = [sp.sample_bright_stars(1, 2500.0, "old", rng, fe_h_source=lambda index: fe_hs[next(seen) % 4])[0]
+    drawn = [sp.sample_bright_stars(1, 6000.0, "old", rng, fe_h_source=lambda index: fe_hs[next(seen) % 4])[0]
              for _ in range(5)]
-    assert all(params["metallicity_fe_h"] == 0.1 for params in drawn)
+    assert all(params["metallicity_fe_h"] == -1.4 for params in drawn)
 
 
 def test_a_populations_counts_are_worked_out_at_its_own_composition_not_the_suns():

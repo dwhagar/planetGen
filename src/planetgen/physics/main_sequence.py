@@ -25,8 +25,9 @@ from collections import namedtuple
 from planetgen.datasets import isochrones
 from planetgen import tuning
 
-State = namedtuple("State", "luminosity_sol temperature_k radius_sol")
-"""A main-sequence star's luminosity (Lsun), effective temperature (K) and radius (Rsun)."""
+State = namedtuple("State", "luminosity_sol temperature_k radius_sol mass_sol")
+"""A main-sequence star's luminosity (Lsun), effective temperature (K), radius (Rsun) and present mass (Msun: MIST's, which
+has lost what the winds of a heavy star take from it on the main sequence, GEN.940)."""
 
 _EDGE_STEP = 1.2
 """float: How far above the grid's edge mass the slope of the extension is read (a ratio of masses)."""
@@ -58,7 +59,7 @@ def _extended(mass_sol, age_gy, fe_h):
     log_l = at_edge[0] + (at_inner[0] - at_edge[0]) / span * shift
     log_r = at_edge[2] + (at_inner[2] - at_edge[2]) / span * shift
     log_teff = math.log10(tuning.SUN_EFFECTIVE_TEMPERATURE_K) + 0.25 * (log_l - 2.0 * log_r)
-    return log_l, log_teff, log_r
+    return log_l, log_teff, log_r, mass_sol * at_edge[3] / edge       # a star under the grid has lost nothing worth counting
 
 
 def state(mass_sol, age_gy, fe_h=0.0):
@@ -71,8 +72,8 @@ def state(mass_sol, age_gy, fe_h=0.0):
     point = _point(mass_sol, age_gy, fe_h)
     if point is None:
         point = _extended(mass_sol, age_gy, fe_h)
-    log_l, log_teff, log_r = point
-    return State(10.0 ** log_l, 10.0 ** log_teff, 10.0 ** log_r)
+    log_l, log_teff, log_r, present_mass = point
+    return State(10.0 ** log_l, 10.0 ** log_teff, 10.0 ** log_r, present_mass)
 
 
 _EDGE_MEMO = {"token": None, "rows": {}}
@@ -95,7 +96,7 @@ def _edge(mass_sol, fe_h, departure):
         if row is None:
             found = state(mass_sol, 1.0e3 if departure else 0.0, fe_h)
         else:
-            found = State(10.0 ** row[0], 10.0 ** row[1], 10.0 ** row[2])
+            found = State(10.0 ** row[0], 10.0 ** row[1], 10.0 ** row[2], row[3])
         memo["rows"][key] = found
     return found
 

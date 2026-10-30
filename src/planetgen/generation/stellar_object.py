@@ -213,8 +213,8 @@ class StellarObject(LazySaladName, MassObject):
         that has evolved as rapidly as physically possible for its type. If
         the requirement *is* reachable within the lifespan, `config.AGE`
         ("young"/"old") still biases where in the achievable window the age
-        falls, the same way it biases the star's initial age in
-        `_calculate_initial_star_age_and_lifespan` — a forced minimum age
+        falls, the same way it biases the star's initial age (the population
+        model's `AGE` window) — a forced minimum age
         should narrow the age range, not silently discard a young/old
         request entirely.
 
@@ -245,9 +245,7 @@ class StellarObject(LazySaladName, MassObject):
                     tuning.UNIVERSE_AGE_GY,
                 )
             elif self.lifespan != float('inf'):
-                # Capped at the age of the universe for the same reason as
-                # the initial age roll in _calculate_initial_star_age_and_lifespan
-                # -- a long-lived class's lifespan-derived ceiling can be far
+                # Capped at the age of the universe, since a long-lived class's lifespan-derived ceiling can be far
                 # larger than any star could actually have reached yet.
                 max_reachable_age = min(
                     self.lifespan * tuning.MAX_PLANET_AGE_ADJUSTMENT_FACTOR,
@@ -394,7 +392,7 @@ def get_star_evolutionary_profile(star):
     table to an unrelated evolutionary history. `supported_evolutionary_scales`, which is really a proxy for how
     much time was available for a biosphere to develop, is instead derived
     from the star's own already-computed age/lifespan (already correctly
-    yerkes-class-aware -- see `Star._calculate_initial_star_age_and_lifespan`),
+    fixed by the star model with the rest of its state),
     by checking which evolutionary paces could reach their technological
     civilization milestone within that time budget.
 
@@ -411,7 +409,7 @@ def get_star_evolutionary_profile(star):
     if not base_info:
         return {}
 
-    if reference_star.yerkes_class == "V":
+    if reference_star.yerkes_class in ("V", "VI"):
         return base_info
 
     # A white dwarf's lifespan is infinite (it just cools forever), so "how

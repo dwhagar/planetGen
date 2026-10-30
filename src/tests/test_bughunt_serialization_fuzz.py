@@ -126,8 +126,11 @@ _STAR_TYPES = ["M5V", "K2V", "G2V", "F5V", "A1V", "B3V", "O5V"]
 # `moon_disk_system` is the giant's disk while its moons are drawn; the giant keeps the disk's numbers in columns (DB.70), as a moon does its
 # `moon_origin`. A planet's `formation_distance_au` is where it formed, which for all but a pulsar's disc planet is the orbit distance it is
 # stored with; what the draws read it for is kept as `born_beyond_snow_line` (TEST.427).
+# A star's `initial_mass_sol`, `phase_end_age_gy`, `_model_age_lifespan` and `_model_fe_h` are the population model's
+# own state, which a forced type shares (GEN.941); they are runtime state that the stored columns rebuild.
 _RUNTIME_ONLY = {
-    Star: {"system_config", "galactic_center_dist_ly", "spatial", "_name", "_name_seed"},
+    Star: {"system_config", "galactic_center_dist_ly", "spatial", "_name", "_name_seed", "initial_mass_sol",
+           "phase_end_age_gy", "_model_age_lifespan", "_model_fe_h"},
     Planet: {"system_config", "star", "moons", "spatial", "_staged_au", "_staged_velocity_kms",
              "primary_mass_kg", "_star_distance_au", "phi_bio", "phi_cpx",
              "moon_disk_system", "formation_distance_au"},

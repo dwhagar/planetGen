@@ -173,7 +173,7 @@ def _star_age_sentence(star):
     else:
         sentence = inline("The star is about ", age, " old and should last about ", _gy(star.lifespan), ".")
     # STAR_EVOLUTION's notes describe a main-sequence star's lifespan window only.
-    if star.yerkes_class == "V":
+    if star.yerkes_class in ("V", "VI"):
         notes = tuning.STAR_EVOLUTION.get(star.type[0], {}).get("evolutionary_constraint_notes")
         if notes:
             sentence = inline(sentence, " ", notes)

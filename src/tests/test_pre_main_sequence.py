@@ -24,13 +24,25 @@ from planetgen.util import draw
 MYR = 1.0e6
 
 
-@pytest.mark.parametrize("mass, bhac15_myr", [
-    (0.1, 554.0), (0.2, 241.0), (0.3, 195.0), (0.5, 146.0), (0.8, 62.4), (1.0, 39.3), (1.4, 17.4),
+@pytest.mark.parametrize("mass, mist_myr", [
+    (0.2, (708.0, 794.0)), (0.3, (398.0, 447.0)), (0.5, (141.0, 158.0)), (1.0, (40.0, 45.0)), (1.5, (14.0, 16.0)),
+    (2.0, (8.9, 10.0)), (3.0, (3.2, 3.6)), (5.0, (0.9, 1.0)),
 ])
-def test_the_contraction_time_is_near_what_the_bhac15_tracks_give(mass, bhac15_myr):
-    """GEN.529: the age at which the published tracks' radius is within 2% of its minimum (Baraffe et al. 2015,
-    solar metallicity); the model is within 0.25 dex of it at every one of these masses."""
-    assert abs(math.log10(pms.contraction_time_yr(mass) / MYR / bhac15_myr)) < 0.25
+def test_the_contraction_time_is_the_age_mist_leaves_the_pre_main_sequence(mass, mist_myr):
+    """GEN.947: the age at which the MIST isochrones (solar metallicity) hold no contracting star of this mass; the isochrone ages
+    are 0.05 dex apart, so the two ends are the ages either side of the arrival and the model is within 0.06 dex of them."""
+    low, high = mist_myr
+    assert abs(math.log10(pms.contraction_time_yr(mass) / MYR / math.sqrt(low * high))) < 0.06
+
+
+@pytest.mark.parametrize("mass, bhac15_myr", [
+    (0.1, 554.0), (0.08, 700.0),
+])
+def test_below_the_isochrones_the_contraction_time_is_the_models_own(mass, bhac15_myr):
+    """GEN.529: where MIST's rows do not reach the mass the model's time stands, within 0.5 dex of the BHAC15 tracks' (the age
+    at which the radius is within 2% of its minimum, Baraffe et al. 2015, solar metallicity)."""
+    assert pms._track(mass)["scale"] == 1.0
+    assert abs(math.log10(pms.contraction_time_yr(mass) / MYR / bhac15_myr)) < 0.5
 
 
 @pytest.mark.parametrize("mass, teff_1_myr, radius_first_rsun", [
@@ -74,12 +86,14 @@ def test_the_stage_follows_the_mass_and_the_age():
     assert pms.stage(1.0, 11.0 * MYR) == pms.PRE_MAIN_SEQUENCE  # GEN.529: no 10 Myr cap, the track takes 37 Myr
     assert pms.stage(1.0, 45.0 * MYR) is None
     assert pms.stage(0.2, 100.0 * MYR) == pms.PRE_MAIN_SEQUENCE  # a red dwarf is still shrinking at 100 Myr
-    assert pms.stage(0.2, 400.0 * MYR) is None
+    assert pms.stage(0.2, 400.0 * MYR) == pms.PRE_MAIN_SEQUENCE   # GEN.947: MIST's 0.2 solar mass star arrives at 700 to 800 Myr
+    assert pms.stage(0.2, 900.0 * MYR) is None
     assert pms.stage(0.1, 600.0 * MYR) == pms.PRE_MAIN_SEQUENCE
     assert pms.stage(0.1, 1100.0 * MYR) is None
     assert pms.stage(20.0, 0.1 * MYR) is None  # 8 solar masses or more have none
     assert pms.stage(3.0, 1.0 * MYR) == pms.PRE_MAIN_SEQUENCE
-    assert pms.stage(3.0, 2.0 * MYR) is None  # contracted already: the model takes 1.6 Myr
+    assert pms.stage(3.0, 2.0 * MYR) == pms.PRE_MAIN_SEQUENCE  # GEN.947: MIST takes 3.2 to 3.6 Myr
+    assert pms.stage(3.0, 4.0 * MYR) is None  # contracted already
     assert pms.stage(5.0, 0.2 * MYR) == pms.PROTOSTAR
 
 
@@ -88,9 +102,9 @@ def test_evolve_star_gives_a_young_star_its_state_and_leaves_older_ones_alone():
     assert young["yerkes_class"] == "protostar" and young["disk_class"] == "I" and young["radius_km"] is None
     assert young["lifespan_gy"] > 5.0  # the lifespan of the star it will be
     assert evolution.evolve_star(1.0, 0.005, fe_h=0.0)["yerkes_class"] == "PMS"
-    for mass, age in ((1.0, 0.5), (1.0, 0.05), (0.2, 0.4), (10.0, 0.0001)):
+    for mass, age in ((1.0, 0.5), (1.0, 0.05), (0.2, 0.9), (10.0, 0.0001)):
         assert evolution.evolve_star(mass, age, fe_h=0.0)["yerkes_class"] == "V"
-    for mass, age in ((1.0, 0.011), (0.2, 0.1)):
+    for mass, age in ((1.0, 0.011), (0.2, 0.1), (0.2, 0.4)):
         assert evolution.evolve_star(mass, age, fe_h=0.0)["yerkes_class"] == "PMS"
 
 
