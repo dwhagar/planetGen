@@ -14609,6 +14609,27 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (TODO); lock-free, no stored-output change
   Prerequisites: PERF.203. Related: PERF.203, PERF.212, PERF.213.
 
+- [ ] **PERF.216 Find where the 50 pc spherical region count spends its time: the key statement is 3x to 10x slower than the research figure**
+  Reported by Aux 3 (as the lane reported, 6:15 AM EDT 2026-10-30) after
+  TEST.165 (#3980, scripts/bench_region_queries.py, results in
+  docs/design/galaxy/spherical-region-queries.md section 8.1). On 3M
+  real-shaped star_systems rows (0.12 systems/pc3) the key statement
+  COUNT(*) takes warm 5.8 ms at 1 pc, 13.6 ms at 10 pc, 64.5 ms at 25 pc
+  and 427.5 ms at 50 pc (62,336 systems), against the research's 42 ms
+  at 50 pc and 3 ms at 10 pc (6.9 us per system inside against the
+  note's 0.5 us). NAV.60's own loaded-machine figure is 260 ms at 50 pc.
+  The ranking holds (key fastest at every radius, box 1.3x slower at 50
+  pc, sector walk worst from 5 pc up), so only the absolute cost is in
+  question. Do: on a quiet machine find where the 50 pc count spends its
+  time (256 range-checked probes against per-row cost; the plan uses the
+  covering index and the pinned join order), and whether Boss's server
+  shows the same; fix it if a cheaper form returns the same set, with
+  the identical-set check of the benchmark as the test. Done: a recorded
+  cause and either a faster statement with an identical set or a stated
+  reason it stays. Related: NAV.60, TEST.165. Owner: Aux 3 (assigned
+  6:15 AM EDT 2026-10-30 as its lock-free item; no stored value).
+  Prerequisites: none. Related: NAV.60, TEST.165.
+
 ## DB: Database and schema
 
 DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
@@ -16898,42 +16919,6 @@ clears each one.
   "Apply all 29", as the coordinator reported it): TEST.186 is the named blocker and is already done, so it is not listed as a prerequisite (the named blocker of the 2026-10-16
   owner line; TEST.186 is merged, PR #2040).
   Design: [docs/design/systems/multi-star-systems.md](design/systems/multi-star-systems.md)
-
-- [ ] **TEST.165 Re-measure the region query on a real generated galaxy, warm and cold**
-  Step 6 (design note sections 8 and 9 item 6). The benchmark scripts in
-  /mnt/project-files/research/spherical-region-queries/ become
-  `scripts/bench_region_queries.py` (seed, centres, the recommended
-  statement against the plain box and the sector walk) and run once on a
-  generated galaxy of a few million systems, warm and cold (restart with
-  a small buffer pool and `O_DIRECT`), with real wide rows and ids from
-  several generation runs; the numbers go into the note. Done: the
-  script is in the repo, the note carries the real-galaxy figures
-  against the research's 42 ms at 50 pc (10 million rows), and any
-  figure more than twice the research's is reported to Core. Owner:
-  Quality (2026-10-15). Boss (2026-10-15 5:32 PM EDT): "if it's not
-  ready in time before the spherical sector layout is, then we'll skip
-  it and move to the next sequence until it's finished research and we
-  can plan it." The research is finished and merged (#1659), so stage C
-  is live.
-  Owner: Core 4, "Core 4 (2026-10-16)" (Boss approved the lane at 4:31
-  PM EDT, 2026-10-16; queue in the lane report); held until its blocker
-  merges: GEN.276 (Core 2). Core 4 takes it when it unblocks.
-  Owner: Core 5 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Decided (Boss, contradiction sweep card, tapped 7:31 AM EDT 2026-10-21
-  "Apply all 29", as the coordinator reported it): GEN.276 is the named blocker and is already done, so it is not listed as a prerequisite (the named blocker of the 2026-10-16
-  owner line; GEN.276 is merged, PR #1966).
-  Owner: Core 4 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue is
-  in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
-  owner line).
-  OWNER Aux 3 (assigned 5:28 AM EDT 2026-10-30 by TODO as the lane's one
-  lock-free item; measurement and a recorded result only, separate
-  branch, change no stored value) (2026-10-30 5:28 AM EDT): If the
-  measurement shows a query too slow, file it with TODO as a PERF item
-  and do not fix it under this one.
-  Prerequisites: none. Related: NAV.60, DOC.51.
-  Design: [docs/design/galaxy/spherical-region-queries.md](design/galaxy/spherical-region-queries.md)
 
 - [ ] **TEST.168 Control sweep: a browser test drives every control on every page against a spherical galaxy with 96-bit IDs**
   Boss (2026-10-16, 12:52 AM EDT): "also we need to run an interface
