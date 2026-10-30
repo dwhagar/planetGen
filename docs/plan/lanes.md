@@ -575,3 +575,5 @@ CORE 3 LOCK-FREE ITEM (11:49 PM EDT 2026-10-28): MAP.339 (black hole near-field 
 2026-10-30 7:53 AM EDT: BOSS DECIDED (7:52 AM EDT, via the coordinator): (1a) leave the class 5/7/8/9 ammonia gate as it is and re-measure after the train 2 air and water wiring is in; (2a) MAP.347 Start Here / End Here and the MAP.349 Go to lines stay behind Expand, not in the first view; (3a) keep both the new hover preview card (MAP.348) and the old tooltip. Core 2 owns 2a and 3a: no tooltip retirement item.
 
 2026-10-30 8:28 AM EDT: Core 5 (as the lane reported) merged PERF.211 as #4009: schema is now v186, migration 0186 (19 sort-key indexes, no column or stored value change). Any lane or train that holds a migration number must renumber from 0187; Bug 2's allocate_numbers does this at the train. Core 5 also added fixtures schema_v184 and schema_v185. update.sh should run with generation stopped while the indexes build.
+
+2026-10-30 8:32 AM EDT: Core 5 RETIRED (as the lane reported): UX.237 part 2, API.33 rest and PERF.211 all merged; nothing is left on its branches or in open PRs.
