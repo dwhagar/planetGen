@@ -738,8 +738,7 @@
     },
     {
       "epoch": 124,
-      "first_release": null,
-      "pending": true,
+      "first_release": "8.0.2659",
       "reason": "Train 2: GEN.916 and GEN.911 habitable requests judged by conditions and aimed by solved temperature; GEN.980 class derived after life; GEN.953 interim birth spin scale 0.4 and small-planet factor; GEN.894 strange-solvent life classes; GEN.833 frozen body covered by its ice; GEN.848 day and night swing for every temperature; GEN.849 rocky body bulk water from the Bern delivery law; GEN.834 non-water ice stored by species",
       "affects": ["fill"]
     }
