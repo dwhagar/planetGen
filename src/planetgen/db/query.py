@@ -4501,7 +4501,7 @@ def _bright_star_entry(row):
 def scatter_member_tree(conn, table, row_id):
     """
     The stored members of an unbuilt scatter row, as a page lists them (UX.114): `members` (`member_no`, `kind`,
-    `state`, `mass_solar`, `parent_node_no`, `flags`, `decay_age_yr`, which only a member of a young group has, GEN.327) in member
+    `state`, `mass_solar`, `parent_node_no`, `flags`, `decay_age_yr`, which only a member of a young group has, GEN.327, and `radius_au`, GEN.952) in member
     order and `nodes` (`node_no`, `parent_node_no`, `kind`
     (`close`, `wide`, `compact` or `group`), `mass_solar`, `separation_au`, `period_years`, `eccentricity`, `interaction`, `flags`),
     both empty for a single object, and `compact_pairs` (UX.186: the X-ray binaries and spider pulsars among them,
@@ -4515,9 +4515,10 @@ def scatter_member_tree(conn, table, row_id):
     source = SCATTER_SOURCES[table]
     members = [
         {"member_no": r["member_no"], "kind": r["kind"], "state": r["state"], "mass_solar": r["mass_solar"],
-         "parent_node_no": r["parent_node_no"], "decay_age_yr": r["decay_age_yr"], "flags": r["flags"]}
+         "parent_node_no": r["parent_node_no"], "decay_age_yr": r["decay_age_yr"], "flags": r["flags"],
+         "radius_au": r["radius_au"]}
         for r in conn.execute(
-            "SELECT member_no, kind, state, mass_solar, parent_node_no, decay_age_yr, flags FROM scatter_members"
+            "SELECT member_no, kind, state, mass_solar, parent_node_no, decay_age_yr, flags, radius_au FROM scatter_members"
             " WHERE source = ? AND source_id = ? ORDER BY member_no", (source, int(row_id))).fetchall()]
     nodes = [
         {"node_no": r["node_no"], "parent_node_no": r["parent_node_no"], "kind": r["kind"],

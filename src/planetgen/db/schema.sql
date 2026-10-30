@@ -1515,6 +1515,7 @@
 -- v183 (GEN.834): `planets` and `moons` split `ice_mass_fraction` (every ice but water) by species: `ice_co2_mass_fraction`, `ice_ch4_mass_fraction`, `ice_nh3_mass_fraction`, `ice_n2_mass_fraction`,
 --   `ice_so2_mass_fraction`, `ice_co_mass_fraction`, `ice_hcn_mass_fraction` and `ice_other_mass_fraction` (ethane, methanol, formaldehyde, hydrogen sulfide), shares of the whole body's mass that add up to
 --   `ice_mass_fraction`. NULL for a row made before v183 and for a body with no composition; 0 for a body with no ice. Nothing is backfilled.
+-- v176 (GEN.952): `scatter_members.radius_au` (DOUBLE, NULL), a member's extent in AU, so a page can work out the X-ray luminosity of an accreting pair; NULL on a row made before v176, nothing is backfilled.
 --
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
@@ -4274,6 +4275,7 @@ CREATE TABLE IF NOT EXISTS scatter_members (
     initial_mass_solar   DOUBLE NOT NULL,
     seed                 BIGINT UNSIGNED NOT NULL,
     epoch_unix                  DOUBLE NULL,  -- v102 (DB.55): when the position and velocity hold
+    radius_au                   DOUBLE NULL,  -- v176 (GEN.952): the extent of the member in AU, NULL on a row made before v176
     PRIMARY KEY (source, source_id, member_no),
     CONSTRAINT chk_scatter_members_source CHECK (source IN (1, 2)),
     CONSTRAINT chk_scatter_members_kind CHECK (kind IN (

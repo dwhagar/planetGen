@@ -2345,6 +2345,7 @@ scatter_members = sa.Table(
     sa.Column('initial_mass_solar', mysql.DOUBLE(), nullable=False),
     sa.Column('seed', mysql.BIGINT(unsigned=True), nullable=False),
     sa.Column('epoch_unix', mysql.DOUBLE(), nullable=True),
+    sa.Column('radius_au', mysql.DOUBLE(), nullable=True),
     sa.CheckConstraint("(`kind` in (_utf8mb4'main-sequence',_utf8mb4'giant',_utf8mb4'white-dwarf',_utf8mb4'neutron-star',_utf8mb4'black-hole',_utf8mb4'brown-dwarf',_utf8mb4'pre-main-sequence',_utf8mb4'protostar',_utf8mb4'stripped-helium',_utf8mb4'thorne-zytkow',_utf8mb4'wolf-rayet'))", name='chk_scatter_members_kind'),
     sa.CheckConstraint('(`source` in (1,2))', name='chk_scatter_members_source'),
     mysql_engine="InnoDB",
