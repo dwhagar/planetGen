@@ -296,17 +296,33 @@ def test_effective_temperature_rejects_a_zero_radius():
 
 
 def test_spectral_letter_clamps_outside_the_table():
-    ranges = constants.TEMP_RANGES
-    assert stellar_evolution.spectral_letter_and_subclass(ranges["O"][1] * 10) == ("O", 0)
+    assert stellar_evolution.spectral_letter_and_subclass(1.0e6) == ("O", 0)
     assert stellar_evolution.spectral_letter_and_subclass(1.0) == ("M", constants.SUBCLASS_MAX_VALUE)
 
 
+@pytest.mark.parametrize("temperature, expected", [
+    (44900, ("O", 3)), (33300, ("O", 9)), (20600, ("B", 2)), (9700, ("A", 0)), (6550, ("F", 5)), (5770, ("G", 2)),
+    (5270, ("K", 0)), (3930, ("K", 9)), (3850, ("M", 0)), (3060, ("M", 5)), (2380, ("M", 9)),
+])
+def test_spectral_types_are_the_mamajek_sequence(temperature, expected):
+    """GEN.943: the Sun is G2, K0 is 5,270 K and the K/M edge is near 3,900 K (the types of the Pecaut and Mamajek table)."""
+    assert stellar_evolution.spectral_letter_and_subclass(temperature) == expected
+
+
+def test_the_k_m_boundary_is_near_3900_k():
+    assert stellar_evolution.spectral_letter_and_subclass(3900)[0] == "K"
+    assert stellar_evolution.spectral_letter_and_subclass(3880)[0] == "M"
+
+
 def test_spectral_subclass_runs_hot_to_cool_within_a_letter():
-    low, high = constants.TEMP_RANGES["G"]
-    hot = stellar_evolution.spectral_letter_and_subclass(high - 1)
-    cool = stellar_evolution.spectral_letter_and_subclass(low + 1)
-    assert hot[0] == cool[0] == "G"
-    assert hot[1] == 0 and cool[1] == constants.SUBCLASS_MAX_VALUE
+    previous = (-1, -1)
+    for kelvin in range(5980, 5330, -10):
+        letter, subclass = stellar_evolution.spectral_letter_and_subclass(kelvin)
+        assert letter == "G"
+        assert subclass >= previous[1] or previous[0] != letter
+        previous = (letter, subclass)
+    assert stellar_evolution.spectral_letter_and_subclass(5980) == ("G", 0)
+    assert stellar_evolution.spectral_letter_and_subclass(5330) == ("G", 9)
 
 
 # --- white dwarf radius ---------------------------------------------------
@@ -465,7 +481,7 @@ def test_hot_white_dwarf_central_stars_are_the_models_hot_white_dwarfs(star_type
 
 def test_hot_white_dwarf_temperature_follows_the_subclass():
     assert make_star("O3VII").temperature > make_star("O9VII").temperature >= make_star("B0VII").temperature
-    assert make_star("B0VII").temperature >= constants.TEMP_RANGES["B"][1] * 0.95
+    assert make_star("B0VII").temperature >= constants.TEMP_RANGES["B"][1] * 0.9
 
 
 def test_cool_white_dwarfs_keep_their_own_mass_and_temperature_ranges():

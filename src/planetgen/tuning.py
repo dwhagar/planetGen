@@ -621,16 +621,24 @@ MS_LIFETIME_REFERENCE_Z = 0.0154
 MS_LIFETIME_Z_RANGE = (1.0e-4, 0.03)
 """tuple: The metallicities (mass fraction of metals, Z) Hurley, Pols and Tout 2000 fitted their formulae over (the
 paper's abstract: 0.0001 to 0.03); `ms_lifetime.zeta` holds a star's to it (GEN.651)."""
+# The spectral types hotter than O3, which the Pecaut and Mamajek sequence does not hold (GEN.943): the
+# effective temperatures of O2, O1 and O0 (stand-ins, an extrapolation of the sequence's step of about 2,000 K a
+# type to 5,000 K, the hot end of the observed O2 stars near 50,000 K, Walborn et al. 2002; Martins et al. 2005).
+HOT_O_SUBCLASS_TEMPERATURES_K = {0: 60000.0, 1: 55000.0, 2: 50000.0}
+# A main-sequence star this far below the luminosity of a solar-metallicity dwarf of its temperature (log10 of the
+# luminosity) is a subdwarf, Yerkes VI (GEN.943). Subdwarfs lie one to two magnitudes below the dwarf sequence in
+# visual magnitude (Gizis 1997; Yerkes/MK class sd); in bolometric terms the model's metal-poor stars are 0.4 dex dimmer
+# (F and G), 0.6 (K) and 1.0 (M) at [Fe/H] -1.5, while a solar-metallicity M dwarf of the model sits 0.17 dex under the
+# sequence (95 percent within 0.23), so 0.3 labels the first and not the second.
+SUBDWARF_LUMINOSITY_DEFICIT_DEX = 0.3
 # A forced star type (GEN.941, generation/forced_star.py) is a star the model
-# makes. A subdwarf (Yerkes VI) is a metal-poor halo star on the main sequence
-# (Gizis 1997 define the sd classes as metal-poor dwarfs, [Fe/H] below about -1;
-# the range runs to the halo's lower edge) at least SUBDWARF_MIN_AGE_GY old, or,
-# for the hot letters, a hot horizontal-branch star (sdB and sdO stars are
-# helium-burning cores, Heber 2016) from SUBDWARF_HOT_MIN_TEMPERATURE_K, the
-# extreme horizontal branch's floor (HORIZONTAL_BRANCH_COLOUR_TEMPERATURE_RANGE_K).
-# The halo and thick disk are old, 8 Gy and more (SUBDWARF_MIN_AGE_GY).
-# GEN.943 decides what the class means beyond that.
-SUBDWARF_MIN_AGE_GY = 8.0
+# makes. A subdwarf (Yerkes VI) is a main-sequence star under-luminous for its
+# temperature (SUBDWARF_LUMINOSITY_DEFICIT_DEX), which a metal-poor star of the
+# halo is: Gizis 1997 define the sd classes as metal-poor dwarfs, [Fe/H] below
+# about -1; the range runs to the halo's lower edge. For the hot letters it is
+# also a hot horizontal-branch star (sdB and sdO stars are helium-burning cores,
+# Heber 2016) from SUBDWARF_HOT_MIN_TEMPERATURE_K, the extreme horizontal
+# branch's floor (HORIZONTAL_BRANCH_COLOUR_TEMPERATURE_RANGE_K).
 SUBDWARF_FE_H_RANGE = (-2.0, -1.0)
 SUBDWARF_HOT_MIN_TEMPERATURE_K = 20000.0
 # The scan the forced-type table is built from: masses log-spaced across the

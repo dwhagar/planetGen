@@ -34,6 +34,7 @@ from markupsafe import Markup, escape
 
 from planetgen.physics import brown_dwarf_types, constants as phys, planet_classes, small_body_composition
 from planetgen import tuning as pc
+from planetgen.datasets import mamajek_sequence
 from planetgen.generation import forced_star
 from planetgen.generation.comet import PERIOD_CLASS_LABELS
 from planetgen.generation.phenomena.nebula import NEBULA_CLASS_LETTERS, REMNANT_CLASS_LETTERS
@@ -139,7 +140,7 @@ def _entry(code, name, summary, facts):
 def _star_spectral():
     classes = {}
     for letter, color in phys.SPECTRAL_CLASS_COLORS.items():
-        low_k, high_k = phys.TEMP_RANGES[letter]
+        low_k, high_k = mamajek_sequence.letter_range_k(letter)
         found = forced_star.letter_summary(letter)
         classes[letter] = _entry(letter, f"{color} {letter}-type star",
                                  f"{color} stars with surfaces at {number_range(low_k, high_k, 'K')}.", [

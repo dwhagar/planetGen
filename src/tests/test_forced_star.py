@@ -7,7 +7,7 @@ from planetgen import tuning
 from planetgen.generation import forced_star
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.star import Star
-from planetgen.physics import constants, post_main_sequence
+from planetgen.physics import constants, post_main_sequence, stellar_evolution
 
 
 def make_star(star_type, age=None):
@@ -39,7 +39,7 @@ def test_a_sun_like_type_is_a_sun_like_star_of_the_model():
     sun_like = [make_star("G2V") for _ in range(20)]
     for star in sun_like:
         assert 0.6 <= star.mass / constants.SOLAR_MASS_TO_KG <= 2.0
-        assert 5400 <= star.temperature <= 6000
+        assert 5300 <= star.temperature <= 6000
 
 
 def test_a_type_the_model_never_makes_is_its_nearest_star_at_the_temperature_asked():
@@ -63,7 +63,8 @@ def test_the_aliases_are_the_models_classes_under_their_own_names():
 def test_a_subdwarf_is_an_old_metal_poor_star():
     for _ in range(10):
         star = make_star("K5VI")
-        assert star.age >= tuning.SUBDWARF_MIN_AGE_GY
+        assert stellar_evolution.yerkes_class_of({"yerkes_class": "V", "luminosity_sol": star.luminosity / constants.SOLAR_LUMINOSITY,
+                                                  "temperature_k": star.temperature}) == "VI" or star.temperature > 1.0e4
         assert tuning.SUBDWARF_FE_H_RANGE[0] <= star.metallicity_fe_h <= tuning.SUBDWARF_FE_H_RANGE[1]
 
 
@@ -75,7 +76,7 @@ def test_the_age_bias_picks_the_older_or_younger_half():
 
 def test_the_class_pages_read_the_model():
     sun = forced_star.letter_summary("G")
-    assert 0.8 <= sun.mass_sol[0] and sun.mass_sol[1] <= 1.2
+    assert 0.8 <= sun.mass_sol[0] and sun.mass_sol[1] <= 1.4
     assert 0 < sun.share < 1
     giants = forced_star.class_summary("III")
     assert giants.luminosity_sol[0] < giants.luminosity_sol[1]

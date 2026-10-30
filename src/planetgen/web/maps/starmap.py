@@ -52,8 +52,8 @@ except ImportError:
     # drive the map's color math directly.
     SPECTRAL_CLASS_COLORS = {'O': 'Blue', 'B': 'Blue-White', 'A': 'White', 'F': 'Yellow-White', 'G': 'Yellow', 'K': 'Orange', 'M': 'Red'}
     TEMP_RANGES = {
-        'O': (30000, 60000), 'B': (10000, 30000), 'A': (7500, 10000), 'F': (6000, 7500),
-        'G': (5200, 6000), 'K': (3700, 5200), 'M': (2400, 3700),
+        'O': (32350, 62500), 'B': (10200, 32350), 'A': (7310, 10200), 'F': (5990, 7310),
+        'G': (5325, 5990), 'K': (3890, 5325), 'M': (2285, 3890),
     }
     SOLAR_LUMINOSITY = 3.82e26
     SOLAR_RADIUS_M = 6.957e8

@@ -9,9 +9,9 @@ and evolves the star for real, so the result has the model's mass, luminosity, a
 
 A type the model never makes (a B giant, an M hypergiant) is still a type the person asked for: the star is the model's nearest
 one of that Yerkes class by temperature, with the temperature set to the request (`ForcedStar.exact` is False and the caller
-logs it). Two classes are aliases (`IA+` is the hypergiant `0`, `D` the white dwarf `VII`). A subdwarf (`VI`) is a metal-poor
-main-sequence star (a halo star at `SUBDWARF_FE_H_RANGE`) or, for the hot letters, a blue horizontal-branch star
-(`SUBDWARF_HOT_MIN_TEMPERATURE_K`); GEN.943 decides what the class means beyond that.
+logs it). Two classes are aliases (`IA+` is the hypergiant `0`, `D` the white dwarf `VII`). A subdwarf (`VI`) is a main-sequence
+star under-luminous for its temperature (`stellar_evolution.is_subdwarf`; a halo star drawn at `SUBDWARF_FE_H_RANGE` is) or, for the
+hot letters, a hot horizontal-branch star (`SUBDWARF_HOT_MIN_TEMPERATURE_K`).
 """
 import functools
 import math
@@ -20,7 +20,8 @@ from collections import defaultdict, namedtuple
 import numpy as np
 
 from planetgen import tuning
-from planetgen.physics import constants, imf, post_main_sequence
+from planetgen.datasets import mamajek_sequence
+from planetgen.physics import imf, post_main_sequence
 from planetgen.physics import stellar_evolution as evolution
 from planetgen.util import draw
 
@@ -28,11 +29,14 @@ ForcedStar = namedtuple("ForcedStar", "initial_mass_sol age_gy state exact fe_h"
 _Cell = namedtuple("_Cell", "weight mass_sol age_gy mass_ratio age_step_gy temperature_k present_mass_sol luminosity_sol")
 Summary = namedtuple("Summary", "mass_sol luminosity_sol share")
 
+_HOT_SUBDWARF_KEY = "sdHB"
+"""The table key of the hot horizontal-branch stars, which are also in the table under their own class and so join the subdwarfs only
+when a subdwarf is drawn."""
 ALIASES = {"IA+": "0", "D": "VII"}
 """A forced Yerkes class the model names otherwise."""
 
 _FE_H_BUCKETS = (-2.0, -1.5, -1.0, -0.5, 0.0, 0.5)
-_MODEL_CLASSES = ("0", "IA", "IAB", "IB", "II", "III", "IV", "V", "VII")
+_MODEL_CLASSES = ("0", "IA", "IAB", "IB", "II", "III", "IV", "V", "VI", "VII")
 
 
 def _bucket(fe_h):
@@ -40,9 +44,13 @@ def _bucket(fe_h):
 
 
 def _key(state):
-    """The (letter, subclass) of a model state at the temperature the star is stored with."""
-    temperature = int(round(state["temperature_k"], tuning.ROUND_TEMPERATURE_NEAREST_HUNDRED))
-    return evolution.spectral_letter_and_subclass(temperature)
+    """The (letter, subclass) of a model state."""
+    return evolution.spectral_letter_and_subclass(state["temperature_k"])
+
+
+def _hot_subdwarf(state):
+    """A hot horizontal-branch star: the helium-burning core of an sdB or sdO star, a subdwarf by its spectrum."""
+    return state.get("phase") == "horizontal-branch" and state["temperature_k"] >= tuning.SUBDWARF_HOT_MIN_TEMPERATURE_K
 
 
 def _mass_grid():
@@ -95,13 +103,12 @@ def _table(bucket):
             if state is None or state["yerkes_class"] not in _MODEL_CLASSES:
                 continue
             letter, subclass = _key(state)
+            label = evolution.yerkes_class_of(state)
             cell = _Cell(per_log_mass * step, mass, age, ratio, step, state["temperature_k"], state["mass_sol"],
                          state["luminosity_sol"])
-            table[(letter, subclass, state["yerkes_class"])].append(cell)
-            if state.get("phase") == "horizontal-branch" and state["temperature_k"] >= tuning.SUBDWARF_HOT_MIN_TEMPERATURE_K:
-                table[(letter, subclass, "VI")].append(cell)
-            if state["yerkes_class"] == "V" and age >= tuning.SUBDWARF_MIN_AGE_GY and bucket <= tuning.SUBDWARF_FE_H_RANGE[1]:
-                table[(letter, subclass, "VI")].append(cell)
+            table[(letter, subclass, label)].append(cell)
+            if _hot_subdwarf(state):
+                table[(letter, subclass, _HOT_SUBDWARF_KEY)].append(cell)
     return dict(table)
 
 
@@ -126,17 +133,15 @@ def _pick(cells, age_bias, rng):
 
 
 def target_temperature_k(letter, subclass):
-    """The temperature a letter and subclass stand for: subclass 0 at the hot end of the letter's `TEMP_RANGES`, 9 at the cool
-    end, to the hundred kelvin stars are stored at."""
-    low, high = constants.TEMP_RANGES[letter]
-    kelvin = low + (constants.SUBCLASS_MAX_VALUE - subclass) * (high - low) / constants.SUBCLASS_MAX_VALUE
-    return int(round(kelvin, tuning.ROUND_TEMPERATURE_NEAREST_HUNDRED))
+    """The temperature a letter and subclass stand for: that of the type in the Pecaut and Mamajek sequence (GEN.943)."""
+    return mamajek_sequence.temperature_k(letter, subclass)
 
 
 def _nearest_cells(yerkes, target_k, bucket):
     """The cells of `yerkes` closest in temperature to `target_k` (those within `FORCED_STAR_NEAREST_SLACK` of the best)."""
+    wanted = (yerkes, _HOT_SUBDWARF_KEY) if yerkes == "VI" else (yerkes,)
     cells = [(abs(math.log(cell.temperature_k / target_k)), cell)
-             for (_, _, found), group in _table(bucket).items() if found == yerkes for cell in group]
+             for (_, _, found), group in _table(bucket).items() if found in wanted for cell in group]
     if not cells:
         raise ValueError(f"the star model makes no star of Yerkes class {yerkes}")
     best = min(distance for distance, _ in cells)
@@ -162,7 +167,10 @@ def sample(letter, subclass, yerkes, age_bias=None, rng=draw, population=None, f
     else:
         fe_h = evolution.birth_fe_h(rng, population, fe_h_peaks, galactic_center_dist_ly)
     bucket = _bucket(fe_h)
-    cells = _table(bucket).get((letter, subclass, model_class))
+    table = _table(bucket)
+    cells = table.get((letter, subclass, model_class), [])
+    if model_class == "VI":
+        cells = cells + table.get((letter, subclass, _HOT_SUBDWARF_KEY), [])
     exact = bool(cells)
     if not exact:
         cells = _nearest_cells(model_class, target_temperature_k(letter, subclass), bucket)
@@ -175,11 +183,9 @@ def sample(letter, subclass, yerkes, age_bias=None, rng=draw, population=None, f
         if state is None or state["yerkes_class"] not in _MODEL_CLASSES:
             continue
         if model_class == "VI":
-            # A subdwarf is the main sequence of a halo star or a hot horizontal-branch star, read as class VI.
-            hot = state.get("phase") == "horizontal-branch" and state["temperature_k"] >= tuning.SUBDWARF_HOT_MIN_TEMPERATURE_K
-            if not (hot or (state["yerkes_class"] == "V" and age >= tuning.SUBDWARF_MIN_AGE_GY)):
+            if not (evolution.yerkes_class_of(state) == "VI" or _hot_subdwarf(state)):
                 continue
-        elif state["yerkes_class"] != model_class:
+        elif evolution.yerkes_class_of(state) != model_class:
             continue
         if exact and _key(state) != (letter, subclass):
             continue
@@ -199,7 +205,7 @@ def _summary(cells, total_weight=None):
 
 
 def _population_weight():
-    return sum(cell.weight for (_, _, yerkes), group in _table(0.0).items() if yerkes != "VI" for cell in group)
+    return sum(cell.weight for (_, _, yerkes), group in _table(0.0).items() if yerkes != _HOT_SUBDWARF_KEY for cell in group)
 
 
 def letter_summary(letter):
@@ -207,7 +213,7 @@ def letter_summary(letter):
     [Fe/H], and the share of all the model's stars (every class, remnants included) that are of the letter (the class reference
     pages, GEN.941)."""
     cells = [cell for (found, _, yerkes), group in _table(0.0).items() if found == letter and yerkes == "V" for cell in group]
-    everything = [cell for (found, _, yerkes), group in _table(0.0).items() if found == letter and yerkes != "VI"
+    everything = [cell for (found, _, yerkes), group in _table(0.0).items() if found == letter and yerkes != _HOT_SUBDWARF_KEY
                   for cell in group]
     ranges = _summary(cells)
     return Summary(ranges.mass_sol, ranges.luminosity_sol, sum(c.weight for c in everything) / _population_weight())
@@ -225,7 +231,7 @@ def class_summary(yerkes):
         return Summary((min(present), max(present)), tuning.WR_LUMINOSITY_RANGE_SOL, None)
     if yerkes == "VI":
         bucket = _bucket(tuning.SUBDWARF_FE_H_RANGE[0])
-        cells = {id(cell): cell for (_, _, found), group in _table(bucket).items() if found == "VI" for cell in group}.values()
+        cells = {id(cell): cell for (_, _, found), group in _table(bucket).items() if found in ("VI", _HOT_SUBDWARF_KEY) for cell in group}.values()
         return _summary(list(cells))
     cells = [cell for (_, _, found), group in _table(0.0).items() if found == ALIASES.get(yerkes, yerkes) for cell in group]
     if not cells:

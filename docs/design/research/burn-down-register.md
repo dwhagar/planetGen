@@ -98,3 +98,4 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.36:PA9 | no data | - | the hot Jupiter share of giants is tuned to 0.6 to 1.2 percent of Sun-like stars and 0.27 percent of early M dwarfs; no survey measures the migration channel |
 | 6.36:PA10 | no data | - | the inward move of other giants is tuned to the 1 to 3 AU peak of Fulton et al. 2021 and Cumming et al. 2008; no survey measures the migration |
 | 6.36:PA11 | no data | - | the lightest oligarch that counts as a planet is tuned to the Neptune-mass counts beyond the snow line; the microlensing mass function below 1 Earth mass is unmeasured |
+| 6.40:PS14 | no data | - | the label is a margin between the model's own solar-metallicity and metal-poor stars; no survey count of subdwarfs by luminosity deficit is held, and the first one replaces the margin |

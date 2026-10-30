@@ -31,7 +31,7 @@ section.
 import functools
 import math
 
-from planetgen.datasets import fetch, white_dwarf_models
+from planetgen.datasets import fetch, mamajek_sequence, white_dwarf_models
 from planetgen.galaxy import scales
 from planetgen.physics import (
     constants, imf, main_sequence, metallicity, ms_lifetime, post_main_sequence, remnant_mass, wolf_rayet)
@@ -221,24 +221,27 @@ def white_dwarf_radius_km(mass_sol):
 
 def spectral_letter_and_subclass(temperature_k):
     """
-    The spectral letter whose `TEMP_RANGES` holds `temperature_k` (clamped
-    to O above the table and M below it), and the 0-9 subclass within it
-    (0 hottest), the same subclass rule the generator already uses.
+    The spectral letter and the 0-9 subclass (0 hottest) of the type whose temperature is nearest `temperature_k` in the Pecaut and
+    Mamajek dwarf sequence (`datasets.mamajek_sequence`, GEN.943): the Sun's 5,770 K is G2, 3,900 K is the K/M boundary, and a
+    temperature above O0 or below M9 is O0 or M9.
     """
-    ranges = constants.TEMP_RANGES
-    letter = None
-    for candidate, (low, high) in ranges.items():
-        if low <= temperature_k <= high:
-            letter = candidate
-            break
-    if letter is None:
-        letter = "O" if temperature_k > ranges["O"][1] else "M"
-    low, high = ranges[letter]
-    clamped = min(max(temperature_k, low), high)
-    subclass = constants.SUBCLASS_MAX_VALUE - round(
-        (clamped - low) / (high - low) * constants.SUBCLASS_MAX_VALUE)
-    return letter, subclass
+    return mamajek_sequence.spectral_letter_and_subclass(temperature_k)
 
+
+def is_subdwarf(luminosity_sol, temperature_k):
+    """
+    Whether a main-sequence star is a subdwarf (Yerkes VI, GEN.943): it lies `SUBDWARF_LUMINOSITY_DEFICIT_DEX` or more below the
+    luminosity of a solar-metallicity dwarf of its temperature (the Pecaut and Mamajek sequence), as a metal-poor halo star does.
+    """
+    return math.log10(luminosity_sol) < mamajek_sequence.dwarf_log_luminosity(temperature_k) - tuning.SUBDWARF_LUMINOSITY_DEFICIT_DEX
+
+
+def yerkes_class_of(state):
+    """The Yerkes class a model state is stored under: its own, except that a main-sequence star under-luminous for its temperature
+    is a subdwarf (`VI`)."""
+    if state["yerkes_class"] == "V" and is_subdwarf(state["luminosity_sol"], state["temperature_k"]):
+        return "VI"
+    return state["yerkes_class"]
 
 
 def luminosity_law_share_above(low, high, slope, min_luminosity_sol):
@@ -586,7 +589,7 @@ def star_params(initial_mass_sol, age_gy, state):
         `phase_end_age_gy`; and `metallicity_fe_h`, the birth [Fe/H] the star keeps (GEN.651).
     """
     temperature = int(round(state["temperature_k"], tuning.ROUND_TEMPERATURE_NEAREST_HUNDRED))
-    spectral_class, subclass = spectral_letter_and_subclass(temperature)
+    spectral_class, subclass = spectral_letter_and_subclass(state["temperature_k"])
     luminosity_w = state["luminosity_sol"] * constants.SOLAR_LUMINOSITY
     if state["radius_km"] is not None:
         radius_km = state["radius_km"]
@@ -594,7 +597,7 @@ def star_params(initial_mass_sol, age_gy, state):
         radius_km = math.sqrt(luminosity_w / (constants.FOUR_PI * constants.STEFAN_BOLTZMANN_CONSTANT
                                               * temperature ** 4))
         radius_km = _m_to_km(radius_km)
-    yerkes = state["yerkes_class"]
+    yerkes = yerkes_class_of(state)
     color = constants.SPECTRAL_CLASS_COLORS[spectral_class]
     if yerkes == wolf_rayet.CLASS:
         # GEN.243: the spectral text is the subtype and subclass (WN6), in place of a letter, and the class says Wolf-Rayet.

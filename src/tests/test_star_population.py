@@ -58,7 +58,8 @@ def population():
 # sampling noise and later tuning of the letter boundaries.
 EXPECTED_SHARES = [
     ("M dwarf", 68.0, 80.0),
-    ("K dwarf", 11.0, 18.0),
+    # GEN.943: the K/M boundary moved from 3,700 to 3,890 K (Mamajek), so the cool end of the K dwarfs is M now.
+    ("K dwarf", 8.0, 18.0),
     ("G dwarf", 2.0, 6.0),
     ("F dwarf", 1.2, 3.0),
     # GEN.652: on the MIST main sequence a star is A-type (7500 to 10000 K) between about 1.75 and 2.4 solar masses and

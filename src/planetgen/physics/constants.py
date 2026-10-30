@@ -302,10 +302,12 @@ WHITE_DWARF_BASE_RADIUS_KM = 5800
 COOL_WHITE_DWARF_BELOW_K = 10000
 WHITE_DWARF_MASS_RADIUS_EXPONENT = -1/3
 
-# Temperature ranges for each spectral class in Kelvin
+# The temperatures between which the nearest spectral type is of each letter, in Kelvin: the midpoints between the last type of one
+# letter and the first of the next in the Pecaut and Mamajek dwarf sequence (GEN.943; `mamajek_sequence.letter_range_k` reads them
+# from the file and a test keeps these equal). The map shades a star within its letter's band with them.
 TEMP_RANGES = {
-    'O': (30000, 60000), 'B': (10000, 30000), 'A': (7500, 10000), 'F': (6000, 7500),
-    'G': (5200, 6000), 'K': (3700, 5200), 'M': (2400, 3700)
+    'O': (32350, 62500), 'B': (10200, 32350), 'A': (7310, 10200), 'F': (5990, 7310),
+    'G': (5325, 5990), 'K': (3890, 5325), 'M': (2285, 3890)
 }
 
 # Typical main-sequence mass ranges by spectral class (letter), in solar

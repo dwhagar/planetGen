@@ -409,7 +409,7 @@ def get_star_evolutionary_profile(star):
     if not base_info:
         return {}
 
-    if reference_star.yerkes_class == "V":
+    if reference_star.yerkes_class in ("V", "VI"):
         return base_info
 
     # A white dwarf's lifespan is infinite (it just cools forever), so "how
