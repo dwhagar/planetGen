@@ -13741,55 +13741,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   in the giant column with GEN.1030/1033). Version 8.1.
   Prerequisites: none. Related: GEN.1030, GEN.1033, GEN.412, GEN.816.
 
-- [ ] **GEN.1062 physics/resonance_gaps.py: the resonance and chaotic-zone map from the giants' orbits and the size-dependent Yarkovsky cut**
-  Asteroid belt evolution (Boss, 4:19 PM EDT 2026-10-30, plan every item
-  so belts evolve and say where we think each belongs; design
-  docs/design/systems/belt-evolution.md). The mass cut for an individual
-  object is the RULE, never a fixed count (Boss, 4:27 PM EDT: "I like
-  the rule"): store every body above 1e19 kg; if that is fewer than the
-  bodies needed to cover 90 percent of the belt mass, add the next
-  heaviest up to 300 per belt; bodies below are drawn on demand and
-  never stored. The cut values are stand-ins registered in GEN.725.
-  Stand-ins accepted when registered with tier and tweak level; a number
-  marked [R] in the design is read from its source by the lane that
-  builds it. The Solar System belt, Kuiper belt, Ceres, Pluto and Eris
-  are test targets, never inputs. Do: design section 2.3 and 2.4:
-  mean-motion resonance radii a_res = a_giant (q/p)^(2/3), chaotic zone
-  half-width about 1.3 a_p (m_p/M*)^(2/7), the Yarkovsky size cut that
-  grows with age, returning the gap list, the cut diameter and the
-  stirring of the survivors. Pure function. Done: tests give the
-  Kirkwood gaps (3:1 at 2.50 AU, 5:2, 7:3, 2:1) from Jupiter and the
-  empty zone inside Neptune's chaotic zone. Lock-free. Where we think it
-  belongs (best guess, can move): Core 3 (stability lane, waits for
-  train 6; separate branch), after the research read.
-  Prerequisites: GEN.1060. Related: GEN.1016.
-  Design: [docs/design/systems/belt-evolution.md](design/systems/belt-evolution.md)
-
-- [ ] **GEN.1064 physics/belt_history.py: early-depletion survival, instability sweep, and the star events (engulf partly, mass-loss destabilise share, companion truncation, white dwarf pollution link)**
-  Asteroid belt evolution (Boss, 4:19 PM EDT 2026-10-30, plan every item
-  so belts evolve and say where we think each belongs; design
-  docs/design/systems/belt-evolution.md). The mass cut for an individual
-  object is the RULE, never a fixed count (Boss, 4:27 PM EDT: "I like
-  the rule"): store every body above 1e19 kg; if that is fewer than the
-  bodies needed to cover 90 percent of the belt mass, add the next
-  heaviest up to 300 per belt; bodies below are drawn on demand and
-  never stored. The cut values are stand-ins registered in GEN.725.
-  Stand-ins accepted when registered with tier and tweak level; a number
-  marked [R] in the design is read from its source by the lane that
-  builds it. The Solar System belt, Kuiper belt, Ceres, Pluto and Eris
-  are test targets, never inputs. Do: design section 4 steps 3 and 6 and
-  2.5: a drawn survival after a giant instability (stand-in lognormal,
-  widest range until read), the corrected rule that a belt overlapping
-  an engulfment radius keeps its surviving outer part, the scattered
-  share on a mass drop feeding the white dwarf pollution rate, and a
-  text history line per event the page can show. Pure function. Done:
-  tests on white dwarf, red giant and binary-truncation cases.
-  Lock-free. Where we think it belongs (best guess, can move): Star 2
-  (owns the post-main-sequence epoch work, after its train 5 items;
-  separate branch), or Sources 2 if Star 2 stays busy.
-  Prerequisites: GEN.1060.
-  Design: [docs/design/systems/belt-evolution.md](design/systems/belt-evolution.md)
-
 - [ ] **GEN.1066 Design the system body table or view (system_bodies: id, parent, kind, mass, radius, density, a, e, i, status, tier) and the barycentre that includes the belts; decide view versus table**
   Asteroid belt evolution (Boss, 4:19 PM EDT 2026-10-30, plan every item
   so belts evolve and say where we think each belongs; design
@@ -13836,7 +13787,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   think it belongs (best guess, can move): Planets 1, train 7 (after
   the GEN.1014 wiring on train 6 and the ledger, gaps and history
   modules).
-  Prerequisites: GEN.1014, GEN.1062, GEN.1064. Related:
+  Prerequisites: GEN.1014. Related:
   GEN.728.
   Belt origins (2026-10-30 4:35 PM EDT): Each belt also stores where we
   think it came from (the cause from physics/belt_origin.py) and a
@@ -13948,7 +13899,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   planet survives. New epoch. Done: tests, white dwarf pollution share
   within the observed 25 to 50 percent band as a census check. Where we
   think it belongs (best guess, can move): Star 2, train 7.
-  Prerequisites: GEN.1064, GEN.1068.
+  Prerequisites: GEN.1068.
   Design: [docs/design/systems/belt-evolution.md](design/systems/belt-evolution.md)
 
 - [ ] **GEN.1073 Bring-to-epoch for belts: grinding recomputed from the stored age, members above the grinding scale kept**
