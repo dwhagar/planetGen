@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 362 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 369 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -36,16 +36,16 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 42 | 0 | 3 | 0 | 0 | 45 |
-| T2 | 65 | 3 | 0 | 1 | 0 | 69 |
+| T1 | 43 | 0 | 3 | 0 | 0 | 46 |
+| T2 | 68 | 3 | 0 | 1 | 0 | 72 |
 | T3 | 52 | 5 | 2 | 10 | 0 | 69 |
 | T4 | 16 | 0 | 0 | 2 | 0 | 18 |
-| T5 | 18 | 5 | 1 | 0 | 0 | 24 |
+| T5 | 21 | 5 | 1 | 0 | 0 | 27 |
 | T6 | 38 | 7 | 4 | 17 | 0 | 66 |
 | T7 | 16 | 3 | 1 | 7 | 0 | 27 |
 | T8 | 0 | 0 | 0 | 0 | 1 | 1 |
 | T9 | 1 | 0 | 2 | 24 | 16 | 43 |
-| All | 248 | 23 | 13 | 61 | 17 | 362 |
+| All | 255 | 23 | 13 | 61 | 17 | 369 |
 
 ## How the labels were given
 
@@ -164,6 +164,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | SC4 | D | T1 | L0 | the cluster laws of `tuning.py` recalled from Harris 1996 | the catalog download (`harris_clusters.py`; read by GEN.297) | Harris 1996 (AJ 112, 1487), 2010 edition | - | - |
 | SC5 | D | T1 | L0 | the single solar particle dose and the exponential in rigidity of `physics/radiation.py` | the event list download (`noaa_proton_events.py`; read by GEN.747) | NOAA Space Environment Services Center listing, via NASA SDAC (umbra.nascom.nasa.gov) | - | - |
 | SC6 | D | T1 | L0 | the three pre-main-sequence constants fitted to it and the nine brown dwarf radius points of `tuning.BROWN_DWARF_TRACKS` | the isochrone download (`baraffe_isochrones.py`; read by GEN.936 and GEN.948) | Baraffe, Homeier, Allard and Chabrier 2015 (A&A 577, A42) | - | - |
+| SL1 | D | T1 | L0 | the blackbody of the effective temperature with a seeded UV-C share (GEN.443, R17) and the BT-Settl chromaticity offsets | the spectra download (`stellar_spectra.py`, read by `physics/stellar_library.py`, GEN.970; wired by GEN.971) | Castelli and Kurucz 2003 (IAU Symp. 210, A20); Husser et al. 2013 (A&A 553, A6) | - | - |
 
 ## 6.7 Stand-ins of the atmosphere mixture draw
 
@@ -549,3 +550,19 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | AC8 | P | T3 | L1 | tuning.MICROQUASAR_SHARE_OF_XRAY_BINARIES 0.10: the share of accreting neutron stars and black holes that launch jets | 0.05 to 0.15 | accreting compact objects | the microquasar count of the catalogues against the X-ray binaries | RECALLED (several dozen microquasars against 165 high-mass and 349 low-mass X-ray binaries) | - | - |
 | AC9 | T | T5 | L0 | tuning.ACCRETION_EFFICIENCY_BLACK_HOLE 0.1: the share of accreted rest mass a black hole radiates | 0.057 to 0.42 | any spin | a spin draw with the Novikov-Thorne efficiency | physics (the thin-disc efficiency runs 0.057 for no spin to 0.42 for maximal spin; 0.1 is a moderate spin) | - | - |
 | AC10 | D | T2 | L0 | multistar.MEMBER_STATE_BY_PLACED recycled-pulsar neutron-star companion 2.0e-3 (low 6e-4, high 4.3e-3), the phenomena row millisecond-pulsar-companion by_class neutron-star 0.0026 of recycled pulsars with a companion | 6e-4 to 4.3e-3 | recycled pulsars | the double neutron star rate of the gravitational-wave catalogues | derived (the double neutron stars at 0.04 percent of neutron stars; 5 percent would be about ten times too many) | - | - |
+
+## 6.32 Stand-ins of the neutron star structure
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| NS1 | P | T2 | L0 | neutron_star_structure.CRUST_CORE_DENSITY_FM3 0.08 (the baryon density at the bottom of the crust; the tables do not mark the transition) | 0.07 to 0.10 | the crust thickness and crust mass of a star above 1 solar mass | a transition density read from the tables that differs from 0.08 by more than 0.02 | the transition each table's own compressible-liquid-drop crust uses (Malik et al. 2024) | test_neutron_star_structure_real::test_a_one_point_four_solar_mass_star_has_a_crust_about_a_kilometre_thick | GEN.969 | - |
+| NS2 | P | T2 | L0 | neutron_star_structure.NEUTRON_DRIP_DENSITY_FM3 2.6e-4 (the baryon density at the bottom of the outer crust, shared by the BSk22 crust of every table) | none | the outer-crust thickness | the outer-crust files of Servais and Chamel 2026 ending at a different density | the per-model drip density of the Servais and Chamel 2026 files (`neutron_star_matter.outer_crust`) | test_datasets_real::test_every_mass_model_of_the_outer_crust_starts_with_iron_56_and_ends_near_the_drip_density | GEN.969 | - |
+| NS3 | T | T5 | L0 | the surface is the lowest pressure of a table (6e-15 MeV fm^-3, a mass density of 1e4 g/cm^3); no ocean, atmosphere or envelope is added | none | the radius to about 10 m | a radius that changes by more than 100 m when the surface is moved to 1e6 g/cm^3 | a neutron star envelope model (GEN.969 if it matters) | test_neutron_star_structure::test_a_light_polytropic_star_has_the_radius_of_the_newtonian_n_equals_one_polytrope | - | - |
+
+## 6.33 Stand-ins of the stellar spectra
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| SL2 | P | T2 | L0 | stellar_library.FUV_OVER_XUV 1.12 (the far-ultraviolet 912 to 1700 A power of a star's chromosphere over its XUV 5 to 911 A power; median of the eleven MUSCLES stars) | 0.3 to 2.3 (the eleven stars' own range) | stars with a corona, 2900 to 5200 K; applied to every temperature | a star whose measured far-ultraviolet is not within a factor of 3 of its XUV | the star-by-star HLSP spectra, or a relation against rotation and age (Linsky et al. 2020; Youngblood et al. 2017 Ca II K relations) | test_stellar_library_real::test_the_far_ultraviolet_of_a_muscles_star_is_the_corona_and_not_the_photosphere | GEN.971 | - |
+| SL3 | T | T5 | L0 | stellar_library.FUV_IN_UV_C 0.89 (the chromospheric far ultraviolet is spread evenly in wavelength over 91.2 to 170 nm, and the share above 100 nm is UV-C) | 0.8 to 0.95 | the split of the corona's light between the ionising band and UV-C | a measured spectrum with the 91.2 to 100 nm part above 20 percent of the band | the HLSP spectra (Lyman alpha at 121.6 nm lies inside UV-C either way) | test_stellar_spectra::test_a_star_with_a_corona_has_more_far_ultraviolet_and_ionising_light_and_the_same_visible | GEN.971 | - |
+| SL4 | P | T5 | L0 | stellar_spectra: the grids are solar metallicity; the models hold no chromosphere (SP2 adds it); a giant cooler than 3500 K reads the log g 4.5 dwarf; the part of a bin the grid does not reach takes the blackbody and the bins are renormalised to one (closure 0.97 to 1.00) | none | stars of 2300 to 50000 K | a metal-poor or metal-rich star whose ultraviolet differs from the solar-metallicity model by more than 0.2 dex | metallicity-dependent grids (ATLAS9 and PHOENIX both have them; a larger download) | test_stellar_library_real::test_the_library_covers_the_temperatures_the_generator_makes_stars_at | - | - |
