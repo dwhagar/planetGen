@@ -171,11 +171,12 @@ def test_white_dwarf_params_keep_the_radius_of_the_cooling_sequences():
 
 @pytest.mark.parametrize("mass, ms_fraction, yerkes", [
     (1.0, 0.1, "V"), (1.0, 1.04, "IV"), (1.0, 1.09, "III"), (1.0, 1.25, "VII"),
-    (6.0, 1.15, "II"), (6.0, 1.25, "VII"),
+    (6.0, 1.05, "II"), (6.0, 1.2, "VII"),
 ])
 def test_evolve_star_phases_follow_age(mass, ms_fraction, yerkes):
     """Phase boundaries are multiples of the main-sequence lifetime: a solar-mass star leaves the subgiant phase at 1.05
-    of it and its giant branch ends at 1.12 (GEN.502, Hurley, Pols and Tout 2000); a 6 solar mass star keeps 1.1 and 1.2."""
+    of it and its giant branch ends at 1.12 (GEN.502, Hurley, Pols and Tout 2000); a 6 solar mass star is a bright giant
+    burning helium in its core until 1.13 of it (the MIST track, GEN.935) and a white dwarf after."""
     age = stellar_evolution.main_sequence_lifetime_gy(mass) * ms_fraction
     rng = random.Random(7)
     state = stellar_evolution.evolve_star(mass, age, rng, fe_h=0.0)
@@ -183,14 +184,13 @@ def test_evolve_star_phases_follow_age(mass, ms_fraction, yerkes):
     assert age < state["phase_end_gy"]
 
 
-def test_evolve_star_supergiant_luminosity_honours_a_minimum():
+def test_evolve_star_supergiant_luminosity_follows_the_track_from_the_end_of_the_main_sequence():
     mass = 20.0
     t_ms = stellar_evolution.main_sequence_lifetime_gy(mass)
     rng = random.Random(11)
-    growth_low, growth_high = PC.SUPERGIANT_LUMINOSITY_GROWTH_RANGE
-    floor = stellar_evolution.main_sequence_end_luminosity_sol(mass, 0.0) * (growth_low + growth_high) / 2
+    floor = stellar_evolution.main_sequence_end_luminosity_sol(mass, 0.0) * 0.9
     for _ in range(20):
-        state = stellar_evolution.evolve_star(mass, t_ms * 1.05, rng, min_luminosity_sol=floor, fe_h=0.0)
+        state = stellar_evolution.evolve_star(mass, t_ms * 1.01, rng, min_luminosity_sol=floor, fe_h=0.0)
         assert state["luminosity_sol"] >= floor
         assert state["yerkes_class"] in ("IB", "IAB", "IA", "0")
 

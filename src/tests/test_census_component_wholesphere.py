@@ -133,7 +133,7 @@ def _independent_massive_share(low_age_gy, high_age_gy):
         mass = math.exp(low + (k + 0.5) * (high - low) / steps)
         i = max(j for j in range(len(slopes)) if breaks[j] <= mass)
         weight = factors[i] * mass ** (-slopes[i]) * mass          # per unit of ln(mass)
-        lifetime = evolution.main_sequence_lifetime_gy(mass) * evolution.giant_end_fraction(mass)
+        lifetime = evolution.remnant_formation_time_gy(mass)
         alive = min(1.0, max(0.0, (lifetime - low_age_gy) / (high_age_gy - low_age_gy)))
         total += weight * alive
         if mass >= MASS_CUT_SOL:

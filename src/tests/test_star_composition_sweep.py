@@ -35,7 +35,8 @@ from planetgen.generation.phenomena.compact_remnant import BlackHole, NeutronSta
 from planetgen.physics import constants, wolf_rayet
 from planetgen.physics import stellar_abundances as sa
 from planetgen.physics import stellar_composition as sc
-from planetgen.physics.stellar_evolution import evolve_star, giant_end_fraction, main_sequence_lifetime_gy
+from planetgen.physics import post_main_sequence
+from planetgen.physics.stellar_evolution import evolve_star, main_sequence_lifetime_gy
 from planetgen.util import draw
 from tests.audit import census as audit
 from tests.audit import representation as rep
@@ -106,9 +107,8 @@ def sector_stars(patch):
 def middle_of_the_asymptotic_giant_branch_gy(mass, fe_h):
     """The age half-way through the asymptotic-giant phase of a star of `mass` and `fe_h` (a window a few hundredths of a Gy wide, after
     the horizontal branch), from the same times `evolve_star` uses."""
-    t_ms = main_sequence_lifetime_gy(mass, fe_h)
-    t_horizontal = t_ms * giant_end_fraction(mass, fe_h) + tuning.HORIZONTAL_BRANCH_DURATION_GY
-    return t_horizontal + 0.5 * t_ms * tuning.AGB_MS_FRACTION
+    window = post_main_sequence.timeline(mass, fe_h).window(post_main_sequence.ASYMPTOTIC_GIANT)
+    return 0.5 * (window.start_gy + window.end_gy)
 
 
 def ladder_stars():

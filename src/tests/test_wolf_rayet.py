@@ -17,7 +17,8 @@ from planetgen.generation import star_population
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.star import Star
 from planetgen.generation.system import StarSystem
-from planetgen.physics import imf, stellar_evolution as evolution
+from planetgen.physics import imf, post_main_sequence
+from planetgen.physics import stellar_evolution as evolution
 from planetgen.physics import wolf_rayet
 from planetgen.util import draw
 from tests import render_support
@@ -25,7 +26,7 @@ from tests import render_support
 
 def _window(mass_sol):
     t_ms = evolution.main_sequence_lifetime_gy(mass_sol)
-    return t_ms, t_ms * evolution.giant_end_fraction(mass_sol)
+    return t_ms, post_main_sequence.timeline(mass_sol, 0.0).end_gy
 
 
 def test_the_threshold_rises_as_metallicity_falls():

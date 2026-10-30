@@ -27,7 +27,7 @@ def mist(monkeypatch):
 def test_the_derived_file_keeps_only_main_sequence_rows(mist, cache):
     assert not (cache / "isochrones" / isochrones.ARCHIVE).exists()
     with np.load(cache / "isochrones" / isochrones.DERIVED) as data:
-        assert list(data["fe_h"]) == [-1.0, 0.0] and data["rows_0"].shape == (120, 5)
+        assert list(data["fe_h"]) == [-1.0, 0.0] and data["rows_0"].shape == (120, 6)
         assert data["rows_0"][:, 1].max() <= 10 ** ((10 - 8.0) / 2.5) + 1e-3
 
 

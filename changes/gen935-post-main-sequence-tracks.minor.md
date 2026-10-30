@@ -1,0 +1,9 @@
+**Headline:** Giants and supergiants now have the luminosity, temperature and size of the MIST stellar tracks, so a 3 solar mass giant is 113 to 144 times the Sun's light instead of 970.
+
+### Changed
+- **GEN.935: stars after the main sequence follow the MIST v1.2 tracks.** Setup now rebuilds, from the isochrones it already downloads, a track for 130 masses from 0.8 to 300 solar masses (`post_main_sequence.npz`, derive version 2). A subgiant, giant, core-helium-burning giant, asymptotic giant or supergiant takes its luminosity, temperature, radius, surface hydrogen and carbon from that track at the point its age puts it, instead of from hand-set ranges. Stars of 2.2 solar masses and more now burn helium in their cores as giants. Supergiants cool from the hot end of the main sequence to red below the Humphreys-Davidson limit of 320,000 solar luminosities and stay hot above it; none is smaller than it was leaving the main sequence. Giants and supergiants born with 3 to 13 solar masses in the instability strip are flagged as classical Cepheids.
+- **The bright-star tables read the tracks.** The ages a star is brighter than a scatter's floor are found from the track itself, so every floor, population and mass band sees the same stars the generator would draw.
+- **Setup and import need no downloaded data.** The solar neighbourhood terms (`place_terms.SOLAR_NEIGHBOURHOOD`) are built on first use, so `datasets fetch` runs on a machine with an empty data folder.
+
+### Removed
+- The hand-set giant, asymptotic giant and supergiant luminosity and temperature constants and the functions that drew from them (`GIANT_TEMPERATURE_RANGE_K`, `BRIGHT_GIANT_LUMINOSITY_RANGE_SOL`, `AGB_LUMINOSITY_RANGE_SOL`, `RED_SUPERGIANT_*`, `BLUE_SUPERGIANT_*` and the rest listed in `docs/design/galaxy/post-main-sequence-stars.md`). No shim.

@@ -762,20 +762,18 @@ IMF_SLOPES = (1.3, 2.3)
 # sector fill passes an age instead of letting the star draw one).
 STAR_FORMATION_AGE_RANGE_GY = (0.0, 10.0)
 
-# Post-main-sequence phases, as multiples of the main-sequence lifetime
-# (physics/ms_lifetime.py, above). A star lighter than HELIUM_FLASH_MASS_SOL
-# burns helium in its core after the red giant branch (the horizontal branch)
-# and then climbs the asymptotic giant branch before it becomes a white dwarf
-# (GEN.286). For it the subgiant phase ends at, and the red giant branch ends
-# at, the times of physics/giant_branch.py (GEN.502, Hurley, Pols and Tout
-# 2000: 1.05 and 1.12 of the main-sequence lifetime at a solar mass, from the
-# core-mass-luminosity relation of the branch), and HORIZONTAL_BRANCH_DURATION_GY
-# and AGB_MS_FRACTION are added for it. A heavier star keeps the two figures
-# below, a subgiant phase up to 1.1 and a giant or supergiant phase up to 1.2,
-# then a remnant (real post-MS phases take roughly 10-20% of the
-# main-sequence time) [R]: its core helium burning is not modelled.
-SUBGIANT_PHASE_END_MS_FRACTION = 1.1
-GIANT_PHASE_END_MS_FRACTION = 1.2
+# Post-main-sequence phases (physics/post_main_sequence.py, GEN.935). The main-sequence lifetime is
+# physics/ms_lifetime.py's. A star lighter than HELIUM_FLASH_MASS_SOL burns helium in its core after the red giant branch
+# (the horizontal branch) and then climbs the asymptotic giant branch before it becomes a white dwarf (GEN.286). For it
+# the subgiant phase ends at, and the red giant branch ends at, the times of physics/giant_branch.py (GEN.502, Hurley,
+# Pols and Tout 2000: 1.05 and 1.12 of the main-sequence lifetime at a solar mass, from the core-mass-luminosity
+# relation of the branch), and HORIZONTAL_BRANCH_DURATION_GY and AGB_MS_FRACTION are added for it. A star from
+# HELIUM_FLASH_MASS_SOL up to SUPERGIANT_MIN_MASS_SOL has the same two times (0.6 and 1.2% of the main-sequence
+# lifetime at 3 solar masses), then burns helium in its core and climbs the asymptotic giant branch for as long as the
+# MIST track (Choi et al. 2016) does, as a share of the main-sequence lifetime (24% and 2% at 3 solar masses, 14% and 1%
+# at 5); a star of SUPERGIANT_MIN_MASS_SOL or more has one supergiant phase as long as the MIST track's, from the end
+# of the main sequence to the end of core helium burning (about 11% at 15 solar masses). The luminosity, temperature and
+# radius in every phase are the MIST track's. [V]
 HELIUM_FLASH_MASS_SOL = 2.2
 # Core helium burning lasts the same 100 Myr in every star that ignites it in a
 # flash, since the degenerate core is about 0.5 solar masses whatever the star's
@@ -790,33 +788,16 @@ AGB_MS_FRACTION = 0.002
 SUPERGIANT_MIN_MASS_SOL = _boundaries.sol("core_collapse_limit")
 # Giants at or above this initial mass are bright giants (II), not III.
 BRIGHT_GIANT_MIN_MASS_SOL = 4.0
-# Giant-branch luminosities (Lsun) and temperatures (K). A giant lighter than
-# HELIUM_FLASH_MASS_SOL is on the red giant branch of physics/giant_branch.py
-# (GEN.502): the helium core grows by the hydrogen shell burning at the star's
-# luminosity, dMc/dt = A_H L, and the luminosity climbs with the core mass as
-# L = min(B Mc^q, D Mc^p) (Hurley, Pols and Tout 2000, eq. 37, p = 6 and q = 3
-# at low mass), so the time at each luminosity, the branch's duration and its
-# tip (where the core helium ignites, about 2,700 Lsun at the reference
-# composition, 1,900 at Z 0.0001 against Serenelli et al. 2017's 1,650 to
-# 1,780) follow from the relation, the slope flattening from -0.83 to -0.67
-# along the branch [V]. It reproduces the paper's Table 1 durations
-# and the observed ratio of horizontal-branch stars to red giants brighter
-# than the horizontal branch, 1.44 +- 0.06 for the 41 halo clusters of Salaris
-# et al. 2004, table 2 (1.51 +- 0.05 for all 57) [P]. The shares of the branch
-# spent above 50, 100, 500 and 1,000 Lsun (8.7, 4.7, 1.0 and 0.42%) are 10 to
-# 30% under the 9.6, 5.5, 1.3 and 0.59% of the fit of arXiv 2503.17772
-# (eq. 1, one data point [P]), whose slope flattens further, to -0.56 at the tip.
-# The two figures below are what is left of the older single-exponent law
-# (GEN.287): the intermediate-mass giants, lighter than
-# BRIGHT_GIANT_MIN_MASS_SOL but not lighter than HELIUM_FLASH_MASS_SOL, rise from
-# SUBGIANT_MAX_BRIGHTENING times the main-sequence luminosity to the tip, the
-# time at each luminosity falling as L^-GIANT_BRANCH_TIME_SLOPE per unit of ln L,
-# and the asymptotic giant branch (AGB_LUMINOSITY_RANGE_SOL) takes the same slope
-# [R, recalled, unconfirmed: Refsdal and Weigert 1970; Salaris and Cassisi 2005].
-GIANT_BRANCH_TIP_LUMINOSITY_SOL = 2500.0
-GIANT_BRANCH_TIME_SLOPE = 0.78
-BRIGHT_GIANT_LUMINOSITY_RANGE_SOL = (1000.0, 10000.0)  # log-uniform
-GIANT_TEMPERATURE_RANGE_K = (3500.0, 5000.0)
+# A giant or supergiant on its track is a classical Cepheid inside the instability strip (a luminous star between a red
+# edge near 5,000 K and a blue edge near 7,000 K), at least this luminous (the shortest-period classical Cepheids,
+# about one day, are M_V near -2, a few hundred to a thousand Lsun) and born with at most this mass (classical Cepheids
+# are 3 to 13 solar masses; the yellow stars of 20 to 45 are supergiants and hypergiants, not pulsators of that kind)
+# [R, recalled, unconfirmed: the instability strip of Bono et al. 2000 and Turner 2010; the star class audit of
+# 2026-10-29 section 1, H1]. The horizontal branch's own RR Lyrae stars have their colour
+# (HORIZONTAL_BRANCH_COLOUR_TEMPERATURE_RANGE_K).
+CEPHEID_TEMPERATURE_RANGE_K = (5000.0, 7000.0)
+CEPHEID_MIN_LUMINOSITY_SOL = 500.0
+CEPHEID_MAX_INITIAL_MASS_SOL = 13.0
 # The horizontal branch (core helium burning): one luminosity range, whatever
 # the colour; the colour (temperature) is drawn from [Fe/H] and age
 # (HORIZONTAL_BRANCH_COLOURS below). Red clump and red horizontal-branch stars
@@ -855,20 +836,6 @@ HORIZONTAL_BRANCH_COLOURS = (
 # dex per Gy indirectly (Lee et al. 1999, 2001; Catelan 2009) [R].
 HORIZONTAL_BRANCH_AGE_SHIFT_DEX_PER_GY = 0.1
 HORIZONTAL_BRANCH_REFERENCE_AGE_GY = 12.0
-# The asymptotic giant branch: the same time-at-luminosity law, between these.
-AGB_LUMINOSITY_RANGE_SOL = (100.0, 2500.0)
-# A subgiant brightens to about three and a half times its main-sequence luminosity (the
-# zero-age relation under-counts the turn-off star's own brightening, and the base
-# of the red giant branch of an old 0.85 solar mass star is near 2 to 3 Lsun)
-# and cools toward the base of the giant branch while crossing.
-SUBGIANT_MAX_BRIGHTENING = 3.5
-SUBGIANT_END_TEMPERATURE_K = 5000.0
-# Massive stars evolve at nearly constant luminosity; about a third of
-# observed supergiants are red (K/M), the rest blue or white (O/B/A).
-SUPERGIANT_LUMINOSITY_GROWTH_RANGE = (1.0, 1.5)
-RED_SUPERGIANT_FRACTION = 1 / 3
-RED_SUPERGIANT_TEMPERATURE_RANGE_K = (3500.0, 4500.0)
-BLUE_SUPERGIANT_TEMPERATURE_RANGE_K = (9000.0, 35000.0)
 # Supergiant Yerkes class by luminosity (Lsun, lowest first): below the
 # first threshold IB, then IAB, IA, and 0 (hypergiant) at the top.
 SUPERGIANT_YERKES_THRESHOLDS_SOL = {"IAB": 10000.0, "IA": 50000.0, "0": 500000.0}
@@ -1684,6 +1651,10 @@ to build, which the worker warm pays for every bin of every population (GEN.651)
 BRIGHT_TABLE_BOUND_MARGIN = 1.1
 """float: What a table's cell bound is multiplied by so a star anywhere in its [Fe/H] bin is under it (calibrated by
 `tests/test_star_population.py`, which draws masses and compositions across every bin and checks the ratio)."""
+BRIGHT_TABLE_EVOLVED_MARGIN = 2.0
+"""float: What the greatest measure of the windows after the main sequence read at a cell's masses is multiplied by to bound
+every mass of the cell (GEN.935): the pieces of a track as spiky as the thermal pulses fall differently for each mass, a
+few tens of percent either way. `tests/test_star_population.py` draws masses and compositions across every bin and checks it."""
 BRIGHT_TABLE_MAIN_SEQUENCE_SLACK = 1.1
 """float: How much brighter than its threshold a cell's bound reads the main sequence (GEN.652): the MIST rows step by a
 few percent over a few tenths of a percent of mass, so the end of a cell's main sequence is read a tenth brighter."""

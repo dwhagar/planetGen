@@ -266,12 +266,13 @@ def test_a_bright_star_is_drawn_at_any_composition_that_can_make_one(fe_h):
     assert kept == 5
 
 
-def test_a_metal_poor_place_has_no_giant_that_bright_in_its_window_and_its_metal_rich_tail_makes_them_all():
-    """GEN.651: a place's bright stars are its prior times each composition's bright share, so a halo-poor place with a
-    metal-rich tail gets its 2500 Lsun giants from the tail."""
+def test_a_metal_rich_place_has_no_giant_that_bright_in_its_window_and_its_metal_poor_tail_makes_them_all():
+    """GEN.651: a place's bright stars are its prior times each composition's bright share, so a metal-rich place with a
+    metal-poor tail gets its 6000 Lsun giants from the tail (the MIST thermal pulses of a metal-poor star reach higher than a
+    metal-rich one's: none of the latter in an old window does)."""
     rng = random.Random(8)
-    fe_hs = [-1.4] * 3 + [0.1]
+    fe_hs = [0.1] * 3 + [-1.4]
     seen = iter(range(10 ** 6))
-    drawn = [sp.sample_bright_stars(1, 2500.0, "old", rng, fe_h_source=lambda index: fe_hs[next(seen) % 4])[0]
+    drawn = [sp.sample_bright_stars(1, 6000.0, "old", rng, fe_h_source=lambda index: fe_hs[next(seen) % 4])[0]
              for _ in range(5)]
-    assert all(params["metallicity_fe_h"] == 0.1 for params in drawn)
+    assert all(params["metallicity_fe_h"] == -1.4 for params in drawn)
