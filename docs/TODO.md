@@ -13776,6 +13776,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   code is lock-free. An index on bright_stars or phenomenon_scatter
   needs a migration, so stop and tell TODO before adding one: it rides a
   train.
+  Aux 5 (built, lock-free, bundle handoffs/aux5-perf190.bundle, branch
+  lane-k-perf190) (2026-10-30 7:57 AM EDT): The shell scan is only 16 to
+  19 s of the rebuild (about 1.5 percent), so building the shell list
+  from the plan outline gains nothing; the cost is the 83 units (about
+  1,260 s of 1,322.7 s). Rows are now written as plain INSERT text
+  (store._row_literal via execute_literal): one unit 13.3 s to 10.7 s,
+  byte-identical table, whole rebuild 1,322.7 s to 1,191.1 s (10
+  percent, synthetic 3M stars + 1.5M points). Anything bigger needs an
+  index (a migration) or a SQL-side roll-up; stopped here.
   Prerequisites: none. Related: MAP.259.
 
 - [ ] **PERF.195 Generation timing records are shown or no longer recorded: object_timing_stats and object_timing_samples (G5)**
