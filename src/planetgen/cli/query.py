@@ -183,8 +183,8 @@ def main():
                 parent = f" -- {row['parent']['name']}" if row["parent"] else ""
                 print(f"[{row['ref']}] {row['name']}{parent} -- {format_distance_pc(row['distance_pc'])}")
             capped = f" ({result['systems_in_range']:,}+ systems in range)" if result["systems_in_range_capped"] else ""
-            print(f"{result['total']} found within {result['distance_pc']:g} pc{capped}; "
-                  f"{result['not_generated_total']} more in range are not generated yet.")
+            print(f"{result['total']:,} objects found within {result['distance_pc']:g} pc{capped}; "
+                  f"{result['not_generated_total']:,} more objects in range are not generated yet.")
 
         elif args.command == 'planets':
             ask, shown = _page(args)
@@ -201,7 +201,7 @@ def main():
                 print(f"[{_printed(conn, 'planet', planet['id'])}] {planet['name']} (Class {planet['planet_class']}, "
                       f"{format_distance_km(planet['radius_km'])}) -- {planet['system_name']}")
             if carry_on:
-                print(f"{len(planets)} shown; more follow: carry on with --after {carry_on}")
+                print(f"{len(planets):,} planets shown; more follow: carry on with --after {carry_on}")
 
         elif args.command == 'moons':
             ask, shown = _page(args)
@@ -218,7 +218,7 @@ def main():
                 print(f"[{_printed(conn, 'moon', moon['id'])}] {moon['name']} (Class {moon['planet_class']}, "
                       f"{format_distance_km(moon['radius_km'])}) -- {moon['system_name']} / {moon['planet_name']}")
             if carry_on:
-                print(f"{len(moons)} shown; more follow: carry on with --after {carry_on}")
+                print(f"{len(moons):,} moons shown; more follow: carry on with --after {carry_on}")
     finally:
         conn.close()
 
