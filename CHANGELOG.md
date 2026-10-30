@@ -2,6 +2,21 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2616] - 2026-10-30
+
+**Headline:** The "On this page" list on an object's page is now a row of links under the tab bar instead of a column at the left, and it marks the section you are in.
+
+### Changed
+- **The contents list sits under the tab bar.** On the pages of a star, planet, moon, system, sector, phenomenon, uncharted star and polity, "On this page" is one row of links that stays under the tab bar as you scroll (a long row scrolls sideways), at every window width including a phone. The link of the section in view is highlighted, and a jump lands the heading below both bars. The other pages keep the list they had.
+
+## [8.0.2615] - 2026-10-30
+
+**Headline:** The Galaxy Map can mark the star systems where each of the 15 life classes lives: the Menu has a Life classes group with a marker for each class.
+
+### Changed
+
+- **A marker for each life class (MAP.351).** The Menu has a new Life classes group with one marker for each of the 15 life classes (1a, 1b, 1c, 2, 3a, 3b, 4a, 4b, 4c, 5a, 5b, 6, 7, 8 and 9), off until chosen and kept in the address as `show=marker-lifeclass-1a` and so on. A class's marker shows the star systems with a planet or moon on which that class of life lives, as a green disc with the class id; the card names how many worlds have it, and in an open system each world carries the marker of its class. The marks come from the same stored `life_class` that the life filter of the search page reads. Migration 0176 fills the new `lifeclass-` rows of `system_interests` from the planets and moons already stored, and the sector nodes list them next to the planet class rows. Nothing a generator draws changes, so there is no epoch.
+
 ## [8.0.2614] - 2026-10-30
 
 **Headline:** A sweep test now checks that an Earth-like world's air settles from a cooling to a warming change of sunlight and measures its response against the published climate sensitivity.

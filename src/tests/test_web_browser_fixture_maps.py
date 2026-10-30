@@ -3273,6 +3273,39 @@ def test_galaxy_map_class_markers_are_off_until_chosen_one_class_at_a_time_and_c
     assert not [e for e in found if e["kind"] == "marker-class-G"]
 
 
+def test_galaxy_map_life_class_markers_are_off_until_chosen_and_mark_the_systems_where_the_class_lives(page, map_site):
+    """MAP.351: the Menu has a Life classes group with a marker for each of the 15 life classes, all off until the visitor picks them;
+    choosing one marks the systems with a world where that class lives once the map is close enough to have their sector, and the hover
+    text counts the worlds."""
+    _open_star_field(page, map_site)
+    page.wait_for_timeout(1000)
+    _open_menu(page)
+    group = page.locator("#galaxymap3d-kinds")
+    assert "Life classes" in group.inner_text()
+    assert group.locator('button[data-layer^="marker-lifeclass-"]').count() == 15
+    assert all(group.locator(f'button[data-layer="marker-lifeclass-{class_id}"]').get_attribute("aria-pressed") == "false"
+               for class_id in ("1a", "2", "6", "9"))
+    dawn = next(s for s in LIFE_FIELD if s["name"] == "Fixture Dawn")
+    ember = next(s for s in LIFE_FIELD if s["name"] == "Fixture Ember")
+    _fly_to_system(page, dawn)
+    found = _markers_until(page, lambda entries: bool(entries))
+    assert not [e for e in found if e["kind"].startswith("marker-lifeclass-")], "no life class is marked until one is chosen"
+    group.locator('button[data-layer="marker-lifeclass-2"]').click()
+    group.locator('button[data-layer="marker-lifeclass-6"]').click()
+    assert "show=marker-lifeclass-2,marker-lifeclass-6" in page.url or "show=marker-lifeclass-6,marker-lifeclass-2" in page.url, page.url
+    _poi_layers(page)    # no world reasons on: a system the life classes list is named by its class
+    found = _markers_until(page, lambda entries: any(e["kind"] == "marker-lifeclass-2" for e in entries))
+    assert [e["name"] for e in found if e["kind"] == "marker-lifeclass-2"] == ["Fixture Dawn"], found
+    assert "Class 2 life" in page.locator("#galaxymap3d-layer-legend").inner_text()
+    _fly_to_system(page, ember)
+    found = _markers_until(page, lambda entries: any(e["kind"] == "marker-lifeclass-6" for e in entries))
+    assert [e["name"] for e in found if e["kind"] == "marker-lifeclass-6"] == ["Fixture Ember"], found
+    _open_menu(page)
+    group.locator('button[data-layer="marker-lifeclass-6"]').click()
+    found = _markers_until(page, lambda entries: not any(e["kind"] == "marker-lifeclass-6" for e in entries))
+    assert not [e for e in found if e["kind"] == "marker-lifeclass-6"]
+
+
 def test_galaxy_map_life_filters_show_only_the_systems_with_life_sentient_life_or_a_civilization(page, map_site):
     """MAP.311: the Menu's Points of interest group has an optional marker for worlds with life, with sentient life and with a civilization,
     each off until turned on; each shows only the systems that have it, a system with several is drawn once by the strongest sign, and

@@ -37,6 +37,8 @@ test("a body has every reason it qualifies for, strongest first, from the stored
   assert.deepEqual(reasons({ kind: "star", life_microbial: 9 }), []);
   assert.deepEqual(reasons(null), []);
   assert.deepEqual(B.reasonOfBody(planet({ life_flora: 1 })), { reason: "life", tier: null });
+  assert.deepEqual(reasons(planet({ life_microbial: 3, planet_class: "M", life_class_id: "4b" })), ["life", "class-M", "lifeclass-4b"], "the life class that lives on a world is its last reason (MAP.351)");
+  assert.deepEqual(reasons(planet({ life_class_id: "zz" })), [], "an id that is not a life class has no symbol");
 });
 
 test("the symbol of a body is its strongest reason whose layer is on, and a layer that is off lets the next one name it (MAP.343)", () => {
