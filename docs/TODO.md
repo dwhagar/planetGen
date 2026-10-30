@@ -1050,18 +1050,6 @@ with `clamp()`.
   stored.
   Prerequisites: none. Related: UX.221.
 
-- [ ] **UX.238 The "On this page" table of contents on object pages goes under the tab bar, not off to the left (bug)**
-  Boss, 9:01 PM EDT 2026-10-29 (live observation): the table of contents
-  ("On this page") on object pages should sit under the tab bar, not in
-  a column off to the left. Do: move it under the tab bar on star,
-  planet, moon and the other object pages built from the planet page
-  redesign (UX.215 to UX.222; Aux 11, who built it, is retired), keep
-  its jump links and the current-section highlight, make it work at
-  phone width, and check the page still fits with the left menu gone.
-  Lock-free: no generated output. Owner: Core 5 (it already owns the
-  planet page Life section UX.237). Version 8.1.
-  Prerequisites: none. Related: UX.215, UX.222, UX.237.
-
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
@@ -2368,16 +2356,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   popup was scrolling off the screen for the same reason). Lock-free: no
   generated output. Owner: Core 2 (with MAP.347). Version 8.1.
   Prerequisites: none. Related: MAP.347, MAP.348, MAP.349.
-
-- [ ] **MAP.351 Galaxy Map reason per life class: a point-of-interest reason for each of the 15 life classes with map menu entries, backfilled for stored worlds**
-  Map half of MAP.345 (search half merged by Core 3 in #3829: the
-  'Supports a life class' filter on the search page and API). Do:
-  system_interests rows carry a reason per life class, backfilled for
-  worlds already stored (a migration, with the backfill in the
-  migration), and the Galaxy Map menu gets 15 class entries. Changes the
-  database, rides a train (train 3 or later). Owner: Core 3. Version
-  8.1.
-  Prerequisites: none. Related: MAP.345, MAP.307, API.37.
 
 - [ ] **MAP.352 Back to a system in a different sector fails when pressed before the first Back has finished (bug)**
   Core 2 report (as the lane reported 11:35 PM EDT 2026-10-29), found
@@ -12512,6 +12490,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   needs the original scatter parameters. Store the scatter parameters
   with the plan (or read them from the audit log), then let the same run
   redraw the scatter. Optional; owner Core 1 when it runs dry.
+  Owner (2026-10-30 12:44 AM EDT): Core 3 takes this lock-free tooling
+  item while it waits for the trains (confirmed by TODO). It changes no
+  generated value, so it merges without a train; the optional label in
+  the text no longer applies
   Prerequisites: none.
 
 - [ ] **GEN.846 Store a rotation period for every star (stars have none, so MAP.328 leaves them standing still)**
@@ -21039,6 +21021,9 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   describe the new columns, the gas table, the mixture rule, ozone,
   aerosols and the consistency sweep, with the sources of every number.
   Done: the pages name each stored value and where it comes from.
+  Owner (2026-10-30 12:44 AM EDT): Core 3 takes this docs item after
+  GEN.845 (TODO). Read the merged atmosphere gas table, aerosol and
+  ozone code on main for the real values; lock-free, docs only
   Prerequisites: TEST.209. Related: DB.67, DB.68.
 
 - [ ] **DOC.65 Docs: bulk composition, the materials table and how density, mass and gravity follow**

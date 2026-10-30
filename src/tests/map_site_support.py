@@ -313,10 +313,13 @@ CLASS_FIELD = [
     {"id": 9002, "name": "Fixture Rest", "letter": "K", "n": 1, "x": STAR_FIELD_CENTER_PC[0] - 5.0, "y": -9.0, "z": -3.0},
     {"id": 9004, "name": "Fixture Rock", "letter": "G", "n": 2, "x": STAR_FIELD_CENTER_PC[0] - 2.0, "y": 5.0, "z": -1.0},
     {"id": 9003, "name": "Fixture Jove", "letter": "J", "n": 3, "x": STAR_FIELD_CENTER_PC[0] + 1.0, "y": 8.0, "z": 1.0},
+    {"id": 9007, "name": "Fixture Dawn", "reason": "lifeclass-2", "n": 2, "x": STAR_FIELD_CENTER_PC[0] + 8.0, "y": 3.0, "z": -2.0},
+    {"id": 9008, "name": "Fixture Ember", "reason": "lifeclass-6", "n": 1, "x": STAR_FIELD_CENTER_PC[0] - 8.0, "y": 2.0, "z": 3.0},
 ]
 """The fixture systems with a planet or moon of a class (the `class-` reasons, MAP.220), listed only by the nodes of 3 shells or fewer as the
 server does: Fixture Eden holds two class K worlds and a class O one, Fixture Rest a class K one, Fixture Rock two class G, Fixture Jove
-three class J (gas giants)."""
+three class J (gas giants). An entry with a `reason` and no `letter` is a life class one (`lifeclass-`, MAP.351): two worlds with class 2
+life in Fixture Dawn, one with class 6 life in Fixture Ember."""
 
 
 LIFE_FIELD = [
@@ -363,7 +366,7 @@ def interests_of(worlds, giants, barren=(), classes=(), life=()):
     for world in classes:
         entry = systems.setdefault(world["id"], {"id": world["id"], "name": world["name"], "x": world["x"], "y": world["y"],
                                                  "z": world["z"], "reasons": {}})
-        entry["reasons"]["class-" + world["letter"]] = {"n": world["n"]}
+        entry["reasons"][world.get("reason") or "class-" + world["letter"]] = {"n": world["n"]}
     for other in life:
         entry = systems.setdefault(other["id"], {"id": other["id"], "name": other["name"], "x": other["x"], "y": other["y"],
                                                  "z": other["z"], "reasons": {}})

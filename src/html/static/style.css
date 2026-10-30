@@ -5738,7 +5738,7 @@ p.hint a {
 }
 
 @media (min-width: 64rem) {
-  .app .app-main.has-page-toc {
+  .app .app-main.has-page-toc:not(.toc-top) {
     display: grid;
     grid-template-columns: 13.5rem minmax(0, 1fr);
     column-gap: 1.5rem;
@@ -5746,12 +5746,12 @@ p.hint a {
     max-width: 84rem;
   }
 
-  .app .app-main.has-page-toc > * {
+  .app .app-main.has-page-toc:not(.toc-top) > * {
     grid-column: 2;
     min-width: 0;
   }
 
-  .app .app-main.has-page-toc > .page-toc {
+  .app .app-main.has-page-toc:not(.toc-top) > .page-toc {
     grid-column: 1;
     grid-row: 1 / span 60;
     position: sticky;
@@ -5775,6 +5775,69 @@ p.hint a {
     display: block;
     padding: 0.15rem 0;
   }
+}
+
+/* UX.238: on the pages of one object (class `toc-top` on <main>) the contents list is a single row of links under the tab bar, at
+   every width, and stays there as the page scrolls; a long row scrolls sideways. The link of the section in view is marked
+   (aria-current="location", pagetoc.js). pagetoc.js sets --site-header-height and --page-toc-height so a jump leaves the heading
+   below both bars. */
+.app .app-main.toc-top [id] {
+  scroll-margin-top: calc(var(--site-header-height, 3.5rem) + var(--page-toc-height, 2.5rem) + 0.5rem);
+}
+
+.app-main.toc-top > .page-toc {
+  position: sticky;
+  top: var(--site-header-height, 3.5rem);
+  z-index: 15;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin: 0 0 1rem;
+  padding: 0.3rem 0.5rem;
+  overflow-x: auto;
+  white-space: nowrap;
+  scrollbar-width: thin;
+  background: var(--bg-elevated);
+}
+
+.app-main.toc-top > .page-toc .page-toc-title {
+  flex: none;
+  margin: 0 0.4rem 0 0;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.app-main.toc-top > .page-toc ul,
+.app-main.toc-top > .page-toc li,
+.app-main.toc-top > .page-toc li ul {
+  display: contents;
+}
+
+.app-main.toc-top > .page-toc a {
+  flex: none;
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  color: var(--text);
+  font-size: 0.9rem;
+  text-decoration: none;
+}
+
+.app-main.toc-top > .page-toc li li > a {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.app-main.toc-top > .page-toc a:hover,
+.app-main.toc-top > .page-toc a:focus-visible {
+  background: var(--bg-subtle);
+  text-decoration: underline;
+}
+
+.app-main.toc-top > .page-toc a[aria-current="location"] {
+  background: var(--accent);
+  color: var(--accent-contrast);
+  font-weight: 600;
 }
 
 /* UX.215: the Location row of the at-a-glance table: the places above the object, then the cloud it sits inside. */
