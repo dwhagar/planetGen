@@ -534,7 +534,7 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.1111 | Rogue rows created from the architecture's ejections: mass, composition, moons kept, ejection speed, age and the parent system, with the flat rate becoming a test target | GEN.1109, GEN.1014 |  |
 | GEN.1107 | Bring-to-epoch for fields: age advances, radius follows, retirement past 1 ly marks or deletes the row (Boss to pick; default retire) | GEN.1103, GEN.1006 |  |
 | GEN.1106 | Field render: a 3D view for the field page (today _NO_VIEW), the sector map drawing the cloud or annulus plus the individual points at v x age, the render seed from the uid not the database id | GEN.1105 |  |
-| GEN.1105 | Field members (individual bodies by the belt cut rule) with `<field ID>.<rank hex>` designations, status flags, and the sector and field pages | GEN.1103, GEN.1065, GEN.1070 |  |
+| GEN.1105 | Field members (individual bodies by the belt cut rule) with `<field ID>.<rank hex>` designations, status flags, and the sector and field pages | GEN.1103, GEN.1070 |  |
 | GEN.1104 | Supernova host rule: a young supernova remnant and its remnant core draw the unbound belt as a field, like NEBULA_HOST_RULES | GEN.1103 |  |
 | GEN.1103 | AsteroidField columns, radius derived from age, the field density leaving 0, registry text changed | GEN.1099, GEN.1100, GEN.1101, GEN.1102 |  |
 | GEN.1102 | Field composition from two differentiated parents (iron, silicate, ice shards) replacing draw_field("collisional") | GEN.1099, GEN.1100 |  |
@@ -554,25 +554,22 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.1086 | System map and pages for irregular moons (eccentric, inclined, retrograde orbits on the moon-orbit view, a body page per irregular) and the clearance ledger taking the irregular zone as occupied space | GEN.1084 |  |
 | GEN.1085 | Belt ledger link: a captured member leaves its belt's mass total; until then captured bodies come from the outer-disc reservoir only | GEN.1084, GEN.1069 |  |
 | GEN.1084 | Store the individual irregular moons and the new moon columns (migration, API version), and call the stability test for irregulars in drop_unstable_moons and in bring-to-epoch when a planet moves | GEN.1083, GEN.1070 |  |
-| GEN.1083 | Wire irregular moons into generate_moons as a second tier above the regular moons (MOON_MIN_MASS_KG left alone for the regular list) with the captured-origin weight | GEN.1078, GEN.1081, GEN.1082, GEN.1079, GEN.1080 |  |
+| GEN.1083 | Wire irregular moons into generate_moons as a second tier above the regular moons (MOON_MIN_MASS_KG left alone for the regular list) with the captured-origin weight | GEN.1081, GEN.1082, GEN.1079, GEN.1080 |  |
 | GEN.1082 | The architecture records its capture windows (the instability event, the number of giant-giant close encounters, the gas-disc lifetime already kept in DiskSystem) as a field on the system | GEN.1077 |  |
 | GEN.1081 | Captured-origin weight depends on moon mass: the ORIGIN_TABLE row `captured` becomes a function of mass so a 1e20 kg or heavier moon is rarely captured, as a pure helper |  |  |
-| TEST.495 | Designation for captured bodies: the belt-member designation `<belt ID>.<rank hex>` is kept with a parent link, outside-reservoir bodies print `<planet ID>.<rank hex>`; both pure and round-trip through parse_id | GEN.1065 |  |
 | GEN.1080 | Composition of captured bodies from the reservoir (the GEN.473 taxon kernel at the source belt or disc) and a heterogeneous parent | GEN.1077, GEN.1067 |  |
 | GEN.1079 | Collisional-saturation check for the irregular zone: reuse belt_mass_earth and show the invariance across the four giants, or replace the guess with a fitted scalar per planet registered at L3 | GEN.1077 |  |
-| GEN.1078 | physics/irregular_orbits.py: a/r_H, e, i, survival and families (parent breakup with a velocity spread) | GEN.1076 |  |
 | GEN.1077 | physics/irregular_population.py: capture windows, the cumulative count N0(>R), grinding, and the order-statistic draw into individual, on-demand and population tiers | GEN.1075 |  |
 | GEN.1076 | physics/irregular_zone.py: Hill radius, stable limits (prograde and retrograde), the inner edge from the outermost regular moon, the Kozai exclusion |  |  |
 | GEN.1075 | Captured moons read list and register rows: Nesvorny et al. 2003 and 2007, Hamilton and Burns 1991, Agnor and Hamilton 2006, Vokrouhlicky 2008, Bottke 2010, Sheppard and Jewitt 2003 and 2005, Nicholson 2008, Granvik 2012, Rosenblatt 2016 |  |  |
 | GEN.1073 | Bring-to-epoch for belts: grinding recomputed from the stored age, members above the grinding scale kept | GEN.1069, GEN.1006 |  |
 | GEN.1072 | White dwarf and giant-branch belt events wired into remnant_orbits and the engulfment step, replacing the uniform expansion factor of belts | GEN.1064, GEN.1068 |  |
 | GEN.1071 | Outer (Kuiper-type) disc built as a belt from the same chain, linked to the debris descriptor so the descriptor and the belt are one thing | GEN.1068, GEN.1069 |  |
-| GEN.1070 | Store the individual belt members (rows with parent link and rank), the designation display, the system map drawing them as dots at true orbits, and a body page per member; API version bump | GEN.1061, GEN.1063, GEN.1065, GEN.1067, GEN.1069 |  |
+| GEN.1070 | Store the individual belt members (rows with parent link and rank), the designation display, the system map drawing them as dots at true orbits, and a body page per member; API version bump | GEN.1061, GEN.1063, GEN.1067, GEN.1069 |  |
 | GEN.1069 | Store the belt mass, Dc, age history text and formation snow line (DB.70 column, migration) and wire belt_mass into AsteroidBelt, replacing the three density words | GEN.477, GEN.1068 |  |
 | GEN.1068 | Belt birth from the architecture: a belt is a gap or an unfinished tail in the planet chain, not a 10 percent slot roll, and sees the giants (GEN.728 slot loop, system.py) | GEN.1014, GEN.1061, GEN.1062, GEN.1064 |  |
 | GEN.1067 | Per-member composition from the finished taxon kernel at the body's own a, differentiated bodies only if the 26Al ratio says so, density from the compaction taper | GEN.1061 |  |
 | GEN.1066 | Design the system body table or view (system_bodies: id, parent, kind, mass, radius, density, a, e, i, status, tier) and the barycentre that includes the belts; decide view versus table | GEN.1014 |  |
-| GEN.1065 | Belt member designation: a pure function designation(belt_id, rank) printing the belt ID plus the rank in hex (no name, no salad name, no codec name), and its round trip through parse_id |  |  |
 | GEN.1064 | physics/belt_history.py: early-depletion survival, instability sweep, and the star events (engulf partly, mass-loss destabilise share, companion truncation, white dwarf pollution link) | GEN.1060 |  |
 | GEN.1063 | physics/body_status.py: roundness mass by composition, Soter mu, Stern-Levison Lambda, Margot Pi, and the status words (planet, dwarf planet, minor body, moon), both words and numbers stored | GEN.1060 |  |
 | GEN.1062 | physics/resonance_gaps.py: the resonance and chaotic-zone map from the giants' orbits and the size-dependent Yarkovsky cut | GEN.1060 |  |
@@ -642,6 +639,11 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.959 | Tides stage 3b: wire moon orbit history, rings from fallen moons and the moons' tide into the planet's heat | GEN.957 |  |
 | GEN.1034 | Ocean tide data: the open-ocean equilibrium tide height and range at a world's surface from each moon and the star, for worlds with a surface ocean |  |  |
 | GEN.1035 | Surface liquid inventory: which liquid a cold or hot world holds as a sea (methane-ethane-nitrogen, liquid nitrogen, liquid CO2, ammonia-water, sulfur) from its temperature, pressure, ice and air, so non-water oceans can have tides | GEN.1034 |  |
+| GEN.1117 | Register the rogue drift and kick stand-ins in GEN.725 (D7): the rows of design section 8, each with tier and tweak level and a burn-down line where L3 or L4 |  |  |
+| GEN.1116 | Regenerate a rogue's donor on demand from its seed (D5): the history sentence and the parent record shown on the object page | GEN.1114 |  |
+| GEN.1115 | Smoothed star-density function for rogues (D3): ring average plus radial smoothing, shared by the sector draw and the low-zoom map |  |  |
+| GEN.1114 | physics/rogue_drift.py (D2): the closed-form drift of an ejected planet (the wrap rule and the velocity), checked against a direct orbit integration to 1 kpc and against hill_drift.py |  |  |
+| GEN.1113 | Rogue ejection kick research (D1): read the full texts, extract ejection speed against perturber mass and orbit, direction statistics and moon survival, replace the kick stand-in, test against Sayed et al. |  |  |
 | TEST.498 | A rogue planet is functionally and programmatically identical to a bound planet: the same columns, the same moon and composition generation, the same classes, differing only in the rogue note and having no host star | GEN.1111 |  |
 | GEN.1112 | Replace the rogue-planet defaults one by one with their physical derivations (mass function from ejection, gas-giant threshold from the envelope fraction, age from the ejecting system, envelope and water share from formation, tidal flux from kept moons, radiogenic inputs from the parent star), each a small pure module | GEN.1109 |  |
 | GEN.1110 | Average wind speeds by day and by night in each of the seven latitude bands: the day-to-night thermal wind from the pressure difference, zonal jets and trade winds from the equator-to-pole temperature difference and the Rossby number, faded out below about 1 kPa | GEN.1108 |  |
