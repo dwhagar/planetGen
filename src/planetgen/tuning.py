@@ -64,23 +64,21 @@ GIANT_MASS_FUNCTION_SLOPE = 0.31
 # limit is about 10 Jupiter masses).
 GIANT_MAX_STAR_MASS_RATIO = 0.01
 
-# The planet mass law once no class supplies the mass (GEN.650, `physics/planet_mass.py`). Each value is a planetGen
-# stand-in until the GEN.503 harness and the builders GEN.509 and GEN.510 tune it against the observed occurrence.
-#
-# Giant impacts merge the oligarchs of a feeding zone (Chambers 2001, recalled), and `GIANT_IMPACT_SURVIVAL_FRACTION` of
-# them survive as planets, so by mass conservation a planet is on average 1 / that fraction of an isolation mass; the
-# merging spreads the result by `PLANET_ASSEMBLY_SCATTER_DEX` dex (a normal in the logarithm of the mass).
-PLANET_ASSEMBLY_SCATTER_DEX = 0.5
+# The planet mass law once no class supplies the mass (GEN.650, `physics/planet_mass.py`) is the planet architecture's law for one
+# oligarch (GEN.728, GEN.730, `physics/planet_architecture.py`): the isolation mass of the feeding zone, `OLIGARCH_SEPARATION_MEDIAN`
+# mutual Hill radii wide, in a disc scattered by `DISC_SOLIDS_SCATTER_DEX`. Each value is a planetGen stand-in (registry section 6.36),
+# tuned against the observed occurrence (`physics/data/planet_occurrence.json`).
 # A core that reaches this many Earth masses before the gas disc is gone can run away into a gas giant (core accretion:
 # Pollack et al. 1996; Rafikov 2006 give 5 to 20 Earth masses, recalled).
 GIANT_CORE_CRITICAL_MASS_EARTH = 10.0
-# The share of runaway-capable cores that still find gas left in the disc around a star of the disc's metallicity
-# (scaled for [Fe/H] by `metallicity.giant_occurrence_factor`); the rest stay ice giants. Tuned (tier L3) so that a Sun-like
-# star has about 0.12 giants between 0.3 and 10 AU (Fulton et al. 2021: 0.10 to 0.15, recalled) and an M dwarf a quarter of that.
-GIANT_GAS_SURVIVAL_SHARE = 0.3
+# The share of runaway-capable cores that still find gas left in the disc around a star of the disc's metallicity (scaled for [Fe/H] by
+# `metallicity.giant_occurrence_factor` and `GIANT_GAS_SURVIVAL_METALLICITY_EXPONENT`); the rest stay ice giants. Tuned (tier T6, tweak L3)
+# to the giants at 2 to 8 AU round a Sun-like star (Fulton et al. 2021, arXiv:2105.11584, read: 0.14), their fall with the star's mass
+# (Johnson et al. 2010, arXiv:1005.3084, read) and the fall of the hot Jupiters round M dwarfs (Gan et al. 2023, read).
+GIANT_GAS_SURVIVAL_SHARE = 0.766
 # Beyond this distance the share falls as the square of the ratio: the cores of the outer disc grow slowly, so few reach
 # the critical mass before the gas is gone (direct imaging finds giants beyond 10 AU around about 1 percent of stars).
-GIANT_GAS_SURVIVAL_CUT_AU = 5.0
+GIANT_GAS_SURVIVAL_CUT_AU = 9.022
 # A core that finds no gas stops growing near an ice giant's mass (Uranus and Neptune are 14.5 and 17.1 Earth masses): the
 # late solids beyond the snow line are not all added to it. Earth masses.
 GIANT_NO_GAS_CORE_MAX_EARTH = 20.0
@@ -92,9 +90,10 @@ PLANET_INNER_CORE_MAX_EARTH = 12.0
 PLANET_CORE_SATURATION_SHARPNESS = 4.0
 # A runaway giant is at least this heavy: below it the envelope has not yet outweighed the core (Earth masses).
 GIANT_RUNAWAY_MIN_MASS_EARTH = 30.0
-# How many times the minimum-mass nebula's solids the mass law assumes (Kepler's inner planets need several times the
-# MMSN: Chiang & Laughlin 2013, recalled). 1 is the nebula as `estimate_num_objects` counts with; tune with GEN.509.
-PLANET_DISC_SOLIDS_ENHANCEMENT = 2.0
+# How many times the minimum-mass nebula's solids the mass law assumes: below one, because the oligarchs are spaced wide and the
+# isolation mass goes as the spacing to the 3/2 (`OLIGARCH_SEPARATION_MEDIAN`); the Kepler systems need several times the nebula
+# in all (Chiang and Laughlin 2013, recalled). A planetGen stand-in (tier T6, tweak L3), tuned to the observed occurrence.
+PLANET_DISC_SOLIDS_ENHANCEMENT = 0.4647
 # How the solids the planets are built from scale with the star's mass, as a power of the mass in suns. Shallower than the
 # dust mass of the disc (`DISK_MASS_STELLAR_MASS_EXPONENT`, which sets how many objects a disc can hold): the planets of M dwarfs
 # are about as many as those of Sun-like stars (Dressing and Charbonneau 2015; Hsu et al. 2020, recalled), as pebble drift
@@ -109,25 +108,16 @@ PLANET_INNER_DISC_STEEPENING = 0.75
 # Beyond this distance the cores of the outer disc have not had time to assemble before the gas and the planetesimals are gone:
 # orbits are slow and the disc is thin (Levison et al. 2010 grow Uranus and Neptune in a few Myr only by pebble accretion,
 # recalled), so the assembled solids fall as (this distance / the distance) to `PLANET_OUTER_GROWTH_EXPONENT`. A planetGen
-# stand-in (tier L3) tuned so a Sun-like star has about as many Neptune-mass planets beyond the snow line as the microlensing
-# surveys count (Suzuki et al. 2016: about 0.5 per star, recalled), where the isolation mass alone makes them the commonest planet.
-PLANET_OUTER_GROWTH_AU = 5.0
-PLANET_OUTER_GROWTH_EXPONENT = 1.5
+# stand-in (tier T6, tweak L3) tuned with the giants' occurrence (`GIANT_GAS_SURVIVAL_SHARE`) and the count of the Neptune-mass planets beyond the
+# snow line (Suzuki et al. 2016: about 0.5 per star, recalled).
+PLANET_OUTER_GROWTH_AU = 11.36
+PLANET_OUTER_GROWTH_EXPONENT = 2.889
 # A planet's solids are never more than this fraction of its star's mass (a disc holds about 1% of its star).
 PLANET_MAX_STAR_MASS_RATIO = GIANT_MAX_STAR_MASS_RATIO
 
-# The architecture's own copies of the mass law's disc and gas constants (tuned together with the rest of this block; the mass law's own, above,
-# stay for the class cut-over's code until the architecture replaces it). The solids of the disc against the minimum-mass nebula; where the
-# outer disc's growth falls behind (distance in AU, and the power of the fall); the share of runaway-capable cores that find gas left and the
-# distance beyond which that share falls as the square of the ratio. Stand-ins (tier T6, tweak L3), tuned to the observed occurrence.
-ARCH_GAS_SURVIVAL_SHARE = 0.7924
-ARCH_GAS_SURVIVAL_CUT_AU = 13.78
-ARCH_DISC_SOLIDS_ENHANCEMENT = 0.4647
-ARCH_OUTER_GROWTH_AU = 8
-ARCH_OUTER_GROWTH_EXPONENT = 2.726
-# How much more a heavier-metal star's cores find gas, as 10 to this power times [Fe/H]: with the solids the giants' occurrence goes as 10 to
-# 1.2 times [Fe/H] (Johnson et al. 2010, arXiv:1005.3084, read). A stand-in (tier T6, tweak L3).
-ARCH_GAS_METALLICITY_EXPONENT = 0.6498
+# How much more a heavier-metal star's cores find gas, as 10 to this power times [Fe/H], beside `metallicity.giant_occurrence_factor`: with the
+# solids the giants' occurrence goes as 10 to 1.2 times [Fe/H] (Johnson et al. 2010, arXiv:1005.3084, read). A stand-in (tier T6, tweak L3).
+GIANT_GAS_SURVIVAL_METALLICITY_EXPONENT = 0.6498
 
 # Planet architecture (GEN.728, GEN.729, GEN.730, `physics/planet_architecture.py`, docs/design/composition/planet-architecture.md):
 # how a disc builds a chain of oligarchs, how dynamical instability thins it and what is left, from the star and its disc alone.
@@ -147,6 +137,14 @@ OLIGARCH_SEPARATION_MIN = 4.0
 # at a period drawn log-normally about this median with this width in dex. A planetGen stand-in (tier T6, tweak L3) tuned to the rise of the
 # Kepler occurrence with period (Zhu and Dong 2021, arXiv:2103.02127, read).
 OLIGARCH_INNER_EDGE_PERIOD_DAYS = 5.0
+# The dust sublimation temperature, kelvin: no solid body builds where a blackbody at its distance would be hotter than the silicates
+# evaporate, so the chain of a luminous star starts no closer than the distance of this temperature (a = (278.3 K / T)^2 sqrt(L / Lsun) AU).
+# About 1500 K (Dullemond and Monnier 2010, arXiv:1002.3056, secondary). A planetGen stand-in (tier T3, tweak L1).
+DUST_SUBLIMATION_K = 1500.0
+# A belt takes the place of a planet in its slot only where the disc built a body lighter than this, in Earth masses: a belt is what a
+# feeding zone leaves when it did not build a planet, so a giant or a body of an Earth mass or more is never swapped for one. A
+# planetGen stand-in (tier T5, tweak L0).
+BELT_REPLACES_BELOW_EARTH = 1.0
 OLIGARCH_INNER_EDGE_SIGMA_DEX = 0.2
 # The age to which the chain is thinned by instability, years. Pu and Wu's survival law (arXiv:1502.05449, read) loses 0.7 in spacing
 # per decade of time, so a factor of ten in age matters little; the chain is thinned to this age whatever the star's, and the later
@@ -159,7 +157,7 @@ INNER_SYSTEM_FRACTION_MASSES = (0.15, 0.6, 1.0, 1.4)
 INNER_SYSTEM_FRACTION_SHARES = (0.85, 0.75, 0.30, 0.30)
 # How many planets it starts with before the thinning: 1 + a Poisson draw of this mean. A planetGen stand-in (tier T6, tweak L3), tuned so the
 # survivors average 3.0 per Sun-like system and 2.8 per M dwarf (Zhu et al. 2018; Yang et al. 2020).
-INNER_INITIAL_COUNT_EXTRA = 6.221
+INNER_INITIAL_COUNT_EXTRA = 5.619
 # The spread of that mean between systems (the width in ln of a log-normal factor), so the counts are broader than a Poisson: the survey's
 # many single transiting planets need systems that start with few. A planetGen stand-in (tier T6, tweak L3), tuned to the transit multiplicity.
 INNER_COUNT_SIGMA_LN = 0.8
@@ -168,9 +166,9 @@ INNER_COUNT_SIGMA_LN = 0.8
 # mass ratio about constant: Mulders et al. 2015), as the disc's scatter to the exponent (a heavy disc builds heavy planets and giants:
 # Zhu and Wu 2018) and as 10 to the exponent times [Fe/H] (the occurrence of sub-Neptunes doubles over 0.8 dex, Petigura et al. 2018,
 # arXiv:1712.04042, read). Planetgen stand-ins (tier T6, tweak L3).
-INNER_PLANET_MASS_EARTH = 3.624
-INNER_PLANET_MASS_STELLAR_EXPONENT = 0.6756
-INNER_PLANET_MASS_DISC_EXPONENT = 0.01783
+INNER_PLANET_MASS_EARTH = 3.631
+INNER_PLANET_MASS_STELLAR_EXPONENT = 0.6357
+INNER_PLANET_MASS_DISC_EXPONENT = 0.01653
 INNER_PLANET_MASS_METALLICITY_EXPONENT = 0.7565
 # Neighbours of a system are alike in mass: the spread of the log10 of a planet's mass about its system's scale, and how much heavier each next
 # planet is (the outer planet is the larger in 65 percent of pairs: Weiss et al. 2018, arXiv:1706.06204, read). Stand-ins (tier T6, tweak L3).
@@ -178,7 +176,7 @@ INNER_NEIGHBOUR_SIGMA_DEX = 0.15
 INNER_OUTWARD_MASS_DEX_PER_PLANET = 0.04
 # The spacing at which the inner planets start, in mutual Hill radii, before the thinning: Pu and Wu's effective 8.1 or more
 # (arXiv:1502.05449, read), and the spread of one pair about its system's. A stand-in (tier T6, tweak L3).
-INNER_SEPARATION_MEDIAN = 5.575
+INNER_SEPARATION_MEDIAN = 5.983
 INNER_SPACING_SIGMA_LN = 0.25
 # The inner system ends at this period (days); the outer chain starts this many times beyond it (as a period) or past the last inner planet (as a distance).
 INNER_SYSTEM_PERIOD_LIMIT_DAYS = 400.0
@@ -188,7 +186,7 @@ OUTER_CHAIN_START_RATIO = 1.3
 PLANET_MIN_MASS_EARTH = 0.1
 # Beyond the snow line a body this light is a dwarf planet of the belt beyond, not a planet: the ice makes the planets there heavier (Earth
 # masses). A stand-in (tier T6, tweak L3).
-PLANET_MIN_MASS_OUTER_EARTH = 0.6649
+PLANET_MIN_MASS_OUTER_EARTH = 0.6016
 # The share of the mass of two oligarchs that collide which stays in the planet; the rest is debris (Pu and Wu 2015 expect a destructive
 # collision at the relative speeds of the compact systems and cannot predict the outcome). A planetGen stand-in (tier T4, tweak L0).
 COLLISION_MASS_RETENTION = 0.9
@@ -196,14 +194,14 @@ COLLISION_MASS_RETENTION = 0.9
 # for hot Jupiters, Petigura et al. 2018, arXiv:1712.04042, read, against 1.2 for giants, Johnson et al. 2010, arXiv:1005.3084, read):
 # a giant formed beyond the snow line migrates in with this probability at solar metallicity. Tuned (tier T6, tweak L3) to 0.6 percent of Sun-like stars
 # (Zhu and Dong 2021, arXiv:2103.02127, read) and 0.27 percent of early M dwarfs (Gan et al. 2023, arXiv:2210.08313, read).
-GIANT_MIGRATION_SHARE = 0.01133
+GIANT_MIGRATION_SHARE = 0.0092
 GIANT_MIGRATION_METALLICITY_EXTRA_EXPONENT = 2.2
 # Where a migrated giant ends, as an orbital period in days: log-uniform between these (the hot Jupiters pile up near 3 days).
 GIANT_MIGRATION_PERIOD_RANGE_DAYS = (1.0, 10.0)
 # A giant that does not become a hot Jupiter still moves in from where it formed: the occurrence of giants rises at 1 AU by a factor of 4 and
 # peaks at 1 to 3 AU, inside the snow line (Fulton et al. 2021, arXiv:2105.11584, read; Cumming et al. 2008, arXiv:0803.3357, read). It
 # moves in by the factor e to minus the absolute value of a normal of this width in ln. A planetGen stand-in (tier T6, tweak L3).
-GIANT_INWARD_MIGRATION_SIGMA_LN = 0.9281
+GIANT_INWARD_MIGRATION_SIGMA_LN = 0.7212
 # A giant that moved in scatters the planets this close, in mutual Hill radii, and a hot Jupiter every planet inside its orbit up to this
 # distance in AU (planets inside a hot orbit are gone). Stand-ins (tier T6, tweak L0).
 GIANT_CLEARING_SPACING = 8.0
@@ -288,20 +286,6 @@ ALBEDO_FROZEN_BELOW_K = 230.0
 ALBEDO_REGIME_REFERENCE = 0.30
 
 # --- Star System Generation Parameters ---
-INITIAL_PLANET_DISTANCE_FACTOR = 0.55
-# Where a system's first slot sits, as a fraction of its star's habitable
-# zone inner edge, and how far out each next slot sits, as a ratio of the
-# last one's distance (GEN.37). Adjacent real planets sit at period ratios
-# of about 1.5-2.5 (Kepler multis; the solar system's distance ratios run
-# 1.4-3.4), i.e. distance ratios of about 1.3-1.8, so placement is
-# geometric and scales with the star's light; slots stop at the disk's
-# outer edge (StarSystem._disk_outer_edge_au). Before, the first slot sat
-# at 0.55 AU per solar mass and each next one a fixed number of AU
-# further, which put about 96% of planets in the cold zone; now about 32%
-# are hot, 6% in the ecosphere and 62% cold (the solar system: 25%, 12-25%
-# and 50-62%).
-FIRST_PLANET_HZ_FRACTION_RANGE = (0.05, 0.4)
-PLANET_SPACING_RATIO_RANGE = (1.3, 1.8)
 ASTEROID_BELT_PROBABILITY = 0.1
 ASTEROID_BELT_MAX_DISTANCE_FACTOR_MIN = 1.1
 ASTEROID_BELT_MAX_DISTANCE_FACTOR_MAX = 2
@@ -326,14 +310,13 @@ MUTUAL_HILL_RADII_SEPARATION = 10
 
 # Real protoplanetary disks are observed (sub-mm/ALMA continuum surveys)
 # to carry more solid mass around more massive stars, and steeply so --
-# not the flat "1 + log10(solar_masses)" scaling the old
-# StarSystem.estimate_num_objects formula used. Disk dust-mass-vs-
+# not a flat "1 + log10(solar_masses)" scaling. Disk dust-mass-vs-
 # stellar-mass surveys (Andrews et al. 2013, Taurus; Pascucci et al. 2016,
 # multi-region) find M_dust ~ M_star^1.8 in young (~1-3 Myr) star-forming
 # regions, steepening further (~M_star^2.7) in older ones. This scales
 # `physical_constants.MMSN_SOLID_SURFACE_DENSITY_SOL_GCM2` for any given
 # star relative to the Sun -- see `formation.disk_surface_density_scale`,
-# used by `StarSystem._estimate_max_objects_from_disk_physics`. The
+# used by `planet_mass.solids_surface_density_gcm2`. The
 # younger-region exponent is used since this generator has no notion of a
 # system's disk-formation age (only its current, post-formation age).
 DISK_MASS_STELLAR_MASS_EXPONENT = 1.8
@@ -347,7 +330,7 @@ DISK_MASS_STELLAR_MASS_EXPONENT = 1.8
 # (`formation.snow_line_au`, drawn per star and stored: `Star.snow_line_au`) --
 # our own Solar System's own giant-planet/Kuiper-belt region extends to
 # roughly this same multiple (~18x) of its own ~2.7 AU snow line. See
-# `StarSystem._estimate_max_objects_from_disk_physics`.
+# `StarSystem._plan_architecture`.
 DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER = 18
 
 # The scatter of a star's own snow line around the blackbody position for its
@@ -363,20 +346,6 @@ SNOW_LINE_SCATTER_MAX_SIGMA = 3.0
 # `physics.planet_zones`): a protoplanetary disk around a star or a pair is
 # not larger than this, whatever the stability limit allows.
 PLANET_ZONE_DISK_CAP_AU = 100.0
-
-# The disk-physics walk (`StarSystem._estimate_max_objects_from_disk_physics`)
-# first counts how many isolation-mass "oligarchs" (Kokubo & Ida
-# 2000/2002) the disk's solid budget can support, spaced by their own
-# mutual Hill radius -- but not every oligarch survives as a final planet.
-# N-body integrations of the subsequent giant-impact phase (Chambers 2001)
-# show a large fraction of oligarchs merge or get ejected before the
-# system settles down; only a minority survive as the final planet
-# count. This is the multiplicative attrition factor applied to the raw
-# oligarch count. Tuned toward the middle of that literature's range
-# (rather than one precise figure) so a solar-mass star's typical final
-# count stays in the same well-tested, playable range this generator
-# already verified via repeated full-suite runs (see CHANGELOG.md).
-GIANT_IMPACT_SURVIVAL_FRACTION = 0.4
 
 # How many times StarSystem.__init__ retries its whole placement loop (fresh
 # object count, positions, and validate_system pass, same star) before
@@ -1251,13 +1220,6 @@ PLANET_OCCURRENCE_FLOOR_DEX_BELOW_SOLAR = 0.5
 """float: Dex below the Sun's [Fe/H] where planet occurrence starts to fall (the floor is [Fe/H] -0.5), kept as a
 positive depth."""
 PLANET_OCCURRENCE_METALLICITY_EXPONENT = 1.0
-PLANET_OCCURRENCE_REFERENCE_OBJECTS = 16
-"""
-int: The most objects a metal-rich system's slots hold in practice. The disk-physics ceiling of
-`StarSystem._estimate_max_objects_from_disk_physics` is far above what the orbit spacing lets fit (60 to 200 for a G
-dwarf; the most that were placed in 60 draws was 15), so the cull cuts the count by `planet_occurrence_factor` from this
-number, not from the ceiling: `ceil(16 x factor)` objects at most, which is 2 at [Fe/H] -1.65 and 16 at the floor.
-"""
 
 # Stellar abundances (GEN.439, `physics/stellar_abundances.py`, docs/design/composition/stellar-composition.md and part A of
 # docs/design/composition/body-composition-research.md). The reference scale is Asplund, Amarsi and Grevesse 2021 (arXiv:2105.01661, Table 2

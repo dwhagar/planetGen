@@ -72,7 +72,7 @@ JUPITER_RADIUS_KM = 71_492.0  # Jupiter's mean equatorial radius in kilometers
 # with (~1700 g/cm^2 at 1 AU) -- using the gas value here would overstate
 # every isolation mass below by roughly (1700/7)^1.5 ~= 3800x. See
 # `formation.mmsn_surface_density_gcm2`/`formation.isolation_mass_kg`, used by
-# `StarSystem._estimate_max_objects_from_disk_physics`.
+# `planet_mass.oligarch_core_kg`.
 MMSN_SOLID_SURFACE_DENSITY_SOL_GCM2 = 7.0
 MMSN_SURFACE_DENSITY_EXPONENT = -1.5
 

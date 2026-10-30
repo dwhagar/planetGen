@@ -85,22 +85,9 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.26:GS4 | GEN.979 | a constant of the birth-spin module, read when its wiring step lands |
 | row | 6.26:GS5 | GEN.979 | a constant of the birth-spin module, read when its wiring step lands |
 | row | 6.26:GS6 | GEN.979 | a constant of the birth-spin module, read when its wiring step lands |
-| module | planetgen.physics.planet_architecture | GEN.728 | the planet architecture (inner system, thinning, outer chain, gas, migration); `system.py` calls it at the wiring on merge train 4 |
 | module | planetgen.physics.planet_occurrence | GEN.728 | the reader of the observed occurrence bands; the architecture and the census read it |
 | module | planetgen.physics.kepler_multiplicity | GEN.728 | the Kepler transit multiplicity harness, read by the tuning tests until the wiring |
 | data | planet_occurrence.json | GEN.728 | read by `physics/planet_occurrence.py` only |
-| row | 6.36:PA1 | GEN.728 | `ARCH_DISC_SOLIDS_ENHANCEMENT, ARCH_OUTER_GROWTH_*`, read by `planet_architecture`, which `system.py` calls at the wiring |
-| row | 6.36:PA2 | GEN.728 | `ARCH_GAS_*`, read by `planet_architecture`, which `system.py` calls at the wiring |
-| row | 6.36:PA3 | GEN.728 | `INNER_INITIAL_COUNT_EXTRA, INNER_COUNT_SIGMA_LN`, read by `planet_architecture`, which `system.py` calls at the wiring |
-| row | 6.36:PA4 | GEN.728 | `INNER_PLANET_MASS_*`, read by `planet_architecture`, which `system.py` calls at the wiring |
-| row | 6.36:PA5 | GEN.728 | `INNER_NEIGHBOUR_SIGMA_DEX`, read by `planet_architecture`, which `system.py` calls at the wiring |
-| row | 6.36:PA6 | GEN.728 | `*_SEPARATION_*`, read by `planet_architecture`, which `system.py` calls at the wiring |
-| row | 6.36:PA7 | GEN.728 | `OLIGARCH_INNER_EDGE_*`, read by `planet_architecture`, which `system.py` calls at the wiring |
-| row | 6.36:PA8 | GEN.728 | `SCULPT_AGE_YR and the survival law`, read by `planet_architecture`, which `system.py` calls at the wiring |
-| row | 6.36:PA9 | GEN.728 | `GIANT_MIGRATION_*`, read by `planet_architecture`, which `system.py` calls at the wiring |
-| row | 6.36:PA10 | GEN.728 | `GIANT_INWARD_MIGRATION_SIGMA_LN, GIANT_CLEARING_SPACING`, read by `planet_architecture`, which `system.py` calls at the wiring |
-| row | 6.36:PA11 | GEN.728 | `PLANET_MIN_MASS_*`, read by `planet_architecture`, which `system.py` calls at the wiring |
-| row | 6.36:PA12 | GEN.728 | `DISC_SOLIDS_SCATTER_DEX, INNER_SYSTEM_FRACTION_ANCHORS`, read by `planet_architecture`, which `system.py` calls at the wiring |
 | module | planetgen.physics.substellar_ceiling | GEN.494 | the Baraffe 2015 hydrogen-burning limit temperature by age (lock-free); the wiring step replaces the 2800 K clip of `brown_dwarf` and the hot edge of the atmosphere row g1 with it, riding the Baraffe brown dwarf tracks of GEN.948 |
 | row | 6.37:SB1 | GEN.494 | `substellar_ceiling.LIMIT_MASS_SOLAR`, read when the wiring step lands |
 | row | 6.37:SB2 | GEN.494 | `substellar_ceiling.HOTTEST_K`, read when the wiring step lands |
