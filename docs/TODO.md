@@ -17098,6 +17098,11 @@ clears each one.
   Owner: Core 3 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue is
   in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
   owner line).
+  Research (2026-10-09, Update): OWNER Aux 3 (assigned 5:15 AM EDT
+  2026-10-30 by TODO as the lane's one lock-free item while it waits for
+  Core 4's structure work; tests only, separate branch, change no table
+  value or stored output; if a test finds a real fault, file it with
+  TODO as a bug and do not fix it under this item).
   Prerequisites: none. Related: TEST.159.
   Design: [docs/design/systems/phenomena-catalogue-and-fill.md](design/systems/phenomena-catalogue-and-fill.md)
 
@@ -17459,6 +17464,8 @@ clears each one.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 1
   held it before; this replaces any earlier owner line).
+  Research (2026-10-09, Update): OWNER Aux 3 (queued 5:15 AM EDT
+  2026-10-30 by TODO, after TEST.161; tests only, same rules).
   Prerequisites: none. Related: GEN.372, GEN.109.
 
 - [ ] **TEST.204 Family plausibility tests: masses, sizes, indices, bulge shares, bar fractions and arm pitch fall inside the published ranges**
