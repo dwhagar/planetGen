@@ -516,6 +516,8 @@ its own: the node's separation is as many units as its two sides need to clear a
 their whole span, a sub-pair the reach of its own orbit), the orbit itself drawn straight-scaled so its ellipse keeps its shape. True
 scale draws the real distances. Slices B (the System Map diagram) and C (the system page lists the tree) follow.
 
+As built (MAP.213, slice C, the system page): `db.query.system_detail` carries the stored tree as `orbits` (the `orbit_nodes` rows in node order) and each star's `parent_node_id` and `slot`, and the page draws "Orbits of the stars" from `web/system_orbits_view.orbit_rows`: one row per node naming what it joins (slot 0 first, a star's name or `orbit N` for a pair hung below), with the same kind, separation, period and eccentricity columns an unbuilt scatter row's Orbits table has, plus the node's mass and its Roche `interaction`. A single star, or a system built before it stored a tree, has no panel.
+
 ### 6.3 Naming (extends GEN.62)
 
 Outside conventions are [R], not searched: the Washington Double Star catalogue
