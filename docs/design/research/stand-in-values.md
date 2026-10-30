@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 419 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 421 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -36,7 +36,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 52 | 0 | 3 | 0 | 0 | 55 |
+| T1 | 53 | 0 | 3 | 0 | 0 | 56 |
 | T2 | 70 | 3 | 0 | 1 | 0 | 74 |
 | T3 | 53 | 8 | 3 | 10 | 0 | 74 |
 | T4 | 22 | 0 | 0 | 3 | 4 | 29 |
@@ -44,8 +44,8 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T6 | 39 | 12 | 7 | 28 | 0 | 86 |
 | T7 | 17 | 3 | 1 | 7 | 0 | 28 |
 | T8 | 0 | 0 | 0 | 0 | 1 | 1 |
-| T9 | 1 | 0 | 2 | 24 | 17 | 44 |
-| All | 276 | 31 | 17 | 73 | 22 | 419 |
+| T9 | 1 | 0 | 2 | 24 | 18 | 45 |
+| All | 277 | 31 | 17 | 73 | 23 | 421 |
 
 ## How the labels were given
 
@@ -661,3 +661,10 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | RA9 | P | T4 | L0 | recipe row n7 constant y: the photochemical haze yield, log-uniform 0.01 to 1 | 0.01 to 1 | hazy atmospheres | a measured haze production rate against temperature and C/O outside the bracket | the haze yield by temperature and C/O of Horst et al. 2018, not read | test_atmosphere_recipes::test_the_status_of_each_row_is_the_parts_except_the_rows_the_later_decisions_moved | - | - |
 | RA10 | P | T3 | L1 | recipe row o6 constant c_o6: the share of systems whose planetesimals formed with enough aluminium-26 to heat early, log-uniform 0.04 to 0.66 (clusters at least 4 percent, cluster models 9 to 28 percent, white dwarf debris tens of percent) | 0.04 to 0.66 | rocky bodies | a count of systems enriched in a defined sample outside the bracket | the share of stars born above the melting ratio of `birth_radioisotopes` (12 percent, 6 to 20, GEN.476), which the wiring step reads in place of the bracket | test_birth_radioisotopes::test_the_solar_system_ratio_is_in_the_upper_tail_of_the_distribution | - | - |
 | RA11 | P | T4 | L0 | recipe row o3: the potassium to uranium ratio of a body, log-uniform 8,900 to 14,000 by mass (the depletion is measured on Solar System bodies only; Boss kept the stand-in, 2026-10-24) | 8,900 to 14,000 | rocky bodies | a measured potassium of an exoplanet | a volatile depletion by condensation temperature, or a measurement of planetary potassium | test_tuned_draws | - | - |
+
+## 6.43 Stand-ins of the mass left in a belt
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| BM1 | P | T1 | L0 | belt_mass.GRAIN_DENSITY_KG_M3 2700 and STRENGTH_FLOOR_J_PER_KG 200 (the nominal planetesimal density and the strength of km-size planetesimals in Wyatt et al. 2007; the strength of bodies above about 100 km is the generator's gravity-bound Leinhardt and Stewart threshold) | density 2000 to 3500; strength 100 to 500 | belts of rock-rich planetesimals in collisional equilibrium | a measured belt mass more than a factor of 10 from the law at its age | a size-dependent strength law with the strength regime of Benz and Asphaug (1999, not read) | test_belt_mass::test_wyatts_equation_17_is_reproduced_at_its_stated_assumptions; test_belt_mass::test_the_solar_systems_belt_comes_out_within_a_few_times_the_inferred_mass | GEN.477 | - |
+| BM2 | P | T9 | L4 | belt_mass.DENSE_FACTOR 3 (a belt with three times the reference mass per area is dense, a third sparse) | 2 to 10 | all belts | the dense and sparse shares of the generated belts outside what the words are meant to cover | an observed spread of belt masses at one age | test_belt_mass::test_the_density_word_follows_the_mass_per_area_against_its_reference | GEN.477 | no data |

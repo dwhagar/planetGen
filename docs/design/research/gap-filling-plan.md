@@ -1156,6 +1156,17 @@ The atmosphere recipe rows of GEN.480 (occurrence of water-rich and H/He worlds)
 | RA11 | P | T4 | L0 | recipe row o3: the potassium to uranium ratio of a body, log-uniform 8,900 to 14,000 by mass (the depletion is measured on Solar System bodies only; Boss kept the stand-in, 2026-10-24) | 8,900 to 14,000 | rocky bodies | a measured potassium of an exoplanet | a volatile depletion by condensation temperature, or a measurement of planetary potassium | test_tuned_draws |
 <!-- ar-closeout-standins:end -->
 
+### 6.43 Stand-ins of the mass left in a belt (GEN.477)
+
+`physics/belt_mass.py` gives a planetesimal belt its mass from the disc's solids ground down by collisions (Wyatt et al. 2007, Eqs. 14 and 15), in place of the uniform draw of the density word and the zero mass of NAV.62. The Solar System's belt (0.6 thousandths of an Earth mass inferred) is a test point: the model leaves 0.5 to 2.6 thousandths for Ceres-size largest bodies.
+
+<!-- belt-mass-standins:begin -->
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
+|---|---|---|---|---|---|---|---|---|---|
+| BM1 | P | T1 | L0 | belt_mass.GRAIN_DENSITY_KG_M3 2700 and STRENGTH_FLOOR_J_PER_KG 200 (the nominal planetesimal density and the strength of km-size planetesimals in Wyatt et al. 2007; the strength of bodies above about 100 km is the generator's gravity-bound Leinhardt and Stewart threshold) | density 2000 to 3500; strength 100 to 500 | belts of rock-rich planetesimals in collisional equilibrium | a measured belt mass more than a factor of 10 from the law at its age | a size-dependent strength law with the strength regime of Benz and Asphaug (1999, not read) | test_belt_mass::test_wyatts_equation_17_is_reproduced_at_its_stated_assumptions; test_belt_mass::test_the_solar_systems_belt_comes_out_within_a_few_times_the_inferred_mass |
+| BM2 | P | T9 | L4 | belt_mass.DENSE_FACTOR 3 (a belt with three times the reference mass per area is dense, a third sparse) | 2 to 10 | all belts | the dense and sparse shares of the generated belts outside what the words are meant to cover | an observed spread of belt masses at one age | test_belt_mass::test_the_density_word_follows_the_mass_per_area_against_its_reference |
+<!-- belt-mass-standins:end -->
+
 ## 7. Gemini's first batch
 
 ### 7.1 Counts and recommendation
