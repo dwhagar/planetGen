@@ -1042,6 +1042,18 @@ with `clamp()`.
   retires.
   Prerequisites: none. Related: UX.221.
 
+- [ ] **UX.238 The "On this page" table of contents on object pages goes under the tab bar, not off to the left (bug)**
+  Boss, 9:01 PM EDT 2026-10-29 (live observation): the table of contents
+  ("On this page") on object pages should sit under the tab bar, not in
+  a column off to the left. Do: move it under the tab bar on star,
+  planet, moon and the other object pages built from the planet page
+  redesign (UX.215 to UX.222; Aux 11, who built it, is retired), keep
+  its jump links and the current-section highlight, make it work at
+  phone width, and check the page still fits with the left menu gone.
+  Lock-free: no generated output. Owner: Core 5 (it already owns the
+  planet page Life section UX.237). Version 8.1.
+  Prerequisites: none. Related: UX.215, UX.222, UX.237.
+
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
