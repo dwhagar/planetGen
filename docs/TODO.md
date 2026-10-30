@@ -13495,6 +13495,19 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.482 recorded. Next: b1 dry carbon (soot-line model, Li 2021), then
   k7, then the flip for a1/a2/b1/k7 as one digest step that rides a
   train.
+  Progress (2026-10-30 1:06 PM EDT): Aux 3 (as the lane reported 1:06 PM
+  EDT): b1 merged in #4059: physics/dry_carbon.py derives the dry-class
+  carbon bracket 0.029 to 0.108 wt percent CO2 (old 0.018 to 0.1) from
+  Blanchard 2022 (building-block carbon, differentiated share, core
+  share), rows DC1 to DC3 in 6.58; Earth is a test, not the anchor. For
+  k7 no laboratory trapping table per species was reachable, so TODO
+  decided (1:06 PM EDT; stand-ins are allowed when registered with tier
+  and tweak level): build each species relative to CO from the host star
+  own N/C, Ar/C and S/C times one trapping factor per species calibrated
+  to comet 67P, registered in GEN.725 as T7 and L3 so a second comet or
+  a lab table replaces it later, with the width from the star spread
+  plus the trapping bracket instead of the design 0.6 dex. Then flip
+  a1/a2/b1/k7 together as one digest step on a train.
   Prerequisites: GEN.474. Related: GEN.1002, GEN.474, GEN.595, GEN.725.
 
 - [ ] **GEN.1006 Stars and bodies in one system never overlap by design: every member knows the others when any is rebuilt, then fit and adjust afterwards**
