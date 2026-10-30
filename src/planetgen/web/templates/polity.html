@@ -1,7 +1,5 @@
 {#- One polity and its systems (/polities/<id>, web/population_pages.py). -#}
 {% extends "base.html" %}
-{#- UX.238: the "On this page" bar sits under the tab bar (static/pagetoc.js), not in a column at the left. -#}
-{% block main_class %} toc-top{% endblock %}
 {% from "partials/datatable.html" import datatable with context %}
 {% block head %}
 <script type="module" src="{{ static_url('datatable.js') }}"></script>
