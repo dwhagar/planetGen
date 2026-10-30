@@ -146,7 +146,7 @@ def air_scale_height_m(body):
 
 def belts_of_body(body, star_distance_au=None):
     """
-    The belts of a planet or moon from what it stores: its dipole moment and the dipole's share (`magnetism.body_dipole_share`), radius (km) and mass (kg),
+    The belts of a planet or moon from what it stores: its dipole moment, radius (km) and mass (kg),
     rotation period, air scale height, and the star's wind at its distance (`magnetism.wind_pressure_pa`). `()` for a body with no field, no star or
     no distance.
     """
@@ -155,7 +155,7 @@ def belts_of_body(body, star_distance_au=None):
     if not moment or not distance or getattr(body, "star", None) is None:
         return ()
     rotation_h = getattr(body, "rotation_period_hours", None)
-    return belts_for(moment * magnetism.body_dipole_share(body), body.radius * 1000.0, body.mass,
+    return belts_for(moment, body.radius * 1000.0, body.mass,
                      rotation_h * 3600.0 if rotation_h else None, magnetism.wind_pressure_pa(body.star, distance), air_scale_height_m(body))
 
 

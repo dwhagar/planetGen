@@ -13,7 +13,7 @@ GEN.967, which replaces the design defaults of `magnetism` with these.
    as `B = c sqrt(mu0) rho^(1/6) (P D / V)^(1/3)`.
 2. **Dipole share.** A dynamo turning slowly for its power is multipolar: the local Rossby number
    `Ro_l = 0.09 (Ra* / Ra*_Earth)^0.41`, with `Ra* = F / (Omega^3 D^2)` the modified flux Rayleigh number of the region, is the dipole's gate,
-   and the share of the dipole is `f_dip = 0.15 + 0.85 / (1 + (Ro_l / 0.12)^4)`, the rule `magnetism.dipole_share` already used. The scaling above
+   and the share of the dipole is `f_dip = 0.15 + 0.85 / (1 + (Ro_l / 0.12)^4)`, the rule GEN.86 used before this module (`magnetism` now stores the moment with it applied). The scaling above
    holds for Earth and every dynamo that is dipolar as Earth is; a slower one has its moment times `f_dip` over Earth's. With the power held at its
    Earth value `Ro_l` is `0.09 (P_rot / 24 h)^1.23`: the exponent `1.23` is `3 * 0.41`.
 3. **Lifetime.** The dynamo runs while the power is above zero (`lifetime`): the core's own history says when it started and when it stopped.
