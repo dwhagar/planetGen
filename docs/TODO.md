@@ -14742,6 +14742,25 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   checked against the 80 percent rule. The class index thread's result
   sets the exact lines; this item and the train 6 epoch scope follow it.
   Still one epoch for every class re-derivation.
+  Class index thread result, 7:05 PM EDT 2026-10-30 (Boss decisions of
+  6:57 PM EDT turned into lines; SUPERSEDES the T, N, K lines above
+  where they differ) (2026-10-30 7:08 PM EDT): E retired (letter
+  reserved); F kept as the reducing-air world (no free oxygen, methane
+  or hydrogen 5 percent or more), sentence loses the stage idea; K =
+  thin air under 3 kPa, mean surface 273.15 K to about 320 K, little
+  oxygen (the cold part goes away); P = every mean surface below 273.15
+  K (line moves from 210 K, a large change, P takes the cold Q and K
+  bodies, census moves); L = Earth-like pressure (about 30 kPa to 3
+  bar), 273.15 K to about 320 K, CO2 about 1 percent or more (ahead of G
+  at 20 percent) and O2 3 to about 16 percent, sentence hard to breathe
+  without a mask, not toxic; O = ocean fraction 80 percent or more; H =
+  under 20 percent; M = the rest (20 to 80 percent); T and N lines as
+  above. Result: 18 live classes (Q and E retired, letters reserved).
+  Temperature and pressure make K, L, M, P disjoint; G stays after L.
+  Register every new line in GEN.725 (L1 or L2). Classification already
+  reads conditions only, never zone. H got zero bodies at 15 percent and
+  widening alone may not fill it (bodies with air nearly always keep
+  their water): see GEN.1145 and GEN.1146.
   Prerequisites: none. Related: GEN.1135, GEN.1136, GEN.1143.
 
 - [ ] **GEN.1143 Class count script: temperate-ocean bodies per class, hydrogen-rich N bodies under 15 Earth masses, and the E, H and L reach (prints only)**
@@ -14777,6 +14796,32 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   L, O and K reach bodies with their new lines, and reports the
   temperate-ocean count per class.
   Prerequisites: GEN.1135, GEN.1136, GEN.1143. Related: GEN.1142.
+
+- [ ] **GEN.1145 Ocean-fraction spread of temperate air-bearing bodies, printed before the train 6 epoch (decides whether the H line can fill)**
+  Class index thread, 7:05 PM EDT 2026-10-30: H (desert, under 20
+  percent surface water) got zero bodies at 15 percent and bodies with
+  air nearly always keep their water, so print the ocean-fraction spread
+  of temperate (273.15 to 320 K) air-bearing bodies on main before the
+  epoch lines are fixed, in the style of GEN.1143 (prints only). Done:
+  the histogram in reports/, and whether the 20 percent H line and the
+  80 percent O line each reach bodies. Lock-free. Where we think it
+  belongs (best guess, can move): Aux 2 (wrote GEN.1143).
+  Prerequisites: none. Related: GEN.1142, GEN.1143, GEN.1146.
+
+- [ ] **GEN.1146 Upstream water inventory and land share: temperate bodies with air nearly always keep their water, so no desert world (Class H) exists; decide whether the generator should produce dry temperate planets (only if GEN.1145 shows H stays empty)**
+  Class index thread, 7:05 PM EDT 2026-10-30, Boss: Class H (desert,
+  under 20 percent available surface water) must exist. If the spread of
+  GEN.1145 shows H stays empty after widening the line, the fix is
+  upstream, not another class line: the water inventory delivered to and
+  kept by temperate bodies, and the land share (continents versus ocean
+  basins, which sets the ocean fraction at a given water mass). Do: a
+  short research and design report on what physics sets the ocean
+  fraction (water inventory, mantle storage, basin volume, Lehmer-type
+  land fraction laws), the current values, and a proposal; Boss decides
+  before any code. Prerequisite: GEN.1145 result. Report only
+  (lock-free); the fix would be lock work. Where we think it belongs
+  (best guess, can move): Aux 3 (bulk composition) with Aux 2.
+  Prerequisites: GEN.1145. Related: GEN.1142, GEN.909, GEN.1145.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
