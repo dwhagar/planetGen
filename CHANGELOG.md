@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2647] - 2026-10-30
+
+**Headline:** A giant's dynamo region and field can now be worked out from its interior layers (built, not wired in yet; nothing generated changes).
+
+### Changed
+- **The dynamo region of a giant (GEN.809, the lock-free half).** `physics/giant_dynamo.py` takes a giant's interior layers, its radius, the heat it radiates and its spin, finds the shell that carries its dynamo (the metallic hydrogen layer of a gas giant or brown dwarf, the conducting water of an ice giant's mantle; the helium gradient, helium shell and dilute core under a gas giant's are stable and left out) and gives the field of `dynamo.py` for it. Jupiter-like draws land within a factor of four of Jupiter's moment and differ with the drawn metallization pressure; a Saturn-like giant comes out weaker than a Jupiter-like one (still several times Saturn's own, the stable layer above its dynamo is not modelled); a slowly turning hot giant is multipolar; a Neptune-like ice giant lands within a factor of ten of Neptune's moment but as a dipole, which Neptune's field is not. The generator does not call it yet: the wiring step replaces the three giant anchors of `magnetism` and rides a train after the giant structure of GEN.733.
+
 ## [8.0.2646] - 2026-10-30
 
 **Headline:** Pressing Back twice quickly across a sector change now lands on the right system.
