@@ -133,3 +133,43 @@ def test_dust_has_no_pores_and_a_collisional_field_is_one_taxon():
     assert sum(1 for v in broken.detail["taxon_shares"].values() if v > 0.0) == 1
     with pytest.raises(ValueError):
         sb.draw_field("volcanic")
+
+
+def test_a_comet_of_a_star_takes_its_ice_from_the_zone_it_formed_in(system):
+    """GEN.595: the median CO and CO2 follow the disc zone of the star's luminosity, snow line and edge, and the zone costs the run's stream nothing."""
+    from planetgen import tuning
+    from planetgen.physics import bulk_draw, comet_ice_budget
+
+    star = system.star
+    mass = star.mass / 1.989e30
+    with draw.bound(21):
+        comets = [Comet(system.system_config, mass, orbit_type="elliptical", star=star) for _ in range(60)]
+    with draw.bound(21):
+        plain = [Comet(system.system_config, mass, orbit_type="elliptical") for _ in range(60)]
+    zone_co = sorted(c.makeup.detail["volatiles"]["CO"] for c in comets)[30]
+    carbon, oxygen = bulk_draw.ice_forming_ratios(star)
+    edge = tuning.DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER * star.snow_line_au
+    zones = [comet_ice_budget.formation_ratios(star.luminosity, star.snow_line_au, edge, carbon, oxygen, (i + 0.5) / 200) for i in range(200)]
+    assert min(z[1] for z in zones) * 100 / 3 < zone_co < max(z[1] for z in zones) * 100 * 3
+    assert zone_co != sorted(c.makeup.detail["volatiles"]["CO"] for c in plain)[30]
+    comet = comets[0]
+    with draw.bound(22):
+        first = draw.random()
+    with draw.bound(22):
+        assert comet._formation_ice_ratios(star) is not None
+        assert draw.random() == first
+    assert Comet(system.system_config, mass, orbit_type="elliptical", star=None)._formation_ice_ratios(None) is None
+
+
+def test_a_star_with_no_abundances_keeps_the_population_ice():
+    from types import SimpleNamespace
+    from planetgen.physics import bulk_draw
+    remnant = SimpleNamespace(metallicity_fe_h=None, age=1.0, mass=1e30)
+    assert bulk_draw.ice_forming_ratios(remnant) is None
+    assert Comet(SystemConfig(), 1.0, orbit_type="elliptical", star=remnant)._formation_ice_ratios(remnant) is None
+
+
+def test_the_carbon_and_oxygen_of_a_star_are_ratios_to_the_suns_over_magnesium(system):
+    from planetgen.physics import bulk_draw
+    carbon, oxygen = bulk_draw.ice_forming_ratios(system.star)
+    assert 0.1 < carbon < 10.0 and 0.1 < oxygen < 10.0

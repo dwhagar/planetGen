@@ -773,11 +773,11 @@ class StarSystem:
         if ceiling_au is None:
             # A closed orbit stays inside the star's own Hill sphere (GEN.591); a parabolic comet leaves it by design.
             hill_au = validation.orbit_ceiling_au(star)
-            return [Comet(self.system_config, primary_mass_solar, ceiling_au=hill_au) for _ in range(count)]
+            return [Comet(self.system_config, primary_mass_solar, ceiling_au=hill_au, star=star) for _ in range(count)]
         comets = []
         for _ in range(count):
             for _attempt in range(tuning.COMET_CEILING_ATTEMPTS):
-                comet = Comet(self.system_config, primary_mass_solar, orbit_type="elliptical", ceiling_au=ceiling_au)
+                comet = Comet(self.system_config, primary_mass_solar, orbit_type="elliptical", ceiling_au=ceiling_au, star=star)
                 if validation.comet_fits_ceiling(comet, ceiling_au):
                     comets.append(comet)
                     break

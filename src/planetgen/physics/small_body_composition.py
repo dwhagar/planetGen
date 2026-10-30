@@ -459,7 +459,7 @@ WATER_FORMULA = "H2O"
 COMET_DYNAMICAL_CLASS = {None: "long_period"}
 
 
-def draw_comet(period_class=None, interstellar=False):
+def draw_comet(period_class=None, interstellar=False, ice_ratios=None):
     """
     The composition of a comet nucleus.
 
@@ -471,6 +471,8 @@ def draw_comet(period_class=None, interstellar=False):
         period_class (str or None): `jupiter_family`, `halley_type`, `long_period`; `None` (a parabolic or interstellar
             comet) takes `long_period`.
         interstellar (bool): True for an interstellar comet (the wider carbon-oxide ranges).
+        ice_ratios (tuple or None): `(CO2/H2O, CO/H2O)` of the disc zone the comet formed in (`comet_ice_budget.ice_ratios`): the median
+            carbon oxides come from the zone (`comet_population.draw_volatiles`); `None` keeps the population's.
 
     Returns:
         SmallBodyMakeup: With `detail` holding `refractory_ice_ratio`, `organic_share`, `volatiles` (percent of water by number),
@@ -480,7 +482,8 @@ def draw_comet(period_class=None, interstellar=False):
     delta = math.exp(draw.uniform(math.log(low), math.log(high)))
     organic = min(max(draw.gauss(*ORGANIC_SHARE), 0.0), 1.0)
     porosity = draw.uniform(*COMET_POROSITY_RANGE)
-    volatiles = comet_population.draw_volatiles(COMET_DYNAMICAL_CLASS.get(period_class, period_class), interstellar=interstellar)
+    volatiles = comet_population.draw_volatiles(COMET_DYNAMICAL_CLASS.get(period_class, period_class), interstellar=interstellar,
+                                              ice_ratios=ice_ratios)
     ice_fraction = 1.0 / (1.0 + delta)
     water_mass = elements.molar_mass(WATER_FORMULA)
     masses = {"water_ice": water_mass}

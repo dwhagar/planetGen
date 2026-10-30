@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 438 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 439 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -44,8 +44,8 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T6 | 39 | 13 | 7 | 28 | 0 | 87 |
 | T7 | 17 | 3 | 1 | 7 | 0 | 28 |
 | T8 | 0 | 0 | 0 | 1 | 1 | 2 |
-| T9 | 1 | 1 | 2 | 27 | 19 | 50 |
-| All | 283 | 37 | 17 | 77 | 24 | 438 |
+| T9 | 1 | 2 | 2 | 27 | 19 | 51 |
+| All | 283 | 38 | 17 | 77 | 24 | 439 |
 
 ## How the labels were given
 
@@ -693,11 +693,12 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| CI1 | P | T2 | L0 | comet_ice_budget.ICE_LINES_K (H2O 135, CO2 47, CO 20) and DISK_T0_K 200, DISK_INDEX 0.62 (Oberg et al. 2011 Table 1 and Andrews and Williams 2007, average disc) | lines 120-150, 42-52, 18-22 K; T0 100 to 300 K; index 0.4 to 0.75 | protoplanetary discs round FGK stars | a disc whose CO snow line is measured outside 20 to 80 AU round a Sun-like star | a disc model with the star's accretion and age | test_comet_ice_budget::test_the_snow_lines_of_a_sun_like_star_are_those_oberg_et_al_give | GEN.595 | - |
-| CI2 | P | T5 | L0 | comet_ice_budget.LUMINOSITY_EXPONENT 0.25 (radiative equilibrium, T goes as L to the quarter) | 0.2 to 0.3 | discs heated by the star | a measured line distance against luminosity with another slope | a disc model with the star's luminosity | test_comet_ice_budget::test_a_more_luminous_star_pushes_every_line_out_by_the_same_factor | GEN.595 | - |
-| CI3 | P | T2 | L0 | comet_ice_budget.NEBULA_PER_1E4_H (H2O 0.9, CO2 0.3, CO 1.5 molecules per 10^4 H; Pontoppidan 2006 via Oberg et al.) | O in CO 0.9 to 2; CO2 and H2O as printed | one disc's ice and gas | a second disc's ice inventory differing by a factor of 3 | an ice survey of discs (Pontoppidan 2006 not read) | test_comet_ice_budget::test_the_nebula_holds_a_third_as_much_co2_and_one_and_two_thirds_as_much_co_as_water | GEN.595 | - |
-| CI4 | P | T2 | L1 | comet_ice_budget.TRAPPED_FRACTION 0.075 (the share of CO above its snow line trapped in water ice, Fayolle et al. 2011 via Oberg et al.; the same value for CO2 above its line is an assumption) | 0.05 to 0.10 | amorphous water ice | a lab trapping fraction outside 5 to 10 percent for the temperatures of the disc | Fayolle et al. 2011 (not read) and a CO2 trapping measurement | test_comet_ice_budget::test_each_zone_keeps_what_its_temperature_lets_it | GEN.595 | - |
+| CI1 | P | T2 | L0 | comet_ice_budget.ICE_LINES_K (H2O 135, CO2 47, CO 20) and DISK_T0_K 200, DISK_INDEX 0.62 (Oberg et al. 2011 Table 1 and Andrews and Williams 2007, average disc) | lines 120-150, 42-52, 18-22 K; T0 100 to 300 K; index 0.4 to 0.75 | protoplanetary discs round FGK stars | a disc whose CO snow line is measured outside 20 to 80 AU round a Sun-like star | a disc model with the star's accretion and age | test_comet_ice_budget::test_the_snow_lines_of_a_sun_like_star_are_those_oberg_et_al_give | - | - |
+| CI2 | P | T5 | L0 | comet_ice_budget.LUMINOSITY_EXPONENT 0.25 (radiative equilibrium, T goes as L to the quarter) | 0.2 to 0.3 | discs heated by the star | a measured line distance against luminosity with another slope | a disc model with the star's luminosity | test_comet_ice_budget::test_a_more_luminous_star_pushes_every_line_out_by_the_same_factor | - | - |
+| CI3 | P | T2 | L0 | comet_ice_budget.NEBULA_PER_1E4_H (H2O 0.9, CO2 0.3, CO 1.5 molecules per 10^4 H; Pontoppidan 2006 via Oberg et al.) | O in CO 0.9 to 2; CO2 and H2O as printed | one disc's ice and gas | a second disc's ice inventory differing by a factor of 3 | an ice survey of discs (Pontoppidan 2006 not read) | test_comet_ice_budget::test_the_nebula_holds_a_third_as_much_co2_and_one_and_two_thirds_as_much_co_as_water | - | - |
+| CI4 | P | T2 | L1 | comet_ice_budget.TRAPPED_FRACTION 0.075 (the share of CO above its snow line trapped in water ice, Fayolle et al. 2011 via Oberg et al.; the same value for CO2 above its line is an assumption) | 0.05 to 0.10 | amorphous water ice | a lab trapping fraction outside 5 to 10 percent for the temperatures of the disc | Fayolle et al. 2011 (not read) and a CO2 trapping measurement | test_comet_ice_budget::test_each_zone_keeps_what_its_temperature_lets_it | - | - |
 | CI5 | P | T6 | L1 | comet_ice_budget.zone_shares: equal masses of planetesimals form in equal intervals of ln r (a solids surface density as 1 / r) | surface density index 0.5 to 1.5 | planetesimal discs | a measured planetesimal mass distribution with distance | the disc model of the solids (GEN.950 wiring) | test_comet_ice_budget::test_equal_masses_form_in_equal_intervals_of_ln_r | - | - |
+| CI6 | P | T9 | L1 | tuning.DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER (18, the edge of the disc the planets are placed to) as the outer edge of the zone a comet forms in, with the star's own snow line as the inner edge (`comet_ice_budget.formation_ratios`); the observed extremes of CO and CO2 keep their distance from the population's geometric mean when the median comes from the zone | edge 10 to 40 times the snow line | comets of star systems | a comet population of a measured star whose CO/H2O or CO2/H2O lies outside the range the zones span | a planetesimal disc model with an observed outer edge (GEN.950 wiring) | test_comet_ice_budget::test_a_comet_forms_between_the_snow_line_and_the_edge_of_the_disc_in_equal_masses_per_interval_of_ln_r; test_comet_population::test_the_bounds_move_with_the_zones_median_and_a_zone_beyond_the_observed_range_is_drawn | - | - |
 
 ## 6.49 Stand-ins of the wiring of aluminium-26 at birth
 

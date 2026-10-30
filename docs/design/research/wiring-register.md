@@ -100,8 +100,3 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.36:PA11 | GEN.728 | `PLANET_MIN_MASS_*`, read by `planet_architecture`, which `system.py` calls at the wiring |
 | row | 6.36:PA12 | GEN.728 | `DISC_SOLIDS_SCATTER_DEX, INNER_SYSTEM_FRACTION_ANCHORS`, read by `planet_architecture`, which `system.py` calls at the wiring |
 | module | planetgen.physics.acid_medium | GEN.888 | the sulfuric acid cloud layer and pool reader; `habitability_world.values_from_body` adds `acid_medium` and the Class 5 and 9 rules read it once the wiring rides train 2 |
-| module | planetgen.physics.comet_ice_budget | GEN.595 | the CO2/H2O and CO/H2O of a comet's ice from the disc zone it formed in (lock-free); the wiring step has `comet_population.draw_volatiles` take its CO and CO2 medians from the zone and the interstellar bracket from the disc's carbon and oxygen |
-| row | 6.46:CI1 | GEN.595 | `comet_ice_budget.ICE_LINES_K, DISK_T0_K, DISK_INDEX`, read when the wiring step lands |
-| row | 6.46:CI2 | GEN.595 | `comet_ice_budget.LUMINOSITY_EXPONENT`, read when the wiring step lands |
-| row | 6.46:CI3 | GEN.595 | `comet_ice_budget.NEBULA_PER_1E4_H`, read when the wiring step lands |
-| row | 6.46:CI4 | GEN.595 | `comet_ice_budget.TRAPPED_FRACTION`, read when the wiring step lands |
