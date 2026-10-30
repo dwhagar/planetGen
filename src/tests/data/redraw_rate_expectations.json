@@ -1,0 +1,879 @@
+{
+ "groups": {
+  "ordinary": {
+   "kinds": {
+    "belt.spacing_push": {
+     "baseline": 0.076667,
+     "ceiling": 0.155,
+     "events": 46
+    },
+    "comet.ceiling": {
+     "baseline": 2.208333,
+     "ceiling": 4.418333,
+     "events": 1325
+    },
+    "comet.composition": {
+     "baseline": 0.748333,
+     "ceiling": 1.498333,
+     "events": 449
+    },
+    "giant.heavy_mass": {
+     "baseline": 0.006667,
+     "ceiling": 0.015,
+     "events": 4
+    },
+    "moon.too_large": {
+     "baseline": 0.076667,
+     "ceiling": 0.155,
+     "events": 46
+    },
+    "pair.brown_dwarf_desert": {
+     "baseline": 0.141667,
+     "ceiling": 0.285,
+     "events": 85
+    },
+    "pair.gravitational_waves": {
+     "baseline": 0.246667,
+     "ceiling": 0.495,
+     "events": 148
+    },
+    "pair.interaction_gate": {
+     "baseline": 0.056667,
+     "ceiling": 0.115,
+     "events": 34
+    },
+    "pair.kozai": {
+     "baseline": 0.625,
+     "ceiling": 1.251667,
+     "events": 375
+    },
+    "pair.no_allowed_period": {
+     "baseline": 0.13,
+     "ceiling": 0.261667,
+     "events": 78
+    },
+    "pair.unstable_triple": {
+     "baseline": 0.025,
+     "ceiling": 0.051667,
+     "events": 15
+    },
+    "planet.belt_spacing_push": {
+     "baseline": 0.373333,
+     "ceiling": 0.748333,
+     "events": 224
+    },
+    "planet.circumbinary_floor_push": {
+     "baseline": 0.106667,
+     "ceiling": 0.215,
+     "events": 64
+    },
+    "planet.hill_spacing_push": {
+     "baseline": 2.345,
+     "ceiling": 4.691667,
+     "events": 1407
+    },
+    "planet.orbit_ceiling_trim": {
+     "baseline": 0.093333,
+     "ceiling": 0.188333,
+     "events": 56
+    },
+    "snow_line.scatter": {
+     "baseline": 0.005,
+     "ceiling": 0.011667,
+     "events": 3
+    },
+    "star.model_redraw": {
+     "baseline": 0.008333,
+     "ceiling": 0.018333,
+     "events": 5
+    },
+    "tree.restart_overlap": {
+     "baseline": 0.001667,
+     "ceiling": 0.005,
+     "events": 1
+    },
+    "tree.restart_pair_failed": {
+     "baseline": 0.015,
+     "ceiling": 0.031667,
+     "events": 9
+    }
+   },
+   "n_ref": 600
+  },
+  "stars-1": {
+   "kinds": {
+    "belt.spacing_push": {
+     "baseline": 0.07,
+     "ceiling": 0.143333,
+     "events": 21
+    },
+    "comet.composition": {
+     "baseline": 0.4,
+     "ceiling": 0.803333,
+     "events": 120
+    },
+    "giant.heavy_mass": {
+     "baseline": 0.006667,
+     "ceiling": 0.016667,
+     "events": 2
+    },
+    "moon.too_large": {
+     "baseline": 0.05,
+     "ceiling": 0.103333,
+     "events": 15
+    },
+    "planet.belt_spacing_push": {
+     "baseline": 0.37,
+     "ceiling": 0.743333,
+     "events": 111
+    },
+    "planet.circumbinary_floor_push": {
+     "baseline": 0.146667,
+     "ceiling": 0.296667,
+     "events": 44
+    },
+    "planet.hill_spacing_push": {
+     "baseline": 2.316667,
+     "ceiling": 4.636667,
+     "events": 695
+    },
+    "star.model_redraw": {
+     "baseline": 0.003333,
+     "ceiling": 0.01,
+     "events": 1
+    }
+   },
+   "n_ref": 300
+  },
+  "stars-2": {
+   "kinds": {
+    "belt.spacing_push": {
+     "baseline": 0.121667,
+     "ceiling": 0.245,
+     "events": 73
+    },
+    "comet.ceiling": {
+     "baseline": 8.136667,
+     "ceiling": 16.275,
+     "events": 4882
+    },
+    "comet.composition": {
+     "baseline": 1.611667,
+     "ceiling": 3.225,
+     "events": 967
+    },
+    "giant.heavy_mass": {
+     "baseline": 0.006667,
+     "ceiling": 0.015,
+     "events": 4
+    },
+    "moon.too_large": {
+     "baseline": 0.09,
+     "ceiling": 0.181667,
+     "events": 54
+    },
+    "pair.overlap": {
+     "baseline": 0.001667,
+     "ceiling": 0.005,
+     "events": 1
+    },
+    "planet.belt_spacing_push": {
+     "baseline": 0.513333,
+     "ceiling": 1.028333,
+     "events": 308
+    },
+    "planet.circumbinary_floor_push": {
+     "baseline": 0.078333,
+     "ceiling": 0.158333,
+     "events": 47
+    },
+    "planet.hill_spacing_push": {
+     "baseline": 2.923333,
+     "ceiling": 5.848333,
+     "events": 1754
+    },
+    "planet.orbit_ceiling_trim": {
+     "baseline": 0.225,
+     "ceiling": 0.451667,
+     "events": 135
+    },
+    "snow_line.scatter": {
+     "baseline": 0.003333,
+     "ceiling": 0.008333,
+     "events": 2
+    },
+    "star.model_redraw": {
+     "baseline": 0.005,
+     "ceiling": 0.011667,
+     "events": 3
+    }
+   },
+   "n_ref": 600
+  },
+  "stars-3": {
+   "kinds": {
+    "belt.spacing_push": {
+     "baseline": 0.0964,
+     "ceiling": 0.1932,
+     "events": 241
+    },
+    "comet.ceiling": {
+     "baseline": 7.3104,
+     "ceiling": 14.6212,
+     "events": 18276
+    },
+    "comet.composition": {
+     "baseline": 1.4672,
+     "ceiling": 2.9348,
+     "events": 3668
+    },
+    "companions.overlap": {
+     "baseline": 0.0288,
+     "ceiling": 0.058,
+     "events": 72
+    },
+    "companions.star_count": {
+     "baseline": 0.0016,
+     "ceiling": 0.0036,
+     "events": 4
+    },
+    "giant.heavy_mass": {
+     "baseline": 0.004,
+     "ceiling": 0.0084,
+     "events": 10
+    },
+    "moon.too_large": {
+     "baseline": 0.1068,
+     "ceiling": 0.214,
+     "events": 267
+    },
+    "pair.gravitational_waves": {
+     "baseline": 0.0384,
+     "ceiling": 0.0772,
+     "events": 96
+    },
+    "pair.interaction_gate": {
+     "baseline": 0.1664,
+     "ceiling": 0.3332,
+     "events": 416
+    },
+    "pair.kozai": {
+     "baseline": 1.5576,
+     "ceiling": 3.1156,
+     "events": 3894
+    },
+    "pair.no_allowed_period": {
+     "baseline": 0.0656,
+     "ceiling": 0.1316,
+     "events": 164
+    },
+    "pair.overlap": {
+     "baseline": 0.0728,
+     "ceiling": 0.146,
+     "events": 182
+    },
+    "pair.unstable_triple": {
+     "baseline": 0.0796,
+     "ceiling": 0.1596,
+     "events": 199
+    },
+    "planet.belt_spacing_push": {
+     "baseline": 0.5512,
+     "ceiling": 1.1028,
+     "events": 1378
+    },
+    "planet.circumbinary_floor_push": {
+     "baseline": 0.0744,
+     "ceiling": 0.1492,
+     "events": 186
+    },
+    "planet.hill_spacing_push": {
+     "baseline": 2.6548,
+     "ceiling": 5.31,
+     "events": 6637
+    },
+    "planet.orbit_ceiling_trim": {
+     "baseline": 0.334,
+     "ceiling": 0.6684,
+     "events": 835
+    },
+    "snow_line.scatter": {
+     "baseline": 0.008,
+     "ceiling": 0.0164,
+     "events": 20
+    },
+    "star.model_redraw": {
+     "baseline": 0.006,
+     "ceiling": 0.0124,
+     "events": 15
+    },
+    "tree.restart_overlap": {
+     "baseline": 0.0128,
+     "ceiling": 0.026,
+     "events": 32
+    },
+    "tree.restart_pair_failed": {
+     "baseline": 0.0036,
+     "ceiling": 0.0076,
+     "events": 9
+    }
+   },
+   "n_ref": 2500
+  },
+  "stars-4": {
+   "kinds": {
+    "belt.spacing_push": {
+     "baseline": 0.0948,
+     "ceiling": 0.19,
+     "events": 237
+    },
+    "comet.ceiling": {
+     "baseline": 3.8176,
+     "ceiling": 7.6356,
+     "events": 9544
+    },
+    "comet.composition": {
+     "baseline": 0.8644,
+     "ceiling": 1.7292,
+     "events": 2161
+    },
+    "companions.overlap": {
+     "baseline": 0.01,
+     "ceiling": 0.0204,
+     "events": 25
+    },
+    "companions.star_count": {
+     "baseline": 0.002,
+     "ceiling": 0.0044,
+     "events": 5
+    },
+    "giant.heavy_mass": {
+     "baseline": 0.002,
+     "ceiling": 0.0044,
+     "events": 5
+    },
+    "moon.too_large": {
+     "baseline": 0.086,
+     "ceiling": 0.1724,
+     "events": 215
+    },
+    "pair.gravitational_waves": {
+     "baseline": 0.192,
+     "ceiling": 0.3844,
+     "events": 480
+    },
+    "pair.interaction_gate": {
+     "baseline": 0.658,
+     "ceiling": 1.3164,
+     "events": 1645
+    },
+    "pair.kozai": {
+     "baseline": 4.2864,
+     "ceiling": 8.5732,
+     "events": 10716
+    },
+    "pair.no_allowed_period": {
+     "baseline": 1.2856,
+     "ceiling": 2.5716,
+     "events": 3214
+    },
+    "pair.overlap": {
+     "baseline": 0.034,
+     "ceiling": 0.0684,
+     "events": 85
+    },
+    "pair.unstable_triple": {
+     "baseline": 0.1488,
+     "ceiling": 0.298,
+     "events": 372
+    },
+    "planet.belt_spacing_push": {
+     "baseline": 0.5084,
+     "ceiling": 1.0172,
+     "events": 1271
+    },
+    "planet.circumbinary_floor_push": {
+     "baseline": 0.0556,
+     "ceiling": 0.1116,
+     "events": 139
+    },
+    "planet.cross_star_trim": {
+     "baseline": 0.0004,
+     "ceiling": 0.0012,
+     "events": 1
+    },
+    "planet.hill_spacing_push": {
+     "baseline": 2.1044,
+     "ceiling": 4.2092,
+     "events": 5261
+    },
+    "planet.orbit_ceiling_trim": {
+     "baseline": 0.3384,
+     "ceiling": 0.6772,
+     "events": 846
+    },
+    "snow_line.scatter": {
+     "baseline": 0.01,
+     "ceiling": 0.0204,
+     "events": 25
+    },
+    "star.model_redraw": {
+     "baseline": 0.0064,
+     "ceiling": 0.0132,
+     "events": 16
+    },
+    "tree.restart_overlap": {
+     "baseline": 0.0788,
+     "ceiling": 0.158,
+     "events": 197
+    },
+    "tree.restart_pair_failed": {
+     "baseline": 0.0256,
+     "ceiling": 0.0516,
+     "events": 64
+    }
+   },
+   "n_ref": 2500
+  },
+  "stars-5": {
+   "kinds": {
+    "belt.spacing_push": {
+     "baseline": 0.0808,
+     "ceiling": 0.162,
+     "events": 202
+    },
+    "comet.ceiling": {
+     "baseline": 2.9052,
+     "ceiling": 5.8108,
+     "events": 7263
+    },
+    "comet.composition": {
+     "baseline": 0.7204,
+     "ceiling": 1.4412,
+     "events": 1801
+    },
+    "companions.overlap": {
+     "baseline": 0.0212,
+     "ceiling": 0.0428,
+     "events": 53
+    },
+    "companions.star_count": {
+     "baseline": 0.0008,
+     "ceiling": 0.002,
+     "events": 2
+    },
+    "giant.heavy_mass": {
+     "baseline": 0.0044,
+     "ceiling": 0.0092,
+     "events": 11
+    },
+    "moon.too_large": {
+     "baseline": 0.0756,
+     "ceiling": 0.1516,
+     "events": 189
+    },
+    "pair.gravitational_waves": {
+     "baseline": 0.3416,
+     "ceiling": 0.6836,
+     "events": 854
+    },
+    "pair.interaction_gate": {
+     "baseline": 1.3236,
+     "ceiling": 2.6476,
+     "events": 3309
+    },
+    "pair.kozai": {
+     "baseline": 9.4476,
+     "ceiling": 18.8956,
+     "events": 23619
+    },
+    "pair.no_allowed_period": {
+     "baseline": 7.9668,
+     "ceiling": 15.934,
+     "events": 19917
+    },
+    "pair.overlap": {
+     "baseline": 0.1136,
+     "ceiling": 0.2276,
+     "events": 284
+    },
+    "pair.unstable_triple": {
+     "baseline": 0.2676,
+     "ceiling": 0.5356,
+     "events": 669
+    },
+    "planet.belt_spacing_push": {
+     "baseline": 0.4812,
+     "ceiling": 0.9628,
+     "events": 1203
+    },
+    "planet.circumbinary_floor_push": {
+     "baseline": 0.042,
+     "ceiling": 0.0844,
+     "events": 105
+    },
+    "planet.hill_spacing_push": {
+     "baseline": 1.9672,
+     "ceiling": 3.9348,
+     "events": 4918
+    },
+    "planet.orbit_ceiling_trim": {
+     "baseline": 0.3792,
+     "ceiling": 0.7588,
+     "events": 948
+    },
+    "snow_line.scatter": {
+     "baseline": 0.0112,
+     "ceiling": 0.0228,
+     "events": 28
+    },
+    "star.model_redraw": {
+     "baseline": 0.0048,
+     "ceiling": 0.01,
+     "events": 12
+    },
+    "tree.restart_overlap": {
+     "baseline": 0.2288,
+     "ceiling": 0.458,
+     "events": 572
+    },
+    "tree.restart_pair_failed": {
+     "baseline": 0.1344,
+     "ceiling": 0.2692,
+     "events": 336
+    }
+   },
+   "n_ref": 2500
+  },
+  "stars-6": {
+   "kinds": {
+    "belt.spacing_push": {
+     "baseline": 0.0692,
+     "ceiling": 0.1388,
+     "events": 173
+    },
+    "comet.ceiling": {
+     "baseline": 2.3748,
+     "ceiling": 4.75,
+     "events": 5937
+    },
+    "comet.composition": {
+     "baseline": 0.6044,
+     "ceiling": 1.2092,
+     "events": 1511
+    },
+    "companions.overlap": {
+     "baseline": 0.0388,
+     "ceiling": 0.078,
+     "events": 97
+    },
+    "companions.star_count": {
+     "baseline": 0.0012,
+     "ceiling": 0.0028,
+     "events": 3
+    },
+    "giant.heavy_mass": {
+     "baseline": 0.0024,
+     "ceiling": 0.0052,
+     "events": 6
+    },
+    "moon.too_large": {
+     "baseline": 0.0868,
+     "ceiling": 0.174,
+     "events": 217
+    },
+    "pair.gravitational_waves": {
+     "baseline": 1.1356,
+     "ceiling": 2.2716,
+     "events": 2839
+    },
+    "pair.interaction_gate": {
+     "baseline": 2.5176,
+     "ceiling": 5.0356,
+     "events": 6294
+    },
+    "pair.kozai": {
+     "baseline": 18.0972,
+     "ceiling": 36.1948,
+     "events": 45243
+    },
+    "pair.no_allowed_period": {
+     "baseline": 22.3076,
+     "ceiling": 44.6156,
+     "events": 55769
+    },
+    "pair.overlap": {
+     "baseline": 0.5896,
+     "ceiling": 1.1796,
+     "events": 1474
+    },
+    "pair.unstable_triple": {
+     "baseline": 0.55,
+     "ceiling": 1.1004,
+     "events": 1375
+    },
+    "planet.belt_spacing_push": {
+     "baseline": 0.422,
+     "ceiling": 0.8444,
+     "events": 1055
+    },
+    "planet.circumbinary_floor_push": {
+     "baseline": 0.036,
+     "ceiling": 0.0724,
+     "events": 90
+    },
+    "planet.hill_spacing_push": {
+     "baseline": 1.6196,
+     "ceiling": 3.2396,
+     "events": 4049
+    },
+    "planet.orbit_ceiling_trim": {
+     "baseline": 0.352,
+     "ceiling": 0.7044,
+     "events": 880
+    },
+    "snow_line.scatter": {
+     "baseline": 0.0156,
+     "ceiling": 0.0316,
+     "events": 39
+    },
+    "star.model_redraw": {
+     "baseline": 0.006,
+     "ceiling": 0.0124,
+     "events": 15
+    },
+    "tree.member_dropped": {
+     "baseline": 0.0004,
+     "ceiling": 0.0012,
+     "events": 1
+    },
+    "tree.restart_overlap": {
+     "baseline": 0.4256,
+     "ceiling": 0.8516,
+     "events": 1064
+    },
+    "tree.restart_pair_failed": {
+     "baseline": 0.396,
+     "ceiling": 0.7924,
+     "events": 990
+    }
+   },
+   "n_ref": 2500
+  },
+  "world-barred": {
+   "kinds": {
+    "belt.spacing_push": {
+     "baseline": 0.076667,
+     "ceiling": 0.155,
+     "events": 46
+    },
+    "comet.ceiling": {
+     "baseline": 1.825,
+     "ceiling": 3.651667,
+     "events": 1095
+    },
+    "comet.composition": {
+     "baseline": 0.736667,
+     "ceiling": 1.475,
+     "events": 442
+    },
+    "giant.heavy_mass": {
+     "baseline": 0.005,
+     "ceiling": 0.011667,
+     "events": 3
+    },
+    "moon.too_large": {
+     "baseline": 0.066667,
+     "ceiling": 0.135,
+     "events": 40
+    },
+    "pair.brown_dwarf_desert": {
+     "baseline": 0.168333,
+     "ceiling": 0.338333,
+     "events": 101
+    },
+    "pair.gravitational_waves": {
+     "baseline": 0.056667,
+     "ceiling": 0.115,
+     "events": 34
+    },
+    "pair.interaction_gate": {
+     "baseline": 0.038333,
+     "ceiling": 0.078333,
+     "events": 23
+    },
+    "pair.kozai": {
+     "baseline": 0.44,
+     "ceiling": 0.881667,
+     "events": 264
+    },
+    "pair.no_allowed_period": {
+     "baseline": 0.1,
+     "ceiling": 0.201667,
+     "events": 60
+    },
+    "pair.unstable_triple": {
+     "baseline": 0.015,
+     "ceiling": 0.031667,
+     "events": 9
+    },
+    "planet.barred_world": {
+     "baseline": 0.01,
+     "ceiling": 0.021667,
+     "events": 6
+    },
+    "planet.belt_spacing_push": {
+     "baseline": 0.358333,
+     "ceiling": 0.718333,
+     "events": 215
+    },
+    "planet.circumbinary_floor_push": {
+     "baseline": 0.098333,
+     "ceiling": 0.198333,
+     "events": 59
+    },
+    "planet.hill_spacing_push": {
+     "baseline": 2.42,
+     "ceiling": 4.841667,
+     "events": 1452
+    },
+    "planet.orbit_ceiling_trim": {
+     "baseline": 0.061667,
+     "ceiling": 0.125,
+     "events": 37
+    },
+    "snow_line.scatter": {
+     "baseline": 0.003333,
+     "ceiling": 0.008333,
+     "events": 2
+    },
+    "tree.restart_overlap": {
+     "baseline": 0.005,
+     "ceiling": 0.011667,
+     "events": 3
+    },
+    "tree.restart_pair_failed": {
+     "baseline": 0.008333,
+     "ceiling": 0.018333,
+     "events": 5
+    }
+   },
+   "n_ref": 600
+  },
+  "world-requested": {
+   "kinds": {
+    "belt.spacing_push": {
+     "baseline": 0.161667,
+     "ceiling": 0.325,
+     "events": 97
+    },
+    "comet.ceiling": {
+     "baseline": 1.798333,
+     "ceiling": 3.598333,
+     "events": 1079
+    },
+    "comet.composition": {
+     "baseline": 1.025,
+     "ceiling": 2.051667,
+     "events": 615
+    },
+    "companions.circumbinary_floor": {
+     "baseline": 0.011667,
+     "ceiling": 0.025,
+     "events": 7
+    },
+    "giant.heavy_mass": {
+     "baseline": 0.01,
+     "ceiling": 0.021667,
+     "events": 6
+    },
+    "moon.too_large": {
+     "baseline": 0.073333,
+     "ceiling": 0.148333,
+     "events": 44
+    },
+    "pair.brown_dwarf_desert": {
+     "baseline": 0.091667,
+     "ceiling": 0.185,
+     "events": 55
+    },
+    "pair.interaction_gate": {
+     "baseline": 0.091667,
+     "ceiling": 0.185,
+     "events": 55
+    },
+    "pair.kozai": {
+     "baseline": 0.383333,
+     "ceiling": 0.768333,
+     "events": 230
+    },
+    "pair.unstable_triple": {
+     "baseline": 0.01,
+     "ceiling": 0.021667,
+     "events": 6
+    },
+    "planet.belt_spacing_push": {
+     "baseline": 0.415,
+     "ceiling": 0.831667,
+     "events": 249
+    },
+    "planet.circumbinary_floor_push": {
+     "baseline": 0.081667,
+     "ceiling": 0.165,
+     "events": 49
+    },
+    "planet.hill_spacing_push": {
+     "baseline": 2.885,
+     "ceiling": 5.771667,
+     "events": 1731
+    },
+    "planet.orbit_ceiling_trim": {
+     "baseline": 0.14,
+     "ceiling": 0.281667,
+     "events": 84
+    },
+    "planet.request_missed": {
+     "baseline": 36.045,
+     "ceiling": 72.091667,
+     "events": 21627
+    },
+    "star.model_redraw": {
+     "baseline": 0.061667,
+     "ceiling": 0.125,
+     "events": 37
+    },
+    "system.planets_regenerated": {
+     "baseline": 1.123333,
+     "ceiling": 2.248333,
+     "events": 674
+    },
+    "system.planets_regenerated_after_age": {
+     "baseline": 0.016667,
+     "ceiling": 0.035,
+     "events": 10
+    },
+    "tree.restart_overlap": {
+     "baseline": 0.003333,
+     "ceiling": 0.008333,
+     "events": 2
+    },
+    "tree.restart_pair_failed": {
+     "baseline": 0.006667,
+     "ceiling": 0.015,
+     "events": 4
+    }
+   },
+   "n_ref": 600
+  }
+ },
+ "reference": {
+  "ceiling_factor": 2.0,
+  "commit": "fad4211c1",
+  "kind": "stand-in: the redraw rate before the overlap-free build measured",
+  "label": "TEST.476 baseline before the overlap-free build",
+  "note": "T9 (from needed output), L3 (hand-set against the baseline run): the ceiling is the rate that would double, not a physical limit; GEN.1006's parts lower the baselines, and each part re-measures and tightens them",
+  "seeds": "crc32 of 'redraw:<group>:<number>' (tests.audit.prevalence.seed_for)",
+  "tier": "T9",
+  "tweak": "L3"
+ }
+}

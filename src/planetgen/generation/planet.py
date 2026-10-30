@@ -430,6 +430,7 @@ class Planet(PlanetaryObject):
             planetPhysics.apply_class(self)
             if not (system_config.HABITABLE_WORLD is False and self.zone == 'e' and habitable_request.meets(self)):
                 break
+            draw.redrawn("planet.barred_world")
         planetPhysics.generate_orbital_motion_properties(self, primary_mass_kg)
 
         if moon_count != DEFER_MOONS:
