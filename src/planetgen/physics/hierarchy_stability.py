@@ -18,8 +18,11 @@ two shapes of four stars need more than that:
   systems the network calls stable (its precision for "stable" was 0.55 on our own N-body check without it, 0.89 with 1.3). Inputs
   outside the range the authors documented (`quadruple_stability.outside_range`, or a hierarchy the network was not trained on) fall
   back to both triples passing at `fallback_margin` and the verdict is flagged `confident=False`.
-- **A 2+2 quadruple** is two pairs about each other: its levels are the two triples of one pair with the other pair as the third
-  body, at `level_margin`; the verdict says it came from the nested test.
+- **A 2+2 quadruple** is two pairs about each other. Its two nested triples (one pair with the other pair as the third body) must
+  pass at `level_margin`, then the 2+2 network of the same paper (`quadruple_stability`, GEN.1031) must call it stable with both
+  `a_in / a_out` loosened by its `axis_margin` (1.3, carried over from the 3+1 with no 2+2 sample of our own, flagged in the
+  registry); outside its documented range, or with overlapping apsides, the fallback is the 3+1's: both triples at `fallback_margin`,
+  `confident=False`.
 
 All of it is a pure function of the tree's stored orbits, so the generator can ask while it draws (`quadruple_verdict`
 takes the numbers) and a test can ask of a stored system (`verdicts` takes the `OrbitNode`s and `TreeMember`s). The verifier
@@ -90,6 +93,38 @@ def quadruple_verdict(masses, axes_au, eccentricities, inclinations, axis_margin
     q_in, q_mid, q_out, alpha_in_mid, alpha_mid_out = ratios
     stable = bool(quad.is_stable(q_in, q_mid, q_out, alpha_in_mid * axis_margin, alpha_mid_out * axis_margin,
                                  e_in, e_mid, e_out, i_in_mid, i_in_out, i_mid_out))
+    return stable, "network", True, f"axis ratios loosened {axis_margin:g} times"
+
+
+def quadruple_verdict_2p2(masses, axes_au, eccentricities, inclinations, axis_margin=None, fallback_margin=None, level_margin=None):
+    """
+    The verdict of a 2+2 quadruple from numbers: `masses` `(m1, m2, m3, m4)` in solar masses (`m1 >= m2` and `m3 >= m4` the two binaries, `m1 + m2 >=
+    m3 + m4`), `axes_au` `(a_in1, a_in2, a_out)`, `eccentricities` `(e_in1, e_in2, e_out)` and `inclinations` `(i_in1_in2, i_in1_out, i_in2_out)`
+    in radians. Returns `(stable, criterion, confident, detail)` as `quadruple_verdict` does.
+    """
+    axis_margin = quad.number_2p2("axis_margin") if axis_margin is None else axis_margin
+    fallback_margin = quad.number("fallback_margin") if fallback_margin is None else fallback_margin
+    level_margin = quad.number("level_margin") if level_margin is None else level_margin
+    m1, m2, m3, m4 = masses
+    a_in1, a_in2, a_out = axes_au
+    e_in1, e_in2, e_out = eccentricities
+    i_in1_in2, i_in1_out, i_in2_out = inclinations
+    if not (a_in1 < a_out and a_in2 < a_out):
+        return False, "nested", True, "an inner axis is not inside the outer one"
+    first = triple_verdict(m1, m2, m3 + m4, a_in1, a_out, e_in1, e_out, i_in1_out, level_margin)[0]
+    second = triple_verdict(m3, m4, m1 + m2, a_in2, a_out, e_in2, e_out, i_in2_out, level_margin)[0]
+    if not (first and second):
+        return False, "nested", True, "a binary with the other pair as its third body fails its own criterion"
+    ratios = quad.ratios_2p2(m1, m2, m3, m4, a_in1, a_in2, a_out)
+    beyond = quad.outside_range_2p2(*ratios, e_in1, e_in2, e_out)
+    if beyond or not quad.hierarchy_holds_2p2(ratios[3], ratios[4], e_in1, e_in2, e_out):
+        loose_first = triple_verdict(m1, m2, m3 + m4, a_in1, a_out, e_in1, e_out, i_in1_out, fallback_margin)[0]
+        loose_second = triple_verdict(m3, m4, m1 + m2, a_in2, a_out, e_in2, e_out, i_in2_out, fallback_margin)[0]
+        why = "outside the network's range (" + ", ".join(beyond) + ")" if beyond else "the apsides overlap, which the network was not trained on"
+        return loose_first and loose_second, "nested", False, why
+    q_in1, q_in2, q_out, alpha_in1_out, alpha_in2_out = ratios
+    stable = bool(quad.is_stable_2p2(q_in1, q_in2, q_out, alpha_in1_out * axis_margin, alpha_in2_out * axis_margin,
+                                     e_in1, e_in2, e_out, i_in1_in2, i_in1_out, i_in2_out))
     return stable, "network", True, f"axis ratios loosened {axis_margin:g} times"
 
 
@@ -188,9 +223,7 @@ def verdicts(nodes, members, level_margin=None, axis_margin=None, fallback_margi
         low, high = tree.children(outer.node_no)
         if low is not None and high is not None and low[0] == "node" and high[0] == "node" \
                 and tree.pair(low[1].node_no) and tree.pair(high[1].node_no):
-            levels = [verdict for verdict in found if verdict.node_no == outer.node_no and verdict.shape == "triple"]
-            found.append(Verdict(outer.node_no, "2+2", all(v.stable for v in levels), "nested", False,
-                                 "two nested triples at the level margin; the 2+2 network is not ported"))
+            found.append(_verdict_2p2(tree, outer, low[1], high[1], level_margin, axis_margin, fallback_margin))
     return found
 
 
@@ -204,6 +237,17 @@ def _verdict_3p1(tree, chain, level_margin, axis_margin, fallback_margin):
         (inner.eccentricity, middle.eccentricity, outer.eccentricity),
         (_mutual(inner, middle), _mutual(inner, outer), _mutual(middle, outer)), axis_margin, fallback_margin, level_margin)
     return Verdict(outer.node_no, "3+1", stable, criterion, confident, detail)
+
+
+def _verdict_2p2(tree, outer, left, right, level_margin, axis_margin, fallback_margin):
+    heavy, light = sorted((left, right), key=lambda pair: -pair.mass_solar)
+    m1, m2 = tree.pair(heavy.node_no)
+    m3, m4 = tree.pair(light.node_no)
+    stable, criterion, confident, detail = quadruple_verdict_2p2(
+        (m1, m2, m3, m4), (_axis_au(heavy), _axis_au(light), _axis_au(outer)),
+        (heavy.eccentricity, light.eccentricity, outer.eccentricity),
+        (_mutual(heavy, light), _mutual(heavy, outer), _mutual(light, outer)), axis_margin, fallback_margin, level_margin)
+    return Verdict(outer.node_no, "2+2", stable, criterion, confident, detail)
 
 
 def tree_is_stable(nodes, members, **margins):

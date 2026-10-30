@@ -101,12 +101,34 @@ def test_a_stored_3p1_reports_its_two_triples_and_the_quadruple():
     assert not hs.tree_is_stable(*three_plus_one(1.0, 3.0, 8.0))
 
 
-def test_a_2p2_is_judged_by_its_nested_triples_and_marked_unconfident():
-    found = hs.verdicts(*two_plus_two(0.5, 0.7, 200.0))
-    quadruple = [v for v in found if v.shape == "2+2"]
-    assert len(quadruple) == 1 and quadruple[0].stable and not quadruple[0].confident
+def test_a_wide_2p2_is_stable_by_the_network_and_a_crowded_one_is_not():
+    [wide] = [v for v in hs.verdicts(*two_plus_two(0.05, 0.07, 100.0)) if v.shape == "2+2"]
+    assert wide.stable and wide.criterion == "network" and wide.confident
+    found = hs.verdicts(*two_plus_two(0.5, 0.7, 2.0))
     assert [v.shape for v in found].count("triple") == 2
-    assert not [v for v in hs.verdicts(*two_plus_two(0.5, 0.7, 2.0)) if v.shape == "2+2"][0].stable
+    [crowded] = [v for v in found if v.shape == "2+2"]
+    assert not crowded.stable and crowded.criterion == "nested"
+
+
+def test_the_axis_margin_rejects_a_2p2_the_plain_network_accepts():
+    q_in1, q_in2, q_out = 0.8, 0.78, 0.8
+    edge = next(a for a in (x / 1000 for x in range(20, 460)) if not quad.is_stable_2p2(q_in1, q_in2, q_out, a, a, 0.1, 0.1, 0.1))
+    alpha = edge - 0.004
+    assert quad.is_stable_2p2(q_in1, q_in2, q_out, alpha, alpha, 0.1, 0.1, 0.1)
+    masses = (1.0, 0.8, 0.9, 0.702)         # q_in2 = 0.78, q_out = 1.602 / 1.8 is below 1
+    axes = (alpha * 100.0, alpha * 100.0, 100.0)
+    plain = hs.quadruple_verdict_2p2(masses, axes, (0.1, 0.1, 0.1), (0.0, 0.0, 0.0), axis_margin=1.0)
+    margin = hs.quadruple_verdict_2p2(masses, axes, (0.1, 0.1, 0.1), (0.0, 0.0, 0.0))
+    assert plain[0] and plain[1] == "network"
+    assert not margin[0] and margin[1] == "network"
+
+
+def test_a_2p2_outside_the_networks_range_falls_back_and_says_so():
+    """A faint companion in the second binary (q_in2 0.05, below the 0.1 the network was trained on) is judged by the nested triples at 1.5."""
+    stable, criterion, confident, detail = hs.quadruple_verdict_2p2((1.0, 0.8, 0.9, 0.045), (0.05, 0.05, 100.0), (0.1, 0.1, 0.1), (0.0, 0.0, 0.0))
+    assert stable and criterion == "nested" and not confident and "q_in2" in detail
+    wide = hs.quadruple_verdict_2p2((1.0, 0.8, 0.9, 0.7), (0.0005, 0.0005, 30.0), (0.1, 0.1, 0.1), (0.0, 0.0, 0.0))
+    assert wide[1] == "network" and wide[2]
 
 
 def test_a_young_group_node_is_not_a_hierarchy():

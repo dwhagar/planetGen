@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 843 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 844 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -41,11 +41,11 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T3 | 77 | 31 | 5 | 10 | 0 | 123 |
 | T4 | 36 | 4 | 0 | 15 | 8 | 63 |
 | T5 | 42 | 13 | 0 | 0 | 0 | 55 |
-| T6 | 70 | 53 | 13 | 41 | 0 | 177 |
+| T6 | 70 | 53 | 13 | 41 | 1 | 178 |
 | T7 | 26 | 8 | 8 | 8 | 0 | 50 |
 | T8 | 0 | 1 | 1 | 5 | 2 | 9 |
 | T9 | 13 | 6 | 4 | 39 | 19 | 81 |
-| All | 504 | 152 | 38 | 120 | 29 | 843 |
+| All | 504 | 152 | 38 | 120 | 30 | 844 |
 
 ## How the labels were given
 
@@ -791,6 +791,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | GM11 | P | T1 | L0 | roche.roche_lobe_fraction, the Eggleton (1983) Roche-lobe radius over the separation, 0.49 q^(2/3) / (0.6 q^(2/3) + ln(1 + q^(1/3))) | none: q from 0 to infinity | any pair of stars or star and compact object | none; the formula is within 1 percent of the exact lobe | none | Eggleton 1983 (ApJ 268, 368), Equation 2, read in the ADS scan | - | - |
 | GM12 | P | T1 | L3 | stability.mardling_aarseth_pericentre_ratio, C = 2.8 in R_p / a_in = C [(1 + q_out)(1 + e_out) / (1 - e_out)^(1/2)]^(2/5), times (1 - 0.3 i / pi) | q_out up to 5 (the paper's own limit; enforced since GEN.1028: `stability.MA01_Q_OUT_MAX`, `auto` takes Eggleton and Kiseleva beyond it and a named `ma01` is refused) | hierarchical triples, outer mass over inner mass up to 5 | an N-body triple set with q_out above 5 where the criterion's verdict is wrong more often than 15 percent | Equation 4 of Vynatheya et al. 2022 inside its fit range (already the `auto` choice) | Mardling and Aarseth 2001 (MNRAS 321, 398), Equation 90, read in the ADS scan: C = 2.8 is empirical, the formula holds for q_out <= 5, inclined orbits can be up to about 30 percent closer; the inclination factor is the code's reading of that sentence | - | replace (GEN.1016) |
 | GM13 | P | T6 | L3 | the 3+1 axis margin: a system the 3+1 network calls stable is accepted only if it is still stable with a_in/a_mid and a_mid/a_out both multiplied by 1.3 (`quadruple_stability_3p1.json` `axis_margin`, read by `hierarchy_stability`; not yet called by the generator) | 1.0 to 2.0 | 3+1 hierarchies inside the network's documented range, axis ratios 0.1 to 0.45 | the network's stable calls with the margin are right in fewer than 85 percent of a new N-body sample | the 3+1 network retrained or refitted on our own N-body runs (GEN.1006 section 9) | 331 REBOUND systems of GEN.1029: no margin 18 of 33 stable calls right (0.55), 1.1: 14 of 19 (0.74), 1.3: 8 of 9 (0.89, recall 0.42), 1.5: 5 of 5 (recall 0.26); the paper reports 0.91 | - | replace (GEN.1006) |
+| GM14 | P | T6 | L4 | the 2+2 axis margin: a system the 2+2 network calls stable is accepted only if it is still stable with a_in1/a_out and a_in2/a_out both multiplied by 1.3 (`quadruple_stability_2p2.json` `axis_margin`, read by `hierarchy_stability`; not yet called by the generator) | 1.0 to 2.0 | 2+2 hierarchies inside the network's documented range | the network's stable calls with the margin are right in fewer than 85 percent of a 2+2 N-body sample | a REBOUND sample of 2+2 systems like GEN.1029's, then a refit of the margin | none for 2+2: the 3+1 margin of GM13 carried over; on 300 generated 2+2 trees it moves 5 of 134 unstable calls to 16 | - | replace (GEN.1006) |
 
 ## 6.61 Stand-ins of the potassium depletion by body class
 
