@@ -137,3 +137,7 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.68:OT1 | GEN.1034 | a constant of the ocean tide module, read when its wiring step lands |
 | row | 6.68:OT2 | GEN.1034 | a constant of the ocean tide module, read when its wiring step lands |
 | row | 6.68:OT6 | GEN.1034 | a constant of the ocean tide module, read when its wiring step lands |
+| module | planetgen.physics.nightside_collapse | GEN.1044 | whether a locked planet's air freezes onto its night side and how much stays; the oddity wiring (GEN.1051) will call it after the climate solver |
+| row | 6.69:NC1 | GEN.1044 | a constant of the nightside collapse module, read when its wiring step lands |
+| row | 6.69:NC3 | GEN.1044 | a constant of the nightside collapse module, read when its wiring step lands |
+| row | 6.69:NC6 | GEN.1044 | a constant of the nightside collapse module, read when its wiring step lands |

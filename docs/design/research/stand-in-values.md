@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 558 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 564 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -36,16 +36,16 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 68 | 1 | 5 | 1 | 0 | 75 |
+| T1 | 70 | 1 | 5 | 1 | 0 | 77 |
 | T2 | 83 | 8 | 0 | 1 | 0 | 92 |
 | T3 | 65 | 20 | 5 | 9 | 0 | 99 |
 | T4 | 27 | 0 | 0 | 4 | 4 | 35 |
 | T5 | 37 | 11 | 1 | 0 | 0 | 49 |
 | T6 | 43 | 26 | 10 | 32 | 0 | 111 |
-| T7 | 26 | 7 | 8 | 7 | 0 | 48 |
+| T7 | 27 | 8 | 8 | 7 | 0 | 50 |
 | T8 | 0 | 0 | 0 | 1 | 2 | 3 |
-| T9 | 1 | 0 | 1 | 25 | 19 | 46 |
-| All | 350 | 73 | 30 | 80 | 25 | 558 |
+| T9 | 2 | 0 | 2 | 25 | 19 | 48 |
+| All | 354 | 74 | 31 | 80 | 25 | 564 |
 
 ## How the labels were given
 
@@ -915,3 +915,14 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | OT6 | P | T5 | L1 | ocean_tides.H2_OVER_K2 5/3, the Love number h2 from the interior model's k2 when h2 is not given | 1.5 to 2.2 | homogeneous rocky or icy bodies with a stored k2 | the Earth: measured h2 0.61 and k2 0.30 give 2.0 and a floor share of 0.69; the rule gives 0.80 | the Love numbers h2 from the interior structure (GEN.842 tides) | Love 1909 for a homogeneous incompressible elastic sphere (h2 = 5/3 k2), recalled; checked against the Earth's measured pair | GEN.1034 | - |
 | OT7 | P | T6 | L0 | ocean_tides.LOCK_TOLERANCE 1e-3, how close to a raiser's orbital rate a body spins to count as locked to it (no oscillating tide from it) | 1e-4 to 1e-2 | bodies the tide chain (GEN.957) has locked | a body whose spin differs from a raiser's rate by 0.5 percent and whose ocean shows a tide of that period | the tide chain's own lock state, read from the stored spin kind | the same share as `moon_history.SYNCHRONOUS_TOLERANCE`; the choice is the project's | - | - |
 | OT8 | P | T6 | L0 | ocean_tides.ranges: the spring range is the sum of the oscillating raisers' ranges and the neap range the largest less the rest, never below zero | none | two or more raisers of different periods | a world with three raisers whose neap range is measured and differs from the largest less the rest | a harmonic synthesis of the raisers' periods (the constituents of the tide) | the Moon-and-Sun rule of Pugh and Woodworth 2014 (spring = M2 + S2, neap = M2 - S2), recalled; its extension to three raisers is ours | - | - |
+
+## 6.69 Stand-ins of the nightside collapse of a locked planet's air
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| NC1 | P | T1 | L0 | nightside_collapse.FIT_COEFFICIENTS (c1 to c4 for 1 and 10 Earth masses), FIT_FLUX_RANGE_W_M2 273.2 to 4098 and FIT_ALBEDO 0.2 | the paper's own least-squares scatter | a pure CO2 air on a flat rocky locked planet with no ocean or cloud, 0.01 to 10 bar, flux 0.2 to 3.0 times 1366 W/m2 | a 3D run of a locked planet with a non-condensing background gas whose critical pressure lies below the fit by more than a factor of three | a fit that includes N2 and the ocean (Wordsworth's later work, not yet read) | Wordsworth 2015 (arXiv 1412.5575), Table 2 and Eq. 43, READ in full text: Earth-flux, Earth-mass value 0.14 bar as the abstract says; the paper calls the fit a conservative upper limit; its own text says collapse at all pressures at the lowest flux while the fit gives 2.9 bar there; test_nightside_collapse::test_the_fit_gives_the_paper_s_critical_pressure_at_earth_s_flux | GEN.1044 | - |
+| NC2 | P | T7 | L1 | nightside_collapse._fit_coefficients: the coefficients linear in the log of the mass between 1 and 10 Earth masses, held outside | none | planets from 1 to 10 Earth masses | a run at 3 Earth masses whose critical pressure is not between the two | fits at more masses | the paper gives two masses only; the 10 Earth-mass fit is higher than the 1 (more collapse), as the text says | GEN.1044 | - |
+| NC3 | P | T1 | L0 | nightside_collapse.KAPPA_M2_KG 5e-5 and COS_ALPHA 0.5 (the grey optical depth of the thin-air night side) | none | CO2 air under about 1 bar | the paper's 125.2 K at 0.1 bar, Earth's flux, albedo 0.2 (our Eq. 25 gives 126.9 K) | a correlated-k night-side temperature | Wordsworth 2015 Eq. 10, 25 and 27, READ; test_nightside_collapse::test_the_night_side_of_a_tenth_of_a_bar_is_the_paper_s_125_k | GEN.1044 | - |
+| NC4 | P | T9 | L2 | nightside_collapse._calibration: the factor (about 1.24 at Earth's flux) on the grey night-side temperature that makes the balance first lose CO2 at the fit's critical pressure | none | CO2 below the fit's critical pressure | the fit's own critical pressure disagreeing with the balance by a factor over 2 in pressure at another flux | the night-side temperature from the 3D runs | tuned to the published threshold (NC1), so the two agree there and the retained share rises continuously to 1 at it | GEN.1044 | - |
+| NC5 | P | T7 | L0 | nightside_collapse.collapse for a gas other than CO2: the same grey balance, not calibrated | none | N2 and other gases the paper leaves to later work | a 3D run of an N2 air whose collapse pressure differs from this by a factor over 3 | the N2 collapse pressures of a later Wordsworth or Leconte paper | the paper says N2 collapse is left to future work (Section 3.6); N2 freezes under 126 K so at Earth's flux it holds at any pressure here | GEN.1044 | - |
+| NC6 | P | T9 | L0 | nightside_collapse.COLLAPSED_BELOW_RETAINED 0.5: a world keeping under half its gas is called collapsed | 0.1 to 0.9 | any gas | a page text that reads wrongly at the cut | none (the retained share is the number to use) | needed output: the share, not the flag, is the physics | GEN.1044 | - |
