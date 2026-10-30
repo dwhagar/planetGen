@@ -14624,7 +14624,40 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   knows how rare Earth-type planets are in the actual universe. A
   research thread is being started by the coordinator; its items are
   filed when it reports and ride the same window as this item.
+  Boss, 6:26 PM EDT (2026-10-30 6:27 PM EDT): redo ALL classes when the
+  epoch updates: the epoch for this item and GEN.1136 re-derives the
+  stored class of every body from the finished body (--affects for the
+  class column, description and habitable_class), golden update, census
+  re-baseline. Both items ride train 6 as one epoch; GEN.1136 moves the
+  Class V line to 2 g.
   Prerequisites: none. Related: GEN.1132, GEN.1131, GEN.854.
+
+- [ ] **GEN.1136 Move the Class V gravity line from 1.25 g to 2 g so Earth-sized and super-Earth temperate worlds can land in Class M, and register the line in GEN.725**
+  Boss, 6:26 PM EDT 2026-10-30, confirmed: "that is an excellent change,
+  do that in Train 6 with the Class Q retire. Make sure TODO knows to
+  redo all classes when updating epoch." Class M never appears because
+  the class V line (1.25 g, about 1.14 Earth radii) catches most of the
+  planets the literature calls Earth-sized in the habitable zone (Bryson
+  2021, arXiv:2010.14812, radius 0.5 to 1.5 Earth radii, about 2 g at
+  1.5). Report reports/class-m-investigation-2026-10-30.md. Boss did not
+  pick between 1.5 g and 2 g: take 2 g from the report (stand-in,
+  GEN.725, Confident Unverified, tweak L1, source Bryson 2021 limit of
+  1.5 Earth radii); keep V as the class above it. Do: change min in the
+  V row of planet_classes.json and its sentence and basis; add the
+  registry row (and a burn-down line only if it ends at L3 or L4, which
+  it should not); add a text note on the M class page that gravity runs
+  to 2 g; keep M's other conditions; no forced class and no game rate.
+  Re-derive EVERY class (Boss: redo all classes when the epoch updates):
+  the epoch carries --affects for the class column, the description and
+  habitable_class, and the stored class of every body is recomputed from
+  the finished body, not only the V and Q bodies. Done: tests for the
+  new line, golden update and census re-baseline, and after the epoch a
+  printed count per class of temperate (250 to 330 K) bodies with an
+  ocean, so Boss can see what M yields; change nothing else until that
+  is read. Lock work, same epoch as GEN.1135. Where we think it belongs
+  (best guess, can move): Core 4, train 6, first in the window together
+  with GEN.1135.
+  Prerequisites: none. Related: GEN.1135, GEN.1132, GEN.909, GEN.911.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -19461,6 +19494,18 @@ clears each one.
   guess, can move): Core 1 (reproducible galaxies), after the region run
   command.
   Prerequisites: none. Related: GEN.1118.
+
+- [ ] **TEST.502 test_orbital_motion::test_moon_having_planet_reflex_offset_matches_manual_formula fails on a clean main: settle_orbit moves captured moons without refreshing the planet offset (bug)**
+  Tides 1, 6:19 PM EDT 2026-10-30 (as the lane reported): the test fails
+  on main, not from the train 5 branch; settle_orbit moves captured
+  moons without refreshing the planet's reflex offset, so the stored
+  offset no longer matches the manual formula. Do: reproduce with the
+  datasets fetched, find which merge broke it, and fix the code or the
+  test, whichever is wrong; if the generated offset is wrong, say so and
+  it becomes a GEN bug. Lock-free unless the code changes output. Where
+  we think it belongs (best guess, can move): Core 1 (test owner),
+  separate branch, after TEST.500.
+  Prerequisites: none.
 
 ## USR: User accounts
 
