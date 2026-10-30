@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 633 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 640 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -36,16 +36,16 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 82 | 1 | 5 | 1 | 0 | 89 |
+| T1 | 86 | 2 | 6 | 1 | 0 | 95 |
 | T2 | 92 | 9 | 0 | 1 | 0 | 102 |
 | T3 | 73 | 26 | 5 | 9 | 0 | 113 |
 | T4 | 30 | 1 | 0 | 14 | 6 | 51 |
 | T5 | 38 | 12 | 0 | 0 | 0 | 50 |
-| T6 | 51 | 30 | 12 | 33 | 0 | 126 |
+| T6 | 52 | 30 | 12 | 33 | 0 | 127 |
 | T7 | 26 | 8 | 8 | 8 | 0 | 50 |
 | T8 | 0 | 1 | 0 | 1 | 2 | 4 |
 | T9 | 2 | 0 | 2 | 25 | 19 | 48 |
-| All | 394 | 88 | 32 | 92 | 27 | 633 |
+| All | 399 | 89 | 33 | 92 | 27 | 640 |
 
 ## How the labels were given
 
@@ -1065,3 +1065,15 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | GT1 | D | T2 | L0 | giant_tilt.DEFAULT_IMPACT_SPEED_KM_S 5: the speed at infinity; and the angular momentum of an impact at contact `mu v_c R_c sin(theta)` | 1 to 9 km/s (their test: no significant change) | ice giants of 5 to 30 Earth masses hit by 0.3 to 3.6 Earth masses | an impact simulation of the same masses with a different angular momentum | the angular momentum of the SPH runs of Kegerreis et al. 2018 as a function of b | Kegerreis et al. 2018 Sec. 2.3 and Appendix B (read); contact at the sum of the radii is the module's | GEN.1058 | - |
 | GT2 | D | T4 | L1 | giant_tilt.MOMENT_OF_INERTIA_FACTOR 0.225, RETAINED_SHARE 0.9 and PRE_IMPACT_SPIN_BREAKUP 0.2: the planet's moment of inertia, the share of the angular momentum it keeps and the spin before | I 0.22 to 0.24; kept 0.8 to 1; spin 0 (Kegerreis) to 0.3 | Uranus and Neptune | an interior model of a given ice giant, or a run that measures the debris angular momentum | the Helled et al. 2010 interior models and the debris of an SPH run | Kegerreis et al. 2018 Sec. 2.1, 3.4 (read); I is recalled, not read | GEN.1058 | - |
 | GT3 | P | T4 | L3 | giant_tilt.MERGER_SHARE 0.55, IMPACTOR_SHARE (0.02, 0.25) and MASS_RANGE_EARTH (5, 30): the share of ice giants with a recorded giant merger, the impactor's mass share log-uniform, and the masses | merger share 0.3 to 1; impactor share 0.01 to 0.5 | the draw of the tilt tail | a survey of obliquities of giants; a population synthesis with impact histories | the impact history of the outer chain (GEN.1058) | design table G1 (Uranus 98 degrees, one ice giant in five; tuned so the share tilted over 60 degrees is 0.2), Kegerreis et al. 2018 Sec. 2.1 and Morbidelli et al. 2012 Sec. 5 (read) | GEN.1058 | replace (GEN.1058) |
+
+## 6.93 Stand-ins of the collisional mantle stripping
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| MT1 | D | T1 | L0 | the disruption threshold `Q*_RD = 1e-4 R_C1^1.2 V^0.8` erg/g (cm, cm/s), `R_C1` the radius of the total mass at 1 g/cm3 | none | head-on impacts of 1e23 to 1e26 kg in the gravity regime | an SPH run of a super-Earth impact whose catastrophic threshold differs from it by more than a factor of 3 | the Leinhardt and Stewart 2012 threshold (`collision_outcome`) once it carries an iron fraction | Marcus 2010 equation 4 (read), their runs fall short of it by under a factor of 2 | - | - |
+| MT2 | D | T1 | L0 | the largest remnant `M_lr / M_tot = 1 - x/2` for `x` from 0 to 2 | none | the same | a remnant mass more than 25 percent from it at the same `x` | none | Marcus 2010 equation 2 (read), after Stewart and Leinhardt 2009 | - | - |
+| MT3 | D | T1 | L0 | the iron fraction of the remnant `0.33 + 0.25 x^1.65` for bodies that began a third iron | none | `x` from 0 to about 1.8 (the rock is gone beyond it) | an SPH run of two Earth-like bodies whose remnant iron differs by more than 0.1 at the same `x` | none | Marcus 2010 equation 3 (read); Bonomo 2019 Fig. 3 run gives 0.64 where it gives 0.64 at x of 1.21 | - | - |
+| MT4 | P | T1 | L2 | mantle_stripping.Q_STAR_SCALE 0.6, the factor on the threshold of MS1 for planet-sized bodies | 0.5 to 1 | head-on impacts of 1e24 to 1e26 kg | an SPH run whose remnant mass differs by more than 25 percent from the module at the same speed | a threshold fitted to more runs (Marcus and others, in preparation, not found) | Marcus 2010 section 3.1 (read): the data "fall short of the prediction from Equation 4 by less than a factor of 2"; Bonomo 2019 Fig. 3 (read): two 10.5 Earth masses at 62.5 km/s leave 8.2 Earth masses and 64 percent iron, which 0.6 reproduces (8.28 and 0.642); tuned to that one point | GEN.1048 | - |
+| MT5 | P | T6 | L0 | the retention law for another starting core fraction: the iron and the rock kept are equation 3 and the remnant mass read as shares of a third-iron body, iron held to all the body had | none | core fractions 0.1 to 0.6 | an SPH run of a body that began at 0.15 or 0.5 iron whose remnant iron differs by more than 0.1 from the module | an SPH grid over starting core fractions | the form is derived from equations 2 and 3, equal to equation 3 at a third | - | - |
+| MT6 | P | T1 | L1 | mantle_stripping.MAX_CORE_MASS_FRACTION 0.85, the core fraction no remnant passes (held to the float under it) | 0.8 to 0.9 | rocky planets | a rocky planet measured above 0.85 | the iron-rich limit of a larger sample | Plotnykov and Valencia 2020 (arXiv:2010.06480, abstract read): the most iron enrichment rocky planets reach is a core fraction of about 0.8; the design's limit is 0.85, nudged inside the printed "about" | GEN.1048 | - |
+| MT7 | P | T1 | L0 | mantle_stripping.IMPACT_ANGLE_DEG 30, the angle from head-on beyond which an impact is a hit-and-run and strips nothing | 30 to 45 | similar-sized bodies | an SPH run of a 40 degree impact between embryos that strips more than a tenth of the mantle | the angle at which the disruption energy doubles, by mass ratio | Marcus 2010 section 3 (read): the onset of hit-and-run is at 30 to 45 degrees (Asphaug 2009); all their 45 degree cases were merging or hit-and-run; the share of impacts inside it is `sin^2` | GEN.1048 | - |
