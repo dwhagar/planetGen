@@ -105,6 +105,53 @@ MAX_FILL_FACTOR = 1.2
 """float: How far past its Roche lobe a star may reach at the pair's closest approach (1 is semi-detached,
 both past 1 is contact). Pairs of two single members use this in place of `EXTENT_AXIS_FACTOR`."""
 
+STABILITY_MARGIN = 1.15
+"""float: How much wider than the bare criterion an inner orbit's outer partner must be, at every level of a tree (GEN.1010, GM8): the
+Eggleton and Kiseleva criterion is reliable to about 20 percent, and the nested-triple test over-predicts stable trees
+(Vynatheya, Mardling and Hamers 2023), so each triple of the tree has to clear the criterion by this factor. A stand-in."""
+
+
+@dataclass(frozen=True)
+class Side:
+    """One side of a pair for the keep-out rule: its `mass` (solar), its `extent` (AU: a single member's radius, a node's greatest
+    distance from its own barycentre to the surface of a star below it, `node_extent_au`) and its `radius`, the radius of a single
+    member (None for a node)."""
+    mass: float
+    extent: float
+    radius: float | None = None
+
+
+def single_side(mass, radius_au):
+    return Side(mass, radius_au, radius_au)
+
+
+def node_extent_au(axis_au, eccentricity, low, high):
+    """The extent of the node of the pair `low`, `high` (`Side`s): the farthest a star below it reaches from the node's barycentre,
+    both sides at the apocentre. The one definition the build, the tree and the verifier (`physics/clearance.py`) share."""
+    apocentre = axis_au * (1.0 + eccentricity)
+    total = low.mass + high.mass
+    return max(apocentre * high.mass / total + low.extent, apocentre * low.mass / total + high.extent)
+
+
+def pair_floor_au(low, high):
+    """The closest the pair may be (GEN.1010): the Roche-lobe limit for two single members, else the extent rule, at every depth of
+    the tree."""
+    if low.radius is None or high.radius is None:
+        return EXTENT_AXIS_FACTOR * (low.extent + high.extent)
+    return max(roche.separation_for_filling(low.radius, MAX_FILL_FACTOR, low.mass, high.mass),
+               roche.separation_for_filling(high.radius, MAX_FILL_FACTOR, high.mass, low.mass))
+
+
+def pair_clears(axis_au, eccentricity, low, high):
+    """Whether the pair's closest approach keeps its sides inside their limits: neither single member past `MAX_FILL_FACTOR` of its
+    Roche lobe, else the pericentre at least `PERICENTRE_EXTENT_FACTOR` times the sides' extents. The one rule for the tree, the
+    build (`built_tree_clears`) and, re-derived, the verifier."""
+    peri = axis_au * (1.0 - eccentricity)
+    if low.radius is None or high.radius is None:
+        return peri >= PERICENTRE_EXTENT_FACTOR * (low.extent + high.extent)
+    return (roche.filling_factor(low.radius, peri, low.mass, high.mass) <= MAX_FILL_FACTOR
+            and roche.filling_factor(high.radius, peri, high.mass, low.mass) <= MAX_FILL_FACTOR)
+
 ACCRETOR_KINDS = ("white-dwarf", "neutron-star", "black-hole")
 """tuple: The member kinds that receive mass from a lobe-filling partner (an `accreting` pair)."""
 
@@ -779,24 +826,18 @@ class _Builder:
             return self.leaves[left], self.leaves[right]
         return None
 
-    def axis_floor(self, left, right, extent):
-        """The closest the pair may be: the Roche-lobe limit for two single members, else the extent rule."""
-        pair = self.pair_leaves(left, right)
-        if pair is None:
-            return EXTENT_AXIS_FACTOR * extent
-        a, b = pair
-        return max(roche.separation_for_filling(a.radius_au, MAX_FILL_FACTOR, a.mass, b.mass),
-                   roche.separation_for_filling(b.radius_au, MAX_FILL_FACTOR, b.mass, a.mass))
-
-    def clears(self, left, right, axis, e, extent):
-        """Whether the pair's closest approach keeps its members inside their limits."""
-        pair = self.pair_leaves(left, right)
-        if pair is None:
-            return axis * (1.0 - e) >= PERICENTRE_EXTENT_FACTOR * extent
-        a, b = pair
-        peri = axis * (1.0 - e)
-        return (roche.filling_factor(a.radius_au, peri, a.mass, b.mass) <= MAX_FILL_FACTOR
-                and roche.filling_factor(b.radius_au, peri, b.mass, a.mass) <= MAX_FILL_FACTOR)
+    def side(self, sub, placed=None):
+        """The `Side` of `sub` for the keep-out rule: a single member's radius, else the node's extent. Before the orbits below it are
+        drawn (`placed` None) a node's extent is the sum of the radii of its stars, the least it can be; with `placed`
+        (`id(sub) -> record` of the drawn nodes) it is the barycentric extent of the orbits as drawn (`node_extent_au`)."""
+        if isinstance(sub, int):
+            leaf = self.leaves[sub]
+            return single_side(leaf.mass, leaf.radius_au)
+        if placed is None:
+            return Side(self.mass(sub), self.extent(sub))
+        record = placed[id(sub)]
+        low, high = self.side(record["left"], placed), self.side(record["right"], placed)
+        return Side(low.mass + high.mass, node_extent_au(record["separation_au"], record["eccentricity"], low, high))
 
     def interaction(self, left, right, axis, e):
         """The pair's `interaction` and the flags it puts on the two single members: `(interaction, {leaf: flag})`."""
@@ -880,7 +921,8 @@ class _Builder:
         total = m_left + m_right
         law = self.law(left, right)
         extent = self.extent(left) + self.extent(right)
-        a_lo = self.axis_floor(left, right, extent)
+        sides = self.side(left), self.side(right)
+        a_lo = pair_floor_au(*sides)
         cap = min(self.wide_cap(sub), self.max_axis_au)
         heavy = max(self.leaves[i].initial for i in self.leaves_of(sub))
         massive = heavy >= MASSIVE_PRIMARY_MIN_MASS_SOL
@@ -897,7 +939,8 @@ class _Builder:
             a_hi = ROOT_MAX_AXIS_AU
             if parent is not None:
                 mutual = stability.mutual_inclination(inclination, node, parent[2], parent[3])
-                a_hi = stability.max_inner_axis(m_left, m_right, parent[4], parent[0], 0.0, parent[1], mutual)
+                a_hi = stability.max_inner_axis(m_left, m_right, parent[4], parent[0], 0.0, parent[1], mutual,
+                                                safety=STABILITY_MARGIN)
             if fixed is None and span is not None:
                 axis = 10.0 ** (math.log10(span[0]) + rng.random() * (math.log10(span[1]) - math.log10(span[0])))
                 period_d = 365.25 * math.sqrt(axis ** 3 / total)
@@ -914,7 +957,7 @@ class _Builder:
                 period_d, axis, e = fixed
                 if axis > min(a_hi, cap):
                     continue
-            if not self.clears(left, right, axis, e, extent):
+            if not pair_clears(axis, e, *sides):
                 continue
             interaction, member_flags = self.interaction(left, right, axis, e)
             pair = self.pair_leaves(left, right)
@@ -931,7 +974,8 @@ class _Builder:
             flags = NODE_INTERACTED if law != "star" or interaction in ("accreting", "post-common-envelope") else 0
             flags |= {"wind": NODE_WIND_FED, "disc": NODE_DISC_FED}.get(accretes, 0)
             if parent is not None:
-                if not stability.is_triple_stable(m_left, m_right, parent[4], axis, parent[0], e, parent[1], mutual):
+                if not stability.is_triple_stable(m_left, m_right, parent[4], axis, parent[0], e, parent[1], mutual,
+                                                  safety=STABILITY_MARGIN):
                     continue
                 verdict = stability.kozai_verdict(m_left, m_right, parent[4], axis, parent[0], e, parent[1], mutual,
                                                   self.age_yr, extent)
@@ -972,21 +1016,11 @@ class _Builder:
         return self.rng.random() >= BROWN_DWARF_DESERT_KEEP
 
     def clears_extents(self):
-        """The final check: every pair's closest approach clears what it holds (the Roche limit for two single
-        members, the apocentres of the inner pairs otherwise)."""
+        """The final check: every pair's closest approach clears what it holds (`pair_clears` with the extents of the orbits as
+        drawn)."""
         by_sub = {id(record["sub"]): record for record in self.nodes}
-        for record in self.nodes:
-            extent = 0.0
-            for child in (record["left"], record["right"]):
-                if isinstance(child, int):
-                    extent += self.leaves[child].radius_au
-                else:
-                    inner = by_sub[id(child)]
-                    extent += inner["separation_au"] * (1.0 + inner["eccentricity"])
-            if not self.clears(record["left"], record["right"], record["separation_au"], record["eccentricity"],
-                               extent):
-                return False
-        return True
+        return all(pair_clears(record["separation_au"], record["eccentricity"], self.side(record["left"], by_sub),
+                               self.side(record["right"], by_sub)) for record in self.nodes)
 
     def finish(self):
         """Flags the members of an ultra-wide system `fragile` and the theoretical kinds `theoretical`."""
@@ -1000,31 +1034,30 @@ class _Builder:
 
 def built_tree_clears(nodes, stars):
     """
-    Whether the built stars of a tree clear its orbits: the same screen `_Builder.clears_extents` runs on the drawn leaves, run
-    on the radii and masses the build gave the stars (`nodes` the tree's `OrbitNode`s, `stars` `(parent_node_no, radius_au,
-    mass_solar)` for each). A star the build makes from a birth mass and an age can come out larger than the tree's member
-    (a giant where the tree had a white dwarf), and a pair then holds a star inside its partner.
+    Whether the built stars of a tree clear its orbits: the same `pair_clears` rule `_Builder.clears_extents` runs on the drawn leaves,
+    run on the radii and masses the build gave the stars (`nodes` the tree's `OrbitNode`s, `stars` `(parent_node_no, radius_au,
+    mass_solar)` for each).
     """
-    singles, inner = {}, {}
+    below = {}
     for parent, radius_au, mass_solar in stars:
-        singles.setdefault(parent, []).append((radius_au, mass_solar))
+        below.setdefault(parent, []).append(single_side(mass_solar, radius_au))
+    by_parent = {}
     for node in nodes:
-        inner.setdefault(node.parent_node_no, []).append(node)
-    for node in nodes:
-        axis_au = _km_to_au(node.separation_km)
-        peri = axis_au * (1.0 - node.eccentricity)
-        pair = singles.get(node.node_no, [])
-        if len(pair) == 2 and node.node_no not in inner:
-            (radius_a, mass_a), (radius_b, mass_b) = pair
-            if (roche.filling_factor(radius_a, peri, mass_a, mass_b) > MAX_FILL_FACTOR
-                    or roche.filling_factor(radius_b, peri, mass_b, mass_a) > MAX_FILL_FACTOR):
-                return False
-            continue
-        extent = sum(radius for radius, _mass in pair) + sum(
-            child.separation_km / constants.AU_TO_KM * (1.0 + child.eccentricity) for child in inner.get(node.node_no, ()))
-        if peri < PERICENTRE_EXTENT_FACTOR * extent:
-            return False
-    return True
+        by_parent.setdefault(node.parent_node_no, []).append(node)
+    sides = {}
+
+    def side_of(node):
+        if node.node_no not in sides:
+            low, high = children_of(node)
+            sides[node.node_no] = Side(low.mass + high.mass, node_extent_au(
+                _km_to_au(node.separation_km), node.eccentricity, low, high))
+        return sides[node.node_no]
+
+    def children_of(node):
+        found = below.get(node.node_no, []) + [side_of(child) for child in by_parent.get(node.node_no, ())]
+        return found[0], found[1]
+
+    return all(pair_clears(_km_to_au(node.separation_km), node.eccentricity, *children_of(node)) for node in nodes)
 
 
 def _shape(units, rng):
