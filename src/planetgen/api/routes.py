@@ -484,6 +484,8 @@ def sectors():
     `position` or `distance`) with `order=asc|desc`, the repeatable filter
     `quadrant` (`I`-`IV`, `unplaced`) and `facets=1` for the Quadrant menu's
     option counts (`facets`). `total` counts the sectors that pass the filter (`total_capped`: it stopped at 10,000, PERF.77).
+    `after=<sector ID>` starts the page after that sector in the default order and the `name` and `distance` sorts
+    (PERF.137: any page costs the same, and `offset` is ignored); the other sorts ignore it.
     """
     limit, offset = _paginate(request.args)
     sort = None
@@ -492,10 +494,15 @@ def sectors():
         sort, descending = _parse_sort(request.args, SECTOR_SORTS)
     quadrants = [v for v in request.args.getlist("quadrant") if v]
     db = get_db()
+    after = None
+    if request.args.get("after"):
+        after = ids.row_id(db, "sector", request.args["after"])
+        if after is None:
+            raise ApiError(f"after must be a sector ID, got {request.args['after']!r}")
     total = count_sectors(db, quadrants=quadrants)
     body = {
         "items": list_sectors(db, limit=limit, offset=offset, sort=sort, descending=descending,
-                              quadrants=quadrants),
+                              quadrants=quadrants, after=after),
         "total": total,
         "total_capped": is_capped(total),
         "limit": limit,

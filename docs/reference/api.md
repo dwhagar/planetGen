@@ -115,7 +115,12 @@ connectivity to that specific schema rather than the default one.
   `quadrant` (`I`-`IV`, or `unplaced`) and `facets=1`, which adds
   `facets: {"quadrant": [{"value", "count"}]}` (the menu ignores its own
   filter). `total` counts the sectors that pass the filter; a bad `sort` or
-  `order` is a 400.
+  `order` is a 400. `after=<sector ID>` (PERF.137) starts the page after that
+  sector in the default order and the `name` and `distance` sorts and ignores
+  `offset`: the placed sectors are read by the distance index and the unplaced ones
+  after them by name, so a page costs the same at any depth (sectors at the same
+  distance follow the sort's direction by id); the other sorts ignore `after`. An
+  `after` that is not a sector ID is a 400.
 - `GET /api/sectors/<id>` — one sector's full display detail: the same
   fields as the listing above, plus `systems` (every system placed in
   it, nearest the sector's center first: `id`, `name`, `quadrant`, `location`, `is_binary`, `binary_type`,

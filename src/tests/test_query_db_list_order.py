@@ -80,3 +80,70 @@ def test_sector_detail_orders_systems_by_distance_from_sector_center(mysql_confi
     distances = [system["center_distance_ly"] for system in detail["systems"]]
     expected = sorted(math.dist(p, (0.0, 0.0, 0.0)) for p in positions)
     assert distances == pytest.approx(expected, rel=1e-6)
+
+
+# --- paging by key (PERF.137) ---------------------------------------------------------
+
+def _galaxy_of_sectors(mysql_config):
+    """Seven sectors: two at the same distance from the core, three more placed, two unplaced; the ids are in
+    the order they are saved, which is not the order of any sort."""
+    spots = {"Quail": (100.0, 0.0, 0.0), "Lynx": (-100.0, 0.0, 0.0), "Wolf": (0.0, -300.0, 0.0),
+             "Ibis": (0.0, 50.0, 0.0), "Bison": (0.0, 0.0, 700.0)}
+    made = {name: _save_sector(mysql_config, name, center_pc=spot) for name, spot in spots.items()}
+    made["Yak Unplaced"] = _save_sector(mysql_config, "Yak Unplaced")
+    made["Ant Unplaced"] = _save_sector(mysql_config, "Ant Unplaced")
+    return made
+
+
+def _ids_by_key(conn, **kwargs):
+    """Every sector id from pages of two, each started `after` the one before."""
+    seen, after = [], None
+    while True:
+        page = query.list_sectors(conn, limit=2, after=after, **kwargs)
+        if not page:
+            return seen
+        seen += [row["id"] for row in page]
+        after = page[-1]["id"]
+        assert len(seen) < 50
+
+
+@pytest.mark.parametrize("sort, descending", [(None, False), ("name", False), ("name", True),
+                                              ("distance", False), ("distance", True)])
+@pytest.mark.parametrize("quadrants", [(), ("I", "II"), ("III", "unplaced"), ("unplaced",), ("IV",)])
+def test_a_page_after_a_sector_continues_the_whole_list_across_placed_and_unplaced(
+        mysql_config, sort, descending, quadrants):
+    _galaxy_of_sectors(mysql_config)
+    conn = query.open_readonly(mysql_config)
+    try:
+        whole = [row["id"] for row in query.list_sectors(conn, sort=sort, descending=descending, quadrants=quadrants)]
+        by_key = _ids_by_key(conn, sort=sort, descending=descending, quadrants=quadrants)
+        by_offset = [row["id"] for offset in range(0, len(whole) + 2, 2)
+                     for row in query.list_sectors(conn, limit=2, offset=offset, sort=sort, descending=descending,
+                                                   quadrants=quadrants)]
+    finally:
+        conn.close()
+    assert len(set(whole)) == len(whole)
+    assert by_key == whole == by_offset
+
+
+def test_the_distance_sort_and_the_name_sort_put_sectors_in_their_order(mysql_config):
+    made = _galaxy_of_sectors(mysql_config)
+    conn = query.open_readonly(mysql_config)
+    try:
+        def names(**kwargs):
+            return [row["name"] for row in query.list_sectors(conn, **kwargs)]
+
+        nearest = names()
+        assert nearest == ["Ibis", "Quail", "Lynx", "Wolf", "Bison", "Ant Unplaced", "Yak Unplaced"]
+        assert names(sort="distance") == nearest
+        assert names(sort="distance", descending=True) == ["Bison", "Wolf", "Lynx", "Quail", "Ibis",
+                                                           "Ant Unplaced", "Yak Unplaced"]
+        assert names(sort="name") == sorted(made)
+        assert names(sort="name", descending=True) == sorted(made, reverse=True)
+        # An offset past the placed sectors lands among the unplaced ones, and past the end there is nothing.
+        assert names(limit=3, offset=4) == ["Bison", "Ant Unplaced", "Yak Unplaced"]
+        assert names(limit=3, offset=6) == ["Yak Unplaced"]
+        assert names(limit=3, offset=7) == []
+    finally:
+        conn.close()
+
