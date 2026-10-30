@@ -96,8 +96,10 @@ def test_research_rates_per_star():
     assert _rate("rogue-planet") == pytest.approx(5.8)
     assert _rate("brown-dwarf") == pytest.approx(0.03 / 0.14)
     # Derived from the massive stars the black holes leave and the natal kick's ejected share (GEN.554); Boss's 4.0e-3 is the
-    # target, 16% over at the middle draw since the kick ejects 16% of the neutron stars, not the 30% the old range centred on.
-    assert _rate("neutron-star") == pytest.approx(0.004, rel=0.2)
+    # target, reached when the failed share is at its cap. The middle draw is half the cap, so the neutron stars are over it by
+    # the half of the cap they keep: 25% over with the Chabrier function's 0.71% massive stars (16% over on the Kroupa function's
+    # 0.64%, GEN.927), the kick ejecting 16% of them.
+    assert _rate("neutron-star") == pytest.approx(0.004, rel=0.3)
     assert 0.0002 < _rate("black-hole") < 0.0012          # the old 5e-4 sits inside the new range
     assert _rate("comet") == pytest.approx(0.05)
     assert _rate("asteroid-field") == 0.0
