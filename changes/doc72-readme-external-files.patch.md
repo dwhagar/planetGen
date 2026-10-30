@@ -1,0 +1,5 @@
+**Headline:** The README now lists every external data file the program needs, with its URL and how to install it, and a test keeps the list complete.
+
+### Changed
+
+- DOC.72: the README has an "External files" section: every dataset the setup step downloads (ten sets, 62 files) with its source, the exact URLs, the cache folder (`/var/cache/planetgen/datasets` or `PLANETGEN_DATA_DIR`), the fetch command, what it replaces and the labelled fallback `--disregard-missing-data` uses, plus how to see where each stands, what a bulk run does when a file is missing (it refuses, naming the set, the URLs and the setup command, unless told to disregard missing data), and how to install a set by hand on a machine with no network. The list is written from the catalogue by `scripts/readme_external_files.py --write`, and `src/tests/test_readme_external_files.py` fails when a dataset or URL is added or changed without it, or when the statements no longer match the code. The deployment guide links to it. The program reads no other external file, so nothing is provided by hand. Documentation and a check only: no stored value changes.
