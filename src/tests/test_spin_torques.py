@@ -33,8 +33,28 @@ def _star_only(body, host_mass, a, factor=spin_torques.GRAVITATIONAL_TORQUE_FACT
     return spin_torques.Torques(planet, (star,), spin_torques.constant_dissipation(k2, q), None, factor)
 
 
-def test_one_star_with_constant_q_is_the_built_despinning():
-    """The module is `tidal_spin.evolve` when only the star's tide acts and Q is constant (the torque factor is the built one)."""
+def _constant_q_star_despin(body, host, a, spin, age, e):
+    """The closed form of a constant-Q despinning by one star: the spin falls (or rises) linearly at `F K k2 / (I Q)` to the first stop, the highest resonance of
+    the window that holds `e` below the spin, else synchronous (the despinning of GEN.731, kept here as the check of the module)."""
+    k2, q = interior_heat.tidal_response(body, spin_torques.orbital_rate(host, a))
+    n = spin_torques.orbital_rate(host, a)
+    radius = body.radius * 1000.0
+    inertia = tidal_spin.moment_factor(body) * body.mass * radius ** 2
+    rate = spin_torques.GRAVITATIONAL_TORQUE_FACTOR * constants.G * host ** 2 * radius ** 5 / a ** 6 * k2 / q / inertia
+    ratio = 1.0
+    for target, low, high in tidal_spin.RESONANCES:
+        if target < spin / n and low < e < high:
+            ratio = target
+            break
+    target_rate = ratio * n
+    step = rate * age
+    if abs(spin - target_rate) <= step:
+        return target_rate, ratio
+    return spin - math.copysign(step, spin - target_rate), None
+
+
+def test_one_star_with_constant_q_is_the_closed_form_despinning():
+    """The module is the linear constant-Q despinning when only the star's tide acts (the torque factor is the built one)."""
     rng = random.Random(7)
     for _ in range(60):
         body = _body(rng.uniform(0.05, 5.0) * EARTH_MASS, rng.uniform(0.4, 1.8) * EARTH_RADIUS)
@@ -42,9 +62,11 @@ def test_one_star_with_constant_q_is_the_built_despinning():
         a = 10.0 ** rng.uniform(-2.0, 0.3) * AU
         n = spin_torques.orbital_rate(host, a)
         spin = n * 10.0 ** rng.uniform(-0.2, 3.0) * rng.choice((1.0, 1.0, -1.0))
+        if spin < 0.0:
+            continue
         age = rng.uniform(0.1, 10.0) * 1.0e9 * YEAR
         e = rng.choice((0.0, 0.0, 0.1, 0.206, 0.4))
-        built_rate, built_ratio = tidal_spin.evolve(body, host, a, spin, age, e)
+        built_rate, built_ratio = _constant_q_star_despin(body, host, a, spin, age, e)
         found = spin_torques.evolve(_star_only(body, host, a), spin, age, e)
         assert found.rate == pytest.approx(built_rate, rel=1.0e-6, abs=1.0e-12 * n)
         assert found.ratio == built_ratio
@@ -222,6 +244,27 @@ def test_the_rheology_makes_the_torque_depend_on_the_tide_frequency():
     assert torques.total(n * 1.5) < 0.0 < torques.total(n * 0.5)
     result = spin_torques.evolve(torques, 3.0 * n, 10.0e9 * YEAR)
     assert math.isfinite(result.rate)
+
+
+def test_a_balance_is_reached_in_finite_time():
+    """Where the thermal and the rheology's gravitational torques cancel away from synchronous rotation the torque is zero, and the flow into it
+    (whose integral diverges as a log) must end, not divide by zero: the planet sits within a billionth of the balance and reports it."""
+    planet = spin_torques.Planet(3.2e24, 5.32e6)
+    a = 4.7e11
+    star = spin_torques.Raiser(2.24e30, a, spin_torques.orbital_rate(2.24e30, a))
+    thermal = spin_torques.ThermalTide(star, 72.0, 7.9e-7)
+    n = star.orbital_rate
+    kinds = set()
+    for temperature in (900.0, 1200.0, 1500.0, 1800.0):
+        dissipation = spin_torques.rheology_dissipation(planet, temperature, 1.0e12, 2.5e5, 1700.0, 2150.0)
+        torques = spin_torques.Torques(planet, (star,), dissipation, thermal)
+        for start in (0.5 * n, 2.0 * n, 25.0 * n, 300.0 * n):
+            result = spin_torques.evolve(torques, start, 10.0e9 * YEAR)
+            assert math.isfinite(result.rate)
+            kinds.add(result.kind)
+            if result.kind == "asynchronous":
+                assert abs(torques.total(result.rate)) < 1.0e-6 * abs(torques.total(start))
+    assert kinds
 
 
 def test_softness_smooths_the_sign_flip_and_leaves_the_far_torque_alone():

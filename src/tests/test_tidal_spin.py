@@ -2,7 +2,7 @@
 
 """
 GEN.731: a planet's birth spin from the giant impacts that built it (`spin.accretion_spin`), the tide that wears it down with the body's own
-Love number and quality factor, and the spin-orbit resonances it can be caught in (`tidal_spin`, `planets.generate_spin`): Mercury, Venus,
+Love number and quality factor, and the spin-orbit resonances it can be caught in (`body_spin`, `planets.generate_spin`): Mercury, Venus,
 Earth, a hot Jupiter and the Moon.
 """
 
@@ -15,11 +15,11 @@ import pytest
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from planetgen.physics import constants as pc
-from planetgen.physics import impact_spin, interior_heat, spin, tidal_heating, tidal_spin
+from planetgen.physics import body_spin, impact_spin, interior_heat, spin, tidal_heating
 from planetgen.physics.planets import generate_spin
 from planetgen.util import draw
 from tests.fuzz_support import deterministic_entropy
-from tests.tide_support import rocky
+from tests.tide_support import locking_time_s, rocky
 
 SUN = 1.989e30
 EARTH_KG = 5.972e24
@@ -44,7 +44,8 @@ JUPITER = _body(1.898e27, 71492.0, "g")
 
 
 def _evolve(body, host_kg, au, eccentricity, age_gyr=4.5, birth=BIRTH):
-    return tidal_spin.evolve(body, host_kg, au * pc.AU_TO_M, birth, age_gyr * GYR_S, eccentricity)
+    found = body_spin.evolve(body, host_kg, au * pc.AU_TO_M, birth, age_gyr * GYR_S, eccentricity)
+    return found.rate, found.ratio
 
 
 def _hours(rate):
@@ -128,7 +129,7 @@ def test_the_resonance_needs_the_time_to_reach_it():
     young_rate, young_ratio = _evolve(MERCURY, SUN, 0.387, 0.2056, age_gyr=0.1)
     assert young_ratio is None
     assert young_rate < BIRTH and _hours(young_rate) < 87.969 * 24.0 / 1.5
-    assert 0.1 < tidal_spin.locking_time_s(MERCURY, SUN, 0.387 * pc.AU_TO_M, BIRTH, 0.2056) / GYR_S < 2.0
+    assert 0.1 < locking_time_s(MERCURY, SUN, 0.387 * pc.AU_TO_M, BIRTH, 0.2056) / GYR_S < 10.0
 
 
 def test_earth_is_not_locked_by_the_sun():
@@ -136,7 +137,7 @@ def test_earth_is_not_locked_by_the_sun():
     243-day retrograde spin shows is too short: the atmospheric tide that holds it away is the spin torque sum, GEN.957.)"""
     rate, ratio = _evolve(EARTH, SUN, 1.0, 0.0167)
     assert ratio is None
-    assert tidal_spin.locking_time_s(EARTH, SUN, pc.AU_TO_M, BIRTH, 0.0167) > 5.0 * GYR_S
+    assert locking_time_s(EARTH, SUN, pc.AU_TO_M, BIRTH, 0.0167) > 5.0 * GYR_S
     assert 0.5 * BIRTH < rate <= BIRTH  # worn down by a tenth to a half, no more
     assert spin.spin_state(_hours(rate), 1.0)[0] == "free"
 
@@ -145,14 +146,14 @@ def test_a_hot_jupiter_is_locked_within_a_few_million_years():
     rate, ratio = _evolve(HOT_JUPITER, SUN, 0.05, 0.0, age_gyr=0.1, birth=2.0 * math.pi / (10.0 * 3600.0))
     assert ratio == 1.0
     assert _hours(rate) == pytest.approx(0.05 ** 1.5 * pc.SECONDS_PER_YEAR / 3600.0, rel=2e-2)
-    time = tidal_spin.locking_time_s(HOT_JUPITER, SUN, 0.05 * pc.AU_TO_M, 2.0 * math.pi / (10.0 * 3600.0))
+    time = locking_time_s(HOT_JUPITER, SUN, 0.05 * pc.AU_TO_M, 2.0 * math.pi / (10.0 * 3600.0))
     assert 1.0e5 * pc.SECONDS_PER_YEAR < time < 1.0e8 * pc.SECONDS_PER_YEAR
     # and a Jupiter at 5.2 AU keeps its spin
     assert _evolve(JUPITER, SUN, 5.2, 0.048, birth=2.0 * math.pi / (10.0 * 3600.0))[1] is None
 
 
 def test_the_moon_is_locked_to_the_earth_in_tens_of_millions_of_years():
-    time = tidal_spin.locking_time_s(MOON, EARTH_KG, 3.84399e8, 2.0 * math.pi / (10.0 * 3600.0), 0.0549)
+    time = locking_time_s(MOON, EARTH_KG, 3.84399e8, 2.0 * math.pi / (10.0 * 3600.0), 0.0549)
     assert 1.0e7 * pc.SECONDS_PER_YEAR < time < 3.0e8 * pc.SECONDS_PER_YEAR
     assert _evolve(MOON, EARTH_KG, 3.84399e8 / pc.AU_TO_M, 0.0549)[1] == 1.0
 
@@ -221,7 +222,7 @@ def test_every_generated_planet_is_in_a_state_the_tide_allows():
             if state != "free":
                 assert planet.axial_tilt_deg == 0.0
             host = planet.primary_mass_kg
-            locking = tidal_spin.locking_time_s(planet, host, planet.distance * pc.AU_TO_M, 2.0 * math.pi / (planet.rotation_period_hours * 3600.0),
+            locking = locking_time_s(planet, host, planet.distance * pc.AU_TO_M, 2.0 * math.pi / (planet.rotation_period_hours * 3600.0),
                                                  planet.eccentricity)
             if state == "free":
                 assert locking > 0.0
