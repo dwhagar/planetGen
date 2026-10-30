@@ -6,14 +6,15 @@ Fits src/planetgen/physics/data/greenhouse_table.json (GEN.850)
 ===============================================================
 
 The table `physics/greenhouse_table.py` reads is a small network fitted to the answers of `physics/radiative_convective.py`, which takes
-seconds to minutes an air. Three steps, each resumable, each writing into the work folder (never into the repository):
+seconds to minutes an air. Four steps, each resumable, each writing into the work folder (never into the repository):
 
     python3 scripts/fit_greenhouse_table.py sample WORK --seeds 1000 1800            airs of the generator and perturbed copies (train.pkl)
     python3 scripts/fit_greenhouse_table.py sample WORK --seeds 5000 5100 --name validation --no-perturb      fresh seeds to validate on
     python3 scripts/fit_greenhouse_table.py designed WORK --count 6000               add airs drawn from families of worlds (train.pkl grows)
     python3 scripts/fit_greenhouse_table.py solve WORK --name train --workers 4      the model's surface temperature of each air (train.jsonl)
     python3 scripts/fit_greenhouse_table.py solve WORK --name validation --workers 4
-    python3 scripts/fit_greenhouse_table.py fit WORK --hidden 96 96                  fit the network, measure it on the validation airs, write the file
+    python3 scripts/fit_greenhouse_table.py fit WORK --hidden 128 128 64             fit the network, measure it on the validation airs, write the file
+    python3 scripts/fit_greenhouse_table.py validate WORK --name validation2         measure the file in the repository on another set of solved airs
 
 `sample` runs the generator for each seed and records the air of every greenhouse call of the surface-air fixed point (the states the table will be
 asked about). Each distinct air also gets one perturbed copy: the pressure scaled by up to a factor of e, every gas multiplied at random by a
@@ -24,6 +25,10 @@ does not converge there) and so are the airs the model did not converge on.
 `designed` adds airs the generator seldom makes but the table must be right for, drawn from four families whose ranges are those of the worlds the
 checks use: a temperate nitrogen-oxygen air, a carbon dioxide air from Mars's to Venus's pressure, a cold nitrogen-methane air with a haze, and a hydrogen-helium
 air. Their gases, pressures, gravities and fluxes are drawn log-uniformly over the range of each family (not tuned to any one world).
+
+The shipped file took two rounds (DAgger-style): a first table from the airs above, then `sample` again with that table in the repository, so the airs are
+those its own fixed point visits, added to the training set, and a fresh validation set (`validation2`) taken under the fitted table. The loss weights are
+`NOISE_FLOOR` and `RELATIVE_ERROR` (0.003 and 0.025); model answers colder than `UNPHYSICAL_BELOW` of the effective temperature are left out.
 
 `solve` needs the k-tables and the collision-induced files (`python3 -m planetgen.cli.datasets fetch ir_ktables ir_cia`); it is the long step
 (about 3 seconds an air on average, tens of thousands of airs). `fit` needs nothing else: numpy and scipy.

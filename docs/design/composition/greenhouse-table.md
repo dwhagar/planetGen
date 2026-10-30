@@ -45,7 +45,26 @@ Fitting again is needed when the model or its data change (the digest says so): 
 
 ## Accuracy
 
-RESULTS
+The network has three hidden layers (128, 128, 64 tanh units) and was fitted in two rounds: the first on the generator's airs and the designed families, the second adding airs the first table's own fixed point visits
+(DAgger-style, so the table is right where it will be asked). Airs where the model "converged" to a surface colder than its effective temperature (a numerical artefact of dense hot airs) are dropped. The validation is
+1,306 airs from seeds the fit never saw (`validation2`, taken under the fitted table); the error is the relative error of `T_s` and the error in kelvin:
+
+| Surface temperature | Airs | Median error | 90th percentile | 99th percentile |
+|---|---|---|---|---|
+| 0 to 300 K | 987 | 0.2 K (0.18 %) | 4.8 K (2.9 %) | 17.7 K (8.6 %) |
+| 300 to 500 K | 226 | 6.3 K (1.7 %) | 31.7 K (7.6 %) | 64.0 K (14 %) |
+| 500 to 1000 K | 50 | 20.7 K (3.4 %) | 196 K (26 %) | 280 K (31 %) |
+| over 1000 K | 43 | 72.8 K (4.7 %) | 216 K (14 %) | 244 K (19 %) |
+| all | 1,306 | 0.56 K (0.39 %) | 16.1 K (4.7 %) | 178 K (17 %) |
+
+The loss weights (an error floor of 0.003 on `ln(T_s/T_e)` and a relative term of 0.025) make the fit follow the cool airs the habitability and the life read; the hot dense airs (over 500 K: runaway greenhouses and
+Venus-like airs) are the model's own weakest and the table's: a hot dense air is right to the first tens of kelvin, not to the degree. The weights are stated in `scripts/fit_greenhouse_table.py` (`NOISE_FLOOR`, `RELATIVE_ERROR`).
+
+## The guards (stand-in IR11)
+
+The network was fitted on airs that always hold an absorber and are at least 10 Pa thick, and left alone it gave a noble-gas air a greenhouse of 0.4. Two guards multiply `ln(T_s / T_e)`: a surface pressure under
+`THIN_AIR_PA` (10 Pa) scales it by `P / 10 Pa` (an optically thin air warms with its column), and a share of gases that absorb or collide in the infrared (everything the gas table does not flag `none`) under
+`ABSORBER_SHARE_MIN` (1 percent) scales it by the share over that. Both are registry row IR11 (tier T5, tweak L0).
 
 ## The cloud (stand-in IR9)
 
