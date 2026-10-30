@@ -49,6 +49,7 @@ import contextlib
 import contextvars
 import json
 import os
+import threading
 import time
 from typing import Annotated
 from urllib.parse import urlsplit
@@ -1670,6 +1671,29 @@ def _stored_seed(database):
         return None
 
 
+SHAPE_ANSWERS_KEPT = 32
+"""int: How many answers of the shape report the page keeps."""
+
+_shape_answers = {}
+_shape_lock = threading.Lock()
+
+
+def _shape_preview(argv, seed):
+    """`plan_outline.preview(argv, galaxy_seed=seed)`, kept (TEST.219): it takes 3 to 10 s warm and a minute or more cold on a
+    busy machine, the page asks again at every change of a dial (400 ms after the last), and a page that is closed leaves
+    its asks running. An ask for dials already worked out is answered at once, one still being worked out is waited for
+    rather than worked out a second time, and a refusal (`ValueError`) is raised afresh, not kept."""
+    key = (tuple(argv), seed)
+    with _shape_lock:
+        found = _shape_answers.get(key)
+        if found is None:
+            found = plan_outline.preview(argv, galaxy_seed=seed)
+            while len(_shape_answers) >= SHAPE_ANSWERS_KEPT:
+                del _shape_answers[next(iter(_shape_answers))]
+            _shape_answers[key] = found
+        return found
+
+
 @bp.route("/admin/generate/shape-report")
 def generate_shape_report():
     """
@@ -1686,7 +1710,7 @@ def generate_shape_report():
         return _no_store(make_response(jsonify({"error": str(exc)}), 400))
     seed = _stored_seed(db_name())
     try:
-        made, refusal = plan_outline.preview(argv, galaxy_seed=seed)
+        made, refusal = _shape_preview(argv, seed)
     except ValueError as exc:
         return _no_store(make_response(jsonify({"error": str(exc)}), 400))
     return _no_store(jsonify({"line": made.line(), "warnings": made.warnings, "refusal": refusal,
