@@ -14769,6 +14769,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Brewer and Fischer 2016 star table (1,615 stars, 15 elements, held as
   a TSV) are in the project files, read once by the GEN.465/468 research
   pass. Catalog sections 1 and 3.
+  Lock-free step merged; snow line decision (2026-10-29 9:40 PM EDT):
+  Sources 1 merged the lock-free step (#3821):
+  physics/condensate_shares.py (Lodders 2003 Tables 10 and 11: ice lines
+  182, 131 and 41 K, water share of solids 0.539, 0.494 and 0.384),
+  registry rows CS1 to CS3 (Verified, L0). Stays open for the wiring
+  step (train 7): SNOW_LINE_TEMPERATURE_K 170 to 182 K, the 30/7 ice
+  boost to 2.17, the ICY_WATER_MASS_FRACTION range of
+  bulk_draw._water_and_ice; moves life, air and class shares, needs the
+  epoch and a re-baselined census. DECISION (TODO under Boss's 8:16 PM
+  EDT source rule, physics found in research wins): take 182 K from the
+  paper; Boss's 10-24 choice of the 170 K centre (GEN.468 findings)
+  predates that rule.
   Prerequisites: none. Related: GEN.944, GEN.468.
 
 - [ ] **GEN.951 Companion mass ratio depends on the primary mass and the orbital period, with the twin excess (Moe and Di Stefano 2017 Table 13) instead of a flat 0.1 to 1 (low priority)**
