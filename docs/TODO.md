@@ -13518,6 +13518,37 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   chain after train 7). Version 8.1.
   Prerequisites: GEN.1030. Related: GEN.1030, GEN.810.
 
+- [ ] **GEN.1034 Ocean tide data: the open-ocean equilibrium tide height and range at a world's surface from each moon and the star, for worlds with a surface ocean**
+  Asked for by Boss (4:00 PM EDT 2026-10-30, curiosity turned into a
+  build request; relayed by the coordinator). Do: a lock-free module
+  (physics/ocean_tides.py) giving the equilibrium tide of each
+  tide-raising body, h = (3/2) (m / M) (R / d)^3 R times the Love-number
+  factor (1 + k2 - h2) for the solid body (Pugh and Woodworth 2014,
+  Sea-Level Science, chapter 3; Cartwright 1999, Tides: A Scientific
+  History), summed over the moons and the star for the spring-tide range
+  (all bodies in line) and the neap range (the Moon-Sun style difference
+  for the two largest), with the eccentric-orbit perihelion and
+  apohelion extremes (the tidal force goes as 1/d^3). A tidally locked
+  body to a tide-raiser has a fixed bulge and no oscillating tide from
+  it: the module states which bodies raise a changing tide given the
+  spin (GEN.957). The result is the open-ocean equilibrium value only;
+  real coastal range depends on basin shape and resonance, which is not
+  modelled (say so in the design note and the column description).
+  Wiring: new columns on planets with surface ocean
+  (tide_range_spring_m, tide_range_neap_m), registered in
+  db/column_units.py with units, filled in the fill pass, rides a train
+  after train 5 (it needs the moons and the spin) with an epoch
+  --affects fill; registry rows in GEN.725 with tier and tweak level
+  (the Love-number factor is Verified from Earth; a world without a
+  measured k2 uses the interior model's). Done: Earth's Moon-and-Sun
+  equilibrium tide (before the Love-number factor) comes out near the published 0.54 m lunar and 0.25 m
+  solar peak-to-peak and about 0.8 m spring range, an ocean world with
+  no moon shows only the star's tide, a locked-to-the-star ocean world
+  shows none from it, and the property sheet carries the columns. Owner:
+  Tides 1 (lock-free module now; wiring rides train 7 after train 5
+  merges). Version 8.1.
+  Prerequisites: none. Related: GEN.957, GEN.959, GEN.842.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
