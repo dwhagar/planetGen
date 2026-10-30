@@ -492,6 +492,11 @@ class StarSystem:
         # placement/validation above is done), so this is computed once,
         # here, same as everything else in this pass.
         self.binary_planetary_wobble_x = self.binary_planetary_wobble_y = self.binary_planetary_wobble_z = 0.0
+        # A planet's own wobble from its moons was made when the moons were; their positions have moved since (the orbits were
+        # settled and the bodies made again at the star's final age), so it is made again from the final ones.
+        for planet in self.all_planets:
+            if planet.body_type != "a":
+                validation.refresh_planet_reflex(planet)
         if self.binary_type == "close":
             # Circumbinary planets orbit the merged proxy, not either
             # individual star (star_id IS NULL -- see schema.sql), so their
