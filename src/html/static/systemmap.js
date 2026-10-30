@@ -308,6 +308,28 @@ function initSphereField(canvasEl) {
     }
   }
 
+  // UX.244: the direction in the picture (x right, y up) from marker `i` to the nearest star marker, for a tidally locked planet to keep its
+  // day side toward. A moon is locked to its planet, which this picture does not name, so a moon is left to the display law; null when there is no star.
+  function towardStar(i) {
+    var rect = rects[i];
+    if (!rect || markers[i].look.kind === "moon") {
+      return null;
+    }
+    var best = null;
+    var nearest = Infinity;
+    for (var j = 0; j < markers.length; j++) {
+      if (!markers[j].isStar || !rects[j]) {
+        continue;
+      }
+      var d = Math.hypot(rects[j].cx - rect.cx, rects[j].cy - rect.cy);
+      if (d < nearest) {
+        nearest = d;
+        best = rects[j];
+      }
+    }
+    return best && nearest > 0 ? [best.cx - rect.cx, -(best.cy - rect.cy), 0] : null;
+  }
+
   // Renders every current marker's own sphere into its own scissored
   // sub-viewport of the shared canvas, once per frame. The whole canvas
   // is explicitly cleared first (scissor test off) rather than relying on
@@ -336,7 +358,7 @@ function initSphereField(canvasEl) {
       }
       // MAP.328: the body turns about its own axis at the rate its stored rotation period gives (spin.js), the
       // flat picture's axis leaned by its axial tilt; the glow and ring stay put, the lighting is the scene's.
-      Spin.turn(THREE, sphere, marker.look, spinSeconds, marker.axis);
+      Spin.turn(THREE, sphere, marker.look, spinSeconds, marker.axis, Spin.isLocked(marker.look) ? towardStar(i) : null);
       configureBody(marker);
 
       // `setViewport`/`setScissor` both take the rect's bottom-left
