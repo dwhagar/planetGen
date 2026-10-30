@@ -2371,6 +2371,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   8.1.
   Prerequisites: none. Related: MAP.345, MAP.307, API.37.
 
+- [ ] **MAP.352 Back to a system in a different sector fails when pressed before the first Back has finished (bug)**
+  Core 2 report (as the lane reported 11:35 PM EDT 2026-10-29), found
+  while fixing TEST.450: pressing Back to a system in a different sector
+  before the previous Back has finished its move can fail (a timing
+  race, not reproduced reliably; Core 2's test now waits). Do: reproduce
+  with two quick Back presses across a sector change, find which load or
+  camera move the second press races with, queue or ignore the second
+  press until the first finishes, and add a test that presses twice
+  without waiting. Owner: Core 2. Version 8.1.
+  Prerequisites: none. Related: TEST.450, MAP.347.
+
 ## NAV: Navigation and courses
 
 - [ ] **NAV.4 Save a course**
@@ -19756,27 +19767,6 @@ clears each one.
   edits a field not used by the rules and finds the class unchanged;
   undo restores the class. Version 8.6. Owner: unowned until 8.6.
   Prerequisites: DB.90, ADM.80. Related: TEST.301, DB.90, TEST.176.
-
-- [ ] **TEST.450 test_web_browser_sector_open.py::test_opening_a_sector_is_one_continuous_view_with_a_filled_panel is red on main: 80 wheel ticks at a sector centre no longer reach open=1 (bug)**
-  Found by Bug 1 (about 8:55 AM EDT 2026-10-29 as the lane reported). 80
-  wheel ticks at a sector's centre no longer reach open=1: the address
-  stays ?sector=...&cam=.... Probably MAP.335 (#3647) or the Z0 landing
-  changed what the wheel does. Do: the map lane says whether the wheel
-  is meant to open a sector now; if yes, find why it stops short and fix
-  the map; if no, update the test to the new way to open a sector.
-  Version 8.1. Owner: Core 2 (map and continuous zoom). Prerequisites:
-  none. Related: MAP.335, MAP.333.
-  Research (2026-10-09): Update (Core 2, about 9:07 AM EDT 2026-10-29 as
-  the lane reported): yes, the wheel is meant to open a sector (the
-  wheel handler opens it once the sector's scene is whole). Reproduced
-  on a clean checkout of the MAP.335 merge commit: 2 of 4 runs fail; in
-  a failed run the sector scene never loads (galaxyAmbient() stays null
-  with the camera inside the sector), so it is intermittent, not a
-  changed rule. Core 2 takes it after MAP.336 lands. The arrow-keys test
-  flakes the same way on that commit; Core 2 made it wait for a still
-  picture inside MAP.336's PR. The last test of TEST.418 (now retired)
-  is this one.
-  Prerequisites: none. Related: MAP.335, MAP.333.
 
 - [ ] **TEST.453 Five tests are red on a clean main: the query near test (NAV.61, expects exit 2), two item_pages planet-page tests, the moon tidal flux migration test, and the fuzz O-star timeout in gas_equilibrium (bug)**
   Found by Aux 2 (about 3:02 PM EDT 2026-10-29 as the lane reported)
