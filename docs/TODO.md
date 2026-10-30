@@ -14053,6 +14053,29 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: TEST.215, GEN.725, GEN.482, GEN.813,
   GEN.474.
 
+- [ ] **GEN.1003 The gas equilibrium solver can stall with no convergence on a hot hydrogen-oxygen mixture (EquilibriumError at 725.97 K and 1.0 bar) (bug)**
+  Reported by Tides 1 (as the lane reported, 5:55 AM EDT 2026-10-30):
+  tests/test_orbit_elements.py::test_every_generated_orbit_is_the_ellipse_it_was_drawn_on
+  can raise gas_equilibrium.EquilibriumError 'no convergence at 725.97 K
+  and 1.0 bar': Newton stalls at best step 1.1e-4 on atoms that are
+  mostly H and O with trace Ar, reached from mixture_rocky.cool via
+  surface_air.solve, for a planet at 0.71 AU with a provisional star age
+  of 0.0008 Gy. It is a latent stall in code Tides 1 did not touch,
+  exposed when its change shifted the random stream; a standalone
+  60-system loop did not reproduce it. Do: capture the exact mixture
+  (atoms, T, P) from a run that raises (seed it from the failing test
+  with Tides 1's branch, or search seeds for a young-star hot-planet
+  case); find why Newton stalls (a flat or near-singular step for a
+  nearly pure H2O-H2 mixture, a bad starting point, or a tolerance below
+  float noise); fix the solver so it converges or falls back to a damped
+  step, with a test on the captured mixture and no change to any result
+  that already converges. Done: the captured case converges, the
+  existing gas solver tests and the golden are unchanged (or the change
+  is named and rides a train). Related: GEN.850, GEN.851, TEST.463,
+  GEN.957. Owner: Air 1 (proposed, it owns the surface air solve);
+  before train 5.
+  Prerequisites: none. Related: GEN.850, GEN.851, TEST.463, GEN.957.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -18842,7 +18865,7 @@ clears each one.
   column is deleted with a migration), and fix at the cause. A migration
   or a stored value change rides a train. Owner: Core 1 (lock-free
   diagnosis while it waits for its second turn). Version 8.1.
-  Update (Core 1, train 2 #3973) (2026-10-30 5:58 AM EDT): Resolved by
+  Update (Core 1, train 2 #3973) (2026-10-30 5:56 AM EDT): Resolved by
   excusing planets.porosity in test_db_column_round_trip (no migration);
   the test passes. The item stays open until GEN.780 fills the column
   and the excusal is removed.
