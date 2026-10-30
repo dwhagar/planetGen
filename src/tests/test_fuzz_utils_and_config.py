@@ -313,14 +313,10 @@ def test_star_class_helpers_on_fake_stars(letter, yerkes, age, lifespan, proxy):
     star = types.SimpleNamespace(type=letter + "2" + yerkes, yerkes_class=yerkes, age=age, lifespan=lifespan)
     target = types.SimpleNamespace(_primary=star) if proxy else star
     assert star_module.get_star_spectral_class(target) == letter.upper()  # (may be 2 chars, e.g. "ß" -> "SS")
-    profile = star_module.get_star_evolutionary_profile(target)
-    base = tuning.STAR_EVOLUTION.get(letter.upper(), {})
-    if not base:
-        assert profile == {}
-    elif yerkes == "V":
-        assert profile is base
+    scales = star_module.supported_evolutionary_scales(target)
+    if letter.upper() not in star_module.SPECTRAL_LETTERS:
+        assert scales == []
     else:
-        scales = profile["supported_evolutionary_scales"]
         assert scales and set(scales) <= {"fast", "normal", "slow"}
 
 

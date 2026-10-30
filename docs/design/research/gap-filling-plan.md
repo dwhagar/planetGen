@@ -806,7 +806,6 @@ Rows for the constants the life draw and the habitability index (`PHI_bio`, `PHI
 <!-- life-standins:begin -->
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
 |---|---|---|---|---|---|---|---|---|---|
-| LF3 | D | T5 | L0 | tuning.STAR_EVOLUTION (`lifespan_gy`: `10 Gyr (M/Msun)^-2.5` on each letter's mass range; O keeps a 1 to 10 Myr floor) | the exponent 2.5 to 3 | main-sequence stars | an observed lifespan outside a letter's range | none needed | computed from the mass-luminosity lifetime scaling anchored to the Sun |
 | LF5 | P | T9 | L4 | tuning.EVOLUTIONARY_TIMELINES (normal 0.5, 1.5, 2.5, 4.0, 4.5 Gyr; fast 0.005 to 0.08; slow 3, 8, 15, 25, 35) | each age | every life milestone | the Earth timeline for `normal`; none for fast and slow | the life timeline of GEN.750 | "purely speculative" in `evolution.py`; `normal` is Earth's history, fast and slow are scaled by hand |
 | LF6 | P | T9 | L3 | tuning.LIFE_MIN_STAR_AGE_GY 0.1 | 0.05 to 0.5 | a star young enough that no life is drawn | a measured age before which a planet cannot hold life | the life timeline of GEN.750 | design |
 | LF7 | P | T9 | L3 | tuning.HABITABILITY_LIFE_SCORE_MIN 0.005 | 0.001 to 0.02 | the likelihood under which a world has no life (GEN.206, GEN.649) | none | the class table | design |
