@@ -12970,7 +12970,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   organosulfur gases) are not filed: nothing reads them and no
   source-backed row exists; file them only if Boss wants those gases
   shown.
-  Aux 2 built (as the lane reported 12:01 PM EDT) (2026-10-29 12:01 PM
+  Aux 2 built (as the lane reported 12:01 AM EDT) (2026-10-30 12:01 AM
   EDT): branch claude/gen894-strange-classes, no PR yet, golden
   untouched, moves generated output so it rides train 2 with --affects:
   classes 5, 8, 9 read acid_medium, a worked-out ammonia share of the
