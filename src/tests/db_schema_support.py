@@ -17,6 +17,13 @@ from planetgen.db import store
 
 OLD_SCHEMA_DIR = os.path.join(os.path.dirname(__file__), "fixtures", "old_schemas")
 
+ROWS_BEFORE = (
+    (176, ("UPDATE planets SET hydrosphere = 'surface ocean' WHERE hydrosphere = 'brine seep'",
+           "UPDATE moons SET hydrosphere = 'surface ocean' WHERE hydrosphere = 'brine seep'")),
+)
+"""tuple: `(version, statements)`: what a row must hold to be kept in a schema older than `version`, when the migration of `version`
+widened a CHECK (GEN.908: the `brine seep` hydrosphere is a `surface ocean` again). `downgrade_to` runs them before it puts the old CHECKs back."""
+
 
 def _ddl_parts(conn):
     """The shape of the connected database as `{table: {"create": text, "columns": {name: line}, "keys": {name: line},
@@ -67,6 +74,10 @@ def downgrade_to(config, version):
     try:
         have = _ddl_parts(conn)
         conn.execute("SET FOREIGN_KEY_CHECKS = 0")
+        for newer, statements in ROWS_BEFORE:
+            if version < newer:
+                for statement in statements:
+                    conn.execute(statement)
         for name in sorted(set(have) - set(want)):
             conn.execute(f"DROP {'VIEW' if 'view' in have[name] else 'TABLE'} `{name}`")
         for name in sorted(set(have) & set(want)):
