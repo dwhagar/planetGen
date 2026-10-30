@@ -14497,6 +14497,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   scatter or clear and redraw; lock-free, no epoch; the Generate page
   still runs its steps one by one. Next: step 4 (page and API build the
   spec, job_runner follows one process), then step 5.
+  Step 4 merged (3:06 PM EDT 2026-10-30): PR #4093 (as the lane
+  reported): a Generate job's generating commands run as one run-job
+  step with one stage list and one estimate; Review page, size estimate
+  and numbering unchanged. Step 5 (Finish the last run from the stored
+  run, retire the later list) is next, Aux 2.
 
 - [ ] **PERF.204 An admin's visit to an uncharted cell queues a one-sector generation run by itself, and the page says queued (the later option 2 of PERF.149 rule 2)**
   Boss (1:19 PM EDT 2026-10-29), asked by Core 5 what a visit to an
@@ -18847,16 +18852,13 @@ clears each one.
   regression, or moved seed; never skip or loosen beyond the property.
   Prerequisites: none. Related: TEST.463.
 
-- [ ] **TEST.482 test_stages::test_plan_is_the_skeleton_and_each_scatter_and_fill_is_one_stage_of_its_own is red on main: fill-map-luminosity lists the block-lights stage (bug)**
-  Found by Aux 2 on PERF.203 step 3 (relayed 2:31 PM EDT 2026-10-30 as
-  the lane reported): the test is red on main; the fill-map-luminosity
-  command now lists a block-lights stage that the test's expected stage
-  list does not name. Do: decide whether the expectation is stale (the
-  block light totals are a repeatable stage several commands end with)
-  or the stage list is wrong, fix the right side, keep the property the
-  test checks (each scatter and fill is one stage of its own, the plan
-  is the skeleton). Done: the test passes on main. Owner: Aux 2 (it is
-  in PERF.203's files) or any free lane.
+- [ ] **TEST.483 test_disregard_missing_data (6 tests) and test_rq_time_limits::test_the_generate_pages_job_gets_a_limit_from_the_time_its_steps_are_recorded_to_take (3 params) are red on clean main (bug)**
+  Found by Aux 2 on PERF.203 step 4 (relayed 3:06 PM EDT 2026-10-30 as
+  the lane reported), red with the change stashed, so on clean main. Do:
+  triage each (stale expectation, a real regression, or a moved seed)
+  and fix the right side without skipping or loosening beyond the
+  property. Done: all of them pass on main. Owner: Bug 2 (after
+  TEST.481) or any free lane. Version 8.1.
   Prerequisites: none. Related: PERF.203.
 
 ## USR: User accounts
