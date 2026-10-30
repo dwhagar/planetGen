@@ -3290,16 +3290,17 @@ SYSTEM_COMET_CHANCE = 0.3
 # remeasured 2026-10-29 over 6,000 systems, four seeds of 1,500, after GEN.855 let
 # the air follow its life: 0.354 where it was 0.402; and 2026-10-29 over 3,000 systems, two seeds of 1,500, after GEN.646 derived the class
 # from the finished body: 0.722, most of it classes Q, P, V and K, which the feature counts as able to carry life while few are habitable
-# by the score). A sector or galaxy run's
+# by the score; all four remeasured 2026-10-30 over 2,000 systems, seed 11, after trains 3 and 4: habitable_world 0.598, asteroid_belt 0.039 where
+# it was 0.549 (the belt mass cut keeps only the belts that clear it), large_star 0.050, planets 0.809). A sector or galaxy run's
 # `--prevalence feature=+50` forces the feature on in enough systems to
 # make that share 1.5 times as large. Remeasure after a change to
 # generation moves one of them: tests/test_prevalence.py checks they still
 # hold within a few points.
 PREVALENCE_BASE_SHARES = {
-    "habitable_world": 0.722,   # a planet or moon of a class that can carry life (see above)
-    "asteroid_belt": 0.549,     # an asteroid belt
-    "large_star": 0.049,        # a primary born at LARGE_STAR_MIN_MASS_SOL or more
-    "planets": 0.941,           # at least one planet or belt
+    "habitable_world": 0.598,   # a planet or moon of a class that can carry life (see above)
+    "asteroid_belt": 0.039,     # an asteroid belt
+    "large_star": 0.050,        # a primary born at LARGE_STAR_MIN_MASS_SOL or more
+    "planets": 0.809,           # at least one planet or belt
 }
 
 # The usual share of each feature one draw decides (ADM.16: the Generate
@@ -3315,7 +3316,7 @@ PREVALENCE_BASE_SHARES = {
 # Remeasure with PREVALENCE_BASE_SHARES.
 PREVALENCE_DRAW_SHARES = {
     "comets": 0.321,            # systems with comets (each star of a wide pair draws)
-    "binary_system": 0.239,     # systems with a pair (the two stars of a system of more than two count)
+    "binary_system": 0.315,     # systems with a pair (the two stars of a system of more than two count)
     "wide_binary": 0.810,       # pairs that are wide (S-type: an axis of 0.25 AU or more)
     "moons": 0.429,             # planets with at least one moon
     "max_planets": 0.037,       # stars that get the most orbits they can hold
