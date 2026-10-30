@@ -15380,7 +15380,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and a deep page at a large table. No generated-output change. Owner:
   Core 5. Version 8.1.
   Species half merged #3909 (2:02 AM EDT as the lane reported)
-  (2026-10-30 2:03 AM EDT): the Species list pages by key (API
+  (2026-10-30 2:02 AM EDT): the Species list pages by key (API
   after=<species id>) and the name, era, tech and spacefaring sorts read
   in index order; schema v177 / migration 0177 (indexes only, no column,
   no stored value, no epoch). At 1,000,000 species a deep page by name
