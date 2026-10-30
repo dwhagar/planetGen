@@ -12050,16 +12050,25 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: GEN.909, GEN.910, GEN.911.
   Prerequisites: none. Related: GEN.909, GEN.910, GEN.911.
 
-- [ ] **GEN.913 A forced civilization (+intelligent_life request) should retry placement until a civilization-capable world exists; today it usually fails to appear (bug)**
-  Found by Aux 2 (about 9:05 AM EDT 2026-10-29 as the lane reported)
-  while tuning the epoch 120 census: a forced INTELLIGENT_LIFE request
-  produces a civilization in only about 1 system in 13, because Class 1
-  life needs a sunlit sea and oxygen and the forced placement picks a
-  world without checking that it can host one. Do: make the forced
-  placement retry (choose among the bodies, or redraw the system) until
-  a civilization-capable world exists, the way the habitable-world
-  request steers (GEN.646); a request that no system in the allowed
-  tries can meet says so plainly. A generation change: lock turn in Aux
+- [ ] **GEN.913 A civilization is never forced: the intelligent_life request and the prevalence setting only tweak probabilities; remove forced placement, redraws and squeezed timelines (bug)**
+  Rule (Boss, 5:08 PM EDT 2026-10-30): "I never want to force a
+  civilization even when I adjust the prevalence it's not forced but
+  just tweaking the probabilities." Found by Aux 2 (about 9:05 AM EDT
+  2026-10-29 as the lane reported) while tuning the epoch 120 census: a
+  forced INTELLIGENT_LIFE request produced a civilization in only about
+  1 system in 13 (0 of 40 as built, 4 of 40 when a habitable world is
+  also required at the 4:47 PM EDT report), because Class 1 life needs a
+  sunlit sea and oxygen. The earlier plan here, to retry placement until
+  a civilization-capable world exists, is dropped: it forces. Do: make
+  the intelligent_life request and the prevalence setting scale the
+  chances (the draw weights of the stage ladder, GEN.646 steering of the
+  world choice stays a steer, not a placement) so that asking raises the
+  odds; remove forced_waits' squeezed timeline and any redraw until one
+  fits; a request that no draw meets says so plainly; update
+  docs/reference/system-file-format.md (intelligent_life no longer
+  guarantees a civilization and no longer forces habitable_world unless
+  that stays a pure steer) and the life-classes and life-timeline notes
+  (rule already written there). A generation change: lock turn in Aux
   2's second turn (GEN.888, GEN.894) or after. Version 8.1. Owner: Aux
   2.
   Prerequisites: none. Related: GEN.646, GEN.854, GEN.872.
