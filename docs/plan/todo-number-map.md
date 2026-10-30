@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.240 |
 | MAP | MAP.353 |
 | NAV | NAV.65 |
-| GEN | GEN.1022 |
+| GEN | GEN.1023 |
 | PERF | PERF.219 |
 | DB | DB.110 |
 | API | API.38 |
@@ -1772,6 +1772,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1019 | Venus clouds and the CO2 far-wing line shape in the infrared model (the IR3 far wing is a labelled stand-in) | none | open |
 | GEN.1020 | Infrared opacity of the acid cloud and the SO2, CO and H2O line wings, so a Venus-like air reaches its published surface temperature once the sourced CO2 far wing replaces IR3 | none | done, PR #4061 |
 | GEN.1021 | Replace the 67P calibration of the comet species factors with a second comet or a laboratory trapping table | none | open |
+| GEN.1022 | One latent ice formation temperature per comet drives its CO/H2O, N2 and Ar together (option B of the comet species model) | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
