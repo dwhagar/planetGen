@@ -1890,3 +1890,14 @@ Baseline: PR #1817.
 | OPS.74 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | OPS.72 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | MAP.347 | 8.1 | Fly-through map |
+| MAP.302 | 8.1 | Fly-through map |
+| MAP.352 | 8.1 | Fly-through map |
+| PERF.208 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| PERF.215 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.811 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.215 | 8.1 | Composition proofs |
+| TEST.161 | 8.1 | Whole-sphere audits |
+| TEST.201 | 8.3 | Positions as one object |
+| TEST.200 | 8.3 | Positions as one object |
+| DOC.72 | 8.1 | Docs |
+| DOC.73 | 8.1 | Docs |

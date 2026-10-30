@@ -211,3 +211,59 @@ def test_a_world_scored_again_after_life_changed_its_air_keeps_its_flux_swing(wo
     world.flux_variation = 0.37
     habitability_world.generate(world, 0.0)
     assert world.flux_variation == 0.37
+
+
+# --- UX.237: the air through the age of the star ------------------------------------------------------------------
+
+STAGES = {"abiogenesis": 0.2, "photosynthesis": 0.5, "complex_cells": 1.5, "multicellularity": 2.5, "technological_civilization": None}
+
+
+def _steps(history, formula):
+    return next(gas["steps"] for gas in history["gases"] if gas["formula"] == formula)
+
+
+def test_the_air_of_an_oxygenic_world_is_methane_before_the_rise_and_oxygen_after_it(world, monkeypatch):
+    _force_flux(monkeypatch, 1.0e12)
+    monkeypatch.setattr(bo, "profile_of", lambda body: bo.Profile(1.0, 0.0, 1.0, 1.0, 1.0, 0.3))
+    assert bo.apply(world, 2.0e19)
+    history = life_air.air_history(world, _class(1), STAGES)
+    assert history["producers_gyr"] == 0.5 and history["rose_gyr"] == pytest.approx(0.8) and history["age_gyr"] == 3.0
+    oxygen, methane, carbon = (_steps(history, formula) for formula in ("O2", "CH4", "CO2"))
+    assert [age for age, _ in oxygen] == [0.0, 0.5, pytest.approx(0.8)]
+    assert oxygen[0][1] == 0.0 and oxygen[1][1] == 0.0
+    assert oxygen[2][1] == pytest.approx(atmosphere.partial_kpa(world, "o2"), rel=1e-3)
+    assert methane[0][1] == 0.0 and methane[1][1] > 0.0 and methane[2][1] == pytest.approx(0.0, abs=1e-6)
+    assert carbon[0][1] > carbon[1][1], "the methane's carbon was carbon dioxide before the producers"
+    assert [stage["key"] for stage in history["stages"]] == ["abiogenesis", "photosynthesis", "complex_cells", "multicellularity"]
+    assert history["speculative"] is None
+
+
+def test_a_stage_the_star_is_too_young_for_is_not_listed(world, monkeypatch):
+    _force_flux(monkeypatch, 1.0e12)
+    assert life_air.apply_gases(world, _class(2), False)
+    history = life_air.air_history(world, _class(2), {**STAGES, "multicellularity": 9.0})
+    assert "multicellularity" not in [stage["key"] for stage in history["stages"]]
+
+
+def test_a_class_that_keeps_its_methane_has_the_same_air_from_the_producers_on(world, monkeypatch):
+    _force_flux(monkeypatch, 1.0e12)
+    assert life_air.apply_gases(world, _class(2), False)
+    history = life_air.air_history(world, _class(2), STAGES)
+    assert history["rose_gyr"] is None and {gas["formula"] for gas in history["gases"]} == {"CO2", "CH4"}
+    methane = _steps(history, "CH4")
+    assert [age for age, _ in methane] == [0.0, 0.5]
+    assert methane[0][1] == 0.0 and methane[1][1] == pytest.approx(_methane(world), rel=1e-3)
+    ledger = life_air.row_of(_class(2))
+    assert history["speculative"] == ({"tier": ledger["tier"], "tweak": ledger["tweak"]} if ledger["tweak"] in ("L3", "L4") else None)
+
+
+@pytest.mark.parametrize("change", ["giant", "no_producers", "producers_after_now", "no_change"])
+def test_a_world_with_nothing_to_chart_has_no_history(world, change):
+    ages = dict(STAGES)
+    if change == "giant":
+        world.body_type = "g"
+    elif change == "no_producers":
+        ages["photosynthesis"] = None
+    elif change == "producers_after_now":
+        ages["photosynthesis"] = 5.0
+    assert life_air.air_history(world, _class(2), ages) is None

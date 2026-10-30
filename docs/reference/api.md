@@ -113,16 +113,17 @@ connectivity to that specific schema rather than the default one.
   (`queryDb.list_sectors`/`count_sectors`). The Sectors table (UX.41) also
   takes `sort` (`name`, `systems`, `density`, `position`, `distance`) with
   `order=asc|desc` (unplaced sectors sort last for `density`, `distance` and
-  `position`; ties keep the default order), the repeatable filter
+  `position`; ties follow the sort's direction by sector ID), the repeatable filter
   `quadrant` (`I`-`IV`, or `unplaced`) and `facets=1`, which adds
   `facets: {"quadrant": [{"value", "count"}]}` (the menu ignores its own
   filter). `total` counts the sectors that pass the filter; a bad `sort` or
-  `order` is a 400. `after=<sector ID>` (PERF.137) starts the page after that
-  sector in the default order and the `name` and `distance` sorts and ignores
-  `offset`: the placed sectors are read by the distance index and the unplaced ones
-  after them by name, so a page costs the same at any depth (sectors at the same
-  distance follow the sort's direction by id); the other sorts ignore `after`. An
-  `after` that is not a sector ID is a 400.
+  `order` is a 400. `after=<sector ID>` (PERF.137, PERF.208) starts the page after that
+  sector in every sort and ignores `offset`, so a page costs the same at any depth: the
+  placed sectors are read by the distance index and the unplaced ones after them by name; the
+  systems, density and position sorts read the stored count, density and Quadrant
+  (`sector_system_counts`) by index, with the sectors that have no galaxy position last, and
+  sectors that tie follow the sort's direction by id; a sector made since the last refresh of
+  those figures follows the others. An `after` that is not a sector ID is a 400.
 - `GET /api/sectors/<id>` — one sector's full display detail: the same
   fields as the listing above, plus `systems` (every system placed in
   it, nearest the sector's center first: `id`, `name`, `quadrant`, `location`, `is_binary`, `binary_type`,
@@ -269,6 +270,19 @@ connectivity to that specific schema rather than the default one.
   description written out on request, `{"id", "format", "content"}`
   (`planetgen/db/render.py`; no page text is stored since schema v29).
   `format` defaults to `markdown`; any other value is a `400`.
+- `GET /api/planets/<id>/life-air` and `GET /api/moons/<id>/life-air` — the data of
+  the Life and air chart on a planet's or moon's page (UX.237,
+  `physics.life_air.air_history`): the air through the age of its star as far as the
+  life class that lives on it changed it, worked out on request from the stored air and
+  stored nowhere. `{"id", "life_class_id", "life_air"}`. `life_air` is `null` for a world
+  with no living class, a giant, a class that changed nothing, or an air the life did not
+  change; otherwise `age_gyr` (the star's age), `producers_gyr` (when the producers began),
+  `rose_gyr` (when the oxygen rose, `null` for a class that makes none), `gases` (`{"formula",
+  "name", "steps": [[age_gyr, partial_pressure_kpa], ...]}` for oxygen, carbon dioxide and methane,
+  each value holding until the next age; a gas that is never above 0.1 Pa is left out),
+  `stages` (`{"key", "age_gyr"}` for each milestone the star is old enough for) and
+  `speculative` (the ledger's `{"tier", "tweak"}` for a class whose numbers are tuned, else
+  `null`). An unknown planet or moon is a `404`. Additive: the API version does not change.
 - `GET /api/systems/<id>/scene` — the 3D system view's data (MAP.69):
   `system`, `epoch`/`epoch_unix` (when the stored phases were last
   advanced, `null` if never), `stars`, `planets` (each with `moons`),

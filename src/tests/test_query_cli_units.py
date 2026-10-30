@@ -64,3 +64,14 @@ def test_a_listing_asks_for_one_row_past_its_limit_and_prints_the_after_to_carry
     assert asked[-1]["limit"] == query.DEFAULT_PAGE + 1
     with pytest.raises(SystemExit):
         cli("planets", "--limit", "-1")
+
+
+def test_the_counts_a_listing_prints_say_what_they_count(cli, monkeypatch):
+    """API.33: `near`'s summary counts objects and `planets` and `moons` name what they show."""
+    rows = [{"id": n, "name": f"P{n}", "planet_class": "M", "radius_km": 6371.2, "system_name": "S", "planet_name": "Q"}
+            for n in range(1, 5)]
+    monkeypatch.setattr(query, "list_planets", lambda conn, **filters: rows)
+    monkeypatch.setattr(query, "list_moons", lambda conn, **filters: rows)
+    monkeypatch.setattr(query, "_row", lambda conn, kind, printed: None if printed is None else int(printed.split("-")[1]))
+    assert "3 planets shown; more follow" in cli("planets", "--limit", "3")
+    assert "3 moons shown; more follow" in cli("moons", "--limit", "3")

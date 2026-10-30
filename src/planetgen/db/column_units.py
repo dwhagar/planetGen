@@ -830,6 +830,7 @@ TABLES = {
     "sector_system_counts": {
         "id": ("sector_id",),
         "count": ("system_count",),
+        "ratio": ("system_density",),
     },
     "sector_tree_nodes": {
         "index": ("level", "shell_index", "band_index"),
