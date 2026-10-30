@@ -201,7 +201,7 @@ def schema_snapshot(config):
             " EXTRA AS e, COLLATION_NAME AS coll FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE()")}
         indexes = {}
         for row in rows("SELECT TABLE_NAME AS t, INDEX_NAME AS i, NON_UNIQUE AS u, SEQ_IN_INDEX AS s,"
-                        " COLUMN_NAME AS c, INDEX_TYPE AS ty FROM information_schema.STATISTICS"
+                        " COALESCE(COLUMN_NAME, CONCAT('(', EXPRESSION, ')')) AS c, INDEX_TYPE AS ty FROM information_schema.STATISTICS"
                         " WHERE TABLE_SCHEMA = DATABASE() ORDER BY TABLE_NAME, INDEX_NAME, SEQ_IN_INDEX"):
             indexes.setdefault((row["t"], row["i"]), (int(row["u"]), row["ty"], []))[2].append(row["c"])
         foreign_keys = {}

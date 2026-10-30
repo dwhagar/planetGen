@@ -54,6 +54,9 @@ metadata lock briefly at its start and end, and one long reader leaves everythin
 _LOCK_ERRORS = (1205, 1213)
 """1205 lock wait timeout exceeded; 1213 deadlock."""
 
+_NOT_IN_PLACE = 1846
+"""The server cannot do an ALTER with the algorithm or lock asked for."""
+
 _NAME = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
 
 
@@ -245,6 +248,48 @@ def add_index_online(connection, table, name, columns, unique=False):
     kind = "UNIQUE KEY" if unique else "KEY"
     _with_retries(connection, f"ALTER TABLE {table} ADD {kind} {name} ({', '.join(parts)}), "
                               f"ALGORITHM=INPLACE, LOCK=NONE")
+    return True
+
+
+def add_expression_indexes(connection, table, indexes):
+    """
+    Adds indexes with expression key parts (functional indexes) to `table` in one `ALTER TABLE ... ALGORITHM=INPLACE, LOCK=SHARED`. The
+    server keeps a hidden virtual column for each expression and refuses `LOCK=NONE` for them, so readers carry on while the indexes build
+    and writers to the table wait. It also refuses to add a second one in place to a table that already has one in some orders (error
+    1846), which is why several go in one statement; when it still refuses (a run that stopped halfway left one of the set), the
+    statement is asked again with the lock only and the server chooses how.
+
+    Args:
+        indexes (dict[str, sequence[str]]): Index name -> its key parts, each a column name or an expression written in brackets
+            (`"(x IS NOT NULL)"`; the brackets of the key part are added). The parts are SQL of the caller's own, not of a request.
+            An index already there is left alone.
+
+    Returns:
+        bool: Whether any index was added.
+    """
+    _name(table)
+    clauses = []
+    for name, parts in indexes.items():
+        _name(name)
+        if exists_index(connection, table, name):
+            continue
+        keys = []
+        for part in parts:
+            if part.startswith("("):
+                if ";" in part:
+                    raise ValueError(f"not an expression: {part!r}")
+                keys.append(f"({part})")
+            else:
+                keys.append(_name(part))
+        clauses.append(f"ADD KEY {name} ({', '.join(keys)})")
+    if not clauses:
+        return False
+    try:
+        _with_retries(connection, f"ALTER TABLE {table} {', '.join(clauses)}, ALGORITHM=INPLACE, LOCK=SHARED")
+    except exc.OperationalError as error:
+        if (error.orig.args[0] if getattr(error.orig, "args", None) else None) != _NOT_IN_PLACE:
+            raise
+        _with_retries(connection, f"ALTER TABLE {table} {', '.join(clauses)}, LOCK=SHARED")
     return True
 
 
