@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 616 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 620 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -39,13 +39,13 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T1 | 79 | 1 | 5 | 1 | 0 | 86 |
 | T2 | 89 | 8 | 0 | 1 | 0 | 98 |
 | T3 | 71 | 24 | 5 | 9 | 0 | 109 |
-| T4 | 29 | 0 | 0 | 13 | 6 | 48 |
+| T4 | 30 | 0 | 0 | 13 | 6 | 49 |
 | T5 | 38 | 12 | 0 | 0 | 0 | 50 |
-| T6 | 49 | 29 | 12 | 33 | 0 | 123 |
+| T6 | 51 | 30 | 12 | 33 | 0 | 126 |
 | T7 | 26 | 8 | 8 | 8 | 0 | 50 |
 | T8 | 0 | 1 | 0 | 1 | 2 | 4 |
 | T9 | 2 | 0 | 2 | 25 | 19 | 48 |
-| All | 383 | 83 | 32 | 91 | 27 | 616 |
+| All | 386 | 84 | 32 | 91 | 27 | 620 |
 
 ## How the labels were given
 
@@ -1019,6 +1019,15 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | SS1 | P | T4 | L0 | seasonal_swing.OCEAN_MIXED_LAYER_M 50, the depth of the sea that follows the seasons | 20 to 100 | worlds with a liquid water ocean | a global ocean model whose seasonal mixed layer averages under 30 m or over 80 m at 45 degrees | the mixed-layer depth by latitude and wind stress, or the ocean's own heat uptake from the hydrosphere | the 50 m mixed layer of the simple climate models of Williams and Kasting 1997 and Spiegel et al. 2009, recalled (not opened); the Earth's seasonal mixed layer is 20 to 100 m | GEN.1048 | - |
 | SS2 | D | T1 | L0 | seasonal_swing.WATER_HEAT_CAPACITY_J_M3_K 4.1e6, the volumetric heat capacity of liquid water | none | water oceans | a brine or a non-water ocean (ammonia-water, hydrocarbons) | the heat capacity of the surface liquid table (GEN.1035) | water: 4,186 J per kg per K at 1,000 to 1,025 kg per m3 | GEN.1048 | - |
 | SS3 | D | T5 | L1 | seasonal_swing.MAX_SHARE 0.999, the transport share is cut here; the seasonal damping is the mean state's own, `B_t = B s / (1 - s)` | 0.99 to 0.9999 | air columns up to Venus's | a general circulation model of a thick-air planet whose seasonal swing is not damped like its pole-to-equator contrast | a diffusion coefficient for the seasonal anomalies from the circulation (the seasonal cycle of a 90 bar air) | extends `regional_temperature.TRANSPORT_X0` (DESIGN) from the means to the cycle; the energy balance form is that of North and Coakley 1979, recalled | GEN.1048 | - |
+
+## 6.92 Stand-ins of the resonant chains
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| RC1 | P | T6 | L0 | resonant_chains.TARGET_RATIOS 2:1, 3:2, 4:3, 5:3, the period ratios a pair is taken to be near | add 5:4, 5:2, 7:5 | multiplanet systems | a chain of measured planets near a ratio not in the list that forces a transit timing signal | the resonances of the observed multis (Fabrycky et al. 2014 ratio histogram) | the design note's list (`weird-worlds.md` W5) | GEN.1049 | - |
+| RC2 | P | T6 | L0 | resonant_chains.RESONANCE_TOLERANCE 0.05, how near a ratio must be to a target | 0.02 to 0.08 | the same | a population whose period-ratio excess near resonance extends past 5 percent | the observed distribution of `Delta` of resonant pairs (Goldberg and Batygin 2022) | the design note's 5 percent gate; the Kepler multis cluster at +0.01 to +0.02, recalled | GEN.1049 | - |
+| RC3 | P | T4 | L0 | resonant_chains.WIDTH_EXPONENT 2/3, the detuning is held at `mu ** (2/3)` or more | 0.5 to 0.8 | first-order resonances of planets | an N-body run in resonance whose eccentricity exceeds the capped value by more than a factor of two | the libration width of the resonance computed from the pendulum model | Lithwick, Xie and Wu 2012: the near-resonance formula holds for `Delta` above `mu^(2/3)`, recalled | GEN.1049 | - |
+| RC4 | P | T6 | L1 | resonant_chains.CROSSING_SHARE 0.5, the share of the orbit-crossing limit the forced eccentricity is held to | 0.3 to 0.9 | chains of heavy planets | a stable chain with forced eccentricities over half the crossing limit | a stability integration of the chain (the overlap-free systems chain) | the necessary condition for non-crossing orbits; the share is ours | GEN.1049 | - |
 
 ## 6.76 Stand-ins of the super-puff radius
 
