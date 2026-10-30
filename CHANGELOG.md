@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2703] - 2026-10-30
+
+**Headline:** Nine registered rows that rest on a Solar System body are now flagged as stand-ins with the item that replaces each.
+
+### Changed
+
+- GEN.1002: `atmosphere-a` a1 and a2 (oxygen fugacity tuned to Moon, Mars and Earth), `atmosphere-b` b1 (dry carbon tuned to the bulk silicate Earth) and `atmosphere-k` k7 (the species of one comet) are stand-ins replaced by GEN.1005; the five ground types of `surface-ground-types` (ultramafic, anorthositic, basaltic, felsic, oxidised: the Earth and Moon crust library of Hu, Ehlmann and Seager 2012) are stand-ins replaced by GEN.474. Their rows are in the stand-in list (section 6.56 of `gap-filling-plan.md`, added earlier). No draw reads a row's state, so the generator battery digest is the same (2df2cbcb...) and no generated value changes; the table digests change, and they are read by `Registry.versions` only. The rule in `tests/data/solar_system_rows.json` moves the nine from pending to flagged, and `tests/test_atmosphere_recipes.py` counts 51 partly verified and 16 stand-in rows.
+
 ## [8.0.2702] - 2026-10-30
 
 **Headline:** A system of three or more stars no longer puts one star inside another.
