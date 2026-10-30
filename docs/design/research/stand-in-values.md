@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 691 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 697 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -41,11 +41,11 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T3 | 74 | 26 | 5 | 9 | 0 | 114 |
 | T4 | 36 | 2 | 0 | 15 | 6 | 59 |
 | T5 | 39 | 12 | 0 | 0 | 0 | 51 |
-| T6 | 61 | 32 | 12 | 33 | 0 | 138 |
+| T6 | 62 | 33 | 12 | 33 | 0 | 140 |
 | T7 | 26 | 8 | 8 | 8 | 0 | 50 |
 | T8 | 0 | 1 | 0 | 1 | 2 | 4 |
-| T9 | 5 | 0 | 3 | 30 | 19 | 57 |
-| All | 434 | 98 | 34 | 98 | 27 | 691 |
+| T9 | 5 | 0 | 4 | 33 | 19 | 61 |
+| All | 435 | 99 | 35 | 101 | 27 | 697 |
 
 ## How the labels were given
 
@@ -1042,6 +1042,17 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | RC2 | P | T6 | L0 | resonant_chains.RESONANCE_TOLERANCE 0.05, how near a ratio must be to a target | 0.02 to 0.08 | the same | a population whose period-ratio excess near resonance extends past 5 percent | the observed distribution of `Delta` of resonant pairs (Goldberg and Batygin 2022) | the design note's 5 percent gate; the Kepler multis cluster at +0.01 to +0.02, recalled | GEN.1049 | - |
 | RC3 | P | T4 | L0 | resonant_chains.WIDTH_EXPONENT 2/3, the detuning is held at `mu ** (2/3)` or more | 0.5 to 0.8 | first-order resonances of planets | an N-body run in resonance whose eccentricity exceeds the capped value by more than a factor of two | the libration width of the resonance computed from the pendulum model | Lithwick, Xie and Wu 2012: the near-resonance formula holds for `Delta` above `mu^(2/3)`, recalled | GEN.1049 | - |
 | RC4 | P | T6 | L1 | resonant_chains.CROSSING_SHARE 0.5, the share of the orbit-crossing limit the forced eccentricity is held to | 0.3 to 0.9 | chains of heavy planets | a stable chain with forced eccentricities over half the crossing limit | a stability integration of the chain (the overlap-free systems chain) | the necessary condition for non-crossing orbits; the share is ours | GEN.1049 | - |
+
+## 6.98 Stand-ins of the band winds
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| BW1 | P | T9 | L2 | band_winds.PRESSURE_FADE_PA 1000 Pa, where the surface wind is half what the air aloft allows | 300 to 3000 | air under a few kilopascals | a measured surface wind on a thin-air world (Mars, Pluto, Triton) that the fade misses by more than a factor of three | a drag law from the air's density and the surface roughness | Boss's "about 1 kPa" in the item (GEN.1110) | GEN.1110 | - |
+| BW2 | P | T9 | L3 | band_winds.PRESSURE_FADE_EXPONENT 2, how sharply the fade falls below its pressure | 1 to 4 | the same | Mars (600 Pa) and Pluto (1 Pa) winds both measured | the same drag law | chosen so Mars keeps a quarter of the wind aloft and Pluto nothing | GEN.1110 | no data |
+| BW3 | P | T6 | L1 | band_winds.THERMAL_WIND_LOG_PRESSURE 1.6, `ln(P_s / P_top)` of the thermal wind | 1.0 to 2.3 | worlds with a tropopause | a world whose tropopause is far from a fifth of the surface pressure (Venus, Titan) | the tropopause pressure of the radiative-convective solve | the Earth's tropopause is 0.2 of the surface pressure, recalled | GEN.1110 | - |
+| BW4 | P | T9 | L3 | band_winds.SURFACE_COUPLING 0.3, the share of the wind aloft that reaches the surface by day | 0.15 to 0.5 | rocky worlds with air | surface winds off the Earth's 5 to 8 m/s in the mid-latitudes | a boundary-layer drag law on the surface roughness | tuned to the Earth's mid-latitude surface wind | GEN.1110 | no data |
+| BW5 | P | T9 | L3 | band_winds.NIGHT_COUPLING 0.5, the share of the day's coupling left at night | 0.3 to 0.8 | worlds with a stable night layer | a measured night to day wind ratio far from a half | a boundary-layer stability model | the Earth's night winds are about half the day's, recalled | GEN.1110 | no data |
+| BW6 | P | T6 | L0 | band_winds.TROPICS_LIMIT_DEG 60, the latitude where westerlies give way to polar winds | 50 to 70 | worlds with a Hadley cell | a general-circulation run with the Ferrel cell ending far from 60 degrees | the Ferrel cell's edge from the same scaling | the Earth's polar front is near 60 degrees, recalled | GEN.1110 | - |
 
 ## 6.99 Stand-ins of the belt density factor
 
