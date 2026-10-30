@@ -203,3 +203,15 @@ def test_a_star_look_carries_its_spin_too():
     look = bl.star_look(star)
     assert look["spinH"] == 609.0 and look["axis"] == [0.0, 0.0, 1.0] and look["tiltDeg"] == 7.25
     assert "spinH" not in bl.star_look(dict(star, rotation_period_hours=None))
+
+
+def test_a_body_whose_day_is_its_orbit_is_marked_locked_and_the_caption_says_so():
+    """UX.244: `locked` is the generator's own lock (`regional_temperature.is_locked`); a free rotator is not marked."""
+    locked = bl.planet_look(_planet(rotation_period_hours=24.0 * 365.25 * 0.1, period_years=0.1))
+    free = bl.planet_look(_planet(rotation_period_hours=17.0, period_years=0.1))
+    unknown = bl.planet_look(_planet(rotation_period_hours=17.0))
+    assert locked["locked"] is True and "locked" not in free and "locked" not in unknown
+    assert "Tidally locked" in bl.look_note(locked) and "its star" in bl.look_note(locked)
+    assert "its planet" in bl.look_note(dict(locked, kind="moon"))
+    assert "turning much faster" in bl.look_note(free)
+    assert bl.look_note({"quality": "x"}) is None
