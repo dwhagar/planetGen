@@ -791,11 +791,12 @@ Lists what is stored, read-only. The subcommands are `sectors` (every sector wit
 
 *   `systems [--star-type TYPE] [--sector-id ID]`
 *   `near PLACE --distance PC [--kinds a,b] [--limit N] [--offset N]`: everything within a distance (at most 50 pc) of an object (`system:<ID>`, `planet:<ID>`, `nebula:<ID>` ...; a bare three-part ID is a system) or of a galaxy-frame point `x,y,z` in parsecs.
-*   `planets` and `moons`: `[--class C] [--min-radius-km N] [--max-radius-km N] [--sector-id ID] [--system-id ID]`
+*   `planets` and `moons`: `[--class C] [--min-radius-km N] [--max-radius-km N] [--sector-id ID] [--system-id ID] [--limit N] [--after ID]`: they list in order of system name, system, orbit (a moon's planet's orbit, then its own), then ID, `--limit` planets or moons at a time (default 100; `--limit 0` lists every one, which on a big galaxy reads them all). When more follow, the last line prints the `--after` to carry on with; a page starts after that planet or moon by key, so any page costs what the first does (PERF.207).
 
 ```bash
 python3 -m planetgen.cli.query sectors
 python3 -m planetgen.cli.query planets --class M --sector-id <ID>
+python3 -m planetgen.cli.query planets --limit 50 --after <ID of the last planet shown>
 ```
 
 ### migrate
