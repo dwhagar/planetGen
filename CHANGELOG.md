@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2583] - 2026-10-30
+
+**Headline:** The generator can now name a star's evolutionary state and the age since a white dwarf stopped burning.
+
+### Added
+- **Evolutionary state and age since it stopped burning (GEN.785 and GEN.786, definitions).** `physics/stellar_state.py` maps a star's Yerkes class and phase to one of twelve state words (main-sequence, red-giant, helium-burning, white-dwarf and so on) and gives a white dwarf's age since it stopped burning. Nothing in generation calls it yet; the wiring rides the star epoch.
+
 ## [8.0.2582] - 2026-10-30
 
 **Headline:** A test now holds the generated star abundances to the Brewer and Fischer 2016 table of 1,615 dwarfs, and shows where they differ.
