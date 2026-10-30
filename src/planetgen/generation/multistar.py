@@ -62,6 +62,7 @@ from planetgen.physics import unit_registry as units
 
 _m_to_au = units.converter("m", "au")
 _km_to_m = units.converter("km", "m")
+_km_to_au = units.converter("km", "au")
 _m_to_km = units.converter("m", "km")
 _au_to_m = units.converter("au", "m")
 _yr_to_d = units.converter("yr", "d")
@@ -982,6 +983,35 @@ class _Builder:
                 self.extra_flags[index] = self.extra_flags.get(index, 0) | MEMBER_FRAGILE
             if leaf.kind == "thorne-zytkow":
                 self.extra_flags[index] = self.extra_flags.get(index, 0) | MEMBER_THEORETICAL
+
+
+def built_tree_clears(nodes, stars):
+    """
+    Whether the built stars of a tree clear its orbits: the same screen `_Builder.clears_extents` runs on the drawn leaves, run
+    on the radii and masses the build gave the stars (`nodes` the tree's `OrbitNode`s, `stars` `(parent_node_no, radius_au,
+    mass_solar)` for each). A star the build makes from a birth mass and an age can come out larger than the tree's member
+    (a giant where the tree had a white dwarf), and a pair then holds a star inside its partner.
+    """
+    singles, inner = {}, {}
+    for parent, radius_au, mass_solar in stars:
+        singles.setdefault(parent, []).append((radius_au, mass_solar))
+    for node in nodes:
+        inner.setdefault(node.parent_node_no, []).append(node)
+    for node in nodes:
+        axis_au = _km_to_au(node.separation_km)
+        peri = axis_au * (1.0 - node.eccentricity)
+        pair = singles.get(node.node_no, [])
+        if len(pair) == 2 and node.node_no not in inner:
+            (radius_a, mass_a), (radius_b, mass_b) = pair
+            if (roche.filling_factor(radius_a, peri, mass_a, mass_b) > MAX_FILL_FACTOR
+                    or roche.filling_factor(radius_b, peri, mass_b, mass_a) > MAX_FILL_FACTOR):
+                return False
+            continue
+        extent = sum(radius for radius, _mass in pair) + sum(
+            child.separation_km / constants.AU_TO_KM * (1.0 + child.eccentricity) for child in inner.get(node.node_no, ()))
+        if peri < PERICENTRE_EXTENT_FACTOR * extent:
+            return False
+    return True
 
 
 def _shape(units, rng):
