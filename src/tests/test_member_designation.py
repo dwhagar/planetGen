@@ -78,3 +78,58 @@ def test_a_rank_above_the_individual_count_addresses_a_body_drawn_on_demand():
 def test_belt_members_are_left_out_of_the_naming_key():
     """No salad name, no codec name: the key renames only the kinds it lists, and a belt member is none of them."""
     assert not [kind for kind in naming_key.KINDS if "belt" in kind or "member" in kind]
+
+
+# --- captured bodies (TEST.495) -------------------------------------------------------------------------------------------------
+
+PLANET = ids.with_body(BELT, 1)
+OTHER_SYSTEM_PLANET = ids.pack(250, 7, 3, ids.SERIAL_GENERATED, 6, body=1)
+
+
+def test_a_captured_belt_member_keeps_its_belt_designation_and_gains_a_parent_link():
+    captured = ids.captured_member(BELT, 0x42, PLANET)
+    assert captured.designation == ids.designation(BELT, 0x42)           # capture renumbers nothing
+    assert captured.captured_by == ids.format_id(PLANET)
+    assert ids.parse_captured(captured) == (BELT, 0x42, PLANET)
+
+
+def test_an_outside_reservoir_body_prints_the_planets_id_and_a_rank():
+    captured = ids.outside_reservoir_member(PLANET, 7)
+    assert captured.designation == f"{ids.format_id(PLANET)}.0007" and captured.captured_by == ids.format_id(PLANET)
+    parent, rank, planet = ids.parse_captured(captured)
+    assert (parent, rank, planet) == (PLANET, 7, PLANET)
+    assert ids.body_of(ids.parse_id(captured.designation.split(".")[0])) == ids.body_of(PLANET)      # the 12-bit body field is untouched
+
+
+def test_both_are_pure_and_round_trip_through_parse_id():
+    for belt, planet in ((BELT, PLANET), (ids.with_body(BELT, 4095), ids.with_body(BELT, 4094))):
+        for rank in (1, 300, 0x10000, ids.MAX_MEMBER_RANK):
+            a, b = ids.captured_member(belt, rank, planet), ids.captured_member(belt, rank, planet)
+            assert a == b and ids.parse_captured(a) == (belt, rank, planet)
+            c = ids.outside_reservoir_member(planet, rank)
+            assert c == ids.outside_reservoir_member(planet, rank) and ids.parse_captured(c) == (planet, rank, planet)
+            assert ids.parse_id(a.captured_by) == planet
+
+
+def test_a_capture_across_systems_or_by_the_belt_itself_or_by_a_system_id_is_refused():
+    with pytest.raises(ValueError, match="not in the system"):
+        ids.captured_member(BELT, 1, OTHER_SYSTEM_PLANET)
+    with pytest.raises(ValueError, match="own members"):
+        ids.captured_member(BELT, 1, BELT)
+    with pytest.raises(ValueError, match="system's own ID"):
+        ids.captured_member(BELT, 1, SYSTEM)
+    with pytest.raises(ValueError, match="system's own ID"):
+        ids.outside_reservoir_member(SYSTEM, 1)
+    with pytest.raises(ValueError):
+        ids.outside_reservoir_member(PLANET, 0)
+
+
+def test_a_captured_link_to_another_system_does_not_parse():
+    bad = ids.Captured(ids.designation(BELT, 3), ids.format_id(OTHER_SYSTEM_PLANET))
+    with pytest.raises(ValueError, match="not in the system"):
+        ids.parse_captured(bad)
+
+
+def test_same_system_ignores_only_the_body_number():
+    assert ids.same_system(BELT, PLANET) and ids.same_system(BELT, SYSTEM)
+    assert not ids.same_system(BELT, OTHER_SYSTEM_PLANET)
