@@ -497,6 +497,13 @@ on the node's Kepler orbit, both children about the node's centre by the other's
 wide pair's first star shifted to the origin) and `relativeAt` answers each star relative to the star its scene orbit names, or to
 the frame's origin. A scene with stars and no tree is refused.
 
+As built (MAP.213, slice A, the 3D system view): `relativeAt` also answers a point for each node's centre of mass (`node:<n>`, `virtual`),
+stars hang from their node's centre and nodes from their parent's, `nodePaths` gives each child's real ellipse about its node's centre
+(the slot-0 child opposite the slot-1 child, each at the other's share), and the compressed layout (`systemscale.js`) scales each node on
+its own: the node's separation is as many units as its two sides need to clear at periapsis (a star with bodies going round it needs
+their whole span, a sub-pair the reach of its own orbit), the orbit itself drawn straight-scaled so its ellipse keeps its shape. True
+scale draws the real distances. Slices B (the System Map diagram) and C (the system page lists the tree) follow.
+
 ### 6.3 Naming (extends GEN.62)
 
 Outside conventions are [R], not searched: the Washington Double Star catalogue
