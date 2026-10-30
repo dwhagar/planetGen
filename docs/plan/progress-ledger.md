@@ -1828,3 +1828,4 @@ Baseline: PR #1817.
 | GEN.978 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | TEST.456 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | GEN.722 | 8.1 | Tuned draws and selection models |
+| GEN.788 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |

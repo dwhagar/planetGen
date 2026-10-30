@@ -12310,28 +12310,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   train.
   Prerequisites: none. Related: UX.208, GEN.725.
 
-- [ ] **GEN.788 Fill star flare_alpha, uv_c_share, log_lx_lbol and lifespan_gy for stars of classes A to F and the G and K stars where they are empty**
-  Aux 11 UX.208 fill audit (merged #3205, relayed 9:46 PM EDT 2026-10-24
-  as the lane reported; reports/sheet-fill-summary-2026-10-25.md, full
-  table reports/sheet-fill-report-2026-10-25.md, 400 systems from seed
-  1000): 31 stars empty (A 4 of 6, B 6 of 7, F 11 of 20, G 7 of 31, K 2
-  of 80, O 1 of 1). Fill them or state in the sheet rule why a hot star
-  has no flare law. Done: the column is filled for every body the sheet
-  rule says it applies to, or the sheet rule is changed to say why it
-  does not apply (a sentence of reason in describe/sheet.py APPLIES),
-  and the UX.208 test lists no empty applicable pair for it; a drawn or
-  computed value has a source and a GEN.725 registry row with tier and
-  tweak level, a unit (GEN.772) and a column_units entry; a change to
-  generated output carries `tests.golden_update --reason ... --affects
-  <stage>` and the next epoch; tests are `scripts/test.py changed
-  --resume`. Version 8.1, with UX.208. Suggested owner: Aux 2 (stars).
-  Owner (full build) (2026-10-29 8:30 PM EDT): Core 3. This replaces any
-  earlier owner line (pool, unowned, retired lane or 'after 8.1'). If it
-  is already started elsewhere, the lane tells TODO before taking it.
-  Lock-free parts first; the part that changes generated output rides a
-  train.
-  Prerequisites: none. Related: UX.208, GEN.725.
-
 - [ ] **GEN.789 Write the sheet rule for wide_binary_a_crit_km: not applicable to a single star, filled for a binary (348 of 522 stars empty)**
   Aux 11 UX.208 fill audit (merged #3205, relayed 9:46 PM EDT 2026-10-24
   as the lane reported; reports/sheet-fill-summary-2026-10-25.md, full
