@@ -14,7 +14,8 @@ from planetgen.web.lib import apiclient
 from planetgen.web.lib.slowroute import slow_route
 from planetgen.web.lib.datatable import Column, Facet, Result, Table, plain, read_from_start
 from planetgen.web.lib.fmt import (
-    format_density, format_distance_ly, format_luminosity_sol, format_members, format_number, format_mass_solar)
+    format_density, format_distance_ly, format_luminosity_sol, format_members, format_number, format_mass_solar,
+    measured_html)
 from planetgen.web.scatter_members_view import members_view
 from planetgen.web.maps.galaxymap import sector_quadrant
 
@@ -276,6 +277,8 @@ def uncharted_star(bright_star_id):
         ("Temperature", f"{format_number(round(detail['temperature_k']))} K"),
         ("Mass", format_mass_solar(detail["mass_solar"])),
         ("Age", f"{detail['age_gy']:.2f} Gyr"),
+        *([("Rotation period", measured_html("h", detail["rotation_period_hours"]))]
+          if detail.get("rotation_period_hours") is not None else []),
         ("Sector cell", f"{detail['designation']} (shell {detail['shell_index']}, band {detail['band_index']}, "
                         f"wedge {detail['wedge_index']})"),
         ("Position x, y, z", ", ".join(f"{detail[axis]:.2f}" for axis in ("x", "y", "z")) + " pc"),

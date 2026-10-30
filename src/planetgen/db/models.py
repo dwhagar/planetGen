@@ -237,6 +237,7 @@ bright_stars = sa.Table(
     sa.Column('system_mass_solar', mysql.DOUBLE(), nullable=True),
     sa.Column('metallicity_fe_h', mysql.DOUBLE(), nullable=True),
     sa.Column('cluster_id', mysql.BIGINT(unsigned=True), nullable=True),
+    sa.Column('rotation_period_hours', mysql.DOUBLE(), nullable=True),
     sa.Index('fk_bright_stars_system', 'star_system_id'),
     sa.Index('idx_bright_stars_address', 'shell_index', 'band_index', 'wedge_index'),
     sa.Index('idx_bright_stars_cell', 'cell_key', 'position_x_mpc', 'position_y_mpc', 'position_z_mpc'),

@@ -1865,6 +1865,7 @@ before any sector is filled. See "Bright-star pre-placement (v43)" above.
 | `star_system_id` | BIGINT UNSIGNED | FK -> `star_systems.id`, `ON DELETE SET NULL`, nullable | Set when its sector is filled. |
 | `created_at` | TIMESTAMP | NOT NULL | |
 | `metallicity_fe_h` | DOUBLE | nullable | Added in v95 (GEN.158). The star's [Fe/H] in dex, drawn at scatter time from its population and position on a stream of its own seed; the fill that builds its system keeps it. NULL on older rows and on a cluster star until GEN.159. |
+| `rotation_period_hours` | DOUBLE | nullable | Added in v176 (GEN.846). The star's spin period in hours, drawn at scatter time by the same cascade a built star uses (`physics/spin.py`: a white dwarf about a day, a giant slow, a cool dwarf by gyrochronology, a hot star by a drawn speed under breakup) on a stream of its own seed; the fill that builds its system keeps it. NULL on rows made before v176, nothing is backfilled. |
 | `off_plane` | TINYINT | virtual | Added in v57 (GEN.117): 1 when `|position_z_mpc|` is 250 pc or more. Computed; nothing writes it. |
 
 Indexes: the address (`shell_index`, `band_index`, `wedge_index`),
