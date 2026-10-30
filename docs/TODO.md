@@ -14750,6 +14750,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   class pages, and GEN.725 rows for the 233.15 K line. Detail: Update
   7:12 PM section of
   reports/class-index-rebuild-assessment-2026-10-30.md.
+  Boss, 7:06 PM EDT 2026-10-30 (2026-10-30 7:10 PM EDT): letter
+  confirmed: the new Deep-frozen class (air-bearing bodies under 233.15
+  K) takes Class E; P is 233.15 K to freezing. The letter is no longer
+  open.
   Prerequisites: none. Related: GEN.1135, GEN.1136, GEN.1143.
 
 - [ ] **GEN.1144 Post-train-6 class re-sweep on the new main, then decide the E and F merge, the T versus N boundary and the H and L reach**
