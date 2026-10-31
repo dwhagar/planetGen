@@ -2,6 +2,17 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2946] - 2026-10-31
+
+**Headline:** New help pages explain every word in the Life section of a planet page: the kinds of life, how much, trend, security, suitability, the stages and each of the nine life classes.
+
+### Added
+- **Life help pages under Help > Life.** One page for the four kinds of life, one for each scale (how much, trend, security, suitability), one for the stages of life and the animal grades, and one for each life class (what it drinks, eats, breathes and gives off, where it can live, how sure we are it can exist, and whether its air chemistry is speculative). The numbers on them come from the same code that works out the scores.
+- **Links from the planet page.** Life class names link to their page, the Kind, How much, Trend and Security headings have a "?" link, and the Life paragraph in At a glance has "What these words mean".
+
+### Changed
+- **Class 9 text.** Its "eats" line now says "as Class 5a and 5b" instead of "as Class 5".
+
 ## [8.0.2945] - 2026-10-31
 
 **Headline:** The planet class table in the system file guide now matches the live class rules, and says which classes are planned.
