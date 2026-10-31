@@ -147,13 +147,13 @@ def refuse_expensive_build(what):
     """
     Called by code about to build, from scratch and in this process, something that takes a minute or more (the
     galaxy's cluster field, `db/store._component_field`). Raises `CacheRebuilding` when it would be a visitor's
-    request that builds it (admins too: the daemon's limit does not care who asked) while the caches are being
-    rebuilt or maintenance is on. Anywhere else (the warm-up, a worker, the command line) it does nothing.
+    request that builds it (admins too: the daemon's limit does not care who asked). Anywhere else (the warm-up, a
+    worker, the command line) it does nothing. The state is the one that rebuilds the caches (`state()`), or, when no
+    rebuild is under way and the thing simply was not made, `{"cause": "missing"}`: the warm-up makes it
+    (PERF.225, `galaxy/field_job.py`).
     """
     if visitor.get():
-        current = state()
-        if current is not None:
-            raise CacheRebuilding(current, what)
+        raise CacheRebuilding(state() or {"cause": "missing", "since": None}, what)
 
 
 def refuse_if_rebuilding(path):
