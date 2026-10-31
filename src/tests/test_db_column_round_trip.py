@@ -25,7 +25,7 @@ BOOKKEEPING_TABLES = {
     "schema_migrations", "alembic_version", "generation_run_arguments", "phenomenon_scatter", "phenomenon_scatter_classes", "sector_system_counts", "system_interests", "nebula_field", "galaxy_components", "facility_types", "facility_type_fields", "facility_field_values", "galaxy_block_stats", "galaxy_block_lights", "region_stats", "object_timing_stats", "object_timing_samples", "id_blocks", "id_counters", "system_name_registry", "sector_name_registry", "population_state",
     "orbit_simulation_state", "galaxy_column", "galaxy_layer", "sector_stats", "bright_stars",
     "nearest_systems", "sector_paths", "sector_path_knots", "scatter_members", "scatter_nodes",
-    "orbit_nodes", "object_index", "galaxy_containers", "vessels", "constellations", "request_comments", "request_notifications", "region_density_overrides", "object_locks", "change_plans", "change_plan_ops", "edit_journal", "sector_tree_nodes", "species_limit_values", "galaxy_shape_pins", "nebula_block_stats", "nebula_block_classes", "nebula_block_state",
+    "orbit_nodes", "dark_members", "object_index", "galaxy_containers", "vessels", "constellations", "request_comments", "request_notifications", "region_density_overrides", "object_locks", "change_plans", "change_plan_ops", "edit_journal", "sector_tree_nodes", "species_limit_values", "galaxy_shape_pins", "nebula_block_stats", "nebula_block_classes", "nebula_block_state",
     "orbital_events", "orbital_event_bodies",
 }
 """Tables no object loader reads row by row: migration and id bookkeeping,
@@ -33,7 +33,7 @@ the name registries, generation progress, and the galaxy skeleton and
 bright-star scatter (read in bulk by the Galaxy Map's tile queries,
 covered by test_galaxymap3d.py/test_bright_star_scatter.py), the galaxy's components (read by `store.get_galaxy_components`, covered by test_migration_galaxy_components.py) and the saved
 sector paths (read by `db/sector_paths.py`, covered by test_sector_paths_db.py) and the orbit tree's nodes (DB.53: the
-migration builds them, the generator and the loaders follow in the DB.53 chain; covered by test_migration_orbit_nodes.py) and the nebula totals per block of the Galaxy Map's ladder (MAP.172: the plan keeps them with the field; covered by test_nebula_blocks_db.py)."""
+migration builds them, the generator and the loaders follow in the DB.53 chain; covered by test_migration_orbit_nodes.py) and the dark members of a tree (GEN.1013: few systems have one; covered by test_gen_stored_trees.py) and the nebula totals per block of the Galaxy Map's ladder (MAP.172: the plan keeps them with the field; covered by test_nebula_blocks_db.py)."""
 
 CHANCE = "chance"
 """Reason for a column whose value in this galaxy depends on the draw."""

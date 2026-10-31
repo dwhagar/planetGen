@@ -9,6 +9,7 @@ members the same way. A plain binary is one node: the relative orbit of the seco
 the pair was generated with. The old binary columns of `star_systems` stay filled until every reader has moved, and for
 a pair they equal the node.
 
+`write_dark_members` and `read_dark_members` store and load the members of the tree that are not stars (GEN.1013).
 `binary_nodes` makes the node of a generated pair (with the `interaction` its Roche geometry gives), `write_nodes` and
 `read_nodes` store and load a tree of `OrbitNode`s, and `member_row_values` is what each `stars` row says about its place
 in the tree (`parent_node_id`, offset from the system's centre). `nodes_from_member_tree` takes the tree
@@ -18,7 +19,7 @@ in the tree (`parent_node_id`, offset from the system's centre). `nodes_from_mem
 from collections import namedtuple
 
 from planetgen.db import storage_checksum
-from planetgen.generation import multistar
+from planetgen.generation import multistar, stored_trees
 from planetgen.physics import constants, system_tree
 from planetgen.physics.system_tree import OrbitNode
 from planetgen.physics import unit_registry as units
@@ -35,6 +36,9 @@ COLUMNS = ("node_no", "parent_node_no", "slot", "mass_solar", "separation_km", "
            "ascending_node_deg", "arg_periapsis_deg", "mean_anomaly_deg", "epoch_unix", "period_years", "kind",
            "interaction", "flags")
 """tuple: The columns of `orbit_nodes` after its key `star_system_id`, in the order of `OrbitNode`'s fields."""
+
+DARK_COLUMNS = ("member_no", "parent_node_no", "slot", "kind", "mass_solar", "radius_au")
+"""tuple: The columns of `dark_members` after its key `star_system_id`, in the order of `stored_trees.DarkMember`'s fields."""
 
 _PairMember = namedtuple("_PairMember", ("kind", "radius_au", "mass", "initial"))
 
@@ -114,6 +118,26 @@ def read_nodes(conn, star_system_id):
     return tuple(OrbitNode(**{column: row[column] for column in COLUMNS}) for row in rows)
 
 
+def write_dark_members(conn, star_system_id, members, replace=True):
+    """Stores `members` (`stored_trees.DarkMember`s: the brown dwarfs, neutron stars and black holes that hang in the system's
+    tree, GEN.1013) as the system's `dark_members`, replacing any it had (`replace=False` for a system just inserted)."""
+    if replace:
+        storage_checksum.mark_system(conn, star_system_id)
+        conn.execute("DELETE FROM dark_members WHERE star_system_id = ?", (star_system_id,))
+    sql = (f"INSERT INTO dark_members (star_system_id, {', '.join(DARK_COLUMNS)})"
+           f" VALUES (?, {', '.join('?' * len(DARK_COLUMNS))})")
+    for member in members:
+        conn.execute(sql, (star_system_id, *(getattr(member, column) for column in DARK_COLUMNS)))
+
+
+def read_dark_members(conn, star_system_id):
+    """The system's stored dark members as a tuple of `stored_trees.DarkMember`s, by member number (empty for none)."""
+    rows = conn.execute(
+        f"SELECT {', '.join(DARK_COLUMNS)} FROM dark_members WHERE star_system_id = ? ORDER BY member_no",
+        (star_system_id,)).fetchall()
+    return tuple(stored_trees.DarkMember(**{column: row[column] for column in DARK_COLUMNS}) for row in rows)
+
+
 def star_places(star_system):
     """
     Where each star of a system sits in its tree, in `star_system.stars` order: `(parent_node_id, offset_au, slot)`
@@ -124,8 +148,9 @@ def star_places(star_system):
     """
     slots = star_system.star_slots
     if slots is not None:
+        dark = [(member.mass_solar, (member.parent_node_no, member.slot)) for member in star_system.dark_members]
         offsets = system_tree.star_offsets_au([star.mass / SOLAR_MASS_KG for star in star_system.stars], slots,
-                                              star_system.orbit_nodes, star_system.orbit_nodes[0].epoch_unix)
+                                              star_system.orbit_nodes, star_system.orbit_nodes[0].epoch_unix, dark)
         return [(parent, offset, slot) for offset, (parent, slot) in zip(offsets, slots)]
     if star_system.binary_type is None:
         return [(None, (0.0, 0.0, 0.0), None)]

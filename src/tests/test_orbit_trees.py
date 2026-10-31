@@ -171,3 +171,54 @@ def test_the_closest_approach_of_an_eccentric_pair_decides():
     pair = (_star("III", 0.4, 1.0), _star("V", 0.005, 1.0))
     assert orbit_trees.pair_interaction(*pair, 3.0, 0.0) == "detached"
     assert orbit_trees.pair_interaction(*pair, 3.0, 0.9) == "semi-detached"
+
+
+# --- Members that are not stars (GEN.1013) ------------------------------------------------------------------------
+
+
+def _with_a_dark_member(kind="neutron-star", pair_kind="wide"):
+    """A star built from a stored pair whose companion is `kind`: a single star with the companion dark in its one node."""
+    from planetgen.db import scatter_systems
+    from planetgen.generation import stored_trees
+    from tests.test_gen_stored_trees import EPOCH, _build, _pair, _stored
+    seed, tree, age_yr = _pair(pair_kind)
+    stored = _stored(tree)
+    plan = stored_trees.plan(
+        scatter_systems.StoredTree((stored.members[0], stored.members[1]._replace(kind=kind)), stored.nodes), EPOCH)
+    system = _build(seed, tree, age_yr, plan=plan, BINARY_SYSTEM=True)
+    return system, SystemConfig()
+
+
+def test_a_lone_star_with_a_dark_member_stores_the_member_and_the_tree_and_reads_both_back(mysql_config):
+    system, cfg = _with_a_dark_member()
+    assert system.binary_type is None and len(system.dark_members) == 1
+    conn = store.get_connection(mysql_config)
+    try:
+        system_id = store.insert_star_system(conn, system, cfg)
+        conn.commit()
+        assert orbit_trees.read_dark_members(conn, system_id) == system.dark_members
+        nodes = orbit_trees.read_nodes(conn, system_id)
+        assert len(nodes) == 1 and nodes[0].mass_solar == pytest.approx(
+            system.star.mass / constants.SOLAR_MASS_TO_KG + system.dark_members[0].mass_solar, rel=1e-9)
+        roles = [r["role"] for r in conn.execute("SELECT role FROM stars WHERE star_system_id = ?", (system_id,)).fetchall()]
+        assert roles == ["single"]
+        loaded = store.load_star_system(conn, system_id)
+        assert loaded.dark_members == system.dark_members and loaded.star_slots == system.star_slots == ((0, 0),)
+        assert len(loaded.stars) == 1 and loaded.binary_type is None
+        orbit_trees.write_dark_members(conn, system_id, ())
+        assert orbit_trees.read_dark_members(conn, system_id) == ()
+    finally:
+        conn.close()
+
+
+def test_the_star_of_a_system_with_a_dark_member_is_off_the_barycentre_in_proportion_to_the_masses(mysql_config):
+    system, _cfg = _with_a_dark_member()
+    star_mass = system.star.mass / constants.SOLAR_MASS_TO_KG
+    dark = system.dark_members[0]
+    node = system.orbit_nodes[0]
+    [offset] = orbit_trees.system_tree.star_offsets_au(
+        [star_mass], system.star_slots, system.orbit_nodes, node.epoch_unix, [(dark.mass_solar, (dark.parent_node_no, dark.slot))])
+    distance = sum(c * c for c in offset) ** 0.5
+    assert distance == pytest.approx(node.separation_km / constants.AU_TO_KM * dark.mass_solar / (star_mass + dark.mass_solar),
+                                     rel=0.6)    # (an eccentric orbit: the separation at the node's phase, not the axis)
+    assert distance > 0.0
