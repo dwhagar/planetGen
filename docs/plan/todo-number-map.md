@@ -16,13 +16,13 @@ release is stamped.
 | UX | UX.250 |
 | MAP | MAP.356 |
 | NAV | NAV.65 |
-| GEN | GEN.1152 |
+| GEN | GEN.1153 |
 | PERF | PERF.219 |
 | DB | DB.110 |
 | API | API.38 |
 | ADM | ADM.135 |
 | SEC | SEC.37 |
-| TEST | TEST.504 |
+| TEST | TEST.505 |
 | USR | USR.32 |
 | OPS | OPS.80 |
 | DOC | DOC.83 |
@@ -1684,7 +1684,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.931 | The spiral-arm contrast at the Sun's place is set per stellar population (young arm populations strong, A stars weak), not by the single inter-arm minimum (the A-star lever of GEN.898) | none | done, PR #4105 |
 | GEN.932 | The star mass function epoch: golden, design docs, census targets and tags, retire the old tags; items 3 to 7 land as one merge in one lock turn | none | open |
 | GEN.933 | One mass-boundary table (brown dwarf/star, planet/brown dwarf, spectral-class mass edges, Chandrasekhar, neutron star/black hole) with sources and tiers, read by the mass function, companions, rogue bodies and the display ladders | none | done, PR #3777 |
-| GEN.934 | Replace the hand-written mass conversions in about 47 modules with the unit registry helper (do not rename _sol/_solar) | none | open |
+| GEN.934 | Replace the hand-written mass conversions in about 47 modules with the unit registry helper (do not rename _sol/_solar) | none | done, PR #4281 |
 | GEN.935 | Evolved stars from the real post-main-sequence tracks: read the MIST post-main-sequence rows at setup for subgiant, giant, core-helium-burning, asymptotic giant and supergiant luminosity, temperature, radius and duration; red supergiants stop at about 300,000 Lsun; a Cepheid and yellow-star flag | none | done, PR #3984 |
 | GEN.936 | The 0.08 to 0.1 solar mass main sequence comes from the Baraffe 2015 table instead of an extrapolation, and the star/brown-dwarf boundary depends on [Fe/H] (no gap and no overlap) | none | done, PR #4105 |
 | GEN.937 | Neutron star masses from the sourced Gaussians in tuning (two populations) and black hole masses from a progenitor-mass and metallicity law | none | absorbed by GEN.930 (remnant masses, Bug 1 triage 5:47 PM EDT 2026-10-29) |
@@ -1902,6 +1902,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1149 | Lagrange trojans T1: pure physics module physics/trojans.py: Gascheau-Routh stability test (host, secondary and trojan masses), libration period, tadpole and horseshoe limit, e and i screen, swarm mass from the scatter trojan share with leading and trailing split, plausibility harness against Jupiter, Neptune, Saturn moons and the exoplanet upper bound (WR10), GEN.725 registry rows, design note | none | done, PR #4273 |
 | GEN.1150 | Lagrange trojans T2: the generator draws a trojan swarm at the L4 and L5 of each giant planet or brown dwarf from the scatter trojan share; new columns co_orbital_host_id, lagrange_point, libration amplitude and phase (db/column_units.py); orbit updater libration overlay; the object and sector pages and the designation rule "<host> L4 trojan region" | none | open |
 | GEN.1151 | Lagrange trojans T3: whole planets and moons (Class M and Class J allowed by the mass rule) at L4 and L5 from the disc formation model only; no forced rate, the observed 5 percent upper bound (WR10) is a plausibility test only; folds in the weird-worlds W7 row | none | open |
+| GEN.1152 | Mass literals that differ from constants.py (changing them changes output): moon_composition JUPITER_MASS_KG 1.89813e27, ring_origin star_mass_kg 1.989e30, giant_interior 317.8 and EARTH_MASS_JUPITER 317.83, stellar_abundances JUPITER_MASS_SOL, tuning 317.8; use the constants.py values with an epoch | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -3588,6 +3589,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.501 | Order-independence test: chart region A then B and B then A and compare the union of real-donor objects and each sector's made-here digest; chart a region twice and nothing changes; the top-up checked as "same stored state in, same objects out" | none | open |
 | TEST.502 | test_orbital_motion::test_moon_having_planet_reflex_offset_matches_manual_formula fails on a clean main: settle_orbit moves captured moons without refreshing the planet offset (bug) | none | open |
 | TEST.503 | Four tests are red on a clean main: test_db_column_round_trip::test_every_column_is_written (moons.magnetopause_rp is NULL in every row), the test_object_rows star read-back (columns state and decay_age_yr), test_gen_hosting_wiring directed moon count, and test_reproducible_draws hypot/BLAS (bug) | none | open |
+| TEST.504 | test_runaway_history::test_the_surface_water_a_planet_keeps_is_what_its_class_gave_less_what_it_lost fails on main (the M3V case sees no loss) (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

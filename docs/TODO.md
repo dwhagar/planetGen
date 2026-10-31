@@ -12182,16 +12182,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   are in the project files; Bedard white dwarf sequences and the neutron
   star tables are also held. Catalog sections 1 to 3.
 
-- [ ] **GEN.934 Replace the hand-written mass conversions in about 47 modules with the unit registry helper (do not rename _sol/_solar)**
-  Hygiene item from Bug 1's unified mass assessment (5:27 PM EDT
-  2026-10-29 as the lane reported): about 47 modules convert between
-  solar masses, Jupiter masses and Earth masses by hand. Do: use the
-  registry helper everywhere and add a test that finds a hand-written
-  mass constant; do NOT rename the _sol/_solar suffixed names. Lock-free
-  (no output change), off the critical path of the GEN.922 chain. Owner:
-  Bug 1. Version 8.1.
-  Prerequisites: none. Related: GEN.922, GEN.568.
-
 - [ ] **GEN.942 Supported life paces come from the star's actual lifespan; the per-letter lifespan table (tuning.STAR_EVOLUTION) is removed**
   Audit finding M6. The per-letter lifespan table (from the old 10 Gy x
   M^-2.5 law) still decides which life paces a planet may use: it says G
@@ -14800,6 +14790,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   planet), which does not model it yet. Brown dwarf and star secondaries
   are allowed when the secondary is under 4 percent of the primary.
   Prerequisites: GEN.1150.
+
+- [ ] **GEN.1152 Mass literals that differ from constants.py (changing them changes output): moon_composition JUPITER_MASS_KG 1.89813e27, ring_origin star_mass_kg 1.989e30, giant_interior 317.8 and EARTH_MASS_JUPITER 317.83, stellar_abundances JUPITER_MASS_SOL, tuning 317.8; use the constants.py values with an epoch**
+  Found by GEN.934 (test_mass_conversions.py lists the 16 sites that
+  stay by hand because a converter call would regroup the product).
+  Swapping these literals for the one value in constants.py changes
+  generated output, so it rides a train with an epoch and --affects; the
+  census shows the effect.
+  Prerequisites: none.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -19627,6 +19625,13 @@ clears each one.
   Bug 2 (2026-10-09): Bug 2 (10-30 gate pass) also reports red on main:
   the climate sweep (2 tests), aquifers, and the deploy_scripts path
   test. Include them in the diagnosis.
+  Prerequisites: none.
+
+- [ ] **TEST.504 test_runaway_history::test_the_surface_water_a_planet_keeps_is_what_its_class_gave_less_what_it_lost fails on main (the M3V case sees no loss) (bug)**
+  Sources 1 found it red on origin/main, not from GEN.934. Find the
+  cause: a loss that is no longer drawn for the M3V case, a changed
+  expectation, or a bug in the runaway history. Fix lock-free if no
+  generated value changes; else list it train-bound.
   Prerequisites: none.
 
 ## USR: User accounts
