@@ -208,8 +208,8 @@ def test_every_cache_family_is_its_own_registered_command_with_one_unit():
     assert list(commands.KIND_OF_WARM_FAMILY) == list(warmup.FAMILIES)
     for family, kind in commands.KIND_OF_WARM_FAMILY.items():
         assert not commands.spec(kind).inline
-        if family in ("galaxy-nodes", "galaxy-deep-nodes", "sectors", "systems", "phenomena"):
-            continue   # many units, one a chunk of nodes or a slice of a listing: their own tests
+        if family in ("cluster-field", "galaxy-nodes", "galaxy-deep-nodes", "sectors", "systems", "phenomena"):
+            continue   # many units, one a part of the cluster field, a chunk of nodes or a slice of a listing: their own tests
         expansion = commands.expand_function(kind)({"database": "x", "cap": 4})
         assert expansion.units == [({"database": "x", "cap": 4}, 1.0)], "one unit that warms that family and no other"
     assert commands.spec(commands.END_MAP_REBUILD).summary
@@ -532,7 +532,7 @@ def test_a_phase_name_stands_for_all_its_families_in_the_order_of_the_run():
     assert warmup.expand_phases(["search", "lists", "deep-nodes", "lists"]) == [
         "lists", "galaxy-deep-nodes", "search"]
     steps = wrapper.steps_for("warm", _args("deep-nodes", "opening"))
-    assert [step.kind for step in steps] == ["warm-object-index", "warm-galaxy-map", "warm-lists",
+    assert [step.kind for step in steps] == ["warm-cluster-field", "warm-object-index", "warm-galaxy-map", "warm-lists",
                                                   "warm-galaxy-deep-nodes"]
     with pytest.raises(ValueError, match="no such cache family or phase"):
         warmup.expand_phases(["phase-seven"])
@@ -803,6 +803,11 @@ def script(monkeypatch, redis_server):
             [({"database": params["database"], "cap": params.get("cap")}, 1.0)], {}))
     # The object index is built on the database itself, not through the site; here it is one more faked family.
     monkeypatch.setattr(warmup, "warm_object_index_unit", lambda args, report: warmup._warm_unit("object-index", args))
+    # The cluster field is made from the database's own rows (PERF.225); here it is one more faked family.
+    from planetgen.galaxy import field_job
+    monkeypatch.setattr(field_job, "expand_field", lambda params: commands.Expansion(
+        [({"database": params["database"], "cap": params.get("cap")}, 1.0)], {}))
+    monkeypatch.setattr(field_job, "field_unit", lambda args, report: warmup._warm_unit("cluster-field", args))
     Plan.ran, Plan.failing, Plan.owners = [], {}, []
     return Plan
 
@@ -824,7 +829,7 @@ def test_a_failing_command_stops_the_list_exits_non_zero_and_is_named(script, ca
     assert exit_info.value.code == 1
     err = caplog.text
     assert "the cache warm-up stopped: unit 0 of stage Warm systems: every system page failed: WarmupFailed: 2 of 9 pages did not answer" in err
-    assert [family for family, _cap, _db in script.ran] == ["object-index", "galaxy-map", "lists",
+    assert [family for family, _cap, _db in script.ran] == ["cluster-field", "object-index", "galaxy-map", "lists",
                                                             "galaxy-nodes", "galaxy-deep-nodes", "sectors", "systems"], \
         "the wrapper's list stops at the failing command"
 

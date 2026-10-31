@@ -130,6 +130,18 @@ def test_an_expensive_build_is_refused_in_a_visitors_request_only(state):
         cachebuild.visitor.reset(token)
 
 
+def test_a_visitor_is_refused_a_build_that_was_not_made_even_when_nothing_rebuilds(state):
+    """PERF.225: the cluster field is a file the warm-up makes; a visitor never builds it, rebuild or not."""
+    assert cachebuild.state() is None
+    token = cachebuild.visitor.set(True)
+    try:
+        with pytest.raises(cachebuild.CacheRebuilding) as refused:
+            cachebuild.refuse_expensive_build("the galaxy's cluster field")
+    finally:
+        cachebuild.visitor.reset(token)
+    assert refused.value.state == {"cause": "missing", "since": None} and refused.value.what == "the galaxy's cluster field"
+
+
 def test_a_requests_visitor_mark_is_cleared_afterwards(app, state):
     app.test_client().get("/api/health")
     assert cachebuild.visitor.get() is False

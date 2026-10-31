@@ -40,8 +40,8 @@ PAGE_SIZE = 100
 """int: Rows asked for at a time when the warm-up lists the objects to visit."""
 
 PHASES = (
-    ("opening", "the object index, the opening views and the first page of each list",
-     ("object-index", "galaxy-map", "lists")),
+    ("opening", "the galaxy's cluster field, the object index, the opening views and the first page of each list",
+     ("cluster-field", "object-index", "galaxy-map", "lists")),
     ("built-levels", "the Galaxy Map's sector-block nodes down to the built level", ("galaxy-nodes",)),
     ("deep-nodes", "the deep nodes along the zoom run in to the centre", ("galaxy-deep-nodes",)),
     ("objects", "the sector, system and phenomenon pages", ("sectors", "systems", "phenomena")),
@@ -51,6 +51,8 @@ PHASES = (
 is the unit the run reports and the admin page shows; each family is a command of its own."""
 
 _FAMILY_TEXT = {
+    "cluster-field": "the galaxy's clusters and satellites as one field: each age's mean system mass worked out in small "
+                     "parts, then the field kept as a file in the state folder (`galaxy/field_job.py`)",
     "object-index": "the object index: one row per object of every kind the site lists",
     "galaxy-map": "the Galaxy Map's opening view, its shape, sectors and phenomena",
     "lists": "the first page of every list, and its counts",
@@ -365,6 +367,13 @@ def _populated_nodes(database):
         conn.close()
 
 
+def _warm_cluster_field(visitor, cap):
+    """Makes the cluster field in this process (`warm_family`, the command's inline twin), part after part."""
+    from planetgen.galaxy import field_job
+    built, cached = field_job.warm_inline(visitor.db)
+    return {"warmed": built + cached, "noun": "parts", "already": cached, "left_out": 0}
+
+
 def _warm_galaxy_nodes(visitor, cap):
     """Warms every node `warm-galaxy-nodes` builds, in this process (`warm_family`, the command's inline twin)."""
     keys = _populated_nodes(visitor.db)
@@ -435,7 +444,7 @@ def _warm_galaxy_deep_nodes(visitor, cap):
     return {"warmed": warmed, "noun": "nodes", "already": already, "left_out": 0}
 
 
-_WARMERS = {"galaxy-map": _warm_galaxy_map, "galaxy-nodes": _warm_galaxy_nodes,
+_WARMERS = {"cluster-field": _warm_cluster_field, "galaxy-map": _warm_galaxy_map, "galaxy-nodes": _warm_galaxy_nodes,
             "galaxy-deep-nodes": _warm_galaxy_deep_nodes, "lists": _warm_lists, "sectors": _warm_sectors,
             "systems": _warm_systems, "phenomena": _warm_phenomena, "search": _warm_search}
 
