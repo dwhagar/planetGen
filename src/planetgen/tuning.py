@@ -984,10 +984,10 @@ POST_AGB_DISK_MASS_RANGE_SOLAR = (0.01, 0.1)
 # to 0.3 solar masses and up to 0.35 dex too bright from 0.5 to 1.4, where the
 # derived Hayashi phase falls more slowly than the table's.
 PRE_MAIN_SEQUENCE_MAX_MASS_SOL = _boundaries.sol("core_collapse_limit")
-# No star contracts longer than this: the track takes the lightest star (0.074 solar masses, the hydrogen-burning limit at solar
-# metallicity, GEN.936) 4.1 Gyr, against 0.94 Gyr for the 0.08 of before (GEN.652; the main sequence under 0.1 solar masses now is
-# Baraffe's, which arrives later). A shortcut for the old stars, which are nearly all of them; the test checks it against the track.
-PRE_MAIN_SEQUENCE_LONGEST_YR = 4.5e9
+# No star contracts longer than this: the radius of the lightest star (0.074 solar masses, the hydrogen-burning limit at solar
+# metallicity, GEN.936) settles in 0.94 Gyr (BHAC15, GEN.1174; MIST's nuclear arrival of such a star would be 4 Gyr or more). A shortcut for the
+# old stars, which are nearly all of them; the test checks it against the track.
+PRE_MAIN_SEQUENCE_LONGEST_YR = 1.1e9
 PROTOSTAR_MAX_AGE_YR = 0.5e6
 HAYASHI_TEMPERATURE_1_SOL_K = 4357.0
 HAYASHI_TEMPERATURE_MASS_EXPONENT = 0.1815
