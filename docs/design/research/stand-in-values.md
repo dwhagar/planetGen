@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 842 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 846 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -36,16 +36,16 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 131 | 11 | 7 | 1 | 0 | 150 |
+| T1 | 132 | 11 | 7 | 1 | 0 | 151 |
 | T2 | 109 | 25 | 0 | 1 | 0 | 135 |
 | T3 | 77 | 31 | 5 | 10 | 0 | 123 |
-| T4 | 36 | 4 | 0 | 15 | 8 | 63 |
+| T4 | 36 | 4 | 0 | 15 | 10 | 65 |
 | T5 | 42 | 13 | 0 | 0 | 0 | 55 |
-| T6 | 70 | 53 | 13 | 40 | 0 | 176 |
+| T6 | 70 | 54 | 13 | 40 | 0 | 177 |
 | T7 | 26 | 8 | 8 | 8 | 0 | 50 |
 | T8 | 0 | 1 | 1 | 5 | 2 | 9 |
 | T9 | 13 | 6 | 4 | 39 | 19 | 81 |
-| All | 504 | 152 | 38 | 119 | 29 | 842 |
+| All | 505 | 153 | 38 | 119 | 31 | 846 |
 
 ## How the labels were given
 
@@ -1308,6 +1308,15 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | TJ3 | D | T2 | L0 | trojans.libration_period, trojans.TADPOLE_LIMIT_DEG 23.9: the slow libration period of the linearised problem and the tadpole to horseshoe limit | limit 23 to 25 | small-mass trojans | a librating body whose period differs from the law by over 10 percent | none | Murray and Dermott 1999 ch. 3 (recalled, not opened) | GEN.1150 | - |
 | TJ4 | P | T4 | L4 | trojans.LEADING_SHARE_RANGE (0.5, 0.62): the share of a swarm in L4 | 0.5 to 0.7 | swarms of giants | a swarm whose leading share is outside the range | the capture history of the generated giant | none read; Jupiter's L4 outnumbers its L5 by about 1.6 to 1 (recalled) | GEN.1150 | no data |
 | TJ5 | P | T4 | L4 | trojans.ECC_MAX 0.2 and INCLINATION_MAX_DEG 35: the largest eccentricity and inclination of a trojan's orbit | e 0.1 to 0.3; i 30 to 40 | every trojan | an N-body run of a trojan inside the limits that leaves in 1 Gyr | an N-body map of the trojan region by mass ratio | none read for a limit; Earth Trojans (arXiv 1812.01244, abstract READ) are stable under 15 degrees and between 24 and 37 degrees | GEN.1150 | no data |
+
+## 6.125 Stand-ins of the whole bodies at Lagrange points
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| TB1 | D | T1 | L0 | trojan_bodies.CLASS_J_MIN_EARTH 35: a Class J world is 35 Earth masses or more | none | every giant | a change of the class row | the class row itself | planet_classes.json, the class J sentence | GEN.1151 | - |
+| TB2 | P | T6 | L1 | trojan_bodies.CLASS_M_MASS_EARTH (0.1, 10): the masses a Class M world is drawn from | 0.05 to 0.3 low; 5 to 10 high | terrestrial worlds | a generated Class M world outside the range | the generated planet's own mass | planet_classes.json giants from 10 Earth masses; no source for a floor | GEN.1151 | - |
+| TB3 | P | T4 | L4 | trojan_bodies.FORMATION_EFFICIENCY 0.1: the share of the solids in the secondary's co-orbital zone that grow into the trojan | 0.02 to 0.5 | whole bodies at L4 and L5 | a disc run in which trojans of planet mass grow from a far smaller share | a hydrodynamic or N-body formation map | none read; Cresswell and Nelson 2009 (arXiv 0811.4611, abstract READ) grow trojans in the disc | GEN.1151 | no data |
+| TB4 | P | T4 | L4 | trojan_bodies.MIN_DISC_LIFETIME_MYR 1: the shortest gas-disc life in which a trojan of planet mass grows | 0.3 to 3 | whole bodies at L4 and L5 | a trojan growing in a disc shorter than that | a formation map | none read | GEN.1151 | no data |
 
 ## 6.94 Stand-ins of the irregular zone
 
