@@ -977,6 +977,12 @@ with `clamp()`.
   Owner (housekeeping) (2026-10-30 2:55 PM EDT): released to the pool:
   the owner named above (Aux 11) is a retired lane. A waiting lane takes
   it, confirmed with TODO, one lock-free item at a time.
+  Changed by GEN.1209 (several life types per planet) (2026-10-31 10:10
+  AM EDT): The Life section must read the list of living classes from
+  GEN.1209 when it lands: each living class with its stage, animal
+  grade, kinds and prevalence, the dominant one first. Until then it
+  shows the one dominant class (PR 4471 folds the kind scores into one
+  Life paragraph).
   Prerequisites: none. Related: UX.221.
 
 - [ ] **UX.239 Search for star systems by how many stars they hold: single, binary, trinary, quaternary and more**
@@ -11105,6 +11111,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   life classes are in reports/life-chemistry-review-2026-10-28-files;
   the registry holds the life-class stand-in rows (LF*). Catalog
   sections 3 and 4.
+  Changed by GEN.1209 (several life types per planet) (2026-10-31 10:10
+  AM EDT): Boss wants more than one life type to coexist on a planet
+  (10:05 AM EDT 2026-10-31). The per-class scores built here stay as
+  what could live there; GEN.1209 adds the list of what does live there,
+  with a prevalence each. Do not make life_class_id a single-valued
+  public contract: GEN.1209 adds a list beside it.
   Prerequisites: GEN.862, UX.237.
 
 - [ ] **GEN.864 Sentient life per life class: sentient species and civilizations draw from the life class scores of a world**
@@ -14138,6 +14150,48 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   golden, fold this into step 3's epoch, else it is lock-free. Where we
   think it belongs (best guess, can move): same lane as step 1.
   Prerequisites: none.
+
+- [ ] **GEN.1209 Several life types coexist on one planet: a per-body list of living classes, each with its stage, animal grade, kinds (microbes, flora, fauna) and prevalence**
+  Boss, 10:05 AM EDT 2026-10-31: let more than one life type exist on a
+  planet, each with a kind (microbes, flora, fauna and so on) and a
+  prevalence, so users know what they will meet; even Earth has several
+  categories of carbon life. Write-up:
+  /mnt/project-files/reports/multi-life-types-per-planet-2026-10-31.md.
+  Filed by the TODO thread. What exists: one living class per body
+  (life_class_id, life_stage, life_animal_grade, the dominant class by
+  food production, GEN.862 chain); suitability scores 0 to 9 for every
+  class the conditions support (life_class_scores, life_class_best,
+  life_class_best_score), which say what could live there, not what
+  does; four kind scores 0 to 9 on planets and moons (life_microbial,
+  life_flora, life_fauna, life_sentient, GEN.649, done), which are
+  already a prevalence per kind but belong to the one living class. The
+  display (one Life paragraph with the kinds, prevalence words and the
+  classes that suit) is UX.237 and PR 4471 and needs no change here
+  beyond reading the new list. Do: (1) Model: a per-body list of living
+  classes, each with stage, animal grade, kind scores and a prevalence
+  share, in a new table or one JSON column (never a column per class);
+  the dominant class stays as the headline, so the 40 or so readers of
+  life_class_id keep working. (2) Generation: after the dominant class
+  is chosen, decide which other supported classes also took hold, from
+  the share of food production, niche overlap, the same solvent and
+  oxidant, and the order of appearance on the evolutionary timeline
+  (GEN.750, done); physics decides, nothing is forced (Boss, 10-30), and
+  a civilization is never forced. (3) Kind scores per class, with the
+  body's four kind scores becoming the combined view of them. (4) The
+  air ledger is keyed by class number, so several living classes need
+  their gas budgets summed (the report names GEN.1013 for this, but
+  GEN.1013 is the overlap-free stars item and is done; Aux 4 or Core 1
+  must name the real ledger item). (5) API and search: a list field
+  instead of the single life_class_id; filters such as has Class 3 life
+  match any living class. (6) Page and map text list each living class
+  with its kinds. Output change with a migration: one epoch, golden,
+  census re-baseline, on a train; stand-ins for the share rules go in
+  GEN.725. Done: a world can store and show two or more living classes
+  with prevalence, the dominant one is unchanged for single-class
+  worlds, and the prevalence census (TEST.435) covers the list. Where we
+  think it belongs (best guess, can move): Aux 2 with Aux 4 for the air
+  ledger.
+  Prerequisites: GEN.862. Related: GEN.863, UX.237, TEST.435.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -18556,6 +18610,10 @@ clears each one.
   life classes are in reports/life-chemistry-review-2026-10-28-files;
   the registry holds the life-class stand-in rows (LF*). Catalog
   sections 3 and 4.
+  Changed by GEN.1209 (several life types per planet) (2026-10-31 10:10
+  AM EDT): Once GEN.1209 lands the prevalence census also covers the
+  list: the share of worlds with two or more living classes, and the
+  prevalence shares per class, inside researched ranges.
   Prerequisites: GEN.863, TEST.430.
 
 - [ ] **TEST.436 Prevalence tests for the chemistries, the adaptation traits and the animal routes: shares per chemistry per star letter, per route and per trait inside researched ranges**
