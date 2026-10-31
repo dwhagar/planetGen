@@ -46,7 +46,7 @@ GEN.1215 stores the first two (the acid and ammonia fractions) and makes the lif
 ## 4. Liquids and supply to add
 
 1. **Ethane** as a liquid and as an ice (today it hides in the unnamed "other" ice). Titan's lakes need it.
-2. **Nitrogen ice** of cold bodies. The census found the comet volatile table has no N2, so every body's `ice_n2_mass_fraction` is 0 and Triton and Pluto kinds cannot hold N2 ice. The share must come from the N2 snow line physics (N2 condenses far out, about 25 K), not the comet table; a stand-in with tier "from physics" and tweak L3 until a source gives the abundance.
+2. **Nitrogen ice** of cold bodies. The census found the comet volatile table has no N2, so every body's `ice_n2_mass_fraction` is 0 and Triton and Pluto kinds cannot hold N2 ice. The research (GEN.1225, `/mnt/project-files/reports/gen1225-ammonia-gate-and-nitrogen-ice-2026-10-31.md`, section 3.5) gives the rule: (a) a body whose ice formed in a zone colder than the N2 condensation temperature gets N2 ice, and that temperature is 22 to 30 K at the disc's partial pressure (28 K at 1e-4 bar), added to `ICE_CONDENSATION_K` (CS1, T1 L0 for the vapour-pressure curve, T4 for the partial-pressure rule); (b) where it forms, the N2 mass per water mass is the solar ceiling (0.107 to 0.21) times a trapping efficiency of 0.001 to 0.013, which is 1e-4 to 1.4e-3 of the water mass with a middle of about 4e-4 (new row GN1, T3 L2, from comet 67P and Pluto; the two 67P N2/CO values disagree by 5 times); (c) the body keeps it only if its Jeans parameter allows (new row GN2, retention, T8 L4: the sources give the regime but no radius cutoff, so it ties to the escape machinery the repo has). Warmer zones get no N2 ice (their nitrogen is the NH3 of the water ice, CS2).
 3. **Sulfuric acid solution** as a liquid with a strength (not one fixed 75 percent row) and a freezing curve from the two eutectics.
 4. **Ammonia-water solution** as a liquid whose melting point follows the stored ammonia fraction (176 K at 33 wt percent, 267.7 K at 5.2 wt percent, from the seven measured points), replacing pure ammonia at 195 K as the only ammonia liquid.
 5. A water sea gains a **salt** that sets its freezing point (NaCl, MgSO4, perchlorates as the brine rows already do).
@@ -63,7 +63,7 @@ The order stays: water if the hydrosphere is liquid, lava if molten, otherwise t
 
 ## 6. What the life classes read
 
-Class 5 and 9: `surface_liquid_acid_wt` at or over 81 (pool) or the cloud strength; Class 8: `surface_liquid_ammonia_wt` over a line (see question 4); Class 7: a hydrocarbon sea with an ethane or methane mole fraction; Class 6: unchanged (liquid or supercritical CO2, `co2_phase`). Water classes: pH, activity and salinity inside the sourced limits. The gates are registered as stand-ins (T8 to T9, L3 to L4) because no source gives a growth limit; the registry rows say what paper would replace each (the report's upload list).
+Class 5 and 9: `surface_liquid_acid_wt` at or over 81 (pool) or the cloud strength; Class 8: `surface_liquid_ammonia_wt` at or above the liquidus share for the body's temperature (about 5 percent at 267 K, 14 percent at 251 K, 20 percent at 235 K, 27 percent at 207 K, from the seven measured points of Chua 2023) and at most the 33 percent peritectic share, with a 3 and a 5 percent shoulder (registry LF44 rewritten, T3 L1; GEN.1225 section 2.5). The research found no growth or activity above about 0.9 percent ammonia and no source for a 10 percent requirement, so the class is a speculation at T9 L4 in what it says about life, and the gate is a statement about the liquid being liquid; Class 7: a hydrocarbon sea with an ethane or methane mole fraction; Class 6: unchanged (liquid or supercritical CO2, `co2_phase`). Water classes: pH, activity and salinity inside the sourced limits. The gates are registered as stand-ins (T8 to T9, L3 to L4) because no source gives a growth limit; the registry rows say what paper would replace each (the report's upload list).
 
 ## 7. Build plan
 
@@ -81,6 +81,6 @@ After each part: the census counts methane, CO, CO2, ammonia, nitrogen seas and 
 1. A second liquid beside the main one: **yes, one extra liquid.**
 2. The makeup of a sea as separate columns: **yes, separate columns.**
 3. Sulfuric-acid clouds: **store them too, the strongest level, with a pool-or-cloud flag** (`surface_liquid_acid_layer`).
-4. The Class 8 ammonia gate: **near 5 percent of the liquid's mass as a starting guess, but tuned from real physics and chemistry** (Sources 1, GEN.1225).
-5. Nitrogen ice on far cold bodies: **invent its amount from where nitrogen freezes, as a registered stand-in, also tuned from physics** (GEN.1225).
+4. The Class 8 ammonia gate: **near 5 percent of the liquid's mass as a starting guess, but tuned from real physics and chemistry** (Sources 1, GEN.1225). Tuned result: the gate follows the liquidus share for the body's temperature, with the 33 percent peritectic as the upper bound (section 6).
+5. Nitrogen ice on far cold bodies: **invent its amount from where nitrogen freezes, as a registered stand-in, also tuned from physics** (GEN.1225). Tuned result: section 4 item 2.
 6. Methane and carbon monoxide ice together, methane able to be liquid: **a methane sea.**
