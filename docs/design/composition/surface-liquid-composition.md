@@ -1,6 +1,6 @@
 # The composition of a surface liquid (GEN.1217 design)
 
-Status: draft for Boss's answers to the questions in section 9. Nothing here is built. It follows the research of GEN.1216 (`/mnt/project-files/reports/gen1216-surface-liquid-composition-2026-10-31.md`, called "the report" below) and the census of GEN.1214 (`/mnt/project-files/reports/tides1/gen1214/census-report-2026-10-31.md`). It decides what a body stores about its liquid, so that GEN.1215 (the acid and ammonia columns) and GEN.1218 (the build) fit one plan.
+Status: Boss answered the six questions of section 9 on 2026-10-31 (11:56 and 11:57 AM EDT); the answers are in section 9 and the design follows them. GEN.1215 (the acid and ammonia columns) is built as a branch; the rest (GEN.1218) is not. It follows the research of GEN.1216 (`/mnt/project-files/reports/gen1216-surface-liquid-composition-2026-10-31.md`, called "the report" below) and the census of GEN.1214 (`/mnt/project-files/reports/tides1/gen1214/census-report-2026-10-31.md`). It decides what a body stores about its liquid, so that GEN.1215 (the acid and ammonia columns) and GEN.1218 (the build) fit one plan.
 
 ## 1. Where the code is today
 
@@ -36,12 +36,12 @@ Stored quantities (all nullable, all NULL when the body has no such liquid):
 
 | Column | Unit | Meaning | Read by |
 |---|---|---|---|
-| `surface_liquid_acid_wt` | percent of mass | sulfuric acid in the acid liquid (a pool at the ground, or the strength of the cloud level) | Classes 5 and 9 gate, the sheet |
-| `surface_liquid_ammonia_wt` | percent of mass | ammonia in the water-ammonia liquid | Class 8 gate, the sheet, the freezing point of the sea |
+| `surface_liquid_acid_wt`, `surface_liquid_acid_layer` | percent of mass, text (`pool` or `cloud`) | sulfuric acid in the acid liquid: its strength, and whether it is a pool at the ground or the cloud level (built, GEN.1215) | Classes 5 and 9 gate, the sheet |
+| `surface_liquid_ammonia_wt` | percent of mass | ammonia in the water-ammonia liquid (built, GEN.1215, for a body with a liquid water ocean) | Class 8 gate, the sheet, the freezing point of the sea |
 | `surface_liquid_salinity_g_kg` | g/kg | dissolved salt of a water sea | the sheet, the freezing point and water activity of the sea |
 | `surface_liquid_methane_mol`, `_ethane_mol`, `_nitrogen_mol` | mole fraction | the hydrocarbon sea's makeup | Class 7, the sheet, the density of the sea |
 
-GEN.1215 stores the first two (the acid and ammonia fractions) and makes the life classes read them instead of recomputing; GEN.1218 adds the other four and the liquids of section 4. Naming them all here means the GEN.1215 migration does not have to be redone. The acid column keeps the cloud case apart from the pool case by the existing `acid_medium` level, which stays a derived number from the stored acid fraction and a stored place (see question 3).
+GEN.1215 stores the first two (the acid and ammonia fractions) and makes the life classes read them instead of recomputing; GEN.1218 adds the other four and the liquids of section 4. Naming them all here means the GEN.1215 migration does not have to be redone. The layer column keeps the cloud case apart from the pool case; both are stored (question 3). Built: `surface_liquid_world.generate` stores the three columns, and the life classes read them through `surface_liquid_world.acid_level` and `ammonia_water_mass_fraction`, falling back to working them out for a row without them. The Class 8 gate line is still a tenth of the water's mass (`life_classes._solvent_term`); question 4's answer moves it to about 5 percent of the liquid's mass, which is Aux 2's habitability change, tuned by the GEN.1225 research.
 
 ## 4. Liquids and supply to add
 
@@ -76,11 +76,11 @@ Class 5 and 9: `surface_liquid_acid_wt` at or over 81 (pool) or the cloud streng
 
 After each part: the census counts methane, CO, CO2, ammonia, nitrogen seas and the water-under-150-K count; the acid and ammonia columns must be NULL on every body with no such liquid and the sheet rule must say why; Ligeia and Punga-like seas inside the report's ranges; the nine-class counts do not fall for the water classes.
 
-## 9. Questions for Boss
+## 9. Questions for Boss, and his answers (11:56 and 11:57 AM EDT 2026-10-31)
 
-1. Should a body be able to hold a second liquid beside its main one (for example a water ocean with a carbon dioxide pool, or a methane sea with an ammonia-water lake)? Recommended: yes, one second liquid. Alternative: keep one liquid per body.
-2. Should the makeup of a sea (acid strength, ammonia share, salt, methane-ethane-nitrogen shares) be stored as separate columns, or as one text column? Recommended: separate columns, as everywhere else in the database.
-3. Should the sulfuric-acid clouds of a thick-aired world also be stored, or only acid pools at the ground? Recommended: store the strongest acid level (pool if there is one, else the cloud) with a flag for which it is.
-4. Class 8 life today needs ammonia at a tenth of the water's mass. The research says an ammonia-water liquid is a third ammonia at its coldest, and the one life measurement we have (methane-making microbes) stops at one to one and a half percent. Should the gate be set at a share of the liquid (recommended: 5 percent of the liquid's mass, marked as a guess with no data), or kept as it is?
-5. Nitrogen ice on far cold bodies has no source in our tables. May we invent its amount from the physics of where nitrogen freezes, as a registered stand-in that research can replace later (recommended), or leave nitrogen out?
-6. Should a cold body that holds both methane and carbon monoxide ice, and is warm enough for methane to be liquid, get a methane sea rather than a carbon monoxide one (recommended)?
+1. A second liquid beside the main one: **yes, one extra liquid.**
+2. The makeup of a sea as separate columns: **yes, separate columns.**
+3. Sulfuric-acid clouds: **store them too, the strongest level, with a pool-or-cloud flag** (`surface_liquid_acid_layer`).
+4. The Class 8 ammonia gate: **near 5 percent of the liquid's mass as a starting guess, but tuned from real physics and chemistry** (Sources 1, GEN.1225).
+5. Nitrogen ice on far cold bodies: **invent its amount from where nitrogen freezes, as a registered stand-in, also tuned from physics** (GEN.1225).
+6. Methane and carbon monoxide ice together, methane able to be liquid: **a methane sea.**
