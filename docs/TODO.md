@@ -1044,6 +1044,10 @@ with `clamp()`.
   rewrite changes its own text to American spelling, and the number of
   "colour" uses (333 on the site) goes to zero. The word list and the
   checker change are made by Core 5 with the next guide edit.
+  Boss rule, 2:50 PM EDT (2026-10-31 2:55 PM EDT): Oxford comma: apply
+  the serial comma in the rewrite (rule 15 of the plain-words guide;
+  DOC.86 adds the check). Links to References pages wait for DOC.87 (R1)
+  and are done in this same pass.
   Prerequisites: none. Related: UX.237, GEN.1208.
 
 ## MAP: Galaxy Map, Sector Map, System Map
@@ -14254,6 +14258,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   item, GEN.1213, built as a separate PR in the same epoch and train as
   this item; the air of multi-life worlds changes, the air of one-class
   worlds does not.
+  References design, 2:52 PM EDT (2026-10-31 2:57 PM EDT): The
+  speculative-chemistry help rewrite and per-class links are DOC.92 (R6
+  of the References menu); this item does not cover the help rewrite.
   Prerequisites: GEN.862. Related: GEN.863, UX.237, TEST.435.
 
 - [ ] **GEN.1211 A new class for hot thin-air rocks (about 1.6 percent of bodies: 1.4 to 2 g, 340 to 1100 K, 1 to 10 kPa, no ocean) is Class Z of the class code system (Boss confirmed)**
@@ -14859,6 +14866,25 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     Prerequisites: GEN.982. Related: GEN.972.
   Prerequisites: none.
 
+- [ ] **GEN.1230 The disc star formation history should decline to the present for a Milky Way mass galaxy: the model gives 0.49 to 0.55 of the ten Gy mean, measured is 0.20 to 0.3 (bug)**
+  Found by Core 3 while closing TEST.533 (#4575, 2:55 PM EDT 10-31 as
+  the lane reported). Present star formation over its ten-Gy mean for
+  the model disc is 0.49 (0.55 after GEN.999) against 0.20 to 0.3
+  measured for the Milky Way (Licquia and Newman 2015). Cause is not the
+  gas law: the inflow in disk_history follows the halo's stellar growth,
+  and for a light halo that rises to the present, while the Milky Way's
+  own history declines. Measured for the test's disc by halo mass:
+  1.0e12 gives 0.89, 1.6e12 0.49, 2.0e12 0.39, 3.1e12 0.29. GEN.1154
+  lowered the median halo of a 5e10 galaxy from 2.0e12 to 1.57e12 solar
+  masses. Candidate causes: the inflow shape (halo growth rate against
+  the stellar-to-halo relation) and the thin disc's age. Physics
+  decides, no game rate; any stand-in goes in GEN.725 with tier and
+  level. TEST.533 widened the bound to a factor of three with the reason
+  in the test; tighten it back when this lands. Interacts with GEN.999
+  (adds 10 percent), so look at it after train 8. Lock work (epoch).
+  Related: GEN.999, GEN.1154, GEN.1200, GEN.1202. Owner: Core 3.
+  Prerequisites: none.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -15276,77 +15302,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   class or radius filter and no cursor (CLI only), and a hand-typed deep
   offset on the Phenomena list. Measure on a real MySQL at a full galaxy
   before and after.
-  Prerequisites: none.
-
-- [ ] **PERF.221 A failed or killed unit names the wrong stage: the message says "unit 101 of stage 5" for a unit of stage 8 of 14 (bug)**
-    Boss's last run (reported by the coordinator, 2:20 PM EDT
-  2026-10-31): the failure message for the killed unit said "unit 101 of
-  stage 5" when the unit belonged to stage 8 of 14 on the run page.
-  queue/units.py unit_failed and horse_killed put the stage's internal
-  index in the message, while the page counts and labels stages
-  differently. Do: say the stage the page shows (its number of the total
-  and its label, `wrapper.stage_label`) in both messages and in the run
-  log lines that print a stage index, and keep the internal index only
-  where the code reads it. Done: a test makes a unit fail in a stage
-  whose internal index differs from its page number and the message
-  names the page's stage. Web and queue only, lock-free. Owner: Sources
-  2 (proposed).
-  Still open (2026-10-31 2:36 PM EDT): Confirmed run failure: the stage
-  in the message was wrong in Boss's run (unit 101 of stage 5 for a
-  stage 8 unit). Still to do.
-    Prerequisites: none.
-  Prerequisites: none.
-
-- [ ] **PERF.222 Generation hosts: MySQL redo log is too small (InnoDB warns the checkpointer lags behind); setup recommends and checks innodb_redo_log_capacity (bug)**
-    Boss's MySQL error log on his server (reported by the coordinator,
-  2:28 PM EDT 2026-10-31): repeated InnoDB warnings MY-014084, "Threads
-  are unable to reserve space in redo log which can't be reclaimed due
-  to the 'log_checkpointer' consumer still lagging behind ... Consider
-  increasing innodb_redo_log_capacity", at 3:25 AM EDT during the run
-  and in bursts at 12:21 PM EDT (every 11 seconds). Writers stall while
-  the redo log is full, which slows generation and raises the memory
-  held by waiting workers. Do: measure the redo write rate of a
-  generation run, choose a capacity that holds a few minutes of it
-  (MySQL 8.0.30 and later set it with innodb_redo_log_capacity, which
-  can be changed with SET GLOBAL without a restart), have update.sh read
-  the setting and print what to set (and the lines for the MySQL config
-  file) when it is below that, and put the recommendation in the setup
-  document (docs, the install page). Do not change the server's
-  configuration without Boss running it. Done: update.sh prints the
-  check; the setup doc states the value and why; the run log no longer
-  shows MY-014084 on a full run. Related: PERF.220 (workers by memory),
-  the lane note that MySQL binlogs fill disk. Owner: Sources 2
-  (proposed, with PERF.220).
-    Prerequisites: none.
-  Prerequisites: none.
-
-- [ ] **PERF.223 Protect MySQL (and Redis) from the kernel out of memory killer on a generation host: setup docs and update.sh recommend OOMScoreAdjust=-900 for mysql.service and a memory limit on the workers (bug)**
-    Confirmed by Boss's kernel log on host hal (via the coordinator,
-  2:30 PM EDT 2026-10-31): the kernel out of memory killer ran from 3:21
-  AM to 3:30 AM EDT (07:21 to 07:30 UTC) with no systemd-oomd involved,
-  and killed mysqld at 3:22:02 AM EDT (it was mostly swapped out, 280 MB
-  resident), then systemd, then several python worker processes of
-  www-data in the apache2.service cgroup (450 to 900 MB resident each).
-  The cap on scatter workers (PERF.220, merged) keeps the next run under
-  the host's memory; this item makes a miss survivable. Do: (1) setup
-  docs and update.sh print the recommended systemd override for the
-  database and Redis (`systemctl edit mysql` with `[Service]
-  OOMScoreAdjust=-900`, the same for redis-server), which makes the
-  kernel kill a worker before the database; (2) update.sh checks the
-  setting and says what to run when it is missing (it never changes
-  Boss's server itself); (3) the workers: they are started by whichever
-  web request queues work (workers.ensure_workers, PERF.95: no service
-  has to be installed), so they are children of Apache and sit in the
-  apache2.service cgroup, which counts their memory against Apache and
-  gives them Apache's OOM score. That is by design of PERF.95 but an
-  accident of accounting: decide whether to offer an optional
-  planetgen-workers systemd slice or unit with MemoryHigh and MemoryMax
-  (so the workers are limited as a group and the kernel kills inside the
-  group first) and document it; do not require it. Done: the docs and
-  update.sh output; a note on whether the slice is worth offering.
-  Related: PERF.222 (redo log), PERF.181 (host worker cap), PERF.220.
-  Owner: Sources 2 (proposed). Boss runs any change on the server.
-    Prerequisites: none.
   Prerequisites: none.
 
 ## DB: Database and schema
@@ -19591,16 +19546,6 @@ clears each one.
   line in the same change, like a module.
   Prerequisites: none.
 
-- [ ] **TEST.533 test_disk_history::test_the_present_rate_over_the_mean_is_within_a_factor_of_two_of_the_milky_ways is red on main (0.505 against a bound of 0.393, 0.554 after GEN.999): the model's recent star formation rate over its mean is about 2.5 times the Milky Way's (bug)**
-    Finding from Core 3's GEN.999 build (as the lane reported, 1:54 PM
-  EDT 2026-10-31). The test was red on main before GEN.999 and is not
-  caused by it. Either the model's recent-over-mean rate is wrong (find
-  which input and fix it, with a source) or the bound is (then change
-  the test and say why). Lock-free if only the test changes; lock work
-  if the model changes. Owner: Core 3 after UX.187.
-    Prerequisites: none.
-  Prerequisites: none.
-
 - [ ] **TEST.534 test_near::test_the_search_counts_what_is_not_generated_yet_and_never_reads_the_sectors_to_search is red on clean main: its _scatter_rows insert fails with column count does not match value count (bug)**
   Reported by Planets 1 at 2:44 PM EDT 10-31 (as the lane reported), not
   from the stars filter. The test helper `_scatter_rows` in src/tests/test_near.py
@@ -19621,6 +19566,15 @@ clears each one.
   members. Decide whether the code or the expected share is right
   (physics decides; no game rates), fix it, and say which. Tests only
   unless the code is wrong. Owner: Aux 3 (built GEN.1013).
+  Prerequisites: none.
+
+- [ ] **TEST.536 test_deploy_scripts::test_scripts_only_name_repo_paths_that_exist is red on main (bug)**
+  Reported by Sources 2 at 2:55 PM EDT 10-31 (as the lane reported): red
+  on main and not from PERF.221, 222 or 223. Find which script names a
+  repo path that no longer exists (or which new script,
+  scripts/redo_log_advice.py or scripts/oom_advice.py, is not found by
+  the test), fix the script or the path, and say which. Tests and
+  scripts only, lock-free. Owner: Sources 2.
   Prerequisites: none.
 
 ## USR: User accounts
@@ -20770,8 +20724,142 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   it, confirmed with TODO, one lock-free item at a time.
   Prerequisites: UX.223, NAV.64. Related: DOC.6, DOC.9.
 
-## VIEW: The view from a planet
+- [ ] **DOC.86 Oxford comma everywhere: check lists of three or more for the serial comma, and fix every template, help page and generated sentence**
+  Boss (2026-10-31, 2:50 PM EDT): "introduce our text pages to the
+  oxford comma, sometimes you use it, sometimes you don't, use it, it's
+  important." Rule 15 of the plain-words guide
+  (docs/design/interface/text-style.md) now says every list of three or
+  more has a comma before its and or or. Do: (1) add a checker to
+  planetgen/util/plainwords.py that flags a list of three or more items
+  without the comma, reliably enough to hold (a clause list like 'X,
+  which is big and cold' must not fire: flag only a run of at least
+  three short noun phrases joined by commas ending in and or or without
+  the comma; test sentences for both the hits and the safe cases, then
+  run it over the corpus to see what it flags), and move rule 15 into
+  the checked list; (2) run it over the generated text
+  (tests/test_plain_words.py), the class pages, the life help pages
+  (tests/test_life_help.py), the help suite, the templates and the
+  static pages, and fix every hit; (3) hold the new help pages
+  (References, glossary) to it as they land. Lock-free; text only, no
+  generation change. Owner: Core 5 (with UX.252, which applies the rule
+  in its rewrite).
+  Prerequisites: none.
 
+- [ ] **DOC.87 References R1: link helper (reference_link(kind, id)), the anchor and URL scheme, the banned-words rule for out-of-universe words, and the crawl test**
+  Boss (2026-10-31, as the coordinator relayed): a Help > References
+  menu, out of universe, for sources, the GEN.725 stand-in registry with
+  how each was decided, fitted values, speculative chemistry and gaps;
+  the rest of the site stays in universe. Design:
+  /mnt/project-files/design-drafts/references-help-menu-2026-10-31.md
+  (section 6, R1 to R8). Wording and pages only: no epoch, no lock, no
+  computed change, lock-free. Add `reference_link(kind, id)`, the URL
+  layout, the list of banned out-of-universe words and the exemption for
+  the References pages (a new rule 16 of the plain-words guide, after
+  the Oxford comma rule 15 of DOC.86), and
+  the page crawl test. Related: DOC.83, DOC.57, DOC.86. Owner: Core 1,
+  after TEST.534.
+  Prerequisites: none.
+
+- [ ] **DOC.88 References R2: the References shell and generator (Help menu entry, /references with the Out of universe banner, scripts/build_reference_pages.py with --check, built by update.sh)**
+  Boss (2026-10-31, as the coordinator relayed): a Help > References
+  menu, out of universe, for sources, the GEN.725 stand-in registry with
+  how each was decided, fitted values, speculative chemistry and gaps;
+  the rest of the site stays in universe. Design:
+  /mnt/project-files/design-drafts/references-help-menu-2026-10-31.md
+  (section 6, R1 to R8). Wording and pages only: no epoch, no lock, no
+  computed change, lock-free. Ship the shell before DOC.57 and let
+  DOC.57 absorb it. The generator is built by update.sh and `--check` is
+  held by a test. Related: DOC.57, DOC.58. Owner: Core 1.
+  Prerequisites: DOC.87.
+
+- [ ] **DOC.89 References R3: Sources pages (papers, datasets, archives, licenses, credits), each paper linking to where it is used**
+  Boss (2026-10-31, as the coordinator relayed): a Help > References
+  menu, out of universe, for sources, the GEN.725 stand-in registry with
+  how each was decided, fitted values, speculative chemistry and gaps;
+  the rest of the site stays in universe. Design:
+  /mnt/project-files/design-drafts/references-help-menu-2026-10-31.md
+  (section 6, R1 to R8). Wording and pages only: no epoch, no lock, no
+  computed change, lock-free. Reuse the REFERENCES data. Related:
+  DOC.57. Owner: Sources 1.
+  Boss approved the design with an addendum, 2:54 PM EDT (2026-10-31
+  2:59 PM EDT): R3 grows to: papers with DOI links, browse by research
+  area and by field, search and computed totals. Every paper row links
+  to its DOI page, else arXiv, else ADS, else a search link from title
+  and first author, and a test fails if a row has none. Two browse axes,
+  both computed: where we use it (the area of the code or data that
+  cites it; a paper used in two areas appears in both) and the field of
+  the paper (from the journal), plus year, decade and type. Totals per
+  area, field and decade, oldest and newest, most cited by us, with DOI,
+  with arXiv, books, datasets. /references/papers has A to Z, area,
+  field and year views and a text search over title, author and DOI, and
+  each entry shows which values, stand-ins and pages use it. The
+  citations not yet matched to a paper get their own page with a search
+  link each. Details: section 8 of
+  /mnt/project-files/design-drafts/references-help-menu-2026-10-31.md.
+  Prerequisites: DOC.88.
+
+- [ ] **DOC.90 References R4: stand-in registry pages (every GEN.725 row, one page per stand-in with how it was made and decided, tier and level legends, filters, and the fitted-to-a-result page for L2 to L4 with tuning targets)**
+  Boss (2026-10-31, as the coordinator relayed): a Help > References
+  menu, out of universe, for sources, the GEN.725 stand-in registry with
+  how each was decided, fitted values, speculative chemistry and gaps;
+  the rest of the site stays in universe. Design:
+  /mnt/project-files/design-drafts/references-help-menu-2026-10-31.md
+  (section 6, R1 to R8). Wording and pages only: no epoch, no lock, no
+  computed change, lock-free. Stand-ins already have rows, so no GEN.725
+  change. Related: GEN.725. Owner: Sources 1.
+  Prerequisites: DOC.88.
+
+- [ ] **DOC.91 References R5: method pages by area, what we have and lack, and the computed scorecard; /help/properties moves here with no redirect**
+  Boss (2026-10-31, as the coordinator relayed): a Help > References
+  menu, out of universe, for sources, the GEN.725 stand-in registry with
+  how each was decided, fitted values, speculative chemistry and gaps;
+  the rest of the site stays in universe. Design:
+  /mnt/project-files/design-drafts/references-help-menu-2026-10-31.md
+  (section 6, R1 to R8). Wording and pages only: no epoch, no lock, no
+  computed change, lock-free. Method pages come from the sheet sources
+  and data files. Related: GEN.725, DOC.57. Owner: Core 5.
+  Prerequisites: DOC.88, DOC.90.
+
+- [ ] **DOC.92 References R6: move the speculative chemistry out of the life help and the air chart into /references/speculative, with per-class links (including the multi-class section for GEN.1209 and GEN.1213)**
+  Boss (2026-10-31, as the coordinator relayed): a Help > References
+  menu, out of universe, for sources, the GEN.725 stand-in registry with
+  how each was decided, fitted values, speculative chemistry and gaps;
+  the rest of the site stays in universe. Design:
+  /mnt/project-files/design-drafts/references-help-menu-2026-10-31.md
+  (section 6, R1 to R8). Wording and pages only: no epoch, no lock, no
+  computed change, lock-free. Cut it from `life_help.py` and
+  `life_air_chart.py`. GEN.1209 itself does not cover the help rewrite;
+  this item does. The API field `speculative` stays. Related: GEN.1209,
+  GEN.1210, GEN.1213, UX.237, DOC.84. Owner: Core 5.
+  Prerequisites: DOC.88.
+
+- [ ] **DOC.93 References R7: strip model hints from the leftover pages (maps, sector estimates text, API docs strings) and add links at the important places**
+  Boss (2026-10-31, as the coordinator relayed): a Help > References
+  menu, out of universe, for sources, the GEN.725 stand-in registry with
+  how each was decided, fitted values, speculative chemistry and gaps;
+  the rest of the site stays in universe. Design:
+  /mnt/project-files/design-drafts/references-help-menu-2026-10-31.md
+  (section 6, R1 to R8). Wording and pages only: no epoch, no lock, no
+  computed change, lock-free. UX.252 and UX.253 wait for R1 and do their
+  own links in the same pass over the text they already rewrite; this
+  item covers only what they leave: color note, sector estimated text,
+  life class reaches, sheet source lines to links, class page basis.
+  Split by page kind if large. Related: UX.252, UX.253, DOC.83. Owner:
+  Core 5.
+  Prerequisites: DOC.87, DOC.88, DOC.89, DOC.90, DOC.91.
+
+- [ ] **DOC.94 References R8: test lock: the page crawl proves no out-of-universe word outside References and every link resolves, in the gate for changed pages**
+  Boss (2026-10-31, as the coordinator relayed): a Help > References
+  menu, out of universe, for sources, the GEN.725 stand-in registry with
+  how each was decided, fitted values, speculative chemistry and gaps;
+  the rest of the site stays in universe. Design:
+  /mnt/project-files/design-drafts/references-help-menu-2026-10-31.md
+  (section 6, R1 to R8). Wording and pages only: no epoch, no lock, no
+  computed change, lock-free.  Related: DOC.83. Owner: Core 1.
+  Prerequisites: DOC.93.
+
+- [ ] **DOC.95 References R3b (very important, first, ahead of the page build): tie every unmatched citation to its real paper, or label it not a paper, in batches by heaviest first**
+  Boss (2026-10-31, 2:55 PM EDT, as the lane relayed): finding the real citation for every unmatched citation is "very very important"; high priority, ahead of the References page build, no wait for the shell. Facts: 2,562 of 4,595 author-year mentions in docs/reference/references-data.json are not tied to a paper (about 16,900 places); only about 35 are noise or organizations; 997 appear three or more times; decades 1970s 112, 1980s 164, 1990s 256, 2000s 568, 2010s 912, 2020s 439. The lane reports in /mnt/project-files/reports (294 files) were never harvested and hold many full citations. Crossref works from a build machine; OpenAlex and Semantic Scholar answered 429 until a free key is set. Plan, in order: (1) triage noise ("EDT 2026" read as a citation, Copyright, months) and non-papers (organizations, web pages, software, standards) into a labeled list "Not a paper: what it is, link"; (2) harvest the reports, design drafts and handoffs with `build_references.py harvest --extra`, so a full citation there settles a mention by identifier; (3) search the rest by author, year and the citing sentence's title words on Crossref, then OpenAlex and Semantic Scholar, then arXiv, then ADS, and accept a hit only when first author, year and title or journal agree (near misses go to a review list; none is guessed); (4) work heaviest first (the 997 with three or more places), in batches by decade or by weight; (5) old papers, books and reports get a record by journal, volume, page and publisher with an ADS or library link. Done: every mention is tied to a paper (DOI link, else arXiv, else ADS, else a search link), or sits in the Not a paper list, or in a review list with the citing sentences and what was tried; the overview shows the three counts; a test fails if a new unmatched mention appears without a reason; a missing-DOI report is part of the build. Wording and data only (references-data.json and the REFERENCES pages): no epoch, no lock, lock-free. Boss may supply free OpenAlex and Semantic Scholar keys; ask through TODO. Dataset licensing stays Boss's. Design: section 9 of /mnt/project-files/design-drafts/references-help-menu-2026-10-31.md. Prerequisites: none. Related: DOC.89. Owner: Sources 1.
 - [ ] **VIEW.1 View from a planet**
   **Research first.** Boss: "view-from-planet will have to do
   calculations on colors and A LOT Of stuff, so make special note of
