@@ -91,6 +91,7 @@ def regenerate_planet(system, planet, owner):
     _name_moons(fresh)
     for body in [fresh] + fresh.moons:
         validation.reapply_life(body)
+    magnetism.generate_stellar_induction(fresh)  # GEN.981
     for moon in fresh.moons:
         magnetism.generate_induced_field(moon, fresh)
     owner[owner.index(planet)] = fresh

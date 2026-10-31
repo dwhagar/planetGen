@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 520 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 524 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -38,14 +38,14 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 |---|---|---|---|---|---|---|
 | T1 | 61 | 0 | 5 | 0 | 0 | 66 |
 | T2 | 79 | 9 | 0 | 1 | 0 | 89 |
-| T3 | 60 | 14 | 4 | 10 | 0 | 88 |
+| T3 | 62 | 14 | 4 | 10 | 0 | 90 |
 | T4 | 27 | 0 | 0 | 4 | 4 | 35 |
 | T5 | 32 | 9 | 2 | 0 | 0 | 43 |
 | T6 | 43 | 19 | 11 | 30 | 0 | 103 |
-| T7 | 25 | 6 | 4 | 8 | 0 | 43 |
+| T7 | 25 | 8 | 4 | 8 | 0 | 45 |
 | T8 | 0 | 0 | 0 | 1 | 2 | 3 |
 | T9 | 1 | 0 | 3 | 27 | 19 | 50 |
-| All | 328 | 57 | 29 | 81 | 25 | 520 |
+| All | 330 | 59 | 29 | 81 | 25 | 524 |
 
 ## How the labels were given
 
@@ -558,6 +558,15 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | DY5 | D | T2 | L1 | magnetism.FIELD_SCATTER_DEX 0.07: the log-normal scatter of a dynamo's moment about the buoyancy-flux law, dex (the law fits the 145 numerical dynamos within about 15 percent) | 0.05 to 0.15 | every dynamo of the scaling | a spread of observed moments at equal power outside 0.15 dex | none: the scatter is the fit's | Olson and Christensen 2006 (second-hand, see DY1) | - | - |
 | DY6 | P | T9 | L2 | magnetism.CORE_POWER_SCALE 0.479: the core model's Earth drives its dynamo with 2.4 TW (CC10) and the scaling's Earth with 1.15 TW (DY3), so the model's power is multiplied by the ratio to put the model's Earth on the scaling's (moment 0.84 of Earth's, dipole share 0.65) | 0.3 to 1 | rocky and icy cores of the thermal model | an Earth-mass planet of the model whose moment is outside 0.5 to 2 times Earth's | one Earth calibration for both the thermal model and the scaling | tuned so the model's Earth reproduces the scaling's Earth | - | - |
 | DY7 | P | T9 | L3 | magnetism.MERCURY_MOMENT_A_M2 3e19, MERCURY_SCATTER_DEX 0.5: a body of 0.05 to 0.1 Earth masses whose bulk density says its core fraction is over 0.4 keeps this moment whatever the core model says, because its iron-sulfide core melts at lower temperatures than the pure iron the model has | moment 1e19 to 1e20 | small iron-rich planets | a small iron-rich body whose core model says dead and whose field is alive | a core model with a sulfur-bearing liquidus | the design default of GEN.86, a Solar System value (Mercury) kept until the sulfur liquidus replaces it | - | no data |
+
+## 6.117 Stand-ins of the induced field of cores and planets
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| IN1 | P | T3 | L0 | magnetism.CORE_CONDUCTIVITY_S_M 1.0e6: the electrical conductivity of an iron-alloy core, S/m, the same for a solid one (Earth's outer core at its pressure and temperature, 1.0 to 1.5 million; second-hand) | 0.5e6 to 1.5e6 | metal cores | a core whose induced answer differs (the response is 1 for any core many skin depths across, so the knob matters only for a small or a slowly excited core) | a conductivity from the core's own alloy and temperature (the core model's light elements) | Pozzo et al. 2012 and Gomi et al. 2013 (second-hand) | - | - |
+| IN2 | P | T3 | L0 | magnetism.IMF_EARTH_T 5e-9: the field a star's wind carries at 1 AU, T (the Sun's interplanetary field, Parker spiral), scaled to another star and distance by the square root of the wind's pressure over Earth's (the field's energy a fixed share of the wind's) | 3e-9 to 8e-9 | a star with a wind of the activity model (`wind_pressure_pa`) | a measured interplanetary field of another star (none) | a field from the star's own surface field and the wind's speed | recalled (Parker 1958; the Sun's field at 1 AU is 3 to 6 nT) | - | - |
+| IN3 | P | T7 | L1 | magnetism.STELLAR_EXCITATION_SHARE 0.5: the share of the wind's field that a planet sees as a changing field (the part perpendicular to its spin axis, averaged over the tilt) | 0.3 to 0.8 | a rocky planet | a measured induced response of a planet to the interplanetary field | the planet's axial tilt and the field's direction (the orientation draws) | geometry: the mean sine of an angle on a sphere is 0.785, the spiral takes it lower | - | - |
+| IN4 | P | T7 | L1 | the share of a surface ocean's covering that counts as a shell (the conductance times the ocean fraction) and the field a moon's or planet's core takes past an ocean (the square root of one less the ocean's answer squared), both in `magnetism._ocean_and_core_moment` | none | a body with an ocean and a metal core | an induction sounding of a body with both | a layered induction model with the mantle | design: a one-layer approximation of a layered Earth-like response | - | - |
 
 ## 6.31 Stand-ins of the accreting compact binaries
 

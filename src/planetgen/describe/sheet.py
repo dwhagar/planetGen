@@ -773,6 +773,8 @@ _BODY_RULES = [
      "a dead world, a small icy body and an airless super-Earth, and any body whose air has gone to nothing, have no air column to give a density, scale height or haze"),
     (("lid_regime",), lambda klass, row: klass not in GIANT_CLASSES,
      "a giant has no lid: only a rocky or icy body has a crust over a mantle"),
+    (("induced_moment_a_m2",), lambda klass, row: klass not in GIANT_CLASSES,
+     "a giant has no induced moment: the model answers for a metal core and an ocean, not for a metallic envelope"),
     (_DAYLIGHT, lambda klass, row: _locked(row) is not True,
      "a tidally locked world keeps one face to its star, so it has no solar day, equatorial daylight or day share to give"),
     (("shelter_column_g_cm2",), lambda klass, row: row is None or (row.get("eq_shelter") or 0) > 0 or (row.get("eq_shelter_rec") or 0) > 0,
@@ -802,8 +804,8 @@ _BODY_RULES = [
 ]
 
 _PLANET_RULES = [
-    (("parent_shadow_share", "induced_moment_a_m2"), lambda klass, row: False,
-     "only a moon sits in the shadow of its planet or in the planet's magnetic field; a planet orbits its star alone"),
+    (("parent_shadow_share",), lambda klass, row: False,
+     "only a moon sits in the shadow of its planet; a planet orbits its star alone"),
 ]
 
 _STAR_RULES = [

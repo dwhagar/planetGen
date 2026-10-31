@@ -95,6 +95,8 @@ SECTIONS = (
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.115", "6.115 Stand-ins of the dynamo wiring",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.117", "6.117 Stand-ins of the induced field of cores and planets",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.31", "6.31 Stand-ins of the accreting compact binaries",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "replaced_by", "evidence")),
     ("6.32", "6.32 Stand-ins of the neutron star structure",

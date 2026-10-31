@@ -134,8 +134,8 @@ NULL_IN_THIS_GALAXY = {
     ("star_systems", "system_flavor_text"): CHANCE,
     ("star_systems", "runaway_class"): CHANCE, ("star_systems", "runaway_speed_kms"): CHANCE,
     ("system_configs", "age"): "only with --age",
-    # GEN.178: only a moon has an induced field.
-    ("planets", "induced_moment_a_m2"): "moons only",
+    # GEN.178, GEN.981: a moon and a rocky planet have an induced field; a giant has none.
+    ("planets", "induced_moment_a_m2"): CHANCE,
     # v89 (DB.28): the facility type, affiliation and ratings the POP.10 pass and admin pages set.
     **{("facilities", column): "not set yet" for column in (
         "type_id", "affiliation_polity_id", "affiliation_name", "rating_crime", "rating_housing",

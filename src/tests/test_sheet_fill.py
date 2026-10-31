@@ -47,7 +47,7 @@ def test_the_new_rules_read_the_physics_they_state():
     assert sheet.applies("planet", "M", "ring_kind", {"ring_kind": "ice"}) and not sheet.applies("planet", "M", "ring_mass_kg", {"ring_kind": None})
     assert sheet.applies("moon", "C", "aquifer_depth_km", {"aquifer_depth_km": 1.0}) and not sheet.applies("moon", "C", "aquifer_depth_km", {})
     assert sheet.applies("moon", "C", "parent_shadow_share") and not sheet.applies("planet", "C", "parent_shadow_share")
-    assert sheet.applies("moon", "C", "induced_moment_a_m2") and not sheet.applies("planet", "C", "induced_moment_a_m2")
+    assert sheet.applies("moon", "C", "induced_moment_a_m2") and sheet.applies("planet", "C", "induced_moment_a_m2")      # GEN.981: a planet in its star's field
 
 
 def test_the_ages_after_oxygen_apply_only_to_a_world_that_reached_them():

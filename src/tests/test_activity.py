@@ -320,7 +320,7 @@ def test_generated_bodies_store_their_field_and_exposure():
     assert {"none", "strong"} <= seen
 
 
-def test_a_generated_moon_has_an_induced_field_figure_and_a_planet_has_none():
+def test_a_generated_moon_has_an_induced_field_figure_and_a_giant_has_none():
     """GEN.178: `generate_moons` sets the induced moment (0 without an ocean) on each moon; a planet keeps None."""
     from planetgen.generation.config import SystemConfig
     from planetgen.generation.system import StarSystem
@@ -334,10 +334,10 @@ def test_a_generated_moon_has_an_induced_field_figure_and_a_planet_has_none():
         for planet in system.planets:
             if not hasattr(planet, "moons"):
                 continue
-            assert planet.induced_moment_a_m2 is None
+            assert (planet.induced_moment_a_m2 is None) == (planet.body_type == "g")      # GEN.981: a rocky planet has its star's induction, a giant none
             for moon in planet.moons:
                 moons += 1
                 assert moon.induced_moment_a_m2 is not None and moon.induced_moment_a_m2 >= 0.0
-                if moon.hydrosphere not in magnetism.INDUCTION_HYDROSPHERES:
-                    assert moon.induced_moment_a_m2 == 0.0
+                if moon.hydrosphere not in magnetism.INDUCTION_HYDROSPHERES and interior_heat.core_of(moon) is None:
+                    assert moon.induced_moment_a_m2 == 0.0           # GEN.981: a moon with no ocean answers with its metal core, if it has one
     assert moons > 5
