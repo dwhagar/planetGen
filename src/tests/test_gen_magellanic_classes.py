@@ -133,21 +133,26 @@ def _remnants(component, shape, seeds, monkeypatch):
     return found
 
 
-def test_a_satellites_remnants_are_kept_where_its_gas_is(monkeypatch):
+def test_a_satellites_remnants_scale_with_its_star_formation(monkeypatch):
+    """GEN.1191: the remnant count is the systems times the rate per system times the factor of the satellite's young and old share against the solar
+    circle's (`supernova_remnant_factor`), not cut by a gas profile: the Large Cloud's row gets the order of the 59 remnants listed in it (Maggi et al. 2016,
+    arXiv:1509.09223, read), the Small Cloud fewer in proportion to its star formation."""
     rate = dict(((k, s), r) for k, s, r in component_pass.satellite_rates(tuning.PHENOMENON_MIN_MASS_SOLAR))[
         ("supernova-remnant", None)]
-    full = component_pass.systems_of(SMC) * rate
     seeds = range(40)
-    rows = _remnants(SMC, WITH_SATELLITES, seeds, monkeypatch)
-    radii, gas = component_pass.gas_by_radius(SMC, WITH_SATELLITES)
-    assert 0.0 < gas[0] <= 1.0 and gas[-1] < gas[0]
-    assert rows, "the Small Cloud holds some remnants"
-    centre = np.asarray(SMC.center_pc)
-    distance = [float(np.linalg.norm(np.asarray(row[5:8]) / 1000.0 - centre)) for row in rows]
-    # Kept ones crowd the centre, where the gas is: the median kept radius is under the median of all the satellite's.
-    assert np.median(distance) < SMC.half_mass_radius_pc * 1.3
-    # The kept count is the candidates (full * seeds) times the mean gas fraction over the profile, well under the whole.
-    assert len(rows) < 0.75 * full * len(seeds)
+    means = {}
+    for satellite in (SMC, LMC):
+        factor = component_pass.supernova_remnant_factor(satellite, WITH_SATELLITES)
+        expected = component_pass.systems_of(satellite) * rate * factor
+        means[satellite.name] = len(_remnants(satellite, WITH_SATELLITES, seeds, monkeypatch)) / len(seeds)
+        assert means[satellite.name] == pytest.approx(expected, rel=0.25)
+    assert 20.0 < means["Large Magellanic Cloud"] < 120.0
+    assert means["Small Magellanic Cloud"] < means["Large Magellanic Cloud"]
+
+
+def test_the_remnant_factor_is_one_for_the_solar_circles_mix_and_zero_without_young_stars():
+    assert component_pass.supernova_remnant_factor(FORNAX, WITH_SATELLITES) == 0.0
+    assert component_pass.supernova_remnant_factor(LMC, WITH_SATELLITES) > component_pass.supernova_remnant_factor(SMC, WITH_SATELLITES) > 0.0
 
 
 def test_a_satellite_without_gas_has_no_remnants_or_magnetars(monkeypatch):
