@@ -630,7 +630,6 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | PERF.222 | Generation hosts: MySQL redo log is too small (InnoDB warns the checkpointer lags behind); setup recommends and checks innodb_redo_log_capacity (bug) |  |  |
 | PERF.221 | A failed or killed unit names the wrong stage: the message says "unit 101 of stage 5" for a unit of stage 8 of 14 (bug) |  |  |
 | TEST.533 | test_disk_history::test_the_present_rate_over_the_mean_is_within_a_factor_of_two_of_the_milky_ways is red on main (0.505 against a bound of 0.393, 0.554 after GEN.999): the model's recent star formation rate over its mean is about 2.5 times the Milky Way's (bug) |  |  |
-| TEST.532 | Give the bright-star backfill unit path (backfill_bright_stars_unit) its own direct tests, since the serial form the tests cover is no longer the path a run takes |  |  |
 | TEST.526 | Wire, register or delete the 8 pure functions nothing calls in 4 modules (Tides 1's share of the TEST.520 shadow functions) |  |  |
 | TEST.520 | Extend the wiring guard to stored columns and shadow functions, and wire, show or drop every column only the Details sheet reads |  |  |
 | GEN.1226 | Store the envelope share for EVERY body, so hydrogen-air dwarfs (about 400 class T bodies) are typed and classed correctly |  |  |
