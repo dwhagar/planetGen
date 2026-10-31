@@ -59,8 +59,15 @@ _STAR = {
                      "blackbody radius of its drawn dust temperature times 1.74 (Sibthorpe et al. 2018).",
     "disk_outer_au": "A young star's disk ends log-uniform between 10 and 300 AU; a debris belt ends at 1.5 of its radius, the "
                      "blackbody radius of its drawn dust temperature times 1.74 (Sibthorpe et al. 2018).",
+    "chemistry_branch": "A star older than the thick disc's start is alpha-rich with Bensby, Feltzing and Oey 2014's logistic probability of its "
+                        "[Fe/H] (age gate, Haywood et al. 2013); one draw of the star's own decides it.",
+    "chemistry_alpha_fe": "The mean [X/Fe] of O, Mg, Si and Ca: the branch's hinge fit at the star's [Fe/H] (Bensby et al. 2014; Nissen 2014) "
+                          "plus the star's residuals (Brewer and Fischer 2016).",
+    "chemistry_metal_fraction": "The mass fraction of everything heavier than helium, from [Fe/H] and the star's [X/Fe] on the proto-solar "
+                                "mix of Asplund, Amarsi and Grevesse 2021; the composition the star formed with.",
+    "chemistry_dredge_up_helium": "Boothroyd and Sackmann 1999: the rise in helium at the surface of a red giant of this mass and metal fraction.",
 }
-"""dict: A star's column key -> its source line."""
+"""dict: A star's column key (or the key of a row worked out from the stored values, UX.254) -> its source line."""
 
 _MOON = {key: line for key, line in _BODY.items() if not key.startswith("ring_")}
 """dict: A moon's column key -> its source line (a moon holds no ring system of its own, GEN.732, and its inclination has no line)."""
