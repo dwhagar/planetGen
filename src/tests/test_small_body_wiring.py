@@ -45,14 +45,14 @@ def test_a_belt_round_trips_with_its_makeup(system):
 
 
 def test_a_belts_mass_and_density_word_come_from_its_discs_solids_ground_down_by_its_age(system):
-    """GEN.477: the mass is `belt_mass.belt_state` at the star's mass, snow line, metals and age; it round-trips and the word is no longer a free draw."""
-    from planetgen.physics import belt_mass, bulk_draw
+    """GEN.477: the mass is `belt_ledger.belt_state` at the star's mass, snow line, metals and age; it round-trips and the word is no longer a free draw."""
+    from planetgen.physics import belt_ledger, bulk_draw
 
     star = system.star
     with draw.bound(9):
         belt = AsteroidBelt(system.system_config, star, 2.5, 2.2, 3.4)
-    largest = belt_mass.draw_largest_km(draw.Stream(f"belt-largest:{2.5!r}:{2.2!r}:{3.4!r}:{star.mass!r}"))
-    mass_kg, word = belt_mass.belt_state(2.2, 3.4, star.mass, star.snow_line_au, bulk_draw.metal_ratio_to_solar(star), star.age, largest)
+    law = belt_ledger.ICY_LAW if 2.5 >= star.snow_line_au else belt_ledger.ROCKY_LAW
+    mass_kg, word, _ = belt_ledger.belt_state(2.2, 3.4, star.mass, star.snow_line_au, bulk_draw.metal_ratio_to_solar(star), star.age, law, draw.Stream(f"belt-largest:{2.5!r}:{2.2!r}:{3.4!r}:{star.mass!r}"))
     assert belt.mass_kg == pytest.approx(mass_kg) and belt.density == word and belt.mass_kg > 0.0
     again = AsteroidBelt.from_dict(belt.to_dict(), system.system_config)
     assert again.mass_kg == belt.mass_kg and again.density == belt.density
