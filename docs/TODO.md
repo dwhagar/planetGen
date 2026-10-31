@@ -14332,7 +14332,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   worlds does not.
   Prerequisites: GEN.862. Related: GEN.863, UX.237, TEST.435.
 
-- [ ] **GEN.1211 A new class for hot thin-air rocks (about 1.6 percent of bodies: 1.4 to 2 g, 340 to 1100 K, 1 to 10 kPa, no ocean) from the reserve letters (BOSS NAMES THE LETTER AND NAME)**
+- [ ] **GEN.1211 A new class for hot thin-air rocks (about 1.6 percent of bodies: 1.4 to 2 g, 340 to 1100 K, 1 to 10 kPa, no ocean) is Class R, Hothouse (Boss named it)**
   Boss approved the class option for the hot thin-air gap (Class M
   thread, relayed 10:13 AM EDT 2026-10-31); he has not yet named the
   letter or the class name. Source: the best-fit shadow report
@@ -14348,6 +14348,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   then list no body under 50 percent in this gap. Feeds GEN.1207 (the
   best-fit switch); the same epoch. Where we think it belongs (best
   guess, can move): the Class M research thread.
+  Boss named it (11:04 AM EDT 2026-10-31, via the class thread)
+  (2026-10-31 11:08 AM EDT): the hot thin-air class is Class R,
+  Hothouse. Boss is also moving the class names to a letter plus a
+  number from 1 to 9 for variants (0 is not written), 26 letters with 0
+  to 9 giving 260 possible classes for the 44 needed (30 now plus 14
+  new); the class thread is writing the system that says when a number
+  applies, what it means and how it differs, and will send the items.
+  Build Class R as a letter under that system, not as a separate
+  sub-letter scheme.
   Prerequisites: none. Related: GEN.1207, GEN.1208.
 
 - [ ] **GEN.1212 Rewrite the stored system flavour lines (tuning.SYSTEM_FLAVOR, about 40 story lines) to the plain-words style guide, and stop storing text the pages can build**
@@ -14413,6 +14422,134 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   one-class list equals today's air becomes a test that any difference
   from today is one the audit explains and Boss has seen.
   Prerequisites: GEN.862. Related: GEN.1209, GEN.1210, UX.237.
+
+- [ ] **GEN.1214 Carbon dioxide and hydrocarbon (methane-ethane) seas are not being created: find out why on a census of the surface liquid and fix it (bug)**
+  Boss, 11:04 AM EDT 2026-10-31 (via the class thread): investigate and
+  fix why CO2 and hydrocarbon (methane-ethane) seas are not being
+  created. Filed by the TODO thread. Overlap checked: the surface liquid
+  inventory GEN.1035 is done and wired (surface_liquids.py,
+  surface_liquid_world.py, migration 0188: surface_liquid,
+  surface_liquid_fraction, surface_liquid_depth_km); it should give a
+  Titan-like body a methane sea and a cold CO2 world a liquid CO2 sea,
+  but Boss sees none. Do: (1) a census over a few hundred generated
+  systems of surface_liquid by value (water, lava,
+  methane-ethane-nitrogen, liquid nitrogen, liquid CO2, ammonia-water,
+  sulfur, none) split by class and by temperature and pressure band,
+  printing the cold bodies (below 120 K) that hold a volatile ice or air
+  but get none, with the reason each time (ice mass fraction, saturation
+  pressure, the SURFACE_SHARE_OF_ICE share, the triple point window of
+  CO2 which needs more than 5.2 bar, the generator never reaching the
+  cold band, or a code path not called for moons or planets); (2) find
+  the cause and fix it at the cause; if a stand-in (LQ11 to LQ14) is the
+  cause, change it with tier and tweak level in GEN.725; (3) the fix
+  changes stored output (new liquids on worlds that had none), so it is
+  an epoch with --affects on a train, and the census is printed before
+  and after in the report. Physics drives; no forced seas. Owner: Tides
+  1 (built GEN.1035). Where we think it belongs (best guess, can move):
+  Tides 1.
+  Part of the surface liquid composition chain (Boss, 11:05 AM EDT
+  2026-10-31) (2026-10-31 11:12 AM EDT): the research GEN.1216 will say
+  what composition the seas this item creates should have; fix the
+  creation first (this item), the composition follows in GEN.1218.
+  Prerequisites: none. Related: GEN.1035, GEN.888, GEN.821.
+
+- [ ] **GEN.1215 Store the acid and ammonia fractions of the surface liquid, and let habitability read them (an acid or ammonia sea can make a world uninhabitable)**
+  Boss, 11:04 AM EDT 2026-10-31 (via the class thread): store the acid
+  and ammonia fractions of the surface liquid, because they can make a
+  planet uninhabitable. Filed by the TODO thread. Overlap checked:
+  GEN.1035 stores only which liquid (surface_liquid), its cover fraction
+  and its depth; the ammonia-water row and the sulfuric branch of the
+  acid medium (GEN.888, still open) are not stored as numbers. Do: (1)
+  new numeric columns on planets and moons, for example
+  surface_liquid_ammonia_fraction and surface_liquid_acid_fraction (mass
+  fraction of the liquid; and the acid kind or strength where the model
+  has it, sulfuric from GEN.888), declared in db/column_units.py with a
+  migration, the schema document, the API and the property sheet; (2)
+  the surface liquid world step fills them from the same inputs it
+  already uses (the ammonia ice, the SO2 and water shares for sulfuric
+  acid, the temperature) with no new random draws; (3) habitability and
+  the life class tests read them: an ammonia fraction or an acid
+  strength past the tolerance of a life class makes the world unsuitable
+  for that class (the stand-ins for the tolerances go in GEN.725 with
+  tier and tweak level, L3 until a source is read); (4) the Life section
+  says why a sea is not livable. Output change with a migration: one
+  epoch on a train, can share the epoch of the seas bug. Owner: Tides 1
+  with Aux 2 (habitability and life classes). Where we think it belongs
+  (best guess, can move): Tides 1.
+  Part of the surface liquid composition chain (Boss, 11:05 AM EDT
+  2026-10-31) (2026-10-31 11:12 AM EDT): this item is the first part of
+  the full composition model; the research is GEN.1216, the design
+  GEN.1217 and the build GEN.1218. Keep the columns of this item
+  compatible with the design (fractions of each component), and do not
+  build a second storage scheme.
+  Prerequisites: none. Related: GEN.1035, GEN.888, GEN.862.
+
+- [ ] **GEN.1216 Research: the composition of surface liquids from physics and from life: salts and brines, acids, ammonia-water, liquid CO2, methane-ethane-nitrogen mixes, sulfur and what life and chemistry do to each**
+  Boss, 11:05 AM EDT 2026-10-31: start working out, as best we can from
+  life and physics, the composition of surface liquids. Filed by the
+  TODO thread as a research-then-build chain with GEN.1214 (CO2 and
+  hydrocarbon seas not created) and GEN.1215 (acid and ammonia fractions
+  stored). Research step. Report in /mnt/project-files/reports, sources
+  read with the source rules (physics found wins, secondary sources
+  accepted, stand-ins registered). Cover: (1) water seas: salinity and
+  ion mix by what the crust and the rain supply (chloride, sulfate,
+  carbonate, bicarbonate; Earth ocean, Mars brines, Europa and Enceladus
+  oceans), pH and how carbon dioxide, volcanic acid gases and weathering
+  set it; (2) acid seas and pools: sulfuric acid and water at Venus-like
+  clouds and surface pools, hydrochloric and nitric acid, how strong an
+  acid a pool holds at a temperature and pressure (GEN.888); (3)
+  ammonia-water mixes: the eutectic and the freezing curve, ammonia
+  fraction by the ammonia ice a body holds; (4) liquid carbon dioxide,
+  which needs more than 5.2 bar and 216.6 K or more; (5)
+  methane-ethane-nitrogen mixes at Titan and colder: the ratios by
+  temperature and pressure and what dissolves; (6) sulfur, hydrocarbon
+  and other seas of hot and cold worlds; (7) how life changes each:
+  biogenic oxygen and carbon dioxide drawdown on pH and carbonate,
+  methane and hydrocarbon production, sulfur cycling, and which
+  compositions each life class tolerates (the nine life classes of
+  life-classes.md; the tolerance limits become stand-ins for GEN.725).
+  Say what each source gives as a number or a law and what is missing;
+  list papers Boss must upload, in order of value. Where we think it
+  belongs (best guess, can move): Sources 1 (research).
+  Prerequisites: none. Related: GEN.1214, GEN.1215, GEN.888, GEN.1035.
+
+- [ ] **GEN.1217 Design: the surface liquid composition model: what is stored (fractions of water, salts, acid, ammonia, CO2, hydrocarbons), how it is derived, and how life changes it**
+  Boss, 11:05 AM EDT 2026-10-31: start working out, as best we can from
+  life and physics, the composition of surface liquids. Filed by the
+  TODO thread as a research-then-build chain with GEN.1214 (CO2 and
+  hydrocarbon seas not created) and GEN.1215 (acid and ammonia fractions
+  stored). Design step, after the research. Write
+  docs/design/habitability/surface-liquid-composition.md: the stored
+  columns (the fractions of each component of the liquid, with acid
+  strength and pH where it applies, extending GEN.1215's ammonia and
+  acid fractions into one set of columns), the derivation from the
+  finished body (ices, air, rain, the crust, temperature and pressure;
+  no new random draws where avoidable), the effect of each living class
+  on the composition and the effect of the composition on each life
+  class (tolerances, with stand-ins), the habitability test, how the
+  ocean family classes (the best-fit class conditions, GEN.1207) read
+  the composition, the page and API wording, and the migration and epoch
+  plan. Boss reads the design before the build. Done: the design is
+  merged and Boss has answered its questions. Where we think it belongs
+  (best guess, can move): Tides 1 with Aux 2.
+  Prerequisites: GEN.1216. Related: GEN.1215, GEN.1207, GEN.862.
+
+- [ ] **GEN.1218 Build the surface liquid composition model: the composition columns, the derivation, the effect of life on it and of it on life, pages and API**
+  Boss, 11:05 AM EDT 2026-10-31: start working out, as best we can from
+  life and physics, the composition of surface liquids. Filed by the
+  TODO thread as a research-then-build chain with GEN.1214 (CO2 and
+  hydrocarbon seas not created) and GEN.1215 (acid and ammonia fractions
+  stored). Build step, after the design is merged. Implements the
+  design: composition columns with their migration, the pure derivation
+  module and its wiring after the surface liquid step, the life coupling
+  (the air and the liquid change each other: GEN.1213 summed air and
+  this composition), the habitability tolerances, the pages, the API,
+  the property sheet and the census suite. GEN.1215 (acid and ammonia
+  fractions) is its first part and may be built first, with its columns
+  taken into this set. Output change: one epoch with --affects,
+  migration, golden, census re-baseline, on a train. Where we think it
+  belongs (best guess, can move): Tides 1 with Aux 2.
+  Prerequisites: GEN.1217. Related: GEN.1213, GEN.1214, GEN.1215.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
