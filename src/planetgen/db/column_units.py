@@ -406,6 +406,14 @@ TABLES = {
         "id": ("id", "moon_id"),
         "score9": ("score",),
     },
+    "moon_life": {
+        "id": ("id", "moon_id"),
+        "Gyr": ("life_milestone_age_gyr", "life_system_age_gyr", "life_age_abiogenesis_gyr", "life_age_photosynthesis_gyr", "life_age_complex_cells_gyr",
+                "life_age_multicellularity_gyr", "life_age_technological_civilization_gyr"),
+        "score9": ("life_microbial", "life_flora", "life_fauna", "life_sentient"),
+        "index": ("life_animal_grade",),
+        "ratio": ("share", "life_complexity"),
+    },
     "moon_reflection_spectrum": {
         "id": ("id", "moon_id"),
         "index": ("position",),
@@ -656,6 +664,14 @@ TABLES = {
     "planet_life_class_scores": {
         "id": ("id", "planet_id"),
         "score9": ("score",),
+    },
+    "planet_life": {
+        "id": ("id", "planet_id"),
+        "Gyr": ("life_milestone_age_gyr", "life_system_age_gyr", "life_age_abiogenesis_gyr", "life_age_photosynthesis_gyr", "life_age_complex_cells_gyr",
+                "life_age_multicellularity_gyr", "life_age_technological_civilization_gyr"),
+        "score9": ("life_microbial", "life_flora", "life_fauna", "life_sentient"),
+        "index": ("life_animal_grade",),
+        "ratio": ("share", "life_complexity"),
     },
     "planet_reflection_spectrum": {
         "id": ("id", "planet_id"),

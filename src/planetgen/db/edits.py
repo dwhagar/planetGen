@@ -70,6 +70,7 @@ def _update_body(conn, table, body, assignments, key_values):
     conn.execute(f"DELETE FROM {prefix}_interior_layers WHERE {id_column} = ?", (body.db_id,))
     conn.execute(f"DELETE FROM {prefix}_gases WHERE {id_column} = ?", (body.db_id,))
     conn.execute(f"DELETE FROM {prefix}_life_class_scores WHERE {id_column} = ?", (body.db_id,))
+    conn.execute(f"DELETE FROM {prefix}_life WHERE {id_column} = ?", (body.db_id,))
     store.body_child_rows(conn, body, body.db_id)
 
 

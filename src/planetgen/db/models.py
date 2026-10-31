@@ -939,6 +939,35 @@ moon_interior_layers = sa.Table(
 )
 
 
+moon_life = sa.Table(
+    'moon_life',
+    metadata,
+    sa.Column('id', mysql.BIGINT(unsigned=True), primary_key=True, autoincrement=True, nullable=False),
+    sa.Column('moon_id', mysql.BIGINT(unsigned=True), nullable=False),
+    sa.Column('life_class', sa.String(2), nullable=False),
+    sa.Column('share', mysql.DOUBLE(), nullable=False),
+    sa.Column('life_stage', sa.String(32), nullable=True),
+    sa.Column('life_milestone_age_gyr', mysql.DOUBLE(), nullable=True),
+    sa.Column('life_system_age_gyr', mysql.DOUBLE(), nullable=True),
+    sa.Column('life_animal_grade', mysql.TINYINT(unsigned=True), nullable=True),
+    sa.Column('life_complexity', mysql.DOUBLE(), nullable=True),
+    sa.Column('life_age_abiogenesis_gyr', mysql.DOUBLE(), nullable=True),
+    sa.Column('life_age_photosynthesis_gyr', mysql.DOUBLE(), nullable=True),
+    sa.Column('life_age_complex_cells_gyr', mysql.DOUBLE(), nullable=True),
+    sa.Column('life_age_multicellularity_gyr', mysql.DOUBLE(), nullable=True),
+    sa.Column('life_age_technological_civilization_gyr', mysql.DOUBLE(), nullable=True),
+    sa.Column('life_microbial', mysql.TINYINT(unsigned=True), nullable=True),
+    sa.Column('life_flora', mysql.TINYINT(unsigned=True), nullable=True),
+    sa.Column('life_fauna', mysql.TINYINT(unsigned=True), nullable=True),
+    sa.Column('life_sentient', mysql.TINYINT(unsigned=True), nullable=True),
+    sa.Index('idx_moon_life_class', 'life_class', 'life_stage'),
+    sa.Index('uq_moon_life', 'moon_id', 'life_class', unique=True),
+    sa.ForeignKeyConstraint(['moon_id'], ['moons.id'], name='fk_moon_life_moon', ondelete='CASCADE'),
+    sa.CheckConstraint('((`share` > 0) and (`share` <= 1))', name='moon_life_chk_1'),
+    mysql_engine="InnoDB",
+)
+
+
 moon_life_class_scores = sa.Table(
     'moon_life_class_scores',
     metadata,
@@ -1825,6 +1854,35 @@ planet_interior_layers = sa.Table(
     sa.ForeignKeyConstraint(['planet_id'], ['planets.id'], name='fk_planet_interior_layers_planet', ondelete='CASCADE'),
     sa.CheckConstraint("(`kind` in (_utf8mb4'molecular_envelope',_utf8mb4'metallic_envelope',_utf8mb4'helium_gradient',_utf8mb4'helium_shell',_utf8mb4'dilute_core',_utf8mb4'compact_core',_utf8mb4'ice_mantle',_utf8mb4'rock_core'))", name='planet_interior_layers_chk_1'),
     sa.CheckConstraint("(`state` in (_utf8mb4'molecular_fluid',_utf8mb4'metallic_fluid',_utf8mb4'ionic_fluid',_utf8mb4'superionic',_utf8mb4'molten'))", name='planet_interior_layers_chk_2'),
+    mysql_engine="InnoDB",
+)
+
+
+planet_life = sa.Table(
+    'planet_life',
+    metadata,
+    sa.Column('id', mysql.BIGINT(unsigned=True), primary_key=True, autoincrement=True, nullable=False),
+    sa.Column('planet_id', mysql.BIGINT(unsigned=True), nullable=False),
+    sa.Column('life_class', sa.String(2), nullable=False),
+    sa.Column('share', mysql.DOUBLE(), nullable=False),
+    sa.Column('life_stage', sa.String(32), nullable=True),
+    sa.Column('life_milestone_age_gyr', mysql.DOUBLE(), nullable=True),
+    sa.Column('life_system_age_gyr', mysql.DOUBLE(), nullable=True),
+    sa.Column('life_animal_grade', mysql.TINYINT(unsigned=True), nullable=True),
+    sa.Column('life_complexity', mysql.DOUBLE(), nullable=True),
+    sa.Column('life_age_abiogenesis_gyr', mysql.DOUBLE(), nullable=True),
+    sa.Column('life_age_photosynthesis_gyr', mysql.DOUBLE(), nullable=True),
+    sa.Column('life_age_complex_cells_gyr', mysql.DOUBLE(), nullable=True),
+    sa.Column('life_age_multicellularity_gyr', mysql.DOUBLE(), nullable=True),
+    sa.Column('life_age_technological_civilization_gyr', mysql.DOUBLE(), nullable=True),
+    sa.Column('life_microbial', mysql.TINYINT(unsigned=True), nullable=True),
+    sa.Column('life_flora', mysql.TINYINT(unsigned=True), nullable=True),
+    sa.Column('life_fauna', mysql.TINYINT(unsigned=True), nullable=True),
+    sa.Column('life_sentient', mysql.TINYINT(unsigned=True), nullable=True),
+    sa.Index('idx_planet_life_class', 'life_class', 'life_stage'),
+    sa.Index('uq_planet_life', 'planet_id', 'life_class', unique=True),
+    sa.ForeignKeyConstraint(['planet_id'], ['planets.id'], name='fk_planet_life_planet', ondelete='CASCADE'),
+    sa.CheckConstraint('((`share` > 0) and (`share` <= 1))', name='planet_life_chk_1'),
     mysql_engine="InnoDB",
 )
 

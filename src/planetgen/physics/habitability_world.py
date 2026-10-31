@@ -180,6 +180,7 @@ def values_from_body(body):
         "native_life": native_life(getattr(body, "life_class", None), getattr(body, "life_stage", None),
                                    getattr(body, "life_system_age_gyr", None) is not None),
         "flux_variation": getattr(body, "flux_variation", None),
+        "life_living": getattr(body, "life_living", None),
         "life_class": getattr(body, "life_class", None),
         "life_class_variant": getattr(body, "life_class_variant", None),
         "life_animal_grade": getattr(body, "life_animal_grade", None),
@@ -405,26 +406,54 @@ def compute(values, compact_host=None):
     return out
 
 
+def _class_rater(values, world):
+    """`rated(class id, stage, milestone age, system age, animal grade)`: the `(microbial, flora, fauna, sentient)` of one life class on the body of `values`
+    at the stage its timeline reached (no class, or no stage, is no life)."""
+    from planetgen.physics import life_classes, life_complexity      # life_classes reads this module
+    results = life_classes.score_classes(values)
+    toxin = habitability.toxin_factor(world)
+
+    def rated(class_id, kind_stage, milestone_age, system_age, grade):
+        result = results.get(class_id)
+        if result is None or kind_stage is None:
+            return 0, 0, 0, 0
+        row = life_classes.BY_ID[class_id]
+        complexity = life_complexity.assess(row, result.npp, atmosphere.partial_kpa(values, "o2"), values["surface_temperature_k"])
+        complex_likelihood = result.likelihood * life_complexity.complex_factor(complexity.index) * toxin
+        return life_scores.scores(round(result.likelihood, 3), round(complex_likelihood, 3), kind_stage, milestone_age, system_age,
+                                  light_producer=row.light, grade=complexity.grade if grade is None else grade)
+
+    return rated
+
+
 def class_life_scores(values, world, stage):
     """
-    `(microbial, flora, fauna, sentient)` of the life class a body stores (`life_class`, `life_class_variant`), at the `stage` its timeline
-    reached: the class's likelihood on the body is the microbial one, the complex-life one that times the factor its complexity index gives
-    (`life_complexity`) and the toxins of the air, and the animal grade is the stored one (`life_animal_grade`, which includes route R4) or the
-    one the index allows. No class is no life.
+    `(microbial, flora, fauna, sentient)` of the life that lives on a body: the highest of each over its classes (GEN.1209). The dominant class (`life_class`,
+    `life_class_variant`) is rated at the `stage` its timeline reached: its likelihood on the body is the microbial one, the complex-life one that times
+    the factor its complexity index gives (`life_complexity`) and the toxins of the air, and the animal grade is the stored one (`life_animal_grade`, which
+    includes route R4) or the one the index allows. Each other class of `life_living` is rated the same way at its own stage, grade and ages. No class is no life.
     """
-    from planetgen.physics import life_classes, life_complexity      # life_classes reads this module
+    from planetgen.physics import life_classes
     class_id = life_classes.class_id(values.get("life_class"), values.get("life_class_variant"))
     if class_id is None or stage is None:
         return 0, 0, 0, 0
-    result = life_classes.score_classes(values).get(class_id)
-    if result is None:
-        return 0, 0, 0, 0
-    row = life_classes.BY_ID[class_id]
-    complexity = life_complexity.assess(row, result.npp, atmosphere.partial_kpa(values, "o2"), values["surface_temperature_k"])
-    grade = values.get("life_animal_grade")
-    complex_likelihood = result.likelihood * life_complexity.complex_factor(complexity.index) * habitability.toxin_factor(world)
-    return life_scores.scores(round(result.likelihood, 3), round(complex_likelihood, 3), stage, values.get("life_milestone_age_gyr"),
-                              values.get("life_system_age_gyr"), light_producer=row.light, grade=complexity.grade if grade is None else grade)
+    rated = _class_rater(values, world)
+    best = rated(class_id, stage, values.get("life_milestone_age_gyr"), values.get("life_system_age_gyr"), values.get("life_animal_grade"))
+    for entry in values.get("life_living") or ():
+        if entry["life_class"] != class_id:
+            mine = rated(entry["life_class"], entry.get("stage"), entry.get("milestone_age_gyr"), entry.get("system_age_gyr"), entry.get("animal_grade"))
+            best = tuple(max(a, b) for a, b in zip(best, mine))
+    return best
+
+
+def living_kinds(values):
+    """`{class id: (microbial, flora, fauna, sentient)}` for each class of `life_living` on the body of `values`, each at its own stage (the body's own
+    four scores are the highest of each of these)."""
+    if values.get("body_type") == "g" or values.get("surface_temperature_k") is None:
+        return {}
+    rated = _class_rater(values, world_from(values))
+    return {entry["life_class"]: rated(entry["life_class"], entry.get("stage"), entry.get("milestone_age_gyr"), entry.get("system_age_gyr"),
+                                       entry.get("animal_grade")) for entry in values.get("life_living") or ()}
 
 
 def compact_host_name(star):

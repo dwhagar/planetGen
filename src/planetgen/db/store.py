@@ -606,7 +606,7 @@ still answers as before."""
 
 BATCH_CHILD_TABLES = frozenset((
     "system_config_slots", "planet_reflection_spectrum", "moon_reflection_spectrum", "planet_interior_layers", "moon_interior_layers",
-    "planet_gases", "moon_gases", "planet_life_class_scores", "moon_life_class_scores",
+    "planet_gases", "moon_gases", "planet_life_class_scores", "moon_life_class_scores", "planet_life", "moon_life",
     "asteroid_belt_composition",
     "comet_composition", "interstellar_comet_composition", "asteroid_field_composition", "orbit_nodes", "dark_members",
 ))
@@ -3037,6 +3037,13 @@ def body_child_rows(conn, body, body_id):
         if score > 0:
             conn.execute(f"INSERT INTO {prefix}_life_class_scores ({id_column}, life_class, score) VALUES (?, ?, ?)",
                          (body_id, class_id, score))
+    for entry in getattr(body, life_classes.LIVING_FIELD, None) or ():
+        ages = list(entry.get("ages") or [])
+        ages += [None] * (len(tuning.LIFE_SCHEDULE_FIELDS) - len(ages))
+        kinds = list(entry.get("kinds") or [None] * 4)
+        conn.execute(f"INSERT INTO {prefix}_life ({id_column}, {', '.join(LIVING_COLUMNS)}) VALUES (?, {', '.join('?' * len(LIVING_COLUMNS))})",
+                     (body_id, entry["life_class"], entry["share"], entry.get("stage"), entry.get("milestone_age_gyr"), entry.get("system_age_gyr"),
+                      entry.get("animal_grade"), entry.get("complexity"), *ages, *kinds))
 
 
 def body_gases(conn, body_ids, is_moon):
@@ -3067,6 +3074,43 @@ def body_class_scores(conn, body_ids, is_moon):
                 f"SELECT {id_column}, life_class, score FROM {table} WHERE {id_column} IN ({marks})", tuple(chunk)).fetchall():
             found.setdefault(row[id_column], {})[row["life_class"]] = row["score"]
     return found
+
+
+LIVING_COLUMNS = ("life_class", "share", "life_stage", "life_milestone_age_gyr", "life_system_age_gyr", "life_animal_grade", "life_complexity",
+                  *tuning.LIFE_SCHEDULE_FIELDS, "life_microbial", "life_flora", "life_fauna", "life_sentient")
+"""tuple: The columns of `planet_life` and `moon_life` after the body's id, in the order `body_child_rows` writes them (GEN.1209)."""
+
+
+def living_entry(row):
+    """The `life_living` entry (`physics.life_classes.LIVING_FIELD`) of a `planet_life` or `moon_life` row."""
+    return {"life_class": row["life_class"], "share": row["share"], "stage": row["life_stage"], "milestone_age_gyr": row["life_milestone_age_gyr"],
+            "system_age_gyr": row["life_system_age_gyr"], "animal_grade": row["life_animal_grade"], "complexity": row["life_complexity"],
+            "ages": [row[field] for field in tuning.LIFE_SCHEDULE_FIELDS],
+            "kinds": [row["life_microbial"], row["life_flora"], row["life_fauna"], row["life_sentient"]]}
+
+
+def body_living(conn, body_ids, is_moon):
+    """`{body id: [life_living entries, the dominant class first]}` of the planets or moons `body_ids`: the life classes their rows keep in `planet_life`
+    or `moon_life` (a body with none has no key). The dominant class is the one with the largest share; the rest follow by share."""
+    table, id_column = ("moon_life", "moon_id") if is_moon else ("planet_life", "planet_id")
+    found = {}
+    ids = list(body_ids)
+    for start in range(0, len(ids), 1000):
+        chunk = ids[start:start + 1000]
+        marks = ", ".join("?" * len(chunk))
+        for row in conn.execute(
+                f"SELECT {id_column}, {', '.join(LIVING_COLUMNS)} FROM {table} WHERE {id_column} IN ({marks}) ORDER BY {id_column}, share DESC, life_class",
+                tuple(chunk)).fetchall():
+            found.setdefault(row[id_column], []).append(living_entry(row))
+    return found
+
+
+def dominant_first(entries, number, variant):
+    """The `life_living` entries `entries` (or `None`) with the dominant class, from the body's `life_class` number and `life_class_variant` letter, first."""
+    if not entries:
+        return None
+    dominant = life_classes.class_id(number, variant)
+    return sorted(entries, key=lambda entry: entry["life_class"] != dominant)
 
 
 def with_life_inputs(conn, rows, is_moon):
@@ -9080,6 +9124,7 @@ def _planet_or_moon_row_to_dict(conn, row, is_moon):
     data.update({
         atmosphere.GAS_FIELD: body_gases(conn, [row["id"]], is_moon).get(row["id"], {}),
         life_classes.SCORES_FIELD: body_class_scores(conn, [row["id"]], is_moon).get(row["id"]),
+        life_classes.LIVING_FIELD: dominant_first(body_living(conn, [row["id"]], is_moon).get(row["id"]), row["life_class"], row["life_class_variant"]),
         "is_moon": is_moon,
         "reflection_spectrum_visible": visible or None,
         "reflection_spectrum_non_visible": non_visible or None,

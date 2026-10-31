@@ -143,13 +143,13 @@ def methane_target_mol(flux_mol_yr, moles):
     return min(steady, share * sum(moles.values()), (1.0 - number("carbon_left_share")) * carbon)
 
 
-def _oxygenic(body, living):
-    """The `Living` of the oxygenic classes whose producers have begun by the star's age, as `(age_gyr, share)` pairs."""
+def _oxygenic(body, living, forever=False):
+    """The `Living` of the oxygenic classes whose producers have begun by the star's age (`forever`: whatever the star's age), as `(age_gyr, share)` pairs."""
     star_age = getattr(getattr(body, "star", None), "age", None)
     pairs = []
     for one in living:
         started = one.started(body)
-        if one.life_class.releases_oxygen and started is not None and star_age is not None and started <= star_age:
+        if one.life_class.releases_oxygen and started is not None and (forever or (star_age is not None and started <= star_age)):
             pairs.append((started, one.share))
     return pairs
 
@@ -173,30 +173,41 @@ def standing_methane_mol(body, living, age_gyr):
     return methane_target_mol(flux, moles) if flux > 0.0 else 0.0
 
 
-def oxygen_state(body, living):
+def oxygen_rise_gyr(body, living):
     """
-    The oxygen the classes of `living` have made on `body` by the star's age (GEN.1213): `(rise_gyr, target_mol)`, `(None, 0.0)` when none has. The oxygenic
-    classes' producers carry their summed share of the food production, so the source is that share of the body's (`biogenic_oxygen.productivity`); the
-    store the first oxygen fills holds, besides the ocean's iron and the crust's reductants, the oxygen the methane of the classes before the rise takes
-    (`standing_methane_mol`, two moles of oxygen to a mole of methane). The oxygen rises at the first producers' age plus the time the surplus takes to fill
-    that store (`biogenic_oxygen.rise_age_gyr`), and then the air holds the balance of the summed source and the sinks.
+    The age, Gyr, at which the oxygen of the oxygenic classes of `living` first rises on `body` (GEN.1213), whatever the star's age (`None`: it never
+    does, or the air it would make is under `biogenic_oxygen.MINIMUM_PA`). The oxygenic classes' producers carry their summed share of the food
+    production, so the source is that share of the body's (`biogenic_oxygen.productivity`); the store the first oxygen fills holds, besides the ocean's iron
+    and the crust's reductants, the oxygen the methane of the classes before the rise takes (`standing_methane_mol`, two moles of oxygen to a mole of
+    methane). The oxygen rises at the first producers' age plus the time the surplus takes to fill that store (`biogenic_oxygen.rise_age_gyr`).
     """
-    pairs = _oxygenic(body, living)
-    star_age = getattr(getattr(body, "star", None), "age", None)
-    if not pairs or star_age is None:
-        return None, 0.0
+    pairs = _oxygenic(body, living, forever=True)
+    if not pairs:
+        return None
     rise = biogenic_oxygen.rise_age_gyr(body, pairs)
-    if rise is None or rise > star_age:
-        return None, 0.0
+    if rise is None:
+        return None
     extra = 2.0 * standing_methane_mol(body, living, rise)
     if extra > 0.0:
         rise = biogenic_oxygen.rise_age_gyr(body, pairs, extra)
-        if rise is None or rise > star_age:
-            return None, 0.0
+        if rise is None:
+            return None
     profile = biogenic_oxygen.profile_of(body, sum(share for _, share in pairs), extra)
-    if profile.delay_gyr is None:
+    return rise if profile.delay_gyr is not None else None
+
+
+def oxygen_state(body, living):
+    """
+    The oxygen the classes of `living` have made on `body` by the star's age (GEN.1213): `(rise_gyr, target_mol)`, `(None, 0.0)` when none has: the rise
+    of `oxygen_rise_gyr` is older than the star, or never comes. Then the air holds the balance of the summed source and the sinks.
+    """
+    star_age = getattr(getattr(body, "star", None), "age", None)
+    rise = oxygen_rise_gyr(body, living)
+    if rise is None or star_age is None or rise > star_age:
         return None, 0.0
-    return rise, profile.steady_mol
+    pairs = _oxygenic(body, living)
+    extra = 2.0 * standing_methane_mol(body, living, rise)
+    return rise, biogenic_oxygen.profile_of(body, sum(share for _, share in pairs), extra).steady_mol
 
 
 def _producing(body, living, rose):

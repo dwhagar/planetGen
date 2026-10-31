@@ -1538,6 +1538,7 @@
 --   permanent day side, terminator band or permanent night side). `temp_mean_swing_k` stays (the swing of the whole surface). The columns `temp_polar_k`, `temp_north_k`, `temp_equator_k`, `temp_south_k`,
 --   `temp_swing_k`, `temp_day_side_k`, `temp_terminator_k`, `temp_night_side_k` and the swings `temp_polar_swing_k`, `temp_north_swing_k`, `temp_south_swing_k`, `temp_day_side_swing_k`,
 --   `temp_terminator_swing_k` and `temp_night_side_swing_k` are gone. NULL for a body with no temperature or rotation period and a row made before v194, which gets them when the galaxy is regenerated.
+-- v197 (GEN.1209): `planet_life` and `moon_life`, one row for each life class that lives on a planet or moon (class id, share of the food production, stage, animal grade, complexity, the five schedule ages and the four kind scores of the class). A body stored before has none: its one class is the dominant one in its own columns; nothing is backfilled.
 --
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
@@ -2657,6 +2658,34 @@ CREATE TABLE IF NOT EXISTS planet_life_class_scores (
     KEY idx_planet_life_class_scores_class (life_class, score)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- The life classes that live on a planet (v197, GEN.1209): one row for each class (the dominant one too), with its share of the food production, the stage its own schedule reached, its animal grade,
+-- the five ages of its schedule and the four kind scores it gives (0 to 9). The planet's own `life_class` columns are the dominant class and its own kind scores the highest of each over these rows.
+CREATE TABLE IF NOT EXISTS planet_life (
+    id                                      BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    planet_id                               BIGINT UNSIGNED NOT NULL,
+    life_class                              VARCHAR(2) NOT NULL,
+    share                                   DOUBLE NOT NULL CHECK (share > 0 AND share <= 1),
+    life_stage                              VARCHAR(32) NULL,
+    life_milestone_age_gyr                  DOUBLE NULL,
+    life_system_age_gyr                     DOUBLE NULL,
+    life_animal_grade                       TINYINT UNSIGNED NULL,
+    life_complexity                         DOUBLE NULL,
+    life_age_abiogenesis_gyr                DOUBLE NULL,
+    life_age_photosynthesis_gyr             DOUBLE NULL,
+    life_age_complex_cells_gyr              DOUBLE NULL,
+    life_age_multicellularity_gyr           DOUBLE NULL,
+    life_age_technological_civilization_gyr DOUBLE NULL,
+    life_microbial                          TINYINT UNSIGNED NULL,
+    life_flora                              TINYINT UNSIGNED NULL,
+    life_fauna                              TINYINT UNSIGNED NULL,
+    life_sentient                           TINYINT UNSIGNED NULL,
+
+    CONSTRAINT fk_planet_life_planet
+        FOREIGN KEY (planet_id) REFERENCES planets(id) ON DELETE CASCADE,
+    UNIQUE KEY uq_planet_life (planet_id, life_class),
+    KEY idx_planet_life_class (life_class, life_stage)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- ---------------------------------------------------------------------
 -- moons -- one row per moon, as of schema v2 (see the header comment's
 -- "v2" note). Exactly the same column shape as `planets` (moons are
@@ -3055,6 +3084,34 @@ CREATE TABLE IF NOT EXISTS moon_life_class_scores (
         FOREIGN KEY (moon_id) REFERENCES moons(id) ON DELETE CASCADE,
     UNIQUE KEY uq_moon_life_class_scores (moon_id, life_class),
     KEY idx_moon_life_class_scores_class (life_class, score)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- The life classes that live on a moon (v197, GEN.1209): one row for each class (the dominant one too), with its share of the food production, the stage its own schedule reached, its animal grade,
+-- the five ages of its schedule and the four kind scores it gives (0 to 9). The moon's own `life_class` columns are the dominant class and its own kind scores the highest of each over these rows.
+CREATE TABLE IF NOT EXISTS moon_life (
+    id                                      BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    moon_id                               BIGINT UNSIGNED NOT NULL,
+    life_class                              VARCHAR(2) NOT NULL,
+    share                                   DOUBLE NOT NULL CHECK (share > 0 AND share <= 1),
+    life_stage                              VARCHAR(32) NULL,
+    life_milestone_age_gyr                  DOUBLE NULL,
+    life_system_age_gyr                     DOUBLE NULL,
+    life_animal_grade                       TINYINT UNSIGNED NULL,
+    life_complexity                         DOUBLE NULL,
+    life_age_abiogenesis_gyr                DOUBLE NULL,
+    life_age_photosynthesis_gyr             DOUBLE NULL,
+    life_age_complex_cells_gyr              DOUBLE NULL,
+    life_age_multicellularity_gyr           DOUBLE NULL,
+    life_age_technological_civilization_gyr DOUBLE NULL,
+    life_microbial                          TINYINT UNSIGNED NULL,
+    life_flora                              TINYINT UNSIGNED NULL,
+    life_fauna                              TINYINT UNSIGNED NULL,
+    life_sentient                           TINYINT UNSIGNED NULL,
+
+    CONSTRAINT fk_moon_life_moon
+        FOREIGN KEY (moon_id) REFERENCES moons(id) ON DELETE CASCADE,
+    UNIQUE KEY uq_moon_life (moon_id, life_class),
+    KEY idx_moon_life_class (life_class, life_stage)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------------------------------------------------------------------

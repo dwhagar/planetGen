@@ -81,6 +81,10 @@ BODY_FIELDS = ("life_class", "life_class_variant", "life_class_best", "life_clas
 """tuple: What the life pass stores on a body besides the schedule, the stage and the four scores (columns of `planets` and `moons`): the class that
 lives on it (the number and the variant letter), the best-supported class and its score, the animal grade (0 to 3) and the complexity index."""
 
+LIVING_FIELD = "life_living"
+"""str: The body attribute holding the list of the life classes that live on it (GEN.1209; the child table `life`): the dominant class first, each a dict
+of `life_class` (the id), `share` of the food production, `stage`, `milestone_age_gyr`, `system_age_gyr`, `animal_grade`, `complexity` and `ages`
+(the five schedule ages). `None` for a body with no life."""
 SCORES_FIELD = "life_class_scores"
 """str: The body attribute holding `{class id: score}` for every class that reaches the line (the child table `life_class_scores`)."""
 

@@ -112,6 +112,7 @@ class Planet(PlanetaryObject):
                              habitat letter (`physics.life_classes`; set by `life.apply_life_data`, None until then or with none).
         life_class_best, life_class_best_score (str, int or None): The best-supported class and its score, 0 to 9.
         life_class_scores (dict or None): `{class id: score}` for every class the body supports (a score of 1 or more).
+        life_living (list or None): The life classes that live on the body (GEN.1209): the dominant class first, each a dict (`physics.life_classes.LIVING_FIELD`).
         life_animal_grade (int or None): The grade of its animals, 0 none to 3 large and active (`physics.life_complexity`).
         life_complexity (float or None): The complexity index of its life class (`physics.life_complexity`).
         reflection_spectrum_visible (list): Visible-light reflection descriptors
@@ -204,7 +205,7 @@ class Planet(PlanetaryObject):
         "atm_density", "surface_temperature", "density", "atmospheric_pressure",
         "mass", "atmosphere", "composition", "radius", "planet_class", "distance",
         "body_type", "scale_height", "hill_radius", "min_orbit_distance", "name",
-        *life_classes.BODY_FIELDS, life_classes.SCORES_FIELD, "reflection_spectrum_visible",
+        *life_classes.BODY_FIELDS, life_classes.SCORES_FIELD, life_classes.LIVING_FIELD, "reflection_spectrum_visible",
         "reflection_spectrum_non_visible", "life_stage", "evolutionary_pace",
         "life_milestone_age_gyr", "life_system_age_gyr", *tuning.LIFE_SCHEDULE_FIELDS, "flavor_key",
         "flavor_text_count", "habitable_zone", "volume", "period",
@@ -376,6 +377,7 @@ class Planet(PlanetaryObject):
         for field in life_classes.BODY_FIELDS:
             setattr(self, field, None)
         setattr(self, life_classes.SCORES_FIELD, None)
+        setattr(self, life_classes.LIVING_FIELD, None)
         self.reflection_spectrum_visible = None
         self.reflection_spectrum_non_visible = None
         self.life_stage = None # Set later by life.apply_life_data, with the next three

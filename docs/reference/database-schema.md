@@ -1465,6 +1465,21 @@ Added in v155 (DB.71, GEN.424). The air of a planet or moon: one row per gas abo
 | `gas` | VARCHAR(16) | NOT NULL | The formula in the gas table (`physics/data/gases.json`): `O2`, `CO2`, `N2`, `He`, `Na`, `NH3`. UNIQUE with the owner. |
 | `partial_pa` | DOUBLE | NOT NULL, CHECK above 0 | The partial pressure, Pa. |
 
+### `planet_life` / `moon_life`
+
+Added in v197 (GEN.1209). The life classes that live on a planet or moon: one row for each (the dominant class too), written with the body and removed with it. The body's own `life_class`, `life_stage`, `life_animal_grade` and the schedule columns describe the dominant class, and its four kind scores (`life_microbial`, `life_flora`, `life_fauna`, `life_sentient`) are the highest of each over these rows. A body stored before v197 has no rows.
+
+| Column | Type | Null | Notes |
+|---|---|---|---|
+| `id` | BIGINT UNSIGNED | PK | |
+| `planet_id` / `moon_id` | BIGINT UNSIGNED | NOT NULL | FK -> `planets.id` / `moons.id` (`ON DELETE CASCADE`). |
+| `life_class` | VARCHAR(2) | NOT NULL | The class id (`1a`, `3`). UNIQUE with the owner; indexed with `life_stage`. |
+| `share` | DOUBLE | NOT NULL, CHECK 0 < share <= 1 | The class's share of the body's food production (its net primary production over the sum); the shares of a body add up to 1. |
+| `life_stage`, `life_milestone_age_gyr`, `life_system_age_gyr` | VARCHAR(32), DOUBLE, DOUBLE | nullable | The latest stage the class's own schedule reached by the star's age, the age it was reached and the star's age (as on `planets`). |
+| `life_animal_grade`, `life_complexity` | TINYINT UNSIGNED, DOUBLE | nullable | The grade of the class's animals, 0 to 3, and its complexity index. |
+| `life_age_abiogenesis_gyr` ... `life_age_technological_civilization_gyr` | DOUBLE | nullable | The five ages of the class's schedule, Gyr; `NULL` for a step never reached. |
+| `life_microbial`, `life_flora`, `life_fauna`, `life_sentient` | TINYINT UNSIGNED | nullable | The four kind scores, 0 to 9, that this class gives. |
+
 ### `asteroid_belts`
 
 One row per asteroid belt. Belts have no properties-dict data table
@@ -2228,6 +2243,10 @@ Migration 0191 adds three nullable columns at the end of `planets` and `moons`, 
 ### v189 (GEN.1009): the largest radius and mass of a member
 
 Migration 0189 adds two nullable DOUBLE columns to `scatter_members`: `radius_max_au`, the largest radius the member has had (a white dwarf's red-giant or asymptotic-branch tip; the present radius for a member that has not left its main sequence), and `mass_max_solar`, the largest mass it has had (its birth mass). Both come from the member record (`generation/member_record.py`) that the tree and the build read. NULL on a row made before v187; nothing is backfilled, a row gets them when the galaxy is regenerated. A column already there is skipped, so a stopped run can be started again.
+
+### v197 (GEN.1209): several life classes on one body
+
+Migration 0197 creates `planet_life` and `moon_life` (a table already there is kept). A body stored before has no rows: its one class is the dominant one in its own columns, and nothing is backfilled; the rows come when the galaxy is regenerated (the epoch of GEN.1209).
 
 ### v196 (GEN.1108): the climate of a body in seven bands of latitude
 
