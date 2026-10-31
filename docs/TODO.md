@@ -1121,6 +1121,16 @@ with `clamp()`.
   removing the stored copy (lock). Everything built at view time
   (describe/build.py, describe/sheet.py, classref.py, the templates) is
   yours to rewrite now.
+  Spelling rule (2026-10-31 10:34 AM EDT): Boss decided (10:33 AM EDT
+  2026-10-31): American spelling, option 1, so "color" not "colour"; he
+  does not mind which as long as it is consistent everywhere. The style
+  guide (docs/design/interface/text-style.md) records American spelling
+  and the checker (planetgen/util/plainwords.py) flags British spellings
+  (colour, grey, centre, metre, litre, kilometre, analyse, neighbour and
+  the like, with a short allow-list for proper names and quotes); each
+  rewrite changes its own text to American spelling, and the number of
+  "colour" uses (333 on the site) goes to zero. The word list and the
+  checker change are made by Core 5 with the next guide edit.
   Prerequisites: DOC.84. Related: UX.237, GEN.1208.
 
 - [ ] **UX.253 Readability rewrite of ALL star, system and star-class text: summary sentences, descriptions, notes, labels, spectral class pages**
@@ -1150,6 +1160,16 @@ with `clamp()`.
   (describe/build.py summaries and notes, describe/sheet.py labels, the
   spectral and luminosity class pages in web/lib/classref.py, the system
   page text) is built at view time and belongs here.
+  Spelling rule (2026-10-31 10:34 AM EDT): Boss decided (10:33 AM EDT
+  2026-10-31): American spelling, option 1, so "color" not "colour"; he
+  does not mind which as long as it is consistent everywhere. The style
+  guide (docs/design/interface/text-style.md) records American spelling
+  and the checker (planetgen/util/plainwords.py) flags British spellings
+  (colour, grey, centre, metre, litre, kilometre, analyse, neighbour and
+  the like, with a short allow-list for proper names and quotes); each
+  rewrite changes its own text to American spelling, and the number of
+  "colour" uses (333 on the site) goes to zero. The word list and the
+  checker change are made by Core 5 with the next guide edit.
   Prerequisites: none. Related: UX.150.
 
 ## MAP: Galaxy Map, Sector Map, System Map
