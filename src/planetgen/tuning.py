@@ -1620,6 +1620,11 @@ STAR_FORMATION_LAW_COEFFICIENT = 2.5e-4
 """float: The Schmidt-Kennicutt law's coefficient: the star formation rate per area is this times the gas per area (solar
 masses per pc2) to `STAR_FORMATION_LAW_EXPONENT`, in solar masses per year per kpc2 (Kennicutt 1998, ApJ 498, 541, eq. 4:
 (2.5 +/- 0.7) e-4, read in arXiv astro-ph/9712213)."""
+SATELLITE_GAS_TO_STELLAR_SCALE_LENGTH_RATIO = 1.8
+"""float: A satellite's gas disc scale length over its stars' (GEN.1192). The HI of a late-type dwarf reaches 1.8 +/- 0.8 times
+the optical diameter, the extent defined as 6.4 disc scale lengths (Swaters et al. 2002, A&A 390, 829, arXiv astro-ph/0204525,
+abstract read); the extent ratio is read as the scale length ratio [I], and the Clouds' gas (Large Cloud 4.8e8 solar masses,
+Staveley-Smith et al. 2003, MNRAS 339, 87, arXiv astro-ph/0210501, abstract read) is the check, within a factor of 2.5."""
 SATELLITE_STAR_FORMATION_THRESHOLD_MSUN_PC2 = 3.0
 """float: The gas surface density below which a satellite forms no stars, solar masses per pc2. Schaye (2004, ApJ 609,
 667, read in arXiv astro-ph/0205125) puts the empirical threshold at 3 to 10 and the point where the gas turns cold
