@@ -1912,7 +1912,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1159 | Store ice fraction, bulk density, roundness ratio, yield strength and binding energy on planets, moons, asteroids and belt or field members (columns, migration, API version) | none | open |
 | GEN.1160 | Class D and C rules read the roundness ratio and the 0.1 Earth mass line, and the Asteroid object type (no class letter, moon-capable) for bodies under roundness ratio 1 | none | open |
 | GEN.1161 | Asteroid field mass rule and a member ledger like the belts' (individual bodies above 1e19 kg stored, the rest drawn on demand) | none | open |
-| GEN.1162 | Store bulk density and binding energy (and roundness ratio, yield strength and ice fraction where they apply) on stars, brown dwarfs, giant planets, white dwarfs, neutron stars and black holes; black holes are marked not applicable | none | open |
+| GEN.1162 | Store bulk density and binding energy (and roundness ratio, yield strength and ice fraction where they apply) on stars, brown dwarfs, giant planets, white dwarfs, neutron stars and black holes; a black hole's binding energy is stored as -1, meaning infinite | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
