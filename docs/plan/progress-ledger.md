@@ -2226,3 +2226,5 @@ Baseline: PR #1817.
 | TEST.524 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | UX.254 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | MAP.274 | 8.4 | Asteroid fields |
+| TEST.521 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.527 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
