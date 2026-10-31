@@ -232,11 +232,55 @@ def look_json(look):
     return json.dumps(look, separators=(",", ":"), sort_keys=True)
 
 
-def look_note(look):
-    """The info panel's line about how the picture was worked out (UX.158 replaces it with the full account)."""
-    notes = []
+def colour_account(look):
+    """
+    The info panel's account of how the colour was worked out (UX.158): which stored inputs it used and whether it is a partial estimate
+    or the full account. A pure function of the look record, which carries exactly the inputs the painters had, so it cannot say more than
+    the picture used. `None` for a record that is not a body.
+
+    A star is full when its colour is a model atmosphere's at its temperature, partial when only its spectral class gave it. A solid world
+    or a giant is a partial estimate for as long as the record says `quality` "estimate" (the colour from temperature and body family, not
+    from the surface composition, cloud and haze, which are not stored yet, MAP.274).
+    """
+    body = look.get("body")
+    temperature = look.get("tempK")
+    if body == "star":
+        if temperature is None:
+            return "Partial: colour from its spectral class alone; no temperature is stored for a model atmosphere"
+        return f"Full: colour of a model atmosphere at its effective temperature ({temperature:,.0f} K) and gravity"
+    if body not in ("solid", "gas"):
+        return None
+    kind = look.get("kind")
+    layer = "Cloud-top" if body == "gas" else "Ground"
+    if temperature is not None:
+        parts = [f"{layer} colour from its mean {'cloud-top' if body == 'gas' else 'surface'} temperature ({temperature:,.0f} K) alone"]
+    else:
+        parts = [f"{layer} colour is a default: no temperature is stored"]
+    if body == "solid" and look.get("ocean"):
+        if look.get("oceanClass"):
+            parts.append(f"sea colour from its ocean class ({look['oceanClass']})")
+        else:
+            parts.append("sea colour is a default: no ocean class is stored")
+    if look.get("atm") and kind != "rogue_planet":
+        if look.get("glow"):
+            parts.append("limb glow from the composition of its air under its star")
+        else:
+            parts.append("no limb glow: the colour of its air could not be worked out")
     if look.get("quality") == "estimate":
-        notes.append("Estimate from temperature and stored water fractions; not yet from composition")
+        missing = "surface composition, clouds and haze" if body == "solid" else "chemistry bands and haze"
+        head = "Partial estimate: "
+        tail = f". Not used yet: {missing} (not stored)"
+    else:
+        head, tail = "Full: ", ""
+    return head + "; ".join(parts) + tail
+
+
+def look_note(look):
+    """The info panel's line about how the picture was worked out (`colour_account`), then how it is turned or locked."""
+    notes = []
+    account = colour_account(look)
+    if account:
+        notes.append(account)
     if look.get("locked") and look.get("body") != "star":
         notes.append("Tidally locked: its day side stays toward " + ("its planet" if look.get("kind") == "moon" else "its star"))
     elif look.get("spinH") and look.get("body") == "solid":
