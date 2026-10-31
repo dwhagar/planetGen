@@ -64,16 +64,14 @@ def test_a_lone_star_swings_only_by_the_orbit_and_a_generated_system_sets_it_on_
         for planet in system.planets + system.secondary_planets:
             if not hasattr(planet, "moons"):
                 continue
-            if planet.body_type == "g":
-                assert planet.flux_variation is None
-            else:
-                assert planet.flux_variation is not None and 0.0 <= planet.flux_variation <= 1.0
+            assert planet.flux_variation is not None and 0.0 <= planet.flux_variation <= 1.0    # a giant's too (GEN.784)
+            if planet.body_type != "g":
                 swung += planet.flux_variation > 0.0
             for moon in planet.moons:
                 assert moon.flux_variation is not None and 0.0 <= moon.flux_variation <= 1.0
                 if system.binary_type is None:
                     assert moon.flux_variation == pytest.approx(flux_swing(planet.eccentricity))
-            if system.binary_type is None and planet.body_type != "g":
+            if system.binary_type is None:
                 assert planet.flux_variation == pytest.approx(flux_swing(planet.eccentricity))
     assert seen[None] > 0 and seen["close"] + seen["wide"] > 0
     assert swung > 0

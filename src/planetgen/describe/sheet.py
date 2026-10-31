@@ -836,8 +836,7 @@ generation pathway, not a rule."""
 
 OPEN_GAPS = {
     **{(kind, key): item for kind in ("planet", "moon") for key, item in (
-        ("tidal_flux_w_m2", "GEN.778"), ("porosity", "GEN.780"), ("hp_ice_km", "GEN.781"), ("outside_hours", "GEN.768"),
-        ("energy_flux_w_m2", "GEN.784"), ("flux_variation", "GEN.784"))},
+        ("tidal_flux_w_m2", "GEN.778"), ("porosity", "GEN.780"), ("hp_ice_km", "GEN.781"), ("outside_hours", "GEN.768"))},
     **{("star", key): item for key, item in (
         ("lethal_event_rate_per_gyr", "GEN.785"), ("wide_binary_a_crit_km", "GEN.789"))},
 }
