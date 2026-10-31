@@ -31,13 +31,16 @@ dwarfs.
 
 from planetgen import tuning
 from planetgen.datasets import baraffe_isochrones
-from planetgen.physics import brown_dwarf_types, constants, stellar_evolution as evolution, substellar_ceiling
+from planetgen.physics import brown_dwarf_types, stellar_evolution as evolution, substellar_ceiling, unit_registry as units
 from planetgen.util import draw
+
+_kg_to_msun = units.converter("kg", "Msun")
+_mjup_to_kg = units.converter("Mjup", "kg")
 
 
 def mass_range_solar():
     """`(lowest, highest)` brown dwarf mass in solar masses: the deuterium limit to the hydrogen limit."""
-    low, high = (jupiter * constants.JUPITER_MASS_TO_KG / constants.SOLAR_MASS_TO_KG
+    low, high = (_kg_to_msun(_mjup_to_kg(jupiter))
                  for jupiter in tuning.ROGUE_BROWN_DWARF_MASS_RANGE_JUPITER)
     return low, high
 

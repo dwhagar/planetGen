@@ -375,8 +375,8 @@ def init_app(app, limiter=None):
     # but the site still serves.
     math_check_failures()
     # The class reference catalog is built from the generator's tables
-    # now, once, so the /classes pages never build it on a request.
-    classref.catalog()
+    # now, once, so the /classes pages never build it on a request (a dataset not downloaded yet does not stop the site).
+    classref.preload()
     app.before_request(csrf.protect)
     app.after_request(csrf.set_cookie)
     transport.install()

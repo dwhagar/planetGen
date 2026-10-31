@@ -31,7 +31,7 @@ from planetgen.generation import (
     cloud as cloudContext, life as planetLife, multistar, place_terms, prevalence, stored_trees, validation,
 )
 from planetgen.physics import stellar_evolution as evolution
-from planetgen.physics import constants, habitability, insolation, interior_heat, magnetism, mass_loss, metallicity, pre_main_sequence, rings, wolf_rayet
+from planetgen.physics import habitability, insolation, interior_heat, magnetism, mass_loss, metallicity, pre_main_sequence, rings, wolf_rayet
 from planetgen.physics import planets as planetPhysics
 from planetgen import tuning
 from planetgen.util import draw
@@ -648,7 +648,7 @@ class StarSystem:
         """`planet_zones.planet_zones` of the system's tree: the S-type window of every star in `stars` order (the member
         number is the index in `stars`) and the P-type window of every node, each a `Zone`."""
         slots = self.star_slots or ((0, 0), (0, 1))
-        members = [TreeMember(number, node_no, slot, star.mass / constants.SOLAR_MASS_TO_KG)
+        members = [TreeMember(number, node_no, slot, _kg_to_msun(star.mass))
                    for number, (star, (node_no, slot)) in enumerate(zip(self.stars, slots))]
         return planet_zones.planet_zones(self.orbit_nodes, members,
                                          {number: self._engulfment_radius_au(star) for number, star in enumerate(self.stars)})
@@ -656,7 +656,7 @@ class StarSystem:
     def sibling_stars(self, number):
         """`(node, star numbers)`: the node star `number` of `stars` hangs from and the stars of the subtree beside it."""
         slots = self.star_slots or ((0, 0), (0, 1))
-        members = [TreeMember(index, node_no, slot, star.mass / constants.SOLAR_MASS_TO_KG)
+        members = [TreeMember(index, node_no, slot, _kg_to_msun(star.mass))
                    for index, (star, (node_no, slot)) in enumerate(zip(self.stars, slots))]
         node, beside = planet_zones.sibling_of(self.orbit_nodes, members, number)
         return node, sorted(beside)
@@ -778,7 +778,7 @@ class StarSystem:
             return []
 
         count = draw.randint(*tuning.SYSTEM_COMET_COUNT_RANGE)
-        primary_mass_solar = star.mass / constants.SOLAR_MASS_TO_KG
+        primary_mass_solar = _kg_to_msun(star.mass)
         if ceiling_au is None:
             # A closed orbit stays inside the star's own Hill sphere (GEN.591); a parabolic comet leaves it by design.
             hill_au = validation.orbit_ceiling_au(star)
@@ -858,7 +858,7 @@ class StarSystem:
         at_least_two = False
         special = self._special_companion_chance()
         percent = prevalence.percent(config, "binary_system")
-        placed = multistar.Placed("star", primary.mass / constants.SOLAR_MASS_TO_KG, place_terms.born_mass_solar(primary))
+        placed = multistar.Placed("star", _kg_to_msun(primary.mass), place_terms.born_mass_solar(primary))
         if count is not None:
             pass
         elif special is not None:
@@ -941,7 +941,7 @@ class StarSystem:
         if not self.orbit_nodes:
             return True
         slots = self.star_slots or tuple((self.orbit_nodes[0].node_no, slot) for slot in (0, 1))
-        stars = [(parent, _km_to_au(star.radius), star.mass / constants.SOLAR_MASS_TO_KG)
+        stars = [(parent, _km_to_au(star.radius), _kg_to_msun(star.mass))
                  for star, (parent, _slot) in zip(self.stars, slots)]
         return multistar.built_tree_clears(self.orbit_nodes, stars)
 
@@ -1002,8 +1002,8 @@ class StarSystem:
             # The primary is by definition the heavier star, so the pair's roles swap: the heavier takes slot 0, and the
             # orbit of the slot-1 star about it is the old one turned half way round.
             log.choice("Binary primary", "swapped",
-                       f"secondary {built[second].mass / constants.SOLAR_MASS_TO_KG:.3g} Msun "
-                       f"outweighs primary {built[first].mass / constants.SOLAR_MASS_TO_KG:.3g} Msun")
+                       f"secondary {_kg_to_msun(built[second].mass):.3g} Msun "
+                       f"outweighs primary {_kg_to_msun(built[first].mass):.3g} Msun")
             first, second = second, first
             slots[low], slots[high] = slots[high], slots[low]
             nodes[pair_no] = dataclasses.replace(
@@ -1049,7 +1049,7 @@ class StarSystem:
     @staticmethod
     def _fit_nodes(plan, built):
         """`plan`'s nodes with the mass of each the built stars below it make, and the period of its own axis about it."""
-        mass = {member.member_no: built[member.member_no].mass / constants.SOLAR_MASS_TO_KG for member in plan.members}
+        mass = {member.member_no: _kg_to_msun(built[member.member_no].mass) for member in plan.members}
         children = collections.defaultdict(list)
         for member in plan.members:
             children[member.parent_node_no].append(mass[member.member_no])
@@ -1327,7 +1327,7 @@ class StarSystem:
                 belt_fallback_index = (system_objects - 2) if hab_still_pending else (system_objects - 1)
                 force_belt = apply_guarantees and self.system_config.ASTEROID_BELT is True and not found_belt and i >= belt_fallback_index
 
-                belt_fits_slot = not seed.runaway and seed.mass_kg < tuning.BELT_REPLACES_BELOW_EARTH * constants.EARTH_MASS_TO_KG
+                belt_fits_slot = not seed.runaway and seed.mass_kg < _mearth_to_kg(tuning.BELT_REPLACES_BELOW_EARTH)
                 if self.system_config.ASTEROID_BELT is not False and (
                     force_belt or i == belt_index
                     or (belt_fits_slot and not last_asteroid and not hz and draw.random() < tuning.ASTEROID_BELT_PROBABILITY)
@@ -1415,7 +1415,7 @@ class StarSystem:
             if yerkes in ("VII", "D"):
                 if explicit_request and member.initial_mass_sol is None:
                     continue
-                progenitor_sol = mass_loss.progenitor_mass_sol(member.mass / constants.SOLAR_MASS_TO_KG,
+                progenitor_sol = mass_loss.progenitor_mass_sol(_kg_to_msun(member.mass),
                                                                member.initial_mass_sol)
                 radius_au = max(radius_au, mass_loss.engulfment_radius_au(progenitor_sol))
             elif yerkes not in (None, "V", "VI", "PMS", "protostar"):
@@ -1880,9 +1880,9 @@ class StarSystem:
             # disc makes few ice giants at a cold slot, so chance alone can miss that class for the whole run of draws).
             given = {}
             if life and attempt >= tuning.HABITABLE_REQUEST_FREE_ATTEMPTS:
-                given["mass"] = math.exp(draw.uniform(*(math.log(m) for m in tuning.HABITABLE_REQUEST_MASS_EARTH))) * constants.EARTH_MASS_TO_KG
+                given["mass"] = _mearth_to_kg(math.exp(draw.uniform(*(math.log(m) for m in tuning.HABITABLE_REQUEST_MASS_EARTH))))
             elif planet_class is not None and attempt >= tuning.CLASS_REQUEST_FREE_ATTEMPTS:
-                given["mass"] = math.exp(draw.uniform(*(math.log(m) for m in tuning.CLASS_REQUEST_MASS_EARTH))) * constants.EARTH_MASS_TO_KG
+                given["mass"] = _mearth_to_kg(math.exp(draw.uniform(*(math.log(m) for m in tuning.CLASS_REQUEST_MASS_EARTH))))
             planet = Planet(self.system_config, star, habitable_zone, distance, moon_count=DEFER_MOONS, planned_objects=planned_objects, **given)
             if (planet_class is not None and planet.planet_class == planet_class) or (life and habitable_request.meets_with_moons(planet)):
                 break
@@ -2340,4 +2340,7 @@ class StarSystem:
         validation.reconcile_moved_planet(planet)
 
 from planetgen.generation import object_timing  # noqa: E402 -- registers the generators below (PERF.92)
+
+_kg_to_msun = units.converter("kg", "Msun")
+_mearth_to_kg = units.converter("Mearth", "kg")
 object_timing.track(StarSystem, "system")

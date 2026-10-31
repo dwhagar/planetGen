@@ -19,7 +19,9 @@ import math
 import numpy as np
 
 from planetgen import tuning
-from planetgen.physics import constants
+from planetgen.physics import constants, unit_registry as units
+
+_kg_to_msun = units.converter("kg", "Msun")
 
 _YEAR_PER_MYR = 1.0e6
 
@@ -136,6 +138,6 @@ def jacobi_radii_pc(mass_sol, galactocentric_pc):
     in an isothermal halo of circular speed `tuning.CLUSTER_HALO_CIRCULAR_KMS`."""
     speed = tuning.CLUSTER_HALO_CIRCULAR_KMS * 1.0e3
     radius_pc = np.maximum(np.asarray(galactocentric_pc, dtype=float), 1.0)
-    galaxy_mass = speed * speed * radius_pc * constants.PARSEC_M / constants.G / constants.SOLAR_MASS_TO_KG
+    galaxy_mass = _kg_to_msun(speed * speed * radius_pc * constants.PARSEC_M / constants.G)
     return radius_pc * (np.asarray(mass_sol, dtype=float) / (2.0 * galaxy_mass)) ** (1.0 / 3.0)
 

@@ -23,7 +23,10 @@ ratio of its stored present `L_X/L_bol` to the nominal one (`log_lx_lbol`).
 import math
 
 from planetgen import tuning
-from planetgen.physics import activity, constants, orbits, pre_main_sequence
+from planetgen.physics import activity, constants, orbits, pre_main_sequence, unit_registry as units
+
+_kg_to_mearth = units.converter("kg", "Mearth")
+_kg_to_msun = units.converter("kg", "Msun")
 
 COOLEST_RUNAWAY_FLUX = min(orbits.runaway_greenhouse_flux(teff, mass)
                            for teff in (orbits.KOPPARAPU_TEFF_RANGE_K[0], 4000.0, 5780.0, orbits.KOPPARAPU_TEFF_RANGE_K[1])
@@ -82,7 +85,7 @@ def loss_kg(star, distance_au, mass_kg, radius_km):
     if (getattr(star, "yerkes_class", None) not in HISTORY_YERKES or not star.luminosity or not star.temperature
             or not star.mass or not distance_au or distance_au <= 0 or not mass_kg or not radius_km):
         return 0.0
-    mass_sol = star.mass / constants.SOLAR_MASS_TO_KG
+    mass_sol = _kg_to_msun(star.mass)
     if mass_sol >= tuning.PRE_MAIN_SEQUENCE_MAX_MASS_SOL:
         return 0.0
     age_yr = (star.age or 0.0) * 1e9
@@ -94,7 +97,7 @@ def loss_kg(star, distance_au, mass_kg, radius_km):
     peak = max(_light(mass_sol, start_yr, now)[0], star.luminosity)
     if peak / solar_l / distance_au ** 2 < COOLEST_RUNAWAY_FLUX:
         return 0.0
-    planet_mass_earth = mass_kg / constants.EARTH_MASS_TO_KG
+    planet_mass_earth = _kg_to_mearth(mass_kg)
     t_sat_gy = _saturation_age_gy(star, mass_sol)
     area_factor = (tuning.ENERGY_LIMITED_EFFICIENCY * math.pi * (radius_km * 1000.0) ** 3
                    / (constants.G * mass_kg))

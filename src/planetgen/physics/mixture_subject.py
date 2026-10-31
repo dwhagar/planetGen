@@ -26,8 +26,11 @@ import math
 
 from planetgen import tuning
 from planetgen.generation.possibility_table import Subject
-from planetgen.physics import activity, bulk_structure, climate_draws, constants, giant_draw, giant_interior, mixture_draw, orbit_elements, orbits
+from planetgen.physics import activity, bulk_structure, climate_draws, constants, giant_draw, giant_interior, mixture_draw, orbit_elements, orbits, unit_registry as units
 from planetgen.physics.mixture_base import MixtureError
+
+_kg_to_mearth = units.converter("kg", "Mearth")
+_kg_to_msun = units.converter("kg", "Msun")
 
 PHOTOSPHERE_BAR = 0.1
 """float: The pressure of the layer a giant's regime is read at, bar: the dayside emission of a hot giant comes from about 0.1 bar (the
@@ -94,7 +97,7 @@ def quantities_of_body(body, *, ts_k, pressure_bar, ocean_present=False, long_li
             `eccentricity` when not given (GEN.842).
     """
     star = getattr(body, "star", None)
-    mass_earth = body.mass / constants.EARTH_MASS_TO_KG
+    mass_earth = _kg_to_mearth(body.mass)
     quantities = {
         "mass_earth": mass_earth,
         "mass_jupiter": mass_earth / giant_interior.EARTH_MASS_JUPITER,
@@ -115,7 +118,7 @@ def quantities_of_body(body, *, ts_k, pressure_bar, ocean_present=False, long_li
         return quantities
     quantities["age_gy"] = getattr(star, "age", None) or tuning.ROGUE_EARTH_REFERENCE_AGE_GY
     quantities["host_type"] = host_type_of(star)
-    quantities["host_mass_solar"] = star.mass / constants.SOLAR_MASS_TO_KG
+    quantities["host_mass_solar"] = _kg_to_msun(star.mass)
     quantities["luminosity_solar"] = star.luminosity / constants.SOLAR_LUMINOSITY
     distance_au = star_distance_au if star_distance_au is not None else (
         None if quantities["is_moon"] else orbit_elements.flux_distance_au(body.distance, getattr(body, "eccentricity", None)))

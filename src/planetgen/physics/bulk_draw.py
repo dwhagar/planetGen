@@ -43,6 +43,10 @@ from planetgen.physics import (bulk_composition, bulk_structure, comet_populatio
                                hydrosphere, ice_species, moon_composition, stellar_abundances, stellar_composition)
 from planetgen.util import draw
 from planetgen.util.random import log_uniform
+from planetgen.physics import unit_registry as units
+
+_kg_to_mearth = units.converter("kg", "Mearth")
+_mearth_to_kg = units.converter("Mearth", "kg")
 
 SOURCES = {
     "bond2010": "Bond, O'Brien and Lauretta 2010, ApJ 715, 1050 (planets of stars with C/O above 0.8 are carbon-rich)",
@@ -333,7 +337,7 @@ def _snow_ratio(body):
 def _rocky_water(body):
     """A rocky body's water share from the Bern delivery law (`delivered_water`); a body with no mass yet is taken at the middle of the model's masses."""
     mass = getattr(body, "mass", None)
-    mass_earth = mass / constants.EARTH_MASS_TO_KG if mass else math.sqrt(math.prod(delivered_water.MASS_RANGE_EARTH))
+    mass_earth = _kg_to_mearth(mass) if mass else math.sqrt(math.prod(delivered_water.MASS_RANGE_EARTH))
     ratio = _snow_ratio(body)
     return delivered_water.sample_fraction(mass_earth, 0.5 if ratio is None else ratio)
 
@@ -395,7 +399,7 @@ def mass_from_radius(bulk, radius_km, x_fe):
     def radius_at(mass_kg):
         return bulk_structure.structure(bulk, mass_kg, x_fe=x_fe).radius_km
 
-    top_kg = MAX_MASS_EARTH * constants.EARTH_MASS_TO_KG
+    top_kg = _mearth_to_kg(MAX_MASS_EARTH)
     if radius_at(top_kg) < radius_km:
         return top_kg, radius_at(top_kg)
     low, high = math.log(MIN_MASS_KG), math.log(top_kg)
@@ -520,7 +524,7 @@ def _draw_inverse(body, ratios, water, ice, ice_shares, feo, light, carbon_rock,
     """A body given both a mass and a radius: the core mass fraction from the mass and the radius."""
     part = dry_partition(ratios, feo, light, carbon_rock, graphite)
     x_fe = bulk_structure.x_fe_from_feo_mass_fraction(part.rock_feo) if part.rock_feo else 0.0
-    mass_earth = body.mass / constants.EARTH_MASS_TO_KG
+    mass_earth = _kg_to_mearth(body.mass)
     radius_earth = body.radius / constants.EARTH_RADIUS_KM
     wet = water + ice
     cmf = bulk_structure.cmf_from_mass_radius(mass_earth, radius_earth, x_fe, 1.0, high=MAX_CMF)

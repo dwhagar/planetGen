@@ -35,7 +35,9 @@ import json
 import os
 from collections.abc import Mapping
 
-from planetgen.physics import atmosphere, constants, elements
+from planetgen.physics import atmosphere, elements, unit_registry as units
+
+_kg_to_mearth = units.converter("kg", "Mearth")
 
 DATA_FILE = os.path.join(elements.DATA_DIRECTORY, "planet_classes.json")
 
@@ -79,7 +81,7 @@ def quantities(values):
     pressure = values.get("atmospheric_pressure_pa") or 0.0
     found = {
         "body_type": body_type,
-        "mass_earth": mass_kg / constants.EARTH_MASS_TO_KG,
+        "mass_earth": _kg_to_mearth(mass_kg),
         "pressure_pa": pressure,
         "gravity_g": values.get("gravity_g"),
         "temperature_k": values.get("surface_temperature_k"),

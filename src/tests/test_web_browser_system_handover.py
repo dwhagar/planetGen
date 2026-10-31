@@ -156,7 +156,11 @@ def test_the_stars_and_bodies_of_a_system_opened_in_the_sector_turn_on_their_axe
     for a, b in zip(got["first"], got["second"]):
         dot = abs(sum(x * y for x, y in zip(a["quaternion"], b["quaternion"])))
         turned = 2 * math.acos(min(1.0, dot))
-        assert turned == pytest.approx(a["rate"] * (b["at"] - a["at"]), abs=2e-3), (a["ref"], turned, a["rate"])
+        if a["locked"]:
+            # UX.244: a tidally locked body keeps its face toward what it orbits, so it moves only as its orbit does.
+            assert turned < 0.02, (a["ref"], turned)
+        else:
+            assert turned == pytest.approx(a["rate"] * (b["at"] - a["at"]), abs=2e-3), (a["ref"], turned, a["rate"])
         assert 2 * math.pi / 600 - 1e-9 <= a["rate"] <= 2 * math.pi / 20 + 1e-9 or a["rate"] == 0
     # The Menu's Spin switch holds every body still, and on again sets them turning.
     page.locator("#galaxymap3d-menu > summary").click()
@@ -165,7 +169,11 @@ def test_the_stars_and_bodies_of_a_system_opened_in_the_sector_turn_on_their_axe
     button.click()
     held = page.evaluate(sample, 600)
     assert held["first"][0]["at"] == held["second"][0]["at"], "spin time stopped"
-    assert [s["quaternion"] for s in held["first"]] == [s["quaternion"] for s in held["second"]]
+    for a, b in zip(held["first"], held["second"]):
+        if a["locked"]:
+            assert a["quaternion"] == pytest.approx(b["quaternion"], abs=1e-3)   # UX.244: it follows its orbit, not the spin
+        else:
+            assert a["quaternion"] == b["quaternion"]
     button.click()
     again = page.evaluate(sample, 600)
     assert again["second"][0]["at"] > again["first"][0]["at"]
