@@ -2100,3 +2100,5 @@ Baseline: PR #1817.
 | GEN.720 | 8.1 | Radiation chain for habitability (GEN.445) |
 | GEN.839 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | GEN.716 | 8.1 | Nebula and young stars |
+| GEN.790 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.789 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
