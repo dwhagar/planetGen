@@ -795,6 +795,15 @@ with `clamp()`.
   for columns on main, then the rows for columns not on main yet
   (GEN.738 to 740, GEN.741 to 745, GEN.762, GEN.730, the brown dwarf
   label), after train 1. The X-ray luminosity is GEN.952.
+  Boss approved first list slice (2026-10-31 1:48 PM EDT): Boss said yes
+  at 1:47 PM EDT 2026-10-31 to Core 3's first slice: the object index
+  and the star, planet and moon lists gain three stored, sortable
+  columns each (stars: temperature, luminosity, age; planets and moons:
+  orbit axis, eccentricity, surface temperature). It adds object-index
+  columns, so it is lock work: a migration, the API field list and a
+  backfill, on a train slot. Core 3 builds it on a branch off main, no
+  merge, and reports the head to TODO for the Train Manager. Later
+  slices add the rest.
 
 - [ ] **UX.206 Link-preview (SEO and social) images for pages with a rendered image or map view are a cached snapshot of that view**
   Boss, 8:19 PM EDT 2026-10-24 (message
