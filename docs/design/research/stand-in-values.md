@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 971 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 973 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -39,13 +39,13 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T1 | 140 | 13 | 8 | 1 | 0 | 162 |
 | T2 | 112 | 36 | 0 | 1 | 0 | 149 |
 | T3 | 84 | 38 | 5 | 10 | 0 | 137 |
-| T4 | 39 | 5 | 0 | 15 | 10 | 69 |
+| T4 | 40 | 5 | 0 | 15 | 10 | 70 |
 | T5 | 44 | 17 | 0 | 1 | 0 | 62 |
-| T6 | 92 | 72 | 20 | 51 | 0 | 235 |
+| T6 | 93 | 72 | 20 | 51 | 0 | 236 |
 | T7 | 27 | 8 | 8 | 8 | 0 | 51 |
 | T8 | 0 | 1 | 1 | 5 | 1 | 8 |
 | T9 | 19 | 14 | 4 | 42 | 19 | 98 |
-| All | 557 | 204 | 46 | 134 | 30 | 971 |
+| All | 559 | 204 | 46 | 134 | 30 | 973 |
 
 ## How the labels were given
 
@@ -1396,6 +1396,13 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | PT1 | P | T9 | L0 | planet_type.TERRESTRIAL_MAX_ENVELOPE 0.005: an envelope under 0.5 percent of the mass is a terrestrial body (about the 1.6 Earth radii where rocky planets end) | 0.002 to 0.02 | planets and moons | a measured planet of 1.6 to 2 Earth radii that is rocky with no envelope, or a rocky world of 1.3 radii with a thick hydrogen envelope | the radius valley limit of GEN.722 read from the envelope the planet holds | Rogers 2015 and Fulton and Petigura 2018 (rocky limit near 1.6 Earth radii); Lopez and Fortney 2014 (envelope share against radius) | GEN.1219 | - |
 | PT2 | P | T9 | L0 | planet_type.GAS_MIN_ENVELOPE 0.5: an envelope of half the mass or more is a gas body (the line of bulk_structure.GIANT_ENVELOPE_FRACTION) | 0.3 to 0.7 | planets | a giant of Neptune's mass that is more than half envelope, or a Jupiter whose core outweighs its envelope | the envelope share the giant interior model gives (GEN.428) | Boss's choice of the pure rule; Neptune 10 to 15 percent envelope (Helled 2011) and Jupiter 90 percent or more | - | - |
+
+## 6.159 Stand-ins of the star stepper
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| ST1 | P | T6 | L0 | stepper.STEP_ETA 0.05 and STEP_CAP_MYR 5: a step is a twentieth of the star's own crossing time (the smaller of r/v and sqrt(r/a) at its present point, the cheap stand-in for the pericentre crossing time), no more than 5 Myr | eta 0.02 to 0.1; cap 1 to 10 Myr | a star in the smooth potential with no close encounter | an orbit of high eccentricity whose pericentre passage is poorly resolved at the present-point timescale (the energy test fails past 1e-3 per Gyr) | the pericentre crossing time from the orbit's energy and angular momentum | GEN.340's own wording ("step eta 0.05 of the pericentre crossing time, capped at 5 Myr"); kick-drift-kick is second-order symplectic (Hairer, Lubich and Wanner 2006, recalled) | GEN.105 | - |
+| ST2 | P | T4 | L0 | stepper.MAX_LEVEL 12: a star needs at most 4096 equal steps in one span; past it the star is stepped at that cap and flagged | 8 to 16 | any span the orbital update asks for | a span so long that the flagged cap leaves the orbit's energy off by over 1e-3 | no cap, once the update's span is bounded by the next-update rule (GEN.105) | GEN.340's own wording ("a step cap that sets a flag") | GEN.105 | - |
 
 ## 6.158 Stand-ins of the acceleration kernel
 
