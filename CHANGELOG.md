@@ -2,6 +2,39 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2841] - 2026-10-31
+
+**Headline:** Two more pure pieces of the Lagrange trojan work exist: which whole worlds a host and secondary can hold at L4 and L5, and where all five points are for the map.
+
+### Added
+- **Whole bodies at L4 and L5 (GEN.1151, pure part).** `physics/trojan_bodies.py` says whether a Class M or Class J world fits at the L4/L5 of a host and secondary (star and giant, star and brown dwarf, planet and moon), the room in Earth masses, and a formation gate with named inputs for the planet architecture oligarch chain. Stand-in rows TB1 to TB4 (registry 6.125).
+- **Lagrange point geometry (MAP.354, pure part).** `physics/lagrange_geometry.py` gives L1 to L5 for a pair in the system frame and the label `Jupiter-L4` of each occupied point, for the System Map and the gravity layer (MAP.169).
+
+No generator output changes.
+
+generation-output: unchanged
+
+TODO items resolved: none (GEN.1151 and MAP.354 stay open for the wiring).
+
+## [8.0.2840] - 2026-10-31
+
+**Headline:** Twelve tests that were red on main are green again, and seven library modules no longer use maths whose last bit depends on the Python or BLAS version.
+
+### Changed
+- **Test expectations brought up to the generator (TEST.503).** `test_object_rows` (the star row holds `state` and `decay_age_yr`, which `Star.to_dict` does not carry; it reads seeds until every kind of body has been seen), `test_db_column_round_trip` (`moons.magnetopause_rp` is NULL where no moon has a field; `planets.porosity` is written now), `test_work_units` (the phenomena plan carries `outline_shells` and `min_mass_solar`; a luminosity fill ends with `refresh-block-lights`), `test_aquifers` (the life classes let an aquifer world hold animal grade A1), `test_climate_sweep` (the Earth twin is the first Earth-mass planet that stands at a temperate temperature, not a fixed seed), `test_gen_hosting_wiring` (a directed moon count keeps one moon where the orbits take no second).
+- **Seven unread modules use `planetgen.util.detmath`** instead of `math.hypot`, `@` and `numpy.dot` (`rogue_density`, `band_winds`, `co2_far_wing`, `field_dispersal`, `mantle_stripping`, `planet_occurrence`, `quadruple_stability`); nothing reads them yet, so no stored number changes.
+- A docstring in `scripts/bench_region_queries.py` names `src/planetgen/db/near.py` in full, which `test_deploy_scripts` needs.
+
+generation-output: unchanged
+
+## [8.0.2839] - 2026-10-31
+
+**Headline:** The ice-albedo feedback now has a tested module that finds the snowball, warm and unstable climates of one flux.
+
+### Added
+- **GEN.1046: the branches of a climate with an ice-albedo feedback.** `physics/climate_branches.py` holds the albedo law of the ice (ice-free 0.30 above 283 K, covered 0.62 below 263 K) and finds every fixed point of `T = response(albedo(T))`, with its stability and the flux window in which two climates exist. Design in `docs/design/composition/climate-branches.md`; stand-in rows CC15 and CC16. Nothing in the generator reads it yet (GEN.972 and GEN.1051 wire it), so no world changes.
+- generation-output: unchanged
+
 ## [8.0.2838] - 2026-10-31
 
 **Headline:** The update works out every cluster's mean system mass once, so no web request ever has to, and the Galaxy Map's first load after a restart is not slow.

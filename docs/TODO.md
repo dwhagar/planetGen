@@ -2319,6 +2319,40 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   MAP.169 and does not wait for the heat map.
   Prerequisites: GEN.1150. Related: MAP.169.
 
+- [ ] **MAP.356 The map legend covers too much of the map; make it a small corner of the map (bug)**
+  Boss live observation 8:57 PM EDT 10-30 (bug). Owner: Core 2 (map
+  area), no epoch or migration. Shrink the legend to a small corner box
+  (collapsed by default or a compact list) on the Galaxy Map, Sector Map
+  and System Map, with a toggle to open it; browser test at 1280 and 390
+  px that it covers at most a small corner.
+  Prerequisites: none.
+
+- [ ] **MAP.357 Boss cannot reliably find and navigate from the galaxy down to filled and charted sectors and regions (bug)**
+  Boss live observation 8:57 PM EDT 10-30 (bug). Owner: Core 2 (map
+  area), no epoch or migration. Make charted and filled sectors and
+  regions findable and reachable from the Galaxy Map: a visible marker
+  or outline for charted regions, a list or jump control for them, and a
+  path from galaxy to region to sector that always works at every zoom.
+  Reproduce first on the live data, then fix; a browser test walks
+  galaxy to a charted sector.
+  Prerequisites: none.
+
+- [ ] **MAP.358 The View system and Expand buttons of the sector info display cannot be seen or reached (bug)**
+  Boss live observation 8:57 PM EDT 10-30 (bug). Owner: Core 2 (map
+  area), no epoch or migration. Find why the sector info panel hides its
+  View system and Expand buttons (clipped, covered by the legend or the
+  map, or off screen at the browser size) and make them always visible
+  and clickable; browser test clicks both at 1280 and 390 px.
+  Prerequisites: none.
+
+- [ ] **MAP.359 The sector map and system map should match the size of the galaxy map for the browser window (bug)**
+  Boss live observation 8:57 PM EDT 10-30 (bug). Owner: Core 2 (map
+  area), no epoch or migration. The sector and system map stages fill
+  the same area per window size as the Galaxy Map (same height rule,
+  same width); browser test compares the stage boxes of the three maps
+  at 1280 and 390 px.
+  Prerequisites: none.
+
 ## NAV: Navigation and courses
 
 - [ ] **NAV.4 Save a course**
@@ -13557,19 +13591,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   No output change. Wiring turn (train 5) is next, Aux 4.
   Prerequisites: GEN.1034. Related: GEN.1034, GEN.461, GEN.894.
 
-- [ ] **GEN.1046 W20 design: the two-branch climate output (snowball or warm, runaway or temperate) from the ice-albedo feedback and the CO2 exit rule, as a history draw between branches**
-  Weird worlds build (Boss, 4:15 PM EDT 2026-10-30, goal issue #4117;
-  design docs/design/systems/weird-worlds.md). Secondary and tertiary
-  sources and stand-ins are accepted when each is registered in GEN.725
-  with tier and tweak level; every rate marked [R] in the design must be
-  confirmed by the lane that builds it. Do: a design note and a pure
-  function returning both branches in the bistable flux window (about 10
-  to 20 percent in flux for an Earth twin [R]; Budyko 1969, Sellers
-  1969, Pierrehumbert 2011, Kasting 1993). Waits for GEN.972 (ice-albedo
-  feedback). Lock-free. Owner: Air 1 (after GEN.972). Version 8.1.
-  Prerequisites: GEN.972.
-  Design: [docs/design/systems/weird-worlds.md](design/systems/weird-worlds.md)
-
 - [ ] **GEN.1047 Wire the oddity table and the weirdness dial: epoch, stored oddities text column and numeric columns (db/column_units.py), the "Odd: ..." line with its cause sentence on the object page, the API field, an admin force-oddity like FORCE_CLASS, the dial in settings (default 1, 0 turns all off)**
   Weird worlds build (Boss, 4:15 PM EDT 2026-10-30, goal issue #4117;
   design docs/design/systems/weird-worlds.md). Secondary and tertiary
@@ -13625,7 +13646,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   confirmed by the lane that builds it. Lock work, train 9. Done:
   tests, harness, census; W20 only after GEN.972. Owner: Aux 3 (W19),
   Air 1 (W20). Version 8.1.
-  Prerequisites: GEN.1046, GEN.1047.
+  Prerequisites: GEN.1047.
   Design: [docs/design/systems/weird-worlds.md](design/systems/weird-worlds.md)
 
 - [ ] **GEN.1052 Heavy-liquid layers and mercury (from GEN.1034): the deep global heavy-liquid path with the fluid Love number, the thin-layer refusal, and mercury and other liquid metals as rows of the surface liquid table**
@@ -14999,54 +15020,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   it, confirmed with TODO, one lock-free item at a time.
   Prerequisites: GEN.558, GEN.559. Related: GEN.550.
 
-- [ ] **PERF.137 Audit the remaining `LIMIT ? OFFSET ?` queries: say which serve a big table and move those to keyset paging**
-  Found by Core 5 (3:15 AM EDT 2026-10-18 as the lane reported), filed
-  by the TODO thread. Keyset paging is done for the Systems, Uncharted
-  stars and Phenomena tables (PERF.20 umbrella and PERF.75, #2154);
-  `grep 'LIMIT ? OFFSET ?' src/planetgen` on main at 8.0.1795 still
-  finds 16 sites, as candidates only (Core 5 did not trace which serve
-  big tables): `db/query.py` lines 214, 501, 576, 618, 857, 898, 1781,
-  2270, 2365, 4234 and 6045 (11 queries), `population/model.py` 695, 778
-  and 830 (list queries), `db/stats.py` 310 (base names) and
-  `queue/work.py` 907 (task listing). The API list routes take `offset`
-  (api/routes.py MAX_PAGE_OFFSET) and `web/lib/pagination.py` clamps a
-  page past the end. Why it matters: `OFFSET` makes page n cost n times
-  as much (measured for the Systems table: rows 0, 20,000, 500,000 and
-  1,500,000 take 0.004, 0.13, 5.8 and 12.1 s idle, where a keyset page
-  costs 2 ms). Do: for each site, read the caller and the table it pages
-  (row count at a full galaxy, from the schema or a measured count) and
-  write one line per site: big or small, and the deepest page a user or
-  the API can ask for. Move the big ones to the keyset form the three
-  finished tables use (`after=<sort key, id>` next to `offset=`) and
-  leave the small ones with a one-line comment saying the table stays
-  under a few thousand rows. Done: a table of the 16 sites on this item
-  with the verdict for each, every big site on keyset paging with a test
-  that pages to the end, and the deepest-page time under 50 ms at a full
-  galaxy. Owner: Core 5 (proposed, it found the list and wrote the
-  PERF.126 and PERF.127 commands); low priority, no version blocker.
-  Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
-  2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 5
-  held it before; this replaces any earlier owner line).
-  Research (2026-10-09): Audit done (Core 5, 4:40 PM EDT 2026-10-29 as
-  the lane reported), report
-  /mnt/project-files/reports/limit-offset-audit-2026-10-29.md: 15 OFFSET
-  sites; measured at 1,000,000 sectors the Sectors list takes 0.9 to 2.6
-  s on page 1 and 5 to 8 s deep on every sort (full filesort), while the
-  keyset form takes 1 to 26 ms. The 'deepest page under 50 ms at a full
-  galaxy' check cannot be measured without a full-galaxy database (only
-  1,000,000 sectors were measured). Slice 1 (Sectors list default and
-  name sorts: placed-then-unplaced reads plus keyset) is Core 5's, in
-  progress as PERF.137's first slice. The other slices are separate
-  items filed 2026-10-29 (PERF.205 species list and built phenomena,
-  PERF.206 octant and binary system group walk, PERF.207 planetgen
-  planets and moons --limit and --after, PERF.208 a stored indexed
-  sector system count, density and quadrant). PERF.137 closes when
-  the slices are done.
-  Owner (housekeeping) (2026-10-30 2:55 PM EDT): released to the pool:
-  the owner named above (Core 5) is a retired lane. A waiting lane takes
-  it, confirmed with TODO, one lock-free item at a time.
-  Prerequisites: none. Related: PERF.75, PERF.135, PERF.205, PERF.206, PERF.207, PERF.208.
-
 - [ ] **PERF.147 A per-task progress bar with an ETA for any task expected to take, or taking, longer than 15 seconds**
   Boss (2026-10-21, as the coordinator relayed at 8:46 PM EDT): every
   task gets its own progress bar once it is expected to take, or does
@@ -15255,6 +15228,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the owner named above (Core 5) is a retired lane. A waiting lane takes
   it, confirmed with TODO, one lock-free item at a time.
   Prerequisites: none. Related: PERF.149.
+
+- [ ] **PERF.219 The Systems list with a star type filter and the sector or octant sort pages with OFFSET only (a G filter matches about a tenth of the galaxy); move it to keyset paging, with a MySQL measurement at a full galaxy against the 50 ms target**
+  Left over from the PERF.137 audit
+  (reports/limit-offset-final-audit-perf137-2026-10-31.md): the name
+  sort is already keyset, the filter plus the sector or octant sort is
+  not. Also residual and smaller: planetgen planets and moons with a
+  class or radius filter and no cursor (CLI only), and a hand-typed deep
+  offset on the Phenomena list. Measure on a real MySQL at a full galaxy
+  before and after.
+  Prerequisites: none.
 
 ## DB: Database and schema
 
