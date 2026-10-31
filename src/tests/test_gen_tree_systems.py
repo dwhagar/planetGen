@@ -139,7 +139,8 @@ def test_binary_system_off_is_one_star_and_on_is_a_pair_or_more():
     for seed in range(20):
         assert len(_system(seed, BINARY_SYSTEM=False)[0].stars) == 1
     pairs = [_system(seed, BINARY_SYSTEM=True)[0] for seed in range(20)]
-    assert all(system.binary_type is not None or "a companion star" in system.unmet_requirements for system in pairs)
+    assert all(system.binary_type is not None or any(wanted.startswith("a companion star") for wanted in system.unmet_requirements)
+               for system in pairs)
 
 
 @pytest.mark.parametrize("wide", [False, True])
@@ -158,7 +159,7 @@ def test_the_same_seed_draws_the_same_stars():
 def test_a_forced_star_count_is_the_number_of_stars(count):
     systems = [_system(seed, STARS=count)[0] for seed in range(12)]
     built = [system for system in systems if "stars" not in " ".join(map(str, system.unmet_requirements))
-             and "a companion star" not in system.unmet_requirements]
+             and not any(wanted.startswith("a companion star") for wanted in system.unmet_requirements)]
     assert built and all(len(system.stars) == count for system in built)
     assert all(len(system.member_stars) == max(count - 2, 0) for system in built)
 
@@ -170,3 +171,19 @@ def test_the_star_cap_and_the_multi_star_prevalence_reach_the_draw():
     many = [len(_system(seed, PREVALENCE={"multi_star": 100})[0].stars) for seed in range(600)]
     # the scale thins and thickens the table's counts, it does not forbid them (a white dwarf of a massive progenitor can still be one of five)
     assert sum(few) < sum(many) and sum(count >= 4 for count in few) < sum(count >= 4 for count in many)
+
+
+def test_a_forced_pair_around_a_primary_under_the_hydrogen_burning_limit_is_refused_with_the_reason():
+    """GEN.706: a late M primary under 0.08 solar masses has no lighter star to be a companion, and a brown dwarf is no star of
+    the count (GEN.899); every other forced pair around it is built."""
+    refused = 0
+    for seed in range(120):
+        system, _ = _system(seed, STAR_TYPE="M9V", BINARY_SYSTEM=True)
+        unmet = [wanted for wanted in system.unmet_requirements if wanted.startswith("a companion star")]
+        if unmet:
+            refused += 1
+            assert place_terms.born_mass_solar(system.primary_star) < multistar.companion_floor_solar(
+                system.primary_star.metallicity_fe_h) and "hydrogen-burning limit" in unmet[0]
+        else:
+            assert len(system.stars) == 2
+    assert refused > 0

@@ -447,3 +447,26 @@ def test_metal_poor_stars_have_more_companions_inside_10_au_than_metal_rich_ones
     poor, rich = rates(-2.0), rates(0.5)
     assert poor[0] > rich[0] + 0.1      # the chance of a companion (0.60 and 0.41 at the table's 0.47)
     assert poor[1] > rich[1] + 0.1      # and of one inside 10 AU (0.29 and 0.08)
+
+
+def test_the_lightest_companion_follows_the_places_own_hydrogen_burning_limit():
+    """GEN.706: at low [Fe/H] the limit between a star and a brown dwarf is above 0.08 (GEN.936), and a companion drawn between the two
+    would be a brown dwarf using up a place of the `star-count` table."""
+    from planetgen.physics import stellar_abundances
+    assert multistar.companion_floor_solar(None) == multistar.companion_floor_solar(0.3) == mass_boundaries.sol("hydrogen_burning_limit")
+    assert multistar.companion_floor_solar(-1.0) == pytest.approx(stellar_abundances.hydrogen_burning_limit_for_fe_h(-1.0))
+    assert multistar.companion_floor_solar(-1.0) > 0.09
+    for seed in range(300):
+        tree = _tree(multistar.Placed("star", 0.3, 0.3, fe_h=-1.0), 3.0e9, seed, n_stars=2)
+        assert tree.members[1].kind != "brown-dwarf" and tree.members[1].initial_mass_solar >= multistar.companion_floor_solar(-1.0)
+
+
+@pytest.mark.parametrize("birth,age_yr", [(1.3, 3.0e9), (2.0, 5.0e8), (5.0, 5.0e7), (15.0, 3.0e6), (40.0, 1.0e6)])
+def test_the_stars_of_a_tree_follow_the_table_for_the_hotter_classes_too(birth, age_yr):
+    """GEN.706: the share of systems with a companion star is the `star-count` table's for every class, to four standard errors of
+    the draws (a brown dwarf is a member of its own, not a star of the count)."""
+    draws = 1500
+    share = 1.0 - multistar.star_count_weights(birth)[0] / sum(multistar.star_count_weights(birth))
+    pairs = sum(sum(member.kind != "brown-dwarf" for member in _tree(multistar.Placed("star", birth), age_yr, seed).members) > 1
+                for seed in range(draws))
+    assert abs(pairs / draws - share) < 4.0 * math.sqrt(share * (1.0 - share) / draws) + 0.02     # +0.02: the compact companions
