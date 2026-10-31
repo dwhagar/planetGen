@@ -9,7 +9,7 @@ temperature and the radius its mass and age give.
 | Piece | Value | Source (read) |
 |---|---|---|
 | Cooling track | Teff and radius for every mass of the table (0.01 to 1.4 solar masses) at its 30 ages from 0.5 Myr to 10 Gy, linear in log mass and log age (`datasets/baraffe_isochrones.py`, `cooling_track`; GEN.948 replaced `tuning.BROWN_DWARF_TRACKS`, eleven thinned rows) | Baraffe, Homeier, Allard and Chabrier 2015, A&A 577, A42 (arXiv 1503.04107), the BHAC15 isochrones (`BHAC15_iso.2mass`) |
-| Past a track's last age | a track that reaches 10 Gy holds its last values (the hydrogen-burning plateau); a shorter one cools at `Teff ~ t^-0.32` with the last radius | Burrows et al. 2001, Rev. Mod. Phys. 73, 719, eq. 2 (arXiv astro-ph/0103383) |
+| Past a track's last age | a track that reaches 10 Gy holds its last values (the hydrogen-burning plateau); a shorter one cools at `Teff ~ t^-0.32` with the last radius at the lightest mass of the table of its last age; between that mass and the next heavier mass the table holds longer, the continuation goes straight in mass from that power law to the heavier mass's own change since the same age, so the track has no jump in mass (GEN.1137: 0.0699 solar masses at 5 Gy was 1,220 K beside 1,627 K at 0.07, now 1,620 K) | Burrows et al. 2001, Rev. Mod. Phys. 73, 719, eq. 2 (arXiv astro-ph/0103383) |
 | Temperature | the track's, no hotter than 2,800 K (`tuning.ROGUE_MAX_EFFECTIVE_TEMPERATURE_K`, a late-M dwarf) | as above |
 | Radius | the track's, 0.09 to 0.16 solar radii old, larger when young | as above |
 | Luminosity | `L = R^2 (Teff / Teff_sun)^4` of the two | Stefan-Boltzmann |
