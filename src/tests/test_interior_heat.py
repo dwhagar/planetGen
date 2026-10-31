@@ -298,7 +298,7 @@ def test_the_stored_heat_is_the_heat_at_the_stars_final_age_not_the_provisional_
     """GEN.763: the star's age only rises after its planets are made, so a heat stored at the provisional age is wrong for the finished
     system (many bodies sat at the ceiling with a Urey ratio of 1.0, and a small moon showed 4.8). The life pass runs the model again."""
     seen = 0
-    for seed in (17, 3):
+    for seed in (17, 12):
         with deterministic_entropy(seed):
             draw.set_run_seed(seed)
             system = StarSystem(SystemConfig(), galactic_center_dist_ly=26000.0)
