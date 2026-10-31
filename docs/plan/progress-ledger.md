@@ -2194,3 +2194,5 @@ Baseline: PR #1817.
 | UX.102 | 8.1 | Admin and API housekeeping |
 | UX.224 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | DOC.19 | 8.1 | Docs |
+| TEST.516 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.517 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
