@@ -18,17 +18,41 @@ def test_every_type_is_inside_its_range():
         if "strength_ratio" in entry:
             low, high = entry["range"]
             assert low <= entry["strength_ratio"] <= high, name
+        if "ratio_by_temperature_k" in entry:
+            low, high = entry["range"]
+            assert all(low <= ratio <= high for _, ratio in entry["ratio_by_temperature_k"]), name
         if "strength_pa" in entry:
             low, high = entry["range_pa"]
             assert low <= entry["strength_pa"] <= high, name
         assert entry["source"] and entry["tier"].startswith("T") and entry["tweak"].startswith("L"), name
 
 
-def test_the_water_phases_follow_the_research():
-    ratio = {name: it.strength_ratio(name) for name in it.WATER_PHASES}
-    assert ratio["ice_ih"] == ratio["ice_ii"] == ratio["ice_vi"] == 1.0
-    assert 0.0 < ratio["ice_iii"] <= 0.01                      # near zero
-    assert ratio["ice_iii"] < ratio["ice_v"] < ratio["ice_ii"]  # V a bit lower than II
+def test_the_water_phases_follow_the_calculation_from_the_1997_laws():
+    """GEN.1183: the ratio to ice Ih at the same temperature, from Durham, Kirby and Stern 1997 Table 2 at 1e-15 per second."""
+    assert it.strength_ratio("ice_ih") == 1.0
+    assert it.strength_ratio("ice_ii", 150.0) == pytest.approx(1.7)
+    assert it.strength_ratio("ice_ii", 180.0) == pytest.approx(1.0)
+    assert all(5.0 <= it.strength_ratio("ice_ii", temperature) <= 6.5 for temperature in (200.0, 230.0, 250.0))
+    assert all(0.45 <= it.strength_ratio("ice_iii", temperature) <= 0.6 for temperature in (240.0, 250.0, 256.0))     # weaker than Ih, not near zero
+    assert all(7.0 <= it.strength_ratio("ice_v", temperature) <= 10.0 for temperature in (230.0, 250.0))
+    assert all(4.0 <= it.strength_ratio("ice_vi", temperature) <= 5.5 for temperature in (150.0, 200.0, 230.0))
+    assert it.strength_ratio("ice_vi", 180.0) == pytest.approx(1.3)
+
+
+def test_ice_iii_is_the_weakest_of_the_high_pressure_phases_where_it_is_stable():
+    for temperature in (240.0, 250.0, 256.0):
+        assert it.strength_ratio("ice_iii", temperature) < min(it.strength_ratio(name, temperature) for name in ("ice_ii", "ice_v", "ice_vi"))
+        assert it.strength_ratio("ice_iii", temperature) < 1.0
+
+
+def test_a_water_phase_ratio_is_held_at_the_ends_of_its_table_and_is_log_linear_inside_it():
+    for name in ("ice_ii", "ice_iii", "ice_v", "ice_vi"):
+        points = it.TYPES[name]["ratio_by_temperature_k"]
+        assert it.strength_ratio(name, points[0][0] - 50.0) == points[0][1]
+        assert it.strength_ratio(name, points[-1][0] + 50.0) == points[-1][1]
+        (t0, r0), (t1, r1) = points[0], points[1]
+        assert it.strength_ratio(name, (t0 + t1) / 2.0) == pytest.approx((r0 * r1) ** 0.5)
+    assert it.strength_pa("ice_v", 1.0e6, 250.0) == pytest.approx(7.2e6)
 
 
 def test_methane_clathrate_is_twenty_to_thirty_times_ice():
