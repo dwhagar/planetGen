@@ -87,13 +87,7 @@ from planetgen.web.lib.tabledisplay import (
     to_plain_text,
 )
 
-try:
-    from planetgen.tuning import PLANET_CLASSES
-except ImportError:
-    # The planetGen package isn't on the import path in this deployment --
-    # the map still works, just without each class's one-line flavor
-    # description in the info panel.
-    PLANET_CLASSES = {}
+from planetgen.physics import planet_class_text
 
 # The whole diagram's fixed coordinate space -- square (unlike the old
 # short/wide letterboxed strip), since a true top-down position plot needs
@@ -202,9 +196,9 @@ def class_color(planet_class):
     return _CLASS_COLORS.get((planet_class or "").upper(), _DEFAULT_CLASS_COLOR)
 
 
-def _class_description(planet_class):
-    entry = PLANET_CLASSES.get((planet_class or "").upper())
-    return entry["description"] if entry else ""
+def _class_description(planet_class, moon=False):
+    letter = (planet_class or "").upper()
+    return planet_class_text.description(letter, moon) if letter in planet_class_text.DESCRIPTIONS else ""
 
 
 def _hex_to_rgb01(hex_color):
@@ -802,7 +796,7 @@ def _planet_attrs(planet, kind="planet", parent_name=None, scene_target=None):
         "id": planet["id"],
         "name": planet["name"],
         "class": (planet["planet_class"] or "").upper(),
-        "classdesc": _class_description(planet["planet_class"]),
+        "classdesc": _class_description(planet["planet_class"], planet.get("_is_moon", False)),
         # MAP.271: one look record (`bodylook.planet_look`) with everything the page's painter needs, in place of the
         # separate colour, atmosphere flag and temperature the page used to parse.
         "look": look_json(look),

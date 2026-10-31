@@ -41,6 +41,7 @@ from planetgen.physics import (
     habitability_explain,
     meteorite_groups,
     outside_hours,
+    planet_class_text,
     pre_main_sequence,
     protection,
     regional_temperature,
@@ -520,7 +521,7 @@ def _equipment_block(planet):
 
 def _planet_section(planet):
     blocks = [_planet_facts(planet)]
-    summary = [f"It is {planet.description.lower()}."]
+    summary = [f"It is {planet_class_text.description(planet.planet_class, planet.is_moon).lower()}."]
     blocks.append(prose("description", *summary))
     if planet.body_type == "g":
         blocks.append(prose("depth", *_gas_giant_depth_sentences(planet)))
