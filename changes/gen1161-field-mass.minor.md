@@ -1,5 +1,0 @@
-**Headline:** An interstellar asteroid field now has a mass by the same rule as a belt, and a list of its largest bodies.
-
-### Changed
-- **GEN.1161.** New `physics/field_mass.py` (not yet called by the generator): a field holds what the disc stretch it came from has left, by the belts' own rule, and its stored bodies add up to that mass. A belt unbound by a supernova is the progenitor's belt ground by collisions for the progenitor's life (the belts' `solve_belt`) and then kept, because nothing grinds a free field. A field made by two colliding rogue planets is the unbound share of their mass (the Leinhardt and Stewart law of `rogue_collision`), with the remnant planet apart. Both draw the stored bodies from the belt ledger (every body above 1e19 kg, up to 300), so ranks are stable and `<field ID>.<rank hex>` names one body. A mass under 1e-9 Earth masses, the belts' line, is no field. New stand-ins FM1 and FM2 (section 6.161). The field columns, the supernova host rule and the member rows (GEN.1103, GEN.1104, GEN.1105) call it.
-generation-output: unchanged
