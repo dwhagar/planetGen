@@ -82,7 +82,7 @@ R3 (GEN.1112) is RP2 to RP7 as the replacement modules; RP1 is the first of them
 
 ## 6. Result of GEN.1119 (RP1): the losses classed
 
-`planet_architecture.losses` and `ejection_yield` (with `scatter.loss_fates`) now class every loss of the build as ejected, collided or bound by the Safronov number the perturber has at the body's distance (ejection to collision as Theta squared, registry rows EJ1 and EJ2, section 6.102 of the gap filling plan). Nothing is dropped: planets and losses add up to the whole chain (tested). The same 3,000 sun-like stars that gave section 1's counts, measured with the classifier:
+`planet_architecture.losses` and `ejection_yield` (with `scatter.loss_fates`) now class every loss of the build as ejected, collided or bound by the Safronov number the perturber has at the body's distance (ejection to collision as Theta squared, registry rows EJ1 and EJ2, section 6.127 of the gap filling plan). Nothing is dropped: planets and losses add up to the whole chain (tested). The same 3,000 sun-like stars that gave section 1's counts, measured with the classifier:
 
 | Quantity | Value |
 |---|---|
@@ -96,4 +96,4 @@ R3 (GEN.1112) is RP2 to RP7 as the replacement modules; RP1 is the first of them
 
 ## 7. Stand-ins this review registers
 
-GEN.1119 registers EJ1 and EJ2 (section 6.102). The audit itself adds no number to the generator; rows 1 to 12 and 14 to 16 already count as stand-ins in the design table and are replaced by RP1 to RP7.
+GEN.1119 registers EJ1 and EJ2 (section 6.127). The audit itself adds no number to the generator; rows 1 to 12 and 14 to 16 already count as stand-ins in the design table and are replaced by RP1 to RP7.

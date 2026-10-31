@@ -45,12 +45,30 @@ def test_the_switch_picks_the_criterion_and_refuses_an_unknown_one():
         stability.required_axis_ratio(*args, method="nope")
 
 
-def test_auto_uses_mardling_aarseth_outside_the_fitted_range():
-    extreme = (1.0, 0.001, 100.0, 0.0, 0.0, 0.0)
-    assert stability.required_axis_ratio(*extreme) == pytest.approx(
-        stability.required_axis_ratio(*extreme, method="ma01"))
+def test_auto_uses_mardling_aarseth_outside_the_fitted_range_where_its_own_range_holds():
+    small_pair = (1.0, 0.001, 3.0, 0.0, 0.0, 0.0)     # q_in 0.001 is outside Equation 4; q_out 3 is inside Mardling and Aarseth's range
+    assert stability.criterion(1.0, 0.001, 3.0) == "ma01"
+    assert stability.required_axis_ratio(*small_pair) == pytest.approx(stability.required_axis_ratio(*small_pair, method="ma01"))
     assert not stability.eq4_in_range(0.001, 0.5, 0.1)
     assert stability.eq4_in_range(0.5, 0.5, 0.1)
+
+
+def test_mardling_aarseth_is_not_used_past_the_outer_mass_ratio_it_is_given_for():
+    """GEN.1028: past q_out = 5 and Equation 4's range, auto takes Eggleton and Kiseleva and a named ma01 is refused."""
+    extreme = (1.0, 0.001, 100.0, 0.0, 0.0, 0.0)
+    assert stability.criterion(1.0, 0.001, 100.0) == "ek95"
+    assert stability.required_axis_ratio(*extreme) == pytest.approx(stability.required_axis_ratio(*extreme, method="ek95"))
+    with pytest.raises(ValueError):
+        stability.required_axis_ratio(*extreme, method="ma01")
+    assert stability.ma01_in_range(5.0) and not stability.ma01_in_range(5.01)
+
+
+def test_the_moon_of_a_planet_about_a_star_is_not_failed_by_a_criterion_outside_its_range():
+    """The Earth and the Moon (q_in 0.0123, q_out 3e5): Equation 4 stops at q_out 100, and Mardling and Aarseth at 5 would have asked
+    for an axis ratio of 430, more than the real 390; Eggleton and Kiseleva's 7 holds."""
+    earth, moon, sun = 3.0e-6, 3.7e-8, 1.0
+    assert stability.criterion(earth, moon, sun) == "ek95"
+    assert stability.is_triple_stable(earth, moon, sun, 0.00257, 1.0, 0.055, 0.017, 0.09)
 
 
 def test_a_triple_is_stable_just_outside_its_criterion_and_not_just_inside():

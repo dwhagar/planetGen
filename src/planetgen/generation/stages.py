@@ -25,7 +25,7 @@ from planetgen.galaxy import dials
 from planetgen.queue import progress_file
 from planetgen.util import log, logrecord
 
-SECTOR_MODES = ("block", "span", "course", "shell", "center_sector")
+SECTOR_MODES = ("block", "span", "course", "around", "shell", "center_sector")
 
 STAGE_OFFSET_ENV = "PLANETGEN_STAGE_OFFSET"
 """str: Set by a web job's runner to the number of stages the job's earlier steps hold, so this run's stages
@@ -72,7 +72,7 @@ def sectors_stages(args):
     if _random_start(args):
         return [Stage("start", "Generate the starting sector"), Stage("neighborhood", "Generate the neighborhood")]
     if getattr(args, "wedge", None) is not None and getattr(args, "radius_pc", None) is not None and not any(
-            getattr(args, name, None) is not None for name in ("span", "course", "block")):
+            getattr(args, name, None) is not None for name in ("span", "course", "block", "around")):
         return [Stage("sectors", "Generate the sector"), Stage("neighborhood", "Generate the neighborhood")]
     return [Stage("sectors", "Generate the sectors")]
 

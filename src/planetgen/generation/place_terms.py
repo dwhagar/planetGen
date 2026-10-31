@@ -20,6 +20,8 @@ from planetgen.generation import system_mass
 from planetgen.physics import constants, planet_survival
 from planetgen.physics import unit_registry as units
 
+_kg_to_msun = units.converter("kg", "Msun")
+
 _yr_to_s = units.converter("yr", "s")
 _gyr_to_yr = units.converter("Gyr", "yr")
 _m_to_au = units.converter("m", "au")
@@ -196,4 +198,4 @@ def wide_axis_limit_au(terms, total_mass_solar, age_gy):
 def born_mass_solar(star):
     """A star's mass at birth in solar masses (its present mass for a star with no model initial mass)."""
     initial = getattr(star, "initial_mass_sol", None)
-    return initial if initial is not None else star.mass / constants.SOLAR_MASS_TO_KG
+    return initial if initial is not None else _kg_to_msun(star.mass)

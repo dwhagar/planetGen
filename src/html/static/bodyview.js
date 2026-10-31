@@ -2,7 +2,10 @@
 //
 // The rendered example on an object page (planetgen/web/lib/bodyview.py): the look record in a canvas's `data-look`
 // painted by the system map's own painters (`solidpaint.js`, `starpaint.js`) and shaded as a lit sphere, with the
-// atmosphere's limb glow or a star's corona drawn around it. The body turns slowly on its axis (MAP.328, spin.js). Plain
+// atmosphere's limb glow or a star's corona drawn around it. The body turns slowly on its axis (MAP.328, spin.js). A world is
+// seen from the side of its orbit (UX.244): the star to the left, so the day and night line runs down the middle, the axial tilt
+// leaning the poles and the line's ends, and the surface turning past it at the display speed; a tidally locked world holds
+// still with its day side toward the star. Plain
 // 2D canvas, so it needs no WebGL. A giant, which the painters do not cover yet, is its tinted disc. With no script the
 // figure stays hidden and the property table says everything the picture does.
 
@@ -13,7 +16,7 @@ const { glowFor, paintStar } = await import(`./starpaint.js${VERSION_QUERY}`);
 const Spin = await import(`./spin.js${VERSION_QUERY}`);
 
 const TEXTURE = [512, 256];
-const LIGHT = [-0.45, -0.4, 0.8];
+const LIGHT = [-1, 0, 0]; // a world is lit from the left, seen edge-on to its orbit: the terminator is the middle line
 
 function rgba(color, alpha) {
   const c = parseHex(color);
@@ -36,9 +39,42 @@ function drawHalo(context, centre, radius, outer, color, strength) {
   context.fill();
 }
 
+// UX.245: a tidally locked world says so on the picture itself: an arrow on the left, the side the star (or, for a moon, its planet)
+// is on, and "Tidally locked" under the disc.
+function drawLockLabel(context, size, look) {
+  const what = look.kind === "moon" ? "planet" : "star";
+  context.save();
+  context.font = "600 13px sans-serif";
+  context.textBaseline = "middle";
+  const text = "Tidally locked";
+  const width = context.measureText(text).width + 16;
+  context.fillStyle = "rgba(10, 14, 26, 0.78)";
+  context.fillRect((size - width) / 2, size - 26, width, 20);
+  context.fillStyle = "#f2f5ff";
+  context.textAlign = "center";
+  context.fillText(text, size / 2, size - 16);
+  const y = size / 2;
+  context.strokeStyle = "rgba(242, 245, 255, 0.9)";
+  context.fillStyle = "rgba(242, 245, 255, 0.9)";
+  context.lineWidth = 2;
+  context.beginPath();
+  context.moveTo(30, y);
+  context.lineTo(8, y);
+  context.stroke();
+  context.beginPath();
+  context.moveTo(4, y);
+  context.lineTo(14, y - 5);
+  context.lineTo(14, y + 5);
+  context.closePath();
+  context.fill();
+  context.textAlign = "left";
+  context.fillText(what, 4, y - 14);
+  context.restore();
+}
+
 // Everything about a picture that does not change as the body turns, worked out once: for each pixel of the disc where
 // it is in the canvas, its longitude in the body's own frame, the texture row it samples, its shade (a world is lit from
-// the upper left whatever it does, so the terminator stays put while the surface turns) and how much of the soft edge it
+// the left whatever it does, so the terminator stays put while the surface turns) and how much of the soft edge it
 // takes. A frame is then one pass of lookups.
 function prepare(canvas, look) {
   const size = canvas.width;
@@ -47,6 +83,7 @@ function prepare(canvas, look) {
   const halfWidth = star ? glowFor(look.lumSolar).scale : look.glow ? 1.12 : 1.04;
   const radius = size / 2 / halfWidth;
   const pixels = texture(look);
+  const locked = Spin.isLocked(look) && !star;
   const base = parseHex(look.color);
   const light = Math.hypot(LIGHT[0], LIGHT[1], LIGHT[2]);
   const places = [];
@@ -57,7 +94,7 @@ function prepare(canvas, look) {
       const r2 = nx * nx + ny * ny;
       if (r2 >= 1) continue;
       const nz = Math.sqrt(1 - r2);
-      // A star is its own light; a world is lit from the upper left, with a little ambient on the night side.
+      // A star is its own light; a world is lit from the left, with a little ambient on the night side.
       const shade = star ? 0.75 + 0.25 * nz : 0.12 + 0.88 * Math.max(0, (nx * LIGHT[0] + ny * LIGHT[1] + nz * LIGHT[2]) / light);
       // Orthographic sphere to the texture's longitude and latitude in the body's own frame (north up, leaned by its tilt).
       const [lon, lat] = Spin.bodyPoint(look, nx, -ny, nz);
@@ -113,6 +150,7 @@ function prepare(canvas, look) {
     context.clearRect(0, 0, size, size);
     context.drawImage(halo, 0, 0);
     context.drawImage(scratch, 0, 0);
+    if (locked) drawLockLabel(context, size, look);
   };
 }
 
@@ -122,6 +160,14 @@ function prepare(canvas, look) {
 const FRAME_MS = 33;
 
 function animate(canvas, look, frame) {
+  if (Spin.isLocked(look) && look.body !== "star") {
+    // A locked world keeps its day side toward the star, on the left: the point of it facing the star is at the left limb, so it holds still.
+    const held = Spin.bodyPoint(look, -1, 0, 0)[0];
+    frame(held);
+    canvas.dataset.angle = String(held);
+    canvas.dataset.locked = "1";
+    return;
+  }
   let drawnAt = null;
   let last = -Infinity;
   let visible = true;
@@ -148,7 +194,7 @@ function animate(canvas, look, frame) {
 // a period to turn by.
 function spinButton(figure, look) {
   const button = figure.querySelector("[data-spin]");
-  if (!button || !(Spin.rateOf(look) > 0)) return;
+  if (!button || !(Spin.rateOf(look) > 0) || (Spin.isLocked(look) && look.body !== "star")) return;
   function show() {
     const reduced = Spin.reducedMotion();
     button.setAttribute("aria-pressed", String(Spin.active()));

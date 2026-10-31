@@ -15,6 +15,8 @@ from planetgen.physics import condensate_shares, constants as physical_constants
 from planetgen.util import draw
 from planetgen.util.checks import finite_domain
 
+_kg_to_msun = units.converter("kg", "Msun")
+
 
 _au_to_m = units.converter("au", "m")
 
@@ -64,6 +66,7 @@ def draw_snow_line_au(luminosity_w, stream=None):
         z = source.gauss(0.0, 1.0)
         if abs(z) <= limit:
             return centre * 10.0 ** (scatter * z)
+        draw.redrawn("snow_line.scatter")
 
 
 @finite_domain()
@@ -87,7 +90,7 @@ def disk_surface_density_scale(star_mass_kg, metal_ratio=1.0):
         float: A dimensionless scale factor, 1.0 for a solar-mass star of
             solar metallicity.
     """
-    solar_masses = star_mass_kg / physical_constants.SOLAR_MASS_TO_KG
+    solar_masses = _kg_to_msun(star_mass_kg)
     return solar_masses ** tuning.DISK_MASS_STELLAR_MASS_EXPONENT * metal_ratio
 
 

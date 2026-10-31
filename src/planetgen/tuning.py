@@ -1974,6 +1974,9 @@ PLANET_CLASSES = {
         "composition": 'anthracite, basalt, and hydrocarbons',
         "type": 't',
     },
+    # GEN.1091: the class is a rule over the finished body's conditions (`physics/data/planet_classes.json`): surface pressure under 10 Pa and at
+    # least 1 percent of the mass water or ice. Size is not in the rule; the intended scale is a dwarf planet or a moon (radius 50 to 500 km), and
+    # the class covers belt members and dwarf planets as well as moons (docs/design/systems/belt-origins.md).
     'D': {
         "description": 'a small icy body',
         "composition": 'frozen hydrocarbons and ice',
@@ -2930,15 +2933,16 @@ up, already a white dwarf in the Yerkes scheme (class VII)."""
 # Earth masses to 13 Jupiter masses (Boss's research, 2026-10-01, which
 # writes it dN/dM ~ M^-0.65; read per unit mass that would make about 87%
 # of rogues gas giants, against its own aim of keeping them rare, so it is
-# read per logarithm of mass). The total stays 6.5 per star. That gives:
-#   - terrestrial 0.1-2 Earth masses, about 5.6 per star (2-10; Johnson
+# read per logarithm of mass). The total is ROGUE_PLANET_RATE_PER_STAR, 5.8 per
+# star (the bins sum to it). That gives:
+#   - terrestrial 0.1-2 Earth masses, about 5.0 per star (2-10; Johnson
 #     et al. 2020, AJ 160:123; Mroz et al. 2020, ApJL 903:L11);
-#   - sub-Neptune / ice giant 2-20, about 0.72 per star (Sumi et al. 2023
+#   - sub-Neptune / ice giant 2-20, about 0.64 per star (Sumi et al. 2023
 #     find Neptune-mass candidates but give no rate);
-#   - Saturn-class 20 Earth masses to 1 Jupiter mass, about 0.18;
-#   - Jupiter-mass 1-13 Jupiter masses, about 0.028 per star (under Mroz
+#   - Saturn-class 20 Earth masses to 1 Jupiter mass, about 0.15;
+#   - Jupiter-mass 1-13 Jupiter masses, about 0.025 per star (under Mroz
 #     et al. 2017's upper limit of 0.25, Nature 548:183).
-# So about 96% of rogues are terrestrial and 4% gas giants (past
+# So about 96% of rogues are not gas giants and 4% are (past
 # ROGUE_PLANET_GAS_GIANT_MASS_THRESHOLD_JUPITER). The old hand-set rates
 # (5, 1, 0.25, 0.25) with a log-uniform mass in each bin gave 91% and 9%,
 # twice the reference's share of gas giants.
@@ -2973,6 +2977,14 @@ ROGUE_BROWN_DWARF_MASS_RANGE_JUPITER = (_boundaries.jupiter("deuterium_burning_l
 
 ROGUE_PLANET_MASS_BIN_CHOICES = tuple(ROGUE_PLANET_MASS_BINS) + ("brown-dwarf",)
 """tuple: Every `rogue_planets.mass_bin` value."""
+
+ROGUE_LEVEL_CEILINGS = {"None": 0.0, "Few": 2.5, "Normal": 4.3, "Many": 10.0}
+"""dict: The Rogues level -> the most rogue planets per star a sector may hold after its top-up (GEN.1125; Boss accepted these numbers 5:39 PM EDT 2026-10-30; the page shows only the
+words). Source tier T9, tweak level L3 (GEN.725 row 6.86:RT1)."""
+
+ROGUE_TOPUP_PLACEMENT = 1.0
+"""float: The share of the sector's edge, centred on the sector, inside which the top-up places a rogue uniformly (1 is the whole sector). Boss wants to play with it
+(`region-object-store.md` 8.5). Source tier T9, tweak level L3 (GEN.725 row 6.86:RT2)."""
 
 # Above this mass (in Jupiter masses, ~16 Earth masses), a generated rogue
 # planet is treated as a gas giant rather than terrestrial -- roughly
@@ -3278,16 +3290,17 @@ SYSTEM_COMET_CHANCE = 0.3
 # remeasured 2026-10-29 over 6,000 systems, four seeds of 1,500, after GEN.855 let
 # the air follow its life: 0.354 where it was 0.402; and 2026-10-29 over 3,000 systems, two seeds of 1,500, after GEN.646 derived the class
 # from the finished body: 0.722, most of it classes Q, P, V and K, which the feature counts as able to carry life while few are habitable
-# by the score). A sector or galaxy run's
+# by the score; all four remeasured 2026-10-30 over 2,000 systems, seed 11, after trains 3 and 4: habitable_world 0.598, asteroid_belt 0.039 where
+# it was 0.549 (the belt mass cut keeps only the belts that clear it), large_star 0.050, planets 0.809). A sector or galaxy run's
 # `--prevalence feature=+50` forces the feature on in enough systems to
 # make that share 1.5 times as large. Remeasure after a change to
 # generation moves one of them: tests/test_prevalence.py checks they still
 # hold within a few points.
 PREVALENCE_BASE_SHARES = {
-    "habitable_world": 0.722,   # a planet or moon of a class that can carry life (see above)
-    "asteroid_belt": 0.549,     # an asteroid belt
-    "large_star": 0.049,        # a primary born at LARGE_STAR_MIN_MASS_SOL or more
-    "planets": 0.941,           # at least one planet or belt
+    "habitable_world": 0.598,   # a planet or moon of a class that can carry life (see above)
+    "asteroid_belt": 0.039,     # an asteroid belt
+    "large_star": 0.050,        # a primary born at LARGE_STAR_MIN_MASS_SOL or more
+    "planets": 0.809,           # at least one planet or belt
 }
 
 # The usual share of each feature one draw decides (ADM.16: the Generate
@@ -3303,7 +3316,7 @@ PREVALENCE_BASE_SHARES = {
 # Remeasure with PREVALENCE_BASE_SHARES.
 PREVALENCE_DRAW_SHARES = {
     "comets": 0.321,            # systems with comets (each star of a wide pair draws)
-    "binary_system": 0.239,     # systems with a pair (the two stars of a system of more than two count)
+    "binary_system": 0.315,     # systems with a pair (the two stars of a system of more than two count)
     "wide_binary": 0.810,       # pairs that are wide (S-type: an axis of 0.25 AU or more)
     "moons": 0.429,             # planets with at least one moon
     "max_planets": 0.037,       # stars that get the most orbits they can hold
@@ -3565,7 +3578,7 @@ REFERENCE_STELLAR_DENSITY_PC3 = 0.14
 literature), the density every PHENOMENON_DENSITY_PC3 figure is quoted at."""
 
 PHENOMENON_DENSITY_PC3 = {
-    # Sum of ROGUE_PLANET_MASS_BINS' per-star rates (6.5) at n_*0.
+    # Sum of ROGUE_PLANET_MASS_BINS' per-star rates (5.8) at n_*0.
     # Terrestrial alone: about 0.78 pc^-3 (0.5-1.4); Jupiter-mass about
     # 0.004 (under Mroz et al. 2017's limit of 0.035).
     "rogue-planet": sum(rate for _lo, _hi, rate in ROGUE_PLANET_MASS_BINS.values()) * REFERENCE_STELLAR_DENSITY_PC3,

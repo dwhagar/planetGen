@@ -39,7 +39,9 @@ import math
 from dataclasses import dataclass
 
 from planetgen import tuning
-from planetgen.physics import constants, planet_zones
+from planetgen.physics import planet_zones, unit_registry as units
+
+_msun_to_kg = units.converter("Msun", "kg")
 
 DOMINGOS_PROGRADE = (0.4895, 1.0305, 0.2738)
 """tuple: `(a, b, c)` of the prograde fit `a_crit / R_H = a (1 - b e_planet - c e_moon)` (Domingos, Winter and Yokoyama 2006, MNRAS 373, 1227, read
@@ -306,7 +308,7 @@ class Ledger:
 
     def central_mass_kg(self, host):
         """The mass a body of `host` goes round, kg."""
-        return planet_zones.host_mass_solar(self._zones[host], self.nodes, self.members) * constants.SOLAR_MASS_TO_KG
+        return _msun_to_kg(planet_zones.host_mass_solar(self._zones[host], self.nodes, self.members))
 
     def window(self, host):
         """The host's own window, with its ceiling, as a `SpanSet` (empty when the limits leave none)."""

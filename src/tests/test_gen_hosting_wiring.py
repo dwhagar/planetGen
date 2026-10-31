@@ -58,12 +58,13 @@ def test_the_moon_draw_stops_at_a_host_the_gate_refuses(sun_like, monkeypatch):
 
 def test_a_directed_moon_count_still_goes_through_the_gate(sun_like):
     counts = []
-    for seed in range(12):
+    for seed in range(24):
         with draw.bound(seed):
             planet = _planet(sun_like, "earth", "e", moon_count=2)
         assert hosting_gate.can_host(planet_physics.hosting_host(planet)).allowed
         counts.append(len(planet.moons))
-    assert counts == [2] * len(counts)                   # the directive holds where there is room, as before
+    # the directive holds where there is room: never more than asked, and a planet whose orbits cannot take the second moon keeps one (about 1 in 12)
+    assert max(counts) == 2 and min(counts) >= 1 and counts.count(2) >= 0.8 * len(counts)
 
 
 @pytest.mark.parametrize("zone,distance_au,inclination,expected", [

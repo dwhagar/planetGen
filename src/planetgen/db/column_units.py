@@ -31,6 +31,7 @@ import dataclasses
 from planetgen import tuning
 from planetgen.physics import constants, unit_registry
 
+_msun_to_kg = unit_registry.converter("Msun", "kg")
 _yr_to_s = unit_registry.converter("yr", "s")
 
 
@@ -60,7 +61,7 @@ LOCAL_UNITS = {
     "pc3": LocalUnit("volume", constants.PARSEC_M ** 3),
     "Lsun*pc": LocalUnit("power times length", constants.SOLAR_LUMINOSITY * constants.PARSEC_M),
     "Lsun*K": LocalUnit("power times temperature", constants.SOLAR_LUMINOSITY),
-    "Msun/yr": LocalUnit("mass rate", constants.SOLAR_MASS_TO_KG / _YEAR_S),
+    "Msun/yr": LocalUnit("mass rate", _msun_to_kg(1.0) / _YEAR_S),
     "J/kg": LocalUnit("specific energy", 1.0), "kg/mol": LocalUnit("molar mass", 1.0),
     "mSv/yr": LocalUnit("dose rate", 1e-3 / _YEAR_S), "A*m2": LocalUnit("magnetic moment", 1.0),
     "DU": LocalUnit("column density", 2.687e20),
@@ -80,6 +81,7 @@ LOCAL_UNITS = {
     "mg-si": LocalUnit("ratio", suffix=" Mg atoms per Si atom"),
     "al26": LocalUnit("ratio", suffix=" ²⁶Al atoms per ²⁷Al atom"),
     "flare-slope": LocalUnit("ratio", suffix=" (slope of the flare size law)"),
+    "disk-alpha-f": LocalUnit("ratio", suffix=" (α/f of the disk the moons formed in; it sets their total mass)"),
     "uv-mult": LocalUnit("ratio", suffix="× its blackbody's UV-C power (the library's, with the corona)"),
     "orbit-e": LocalUnit("ratio", suffix=" (0 is a circle, 1 is the escape orbit)"),
     "bh-spin": LocalUnit("ratio", suffix=" of the maximum (0 is not spinning)"),
@@ -431,7 +433,8 @@ TABLES = {
         "A*m2": ("magnetic_moment_a_m2", "induced_moment_a_m2"),
         "R_planet": ("magnetopause_rp",),
         "xuv-earth": ("xuv_flux_earth",),
-        "ratio": ("aerosol_draw", "moon_disk_alpha_over_f"),
+        "ratio": ("aerosol_draw",),
+        "disk-alpha-f": ("moon_disk_alpha_over_f",),
         "grade3": ("life_animal_grade",),
         "complexity": ("life_complexity",),
         "dose-mult": ("dose_helio_mult",),
@@ -679,7 +682,8 @@ TABLES = {
         "A*m2": ("magnetic_moment_a_m2", "induced_moment_a_m2"),
         "R_planet": ("magnetopause_rp",),
         "xuv-earth": ("xuv_flux_earth",),
-        "ratio": ("aerosol_draw", "moon_disk_alpha_over_f"),
+        "ratio": ("aerosol_draw",),
+        "disk-alpha-f": ("moon_disk_alpha_over_f",),
         "grade3": ("life_animal_grade",),
         "complexity": ("life_complexity",),
         "dose-mult": ("dose_helio_mult",),

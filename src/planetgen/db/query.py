@@ -54,6 +54,7 @@ from planetgen.generation.star import compressed_heliosphere_radius
 from planetgen.generation.bright_stars import MPC_PER_PC, POPULATIONS as BRIGHT_STAR_POPULATIONS
 from planetgen._version import __version__
 from planetgen.util import generator_epoch
+from planetgen.util.star_count import parse_star_count
 from planetgen.galaxy import spherical
 from planetgen.galaxy.density import shape_with_terms
 from planetgen.galaxy.frame import binary_companion_offset_pc
@@ -90,6 +91,9 @@ from planetgen.tuning import (
 from planetgen.physics.units import ly_to_pc, milliparsecs_to_ly, mpc_to_pc, pc_to_ly
 from planetgen.util import detmath
 from planetgen.physics import unit_registry as units
+
+_kg_to_msun = units.converter("kg", "Msun")
+_msun_to_kg = units.converter("Msun", "kg")
 
 _au_to_km = units.converter("au", "km")
 _m_to_ly = units.converter("m", "ly")
@@ -494,7 +498,7 @@ distinct from the default `None`, which means "don't filter by sector at
 all." The API's `/api/systems?sector_id=none` maps onto this."""
 
 
-SYSTEM_SORTS = {"name": "ss.name", "sector": "sec.name", "octant": "ss.quadrant", "binary": "ss.is_binary"}
+SYSTEM_SORTS = {"name": "ss.name", "sector": "sec.name", "octant": "ss.quadrant"}
 """dict: The sort keys `list_systems` accepts (the Systems tables' column
 keys) -> the SQL they order by. Ties fall back to name, then id."""
 
@@ -523,8 +527,7 @@ def _start_condition(sort, descending, start):
     that begin with `start` and runs down from them.
 
     Returns:
-        tuple or None: `(condition_sql, params)`, or `None` for an empty `start`, a sort that has no start (octant,
-            binary) or a descending start that nothing sorts above.
+        tuple or None: `(condition_sql, params)`, or `None` for an empty `start`, a sort that has no start (octant) or a descending start that nothing sorts above.
     """
     if not start or sort not in ("name", "sector"):
         return None
@@ -611,7 +614,7 @@ def list_systems(conn, star_type_prefix=None, sector_id=None, limit=None, offset
         octants (iterable[str]): Keep only systems in these sector octants.
         in_sector (bool, optional): Keep only systems in a sector (True) or
             standalone ones (False).
-        after (int, optional): A system's row ID: with `sort="name"`, `"sector"`, `"octant"` or `"binary"` the page starts
+        after (int, optional): A system's row ID: with `sort="name"`, `"sector"` or `"octant"` the page starts
             after that system (a keyset page, PERF.75, PERF.206: the rows before it are not read and `offset` is
             ignored). Other sorts, a system that is gone and a list filtered by star type or sector use `offset`.
         start (str, optional): The jump-by-value box (PERF.75): the list begins at the first name (`sort="name"`) or
@@ -621,7 +624,8 @@ def list_systems(conn, star_type_prefix=None, sector_id=None, limit=None, offset
     Returns:
         list[dict]: One row per matching system, with `id`, `name`,
                            `sector_id`, `sector_name`, `quadrant` (its
-                           octant in the sector), `is_binary`, and `star_summary`
+                           octant in the sector), `is_binary`, `star_count`,
+                           `object_count`, `has_habitable_world` (`_system_counts`), and `star_summary`
                            (the single star's `star_type`, or a binary's
                            `binary_type` -- what `html/browse.py`/
                            `html/search.py` show as a system's "Star type"
@@ -669,16 +673,48 @@ def list_systems(conn, star_type_prefix=None, sector_id=None, limit=None, offset
 def _system_rows(conn, rows):
     """`list_systems`' dicts for `rows` (`star_systems` rows)."""
     rows = _with_star_types(conn, rows, with_sector_name=True)
+    counts = _system_counts(conn, [r["id"] for r in rows])
     return [
         {
             "id": r["id"], "name": r["name"], "sector_id": r["sector_id"], "sector_name": r["sector_name"],
             "quadrant": r["quadrant"], "is_binary": r["is_binary"], "star_summary": _star_summary(r),
+            **counts[r["id"]],
         }
         for r in rows
     ]
 
 
-_GROUP_WALK_SORTS = ("sector", "octant", "binary")
+def _system_counts(conn, ids):
+    """
+    The figures the Systems tables show beside a system, read for the whole page (PERF.15) from the rows that exist and
+    kept nowhere else: `star_count` (every row of `stars`: a star, a brown dwarf, a white dwarf, a neutron star, a
+    black hole, in a tree or not), `object_count` (those plus the system's planets, moons and asteroid belts) and
+    `has_habitable_world` (a planet or moon scored Yellow or better, `habitability.YELLOW_FLOOR`, the Galaxy Map's
+    `habitable` reason).
+
+    Returns:
+        dict: system ID -> `{"star_count", "object_count", "has_habitable_world"}`, every ID in `ids` present.
+    """
+    counts = {i: {"star_count": 0, "object_count": 0, "has_habitable_world": False} for i in ids}
+    if not ids:
+        return counts
+    marks = ", ".join("?" * len(ids))
+    tables = ("stars", "planets", "moons", "asteroid_belts")
+    # Two queries for the page, not one per table (the page's read count is held by test_db_web_reads).
+    for r in conn.execute(" UNION ALL ".join(
+            f"SELECT star_system_id AS id, '{table}' AS kind, COUNT(*) AS n FROM {table} WHERE star_system_id IN ({marks}) "
+            f"GROUP BY star_system_id" for table in tables), ids * len(tables)).fetchall():
+        counts[r["id"]]["object_count"] += r["n"]
+        if r["kind"] == "stars":
+            counts[r["id"]]["star_count"] = r["n"]
+    for r in conn.execute(" UNION ".join(
+            f"SELECT star_system_id AS id FROM {table} WHERE star_system_id IN ({marks}) AND phi4 >= ?"
+            for table in ("planets", "moons")), [*ids, habitability.YELLOW_FLOOR] * 2).fetchall():
+        counts[r["id"]]["has_habitable_world"] = True
+    return counts
+
+
+_GROUP_WALK_SORTS = ("sector", "octant")
 """tuple[str]: The `list_systems` sorts served a group at a time by `_systems_by_group`."""
 
 _GROUP_WALK_COLUMNS = ("ss.id, ss.name, ss.sector_id, ss.quadrant, ss.is_binary, ss.binary_configuration, "
@@ -735,9 +771,7 @@ def _keyset_condition(columns, values, descending, id_column, after_id):
 
 
 def _simple_groups(sort, descending):
-    """The groups of an octant or binary sort in order: `(condition_sql, params)`, the systems with none last."""
-    if sort == "binary":
-        return [("ss.is_binary = ?", [value]) for value in ((1, 0) if descending else (0, 1))]
+    """The groups of an octant sort in order: `(condition_sql, params)`, the systems with none last."""
     labels = (("VIII", "VII", "VI", "V", "IV", "III", "II", "I") if descending else
               ("I", "II", "III", "IV", "V", "VI", "VII", "VIII"))
     return [("ss.quadrant = ?", [label]) for label in labels] + [("ss.quadrant IS NULL", [])]
@@ -751,10 +785,9 @@ def _read_group(conn, where_sql, params, condition, group_params, need, offset):
 
 def _systems_by_group(conn, sort, descending, where_sql, params, limit, offset, start=None, after=None):
     """
-    One page of `list_systems` sorted by sector, octant or binary, without sorting the table (PERF.70): the
+    One page of `list_systems` sorted by sector or octant, without sorting the table (PERF.70): the
     sort is `<group>, name, id` with the systems that have no sector or octant last, so the page is found by
-    counting group after group (an index range each: `idx_star_systems_sector_id`, `idx_star_systems_quadrant`,
-    `idx_star_systems_binary_name`) until `offset` is used up, then reading the rows from the group it lands in
+    counting group after group (an index range each: `idx_star_systems_sector_id`, `idx_star_systems_quadrant`) until `offset` is used up, then reading the rows from the group it lands in
     and the groups after it. The sectors are taken in chunks, counted by one query per chunk. A `start` (the
     jump-by-value box) begins the sector sort at the first sector from that name on.
 
@@ -786,8 +819,7 @@ def _systems_by_group(conn, sort, descending, where_sql, params, limit, offset, 
         groups = _simple_groups(sort, descending)
         begin = 0
         if resume is not None:
-            own = (("ss.is_binary = ?", [int(bool(found["is_binary"]))]) if sort == "binary" else
-                   ("ss.quadrant = ?", [found["quadrant"]]) if found["quadrant"] is not None else
+            own = (("ss.quadrant = ?", [found["quadrant"]]) if found["quadrant"] is not None else
                    ("ss.quadrant IS NULL", []))
             if own in groups:
                 begin, offset = groups.index(own), 0
@@ -3134,7 +3166,7 @@ def keep_out_radius(conn, kind, object_id):
         if body["galactic_radius_pc"] is None:
             return keepout.NO_KEEP_OUT  # never placed in the galaxy: nowhere to measure from
         return keepout.compact_keep_out(
-            body["mass_solar"] * constants.SOLAR_MASS_TO_KG, body["galactic_radius_pc"], body["radius_km"],
+            _msun_to_kg(body["mass_solar"]), body["galactic_radius_pc"], body["radius_km"],
             _enclosed_mass_kg(conn, body["galactic_radius_pc"]))
     if kind in ("quasar", "rogue_planet"):
         table = _PHENOMENON_TYPE_TO_TABLE[kind]
@@ -4932,7 +4964,7 @@ def _uncharted_item(row, edge_pc):
     local = galaxy_to_local_pc(sector_position_pc(*address, edge_pc), (x, y, z))
     return {
         "id": row["id"], "star_type": row["star_type"], "yerkes_class": row["yerkes_class"],
-        "population": row["population"], "mass_solar": row["mass_kg"] / constants.SOLAR_MASS_TO_KG,
+        "population": row["population"], "mass_solar": _kg_to_msun(row["mass_kg"]),
         "radius_solar": _radius_sol(row["radius_km"]), "temperature_k": row["temperature_k"],
         "luminosity_sol": row["luminosity_w"] / constants.SOLAR_LUMINOSITY, "age_gy": row["age_gy"],
         "shell_index": address[0], "band_index": address[1], "wedge_index": address[2],
@@ -6219,6 +6251,28 @@ def _timestamp_literal(digits):
     return f"{d[0:4]}-{d[4:6]}-{d[6:8]} {d[8:10]}:{d[10:12]}:{d[12:14]}.{d[14:17]}"
 
 
+def galaxy_shape_inputs(conn):
+    """
+    What the stored galaxy shape is made from, as plain values: the `galaxy_shape` row, the levers it was told
+    (`galaxy_shape_pins`) and a signature of the `galaxy_components` rows (their count, first and last id and sums). The
+    shape itself (`galaxy_density_shape`) is a function of these and of the code, and building it works out a mean system
+    mass for every stored cluster, which took minutes on a galaxy of ten thousands of clusters: `galaxy_content_state` runs
+    on a page view's freshness check, so it reads these instead. `None` when the galaxy was never planned.
+    """
+    row = conn.execute("SELECT * FROM galaxy_shape WHERE id = 1").fetchone()
+    if row is None:
+        return None
+    components = None
+    if conn.execute("SELECT 1 FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() "
+                    "AND TABLE_NAME = 'galaxy_components'").fetchone():
+        components = dict(conn.execute(
+            "SELECT COUNT(*) AS n, MIN(id) AS first_id, MAX(id) AS last_id, SUM(mass_solar) AS mass, SUM(age_gy) AS age, "
+            "SUM(metallicity_fe_h) AS fe_h FROM galaxy_components").fetchone())
+    return {"row": {key: (value.hex() if isinstance(value, (bytes, bytearray)) else value) for key, value in dict(row).items()},
+            "pins": {pin["name"]: pin["value"] for pin in conn.execute("SELECT name, value FROM galaxy_shape_pins").fetchall()},
+            "components": components}
+
+
 def galaxy_content_state(conn):
     """
     Everything `db.nodes.galaxy_nodes`' output depends on, summarized as a handful
@@ -6264,14 +6318,15 @@ def galaxy_content_state(conn):
         "SELECT (SELECT COALESCE(MAX(id), 0) FROM bright_stars) AS max_id, "
         "(SELECT bright_star_seed FROM galaxy_shape WHERE id = 1) AS seed"
     ).fetchone()
+    shape_inputs = galaxy_shape_inputs(conn)
     base = hashlib.sha256(json.dumps(
-        {"shape": galaxy_density_shape(conn), "version": __version__,
+        {"shape": shape_inputs, "version": __version__,
          "bright_stars": bright["seed"],
          # GEN.70: the naming key renames the codec-named objects in every node and page.
          "naming_key": naming_key.active_key()}, sort_keys=True, default=str,
     ).encode("utf-8")).hexdigest()[:16]
     tile_base = hashlib.sha256(json.dumps(
-        {"shape": galaxy_density_shape(conn), "tile_format": TILE_FORMAT, "epoch": generator_epoch.generator_epoch(),
+        {"shape": shape_inputs, "tile_format": TILE_FORMAT, "epoch": generator_epoch.generator_epoch(),
          "bright_stars": bright["seed"], "naming_key": naming_key.active_key()}, sort_keys=True, default=str,
     ).encode("utf-8")).hexdigest()[:16]
     return {
@@ -6636,29 +6691,29 @@ def _search_facet_type(conn):
 
 
 def _search_facet_spectral(conn):
-    rows = conn.execute(
-        "SELECT SUBSTR(star_type, 1, 1) AS v, COUNT(*) AS c FROM stars GROUP BY v ORDER BY v"
-    ).fetchall()
+    """Every spectral class the generator produces (`SPECTRAL_CLASS_COLORS`), with its star count (0 when none yet),
+    then any other letter the stars hold."""
+    counts = {row["v"]: row["c"] for row in conn.execute(
+        "SELECT SUBSTR(star_type, 1, 1) AS v, COUNT(*) AS c FROM stars GROUP BY v ORDER BY v").fetchall()}
+    letters = [*SPECTRAL_CLASS_COLORS, *sorted(letter for letter in counts if letter not in SPECTRAL_CLASS_COLORS)]
     opts = []
-    for row in rows:
-        letter = row["v"]
+    for letter in letters:
         color = SPECTRAL_CLASS_COLORS.get(letter)
         tip = f"{color} star" if color else None
-        opts.append({"value": letter, "label": f"{letter}-Type Star", "count": row["c"], "tooltip": tip})
+        opts.append({"value": letter, "label": f"{letter}-Type Star", "count": counts.get(letter, 0), "tooltip": tip})
     return opts
 
 
 def _search_facet_luminosity(conn):
-    rows = conn.execute(
-        "SELECT yerkes_class AS v, COUNT(*) AS c FROM stars WHERE yerkes_class IS NOT NULL GROUP BY v"
-    ).fetchall()
-    rows = sorted(
-        rows, key=lambda r: _SEARCH_YERKES_ORDER.index(r["v"]) if r["v"] in _SEARCH_YERKES_ORDER else len(_SEARCH_YERKES_ORDER)
-    )
+    """Every Yerkes class (`_SEARCH_YERKES_ORDER`) with its star count (0 when none yet), then any other class the
+    stars hold."""
+    counts = {row["v"]: row["c"] for row in conn.execute(
+        "SELECT yerkes_class AS v, COUNT(*) AS c FROM stars WHERE yerkes_class IS NOT NULL GROUP BY v").fetchall()}
+    classes = [*_SEARCH_YERKES_ORDER, *sorted(value for value in counts if value not in _SEARCH_YERKES_ORDER)]
     return [
-        {"value": row["v"], "label": _SEARCH_YERKES_LABELS.get(row["v"], row["v"]), "count": row["c"],
-         "tooltip": f"Yerkes class {row['v']}"}
-        for row in rows
+        {"value": value, "label": _SEARCH_YERKES_LABELS.get(value, value), "count": counts.get(value, 0),
+         "tooltip": f"Yerkes class {value}"}
+        for value in classes
     ]
 
 
@@ -6971,22 +7026,35 @@ def _search_result_sectors(conn, term, limit, offset):
     return {"rows": _with_refs(conn, [dict(r) for r in rows], "sector"), **page}
 
 
-def _search_result_systems(conn, term, limit, offset):
-    match, params = _search_match(conn, "ss.name", term)
+def _search_result_systems(conn, term, limit, offset, stars=None):
+    clauses, params = [], []
+    if term:
+        match, params = _search_match(conn, "ss.name", term)
+        clauses.append(match)
+    if stars is not None:
+        least, most = stars
+        count = "(SELECT COUNT(*) FROM stars st WHERE st.star_system_id = ss.id)"
+        clauses.append(f"{count} >= ?")
+        params = [*params, least]
+        if most is not None:
+            clauses.append(f"{count} <= ?")
+            params.append(most)
     rows, page = _search_page(
         conn,
         "SELECT ss.id, ss.name, ss.sector_id, ss.is_binary, ss.binary_configuration, ss.binary_type",
-        f"FROM star_systems ss WHERE {match}",
+        f"FROM star_systems ss WHERE {' AND '.join(clauses)}",
         "ss.name, ss.id",
         params, limit, offset,
     )
+    rows = _with_star_types(conn, rows)
+    counts = _system_counts(conn, [r["id"] for r in rows])
     return {
         "rows": _with_refs(conn, [
             {
                 "id": r["id"], "name": r["name"], "sector_id": r["sector_id"], "is_binary": r["is_binary"],
-                "star_summary": _star_summary(r),
+                "star_summary": _star_summary(r), **counts[r["id"]],
             }
-            for r in _with_star_types(conn, rows)
+            for r in rows
         ], "system"),
         **page,
     }
@@ -7201,7 +7269,7 @@ def _search_facets_cached(conn):
     return value
 
 
-def search(conn, texts, tags, sizes=None, limit=SEARCH_RESULT_LIMIT, offsets=None, only=None, sorts=None):
+def search(conn, texts, tags, sizes=None, limit=SEARCH_RESULT_LIMIT, offsets=None, only=None, sorts=None, stars=None):
     """
     Runs the faceted search behind `GET /api/search`/`html/search.py`:
     the same click-to-filter attribute tags (object type; star spectral/
@@ -7232,6 +7300,8 @@ def search(conn, texts, tags, sizes=None, limit=SEARCH_RESULT_LIMIT, offsets=Non
             absent panel starts at 0.
         only (iterable, optional): Run just these panels (a table scrolling
             one panel asks for that panel alone); the others come back `None`.
+        stars (tuple, optional): The stars filter `(least, most)` of `parse_star_count` (UX.239): the Systems panel runs for it (with or without a
+            name) and holds only the systems with that many stars in the `stars` table.
 
     Returns:
         dict: `facets` (`{facet: [{"value","label","count","tooltip"}, ...]}`,
@@ -7290,8 +7360,8 @@ def search(conn, texts, tags, sizes=None, limit=SEARCH_RESULT_LIMIT, offsets=Non
     wanted = set(SEARCH_RESULT_PANELS if only is None else only)
     if texts.get("sector_q") and "sectors" in wanted:
         results["sectors"] = _search_result_sectors(conn, texts["sector_q"], *_page("sectors"))
-    if texts.get("system_q") and "systems" in wanted:
-        results["systems"] = _search_result_systems(conn, texts["system_q"], *_page("systems"))
+    if (texts.get("system_q") or stars is not None) and "systems" in wanted:
+        results["systems"] = _search_result_systems(conn, texts.get("system_q", ""), *_page("systems"), stars=stars)
     if stars_included and "stars" in wanted:
         results["stars"] = _search_result_stars(
             conn, spectral_tags, luminosity_tags, texts.get("star_q", ""), *_page("stars"), size_range=star_size

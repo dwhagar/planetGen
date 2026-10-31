@@ -24,10 +24,11 @@ orbits at, so the nodes the system stores are the same orbits at that instant. A
 import collections
 import dataclasses
 
-from planetgen.physics import constants
 from planetgen.physics.kepler import wrapped_turn_deg
 from planetgen.physics.system_tree import OrbitNode
 from planetgen.physics import unit_registry as units
+
+_kg_to_msun = units.converter("kg", "Msun")
 
 _yr_to_s = units.converter("yr", "s")
 
@@ -148,4 +149,4 @@ def drawn(tree):
 
 def matches(star, member):
     """Whether the built `star` is the stored `member`: its mass is the stored mass."""
-    return abs(star.mass / constants.SOLAR_MASS_TO_KG - member.mass_solar) <= MASS_TOLERANCE * member.mass_solar
+    return abs(_kg_to_msun(star.mass) - member.mass_solar) <= MASS_TOLERANCE * member.mass_solar
