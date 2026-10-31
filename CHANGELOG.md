@@ -2,6 +2,107 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2978] - 2026-10-31
+
+**Headline:** A moon or an asteroid that its own weight has not pulled round is now drawn as an elongated, bumpy lump instead of a perfect sphere.
+
+### Changed
+- **MAP.279.** The System Map and the 3D system view drew every body as a sphere. A solid body whose stored roundness ratio is under 1 (`roundness_ratio`, GEN.1158 and GEN.1159: the body's radius over the radius at which its weight beats its strength) is now a lump: a three.js mesh stretched along three axes and bumped by seven smooth waves, from the body's look seed, so the same body is the same lump on every page. The farther from round the ratio is, the longer the long axis (up to 1.8 times the short) and the taller the bumps. The look record carries the new `roundness` field for solid bodies (a giant has none); a body stored before GEN.1159 has no ratio and is a lump when its radius is under 400 km (Boss, 10:26 PM EDT 2026-10-23). The painted surface lies on the lump as on a sphere. Display only: no stored value changes. The object page (`bodyview.js`) still draws a round disc; its lumpy silhouette is a follow-up. New stand-ins LUM1 to LUM5 (section 6.160).
+generation-output: unchanged
+
+## [8.0.2977] - 2026-10-31
+
+**Headline:** The installer and updater now check that MySQL and Redis are protected from the kernel's out-of-memory killer, and offer a memory limit for the generation workers.
+
+### Changed
+
+- `scripts/oom_advice.py` (run by `install.sh` and `update.sh` after the redo log check, advice only) prints the `OOMScoreAdjust=-900` drop-in for the MySQL and Redis units that are loaded and not at -900 or lower (INSTALL.md said -800), and an optional `MemoryHigh`/`MemoryMax` drop-in for `apache2.service`, where the workers run, sized at 55 and 65 percent of the host's memory. INSTALL.md says so. Nothing on the server is changed. generation-output: unchanged
+
+## [8.0.2976] - 2026-10-31
+
+**Headline:** The stars filter now also works in Nearby, the Systems list and its API, and the command line, and a system can be sorted by how many stars it holds.
+
+### Added
+- **The stars filter everywhere a system is listed (UX.239, the later slices).** What's nearby has a Stars menu (Single, Binary, Trinary, Quaternary, Quintenary and beyond) that keeps the systems with that many stars and what is in them, and a Stars column on its rows; `GET /api/near` takes `stars=` (a count, a count and a plus, or a name, as in `/api/search`) and a `system` row carries `star_count`. `GET /api/systems` takes `stars=` too and a `sort=stars` that orders by the number of stars, and the Stars column of the Systems tables sorts by it. The command line takes `--stars` on `query systems` and `query near` (the help names every choice) and says how many stars each system holds (single, binary, trinary, quaternary, or the count). A value that is none of these is a 400 from the API and an argument error on the command line; a hand-edited Nearby address with a bad value is ignored. Phenomena and facilities outside a system are left out of a Nearby list with the filter on, since they have no stars.
+
+No generator output changes.
+
+generation-output: unchanged
+
+## [8.0.2975] - 2026-10-31
+
+**Headline:** The installer and updater now tell you how big MySQL's redo log should be, from the writes the server has actually seen.
+
+### Changed
+
+- `scripts/redo_log_advice.py` reads how much redo MySQL has written and its redo log capacity, and prints the capacity that holds 30 minutes of those writes (1 to 16 GB) with the config line and the `SET GLOBAL innodb_redo_log_capacity` that changes it without a restart on MySQL 8.0.30 and later. `install.sh` and `update.sh` run it after the Redis check and only print; with `--seconds N` it measures a live window, and it counts the checkpointer warnings (MY-014084) in the error log. INSTALL.md says how to read it. Nothing on the server is changed. generation-output: unchanged
+
+## [8.0.2974] - 2026-10-31
+
+**Headline:** The bright-star backfill path a run really takes now has a test that runs it directly.
+
+### Changed
+- **`backfill_bright_stars_unit` is tested against the serial backfill (TEST.532).** A run backfills in `scatter-backfill` units, but the older tests covered the serial `backfill_bright_stars_around`. A new test runs `expand_backfill_bright_stars` and each unit through `backfill_bright_stars_unit` on one database and the serial form on another, for the same new sector, and shows the sectors, stars (mass, luminosity, type, position, seed) and the unit's per-sector progress reports agree. The serial form stays as the test reference (it is already registered by design in the wiring register). No code or generated output changes.
+
+generation-output: unchanged
+
+TODO items resolved: TEST.532.
+
+## [8.0.2973] - 2026-10-31
+
+**Headline:** The star scatter stages now leave half the machine's memory free, so a big run slows down instead of taking the database down with it.
+
+### Changed
+
+- The cap on the workers of the massive-star, bright-star, backfill and band scatter stages (PERF.220) is sized for a worker at its peak, 900 MB (Boss's kernel log showed 450 to 900 MB resident each), and for half the host's memory, leaving the rest to MySQL, Redis and the web server: 8 workers on a 16 GB host, was 15. MySQL was the first process the kernel killed on 2026-10-31. generation-output: unchanged
+
+## [8.0.2972] - 2026-10-31
+
+**Headline:** The queued sector-settle job that no page or route reached any more is gone.
+
+### Changed
+- **`api_jobs.settle_sectors` and the test helper `queue_settle` are deleted (TEST.531).** Since PERF.149 no route generates a sector on a visit, so only a test helper queued this job. The tests that existed only for the queue are removed (a sector generated on the spot queues a settle job, a settle that can be neither queued nor run, the conftest rule that ran settle jobs inline); the behavior a run still has stays tested through `run_galaxy.settle_named_sectors`, which `make_sector` now calls directly. No generated output changes.
+
+generation-output: unchanged
+
+TODO items resolved: TEST.531.
+
+## [8.0.2971] - 2026-10-31
+
+**Headline:** The bright-star and massive-star scatter stages no longer start more workers than the machine's memory holds, so a big run is not killed for running out of memory.
+
+### Changed
+
+- The scatter stages (massive stars, bright stars, the neighborhood backfill and the dimmer band) now use at most 60 percent of the host's memory divided by 600 MB per worker (15 workers on a 16 GB host), whatever the run's worker count, and ask the workers an earlier stage left to finish their unit and exit when there are more. On 2026-10-31 36 workers took 16,285 MB of a 15,992 MB host in the bright-star stage and the run was killed. Other stages are unchanged. What a stage generates does not depend on the number of workers (each unit has its own seed), so the stars are the same; only the time can be longer on a big machine. generation-output: unchanged
+
+## [8.0.2970] - 2026-10-31
+
+**Headline:** The photolysis table can now say how much of a gas the light breaks in a thick air, and a star's far-ultraviolet light at a body can be asked for; nothing reads them yet.
+
+### Changed
+- **GEN.982, parts 1 and 2.** `photolysis_lifetimes.json` gains the mean UV cross sections of water, ammonia, methane, carbon dioxide and hydrogen sulfide (Hu, Seager and Bains 2012, table 6), and `photolysis.shielded_column_mol_m2` and `photon_limited_flux_mol_m2_s` give the column that absorbs the light and the most of a gas the light can break per square metre per second (for methane over the Earth's area about 78 Tmol a year, the order of the anoxic methane fluxes). `stellar_library.far_uv_power_w` and `activity.far_uv_flux_ratio` give a star's 91.2 to 200 nm flux at a distance relative to the quiet Sun at 1 AU, the number the photolysis rates take. Both are for part 3 (the methane haze supply), which is a lock branch; no generated value changes.
+generation-output: unchanged
+
+## [8.0.2969] - 2026-10-31
+
+**Headline:** The admin job strip test no longer depends on whether the machine it runs on has Redis, a writable jobs folder or jobs of its own.
+
+### Changed
+- **Test fix, no code change.** The strip is hidden when Redis or the jobs folder cannot be read, so on a machine without a Redis server the test saw it hidden while a job ran and failed. The test now sets up its own job state (an empty jobs folder, nothing waiting, no running lock) and still fails when the strip stops showing a running job.
+
+## [8.0.2968] - 2026-10-31
+
+**Headline:** The Search page now has range boxes for gravity, temperature, pressure, radiation dose and the other physical values, each with its unit beside it, and shows the ranges as chips.
+
+### Added
+- **Search by physical values.** A new fold on the Search page, with a row for each value of planets, moons and stars: surface gravity, surface temperature, surface pressure, surface radiation dose, orbit distance, day and year length, rotation period, mass, magnetic moment, ocean depth, number of moons, and for stars luminosity, age and temperature. Each row has a least and a most box and a unit menu (for example bar, kPa or atm for pressure). Typing 0.8 to 1.2 g and a dose of at most 2 mSv a year finds the planets that have both.
+- **Gases.** Rows for the common gases (nitrogen, oxygen, carbon dioxide, water, methane, argon, hydrogen, helium, ammonia, sulfur dioxide) give the partial pressure at the surface; a row called "another gas" reaches any other gas the generator knows.
+- **Chips and a Values column.** Each range is a chip with its unit and a cross that takes only that range away. The planet, moon and star tables have a new Values column that shows the values the search asked for, with their units.
+- **Order by a value.** A menu for each kind of object orders its results by any of the values, smallest or largest first; a table header's own sort still wins.
+
+### Changed
+- **The address stays short.** A unit that is the value's own, or that has no range beside it, is not put in the address.
+
 ## [8.0.2967] - 2026-10-31
 
 **Headline:** The wiring register says why the simulated survey samplers are only run by the tuning tests.

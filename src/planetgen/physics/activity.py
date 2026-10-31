@@ -400,6 +400,36 @@ def uv_shares_of(star):
     return stellar_library.uv_shares(mass, radius, temperature, corona)
 
 
+SUN_AGE_GY = 4.57
+"""float: The age of the Sun the far-ultraviolet flux of `far_uv_flux_ratio` is measured against."""
+SUN_TEMPERATURE_K = 5772.0
+SUN_LOGG = 4.438
+"""float: The effective temperature (IAU 2015) and the surface gravity of the Sun, the model atmosphere that stands for the reference star."""
+
+
+def _sun_far_uv_flux_w_m2():
+    """The 91.2 to 200 nm flux the Sun gives at 1 AU in the same model as any other star (`far_uv_flux_ratio` is 1 there by construction)."""
+    luminosity = constants.SOLAR_LUMINOSITY
+    corona = coronal_xuv_at(1.0, SUN_AGE_GY, luminosity) / luminosity
+    return stellar_library.far_uv_power_w(SUN_TEMPERATURE_K, SUN_LOGG, luminosity, corona) / (4.0 * math.pi * constants.AU_M ** 2)
+
+
+def far_uv_flux_ratio(star, distance_au):
+    """
+    The 91.2 to 200 nm flux of `star` at `distance_au`, relative to the quiet Sun at 1 AU (GEN.982): the number `physics.photolysis.rate_per_s`
+    takes as `flux_ratio`. The star's model-atmosphere share plus its corona's far ultraviolet (`stellar_library.far_uv_power_w`) over the
+    area of the sphere at that distance, over the Sun's own flux in the same model. `None` when the star lacks a mass, radius, temperature
+    or luminosity, or the distance is not above zero.
+    """
+    temperature, luminosity = getattr(star, "temperature", None), getattr(star, "luminosity", None)
+    if not (getattr(star, "mass", None) and getattr(star, "radius", None) and temperature and luminosity and distance_au and distance_au > 0.0):
+        return None
+    log_ratio = getattr(star, "log_lx_lbol", None)
+    corona = 0.0 if log_ratio is None else coronal_xuv_w(10 ** log_ratio * luminosity) / luminosity
+    power = stellar_library.far_uv_power_w(temperature, stellar_library.surface_logg(star.mass, star.radius), luminosity, corona)
+    return power / (4.0 * math.pi * (distance_au * constants.AU_M) ** 2) / _sun_far_uv_flux_w_m2()
+
+
 def _uv_c_share(star):
     """The star's `uv_c_share`: the library's (GEN.971); the seeded GEN.443 share, from the star's own stream so no draw of the run's
     moves, for a run that disregards a missing library."""

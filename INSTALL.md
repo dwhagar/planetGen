@@ -71,10 +71,16 @@ database cannot be asked politely to resume):
 ```bash
 for unit in mysql redis-server; do
   sudo mkdir -p /etc/systemd/system/$unit.service.d
-  printf '[Service]\nOOMScoreAdjust=-800\n' | sudo tee /etc/systemd/system/$unit.service.d/oom.conf >/dev/null
+  printf '[Service]\nOOMScoreAdjust=-900\n' | sudo tee /etc/systemd/system/$unit.service.d/oom.conf >/dev/null
 done
 sudo systemctl daemon-reload && sudo systemctl restart mysql redis-server
 ```
+
+`install.sh` and `update.sh` check this for you (`scripts/oom_advice.py`) and print the same drop-in for any of
+`mysql`, `redis-server` that is not at -900 or lower; they change nothing. The generation workers are children of the web
+app, so they live in `apache2.service`'s cgroup; the same check offers a `MemoryHigh`/`MemoryMax` drop-in for that
+unit (55 and 65 percent of the host's memory) so that a memory spike ends a worker inside that group, never mysqld.
+It is optional: the scatter stages already hold their workers to half the host's memory.
 
 On a 16 GB host that also generates, `innodb_buffer_pool_size = 4G` in `/etc/mysql/mysql.conf.d/mysqld.cnf` keeps
 MySQL near 5 GB at most and leaves the rest to the workers (about 250 MB each, up to the worker count on the
@@ -84,8 +90,12 @@ On a machine that runs the whole test gate (`scripts/test.py full`, many tests w
 `innodb_redo_log_capacity` from its 100 MB default to 2 GB in the same file (`innodb_redo_log_capacity = 2G`, or at
 run time `SET GLOBAL innodb_redo_log_capacity = 2147483648;`, which MySQL 8.0.30 and later accept without a restart).
 At the default the log checkpointer falls behind under that load (`log_checkpointer lagging` in the MySQL error log,
-84 warnings in one gate), the gate slows, and tests can lose their connection. A server that only runs the site and
-generation does not need it.
+84 warnings in one gate), the gate slows, and tests can lose their connection. A galaxy run does the same: the redo
+log must hold the writes of its busiest half hour or the checkpointer lags (MY-014084 in the error log).
+`install.sh` and `update.sh` print what the server has written and the capacity that holds 30 minutes of it
+(`scripts/redo_log_advice.py`, advice only, it changes nothing); run `scripts/redo_log_advice.py --seconds 60` while a
+galaxy generates for the real rate. The `SET GLOBAL` it prints needs MySQL 8.0.30 or later and a MySQL account with
+the privilege; the line for the config file keeps it after a restart.
 
 ### Ubuntu 24.04 and 26.04 LTS
 
