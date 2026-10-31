@@ -14098,7 +14098,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.1103, GEN.1006.
   Design: [docs/design/systems/interstellar-asteroid-fields.md](design/systems/interstellar-asteroid-fields.md)
 
-- [ ] **GEN.1108 Climate by latitude band for every body in seven bands (the equator, three above, three below, the poles inside the outermost band each side), the temperature categories of regional_temperature.py extended to seven: day and night length and the temperature range by day and by night (bug)**
+- [ ] **GEN.1108 Part B (storage, page and move of regional_temperature): climate by latitude band for every body in seven bands (the equator, three above, three below, the poles inside the outermost band each side), the temperature categories of regional_temperature.py extended to seven: day and night length and the temperature range by day and by night (bug)**
   Boss, 4:52 and 4:53 PM EDT 2026-10-30: every body says how much day
   and night it has at various places from the equator, in the same
   categories as the temperatures. He means lines of latitude: the
@@ -14125,6 +14125,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   work (migration, API version, regional temperatures move). Where we
   think it belongs (best guess, can move): Aux 2 with the day-and-night
   state item, train 6.
+  Part A done (2026-10-30 8:42 PM EDT): part A (the pure function
+  physics/latitude_bands.py, registry row LB1, tests on Earth, Uranus,
+  Venus and a locked planet) merged as PR #4286, lock-free. What remains
+  is part B, the lock part: columns in db/column_units.py, migration,
+  API bump, the page showing the seven bands beside each other, and
+  replacing the four stored bands of regional_temperature (and the
+  readers in protection.py, the sheet and the API) with the seven. Owner
+  Aux 2, stacked on claude/gen768-outside-hours and claude/gen1097 for
+  train 6.
   Prerequisites: GEN.1097. Related: GEN.768, GEN.1048.
 
 - [ ] **GEN.1110 Average wind speeds by day and by night in each of the seven latitude bands: the day-to-night thermal wind from the pressure difference, zonal jets and trade winds from the equator-to-pole temperature difference and the Rossby number, faded out below about 1 kPa**
