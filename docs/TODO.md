@@ -19170,18 +19170,6 @@ clears each one.
   Owner Core 4.
   Prerequisites: none. Related: GEN.366.
 
-- [ ] **TEST.509 The climate sweep twin sits at 313 K, far above the 288 K of the Earth it stands for: make it a real Earth twin so the sweep tests the feedbacks where they act**
-  From Air 1 (GEN.972 design): the climate sweep twin in
-  src/tests/test_climate_sweep.py is at 313 K at its reference flux, far
-  above the ice ramp (263 to 283 K) and Earth's 288 K, so GEN.972 cannot
-  close the strict xfail and the response (0.45 to 0.54 K per W/m2) is
-  measured on a hot world. Make the twin an Earth twin (about 288 K at
-  its flux, Earth composition) and re-measure the response and the 0.54
-  lower bound against it; the bound's source needs rechecking with the
-  new twin. Test and fixture work, no generated value changes. Owner Air
-  1.
-  Prerequisites: none. Related: GEN.972, GEN.973, GEN.974.
-
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
