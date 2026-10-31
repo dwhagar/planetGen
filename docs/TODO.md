@@ -18564,16 +18564,6 @@ clears each one.
   Owner: Air 1. Version 8.1.
   Prerequisites: none. Related: GEN.850, GEN.851.
 
-- [ ] **TEST.480 test_gen_builder_internals::test_slot_planet_honours_class_and_moon_count gets class J where it forced class I at a cold slot (bug)**
-  Found by Bug 2's train 4 gate (relayed 2:08 PM EDT 2026-10-30 as the
-  lane reported, sent to Planets 1 directly): the test forces class I at
-  a cold slot and the build returns class J. Do: find out whether the
-  test's expectation is stale after the class rules or the wiring of
-  GEN.728 changed the slot's class, or the build ignores the forced
-  class; fix the right one. Done: the test passes on the train branch
-  with the property it checks kept. Owner: Planets 1. Version 8.1.
-  Prerequisites: none. Related: GEN.728.
-
 - [ ] **TEST.492 Census re-baseline for every oddity share and the prevalence suite rows (one pass after train 9)**
   Weird worlds build (Boss, 4:15 PM EDT 2026-10-30, goal issue #4117;
   design docs/design/systems/weird-worlds.md). Secondary and tertiary
