@@ -380,3 +380,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.121:TJ3 | GEN.1150 | `trojans.libration_period, TADPOLE_LIMIT_DEG`, read when the orbit overlay lands |
 | row | 6.121:TJ4 | GEN.1150 | `trojans.LEADING_SHARE_RANGE`, read when the swarm draw lands |
 | row | 6.121:TJ5 | GEN.1150 | `trojans.ECC_MAX, INCLINATION_MAX_DEG`, read when the swarm draw lands |
+| module | planetgen.physics.climate_branches | GEN.972 | the ice-albedo law and every fixed point of the surface temperature with its stability, a pure function; GEN.972 puts the law into the fixed point and GEN.1051 hands both branches to pick_branch |
+| row | 6.22:CC15 | GEN.972 | `climate_branches.ICE_FREE_ALBEDO, ICE_COVERED_ALBEDO`, read when GEN.972 wires the module |
+| row | 6.22:CC16 | GEN.972 | `climate_branches.ICE_FREE_ABOVE_K, ICE_COVERED_BELOW_K`, read when GEN.972 wires the module |

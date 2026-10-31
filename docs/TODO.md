@@ -13557,19 +13557,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   No output change. Wiring turn (train 5) is next, Aux 4.
   Prerequisites: GEN.1034. Related: GEN.1034, GEN.461, GEN.894.
 
-- [ ] **GEN.1046 W20 design: the two-branch climate output (snowball or warm, runaway or temperate) from the ice-albedo feedback and the CO2 exit rule, as a history draw between branches**
-  Weird worlds build (Boss, 4:15 PM EDT 2026-10-30, goal issue #4117;
-  design docs/design/systems/weird-worlds.md). Secondary and tertiary
-  sources and stand-ins are accepted when each is registered in GEN.725
-  with tier and tweak level; every rate marked [R] in the design must be
-  confirmed by the lane that builds it. Do: a design note and a pure
-  function returning both branches in the bistable flux window (about 10
-  to 20 percent in flux for an Earth twin [R]; Budyko 1969, Sellers
-  1969, Pierrehumbert 2011, Kasting 1993). Waits for GEN.972 (ice-albedo
-  feedback). Lock-free. Owner: Air 1 (after GEN.972). Version 8.1.
-  Prerequisites: GEN.972.
-  Design: [docs/design/systems/weird-worlds.md](design/systems/weird-worlds.md)
-
 - [ ] **GEN.1047 Wire the oddity table and the weirdness dial: epoch, stored oddities text column and numeric columns (db/column_units.py), the "Odd: ..." line with its cause sentence on the object page, the API field, an admin force-oddity like FORCE_CLASS, the dial in settings (default 1, 0 turns all off)**
   Weird worlds build (Boss, 4:15 PM EDT 2026-10-30, goal issue #4117;
   design docs/design/systems/weird-worlds.md). Secondary and tertiary
@@ -13625,7 +13612,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   confirmed by the lane that builds it. Lock work, train 9. Done:
   tests, harness, census; W20 only after GEN.972. Owner: Aux 3 (W19),
   Air 1 (W20). Version 8.1.
-  Prerequisites: GEN.1046, GEN.1047.
+  Prerequisites: GEN.1047.
   Design: [docs/design/systems/weird-worlds.md](design/systems/weird-worlds.md)
 
 - [ ] **GEN.1052 Heavy-liquid layers and mercury (from GEN.1034): the deep global heavy-liquid path with the fluid Love number, the thin-layer refusal, and mercury and other liquid metals as rows of the surface liquid table**

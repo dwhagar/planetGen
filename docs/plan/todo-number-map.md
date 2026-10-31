@@ -1796,7 +1796,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1043 | W5 module: detect resonant chains from the stored periods and compute the forced eccentricity and the resulting tidal heating (Goldreich and Soter, Murray and Dermott), pure function | none | done, PR #4144 |
 | GEN.1044 | W19 module: the nightside collapse threshold of a thin-air locked planet (Wordsworth 2011, Leconte 2013), pure function | none | done, PR #4131 |
 | GEN.1045 | W16 audit: does envelope_escape fractionate helium (hydrogen escapes first, leaving a helium-dominated air; Hu 2015, Malsky and Rogers 2020)? Add the fractionation if not | none | done, PR #4146 |
-| GEN.1046 | W20 design: the two-branch climate output (snowball or warm, runaway or temperate) from the ice-albedo feedback and the CO2 exit rule, as a history draw between branches | none | open |
+| GEN.1046 | W20 design: the two-branch climate output (snowball or warm, runaway or temperate) from the ice-albedo feedback and the CO2 exit rule, as a history draw between branches | none | done, PR #4290 |
 | GEN.1047 | Wire the oddity table and the weirdness dial: epoch, stored oddities text column and numeric columns (db/column_units.py), the "Odd: ..." line with its cause sentence on the object page, the API field, an admin force-oddity like FORCE_CLASS, the dial in settings (default 1, 0 turns all off) | none | open |
 | GEN.1048 | Wire W1 (tilt-driven seasonal climate), W2 (Venus-type spin), W10 (iron-rich cores) and W15 (super-puffs) into the bulk, spin and climate inputs | none | open |
 | GEN.1049 | Wire W5 resonance heating and the W3 high-eccentricity and W4 misaligned-orbit tails in planet_architecture | none | open |
