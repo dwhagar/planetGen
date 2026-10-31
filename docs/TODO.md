@@ -15048,8 +15048,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   ordinary on purpose, and a measured run on a populated database whose
   report lists the peak per stage and finishes under the cap. Lock-free,
   generation output unchanged (the work seed does not depend on the
-  worker count). Owner: none for now (pool; the Train Manager proposes
-  who). Version 8.1.
+  worker count). Owner: Star 2 (proposed by the Train Manager, 6:03 PM EDT
+  2026-10-31; it holds PERF.224 and the scatter worker sizing). Version 8.1.
   Prerequisites: none. Related: PERF.220, PERF.222, PERF.223.
 
 ## DB: Database and schema
