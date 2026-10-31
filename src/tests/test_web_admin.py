@@ -1032,12 +1032,18 @@ def test_the_palette_list_is_json_for_an_admin_only(client, fake):
     assert all(item["url"].startswith("/") for item in body["items"])
 
 
-def test_the_job_strip_shows_the_running_job_on_every_admin_page(client, fake, monkeypatch):
+def test_the_job_strip_shows_the_running_job_on_every_admin_page(client, fake, monkeypatch, tmp_path):
     """ADM.119: a running job, its link and Cancel (posting to the Generate form) above any admin page."""
     from planetgen.web import generate_page
 
     job = {"id": "j1", "title": "Add sectors", "status": "running", "kind": "scatter", "finished": False,
            "created_at": 1.0, "elapsed_s": 65, "steps": ["a", "b"], "progress": {"completed": 1, "total": 4}}
+    # TEST.529: the strip reads the running job, the waiting list and the jobs folder of the machine, and shows nothing when Redis or
+    # the folder cannot be read (the job pages hide it then). The test sets up its own job state, so it passes whatever the machine is doing.
+    monkeypatch.setattr(generate_page.jobs, "jobs_dir", lambda: str(tmp_path))
+    monkeypatch.setattr(generate_page.jobs, "promote_queued", lambda root=None, force=False: None)
+    monkeypatch.setattr(generate_page.jobs, "line_view", lambda root=None: [])
+    monkeypatch.setattr(generate_page.jobs, "active_job", lambda root=None: None)
     _logged_in(client, fake)
     html = client.get("/admin/stats").get_data(as_text=True)
     assert "data-job-strip" in html and re.search(r'data-job-strip[^>]* hidden', html)
