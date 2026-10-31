@@ -275,7 +275,7 @@ def settle_orbit(planet):
     body's radius as it is now. Ages only rise, so the eccentricity only falls (it is never raised above what the body has, which the spacing of the orbits may have cut), and a lower one clears the star and the neighbours better.
     The position and velocity are made again on the new ellipse (`update_orbital_position`, the body keeps its place in its plane) and
     a planet's moons are told (`host_eccentricity`). The air, the tide's heat and the spin of a rocky body are read again by the
-    re-finish of GEN.992, not here.
+    re-finish of GEN.992, not here; the star's XUV flux, exposure and flares at the new mean light are set here, so the stored flux follows the stored orbit.
 
     Returns:
         bool: Whether the eccentricity moved by more than `ECCENTRICITY_SETTLE_TOLERANCE`.
@@ -292,6 +292,11 @@ def settle_orbit(planet):
     for moon in getattr(planet, "moons", ()):
         moon.host_eccentricity = eccentricity
     update_orbital_position(planet)
+    # the star's XUV and flares at the mean light of the new orbit (no draws), so the stored flux follows the stored ellipse; the air waits for the re-finish
+    light_au = orbit_elements.flux_distance_au(planet.distance, eccentricity)
+    for body in (planet, *getattr(planet, "moons", ())):
+        if getattr(body, "_star_distance_au", None):
+            magnetism.update_exposure(body, light_au)
     return True
 
 
