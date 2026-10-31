@@ -84,7 +84,7 @@ def test_a_component_is_cut_at_the_radius_its_table_says():
 
 def test_the_table_of_satellites_holds_the_clouds_at_the_distances_the_design_gives():
     found = _by_name(_placed())
-    assert len(found) == len(satellites.MILKY_WAY_SATELLITES) == 11
+    assert len(found) == len(satellites.MILKY_WAY_SATELLITES) == 12
     # The counts follow the stars' mass over the mean system mass, which the primary mass function (GEN.929) made 5% heavier
     # than the hand value: the design's 5.09e9, 1.07e9, 2.09e8 and 4.15e7 times 0.951.
     # GEN.366: the distances and masses are McConnachie (2012) Tables 2 and 4 (51, 64, 26 and 147 kpc; 1.5e9, 4.6e8, 2.1e7 and 2.0e7 solar masses), so the counts
