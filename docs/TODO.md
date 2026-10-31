@@ -12849,6 +12849,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   tests, census share of giants with irregulars and the head counts per
   giant. Where we think it belongs (best guess, can move): Core 3 (owns
   the moon draw lock), train 7.
+  Note (Star 2, GEN.1072 #4430) (6:14 AM EDT 2026-10-31, as Star 2
+  reported): belt_history.SURFACE_DENSITY_SLOPE (registry row 6.119:CP2)
+  is still not read by the captured composition. The wiring register
+  line for it was removed because the wiring guard judges a row by
+  whether its module is reached, and GEN.1072 now imports belt_history
+  in generation code. The reminder lives here: wire
+  SURFACE_DENSITY_SLOPE into the captured composition when this lands.
   Prerequisites: GEN.1082.
   Design: [docs/design/systems/captured-asteroid-moons.md](design/systems/captured-asteroid-moons.md)
 
