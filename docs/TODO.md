@@ -18462,6 +18462,36 @@ clears each one.
   command.
   Prerequisites: none. Related: GEN.1118.
 
+- [ ] **TEST.516 tests/test_readme_external_files.py has 3 failures on main: the README external-files section differs from the dataset catalogue (bug)**
+  Found by Core 5 (as the lane reported, 9:25 AM EDT 2026-10-31; also
+  listed by the Train Manager among the reds on clean main), filed by
+  the TODO thread. Kind: red tests on main (I reproduced all 3). Object:
+  test_the_readme_section_is_the_one_written_from_the_catalogue,
+  test_every_dataset_and_every_url_of_the_catalogue_is_in_the_readme_and_nothing_else,
+  test_each_set_says_what_it_falls_back_to_or_that_it_does_not. Result:
+  datasets were added to the catalogue without regenerating the README
+  section. Do: run scripts/readme_external_files.py --write, check the
+  diff is only the new or changed datasets, and make sure the three
+  tests pass; if a dataset lacks a fallback statement, fix the catalogue
+  entry, never the test. README only, lock-free. Data licensing stays
+  Boss's (DATA-LICENSE.md is not touched). Owner: Core 5 (proposed).
+  Prerequisites: none.
+
+- [ ] **TEST.517 test_class_pages_show_the_constants is red on main: the brown dwarf mass range text on the class page differs from the test (bug)**
+  Found by Core 2 (as the lane reported, 9:23 AM EDT 2026-10-31), filed
+  by the TODO thread. Kind: red test on main (Core 2 saw it fail on
+  main, not from UX.224). Object:
+  tests/test_class_pages.py::test_class_pages_show_the_constants.
+  Result: the class page shows a brown dwarf mass range that does not
+  match the constants the test expects. Do: confirm it is red on current
+  main with datasets fetched, find whether the page text or the test is
+  stale after the star and brown dwarf epochs (the constants are the
+  source: the page must show the generator's own range, so a stale page
+  is the fault and a stale test gets the new range with the reason
+  stated), fix at the cause. Lock-free if wording or test only. Owner:
+  Core 5 (proposed).
+  Prerequisites: none.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
