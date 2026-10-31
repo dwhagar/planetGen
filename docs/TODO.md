@@ -18607,6 +18607,22 @@ clears each one.
   command.
   Prerequisites: none. Related: GEN.1118.
 
+- [ ] **TEST.515 test_planet_zones::test_the_share_of_pair_nodes_with_a_p_type_window_is_the_measured_one is red on main for 2 and 7 stars after the dark members (GEN.1013) changed the tree draw (bug)**
+  Found by Planets 1 (as the lane reported, 7:32 AM EDT 2026-10-31),
+  filed by the TODO thread. Kind: red test on main. Object:
+  tests/test_planet_zones.py::test_the_share_of_pair_nodes_with_a_p_type_window_is_the_measured_one,
+  the 2-star and 7-star cases: the share of pair nodes with a P-type
+  window is 0.45 against the measured 0.49 and 0.28 against 0.33 since
+  the dark members of train 6 (GEN.1013) changed the tree draw. Do: find
+  out whether dark members belong in the share the test counts (a dark
+  member that is a pair node member changes the node counts), or the
+  P-type window rule reads the dark member wrongly; fix at the cause. If
+  the test counts the wrong population, say so and change the count with
+  the reason stated; do not loosen the measured band. If the fix changes
+  a generated value it rides a train; say so and stop. Owner: Aux 3
+  (GEN.1013 author, proposed).
+  Prerequisites: none.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
