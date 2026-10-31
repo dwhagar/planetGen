@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2925] - 2026-10-31
+
+**Headline:** Five texts that pages and the Methods list show no longer carry internal item codes.
+
+### Changed
+- **Wording only:** the reason a giant-only property is empty on a gas dwarf, the stand-in notes and sources of the small-body taxa, and the source line for the volcanic crust rows no longer print internal item codes (GEN.1142, GEN.473, GEN.474, GEN.475). No generated value changes.
+
 ## [8.0.2924] - 2026-10-31
 
 **Headline:** The property sheet of an asteroid belt and an asteroid field now lists the nearest meteorite group.
