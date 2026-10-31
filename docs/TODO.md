@@ -1053,6 +1053,23 @@ with `clamp()`.
   template global; use it for links into References.
   Prerequisites: none. Related: UX.237, GEN.1208.
 
+- [ ] **UX.255 Remove the light-theme branches in the map scripts that black map backgrounds left unused**
+  Follow-up to #4633 (maps are drawn on black in either theme; Boss,
+  2026-10-31, as the coordinator relayed, low priority). That change
+  made `mapcore.isLightBackground()` always false and left the
+  light-background branches in the map scripts dead. Do: delete
+  `isLightBackground` and every caller (for example `galaxymap3d.js`
+  `nebulaLooks(isLightBackground())` and its `FILLED_TINT` light shade),
+  the light looks in `nebulalook.js`, the glow layer's `light` option,
+  and `sectorscene.js`'s `lightBackground` uniform, with the shader and
+  test code that only they used, and keep the dark paths exactly as they
+  are. Done: no reference to a light map background is left in
+  `src/html/static`, a search shows it, and the map browser tests pass
+  unchanged. Display only: no schema, API, generator output or epoch
+  change, so lock-free. Owner: none for now (pool; any web lane that is
+  waiting). Version 8.1.
+  Prerequisites: none. Related: MAP.210.
+
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
