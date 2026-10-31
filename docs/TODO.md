@@ -14395,14 +14395,23 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.1209 step 2); (3) the Life and air through the ages chart (UX.237
   part 2) and the life-air API route draw the summed history and can
   show each class's share of every gas; (4) the life readings (GEN.1210)
-  trend and security read the summed air; (5) a world with one living
-  class gives exactly today's air, tested against the golden; (6)
+  trend and security read the summed air; (5) the single-class air is revisited too (Boss changed his mind, 10:57 AM EDT 2026-10-31): audit the existing single-class calculation (GEN.857 to 859, GEN.891, physics/life_air.py, biogenic_oxygen.py, life_ledger.json) against this vision and fix what does not fit, so a one-class world is no longer guaranteed to keep today's air; report what changed for one-class worlds in the changes note and the census; (6)
   stand-ins for new coupling rules go in GEN.725 with tier and tweak
   level. Nothing forced; physics decides. Output change: the air of
   multi-life worlds, so it rides GEN.1209's epoch and train, as a
   separate PR. Where we think it belongs (best guess, can move): Aux 2
   (class timelines) with Aux 4 (air) and Core 1 (ledger owner)
   reviewing.
+  Boss changed his mind (10:57 AM EDT 2026-10-31) (2026-10-31 10:58 AM
+  EDT): after approving the item as filed, Boss asked to revisit the old
+  single-class air too, to make sure it aligns with the new multi-life
+  vision. So one-class worlds are no longer guaranteed today's air: the
+  plan is PR A = the audit of the single-class calculation plus the
+  summed multi-class ledger, with a short report of what moves for
+  one-class worlds (the oxygen rise timing, methane burning, hydrogen
+  and the toxin test), then PR B of GEN.1209. The earlier test that a
+  one-class list equals today's air becomes a test that any difference
+  from today is one the audit explains and Boss has seen.
   Prerequisites: GEN.862. Related: GEN.1209, GEN.1210, UX.237.
 
 ## PERF: Speed, caching, bulk generation and parallel work
