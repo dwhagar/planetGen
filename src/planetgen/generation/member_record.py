@@ -17,7 +17,7 @@ and for a star the full `star_params` the build makes its star from.
 
 import dataclasses
 
-from planetgen.physics import brown_dwarf, constants, post_main_sequence, pre_main_sequence, stellar_abundances
+from planetgen.physics import alpha_tracks, brown_dwarf, constants, post_main_sequence, pre_main_sequence, stellar_abundances
 from planetgen.physics import stellar_evolution as evolution
 from planetgen.physics import unit_registry as units
 from planetgen.util import draw
@@ -101,7 +101,7 @@ REMNANT_AGE_YR = 1.0e13
 def _largest_radius_au(initial_mass_solar, age_yr, fe_h, present_radius_au):
     """The largest radius a star of this birth mass has had by `age_yr`: the larger of its present radius and its giant-branch tips."""
     try:
-        line = post_main_sequence.timeline(initial_mass_solar, fe_h)
+        line = post_main_sequence.timeline(initial_mass_solar, alpha_tracks.track_fe_h(fe_h, age_yr / 1.0e9))
     except ValueError:
         return present_radius_au
     tip_sol = line.radius_max_sol(age_yr / 1.0e9)

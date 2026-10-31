@@ -16,7 +16,7 @@ import pytest
 from planetgen import tuning
 from planetgen.generation import star_population as sp
 from planetgen.generation.bright_stars import star_fe_h
-from planetgen.physics import giant_branch, ms_lifetime, post_main_sequence
+from planetgen.physics import alpha_tracks, giant_branch, ms_lifetime, post_main_sequence
 from planetgen.physics import stellar_evolution as se
 
 MASS = 0.95
@@ -45,10 +45,14 @@ def _state_at(fraction, **kwargs):
 
 def _horizontal_branch_age(fe_h, share):
     """The age, Gy, `share` of the way through the horizontal branch of the test star of birth [Fe/H] `fe_h`
-    (lifetimes follow the composition, GEN.651)."""
-    t_ms = se.main_sequence_lifetime_gy(MASS, fe_h)
-    start = giant_branch.giant_end_fraction(MASS, fe_h)
-    return t_ms * (start + share * tuning.HORIZONTAL_BRANCH_DURATION_GY / t_ms)
+    (lifetimes follow the composition, GEN.651, on the track of the star's branch, GEN.1024: the piece of the age axis the age falls in)."""
+    for start, end, track in alpha_tracks.track_segments(fe_h):
+        t_ms = se.main_sequence_lifetime_gy(MASS, track)
+        first = giant_branch.giant_end_fraction(MASS, track)
+        age = t_ms * (first + share * tuning.HORIZONTAL_BRANCH_DURATION_GY / t_ms)
+        if start <= age < end:
+            return age
+    raise AssertionError(fe_h)
 
 
 def test_a_light_star_has_a_horizontal_branch_and_an_asymptotic_branch_between_its_giant_branch_and_its_white_dwarf():
@@ -258,8 +262,9 @@ def test_the_halo_counts_match_the_evolutionary_flux_of_an_old_population(floor,
     # test took the Sun's composition for the mean and the track while the count moved to the halo's, which left the model's count
     # 1.2 to 1.5 times the flux's, and a mean of too few draws moved it as much again (TEST.481).
     per_lsun = sp.bright_star_fraction(floor, "halo") / halo_mean_luminosity
-    turnoff = ms_lifetime.mass_for_lifetime_gy(T_MS, HALO_FE_H)
-    line = post_main_sequence.timeline(turnoff, HALO_FE_H)
+    track = alpha_tracks.track_fe_h(HALO_FE_H, T_MS)      # GEN.1024: the halo is alpha-enhanced and reads the track of its branch
+    turnoff = ms_lifetime.mass_for_lifetime_gy(T_MS, track)
+    line = post_main_sequence.timeline(turnoff, track)
     years = 1.0e9 * sum(end - start for _, start, end in line.bright_pieces(floor, skip=("horizontal-branch",)))
     expected = FLUX_PER_YEAR_PER_LSUN * years
     assert expected * 0.65 < per_lsun < expected * 1.35, (per_lsun, expected)
