@@ -13932,6 +13932,24 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   stored air changes. Owner: Core 4 (proposed).
   Prerequisites: none.
 
+- [ ] **GEN.1200 The galactic-centre ring inflow of the generator is 0.044 solar masses per year against the measured 0.07**
+  Finding from Core 3's GEN.1195 build (as the lane reported, 4:34 AM
+  EDT 2026-10-31), filed by the TODO thread. Kind: generation result
+  against observation. Object: the Milky Way shaped barred galaxy's
+  central molecular zone ring inflow (core gas module). Result:
+  test_core_gas Milky Way ring inflow reads 0.50 of the 0.8 target; the
+  generator's ring rate is 0.044 solar masses per year against the
+  measured 0.07. The ring's gas surface density (stand-in CMX4 of
+  GEN.1195) is the inflow times 50 Myr over the ring area and the
+  maximum cluster mass goes as its cube, so this rate matters for the
+  cluster maximum mass. Do: find the source of the 0.07 figure and the
+  inflow law, say why the generator's rate is low (law, bar torque or
+  ring area), and fix the law or document the stand-in in GEN.725 with
+  tier and tweak level; the Milky Way figure is the plausibility target,
+  never fixed content. Lock work (stored gas and clusters change); rides
+  after GEN.1195. Prerequisites: GEN.1195. Owner: Core 3 (proposed).
+  Prerequisites: GEN.1195.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -18610,6 +18628,23 @@ clears each one.
   guess, can move): Core 1 (reproducible galaxies), after the region run
   command.
   Prerequisites: none. Related: GEN.1118.
+
+- [ ] **TEST.510 test_no_new_hand_written_mass_conversion is red on main: new hand-written multiplies or divides by a mass constant in sheet.py, member_record, rogue, belt_mass, binding_energy, planet_architecture and tuning**
+  Found by Core 3 (as the lane reported, 4:34 AM EDT 2026-10-31), filed
+  by the TODO thread. Kind: red test on main. Object:
+  tests/test_mass_conversions.py::test_no_new_hand_written_mass_conversion.
+  Result: it finds new sites that multiply or divide by a mass constant
+  instead of using unit_registry.converter: describe/sheet.py 2 (the
+  star's variability and carbon-star rows), generation/member_record.py
+  1, generation/phenomena/rogue.py 3, physics/belt_mass.py 3,
+  physics/binding_energy.py 1, physics/planet_architecture.py 1, tuning.
+  Do: replace each by a unit_registry.converter call (the test's own
+  instruction); where a converter would regroup a product and change
+  output, leave that site on the list with the reason as GEN.934 did,
+  and say which. Done: the test is green on main without loosening it.
+  Lock-free where output is unchanged. Owner: Aux 5 (proposed, it built
+  the unit registry work).
+  Prerequisites: none.
 
 ## USR: User accounts
 
