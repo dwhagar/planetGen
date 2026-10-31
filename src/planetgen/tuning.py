@@ -925,20 +925,21 @@ STAR_MODEL_MAX_REDRAWS = 1000
 # GIANT_ENGULFMENT_RADIUS_FACTOR times its present radius (tidal capture
 # reaches a few stellar radii), and a white dwarf's progenitor, on its
 # asymptotic giant branch, engulfed or drove off everything inside
-# WD_ENGULFMENT_BASE_AU + WD_ENGULFMENT_AU_PER_PROGENITOR_MSUN * (M - 1) AU
-# for a progenitor of M solar masses (GEN.318, docs/design/systems/
-# exotic-environments-planets-and-compact-binaries.md 1.2: 1.5 AU for a
-# solar-mass star, as the generator had it, growing with the progenitor's
-# size). A white dwarf without a model progenitor mass (a forced type, a
-# planetary nebula's central star) takes the mass that leaves it
+# the distance a lookup through WD_ENGULFMENT_POINTS_AU gives for a progenitor
+# of M solar masses (GEN.1012, GM1/GM2: the three Jovian-planet points of
+# Mustill and Villaver 2012, ApJ 761, 121, Figure 7, with their Zahn tides:
+# 2.7 AU for a solar-mass star, 3.8 AU at 2.5 and 10 AU at 5; straight lines
+# between them, the last slope carried on to 8). A white dwarf without a
+# model progenitor mass (a forced type, a planetary nebula's central star)
+# takes the mass that leaves it
 # (WHITE_DWARF_REMNANT_MASS_SOL inverted), kept inside
 # WD_PROGENITOR_MASS_RANGE_SOL: nothing under a solar mass has had time to
 # become one, and above 8 the relation hands over to neutron stars.
 PLANET_MIN_STAR_AGE_GY = 0.01
 LIFE_MIN_STAR_AGE_GY = 0.1
 GIANT_ENGULFMENT_RADIUS_FACTOR = 2.0
-WD_ENGULFMENT_BASE_AU = 1.5
-WD_ENGULFMENT_AU_PER_PROGENITOR_MSUN = 0.8
+WD_ENGULFMENT_POINTS_AU = ((1.0, 2.7), (2.5, 3.8), (5.0, 10.0))
+"""tuple: `(progenitor solar masses, AU)` points of the engulfment radius, Mustill and Villaver 2012 (Jovian planets). Source tier T3, tweak level L1 (GM1, GM2)."""
 WD_PROGENITOR_MASS_RANGE_SOL = (1.0, _boundaries.sol("core_collapse_limit"))
 
 # A planetary nebula's central star is a close pair in PLANETARY_NEBULA_COMPANION_CHANCE of nebulae (a post-common-envelope

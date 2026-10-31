@@ -18,7 +18,7 @@ in the tree (`parent_node_id`, offset from the system's centre). `nodes_from_mem
 from collections import namedtuple
 
 from planetgen.db import storage_checksum
-from planetgen.generation import multistar
+from planetgen.generation import member_record, multistar
 from planetgen.physics import constants, system_tree
 from planetgen.physics.system_tree import OrbitNode
 from planetgen.physics import unit_registry as units
@@ -36,7 +36,7 @@ COLUMNS = ("node_no", "parent_node_no", "slot", "mass_solar", "separation_km", "
            "interaction", "flags")
 """tuple: The columns of `orbit_nodes` after its key `star_system_id`, in the order of `OrbitNode`'s fields."""
 
-_PairMember = namedtuple("_PairMember", ("kind", "radius_au", "mass", "initial"))
+_PairMember = namedtuple("_PairMember", ("kind", "radius_au", "mass", "initial", "largest_radius_au", "largest_mass_solar"))
 
 _COMPACT_CLASSES = {"VII": "white-dwarf", "NS": "neutron-star", "BH": "black-hole"}
 """dict: The Yerkes class of a remnant -> the member kind the Roche classifier knows it by."""
@@ -46,7 +46,11 @@ def _pair_member(star):
     kind = _COMPACT_CLASSES.get(star.yerkes_class, "main-sequence")
     mass_sol = star.mass / SOLAR_MASS_KG
     initial = getattr(star, "initial_mass_sol", None) or mass_sol
-    return _PairMember(kind, star.radius / AU_KM, mass_sol, initial)
+    radius_au = star.radius / AU_KM
+    largest = radius_au
+    if kind != "main-sequence" and initial > mass_sol:
+        largest = max(radius_au, member_record.progenitor_tip_au(initial, getattr(star, "fe_h", None) or 0.0))
+    return _PairMember(kind, radius_au, mass_sol, initial, largest, max(initial, mass_sol))
 
 
 def pair_interaction(primary, secondary, separation_au, eccentricity):

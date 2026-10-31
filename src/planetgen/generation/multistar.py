@@ -56,7 +56,7 @@ from planetgen.generation import member_record
 from planetgen.generation import close_binary_trend
 from planetgen.generation.phenomena import hosts, system_types
 from planetgen.physics import (
-    accretion, brown_dwarf, constants, imf, mass_boundaries, mass_loss, ms_lifetime, neutron_star, remnant_mass, remnant_progenitors, roche,
+    accretion, brown_dwarf, constants, imf, mass_boundaries, ms_lifetime, neutron_star, pair_history, remnant_mass, remnant_progenitors, roche,
     stability, stellar_composition)
 from planetgen.physics import stellar_evolution as evolution
 from planetgen.util import draw
@@ -167,6 +167,9 @@ def pair_clears(axis_au, eccentricity, low, high):
 
 ACCRETOR_KINDS = ("white-dwarf", "neutron-star", "black-hole")
 """tuple: The member kinds that receive mass from a lobe-filling partner (an `accreting` pair)."""
+
+SUDDEN_MASS_LOSS_KINDS = ("neutron-star", "black-hole")
+"""tuple: The member kinds whose mass left in a supernova, not slowly (`pair_history.Member.sudden`)."""
 
 INTERACTIONS = ("detached", "semi-detached", "contact", "accreting", "post-common-envelope", "merger-product")
 """tuple: The `Node.interaction` values; the classifier gives the first four and `post-common-envelope`
@@ -825,13 +828,29 @@ def _gate_forbids(interaction, heavy_initial_sol, age_yr, kinds=()):
     return age_gy >= tuning.OLD_POPULATION_MIN_AGE_GY
 
 
+def _history_member(leaf):
+    """A pair member as `pair_history` reads it: present and largest mass (solar masses) and radius (AU); a neutron star or a black hole lost its mass in a supernova."""
+    return pair_history.Member(leaf.mass, leaf.largest_mass_solar, leaf.radius_au, leaf.largest_radius_au,
+                               sudden=leaf.kind in SUDDEN_MASS_LOSS_KINDS)
+
+
+def _detached_or_post_common_envelope(a, b, axis_au, e):
+    """`detached`, or `post-common-envelope` when the history rule (GEN.1012; `pair_history`) finds that a member's largest radius
+    reached its Roche lobe, or its partner, at the orbit the pair had when its members were their heaviest."""
+    if pair_history.must_be_post_common_envelope(axis_au, e, _history_member(a), _history_member(b)):
+        return "post-common-envelope", ()
+    return "detached", ()
+
+
 def classify_pair(a, b, axis_au, e):
     """
     The `interaction` of a pair of two single members from their geometry (GEN.269): `(interaction, gainers)`, where
     `gainers` are the members that receive mass (a tuple of `a` and `b`). `a` and `b` have a `kind`, a `radius_au`, a
-    `mass` and an `initial` (a white dwarf's progenitor mass, solar masses). A lobe-filling donor feeds an accretor
-    (`accreting`); two stars past their lobes at closest approach are `contact`, one is `semi-detached`; a white dwarf
-    inside its progenitor's engulfment radius is `post-common-envelope`; otherwise `detached`.
+    `mass`, an `initial` (a white dwarf's progenitor mass, solar masses) and the largest radius and mass they have had
+    (`largest_radius_au`, `largest_mass_solar`). A lobe-filling donor feeds an accretor (`accreting`); two stars past
+    their lobes at closest approach are `contact`, one is `semi-detached`; a pair that is not filling a lobe now but whose
+    history forced a common envelope (`pair_history.must_be_post_common_envelope`, any member and any depth, GEN.1012)
+    is `post-common-envelope`; otherwise `detached`.
     """
     peri = axis_au * (1.0 - e)
     fill_a = roche.filling_factor(a.radius_au, peri, a.mass, b.mass)
@@ -841,19 +860,16 @@ def classify_pair(a, b, axis_au, e):
         donor_fill = fill_b if accretor_a else fill_a
         if donor_fill >= 1.0:
             return "accreting", ()
-        dwarf = a if a.kind == "white-dwarf" else b if b.kind == "white-dwarf" else None
-        if dwarf is not None and axis_au < mass_loss.engulfment_radius_au(dwarf.initial):
-            return "post-common-envelope", ()
-        return "detached", ()
+        return _detached_or_post_common_envelope(a, b, axis_au, e)
     if accretor_a:
-        return "detached", ()
+        return _detached_or_post_common_envelope(a, b, axis_au, e)
     if fill_a >= 1.0 and fill_b >= 1.0:
         return "contact", (a, b)
     if fill_a >= 1.0:
         return "semi-detached", (b,)
     if fill_b >= 1.0:
         return "semi-detached", (a,)
-    return "detached", ()
+    return _detached_or_post_common_envelope(a, b, axis_au, e)
 
 
 class _Builder:
