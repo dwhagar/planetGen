@@ -34,7 +34,8 @@ def test_generated_rogues_get_the_class_their_conditions_derive():
         planet = RoguePlanet(SystemConfig())
         if planet.mass_bin == "brown-dwarf":
             continue
-        assert tuning.PLANET_CLASSES[planet.planet_class]["type"] == planet.planet_type
+        shown = tuning.PLANET_CLASSES[planet.planet_class]
+        assert planet.planet_type in (shown["type"], shown.get("also_type"))
         assert planet.planet_class == rogue_class(planet)
         assert f"class {planet.planet_class}" in render_support.facts_text(render_support.phenomenon_section(planet))
 

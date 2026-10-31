@@ -1983,8 +1983,8 @@ PLANET_CLASSES = {
         "type": 't',
     },
     'E': {
-        "description": 'a world with a molten core and crust',
-        "composition": 'silicon, iron, and magnesium',
+        "description": 'a deep-frozen world',
+        "composition": 'silicon, iron, magnesium, and ice',
         "type": 't',
     },
     'F': {
@@ -2042,11 +2042,6 @@ PLANET_CLASSES = {
         "composition": 'silicon, iron, magnesium, and ice',
         "type": 't',
     },
-    'Q': {
-        "description": 'a world with an eccentric orbit and extreme temperature variations',
-        "composition": 'silicon, iron, and magnesium',
-        "type": 't',
-    },
     'S': {
         "description": 'a barren, rocky Super-Earth, its surface molten when it orbits close to its star',
         "composition": 'silicate rock over a large iron core',
@@ -2056,6 +2051,7 @@ PLANET_CLASSES = {
         "description": 'a gas dwarf with a thick atmosphere',
         "composition": 'hydrogen, helium, and hydrocarbons',
         "type": 'g',
+        "also_type": 't',       # GEN.1142: a terrestrial-kind body under about 10 Earth masses with a hydrogen-dominated air is a gas dwarf too
     },
     'V': {
         "description": 'a Super-Earth with high gravity',
@@ -2153,7 +2149,7 @@ EVOLUTIONARY_PACE_LABELS = {"fast": "hyper-accelerated", "normal": "standard", "
 table, so a page is written from a world's stored pace and needs no table of ages)."""
 
 # --- Planet Generation Specific Constants ---
-HABITABLE_PLANET_CLASSES = ['E', 'F', 'G', 'H', 'K', 'L', 'M', 'O', 'P', 'Q', 'V']
+HABITABLE_PLANET_CLASSES = ['E', 'F', 'G', 'H', 'K', 'L', 'M', 'O', 'P', 'V']
 """
 list: A list of planet class codes that are considered habitable.
 """

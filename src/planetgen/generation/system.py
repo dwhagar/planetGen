@@ -552,7 +552,7 @@ class StarSystem:
                 if obj.body_type == 'a': # Skip asteroid belts; they carry no life data.
                     continue
                 interior_heat.update_heat(obj)  # GEN.763: the thermal history to the star's final age (no draws)
-                planetPhysics.apply_class(obj)  # GEN.689: the seasonal swing of the light (P, Q) is known only now
+                planetPhysics.apply_class(obj)  # GEN.689: the light each body gets is final only now
                 for moon in obj.moons:
                     planetPhysics.apply_class(moon)
                 planetLife.apply_life_data(obj)
@@ -562,8 +562,8 @@ class StarSystem:
                     magnetism.generate_induced_field(moon, obj)  # GEN.178: from the final water and orbit
                     planetLife.apply_life_data(moon)
                     planetLife.decide_flavor_text(moon)
-            # The swing of the light (class Q) is known only now, so a forced class is judged again on the final classes: one the final
-            # pass took away is unmet, one it gave (Q) is met.
+            # The final pass can change a class, so a forced class is judged again on the final classes: one the final pass took away is
+            # unmet, one it gave is met.
             wanted = f"a planet of class {self.system_config.FORCE_CLASS}"
             present = self._forced_class_present()
             if not present and wanted not in self.unmet_requirements:

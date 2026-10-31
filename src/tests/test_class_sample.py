@@ -22,7 +22,7 @@ def test_the_switch_is_off_by_default():
     assert "FORCE_CLASS" not in SystemConfig().to_dict()
 
 
-@pytest.mark.parametrize("letter", ["P", "V", "K", "L", "N", "F", "G", "Q"])
+@pytest.mark.parametrize("letter", ["P", "V", "K", "L", "N", "F", "G"])
 def test_a_forced_rare_class_is_in_the_system(letter):
     for seed in range(1, 25):
         system = forced_system(letter, seed)
@@ -60,7 +60,7 @@ def test_the_switch_refuses_slots_and_unknown_letters():
 
 
 def test_fill_reaches_the_count_and_is_repeatable():
-    letters = ["P", "Q", "N"]
+    letters = ["P", "V", "N"]
     systems, counts, short = class_sample.fill(per_class=2, seed=5, letters=letters)
     assert not short
     assert all(counts[letter] >= 2 for letter in letters)
