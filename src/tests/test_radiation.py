@@ -290,7 +290,8 @@ def test_every_generated_body_has_a_consistent_dose():
             assert isinstance(body.ozone_loss_flag, bool)
             assert (body.ozone_column_du > 0.0) == (atmosphere.partial_kpa(body, "o2") > 0.0 and bool(body.star.temperature))
             seen["ozone"] += body.ozone_loss_flag
-            assert body.uv_surface_index is None or body.uv_surface_index > 0
+            assert body.uv_surface_index is None or body.uv_surface_index >= 0.0
+            assert body.uv_surface_index != 0.0 or body.atmospheric_pressure > 0.0     # a dose of exactly 0 is an opaque air (a dense vapour air passes no UV), never a bare body
     assert seen["rocky"] > 10 and seen["giant"] > 0
 
 
