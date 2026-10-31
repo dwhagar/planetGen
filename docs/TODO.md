@@ -19609,19 +19609,6 @@ clears each one.
   line in the same change, like a module.
   Prerequisites: none.
 
-- [ ] **TEST.531 Delete the sector-settle queue chain that no route reaches any more (api_jobs.settle_sectors and the test helper queue_settle)**
-    Finding from Core 1's TEST.521 (as the lane reported, 1:37 PM EDT
-  2026-10-31).
-    api_jobs.settle_sectors is now reached only by the test helper
-  queue_settle: no route generates a sector on a visit since PERF.149.
-  The queue chain behind it is a delete candidate: remove the chain and
-  the tests that exist only for it, keeping any test of behavior a route
-  still has. Lock-free. Owner: Core 1 when its designations work waits.
-  Owner (2026-10-31 2:00 PM EDT): Owner is Bug 1 (given 1:40 PM EDT),
-  not Core 1.
-    Prerequisites: none.
-  Prerequisites: none.
-
 - [ ] **TEST.532 Give the bright-star backfill unit path (backfill_bright_stars_unit) its own direct tests, since the serial form the tests cover is no longer the path a run takes**
     Finding from Core 1's TEST.521 (as the lane reported, 1:37 PM EDT
   2026-10-31).
