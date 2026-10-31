@@ -20,7 +20,7 @@ two shapes of four stars need more than that:
   back to both triples passing at `fallback_margin` and the verdict is flagged `confident=False`.
 - **A 2+2 quadruple** is two pairs about each other. Its two nested triples (one pair with the other pair as the third body) must
   pass at `level_margin`, then the 2+2 network of the same paper (`quadruple_stability`, GEN.1031) must call it stable with both
-  `a_in / a_out` loosened by its `axis_margin` (1.3, carried over from the 3+1 with no 2+2 sample of our own, flagged in the
+  `a_in / a_out` loosened by its `axis_margin` (1.5, tuned to the paper's precision on our own 2+2 REBOUND samples, GEN.1155; L2 in the
   registry); outside its documented range, or with overlapping apsides, the fallback is the 3+1's: both triples at `fallback_margin`,
   `confident=False`.
 
