@@ -14534,6 +14534,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   world uninhabitable. The class code system (GEN.1220) uses the acid
   medium for the sulfuric acid class U and the ammonia-water mass
   fraction for class X.
+  Boss decisions on the design (11:56 AM EDT 2026-10-31) (2026-10-31
+  11:58 AM EDT): Boss answered (11:56 AM EDT 2026-10-31): (1) yes, a
+  body may hold one extra liquid beside its main one; (2) store a
+  liquid's makeup as separate columns; (3) acid clouds vs pools NOT
+  answered, the coordinator will ask again, build pools only until he
+  does; (4) the ammonia life gate near 5 percent of the liquid's mass is
+  accepted as a starting guess, BUT it must be tuned from real physics
+  and chemistry (research GEN.1225); (5) invent the nitrogen ice amount
+  from where nitrogen freezes as a registered stand-in, also to be tuned
+  from physics and chemistry (same research); (6) a body with methane
+  and carbon monoxide ice warm enough for liquid methane gets a methane
+  sea. Build the acid and ammonia columns as the design says (separate
+  columns, percent of the liquid's mass); the acid cloud flag waits for
+  the answer to (3).
   Prerequisites: none. Related: GEN.1035, GEN.888, GEN.862.
 
 - [ ] **GEN.1217 Design: the surface liquid composition model: what is stored (fractions of water, salts, acid, ammonia, CO2, hydrocarbons), how it is derived, and how life changes it**
@@ -14576,6 +14590,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   10 mol/L, MgCl2 about 2.3 M); nothing for acid above a few percent,
   ammonia above about 1.6 percent, or CO2 or hydrocarbon as a solvent,
   so classes 5 to 9 stay at the lowest tiers (T8 or T9, L3 or L4).
+  Questions answered (2026-10-31 11:58 AM EDT): Boss answered (11:56 AM
+  EDT 2026-10-31): (1) yes, a body may hold one extra liquid beside its
+  main one; (2) store a liquid's makeup as separate columns; (3) acid
+  clouds vs pools NOT answered, the coordinator will ask again, build
+  pools only until he does; (4) the ammonia life gate near 5 percent of
+  the liquid's mass is accepted as a starting guess, BUT it must be
+  tuned from real physics and chemistry (research GEN.1225); (5) invent
+  the nitrogen ice amount from where nitrogen freezes as a registered
+  stand-in, also to be tuned from physics and chemistry (same research);
+  (6) a body with methane and carbon monoxide ice warm enough for liquid
+  methane gets a methane sea.
   Prerequisites: none. Related: GEN.1215, GEN.1207, GEN.862.
 
 - [ ] **GEN.1218 Build the surface liquid composition model: the composition columns, the derivation, the effect of life on it and of it on life, pages and API**
@@ -14593,6 +14618,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   taken into this set. Output change: one epoch with --affects,
   migration, golden, census re-baseline, on a train. Where we think it
   belongs (best guess, can move): Tides 1 with Aux 2.
+  Boss decisions on the design (11:56 AM EDT 2026-10-31) (2026-10-31
+  11:58 AM EDT): Boss answered (11:56 AM EDT 2026-10-31): (1) yes, a
+  body may hold one extra liquid beside its main one; (2) store a
+  liquid's makeup as separate columns; (3) acid clouds vs pools NOT
+  answered, the coordinator will ask again, build pools only until he
+  does; (4) the ammonia life gate near 5 percent of the liquid's mass is
+  accepted as a starting guess, BUT it must be tuned from real physics
+  and chemistry (research GEN.1225); (5) invent the nitrogen ice amount
+  from where nitrogen freezes as a registered stand-in, also to be tuned
+  from physics and chemistry (same research); (6) a body with methane
+  and carbon monoxide ice warm enough for liquid methane gets a methane
+  sea. The build follows these answers, with the gate and nitrogen
+  amount replaced by the sourced values of GEN.1225 when that research
+  lands.
   Prerequisites: GEN.1217. Related: GEN.1213, GEN.1214, GEN.1215.
 
 - [ ] **GEN.1219 Body types: planet_type (terrestrial, transitional, gas) from the envelope share of the mass, with a shadow report first**
@@ -14701,6 +14740,30 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (changes stored output), change note included. Stays open until it
   merges on a train.
   Prerequisites: none. Related: GEN.1035, GEN.1214.
+
+- [ ] **GEN.1225 Research: tune the ammonia life gate and the nitrogen ice amount from physics and chemistry (instead of guesses)**
+  Boss, 11:56 AM EDT 2026-10-31, on the surface liquid design questions
+  (GEN.1217): take option 1 for the ammonia life gate (about 5 percent
+  of the liquid's mass) and for inventing nitrogen ice from where
+  nitrogen freezes, BUT find a way to tune both from real physics and
+  chemistry, searching basic chemistry if needed. Filed by the TODO
+  thread. Do (research, no code, report in /mnt/project-files/reports):
+  (1) the ammonia gate: what limits life in an ammonia-water solvent at
+  what fraction (ammonia's effect on proteins and membranes, pH of
+  ammonia-water solutions, the ammonia tolerance of known organisms, the
+  1.6 percent figure from the GEN.1216 report, the biochemistry
+  literature on ammonia as a solvent, Hoehler/Benner-style arguments,
+  ammonia-water phase behavior), and give a gate with a source and a
+  tier or the best physical estimate with its range; (2) the nitrogen
+  ice amount: from where nitrogen freezes (the N2 vapour pressure and
+  triple point 63.15 K), the solar and disc nitrogen abundance, the
+  N2/CO ratio in comets and Pluto and Triton, the fraction of nitrogen
+  that is N2 against NH3 and the temperature at which it condenses in
+  the disc, so the amount follows from the disc model rather than a
+  number; (3) say which stand-ins (GEN.725) the findings replace and at
+  what tier and tweak level. Papers Boss must upload listed in order of
+  value. Where we think it belongs (best guess, can move): Sources 1.
+  Prerequisites: none. Related: GEN.1215, GEN.1217, GEN.1218, GEN.1216.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
