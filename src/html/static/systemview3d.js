@@ -23,10 +23,11 @@
 
 const VERSION_QUERY = new URL(import.meta.url).search;
 const THREE = await import(`./vendor/three.module.min.js${VERSION_QUERY}`);
-const { makeBandTexture, makeGlowMaterial, paintedTexture } = await import(`./bodyRendering.js${VERSION_QUERY}`);
+const { makeGlowMaterial, paintedTexture } = await import(`./bodyRendering.js${VERSION_QUERY}`);
 const Spin = await import(`./spin.js${VERSION_QUERY}`);
 const { makeCache, makeQueue, tierForDiameter, TIER_SIZES } = await import(`./bodytexture.js${VERSION_QUERY}`);
 const { paintSolid } = await import(`./solidpaint.js${VERSION_QUERY}`);
+const { paintGiant } = await import(`./giantpaint.js${VERSION_QUERY}`);
 const { isLumpy, lumpyGeometry } = await import(`./lumpymesh.js${VERSION_QUERY}`);
 const { paintStar } = await import(`./starpaint.js${VERSION_QUERY}`);
 const { createPointerControl, orbitByDrag, orbitByKey, panInScreenPlane, wheelPixels } = await import(`./mapcontrol.js${VERSION_QUERY}`);
@@ -143,13 +144,8 @@ export function buildSystemScene(scene, layout, options) {
     group.add(mesh);
     objects[item.ref] = mesh;
     const look = body.look || null;
-    if (look && (look.body === "solid" || look.body === "star")) {
+    if (look && (look.body === "solid" || look.body === "gas" || look.body === "star")) {
       paintable.push({ ref: item.ref, look: look });
-    } else if (look && look.body === "gas") {
-      const bands = makeBandTexture(THREE, look.color);
-      madeTextures.push(bands);
-      mesh.material.map = bands;
-      mesh.material.color.set("#ffffff");
     }
     if (look && look.glowStrength && look.body !== "star" && opts.glow !== false) {
       const shell = look.glowWidth ? 1 + look.glowWidth : AIR_SHELL;
@@ -332,7 +328,7 @@ export function buildSystemScene(scene, layout, options) {
       const texture = textures.get(key);
       if (!texture) {
         paintQueue.add(key, -px, () => {
-          const made = paintedTexture(THREE, one.look.body === "star" ? paintStar : paintSolid, one.look, TIER_SIZES[tier]);
+          const made = paintedTexture(THREE, one.look.body === "star" ? paintStar : one.look.body === "gas" ? paintGiant : paintSolid, one.look, TIER_SIZES[tier]);
           madeTextures.push(made);
           textures.set(key, made);
         });

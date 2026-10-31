@@ -34,9 +34,10 @@
 // get a second, separate instance of it.
 const VERSION_QUERY = new URL(import.meta.url).search;
 const THREE = await import(`./vendor/three.module.min.js${VERSION_QUERY}`);
-const { glowInnerRatio, makeBandTexture, makeGasRingTexture, makeGlowMaterial, paintedTexture } = await import(`./bodyRendering.js${VERSION_QUERY}`);
+const { glowInnerRatio, makeGasRingTexture, makeGlowMaterial, paintedTexture } = await import(`./bodyRendering.js${VERSION_QUERY}`);
 const { makeCache, makeQueue, parseLook, tierForDiameter, TIER_SIZES } = await import(`./bodytexture.js${VERSION_QUERY}`);
 const { paintSolid } = await import(`./solidpaint.js${VERSION_QUERY}`);
+const { paintGiant } = await import(`./giantpaint.js${VERSION_QUERY}`);
 const { isLumpy, lumpyGeometry } = await import(`./lumpymesh.js${VERSION_QUERY}`);
 const { glowFor, paintStar } = await import(`./starpaint.js${VERSION_QUERY}`);
 const { formatDistanceKm: formatLadderKm } = await import(`./unitladder.js${VERSION_QUERY}`);
@@ -185,7 +186,7 @@ function initSphereField(canvasEl) {
   var paintQueue = makeQueue();
 
   function paintTexture(marker, tier) {
-    return paintedTexture(THREE, marker.isStar ? paintStar : paintSolid, marker.look, TIER_SIZES[tier]);
+    return paintedTexture(THREE, marker.isStar ? paintStar : marker.isGasGiant ? paintGiant : paintSolid, marker.look, TIER_SIZES[tier]);
   }
 
   // The texture this marker should show at its current size, or null while it is still being painted.
@@ -207,9 +208,6 @@ function initSphereField(canvasEl) {
   function disposeMarker(marker) {
     if (marker.lumpy) {
       marker.lumpy.geometry.dispose();
-    }
-    if (marker.bandTexture) {
-      marker.bandTexture.dispose();
     }
     if (marker.ringTexture) {
       marker.ringTexture.dispose();
@@ -300,9 +298,9 @@ function initSphereField(canvasEl) {
     }
     sphere.material = planetMaterial;
     sphere.geometry = marker.lumpy ? marker.lumpy.geometry : roundGeometry;     // MAP.279: a body its weight has not made round is a lump
-    var painted = marker.isGasGiant ? null : textureFor(marker, tierForDiameter(marker.diameterPx));
-    planetMaterial.map = marker.isGasGiant ? marker.bandTexture : painted;
-    planetMaterial.color.set(marker.isGasGiant || painted ? "#ffffff" : marker.color);
+    var painted = textureFor(marker, tierForDiameter(marker.diameterPx));
+    planetMaterial.map = painted;
+    planetMaterial.color.set(painted ? "#ffffff" : marker.color);
     planetMaterial.needsUpdate = true;
 
     ring.visible = marker.isGasGiant;
@@ -450,7 +448,7 @@ function gatherSphereMarkers(sceneEl) {
       isStar: isStar,
       isSelf: !!(circle.parentNode && circle.parentNode.dataset && circle.parentNode.dataset.self === "true"),
       isGasGiant: isGasGiant,
-      paintable: look.body === "solid" || isStar,
+      paintable: look.body === "solid" || look.body === "gas" || isStar,
       glowScale: glowFor(look.lumSolar).scale,
       glowStrength: glowFor(look.lumSolar).strength,
       diameterPx: 0,
@@ -466,7 +464,6 @@ function gatherSphereMarkers(sceneEl) {
       marker.lumpy = lumpyGeometry(THREE, look);
     }
     if (isGasGiant) {
-      marker.bandTexture = makeBandTexture(THREE, marker.color);
       marker.ringTexture = makeGasRingTexture(THREE, marker.color);
     }
     el.classList.add("sysmap-sphere-active");
