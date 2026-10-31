@@ -30,6 +30,11 @@ a body with a bump on it (the longest axis `f` times the mean radius) is made le
    Porosity is `none`: meteorites show no clear strength trend with porosity (Pohl and Britt 2020). An `exponential` rule (ceramics-based, a recalled placeholder) is built and off; with it
    Proteus (a porous ice-rich moon, 210 km, not round) would come out round. Not yet in the table: methane clathrate (20 to 30 times the strength of ice), solid CO2, ammonia ices and the
    other ice phases, and the rubble-pile branch (friction plus a little cohesion, a shape-set temperature and no size threshold).
+   **Hot rock.** A rock body that took its shape hot is weaker than cold rock: with a shape-set `temperature_k` the rock strength follows the creep of dry olivine (`TEMPERATURE_RULES`,
+   `olivine-creep-law`), between the Hirth and Kohlstedt 2003 and Korenaga and Karato 2008 columns, and never above the cold whole-body strength of 16.5 MPa, which stands for the brittle limit. So
+   rock keeps 16.5 MPa up to about 1100 to 1150 K, then falls to 2 to 5 MPa at 1300 K and 1 to 2 MPa at 1400 K. A rubble pile that took its shape hot is held by the same law (its `hot_strength_pa`
+   of 2.5 MPa is olivine creep near 1330 K). Intact olivine crystal strength (10 GPa) is never used.
+
    **Fuzzy boundary.** Real strength is never known to better than a factor of 2 to 3, so every function takes an optional `draw` (0 to 1): the quantile of a body in the range of each strength (`RANGES_PA`, and
    the friction angle, cohesion and hot strength of rubble). The stand-in is the median (0.5; `draw=None` is the same). The caller draws it once per body from `draw.py`; the round radius then moves
    about 1.5 times either way, so the boundary between a round body and a potato is a band.
@@ -93,6 +98,7 @@ class StrengthTable:
     rubble: dict
     ranges_pa: dict = None
     ice_creep_scale: float = 1.0
+    draw: float = 0.5
 
 
 def stress_coefficient(sphericity_factor):
@@ -138,8 +144,11 @@ def load_table(document):
         raise RoundnessError(f"the mixing rule must be one of {sorted(MIXING_RULES)}")
     if porosity.get("rule") not in POROSITY_RULES:
         raise RoundnessError(f"the porosity rule must be one of {sorted(POROSITY_RULES)}")
-    if temperature.get("rule") not in TEMPERATURE_RULES:
-        raise RoundnessError(f"the temperature rule must be one of {sorted(TEMPERATURE_RULES)}")
+    if not temperature or set(temperature) - set(MATERIALS):
+        raise RoundnessError(f"'temperature' holds a rule for each of {MATERIALS} it applies to")
+    for name, block in temperature.items():
+        if block.get("rule") not in TEMPERATURE_RULES:
+            raise RoundnessError(f"the temperature rule of {name} must be one of {sorted(TEMPERATURE_RULES)}")
     if rubble.get("rule") not in RUBBLE_RULES:
         raise RoundnessError(f"the rubble rule must be one of {sorted(RUBBLE_RULES)}")
     if rubble["rule"] == "mohr-coulomb":
@@ -152,17 +161,19 @@ def load_table(document):
         tested, packing = _positive(mixing.get("tested_to"), "tested_to"), _positive(mixing.get("close_packing"), "close_packing")
         if not tested <= packing < 1.0:
             raise RoundnessError("the mixing law needs 0 < tested_to <= close_packing < 1")
-    if temperature["rule"] == "creep-law":
-        _positive(temperature.get("rate_per_s"), "rate_per_s")
-        _positive(temperature.get("max_temperature_k"), "max_temperature_k")
-        regimes = temperature.get("regimes")
-        if not isinstance(regimes, list) or not regimes:
-            raise RoundnessError("the creep law needs a list of 'regimes'")
-        for regime in regimes:
-            if not isinstance(regime.get("log10_a"), (int, float)):
-                raise RoundnessError("each creep regime needs 'log10_a'")
-            _positive(regime.get("n"), "n")
-            _positive(regime.get("e_kj_mol"), "e_kj_mol")
+    for name, block in temperature.items():
+        if block["rule"] in ("creep-law", "olivine-creep-law"):
+            _positive(block.get("rate_per_s"), "rate_per_s")
+            regimes = block.get("regimes" if block["rule"] == "creep-law" else "columns")
+            if not isinstance(regimes, list) or not regimes or (block["rule"] == "olivine-creep-law" and len(regimes) != 2):
+                raise RoundnessError(f"the {block['rule']} of {name} needs its list of regimes (two columns for olivine)")
+            if block["rule"] == "creep-law":
+                _positive(block.get("max_temperature_k"), "max_temperature_k")
+            for regime in regimes:
+                if not isinstance(regime.get("log10_a"), (int, float)):
+                    raise RoundnessError("each creep regime needs 'log10_a'")
+                _positive(regime.get("n"), "n")
+                _positive(regime.get("e_kj_mol"), "e_kj_mol")
     ranges = {}
     for name in MATERIALS:
         bounds = materials[name].get("range_pa")
@@ -177,39 +188,64 @@ def load_table(document):
     return StrengthTable(strengths, factor, mixing, porosity, temperature, rubble, ranges)
 
 
-def _ice_creep_law(table, ice_strength_pa, temperature_k):
-    """The creep strength of pure ice that took its shape at `temperature_k`, Pa: from `rate = A sigma^n exp(-E / R T)` the stress `(rate / A)^(1/n) exp(E / (n R T))` of each regime, the weakest
-    governing (Durham, Kirby and Stern 1997 Table 2, the pressure term dropped). None is the default ice, `ice_strength_pa` (1 MPa, the law near 158 K); a temperature above the melting point is
-    held at it. Dislocation creep of fine-grained lab ice, so an upper bound at the lowest stresses."""
-    if temperature_k is None:
-        return ice_strength_pa
-    rule = table.temperature
-    kelvin = min(temperature_k, _positive(rule["max_temperature_k"], "max_temperature_k"))
-    rate = _positive(rule["rate_per_s"], "rate_per_s")
-    stresses = [(rate / 10.0 ** regime["log10_a"]) ** (1.0 / regime["n"]) * math.exp(regime["e_kj_mol"] / (regime["n"] * _GAS_KJ_MOL_K * kelvin)) for regime in rule["regimes"]]
-    return min(stresses) * 1.0e6 * table.ice_creep_scale
-
-
 _GAS_KJ_MOL_K = 8.314462618e-3
 
+
+def _creep_stress_mpa(regime, rate, kelvin):
+    """The stress, MPa, at which one flow-law regime `rate = A sigma^n exp(-E / R T)` runs at `rate` per second: `(rate / A)^(1/n) exp(E / (n R T))`. The pressure term is dropped."""
+    return (rate / 10.0 ** regime["log10_a"]) ** (1.0 / regime["n"]) * math.exp(regime["e_kj_mol"] / (regime["n"] * _GAS_KJ_MOL_K * kelvin))
+
+
+def _ice_creep_law(table, rule, ice_strength_pa, temperature_k):
+    """The creep strength of pure ice that took its shape at `temperature_k`, Pa: the stress of each regime, the weakest governing (Durham, Kirby and Stern 1997 Table 2, the pressure term
+    dropped). None is the default ice, `ice_strength_pa` (1 MPa, the law near 158 K); a temperature above the melting point is held at it. Dislocation creep of fine-grained lab ice, so an upper
+    bound at the lowest stresses."""
+    if temperature_k is None:
+        return ice_strength_pa
+    kelvin = min(temperature_k, _positive(rule["max_temperature_k"], "max_temperature_k"))
+    rate = _positive(rule["rate_per_s"], "rate_per_s")
+    return min(_creep_stress_mpa(regime, rate, kelvin) for regime in rule["regimes"]) * 1.0e6 * table.ice_creep_scale
+
+
+def _olivine_creep_law(table, rule, rock_strength_pa, temperature_k):
+    """The strength of silicate rock that took its shape at `temperature_k`, Pa: dry dislocation creep of olivine, between the two compilations of Korenaga and Karato 2008 Table 3 (Hirth and
+    Kohlstedt 2003 as printed there, and their re-fit) by the quantile of the body (`table.draw`; the geometric mean at the median), and never above `rock_strength_pa`, the 16.5 MPa whole-body
+    strength of fractured cold rock that stands for the brittle (Byerlee) limit. So rock keeps its cold strength until it is hot enough to creep below it (about 1100 to 1150 K), then weakens:
+    2 to 5 MPa at 1300 K. None is cold rock. The pressure term is dropped; intact olivine crystal strength (10 GPa) is never used."""
+    if temperature_k is None:
+        return rock_strength_pa
+    rate = _positive(rule["rate_per_s"], "rate_per_s")
+    low, high = (_creep_stress_mpa(column, rate, temperature_k) for column in rule["columns"])
+    return min(rock_strength_pa, low ** (1.0 - table.draw) * high ** table.draw * 1.0e6)
+
+
 TEMPERATURE_RULES = {
-    "none": lambda table, ice_strength_pa, temperature_k: ice_strength_pa,
+    "none": lambda table, rule, strength_pa, temperature_k: strength_pa,
     "creep-law": _ice_creep_law,
+    "olivine-creep-law": _olivine_creep_law,
 }
-"""dict: Rules for the strength of ice that took its shape at a temperature, each `(table, default_ice_strength_pa, temperature_k)` -> Pa. `temperature_k` of None is the default ice. [Stand-in RN7, tier T5, tweak L1.]"""
+"""dict: Rules for the strength of a material that took its shape at a temperature, each `(table, the material's block of the file, default_strength_pa, temperature_k)` -> Pa. `temperature_k` of
+None is the default strength. [Stand-in RN7 for ice, tier T5, tweak L1; RN11 for rock, tier T2, tweak L0.]"""
+
+
+def _material_strength_pa(table, name, temperature_k):
+    """The strength of one material at the temperature its shape was set: its default strength put through its temperature rule, if the file gives it one."""
+    block = table.temperature.get(name)
+    base = table.strengths_pa[name]
+    return base if block is None else TEMPERATURE_RULES[block["rule"]](table, block, base, temperature_k)
 
 
 def _exp_volume(table, ice_fraction, metal_fraction, temperature_k):
     """The strength of a mix by the volume shares of its materials (strength research section 7): ice strength times `exp(b f)` for the solids' volume fraction `f` up to `tested_to` (0.56, measured:
     Durham and others 1992), the same law continued to `close_packing` (0.65), then geometric to the solids' own strength (rock and metal, geometric mean weighted by the metal share of their
     volume) at `f` of 1. Grains of 1 to 150 microns in ice; the leg beyond 0.56 is an extrapolation."""
-    ice_strength = TEMPERATURE_RULES[table.temperature["rule"]](table, table.strengths_pa["ice"], temperature_k)
+    ice_strength = _material_strength_pa(table, "ice", temperature_k)
     rock_fraction = 1.0 - ice_fraction - metal_fraction
     volumes = {name: share / GRAIN_DENSITIES_KG_M3[name] for name, share in (("ice", ice_fraction), ("rock", max(rock_fraction, 0.0)), ("metal", metal_fraction))}
     solid_volume = volumes["rock"] + volumes["metal"]
     skeleton = solid_volume / (solid_volume + volumes["ice"])
     metal_share = volumes["metal"] / solid_volume if solid_volume > 0.0 else 0.0
-    solid_strength = table.strengths_pa["rock"] ** (1.0 - metal_share) * table.strengths_pa["metal"] ** metal_share
+    solid_strength = _material_strength_pa(table, "rock", temperature_k) ** (1.0 - metal_share) * _material_strength_pa(table, "metal", temperature_k) ** metal_share
     rule = table.mixing
     packing = rule["close_packing"]
     if skeleton <= packing:
@@ -283,7 +319,7 @@ def _table_at(draw):
     for key, bounds in (("friction_angle_deg", "friction_range_deg"), ("cohesion_pa", "cohesion_range_pa"), ("hot_strength_pa", "hot_range_pa")):
         if bounds in rubble:
             rubble[key] = _span(draw, rubble[bounds][0], rubble[key], rubble[bounds][1])
-    return dataclasses.replace(TABLE, strengths_pa=strengths, rubble=rubble, ice_creep_scale=strengths["ice"] / TABLE.strengths_pa["ice"])
+    return dataclasses.replace(TABLE, strengths_pa=strengths, rubble=rubble, ice_creep_scale=strengths["ice"] / TABLE.strengths_pa["ice"], draw=float(draw))
 
 
 @finite_domain()
@@ -291,6 +327,9 @@ def drawn_strengths_pa(draw):
     """The yield strength of each material, Pa, at quantile `draw` (0 to 1) of its range: `{"ice": ..., "rock": ..., "metal": ...}`. At 0.5 they are the stand-ins."""
     return dict(_table_at(draw).strengths_pa)
 
+
+ROCK_CREEP_COLUMNS = TABLE.temperature["rock"]["columns"]
+"""list: The two flow-law columns for dry olivine dislocation creep (Hirth and Kohlstedt 2003; Korenaga and Karato 2008 re-fit), `log10_a`, `n` and `e_kj_mol` each, between which a body's quantile `draw` sits. [Stand-in RN11, tier T2, tweak L0.]"""
 
 RANGES_PA = TABLE.ranges_pa
 """dict: The range each material's strength is drawn from, `(low, high)` Pa: ice 0.4 to 3 MPa, rock 4 to 30, metal 50 to 250. The quantile `draw` of a body sits log-linearly in it with the stand-in strength at 0.5. [Stand-in RN10, tier T4, tweak L0.]"""
@@ -340,8 +379,10 @@ def _heated_strength_pa(ice_fraction, metal_fraction, porosity, temperature_k, h
     found = []
     if heated:
         found.append(_positive(_table_at(draw).rubble["hot_strength_pa"], "hot_strength_pa"))
-    if temperature_k is not None and ice_fraction > 0.0:
-        found.append(yield_strength_pa(ice_fraction, metal_fraction, porosity, temperature_k, draw))
+    if temperature_k is not None:
+        at_temperature = yield_strength_pa(ice_fraction, metal_fraction, porosity, temperature_k, draw)
+        if ice_fraction > 0.0 or at_temperature < yield_strength_pa(ice_fraction, metal_fraction, porosity, None, draw):      # ice creeps; rock only once hot enough to creep below its cold strength
+            found.append(at_temperature)
     return min(found) if found else None
 
 
