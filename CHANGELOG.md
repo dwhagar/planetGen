@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2927] - 2026-10-31
+
+**Headline:** The code that makes some A stars magnetic Ap stars and some metallic-line Am stars is written; it does not take effect until it is wired into the star build.
+
+### Added
+- **Ap and Am stars (GEN.1027, part 1).** A module names a late-B to early-F main-sequence star as Ap (10 percent, a strong magnetic field, slow rotation of days) or Am (a third in its range, no field, slow rotation under 100 km/s) from its temperature and a uniform number. Nothing is wired yet: no generated star changes.
+
 ## [8.0.2926] - 2026-10-31
 
 **Headline:** Every way of going somewhere on the Galaxy Map (Go to, Up, Home, steps, locate, Back and Forward) is now a camera flight, and the camera's distance alone sets the zoom.
