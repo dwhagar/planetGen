@@ -15,6 +15,7 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | module | planetgen.physics.radiative_kernel | by design | the numba sweep of `radiative_convective`; the web app must not load numba, so only the fit and the tests reach it |
 | module | planetgen.physics.clearance | by design | the independent overlap verifier (TEST.477); the tests and the redraw audit read it, the generator never does, so the proof cannot share a bug with the code it checks |
 | module | planetgen.physics.photolysis | GEN.982 | the photolysis lifetime table, now with the mean UV cross sections (Hu 2012 table 6) and the photon-limited loss; part 3 of GEN.982 (the methane haze supply in `aerosols.haze_in`) reads it |
+| function | planetgen.generation.remnant_orbits.pollution_rate_g_s | GEN.1231 | the white dwarf pollution flag reads the rate of its belt (the scattered mass over the delivery time) when belt birth sees the giants (GEN.1068); the census band of 25 to 50 percent reads it too |
 | function | planetgen.physics.activity.far_uv_flux_ratio | GEN.982 | the star's 91.2 to 200 nm flux at the body relative to the quiet Sun at 1 AU, the `flux_ratio` of the photolysis rates; part 3 of GEN.982 hands it to the haze supply through `surface_air.Setting` |
 | data | photolysis_lifetimes.json | GEN.982 | read by `physics/photolysis.py` only |
 | module | planetgen.physics.mixture_trace | GEN.524 | the trace gases of an air drawn after the life stage; no caller yet |
@@ -222,12 +223,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.116:RGP5 | GEN.1069 | `resonance_gaps.FORCED_ECCENTRICITY_COEFFICIENT`, read when the wiring step lands |
 | row | 6.116:RGP6 | GEN.1069 | `resonance_gaps.YARKOVSKY_COEFFICIENT_AU_KM_PER_MYR, YARKOVSKY_REFERENCE_AU`, read when the wiring step lands |
 | row | 6.116:RGP7 | GEN.1069 | `resonance_gaps.ZONE_ECCENTRICITY_FLOOR`, read when the wiring step lands |
-| module | planetgen.physics.belt_history | GEN.1069 | the events that act on a belt (giant migration or instability, the giant branch, mass loss, a companion) and the pollution rate of the rock it scatters (lock-free, GEN.1064); the belt generator runs the events a system's history holds and the white dwarf pollution row reads the rate |
-| row | 6.117:BHS1 | GEN.1069 | `belt_history.GRAND_TACK_SURVIVAL, INSTABILITY_SURVIVAL`, read when the wiring step lands |
-| row | 6.117:BHS2 | GEN.1069 | `belt_history.SURFACE_DENSITY_SLOPE`, read when the wiring step lands |
-| row | 6.117:BHS3 | GEN.1069 | `belt_history.MASS_LOSS_SCATTER_SHARE`, read when the wiring step lands |
-| row | 6.117:BHS4 | GEN.1069 | `belt_history.DELIVERY_MYR`, read when the wiring step lands |
-| row | 6.117:BHS5 | GEN.1069 | `belt_history.MIN_POLLUTION_RATE_G_S`, read when the wiring step lands |
 | module | planetgen.physics.irregular_population | GEN.1083 | the capture windows, ground-down count and stored irregulars of a planet (lock-free, GEN.1077); the captured-moon wiring calls `make_pool`, `draw_irregulars` and `draw_exchange` |
 | row | 6.118:IP1 | GEN.1083 | `irregular_population.REFERENCE_DISC_MASS_EARTH`, read when the captured-moon wiring lands |
 | row | 6.118:IP2 | GEN.1083 | `irregular_population.CAPTURED_DENSITY_KG_M3`, read when the captured-moon wiring lands |
@@ -244,7 +239,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | module | planetgen.physics.captured_composition | GEN.1083 | the taxon, ice and density of a captured body from its source and a family's lumps (lock-free, GEN.1080); the captured-moon wiring calls `compose`, `draw_parent` and `fragment` |
 | row | 6.119:CP1 | GEN.1083 | `captured_composition.FEEDING_ZONE_HILL_RADII`, read when the captured-moon wiring lands |
 | row | 6.119:CP3 | GEN.1083 | `captured_composition.PARENT_LUMPS`, read when the captured-moon wiring lands |
-| row | 6.119:CP2 | GEN.1083 | `belt_history.SURFACE_DENSITY_SLOPE`, read by the captured composition when the captured-moon wiring lands |
 | module | planetgen.physics.belt_page | UX.241 | the data of a belt's information page (lock-free, UX.240); the page route and the API field call `build` |
 | row | 6.120:BP1 | UX.241 | `belt_page.BIN_EDGES_KM, BIN_LOW_KM`, read when the page route lands |
 | row | 6.120:BP2 | UX.241 | `belt_page.DENSITY_DIAMETERS_KM`, read when the page route lands |
@@ -320,6 +314,9 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | function | planetgen.generation.run_galaxy.backfill_bright_stars_around | by design | the bright-star backfill (GEN.23) as one call with its own progress bar and shell log (PERF.28); a run does the same draw in `scatter-backfill` units (`expand_backfill_bright_stars`), so this form is what the tests and `tests/sector_support.make_sector` call to backfill one sector |
 | function | planetgen.generation.stats.job_shells_per_second | PERF.147 | the stored whole-job rate that starts the ETA of a task that takes over 15 seconds |
 | function | planetgen.generation.tuning_harness.check_target | by design | the entry of the tuning harness: draws a shipped recipe at a target's subject and compares it; the tests hold every recipe to its target through it, the generator never runs it |
+| function | planetgen.physics.belt_history.giant_event | GEN.1232 | the giant event and the companion limit of a belt, for the belt page |
+| function | planetgen.physics.belt_history.history_text | GEN.1232 | the belt history sentences shown on the belt page |
+| function | planetgen.physics.belt_history.is_polluted | GEN.1231 | the pollution flag of a white dwarf from the rate of its belt (GEN.1068 gives the belts that see the giants) |
 | function | planetgen.physics.birth_radioisotopes.fraction_above | by design | the observed share of a fixed-stream sampler, read by test_birth_radioisotopes and the research note, never by the generator |
 | function | planetgen.physics.brown_dwarf_types.type_probabilities | by design | the expected share of each class, read by test_brown_dwarf_types against the sampler it describes |
 | function | planetgen.physics.clathrate_brine.hydrate_stable | GEN.471 | whether a clathrate hydrate is stable at a temperature and guest pressure; the surface, the moons and the methane supply read it when GEN.471 lands |

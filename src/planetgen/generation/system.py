@@ -1512,7 +1512,7 @@ class StarSystem:
         Removes, in place, the bodies `star`'s age and history rule out: a
         star younger than `PLANET_MIN_STAR_AGE_GY` keeps its belts (a debris
         disk) but no planets yet, and every body whose inner edge lies
-        inside `_engulfment_radius_au` is gone. An explicitly required
+        inside `_engulfment_radius_au` is gone (a belt that reaches past it keeps the part outside, `remnant_orbits.engulf_belt`). An explicitly required
         habitable world or `SLOTS` list overrides the age rule: a random
         star is never that young when a habitable world is required
         (`stellarEvolution.sample_living_star`), so this only lets a
@@ -1524,6 +1524,8 @@ class StarSystem:
                      and not explicit_request)
         kept = []
         for body in planets:
+            if body.body_type == 'a':
+                remnant_orbits.engulf_belt(body, engulfed_au)    # GEN.1072: the part of a belt outside the envelope's reach survives
             inner_edge = body.lower_limit if body.body_type == 'a' else body.distance
             if inner_edge < engulfed_au or (too_young and body.body_type != 'a'):
                 continue
