@@ -28,6 +28,8 @@ A visitor reads a planet's page to learn what it is like, not to decode it. Ever
 12. **No jargon without a help link.** A term a visitor may not know ("Roche limit", "hycean", "suitability") is linked to its help page (DOC.57's "?" link, the DOC.15 glossary) the first time it appears on a page, and its explanation lives on the help page, not inline.
 13. **No process words.** Text never mentions the generator, its version, a seed, a stand-in or a tier. The Debug view and the Properties sheet are where those live.
 14. **No codes.** No item code (`GEN.866`) reaches the page; `tests/test_no_todo_codes_shown.py` checks this.
+15. **Oxford comma (the serial comma).** Every list of three or more puts a comma before its "and" or "or": "red, green, and blue", never "red, green and blue" (Boss, 2:50 PM EDT 2026-10-31: always, in every text page, help page and generated sentence). Kept by the writer until DOC.86 adds the check.
+16. **No out-of-universe words outside References.** The words in the banned list (stand-in, tier, fitted, speculative, generator and the like, set by DOC.87) appear only on the References pages (`/references`), which carry the Out of universe banner; everywhere else the site speaks in universe and links to the References page instead. Checked by the page crawl once DOC.87 and DOC.93 land.
 
 ## How the test uses the checker
 
