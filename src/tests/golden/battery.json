@@ -21,11 +21,11 @@
       "05c93ef43a08da2affcd8e37e3aea0898d35905dee51cb0bb6a827c38e525008"
     ],
     "sector-a": [
-      "65099e2e30ea55e330b87ad16dd7e2173cafa3d42a2abf43f2db5089c18ca27d",
+      "0abc2ffcea3ec0add4f1817b95484878db23e3b50d92a323646e0657dbfea87b",
       "5352cc2f481abcbe7c62809cd39700f37bd6295e640b99d507dc9b7690e443b1"
     ],
     "sector-b": [
-      "cd0fa66d334214cd9dae19ae2f11f94a1178bd1464278eb808d0f11c0d9c2833",
+      "6afbe00382a621adaa3cff44f9a709798b7acfbd020c04bfba99cad5299d1e7c",
       "76edb7c510258d9a0cd68eafbefef26cc4e4a69f52eebfc256edf3d0e09e6a57"
     ],
     "unit-seed": [
@@ -39,5 +39,5 @@
     "platform": "Linux-6.18.44-fc-v185-x86_64-with-glibc2.39",
     "python": "3.13.17"
   },
-  "overall": "564679a7cf132f5e3ef9a2e831b21b2423345f14d8d55057d9ecd1d7caabc6e8"
+  "overall": "63a5c23c66ebb9da4532338190515d75402b9f86bbc267ac3e220d6777d6e3ea"
 }

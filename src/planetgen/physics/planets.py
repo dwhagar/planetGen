@@ -23,7 +23,7 @@ import math
 import re
 
 from planetgen.physics import moon_history, body_state, bulk_draw, constants, giant_draw, giant_interior, kepler, metallicity, moon_composition, orbit_elements, planet_classes, planet_kind, planet_mass, rings
-from planetgen.physics import aerosols, atmosphere, body_colour, body_spin, climate_draws, habitability_world, hosting_gate, hydrosphere, interior_heat, magnetism, radiation, radiogenic, relations, spin, surface_air, surface_composition
+from planetgen.physics import aerosols, atmosphere, body_colour, body_spin, daylight, climate_draws, habitability_world, hosting_gate, hydrosphere, interior_heat, magnetism, radiation, radiogenic, relations, spin, surface_air, surface_composition
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.util import log
@@ -340,6 +340,9 @@ def refinish_rocky(planet):
                 generate_spin(body, body.primary_mass_kg)
         body._age_drawn = body.star.age
         made += 1
+    if made:  # GEN.767: the spin and period changed, the moons' day and night shares follow (no draws)
+        for moon in planet.moons:
+            daylight.generate(moon, planet)
     return made
 
 
@@ -692,6 +695,9 @@ def generate_spin(planet, primary_mass_kg, birth=None, found=None):
                 tilt = 180.0 - tilt
     spin.set_spin(planet, spin.orbit_normal(planet.orbital_inclination_deg,
                                             planet.orbital_ascending_node_deg), tilt)
+    # GEN.767: the day and night shares follow the rotation and tilt just set (a planet's; a moon's need its parent's axis, `refinish_rocky`)
+    if not planet.is_moon:
+        daylight.generate(planet)
     # GEN.86: the field depends on the rotation just set.
     magnetism.generate_field(planet)
     # GEN.87: the surface dose, from the air, water and field above.
