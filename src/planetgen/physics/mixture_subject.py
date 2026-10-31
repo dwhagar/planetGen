@@ -119,6 +119,8 @@ def quantities_of_body(body, *, ts_k, pressure_bar, ocean_present=False, long_li
     quantities["age_gy"] = getattr(star, "age", None) or tuning.ROGUE_EARTH_REFERENCE_AGE_GY
     quantities["host_type"] = host_type_of(star)
     quantities["host_mass_solar"] = _kg_to_msun(star.mass)
+    if getattr(star, "metallicity_fe_h", None) is not None:      # GEN.524 part 2: the host's halogens scale with its iron
+        quantities["metallicity_fe_h"] = star.metallicity_fe_h
     quantities["luminosity_solar"] = star.luminosity / constants.SOLAR_LUMINOSITY
     distance_au = star_distance_au if star_distance_au is not None else (
         None if quantities["is_moon"] else orbit_elements.flux_distance_au(body.distance, getattr(body, "eccentricity", None)))
@@ -156,7 +158,7 @@ def quantities_of_body(body, *, ts_k, pressure_bar, ocean_present=False, long_li
     return quantities
 
 
-OPTIONAL_INPUTS = ("log_lx_lbol", "host_mass_solar")
+OPTIONAL_INPUTS = ("log_lx_lbol", "host_mass_solar", "metallicity_fe_h")
 """tuple: The quantities the escape filter reads when the body has them (GEN.804): the star's own activity at its age, which the XUV history follows
 (the table's nominal decay without it). The magnetopause (`mixture_escape` reads `magnetopause_rp` when a subject carries it, 0 for no field) is not built here: the
 field is drawn after the air until GEN.967 orders it first, and a pass that ran after it would close the air to the wind for some bodies and not others."""

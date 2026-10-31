@@ -35,7 +35,7 @@ item (GEN.481 volatile delivery, GEN.482 redox, GEN.492 radioisotopes) that repl
 
 import math
 
-from planetgen.physics import dry_carbon, gas_equilibrium
+from planetgen.physics import dry_carbon, elements, gas_equilibrium
 from planetgen.physics import oxygen_fugacity as fo2
 from planetgen.physics.atmosphere_recipes import RECIPES
 from planetgen.physics.mixture_base import MixtureError, NotApplicable, atoms_of, bracket, finish, require
@@ -80,8 +80,22 @@ INVENTORY = {
     "potassium_wt_percent": (0.005, 0.1, "log"),
     # The share of the 40Ar produced that has reached the air (part 05 section 3.6: 0.05 to 0.7).
     "argon_degassed": (0.05, 0.7, "uniform"),
+    # GEN.524 part 2: the chlorine and fluorine of the rock (weight percent) before the star's scaling: the bulk silicate Earth (Cl 0.004, F 0.002,
+    # Schaefer, Lodders and Fegley 2012 Table 2) to the CI chondrites (Cl about 0.07, F about 0.006, Lodders 2003); open, registered in GEN.725 (AM30).
+    "chlorine_wt_percent": (0.004, 0.07, "log"),
+    "fluorine_wt_percent": (0.002, 0.006, "log"),
+    # The most chlorine and fluorine atoms the air holds per hydrogen atom (GEN.524 part 2): a halogen leaves the rock as HCl or HF, so it needs
+    # hydrogen to pair with, and the rest stays in the crust as chlorides and fluorides. Arc volcanic gas holds about 0.001 to 0.05 HCl per H2O
+    # (stand-in, registered in GEN.725 AM31).
+    "halogen_per_hydrogen_max": (1e-3, 1e-1, "log"),
 }
 """dict: name -> (low, high, shape), the draws of the inventory that no table of the recipes holds."""
+
+STELLAR_CL_OVER_FE_DEX = -0.10
+"""float: [Cl/Fe] of the host (Maas, Pilachowski and Hinkle 2016: 15 giants and one M dwarf, -0.10 plus or minus 0.15 over -0.72 < [Fe/H] < 0.20)."""
+
+STELLAR_F_OVER_FE_DEX = 0.0
+"""float: [F/Fe] of the host (stand-in, tier 6: the 49 K giants of Jonsson et al. 2017 follow iron with no neutrino-process excess)."""
 
 MAGMATIC_TEMPERATURE_K = (1100.0, 1500.0, "uniform")
 """tuple: The temperature the volcano's gas equilibrates with the mantle at (part 05 section 3.4 computes at 1200 K; the
@@ -170,7 +184,29 @@ def rocky_inventory(subject, recipe, constants):
     potassium = bracket(constants, "potassium_wt_percent", INVENTORY["potassium_wt_percent"]) / AMU_G_MOL["K"]
     degassed = bracket(constants, "argon_degassed", INVENTORY["argon_degassed"])
     argon = degassed * K40_ARGON_BRANCH * K40_ABUNDANCE * potassium * math.expm1(K40_DECAY_PER_GY * max(subject["age_gy"], 0.0))
-    return {"H": hydrogen, "C": carbon, "N": nitrogen, "S": sulfur, "Ar": argon}
+    # The star's halogens: [Cl/Fe] = -0.10 (Maas, Pilachowski and Hinkle 2016, 16 stars) and [F/Fe] = 0 (stand-in: the K giants of Jonsson et al.
+    # 2017 show no neutrino-process excess), on the host's [Fe/H]; a body with no star keeps the reference.
+    fe_h = subject.get("metallicity_fe_h") or 0.0
+    chlorine = bracket(constants, "chlorine_wt_percent", INVENTORY["chlorine_wt_percent"]) * 10.0 ** (fe_h + STELLAR_CL_OVER_FE_DEX)
+    fluorine = bracket(constants, "fluorine_wt_percent", INVENTORY["fluorine_wt_percent"]) * 10.0 ** (fe_h + STELLAR_F_OVER_FE_DEX)
+    return {"H": hydrogen, "C": carbon, "N": nitrogen, "S": sulfur, "Ar": argon,
+            "Cl": chlorine / elements.element("Cl").atomic_weight, "F": fluorine / elements.element("F").atomic_weight}
+
+
+def cap_halogens(atoms, constants):
+    """`atoms` (moles of atoms) with the chlorine and fluorine cut, in proportion, to at most `halogen_per_hydrogen_max` atoms per hydrogen atom
+    (drawn once and recorded in `constants`): the halogens that find no hydrogen stay in the crust as chlorides and fluorides."""
+    halogens = atoms.get("Cl", 0.0) + atoms.get("F", 0.0)
+    if halogens <= 0.0:
+        return atoms
+    if "halogen_per_hydrogen_max" not in constants:
+        bracket(constants, "halogen_per_hydrogen_max", INVENTORY["halogen_per_hydrogen_max"])
+    allowed = atoms.get("H", 0.0) * constants["halogen_per_hydrogen_max"]
+    if halogens <= allowed:
+        return atoms
+    scale = allowed / halogens
+    capped = {**atoms, "Cl": atoms.get("Cl", 0.0) * scale, "F": atoms.get("F", 0.0) * scale}
+    return {symbol: value for symbol, value in capped.items() if value > 0.0}
 
 
 def volcanic_gas(subject, recipe, constants, supply=None):
@@ -196,7 +232,7 @@ def volcanic_gas(subject, recipe, constants, supply=None):
         raise MixtureError(f"no redox row applies to the class {subject.body_class!r}: it has no mantle to outgas")
     inventory = rocky_inventory(subject, recipe, constants)
     magmatic = bracket(constants, "magmatic_temperature_k", MAGMATIC_TEMPERATURE_K)
-    budget = surface_budget(inventory, supply)
+    budget = cap_halogens(surface_budget(inventory, supply), constants)
     volcanic = gas_equilibrium.solve(budget, magmatic, subject["pressure_bar"], fixed_o2_log_fugacity=fo2.log_fo2(redox, magmatic))
     return volcanic, redox, inventory
 
@@ -233,7 +269,7 @@ def cool(atoms, subject, constants, volcanic=None, held_diw=None, quenched=True)
     if volcanic is not None and held_diw is None and temperature == volcanic.temperature_k:
         return volcanic
     held = None if held_diw is None else fo2.log_fo2(held_diw, temperature)
-    return gas_equilibrium.solve(atoms, temperature, subject["pressure_bar"], fixed_o2_log_fugacity=held)
+    return gas_equilibrium.solve(cap_halogens(atoms, constants), temperature, subject["pressure_bar"], fixed_o2_log_fugacity=held)
 
 
 def outgassed_mixture(subject, recipe=None, supply=None):
