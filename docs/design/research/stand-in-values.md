@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 978 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 980 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -44,8 +44,8 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T6 | 94 | 72 | 20 | 51 | 0 | 237 |
 | T7 | 27 | 8 | 8 | 8 | 0 | 51 |
 | T8 | 0 | 1 | 1 | 5 | 1 | 8 |
-| T9 | 21 | 14 | 4 | 43 | 20 | 102 |
-| All | 562 | 204 | 46 | 135 | 31 | 978 |
+| T9 | 21 | 14 | 4 | 44 | 21 | 104 |
+| All | 562 | 204 | 46 | 136 | 32 | 980 |
 
 ## How the labels were given
 
@@ -1396,6 +1396,13 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | PT1 | P | T9 | L0 | planet_type.TERRESTRIAL_MAX_ENVELOPE 0.005: an envelope under 0.5 percent of the mass is a terrestrial body (about the 1.6 Earth radii where rocky planets end) | 0.002 to 0.02 | planets and moons | a measured planet of 1.6 to 2 Earth radii that is rocky with no envelope, or a rocky world of 1.3 radii with a thick hydrogen envelope | the radius valley limit of GEN.722 read from the envelope the planet holds | Rogers 2015 and Fulton and Petigura 2018 (rocky limit near 1.6 Earth radii); Lopez and Fortney 2014 (envelope share against radius) | GEN.1219 | - |
 | PT2 | P | T9 | L0 | planet_type.GAS_MIN_ENVELOPE 0.5: an envelope of half the mass or more is a gas body (the line of bulk_structure.GIANT_ENVELOPE_FRACTION) | 0.3 to 0.7 | planets | a giant of Neptune's mass that is more than half envelope, or a Jupiter whose core outweighs its envelope | the envelope share the giant interior model gives (GEN.428) | Boss's choice of the pure rule; Neptune 10 to 15 percent envelope (Helled 2011) and Jupiter 90 percent or more | - | - |
+
+## 6.161 Stand-ins of the mass of an asteroid field
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| FM1 | P | T9 | L3 | field_mass.MIN_FIELD_MASS_EARTH 1e-9: a field under this mass is not a field (the belts' line, BG14) | 1e-10 to 1e-8 Earth masses | any field | a survey of warm dust around remnants that finds fields below the line, or none above it | the same replacement as BG14 | Boss, 2026-10-31: the belt minimum of 1e-9 Earth masses stands, the same rule for fields | GEN.1103 | no data |
+| FM2 | P | T9 | L4 | field_mass.COLLISION_LAW: the rubble of a rogue collision follows the rocky main-belt size law (`belt_ledger.ROCKY_LAW`) | the law's breaks and exponents | the stored bodies of a collision field | a measured or modelled largest-fragment mass of a planetary collision that differs from the law's by more than a factor 3 | the largest-fragment reading (LS12) | a stand-in with no source for the rubble of a planet-planet collision | GEN.1105 | no data |
 
 ## 6.160 Stand-ins of the lumpy mesh of a small body
 

@@ -2537,3 +2537,12 @@ The words `physics/life_readings.py` says a world's life in: how much of each ki
 | LUM3 | P | T6 | L0 | lumpymesh.MAX_ELONGATION 0.8: the long axis over the short is 1.8 at most for a body far from round (the longest small bodies of the Solar System are about two to one) | 0.5 to 1.2 | any lumpy body | a tri-axial shape stored for the body that differs by more than a factor 1.5 | a stored tri-axial shape | an inference from the small-body shapes of the Solar System |
 | LUM4 | P | T9 | L3 | lumpymesh.BUMP_BASE 0.05 and BUMP_PER_DEFICIT 0.2: the bumps stand 5 percent of the radius high for a body just short of round, and 25 percent for one far from it | base 0.02 to 0.1; per deficit 0.1 to 0.3 | any lumpy body | none: tuned by eye against pictures of small bodies | a stored relief or a fitted power spectrum of small-body topography | tuned by eye against a sweep of pictures |
 | LUM5 | P | T9 | L0 | lumpymesh.BUMP_WAVES 7: seven smooth waves, weighted 1/n, make the bumps | 4 to 12 | any lumpy body | none: a drawing choice | a measured spectrum of small-body shapes | a choice of the item |
+
+### 6.161 Stand-ins of the mass of an asteroid field (GEN.1161)
+
+`physics/field_mass.py` gives an interstellar asteroid field its mass by the belts' own rule (what the disc stretch it came from has left after the giants and the collisions, or the unbound share of two colliding rogue planets) and its stored bodies by the belt ledger. The two numbers below are the module's own; the rest is read from `belt_ledger`, `belt_mass`, `field_dispersal` and `rogue_collision`.
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
+|---|---|---|---|---|---|---|---|---|---|
+| FM1 | P | T9 | L3 | field_mass.MIN_FIELD_MASS_EARTH 1e-9: a field under this mass is not a field (the belts' line, BG14) | 1e-10 to 1e-8 Earth masses | any field | a survey of warm dust around remnants that finds fields below the line, or none above it | the same replacement as BG14 | Boss, 2026-10-31: the belt minimum of 1e-9 Earth masses stands, the same rule for fields |
+| FM2 | P | T9 | L4 | field_mass.COLLISION_LAW: the rubble of a rogue collision follows the rocky main-belt size law (`belt_ledger.ROCKY_LAW`) | the law's breaks and exponents | the stored bodies of a collision field | a measured or modelled largest-fragment mass of a planetary collision that differs from the law's by more than a factor 3 | the largest-fragment reading (LS12) | a stand-in with no source for the rubble of a planet-planet collision |
