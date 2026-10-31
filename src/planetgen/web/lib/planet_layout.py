@@ -212,7 +212,7 @@ def life_class_view(row, readings=(), class_url=None):
     scores = {class_id: int(score) for class_id, score in (row.get("life_class_scores") or {}).items() if score}
     best, best_score = row.get("life_class_best"), row.get("life_class_best_score")
     living = row.get("life_class_id")
-    view = {"supports": None, "also": [], "has": None, "words": None, "paragraph": None, "glance": None, "readings": [], "facts": []}
+    view = {"alongside": None, "supports": None, "also": [], "has": None, "words": None, "paragraph": None, "glance": None, "readings": [], "facts": []}
     if best and best_score:
         view["supports"] = f"Best suited to Class {best} life ({_short_name(best)}), suitability {best_score} of {LIFE_SCORE_MAX}."
     others = sorted(((class_id, score) for class_id, score in scores.items() if class_id != best), key=lambda pair: (-pair[1], pair[0]))
@@ -231,8 +231,24 @@ def life_class_view(row, readings=(), class_url=None):
     view["glance"] = _glance(readings, living, best, best_score, [class_id for class_id, _score in others], class_url)
     view["readings"] = _reading_rows(readings)
     view["facts"] = _life_facts(row, living)
+    view["alongside"] = _alongside(row, class_url)
     view["paragraph"] = _life_paragraph(view, best, best_score, living, row, others, class_url)
-    return view if any((view["supports"], view["also"], view["has"], view["words"], view["glance"])) else None
+    return view if any((view["supports"], view["also"], view["has"], view["words"], view["glance"], view["alongside"])) else None
+
+
+def _alongside(row, class_url=None):
+    """The other classes that live on the body beside the dominant one (GEN.1209), as HTML: "Also living here: Class 3a (31 percent of the food production, at
+    the stage of single-celled organisms), ...". `None` when only one class lives there."""
+    others = [entry for entry in (row.get("life_classes") or [])[1:] if entry.get("life_stage")]
+    if not others:
+        return None
+    parts = []
+    for entry in others:
+        class_id = entry["life_class_id"]
+        grade = int(entry.get("animal_grade") or 0) if entry["life_stage"] == "multicellularity" else 0
+        stage = escape(evolution.stage_name(entry["life_stage"], class_id, grade).lower())
+        parts.append(f"{_label(class_id, class_url)} ({round(100.0 * entry['share'])} percent of the food production, at the stage of {stage})")
+    return "Also living here: " + ", ".join(parts) + "."
 
 
 def _life_paragraph(view, best, best_score, living, row, others, class_url=None):
@@ -249,6 +265,8 @@ def _life_paragraph(view, best, best_score, living, row, others, class_url=None)
         parts.append(text + (f" (animal grade {life_class_text.GRADES[min(grade, 3) - 1]})." if grade else "."))
     elif best and best_score:
         parts.append("Nothing lives here yet.")
+    if view.get("alongside"):
+        parts.append(view["alongside"])
     if best and best_score:
         suited = f"Conditions here suit {_label(best, class_url)} life ({escape(_short_name(best))}) best, suitability {best_score} of {LIFE_SCORE_MAX}"
         if others:

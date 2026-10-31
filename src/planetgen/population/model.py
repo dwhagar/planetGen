@@ -35,7 +35,6 @@ from planetgen.util import generator_epoch
 from planetgen.util import log
 from planetgen.names.wordlists import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
 from planetgen.names.wordsalad import generate_phoneme_salad_name
-from planetgen.physics import life_classes
 from planetgen.physics.units import ly_to_pc, pc_to_ly
 from planetgen.util import detmath
 from planetgen.physics import unit_registry as units
@@ -408,21 +407,31 @@ def scan_life_worlds(conn):
     low = _watermark(conn)
     while low < top:
         high = min(top, low + SCAN_BATCH)
+        # the class that built the civilization (GEN.1209): any class that lives on the planet and reached the technological milestone, the first to
+        # reach it when there are several; a planet stored before `planet_life` existed has its one class in its own columns
         rows = conn.execute(
-            "SELECT p.id, p.uid, p.star_system_id, p.life_class, p.life_class_variant, p.gravity_g, p.surface_temperature_k, "
-            "p.life_stage, p.life_system_age_gyr, p.life_milestone_age_gyr, "
+            "SELECT p.id, p.uid, p.star_system_id, COALESCE(pl.life_class, CONCAT(p.life_class, COALESCE(p.life_class_variant, ''))) AS class_id, "
+            "p.gravity_g, p.surface_temperature_k, "
+            "COALESCE(pl.life_stage, p.life_stage) AS life_stage, COALESCE(pl.life_system_age_gyr, p.life_system_age_gyr) AS life_system_age_gyr, "
+            "COALESCE(pl.life_milestone_age_gyr, p.life_milestone_age_gyr) AS life_milestone_age_gyr, "
             "cfg.intelligent_life, cfg.prevalence_intelligent_life FROM planets p "
             "JOIN star_systems ss ON ss.id = p.star_system_id "
             "JOIN system_configs cfg ON cfg.id = ss.system_config_id "
             "LEFT JOIN species s ON s.homeworld_planet_id = p.id "
+            "LEFT JOIN planet_life pl ON pl.planet_id = p.id AND pl.life_stage = 'technological_civilization' "
             "WHERE p.id > ? AND p.id <= ? AND s.id IS NULL "
-            "AND p.life_stage = 'technological_civilization' ORDER BY p.uid",
+            "AND (pl.id IS NOT NULL OR (p.life_stage = 'technological_civilization' AND NOT EXISTS (SELECT 1 FROM planet_life x WHERE x.planet_id = p.id))) "
+            "ORDER BY p.uid, COALESCE(pl.life_milestone_age_gyr, p.life_milestone_age_gyr)",
             (low, high),
         ).fetchall()
         taken = set()
         inserts = []
+        done = set()
         for row in rows:
             planet_id = row["id"]
+            if planet_id in done:
+                continue                # a planet with several classes at the milestone: the first to reach it built the civilization
+            done.add(planet_id)
             timeline = timeline_of(row["life_stage"], row["life_system_age_gyr"], row["life_milestone_age_gyr"])
             if timeline is None:
                 continue
@@ -442,7 +451,7 @@ def scan_life_worlds(conn):
             with draw.bound(f"species-name:{key}"):
                 name = _unique_species_name(conn, taken)
             taken.add(name)
-            inserts.append((name, planet_id, row["star_system_id"], life_classes.class_id(row["life_class"], row["life_class_variant"]), timeline.life_stage,
+            inserts.append((name, planet_id, row["star_system_id"], row["class_id"], timeline.life_stage,
                             traits["build"], traits["climate"], traits["size"], age, era, int(spacefaring),
                             generator_epoch.generator_epoch()))
         with conn:
