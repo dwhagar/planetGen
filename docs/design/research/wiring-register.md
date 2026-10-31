@@ -42,7 +42,7 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | module | planetgen.generation.class_sample | by design | a sample that holds every class, a helper of the sheet audit tests |
 | module | planetgen.generation.plausibility | by design | the anomaly finder engine; run by the plausibility tests and their command line wrapper in `src/tests` |
 | module | planetgen.generation.phenomena_plausibility | by design | the exotic-phenomena counterpart of the anomaly finder, run by its tests |
-| row | 6.7:AM18 | GEN.524 | `mixture_trace.ABUNDANCES`, not drawn until the trace gases are wired |
+| row | 6.7:AM18 | GEN.524 | `mixture_trace.ABUNDANCES`, rows m3, m4 and m11 wired by `physics.trace_air` (GEN.524 part 1); the HCl and HF brackets (m5, m6) are not drawn until GEN.524 part 2 |
 | row | 6.10:RV2 | by design | `radius_valley.CORE_MASS_SIGMA`, a width of the simulated survey, read by the tuning tests |
 | row | 6.10:RV3 | by design | `radius_valley.ENVELOPE_SIGMA`, a width of the simulated survey, read by the tuning tests |
 | module | planetgen.physics.planet_occurrence | by design | the reader of the observed occurrence bands; the architecture and the census read it (read by the tuning tests and the census harness; the architecture was fitted to it, GEN.728 built) |
