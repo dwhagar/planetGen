@@ -47,7 +47,7 @@ Earth's) or multipolar (the dipole's share under 0.5).
 import math
 
 from planetgen import tuning
-from planetgen.physics import activity, constants, core_heat, dynamo, giant_dynamo, giant_heat, giant_interior
+from planetgen.physics import activity, constants, core_heat, dynamo, giant_dynamo, giant_interior
 from planetgen.util import draw
 from planetgen.physics import unit_registry as units
 
@@ -150,6 +150,7 @@ def _giant_field(body):
     """The `dynamo.Field` of a giant from the layers it stores and the heat it radiates (`giant_dynamo.giant_field`), or `None` when it has no placed
     region that convects."""
     interior = giant_interior.interior_of(body)
+    from planetgen.physics import giant_heat  # late: giant_heat reaches interior_heat, which reads this module's LID_MOBILE
     heat = giant_heat.of(body)
     if interior is None or heat is None or not body.rotation_period_hours:
         return None
