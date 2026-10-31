@@ -169,8 +169,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.96:IO4 | GEN.1083 | a constant of the irregular orbits module, read when its wiring step lands |
 | module | planetgen.physics.belt_member | GEN.473 | the taxon, differentiation, grains, density and radius of one stored belt member from the kernel at its own distance (lock-free, GEN.1067); the belt wiring of the taxa calls it for each member of the ledger |
 | module | planetgen.physics.body_status | GEN.1069 | the status word (planet, dwarf planet, minor body, moon) and its numbers for each stored body (lock-free, GEN.1063); the belt store and the member pages call it |
-| row | 6.95:BR22 | GEN.1069 | `body_status.ZONE_HILL_RADII`, read when the wiring step lands |
-| row | 6.95:BR23 | GEN.1069 | `body_status.LAMBDA_K`, read when the wiring step lands |
 | module | planetgen.galaxy.rogue_density | GEN.1111 | the smoothed star density a rogue is drawn from (lock-free, GEN.1115); the virtual-donor sector draw takes its Poisson mean from it and the low-zoom map reads `old_density` |
 | row | 6.102:RSM1 | GEN.1111 | `rogue_density.RADIAL_SMOOTH_PC`, read when the wiring step lands |
 | row | 6.102:RSM2 | GEN.1111 | `rogue_density.VERTICAL_SMOOTH_PC`, read when the wiring step lands |
