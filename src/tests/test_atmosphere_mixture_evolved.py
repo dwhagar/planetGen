@@ -136,3 +136,49 @@ def test_the_trace_gases_follow_the_rows_drawn_after_the_life_stage():
         assert set(first.mole_fractions) <= set(result.mole_fractions)
         assert "m1" in result.recipe.binaries                     # the ozone rows are in the result for the ozone code
     assert {"N2O", "PH3"} & seen
+
+
+TITAN_MASS_KG = 0.0225 * 5.972e24
+ICY = dict(water_mass_fraction=0.3, rock_mass_fraction=0.55)
+
+
+def _titan_n2_kg(result, rock_fraction=ICY["rock_mass_fraction"]):
+    """The N2 of a titan-family draw in kg for a body of Titan's mass: its moles per 100 g of mantle times the mantle."""
+    return result.moles * rock_fraction * TITAN_MASS_KG / 0.1 * 0.028
+
+
+def test_a_titan_like_air_takes_the_nitrogen_of_the_ammonia_ice_and_comes_out_of_the_order_of_titans():
+    """GEN.821 (Erkaev et al. 2020, section 4.2): the nitrogen is the share epsilon of the ammonia that is outgassed times the share xi that
+    ends as N2; with the ammonia 0.2 to 1.5 percent of the water of a Titan-sized ice moon the air holds 1e17 to 1e20 kg of N2 (Titan's 1.5 bar is
+    about 9e18 kg)."""
+    found = draws("terrestrial", {**TITAN, **ICY}, "titan", count=80)
+    assert len(found) > 20
+    masses = sorted(_titan_n2_kg(result) for result in found)
+    assert masses[0] > 3e16 and masses[-1] < 3e20
+    assert 1e17 < masses[len(masses) // 2] < 3e19
+
+
+def test_the_ammonia_nitrogen_is_the_drawn_shares_of_the_ammonia_added_to_the_nitrogen_of_the_rock():
+    seen = 0
+    for seed in range(40):
+        with draw.bound(seed):
+            with_ice = md.draw_mixture(Subject("terrestrial", {**BASE, **TITAN, **ICY}))
+        with draw.bound(seed):
+            without = md.draw_mixture(Subject("terrestrial", {**BASE, **TITAN}))
+        if with_ice.family != "titan" or without.family != "titan":
+            continue
+        seen += 1
+        constants = with_ice.constants
+        ammonia = constants["ammonia_per_water"] * ICY["water_mass_fraction"] * 17.03052 / 18.01528      # grams per gram of body
+        nitrogen_atoms = 100.0 * constants["ammonia_outgassed"] * constants["ammonia_to_n2"] * ammonia / (17.03052 * ICY["rock_mass_fraction"])
+        n2_with = with_ice.moles * with_ice.mole_fractions["N2"]
+        n2_without = without.moles * without.mole_fractions["N2"]
+        assert n2_with - n2_without == pytest.approx(0.5 * nitrogen_atoms, rel=1e-6)
+    assert seen > 10
+
+
+def test_a_stored_ammonia_ice_is_used_as_it_is_and_the_ratio_to_the_water_is_not_drawn():
+    found = draws("terrestrial", {**TITAN, **ICY, "nh3_mass_fraction": 0.004}, "titan", count=30)
+    assert found
+    for result in found:
+        assert "ammonia_per_water" not in result.constants and "ammonia_outgassed" in result.constants
