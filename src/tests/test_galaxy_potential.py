@@ -128,7 +128,7 @@ def test_the_vertical_force_pulls_towards_the_plane_and_grows_with_the_disk_mass
 
 
 def _leapfrog(pot, position, velocity, step_myr, steps):
-    dt = step_myr / P.KMS_TO_PC_PER_MYR            # in pc / (km/s)
+    dt = step_myr * P.KMS_TO_PC_PER_MYR            # in pc / (km/s): a Myr is 1.0227 of them
     x, v = np.array(position, float), np.array(velocity, float)
     a = np.array(P.acceleration(pot, *x))
     track = []

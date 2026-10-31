@@ -23,8 +23,9 @@ break radius and cluster scale) are stand-ins (registry rows GP1 to GP3 of 6.157
 rotation curve in the literature (Bovy 2015's MWPotential2014: a Hernquist-like bulge, a Miyamoto-Nagai disk, an NFW halo) is the same kind of model with
 its parameters fitted, not derived.
 
-Units: parsecs, solar masses and km/s. The pull is in (km/s)^2 per pc (`ACCELERATION_TO_SI` turns it into m/s^2), and a time in `TIME_UNIT_MYR` Myr (a km/s
-is `1.0227 pc / Myr`). The arrays are numpy arrays, so one call evaluates many points, and the same inputs give the same numbers.
+Units: parsecs, solar masses and km/s. The pull is in (km/s)^2 per pc (`ACCELERATION_TO_SI` turns it into m/s^2); a time in Myr is `KMS_TO_PC_PER_MYR` (1.0227)
+pc per (km/s), the unit a pull times a time gives a speed in. The arrays are numpy arrays, so one call evaluates many points, and the same inputs give the same
+numbers.
 """
 
 import collections
