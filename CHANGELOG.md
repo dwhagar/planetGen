@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2833] - 2026-10-31
+
+**Headline:** A sector page's map now stays inside its sector.
+
+### Fixed
+- **The Sector Map could be zoomed out to the whole galaxy and panned off into neighbouring sectors.** On a sector page the map now zooms out no further than a little past the sector filling the view, and panning keeps the view's centre inside the sector. The "Show on Galaxy Map" link in the page's action bar is the way out to the galaxy.
+
 ## [8.0.2832] - 2026-10-30
 
 **Headline:** The "On this page" menu goes across the top when everything fits without scrolling
