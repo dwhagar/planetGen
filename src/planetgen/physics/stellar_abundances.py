@@ -371,12 +371,7 @@ def composition(fe_h, offsets):
 
 
 _solar_metal_fraction = composition(0.0, {}).z
-"""float: Z0 (`solar_metal_fraction`)."""
-
-
-def solar_metal_fraction():
-    """Z0, the metal mass fraction of a star of [Fe/H] 0 with every [X/Fe] 0 (the proto-solar mix of `PROTO_MASS_FRACTION`)."""
-    return _solar_metal_fraction
+"""float: Z0, the metal mass fraction of a star of [Fe/H] 0 with every [X/Fe] 0 (the proto-solar mix of `PROTO_MASS_FRACTION`)."""
 
 
 def metal_ratio_to_solar(metal_mass_fraction):
