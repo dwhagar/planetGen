@@ -107,6 +107,25 @@ def fixed_points(response, law=None, *, scan_range_k=SCAN_RANGE_K, step_k=SCAN_S
     return tuple(points)
 
 
+def settle(response, law, start_k, *, damping=0.5, tolerance_k=1.0e-6, max_steps=400):
+    """
+    The fixed point of `T = response(law.albedo(T))` the loop falls to from `start_k`, without a scan range: a damped iteration, which stays on the side of the climate it
+    starts from (an ice-free start falls to the warm branch when there is one and to the snowball when there is only that). For a world whose loop has no scan to do,
+    such as the no-air temperature of an icy moon far out, where `fixed_points` looks no colder than 150 K.
+
+    Returns:
+        Branch: The point reached; `stable` is its slope under 1 as in `fixed_points`.
+    """
+    temperature_k = float(start_k)
+    for _ in range(max_steps):
+        step = response(law.albedo(temperature_k)) - temperature_k
+        temperature_k += damping * step
+        if abs(step) < tolerance_k:
+            break
+    slope = (response(law.albedo(temperature_k + SLOPE_STEP_K)) - response(law.albedo(temperature_k - SLOPE_STEP_K))) / (2.0 * SLOPE_STEP_K)
+    return Branch(temperature_k, law.albedo(temperature_k), law.ice_fraction(temperature_k), slope < 1.0)
+
+
 def stable_branches(response, law=None, **kwargs):
     """The stable fixed points of `fixed_points`, coldest first (a snowball first, a warm world last)."""
     return tuple(branch for branch in fixed_points(response, law, **kwargs) if branch.stable)
