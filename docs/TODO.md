@@ -14827,6 +14827,21 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   species work).
   Prerequisites: GEN.1021.
 
+- [ ] **GEN.1228 Hematite (the oxidised ground type) reflects the same in all three bands, so a rusty world renders dark grey instead of red; give it a sourced spectrum or finer bands (bug)**
+    Finding from Aux 4's MAP.274 build (as the lane reported, 12:52 PM
+  EDT 2026-10-31).
+    The materials table's hematite_fine reflectance is flat across the
+  three bands the land colour reads (0.092 at 450 nm, 0.086 at 550 nm,
+  0.085 at 650 nm), so ground that is mostly oxidised iron renders dark
+  grey, where real hematite dust is red because it reflects far more at
+  650 nm than at 450 nm. Fix: a sourced hematite spectrum, or finer
+  bands in the table (written in docs/design/interface/body-rendering.md
+  section 4.1). Changes the colour of oxidised worlds on the map and
+  body pages only; no stored generator value moves. Lock-free once the
+  land colour (MAP.274) has merged.
+    Prerequisites: MAP.274.
+  Prerequisites: MAP.274.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
