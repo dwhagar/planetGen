@@ -215,3 +215,28 @@ def test_a_body_whose_day_is_its_orbit_is_marked_locked_and_the_caption_says_so(
     assert "its planet" in bl.look_note(dict(locked, kind="moon"))
     assert "turning much faster" in bl.look_note(free)
     assert bl.look_note({"quality": "x"}) is None
+
+
+def test_the_colour_account_names_the_inputs_the_picture_used_and_calls_the_estimate_partial():
+    """UX.158: the info panel line says which stored values gave the colour and that it is partial while the composition is not used."""
+    earth = bl.look_note(bl.planet_look(_planet()))
+    assert earth.startswith("Partial estimate: Ground colour from its mean surface temperature (288 K) alone; "
+                            "sea colour from its ocean class (neutral); limb glow") or "no limb glow" in earth
+    assert "sea colour from its ocean class (neutral)" in earth
+    assert "Not used yet: surface composition, clouds and haze (not stored)" in earth
+    bare = bl.colour_account(bl.planet_look(_planet(surface_temperature_k=None, ocean_class=None, atmosphere="None")))
+    assert "Ground colour is a default: no temperature is stored" in bare
+    assert "sea colour is a default: no ocean class is stored" in bare and "limb" not in bare
+    giant = bl.colour_account(bl.planet_look(_planet(body_type="g", surface_temperature_k=165.0)))
+    assert giant.startswith("Partial estimate: Cloud-top colour from its mean cloud-top temperature (165 K) alone")
+    assert "chemistry bands and haze" in giant and "sea colour" not in giant
+    rogue = bl.colour_account(bl.planet_look(_planet(), "rogue_planet"))
+    assert "limb" not in rogue
+
+
+def test_the_colour_account_of_a_star_is_full_with_a_temperature_and_partial_without():
+    star = {"id": 3, "star_type": "G2V", "temperature_k": 5772.0, "luminosity_w": 3.828e26, "radius_km": 695_700.0}
+    assert bl.colour_account(bl.star_look(star)) == "Full: colour of a model atmosphere at its effective temperature (5,772 K) and gravity"
+    assert bl.colour_account(bl.star_look(dict(star, temperature_k=None))).startswith("Partial: colour from its spectral class alone")
+    assert bl.colour_account({"body": "nebula"}) is None
+    assert bl.colour_account(dict(bl.planet_look(_planet()), quality="composition")).startswith("Full: ")
