@@ -14237,6 +14237,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   so it rides a lock window after GEN.1030/GEN.1032 merge. Owner Air 1.
   Prerequisites: GEN.1032. Related: GEN.1030, GEN.1032, GEN.1033,
   GEN.725.
+  Re-scoped by Air 1 research (2026-10-31 3:45 AM EDT): Report
+  reports/air1/gen1189-fit-method-2026-10-31.md: the table error is
+  mostly under-training plus thin data in the hot band, not a blind
+  spot, and no fit method tried is worth its own lock window. A
+  15,000-iteration refit lowers validation p90 from 5.3 to 4.65 percent
+  but fails two checks the shipped table passes (seed scatter); a warm
+  restart was worse; averaging three seeds gives p90 4.1 percent. Scope
+  now: fold a longer fit, a three-seed ensemble and extra hot-band (500
+  to 1000 K) and Earth-like designed airs into the one table refit that
+  GEN.972, GEN.974 and GEN.1194 need anyway. It rides with GEN.1194 and
+  stays open until then; no separate epoch.
 
 - [ ] **GEN.1190 Replace unsourced rheology constants with the sourced ones: partial-melt factor, Andrade exponent and ratio, ice grain-boundary sliding and the ice melting curves**
   From Sources 1
