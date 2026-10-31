@@ -158,9 +158,9 @@ def _star_spectral():
         "label": "Spectral class",
         "summary": "A star's color and surface temperature, hottest (O) to coolest (M).",
         "notes": [
-            "A star's type reads like G2V: the spectral class letter, a subclass digit from 0 (hottest) to 9, "
-            "and the luminosity class (see Star Luminosity Classes).",
-            "Mass and luminosity here are for main-sequence (class V) stars; giants and white dwarfs of the "
+            "A star's type reads like G2V. The letter is the spectral class, the digit is the subclass from 0 "
+            "(hottest) to 9, and the roman numeral is the luminosity class (see Star Luminosity Classes).",
+            "Mass and luminosity here are for main-sequence (class V) stars. Giants and white dwarfs of the "
             "same color differ.",
         ],
         "classes": classes,
@@ -189,8 +189,9 @@ def _star_luminosity():
         "label": "Luminosity class",
         "summary": "The Yerkes (MK) luminosity class: a star's size and brightness for its color.",
         "notes": [
-            "The roman numeral at the end of a star's type (the V in G2V) says how big and bright the star is "
-            "for its color, from hypergiants (0) down to white dwarfs (VII).",
+            "The roman numeral at the end of a star's type, like the V in G2V, says how big and bright the star is "
+            "for its color.",
+            "It runs from hypergiants (0) down to white dwarfs (VII).",
         ],
         "classes": classes,
     }

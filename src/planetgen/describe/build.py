@@ -15,7 +15,7 @@ import math
 
 from planetgen import tuning
 from planetgen.describe import life_facts, model
-from planetgen.describe.hierarchy import hierarchy_text
+from planetgen.describe.hierarchy import hierarchy_sentences
 from planetgen.describe.model import (
     fact,
     facts,
@@ -143,12 +143,12 @@ def _star_facts(star):
         fact("mass", "Mass", _mass(star.mass, solar=True)),
         fact("temp", "Temperature", _kelvin(star.temperature, companions=False)),
         fact("lum", "Luminosity", _luminosity(star.luminosity)),
-        fact("hab", "Habitable Zone", "Between ", _au(star.habitable_zone[0]), " and ", _au(star.habitable_zone[1])),
-        fact("orbit", "Galactic Orbit", _galactic_orbit(star.galactic_orbital_speed_kms, star.galactic_orbital_period_gy)),
+        fact("hab", "Habitable zone", "Between ", _au(star.habitable_zone[0]), " and ", _au(star.habitable_zone[1])),
+        fact("orbit", "Galactic orbit", _galactic_orbit(star.galactic_orbital_speed_kms, star.galactic_orbital_period_gy)),
     ]
     if star.reflex_offset_x or star.reflex_offset_y or star.reflex_offset_z:
         offset = _offset(star.reflex_offset_x, star.reflex_offset_y, star.reflex_offset_z)
-        rows.append(fact("wobble", "Planetary Wobble", _au(offset), " from its nominal position, pulled by its own planets"))
+        rows.append(fact("wobble", "Planetary wobble", _au(offset), " from its nominal position, pulled by its own planets"))
     if star.disk_kind:
         rows.append(fact("disk", "Disk", _star_disk_text(star)))
     rows.append(fact("loc", "Location", star.name))
@@ -207,7 +207,7 @@ def _galactic_orbit_or_centre(star):
 def _wobble_row(star):
     if star.reflex_offset_x or star.reflex_offset_y or star.reflex_offset_z:
         offset = _offset(star.reflex_offset_x, star.reflex_offset_y, star.reflex_offset_z)
-        return [fact("wobble", "Planetary Wobble", _au(offset), " from its nominal position, pulled by its own planets")]
+        return [fact("wobble", "Planetary wobble", _au(offset), " from its nominal position, pulled by its own planets")]
     return []
 
 
@@ -215,10 +215,10 @@ def _black_hole_blocks(hole):
     rows = [
         fact("type", "Type", hole.type),
         fact("mass", "Mass", _mass(hole.mass, solar=True)),
-        fact("event_horizon", "Event Horizon Radius", _radius_km(hole.radius)),
-        fact("spin", "Spin Parameter", qty("ratio", hole.spin, note="of the maximum (0 is not spinning)")),
-        fact("disk", "Accretion Disk", "Active accretion disk detected" if hole.has_accretion_disk else "None detected"),
-        fact("orbit", "Galactic Orbit", _galactic_orbit_or_centre(hole)),
+        fact("event_horizon", "Event horizon radius", _radius_km(hole.radius)),
+        fact("spin", "Spin parameter", qty("ratio", hole.spin, note="of the maximum (0 is not spinning)")),
+        fact("disk", "Accretion disk", "Active accretion disk detected" if hole.has_accretion_disk else "None detected"),
+        fact("orbit", "Galactic orbit", _galactic_orbit_or_centre(hole)),
         *_wobble_row(hole),
         fact("loc", "Location", hole.name),
     ]
@@ -247,10 +247,10 @@ def _neutron_star_blocks(star):
         fact("type", "Type", star.type),
         fact("mass", "Mass", _mass(star.mass, solar=True)),
         fact("radius", "Radius", _radius_km(star.radius)),
-        fact("spin_period", "Spin Period", spin),
-        fact("magnetic_field", "Magnetic Field", _held("G", star.magnetic_field_gauss, shown="magnetic field")),
-        fact("surface_temp", "Surface Temperature", _kelvin(star.surface_temperature_k, companions=False)),
-        fact("orbit", "Galactic Orbit", _galactic_orbit_or_centre(star)),
+        fact("spin_period", "Spin period", spin),
+        fact("magnetic_field", "Magnetic field", _held("G", star.magnetic_field_gauss, shown="magnetic field")),
+        fact("surface_temp", "Surface temperature", _kelvin(star.surface_temperature_k, companions=False)),
+        fact("orbit", "Galactic orbit", _galactic_orbit_or_centre(star)),
         *_wobble_row(star),
         fact("loc", "Location", star.name),
     ]
@@ -289,12 +289,12 @@ def _close_pair_section(pair):
         fact("type", "Type", pair.type),
         fact("mass", "Mass", _mass(pair.mass)),
         fact("lum", "Luminosity", _luminosity(pair.luminosity)),
-        fact("hab", "Habitable Zone", "Between ", _au(pair.habitable_zone[0]), " and ", _au(pair.habitable_zone[1])),
-        fact("separation", "Stellar Separation", _au(pair.binary_separation_au)),
-        fact("mutual_orbit", "Mutual Orbit", _kms(pair.binary_mutual_orbital_speed_kms), " (",
+        fact("hab", "Habitable zone", "Between ", _au(pair.habitable_zone[0]), " and ", _au(pair.habitable_zone[1])),
+        fact("separation", "Stellar separation", _au(pair.binary_separation_au)),
+        fact("mutual_orbit", "Mutual orbit", _kms(pair.binary_mutual_orbital_speed_kms), " (",
              _years(pair.binary_mutual_orbital_period_years), " per orbit)"),
-        fact("wobble", "Barycenter Offset", offsets[0], ", ", offsets[1], " from the barycenter"),
-        fact("orbit", "Galactic Orbit", _galactic_orbit(pair.galactic_orbital_speed_kms, pair.galactic_orbital_period_gy)),
+        fact("wobble", "Barycenter offset", offsets[0], ", ", offsets[1], " from the barycenter"),
+        fact("orbit", "Galactic orbit", _galactic_orbit(pair.galactic_orbital_speed_kms, pair.galactic_orbital_period_gy)),
         fact("loc", "Location", f"{close_pair_label(primary.name, secondary.name)} Binary System"),
     ]
     age = inline("The binary system is about ", _gy(pair.age), " old.")
@@ -308,14 +308,14 @@ def _wide_pair_section(pair):
         (primary, (pair.primary_position_x_au, pair.primary_position_y_au, pair.primary_position_z_au)),
         (secondary, (pair.secondary_position_x_au, pair.secondary_position_y_au, pair.secondary_position_z_au)))]
     rows = [
-        fact("separation", "Stellar Separation", _au(pair.separation_au), ", ranging from ", _au(pair.periapsis_au),
+        fact("separation", "Stellar separation", _au(pair.separation_au), ", ranging from ", _au(pair.periapsis_au),
              " at periapsis to ", _au(pair.apoapsis_au), " at apoapsis"),
-        fact("eccentricity", "Orbital Eccentricity", qty("ratio", pair.eccentricity, note=ECCENTRICITY_NOTE)),
-        fact("mutual_orbit", "Mutual Orbit", _kms(pair.speed_kms), " (", _years(pair.period_years), " per orbit)"),
-        fact("wobble", "Barycenter Offset", offsets[0], ", ", offsets[1], " from the barycenter"),
-        fact("primary_limit", "Primary's Planetary Limit", f"{primary.name}'s planetary system is stable out to ",
+        fact("eccentricity", "Orbital eccentricity", qty("ratio", pair.eccentricity, note=ECCENTRICITY_NOTE)),
+        fact("mutual_orbit", "Mutual orbit", _kms(pair.speed_kms), " (", _years(pair.period_years), " per orbit)"),
+        fact("wobble", "Barycenter offset", offsets[0], ", ", offsets[1], " from the barycenter"),
+        fact("primary_limit", "Planetary limit of the primary", f"{primary.name}'s planetary system is stable out to ",
              _au(pair.primary_a_crit_au), f" due to {secondary.name}'s gravity."),
-        fact("secondary_limit", "Secondary's Planetary Limit", f"{secondary.name}'s planetary system is stable out to ",
+        fact("secondary_limit", "Planetary limit of the secondary", f"{secondary.name}'s planetary system is stable out to ",
              _au(pair.secondary_a_crit_au), f" due to {primary.name}'s gravity."),
     ]
     return section("pair", None, f"{primary.name} and {secondary.name}", [facts("Wide binary system", rows)])
@@ -614,24 +614,21 @@ def _habitable_count(system):
     return count
 
 
-def _hierarchy_sentence(system):
-    """What the system's stars are to one another (a triple's close pair and the star that orbits it), or `None` for a single
+def _hierarchy_sentences(system):
+    """What the system's stars are to one another (a triple's close pair and the star that orbits it), as short sentences, or `[]` for a single
     star or a system stored without its tree of orbits."""
     slots = system.star_slots
     if not system.orbit_nodes or not slots or len(slots) != len(system.stars):
-        return None
-    text = hierarchy_text(
+        return []
+    return hierarchy_sentences(
         [{"name": star.name, "type": star.type, "node_no": node_no, "slot": slot} for star, (node_no, slot) in zip(system.stars, slots)],
         [{"node_no": node.node_no, "parent_node_no": node.parent_node_no, "slot": node.slot, "kind": node.kind}
-         for node in system.orbit_nodes])
-    return f"{text}." if text else None
+         for node in system.orbit_nodes]) or []
 
 
 def _overview_sentences(system):
     sentences = []
-    hierarchy = _hierarchy_sentence(system)
-    if hierarchy:
-        sentences.append(hierarchy)
+    sentences += _hierarchy_sentences(system)
     segments = []
     if system.planet_count > 0:
         segments.append(f"{system.planet_count} planet{'s' if system.planet_count > 1 else ''}")
@@ -667,19 +664,18 @@ def _overview_sentences(system):
                   if cloud and wind else None)
     if compressed is not None and compressed < star.heliosphere_radius * HELIOSPHERE_COMPRESSION_NOTED:
         sentences.append(inline(
-            "The star's stellar wind creates a bubble, known as the heliosphere, which would extend out to approximately ",
-            _au(star.heliosphere_radius), f" in open space, but the gas of {cloud['name'] or 'the cloud'} around the system presses it in "
-            "to approximately ", _au(compressed), "."))
+            "The star's wind blows a bubble called the heliosphere. In open space it would reach about ",
+            _au(star.heliosphere_radius), f", but the gas of {cloud['name'] or 'the cloud'} around the system presses it in to about ",
+            _au(compressed), "."))
     elif wind:
-        sentences.append(inline("The star's stellar wind creates a bubble, known as the heliosphere, which extends out "
-                                "to approximately ", _au(star.heliosphere_radius), "."))
+        sentences.append(inline("The star's wind blows a bubble called the heliosphere, which reaches about ",
+                                _au(star.heliosphere_radius), "."))
     if wind:
-        sentences.append(inline("Beyond this, the star's gravitational influence extends out to a distance of ",
-                                _au(star.system_perimeter), ", marking the ultimate edge of the system."))
+        sentences.append(inline("Beyond the bubble, the star's gravity still holds on out to ",
+                                _au(star.system_perimeter), ", the outer edge of the system."))
     else:
         # A black hole or neutron star blows no stellar wind: only its gravity bounds the system.
-        sentences.append(inline("The star's gravitational influence extends out to a distance of ",
-                                _au(star.system_perimeter), ", marking the edge of the system."))
+        sentences.append(inline("The star's gravity holds on out to ", _au(star.system_perimeter), ", the edge of the system."))
     return sentences
 
 
