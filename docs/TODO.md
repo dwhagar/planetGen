@@ -13950,6 +13950,24 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   after GEN.1195. Prerequisites: GEN.1195. Owner: Core 3 (proposed).
   Prerequisites: GEN.1195.
 
+- [ ] **GEN.1201 A per-body shape-setting temperature: the roundness engine uses the temperature a body took its shape at, but no body stores one, so strength is the cold strength today**
+  Finding from Aux 5's GEN.1159 build (as the lane reported, 4:46 AM EDT
+  2026-10-31), filed by the TODO thread. Kind: missing input. Object:
+  the roundness and binding-energy engine (physics/roundness.py, wired
+  by GEN.1159). Result: the engine's strength depends on the temperature
+  at which a body took its shape (ice and rock creep strength fall with
+  temperature, RN11 ROCK_CREEP_COLUMNS), but no body stores such a
+  temperature, so the strength used today is the cold strength. Do:
+  define the shape-setting temperature per body kind from the body's own
+  thermal history (accretion heat, tidal heat, radiogenic heat, the
+  star's light at the time it solidified), compute it with a pure module
+  from stored values where possible, wire it into the engine, and
+  register any stand-in in GEN.725 with tier and tweak level; the census
+  must show the round boundary against the measured Solar System one
+  only as a plausibility target, never fixed content. Lock work (stored
+  roundness and strength change); rides the GEN.1159 window.
+  Prerequisites: GEN.1159.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -18629,21 +18647,33 @@ clears each one.
   command.
   Prerequisites: none. Related: GEN.1118.
 
-- [ ] **TEST.510 test_no_new_hand_written_mass_conversion is red on main: new hand-written multiplies or divides by a mass constant in sheet.py, member_record, rogue, belt_mass, binding_energy, planet_architecture and tuning**
-  Found by Core 3 (as the lane reported, 4:34 AM EDT 2026-10-31), filed
+- [ ] **TEST.511 test_every_column_is_on_the_sheet_or_says_why_it_is_not is red on main for belt and asteroid_field: chondrite_group (GEN.475) is neither on the sheet nor excused**
+  Found by Aux 5 and Star 2 (as the lanes reported, 4:46 AM EDT
+  2026-10-31), filed by the TODO thread. Kind: red test on main. Object:
+  tests/test_property_sheet.py::test_every_column_is_on_the_sheet_or_says_why_it_is_not[belt]
+  and [asteroid_field]. Result: the column chondrite_group (GEN.475,
+  meteorite groups as outputs) is stored but not on the property sheet
+  and has no stated reason for being absent. Do: put the column on the
+  sheet (a Meteorite group row for belts and fields) or add its reason
+  to the sheet's own not-shown list, as the other columns do, and do not
+  loosen the test. Lock-free (a sheet row, nothing stored). Done: both
+  parametrised cases green on main. Owner: Core 5 (proposed).
+  Prerequisites: none.
+
+- [ ] **TEST.512 test_rogue_planet_parity::test_the_gap_between_a_rogue_and_a_bound_planet_never_grows is red on main**
+  Found by Aux 5 (as the lane reported, 4:46 AM EDT 2026-10-31), filed
   by the TODO thread. Kind: red test on main. Object:
-  tests/test_mass_conversions.py::test_no_new_hand_written_mass_conversion.
-  Result: it finds new sites that multiply or divide by a mass constant
-  instead of using unit_registry.converter: describe/sheet.py 2 (the
-  star's variability and carbon-star rows), generation/member_record.py
-  1, generation/phenomena/rogue.py 3, physics/belt_mass.py 3,
-  physics/binding_energy.py 1, physics/planet_architecture.py 1, tuning.
-  Do: replace each by a unit_registry.converter call (the test's own
-  instruction); where a converter would regroup a product and change
-  output, leave that site on the list with the reason as GEN.934 did,
-  and say which. Done: the test is green on main without loosening it.
-  Lock-free where output is unchanged. Owner: Aux 5 (proposed, it built
-  the unit registry work).
+  tests/test_rogue_planet_parity.py::test_the_gap_between_a_rogue_and_a_bound_planet_never_grows.
+  Result: red on clean main, cause not yet read (the rogue and bound
+  planet generators have moved apart since the parity test was written,
+  probably by GEN.1133 and GEN.1119 or the GEN.1135 class epoch). Do:
+  find the change that opened the gap, say whether the gap is physics (a
+  rogue has no star, so a difference is expected and the test's allowed
+  gap must be restated) or a bug in the rogue path (a rogue must use the
+  same generator as an in-system planet and moon, only with a rogue note
+  and no star: Boss rule), and fix the code or restate the test with the
+  reason; never loosen it without the reason. Lock-free unless output
+  changes. Owner: Planets 1 (proposed).
   Prerequisites: none.
 
 ## USR: User accounts
