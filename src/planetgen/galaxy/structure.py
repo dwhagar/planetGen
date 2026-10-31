@@ -151,7 +151,7 @@ def stellar_halo_system_fraction(structure):
 def _heated_square(structure, name):
     """The squared vertical dispersion the heating gives population `name` at the solar-like radius, km^2 s^-2 (the
     root mean square over the population's ages of `sigma_age^2 (t / tau)^(2 beta)` times the radial fall squared)."""
-    low, high = tuning.STELLAR_POPULATION_AGE_RANGES_GY[name]
+    low, high = tuning.THIN_DISC_OLD_WINDOW_GY if name == "old" else tuning.STELLAR_POPULATION_AGE_RANGES_GY[name]    # GEN.1025: the thin disc's
     tau = tuning.STAR_FORMATION_AGE_RANGE_GY[1]
     power = 1.0 + 2.0 * structure.disc_age_exponent
     at_tau = (structure.disc_central_dispersion_kms ** 2 - structure.disc_gas_dispersion_kms ** 2) * power
