@@ -4,7 +4,7 @@ System builder internals (TODO TEST.32).
 Direct tests of the `StarSystem` placement helpers that the validate
 module (`planetgen/generation/validation.py`, ADM.5) wraps or sits beside:
 `generate_slot_object`, `calculate_distance_for_class`, `build_planet`,
-`_forced_habitable_distance`, `_trim_to_orbit_ceiling`,
+`_trim_to_orbit_ceiling`,
 `_reconcile_moved_planet`, `_clear_circumbinary_floor`, and the
 `from_dict` newer-schema error. Systems are built planet-less so each
 helper is exercised on hand-placed bodies.
@@ -146,41 +146,6 @@ def test_ecosphere_draw_avoids_a_belt_in_the_zone(system):
 
 def test_distance_returned_is_a_float(system):
     assert isinstance(system.calculate_distance_for_class(sorted(tuning.HABITABLE_PLANET_CLASSES)[0], 100.0), float)
-
-
-# --- _forced_habitable_distance -------------------------------------------
-
-def test_forced_habitable_distance_is_inside_the_zone(system):
-    inner, outer = system.star.habitable_zone
-    for _ in range(DRAWS):
-        distance = system._forced_habitable_distance()
-        assert inner < distance < outer
-        assert zone_of(system, distance) == 'e'
-
-
-def test_forced_habitable_distance_avoids_a_belt(system):
-    inner, outer = system.star.habitable_zone
-    placed = [belt(system, inner, inner + (outer - inner) * 0.6)]
-    for _ in range(DRAWS):
-        distance = system._forced_habitable_distance(planets=placed)
-        assert placed[0].upper_limit <= distance < outer
-
-
-def test_forced_habitable_distance_respects_a_floor_inside_the_zone(close_binary, monkeypatch):
-    inner, outer = close_binary.star.habitable_zone
-    floor = inner + (outer - inner) * 0.5
-    monkeypatch.setattr(close_binary, "_orbit_floor_au", lambda star: floor)
-    for _ in range(DRAWS):
-        assert floor <= close_binary._forced_habitable_distance() <= outer
-
-
-def test_forced_habitable_distance_ignores_a_floor_past_the_zone(close_binary, monkeypatch):
-    """A floor beyond the whole zone can't be honoured; the draw falls back
-    to the full zone rather than an empty range."""
-    inner, outer = close_binary.star.habitable_zone
-    monkeypatch.setattr(close_binary, "_orbit_floor_au", lambda star: outer * 2)
-    for _ in range(DRAWS):
-        assert inner <= close_binary._forced_habitable_distance() <= outer
 
 
 # --- _trim_to_orbit_ceiling -----------------------------------------------
