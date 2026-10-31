@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2887] - 2026-10-31
+
+**Headline:** The strength of ice II, III, V and VI next to ice Ih is now a table by temperature from the creep laws of Durham, Kirby and Stern 1997, not one guessed number for each.
+
+### Changed
+- **The ice types hold strength ratios by temperature (GEN.1183).** Ice II is 1.7 times ice Ih at 150 K, as strong as it at 180 K and 5 to 6.5 times as strong from 200 to 250 K; ice III is about half of ice Ih (0.6 at 240 K, 0.45 at 250 K) where it is stable, not three decades weaker; ice V is about 8 times ice Ih at 230 to 250 K; ice VI (and so VII and X) is 5.5 at 150 K, 1.3 at 180 K and 4 to 5 from 200 to 230 K. They are the strain rate of each phase's law (Table 2 of the 1997 compilation) at 1e-15 per second over the ice Ih law at the same temperature. Nothing in the roundness engine reads the ice types yet (GEN.1159 wires it), so no generated world changes. Registry 6.129 rows IT1 to IT3 move from T6 and L3 to T2 and L1.
+
 ## [8.0.2886] - 2026-10-31
 
 **Headline:** The cloud feedback on a world's albedo now has a design: a thinning term sized to the published Earth feedback and a thick substellar deck for locked ocean worlds.
