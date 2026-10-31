@@ -1,5 +1,0 @@
-**Headline:** A metal-poor star again gets more companions inside 10 AU than a metal-rich one; the [Fe/H] trend had stopped reaching the tree draw.
-
-### Changed
-- **Close-companion [Fe/H] trend back in the star draw (GEN.705).** When the tree draw replaced the old companion roll, the factor of GEN.103 (Moe, Kratter and Badenes 2019) stopped reaching it, so every star had the same odds of a companion at any metallicity. The star-count table is now the Sun's neighbourhood, and a star of another [Fe/H] has the odds of a companion inside 10 AU multiplied by `F(fe_h) / F(0)` (the outer companions keep their chance, and give way only where the two would pass 1). The root pair's axis is drawn with the same odds, so a metal-poor star's companions are close more often. A G dwarf's chance of a companion inside 10 AU is about 0.29 at [Fe/H] -2, 0.14 at 0 and 0.08 at +0.5, against a flat 0.14 before. A system build now also evolves its companions at the primary's own [Fe/H], as the scatter's trees already did.
-- The factor functions moved from `generation.place_terms` to the new `generation.close_binary_trend`, which the tree draw can import.
