@@ -130,10 +130,12 @@ def test_the_domingos_limits_fall_with_each_eccentricity_and_never_go_negative()
 
 
 def test_a_moon_window_runs_from_the_planet_and_its_largest_moon_to_the_hill_limit():
-    window, extrapolated = ledger.moon_window_km(6371.0, 1.5e6, 0.0, margin_km=300.0, largest_moon_radius_km=3000.0)
-    assert not extrapolated and [(s.low, s.high) for s in window] == [(pytest.approx(9671.0), pytest.approx(0.4895 * 1.5e6))]
-    assert ledger.moon_window_km(6371.0, 1.5e6, 0.0, retrograde=True)[0].width > window.width
-    assert not ledger.moon_window_km(6371.0, 1.0e4, 0.0)[0]
+    low, high, extrapolated = ledger.moon_bounds_km(6371.0, 1.5e6, 0.0, margin_km=300.0, largest_moon_radius_km=3000.0)
+    assert not extrapolated and (low, high) == (pytest.approx(9671.0), pytest.approx(0.4895 * 1.5e6))
+    retro_low, retro_high, _ = ledger.moon_bounds_km(6371.0, 1.5e6, 0.0, retrograde=True)
+    assert retro_high - retro_low > high - low
+    low, high, _ = ledger.moon_bounds_km(6371.0, 1.0e4, 0.0)
+    assert low >= high, "no room"
 
 
 # --- the windows of a tree ----------------------------------------------------------------------------------------------------------------
