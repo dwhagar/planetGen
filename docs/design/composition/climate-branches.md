@@ -14,7 +14,7 @@ That is the whole of the physics this module holds. Everything else (the greenho
 
 ## The module
 
-* `IceAlbedoLaw`: the albedo as a function of the mean surface temperature. Ice-free (0.30) above 283 K, covered (0.62) below 263 K, a straight ramp between. The ramp is wide because a global mean carries the spread from equator to poles; a one-dimensional ice-line model (North 1975) would replace it.
+* `IceAlbedoLaw`: the albedo as a function of the mean surface temperature. Ice-free (0.30) above 305 K, covered (0.62) below 240 K, and between them the ice cover grows as the cube of the way down the ramp. The ramp is wide because a global mean carries the spread from equator to poles, and cubic because the ice stays near the poles until the world is well into the cold and then runs to the tropics, which a one-dimensional ice-line model (North 1975) gives and which would replace it. The ends and the exponent are set by one number from outside: the surface albedo feedback of the Earth at 288 K, 0.35 W/m2 per K very likely 0.10 to 0.60 (IPCC AR6 2021, table 7.10). The law gives 0.34. The first version, a straight ramp from 263 to 283 K, gave no feedback at 288 K at all, so an Earth twin could never feel its own ice.
 * `fixed_points(response, law)`: every root of `T - response(albedo(T))` between 150 and 700 K, found by a 1 K scan and refined with Brent's method, coldest first, each as a `Branch(temperature_k, albedo, ice_fraction, stable)`.
 * `stable_branches`, `is_bistable`: the stable ones; two means a snowball and a warm world both exist.
 * `bistable_window(response_at_flux, fluxes)`: the lowest and highest flux of a list at which a body is bistable. The caller builds `response_at_flux` from the body (the surface-air fixed point with its absorbed light scaled), so the window of an Earth twin can be compared with the 10 to 20 percent W20 asks for.
@@ -23,7 +23,7 @@ It reads no body and draws nothing. The history draw that takes one branch belon
 
 ## What the grey toy shows, and what it does not
 
-With Earth's flux, a held greenhouse factor of 0.63 (the 288 K Earth) and the ramp above, the loop has a snowball at 247 K, an unstable middle at 277 K and a warm world at 288 K, and it is bistable from 1,280 to 1,750 W/m2 (35 percent of the Earth's flux). That is wider than the 10 to 20 percent W20 asks for, for a known reason: a real snowball has almost no vapour, so its greenhouse falls and its branch is colder; and a real warm branch has more, so the window moves. With the vapour and cloud feedbacks inside `response` (GEN.973, GEN.974) the window narrows or widens by their gain. The ramp ends (row CC16) are the knob the wiring tunes to W20's width, so they carry tweak level L3.
+With a held greenhouse factor of 0.63 (the 288 K Earth) and the law above, the Earth's own flux holds one climate, a warm world at 287 K with 2 percent of the ramp iced. A flux 15 percent lower (1,150 W/m2, a faint young Sun) holds three: a snowball at 237 K, an unstable middle at 243 K and a warm world at 271 K. The toy is bistable from 1,070 to 1,210 W/m2, 10 percent of the Earth's flux, inside the 10 to 20 percent W20 asks for and lying under the present flux, as the snowball Earth of Hoffman (1998) needed a fainter Sun. A real snowball has almost no vapour, so its greenhouse falls and its branch is colder, and the warm branch holds more; with the vapour and cloud feedbacks inside `response` (GEN.973, GEN.974) the window moves by their gain. The ramp ends and the exponent (row CC16) are the knob the wiring tunes if the real response puts the window outside W20's range, so they carry tweak level L2 (tuned to one published statistic, the AR6 feedback).
 
 ## How the wiring uses it (GEN.972, GEN.1051)
 
@@ -59,4 +59,4 @@ Decisions, so the build is not a second design.
 
 ## Stand-ins
 
-Rows CC15 (the two albedos) and CC16 (the ramp ends) in `gap-filling-plan.md`, section 6.22. The replacement for both is an ice line in a one-dimensional energy balance, which would also give the partial ice cover of a body on the edge of freezing (the eyeball worlds of W18).
+Rows CC15 (the two albedos) and CC16 (the ramp ends and the exponent) in `gap-filling-plan.md`, section 6.22. The replacement for both is an ice line in a one-dimensional energy balance, which would also give the partial ice cover of a body on the edge of freezing (the eyeball worlds of W18).
