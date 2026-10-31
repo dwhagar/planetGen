@@ -33,6 +33,7 @@ def test_a_value_that_planets_and_moons_share_is_one_row_and_a_planet_only_one_s
     assert ("Orbit", "Inclination", "Planets") in by_label
     assert ("Composition", "Ring outer edge", "Planets") in by_label
     assert ("Rotation", "Rotation period", "Stars") in by_label
+    assert ("Composition", "Alpha enhancement [alpha/Fe]", "Stars") in by_label    # UX.254: a row worked out from the stored values
 
 
 def test_the_unit_column_reads_as_a_unit_a_noun_or_words():
@@ -60,5 +61,5 @@ def test_the_help_menu_opens_the_page_and_marks_it_current(client):  # noqa: F81
 
 def test_the_sheet_rows_the_page_explains_are_rows_of_the_sheet():
     for kind, name in property_help.KINDS:
-        keys = {spec.key for spec in sheet.SPECS[kind]}
+        keys = {spec.key for spec in sheet.SPECS[kind]} | (set(sheet.CHEMISTRY_KEYS) if kind == "star" else set())    # UX.254
         assert set(SOURCES[kind]) <= keys, name

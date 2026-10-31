@@ -289,6 +289,22 @@ def life_readings_view(db, kind, printed_id, row):
         return []
 
 
+def _life_class_help_url(class_id):
+    """The address of the help page of life class `class_id` ("3a"), at its own variant."""
+    number = int("".join(ch for ch in class_id if ch.isdigit()))
+    return page_url("life_help_class", number=number, _anchor=f"class-{class_id}")
+
+
+def life_class_with_links(row, readings):
+    """`planet_layout.life_class_view` with the class names of its glance and paragraph linked to their help pages, marked safe for the
+    template (the view escapes every value it writes)."""
+    view = planet_layout.life_class_view(row, readings, _life_class_help_url)
+    if view is not None:
+        view = {**view, "glance": trusted_html(view["glance"]) if view["glance"] else None,
+                "paragraph": trusted_html(view["paragraph"]) if view["paragraph"] else None}
+    return view
+
+
 def planet_sections(name, row, sheet, species, piece, readings=()):
     """
     The sections of a planet's or moon's page in the order Boss set (UX.215 to UX.222), as template variables in
@@ -312,7 +328,7 @@ def planet_sections(name, row, sheet, species, piece, readings=()):
     return {
         "summary": [trusted_html(sentence) for sentence in planet_summary.summary_sentences(name, row or {}, values, raw)],
         "life": trusted_html(blocks_html(parts["life"], _ref_link)),
-        "life_class": planet_layout.life_class_view(row, readings),
+        "life_class": life_class_with_links(row, readings),
         "civilization": [trusted_html(sentence) for sentence in planet_layout.civilization_sentences(row, species)],
         "notes": trusted_html(blocks_html(parts["rest"], _ref_link)),
         "phi6_blocks": trusted_html(blocks_html(parts["phi6"], _ref_link)),

@@ -21,12 +21,14 @@ Reads only: no generation code and no description text is touched.
 import dataclasses
 
 from planetgen import tuning
+from planetgen.datasets import fetch
 from planetgen.db import column_units, models
 from planetgen.describe import model
 from planetgen.describe.quantity import inline_text
 from planetgen.describe.sheet_sources import source_of
+from planetgen.galaxy import scales
 from planetgen.physics import (agb_carbon, compaction, constants, daylight, gases, habitability_world, outside_hours, regional_temperature,
-                               surface_liquid_world, unit_registry, variability)
+                               stellar_abundances, stellar_composition, surface_liquid_world, unit_registry, units, variability)
 from planetgen.population import facility_ratings
 from planetgen.util.format import format_number, scientific_text
 
@@ -961,6 +963,61 @@ CARBON_KEY = "carbon_star_kind"
 """str: The key of the star's derived row for a carbon star or an S star (GEN.1026, `physics.agb_carbon`); it is worked out from the stored state,
 lifespan (which gives the initial mass), mass, [Fe/H] and age when the sheet is made and is not a column."""
 
+CHEMISTRY_ROWS = {
+    "chemistry_branch": ("Disc population", "words"),
+    "chemistry_alpha_fe": ("Alpha enhancement [alpha/Fe]", "dex"),
+    "chemistry_metal_fraction": ("Metal mass fraction", "mass fraction"),
+    "chemistry_dredge_up_helium": ("Helium added by the first dredge-up", "mass fraction"),
+}
+"""dict: The star's derived chemistry rows (UX.254, `physics.stellar_composition.star_makeup`) -> `(label, the unit the properties help page names)`: the
+disc population, [alpha/Fe], the metal mass fraction and, for a red giant, the helium the first dredge-up added. They are worked out from the stored
+class, mass, [Fe/H] and age when the sheet is made and are not columns."""
+
+CHEMISTRY_KEYS = tuple(CHEMISTRY_ROWS)
+"""tuple: The keys of `CHEMISTRY_ROWS`."""
+
+_BRANCH_WORDS = {stellar_abundances.BRANCH_THIN: "Thin disc", stellar_abundances.BRANCH_HIGH_ALPHA: "Thick disc or halo (alpha-rich)"}
+
+
+def _star_distance_ly(conn, system_id):
+    """The distance from the galactic centre, light-years, the star's abundance draws are keyed on (its sector's, as the generator was given it),
+    or the galaxy's default for a star in no placed sector."""
+    found = None if system_id is None else conn.execute(
+        "SELECT sectors.galactic_radius_pc FROM star_systems JOIN sectors ON sectors.id = star_systems.sector_id WHERE star_systems.id = ?",
+        (system_id,)).fetchone()
+    return scales.default_galactocentric_ly() if found is None or found["galactic_radius_pc"] is None else units.pc_to_ly(found["galactic_radius_pc"])
+
+
+def _chemistry_rows(conn, row):
+    """
+    The chemistry rows of a star (UX.254): its disc population, [alpha/Fe], the metal mass fraction it formed with and, for a red giant, the helium the
+    first dredge-up added. They come from `stellar_composition.star_makeup` on the stored class, mass, [Fe/H] and age, with the draws keyed as the
+    generator keys its planets' host ratios (mass and the sector's distance from the centre, not the age), so nothing is stored. A star with no [Fe/H],
+    one the composition does not cover or one whose downloaded data are missing has none.
+    """
+    if row["metallicity_fe_h"] is None or row["mass_kg"] is None or row["age_gy"] is None:
+        return []
+    mass_sol = _kg_to_msun(row["mass_kg"])
+    key = stellar_composition.abundance_key(mass=row["mass_kg"], distance_ly=_star_distance_ly(conn, row["star_system_id"]))
+    try:
+        kind = stellar_composition.kind_of(row["yerkes_class"], mass_sol, row["state"], None)
+        if kind not in stellar_composition.WITH_BIRTH_COMPOSITION:
+            return []
+        makeup = stellar_composition.star_makeup(kind, row["metallicity_fe_h"], row["age_gy"], mass_sol, key,
+                                                 wolf_rayet_subtype=row["star_type"], teff_k=row["temperature_k"])
+    except (stellar_composition.StarMakeupError, fetch.DataMissing):
+        return []
+    alpha = stellar_abundances.alpha_enhancement(makeup.birth)
+    items = [("chemistry_branch", [_BRANCH_WORDS[makeup.branch]], None),
+             ("chemistry_alpha_fe", [_plain_number(alpha, "dex")], alpha),
+             ("chemistry_metal_fraction", [model.qty("fraction", makeup.birth.z)], makeup.birth.z)]
+    if "dredge_up" in makeup.detail:
+        rise = makeup.detail["dredge_up"].delta_y
+        items.append(("chemistry_dredge_up_helium", [model.qty("fraction", rise)], rise))
+    return [{"key": key, "label": CHEMISTRY_ROWS[key][0], "value": value, "text": inline_text(value), "raw": raw, "stored": True, "absent": False,
+             "source": source_of("star", key), "show_absent": False} for key, value, raw in items]
+
+
 ECLIPSE_KEY = "longest_eclipse_hours"
 """str: The key of the moon's derived row for the longest eclipse in its planet's shadow (UX.205); it is worked out from the stored
 orbit and the planet's radius when the sheet is made and is not a column."""
@@ -1003,7 +1060,7 @@ def sheet(conn, kind, object_id):
     if table in ("planets", "moons"):
         wanted.update(regional_temperature.SWING_OF.values())    # GEN.848: each temperature row shows the swing of its own place
     if table == "stars":
-        wanted.update(("lifespan_gy", "metallicity_fe_h", "age_gy"))    # GEN.1026: the carbon or S star row is worked out from them
+        wanted.update(("lifespan_gy", "metallicity_fe_h", "age_gy", "star_system_id", "star_type"))    # GEN.1026: the carbon or S star row, UX.254: the chemistry rows
     columns = ", ".join(sorted(wanted))
     row = conn.execute(f"SELECT {columns} FROM {table} WHERE id = ?", (object_id,)).fetchone()
     if row is None:
@@ -1040,6 +1097,8 @@ def sheet(conn, kind, object_id):
     if carbon:
         by_group["identity"].append({"key": CARBON_KEY, "label": "Carbon or S star", "value": [carbon], "text": carbon, "raw": None,
                                      "stored": True, "absent": False, "source": None, "show_absent": False})
+    if kind == "star":
+        by_group["composition"].extend(_chemistry_rows(conn, row))
     groups = [{"key": key, "label": GROUPS[key], "rows": rows} for key, rows in by_group.items() if rows]
     stored = {spec.key: row[spec.stored_column()] for spec in specs}
     return {"kind": kind, "groups": groups, "missing": missing(kind, stored)}

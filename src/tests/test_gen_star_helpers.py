@@ -188,7 +188,7 @@ def test_evolve_star_supergiant_luminosity_follows_the_track_from_the_end_of_the
     mass = 20.0
     t_ms = stellar_evolution.main_sequence_lifetime_gy(mass)
     rng = random.Random(11)
-    floor = stellar_evolution.main_sequence_end_luminosity_sol(mass, 0.0) * 0.9
+    floor = main_sequence.end_state(mass, 0.0).luminosity_sol * 0.9
     for _ in range(20):
         state = stellar_evolution.evolve_star(mass, t_ms * 1.01, rng, min_luminosity_sol=floor, fe_h=0.0)
         assert state["luminosity_sol"] >= floor
@@ -263,7 +263,7 @@ def test_a_main_sequence_star_brightens_with_age_and_ends_on_its_end_row():
         ages = [t_ms * share for share in (0.25, 0.5, 0.75, 0.999)]
         lums = [stellar_evolution.evolve_star(mass, age, fe_h=0.0)["luminosity_sol"] for age in ages]
         assert lums == sorted(lums), mass
-        assert lums[-1] == pytest.approx(stellar_evolution.main_sequence_end_luminosity_sol(mass, 0.0), rel=0.15)
+        assert lums[-1] == pytest.approx(main_sequence.end_state(mass, 0.0).luminosity_sol, rel=0.15)
 
 
 def test_the_age_a_main_sequence_star_reaches_a_brightness_is_where_its_row_does():

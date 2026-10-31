@@ -25,8 +25,7 @@ def test_a_thin_disc_star_has_about_ten_to_the_fe_h_and_a_high_alpha_star_has_on
 
 
 def test_the_solar_reference_is_one():
-    assert sa.metal_ratio_to_solar(sa.solar_metal_fraction()) == pytest.approx(1.0)
-    assert sa.composition(0.0, {}).z == pytest.approx(sa.solar_metal_fraction())
+    assert sa.metal_ratio_to_solar(sa.composition(0.0, {}).z) == pytest.approx(1.0)
 
 
 def test_a_remnant_without_a_metallicity_scales_by_one():

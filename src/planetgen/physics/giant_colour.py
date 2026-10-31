@@ -10,14 +10,13 @@ deck's reflectance as the ground.
 
 * **The reference level** (decision 23) is `P_ref = min(1 bar, cloud top)`. The cloud top follows from the cloud's depth: the condensate
   decays upward as `exp(-f_sed z / L)` while the air thins as `exp(-z / H)`, so the depth measured from the top reaches 1 at
-  `P_top = P_base tau_c^(-1 / (1 + f_sed H / L))` (`cloud_top_pressure_pa`). A cloud-free giant keeps 1 bar.
+  `P_top = P_base tau_c^(-1 / (1 + f_sed H / L))` (not built: no cloud deck is stored on a giant yet, so `reference_pressure_pa` is given none and the level stays at 1 bar). A cloud-free giant keeps 1 bar.
 * **The cloud deck** is an `Aerosol` (the depth, single-scattering albedo and asymmetry of GEN.414); its diffuse reflectance over a black
   base, per wavelength, is the Lambertian ground of the colour function (`deck_albedo`). A clear giant has the dark `DEEP_ALBEDO`
   below the level (a stand-in: the deep gas absorbs; the alkali wings, TiO and VO of the hot giants are not in the gas table).
 * **Band strengths** come from the gas table's coarse bins. The methane, ammonia and water band strengths of Karkoschka and of the
   Oxford k-tables (GEN.422) are not built, so a giant with any of them above `PARTIAL_ABOVE` in mole fraction carries
   `colour_quality = "partial"`.
-* **The Sudarsky class** is a text label from the equilibrium temperature (`sudarsky_class`); the colour never reads it.
 
 The air above the level is the stored mixture rescaled to `P_ref` (well mixed; the depletion of a condensable above its own cloud is the
 caller's, through the fractions it passes).
@@ -63,24 +62,6 @@ class GiantColour:
     has_cloud_deck: bool
 
 
-def cloud_top_pressure_pa(base_pa, tau_cloud, f_sed, scale_height_over_length):
-    """
-    The pressure where the cloud's optical depth measured from above reaches 1, Pa: `P_base tau_c^(-1 / (1 + f_sed H / L))`; the base
-    itself when the whole cloud is optically thin (`tau_cloud` of 1 or less).
-
-    Args:
-        base_pa (float): The cloud base, Pa.
-        tau_cloud (float): The cloud's total optical depth.
-        f_sed (float): The sedimentation efficiency (0.01 to 10).
-        scale_height_over_length (float): The gas scale height over the condensate's decay length, H / L (up to 10).
-    """
-    if not (base_pa > 0.0 and f_sed >= 0.0 and scale_height_over_length >= 0.0):
-        raise ValueError("the cloud base must be above zero and the sedimentation numbers zero or more")
-    if tau_cloud <= 1.0:
-        return float(base_pa)
-    return float(base_pa * tau_cloud ** (-1.0 / (1.0 + f_sed * scale_height_over_length)))
-
-
 def reference_pressure_pa(cloud_top_pa=None):
     """`min(1 bar, cloud top)`, Pa; 1 bar for a giant with no cloud."""
     return REFERENCE_BAR_PA if cloud_top_pa is None else float(min(REFERENCE_BAR_PA, cloud_top_pa))
@@ -90,14 +71,6 @@ def deck_albedo(deck, mu0=colour_model.DEFAULT_MU0):
     """The diffuse reflectance of a cloud deck over a black base on the colour grid: a Lambertian ground for the air above it."""
     tau, omega, g = deck.optics(colour_model.WAVELENGTHS_NM)
     return two_stream.scattering_layer(tau, omega, g, mu0).reflectance_above
-
-
-def sudarsky_class(equilibrium_temperature_k):
-    """The approximate Sudarsky class letter (`I` to `V`) of an equilibrium temperature: a label, never a colour."""
-    for limit, name in SUDARSKY_EDGES_K:
-        if equilibrium_temperature_k < limit:
-            return name
-    return "V"
 
 
 def giant_atmosphere_colour(partials_pa, gravity_m_s2, *, temperature_k, p_ref_pa=REFERENCE_BAR_PA, cloud_deck=None,

@@ -1,9 +1,7 @@
 """
 Ozone column against oxygen and host star (GEN.413, `planetgen.physics.ozone`): the Kozakis et al. 2022 fit against the
-values the research read from its Table 3, the host mix, the spread, the abiotic branch and the partial pressure.
+values the research read from its Table 3, the host mix, the spread and the abiotic branch.
 """
-
-import math
 
 import pytest
 
@@ -131,10 +129,3 @@ def test_the_draw_is_reproducible_and_one_draw():
         assert draw.random() == after
 
 
-def test_the_mean_partial_pressure_of_earths_ozone_is_a_few_tenths_of_a_ppm():
-    pressure, molar, gravity = 101325.0, 0.028964, 9.80665
-    p = ozone.column_mean_partial_pressure_pa(300.0, pressure, molar, gravity)
-    assert p / pressure == pytest.approx(3.7e-7, rel=0.05)
-    assert ozone.column_mean_partial_pressure_pa(0.0, pressure, molar, gravity) == 0.0
-    assert ozone.column_mean_partial_pressure_pa(300.0, 0.0, molar, gravity) == 0.0
-    assert math.isfinite(ozone.column_mean_partial_pressure_pa(1e-3, 1e-3, 0.044, 3.7))
