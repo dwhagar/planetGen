@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3022] - 2026-10-31
+
+**Headline:** The "On this page" bar now sits under a page's tab bar.
+
+### Changed
+
+On the Generate screens the contents row used to appear above the Start, History and Work queue tabs. It now appears directly below them.
+
 ## [8.0.3021] - 2026-10-31
 
 **Headline:** Every map is drawn on black in either theme: the Galaxy Map, the sector and System Maps (diagram and 3D), the Phenomena and navigation maps, the rendered picture of a world, and the nebula and phenomenon views.
