@@ -1398,7 +1398,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | SG1 | P | T6 | L1 | tuning.SATELLITE_GAS_TO_STELLAR_SCALE_LENGTH_RATIO 1.8: the scale length of a satellite's gas disc over its stars' | 1.0 to 2.6 (Swaters et al. 2002: 1.8 +/- 0.8) | satellite galaxies that form stars, 3e8 to 2e9 solar masses of stars | a measured HI scale length of a Cloud-sized dwarf outside 1.0 to 2.6 times its stellar scale length, or a generated Cloud gas mass off the observed by more than a factor of 3 | the HI and stellar scale lengths of the Clouds and the dwarfs of LITTLE THINGS or the Westerbork survey | Swaters, van Albada, van der Hulst and Sancisi 2002 (A&A 390, 829, arXiv astro-ph/0204525, abstract READ): the ratio of HI extent to optical diameter, the extent 6.4 disc scale lengths, is 1.8 +/- 0.8; the extent ratio is read as the scale length ratio (an inference). Large Cloud gas test_satellite_history::test_the_large_cloud_forms_stars_at_about_the_rate_and_with_about_the_gas_observed | - | - |
 
-## 6.131 Stand-ins of the gas of a satellite galaxy by its distance from the host
+## 6.134 Stand-ins of the gas of a satellite galaxy by its distance from the host
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
