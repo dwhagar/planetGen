@@ -12226,6 +12226,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   It had no owner; the belt page and the scatter wiring read what it
   stores. Owner now: Sources 2 (with GEN.1092) (proposed by the TODO
   thread; the lane says if it cannot take it).
+  Owner changed (2026-10-31 4:48 PM EDT): Owner (2026-10-31 4:48 PM
+  EDT): Boss asked 4:44 PM EDT about the asteroid chain (individual
+  objects above a mass threshold, a scatter step in the system before
+  planet ejection, three kinds: inner belt, outer belt, Kuiper belt).
+  The pure modules are merged (ledger GEN.1061, scatter GEN.1089, cause
+  table GEN.1088, dwarf population GEN.1090, composition GEN.1067,
+  density GEN.1093, resonance map GEN.1062, history GEN.1064); the
+  wiring is open. Sources 2 was retired, so the wiring chain GEN.1068 (b
+  built, train 8), GEN.1069, GEN.1070 (pages with Core 2), GEN.1071
+  (outer disc and Kuiper), GEN.1092 (scatter wired), GEN.1085 now has
+  Aux 5 as owner, in that order, after GEN.1014 (train 8).
   Prerequisites: GEN.477, GEN.1068. Related: GEN.477.
   Design: [docs/design/systems/belt-evolution.md](design/systems/belt-evolution.md)
 
@@ -12283,6 +12294,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   detached) are generated from the cold outer disc and swept by the
   scatter step, with dwarf planets drawn from the size law (GEN.1090),
   the outer disc being the belt of GEN.1071.
+  Owner changed (2026-10-31 4:48 PM EDT): Owner (2026-10-31 4:48 PM
+  EDT): Boss asked 4:44 PM EDT about the asteroid chain (individual
+  objects above a mass threshold, a scatter step in the system before
+  planet ejection, three kinds: inner belt, outer belt, Kuiper belt).
+  The pure modules are merged (ledger GEN.1061, scatter GEN.1089, cause
+  table GEN.1088, dwarf population GEN.1090, composition GEN.1067,
+  density GEN.1093, resonance map GEN.1062, history GEN.1064); the
+  wiring is open. Sources 2 was retired, so the wiring chain GEN.1068 (b
+  built, train 8), GEN.1069, GEN.1070 (pages with Core 2), GEN.1071
+  (outer disc and Kuiper), GEN.1092 (scatter wired), GEN.1085 now has
+  Aux 5 as owner, in that order, after GEN.1014 (train 8).
   Prerequisites: GEN.1068, GEN.1069.
   Design: [docs/design/systems/belt-evolution.md](design/systems/belt-evolution.md)
 
@@ -12402,6 +12424,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   with the belt storage. Done: tests show belt mass minus captured mass
   is conserved. Where we think it belongs (best guess, can move):
   Sources 2, train 7.
+  Owner changed (2026-10-31 4:48 PM EDT): Owner (2026-10-31 4:48 PM
+  EDT): Boss asked 4:44 PM EDT about the asteroid chain (individual
+  objects above a mass threshold, a scatter step in the system before
+  planet ejection, three kinds: inner belt, outer belt, Kuiper belt).
+  The pure modules are merged (ledger GEN.1061, scatter GEN.1089, cause
+  table GEN.1088, dwarf population GEN.1090, composition GEN.1067,
+  density GEN.1093, resonance map GEN.1062, history GEN.1064); the
+  wiring is open. Sources 2 was retired, so the wiring chain GEN.1068 (b
+  built, train 8), GEN.1069, GEN.1070 (pages with Core 2), GEN.1071
+  (outer disc and Kuiper), GEN.1092 (scatter wired), GEN.1085 now has
+  Aux 5 as owner, in that order, after GEN.1014 (train 8).
   Prerequisites: GEN.1084, GEN.1069.
   Design: [docs/design/systems/captured-asteroid-moons.md](design/systems/captured-asteroid-moons.md)
 
@@ -12447,6 +12480,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   detached) are generated from the cold outer disc and swept by the
   scatter step, with dwarf planets drawn from the size law (GEN.1090),
   the outer disc being the belt of GEN.1071.
+  Owner changed (2026-10-31 4:48 PM EDT): Owner (2026-10-31 4:48 PM
+  EDT): Boss asked 4:44 PM EDT about the asteroid chain (individual
+  objects above a mass threshold, a scatter step in the system before
+  planet ejection, three kinds: inner belt, outer belt, Kuiper belt).
+  The pure modules are merged (ledger GEN.1061, scatter GEN.1089, cause
+  table GEN.1088, dwarf population GEN.1090, composition GEN.1067,
+  density GEN.1093, resonance map GEN.1062, history GEN.1064); the
+  wiring is open. Sources 2 was retired, so the wiring chain GEN.1068 (b
+  built, train 8), GEN.1069, GEN.1070 (pages with Core 2), GEN.1071
+  (outer disc and Kuiper), GEN.1092 (scatter wired), GEN.1085 now has
+  Aux 5 as owner, in that order, after GEN.1014 (train 8).
   Prerequisites: GEN.1070, GEN.1071.
   Design: [docs/design/systems/belt-origins.md](design/systems/belt-origins.md)
 
@@ -12466,6 +12510,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   physical sources), a retired field past 1 ly is marked retired, and
   the leftover planet of a collision is its own rogue planet. The field
   density no longer comes from a flat table at all.
+  Owner changed (belt chain) (2026-10-31 4:52 PM EDT): Boss, 4:49 PM EDT
+  2026-10-31: put the interstellar asteroid fields (GEN.1103 to
+  GEN.1107) in the same chain and with the same owner as the belt chain
+  (GEN.1068 to GEN.1073, GEN.1085, GEN.1092), because it is much of the
+  same code. Owner is now Aux 5 for the whole chain; Aux 5 may hand the
+  page and render parts (GEN.1070, GEN.1105, GEN.1106) to Core 2 and
+  says so. Train: after GEN.1068 b (train 8) and the member storage
+  GEN.1070, so train 9 at the earliest; this replaces the train 8 and
+  lane guesses above.
   Prerequisites: GEN.1102.
   Design: [docs/design/systems/interstellar-asteroid-fields.md](design/systems/interstellar-asteroid-fields.md)
 
@@ -12479,6 +12532,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.725. Lock work, train 8. Design L2. Done: tests, census share of
   remnants with a field. Where we think it belongs (best guess, can
   move): Aux 4, train 8 (same train as the columns).
+  Owner changed (belt chain) (2026-10-31 4:52 PM EDT): Boss, 4:49 PM EDT
+  2026-10-31: put the interstellar asteroid fields (GEN.1103 to
+  GEN.1107) in the same chain and with the same owner as the belt chain
+  (GEN.1068 to GEN.1073, GEN.1085, GEN.1092), because it is much of the
+  same code. Owner is now Aux 5 for the whole chain; Aux 5 may hand the
+  page and render parts (GEN.1070, GEN.1105, GEN.1106) to Core 2 and
+  says so. Train: after GEN.1068 b (train 8) and the member storage
+  GEN.1070, so train 9 at the earliest; this replaces the train 8 and
+  lane guesses above.
   Prerequisites: GEN.1103.
   Design: [docs/design/systems/interstellar-asteroid-fields.md](design/systems/interstellar-asteroid-fields.md)
 
@@ -12493,6 +12555,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (belt member storage and designation). API version bump. Done: tests,
   pages. Where we think it belongs (best guess, can move): Core 2 with
   Aux 4, train 8.
+  Owner changed (belt chain) (2026-10-31 4:52 PM EDT): Boss, 4:49 PM EDT
+  2026-10-31: put the interstellar asteroid fields (GEN.1103 to
+  GEN.1107) in the same chain and with the same owner as the belt chain
+  (GEN.1068 to GEN.1073, GEN.1085, GEN.1092), because it is much of the
+  same code. Owner is now Aux 5 for the whole chain; Aux 5 may hand the
+  page and render parts (GEN.1070, GEN.1105, GEN.1106) to Core 2 and
+  says so. Train: after GEN.1068 b (train 8) and the member storage
+  GEN.1070, so train 9 at the earliest; this replaces the train 8 and
+  lane guesses above.
   Prerequisites: GEN.1103, GEN.1070.
   Design: [docs/design/systems/interstellar-asteroid-fields.md](design/systems/interstellar-asteroid-fields.md)
 
@@ -12505,6 +12576,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   with the rate as a labelled dial and registers every stand-in in
   GEN.725. Lock work, train 8. Design L4. Done: map and page checks.
   Where we think it belongs (best guess, can move): Core 2, train 8.
+  Owner changed (belt chain) (2026-10-31 4:52 PM EDT): Boss, 4:49 PM EDT
+  2026-10-31: put the interstellar asteroid fields (GEN.1103 to
+  GEN.1107) in the same chain and with the same owner as the belt chain
+  (GEN.1068 to GEN.1073, GEN.1085, GEN.1092), because it is much of the
+  same code. Owner is now Aux 5 for the whole chain; Aux 5 may hand the
+  page and render parts (GEN.1070, GEN.1105, GEN.1106) to Core 2 and
+  says so. Train: after GEN.1068 b (train 8) and the member storage
+  GEN.1070, so train 9 at the earliest; this replaces the train 8 and
+  lane guesses above.
   Prerequisites: GEN.1105.
   Design: [docs/design/systems/interstellar-asteroid-fields.md](design/systems/interstellar-asteroid-fields.md)
 
@@ -12524,6 +12604,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   physical sources), a retired field past 1 ly is marked retired, and
   the leftover planet of a collision is its own rogue planet. Default
   retire is confirmed.
+  Owner changed (belt chain) (2026-10-31 4:52 PM EDT): Boss, 4:49 PM EDT
+  2026-10-31: put the interstellar asteroid fields (GEN.1103 to
+  GEN.1107) in the same chain and with the same owner as the belt chain
+  (GEN.1068 to GEN.1073, GEN.1085, GEN.1092), because it is much of the
+  same code. Owner is now Aux 5 for the whole chain; Aux 5 may hand the
+  page and render parts (GEN.1070, GEN.1105, GEN.1106) to Core 2 and
+  says so. Train: after GEN.1068 b (train 8) and the member storage
+  GEN.1070, so train 9 at the earliest; this replaces the train 8 and
+  lane guesses above.
   Prerequisites: GEN.1103, GEN.1006.
   Design: [docs/design/systems/interstellar-asteroid-fields.md](design/systems/interstellar-asteroid-fields.md)
 
@@ -12669,6 +12758,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   wires GEN.1134 (radiogenic inputs), and removes the ROGUE_* tuning
   defaults that rogue.py and rogue_surface.py still read, with no
   compatibility shim.
+  Rogue build order (Boss asked 4:41 PM EDT whether it is merged)
+  (2026-10-31 4:44 PM EDT): Not built and not started (Planets 1, as the
+  lane reported 4:43 PM EDT): it cannot ride train 8 because it saves
+  each rogue in the sector where it lands and deletes a donor's rogues
+  when the donor is saved again, which needs the chart_ledger table of
+  GEN.1127 (not on main) and GEN.1014 (in train 8). Earliest lock branch
+  is train 9. Planets 1 builds the lock-free part now: a rogue as the
+  same Planet chain with its moons from a GEN.1119 ejection record (RP
+  modules, rogue note, no star), on a branch off main, with the lock
+  wiring on top once GEN.1127 lands.
   Prerequisites: GEN.1014. Related: GEN.291, GEN.557, GEN.728.
   Design: [docs/design/systems/interstellar-asteroid-fields.md](design/systems/interstellar-asteroid-fields.md)
 
@@ -12762,6 +12861,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   until Boss says otherwise). Needs a MySQL test of regenerating sector
   A when one of its systems drifted into C (second copy refused or
   renumbered?) before building. GEN.1123 retired.
+  Owner and train (2026-10-31) (2026-10-31 4:44 PM EDT): Owner Core 5
+  (assigned by TODO 4:44 PM EDT), moved up because GEN.1111 (rogue rows)
+  waits for the chart_ledger table: a lock branch with its migration for
+  train 9 (or train 8 if built before the freeze), ahead of the rogue
+  rows.
   Prerequisites: none. Related: GEN.1118, GEN.1111.
 
 - [ ] **GEN.1128 Region run command: a sphere of a given radius from a start point becomes whole sectors, cut into units of a block of sectors by the galaxy's own (shell, band) arcs, nearest bands first, with `--grow-shells K`, all writing the chart ledger**
@@ -19029,46 +19133,18 @@ clears each one.
   change, like a module.
   Prerequisites: none.
 
-- [ ] **TEST.526 Wire, register or delete the 8 pure functions nothing calls in 4 modules (Tides 1's share of the TEST.520 shadow functions)**
-  Boss, 12:03 PM EDT 2026-10-31: nothing built and left unused. Core 1's
-  wiring guard (TEST.520, PR #4513) found 157 public functions in
-  physics, generation and galaxy that only tests call or nothing calls;
-  its register lines name TEST.520 because no owner was guessed. Report:
-  /mnt/project-files/reports/wiring-guard-test520-2026-10-31.md. Filed
-  by the TODO thread. Your share (8 functions): physics.moon_orbits
-  (drift_rate_m_s, tidal_power_w); physics.tidal_rheology
-  (tidal_frequency_rad_s); physics.surface_liquids (ideal_sea,
-  liquid_ids, sea_density_kg_m3, stable_liquids);
-  physics.habitability_world (harshness). Do, for each function: (1)
-  wire it, naming the open item that will call it (or filing one) in its
-  register line of docs/design/research/wiring-register.md; (2) mark it
-  `by design` with the reason when it is a tuning or test harness reader
-  (an observed sampler, an expected count) and say who runs it; or (3)
-  delete it and its tests (no dead code, no shim). Done: none of your
-  functions names TEST.520 in the register, and test_wiring_guard
-  passes. Lock-free (register, tests and deletions of unreferenced code
-  change no stored value; if a wiring step changes output it rides a
-  train under its own item). Owner Tides 1 (proposed by the TODO thread,
-  one lock-free item at a time; the lane says if it clashes). Rule for
-  every lane: a public function that only tests call needs a register
-  line in the same change, like a module.
-  Prerequisites: none.
-
-- [ ] **TEST.538 test_atmosphere_standin_registry fails on main: stand-in rows AM28 and AM29 name a test that no longer exists (bug)**
-  Found by Core 4 (relayed 4:35 PM EDT 2026-10-31 as the lane reported),
-  reproduced on main 7574be84b:
-  tests/test_atmosphere_standin_registry.py::test_a_row_names_a_constant_and_a_test_that_exist
-  fails for AM28 (surface_pressure.DEGAS_EFFICIENCY_H) and AM29
-  (surface_pressure.DEGAS_EFFICIENCY), because the falsifier they name,
-  test_surface_pressure::test_the_inventory_degassed_is_each_element_times_its_share_and_its_efficiency,
-  is not in src/tests/test_surface_pressure.py (the deletion sweep
-  TEST.524, #4537, or a rename removed it). Do: find the test that now
-  checks the degassing efficiency (or restore it if it was deleted by
-  mistake) and change the falsifier in the AM28 and AM29 rows of
-  docs/design/research/stand-in-values.md and gap-filling-plan.md to
-  name it; the test is not skipped and the rows are not dropped. Done:
-  the registry test passes with all rows. Lock-free. Owner: Bug 1.
-  Prerequisites: none. Related: TEST.524, GEN.725.
+- [ ] **TEST.540 test_orbit_elements: an eccentric planet is as warm as a circular one, and a moon gets the light of its parent's orbit, both fail on main (bug)**
+  Found by Tides 1 (relayed 4:49 PM EDT 2026-10-31 as the lane
+  reported), reproduced on main without its change: two tests in
+  src/tests/test_orbit_elements.py fail, the one that expects an
+  eccentric planet to receive the same mean heat as a circular one (the
+  orbit-averaged flux grows as 1 over the square root of 1 minus e
+  squared) and the one that expects a moon to get the light of its
+  parent's orbit. Do: find whether the model in orbit_elements or the
+  test is wrong against the physics, fix that side and say which; the
+  tests are not skipped. Done: the file passes. Lock-free if only a test
+  changes, a lock item if a generated temperature changes. Owner: Aux 7.
+  Prerequisites: none. Related: TEST.526.
 
 ## USR: User accounts
 

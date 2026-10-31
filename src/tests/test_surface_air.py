@@ -162,6 +162,27 @@ def test_the_sulfur_the_air_keeps_is_what_the_sulfate_and_sulfide_sinks_leave():
     assert wet["N"] == dry["N"]                         # nitrogen has no sink here
 
 
+def test_the_shares_the_surface_holds_start_from_the_heat_released_times_each_elements_degassing_efficiency():
+    """TEST.538 (the falsifier of stand-ins AM28 and AM29): hydrogen is degassed at a drawn share of the mantle's inside the registered
+    bracket, carbon, nitrogen and argon in full, sulfur at a half, and the air sees the heat released times each of them."""
+    draw.set_run_seed(28)
+    design = {}
+    efficiencies = surface_pressure.draw_efficiencies(design)
+    assert surface_pressure.DEGAS_EFFICIENCY_H[0] <= efficiencies["H"] <= surface_pressure.DEGAS_EFFICIENCY_H[1]
+    assert design["degas_efficiency_h"] == efficiencies["H"]
+    assert {element: efficiencies[element] for element in ("C", "N", "Ar", "S")} == {"C": 1.0, "N": 1.0, "Ar": 1.0, "S": 0.5}
+    cycle = surface_pressure.draw_cycle(design)
+    lifetimes = sulfur_balance.draw_lifetimes(design)
+    for released_j in (1.0e30, 0.0):
+        setting = sa.Setting(gravity_m_s2=9.81, radius_m=EARTH_R_M, mantle_kg=4.0e24, released_j=released_j, heat_flux_w_m2=0.0614,
+                             ocean_cover=0.7, water_kg=1.4e21, absorbed_flux_w_m2=240.0, released_at_seal_j=2.0e29, subject_of=None)
+        shares = sa._shares(setting, efficiencies, cycle, (lifetimes, 4.5 * sa.GY_S, 0.9), False, False, 288.0, LAND)({})
+        base = surface_pressure.degassed_share(released_j, setting.mantle_kg)
+        assert (base > 0.0) == (released_j > 0.0)
+        for element, efficiency in efficiencies.items():
+            assert shares[element] == pytest.approx(base * efficiency)
+
+
 def test_a_crust_too_small_for_the_sulfur_leaves_the_excess_in_the_air():
     setting = sa.Setting(gravity_m_s2=9.81, radius_m=EARTH_R_M, mantle_kg=4.0e24, released_j=1.0e24, heat_flux_w_m2=0.0614, ocean_cover=0.7,
                          water_kg=1.4e21, absorbed_flux_w_m2=240.0, released_at_seal_j=2.0e29, subject_of=None)
