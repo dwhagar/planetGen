@@ -567,12 +567,6 @@ TABLES = {
     "object_locks": {
         "id": ("locked_by_id",),
     },
-    "object_timing_samples": {
-        "id": ("id", "run_id", "sector_id"),
-        "index": ("ordinal",),
-        "us": ("own_us", "total_us"),
-        "flag": ("sampled",),
-    },
     "object_timing_stats": {
         "id": ("id", "run_id", "sector_id"),
         "count": ("object_count",),

@@ -202,7 +202,6 @@ NON_OPTION_VARIABLES = {
     "PLANETGEN_WORKERS": "worker processes of one run",
     "PLANETGEN_PROGRESS_FILE": "a worker's progress channel",
     "PLANETGEN_GENERATION_STATS": "off in the test suite",
-    "PLANETGEN_OBJECT_TIMING_FULL": "a benchmark run keeps a timing row for every object (PERF.92)",
     "PLANETGEN_MIGRATIONS_DIR": "the migration scripts' folder",
     "PLANETGEN_MYSQL_SQL_MODE": "the test suite's SQL mode",
     "PLANETGEN_TEST_REDIS_URL": "the test suite's Redis",

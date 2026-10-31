@@ -1,6 +1,6 @@
 """
 PERF.92: the time each generated object takes, per object type: exclusive of the objects inside it, kept as per-kind
-aggregates with a repeatable 1-in-1,000 sample (a row for every object only on request), and saved under the run.
+aggregates (count, total, fastest, slowest) and saved under the run.
 """
 
 import types
@@ -68,7 +68,7 @@ def test_a_sector_reports_every_kind_it_built_and_nothing_else():
     assert timings.aggregates["system"].count == len(sector.entries)
     assert {"system", "star", "planet"} <= set(timings.aggregates)
     for aggregate in timings.aggregates.values():
-        assert aggregate.count == sum(aggregate.histogram) and aggregate.minimum <= aggregate.mean <= aggregate.maximum
+        assert aggregate.count > 0 and aggregate.minimum <= aggregate.mean <= aggregate.maximum
 
 
 def test_an_object_outside_a_unit_costs_nothing_and_records_nothing(toy_classes):
@@ -95,29 +95,6 @@ def test_units_do_not_nest(toy_classes):
     assert inner is outer and outer.aggregates["star"].count == 1
 
 
-def test_the_sample_is_about_one_in_a_thousand_and_repeats():
-    chosen = [n for n in range(200_000) if object_timing.sampled("0,0,0", "star", n)]
-    assert 150 < len(chosen) < 250
-    assert chosen == [n for n in range(200_000) if object_timing.sampled("0,0,0", "star", n)]
-    assert chosen != [n for n in range(200_000) if object_timing.sampled("0,0,1", "star", n)]
-
-
-def test_only_the_sample_is_kept_unless_every_object_is_asked_for(toy_classes):
-    with object_timing.unit("a", full=False) as sample_only:
-        for _ in range(30):
-            Inner()
-    with object_timing.unit("b", full=True) as every:
-        for _ in range(30):
-            Inner()
-    assert len(sample_only.samples) == sum(object_timing.sampled("a", "star", n) for n in range(30))
-    assert [sample[1] for sample in every.samples] == list(range(30))
-
-
-def test_the_histogram_buckets_double_from_a_microsecond():
-    assert [object_timing.bucket(s) for s in (5e-7, 1e-6, 1.9e-6, 2e-6, 1e-3)] == [0, 1, 1, 2, 10]
-    assert object_timing.bucket(1000.0) == object_timing.HISTOGRAM_BUCKETS - 1
-
-
 @pytest.mark.db
 def test_a_unit_saves_under_its_run_and_the_run_adds_its_sectors_up(mysql_config, monkeypatch, toy_classes):
     monkeypatch.setenv("PLANETGEN_GENERATION_STATS", "1")
@@ -125,18 +102,16 @@ def test_a_unit_saves_under_its_run_and_the_run_adds_its_sectors_up(mysql_config
     try:
         run_id = store.start_generation_run(conn, "galaxy", ["galaxy"])
         for label in ("a", "b"):
-            with object_timing.unit(label, full=True) as timings:
+            with object_timing.unit(label) as timings:
                 Outer(Inner)
                 Inner()
-            assert object_timing.save(conn, run_id, timings) == 2 + 3
+            assert object_timing.save(conn, run_id, timings) == 2
         conn.commit()
         rows = {row["kind"]: row for row in object_timing.kind_summaries(conn)}
         assert rows["system"]["objects"] == 2 and rows["star"]["objects"] == 4
         assert rows["star"]["total_seconds"] > 0.012 and 0.003 < rows["star"]["mean_seconds"] < 0.008
         assert rows["star"]["fastest_seconds"] <= rows["star"]["mean_seconds"] <= rows["star"]["slowest_seconds"]
         assert [row["kind"] for row in object_timing.kind_summaries(conn)][0] == "system"
-        assert conn.execute("SELECT COUNT(*) AS n FROM object_timing_samples WHERE run_id = ?",
-                            (run_id,)).fetchone()["n"] == 6
     finally:
         conn.close()
 

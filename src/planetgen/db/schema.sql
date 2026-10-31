@@ -1186,12 +1186,10 @@
 --   Written when the scatter inserts a row; `planetgen fill-map-luminosity` fills it
 --   in a galaxy scattered before v84.
 --
--- v85: `object_timing_stats` and `object_timing_samples` (PERF.92): how long each
---   kind of generated object takes, per run and per sector (count, total, minimum,
---   maximum and a 24-bucket histogram), plus a repeatable 1-in-1,000 sample of
---   the objects with their full timing; a row for every object only in a
---   benchmark run (`PLANETGEN_OBJECT_TIMING_FULL=1`). Written by
---   `generation/object_timing.py` with each sector a run saves.
+-- v85: `object_timing_stats` (PERF.92): how long each kind of generated object
+--   takes, per run and per sector (count, total, minimum and maximum). Written by
+--   `generation/object_timing.py` with each sector a run saves. (v85 also made
+--   `object_timing_samples` and a `histogram` column; v195 dropped both.)
 --
 -- v86: `galaxy_block_stats` (DB.25): the sums a drill-down stage shows (sectors,
 --   systems, expected systems, stars, star age sum, luminosity) stored per block of
@@ -4667,14 +4665,10 @@ CREATE TABLE IF NOT EXISTS orbital_event_bodies (
 -- ---------------------------------------------------------------------
 -- object_timing_stats (v85, PERF.92): one row per object kind a run built in a
 -- sector: `object_count` objects, `total_us` microseconds of their own time (the
--- time spent building objects inside them taken out), the fastest and slowest,
--- and `histogram`, 24 comma-separated counts in doubling-microsecond buckets
--- (`object_timing.HISTOGRAM_BUCKETS`). A run's figures for a kind are the sum of
--- its sector rows. `sector_id` is NULL for work not tied to one sector.
--- object_timing_samples: the objects kept with their full timing, `sampled` = 1
--- for the repeatable 1-in-1,000 sample (a hash of the unit, kind and `ordinal`,
--- the object's number within its kind in that sector) and 0 for the extra rows a
--- benchmark run asks for.
+-- time spent building objects inside them taken out), the fastest and slowest.
+-- A run's figures for a kind are the sum of its sector rows. `sector_id` is NULL
+-- for work not tied to one sector. (v85 also made `object_timing_samples` and a
+-- `histogram` column; v195, PERF.197, dropped them: nothing read them.)
 -- ---------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS object_timing_stats (
     id            BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -4685,26 +4679,10 @@ CREATE TABLE IF NOT EXISTS object_timing_stats (
     total_us      BIGINT UNSIGNED NOT NULL,
     min_us        BIGINT UNSIGNED NOT NULL,
     max_us        BIGINT UNSIGNED NOT NULL,
-    histogram     VARCHAR(255) NOT NULL,
     KEY idx_object_timing_stats_run (run_id, kind),
     KEY idx_object_timing_stats_sector (sector_id),
     CONSTRAINT fk_object_timing_stats_run FOREIGN KEY (run_id) REFERENCES generation_runs(id) ON DELETE CASCADE,
     CONSTRAINT fk_object_timing_stats_sector FOREIGN KEY (sector_id) REFERENCES sectors(id) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-CREATE TABLE IF NOT EXISTS object_timing_samples (
-    id         BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    run_id     BIGINT UNSIGNED NOT NULL,
-    sector_id  BIGINT UNSIGNED NULL,
-    kind       VARCHAR(24) NOT NULL,
-    ordinal    INT UNSIGNED NOT NULL,
-    own_us     BIGINT UNSIGNED NOT NULL,
-    total_us   BIGINT UNSIGNED NOT NULL,
-    sampled    TINYINT(1) NOT NULL,
-    KEY idx_object_timing_samples_run (run_id, kind),
-    KEY idx_object_timing_samples_sector (sector_id),
-    CONSTRAINT fk_object_timing_samples_run FOREIGN KEY (run_id) REFERENCES generation_runs(id) ON DELETE CASCADE,
-    CONSTRAINT fk_object_timing_samples_sector FOREIGN KEY (sector_id) REFERENCES sectors(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------------------------------------------------------------------

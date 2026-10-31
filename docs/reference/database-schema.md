@@ -2057,7 +2057,7 @@ Added in v165 (MAP.305, MAP.303); replaces `habitable_systems` (v148). One row f
 | `best_score` | DOUBLE | NULL | The largest habitability score among them; NULL for a reason without a score. |
 | `galaxy_x_pc`, `galaxy_y_pc`, `galaxy_z_pc` | DOUBLE | NOT NULL | The system's `galaxy_*_pc`, copied (they never change). Indexed together (`idx_system_interests_position`). |
 
-### `object_timing_stats` / `object_timing_samples`
+### `object_timing_stats`
 
 Added in v85 (PERF.92). How long each kind of generated object takes to build, exclusive of the objects inside it (`planetgen/generation/object_timing.py`), saved under the run (`run_id` -> `generation_runs.id`, `ON DELETE CASCADE`; `sector_id` -> `sectors.id`, `ON DELETE CASCADE`, NULL for work not tied to one sector). Written unless `PLANETGEN_GENERATION_STATS` is set to 0.
 
@@ -2070,11 +2070,10 @@ Added in v85 (PERF.92). How long each kind of generated object takes to build, e
 | `kind` | VARCHAR(24) | NOT NULL | The object kind (`object_timing.KINDS`). |
 | `object_count` | INT UNSIGNED | NOT NULL | Objects of that kind built. |
 | `total_us`, `min_us`, `max_us` | BIGINT UNSIGNED | NOT NULL | Their own time in microseconds: the total, the fastest and the slowest. |
-| `histogram` | VARCHAR(255) | NOT NULL | 24 comma-separated counts in doubling-microsecond buckets (`object_timing.HISTOGRAM_BUCKETS`). |
 
-A run's figures for a kind are the sum of its sector rows.
+A run's figures for a kind are the sum of its sector rows; `object_timing.kind_summaries` adds them up for the admin Stats page.
 
-`object_timing_samples` keeps single objects with their full timing: `id`, `run_id`, `sector_id`, `kind`, `ordinal` (the object's number within its kind in that sector), `own_us` (its own time), `total_us` (including the objects inside it) and `sampled` (1 for the repeatable 1-in-1,000 sample, a hash of the unit, kind and `ordinal`; 0 for the extra rows a benchmark run asks for).
+v195 (PERF.197) dropped `object_timing_samples` (a repeatable 1-in-1,000 sample of single objects) and this table's `histogram` column; nothing read them.
 
 ### `id_blocks` / `id_counters`
 
@@ -2186,9 +2185,8 @@ planet, with `polities` and `system_owners` hanging off `species` and
 nearest systems; `bright_stars` points at the system built around each
 star once its sector is filled.
 
-`generation_runs` owns its `generation_run_arguments`, `object_timing_stats`
-and `object_timing_samples` rows (`ON DELETE CASCADE`); the two timing
-tables also point at `sectors`. `nebula_shape_balls` hangs off `nebulae`.
+`generation_runs` owns its `generation_run_arguments` and `object_timing_stats`
+rows (`ON DELETE CASCADE`); the timing table also points at `sectors`. `nebula_shape_balls` hangs off `nebulae`.
 `phenomenon_scatter` and `phenomenon_scatter_classes` carry a sector address
 but no foreign key, like `sector_stats`.
 
@@ -2647,7 +2645,7 @@ The table was dropped in v91 (DB.32) and made again in v92 on shells (see "v92" 
 
 `galaxy_block_stats` holds what a drill-down stage shows for each block of the Galaxy Map's block ladder above the sector (`galaxy.drill`, 243, 81, 27, 9 and 3 sectors a side): one row per block `(m, ring_index, wedge, slab)` that holds a generated sector, with `sector_count`, `systems`, `expected_systems`, `stars`, `age_sum` (each sector's mean age times its stars, so a mean is `age_sum / stars`) and `luminosity_sol` and `ladder_step` (v89). The figures come from `sectors` and `sector_stats`; a block with no generated sector has no row. `query.galaxy_block_stats(conn, m, cells)` reads a window's cells in one statement, and a test holds every row equal to what `query.galaxy_stage` computes for the same block. `db/block_stats.py` keeps it: a sector saved on its own (a visit) or deleted updates the blocks above it, a `galaxy` run updates the blocks above all the sectors it created once at its end (the stage "Update the block totals"), and `planetgen plan --fill-block-stats` rebuilds every row. The migration fills the table from the sectors already there. The ladder is 3-ary since MAP.151b; v90 emptied the table and filled it again for it. No foreign keys: a block is not a row of its own.
 
-### v85 (PERF.92): `object_timing_stats` and `object_timing_samples`
+### v85 (PERF.92): `object_timing_stats` and `object_timing_samples` (the samples table and `histogram` column were dropped in v195)
 
 `object_timing_stats` has one row per object kind a run built in a sector: `object_count`, `total_us` (the objects' own time in microseconds, the time spent building objects inside them taken out), `min_us`, `max_us` and `histogram` (24 comma-separated counts in doubling-microsecond buckets, the first for under a microsecond). A run's figure for a kind is the sum of its sector rows (`object_timing.run_totals`); the mean over every run is `object_timing.type_means`. `object_timing_samples` keeps single objects with their full timing: `ordinal` is the object's number within its kind in that sector, `sampled` is 1 for the repeatable 1-in-1,000 sample (a hash of the sector, kind and ordinal, so the same galaxy and seed sample the same objects) and 0 for the extra rows `PLANETGEN_OBJECT_TIMING_FULL=1` asks for in a benchmark run. Both tables cascade from `generation_runs` and `sectors`, and a fingerprint leaves them out. The migration only creates them empty.
 
@@ -2704,3 +2702,7 @@ The table was dropped in v91 (DB.32) and made again in v92 on shells (see "v92" 
 ### v190 (GEN.474, GEN.475): intermediate ground and the chondrite group
 
 Migration 0190 adds `ground_intermediate_fraction` (DOUBLE, nullable, at the end of the table) to `planets` and `moons`: the areal share of the surface that is intermediate (andesitic) ground, the volcanic crust of a body whose mantle melt is 52 to 63 percent silica. Nothing is backfilled: a row made before the revision keeps NULL and the regenerated galaxy replaces it. Migration 0187 also adds `chondrite_group` (VARCHAR(4), nullable, at the end of the table) to `asteroid_belts` and `asteroid_fields`: the meteorite group the body's mean composition is nearest (`CI`, `CM`, `H`, `L` and so on, or `none` far from every group; `physics/meteorite_groups.py`), NULL on a row made before and left out of the sheet. A stopped run can be started again (a column already there is skipped).
+
+### v195 (PERF.197): the object timing samples and histogram go
+
+Migration 0195 drops the `object_timing_samples` table and the `object_timing_stats.histogram` column, with the code that wrote them (`Collector.samples`, `SAMPLE_ONE_IN`, `HISTOGRAM_BUCKETS`, `bucket`, `sampled` and the `PLANETGEN_OBJECT_TIMING_FULL` switch). PERF.196 found that nothing read them; the per-kind count, total, fastest and slowest are kept. A table or column already gone is skipped, so a stopped run can be started again.
