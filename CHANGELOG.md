@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2933] - 2026-10-31
+
+**Headline:** Two tests that were red on main are green again, with no change to what the generator makes.
+
+### Fixed
+- `test_solar_system_standin_rows` (SSR5): a registered row may show what replaces it in plain words (TEST.487 took the item code off the page), so the test now checks the code only where a row still shows one.
+- `test_oddity_plausibility` (W10): the harness has an effect for the mantle-stripping row, so every shipped oddity row can be forced and held to the invariants.
+
+generation-output: unchanged
+
 ## [8.0.2932] - 2026-10-31
 
 **Headline:** The Galaxy Map zooms in to 30 km from an opened system (it stopped at 3,000 km), drawing the system from the camera's own frame so it holds steady.
