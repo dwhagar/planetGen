@@ -13,7 +13,7 @@ from alembic import op
 from planetgen.db.migrations import helpers
 
 revision = "0198"
-down_revision = "0198"
+down_revision = "0197"
 branch_labels = None
 depends_on = None
 
