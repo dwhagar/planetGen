@@ -32,6 +32,7 @@ _BODY = {
     "magnetic_moment_a_m2": "A dynamo needs at least 0.05 Earth masses and a core share of 0.15; the moment scales with mass and core "
                             "share and fades with age.",
     "ring_outer_km": "Ends at the Roche limit, 2.456 R (planet density over particle density)^(1/3), and inside the innermost large moon.",
+    "ring_age_yr": "The years since the moon that fell inside the Roche limit, or the comet that passed inside it, made the ring; the ring thins by 1/e every half billion years.",
     "ring_optical_depth": "An output of the drawn mass, the extent and the particle size, 3 M / (4 density r area).",
     "life_stage": "The latest stage whose age is not past the age of the star.",
     "life_age_abiogenesis_gyr": _AGES,

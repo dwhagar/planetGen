@@ -27,7 +27,7 @@ from dataclasses import dataclass
 import numpy as np
 
 from planetgen import tuning
-from planetgen.generation import multistar, place_terms
+from planetgen.generation import close_binary_trend, multistar
 from planetgen.util import draw
 from planetgen.physics import unit_registry as units
 
@@ -148,7 +148,7 @@ def odds(primary_born_mass_solar, chance, fe_h, limit_au, wide_share_scale=None)
         inner_share, outer_share = inner_share * scaled / wide_share, outer_share * scaled / wide_share
         close_share, wide_share = 1.0 - scaled, scaled
     inside_share = close_share + inner_share
-    p_inside = place_terms.scaled_close_chance(chance * inside_share, fe_h) if inside_share > 0.0 else 0.0
+    p_inside = close_binary_trend.scaled_close_chance(chance * inside_share, fe_h) if inside_share > 0.0 else 0.0
     p_outside = min(chance * outer_share, 1.0 - p_inside)
     close_part = p_inside * close_share / inside_share if inside_share > 0.0 else 0.0
     inner_born = p_inside * inner_share / inside_share if inside_share > 0.0 else 0.0

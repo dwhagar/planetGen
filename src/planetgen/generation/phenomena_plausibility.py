@@ -485,7 +485,7 @@ def check_hard_invariants(record):
         elif record["planet_type"] == 't' and mass_jupiter >= prog_c.ROGUE_PLANET_GAS_GIANT_MASS_THRESHOLD_JUPITER:
             issues.append("planet_type is 't' but mass is at/above the gas-giant threshold")
         shown = prog_c.PLANET_CLASSES.get(record["planet_class"])
-        if record["planet_class"] is not None and (shown is None or shown["type"] != record["planet_type"]):
+        if record["planet_class"] is not None and (shown is None or record["planet_type"] not in (shown["type"], shown.get("also_type"))):
             issues.append(f"planet_class={record['planet_class']!r} is not a class of type {record['planet_type']!r}")
         if not (math.isfinite(record["radius_km"]) and record["radius_km"] > 0):
             issues.append(f"radius_km={record['radius_km']!r} is not a finite, positive value")

@@ -147,6 +147,20 @@ def _airless_planet():
     pytest.fail("no airless planet found")
 
 
+def _airless_seed(planet, first, *runs):
+    """The first seed from `first` whose draws leave the body with no air at all in every run (each run is the arguments of `calculate_atmospheric_conditions`):
+    a thin air has a greenhouse that moves with the temperature, so the fourth-root law of the light holds only for a body with none."""
+    for seed in range(first, first + 200):
+        for arguments in runs:
+            draw.set_run_seed(seed)
+            planet_physics.calculate_atmospheric_conditions(planet, *arguments)
+            if planet.atmospheric_pressure:
+                break
+        else:
+            return seed
+    pytest.fail("no draw leaves the body airless")
+
+
 def test_an_eccentric_planet_is_as_warm_as_a_circle_with_the_same_mean_light():
     planet = _airless_planet()
     planet.eccentricity = 0.0
@@ -165,10 +179,11 @@ def test_a_moon_gets_the_light_of_its_parents_orbit():
     planet.is_moon = True            # an airless body, its light taken from the orbit round the star the parent has
     planet.eccentricity = 0.9        # its own orbit round its parent does not matter
     planet.host_eccentricity = 0.0
-    draw.set_run_seed(78)
-    planet_physics.calculate_atmospheric_conditions(planet, planet.distance)
+    seed = _airless_seed(planet, 78, (planet.distance,), (planet.distance, 0.5))
+    draw.set_run_seed(seed)
+    planet_physics.calculate_atmospheric_conditions(planet, planet.distance, 0.0)
     base = planet.surface_temperature
-    draw.set_run_seed(78)
+    draw.set_run_seed(seed)
     planet_physics.calculate_atmospheric_conditions(planet, planet.distance, 0.5)
     assert planet.host_eccentricity == 0.5
     assert planet.surface_temperature / base == pytest.approx((1.0 - 0.25) ** -0.125, rel=1e-6)

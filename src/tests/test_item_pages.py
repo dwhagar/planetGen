@@ -287,6 +287,25 @@ def test_a_page_lists_a_row_only_when_it_holds_something_or_its_absence_matters(
     assert [r["label"] for r in glance_view(sheet)] == ["surface_temperature_k", "atmospheric_pressure_pa"]
 
 
+def test_the_glance_panel_flags_a_very_high_swing_of_starlight_only(monkeypatch):
+    """GEN.1135: Class Q is retired; the panel says "very high" at 0.75 peak to peak or more and shows nothing below it."""
+    from planetgen.describe import sheet as sheet_registry
+    from planetgen.web.item_pages import glance_view
+
+    def sheet_with(swing):
+        return {"kind": "planet", "groups": [{"key": "climate", "label": "Climate", "rows": [
+            {"key": "flux_variation", "label": "Seasonal variation of that energy, peak to peak", "value": [f"{swing * 100:.0f} %"],
+             "text": f"{swing * 100:.0f} %", "raw": swing, "stored": True, "absent": swing == 0, "show_absent": False}]}]}
+
+    assert "flux_variation" in sheet_registry.GLANCE["planet"] and "flux_variation" in sheet_registry.GLANCE["moon"]
+    assert glance_view(sheet_with(0.74)) == []
+    assert glance_view(sheet_with(0.0)) == []
+    flagged = glance_view(sheet_with(0.9))
+    assert [r["label"] for r in flagged] == [sheet_registry.SWING_FLAG_LABEL]
+    assert str(flagged[0]["html"]).startswith("Very high")
+    assert glance_view(sheet_with(sheet_registry.SWING_FLAG_MIN))
+
+
 def test_the_symbols_on_a_planets_page_go_to_its_own_habitability_group_and_that_group_links_the_help_page(client):
     """UX.197: the icons link to this page's Habitability section, whose help link goes on to the levels page."""
     page = client.get(f"/object/{PLANET}").get_data(as_text=True)

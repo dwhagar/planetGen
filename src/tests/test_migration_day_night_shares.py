@@ -35,7 +35,7 @@ def test_a_v169_galaxy_gets_the_columns_empty(mysql_config):
     try:
         for table in ("planets", "moons"):
             types = _types(conn, table)
-            assert all(types[name] == "double" for name in daylight.FIELDS), table
+            assert all(types[name] == ("varchar" if name == "day_night_state" else "double") for name in daylight.FIELDS), table  # GEN.1097: the state is a word
     finally:
         conn.close()
 

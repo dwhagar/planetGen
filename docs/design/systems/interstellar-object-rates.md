@@ -142,8 +142,8 @@ so it is read per logarithm of mass.
 | Saturn-class | 20 M⊕-1 Mjup | 0.17 | no rate in the research |
 | Jupiter-mass | 1-13 Mjup | 0.028 | under Mróz et al. 2017's upper limit of 0.25 (replacing Sumi et al. 2011's 1.8) |
 
-That is about 96% terrestrial and 4% gas giants (past
-`ROGUE_PLANET_GAS_GIANT_MASS_THRESHOLD_JUPITER`, about 16 M⊕). The
+That is about 95% terrestrial and 5% giants (past
+`ROGUE_PLANET_GAS_GIANT_MASS_THRESHOLD_JUPITER`, 10 M⊕, the core mass that holds an envelope; GEN.1133 moved it from 16). The
 hand-set rates before it (5, 1, 0.25 and 0.25 per star, a log-uniform
 mass in each bin) gave 91% and 9%. Above 13 Mjup is a brown dwarf, its
 own row in the density table.

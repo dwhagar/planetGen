@@ -258,3 +258,12 @@ def test_a_reset_or_a_database_check_has_no_data_check_to_tell():
     for action in ("reset", "check_db"):
         kind, _title, steps = generate_page.build_job(action, {"disregard_missing_data": "1", "confirm": "galaxy"}, "galaxy")
         assert all(generate_page.DISREGARD_FLAG not in step["argv"] for step in steps)
+
+
+def test_the_brown_dwarf_cap_without_the_baraffe_table_is_the_peak_when_told_to_disregard_and_a_refusal_otherwise():
+    from planetgen.physics import substellar_ceiling
+    with pytest.raises(fetch.DataMissing):
+        substellar_ceiling.cap_k(0.05, 1.0)
+    with fetch.disregard_missing_data():
+        assert substellar_ceiling.cap_k(0.05, 5.0) == substellar_ceiling.HOTTEST_K
+        assert ("baraffe_isochrones", "brown dwarf cap at the 2,950 K peak at every age") in fetch.stand_ins_used()

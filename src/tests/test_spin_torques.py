@@ -84,6 +84,41 @@ def test_mercury_is_caught_in_the_three_halves_resonance():
     assert (circular.ratio, circular.kind) == (1.0, "synchronous")
 
 
+def test_a_spin_that_misses_the_resonance_goes_on_to_the_synchronous_state():
+    """GEN.1172: capture in the 3:2 window is a chance; a body whose uniform is above it slips by and is locked (e of 0.206 is outside the 1:1 window of the closed form, but the flip is a stop of its own)."""
+    body = _body(3.30e23, 2.44e6)
+    a = 0.387 * AU
+    n = spin_torques.orbital_rate(SUN, a)
+    chance = tidal_spin.RESONANCE_CAPTURE_PROBABILITY[1.5]
+    caught = spin_torques.evolve(_star_only(body, SUN, a), 40.0 * n, 20.0e9 * YEAR, 0.206, (0.0, chance * 0.99))
+    missed = spin_torques.evolve(_star_only(body, SUN, a), 40.0 * n, 20.0e9 * YEAR, 0.206, (0.0, chance * 1.01))
+    assert (caught.ratio, caught.kind) == (1.5, "resonance")
+    assert (missed.ratio, missed.kind) == (1.0, "synchronous")
+
+
+def test_the_two_to_one_window_is_passed_without_capture_to_the_three_halves():
+    """An orbit with e of 0.38 holds both the 2:1 and the 3:2 windows: the first uniform decides the 2:1, a pass lets the second decide the 3:2."""
+    body = _body(3.30e23, 2.44e6)
+    a = 0.387 * AU
+    n = spin_torques.orbital_rate(SUN, a)
+    pass_two, take_three = 0.5, 0.0
+    first = spin_torques.evolve(_star_only(body, SUN, a), 40.0 * n, 20.0e9 * YEAR, 0.38, (0.0, 0.99))
+    assert (first.ratio, first.kind) == (2.0, "resonance")
+    second = spin_torques.evolve(_star_only(body, SUN, a), 40.0 * n, 20.0e9 * YEAR, 0.38, (pass_two, take_three))
+    assert (second.ratio, second.kind) == (1.5, "resonance")
+    neither = spin_torques.evolve(_star_only(body, SUN, a), 40.0 * n, 20.0e9 * YEAR, 0.38, (pass_two, pass_two))
+    assert (neither.ratio, neither.kind) == (1.0, "synchronous")
+
+
+def test_the_share_caught_is_the_chance_over_uniform_units():
+    body = _body(3.30e23, 2.44e6)
+    a = 0.387 * AU
+    n = spin_torques.orbital_rate(SUN, a)
+    units = [(i + 0.5) / 200.0 for i in range(200)]
+    caught = sum(spin_torques.evolve(_star_only(body, SUN, a), 40.0 * n, 20.0e9 * YEAR, 0.206, (0.9, u)).kind == "resonance" for u in units)
+    assert caught / 200.0 == pytest.approx(tidal_spin.RESONANCE_CAPTURE_PROBABILITY[1.5], abs=0.02)
+
+
 def test_a_far_planet_keeps_its_spin():
     body = _body(EARTH_MASS, EARTH_RADIUS)
     a = AU

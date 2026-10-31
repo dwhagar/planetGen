@@ -1446,6 +1446,10 @@
 -- v169 (GEN.721): `planets` and `moons` also keep `lid_regime`, 'mobile' (plate tectonics) or 'stagnant' (one rigid plate), drawn once after the
 --   hydrosphere (`physics/interior_heat.py`); the heat flux law, the dynamo lifetime and the ground dose's felsic crust read it. NULL for a gas giant
 --   and a row made before v169, whose heat flux was a stagnant lid's.
+-- v192 (GEN.1057): `planets`, `moons` and `rogue_planets` also keep `ring_age_yr`, the years since the event that made the ring (`physics/ring_origin.py`); a ring is now an outcome of the body's history
+--   (a moon that fell inside the Roche limit, a comet that passed inside it), so a body with neither has none. NULL for a body with no ring, a resonance ring and a row made before v191.
+-- v191 (GEN.1034): `planets` and `moons` also keep the open-ocean equilibrium tide of a world with a sea (`physics/ocean_tides.py`): `tide_range_spring_m` and `tide_range_neap_m` (DOUBLE, metres,
+--   0 for an ice-covered ocean, NULL for a body without a free sea) and `ocean_liquid` (VARCHAR(40), the liquid of that sea, water until GEN.1035). NULL for a row made before v190.
 -- v170 (GEN.767): `planets` and `moons` also keep the day and night shares and the hours of daylight (`physics/daylight.py`): `day_share_equator`, `day_share_mean`,
 --   `parent_shadow_share` (a moon in its planet's shadow), `solar_day_hours`, `daylight_hours` and `polar_circle_deg`. NULL for a row made before v170.
 --
@@ -1520,6 +1524,13 @@
 -- v187 (GEN.768): `planets` and `moons` keep the hours of one local day a person can be outside (`outside_hours_day`, DOUBLE) and the limit that sets them (`outside_hours_limit`, VARCHAR(16): daylight, dose,
 --   heat, cold, air, uv or vehicle; `physics/outside_hours.py`). NULL for a gas giant, an unscored body, a world whose daylight is not stored and a row made before v187, which gets them when the galaxy is regenerated.
 -- v189 (GEN.1009): `scatter_members.radius_max_au` and `mass_max_solar` (DOUBLE, NULL), the largest radius and mass a member has had (a white dwarf's red-giant tip and birth mass), so the history rule and the build read what the tree drew from; NULL on a row made before v187, nothing is backfilled.
+-- v190 (GEN.474): `planets` and `moons` gain `ground_intermediate_fraction`, the areal share of intermediate (andesitic) ground, a ground type the volcanic crust of a body takes when the melt of its mantle
+--   is 52 to 63 percent silica; NULL on a row made before v190 (the regenerated galaxy replaces it; see `migrations/versions/0190_ground_intermediate.py`). (v190, GEN.475) `asteroid_belts` and `asteroid_fields`
+--   also gain `chondrite_group`, the nearest meteorite group of the body's mean composition (`none` far from every group), NULL before v190.
+-- v193 (GEN.1097): `planets` and `moons` keep the state of their day and night (`day_night_state`, VARCHAR(24): day and night, tidally locked, spin-orbit resonance, non-rotating, polar day and night, no solid surface;
+--   `physics/day_night.py`), the hours of night in a solar day at the equator (`night_hours`, DOUBLE) and the solar days in one orbit (`days_per_year`, DOUBLE). NULL for a body whose spin is not stored, `night_hours` and
+--   `days_per_year` NULL for a world that turns once an orbit, and all NULL on a row made before v193, which gets them when the galaxy is regenerated.
+-- v194 (GEN.1013): `dark_members`, one row for each member of a built system's tree that is not one of its stars (a brown dwarf, neutron star, black hole or stripped helium star): `parent_node_no`, `slot`, `kind`, `mass_solar`, `radius_au`. A system stored before has none; nothing is backfilled.
 --
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
@@ -2402,6 +2413,9 @@ CREATE TABLE IF NOT EXISTS planets (
     temp_night_side_swing_k     DOUBLE,  -- v182 (GEN.848): the day and night swing of that place, peak to peak, kelvin of difference
     outside_hours_day           DOUBLE,  -- v187 (GEN.768): the hours of one local day a person can be outside in the listed equipment
     outside_hours_limit         VARCHAR(16),  -- v187 (GEN.768): what sets them: daylight, dose, heat, cold, air, uv or vehicle
+    day_night_state             VARCHAR(24),  -- v188 (GEN.1097): the state of its day and night: day and night, tidally locked, spin-orbit resonance, non-rotating, polar day and night or no solid surface
+    night_hours                 DOUBLE,  -- v188 (GEN.1097): hours of night in one solar day at the equator, NULL for a world that turns once an orbit
+    days_per_year               DOUBLE,  -- v188 (GEN.1097): solar days in one orbit round the star, NULL for a world that turns once an orbit
     energy_flux_w_m2            DOUBLE,
     flux_variation              DOUBLE,
     -- v20 (see header comment): this planet's own reflex-offset "wobble"
@@ -2464,6 +2478,7 @@ CREATE TABLE IF NOT EXISTS planets (
     ground_carbon_fraction        DOUBLE,  -- v159: the areal share of the surface that is carbon
     ground_evaporite_fraction     DOUBLE,  -- v159: the areal share of the surface that is evaporite
     ground_sulfur_fraction        DOUBLE,  -- v159: the areal share of the surface that is sulfur
+    ground_intermediate_fraction  DOUBLE,  -- v190 (GEN.474): the areal share of the surface that is intermediate (andesitic) ground
     surface_liquid                VARCHAR(32),  -- v188 (GEN.1035): the liquid the surface holds (an id of physics/surface_liquids.py, NULL: none)
     surface_liquid_fraction       DOUBLE,  -- v188: the share of the surface that liquid covers
     surface_liquid_depth_km       DOUBLE,  -- v188: its mean depth over that share, km (NULL: not known)
@@ -2492,6 +2507,7 @@ CREATE TABLE IF NOT EXISTS planets (
     ring_mass_kg                DOUBLE,  -- v160: its mass, kg
     ring_optical_depth          DOUBLE,  -- v160: its mean optical depth over the area it covers
     ring_ice_fraction           DOUBLE,  -- v160: its water-ice share by mass
+    ring_age_yr                 DOUBLE,  -- v192 (GEN.1057): years since the event that made it (a fallen moon or a passing comet), NULL for a resonance ring
     atmosphere_colour           INT UNSIGNED,  -- v162 (DB.96): the colour of the body's air, sRGB as red*65536 + green*256 + blue, NULL with no air
     lid_regime                  VARCHAR(10) NULL,  -- v169 (GEN.721): mobile (plate tectonics) or stagnant (one rigid plate), drawn once, NULL for a gas giant
     day_share_equator           DOUBLE NULL,  -- v170 (GEN.767): share of the time the star is up at the equator over a year, 0 to 1, NULL for a world that turns once an orbit
@@ -2506,6 +2522,9 @@ CREATE TABLE IF NOT EXISTS planets (
     life_class_best_score       TINYINT UNSIGNED NULL,  -- v175: its score, 0 to 9
     life_animal_grade           TINYINT UNSIGNED NULL,  -- v175 (GEN.890): 0 no animals, 1 sessile, 2 small and mobile, 3 large and active
     life_complexity             DOUBLE NULL,  -- v175: the complexity index of its life class, 1 for an Earth-like biosphere
+    tide_range_spring_m         DOUBLE NULL,  -- v191 (GEN.1034): open-ocean equilibrium spring tide range, metres, 0 under an ice cover, NULL without a sea
+    tide_range_neap_m           DOUBLE NULL,  -- v191 (GEN.1034): the neap range, metres
+    ocean_liquid                VARCHAR(40) NULL,  -- v191 (GEN.1034): the liquid of the sea the tide is of (water until GEN.1035), NULL without a sea
 
     UNIQUE KEY uq_planets_uid (uid),
     CONSTRAINT fk_planets_star_system
@@ -2760,6 +2779,9 @@ CREATE TABLE IF NOT EXISTS moons (
     temp_night_side_swing_k     DOUBLE,  -- v182 (GEN.848): the day and night swing of that place, peak to peak, kelvin of difference
     outside_hours_day           DOUBLE,  -- v187 (GEN.768): the hours of one local day a person can be outside in the listed equipment
     outside_hours_limit         VARCHAR(16),  -- v187 (GEN.768): what sets them: daylight, dose, heat, cold, air, uv or vehicle
+    day_night_state             VARCHAR(24),  -- v188 (GEN.1097): the state of its day and night: day and night, tidally locked, spin-orbit resonance, non-rotating, polar day and night or no solid surface
+    night_hours                 DOUBLE,  -- v188 (GEN.1097): hours of night in one solar day at the equator, NULL for a world that turns once an orbit
+    days_per_year               DOUBLE,  -- v188 (GEN.1097): solar days in one orbit round the star, NULL for a world that turns once an orbit
     energy_flux_w_m2            DOUBLE,
     flux_variation              DOUBLE,
     -- v58: this object's unique ID, see the header comment's "v58" note. NULL for a row saved before v58.
@@ -2817,6 +2839,7 @@ CREATE TABLE IF NOT EXISTS moons (
     ground_carbon_fraction        DOUBLE,  -- v159: the areal share of the surface that is carbon
     ground_evaporite_fraction     DOUBLE,  -- v159: the areal share of the surface that is evaporite
     ground_sulfur_fraction        DOUBLE,  -- v159: the areal share of the surface that is sulfur
+    ground_intermediate_fraction  DOUBLE,  -- v190 (GEN.474): the areal share of the surface that is intermediate (andesitic) ground
     surface_liquid                VARCHAR(32),  -- v188 (GEN.1035): the liquid the surface holds (an id of physics/surface_liquids.py, NULL: none)
     surface_liquid_fraction       DOUBLE,  -- v188: the share of the surface that liquid covers
     surface_liquid_depth_km       DOUBLE,  -- v188: its mean depth over that share, km (NULL: not known)
@@ -2845,6 +2868,7 @@ CREATE TABLE IF NOT EXISTS moons (
     ring_mass_kg                DOUBLE,  -- v160: its mass, kg
     ring_optical_depth          DOUBLE,  -- v160: its mean optical depth over the area it covers
     ring_ice_fraction           DOUBLE,  -- v160: its water-ice share by mass
+    ring_age_yr                 DOUBLE,  -- v192 (GEN.1057): years since the event that made it (a fallen moon or a passing comet), NULL for a resonance ring
     atmosphere_colour           INT UNSIGNED,  -- v161 (DB.96): the colour of the body's air, sRGB as red*65536 + green*256 + blue, NULL with no air
     lid_regime                  VARCHAR(10) NULL,  -- v169 (GEN.721): mobile (plate tectonics) or stagnant (one rigid plate), drawn once, NULL for a gas giant
     day_share_equator           DOUBLE NULL,  -- v170 (GEN.767): share of the time the star is up at the equator over a year, 0 to 1, NULL for a world that turns once an orbit
@@ -2859,6 +2883,9 @@ CREATE TABLE IF NOT EXISTS moons (
     life_class_best_score       TINYINT UNSIGNED NULL,  -- v175: its score, 0 to 9
     life_animal_grade           TINYINT UNSIGNED NULL,  -- v175 (GEN.890): 0 no animals, 1 sessile, 2 small and mobile, 3 large and active
     life_complexity             DOUBLE NULL,  -- v175: the complexity index of its life class, 1 for an Earth-like biosphere
+    tide_range_spring_m         DOUBLE NULL,  -- v191 (GEN.1034): open-ocean equilibrium spring tide range, metres, 0 under an ice cover, NULL without a sea
+    tide_range_neap_m           DOUBLE NULL,  -- v191 (GEN.1034): the neap range, metres
+    ocean_liquid                VARCHAR(40) NULL,  -- v191 (GEN.1034): the liquid of the sea the tide is of (water until GEN.1035), NULL without a sea
 
     UNIQUE KEY uq_moons_uid (uid),
     CONSTRAINT fk_moons_planet
@@ -2992,6 +3019,7 @@ CREATE TABLE IF NOT EXISTS asteroid_belts (
 
     parent_type                 VARCHAR(16) NOT NULL DEFAULT 'system',  -- v140 (DB.73): what it orbits, see the v140 note
     parent_id                   BIGINT UNSIGNED NULL,  -- v140 (DB.73)
+    chondrite_group             VARCHAR(4) NULL,  -- v190 (GEN.475): the nearest chondrite group of the belt's mean composition (CI, CM, H, L ...), `none` far from every group, NULL before v190
 
     UNIQUE KEY uq_asteroid_belts_uid (uid),
     KEY idx_asteroid_belts_parent (parent_type, parent_id),
@@ -3633,6 +3661,7 @@ CREATE TABLE IF NOT EXISTS rogue_planets (
     ring_mass_kg             DOUBLE,
     ring_optical_depth       DOUBLE,
     ring_ice_fraction        DOUBLE,
+    ring_age_yr              DOUBLE,  -- v192 (GEN.1057): as on `planets`
     -- v17: always populated (a rogue planet is always standalone).
     galactic_orbital_period_gy           DOUBLE NOT NULL,
     galactic_orbital_phase_deg           DOUBLE NOT NULL,
@@ -3902,6 +3931,7 @@ CREATE TABLE IF NOT EXISTS asteroid_fields (
 
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     modified_at         TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+    chondrite_group     VARCHAR(4) NULL,  -- v190 (GEN.475): the nearest chondrite group of the field's mean composition, `none` far from every group, NULL before v190
     -- v58: this object's unique ID, see the header comment's "v58" note. NULL for a row saved before v58.
     uid                   BINARY(12),
 
@@ -4380,6 +4410,27 @@ CREATE TABLE IF NOT EXISTS orbit_nodes (
     CONSTRAINT chk_orbit_nodes_kind CHECK (kind IN ('close', 'wide', 'compact', 'group')),
     CONSTRAINT chk_orbit_nodes_interaction CHECK (interaction IS NULL OR interaction IN (
         'detached', 'semi-detached', 'contact', 'accreting', 'post-common-envelope', 'merger-product'))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+-- ---------------------------------------------------------------------
+-- dark_members (v194, GEN.1013): the members of a built system's tree that are not stars of it, one row each: a brown dwarf, a
+-- neutron star, a black hole or a stripped helium star. `parent_node_no` and `slot` name the node it hangs in and its place among
+-- that node's children (the numbering of `orbit_nodes`); the node masses above it count its `mass_solar`. It has no light and no
+-- planets. A row goes with its system.
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS dark_members (
+    star_system_id       BIGINT UNSIGNED NOT NULL,
+    member_no            SMALLINT NOT NULL,
+    parent_node_no       SMALLINT NOT NULL,
+    slot                 SMALLINT NOT NULL,
+    kind                 VARCHAR(16) NOT NULL,
+    mass_solar           DOUBLE NOT NULL,
+    radius_au            DOUBLE NULL,
+    PRIMARY KEY (star_system_id, member_no),
+    CONSTRAINT fk_dark_members_star_system
+        FOREIGN KEY (star_system_id) REFERENCES star_systems(id) ON DELETE CASCADE,
+    CONSTRAINT chk_dark_members_kind CHECK (kind IN ('brown-dwarf', 'neutron-star', 'black-hole', 'stripped-helium'))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 

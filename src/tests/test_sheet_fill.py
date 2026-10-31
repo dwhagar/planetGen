@@ -77,7 +77,7 @@ def test_a_generated_body_stores_its_tide_wherever_the_sheet_says_it_applies():
     from planetgen.util import draw
     from tests.fuzz_support import deterministic_entropy
     seen = {True: 0, False: 0}
-    for seed in range(7100, 7104):
+    for seed in range(7100, 7112):
         with deterministic_entropy(seed):
             draw.set_run_seed(seed)
             system = StarSystem(SystemConfig(), galactic_center_dist_ly=26000.0)

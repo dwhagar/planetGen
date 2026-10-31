@@ -13,7 +13,7 @@ import pytest
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from planetgen.physics import constants as pc
-from planetgen.physics import interior_heat, moon_history, planets, radiogenic, rings, tidal_heating
+from planetgen.physics import interior_heat, moon_history, planets, radiogenic, ring_origin, rings, tidal_heating
 from planetgen.physics.mathcheck import _bulk_silicate_earth
 from planetgen.util import draw
 from tests.fuzz_support import deterministic_entropy
@@ -65,12 +65,13 @@ def test_a_planet_with_moons_has_a_forcing_even_on_a_circle():
     assert tidal_heating.forcing_of(planet) is None
 
 
-def test_the_ring_of_a_fallen_moon_is_disrupted_moon_up_to_the_cap():
-    for fallen in (1.0e15, 1.0e22):
-        draw.set_run_seed(3)
-        ring = rings.draw_ring("terrestrial", 6371.0, EARTH, False, (), fallen)
-        assert ring is not None and ring.ring_origin == "disrupted_moon"
-        assert ring.ring_mass_kg == pytest.approx(min(fallen, rings.MAX_MASS_OVER_PLANET * EARTH))
+def test_the_ring_of_a_fallen_moon_is_disrupted_moon_spread_for_the_time_since_and_capped():
+    planet = ring_origin.Planet(EARTH, 6371.0, 1.0, 1.989e30)
+    for fallen in (1.0e19, 1.0e22, 1.0e30):
+        found = ring_origin.ring_origin(planet, 4.0e9, (ring_origin.FallenMoon(fallen, 3.9e9),))
+        assert found.exists and found.origin == "disrupted_moon"
+        assert found.mass_kg == pytest.approx(min(ring_origin.spread(ring_origin.RING_RETAINED_FRACTION * fallen, 1.0e8), rings.MAX_MASS_OVER_PLANET * EARTH))
+        assert found.age_yr == pytest.approx(1.0e8)
 
 
 def test_every_planet_with_moons_ends_with_moons_it_can_keep():
@@ -81,11 +82,11 @@ def test_every_planet_with_moons_ends_with_moons_it_can_keep():
         for planet in system.planets:
             if planet.body_type == "a":
                 continue
-            fallen = getattr(planet, "fallen_moon_mass_kg", 0.0) or 0.0
-            if fallen > 0.0:
+            fallen = getattr(planet, "fallen_moons", ()) or ()
+            if fallen:
                 seen_fallen += 1
                 if planet.ring_kind is not None:
-                    assert planet.ring_origin == "disrupted_moon"
+                    assert planet.ring_origin in ("disrupted_moon", "captured_body") and planet.ring_age_yr > 0.0
                     assert planet.ring_mass_kg <= rings.MAX_MASS_OVER_PLANET * planet.mass * (1.0 + 1e-9)
             assert planet.rotation_period_hours > 0.0
             for moon in planet.moons:
@@ -105,10 +106,10 @@ def test_the_history_runs_again_to_the_same_state_without_new_draws():
                 continue
             # the star's age is adjusted for its planets after they are made, so the first run is of the age it had; two runs on the final age agree
             planets.generate_spin(planet, planet.star.mass, birth=planet._birth_spin)
-            before = ([m.distance for m in planet.moons], planet.rotation_period_hours, getattr(planet, "fallen_moon_mass_kg", 0.0))
+            before = ([m.distance for m in planet.moons], planet.rotation_period_hours, getattr(planet, "fallen_moons", ()))
             draw.set_run_seed(7)
             planets.generate_spin(planet, planet.star.mass, birth=planet._birth_spin)
-            after = ([m.distance for m in planet.moons], planet.rotation_period_hours, getattr(planet, "fallen_moon_mass_kg", 0.0))
+            after = ([m.distance for m in planet.moons], planet.rotation_period_hours, getattr(planet, "fallen_moons", ()))
             assert after[0] == pytest.approx(before[0], rel=1e-9) and after[1] == pytest.approx(before[1], rel=1e-9) and after[2] == before[2]
             return
     pytest.fail("no planet with moons in the sampled systems")
@@ -145,6 +146,6 @@ def test_a_history_no_integrator_can_finish_leaves_the_moons_as_born(monkeypatch
             planets.generate_spin(planet, planet.star.mass, birth=planet._birth_spin)
             assert planet.moons == planet._born_moons
             assert all(m.distance == pytest.approx(m._birth_distance_au) for m in planet.moons)
-            assert planet.fallen_moon_mass_kg == 0.0 and planet.rotation_period_hours > 0.0
+            assert planet.fallen_moons == () and planet.rotation_period_hours > 0.0
             return
     pytest.fail("no planet with moons in the sampled systems")

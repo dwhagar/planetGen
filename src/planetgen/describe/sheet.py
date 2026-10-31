@@ -65,9 +65,9 @@ captain (no air, no magnetic field, a quiet star); every other row is left out o
 API sheet always returns every row and says which are `absent` and which are `show_absent`."""
 
 GLANCE = {
-    "planet": ("planet_class", "zone", "surface_temperature_k", "atmospheric_pressure_pa", "gravity_g",
+    "planet": ("planet_class", "zone", "surface_temperature_k", "flux_variation", "atmospheric_pressure_pa", "gravity_g",
                "surface_dose_msv_yr", "outside_hours_day", "rotation_period_hours", "daylight_hours", "day_share_equator", "distance_km", "period_years"),
-    "moon": ("planet_class", "zone", "surface_temperature_k", "atmospheric_pressure_pa", "gravity_g",
+    "moon": ("planet_class", "zone", "surface_temperature_k", "flux_variation", "atmospheric_pressure_pa", "gravity_g",
              "surface_dose_msv_yr", "outside_hours_day", "rotation_period_hours", "daylight_hours", "day_share_equator", "distance_km", "period_years"),
     "star": ("role", "star_type", "yerkes_class", "state", "mass_kg", "luminosity_w", "temperature_k",
              "habitable_zone_inner_km", "habitable_zone_outer_km", "snow_line_km", "flare_n33_per_yr",
@@ -91,6 +91,14 @@ GLANCE = {
 }
 """dict: For each kind, the row keys of its "At a glance" panel (UX.188), in a captain's order: what it is, can I
 survive there, how long is a day and how far is it. Each is a row of the same sheet."""
+
+SWING_FLAG_MIN = 0.75
+"""float: The peak-to-peak swing of a body's starlight (`flux_variation`, about 4 times its orbit's eccentricity) from which the "At a glance"
+panel flags it as very high (GEN.1135, which retired Class Q: a class that was only an orbit). 4 percent of bodies; 0.5 would flag 12 percent and the
+old class line of 0.25 would flag 36 percent. A default until Boss gives a line."""
+
+SWING_FLAG_LABEL = "Seasonal swing of starlight"
+"""str: What the panel calls the flag row (the sheet's own row for the number is "Seasonal variation of that energy, peak to peak")."""
 
 NOT_STORED = "not stored"
 """str: What a row with no stored value says."""
@@ -186,6 +194,8 @@ _BODY_GROUPS = (
            ("outside_hours", "Hours a person can work outside per year (dose limit)"),
            ("outside_hours_day", "Hours a person can be outside in a day"), ("outside_hours_limit", "What limits those hours", LIMIT),
            ("solar_day_hours", "Length of the solar day"),
+           ("day_night_state", "State of its day and night", TEXT), ("days_per_year", "Solar days in one year"),
+           ("night_hours", "Hours of night in a solar day, equator"),
            ("daylight_hours", "Hours of daylight at the equator"), ("day_share_equator", "Share of the time the star is up, equator"),
            ("day_share_mean", "Share of the time the star is up, whole surface"),
            ("parent_shadow_share", "Share of the time in the planet's shadow"),
@@ -222,6 +232,9 @@ _BODY_GROUPS = (
            ("hp_ice_km", "High-pressure ice thickness"), ("ocean_class", "Ocean chemistry", TEXT),
            ("ocean_ph", "Ocean pH"), ("water_activity", "Water activity"),
            ("water_base_pressure_pa", "Pressure at the bottom of the water layer"),
+           ("ocean_liquid", "Ocean liquid", TEXT),
+           ("tide_range_spring_m", "Open-ocean spring tide range (equilibrium value; a coast can differ many times)"),
+           ("tide_range_neap_m", "Open-ocean neap tide range (equilibrium value)"),
            ("tidal_flux_w_m2", "Tidal heat flow"), ("aquifer_depth_km", "Depth to underground water"),
            ("aquifer_thickness_km", "Thickness of the underground water")),
     *_rows("magnetism", ("dipole_class", "Dipole field", TEXT), ("magnetic_moment_a_m2", "Magnetic moment"),
@@ -258,7 +271,7 @@ _BODY_GROUPS = (
            ("helium_depletion", "Helium left in the molecular envelope, against its natal share"), ("has_helium_shell", "Helium-rich shell", FLAG)),
     *_rows("composition", ("ring_kind", "Kind of ring system", TEXT), ("ring_origin", "Where the ring came from", TEXT),
            ("ring_inner_km", "Ring inner edge"), ("ring_outer_km", "Ring outer edge"), ("ring_mass_kg", "Ring mass"),
-           ("ring_optical_depth", "Ring optical depth"), ("ring_ice_fraction", "Ring ice share")),
+           ("ring_optical_depth", "Ring optical depth"), ("ring_ice_fraction", "Ring ice share"), ("ring_age_yr", "Ring age")),
 )
 
 _PLANET = _MOON = _BODY_GROUPS
@@ -357,7 +370,7 @@ _ROGUE_PLANET = (
     *_rows("radiation", ("shelter_column_g_cm2", "Shelter column")),
     *_rows("composition", ("ring_kind", "Kind of ring system", TEXT), ("ring_origin", "Where the ring came from", TEXT),
            ("ring_inner_km", "Ring inner edge"), ("ring_outer_km", "Ring outer edge"), ("ring_mass_kg", "Ring mass"),
-           ("ring_optical_depth", "Ring optical depth"), ("ring_ice_fraction", "Ring ice share")),
+           ("ring_optical_depth", "Ring optical depth"), ("ring_ice_fraction", "Ring ice share"), ("ring_age_yr", "Ring age")),
     *_rows("rotation", ("rotation_period_hours", "Rotation period"), ("axial_tilt_deg", "Axial tilt")),
     *_GALACTIC_ORBIT, *_DISTANCE,
 )
@@ -475,7 +488,7 @@ _BODY_NOT_SHOWN = {
     **_excuse(("ground_type", "ground_grain", "ground_ocean_fraction", "ground_ice_fraction", "ground_ultramafic_fraction",
                "ground_anorthositic_fraction", "ground_basaltic_fraction", "ground_felsic_fraction", "ground_clay_fraction",
                "ground_oxidised_fraction", "ground_metal_fraction", "ground_carbon_fraction", "ground_evaporite_fraction",
-               "ground_sulfur_fraction"),
+               "ground_sulfur_fraction", "ground_intermediate_fraction"),
               "the stored mix of ground types; it feeds the ground dose and the surface rendering, and the page does "
               "not list it as a row yet"),
     **_excuse(tuple(column for column in regional_temperature.SWING_OF.values() if column != "temp_swing_k"),
@@ -747,7 +760,7 @@ _BANDS_AND_ZONES = ("temp_polar_k", "temp_north_k", "temp_equator_k", "temp_sout
                     "temp_day_side_k", "temp_terminator_k", "temp_night_side_k")
 _SURFACE = (
     "hydrosphere", "ocean_fraction", "land_fraction", "ocean_depth_km", "ocean_class", "ocean_ph", "water_activity",
-    "water_base_pressure_pa", "ice_shell_km", "hp_ice_km", "surface_liquid", "surface_liquid_fraction", "surface_liquid_depth_km",
+    "water_base_pressure_pa", "ice_shell_km", "hp_ice_km", "surface_liquid", "surface_liquid_fraction", "surface_liquid_depth_km", "ocean_liquid", "tide_range_spring_m", "tide_range_neap_m",
     "mantle_redox", "mantle_delta_iw", "rock_feo_fraction", "rock_al2o3_fraction", "rock_mg_si_ratio",
     "ozone_column_du", "ozone_loss_flag", "surface_dose_msv_yr", "dose_gcr_msv_yr", "dose_sep_msv_yr",
     "dose_ground_msv_yr", "dose_helio_mult", "uv_surface_index", "shelter_column_g_cm2", "outside_hours", "outside_hours_day", "outside_hours_limit",
@@ -762,6 +775,7 @@ _SURFACE = (
     "life_age_multicellularity_gyr", "life_age_technological_civilization_gyr", "phosphorus", "magnetopause_rp",
 )
 _OCEAN = ("ocean_depth_km", "ocean_class", "ocean_ph", "water_activity", "phosphorus", "water_base_pressure_pa")
+_TIDE_COLUMNS = ("ocean_liquid", "tide_range_spring_m", "tide_range_neap_m")
 OCEAN_STATES = ("surface ocean", "brine seep", "ice-covered ocean", "hycean")
 """tuple: The hydrospheres that hold a liquid ocean, the ones the ocean columns describe."""
 _LIFE_DETAIL = ("life_class", "life_class_variant", "life_class_best", "life_class_best_score", "life_animal_grade", "life_complexity",
@@ -772,7 +786,7 @@ _LIFE_AFTER_OXYGEN = ("life_age_complex_cells_gyr", "life_age_multicellularity_g
 _STAGES_AFTER_OXYGEN = tuple(tuning.LIFE_MILESTONES[tuning.LIFE_MILESTONES.index("complex_cells"):])
 _BANDS = ("temp_polar_k", "temp_north_k", "temp_equator_k", "temp_south_k", "temp_swing_k")
 _ZONES = ("temp_day_side_k", "temp_terminator_k", "temp_night_side_k")
-_DAYLIGHT = ("day_share_equator", "solar_day_hours", "daylight_hours")
+_DAYLIGHT = ("day_share_equator", "solar_day_hours", "daylight_hours", "night_hours", "days_per_year")
 _RING_COLUMNS = ("ring_kind", "ring_origin", "ring_inner_km", "ring_outer_km", "ring_mass_kg", "ring_optical_depth", "ring_ice_fraction")
 _AQUIFER_COLUMNS = ("aquifer_depth_km", "aquifer_thickness_km")
 _SURFACE_LIQUID_COLUMNS = ("surface_liquid", "surface_liquid_fraction", "surface_liquid_depth_km")
@@ -789,8 +803,9 @@ def _locked(row):
 
 _DISK_COLUMNS = ("moon_disk_lifetime_myr", "moon_disk_alpha_over_f", "moon_disk_f_inf", "moon_disk_ice_line_km")
 _BODY_RULES = [
-    (_GIANT_ONLY, lambda klass, row: klass in GIANT_CLASSES,
-     "only a giant has a deep envelope over a core, so these describe nothing on a rocky or icy world"),
+    (_GIANT_ONLY, lambda klass, row: klass in GIANT_CLASSES and (row is None or row.get("body_type") != "t"),
+     "only a giant has a deep envelope over a core, so these describe nothing on a rocky or icy world, nor on a gas dwarf that is a rocky body "
+     "under a hydrogen air (class T, GEN.1142)"),
     (_SURFACE, lambda klass, row: klass not in GIANT_CLASSES,
      "a giant has no surface: no ocean, rock chemistry, ground dose, habitability score, life or surface temperature"),
     (_AIR, lambda klass, row: klass not in AIRLESS_CLASSES and (row is None or (row.get("atmospheric_pressure_pa") or 0) > 0),
@@ -814,6 +829,8 @@ _BODY_RULES = [
      "an ice shell covers a body whose water is ice or an ocean frozen over; a dry body, an open ocean and a vapour world have none"),
     (_RING_COLUMNS, lambda klass, row: row is None or any(row.get(key) is not None for key in _RING_COLUMNS),
      "only a body with a ring system has ring columns; a body without rings stores none"),
+    (("ring_age_yr",), lambda klass, row: row is None or row.get("ring_age_yr") is not None,
+     "a ring has an age only when a moon that fell or a comet that passed made it; the narrow ring of a small body's spin-orbit resonance has none"),
     (_SURFACE_LIQUID_COLUMNS, lambda klass, row: row is None or any(row.get(key) is not None for key in _SURFACE_LIQUID_COLUMNS),
      "only a body with a liquid at its surface (an ocean, a lava sea, a sea of a volatile) stores one; a dry, frozen or airless body has none"),
     (("surface_liquid_depth_km",), lambda klass, row: row is None or row.get("surface_liquid") not in surface_liquid_world.LAVA_IDS,
@@ -828,6 +845,8 @@ _BODY_RULES = [
      "only a body lighter than 1e21 kg is a heap with voids; above it gravity has closed them, so a planet or a large moon stores no porosity"),
     (_OCEAN, lambda klass, row: row is None or row.get("hydrosphere") in OCEAN_STATES,
      "an ocean's depth, chemistry, pH and water activity exist only where there is a liquid ocean"),
+    (_TIDE_COLUMNS, lambda klass, row: row is None or row.get("hydrosphere") in ("surface ocean", "ice-covered ocean"),
+     "an ocean tide is worked out for a sea with a free surface or one frozen over (zero); a brine seep, a deep hycean sea and a dry, ice or vapour world store none"),
     (_LIFE_DETAIL, lambda klass, row: row is None or any((row.get(key) or 0) > 0 for key in LIFE_SCORES),
      "the life chemistry, stage and milestone ages describe a living world; a lifeless one has none"),
     (_LIFE_AFTER_OXYGEN, lambda klass, row: row is None or row.get("life_stage") in _STAGES_AFTER_OXYGEN,

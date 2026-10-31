@@ -138,7 +138,7 @@ _RUNTIME_ONLY = {
     Planet: {"system_config", "star", "moons", "spatial", "_staged_au", "_staged_velocity_kms",
              "primary_mass_kg", "_star_distance_au", "phi_bio", "phi_cpx",
              "moon_disk_system", "formation_distance_au", "_orbit_birth", "_giant_draw", "_age_drawn",
-             "_birth_spin", "_born_moons", "fallen_moon_mass_kg", "_birth_distance_au"},    # kept so the moon history can run again (GEN.959); the ring it builds is stored
+             "_birth_spin", "_born_moons", "fallen_moon_mass_kg", "fallen_moons", "_birth_distance_au"},    # kept so the moon history can run again (GEN.959); the ring it builds is stored
     AsteroidBelt: {"system_config", "composition", "makeup"},
 }
 

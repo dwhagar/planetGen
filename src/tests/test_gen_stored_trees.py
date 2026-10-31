@@ -1,8 +1,8 @@
 """
 GEN.315: a system built from the tree its scatter row stored (`planetgen.generation.stored_trees`,
 `StarSystem(member_tree=...)`, docs/design/systems/multi-star-systems.md section 6). A scattered star with one companion star is
-that pair, on the stored orbit; a single star draws no companion of its own; a tree the pair classes cannot hold builds
-the placed object alone and keeps its rows; a built row's members and nodes are deleted in the save.
+that pair, on the stored orbit; a single star draws no companion of its own; a member that is not a star (a brown dwarf, a
+neutron star, a black hole) hangs in the tree dark (GEN.1013); a built row's members and nodes are deleted in the save.
 """
 
 import dataclasses
@@ -111,20 +111,53 @@ def test_two_stars_and_one_node_are_a_pair_plan(kind):
     assert plan.nodes[0].node_no == 0 and _pair_kind(plan.nodes[0]) == kind
 
 
-def test_three_stars_are_a_plan_numbered_from_zero_and_a_remnant_or_a_brown_dwarf_build_the_placed_star_alone():
+def test_three_stars_are_a_plan_numbered_from_zero_and_a_remnant_or_a_brown_dwarf_hang_in_it_dark():
     _seed, three, _age = _tree(3)
     plan = stored_trees.plan(_stored(three), EPOCH)
-    assert plan.complete == all(m.kind in stored_trees.PAIR_STAR_KINDS for m in three.members[1:])
-    if plan.complete:
-        assert [n.node_no for n in plan.nodes] == [0, 1] and plan.nodes[0].parent_node_no is None
-        assert plan.nodes[1].parent_node_no == 0 and {m.parent_node_no for m in plan.members} <= {0, 1}
-        assert plan.pair_node_no() in (0, 1)
-    else:
-        assert plan.members == () and plan.nodes == ()
+    assert plan.complete
+    assert [n.node_no for n in plan.nodes] == [0, 1] and plan.nodes[0].parent_node_no is None
+    assert plan.nodes[1].parent_node_no == 0 and {m.parent_node_no for m in plan.members} <= {0, 1}
+    assert [m.member_no for m in plan.dark_members] == [m.member_no for m in plan.members if m.kind in stored_trees.UNBUILT_KINDS]
+    assert plan.pair_node_no() in (0, 1, None) and (plan.pair_node_no() is None) == (len(plan.lit_members) < 2)
     pair = _stored(_pair("close")[1])
     for kind in stored_trees.UNBUILT_KINDS:
         members = (pair.members[0], pair.members[1]._replace(kind=kind))
-        assert not stored_trees.plan(scatter_systems.StoredTree(members, pair.nodes), EPOCH).complete
+        dark = stored_trees.plan(scatter_systems.StoredTree(members, pair.nodes), EPOCH)
+        assert dark.complete and [m.member_no for m in dark.dark_members] == [1]
+        assert dark.pair_node_no() is None and dark.pair_members() is None and len(dark.nodes) == 1
+    mystery = (pair.members[0], pair.members[1]._replace(kind="mystery"))
+    assert not stored_trees.plan(scatter_systems.StoredTree(mystery, pair.nodes), EPOCH).complete
+
+
+def _planned(member_no, parent, slot, kind, mass):
+    return stored_trees.PlannedStar(member_no, parent, slot, kind, mass, mass, member_no, 0.01, None)
+
+
+def _node(node_no, parent, slot, mass):
+    return OrbitNode(node_no=node_no, parent_node_no=parent, slot=slot, mass_solar=mass, separation_km=1.5e9, eccentricity=0.1,
+                     inclination_deg=0.0, ascending_node_deg=0.0, arg_periapsis_deg=0.0, mean_anomaly_deg=0.0, epoch_unix=0.0,
+                     period_years=10.0, kind="wide", interaction="detached", flags=0)
+
+
+def test_the_pair_of_a_tree_with_a_dark_member_between_its_stars_is_the_node_above_both():
+    # A (1.0) in slot 0 of the root; B (0.5) and a brown dwarf (0.05) in the node in slot 1: no node holds two stars.
+    members = (_planned(0, 0, 0, "main-sequence", 1.0), _planned(1, 1, 0, "main-sequence", 0.5),
+               _planned(2, 1, 1, "brown-dwarf", 0.05))
+    nodes = (_node(0, None, 0, 1.55), _node(1, 0, 1, 0.55))
+    plan = stored_trees.StoredPlan(members, nodes, True)
+    assert plan.pair_node_no() == 0 and plan.pair_members() == (0, 1)
+    assert [m.member_no for m in plan.lit_members] == [0, 1] and [m.member_no for m in plan.dark_members] == [2]
+    swapped = (_planned(0, 1, 1, "main-sequence", 1.0), _planned(1, 0, 0, "main-sequence", 0.5),
+               _planned(2, 1, 0, "brown-dwarf", 0.05))
+    both = stored_trees.StoredPlan(swapped, (_node(0, None, 0, 1.55), _node(1, 0, 1, 1.05)), True)
+    assert both.pair_node_no() == 0 and both.pair_members() == (1, 0)
+
+
+def test_the_node_of_two_stars_is_the_pair_even_when_a_dark_member_hangs_above_it():
+    members = (_planned(0, 1, 0, "main-sequence", 1.0), _planned(1, 1, 1, "main-sequence", 0.5),
+               _planned(2, 0, 1, "neutron-star", 1.4))
+    plan = stored_trees.StoredPlan(members, (_node(0, None, 0, 2.9), _node(1, 0, 0, 1.5)), True)
+    assert plan.pair_node_no() == 1 and plan.pair_members() == (0, 1)
 
 
 def test_a_compact_or_group_node_is_not_a_pair_the_classes_hold():
@@ -223,14 +256,29 @@ def test_the_stored_kind_stands_when_a_habitable_world_is_asked_of_a_close_pair(
     assert system.binary_type == "close"
 
 
-def test_a_tree_with_a_remnant_builds_the_placed_star_alone_and_keeps_its_rows():
+def test_a_tree_with_a_remnant_builds_the_placed_star_with_the_remnant_dark_in_its_tree():
     seed, tree, age_yr = _pair("wide")
     stored = _stored(tree)
     plan = stored_trees.plan(
         scatter_systems.StoredTree((stored.members[0], stored.members[1]._replace(kind="neutron-star")), stored.nodes), EPOCH)
     system = _build(seed, tree, age_yr, plan=plan, BINARY_SYSTEM=True)
+    assert system.tree_built and system.binary_type is None and len(system.stars) == 1
+    assert [m.kind for m in system.dark_members] == ["neutron-star"] and system.star_slots == ((0, 0),)
+    assert len(system.orbit_nodes) == 1 and system.orbit_nodes[0].mass_solar == pytest.approx(
+        sum(m.mass_solar for m in plan.members))
+    assert system.star.a_crit_au is not None
+    loaded = StarSystem.from_dict(system.to_dict())
+    assert loaded.dark_members == system.dark_members and loaded.star_slots == system.star_slots
+
+
+def test_a_tree_with_a_member_of_a_kind_nothing_builds_builds_the_placed_star_alone():
+    seed, tree, age_yr = _pair("wide")
+    stored = _stored(tree)
+    plan = stored_trees.plan(
+        scatter_systems.StoredTree((stored.members[0], stored.members[1]._replace(kind="mystery")), stored.nodes), EPOCH)
+    system = _build(seed, tree, age_yr, plan=plan, BINARY_SYSTEM=True)
     assert not system.tree_built and system.binary_type is None and len(system.stars) == 1
-    assert system.orbit_nodes == ()
+    assert system.orbit_nodes == () and system.dark_members == ()
 
 
 def test_a_companion_that_is_not_its_stored_member_leaves_the_primary_alone(monkeypatch):

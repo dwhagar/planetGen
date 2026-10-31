@@ -39,6 +39,7 @@ from planetgen.physics import (
     giant_interior,
     habitability,
     habitability_explain,
+    meteorite_groups,
     outside_hours,
     pre_main_sequence,
     protection,
@@ -534,12 +535,22 @@ def _planet_section(planet):
                    children)
 
 
+def meteorite_group_fact(body):
+    """The row naming the chondrite group a belt's or field's mean composition is nearest (`small_body_composition.chondrite_group`), or `None` for one stored without it."""
+    group = body.chondrite_group
+    if group is None:
+        return None
+    return fact("meteorite-group", "Nearest Meteorite Group", "None fits (not a chondrite mix)" if group == meteorite_groups.NONE else f"{group} chondrites")
+
+
 def _belt_section(belt):
     rows = [
         fact("inner", "Inner Edge", _au(belt.lower_limit)),
         fact("outer", "Outer Edge", _au(belt.upper_limit)),
         fact("density", "Density", belt.density),
+        fact("mass", "Mass", _mass(belt.mass_kg)),
     ]
+    rows.append(meteorite_group_fact(belt))
     parts = [{"name": component, "level": level} for component, level in belt.composition]
     return section("belt", _ref("belt", belt), "Asteroid Belt",
                    [facts("Asteroid belt", rows),
