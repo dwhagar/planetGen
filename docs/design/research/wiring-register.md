@@ -336,7 +336,7 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | column | origin_event_id | GEN.346 | `asteroid_fields.origin_event_id`, the orbital event that made the field; written when a collision makes a field |
 | function | planetgen.galaxy.cellkey.cell_keys | TEST.520 | only tests call it; wire it into the code that needs it or delete it (TEST.520 first sweep) |
 | function | planetgen.galaxy.cellkey.sql_cell_key | TEST.520 | only tests call it; wire it into the code that needs it or delete it (TEST.520 first sweep) |
-| function | planetgen.galaxy.density.component_masses | GEN.338 | the closed-form mass of each density component (GEN.379); the galactic potential reads its bulge, disc and halo masses from here |
+| function | planetgen.galaxy.density.component_masses | by design | each density component's closed-form mass (GEN.379), the total `test_density_components` holds the numerical integral (`integrated_masses`) to; the potential (GEN.338) reads the component masses from `density_components` directly |
 | function | planetgen.galaxy.density.predicted_star_count | by design | the sector gate of the density design (`predicted_star_count >= 1`) as one pure function of the position; `run_plan` and the sector profile apply the same product with the clamp at 0 inline, and the tests use this as the rule's definition |
 | function | planetgen.galaxy.object_uid.is_on_demand | TEST.520 | only tests call it; wire it into the code that needs it or delete it (TEST.520 first sweep) |
 | function | planetgen.galaxy.object_uid.captured_member | TEST.520 | only tests call it; wire it into the code that needs it or delete it (TEST.520 first sweep) |
