@@ -51,6 +51,9 @@ class CoreGas:
         bound_share (float): The share of the new stars that form in bound clusters.
         young_density (float): The amplitude of the field's young stars at the ring, in the model's unnormalized
             units (like `nuclear_disc_density`).
+        gas_surface_density_msun_pc2 (float): The ring's gas over its area: the inflow times
+            `tuning.CORE_RING_GAS_RESIDENCE_MYR`, over `2 pi R FWHM` (GEN.1195; the most massive cluster the ring forms
+            reads it, `physics.cluster_maximum_mass`).
     """
     inflow_msun_yr: float
     rate_msun_yr: float
@@ -60,6 +63,7 @@ class CoreGas:
     rate_density: float
     bound_share: float
     young_density: float
+    gas_surface_density_msun_pc2: float = 0.0
 
 
 NO_RING = CoreGas(0.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 0.0)
@@ -111,7 +115,9 @@ def core_gas(shape):
     amplitude = (field_young_mass * model_units_per_solar
                  / (2.0 * math.pi * _radial_integral(radius, sigma) * 4.0 * height))
     return CoreGas(inflow_msun_yr=inflow, rate_msun_yr=rate, radius_pc=radius, sigma_pc=sigma, height_pc=height,
-                   rate_density=rate_density, bound_share=bound, young_density=amplitude)
+                   rate_density=rate_density, bound_share=bound, young_density=amplitude,
+                   gas_surface_density_msun_pc2=(inflow * tuning.CORE_RING_GAS_RESIDENCE_MYR * 1.0e6
+                                                 / (ring_area_kpc2 * _PC2_PER_KPC2)))
 
 
 def _sech_squared(value):
