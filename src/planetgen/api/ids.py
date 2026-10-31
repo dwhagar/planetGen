@@ -27,7 +27,7 @@ from collections import defaultdict
 from werkzeug.routing import BaseConverter, ValidationError
 
 from planetgen.db import kind_tables
-from planetgen.galaxy import object_uid, uid as sector_uid
+from planetgen.galaxy import designations, object_uid, uid as sector_uid
 
 SECTOR = "sector"
 """str: The kind of a sector, whose ID is a plain integer (its designation)."""
@@ -149,6 +149,52 @@ def row_id(conn, kind, printed_id):
     return row_ids(conn, kind, [text]).get(text)
 
 
+class RetiredId(Exception):
+    """
+    A printed ID that no object holds now but one did (GEN.1139, `galaxy/designations.py`): a retired ID is reserved for ever and names the object
+    that held it. `current` is the printed ID that object has now, `None` when it has been deleted (`gone`).
+    """
+
+    def __init__(self, kind, printed, current):
+        super().__init__(f"{printed} was the ID of a {kind}" + (f", now {current}" if current else " that has been deleted"))
+        self.kind = kind
+        self.printed = printed
+        self.current = current
+
+    @property
+    def gone(self):
+        return self.current is None
+
+
+def retired(conn, kind, printed_id):
+    """
+    What a printed ID that names nothing live was: `None` when no object ever held it, else a `RetiredId` (it redirects to the object's current ID,
+    or the object is gone). Only kinds whose IDs can change are looked at; a sector's ID is its address and never does.
+
+    Returns:
+        RetiredId or None
+    """
+    if kind == SECTOR or kind in CONTAINER_KINDS or kind not in ACTIVE_KINDS:
+        return None
+    table = _table(kind)
+    try:
+        value = parse(kind, printed_id)
+        text = format_stored(kind, value)
+    except IdError:
+        return None
+    row = conn.execute("SELECT object_kind, object_row_id, retired_epoch, gone_epoch FROM designations WHERE uid = ?", (bytes(value),)).fetchone()
+    if row is None or row["object_kind"] != table:
+        return None
+    held = designations.Retired(designations.KIND_UID, object_uid.from_bytes(bytes(value)), row["object_kind"], row["object_row_id"], None,
+                                row["retired_epoch"], "rename", row["gone_epoch"])
+    found = designations.resolve_uid(held.designation, lambda _uid: None, [held])
+    if found.status == designations.REDIRECT:
+        now = conn.execute(f"SELECT uid FROM {table} WHERE id = ?", (found.object_row_id,)).fetchone()
+        if now is not None and now["uid"] is not None:
+            return RetiredId(kind, text, format_stored(kind, now["uid"]))
+    return RetiredId(kind, text, None)
+
+
 def printed_many(conn, kind, ids):
     """`{row id: printed ID}` for the rows of `kind` among `ids`. A sector with no stored ID gets the ID it would
     be given (its designation from its address, else `uid.unplaced_sector_uid`)."""
@@ -259,6 +305,9 @@ def resolve_view_args(conn_factory, view_args, abort_not_found, fallback=None, b
     Replaces the printed IDs in `view_args` (in place) with row ids. `conn_factory()` opens the request's
     read-only connection when an ID has to be looked up; `abort_not_found(message)` is called, and must
     raise, for an ID that names nothing; when it returns, `fallback` stands in.
+
+    Raises:
+        RetiredId: An ID that an object held once (GEN.1139); the hook that called this answers it.
     """
     for name, kind in VIEW_ARG_KINDS.items():
         if name not in view_args:
@@ -270,6 +319,9 @@ def resolve_view_args(conn_factory, view_args, abort_not_found, fallback=None, b
         text = view_args[name]
         found = row_id(conn_factory(), kind, text) if kind in ACTIVE_KINDS else None
         if found is None:
+            gone = retired(conn_factory(), kind, text) if kind in ACTIVE_KINDS else None
+            if gone is not None:
+                raise gone
             abort_not_found(f"no {kind or 'object'} with ID {text}")
             found = fallback
         view_args[name] = found
@@ -472,7 +524,39 @@ def _resolve(view_args, strict):
 
     segments = request.path.split("/")
     body_kind = BODY_URL_KINDS.get(segments[2]) if len(segments) > 2 else None
-    resolve_view_args(get_db, view_args, missing, fallback=0, body_kind=body_kind)
+    try:
+        resolve_view_args(get_db, view_args, missing, fallback=0, body_kind=body_kind)
+    except RetiredId as exc:
+        return _answer_retired(exc)
+
+
+def _answer_retired(exc):
+    """
+    How the API answers a retired ID (GEN.1139): a read of one whose object exists is a 301 to the same URL with the current ID (and
+    `X-Designation-Formerly` with the retired one); a write against it is a 409 that names the current ID and changes nothing, since a write never
+    acts on a guess; an object that was deleted answers 410 to either.
+
+    Returns:
+        Response: The 301, for the caller to return from its hook.
+
+    Raises:
+        ApiError: The 409 or the 410.
+    """
+    from flask import jsonify, request
+
+    from planetgen.api.common import ApiError
+
+    if exc.gone:
+        raise ApiError(f"{exc.printed} was the ID of {exc.kind} that has been deleted", 410, extra={"formerly": exc.printed, "gone": True})
+    if request.method not in ("GET", "HEAD"):
+        raise ApiError(f"{exc.printed} is a retired ID; the object is now {exc.current}, and nothing was changed", 409,
+                       extra={"formerly": exc.printed, "current_id": exc.current})
+    location = re.sub(re.escape(exc.printed), exc.current, request.full_path.rstrip("?"), count=1, flags=re.IGNORECASE)
+    response = jsonify({"moved_to": exc.current, "formerly": exc.printed})
+    response.status_code = 301
+    response.headers["Location"] = location
+    response.headers["X-Designation-Formerly"] = exc.printed
+    return response
 
 
 def _resolve_request_ids():
@@ -487,7 +571,7 @@ def _resolve_request_ids():
     view = current_app.view_functions.get(request.endpoint)
     if getattr(view, "admin_required", None) is not None:
         return
-    _resolve(view_args, strict=request.method in ("GET", "HEAD"))
+    return _resolve(view_args, strict=request.method in ("GET", "HEAD"))
 
 
 def resolve_kwargs(kwargs):
@@ -495,7 +579,11 @@ def resolve_kwargs(kwargs):
     that names nothing)."""
 
     if kwargs and _api_request():
-        _resolve(kwargs, strict=True)
+        redirect = _resolve(kwargs, strict=True)
+        if redirect is not None:
+            from flask import abort
+
+            abort(redirect)
 
 
 def translate_response(obj):

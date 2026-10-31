@@ -82,6 +82,18 @@ class ApiError(Exception):
         self.status_code = status_code
 
 
+class MovedError(Exception):
+    """
+    Raised for the API's 301 on a retired ID (GEN.1139): the object has another ID now. `current` is the printed ID it has and `formerly` the
+    retired one the page was asked for; a page route turns this into a 301 to its own URL with the new ID (`web/errors.py`).
+    """
+
+    def __init__(self, current, formerly):
+        super().__init__(f"{formerly} is now {current}")
+        self.current = current
+        self.formerly = formerly
+
+
 # ---------------------------------------------------------------------
 # Transport: how a request actually reaches the API.
 #
@@ -226,6 +238,12 @@ def _send(method, target, json_body=None, cookie_header=None, timeout=_TIMEOUT_S
             _log_call(method, where, start, f"unreachable: {exc}")
             raise ApiError(f"Could not reach the planetGen API at {API_BASE_URL}: {exc}")
 
+    if response.status == 301:
+        try:
+            moved = json.loads(response.body)
+            raise MovedError(moved["moved_to"], moved["formerly"])
+        except (ValueError, KeyError, TypeError):
+            raise ApiError(f"planetGen API sent a redirect with no new ID for {where}", status_code=301)
     if response.status >= 400:
         detail = _error_detail(response)
         _log_call(method, where, start, f"HTTP {response.status}: {detail}")

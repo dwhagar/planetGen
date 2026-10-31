@@ -15,9 +15,10 @@ while `/api/...` keeps its JSON errors.
 """
 
 import os
+import re
 import time
 
-from flask import current_app, request
+from flask import current_app, redirect, request
 
 from planetgen.web.lib import apiclient
 from planetgen.util import log
@@ -29,6 +30,7 @@ _TITLES = {
     400: "Bad request",
     403: "Forbidden",
     404: "Not found",
+    410: "Gone",
     405: "Method not allowed",
     413: "Too large",
     429: "Too many requests",
@@ -92,8 +94,17 @@ def register(bp):
         log.debug(f"Not found: {exc}")
         return render_error(404, str(exc) or "Not found.")
 
+    @bp.app_errorhandler(apiclient.MovedError)
+    def _moved(exc):
+        """A page asked for an ID the object has since left (GEN.1139): the same page under its current ID."""
+        path = re.sub(re.escape(exc.formerly), exc.current, request.path, count=1, flags=re.IGNORECASE)
+        query = request.query_string.decode("utf-8", errors="replace")
+        return redirect(f"{path}?{query}" if query else path, code=301)
+
     @bp.app_errorhandler(apiclient.ApiError)
     def _api_error(exc):
+        if exc.status_code == 410:
+            return render_error(410, "This object has been deleted, and its ID is not used again.")
         if exc.status_code == 504:
             log.debug(f"Query time limit on {request.path}: {exc}")
             return timeout_page()

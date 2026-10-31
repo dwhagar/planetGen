@@ -1207,6 +1207,8 @@ answers its own HTML page), and an unexpected server-side failure is a
 leaks a stack trace, a connection error or the database's user/host to
 the client (the real detail still reaches Flask's own logger).
 
+**Retired IDs (GEN.1139).** An object may change its ID, and an ID it leaves is reserved for ever (`designations`, [designation-history.md](../design/architecture/designation-history.md)). A `GET` or `HEAD` of a retired ID is a `301` to the same URL with the object's current ID (the query string kept), with the retired ID in `X-Designation-Formerly` and `{"moved_to": ..., "formerly": ...}` as the body. A write against one (`PATCH`, `POST`, `DELETE`) is a `409` whose body carries `current_id` and `formerly` and which changes nothing. An object that was deleted answers `410` (`{"gone": true, "formerly": ...}`) to every method. An ID nobody ever held is still a `404`. A page route asked for a retired ID answers the same `301` to its own URL, or an HTML `410`.
+
 Every response also carries `X-Content-Type-Options: nosniff`,
 `X-Frame-Options: DENY`, `Referrer-Policy: no-referrer` and
 `Content-Security-Policy: default-src 'none'`, and, when the request came
