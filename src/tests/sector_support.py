@@ -3,34 +3,26 @@
 `run_galaxy.ensure_sector_generated`, the "generate on a visit" entry point, was removed: no page or API route generates a
 sector while it answers (an admin makes sectors by a run, `regenerate_sector_cell` or the Generate page). Many tests still
 need one sector at a named address with the whole save path behind it (profile density, block totals, the bright-star
-backfill, the queued settle), so `make_sector` is that path for a test, built from the same pieces the runs use."""
+backfill, the settle), so `make_sector` is that path for a test, built from the same pieces the runs use."""
 
 import logging
 
 from planetgen.generation import run_galaxy, run_sector
-from planetgen.queue import api_jobs, redisqueue
+from planetgen.db import store
+from planetgen.queue import redisqueue
 
 log = logging.getLogger(__name__)
 
 
-def queue_settle(config, sector_ids):
+def settle_sectors(config, sector_ids):
     """
-    Saves the sector paths of `sector_ids` and the sectors around them (GEN.126) as a queued job, as the on-the-spot generation of a sector once
-    did. When the job cannot be queued (an update is running, or the conftest's rule that settle jobs run inline) it runs here, as a run
-    through the wrapper like the job's; with no Redis server for that run either, the paths are not saved and the next settle covers them.
-
-    Returns:
-        str | None: The job's id, or `None` when it ran inline.
+    Saves the sector paths of `sector_ids` and the sectors around them (GEN.126), here and now, as a run of `settle-sector-paths` through the
+    wrapper (`run_galaxy.settle_named_sectors`). With no Redis server for that run the paths are not saved and the next settle covers them.
     """
-    sector_ids = sorted(sector_ids)
     try:
-        return api_jobs.submit(api_jobs.settle_sectors, sector_ids, config)
-    except api_jobs.NoQueue:
-        try:
-            api_jobs.settle_sectors(sector_ids, config)
-        except redisqueue.Unavailable as exc:
-            log.error(f"The sector paths of {len(sector_ids)} sector(s) were not saved: {exc}")
-        return None
+        run_galaxy.settle_named_sectors(sector_ids, config or store.DEFAULT_MYSQL_CONFIG)
+    except redisqueue.Unavailable as exc:
+        log.error(f"The sector paths of {len(sector_ids)} sector(s) were not saved: {exc}")
 
 
 def backfill_bright_stars(config, center_pc):
@@ -44,7 +36,7 @@ def make_sector(shell_index, band_index, wedge_index, config=None, backfill=True
 
     Args:
         backfill (bool): Run the bright-star backfill around the new sector.
-        settle (bool): Queue the settle job (`queue_settle` below) for the new sector.
+        settle (bool): Settle the new sector's paths (`settle_sectors` above).
         link (bool): Link the sector to its neighbours as it is saved.
         num_systems (int): Generate this many systems instead of the profile's count (TEST.403: a test that checks what is
             done around the sector, not what is in it, asks for one; a dense cell draws thousands).
@@ -68,6 +60,6 @@ def make_sector(shell_index, band_index, wedge_index, config=None, backfill=True
         backfill_bright_stars(config, position_pc)
     run_galaxy._refresh_block_totals(config, address)
     if settle:
-        queue_settle(config, [sector_id])
+        settle_sectors(config, [sector_id])
     return {"created": True, "qualifies": qualifies, "in_reach": True, "sector_id": sector_id, "sector_name": sector_name,
             "summary": run_sector.sector_generation_summary_lines(sector, args)}

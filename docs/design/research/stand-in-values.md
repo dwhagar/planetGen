@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1022 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1031 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -41,11 +41,11 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T3 | 88 | 38 | 8 | 10 | 0 | 144 |
 | T4 | 42 | 5 | 0 | 15 | 10 | 72 |
 | T5 | 48 | 19 | 1 | 1 | 0 | 69 |
-| T6 | 97 | 79 | 20 | 51 | 0 | 247 |
-| T7 | 28 | 13 | 7 | 12 | 0 | 60 |
+| T6 | 98 | 80 | 20 | 51 | 0 | 249 |
+| T7 | 29 | 13 | 7 | 12 | 0 | 61 |
 | T8 | 0 | 1 | 1 | 5 | 1 | 8 |
-| T9 | 19 | 14 | 5 | 44 | 19 | 101 |
-| All | 580 | 222 | 50 | 140 | 30 | 1022 |
+| T9 | 21 | 14 | 5 | 46 | 21 | 107 |
+| All | 584 | 223 | 50 | 142 | 32 | 1031 |
 
 ## How the labels were given
 
@@ -1457,6 +1457,30 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | PT1 | P | T9 | L0 | planet_type.TERRESTRIAL_MAX_ENVELOPE 0.005: an envelope under 0.5 percent of the mass is a terrestrial body (about the 1.6 Earth radii where rocky planets end) | 0.002 to 0.02 | planets and moons | a measured planet of 1.6 to 2 Earth radii that is rocky with no envelope, or a rocky world of 1.3 radii with a thick hydrogen envelope | the radius valley limit of GEN.722 read from the envelope the planet holds | Rogers 2015 and Fulton and Petigura 2018 (rocky limit near 1.6 Earth radii); Lopez and Fortney 2014 (envelope share against radius) | GEN.1219 | - |
 | PT2 | P | T9 | L0 | planet_type.GAS_MIN_ENVELOPE 0.5: an envelope of half the mass or more is a gas body (the line of bulk_structure.GIANT_ENVELOPE_FRACTION) | 0.3 to 0.7 | planets | a giant of Neptune's mass that is more than half envelope, or a Jupiter whose core outweighs its envelope | the envelope share the giant interior model gives (GEN.428) | Boss's choice of the pure rule; Neptune 10 to 15 percent envelope (Helled 2011) and Jupiter 90 percent or more | - | - |
+
+## 6.162 Stand-ins of the temperature a body took its shape at
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| SHT1 | D | T7 | L0 | shape_temperature.ICE_SPECIFIC_HEAT 1700 J/(kg K): the heat capacity of the ice of a body (ice Ih is about 1500 at 160 K and 2100 at 273 K) | 1500 to 2100 | icy bodies between 150 and 273 K | a measured heat capacity of the ice of a body outside 1500 to 2100 | a temperature-dependent ice heat capacity read from a table | recalled from the known range of ice Ih; not read | GEN.1201 | - |
+| SHT2 | P | T6 | L1 | shape_temperature.WINDOW_SHAPE_FACTOR pi^2: the heat a body keeps is the heat its rock makes in `R^2 / (pi^2 kappa)`, the decay time of the first conduction mode of a sphere; the heat is spread over the whole body, so the temperature is the centre's, an upper bound for the mean | factor 3 to 20 | any solid body | a thermal-history run (`interior_heat`) of a 10 to 100 km body whose peak mean temperature differs from this by more than 300 K | the peak temperature of the thermal history of `interior_heat`, once it follows planetesimals | a model choice of the item: the steady-state balance `h R^2 / (6 kappa)` gives 1.6 times the heat of this window, so the window is the smaller | GEN.1201 | - |
+
+## 6.161 Stand-ins of the mass of an asteroid field
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| FM1 | P | T9 | L3 | field_mass.MIN_FIELD_MASS_EARTH 1e-9: a field under this mass is not a field (the belts' line, BG14) | 1e-10 to 1e-8 Earth masses | any field | a survey of warm dust around remnants that finds fields below the line, or none above it | the same replacement as BG14 | Boss, 2026-10-31: the belt minimum of 1e-9 Earth masses stands, the same rule for fields | GEN.1103 | no data |
+| FM2 | P | T9 | L4 | field_mass.COLLISION_LAW: the rubble of a rogue collision follows the rocky main-belt size law (`belt_ledger.ROCKY_LAW`) | the law's breaks and exponents | the stored bodies of a collision field | a measured or modelled largest-fragment mass of a planetary collision that differs from the law's by more than a factor 3 | the largest-fragment reading (LS12) | a stand-in with no source for the rubble of a planet-planet collision | GEN.1105 | no data |
+
+## 6.160 Stand-ins of the lumpy mesh of a small body
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| LUM1 | D | T9 | L0 | lumpymesh.LUMPY_MAX_KM 400: a body whose roundness is not stored is drawn as a lump under this radius | 300 to 600 km | a system stored before GEN.1159 | none (a drawing choice; the stored ratio replaces it for every system made after) | the stored roundness ratio of every body | Boss, 10:26 PM EDT 2026-10-23: lumpy meshes under about 400 km | - | - |
+| LUM2 | P | T9 | L4 | lumpymesh.FALLBACK_ROUNDNESS 0.5: the ratio a lump without a stored one is drawn with | 0.2 to 0.8 | a lump of a system stored before GEN.1159 | none: a fitted picture | the stored roundness ratio | a choice of the item; no source | - | no data |
+| LUM3 | P | T6 | L0 | lumpymesh.MAX_ELONGATION 0.8: the long axis over the short is 1.8 at most for a body far from round (the longest small bodies of the Solar System are about two to one) | 0.5 to 1.2 | any lumpy body | a tri-axial shape stored for the body that differs by more than a factor 1.5 | a stored tri-axial shape | an inference from the small-body shapes of the Solar System | - | - |
+| LUM4 | P | T9 | L3 | lumpymesh.BUMP_BASE 0.05 and BUMP_PER_DEFICIT 0.2: the bumps stand 5 percent of the radius high for a body just short of round, and 25 percent for one far from it | base 0.02 to 0.1; per deficit 0.1 to 0.3 | any lumpy body | none: tuned by eye against pictures of small bodies | a stored relief or a fitted power spectrum of small-body topography | tuned by eye against a sweep of pictures | - | no data |
+| LUM5 | P | T9 | L0 | lumpymesh.BUMP_WAVES 7: seven smooth waves, weighted 1/n, make the bumps | 4 to 12 | any lumpy body | none: a drawing choice | a measured spectrum of small-body shapes | a choice of the item | - | - |
 
 ## 6.159 Stand-ins of the star stepper
 

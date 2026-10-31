@@ -9,7 +9,7 @@ from planetgen.generation import run_galaxy, run_sector
 from planetgen.queue import api_jobs, commands, redisqueue, runrecord
 from tests import first_fill
 from tests.test_galaxy_gen import _all_sectors, _seed_skeleton, _shells
-from tests.sector_support import make_sector, queue_settle
+from tests.sector_support import make_sector
 
 pytestmark = [pytest.mark.db, pytest.mark.usefixtures("unit_density_plans")]
 
@@ -95,9 +95,9 @@ def test_a_block_that_holds_more_than_a_request_may_list_is_refused(mysql_config
                                   estimate_only=True)
 
 
-def test_the_settle_job_is_a_run_of_the_named_sectors(mysql_config, conn):
+def test_settling_the_named_sectors_is_a_run_of_them(mysql_config, conn):
     center = _a_galaxy_sector(mysql_config)
-    assert isinstance(api_jobs.settle_sectors([center], mysql_config)["saved"], int)
+    assert isinstance(run_galaxy.settle_named_sectors([center], mysql_config), int)
     titles, runs = _titles(conn)
     assert titles == ["Sector paths"] and runs[0]["state"] == "done"
 
@@ -105,15 +105,3 @@ def test_the_settle_job_is_a_run_of_the_named_sectors(mysql_config, conn):
 def test_the_named_sectors_are_the_ones_the_settle_stage_works_on():
     assert run_galaxy._sectors_since({"sector_ids": [4, 2], "since": "2000-01-01 00:00:00"}) == [4, 2]
     assert commands.REGISTRY["settle-sector-paths"].unit and commands.REGISTRY["scatter-backfill"].expand
-
-
-def test_a_settle_that_can_be_neither_queued_nor_run_says_so_and_does_not_fail_the_caller(monkeypatch):
-    def no_queue(*args, **options):
-        raise api_jobs.NoQueue("an update is running")
-
-    def no_redis(*args, **options):
-        raise redisqueue.Unavailable("no Redis server answers")
-
-    monkeypatch.setattr(api_jobs, "submit", no_queue)
-    monkeypatch.setattr(api_jobs, "settle_sectors", no_redis)
-    assert queue_settle(None, [3, 1]) is None

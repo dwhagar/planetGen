@@ -170,9 +170,11 @@ connectivity to that specific schema rather than the default one.
   themselves). `sector_id=none` matches only standalone systems
   (`sector_id IS NULL`, the `/systems` page's Standalone Systems table) — distinct
   from omitting `sector_id` entirely (no sector filter at all). The Systems
-  tables (UX.41) also take `sort` (`name`, `sector`, `octant`, `binary`) with
+  tables (UX.41) also take `sort` (`name`, `sector`, `octant`, `binary`, `stars`) with
   `order=asc|desc` (systems with no sector or octant sort last), the filters
   `binary=yes|no`, `placement=sector|standalone` and `octant` (repeatable),
+  and `stars` (UX.239: how many stars a system holds, as in `/api/search`: a count `3`, `3+` for three or more, or `single`, `binary`, `trinary`,
+  `quaternary`, `quintenary`; anything else is a 400; the `stars` sort orders by the same count and pages by `offset`),
   and `facets=1`, which adds `facets: {"placement", "binary", "octant"}`
   (each `[{"value", "count"}]`; every menu's counts apply the other filters
   but not its own). `total` counts the systems that pass the filters; where
@@ -213,7 +215,7 @@ connectivity to that specific schema rather than the default one.
   `sort=name` list at the first name from it on; `past_end` is true when none lies at or past it and the last page is
   answered). Answers `items`
   (`kind`, `id` the printed object ID, `source_id`, `name`, `sector_id`, `system_id`, `parent_id`, `object_class`,
-  `mass_kg`, `radius_km`, `placed`; a planet's or moon's also `phi4` and the six `tier_<domain>` PHI-6 ratings, 0 Blue to 3 Red, `null` for a body that was not scored, UX.100), `next` (null at the last page), `total` and `total_capped`, `limit`. The index is
+  `mass_kg`, `radius_km`, `placed`; a planet's or moon's also `phi4` and the six `tier_<domain>` PHI-6 ratings, 0 Blue to 3 Red, `null` for a body that was not scored, UX.100; a star's also `temperature_k`, `luminosity_w` and `age_gy`, a planet's or moon's `distance_km` (its orbit size), `eccentricity` and `surface_temperature_k`, as stored, `null` where the row holds none, UX.187), `next` (null at the last page), `total` and `total_capped`, `limit`. The index is
   what `planetgen warm object-index` last wrote, so a kind it has not been built for lists nothing. 400 for an unknown
   kind, sort or order, a `limit` or `sector_id` that is not a number, a `from` under another sort, or an `after` that is not an object ID
   (`objectlist.list_objects`).
@@ -314,8 +316,9 @@ connectivity to that specific schema rather than the default one.
   a place (NAV.43, `planetgen.db.near.objects_within`): systems, stars,
   planets, moons, belts, comets, facilities and the standalone phenomena,
   nearest first, each with `ref`, `kind`, `id`, `name`, `parent` and
-  `distance_pc`. Optional `kinds` (comma-separated), `limit` (50, at most
-  200) and `offset`. The answer also carries `total`, `by_kind`, and
+  `distance_pc`; a `system` row also has `star_count`. Optional `kinds` (comma-separated), `limit` (50, at most
+  200), `offset` and `stars` (UX.239, as in `/api/search`: only the systems with that many stars and what is in them; phenomena and facilities
+  outside a system are left out). The answer also carries `total`, `by_kind`, and
   `not_generated` (`{kind: count}`, with `not_generated_total`): the
   pre-placed bright stars (`bright_star`) and scatter objects in the sphere
   that are not built yet, counted and never listed; the search never

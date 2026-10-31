@@ -888,24 +888,7 @@ with `clamp()`.
   Owner (housekeeping) (2026-10-30 2:55 PM EDT): released to the pool:
   the owner named above (Aux 12) is a retired lane. A waiting lane takes
   it, confirmed with TODO, one lock-free item at a time.
-  Prerequisites: UX.227, UX.228. Related: UX.214, UX.150, GEN.568, UX.226, UX.227, UX.228.
-
-- [ ] **UX.227 The search page shows range controls for the physical values, with units, and the active filters as chips (G4, step 2)**
-  Unused stored values audit chain
-  (reports/unused-stored-values-audit-2026-10-24.md, Boss 10:16 PM EDT
-  and 10:35 PM EDT 2026-10-24: make each a chain, with a GitHub goal
-  issue). Range inputs and sort options on the search page for the keys
-  of UX.226, with the unit beside each, shown as filter chips
-  (active_filters). Done: a browser test sets a gravity and a dose range
-  and gets the right planets. Version 8.2, phase 2. Owner: Aux 6.
-  Rules: no backward-compat shims; every number has a unit or scale
-  (GEN.772); a changed generated value carries `tests.golden_update
-  --reason ... --affects <stage>` and the next epoch; tests are
-  `scripts/test.py changed --resume`.
-  Owner (housekeeping) (2026-10-30 2:55 PM EDT): released to the pool:
-  the owner named above (Aux 6) is a retired lane. A waiting lane takes
-  it, confirmed with TODO, one lock-free item at a time.
-  Prerequisites: UX.226. Related: UX.225.
+  Prerequisites: UX.228. Related: UX.214, UX.150, GEN.568, UX.226, UX.227, UX.228.
 
 - [ ] **UX.228 The object lists and Nearby filter and sort by the same physical values (G4, step 3)**
   Unused stored values audit chain
@@ -975,30 +958,6 @@ with `clamp()`.
   living classes of GEN.1209 are shown as they land. Help links for each
   word come from DOC.84.
   Prerequisites: none. Related: UX.221.
-
-- [ ] **UX.239 Search for star systems by how many stars they hold: single, binary, trinary, quaternary and more**
-  Boss (2026-10-30, 9:33 AM EDT): we need a way to search for star
-  groups, such as binary, trinary, quaternary and so on. Do: a
-  multiplicity filter (exactly N stars, or N or more, with named choices
-  Single, Binary, Trinary, Quaternary, Quintenary and beyond) in the
-  search page, Nearby, /api/search (parameter `stars`) and the command
-  line, plus a sort key and the count shown in each result row; it reads
-  the stored star count of the system, so it needs no new column unless
-  the count is not stored on the system row (then the owner adds it with
-  its unit entry). It rides the same engine as the physical-value
-  filters (UX.226, UX.227). Done: a browser test finds a known binary
-  and a known triple by the filter, the API and command line agree, and
-  the help text names every choice.
-  Boss 5:49 PM EDT 10-30 (owner and priority) (2026-10-30 5:50 PM EDT):
-  Boss needs this now to find and test multi-star systems (the
-  third-star fix): owner Core 1, right after UX.242 (PR #4142 adds
-  star_count to the list). First slice, not waiting for the general
-  engine: a `stars` filter (exactly N, or N or more; Single, Binary,
-  Trinary, Quaternary, Quintenary and beyond) in the search box and the
-  Systems panel of the search page and in /api/search?stars=, reading
-  the stored star count; the numeric engine of UX.226 absorbs it later.
-  The prerequisite on UX.226 is dropped for this slice.
-  Prerequisites: none. Related: UX.226, UX.227, GEN.728, TEST.162.
 
 - [ ] **UX.241 Asteroid belt information page: route, template and API field showing the individually tracked bodies (by designation, each linked to its member page), the contents and sizes of the rest of the belt mass, and the density factor with its unit; link from the system page and the belt row**
   Asteroid belt information page (Boss, 4:37 PM EDT 2026-10-30: "an
@@ -1085,6 +1044,10 @@ with `clamp()`.
   rewrite changes its own text to American spelling, and the number of
   "colour" uses (333 on the site) goes to zero. The word list and the
   checker change are made by Core 5 with the next guide edit.
+  Boss rule, 2:50 PM EDT (2026-10-31 2:55 PM EDT): Oxford comma: apply
+  the serial comma in the rewrite (rule 15 of the plain-words guide;
+  DOC.86 adds the check). Links to References pages wait for DOC.87 (R1)
+  and are done in this same pass.
   Prerequisites: none. Related: UX.237, GEN.1208.
 
 ## MAP: Galaxy Map, Sector Map, System Map
@@ -1995,12 +1958,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   it, confirmed with TODO, one lock-free item at a time.
   Prerequisites: GEN.670, GEN.419.
 
-- [ ] **MAP.279 Small bodies: lumpy meshes for moons and asteroids under about 400 km, from the stored shape**
-  Spheres above the threshold. Design draft
-  design-drafts/body-rendering-from-composition-2026-10-24.md (section
-  11), Boss's plan of 10:26 PM EDT 2026-10-23.
-  Prerequisites: none.
-
 - [ ] **MAP.280 Cloud layer, terminator and cover on solid worlds; cloud-deck worlds paint the deck as the surface**
    Design draft
   design-drafts/body-rendering-from-composition-2026-10-24.md (section
@@ -2224,6 +2181,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   The trojan icon had no owner. Owner now: Core 2 (after GEN.1150)
   (proposed by the TODO thread; the lane says if it cannot take it).
   Prerequisites: GEN.1150. Related: MAP.169.
+
+- [ ] **MAP.363 Object page: draw the lumpy silhouette of an unrounded small body, as the System Map and the 3D system view do (bodyview.js)**
+  Follow-up of MAP.279 (merged #4572 at about 2:50 PM EDT 10-31): the
+  System Map and the 3D system view draw a moon or asteroid that its own
+  weight has not pulled round as an elongated, bumpy lump
+  (src/html/static/lumpymesh.js, the look record field roundness), but
+  the object page (bodyview.js) still draws a round disc. Make it use
+  the same lump from the same look record, so the three views agree.
+  Display only, no generation change. Owner: Aux 5 (Core 2 owns the
+  painter files and agreed to MAP.279; tell Core 2 before touching
+  them).
+  Prerequisites: none.
 
 ## NAV: Navigation and courses
 
@@ -11736,6 +11705,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   The wiring register names this item for the unread ice-albedo feedback
   and its owner lane Air 1 is retired. Owner now: Aux 4 (proposed by the
   TODO thread; the lane says if it cannot take it).
+  Lock branch ready (2026-10-31 3:20 PM EDT): Aux 4 (as the lane
+  reported, 3:19 PM EDT): READY as one lock branch
+  claude/project-thread-nfytfi-gen1229, head 7135c287e, based on main
+  c82ecfcd5 plus #4558; it contains GEN.972 (head 29e0f68a0, one test
+  fix since 3dc7948e8) and GEN.982 part 3 and GEN.1229, so skip the old
+  -gen982-haze branch. Epoch --affects fill, no migration. Census (480
+  bodies): hazy bodies 98 to 82; median haze depth 0.02 to 3.8; bodies
+  over depth 1: 3 to 62; Titan's measured depth 9.6 now comes out of its
+  own production. Depths above about 100 are suspect (the only sink is
+  fall; no rain-out or haze destruction). Stand-ins HZ1 to HZ3, SL4, SL5
+  registered. Tests: 1263 passed; test_giant_one_bar_temperature (two)
+  red on clean main is GEN.1030.
   Prerequisites: none. Related: GEN.752, GEN.462.
 
 - [ ] **GEN.974 Climate feedback 3: cloud albedo on the fixed point (cloud cover changes the reflected share)**
@@ -11798,6 +11779,30 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   The photolysis lifetime table has no caller until this item wires it,
   and its owner lane Air 1 is retired. Owner now: Aux 4 (proposed by the
   TODO thread; the lane says if it cannot take it).
+  Reading chosen and GEN.972 head (2026-10-31 2:13 PM EDT): Aux 4 (as
+  the lane reported, 2:12 PM EDT): a gross photolysis lifetime cannot be
+  a plain loss on a net gas inventory (photon-limited methane loss for
+  an Earth-sized air is about 78 Tmol a year, while the life ledger
+  holds anoxic methane at 100 ppmv to 3.5 percent on 9 to 67 Tmol a year
+  because the products recombine), so it is NOT wired into life_air. It
+  is wired where the table is the physical limit and is missing: the
+  methane haze supply in aerosols.haze_in, which is diffusion limited
+  only. Three parts: (1) Hu 2012 table 6 UV cross sections and a pure
+  photon-limited gross loss function in photolysis.py (lock-free); (2)
+  the star far-UV flux at the body as a subject quantity (lock-free);
+  (3) the haze supply becomes the smaller of the diffusion and
+  photon-limited supplies, a GEN.725 row for the one-layer
+  optical-depth-1 closure (lock work, epoch --affects fill). TODO
+  approved the reading. GEN.972 (ice-albedo feedback) is ready as lock
+  work: branch claude/project-thread-nfytfi-gen972, head 3dc7948e8,
+  epoch --affects fill, passed to the Train Manager.
+  Parts 1 and 2 merged (2026-10-31 2:25 PM EDT): Parts 1 and 2 merged
+  lock-free (cross sections, shielded_column_mol_m2,
+  photon_limited_flux_mol_m2_s, far_uv_power_w, far_uv_flux_ratio;
+  register lines name part 3). Part 3 (haze supply) is built on branch
+  claude/project-thread-nfytfi-gen982-haze, head ef2b42ecc, stacked on
+  GEN.972, held back until GEN.1229 (haze depth per unit of mass flux)
+  is built; the two ride one lock window.
   Prerequisites: none. Related: GEN.754, GEN.794, GEN.748.
 
 - [ ] **GEN.983 Wire the radiation belts (physics/radiation_belts.py) into the surface dose and the habitability radiation score**
@@ -11923,6 +11928,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   then closes with it if the re-measured 8 kpc gas reads about 13, and
   GEN.1200 follows with the inflow-time step (CORE_GAS_INFLOW_TIME_GY, a
   stand-in, registered in GEN.725).
+  Ready for train 8 (2026-10-31 1:58 PM EDT): Core 3 (as the lane
+  reported, 1:54 PM EDT): draft PR #4549, branch gen999, head 8b9448957,
+  lock work (epoch, --affects plan,scatter,fill,population; no
+  migration; census re-baseline). The disc gas law steepens where the
+  gas thins, using the saturation 9 per pc2 and index 2.1 of GEN.450 (no
+  new constant). Milky Way shape: depletion 2.2 to 3.7 Gy, star
+  formation now 1.50 to 1.70 solar masses a year, ring inflow 0.50 to
+  0.62 a year. The thin disc population shares move (young 0.54 to 0.60
+  percent, intermediate 25.0 to 26.8 percent). Train 8 candidate.
+  GEN.1200 closes with it (the ring inflow test now passes, no
+  inflow-time step needed). GEN.1202 stays open: 8 kpc gas is 7.2
+  against 13.7 measured (all-phase total), the residual is registered
+  (AL1) and the disc cluster maximum is re-measured after GEN.1196
+  merges.
   Prerequisites: GEN.932. Related: GEN.998, GEN.476, GEN.469.
 
 - [ ] **GEN.1000 Draw the largest body of every belt from the small body size law (replaces the stand-in largest-body size in the GEN.477 belt mass)**
@@ -13532,6 +13551,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   much mass a field holds by origin) and Boss agrees it, then the member
   ledger reuses the belt rule of GEN.1068. Lock work, same window as
   GEN.1068 or later.
+  Mass rule part merged (#4586), Aux 5 (2026-10-31 3:23 PM EDT): The
+  mass rule is done and merged lock-free (physics/field_mass.py, 11
+  tests, stand-ins FM1 and FM2 in section 6.161); the module is not
+  wired yet: the field columns and member rows (GEN.1103, GEN.1104,
+  GEN.1105) call it. Boss approved option 1 at 3:14 PM EDT. This item
+  stays open for the member ledger
+  (planetgen.galaxy.object_uid.is_on_demand is named by the wiring
+  register) until that wiring is built. Aux 5 is the owner.
   Prerequisites: GEN.1160. Related: GEN.1068, GEN.1160.
 
 - [ ] **GEN.1162 Store bulk density and binding energy (and roundness ratio, yield strength and ice fraction where they apply) on stars, brown dwarfs, giant planets, white dwarfs, neutron stars and black holes; a black hole's binding energy is stored as -1, meaning infinite (Boss, 8:45 PM EDT 2026-10-30)**
@@ -13995,6 +14022,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   must show the round boundary against the measured Solar System one
   only as a plausibility target, never fixed content. Lock work (stored
   roundness and strength change); rides the GEN.1159 window.
+  Pure part merged (#4588), Aux 5 (2026-10-31 3:30 PM EDT): The
+  shape-temperature module physics/shape_temperature.py is merged
+  lock-free (stand-ins SHT1 and SHT2, section 6.162; wiring-register
+  line and change note done): a body's strength falls with the heat it
+  made while its weight shaped it (accretion heat, radioactive heat,
+  tides, capped at the rock's melting). Nothing reads it yet. The wiring
+  step (store the temperature, feed the engine, new column, migration,
+  API version) is lock work and needs GEN.1159 on main first.
   Prerequisites: GEN.1159.
 
 - [ ] **GEN.1202 The generator's disc gas surface density at 8 kpc is 4.3 solar masses per pc2 against 13 measured, which holds the disc cluster maximum mass too low**
@@ -14251,6 +14286,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   item, GEN.1213, built as a separate PR in the same epoch and train as
   this item; the air of multi-life worlds changes, the air of one-class
   worlds does not.
+  References design, 2:52 PM EDT (2026-10-31 2:57 PM EDT): The
+  speculative-chemistry help rewrite and per-class links are DOC.92 (R6
+  of the References menu); this item does not cover the help rewrite.
   Prerequisites: GEN.862. Related: GEN.863, UX.237, TEST.435.
 
 - [ ] **GEN.1211 A new class for hot thin-air rocks (about 1.6 percent of bodies: 1.4 to 2 g, 340 to 1100 K, 1 to 10 kPa, no ocean) is Class Z of the class code system (Boss confirmed)**
@@ -14794,6 +14832,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   API show it. Output change: epoch with --affects, golden, census
   re-tag, on a train, with GEN.1219 and GEN.1220 (one epoch). Where we
   think it belongs (best guess, can move): the Class M research thread.
+  Boss approved option 1 (2026-10-31 1:58 PM EDT): Boss answered Yes at
+  1:56 PM EDT 2026-10-31 to the Class T envelope question (option 1):
+  store the true air share (the hydrogen-rich air's mass over the body's
+  mass) as the envelope share of every body, not a class-based stand-in.
+  GEN.1219, GEN.1220, GEN.1221 and GEN.1207 read that stored value; they
+  may now be built on it.
   Prerequisites: none. Related: GEN.1219, GEN.1220, GEN.1207.
 
 - [ ] **GEN.1227 Store the coma class and the dominant volatiles of an interstellar comet, so the map can colour its coma**
@@ -14826,6 +14870,59 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   section 4.1). Changes the colour of oxidised worlds on the map and
   body pages only; no stored generator value moves. Lock-free (the
   land colour, MAP.274, has merged).
+  Prerequisites: none.
+
+- [ ] **GEN.1229 Methane haze depth per unit of mass flux: the fall term in aerosols.haze_fall (eddy speed replacing fall speed) and the aggregate cross section give Titan its depth only through an oversized mass flux (bug)**
+    Finding from Aux 4's GEN.982 build (as the lane reported, 2:22 PM
+  EDT 2026-10-31). The photon-limited methane loss at Titan's distance
+  is about 6e9 molecules per cm2 per second, which is Titan's own
+  methane loss, and it is 100 to 100000 times under the diffusion supply
+  the haze depth was tuned with. With the physical supply, Titan-like
+  hazes drop from optical depth 0.007 to 3 down to 3e-7 to 0.2 and
+  Titan's 9.6 is not reachable: the old model got its Titan order from
+  an oversized mass flux, so the depth per unit of mass flux is what is
+  off (the fall term in aerosols.haze_fall, where the eddy speed
+  replaces the fall speed, and the aggregate cross section). Do: derive
+  the depth per unit of mass flux from the physics (sourced), fix the
+  fall term and the cross section, then let GEN.982 part 3 (haze supply
+  is the smaller of diffusion and photon-limited, branch
+  claude/project-thread-nfytfi-gen982-haze, head ef2b42ecc, stacked on
+  GEN.972) ride the same lock window. Done: Titan's depth reached from
+  the physical flux; the strict expected failure of the Titan test
+  removed; census of methane hazes before and after. Lock work (epoch,
+  --affects fill). Owner: Aux 4.
+  Lock branch ready (2026-10-31 3:20 PM EDT): Aux 4 (as the lane
+  reported, 3:19 PM EDT): READY as one lock branch
+  claude/project-thread-nfytfi-gen1229, head 7135c287e, based on main
+  c82ecfcd5 plus #4558; it contains GEN.972 (head 29e0f68a0, one test
+  fix since 3dc7948e8) and GEN.982 part 3 and GEN.1229, so skip the old
+  -gen982-haze branch. Epoch --affects fill, no migration. Census (480
+  bodies): hazy bodies 98 to 82; median haze depth 0.02 to 3.8; bodies
+  over depth 1: 3 to 62; Titan's measured depth 9.6 now comes out of its
+  own production. Depths above about 100 are suspect (the only sink is
+  fall; no rain-out or haze destruction). Stand-ins HZ1 to HZ3, SL4, SL5
+  registered. Tests: 1263 passed; test_giant_one_bar_temperature (two)
+  red on clean main is GEN.1030.
+    Prerequisites: GEN.982. Related: GEN.972.
+  Prerequisites: none.
+
+- [ ] **GEN.1230 The disc star formation history should decline to the present for a Milky Way mass galaxy: the model gives 0.49 to 0.55 of the ten Gy mean, measured is 0.20 to 0.3 (bug)**
+  Found by Core 3 while closing TEST.533 (#4575, 2:55 PM EDT 10-31 as
+  the lane reported). Present star formation over its ten-Gy mean for
+  the model disc is 0.49 (0.55 after GEN.999) against 0.20 to 0.3
+  measured for the Milky Way (Licquia and Newman 2015). Cause is not the
+  gas law: the inflow in disk_history follows the halo's stellar growth,
+  and for a light halo that rises to the present, while the Milky Way's
+  own history declines. Measured for the test's disc by halo mass:
+  1.0e12 gives 0.89, 1.6e12 0.49, 2.0e12 0.39, 3.1e12 0.29. GEN.1154
+  lowered the median halo of a 5e10 galaxy from 2.0e12 to 1.57e12 solar
+  masses. Candidate causes: the inflow shape (halo growth rate against
+  the stellar-to-halo relation) and the thin disc's age. Physics
+  decides, no game rate; any stand-in goes in GEN.725 with tier and
+  level. TEST.533 widened the bound to a factor of three with the reason
+  in the test; tighten it back when this lands. Interacts with GEN.999
+  (adds 10 percent), so look at it after train 8. Lock work (epoch).
+  Related: GEN.999, GEN.1154, GEN.1200, GEN.1202. Owner: Core 3.
   Prerequisites: none.
 
 ## PERF: Speed, caching, bulk generation and parallel work
@@ -19489,41 +19586,6 @@ clears each one.
   line in the same change, like a module.
   Prerequisites: none.
 
-- [ ] **TEST.529 test_the_job_strip_shows_the_running_job_on_every_admin_page fails on clean main (bug)**
-  Found by Sources 2 (as the lane reported, 12:45 PM EDT 2026-10-31; red
-  on main without its change), filed by the TODO thread. Kind: red test
-  on main. Object: the admin page test that the job strip shows the
-  running job on every admin page. Do: find the cause (the strip, the
-  fixture or an order dependency) and fix the code or the test with a
-  reason, never by skipping or loosening it without one. Web only,
-  lock-free. Owner Core 5 (proposed; it owns the admin and queue pages).
-  Prerequisites: none.
-
-- [ ] **TEST.531 Delete the sector-settle queue chain that no route reaches any more (api_jobs.settle_sectors and the test helper queue_settle)**
-    Finding from Core 1's TEST.521 (as the lane reported, 1:37 PM EDT
-  2026-10-31).
-    api_jobs.settle_sectors is now reached only by the test helper
-  queue_settle: no route generates a sector on a visit since PERF.149.
-  The queue chain behind it is a delete candidate: remove the chain and
-  the tests that exist only for it, keeping any test of behavior a route
-  still has. Lock-free. Owner: Core 1 when its designations work waits.
-    Prerequisites: none.
-  Prerequisites: none.
-
-- [ ] **TEST.532 Give the bright-star backfill unit path (backfill_bright_stars_unit) its own direct tests, since the serial form the tests cover is no longer the path a run takes**
-    Finding from Core 1's TEST.521 (as the lane reported, 1:37 PM EDT
-  2026-10-31).
-    run_galaxy.backfill_bright_stars_around and its bar tests cover a
-  path a run no longer takes (a run does the same draw in
-  scatter-backfill units), so the unit path, backfill_bright_stars_unit,
-  has less direct test cover than it looks. Add tests that run the unit
-  path itself and show it draws the same stars as the serial form for
-  the same sector, then decide whether the serial form stays as a test
-  reference (registered by design) or goes. Lock-free, tests only.
-  Owner: Core 1 when its designations work waits.
-    Prerequisites: none.
-  Prerequisites: none.
-
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
@@ -20671,8 +20733,142 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   it, confirmed with TODO, one lock-free item at a time.
   Prerequisites: UX.223, NAV.64. Related: DOC.6, DOC.9.
 
-## VIEW: The view from a planet
+- [ ] **DOC.86 Oxford comma everywhere: check lists of three or more for the serial comma, and fix every template, help page and generated sentence**
+  Boss (2026-10-31, 2:50 PM EDT): "introduce our text pages to the
+  oxford comma, sometimes you use it, sometimes you don't, use it, it's
+  important." Rule 15 of the plain-words guide
+  (docs/design/interface/text-style.md) now says every list of three or
+  more has a comma before its and or or. Do: (1) add a checker to
+  planetgen/util/plainwords.py that flags a list of three or more items
+  without the comma, reliably enough to hold (a clause list like 'X,
+  which is big and cold' must not fire: flag only a run of at least
+  three short noun phrases joined by commas ending in and or or without
+  the comma; test sentences for both the hits and the safe cases, then
+  run it over the corpus to see what it flags), and move rule 15 into
+  the checked list; (2) run it over the generated text
+  (tests/test_plain_words.py), the class pages, the life help pages
+  (tests/test_life_help.py), the help suite, the templates and the
+  static pages, and fix every hit; (3) hold the new help pages
+  (References, glossary) to it as they land. Lock-free; text only, no
+  generation change. Owner: Core 5 (with UX.252, which applies the rule
+  in its rewrite).
+  Prerequisites: none.
 
+- [ ] **DOC.87 References R1: link helper (reference_link(kind, id)), the anchor and URL scheme, the banned-words rule for out-of-universe words, and the crawl test**
+  Boss (2026-10-31, as the coordinator relayed): a Help > References
+  menu, out of universe, for sources, the GEN.725 stand-in registry with
+  how each was decided, fitted values, speculative chemistry and gaps;
+  the rest of the site stays in universe. Design:
+  /mnt/project-files/design-drafts/references-help-menu-2026-10-31.md
+  (section 6, R1 to R8). Wording and pages only: no epoch, no lock, no
+  computed change, lock-free. Add `reference_link(kind, id)`, the URL
+  layout, the list of banned out-of-universe words and the exemption for
+  the References pages (a new rule 16 of the plain-words guide, after
+  the Oxford comma rule 15 of DOC.86), and
+  the page crawl test. Related: DOC.83, DOC.57, DOC.86. Owner: Core 1,
+  after TEST.534.
+  Prerequisites: none.
+
+- [ ] **DOC.88 References R2: the References shell and generator (Help menu entry, /references with the Out of universe banner, scripts/build_reference_pages.py with --check, built by update.sh)**
+  Boss (2026-10-31, as the coordinator relayed): a Help > References
+  menu, out of universe, for sources, the GEN.725 stand-in registry with
+  how each was decided, fitted values, speculative chemistry and gaps;
+  the rest of the site stays in universe. Design:
+  /mnt/project-files/design-drafts/references-help-menu-2026-10-31.md
+  (section 6, R1 to R8). Wording and pages only: no epoch, no lock, no
+  computed change, lock-free. Ship the shell before DOC.57 and let
+  DOC.57 absorb it. The generator is built by update.sh and `--check` is
+  held by a test. Related: DOC.57, DOC.58. Owner: Core 1.
+  Prerequisites: DOC.87.
+
+- [ ] **DOC.89 References R3: Sources pages (papers, datasets, archives, licenses, credits), each paper linking to where it is used**
+  Boss (2026-10-31, as the coordinator relayed): a Help > References
+  menu, out of universe, for sources, the GEN.725 stand-in registry with
+  how each was decided, fitted values, speculative chemistry and gaps;
+  the rest of the site stays in universe. Design:
+  /mnt/project-files/design-drafts/references-help-menu-2026-10-31.md
+  (section 6, R1 to R8). Wording and pages only: no epoch, no lock, no
+  computed change, lock-free. Reuse the REFERENCES data. Related:
+  DOC.57. Owner: Sources 1.
+  Boss approved the design with an addendum, 2:54 PM EDT (2026-10-31
+  2:59 PM EDT): R3 grows to: papers with DOI links, browse by research
+  area and by field, search and computed totals. Every paper row links
+  to its DOI page, else arXiv, else ADS, else a search link from title
+  and first author, and a test fails if a row has none. Two browse axes,
+  both computed: where we use it (the area of the code or data that
+  cites it; a paper used in two areas appears in both) and the field of
+  the paper (from the journal), plus year, decade and type. Totals per
+  area, field and decade, oldest and newest, most cited by us, with DOI,
+  with arXiv, books, datasets. /references/papers has A to Z, area,
+  field and year views and a text search over title, author and DOI, and
+  each entry shows which values, stand-ins and pages use it. The
+  citations not yet matched to a paper get their own page with a search
+  link each. Details: section 8 of
+  /mnt/project-files/design-drafts/references-help-menu-2026-10-31.md.
+  Prerequisites: DOC.88.
+
+- [ ] **DOC.90 References R4: stand-in registry pages (every GEN.725 row, one page per stand-in with how it was made and decided, tier and level legends, filters, and the fitted-to-a-result page for L2 to L4 with tuning targets)**
+  Boss (2026-10-31, as the coordinator relayed): a Help > References
+  menu, out of universe, for sources, the GEN.725 stand-in registry with
+  how each was decided, fitted values, speculative chemistry and gaps;
+  the rest of the site stays in universe. Design:
+  /mnt/project-files/design-drafts/references-help-menu-2026-10-31.md
+  (section 6, R1 to R8). Wording and pages only: no epoch, no lock, no
+  computed change, lock-free. Stand-ins already have rows, so no GEN.725
+  change. Related: GEN.725. Owner: Sources 1.
+  Prerequisites: DOC.88.
+
+- [ ] **DOC.91 References R5: method pages by area, what we have and lack, and the computed scorecard; /help/properties moves here with no redirect**
+  Boss (2026-10-31, as the coordinator relayed): a Help > References
+  menu, out of universe, for sources, the GEN.725 stand-in registry with
+  how each was decided, fitted values, speculative chemistry and gaps;
+  the rest of the site stays in universe. Design:
+  /mnt/project-files/design-drafts/references-help-menu-2026-10-31.md
+  (section 6, R1 to R8). Wording and pages only: no epoch, no lock, no
+  computed change, lock-free. Method pages come from the sheet sources
+  and data files. Related: GEN.725, DOC.57. Owner: Core 5.
+  Prerequisites: DOC.88, DOC.90.
+
+- [ ] **DOC.92 References R6: move the speculative chemistry out of the life help and the air chart into /references/speculative, with per-class links (including the multi-class section for GEN.1209 and GEN.1213)**
+  Boss (2026-10-31, as the coordinator relayed): a Help > References
+  menu, out of universe, for sources, the GEN.725 stand-in registry with
+  how each was decided, fitted values, speculative chemistry and gaps;
+  the rest of the site stays in universe. Design:
+  /mnt/project-files/design-drafts/references-help-menu-2026-10-31.md
+  (section 6, R1 to R8). Wording and pages only: no epoch, no lock, no
+  computed change, lock-free. Cut it from `life_help.py` and
+  `life_air_chart.py`. GEN.1209 itself does not cover the help rewrite;
+  this item does. The API field `speculative` stays. Related: GEN.1209,
+  GEN.1210, GEN.1213, UX.237, DOC.84. Owner: Core 5.
+  Prerequisites: DOC.88.
+
+- [ ] **DOC.93 References R7: strip model hints from the leftover pages (maps, sector estimates text, API docs strings) and add links at the important places**
+  Boss (2026-10-31, as the coordinator relayed): a Help > References
+  menu, out of universe, for sources, the GEN.725 stand-in registry with
+  how each was decided, fitted values, speculative chemistry and gaps;
+  the rest of the site stays in universe. Design:
+  /mnt/project-files/design-drafts/references-help-menu-2026-10-31.md
+  (section 6, R1 to R8). Wording and pages only: no epoch, no lock, no
+  computed change, lock-free. UX.252 and UX.253 wait for R1 and do their
+  own links in the same pass over the text they already rewrite; this
+  item covers only what they leave: color note, sector estimated text,
+  life class reaches, sheet source lines to links, class page basis.
+  Split by page kind if large. Related: UX.252, UX.253, DOC.83. Owner:
+  Core 5.
+  Prerequisites: DOC.87, DOC.88, DOC.89, DOC.90, DOC.91.
+
+- [ ] **DOC.94 References R8: test lock: the page crawl proves no out-of-universe word outside References and every link resolves, in the gate for changed pages**
+  Boss (2026-10-31, as the coordinator relayed): a Help > References
+  menu, out of universe, for sources, the GEN.725 stand-in registry with
+  how each was decided, fitted values, speculative chemistry and gaps;
+  the rest of the site stays in universe. Design:
+  /mnt/project-files/design-drafts/references-help-menu-2026-10-31.md
+  (section 6, R1 to R8). Wording and pages only: no epoch, no lock, no
+  computed change, lock-free.  Related: DOC.83. Owner: Core 1.
+  Prerequisites: DOC.93.
+
+- [ ] **DOC.95 References R3b (very important, first, ahead of the page build): tie every unmatched citation to its real paper, or label it not a paper, in batches by heaviest first**
+  Boss (2026-10-31, 2:55 PM EDT, as the lane relayed): finding the real citation for every unmatched citation is "very very important"; high priority, ahead of the References page build, no wait for the shell. Facts: 2,562 of 4,595 author-year mentions in docs/reference/references-data.json are not tied to a paper (about 16,900 places); only about 35 are noise or organizations; 997 appear three or more times; decades 1970s 112, 1980s 164, 1990s 256, 2000s 568, 2010s 912, 2020s 439. The lane reports in /mnt/project-files/reports (294 files) were never harvested and hold many full citations. Crossref works from a build machine; OpenAlex and Semantic Scholar answered 429 until a free key is set. Plan, in order: (1) triage noise ("EDT 2026" read as a citation, Copyright, months) and non-papers (organizations, web pages, software, standards) into a labeled list "Not a paper: what it is, link"; (2) harvest the reports, design drafts and handoffs with `build_references.py harvest --extra`, so a full citation there settles a mention by identifier; (3) search the rest by author, year and the citing sentence's title words on Crossref, then OpenAlex and Semantic Scholar, then arXiv, then ADS, and accept a hit only when first author, year and title or journal agree (near misses go to a review list; none is guessed); (4) work heaviest first (the 997 with three or more places), in batches by decade or by weight; (5) old papers, books and reports get a record by journal, volume, page and publisher with an ADS or library link. Done: every mention is tied to a paper (DOI link, else arXiv, else ADS, else a search link), or sits in the Not a paper list, or in a review list with the citing sentences and what was tried; the overview shows the three counts; a test fails if a new unmatched mention appears without a reason; a missing-DOI report is part of the build. Wording and data only (references-data.json and the REFERENCES pages): no epoch, no lock, lock-free. Boss may supply free OpenAlex and Semantic Scholar keys; ask through TODO. Dataset licensing stays Boss's. Design: section 9 of /mnt/project-files/design-drafts/references-help-menu-2026-10-31.md. Prerequisites: none. Related: DOC.89. Owner: Sources 1.
 - [ ] **VIEW.1 View from a planet**
   **Research first.** Boss: "view-from-planet will have to do
   calculations on colors and A LOT Of stuff, so make special note of

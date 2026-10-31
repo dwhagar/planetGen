@@ -431,3 +431,30 @@ def test_a_generated_moon_has_an_induced_field_figure_and_a_giant_has_none():
                 if moon.hydrosphere not in magnetism.INDUCTION_HYDROSPHERES and interior_heat.core_of(moon) is None:
                     assert moon.induced_moment_a_m2 == 0.0           # GEN.981: a moon with no ocean answers with its metal core, if it has one
     assert moons > 5
+
+
+# --- GEN.982: the far-ultraviolet flux a star gives at a distance, relative to the quiet Sun at 1 AU ---------------------------------
+
+def _plain_star(temperature, luminosity_solar, mass_solar, radius_solar, log_lx_lbol):
+    return types.SimpleNamespace(temperature=temperature, luminosity=luminosity_solar * constants.SOLAR_LUMINOSITY, mass=mass_solar * constants.SOLAR_MASS_TO_KG,
+                           radius=radius_solar * constants.SOLAR_RADIUS_M / 1.0e3, log_lx_lbol=log_lx_lbol)
+
+
+def test_the_far_ultraviolet_flux_falls_with_the_square_of_the_distance_and_is_one_for_the_quiet_sun_at_one_au():
+    sun_log_ratio = math.log10(activity.lx_lbol_at(activity.SUN_AGE_GY, activity.saturated_lx_lbol(1.0), activity.saturation_age_gy(1.0), activity.decay_exponent(1.0)))
+    sun = _plain_star(activity.SUN_TEMPERATURE_K, 1.0, 1.0, 1.0, sun_log_ratio)
+    assert activity.far_uv_flux_ratio(sun, 1.0) == pytest.approx(1.0, rel=0.05)
+    assert activity.far_uv_flux_ratio(sun, 2.0) == pytest.approx(activity.far_uv_flux_ratio(sun, 1.0) / 4.0)
+
+
+def test_a_more_active_star_gives_more_far_ultraviolet_at_the_same_luminosity_and_distance():
+    quiet = _plain_star(3400.0, 0.03, 0.3, 0.3, -5.5)
+    active = _plain_star(3400.0, 0.03, 0.3, 0.3, -3.5)
+    assert activity.far_uv_flux_ratio(active, 0.1) > 10.0 * activity.far_uv_flux_ratio(quiet, 0.1)
+
+
+def test_a_star_without_its_quantities_or_a_distance_has_no_ratio():
+    star = _plain_star(5772.0, 1.0, 1.0, 1.0, -6.0)
+    assert activity.far_uv_flux_ratio(star, 0.0) is None and activity.far_uv_flux_ratio(star, None) is None
+    star.luminosity = None
+    assert activity.far_uv_flux_ratio(star, 1.0) is None

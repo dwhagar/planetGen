@@ -34,6 +34,9 @@ Fields (all optional but `v`, `kind`, `body`, `seed`):
     pkpa        surface pressure, kPa
     tempK       mean surface temperature, K (a star's effective temperature)
     radiusKm    radius
+    roundness   the roundness ratio of a solid body (GEN.1158, GEN.1159): its radius over the radius at which its weight beats
+                its strength, 1 or more round; under 1 the body is drawn as a lump (MAP.279, `static/lumpymesh.js`); left out
+                when none is stored
     hydro       `hydrosphere` (dry, vapour, ice, ice-covered ocean, surface ocean, brine seep, hycean)
     ocean       fraction of the surface under ocean, 0 to 1
     land        fraction of the surface above sea level, 0 to 1
@@ -307,6 +310,7 @@ def planet_look(planet, kind="planet"):
     _put(look, "tempK", _rounded(temp_k, 1))
     _put(look, "radiusKm", _rounded(planet.get("radius_km"), 1))
     if not gas:
+        _put(look, "roundness", _rounded(planet.get("roundness_ratio"), 4))
         _put(look, "hydro", planet.get("hydrosphere"))
         _put(look, "ocean", _rounded(planet.get("ocean_fraction"), 4))
         _put(look, "land", _rounded(planet.get("land_fraction"), 4))
