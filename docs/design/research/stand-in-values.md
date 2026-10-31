@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 891 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 893 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -41,11 +41,11 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T3 | 76 | 34 | 5 | 10 | 0 | 125 |
 | T4 | 37 | 4 | 0 | 14 | 10 | 65 |
 | T5 | 43 | 16 | 0 | 1 | 0 | 60 |
-| T6 | 82 | 61 | 16 | 41 | 0 | 200 |
+| T6 | 83 | 61 | 16 | 41 | 0 | 201 |
 | T7 | 27 | 8 | 8 | 8 | 0 | 51 |
 | T8 | 0 | 1 | 1 | 5 | 1 | 8 |
-| T9 | 13 | 6 | 4 | 39 | 19 | 81 |
-| All | 524 | 176 | 41 | 120 | 30 | 891 |
+| T9 | 14 | 6 | 4 | 39 | 19 | 82 |
+| All | 526 | 176 | 41 | 120 | 30 | 893 |
 
 ## How the labels were given
 
@@ -1171,11 +1171,11 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| SX1 | D | T6 | L0 | scatter.ZONE_COEFFICIENT 1.3 and DISC_SLOPE 1.5: the half-width of the giant's chaotic zone over a q^(2/7), and the surface density a^-1.5 | zone 1.3 (Wisdom 1980) to 1.8 (Mustill and Wyatt 2012, recalled); slope 1 to 2 | one giant, a disc of planetesimals | an N-body clearing of a disc by one giant | the resonance map of GEN.1062 | the design table (belt-origins.md section 3) [R]; not opened | GEN.1092 | - |
-| SX2 | P | T9 | L3 | scatter.RESONANCE_CAPTURE 0.25 with the 3:2 and 2:1 resonances: the share of the mass in a swept resonance span that is captured | 0.1 to 0.5 | outward migration through a disc | a migration run that counts the captured mass | a population synthesis with Neptune migration (Levison et al. 2008, arXiv:0712.0553) | educated guess from physics | GEN.1092 | no data |
-| SX3 | P | T9 | L3 | scatter.THETA_EJECT 10: the Safronov number at which 63 percent of the swept mass is ejected | 3 to 30 | giants of Safronov number 1 to 20 | the ejected share of a scattering run at a given giant | Levison et al. 2008 | educated guess from physics (Safronov 1972 ejection by planets of high escape speed) | GEN.1092 | no data |
-| SX4 | P | T9 | L3 | scatter.HOT_SHARE 0.4: the share of the unswept cold disc that is excited after a full instability | 0.1 to 0.7 | systems with an instability | an observed hot-to-cold ratio from a survey | OSSOS (arXiv:2107.06120) hot and cold populations | educated guess from physics | GEN.1092 | no data |
-| SX5 | P | T9 | L3 | scatter.SWEPT_SPLIT (scattered 0.62, centaurs 0.25, detached 0.10, trojans 0.002, implanted 0.02, moons 0.008): how the swept mass that stays bound is shared | each within a factor of 3 | the swept mass | a population synthesis | Levison et al. 2008 | educated guess from needed output | GEN.1092 | no data |
+| SX1 | D | T6 | L0 | scatter.ZONE_COEFFICIENT 1.3 and DISC_SLOPE 1.5: the half-width of the giant's chaotic zone over a q^(2/7), and the surface density a^-1.5 | zone 1.3 (Wisdom 1980) to 1.8 (Mustill and Wyatt 2012, recalled); slope 1 to 2 | one giant, a disc of planetesimals | an N-body clearing of a disc by one giant | the resonance map of GEN.1062 | the design table (belt-origins.md section 3) [R]; not opened | - | - |
+| SX2 | P | T9 | L3 | scatter.RESONANCE_CAPTURE 0.25 with the 3:2 and 2:1 resonances: the share of the mass in a swept resonance span that is captured | 0.1 to 0.5 | outward migration through a disc | a migration run that counts the captured mass | a population synthesis with Neptune migration (Levison et al. 2008, arXiv:0712.0553) | educated guess from physics | - | no data |
+| SX3 | P | T9 | L3 | scatter.THETA_EJECT 10: the Safronov number at which 63 percent of the swept mass is ejected | 3 to 30 | giants of Safronov number 1 to 20 | the ejected share of a scattering run at a given giant | Levison et al. 2008 | educated guess from physics (Safronov 1972 ejection by planets of high escape speed) | - | no data |
+| SX4 | P | T9 | L3 | scatter.HOT_SHARE 0.4: the share of the unswept cold disc that is excited after a full instability | 0.1 to 0.7 | systems with an instability | an observed hot-to-cold ratio from a survey | OSSOS (arXiv:2107.06120) hot and cold populations | educated guess from physics | - | no data |
+| SX5 | P | T9 | L3 | scatter.SWEPT_SPLIT (scattered 0.62, centaurs 0.25, detached 0.10, trojans 0.002, implanted 0.02, moons 0.008): how the swept mass that stays bound is shared | each within a factor of 3 | the swept mass | a population synthesis | Levison et al. 2008 | educated guess from needed output | - | no data |
 
 ## 6.103 Stand-ins of the interstellar asteroid fields
 
@@ -1508,3 +1508,10 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | BG11 | P | T6 | L0 | belt_origin.DEBRIS_MIN_WIDTH 0.05, the least half-width of a belt of debris as a share of its distance | 0.02 to 0.2 | belts of debris | a debris belt that stays narrower than 5 percent for a Gyr | the spread from the energy of the event | the relative speed of the pieces is of the order of the escape speed, a few percent of the orbital speed | GEN.1092 | - |
 | BG12 | P | T4 | L0 | belt_origin.COLLISIONAL_DEBRIS_PER_GYR 0.003, the chance per Gyr that a system has a standing belt of rubble from a collision of large bodies (1.3 percent over 4.5 Gyr) | 0.001 to 0.01 | systems of any age | a census of hot or warm dust that needs more than three times the rate | the occurrence of transient dust of the debris-disc surveys | no source; hot dust under 4 AU is thought to come from transient events (Sibthorpe 2018, row BR15) | GEN.1092 | - |
 | BG13 | P | T4 | L0 | belt_origin.COLLISIONAL_DEBRIS_MASS_EARTH 1e-4, the mass of a belt of collision rubble (6e20 kg) | 1e-5 to 1e-2 | collisions of large bodies | a rubble belt of the census well outside the range | the mass of the colliding pair | no source; the size of the family of a Ceres-class parent | GEN.1092 | - |
+
+## 6.127 Stand-ins of the architecture's losses
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| EJ1 | P | T9 | L0 | scatter.EJECTION_THETA_EXPONENT 2 and LOSS_BOUND_WEIGHT 1: ejection goes to collision as Theta^2, and a scattered body that is neither hit nor thrown out has the weight of a collision | exponent 1 to 3; bound weight 0.3 to 3 | bodies scattered by one perturber whose Safronov number runs from 0.05 (an Earth) to 20 (a hot super-Jupiter) | an N-body run of embryos scattered by a giant whose ejected share differs from Theta^2/(Theta^2+2) by more than a factor of 2 at Theta 0.3 to 3 | the ejected share of a scattering run (the Barclay et al. 2017 setup, arXiv 1704.08749) | educated guess from physics (Safronov 1972: a hit grows with the focusing 1 + Theta, a throw-out needs the escape speed) | - | - |
+| EJ2 | D | T6 | L0 | scatter.DISC_LIFETIME_YR 3e6: the age at which the gas disc is gone and the giants have finished moving, the time recorded for a loss of the build | 1e6 to 1e7 | losses the build makes while giants move and crowd | a lost planet whose recorded time is not in the disc era | the delay distribution of the architecture's own instabilities (rogue_age RG1, RG2) | Haisch et al. 2001 (recalled, ApJ 553 L153: half of the discs lost by 3 Myr) | - | - |
