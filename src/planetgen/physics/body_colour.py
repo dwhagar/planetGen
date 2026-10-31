@@ -29,11 +29,6 @@ def rgb_integer(rgb8):
     return (red << 16) | (green << 8) | blue
 
 
-def rgb8_of(integer):
-    """The `(r, g, b)` of a stored colour integer."""
-    return ((integer >> 16) & 0xFF, (integer >> 8) & 0xFF, integer & 0xFF)
-
-
 def ground_albedo(body):
     """
     The reflectance of a solid body's ground, one value per wavelength of the colour grid (GEN.462): the lab reflectance in the three visible

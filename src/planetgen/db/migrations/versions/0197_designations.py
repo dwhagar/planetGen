@@ -1,6 +1,6 @@
 """The designations an object stopped having (GEN.1138).
 
-Schema v195. `designations` holds one row for each ID or name an object used to have: the retired text (`designation_uid` for an ID,
+Schema v197. `designations` holds one row for each ID or name an object used to have: the retired text (`designation_uid` for an ID,
 `designation_name` for a name), the object that held it (`object_kind`, the table, and `object_row_id`, its row number, which never
 changes), the epoch it began in (NULL for the birth designation) and the epoch it stopped in, why (`reason`, five values), and, for an
 object since deleted, the epoch it was deleted in (`gone_epoch`). A retired ID is reserved for ever: a unique index on `designation_uid`
@@ -13,8 +13,8 @@ from alembic import op
 
 from planetgen.db.migrations import helpers
 
-revision = "0195"
-down_revision = "0194"
+revision = "0197"
+down_revision = "0196"
 branch_labels = None
 depends_on = None
 

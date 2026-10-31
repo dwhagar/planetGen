@@ -198,6 +198,20 @@
   {%- endif %}
 </section>
 {%- endif %}
+{%- if planet.bands %}
+<section class="panel" id="sheet-bands" aria-labelledby="bands-heading">
+  <div class="panel-header"><h2 id="bands-heading">Climate by latitude</h2></div>
+  <div class="table-scroll" tabindex="0"><table class="doc-composition band-table">
+    <caption>{{ planet.bands.caption }}</caption>
+    <thead><tr><td></td>{%- for label in planet.bands.columns %}<th scope="col">{{ label }}</th>{%- endfor %}</tr></thead>
+    <tbody>
+      {%- for row in planet.bands.rows %}
+      <tr><th scope="row">{{ row.label }}</th>{%- for cell in row.cells %}<td>{{ cell }}</td>{%- endfor %}</tr>
+      {%- endfor %}
+    </tbody>
+  </table></div>
+</section>
+{%- endif %}
 {%- if planet.composition or planet.mass %}
 <section class="panel" id="sheet-composition" aria-labelledby="composition-heading">
   <div class="panel-header"><h2 id="composition-heading">Composition</h2></div>

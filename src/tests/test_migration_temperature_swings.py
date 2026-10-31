@@ -1,8 +1,8 @@
 # tests/test_migration_temperature_swings.py
 
 """
-GEN.848: every place with a temperature has a day and night swing of its own. A system saved and loaded keeps them; migration 0182 gives
-a v177 galaxy the seven columns, empty.
+GEN.848, GEN.1108: every band of latitude has a day and night swing of its own. A system saved and loaded keeps them; the migrations give
+a v177 galaxy the swing columns of the seven bands, empty.
 """
 
 import pytest
@@ -16,7 +16,7 @@ from tests.db_schema_support import load_old_schema
 
 pytestmark = pytest.mark.fresh_database
 
-SWINGS = tuple(column for column in regional_temperature.SWING_OF.values() if column != "temp_swing_k")
+SWINGS = (*(regional_temperature.column(number, "swing_k") for number in range(1, regional_temperature.BAND_COUNT + 1)), "temp_mean_swing_k")
 
 
 def _bodies(system):
@@ -32,8 +32,8 @@ def _system():
         with draw.bound(seed):
             system = StarSystem(system_config=cfg)
         bodies = _bodies(system)
-        if (any(getattr(b, "temp_polar_swing_k", None) for b in bodies)
-                and any(getattr(b, "temp_day_side_swing_k", None) == 0.0 for b in bodies)):
+        if (any(getattr(b, "band1_swing_k", None) for b in bodies)
+                and any(getattr(b, "band1_swing_k", None) == 0.0 for b in bodies)):
             return system, cfg
     pytest.fail("no system with a turning world and a locked one in 200 seeds")
 
@@ -48,7 +48,7 @@ def test_a_saved_system_keeps_the_swing_of_every_place(mysql_config):
         before = [{column: getattr(body, column, None) for column in SWINGS} for body in _bodies(system)]
         after = [{column: getattr(body, column, None) for column in SWINGS} for body in _bodies(loaded)]
         assert after == before
-        assert any(item["temp_polar_swing_k"] for item in before) and any(item["temp_day_side_swing_k"] == 0.0 for item in before)
+        assert any(item["band1_swing_k"] for item in before) and any(item["band1_swing_k"] == 0.0 for item in before)
     finally:
         conn.rollback()
         conn.close()

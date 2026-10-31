@@ -77,7 +77,7 @@ def test_the_halo_cells_expect_the_systems_the_design_note_gives():
 def test_the_populations_carry_the_ages_metallicities_and_motions_of_the_note():
     found = _at(SUN)
     young, old, bulge, halo = (found.populations[name] for name in ("young", "old", "bulge", "halo"))
-    assert young.age_gy == (0.0, 0.1) and old.age_gy == (3.0, 10.0) and halo.age_gy == (10.0, 13.0)
+    assert young.age_gy == (0.0, 0.1) and old.age_gy == (3.0, 13.0) and halo.age_gy == (10.0, 13.0)
     assert bulge.rotation == "bar" and halo.rotation == "none" and young.rotation == "disk"
     assert young.dispersion_kms < old.dispersion_kms < bulge.dispersion_kms
     (weight, mean, sigma), = young.fe_h
@@ -133,8 +133,6 @@ def test_a_cell_profile_records_its_address_and_the_exact_cell_volume():
     assert found.volume_pc3 == pytest.approx(spherical.cell_volume(*address, EDGE_PC))
     with pytest.raises(ValueError):
         profile.sector_profile((2, 99, 0), skeleton)
-    assert profile.expected_systems_in([address, (500, 3, 8)], skeleton) == pytest.approx(
-        found.expected_systems + profile.sector_profile((500, 3, 8), skeleton).expected_systems)
 
 
 def test_a_fill_context_reads_the_mix_and_the_centre_from_the_profile():

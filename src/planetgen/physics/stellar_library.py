@@ -109,6 +109,25 @@ def shares_of_blackbody(teff_k, logg=DEFAULT_LOGG, xuv_over_lbol=0.0, lib=None):
     return result
 
 
+FAR_UV_NM = (91.2, 200.0)
+"""tuple: The band the photolysis rates of `physics.photolysis` are per unit flux of (91.2 to 200 nm)."""
+
+
+def far_uv_power_w(teff_k, logg, luminosity_w, xuv_over_lbol=0.0):
+    """
+    The power a star puts into 91.2 to 200 nm, W (GEN.982): its photosphere's share of the luminosity in the band (the model atmosphere, or the
+    blackbody when the library is missing and the run disregards that) plus the chromosphere's far ultraviolet, `FUV_OVER_XUV` times the
+    star's XUV power over its luminosity `xuv_over_lbol` (all of it lies under 170 nm, inside the band). Zero for a star with no luminosity.
+    """
+    share = None
+    if not fetch.locate(stellar_spectra.DATASET).use_stand_in("the blackbody share of the star's far ultraviolet"):
+        shares = stellar_spectra.band_fractions(teff_k, logg, [FAR_UV_NM], stellar_spectra.library())
+        share = None if shares is None else shares[0]
+    if share is None:
+        share = float(stellar_spectrum.blackbody_fraction(FAR_UV_NM[0], FAR_UV_NM[1], teff_k))
+    return luminosity_w * (share + FUV_OVER_XUV * xuv_over_lbol)
+
+
 def surface_logg(mass_kg, radius_km):
     """log10 of the surface gravity, cm/s^2, of a star of this mass and radius."""
     return math.log10(constants.G * mass_kg / (radius_km * 1.0e3) ** 2 * 100.0)

@@ -49,10 +49,14 @@ def test_the_classifier_names_each_kind_of_pair_from_its_radii():
     hole = _leaf("black-hole", 9.0, 1e-7)
     assert _classify(giant, hole, roche.separation_for_filling(0.05, 1.0, 1.0, 9.0))[0] == "accreting"
     assert _classify(star, hole, 0.2)[0] == "detached"
-    dwarf = _leaf("white-dwarf", 0.6, 4e-5)
+    # A 0.6 solar mass white dwarf has a past: a 2 solar mass star that swelled to 1.5 AU and lost 1.4 solar masses (GEN.1012 reads the
+    # history, so a dwarf with no larger past than its present is never forced).
+    dwarf = multistar._Leaf("white-dwarf", None, 0.6, 2.0, 4e-5, radius_max_au=1.5, mass_max_solar=2.0)
     assert _classify(dwarf, star, 0.05)[0] == "post-common-envelope"
-    assert _classify(dwarf, star, 5.0)[0] == "detached"
-    assert _classify(dwarf, hole, 0.01)[0] == "detached"
+    assert _classify(dwarf, star, 20.0)[0] == "detached"
+    # The same dwarf next to a black hole at 0.01 AU had its giant swallow that orbit; a dwarf with no larger past is only a close, dark pair.
+    assert _classify(dwarf, hole, 0.01)[0] == "post-common-envelope"
+    assert _classify(_leaf("white-dwarf", 0.6, 4e-5), hole, 0.01)[0] == "detached"
 
 
 def test_eccentricity_brings_the_closest_approach_into_the_lobe():
@@ -90,7 +94,8 @@ def test_every_pair_the_generator_draws_is_consistent_with_its_radii():
                     assert sum(m.kind in multistar.ACCRETOR_KINDS for m in members) == 1
                     assert max(fills) >= 1.0
                 if node.interaction == "post-common-envelope":
-                    assert any(m.kind == "white-dwarf" for m in members)
+                    # GEN.1012: any member that shrank (a remnant, or a young star that contracted) can force it, not only a white dwarf.
+                    assert any(m.kind in ("white-dwarf", "neutron-star", "black-hole", "pre-main-sequence") for m in members)
     assert {"detached", "post-common-envelope"} <= set(seen)
 
 
@@ -111,10 +116,9 @@ def test_an_ultra_wide_system_is_flagged_fragile_and_only_that_one():
 
 def test_a_merger_product_has_a_rejuvenated_age_and_the_system_age_stays():
     tree = multistar.draw_member_tree(multistar.Placed("star", 1.0, 1.0), 4.6e9, draw.Stream(2), n_stars=2)
-    product = multistar.mark_merger_product(tree.members[0], tree.age_yr, draw.Stream(5))
     low, high = multistar.REJUVENATION_FRACTION_RANGE
-    assert product.flags & multistar.MEMBER_MERGER_PRODUCT
-    assert low * 4.6e9 <= product.effective_age_yr <= high * 4.6e9
+    for seed in range(200):
+        assert low * 4.6e9 <= multistar.rejuvenated_age_yr(tree.age_yr, draw.Stream(seed)) <= high * 4.6e9
     assert tree.age_yr == 4.6e9 and tree.members[0].effective_age_yr is None
 
 

@@ -65,12 +65,6 @@ def test_the_water_closed_form_reproduces_part_cs_limits():
         assert bs.water_world_radius_earth(mass, cmf, water) == pytest.approx(solver, rel=0.036)
 
 
-def test_the_water_fraction_inverse_round_trips():
-    radius = bs.water_world_radius_earth(3.0, 0.3, 0.4)
-    assert bs.water_fraction_from_mass_radius(3.0, radius, 0.3) == pytest.approx(0.4, abs=1e-3)
-    assert bs.water_fraction_from_mass_radius(3.0, 0.5, 0.3) is None
-
-
 def test_the_envelope_form_is_near_lopez_and_fortneys_table():
     # 1 Gyr, enhanced opacity, flux 10 (the paper's table, CSV of GEN.425); the fit's own accuracy is rms 6.3 percent
     table = [(10.0, 2.4, 0.01, 2.17), (10.0, 2.4, 0.05, 3.47), (10.0, 8.5, 0.01, 2.37), (10.0, 8.5, 0.05, 3.31),

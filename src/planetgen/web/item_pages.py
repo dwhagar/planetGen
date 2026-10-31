@@ -246,6 +246,22 @@ def sheet_view(sheet):
     return [group for group in groups if group["rows"]]
 
 
+def bands_view(sheet):
+    """
+    The table of the seven bands of a planet or moon (GEN.1108) as the page draws it: `{"caption", "columns": [label], "rows": [{"label", "cells": [html]}]}`, the bands as columns
+    (north pole to south pole, or day centre to night centre for a world that turns once an orbit) and the figures of each as rows, a cell with nothing in it a dash.
+    `None` for a body with no bands.
+    """
+    table = sheet.get("bands")
+    if not table:
+        return None
+    caption = ("The climate of the world in rings from the point under its star to the point away from it" if table["locked"]
+               else "The climate of the world in seven bands of latitude, from the north pole to the south pole")
+    return {"caption": caption, "columns": [band["label"] for band in table["bands"]],
+            "rows": [{"label": row["label"], "cells": [trusted_html(inline_html(cell)) if cell else trusted_html("&mdash;") for cell in row["cells"]]}
+                     for row in table["rows"]]}
+
+
 def glance_view(sheet):
     """The rows of a page's "At a glance" panel (UX.188): the kind's `describe.sheet.GLANCE` rows in that order, each
     `{"label", "html"}`, and only those the page lists. Empty for a kind with no panel yet."""
@@ -335,6 +351,7 @@ def planet_sections(name, row, sheet, species, piece, readings=()):
         "phi6_blocks": trusted_html(blocks_html(parts["phi6"], _ref_link)),
         "phi6": phi6 if phi6 and phi6["rows"] else None,
         "atmosphere": atmosphere if atmosphere and atmosphere["rows"] else None,
+        "bands": bands_view(sheet),
         "gases": [{**gas, "pressure": trusted_html(gas["pressure"])} for gas in planet_layout.gas_table(sheet)],
         "composition": composition if composition and composition["rows"] else None,
         "mass": planet_layout.mass_table(sheet),

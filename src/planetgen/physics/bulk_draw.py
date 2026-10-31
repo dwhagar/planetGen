@@ -128,7 +128,7 @@ class HostRatios:
 @functools.lru_cache(maxsize=4096)
 def _star_composition(fe_h, age_gy, key):
     draws = stellar_composition.key_draws(key)
-    branch = stellar_abundances.branch_from_uniform(fe_h, age_gy, draws.u_branch)
+    branch = stellar_abundances.branch_of(fe_h, age_gy)
     offsets = stellar_abundances.abundance_offsets(fe_h, branch, draws.normals, draws.u_enhanced, draws.u_carbon)
     return stellar_abundances.composition(fe_h, offsets)
 

@@ -934,7 +934,7 @@ def get_object_children(db, ref, limit=None, after=None):
     return _request(f"/objects/{ref}/children", {"db": db, "limit": limit, "after": after})
 
 
-def get_search(db, texts, tags, sizes=None, limit=None, offsets=None, panels=None, sorts=None, stars=None):
+def get_search(db, texts, tags, sizes=None, limit=None, offsets=None, panels=None, sorts=None, stars=None, ranges=None):
     """
     Runs `GET /api/search` and returns its response dict -- see
     `db.query.search`'s docstring for the full shape.
@@ -957,9 +957,12 @@ def get_search(db, texts, tags, sizes=None, limit=None, offsets=None, panels=Non
             `<panel>_offset`, one page per result panel.
         panels (iterable, optional): Run just these result panels; an empty one runs none, which still answers
             the facets and the name suggestions.
-        sorts (dict, optional): `{"planet", "moon"} -> sort key` (`-` in front for the best first), sent as
-            `planet_sort`/`moon_sort` (UX.214).
+        sorts (dict, optional): `{"star", "planet", "moon"} -> sort key` (`-` in front for the best first), sent as
+            `star_sort`/`planet_sort`/`moon_sort` (UX.214; the keys of the physical values, UX.226).
         stars (str, optional): The stars filter (UX.239), sent as `stars`: a count, a count and a plus, or a name.
+        ranges (dict, optional): `{entity: {key: (least, most, unit)}}`, the range filters on the physical values (UX.226), sent as
+            `<entity>_min_<key>`, `<entity>_max_<key>` and `<entity>_<key>_unit`; either bound `None` is left out, and a `None` unit
+            is the key's own.
     """
     _require_db(db)
     pairs = [("db", db)]
@@ -983,6 +986,14 @@ def get_search(db, texts, tags, sizes=None, limit=None, offsets=None, panels=Non
             pairs.append((f"{entity}_sort", sort))
     if stars:
         pairs.append(("stars", stars))
+    for entity, by_key in (ranges or {}).items():
+        for key, (least, most, unit) in by_key.items():
+            if least is not None:
+                pairs.append((f"{entity}_min_{key}", least))
+            if most is not None:
+                pairs.append((f"{entity}_max_{key}", most))
+            if unit:
+                pairs.append((f"{entity}_{key}_unit", unit))
     if panels is not None:
         pairs.append(("panels", ",".join(panels) or "none"))
     return _request("/search", pairs)
