@@ -10540,29 +10540,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   takes the next free generator epoch. Owner: Core 4 (proposed).
   Prerequisites: none. Related: GEN.271.
 
-- [ ] **GEN.716 add_star_hosted_nebulae lights a nebula from stars[0], which for a pre-placed row with a stored tree is the structural primary and not the row star, so the built nebula can differ from the predicted one (bug)**
-  Found by Bug Hunt (10:41 AM EDT 2026-10-24 as the lane reported, while
-  fixing TEST.338). After GEN.631 a system built around a scattered star
-  is a tree: the row star is member 0, and the primary and secondary
-  roles belong to the top pair of the tree shape, so in about 2 of 7
-  systems the row star has role "member" (for example row B0V 2.71e31 kg
-  is a member while the primary is a lighter B1V).
-  run_sector.add_star_hosted_nebulae lights a nebula from stars[0],
-  which is the structural primary. The GEN.530 row_nebula prediction,
-  the star page and the uncharted scene use the row star. So the built
-  nebula can differ in class, size or existence from the predicted one
-  whenever a stored-tree row star is not the top pair. Do: light the
-  nebula from the row star (the member the bright_star row links to), or
-  have the prediction read the primary; pick one and make both read the
-  same star. Done: a test that builds systems whose row star is a member
-  and finds the built nebula equal to the predicted one; the epoch is
-  bumped if a drawn value changes (next free at merge). May need a Boss
-  decision on which star hosts the nebula; if the lane finds the two
-  readings equally defensible, ask the coordinator with the plain-words
-  question. Owner: not assigned (Bug Hunt found it; the star scatter
-  lane, Core 3 or Core 1, is the nearest owner).
-  Prerequisites: none. Related: GEN.530, GEN.631, TEST.338.
-
 - [ ] **GEN.733 Hydrogen-helium equation-of-state tables for giant interiors: download job and use in the interior model**
   From the physics gaps report (reports/physics-gaps-2026-10-24.md, row
   C4; relayed by the coordinator 3:43 PM EDT 2026-10-24; filed by the

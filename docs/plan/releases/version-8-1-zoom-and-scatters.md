@@ -196,7 +196,6 @@ The multi-star catalogue, the stars every nebula needs and the region query the 
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.716 | add_star_hosted_nebulae lights a nebula from stars[0], which for a pre-placed row with a stored tree is the structural primary and not the row star, so the built nebula can differ from the predicted one (bug) |  |  |
 
 ### Region query
 
