@@ -19537,42 +19537,6 @@ clears each one.
   change, like a module.
   Prerequisites: none.
 
-- [ ] **TEST.525 Wire, register or delete the 26 pure functions nothing calls in 14 modules (Aux 3's share of the TEST.520 shadow functions)**
-  Boss, 12:03 PM EDT 2026-10-31: nothing built and left unused. Core 1's
-  wiring guard (TEST.520, PR #4513) found 157 public functions in
-  physics, generation and galaxy that only tests call or nothing calls;
-  its register lines name TEST.520 because no owner was guessed. Report:
-  /mnt/project-files/reports/wiring-guard-test520-2026-10-31.md. Filed
-  by the TODO thread. Your share (26 functions): physics.dynamo
-  (giant_power_w); physics.giant_interior (thin_shell_base_pressure_pa);
-  physics.giant_tilt (final_period_h, large_tilt_chance,
-  ring_plane_tilt_deg); physics.impact_history (late_accreted_fraction,
-  veneer_balance, veneer_volatiles); physics.impact_spin
-  (mean_rms_breakup_fraction); physics.compaction (ice_porosity,
-  silicate_porosity, small_body_density_kg_m3, taper_weight);
-  physics.materials (class_composition); physics.rock_types
-  (mafic_share); physics.bulk_structure
-  (water_fraction_from_mass_radius); physics.small_body_composition
-  (draw_ring, makeup_from_components); physics.moon_composition
-  (origin_probabilities); physics.condensate_shares
-  (water_share_at_distance); physics.clathrate_brine
-  (dissociation_temperature_k, eutectic_wt_percent, freezing_point_k,
-  hydrate_stable, liquid_range_k); physics.hosting_gate
-  (moon_survives_tides). Do, for each function: (1) wire it, naming the
-  open item that will call it (or filing one) in its register line of
-  docs/design/research/wiring-register.md; (2) mark it `by design` with
-  the reason when it is a tuning or test harness reader (an observed
-  sampler, an expected count) and say who runs it; or (3) delete it and
-  its tests (no dead code, no shim). Done: none of your functions names
-  TEST.520 in the register, and test_wiring_guard passes. Lock-free
-  (register, tests and deletions of unreferenced code change no stored
-  value; if a wiring step changes output it rides a train under its own
-  item). Owner Aux 3 (proposed by the TODO thread, one lock-free item at
-  a time; the lane says if it clashes). Rule for every lane: a public
-  function that only tests call needs a register line in the same
-  change, like a module.
-  Prerequisites: none.
-
 - [ ] **TEST.526 Wire, register or delete the 8 pure functions nothing calls in 4 modules (Tides 1's share of the TEST.520 shadow functions)**
   Boss, 12:03 PM EDT 2026-10-31: nothing built and left unused. Core 1's
   wiring guard (TEST.520, PR #4513) found 157 public functions in
@@ -19633,20 +19597,6 @@ clears each one.
   fixture or an order dependency) and fix the code or the test with a
   reason, never by skipping or loosening it without one. Web only,
   lock-free. Owner Core 5 (proposed; it owns the admin and queue pages).
-  Prerequisites: none.
-
-- [ ] **TEST.530 Three tests are red on clean main: two in test_roche_interaction (post-common-envelope classifier) and the tuning pair-order check (REFERENCE_BLACK_HOLE_DRAWS 0.55 against 0.5) (bug)**
-  Found by Core 3 (as the lane reported, 12:49 PM EDT 2026-10-31; red on
-  clean main, not from its change), filed by the TODO thread. Kind: red
-  tests on main. Objects: two tests in tests/test_roche_interaction.py
-  that check the post-common-envelope classifier, and the tuning
-  pair-order check that holds REFERENCE_BLACK_HOLE_DRAWS at 0.55 where
-  the test expects 0.5. Do: find which side moved (a recent epoch, the
-  classifier, the constant or the expectation) and fix the code or the
-  test with a reason, never by skipping or loosening without one.
-  Lock-free unless the cause is a stored-output change; if so stop and
-  tell the TODO thread. Owner Core 3 (proposed; it is idle and owns the
-  multistar pair code).
   Prerequisites: none.
 
 ## USR: User accounts
