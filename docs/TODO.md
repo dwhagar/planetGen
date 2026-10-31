@@ -14740,18 +14740,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   2010 (Icarus 207:972). Keep open until the Alomari paper is read.
   Prerequisites: none. Related: GEN.1158, GEN.725.
 
-- [ ] **GEN.1177 Strength rows for the ice phases, methane clathrate, solid CO2 and ammonia ices**
-  Add material entries to roundness_strengths.json: ice Ih, II and VI at
-  one value, III near zero, V a little lower; methane clathrate about 20
-  times the strength of ice; CO2 ice 0.1 to 0.5 MPa; ammonia dihydrate.
-  Each with tier and tweak level in GEN.725; the mixing rule needs a way
-  to name the ice type of a body (from small_body_composition). Owner
-  Aux 5. Source: reports/planetary-material-strength-2026-10-31.md
-  section 9. Additive to the roundness engine (physics/roundness.py,
-  GEN.1158, merged); no generation output changes until GEN.1159 to
-  GEN.1162 wire it, so lock-free until then.
-  Prerequisites: none. Related: GEN.1158, GEN.725.
-
 - [ ] **GEN.1178 Strength of a body sampled from its range so the round boundary is fuzzy, as in the real Solar System**
   Whole-body strength is never measured directly: each value is a lab
   figure scaled by a factor and checked against real bodies, good to a
