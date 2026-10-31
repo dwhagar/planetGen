@@ -105,13 +105,13 @@ def test_the_day_and_night_swing_is_a_temperature_difference_not_a_temperature()
     """GEN.773: Boss saw a swing of 9.07 K converted to -264 °C, the 273.15 offset applied to a difference. A difference
     in kelvin is the same size in °C and 1.8 times it in °F."""
     for kind, table in (("planet", "planets"), ("moon", "moons")):
-        spec = next(spec for spec in sheet.SPECS[kind] if spec.key == "temp_swing_k")
-        assert column_units.COLUMNS[(table, "temp_swing_k")] == "dK"
+        spec = next(spec for spec in sheet.SPECS[kind] if spec.key == "temp_mean_swing_k")
+        assert column_units.COLUMNS[(table, "temp_mean_swing_k")] == "dK"
         item = sheet._value(spec, table, 9.07)[0]["qty"]
         assert item["kind"] == "temperature difference"
         assert inline_text(sheet._value(spec, table, 9.07)) == "9.07 K (9.07 °C, 16.3 °F)"
         assert "-264" not in inline_text(sheet._value(spec, table, 9.07))
-    assert "(hottest to coldest" in next(spec for spec in sheet.SPECS["planet"] if spec.key == "temp_swing_k").label
+    assert "(hottest to coldest" in next(spec for spec in sheet.SPECS["planet"] if spec.key == "temp_mean_swing_k").label
 
 
 def test_every_temperature_column_is_a_place_on_the_scale_unless_it_is_declared_a_difference():
@@ -180,22 +180,35 @@ def test_the_ratio_and_index_rows_read_as_decided(key, stored, text):
     assert inline_text(sheet._value(spec, "planets", stored)) == text
 
 
-def test_the_swing_reads_as_a_range_and_each_temperature_says_whether_it_has_one():
-    """GEN.795, GEN.796, GEN.848: the swing is plus or minus half with the whole in all; each place that has a swing of its own
-    shows its coldest and hottest hour with the stored value in the middle; a place with none stored says so; a place on a
-    locked world, which has no day, says that."""
-    row = {"temp_swing_k": 9.0, "temp_equator_k": 300.0, "temp_polar_k": 250.0, "temp_polar_swing_k": 3.0,
-           "surface_temperature_k": 288.0, "temp_mean_swing_k": 6.0, "temp_north_k": 280.0,
-           "temp_day_side_k": 330.0, "temp_day_side_swing_k": 0.0}
+def test_the_swing_reads_as_a_range_and_the_mean_temperature_says_whether_it_has_one():
+    """GEN.795, GEN.796, GEN.848, GEN.1108: the mean swing is plus or minus half with the whole in all; the mean temperature shows its coldest and hottest hour with the
+    stored value in the middle; on a locked world, which has no day, it says that. The places are the bands, in the table of the bands."""
+    row = {"temp_mean_swing_k": 6.0, "surface_temperature_k": 288.0}
     by_key = {spec.key: spec for spec in sheet.SPECS["planet"]}
-    text = {key: inline_text(sheet._range_value(by_key[key], "planets", row[key], row)) for key in row if key in by_key}
-    assert text["temp_swing_k"] == "\u00b14.5 K, 9 K in all from the coldest hour to the hottest"
-    assert text["temp_equator_k"].endswith(", from 296 K to 305 K over a day")
-    assert text["temp_polar_k"].endswith(", from 249 K to 252 K over a day")
+    text = {key: inline_text(sheet._range_value(by_key[key], "planets", row[key], row)) for key in row}
+    assert text["temp_mean_swing_k"] == "\u00b13 K, 6 K in all from the coldest hour to the hottest"
     assert text["surface_temperature_k"].endswith(", from 285 K to 291 K over a day")
-    assert text["temp_north_k"].endswith(f"({sheet.NO_RANGE})")
-    assert text["temp_day_side_k"].endswith(f"({sheet.NO_DAY})")
-    assert inline_text(sheet._range_value(by_key["temp_equator_k"], "planets", None, row)) == sheet.NOT_STORED
+    locked = {"temp_mean_swing_k": 0.0, "surface_temperature_k": 288.0}
+    assert inline_text(sheet._range_value(by_key["surface_temperature_k"], "planets", 288.0, locked)).endswith(f"({sheet.NO_DAY})")
+    assert inline_text(sheet._range_value(by_key["surface_temperature_k"], "planets", 288.0, {})) == inline_text(sheet._value(by_key["surface_temperature_k"], "planets", 288.0))
+    assert inline_text(sheet._range_value(by_key["surface_temperature_k"], "planets", None, row)) == sheet.NOT_STORED
+
+
+def test_the_table_of_the_bands_lists_each_band_with_its_figures():
+    """GEN.1108: seven bands side by side, a figure a band does not have (a locked world has no hours) an empty cell, a body with no bands none."""
+    from planetgen.physics import latitude_bands, regional_temperature
+    earth = regional_temperature.compute(dict(surface_temperature_k=288.0, atmospheric_pressure_pa=101325.0, gravity_g=1.0, rotation_period_hours=24.0, axial_tilt_deg=23.4,
+                                              period_years=1.0))
+    table = sheet.bands_table(earth)
+    assert not table["locked"] and [band["key"] for band in table["bands"]] == list(latitude_bands.NAMES)
+    assert [row["key"] for row in table["rows"]] == [field for field, _label in sheet.BAND_ROW_LABELS]
+    assert all(len(row["cells"]) == 7 and all(row["cells"]) for row in table["rows"])
+    moon = regional_temperature.compute(dict(surface_temperature_k=250.0, atmospheric_pressure_pa=0.0, gravity_g=0.165, rotation_period_hours=655.7, axial_tilt_deg=1.5,
+                                             period_years=0.0748))
+    rings = sheet.bands_table(moon)
+    assert rings["locked"] and [band["key"] for band in rings["bands"]] == list(latitude_bands.RING_NAMES)
+    assert [row["key"] for row in rings["rows"]] == ["mean_k", "swing_k", "state"]
+    assert sheet.bands_table({}) is None and sheet.bands_table(None) is None
 
 
 def test_an_unknown_kind_has_no_sheet():

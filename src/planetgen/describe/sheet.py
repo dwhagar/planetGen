@@ -25,7 +25,7 @@ from planetgen.db import column_units, models
 from planetgen.describe import model
 from planetgen.describe.quantity import inline_text
 from planetgen.describe.sheet_sources import source_of
-from planetgen.physics import (agb_carbon, compaction, constants, daylight, gases, habitability_world, outside_hours, regional_temperature,
+from planetgen.physics import (agb_carbon, compaction, constants, daylight, gases, habitability_world, latitude_bands, outside_hours, regional_temperature,
                                surface_liquid_world, unit_registry, variability)
 from planetgen.population import facility_ratings
 from planetgen.util.format import format_number, scientific_text
@@ -218,11 +218,8 @@ _BODY_GROUPS = (
            ("cloud_cover", "Cloud cover"), ("ozone_column_du", "Ozone column"),
            ("ozone_loss_flag", "Ozone layer lost", FLAG)),
     *_rows("climate", ("bond_albedo", "Bond albedo"), ("greenhouse_factor", "Greenhouse factor"),
-           ("surface_temperature_k", "Mean surface temperature"), ("temp_polar_k", "Polar temperature"),
-           ("temp_north_k", "Northern temperature"), ("temp_equator_k", "Equatorial temperature"),
-           ("temp_south_k", "Southern temperature"), ("temp_swing_k", "Day and night swing (hottest to coldest, at the equator)"),
-           ("temp_day_side_k", "Day side temperature"), ("temp_terminator_k", "Terminator temperature"),
-           ("temp_night_side_k", "Night side temperature"), ("energy_flux_w_m2", "Stellar energy received"),
+           ("surface_temperature_k", "Mean surface temperature"),
+           ("temp_mean_swing_k", "Day and night swing, whole surface (hottest to coldest)"), ("energy_flux_w_m2", "Stellar energy received"),
            ("flux_variation", "Seasonal variation of that energy, peak to peak")),
     *_rows("water", ("hydrosphere", "Hydrosphere", TEXT), ("water_mass_fraction", "Water share of the mass"),
            ("ocean_fraction", "Surface under ocean"), ("land_fraction", "Surface above sea level"),
@@ -491,8 +488,9 @@ _BODY_NOT_SHOWN = {
                "ground_sulfur_fraction", "ground_intermediate_fraction"),
               "the stored mix of ground types; it feeds the ground dose and the surface rendering, and the page does "
               "not list it as a row yet"),
-    **_excuse(tuple(column for column in regional_temperature.SWING_OF.values() if column != "temp_swing_k"),
-              "the day and night swing of a place; shown on the row of its temperature as a range, from the coldest hour to the hottest"),
+    **_excuse(regional_temperature.BAND_COLUMNS,
+              "the seven bands of latitude (the rings of a world that turns once an orbit), side by side in the table of the bands: the annual mean, the day and night swing, "
+              "the hours of day and night, the longest polar day and night and the state of each"),
     **_excuse(("position_x_km", "position_y_km", "position_z_km", "velocity_x_kms", "velocity_y_kms", "velocity_z_kms",
                "spin_axis_x", "spin_axis_y", "spin_axis_z"), _VECTORS),
     **_excuse(("eq_body", "eq_body_kind", "eq_body_rec", "eq_body_rec_kind", "eq_rad_suit", "eq_rad_suit_rec", "eq_mobility",
@@ -621,11 +619,8 @@ def _plain_number(value, unit):
     return f"{format_number(value, '.4g')}{symbol}"
 
 
-NO_RANGE = "no day and night range stored for this place"
-"""str: What a temperature row says when the body holds no swing for that place (GEN.796)."""
-
 NO_DAY = "the same through the day: a world that turns once an orbit has no day and night"
-"""str: What a temperature row of a tidally locked world says (GEN.848): its places are fixed and their swing is 0."""
+"""str: What the temperature row of a tidally locked world says (GEN.848): its places are fixed and their swing is 0."""
 
 
 def _plus_minus(swing):
@@ -637,23 +632,21 @@ def _plus_minus(swing):
 
 
 def _range_value(spec, table, stored, row):
-    """`_value`, with the day and night range of a temperature row (GEN.795, GEN.796): the swing as plus or minus, and
-    for a place the swing belongs to the coldest and the hottest temperature with the stored one exactly between them;
-    for the other places, that no range is stored. `row` holds the stored columns of the body."""
+    """`_value`, with the day and night range of the whole surface (GEN.795, GEN.796): the mean swing as plus or minus, and on the mean
+    temperature the coldest and the hottest hour with the stored mean exactly between them (a locked world says it has no day).
+    `row` holds the stored columns of the body; the places are the bands, in the table of the bands."""
     value = _value(spec, table, stored)
     if stored is None or table not in ("planets", "moons"):
         return value
     column = spec.stored_column()
-    if column == "temp_swing_k":
-        return _plus_minus(stored)
-    if column not in regional_temperature.TEMPERATURE_FIELDS:
+    if column == "temp_mean_swing_k":
+        return _plus_minus(stored) if stored else value
+    if column != "surface_temperature_k":
         return value
-    swing = row.get(regional_temperature.SWING_OF[column]) if column in regional_temperature.RANGE_FIELDS else None
+    swing = row.get("temp_mean_swing_k")
     span = regional_temperature.daily_range(stored, swing)
     if span is None:
-        if swing == 0:    # GEN.848: a place on a locked world has no day
-            return value + [f" ({NO_DAY})"]
-        return value + [f" ({NO_RANGE})"]
+        return value + [f" ({NO_DAY})"] if swing == 0 else value
     return value + [", from ", model.qty("temperature", span[0], "K", companions=False), " to ",
                     model.qty("temperature", span[1], "K", companions=False), " over a day"]
 
@@ -756,8 +749,7 @@ AIRLESS_CLASSES = frozenset("CDS")
 
 _GIANT_ONLY = ("interior_kind", "core_mass_earth", "dilute_core_mass_earth", "metallization_pressure_gpa",
                "helium_depletion", "has_helium_shell", "envelope_helium_fraction", "envelope_z_fraction")
-_BANDS_AND_ZONES = ("temp_polar_k", "temp_north_k", "temp_equator_k", "temp_south_k", "temp_swing_k",
-                    "temp_day_side_k", "temp_terminator_k", "temp_night_side_k")
+_MEAN_SWING = ("temp_mean_swing_k",)
 _SURFACE = (
     "hydrosphere", "ocean_fraction", "land_fraction", "ocean_depth_km", "ocean_class", "ocean_ph", "water_activity",
     "water_base_pressure_pa", "ice_shell_km", "hp_ice_km", "surface_liquid", "surface_liquid_fraction", "surface_liquid_depth_km", "ocean_liquid", "tide_range_spring_m", "tide_range_neap_m",
@@ -768,7 +760,7 @@ _SURFACE = (
     "tier_pressure", "tier_temperature", "tier_air", "tier_water", "tier_suitability", "tier_radiation",
     "life_microbial", "life_flora", "life_fauna", "life_sentient", "l_solv", "l_chem", "l_ener", "l_rad",
     "c_k0_ppm", "c_th0_ppm", "c_u0_ppm", "al26_ratio", "urey_ratio", "internal_heat_flux_w_m2", "mantle_eta0_pa_s",
-    "mantle_activation_kj_mol", *_BANDS_AND_ZONES,
+    "mantle_activation_kj_mol", *_MEAN_SWING,
     "life_class", "life_class_variant", "life_class_best", "life_class_best_score", "life_animal_grade", "life_complexity",
     "evolutionary_pace", "life_stage", "life_milestone_age_gyr", "life_system_age_gyr",
     "life_age_abiogenesis_gyr", "life_age_photosynthesis_gyr", "life_age_complex_cells_gyr",
@@ -784,8 +776,6 @@ _LIFE_DETAIL = ("life_class", "life_class_variant", "life_class_best", "life_cla
                 "life_age_multicellularity_gyr", "life_age_technological_civilization_gyr")
 _LIFE_AFTER_OXYGEN = ("life_age_complex_cells_gyr", "life_age_multicellularity_gyr", "life_age_technological_civilization_gyr")
 _STAGES_AFTER_OXYGEN = tuple(tuning.LIFE_MILESTONES[tuning.LIFE_MILESTONES.index("complex_cells"):])
-_BANDS = ("temp_polar_k", "temp_north_k", "temp_equator_k", "temp_south_k", "temp_swing_k")
-_ZONES = ("temp_day_side_k", "temp_terminator_k", "temp_night_side_k")
 _DAYLIGHT = ("day_share_equator", "solar_day_hours", "daylight_hours", "night_hours", "days_per_year")
 _RING_COLUMNS = ("ring_kind", "ring_origin", "ring_inner_km", "ring_outer_km", "ring_mass_kg", "ring_optical_depth", "ring_ice_fraction")
 _AQUIFER_COLUMNS = ("aquifer_depth_km", "aquifer_thickness_km")
@@ -855,10 +845,6 @@ _BODY_RULES = [
      "a world with no magnetic field has no magnetopause"),
     (_DISK_COLUMNS, lambda klass, row: row is None or any(row.get(key) is not None for key in _DISK_COLUMNS),
      "only a giant planet whose moons formed in a disk keeps that disk; a rocky body, a moon and a giant with no disk-born moons store none"),
-    (_BANDS, lambda klass, row: _locked(row) is not True,
-     "a tidally locked world has day, terminator and night zones in place of latitude bands"),
-    (_ZONES, lambda klass, row: _locked(row) is not False,
-     "a world that turns on its own has latitude bands in place of day, terminator and night zones"),
 ]
 
 _PLANET_RULES = [
@@ -980,6 +966,52 @@ def _longest_eclipse(conn, kind, object_id):
     return hours or None
 
 
+BAND_ROW_LABELS = (("mean_k", "Annual mean temperature"), ("swing_k", "Day and night swing (hottest to coldest)"), ("day_hours", "Day"),
+                   ("night_hours", "Night"), ("longest_day_days", "Longest day of the year"),
+                   ("longest_night_days", "Longest night of the year"), ("state", "State"))
+"""tuple: The rows of the table of the bands (GEN.1108), `regional_temperature.BAND_FIELDS` in order, each with its label."""
+
+BAND_LABELS = {"north_polar": "North polar", "north_middle": "North middle", "north_tropic": "North tropics", "equator": "Equator",
+               "south_tropic": "South tropics", "south_middle": "South middle", "south_polar": "South polar",
+               "day_centre": "Day centre", "day_middle": "Day side", "day_edge": "Day edge", "terminator": "Terminator",
+               "night_edge": "Night edge", "night_middle": "Night side", "night_centre": "Night centre"}
+"""dict: What the table of the bands calls each band or ring (`latitude_bands.NAMES`, `RING_NAMES`)."""
+
+
+def _band_cell(field, value):
+    """One cell of the table of the bands as an inline list: the quantity, or the state word; a band with no such figure (a locked world has no hours) is empty."""
+    if value is None:
+        return []
+    if field == "mean_k":
+        return [model.qty("temperature", value, "K", companions=False)]
+    if field == "swing_k":
+        return ["no swing"] if not value else ["\u00b1", model.qty("temperature difference", value / 2.0, "dK", companions=False)]
+    if field in ("day_hours", "night_hours"):
+        return [model.qty("time", value, "h")]
+    if field in ("longest_day_days", "longest_night_days"):
+        return [model.qty("time", value, "d")]
+    return [str(value).capitalize()]
+
+
+def bands_table(row):
+    """
+    The seven bands of a body side by side (GEN.1108): `{"locked", "bands": [{"key", "label"}], "rows": [{"key", "label", "cells"}]}`, one row for each of
+    `BAND_ROW_LABELS` that any band holds, one cell (an inline list, empty where the band has none) for each band from the north pole to the south pole (the day centre
+    to the night centre for a world that turns once an orbit). `None` for a body that stores no bands.
+    """
+    if row is None or row.get(regional_temperature.column(1, "mean_k")) is None:
+        return None
+    locked = row.get(regional_temperature.column(1, "state")) in latitude_bands.RING_STATES
+    names = latitude_bands.RING_NAMES if locked else latitude_bands.NAMES
+    bands = [{"key": name, "label": BAND_LABELS[name]} for name in names]
+    rows = []
+    for field, label in BAND_ROW_LABELS:
+        cells = [_band_cell(field, row.get(regional_temperature.column(number, field))) for number in range(1, regional_temperature.BAND_COUNT + 1)]
+        if any(cells):
+            rows.append({"key": field, "label": label, "cells": cells})
+    return {"locked": locked, "bands": bands, "rows": rows}
+
+
 def sheet(conn, kind, object_id):
     """
     The property sheet of one body.
@@ -1001,7 +1033,8 @@ def sheet(conn, kind, object_id):
     table = TABLES[kind]
     wanted = {spec.stored_column() for spec in specs}
     if table in ("planets", "moons"):
-        wanted.update(regional_temperature.SWING_OF.values())    # GEN.848: each temperature row shows the swing of its own place
+        wanted.update(regional_temperature.BAND_COLUMNS)    # GEN.1108: the table of the bands
+        wanted.add("temp_mean_swing_k")                      # the range on the mean temperature row
     if table == "stars":
         wanted.update(("lifespan_gy", "metallicity_fe_h", "age_gy"))    # GEN.1026: the carbon or S star row is worked out from them
     columns = ", ".join(sorted(wanted))
@@ -1042,4 +1075,7 @@ def sheet(conn, kind, object_id):
                                      "stored": True, "absent": False, "source": None, "show_absent": False})
     groups = [{"key": key, "label": GROUPS[key], "rows": rows} for key, rows in by_group.items() if rows]
     stored = {spec.key: row[spec.stored_column()] for spec in specs}
-    return {"kind": kind, "groups": groups, "missing": missing(kind, stored)}
+    result = {"kind": kind, "groups": groups, "missing": missing(kind, stored)}
+    if table in ("planets", "moons"):
+        result["bands"] = bands_table(row)
+    return result
