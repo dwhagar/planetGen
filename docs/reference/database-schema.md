@@ -2233,9 +2233,9 @@ Migration 0194 creates `dark_members`, keyed by `star_system_id` and `member_no`
 ### v188 (GEN.1035): the liquid at the surface
 
 Migration 0188 adds `surface_liquid` (VARCHAR(32)), `surface_liquid_fraction` and `surface_liquid_depth_km` (DOUBLE, all nullable) to `planets` and `moons`, skipping a column already there. All NULL after the migration: the liquid is found with the ground, so a regenerated galaxy fills them.
-### v190 (GEN.983): the dose a moon takes from its parent's radiation belts
+### v195 (GEN.983): the dose a moon takes from its parent's radiation belts
 
-Migration 0190 adds `dose_belt_msv_yr` (DOUBLE, nullable) to `planets` and `moons`, skipping a column already there. It is the part of `surface_dose_msv_yr` that comes from the trapped particles of the parent planet's field at the moon's orbit (0 for a planet, NULL for a giant and on a row made before v187; `physics/radiation_belts.py`). NULL after the migration: a regenerated galaxy fills it.
+Migration 0195 adds `dose_belt_msv_yr` (DOUBLE, nullable) to `planets` and `moons`, skipping a column already there. It is the part of `surface_dose_msv_yr` that comes from the trapped particles of the parent planet's field at the moon's orbit (0 for a planet, NULL for a giant and on a row made before v187; `physics/radiation_belts.py`). NULL after the migration: a regenerated galaxy fills it.
 
 ### v186 (PERF.211): the Phenomena table's sorts by key
 

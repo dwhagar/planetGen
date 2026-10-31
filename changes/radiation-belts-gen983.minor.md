@@ -5,5 +5,5 @@
 
 ### Changed
 - Generator epoch bump (numbered at merge): the surface dose and habitability score of every moon inside its parent's belts change.
-- Migration (numbered at merge, 0190 provisional): `dose_belt_msv_yr` on `planets` and `moons`.
+- Migration (numbered at merge, 0195 provisional): `dose_belt_msv_yr` on `planets` and `moons`.
 generation-output: changed
