@@ -2088,7 +2088,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
    Design draft
   design-drafts/body-rendering-from-composition-2026-10-24.md (section
   11), Boss's plan of 10:26 PM EDT 2026-10-23.
-  Prerequisites: GEN.488.
+  Sources 2 (as the lane reported, 12:15 PM EDT) (2026-10-31 1:00 PM
+  EDT): not startable as written: the species behind the colours are not
+  stored, only the names of the three largest components. A lock-free
+  painter could only recolour the nucleus, which would be thrown away.
+  It now waits on the new item that stores the coma class and dominant
+  volatiles (the GEN item filed for this); Core 2 owns the painter.
+  Sources 2 does not take it now.
+  Prerequisites: GEN.488, GEN.1227.
 
 - [ ] **MAP.284 Night-side thermal glow on hot worlds, with no city lights until 9.2**
    Design draft
@@ -14882,6 +14889,24 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   re-tag, on a train, with GEN.1219 and GEN.1220 (one epoch). Where we
   think it belongs (best guess, can move): the Class M research thread.
   Prerequisites: none. Related: GEN.1219, GEN.1220, GEN.1207.
+
+- [ ] **GEN.1227 Store the coma class and the dominant volatiles of an interstellar comet, so the map can colour its coma**
+  Found by Sources 2 (as the lane reported, 12:15 PM EDT 2026-10-31)
+  while starting MAP.283, filed by the TODO thread as a wiring gap
+  (Boss, 12:03 PM EDT: nothing built and left unused). An interstellar
+  comet stores only is_active, its size and speed and the names of its
+  three largest components (complex organics, silicate dust, CO2 ice or
+  water ice). The species that set a comet's colours (CN and C2 green, a
+  CO+ blue ion tail) are drawn at generation
+  (comet_population.draw_volatiles) and then thrown away; over 300 draws
+  CO, CN and C2 never reach the top three. Do: derive from the makeup
+  already drawn a coma class and the dominant volatiles and store them
+  as a small column or two (new numeric columns in db/column_units.py),
+  after the species factors of GEN.1021 are on main; MAP.283 then reads
+  them. LOCK work (migration, epoch with --affects, golden, census
+  re-tag): ride a train. Owner Sources 2 (proposed, it knows the comet
+  species work).
+  Prerequisites: GEN.1021.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
