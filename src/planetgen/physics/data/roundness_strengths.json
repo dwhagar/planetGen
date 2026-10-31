@@ -144,47 +144,111 @@
       },
       "ice_ii": {
         "label": "ice II, the cold phase from 0.2 to 0.6 GPa",
-        "strength_ratio": 1.0,
+        "ratio_by_temperature_k": [
+          [
+            150.0,
+            1.7
+          ],
+          [
+            180.0,
+            1.0
+          ],
+          [
+            200.0,
+            5.2
+          ],
+          [
+            230.0,
+            6.0
+          ],
+          [
+            250.0,
+            6.5
+          ]
+        ],
         "range": [
           0.5,
-          3.0
+          9.0
         ],
-        "source": "Durham 1987 (abstract only): the strongest phase at lab rates, comparable to Ih; at planetary rates may exceed VI (strength research section 2b). One value with Ih and VI",
-        "tier": "T6",
-        "tweak": "L3"
+        "source": "Durham, Kirby and Stern 1997 Table 2 (READ), the strain rate A sigma^n exp(-(E + P V) / R T) of each phase at 1e-15 per second over the three-regime ice Ih law at the same temperature (reports/papers-vs-standins-2026-10-31.md section 1; the ratios of two dislocation laws, an upper bound at low stress because grain-size-sensitive creep is weaker there); phase pressure 400 MPa; 1.7 at 150 K, 0.9 to 1 at 180 K (the Ih regime change) and 5 to 6.5 from 200 to 250 K; the ratios move by 40 percent at most between 1e-14 and 1e-16 per second; held at the end values",
+        "tier": "T2",
+        "tweak": "L1"
       },
       "ice_iii": {
         "label": "ice III, the narrow wedge near 0.2 to 0.35 GPa and 240 to 256 K",
-        "strength_ratio": 0.001,
-        "range": [
-          0.0001,
-          0.01
+        "ratio_by_temperature_k": [
+          [
+            240.0,
+            0.6
+          ],
+          [
+            250.0,
+            0.45
+          ]
         ],
-        "source": "Durham and others 1988 via Durham, Kirby and Stern 1997 Table 2: the weakest phase at all strain rates, a liquid over geologic time (about six orders of magnitude of viscosity under ice II); 'near zero' is the value of the strength research section 9",
-        "tier": "T6",
-        "tweak": "L3"
+        "range": [
+          0.3,
+          0.9
+        ],
+        "source": "Durham, Kirby and Stern 1997 Table 2 (READ), the strain rate A sigma^n exp(-(E + P V) / R T) of each phase at 1e-15 per second over the three-regime ice Ih law at the same temperature (reports/papers-vs-standins-2026-10-31.md section 1; the ratios of two dislocation laws, an upper bound at low stress because grain-size-sensitive creep is weaker there); phase pressure 300 MPa; 0.8 at 230 K and 0.45 at 250 K, the engine's wedge is 240 to 256 K; weaker than Ih by a factor of two, not by three decades (the earlier 0.001 read 'extremely weak' as near zero); below 230 K ice III is stronger than Ih but that is outside its field",
+        "tier": "T2",
+        "tweak": "L1"
       },
       "ice_v": {
         "label": "ice V, 0.35 to 0.63 GPa at 250 K and over",
-        "strength_ratio": 0.5,
-        "range": [
-          0.3,
-          1.0
+        "ratio_by_temperature_k": [
+          [
+            180.0,
+            8.4
+          ],
+          [
+            200.0,
+            18.0
+          ],
+          [
+            230.0,
+            8.4
+          ],
+          [
+            250.0,
+            7.2
+          ]
         ],
-        "source": "Durham 1987 (abstract only) and the constants of Durham and others 1996 in the 1997 table: 'somewhat weaker than ice II' (section 2b); 0.5 is the stand-in for 'a bit lower'. The 1997 paper notes the Poirier and Sotin ice V is about three orders more viscous than theirs, unresolved",
-        "tier": "T6",
-        "tweak": "L3"
+        "range": [
+          4.0,
+          40.0
+        ],
+        "source": "Durham, Kirby and Stern 1997 Table 2 (READ), the strain rate A sigma^n exp(-(E + P V) / R T) of each phase at 1e-15 per second over the three-regime ice Ih law at the same temperature (reports/papers-vs-standins-2026-10-31.md section 1; the ratios of two dislocation laws, an upper bound at low stress because grain-size-sensitive creep is weaker there); phase pressure 500 MPa; about 8 at 230 to 250 K (the engine's field is 250 K and over), the points at 200 K and below are extrapolations of the law (the 100 at 150 K is left out, a far extrapolation); the 1997 paper notes the Poirier and Sotin ice V is about three orders more viscous than its own (unresolved), so the true strength may be higher still",
+        "tier": "T2",
+        "tweak": "L1"
       },
       "ice_vi": {
         "label": "ice VI, 0.63 to 2.2 GPa, and the value used for ice VII and ice X (no lab strength found)",
-        "strength_ratio": 1.0,
-        "range": [
-          0.5,
-          3.0
+        "ratio_by_temperature_k": [
+          [
+            150.0,
+            5.5
+          ],
+          [
+            180.0,
+            1.3
+          ],
+          [
+            200.0,
+            4.9
+          ],
+          [
+            230.0,
+            4.2
+          ]
         ],
-        "source": "Durham 2010: one of the two strongest phases at lab rates (section 2b); section 14: use the ice VI constants for VII and X, which exist only inside bodies of over 1,000 km radius that are round by gravity",
-        "tier": "T6",
-        "tweak": "L3"
+        "range": [
+          0.8,
+          7.0
+        ],
+        "source": "Durham, Kirby and Stern 1997 Table 2 (READ), the strain rate A sigma^n exp(-(E + P V) / R T) of each phase at 1e-15 per second over the three-regime ice Ih law at the same temperature (reports/papers-vs-standins-2026-10-31.md section 1; the ratios of two dislocation laws, an upper bound at low stress because grain-size-sensitive creep is weaker there); phase pressure 1000 MPa; 5.5 at 150 K, 1.3 at 180 K and 4 to 5 at 200 to 230 K, held above (the law has no ice VI point at 250 K); strength research section 14: the ice VI constants stand for VII and X, which exist only inside bodies of over 1,000 km radius that are round by gravity",
+        "tier": "T2",
+        "tweak": "L1"
       },
       "ch4_clathrate": {
         "label": "methane clathrate hydrate (sI), water caging methane",

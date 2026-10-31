@@ -2384,6 +2384,19 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   system that fits at 1280 px and fewer, without overlap, at 390 px.
   Prerequisites: MAP.360. Related: MAP.355, MAP.359.
 
+- [ ] **MAP.362 Superbubbles are hidden on the map at load, with a Menu button to show them (bug)**
+  Boss observation (relayed by the coordinator to Core 2, 12:27 AM EDT
+  2026-10-31), filed by the TODO thread. Kind: map behaviour. Object:
+  the superbubbles layer of the galaxy map. Result: superbubbles show by
+  default and crowd the map. Wanted: they are off at load; the Menu gets
+  a Superbubbles button that turns them on and off; the address
+  ?show=superbubbles turns them on at load; the Key line for
+  superbubbles shows only while they are shown. Done: browser test that
+  a fresh load shows no superbubble and no Key line, the button shows
+  both, ?show=superbubbles shows both at load. Owner: Core 2, built in
+  the same PR as MAP.356 to MAP.361 (already coded).
+  Prerequisites: none.
+
 ## NAV: Navigation and courses
 
 - [ ] **NAV.4 Save a course**
@@ -9553,35 +9566,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: GEN.550, GEN.568, GEN.569.
   Design: [docs/design/architecture/unified-unit-quantity.md](design/architecture/unified-unit-quantity.md)
 
-- [ ] **GEN.589 Research: the central molecular zone's upper cluster mass and its cloud-shock disruption, so the young clusters of the core match the few that are observed**
-  Finding from Core 3 while building GEN.244 and GEN.282 (1:58 AM EDT
-  2026-10-18 as the lane reported), filed by the TODO thread. Kind:
-  generation result against observation. Object: the central molecular
-  zone ring of a drawn galaxy. Result: 5 to 12 young clusters above 5e3
-  solar masses per galaxy against about 2 observed (Arches and
-  Quintuplet), and 7 to 21 clusters older than 10 Myr above 5e4 against
-  none. Cause as the lane reads it: the cluster mass function M^-2 runs
-  to 1e6 solar masses (the widest limit under Boss's widest-range rule),
-  the ambient density of the disruption law leaves out the gas, and
-  there is no disruption by cloud shocks. Do (research first, nothing
-  built until the sources are read): find a published upper cluster mass
-  for the central molecular zone and a cloud-shock disruption rate (Core
-  3 names Trujillo-Gomez 2019 as a lead; it is a lead until a lane has
-  read it, and a lane verifies each citation before use), say what the
-  sources give, and propose the change to GEN.244's mass function and
-  disruption for the core ring; the fill ships as the labelled stand-in
-  meanwhile. A change to the stored clusters rides the pending epoch and
-  the one wiped rescatter. Done: the note names the sources with their
-  evidence state, gives the upper mass and the disruption law with their
-  scatter, and a test shows the young clusters of the core above 5e3
-  solar masses are few (the observed count is the plausibility target,
-  not a preset). Owner: Core 3 (proposed; it built GEN.244). Not a
-  prerequisite of GEN.301.
-  Owner: Core 4 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue is
-  in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
-  owner line).
-  Prerequisites: none. Related: GEN.244, GEN.282.
-
 - [ ] **GEN.593 Pulsar planets: the disc range stops short of PSR B1257+12's planets, and two of the three formation paths (a captured giant, an ablated companion) leave a pulsar with no planets**
   Design gaps in GEN.317 found by Core 3 while building it (reported
   11:18 AM EDT 2026-10-18, real clock; its GEN.317 gate started 11:17 AM
@@ -14318,18 +14302,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   it, so lock-free until then.
   Prerequisites: none. Related: GEN.1158, GEN.725.
 
-- [ ] **GEN.1183 Ice-type strength ratios (IT1 to IT3) become a ratio-by-temperature table from Durham 1997 Table 2 instead of constants**
-  Replace the constant ratios in physics/ice_types.py (GEN.1177) with a
-  table by temperature: ice III about 0.5 in its 240 to 256 K wedge (now
-  0.001), ice V about 8 (now 0.5), ice II 1.7 at 150 K rising to about 6
-  at 200 to 250 K, ice VI about 5 at 200 to 230 K. Rows move from tweak
-  L3 to L1 in GEN.725; run the icy-body round census after. Nothing
-  reads the table yet, so lock-free until GEN.1159 wires the engine.
-  Owner Core 4. Source: reports/papers-vs-standins-2026-10-31.md section
-  7 (the strength papers review of all 14 uploaded and 35 downloaded
-  papers, Boss's request).
-  Prerequisites: none. Related: GEN.1177, GEN.725.
-
 - [ ] **GEN.1185 Interior activation energy range 260 to 390 kJ/mol instead of 200 to 300, with the reference viscosity retuned**
   Change INTERIOR_ACTIVATION_RANGE_KJ_MOL from 200 to 300 to 260 to 390
   kJ/mol and retune eta0 so the reference viscosity holds (medium
@@ -14443,6 +14415,47 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner Air 1.
   Prerequisites: none. Related: GEN.973, GEN.639, GEN.972, GEN.974,
   GEN.725.
+
+- [ ] **GEN.1195 Cluster maximum mass of the central ring from the gas, and cloud-shock disruption of its clusters**
+  Finding from Sources 2's GEN.589 research (report
+  /mnt/project-files/reports/gen589-cmz-clusters-2026-10-31.md, scripts
+  in reports/gen589/), filed by the TODO thread (12:30 AM EDT
+  2026-10-31). Kind: generation result against observation. Object: the
+  clusters of the central molecular zone ring (GEN.244). Result today:
+  5.8 young clusters above 5e3 solar masses and 12 older than 10 Myr
+  above 5e4, against about 2 and none observed. Sources as the lane read
+  them from the arXiv text: the upper mass of the ring is Reina-Campos
+  and Kruijssen 2017, M_cl,max = 0.1 x bound share x Toomre mass, which
+  with the generator's own ring gives 3.2e4 (their CMZ value 3e4, Arches
+  2e4, hard ceiling 1e5); cloud-shock disruption is Gieles 2006 eq 24 as
+  put in the CMZ by Kruijssen 2014 (5.7 Myr for a 1e4 cluster). A cap
+  alone raises the young count; the shocks bring it down: with untuned
+  sourced numbers the ring leaves 0.8 to 1.1 young clusters above 5e3
+  and none old. Trujillo-Gomez 2019 is about the minimum mass, not the
+  source. Do: a pure module for the cluster maximum mass of a ring from
+  its gas surface density (the ring Sigma_g is a registered stand-in
+  until a gas source for it is read), and a cloud-shock mass-loss term
+  in GEN.244's disruption for the ring, with the test target of the
+  report (few young clusters above 5e3, none old above 5e4; the observed
+  count is the plausibility target, not a preset). Stand-in rows enter
+  GEN.725 with tier and tweak level. Lock work (stored clusters change):
+  rides the pending epoch and the one wiped rescatter. Owner: Core 3
+  (built GEN.244; proposed).
+  Prerequisites: none.
+
+- [ ] **GEN.1196 Disc cluster maximum mass per ring, replacing the flat 1e6 cap**
+  Second finding of Sources 2's GEN.589 research (12:30 AM EDT
+  2026-10-31): the disc's cluster mass cap of 1e6 solar masses is also
+  too high. The same relation of Reina-Campos and Kruijssen 2017
+  (M_cl,max from the ring's gas surface density and Toomre mass) gives
+  the cap per disc ring, using the module of the item before this one.
+  Do: wire the module into the disc rings of GEN.244, check the clusters
+  of the disc against the observed upper masses of nearby galaxies and
+  the Milky Way disc as a plausibility target (never a fixed Milky Way
+  content), register the stand-ins in GEN.725. Lock work (stored
+  clusters change), same epoch as the central ring item. Owner: Core 3
+  (proposed).
+  Prerequisites: GEN.1195.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
