@@ -13,7 +13,8 @@
 //
 // Stand-ins (docs/design/research/gap-filling-plan.md section 6.160): the numbers below only shape a picture.
 
-import { makeRandom } from "./bodytexture.js";
+const VERSION_QUERY = new URL(import.meta.url).search;
+const { makeRandom } = await import(`./bodytexture.js${VERSION_QUERY}`);
 
 export const LUMPY_MAX_KM = 400;
 /** The radius, km, under which a body whose roundness is not stored is drawn as a lump. [Stand-in LUM1, tier T9, tweak L0.] */
