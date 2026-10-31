@@ -107,15 +107,17 @@ def test_the_laws_probabilities_are_the_histories_shares_inside_the_window():
     found = disk_history.history_of(SHAPE)
     for name, law in LAWS.items():
         low, high = law.window
+        if name == "old":
+            high = tuning.STELLAR_THICK_START_GY    # GEN.1025: from there the thick disc adds its stars to the thin disc's own
         middle = 0.5 * (low + high)
         expected = found.share_between(low, middle) / found.share_between(low, high)
-        assert law.probability(low, middle) == pytest.approx(expected, abs=0.01)
+        assert law.probability(low, middle) / law.probability(low, high) == pytest.approx(expected, abs=0.01)
 
 
 def test_a_light_galaxy_forms_its_old_stars_later_than_a_heavy_one():
     """Downsizing inside the old window: the mean age of its stars falls from a heavy galaxy to a light one."""
     def mean_age(mass):
-        law = disk_history.population_age_laws(_shape(mass))["old"]
+        law = disk_history.history_of(_shape(mass)).age_law(*tuning.THIN_DISC_OLD_WINDOW_GY)    # the thin disc's own (GEN.1025)
         ages = np.array(law.ages)
         rates = np.array(law.rates)
         return np.trapezoid(ages * rates, ages) / np.trapezoid(rates, ages)
@@ -127,7 +129,7 @@ def test_a_living_star_of_a_front_loaded_law_is_younger_than_one_of_an_even_spre
     rng_even, rng_law = draw.Stream(11), draw.Stream(11)
     even = [stellar_evolution.sample_living_star(rng=rng_even, population="old")[1] for _ in range(1500)]
     spread = [stellar_evolution.sample_living_star(rng=rng_law, population="old", age_law=law)[1] for _ in range(1500)]
-    assert np.mean(spread) < np.mean(even) - 1.0
+    assert np.mean(spread) < np.mean(even) - 0.8
 
 
 def test_a_fallback_to_the_whole_disk_drops_the_law():

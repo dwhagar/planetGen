@@ -18,7 +18,7 @@ from planetgen.generation.config import SystemConfig
 from planetgen.generation.star import Star
 from planetgen.generation.system import StarSystem
 from planetgen.datasets import isochrones
-from planetgen.physics import imf, post_main_sequence
+from planetgen.physics import alpha_tracks, imf, post_main_sequence
 from planetgen.physics import stellar_evolution as evolution
 from planetgen.physics import wolf_rayet
 from planetgen.util import draw
@@ -148,14 +148,16 @@ def test_the_companions_are_those_of_the_dsilva_survey(subtype, age_fraction, lo
     assert trials > 100 and low < found / trials < high, (found, trials)
 
 
-def test_the_bright_pass_draws_wolf_rayet_stars_from_young_populations_and_none_from_old_ones():
+def test_the_bright_pass_draws_wolf_rayet_stars_from_young_populations_and_none_from_old_ones(monkeypatch):
     draw.set_run_seed(3)
     stars = star_population.sample_bright_stars(2000, 1.0e5, population="young")
     share = sum(star["yerkes_class"] == "W" for star in stars) / len(stars)
     assert 0.01 < share < 0.15
     with pytest.raises(ValueError):
         star_population.sample_bright_stars(5, 1.0e5, population="old")
-    # A floor above their luminosities leaves none.
+    # A floor above their luminosities leaves none. Few tries are kept there (about 1 in 500 once the metal-poor stars read their
+    # alpha-enhanced tracks, GEN.1024), so the cap on the tries a star may take is raised for this one draw.
+    monkeypatch.setattr(tuning, "STAR_MODEL_MAX_REDRAWS", 20000)
     stars = star_population.sample_bright_stars(300, tuning.WR_LUMINOSITY_RANGE_SOL[1] * 1.01, population="young")
     assert all(star["yerkes_class"] != "W" for star in stars)
 
@@ -267,8 +269,9 @@ def test_the_luminosity_of_a_wolf_rayet_star_follows_its_present_mass_by_the_mis
     """GEN.939: a stripped star's light is set by its mass (the relation of MIST's own Wolf-Rayet rows), not drawn over the class's
     range whatever star it came from; the present mass is the track's (GEN.940)."""
     rng = random.Random(7)
-    line = post_main_sequence.timeline(initial, fe_h)
-    start = wolf_rayet.start_gy(initial, line.main_sequence_gy, line.end_gy, fe_h)
+    track = alpha_tracks.track_segments(fe_h)[0][2]          # GEN.1024: a young star reads the track of the thin branch
+    line = post_main_sequence.timeline(initial, track)
+    start = wolf_rayet.start_gy(initial, line.main_sequence_gy, line.end_gy, track)
     intercept, slope, sigma = isochrones.helium_star_relation()
     assert slope > 0.5 and 0.0 < sigma < 0.3
     for age in [start + (line.end_gy - start) * share for share in (0.0, 0.3, 0.7, 0.99)]:

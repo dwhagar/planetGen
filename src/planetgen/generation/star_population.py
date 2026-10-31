@@ -67,10 +67,10 @@ from planetgen.galaxy import scales
 from planetgen.generation import band_table_cache
 from planetgen.galaxy.age_law import AgeLaw
 from planetgen.galaxy.component_field import POPULATIONS_IN_THE_GATE
-from planetgen.physics import age_metallicity, constants, imf, metallicity, post_main_sequence, wolf_rayet
+from planetgen.physics import age_metallicity, alpha_tracks, constants, imf, metallicity, post_main_sequence, wolf_rayet
 from planetgen import tuning
 from planetgen.physics.stellar_evolution import (
-    birth_fe_h, evolve_star, horizontal_branch_bright_chance,
+    alive_until_gy, birth_fe_h, evolve_star, horizontal_branch_bright_chance,
     main_sequence_bright_from_gy, main_sequence_lifetime_gy, population_age_range_gy,
     remnant_formation_time_gy, sample_living_star, star_params,
 )
@@ -117,17 +117,28 @@ def _evolved_bright_windows(mass_sol, min_luminosity_sol, fe_h=0.0):
     return tuple(windows)
 
 
+def _bright_windows_on_track(mass_sol, min_luminosity_sol, track):
+    t_ms = main_sequence_lifetime_gy(mass_sol, track)
+    bright_from = main_sequence_bright_from_gy(mass_sol, min_luminosity_sol, t_ms, track)
+    evolved = _evolved_bright_windows(mass_sol, min_luminosity_sol, track)
+    return evolved if bright_from is None else ((bright_from, t_ms, 1.0),) + evolved
+
+
 def _bright_windows(mass_sol, min_luminosity_sol, fe_h=0.0):
     """
     Every age window in which a star of initial mass `mass_sol` and birth [Fe/H] `fe_h` is at
     least `min_luminosity_sol` bright, as `(start_gy, end_gy, chance)`:
     within the window the star clears the threshold with probability `chance` (1 where its state is a point of its
-    track, less on the horizontal branch and for a Wolf-Rayet star, whose luminosity is drawn). Mirrors `evolve_star`.
+    track, less on the horizontal branch and for a Wolf-Rayet star, whose luminosity is drawn). Mirrors `evolve_star`, which reads
+    the track of the star's branch (GEN.1024): each piece of the age axis (`alpha_tracks.track_segments`) has the windows of its track.
     """
-    t_ms = main_sequence_lifetime_gy(mass_sol, fe_h)
-    bright_from = main_sequence_bright_from_gy(mass_sol, min_luminosity_sol, t_ms, fe_h)
-    evolved = _evolved_bright_windows(mass_sol, min_luminosity_sol, fe_h)
-    return evolved if bright_from is None else ((bright_from, t_ms, 1.0),) + evolved
+    windows = []
+    for start, end, track in alpha_tracks.track_segments(fe_h):
+        for low, high, chance in _bright_windows_on_track(mass_sol, min_luminosity_sol, track):
+            low, high = max(low, start), min(high, end)
+            if high > low:
+                windows.append((low, high, chance))
+    return tuple(windows)
 
 
 def _bright_measure(mass_sol, min_luminosity_sol, window, fe_h=0.0):
@@ -143,8 +154,12 @@ def _living_measure(mass_sol, window, fe_h=0.0):
     span = window.span
     if mass_sol < tuning.SUPERGIANT_MIN_MASS_SOL:
         return span
-    dead_from = remnant_formation_time_gy(mass_sol, fe_h)
-    return span - _overlap(dead_from, math.inf, window)
+    dead = 0.0
+    for start, end, track in alpha_tracks.track_segments(fe_h):
+        dead_from = max(remnant_formation_time_gy(mass_sol, track), start)
+        if dead_from < end:
+            dead += _overlap(dead_from, end, window)
+    return span - dead
 
 
 _LONGEST_LIFE_OVER_MAIN_SEQUENCE = 1.5
@@ -175,15 +190,19 @@ def _bright_measure_bound(low_mass, high_mass, min_luminosity_sol, window, fe_hs
     start, end = math.inf, -math.inf
     evolved = 0.0
     for fe_h in fe_hs:
-        for mass in masses:
-            t_ms = main_sequence_lifetime_gy(mass, fe_h)
-            bright_from = main_sequence_bright_from_gy(mass, min_luminosity_sol / slack, t_ms, fe_h)
-            if bright_from is not None:
-                start, end = min(start, bright_from), max(end, t_ms)
-            if t_ms >= window.window[1] or _LONGEST_LIFE_OVER_MAIN_SEQUENCE * t_ms + _HORIZONTAL_BRANCH_ALLOWANCE_GY <= window.window[0]:
-                continue                  # not yet off the main sequence in the window, or a remnant before it
-            evolved = max(evolved, sum(_overlap(a, b, window) * chance
-                                       for a, b, chance in _evolved_bright_windows(mass, min_luminosity_sol, fe_h)))
+        for piece_start, piece_end, track in alpha_tracks.possible_segments(fe_h):    # every track a star of the bin could read, by age
+            if piece_end <= window.window[0] or piece_start >= window.window[1]:
+                continue                      # an age the population does not reach
+            for mass in masses:
+                t_ms = main_sequence_lifetime_gy(mass, track)
+                bright_from = main_sequence_bright_from_gy(mass, min_luminosity_sol / slack, t_ms, track)
+                if bright_from is not None:
+                    start, end = min(start, max(bright_from, piece_start)), max(end, min(t_ms, piece_end))
+                if t_ms >= window.window[1] or _LONGEST_LIFE_OVER_MAIN_SEQUENCE * t_ms + _HORIZONTAL_BRANCH_ALLOWANCE_GY <= window.window[0]:
+                    continue                  # not yet off the main sequence in the window, or a remnant before it
+                evolved = max(evolved, sum(_overlap(max(a, piece_start), min(b, piece_end), window) * chance
+                                           for a, b, chance in _evolved_bright_windows(mass, min_luminosity_sol, track)
+                                           if min(b, piece_end) > max(a, piece_start)))
     main_sequence = _overlap(start, end, window) if end > start else 0.0
     return main_sequence + tuning.BRIGHT_TABLE_EVOLVED_MARGIN * evolved
 
@@ -284,10 +303,11 @@ def _grid_cells(fe_bin, reference=False):
 
 
 def _bin_fe_hs(fe_bin):
-    """The composition a sampling table's bounds are taken over: the bin's two edges and its centre. A star in the bin
-    draws from the table with its own [Fe/H], so a cell's bound has to hold anywhere in the bin."""
+    """The composition a sampling table's bounds are taken over: the bin's two edges, its centre and the points half way between
+    (GEN.1024: a star reads the track of its branch, which moves the thermal-pulse windows of the rarest floors faster across a bin).
+    A star in the bin draws from the table with its own [Fe/H], so a cell's bound has to hold anywhere in the bin."""
     half = tuning.BRIGHT_TABLE_FE_H_STEP_DEX / 2.0
-    return (fe_bin - half, fe_bin, fe_bin + half)
+    return tuple(fe_bin + half * k / 2.0 for k in (-2, -1, 0, 1, 2))
 
 
 def _encode_table(table):
@@ -663,7 +683,7 @@ def _sample_one_in_mass_band(band, population, law, max_luminosity_sol, rng, sou
             continue
         oldest = window[1]
         if mass >= tuning.SUPERGIANT_MIN_MASS_SOL:
-            oldest = min(oldest, remnant_formation_time_gy(mass, fe_h))
+            oldest = min(oldest, alive_until_gy(mass, fe_h))
         age = age_metallicity.tilted_age(fe_h, table["population"], lambda: law.sample(window[0], oldest, rng), rng)
         state = evolve_star(mass, age, rng, fe_h=fe_h, population=table["population"])
         if state is None:

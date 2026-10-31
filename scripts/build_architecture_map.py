@@ -39,6 +39,7 @@ say where it goes. Calls to builtins are left out.
 
 The committed page and the check
 ================================
+The page carries a "Last updated" banner (the Eastern time of the last rebuild that changed it).
 The page is committed, like the TODO pages. `--check` fails when a module of `src/planetgen` is missing from the
 page or the page names a module that is gone (the list of modules sits in the page as plain JSON), so a lane that
 adds or moves a module regenerates the page (test modules are on the page but not checked, so adding a test
@@ -57,6 +58,7 @@ import argparse
 import ast
 import base64
 import builtins
+import datetime
 import json
 import os
 import re
@@ -486,8 +488,33 @@ def render(light, heavy):
     return template.replace("/*LIGHT*/", light_text).replace("/*HEAVY*/", blob)
 
 
-def build():
-    return render(*build_data())
+STAMP_RE = re.compile(r'<div class="updated-banner"[^>]*>Last updated: (.*?)</div>\n')
+
+
+def with_stamp(page, stamp):
+    """`page` with a "Last updated" banner (Boss, 3:50 PM EDT 2026-10-31) just above its header."""
+    style = ("font:600 13px/1.4 system-ui,-apple-system,'Segoe UI',sans-serif;padding:6px 14px;text-align:center;"
+             "background:#F6E7D6;color:#152030;border-bottom:1px solid #D8DEE7")
+    page = STAMP_RE.sub("", page)
+    banner = f'<div class="updated-banner" style="{style}">Last updated: {stamp}</div>\n'
+    at = page.index("<header>")
+    return page[:at] + banner + page[at:]
+
+
+def now_stamp():
+    """The Eastern time now, for example `2026-10-31 4:05 PM EDT`."""
+    from zoneinfo import ZoneInfo
+    moment = datetime.datetime.now(ZoneInfo("America/New_York"))
+    return f"{moment:%Y-%m-%d} {moment.hour % 12 or 12}:{moment:%M %p} {moment:%Z}"
+
+
+def build(stamp=None):
+    """The page. The banner keeps the stamp the committed page carries (so `--check --full` stays exact); `main`
+    writes a new time only when the rest of the page changed."""
+    if stamp is None:
+        found = STAMP_RE.search(open(PAGE, encoding="utf-8").read()) if os.path.exists(PAGE) else None
+        stamp = found.group(1) if found else ""
+    return with_stamp(render(*build_data()), stamp)
 
 
 LIGHT_RE = re.compile(r'<script type="application/json" id="light">(.*?)</script>', re.S)
@@ -534,6 +561,9 @@ def main(argv=None):
         print("architecture map is up to date")
         return 0
     text = build()
+    old = open(PAGE, encoding="utf-8").read() if os.path.exists(PAGE) else None
+    if text != old:
+        text = build(now_stamp())
     with open(PAGE, "w", encoding="utf-8") as handle:
         handle.write(text)
     light = page_light(text)

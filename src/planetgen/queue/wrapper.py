@@ -334,6 +334,16 @@ def stage_label(conn, run_id, index):
     return runrecord._s(declared[index]["label"]) if 0 <= index < len(declared) else None
 
 
+def stage_name(conn, run_id, index):
+    """What a message calls stage `index` (PERF.221): the label the page shows for it, not the internal number; the
+    number only where the run record cannot say (a run already gone from Redis)."""
+    try:
+        label = stage_label(conn, run_id, index)
+    except Exception:  # noqa: BLE001 -- naming the stage must never hide the failure being reported
+        label = None
+    return label or str(index)
+
+
 def _stage_step(conn, run_id, index):
     """`(declared, step)` of stage `index`: how the run declared it and the step the run record holds for it."""
     declared = json.loads(runrecord._s(conn.hget(runrecord.run_key(run_id), "stages")))[index]
@@ -539,6 +549,23 @@ def report_wait(holder, position):
         pass
 
 
+def stage_ensure(conn, url, kind, step_kind, workers_count=None):
+    """
+    The `ensure` for one stage of a run (PERF.220): `workers.ensure_workers` with the run's worker count held to what
+    the stage's workers can take in memory (`workers.stage_worker_cap`), and, on the bulk queue, the live workers over
+    that asked to finish their unit and exit (`workers.shed_bulk`), so the workers an earlier stage left do not all
+    scatter at once. A stage with ordinary workers is not limited.
+    """
+    cap = workers.stage_worker_cap(step_kind)
+    count = workers_count if cap is None else min(workers_count or cap, cap)
+
+    def ensure():
+        if cap is not None and queue_of(kind) == redisqueue.BULK_QUEUE:
+            workers.shed_bulk(conn, cap)
+        return workers.ensure_workers(queue_of(kind), conn, url, count=count)
+    return ensure
+
+
 def run(title, steps, on_plan, on_result, on_progress=None, workers_count=None, who=None, database=None, argv=None,
         seed=None, listing=None, url=None, kind=runrecord.GENERATION, rows=None, on_stage_done=None, galaxy_seed=None,
         build=None, finishes=None):
@@ -604,7 +631,7 @@ def run(title, steps, on_plan, on_result, on_progress=None, workers_count=None, 
                                          admitted=bool(os.environ.get(JOB_ENV)))
     else:
         run_id = start()
-    ensure = lambda: workers.ensure_workers(queue_of(kind), conn, url, count=workers_count)  # noqa: E731
+    ensures = [stage_ensure(conn, url, kind, step.kind, workers_count) for step in steps]
     relay = log.RelayReader(conn, runrecord.debug_key(run_id)) if debug else None
     on_debug = relay.drain if relay else None
     log.trace(f"run {run_id} ({title}) started: {len(steps)} stage(s) on the {queue_of(kind)} queue, "
@@ -615,6 +642,7 @@ def run(title, steps, on_plan, on_result, on_progress=None, workers_count=None, 
     try:
         advance(conn, run_id, 0)
         for index in range(len(steps)):
+            ensure = ensures[index]
             plan = _await_plan(conn, run_id, index, ensure, on_debug=on_debug)
             log.trace(f"run {run_id}: stage {index} ({steps[index].label}) queued as {plan['units']} unit(s) of total "
                       f"cost {plan['cost']}", area="queue")

@@ -2228,3 +2228,19 @@ Baseline: PR #1817.
 | MAP.274 | 8.4 | Asteroid fields |
 | TEST.521 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | TEST.527 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| UX.227 | 8.2 | Search by physical values |
+| TEST.529 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| PERF.220 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.531 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.532 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| UX.239 | 8.2 | Search by physical values |
+| MAP.279 | 8.4 | Asteroid fields |
+| PERF.222 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| PERF.223 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| PERF.221 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.533 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.536 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.534 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.535 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.537 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| MAP.363 | 8.4 | Asteroid fields |

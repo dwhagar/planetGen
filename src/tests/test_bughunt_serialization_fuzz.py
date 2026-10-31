@@ -127,7 +127,9 @@ _STAR_TYPES = ["M5V", "K2V", "G2V", "F5V", "A1V", "B3V", "O5V"]
 # `moon_origin`. A planet's `formation_distance_au` is where it formed, which for all but a pulsar's disc planet is the orbit distance it is
 # stored with; what the draws read it for is kept as `born_beyond_snow_line` (TEST.427). A planet's `_orbit_birth` is the eccentricity
 # and tidal state it was drawn with, which `settle_orbit` takes again once the star's age is final (GEN.985); it is not stored. A giant's `_giant_draw` is the heavy-element draws that
-# `giant_draw.settle` keeps (GEN.961), also runtime state.
+# `giant_draw.settle` keeps (GEN.961), also runtime state. A planet's `_surface_w` is the surface water its air solve drew, kept so the final-age
+# refresh (GEN.839) solves again with the same draw. A moon's `_belt_exposure_msv_yr` is the dose its parent's belts give at its orbit before the air
+# cuts it (GEN.983); the stored `dose_belt_msv_yr` is that after the air.
 # A star's `initial_mass_sol`, `phase_end_age_gy`, `_model_age_lifespan` and `_model_fe_h` are the population model's
 # own state, which a forced type shares (GEN.941); they are runtime state that the stored columns rebuild. `_model_rotation_hours` is the
 # spin period a scattered star was placed with (GEN.846), which the built star takes from the `bright_stars` row it was built from.
@@ -138,7 +140,7 @@ _RUNTIME_ONLY = {
     Planet: {"system_config", "star", "moons", "spatial", "_staged_au", "_staged_velocity_kms",
              "primary_mass_kg", "_star_distance_au", "phi_bio", "phi_cpx",
              "moon_disk_system", "formation_distance_au", "_orbit_birth", "_giant_draw", "_age_drawn",
-             "_birth_spin", "_born_moons", "fallen_moon_mass_kg", "fallen_moons", "_birth_distance_au"},    # kept so the moon history can run again (GEN.959); the ring it builds is stored
+             "_surface_w", "_belt_exposure_msv_yr", "_birth_spin", "_born_moons", "fallen_moon_mass_kg", "fallen_moons", "_birth_distance_au"},    # kept so the moon history can run again (GEN.959); the ring it builds is stored
     AsteroidBelt: {"system_config", "composition", "makeup"},
 }
 

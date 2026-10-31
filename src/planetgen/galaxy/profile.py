@@ -260,6 +260,23 @@ def planetary_nebula_factor_array(x, y, z, shape):
     return np.minimum(1.0, (1.0 - share) / (1.0 - reference))
 
 
+def supernova_progenitor_factor(young_share, shape):
+    """
+    The factor on the supernova remnants of stars of which `young_share` are young, against the rate per star at the solar circle (GEN.1191,
+    GEN.1198): a core-collapse remnant comes from a young star and a Type Ia from one that is not, so it is the solar circle's odds of each
+    (`tuning.SUPERNOVA_PROGENITOR_TYPE_IA_CHANCE`, 3 to 1) times the young share and the old share against the solar circle's. 1 for the solar
+    circle's own mix, above 1 where stars form faster per star than the disk (a Cloud), 0 for stars with none young: they form none now, so
+    they hold none of the gas a remnant needs to be seen in. Not capped.
+    """
+    if young_share <= 0.0:
+        return 0.0
+    reference = _reference_young_share(shape)
+    chance = tuning.SUPERNOVA_PROGENITOR_TYPE_IA_CHANCE
+    young_ratio = 0.0 if reference <= 0.0 else young_share / reference
+    old_ratio = (1.0 - young_share) / (1.0 - reference) if reference < 1.0 else 0.0
+    return (1.0 - chance) * young_ratio + chance * old_ratio
+
+
 def type_ia_share_at(populations, shape):
     """
     The share of a place's supernova remnants that are Type Ia (GEN.319). Core-collapse remnants come from the young
@@ -284,6 +301,20 @@ def type_ia_share_at(populations, shape):
     return type_ia / total
 
 
+_SATELLITE_POPULATIONS = ("satellite_young", "satellite_intermediate", "satellite")
+
+
+def _supernova_remnant_factor(populations, gas_fraction, shape):
+    """The `supernova-remnant` factor of a place: the disk's gas fraction (0 in clusters) for the share of its stars that are not a
+    satellite's, and the satellite's own progenitor factor for the rest (GEN.1198)."""
+    satellite = sum(populations[name].share for name in _SATELLITE_POPULATIONS)
+    others = gas_fraction * (1.0 - populations["cluster"].share)
+    if satellite <= 0.0:
+        return others
+    own = supernova_progenitor_factor(populations["satellite_young"].share / satellite, shape)
+    return (1.0 - satellite) * others + satellite * own
+
+
 def kind_factors_at(populations, gas_fraction, cold_fraction, shape):
     """
     The factors by which a place scales the rate per star of each kind that is not a plain per-star rate (GEN.236;
@@ -301,7 +332,10 @@ def kind_factors_at(populations, gas_fraction, cold_fraction, shape):
       makes more. A bound remnant is born where massive stars were and kicked into the disk's thickness, so it follows
       the stars; the kick's thickening belongs to the disk populations' motion, not to the rate.
     * **`supernova-remnant`**: the gas fraction (the remnant of a core collapse shines only where the shell meets gas),
-      0 in the halo and in clusters. Not zeroed in a superbubble: the hot cavity is where the explosions went off.
+      0 in the halo and in clusters. Not zeroed in a superbubble: the hot cavity is where the explosions went off. The
+      stars of a satellite are not the disk's (GEN.1198): their share of the place takes the satellite's factor
+      (`supernova_progenitor_factor` of their own young share, uncapped, as the component pass has it, GEN.1191)
+      in place of the gas fraction, so a Cloud's cell holds remnants at the rate its own star formation gives.
     * **`planetary-nebula`** (GEN.319): the share of the place's stars that are not young against the solar circle's,
       capped at 1: the young are too young to have made one, every older population makes them, so 1 in the disk
       (within 3%) and in every older place.
@@ -319,7 +353,7 @@ def kind_factors_at(populations, gas_fraction, cold_fraction, shape):
         shape (GalaxyShape): The galaxy's shape.
 
     Returns:
-        dict: Kind -> factor, each in 0 to 1.
+        dict: Kind -> factor, each in 0 to 1 but a satellite's supernova remnants, which scale with its star formation.
     """
     total = sum(pop.share for pop in populations.values())
     occurrence = 1.0
@@ -332,7 +366,7 @@ def kind_factors_at(populations, gas_fraction, cold_fraction, shape):
         "neutron-star": remnantDensity.place_factor_from_peaks(populations, shape.structure, "neutron-star"),
         "black-hole": remnantDensity.place_factor_from_peaks(populations, shape.structure),
         "planetary-nebula": min(1.0, old), "brown-dwarf": 1.0,
-        "supernova-remnant": gas_fraction * (1.0 - populations["cluster"].share),
+        "supernova-remnant": _supernova_remnant_factor(populations, gas_fraction, shape),
         "molecular-cloud": cold_fraction * young,
         "nebula": cold_fraction,
         "rogue-planet": occurrence, "comet": occurrence,

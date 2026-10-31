@@ -103,6 +103,17 @@ def test_runaway_giants_are_heavy_and_beyond_the_line_only():
     assert all(d.mass_kg == d.core_kg for d in draws if not d.runaway)
 
 
+def test_a_merged_core_past_the_deuterium_limit_makes_a_giant_no_heavier_than_the_limit():
+    """Two cores that merged (`planet_architecture.sculpt`) can sum to more than 13 Jupiter masses; the giant they make is held to the limit (a heavier
+    body is a brown dwarf and the planet code refuses it)."""
+    limit_kg = planet_mass._BROWN_DWARF_LIMIT_KG
+    stream = draw.Stream(3)
+    outcomes = [planet_mass.gas_outcome(1.4 * limit_kg, 5.0, SUN_KG, SNOW_LINE_AU, 0.5, stream) for _ in range(200)]
+    giants = [outcome for outcome in outcomes if outcome.runaway]
+    assert len(giants) > 10
+    assert all(outcome.mass_kg <= limit_kg and outcome.core_kg <= limit_kg for outcome in giants)
+
+
 def test_metal_poor_stars_make_fewer_giants():
     rich = sum(d.runaway for d in masses(4.0, count=800, fe_h=0.2))
     poor = sum(d.runaway for d in masses(4.0, count=800, fe_h=-1.0))

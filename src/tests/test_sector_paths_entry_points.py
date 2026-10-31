@@ -18,9 +18,9 @@ from planetgen.cli import generate as generate_cli
 from planetgen.db import sector_paths, store
 from planetgen.generation import run_galaxy
 from planetgen.queue import api_jobs
+from tests import sector_support
 from tests import test_sector_paths_db as helper
 from tests.bughunt_support import mysql_argv, run_cli
-from tests.sector_support import queue_settle
 
 pytestmark = pytest.mark.db
 
@@ -143,18 +143,9 @@ def test_settle_refuses_a_sector_that_does_not_exist(mysql_config, monkeypatch, 
     assert _marked(mysql_config, a_id), "nothing was settled for a request that named an unknown sector"
 
 
-def test_a_sector_generated_on_the_spot_queues_a_settle_job(mysql_config, monkeypatch):
+def test_settling_named_sectors_saves_the_paths_of_them_and_their_neighbours(mysql_config, monkeypatch):
     a_id, b_id = _two_sectors(mysql_config, monkeypatch)
-    submitted = []
-    monkeypatch.setattr(api_jobs, "submit", lambda function, *args, **options: submitted.append((function, args)) or "job1")
-    assert queue_settle(mysql_config, [b_id, a_id]) == "job1"
-    assert submitted == [(api_jobs.settle_sectors, ([a_id, b_id], mysql_config))]
-    assert _marked(mysql_config, a_id) and _marked(mysql_config, b_id)  # nothing ran yet
-
-
-def test_the_settle_job_saves_the_paths_and_without_a_queue_it_runs_inline(mysql_config, monkeypatch):
-    a_id, b_id = _two_sectors(mysql_config, monkeypatch)
-    assert api_jobs.settle_sectors([a_id], mysql_config) == {"saved": 2}
+    assert run_galaxy.settle_named_sectors([a_id], mysql_config) == 2
     assert _marked(mysql_config, a_id) == 0 and _marked(mysql_config, b_id) == 0
 
     conn = store.get_connection(mysql_config)
@@ -164,9 +155,5 @@ def test_the_settle_job_saves_the_paths_and_without_a_queue_it_runs_inline(mysql
     finally:
         conn.close()
 
-    def no_queue(function, *args, **options):
-        raise api_jobs.NoQueue("no Redis")
-
-    monkeypatch.setattr(api_jobs, "submit", no_queue)
-    assert queue_settle(mysql_config, [a_id]) is None
+    sector_support.settle_sectors(mysql_config, [a_id])
     assert _marked(mysql_config, a_id) == 0 and _marked(mysql_config, b_id) == 0

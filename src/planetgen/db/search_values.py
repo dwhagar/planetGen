@@ -171,6 +171,28 @@ def _unit_choice(value, entity, name, requested):
     return requested
 
 
+COMMON_UNITS = {
+    "acceleration": ("g0", "m_s2"),
+    "temperature": ("K", "degC", "degF"),
+    "pressure": ("bar", "mbar", "kPa", "Pa", "atm", "psi"),
+    "length": ("km", "m", "au", "Rearth", "Rjup", "Rsun", "mi"),
+    "duration": ("h", "d", "yr", "Gyr", "min", "s"),
+    "mass": ("Mearth", "Mjup", "Mmoon", "Msun", "kg"),
+}
+"""dict: The units a form offers for a kind of quantity beside the key's own (the unit registry holds many more, and any of them is taken by the API)."""
+
+
+def unit_choices(entity, key):
+    """The unit keys a form offers for `key` of `entity`: the default first, then the common units of its kind that the registry holds."""
+    default = KEYS[key].default_unit(entity)
+    if default not in unit_registry.UNITS:
+        return (default,)
+    kind = unit_registry.UNITS[default].kind
+    others = [unit for unit in COMMON_UNITS.get(kind, ()) if unit != default and unit in unit_registry.UNITS
+              and unit_registry.UNITS[unit].kind == kind]
+    return (default, *others)
+
+
 def _bound(args, name):
     raw = args.get(name)
     if raw is None or raw.strip() == "":
