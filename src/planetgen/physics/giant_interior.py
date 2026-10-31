@@ -289,9 +289,6 @@ def _polytrope_rows(index):
     return _POLYTROPE_ROWS[index]
 
 
-def thin_shell_base_pressure_pa(core_mass_kg, envelope_mass_kg, core_radius_m):
-    """The pressure at the base of an envelope that is a thin shell on a core: `G M_core M_env / (4 pi R_core^4)`."""
-    return constants.G * core_mass_kg * envelope_mass_kg / (4.0 * math.pi * core_radius_m ** 4)
 
 
 # ---------------------------------------------------------------------------------------------------------------------

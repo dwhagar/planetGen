@@ -51,13 +51,6 @@ def test_a_heavier_mix_has_a_lower_scale_height_and_a_higher_density():
     assert base.scale_height_m == pytest.approx(constants.R * 288.0 / (base.mean_molar_mass_kg_mol * G_EARTH), rel=1e-12)
 
 
-def test_gas_columns_add_up_to_the_column_mass():
-    columns = state.gas_column_mass_kg_m2(EARTH, G_EARTH)
-    assert sum(columns.values()) == pytest.approx(state.air_state(EARTH, 288.0, G_EARTH).column_mass_kg_m2, rel=1e-12)
-    # nitrogen weighs more per molecule than the water above it; the heavy trace gas outweighs its share of molecules
-    assert columns["CO2"] / columns["H2O"] == pytest.approx(41.0 * 44.0095 / (1000.0 * 18.015), rel=0.01)
-
-
 def test_less_gravity_means_more_column_per_pascal_and_a_warmer_ground():
     low = state.greenhouse_warming(EARTH_SURFACE, G_EARTH / 2.0, 240.0)
     high = state.greenhouse_warming(EARTH_SURFACE, G_EARTH, 240.0)

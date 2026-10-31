@@ -45,7 +45,7 @@ section 4 (design defaults). A rocky body's yearly dose, mSv/yr, is
    above: the design note section 2.3). A world that loses its ozone keeps `OZONE_LOSS_REMAINING` of it (Segura et al. 2010: 94 percent
    removed by one large flare; Howard et al. 2018: 90 percent by repeated flaring): the stored `ozone_column_du` is the column that is left, the
    UV index, the habitability score and the colour of the sky and ground are worked out from it. A loss event that removes air (stripping,
-   impact, escape) scales the stored column by the share of the air kept and the UV index follows (`apply_air_loss`, GEN.668).
+   impact, escape) is not applied to the stored ozone column here: the final-age refresh (GEN.839) works the dose and the ozone again from the air that is left.
 7. **Galactic hazard (`lethal_event_rate_per_gyr`, on the star).** A
    supernova within 8 pc, 1.5 per Gyr at 8 kpc from the centre, times
    `exp((8 kpc - R) / 1.45 kpc)` (250x at the centre), plus gamma-ray bursts

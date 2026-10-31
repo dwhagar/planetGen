@@ -14,8 +14,6 @@ project's bright-star pre-placement plan):
 - `sample_bright_stars(n, min_luminosity_sol, population, rng)`: `n` stars
   drawn from the model conditional on being at least that bright, each as
   `stellarEvolution.star_params` (what `Star.from_params` rebuilds).
-- `sample_dim_star(max_luminosity_sol, population, rng)`: one star from the
-  model conditional on being dimmer than the threshold.
 
 `population` is one of `stellarEvolution.population_age_range_gy`'s names
 ("young", "intermediate", "old", "bulge") or None for the whole disk.
@@ -725,24 +723,6 @@ def placed_star_fraction(min_luminosity_sol, min_mass_sol, population=None, age_
         return massive_star_fraction(min_mass_sol, population, age_laws)
     return (massive_star_fraction(min_mass_sol, population, age_laws)
             + bright_star_fraction(min_luminosity_sol, population, (None, min_mass_sol), age_laws))
-
-
-def sample_dim_star(max_luminosity_sol, population=None, rng=draw, max_mass_sol=None, age_laws=None,
-                    fe_h_peaks=None, galactic_center_dist_ly=None):
-    """
-    Draws one star from the population model conditional on luminosity
-    `< max_luminosity_sol` (a sector's own stars once its bright ones were
-    pre-placed). Nearly every star is that dim, so it simply redraws the
-    rare bright one.
-
-    Returns:
-        dict: As one of `sample_bright_stars`'s.
-    """
-    mass, age, state = sample_living_star(rng=rng, population=population, max_luminosity_sol=max_luminosity_sol,
-                                          max_mass_sol=max_mass_sol, fe_h_peaks=fe_h_peaks,
-                                          galactic_center_dist_ly=galactic_center_dist_ly,
-                                          age_law=None if age_laws is None else age_laws.get(population))
-    return star_params(mass, age, state)
 
 
 def pick_population(densities, rng=draw):

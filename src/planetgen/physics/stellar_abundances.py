@@ -387,12 +387,7 @@ def composition(fe_h, offsets):
 
 
 _solar_metal_fraction = composition(0.0, {}).z
-"""float: Z0 (`solar_metal_fraction`)."""
-
-
-def solar_metal_fraction():
-    """Z0, the metal mass fraction of a star of [Fe/H] 0 with every [X/Fe] 0 (the proto-solar mix of `PROTO_MASS_FRACTION`)."""
-    return _solar_metal_fraction
+"""float: Z0, the metal mass fraction of a star of [Fe/H] 0 with every [X/Fe] 0 (the proto-solar mix of `PROTO_MASS_FRACTION`)."""
 
 
 def metal_ratio_to_solar(metal_mass_fraction):
@@ -406,6 +401,17 @@ def number_ratio(composition_or_offsets, a, b, fe_h=None):
     offsets = composition_or_offsets.offsets if isinstance(composition_or_offsets, StellarComposition) \
         else composition_or_offsets
     return 10.0 ** (tuning.STELLAR_SOLAR_LOG_EPS[a] - tuning.STELLAR_SOLAR_LOG_EPS[b] + offsets.get(a, 0.0) - offsets.get(b, 0.0))
+
+
+ALPHA_ELEMENTS = ("O", "Mg", "Si", "Ca")
+"""tuple: The elements whose mean [X/Fe] is a star's alpha enhancement (S and Ar follow Ca, so they add nothing)."""
+
+
+def alpha_enhancement(composition_or_offsets):
+    """[alpha/Fe] (dex): the mean [X/Fe] of `ALPHA_ELEMENTS`, for a `StellarComposition` or an offsets dict. A thin-disc star at [Fe/H] 0 is near 0, a
+    high-alpha one near +0.2 to +0.3 (the branches' fits, `tuning.STELLAR_XFE_FITS`)."""
+    offsets = composition_or_offsets.offsets if isinstance(composition_or_offsets, StellarComposition) else composition_or_offsets
+    return sum(offsets[symbol] for symbol in ALPHA_ELEMENTS) / len(ALPHA_ELEMENTS)
 
 
 def mass_ratio(composition_or_offsets, a, b):

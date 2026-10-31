@@ -138,13 +138,6 @@ def gas_partials_pa(body):
     return dict(air or {})
 
 
-def other_kpa(body):
-    """The pressure of the gases of `body`'s air outside the ten species (`SPECIES`), kPa: helium, ammonia, the sulfur gases and
-    the rest of the gas table."""
-    stored = {gases.stored(gas).formula for gas in SPECIES}
-    return sum(value for formula, value in gas_partials_pa(body).items() if formula not in stored) / KPA_TO_PA
-
-
 def partial_kpa(body, gas):
     """`body`'s partial pressure of one of the ten species (`SPECIES`, lower case), kPa; 0 for a gas it lacks."""
     return gas_partials_pa(body).get(gases.stored(gas).formula, 0.0) / KPA_TO_PA
@@ -157,8 +150,3 @@ def partial_pressures_kpa(body):
     return {gas: air.get(gases.stored(gas).formula, 0.0) / KPA_TO_PA for gas in SPECIES}
 
 
-def hydrogen_kpa(body):
-    """The hydrogen in `body`'s air as an H2-equivalent partial pressure,
-    kPa: H2 + H2O + 2 CH4 + H2S. The water-loss clock's inventory."""
-    p = partial_pressures_kpa(body)
-    return p["h2"] + p["h2o"] + 2.0 * p["ch4"] + p["h2s"]

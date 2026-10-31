@@ -177,7 +177,6 @@ def test_the_polytrope_places_pressure_by_mass_and_the_thin_shell_formula_matche
     _, p_half = profile.at_mass_inside(0.5)
     _, p_tenth = profile.at_mass_inside(0.1)
     assert 0 < p_half < p_tenth < p_centre
-    assert gi.thin_shell_base_pressure_pa(1.0e25, 1.0e24, 6.0e6) > 0.0
 
 
 def test_the_compact_core_table_is_registered_with_open_rows():

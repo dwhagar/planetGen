@@ -474,7 +474,3 @@ def sector_profile(address, skeleton):
                       address=address, volume_pc3=spherical.cell_volume(shell, band, wedge, skeleton.edge_pc),
                       galaxy_seed=skeleton.galaxy_seed)
 
-
-def expected_systems_in(addresses, skeleton):
-    """The sum of `expected_systems` over `addresses`: what a neighbourhood request reports before it runs."""
-    return sum(sector_profile(address, skeleton).expected_systems for address in addresses)
