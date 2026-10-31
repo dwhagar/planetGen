@@ -1446,6 +1446,8 @@
 -- v169 (GEN.721): `planets` and `moons` also keep `lid_regime`, 'mobile' (plate tectonics) or 'stagnant' (one rigid plate), drawn once after the
 --   hydrosphere (`physics/interior_heat.py`); the heat flux law, the dynamo lifetime and the ground dose's felsic crust read it. NULL for a gas giant
 --   and a row made before v169, whose heat flux was a stagnant lid's.
+-- v191 (GEN.1057): `planets`, `moons` and `rogue_planets` also keep `ring_age_yr`, the years since the event that made the ring (`physics/ring_origin.py`); a ring is now an outcome of the body's history
+--   (a moon that fell inside the Roche limit, a comet that passed inside it), so a body with neither has none. NULL for a body with no ring, a resonance ring and a row made before v191.
 -- v190 (GEN.1034): `planets` and `moons` also keep the open-ocean equilibrium tide of a world with a sea (`physics/ocean_tides.py`): `tide_range_spring_m` and `tide_range_neap_m` (DOUBLE, metres,
 --   0 for an ice-covered ocean, NULL for a body without a free sea) and `ocean_liquid` (VARCHAR(40), the liquid of that sea, water until GEN.1035). NULL for a row made before v190.
 -- v170 (GEN.767): `planets` and `moons` also keep the day and night shares and the hours of daylight (`physics/daylight.py`): `day_share_equator`, `day_share_mean`,
@@ -2498,6 +2500,7 @@ CREATE TABLE IF NOT EXISTS planets (
     ring_mass_kg                DOUBLE,  -- v160: its mass, kg
     ring_optical_depth          DOUBLE,  -- v160: its mean optical depth over the area it covers
     ring_ice_fraction           DOUBLE,  -- v160: its water-ice share by mass
+    ring_age_yr                 DOUBLE,  -- v191 (GEN.1057): years since the event that made it (a fallen moon or a passing comet), NULL for a resonance ring
     atmosphere_colour           INT UNSIGNED,  -- v162 (DB.96): the colour of the body's air, sRGB as red*65536 + green*256 + blue, NULL with no air
     lid_regime                  VARCHAR(10) NULL,  -- v169 (GEN.721): mobile (plate tectonics) or stagnant (one rigid plate), drawn once, NULL for a gas giant
     day_share_equator           DOUBLE NULL,  -- v170 (GEN.767): share of the time the star is up at the equator over a year, 0 to 1, NULL for a world that turns once an orbit
@@ -2855,6 +2858,7 @@ CREATE TABLE IF NOT EXISTS moons (
     ring_mass_kg                DOUBLE,  -- v160: its mass, kg
     ring_optical_depth          DOUBLE,  -- v160: its mean optical depth over the area it covers
     ring_ice_fraction           DOUBLE,  -- v160: its water-ice share by mass
+    ring_age_yr                 DOUBLE,  -- v191 (GEN.1057): years since the event that made it (a fallen moon or a passing comet), NULL for a resonance ring
     atmosphere_colour           INT UNSIGNED,  -- v161 (DB.96): the colour of the body's air, sRGB as red*65536 + green*256 + blue, NULL with no air
     lid_regime                  VARCHAR(10) NULL,  -- v169 (GEN.721): mobile (plate tectonics) or stagnant (one rigid plate), drawn once, NULL for a gas giant
     day_share_equator           DOUBLE NULL,  -- v170 (GEN.767): share of the time the star is up at the equator over a year, 0 to 1, NULL for a world that turns once an orbit
@@ -3647,6 +3651,7 @@ CREATE TABLE IF NOT EXISTS rogue_planets (
     ring_mass_kg             DOUBLE,
     ring_optical_depth       DOUBLE,
     ring_ice_fraction        DOUBLE,
+    ring_age_yr              DOUBLE,  -- v191 (GEN.1057): as on `planets`
     -- v17: always populated (a rogue planet is always standalone).
     galactic_orbital_period_gy           DOUBLE NOT NULL,
     galactic_orbital_phase_deg           DOUBLE NOT NULL,

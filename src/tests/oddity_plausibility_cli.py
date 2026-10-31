@@ -29,10 +29,11 @@ from planetgen.generation import plausibility
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.planet import Planet
 from planetgen.generation.star import Star
-from planetgen.physics import constants, moon_composition, oddities, planet_classes, relations, rings, surface_air
+from planetgen.physics import constants, oddities, planet_classes, relations, rings, surface_air
 from planetgen.physics.oddities import Oddity, Rate
 from planetgen.physics import bulk_draw
 from planetgen.util import draw
+from planetgen.util.random import log_uniform
 
 SAMPLE = 200
 """int: Bodies forced per row (design section 5)."""
@@ -104,10 +105,10 @@ def _broken_air_beyond_inventory(body, star, stream):
 
 def _stub_ring(body, star, stream):
     """Stub: the planet gets a ring from the ring law (lever L6) with the row's own stream."""
-    parent = moon_composition.parent_kind(body.envelope_mass_fraction or 0.0, body.mass)
     cold = body.distance >= star.snow_line_au
     with draw.bound(stream):
-        ring = rings.draw_ring(parent, body.radius, body.mass, cold)
+        mass = min(log_uniform(1.0e13, 1.0e17), rings.MAX_MASS_OVER_PLANET * body.mass)   # a narrow ring of a fallen moon, the stub's one law
+        ring = rings.build_ring("disrupted_moon", mass, 1.0e8, body.radius, body.mass, cold)
     rings.clear(body)
     if ring is not None:
         for name, value in ring.values().items():
@@ -117,7 +118,7 @@ def _stub_ring(body, star, stream):
 def _own_ring(body, star, stream):
     _stub_ring(body, star, stream)
     if body.ring_mass_kg is None:       # the law drew none: give it the narrow ring the law would, so the broken rows have a ring to break
-        body.ring_kind, body.ring_origin, body.ring_ice_fraction = "narrow", "disrupted_moon", 0.0
+        body.ring_kind, body.ring_origin, body.ring_ice_fraction, body.ring_age_yr = "narrow", "disrupted_moon", 0.0, 1.0e8
         body.ring_inner_km, body.ring_outer_km = 1.5 * body.radius, 2.0 * body.radius
         body.ring_mass_kg = 1.0e13
         body.ring_optical_depth = rings.optical_depth(1.0e13, body.ring_inner_km, body.ring_outer_km, 5.0e-3, 0.0, 1.0)

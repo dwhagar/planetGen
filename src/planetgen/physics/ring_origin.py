@@ -18,8 +18,8 @@ history: a ring exists when something came apart inside the planet's Roche limit
 
 The ring that results is the sum of the rings of every event, each spread for the time since it came to be, capped at `rings.MAX_MASS_OVER_PLANET` of the planet; it exists above
 `MIN_RING_MASS_KG`, its origin is that of the event that holds most of it, and its age that event's. The Roche limit is `rings.roche_limit_km` for the ring's own material.
-The module draws only through `draw_comet_passages`, from the unit's stream; the rest is arithmetic on its arguments. Nothing reads it yet: the conditional ring draw
-(GEN.1057) replaces the `rings.draw_ring` chances. Stand-ins are RO1 to RO8 of `docs/design/research/gap-filling-plan.md` section 6.70; the draws of `rings` that this
+The module draws only through `draw_comet_passages`, from the unit's stream; the rest is arithmetic on its arguments. `rings.apply` reads it (GEN.1057): the moons that fell come from `moon_history`
+(the planet's `fallen_moons`), the comets from `draw_comet_passages`, and the chances of the old `rings.draw_ring` are gone. Stand-ins are RO1 to RO8 of `docs/design/research/gap-filling-plan.md` section 6.70; the draws of `rings` that this
 replaces (BC20 to BC23) are T4, L3 until the ring age and disruption rates of the Cassini end of mission replace them.
 """
 
