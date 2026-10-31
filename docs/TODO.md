@@ -14293,6 +14293,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   classes sharing a solvent whose conditions both hold, (b) dominant
   class only. The per-kind readings of GEN.1210 are given per living
   class once this lands.
+  Boss decided (A.2, B.2, 10:14 AM EDT 2026-10-31) (2026-10-31 10:25 AM
+  EDT): (a) any life classes whose conditions both hold may coexist on
+  one body, including classes of different solvents (a water class and a
+  sulfur or acid class); (b) a minor life class may reach the sentient
+  kind if its stage is reached inside the system age and the final air
+  does not poison it. This replaces Aux 2's recommended limits (same
+  solvent only, dominant class only). Nothing is forced and a
+  civilization is still never forced: each class runs its own timeline,
+  so a sentient minor class exists only when its own stages are reached.
+  The sentient kind score of the body becomes the highest across
+  classes; the civilization code (GEN.864) must say which class built a
+  civilization.
   Prerequisites: GEN.862. Related: GEN.863, UX.237, TEST.435.
 
 - [ ] **GEN.1210 Life readings: abundance, trend and security for each kind of life (microbes, flora, fauna, sentient), as one pure function over stored values with no new column**
