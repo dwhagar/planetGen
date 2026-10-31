@@ -641,6 +641,7 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.1130 | The +intelligent_life and +habitable_world request options become probability tweaks only: they raise the odds of such a world in the generated system and never force a placement, a ladder of adaptations or a civilization |  |  |
 | GEN.1129 | Fingerprint split: a sector's digest (GEN.58) becomes "made here" and "arrived here" so rogues landing from other sectors do not change the sector's own digest |  |  |
 | TEST.501 | Order-independence test: chart region A then B and B then A and compare the union of real-donor objects and each sector's made-here digest; chart a region twice and nothing changes; the top-up checked as "same stored state in, same objects out" |  |  |
+| TEST.509 | The climate sweep twin sits at 313 K, far above the 288 K of the Earth it stands for: make it a real Earth twin so the sweep tests the feedbacks where they act |  |  |
 | TEST.508 | Leo I fixture row in test_satellites has an age of 5 Gy so it forms gas; change the age or label it a stand-in |  |  |
 | GEN.1193 | Stripping rule on a satellite's distance to its host so gas follows Grcevich and Putman |  |  |
 | GEN.1192 | Satellite gas: a gas disc longer than the stars and a longer depletion time at low density |  |  |
