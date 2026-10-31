@@ -112,7 +112,7 @@ def build(system_config, star, planets, orbit_floor_au, orbit_ceiling_au, disc_e
     found = []
     for origin in origins:
         lower, upper = max(origin.inner_au, orbit_floor_au), min(origin.outer_au, orbit_ceiling_au)
-        if upper < lower * belt_origin.MIN_BELT_RATIO:
+        if upper < lower * belt_origin.MIN_BELT_RATIO or not origin.mass_earth > 0.0:       # a stretch the giants cleared of everything is no belt
             continue
         _, mass_kg, _ = present_state(star, lower, lower, upper, origin.mass_earth)
         found.append((_kg_to_mearth(mass_kg), origin, lower, upper))

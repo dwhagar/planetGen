@@ -163,3 +163,16 @@ def test_a_belt_asked_for_is_still_placed_where_the_chain_leaves_no_stretch(monk
             assert belts or "an asteroid belt" in system.unmet_requirements
             for belt in belts:
                 assert belt.origin is None and belt.upper_limit >= belt.lower_limit * 1.1
+
+
+def test_a_stretch_the_giants_cleared_of_everything_is_no_belt(monkeypatch):
+    real = belt_origin.build
+
+    def cleared(*args, **kwargs):
+        return [item._replace(mass_earth=0.0) for item in real(*args, **kwargs)]
+
+    monkeypatch.setattr(belt_origin, "build", cleared)
+    with deterministic_entropy(1068):
+        for seed in range(1, 8):
+            draw.set_run_seed(seed)
+            assert not _belts(StarSystem(system_config=_config()))
