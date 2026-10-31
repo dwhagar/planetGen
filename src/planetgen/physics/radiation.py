@@ -61,7 +61,7 @@ A planet of a pulsar or a black hole is rated by GEN.89, not here.
 import math
 
 from planetgen import tuning
-from planetgen.physics import body_colour, body_radiation, constants, magnetism, mixture, ozone, proton_range, radiation_belts, radiogenic, solar_particles, surface_composition
+from planetgen.physics import body_radiation, constants, magnetism, mixture, ozone, proton_range, radiation_belts, radiogenic, solar_particles, surface_composition
 from planetgen.util import draw
 from planetgen.util.random import log_uniform
 
@@ -526,21 +526,6 @@ def update_ground_dose(body):
     ground = _ground_dose(body, getattr(body, "atmospheric_pressure", None) or 0.0)
     body.surface_dose_msv_yr += ground - old
     body.dose_ground_msv_yr = ground
-
-
-def apply_air_loss(body, retained_fraction):
-    """
-    Takes a loss event that kept `retained_fraction` of a rocky body's air into its stored ozone and ultraviolet (GEN.668): the
-    ozone column scales by the share kept (`ozone.column_after_air_loss`) and the UV index is worked out again from it. The
-    caller applies the loss to the air itself (its pressure and gases) first; the UV index reads the air as it stands.
-    A body with no stored ozone column (a giant, or a row saved before it) is left as it is.
-    """
-    column = getattr(body, "ozone_column_du", None)
-    if column is None:
-        return
-    body.ozone_column_du = ozone.column_after_air_loss(column, retained_fraction)
-    body.uv_surface_index = body_radiation.dna_dose_index(body)
-    body_colour.generate(body)
 
 
 def column_g_cm2(pressure_pa, gravity_g):
