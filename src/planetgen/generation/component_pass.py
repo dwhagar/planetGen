@@ -327,14 +327,7 @@ def supernova_remnant_factor(component, shape):
     0 for a satellite with no young stars, which forms none now and so holds none of the gas a remnant needs to be seen in (the old gas factor's zero). It is
     not capped, as the old gas factor was at 1, and not cut by a gas profile: the young stars of a satellite share its stars' profile, so the remnants are placed with them.
     """
-    young = component_field.population_shares(component).get("satellite_young", 0.0)
-    reference = profile._reference_young_share(shape)
-    if young <= 0.0:
-        return 0.0
-    chance = tuning.SUPERNOVA_PROGENITOR_TYPE_IA_CHANCE
-    young_ratio = 0.0 if reference <= 0.0 else young / reference
-    old_ratio = (1.0 - young) / (1.0 - reference) if reference < 1.0 else 0.0
-    return (1.0 - chance) * young_ratio + chance * old_ratio
+    return profile.supernova_progenitor_factor(component_field.population_shares(component).get("satellite_young", 0.0), shape)
 
 
 def _class_mean(component, kind, subtype, rate, shape):
