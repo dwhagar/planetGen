@@ -39,11 +39,20 @@ section 3.5 (design defaults):
    intrinsic `magnetic_moment_a_m2`. `sigma` is a planetGen default per ocean
    class (`OCEAN_CONDUCTIVITY_S_M`; Europa's magnesium-sulfate ocean 2.75 S/m
    [Hand and Chyba 2007]). Nothing is drawn.
+7. **Induced field of a metal core and of a planet in its star's field** (GEN.981). The iron core of a body (`interior_heat.core_of`, whatever its dynamo
+   does: solid iron conducts as well as liquid) answers a changing field as a conducting sphere (`sphere_response`: `|F| = |1 - 3/z^2 + 3 cot(z)/z|`,
+   `z = (1 - i) a / delta`, skin depth `delta = sqrt(2 / (omega mu0 sigma))`, `sigma` `CORE_CONDUCTIVITY_S_M`), which is 1 for a core many skin depths
+   across (an Earth core at a day's period is 20 000 of them) and falls as `omega mu0 sigma a^2 / 15` for a thin one. A moon's core feels the
+   field its ocean lets through (`sqrt(1 - A^2)` of it) and its moment adds to the ocean's. A rocky planet is excited by the star's field at its orbit,
+   `IMF_EARTH_T` (5 nT) times the square root of the wind's pressure over Earth's (the field's energy a fixed share of the wind's), `STELLAR_EXCITATION_SHARE`
+   of it perpendicular to the spin, turning at the planet's synodic rotation (a tidally locked planet at the star's synodic rotation instead); its ocean
+   (a surface ocean's conductance scaled by the share of the surface it covers) and its core answer as a moon's do, and the moment is stored as `induced_moment_a_m2` beside the intrinsic one. A giant has none.
 
 `dipole_class`: none, weak (under 0.01 Earth's), Earth-like, strong (over 5
 Earth's) or multipolar (the dipole's share under 0.5).
 """
 
+import cmath
 import math
 
 from planetgen import tuning
@@ -106,6 +115,16 @@ OCEAN_CONDUCTIVITY_S_M = {
 """dict: Electrical conductivity of an ocean by `ocean_class`, S/m: a cold
 dilute ocean 0.5, Europa's MgSO4 2.75 (Hand and Chyba 2007), sodium carbonate
 3, saturated chloride 5, sulfuric acid 10 (planetGen defaults)."""
+CORE_CONDUCTIVITY_S_M = 1.0e6
+"""float: The electrical conductivity of an iron-alloy core, S/m: Earth's outer core at its pressure and temperature, 1.0 to 1.5 million (Pozzo et al. 2012;
+Gomi et al. 2013 find about half), the same for a solid core. Registry row IN1."""
+IMF_EARTH_T = 5e-9
+"""float: The field a star's wind carries at Earth's distance, T: 5 nT at 1 AU in the Sun's (the interplanetary field of the Parker spiral). Registry row IN2."""
+STELLAR_EXCITATION_SHARE = 0.5
+"""float: The share of the wind's field that a planet sees as a changing field: the part perpendicular to its spin axis, averaged over the tilt of the field
+(the mean of sin of an angle on a sphere is 0.785; the Parker spiral and the sector structure take it lower). Registry row IN3."""
+SPHERE_SKIN_DEPTHS_MAX = 1e3
+"""float: A core this many skin depths across answers with exactly 1 (the series of the exact response is no longer needed)."""
 INDUCTION_HYDROSPHERES = ("ice-covered ocean", "surface ocean", "hycean")
 """tuple: The states with a liquid ocean for an induced field (a `brine seep` is a puddle, not a conducting ocean layer; GEN.908)."""
 
@@ -231,24 +250,83 @@ def induced_moment(parent_moment_a_m2, orbit_radius_m, synodic_s, moon_radius_m,
     return 2.0 * math.pi * moon_radius_m ** 3 * response * excitation_t / VACUUM_PERMEABILITY, response
 
 
+def sphere_response(omega, conductivity_s_m, radius_m):
+    """
+    `|F|`, the size of the answer of a homogeneous conducting sphere to a uniform field that oscillates at `omega` rad/s (0 to 1, rule 7): the induced
+    dipole is `2 pi R^3 |F| B / mu0`. `F = 1 - 3/z^2 + 3 cot(z)/z` for `z = (1 - i) R / delta`, the skin depth `delta = sqrt(2 / (omega mu0 sigma))`:
+    `omega mu0 sigma R^2 / 15` for a sphere much thinner than a skin depth, 1 for one much thicker. 0 for no frequency, conductor or size.
+    """
+    if not omega or omega <= 0.0 or conductivity_s_m <= 0.0 or radius_m <= 0.0:
+        return 0.0
+    skin_depth = math.sqrt(2.0 / (omega * VACUUM_PERMEABILITY * conductivity_s_m))
+    if radius_m / skin_depth > SPHERE_SKIN_DEPTHS_MAX:
+        return 1.0
+    z = complex(1.0, -1.0) * radius_m / skin_depth
+    return min(abs(1.0 - 3.0 / z ** 2 + 3.0 / (cmath.tan(z) * z)), 1.0)
+
+
+def core_induced_moment(core, excitation_t, synodic_s, transmission=1.0):
+    """The induced dipole moment of a metal core (`core_heat.Core`) in a field of amplitude `excitation_t` T that turns at the period `synodic_s`, A m2 (rule 7);
+    `transmission` is the share of the field that reaches it past an ocean. 0 for no core or excitation."""
+    if core is None or not excitation_t or not synodic_s:
+        return 0.0
+    response = sphere_response(2.0 * math.pi / synodic_s, CORE_CONDUCTIVITY_S_M, core.radius_m)
+    return 2.0 * math.pi * core.radius_m ** 3 * response * transmission * excitation_t / VACUUM_PERMEABILITY
+
+
+def _ocean_and_core_moment(body, excitation_t, synodic_s):
+    """The induced moment of a body's ocean and its core in a changing field (rules 6 and 7): the ocean answers as a thin shell, the core as a sphere in the field the
+    ocean lets through."""
+    from planetgen.physics import interior_heat  # late: interior_heat reads this module's LID_MOBILE
+    radius_m = _km_to_m(body.radius)
+    moment, response = 0.0, 0.0
+    depth_m = _km_to_m(getattr(body, "ocean_depth_km", None) or 0.0)
+    if getattr(body, "hydrosphere", None) in INDUCTION_HYDROSPHERES and depth_m > 0.0 and excitation_t and synodic_s:
+        shell_radius_m = max(radius_m - _km_to_m(getattr(body, "ice_shell_km", None) or 0.0), 0.0)
+        conductivity = OCEAN_CONDUCTIVITY_S_M.get(getattr(body, "ocean_class", None), OCEAN_CONDUCTIVITY_S_M[None])
+        omega = 2.0 * math.pi / synodic_s
+        coverage = getattr(body, "ocean_fraction", None) if body.hydrosphere == "surface ocean" else None      # an ocean under ice or a hycean one is global
+        coverage = 1.0 if coverage is None else min(max(coverage, 0.0), 1.0)
+        x = omega * VACUUM_PERMEABILITY * conductivity * depth_m * coverage * shell_radius_m / 2.0
+        response = x / math.sqrt(1.0 + x * x)
+        moment = 2.0 * math.pi * radius_m ** 3 * response * excitation_t / VACUUM_PERMEABILITY
+    core = interior_heat.core_of(body) if getattr(body, "body_type", None) != "g" else None
+    return moment + core_induced_moment(core, excitation_t, synodic_s, math.sqrt(max(1.0 - response ** 2, 0.0)))
+
+
 def generate_induced_field(moon, parent):
-    """Sets `induced_moment_a_m2` on a moon from its parent planet's field
-    and its own ocean (rule 6; no draws): 0 for a moon with no liquid ocean,
+    """Sets `induced_moment_a_m2` on a moon from its parent planet's field,
+    its own ocean and its metal core (rules 6 and 7; no draws): 0 for a moon with neither,
     no parent field or a parent that turns with it. Call once the moon's
-    water and orbit are set and the parent's field exists."""
+    water, orbit and core are set and the parent's field exists."""
     moon.induced_moment_a_m2 = 0.0
-    if getattr(moon, "hydrosphere", None) not in INDUCTION_HYDROSPHERES:
-        return
-    depth_m = _km_to_m(getattr(moon, "ocean_depth_km", None) or 0.0)
-    if depth_m <= 0.0:
-        return
     parent_moment = (getattr(parent, "magnetic_moment_a_m2", None) or 0.0)
     synodic = synodic_period_s(getattr(parent, "rotation_period_hours", None), moon.period)
-    radius_m = _km_to_m(moon.radius)
-    shell_radius_m = max(radius_m - _km_to_m(getattr(moon, "ice_shell_km", None) or 0.0), 0.0)
-    conductivity = OCEAN_CONDUCTIVITY_S_M.get(getattr(moon, "ocean_class", None), OCEAN_CONDUCTIVITY_S_M[None])
-    moon.induced_moment_a_m2 = induced_moment(
-        parent_moment, _au_to_m(moon.distance), synodic, radius_m, conductivity * depth_m, shell_radius_m)[0]
+    orbit_radius_m = _au_to_m(moon.distance)
+    if not parent_moment or not synodic or orbit_radius_m <= 0.0:
+        return
+    excitation_t = EXCITATION_SHARE * VACUUM_PERMEABILITY * parent_moment / (4.0 * math.pi * orbit_radius_m ** 3)
+    moon.induced_moment_a_m2 = _ocean_and_core_moment(moon, excitation_t, synodic)
+
+
+def generate_stellar_induction(planet):
+    """Sets `induced_moment_a_m2` on a rocky planet from its star's field at its orbit (rule 7; no draws): the wind's field `IMF_EARTH_T` scaled by the wind's
+    pressure, seen at the planet's synodic rotation (the star's, for a planet that turns with its orbit), answered by its ocean and its metal core. 0 for a body
+    with neither or with no orbit; a giant is left as it is. Call once the water, the core and the distance from the star are set."""
+    if planet.body_type == "g":
+        return
+    planet.induced_moment_a_m2 = 0.0
+    distance = getattr(planet, "_star_distance_au", None)
+    period = getattr(planet, "period", None)
+    if not distance or not period:
+        return
+    synodic = synodic_period_s(getattr(planet, "rotation_period_hours", None), period)
+    if synodic is None:
+        synodic = synodic_period_s(getattr(planet.star, "rotation_period_hours", None), period)
+    if synodic is None:
+        return
+    excitation_t = STELLAR_EXCITATION_SHARE * IMF_EARTH_T * math.sqrt(wind_pressure_pa(planet.star, distance) / EARTH_WIND_PA)
+    planet.induced_moment_a_m2 = _ocean_and_core_moment(planet, excitation_t, synodic)
 
 
 PULSING_TYPES = ("young", "millisecond", "magnetar")
