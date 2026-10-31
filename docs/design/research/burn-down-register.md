@@ -168,6 +168,10 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.150:CF5 | no data | - | the ocean-fraction shoulder is hand-picked; the law of GEN.1147 fixes how bimodal the cover is and the GEN.1207 sweep then sets the width |
 | 6.150:CF6 | no data | - | the airless icy line shoulder is hand-picked; no source gives a soft edge for dry against icy airless bodies |
 | 6.150:CF7 | no data | - | the gas-share shoulders are hand-picked; no source gives a soft edge for the oxygen, carbon dioxide and reducing-gas limits |
+| 6.155:LR1 | no data | - | the abundance word edges on the 0 to 9 kind score are a hand-picked reading of a standard ecology scale (DAFOR style); no source ties the words to our score |
+| 6.155:LR2 | no data | - | the trend look-ahead, band and spread are hand-picked; no source gives a rate of change that counts as a trend for a living class |
+| 6.155:LR3 | no data | - | the time-left limits for Dying out, Precarious and Marginal are hand-picked; no source gives them for a living class |
+| 6.155:LR5 | no data | - | the milestone each kind spreads after is a hand-picked reading of the life timeline; the stored schedule of the world replaces it where there is one |
 | 6.126:RN3 | no data | - | no measured strength of ice with rock grains above 56 percent solids by volume; a measured curve replaces the extrapolated leg from 0.56 to the rock strength at 1 |
 | 6.126:RN5 | no data | - | no source gives a porosity law for body-scale strength; the rubble-pile branch (friction plus a little cohesion) replaces it |
 | 6.129:IT6 | no data | - | the 1993 ammonia-water constants of Durham, Kirby and Stern are not in hand; they replace the three interpolated points |
