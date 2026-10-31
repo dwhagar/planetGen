@@ -14953,6 +14953,33 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Star 2, train 9.
   Prerequisites: none. Related: GEN.1024, PERF.218.
 
+- [ ] **PERF.225 The galaxy shape's cluster field is kept across processes, so a fresh web daemon reads it instead of rebuilding it in about 56 seconds**
+  Boss (2026-10-31, 5:47 PM EDT, the memory and request-timeout thread
+  on hal; PR #4626 added the refuse-while-rebuilding guard and left this
+  open): `GET /api/galaxy/shape` took 56 to 65 s on a cold web daemon,
+  because `_component_field` in `src/planetgen/db/store.py` builds the
+  `ComponentField` from the stored clusters and satellites again in
+  every process (the cache `_FIELD_BY_SIGNATURE` lives in one process).
+  The daemon's request limit is 60 s, so a fresh daemon sits just under
+  it, and past it every request in flight is cut off. #4626 only refuses
+  the build while a rebuild is flagged. Do: keep the built field across
+  processes under the same signature the in-process cache already uses
+  (database, row count, first and last id, mass sum, edge and expected
+  count), read first from Redis (recommended: no migration, so it is
+  lock-free; the entry is rebuilt on a miss and replaced when the
+  signature changes, and a Redis that is down falls back to building in
+  process), or from a table only if Redis cannot hold it (a table needs
+  a migration and rides a train). Also warm it at the end of a
+  generation run and in `planetgen warm`, so the first visitor never
+  builds it. Done: a test that a second process (a fresh interpreter)
+  reads the field without building it, that a changed
+  `galaxy_components` table gets a new entry, and that a Redis outage
+  still returns the field; a measured cold `GET /api/galaxy/shape` under
+  5 s on a populated database. Lock-free, no epoch, generation output
+  unchanged (the Redis route). Owner: Core 1 (waiting lane; knows the
+  store). Version 8.1.
+  Prerequisites: none. Related: PERF.219, PERF.220.
+
 ## DB: Database and schema
 
 DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
