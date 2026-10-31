@@ -320,3 +320,5 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.148:RGD2 | GEN.1055 | `ring_darkening.DARK_ALBEDO`, not read until GEN.1055 wires the module |
 | row | 6.148:RGD3 | GEN.1055 | `ring_darkening.SATURN_POLLUTION_FLUX_KG_M2_S`, not read until GEN.1055 wires the module |
 | row | 6.148:RGD4 | GEN.1055 | `ring_darkening.FLUX_DISTANCE_EXPONENT` and `DUST_SPEED_AT_INFINITY_KMS`, not read until GEN.1055 wires the module |
+| data | planet_class_fit.json | GEN.1207 | the percent-match table of every class; the shadow scorer reads it (GEN.1206) and the best-fit classifier makes it the way a stored letter is decided |
+| module | planetgen.physics.class_fit | GEN.1207 | the percent-match scorer; the shadow scorer in src/tests reads it, the classifier replaces the first-match tree with it |

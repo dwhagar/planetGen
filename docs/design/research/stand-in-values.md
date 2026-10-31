@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 953 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 960 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -41,11 +41,11 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T3 | 84 | 38 | 5 | 10 | 0 | 137 |
 | T4 | 37 | 5 | 0 | 14 | 10 | 66 |
 | T5 | 43 | 17 | 0 | 1 | 0 | 61 |
-| T6 | 92 | 71 | 18 | 42 | 0 | 223 |
+| T6 | 92 | 72 | 18 | 48 | 0 | 230 |
 | T7 | 27 | 8 | 8 | 8 | 0 | 51 |
 | T8 | 0 | 1 | 1 | 5 | 1 | 8 |
 | T9 | 17 | 14 | 4 | 42 | 19 | 96 |
-| All | 552 | 203 | 44 | 124 | 30 | 953 |
+| All | 552 | 204 | 44 | 130 | 30 | 960 |
 
 ## How the labels were given
 
@@ -1377,6 +1377,18 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | RN9 | D | T5 | L1 | roundness.RUBBLE_RULES hot strength 2.5 MPa (`hot_strength_pa` in roundness_strengths.json): the strength of a pile that took its shape hot, the creep strength of dry olivine at about 1330 K | 1 to 4 MPa, which is 1250 to 1400 K | rubble piles that were heated at formation | a heated rubble pile whose measured shape needs another strength | a thermal history of the body that sets its strength at shape-setting (the `olivine-creep-law` already takes a shape-set temperature) | Korenaga and Karato 2008 Table 3 (READ), Hirth and Kohlstedt 2003 as printed there; `reports/papers-vs-standins-2026-10-31.md` section 2 (re-tiered from L3) | GEN.1159 | - |
 | RN10 | P | T4 | L0 | roundness.RANGES_PA: ice 0.4 to 3 MPa, rock 4 to 30 MPa, metal 50 to 250 MPa, and the rubble ranges (friction 30 to 40 degrees, cohesion 44 to 210 Pa, hot strength 1 to 4 MPa), and, for hot rock, the quantile between the two olivine creep columns (RN11); a body's strength is the log-linear quantile `draw` of its range with the stand-in at 0.5 | the ranges; the shape of the quantile (log-linear through the median) | every solid body | a body whose measured strength is outside its range, or a population whose round boundary is wider or narrower than the draw gives | a population statistic of the round boundary (the sizes of the largest non-round and smallest round bodies of a class) | Lineweaver and Norman 2010 (rock 4 to 30 MPa, ice 0.4 to 3 MPa), strength research section 7 ranges; the quantile shape is a design choice (`reports/planetary-material-strength-2026-10-31.md` section 13 recommends sampling from the range) | GEN.1178 | - |
 | RN11 | D | T2 | L0 | roundness.ROCK_CREEP_COLUMNS: dry olivine dislocation creep, strain rate = A sigma^n exp(-E / R T), Hirth and Kohlstedt 2003 (log10 A 5.04, n 3.5, E 530 kJ/mol) and Korenaga and Karato 2008 (6.09, 4.94, 610) at 1e-15 per second, never above the cold rock strength; between the columns by the body's quantile | E +/- 4 to 30 kJ/mol, n +/- 0.3; rate 1e-16 to 1e-14 per second | silicate rock that took its shape at 1100 K or more; below that cold rock (RN2) governs | a hot rock body whose shape and temperature need a strength outside the two columns | a measured body-scale strength of hot rock; wet olivine (about 1.3 to 2 times weaker) and a pressure term | Korenaga and Karato 2008 Table 3 (READ, both columns); Chu and Korenaga 2012 (READ) test the laws at geologic rates; `reports/planetary-material-strength-2026-10-31.md` section 15 | GEN.1201 | - |
+
+## 6.150 Stand-ins of the shoulders of the best-fit classes
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| CF1 | P | T6 | L1 | planet_class_fit.json shoulders.mass_earth: 0.4 of the edge (35 Earth masses gives 14: ice giant to gas giant fades from 21 to 49) | 0.2 to 0.6 of the edge | giants | measured ice-giant and gas-giant masses that overlap over a different range | the envelope share of GEN.428 deciding ice giant against gas giant | planet_classes.json basis of class I: the drawn ice and gas giant mass ranges overlap from 30 to 60 Earth masses | - | - |
+| CF2 | P | T6 | L3 | planet_class_fit.json shoulders.gravity_g: 0.1 of the edge (the 0.5 g and 2 g lines fade over 0.05 and 0.2 g) | 0.05 to 0.2 of the edge | terrestrial bodies with air | a habitability model whose gravity limits are sharper or softer than 10 percent | the gravity lines of the habitability index | hand-picked; 2 g is the Bryson 2021 upper edge of Earth-sized, which is itself a range (GV1) | - | - |
+| CF3 | P | T6 | L3 | planet_class_fit.json shoulders.temperature_k: 10 K (freezing, 233.15 K, 320 K and 400 K lines fade over 10 K) | 5 to 20 K | terrestrial bodies with air | the climate scatter of one planet class at fixed insolation (Lehmer 2020 scatter in pCO2 is wider than 10 K of surface temperature) | the spread of the surface-temperature solve (GEN.972 ice-albedo feedback) | hand-picked; the mean surface of a drawn body is uncertain by about this much from the greenhouse table | - | - |
+| CF4 | P | T6 | L3 | planet_class_fit.json shoulders.pressure_pa: 0.3 of the edge | 0.15 to 0.5 | terrestrial bodies with air | none known | the survival equipment fields of thin and thick air | hand-picked; pressure draws are log-spread, so a share of the edge is the natural width | - | - |
+| CF5 | P | T6 | L3 | planet_class_fit.json shoulders.ocean_fraction: 0.05 absolute (the 0.2 and 0.8 water lines fade over 5 percent of the surface) | 0.02 to 0.1 | terrestrial bodies with air | the ocean-fraction law of GEN.1147 once Boss decides it (a bimodal law makes the shoulder rarely used) | the water cover law of GEN.1147 | hand-picked; the cover law saturates, so values near the lines are rare | - | - |
+| CF6 | P | T6 | L3 | planet_class_fit.json shoulders.water_mass_fraction: 0.5 of the edge (the airless icy line at 1 percent) | 0.25 to 1.0 | airless bodies | none known | the small-body composition draw | hand-picked; the dry and icy airless bodies are decades apart, so the line is seldom crossed | - | - |
+| CF7 | P | T6 | L3 | planet_class_fit.json shoulders for gas shares (oxygen, carbon dioxide, hydrogen, sulfur dioxide, reducing gases): 0.25 of the edge with a floor of 0.002 to 0.005 | 0.1 to 0.5 of the edge | terrestrial bodies with air | none known | the toxicity and equipment lines of the habitability index | hand-picked; gas shares of a drawn air spread over decades, so the shoulder is a share of the edge | - | - |
 
 ## 6.129 Stand-ins of the strengths of the ice types
 
