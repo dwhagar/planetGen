@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 891 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 892 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -41,11 +41,11 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T3 | 76 | 34 | 5 | 10 | 0 | 125 |
 | T4 | 37 | 4 | 0 | 14 | 10 | 65 |
 | T5 | 43 | 16 | 0 | 1 | 0 | 60 |
-| T6 | 82 | 61 | 15 | 45 | 0 | 203 |
+| T6 | 83 | 61 | 15 | 45 | 0 | 204 |
 | T7 | 27 | 8 | 8 | 8 | 0 | 51 |
 | T8 | 0 | 1 | 1 | 5 | 1 | 8 |
 | T9 | 13 | 6 | 4 | 39 | 19 | 81 |
-| All | 524 | 173 | 40 | 124 | 30 | 891 |
+| All | 525 | 173 | 40 | 124 | 30 | 892 |
 
 ## How the labels were given
 
@@ -934,6 +934,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | LM2 | D | T1 | L0 | main_sequence.SETTLED_RADIUS_SHARE 1.02: a star under 0.1 solar masses has arrived on the main sequence when its Baraffe radius is within 2% of the least it reaches (0.6 to 3 Gy) | 1.01 to 1.05 | stars of 0.07 to 0.1 solar masses | the contraction time of the pre-main-sequence model against this arrival by more than a factor 2.5 | the pre-main-sequence tracks of the table | READ (the BHAC15 radii; 2% is the share the pre-main-sequence energy factor was fitted to, GEN.529) | - | - |
 | LM3 | P | T5 | L0 | mass_boundaries.STAR_BROWN_DWARF_SPLIT_SOL 0.08: the mass function of the stars ends and that of the brown dwarfs begins; the class of an object is by its place's hydrogen-burning limit, 0.074 at solar Z to 0.092 at none (`hydrogen_burning_limit_for_fe_h`) | the split 0.074 to 0.092 | all objects of 0.07 to 0.092 solar masses | the share of objects of 0.074 to 0.092 solar masses that burn hydrogen at a place against Baraffe's and Chabrier and Baraffe's limits | a limit by [Fe/H] from a grid of models at other metallicities | a decision of the item (Boss, 2026-10-21, the limit by Z); the dependence on Z is a parametrisation, Burrows et al. 2001 | - | - |
 | LM4 | P | T7 | L0 | brown_dwarf: the radius of a mass the table loses while it is young is held at its last (young) value, the temperature continues at t^-0.32 (Burrows et al. 2001) | none | brown dwarfs of 13 to 50 Jupiter masses past the age the table loses them (0.01 to 0.6 Gy) | a radius of a 13 Jupiter mass object at 10 Gy over 1.2 Jupiter radii | a track that reaches the old ages (ATMO 2020, Phillips et al. 2020) | an inference, kept from the eleven-row table it replaces; the radius is 1.7 Jupiter radii for 13 Jupiter masses | - | - |
+| LM5 | P | T6 | L0 | pre_main_sequence.MIST_FADE_TOP_SOL 0.15: MIST's stretch of the contraction clock (GEN.947) passes from none at the lightest mass its rows hold a contracting star for (about 0.107 solar masses) to whole at 0.15, a smoothstep of the mass | 0.12 to 0.3 | stars of 0.1 to 0.15 solar masses | a measured time to the main sequence of stars of 0.1 to 0.15 solar masses; the BHAC15 radius criterion gives 402, 356 and 240 Myr at 0.10, 0.11 and 0.15, MIST's nuclear one 1390 to 879 Myr from 0.108 to 0.15 | a clock chosen by Boss (GEN.1174: the radius-settled time or the nuclear arrival) | GEN.1173: MIST's arrival stops at 0.107 solar masses and the stretch of about 1.9 stopped with it, a step from 718 to 1358 Myr between 0.105 and 0.11; the model's own time stands below the rows (GEN.529), so the stretch is brought in over the rows' first 0.04 solar masses; the time still rises about 29% between 0.11 and 0.14 because MIST's own arrival at 0.15 (879 Myr) is above the model's at 0.11 (698 Myr) | - | - |
 
 ## 6.67 Stand-ins of the stellar wind and flares at a world
 
