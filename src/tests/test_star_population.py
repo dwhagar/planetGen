@@ -178,7 +178,7 @@ def test_binary_companions_share_the_primarys_age_and_are_dimmer():
 
 
 def test_planets_respect_their_stars_age_and_history():
-    for _ in range(400):
+    for _ in range(150):      # a whole system with moons, the air and the heat costs about 4 s, so 400 of them passed 900 s
         system = StarSystem(system_config=SystemConfig())
         hosts = [(system.star, system.planets)]
         if system.binary_type == "wide":
