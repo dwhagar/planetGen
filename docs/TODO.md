@@ -12430,22 +12430,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   train. Owner: Star 2 (after GEN.744 part A merges).
   Prerequisites: GEN.944. Related: GEN.944, GEN.744, GEN.405.
 
-- [ ] **GEN.1026 Carbon star and S star flags on the star sheet from the thermal-pulse and dredge-up count of the post-main-sequence track**
-  Split from GEN.944 by Star 2 (relayed 2:33 PM EDT 2026-10-30 as the
-  lane reported). The variability flags (Cepheid, Mira and semiregular,
-  T Tauri, Herbig Ae/Be) are in draft PR #4082; carbon stars and S stars
-  need the thermal-pulse count and the third dredge-up from the
-  post-main-sequence track (the carbon-star abundances already exist in
-  the composition code). Do: count the thermal pulses and dredge-up on
-  the asymptotic giant branch track, derive the carbon-to-oxygen ratio
-  from it, and flag a star with C/O above 1 as a carbon star and one
-  near 1 with s-process enhancement as an S star, as a derived row on
-  the star sheet. Done: the flags follow from the track and the
-  composition, with a test over a mass and metallicity sweep, and the
-  stand-ins are registered in GEN.725 with tier and tweak level. Owner:
-  Star 2 (after GEN.944 flags merge).
-  Prerequisites: GEN.944. Related: GEN.944, GEN.725.
-
 - [ ] **GEN.1027 Ap and Am stars: a chemically peculiar branch of the A-star draw with rotation and magnetic field**
   Split from GEN.944 by Star 2 (relayed 2:33 PM EDT 2026-10-30 as the
   lane reported). Ap and Am stars need a chemically peculiar branch with
@@ -13929,6 +13913,24 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the satellite row. Lock work (stored remnants change). Prerequisites:
   GEN.1191. Owner: Aux 4 (proposed).
   Prerequisites: GEN.1191.
+
+- [ ] **GEN.1199 A small moon of a giant carries a hydrogen air and is called class T: can a 0.1 Earth-mass moon keep a hydrogen air at all?**
+  Finding from Core 4's train 6 class check (as the lane reported, 4:31
+  AM EDT 2026-10-31), filed by the TODO thread (its pointer to GEN.822
+  was a different, finished item). Kind: generation result against
+  physics. Object: the moon of a giant planet. Result: a 0.1 Earth-mass
+  moon of a 300 Earth-mass giant is drawn with a hydrogen air and class
+  T. Question: whether a body that small can keep a hydrogen air at all.
+  Mass loss should decide (escape of hydrogen from a small warm body
+  over its age, with the giant's tidal heating and the star's light),
+  not the class line. Do: check the air a small moon is given against
+  the escape-loss model (GEN.738 hydro_based_mass_loss, already wired to
+  sub-Neptune envelopes by GEN.822), say what mass and temperature a
+  moon needs to hold a hydrogen air over its age, and either remove the
+  air (and so the class) or keep it with the physics that holds it; a
+  stand-in goes in GEN.725 with tier and tweak level. Lock work if the
+  stored air changes. Owner: Core 4 (proposed).
+  Prerequisites: none.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
