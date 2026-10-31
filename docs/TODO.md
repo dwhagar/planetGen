@@ -10563,27 +10563,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   lane, Core 3 or Core 1, is the nearest owner).
   Prerequisites: none. Related: GEN.530, GEN.631, TEST.338.
 
-- [ ] **GEN.720 star.age is adjusted after the planets are generated (adjust_age_for_planets), so any age-dependent planet value goes stale (bug)**
-  Found by lane H (12:19 PM EDT 2026-10-24 as the lane reported, GEN.461
-  #2993). A pre-existing quirk: adjust_age_for_planets changes the star
-  age after the planets of a system have been generated, so any planet
-  value that depends on the star age (primordial heat, radiogenic heat,
-  tidal or cooling terms) was computed with the old age and is stale.
-  GEN.699 recomputes heat lazily and so avoids it for heat only. Do:
-  decide one order (adjust the age first, or recompute the age-dependent
-  values after the adjustment), apply it to every age-dependent planet
-  and moon value, and say so in the generation docs. Done: a test that
-  builds systems whose age is adjusted and finds every age-dependent
-  value equal to a fresh computation at the final age; the epoch is
-  bumped if a drawn value changes (next free at merge). Owner: none
-  (pool); lane H is the nearest owner after GEN.699.
-  Research (2026-10-09, Math lane): Update 3:52 PM EDT 2026-10-24 (Boss,
-  3:49 PM EDT, via the coordinator): Math lane. This item is cleared for
-  the new Math lane (physics route 'derivable now',
-  reports/physics-gaps-2026-10-24.md). Owner: Math lane (proposed by the
-  TODO thread; nobody has started it).
-  Prerequisites: none. Related: GEN.699, GEN.461.
-
 - [ ] **GEN.733 Hydrogen-helium equation-of-state tables for giant interiors: download job and use in the interior model**
   From the physics gaps report (reports/physics-gaps-2026-10-24.md, row
   C4; relayed by the coordinator 3:43 PM EDT 2026-10-24; filed by the
@@ -11544,38 +11523,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   isotopes.json are in the repo for interior heat and ices. Catalog
   section 4.
   Prerequisites: none. Related: GEN.735, GEN.763.
-
-- [ ] **GEN.839 The hydrosphere ice shell and the surface composition volcanism gate still read the provisional-age heat, so they disagree with the final-age heat GEN.763 stores (bug)**
-  Found by Aux 5 (as the lane reported 7:28 AM EDT 2026-10-28) while
-  fixing GEN.763: a body stores its heat flow and Urey ratio when it is
-  made at the star's provisional age, and Star.adjust_age_for_planets
-  raises the age afterwards; GEN.763 reruns interior_heat.update_heat at
-  the final age in the life pass (no draws), but the hydrosphere's ice
-  shell thickness and the surface composition's volcanism gate draw
-  random numbers and read the provisional-age heat, and cannot be rerun
-  without moving the stream. Do: move those two reads to the final-age
-  heat without changing the draw order (compute them after the final age
-  with the same draws kept, or use an epoch to reorder the draws), then
-  rescore. Done: ice shell and volcanism gate follow the stored
-  final-age heat. Owner: unowned (old Aux 5, retired) after GEN.763; changes generated output
-  so it needs an epoch (--affects fill) and a lock turn, ideally the
-  same one as the rest of Aux 5's stack if it is not yet merged.
-  Owner (full build) (2026-10-29 8:30 PM EDT): Aux 5. This replaces any
-  earlier owner line (pool, unowned, retired lane or 'after 8.1'). If it
-  is already started elsewhere, the lane tells TODO before taking it.
-  Lock-free parts first; the part that changes generated output rides a
-  train.
-  Owner (full build, corrected) (2026-10-29 8:35 PM EDT): Core 4.
-  Already built in Core 4's parked branch claude/project-thread-wm6oti
-  (physics/giant_structure.py, datasets/hhe_eos.py, core_heat.py),
-  waiting for a train; nobody rebuilds it. This replaces the owner line
-  above.
-  Data we hold (2026-10-29 8:55 PM EDT): No external interior or dynamo
-  dataset is held; Core 4's parked branch has core_heat.py;
-  compaction_table.json, clathrate_brine.json, decay_series.json and
-  isotopes.json are in the repo for interior heat and ices. Catalog
-  section 4.
-  Prerequisites: none. Related: GEN.763, GEN.735.
 
 - [ ] **GEN.842 Follow-ups to elliptical orbits, tidal heating and planet spin: the approximations GEN.727, GEN.737 and GEN.731 left**
   Reported by Math 2 (as the lane reported 10:18 AM EDT 2026-10-28,
