@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 965 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 967 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -44,8 +44,8 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T6 | 92 | 72 | 18 | 51 | 0 | 233 |
 | T7 | 27 | 8 | 8 | 8 | 0 | 51 |
 | T8 | 0 | 1 | 1 | 5 | 1 | 8 |
-| T9 | 17 | 14 | 4 | 42 | 19 | 96 |
-| All | 553 | 204 | 44 | 134 | 30 | 965 |
+| T9 | 19 | 14 | 4 | 42 | 19 | 98 |
+| All | 555 | 204 | 44 | 134 | 30 | 967 |
 
 ## How the labels were given
 
@@ -1389,6 +1389,13 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | CF5 | P | T6 | L3 | planet_class_fit.json shoulders.ocean_fraction: 0.05 absolute (the 0.2 and 0.8 water lines fade over 5 percent of the surface) | 0.02 to 0.1 | terrestrial bodies with air | the ocean-fraction law of GEN.1147 once Boss decides it (a bimodal law makes the shoulder rarely used) | the water cover law of GEN.1147 | hand-picked; the cover law saturates, so values near the lines are rare | - | no data |
 | CF6 | P | T6 | L3 | planet_class_fit.json shoulders.water_mass_fraction: 0.5 of the edge (the airless icy line at 1 percent) | 0.25 to 1.0 | airless bodies | none known | the small-body composition draw | hand-picked; the dry and icy airless bodies are decades apart, so the line is seldom crossed | - | no data |
 | CF7 | P | T6 | L3 | planet_class_fit.json shoulders for gas shares (oxygen, carbon dioxide, hydrogen, sulfur dioxide, reducing gases): 0.25 of the edge with a floor of 0.002 to 0.005 | 0.1 to 0.5 of the edge | terrestrial bodies with air | none known | the toxicity and equipment lines of the habitability index | hand-picked; gas shares of a drawn air spread over decades, so the shoulder is a share of the edge | - | no data |
+
+## 6.156 Stand-ins of the two cuts of the body type
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| PT1 | P | T9 | L0 | planet_type.TERRESTRIAL_MAX_ENVELOPE 0.005: an envelope under 0.5 percent of the mass is a terrestrial body (about the 1.6 Earth radii where rocky planets end) | 0.002 to 0.02 | planets and moons | a measured planet of 1.6 to 2 Earth radii that is rocky with no envelope, or a rocky world of 1.3 radii with a thick hydrogen envelope | the radius valley limit of GEN.722 read from the envelope the planet holds | Rogers 2015 and Fulton and Petigura 2018 (rocky limit near 1.6 Earth radii); Lopez and Fortney 2014 (envelope share against radius) | GEN.1219 | - |
+| PT2 | P | T9 | L0 | planet_type.GAS_MIN_ENVELOPE 0.5: an envelope of half the mass or more is a gas body (the line of bulk_structure.GIANT_ENVELOPE_FRACTION) | 0.3 to 0.7 | planets | a giant of Neptune's mass that is more than half envelope, or a Jupiter whose core outweighs its envelope | the envelope share the giant interior model gives (GEN.428) | Boss's choice of the pure rule; Neptune 10 to 15 percent envelope (Helled 2011) and Jupiter 90 percent or more | - | - |
 
 ## 6.155 Stand-ins of the life readings
 
