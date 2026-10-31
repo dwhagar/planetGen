@@ -14725,6 +14725,86 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Sources 2.
   Prerequisites: none. Related: GEN.1169, GEN.947.
 
+- [ ] **GEN.1175 Porosity weakening of body strength from a sourced law instead of the placeholder exponential**
+  The engine's porosity rule is 'none' (RN5, L3) and an 'exponential'
+  rule (strength times exp(-b x porosity), b 4 to 7) is built and off,
+  resting on recalled ceramics coefficients (Pabst 2015); Pohl and Britt
+  2020 find no usable porosity trend in meteorites and with the
+  exponential on Proteus (porous, ice-rich, 210 km, not round) comes out
+  round. Find a rock-mechanics or ceramics source (Grott 2019 Ryugu
+  boulders at 200 to 280 kPa are a whole-body data point), choose the
+  law, and register it in GEN.725 with tier and tweak level. Owner Aux
+  5. Source: reports/planetary-material-strength-2026-10-31.md section
+  9. Additive to the roundness engine (physics/roundness.py, GEN.1158,
+  merged); no generation output changes until GEN.1159 to GEN.1162 wire
+  it, so lock-free until then.
+  Prerequisites: none. Related: GEN.1158, GEN.725.
+
+- [ ] **GEN.1176 Rubble-pile branch for the rounding engine: friction plus a little cohesion and a shape-set temperature instead of a size threshold**
+  Small bodies held together by gravity and cohesion of tens to hundreds
+  of Pa (Rozitis, MacLennan and Emery 2014: 64 Pa for 1950 DA;
+  Hirabayashi and Scheeres: friction angle 35 degrees, range 30 to 40,
+  minimum cohesion 44 to 74 Pa at the surface) shape differently from a
+  monolith. Add a Drucker-Prager style branch beside the strength branch
+  (Sanchez and Scheeres 2014 and Walsh 2018 use it) and choose the
+  branch per body from its formation history; this is also the
+  replacement named for RN5. Rows registered in GEN.725. Owner Aux 5.
+  Source: reports/planetary-material-strength-2026-10-31.md section 9.
+  Additive to the roundness engine (physics/roundness.py, GEN.1158,
+  merged); no generation output changes until GEN.1159 to GEN.1162 wire
+  it, so lock-free until then.
+  Prerequisites: none. Related: GEN.1158, GEN.725.
+
+- [ ] **GEN.1177 Strength rows for the ice phases, methane clathrate, solid CO2 and ammonia ices**
+  Add material entries to roundness_strengths.json: ice Ih, II and VI at
+  one value, III near zero, V a little lower; methane clathrate about 20
+  times the strength of ice; CO2 ice 0.1 to 0.5 MPa; ammonia dihydrate.
+  Each with tier and tweak level in GEN.725; the mixing rule needs a way
+  to name the ice type of a body (from small_body_composition). Owner
+  Aux 5. Source: reports/planetary-material-strength-2026-10-31.md
+  section 9. Additive to the roundness engine (physics/roundness.py,
+  GEN.1158, merged); no generation output changes until GEN.1159 to
+  GEN.1162 wire it, so lock-free until then.
+  Prerequisites: none. Related: GEN.1158, GEN.725.
+
+- [ ] **GEN.1178 Strength of a body sampled from its range so the round boundary is fuzzy, as in the real Solar System**
+  Whole-body strength is never measured directly: each value is a lab
+  figure scaled by a factor and checked against real bodies, good to a
+  factor of 2 to 3 in strength and about 1.5 in round radius (section
+  13). The research recommends drawing each body's strength from the
+  stated range (ice 0.4 to 3 MPa, rock 4 to 30, metal 50 to 250) with a
+  seeded draw instead of one fixed value. Needs a seeded draw per body
+  (draw.py), so it changes output and rides a lock window once GEN.1159
+  wires the engine. Owner Aux 5. Source:
+  reports/planetary-material-strength-2026-10-31.md section 9. Additive
+  to the roundness engine (physics/roundness.py, GEN.1158, merged); no
+  generation output changes until GEN.1159 to GEN.1162 wire it, so
+  lock-free until then.
+  Prerequisites: GEN.1159. Related: GEN.1158, GEN.725.
+
+- [ ] **GEN.1179 Optional: Hoek-Brown geological strength index as a body parameter for rock**
+  A fractured versus intact rock dial (Hoek-Brown GSI) gives the 4 to 30
+  MPa whole-body rock range from one number instead of a flat 16.5 MPa.
+  Only worth building if the sampling item (strength drawn from its
+  range) shows the fixed range is too coarse. Optional. Owner Aux 5.
+  Source: reports/planetary-material-strength-2026-10-31.md section 9.
+  Additive to the roundness engine (physics/roundness.py, GEN.1158,
+  merged); no generation output changes until GEN.1159 to GEN.1162 wire
+  it, so lock-free until then.
+  Prerequisites: none. Related: GEN.1158, GEN.725.
+
+- [ ] **GEN.1180 Follow-up strength research: peridotite and olivine, rock fracture toughness, solid N2 and CO ices, ices VII and X, methane hydrate constants at low temperature**
+  Gaps left by the strength research
+  (reports/planetary-material-strength-2026-10-31.md section 9 item 7
+  and section 12): no peridotite-specific rock mass strength (the
+  generic rock value is used; intact olivine crystal is about 10 GPa,
+  Wallis and others 2020); rock fracture toughness; solid nitrogen and
+  carbon monoxide ices (Eluszkiewicz and Stevenson 1990); ices VII and
+  X; methane hydrate n = 4.5 creep constants at low temperature. Find
+  papers, read them, and report; Boss uploads the ones he can reach.
+  Research item, no code. Owner a research thread.
+  Prerequisites: none. Related: GEN.1158, GEN.725.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
