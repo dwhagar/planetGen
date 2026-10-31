@@ -8,7 +8,7 @@ import pymysql
 import pytest
 
 from planetgen.db import designation_rows as rows
-from planetgen.db import objectindex, store
+from planetgen.db import objectindex, storage_checksum, store
 from planetgen.galaxy import designations as d
 from planetgen.galaxy import object_uid as ou
 from planetgen.galaxy.sector import SpaceSector
@@ -98,6 +98,27 @@ def test_a_name_set_again_to_itself_keeps_nothing_and_a_body_rename_keeps_the_bo
     assert _retired(conn, object_kind="star_systems") == []
     [kept] = _retired(conn, object_kind="planets", object_row_id=planet["id"])
     assert (kept["designation_name"], kept["reason"]) == (planet["name"], "rename")
+
+
+def test_a_change_of_name_or_id_tells_the_sector_its_checksum_is_out_of_date(galaxy):
+    conn = galaxy
+    system = _systems(conn)[0]
+    planet = conn.execute("SELECT id, name FROM planets WHERE star_system_id = ? ORDER BY id LIMIT 1", (system["id"],)).fetchone()
+    sector = conn.execute("SELECT sector_id FROM star_systems WHERE id = ?", (system["id"],)).fetchone()["sector_id"]
+
+    def dirty():
+        return conn.execute("SELECT parity_dirty FROM sectors WHERE id = ?", (sector,)).fetchone()["parity_dirty"]
+
+    for step in ("name", "uid"):
+        with conn:
+            storage_checksum.seal(conn, sector)
+        assert dirty() == 0
+        with conn:
+            if step == "name":
+                rows.set_name(conn, "planets", planet["id"], "Marked", "rename")
+            else:
+                rows.renumber(conn, "star_systems", system["id"], _new_uid(ou.from_bytes(system["uid"])), "admin renumber")
+        assert dirty() == 1, step
 
 
 def test_a_placeholder_name_keeps_nothing(galaxy):

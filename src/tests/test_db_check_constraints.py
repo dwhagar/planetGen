@@ -159,6 +159,9 @@ def _breaking_value(conn, table, clause, row):
         column = match[1]
         assert column in row, f"{table}: {column} from ({clause}) not in {sorted(row)}"
         return column, (None if row[column] is not None else 0.0)
+    if table == "designations" and "designation_uid" in clause and "designation_name" in clause:
+        # GEN.1138: a retired ID carries an ID and no name, a retired name the other way; flipping the kind breaks it either way.
+        return "designation_kind", ("uid" if row["designation_kind"] == "name" else "name")
     raise AssertionError(f"no way to break {table}'s CHECK ({clause}) -- teach _breaking_value its shape")
 
 

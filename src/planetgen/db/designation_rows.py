@@ -15,7 +15,7 @@ no index (`object_index.parent_uid`, which the next index build rewrites, `orbit
 tombstone of a deleted object. `edit_journal` and `change_plan_ops` name the ID an edit was made under and keep it; a lookup of that ID
 redirects.
 """
-from planetgen.db import kind_tables
+from planetgen.db import kind_tables, storage_checksum
 from planetgen.galaxy import designations, object_uid
 from planetgen.util import generator_epoch
 
@@ -84,7 +84,16 @@ def set_name(conn, table, row_id, new_name, reason, old_name=None, extra_set=Non
         retire_name(conn, table, row_id, old_name, reason)
     assignments = "name = ?" + (f", {extra_set}" if extra_set else "")
     conn.execute(f"UPDATE {table} SET {assignments} WHERE id = ?", (new_name, row_id))
+    _mark(conn, table, row_id)
     return True
+
+
+def _mark(conn, table, row_id):
+    """The name and the ID are columns the sector's storage checksum covers: the sector of the row learns of the change (DB.44)."""
+    if table == "sectors":
+        storage_checksum.mark_sector(conn, row_id)
+    elif table in storage_checksum.CONTENT_TABLES:
+        storage_checksum.mark_rows(conn, table, [row_id])
 
 
 def _retired(row):
@@ -171,4 +180,5 @@ def renumber(conn, table, row_id, new_uid, reason):
     conn.execute("UPDATE object_index SET uid = ? WHERE kind = ? AND uid = ?", (new_raw, index_kind, old_raw))
     for pointer_table, column in _LIVE_POINTERS:
         conn.execute(f"UPDATE {pointer_table} SET {column} = ? WHERE {column} = ?", (new_raw, old_raw))
+    _mark(conn, table, row_id)
     return old_uid
