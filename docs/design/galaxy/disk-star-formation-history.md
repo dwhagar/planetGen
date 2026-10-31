@@ -62,6 +62,22 @@ arXiv 1407.1078, read; M* 6.08 +- 1.14e10, disk 5.17 +- 1.11e10), which against 
 factor of two. The gas left at the Sun's radius is 0.2 to 0.3 of its stars (observed about 13 against 38 solar masses per
 pc2), inside the test's 0.1 to 0.5.
 
+## The law steepens where the gas thins (GEN.999)
+
+The rings used the plain Kennicutt-Schmidt law, so a thin outer ring spent its gas as fast as a dense one and a Milky Way mass disc ended with about a third of the gas it has: a depletion time of 1.8 Gy (3e10 solar masses of thin disc stars) against the 1.0 to 4.2 Gy measured (Sources 2 on GEN.998), and 4.3 solar masses per pc2 at the Sun's radius. The ring solve now carries the factor the present-day profile already used (GEN.450, `star_formation._thin_gas_factor`): `rate = A * gas^n * (gas / (gas + gas_s))^(m - n)`, with the saturation `gas_s` of 9 solar masses per pc2 (Bigiel et al. 2008) and the index `m` of 2.1 (Kennicutt and Evans, the middle of 1.5 to 2.7), both already in `tuning`. No new constant, and no Milky Way value is fitted.
+
+| Milky Way shape (`tests/test_disk_history.py`) | Plain law | With the factor | Measured |
+|---|---|---|---|
+| Depletion time, thin disc of 3e10 stars | 1.8 Gy | 2.9 Gy | 1.0 to 4.2 Gy |
+| Depletion time, the full Milky Way shape | 2.2 Gy | 3.7 Gy | 4.2 Gy (Sources 2) |
+| Gas at 8 kpc | 4.3 per pc2 | 7.2 per pc2 | 11.9 +- 1.6 atomic and molecular with helium (McKee, Parravano and Hollenbach 2015, Table 2: 10.9 + 1.0 within 1 kpc of the Sun; 13.7 with the ionised gas) |
+| Star formation now | 1.50 a year | 1.70 a year | 1.65 +- 0.19 (Licquia and Newman 2015) |
+| Gas inside the bar gap | 5.0e8 | 6.2e8 | (the ring inflow follows it) |
+
+The gas at the Sun's radius is still 60% of the measured, and raising it further (a higher index or saturation) would push the depletion time and the present rate past their measured ranges; the plain law's coefficient (Kennicutt 1998, +- 28%) is a mean over spirals, and the Milky Way is known to sit below it at the Sun's radius. That residual is left as it is and filed with the stand-in row AL1.
+
+Populations' shares move with the rate: for stellar masses 1e10, 3e10, 5e10 and 6.1e10 the young share goes 2.99, 1.31, 0.54 and 0.37% to 3.42, 1.43, 0.60 and 0.42%, the intermediate 62.6, 44.4, 25.0 and 18.1% to 68.0, 47.4, 26.8 and 19.5%, and the old falls to match. The table under "What it gives" is as of GEN.469 and is not redone here.
+
 ## Ages inside a window (GEN.546)
 
 A window used to draw its stars' ages evenly, though the rate varies across it (by a factor of 1.0, 2.5 and a rise from

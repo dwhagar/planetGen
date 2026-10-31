@@ -14,7 +14,10 @@ Each ring of the disk (a thousandth of its stars or so) follows gas continuity:
     d(gas)/dt = inflow(t) - (1 - R) * rate(gas),    rate = A * gas^n
 
 1. **The depletion** is the Kennicutt-Schmidt law (Kennicutt 1998, `tuning.STAR_FORMATION_LAW_COEFFICIENT` and
-   `STAR_FORMATION_LAW_EXPONENT`): the star formation per area goes as the gas per area to the 1.4.
+   `STAR_FORMATION_LAW_EXPONENT`): the star formation per area goes as the gas per area to the 1.4, steepened where the
+   gas thins by the factor `(gas / (gas + saturation)) ^ (m - n)` of GEN.450 (`tuning.STAR_FORMATION_SATURATION_GAS_MSUN_PC2`,
+   `STAR_FORMATION_LOW_DENSITY_EXPONENT`; GEN.999). Without it a thin outer ring spends its gas as fast as a dense one and a
+   Milky Way mass disc ended with a third of the gas it has.
 2. **The return** `R` is the share of a stellar generation's mass that goes back into the gas (`return_fraction`),
    worked out from the generator's own mass function with the remnant masses of Madau and Dickinson 2014.
 3. **The inflow** follows the stars the galaxy's halo builds. The halo grows at the mean rate of Fakhouri, Ma and
@@ -224,6 +227,12 @@ def _solve_rings(stars_now, inflow, span_gy):
     coefficient = tuning.STAR_FORMATION_LAW_COEFFICIENT * 1.0e3         # per Gy per pc2, gas in solar masses per pc2
     exponent = tuning.STAR_FORMATION_LAW_EXPONENT
     supply = np.trapezoid(inflow, dx=step_gy)
+    saturation = tuning.STAR_FORMATION_SATURATION_GAS_MSUN_PC2
+    steepening = tuning.STAR_FORMATION_LOW_DENSITY_EXPONENT - exponent
+
+    def thin_gas(gas):
+        # The index rises where the gas thins (GEN.450, GEN.999): the law's factor (gas / (gas + saturation)) ^ (m - n).
+        return (gas / (gas + saturation)) ** steepening
 
     def run(amplitude):
         # Semi-implicit: the gas used in a step is taken at the step's end, so a ring so dense that it uses its gas
@@ -231,9 +240,9 @@ def _solve_rings(stars_now, inflow, span_gy):
         gas = np.zeros_like(amplitude)
         rate = np.zeros((steps + 1, len(amplitude)))
         for i in range(steps):
-            use = step_gy * keep * coefficient * gas ** (exponent - 1.0)
+            use = step_gy * keep * coefficient * gas ** (exponent - 1.0) * thin_gas(gas)
             gas = (gas + step_gy * amplitude * inflow[i]) / (1.0 + use)
-            rate[i + 1] = coefficient * gas ** exponent
+            rate[i + 1] = coefficient * gas ** exponent * thin_gas(gas)
         return rate, gas
 
     def formed(rate):
