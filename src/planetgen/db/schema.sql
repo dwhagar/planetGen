@@ -1517,6 +1517,7 @@
 --   `ice_mass_fraction`. NULL for a row made before v183 and for a body with no composition; 0 for a body with no ice. Nothing is backfilled.
 -- v184 (GEN.952): `scatter_members.radius_au` (DOUBLE, NULL), a member's extent in AU, so a page can work out the X-ray luminosity of an accreting pair; NULL on a row made before v184, nothing is backfilled.
 -- v185 (GEN.846): `bright_stars.rotation_period_hours` (DOUBLE, NULL), the spin period in hours of a star the scatter placed, drawn from the star's own seed; NULL on a row made before v184, nothing is backfilled.
+-- v187 (GEN.1138): `designations`, the designations an object has stopped having: a retired object ID (`uid`, unique, reserved for ever) or a retired name, the object that held it, the epochs it began and stopped in, why, and `gone_epoch` once the object is deleted. Created empty; nothing is backfilled.
 --
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
@@ -4223,6 +4224,30 @@ CREATE TABLE IF NOT EXISTS scatter_epochs (
 
     CONSTRAINT chk_scatter_epochs_kind CHECK (kind IN ('mass', 'luminosity', 'band', 'phenomena', 'nebula-field')),
     CONSTRAINT fk_scatter_epochs_run FOREIGN KEY (run_id) REFERENCES generation_runs(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+-- v187 (GEN.1138): the designations an object has stopped having (docs/design/architecture/designation-history.md). A retired ID is reserved for ever
+-- (`uq_designations_uid`); a retired name is kept but not reserved. `object_kind` is the table of the object, `object_row_id` its `id`: the row number
+-- never changes, the `uid` is the thing that does.
+CREATE TABLE IF NOT EXISTS designations (
+    id                BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    designation_kind  VARCHAR(8) NOT NULL,
+    uid               BINARY(12) NULL,
+    name              VARCHAR(255) NULL,
+    object_kind       VARCHAR(32) NOT NULL,
+    object_row_id     BIGINT UNSIGNED NOT NULL,
+    valid_from_epoch  SMALLINT UNSIGNED NULL,
+    retired_epoch     SMALLINT UNSIGNED NOT NULL,
+    reason            VARCHAR(16) NOT NULL,
+    gone_epoch        SMALLINT UNSIGNED NULL,
+
+    UNIQUE KEY uq_designations_uid (uid),
+    KEY idx_designations_name (name),
+    KEY idx_designations_object (object_kind, object_row_id, retired_epoch),
+    CONSTRAINT chk_designations_kind CHECK (
+        (designation_kind = 'uid' AND uid IS NOT NULL AND name IS NULL) OR (designation_kind = 'name' AND name IS NOT NULL AND uid IS NULL)),
+    CONSTRAINT chk_designations_reason CHECK (reason IN ('collision bump', 'rename', 'regeneration', 'parent change', 'admin renumber', 'deleted'))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 

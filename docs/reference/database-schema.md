@@ -1958,6 +1958,10 @@ The command line is in `generation_run_arguments` (v63, DB.13), which replaced a
 
 Added in v161 (GEN.764). The generator epoch each kind of scatter was drawn under. A scatter is galaxy-wide and its rows carry no epoch of their own, so the draw that finishes a kind writes one row here and a clear of that kind deletes it. `kind` (VARCHAR(16), primary key; CHECK `mass`, `luminosity`, `band`, `phenomena` or `nebula-field`), `generator_epoch` (SMALLINT UNSIGNED, nullable: unknown), `run_id` (FK -> `generation_runs.id`, `ON DELETE SET NULL`, nullable) and `recorded_at` (TIMESTAMP(3)). The sectors (v121), the plan (v131) and the species (v156) carry their own epoch, so every stage of a galaxy says what made it; `store.scatter_epochs(conn)` reads this table. The migration gave a galaxy made earlier the plan's epoch for each kind that has rows. Not read by the fingerprint.
 
+### `designations`
+
+Added in v187 (GEN.1138; design: [designation-history.md](../design/architecture/designation-history.md)). The designations an object has stopped having, one row per retired name or ID; the current ones stay in the object's own `name` and `uid`, so an object that never changes costs no row. `designation_kind` (VARCHAR(8): `uid` or `name`), `uid` (BINARY(12), nullable, UNIQUE: a retired ID is reserved for ever and never given again), `name` (VARCHAR(255), nullable, indexed: a retired name is kept but not reserved, the collision bump may give it to another object), `object_kind` (VARCHAR(32), the object's table) and `object_row_id` (BIGINT UNSIGNED, its `id`, which never changes), `valid_from_epoch` (SMALLINT UNSIGNED, NULL for a birth designation), `retired_epoch` (SMALLINT UNSIGNED), `reason` (VARCHAR(16); CHECK `collision bump`, `rename`, `regeneration`, `parent change`, `admin renumber` or `deleted`, the tombstone of a deleted object's last ID) and `gone_epoch` (SMALLINT UNSIGNED, NULL while the object exists). A CHECK holds that a `uid` row has an ID and no name and a `name` row the reverse. Key `idx_designations_object (object_kind, object_row_id, retired_epoch)` serves the "Formerly" lines. The writers are `db/designation_history.py`: `store.rename_star_system`, `rename_star`, `rename_body`, `rename_phenomenon` and the collision bump (`_rank_chain`, the sector and system decorations) write the old name in the same transaction as the change, and `renumber` is the only place an ID changes. The table is left out of the fingerprint (a rename must not read as a different object) and `planetgen reset` clears it with the galaxy.
+
 ### `species` / `polities` / `system_owners` / `population_state`
 
 Added in v44, filled only by the population pass
@@ -2208,6 +2212,10 @@ Migration 0179 adds no column. `planets.hydrosphere` and `moons.hydrosphere` tak
 ### v176 (MAP.351): the life class reasons
 
 Migration 0176 adds no column. It fills `system_interests` with one reason for each life class, `lifeclass-1a` to `lifeclass-9` (`interests.LIFE_CLASS_REASONS`): a system has a row for each life class that lives on one of its planets or moons (`life_class` and `life_class_variant`), `n` how many, no score. It is filled from the planets and moons already stored; a body whose life class is NULL gives none. Nothing a generator draws changes, so there is no epoch. Since GEN.1001 a body counts only when it also has a `life_stage` (a world that suits a class but whose life has not started gives none); a database migrated before that keeps the rows of such bodies until its systems are saved again.
+
+### v187 (GEN.1138): the designations table
+
+Migration 0187 creates `designations` (above), empty: nothing is backfilled and no stored value moves. A stopped run can be started again (`CREATE TABLE IF NOT EXISTS`).
 
 ### v186 (PERF.211): the Phenomena table's sorts by key
 

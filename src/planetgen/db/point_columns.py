@@ -173,6 +173,7 @@ NOT_BODIES = {
     "nebula_field": "the index of cloud sites the nebula draws from: a centre and a radius, not an object",
     "orbital_event_bodies": "a body's state as an orbital event found it, kept as a record of the event: the body's own row "
                             "stays the source",
+    "designations": "a retired ID (and the object that held it), kept so it is never given again: a record, not an object",
     "system_interests": "the index of the systems worth a mark on the Galaxy Map (a habitable world, a gas giant): a copy of the "
                         "system's own galactic point for the Galaxy Map tiles, never a source of one; the system's row stays the source",
 }

@@ -15,8 +15,9 @@ KIND_UID = "uid"
 KIND_NAME = "name"
 KINDS = (KIND_UID, KIND_NAME)
 
-REASONS = ("collision bump", "rename", "regeneration", "parent change", "admin renumber")
-"""tuple: Why a designation was retired. A moved rogue is not among them: it keeps the ID of its birth position (Boss, 5:49 PM EDT 2026-10-30)."""
+REASONS = ("collision bump", "rename", "regeneration", "parent change", "admin renumber", "deleted")
+"""tuple: Why a designation was retired. A moved rogue is not among them: it keeps the ID of its birth position (Boss, 5:49 PM EDT 2026-10-30). `deleted` is the tombstone row
+of a deleted object's last ID (GEN.1141)."""
 
 CURRENT = "current"
 REDIRECT = "redirect"

@@ -862,6 +862,10 @@ TABLES = {
             "defense_index", "tech_level", "generator_epoch",
         ),
     },
+    "designations": {
+        "id": ("id", "object_row_id"),
+        "index": ("valid_from_epoch", "retired_epoch", "gone_epoch"),
+    },
     "scatter_epochs": {
         "id": ("run_id",),
         "index": ("generator_epoch",),

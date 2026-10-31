@@ -69,7 +69,7 @@ import sqlalchemy.exc
 import sqlalchemy.pool
 
 from planetgen.admin import activity_log
-from planetgen.db import alembic_runner, kind_tables, login, object_rows, orbit_trees, parity, point_columns, scatter_systems, sector_mass, storage_checksum
+from planetgen.db import alembic_runner, designation_history, kind_tables, login, object_rows, orbit_trees, parity, point_columns, scatter_systems, sector_mass, storage_checksum
 from planetgen.db import fingerprint_tree as fingerprintTree
 from planetgen.names import object_id as objectId
 from planetgen import tuning
@@ -1958,6 +1958,7 @@ def _rename_bodies_with_prefix(conn, star_system_id, old_prefix, new_prefix):
         for row in rows:
             renamed = rename_prefix(row["name"], old_prefix, new_prefix)
             if renamed is not None and renamed != row["name"]:
+                designation_history.retire_name(conn, table, row["id"], row["name"], renamed, "parent change")
                 conn.execute(f"UPDATE {table} SET name = ? WHERE id = ?", (renamed, row["id"]))
     _rename_comets(conn, "star_system_id = ?", (star_system_id,), old_prefix, new_prefix)
 
@@ -1968,6 +1969,7 @@ def _rename_comets(conn, where, params, old_host, new_host):
     for row in conn.execute(f"SELECT id, name FROM comets WHERE {where}", params).fetchall():
         renamed = rename_comet_designation(row["name"], old_host, new_host)
         if renamed is not None and renamed != row["name"]:
+            designation_history.retire_name(conn, "comets", row["id"], row["name"], renamed, "parent change")
             conn.execute("UPDATE comets SET name = ? WHERE id = ?", (renamed, row["id"]))
 
 
@@ -1988,12 +1990,14 @@ def check_system_name_length(name):
                          f"(this one has {len(name)})")
 
 
-def rename_star_system(conn, star_system_id, new_name):
+def rename_star_system(conn, star_system_id, new_name, reason="rename"):
     """
     Renames one system and every star, planet and moon still named after
     it (`_rename_bodies_with_prefix`). The one place a system's name
     changes after it's saved: the name-uniqueness decorations below, and
-    `PATCH /api/systems/<id>`.
+    `PATCH /api/systems/<id>`. The name it had goes to the designation
+    history (GEN.1138) for `reason` (`rename`, or `collision bump` from the
+    decorations).
 
     Returns:
         bool: `False` if no such system exists.
@@ -2002,6 +2006,7 @@ def rename_star_system(conn, star_system_id, new_name):
                        (star_system_id,)).fetchone()
     if row is None:
         return False
+    designation_history.retire_name(conn, "star_systems", star_system_id, row["name"], new_name, reason)
     conn.execute(
         "UPDATE star_systems SET name = ?, modified_at = CURRENT_TIMESTAMP(3) WHERE id = ?",
         (new_name, star_system_id),
@@ -2032,6 +2037,7 @@ def rename_star(conn, star_id, new_name):
         return False
     if row["role"] == "single":
         return rename_star_system(conn, row["star_system_id"], new_name)
+    designation_history.retire_name(conn, "stars", star_id, row["name"], new_name, "rename")
     conn.execute("UPDATE stars SET name = ? WHERE id = ?", (new_name, star_id))
     storage_checksum.mark_system(conn, row["star_system_id"])
     # Since GEN.62 a wide pair's planets carry one word of their star's
@@ -2050,6 +2056,7 @@ def rename_star(conn, star_id, new_name):
             renamed = next((r for r in (rename_prefix(body["name"], old, new) for old, new in prefixes)
                             if r is not None), None)
             if renamed is not None:
+                designation_history.retire_name(conn, table, body["id"], body["name"], renamed, "parent change")
                 conn.execute(f"UPDATE {table} SET name = ? WHERE id = ?", (renamed, body["id"]))
     _rename_comets(conn, "star_system_id = ? AND star_id = ?", (row["star_system_id"], star_id),
                    row["name"], new_name)
@@ -2067,9 +2074,10 @@ def rename_body(conn, table, body_id, new_name):
     """
     if table not in ("planets", "moons"):
         raise ValueError(f"not a body table: {table!r}")
-    row = conn.execute(f"SELECT star_system_id FROM {table} WHERE id = ?", (body_id,)).fetchone()
+    row = conn.execute(f"SELECT star_system_id, name FROM {table} WHERE id = ?", (body_id,)).fetchone()
     if row is None:
         return False
+    designation_history.retire_name(conn, table, body_id, row["name"], new_name, "rename")
     conn.execute(f"UPDATE {table} SET name = ? WHERE id = ?", (new_name, body_id))
     touch_star_system(conn, row["star_system_id"])
     return True
@@ -2221,6 +2229,8 @@ def reserve_sector_name(conn, candidate_name, sector_id):
             # (`WHERE name = ?` still finds it: the collation ignores case
             # and accents).
             old_name, renamed_to = resolve_greek_roman_collision(row["base_name"], existing_count)[1]
+            for holder in conn.execute("SELECT id, name FROM sectors WHERE name = ? AND id <> ?", (old_name, sector_id)).fetchall():
+                designation_history.retire_name(conn, "sectors", holder["id"], holder["name"], renamed_to, "collision bump")
             conn.execute("UPDATE sectors SET name = ?, parity_dirty = 1 WHERE name = ? AND id <> ?", (renamed_to, old_name, sector_id))
 
         return new_name, base
@@ -2259,12 +2269,12 @@ def _rename_registry_holder(conn, row, new_name):
     """Renames a `system_name_registry` row's first holder: a star system
     (`rename_star_system`) or a phenomenon (`rename_phenomenon`)."""
     if row["first_star_system_id"] is not None:
-        rename_star_system(conn, row["first_star_system_id"], new_name)
+        rename_star_system(conn, row["first_star_system_id"], new_name, "collision bump")
     elif row["first_object_table"] in NAMED_PHENOMENON_TABLES:
-        rename_phenomenon(conn, row["first_object_table"], row["first_object_id"], new_name)
+        rename_phenomenon(conn, row["first_object_table"], row["first_object_id"], new_name, "collision bump")
 
 
-def rename_phenomenon(conn, table, object_id, new_name):
+def rename_phenomenon(conn, table, object_id, new_name, reason="rename"):
     """
     Renames one uniquely named phenomenon (`NAMED_PHENOMENON_TABLES`). A
     supernova remnant's collapsed core, named `"<remnant> Core"`, follows
@@ -2278,6 +2288,7 @@ def rename_phenomenon(conn, table, object_id, new_name):
     row = conn.execute(f"SELECT name FROM {table} WHERE id = ?", (object_id,)).fetchone()
     if row is None:
         return False
+    designation_history.retire_name(conn, table, object_id, row["name"], new_name, reason)
     conn.execute(f"UPDATE {table} SET name = ? WHERE id = ?", (new_name, object_id))
     if table == "supernova_remnants":
         core = conn.execute(
@@ -2287,6 +2298,9 @@ def rename_phenomenon(conn, table, object_id, new_name):
         for core_table, core_id in (("black_holes", core["compact_remnant_black_hole_id"]),
                                     ("neutron_stars", core["compact_remnant_neutron_star_id"])):
             if core_id is not None:
+                held = conn.execute(f"SELECT name FROM {core_table} WHERE id = ? AND name = ?", (core_id, f"{row['name']} Core")).fetchone()
+                if held is not None:
+                    designation_history.retire_name(conn, core_table, core_id, held["name"], f"{new_name} Core", "parent change")
                 conn.execute(
                     f"UPDATE {core_table} SET name = ? WHERE id = ? AND name = ?",
                     (f"{new_name} Core", core_id, f"{row['name']} Core"),
@@ -2608,9 +2622,9 @@ def _rename_unconfirmed_holders(conn, ordered, held):
         if target is None:
             continue
         if system_id is not None:
-            rename_star_system(conn, system_id, target)
+            rename_star_system(conn, system_id, target, "collision bump")
         else:
-            rename_phenomenon(conn, table, object_id, target)
+            rename_phenomenon(conn, table, object_id, target, "collision bump")
         healed[key] = target
     return healed
 
@@ -2796,6 +2810,7 @@ def _rank_chain(conn, table, base, count, address, taken):
         given = names[len(lower):len(lower) + count]
         for row, name in zip(lower + higher, names[:len(lower)] + names[len(lower) + count:]):
             if row["name"].upper() != name:
+                designation_history.retire_name(conn, table, row["id"], row["name"], name, "collision bump")
                 conn.execute(f"UPDATE {table} SET name = ? WHERE id = ?", (name, row["id"]))
     taken.update(given)
     return given

@@ -155,6 +155,8 @@ NULL_IN_THIS_GALAXY = {
     **{(table, "parent_id"): "a free object has no parent row" for table in ("interstellar_comets", "rogue_planets")},
     ("moons", "rogue_planet_id"): "only a moon of a free planet (test_parent_link)",
     # GEN.764: the seeded galaxy runs no scatter, and its population pass finds no civilization.
+    **{("designations", column): "nothing in the seeded galaxy changed a name or an ID (GEN.1138)" for column in
+       ("id", "designation_kind", "uid", "name", "object_kind", "object_row_id", "valid_from_epoch", "retired_epoch", "reason", "gone_epoch")},
     **{("scatter_epochs", column): "no scatter in this galaxy (GEN.764)" for column in
        ("kind", "generator_epoch", "run_id", "recorded_at")},
     ("species", "generator_epoch"): "no species in this galaxy (GEN.764)",
@@ -190,6 +192,8 @@ NEVER_READ = {
     ("sectors", "leaf_digest"): "read by the fingerprint tree (GEN.305)",
     ("sectors", "run_id"): "read in a query by the version check, not by a loader (DB.16)",
     # GEN.764: the stage epochs are read by `galaxy/epoch_record.py` and `bring_to_epoch`, not by a page's loader.
+    **{("designations", column): "read by designation_history and the ID lookup, not by a loader (GEN.1138)" for column in
+       ("id", "designation_kind", "uid", "name", "object_kind", "object_row_id", "valid_from_epoch", "retired_epoch", "reason", "gone_epoch")},
     **{("scatter_epochs", column): "read by galaxy/epoch_record (GEN.764)" for column in
        ("kind", "generator_epoch", "run_id", "recorded_at")},
     ("species", "generator_epoch"): "read by galaxy/epoch_record (GEN.764)",

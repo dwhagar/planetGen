@@ -34,6 +34,9 @@ _ONE_OR_ZERO = re.compile(r"^`?(\w+)`?\s*=\s*1\)?\s+or\s+\(`?\w+`?\s*=\s*0$", re
 _NULL_TOGETHER = re.compile(r"`?(\w+)`?\s+is\s+null\s*\)?\s*=", re.IGNORECASE)
 
 _EMPTY_TABLE_ROWS = {
+    # GEN.1138: nothing has changed its name or ID in the seeded galaxy, so no designation is retired.
+    "designations": ("INSERT INTO designations (designation_kind, name, object_kind, object_row_id, retired_epoch, reason)"
+                     " VALUES ('name', 'Old name', 'moons', 1, 1, 'rename')"),
     # GEN.764: the seeded galaxy runs no scatter, so no kind has recorded its epoch.
     "scatter_epochs": "INSERT INTO scatter_epochs (kind, generator_epoch) VALUES ('mass', 1)",
     # Only a planet with life gets these, and whether the seeded galaxy has one depends on its draws (TEST.263).
@@ -146,6 +149,8 @@ def _breaking_value(conn, table, clause, row):
     match = _ABOVE_ZERO.match(clause)
     if match:
         return match[1], -1
+    if table == "designations" and "designation_kind" in clause and "uid" in clause:
+        return "name", None                    # the seeded row is a retired name; a name row with no name is neither
     match = _NULL_TOGETHER.search(clause)
     if match:
         column = match[1]
