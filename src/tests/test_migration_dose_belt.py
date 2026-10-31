@@ -1,7 +1,7 @@
 # tests/test_migration_dose_belt.py
 
 """
-GEN.983: migration 0190 gives a v186 galaxy the belt dose column, empty, on both bodies tables.
+GEN.983: migration 0195 gives a v186 galaxy the belt dose column, empty, on both bodies tables.
 """
 
 import pytest
