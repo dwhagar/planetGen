@@ -2507,7 +2507,7 @@ Rows for the core model beside the mantle box (`physics/core_heat.py`). Thiriet 
 | CC11 | P | T6 | L0 | The mantle box is not changed by the core (the core's heat is already its heat capacity); the core is driven by the box's temperature history | none | all bodies | a two-way coupled model whose mantle cools differently | a coupled core and mantle box | design (the stored heat flow and Urey ratio stay as they were) |
 <!-- core-heat-standins:end -->
 
-### 6.135 Stand-ins of the dynamo wiring (GEN.967)
+### 6.142 Stand-ins of the dynamo wiring (GEN.967)
 
 What `magnetism.generate_field` does with the dynamo module (section 6.30) and the core model (section 6.59): every rocky body, moon and giant takes its moment from `dynamo.field`, and the three design defaults it replaces (the 4 Gyr lifetime and 7.8e22 A m2 times mass, the three giant anchors, the Ganymede-like chance) are gone.
 
