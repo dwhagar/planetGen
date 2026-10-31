@@ -9553,35 +9553,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: GEN.550, GEN.568, GEN.569.
   Design: [docs/design/architecture/unified-unit-quantity.md](design/architecture/unified-unit-quantity.md)
 
-- [ ] **GEN.589 Research: the central molecular zone's upper cluster mass and its cloud-shock disruption, so the young clusters of the core match the few that are observed**
-  Finding from Core 3 while building GEN.244 and GEN.282 (1:58 AM EDT
-  2026-10-18 as the lane reported), filed by the TODO thread. Kind:
-  generation result against observation. Object: the central molecular
-  zone ring of a drawn galaxy. Result: 5 to 12 young clusters above 5e3
-  solar masses per galaxy against about 2 observed (Arches and
-  Quintuplet), and 7 to 21 clusters older than 10 Myr above 5e4 against
-  none. Cause as the lane reads it: the cluster mass function M^-2 runs
-  to 1e6 solar masses (the widest limit under Boss's widest-range rule),
-  the ambient density of the disruption law leaves out the gas, and
-  there is no disruption by cloud shocks. Do (research first, nothing
-  built until the sources are read): find a published upper cluster mass
-  for the central molecular zone and a cloud-shock disruption rate (Core
-  3 names Trujillo-Gomez 2019 as a lead; it is a lead until a lane has
-  read it, and a lane verifies each citation before use), say what the
-  sources give, and propose the change to GEN.244's mass function and
-  disruption for the core ring; the fill ships as the labelled stand-in
-  meanwhile. A change to the stored clusters rides the pending epoch and
-  the one wiped rescatter. Done: the note names the sources with their
-  evidence state, gives the upper mass and the disruption law with their
-  scatter, and a test shows the young clusters of the core above 5e3
-  solar masses are few (the observed count is the plausibility target,
-  not a preset). Owner: Core 3 (proposed; it built GEN.244). Not a
-  prerequisite of GEN.301.
-  Owner: Core 4 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue is
-  in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
-  owner line).
-  Prerequisites: none. Related: GEN.244, GEN.282.
-
 - [ ] **GEN.593 Pulsar planets: the disc range stops short of PSR B1257+12's planets, and two of the three formation paths (a captured giant, an ablated companion) leave a pulsar with no planets**
   Design gaps in GEN.317 found by Core 3 while building it (reported
   11:18 AM EDT 2026-10-18, real clock; its GEN.317 gate started 11:17 AM
@@ -14443,6 +14414,47 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner Air 1.
   Prerequisites: none. Related: GEN.973, GEN.639, GEN.972, GEN.974,
   GEN.725.
+
+- [ ] **GEN.1195 Cluster maximum mass of the central ring from the gas, and cloud-shock disruption of its clusters**
+  Finding from Sources 2's GEN.589 research (report
+  /mnt/project-files/reports/gen589-cmz-clusters-2026-10-31.md, scripts
+  in reports/gen589/), filed by the TODO thread (12:30 AM EDT
+  2026-10-31). Kind: generation result against observation. Object: the
+  clusters of the central molecular zone ring (GEN.244). Result today:
+  5.8 young clusters above 5e3 solar masses and 12 older than 10 Myr
+  above 5e4, against about 2 and none observed. Sources as the lane read
+  them from the arXiv text: the upper mass of the ring is Reina-Campos
+  and Kruijssen 2017, M_cl,max = 0.1 x bound share x Toomre mass, which
+  with the generator's own ring gives 3.2e4 (their CMZ value 3e4, Arches
+  2e4, hard ceiling 1e5); cloud-shock disruption is Gieles 2006 eq 24 as
+  put in the CMZ by Kruijssen 2014 (5.7 Myr for a 1e4 cluster). A cap
+  alone raises the young count; the shocks bring it down: with untuned
+  sourced numbers the ring leaves 0.8 to 1.1 young clusters above 5e3
+  and none old. Trujillo-Gomez 2019 is about the minimum mass, not the
+  source. Do: a pure module for the cluster maximum mass of a ring from
+  its gas surface density (the ring Sigma_g is a registered stand-in
+  until a gas source for it is read), and a cloud-shock mass-loss term
+  in GEN.244's disruption for the ring, with the test target of the
+  report (few young clusters above 5e3, none old above 5e4; the observed
+  count is the plausibility target, not a preset). Stand-in rows enter
+  GEN.725 with tier and tweak level. Lock work (stored clusters change):
+  rides the pending epoch and the one wiped rescatter. Owner: Core 3
+  (built GEN.244; proposed).
+  Prerequisites: none.
+
+- [ ] **GEN.1196 Disc cluster maximum mass per ring, replacing the flat 1e6 cap**
+  Second finding of Sources 2's GEN.589 research (12:30 AM EDT
+  2026-10-31): the disc's cluster mass cap of 1e6 solar masses is also
+  too high. The same relation of Reina-Campos and Kruijssen 2017
+  (M_cl,max from the ring's gas surface density and Toomre mass) gives
+  the cap per disc ring, using the module of the item before this one.
+  Do: wire the module into the disc rings of GEN.244, check the clusters
+  of the disc against the observed upper masses of nearby galaxies and
+  the Milky Way disc as a plausibility target (never a fixed Milky Way
+  content), register the stand-ins in GEN.725. Lock work (stored
+  clusters change), same epoch as the central ring item. Owner: Core 3
+  (proposed).
+  Prerequisites: GEN.1195.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
