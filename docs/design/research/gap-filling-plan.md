@@ -1873,6 +1873,17 @@ The recalled [R] rates of the weird-worlds design (docs/design/systems/weird-wor
 | BP3 | P | T9 | L1 | belt_page.L2_FLOOR_KG 1e15: bins whose bodies are over this mass are labelled drawn on demand from the belt's seed, the rest a total only | 3e14 to 3e15 (about 7 to 14 km) | every belt page | the design's L2 tier moving to another floor | the belt storage rule when it merges (belt design section 3) | design belt-evolution.md section 3 (L2 from 1e15 kg) |
 | BP4 | P | T9 | L0 | belt_page.SHARE_SAMPLES 24 and MIN_SHARE 0.005: the typical composition of a belt is the taxon kernel averaged at 24 distances taken at equal steps of the belt's mass, taxa under half a percent left out of the list | 12 to 100 samples; 0.001 to 0.02 | every belt page | a composition list that changes by over 1 percent with more samples | none (numerical and presentation) | uses belt_history.SURFACE_DENSITY_SLOPE (row BHS2) for the steps and the kernel of GEN.473 |
 
+### 6.127 Stand-ins of the halo mass function and the conditional halo (GEN.1154)
+
+`galaxy/halo_function.py` builds the halo mass function of Tinker et al. 2008 on the Eisenstein and Hu 1998 no-wiggle power spectrum, and `mass_chain.conditional_halo_mass` draws the halo of a galaxy from it (report `reports/gen399-halo-mass-function-2026-10-31.md`).
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
+|---|---|---|---|---|---|---|---|---|---|
+| HF1 | D | T1 | L0 | halo_function.OMEGA_BARYON_H2 0.022068, SPECTRAL_INDEX 0.9624, SIGMA_8 0.8344: the Planck 2013 best fit beside the h 0.671 and Omega_m 0.3175 the chain already held | the Planck+WP best fit (0.022032, 0.9619, 0.8347) or a WMAP-era set | z = 0 galaxies | a later release of the cosmology that moves sigma_8 by more than 3 percent | none (the cosmology the chain states) | Planck Collaboration XVI 2014 (arXiv 1303.5076) Table 2, Planck column, READ |
+| HF2 | P | T1 | L1 | halo_function._transfer_function: the no-wiggle fit of Eisenstein and Hu 1998 Eqs. 26, 28 to 31 stands for a Boltzmann-code transfer function | a Boltzmann code (CAMB, CLASS) | halo masses of 1e8 to 1e17 solar masses | a Boltzmann transfer function that moves sigma(M) by more than a few percent over the range | a tabulated transfer function | Eisenstein and Hu 1998 (arXiv astro-ph/9709112), READ; the paper quotes the fit as good to a few percent without the wiggles |
+| HF3 | P | T1 | L1 | mass_chain.median_stellar_mass: Moster et al. 2013's relation, fitted to the Millennium haloes in a WMAP7 cosmology (h 0.704), is read against the Planck halo mass function, halo masses as printed | none | the conditional at every stellar mass | an abundance matching of the relation in the Planck cosmology that moves the median halo by more than 0.05 dex | a relation fitted in the chain's own cosmology | Moster, Naab and White 2013 (arXiv 1205.5807) section 2, READ |
+| HF4 | P | T9 | L0 | halo_function._COARSE_STEP 0.05 dex, GRID_STEP 0.01 dex, _LN_K_STEP 0.02, k from 1e-4 to 2e3 per Mpc: the numerical grids of sigma(M) and of the conditional | halving each step | every conditional | a median that moves by more than 0.003 dex when a step is halved | none (numerical) | the GEN.399 script (numpy, 6000 wave numbers, the slope of sigma by a 0.01 dex difference) gives the same medians to 0.001 dex |
+
 ## 7. Gemini's first batch
 
 ### 7.1 Counts and recommendation
