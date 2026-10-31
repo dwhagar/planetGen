@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1031 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1032 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -37,7 +37,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
 | T1 | 145 | 14 | 8 | 1 | 0 | 168 |
-| T2 | 113 | 39 | 0 | 1 | 0 | 153 |
+| T2 | 114 | 39 | 0 | 1 | 0 | 154 |
 | T3 | 88 | 38 | 8 | 10 | 0 | 144 |
 | T4 | 42 | 5 | 0 | 15 | 10 | 72 |
 | T5 | 48 | 19 | 1 | 1 | 0 | 69 |
@@ -45,7 +45,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T7 | 29 | 13 | 7 | 12 | 0 | 61 |
 | T8 | 0 | 1 | 1 | 5 | 1 | 8 |
 | T9 | 21 | 14 | 5 | 46 | 21 | 107 |
-| All | 584 | 223 | 50 | 142 | 32 | 1031 |
+| All | 585 | 223 | 50 | 142 | 32 | 1032 |
 
 ## How the labels were given
 
@@ -1010,6 +1010,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | LQ12 | P | T6 | L0 | surface_liquid_world.LAVA_OF_GROUND: a surface at or over the liquidus of its ground's rock is molten all over (ultramafic ground to komatiite, felsic to rhyolite, the rest to basalt; over the peridotite liquidus a magma ocean) | none | a mean surface temperature in a lava window | a body with a molten mean surface that the rule leaves solid, or the reverse | a mixed-ground melt fraction curve (the solidus to liquidus interval) with a partial cover | design (the liquidus of the dominant rock stands for the whole surface; the cover is 1) | - | - |
 | LQ13 | P | T6 | L0 | surface_liquid_world.LAVA_MIN_PRESSURE_PA 1e5: a lava surface holds in its own vapour, so its window is checked at no less than one bar; its depth is not known | none | a molten surface with a thin or no air | a lava world with the surface liquid stored as none because of a missing air | the vapour pressure of the melt (mixture_lava) in place of the floor | design (the floor is argued; the depth is left NULL) | - | - |
 | LQ14 | D | T5 | L0 | surface_liquid_world._sea: the liquid that condenses out of an air over saturation lies at (p - p_sat) / g kg per square metre, spread by the water hypsometry | none | an air whose volatile stands over its saturation pressure | a condensing sea whose mass differs from the excess column by more than 30 percent | a rainout and surface-reservoir model of the volatile | COMPUTED (the column mass of the excess partial pressure) | - | - |
+| LQ15 | P | T2 | L0 | surface_liquid_world.AMMONIA_WATER_MASS_PERCENT 32 and AMMONIA_WATER_LIQUID: ammonia ice and water together make the ammonia-water eutectic, of which a body holds at most the ammonia over 0.32 or its water, whichever is less | 28 to 36 wt percent | bodies with ammonia ice and water at 176 to 270 K | a measured ammonia-water eutectic outside 28 to 36 wt percent | the liquidus share by temperature of GEN.1225 (the sea's strength follows the temperature, not the eutectic) | Kargel 1991 eutectic 176 K at 32 wt percent, recalled; the table row of `surface_liquids.json` | - | - |
 
 ## 6.70 Stand-ins of the ring origin
 
