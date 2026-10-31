@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2952] - 2026-10-31
+
+**Headline:** The orbital event writer exists: a collision found between two bodies can now be turned into a stored event, with the object-ID rules.
+
+### Changed
+- **The orbital event writer (GEN.197).** `planetgen/db/orbital_events.py` asks the pair closest-approach library whether two bodies' stored paths come within the sum of their radii in the update's window (`find_contact`), resolves the hit with the collision outcome table (`resolve_contact`) and writes it as one `orbital_events` row with its `orbital_event_bodies` rows (`record_event`): the event kind, the numbers it was decided from, a mass and momentum check worked out from the outcome, the participants and the products, and one line in the activity log. The ID rules are in it: a merger keeps the heavier body's ID and retires the other, an ejected planet keeps its ID, the field a collision makes takes a new run-time ID, and a destroyed body's ID is never handed out again. No migration; nothing calls it yet, because the orbital update that finds the pairs is a later item, so generation output does not change.
+
+generation-output: unchanged
+
 ## [8.0.2951] - 2026-10-31
 
 **Headline:** Star 2's eighteen functions that only tests called now each have an owner: three deleted, two named to the photometry library, one to a star page item, twelve marked as test readers.
