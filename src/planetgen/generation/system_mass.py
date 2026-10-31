@@ -230,20 +230,27 @@ def _stored_means():
         return {}
 
 
-def save_means(ages_gy):
+def save_means(ages_gy, progress=None):
     """
     Works out `mean_system_mass_at_age_solar` for every age of `ages_gy` and writes them, with those already written for
     this release, to the cache folder (atomically, world-readable: the web app only reads). A galaxy with tens of thousands
     of clusters asks for tens of thousands of ages, a minute or more of work that no web request may do (the daemon
     is killed at 60 seconds); `update.sh` does it once, as part of the update (`planetgen.cli.warm_shape`).
 
+    Args:
+        ages_gy (iterable): The ages to work out.
+        progress (callable): Called as `progress(done, total)` after each age, when given.
+
     Returns:
         int: How many ages the file now holds.
     """
     means = dict(_stored_means())
-    for age in ages_gy:
+    ages_gy = list(ages_gy)
+    for done, age in enumerate(ages_gy, 1):
         age = max(float(age), 1.0e-4)
         means[age] = mean_system_mass_at_age_solar(age)
+        if progress is not None:
+            progress(done, len(ages_gy))
     path = _store_path()
     os.makedirs(os.path.dirname(path), exist_ok=True)
     handle, temporary = tempfile.mkstemp(dir=os.path.dirname(path), suffix=".tmp")
