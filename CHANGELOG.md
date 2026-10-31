@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2931] - 2026-10-31
+
+**Headline:** The prevalence census ranges that train 6 moved are tagged with the train, so the census checks stay quiet until the last 8.1 re-baseline.
+
+### Changed
+- **Census tags only:** the class, system and occurrence census expectation files tag the shares that the class epoch (Class Q retired, Class V line at 2 g, new Class E) and the other train 6 changes moved. No generator code changes.
+
 ## [8.0.2930] - 2026-10-31
 
 **Headline:** A pure module now gives how bright a ring is for its age and dust, and how much sunlight a ring shades from a latitude; nothing uses it yet.
