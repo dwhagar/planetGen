@@ -13,6 +13,6 @@ Nothing is stored and nothing in generation changes: the kind follows from the s
 
 ## Not here, and why
 
-- **Carbon and S stars.** Whether an asymptotic-giant star has run enough thermal pulses to turn carbon-rich is not modelled; the composition code only says a star can (`can_be_carbon_star`). A flag would be a guess dressed as a fact. Needs the dredge-up count from the post-main-sequence track.
+- **Carbon and S stars.** They have their own row, from the thermal-pulse count and the third dredge-up (GEN.1026, [carbon-stars.md](carbon-stars.md)).
 - **Ap and Am stars.** They need a slow rotation and a magnetic field; the generator gives a star its spin and field at the end of its build, and has no chemically peculiar branch to put them on.
 - **Semiregular variables of the red-giant branch.** The row marks the asymptotic-giant branch only.
