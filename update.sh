@@ -66,11 +66,12 @@
 # to run by hand; a reload that worked but whose /api/health probe never got a good answer only warns and the site opens; nothing running prints the command and ends zero. A reload aborts a
 # mod_wsgi request still running after about 4 seconds; touching src/html/wsgi.py does not.
 #
-# After the steps it builds the site's caches (`planetgen warm`, MAP.134, PERF.104 and
-# PERF.127): the Galaxy Map's opening view, the lists, the sector, system and phenomenon
-# pages and the search, so the first visit after the update is fast. It waits for them
-# (at most 30 minutes; each part is its own command, run in order by the wrapper, with a
-# line each), and only then reloads and checks /api/health, 10 seconds after the reload.
+# Once the code, the database, the permissions and Redis are in place it starts building
+# the site's caches in the background (`planetgen warm`, MAP.134, PERF.104 and PERF.127):
+# the Galaxy Map's opening view, the lists, the sector, system and phenomenon pages and
+# the search, so the first visit after the update is fast. Before it reloads it waits
+# (at most 20 minutes) until the first phase, the opening views, is built, then reloads,
+# waits 10 seconds and checks /api/health; the other phases go on after the update ends.
 #
 # Steps 2, 3 and 6 share their code with install.sh (scripts/), so the
 # two can't disagree about what a working server needs. `sudo
@@ -296,6 +297,8 @@ log_info "  planetgen population && planetgen territories"
 if [[ "$before" == "$after" ]] && (( ! APACHE_NEEDS_RESTART )); then
     log_notice "Done. Nothing new was pulled."
 else
+    UPDATE_STEP="waiting for the cache warm-up's opening phase"
+    wait_for_warm_opening
     UPDATE_STEP="reloading what serves the site and checking that it answers /api/health"
     reload_status=0
     reload_web_if_running || reload_status=$?
