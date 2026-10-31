@@ -252,7 +252,8 @@ The realistic galactic core and the halo tier, the interface update for the sphe
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.589 | Research: the central molecular zone's upper cluster mass and its cloud-shock disruption, so the young clusters of the core match the few that are observed |  | Finding from Core 3; research. |
+| GEN.1196 | Disc cluster maximum mass per ring, replacing the flat 1e6 cap | GEN.1195 |  |
+| GEN.1195 | Cluster maximum mass of the central ring from the gas, and cloud-shock disruption of its clusters |  |  |
 | GEN.377 | Scatter limits by place for the neutron star and black hole scatter below the cut: the core and halo tiers apply to it, not one global mass cut |  | Core 3 finding after GEN.333. |
 | GEN.303 | Per-cell system cap as a configuration option: `generation.cell_cap`, default 5,000, lowest 500, highest 50,000 |  | Core 3 wires it; Boss 1:47 PM EDT. |
 

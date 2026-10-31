@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.250 |
 | MAP | MAP.362 |
 | NAV | NAV.65 |
-| GEN | GEN.1195 |
+| GEN | GEN.1197 |
 | PERF | PERF.220 |
 | DB | DB.110 |
 | API | API.38 |
@@ -1339,7 +1339,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.586 | physics/relations.py: the named laws declared once as data, with a fast float kernel in SI and a Quantity wrapper generated from the same declaration, and a dimension test in the mathcheck gate | none | done, PR #2542 |
 | GEN.587 | Replace the hand-written relation sites with the relations module, by file group, bit-identical on the golden set | none | open |
 | GEN.588 | Optional: operator arithmetic on Quantity for the edges (mass divided by volume gives a density), unscheduled | none | open |
-| GEN.589 | Research: the central molecular zone's upper cluster mass and its cloud-shock disruption, so the young clusters of the core match the few that are observed | none | open |
+| GEN.589 | Research: the central molecular zone's upper cluster mass and its cloud-shock disruption, so the young clusters of the core match the few that are observed | none | done, research report (gen589-cmz-clusters-2026-10-31.md) |
 | GEN.590 | Wire the downloaded isochrones, white-dwarf sequences and neutron-star tables into star composition (after Boss answers the Require / Stand-in card) | none | done, PR #2282 |
 | GEN.591 | An elliptical comet's aphelion can exceed its star's Hill sphere in about 10% of runs: the comet bound test fails on main (bug) | none | done, PR #2306 |
 | GEN.592 | A capped dense-core cell generates 0 systems when the star scatter was not drawn, while the resolution says 4 to 30 (observation, not traced) | none | done, PR #2327 |
@@ -1945,6 +1945,8 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1192 | Satellite gas: a gas disc longer than the stars and a longer depletion time at low density | none | open |
 | GEN.1193 | Stripping rule on a satellite's distance to its host so gas follows Grcevich and Putman | none | open |
 | GEN.1194 | Runaway greenhouse: the radiative-convective model has no plateau in outgoing flux, so water window opacity, continuum temperature dependence and wings must be reworked until it plateaus | none | open |
+| GEN.1195 | Cluster maximum mass of the central ring from the gas, and cloud-shock disruption of its clusters | none | open |
+| GEN.1196 | Disc cluster maximum mass per ring, replacing the flat 1e6 cap | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
