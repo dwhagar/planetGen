@@ -888,24 +888,7 @@ with `clamp()`.
   Owner (housekeeping) (2026-10-30 2:55 PM EDT): released to the pool:
   the owner named above (Aux 12) is a retired lane. A waiting lane takes
   it, confirmed with TODO, one lock-free item at a time.
-  Prerequisites: UX.227, UX.228. Related: UX.214, UX.150, GEN.568, UX.226, UX.227, UX.228.
-
-- [ ] **UX.227 The search page shows range controls for the physical values, with units, and the active filters as chips (G4, step 2)**
-  Unused stored values audit chain
-  (reports/unused-stored-values-audit-2026-10-24.md, Boss 10:16 PM EDT
-  and 10:35 PM EDT 2026-10-24: make each a chain, with a GitHub goal
-  issue). Range inputs and sort options on the search page for the keys
-  of UX.226, with the unit beside each, shown as filter chips
-  (active_filters). Done: a browser test sets a gravity and a dose range
-  and gets the right planets. Version 8.2, phase 2. Owner: Aux 6.
-  Rules: no backward-compat shims; every number has a unit or scale
-  (GEN.772); a changed generated value carries `tests.golden_update
-  --reason ... --affects <stage>` and the next epoch; tests are
-  `scripts/test.py changed --resume`.
-  Owner (housekeeping) (2026-10-30 2:55 PM EDT): released to the pool:
-  the owner named above (Aux 6) is a retired lane. A waiting lane takes
-  it, confirmed with TODO, one lock-free item at a time.
-  Prerequisites: UX.226. Related: UX.225.
+  Prerequisites: UX.228. Related: UX.214, UX.150, GEN.568, UX.226, UX.227, UX.228.
 
 - [ ] **UX.228 The object lists and Nearby filter and sort by the same physical values (G4, step 3)**
   Unused stored values audit chain
@@ -19517,6 +19500,9 @@ clears each one.
   fixture or an order dependency) and fix the code or the test with a
   reason, never by skipping or loosening it without one. Web only,
   lock-free. Owner Core 5 (proposed; it owns the admin and queue pages).
+  Owner change (2026-10-31 2:00 PM EDT): Owner is now Aux 3 (it ran out
+  of lock-free work after UX.227; Core 5 is on UX.252). Web only,
+  lock-free.
   Prerequisites: none.
 
 - [ ] **TEST.531 Delete the sector-settle queue chain that no route reaches any more (api_jobs.settle_sectors and the test helper queue_settle)**
@@ -19527,6 +19513,8 @@ clears each one.
   The queue chain behind it is a delete candidate: remove the chain and
   the tests that exist only for it, keeping any test of behavior a route
   still has. Lock-free. Owner: Core 1 when its designations work waits.
+  Owner (2026-10-31 2:00 PM EDT): Owner is Bug 1 (given 1:40 PM EDT),
+  not Core 1.
     Prerequisites: none.
   Prerequisites: none.
 
@@ -19541,6 +19529,7 @@ clears each one.
   the same sector, then decide whether the serial form stays as a test
   reference (registered by design) or goes. Lock-free, tests only.
   Owner: Core 1 when its designations work waits.
+  Owner (2026-10-31 2:00 PM EDT): Owner is Bug 1, after TEST.531.
     Prerequisites: none.
   Prerequisites: none.
 
