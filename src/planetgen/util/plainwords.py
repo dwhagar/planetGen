@@ -65,6 +65,56 @@ PROPER_NAMES = {"Urey", "Earth", "Jupiter", "Sun", "Solar", "Saturn", "Neptune",
 """set: Capitalised words a label may carry in the middle of it."""
 
 
+BRITISH = {
+    "colour": "color", "grey": "gray", "centre": "center", "metre": "meter", "litre": "liter", "neighbour": "neighbor",
+    "behaviour": "behavior", "favour": "favor", "honour": "honor", "labour": "labor", "vapour": "vapor", "harbour": "harbor",
+    "armour": "armor", "flavour": "flavor", "odour": "odor", "fibre": "fiber", "theatre": "theater", "calibre": "caliber",
+    "defence": "defense", "offence": "offense", "aluminium": "aluminum", "sulphur": "sulfur", "sulphate": "sulfate",
+    "programme": "program", "whilst": "while", "amongst": "among", "judgement": "judgment", "ageing": "aging", "mould": "mold",
+    "tyre": "tire", "modelling": "modeling", "travelling": "traveling", "labelled": "labeled", "signalling": "signaling",
+    "levelling": "leveling",
+}
+"""dict: British spellings and the American ones (the site is in American English, Boss 10:33 AM EDT 2026-10-31). A word also matches
+with a plural, `-ed`, `-ing`, `-er`, `-ful`, `-less` or `-ly` ending, and `metre` and `litre` with an SI prefix (`kilometre`)."""
+
+ISE_STEMS = ("organ", "real", "recogn", "character", "crystall", "ion", "oxid", "polar", "minim", "maxim", "optim", "util", "summar",
+             "categor", "stabil", "steril", "neutral", "special", "emphas", "apolog", "critic", "general", "standard", "normal", "visual",
+             "synchron", "hypothes", "ideal", "equal", "final", "local", "capital", "fertil", "mobil", "sensit", "familiar", "mineral",
+             "harmon", "central", "formal", "legal", "national", "personal", "social", "solid", "rational", "fossil", "atom", "carbon")
+"""tuple: The stems of the verbs that British English spells `-ise` and American English `-ize` (`organise`, `organisation`)."""
+
+BRITISH_NAMES = ("Centre National", "Centre for", "Royal Observatory")
+"""tuple: Names that keep their own spelling (an organization's name, a title); they are left out before the spelling is read."""
+
+_SI_PREFIX = r"(?:kilo|milli|centi|micro|nano|deci|mega|giga)?"
+_ENDING = r"(?:s|d|ed|ing|er|ers|ful|less|ly)?"
+_SPELLINGS = [(re.compile(r"\b" + (_SI_PREFIX if word in ("metre", "litre") else "") + re.escape(word) + _ENDING + r"\b", re.IGNORECASE), word, plain)
+              for word, plain in BRITISH.items()]
+_SPELLINGS += [(re.compile(r"\b" + stem + r"is(?:e|es|ed|ing|ation|ations)\b", re.IGNORECASE), stem + "is", stem + "iz") for stem in ISE_STEMS]
+_SPELLINGS.append((re.compile(r"\banalys(?:e|ed|ing|er|ers)\b", re.IGNORECASE), "analys", "analyz"))
+_SPELLINGS.append((re.compile(r"\bcatalys(?:e|ed|ing)\b", re.IGNORECASE), "catalys", "catalyz"))
+_QUOTED = re.compile(r'"[^"]*"|\u201c[^\u201d]*\u201d')
+
+
+def british_spellings(text):
+    """
+    The British spellings in `text` as `[("spelling", detail)]`, each saying what to write (`'colour': write 'color'`). Text in quotation
+    marks and the names of `BRITISH_NAMES` are not read.
+    """
+    plain = _QUOTED.sub(" ", text)
+    for name in BRITISH_NAMES:
+        plain = plain.replace(name, " ")
+    found = []
+    for pattern, british, american in _SPELLINGS:
+        for match in pattern.finditer(plain):
+            word = match.group(0)
+            lower = word.lower()
+            fix = lower.replace(british, american, 1)
+            fix = fix[:-3] + "ered" if fix.endswith("erd") and british.endswith("re") else fix
+            found.append(("spelling", f"'{word}': write '{fix}'"))
+    return found
+
+
 def sentences(text):
     """
     `text` split into its sentences. A full stop, `!` or `?` ends one when a capital letter or a digit follows after a space, and not
@@ -89,7 +139,9 @@ def check_sentence(sentence):
     * `length`: more than `MAX_WORDS` words;
     * `ideas`: more than `MAX_SEMICOLONS` semicolons;
     * `banned`: a word or phrase of `BANNED`, with what to write instead;
-    * `class-name`: a life class named by its family ("Class 3") where the class has letters ("Class 3a").
+    * `class-name`: a life class named by its family ("Class 3") where the class has letters ("Class 3a");
+    * `spelling`: a British spelling (`colour`, `centre`, `metre`, `analyse`, `organise`); the site is in American English (Boss,
+      10:33 AM EDT 2026-10-31). Quoted passages and the names in `BRITISH_NAMES` are left alone.
     """
     found = []
     count = len(words(sentence))
@@ -103,15 +155,16 @@ def check_sentence(sentence):
     for digits, letter in _CLASS_NAME.findall(sentence):
         if f"{digits}{letter}" not in life_classes.BY_ID:
             found.append(("class-name", f"'Class {digits}{letter}' is not a class: the classes are {', '.join(life_classes.BY_ID)}"))
+    found += british_spellings(sentence)
     return found
 
 
 def check_label(label):
     """
-    The rules a table label breaks, as `[(rule, detail)]`: `label-case` when a word after the first starts with a capital letter and is
+    The rules a table label breaks, as `[(rule, detail)]`: `spelling` (as for a sentence) and `label-case` when a word after the first starts with a capital letter and is
     not a proper name or an abbreviation (labels are in sentence case: "Distance from the star", not "Distance From The Star").
     """
-    found = []
+    found = british_spellings(label)
     for position, word in enumerate(label.split()):
         bare = word.strip("()'’,:")
         bare = bare[:-2] if bare.endswith(("'s", "’s")) else bare
