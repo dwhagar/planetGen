@@ -2339,30 +2339,30 @@ FLAVOR_CHANCE_PLANET = 0.05 # The chance flavor text will be added to a planet.
 MAX_FLAVOR_TOTAL = 3 # The maximum flavor items total in a system.
 MAX_RECENT_FLAVOR_TEXTS = 5 # Maximum number of recent flavor texts to keep track of.
 
-SYSTEM_FLAVOR = [ # System-only flavor text.
-    "a derelict chain of deep-space platforms firing concentrated energy beams into the void for an unknown purpose.",
-    "an automated buoy equipped with a mass-driver that catches physical data pods and flings them toward inner-system hubs.",
-    "a massive, ultra-thin sheet of reflective foil drifting through the system, originally deployed to shade a now-dead world.",
-    "thousands of small, passive reflectors scattered across the system that reflect electromagnetic waves back and forth.",
-    "an ancient, nuclear-powered navigational beacon at the system's edge, driven and maintained by a local artificial intelligence.",
-    "a drifting, chaotic cloud of uncoordinated mirror tiles arrayed like a fragmented automated radiation collection swarm.",
-    "a system-wide network of navigational satellites that constantly shift and optimize their orbits using a decentralized swarm intelligence.",
-    "an invisible mass sitting in an empty orbit that clearly registers on navigation sensors, warping the local space-time.",
-    "a spherical dead-zone in deep space where all electromagnetic scans, communication signals, and radiation instantly drop to absolute zero.",
-    "a jagged, glowing fracture in space-time that continuously vents electromagnetic energy into the surrounding void.",
-    "a decentralized network of automated defensive satellites arrayed across the system.",
-    "an array of laser transceivers locked in continuous, high-bandwidth optical communication with one another.",
-    "a swarm of automated solar collectors skimming the star's corona, routing steady power into massive, fully charged battery arrays.",
-    "a partially built ring of solar collectors encircling the star, its gaps suggesting the project was abandoned mid-construction.",
-    "a cluster of dormant self-replicating probes holding formation, their fabrication cycles halted mid-sequence.",
-    "a derelict generation ship on a slow, decaying orbit, its hull dark and its drive cold after generations adrift.",
-    "a stellar mirror array angled to nudge the star's own light pressure into a gentle directional thrust, now drifting loose.",
-    "a pair of gravitational-lensing relays aimed at a target far beyond the system, still patiently listening.",
-    "a broken ring segment holding a stable orbit on its own, as if waiting for the rest of the structure to return.",
-    "a scattering of paired relay buoys still exchanging signals with a partner that fell silent long ago.",
-    "an automated probe holding station at the system's edge, its greeting message looping to no one.",
-    "a magnetic siphon rig drawing material from the star's outer layers, still running long after its operators left.",
-    "a shell of solar-collecting satellites in a wide, half-finished orbit, their construction drones nowhere to be found."
+SYSTEM_FLAVOR = [ # System-only flavor text. Stored as the line itself (GEN.1212: plain words, 23 lines, order fixed so the draw does not move).
+    "a derelict chain of deep-space platforms. They fire strong energy beams into the void for no known reason.",
+    "an automated buoy with a mass driver. It catches data pods and flings them toward the inner system.",
+    "a huge, thin sheet of reflective foil adrift in the system. It was once set up to shade a world.",
+    "thousands of small, passive reflectors scattered across the system. They bounce radio waves back and forth.",
+    "an ancient navigation beacon at the edge of the system. It runs on nuclear power and is kept up by a local artificial intelligence.",
+    "a drifting cloud of mirror tiles that no one steers. It looks like a broken solar collection swarm.",
+    "a network of navigation satellites across the system. They keep shifting their orbits, guided by a swarm intelligence with no single center.",
+    "an unseen mass in an empty orbit. Navigation sensors register it, and it bends the space around it.",
+    "a round dead zone in deep space. Every scan, signal and burst of radiation that enters it drops to nothing.",
+    "a jagged, glowing crack in space-time. It keeps venting energy into the void around it.",
+    "a network of automated defense satellites spread across the system.",
+    "an array of laser transceivers. They hold a steady, high-speed optical link with one another.",
+    "a swarm of automated solar collectors skimming the star's corona. They feed steady power to huge, fully charged battery arrays.",
+    "a half-built ring of solar collectors around the star. The gaps suggest the work was abandoned.",
+    "a cluster of dormant, self-replicating probes holding formation. Their fabrication cycles stopped partway through.",
+    "a derelict generation ship on a slow, decaying orbit. Its hull is dark, and its drive is cold after generations adrift.",
+    "a mirror array angled to turn the star's light pressure into a gentle push. It has come loose and is drifting.",
+    "a pair of gravitational lensing relays aimed at a target far beyond the system. They are still listening.",
+    "a broken ring segment holding a stable orbit by itself. It seems to wait for the rest of the structure to return.",
+    "a scattering of paired relay buoys. They still send signals to partners that fell silent long ago.",
+    "an automated probe holding station at the edge of the system. Its greeting message loops with no one to hear it.",
+    "a magnetic siphon rig drawing material from the star's outer layers. It is still running long after its operators left.",
+    "a shell of solar-collecting satellites in a wide, half-finished orbit. Their construction drones are nowhere to be found."
 ]
 
 PLANET_FLAVOR = [ # Flavor text for any planet.
