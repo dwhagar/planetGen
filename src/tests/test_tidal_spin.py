@@ -15,7 +15,7 @@ import pytest
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from planetgen.physics import icy_tide, constants as pc
-from planetgen.physics import body_spin, impact_spin, interior_heat, spin, tidal_heating
+from planetgen.physics import body_spin, impact_spin, interior_heat, spin, tidal_heating, tidal_spin
 from planetgen.physics.planets import generate_spin
 from planetgen.util import draw
 from tests.fuzz_support import deterministic_entropy
@@ -196,9 +196,9 @@ def test_generate_spin_stores_the_state_the_tide_leaves(monkeypatch):
     draw.set_run_seed(3)
     mercury = _planet(MERCURY, 0.387, 87.969 / 365.25, 0.2056, 4.5)
     generate_spin(mercury, SUN)
-    assert mercury.axial_tilt_deg == 0.0
+    low, high = tidal_spin.CASSINI_COUPLING_RANGE
+    assert low * 1.0 <= mercury.axial_tilt_deg <= high * 1.0    # GEN.1165: a share of its 1 degree inclination, not exactly 0
     assert spin.spin_state(mercury.rotation_period_hours, mercury.period) == ("resonant", 1.5)
-    assert mercury.axial_tilt_deg == 0.0
     earth = _planet(EARTH, 1.0, 1.0, 0.0167, 4.5)
     generate_spin(earth, SUN)
     assert spin.spin_state(earth.rotation_period_hours, earth.period)[0] == "free"
@@ -221,10 +221,59 @@ def test_every_generated_planet_is_in_a_state_the_tide_allows():
             state, turns = spin.spin_state(planet.rotation_period_hours, planet.period)
             seen[state] += 1
             if state != "free":
-                assert planet.axial_tilt_deg == 0.0
+                assert planet.axial_tilt_deg <= min(planet.orbital_inclination_deg, 180.0 - planet.orbital_inclination_deg) + 1e-9
             host = planet.primary_mass_kg
             locking = locking_time_s(planet, host, planet.distance * pc.AU_TO_M, 2.0 * math.pi / (planet.rotation_period_hours * 3600.0),
                                                  planet.eccentricity)
             if state == "free":
                 assert locking > 0.0
     assert seen["free"] > 0 and seen["locked"] + seen["resonant"] > 0
+
+
+def test_the_cassini_tilt_is_a_share_of_the_inclination():
+    """GEN.1165: `eps = x i` with `x` log-uniform over `CASSINI_COUPLING_RANGE`; 0 in the plane; a retrograde orbit counts by its angle from the pole."""
+    low, high = tidal_spin.CASSINI_COUPLING_RANGE
+    assert tidal_spin.cassini_tilt_deg(2.0, 0.0) == pytest.approx(2.0 * low)
+    assert tidal_spin.cassini_tilt_deg(2.0, 1.0) == pytest.approx(2.0 * high)
+    assert tidal_spin.cassini_tilt_deg(2.0, 0.5) == pytest.approx(2.0 * math.sqrt(low * high))
+    assert tidal_spin.cassini_tilt_deg(0.0, 0.7) == 0.0
+    assert tidal_spin.cassini_tilt_deg(178.0, 0.5) == pytest.approx(tidal_spin.cassini_tilt_deg(2.0, 0.5))
+
+
+def test_a_locked_or_resonant_planet_keeps_a_small_tilt_not_exactly_zero():
+    """GEN.1165 / GEN.753 row 7: a locked planet's obliquity is a fraction of a degree to 2 degrees, no longer exactly 0."""
+    tilts = []
+    for seed in range(12):
+        with deterministic_entropy(seed):
+            draw.set_run_seed(seed)
+            system = StarSystem(SystemConfig(), galactic_center_dist_ly=26000.0)
+        for planet in system.planets + system.secondary_planets:
+            if not hasattr(planet, "moons") or planet.body_type == "a":
+                continue
+            if spin.spin_state(planet.rotation_period_hours, planet.period)[0] in ("locked", "resonant"):
+                tilts.append(planet.axial_tilt_deg)
+    assert len(tilts) >= 20
+    tilts.sort()
+    assert sum(1 for t in tilts if t > 0.0) >= 0.9 * len(tilts)
+    assert tilts[len(tilts) // 2] < 1.0 and tilts[int(0.95 * len(tilts))] < 5.0
+
+
+def test_a_generated_giant_tail_reaches_past_sixty_degrees_for_an_ice_giant_only():
+    """GEN.1165 / GEN.753 row 10: over generated systems an ice giant of 5 to 30 Earth masses is sometimes tilted past 60 degrees; a heavier giant never is."""
+    from planetgen.physics import giant_tilt
+    ice, gas = [], []
+    for seed in range(7100, 7160):
+        with deterministic_entropy(seed):
+            draw.set_run_seed(seed)
+            config = SystemConfig()
+            config.PLANETS = True
+            config.MAX_PLANETS = True
+            system = StarSystem(system_config=config, galactic_center_dist_ly=26000.0)
+        for planet in system.planets:
+            if getattr(planet, "body_type", None) != "g":
+                continue
+            low, high = giant_tilt.MASS_RANGE_EARTH
+            (ice if low <= planet.mass / pc.EARTH_MASS_TO_KG <= high else gas).append(planet.axial_tilt_deg)
+    assert len(ice) >= 4 and len(gas) >= 4
+    assert all(0.0 <= tilt <= 180.0 for tilt in ice + gas)
+    assert max(gas) < 90.0
