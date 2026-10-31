@@ -11705,6 +11705,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   The wiring register names this item for the unread ice-albedo feedback
   and its owner lane Air 1 is retired. Owner now: Aux 4 (proposed by the
   TODO thread; the lane says if it cannot take it).
+  Lock branch ready (2026-10-31 3:20 PM EDT): Aux 4 (as the lane
+  reported, 3:19 PM EDT): READY as one lock branch
+  claude/project-thread-nfytfi-gen1229, head 7135c287e, based on main
+  c82ecfcd5 plus #4558; it contains GEN.972 (head 29e0f68a0, one test
+  fix since 3dc7948e8) and GEN.982 part 3 and GEN.1229, so skip the old
+  -gen982-haze branch. Epoch --affects fill, no migration. Census (480
+  bodies): hazy bodies 98 to 82; median haze depth 0.02 to 3.8; bodies
+  over depth 1: 3 to 62; Titan's measured depth 9.6 now comes out of its
+  own production. Depths above about 100 are suspect (the only sink is
+  fall; no rain-out or haze destruction). Stand-ins HZ1 to HZ3, SL4, SL5
+  registered. Tests: 1263 passed; test_giant_one_bar_temperature (two)
+  red on clean main is GEN.1030.
   Prerequisites: none. Related: GEN.752, GEN.462.
 
 - [ ] **GEN.974 Climate feedback 3: cloud albedo on the fixed point (cloud cover changes the reflected share)**
@@ -14863,6 +14875,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the physical flux; the strict expected failure of the Titan test
   removed; census of methane hazes before and after. Lock work (epoch,
   --affects fill). Owner: Aux 4.
+  Lock branch ready (2026-10-31 3:20 PM EDT): Aux 4 (as the lane
+  reported, 3:19 PM EDT): READY as one lock branch
+  claude/project-thread-nfytfi-gen1229, head 7135c287e, based on main
+  c82ecfcd5 plus #4558; it contains GEN.972 (head 29e0f68a0, one test
+  fix since 3dc7948e8) and GEN.982 part 3 and GEN.1229, so skip the old
+  -gen982-haze branch. Epoch --affects fill, no migration. Census (480
+  bodies): hazy bodies 98 to 82; median haze depth 0.02 to 3.8; bodies
+  over depth 1: 3 to 62; Titan's measured depth 9.6 now comes out of its
+  own production. Depths above about 100 are suspect (the only sink is
+  fall; no rain-out or haze destruction). Stand-ins HZ1 to HZ3, SL4, SL5
+  registered. Tests: 1263 passed; test_giant_one_bar_temperature (two)
+  red on clean main is GEN.1030.
     Prerequisites: GEN.982. Related: GEN.972.
   Prerequisites: none.
 
