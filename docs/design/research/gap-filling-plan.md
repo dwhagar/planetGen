@@ -2516,3 +2516,12 @@ The words `physics/life_readings.py` says a world's life in: how much of each ki
 |---|---|---|---|---|---|---|---|---|---|
 | AK1 | P | T4 | L0 | acceleration.MEMBER_SOFTENING_PC 0.001, the Plummer softening of a member's pull in the influence set (200 AU), so a member at the object's own point cannot give an infinite pull | 0.0001 to 0.01 pc (Boss's rule in GEN.342: unsoftened or 1e-3 to 1e-2 pc) | any pair of masses in a set | an encounter inside 200 AU whose pull matters to the path (the collision test, GEN.334, catches those first) | the encounter integrator of the perturbed pass (GEN.343) | GEN.342's own wording: "other masses unsoftened or 1e-3 to 1e-2 pc, no a_min filter" |
 
+### 6.159 Stand-ins of the star stepper (GEN.340)
+
+`galaxy/stepper.py` steps stars through the galactic potential with kick-drift-kick, each by its own block step. The numbers are the item's own; the timescale and the step cap are choices of the module.
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
+|---|---|---|---|---|---|---|---|---|---|
+| ST1 | P | T6 | L0 | stepper.STEP_ETA 0.05 and STEP_CAP_MYR 5: a step is a twentieth of the star's own crossing time (the smaller of r/v and sqrt(r/a) at its present point, the cheap stand-in for the pericentre crossing time), no more than 5 Myr | eta 0.02 to 0.1; cap 1 to 10 Myr | a star in the smooth potential with no close encounter | an orbit of high eccentricity whose pericentre passage is poorly resolved at the present-point timescale (the energy test fails past 1e-3 per Gyr) | the pericentre crossing time from the orbit's energy and angular momentum | GEN.340's own wording ("step eta 0.05 of the pericentre crossing time, capped at 5 Myr"); kick-drift-kick is second-order symplectic (Hairer, Lubich and Wanner 2006, recalled) |
+| ST2 | P | T4 | L0 | stepper.MAX_LEVEL 12: a star needs at most 4096 equal steps in one span; past it the star is stepped at that cap and flagged | 8 to 16 | any span the orbital update asks for | a span so long that the flagged cap leaves the orbit's energy off by over 1e-3 | no cap, once the update's span is bounded by the next-update rule (GEN.105) | GEN.340's own wording ("a step cap that sets a flag") |
+
