@@ -14810,7 +14810,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Source: reports/gen1016-quadruple-need-2026-10-30.md.
   Prerequisites: none.
 
-- [ ] **GEN.1156 Belt rate after the GEN.728 disc architecture is 3 to 12 percent of systems: Boss decides between raising the per-slot chance, a belt as its own disc component, or keeping it**
+- [ ] **GEN.1156 Raise the belt share after the GEN.728 disc architecture (3 to 12 percent of systems) toward the documented 4 to 14 percent with a physics-driven change**
   From Aux 5 (GEN.1148,
   reports/gen1148-belt-binary-shift-2026-10-31.md): belts per system
   fell from 53 to 3 percent (11.8 percent in the fixed-type census) at
