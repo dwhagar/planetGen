@@ -823,7 +823,7 @@ def test_a_failing_command_stops_the_list_exits_non_zero_and_is_named(script, ca
         warm_cli.run_warm(_args())
     assert exit_info.value.code == 1
     err = caplog.text
-    assert "the cache warm-up stopped: unit 0 of stage 6 failed: WarmupFailed: 2 of 9 pages did not answer" in err
+    assert "the cache warm-up stopped: unit 0 of stage Warm systems: every system page failed: WarmupFailed: 2 of 9 pages did not answer" in err
     assert [family for family, _cap, _db in script.ran] == ["object-index", "galaxy-map", "lists",
                                                             "galaxy-nodes", "galaxy-deep-nodes", "sectors", "systems"], \
         "the wrapper's list stops at the failing command"
