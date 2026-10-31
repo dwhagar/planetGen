@@ -59,7 +59,7 @@ class StellarObject(LazySaladName, MassObject):
         "heliosphere_radius": "au", **GALACTIC_MOTION_UNITS,
         "a_crit_au": "au", "reflex_offset_x": "au", "reflex_offset_y": "au", "reflex_offset_z": "au",
         "rotation_period_hours": "h", **spin.SPIN_UNITS, **activity.STAR_ACTIVITY_UNITS, "metallicity_fe_h": "dex",
-        "snow_line_au": "au", **pre_main_sequence.DISK_UNITS,
+        "snow_line_au": "au", "nuclear_arrival_age_gy": "Gyr", **pre_main_sequence.DISK_UNITS,
     }
     """
     Every attribute set by `__init__`/`generate_star`, excluding `system_config` (a shared back-reference threaded
@@ -120,6 +120,12 @@ class StellarObject(LazySaladName, MassObject):
     """float or None: The age (Gy) at which a population-model star leaves
     its present evolutionary phase; `adjust_age_for_planets` keeps its age
     below it so the star's class stays true. None otherwise."""
+
+    nuclear_arrival_age_gy = None
+    """float or None: For a pre-main-sequence star of the population model,
+    the age (Gy) at which MIST's tracks put it on the main sequence (GEN.1174),
+    later than its `phase_end_age_gy`, the age its radius settles. None for
+    every other star."""
 
     _model_age_lifespan = None
     _model_fe_h = None

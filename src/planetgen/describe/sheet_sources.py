@@ -53,6 +53,8 @@ _STAR = {
     "rotation_period_hours": "A white dwarf log-normal about a day, a giant a slow 1 to 10 km/s, a cool dwarf from "
                              "gyrochronology (Barnes 2007), a hot star from a drawn speed; a scattered star keeps its own draw.",
     "axial_tilt_deg": "Rayleigh about 15 degrees from the star's reference normal.",
+    "nuclear_arrival_age_gy": "The age MIST's tracks put the star on the main sequence (Choi et al. 2016); the star counts as pre-main-sequence "
+                              "only until its radius has settled, the earlier age BHAC15 gives (Baraffe et al. 2015).",
     "disk_kind": "A young star holds a class 0, I or II disk by its age; a main-sequence star has a cold debris belt at the share "
                  "the DEBRIS survey found for its kind, 2 to 24 percent (Sibthorpe et al. 2018).",
     "disk_inner_au": "A young star's disk starts at the dust sublimation radius; a debris belt starts at 0.7 of its radius, the "

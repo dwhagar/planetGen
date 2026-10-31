@@ -2885,7 +2885,7 @@ STAR_FIELDS = (
     object_rows.scaled("reflex_offset_z_km", "reflex_offset_z", _AU_KM, null=0.0, nullable=True),
     object_rows.optional("rotation_period_hours"), _SPIN_FIELD,
     object_rows.each(activity.STAR_ACTIVITY_FIELDS), object_rows.optional("metallicity_fe_h"),
-    object_rows.optional("state"), object_rows.optional("decay_age_yr"),
+    object_rows.optional("state"), object_rows.optional("decay_age_yr"), object_rows.optional("nuclear_arrival_age_gy"),
     object_rows.scaled("snow_line_km", "snow_line_au", _AU_KM),
     object_rows.each(pre_main_sequence.DISK_FIELDS),
     object_rows.context("parent_node_id"), object_rows.context("slot"),
@@ -6044,7 +6044,7 @@ BRIGHT_STAR_COLUMNS = (
     "shell_index", "band_index", "wedge_index", *point_columns.LAYOUTS["bright_stars"].position,
     "population", "star_type", "yerkes_class", "mass_kg", "radius_km", "temperature_k", "luminosity_w",
     "age_gy", "lifespan_gy", "initial_mass_sol", "phase_end_age_gy", "seed", "metallicity_fe_h",
-    "rotation_period_hours",
+    "rotation_period_hours", "nuclear_arrival_age_gy",
 )
 """tuple: The `bright_stars` columns a scatter writes, in the order
 `insert_bright_stars` expects each row's values."""
