@@ -2898,7 +2898,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.99 | Rogue planets do not show their surface gravity (bug) | none | done, PR #1355 |
 | UX.100 | Planet and moon lists show habitability as symbols, not notes | none | done, PR #2784 |
 | UX.101 | The PHI-6 symbols as vector shapes in the icon library, both themes, coloured by rating | none | done, PR #2706 |
-| UX.102 | One logging standard for every output the user or an admin reads: the same timestamps, format, dividers and step markers everywhere | none | open |
+| UX.102 | One logging standard for every output the user or an admin reads: the same timestamps, format, dividers and step markers everywhere | none | done, PR #4450 |
 | UX.103 | Design note for the description layer | none | done, PR #1496 |
 | UX.104 | Build the document model for stars, pairs, planets, moons, belts, comets and the overview | none | done, PR #1509 |
 | UX.105 | The system page builds every body's detail from the document model as HTML tables | none | done, PR #2206 |
@@ -3333,7 +3333,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.180 | Backup and repair end to end: take a full archive, lose the control schema and the live parity file, restore and repair, and prove the galaxy and the logins come back | none | open |
 | TEST.181 | The order-independence test: the same sectors at 1 and 4 workers and in two orders | none | done, PR #2628 |
 | TEST.182 | Put one block-first backfill into the golden galaxy | none | open |
-| TEST.183 | A test that fails when a new output path formats its own lines | none | open |
+| TEST.183 | A test that fails when a new output path formats its own lines | none | done, PR #4450 |
 | TEST.184 | Whole-sphere tests, nebula and Wolf-Rayet side: contents per class, the Wolf-Rayet count, tiling, determinism and the King solver | none | done, PR #2504 |
 | TEST.185 | Whole-sphere tests, component side: pre-placed share per population, no double count of a cluster star, nothing hosted in a halo or old cluster cell, D and E members inside their radius | none | done, PR #2504 |
 | TEST.186 | Census audit harness: fill seeded sectors per region class, count by kind and stage, compare to expectation within k Poisson sigma, print one report | none | done, PR #2040 |
