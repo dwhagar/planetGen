@@ -4312,7 +4312,7 @@ SPECIES_EQUIPMENT_TECH = {
     "insulated suit": 2.0, "liquid-cooled suit": 2.0, "heated diving suit": 2.0, "full-cover suit": 2.0,
     "thermal suit": 2.0,
     "heated sealed suit": 3.0, "heat-shielded suit": 3.0, "chemical-barrier suit": 3.0, "sealed suit": 3.0,
-    "pressure suit": 3.0, "armoured suit": 4.0, "vehicle only": 99.0, "powered frame": 3.0,
+    "pressure suit": 3.0, "armored suit": 4.0, "vehicle only": 99.0, "powered frame": 3.0,
     "dust filter": 2.0, "dust-tight seals": 2.0, "gas filter": 2.5, "full-face gas filter": 2.5,
     "powered gas filter": 3.0, "CO2 scrubber": 2.5,
     "gas-mix mask": 2.0, "self-contained air": 3.0, "mixed-gas rig": 3.5, "isolated air": 4.0,

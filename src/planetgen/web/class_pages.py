@@ -106,7 +106,7 @@ def habitability_levels():
         title="Habitability",
         section="help",
         breadcrumbs=[crumb("Habitability")],
-        description="What the equipment levels, the Blue to Red domain colours and the Habitable chips mean.",
+        description="What the equipment levels, the Blue to Red domain colors and the Habitable chips mean.",
         **habitability_ref.page(),
     )
 

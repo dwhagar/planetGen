@@ -43,19 +43,6 @@ KNOWN = {
     ('class-name', 'Cells with internal structure'): 'UX.252',  # Cells with internal structure have appeared among Class 3 life.
     ('class-name', 'Class # life has'): 'UX.252',  # Class 3 life has grown into colonies, mats or bodies big enough to see.
     ('ideas', 'Size digit d means'): 'UX.252',  # Size digit d means a radius of 10^d to 10^(d+1) AU, from 1 to 4: 1: 10 to 100 AU; 2: 100 to 1,000 AU; 3: 1 × 1
-    ('label-case', 'Atmosphere Colour'): 'UX.252',
-    ('label-case', 'Distance from the Star'): 'UX.252',
-    ('label-case', 'Inner Edge'): 'UX.252',
-    ('label-case', 'Internal Pressure'): 'UX.252',
-    ('label-case', 'Moon Wobble'): 'UX.252',
-    ('label-case', 'Nearest Meteorite Group'): 'UX.252',
-    ('label-case', 'Nucleus Diameter'): 'UX.252',
-    ('label-case', 'Outer Edge'): 'UX.252',
-    ('label-case', 'Surface Pressure'): 'UX.252',
-    ('label-case', 'Surface Temperature'): 'UX.252',
-    ('spelling', 'Aluminium-26 at formation'): 'UX.252',
-    ('spelling', 'Atmosphere Colour'): 'UX.252',
-    ('spelling', 'It is the overall'): 'UX.252',
     ('spelling', "Offset from the system's centre, x"): 'UX.253',
     ('spelling', 'Soundings read a gas'): 'UX.252',
     ('length', 'A class is never'): 'UX.252',  # A class is never drawn first: once a planet or moon is complete, its class is the first class in the check ord

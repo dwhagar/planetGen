@@ -1126,7 +1126,7 @@ INTERIOR_KIND_WORDING = {
 
 INTERIOR_FEATURE_WORDING = {
     "metallic_envelope": "hydrogen squeezed to a liquid metal below {pressure}, where the planet's magnetic field is made",
-    "dilute_core": "a dilute core of rock and ice mixed into the hydrogen instead of sitting in a ball at the centre",
+    "dilute_core": "a dilute core of rock and ice mixed into the hydrogen instead of sitting in a ball at the center",
     "helium_shell": "a shell of helium the rain left behind",
     "helium_rain": "an envelope short of helium, which has sunk into the deep",
     "ice_mantle": "a conducting mantle of ionic water where the planet's magnetic field is made",
