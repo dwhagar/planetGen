@@ -43,9 +43,9 @@ WATER_ID = "water"
 WATER_STATES = ("surface ocean", "brine seep", "hycean")
 """tuple: The hydrosphere states whose water is a liquid at the surface."""
 
-SURFACE_SHARE_OF_ICE = 3.0e-4
+SURFACE_SHARE_OF_ICE = 1.3e-3
 """float: STAND-IN LQ11 (L2): the share of a body's ice of a volatile that lies on the surface as its liquid. Tuned so that a Titan-like body with 1 percent of its
-mass as methane ice (a guess, the ices are drawn) covers 1.7 percent of its surface, against the 1.6 percent the lakes and seas of Titan cover (Hayes 2016)."""
+mass as methane ice (a guess, the ices are drawn) covers 1.7 percent of its surface, against the 1.6 percent the lakes and seas of Titan cover (Hayes 2016). Retuned from 3e-4 when GEN.1147's two-level hypsometry replaced the cover law: it covers less of the surface for the same layer."""
 
 ICE_LIQUID = {"CH4": "methane", "N2": "nitrogen", "CO2": "carbon_dioxide", "CO": "carbon_monoxide", "HCN": "hydrogen_cyanide",
               "SO2": "sulfur_dioxide", "NH3": "ammonia"}
