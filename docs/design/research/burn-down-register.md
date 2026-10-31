@@ -120,7 +120,7 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 5.2:BC20 | no data | - | the share of giants with a ring is now an output of the fall and passage histories (`ring_origin`); no ring census of exoplanets is held, and Cassini's ring age and mass are argued, so the history's own stand-ins RO1 to RO6 carry it |
 | 5.2:BC21 | no data | - | the edges of ring systems are measured for four giants only; the outer edge against the Roche limit and the inner edge in planet radii have no second sample |
 | 5.2:BC22 | no data | - | the kind limits are the middles of the gaps between four Solar System rings; a second sample of measured ring masses replaces them |
-| 5.2:BC23 | replace | GEN.1055 | the ice share and darkness follow from the ring's age and pollution by the snow line (GEN.1055) |
+| 5.2:BC23 | no data | - | the share a ring begins with is still drawn from this range (no measured ice share of a young ring exists); what the dust has done to it since is worked out (`rings.darken`, GEN.1055 R6) |
 | 6.70:RO1 | no data | - | no simulation table of the ring left by a disrupted moon by composition is in hand; Canup 2010 and Black and Mittal 2015 disagree on the share |
 | 6.70:RO2 | no data | - | the age of Saturn's rings is contested between 1e8 years and the age of the planet, and no other ring system is dated |
 | 6.70:RO3 | no data | - | no survey measures how often a ring-making comet passes inside a giant's Roche limit |

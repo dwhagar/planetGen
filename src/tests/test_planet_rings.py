@@ -184,3 +184,35 @@ def test_a_dwarf_planet_may_have_a_narrow_resonance_ring_without_an_age():
             found.append(planet)
     assert found and all(p.ring_kind == "narrow" and p.ring_origin == "disrupted_moon" and p.ring_age_yr is None for p in found)
     assert len(found) < 100
+
+
+def _ring(kind, ice, tau, age_yr, inner_km, outer_km):
+    return rings.Ring(ring_kind=kind, ring_origin="disrupted_moon", ring_inner_km=inner_km, ring_outer_km=outer_km, ring_mass_kg=1.0e19, ring_optical_depth=tau,
+                      ring_ice_fraction=ice, ring_age_yr=age_yr)
+
+
+def test_a_massive_ring_beyond_the_snow_line_keeps_most_of_its_ice_as_saturns_does():
+    """GEN.1055 (R6): Saturn's A to C rings (ice began at 0.97, optical depth 0.5, 4.5 Gyr, 9.58 AU) are still more than 90 percent ice after the dust that fell on them."""
+    ring = _ring("broad", 0.97, 0.5, 4.5e9, 74500.0, 136775.0)
+    rings.darken(ring, 5.683e26, 9.58)
+    assert 0.9 < ring.ring_ice_fraction < 0.97
+
+
+def test_a_thin_ring_is_darkened_much_further_than_a_massive_one_and_an_older_one_further_than_a_young_one():
+    thin = _ring("narrow", 0.3, 1.0e-3, 4.5e9, 40000.0, 50000.0)
+    heavy = _ring("narrow", 0.3, 1.0, 4.5e9, 40000.0, 50000.0)
+    young = _ring("narrow", 0.3, 1.0e-3, 1.0e6, 40000.0, 50000.0)
+    for ring in (thin, heavy, young):
+        rings.darken(ring, 8.68e25, 19.2)
+    assert 0.3 - thin.ring_ice_fraction > 50.0 * (0.3 - heavy.ring_ice_fraction)
+    assert young.ring_ice_fraction > thin.ring_ice_fraction
+    assert 0.0 <= thin.ring_ice_fraction < 0.3
+
+
+def test_a_ring_with_no_ice_or_no_age_is_left_as_it_is():
+    dusty = _ring("dusty", 0.0, 1.0e-8, 1.0e8, 80000.0, 130000.0)
+    resonance = _ring("narrow", 0.2, 0.1, None, 4000.0, 4100.0)
+    for ring in (dusty, resonance):
+        before = ring.ring_ice_fraction
+        rings.darken(ring, 1.0e21, 40.0)
+        assert ring.ring_ice_fraction == before
