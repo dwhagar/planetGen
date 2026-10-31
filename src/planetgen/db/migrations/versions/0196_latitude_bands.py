@@ -1,6 +1,6 @@
 """The climate of a body in seven bands of latitude (GEN.1108).
 
-Schema v195. `planets` and `moons` gain the 49 band columns `band1_mean_k` to `band7_state` (`physics/regional_temperature.py`: for each band the mean temperature, the day and
+Schema v196. `planets` and `moons` gain the 49 band columns `band1_mean_k` to `band7_state` (`physics/regional_temperature.py`: for each band the mean temperature, the day and
 night swing, the hours of day and of night, the longest polar day and night and the state word, `physics/latitude_bands.py`) and lose the four latitude bands, the three zones of a
 locked world and their swings (`temp_polar_k`, `temp_north_k`, `temp_equator_k`, `temp_south_k`, `temp_swing_k`, `temp_day_side_k`, `temp_terminator_k`, `temp_night_side_k`,
 `temp_polar_swing_k`, `temp_north_swing_k`, `temp_south_swing_k`, `temp_day_side_swing_k`, `temp_terminator_swing_k`, `temp_night_side_swing_k`). All new columns are NULL here: they are worked out
@@ -13,8 +13,8 @@ from alembic import op
 
 from planetgen.db.migrations import helpers
 
-revision = "0195"
-down_revision = "0194"
+revision = "0196"
+down_revision = "0195"
 branch_labels = None
 depends_on = None
 

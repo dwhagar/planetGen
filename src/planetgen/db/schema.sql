@@ -1531,7 +1531,7 @@
 --   `physics/day_night.py`), the hours of night in a solar day at the equator (`night_hours`, DOUBLE) and the solar days in one orbit (`days_per_year`, DOUBLE). NULL for a body whose spin is not stored, `night_hours` and
 --   `days_per_year` NULL for a world that turns once an orbit, and all NULL on a row made before v193, which gets them when the galaxy is regenerated.
 -- v194 (GEN.1013): `dark_members`, one row for each member of a built system's tree that is not one of its stars (a brown dwarf, neutron star, black hole or stripped helium star): `parent_node_no`, `slot`, `kind`, `mass_solar`, `radius_au`. A system stored before has none; nothing is backfilled.
--- v195 (GEN.1108): `planets` and `moons` keep the climate of the body in seven bands of latitude (`physics/latitude_bands.py`, `physics/regional_temperature.py`), `band1` (the north pole) to `band7`
+-- v196 (GEN.1108): `planets` and `moons` keep the climate of the body in seven bands of latitude (`physics/latitude_bands.py`, `physics/regional_temperature.py`), `band1` (the north pole) to `band7`
 --   (the south pole), each with `bandN_mean_k` (the annual-mean temperature), `bandN_swing_k` (the day and night swing, peak to peak, kelvin of difference), `bandN_day_hours` and `bandN_night_hours`
 --   (hours of day and of night in a solar day), `bandN_longest_day_days` and `bandN_longest_night_days` (the longest polar day and night of the year at the poleward edge) and `bandN_state`
 --   (VARCHAR(24): day and night, polar day and night, non-rotating; for a world locked to its star the seven are rings from the day centre to the night centre, with no hours, and the state is
@@ -2403,7 +2403,7 @@ CREATE TABLE IF NOT EXISTS planets (
     eq_shelter_rec              TINYINT,
     shelter_column_g_cm2        DOUBLE,
     outside_hours               DOUBLE,
-    band1_mean_k                DOUBLE,  -- v195 (GEN.1108): the climate of the body in seven bands of latitude (`physics/latitude_bands.py`): `band1` is the north pole, `band7` the south pole (a world locked to its star: the day centre to the night centre)
+    band1_mean_k                DOUBLE,  -- v196 (GEN.1108): the climate of the body in seven bands of latitude (`physics/latitude_bands.py`): `band1` is the north pole, `band7` the south pole (a world locked to its star: the day centre to the night centre)
     band1_swing_k               DOUBLE,
     band1_day_hours             DOUBLE,
     band1_night_hours           DOUBLE,
@@ -2804,7 +2804,7 @@ CREATE TABLE IF NOT EXISTS moons (
     eq_shelter_rec              TINYINT,
     shelter_column_g_cm2        DOUBLE,
     outside_hours               DOUBLE,
-    band1_mean_k                DOUBLE,  -- v195 (GEN.1108): the climate of the body in seven bands of latitude (`physics/latitude_bands.py`): `band1` is the north pole, `band7` the south pole (a world locked to its star: the day centre to the night centre)
+    band1_mean_k                DOUBLE,  -- v196 (GEN.1108): the climate of the body in seven bands of latitude (`physics/latitude_bands.py`): `band1` is the north pole, `band7` the south pole (a world locked to its star: the day centre to the night centre)
     band1_swing_k               DOUBLE,
     band1_day_hours             DOUBLE,
     band1_night_hours           DOUBLE,
