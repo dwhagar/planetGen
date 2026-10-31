@@ -12047,6 +12047,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.973 and GEN.974; the response today is about 0.4 K per W/m2. When
   the last of the three lands the test passes, the strict xfail fails
   the run, and this item removes the mark.
+  Design done (2026-10-31 12:25 AM EDT): Air 1 merged the design note
+  docs/design/composition/cloud-albedo.md (#4378): cloud thinning with
+  warming sized to the AR6 cloud feedback (+0.42 W/m2 per K at 288 K,
+  beta 1.2e-3 per K) and a substellar deck for a body locked 1:1 to its
+  star (Yang 2013 table 1). With the ice law of GEN.972 the Earth twin
+  sweep response is 0.58 against the 0.54 bound. Stand-in rows CL1 to
+  CL4 are proposed (none L3 or L4) and enter GEN.725 with the build. The
+  build is lock work, waits for GEN.972, and may share an epoch with
+  GEN.972 and GEN.1194.
   Prerequisites: GEN.972. Related: GEN.752, GEN.684.
 
 - [ ] **GEN.981 Induced magnetic moment part (b): conducting cores and planets in the star's field (the part of GEN.779 that remains)**
