@@ -12,6 +12,7 @@
 const VERSION_QUERY = new URL(import.meta.url).search;
 const { parseLook, parseHex } = await import(`./bodytexture.js${VERSION_QUERY}`);
 const { paintSolid } = await import(`./solidpaint.js${VERSION_QUERY}`);
+const { paintGiant } = await import(`./giantpaint.js${VERSION_QUERY}`);
 const { glowFor, paintStar } = await import(`./starpaint.js${VERSION_QUERY}`);
 const Spin = await import(`./spin.js${VERSION_QUERY}`);
 
@@ -29,6 +30,7 @@ function rgba(color, alpha) {
 function texture(look) {
   if (look.body === "star") return paintStar(look, TEXTURE[0], TEXTURE[1]);
   if (look.body === "solid") return paintSolid(look, TEXTURE[0], TEXTURE[1]);
+  if (look.body === "gas") return paintGiant(look, TEXTURE[0], TEXTURE[1]);
   return null;
 }
 

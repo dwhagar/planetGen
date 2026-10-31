@@ -47,6 +47,9 @@ Fields (all optional but `v`, `kind`, `body`, `seed`):
     lumSolar    a star's luminosity in solar units
     spec        a star's `star_type`
     yerkes      a star's Yerkes luminosity class (V dwarf, III giant, VII white dwarf, ...)
+    gas         a giant's cloud-forming gases as mole fractions of its stored mixture, `{"CH4": .., "NH3": .., "H2O": .., "H2S": ..}`
+                (`GIANT_CLOUD_GASES`, rounded to 4 significant digits, a gas the mixture lacks is left out); `static/giantpaint.js` reads it for the
+                palette. Left out when the row stores no mixture, and the painter then goes by temperature alone
     spinH       rotation period, hours (MAP.328); left out when none is stored, and the body is drawn still
     axis        the unit spin axis [x, y, z] in the system's frame, right-handed (a retrograde body's points against its
                 orbit's normal)
@@ -88,6 +91,8 @@ GLOW_WIDTH_RANGE = (0.03, 0.2)
 """tuple: The least and most the glow reaches past the limb, in radii."""
 TWILIGHT_MAX = 0.2
 """float: The twilight (a cosine of the light on the ground) of the thickest air."""
+GIANT_CLOUD_GASES = ("CH4", "NH3", "H2O", "H2S")
+"""tuple: The gases whose mole fractions go on a giant's look record: the ones whose clouds and absorption set its colours."""
 _BOLTZMANN = 1.380649e-23
 
 _SOLAR_LUMINOSITY_W = 3.828e26
@@ -278,6 +283,15 @@ def _put_spin(look, row):
         look["locked"] = True
 
 
+def giant_gas_fractions(planet):
+    """The mole fractions of `GIANT_CLOUD_GASES` in a row's stored mixture (a gas it lacks left out); `None` with no stored mixture."""
+    partials = atmosphere.gas_partials_pa(planet)
+    total = sum(value for value in partials.values() if value and value > 0.0)
+    if total <= 0.0:
+        return None
+    return {gas: float(f"{partials[gas] / total:.4g}") for gas in GIANT_CLOUD_GASES if partials.get(gas, 0.0) > 0.0}
+
+
 def planet_look(planet, kind="planet"):
     """The look record of a planet or moon row."""
     atmosphere = planet.get("atmosphere")
@@ -297,6 +311,8 @@ def planet_look(planet, kind="planet"):
             look["quality"] = "composition"
             look["landKnown"] = round(known_land, 3)
     _put(look, "cls", (planet.get("planet_class") or "").upper() or None)
+    if gas:
+        _put(look, "gas", giant_gas_fractions(planet))
     _put_spin(look, planet)
     if has_atmosphere:
         look["atm"] = True
