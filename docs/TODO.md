@@ -2286,34 +2286,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   nothing in 8.1.
   Prerequisites: MAP.312, DB.106. Related: MAP.312, MAP.309, MAP.170.
 
-- [ ] **MAP.338 Zoom redesign Z5: planet and moon frames, the camera as frame plus offset, automatic near and far planes, and the MAP.240 leftovers**
-  Size M. Boss answered the research cards at 6:19 PM EDT 2026-10-28
-  (1.1 quick fixes then the full rebuild, 2.1 one verb Go to, 3.1
-  vertical log ruler with named stops, 4.1 a region lands framed on the
-  charted part, 5.1 moon in view first). Design:
-  /mnt/project-files/design-drafts/galaxy-map-continuous-zoom-redesign-2026-10-28.md
-  (section 6 plan, section 9 decisions). Owner: Core 2. Zooming into a
-  planet or moon works in its own frame (camera = frame plus offset),
-  the near and far planes follow the distance, and the zoom floor drops
-  to 1e-12 pc. A moon comes into view first (Boss 5.1). Done: a browser
-  test zooms from a system to a moon and to the surface scale without
-  precision loss.
-  Update (Core 2) (6:10 AM EDT 2026-10-31, as Core 2 reported): Read of
-  the code: the near plane already follows the camera distance (1e-3 of
-  it) and the depth buffer is logarithmic, so near and far need nothing
-  more, and bodies already hang from their parents in small local
-  coordinates. What is left is the camera as frame plus offset. A camera
-  position stored as one number is only exact to 1.8e-12 pc at 8 kpc
-  from the core, 6.7e-12 pc at 30 kpc and 5.6e-11 pc at 250 kpc, so the
-  current 1e-10 pc floor already wobbles by about 2 percent of the view
-  at 8 kpc and 7 percent at the edge, and a 1e-12 pc floor needs the
-  frame (camera target held as a frame origin plus a small offset,
-  through the stage view, picker, labels and rings). Size L, not M;
-  cannot be proven on a real GPU from the lane. Plan: Core 2 builds the
-  frame plus offset with the 1e-12 floor after GEN.1055; near and far
-  count as done.
-  Prerequisites: MAP.335. Related: MAP.257, MAP.240.
-
 - [ ] **MAP.354 Lagrange trojans T4: System Map icon at the centre of each Lagrange point that has objects, labelled with the host and point (for example Jupiter-L4); shares the geometry of the MAP.169 gravity layer**
   Boss 7:48 PM EDT 10-30: objects around a Lagrange point get an icon at
   the centre of the point that says [host]-L# so the pair of objects is
@@ -18543,25 +18515,6 @@ clears each one.
   (GEN.1053, GEN.1058): one pass after train 9.
   Prerequisites: GEN.1047.
   Design: [docs/design/systems/weird-worlds.md](design/systems/weird-worlds.md)
-
-- [ ] **TEST.496 test_the_wheel_carries_the_map_from_the_whole_galaxy_into_a_system fails on main in its wheel-out leg (the URL keeps sector= after wheeling out) (bug)**
-  Found by Core 2 after MAP.337 step 1 (PR #4119, 4:41 PM EDT as the
-  lane reported). Core 2 leaves it for MAP.337 steps 2 and 3, which
-  remove the stage URLs; it closes when they merge and the test passes.
-  Owner: Core 2. Version 8.1.
-  Update (Core 5) (7:21 AM EDT 2026-10-31, as Core 5 reported): Still
-  red on main. The cause is a real fault in the address rule MAP.337
-  meant to make camera-only, not a stale test: the wheel-out leg ends
-  with the camera at 16,499 pc (whole galaxy) and the address still
-  ?sector=1000000000&cam=..., because leaving the sector pushes
-  sectorQuery(selectedSector, false) (up(), about line 1371 of
-  galaxystageview.js) and writeCameraAddress only rewrites cam. The
-  wheel-in leg also failed once (camera within 0.03 pc of the star,
-  system not opened), so the test may also be flaky (its fixture takes 2
-  to 5 minutes to generate a sector). The fix is in galaxystageview.js,
-  which Core 2 is editing for MAP.338, so TEST.496 goes back to Core 2
-  inside MAP.338 or right after it.
-  Prerequisites: none.
 
 - [ ] **TEST.498 A rogue planet is functionally and programmatically identical to a bound planet: the same columns, the same moon and composition generation, the same classes, differing only in the rogue note and having no host star**
   Boss, 4:57 PM EDT 2026-10-30. Test: draw matched planets with and
