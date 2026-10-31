@@ -1,0 +1,7 @@
+**Headline:** The stability test for a Mardling and Aarseth triple now stays inside its range, and the code to judge four-star systems level by level is in place.
+
+### Changed
+- **Mardling and Aarseth only where they hold (GEN.1028).** The stability test for a triple of stars now uses the Mardling and Aarseth 2001 criterion only for an outer-to-inner mass ratio of 5 or less, as the paper gives it; beyond that and beyond Equation 4's range it uses Eggleton and Kiseleva, and asking for Mardling and Aarseth by name past 5 is refused. The case it changes is a pair of comparable satellites about a star in the hosting gate (the Earth and the Moon were failed by the old fallback).
+
+### Added
+- **Level-by-level stability of a tree of stars (GEN.1016, first part).** `physics/hierarchy_stability.py` judges every node of a stored tree as a triple, a 3+1 quadruple by the network of Vynatheya, Mardling and Hamers 2023 with a 1.3 axis margin kept on the systems it calls stable (hand-tuned on the 331 N-body systems of GEN.1029, precision 0.89), and a 2+2 quadruple by its network with the same margin (carried over, no 2+2 sample of our own). The generator does not call it yet. On 300 seeds of four-star systems, 41 percent of the generator's 3+1 trees are unstable by the network (55 percent with the margin) and 4 percent of its 2+2 trees (12 percent with the margin) though every nested triple passes, so the wiring has to enforce it while the system is drawn (report: `reports/gen1016-quadruple-need-2026-10-30.md`).

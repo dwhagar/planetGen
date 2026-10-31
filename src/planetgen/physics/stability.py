@@ -11,7 +11,8 @@ axes (AU), eccentricities and angles (radians, except where a name says
   ratios leave the fitted range of the newer fit), Eggleton and Kiseleva
   1995 (`"ek95"`, a cross-check) and Vynatheya et al. 2022, Equation 4
   (`"eq4"`, for star-only triples inside its fitted range). `"auto"` picks
-  Equation 4 inside its range and Mardling and Aarseth outside it. The
+  Equation 4 inside its range, Mardling and Aarseth outside it where their
+  `q_out <= 5` holds, and Eggleton and Kiseleva beyond that (GEN.1028). The
   forms and their unit-test values are in
   docs/design/systems/exotic-environments-planets-and-compact-binaries.md 2.3 and
   docs/design/systems/multistar-and-compact-systems.md 5.1.
@@ -44,6 +45,10 @@ _PETERS_COEFFICIENT_S = (5.0 / 256.0) * constants.SPEED_OF_LIGHT_M_S ** 5 / cons
 
 METHODS = ("auto", "ma01", "ek95", "eq4")
 """tuple: The criteria `is_triple_stable` accepts."""
+
+MA01_Q_OUT_MAX = 5.0
+"""float: The largest `q_out` Mardling and Aarseth 2001 give their criterion for (Equation 90: "holds for q_out <= 5"; beyond it the failure is
+exchange, not escape). `required_axis_ratio` refuses `"ma01"` past it and `"auto"` takes `"ek95"` there (GEN.1028, registry row GM12)."""
 
 KOZAI_WINDOW_COS2 = 3.0 / 5.0
 """float: Kozai-Lidov needs `cos^2 i < 3/5`: a mutual inclination of 39.2 to 140.8 degrees."""
@@ -111,13 +116,29 @@ def eq4_in_range(q_in, q_out, alpha):
     return 1e-2 <= q_in <= 1.0 and 1e-2 <= q_out <= 1e2 and 1e-4 < alpha < 1.0
 
 
+def ma01_in_range(q_out):
+    """Whether Mardling and Aarseth's criterion is given for this outer mass ratio (`MA01_Q_OUT_MAX`)."""
+    return q_out <= MA01_Q_OUT_MAX
+
+
+def criterion(m1, m2, m3, alpha=None):
+    """
+    The criterion `"auto"` takes for a triple: `"eq4"` where `eq4_in_range` holds (`alpha`, `a_in / a_out`, defaults to a mid-range value
+    when not given), else `"ma01"` where `ma01_in_range` holds (a star-sized inner pair with a tiny or small outer body), else `"ek95"`
+    (a planet pair about a star, a star pair about a black hole: the outer body outweighs the pair past what either fit covers).
+    """
+    heavy, light = max(m1, m2), min(m1, m2)
+    q_out = _q_out(m1, m2, m3)
+    if eq4_in_range(light / heavy, q_out, 0.1 if alpha is None else alpha):
+        return "eq4"
+    return "ma01" if ma01_in_range(q_out) else "ek95"
+
+
 def required_axis_ratio(m1, m2, m3, e_in, e_out, i, method="auto", alpha=None):
     """
     The smallest stable `a_out / a_in` for the triple by `method` (`METHODS`).
 
-    `"auto"` is Equation 4 where `eq4_in_range` holds (`alpha`, `a_in / a_out`,
-    defaults to a mid-range value when not given) and Mardling and Aarseth
-    elsewhere.
+    `"auto"` is the one `criterion` picks. `"ma01"` asked for by name is refused past `MA01_Q_OUT_MAX` (GEN.1028).
     """
     if method not in METHODS:
         raise ValueError(f"unknown stability method {method!r}; choose from {METHODS}")
@@ -125,8 +146,10 @@ def required_axis_ratio(m1, m2, m3, e_in, e_out, i, method="auto", alpha=None):
     q_in = light / heavy
     q_out = _q_out(m1, m2, m3)
     if method == "auto":
-        method = "eq4" if eq4_in_range(q_in, q_out, 0.1 if alpha is None else alpha) else "ma01"
+        method = criterion(m1, m2, m3, alpha)
     if method == "ma01":
+        if not ma01_in_range(q_out):
+            raise ValueError(f"Mardling and Aarseth 2001 holds for q_out <= {MA01_Q_OUT_MAX:g}, got {q_out:.4g}; use method='auto'")
         return mardling_aarseth_axis_ratio(q_out, e_out, i)
     if method == "eq4":
         return eq4_axis_ratio(q_out, e_in, e_out, i)
