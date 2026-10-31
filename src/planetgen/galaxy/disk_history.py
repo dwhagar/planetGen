@@ -335,7 +335,7 @@ def _history_of(shape):
 def population_age_laws(shape):
     """
     How each disk population's ages are spread over its window, from the history of the galaxy of this shape (GEN.546):
-    `young`, `intermediate` and `old` to their `AgeLaw`. A population the history does not cover (the bulge, the halo, a
+    `young`, `intermediate` and `old` to their `AgeLaw` (`old` is the thin disc's law mixed with the thick disc's, `thick_ages`, GEN.1025). A population the history does not cover (the bulge, the halo, a
     cluster) has no entry and draws uniformly.
 
     Args:
@@ -344,9 +344,12 @@ def population_age_laws(shape):
     Returns:
         dict: Population name -> `AgeLaw`.
     """
+    from planetgen.galaxy import thick_ages
     found = history_of(shape)
-    ages = tuning.STELLAR_POPULATION_AGE_RANGES_GY
-    return {name: found.age_law(*ages[name]) for name in tuning.DISK_AGE_LAW_POPULATIONS}
+    ages = {**tuning.STELLAR_POPULATION_AGE_RANGES_GY, "old": tuning.THIN_DISC_OLD_WINDOW_GY}
+    laws = {name: found.age_law(*ages[name]) for name in tuning.DISK_AGE_LAW_POPULATIONS}
+    laws["old"] = thick_ages.old_age_law(shape, laws["old"])    # GEN.1025: the thick disc's stars reach 13 Gy
+    return laws
 
 
 @functools.lru_cache(maxsize=64)
@@ -362,7 +365,7 @@ def population_shares(shape):
         dict: Population name -> share.
     """
     found = history_of(shape)
-    ages = tuning.STELLAR_POPULATION_AGE_RANGES_GY
+    ages = {**tuning.STELLAR_POPULATION_AGE_RANGES_GY, "old": tuning.THIN_DISC_OLD_WINDOW_GY}    # GEN.1025: the thin disc's own window
     shares = {name: found.share_between(*ages[name]) for name in tuning.STELLAR_POPULATION_ARM_AMPLITUDE}
     total = sum(shares.values())
     return {name: value / total for name, value in shares.items()}
