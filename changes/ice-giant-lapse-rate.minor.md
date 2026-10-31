@@ -1,8 +1,0 @@
-**Headline:** The ice giants' one-bar temperatures now land near the measured ones, because methane condenses in their air and cold hydrogen holds more heat.
-
-### Changed
-- **GEN.1030: the ice giants were 20 percent too warm at 1 bar.** The radiative-convective column now follows a methane pseudo-adiabat in an air with no water (methane condenses near 80 K and 1.3 bar on Uranus and Neptune and shallows the lapse rate), and cold hydrogen below 200 K holds the heat of ortho and para forms in equilibrium (4.4 R at 60 K, from the rotational levels, instead of the 3.5 R of the hot fit). With the measured effective temperatures the column gives Uranus 79 K (76 measured), Neptune 78 K (72) and Jupiter 167 K (166). Registry rows IR14 and IR15.
-- **GEN.1030: giants draw their Bond albedo from the four measured.** The range is 0.29 (Neptune) to 0.503 (Jupiter) instead of the rocky default 0.12 to 0.35, so a generated giant no longer reflects less than any giant of the Solar System. Registry rows CC13 (albedo) and CC14 (the internal-heat law gives a Uranus-mass giant Neptune's heat, where Uranus has almost none; replacement is GEN.1033).
-- **GEN.1030: a giant's stored greenhouse factor is against its starlight alone.** The stored albedo and factor now reproduce its temperature (the GEN.412 inversion), with the giant's own heat inside the factor.
-- **GEN.1032: the greenhouse table is fitted again** on the model with the sourced far wings of carbon dioxide (GEN.1019), the methane adiabat and the hydrogen heat capacity (about 22,000 training airs). Giants and hot carbon dioxide airs move most; the Earth twin and the cool airs move little.
-- generation-output: changed
