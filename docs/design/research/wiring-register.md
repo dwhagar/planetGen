@@ -24,15 +24,11 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | module | planetgen.physics.ground_albedo | GEN.684 | the colour of the ground by band, wired by the ground albedo item |
 | module | planetgen.galaxy.influence | GEN.342 | the influence set of an object, read by the acceleration kernel of the orbital update |
 | module | planetgen.galaxy.influence | GEN.105 | the influence set of an object, read by the orbital update run through the acceleration kernel |
-| module | planetgen.galaxy.potential | GEN.340 | the galactic potential (Hernquist, Miyamoto-Nagai, NFW), read by the star stepper (GEN.340), the velocity seeding (GEN.339) and, through the acceleration kernel, the orbital update run (GEN.105) |
 | module | planetgen.galaxy.acceleration | GEN.105 | the acceleration kernel (influence set plus galactic gradient) and the velocity kick, read by the orbital update run |
 | module | planetgen.galaxy.stepper | GEN.105 | the kick-drift-kick star stepper on arrays, read by the orbital update run in place of the turn about the pole |
 | row | 6.159:ST1 | GEN.105 | `stepper.STEP_ETA` and `STEP_CAP_MYR`, read when the orbital update run steps stars |
 | row | 6.159:ST2 | GEN.105 | `stepper.MAX_LEVEL`, read when the orbital update run steps stars |
 | row | 6.158:AK1 | GEN.105 | `acceleration.MEMBER_SOFTENING_PC`, read when the orbital update run calls the kernel |
-| row | 6.157:GP1 | GEN.340 | `potential.DISK_COMPONENTS`, read when the star stepper reads the potential |
-| row | 6.157:GP2 | GEN.340 | `potential.HERNQUIST_COMPONENTS`, read when the star stepper reads the potential |
-| row | 6.157:GP3 | GEN.340 | `potential.BLACK_HOLE_SOFTENING_PC`, read when the star stepper reads the potential |
 | module | planetgen.physics.body_positions | MAP.253 | where every body of a system is at a time, read by the scene and the maps once they read the parent chain |
 | module | planetgen.physics.light_travel | VIEW.1 | light-travel positions for the view from a planet |
 | module | planetgen.physics.radius_valley | by design | the simulated Kepler survey of the radius valley, a check run by the tuning tests; the valley itself comes from the envelope-loss rows of the generator (GEN.722 retired) |
@@ -321,6 +317,7 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | column | origin_event_id | GEN.346 | `asteroid_fields.origin_event_id`, the orbital event that made the field; written when a collision makes a field |
 | function | planetgen.galaxy.cellkey.cell_keys | by design | the numpy twin of `cell_key`; the tests hold `sphere_runs` and the stored key to it on many points at once, the generator keys one point at a time |
 | function | planetgen.galaxy.cellkey.sql_cell_key | by design | the text of the MySQL generated column's expression; `schema.sql` holds it written out and the schema test compares the two, so the column cannot drift from the Python key |
+| function | planetgen.galaxy.potential.vertical_force | by design | the disk's vertical pull `K_z` at a radius and height, the check of the potential against the Oort limit and the scale height of a disk; read by tests |
 | function | planetgen.galaxy.density.component_masses | by design | each density component's closed-form mass (GEN.379), the total `test_density_components` holds the numerical integral (`integrated_masses`) to; the potential (GEN.338) reads the component masses from `density_components` directly |
 | function | planetgen.galaxy.density.predicted_star_count | by design | the sector gate of the density design (`predicted_star_count >= 1`) as one pure function of the position; `run_plan` and the sector profile apply the same product with the clamp at 0 inline, and the tests use this as the rule's definition |
 | function | planetgen.galaxy.object_uid.is_on_demand | GEN.1161 | a belt or field member above the individually stored count is drawn on demand, never stored; the member ledger wires it |

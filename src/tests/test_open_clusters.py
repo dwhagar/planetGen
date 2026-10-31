@@ -12,7 +12,7 @@ import numpy as np
 import pytest
 
 from planetgen import tuning
-from planetgen.galaxy import component_field, components, core_gas, profile
+from planetgen.galaxy import component_field, components, core_gas, potential, profile
 from planetgen.galaxy import density as galaxyDensity
 from planetgen.generation import component_pass, open_clusters
 from planetgen.physics import open_cluster_evolution as evolution
@@ -68,7 +68,8 @@ def test_the_clusters_lie_in_the_disk_on_circular_orbits(drawn):
     assert np.median(height) < shape.disk_scale_height_pc
     assert radius.max() < 10.0 * shape.disk_scale_length_pc
     speed = np.array([math.hypot(*c.velocity_kms[:2]) for c in found])
-    assert abs(np.median(speed) - tuning.CLUSTER_HALO_CIRCULAR_KMS) < 15.0
+    circular = potential.circular_speed_kms(potential.for_galaxy(shape, b"gen244-test-seed"), radius)
+    assert abs(np.median(speed / circular) - 1.0) < 0.1
 
 
 def test_the_formation_efficiency_rises_with_the_rate_density():
@@ -112,7 +113,7 @@ def test_the_half_mass_radius_grows_over_the_first_100_myr_and_stays_inside_the_
     grown = evolution.half_mass_radii_pc(1.0e3, 0.1, 0.0, 0.5)
     assert grown == pytest.approx(young * 7.5, rel=1e-9)
     assert evolution.half_mass_radii_pc(1.0e3, 1.0, 0.0, 0.5) == pytest.approx(grown)
-    assert evolution.jacobi_radii_pc(1.0e3, 8000.0) == pytest.approx(14.17, abs=0.3)
+    assert evolution.jacobi_radii_pc(1.0e3, 8000.0, 9.0e10) == pytest.approx(14.17, abs=0.3)
 
 
 def test_the_population_of_an_age_is_its_quarter_decade_bin():

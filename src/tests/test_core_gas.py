@@ -121,10 +121,13 @@ def test_without_the_ring_the_galaxy_draws_no_cluster_near_its_centre(monkeypatc
     assert not [c for c in found if math.hypot(c.center_pc[0], c.center_pc[1]) < 300.0 and c.mass_solar > 5.0e3]
 
 
-def test_the_circular_speed_of_the_centre_is_that_of_the_nucleus_inside_the_radius():
-    speed = open_clusters._circular_speed_kms(np.array([10.0, 100.0, 200.0]), _shape())
+def test_the_circular_speed_of_the_centre_is_that_of_the_galaxys_potential():
+    from planetgen.galaxy import potential
+    pot = potential.for_galaxy(_shape(), None)
+    radius = np.array([10.0, 100.0, 200.0])
+    speed = potential.circular_speed_kms(pot, radius)
     assert np.all(speed > 30.0) and np.all(speed < 250.0)
-    assert speed[1] == pytest.approx(150.0, rel=0.4)
+    assert speed == pytest.approx(np.sqrt(-radius * potential.acceleration(pot, radius, 0.0, 0.0)[0]))
 
 
 def test_the_young_stars_bound_covers_the_rings_young_stars():
@@ -150,8 +153,8 @@ def test_the_rings_gas_is_the_inflow_over_its_residence_and_its_cluster_maximum_
     area = 2.0 * math.pi * ring.radius_pc * 2.0 * math.sqrt(2.0 * math.log(2.0)) * ring.sigma_pc
     assert ring.gas_surface_density_msun_pc2 * area == pytest.approx(ring.inflow_msun_yr * tuning.CORE_RING_GAS_RESIDENCE_MYR * 1.0e6)
     assert 2.0e7 < ring.gas_surface_density_msun_pc2 * area < 6.0e7 and 300.0 < ring.gas_surface_density_msun_pc2 < 2000.0
-    assert 5.0e3 < open_clusters._ring_maximum_mass_sol(shape, ring) < tuning.CLUSTER_MAX_MASS_CEILING_SOL
-    assert open_clusters._ring_maximum_mass_sol(shape, core_gas.NO_RING) == tuning.OPEN_CLUSTER_MASS_RANGE_SOL[1]
+    assert 5.0e3 < open_clusters._ring_maximum_mass_sol(potential.for_galaxy(shape, None), ring) < tuning.CLUSTER_MAX_MASS_CEILING_SOL
+    assert open_clusters._ring_maximum_mass_sol(potential.for_galaxy(shape, None), core_gas.NO_RING) == tuning.OPEN_CLUSTER_MASS_RANGE_SOL[1]
 
 
 def test_the_rings_young_clusters_are_a_few_not_dozens_and_none_of_the_old_ones_is_heavy():
