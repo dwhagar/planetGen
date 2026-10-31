@@ -43,7 +43,9 @@ def test_the_new_rules_read_the_physics_they_state():
     assert not sheet.applies("planet", "C", "shelter_column_g_cm2", {"eq_shelter": 0, "eq_shelter_rec": 0})
     assert sheet.applies("moon", "C", "outside_hours", {"outside_hours": 800.0}) and not sheet.applies("moon", "C", "outside_hours", {"outside_hours": None})
     assert sheet.applies("moon", "C", "ice_shell_km", {"hydrosphere": "ice"}) and not sheet.applies("moon", "C", "ice_shell_km", {"hydrosphere": "dry"})
-    assert sheet.applies("moon", "C", "hp_ice_km", {"hydrosphere": "ice-covered ocean"}) and not sheet.applies("moon", "C", "hp_ice_km", {"hydrosphere": "surface ocean"})
+    assert sheet.applies("moon", "C", "hp_ice_km", {"hydrosphere": "ice-covered ocean", "water_base_pressure_pa": 1.0e9})
+    assert not sheet.applies("moon", "C", "hp_ice_km", {"hydrosphere": "surface ocean", "water_base_pressure_pa": 1.0e9})
+    assert not sheet.applies("moon", "C", "hp_ice_km", {"hydrosphere": "ice-covered ocean", "water_base_pressure_pa": 2.0e8})    # GEN.781: too shallow for ice VI
     assert sheet.applies("planet", "M", "ring_kind", {"ring_kind": "ice"}) and not sheet.applies("planet", "M", "ring_mass_kg", {"ring_kind": None})
     assert sheet.applies("moon", "C", "aquifer_depth_km", {"aquifer_depth_km": 1.0}) and not sheet.applies("moon", "C", "aquifer_depth_km", {})
     assert sheet.applies("moon", "C", "parent_shadow_share") and not sheet.applies("planet", "C", "parent_shadow_share")
@@ -58,6 +60,74 @@ def test_the_ages_after_oxygen_apply_only_to_a_world_that_reached_them():
         assert sheet.applies("planet", "M", key, {"life_microbial": 2, "life_stage": "complex_cells"})
         assert sheet.applies("planet", "M", key)
     assert sheet.applies("planet", "M", "life_age_photosynthesis_gyr", {"life_microbial": 2, "life_stage": "photosynthesis"})
+
+
+def test_the_tide_heat_applies_to_a_rocky_or_icy_body_on_an_orbit_with_an_eccentricity():
+    """GEN.778: `interior_heat.update_heat` stores the flow for a rocky or icy body whose orbit is eccentric; a giant or a circular orbit stores none."""
+    key = "tidal_flux_w_m2"
+    assert sheet.applies("moon", "D", key, {"eccentricity": 0.01}) and sheet.applies("planet", "C", key, {"eccentricity": 0.2})
+    assert not sheet.applies("moon", "D", key, {"eccentricity": 0.0}) and not sheet.applies("moon", "D", key, {"eccentricity": 3e-170})
+    assert not sheet.applies("planet", "I", key, {"eccentricity": 0.05}) and not sheet.applies("planet", "J", key, {"eccentricity": 0.05})
+    assert ("planet", key) not in sheet.OPEN_GAPS and ("moon", key) not in sheet.OPEN_GAPS
+
+
+def test_a_generated_body_stores_its_tide_wherever_the_sheet_says_it_applies():
+    from planetgen.generation.config import SystemConfig
+    from planetgen.generation.system import StarSystem
+    from planetgen.util import draw
+    from tests.fuzz_support import deterministic_entropy
+    seen = {True: 0, False: 0}
+    for seed in range(7100, 7104):
+        with deterministic_entropy(seed):
+            draw.set_run_seed(seed)
+            system = StarSystem(SystemConfig(), galactic_center_dist_ly=26000.0)
+        for planet in system.planets:
+            if not hasattr(planet, "moons"):
+                continue
+            for body in [planet, *planet.moons]:
+                if body.body_type == "g":
+                    assert body.tidal_flux_w_m2 is None
+                    continue
+                eccentric = (body.eccentricity or 0.0) >= sheet.NEGLIGIBLE_TIDE_ECCENTRICITY
+                assert body.tidal_flux_w_m2 is not None or not eccentric, (body.name, body.eccentricity)      # empty only where the rule excuses it
+                seen[eccentric] += 1
+    assert seen[True] > 5 and seen[False] > 0
+
+
+def test_porosity_applies_to_a_body_lighter_than_the_taper_end():
+    """GEN.780: `bulk_draw` stores a porosity for a heap lighter than 1e21 kg and none above it."""
+    assert sheet.applies("moon", "D", "porosity", {"mass_kg": 5e20}) and not sheet.applies("moon", "C", "porosity", {"mass_kg": 3e22})
+    assert not sheet.applies("planet", "N", "porosity", {"mass_kg": 6e24})
+    assert ("planet", "porosity") not in sheet.OPEN_GAPS and ("moon", "porosity") not in sheet.OPEN_GAPS
+    assert ("planet", "hp_ice_km") not in sheet.OPEN_GAPS and ("moon", "hp_ice_km") not in sheet.OPEN_GAPS
+
+
+def test_a_generated_body_stores_porosity_and_high_pressure_ice_wherever_the_sheet_says_they_apply():
+    from planetgen.generation.config import SystemConfig
+    from planetgen.generation.system import StarSystem
+    from planetgen.util import draw
+    from tests.fuzz_support import deterministic_entropy
+    seen = {"light": 0, "heavy": 0, "deep": 0}
+    for seed in range(7100, 7106):
+        with deterministic_entropy(seed):
+            draw.set_run_seed(seed)
+            system = StarSystem(SystemConfig(), galactic_center_dist_ly=26000.0)
+        for planet in system.planets:
+            if not hasattr(planet, "moons"):
+                continue
+            for body in [planet, *planet.moons]:
+                if body.body_type == "g":
+                    continue
+                light = body.mass < sheet.POROSITY_MAX_MASS_KG
+                assert (body.porosity is not None) == light, (body.name, body.mass, body.porosity)
+                seen["light" if light else "heavy"] += 1
+                deep = (body.hydrosphere in sheet.ICE_SHELL_STATES and (body.water_base_pressure_pa or 0.0) >= sheet.HP_ICE_MIN_BASE_PA)
+                if deep:
+                    assert body.hp_ice_km, (body.name, body.water_base_pressure_pa)
+                    seen["deep"] += 1
+                else:
+                    assert body.hydrosphere not in sheet.ICE_SHELL_STATES or not body.hp_ice_km or (body.water_base_pressure_pa or 0.0) >= sheet.HP_ICE_MIN_BASE_PA
+    assert seen["light"] > 0 and seen["heavy"] > 5
 
 
 def test_star_and_comet_rules():

@@ -2,6 +2,42 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2852] - 2026-10-31
+
+**Headline:** A sweep of the star function and the galaxy's halo relation against published figures, with four checks that fail if a later change leaves their sources' range.
+
+### Changed
+- **GEN.753.** Stars and the galaxy were swept against their sources (report `gen753-stars-galaxy-validation-2026-10-31.md`): the initial mass function against Chabrier 2003, the Galactic Wolf-Rayet count against Rosslowe and Crowther 2015, the core-collapse supernova rate against Diehl et al. 2006, and the stellar-to-halo relation against Leauthaud et al. 2012 and Behroozi et al. 2019. All four agree (the halo relation to within 0.3 dex for halos of 1e12 solar masses and heavier). Four new analytic tests pin them (no dataset, no draws).
+
+Nothing a generator draws or stores changes.
+generation-output: unchanged
+
+## [8.0.2851] - 2026-10-31
+
+**Headline:** The property sheet now says why a heavy body shows no porosity and why a shallow ice shell shows no high-pressure ice.
+
+### Changed
+- **GEN.780.** `porosity` has been stored for every non-giant body lighter than 1e21 kg and for none above it (checked on 60 generated systems: no exceptions), because above that mass gravity has closed the voids. The sheet now carries a rule with its sentence of reason (the compaction taper end), and the open gap that excused the column is removed.
+- **GEN.781.** `hp_ice_km` has been stored exactly when a body has an ice shell state and the water's base pressure reaches 620 MPa, where ice VI begins (60 generated systems: 47 with, 120 without, 0 exceptions). The sheet now carries that rule with its reason, and the open gap is removed.
+
+Nothing a generator draws or stores changes.
+generation-output: unchanged
+
+## [8.0.2850] - 2026-10-31
+
+**Headline:** The property sheet now says why a giant planet or a body on a circular orbit shows no tidal heat flow.
+
+### Changed
+- **GEN.778.** `tidal_flux_w_m2` has been stored since GEN.737 for every rocky or icy planet and moon whose orbit has an eccentricity (checked on 12 generated systems: the empty ones are the giants and bodies on orbits of eccentricity 0 to 1e-170, where the heat is nil). The sheet now carries two rules with their sentences of reason (a giant has no tide heat model of its own; a circular orbit does not flex the body), and the open gap that excused the column is removed. Nothing a generator draws or stores changes.
+generation-output: unchanged
+
+## [8.0.2849] - 2026-10-31
+
+**Headline:** Two more hand-tuned constants now name the measurements they should be held to.
+
+### Changed
+- **Cold-rock tidal quality factor and hot Jupiter share cite what was measured (GEN.946, batch 2).** The registry rows for the cold ceiling of the tidal quality factor (TR10) and for the hot Jupiter share (PA9) now cite the papers they were recalled from: the Moon's tidal Q is 38 to 41 and Mars's is 86 (Williams and Boggs 2015; Lainey et al. 2007), far under the ceiling of 1,000, and the hot Jupiter share of 0.92 percent lies between the Kepler 0.62 percent and the radial-velocity 0.9 to 1.2 percent (Zhu and Dong 2021). No value changes.
+
 ## [8.0.2848] - 2026-10-31
 
 **Headline:** The rate of the biggest solar particle events now comes from the isotope record in tree rings and ice instead of a number recalled from memory.
