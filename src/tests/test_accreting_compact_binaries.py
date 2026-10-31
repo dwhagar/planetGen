@@ -278,7 +278,7 @@ def test_a_spider_companion_has_the_classes_mass_and_a_period_of_hours_and_the_p
             assert low * 0.99 <= companion.initial_mass_solar <= high * 1.01
             assert not 0.07 < companion.mass_solar < 0.1
             assert tuning.SPIDER_PERIOD_DAYS[0] * 0.99 <= _days(node) <= tuning.SPIDER_PERIOD_DAYS[1] * 1.01
-            assert node.interaction == "detached"
+            assert node.interaction in ("detached", "post-common-envelope")   # GEN.1012: a pulsar's progenitor was wider than a spider's orbit, so it was a common envelope
             seen += 1
     assert seen > 500
 
