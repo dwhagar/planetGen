@@ -68,6 +68,22 @@ def test_a_track_that_ends_before_10_gy_cools_at_burrows_exponent_and_one_that_r
     assert brown_dwarf.radius_sol(0.05, 5.0) == pytest.approx(0.099)
 
 
+def test_the_track_is_continuous_in_mass_where_the_table_stops_holding_a_mass_for_longer():
+    """GEN.1137: 0.0699 solar masses at 5 Gy was 1,220 K and 0.07 was 1,627 K, because the lighter mass cooled on at Burrows'
+    exponent from its last age and the heavier one held the plateau of its table. The cooling past a body's last age now goes
+    from the power law at the lightest mass of that age's table to the next heavier mass's own change (so the plateau is
+    approached, not jumped to), and two masses a few percent apart give temperatures and radii within a few percent."""
+    for age in (1.5, 5.0, 10.0, 13.0):
+        for lighter, heavier in ((0.0699, 0.07), (0.0599, 0.06), (0.0499, 0.05), (0.0399, 0.04), (0.0299, 0.03)):
+            assert brown_dwarf.effective_temperature_k(lighter, age) == pytest.approx(brown_dwarf.effective_temperature_k(heavier, age), rel=0.02), (lighter, age)
+            assert brown_dwarf.radius_sol(lighter, age) == pytest.approx(brown_dwarf.radius_sol(heavier, age), rel=0.02), (lighter, age)
+    # Across the whole table no mass step of a thousandth of a solar mass moves the temperature by more than 15 %.
+    masses = [0.0125 + 0.001 * i for i in range(150)]
+    for age in (0.5, 3.0, 10.0):
+        temperatures = [brown_dwarf.effective_temperature_k(mass, age) for mass in masses]
+        assert max(abs(b / a - 1.0) for a, b in zip(temperatures, temperatures[1:])) < 0.15, age
+
+
 def test_a_young_brown_dwarf_near_the_limit_is_a_late_m_dwarf_no_hotter_than_the_peak_of_the_limit_mass():
     """The cap is the BHAC15 temperature of the hydrogen-burning limit (GEN.494): 2,950 K at the peak, no longer the 2,800 K of the rogue clip."""
     for mass in (0.065, 0.0764):
