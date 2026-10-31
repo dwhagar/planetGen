@@ -2,7 +2,8 @@
 
 """
 The most massive cluster a ring of gas can form (GEN.1195; Reina-Campos and Kruijssen 2017, MNRAS 469, 1282, arXiv:1704.00732).
-Pure functions of the gas surface density `Sigma_g` and the epicyclic frequency `kappa`:
+Pure functions of the gas surface density `Sigma_g`, the epicyclic frequency `kappa` and the one-dimensional velocity
+dispersion `sigma` of the gas (the Toomre parameter is `Q = kappa sigma / (pi G Sigma_g)`, Eq 5):
 
 * the Toomre mass `M_T = 4 pi^5 G^2 Sigma_g^3 / kappa^4` (Eq 2), the largest cloud shear lets collapse;
 * the two-dimensional free-fall time `t_ff,2D = sqrt(2 pi) / kappa` (Eq 3) and the feedback time `t_fb` (Eqs 4 to 7), after
@@ -44,13 +45,19 @@ def free_fall_time_2d_myr(kappa_per_myr):
     return math.sqrt(2.0 * math.pi) / kappa_per_myr
 
 
-def feedback_time_myr(gas_surface_density_msun_pc2, kappa_per_myr, toomre_q=None):
+def toomre_q(gas_surface_density_msun_pc2, kappa_per_myr, dispersion_kms):
+    """The Toomre parameter of the gas (Eq 5): `kappa sigma / (pi G Sigma_g)`."""
+    sigma_pc_myr = dispersion_kms * 1.0e3 * _MYR_S / _PC_M
+    return kappa_per_myr * sigma_pc_myr / (math.pi * _G_PC3_MSUN_MYR2 * gas_surface_density_msun_pc2)
+
+
+def feedback_time_myr(gas_surface_density_msun_pc2, kappa_per_myr, dispersion_kms):
     """
     The time after which feedback stops a cloud's collapse (Eqs 4 to 7), Myr: `t_sn / 2 (1 + sqrt(1 + 4 pi^2 G^2 t_ff,g Q^2
     Sigma_g^2 / (phi_fb eps_ff t_sn^2 kappa^2)))`, with the mid-plane density `phi_P kappa^2 / (2 pi Q^2 G)` and its free-fall
-    time `t_ff,g = sqrt(3 pi / (32 G rho_g))`. Never under the time of the first supernova.
+    time `t_ff,g = sqrt(3 pi / (32 G rho_g))`, `Q` from `toomre_q`. Never under the time of the first supernova.
     """
-    q = tuning.CLUSTER_TOOMRE_Q if toomre_q is None else toomre_q
+    q = toomre_q(gas_surface_density_msun_pc2, kappa_per_myr, dispersion_kms)
     t_sn = tuning.CLUSTER_FEEDBACK_FIRST_SUPERNOVA_MYR
     density = tuning.CLUSTER_MIDPLANE_GRAVITY_FACTOR * kappa_per_myr ** 2 / (2.0 * math.pi * q * q * _G_PC3_MSUN_MYR2)
     free_fall_g = math.sqrt(3.0 * math.pi / (32.0 * _G_PC3_MSUN_MYR2 * density))
@@ -60,25 +67,26 @@ def feedback_time_myr(gas_surface_density_msun_pc2, kappa_per_myr, toomre_q=None
     return 0.5 * t_sn * (1.0 + math.sqrt(1.0 + inside))
 
 
-def collapsed_fraction(gas_surface_density_msun_pc2, kappa_per_myr, toomre_q=None):
+def collapsed_fraction(gas_surface_density_msun_pc2, kappa_per_myr, dispersion_kms):
     """The share of the Toomre mass that collapses before feedback (Eq 8): `min(1, t_fb / t_ff,2D) ** 4`."""
-    ratio = feedback_time_myr(gas_surface_density_msun_pc2, kappa_per_myr, toomre_q) / free_fall_time_2d_myr(kappa_per_myr)
+    ratio = (feedback_time_myr(gas_surface_density_msun_pc2, kappa_per_myr, dispersion_kms)
+             / free_fall_time_2d_myr(kappa_per_myr))
     return min(1.0, ratio) ** 4
 
 
-def maximum_cloud_mass_sol(gas_surface_density_msun_pc2, kappa_per_myr, toomre_q=None):
+def maximum_cloud_mass_sol(gas_surface_density_msun_pc2, kappa_per_myr, dispersion_kms):
     """The most massive cloud that collapses (Eq 9), solar masses: the Toomre mass times the collapsed fraction."""
     if gas_surface_density_msun_pc2 <= 0.0 or kappa_per_myr <= 0.0:
         return 0.0
     return (toomre_mass_sol(gas_surface_density_msun_pc2, kappa_per_myr)
-            * collapsed_fraction(gas_surface_density_msun_pc2, kappa_per_myr, toomre_q))
+            * collapsed_fraction(gas_surface_density_msun_pc2, kappa_per_myr, dispersion_kms))
 
 
-def maximum_cluster_mass_sol(gas_surface_density_msun_pc2, kappa_per_myr, bound_share, toomre_q=None):
+def maximum_cluster_mass_sol(gas_surface_density_msun_pc2, kappa_per_myr, bound_share, dispersion_kms):
     """
     The most massive cluster the ring forms (Eq 10), solar masses: `eps Gamma M_GMC,max` for `bound_share` the share of
     the new stars that are bound (`Gamma`), held under `tuning.CLUSTER_MAX_MASS_CEILING_SOL`.
     """
     mass = (tuning.CLUSTER_MAX_MASS_EFFICIENCY * bound_share
-            * maximum_cloud_mass_sol(gas_surface_density_msun_pc2, kappa_per_myr, toomre_q))
+            * maximum_cloud_mass_sol(gas_surface_density_msun_pc2, kappa_per_myr, dispersion_kms))
     return min(mass, tuning.CLUSTER_MAX_MASS_CEILING_SOL)

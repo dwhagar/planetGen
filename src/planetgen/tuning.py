@@ -1570,8 +1570,11 @@ CLUSTER_MAX_MASS_CEILING_SOL = 1.0e5
 """float: A hard ceiling on the maximum cluster mass of a ring: the most massive cluster seen in the Milky Way's central ring
 implies a maximum of a few 1e4 and "certainly under 1e5" (Reina-Campos and Kruijssen 2017, footnote 9, by the size-of-sample
 argument of Gieles 2009) [guard: the relation goes as Sigma_g cubed, so a factor of two in the gas is a factor of eight]."""
-CLUSTER_TOOMRE_Q = 1.5
-"""float: The Toomre parameter of the gas of a ring (the paper's fiducial; it tests 0.5 and 3)."""
+CORE_RING_GAS_DISPERSION_KMS = 5.0
+DISC_GAS_DISPERSION_KMS = 10.0
+"""float: The one-dimensional velocity dispersion of the gas of the central ring (5 km/s, Henshaw et al. 2016) and of a disc
+(10 km/s, Heiles and Troland 2003), the values Reina-Campos and Kruijssen 2017 take for the Milky Way (Section 4.1); it sets
+the Toomre parameter `Q = kappa sigma / (pi G Sigma_g)` (Eq 5) [stand-in: one galaxy's values for every galaxy]."""
 CLUSTER_FEEDBACK_FIRST_SUPERNOVA_MYR = 3.0
 CLUSTER_FEEDBACK_ENERGY_RATE_CM2_S3 = 0.16
 CLUSTER_STAR_FORMATION_PER_FREE_FALL = 0.012

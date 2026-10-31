@@ -188,7 +188,8 @@ def _ring_maximum_mass_sol(shape, core):
         return tuning.OPEN_CLUSTER_MASS_RANGE_SOL[1]
     speed = float(_circular_speed_kms(np.array([core.radius_pc]), shape)[0])
     kappa = cluster_maximum_mass.epicyclic_frequency_per_myr(speed, core.radius_pc)
-    return cluster_maximum_mass.maximum_cluster_mass_sol(core.gas_surface_density_msun_pc2, kappa, core.bound_share)
+    return cluster_maximum_mass.maximum_cluster_mass_sol(core.gas_surface_density_msun_pc2, kappa, core.bound_share,
+                                                         tuning.CORE_RING_GAS_DISPERSION_KMS)
 
 
 def _core_ring(stream, shape, core, max_mass_sol=None):

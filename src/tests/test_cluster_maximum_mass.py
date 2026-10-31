@@ -16,15 +16,26 @@ from planetgen.physics import cluster_maximum_mass as cmm
 from planetgen.physics import open_cluster_evolution as evolution
 
 CMZ_KAPPA = cmm.epicyclic_frequency_per_myr(180.5, 100.0)      # 2.61 per Myr
+SIGMA = 5.0         # km/s, the gas of the central ring (Henshaw et al. 2016)
 
 
 def test_the_central_rings_toomre_mass_and_cluster_maximum_are_the_papers():
     assert CMZ_KAPPA == pytest.approx(2.61, abs=0.01)
     assert cmm.toomre_mass_sol(1.0e3, CMZ_KAPPA) == pytest.approx(5.3e5, rel=0.02)
     # their central molecular zone: a shear-limited maximum cluster mass of about 3e4 (Section 5), Arches and Quintuplet 2e4
-    mass = cmm.maximum_cluster_mass_sol(1.0e3, CMZ_KAPPA, 0.6)
+    mass = cmm.maximum_cluster_mass_sol(1.0e3, CMZ_KAPPA, 0.6, SIGMA)
     assert mass == pytest.approx(3.2e4, rel=0.05)
-    assert cmm.collapsed_fraction(1.0e3, CMZ_KAPPA) == 1.0           # shear-limited
+    assert cmm.collapsed_fraction(1.0e3, CMZ_KAPPA, SIGMA) == 1.0           # shear-limited
+
+
+def test_the_toomre_parameter_is_kappa_sigma_over_pi_g_sigma_g_and_the_discs_solar_neighbourhood_is_feedback_limited():
+    # the paper's solar neighbourhood: Sigma_g 13 solar masses per pc2, Omega 0.029 per Myr (kappa 0.041), sigma 10 km/s
+    kappa = math.sqrt(2.0) * 0.029
+    assert cmm.toomre_q(13.0, kappa, 10.0) == pytest.approx(2.3, abs=0.1)
+    assert cmm.toomre_q(1.0e3, CMZ_KAPPA, 5.0) == pytest.approx(0.94, abs=0.05)
+    # beyond 4.3 kpc the disc is feedback-limited with a cloud maximum near 1e6 (their section 4.1), not the Toomre mass
+    assert cmm.collapsed_fraction(13.0, kappa, 10.0) < 1.0
+    assert 1.0e5 < cmm.maximum_cloud_mass_sol(13.0, kappa, 10.0) < 1.0e7
 
 
 def test_the_toomre_mass_goes_as_the_gas_cubed_and_the_epicyclic_frequency_to_the_minus_fourth():
@@ -34,20 +45,20 @@ def test_the_toomre_mass_goes_as_the_gas_cubed_and_the_epicyclic_frequency_to_th
 
 
 def test_feedback_never_acts_before_the_first_supernova_and_limits_a_thin_slow_ring():
-    assert cmm.feedback_time_myr(1.0, 5.0) >= tuning.CLUSTER_FEEDBACK_FIRST_SUPERNOVA_MYR
+    assert cmm.feedback_time_myr(1.0, 5.0, 10.0) >= tuning.CLUSTER_FEEDBACK_FIRST_SUPERNOVA_MYR
     # a slow rotator (low kappa) has a long free-fall time, so feedback ends the collapse first: feedback-limited
-    thin = cmm.collapsed_fraction(10.0, 0.05)
+    thin = cmm.collapsed_fraction(10.0, 0.05, 10.0)
     assert 0.0 < thin < 1.0
-    assert cmm.maximum_cloud_mass_sol(10.0, 0.05) == pytest.approx(cmm.toomre_mass_sol(10.0, 0.05) * thin)
+    assert cmm.maximum_cloud_mass_sol(10.0, 0.05, 10.0) == pytest.approx(cmm.toomre_mass_sol(10.0, 0.05) * thin)
     # the same gas on a fast rotator is shear-limited
-    assert cmm.collapsed_fraction(1.0e3, 3.0) == 1.0
+    assert cmm.collapsed_fraction(1.0e3, 3.0, SIGMA) == 1.0
 
 
 def test_the_cluster_maximum_is_a_tenth_of_the_bound_share_of_the_cloud_and_held_under_the_ceiling():
-    cloud = cmm.maximum_cloud_mass_sol(600.0, CMZ_KAPPA)
-    assert cmm.maximum_cluster_mass_sol(600.0, CMZ_KAPPA, 0.5) == pytest.approx(0.1 * 0.5 * cloud)
-    assert cmm.maximum_cluster_mass_sol(5.0e3, CMZ_KAPPA, 0.9) == tuning.CLUSTER_MAX_MASS_CEILING_SOL
-    assert cmm.maximum_cluster_mass_sol(0.0, CMZ_KAPPA, 0.6) == 0.0
+    cloud = cmm.maximum_cloud_mass_sol(600.0, CMZ_KAPPA, SIGMA)
+    assert cmm.maximum_cluster_mass_sol(600.0, CMZ_KAPPA, 0.5, SIGMA) == pytest.approx(0.1 * 0.5 * cloud)
+    assert cmm.maximum_cluster_mass_sol(5.0e3, CMZ_KAPPA, 0.9, SIGMA) == tuning.CLUSTER_MAX_MASS_CEILING_SOL
+    assert cmm.maximum_cluster_mass_sol(0.0, CMZ_KAPPA, 0.6, SIGMA) == 0.0
 
 
 def test_a_cloud_takes_five_point_seven_myr_to_take_ten_thousand_solar_masses_in_the_central_ring():
