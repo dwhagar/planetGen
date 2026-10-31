@@ -14731,21 +14731,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   it, so lock-free until then.
   Prerequisites: none. Related: GEN.1158, GEN.725.
 
-- [ ] **GEN.1176 Rubble-pile branch for the rounding engine: friction plus a little cohesion and a shape-set temperature instead of a size threshold**
-  Small bodies held together by gravity and cohesion of tens to hundreds
-  of Pa (Rozitis, MacLennan and Emery 2014: 64 Pa for 1950 DA;
-  Hirabayashi and Scheeres: friction angle 35 degrees, range 30 to 40,
-  minimum cohesion 44 to 74 Pa at the surface) shape differently from a
-  monolith. Add a Drucker-Prager style branch beside the strength branch
-  (Sanchez and Scheeres 2014 and Walsh 2018 use it) and choose the
-  branch per body from its formation history; this is also the
-  replacement named for RN5. Rows registered in GEN.725. Owner Aux 5.
-  Source: reports/planetary-material-strength-2026-10-31.md section 9.
-  Additive to the roundness engine (physics/roundness.py, GEN.1158,
-  merged); no generation output changes until GEN.1159 to GEN.1162 wire
-  it, so lock-free until then.
-  Prerequisites: none. Related: GEN.1158, GEN.725.
-
 - [ ] **GEN.1177 Strength rows for the ice phases, methane clathrate, solid CO2 and ammonia ices**
   Add material entries to roundness_strengths.json: ice Ih, II and VI at
   one value, III near zero, V a little lower; methane clathrate about 20
