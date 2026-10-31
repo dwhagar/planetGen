@@ -193,7 +193,10 @@ _GAS_KJ_MOL_K = 8.314462618e-3
 
 def _creep_stress_mpa(regime, rate, kelvin):
     """The stress, MPa, at which one flow-law regime `rate = A sigma^n exp(-E / R T)` runs at `rate` per second: `(rate / A)^(1/n) exp(E / (n R T))`. The pressure term is dropped."""
-    return (rate / 10.0 ** regime["log10_a"]) ** (1.0 / regime["n"]) * math.exp(regime["e_kj_mol"] / (regime["n"] * _GAS_KJ_MOL_K * kelvin))
+    try:
+        return (rate / 10.0 ** regime["log10_a"]) ** (1.0 / regime["n"]) * math.exp(regime["e_kj_mol"] / (regime["n"] * _GAS_KJ_MOL_K * kelvin))
+    except OverflowError:       # a few kelvin: the stress that moves it in 1e-15 per second is past any float, and nothing creeps
+        return math.inf
 
 
 def _ice_creep_law(table, rule, ice_strength_pa, temperature_k):
@@ -314,7 +317,7 @@ def _table_at(draw):
         return TABLE
     if not isinstance(draw, (int, float)) or isinstance(draw, bool) or not 0.0 <= draw <= 1.0:
         raise ValueError("the strength draw is a number from 0 to 1")
-    strengths = {name: _span(draw, TABLE.ranges_pa[name][0], value, TABLE.ranges_pa[name][1]) if name in TABLE.ranges_pa else value for name, value in TABLE.strengths_pa.items()}
+    strengths = {name: _span(draw, RANGES_PA[name][0], value, RANGES_PA[name][1]) if name in RANGES_PA else value for name, value in TABLE.strengths_pa.items()}
     rubble = dict(TABLE.rubble)
     for key, bounds in (("friction_angle_deg", "friction_range_deg"), ("cohesion_pa", "cohesion_range_pa"), ("hot_strength_pa", "hot_range_pa")):
         if bounds in rubble:

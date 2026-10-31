@@ -38,7 +38,7 @@ why that's out of scope for this pass).
 import math
 
 from planetgen.generation.config import SystemConfig
-from planetgen.physics import bulk_draw, comet_ice_budget, kepler, small_body_composition, spin
+from planetgen.physics import body_strength, bulk_draw, comet_ice_budget, kepler, small_body_composition, spin
 from planetgen.physics.position import axis_property, velocity_axis_property
 from planetgen import tuning
 from planetgen.util import draw
@@ -140,6 +140,9 @@ class Comet(SmallBody):
             classify).
         nucleus_diameter_km (float): Nucleus diameter, in kilometers.
         mass_kg (float): The nucleus's mass, kg: its sphere at the bulk density of its makeup (GEN.442).
+        density_g_cm3 (float): The nucleus's bulk density, g/cm3, and `ice_mass_fraction` the share of its mass that is ice of any kind (GEN.1159).
+        roundness_ratio, yield_strength_pa, binding_energy_j (float): How far it is from round (its radius over the round radius of its
+            material), the strength of its material mix and the energy that assembling it releases (`physics/body_strength.py`, GEN.1159).
         composition (list): The names of the three largest components of `makeup`.
         makeup (SmallBodyMakeup): The drawn composition (`physics/small_body_composition.py`).
         perihelion_distance_au (float): Perihelion distance `q`, in AU.
@@ -188,6 +191,7 @@ class Comet(SmallBody):
         "distance_au": "au", "position_x_au": "au", "position_y_au": "au", "position_z_au": "au",
         "orbital_speed_kms": "km_s", "velocity_x_kms": "km_s", "velocity_y_kms": "km_s", "velocity_z_kms": "km_s",
         "rotation_period_hours": "h", **spin.SPIN_UNITS,
+        "density_g_cm3": "g_cm3", "ice_mass_fraction": "ratio", "roundness_ratio": "ratio", "yield_strength_pa": "Pa", "binding_energy_j": "J",
     }
     SERIALIZABLE_FIELDS = list(FIELD_UNITS)
     """Every attribute set by `__init__`, with its native unit (GEN.570), excluding `system_config` (a
@@ -292,6 +296,7 @@ class Comet(SmallBody):
         self.makeup = small_body_composition.draw_comet(self.period_class, ice_ratios=self._formation_ice_ratios(star))
         self.composition = small_body_composition.component_names(self.makeup)
         self.mass_kg = self.makeup.mass_kg(self.nucleus_diameter_km)
+        body_strength.generate_comet(self)    # GEN.1159: its density, ice share, roundness ratio, strength and binding energy
 
         self.update_orbital_state()
         activity_chance = _activity_chance(self.perihelion_distance_au)

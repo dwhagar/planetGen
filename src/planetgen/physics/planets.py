@@ -23,7 +23,7 @@ import math
 import re
 
 from planetgen.physics import moon_history, body_state, bulk_draw, constants, giant_draw, giant_interior, giant_tilt, kepler, metallicity, moon_composition, orbit_elements, planet_classes, planet_kind, planet_mass, rings
-from planetgen.physics import aerosols, atmosphere, body_colour, body_spin, daylight, spin_torques, climate_draws, habitability_world, hosting_gate, hydrosphere, interior_heat, magnetism, ocean_tides, radiation, radiogenic, relations, spin, surface_air, surface_composition, tidal_spin
+from planetgen.physics import aerosols, atmosphere, body_colour, body_spin, body_strength, daylight, spin_torques, climate_draws, habitability_world, hosting_gate, hydrosphere, interior_heat, magnetism, ocean_tides, radiation, radiogenic, relations, spin, surface_air, surface_composition, tidal_spin
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.util import log
@@ -728,6 +728,8 @@ def generate_spin(planet, primary_mass_kg, birth=None, found=None):
     body_colour.generate(planet)
     # GEN.89: the habitability score, from all of the above.
     habitability_world.generate(planet, internal_heat_flux_w_m2(planet))
+    # GEN.1159: the roundness ratio, the yield strength and the binding energy, from the mass, radius and composition above.
+    body_strength.generate(planet)
 
 
 
