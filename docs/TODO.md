@@ -18477,15 +18477,6 @@ clears each one.
   Catalog sections 1 and 4.
   Prerequisites: GEN.945. Related: GEN.725, GEN.754, GEN.945.
 
-- [ ] **TEST.459 The point_phenomena links browser test is red on clean main (bug)**
-  Found by Core 2 while merging MAP.336 (as the lane reported 7:11 PM
-  EDT 2026-10-29): the browser test for the point phenomena links fails
-  on bare main and is not from MAP.336. Do: find the cause (a real fault
-  in the links or a stale test after the Z2 and Z3 map changes), fix it
-  at the cause, never skip it. Owner: Aux 4 (its next lock-free item
-  after the train 1 rebase). Version 8.1.
-  Prerequisites: none. Related: MAP.336.
-
 - [ ] **TEST.461 test_db_column_round_trip fails on planets.porosity: the column is never written (bug)**
   Found by Core 1's gate for epoch 122 (as the lane reported 7:23 PM EDT
   2026-10-29), red on clean main: the round-trip test finds
