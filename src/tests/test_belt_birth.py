@@ -12,7 +12,7 @@ from planetgen.generation import belt_birth
 from planetgen.generation.belt import AsteroidBelt
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
-from planetgen.physics import belt_origin
+from planetgen.physics import belt_origin, constants
 from planetgen.util import draw
 
 from tests.fuzz_support import deterministic_entropy
@@ -68,7 +68,7 @@ def test_the_belts_of_a_system_carry_where_they_came_from():
                 assert belt.primordial_mass_earth >= belt_origin.MIN_BELT_MASS_EARTH
                 assert belt.cleared_mass_earth >= 0.0 and belt.scattered_mass_earth >= 0.0
                 # what is left after the giants and the collisions is never more than what the giants left
-                left_earth = belt.mass_kg / 5.972e24
+                left_earth = belt.mass_kg / constants.EARTH_MASS_TO_KG
                 assert left_earth <= belt.primordial_mass_earth - belt.cleared_mass_earth - belt.scattered_mass_earth + 1e-12
                 assert left_earth >= belt_birth.MIN_PRESENT_MASS_EARTH
 
