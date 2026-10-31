@@ -242,6 +242,10 @@ TABLES = {
         "Msun": ("mass_solar",),
         "au": ("radius_au",),
     },
+    "designations": {
+        "id": ("id", "designation_uid", "object_row_id"),
+        "index": ("valid_from_epoch", "retired_epoch", "gone_epoch"),
+    },
     "edit_journal": {
         "id": ("id", "op_id", "plan_id", "sector_id"),
         "index": ("generator_epoch",),

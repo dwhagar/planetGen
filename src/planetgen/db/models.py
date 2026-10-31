@@ -407,6 +407,30 @@ dark_members = sa.Table(
 )
 
 
+designations = sa.Table(
+    'designations',
+    metadata,
+    sa.Column('id', mysql.BIGINT(unsigned=True), primary_key=True, autoincrement=True, nullable=False),
+    sa.Column('designation_kind', sa.String(4), nullable=False),
+    sa.Column('designation_uid', mysql.BINARY(12), nullable=True),
+    sa.Column('designation_name', sa.String(255), nullable=True),
+    sa.Column('object_kind', sa.String(24), nullable=False),
+    sa.Column('object_row_id', mysql.BIGINT(unsigned=True), nullable=False),
+    sa.Column('valid_from_epoch', mysql.SMALLINT(unsigned=True), nullable=True),
+    sa.Column('retired_epoch', mysql.SMALLINT(unsigned=True), nullable=False),
+    sa.Column('reason', sa.String(16), nullable=False),
+    sa.Column('gone_epoch', mysql.SMALLINT(unsigned=True), nullable=True),
+    sa.Column('retired_at', mysql.TIMESTAMP(fsp=3), server_default=sa.text('CURRENT_TIMESTAMP(3)'), nullable=False),
+    sa.CheckConstraint("(`designation_kind` in (_utf8mb4'uid',_utf8mb4'name'))", name='chk_designations_kind'),
+    sa.CheckConstraint("(`reason` in (_utf8mb4'collision bump',_utf8mb4'rename',_utf8mb4'regeneration',_utf8mb4'parent change',_utf8mb4'admin renumber'))", name='chk_designations_reason'),
+    sa.CheckConstraint("(((`designation_kind` = _utf8mb4'uid') and (`designation_uid` is not null) and (`designation_name` is null)) or ((`designation_kind` = _utf8mb4'name') and (`designation_name` is not null) and (`designation_uid` is null)))", name='chk_designations_shape'),
+    sa.Index('idx_designations_name', 'designation_name', 'retired_epoch'),
+    sa.Index('idx_designations_object', 'object_kind', 'object_row_id', 'retired_epoch'),
+    sa.Index('uq_designations_uid', 'designation_uid', unique=True),
+    mysql_engine="InnoDB",
+)
+
+
 edit_journal = sa.Table(
     'edit_journal',
     metadata,
