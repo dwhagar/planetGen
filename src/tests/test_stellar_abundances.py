@@ -398,3 +398,13 @@ def test_no_generator_table_holds_the_suns_composition_as_a_default():
     assert not hasattr(sa, "SUN") and not hasattr(sa, "SOLAR_COMPOSITION")
     for fits in tuning.STELLAR_XFE_FITS.values():
         assert "Fe" not in fits, "iron is the reference of [X/Fe]"
+
+
+def test_alpha_enhancement_is_the_mean_of_the_four_alpha_offsets_and_the_high_alpha_branch_has_more():
+    offsets = {symbol: 0.0 for symbol in sa.METAL_SYMBOLS}
+    offsets.update(O=0.1, Mg=0.3, Si=0.2, Ca=0.0, Fe=0.5)    # iron and the others do not count
+    assert sa.alpha_enhancement(offsets) == pytest.approx(0.15)
+    thin = sa.composition(-0.8, sa.abundance_offsets(-0.8, sa.BRANCH_THIN, (0.0,) * 5))
+    high = sa.composition(-0.8, sa.abundance_offsets(-0.8, sa.BRANCH_HIGH_ALPHA, (0.0,) * 5))
+    assert sa.alpha_enhancement(thin) == sa.alpha_enhancement(thin.offsets)
+    assert 0.0 < sa.alpha_enhancement(thin) < 0.25 < sa.alpha_enhancement(high) < 0.45

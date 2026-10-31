@@ -1531,7 +1531,14 @@
 --   `physics/day_night.py`), the hours of night in a solar day at the equator (`night_hours`, DOUBLE) and the solar days in one orbit (`days_per_year`, DOUBLE). NULL for a body whose spin is not stored, `night_hours` and
 --   `days_per_year` NULL for a world that turns once an orbit, and all NULL on a row made before v193, which gets them when the galaxy is regenerated.
 -- v194 (GEN.1013): `dark_members`, one row for each member of a built system's tree that is not one of its stars (a brown dwarf, neutron star, black hole or stripped helium star): `parent_node_no`, `slot`, `kind`, `mass_solar`, `radius_au`. A system stored before has none; nothing is backfilled.
--- v195 (GEN.1138): `designations`, one row for each ID or name an object stopped having (`designation_uid` or `designation_name`, `object_kind` and `object_row_id`, `valid_from_epoch`, `retired_epoch`, `reason`, `gone_epoch`). A retired ID is reserved for ever (unique), a retired name is not. A designation that changed before has none; nothing is backfilled.
+-- v196 (GEN.1108): `planets` and `moons` keep the climate of the body in seven bands of latitude (`physics/latitude_bands.py`, `physics/regional_temperature.py`), `band1` (the north pole) to `band7`
+--   (the south pole), each with `bandN_mean_k` (the annual-mean temperature), `bandN_swing_k` (the day and night swing, peak to peak, kelvin of difference), `bandN_day_hours` and `bandN_night_hours`
+--   (hours of day and of night in a solar day), `bandN_longest_day_days` and `bandN_longest_night_days` (the longest polar day and night of the year at the poleward edge) and `bandN_state`
+--   (VARCHAR(24): day and night, polar day and night, non-rotating; for a world locked to its star the seven are rings from the day centre to the night centre, with no hours, and the state is
+--   permanent day side, terminator band or permanent night side). `temp_mean_swing_k` stays (the swing of the whole surface). The columns `temp_polar_k`, `temp_north_k`, `temp_equator_k`, `temp_south_k`,
+--   `temp_swing_k`, `temp_day_side_k`, `temp_terminator_k`, `temp_night_side_k` and the swings `temp_polar_swing_k`, `temp_north_swing_k`, `temp_south_swing_k`, `temp_day_side_swing_k`,
+--   `temp_terminator_swing_k` and `temp_night_side_swing_k` are gone. NULL for a body with no temperature or rotation period and a row made before v194, which gets them when the galaxy is regenerated.
+-- v197 (GEN.1138): `designations`, one row for each ID or name an object stopped having (`designation_uid` or `designation_name`, `object_kind` and `object_row_id`, `valid_from_epoch`, `retired_epoch`, `reason`, `gone_epoch`). A retired ID is reserved for ever (unique), a retired name is not. A designation that changed before has none; nothing is backfilled.
 --
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
@@ -2356,6 +2363,7 @@ CREATE TABLE IF NOT EXISTS planets (
     dose_gcr_msv_yr             DOUBLE,
     dose_sep_msv_yr             DOUBLE,
     dose_ground_msv_yr          DOUBLE,
+    dose_belt_msv_yr            DOUBLE,  -- v187 (GEN.983): the dose a moon takes from its parent's trapped-particle belts, mSv/yr (0 for a planet)
     dose_helio_mult             DOUBLE,
     uv_surface_index            DOUBLE,
     ozone_loss_flag             BOOLEAN,
@@ -2397,21 +2405,56 @@ CREATE TABLE IF NOT EXISTS planets (
     eq_shelter_rec              TINYINT,
     shelter_column_g_cm2        DOUBLE,
     outside_hours               DOUBLE,
-    temp_polar_k                DOUBLE,
-    temp_north_k                DOUBLE,
-    temp_equator_k              DOUBLE,
-    temp_south_k                DOUBLE,
-    temp_swing_k                DOUBLE,
-    temp_day_side_k             DOUBLE,
-    temp_terminator_k           DOUBLE,
-    temp_night_side_k           DOUBLE,
-    temp_polar_swing_k          DOUBLE,  -- v182 (GEN.848): the day and night swing of that place, peak to peak, kelvin of difference
-    temp_north_swing_k          DOUBLE,  -- v182 (GEN.848): the day and night swing of that place, peak to peak, kelvin of difference
-    temp_south_swing_k          DOUBLE,  -- v182 (GEN.848): the day and night swing of that place, peak to peak, kelvin of difference
-    temp_mean_swing_k           DOUBLE,  -- v182 (GEN.848): the day and night swing of that place, peak to peak, kelvin of difference
-    temp_day_side_swing_k       DOUBLE,  -- v182 (GEN.848): the day and night swing of that place, peak to peak, kelvin of difference
-    temp_terminator_swing_k     DOUBLE,  -- v182 (GEN.848): the day and night swing of that place, peak to peak, kelvin of difference
-    temp_night_side_swing_k     DOUBLE,  -- v182 (GEN.848): the day and night swing of that place, peak to peak, kelvin of difference
+    band1_mean_k                DOUBLE,  -- v196 (GEN.1108): the climate of the body in seven bands of latitude (`physics/latitude_bands.py`): `band1` is the north pole, `band7` the south pole (a world locked to its star: the day centre to the night centre)
+    band1_swing_k               DOUBLE,
+    band1_day_hours             DOUBLE,
+    band1_night_hours           DOUBLE,
+    band1_longest_day_days      DOUBLE,
+    band1_longest_night_days    DOUBLE,
+    band1_state                 VARCHAR(24),
+    band2_mean_k                DOUBLE,
+    band2_swing_k               DOUBLE,
+    band2_day_hours             DOUBLE,
+    band2_night_hours           DOUBLE,
+    band2_longest_day_days      DOUBLE,
+    band2_longest_night_days    DOUBLE,
+    band2_state                 VARCHAR(24),
+    band3_mean_k                DOUBLE,
+    band3_swing_k               DOUBLE,
+    band3_day_hours             DOUBLE,
+    band3_night_hours           DOUBLE,
+    band3_longest_day_days      DOUBLE,
+    band3_longest_night_days    DOUBLE,
+    band3_state                 VARCHAR(24),
+    band4_mean_k                DOUBLE,
+    band4_swing_k               DOUBLE,
+    band4_day_hours             DOUBLE,
+    band4_night_hours           DOUBLE,
+    band4_longest_day_days      DOUBLE,
+    band4_longest_night_days    DOUBLE,
+    band4_state                 VARCHAR(24),
+    band5_mean_k                DOUBLE,
+    band5_swing_k               DOUBLE,
+    band5_day_hours             DOUBLE,
+    band5_night_hours           DOUBLE,
+    band5_longest_day_days      DOUBLE,
+    band5_longest_night_days    DOUBLE,
+    band5_state                 VARCHAR(24),
+    band6_mean_k                DOUBLE,
+    band6_swing_k               DOUBLE,
+    band6_day_hours             DOUBLE,
+    band6_night_hours           DOUBLE,
+    band6_longest_day_days      DOUBLE,
+    band6_longest_night_days    DOUBLE,
+    band6_state                 VARCHAR(24),
+    band7_mean_k                DOUBLE,
+    band7_swing_k               DOUBLE,
+    band7_day_hours             DOUBLE,
+    band7_night_hours           DOUBLE,
+    band7_longest_day_days      DOUBLE,
+    band7_longest_night_days    DOUBLE,
+    band7_state                 VARCHAR(24),
+    temp_mean_swing_k           DOUBLE,  -- v182 (GEN.848): the day and night swing of the whole surface, peak to peak, kelvin of difference
     outside_hours_day           DOUBLE,  -- v187 (GEN.768): the hours of one local day a person can be outside in the listed equipment
     outside_hours_limit         VARCHAR(16),  -- v187 (GEN.768): what sets them: daylight, dose, heat, cold, air, uv or vehicle
     day_night_state             VARCHAR(24),  -- v188 (GEN.1097): the state of its day and night: day and night, tidally locked, spin-orbit resonance, non-rotating, polar day and night or no solid surface
@@ -2722,6 +2765,7 @@ CREATE TABLE IF NOT EXISTS moons (
     dose_gcr_msv_yr             DOUBLE,
     dose_sep_msv_yr             DOUBLE,
     dose_ground_msv_yr          DOUBLE,
+    dose_belt_msv_yr            DOUBLE,  -- v187 (GEN.983): the dose a moon takes from its parent's trapped-particle belts, mSv/yr (0 for a planet)
     dose_helio_mult             DOUBLE,
     uv_surface_index            DOUBLE,
     ozone_loss_flag             BOOLEAN,
@@ -2763,21 +2807,56 @@ CREATE TABLE IF NOT EXISTS moons (
     eq_shelter_rec              TINYINT,
     shelter_column_g_cm2        DOUBLE,
     outside_hours               DOUBLE,
-    temp_polar_k                DOUBLE,
-    temp_north_k                DOUBLE,
-    temp_equator_k              DOUBLE,
-    temp_south_k                DOUBLE,
-    temp_swing_k                DOUBLE,
-    temp_day_side_k             DOUBLE,
-    temp_terminator_k           DOUBLE,
-    temp_night_side_k           DOUBLE,
-    temp_polar_swing_k          DOUBLE,  -- v182 (GEN.848): the day and night swing of that place, peak to peak, kelvin of difference
-    temp_north_swing_k          DOUBLE,  -- v182 (GEN.848): the day and night swing of that place, peak to peak, kelvin of difference
-    temp_south_swing_k          DOUBLE,  -- v182 (GEN.848): the day and night swing of that place, peak to peak, kelvin of difference
-    temp_mean_swing_k           DOUBLE,  -- v182 (GEN.848): the day and night swing of that place, peak to peak, kelvin of difference
-    temp_day_side_swing_k       DOUBLE,  -- v182 (GEN.848): the day and night swing of that place, peak to peak, kelvin of difference
-    temp_terminator_swing_k     DOUBLE,  -- v182 (GEN.848): the day and night swing of that place, peak to peak, kelvin of difference
-    temp_night_side_swing_k     DOUBLE,  -- v182 (GEN.848): the day and night swing of that place, peak to peak, kelvin of difference
+    band1_mean_k                DOUBLE,  -- v196 (GEN.1108): the climate of the body in seven bands of latitude (`physics/latitude_bands.py`): `band1` is the north pole, `band7` the south pole (a world locked to its star: the day centre to the night centre)
+    band1_swing_k               DOUBLE,
+    band1_day_hours             DOUBLE,
+    band1_night_hours           DOUBLE,
+    band1_longest_day_days      DOUBLE,
+    band1_longest_night_days    DOUBLE,
+    band1_state                 VARCHAR(24),
+    band2_mean_k                DOUBLE,
+    band2_swing_k               DOUBLE,
+    band2_day_hours             DOUBLE,
+    band2_night_hours           DOUBLE,
+    band2_longest_day_days      DOUBLE,
+    band2_longest_night_days    DOUBLE,
+    band2_state                 VARCHAR(24),
+    band3_mean_k                DOUBLE,
+    band3_swing_k               DOUBLE,
+    band3_day_hours             DOUBLE,
+    band3_night_hours           DOUBLE,
+    band3_longest_day_days      DOUBLE,
+    band3_longest_night_days    DOUBLE,
+    band3_state                 VARCHAR(24),
+    band4_mean_k                DOUBLE,
+    band4_swing_k               DOUBLE,
+    band4_day_hours             DOUBLE,
+    band4_night_hours           DOUBLE,
+    band4_longest_day_days      DOUBLE,
+    band4_longest_night_days    DOUBLE,
+    band4_state                 VARCHAR(24),
+    band5_mean_k                DOUBLE,
+    band5_swing_k               DOUBLE,
+    band5_day_hours             DOUBLE,
+    band5_night_hours           DOUBLE,
+    band5_longest_day_days      DOUBLE,
+    band5_longest_night_days    DOUBLE,
+    band5_state                 VARCHAR(24),
+    band6_mean_k                DOUBLE,
+    band6_swing_k               DOUBLE,
+    band6_day_hours             DOUBLE,
+    band6_night_hours           DOUBLE,
+    band6_longest_day_days      DOUBLE,
+    band6_longest_night_days    DOUBLE,
+    band6_state                 VARCHAR(24),
+    band7_mean_k                DOUBLE,
+    band7_swing_k               DOUBLE,
+    band7_day_hours             DOUBLE,
+    band7_night_hours           DOUBLE,
+    band7_longest_day_days      DOUBLE,
+    band7_longest_night_days    DOUBLE,
+    band7_state                 VARCHAR(24),
+    temp_mean_swing_k           DOUBLE,  -- v182 (GEN.848): the day and night swing of the whole surface, peak to peak, kelvin of difference
     outside_hours_day           DOUBLE,  -- v187 (GEN.768): the hours of one local day a person can be outside in the listed equipment
     outside_hours_limit         VARCHAR(16),  -- v187 (GEN.768): what sets them: daylight, dose, heat, cold, air, uv or vehicle
     day_night_state             VARCHAR(24),  -- v188 (GEN.1097): the state of its day and night: day and night, tidally locked, spin-orbit resonance, non-rotating, polar day and night or no solid surface
@@ -4436,7 +4515,7 @@ CREATE TABLE IF NOT EXISTS dark_members (
 
 
 -- ---------------------------------------------------------------------
--- designations (v195, GEN.1138): the IDs and names an object used to have, one row each (docs/design/architecture/designation-history.md). `object_kind` is the
+-- designations (v197, GEN.1138): the IDs and names an object used to have, one row each (docs/design/architecture/designation-history.md). `object_kind` is the
 -- table that held the object and `object_row_id` its row number, which never changes (the `uid` is the thing that does). A retired ID is reserved for ever:
 -- `uq_designations_uid` and the objects' own unique `uid` columns keep it from being given again. A retired name is not reserved (the collision bump hands a
 -- stored object's name to another), so it has a plain index. `valid_from_epoch` is NULL for the birth designation; `gone_epoch` is NULL while the object exists.

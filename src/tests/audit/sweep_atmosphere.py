@@ -167,7 +167,7 @@ def _check_ozone(entry):
 
 
 def _lost_air(entry):
-    """Whether the body's ozone may have been cut by a loss event (`ozone.column_after_air_loss`); a sweep body has none."""
+    """Whether the body's ozone may have been cut by a loss event (a loss event that removes air); a sweep body has none."""
     return getattr(entry.body, "air_loss_events", 0) not in (0, None)
 
 

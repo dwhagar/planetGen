@@ -5,6 +5,8 @@ GEN.1108 part A: the climate of a body in seven latitude bands (`physics/latitud
 are test targets, never inputs.
 """
 
+import math
+
 import pytest
 
 from planetgen.physics import latitude_bands as lb
@@ -101,3 +103,11 @@ def test_the_polar_day_share_follows_the_tilt():
     assert lb.polar_day_share(80.0, 23.44, 0.0) == pytest.approx(0.35, abs=0.03)
     assert lb.polar_night_share(90.0, 23.44, 0.0) == pytest.approx(0.5)
     assert lb.polar_day_share(90.0, 23.44, 0.00466) > 0.5 > lb.polar_night_share(90.0, 23.44, 0.00466)
+
+
+def test_the_angular_radius_of_the_star_comes_back_from_the_stored_share_of_time_it_is_up():
+    """GEN.1108: the stored mean day share is `(1 + sin alpha) / 2`, so the bands of a stored body see the star the generator saw."""
+    assert lb.alpha_deg_of({}) == 0.0 and lb.alpha_deg_of({"day_share_mean": 0.5}) == 0.0
+    share = (1.0 + math.sin(math.radians(ALPHA_EARTH_DEG))) / 2.0
+    assert lb.alpha_deg_of({"day_share_mean": share}) == pytest.approx(ALPHA_EARTH_DEG)
+    assert lb.RING_STATES == (lb.DAY_SIDE, lb.TERMINATOR, lb.NIGHT_SIDE)

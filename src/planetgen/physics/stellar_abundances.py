@@ -49,6 +49,7 @@ from planetgen.datasets import baraffe_isochrones
 from planetgen.generation import possibility_table as pt
 from planetgen.physics import constants
 from planetgen.physics import elements, unit_registry as units
+from planetgen.util import draw
 
 _kg_to_msun = units.converter("kg", "Msun")
 _msun_to_kg = units.converter("Msun", "kg")
@@ -223,6 +224,21 @@ def branch_from_uniform(fe_h, age_gy, u):
     return BRANCH_HIGH_ALPHA if u < branch_probability(fe_h, age_gy) else BRANCH_THIN
 
 
+@functools.lru_cache(maxsize=1 << 16)
+def _branch_uniform(fe_h):
+    return draw.Stream(f"branch:{fe_h!r}").random()
+
+
+def branch_of(fe_h, age_gy):
+    """
+    The branch of a star of this birth [Fe/H] and age (GEN.1024): high-alpha when the star's own uniform number, a stream named for its
+    [Fe/H] (a float no other star shares), is under `branch_probability`. The star's track (`alpha_tracks.track_fe_h`), its composition
+    and its radiogenic offsets all read it, from the two numbers a stored star keeps, so they agree and a star read back from the database
+    has the branch it was made with.
+    """
+    return branch_from_uniform(fe_h, age_gy, _branch_uniform(fe_h))
+
+
 def branch_probabilities(fe_h, age_gy):
     """`{branch: probability}` from the table, for a test or a report."""
     found = BRANCH_TABLE.probabilities(pt.Subject("star", {"fe_h": fe_h, "age_gy": age_gy}))
@@ -371,12 +387,7 @@ def composition(fe_h, offsets):
 
 
 _solar_metal_fraction = composition(0.0, {}).z
-"""float: Z0 (`solar_metal_fraction`)."""
-
-
-def solar_metal_fraction():
-    """Z0, the metal mass fraction of a star of [Fe/H] 0 with every [X/Fe] 0 (the proto-solar mix of `PROTO_MASS_FRACTION`)."""
-    return _solar_metal_fraction
+"""float: Z0, the metal mass fraction of a star of [Fe/H] 0 with every [X/Fe] 0 (the proto-solar mix of `PROTO_MASS_FRACTION`)."""
 
 
 def metal_ratio_to_solar(metal_mass_fraction):
@@ -390,6 +401,17 @@ def number_ratio(composition_or_offsets, a, b, fe_h=None):
     offsets = composition_or_offsets.offsets if isinstance(composition_or_offsets, StellarComposition) \
         else composition_or_offsets
     return 10.0 ** (tuning.STELLAR_SOLAR_LOG_EPS[a] - tuning.STELLAR_SOLAR_LOG_EPS[b] + offsets.get(a, 0.0) - offsets.get(b, 0.0))
+
+
+ALPHA_ELEMENTS = ("O", "Mg", "Si", "Ca")
+"""tuple: The elements whose mean [X/Fe] is a star's alpha enhancement (S and Ar follow Ca, so they add nothing)."""
+
+
+def alpha_enhancement(composition_or_offsets):
+    """[alpha/Fe] (dex): the mean [X/Fe] of `ALPHA_ELEMENTS`, for a `StellarComposition` or an offsets dict. A thin-disc star at [Fe/H] 0 is near 0, a
+    high-alpha one near +0.2 to +0.3 (the branches' fits, `tuning.STELLAR_XFE_FITS`)."""
+    offsets = composition_or_offsets.offsets if isinstance(composition_or_offsets, StellarComposition) else composition_or_offsets
+    return sum(offsets[symbol] for symbol in ALPHA_ELEMENTS) / len(ALPHA_ELEMENTS)
 
 
 def mass_ratio(composition_or_offsets, a, b):

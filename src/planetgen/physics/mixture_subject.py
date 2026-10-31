@@ -16,7 +16,7 @@ starlight and the equilibrium temperature at the body's Bond albedo, the XUV exp
 runaway-greenhouse limit and the habitable zone of the host, and for a giant the temperature of its 1 bar layer, its dayside and its
 effective temperature. What it does not derive, and takes as arguments: the surface temperature and the surface pressure (the climate
 loop's, which the mixture feeds back into), whether an ocean can condense and whether the body keeps a long-lived geology (the surface
-pressure code's `can_weather` and the interior's), and whether the water was lost (the water-loss clock's).
+pressure code's liquid-water range and the interior's), and whether the water was lost (the water-loss clock's).
 
 The subject holds exactly `required_inputs(class)`; a quantity that cannot be built (a rogue body with no star, a moon whose distance from
 its star is not given) is refused by name (`MixtureError`), never defaulted.
@@ -89,7 +89,7 @@ def quantities_of_body(body, *, ts_k, pressure_bar, ocean_present=False, long_li
             `star`, `bond_albedo`, `is_moon`; a giant's `core_mass_earth` or a rocky planet's `envelope_mass_fraction`.
         ts_k (float): The surface temperature, K.
         pressure_bar (float): The surface pressure, bar.
-        ocean_present (bool): True when an ocean can condense (`surface_pressure.can_weather` of the climate loop).
+        ocean_present (bool): True when an ocean can condense (the climate loop's test against `surface_pressure.LIQUID_WATER_K`).
         long_lived_geology (bool): True for a tectonic or long-lived body.
         water_lost (bool): True when the water was lost.
         star_distance_au (float or None): The distance of the body (a moon: of its parent) from the star, as the circle that gives the same
@@ -156,7 +156,7 @@ def quantities_of_body(body, *, ts_k, pressure_bar, ocean_present=False, long_li
     return quantities
 
 
-OPTIONAL_INPUTS = ("log_lx_lbol",)
+OPTIONAL_INPUTS = ("log_lx_lbol", "host_mass_solar")
 """tuple: The quantities the escape filter reads when the body has them (GEN.804): the star's own activity at its age, which the XUV history follows
 (the table's nominal decay without it). The magnetopause (`mixture_escape` reads `magnetopause_rp` when a subject carries it, 0 for no field) is not built here: the
 field is drawn after the air until GEN.967 orders it first, and a pass that ran after it would close the air to the wind for some bodies and not others."""
