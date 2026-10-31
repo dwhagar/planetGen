@@ -14422,6 +14422,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   lock-free. Owner Sources 1.
   Prerequisites: none. Related: GEN.536, GEN.725.
 
+- [ ] **GEN.1189 Greenhouse refit method: the refit table is blind to the methane share of a hydrogen air and a dense carbon dioxide air is 2 to 8 percent warm, so find a better fit than one L-BFGS network**
+  From Air 1 (GEN.1030/GEN.1032 ready for train 7): a drawn ice giant
+  with a few percent methane reads about 5 percent warm because the
+  refit table does not see the methane share of a hydrogen air, and a
+  dense carbon dioxide air is 2 to 8 percent warm. A round with 3,000
+  designed ice-giant airs did not fix the first and made Earth-like airs
+  5 to 8 K cold, so it was not shipped. Find a better fit method
+  (per-regime fits, a different basis or a second network for
+  hydrogen-dominated airs) and compare against the line-by-line
+  reference; register the fit tier and tweak in GEN.725. Output changes,
+  so it rides a lock window after GEN.1030/GEN.1032 merge. Owner Air 1.
+  Prerequisites: GEN.1032. Related: GEN.1030, GEN.1032, GEN.1033,
+  GEN.725.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
