@@ -22,7 +22,7 @@ release is stamped.
 | API | API.38 |
 | ADM | ADM.135 |
 | SEC | SEC.37 |
-| TEST | TEST.520 |
+| TEST | TEST.521 |
 | USR | USR.32 |
 | OPS | OPS.85 |
 | DOC | DOC.86 |
@@ -3699,6 +3699,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.517 | test_class_pages_show_the_constants is red on main: the brown dwarf mass range text on the class page differs from the test (bug) | none | done, PR #4458 |
 | TEST.518 | test_a_body_with_a_stored_day_turns_at_the_shared_rate_and_a_tilted_one_turns_backwards fails in a whole-file run of test_web_browser_bodyview.py but passes alone (timing sensitive) (bug) | none | done, PR #4465 |
 | TEST.519 | tests/test_web_a11y.py::test_page_is_accessible_and_fits[web.galaxy-*] fails the axe rule scrollable-region-focusable on .map-key-lines (all four size and theme runs) on clean main (bug) | none | open |
+| TEST.520 | Extend the wiring guard to stored columns and shadow functions, and wire, show or drop every column only the Details sheet reads | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

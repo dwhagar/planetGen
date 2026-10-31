@@ -2259,6 +2259,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the centre of the point that says [host]-L# so the pair of objects is
   clear. Rides with T2 (train 8). Shares the Lagrange geometry of
   MAP.169 and does not wait for the heat map.
+  Wiring sweep (Boss, 12:03 PM EDT: nothing built and left unused;
+  report reports/wiring-sweep-2026-10-31.md) (2026-10-31 12:25 PM EDT):
+  The trojan icon had no owner. Owner now: Core 2 (after GEN.1150)
+  (proposed by the TODO thread; the lane says if it cannot take it).
   Prerequisites: GEN.1150. Related: MAP.169.
 
 ## NAV: Navigation and courses
@@ -3637,6 +3641,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the Outcome). Finding TEST.306, Bug Hunt, 12:40 AM EDT 2026-10-24 (as
   the lane reported), reports/test-306-test-only-modules-2026-10-24.md.
   Do not delete them.
+  Wiring sweep (Boss, 12:03 PM EDT: nothing built and left unused;
+  report reports/wiring-sweep-2026-10-31.md) (2026-10-31 12:25 PM EDT):
+  The closest-approach library is unread until the orbital event writer
+  lands, and the item had no owner. Owner now: Aux 7 (orbital update)
+  (proposed by the TODO thread; the lane says if it cannot take it).
   Prerequisites: none. Related: GEN.105, GEN.143, GEN.170.
 
 - [ ] **GEN.198 The gravity field evaluator: pull, potential and tidal gradient at any point from the point masses and the galaxy potential**
@@ -5048,6 +5057,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   stable sort on tier, mass heaviest first, ties by id) with each chunk
   reading the state at its start; new records are always visited and
   advance only from their own epoch (F5).
+  Wiring sweep (Boss, 12:03 PM EDT: nothing built and left unused;
+  report reports/wiring-sweep-2026-10-31.md) (2026-10-31 12:25 PM EDT):
+  The influence set is unread until the acceleration kernel lands, and
+  the item had no owner. Owner now: Aux 7 (orbital update, after
+  GEN.338) (proposed by the TODO thread; the lane says if it cannot take
+  it).
   Prerequisites: GEN.338, GEN.340. Related: GEN.109.
 
 - [ ] **GEN.343 The perturbed pass for a system: host, siblings, moons and outside perturbers integrated through an encounter**
@@ -6839,6 +6854,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Step 2, the wiring (radiogenic.draw_content takes the draw plus Barrat
   CI K/U 71,429; Earth K heat drops about 20 percent; new epoch, no
   migration), rides train 6. Item stays open until step 2 merges.
+  Wiring sweep (Boss, 12:03 PM EDT: nothing built and left unused;
+  report reports/wiring-sweep-2026-10-31.md) (2026-10-31 12:25 PM EDT):
+  The potassium depletion module and its data file are unread until this
+  item wires them, and the item was unowned. Owner now: Sources 1 (after
+  GEN.1225) (proposed by the TODO thread; the lane says if it cannot
+  take it).
   Prerequisites: none. Related: GEN.478, GEN.472, TEST.214.
 
 - [ ] **GEN.493 Source the initial-rotation distribution and the saturation time against stellar mass for the host-star UV regime (AR14)**
@@ -7185,6 +7206,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   9:20 PM EDT): The guard found no open item wiring mixture_trace.py and
   design_flags.json (GEN.479 is closed); this item (B16: halogens and
   trace gases) is the wiring item. Owner is Sources 1's call with Air 1.
+  Wiring sweep (Boss, 12:03 PM EDT: nothing built and left unused;
+  report reports/wiring-sweep-2026-10-31.md) (2026-10-31 12:25 PM EDT):
+  The trace-gas module and design flags are unread until this item wires
+  them; the owner was only proposed. Owner now: Core 4 (proposed by the
+  TODO thread; the lane says if it cannot take it).
   Prerequisites: GEN.503. Related: GEN.503, GEN.478, GEN.472.
   Design: [docs/design/composition/tunable-gaps.md](design/composition/tunable-gaps.md)
 
@@ -10148,6 +10174,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   at setup and read by nothing (ir_ktables.npz, ir_cia.npz); gases.json,
   nasa_glenn_species.json and saturation_pressure.json are in the repo.
   Catalog sections 1 and 2.
+  Wiring sweep (Boss, 12:03 PM EDT: nothing built and left unused;
+  report reports/wiring-sweep-2026-10-31.md) (2026-10-31 12:25 PM EDT):
+  The ground albedo module is unread until this item wires it, and its
+  owners Composition K and L are retired. Owner now: Aux 3 (proposed by
+  the TODO thread; the lane says if it cannot take it).
   Prerequisites: GEN.462.
 
 - [ ] **GEN.685 Water comes from the composition and the origin; delete WATER_MASS_FRACTION[class]**
@@ -10413,6 +10444,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Train 5 merged (#4321, 11:34 PM EDT) (2026-10-30 11:38 PM EDT): The
   age-metallicity part merged with Star 2 #4077. The alpha shift is
   GEN.1024 (Star 2, PR to follow); the item stays open for that.
+  Wiring sweep (Boss, 12:03 PM EDT: nothing built and left unused;
+  report reports/wiring-sweep-2026-10-31.md) (2026-10-31 12:25 PM EDT):
+  The alpha-track module and its register row are unread until the track
+  lookup is wired, and the item was in the pool. Owner now: Star 2
+  (proposed by the TODO thread; the lane says if it cannot take it).
   Prerequisites: none. Related: GEN.405, GEN.652.
 
 - [ ] **GEN.745 Stellar spectra by temperature, gravity and activity (model atmospheres) instead of a blackbody with a seeded UV share**
@@ -11821,6 +11857,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.973 and GEN.974; the response today is about 0.4 K per W/m2. When
   the last of the three lands the test passes, the strict xfail fails
   the run, and this item removes the mark.
+  Wiring sweep (Boss, 12:03 PM EDT: nothing built and left unused;
+  report reports/wiring-sweep-2026-10-31.md) (2026-10-31 12:25 PM EDT):
+  The wiring register names this item for the unread ice-albedo feedback
+  and its owner lane Air 1 is retired. Owner now: Aux 4 (proposed by the
+  TODO thread; the lane says if it cannot take it).
   Prerequisites: none. Related: GEN.752, GEN.462.
 
 - [ ] **GEN.974 Climate feedback 3: cloud albedo on the fixed point (cloud cover changes the reflected share)**
@@ -11878,6 +11919,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Changes generated output: epoch with --affects fill, rides train 6.
   Every stand-in it adds gets a GEN.725 registry row with tier and tweak
   level. Owner: Air 1. Version 8.1.
+  Wiring sweep (Boss, 12:03 PM EDT: nothing built and left unused;
+  report reports/wiring-sweep-2026-10-31.md) (2026-10-31 12:25 PM EDT):
+  The photolysis lifetime table has no caller until this item wires it,
+  and its owner lane Air 1 is retired. Owner now: Aux 4 (proposed by the
+  TODO thread; the lane says if it cannot take it).
   Prerequisites: none. Related: GEN.754, GEN.794, GEN.748.
 
 - [ ] **GEN.983 Wire the radiation belts (physics/radiation_belts.py) into the surface dose and the habitability radiation score**
@@ -12672,6 +12718,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Belt origins (2026-10-30 4:35 PM EDT): Adds the origin, formation and
   history text columns to the belt record (design belt-origins section
   4).
+  Wiring sweep (Boss, 12:03 PM EDT: nothing built and left unused;
+  report reports/wiring-sweep-2026-10-31.md) (2026-10-31 12:25 PM EDT):
+  It had no owner; the belt page and the scatter wiring read what it
+  stores. Owner now: Sources 2 (with GEN.1092) (proposed by the TODO
+  thread; the lane says if it cannot take it).
   Prerequisites: GEN.477, GEN.1068. Related: GEN.477.
   Design: [docs/design/systems/belt-evolution.md](design/systems/belt-evolution.md)
 
@@ -14667,6 +14718,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   so class T hydrogen-air dwarfs are typed correctly; it is GEN.1226,
   one epoch with this item and GEN.1220. The type function reads that
   column.
+  Wiring sweep (Boss, 12:03 PM EDT: nothing built and left unused;
+  report reports/wiring-sweep-2026-10-31.md) (2026-10-31 12:25 PM EDT):
+  Item had no owner; the thread has the lock-free part merged (#4490).
+  Owner now: the Class M thread (building it now) (proposed by the TODO
+  thread; the lane says if it cannot take it).
   Prerequisites: none. Related: GEN.1207.
 
 - [ ] **GEN.1220 Class code system: a letter plus a digit (class_variant column, 0 not written), the digit meanings and the letters of the oxygen-water, anoxic-water, CO2, acid, methane-ethane, ammonia-water and hot thin-air families**
@@ -19399,6 +19455,34 @@ clears each one.
   Also seen once and probably a flake: system-desktop-dark skip link not
   visible; if it recurs, file it separately. Web only, lock-free. Owner:
   Core 5 (proposed).
+  Prerequisites: none.
+
+- [ ] **TEST.520 Extend the wiring guard to stored columns and shadow functions, and wire, show or drop every column only the Details sheet reads**
+  Boss, 12:03 PM EDT 2026-10-31: make sure everything built is wired in
+  and read; no more building something and not using it. Filed by the
+  TODO thread after a sweep (report
+  /mnt/project-files/reports/wiring-sweep-2026-10-31.md). The guard of
+  GEN.754 already proves that no module, dataset, data file or registry
+  row is left unread without an open item. It does not see two things.
+  (1) A stored column that is written and read by nothing but the
+  generic Details sheet (describe/sheet.py): 207 candidate columns of
+  planets, moons, stars, star systems, rogue planets, belts, fields and
+  comets are listed in the report; many are read by other physics
+  modules, so each needs a look. (2) A public function of a reachable
+  module that only tests call (a shadow function). Do: add two kinds to
+  scripts/wiring_guard.py, `column` (a column of a generated table that
+  no file outside the schema, models, column units, store, storage
+  checksum, checks and the generic sheet mentions, counting physics
+  modules that read it) and `function` (a public function of a module of
+  physics, generation or galaxy whose only callers are tests), register
+  today's findings in wiring-register.md with the open item that will
+  read them (or `by design`), and let tests/test_wiring_guard.py fail on
+  a new one. Then go through the register's new column lines and, for
+  each, file or name the item that shows it on a page or reads it
+  downstream, or file a drop item (no unused column stays stored).
+  Lock-free (scripts, tests, docs); the drops and the wiring that
+  changes stored output ride trains. Owner Core 1 (proposed; it asked
+  for a lock-free item while GEN.1138 waits for a window).
   Prerequisites: none.
 
 ## USR: User accounts
