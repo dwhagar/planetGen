@@ -977,6 +977,22 @@ with `clamp()`.
   Owner (housekeeping) (2026-10-30 2:55 PM EDT): released to the pool:
   the owner named above (Aux 11) is a retired lane. A waiting lane takes
   it, confirmed with TODO, one lock-free item at a time.
+  Changed by GEN.1209 (several life types per planet) (2026-10-31 10:10
+  AM EDT): The Life section must read the list of living classes from
+  GEN.1209 when it lands: each living class with its stage, animal
+  grade, kinds and prevalence, the dominant one first. Until then it
+  shows the one dominant class (PR 4471 folds the kind scores into one
+  Life paragraph).
+  Changed by the life readings work (Boss, 10:07 AM EDT 2026-10-31)
+  (2026-10-31 10:14 AM EDT): Boss wants a Life section in the details
+  holding every life fact (classes, stages, animal grades, the three
+  readings per kind from GEN.1210, eats, drinks, breathes and gives off,
+  life and air through the ages), with a short Life summary in At a
+  glance (UX.251). PR 4471 already puts a first Life paragraph at the
+  top of the Life section; this item now owns the rest of the details
+  section on top of it, and the readings from GEN.1210 and the several
+  living classes of GEN.1209 are shown as they land. Help links for each
+  word come from DOC.84.
   Prerequisites: none. Related: UX.221.
 
 - [ ] **UX.239 Search for star systems by how many stars they hold: single, binary, trinary, quaternary and more**
@@ -1034,6 +1050,92 @@ with `clamp()`.
   temperature (from GEN.1108), and the spin-speed fix for slow and
   locked bodies is UX.244.
   Prerequisites: none. Related: MAP.277, VIEW.14.
+
+- [ ] **UX.251 Planet and moon pages: a Life summary paragraph in At a glance, from the life readings**
+  Boss, 10:07 AM EDT 2026-10-31 (and 10:08 AM EDT for the help pages):
+  build and ship all the life recommendations, a full readability
+  rewrite of ALL planet and star text, a life summary paragraph in At a
+  glance, a Life section in the details with the nitty-gritty, and a
+  full help page suite on all life types and the categories we use.
+  Brief:
+  /mnt/project-files/reports/life-and-text-readability-brief-2026-10-31.md;
+  coexistence write-up:
+  reports/multi-life-types-per-planet-2026-10-31.md. PR 4471 (branch
+  claude/project-thread-5xwcu1, wording and layout of the first Life
+  paragraph) merges first and these build on it. Filed by the TODO
+  thread. Do: add one short Life paragraph to the At a glance section
+  (the summary of UX.220 and UX.221): what lives there by kind with the
+  three words each, for example 'Microbes: abundant, stable, secure.
+  Plants: occasional, declining, precarious.', and the classes that suit
+  it, in plain words with no numbers other than the readings; only when
+  the world has life or could have it. It reads the pure function of the
+  life readings item, and the first Life paragraph of PR 4471 (what
+  lives there, kinds with prevalence words, classes that suit with their
+  suitability). The older prose lines (lives on this planet, evolving at
+  a pace; latest milestone) repeat the paragraph and are removed from
+  the summary, and 'Class 3 life has grown' says 3a. Presentation only;
+  no stored value changes, no epoch. Where we think it belongs (best
+  guess, can move): Core 5.
+  Prerequisites: GEN.1210. Related: UX.237.
+
+- [ ] **UX.252 Readability rewrite of ALL planet, moon and belt text: summary sentences, descriptions, notes, labels, class pages**
+  Boss, 10:07 AM EDT 2026-10-31 (and 10:08 AM EDT for the help pages):
+  build and ship all the life recommendations, a full readability
+  rewrite of ALL planet and star text, a life summary paragraph in At a
+  glance, a Life section in the details with the nitty-gritty, and a
+  full help page suite on all life types and the categories we use.
+  Brief:
+  /mnt/project-files/reports/life-and-text-readability-brief-2026-10-31.md;
+  coexistence write-up:
+  reports/multi-life-types-per-planet-2026-10-31.md. PR 4471 (branch
+  claude/project-thread-5xwcu1, wording and layout of the first Life
+  paragraph) merges first and these build on it. Filed by the TODO
+  thread. Do: rewrite every sentence the site writes about planets,
+  moons and belts to the style guide: the summary paragraph, the
+  descriptions, the notes and warnings, the table labels, the class
+  pages and the Life text, in plain words with short sentences and one
+  idea each, no repeated facts and the same class names and units
+  everywhere. Find every source of text by scanning the generator's text
+  builders, the templates and the generated class pages, and list what
+  was rewritten in the changes note. Presentation and wording only; no
+  computed value changes. If any of the text is stored at generation (a
+  text column) the change needs an epoch with a migration, so check
+  first and prefer building the text at render time; if a stored text
+  must change, say so and make it a separate lock item. Splits by page
+  kind if large: planets, moons, belts and fields. Where we think it
+  belongs (best guess, can move): Core 5, after PR 4471 merges.
+  Boss, 10:09 AM EDT 2026-10-31 (2026-10-31 10:17 AM EDT): once the life
+  class help pages and definitions exist (DOC.84), link the terms in the
+  planet text to them (class names, abundance, trend and security words,
+  suitability, life stages) and remove the inline explanations the help
+  pages now cover, so the planet text is decluttered. The order is: the
+  style guide (DOC.83), the life readings (GEN.1210) and the help suite
+  (DOC.84) first, then this rewrite does the linking and the
+  decluttering in the same pass as the readability rewrite, so each
+  sentence is rewritten once.
+  Prerequisites: DOC.83, DOC.84. Related: UX.237, GEN.1208.
+
+- [ ] **UX.253 Readability rewrite of ALL star, system and star-class text: summary sentences, descriptions, notes, labels, spectral class pages**
+  Boss, 10:07 AM EDT 2026-10-31 (and 10:08 AM EDT for the help pages):
+  build and ship all the life recommendations, a full readability
+  rewrite of ALL planet and star text, a life summary paragraph in At a
+  glance, a Life section in the details with the nitty-gritty, and a
+  full help page suite on all life types and the categories we use.
+  Brief:
+  /mnt/project-files/reports/life-and-text-readability-brief-2026-10-31.md;
+  coexistence write-up:
+  reports/multi-life-types-per-planet-2026-10-31.md. PR 4471 (branch
+  claude/project-thread-5xwcu1, wording and layout of the first Life
+  paragraph) merges first and these build on it. Filed by the TODO
+  thread. Do: the same rewrite as the planet item for every sentence
+  about stars, multi-star systems and the star classes: the star
+  summary, descriptions, notes, table labels, spectral and luminosity
+  class pages and the system page text, to the style guide. Presentation
+  and wording only; no computed value changes; check first whether any
+  of the text is stored at generation and keep a stored change as its
+  own lock item. Where we think it belongs (best guess, can move): Core
+  2 (the UX and render lane), after the style guide.
+  Prerequisites: DOC.83. Related: UX.150.
 
 ## MAP: Galaxy Map, Sector Map, System Map
 
@@ -11105,6 +11207,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   life classes are in reports/life-chemistry-review-2026-10-28-files;
   the registry holds the life-class stand-in rows (LF*). Catalog
   sections 3 and 4.
+  Changed by GEN.1209 (several life types per planet) (2026-10-31 10:10
+  AM EDT): Boss wants more than one life type to coexist on a planet
+  (10:05 AM EDT 2026-10-31). The per-class scores built here stay as
+  what could live there; GEN.1209 adds the list of what does live there,
+  with a prevalence each. Do not make life_class_id a single-valued
+  public contract: GEN.1209 adds a list beside it.
   Prerequisites: GEN.862, UX.237.
 
 - [ ] **GEN.864 Sentient life per life class: sentient species and civilizations draw from the life class scores of a world**
@@ -13778,6 +13886,34 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   do not use it as it stands. Not found: Choukroun and Grasset 2007 and
   the solid-solid boundary equations. Melting curves are covered by
   Wagner 2011. Report: reports/ice-high-pressure-sources-held-2026-10-31.md.
+  Sources 1: solid-solid ice boundaries from a tertiary source
+  (2026-10-31 10:03 AM EDT): Choukroun and Grasset 2007 cannot be had
+  (Boss cannot get it), so the boundaries below 0.7 GPa come from one
+  TERTIARY source: Martin Chaplin, Water Phase Diagram, water.lsbu.ac.uk
+  (updated 5 Nov 2021; its references are by number only and the list is
+  unreachable). Register them in GEN.725 as tier Unverified (T3), L0,
+  until a paper matches. P in MPa, T in K, d = T - 273.15: Ih-II 176.0 +
+  0.918 (T - 198.15); II-III 213 + 99.517 [(T/238.45)^19.676 - 1]; II-V
+  412.0 - 7.01 (T - 239.15); Ih-III 198.2 - 0.42 (T - 273.15) (the
+  quadratic version fails its own triple point, 166 against 209.9, do
+  not use); III-V 344.3 - 0.275 d - 0.01099 d^2; V-VI 625.9 + 0.06086 d
+  - 0.0008571 d^2. Triple points: L-Ih-III 251.165 K, 209.9 MPa; L-III-V
+  256.164 K, 350.1 MPa; L-V-VI 273.31 K, 632.4 MPa (Wagner 2011, also
+  Journaux et al. arXiv 1907.09598 Table 4); Ih-II-III 238.45 K, 212.9
+  MPa; II-III-V 248.85 K, 344.3 MPa; II-V-VI about 218 K, 620 MPa
+  (approximate; the printed II-V line gives 559 there, so do not extend
+  a line past its triple points); VI-VII-L 2216 MPa, 355 K. Sources 1
+  checked that every line meets its triple points within 1 MPa except
+  III-V at the liquid point (345.8 against 350.1). Chaplin's short Simon
+  form for ice VII melting is 10 percent off at 550 K: use the exact
+  IAPWS form already held. AQUA (A&A 2020, arXiv 2009.10098) Eq. 22
+  gives a VI-VII fit; the extraction is garbled, verify before use. No
+  equation found for II-VI, VI-VII-VIII or VII-VIII. Fortes 2009 (J.
+  Appl. Cryst. 42:846) says Choukroun and Grasset's ice Ih K0' is wrong
+  by 10 times and their ice VI density has no pressure term, so do not
+  trust their equation of state for volumes. Still missing: Dunaeva 2010
+  (Solar System Research 44:202) or Choukroun and Grasset by upload.
+  Report: reports/ice-phase-boundaries-secondary-sources-2026-10-31.md.
   Prerequisites: none. Related: GEN.1183, GEN.1185, GEN.725.
 
 - [ ] **GEN.1191 Satellite supernova remnants scale with the satellite's own star formation instead of the Milky Way's per-system rate**
@@ -14007,61 +14143,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: unowned until GEN.1162 merges (Aux 5 proposed).
   Prerequisites: GEN.1162.
 
-- [ ] **GEN.1205 Best-fit classes, step 1: every class gets its own full positive conditions (temperature, pressure, gravity, water, air chemistry) as new data, with shoulder widths registered in GEN.725**
-  Boss, 9:44 AM EDT 2026-10-31: build and ship the best-fit class
-  scoring (a percent match per class, best match wins, replacing the
-  first-match tree) and send it to TODO. Design:
-  /mnt/project-files/reports/class-m-and-trek-classes-2026-10-31.md
-  sections 4 to 6 (Class M research thread). Filed by the TODO thread.
-  Do: in src/planetgen/physics/data (a new file beside
-  planet_classes.json, read by nothing yet, so the first-match tree and
-  every stored letter are unchanged), describe every class by its own
-  positive conditions so that no row relies on an earlier row having
-  said no. M gets its air window (oxygen 16 percent or more, carbon
-  dioxide under 1 percent, 30 kPa to 3 bar, 273 to 320 K, 0.5 to 2 g,
-  water 20 to 80 percent); F and G get a temperature, pressure and
-  gravity band and physical limits with GEN.725 basis rows; L keeps its
-  3 to 16 percent oxygen. Hard gates stay kinds, not degrees: giant
-  versus terrestrial, and has-air versus airless (10 Pa). Every other
-  condition is graded: membership 1 inside today's edge and a linear
-  shoulder to 0 beyond it, the shoulder width per quantity (a share of
-  the edge value, or kelvin for temperatures); `equals` conditions
-  (hydrosphere) stay 0 or 1. The numbers already in planet_classes.json
-  become the core edges. Every shoulder width is a new stand-in:
-  register each in GEN.725 (docs/design/research/stand-in-values.md via
-  scripts/build_stand_in_values.py) as tier Confident educated guess
-  from physics, L1 where it follows a source uncertainty, L3 where
-  hand-picked; a wiring-register line names the follow-on item so the
-  guard stays green. Giants use the same method on mass (the T, I and J
-  overlap from 30 to 60 Earth masses is a shoulder, not a hard cut at
-  35). The Class M thread (and the report) is the design source. Data
-  and tests only, lock-free. Done: the table covers every class letter A
-  to V, a test shows every class has at least one complete positive
-  condition set, and the registry rows exist. Where we think it belongs
-  (best guess, can move): Aux 2 or the Class M research thread.
-  Prerequisites: none.
-
-- [ ] **GEN.1206 Best-fit classes, step 2: a read-only shadow scorer prints the confusion table (stored letter against best-fit letter), the share at 100 percent and the low-match list**
-  Boss, 9:44 AM EDT 2026-10-31: build and ship the best-fit class
-  scoring (a percent match per class, best match wins, replacing the
-  first-match tree) and send it to TODO. Design:
-  /mnt/project-files/reports/class-m-and-trek-classes-2026-10-31.md
-  sections 4 to 6 (Class M research thread). Filed by the TODO thread.
-  Do: score a few hundred generated systems both ways with the step 1
-  table, in a read-only tool in src/tests (extend class_shadow_cli.py
-  where it exists, otherwise a new one beside the other class sweep
-  scripts), and write a short report in /mnt/project-files/reports: the
-  confusion table of old letter against best-fit letter, the share of
-  bodies that score 100 percent for their class, the bodies whose best
-  match is under 50 percent (each one is a hole in the class set, which
-  is how to decide what the reserve letters R U W X Y Z are for), the
-  runner-up pairs that are close, and the temperate-ocean count per
-  class (M against O, V, F, G). Boss reads the report before step 3 is
-  built. Nothing stored changes. Read-only, lock-free. Done: the report
-  is merged and Boss has seen it. Where we think it belongs (best guess,
-  can move): same lane as step 1.
-  Prerequisites: GEN.1205.
-
 - [ ] **GEN.1207 Best-fit classes, step 3: the classifier replaces the first-match tree, stores class_match and the runner-up letter and match, and the class pages show the percent match**
   Boss, 9:44 AM EDT 2026-10-31: build and ship the best-fit class
   scoring (a percent match per class, best match wins, replacing the
@@ -14093,7 +14174,21 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   under 50 percent that Boss has not accepted, and the temperate-ocean
   count per class is printed. Where we think it belongs (best guess, can
   move): same lane as step 1.
-  Prerequisites: GEN.1205, GEN.1206.
+  Class M thread, shadow report (as the lane reported) (2026-10-31 10:16
+  AM EDT): GEN.1205 (PR #4469, planet_class_fit.json,
+  physics/class_fit.py, GEN.725 rows CF1 to CF7 in section 6.150) and
+  GEN.1206 (PR #4473, src/tests/class_fit_cli.py) are merged; report
+  /mnt/project-files/reports/class-fit-shadow-2026-10-31.md. Findings
+  that change this item's scope, pending Boss: (1) class M with the
+  oxygen 16 percent or more window matches none of the sampled
+  first-match M bodies (all have 0 percent oxygen), so Boss picks: keep
+  the window, drop it, or add an abiotic temperate-ocean class from the
+  reserve letters; (2) about 1.6 percent of bodies are hot thin-air
+  rocks of 1.4 to 2 g (340 to 1100 K, 1 to 10 kPa) that fit no class, a
+  gap that needs a new class or a lifted 400 K ceiling on F, G and H.
+  This item stays blocked until Boss has read the report. It must also
+  handle a body with no class match (best_class returns letter None).
+  Prerequisites: GEN.1206.
 
 - [ ] **GEN.1208 Best-fit classes, wording: drop the age and stage words from the class tier labels and the "Checked after" and "leftover" wording from the class pages**
   Boss, 9:44 AM EDT 2026-10-31: build and ship the best-fit class
@@ -14110,6 +14205,107 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   golden, fold this into step 3's epoch, else it is lock-free. Where we
   think it belongs (best guess, can move): same lane as step 1.
   Prerequisites: none.
+
+- [ ] **GEN.1209 Several life types coexist on one planet: a per-body list of living classes, each with its stage, animal grade, kinds (microbes, flora, fauna) and prevalence**
+  Boss, 10:05 AM EDT 2026-10-31: let more than one life type exist on a
+  planet, each with a kind (microbes, flora, fauna and so on) and a
+  prevalence, so users know what they will meet; even Earth has several
+  categories of carbon life. Write-up:
+  /mnt/project-files/reports/multi-life-types-per-planet-2026-10-31.md.
+  Filed by the TODO thread. What exists: one living class per body
+  (life_class_id, life_stage, life_animal_grade, the dominant class by
+  food production, GEN.862 chain); suitability scores 0 to 9 for every
+  class the conditions support (life_class_scores, life_class_best,
+  life_class_best_score), which say what could live there, not what
+  does; four kind scores 0 to 9 on planets and moons (life_microbial,
+  life_flora, life_fauna, life_sentient, GEN.649, done), which are
+  already a prevalence per kind but belong to the one living class. The
+  display (one Life paragraph with the kinds, prevalence words and the
+  classes that suit) is UX.237 and PR 4471 and needs no change here
+  beyond reading the new list. Do: (1) Model: a per-body list of living
+  classes, each with stage, animal grade, kind scores and a prevalence
+  share, in a new table or one JSON column (never a column per class);
+  the dominant class stays as the headline, so the 40 or so readers of
+  life_class_id keep working. (2) Generation: after the dominant class
+  is chosen, decide which other supported classes also took hold, from
+  the share of food production, niche overlap, the same solvent and
+  oxidant, and the order of appearance on the evolutionary timeline
+  (GEN.750, done); physics decides, nothing is forced (Boss, 10-30), and
+  a civilization is never forced. (3) Kind scores per class, with the
+  body's four kind scores becoming the combined view of them. (4) The
+  air ledger is keyed by class number, so several living classes need
+  their gas budgets summed (the report names GEN.1013 for this, but
+  GEN.1013 is the overlap-free stars item and is done; Aux 4 or Core 1
+  must name the real ledger item). (5) API and search: a list field
+  instead of the single life_class_id; filters such as has Class 3 life
+  match any living class. (6) Page and map text list each living class
+  with its kinds. Output change with a migration: one epoch, golden,
+  census re-baseline, on a train; stand-ins for the share rules go in
+  GEN.725. Done: a world can store and show two or more living classes
+  with prevalence, the dominant one is unchanged for single-class
+  worlds, and the prevalence census (TEST.435) covers the list. Where we
+  think it belongs (best guess, can move): Aux 2 with Aux 4 for the air
+  ledger.
+  Aux 2 plan (as the lane reported, 10:08 AM EDT 2026-10-31) (2026-10-31
+  10:14 AM EDT): The air ledger items are GEN.862 (design,
+  life-classes.md section 4, life_ledger.json) with GEN.891, GEN.857,
+  GEN.858 and GEN.859 for the gases (physics/life_air.py,
+  biogenic_oxygen.py), not GEN.1013; Aux 4 only needs a sum over living
+  classes where it now takes one. Plan: (1) a child table body_life
+  (body ref, class and variant, stage, animal grade, four kind scores,
+  share of food production) with a migration; the headline columns stay
+  the dominant class and the body's four kind scores become the highest
+  of each kind across classes; the API gets a life_classes list and the
+  life_class filter matches any living class. (2) After the dominant
+  class, every other class whose conditions score above 0 gets its own
+  run of the life timeline from its own first producers; it takes hold
+  only if its stage is reached inside the system age and the final air
+  does not poison it (the existing toxin test). Nothing forced. (3)
+  life_air and biogenic_oxygen sum the classes' fluxes and uptake in
+  timeline order. (4) Page text lists each class with its kinds (UX.237,
+  UX.251). Two PRs, same window as GEN.1147. Questions for Boss: (a) may
+  classes of different solvents live on one body (a water class and an
+  acid or sulfur class), or only classes sharing a solvent as Earth's
+  do; (b) may a minor class reach the sentient kind, or does a
+  civilization stay with the dominant class. Aux 2 recommends (a) only
+  classes sharing a solvent whose conditions both hold, (b) dominant
+  class only. The per-kind readings of GEN.1210 are given per living
+  class once this lands.
+  Prerequisites: GEN.862. Related: GEN.863, UX.237, TEST.435.
+
+- [ ] **GEN.1210 Life readings: abundance, trend and security for each kind of life (microbes, flora, fauna, sentient), as one pure function over stored values with no new column**
+  Boss, 10:07 AM EDT 2026-10-31 (and 10:08 AM EDT for the help pages):
+  build and ship all the life recommendations, a full readability
+  rewrite of ALL planet and star text, a life summary paragraph in At a
+  glance, a Life section in the details with the nitty-gritty, and a
+  full help page suite on all life types and the categories we use.
+  Brief:
+  /mnt/project-files/reports/life-and-text-readability-brief-2026-10-31.md;
+  coexistence write-up:
+  reports/multi-life-types-per-planet-2026-10-31.md. PR 4471 (branch
+  claude/project-thread-5xwcu1, wording and layout of the first Life
+  paragraph) merges first and these build on it. Filed by the TODO
+  thread. Do: a pure module (no database, no random) that gives each
+  kind three words. Abundance from the stored 0 to 9 kind score by
+  DAFOR-style words: Absent, Rare, Occasional, Frequent, Abundant,
+  Dominant (the band edges are stand-ins for GEN.725, source: the
+  standard ecology abundance scales, wording unverified, so tier
+  Unverified, L3). Trend: growing, stable or declining, from the
+  suitability now against earlier (the stored life milestone ages and
+  the life and air history that UX.237 part 2 already works backwards),
+  the star's brightening and the stage timeline (GEN.750). Security:
+  Secure, Marginal, Precarious or Dying out, from the distance to the
+  class's limits (temperature, pressure, oxygen, radiation) and the time
+  left before the star pushes conditions past them. Example output:
+  'Microbes: abundant, stable, secure.' Computed on the page and in the
+  API from stored values, so no migration, no epoch and no golden;
+  physics decides, nothing forced, a civilization is never forced.
+  Several living classes (GEN.1209) later give one reading per class.
+  Tests: each word band, a dying-out case from a brightening star, and a
+  world with no life reads Absent for every kind. Where we think it
+  belongs (best guess, can move): Core 5, with Aux 2 reviewing the trend
+  and security rules.
+  Prerequisites: none. Related: GEN.1209, UX.237.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -18528,6 +18724,10 @@ clears each one.
   life classes are in reports/life-chemistry-review-2026-10-28-files;
   the registry holds the life-class stand-in rows (LF*). Catalog
   sections 3 and 4.
+  Changed by GEN.1209 (several life types per planet) (2026-10-31 10:10
+  AM EDT): Once GEN.1209 lands the prevalence census also covers the
+  list: the share of worlds with two or more living classes, and the
+  prevalence shares per class, inside researched ranges.
   Prerequisites: GEN.863, TEST.430.
 
 - [ ] **TEST.436 Prevalence tests for the chemistries, the adaptation traits and the animal routes: shares per chemistry per star letter, per route and per trait inside researched ranges**
@@ -19820,6 +20020,65 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   the owner named above (Aux 6) is a retired lane. A waiting lane takes
   it, confirmed with TODO, one lock-free item at a time.
   Prerequisites: UX.223, NAV.64. Related: DOC.6, DOC.9.
+
+- [ ] **DOC.83 Plain-words style guide for every sentence the site writes about a planet or a star, with a test that enforces it**
+  Boss, 10:07 AM EDT 2026-10-31 (and 10:08 AM EDT for the help pages):
+  build and ship all the life recommendations, a full readability
+  rewrite of ALL planet and star text, a life summary paragraph in At a
+  glance, a Life section in the details with the nitty-gritty, and a
+  full help page suite on all life types and the categories we use.
+  Brief:
+  /mnt/project-files/reports/life-and-text-readability-brief-2026-10-31.md;
+  coexistence write-up:
+  reports/multi-life-types-per-planet-2026-10-31.md. PR 4471 (branch
+  claude/project-thread-5xwcu1, wording and layout of the first Life
+  paragraph) merges first and these build on it. Filed by the TODO
+  thread. Do: write docs/design/ui/text-style.md (or the existing UI
+  design folder): plain words, short sentences, one idea in each, no
+  repeated fact on a page, the same class name form everywhere (Class
+  3a, never Class 3 in one place and 3a in another), one unit per
+  quantity with the unit spelled as the page's unit setting says, no
+  stage or age words in a class description (see GEN.1208), no jargon
+  without a help link (DOC.15 glossary). Add a test that checks the
+  generated sentences against the checkable rules: maximum sentence
+  length, a banned-word list, class-name form, units present (extends
+  API.33's unit scan). Docs and test only, lock-free. Done: the guide is
+  merged and the test passes on the current text, or lists the sentences
+  the two rewrite items must fix. Where we think it belongs (best guess,
+  can move): Core 5.
+  Prerequisites: none. Related: API.33, DOC.15, GEN.1208.
+
+- [ ] **DOC.84 Help page suite for life: the four kinds of life, every life class, and the scales we use (abundance, trend, security, suitability)**
+  Boss, 10:07 AM EDT 2026-10-31 (and 10:08 AM EDT for the help pages):
+  build and ship all the life recommendations, a full readability
+  rewrite of ALL planet and star text, a life summary paragraph in At a
+  glance, a Life section in the details with the nitty-gritty, and a
+  full help page suite on all life types and the categories we use.
+  Brief:
+  /mnt/project-files/reports/life-and-text-readability-brief-2026-10-31.md;
+  coexistence write-up:
+  reports/multi-life-types-per-planet-2026-10-31.md. PR 4471 (branch
+  claude/project-thread-5xwcu1, wording and layout of the first Life
+  paragraph) merges first and these build on it. Filed by the TODO
+  thread. Do: build the help pages in the pattern of the existing 'What
+  the colours and symbols mean' help page: one page for the kinds of
+  life (microbes, flora, fauna, sentient) with what each word means; one
+  page for each scale we use, with every word and what it is judged
+  from: abundance (Absent, Rare, Occasional, Frequent, Abundant,
+  Dominant), trend (growing, stable, declining), security (Secure,
+  Marginal, Precarious, Dying out) and suitability; one page per life
+  class from docs/design/habitability/life-classes.md (the nine classes:
+  chemistry, temperature and pressure window, what it eats, drinks,
+  breathes and gives off, which are speculative chemistry and at what
+  tier); and a short page on the life stages and the animal grade. Each
+  page is linked from the matching word on the object pages (the '?'
+  link of DOC.57), the class letter and the Life section, and the help
+  coverage test (DOC.58) passes. Wording follows the style guide and no
+  number is stated that the generator does not use. Docs and templates
+  only, lock-free. Where we think it belongs (best guess, can move):
+  Core 5 or a docs lane, after the life readings exist.
+  Prerequisites: GEN.1210, DOC.83. Related: DOC.57, DOC.58, DOC.76,
+  DOC.15.
 
 ## VIEW: The view from a planet
 
