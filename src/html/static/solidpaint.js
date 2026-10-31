@@ -12,7 +12,10 @@
 //     ragged edge from the same seeded noise;
 //   * land is one colour, two tones by height: the lab colour of the stored ground types (look.quality "composition",
 //     MAP.274), or a stand-in from temperature (look.quality "estimate") where no ground is stored;
-//   * a world with no air shows seeded craters.
+//   * a world with no air shows seeded craters;
+//   * the air is seen through (MAP.350): `veil` (0 to 1, the air's optical depth) tints the ground toward the sky colour `glow` and
+//     lowers its contrast, `haze` (haze and dust depth) lowers the contrast and softens it further, and `cloudCover` with `cloudTau`
+//     lay a seeded, whitish cloud layer over it. A look without those fields is painted exactly as it was.
 //
 // Same look, same size: same pixels. Do not change the noise without a changelog note.
 
@@ -71,6 +74,75 @@ function waterState(look) {
   if (hydro === "hycean") return { ocean: 1, allIce: false, haze: false };
   if (hydro === "dry") return { ocean: 0, allIce: false, haze: false };
   return { ocean: ocean, allIce: false, haze: false };
+}
+
+export var CLOUD_COLOR = "#f4f6f8";
+var VEIL_TINT_MAX = 0.55;
+var VEIL_FLATTEN_MAX = 0.4;
+var HAZE_FLATTEN_MAX = 0.6;
+var CLOUD_OPACITY_MAX = 0.85;
+var CLOUD_TAU_SCALE = 2;
+
+function luminance(c) {
+  return 0.2126 * c[0] + 0.7152 * c[1] + 0.0722 * c[2];
+}
+
+// The air over the ground (MAP.350): flattens the picture toward its mean, tints it toward the sky colour at the same brightness, and lays
+// the cloud over it. Changes `rgb` in place; returns how many extra blur passes the picture takes (a thick haze softens it).
+function applyAir(look, rgb, w, h, seed) {
+  var veil = clamp01(typeof look.veil === "number" ? look.veil : 0);
+  var haze = clamp01(typeof look.haze === "number" ? look.haze : 0);
+  var cover = clamp01(typeof look.cloudCover === "number" ? look.cloudCover : 0);
+  var cloudTau = typeof look.cloudTau === "number" ? look.cloudTau : 0;
+  var n = w * h;
+  if (veil > 0 || haze > 0) {
+    var mean = [0, 0, 0];
+    for (var i = 0; i < n; i++) {
+      mean[0] += rgb[i * 3];
+      mean[1] += rgb[i * 3 + 1];
+      mean[2] += rgb[i * 3 + 2];
+    }
+    mean = [mean[0] / n, mean[1] / n, mean[2] / n];
+    var keep = (1 - VEIL_FLATTEN_MAX * veil) * (1 - HAZE_FLATTEN_MAX * haze);
+    var tint = look.glow ? parseHex(look.glow) : null;
+    var tintLum = tint ? luminance(tint) : 0;
+    var amount = tint && tintLum > 0 ? VEIL_TINT_MAX * veil : 0;
+    for (var j = 0; j < n; j++) {
+      var c = [rgb[j * 3], rgb[j * 3 + 1], rgb[j * 3 + 2]];
+      c = mix(mean, c, keep);
+      if (amount > 0) {
+        var k = luminance(c) / tintLum;
+        c = mix(c, [tint[0] * k, tint[1] * k, tint[2] * k], amount);
+      }
+      rgb[j * 3] = Math.min(255, c[0]);
+      rgb[j * 3 + 1] = Math.min(255, c[1]);
+      rgb[j * 3 + 2] = Math.min(255, c[2]);
+    }
+  }
+  if (cover > 0 && cloudTau > 0) {
+    var field = new Float32Array(n);
+    for (var y = 0; y < h; y++) {
+      var v = (y + 0.5) / h;
+      // More cloud near the equator and the middle latitudes than at about 30 degrees and the poles (a loose Hadley pattern).
+      var lat = Math.abs(0.5 - v) * 2;
+      var band = 0.08 * Math.cos(lat * Math.PI * 3);
+      for (var x = 0; x < w; x++) field[y * w + x] = fbm((x + 0.5) / w, v, seed ^ 0xc10d, 5, 4) + band;
+    }
+    var cut = seaLevel(field.map(function (f) { return clamp01(f); }), w, h, 1 - cover);
+    var opacity = CLOUD_OPACITY_MAX * (1 - Math.exp(-cloudTau / CLOUD_TAU_SCALE));
+    var white = parseHex(CLOUD_COLOR);
+    for (var m = 0; m < n; m++) {
+      var t = clamp01((field[m] - cut) / 0.12 + 0.5);
+      if (cover >= 1) t = 1;
+      var a = opacity * t;
+      if (a <= 0) continue;
+      var shade = 0.9 + 0.2 * field[m];
+      rgb[m * 3] += (Math.min(255, white[0] * shade) - rgb[m * 3]) * a;
+      rgb[m * 3 + 1] += (Math.min(255, white[1] * shade) - rgb[m * 3 + 1]) * a;
+      rgb[m * 3 + 2] += (Math.min(255, white[2] * shade) - rgb[m * 3 + 2]) * a;
+    }
+  }
+  return haze > 0.5 || veil > 0.8 ? 1 : 0;
 }
 
 // Paints `look` into a w x h RGBA array (Uint8ClampedArray).
@@ -150,6 +222,8 @@ export function paintSolid(look, w, h) {
     }
   }
 
+  var extraBlur = look.atm ? applyAir(look, rgb, w, h, seed) : 0;
+
   // Craters on a world with no air (and no ice sheet over it): seeded darker discs.
   if (!hasAir && !water.allIce && !water.haze) {
     var rnd = makeRandom(seed ^ 0x5bd1e995);
@@ -174,34 +248,43 @@ export function paintSolid(look, w, h) {
     }
   }
 
-  // Soft edges: one 3 x 3 weighted blur, wrapping in longitude.
+  // Soft edges: one 3 x 3 weighted blur, wrapping in longitude (a second pass under a thick haze).
   var out = new Uint8ClampedArray(w * h * 4);
   var weights = [1, 2, 1, 2, 4, 2, 1, 2, 1];
-  for (var by = 0; by < h; by++) {
-    for (var bx = 0; bx < w; bx++) {
-      var r = 0;
-      var g = 0;
-      var b = 0;
-      var sum = 0;
-      var wi = 0;
-      for (var oy = -1; oy <= 1; oy++) {
-        var ny = by + oy;
-        for (var ox = -1; ox <= 1; ox++, wi++) {
-          if (ny < 0 || ny >= h) continue;
-          var nx = (bx + ox + w) % w;
-          var j = (ny * w + nx) * 3;
-          var wt = weights[wi];
-          r += rgb[j] * wt;
-          g += rgb[j + 1] * wt;
-          b += rgb[j + 2] * wt;
-          sum += wt;
+  for (var pass = 0; pass <= extraBlur; pass++) {
+    for (var by = 0; by < h; by++) {
+      for (var bx = 0; bx < w; bx++) {
+        var r = 0;
+        var g = 0;
+        var b = 0;
+        var sum = 0;
+        var wi = 0;
+        for (var oy = -1; oy <= 1; oy++) {
+          var ny = by + oy;
+          for (var ox = -1; ox <= 1; ox++, wi++) {
+            if (ny < 0 || ny >= h) continue;
+            var nx = (bx + ox + w) % w;
+            var j = (ny * w + nx) * 3;
+            var wt = weights[wi];
+            r += rgb[j] * wt;
+            g += rgb[j + 1] * wt;
+            b += rgb[j + 2] * wt;
+            sum += wt;
+          }
         }
+        var o = (by * w + bx) * 4;
+        out[o] = Math.round(r / sum);
+        out[o + 1] = Math.round(g / sum);
+        out[o + 2] = Math.round(b / sum);
+        out[o + 3] = 255;
       }
-      var o = (by * w + bx) * 4;
-      out[o] = Math.round(r / sum);
-      out[o + 1] = Math.round(g / sum);
-      out[o + 2] = Math.round(b / sum);
-      out[o + 3] = 255;
+    }
+    if (pass < extraBlur) {
+      for (var q = 0; q < w * h; q++) {
+        rgb[q * 3] = out[q * 4];
+        rgb[q * 3 + 1] = out[q * 4 + 1];
+        rgb[q * 3 + 2] = out[q * 4 + 2];
+      }
     }
   }
   return out;

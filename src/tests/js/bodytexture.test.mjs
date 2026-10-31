@@ -106,6 +106,32 @@ test("a dry airless world shows craters; the same world with air does not", () =
   assert.notEqual(P.solidFingerprint(dry, 128, 64), P.solidFingerprint({ ...dry, atm: true }, 128, 64));
 });
 
+test("a look with no air fields paints as before, and a thick veil tints toward the sky colour and flattens the ground", () => {
+  const w = 64, h = 32;
+  const plain = { ...EARTHLIKE, atm: true, tempK: 320 };
+  assert.equal(P.solidFingerprint(plain, w, h), P.solidFingerprint({ ...plain, veil: 0, haze: 0 }, w, h));
+  const veiled = P.paintSolid({ ...plain, veil: 1, glow: "#ff8a30" }, w, h);
+  const bare = P.paintSolid(plain, w, h);
+  let r = 0, b = 0, br = 0, bb = 0, spread = 0, bareSpread = 0;
+  for (let i = 0; i < w * h; i++) { r += veiled[i * 4]; b += veiled[i * 4 + 2]; br += bare[i * 4]; bb += bare[i * 4 + 2]; }
+  assert.ok(r / b > br / bb * 1.2, "redder than the bare ground");
+  const mean = (px) => px.reduce((t, v, i) => (i % 4 === 3 ? t : t + v), 0) / (w * h * 3);
+  const sd = (px) => Math.sqrt(px.reduce((t, v, i) => (i % 4 === 3 ? t : t + (v - mean(px)) ** 2), 0) / (w * h * 3));
+  assert.ok(sd(veiled) < sd(bare), "less contrast");
+});
+
+test("a haze softens, and a cloud layer whitens by its cover", () => {
+  const w = 64, h = 32;
+  const plain = { ...EARTHLIKE, atm: true, tempK: 320 };
+  assert.notEqual(P.solidFingerprint(plain, w, h), P.solidFingerprint({ ...plain, haze: 0.9 }, w, h));
+  const none = P.paintSolid(plain, w, h);
+  const clouded = P.paintSolid({ ...plain, cloudCover: 0.6, cloudTau: 8 }, w, h);
+  const total = (px) => px.reduce((t, v, i) => (i % 4 === 3 ? t : t + v), 0);
+  assert.ok(total(clouded) > total(none), "brighter with cloud");
+  const solid = P.paintSolid({ ...plain, cloudCover: 1, cloudTau: 20 }, w, h);
+  assert.ok(total(solid) > total(clouded), "full cover is whiter still");
+});
+
 // --- Stars (MAP.276) ---------------------------------------------------------
 
 const S = await importPage("starpaint.js");
