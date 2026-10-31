@@ -2084,3 +2084,4 @@ Baseline: PR #1817.
 | MAP.355 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | GEN.934 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | OPS.80 | 8.2 | Robust tile caching |
+| OPS.81 | 8.2 | Robust tile caching |
