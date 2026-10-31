@@ -2,6 +2,16 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2896] - 2026-10-31
+
+**Headline:** A galaxy of more than 30 billion solar masses of stars now gets a lighter, more realistic dark matter halo, drawn from the halo mass function instead of from the inverse of the median relation.
+
+### Changed
+- **Halo mass of a galaxy from the halo mass function (GEN.1154, from the GEN.399 check).** The halo mass of a galaxy is now drawn from the halos that hold its stellar mass: the halo mass function of Tinker et al. 2008 (on the Eisenstein and Hu 1998 power spectrum, Planck 2013 cosmology) times the 0.15 dex scatter of the Moster, Naab and White 2013 relation, taken at a seeded share. The first build inverted the median relation and added a Gaussian, which put the halo as much as 0.35 dex too heavy at 2e11 solar masses of stars because it ignored that heavy halos are rare. The typical halo changes by under 0.01 dex up to 2e10 solar masses of stars (the 3e9 to 6e9 automatic range moves 0.008 dex), by 0.06 dex at 4e10, 0.17 dex at 6e10, 0.28 dex at 1e11 and 0.35 dex at 2e11. The virial radius, the concentration and everything that reads the halo (enclosed mass, satellites, natal kick escape speed, the halo track of the disc history) follow from the lighter halo. `median_halo_mass` is now the median of the conditional; `effective_halo_scatter_dex` and `stellar_halo_slope` are gone.
+
+### Added
+- **Halo mass function (GEN.1154).** `galaxy/halo_function.py`: Tinker et al. 2008's fit interpolated in overdensity, sigma(M) from the Eisenstein and Hu 1998 no-wiggle transfer function normalised to sigma_8 = 0.8344, and the quantile of the conditional halo mass of a stellar mass. Stand-ins HF1 to HF4 in section 6.127 of the gap-filling plan.
+
 ## [8.0.2895] - 2026-10-31
 
 **Headline:** Class Q is gone, class V starts at 2 g, and the class lines are redrawn from conditions (a new deep-frozen class E), so temperate worlds can finally be class M.
