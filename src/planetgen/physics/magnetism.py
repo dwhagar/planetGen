@@ -23,9 +23,12 @@ section 3.5 (design defaults):
 2. **Rotation.** Slow rotation makes the field multipolar: `Ro_l = 0.09 (P /
    24 h)^1.23` and `f_dip = 0.15 + 0.85 / (1 + (Ro_l / 0.12)^4)`. A tidally
    locked M-dwarf planet keeps about 0.15 of its moment in the dipole.
-3. **Giants.** Always magnetized: log-log between Neptune (3e24 at 17 Earth
-   masses), Saturn (5e25 at 95) and Jupiter (1.5e27 at 318), linear in mass
-   above, log-normal 0.4 dex.
+3. **Giants.** Always magnetized. A gas giant's or brown dwarf's moment is made in its metallic layer (`giant_dynamo.giant_field`,
+   GEN.809): the layer's radii and mass come from the interior the body was drawn with, the power is the share of the heat the
+   giant radiates (`giant_draw.own_flux_w_m2`) that drives it, and the Rossby number of its spin sets the dipole's share. A
+   giant with no placed dynamo layer (an ice giant, whose layers carry no radii until `giant_structure`, GEN.733, is wired) keeps
+   the moment between Neptune (3e24 at 17 Earth masses), Saturn (5e25 at 95) and Jupiter (1.5e27 at 318), linear in mass above,
+   log-normal 0.4 dex.
 4. **Moons.** A rocky moon of at least 0.02 Earth masses is Ganymede-like
    with a chance of 0.1 (1.3e20, log-normal 0.7 dex); any other has none.
 5. **Magnetopause.** `R_mp / R_p = 9.75 (M_dip f_dip / M_earth)^(1/3)
@@ -53,7 +56,7 @@ Earth's) or multipolar (`f_dip` under 0.5).
 import math
 
 from planetgen import tuning
-from planetgen.physics import activity, constants, dynamo
+from planetgen.physics import activity, constants, dynamo, giant_draw, giant_dynamo, giant_interior
 from planetgen.util import draw
 from planetgen.physics import unit_registry as units
 
@@ -148,8 +151,11 @@ def dipole_share(rotation_period_hours):
 
 
 def body_dipole_share(body):
-    """`dipole_share` for a rocky planet; giants and moons keep a dipole."""
-    if body.body_type == "g" or body.is_moon:
+    """`dipole_share` for a rocky planet; a moon keeps a dipole, and a giant its dynamo's (`giant_dynamo`) or all of it."""
+    if body.body_type == "g":
+        found = giant_field(body)
+        return found.field.dipole_fraction if found is not None else 1.0
+    if body.is_moon:
         return 1.0
     return dipole_share(body.rotation_period_hours)
 
@@ -165,6 +171,18 @@ def _giant_moment(mass_earth):
             f = (math.log(mass_earth) - math.log(m0)) / (math.log(m1) - math.log(m0))
             return math.exp(math.log(b0) + f * (math.log(b1) - math.log(b0)))
     return anchors[-1][1]
+
+
+def giant_field(body):
+    """The `giant_dynamo.GiantField` of a giant from its stored interior, radius, own heat and spin, or `None` when its interior is not
+    stored or has no placed dynamo layer."""
+    interior = giant_interior.interior_of(body)
+    rotation_hours = getattr(body, "rotation_period_hours", None)
+    if interior is None or not rotation_hours:
+        return None
+    radius_m = body.radius * constants.KM_TO_M_FACTOR
+    radiated_w = giant_draw.own_flux_w_m2(body) * 4.0 * math.pi * radius_m ** 2
+    return giant_dynamo.giant_field(interior, radius_m, radiated_w, giant_dynamo.spin_rad_s(rotation_hours))
 
 
 def mobile_lid_chance(body, mass_earth):
@@ -203,7 +221,8 @@ def generate_field(body):
     mass_earth = _kg_to_mearth(body.mass)
     age_gy = getattr(body.star, "age", None) or 0.0
     if body.body_type == "g":
-        moment = _giant_moment(mass_earth) * _log_normal(0.4)
+        found = giant_field(body)
+        moment = found.field.moment_a_m2 if found is not None else _giant_moment(mass_earth) * _log_normal(0.4)
     elif body.is_moon:
         ganymede = mass_earth >= GANYMEDE_MIN_MASS_EARTH and draw.random() < GANYMEDE_CHANCE
         moment = GANYMEDE_MOMENT_A_M2 * _log_normal(0.7) if ganymede else 0.0
