@@ -14,6 +14,7 @@ The terms come from `help_registry.terms()`, so each part of the program says wh
 * A term matches whole words only, case exactly, and the longer of two overlapping terms wins. A term with an `after` prefix ("Class "
   before a bare life class number) matches only when that text comes right before it, and the prefix stays outside the link.
 * A page does not link to itself.
+* A page's markup can switch the linker off for a stretch with the comments `<!--autolink:off-->` and `<!--autolink:on-->`.
 
 `link_page(html, terms, url_of, own_url=None)` changes only what is between `<main` and `</main>`. `link(fragment, ...)` works on a
 fragment. Pure functions, no Flask.
@@ -31,6 +32,11 @@ SKIP = frozenset({
     "svg", "head", "header", "nav", "footer", "sl-menu", "sl-menu-item", "sl-dropdown", "sl-button", "sl-select", "sl-input", "code", "pre",
 })
 """frozenset: The tags whose text is never linked (and the content of which is not scanned)."""
+
+OFF = "autolink:off"
+ON = "autolink:on"
+"""str: The HTML comments a page's markup can use to keep the linker out of a stretch of text (`<!--autolink:off-->` ... `<!--autolink:on-->`), for
+text that is a name or a quotation and must stay as written. They nest."""
 
 _VOID = frozenset({"area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "source", "track", "wbr"})
 
@@ -80,6 +86,10 @@ class _Linker(HTMLParser):
 
     def handle_comment(self, data):
         self.out.append(f"<!--{data}-->")
+        if data.strip() == OFF:
+            self.skip += 1
+        elif data.strip() == ON and self.skip:
+            self.skip -= 1
 
     def handle_decl(self, decl):
         self.out.append(f"<!{decl}>")

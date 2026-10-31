@@ -60,3 +60,9 @@ def test_the_registered_life_terms_link_a_real_class_id():
     terms = help_registry.terms()
     html = autolink.link_page("<main><p>Class 4c life.</p></main>", terms, lambda t: "/p/" + str(t.values.get("number")))
     assert '<a href="/p/4">4c</a>' in html
+
+
+def test_a_comment_pair_keeps_the_linker_out_of_the_text_between_them():
+    html = run("<p>4c <!--autolink:off-->4c<!--autolink:on--> 4c 4c</p>")
+    assert "<!--autolink:off-->4c<!--autolink:on-->" in html
+    assert html.count('">4c</a>') == 2
