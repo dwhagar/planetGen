@@ -78,7 +78,7 @@ def present_state(star, distance, lower_limit, upper_limit, primordial_earth=Non
 def _present_state(star_mass_kg, snow_line_au, age_gy, metal_ratio, distance, lower_limit, upper_limit, primordial_earth):
     """`present_state` on the numbers it reads (so the same belt asked for again, by the builder and by the belt itself, is settled once)."""
     law = belt_ledger.ICY_LAW if distance >= snow_line_au else belt_ledger.ROCKY_LAW
-    stream = draw.Stream(f"belt-largest:{distance!r}:{lower_limit!r}:{upper_limit!r}:{star_mass_kg!r}")
+    stream = draw.Stream(f"belt-largest:{distance!r}:{lower_limit!r}:{star_mass_kg!r}")   # not the outer limit: a belt cut back keeps its own draw
     mass_kg, density, settled = belt_ledger.belt_state(lower_limit, upper_limit, star_mass_kg, snow_line_au, metal_ratio, age_gy, law, stream, primordial_earth)
     return (0.0 if settled is None else settled.largest_km), mass_kg, density
 
