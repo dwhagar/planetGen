@@ -151,12 +151,6 @@ def abundance_key(uid=None, mass=None, distance_ly=None, bright_seed=None, group
     return f"{mass!r}:{distance_ly!r}"
 
 
-def cluster_key(seed):
-    """The key a cluster's stars share (`abundance:cluster:{seed}`): the draws are shared, so only the [Fe/H]-dependent means move
-    from one star to the next."""
-    return f"cluster:{seed}"
-
-
 def key_draws(key):
     """The draws of `key`: a stream of its own, `abundance:{key}`, drawn in the order of `StarDraws`."""
     stream = draw.Stream(f"abundance:{key}")

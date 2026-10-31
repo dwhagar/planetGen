@@ -43,7 +43,6 @@ def test_the_key_prefers_the_group_then_the_bright_seed_then_the_uid_then_the_qu
     assert sc.abundance_key(uid=5, mass=1.0, distance_ly=3.0, bright_seed=7) == "bright:7"
     assert sc.abundance_key(uid=5, mass=1.0, distance_ly=3.0) == "5"
     assert sc.abundance_key(mass=1.0, distance_ly=3.0) == "1.0:3.0"
-    assert sc.cluster_key(11) == "cluster:11"
     with pytest.raises(sc.StarMakeupError):
         sc.abundance_key(mass=1.0)
 
@@ -129,7 +128,7 @@ def test_the_members_of_a_group_share_the_branch_and_the_offsets_and_take_their_
 
 
 def test_the_stars_of_a_cluster_share_their_residuals_and_only_the_means_move():
-    key = sc.cluster_key(33)
+    key = "cluster:33"  # the key a cluster's stars share: the draws are shared, only the [Fe/H]-dependent means move
     one = sc.star_makeup(sc.MAIN_SEQUENCE, -1.5, 12.0, 0.8, key)
     other = sc.star_makeup(sc.MAIN_SEQUENCE, -1.6, 12.0, 0.7, key)
     assert one.draws == other.draws and one.branch == other.branch == sa.BRANCH_HIGH_ALPHA
