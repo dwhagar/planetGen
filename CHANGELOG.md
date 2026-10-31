@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2920] - 2026-10-31
+
+**Headline:** The star sheet now says when a star on the asymptotic giant branch has become a carbon star or an S star.
+
+### Added
+- **Carbon or S star row (GEN.1026).** A star on the asymptotic giant branch of 1.0 to 4.0 solar masses that has run enough thermal pulses to dredge carbon up shows "S star" while its carbon-to-oxygen ratio is from 0.9 to 1 and "carbon star" from 1 up; metal-poor stars turn carbon-rich at lower mass and sooner. Worked out when the sheet is made, nothing stored.
+
 ## [8.0.2919] - 2026-10-31
 
 **Headline:** The star sheet now says when a star is a Cepheid, a Mira-type variable, a T Tauri star or a Herbig Ae/Be star.
