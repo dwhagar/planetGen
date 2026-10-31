@@ -14953,7 +14953,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Star 2, train 9.
   Prerequisites: none. Related: GEN.1024, PERF.218.
 
-- [ ] **PERF.225 The galaxy shape's cluster field is kept in a file across processes, so a fresh web daemon reads it instead of rebuilding it in about 56 seconds**
+- [ ] **PERF.225 The galaxy shape's cluster field is built by a queued job in small saved chunks and kept between requests, so no web request rebuilds it (about 56 seconds)**
   Boss (2026-10-31, 5:47 PM EDT, the memory and request-timeout thread
   on hal; PR #4626 added the refuse-while-rebuilding guard and left this
   open): `GET /api/galaxy/shape` took 56 to 65 s on a cold web daemon,
@@ -14962,27 +14962,64 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   every process (the cache `_FIELD_BY_SIGNATURE` lives in one process).
   The daemon's request limit is 60 s, so a fresh daemon sits just under
   it, and past it every request in flight is cut off. #4626 only refuses
-  the build while a rebuild is flagged. Do: keep the built field across
-  processes under the same signature the in-process cache already uses
-  (database, row count, first and last id, mass sum, edge and expected
-  count), read first from a file in the state folder
-  (`settings.state_dir()`, as the preview-card cache does), named by
-  that signature and written atomically. A file survives a Redis flush
-  or restart, takes none of Redis's memory (a run already ran out of it
-  under noeviction), and needs no migration, so it is lock-free. The
-  `planetgen warm` process builds and writes it, and a generation run
-  rebuilds it once at its end, so a fresh daemon only reads it (the
-  cache-refusal thread's recommendation, 5:52 PM EDT 2026-10-31). A file
-  of another signature is ignored and replaced, a file that is missing
-  or cannot be read falls back to building in process, and old files are
-  removed. Redis is not the store; a table only if a file cannot hold it
-  (a table needs a migration and rides a train). Done: a test that a
-  second process (a fresh interpreter) reads the field from the file
-  without building it, that a changed `galaxy_components` table gets a
-  new file and drops the old one, and that a missing or damaged file
-  still returns the field; a measured cold `GET /api/galaxy/shape` under
-  5 s on a populated database. Lock-free, no epoch, generation output
-  unchanged. Owner: Core 1 (waiting lane; knows the store). Version 8.1.
+  the build while a rebuild is flagged. Boss decision (2026-10-31, 5:56
+  PM EDT, as the coordinator relayed; replaces the earlier plan, and
+  reverses the earlier advice against chunking): "The site isn't yet in
+  production so, I don't mind waiting for the fix, so here's what I want
+  to do... Both the warmup job goes into the queue under 1 line (i.e.
+  not fully parallelized) and it's broken into chunks so that each one
+  writes a part of the data and each can finish in under the limit no
+  matter how slow the system is or how bogged down it is with other
+  tasks. And save the data between API requests so it doesn't have to
+  rebuild it." Correctness over speed. Do: (1) the warm-up job that
+  builds the field is one job on the one waiting line
+  (`planetgen.queue.runline`, PERF.154), run one at a time and never in
+  parallel with other work. (2) The build is cut into small chunks (for
+  example the per-component profile tables in batches, then the index
+  and grouping steps of `ComponentField`), and each chunk computes its
+  part and writes it to the saved store before it ends, so each finishes
+  far under the 60 s limit however slow or busy the machine is. Chunks
+  are resumable: a rerun or the next chunk picks up after the last
+  finished one, and a part that was not finished is never read as
+  complete (write to a temporary name, rename when whole, and mark the
+  set complete only when the last chunk and the assembly are done). (3)
+  The assembled field is saved in the state folder
+  (`settings.state_dir()`, as the preview-card cache does), named by the
+  signature the in-process cache already uses (database, row count,
+  first and last id, mass sum, edge and expected count), and an API
+  request only reads it: a request that finds no complete field for the
+  current signature never builds it, it answers the same fast 503 as the
+  guard of #4626 and asks for the warm-up job. A file of another
+  signature is ignored and replaced, and old files are removed. The
+  `planetgen warm` run and the end of a generation run queue the job.
+  Files in the state folder need no migration; if the chunk store needs
+  a table, say so on this item first, because a migration rides a train.
+  From the cache-refusal thread (relayed 5:56 PM EDT 2026-10-31). First
+  step: time which lines dominate on hal's data before choosing slice
+  sizes, and also time `db/query.galaxy_density_shape`,
+  `with_system_richness` and `shell_specs`, which `/api/galaxy/shape`
+  runs too. Split: in `galaxy/component_field.py` the per-row work
+  (family and population shares, scale radius, central density over mean
+  system mass, the density table from `component_profiles.table_for`) is
+  independent per row, so slice the rows, one chunk per slice, each
+  writing its own part file; the reach grouping and spatial index
+  (`_qualifying_reach`, `_group_by_reach`, `_build_index`) run once in a
+  final chunk. Publishing: the assembled file is published by atomic
+  rename only after the last chunk, with the signature inside it. The
+  503 rule, changed in #4626's `cachebuild.refuse_expensive_build`: the
+  daemon's `_component_field` miss path loads the saved file when its
+  signature matches, and otherwise always raises the same
+  CacheRebuilding 503; it never builds and never serves a partial field,
+  and only the warm chunks may build. Done: a test that each chunk ends
+  within a stated small budget on a populated database, that a job
+  stopped between chunks resumes and gives the same field as an
+  uninterrupted build, that a half-written part is never read as
+  complete, that a changed `galaxy_components` table gets a new file and
+  drops the old one, and that a second process (a fresh interpreter)
+  reads the saved field without building it; a measured cold `GET
+  /api/galaxy/shape` under 5 s after the job. Lock-free and no epoch
+  (generation output unchanged), unless the chunk store needs a
+  migration. Owner: Core 1 (waiting lane; knows the store). Version 8.1.
   Prerequisites: none. Related: PERF.219, PERF.220.
 
 ## DB: Database and schema
