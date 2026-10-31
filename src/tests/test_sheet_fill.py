@@ -130,6 +130,38 @@ def test_a_generated_body_stores_porosity_and_high_pressure_ice_wherever_the_she
     assert seen["light"] > 0 and seen["heavy"] > 5
 
 
+def test_a_giant_keeps_no_starlight_while_its_moons_and_a_rocky_planet_do():
+    """GEN.784: `insolation` and `habitability_world` leave a giant's `energy_flux_w_m2` and `flux_variation` none; every other planet and moon stores them."""
+    for key in ("energy_flux_w_m2", "flux_variation"):
+        assert not sheet.applies("planet", "J", key, {}) and not sheet.applies("planet", "I", key, {})
+        assert sheet.applies("planet", "N", key, {}) and sheet.applies("moon", "D", key, {})
+        assert ("planet", key) not in sheet.OPEN_GAPS and ("moon", key) not in sheet.OPEN_GAPS
+
+
+def test_a_placed_star_stores_its_rate_of_lethal_galactic_events(mysql_config):
+    """GEN.785: the rate is worked out from the star's place in the galaxy (`activity.set_galactic_hazard`) and stored with the star; only a system
+    built with no place has none, which no galaxy produces."""
+    from planetgen.db import store
+    from planetgen.generation.config import SystemConfig
+    from planetgen.generation.system import StarSystem
+    from planetgen.util import draw
+    assert ("star", "lethal_event_rate_per_gyr") not in sheet.OPEN_GAPS
+    rates = {}
+    for placed in (True, False):
+        draw.set_run_seed(7100)
+        config = SystemConfig()
+        system = StarSystem(system_config=config, **({"galactic_center_dist_ly": support.SAMPLE_GALACTIC_DISTANCE_LY} if placed else {}))
+        system_id = store.save_system(system, config, config=mysql_config)
+        conn = store.get_connection(mysql_config)
+        try:
+            rates[placed] = [row["lethal_event_rate_per_gyr"] for row in conn.execute(
+                "SELECT lethal_event_rate_per_gyr FROM stars WHERE star_system_id = ?", (system_id,)).fetchall()]
+        finally:
+            conn.close()
+    assert rates[True] and all(rate is not None and rate > 0.0 for rate in rates[True])
+    assert all(rate is None for rate in rates[False])
+
+
 def test_star_and_comet_rules():
     key = "wide_binary_a_crit_km"
     assert sheet.applies("star", "M", key, {"role": "primary", "binary_configuration": "wide"})

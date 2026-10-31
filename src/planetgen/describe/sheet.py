@@ -795,6 +795,9 @@ _BODY_RULES = [
      "a giant has no surface: no ocean, rock chemistry, ground dose, habitability score, life or surface temperature"),
     (_AIR, lambda klass, row: klass not in AIRLESS_CLASSES and (row is None or (row.get("atmospheric_pressure_pa") or 0) > 0),
      "a dead world, a small icy body and an airless super-Earth, and any body whose air has gone to nothing, have no air column to give a density, scale height or haze"),
+    (("energy_flux_w_m2", "flux_variation"), lambda klass, row: klass not in GIANT_CLASSES,
+     "a giant is not scored for habitability, so it keeps no starlight or seasonal swing of its own (`insolation` and `habitability_world` leave them none); "
+     "its moons, which are scored in its light, store the flux they receive and the swing"),
     (("lid_regime",), lambda klass, row: klass not in GIANT_CLASSES,
      "a giant has no lid: only a rocky or icy body has a crust over a mantle"),
     (("tidal_flux_w_m2",), lambda klass, row: klass not in GIANT_CLASSES,
@@ -875,10 +878,7 @@ apply elsewhere. A column no rule names applies to every class of its kind, so o
 generation pathway, not a rule."""
 
 
-OPEN_GAPS = {
-    **{(kind, key): item for kind in ("planet", "moon") for key, item in (
-        ("energy_flux_w_m2", "GEN.784"), ("flux_variation", "GEN.784"))},
-}
+OPEN_GAPS = {}
 """dict: The columns known to be empty where they apply (UX.208), `{(kind, key): item id}`: each is a gap in the generation
 pathway, filed as the item named, and excused until that item is done. The fill audit (`tests/test_sheet_fill.py`) fails
 for an empty applicable column that is not here, and the item's owner removes its entry when the column is filled."""

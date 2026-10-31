@@ -10915,32 +10915,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   it, confirmed with TODO, one lock-free item at a time.
   Prerequisites: POP.16. Related: GEN.725, GEN.772.
 
-- [ ] **GEN.784 Fill energy_flux_w_m2 and flux_variation for giant planets: internal and absorbed energy flux and its variation (never filled for classes I, J, T)**
-  Aux 11 UX.208 fill audit (merged #3205, relayed 9:46 PM EDT 2026-10-24
-  as the lane reported; reports/sheet-fill-summary-2026-10-25.md, full
-  table reports/sheet-fill-report-2026-10-25.md, 400 systems from seed
-  1000): Empty for 464 class I, 483 class J and 1 class T planets. Done:
-  the column is filled for every body the sheet rule says it applies to,
-  or the sheet rule is changed to say why it does not apply (a sentence
-  of reason in describe/sheet.py APPLIES), and the UX.208 test lists no
-  empty applicable pair for it; a drawn or computed value has a source
-  and a GEN.725 registry row with tier and tweak level, a unit (GEN.772)
-  and a column_units entry; a change to generated output carries
-  `tests.golden_update --reason ... --affects <stage>` and the next
-  epoch; tests are `scripts/test.py changed --resume`. Version 8.1, with
-  UX.208. Suggested owner: Aux 5 (heat and dose).
-  Owner (full build) (2026-10-29 8:30 PM EDT): Aux 3. This replaces any
-  earlier owner line (pool, unowned, retired lane or 'after 8.1'). If it
-  is already started elsewhere, the lane tells TODO before taking it.
-  Lock-free parts first; the part that changes generated output rides a
-  train.
-  Data we hold (2026-10-29 8:55 PM EDT): Fortney 2007 giant radii are
-  transcribed in full (physics/giant_radius_tables.py); Lopez and
-  Fortney 2014 and Zeng and Sasselov 2013 enter as laws; Core 4's parked
-  branch holds the H-He table reader. Hydrogen-helium EOS tables are not
-  held otherwise. Catalog sections 3 and 4.
-  Prerequisites: none. Related: UX.208, GEN.725.
-
 - [ ] **GEN.798 Design: resource locations (what counts as a valuable resource, how a belt, field, giant or icy body is scored, the sources and the stand-in tiers)**
   Boss, 10:29 PM EDT 2026-10-24 (relayed by the coordinator): "For 8.2,
   asteroid belts or fields that have valuable materials (gold, minerals,
@@ -19475,15 +19449,6 @@ clears each one.
   expectation, or a bug in the runaway history. Fix lock-free if no
   generated value changes; else list it train-bound.
   Prerequisites: none.
-
-- [ ] **TEST.506 test_no_todo_codes_shown fails on main: GEN.1128 shows in the --help text of planetgen/cli/generate.py (line 696) and of the sectors and galaxy commands (bug)**
-  Found by the GEN.753 stars and galaxy validation sweep (Sources 2,
-  reports/gen753-stars-galaxy-validation-2026-10-31.md; PR #4329 added
-  the agreeing statistics as tests). A todo code must never appear in
-  user-facing help text. Replace the code in those help strings with a
-  plain description of the feature (no item ids), and run
-  test_no_todo_codes_shown to confirm. Lock-free, test and text only.
-  Prerequisites: none. Related: GEN.1128.
 
 ## USR: User accounts
 
