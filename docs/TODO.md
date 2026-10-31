@@ -2335,6 +2335,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   path from galaxy to region to sector that always works at every zoom.
   Reproduce first on the live data, then fix; a browser test walks
   galaxy to a charted sector.
+  Boss, 9:00 PM EDT: from the galactic view the
+  largest region with filled-in sectors appears as a point of interest
+  with a link that zooms in as close as possible (the frame that holds
+  the whole region).
   Prerequisites: none.
 
 - [ ] **MAP.358 The View system and Expand buttons of the sector info display cannot be seen or reached (bug)**
