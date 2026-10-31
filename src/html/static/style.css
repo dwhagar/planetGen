@@ -20,6 +20,8 @@
   --tier-green: #1f7a3d;
   --tier-yellow: #8a6500;
   --tier-red: #c22b3a;
+  --references-bg: #e9f1f6;
+  --references-border: #9bbad0;
   /* MAP.320: the point-of-interest tokens that no habitability score colours. Brown and grey are chosen to differ in
      lightness (CIE L*) from all four tiers, so they never read as one of them to a viewer who cannot tell the hues
      apart, and each clears 3:1 against the page (WCAG 1.4.11; src/tests/test_poi_icons.py holds both). */
@@ -64,6 +66,8 @@
     --tier-green: #5fcf86;
     --tier-yellow: #e8c24a;
     --tier-red: #ff6b7a;
+    --references-bg: #1b2733;
+    --references-border: #3d5873;
   --poi-brown: #9c6b3f;
   --poi-grey: #6f7486;
   --poi-gas: #4fc3cc;
@@ -89,6 +93,8 @@
   --tier-green: #5fcf86;
   --tier-yellow: #e8c24a;
   --tier-red: #ff6b7a;
+  --references-bg: #1b2733;
+  --references-border: #3d5873;
   --poi-brown: #9c6b3f;
   --poi-grey: #6f7486;
   --poi-gas: #4fc3cc;
@@ -5830,6 +5836,22 @@ p.hint a {
   border-bottom: 1px solid var(--border);
   padding: 0.2rem 0.75rem 0.2rem 0;
   text-align: left;
+}
+
+/* The References pages (DOC.88) are out of universe: a banner opens each page and the header takes another tint, so a reader always
+   knows they have left the story. */
+.out-of-universe-banner {
+  margin: 0 0 1rem;
+  padding: 0.6rem 0.9rem;
+  background: var(--references-bg);
+  border: 1px solid var(--references-border);
+  border-left-width: 0.4rem;
+  border-radius: var(--radius);
+}
+
+.app.references-mode .site-header {
+  background: var(--references-bg);
+  border-bottom-color: var(--references-border);
 }
 
 .life-facts,

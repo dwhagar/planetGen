@@ -151,9 +151,11 @@ def words(sentence):
     return sentence.split()
 
 
-def check_sentence(sentence):
+def check_sentence(sentence, references=False):
     """
-    The rules one sentence breaks, as `[(rule, detail)]` (empty when it keeps them all). The rules:
+    The rules one sentence breaks, as `[(rule, detail)]` (empty when it keeps them all). `references=True` reads a sentence of a References
+    page (`/references`, DOC.88), where the process words of `OUT_OF_UNIVERSE` (stand-in, tweak, epoch, placeholder) are allowed and every
+    other rule still holds. The rules:
 
     * `length`: more than `MAX_WORDS` words;
     * `ideas`: more than `MAX_SEMICOLONS` semicolons;
@@ -169,6 +171,8 @@ def check_sentence(sentence):
     if sentence.count(";") > MAX_SEMICOLONS:
         found.append(("ideas", f"{sentence.count(';')} semicolons (the most is {MAX_SEMICOLONS})"))
     for pattern, phrase, plain in _BANNED:
+        if references and phrase in OUT_OF_UNIVERSE:
+            continue
         if pattern.search(sentence):
             found.append(("banned", f"{phrase!r}: write {plain}"))
     for digits, letter in _CLASS_NAME.findall(sentence):

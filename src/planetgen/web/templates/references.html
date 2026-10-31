@@ -1,0 +1,26 @@
+{#- The References pages (/references, web/references_pages.py, web/lib/references_site.py, DOC.88): the one section that speaks out of universe. -#}
+{% extends "base.html" %}
+{% block body_class %} references-mode{% endblock %}
+{% block content %}
+<aside id="out-of-universe-banner" class="out-of-universe-banner" role="note"><strong>{{ banner }}.</strong> {{ banner_text }}</aside>
+<section class="panel" id="references" aria-labelledby="references-heading">
+  <div class="panel-header"><h2 id="references-heading">{{ page.title }}</h2></div>
+  {%- for paragraph in page.intro %}<p>{{ paragraph }}</p>{% endfor %}
+</section>
+{%- for section in page.sections %}
+<section class="panel" id="{{ section.id }}" aria-labelledby="{{ section.id }}-heading">
+  <div class="panel-header"><h2 id="{{ section.id }}-heading">{{ section.heading }}</h2></div>
+  {%- for paragraph in section.paragraphs %}<p>{{ paragraph }}</p>{% endfor %}
+  {%- if section.table %}
+  <div class="table-scroll" tabindex="0"><table>
+    <thead><tr>{% for head in section.table.head %}<th scope="col">{{ head }}</th>{% endfor %}</tr></thead>
+    <tbody>
+      {%- for row in section.table.rows %}
+      <tr>{% for cell in row %}{% if loop.first %}<th scope="row">{{ cell }}</th>{% else %}<td>{{ cell }}</td>{% endif %}{% endfor %}</tr>
+      {%- endfor %}
+    </tbody>
+  </table></div>
+  {%- endif %}
+</section>
+{%- endfor %}
+{% endblock %}
