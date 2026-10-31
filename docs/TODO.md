@@ -14742,19 +14742,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   train window.
   Prerequisites: none. Related: GEN.1146, GEN.1142, GEN.909.
 
-- [ ] **GEN.1148 Asteroid belt share fell from 55 percent of systems to 3 percent and binary share rose from 24 percent to 31.5 percent between the census before trains 3 and 4 and current main (Bug 2 census); find out whether each is the intended change or a bug (bug)**
-  Bug 2 measured these in the prevalence suite (PREVALENCE_BASE_SHARES,
-  #4251). A belt cut was decided (belt mass cut is the rule) but 55 to 3
-  percent is far larger than a mass cut should do unless the cut removes
-  small belts the old rule counted. For each shift name the change that
-  caused it (bisect by merge), say whether the new value is what the
-  physics and the belt rule give, and if not file the fix. Binary share:
-  the star mass function epoch changed the draw, so say whether 31.5
-  percent matches the multiplicity sources. Report numbers per version
-  of main, no fix without the cause. Source: prevalence census
-  (TEST.430).
-  Prerequisites: none.
-
 - [ ] **GEN.1150 Lagrange trojans T2: the generator draws a trojan swarm at the L4 and L5 of each giant planet or brown dwarf from the scatter trojan share; new columns co_orbital_host_id, lagrange_point, libration amplitude and phase (db/column_units.py); orbit updater libration overlay; the object and sector pages and the designation rule "<host> L4 trojan region"**
   Epoch lock, migration, --affects on the generator and orbit-tree
   tests. Train 8 with belts, clearance and the region store. Report
@@ -14812,6 +14799,28 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GM14. Lock-free until the wiring (GEN.1016 wiring, train 11) uses it.
   Source: reports/gen1016-quadruple-need-2026-10-30.md.
   Prerequisites: none.
+
+- [ ] **GEN.1156 Belt rate after the GEN.728 disc architecture is 3 to 12 percent of systems: Boss decides between raising the per-slot chance, a belt as its own disc component, or keeping it**
+  From Aux 5 (GEN.1148,
+  reports/gen1148-belt-binary-shift-2026-10-31.md): belts per system
+  fell from 53 to 3 percent (11.8 percent in the fixed-type census) at
+  train 4 (GEN.728/729/730, epoch 126) because orbital slots fell from
+  10.4 to 4.2 per system and only 18 percent of slots now hold a body
+  under 1 Earth mass (eligible slots 8.5 to 0.62). That matches the 4 to
+  14 percent the GEN.728 note and
+  tests/data/prevalence_systems_expectations.json expect, but it sits at
+  the low end on the default mix. Boss decides the rate. Options, all
+  train-bound because they change output: (1) raise
+  ASTEROID_BELT_PROBABILITY (0.1) to a stated target, a stand-in at tier
+  L3 in GEN.725; (2) make the belt its own component of the disc
+  architecture, reserved when the disc leaves leftover mass, instead of
+  a slot swap (larger, physics-driven; recommended); (3) leave as is and
+  update the prevalence expectation to the measured 3 to 12 percent. Not
+  started until Boss picks. Owner Aux 5 (report), build lane by Boss's
+  choice.
+    Prerequisites: none.
+  Prerequisites: none. Related: GEN.728, GEN.729, GEN.730, GEN.1061,
+  GEN.725.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
