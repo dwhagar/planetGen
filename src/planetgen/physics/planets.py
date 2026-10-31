@@ -516,6 +516,7 @@ def calculate_atmospheric_conditions(planet, distance_override=None, host_eccent
     heat = interior_heat.update_heat(planet)
     giant = planet.body_type == "g"
     surface_w = None if giant else hydrosphere.draw_surface_water(planet)
+    planet._surface_w = surface_w                   # GEN.839: kept for `refresh_at_final_age`, not stored
     water_lost = (not giant) and hydrosphere.water_loss_kg(planet) > 0.0
 
     planet.surface_temperature = surface_temperature_no_atmosphere
@@ -533,7 +534,13 @@ def calculate_atmospheric_conditions(planet, distance_override=None, host_eccent
         planet.atm_molar_density = air.state.mean_molar_mass_kg_mol
         planet.atm_density = air.state.density_kg_m3
         planet.scale_height = _m_to_km(air.state.scale_height_m)
-        climate_draws.record(planet, albedo, air.greenhouse_factor)     # GEN.412: the two numbers the temperature is made of
+        factor = air.greenhouse_factor
+        if giant:
+            # GEN.412 reads the temperature as starlight alone times (1 + G)^(1/4); a giant also radiates its own heat, which the air's factor
+            # leaves out of T_e, so the stored G is taken against the starlight alone (GEN.1030) and the pair reproduces the temperature
+            factor = climate_draws.greenhouse_from_temperature(air.temperature_k, albedo, solar_output_at_orbit)
+            factor = air.greenhouse_factor if factor is None else max(factor, 0.0)
+        climate_draws.record(planet, albedo, factor)     # GEN.412: the two numbers the temperature is made of
         atmosphere.store_air(planet, air.partials_pa, None if giant else _mantle_redox(planet, air, distance, water_lost))
 
     # GEN.88: water, land, ice and the ocean's chemistry.
@@ -546,6 +553,29 @@ def calculate_atmospheric_conditions(planet, distance_override=None, host_eccent
     surface_composition.generate_surface(planet)
     # GEN.414: cloud, haze and dust depths, on the body's own stream (no draw of the run's moves).
     aerosols.generate_aerosols(planet)
+
+
+def refresh_at_final_age(body):
+    """
+    GEN.839: makes again, at the heat of the star's final age, what read the heat of the provisional one: the ice shell and the rest of
+    the hydrosphere (`hydrosphere.generate_hydrosphere`), the ground with its volcanism gate (`surface_composition.generate_surface`),
+    the ground dose when the ground changed (`radiation.update_ground_dose`), and the habitability score that reads them all. Called in the life pass, after
+    `interior_heat.update_heat` has run again at the final age. The draws these make (the brine, the ocean chemistry, the ground and its
+    gates) come from the body's own stream (`util.draw.Stream`, seeded from what is final about it), so no draw of the run's stream moves;
+    a body with no water drawn (a giant, a belt, or one loaded from the database) is left as it is.
+    """
+    surface_w = getattr(body, "_surface_w", None)
+    if body.body_type in ("g", "a") or surface_w is None:
+        return
+    seed = f"final-age:{body.is_moon}:{body.planet_class}:{body.mass!r}:{body.radius!r}:{body.distance!r}:{getattr(body.star, 'age', None)!r}"
+    flux = internal_heat_flux_w_m2(body)            # the heat at the star's age now (no draws; the life pass has run it already)
+    ground = surface_composition.mix_of(body)
+    with draw.bound(draw.Stream(seed)):
+        hydrosphere.generate_hydrosphere(body, flux, surface_w)
+        surface_composition.generate_surface(body)
+        if surface_composition.mix_of(body) != ground:
+            radiation.update_ground_dose(body)
+    habitability_world.generate(body, flux)
 
 
 def _mantle_redox(planet, air, distance, water_lost):
@@ -721,7 +751,7 @@ def generate_spin(planet, primary_mass_kg, birth=None, found=None):
     if not planet.is_moon:
         daylight.generate(planet)
     # GEN.86: the field depends on the rotation just set.
-    magnetism.generate_field(planet)
+    magnetism.generate_field(planet, None if planet.body_type == "g" else interior_heat.core_of(planet))
     # GEN.87: the surface dose, from the air, water and field above.
     radiation.generate_dose(planet)
     # DB.96: the atmosphere colour, from the air, the ozone and the aerosols above.

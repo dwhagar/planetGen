@@ -43,7 +43,7 @@ import math
 
 from scipy import special
 
-from planetgen.physics import constants, impact_spin, unit_registry as units
+from planetgen.physics import chemically_peculiar, constants, impact_spin, unit_registry as units
 from planetgen.util import draw
 
 _kg_to_mearth = units.converter("kg", "Mearth")
@@ -257,8 +257,8 @@ def star_rotation_period_hours(mass_kg, radius_km, temperature_k, age_gy, yerkes
     (`yerkes_class` "D...") log-normal round a day; giants and supergiants
     (`GIANT_CLASSES`) a slow log-uniform 1 to 10 km/s; cool dwarfs gyrochronology;
     the rest a hot star's log-normal speed under breakup, with the median
-    passing from one to the other across the Kraft break (GEN.1163). Never
-    faster than 85% of breakup.
+    passing from one to the other across the Kraft break (GEN.1163); an Ap or Am dwarf (`chemically_peculiar`) takes the slow period of its kind.
+    Never faster than 85% of breakup.
     """
     mass_sol = _kg_to_msun(mass_kg)
     cls = (yerkes_class or "").strip()
@@ -268,6 +268,9 @@ def star_rotation_period_hours(mass_kg, radius_km, temperature_k, age_gy, yerkes
     elif cls in GIANT_CLASSES:
         low, high = (math.log(s) for s in GIANT_SPEED_RANGE_KMS)
         period = period_hours_from_speed(radius_km, math.exp(draw.uniform(low, high)))
+    elif (peculiar := chemically_peculiar.of_star(cls, mass_kg, radius_km, temperature_k, age_gy)) is not None:
+        # GEN.1027: an Ap or Am dwarf spins slowly; its period is from the star's own keyed stream, not a draw of the run.
+        period = peculiar.period_hours
     else:
         weight = kraft_weight(temperature_k)
         colour = max(b_minus_v(temperature_k) - GYRO_C, GYRO_MIN_COLOUR_EXCESS)

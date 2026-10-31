@@ -31,7 +31,7 @@ disk); its halo is the median one for it, as the mass chain draws."""
 SHAPE = _shape(stellar_mass=MILKY_WAY_MASS)
 HALO = mass_chain.median_halo_mass(MILKY_WAY_MASS)
 FLAT = {name: (high - low) / (tuning.STAR_FORMATION_AGE_RANGE_GY[1] - tuning.STAR_FORMATION_AGE_RANGE_GY[0])
-        for name, (low, high) in ((n, tuning.STELLAR_POPULATION_AGE_RANGES_GY[n])
+        for name, (low, high) in ((n, tuning.THIN_DISC_OLD_WINDOW_GY if n == "old" else tuning.STELLAR_POPULATION_AGE_RANGES_GY[n])
                                   for n in tuning.STELLAR_POPULATION_ARM_AMPLITUDE)}
 
 

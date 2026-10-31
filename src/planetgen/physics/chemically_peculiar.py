@@ -12,11 +12,18 @@ A main-sequence star in the temperature range of the late-B to early-F stars is,
 
 `kind_of` names the kind from the star's effective temperature and one uniform number, so a star keeps its kind from that number
 (`stellar_abundances.branch_of` does the same for the alpha branch); `rotation_period_hours` and `polar_field_gauss` give the slow spin and the field
-from further uniform numbers. Nothing here is wired: part 2 draws the numbers in the star build (the rotation and the field are stored) and shows the
-flag on the sheet; it changes generated output.
+from further uniform numbers.
+
+`of_star` draws the three numbers from a stream of the star's own (keyed by its mass, temperature and age, so the same star is the same kind and has the
+same field however it is reached: a drawn star, a stored bright star's row, the sheet of a stored star). `spin.star_rotation_period_hours` takes the
+period from it for a main-sequence dwarf, so the star and its row agree, and the sheet shows the kind and the field; the field is worked out from the
+stored mass, temperature and age and is not a column.
 """
 
 import math
+from collections import namedtuple
+
+from planetgen.util import draw
 
 AP = "Ap"
 AM = "Am"
@@ -49,6 +56,12 @@ AP_POLAR_FIELD_GAUSS = (300.0, 3.0e4)
 at 34 kG); the lower edge is the survey's detection floor.]"""
 
 SOLAR_RADIUS_KM = 695700.0
+
+DWARF_CLASS = "V"
+"""str: The Yerkes class of the stars that may be peculiar: the main-sequence dwarfs."""
+
+Peculiarity = namedtuple("Peculiarity", "kind period_hours field_gauss")
+"""namedtuple: A peculiar star's kind (`AP` or `AM`), rotation period (hours) and polar field (gauss, None for an Am star)."""
 
 
 def kind_of(temperature_k, u):
@@ -89,3 +102,19 @@ def polar_field_gauss(kind, u):
     if kind == AM:
         return None
     raise ValueError(f"{kind!r} is not a chemically peculiar kind ({', '.join(KINDS)})")
+
+
+def of_star(yerkes_class, mass_kg, radius_km, temperature_k, age_gy):
+    """
+    The `Peculiarity` of a star, or None for one that is not chemically peculiar: only a main-sequence dwarf (`DWARF_CLASS`) in the temperature range of a
+    kind may be. The kind, the period and the field come from three uniform numbers of a stream keyed by the star's mass, temperature and age alone, not
+    from the draws of the run, so a star is the same kind with the same period and field every time it is built or read.
+    """
+    if yerkes_class != DWARF_CLASS or None in (mass_kg, radius_km, temperature_k, age_gy):
+        return None
+    stream = draw.Stream(f"peculiar:{mass_kg!r}:{temperature_k!r}:{age_gy!r}")
+    u_kind, u_period, u_field = stream.random(), stream.random(), stream.random()
+    kind = kind_of(temperature_k, u_kind)
+    if kind is None:
+        return None
+    return Peculiarity(kind, rotation_period_hours(kind, radius_km / SOLAR_RADIUS_KM, u_period), polar_field_gauss(kind, u_field))

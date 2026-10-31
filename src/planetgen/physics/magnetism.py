@@ -4,30 +4,24 @@ Planetary magnetic fields and the star's radiation at the planet (GEN.86).
 The rules are docs/design/habitability/activity-magnetism-radiation-hydrosphere.md
 section 3.5 (design defaults):
 
-1. **Rocky bodies.** A dynamo needs mass of at least 0.05 Earth and a core
-   mass fraction of at least 0.15. The core fraction comes from the bulk
-   density (`core_mass_fraction`): the density is uncompressed with
-   `1 + 0.25 sqrt(M)`, mixed from rock (3.3 g/cm3) and iron (7.9), and
-   scaled so Earth gives 0.325. The dynamo lasts `4 Gyr * M^0.5 *
-   U(0.5, 1.5)` (half as long under a core fraction of 0.2); the moment is
-   `7.8e22 A m2 * M * (c / 0.325)`, log-normal 0.4 dex, fading as
-   `(1 - age / tau)^0.3`. A small, iron-rich body (Mercury) gets 3e19,
-   log-normal 0.5 dex. A planet with a **stagnant lid** (one rigid plate, no
-   plate tectonics: Venus, Mars) cools its core slowly, so its dynamo lasts
-   0.4 as long (GEN.177). Plate tectonics (a mobile lid) needs a liquid surface
-   ocean to lubricate the plates: a body of 0.5 to 5 Earth masses with one has
-   a 0.6 chance of a mobile lid, a heavier one 0.3 (the literature is
-   unsettled about super-Earths, so the odds fall rather than rise), and any
-   other rocky planet is stagnant (`mobile_lid_chance`). The regime is drawn once, with the body's interior
-   (`interior_heat.generate_lid`, GEN.721), and stored as `lid_regime`; the dynamo, the heat and the ground dose read it.
-2. **Rotation.** Slow rotation makes the field multipolar: `Ro_l = 0.09 (P /
-   24 h)^1.23` and `f_dip = 0.15 + 0.85 / (1 + (Ro_l / 0.12)^4)`. A tidally
-   locked M-dwarf planet keeps about 0.15 of its moment in the dipole.
-3. **Giants.** Always magnetized: log-log between Neptune (3e24 at 17 Earth
-   masses), Saturn (5e25 at 95) and Jupiter (1.5e27 at 318), linear in mass
-   above, log-normal 0.4 dex.
-4. **Moons.** A rocky moon of at least 0.02 Earth masses is Ganymede-like
-   with a chance of 0.1 (1.3e20, log-normal 0.7 dex); any other has none.
+1. **Rocky bodies and moons.** The dynamo is the core's (GEN.838, `core_heat`): the interior heat model keeps a core temperature beside the mantle's,
+   the core loses heat across the core-mantle boundary, and the dynamo runs while that heat and the gravitational energy of the inner core's
+   growth leave power over the core's own adiabatic conduction (and the liquid shell is thick enough). The moment is the dipole of the
+   buoyancy-flux scaling of the liquid shell (`dynamo.field`: the power, the shell's radii and density, the spin), already reduced by the
+   dipole's share, with a log-normal scatter of `FIELD_SCATTER_DEX`. A dead core has no moment; a moon's core is run the same way (GEN.967 replaces
+   the Ganymede-like chance). A small, iron-rich body (Mercury) whose bulk density says so (mass 0.05 to 0.1 Earth, core fraction over 0.4) gets 3e19,
+   log-normal 0.5 dex, whatever the model says: its iron-sulfide core melts at lower temperatures than the pure iron the model has, and Mercury's
+   field is alive at 4.5 Gyr. Plate tectonics (a mobile lid) needs a liquid surface ocean to lubricate the plates: a body of 0.5 to 5 Earth masses
+   with one has a 0.6 chance of a mobile lid, a heavier one 0.3 (the literature is unsettled about super-Earths, so the odds fall rather than rise),
+   and any other rocky planet is stagnant (`mobile_lid_chance`). The regime is drawn once, with the body's interior (`interior_heat.generate_lid`,
+   GEN.721), and stored as `lid_regime`; the mantle's heat flow (and so the core's) and the ground dose read it.
+2. **Rotation.** Slow rotation makes the field multipolar: the local Rossby number of the liquid shell (`dynamo.local_rossby`) gates the dipole,
+   `f_dip = 0.15 + 0.85 / (1 + (Ro_l / 0.12)^4)` (`dynamo.dipole_fraction`), and the stored moment is the dipole's, so it already holds the share. A tidally
+   locked M-dwarf planet keeps about 0.15 of its field in the dipole.
+3. **Giants.** The field is made in the convecting layer of the stored interior (the metallic envelope of a gas giant or brown dwarf, the ionic water
+   of an ice giant's mantle), driven by a share of the heat the giant radiates (`giant_dynamo.giant_field`, `giant_heat.of`). A giant with no placed
+   layer has no field.
+4. **Moons.** See rule 1: a moon's core is run through the same model as a planet's.
 5. **Magnetopause.** `R_mp / R_p = 9.75 (M_dip f_dip / M_earth)^(1/3)
    (p_sw / 2.24 nPa)^(-1/6)`, the wind pressure scaling with the star's
    surface X-ray flux to the 1.3 (capped at 10x solar, 1x under 0.4 solar
@@ -35,7 +29,7 @@ section 3.5 (design defaults):
 6. **Induced field of an ocean moon** (GEN.178). A moon with a conducting
    liquid ocean answers its parent's changing field with an induced dipole
    (Europa and Callisto). The parent's field at the moon's orbit,
-   `mu0 M_p f_dip / (4 pi a^3)`, is seen to oscillate at the synodic period
+   `mu0 M_p / (4 pi a^3)` (the stored moment is the dipole's), is seen to oscillate at the synodic period
    `1 / |1/P_rot - 1/P_orb|` with `EXCITATION_SHARE` (0.4) of its strength,
    which gives Europa's ~200 nT amplitude for Jupiter's 1.56e27 A m2. The
    ocean answers as a thin conducting shell, `|A| = x / sqrt(1 + x^2)`,
@@ -45,15 +39,24 @@ section 3.5 (design defaults):
    intrinsic `magnetic_moment_a_m2`. `sigma` is a planetGen default per ocean
    class (`OCEAN_CONDUCTIVITY_S_M`; Europa's magnesium-sulfate ocean 2.75 S/m
    [Hand and Chyba 2007]). Nothing is drawn.
+7. **Induced field of a metal core and of a planet in its star's field** (GEN.981). The iron core of a body (`interior_heat.core_of`, whatever its dynamo
+   does: solid iron conducts as well as liquid) answers a changing field as a conducting sphere (`sphere_response`: `|F| = |1 - 3/z^2 + 3 cot(z)/z|`,
+   `z = (1 - i) a / delta`, skin depth `delta = sqrt(2 / (omega mu0 sigma))`, `sigma` `CORE_CONDUCTIVITY_S_M`), which is 1 for a core many skin depths
+   across (an Earth core at a day's period is 20 000 of them) and falls as `omega mu0 sigma a^2 / 15` for a thin one. A moon's core feels the
+   field its ocean lets through (`sqrt(1 - A^2)` of it) and its moment adds to the ocean's. A rocky planet is excited by the star's field at its orbit,
+   `IMF_EARTH_T` (5 nT) times the square root of the wind's pressure over Earth's (the field's energy a fixed share of the wind's), `STELLAR_EXCITATION_SHARE`
+   of it perpendicular to the spin, turning at the planet's synodic rotation (a tidally locked planet at the star's synodic rotation instead); its ocean
+   (a surface ocean's conductance scaled by the share of the surface it covers) and its core answer as a moon's do, and the moment is stored as `induced_moment_a_m2` beside the intrinsic one. A giant has none.
 
 `dipole_class`: none, weak (under 0.01 Earth's), Earth-like, strong (over 5
-Earth's) or multipolar (`f_dip` under 0.5).
+Earth's) or multipolar (the dipole's share under 0.5).
 """
 
+import cmath
 import math
 
 from planetgen import tuning
-from planetgen.physics import activity, constants, dynamo
+from planetgen.physics import activity, constants, core_heat, dynamo, giant_dynamo, giant_interior
 from planetgen.util import draw
 from planetgen.physics import unit_registry as units
 
@@ -80,23 +83,23 @@ ROCK_DENSITY = 3.3
 IRON_DENSITY = 7.9
 EARTH_DENSITY = 5.51
 MIN_DYNAMO_MASS_EARTH = 0.05
-MIN_CORE_FRACTION = 0.15
-DYNAMO_LIFETIME_GY = 4.0
 LID_MOBILE = "mobile"
 """str: What a body's stored `lid_regime` is when it has plate tectonics (`interior_heat.generate_lid`, GEN.721)."""
-STAGNANT_LID_LIFETIME_FACTOR = 0.4
 MOBILE_LID_MIN_MASS_EARTH = 0.5
 MOBILE_LID_MAX_MASS_EARTH = 5.0
 MOBILE_LID_CHANCE = 0.6
 MOBILE_LID_HEAVY_CHANCE = 0.3
-"""float: Rule 1's lid regime (GEN.177; design note section 3.5 rule 2): the dynamo
-lifetime factor of a stagnant lid, and the chance that a planet with a liquid
-surface ocean has plate tectonics, by mass (planetGen defaults)."""
+"""float: Rule 1's lid regime (GEN.177; design note section 3.5 rule 2): the chance
+that a planet with a liquid surface ocean has plate tectonics, by mass (planetGen defaults)."""
 MERCURY_MOMENT_A_M2 = 3e19
-GANYMEDE_MOMENT_A_M2 = 1.3e20
-GANYMEDE_MIN_MASS_EARTH = 0.02
-GANYMEDE_CHANCE = 0.1
-GIANT_ANCHORS = ((17.0, 3e24), (95.0, 5e25), (318.0, 1.5e27))
+CORE_POWER_SCALE = dynamo.EARTH_DYNAMO_POWER_W / core_heat.EARTH_DYNAMO_W
+"""float: The core model's power as the dynamo scaling takes it: the model's Earth drives its dynamo with 2.4 TW (`core_heat.EARTH_DYNAMO_W`) and the scaling's Earth
+with 1.15 TW (`dynamo.EARTH_DYNAMO_POWER_W`), so the ratio puts the model's Earth on the scaling's. Registry row DY6."""
+MERCURY_SCATTER_DEX = 0.5
+"""float: The log-normal scatter of the stand-in moment of a small, iron-rich body (GEN.86's, dex)."""
+FIELD_SCATTER_DEX = 0.07
+"""float: The log-normal scatter of the dynamo scaling, dex: the 145 numerical dynamos fit the buoyancy-flux law within about 15 percent (Olson and Christensen 2006,
+second-hand, `dynamo.DIPOLE_COEFFICIENT`). Registry row DY5."""
 """tuple: `(mass in Earth masses, dipole moment A m2)` for Neptune, Saturn
 and Jupiter."""
 
@@ -112,6 +115,16 @@ OCEAN_CONDUCTIVITY_S_M = {
 """dict: Electrical conductivity of an ocean by `ocean_class`, S/m: a cold
 dilute ocean 0.5, Europa's MgSO4 2.75 (Hand and Chyba 2007), sodium carbonate
 3, saturated chloride 5, sulfuric acid 10 (planetGen defaults)."""
+CORE_CONDUCTIVITY_S_M = 1.0e6
+"""float: The electrical conductivity of an iron-alloy core, S/m: Earth's outer core at its pressure and temperature, 1.0 to 1.5 million (Pozzo et al. 2012;
+Gomi et al. 2013 find about half), the same for a solid core. Registry row IN1."""
+IMF_EARTH_T = 5e-9
+"""float: The field a star's wind carries at Earth's distance, T: 5 nT at 1 AU in the Sun's (the interplanetary field of the Parker spiral). Registry row IN2."""
+STELLAR_EXCITATION_SHARE = 0.5
+"""float: The share of the wind's field that a planet sees as a changing field: the part perpendicular to its spin axis, averaged over the tilt of the field
+(the mean of sin of an angle on a sphere is 0.785; the Parker spiral and the sector structure take it lower). Registry row IN3."""
+SPHERE_SKIN_DEPTHS_MAX = 1e3
+"""float: A core this many skin depths across answers with exactly 1 (the series of the exact response is no longer needed)."""
 INDUCTION_HYDROSPHERES = ("ice-covered ocean", "surface ocean", "hycean")
 """tuple: The states with a liquid ocean for an induced field (a `brine seep` is a puddle, not a conducting ocean layer; GEN.908)."""
 
@@ -139,34 +152,6 @@ def core_mass_fraction(mass_earth, density_g_cm3):
     return min(1.0, raw(mass_earth, density_g_cm3) * EARTH_CORE_FRACTION / raw(1.0, EARTH_DENSITY))
 
 
-def dipole_share(rotation_period_hours):
-    """`f_dip`: the share of the moment in the dipole, falling for slow
-    rotators (rule 2)."""
-    if not rotation_period_hours:
-        return 1.0
-    return dynamo.dipole_fraction(0.09 * (rotation_period_hours / 24.0) ** 1.23)      # the Rossby number at Earth's power: `dynamo.local_rossby`
-
-
-def body_dipole_share(body):
-    """`dipole_share` for a rocky planet; giants and moons keep a dipole."""
-    if body.body_type == "g" or body.is_moon:
-        return 1.0
-    return dipole_share(body.rotation_period_hours)
-
-
-def _giant_moment(mass_earth):
-    anchors = GIANT_ANCHORS
-    if mass_earth <= anchors[0][0]:
-        return anchors[0][1] * mass_earth / anchors[0][0]
-    if mass_earth >= anchors[-1][0]:
-        return anchors[-1][1] * mass_earth / anchors[-1][0]
-    for (m0, b0), (m1, b1) in zip(anchors, anchors[1:]):
-        if mass_earth <= m1:
-            f = (math.log(mass_earth) - math.log(m0)) / (math.log(m1) - math.log(m0))
-            return math.exp(math.log(b0) + f * (math.log(b1) - math.log(b0)))
-    return anchors[-1][1]
-
-
 def mobile_lid_chance(body, mass_earth):
     """The chance that a rocky planet has plate tectonics (a mobile lid): only
     a body with a liquid surface ocean can, and only from `MOBILE_LID_MIN_MASS_EARTH`
@@ -176,40 +161,48 @@ def mobile_lid_chance(body, mass_earth):
     return MOBILE_LID_CHANCE if mass_earth <= MOBILE_LID_MAX_MASS_EARTH else MOBILE_LID_HEAVY_CHANCE
 
 
-def _rocky_moment(body, mass_earth, age_gy):
-    """Rule 1's moment for a rocky planet, or 0."""
-    core = core_mass_fraction(mass_earth, getattr(body, "density", None) or EARTH_DENSITY)
-    lifetime = DYNAMO_LIFETIME_GY * math.sqrt(mass_earth) * draw.uniform(0.5, 1.5)
-    strength = _log_normal(0.4)
-    mobile_lid = getattr(body, "lid_regime", None) == LID_MOBILE
-    if mass_earth < MIN_DYNAMO_MASS_EARTH or core < MIN_CORE_FRACTION:
-        return 0.0
-    if mass_earth < 0.1 and core > 0.4:
-        return MERCURY_MOMENT_A_M2 * _log_normal(0.5)  # before the lifetime test: Mercury's field is alive at 4.5 Gyr
-    if not mobile_lid:
-        lifetime *= STAGNANT_LID_LIFETIME_FACTOR
-    if core < 0.2:
-        lifetime *= 0.5
-    if age_gy >= lifetime:
-        return 0.0
-    return (EARTH_MOMENT_A_M2 * mass_earth * (core / EARTH_CORE_FRACTION) * strength
-            * (1.0 - age_gy / lifetime) ** 0.3)
+def _core_field(body, core):
+    """The `dynamo.Field` of a rocky body's core (`core_heat.Core`, `interior_heat.core_of`), or `None` for a body with no metal or a dead core."""
+    if core is None or not core.running:
+        return None
+    return dynamo.field(core.dynamo_w * CORE_POWER_SCALE, core.radius_m, core.inner_fraction * core.radius_m, core.density_kg_m3, giant_dynamo.spin_rad_s(body.rotation_period_hours))
 
 
-def generate_field(body):
-    """Draws `magnetic_moment_a_m2` and `dipole_class` for a planet or moon
-    (call once its rotation period is known), and its magnetopause when
-    `update_exposure` has given its distance from the star."""
-    mass_earth = _kg_to_mearth(body.mass)
-    age_gy = getattr(body.star, "age", None) or 0.0
+def _giant_field(body):
+    """The `dynamo.Field` of a giant from the layers it stores and the heat it radiates (`giant_dynamo.giant_field`), or `None` when it has no placed
+    region that convects."""
+    interior = giant_interior.interior_of(body)
+    from planetgen.physics import giant_heat  # late: giant_heat reaches interior_heat, which reads this module's LID_MOBILE
+    heat = giant_heat.of(body)
+    if interior is None or heat is None or not body.rotation_period_hours:
+        return None
+    radius_m = body.radius * constants.KM_TO_M_FACTOR
+    found = giant_dynamo.giant_field(interior, radius_m, heat.flux_w_m2 * 4.0 * math.pi * radius_m ** 2, giant_dynamo.spin_rad_s(body.rotation_period_hours))
+    return None if found is None else found.field
+
+
+def _moment(body, mass_earth, core):
+    """The dipole moment and the dipole's share of the dynamo that runs in `body`: `(0, 1)` without one. The rocky core and the giant's
+    metallic or ionic layer are the only sources (`dynamo.field`); Mercury's iron-rich small body keeps the one stand-in value."""
     if body.body_type == "g":
-        moment = _giant_moment(mass_earth) * _log_normal(0.4)
-    elif body.is_moon:
-        ganymede = mass_earth >= GANYMEDE_MIN_MASS_EARTH and draw.random() < GANYMEDE_CHANCE
-        moment = GANYMEDE_MOMENT_A_M2 * _log_normal(0.7) if ganymede else 0.0
+        found = _giant_field(body)
     else:
-        moment = _rocky_moment(body, mass_earth, age_gy)
-    share = body_dipole_share(body)
+        density = getattr(body, "density", None) or EARTH_DENSITY
+        if not body.is_moon and MIN_DYNAMO_MASS_EARTH <= mass_earth < 0.1 and core_mass_fraction(mass_earth, density) > 0.4:
+            return MERCURY_MOMENT_A_M2 * _log_normal(MERCURY_SCATTER_DEX), 1.0
+        found = _core_field(body, core)
+    scatter = _log_normal(FIELD_SCATTER_DEX)
+    if found is None or found.moment_a_m2 <= 0.0:
+        return 0.0, 1.0
+    return found.moment_a_m2 * scatter, found.dipole_fraction
+
+
+def generate_field(body, core=None):
+    """Draws `magnetic_moment_a_m2` (the dipole's moment, already reduced by the dipole's share) and `dipole_class` for a planet or moon (call once its
+    rotation period is known), and its magnetopause when `update_exposure` has given its distance from the star. `core` is a rocky planet's or moon's
+    `core_heat.Core` (`interior_heat.core_of`, GEN.838); a giant's field comes from its stored layers and radiated heat (GEN.967)."""
+    mass_earth = _kg_to_mearth(body.mass)
+    moment, share = _moment(body, mass_earth, core)
     body.magnetic_moment_a_m2 = moment
     if moment <= 0.0:
         body.dipole_class = "none"
@@ -257,24 +250,83 @@ def induced_moment(parent_moment_a_m2, orbit_radius_m, synodic_s, moon_radius_m,
     return 2.0 * math.pi * moon_radius_m ** 3 * response * excitation_t / VACUUM_PERMEABILITY, response
 
 
+def sphere_response(omega, conductivity_s_m, radius_m):
+    """
+    `|F|`, the size of the answer of a homogeneous conducting sphere to a uniform field that oscillates at `omega` rad/s (0 to 1, rule 7): the induced
+    dipole is `2 pi R^3 |F| B / mu0`. `F = 1 - 3/z^2 + 3 cot(z)/z` for `z = (1 - i) R / delta`, the skin depth `delta = sqrt(2 / (omega mu0 sigma))`:
+    `omega mu0 sigma R^2 / 15` for a sphere much thinner than a skin depth, 1 for one much thicker. 0 for no frequency, conductor or size.
+    """
+    if not omega or omega <= 0.0 or conductivity_s_m <= 0.0 or radius_m <= 0.0:
+        return 0.0
+    skin_depth = math.sqrt(2.0 / (omega * VACUUM_PERMEABILITY * conductivity_s_m))
+    if radius_m / skin_depth > SPHERE_SKIN_DEPTHS_MAX:
+        return 1.0
+    z = complex(1.0, -1.0) * radius_m / skin_depth
+    return min(abs(1.0 - 3.0 / z ** 2 + 3.0 / (cmath.tan(z) * z)), 1.0)
+
+
+def core_induced_moment(core, excitation_t, synodic_s, transmission=1.0):
+    """The induced dipole moment of a metal core (`core_heat.Core`) in a field of amplitude `excitation_t` T that turns at the period `synodic_s`, A m2 (rule 7);
+    `transmission` is the share of the field that reaches it past an ocean. 0 for no core or excitation."""
+    if core is None or not excitation_t or not synodic_s:
+        return 0.0
+    response = sphere_response(2.0 * math.pi / synodic_s, CORE_CONDUCTIVITY_S_M, core.radius_m)
+    return 2.0 * math.pi * core.radius_m ** 3 * response * transmission * excitation_t / VACUUM_PERMEABILITY
+
+
+def _ocean_and_core_moment(body, excitation_t, synodic_s):
+    """The induced moment of a body's ocean and its core in a changing field (rules 6 and 7): the ocean answers as a thin shell, the core as a sphere in the field the
+    ocean lets through."""
+    from planetgen.physics import interior_heat  # late: interior_heat reads this module's LID_MOBILE
+    radius_m = _km_to_m(body.radius)
+    moment, response = 0.0, 0.0
+    depth_m = _km_to_m(getattr(body, "ocean_depth_km", None) or 0.0)
+    if getattr(body, "hydrosphere", None) in INDUCTION_HYDROSPHERES and depth_m > 0.0 and excitation_t and synodic_s:
+        shell_radius_m = max(radius_m - _km_to_m(getattr(body, "ice_shell_km", None) or 0.0), 0.0)
+        conductivity = OCEAN_CONDUCTIVITY_S_M.get(getattr(body, "ocean_class", None), OCEAN_CONDUCTIVITY_S_M[None])
+        omega = 2.0 * math.pi / synodic_s
+        coverage = getattr(body, "ocean_fraction", None) if body.hydrosphere == "surface ocean" else None      # an ocean under ice or a hycean one is global
+        coverage = 1.0 if coverage is None else min(max(coverage, 0.0), 1.0)
+        x = omega * VACUUM_PERMEABILITY * conductivity * depth_m * coverage * shell_radius_m / 2.0
+        response = x / math.sqrt(1.0 + x * x)
+        moment = 2.0 * math.pi * radius_m ** 3 * response * excitation_t / VACUUM_PERMEABILITY
+    core = interior_heat.core_of(body) if getattr(body, "body_type", None) != "g" else None
+    return moment + core_induced_moment(core, excitation_t, synodic_s, math.sqrt(max(1.0 - response ** 2, 0.0)))
+
+
 def generate_induced_field(moon, parent):
-    """Sets `induced_moment_a_m2` on a moon from its parent planet's field
-    and its own ocean (rule 6; no draws): 0 for a moon with no liquid ocean,
+    """Sets `induced_moment_a_m2` on a moon from its parent planet's field,
+    its own ocean and its metal core (rules 6 and 7; no draws): 0 for a moon with neither,
     no parent field or a parent that turns with it. Call once the moon's
-    water and orbit are set and the parent's field exists."""
+    water, orbit and core are set and the parent's field exists."""
     moon.induced_moment_a_m2 = 0.0
-    if getattr(moon, "hydrosphere", None) not in INDUCTION_HYDROSPHERES:
-        return
-    depth_m = _km_to_m(getattr(moon, "ocean_depth_km", None) or 0.0)
-    if depth_m <= 0.0:
-        return
-    parent_moment = (getattr(parent, "magnetic_moment_a_m2", None) or 0.0) * body_dipole_share(parent)
+    parent_moment = (getattr(parent, "magnetic_moment_a_m2", None) or 0.0)
     synodic = synodic_period_s(getattr(parent, "rotation_period_hours", None), moon.period)
-    radius_m = _km_to_m(moon.radius)
-    shell_radius_m = max(radius_m - _km_to_m(getattr(moon, "ice_shell_km", None) or 0.0), 0.0)
-    conductivity = OCEAN_CONDUCTIVITY_S_M.get(getattr(moon, "ocean_class", None), OCEAN_CONDUCTIVITY_S_M[None])
-    moon.induced_moment_a_m2 = induced_moment(
-        parent_moment, _au_to_m(moon.distance), synodic, radius_m, conductivity * depth_m, shell_radius_m)[0]
+    orbit_radius_m = _au_to_m(moon.distance)
+    if not parent_moment or not synodic or orbit_radius_m <= 0.0:
+        return
+    excitation_t = EXCITATION_SHARE * VACUUM_PERMEABILITY * parent_moment / (4.0 * math.pi * orbit_radius_m ** 3)
+    moon.induced_moment_a_m2 = _ocean_and_core_moment(moon, excitation_t, synodic)
+
+
+def generate_stellar_induction(planet):
+    """Sets `induced_moment_a_m2` on a rocky planet from its star's field at its orbit (rule 7; no draws): the wind's field `IMF_EARTH_T` scaled by the wind's
+    pressure, seen at the planet's synodic rotation (the star's, for a planet that turns with its orbit), answered by its ocean and its metal core. 0 for a body
+    with neither or with no orbit; a giant is left as it is. Call once the water, the core and the distance from the star are set."""
+    if planet.body_type == "g":
+        return
+    planet.induced_moment_a_m2 = 0.0
+    distance = getattr(planet, "_star_distance_au", None)
+    period = getattr(planet, "period", None)
+    if not distance or not period:
+        return
+    synodic = synodic_period_s(getattr(planet, "rotation_period_hours", None), period)
+    if synodic is None:
+        synodic = synodic_period_s(getattr(planet.star, "rotation_period_hours", None), period)
+    if synodic is None:
+        return
+    excitation_t = STELLAR_EXCITATION_SHARE * IMF_EARTH_T * math.sqrt(wind_pressure_pa(planet.star, distance) / EARTH_WIND_PA)
+    planet.induced_moment_a_m2 = _ocean_and_core_moment(planet, excitation_t, synodic)
 
 
 PULSING_TYPES = ("young", "millisecond", "magnetar")
@@ -309,9 +361,8 @@ def magnetopause_rp(body, star_distance_au):
     moment = getattr(body, "magnetic_moment_a_m2", None)
     if not moment:
         return None
-    share = body_dipole_share(body)
     pressure = wind_pressure_pa(body.star, star_distance_au)
-    standoff_earth_radii = (EARTH_STANDOFF_RP * (moment * share / EARTH_MOMENT_A_M2) ** (1 / 3)
+    standoff_earth_radii = (EARTH_STANDOFF_RP * (moment / EARTH_MOMENT_A_M2) ** (1 / 3)
                             * (pressure / EARTH_WIND_PA) ** (-1 / 6))
     return standoff_earth_radii * constants.EARTH_RADIUS_KM / body.radius
 

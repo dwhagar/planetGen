@@ -17,7 +17,7 @@ import pytest
 
 from planetgen.physics import constants as phys_c, imf, main_sequence
 from planetgen import tuning as prog_c
-from planetgen.physics import stellar_abundances, stellar_evolution as se
+from planetgen.physics import alpha_tracks, stellar_abundances, stellar_evolution as se
 from planetgen.generation import star_population as sp
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.star import STAR_TYPE_PATTERN, Star
@@ -91,14 +91,14 @@ def test_main_sequence_luminosity_follows_mass(population):
     _, states = population
     for mass, age, state in states:
         if state["yerkes_class"] == "V":
-            row = main_sequence.state(mass, age, state["metallicity_fe_h"])
+            row = main_sequence.state(mass, age, alpha_tracks.track_fe_h(state["metallicity_fe_h"], age))
             assert state["luminosity_sol"] == pytest.approx(row.luminosity_sol)
 
 
 def test_every_state_is_in_its_own_phase(population):
     _, states = population
     for mass, age, state in states:
-        t_ms = se.main_sequence_lifetime_gy(mass, state["metallicity_fe_h"])
+        t_ms = se.main_sequence_lifetime_gy(mass, alpha_tracks.track_fe_h(state["metallicity_fe_h"], age))
         if state["yerkes_class"] in ("V", "PMS", "protostar"):
             assert age < t_ms
         else:
@@ -151,7 +151,7 @@ def test_random_stars_are_self_consistent():
         if star.yerkes_class == "V":
             mass_sol = star.mass / phys_c.SOLAR_MASS_TO_KG
             luminosity_sol = star.luminosity / phys_c.SOLAR_LUMINOSITY
-            row = main_sequence.state(star.initial_mass_sol, star.age, star.metallicity_fe_h)
+            row = main_sequence.state(star.initial_mass_sol, star.age, alpha_tracks.track_fe_h(star.metallicity_fe_h, star.age))
             assert luminosity_sol == pytest.approx(row.luminosity_sol, rel=1e-6)
 
 
@@ -178,7 +178,7 @@ def test_binary_companions_share_the_primarys_age_and_are_dimmer():
 
 
 def test_planets_respect_their_stars_age_and_history():
-    for _ in range(400):
+    for _ in range(150):      # a whole system with moons, the air and the heat costs about 4 s, so 400 of them passed 900 s
         system = StarSystem(system_config=SystemConfig())
         hosts = [(system.star, system.planets)]
         if system.binary_type == "wide":

@@ -78,6 +78,8 @@ NULL_IN_THIS_GALAXY = {
     # GEN.1057: a rogue planet has no moon that fell and no comet that passed, so it has no ring (the columns are stored for a ring set by hand).
     **{("rogue_planets", column): "a rogue planet has no ring (GEN.1057)" for column in rings.BODY_FIELDS},
     **{(table, "hp_ice_km"): CHANCE for table in ("planets", "moons", "rogue_planets")},
+    # Only a heap of grains lighter than SMALL_BODY_MASS_KG has a porosity, and a planet that small is a rare draw (a moon's is set by its origin).
+    ("planets", "porosity"): CHANCE,
     # Whether any moon of this small galaxy holds an ocean is chance.
     **{("moons", column): CHANCE for column in
        ("ocean_class", "ocean_depth_km", "ocean_ph", "phosphorus", "water_activity", "tidal_flux_w_m2")},
@@ -137,8 +139,8 @@ NULL_IN_THIS_GALAXY = {
     ("star_systems", "system_flavor_text"): CHANCE,
     ("star_systems", "runaway_class"): CHANCE, ("star_systems", "runaway_speed_kms"): CHANCE,
     ("system_configs", "age"): "only with --age",
-    # GEN.178: only a moon has an induced field.
-    ("planets", "induced_moment_a_m2"): "moons only",
+    # GEN.178, GEN.981: a moon and a rocky planet have an induced field; a giant has none.
+    ("planets", "induced_moment_a_m2"): CHANCE,
     # v89 (DB.28): the facility type, affiliation and ratings the POP.10 pass and admin pages set.
     **{("facilities", column): "not set yet" for column in (
         "type_id", "affiliation_polity_id", "affiliation_name", "rating_crime", "rating_housing",

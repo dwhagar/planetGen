@@ -270,39 +270,33 @@ to 3.5 R_p for locked planets, matching Zuluaga 2013's 1.5 to 4.0 (locked) and
 For a rocky planet with mass M (Earth masses), age, rotation period P, core
 mass fraction c (Earth 0.325) and lid regime:
 
-1. **Eligibility.** M >= 0.05 and c >= 0.15, else no intrinsic field (Mercury,
-   0.055 Me, has one because its core is 70 percent of its mass).
-2. **Dynamo lifetime.** `tau_dyn = 4.0 Gyr * M^0.5 * U(0.5, 1.5)`; times 0.4 for a
-   stagnant lid (Venus, Mars) and 0.5 if c < 0.2. Active if age < `tau_dyn`.
-   Zuluaga and Cuartas-Restrepo: low-mass super-Earths have strong fields
-   lasting 2 to 4 Gyr when P > 1.5 d; the literature is unsettled [S].
-3. **Strength.** `M_dip = 7.8e22 * M^1.0 * (c/0.325)^1.0 * LN(0.4 dex) *
-   (1 - age/tau_dyn)^0.3`. Mercury-like (M under 0.1, c over 0.5): 3e19 *
-   LN(0.5 dex).
-4. **Rotation switch.** `Ro_l = 0.09 (P / 24 h)^1.23`; `f_dip = 0.15 + 0.85 /
-   (1 + (Ro_l / 0.12)^4)`. A locked M-dwarf planet has `f_dip` about 0.15.
-5. **Giants.** Always magnetized; log-normal 0.4 dex by bin: Neptune and
-   sub-Neptune 2e24 to 4e24; Saturn-mass 5e25; Jupiter-mass 1.5e27, rising
-   about linearly with mass above that [R].
-6. **Moons.** Ganymede-like (mass >= 0.02 Me, differentiated, resonant tidal
-   heating): P = 0.1, `M_dip` = 1.3e20 * LN(0.7 dex). Otherwise none; flag an
-   induced field if a subsurface ocean exists.
+1. **The core decides (GEN.838).** The interior heat model keeps a core temperature beside the mantle's (`physics/core_heat.py`,
+   `docs/design/composition/interior-heat.md` section 3.3); the dynamo runs while the heat the core loses across the core-mantle boundary,
+   and the gravitational energy of its inner core's growth, exceed the heat it conducts down its own adiabat, in a liquid shell of at least a
+   quarter of the core's radius. No metal, no dynamo. Mercury (0.055 Me, a core of 70 percent of its mass) keeps its observed field
+   whatever the model says: its iron-sulfide core melts lower than the pure iron the model has.
+2. **Lid.** The lid regime acts on the mantle's temperature, and so on the base of the mantle the core is measured against; the
+   dynamo lifetime draw and the stagnant-lid factor of GEN.86 and GEN.177 are gone.
+3. **Strength (GEN.967).** The moment is the dipole of the buoyancy-flux scaling of the liquid shell (`physics/dynamo.py`, section 3.1): `dynamo.field` of
+   the power (the core model's, times `magnetism.CORE_POWER_SCALE` so its Earth is the scaling's Earth), the shell's radii (the core's and its inner core's), the core's
+   density and the spin, times a log-normal of 0.07 dex (the law's fit). Mercury-like (M 0.05 to 0.1, c over 0.4): 3e19 * LN(0.5 dex), a stand-in.
+4. **Rotation switch.** `Ro_l` is the local Rossby number of the liquid shell (`Ra*^0.41`, about `0.09 (P / 24 h)^1.23` at Earth's power);
+   `f_dip = 0.15 + 0.85 / (1 + (Ro_l / 0.12)^4)`. A locked M-dwarf planet has `f_dip` about 0.15. The stored moment is the dipole's, so it already holds `f_dip`
+   (over Earth's own); nothing downstream multiplies it by a share again.
+5. **Giants.** The field is made in the convecting layer of the stored interior (the metallic envelope of a gas giant, the ionic water of an ice giant's mantle) and driven
+   by a tenth of the heat the giant radiates (`physics/giant_dynamo.py`, `physics/giant_heat.py`). A giant with no placed layer has no field.
+6. **Moons.** A moon's core is run through the same thermal model and scaling as a planet's (its heat includes the tide); a moon with a running core has a field,
+   any other none; flag an induced field if a subsurface ocean exists.
 7. **Output fields:** `magnetic_moment_a_m2`, `dipole_class` (none, weak
    under 0.01 Earth, Earth-like, strong over 5 Earth, multipolar),
    `magnetopause_rp` (the standoff in radii of the body itself, `R_planet` in the unit registry: Earth's 9.75 Earth radii scaled by the
    field and the wind, then divided by the body's own radius, GEN.843).
 
-**Lid regime, as built (GEN.177).** Rule 2's stagnant-lid factor is applied in
-`magnetism._rocky_moment`: the dynamo lifetime is times 0.4 unless the planet
-has a mobile lid. The regime is not stored; it is drawn once per planet from
-`mobile_lid_chance`: a liquid surface ocean (`hydrosphere == "surface ocean"`)
-is required, from half an Earth mass up, with a 0.6 chance for 0.5 to 5 Earth
-masses and 0.3 above (the literature on super-Earth plate tectonics is split,
-so the chance falls rather than rises). Every other rocky planet is stagnant:
-Venus, Mars, dry worlds, ice-covered oceans and Hycean worlds. At 4.5 Gyr
-a watery Earth-mass world now keeps its field about 22 times in 100 (it was 38),
-and a dry one never does.
-
+**Lid regime, as built (GEN.177, GEN.721, GEN.838).** The regime is drawn once per planet from `mobile_lid_chance`: a liquid surface ocean
+(`hydrosphere == "surface ocean"`) is required, from half an Earth mass up, with a 0.6 chance for 0.5 to 5 Earth masses and 0.3 above (the
+literature on super-Earth plate tectonics is split, so the chance falls rather than rises). Every other rocky planet is stagnant: Venus,
+Mars, dry worlds, ice-covered oceans and Hycean worlds. It is stored (`lid_regime`) and read by the mantle's heat flux law, so a stagnant
+lid keeps the base of the mantle hotter, which slows the core's cooling; it no longer shortens the dynamo by a factor.
 
 **Induced fields, as built (GEN.178).** Rule 6's flag became a number:
 `magnetism.generate_induced_field` gives an ocean moon (`ice-covered ocean`,
@@ -318,6 +312,16 @@ for Callisto. `sigma` is 2.75 S/m for a neutral ocean (Hand and Chyba 2007's
 Europa), 0.5 ice-sealed, 5 chloride brine, 3 soda and 10 acid sulfate. No draw
 is made. A moon whose parent turns with it (tidally locked) sees no change and
 gets 0.
+
+**Induced fields of cores and of a planet in its star's field, as built (GEN.981).** Part (b) of the induction: a metal core answers a changing field as a
+homogeneous conducting sphere (`magnetism.sphere_response`: `F = 1 - 3/z^2 + 3 cot(z)/z`, `z = (1 - i) a / delta`), which is 1 for any core many skin
+depths across (Earth's core at a day's period is 20 000 of them, Europa's at the 11 h synodic period 6 000) and `omega mu0 sigma a^2 / 15` for a thin one; the
+moment is `2 pi a^3 |F| B / mu0` for the core's radius `a` (`core_heat.Core.radius_m`) with a conductivity of 1e6 S/m, solid or liquid. A moon's core feels the
+field its ocean lets through and adds to the ocean's moment. A rocky planet, which has no parent, is excited by its star's field at its orbit: 5 nT at 1 AU
+for the Sun, scaled by the square root of the wind's pressure over Earth's (`wind_pressure_pa`, so a flaring dwarf star's planets feel a stronger field),
+half of it perpendicular to the spin, turning at the planet's synodic rotation; its ocean (a surface ocean counted by the share of the surface it covers) and its
+core answer, and the moment is stored as `induced_moment_a_m2`, 5e17 A m2 for a dry Earth-mass planet at 1 AU against the dynamo's 8e22. A giant has none.
+The numbers it adds are small beside a dynamo, and matter for a body whose dynamo has stopped (a Mars, a Venus, a Moon) and for a moon of a giant.
 
 
 ## 4. Surface radiation dose (GEN.87)
@@ -454,7 +458,7 @@ atmosphere around an active M dwarf with no dipole receives Sv per year.
 `planetgen/physics/radiation.py` runs at the end of `planets.generate_spin`
 (after the air, water and field exist) and sets `surface_dose_msv_yr` =
 `dose_gcr_msv_yr` x `dose_helio_mult` + `dose_sep_msv_yr` +
-`dose_ground_msv_yr`, `uv_surface_index` and `ozone_loss_flag` on every
+`dose_ground_msv_yr` + `dose_belt_msv_yr` (GEN.983: a moon in its parent's trapped-particle belts, 0 for a planet), `uv_surface_index` and `ozone_loss_flag` on every
 rocky planet and moon (a gas giant has none). Choices the sections above
 leave open:
 

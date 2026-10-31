@@ -77,3 +77,5 @@ Commit each file came from:
 - v191: train 6 (GEN.1034 ocean tides, before GEN.1057 ring age)
 - v192: train 6 (GEN.1057 ring age, before GEN.1097 day and night state)
 - v193: train 6 (GEN.1097 day and night state, before GEN.1013 dark members)
+- v194: train 7 (before GEN.983 belt dose)
+- v195: train 7 (GEN.983 belt dose, before GEN.1108 latitude bands)

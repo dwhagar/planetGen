@@ -42,3 +42,59 @@ def test_the_ap_field_is_kilogauss_scale_and_an_am_star_has_none():
         cp.polar_field_gauss("Fm", 0.5)
     with pytest.raises(ValueError):
         cp.rotation_period_hours("Fm", 1.0, 0.5)
+
+
+def _stars(temperature_k, count, yerkes_class="V"):
+    return [cp.of_star(yerkes_class, 3.0e30 * (1.0 + k * 1.0e-3), 1.8 * cp.SOLAR_RADIUS_KM, temperature_k, 0.3 + k * 1.0e-3) for k in range(count)]
+
+
+def test_of_star_gives_the_shares_and_the_same_answer_every_time():
+    found = _stars(8500.0, 4000)
+    kinds = [p.kind for p in found if p]
+    assert kinds.count(cp.AP) / len(found) == pytest.approx(cp.AP_SHARE, abs=0.02)
+    assert kinds.count(cp.AM) / len(found) == pytest.approx(cp.AM_SHARE, abs=0.03)
+    assert found == _stars(8500.0, 4000)    # a keyed stream, not a draw of the run
+
+
+def test_only_a_main_sequence_dwarf_in_range_is_peculiar():
+    assert not any(_stars(8500.0, 300, "III")) and not any(_stars(8500.0, 300, "VI")) and not any(_stars(8500.0, 300, "D"))
+    assert not any(_stars(5800.0, 300)) and not any(_stars(25000.0, 300))
+    assert cp.of_star("V", None, 1.0e6, 8500.0, 0.3) is None
+
+
+def test_the_period_and_field_of_a_found_star_are_those_of_its_kind():
+    for found in _stars(8500.0, 800):
+        if found is None:
+            continue
+        if found.kind == cp.AP:
+            assert 0.5 * 24.0 - 1.0e-9 <= found.period_hours <= 30.0 * 24.0 + 1.0e-9
+            assert cp.AP_POLAR_FIELD_GAUSS[0] <= found.field_gauss <= cp.AP_POLAR_FIELD_GAUSS[1]
+        else:
+            speed = 2.0 * 3.141592653589793 * 1.8 * cp.SOLAR_RADIUS_KM / (found.period_hours * 3600.0)
+            assert cp.AM_SPEED_RANGE_KMS[0] - 1.0e-9 <= speed <= cp.AM_SPEED_RANGE_KMS[1] + 1.0e-9
+            assert found.field_gauss is None
+
+
+def test_the_spin_cascade_gives_a_peculiar_dwarf_its_kinds_period_and_leaves_the_draws_of_the_run_alone():
+    from planetgen.physics import spin
+    from planetgen.util import draw
+    mass_kg, radius_km, age_gy = 3.0e30, 1.8 * cp.SOLAR_RADIUS_KM, 0.4
+    peculiar = [(m, p) for m, p in ((mass_kg * (1.0 + k * 1.0e-3), _of(mass_kg * (1.0 + k * 1.0e-3), radius_km, age_gy)) for k in range(200)) if p]
+    assert peculiar
+    for mass, found in peculiar[:20]:
+        with draw.bound(1):
+            period = spin.star_rotation_period_hours(mass, radius_km, 8500.0, age_gy, "V")
+            after = draw.random()
+        with draw.bound(1):
+            assert draw.random() == after    # no draw of the run was made for it
+        assert period == pytest.approx(max(found.period_hours, spin.period_hours_from_speed(radius_km, spin.BREAKUP_FRACTION * spin.breakup_speed_kms(mass, radius_km))))
+    ordinary = next(mass_kg * (1.0 + k * 1.0e-3) for k in range(200) if not _of(mass_kg * (1.0 + k * 1.0e-3), radius_km, age_gy))
+    with draw.bound(1):
+        spin.star_rotation_period_hours(ordinary, radius_km, 8500.0, age_gy, "V")
+        used = draw.random()
+    with draw.bound(1):
+        assert draw.random() != used    # an ordinary dwarf still draws its speed
+
+
+def _of(mass_kg, radius_km, age_gy):
+    return cp.of_star("V", mass_kg, radius_km, 8500.0, age_gy)

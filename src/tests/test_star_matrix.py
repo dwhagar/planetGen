@@ -27,7 +27,7 @@ from planetgen.galaxy import enclosed_mass, scales
 from planetgen.physics.units import pc_to_ly
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.star import Star
-from planetgen.physics import constants as pc, mathcheck, post_main_sequence
+from planetgen.physics import alpha_tracks, constants as pc, mathcheck, post_main_sequence
 from planetgen import tuning as prog_c
 
 SPECTRAL_CLASSES = ["O", "B", "A", "F", "G", "K", "M"]
@@ -152,7 +152,7 @@ def test_evolved_stars_are_at_least_as_old_as_their_own_main_sequence_lifespan(y
     for spec in SPECTRAL_CLASSES:
         for _ in range(20):
             s = make_star(f"{spec}5{yerkes_class}")
-            ms_lifespan = post_main_sequence.timeline(s.initial_mass_sol, s.metallicity_fe_h).main_sequence_gy
+            ms_lifespan = post_main_sequence.timeline(s.initial_mass_sol, alpha_tracks.track_fe_h(s.metallicity_fe_h, s.age)).main_sequence_gy    # the track its alpha branch stands for (GEN.1024)
             assert s.age >= ms_lifespan * 0.999, (
                 f"{spec}5{yerkes_class}: age {s.age} Gy is younger than its own "
                 f"main-sequence lifespan {ms_lifespan} Gy"

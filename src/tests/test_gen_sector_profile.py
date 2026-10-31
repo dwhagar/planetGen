@@ -77,7 +77,7 @@ def test_the_halo_cells_expect_the_systems_the_design_note_gives():
 def test_the_populations_carry_the_ages_metallicities_and_motions_of_the_note():
     found = _at(SUN)
     young, old, bulge, halo = (found.populations[name] for name in ("young", "old", "bulge", "halo"))
-    assert young.age_gy == (0.0, 0.1) and old.age_gy == (3.0, 10.0) and halo.age_gy == (10.0, 13.0)
+    assert young.age_gy == (0.0, 0.1) and old.age_gy == (3.0, 13.0) and halo.age_gy == (10.0, 13.0)
     assert bulge.rotation == "bar" and halo.rotation == "none" and young.rotation == "disk"
     assert young.dispersion_kms < old.dispersion_kms < bulge.dispersion_kms
     (weight, mean, sigma), = young.fe_h

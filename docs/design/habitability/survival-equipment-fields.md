@@ -220,7 +220,7 @@ Habitability, the PHI-6 score and the **required** gear read the average surface
 - **Locked worlds.** A tidally locked world has no day and night; its regions read day side, terminator and night side (small choice, section 2).
 - **In the text.** "The equator averages 12 C; polar nights fall to -70 C, where a heated sealed suit is recommended." When a region or the night crosses a limit the average does not, the heavier gear is listed as **recommended** with the place named.
 
-Stored as `temp_polar_k`, `temp_north_k`, `temp_equator_k`, `temp_south_k` and `temp_swing_k` on planets and moons (their own columns, so search and the text can read them). Derived from stored values only: no new draws.
+Stored (GEN.656; since GEN.1108, schema v196, as the seven bands of `physics/latitude_bands.py`: `band1_mean_k` to `band7_state`, 49 columns, and `temp_mean_swing_k`, in place of the four named regions and the three zones; see database-schema.md) on planets and moons (their own columns, so search and the text can read them). Derived from stored values only: no new draws.
 
 **As built (GEN.656, `physics/regional_temperature.py`).** The annual-mean insolation of each band is integrated over a circular orbit for the stored axial tilt, turned into a temperature by the fourth-root law and scaled so the area-weighted bands average the stored mean. The air then removes the share `x / (x + 20)` of the contrast, `x` the air column (pressure over gravity) in Earth's: Earth keeps its poles about 35 K under the mean (observed 35 to 40 K), Titan loses 30 percent and Venus 80 percent of the contrast. The orbits are circular, so Northern and Southern are equal. A tidally locked world (rotation period equal to the orbital period) has no bands: its day side, terminator ring and night side take the radiative multiples 1.131, 0.5 and 0 of the mean, pulled toward the mean by `x / (x + 0.1)` (a bar of air removes 90 percent of the contrast; the night floor is 20 K). Columns `temp_day_side_k`, `temp_terminator_k` and `temp_night_side_k` hold them, so the latitude group and the locked group are never both set. The swing is `sqrt(2) T / sqrt(1 + (omega tau)^2)` with `tau = (c_p P / g + I sqrt(2 / omega)) / (4 sigma T^3)`, ground inertia `I` 300 J/(m2 K s^0.5) and `c_p` 1000 (both DESIGN stand-ins), times one minus the transport share. Checked in `tests/test_regional_temperature.py` against Earth, Mars, the Moon, Mercury and Venus. Not built yet: the seasonal extremes of the eccentric orbit, and naming the heavier gear for a night that crosses a limit the mean does not (the Temperature row names a place whose temperature needs a heavier class than the mean).
 
@@ -274,7 +274,7 @@ Replace `planets.equipment_tier` and `moons.equipment_tier` (TINYINT, 0 to 4) wi
 | `eq_supply`, `eq_supply_rec` | TINYINT 0 to 4 | required and recommended Air Supply level |
 | `eq_shelter`, `eq_shelter_rec` | TINYINT 0 to 2 | required and recommended shelter: 1 shielded shelter, 2 hardened habitat |
 | `shelter_column_g_cm2`, `outside_hours` | DOUBLE | shielding a shelter needs; hours outside a year the listed suit allows (NULL when unlimited) |
-| `temp_polar_k`, `temp_north_k`, `temp_equator_k`, `temp_south_k`, `temp_swing_k` | DOUBLE, K | regional annual means and the day and night swing (5.5). **Not built:** GEN.656 adds these columns |
+| `band1_mean_k` to `band7_mean_k` and the other `bandN_*` columns, `temp_mean_swing_k` | DOUBLE, K, h, d and a state word | the annual means, the day and night swing, the hours of day and night, the longest polar day and night and the state of each of seven bands of latitude (5.5, GEN.1108); replaced `temp_polar_k`, `temp_north_k`, `temp_equator_k`, `temp_south_k` and `temp_swing_k` |
 
 Each in its own column so the search can filter it (the rule of section 4 of the index design). New numeric columns go in `db/column_units.py` in the same PR; these are dimensionless levels, like the tier columns they replace. The name and code are computed by `physics/equipment.py` at read time (a pure function of the levels), like `hab_note`.
 
@@ -475,7 +475,7 @@ garment's cooling or heating power (a cooling vest, a liquid cooling garment, a 
 `protection_limits.GARMENTS`). The garment for the hot end is the one the ladder lists at the day's hottest temperature and for the
 cold end the one at the coldest (`equipment.body_at`), so a person wears the clothing the ladder lists for the weather they
 are in; an unsealed garment is worn open (30 percent of its insulation) in air colder than the skin. The day's temperatures are the
-world's cold and hot extremes (`habitability.temperature_extremes_c`) widened by half the day-night swing (`temp_swing_k`).
+world's cold and hot extremes (`habitability.temperature_extremes_c`) widened by half the day-night swing of the equator band (`band4_swing_k`).
 
 **What it shows.** The ladder's gear is chosen to cope, so heat and cold bind only near the hot and cold ends of a garment's band (a
 liquid-cooled suit at 120 C with a 40 K swing: about 6 h; an insulated suit at -49 C: about 11 h), the air supply binds in a sealed

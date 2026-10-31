@@ -165,6 +165,7 @@ def values_from_body(body):
         "dose_ground_msv_yr": getattr(body, "dose_ground_msv_yr", None),
         "dose_gcr_msv_yr": getattr(body, "dose_gcr_msv_yr", None),
         "dose_sep_msv_yr": getattr(body, "dose_sep_msv_yr", None),
+        "dose_belt_msv_yr": getattr(body, "dose_belt_msv_yr", None),
         "dose_helio_mult": getattr(body, "dose_helio_mult", None),
         "uv_surface_index": getattr(body, "uv_surface_index", None),
         "tau_dust": getattr(body, "tau_dust", None),
@@ -352,6 +353,7 @@ def world_from(values, lethal_host=None):
         life_stage=values.get("native_life") or "none",
         life_on_surface=values.get("hydrosphere") != "ice-covered ocean" and underground != "deep",
         dose_gcr_sv_yr=parts[0], dose_sep_sv_yr=parts[1], dose_ground_sv_yr=parts[2],
+        dose_belt_sv_yr=(values.get("dose_belt_msv_yr") or 0.0) / 1000.0 if parts[0] is not None else None,
         cutoff_gv=cutoff_gv(values), uv_index=values.get("uv_surface_index") or 0.0,
         dust_mg_m3=aerosols.dust_loading_mg_m3(values.get("tau_dust"), values.get("scale_height_km")),
     )
@@ -368,11 +370,9 @@ def _dose_parts_sv(values):
 
 
 def cutoff_gv(values):
-    """The equatorial cutoff rigidity of the body's dipole, GV (0 without a field): the moment, times the dipole's
-    share for a slow-rotating planet (a moon keeps its dipole), over the radius squared (`radiation.cutoff_rigidity_gv`)."""
-    share = 1.0 if values.get("is_moon") or values.get("body_type") == "g" else magnetism.dipole_share(
-        values.get("rotation_period_hours"))
-    return radiation.cutoff_rigidity_gv((values.get("magnetic_moment_a_m2") or 0.0) * share, values.get("radius_km") or 0.0)
+    """The equatorial cutoff rigidity of the body's dipole, GV (0 without a field): the stored dipole moment over the radius squared
+    (`radiation.cutoff_rigidity_gv`)."""
+    return radiation.cutoff_rigidity_gv(values.get("magnetic_moment_a_m2") or 0.0, values.get("radius_km") or 0.0)
 
 
 def compute(values, compact_host=None):

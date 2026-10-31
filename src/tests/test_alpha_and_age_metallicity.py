@@ -51,9 +51,10 @@ def test_the_thick_disc_ends_at_its_anchor_and_is_held_outside_its_window():
 
 
 def test_the_relation_matches_the_populations_the_generator_has_today():
-    """The young and intermediate disc average 0 and the old (3 to 10 Gyr, mean 6.5) -0.2 in `tuning.METALLICITY_BY_POPULATION`."""
+    """The young and intermediate disc average 0 in `tuning.METALLICITY_BY_POPULATION`, and the old (3 to 13 Gyr, the thick disc's 8 to 13 among them) its offset."""
     assert age_metallicity.mean_fe_h(1.5, THIN) == pytest.approx(0.0, abs=0.06)
     assert age_metallicity.mean_fe_h(6.5, THIN) == pytest.approx(-0.2, abs=0.1)
+    assert tuning.METALLICITY_BY_POPULATION["old"]["offset"] == pytest.approx(-0.325)
 
 
 def test_only_the_discs_populations_follow_the_relation():
@@ -134,3 +135,52 @@ def test_the_tilt_leaves_a_population_s_mean_age_where_it_was():
             plain.append(rng.uniform(low, high))
             tilted.append(age_metallicity.tilted_age(fe_h, population, lambda: rng.uniform(low, high), rng))
         assert sum(tilted) / len(tilted) == pytest.approx(sum(plain) / len(plain), abs=0.15)
+
+
+def test_a_star_has_the_branch_its_birth_feh_and_age_give_and_keeps_it():
+    """GEN.1024: the branch is a function of the two numbers a stored star keeps."""
+    assert stellar_abundances.branch_of(-0.8, 10.0) == stellar_abundances.branch_of(-0.8, 10.0)
+    assert all(stellar_abundances.branch_of(fe_h / 10.0, 7.9) == THIN for fe_h in range(-15, 5))
+
+
+def test_the_branches_follow_the_logistic_in_feh_among_the_old():
+    rng = random.Random(4)
+    for fe_h, low, high in ((-1.2, 0.97, 1.0), (-0.35, 0.4, 0.6), (0.1, 0.0, 0.1)):
+        share = sum(stellar_abundances.branch_of(fe_h + rng.uniform(-0.02, 0.02), 11.0) == THICK for _ in range(2000)) / 2000
+        assert low <= share <= high, (fe_h, share)
+
+
+def test_a_thick_disc_star_reads_a_richer_track_than_a_thin_one_of_the_same_feh():
+    old = [fe_h for fe_h in (-0.9 - 0.001 * n for n in range(200)) if stellar_abundances.branch_of(fe_h, 11.0) == THICK]
+    assert old
+    for fe_h in old[:5]:
+        assert alpha_tracks.track_fe_h(fe_h, 11.0) > alpha_tracks.track_fe_h(fe_h, 3.0) + 0.05    # a younger star is thin-disc at any metallicity
+        assert alpha_tracks.track_fe_h(fe_h, 3.0) == alpha_tracks.equivalent_fe_h(fe_h, THIN)
+
+
+def test_a_star_is_read_off_the_track_of_its_branch():
+    """The lifetime and the state `evolve_star` gives are those of the equivalent [Fe/H], not of the star's own."""
+    from planetgen.physics import post_main_sequence, stellar_evolution
+    fe_h = next(f for f in (-1.0 - 0.001 * n for n in range(300)) if stellar_abundances.branch_of(f, 11.0) == THICK)
+    state = stellar_evolution.evolve_star(0.9, 11.0, random.Random(1), fe_h=fe_h)
+    assert state["metallicity_fe_h"] == fe_h
+    assert state["lifespan_gy"] == pytest.approx(post_main_sequence.timeline(0.9, alpha_tracks.track_fe_h(fe_h, 11.0)).end_gy)
+    assert state["lifespan_gy"] != pytest.approx(post_main_sequence.timeline(0.9, fe_h).end_gy, rel=1e-4)
+
+
+def test_a_thin_disc_star_of_solar_feh_sits_on_the_reference_track():
+    """The grid is solar-scaled: the fits' own offset at the Sun (-0.017 dex) is the zero of the shift, so the Sun's [Fe/H] is read as it is."""
+    assert alpha_tracks.track_fe_h(0.0, 4.5) == pytest.approx(0.0, abs=1e-12)
+    assert alpha_tracks.track_fe_h(0.0, 4.5) == alpha_tracks.equivalent_fe_h(0.0, THIN)
+
+
+def test_the_track_pieces_of_a_star_are_the_tracks_it_reads_at_every_age():
+    """GEN.1024: `track_segments` is what the scatter's windows are drawn on, so it must agree with `track_fe_h` at any age."""
+    thick = next(f for f in (-1.0 - 0.001 * n for n in range(300)) if stellar_abundances.branch_of(f, 11.0) == THICK)
+    for fe_h in (-1.2, -0.5, 0.0, 0.25, thick):
+        pieces = alpha_tracks.track_segments(fe_h)
+        assert pieces[0][0] == 0.0 and pieces[-1][1] == float("inf")
+        assert all(a[1] == b[0] for a, b in zip(pieces, pieces[1:]))
+        for age in (0.01, 1.0, 4.5, 7.9, 8.1, 11.0, 13.5):
+            track = next(track for start, end, track in pieces if start <= age < end)
+            assert track == pytest.approx(alpha_tracks.track_fe_h(fe_h, age), abs=1e-12)

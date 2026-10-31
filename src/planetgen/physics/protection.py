@@ -20,7 +20,7 @@ Everything here is a pure function of a `habitability.World`.
 
 from dataclasses import replace
 
-from planetgen.physics import atmosphere, equipment, habitability, regional_temperature
+from planetgen.physics import atmosphere, equipment, habitability, latitude_bands, regional_temperature
 from planetgen.physics.habitability import (
     ARMSTRONG_KPA, MASK_MIN_KPA, gas_inputs, inspired_o2_kpa, tier, water_inputs, wet_bulb_c)
 from planetgen.physics.protection_limits import limit
@@ -167,47 +167,55 @@ def gear_clause(levels):
 
 _TEMPERATURE_RANK = {"none": 0, "garment": 1, "suit": 2}
 
-_PLACES = (("temp_polar_k", "at the poles"), ("temp_north_k", "in the north"), ("temp_equator_k", "at the equator"),
-           ("temp_south_k", "in the south"), ("temp_day_side_k", "on the day side"),
-           ("temp_terminator_k", "at the terminator"), ("temp_night_side_k", "on the night side"))
+_BAND_PLACES = ("at the north pole", "in the northern middle latitudes", "in the northern tropics", "at the equator",
+                "in the southern tropics", "in the southern middle latitudes", "at the south pole")
+_RING_PLACES = ("at the centre of the day side", "on the day side", "at the edge of the day side", "at the terminator",
+                "at the edge of the night side", "on the night side", "at the centre of the night side")
+
+
+def _band_means(regions):
+    """`[(place, kelvin)]` of the bands a body stores, north to south (day to night for a world that turns once an orbit), and whether it is locked."""
+    locked = regions.get(regional_temperature.column(1, "state")) in latitude_bands.RING_STATES
+    places = _RING_PLACES if locked else _BAND_PLACES
+    means = [(places[number - 1], regions.get(regional_temperature.column(number, "mean_k"))) for number in range(1, regional_temperature.BAND_COUNT + 1)]
+    return [(place, kelvin) for place, kelvin in means if kelvin], locked
 
 
 def regional_sentence(world, regions):
     """
-    The regional sentence of the Temperature row (GEN.656): where the world is colder or hotter than its mean, as
+    The regional sentence of the Temperature row (GEN.656, GEN.1108): where the world is colder or hotter than its mean, as
     "The equator averages 12 C and the poles -22 C", the day and night swing when it is 5 K or more, and, for a place
-    whose temperature calls for heavier gear than the mean does, "At the poles, where it is -70 C, a heated sealed
-    suit is recommended." `regions` maps the `regional_temperature.FIELDS` to kelvin (a stored row or a body); `""` when
+    whose temperature calls for heavier gear than the mean does, "At the north pole, where it is -70 C, a heated sealed
+    suit is recommended." `regions` maps the `regional_temperature.FIELDS` to their values (a stored row or a body); `""` when
     there are none.
     """
     if not regions or not any(regions.get(field) for field in regional_temperature.FIELDS):
         return ""
-    celsius = {field: regions[field] - 273.15 for field, _ in _PLACES if regions.get(field)}
-    if "temp_day_side_k" in celsius:
-        parts = [f"The day side averages {_celsius(celsius['temp_day_side_k'])}",
-                 f"the terminator {_celsius(celsius['temp_terminator_k'])}",
-                 f"and the night side {_celsius(celsius['temp_night_side_k'])}"]
-        text = ", ".join(parts) + "."
+    places, locked = _band_means(regions)
+    if not places:
+        return ""
+    celsius = {place: kelvin - 273.15 for place, kelvin in places}
+    if locked:
+        text = (f"The day side averages {_celsius(celsius[_RING_PLACES[1]])}, the terminator {_celsius(celsius[_RING_PLACES[3]])} "
+                f"and the night side {_celsius(celsius[_RING_PLACES[5]])}.")
     else:
-        text = (f"The equator averages {_celsius(celsius['temp_equator_k'])} and the poles "
-                f"{_celsius(celsius['temp_polar_k'])}.")
-    swing = regions.get("temp_swing_k")
-    if swing and swing >= 5.0:
+        text = (f"The equator averages {_celsius(celsius['at the equator'])} and the poles "
+                f"{_celsius(min(celsius['at the north pole'], celsius['at the south pole']))}.")
+    swing = regions.get(regional_temperature.column(4, "swing_k"))
+    if not locked and swing and swing >= 5.0:
         text += (f" Day and night differ by about {three_figures_or_tiny(swing)} K from the coldest hour to the hottest "
                  f"(\u00b1{three_figures_or_tiny(swing / 2.0)} K)")
-        span = regional_temperature.daily_range(regions.get("temp_equator_k"), swing)
+        span = regional_temperature.daily_range(regions.get(regional_temperature.column(4, "mean_k")), swing)
         if span:
             text += (f", so the equator runs from {_celsius(span[0] - 273.15)} to {_celsius(span[1] - 273.15)} "
                      f"over a day")
         text += "."
     mean_rank = _TEMPERATURE_RANK.get(temperature_need(world)[0], 0)
     worst = None
-    for field, place in _PLACES:
-        if field not in celsius:
-            continue
-        rank, gear, _ = temperature_need(replace(world, temperature_c=celsius[field], flux_variation=0.0))
+    for place, _kelvin in places:
+        rank, gear, _ = temperature_need(replace(world, temperature_c=celsius[place], flux_variation=0.0))
         if gear and _TEMPERATURE_RANK.get(rank, 0) > mean_rank and (worst is None or _TEMPERATURE_RANK[rank] > worst[0]):
-            worst = (_TEMPERATURE_RANK[rank], place, celsius[field], gear)
+            worst = (_TEMPERATURE_RANK[rank], place, celsius[place], gear)
     if worst:
         text += f" {worst[1][0].upper() + worst[1][1:]}, where it is {_celsius(worst[2])}, {worst[3]} is recommended."
     return text

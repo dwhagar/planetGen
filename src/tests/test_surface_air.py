@@ -9,7 +9,7 @@ import pytest
 
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
-from planetgen.physics import aerosols, atmosphere, atmosphere_state, clathrate_brine, constants, gases, greenhouse_table, saturation, sulfur_balance, surface_air as sa, surface_pressure
+from planetgen.physics import aerosols, atmosphere, atmosphere_state, clathrate_brine, constants, gases, giant_draw, greenhouse_table, saturation, sulfur_balance, surface_air as sa, surface_pressure
 from planetgen import tuning
 from planetgen.util import draw
 
@@ -288,6 +288,13 @@ def test_every_generated_body_stores_the_density_scale_height_and_greenhouse_its
             continue            # life changes the air after the temperature is solved (its methane and oxygen, GEN.855), and with it the haze the temperature was solved under
         haze = aerosols.haze_of(air, gravity, body.surface_temperature, aerosols.draw_haze_draws(aerosols.haze_stream_of(body)),
                                 body.star.temperature)
+        if body.body_type == "g":
+            # GEN.1030: a giant's stored G is against its starlight alone, so `T_e (1 + G)^(1/4)` with the albedo reproduces the temperature (GEN.412);
+            # the air it has is warmed under the starlight and its own heat together
+            radiated = absorbed + giant_draw.own_flux_w_m2(body)
+            warming = atmosphere_state.greenhouse_warming(air, gravity, radiated, haze.absorbed_share * absorbed / radiated, haze.pressure_pa)
+            assert body.surface_temperature == pytest.approx(warming.surface_temperature_k, rel=5e-3)
+            continue
         warming = atmosphere_state.greenhouse_warming(air, gravity, absorbed, haze.absorbed_share, haze.pressure_pa)
         assert body.greenhouse_factor == pytest.approx(warming.factor, rel=1.5e-2, abs=1e-6)
     assert bodies > 5
@@ -359,3 +366,23 @@ def test_a_stalled_equilibrium_is_tried_again_from_the_middle_of_the_way_back(mo
     monkeypatch.setattr(sa.mixture_draw, "draw_mixture", fails_once)
     planet = _earth_like_planet()
     assert len(calls) > 2 and planet.atmospheric_pressure > 0.0
+
+
+def test_the_escape_is_compared_to_the_pressure_the_air_settled_at_without_it(monkeypatch):
+    """The loss acts on the air that stands. Compared to the pressure of the step before it (already what stays) it took its share again at every step,
+    and the reducing mixtures of the first steps, which a settled air does not keep, took the whole air: an Earth-mass world in the habitable zone of a Sun-like
+    star fell to a vacuum in most seeds."""
+    real = sa.mixture_escape.apply
+    columns = []
+
+    def recording(subject, result, column_bar=None):
+        columns.append(column_bar)
+        return real(subject, result, column_bar)
+
+    monkeypatch.setattr(sa.mixture_escape, "apply", recording)
+    for seed in (3, 5, 6):
+        columns.clear()
+        planet = _earth_like_planet(seed)
+        assert planet.atmospheric_pressure > 0.0, seed
+        assert columns and None not in columns, seed                 # no step before the air settled lost anything
+        assert len(set(columns)) == 1, seed                          # and every step after it compares to the one settled pressure

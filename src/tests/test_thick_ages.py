@@ -55,10 +55,11 @@ def test_the_thick_share_is_the_thick_units_over_the_old_units_and_held_to_zero_
 
 def test_a_milky_way_galaxy_has_old_stars_from_10_to_13_gy():
     from tests.test_disk_history import SHAPE
-    from planetgen.galaxy import density
+    from planetgen.galaxy import density, disk_history
     share = thick_ages.thick_share_of_old(density.population_units(SHAPE)["old"], density.thick_disk_units(SHAPE))
     assert 0.0 < share < 0.6
-    law = thick_ages.old_age_law(SHAPE)
+    law = disk_history.population_age_laws(SHAPE)["old"]
+    assert thick_ages.old_age_law(SHAPE, disk_history.history_of(SHAPE).age_law(*tuning.THIN_DISC_OLD_WINDOW_GY)).window == law.window
     assert law.window == (3.0, tuning.THICK_DISC_AGE_RANGE_GY[1])
     assert law.probability(10.0 + thick_ages.EDGE_GY, 13.0) == pytest.approx(share * 0.6, abs=0.01)
     # the thin disc part is unchanged where the thick disc is absent
