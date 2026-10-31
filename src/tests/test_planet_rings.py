@@ -134,7 +134,7 @@ def test_a_ring_is_a_result_of_history_and_belts_have_none():
                 ringed += planet.ring_kind is not None
                 if planet.ring_kind is not None:
                     assert planet.ring_inner_km < planet.ring_outer_km
-    assert giants >= 10 and 0 < ringed < giants    # GEN.1057: a giant with neither a fallen moon nor a passing comet has no ring
+    assert giants >= 10 and ringed < giants    # GEN.1057: a giant with neither a fallen moon nor a passing comet has no ring; GEN.1171: and few rings outlast the meteoroids, so this sample may hold none
 
 
 def test_a_body_regenerated_as_another_class_loses_its_ring():
@@ -166,7 +166,8 @@ def test_a_fallen_moon_leaves_a_disrupted_moon_ring_with_its_age():
         rings.apply(planet := _planet(distance=1.0, fallen=(moon,), age_gy=4.5))
     assert planet.ring_kind is not None and planet.ring_origin == "disrupted_moon"
     assert planet.ring_age_yr == pytest.approx(5.0e8)
-    assert planet.ring_mass_kg == pytest.approx(ring_origin.spread(ring_origin.RING_RETAINED_FRACTION * 2.0e20, 5.0e8), rel=0.05) or planet.ring_origin == "captured_body"
+    lone = ring_origin.Planet(planet.mass, planet.radius, planet.distance, planet.star.mass)
+    assert planet.ring_mass_kg == pytest.approx(ring_origin.spread(ring_origin.RING_RETAINED_FRACTION * 2.0e20, 5.0e8, lone), rel=0.05) or planet.ring_origin == "captured_body"
 
 
 def test_a_planet_inside_the_inner_limit_has_no_ring_even_after_a_moon_fell():
