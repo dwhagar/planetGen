@@ -145,12 +145,15 @@ def ice_shell_thickness_km(flux_w_m2, top_temperature_k, base_temperature_k=WATE
 
 def pressure_melted_shell_km(flux_w_m2, top_temperature_k, gravity_m_s2, melting_k=WATER_MELTING_K):
     """`ice_shell_thickness_km` with the base melting point (`melting_k`: pure water's, or a brine's eutectic) lowered by the
-    lid's own weight (fix 3 of section 5.3)."""
+    lid's own weight (fix 3 of section 5.3). The fall stops at the ice III triple point (`water_layer.LIQUIDUS_K_MPA`'s first point, 251.2 K): under
+    more pressure than that the base meets ice III, not a deeper Ih melt (GEN.1222: with no floor a thick lid of a cold, low-heat body pulled its own
+    base under the surface temperature, the shell came out 0 and the body a liquid ocean at 25 K)."""
     base_k = melting_k
+    floor_k = min(melting_k, water_layer.LIQUIDUS_K_MPA[0][0])
     shell_km = ice_shell_thickness_km(flux_w_m2, top_temperature_k, base_k)
     for _ in range(3):
         bar = ICE_DENSITY_KG_M3 * gravity_m_s2 * shell_km * 1000.0 / 1e5
-        base_k = melting_k - MELTING_SLOPE_K_PER_BAR * bar
+        base_k = max(melting_k - MELTING_SLOPE_K_PER_BAR * bar, floor_k)
         shell_km = ice_shell_thickness_km(flux_w_m2, top_temperature_k, base_k)
     return shell_km
 
