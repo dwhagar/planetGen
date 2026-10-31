@@ -1,8 +1,8 @@
 """The bulk density and binding energy of a star, a remnant, a rogue planet and an interstellar comet (GEN.1162).
 
-Schema v196. `stars`, `black_holes` and `neutron_stars` gain `density_g_cm3` (DOUBLE, g/cm3) and `binding_energy_j` (DOUBLE, J; -1 for the infinite binding energy of a black hole), worked out by
+Schema v198. `stars`, `black_holes` and `neutron_stars` gain `density_g_cm3` (DOUBLE, g/cm3) and `binding_energy_j` (DOUBLE, J; -1 for the infinite binding energy of a black hole), worked out by
 `physics/body_strength.py` from the object's mass and radius. `rogue_planets` gain those with `roundness_ratio` and `yield_strength_pa` (a terrestrial one; NULL for a giant or a brown dwarf).
-`interstellar_comets` gain what `comets` have: `density_g_cm3`, `ice_mass_fraction`, `roundness_ratio`, `yield_strength_pa` and `binding_energy_j`. All are NULL here: a row made before v196 gets
+`interstellar_comets` gain what `comets` have: `density_g_cm3`, `ice_mass_fraction`, `roundness_ratio`, `yield_strength_pa` and `binding_energy_j`. All are NULL here: a row made before v198 gets
 them when the galaxy is regenerated. A column already there is skipped, so a stopped run can be started again.
 """
 
@@ -11,8 +11,8 @@ from alembic import op
 
 from planetgen.db.migrations import helpers
 
-revision = "0196"
-down_revision = "0195"
+revision = "0198"
+down_revision = "0197"
 branch_labels = None
 depends_on = None
 

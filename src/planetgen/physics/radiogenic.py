@@ -161,7 +161,7 @@ def formation_mix(symbol):
 
 def isotope_mass_fractions(content, age_gy):
     """`{isotope: kg per kg of the bulk silicate}` of the parents at `age_gy` after formation: the element's formation concentration
-    times the isotope's share of it, decayed. 26Al is not in it (`aluminium_26_mass_fraction`)."""
+    times the isotope's share of it, decayed. 26Al is not in it (its formation ratio is `Content.al26_ratio`)."""
     if age_gy < 0:
         raise RadiogenicError(f"an age of {age_gy} Gy is before formation")
     found = {}
@@ -172,14 +172,6 @@ def isotope_mass_fractions(content, age_gy):
             decay = 1.0 if isotope.stable else math.exp(-isotope.decay_constant * age_gy * GY_S)
             found[name] = content.ppm(symbol) * 1e-6 * mix[name] * decay
     return found
-
-
-def aluminium_26_mass_fraction(content, age_gy, aluminium=BULK_SILICATE_EARTH_AL_MASS_FRACTION):
-    """kg of 26Al per kg of the bulk silicate at `age_gy`: the aluminium share, the atom ratio at formation (times the mass ratio of
-    the two isotopes), decayed with the 0.72 Myr half-life."""
-    found = elements.isotope("Al-26")
-    mass_ratio = found.mass_u / elements.isotope("Al-27").mass_u
-    return aluminium * content.al26_ratio * mass_ratio * math.exp(-found.decay_constant * age_gy * GY_S)
 
 
 def heat_terms(content, aluminium=BULK_SILICATE_EARTH_AL_MASS_FRACTION):
@@ -208,15 +200,6 @@ def heat_w_per_kg(content, age_gy, aluminium=BULK_SILICATE_EARTH_AL_MASS_FRACTIO
 def heat_w(content, silicate_mass_kg, age_gy, aluminium=BULK_SILICATE_EARTH_AL_MASS_FRACTION):
     """The radiogenic heat of `silicate_mass_kg` of bulk silicate at `age_gy`, W."""
     return silicate_mass_kg * heat_w_per_kg(content, age_gy, aluminium)
-
-
-def radiogenic_flux_w_m2(content, mass_kg, radius_km, age_gy, silicate_fraction=None, aluminium=BULK_SILICATE_EARTH_AL_MASS_FRACTION):
-    """The radiogenic heat reaching the surface, W/m2: the bulk silicate's heat (`silicate_fraction` of the mass, the stand-in
-    `tuning.RADIOGENIC_SILICATE_MASS_FRACTION` for a body with no stored composition) over 4 pi R^2."""
-    if silicate_fraction is None:
-        silicate_fraction = tuning.RADIOGENIC_SILICATE_MASS_FRACTION
-    area_m2 = 4.0 * math.pi * (radius_km * 1000.0) ** 2
-    return heat_w(content, mass_kg * silicate_fraction, age_gy, aluminium) / area_m2
 
 
 BULK_SILICATE_EARTH_AL2O3_FRACTION = 0.045
@@ -284,7 +267,7 @@ def host_offset_dex(fe_h, age_gy, key):
         key (str): `stellar_composition.abundance_key(...)`: the same star always has the same offset.
     """
     draws = sc.key_draws(key)
-    branch = sa.branch_from_uniform(fe_h, age_gy, draws.u_branch)
+    branch = sa.branch_of(fe_h, age_gy)
     offsets = sa.abundance_offsets(fe_h, branch, draws.normals, draws.u_enhanced, draws.u_carbon)
     star = sa.composition(fe_h, offsets)
     found = sa.birth_radiogenic(star, branch, draws.eu_normal, draws.th_eu_normal)
@@ -457,7 +440,3 @@ def gamma_ngy_per_hour(content, age_gy):
     return math.fsum(GAMMA_NGY_H_PER_BQ_KG[name] * value for name, value in activity_bq_per_kg(content, age_gy).items())
 
 
-def present_ppm(content, age_gy):
-    """`{"K": ppm, "Th": ppm, "U": ppm}` of the element in `content` rock at `age_gy`: the sum of the element's isotopes then."""
-    masses = isotope_mass_fractions(content, age_gy)
-    return {symbol: math.fsum(masses[name] for name in PARENTS[symbol]) * 1e6 for symbol in ELEMENTS}

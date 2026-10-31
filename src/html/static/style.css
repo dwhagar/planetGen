@@ -1880,6 +1880,19 @@ a:focus-visible .navmap-point circle {
 
 .search-field-main {
   flex: 1 1 16rem;
+  display: block;
+}
+
+/* The name box sits in a `.ui-field`, whose `flex: 1 1 12rem` is a width in a
+   row but a 12rem-tall minimum inside a column: it made this row tall and
+   pushed Stars and Search to the bottom right. Block flow keeps it one box high. */
+.search-field-main > .ui-field {
+  flex: none;
+  width: 100%;
+}
+
+.search-main > .search-field-stars {
+  flex: 0 1 12rem;
 }
 
 .search-field input[type="search"] {
@@ -1917,6 +1930,28 @@ a:focus-visible .navmap-point circle {
 
 .search-more .search-field-size > span:first-child {
   flex: 1 0 100%;
+}
+
+.search-values-heading {
+  font-size: 0.95rem;
+  margin: 1rem 0 0.5rem;
+}
+
+.search-field-value select,
+.search-field-value-sort select {
+  font: inherit;
+  font-weight: 400;
+  color: var(--text);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.4rem 0.5rem;
+  min-width: 0;
+}
+
+.search-field-value .search-unit {
+  font-weight: 400;
+  color: var(--text-muted);
 }
 
 .search-more .hint {
@@ -5780,6 +5815,58 @@ p.hint a {
   margin: 0 0 0.4rem;
 }
 
+/* UX.251: the Life paragraph of At a glance and the table of the three words for each kind of life. */
+.life-glance {
+  margin: 0.5rem 0;
+}
+
+.life-readings {
+  border-collapse: collapse;
+  margin: 0.5rem 0;
+}
+
+.life-readings th,
+.life-readings td {
+  border-bottom: 1px solid var(--border);
+  padding: 0.2rem 0.75rem 0.2rem 0;
+  text-align: left;
+}
+
+.life-facts,
+.life-help-facts {
+  margin: 0.5rem 0;
+}
+
+.life-help-facts dt {
+  font-weight: 600;
+}
+
+.life-help-facts dd {
+  margin: 0 0 0.4rem;
+}
+
+.life-help-nav ul {
+  list-style: none;
+  margin: 0 0 0.75rem;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1rem;
+}
+
+a.help-mark {
+  font-weight: 600;
+  margin-left: 0.15rem;
+}
+
+.life-facts dt {
+  font-weight: 600;
+}
+
+.life-facts dd {
+  margin: 0 0 0.4rem;
+}
+
 /* UX.237: the Life and air chart. */
 .life-air-chart {
   width: 100%;
@@ -6138,3 +6225,13 @@ p.hint a {
 .map-region-poi-count:empty {
   display: none;
 }
+
+/* The Preferences page (UX.236): one block per setting, its words, its control, its default. */
+.preference { margin: 0 0 1.25rem; }
+.preference h4 { margin: 0 0 0.25rem; }
+.preference-about, .preference-default { margin: 0.25rem 0; }
+.preference-default { color: var(--muted, inherit); }
+.preference-choice { border: 0; padding: 0; margin: 0.25rem 0; }
+.preference-option { display: block; margin: 0.25rem 0; }
+.preference-controls input[type="number"] { margin-left: 0.5rem; max-width: 8rem; }
+.preferences-status { min-height: 1.5em; }

@@ -15,10 +15,13 @@ from planetgen.util import draw
 DRY_AIR = {"mass_earth": 0.002, "host_type": "G", "age_gy": 4.5, "zone": "c", "redox_diw": 0.0, "water_lost": False, "runaway_ratio": 0.5, "is_moon": False, "radius_km": 6000.0, "insolation": 1.0}
 """dict: What the gates of the evolved-air rows (table j) read besides the quantities a test sets, for a body that passes none of them."""
 
+SOLAR_HOST = {"n_over_c": 1.0, "ar_over_c": 1.0, "s_over_c": 1.0}
+"""dict: The host ratios a comet's species rows read (GEN.1005, k7), at the proto-solar values."""
+
 
 def test_a_comet_beyond_the_coma_perihelion_has_no_gas_and_a_near_one_has_a_coma():
-    far = Subject("comet", {"perihelion_au": 5.0, "family": "x", "age_gy": 4.5, "ts_k": 120.0})
-    near = Subject("comet", {"perihelion_au": 1.0, "family": "x", "age_gy": 4.5, "ts_k": 200.0})
+    far = Subject("comet", {"perihelion_au": 5.0, "family": "x", "age_gy": 4.5, "ts_k": 120.0, **SOLAR_HOST})
+    near = Subject("comet", {"perihelion_au": 1.0, "family": "x", "age_gy": 4.5, "ts_k": 200.0, **SOLAR_HOST})
     for seed in range(4):
         with draw.bound(seed):
             result = md.draw_mixture(far)
@@ -53,6 +56,6 @@ def test_a_frost_row_far_from_its_window_is_not_normalised_to_one():
 
 
 def test_weights_that_add_up_to_more_than_one_are_still_shares_in_a_none_group():
-    coma = Subject("comet", {"perihelion_au": 1.0, "family": "x"})
+    coma = Subject("comet", {"perihelion_au": 1.0, "family": "x", **SOLAR_HOST})
     table = dict(RECIPES.probabilities("k", coma))
     assert sum(table.values()) == pytest.approx(1.0) and "none" not in table

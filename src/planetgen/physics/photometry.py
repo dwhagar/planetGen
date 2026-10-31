@@ -21,6 +21,11 @@ through, so every step takes a spectrum and a wavelength grid, not only a blackb
   does not step there, and below 2300 K it stays at the 2300 K one (the grid ends there).
 * **Absolute colour.** No adaptation to the star: the white point is D65 and a cool star is orange.
 
+* **The bolometric correction** (VIEW.9, `bolometric_correction_v`) is Flower's (1996) polynomial fit of BC_V against log Teff in three
+  ranges, with the coefficients as Torres (2010, AJ 140, 1158, arXiv:1008.3913, Table 1) reprinted them (the original had misprints). Its
+  zero point is the one the fit carries, BC_V of the Sun -0.08 and so M_bol of the Sun 4.74 (`SUN_ABSOLUTE_BOLOMETRIC_MAG`), which the
+  caller must use with it (Torres's point: the two go together). It replaces the blackbody table of sky-view.md section 2.4.
+
 The functions are pure and use only operations whose result is fixed (`math.fsum` for the sums), so a colour is the
 same on every machine. Nothing here is stored: a colour is worked out from the stored temperature when it is shown.
 """
@@ -263,3 +268,39 @@ def star_colour(temperature_k, spread_x=0.0, spread_y=0.0):
     x += dx + weight * spread_x * COOL_SPREAD_X
     y += dy + weight * spread_y * COOL_SPREAD_Y
     return colour_from_xyz(xyz_from_chromaticity(x, y))
+
+
+FLOWER_COEFFICIENTS = (
+    (3.70, (-0.190537291496456e+05, 0.155144866764412e+05, -0.421278819301717e+04, 0.381476328422343e+03)),
+    (3.90, (-0.370510203809015e+05, 0.385672629965804e+05, -0.150651486316025e+05, 0.261724637119416e+04, -0.170623810323864e+03)),
+    (math.inf, (-0.118115450538963e+06, 0.137145973583929e+06, -0.636233812100225e+05, 0.147412923562646e+05, -0.170587278406872e+04,
+                0.788731721804990e+02)),
+)
+"""tuple: `(upper log Teff, coefficients a, b, c, ...)` of Flower's (1996) fit `BC_V = a + b (log Teff) + c (log Teff)^2 + ...` for log Teff below
+3.70, from 3.70 to 3.90 and above 3.90, as Torres (2010, Table 1) corrects them. [Verified, read from the paper.]"""
+
+BOLOMETRIC_CORRECTION_RANGE_K = (3500.0, 50000.0)
+"""tuple: The effective temperatures, K, `bolometric_correction_v` answers for. Below 3500 K the polynomial runs away (-24 at 2000 K) and Torres says
+the fit "breaks down completely for the M dwarfs"; the hot end is where the fit's data stop being dense. The caller decides what a cooler
+or hotter star gets; none is invented here."""
+
+SUN_ABSOLUTE_BOLOMETRIC_MAG = 4.74
+"""float: M_bol of the Sun that goes with Flower's zero point (Torres 2010: BC_V of the Sun -0.08, M_bol 4.74, which with V = -26.76 and the 1 au
+distance modulus 31.572 gives BC_V of the Sun -0.068)."""
+
+
+def bolometric_correction_v(temperature_k):
+    """
+    The V-band bolometric correction `BC_V` (magnitudes, `M_V = M_bol - BC_V`) of a star of effective temperature `temperature_k`: Flower's (1996)
+    fit with Torres's (2010) coefficients. About -0.08 for the Sun, +0.03 near 7000 K, -1.9 at 20,000 K and -4.2 at 45,000 K.
+
+    Raises:
+        ValueError: If `temperature_k` is outside `BOLOMETRIC_CORRECTION_RANGE_K` (or not finite).
+    """
+    low, high = BOLOMETRIC_CORRECTION_RANGE_K
+    if not (isinstance(temperature_k, (int, float)) and low <= temperature_k <= high):
+        raise ValueError(f"the bolometric correction is fitted from {low:g} to {high:g} K, not {temperature_k!r}")
+    log_t = math.log10(temperature_k)
+    for upper, coefficients in FLOWER_COEFFICIENTS:
+        if log_t < upper:
+            return sum(coefficient * log_t ** power for power, coefficient in enumerate(coefficients))

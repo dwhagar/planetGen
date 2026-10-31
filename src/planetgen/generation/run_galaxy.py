@@ -28,11 +28,11 @@ from planetgen.datasets import catalogue as datasetCatalogue, fetch
 from planetgen.db import block_lights, block_stats, nebula_blocks, query, region, region_stats, scatter_systems, sector_paths, store
 from planetgen.generation import bright_stars as brightStars
 from planetgen.galaxy import density, drill, named_regions, region_run, resolution as galaxyResolution, seed as galaxySeed, version_check
-from planetgen.queue import commands, redisqueue, wrapper
+from planetgen.queue import commands, wrapper
 from planetgen import tuning as program_constants
 from planetgen.util import log
 from planetgen.galaxy.profile import profile_at, sector_profile
-from planetgen.galaxy.region import BALL_EDGE_ALLOWANCE, Region
+from planetgen.galaxy.region import Region
 from planetgen.galaxy import spherical
 from planetgen.galaxy.frame import galactic_radius_pc
 from planetgen.galaxy.span import Span, parse_range
@@ -433,11 +433,6 @@ def backfill_step_targets(addresses, bounds, step_masses=None):
         if not frontier:
             break
     return targets
-
-
-def backfill_bright_stars(config, center_pc):
-    """`backfill_bright_stars_around` one center (see there)."""
-    return backfill_bright_stars_around(config, [center_pc])
 
 
 def backfill_bright_stars_around(config, centers_pc, progress=None):
@@ -1119,6 +1114,11 @@ def _default_generation_args(config=None):
     return args
 
 
+def _since_text(moment):
+    """The text of a start time as `--since` takes it (the one place that spells it, so a message never words a value of its own)."""
+    return moment.strftime("%Y-%m-%d %H:%M:%S")
+
+
 def _resolve_since(args):
     """Fills in `args.since` when `--since` was not given: the start of the newest `sectors` or `galaxy` run.
 
@@ -1135,7 +1135,7 @@ def _resolve_since(args):
     if args.since is None:
         log.error("No 'sectors' or 'galaxy' run is recorded, so there is no start time: give --since TIME.")
         raise SystemExit(1)
-    log.normal(f"Working on the sectors saved since {args.since:%Y-%m-%d %H:%M:%S}, the start of the newest "
+    log.normal(f"Working on the sectors saved since {_since_text(args.since)}, the start of the newest "
                f"'sectors' or 'galaxy' run.")
 
 
@@ -1235,7 +1235,7 @@ def _settle_named(args):
 def settle_named_sectors(sector_ids, config, expand=True):
     """
     Saves the sector paths of `sector_ids` (and, with `expand`, of the sectors around them) as a run of
-    `settle-sector-paths` (GEN.126; PERF.119: the body of the API's settle job and of a regenerate).
+    `settle-sector-paths` (GEN.126; PERF.119: the settle of a regenerate or a filled sector, and of `planetgen settle`).
 
     Returns:
         int: How many paths were saved.
@@ -1251,30 +1251,6 @@ def settle_named_sectors(sector_ids, config, expand=True):
     finally:
         conn.close()
     return _settle_on_queue(args, started_at, extra={"sector_ids": sector_ids, "expand": expand})
-
-
-def queue_settle(config, sector_ids):
-    """
-    Saves the sector paths of `sector_ids` and the sectors around them
-    (GEN.126) as a queued job, so a caller that generated a sector on the
-    spot doesn't wait for up to 125 sectors of integration. When the job
-    cannot be queued (an update is running) it runs here, as a run through
-    the wrapper like the job's; with no Redis server for that run either, the
-    paths are not saved and the next settle covers them.
-
-    Returns:
-        str | None: The job's id, or `None` when it ran inline.
-    """
-    from planetgen.queue import api_jobs
-    sector_ids = sorted(sector_ids)
-    try:
-        return api_jobs.submit(api_jobs.settle_sectors, sector_ids, config)
-    except api_jobs.NoQueue:
-        try:
-            api_jobs.settle_sectors(sector_ids, config)
-        except redisqueue.Unavailable as exc:
-            log.error(f"The sector paths of {len(sector_ids)} sector(s) were not saved: {exc}")
-        return None
 
 
 def _cell_to_generate(address, config, link=True):
@@ -1703,17 +1679,6 @@ def _require_in_reach(bounds, shell_index, band_index, what):
     raise SystemExit(1)
 
 
-def ball_extent(sectors, edge_pc):
-    """
-    The radius, in parsecs, of a radial fill of `sectors` sectors across
-    (ADM.30): `sectors` edges plus `BALL_EDGE_ALLOWANCE`, so one sector holds
-    the centre and its face neighbours and a bigger one a round shape joined
-    by face adjacency. The fill is a ball (`--radius-pc`), so the Generate
-    page turns its "sectors" field into the radius with this.
-    """
-    return (sectors + BALL_EDGE_ALLOWANCE) * edge_pc
-
-
 def _region_text(args):
     """The fill's size in words, for logs and the estimate."""
     return f"within {args.radius_pc:g} pc"
@@ -2075,7 +2040,7 @@ def generate_sector_neighborhood(center_sector_id, radius_ly=None, config=None, 
     The default radius is `program_constants.DEFAULT_GENERATE_RADIUS_PC`
     (12 pc, about 100 candidate addresses; GEN.23). Once they are all
     generated, the 100 ly around the center sector gets its bright stars
-    (`backfill_bright_stars`, GEN.30).
+    (the `scatter-backfill` stage, GEN.30).
     A larger `radius_ly` (100 ly holds roughly 1,500-2,000 addresses) can
     take minutes to hours.
 
@@ -2808,7 +2773,7 @@ def _start_clock(args):
     finally:
         conn.close()
     if not getattr(args, "estimate_only", False):
-        log.normal(f"Run started at {started_at:%Y-%m-%d %H:%M:%S} on the database's clock (the --since of "
+        log.normal(f"Run started at {_since_text(started_at)} on the database's clock (the --since of "
                    f"'planetgen link', 'backfill' and 'settle' for this run's sectors).")
     return started_at
 
@@ -3006,7 +2971,7 @@ def run_sectors(args):
     """
     started_at = _run_stages(args, "sectors", lambda _started_at: [])
     if started_at is not None:
-        log.normal(f"The sectors are saved. 'planetgen link --since \"{started_at:%Y-%m-%d %H:%M:%S}\"' links them to "
+        log.normal(f"The sectors are saved. 'planetgen link --since \"{_since_text(started_at)}\"' links them to "
                    f"their neighbours.")
 
 

@@ -132,6 +132,7 @@ Column density `Sigma = M_field / (pi R(t)^2)`, falling as `t^-2`. A "dense/typi
 
 ## 6. Storage, ID and bodies
 
+* **Mass rule (GEN.1161, Boss approved 3:14 PM EDT 2026-10-31).** A field holds what the disc stretch it came from has left, by the belts' own rule, and its bodies add up to it: a supernova-unbound belt is the progenitor's belt ground for the progenitor's life (`belt_ledger.solve_belt`) and then kept; a collision field is the unbound share of the pair (`rogue_collision.unbound_fraction`); nothing is drawn from a table of typical masses. Built in `physics/field_mass.py`; `mass_total_kg` below stores its result.
 * **One row per field** (the existing `asteroid_fields` row with its 12-byte `uid`) gains: `mass_total_kg`, `seed`, `birth_age_yr` (age at the sector's epoch), `sigma_v_kms`, `shape` (ball, annulus), `origin` (S1, S2, ...), `history` text, `parent_a` and `parent_b` (mass, class, speed; text), `remnant_id` (the rogue left behind, if any), `size_law` (slope, largest-fragment mass). Units go in `db/column_units.py`.
 * **Position and size at any epoch are formulas of the row**, so the bring-to-epoch step is a pure function, with one exception (retirement, 5.2).
 * **Bodies are derived.** L1 members (mass cut rule E, floor 1e19 kg, cap 300) come from the seed: rank k has mass from the order-statistic draw, velocity from `Normal(0, sigma_v)` per component, position `x_k = v_k x age`. Stable rank by mass drawn once at birth, as the belt draw. L2 (1e15 to 1e19 kg) is drawn on demand; L3 is the tail as total mass.

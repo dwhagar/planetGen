@@ -1,10 +1,10 @@
 """The roundness ratio, the yield strength and the binding energy of a body (GEN.1159).
 
-Schema v195. `planets` and `moons` gain `roundness_ratio` (DOUBLE, the mean radius over the round radius; 1 or more is round), `yield_strength_pa`
+Schema v197. `planets` and `moons` gain `roundness_ratio` (DOUBLE, the mean radius over the round radius; 1 or more is round), `yield_strength_pa`
 (DOUBLE, Pa, the whole-body strength of the material mix, drawn from the range of each material, GEN.1178) and `binding_energy_j` (DOUBLE,
 J, the energy that assembling the body releases), worked out by `physics/body_strength.py` when a body is generated. A gas giant keeps only the binding
 energy. `comets` gain those three with `density_g_cm3` and `ice_mass_fraction` (DOUBLE) from the makeup of the nucleus. `asteroid_belts` and `asteroid_fields` gain `density_g_cm3` and `ice_mass_fraction`, the mean of their members from their makeup. All are NULL here: a row made
-before v195 gets them when the galaxy is regenerated. A column already there is skipped, so a stopped run can be started again.
+before v197 gets them when the galaxy is regenerated. A column already there is skipped, so a stopped run can be started again.
 """
 
 import sqlalchemy as sa
@@ -12,8 +12,8 @@ from alembic import op
 
 from planetgen.db.migrations import helpers
 
-revision = "0195"
-down_revision = "0194"
+revision = "0197"
+down_revision = "0196"
 branch_labels = None
 depends_on = None
 

@@ -668,8 +668,8 @@ masses (23:16Z), as a spline.
   the admin API's queued jobs for regenerating a sector, deleting a sector with its
   contents, changing a system's star, and regenerating or deleting a phenomenon, and the
   neighbourhood job (`generate_sector_neighborhood`, which settles every sector it made at
-  its end). A sector generated on the spot (`ensure_sector_generated`) queues its own
-  settle job (`api_jobs.settle_sectors`, run inline when no Redis answers). (The two
+  its end). (No route generates a sector on a visit any more, PERF.149, so there is no
+  settle job of its own; TEST.531 removed `api_jobs.settle_sectors`.) (The two
   deletes used to answer inline and now run as queued jobs, answering at once if they
   finish within the API's 8 s wait, else `202`). Not settled, because no mass or
   neighbour changes: a one-off system or `planetgen sector` (standalone, in no galaxy

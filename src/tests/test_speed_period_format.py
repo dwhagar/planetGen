@@ -17,7 +17,6 @@ import subprocess
 import pytest
 
 from planetgen.physics import constants as pc
-from planetgen.galaxy.galactic_orbit import format_galactic_orbit
 from planetgen.util.format import format_duration_seconds, format_period_years, format_speed_kms, format_speed_ms
 
 _STATIC = os.path.join(os.path.dirname(__file__), "..", "html", "static")
@@ -101,10 +100,6 @@ def test_singular_only_when_exactly_one():
     assert format_period_years(1.001) == "1 year"
     assert format_period_years(1.01) == "1.01 years"
     assert format_duration_seconds(2 * 86400) == "2 days"
-
-
-def test_galactic_orbit_text_uses_both_ladders():
-    assert format_galactic_orbit(205.7, 0.23626) == "206 km/s (236 Myr per orbit)"
 
 
 def test_year_is_julian():

@@ -168,10 +168,6 @@ def cipw_norm(oxides):
     return {name: units[name] * _mass(name, iron) for name in MINERALS if units[name] > 0.0}
 
 
-def mafic_share(norm):
-    """The share of the norm that is mafic: diopside, wollastonite, hypersthene, olivine, periclase and the iron-titanium oxides."""
-    total = sum(norm.values())
-    return sum(norm.get(name, 0.0) for name in ("diopside", "wollastonite", "hypersthene", "olivine", "periclase", "magnetite", "hematite", "ilmenite")) / total
 
 
 @finite_domain()

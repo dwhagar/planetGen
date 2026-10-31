@@ -59,7 +59,7 @@ subhead (badges or actions under the <h1>). -#}
   <button slot="trigger" type="button" class="site-help-trigger" aria-haspopup="menu"{% if section in help_sections %} aria-current="page"{% endif %}><span class="site-help-text">Help</span><sl-icon class="site-help-icon" name="book" aria-hidden="true"></sl-icon></button>
   <sl-menu aria-label="Help">
     {%- for page, page_text in help_menu %}
-    <sl-menu-item data-href="{{ page_url(page) }}"{% if request.endpoint == 'web.' ~ page or (page == 'classes' and section == 'classes') %} aria-current="page"{% endif %}>{{ page_text }}</sl-menu-item>
+    <sl-menu-item data-href="{{ page_url(page) }}"{% if request.endpoint == 'web.' ~ page or (page == 'classes' and section == 'classes') or (page == 'life_help_page' and request.endpoint in ('web.life_help_topic', 'web.life_help_class')) %} aria-current="page"{% endif %}>{{ page_text }}</sl-menu-item>
     {%- endfor %}
   </sl-menu>
 </sl-dropdown>
@@ -68,7 +68,7 @@ subhead (badges or actions under the <h1>). -#}
 {%- macro gear_link(name, text, current, href=None) -%}
 <li><a href="{{ href or page_url(name) }}"{% if section == current %} aria-current="page"{% endif %}>{{ text }}</a></li>
 {%- endmacro -%}
-{#- The settings gear (UX.72): Lists (UX.146), the theme switch, and either
+{#- The settings gear (UX.72): Lists (UX.146), Preferences (UX.236), the theme switch, and either
     Account, Admin and Logout or Login. The admin's other pages are one level
     down, behind Admin and its tab row. -#}
 {%- macro gear_menu() -%}
@@ -79,6 +79,7 @@ subhead (badges or actions under the <h1>). -#}
     <nav class="site-account" aria-label="Settings">
     <ul>
       {{ gear_link('lists', 'Lists', 'lists') }}
+      {{ gear_link('preferences', 'Preferences', 'preferences') }}
       <li><button type="button" class="theme-toggle" data-theme-toggle hidden>Theme: System</button></li>
       <li><button type="button" class="theme-toggle" data-units-toggle hidden>Units: Automatic</button></li>
       {%- if admin %}
