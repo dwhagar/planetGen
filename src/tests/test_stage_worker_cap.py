@@ -10,10 +10,10 @@ def test_a_scatter_stage_gets_the_workers_the_memory_holds(monkeypatch):
     monkeypatch.setattr(workers, "_physical_memory_bytes", lambda: 15_992 * 2 ** 20)         # the host that was killed
     caps = {kind: workers.stage_worker_cap(kind)
             for kind in ("scatter-mass", "scatter-luminosity", "scatter-backfill", "scatter-band")}
-    assert set(caps.values()) == {15}                                                      # 60 percent of 15,992 MB in 600 MB
-    assert 15 * workers.SCATTER_WORKER_MEMORY_MB < 0.61 * 15_992 and 36 * 452 > 15_992      # 36 workers did not fit
+    assert set(caps.values()) == {8}                                                       # half of 15,992 MB in 900 MB workers
+    assert 8 * workers.SCATTER_WORKER_MEMORY_MB < 0.5 * 15_992 and 36 * 452 > 15_992        # at the peak size they leave half the host free
     monkeypatch.setattr(workers, "_physical_memory_bytes", lambda: 64 * GB)
-    assert workers.stage_worker_cap("scatter-luminosity") == 65
+    assert workers.stage_worker_cap("scatter-luminosity") == 36
     monkeypatch.setattr(workers, "_physical_memory_bytes", lambda: 256 * 2 ** 20)
     assert workers.stage_worker_cap("scatter-luminosity") == 1                                # never none
 
@@ -38,9 +38,9 @@ def test_the_scatter_stage_holds_the_runs_count_to_the_cap_and_sheds_the_surplus
     wrapper.stage_ensure(None, "url", runrecord.GENERATION, "scatter-luminosity", None)()
     wrapper.stage_ensure(None, "url", runrecord.GENERATION, "scatter-mass", 36)()
     wrapper.stage_ensure(None, "url", runrecord.GENERATION, "scatter-mass", 4)()
-    assert calls == [("shed", 15), ("ensure", redisqueue.BULK_QUEUE, 15),
-                     ("shed", 15), ("ensure", redisqueue.BULK_QUEUE, 15),
-                     ("shed", 15), ("ensure", redisqueue.BULK_QUEUE, 4)]        # a smaller `--workers` stays
+    assert calls == [("shed", 8), ("ensure", redisqueue.BULK_QUEUE, 8),
+                     ("shed", 8), ("ensure", redisqueue.BULK_QUEUE, 8),
+                     ("shed", 8), ("ensure", redisqueue.BULK_QUEUE, 4)]        # a smaller `--workers` stays
 
 
 def test_another_stage_keeps_the_runs_count_and_sheds_nobody(monkeypatch):
@@ -55,4 +55,4 @@ def test_a_maintenance_run_never_sheds_the_bulk_workers(monkeypatch):
     monkeypatch.setattr(workers, "_physical_memory_bytes", lambda: 15_992 * 2 ** 20)
     calls = _record(monkeypatch)
     wrapper.stage_ensure(None, "url", runrecord.MAINTENANCE, "scatter-mass", None)()
-    assert calls == [("ensure", redisqueue.MAINTENANCE_QUEUE, 15)]
+    assert calls == [("ensure", redisqueue.MAINTENANCE_QUEUE, 8)]
