@@ -18,8 +18,8 @@ Each ring of the disk (a thousandth of its stars or so) follows gas continuity:
 2. **The return** `R` is the share of a stellar generation's mass that goes back into the gas (`return_fraction`),
    worked out from the generator's own mass function with the remnant masses of Madau and Dickinson 2014.
 3. **The inflow** follows the stars the galaxy's halo builds. The halo grows at the mean rate of Fakhouri, Ma and
-   Boylan-Kolchin 2010, and the stars it holds at each age are those of the stellar-to-halo mass relation of Girelli,
-   Pozzetti, Bolzonella et al. 2020, which moves with redshift (`inflow_shape`): the gas comes in at the rate the stars are built.
+   Boylan-Kolchin 2010, and the stars it holds at each age are those of the stellar-to-halo mass relation of Moster,
+   Naab and White 2013 (the chain's present halo is Girelli et al. 2020's, GEN.1167), which moves with redshift (`inflow_shape`): the gas comes in at the rate the stars are built.
    Only its shape in time matters: each ring's amplitude is solved so that the ring ends with the stars the galaxy's
    density gives it.
 4. **The stars.** The disk's stellar mass (its share of the galaxy's, which the mass chain drew from the seed) spread as
@@ -130,18 +130,19 @@ def _expansion_rate(redshift):
 
 def stellar_to_halo_ratio_at(halo_mass_solar, redshift):
     """
-    The median `M* / Mh` of a halo of `halo_mass_solar` at `redshift` (Girelli et al. 2020, Eq. 6 with Eqs. 7 to 10 and
-    Table 4): the present relation of `galaxy.mass_chain`, its peak halo mass rising by `tuning.STELLAR_TO_HALO_EVOLUTION`
-    dex per unit of redshift, its normalisation and high-mass slope scaling as powers of `1 + z` and its low-mass slope
-    rising linearly with `z`.
+    The median `M* / Mh` of a halo of `halo_mass_solar` at `redshift` (Moster, Naab and White 2013, eqs. 2 and 11 to 14):
+    `tuning.STELLAR_TO_HALO_TIME_SHAPE` with its four parameters moved by `tuning.STELLAR_TO_HALO_EVOLUTION` times
+    `z / (z + 1)`. Only the relation's shape in time matters to the disk (each ring's amplitude is solved), so this stays
+    Moster's whole relation while the chain's present halo comes from Girelli et al. 2020 (GEN.1167, stand-in SR2).
     """
+    shift = redshift / (redshift + 1.0)
+    base = tuning.STELLAR_TO_HALO_TIME_SHAPE
     evolution = tuning.STELLAR_TO_HALO_EVOLUTION
-    scale = 1.0 + redshift
-    log_ma = mass_chain.LOG_MA + evolution["log_ma_per_z"] * redshift
-    norm = mass_chain.A_NORM * scale ** evolution["norm_exponent"]
-    beta = mass_chain.BETA + evolution["beta_per_z"] * redshift
-    gamma = mass_chain.GAMMA * scale ** evolution["gamma_exponent"]
-    r = halo_mass_solar / 10.0 ** log_ma
+    m1 = 10.0 ** (base["log_m1"] + evolution["log_m1"] * shift)
+    norm = base["norm"] + evolution["norm"] * shift
+    beta = base["beta"] + evolution["beta"] * shift
+    gamma = base["gamma"] + evolution["gamma"] * shift
+    r = halo_mass_solar / m1
     return 2.0 * norm / (r ** -beta + r ** gamma)
 
 

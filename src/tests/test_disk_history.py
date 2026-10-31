@@ -49,10 +49,13 @@ def test_the_return_fraction_reproduces_madau_and_dickinsons_salpeter_value():
     assert 0.27 < disk_history.return_fraction() < 0.5
 
 
-def test_the_stellar_to_halo_ratio_is_the_chains_at_redshift_zero_and_moves_with_redshift():
+def test_the_stellar_to_halo_ratio_is_mosters_at_redshift_zero_and_moves_with_redshift():
+    """The disk's time shape is Moster, Naab and White 2013's whole relation, not the chain's present one (Girelli et al.
+    2020, GEN.1167): its z = 0 value is Eq. 2 with Table 1."""
     for mass in (1.0e11, 1.0e12, 1.0e13):
-        assert disk_history.stellar_to_halo_ratio_at(mass, 0.0) == pytest.approx(mass_chain.stellar_to_halo_ratio(mass))
-    # Girelli et al. 2020: a 1e12 halo holds fewer stars at z = 2 than a 1e12 halo does now.
+        r = mass / 10.0 ** 11.590
+        assert disk_history.stellar_to_halo_ratio_at(mass, 0.0) == pytest.approx(2.0 * 0.0351 / (r ** -1.376 + r ** 0.608))
+    # Moster, Naab and White 2013: a 1e12 halo holds fewer stars at z = 2 than a 1e12 halo does now.
     assert disk_history.stellar_to_halo_ratio_at(1.0e12, 2.0) < disk_history.stellar_to_halo_ratio_at(1.0e12, 0.0)
 
 

@@ -1197,13 +1197,19 @@ HALO_GROWTH_MASS_EXPONENT = 1.1
 MNRAS 406, 2267, arXiv 1001.2304, eq. 2, read: fitted to the Millennium simulations)."""
 HALO_GROWTH_REDSHIFT_SLOPE = 1.11
 """float: The `1 + 1.11 z` in the same fit's mean growth rate, `46.1 Msun/yr (M / 1e12)^1.1 (1 + 1.11 z) E(z)`."""
-STELLAR_TO_HALO_EVOLUTION = {"log_ma_per_z": 0.18, "norm_exponent": -0.40, "beta_per_z": 0.052, "gamma_exponent": -0.16}
-"""dict: How the stellar-to-halo mass relation moves with redshift (Girelli, Pozzetti, Bolzonella et al. 2020, A&A 634, A135,
-arXiv 2001.02230, Eqs. 7 to 10 and Table 4, the fit with scatter): the log of the peak halo mass
-(`galaxy.mass_chain.LOG_MA`) rises by `log_ma_per_z` per unit of redshift, the normalisation (`A_NORM`) and the high-mass
-slope (`GAMMA`) scale as `(1 + z)` to `norm_exponent` and `gamma_exponent`, and the low-mass slope (`BETA`) rises by
-`beta_per_z` per unit of redshift. It gives the stars a halo of a given mass and age holds, so the disk's gas inflow
-follows the stellar mass the halo's growth builds."""
+STELLAR_TO_HALO_TIME_SHAPE = {"log_m1": 11.590, "norm": 0.0351, "beta": 1.376, "gamma": 0.608}
+"""dict: The present (z = 0) parameters of Moster, Naab and White 2013's stellar-to-halo relation (MNRAS 428, 3121,
+arXiv 1205.5807, Eq. 2 and Table 1), the base of `STELLAR_TO_HALO_EVOLUTION`. They give only the *shape in time* of the
+disk's gas inflow (`galaxy.disk_history`); the stars a halo holds today, and so a galaxy's halo mass, are
+`galaxy.mass_chain`'s (Girelli et al. 2020, GEN.1167). Stand-in SR2 of the gap-filling plan."""
+STELLAR_TO_HALO_EVOLUTION = {"log_m1": 1.195, "norm": -0.0247, "beta": -0.826, "gamma": 0.329}
+"""dict: How Moster, Naab and White 2013's stellar-to-halo relation moves with redshift: each of its four parameters is
+its present value (`STELLAR_TO_HALO_TIME_SHAPE`) plus this times `z / (z + 1)` (eqs. 11 to 14 and Table 1, read: the
+multi-epoch abundance-matching fit with errors in the observed masses). It gives the stars a halo of a given mass and age
+holds, so the disk's gas inflow follows the stellar mass the halo's growth builds. Girelli et al. 2020's relation and
+evolution were tried for this (GEN.1167) and not kept: with its low-mass end (0.4 to 0.6 dex more stars than the other
+fits in halos of 1e10.5) the progenitors of a Milky Way mass galaxy hold more stars early, and the present star
+formation rate comes out 0.9 to 1.0 of the disk's mean against 0.39 with Moster's and 0.20 observed."""
 HALO_GROWTH_RATE_AT_1E12_MSUN_YR = 46.1
 """float: That fit's amplitude, solar masses per year for a halo of 1e12 solar masses at z = 0. It only sets how the
 halo's mass went back in time; the disk's inflow is scaled to the stars it must build, so its size drops out."""
