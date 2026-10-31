@@ -12047,6 +12047,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.973 and GEN.974; the response today is about 0.4 K per W/m2. When
   the last of the three lands the test passes, the strict xfail fails
   the run, and this item removes the mark.
+  Air 1 finding (GEN.972 design, 2026-10-31) (2026-10-31 12:09 AM EDT):
+  The water vapour feedback is already in the surface-air loop twice:
+  the ocean sets the surface vapour at 0.77 of saturation at the step's
+  own temperature (4.2 to 7.4 kPa across the 0.9 to 1.1 flux sweep), and
+  the radiative-convective column follows Manabe and Wetherald humidity
+  (CO2 doubling warms 1.72 K with the vapour free against 1.04 K held).
+  With the refitted table the sweep responses are 0.54, 0.51, 0.48, 0.45
+  K per W/m2 against the 0.54 lower bound, and the twin sits at 313 K,
+  far above the ice ramp (263 to 283 K), so GEN.972 does not close the
+  strict xfail alone. Re-scoped: this item becomes a held-vapour test
+  (hold the vapour fixed and show the response drops; lock-free, Air 1
+  writes it) plus the runaway-threshold test against GEN.639; no new
+  feedback code unless the held-vapour test shows the loop lacks it. The
+  remaining gap in the sweep goes to GEN.974 and to TEST.509.
   Prerequisites: GEN.972. Related: GEN.752, GEN.639.
 
 - [ ] **GEN.974 Climate feedback 3: cloud albedo on the fixed point (cloud cover changes the reflected share)**
@@ -19181,6 +19195,18 @@ clears each one.
   or leave it labelled as a stand-in. Test data only, no generated value
   changes. Owner Aux 4.
   Prerequisites: none. Related: GEN.535.
+
+- [ ] **TEST.509 The climate sweep twin sits at 313 K, far above the 288 K of the Earth it stands for: make it a real Earth twin so the sweep tests the feedbacks where they act**
+  From Air 1 (GEN.972 design): the climate sweep twin in
+  src/tests/test_climate_sweep.py is at 313 K at its reference flux, far
+  above the ice ramp (263 to 283 K) and Earth's 288 K, so GEN.972 cannot
+  close the strict xfail and the response (0.45 to 0.54 K per W/m2) is
+  measured on a hot world. Make the twin an Earth twin (about 288 K at
+  its flux, Earth composition) and re-measure the response and the 0.54
+  lower bound against it; the bound's source needs rechecking with the
+  new twin. Test and fixture work, no generated value changes. Owner Air
+  1.
+  Prerequisites: none. Related: GEN.972, GEN.973, GEN.974.
 
 ## USR: User accounts
 
