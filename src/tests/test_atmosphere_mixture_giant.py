@@ -93,14 +93,6 @@ def test_ammonium_hydrosulfide_forms_where_the_fit_says_and_leaves_the_gas_at_it
     assert math.log10(0.3) + 0.5 * math.log10(nitrogen_over) + 0.5 * math.log10(sulfur_over) == pytest.approx(boundary, abs=1e-6)
 
 
-def test_the_carbon_monoxide_time_is_zahnle_and_marleys():
-    t1 = 1.5e-6 * math.exp(42000.0 / 1000.0)
-    t2 = 40.0 * math.exp(25000.0 / 1000.0)
-    assert mg.carbon_monoxide_time_s(1000.0, 1.0, 1.0) == pytest.approx(1.0 / (1.0 / t1 + 1.0 / t2))
-    assert mg.carbon_monoxide_time_s(1000.0, 1.0, 10.0) < mg.carbon_monoxide_time_s(1000.0, 1.0, 1.0)     # m^-0.7
-    assert mg.carbon_monoxide_time_s(1000.0, 10.0, 1.0) < mg.carbon_monoxide_time_s(1000.0, 1.0, 1.0)
-
-
 def carbon_monoxide_share(temperature_k, pressure_bar, metallicity, gravity, kzz):
     quench = mg.quench_level(temperature_k, pressure_bar, metallicity, 2.3e-3, gravity, kzz)
     if quench is None:

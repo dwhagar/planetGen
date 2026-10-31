@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% block content %}
+<p class="hint">Your <a href="{{ page_url('preferences') }}">Preferences</a> (the Galaxy Map's settings) are kept in this browser.</p>
 <section class="panel">
   <h2>Username and password</h2>
   <p class="signed-in">{% if admin.avatar %}<img class="avatar" src="{{ admin.avatar }}" alt="Your picture" width="48" height="48">{% endif %}Signed in as <strong>{{ admin.username }}</strong>.</p>

@@ -23,7 +23,7 @@ The heat-flow floor 1e-4 to 1e-3 W/m2, the overturn scale 0.2 of FeO, the modifi
 
 ## Reads back
 
-`band_albedo` gives the lab reflectance by band area-weighted over the ground types that have a measured spectrum (not a Bond albedo; the final albedo is GEN.462). `crust_reservoir` gives K, Th and U for ultramafic, basaltic and felsic ground from the reservoir models of part E table 2.8b, for the radiogenic heat of GEN.459 to replace its basalt and felsic stand-ins.
+`band_albedo` gives the lab reflectance by band area-weighted over the ground types that have a measured spectrum (not a Bond albedo; the final albedo is GEN.462). `land_rock_ppm` gives K, Th and U for the land of a body from the reservoir models of part E table 2.8b (`RESERVOIRS`), for the ground dose.
 
 ## Stored (second slice, GEN.441)
 

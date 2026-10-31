@@ -113,9 +113,12 @@ export const GALAXY_MIN_ZOOM = 0.5;
 export const PINNED_MAX_ZOOM = 1.1;
 // An opened system zooms from its fit down to a moon, nine orders closer.
 export const SYSTEM_MIN_ZOOM = 1e-9;
-// MAP.333: the nearest the camera may be asked to come to its target by any move, about a moon framed (Boss, 6:19 PM EDT 2026-10-28), and
-// the farthest, the whole galaxy in view (the same 2.4 galaxy radii the whole-galaxy fit uses).
-export const GLOBAL_FLOOR_PC = 1e-10;
+// MAP.333: the nearest the camera may be asked to come to its target by any move, and the farthest, the whole galaxy in view (the same
+// 2.4 galaxy radii the whole-galaxy fit uses). MAP.338: 30 km, the camera held as the target plus an exact offset (galaxymap3d.js draws an
+// opened system from the eye's own frame once the camera is that close), where it was 3,000 km, about a moon framed (Boss, 6:19 PM EDT 2026-10-28).
+export const GLOBAL_FLOOR_PC = 1e-12;
+// A sector selected and left stays in the address while the camera is within this many sector edges of its target.
+const SELECTION_REACH_EDGES = 81;
 export const GALAXY_FAR_RADII = 2.4;
 // MAP.334: the nearest the camera comes outside an opened system, until the scene has the precision for finer (MAP.338): the single-precision
 // positions of the sector and the windows are good to about a thousandth of a parsec a few thousand parsecs out.
@@ -3553,6 +3556,11 @@ export function createStageView(host) {
     const query = cameraQueryFor(resolved, currentCamera());
     if (query) params.set("cam", query.slice(5));
     else params.delete("cam");
+    // TEST.496: a sector left selected stays in the address while the camera is near it; out past SELECTION_REACH_EDGES edges the address is the camera's alone.
+    if (params.has("sector") && view.dist > SELECTION_REACH_EDGES * edgePc) {
+      params.delete("sector");
+      params.delete("open");
+    }
     const text = params.toString().replace(/%2C/gi, ",").replace(/%3A/gi, ":");
     const next = text ? "?" + text : "";
     if (next !== location.search) history.replaceState(history.state, "", location.pathname + next + location.hash);
@@ -3999,12 +4007,16 @@ export function createStageView(host) {
     return { id: systemStage.systemId(), centre: systemStage.centre(), radiusPc: systemStage.radiusPc(), entries: systemStage.markerBodies() };
   }
 
+  // MAP.338: the open system's group and place (parsecs), or null when none is open in place.
+  function systemFrame() { return enteredSystem ? systemStage.frame() : null; }
+
   function selectBodyRef(ref) { systemStage.select(ref); }
 
   return {
     selectBody: selectBody,
     selectBodyRef: selectBodyRef,
     systemMarkerSource: systemMarkerSource,
+    systemFrame: systemFrame,
     bodyLabels: bodyLabels,
     sectorLabels: sectorLabels,
     systemLabels: systemLabels,

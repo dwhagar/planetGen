@@ -14,7 +14,7 @@ present); the ozone rows are lane F's.
 | The equilibrium gas of an element budget at T and P, optionally over a mantle of a given fO2 | this | `physics/gas_equilibrium.py` |
 | Regimes to mole fractions of the gases of the table | this | `physics/mixture_draw.py`, `draw_mixture` |
 | The subject of a generated body: the quantities the tables and the chemistry read, built from its stored fields and its star | GEN.756 | `physics/mixture_subject.py`, `subject_of_body` |
-| What an ocean takes out of the drawn air: the water vapour cap and the sulfur uptake | GEN.757 | `physics/mixture_sinks.py`, `apply_ocean_sinks` |
+| What an ocean takes out of the drawn air: the sulfur uptake (the water vapour cap is the air solve's saturation) | GEN.757 | `physics/mixture_sinks.py`, `sulfur_remaining_fraction` |
 | Total pressure, freeze-out of what the surface condenses, sum of partials = pressure, storage, accessor | lane I | GEN.411, GEN.422: `physics/surface_air.py`, `physics/atmosphere.py` (built 2026-10-24) |
 | Clouds, hazes, ozone | lanes G and F | GEN.414, GEN.413 |
 
@@ -52,13 +52,7 @@ bound (`DAYSIDE_OVER_EQUILIBRIUM`, `(8/3)^(1/4)`: the generator has no redistrib
 (`PHOTOSPHERE_BAR`), a hot A, B or O star takes the F rows and a brown dwarf the M rows, and the snow ratio uses the body's present
 distance because no formation distance is stored.
 
-`mixture_sinks.apply_ocean_sinks(mole_fractions, pressure_pa, ts_k, gravity, ocean_present=, ocean_column_kg_m2=)` caps the water
-vapour at its saturation pressure over the ocean (none above the critical point or with no ocean) and keeps `1 / (1 + kH m g M / P0)`
-of each sulfur gas (SO2, H2S: Henry's law over `m` kg of ocean per square metre). It returns the renormalised mixture, the new total
-pressure and what left. The outgassed inventory and the ocean and carbonate sinks of the carbon, water and nitrogen are GEN.726's;
-this only limits what the drawn air can show. Limits: the physical solubility only (both gases dissociate in water, so a real ocean
-takes more), the Henry law's 273.15 to 323.15 K with the nearest end standing in outside, and full saturation (a bound, not Earth's
-0.6 to 0.8 relative humidity).
+`mixture_sinks.sulfur_remaining_fraction(formula, ts_k, gravity, ocean_column_kg_m2)` keeps `1 / (1 + kH m g M / P0)` of each sulfur gas (SO2, H2S: Henry's law over `m` kg of ocean per square metre). The water vapour cap over an ocean is the saturation of the air solve, and the outgassed inventory and the ocean and carbonate sinks of the carbon, water and nitrogen are GEN.726's. A function that capped the whole drawn mixture in one call (`apply_ocean_sinks`) was removed by TEST.524: nothing called it. Limits: the physical solubility only (both gases dissociate in water, so a real ocean takes more) and the Henry law's 273.15 to 323.15 K with the nearest end standing in outside.
 
 ## Where the degassed sulfur goes (GEN.815)
 
@@ -100,8 +94,7 @@ continental balance; else seafloor weathering.
   carbonate, and calcite, by the carbonate equilibria (`CARBONATE_FITS`, fresh water) and the charge balance of the cations the early ocean
   leached from `ALTERED_CRUST_KM` (0.1 to 50 km) of basalt (`leached_cations_mol_m2`: sodium 2.8 wt% and calcium 8.5 wt% of the rock). More
   cations than carbon holds the carbon as carbonate and leaves the air nearly empty (the floor `MIN_PCO2_BAR`); more carbon than cations
-  leaves the rest to the air at tens of bar. `sealed_state` solves the pCO2 and the temperature together (the ocean degasses as it warms,
-  so the coolest crossing of the scan is taken) with the greenhouse of `atmosphere_state` and the saturated vapour.
+  leaves the rest to the air at tens of bar. The air solve (`surface_air`) takes this pCO2 at the temperature of its climate loop; a stand-alone solver of the pCO2 and the temperature together (`sealed_state`, the coolest crossing of a temperature scan) was removed by TEST.524: nothing called it.
 * **An unsealed world with no land** has working volcanoes and a seafloor that dissolves and precipitates carbonate (`seafloor_pco2_bar`):
   the rate is Arrhenius in the pore-water temperature (`SEAFLOOR_ACTIVATION_KJ_MOL`, 40 to 110), a power of the pCO2
   (`SEAFLOOR_PH_EXPONENT / 1.34`) and of the heat flow, and it is 0.45 of 6.6 Tmol C per year (`SEAFLOOR_SHARE_OF_OUTGASSING`) at the modern
@@ -111,8 +104,8 @@ continental balance; else seafloor weathering.
 What the sweep of Kite and Ford's prior shows (tested): at 300 K, carbon 1e-6 to 1e-1 of the ocean's mass and a rock layer of 0.1 to 50 km, a
 sixth of the worlds sit at 0.2 to 20 bar (their "frequent" range), nearly three quarters hold their carbon whole in the ocean (under a
 micro-bar), and 7 percent are above 20 bar. The water-world temperatures of the findings report are not recomputed here: that needs Lane I's solve (4c), and
-the greenhouse module's water-vapour feedback is too strong (finding 1), so the cold end of `sealed_state` sits at the freezing point
-(274 K for 240 W/m2) and not under it. With the real greenhouse a carbon-rich ocean (CO2 a tenth of the water's mass) has no balance below water's
+the greenhouse module's water-vapour feedback is too strong (finding 1), so the cold end of the stand-alone solve (removed by TEST.524) sat at the freezing point
+(274 K for 240 W/m2) and not under it. With the real greenhouse a carbon-rich ocean (CO2 a tenth of the water's mass) had no balance below water's
 critical point, as for Kite and Ford, who find the high-carbon end hot.
 
 Limits (stated): the ocean is an ideal solution with fresh-water constants (seawater's first dissociation constant is about three times the

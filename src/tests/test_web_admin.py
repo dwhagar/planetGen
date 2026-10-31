@@ -686,7 +686,7 @@ def test_gear_menu_has_only_lists_account_admin_and_logout(client, fake):
     _logged_in(client, fake)
     html = client.get("/admin").get_data(as_text=True)
     gear = re.search(r'<nav class="site-account".*?</nav>', html, re.S).group(0)
-    assert re.findall(r">([A-Za-z: ]+)</(?:a|button)>", gear) == ["Lists", "Theme: System", "Units: Automatic", "Account", "Admin", "Logout"]
+    assert re.findall(r">([A-Za-z: ]+)</(?:a|button)>", gear) == ["Lists", "Preferences", "Theme: System", "Units: Automatic", "Account", "Admin", "Logout"]
 
 
 def test_admin_unknown_action(client, fake, admin_token):
@@ -1076,3 +1076,20 @@ def test_every_numeric_setting_names_its_unit():
     bare = [path for path, _info, meta in settings.iter_fields()
             if kind_of(meta["annotation"]) in ("int", "float") and not meta.get("x-unit")]
     assert bare == []
+
+
+def test_admin_stats_shows_the_seconds_per_object(client, fake):
+    """PERF.196: the time one object of each kind took, the kinds that took the most time first, each with its share of the object time."""
+    _logged_in(client, fake)
+    fake.generation = {"available": True, "sizes": {}, "buckets": [], "object_types": [
+        {"kind": "system", "objects": 1200, "total_seconds": 90.0, "mean_seconds": 0.075, "fastest_seconds": 0.0009,
+         "slowest_seconds": 2.5},
+        {"kind": "binary-star", "objects": 300, "total_seconds": 10.0, "mean_seconds": 3.3e-2, "fastest_seconds": 4e-5,
+         "slowest_seconds": 0.4}]}
+    html = client.get("/admin/stats").get_data(as_text=True)
+    assert "Seconds per object" in html
+    assert ('<tr><td>system</td><td class="num">1,200</td><td class="num">75.0 ms</td><td class="num">900 \u00b5s</td>'
+            '<td class="num">2.50 s</td><td class="num">90.0%</td></tr>') in html
+    assert "<td>binary star</td>" in html and "10.0%" in html and "40 \u00b5s" in html
+    fake.generation = {"available": True, "sizes": {}, "buckets": [], "object_types": []}
+    assert "Seconds per object" not in client.get("/admin/stats").get_data(as_text=True)

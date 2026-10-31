@@ -17,7 +17,7 @@ phenomenon and other pages use to link a class label here.
 from flask import abort
 from markupsafe import Markup
 
-from planetgen.web.lib import habitability_ref, property_help
+from planetgen.web.lib import habitability_ref, life_help, property_help
 from planetgen.web.lib.classref import alphabetical, catalog, class_entry, class_type, class_url_parts
 
 from . import bp
@@ -100,6 +100,47 @@ def property_help_page():
         description="Where the orbit, heat, spin, field, ring and life values on a star, planet or moon page come from.",
         **property_help.page(),
     )
+
+
+def _life_help_href(topic, number=None):
+    """The address of a life help page (`life_help.page`'s `href`)."""
+    if number is not None:
+        return page_url("life_help_class", number=number)
+    return page_url("life_help_page") if topic == "kinds" else page_url("life_help_topic", topic=topic)
+
+
+def _render_life_help(topic, number=None):
+    built = life_help.page(topic, number, _life_help_href)
+    if built is None:
+        abort(404)
+    return render_page(
+        "life_help.html",
+        title=built["title"],
+        section="help",
+        breadcrumbs=[crumb("Life", "life_help_page")] + ([crumb(built["title"])] if built["topic"] != "kinds" else []),
+        description=built["description"],
+        page=built,
+    )
+
+
+@bp.route("/help/life")
+def life_help_page():
+    """DOC.84: the four kinds of life (microbes, flora, fauna, sentient life), with links to the pages on the scales, the stages and the classes."""
+    return _render_life_help("kinds")
+
+
+@bp.route("/help/life/<topic>")
+def life_help_topic(topic):
+    """DOC.84: one page of the life help: `abundance`, `trend`, `security`, `suitability`, `stages` or `classes`."""
+    if topic == "kinds":
+        abort(404)
+    return _render_life_help(topic)
+
+
+@bp.route("/help/life/classes/<int:number>")
+def life_help_class(number):
+    """DOC.84: one life class (1 to 9): what it drinks, eats, breathes and gives off, where it can live and how sure we are."""
+    return _render_life_help("classes", number)
 
 
 @bp.route("/classes/<type_slug>")

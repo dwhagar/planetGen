@@ -70,12 +70,6 @@ class Stack:
         return 1.0 - self.beam_reflectance - self.beam_transmission - self.beam_diffuse
 
 
-def vacuum(wavelengths, mu0):
-    """A stack of no layers: everything passes."""
-    one, zero = np.ones(len(wavelengths)), np.zeros(len(wavelengths))
-    return Stack(zero, one, zero, zero, zero, one, mu0)
-
-
 def _solve_beam(tau, omega, g, mu0):
     """
     Reflectance and the two transmissions of a homogeneous delta-Eddington layer for a beam of cosine `mu0`.

@@ -2,6 +2,339 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2964] - 2026-10-31
+
+**Headline:** A star's page and sheet now show its chemistry: thin or thick disc, alpha enhancement, the metal mass fraction it formed with, and the helium a red giant's first dredge-up added.
+
+### Added
+- **Four derived rows in the Composition group of a star's sheet (UX.254).** `Disc population`, `Alpha enhancement [alpha/Fe]` (dex), `Metal mass fraction` and, for a red giant, `Helium added by the first dredge-up`, each with its source line. They are worked out when the sheet is made from the stored class, state, mass, [Fe/H] and age by `stellar_composition.star_makeup`; no column, no stored value. The draws are keyed as the planets' host ratios are (mass and the sector's distance from the centre), so the page and the planets agree. A star with no [Fe/H], or one whose downloaded data are missing, shows none.
+- **`stellar_abundances.alpha_enhancement`**: the mean [X/Fe] of O, Mg, Si and Ca.
+- **`src/tests/test_property_sheet.py`**: a sample of stars across both sequences and a red giant check the rows against `star_makeup` with their units and sources; a star with no [Fe/H] has none. `docs/design/composition/stellar-composition.md` section 14.2; the properties help page lists the four rows.
+
+No generator output changes (the rows are derived at view time).
+
+generation-output: unchanged
+
+TODO items resolved: UX.254.
+
+## [8.0.2963] - 2026-10-31
+
+**Headline:** Thirty-one functions that nothing in the generator called, with their tests, are removed, and the seven that stay each name the item that will use them.
+
+### Changed
+- **TEST.524.** The wiring guard (TEST.520) found 38 public functions in 21 physics modules that only tests called. Thirty-one are deleted with their tests and the notes that named them, because the generator builds its values another way: `atmosphere.hydrogen_kpa` and `other_kpa`, `atmosphere_state.gas_column_mass_kg_m2`, `aerosols.haze_fall_integral_s_m`, `ozone.column_mean_partial_pressure_pa` and `column_after_air_loss`, the three Rayleigh band and gas helpers, `thermosphere.hydro_based_in_grid`, `body_colour.rgb8_of`, the cloud-top algebra and the Sudarsky label of `giant_colour`, `mixture_giant.carbon_monoxide_time_s`, `mixture_sinks.apply_ocean_sinks` and its water cap, `waterworld_carbon.sealed_state` (the air solve takes the ocean carbon at its own climate-loop temperature), `radiation.apply_air_loss`, `radiogenic.present_ppm`, `radiogenic_flux_w_m2` and `aluminium_26_mass_fraction`, `daylight.locked_zone_shares`, `surface_composition.crust_reservoir`, `surface_pressure.degassed_inventory`, `gas_mass_kg` and `can_weather`, the six scale-conversion and gas-ratio functions of `oxygen_fugacity` with the Frost buffer constants, and the empty `two_stream.vacuum` (now a helper in its own test). Seven stay and name their owner in the wiring register: `surface_dose` (three) and `proton_range` to GEN.444, `impact_inventory` to GEN.819, `scatter.scatter_shares` to GEN.1071, `scatter.history_line` to GEN.1070. `species_thermo.log10_k`, which the deleted `oxygen_fugacity.log_k` wrapped, is registered by design (the reference the equilibrium tests check against). No stored or generated value changes.
+generation-output: unchanged
+
+## [8.0.2962] - 2026-10-31
+
+**Headline:** Three tests that failed on main were out of date with two decisions already made; they now state those decisions. Nothing the generator makes changes.
+
+### Changed
+- **TEST.530.** The pair-order check of the tuning constants read `REFERENCE_BLACK_HOLE_DRAWS` (0.55, 0.5) as a low-high range; it is two independent draws (GEN.1154 moved the solar one to 0.55), so the check now names the two-number constants that are not ranges, with why. Two roche-interaction tests still held the pre-GEN.1012 expectations: a white dwarf with no larger past than its present is never forced into a post-common-envelope pair, and only a white dwarf could be. The test dwarf now has a past (a 2 solar mass star that swelled to 1.5 AU), and a post-common-envelope pair may hold any member that shrank (a neutron star, a black hole, a contracted young star).
+
+## [8.0.2961] - 2026-10-31
+
+**Headline:** Eight functions nothing used are deleted, and the other 18 that only tests called are now named in the wiring register with the item that will use them or the test that reads them.
+
+### Changed
+- **Deleted, with their tests:** the thin-shell base pressure of a giant's envelope, the identity ring-plane tilt of a tilted giant, the mafic share of a rock norm, the ice and silicate porosity laws and the small-body density of the compaction module (the table builder holds its own copies of the laws), the water share by distance of the condensate module (callers compose the temperature and the share) and the water fraction from mass and radius of the bulk structure module.
+- **Registered:** 14 functions name the open item that will call them (GEN.471, GEN.473, GEN.550, GEN.809, GEN.819, GEN.1055, GEN.1069, GEN.1083) and four are marked `by design` as checks that only tests read.
+- No generated value changes.
+
+## [8.0.2960] - 2026-10-31
+
+**Headline:** Stars now have a proper integrator for their path through the galaxy, ready for the orbital update to use.
+
+### Changed
+- **The star stepper (GEN.340).** `planetgen/galaxy/stepper.py` moves stars through the galactic potential with second-order kick-drift-kick steps, on arrays so a whole sector's stars are one call. Each star's step is a twentieth of its own crossing time (no more than 5 Myr), cut into equal power-of-two blocks so stars of one level step together; a star that would need more than 4096 steps in a span is stepped at that cap and flagged. A callable adds an extra pull to the same kick (the influence set of GEN.109 goes in this way). A star at the Sun's kind of radius keeps its radius to 1 pc and its angular momentum to 1e-10 over 5 Gyr, and a century in one step agrees with a hundred one-year steps. Nothing calls it yet: the orbital update run (GEN.105) will replace the turn about the galactic pole with it, which changes where stars are, so that rides a train; generation output does not change now. Stand-in rows ST1 and ST2.
+
+generation-output: unchanged
+
+## [8.0.2959] - 2026-10-31
+
+**Headline:** Nothing built is left unused in Core 3's share of the wiring guard: six dead helpers are gone and every other function that only tests call names the item that will read it, or why it stays.
+
+### Changed
+- **TEST.522, 29 functions of 21 modules that only tests call.** Deleted with their tests: `cylindrical_radius_pc`, `format_galactic_orbit` (the pages show the speed and period as separate rows), `expected_systems_in`, `get_star_spectral_class`, `sample_dim_star` and `mark_merger_product` (the tree build sets the same flag and age inline; its test now checks `rejuvenated_age_yr` directly). `kozai_verdict` now reads `kozai_max_eccentricity` instead of repeating its formula, with the same result. The other 22 have a register line naming the open item that will call them (GEN.359, GEN.1014, GEN.129, GEN.105) or `by design` with who runs them. No stored value changes.
+
+## [8.0.2958] - 2026-10-31
+
+**Headline:** The pull on an object from the masses around it and from the galaxy is now one function, with the velocity kick that uses it.
+
+### Changed
+- **The acceleration kernel (GEN.342).** `planetgen/galaxy/acceleration.py` returns the acceleration at a point as the pull of the object's influence set (the exact nearest masses and the folded monopoles, unsoftened but for 0.001 pc that keeps two masses at one point finite, with no minimum-acceleration cut) plus the galactic gradient of the potential, and turns it into a new velocity (`kick`, `velocity_update`). A star takes the whole pull; a planet or moon takes the pull at itself less the pull at its host (`host_frame_pull`), so only the perturbation is left. It is a pure function, so the same masses always give the same pull. Nothing calls it yet: the star stepper (GEN.340) and the orbital update run (GEN.105) do, so generation output does not change. Also corrected the time unit in the potential's orbit test: a Myr is 1.0227 pc per (km/s), so the five-gigayear orbit it checks now is five gigayears.
+
+generation-output: unchanged
+
+## [8.0.2957] - 2026-10-31
+
+**Headline:** The scrolling key on the galaxy map can now be reached and scrolled with the keyboard.
+
+### Changed
+- **Galaxy map key.** The list of map layers in the key takes keyboard focus and has a name, so a visitor without a mouse can scroll it.
+
+## [8.0.2956] - 2026-10-31
+
+**Headline:** The admin Stats page now shows how long one object of each kind took to generate, which the generator has been recording without showing.
+
+### Changed
+
+- The Generation speed panel of the Stats page gains a "Seconds per object" table: for each kind of generated object (system, star, planet, moon, belt ...) the objects timed, the mean, fastest and slowest time and its share of all the object time, over every saved run, longest-running kinds first. `GET /api/admin/generation-stats` returns it as `object_types`, now a list of rows instead of a kind-to-mean map. `object_timing.kind_summaries` replaces `type_means` and the unused `run_totals`. generation-output: unchanged
+
+## [8.0.2955] - 2026-10-31
+
+**Headline:** The galaxy now has one pure module for its pull and its rotation curve, built from the galaxy's own masses.
+
+### Changed
+- **The galactic potential (GEN.338).** `planetgen/galaxy/potential.py` gives the potential, the pull (finite at the centre) and the circular speed of a generated galaxy from Hernquist spheres (the bulge, the stellar halo, the nuclear cluster), Miyamoto-Nagai disks (thin, thick and nuclear) and an NFW dark halo, with the central black hole softened at 1 pc. Every mass and scale comes from the galaxy's density components and its mass chain, so the rotation curve is a result, not a constant; a component of mass zero is legal. The matching of the density model to those three profiles is registered as stand-in rows GP1 to GP3. Nothing reads it yet: the acceleration kernel (GEN.342), the star stepper (GEN.340) and the velocity seeding (GEN.339) do, so generation output does not change. The dark halo's parameters moved into `enclosed_mass.dark_halo` so the enclosed mass and the potential use the same halo.
+
+generation-output: unchanged
+
+## [8.0.2954] - 2026-10-31
+
+**Headline:** The search can now keep and order planets, moons and stars by their stored physical values, with the bounds given in the unit you choose.
+
+### Added
+- **Range filters on physical values.** `GET /api/search` takes `planet_min_gravity=0.8&planet_max_gravity=1.2&planet_max_surface_dose=2` (and the same with `moon_` or `star_` in front) to keep the bodies whose gravity is 0.8 to 1.2 g and whose surface dose is under 2 mSv a year. The keys are gravity, surface temperature, surface pressure, surface dose, magnetic moment, ocean depth, orbit distance, day length, rotation period, year length, mass, the number of moons, the partial pressure of each atmosphere gas, and for stars luminosity, age and temperature. A bound may be given in any unit of its kind with `<entity>_<key>_unit` (pressure in kPa instead of bar).
+- **Sorts on the same values.** `planet_sort=gravity` orders a panel smallest first, `-gravity` largest first; a body with no value comes last.
+- **The answer says what it used.** Each row carries the values of the keys the request used, with their units, and the answer lists every key (`values`) and the ranges applied (`active_ranges`).
+
+### Changed
+- **Search parameters are checked.** A bound that is not a number, a minimum above the maximum or a unit of the wrong kind answers `400` with the reason.
+
+## [8.0.2953] - 2026-10-31
+
+**Headline:** A System Map test that compared a planet's glow under two stars now compares the right thing, so main is green again.
+
+### Changed
+- **Glow test (TEST.528).** `test_a_planet_and_its_moon_glow_in_the_colour_of_their_air_under_their_own_star` compared the blue channel of the limb glow under a Sun-like star and under a red dwarf. The glow colour is scaled so its brightest channel is 255, so the blue channel was 255 under both stars and the test could not tell them apart. It now compares how much bluer than red each glow is (the Sun's air is clearly blue, a red dwarf's is whiter). No code changes.
+
+No generator output changes.
+
+generation-output: unchanged
+
+TODO items resolved: TEST.528.
+
+## [8.0.2952] - 2026-10-31
+
+**Headline:** The orbital event writer exists: a collision found between two bodies can now be turned into a stored event, with the object-ID rules.
+
+### Changed
+- **The orbital event writer (GEN.197).** `planetgen/db/orbital_events.py` asks the pair closest-approach library whether two bodies' stored paths come within the sum of their radii in the update's window (`find_contact`), resolves the hit with the collision outcome table (`resolve_contact`) and writes it as one `orbital_events` row with its `orbital_event_bodies` rows (`record_event`): the event kind, the numbers it was decided from, a mass and momentum check worked out from the outcome, the participants and the products, and one line in the activity log. The ID rules are in it: a merger keeps the heavier body's ID and retires the other, an ejected planet keeps its ID, the field a collision makes takes a new run-time ID, and a destroyed body's ID is never handed out again. No migration; nothing calls it yet, because the orbital update that finds the pairs is a later item, so generation output does not change.
+
+generation-output: unchanged
+
+## [8.0.2951] - 2026-10-31
+
+**Headline:** Star 2's eighteen functions that only tests called now each have an owner: three deleted, two named to the photometry library, one to a star page item, twelve marked as test readers.
+
+### Changed
+- **Deleted three functions only tests called (TEST.523).** `stellar_evolution.main_sequence_end_luminosity_sol` (its tests read `main_sequence.end_state(mass, fe_h).luminosity_sol`, the one line it returned), `stellar_abundances.solar_metal_fraction` (the value stays as the private Z0 the metal ratio divides by; its test reads `composition(0.0, {}).z`) and `stellar_composition.cluster_key` (the cluster test spells the key `"cluster:33"`).
+- **`docs/design/research/wiring-register.md`: eighteen lines no longer name TEST.520.** `photometry.blackbody_colour` and `photometry.bolometric_correction_v` name VIEW.11 (the photometry library reads them); `stellar_composition.star_makeup` names UX.254 (a star's chemistry on its page); twelve are `by design` with the reader named: the sampler, expected-share and published-table checks of their tests, the plausibility gate, and the neutron star table build script.
+
+No generator output changes.
+
+generation-output: unchanged
+
+TODO items resolved: none (TEST.523 closes when this merges; the TODO thread owns the file).
+
+## [8.0.2950] - 2026-10-31
+
+**Headline:** A world's atmosphere now shows in its picture: no air has no glow and a hard day and night line, thin air almost none, thick air a wide glow and a soft dusk.
+
+### Changed
+- **The glow of an atmosphere follows its air (MAP.277).** The look record carries `glowStrength`, `glowWidth` and `twilight` worked from the stored pressure, gravity and gases (`bodylook.air_glow`). The body view draws the halo at that strength and width and softens the terminator by the twilight; the System Map and the 3D system view draw the glow shell at that strength and width and light the night side by the twilight (a world with no air has a dark night side). Before, every body with air had the same glow and every body the same terminator. A rogue planet has none of these (no star lights its air).
+
+## [8.0.2949] - 2026-10-31
+
+**Headline:** The wiring guard now also finds a stored column nothing reads and a public function only tests call, and today's findings are named in the register.
+
+### Added
+- **Two new kinds in `scripts/wiring_guard.py` (TEST.520).** `column`: a column of the tables that hold objects that no module outside the plumbing (schema, models, column units, store, storage checksum, checks, export and repair code, the generic Details sheet) reads, by its own name, by the name the store gives it (`object_rows.attr`, a dictionary or an attribute assigned from the row) or by an f-string that builds it. A physics or generation module that loads the value is a reader, so a column read downstream is not listed. `function`: a public module-level function of a reachable module of `physics`, `generation` or `galaxy` that no other module, no other function of its module and no `"module:function"` string names.
+- **`src/tests/test_wiring_guard.py` fails on a new one**, on a register line for something that is read now, and on a named item that is not open, as for the other kinds; seven new tests run the two kinds on a small package.
+- **Today's findings in `docs/design/research/wiring-register.md`.** Seven columns (`binary_epoch_unix` and `binary_next_update_due` are by design, the orbit update's own clock; `cluster_id` waits for GEN.359, `dynamical_state` for GEN.291, `formed_at` and `origin_event_id` for GEN.346, `host_node_id` for GEN.332) and 157 functions in 90 modules, each named to TEST.520 until it has an owner or is deleted. Report: `reports/wiring-guard-test520-2026-10-31.md`.
+
+No generator output changes.
+
+generation-output: unchanged
+
+TODO items resolved: none (TEST.520 stays open until each of the 157 function lines has an owner item or is deleted).
+
+## [8.0.2948] - 2026-10-31
+
+**Headline:** The info panel's Colour line now says which stored values gave a body's colour and whether it is a partial estimate or the full account.
+
+### Changed
+
+- `bodylook.colour_account` builds the line for a star (full when its colour is a model atmosphere at its temperature, partial from its spectral class alone), a solid world (ground colour from its mean surface temperature, sea colour from its ocean class, limb glow from its air under its star) and a giant (cloud-top colour from its temperature), each naming a default where an input is not stored and what is not used yet (surface composition, clouds and haze). `look_note` puts it ahead of the spin and lock notes. generation-output: unchanged
+
+## [8.0.2947] - 2026-10-31
+
+**Headline:** The photometry library now has a published bolometric correction (Flower 1996 with Torres 2010's coefficients) in place of the blackbody table the sky-view design carried, ready for the apparent-magnitude step.
+
+### Changed
+- VIEW.9: `physics/photometry.bolometric_correction_v(temperature_k)` is Flower's (1996) polynomial fit of BC_V against log Teff in three ranges, with the coefficients read from Torres (2010, AJ 140, 1158), Table 1; it answers from 3,500 to 50,000 K and refuses a temperature outside (the fit breaks down for M dwarfs, and no value is invented there). `SUN_ABSOLUTE_BOLOMETRIC_MAG` 4.74 is the zero point it goes with (BC_V of the Sun -0.08). The design table of docs/design/orbits/sky-view.md section 2.4 is replaced (the hot end was 0.3 to 0.6 mag off). Nothing in the generator reads it yet (VIEW.11 will), so no stored value changes.
+
+generation-output: unchanged
+
+## [8.0.2946] - 2026-10-31
+
+**Headline:** New help pages explain every word in the Life section of a planet page: the kinds of life, how much, trend, security, suitability, the stages and each of the nine life classes.
+
+### Added
+- **Life help pages under Help > Life.** One page for the four kinds of life, one for each scale (how much, trend, security, suitability), one for the stages of life and the animal grades, and one for each life class (what it drinks, eats, breathes and gives off, where it can live, how sure we are it can exist, and whether its air chemistry is speculative). The numbers on them come from the same code that works out the scores.
+- **Links from the planet page.** Life class names link to their page, the Kind, How much, Trend and Security headings have a "?" link, and the Life paragraph in At a glance has "What these words mean".
+
+### Changed
+- **Class 9 text.** Its "eats" line now says "as Class 5a and 5b" instead of "as Class 5".
+
+## [8.0.2945] - 2026-10-31
+
+**Headline:** The planet class table in the system file guide now matches the live class rules, and says which classes are planned.
+
+### Changed
+- **System file guide, planet classes (DOC.85).** `docs/reference/system-file-format.md` lists the classes as they are derived today (the rule each finished body must meet, the check order, and which classes can carry life), instead of the old zone and description table. It says that a slot asking for a class that can carry life is moved into the habitable zone, that other classes keep the orbit's distance and are drawn again until they come out right, and that moons use the same rules. The planned letters Y, U, X, Z and R are listed only as planned, class code system GEN.1220.
+
+No generator output changes.
+
+generation-output: unchanged
+
+TODO items resolved: DOC.85.
+
+## [8.0.2944] - 2026-10-31
+
+**Headline:** A star's page, a system's overview and the star class pages are written in plain words: the star orbit sentences read one pair at a time, the heliosphere and edge lines drop "approximately", and the table labels are in sentence case.
+
+### Changed
+- **System and star sentences (UX.253).** The multiple-star line ("Quadruple star system.") is followed by one short sentence per pair or orbit ("A and B are a close pair." "C orbits A and B in a wide orbit."), where it was one long sentence; the first mention of a star gives its type. The glance page's Stars row uses the same sentences. The heliosphere and system edge lines now read "The star's wind blows a bubble called the heliosphere, which reaches about 153 AU" and "the star's gravity still holds on out to ..., the outer edge of the system".
+- **Star table labels (UX.253).** "Habitable zone", "Galactic orbit", "Planetary wobble", "Stellar separation", "Mutual orbit", "Barycenter offset", "Orbital eccentricity", "Planetary limit of the primary" and "Planetary limit of the secondary", and the black hole and neutron star rows ("Event horizon radius", "Spin period" and the rest), are in sentence case.
+- **Spectral and luminosity class pages (UX.253).** The notes about the type (G2V) and the roman numeral are split into short sentences.
+- The stored flavour lines (`system_flavor_text`) are not changed here; they are stored at generation and go with GEN.1212.
+
+No generator output changes.
+
+generation-output: unchanged
+
+TODO items resolved: UX.253.
+
+## [8.0.2943] - 2026-10-31
+
+**Headline:** A read-only report now sorts every generated planet and moon into terrestrial, transitional or gas by the share of its mass in an envelope.
+
+### Added
+- **The body type function and its shadow report (GEN.1219).** `planetgen.physics.planet_type` gives the type from `envelope_mass_fraction` (terrestrial under 0.5 percent, transitional to 50 percent, gas above), and `src/tests/planet_type_cli.py` prints how a generated sample splits, the bodies near each cut and the bodies whose radius disagrees with their type. Nothing stored changes; the stored column comes with the next epoch.
+
+## [8.0.2942] - 2026-10-31
+
+**Headline:** A planet or moon page now has a short Life paragraph in At a glance, and the Life section gives three words for each kind of life: how much, which way it is going and how secure it is.
+
+### Added
+- **Life paragraph in At a glance.** It gives the words for each kind of life that is there, for example "Microbes: abundant, stable, secure. Flora: occasional, declining, precarious.", then the life classes the conditions suit, best first. A world that suits a class but has no life yet says "Nothing lives here yet."; a world that could not have life shows none.
+- **Table of the kinds of life in the Life section.** Microbes, flora, fauna and sentient life each get how much (with the score out of 9), the trend (growing, stable or declining as the star brightens), the security (secure, marginal, precarious or dying out) and, when it is known, how long the conditions last. Under it: the stage, animal grade, pace of evolution, age of the system and the age the stage was reached.
+- **New API route.** `GET /api/planets/<id>/life-readings` and `GET /api/moons/<id>/life-readings` give the same words; they are worked out on request and stored nowhere.
+
+### Changed
+- **The summary no longer lists life scores.** The sentence "Its life scores are ..." is gone; the At a glance paragraph says it in words.
+- **The lines that repeated the Life paragraph are off the page.** "Class 1a life lives on this planet, evolving at a standard pace" and "Its latest milestone is ..." are now in the table under the Life paragraph. The written description of a system (the text and Markdown forms) still has them, now as their own paragraphs.
+- **Stage sentences name the whole class.** "Class 3a life has grown into colonies ..." instead of "Class 3 life ...".
+
+## [8.0.2941] - 2026-10-31
+
+**Headline:** The Search page's Name box, Stars selector and Search button now sit together on one row.
+
+### Fixed
+- **The Search page left a large empty gap above Stars and Search.** The Name box's field wrapper carried a row-sized `flex-basis` that acted as a 12rem minimum height inside its column, stretching the row and pushing Stars and Search to the bottom right. The wrapper now sizes to its content, and Stars keeps a fixed width beside it; the row still wraps on narrow screens.
+
+## [8.0.2940] - 2026-10-31
+
+**Headline:** The references list and DATA-LICENSE.md now cover the strength, roundness, Trojan and stellar-to-halo sources.
+
+### Changed
+- **References list rebuilt.** `docs/REFERENCES.md` and `.html` gain the newly cited papers (Durham, Kirby and Stern 1997, Durham et al. 2010, Korenaga and Karato 2008, Chu and Korenaga 2012, Lattimer and Prakash 2001, Leauthaud et al., Lineweaver and Norman 2010 and the rest), 58 new arXiv papers and 19 DOIs resolved.
+- **DATA-LICENSE.md** has a new section with the terms of each new source (publisher copyright, arXiv licence, public-domain reports) and a flag for the reuse restrictions (CC BY-NC-SA for Maurice et al. and for the MIT OCW lecture).
+
+## [8.0.2939] - 2026-10-31
+
+**Headline:** The Life section of a planet page now opens with one paragraph: what lives there, how common each kind of life is, then which life classes the conditions suit.
+
+### Changed
+- **One Life paragraph.** It leads with the life that lives there (class and stage), then microbes, flora, fauna and sentient life each with a prevalence word and its score out of 9, then the classes the conditions suit, best first, with suitability. The old separate "Supports", "Also supports" and "Has" lines are folded into it. Wording and layout only; no stored value changes.
+
+## [8.0.2938] - 2026-10-31
+
+**Headline:** A read-only report now compares today's class letters with the best-fit percent match for every generated world.
+
+### Added
+- **The best-fit class shadow scorer (GEN.1206).** `src/tests/class_fit_cli.py` scores generated systems both ways (the first-match rules and the percent-match table of GEN.1205) and prints the confusion table, the share at 100 percent, the low-match list, the close pairs and the temperate surface-ocean count per class. Nothing stored changes.
+
+## [8.0.2937] - 2026-10-31
+
+**Headline:** Every planet class now has its own full list of conditions, ready for a percent-match classifier.
+
+### Added
+- **The best-fit class table (GEN.1205).** `physics/data/planet_class_fit.json` gives every class letter its own positive conditions (F and G a warm, 0.5 to 2 g band; M an Earth-like air window; O and H ordinary air), with a shoulder width per quantity, and `physics/class_fit.py` scores a body against them. Nothing stored changes: the first-match rules still decide every letter. Shoulder widths are stand-ins CF1 to CF7 in GEN.725.
+
+## [8.0.2936] - 2026-10-31
+
+**Headline:** A planet's rendered example is lit from the left and a little from the front, so its day and night line is a clear curve with most of the disc lit, and a tidally locked world's arrow to the star no longer sits on the planet.
+
+### Changed
+- **The light on a rendered body (UX.250).** `bodyview.js` lights a world from a star 55 degrees round from the line of sight toward the left (79 percent of the disc lit), where it lit it from the side so the line was straight down the middle; the shade goes from night to full day across a narrow band at the line, so the line shows as a curve. A tidally locked world holds still with its sub-stellar point where the light comes from.
+- **The arrow to the star (UX.250).** A tidally locked world's picture keeps a strip on the left for the arrow and its word ("star" or "planet", on a dark chip like the "Tidally locked" label) and a strip under the disc for the label; the disc is fitted into what is left, so neither covers it.
+
+No generator output changes.
+
+generation-output: unchanged
+
+TODO items resolved: UX.250.
+
+## [8.0.2935] - 2026-10-31
+
+**Headline:** A planet's page shows one habitability chip, the most specific of Inhabited, Habitable and Habitable class, not several.
+
+### Changed
+- **Habitability chips (UX.224).** `habitability_chips.chips_html` shows "Inhabited" over "Habitable" over "Habitable class" for the body itself and "Habitable moon" over "Habitable-class moon" for its moons, where it showed every one that held. The chip help on the habitability page says Inhabited stands for the other two. The system description already counted each world once ("There is 1 habitable world in the system").
+
+No generator output changes.
+
+generation-output: unchanged
+
+TODO items resolved: UX.224.
+
+## [8.0.2934] - 2026-10-31
+
+**Headline:** A Preferences page lists the Galaxy Map's settings, with what each does and its default, and a Reset to defaults button.
+
+### Changed
+- **Preferences** is a new page, linked from the gear menu (and from the Account page). It lists where Go to a region lands (frame the region, the default, or the densest part), the black hole mark density (one mark per 120 by 120 pixels by default, 30 to 1000) and the space between names, each with a plain-words description and its default. A change is saved in this browser as you make it, the Galaxy Map uses it the next time it reads it, an out-of-range number is refused with a reason, and Reset to defaults brings every default back. The same keys move into your account when accounts arrive.
+
+generation-output: unchanged
+
+## [8.0.2933] - 2026-10-31
+
+**Headline:** Two tests that were red on main are green again, with no change to what the generator makes.
+
+### Fixed
+- `test_solar_system_standin_rows` (SSR5): a registered row may show what replaces it in plain words (TEST.487 took the item code off the page), so the test now checks the code only where a row still shows one.
+- `test_oddity_plausibility` (W10): the harness has an effect for the mantle-stripping row, so every shipped oddity row can be forced and held to the invariants.
+
+generation-output: unchanged
+
+## [8.0.2932] - 2026-10-31
+
+**Headline:** The Galaxy Map zooms in to 30 km from an opened system (it stopped at 3,000 km), drawing the system from the camera's own frame so it holds steady.
+
+### Changed
+- **The nearest view is 1e-12 pc (MAP.338).** `GLOBAL_FLOOR_PC` goes from 1e-10 to 1e-12. The zoom slider, the ruler and the wheel reach it, and the ruler has a Surface stop at it.
+- **The open system is drawn from the eye's own frame once the camera is within 1e-6 pc of its target.** `galaxymap3d.js` keeps the camera's exact offset from its target (`eyeBack`) beside the position (a double whose step is 1.8e-12 pc at 8 kpc), draws the map without the system, then draws the system over it with the eye at the origin and everything scaled so the view is about a unit across (the log depth buffer keeps its resolution there). `galaxysystem.js` gains `frame()` and `galaxystageview.js` `systemFrame()` for it; `galaxyDeepFrame()` is the test hook.
+- **The address drops `sector=` once the camera is far from the sector (TEST.496).** After the wheel carried the camera out of an opened sector the address kept `?sector=...` with the camera at the whole galaxy; the address now names the sector only while the camera is within 81 sector edges of its target.
+
+No generator output changes.
+
+generation-output: unchanged
+
+TODO items resolved: TEST.496 (the wheel-out leg), MAP.338 (near and far count as done earlier; this is the frame plus offset and the 1e-12 pc floor; it cannot be proven on a real GPU from the lane, only on the headless browser).
+
 ## [8.0.2931] - 2026-10-31
 
 **Headline:** The prevalence census ranges that train 6 moved are tagged with the train, so the census checks stay quiet until the last 8.1 re-baseline.

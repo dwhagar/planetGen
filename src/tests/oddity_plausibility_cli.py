@@ -29,7 +29,7 @@ from planetgen.generation import plausibility
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.planet import Planet
 from planetgen.generation.star import Star
-from planetgen.physics import constants, oddities, planet_classes, relations, rings, surface_air
+from planetgen.physics import constants, mantle_stripping, oddities, planet_classes, relations, rings, surface_air
 from planetgen.physics.oddities import Oddity, Rate
 from planetgen.physics import bulk_draw
 from planetgen.util import draw
@@ -149,7 +149,31 @@ def _broken_ring_plane(body, star, stream):
     body.ring_plane_tilt_deg = 30.0
 
 
+def _strip_mantle(body, star, stream):
+    """
+    W10 (GEN.1040): a giant impact blows the outer rock off the planet (`mantle_stripping.impact`, a head-on impact with a projectile of a third to all of its mass at 20 to 80 km/s), so
+    the remnant has less mass and more iron. The density follows the iron share (the grains mixed by volume, 7.8 and 3.3 g/cm3), the radius follows the mass and the density, and the
+    gravity follows both.
+    """
+    core = body.metal_mass_fraction if body.metal_mass_fraction is not None else mantle_stripping.EARTH_LIKE_CORE_FRACTION
+    with draw.bound(stream):
+        projectile = body.mass * draw.uniform(0.33, 1.0)
+        speed = log_uniform(2.0e4, 8.0e4)
+    remnant = mantle_stripping.impact(body.mass, core, projectile, speed)
+    if remnant.mass_kg <= 0.0:       # the body is dispersed: nothing to describe, so the draw is a strip that stops short of it
+        remnant = mantle_stripping.impact(body.mass, core, 0.1 * body.mass, speed)
+    mix = lambda iron: 1.0 / (iron / 7.8 + (1.0 - iron) / 3.3)      # noqa: E731 -- g/cm3 of the grains mixed by volume
+    body.density *= mix(remnant.core_mass_fraction) / mix(core)
+    body.mass = remnant.mass_kg
+    body.radius = (3.0 * body.mass / (4.0 * math.pi * body.density * 1000.0)) ** (1.0 / 3.0) / 1000.0
+    body.gravity = constants.G * body.mass / (body.radius * 1000.0) ** 2 / constants.EARTH_GRAVITY
+    body.metal_mass_fraction = remnant.core_mass_fraction
+    if body.rock_mass_fraction is not None:
+        body.rock_mass_fraction = max(0.0, 1.0 - remnant.core_mass_fraction - (body.water_mass_fraction or 0.0))
+
+
 EFFECTS = {
+    "strip_mantle": _strip_mantle,
     "stub_ring": _stub_ring,
     "broken_heavy_ring": _broken_heavy_ring,
     "broken_ring_beyond_roche": _broken_ring_beyond_roche,

@@ -90,6 +90,7 @@ def test_every_web_page_is_classified_on_purpose():
     ("web.index", "top"), ("web.classes", "top"), ("web.sectors", "list"), ("web.system", "detail"),
     ("web.sector", "detail"), ("web.search", "utility"), ("web.galaxy_nodes", "utility"), ("web.login", "private"),
     ("web.admin_settings", "private"), ("web.generate_job_log", "private"), ("web.not_a_page_yet", "utility"),
+    ("web.preferences", "private"),
 ])
 def test_the_classes(endpoint, klass):
     assert seo.classify(endpoint) == klass
@@ -148,7 +149,8 @@ def test_open_graph_can_be_switched_off(site, config):
 
 def test_private_pages_say_noindex_nofollow_and_carry_no_preview(site, config):
     _configure(config, base_url="https://galaxy.example.org/")
-    for client, path in ((site.application.test_client(), "/login"), (site, "/admin/settings")):
+    for client, path in ((site.application.test_client(), "/login"), (site, "/admin/settings"),
+                         (site.application.test_client(), "/preferences")):
         response = client.get(path)
         page = response.get_data(as_text=True)
         assert "noindex,nofollow" in page and "og:title" not in page and 'rel="canonical"' not in page

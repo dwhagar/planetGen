@@ -278,6 +278,7 @@ from . import class_pages  # noqa: E402,F401 -- /classes, /classes/<type>, /clas
 from . import maintenance_page  # noqa: E402,F401 -- /maintenance (UX.112)
 from . import galaxy_status_page  # noqa: E402,F401 -- /galaxy-status (UX.3)
 from . import object_lists  # noqa: E402,F401 -- /lists, /lists/<kind> (UX.141)
+from . import preferences_page  # noqa: E402,F401 -- /preferences (UX.236)
 
 
 PAGE_CACHE_EXTENSION = "planetgen_page_cache"

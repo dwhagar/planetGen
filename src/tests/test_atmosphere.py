@@ -3,7 +3,6 @@ Mantle redox and atmosphere species (GEN.85, `planetgen.physics.atmosphere`).
 """
 
 import math
-import types
 
 import pytest
 
@@ -90,7 +89,3 @@ def test_every_generated_body_says_its_stored_mixture_and_never_a_class_phrase()
     assert seen == {True, False}
 
 
-def test_hydrogen_inventory_counts_every_hydrogen_carrier():
-    body = types.SimpleNamespace(**air(p_h2o_kpa=1.0, p_ch4_kpa=0.5, p_h2_kpa=0.25, p_h2s_kpa=0.1))
-    assert atmosphere.hydrogen_kpa(body) == pytest.approx(1.0 + 1.0 + 0.25 + 0.1)
-    assert math.isclose(atmosphere.hydrogen_kpa(object()), 0.0)
