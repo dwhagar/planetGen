@@ -16,6 +16,8 @@ the address of a page.
 from planetgen import tuning
 from planetgen.physics import life_air, life_class_text, life_classes, life_readings
 from planetgen.physics.life_readings import ABUNDANCE_BANDS
+from planetgen.web.lib import help_registry
+from planetgen.web.lib.help_registry import Child, Term
 
 TOPICS = (
     ("kinds", "Kinds of life", "Microbes, flora, fauna and sentient life: what each word means and what its score is judged from."),
@@ -402,3 +404,25 @@ def page(topic, number=None, href=None):
     title, description, intro, sections = built
     return {"topic": topic, "number": number, "title": title, "description": description, "intro": intro, "sections": sections,
             "topics": [{"slug": slug, "title": name, "summary": summary, "url": link(slug)} for slug, name, summary in TOPICS]}
+
+
+def help_children():
+    """The life help pages (`TOPICS`, the first being the Life page itself) and one page for each life class number, as the pages under Life."""
+    found = [Child("life_help_topic", {"topic": slug}, title, summary) for slug, title, summary in TOPICS if slug != "kinds"]
+    found += [Child("life_help_class", {"number": number}, label, summary) for number, label, summary in class_numbers()]
+    return found
+
+
+def link_terms():
+    """The words a description may link to a life help page: each life class id ("4c", "2") and each class family ("Class 3 family") links to
+    the page of its number, and a life topic's title links to the topic."""
+    found = [Term(row.id, "life_help_class", {"number": row.number}) for row in life_classes.CLASSES]
+    found += [Term(family_label(number), "life_help_class", {"number": number}) for number, _label, _summary in class_numbers()
+              if len(family(number)) > 1]
+    return found
+
+
+help_registry.register_category("worlds", "Worlds and life", "How a visitor's gear is judged on a world and how life on it is described.", order=20)
+help_registry.register_topic("life_help_page", "Life", "worlds", "The kinds of life, the scales a planet page uses, the stages and the life classes.",
+                             order=40, children=help_children)
+help_registry.register_terms("life", link_terms)

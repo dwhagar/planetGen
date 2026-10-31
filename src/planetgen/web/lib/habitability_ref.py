@@ -13,7 +13,7 @@ from planetgen import tuning
 from planetgen.physics import atmosphere, constants, habitability, life_classes, orbits, regional_temperature
 from planetgen.physics.habitability_world import LETHAL_DOSE_SV_YR
 from planetgen.physics.protection_limits import limit
-from planetgen.web.lib import habitability_symbols
+from planetgen.web.lib import habitability_symbols, help_registry
 
 EQUIPMENT_ITEMS = (
     ("Clothing", "Cold-weather, cooling or sun-cover clothing: the temperature is a little outside comfort or the "
@@ -410,3 +410,8 @@ def page():
         "life_ids": habitability_symbols.LIFE_ANCHORS,
         "overall_id": habitability_symbols.SYMBOL_ANCHORS[habitability_symbols.OVERALL],
     }
+
+
+help_registry.register_category("worlds", "Worlds and life", "How a visitor's gear is judged on a world and how life on it is described.", order=20)
+help_registry.register_topic("habitability_levels", "Habitability", "worlds",
+                             "What the equipment levels, the Blue to Red domain colors and the Habitable chips mean.", order=20)

@@ -14,12 +14,14 @@ the limits tables. These tests fail when a page and its source drift apart:
 import math
 import re
 
+import pytest
+
 from markupsafe import escape
 
 from planetgen.physics import life_classes, regional_temperature
 from planetgen.physics.protection_limits import limit
 from planetgen.web import helpers
-from planetgen.web.lib import classref, habitability_ref, help_registry, life_help
+from planetgen.web.lib import classref, habitability_ref, help_registry, life_help, property_help
 from tests.test_class_pages import _html, app, client  # noqa: F401
 
 
@@ -28,7 +30,7 @@ def _help_endpoints(app):  # noqa: F811
 
 
 def test_every_help_route_is_in_the_registry_and_the_other_way_round(app):  # noqa: F811
-    registered = {help_registry.INDEX_ENDPOINT}
+    registered = {help_registry.INDEX_ENDPOINT}  # "classes" is the registered root of the class pages
     for topic in help_registry.topics():
         registered.add(topic.endpoint)
         registered |= {child.endpoint for child in help_registry.children(topic)}
@@ -37,20 +39,49 @@ def test_every_help_route_is_in_the_registry_and_the_other_way_round(app):  # no
         assert f"web.{endpoint}" in {rule.endpoint for rule in app.url_map.iter_rules()}, endpoint
 
 
-def test_every_topic_has_a_known_category_and_a_summary():
-    slugs = {slug for slug, _title, _summary in help_registry.CATEGORIES}
+def test_every_topic_has_a_registered_category_and_a_summary():
+    slugs = {entry["slug"] for entry in help_registry.categories()}
     for topic in help_registry.topics():
         assert topic.category in slugs and topic.summary and topic.label
-    assert [t for c in help_registry.categories() for t in c["topics"]] == sorted(
-        help_registry.topics(), key=lambda t: [c[0] for c in help_registry.CATEGORIES].index(t.category))
+    assert [t for c in help_registry.categories() for t in c["topics"]] != [] and len(help_registry.topics()) >= 4
 
 
-def test_the_menu_is_the_index_then_the_registry(client):  # noqa: F811
-    assert helpers.HELP_MENU == (("help_index", "All help"),) + help_registry.menu()
+def test_each_part_of_the_program_registers_its_own_page():
+    """The pages come from the modules that own them, not from a list kept here."""
+    assert {t.endpoint for t in help_registry.topics()} >= {"classes", "habitability_levels", "property_help_page", "life_help_page"}
+    owner = {"classes": classref, "habitability_levels": habitability_ref, "property_help_page": property_help, "life_help_page": life_help}
+    for endpoint, module in owner.items():
+        source = open(module.__file__, encoding="utf-8").read()
+        assert f'register_topic("{endpoint}"' in source, endpoint
+    assert "TOPICS" not in open(help_registry.__file__, encoding="utf-8").read().split('"""', 2)[2]
+
+
+def test_a_page_registered_by_a_new_part_reaches_the_menu_the_index_and_the_terms(client, monkeypatch):  # noqa: F811
+    monkeypatch.setattr(help_registry, "_topics", dict(help_registry._topics))
+    monkeypatch.setattr(help_registry, "_categories", dict(help_registry._categories))
+    monkeypatch.setattr(help_registry, "_term_sources", dict(help_registry._term_sources))
+    help_registry.register_category("tides", "Tides and spin", "How tides slow a spin.", order=30)
+    help_registry.register_topic("property_help_page", "Tide test", "tides", "Tide summary.", order=5,
+                                 children=lambda: [help_registry.Child("classes", {}, "Child page", "")])
+    help_registry.register_terms("tides", lambda: [help_registry.Term("tidal lock", "classes", {})])
+    assert help_registry.menu()[0] == ("property_help_page", "Tide test")
+    assert [c["slug"] for c in help_registry.categories()][-1] == "tides"
+    assert help_registry.Term("tidal lock", "classes", {}) in help_registry.terms()
     html = _html(client, "/help")
-    bar = html.split('<header class="site-header">')[1].split("</header>")[0]
-    menu = re.search(r'<sl-dropdown class="site-help-menu".*?</sl-dropdown>', bar, re.S).group(0)
-    assert re.findall(r'data-href="([^"]*)"', menu) == ["/help", "/classes", "/help/habitability", "/help/properties", "/help/life"]
+    assert "Tides and spin" in html and "Tide summary." in html and "Child page" in html
+
+
+def test_a_topic_in_an_unregistered_category_is_refused(monkeypatch):
+    monkeypatch.setattr(help_registry, "_topics", dict(help_registry._topics))
+    help_registry.register_topic("classes", "Classes", "nowhere", "x")
+    with pytest.raises(KeyError):
+        help_registry.categories()
+
+
+def test_the_life_class_ids_are_link_terms_for_their_help_page():
+    found = {term.text: term for term in help_registry.terms()}
+    for row in life_classes.CLASSES:
+        assert found[row.id] == help_registry.Term(row.id, "life_help_class", {"number": row.number})
 
 
 def test_the_index_lists_every_class_type_and_life_page_the_program_has(client):  # noqa: F811

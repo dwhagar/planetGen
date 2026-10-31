@@ -17,7 +17,7 @@ phenomenon and other pages use to link a class label here.
 from flask import abort
 from markupsafe import Markup
 
-from planetgen.web.lib import habitability_ref, help_registry, life_help, property_help
+from planetgen.web.lib import habitability_ref, help_registry, life_help, property_help  # noqa: F401  (each registers its help page)
 from planetgen.web.lib.classref import alphabetical, catalog, class_entry, class_type, class_url_parts
 
 from . import bp

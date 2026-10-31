@@ -190,10 +190,12 @@ NAV_MENU = (
 Nav section is current on both (a page names `section="nav"` or
 `section="nearby"`)."""
 
-HELP_MENU = (("help_index", "All help"),) + help_registry.menu()
-"""tuple: What the Help menu beside the search button opens (UX.180), in order: the help index, then every page of
-`web/lib/help_registry.py`. The menu is current on these pages and on the class pages under Classes (a page names
-`section="classes"` or `section="help"`)."""
+def help_menu():
+    """What the Help menu beside the search button opens (UX.180), in order: the help index, then every page registered with
+    `web/lib/help_registry.py`. The menu is current on these pages and on the class pages under Classes (a page names
+    `section="classes"` or `section="help"`)."""
+    return (("help_index", "All help"),) + help_registry.menu()
+
 
 HELP_SECTIONS = ("classes", "help")
 """tuple: The `section` names that mark the Help menu current."""
