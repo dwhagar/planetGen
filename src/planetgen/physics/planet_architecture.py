@@ -459,7 +459,7 @@ def losses(architecture):
     and those are one record. A pure rule over `architecture.lost`: no draw, so the planets themselves are what `build` always made.
     """
     lost = architecture.lost
-    star_solar = lost.star_mass_kg / constants.SOLAR_MASS_TO_KG
+    star_solar = _kg_to_msun(lost.star_mass_kg)
     result = []
     if lost.merges:
         result.append(Loss("merge", lost.merges, lost.merge_debris_kg, lost.merge_debris_kg, None, None, None, None, None, None, None, False, 0.0, 1.0, 0.0))

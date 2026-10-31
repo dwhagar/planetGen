@@ -951,6 +951,7 @@ def _zone_value(letter, by_key, specs, table):
 
 
 _yr_to_h = unit_registry.converter("yr", "h")
+_kg_to_msun = unit_registry.converter("kg", "Msun")
 
 VARIABILITY_KEY = "variability"
 """str: The key of the star's derived row for the kind of variable it is (GEN.944, `physics.variability`); it is worked out from the stored
@@ -1028,14 +1029,14 @@ def sheet(conn, kind, object_id):
         by_group["rotation"].append({"key": ECLIPSE_KEY, "label": "Longest eclipse in the planet's shadow", "value": value,
                                      "text": inline_text(value), "raw": eclipse, "stored": True, "absent": False, "source": None, "show_absent": False})
     variable = variability.kind_of(row["state"], row["yerkes_class"], row["temperature_k"],
-                                   None if row["mass_kg"] is None else row["mass_kg"] / constants.SOLAR_MASS_TO_KG) if kind == "star" else None
+                                   None if row["mass_kg"] is None else _kg_to_msun(row["mass_kg"])) if kind == "star" else None
     if variable:
         by_group["identity"].append({"key": VARIABILITY_KEY, "label": "Variability", "value": [variable], "text": variable, "raw": None,
                                      "stored": True, "absent": False, "source": None, "show_absent": False})
     carbon = None
     if kind == "star" and row["state"] == "asymptotic-giant" and row["metallicity_fe_h"] is not None:
         initial = agb_carbon.initial_mass_from_lifespan_sol(row["lifespan_gy"], row["metallicity_fe_h"])
-        carbon = agb_carbon.kind_of(row["state"], initial, row["mass_kg"] / constants.SOLAR_MASS_TO_KG, row["metallicity_fe_h"], row["age_gy"])
+        carbon = agb_carbon.kind_of(row["state"], initial, _kg_to_msun(row["mass_kg"]), row["metallicity_fe_h"], row["age_gy"])
     if carbon:
         by_group["identity"].append({"key": CARBON_KEY, "label": "Carbon or S star", "value": [carbon], "text": carbon, "raw": None,
                                      "stored": True, "absent": False, "source": None, "show_absent": False})
