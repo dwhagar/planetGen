@@ -13778,6 +13778,34 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   do not use it as it stands. Not found: Choukroun and Grasset 2007 and
   the solid-solid boundary equations. Melting curves are covered by
   Wagner 2011. Report: reports/ice-high-pressure-sources-held-2026-10-31.md.
+  Sources 1: solid-solid ice boundaries from a tertiary source
+  (2026-10-31 10:03 AM EDT): Choukroun and Grasset 2007 cannot be had
+  (Boss cannot get it), so the boundaries below 0.7 GPa come from one
+  TERTIARY source: Martin Chaplin, Water Phase Diagram, water.lsbu.ac.uk
+  (updated 5 Nov 2021; its references are by number only and the list is
+  unreachable). Register them in GEN.725 as tier Unverified (T3), L0,
+  until a paper matches. P in MPa, T in K, d = T - 273.15: Ih-II 176.0 +
+  0.918 (T - 198.15); II-III 213 + 99.517 [(T/238.45)^19.676 - 1]; II-V
+  412.0 - 7.01 (T - 239.15); Ih-III 198.2 - 0.42 (T - 273.15) (the
+  quadratic version fails its own triple point, 166 against 209.9, do
+  not use); III-V 344.3 - 0.275 d - 0.01099 d^2; V-VI 625.9 + 0.06086 d
+  - 0.0008571 d^2. Triple points: L-Ih-III 251.165 K, 209.9 MPa; L-III-V
+  256.164 K, 350.1 MPa; L-V-VI 273.31 K, 632.4 MPa (Wagner 2011, also
+  Journaux et al. arXiv 1907.09598 Table 4); Ih-II-III 238.45 K, 212.9
+  MPa; II-III-V 248.85 K, 344.3 MPa; II-V-VI about 218 K, 620 MPa
+  (approximate; the printed II-V line gives 559 there, so do not extend
+  a line past its triple points); VI-VII-L 2216 MPa, 355 K. Sources 1
+  checked that every line meets its triple points within 1 MPa except
+  III-V at the liquid point (345.8 against 350.1). Chaplin's short Simon
+  form for ice VII melting is 10 percent off at 550 K: use the exact
+  IAPWS form already held. AQUA (A&A 2020, arXiv 2009.10098) Eq. 22
+  gives a VI-VII fit; the extraction is garbled, verify before use. No
+  equation found for II-VI, VI-VII-VIII or VII-VIII. Fortes 2009 (J.
+  Appl. Cryst. 42:846) says Choukroun and Grasset's ice Ih K0' is wrong
+  by 10 times and their ice VI density has no pressure term, so do not
+  trust their equation of state for volumes. Still missing: Dunaeva 2010
+  (Solar System Research 44:202) or Choukroun and Grasset by upload.
+  Report: reports/ice-phase-boundaries-secondary-sources-2026-10-31.md.
   Prerequisites: none. Related: GEN.1183, GEN.1185, GEN.725.
 
 - [ ] **GEN.1191 Satellite supernova remnants scale with the satellite's own star formation instead of the Milky Way's per-system rate**
