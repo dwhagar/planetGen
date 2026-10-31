@@ -618,7 +618,8 @@ def star_params(initial_mass_sol, age_gy, state):
     database stores. The temperature is rounded to the nearest hundred
     kelvin, as for every generated star; the radius follows from
     Stefan-Boltzmann at that temperature (a white dwarf's from its
-    mass-radius relation).
+    mass-radius relation, and then the luminosity follows from the radius and
+    the stored temperature instead, GEN.365).
 
     Returns:
         dict: `type` (e.g. "G2V Yellow Main Sequence Star"),
@@ -631,6 +632,9 @@ def star_params(initial_mass_sol, age_gy, state):
     luminosity_w = state["luminosity_sol"] * constants.SOLAR_LUMINOSITY
     if state["radius_km"] is not None:
         radius_km = state["radius_km"]
+        # GEN.365: a white dwarf's radius is the degenerate star's (its mass sets it) and its temperature the one stored (rounded, or the
+        # forced type's), so its luminosity is what those two give, and L = 4 pi R^2 sigma T^4 holds for the stored numbers.
+        luminosity_w = constants.FOUR_PI * (radius_km * 1000.0) ** 2 * constants.STEFAN_BOLTZMANN_CONSTANT * temperature ** 4
     else:
         radius_km = math.sqrt(luminosity_w / (constants.FOUR_PI * constants.STEFAN_BOLTZMANN_CONSTANT
                                               * temperature ** 4))

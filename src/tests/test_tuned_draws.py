@@ -190,13 +190,15 @@ def test_the_species_with_a_population_follow_it_and_the_single_comet_species_st
 # --- host-star rotation track (GEN.523) --------------------------------------------------------------------------------------
 
 
-def test_the_saturation_time_runs_through_the_three_published_tracks_and_the_percentile_is_drawn_uniform():
+def test_the_saturation_time_follows_the_mass_and_agrees_with_tu_2015_at_one_solar_mass_and_the_percentile_is_drawn_uniform():
     from planetgen.generation.possibility_table import Subject
+    from planetgen.physics import saturation_time
 
-    s = Subject("terrestrial", {"drawn.p": "p5"})
-    t_sat = lambda u: RECIPES.derive("p6", s, value=u)["t_sat_myr"]  # noqa: E731
-    assert (t_sat(0.1), t_sat(0.5), t_sat(0.9)) == pytest.approx((5.7, 23.0, 226.0)), "Tu 2015: the 10th, 50th and 90th percentile tracks"
+    def t_sat(u, mass=1.0):
+        return RECIPES.derive("p6", Subject("terrestrial", {"drawn.p": "p5", "host_mass_solar": mass}), value=u)["t_sat_myr"]
+    assert (t_sat(0.1), t_sat(0.5), t_sat(0.9)) == pytest.approx((5.7, 23.0, 226.0), rel=0.1), "Tu 2015: the 10th, 50th and 90th percentile tracks"
     assert t_sat(0.02) < 5.7 < 23.0 < t_sat(0.98), "a monotonic run through the tail percentiles"
+    assert t_sat(0.3, 0.3) == pytest.approx(saturation_time.saturation_time_myr(0.3, 30.0)) and t_sat(0.5, 0.3) > 50 * t_sat(0.5, 1.0), "Johnstone 2021: low-mass stars stay saturated longer"
     spec = RECIPES.entry("p6").spec["dist"]
     assert (spec["kind"], spec["lo"], spec["hi"]) == ("uniform", 0.02, 0.98), "no paper weights the tracks"
 

@@ -94,3 +94,16 @@ test("a blank line lists the visit log and the way home", () => {
   });
   assert.deepEqual(groups.map((g) => g.key), ["recent", "home"]);
 });
+
+test("a blank line also offers the charted regions with the most sectors, biggest first (MAP.357)", () => {
+  const charted = [
+    { key: "a", name: "Aye", block: { shell: 1 }, x: 1, y: 2, z: 3, radiusPc: 40, sectorCount: 2 },
+    { key: "b", name: "Bee", block: { shell: 2 }, x: 4, y: 5, z: 6, radiusPc: 50, sectorCount: 9 },
+    { key: "c", name: "Sea", block: { shell: 3 }, x: 7, y: 8, z: 9, radiusPc: 60, sectorCount: 0 },
+  ];
+  const groups = F.buildGroups({ text: "", parsed: {}, regions: charted, recents: [], home: { label: "Whole galaxy", target: { home: true } } });
+  assert.deepEqual(groups.map((g) => g.key), ["charted", "home"]);
+  assert.deepEqual(groups[0].items.map((i) => i.label), ["Bee", "Aye"]);
+  assert.deepEqual(groups[0].items[0].target.region, { block: { shell: 2 }, center: [4, 5, 6], radius: 50 });
+  assert.equal(F.GROUP_TITLES.charted, "Charted places");
+});

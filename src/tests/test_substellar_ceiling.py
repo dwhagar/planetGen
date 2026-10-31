@@ -71,3 +71,15 @@ def test_the_real_table_gives_the_papers_numbers_where_it_is_held():
     assert ceiling.ceiling_k(0.001) == pytest.approx(2900, abs=15)
     assert ceiling.ceiling_k(0.01) == pytest.approx(2950, abs=15)
     assert ceiling.ceiling_k(10.0) < 1700
+
+
+def test_the_cap_follows_the_age_below_the_limit_mass_and_is_the_peak_at_or_above_it():
+    assert ceiling.cap_k(0.05, 0.001, G) == ceiling.hottest_k(0.001, G)
+    assert ceiling.cap_k(0.0699, 5.0, G) == ceiling.hottest_k(5.0, G)
+    assert ceiling.cap_k(0.07, 5.0, G) == ceiling.HOTTEST_K == ceiling.cap_k(0.0764, 0.0001, G)
+
+
+def test_the_cap_holds_the_age_to_the_table_and_never_asks_for_a_cooler_answer_than_the_table_has():
+    youngest, oldest = G[0].age_gyr, G[-1].age_gyr
+    assert ceiling.hottest_k(youngest / 100.0, G) == ceiling.ceiling_k(youngest, G)
+    assert ceiling.hottest_k(oldest * 5.0, G) == ceiling.ceiling_k(oldest, G)

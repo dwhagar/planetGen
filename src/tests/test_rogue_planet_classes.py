@@ -15,6 +15,7 @@ from planetgen.generation.phenomena.rogue import RoguePlanet, rogue_class
 
 from planetgen.web.maps import starmap  # noqa: E402
 from planetgen.web import sector_page, system_pages  # noqa: E402
+import pytest
 from tests import render_support
 
 
@@ -34,7 +35,8 @@ def test_generated_rogues_get_the_class_their_conditions_derive():
         planet = RoguePlanet(SystemConfig())
         if planet.mass_bin == "brown-dwarf":
             continue
-        assert tuning.PLANET_CLASSES[planet.planet_class]["type"] == planet.planet_type
+        shown = tuning.PLANET_CLASSES[planet.planet_class]
+        assert planet.planet_type in (shown["type"], shown.get("also_type"))
         assert planet.planet_class == rogue_class(planet)
         assert f"class {planet.planet_class}" in render_support.facts_text(render_support.phenomenon_section(planet))
 
@@ -78,3 +80,29 @@ def test_phenomenon_page_contents_and_sector_map_show_the_class():
     assert data["typeLabel"] == "Rogue Planet (Terrestrial)"
 
 
+
+
+def test_a_rogue_of_ten_to_sixteen_earth_masses_is_an_ice_giant_not_a_large_rock():
+    """GEN.1133: a rogue is a giant where a bound planet is (the core mass that holds an envelope, 10 Earth masses), so none of 10 to 16
+    Earth masses is a 17,600 km class S."""
+    from planetgen.physics import constants
+    count = 0
+    for _ in range(400):
+        planet = RoguePlanet(SystemConfig(), mass_bin="sub-neptune")
+        mass_earth = planet.mass_kg / constants.EARTH_MASS_TO_KG
+        if 10.0 <= mass_earth <= 16.0:
+            count += 1
+            assert planet.planet_type == "g" and planet.planet_class == "I", (mass_earth, planet.radius_km, planet.planet_class)
+        if planet.planet_type == "t":
+            assert planet.radius_km < 13000.0
+    assert count > 20
+
+
+def test_the_rock_of_a_rogue_follows_the_bound_planets_mass_radius_law():
+    from planetgen.generation.phenomena.rogue import rocky_radius_km
+    from planetgen.physics import constants
+    earth = constants.EARTH_MASS_TO_KG
+    assert rocky_radius_km(earth, 5510.0) == pytest.approx(constants.EARTH_RADIUS_KM, rel=0.01)
+    heavy = [rocky_radius_km(10.0 * earth, density) for density in (3930.0, 4700.0, 5510.0)]
+    assert all(11000.0 < radius < 12700.0 for radius in heavy)       # not the 13,700 to 15,400 km of a body that does not compress
+    assert heavy[0] > heavy[2]

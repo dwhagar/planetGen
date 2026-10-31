@@ -33,6 +33,7 @@ rising there: no source reaches further.
 
 import math
 
+from planetgen.util import detmath
 from planetgen.util.checks import finite_domain
 
 BASE_PRESSURE_1_EARTH_GPA = 55.0
@@ -121,7 +122,7 @@ def diw_sigma(mass_earth):
     low, high = FE3_FRACTION_RANGE
     share = _log_spread(math.log10(low / (1.0 - low)), math.log10(high / (1.0 - high)))
     power = _log_spread(*FE3_EXPONENT_BRACKET) * math.log10(base_pressure_gpa(mass_earth) / BASE_PRESSURE_1_EARTH_GPA)
-    return DIW_PER_LOG_FE3_RATIO * math.hypot(share, power)
+    return DIW_PER_LOG_FE3_RATIO * detmath.hypot(share, power)
 
 
 @finite_domain()

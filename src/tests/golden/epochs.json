@@ -759,6 +759,12 @@
       "first_release": "8.0.2863",
       "reason": "Train 5: Tides 1 (GEN.955/778/979/957/959/960), Star 2 lethal events and age-metallicity (GEN.785/744/944), giant core cap (GEN.1096), life paces and outside hours and life scores (GEN.942/768/TEST.486), surface liquid (GEN.1035)",
       "affects": ["plan", "population", "fill", "scatter"]
+    },
+    {
+      "epoch": 128,
+      "first_release": "8.0.2893",
+      "reason": "Train 6: class epoch (Q retired, V at 2 g, new class lines), halo mass function, star spin and white dwarf luminosity, ocean tides, ring ages, day and night state, resonance capture draw, Cassini tilts, birth spin adaptation, close-binary period trend",
+      "affects": ["plan", "population", "fill", "scatter"]
     }
   ]
 }

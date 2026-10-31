@@ -64,7 +64,8 @@ def test_planet_is_in_its_zone_with_a_known_class_and_the_type_of_that_class(hos
     assert planet.radius > 0
     assert planet.planet_class in prog_c.PLANET_CLASSES
     assert planet.zone == zone
-    assert planet.body_type == prog_c.PLANET_CLASSES[planet.planet_class]["type"]
+    shown = prog_c.PLANET_CLASSES[planet.planet_class]
+    assert planet.body_type in (shown["type"], shown.get("also_type"))
     assert planet.planet_class == planet_classes.classify(planet)
 
 

@@ -233,21 +233,35 @@ def _gauss():
     return draw.gauss(0.0, 1.0)
 
 
-def _carbon_oxides(period_class, interstellar):
+def _carbon_oxides(period_class, interstellar, ice_ratios=None):
     if interstellar:
         co = INTERSTELLAR["co_over_h2o"]
         co2 = INTERSTELLAR["co2_over_h2o"]
         return (100.0 * math.exp(draw.uniform(math.log(co["lo"]), math.log(co["hi"]))),
                 100.0 * math.exp(draw.uniform(math.log(co2["lo"]), math.log(co2["hi"]))))
     co_bounds, co2_bounds = CARBON_OXIDES["CO"], CARBON_OXIDES["CO2"]
-    log_median = math.log10(TOTAL_CARBON_OXIDE["median_percent"])
-    median = CO_FRACTION["median"][period_class]
+    if ice_ratios is None:
+        total_median = TOTAL_CARBON_OXIDE["median_percent"]
+        median = CO_FRACTION["median"][period_class]
+        co_range = (co_bounds.lo_percent, co_bounds.hi_percent)
+        co2_range = (co2_bounds.lo_percent, co2_bounds.hi_percent)
+    else:
+        # the median comes from the disc zone the comet formed in; the observed extremes keep their distance from the population's
+        # geometric mean (the bounds move with the median, so the rejection loop is as likely to end as with the population)
+        co2_zone, co_zone = (100.0 * ratio for ratio in ice_ratios)
+        if not (co2_zone > 0.0 and co_zone > 0.0):
+            return 0.0, 0.0     # a star with no carbon freezes no carbon oxide
+        total_median = co_zone + co2_zone
+        median = co_zone / total_median
+        co_range = tuple(co_zone * edge / co_bounds.geo_mean_percent for edge in (co_bounds.lo_percent, co_bounds.hi_percent))
+        co2_range = tuple(co2_zone * edge / co2_bounds.geo_mean_percent for edge in (co2_bounds.lo_percent, co2_bounds.hi_percent))
+    log_median = math.log10(total_median)
     logit = math.log(median / (1.0 - median))
     for _ in range(MAX_ATTEMPTS):
         total = 10.0 ** (log_median + TOTAL_CARBON_OXIDE["sigma_dex"] * _gauss())
         share = 1.0 / (1.0 + math.exp(-(logit + CO_FRACTION["logit_sigma"] * _gauss())))
         co, co2 = total * share, total * (1.0 - share)
-        if co_bounds.lo_percent <= co <= co_bounds.hi_percent and co2_bounds.lo_percent <= co2 <= co2_bounds.hi_percent:
+        if co_range[0] <= co <= co_range[1] and co2_range[0] <= co2 <= co2_range[1]:
             return co, co2
         draw.redrawn("comet.composition")
     raise PopulationError(f"no CO and CO2 inside the observed bounds in {MAX_ATTEMPTS} draws for {period_class}")
@@ -272,7 +286,7 @@ def median_volatiles(period_class):
     return percent
 
 
-def draw_volatiles(period_class, interstellar=False):
+def draw_volatiles(period_class, interstellar=False, ice_ratios=None):
     """
     The volatiles of one comet.
 
@@ -281,6 +295,9 @@ def draw_volatiles(period_class, interstellar=False):
             carbon-chain flag from the same table; the class does not move its CO and CO2, which are drawn from the ranges
             the measured interstellar object needs).
         interstellar (bool): True for an interstellar comet.
+        ice_ratios (tuple or None): `(CO2/H2O, CO/H2O)` of the ice of the disc zone the comet formed in (`comet_ice_budget.ice_ratios`, GEN.595):
+            the median CO and CO2 come from it (and not from the Solar System's measured median of the class) and the scatter stays the
+            population's. `None` keeps the population's median.
 
     Returns:
         Volatiles: percent of H2O by species and the carbon-chain-depleted flag.
@@ -290,7 +307,7 @@ def draw_volatiles(period_class, interstellar=False):
     """
     if period_class not in PERIOD_CLASSES:
         raise ValueError(f"period class {period_class!r} is none of {', '.join(PERIOD_CLASSES)}")
-    co, co2 = _carbon_oxides(period_class, interstellar)
+    co, co2 = _carbon_oxides(period_class, interstellar, ice_ratios)
     percent = {"CO": co, "CO2": co2}
     for name, species in SPECIES.items():
         percent[name] = species.draw()

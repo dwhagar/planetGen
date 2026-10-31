@@ -13,8 +13,10 @@ The pair classes (`binary.BinaryStarProxy`, `wide_binary.WideBinaryPair`) hold e
 built from a tree has one pair, the two stars of a node whose children are both stars (the node of the placed
 object when it is one, else the heaviest), and every other star hangs in the tree as one of the system's `member_stars` (GEN.630). A tree
 builds when each member is a star `Star` makes from a birth mass and an age. Any other stored tree (a neutron star, a
-black hole or a brown dwarf among the members) builds the placed object alone and is marked `complete=False`, its stored
-rows kept; a drawn tree has such members cut out before it is built (`multistar.without_members`).
+black hole or a brown dwarf among the members) is still the system's tree (GEN.1013): those members are `dark` (`PlannedStar.built`
+false), they hang in the nodes with their mass and radius so the orbits and the gravity are the drawn tree's, and the stars
+around them are built. The pair is two built stars, so a tree with fewer than two of them builds the one star in its
+tree.
 
 The stored phases hold at the time the tree was drawn; `plan` moves the nodes on to the epoch the built system holds its
 orbits at, so the nodes the system stores are the same orbits at that instant. A drawn tree holds its phases at
@@ -39,7 +41,7 @@ PAIR_STAR_KINDS = ("main-sequence", "pre-main-sequence", "protostar", "giant", "
 UNBUILT_KINDS = ("brown-dwarf", "neutron-star", "black-hole", "stripped-helium")
 """tuple: The member kinds of a drawn tree that `Star` cannot be built as: there is no brown-dwarf host class, a compact
 remnant is a `phenomena.compact_remnant` object, not a star of a pair, and a stripped helium star has no record a star is made
-from (`multistar.without_members` cuts them out)."""
+from. They stay in the tree as dark members (GEN.1013): mass and radius, no light and no planets."""
 
 PAIR_NODE_KINDS = ("close", "wide")
 """tuple: The node kinds the pair classes stand for (a P-type pair is `close`, an S-type pair `wide`)."""
@@ -70,6 +72,28 @@ class PlannedStar:
     radius_au: float | None = None
     age_yr: float | None = None
 
+    @property
+    def built(self):
+        """Whether `Star` builds this member; a dark member (`UNBUILT_KINDS`) only hangs in the tree."""
+        return self.kind not in UNBUILT_KINDS
+
+    def dark(self):
+        """This member as the `DarkMember` a built system keeps of it."""
+        return DarkMember(self.member_no, self.parent_node_no, self.slot, self.kind, self.mass_solar, self.radius_au)
+
+
+@dataclasses.dataclass(frozen=True)
+class DarkMember:
+    """A member of a built system's tree that is not a star of it (GEN.1013): a brown dwarf, a neutron star, a black hole
+    (`UNBUILT_KINDS`). It hangs in `parent_node_no`, `slot` with the `mass_solar` and `radius_au` the tree drew; the system
+    keeps no more of it, no light and no planets."""
+    member_no: int
+    parent_node_no: int
+    slot: int
+    kind: str
+    mass_solar: float
+    radius_au: float | None = None
+
 
 @dataclasses.dataclass(frozen=True)
 class StoredPlan:
@@ -85,19 +109,69 @@ class StoredPlan:
     nodes: tuple = ()
     complete: bool = True
 
+    @property
+    def lit_members(self):
+        """The members `Star` builds, in member order."""
+        return tuple(member for member in self.members if member.built)
+
+    @property
+    def dark_members(self):
+        """The members that only hang in the tree (`UNBUILT_KINDS`) as `DarkMember`s, in member order."""
+        return tuple(member.dark() for member in self.members if not member.built)
+
     def pair_node_no(self):
-        """The node of the system's pair (module docstring), `None` for a single star: the node of the placed star when its
-        children are both stars, else the one of the heaviest two stars."""
-        if not self.nodes:
+        """
+        The node of the system's pair (module docstring), `None` for fewer than two built stars: the node of the placed star
+        when its children are both built stars, else the node of two built stars that holds the most mass. A tree with no
+        such node (every pair of built stars has a dark member or a sub-pair between them) has the pair of its two heaviest
+        built stars, which is the lowest node above both.
+        """
+        lit = self.lit_members
+        if len(lit) < 2:
             return None
-        counts = collections.Counter(member.parent_node_no for member in self.members)
+        counts = collections.Counter(member.parent_node_no for member in lit)
         placed_at = self.members[0].parent_node_no
         if counts[placed_at] == 2:
             return placed_at
         mass = collections.Counter()
         for member in self.members:
             mass[member.parent_node_no] += member.mass_solar
-        return max((node_no for node_no, count in counts.items() if count == 2), key=lambda node_no: mass[node_no])
+        pairs = [node_no for node_no, count in counts.items() if count == 2]
+        if pairs:
+            return max(pairs, key=lambda node_no: mass[node_no])
+        first, second = sorted(lit, key=lambda member: -member.mass_solar)[:2]
+        parent = {node.node_no: node.parent_node_no for node in self.nodes}
+        above = set()
+        node_no = first.parent_node_no
+        while node_no is not None:
+            above.add(node_no)
+            node_no = parent[node_no]
+        node_no = second.parent_node_no
+        while node_no not in above:
+            node_no = parent[node_no]
+        return node_no
+
+    def pair_members(self):
+        """`(low, high)`, the member numbers of the pair, by slot of the pair node (`None` for no pair): the two built children
+        of the pair node, else (a pair with a dark member or a sub-pair between them) the two heaviest built stars by the
+        slot of the pair node's child each hangs under."""
+        pair_no = self.pair_node_no()
+        if pair_no is None:
+            return None
+        lit = self.lit_members
+        direct = [member for member in lit if member.parent_node_no == pair_no]
+        if len(direct) == 2:
+            return tuple(member.member_no for member in sorted(direct, key=lambda member: member.slot))
+        first, second = sorted(lit, key=lambda member: -member.mass_solar)[:2]
+        return tuple(member.member_no for member in sorted((first, second), key=lambda m: self.slot_under(m, pair_no)))
+
+    def slot_under(self, member, node_no):
+        """The slot of node `node_no` that `member` hangs under, directly or through the nodes below it."""
+        parent = {node.node_no: (node.parent_node_no, node.slot) for node in self.nodes}
+        at, slot = member.parent_node_no, member.slot
+        while at != node_no:
+            at, slot = parent[at]
+        return slot
 
 
 SINGLE = StoredPlan()
@@ -134,16 +208,15 @@ def plan(tree, epoch_unix=None):
     """
     if tree is None or not tree.members:
         return SINGLE
-    if len(tree.members) < 2 or any(member.kind not in PAIR_STAR_KINDS for member in tree.members[1:]) \
+    if len(tree.members) < 2 or any(member.kind not in PAIR_STAR_KINDS + UNBUILT_KINDS for member in tree.members[1:]) \
             or any(node.kind not in PAIR_NODE_KINDS for node in tree.nodes):
         return StoredPlan(complete=False)
     return _planned(tree.members, tree.nodes, lambda node: node_at(node, epoch_unix), lambda member: None)
 
 
 def drawn(tree):
-    """The `StoredPlan` of a `multistar.MemberTree` just drawn and pruned (`multistar.without_members`) of the members a
-    build cannot hold: its phases held at `GENERATED_EPOCH_UNIX`, each member's record made at the age the tree drew it at (a
-    merger product's rejuvenated one)."""
+    """The `StoredPlan` of a `multistar.MemberTree` just drawn, dark members and all (GEN.1013): its phases held at
+    `GENERATED_EPOCH_UNIX`, each member's record made at the age the tree drew it at (a merger product's rejuvenated one)."""
     if tree.member_count < 2:
         return SINGLE
     return _planned(tree.members, tree.nodes, lambda node: OrbitNode(

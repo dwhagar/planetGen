@@ -70,26 +70,32 @@ CASES = {
     "A": body(share_so2=0.2, p_o2_kpa=0.0),
     "N": body(atmospheric_pressure_pa=9e6, surface_temperature_k=700.0, hydrosphere="vapour", ocean_fraction=0.0,
               p_o2_kpa=0.0, p_n2_kpa=0.0, p_ar_kpa=0.0, p_co2_kpa=8800.0),
-    "Q": body(flux_variation=0.5),
-    "V": body(gravity_g=1.5, mass_earth=4.0),
-    "L": body(atmospheric_pressure_pa=1500.0, share_o2=0.25, gravity_g=0.8, surface_temperature_k=230.0,
-              hydrosphere="ice-covered ocean", p_n2_kpa=0.0, p_ar_kpa=0.0),
-    "K": body(atmospheric_pressure_pa=500.0, surface_temperature_k=190.0, hydrosphere="ice", gravity_g=0.4,
+    "V": body(gravity_g=2.5, mass_earth=8.0),
+    "L": body(p_co2_kpa=3.0, p_o2_kpa=10.0, gravity_g=0.9),
+    "K": body(atmospheric_pressure_pa=500.0, surface_temperature_k=300.0, hydrosphere="dry", gravity_g=0.4,
               p_o2_kpa=0.0, p_n2_kpa=0.0, p_ar_kpa=0.0, p_co2_kpa=0.5),
-    "P": body(surface_temperature_k=175.0, hydrosphere="ice", ocean_fraction=0.4, atmospheric_pressure_pa=6000.0),
+    "P": body(surface_temperature_k=250.0, hydrosphere="ice", ocean_fraction=0.4, atmospheric_pressure_pa=6000.0),
     "B": body(gravity_g=0.3, mass_earth=0.04, surface_temperature_k=450.0, hydrosphere="dry", ocean_fraction=0.0),
-    "E": no_oxygen(surface_temperature_k=340.0, share_ch4=0.25, share_h2o=0.4, p_n2_kpa=5.0, p_ar_kpa=0.0),
+    "E": body(surface_temperature_k=200.0, hydrosphere="ice", ocean_fraction=0.5, atmospheric_pressure_pa=6000.0),
     "F": no_oxygen(surface_temperature_k=300.0, share_ch4=0.2, share_co2=0.5, p_n2_kpa=10.0, p_ar_kpa=0.0),
-    "G": body(share_co2=0.5, p_o2_kpa=10.0, surface_temperature_k=260.0),
+    "G": body(share_co2=0.5, p_o2_kpa=0.0),
     "O": body(ocean_fraction=0.97),
     "H": body(ocean_fraction=0.02, hydrosphere="dry"),
     "M": body(),
 }
 
 
+def test_class_q_is_retired_and_its_letter_reserved():
+    """GEN.1135 (Boss, 6:07 PM EDT 2026-10-30): the swing of the starlight is the stored flux_variation and a flag, not a class."""
+    assert "Q" not in {c.letter for c in pc.CLASSES} and "Q" not in tuning.PLANET_CLASSES and "Q" in pc.RESERVE
+    assert "Q" not in tuning.HABITABLE_PLANET_CLASSES
+    assert all(rule.get("quantity") != "flux_variation" for c in pc.CLASSES for rule in c.when)
+    assert pc.classify(body(flux_variation=0.9)) == "M"      # a very eccentric orbit alone makes no class
+
+
 def test_the_rule_file_is_well_formed():
     letters = [c.letter for c in pc.CLASSES]
-    assert len(letters) == len(set(letters))
+    assert len({(c.letter, c.kind) for c in pc.CLASSES}) == len(letters)      # a letter once in a kind (T has a giant and a terrestrial row)
     assert set(letters) == set(tuning.PLANET_CLASSES), "a letter was lost or added: ask Boss first"
     assert not set(pc.RESERVE) & set(letters)
     assert set(pc.RESERVE) | set(letters) == set("ABCDEFGHIJKLMNOPQRSTUVWXYZ")
@@ -121,10 +127,11 @@ def test_thresholds_are_edges_of_their_row():
     assert pc.classify(airless()) == "C"
     assert pc.classify(body(atmospheric_pressure_pa=9.99, p_o2_kpa=0, p_n2_kpa=0, p_ar_kpa=0, p_co2_kpa=0,
                             hydrosphere="dry", ocean_fraction=0.0, surface_temperature_k=300.0)) == "C"
-    assert pc.classify(body(ocean_fraction=0.9)) == "O"
-    assert pc.classify(body(ocean_fraction=0.8999)) == "M"
-    assert pc.classify(body(ocean_fraction=0.15)) == "M"
-    assert pc.classify(body(ocean_fraction=0.1499)) == "H"
+    assert pc.classify(body(ocean_fraction=0.8)) == "O"
+    assert pc.classify(body(ocean_fraction=0.7999)) == "M"
+    assert pc.classify(body(ocean_fraction=0.2)) == "M"
+    assert pc.classify(body(ocean_fraction=0.1999)) == "H"
+    assert pc.classify(body(surface_temperature_k=273.15)) == "M" and pc.classify(body(surface_temperature_k=273.1)) == "P"
 
 
 def test_the_function_is_pure_total_and_the_same_from_an_object():
@@ -167,7 +174,7 @@ def test_a_body_without_what_the_rules_read_is_refused():
 def test_a_class_follows_its_conditions():
     values = body()
     assert pc.classify(values) == "M"
-    values["surface_temperature_k"] = 150.0
+    values["surface_temperature_k"] = 250.0
     assert pc.classify(values) == "P"
     values.update(atmospheric_pressure_pa=0.0, **{atmosphere.GAS_FIELD: {}})
     assert pc.classify(values) == "C"
@@ -175,8 +182,8 @@ def test_a_class_follows_its_conditions():
 
 def test_rules_read_in_plain_words():
     assert pc.rule_words(pc.describe("S")) == ["surface pressure below 10 Pa", "mass at least 1.5 Earth masses"]
-    assert pc.rule_words(pc.describe("N")) == ["surface pressure at least 1,000,000 Pa"]
-    assert pc.rule_words(pc.describe("L"))[1] == "oxygen share of the air at least 10 percent"
+    assert pc.rule_words(pc.describe("N"))[0] == "surface pressure at least 1,000,000 Pa"
+    assert any(word.startswith("oxygen share of the air at least 3 percent") for word in pc.rule_words(pc.describe("L")))
     assert pc.rule_words(pc.describe("M")) == []
 
 
@@ -212,3 +219,25 @@ def test_only_the_known_writers_assign_a_class():
                     if re.search(r"(?<!\})\.planet_class\s*=[^=]", handle.read()):
                         found.add(os.path.relpath(path, root).replace(os.sep, "/"))
     assert found == CLASS_WRITERS, f"new or removed writers of a body's class: {sorted(found ^ CLASS_WRITERS)}"
+
+
+def test_gen_1142_lines():
+    """GEN.1142: the lines of the train 6 epoch, each on both sides of its edge (registry 6.121)."""
+    hydrogen = body(mass_earth=5.0, atmospheric_pressure_pa=1.0e6, surface_temperature_k=600.0)
+    put_kpa(hydrogen, "h2", 900.0)
+    assert pc.classify(hydrogen) == "T"                                  # a hydrogen-rich terrestrial-kind body under 10 Earth masses
+    assert pc.classify(dict(hydrogen, mass_kg=12.0 * constants.EARTH_MASS_TO_KG)) != "T"      # not under 10 Earth masses
+    assert pc.classify(dict(hydrogen, mass_kg=12.0 * constants.EARTH_MASS_TO_KG)) != "N"      # and hydrogen-dominated, so not a Venus-like air
+    assert pc.classify(CASES["N"]) == "N" and pc.classify(dict(CASES["N"], surface_temperature_k=399.0)) != "N"      # hot
+    assert pc.describe("T").kind == pc.GIANT and {c.kind for c in pc.CLASSES if c.letter == "T"} == {pc.GIANT, pc.TERRESTRIAL}
+    assert "E" in {c.letter for c in pc.CLASSES} and "E" not in pc.RESERVE                    # E is the deep-frozen world now
+    assert pc.classify(body(surface_temperature_k=233.14)) == "E" and pc.classify(body(surface_temperature_k=233.15)) == "P"
+    thin = body(atmospheric_pressure_pa=2999.0, surface_temperature_k=300.0, p_o2_kpa=0.0, p_n2_kpa=0.0, p_ar_kpa=0.0, p_co2_kpa=0.2)
+    assert pc.classify(thin) == "K"
+    assert pc.classify(dict(thin, surface_temperature_k=272.0)) == "P"          # the cold part of the old K is glaciated now
+    assert pc.classify(dict(thin, surface_temperature_k=321.0)) != "K"
+    mask = body(p_co2_kpa=3.0, p_o2_kpa=10.0)
+    assert pc.classify(mask) == "L"
+    assert pc.classify(dict(mask, atmospheric_pressure_pa=29000.0)) != "L" and pc.classify(dict(mask, atmospheric_pressure_pa=310000.0)) != "L"
+    put_kpa(mask, "o2", 20.0)
+    assert pc.classify(mask) != "L"                                      # too much oxygen to need a mask
