@@ -1066,7 +1066,8 @@ class StarSystem:
         built = {0: placed}
         for member in plan.lit_members[1:]:
             record = member_record.make(member.seed, member.initial_mass_solar,
-                                        member.age_yr or placed.age * 1.0e9, placed.metallicity_fe_h)
+                                        member.age_yr or placed.age * 1.0e9, placed.metallicity_fe_h,
+                                        white_dwarf_mass_sol=stored_trees.helium_core_mass_sol(member))
             with log.timed_phase("companion star generation"), draw.bound(member.seed):
                 built[member.member_no] = Star.from_record(
                     record, config, name=placed.name, galactic_center_dist_ly=galactic_center_dist_ly,

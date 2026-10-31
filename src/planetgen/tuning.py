@@ -932,6 +932,27 @@ WD_ENGULFMENT_POINTS_AU = ((1.0, 2.7), (2.5, 3.8), (5.0, 10.0))
 """tuple: `(progenitor solar masses, AU)` points of the engulfment radius, Mustill and Villaver 2012 (Jovian planets). Source tier T3, tweak level L1 (GM1, GM2)."""
 WD_PROGENITOR_MASS_RANGE_SOL = (1.0, _boundaries.sol("core_collapse_limit"))
 
+# The helium-core white dwarf of a close binary (GEN.996, `physics/helium_core_white_dwarf.py`): a low-mass giant that fills
+# its Roche lobe on the red giant branch loses its envelope with the helium core it had then, so the white dwarf is the core,
+# 0.18 to 0.45 solar masses, and not the 0.55 or more the single-star relation gives.
+HELIUM_FLASH_CORE_MASS_SOL = 0.45
+"""float: The helium core mass at which a low-mass giant ignites helium with a flash (about 0.45 for all stars under 2.3 solar
+masses; Tauris and van den Heuvel 2006, section 16.2 of the review `astro-ph/0303456`). A star that loses its envelope with a
+core under it leaves a helium white dwarf. Source tier T1, tweak level L0 (HC1)."""
+HELIUM_CORE_PROGENITOR_MAX_SOL = 2.3
+"""float: The heaviest star whose helium core is degenerate on the red giant branch (and so follows the core mass and radius
+relation); a heavier star ignites helium quietly and leaves a carbon-oxygen white dwarf. Source tier T1, tweak level L0 (HC1)."""
+HELIUM_CORE_MIN_MASS_SOL = 0.18
+"""float: The lightest core the core mass and radius relation is used for (Tauris and Savonije 1999 fit the white dwarf mass and
+orbital period for 0.18 to 0.45 solar masses; below it the giant is a subgiant and the relation is not the Rappaport one). A
+pair that fills its lobe earlier than that is a contact or Algol pair (`classify_pair`), not a helium white dwarf. Source tier
+T2, tweak level L1 (HC3)."""
+GIANT_RADIUS_BY_CORE_MASS_RSUN = ((3.0, 3300.0), (1.699, 5500.0))
+"""tuple: `(-log10 Z, R0)` points of the constant of Rappaport et al. 1995's red giant radius, `R = R0 Mc^4.5 / (1 + 4 Mc^4) +
+0.5` solar radii for a core of `Mc` solar masses: 5500 at Z 0.02 (Population I) and 3300 at Z 0.001 (Population II), read second
+hand in Tauris and van den Heuvel 2006 (the review `astro-ph/0303456`), Chen et al. 2013 (`1203.3439`) and Li et al. 2024
+(`2410.14151`). Between them the constant is straight in log Z (HC2) and held beyond. Source tier T2, tweak level L0 (HC2)."""
+
 # A planetary nebula's central star is a close pair in PLANETARY_NEBULA_COMPANION_CHANCE of nebulae (a post-common-envelope
 # pair); such a pair still inside its ejecta holds a circumbinary disk and no planets (GEN.318, design note 1.3). A white
 # dwarf at least this hot (the coolest central star type, B0VII) belongs to such a pair; the disk's mass is a stand-in
