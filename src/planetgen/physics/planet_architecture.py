@@ -35,7 +35,8 @@ import collections
 import math
 
 from planetgen import tuning
-from planetgen.physics import constants, formation, metallicity, planet_mass, unit_registry as units
+from planetgen.physics import bulk_structure, constants, formation, metallicity, planet_mass, unit_registry as units
+from planetgen.physics import scatter as scatter_rule
 from planetgen.util import draw
 
 _kg_to_msun = units.converter("kg", "Msun")
@@ -64,9 +65,23 @@ Seed = collections.namedtuple("Seed", ("distance_au", "mass_kg", "core_kg", "run
 how many oligarchs merged into it, whether it migrated in to a hot Jupiter orbit and where it formed (`formation_au`: the origin the
 composition reads, the snow line it was born past)."""
 
-Architecture = collections.namedtuple("Architecture", ("planets", "disc_scatter", "separation", "oligarchs"))
+Lost = collections.namedtuple("Lost", ("chain_mass_kg", "merge_debris_kg", "merges", "capped_kg", "capped", "small", "swept", "thrown", "snow_line_au",
+                                       "star_mass_kg"))
+"""What the build lost, raw, for `losses` to class: the chain's whole mass in kilograms (what the planets and the losses must add up to), the mass
+the merges did not keep and their number, the mass the core cap of a planet without gas cut off and the number of planets cut, the chain bodies
+below the planet minimum as `[distance_au, mass_kg]`, the planets a giant swept as `(seed, giant)`, the planets a crowded giant threw out as
+`(seed, heavier)`, the star's snow line (AU) and mass (kg)."""
+
+Architecture = collections.namedtuple("Architecture", ("planets", "disc_scatter", "separation", "oligarchs", "lost"))
 """The planets in order of distance, the factor the disc's solids were scattered by, the spacing the oligarchs formed at (mutual Hill
-radii) and the number of oligarchs before the thinning."""
+radii), the number of oligarchs before the thinning and what the build lost (`Lost`, class it with `losses`)."""
+
+Loss = collections.namedtuple("Loss", ("kind", "count", "mass_kg", "core_kg", "distance_au", "formation_au", "time_yr", "perturber_au", "perturber_mass_kg",
+                                       "theta", "hill_radius_au", "ice_rich", "ejected", "collided", "bound"))
+"""One loss of the architecture (`losses`): `kind` ('merge', 'sub_minimum', 'swept' or 'thrown'), the number of bodies it stands for and their total mass and
+core mass in kilograms, where it sat and formed (AU; None for the merges), when it was lost (years; None for the merges), the perturber's orbit and
+mass, the Safronov number of the encounter, the body's own Hill radius there (AU; the moons that stay bound sit inside a fraction of it), whether it
+formed beyond the snow line, and the shares `ejected`, `collided` and `bound` (summing to 1; `scatter.loss_fates`)."""
 
 
 def mutual_hill_radius_au(a1_au, m1_kg, a2_au, m2_kg, star_mass_kg):
@@ -239,45 +254,66 @@ def migration_probability(fe_h):
     return min(1.0, tuning.GIANT_MIGRATION_SHARE * 10.0 ** (tuning.GIANT_MIGRATION_METALLICITY_EXTRA_EXPONENT * fe_h))
 
 
+def _clear_split(seeds, star_mass_kg):
+    """
+    `(kept, swept, thrown)` for `seeds`: `_clear_around_giants` with its losses kept. `swept` is `[(seed, giant)]`, the planets inside a hot Jupiter's orbit
+    or within `GIANT_CLEARING_SPACING` mutual Hill radii of a giant that moved in, and `thrown` is `_scatter_split`'s.
+    """
+    moved = [s for s in seeds if s.runaway and s.migrated]
+    hot = [s for s in moved if s.distance_au < tuning.GIANT_HOT_ORBIT_AU]
+    kept, swept = [], []
+    for s in seeds:
+        if s in moved:
+            kept.append(s)
+            continue
+        inside = next((h for h in hot if s.distance_au < h.distance_au), None)
+        if inside is not None:
+            swept.append((s, inside))
+            continue
+        crowding = next((g for g in moved if abs(spacing_k(min(s.distance_au, g.distance_au), s.mass_kg, max(s.distance_au, g.distance_au), g.mass_kg,
+                                                        star_mass_kg)) < tuning.GIANT_CLEARING_SPACING), None)
+        if crowding is not None:
+            swept.append((s, crowding))
+            continue
+        kept.append(s)
+    kept, thrown = _scatter_split(kept, star_mass_kg)
+    return kept, swept, thrown
+
+
 def _clear_around_giants(seeds, star_mass_kg):
     """
     `seeds` without the planets a giant scattered: those inside `GIANT_CLEARING_SPACING` mutual Hill radii of a giant that moved in, and
     every planet inside a hot Jupiter's orbit (a migrating giant sweeps the inner chain: hot Jupiters rarely have companions, Zhu and Dong
     2021). A giant that did not move clears nothing.
     """
-    moved = [s for s in seeds if s.runaway and s.migrated]
-    hot = [s for s in moved if s.distance_au < tuning.GIANT_HOT_ORBIT_AU]
-    kept = []
-    for s in seeds:
-        if s in moved:
-            kept.append(s)
-            continue
-        if any(s.distance_au < h.distance_au for h in hot):
-            continue
-        if any(abs(spacing_k(min(s.distance_au, g.distance_au), s.mass_kg, max(s.distance_au, g.distance_au), g.mass_kg, star_mass_kg))
-               < tuning.GIANT_CLEARING_SPACING for g in moved):
-            continue
-        kept.append(s)
-    return _scatter_crowded_giants(kept, star_mass_kg)
+    return _clear_split(seeds, star_mass_kg)[0]
 
 
-def _scatter_crowded_giants(seeds, star_mass_kg):
+def _scatter_split(seeds, star_mass_kg):
     """
-    `seeds` (in order of distance) without the lighter of any neighbouring pair closer than `GIANT_CLEARING_SPACING` mutual Hill radii that
+    `(kept, thrown)`: `seeds` (in order of distance) without the lighter of any neighbouring pair closer than `GIANT_CLEARING_SPACING` mutual Hill radii that
     holds a giant: each giant moves in on its own, so two can land on one another, and the heavier throws the lighter out (the same spacing
-    inside which a moved giant clears the planets around it). Pairs the thinning left apart are not touched.
+    inside which a moved giant clears the planets around it). Pairs the thinning left apart are not touched. `thrown` is `[(seed, heavier)]`.
     """
     kept = list(seeds)
+    thrown = []
     i = 0
     while i < len(kept) - 1:
         inner, outer = kept[i], kept[i + 1]
         k = spacing_k(inner.distance_au, inner.mass_kg, outer.distance_au, outer.mass_kg, star_mass_kg)
         if (inner.runaway or outer.runaway) and k < tuning.GIANT_CLEARING_SPACING:
-            kept.pop(i if inner.mass_kg < outer.mass_kg else i + 1)
+            lighter, heavier = (inner, outer) if inner.mass_kg < outer.mass_kg else (outer, inner)
+            kept.pop(i if lighter is inner else i + 1)
+            thrown.append((lighter, heavier))
             i = max(i - 1, 0)
         else:
             i += 1
-    return kept
+    return kept, thrown
+
+
+def _scatter_crowded_giants(seeds, star_mass_kg):
+    """`seeds` without the lighter of any crowded pair that holds a giant (`_scatter_split`)."""
+    return _scatter_split(seeds, star_mass_kg)[0]
 
 
 def sublimation_au(luminosity_w):
@@ -370,13 +406,21 @@ def build(star_mass_kg, snow_line_au, metal_ratio, fe_h, outer_au, stream=None, 
     if chain_inner:
         start_au = max(start_au, chain_inner[-1][0] * tuning.OUTER_CHAIN_START_RATIO)
     chain = chain_inner + oligarch_chain(star_mass_kg, snow_line_au, metal_ratio, scatter, separation, start_au, outer_au)
-    thinned = [body for body in sculpt(chain, star_mass_kg, tuning.SCULPT_AGE_YR, source)
-               if body[1] >= (tuning.PLANET_MIN_MASS_EARTH if body[0] < snow_line_au else tuning.PLANET_MIN_MASS_OUTER_EARTH) * _EARTH_KG]
+    sculpted = sculpt(chain, star_mass_kg, tuning.SCULPT_AGE_YR, source)
+    merge_debris = sum(body[1] for body in chain) - sum(body[1] for body in sculpted)
+    merges = sum(body[2] for body in sculpted) - len(sculpted)
+    thinned, small = [], []
+    for body in sculpted:
+        (thinned if body[1] >= (tuning.PLANET_MIN_MASS_EARTH if body[0] < snow_line_au else tuning.PLANET_MIN_MASS_OUTER_EARTH) * _EARTH_KG
+         else small).append(body)
     seeds = []
     hot_au = None
+    capped_kg, capped = 0.0, 0
     for distance, core, merged in thinned:
         formed_au = distance
         outcome = planet_mass.gas_outcome(core, distance, star_mass_kg, snow_line_au, fe_h, source)
+        if core > outcome.core_kg:
+            capped_kg, capped = capped_kg + core - outcome.core_kg, capped + 1
         migrated = False
         if outcome.runaway:
             if hot_au is None and source.random() < migration_probability(fe_h):
@@ -387,5 +431,76 @@ def build(star_mass_kg, snow_line_au, metal_ratio, fe_h, outer_au, stream=None, 
                 distance *= math.exp(-abs(source.gauss(0.0, tuning.GIANT_INWARD_MIGRATION_SIGMA_LN)))
         seeds.append(Seed(distance, outcome.mass_kg, outcome.core_kg, outcome.runaway, merged, migrated, formed_au))
     seeds.sort(key=lambda s: s.distance_au)
-    seeds = _clear_around_giants(seeds, star_mass_kg)
-    return Architecture(tuple(seeds), scatter, separation, len(chain))
+    seeds, swept, thrown = _clear_split(seeds, star_mass_kg)
+    lost = Lost(sum(body[1] for body in chain), merge_debris, merges, capped_kg, capped, tuple((body[0], body[1]) for body in small), tuple(swept), tuple(thrown),
+                snow_line_au, star_mass_kg)
+    return Architecture(tuple(seeds), scatter, separation, len(chain), lost)
+
+
+def _seed_radius_earth(seed):
+    """A planet's radius, Earth radii, for its Safronov number: Jupiter's for a runaway giant, a core under its envelope (Lopez and Fortney 2014) otherwise."""
+    if seed.runaway:
+        return constants.JUPITER_RADIUS_KM / constants.EARTH_RADIUS_KM
+    mass_earth = seed.mass_kg / _EARTH_KG
+    return bulk_structure.envelope_radius_earth(mass_earth, max(0.0, 1.0 - seed.core_kg / seed.mass_kg))
+
+
+def _loss(kind, count, mass_kg, core_kg, distance_au, formation_au, perturber_au, perturber_mass_kg, theta, hill_au, ice_rich, fates):
+    ejected, collided, bound = fates
+    return Loss(kind, count, mass_kg, core_kg, distance_au, formation_au, scatter_rule.DISC_LIFETIME_YR, perturber_au, perturber_mass_kg, theta, hill_au,
+                ice_rich, ejected, collided, bound)
+
+
+def losses(architecture):
+    """
+    Every loss of `architecture` as a `Loss` (module docstring, GEN.1119), none dropped: the mass the merges did not keep (collided), the chain bodies
+    below the planet minimum, the mass a core cap cut off (collided), the planets a moved giant swept and the planets a crowded giant threw out. A body is shared among ejected, collided and bound
+    by `scatter.loss_fates` of the Safronov number its perturber has at the body's distance; a chain body no planet reaches (`scatter.reach_band_au`) stays bound,
+    and those are one record. A pure rule over `architecture.lost`: no draw, so the planets themselves are what `build` always made.
+    """
+    lost = architecture.lost
+    star_solar = _kg_to_msun(lost.star_mass_kg)
+    result = []
+    if lost.merges:
+        result.append(Loss("merge", lost.merges, lost.merge_debris_kg, lost.merge_debris_kg, None, None, None, None, None, None, None, False, 0.0, 1.0, 0.0))
+
+    def encounter(perturber, distance_au):
+        theta = scatter_rule.safronov_number(perturber.mass_kg / _EARTH_KG, _seed_radius_earth(perturber), distance_au, star_solar)
+        return theta, scatter_rule.loss_fates(theta)
+
+    if lost.capped:
+        result.append(Loss("capped", lost.capped, lost.capped_kg, lost.capped_kg, None, None, None, None, None, None, None, False, 0.0, 1.0, 0.0))
+    for kind, pairs in (("swept", lost.swept), ("thrown", lost.thrown)):
+        for seed, perturber in pairs:
+            theta, fates = encounter(perturber, seed.distance_au)
+            result.append(_loss(kind, 1, seed.mass_kg, seed.core_kg, seed.distance_au, seed.formation_au, perturber.distance_au, perturber.mass_kg, theta,
+                                scatter_rule.hill_radius_au(seed.mass_kg / _EARTH_KG, seed.distance_au, star_solar), seed.formation_au > lost.snow_line_au, fates))
+    free_count, free_mass = 0, 0.0
+    bands = [(scatter_rule.reach_band_au(p.distance_au, p.formation_au, p.mass_kg / _EARTH_KG, star_solar), p) for p in architecture.planets]
+    for distance, mass in lost.small:
+        reach = [p for (low, high), p in bands if low <= distance <= high]
+        if not reach:
+            free_count, free_mass = free_count + 1, free_mass + mass
+            continue
+        perturber = max(reach, key=lambda p: encounter(p, distance)[0])
+        theta, fates = encounter(perturber, distance)
+        result.append(_loss("sub_minimum", 1, mass, mass, distance, distance, perturber.distance_au, perturber.mass_kg, theta,
+                            scatter_rule.hill_radius_au(mass / _EARTH_KG, distance, star_solar), distance > lost.snow_line_au, fates))
+    if free_count:
+        result.append(Loss("sub_minimum", free_count, free_mass, free_mass, None, None, None, None, None, None, None, False, 0.0, 0.0, 1.0))
+    return tuple(result)
+
+
+def ejection_yield(architecture, minimum_mass_earth=0.0):
+    """
+    `(count, mass_earth)`: the expected number and total mass, in Earth masses, of the bodies of `architecture` that end ejected, counting only those of
+    `minimum_mass_earth` or more (a record that stands for several bodies counts at its mean mass). The sum over many stars is the yield per star to set
+    against microlensing.
+    """
+    count, mass = 0.0, 0.0
+    for loss in losses(architecture):
+        each = loss.mass_kg / _EARTH_KG / loss.count
+        if loss.ejected and each >= minimum_mass_earth:
+            count += loss.count * loss.ejected
+            mass += loss.mass_kg / _EARTH_KG * loss.ejected
+    return count, mass

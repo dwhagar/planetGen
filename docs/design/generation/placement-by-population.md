@@ -92,6 +92,11 @@ form, not the chance), and nothing else moves:
 
 The factor is a function of the star's own [Fe/H] and nothing else, so no population is named.
 
+GEN.705: the tree draw (`multistar.close_trend`, `draw_member_tree`) applies the factor. The `star-count` table is the Sun's neighbourhood (`F(0)`);
+the primary's share of companions inside 10 AU is the part of its period law under the period of 10 AU (`_inside_share`); that part's chance goes through
+`close_binary_trend.scaled_close_chance`, the outside part keeps its chance (it gives way only past 1), the counts of 2 to 7 stars keep their proportions, and the root pair's period draw
+gives the inside range the matching odds (`_Builder.period_days`). A system build passes the primary's [Fe/H] (`Placed.fe_h`), as the scatter does.
+
 What the sources limit:
 
 - **Which stars the four points describe.** Field solar-type dwarfs and subgiants, pooled over the disc and halo samples the

@@ -114,7 +114,7 @@ Sudarsky class boundaries were not re-read in parts 05 to 07 (part 06 s2.6 marks
 
 | id | option | gate | weight w (symbols above) | weight source | status | notes |
 |---|---|---|---|---|---|---|
-| g1 | Young hot, late-M-like | BD; Teff 2200 to 2800 K | Phi-window (s 100 K) | cap 2800 K = repo ROGUE_MAX_EFFECTIVE_TEMPERATURE_K; lower edge DESIGN | DESIGN R15 | |
+| g1 | Young hot, late-M-like | BD; Teff 2200 to 2950 K | Phi-window (s 100 K) | cap 2950 K = the BHAC15 temperature of the hydrogen-burning limit at its peak (`substellar_ceiling.HOTTEST_K`, GEN.494); lower edge DESIGN | DESIGN R15 | |
 | g2 | L dwarf: H2O, CO (5e-4 m), Na, K, FeH, CrH; Fe and silicate clouds | BD; 1300 to 2200 K | Phi-window | part 05 s7.4 (COMPUTED); Burrows and Sharp 1999 (READ) | DERIVED | |
 | g3 | T dwarf: CH4, H2O, NH3, Na, K; sulfide and salt clouds | BD; 700 to 1300 K | Phi-window | same | DERIVED | |
 | g4 | Late T, NH3-rich (T8 to Y0 at 460 to 686 K), water cloud near 350 K deeper | BD; 460 to 686 K | Phi-window | the edges are the type-temperature map itself: T8 686 K and Y0 460 K, scatter 79 K (Kirkpatrick et al. 2021 Table 13, 525 dwarfs within 20 pc; READ); 500 to 700 K is T8 to T9, not a type of its own (GEN.494) | DERIVED R15 | |

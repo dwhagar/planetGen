@@ -16,7 +16,7 @@ import pytest
 
 from planetgen import tuning
 from planetgen.datasets import fetch, white_dwarf_models
-from planetgen.physics import constants, stellar_evolution
+from planetgen.physics import constants, stellar_composition, stellar_evolution
 
 
 @pytest.fixture(autouse=True)
@@ -112,3 +112,10 @@ def test_without_the_sequences_a_run_refuses_a_white_dwarf(monkeypatch, tmp_path
     monkeypatch.setenv(fetch.CACHE_DIR_ENV, str(tmp_path))
     with pytest.raises(fetch.DataMissing):
         stellar_evolution.evolve_star(2.0, 9.0, random.Random(5), fe_h=0.0)
+
+
+def test_a_white_dwarf_heavier_than_the_sequences_still_has_a_radius_that_keeps_shrinking():
+    """The initial-final mass relation reaches 1.33 solar masses and the cooling sequences stop at 1.30."""
+    radii = [stellar_composition._grid_radius_solar(mass, 20000.0, "thick") for mass in (1.25, 1.30, 1.31, 1.33)]
+    assert all(radius is not None and 0.003 < radius < 0.05 for radius in radii)
+    assert radii == sorted(radii, reverse=True)

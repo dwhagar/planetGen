@@ -50,6 +50,7 @@ import os
 import numpy as np
 
 from planetgen.physics import elements
+from planetgen.util import detmath
 
 INPUT_NAMES = ("q_in", "q_mid", "q_out", "alpha_in_mid", "alpha_mid_out", "e_in", "e_mid", "e_out", "i_in_mid", "i_in_out", "i_mid_out")
 """tuple: The eleven inputs of the 3+1 network, in the order it takes them."""
@@ -105,7 +106,7 @@ def _forward(coefs, intercepts, inputs):
     """The logistic network on `inputs` (eleven numbers or arrays that broadcast, inclinations already over pi): the probability of 'unstable'."""
     activation = np.stack(np.broadcast_arrays(*[np.asarray(v, dtype=float) for v in inputs]), axis=-1)
     for weights, bias in zip(coefs, intercepts):
-        activation = 1.0 / (1.0 + np.exp(-(activation @ weights + bias)))
+        activation = 1.0 / (1.0 + np.exp(-(detmath.matmul(activation, weights) + bias)))
     return activation[..., 0]
 
 

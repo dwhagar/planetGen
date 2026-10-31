@@ -10,8 +10,8 @@ one cooling track per mass, interpolated in the logarithms of mass and age. The 
 below their range (about 1,500 K); a track that ends before 10 Gy continues at the old-age cooling of Burrows et al. 2001
 (Rev. Mod. Phys. 73:719, eq. 2, `Teff` falling as `t^-0.32`) with its last radius, and a track that reaches 10 Gy holds its
 last values: the objects at the hydrogen-burning limit settle on a plateau, which is why L dwarfs hotter than 1,500 K
-exist in the numbers the 20 pc census counts. The temperature is capped at `tuning.ROGUE_MAX_EFFECTIVE_TEMPERATURE_K` (a
-late-M dwarf). The luminosity is `4 pi R^2 sigma Teff^4` of the two.
+exist in the numbers the 20 pc census counts. The temperature is capped at the temperature of the
+hydrogen-burning limit at the age (`substellar_ceiling.cap_k`, BHAC15: 2,950 K at the peak, 2,050 K at 1 Gy), the hottest a brown dwarf of that age can be. The luminosity is `4 pi R^2 sigma Teff^4` of the two.
 
 The spectral type is the map of Kirkpatrick et al. 2021 (ApJS 253:7, Table 13, from 525 L, T and Y dwarfs within 20 pc,
 `brown_dwarf_types`): L0 is 2,238 K, T0 1,255 K, Y0 461 K. The map has a scatter of 134 K among L dwarfs and 79 K among T
@@ -31,7 +31,7 @@ dwarfs.
 
 from planetgen import tuning
 from planetgen.datasets import baraffe_isochrones
-from planetgen.physics import brown_dwarf_types, stellar_evolution as evolution, unit_registry as units
+from planetgen.physics import brown_dwarf_types, stellar_evolution as evolution, substellar_ceiling, unit_registry as units
 from planetgen.util import draw
 
 _kg_to_msun = units.converter("kg", "Msun")
@@ -60,8 +60,8 @@ def _track(mass_sol, age_gy):
 
 
 def effective_temperature_k(mass_sol, age_gy):
-    """Effective temperature, kelvin: the cooling track's, no hotter than `tuning.ROGUE_MAX_EFFECTIVE_TEMPERATURE_K`."""
-    return min(_track(mass_sol, age_gy)[0], tuning.ROGUE_MAX_EFFECTIVE_TEMPERATURE_K)
+    """Effective temperature, kelvin: the cooling track's, no hotter than `substellar_ceiling.cap_k` of the mass and age."""
+    return min(_track(mass_sol, age_gy)[0], substellar_ceiling.cap_k(mass_sol, age_gy))
 
 
 def radius_sol(mass_sol, age_gy):
@@ -73,7 +73,7 @@ def radius_sol(mass_sol, age_gy):
 def luminosity_sol(mass_sol, age_gy):
     """Luminosity in solar luminosities: `R^2 (Teff / Teff_sun)^4` of the track's radius and the capped temperature."""
     temperature, radius = _track(mass_sol, age_gy)
-    temperature = min(temperature, tuning.ROGUE_MAX_EFFECTIVE_TEMPERATURE_K)
+    temperature = min(temperature, substellar_ceiling.cap_k(mass_sol, age_gy))
     return radius ** 2 * (temperature / tuning.SUN_EFFECTIVE_TEMPERATURE_K) ** 4
 
 
@@ -98,6 +98,6 @@ def state(mass_sol, age_gy):
     """A brown dwarf of this mass and age: `luminosity_sol`, `temperature_k` (capped), `radius_sol` and its
     `spectral_type`."""
     temperature, radius = _track(mass_sol, age_gy)
-    temperature = min(temperature, tuning.ROGUE_MAX_EFFECTIVE_TEMPERATURE_K)
+    temperature = min(temperature, substellar_ceiling.cap_k(mass_sol, age_gy))
     return {"luminosity_sol": radius ** 2 * (temperature / tuning.SUN_EFFECTIVE_TEMPERATURE_K) ** 4,
             "temperature_k": temperature, "radius_sol": radius, "spectral_type": spectral_type(temperature)}

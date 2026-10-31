@@ -41,7 +41,7 @@ The leftover offset-paged queries, checked one by one; nothing in 8.1 waits on i
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| PERF.137 | Audit the remaining `LIMIT ? OFFSET ?` queries: say which serve a big table and move those to keyset paging |  | Low priority; from Core 5's list (2026-10-18). |
+| PERF.219 | The Systems list with a star type filter and the sector or octant sort pages with OFFSET only (a G filter matches about a tenth of the galaxy); move it to keyset paging, with a MySQL measurement at a full galaxy against the 50 ms target |  | PERF.137 audit follow-up |
 
 ### Upstream follow-ups
 

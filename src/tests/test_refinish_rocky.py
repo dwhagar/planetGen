@@ -85,3 +85,28 @@ def test_the_moons_of_a_giant_are_made_again_when_the_age_rose(host_star):
     host_star.age = 8.0
     assert planets.refinish_rocky(giant) == len(giant.moons)
     assert all(moon._age_drawn == 8.0 for moon in giant.moons)
+
+
+def test_a_made_again_planet_and_its_moons_keep_the_birth_spin_they_were_born_with(host_star):
+    # GEN.961: the history is run again from the birth spin (`generate_spin(..., birth=)`), not from a new draw out of the settle stream
+    planet = _rocky(host_star, distance=0.5, moon_count=2)
+    born = {id(body): body._birth_spin for body in (planet, *planet.moons) if getattr(body, "_birth_spin", None) is not None}
+    assert born
+    host_star.age = 8.0
+    assert planets.refinish_rocky(planet) >= 1
+    for body in (planet, *planet.moons):
+        if id(body) in born:
+            assert body._birth_spin == born[id(body)]
+
+
+def test_a_moon_the_planets_history_replaced_is_made_again_at_the_final_age_too():
+    # GEN.992 after GEN.959: the planet's spin history can swap a moon for a new body, which has to be made again like the rest (seed 38 of the final-age sweep)
+    from planetgen.generation.system import StarSystem
+    with draw.bound(38):
+        system = StarSystem(system_config=SystemConfig())
+    for planet in system.all_planets:
+        if planet.body_type == "a":
+            continue
+        for moon in planet.moons:
+            if moon.body_type != "g":
+                assert not planets.age_moved(moon), (moon.name, moon._age_drawn, moon.star.age)

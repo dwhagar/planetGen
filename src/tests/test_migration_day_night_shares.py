@@ -35,7 +35,7 @@ def test_a_v169_galaxy_gets_the_columns_empty(mysql_config):
     try:
         for table in ("planets", "moons"):
             types = _types(conn, table)
-            assert all(types[name] == "double" for name in daylight.FIELDS), table
+            assert all(types[name] == ("varchar" if name == "day_night_state" else "double") for name in daylight.FIELDS), table  # GEN.1097: the state is a word
     finally:
         conn.close()
 
@@ -46,7 +46,7 @@ def test_a_saved_system_keeps_the_shares_of_every_body(mysql_config):
     for seed in range(60):
         with draw.bound(seed):
             system = StarSystem(system_config=cfg)
-        if any(planet.moons for planet in system.planets):
+        if any(getattr(planet, "moons", None) for planet in system.planets):
             break
     conn = store.get_connection(mysql_config)
     try:

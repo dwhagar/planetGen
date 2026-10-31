@@ -66,7 +66,7 @@ def test_a_thick_air_hardly_notices_the_wind_and_a_field_makes_it_nothing():
 def test_a_star_that_kept_its_saturation_longer_took_more_from_a_young_world():
     """The star's own `log_lx_lbol` at its age sets its decay: the same star now, with a history that was brighter earlier, costs the air more."""
     mass_sol, age, luminosity = 0.7, 4.0, 0.2 * constants.SOLAR_LUMINOSITY
-    t_sat, decay = activity._interp(activity.ACTIVITY_TABLE, mass_sol)
+    t_sat, decay = activity.saturation_age_gy(mass_sol), activity.decay_exponent(mass_sol)
     saturated = activity.saturated_lx_lbol(mass_sol)
     nominal = math.log10(activity.lx_lbol_at(age, saturated, t_sat, decay))
     slow = ts.xuv_ratio(mass_sol, luminosity, age, 0.1, nominal - 0.5)
@@ -77,7 +77,7 @@ def test_a_star_that_kept_its_saturation_longer_took_more_from_a_young_world():
 
 def test_the_effective_saturation_age_is_the_nominal_one_at_the_nominal_activity_and_moves_with_the_star():
     mass_sol, age = 0.7, 4.0
-    t_sat, decay = activity._interp(activity.ACTIVITY_TABLE, mass_sol)
+    t_sat, decay = activity.saturation_age_gy(mass_sol), activity.decay_exponent(mass_sol)
     nominal = math.log10(activity.lx_lbol_at(age, activity.saturated_lx_lbol(mass_sol), t_sat, decay))
     assert activity.effective_saturation_age_gy(mass_sol, age, None) == t_sat
     assert activity.effective_saturation_age_gy(mass_sol, age, nominal) == pytest.approx(t_sat)

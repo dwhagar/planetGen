@@ -44,7 +44,7 @@ def _orbit(obj):
 
 
 def _orbit_fact(obj):
-    return fact("orbit", "Galactic Orbit", build._galactic_orbit(obj.galactic_orbital_speed_kms,
+    return fact("orbit", "Galactic orbit", build._galactic_orbit(obj.galactic_orbital_speed_kms,
                                                                 obj.galactic_orbital_period_gy))
 
 
@@ -180,6 +180,7 @@ def _asteroid_field(field):
         fact("density", "Density", field.density),
         fact("family", "Family", f"{field.composition_family.capitalize()} ({family})"),
         fact("radius", "Radius", _ly(field.radius_ly)),
+        build.meteorite_group_fact(field),
         _orbit_fact(field),
     ]
     parts = [{"name": component, "level": level} for component, level in field.composition]

@@ -3,6 +3,7 @@
   "version": 1,
   "status": "design thresholds (GEN.645): every number marked design is a planetGen default to be refitted by the shadow sweep (src/tests/class_shadow_cli.py), not a measured constant",
   "reserve": [
+    "Q",
     "R",
     "U",
     "W",
@@ -10,7 +11,7 @@
     "Y",
     "Z"
   ],
-  "reserve_note": "Letters no class uses. Boss (6:26 PM EDT 2026-10-23): a letter is never retired without asking him, and free letters are kept for new designations that make more sense; use none of them for anything else.",
+  "reserve_note": "Letters no class uses. Boss (6:26 PM EDT 2026-10-23): a letter is never retired without asking him, and free letters are kept for new designations that make more sense; use none of them for anything else. Q was retired by Boss (6:07 PM EDT 2026-10-30, GEN.1135): a class that was only an orbit; the swing of the starlight is the stored flux_variation and an At a glance flag. The old wet reducing E was retired by Boss (6:57 PM EDT 2026-10-30, GEN.1142; it was F with steam and got no body) and the letter E now names the deep-frozen world (7:06 PM EDT).",
   "quantities": {
     "mass_earth": {
       "label": "mass",
@@ -162,6 +163,23 @@
       "basis": "design: 3 percent sulfur dioxide, which no non-volcanic mixture reaches"
     },
     {
+      "letter": "T",
+      "name": "Gas dwarf",
+      "kind": "t",
+      "when": [
+        {
+          "quantity": "share_h2",
+          "min": 0.3
+        },
+        {
+          "quantity": "mass_earth",
+          "lt": 10.0
+        }
+      ],
+      "sentence": "A gas dwarf: a small world, under about 10 Earth masses, whose air is a deep hydrogen-dominated envelope (hydrogen 30 percent or more of it) over a rocky core.",
+      "basis": "design stand-in (GEN.1142, registry CL1): 30 percent hydrogen and 10 Earth masses; the same T as the giant row, for the terrestrial-kind bodies whose envelope outweighs a thin air"
+    },
+    {
       "letter": "N",
       "name": "Hot dense world",
       "kind": "t",
@@ -169,23 +187,18 @@
         {
           "quantity": "pressure_pa",
           "min": 1000000.0
-        }
-      ],
-      "sentence": "A world with an air column of 10 bar or more: the pressure is its mark, whatever the air is made of and however hot the surface is.",
-      "basis": "design: 10 bar, between every temperate world (under 4 bar) and the dense runaway-greenhouse worlds (over 50 bar)"
-    },
-    {
-      "letter": "Q",
-      "name": "Variable-climate world",
-      "kind": "t",
-      "when": [
+        },
         {
-          "quantity": "flux_variation",
-          "min": 0.25
+          "quantity": "temperature_k",
+          "min": 400.0
+        },
+        {
+          "quantity": "share_h2",
+          "lt": 0.3
         }
       ],
-      "sentence": "A world whose starlight varies by a quarter or more over its orbit (an eccentricity of about 0.06 or more, or a close companion), so its seasons are strong.",
-      "basis": "design: 0.25 peak to peak, from an eccentric orbit or a close companion"
+      "sentence": "A hot world with an air column of 10 bar or more that is not hydrogen: a dense, Venus-like carbon dioxide and sulfur air.",
+      "basis": "design stand-in (GEN.1142, registry CL2): 10 bar, 400 K and under 30 percent hydrogen; cooler thick-air bodies take the later rows by their own conditions"
     },
     {
       "letter": "V",
@@ -194,11 +207,11 @@
       "when": [
         {
           "quantity": "gravity_g",
-          "min": 1.25
+          "min": 2.0
         }
       ],
-      "sentence": "A world with air and a surface gravity of 1.25 g or more (a super-Earth).",
-      "basis": "design: 1.25 g, above every ecosphere world of Earth size"
+      "sentence": "A world with air and a surface gravity of 2 g or more (a heavy super-Earth).",
+      "basis": "design stand-in (GEN.1136, registry GV1): 2 g, about 1.6 Earth radii of a rocky planet, just past the 1.5 Earth radii that Bryson et al. 2021 count as Earth-sized in the habitable zone; was 1.25 g (design), which took most of them"
     },
     {
       "letter": "L",
@@ -207,19 +220,39 @@
       "when": [
         {
           "quantity": "pressure_pa",
-          "lt": 3000.0
+          "min": 30000.0
+        },
+        {
+          "quantity": "pressure_pa",
+          "lt": 300000.0
+        },
+        {
+          "quantity": "temperature_k",
+          "min": 273.15
+        },
+        {
+          "quantity": "temperature_k",
+          "lt": 320.0
+        },
+        {
+          "quantity": "share_co2",
+          "min": 0.01
         },
         {
           "quantity": "share_o2",
-          "min": 0.1
+          "min": 0.03
+        },
+        {
+          "quantity": "share_o2",
+          "lt": 0.16
         },
         {
           "quantity": "gravity_g",
           "min": 0.5
         }
       ],
-      "sentence": "A marginal world: oxygen-bearing air thinner than 3 kPa on a world of 0.5 g or more.",
-      "basis": "design: 3 kPa, 10 percent oxygen (no carbon dioxide thin-air world reaches it) and 0.5 g (the small hot worlds of class B do not)"
+      "sentence": "A marginal world, Earth-like but hard to breathe without a mask and not toxic: air of 30 kPa to 3 bar at 273 to 320 K with carbon dioxide at 1 percent or more and oxygen at only 3 to 16 percent.",
+      "basis": "design stand-in (GEN.1142, registry CL3): Boss's 6:57 PM EDT 10-30 reading of L (Earth-like, high carbon dioxide, low oxygen, near-Earth temperature); the numbers are fitted, 0.5 g is unchanged"
     },
     {
       "letter": "K",
@@ -232,11 +265,32 @@
         },
         {
           "quantity": "temperature_k",
-          "lt": 273.15
+          "min": 273.15
+        },
+        {
+          "quantity": "temperature_k",
+          "lt": 320.0
+        },
+        {
+          "quantity": "share_o2",
+          "lt": 0.1
         }
       ],
-      "sentence": "A cold world with air thinner than 3 kPa and little oxygen: a mean surface below freezing, usually under ice.",
-      "basis": "design: 3 kPa and the freezing point of water"
+      "sentence": "An adaptable world with a thin atmosphere: air under 3 kPa with little oxygen, a mean surface from freezing to about 320 K.",
+      "basis": "design stand-in (GEN.1142, registry CL4): 3 kPa, 273.15 to 320 K and under 10 percent oxygen; the cold part goes to P"
+    },
+    {
+      "letter": "E",
+      "name": "Deep-frozen world",
+      "kind": "t",
+      "when": [
+        {
+          "quantity": "temperature_k",
+          "lt": 233.15
+        }
+      ],
+      "sentence": "A deep-frozen world: air and a mean surface below 233.15 K (-40 C).",
+      "basis": "design stand-in (GEN.1142, registry CL7): -40 C, where Boss ended class P (the old wet reducing world E was retired, 6:57 PM EDT 10-30)"
     },
     {
       "letter": "P",
@@ -245,11 +299,15 @@
       "when": [
         {
           "quantity": "temperature_k",
-          "lt": 210.0
+          "min": 233.15
+        },
+        {
+          "quantity": "temperature_k",
+          "lt": 273.15
         }
       ],
-      "sentence": "A cold, glaciated world: air and a mean surface under 210 K.",
-      "basis": "design: 210 K"
+      "sentence": "A cold, glaciated world: air and a mean surface from 233.15 K (-40 C) to freezing (273.15 K).",
+      "basis": "design stand-in (GEN.1142, registry CL5, CL7): freezing (273.15 K) at the top, up from 210 K, and -40 C (233.15 K) at the bottom, below which a body is class E"
     },
     {
       "letter": "B",
@@ -261,29 +319,8 @@
           "lt": 0.5
         }
       ],
-      "sentence": "A small world (under 0.5 g) with air, a surface above 210 K and no sealed ocean.",
+      "sentence": "A small world (under 0.5 g) with air and a mean surface above freezing, not an ocean world.",
       "basis": "design: 0.5 g"
-    },
-    {
-      "letter": "E",
-      "name": "Wet reducing world",
-      "kind": "t",
-      "when": [
-        {
-          "quantity": "share_o2",
-          "lt": 0.03
-        },
-        {
-          "quantity": "reducing_share",
-          "min": 0.05
-        },
-        {
-          "quantity": "share_h2o",
-          "min": 0.15
-        }
-      ],
-      "sentence": "A hot world with a reducing, steamy air: no free oxygen, methane or hydrogen, and water vapour as 15 percent or more of it.",
-      "basis": "design"
     },
     {
       "letter": "F",
@@ -322,11 +359,11 @@
       "when": [
         {
           "quantity": "ocean_fraction",
-          "min": 0.9
+          "min": 0.8
         }
       ],
-      "sentence": "An ocean world: water covers 90 percent or more of the surface.",
-      "basis": "design"
+      "sentence": "An ocean world: water covers 80 percent or more of the surface.",
+      "basis": "design stand-in (GEN.1142, registry CL6): 80 percent, from 90"
     },
     {
       "letter": "H",
@@ -335,18 +372,18 @@
       "when": [
         {
           "quantity": "ocean_fraction",
-          "lt": 0.15
+          "lt": 0.2
         }
       ],
-      "sentence": "A desert world: air, and water over under 15 percent of the surface.",
-      "basis": "design"
+      "sentence": "A desert world: air, and water over under 20 percent of the surface.",
+      "basis": "design stand-in (GEN.1142, registry CL6): 20 percent, from 15"
     },
     {
       "letter": "M",
       "name": "Temperate world",
       "kind": "t",
       "when": [],
-      "sentence": "A temperate terrestrial world: air and water over 15 to 90 percent of the surface.",
+      "sentence": "A temperate terrestrial world: air and water over 20 to 80 percent of the surface.",
       "basis": "design: the rest of the worlds with air"
     }
   ],

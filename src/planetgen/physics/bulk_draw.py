@@ -126,11 +126,16 @@ class HostRatios:
 
 
 @functools.lru_cache(maxsize=4096)
-def _ratios(fe_h, age_gy, key):
+def _star_composition(fe_h, age_gy, key):
     draws = stellar_composition.key_draws(key)
-    branch = stellar_abundances.branch_from_uniform(fe_h, age_gy, draws.u_branch)
+    branch = stellar_abundances.branch_of(fe_h, age_gy)
     offsets = stellar_abundances.abundance_offsets(fe_h, branch, draws.normals, draws.u_enhanced, draws.u_carbon)
-    star = stellar_abundances.composition(fe_h, offsets)
+    return stellar_abundances.composition(fe_h, offsets)
+
+
+@functools.lru_cache(maxsize=4096)
+def _ratios(fe_h, age_gy, key):
+    star = _star_composition(fe_h, age_gy, key)
     ratio = stellar_abundances.number_ratio
     return HostRatios(fe=ratio(star, "Fe", "Mg"), si=ratio(star, "Si", "Mg"), al=ratio(star, "Al", "Mg"),
                       ca=ratio(star, "Ca", "Mg"), ni=ratio(star, "Ni", "Mg"), c_over_o=ratio(star, "C", "O"),
@@ -153,6 +158,19 @@ def metal_ratio_to_solar(star):
     if getattr(star, "metallicity_fe_h", None) is None:
         return 1.0
     return stellar_abundances.metal_ratio_to_solar(_ratios(star.metallicity_fe_h, star.age, star_key(star)).z)
+
+
+def ice_forming_ratios(star):
+    """
+    `(carbon, oxygen)` of `star`: its C and O per atom of the rock-forming metal Mg, over the Sun's, the amounts `comet_ice_budget` and `condensate_shares` scale the
+    carbon oxides and the water with (GEN.595); `None` for a compact remnant, which has no [Fe/H].
+    """
+    fe_h = getattr(star, "metallicity_fe_h", None)
+    if fe_h is None:
+        return None
+    composition = _star_composition(fe_h, star.age, star_key(star))
+    ratio = stellar_abundances.number_ratio
+    return tuple(ratio(composition, element, "Mg") / ratio({}, element, "Mg") for element in ("C", "O"))
 
 
 REMNANT_DISC_RATIOS = HostRatios(fe=0.8, si=0.9, al=0.07, ca=0.06, ni=0.045, c_over_o=2.0, y_envelope=0.25, z=1.0)

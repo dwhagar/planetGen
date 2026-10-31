@@ -18,7 +18,7 @@ this module's logic.
 
 
 from planetgen.generation.config import SystemConfig
-from planetgen.physics import small_body_composition
+from planetgen.physics import belt_mass, bulk_draw, radiogenic, small_body_composition
 from planetgen.util import draw
 from planetgen.util import log
 from planetgen.util.serialization import fields_from_dict, fields_to_dict
@@ -54,6 +54,13 @@ def format_composition_summary(composition):
     return ", ".join(composition_phrases[:-1]) + f", and {composition_phrases[-1]}"
 
 
+def _star_al26_ratio(system_config, star):
+    """The aluminium-26 the star was born with (`radiogenic.star_al26_ratio`); a star with no [Fe/H] or age (a binary's proxy) takes its galaxy's mean."""
+    shape = getattr(system_config, "GALAXY_SHAPE", None)
+    ratio = radiogenic.star_al26_ratio(star, shape)
+    return radiogenic.al26_mean(shape, getattr(star, "metallicity_fe_h", None)) if ratio is None else ratio
+
+
 class AsteroidBelt:
     """
     A basic class to store information for an asteroid belt.
@@ -71,7 +78,9 @@ class AsteroidBelt:
         lower_limit (float): The inner boundary of the asteroid belt in AU.
         upper_limit (float): The outer boundary of the asteroid belt in AU.
         body_type (str): Always 'a' for an asteroid belt.
-        density (str): The density of the asteroid belt ('dense', 'sparse', 'typical').
+        density (str): The density of the asteroid belt ('dense', 'sparse', 'typical'): its mass per area against the median belt of its age (GEN.477).
+        mass_kg (float): What its disc's solids leave after the star's age of collisions (`belt_mass.belt_state`, Wyatt et al. 2007).
+        chondrite_group (str): The nearest meteorite group of the mean composition (`small_body_composition.chondrite_group`, GEN.475): `CI`, `CM`, `H`, `L` ..., or `none` far from every group.
         composition (list): A list of (component, concentration) tuples -- contrast
                             `Planet.composition`, a descriptive string (same name,
                             unrelated shape, on the two classes). The words of the
@@ -81,7 +90,7 @@ class AsteroidBelt:
                             None for a belt read back from a store that predates it.
     """
 
-    SERIALIZABLE_FIELDS = ["distance", "lower_limit", "upper_limit", "body_type", "density"]
+    SERIALIZABLE_FIELDS = ["distance", "lower_limit", "upper_limit", "body_type", "density", "mass_kg", "chondrite_group"]
     """
     Every attribute set by `__init__`, excluding `system_config` (a shared
     back-reference), `composition` (handled separately in `to_dict`/
@@ -94,7 +103,7 @@ class AsteroidBelt:
 
         Args:
             system_config (SystemConfig): The shared SystemConfig object for the system.
-            star: The star (or binary proxy) the belt orbits; its stored snow line decides the taxa (GEN.442).
+            star: The star (or binary proxy) the belt orbits; its luminosity and the aluminium-26 it was born with decide the taxa (GEN.473).
             distance (float): The average distance from the star in AU.
             lower_limit (float): The inner boundary of the belt in AU.
             upper_limit (float): The outer boundary of the belt in AU.
@@ -104,10 +113,12 @@ class AsteroidBelt:
         self.lower_limit = lower_limit
         self.upper_limit = upper_limit
         self.body_type = 'a'
-        self.density = draw.choice(["dense", "sparse", "typical"])
-        log.choice("Asteroid belt density", self.density, "uniform draw among dense/sparse/typical")
-        self.makeup = small_body_composition.draw_belt(distance, star.snow_line_au)
+        largest_km = belt_mass.draw_largest_km(draw.Stream(f"belt-largest:{distance!r}:{lower_limit!r}:{upper_limit!r}:{star.mass!r}"))
+        self.mass_kg, self.density = belt_mass.belt_state(lower_limit, upper_limit, star.mass, star.snow_line_au, bulk_draw.metal_ratio_to_solar(star), star.age, largest_km)
+        log.choice("Asteroid belt density", self.density, f"{self.mass_kg:.4g} kg left of the disc's solids after {star.age:.4g} Gy, its largest body {largest_km:.4g} km (stand-in)")
+        self.makeup = small_body_composition.draw_belt(distance, star.luminosity, _star_al26_ratio(system_config, star))
         self.composition = small_body_composition.describe(self.makeup)
+        self.chondrite_group = self.makeup.detail["group"]
 
     def to_dict(self):
         """

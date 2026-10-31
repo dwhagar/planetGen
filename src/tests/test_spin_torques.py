@@ -11,7 +11,9 @@ import types
 
 import pytest
 
-from planetgen.physics import constants, spin_torques, tidal_heating, tidal_rheology, tidal_spin
+from planetgen.physics import constants, interior_heat, spin_torques, tidal_heating, tidal_rheology, tidal_spin
+
+from tests.tide_support import rocky
 
 EARTH_MASS, EARTH_RADIUS = 5.972e24, 6.371e6
 MOON_MASS, MOON_A = 7.342e22, 3.844e8
@@ -21,18 +23,38 @@ YEAR = constants.SECONDS_PER_YEAR
 
 
 def _body(mass, radius):
-    return types.SimpleNamespace(body_type="t", mass=mass, radius=radius / 1000.0, water_mass_fraction=0.0)
+    return rocky(mass, radius / 1000.0)
 
 
 def _star_only(body, host_mass, a, factor=spin_torques.GRAVITATIONAL_TORQUE_FACTOR):
-    k2, q = tidal_heating.response(body)
+    k2, q = interior_heat.tidal_response(body, spin_torques.orbital_rate(host_mass, a))
     planet = spin_torques.Planet(body.mass, body.radius * 1000.0)
     star = spin_torques.Raiser(host_mass, a, spin_torques.orbital_rate(host_mass, a))
     return spin_torques.Torques(planet, (star,), spin_torques.constant_dissipation(k2, q), None, factor)
 
 
-def test_one_star_with_constant_q_is_the_built_despinning():
-    """The module is `tidal_spin.evolve` when only the star's tide acts and Q is constant (the torque factor is the built one)."""
+def _constant_q_star_despin(body, host, a, spin, age, e):
+    """The closed form of a constant-Q despinning by one star: the spin falls (or rises) linearly at `F K k2 / (I Q)` to the first stop, the highest resonance of
+    the window that holds `e` below the spin, else synchronous (the despinning of GEN.731, kept here as the check of the module)."""
+    k2, q = interior_heat.tidal_response(body, spin_torques.orbital_rate(host, a))
+    n = spin_torques.orbital_rate(host, a)
+    radius = body.radius * 1000.0
+    inertia = tidal_spin.moment_factor(body) * body.mass * radius ** 2
+    rate = spin_torques.GRAVITATIONAL_TORQUE_FACTOR * constants.G * host ** 2 * radius ** 5 / a ** 6 * k2 / q / inertia
+    ratio = 1.0
+    for target, low, high in tidal_spin.RESONANCES:
+        if target < spin / n and low < e < high:
+            ratio = target
+            break
+    target_rate = ratio * n
+    step = rate * age
+    if abs(spin - target_rate) <= step:
+        return target_rate, ratio
+    return spin - math.copysign(step, spin - target_rate), None
+
+
+def test_one_star_with_constant_q_is_the_closed_form_despinning():
+    """The module is the linear constant-Q despinning when only the star's tide acts (the torque factor is the built one)."""
     rng = random.Random(7)
     for _ in range(60):
         body = _body(rng.uniform(0.05, 5.0) * EARTH_MASS, rng.uniform(0.4, 1.8) * EARTH_RADIUS)
@@ -40,9 +62,11 @@ def test_one_star_with_constant_q_is_the_built_despinning():
         a = 10.0 ** rng.uniform(-2.0, 0.3) * AU
         n = spin_torques.orbital_rate(host, a)
         spin = n * 10.0 ** rng.uniform(-0.2, 3.0) * rng.choice((1.0, 1.0, -1.0))
+        if spin < 0.0:
+            continue
         age = rng.uniform(0.1, 10.0) * 1.0e9 * YEAR
         e = rng.choice((0.0, 0.0, 0.1, 0.206, 0.4))
-        built_rate, built_ratio = tidal_spin.evolve(body, host, a, spin, age, e)
+        built_rate, built_ratio = _constant_q_star_despin(body, host, a, spin, age, e)
         found = spin_torques.evolve(_star_only(body, host, a), spin, age, e)
         assert found.rate == pytest.approx(built_rate, rel=1.0e-6, abs=1.0e-12 * n)
         assert found.ratio == built_ratio
@@ -60,14 +84,49 @@ def test_mercury_is_caught_in_the_three_halves_resonance():
     assert (circular.ratio, circular.kind) == (1.0, "synchronous")
 
 
+def test_a_spin_that_misses_the_resonance_goes_on_to_the_synchronous_state():
+    """GEN.1172: capture in the 3:2 window is a chance; a body whose uniform is above it slips by and is locked (e of 0.206 is outside the 1:1 window of the closed form, but the flip is a stop of its own)."""
+    body = _body(3.30e23, 2.44e6)
+    a = 0.387 * AU
+    n = spin_torques.orbital_rate(SUN, a)
+    chance = tidal_spin.RESONANCE_CAPTURE_PROBABILITY[1.5]
+    caught = spin_torques.evolve(_star_only(body, SUN, a), 40.0 * n, 20.0e9 * YEAR, 0.206, (0.0, chance * 0.99))
+    missed = spin_torques.evolve(_star_only(body, SUN, a), 40.0 * n, 20.0e9 * YEAR, 0.206, (0.0, chance * 1.01))
+    assert (caught.ratio, caught.kind) == (1.5, "resonance")
+    assert (missed.ratio, missed.kind) == (1.0, "synchronous")
+
+
+def test_the_two_to_one_window_is_passed_without_capture_to_the_three_halves():
+    """An orbit with e of 0.38 holds both the 2:1 and the 3:2 windows: the first uniform decides the 2:1, a pass lets the second decide the 3:2."""
+    body = _body(3.30e23, 2.44e6)
+    a = 0.387 * AU
+    n = spin_torques.orbital_rate(SUN, a)
+    pass_two, take_three = 0.5, 0.0
+    first = spin_torques.evolve(_star_only(body, SUN, a), 40.0 * n, 20.0e9 * YEAR, 0.38, (0.0, 0.99))
+    assert (first.ratio, first.kind) == (2.0, "resonance")
+    second = spin_torques.evolve(_star_only(body, SUN, a), 40.0 * n, 20.0e9 * YEAR, 0.38, (pass_two, take_three))
+    assert (second.ratio, second.kind) == (1.5, "resonance")
+    neither = spin_torques.evolve(_star_only(body, SUN, a), 40.0 * n, 20.0e9 * YEAR, 0.38, (pass_two, pass_two))
+    assert (neither.ratio, neither.kind) == (1.0, "synchronous")
+
+
+def test_the_share_caught_is_the_chance_over_uniform_units():
+    body = _body(3.30e23, 2.44e6)
+    a = 0.387 * AU
+    n = spin_torques.orbital_rate(SUN, a)
+    units = [(i + 0.5) / 200.0 for i in range(200)]
+    caught = sum(spin_torques.evolve(_star_only(body, SUN, a), 40.0 * n, 20.0e9 * YEAR, 0.206, (0.9, u)).kind == "resonance" for u in units)
+    assert caught / 200.0 == pytest.approx(tidal_spin.RESONANCE_CAPTURE_PROBABILITY[1.5], abs=0.02)
+
+
 def test_a_far_planet_keeps_its_spin():
     body = _body(EARTH_MASS, EARTH_RADIUS)
     a = AU
     n = spin_torques.orbital_rate(SUN, a)
-    spin = 2.0 * math.pi / 86400.0
+    spin = 2.0 * math.pi / (5.0 * 3600.0)
     result = spin_torques.evolve(_star_only(body, SUN, a), spin, 4.5e9 * YEAR, 0.0167)
     assert result.kind == "free" and result.ratio is None
-    assert 0.8 * spin < result.rate < spin     # the built rock Q of 100 takes a tenth of an Earth day-rate off in 4.5 Gy
+    assert 0.3 * spin < result.rate < spin     # the Andrade Q of tens takes between a tenth and two thirds of a five-hour spin off in 4.5 Gy
 
 
 def test_the_moon_slows_the_earth_by_the_measured_two_milliseconds_a_century():
@@ -82,10 +141,11 @@ def test_the_moon_slows_the_earth_by_the_measured_two_milliseconds_a_century():
     assert lengthening_s_per_century == pytest.approx(2.0e-3, rel=0.3)
 
 
-def test_the_code_rock_q_barely_moves_the_earth_in_the_age_of_the_system():
-    """At the built rock k2 and Q of 100 the Moon changes the Earth's day by well under an hour in 4.5 Gy (the spin report's 0.1 h)."""
-    body = _body(EARTH_MASS, EARTH_RADIUS)
-    k2, q = tidal_heating.response(body)
+def test_a_high_q_barely_moves_the_earth_in_the_age_of_the_system():
+    """At a k2 of 0.3 and a Q of 100 (the rock Q the code had before GEN.955) the Moon changes the Earth's day by well under an hour in 4.5 Gy (the spin
+    report's 0.1 h); at the Q of tens that the Andrade mantle gives, a Moon that stays where it is would lock the Earth, which is why the moon's
+    recession (GEN.959) goes with the moon's torque."""
+    k2, q = 0.3, 100.0
     planet = spin_torques.Planet(EARTH_MASS, EARTH_RADIUS)
     moon = spin_torques.Raiser(MOON_MASS, MOON_A, spin_torques.orbital_rate(EARTH_MASS, MOON_A))
     sun = spin_torques.Raiser(SUN, AU, spin_torques.orbital_rate(SUN, AU))
@@ -208,7 +268,7 @@ def test_the_rheology_makes_the_torque_depend_on_the_tide_frequency():
     planet = spin_torques.Planet(EARTH_MASS, EARTH_RADIUS)
     a = 0.3 * AU
     star = spin_torques.Raiser(SUN, a, spin_torques.orbital_rate(SUN, a))
-    solidus, liquidus = tidal_heating.SOLIDUS_K, tidal_heating.LIQUIDUS_K
+    solidus, liquidus = 1700.0, 2150.0
     dissipation = spin_torques.rheology_dissipation(planet, 1700.0, 1.0e12, 2.5e5, solidus, liquidus)
     relaxation = tidal_rheology.rigidity_pa(0.0) / tidal_rheology.viscosity_pa_s(1700.0, 1.0e12, 2.5e5)
     floor = tidal_rheology.rock_response(EARTH_MASS, EARTH_RADIUS, 1.0, 1000.0, 1.0e12, 2.5e5, solidus, liquidus).k2_over_q
@@ -219,6 +279,27 @@ def test_the_rheology_makes_the_torque_depend_on_the_tide_frequency():
     assert torques.total(n * 1.5) < 0.0 < torques.total(n * 0.5)
     result = spin_torques.evolve(torques, 3.0 * n, 10.0e9 * YEAR)
     assert math.isfinite(result.rate)
+
+
+def test_a_balance_is_reached_in_finite_time():
+    """Where the thermal and the rheology's gravitational torques cancel away from synchronous rotation the torque is zero, and the flow into it
+    (whose integral diverges as a log) must end, not divide by zero: the planet sits within a billionth of the balance and reports it."""
+    planet = spin_torques.Planet(3.2e24, 5.32e6)
+    a = 4.7e11
+    star = spin_torques.Raiser(2.24e30, a, spin_torques.orbital_rate(2.24e30, a))
+    thermal = spin_torques.ThermalTide(star, 72.0, 7.9e-7)
+    n = star.orbital_rate
+    kinds = set()
+    for temperature in (900.0, 1200.0, 1500.0, 1800.0):
+        dissipation = spin_torques.rheology_dissipation(planet, temperature, 1.0e12, 2.5e5, 1700.0, 2150.0)
+        torques = spin_torques.Torques(planet, (star,), dissipation, thermal)
+        for start in (0.5 * n, 2.0 * n, 25.0 * n, 300.0 * n):
+            result = spin_torques.evolve(torques, start, 10.0e9 * YEAR)
+            assert math.isfinite(result.rate)
+            kinds.add(result.kind)
+            if result.kind == "asynchronous":
+                assert abs(torques.total(result.rate)) < 1.0e-6 * abs(torques.total(start))
+    assert kinds
 
 
 def test_softness_smooths_the_sign_flip_and_leaves_the_far_torque_alone():

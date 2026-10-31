@@ -58,7 +58,7 @@ def test_nothing_is_missing_once_the_fixtures_are_downloaded(downloaded):
 
 def test_the_catalogue_names_each_missing_dataset_with_its_reason():
     missing = catalogue.missing()
-    assert [located.dataset.fill for located in missing] == ["SC1", "SC2", "SC3", "AD9", "AD10", "AD11", "SC4", "SC5", "SC6", "SL1", "PS12"]
+    assert [located.dataset.fill for located in missing] == ["SC1", "SC2", "SC3", "AD9", "AD10", "AD11", "SC4", "SC5", "SC6", "SL1", "PS12", "GS1"]
     assert all(located.missing and located.reason for located in missing)
 
 
@@ -73,7 +73,7 @@ def test_the_gate_names_the_missing_datasets():
         run_galaxy.require_datasets()
     text = str(refused.value)
     assert "nothing was generated" in text
-    for key, fill in (("isochrones", "SC1"), ("white_dwarf_models", "SC2"), ("neutron_star_matter", "SC3"), ("ozone_uv", "AD9")):
+    for key, fill in (("isochrones", "SC1"), ("white_dwarf_models", "SC2"), ("neutron_star_matter", "SC3"), ("ozone_uv", "AD9"), ("hhe_eos", "GS1")):
         assert f"{key} ({fill})" in text
 
 

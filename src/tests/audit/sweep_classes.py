@@ -94,7 +94,7 @@ def _break_from_conditions(entry):
         letter = _conditions_letter(entry.body)
     except planet_classes.ClassError:
         return None
-    other = "Q" if letter != "Q" else "A"
+    other = "V" if letter != "V" else "A"
     return broken_copy(entry.body, planet_class=other)
 
 

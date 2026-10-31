@@ -64,7 +64,8 @@ def test_planet_is_in_its_zone_with_a_known_class_and_the_type_of_that_class(hos
     assert planet.radius > 0
     assert planet.planet_class in prog_c.PLANET_CLASSES
     assert planet.zone == zone
-    assert planet.body_type == prog_c.PLANET_CLASSES[planet.planet_class]["type"]
+    shown = prog_c.PLANET_CLASSES[planet.planet_class]
+    assert planet.body_type in (shown["type"], shown.get("also_type"))
     assert planet.planet_class == planet_classes.classify(planet)
 
 
@@ -121,6 +122,24 @@ def test_planet_life_class_is_one_its_conditions_support(host_star, zone, seed):
             assert planet.life_class is None
         elif planet.life_class_id is not None:
             assert planet.life_class_scores.get(planet.life_class_id, 0) > 0, f"{cls}-{zone}: {planet.life_class_id!r} is not supported"
+
+
+def test_the_class_that_lives_on_a_world_is_stored_among_the_classes_it_supports_even_when_its_life_used_up_its_fuel():
+    """TEST.486: a cold world whose life drew down what it lived on is scored 0 for its class once the air is built; the class still lives there
+    and is still stored among the supported ones, at the score it was chosen at. The host star is seeded, so the same stars come every run."""
+    kept = 0
+    for trial in range(40):
+        cfg = SystemConfig()
+        cfg.STAR_TYPE = "G2V"
+        with draw.bound(trial):
+            star = Star(cfg)
+        for seed in range(4):
+            planet = make_planet(star, "c", seed)
+            planetLife.apply_life_data(planet)
+            if planet.body_type != "g" and planet.life_class_id is not None:
+                kept += 1
+                assert planet.life_class_scores.get(planet.life_class_id, 0) > 0, (trial, seed, planet.life_class_id, planet.life_class_scores)
+    assert kept
 
 
 def test_decide_flavor_text_is_generation_time_only(host_star, monkeypatch):

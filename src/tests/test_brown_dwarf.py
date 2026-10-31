@@ -17,7 +17,7 @@ from planetgen import tuning
 from planetgen.generation import multistar
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.phenomena.rogue import RoguePlanet
-from planetgen.physics import brown_dwarf, brown_dwarf_types, constants
+from planetgen.physics import brown_dwarf, brown_dwarf_types, constants, substellar_ceiling
 from planetgen.util import draw
 from planetgen.web import scatter_members_view
 from tests import render_support
@@ -84,9 +84,21 @@ def test_the_track_is_continuous_in_mass_where_the_table_stops_holding_a_mass_fo
         assert max(abs(b / a - 1.0) for a, b in zip(temperatures, temperatures[1:])) < 0.15, age
 
 
-def test_a_young_brown_dwarf_is_no_hotter_than_a_late_m_dwarf():
-    assert brown_dwarf.effective_temperature_k(0.075, 0.01) == tuning.ROGUE_MAX_EFFECTIVE_TEMPERATURE_K
-    assert brown_dwarf.spectral_type(brown_dwarf.effective_temperature_k(0.075, 0.01))[0] == "M"
+def test_a_young_brown_dwarf_near_the_limit_is_a_late_m_dwarf_no_hotter_than_the_peak_of_the_limit_mass():
+    """The cap is the BHAC15 temperature of the hydrogen-burning limit (GEN.494): 2,950 K at the peak, no longer the 2,800 K of the rogue clip."""
+    for mass in (0.065, 0.0764):
+        temperature = brown_dwarf.effective_temperature_k(mass, 0.01)
+        assert 2800.0 < temperature <= substellar_ceiling.HOTTEST_K
+        assert brown_dwarf.spectral_type(temperature)[0] == "M"
+    assert brown_dwarf.effective_temperature_k(0.0764, 0.01) == substellar_ceiling.HOTTEST_K
+
+
+def test_no_brown_dwarf_is_hotter_than_the_limit_mass_of_its_age():
+    """Below 0.07 solar masses a body cools for ever, so at any age it is no hotter than the limit mass at that age (2,050 K at 1 Gy, 1,630 K at 5 Gy)."""
+    for age in (0.01, 0.1, 1.0, 5.0, 10.0, 13.0):
+        for mass in (0.0124, 0.03, 0.05, 0.065, 0.0699):
+            assert brown_dwarf.effective_temperature_k(mass, age) <= substellar_ceiling.hottest_k(age) + 1e-9
+    assert brown_dwarf.effective_temperature_k(0.0699, 0.01) == pytest.approx(substellar_ceiling.ceiling_k(0.01), rel=0.01)  # the track of a body just under the limit mass is the limit mass's while it is young
 
 
 def test_the_radius_is_about_jupiters_when_old_and_larger_when_young():

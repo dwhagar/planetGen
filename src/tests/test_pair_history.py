@@ -7,6 +7,7 @@ were at their heaviest and largest, and whether a lobe was filled in it.
 
 import pytest
 
+from planetgen.generation import multistar
 from planetgen.physics import mass_loss, pair_history
 from planetgen.physics.pair_history import Member
 
@@ -74,3 +75,35 @@ def test_a_contracted_young_star_counts_as_having_shrunk_with_no_mass_lost():
     young = Member(1.0, 1.0, SUN_AU, 5.0 * SUN_AU)
     assert pair_history.must_be_post_common_envelope(0.01, 0.0, young, _dwarf())
     assert not pair_history.must_be_post_common_envelope(1.0, 0.0, young, _dwarf())
+
+
+def _leaf(kind, mass, initial=None, radius_au=SUN_AU, radius_max_au=None, mass_max_solar=None):
+    return multistar._Leaf(kind, None, mass, mass if initial is None else initial, radius_au, radius_max_au=radius_max_au,
+                           mass_max_solar=mass_max_solar)
+
+
+def test_the_classifier_labels_a_detached_pair_by_its_history_for_any_member_kind():
+    star = _leaf("main-sequence", 1.0)
+    white_dwarf = _leaf("white-dwarf", 0.54, initial=1.0, radius_au=0.0001, radius_max_au=AGB_TIP_AU)
+    helium_core = _leaf("stripped-helium", 0.4, initial=1.2, radius_au=0.05, radius_max_au=1.5)
+    neutron_star = _leaf("neutron-star", 1.4, initial=12.0, radius_au=1.0e-10, radius_max_au=4.0)
+    for remnant in (white_dwarf, helium_core, neutron_star):
+        assert multistar.classify_pair(remnant, star, 1.5, 0.0)[0] == "post-common-envelope"
+        assert multistar.classify_pair(star, remnant, 1.5, 0.0)[0] == "post-common-envelope"
+        assert multistar.classify_pair(remnant, star, 500.0, 0.0)[0] == "detached"
+
+
+def test_the_classifier_keeps_a_pair_that_fills_a_lobe_now_and_a_pair_that_never_shrank():
+    star = _leaf("main-sequence", 1.0)
+    assert multistar.classify_pair(star, _leaf("main-sequence", 0.8), 1.5, 0.0)[0] == "detached"
+    giant = _leaf("giant", 1.0, radius_au=0.9, radius_max_au=0.9)
+    white_dwarf = _leaf("white-dwarf", 0.54, initial=1.0, radius_au=0.0001, radius_max_au=AGB_TIP_AU)
+    assert multistar.classify_pair(white_dwarf, giant, 1.5, 0.0)[0] == "accreting"
+    assert multistar.classify_pair(star, giant, 1.5, 0.0)[0] == "semi-detached"
+
+
+def test_the_classifier_reaches_past_the_old_lookup_for_a_white_dwarf():
+    star = _leaf("main-sequence", 1.0)
+    white_dwarf = _leaf("white-dwarf", 0.54, initial=1.0, radius_au=0.0001, radius_max_au=AGB_TIP_AU)
+    old_reach = 1.5
+    assert multistar.classify_pair(white_dwarf, star, old_reach * 1.2, 0.0)[0] == "post-common-envelope"

@@ -31,8 +31,15 @@ def _binary(star_type, seed, **overrides):
 @pytest.mark.parametrize("wide", [False, True])
 @pytest.mark.parametrize("star_type", STAR_TYPES)
 def test_both_stars_of_a_binary_share_one_age(star_type, wide):
+    paired = 0
     for seed in SEEDS:
         system = _binary(star_type, seed, WIDE_BINARY=wide)
+        if system.binary_type is None:
+            # A close pair about a red supergiant needs an axis the star's own radius rules out (GEN.1009: the tree clears the
+            # primary's real radius), so the request can go unmet.
+            assert star_type == "M2IA" and not wide, (star_type, seed)
+            continue
+        paired += 1
         primary, secondary = system.primary_star, system.secondary_star
         assert primary.age == secondary.age, (star_type, seed, system.binary_type)
         if system.binary_type == "close":
@@ -42,6 +49,7 @@ def test_both_stars_of_a_binary_share_one_age(star_type, wide):
         for star in (primary, secondary):
             if star.phase_end_age_gy is not None and star.phase_end_age_gy != float("inf"):
                 assert star.age <= star.phase_end_age_gy * 1.0001, (star_type, seed, star.type)
+    assert paired >= len(SEEDS) // 2
 
 
 @pytest.mark.parametrize("star_type", ["G2V", "M2V", "O5V", "B3V", "A0V", "K1III", "M2IA"])

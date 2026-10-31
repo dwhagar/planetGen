@@ -32,6 +32,7 @@ import os
 import numpy as np
 
 from planetgen.physics import elements
+from planetgen.util import detmath
 
 DATA_FILE = os.path.join(elements.DATA_DIRECTORY, "co2_far_wing.json")
 
@@ -172,7 +173,7 @@ def cross_section_cm2(strengths, edges_cm1, temperature_k, pressure_pa, co2_frac
                 + (1.0 - x) * number("gamma_foreign_cm1_atm") * chi(distance, t, "co2_n2")
             return np.where(_window(distance), scale * weight / (np.pi * (gamma ** 2 + distance ** 2)), 0.0)
 
-        result[layer] = _pair_matrix(edges_cm1, tail) @ strengths[layer]
+        result[layer] = detmath.matmul(_pair_matrix(edges_cm1, tail), strengths[layer][:, None])[:, 0]
     return np.maximum(result, 0.0)
 
 
@@ -200,5 +201,5 @@ def minor_gas_cross_section_cm2(gas, strengths, edges_cm1, temperature_k, pressu
             shape = chi(distance, t, "co2_co2") if number("minor_uses_chi") else 1.0
             return np.where(_window(distance), fraction[layer] * gamma * shape / (np.pi * (gamma ** 2 + distance ** 2)), 0.0)
 
-        result[layer] = _pair_matrix(edges_cm1, tail) @ strengths[layer]
+        result[layer] = detmath.matmul(_pair_matrix(edges_cm1, tail), strengths[layer][:, None])[:, 0]
     return np.maximum(result, 0.0)

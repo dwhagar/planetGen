@@ -562,6 +562,8 @@ def test_real_colony_makes_its_world_inhabited(db_app, mysql_config):
     # UX.176: the Inhabited chip and the facilities a body hosts are on the body's own page.
     page = client.get(f"/object/planet:{pid('planet', planet['id'])}").get_data(as_text=True)
     assert '<span class="flag flag-yes">Inhabited</span>' in page and "New Hope" in page
+    # UX.224: Inhabited says the world is habitable and of a habitable class, so those two chips are not shown beside it.
+    assert '<span class="flag flag-yes">Habitable</span>' not in page and '<span class="flag flag-yes">Habitable class</span>' not in page
 
 
 def _login_fresh_admin(client, mysql_config):

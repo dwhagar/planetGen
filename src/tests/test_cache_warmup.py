@@ -823,7 +823,7 @@ def test_a_failing_command_stops_the_list_exits_non_zero_and_is_named(script, ca
         warm_cli.run_warm(_args())
     assert exit_info.value.code == 1
     err = caplog.text
-    assert "the cache warm-up stopped: unit 0 of stage 6 failed: WarmupFailed: 2 of 9 pages did not answer" in err
+    assert "the cache warm-up stopped: unit 0 of stage Warm systems: every system page failed: WarmupFailed: 2 of 9 pages did not answer" in err
     assert [family for family, _cap, _db in script.ran] == ["object-index", "galaxy-map", "lists",
                                                             "galaxy-nodes", "galaxy-deep-nodes", "sectors", "systems"], \
         "the wrapper's list stops at the failing command"
@@ -899,6 +899,23 @@ def test_the_script_waits_for_an_update_and_gives_up_after_the_wait(monkeypatch)
     monkeypatch.setattr(warm_cli, "UPDATE_WAIT_SECONDS", -1)
     with pytest.raises(warm_cli.Failed, match="still running"):
         warm_cli._wait_for_update()
+
+
+def test_the_warm_up_the_update_runs_does_not_wait_for_the_update(monkeypatch):
+    """update.sh runs `planetgen warm` itself, before the reload: waiting for the update it belongs to would never end."""
+    monkeypatch.setattr(warm_cli.updateguard, "is_updating", lambda: True)
+    monkeypatch.setattr(warm_cli.updateguard, "inside_update", lambda: True)
+    monkeypatch.setattr(warm_cli, "UPDATE_WAIT_SECONDS", -1)
+    warm_cli._wait_for_update()
+
+
+def test_the_opening_done_file_is_created(tmp_path):
+    """update.sh waits for this file before it reloads Apache."""
+    path = tmp_path / "opening"
+    warm_cli._mark_opening_done(None)
+    warm_cli._mark_opening_done(str(path))
+    assert path.exists()
+    warm_cli._mark_opening_done(str(tmp_path / "no" / "such" / "opening"))
 
 
 def test_a_sigterm_ends_the_run_as_cancelled_not_stranded(script, redis_server, monkeypatch):

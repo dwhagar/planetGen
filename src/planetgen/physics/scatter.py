@@ -24,6 +24,12 @@ mass shares and no N-body run (Boss, 2026-10-30). The Solar System is a test tar
 
 A giant-free disc keeps all its mass cold. The shares sum to 1. Defaults pending Boss and the registry rows (6.83, SX1 to SX5) say what is stand-in.
 
+5. *Losses of the architecture* (GEN.1119, registry 6.98). Every body the architecture loses, the chain's sub-minimum bodies, the planets a giant sweeps or throws out and the mass a
+   merge does not keep, is shared among `ejected`, `collided` and `bound` by `loss_fates` from the Safronov number at the place of the encounter, `Theta = q d / R` with the
+   perturber's mass ratio `q`, its radius `R` and the body's own distance `d` (the escape speed over the orbital speed there: Theta far below 1 a scattered body mostly collides or
+   stays, far above it is thrown out; Safronov 1972, recalled). The ratio of ejection to collision goes as `Theta^EJECTION_THETA_EXPONENT`, and a body the perturber does not reach (outside
+   `reach_band_au`) stays bound. No draw is made: the shares are expected values and the rogue builder (GEN.1111) draws the discrete fate.
+
 Use:
 
     shares = scatter_shares(star_mass_solar, giant_mass_earth, giant_au, giant_radius_earth, migration_au, disc_inner_au, disc_edge_au, instability=0.0)
@@ -57,6 +63,15 @@ HOT_SHARE = 0.4
 
 SWEPT_SPLIT = (("scattered_disc", 0.62), ("centaurs", 0.25), ("detached", 0.10), ("trojans", 0.002), ("implanted_inner_belt", 0.02), ("captured_moons", 0.008))
 """tuple: How the swept mass that is not ejected is shared (sums to 1, row SX5, a stand-in)."""
+
+EJECTION_THETA_EXPONENT = 2.0
+"""float: Ejection to collision goes as Theta to this power (Safronov 1972, recalled; the cross-section for a hit grows as 1 + Theta, a throw-out needs the escape speed, row EJ1)."""
+
+LOSS_BOUND_WEIGHT = 1.0
+"""float: The weight of a scattered body that is neither hit nor thrown out, against a collision weight of 1 (row EJ1, a stand-in)."""
+
+DISC_LIFETIME_YR = 3.0e6
+"""float: The age at which the gas disc is gone and the giants have finished moving, the time of an architecture loss (Haisch et al. 2001, recalled; row EJ2)."""
 
 POPULATIONS = ("cold_classical", "hot_classical", "resonant", "scattered_disc", "centaurs", "detached", "trojans", "ejected", "implanted_inner_belt", "captured_moons")
 """tuple: The keys of `scatter_shares`."""
@@ -145,3 +160,24 @@ def history_line(shares, giant_au, migration_au):
     if percent > 0:
         return f"the outer giant at {giant_au:.0f} AU never moved but its chaotic zone scattered {percent} percent of the disc"
     return "no giant reached the disc, which kept all its solids on cold orbits"
+
+
+def reach_band_au(giant_au, formation_au, giant_mass_earth, star_mass_solar):
+    """
+    `(low, high)` AU, the stretch a giant reaches: its chaotic zone about its final orbit, widened to the whole path it moved along when it formed
+    at `formation_au` (it scattered what it passed, as in `scatter_shares`).
+    """
+    width = zone_half_width_au(giant_au, giant_mass_earth, star_mass_solar)
+    return min(giant_au, formation_au) - width, max(giant_au, formation_au) + width
+
+
+def loss_fates(theta):
+    """`(ejected, collided, bound)`, shares summing to 1, of a body a perturber of Safronov number `theta` scatters: weights `theta^EJECTION_THETA_EXPONENT`, 1 and `LOSS_BOUND_WEIGHT`."""
+    ejected = max(theta, 0.0) ** EJECTION_THETA_EXPONENT
+    total = ejected + 1.0 + LOSS_BOUND_WEIGHT
+    return ejected / total, 1.0 / total, LOSS_BOUND_WEIGHT / total
+
+
+def hill_radius_au(mass_earth, distance_au, star_mass_solar):
+    """The Hill radius of a body, AU: `d (m / 3 M*)^(1/3)`; the moons that can be kept through an encounter sit inside a fraction of it."""
+    return distance_au * (mass_ratio(mass_earth, star_mass_solar) / 3.0) ** (1.0 / 3.0)

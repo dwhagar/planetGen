@@ -38,7 +38,7 @@ why that's out of scope for this pass).
 import math
 
 from planetgen.generation.config import SystemConfig
-from planetgen.physics import kepler, small_body_composition, spin
+from planetgen.physics import bulk_draw, comet_ice_budget, kepler, small_body_composition, spin
 from planetgen.physics.position import axis_property, velocity_axis_property
 from planetgen import tuning
 from planetgen.util import draw
@@ -204,7 +204,7 @@ class Comet(SmallBody):
     """float: This comet's offset from its star, AU: the "system" frame of
     `spatial`, its `SpatialPosition3D` (GEN.74), which `set_position_au` moves."""
 
-    def __init__(self, system_config: SystemConfig, primary_mass_solar, name=None, orbit_type=None, ceiling_au=None):
+    def __init__(self, system_config: SystemConfig, primary_mass_solar, name=None, orbit_type=None, ceiling_au=None, star=None):
         """
         Initializes a Comet object.
 
@@ -223,6 +223,9 @@ class Comet(SmallBody):
                 the value that puts the aphelion at `ceiling_au`, so a closed orbit never leaves its star
                 (a range that lies wholly above the cut gives the cut itself). A parabolic comet is unbound
                 on purpose and reads no ceiling.
+            star (optional): The star (or binary proxy) the comet orbits: its luminosity, snow line, disc edge and carbon and oxygen put the comet's
+                formation in a zone of the disc, and the zone sets the median CO and CO2 of its ice (GEN.595). Without it the ice keeps the Solar
+                System population's medians.
         """
         # The name is a placeholder: `store.insert_star_system` replaces it with the
         # comet's designation (`comet_designation`, v40).
@@ -286,7 +289,7 @@ class Comet(SmallBody):
             self.min_update_interval_years = None
 
         # GEN.442: the ices and refractories of the nucleus, its porosity and the mass they make (period class: how volatile-rich).
-        self.makeup = small_body_composition.draw_comet(self.period_class)
+        self.makeup = small_body_composition.draw_comet(self.period_class, ice_ratios=self._formation_ice_ratios(star))
         self.composition = small_body_composition.component_names(self.makeup)
         self.mass_kg = self.makeup.mass_kg(self.nucleus_diameter_km)
 
@@ -304,6 +307,15 @@ class Comet(SmallBody):
     def orbit_mu_au3_per_year2(self):
         """AU^3/yr^2 of the comet's host star: 4 pi^2 per solar mass."""
         return 4.0 * math.pi ** 2 * self.primary_mass_solar
+
+    def _formation_ice_ratios(self, star):
+        """The `(CO2/H2O, CO/H2O)` of the zone this comet formed in, from a draw of its own (keyed by the comet's orbit so the run's stream is unchanged), or `None` without a star or for one with no abundances."""
+        carbon_oxygen = None if star is None else bulk_draw.ice_forming_ratios(star)
+        if carbon_oxygen is None:
+            return None
+        stream = draw.Stream(f"comet-zone:{self.perihelion_distance_au!r}:{self.nucleus_diameter_km!r}:{self.arg_periapsis_deg!r}:{self.primary_mass_solar!r}")
+        outer_au = tuning.DISK_OUTER_RADIUS_SNOWLINE_MULTIPLIER * star.snow_line_au
+        return comet_ice_budget.formation_ratios(star.luminosity, star.snow_line_au, outer_au, *carbon_oxygen, stream.random())
 
     def update_orbital_state(self):
         """

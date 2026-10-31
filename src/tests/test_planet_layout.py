@@ -36,13 +36,14 @@ def test_the_summary_is_written_from_the_data():
     assert text.startswith('Kepler b is a Class <a href="/classes/planet/M">M</a> world in the Ecosphere / Habitable Zone.')
     assert "Its surface is 288 K, the air at the surface is 101 kPa, and gravity is 1 g." in text
     assert "PHI-6 habitability rating is Green, so people can live here, and its Suitability score is Green" in text
-    assert "needs a gas-mix mask and a cold suit." in text and "microbial life 3 of 9" in text
+    assert "needs a gas-mix mask and a cold suit." in text
+    assert "life" not in text.lower().replace("people can live", "")       # the life of the world is its own paragraph (UX.251)
 
 
 def test_a_lifeless_airless_world_says_so():
     row = {**ROW, "atmospheric_pressure_pa": 0, "life_microbial": 0, "phi4": 0.1, "tier_suitability": 3, "equipment": {"required": []}}
     text = " ".join(planet_summary.summary_sentences("Rock", row, {**VALUES, "atmospheric_pressure_pa": "0 Pa"}))
-    assert "it has no atmosphere" in text and "No life has been found here." in text
+    assert "it has no atmosphere" in text and "No life" not in text
     assert "needs no safety equipment" in text and "so people can live here" not in text
 
 
@@ -53,11 +54,11 @@ def test_a_body_with_no_class_or_scores_still_gets_a_sentence():
 def test_the_descriptions_blocks_are_sorted_into_their_sections():
     blocks = [model.facts("Planet", []), model.prose("description", "It is temperate."), model.composition("Atmosphere", [], "air"),
               model.ratings({"name": "PHI-6", "score": 0.8, "tier": "Green"}, [], []), model.facts("Radiation", []),
-              model.facts("Survival equipment", []), model.prose("life", "Life lives."), model.prose("timeline", "Old."),
-              model.prose("flavour", "Sensors show.")]
+              model.facts("Survival equipment", []), model.prose("life-class", "Class 1a life lives here."), model.prose("life", "Life looks green."),
+              model.prose("timeline", "Old."), model.prose("milestone", "Latest."), model.prose("flavour", "Sensors show.")]
     parts = planet_layout.split_blocks(blocks)
     assert [b["type"] for b in parts["phi6"]] == ["ratings", "facts", "facts"]
-    assert [b["role"] for b in parts["life"]] == ["life", "timeline"] and [b["role"] for b in parts["rest"]] == ["flavour"]
+    assert [b["role"] for b in parts["life"]] == ["life"] and [b["role"] for b in parts["rest"]] == ["flavour"]
 
 
 def _row(key, label, raw, value=None):
@@ -130,10 +131,10 @@ LIVING = {"life_class": 1, "life_class_variant": "a", "life_class_id": "1a", "li
 
 def test_a_world_with_life_says_what_it_supports_what_else_and_the_stage_it_has_reached():
     view = planet_layout.life_class_view(LIVING)
-    assert view["supports"] == "Supports Class 1a life (oxygenic light-eaters), score 7 of 9."
+    assert view["supports"] == "Best suited to Class 1a life (oxygenic light-eaters), suitability 7 of 9."
     assert [text.split(" (")[0] for text in view["also"]] == ["Class 2", "Class 3a"]      # best score first
-    assert view["also"][0].endswith(", 4 of 9)") and view["also"][1].endswith(", 2 of 9)")
-    assert view["has"] == "Has Class 1a life, at the stage of small mobile animals (animal grade A2)."
+    assert view["also"][0].endswith(", suitability 4 of 9)") and view["also"][1].endswith(", suitability 2 of 9)")
+    assert view["has"] == "Life here is Class 1a, at the stage of small mobile animals (animal grade A2)."
     assert view["words"]["class"] == "1a" and view["words"]["lives"]
     assert [label for label, _text in view["words"]["rows"]] == ["Drinks", "Eats", "Breathes", "Gives off"]
     assert dict(view["words"]["rows"])["Drinks"] == "water"
@@ -142,12 +143,72 @@ def test_a_world_with_life_says_what_it_supports_what_else_and_the_stage_it_has_
 def test_a_world_that_supports_a_class_but_has_none_still_says_what_that_class_lives_on():
     row = {**LIVING, "life_class": None, "life_class_id": None, "life_stage": None, "life_class_scores": {"1a": 7}}
     view = planet_layout.life_class_view(row)
-    assert view["supports"].startswith("Supports Class 1a life") and view["also"] == [] and view["has"] is None
+    assert view["supports"].startswith("Best suited to Class 1a life") and view["also"] == [] and view["has"] is None
     assert view["words"]["class"] == "1a" and not view["words"]["lives"]
 
 
 def test_a_stage_without_animals_names_no_grade_and_a_world_without_classes_has_no_lines():
     view = planet_layout.life_class_view({**LIVING, "life_stage": "photosynthesis", "life_animal_grade": 0})
-    assert view["has"] == "Has Class 1a life, at the stage of oxygenating mats."
+    assert view["has"] == "Life here is Class 1a, at the stage of oxygenating mats."
     assert planet_layout.life_class_view({"life_class_scores": {}, "life_class_id": None}) is None
     assert planet_layout.life_class_view(None) is None
+
+
+READINGS = [
+    {"kind": "microbial", "label": "Microbes", "score": 8, "abundance": "Abundant", "trend": "Stable", "security": "Secure",
+     "years_left_gyr": None, "text": "Microbes: abundant, stable, secure."},
+    {"kind": "flora", "label": "Flora", "score": 3, "abundance": "Occasional", "trend": "Declining", "security": "Precarious",
+     "years_left_gyr": 0.4, "text": "Flora: occasional, declining, precarious."},
+    {"kind": "fauna", "label": "Fauna", "score": 0, "abundance": "Absent", "trend": None, "security": None,
+     "years_left_gyr": None, "text": "Fauna: absent."},
+    {"kind": "sentient", "label": "Sentient life", "score": 0, "abundance": "Absent", "trend": None, "security": None,
+     "years_left_gyr": None, "text": "Sentient life: absent."},
+]
+
+
+def test_the_life_paragraph_leads_with_what_lives_then_the_classes_that_suit():
+    view = planet_layout.life_class_view({**LIVING, "life_microbial": 8, "life_flora": 3}, READINGS)
+    text = view["paragraph"]
+    assert text.startswith("Life here is Class 1a, at the stage of small mobile animals (animal grade A2). Conditions here suit Class 1a life")
+    assert text.endswith("best, suitability 7 of 9; they also suit " + ", ".join(view["also"]) + ".")
+    assert view["also"][0].startswith("Class 2 (") and view["also"][1].startswith("Class 3a (")
+    assert "By kind" not in text
+    bare = planet_layout.life_class_view({**LIVING, "life_class_id": None, "life_stage": None})["paragraph"]
+    assert bare.startswith("Nothing lives here yet.")
+
+
+def test_at_a_glance_the_life_paragraph_gives_the_words_of_each_kind_that_is_there_then_the_classes_that_suit():
+    glance = planet_layout.life_class_view(LIVING, READINGS)["glance"]
+    assert glance == ("Microbes: abundant, stable, secure. Flora: occasional, declining, precarious. Conditions suit Class 1a (oxygenic "
+                      "light-eaters) best, then Class 2 (" + planet_layout._short_name("2") + ") and Class 3a (" + planet_layout._short_name("3a") + ").")
+    assert "of 9" not in glance and "Fauna" not in glance
+
+
+def test_the_glance_names_two_other_classes_and_says_others_for_the_rest():
+    scores = {"1a": 7, "2": 6, "3a": 5, "3b": 4, "4a": 3}
+    glance = planet_layout.life_class_view({**LIVING, "life_class_scores": scores}, READINGS)["glance"]
+    assert glance.endswith(", then Class 2 (" + planet_layout._short_name("2") + "), Class 3a (" + planet_layout._short_name("3a")
+                           + ") and others.")
+
+
+def test_a_world_that_suits_a_class_but_has_no_life_says_nothing_lives_there_yet():
+    row = {**LIVING, "life_class": None, "life_class_id": None, "life_stage": None, "life_class_scores": {"1a": 7}}
+    view = planet_layout.life_class_view(row)
+    assert view["glance"] == "Nothing lives here yet. Conditions suit Class 1a (oxygenic light-eaters) best."
+    assert view["readings"] == []
+
+
+def test_a_world_with_no_life_and_no_class_that_suits_has_no_life_paragraph():
+    row = {"life_class_scores": {}, "life_class_id": None, "life_class_best": None, "life_class_best_score": 0}
+    assert planet_layout.life_class_view(row) is None
+
+
+def test_the_life_section_has_a_row_for_each_kind_and_the_stored_facts():
+    row = {**LIVING, "evolutionary_pace": "normal", "life_system_age_gyr": 4.6, "life_milestone_age_gyr": 3.6}
+    view = planet_layout.life_class_view(row, READINGS)
+    assert [r["kind"] for r in view["readings"]] == ["Microbes", "Flora", "Fauna", "Sentient life"]
+    assert view["readings"][0] == {"kind": "Microbes", "abundance": "Abundant (8 of 9)", "trend": "Stable", "security": "Secure", "left": ""}
+    assert view["readings"][1]["left"] == "about 0.4 billion years"
+    assert view["readings"][2] == {"kind": "Fauna", "abundance": "Absent", "trend": "", "security": "", "left": ""}
+    assert dict(view["facts"]) == {"Stage": "small mobile animals", "Animal grade": "A2", "Pace of evolution": "standard",
+                                   "Age of the system": "4.60 billion years", "Stage reached at": "3.60 billion years"}

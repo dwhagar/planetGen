@@ -37,16 +37,22 @@ def server_kwargs():
     )
 
 
+SAMPLE_GALACTIC_DISTANCE_LY = 26000.0
+"""float: How far from the galactic centre the sample systems sit (about the Sun's distance): a system the galaxy builds always has a place in it,
+and a star's rate of lethal galactic events (`lethal_event_rate_per_gyr`, GEN.785) is worked out from that place, so a sample with none has no rate."""
+
+
 def generate(config, systems, first_seed=1000):
     """Generates and saves `systems` systems into the database `config` points at, system `i` from the run seed
-    `first_seed + i`. Returns the ids of the saved systems."""
+    `first_seed + i`, each placed `SAMPLE_GALACTIC_DISTANCE_LY` from the galactic centre. Returns the ids of the saved systems."""
     saved = []
     for index in range(systems):
         draw.set_run_seed(first_seed + index)
         system_config = SystemConfig()
         system_config.PLANETS = True
         system_config.MAX_PLANETS = True
-        saved.append(store.save_system(StarSystem(system_config=system_config), system_config, config=config))
+        saved.append(store.save_system(
+            StarSystem(system_config=system_config, galactic_center_dist_ly=SAMPLE_GALACTIC_DISTANCE_LY), system_config, config=config))
     return saved
 
 
@@ -78,12 +84,15 @@ def tally(config):
         for kind, (table, class_column) in CLASS_COLUMNS.items():
             for row in conn.execute(f"SELECT * FROM {table}").fetchall():
                 row = dict(row)
+                if kind == "star":      # a star's rule reads the pairing of its system (GEN.789)
+                    system = conn.execute("SELECT binary_configuration FROM star_systems WHERE id = ?", (row["star_system_id"],)).fetchone()
+                    row["binary_configuration"] = system["binary_configuration"] if system else None
                 klass = class_of(kind, row.get(class_column) if class_column else None)
                 entry = result.setdefault((kind, klass), {"bodies": 0, "columns": collections.OrderedDict()})
                 entry["bodies"] += 1
                 for group in sheet.sheet(conn, kind, row["id"])["groups"]:
                     for item in group["rows"]:
-                        if item["key"].startswith("p_") or item["key"] == sheet.ECLIPSE_KEY:    # one row per gas the air holds; a moon's derived eclipse row
+                        if item["key"].startswith("p_") or item["key"] in (sheet.ECLIPSE_KEY, sheet.VARIABILITY_KEY, sheet.CARBON_KEY, sheet.PECULIAR_KEY, sheet.PECULIAR_FIELD_KEY, *sheet.CHEMISTRY_KEYS):    # one row per gas the air holds; a moon's derived eclipse row, a star's derived variability, carbon star and chemistry rows
                             continue
                         counts = entry["columns"].setdefault(item["key"], [0, 0, 0])
                         if item["stored"]:

@@ -147,7 +147,7 @@ def by_box(conn, center, radius):
 
 
 def by_sector_walk(conn, center, radius):
-    """The path of `db/near.py` before the key: the sectors whose centre lies in the box, their systems, the exact distance in Python."""
+    """The path of `src/planetgen/db/near.py` before the key: the sectors whose centre lies in the box, their systems, the exact distance in Python."""
     reach = radius + 1.5 * EDGE_PC
     cx, cy, cz = center
     sectors = conn.execute("SELECT id, center_x_pc, center_y_pc, center_z_pc FROM sectors WHERE center_x_pc BETWEEN ? AND ? AND center_y_pc BETWEEN ? AND ? "

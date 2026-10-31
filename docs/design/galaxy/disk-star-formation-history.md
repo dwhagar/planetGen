@@ -113,3 +113,9 @@ star is drawn from the history's own rate inside its window.
   as the density it bounds).
 - `tuning`: the constants above with their sources.
 - A change of the generator's output: epoch bumped (OPS.56); it joins the one full rescatter (GEN.301 waits).
+
+## The thick disc's ages in the old population (GEN.1025)
+
+The thick disc is counted in the `old` population (`density.population_units`), but the old window ended at 10 Gy, the thin disc's age, while the thick disc formed from about 13 to about 8 Gy ago (Haywood et al. 2013, `tuning.THICK_DISC_AGE_RANGE_GY`, stand-in TD1). `galaxy/thick_ages.py` builds the old population's `AgeLaw` as a mixture: the thin disc's law over 3 to 10 Gy with the weight the thin disc has among the old systems, and the thick disc's law, flat over 8 to 13 Gy (stand-in TD2), with the thick disc's share (`density.thick_disk_units` over the old units). Only the shape of an age law matters, so the count of old stars per sector does not change; the stars are spread over ages up to 13 Gy, and the thick disc's share of them is older than the thin disc ever was.
+
+Wired (part 2): `disk_history.population_age_laws` returns the mixture for `old`, `tuning.STELLAR_POPULATION_AGE_RANGES_GY["old"]` ends at 13 Gy, and `tuning.THIN_DISC_OLD_WINDOW_GY` (3 to 10) keeps the thin disc's own window where the thin disc alone is meant: its share of the disc (`population_shares`), its law, its heating (`galaxy/structure.py`) and its arm contrast. The mean system mass of `old` and the remnants formed in it follow the longer window, so the density identity fixture (`tests/fixtures/density_identity.json`) was made again: every density of a shape moves by one number (0.04 to 1.2 percent, the model's units per solar mass), the total mass not at all. Changes generated output: the old stars of a sector are drawn over 3 to 13 Gy.

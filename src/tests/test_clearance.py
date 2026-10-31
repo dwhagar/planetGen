@@ -94,6 +94,29 @@ def test_a_merger_product_or_post_common_envelope_pair_is_not_held_to_the_detach
     assert clearance.audit(rows) == []
 
 
+def _with_a_dark_third(outer_au, e_out=0.3, mass=0.05, radius_au=0.0005):
+    rows = _triple(inner_au=1.0, outer_au=outer_au, e_out=e_out)
+    rows["stars"][2] = dict(_star(-3, mass, radius_au, 1, 1), dark=True, kind="brown-dwarf")
+    rows["nodes"][0]["mass_solar"] = 2.0 + mass
+    return rows
+
+
+def test_a_dark_member_weighs_in_the_stability_of_the_tree_and_takes_up_room_in_it():
+    assert clearance.audit(_with_a_dark_third(outer_au=100.0)) == []
+    tight = _with_a_dark_third(outer_au=2.0, e_out=0.0, mass=1.0)
+    assert "stability" in _kinds(tight)
+    wide_mass = _with_a_dark_third(outer_au=100.0)
+    wide_mass["nodes"][0]["mass_solar"] = 5.0
+    assert "mass" in _kinds(wide_mass)
+
+
+def test_no_planet_goes_round_a_dark_member_and_a_lone_star_with_one_is_the_planets_host():
+    rows = {"stars": [_star(1, 1.0, 0.005, 0, 0), dict(_star(-2, 0.05, 0.0005, 0, 1), dark=True, kind="brown-dwarf")],
+            "nodes": [_node(0, None, 0, 1.05, 30.0, 0.1, kind="wide")]}
+    host = clearance._host_of({"star_id": None}, clearance._Tree(rows["stars"], rows["nodes"]))
+    assert host[0] == "star" and host[1]["id"] == 1
+
+
 def test_a_node_that_does_not_clear_its_children_holds_them_inside_each_other():
     assert "overlap" in _kinds(_triple(inner_au=1.0, outer_au=0.4, e_out=0.0))
     assert "overlap" not in _kinds(_triple(inner_au=1.0, outer_au=3.0, e_out=0.0))

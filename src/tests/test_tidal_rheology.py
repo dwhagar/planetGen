@@ -17,7 +17,8 @@ ETA0 = 1.0e12
 """float: A viscosity prefactor in the middle of the drawn range (2.6e10 to 5.3e13 Pa s)."""
 EA = 2.5e5
 """float: And an activation energy in the middle of the drawn range (200 to 300 kJ/mol)."""
-SOLIDUS, LIQUIDUS = tidal_heating.SOLIDUS_K, tidal_heating.LIQUIDUS_K
+SOLIDUS, LIQUIDUS = 1700.0, 2200.0
+"""float: A solidus and a liquidus 500 K apart (`tidal_heating.MELT_RANGE_K`) in the middle of the box's range; the wiring passes the body's own."""
 
 MOON = (7.342e22, 1.7374e6)
 EARTH = (5.972e24, 6.371e6)
@@ -77,10 +78,10 @@ def test_a_faster_tide_is_flexed_less_dissipatively_when_the_mantle_is_warm():
 
 
 def test_partial_melt_gives_io_the_k2_over_q_its_orbital_acceleration_needs():
-    """Io at the heat-pipe melt share of 0.3: Lainey et al. 2009 find k2/Q = 0.015 +- 0.003 from its orbital acceleration (recalled); the rheology gives
-    a few hundredths with no number fitted to Io, against the fitted `tidal_heating.MOLTEN_K2_OVER_Q`."""
-    io = _rock(IO, IO_RATE, tidal_heating.HEAT_PIPE_TEMPERATURE_K)
-    assert io.k2_over_q == pytest.approx(tidal_heating.MOLTEN_K2_OVER_Q, rel=1.5)
+    """Io at 30 percent melt: Lainey et al. 2009 find k2/Q = 0.015 +- 0.003 from its orbital acceleration (recalled); the rheology gives a few
+    hundredths with no number fitted to Io (the fit `MOLTEN_K2_OVER_Q` of 0.015 is gone)."""
+    io = _rock(IO, IO_RATE, SOLIDUS + 0.3 * (LIQUIDUS - SOLIDUS))
+    assert 0.003 < io.k2_over_q < 0.1
     assert io.k2_over_q > 30.0 * _rock(IO, IO_RATE, 1500.0).k2_over_q
 
 
@@ -106,11 +107,10 @@ def test_the_maxwell_form_reproduces_henning_peak_and_the_andrade_form_fixes_its
     assert peak > 20.0 * maxwell.k2_over_q
 
 
-def test_cold_ice_gives_europa_the_k2_over_q_that_tidal_heating_uses_and_a_warm_shell_far_more():
-    """Europa's `ICY_K2_OVER_Q` is 3e-4 (tuned to its 1.4e11 W); a homogeneous ice sphere at 140 K gives it to a factor of 3, and one near its melting
-    point is a hundred times more dissipative, which is what GEN.960 puts into the shell."""
+def test_a_warm_ice_sphere_is_far_more_dissipative_than_a_cold_one():
+    """A homogeneous ice sphere of Europa's size near its melting point is a hundred times more dissipative than one at 140 K, which is what the ice shell
+    (`icy_tide`, GEN.960) integrates over its temperatures."""
     cold = tidal_rheology.ice_response(*EUROPA, EUROPA_RATE, 140.0)
-    assert cold.k2_over_q == pytest.approx(tidal_heating.ICY_K2_OVER_Q, rel=2.0)
     warm = tidal_rheology.ice_response(*EUROPA, EUROPA_RATE, 260.0)
     assert warm.k2_over_q > 100.0 * cold.k2_over_q
 
@@ -173,3 +173,10 @@ def test_the_module_imports_none_of_the_users_it_will_have():
     tree = ast.parse(inspect.getsource(tidal_rheology))
     imported = {alias.name for node in ast.walk(tree) if isinstance(node, ast.ImportFrom) for alias in node.names}
     assert imported.isdisjoint({"tidal_heating", "interior_heat", "orbit_elements", "tidal_spin"})
+
+
+def test_a_mantle_far_colder_than_any_body_does_not_overflow_and_is_elastic_with_the_cold_ceiling():
+    """A mantle at 50 K with an activation energy of 300 kJ/mol has an Arrhenius exponent over 700: its response is the elastic one."""
+    frozen = tidal_rheology.rock_response(*MOON, MONTH_RATE, 50.0, ETA0, 3.0e5, SOLIDUS, LIQUIDUS)
+    assert frozen.k2 == pytest.approx(tidal_heating.rigid_k2(*MOON), rel=0.01)
+    assert frozen.q == tidal_rheology.COLD_Q_CEILING

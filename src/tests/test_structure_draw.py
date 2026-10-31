@@ -124,6 +124,19 @@ def test_a_barred_bulge_is_a_bar_and_an_unbarred_one_is_rounder():
         assert abs(count - len(STRUCTURES) / 4.0) <= 4.0 * math.sqrt(len(STRUCTURES) * 0.25 * 0.75)
 
 
+def test_the_young_discs_height_for_a_milky_way_twin_is_inside_the_sourced_band():
+    """GEN.1182 and GEN.1188: young OB stars, HII regions, Cepheids and open clusters of the Milky Way have a scale height of
+    about 50 pc, 36 to 66 by tracer (Bobylev and Bajkova 2015 and 2016, Urquhart 2011, Bonatto 2006, Joshi 2016, Hao 2021,
+    Moreira 2025), against a 300 pc old thin disc: young over old 0.12 to 0.23. A Milky Way check, not a law for every galaxy
+    (six low-mass edge-on discs show 0.40 to 0.59, Seth 2005)."""
+    reference = galaxyStructure.REFERENCE_STRUCTURE
+    young = galaxyStructure.population_height_ratios(reference)["young"]
+    assert 0.12 <= young <= 0.23
+    assert 35.0 <= 300.0 * young <= 70.0
+    low, high = 5.0, 9.0
+    assert low <= sd.GAS_DISPERSION_KMS[0] <= high, "the CO line widths of GEN.536 span 5 to 9 km/s"
+
+
 def test_the_populations_heights_and_dispersions_come_from_one_law():
     reference = galaxyStructure.REFERENCE_STRUCTURE
     ratios = galaxyStructure.population_height_ratios(reference)

@@ -4,7 +4,7 @@
 Rings of small bodies beyond the Roche limit, and the gate against rings close to a star (GEN.1056; docs/design/systems/weird-worlds.md section 9.2, rows R4 and R9)
 =====================================================================================================================================================================
 
-Two pure functions of the rings family (`rings.py`); neither is called by the generator yet, the wiring step waits on the oddity table (GEN.1036).
+Two pure functions of the rings family (`rings.py`); `rings.apply` calls `resonance_ring` for a dwarf planet that orbits a star and has no ring from its history (GEN.1057). `ring_survives` is the same gate as `ring_origin.RING_MIN_DISTANCE_AU`.
 
 R4, a resonance ring. Quaoar has a ring at 4 100 km (7.4 of its radii, well past its Roche limit), Haumea one at 2 290 km and Chariklo two at 391 and 405 km. In each the ring's
 orbital period is close to three times the body's rotation period: Quaoar's ring is at the 1/3 spin-orbit resonance (Morgado et al. 2023) and Haumea's at the 3:1 (Ortiz et al.
@@ -134,5 +134,5 @@ def resonance_ring(mass_kg, radius_km, spin_period_h, distance_au, host_mass_kg,
     inner, outer = centre * (1.0 - width / 2.0), centre * (1.0 + width / 2.0)
     tau = rings.optical_depth(ring_mass, inner, outer, filling, ice_fraction, rings.RANGES["particle_radius_m"][NARROW])
     ring = rings.Ring(ring_kind=NARROW, ring_origin=ORIGIN, ring_inner_km=inner, ring_outer_km=outer, ring_mass_kg=ring_mass,
-                      ring_optical_depth=tau, ring_ice_fraction=ice_fraction)
+                      ring_optical_depth=tau, ring_ice_fraction=ice_fraction, ring_age_yr=None)
     return ResonanceRing(ring, RESONANCE_ORDER, centre, roche)

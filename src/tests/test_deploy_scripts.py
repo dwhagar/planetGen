@@ -634,7 +634,7 @@ def _run_reload(tmp_path, active=("apache2",), restart=0, fail=(), configtest=Tr
         fake_python.chmod(0o755)
     script = (f'source "{REPO_DIR}/scripts/deploy-common.sh"; APACHE_NEEDS_RESTART={restart}; '
               'reload_web_if_running')
-    env = dict(os.environ, PATH=f"{bin_dir}:{os.environ['PATH']}", HEALTH_WAIT_SECONDS="1")
+    env = dict(os.environ, PATH=f"{bin_dir}:{os.environ['PATH']}", HEALTH_WAIT_SECONDS="1", HEALTH_SETTLE_SECONDS="0")
     if site is not None:
         env["PYTHON"] = str(bin_dir / "fakepython")
     proc = subprocess.run(["bash", "-c", script], env=env, capture_output=True, text=True)
@@ -933,3 +933,42 @@ def test_the_update_works_out_the_cluster_system_masses_after_the_migration():
     update = (pathlib.Path(REPO_DIR) / "update.sh").read_text()
     assert update.index("migrate_or_reset_db\nrecord_version_key\nwarm_shape_means") < update.index("log_stage 6 9")
     assert "run_cli warm_shape" in (pathlib.Path(REPO_DIR) / "scripts" / "deploy-common.sh").read_text()
+
+
+def test_the_update_starts_the_warm_up_early_and_reloads_after_its_opening_phase():
+    """The warm-up starts in the background once everything it needs is in place; the reload and the health check wait
+    for its opening phase, then the probe waits for the workers to start."""
+    update = (pathlib.Path(REPO_DIR) / "update.sh").read_text()
+    common = (pathlib.Path(REPO_DIR) / "scripts" / "deploy-common.sh").read_text()
+    assert update.index("\nwarm_galaxy_map\n") < update.index("\n    wait_for_warm_opening\n") < update.index("reload_web_if_running ||")
+    assert update.index("check_app_imports") < update.index("\nwarm_galaxy_map\n")
+    assert "--opening-done" in common
+    assert 'sleep "${HEALTH_SETTLE_SECONDS:-10}"' in common
+
+
+def test_wait_for_warm_opening_returns_when_the_file_appears_or_the_warm_up_ends(tmp_path):
+    common = pathlib.Path(REPO_DIR) / "scripts" / "deploy-common.sh"
+    script = f"""
+source {common}
+WARM_OPENING_FILE={tmp_path}/opening
+sleep 30 & WARM_PID=$!
+( sleep 1; touch "$WARM_OPENING_FILE" ) &
+wait_for_warm_opening
+kill $WARM_PID
+rm -f "$WARM_OPENING_FILE"
+sleep 0.2 & WARM_PID=$!
+wait $WARM_PID
+WARM_OPENING_WAIT_SECONDS=5 wait_for_warm_opening
+"""
+    result = subprocess.run(["bash", "-c", script], capture_output=True, text=True, timeout=60)
+    assert "The opening phase is built" in result.stdout
+    assert "ended before its opening phase" in result.stderr
+
+
+def test_every_wait_in_the_update_says_what_it_waits_for_and_for_how_long():
+    """Boss, 10-30 EDT: a long step or a wait that prints nothing looks like a hang."""
+    common = (pathlib.Path(REPO_DIR) / "scripts" / "deploy-common.sh").read_text()
+    for words in ("Working out the cluster system masses", "Running the math check", "Importing the web app as",
+                  "at most $(( ${WARM_OPENING_WAIT_SECONDS:-1200} / 60 )) minutes", "Giving the workers",
+                  "asking again,", "Testing Apache's configuration, then"):
+        assert words in common, words

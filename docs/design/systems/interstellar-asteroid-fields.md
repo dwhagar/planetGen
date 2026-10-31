@@ -132,6 +132,7 @@ Column density `Sigma = M_field / (pi R(t)^2)`, falling as `t^-2`. A "dense/typi
 
 ## 6. Storage, ID and bodies
 
+* **Mass rule (GEN.1161, Boss approved 3:14 PM EDT 2026-10-31).** A field holds what the disc stretch it came from has left, by the belts' own rule, and its bodies add up to it: a supernova-unbound belt is the progenitor's belt ground for the progenitor's life (`belt_ledger.solve_belt`) and then kept; a collision field is the unbound share of the pair (`rogue_collision.unbound_fraction`); nothing is drawn from a table of typical masses. Built in `physics/field_mass.py`; `mass_total_kg` below stores its result.
 * **One row per field** (the existing `asteroid_fields` row with its 12-byte `uid`) gains: `mass_total_kg`, `seed`, `birth_age_yr` (age at the sector's epoch), `sigma_v_kms`, `shape` (ball, annulus), `origin` (S1, S2, ...), `history` text, `parent_a` and `parent_b` (mass, class, speed; text), `remnant_id` (the rogue left behind, if any), `size_law` (slope, largest-fragment mass). Units go in `db/column_units.py`.
 * **Position and size at any epoch are formulas of the row**, so the bring-to-epoch step is a pure function, with one exception (retirement, 5.2).
 * **Bodies are derived.** L1 members (mass cut rule E, floor 1e19 kg, cap 300) come from the seed: rank k has mass from the order-statistic draw, velocity from `Normal(0, sigma_v)` per component, position `x_k = v_k x age`. Stable rank by mass drawn once at birth, as the belt draw. L2 (1e15 to 1e19 kg) is drawn on demand; L3 is the tail as total mass.
@@ -213,7 +214,7 @@ Leinhardt and Stewart 2012 (arXiv:1106.6084, 1109.4588); Su et al. 2006 (arXiv:a
 | Rogues per star | `ROGUE_PLANET_RATE_PER_STAR` 5.8, flat, same in every galaxy region | flat rate | Derive from the planet architecture: count planets the architecture scatters out (GEN.728 already moves and ejects giants) per system, by star mass, metallicity and age, plus cluster stripping; the 5.8 becomes a test target against microlensing (Mroz, Johnson et al.) |
 | Mass function | one power law `dN/dlogM ~ M^-0.65`, 0.1 Earth to 13 Jupiter, four bins | fitted slope, bin edges by hand | the ejected-population mass function from the architecture's own ejections (light bodies are ejected more easily) |
 | Terrestrial floor 0.1 Earth | hard lower edge | stand-in | ejection of the oligarch chain below `PLANET_MIN_MASS_EARTH`, and the debris class below it |
-| Gas-giant threshold | `ROGUE_PLANET_GAS_GIANT_MASS_THRESHOLD_JUPITER` 0.05 | rule of thumb | derive from the envelope fraction (core mass and gas capture) |
+| Gas-giant threshold | `ROGUE_PLANET_GAS_GIANT_MASS_THRESHOLD_JUPITER` 0.031 (10 Earth masses, the bound chain's core limit, GEN.1133) | rule of thumb | derive from the envelope fraction (core mass and gas capture) |
 | Age | `ROGUE_PLANET_AGE_RANGE_GY` 0.1 to 10, uniform | default | the age of the ejecting system plus time since ejection, from the galaxy's star formation history |
 | Hydrogen envelope kept | `ROGUE_HYDROGEN_ENVELOPE_CHANCE` 0.1 / 0.5; pressure 10 to 1000 bar | defaults | the planet's own formation (nebula gas capture, GEN.8 architecture) and loss by photoevaporation before ejection |
 | Water-rich | `ROGUE_WATER_RICH_CHANCE` 0.35 / 0.8, share 1e-4 to 0.1 log-uniform | defaults | formation zone relative to the stored formation snow line of the ejecting system |

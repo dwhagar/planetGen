@@ -73,5 +73,33 @@ def test_the_draw_maps_unit_numbers_to_a_tilt():
     assert math.isclose(gt.impactor_mass_earth(URANUS_M, 1.0), 0.25 * URANUS_M)
 
 
-def test_the_rings_and_moons_lie_in_the_equator():
-    assert gt.ring_plane_tilt_deg(97.8) == 97.8
+def test_a_turn_adds_to_the_tilt_before_it_by_the_spherical_triangle():
+    """GEN.1165: from an upright planet the obliquity is the turn; with a tilt before, the azimuth of the turn sets where the axis ends."""
+    assert math.isclose(gt.combined_tilt_deg(0.0, 98.0, 0.3), 98.0)
+    assert math.isclose(gt.combined_tilt_deg(20.0, 30.0, -1.0), 50.0)
+    assert math.isclose(gt.combined_tilt_deg(20.0, 30.0, 1.0), 10.0, abs_tol=1e-9)
+    assert math.isclose(gt.combined_tilt_deg(20.0, 30.0, 0.0), math.degrees(math.acos(math.cos(math.radians(20)) * math.cos(math.radians(30)))))
+
+
+def test_only_a_giant_of_the_merger_masses_draws_a_merger_and_a_heavy_one_keeps_its_tilt(monkeypatch):
+    """GEN.1165: no draw, and the same tilt, for a giant over `MASS_RANGE_EARTH` (its spin is too large for an impact to turn); a lighter one draws."""
+    from planetgen.physics import constants
+    from planetgen.util import draw
+    calls = []
+    monkeypatch.setattr(draw, "random", lambda: calls.append("r") or 0.9)    # 0.9 over MERGER_SHARE: no merger
+    assert gt.tilt_after_merger_deg(300.0 * constants.EARTH_MASS_TO_KG, 70000.0, 17.0) == 17.0 and not calls
+    assert gt.tilt_after_merger_deg(15.0 * constants.EARTH_MASS_TO_KG, 25000.0, 17.0) == 17.0 and calls == ["r"]
+
+
+def test_a_merger_lays_an_ice_giant_on_its_side_and_the_tail_is_about_the_stand_in(monkeypatch):
+    """GEN.1165: with the merger and a grazing, massive impactor an ice giant ends over 60 degrees; over many draws the share of 5 to 30 Earth-mass giants over 60
+    degrees is about `MERGER_SHARE` times the share a merger tilts that far (the design's one in five), and a giant over the range is never turned past a Rayleigh tilt."""
+    from planetgen.physics import constants, spin
+    from planetgen.util import draw
+    draw.set_run_seed(11)
+    mass, radius_km = URANUS_M * constants.EARTH_MASS_TO_KG, URANUS_R * constants.EARTH_RADIUS_KM
+    n = 4000
+    over = sum(1 for _ in range(n) if gt.tilt_after_merger_deg(mass, radius_km, spin.rayleigh_tilt_deg()) > gt.LARGE_TILT_DEG)
+    assert 0.12 < over / n < 0.30
+    heavy = max(gt.tilt_after_merger_deg(300.0 * constants.EARTH_MASS_TO_KG, 70000.0, spin.rayleigh_tilt_deg()) for _ in range(500))
+    assert heavy < 90.0

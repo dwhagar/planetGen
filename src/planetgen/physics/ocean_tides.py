@@ -27,12 +27,27 @@ resonance, which this does not model, so it is an upper bound for an ocean that 
 
 The depth of the basin, the dissipation of the tide and non-water liquids (GEN.1035) are not here. Stand-ins are OT1, OT2 and OT6 to OT8 of
 `docs/design/research/gap-filling-plan.md` section 6.68.
+
+**The stored columns** (`FIELDS`, on `planets` and `moons`; `generate`, called where `daylight.generate` is, after the moons and the spin are final):
+
+* `tide_range_spring_m` and `tide_range_neap_m`, metres: the open-ocean equilibrium ranges above, for a body whose hydrosphere is `surface ocean` (a free
+  sea); `0` for an `ice-covered ocean` (no free surface, with the reason in `ocean_tide`); `None` for every other body (dry, vapour, ice, a brine seep, a
+  hycean world, a gas giant, a body with no spin on record).
+* `ocean_liquid`: the liquid of that sea, `water` until the surface liquid inventory (GEN.1035) names others; `None` where the tide columns are.
+
+The raisers of a planet are its star and each of its moons; those of a moon are its planet and the star (at the planet's distance). The other planets'
+tides are not counted (a planet at one astronomical unit raises on the Earth 1 percent of the Moon's). The spin sense is read against each raiser's orbit
+normal: a raiser that goes round the other way is a retrograde one for the body and can never lock it. `k2` is the interior model's
+(`_love_k2`): the homogeneous rigid-sphere figure for rock (`tidal_heating.rigid_k2`), the ice sphere's for an icy body (`icy_tide.love_k2`, GEN.960), a gas giant's `tidal_heating.GIANT_K2`.
 """
 
 import math
 from dataclasses import dataclass
 
-from planetgen.physics import constants
+from planetgen.physics import constants, icy_tide, spin, tidal_heating
+
+FIELDS = ("tide_range_spring_m", "tide_range_neap_m", "ocean_liquid")
+"""tuple: The stored columns on `planets` and `moons` (see the module text)."""
 
 H2_OVER_K2 = 5.0 / 3.0
 """float: `h2 / k2` of a homogeneous incompressible elastic sphere (Love 1909), used when only `k2` of the interior model is known. The Earth's measured values (0.61 and 0.30) give 2.0, so
@@ -161,3 +176,68 @@ def ocean_tide(body_mass_kg, body_radius_m, spin_rate_rad_s, raisers, k2, liquid
     else:
         neap_min = moving[0].range_farthest_m if moving else 0.0
     return OceanTide(liquid, love, loading, tuple(tides), spring, neap, spring_max, neap_min)
+
+
+# --- The stored columns ------------------------------------------------------------------------------------------
+
+def _liquid_of(body):
+    """The liquid of the body's sea: water until the surface liquid inventory (GEN.1035) says otherwise."""
+    return WATER
+
+
+def _axis(body):
+    axis = tuple(getattr(body, name, None) for name in ("spin_axis_x", "spin_axis_y", "spin_axis_z"))
+    return None if any(value is None for value in axis) else axis
+
+
+def _normal(body):
+    return spin.orbit_normal(getattr(body, "orbital_inclination_deg", None) or 0.0, getattr(body, "orbital_ascending_node_deg", None) or 0.0)
+
+
+def _retrograde(axis, normal):
+    """Whether an orbit with this normal goes round the other way from the spin about `axis`."""
+    return sum(a * n for a, n in zip(axis, normal)) < 0.0
+
+
+def _love_k2(body, mass, radius_m, rate):
+    """The Love number `k2` of the body whose sea is raised: a gas giant's fixed one, an icy body's from its ice sphere at the body's spin rate, else a rocky sphere's rigid one."""
+    if getattr(body, "body_type", None) == "g":
+        return tidal_heating.GIANT_K2
+    if tidal_heating.is_icy(body):
+        return icy_tide.love_k2(mass, radius_m, rate)
+    return tidal_heating.rigid_k2(mass, radius_m)
+
+
+def compute(body, parent=None):
+    """
+    The `FIELDS` of a planet or moon as a dict (`parent` the planet a moon orbits): a `surface ocean` gets its spring and neap ranges and its liquid, an
+    `ice-covered ocean` zero ranges, any other body `None`. Pure: no draws.
+    """
+    out = dict.fromkeys(FIELDS)
+    hydrosphere = getattr(body, "hydrosphere", None)
+    star = getattr(body, "star", None)
+    rotation = getattr(body, "rotation_period_hours", None)
+    axis = _axis(body)
+    if hydrosphere not in ("surface ocean", "ice-covered ocean") or star is None or not rotation or rotation <= 0.0 or axis is None:
+        return out
+    mass, radius_m = body.mass, body.radius * 1000.0
+    host = parent if parent is not None else body
+    rate = 2.0 * math.pi / (rotation * 3600.0)
+    raisers = [Raiser.of(getattr(star, "name", None) or "star", star.mass, host.distance * constants.AU_TO_M, mass, getattr(host, "eccentricity", 0.0) or 0.0,
+                         _retrograde(axis, _normal(host)))]
+    if parent is not None:
+        raisers.append(Raiser.of("planet", parent.mass, body.distance * constants.AU_TO_M, mass, getattr(body, "eccentricity", 0.0) or 0.0,
+                                 _retrograde(axis, _normal(body))))
+    for moon in getattr(body, "moons", None) or ():
+        raisers.append(Raiser.of("moon", moon.mass, moon.distance * constants.AU_TO_M, mass, getattr(moon, "eccentricity", 0.0) or 0.0,
+                                 _retrograde(axis, _normal(moon))))
+    liquid = _liquid_of(body)
+    tide = ocean_tide(mass, radius_m, rate, raisers, _love_k2(body, mass, radius_m, rate), liquid, ice_covered=hydrosphere == "ice-covered ocean")
+    out["tide_range_spring_m"], out["tide_range_neap_m"], out["ocean_liquid"] = tide.spring_range_m, tide.neap_range_m, liquid.name
+    return out
+
+
+def generate(body, parent=None):
+    """Sets `FIELDS` on a planet or moon (`parent` the planet a moon orbits)."""
+    for name, value in compute(body, parent).items():
+        setattr(body, name, value)

@@ -36,6 +36,7 @@ import numpy as np
 
 from planetgen import tuning
 from planetgen.generation import multistar
+from planetgen.util import detmath
 from planetgen.generation.phenomena import hosts
 from planetgen.physics import imf, mass_boundaries
 
@@ -83,7 +84,8 @@ def _solve():
         share = np.where(width[i:] > 1.0e-12, np.maximum(0.0, upper - lower) / np.maximum(width[i:], 1.0e-12),
                          ((high[i:] >= edges[i]) & (high[i:] < edges[i + 1])).astype(float))
         own = n_c[i] * share[0]
-        from_heavier = float(np.dot(primaries[i + 1:], n_c[i + 1:] * share[1:]))
+        heavier = n_c[i + 1:] * share[1:]
+        from_heavier = float(detmath.matmul(primaries[i + 1:], heavier[:, None])[0]) if heavier.size else 0.0
         primaries[i] = max(0.0, (born[i] - from_heavier) / (1.0 + own))
     return edges, primaries
 

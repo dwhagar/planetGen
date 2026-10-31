@@ -273,11 +273,6 @@ def log_carbon_monoxide_time(temperature_k, pressure_bar, metallicity):
     return -float(np.logaddexp(-log_t1, -log_t2))
 
 
-def carbon_monoxide_time_s(temperature_k, pressure_bar, metallicity):
-    """The chemical time of the CO to CH4 conversion, s (`log_carbon_monoxide_time`)."""
-    return math.exp(log_carbon_monoxide_time(temperature_k, pressure_bar, metallicity))
-
-
 def mixing_time_s(temperature_k, mean_molar_mass, gravity, kzz_cm2_s):
     """The time to mix one scale height, s: `H^2 / Kzz` with `H = R T / (M g)`."""
     scale_height = constants.R * temperature_k / (mean_molar_mass * gravity)

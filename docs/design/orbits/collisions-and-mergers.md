@@ -421,7 +421,7 @@ interstellar medium a few thousand years later [C].
 ### 5.1 The rule and the outcome table
 
 Kinds: T (rocky or icy rogue below `ROGUE_PLANET_GAS_GIANT_MASS_THRESHOLD_JUPITER`,
-0.05 Mjup, about 16 Earth masses), G (gas giant, 0.05 to 13 Mjup, Saturn and
+0.031 Mjup, 10 Earth masses), G (giant, 0.031 to 13 Mjup: ice giants to 30 Earth masses, then the Saturn and
 Jupiter bins), B (brown dwarf, 13 to 80 Mjup), S (star), X (neutron star or
 black hole). Compute v_inf from the stored velocities, v_esc at contact, v_imp =
 sqrt(v_inf^2 + v_esc^2), b from the swept geometry (impact parameter over R1 +

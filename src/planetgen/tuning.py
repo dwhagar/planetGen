@@ -32,6 +32,8 @@ from planetgen.physics import mass_boundaries as _boundaries
 from planetgen.physics import unit_registry as units
 
 _myr_to_gyr = units.converter("Myr", "Gyr")
+_mearth_to_kg = units.converter("Mearth", "kg")
+_kg_to_mjup = units.converter("kg", "Mjup")
 
 # --- Generation directives (GEN.96, GEN.180) ---
 DIRECTIVE_ATTEMPTS = 200
@@ -925,20 +927,21 @@ STAR_MODEL_MAX_REDRAWS = 1000
 # GIANT_ENGULFMENT_RADIUS_FACTOR times its present radius (tidal capture
 # reaches a few stellar radii), and a white dwarf's progenitor, on its
 # asymptotic giant branch, engulfed or drove off everything inside
-# WD_ENGULFMENT_BASE_AU + WD_ENGULFMENT_AU_PER_PROGENITOR_MSUN * (M - 1) AU
-# for a progenitor of M solar masses (GEN.318, docs/design/systems/
-# exotic-environments-planets-and-compact-binaries.md 1.2: 1.5 AU for a
-# solar-mass star, as the generator had it, growing with the progenitor's
-# size). A white dwarf without a model progenitor mass (a forced type, a
-# planetary nebula's central star) takes the mass that leaves it
+# the distance a lookup through WD_ENGULFMENT_POINTS_AU gives for a progenitor
+# of M solar masses (GEN.1012, GM1/GM2: the three Jovian-planet points of
+# Mustill and Villaver 2012, ApJ 761, 121, Figure 7, with their Zahn tides:
+# 2.7 AU for a solar-mass star, 3.8 AU at 2.5 and 10 AU at 5; straight lines
+# between them, the last slope carried on to 8). A white dwarf without a
+# model progenitor mass (a forced type, a planetary nebula's central star)
+# takes the mass that leaves it
 # (WHITE_DWARF_REMNANT_MASS_SOL inverted), kept inside
 # WD_PROGENITOR_MASS_RANGE_SOL: nothing under a solar mass has had time to
 # become one, and above 8 the relation hands over to neutron stars.
 PLANET_MIN_STAR_AGE_GY = 0.01
 LIFE_MIN_STAR_AGE_GY = 0.1
 GIANT_ENGULFMENT_RADIUS_FACTOR = 2.0
-WD_ENGULFMENT_BASE_AU = 1.5
-WD_ENGULFMENT_AU_PER_PROGENITOR_MSUN = 0.8
+WD_ENGULFMENT_POINTS_AU = ((1.0, 2.7), (2.5, 3.8), (5.0, 10.0))
+"""tuple: `(progenitor solar masses, AU)` points of the engulfment radius, Mustill and Villaver 2012 (Jovian planets). Source tier T3, tweak level L1 (GM1, GM2)."""
 WD_PROGENITOR_MASS_RANGE_SOL = (1.0, _boundaries.sol("core_collapse_limit"))
 
 # A planetary nebula's central star is a close pair in PLANETARY_NEBULA_COMPANION_CHANCE of nebulae (a post-common-envelope
@@ -1097,8 +1100,11 @@ PROTOSTAR_MULTIPLICITY_BY_CLASS = {"0": 0.57, "I": 0.23}
 # history's last 3 Gy), and `satellite` is the rest, 3 Gy to the age of the Universe. The nuclear
 # populations (GEN.280) are windows with the mean ages of the observed mixes (the cluster 80% 5 to 12 Gyr and 20%
 # 0.1 to 5, a mean of 7.3 Gyr; the disc 70% 8 to 12 and 30% 0 to 8, a mean of 8.2) [recalled, to verify].
+THIN_DISC_OLD_WINDOW_GY = (3.0, 10.0)
+"""tuple: The thin disc's share of the `old` population's ages (GEN.1025): the thin disc's own history ends at 10 Gy, so its law, its
+share of the disc, its heating and its arm contrast keep this window while `old` itself reaches the thick disc's 13."""
 STELLAR_POPULATION_AGE_RANGES_GY = {
-    "young": (0.0, 0.1), "intermediate": (0.1, 3.0), "old": (3.0, 10.0), "bulge": (8.0, 12.0),
+    "young": (0.0, 0.1), "intermediate": (0.1, 3.0), "old": (3.0, 13.0), "bulge": (8.0, 12.0),
     "halo": (10.0, 13.0), "cluster": (10.0, 13.0), "satellite": (3.0, 13.0),
     "nuclear_cluster": (3.0, 12.0), "nuclear_disc": (4.0, 12.0),
     "satellite_young": (0.0, 0.1), "satellite_intermediate": (0.1, 3.0),
@@ -1150,8 +1156,8 @@ def _stellar_population_arm_amplitudes():
     contrasts of A and F stars, between the two, are not published as a number)."""
     young = _arm_amplitude(ARM_GAS_TO_INTERARM_RATIO ** STAR_FORMATION_LAW_EXPONENT)
     old = ARM_CONTRAST_OLD_DISK
-    ages = {name: _math.sqrt(STELLAR_POPULATION_AGE_RANGES_GY[name][0] * STELLAR_POPULATION_AGE_RANGES_GY[name][1])
-            for name in ("intermediate", "old")}
+    windows = {"intermediate": STELLAR_POPULATION_AGE_RANGES_GY["intermediate"], "old": THIN_DISC_OLD_WINDOW_GY}
+    ages = {name: _math.sqrt(window[0] * window[1]) for name, window in windows.items()}
     span = _math.log(ages["old"] / ARM_CONTRAST_AGE_YOUNG_GY)
     fraction = _math.log(ages["intermediate"] / ARM_CONTRAST_AGE_YOUNG_GY) / span
     return {"young": young, "intermediate": young + (old - young) * fraction, "old": old}
@@ -1232,7 +1238,10 @@ METALLICITY_DISC_FALL_DEX_PER_KPC = 0.06
 METALLICITY_BY_POPULATION = {
     "young": {"offset": 0.0, "sigma": 0.10, "gradient": True},
     "intermediate": {"offset": 0.0, "sigma": 0.15, "gradient": True},
-    "old": {"offset": -0.2, "sigma": 0.25, "gradient": True},
+    # GEN.1025: the old population's ages run 3 to 13 Gyr now (the thick disc's 8 to 13 Gy added), and the relation's mix over that window averages 0.125 dex
+    # lower than over 3 to 10 Gy (-0.255 against -0.130, `age_metallicity`); the offset was -0.2 and is -0.325 so the population's [Fe/H] is still the
+    # relation's mix over its window and the age tilt does not crowd it toward the young. [Stand-in, tier T6, tweak L2: tuned to the relation.]
+    "old": {"offset": -0.325, "sigma": 0.25, "gradient": True},
     "bulge": {"offset": -0.05, "sigma": 0.40, "gradient": False},
     # The nuclear cluster and disc are metal rich, +0.1 to +0.3 [recalled, GEN.280], and the cluster's spread is broad.
     "nuclear_cluster": {"offset": 0.20, "sigma": 0.40, "gradient": False},
@@ -1275,6 +1284,12 @@ STELLAR_THICK_START_GY = 8.0
 thick disc formed from about 13 to about 8 Gy ago, the age scale uncertain by 1 to 1.5 Gy; Boss's papers); range 6.5 to
 9.5. The first draft's 3.0 was the project's intermediate/old boundary and the paper contradicts it (Boss approved
 8.0, 2026-10-17)."""
+
+THICK_DISC_AGE_RANGE_GY = (STELLAR_THICK_START_GY, 13.0)
+"""tuple: The ages, Gy, over which the thick disc formed its stars: from where its branch starts (`STELLAR_THICK_START_GY`) to the oldest the old
+population holds (GEN.1025, `galaxy.thick_ages`). [Stand-in TD1, tier T3, tweak L0: Haywood et al. 2013 (the thick disc formed from about 13 to
+about 8 Gy ago).]"""
+
 STELLAR_HIGH_ALPHA_LOGISTIC = (-0.350, 0.132)
 """tuple: `(f0, w)`: P(high-alpha) = 1 / (1 + exp(([Fe/H] - f0) / w)) for a star old enough to be thick-disc (Bensby, Feltzing
 and Oey 2014, fit to the chemically high-alpha fraction; their paper is not in the repository's papers, so partly verified)."""
@@ -1553,6 +1568,48 @@ review gives the ring at 100 to 200 pc, so these are placeholders tied to the nu
 CORE_STAR_FORMATION_SPAN_GY = 1.0
 """float: How long the ring is taken to have formed stars at its present rate (open clusters of the ring are drawn over
 this span; the review has the rate constant for at least 5 Myr and 0.09 over 100 Myr) [placeholder]."""
+CORE_RING_GAS_RESIDENCE_MYR = 50.0
+"""float: How long the gas the bar brings stays in the central ring, Myr: the ring's gas is the inflow times this, over the ring's
+area its gas surface density (`galaxy.core_gas`, GEN.1195). The Milky Way's ring holds about 4e7 solar masses of gas (recalled,
+2e7 to 6e7) against the inflow of 0.8 a year [stand-in, one galaxy; the mass of gas of the ring is the sourced quantity]."""
+
+# The most massive cluster a ring can form and the clouds that disrupt it (GEN.1195, `physics/cluster_maximum_mass.py`,
+# `physics/open_cluster_evolution.cloud_shock_mass_lost_sol`). The maximum is Reina-Campos and Kruijssen 2017 (MNRAS 469,
+# 1282, arXiv:1704.00732, read Eqs 1 to 11, section 5 and footnote 9): `M_cl,max = eps Gamma M_T f_coll`, with the Toomre
+# mass `M_T = 4 pi^5 G^2 Sigma_g^3 / kappa^4` and the collapsed fraction `min(1, t_fb / t_ff,2D) ** 4`.
+CLUSTER_MAX_MASS_EFFICIENCY = 0.1
+"""float: The star formation efficiency of a collapsing cloud (`eps`, Eq 10; Lada and Lada 2003 give 0.1 to 0.3 for embedded
+clusters, 0.03 to 0.06 for nearby clouds; the paper takes 0.1 and a factor of three either way)."""
+CLUSTER_MAX_MASS_CEILING_SOL = 1.0e5
+"""float: A hard ceiling on the maximum cluster mass of a ring: the most massive cluster seen in the Milky Way's central ring
+implies a maximum of a few 1e4 and "certainly under 1e5" (Reina-Campos and Kruijssen 2017, footnote 9, by the size-of-sample
+argument of Gieles 2009) [guard: the relation goes as Sigma_g cubed, so a factor of two in the gas is a factor of eight]."""
+CORE_RING_GAS_DISPERSION_KMS = 5.0
+DISC_GAS_DISPERSION_KMS = 10.0
+"""float: The one-dimensional velocity dispersion of the gas of the central ring (5 km/s, Henshaw et al. 2016) and of a disc
+(10 km/s, Heiles and Troland 2003), the values Reina-Campos and Kruijssen 2017 take for the Milky Way (Section 4.1); it sets
+the Toomre parameter `Q = kappa sigma / (pi G Sigma_g)` (Eq 5) [stand-in: one galaxy's values for every galaxy]."""
+CLUSTER_FEEDBACK_FIRST_SUPERNOVA_MYR = 3.0
+CLUSTER_FEEDBACK_ENERGY_RATE_CM2_S3 = 0.16
+CLUSTER_STAR_FORMATION_PER_FREE_FALL = 0.012
+CLUSTER_MIDPLANE_GRAVITY_FACTOR = 3.0
+"""The feedback time of Eq 4 to 7: the time of the first supernova (3 Myr), the energy injection rate per unit stellar mass
+(0.16 cm2 s-3), the star formation per free-fall time of the gas (0.012; Elmegreen 2002, Krumholz et al. 2012) and the factor
+for the gravity of the stars in the mid-plane density (`phi_P` = 3)."""
+CLUSTER_SHOCK_GIELES_COEFFICIENT_GYR = 2.0
+CLUSTER_SHOCK_GIELES_NUMERATOR = 5.1
+CLUSTER_SHOCK_REFERENCE_MASS_SOL = 1.0e4
+CLUSTER_SHOCK_REFERENCE_RADIUS_PC = 3.75
+"""Disruption by passing molecular clouds (Gieles et al. 2006, MNRAS 371, 793, arXiv:astro-ph/0606451, Eq 24):
+`t_dis = 2.0 S (M / 1e4) (3.75 pc / r_h) ** 3` Gyr with `S = 5.1 / (Sigma_n rho_n)`, `Sigma_n` the surface density of the
+clouds and `rho_n` their density (5.1 is the solar neighbourhood's 170 times 0.03 as the paper writes it)."""
+CORE_RING_CLOUD_SURFACE_DENSITY_MSUN_PC2 = 5.0e3
+CORE_RING_CLOUD_DENSITY_MSUN_PC3 = 150.0
+"""float: The clouds of the central ring that disrupt its clusters: the Brick, the template cloud, at 5e3 solar masses per pc2,
+and the mean molecular density of the ring at 150 solar masses per pc3 (Kruijssen et al. 2014, MNRAS 440, 3370, arXiv:1303.6286,
+sections 3.1.2.6 and 3.1.3: 5.7 Myr for a cluster of 1e4 solar masses and half-mass radius 0.5 pc; they call it an upper
+limit of the disruptive potential, and the ring's own density from the generated ring is 17, a factor of nine lower)
+[stand-in: one template cloud for every galaxy]."""
 # The bar's long axis leads the Sun-center line by an angle drawn from the seed (`galaxy.structure_draw.draw_bar`);
 # the Milky Way's is 27 degrees (its near end at positive galactic longitude; Wegg & Gerhard 2013, BHG16: 28-33).
 
@@ -1620,6 +1677,11 @@ STAR_FORMATION_LAW_COEFFICIENT = 2.5e-4
 """float: The Schmidt-Kennicutt law's coefficient: the star formation rate per area is this times the gas per area (solar
 masses per pc2) to `STAR_FORMATION_LAW_EXPONENT`, in solar masses per year per kpc2 (Kennicutt 1998, ApJ 498, 541, eq. 4:
 (2.5 +/- 0.7) e-4, read in arXiv astro-ph/9712213)."""
+SATELLITE_GAS_TO_STELLAR_SCALE_LENGTH_RATIO = 1.8
+"""float: A satellite's gas disc scale length over its stars' (GEN.1192). The HI of a late-type dwarf reaches 1.8 +/- 0.8 times
+the optical diameter, the extent defined as 6.4 disc scale lengths (Swaters et al. 2002, A&A 390, 829, arXiv astro-ph/0204525,
+abstract read); the extent ratio is read as the scale length ratio [I], and the Clouds' gas (Large Cloud 4.8e8 solar masses,
+Staveley-Smith et al. 2003, MNRAS 339, 87, arXiv astro-ph/0210501, abstract read) is the check, within a factor of 2.5."""
 SATELLITE_STAR_FORMATION_THRESHOLD_MSUN_PC2 = 3.0
 """float: The gas surface density below which a satellite forms no stars, solar masses per pc2. Schaye (2004, ApJ 609,
 667, read in arXiv astro-ph/0205125) puts the empirical threshold at 3 to 10 and the point where the gas turns cold
@@ -1925,7 +1987,7 @@ momentum loss of a main-sequence donor and the expansion of a giant)."""
 # The chance of a companion inside 10 AU against the star's own [Fe/H] (GEN.103; Boss, 2026-10-16, 6:12 to 6:15 PM
 # EDT: one pooled trend, every star mass). Moe, Kratter & Badenes 2019, ApJ 875:61 (arXiv 1808.02116), for solar-type
 # primaries (0.6 to 1.5 Msun, periods under 10^4 d): 53 +-12% at [Fe/H] -3.0, 40 +-6% at -1.0, 24 +-4% at -0.2 and
-# 10 +-3% at +0.5. `generation.place_terms.close_companion_factor` reads the straight line through them, held flat
+# 10 +-3% at +0.5. `generation.close_binary_trend.close_companion_factor` reads the straight line through them, held flat
 # past the ends, as `F(fe_h) / F(0)` on the odds of the generator's own close share (Boss, 2026-10-16: the odds, not the chance). The errors are reference values for the check
 # (TEST.196), not inputs.
 CLOSE_BINARY_FRACTION_BY_FE_H = {-3.0: 0.53, -1.0: 0.40, -0.2: 0.24, 0.5: 0.10}
@@ -1983,8 +2045,8 @@ PLANET_CLASSES = {
         "type": 't',
     },
     'E': {
-        "description": 'a world with a molten core and crust',
-        "composition": 'silicon, iron, and magnesium',
+        "description": 'a deep-frozen world',
+        "composition": 'silicon, iron, magnesium, and ice',
         "type": 't',
     },
     'F': {
@@ -2042,11 +2104,6 @@ PLANET_CLASSES = {
         "composition": 'silicon, iron, magnesium, and ice',
         "type": 't',
     },
-    'Q': {
-        "description": 'a world with an eccentric orbit and extreme temperature variations',
-        "composition": 'silicon, iron, and magnesium',
-        "type": 't',
-    },
     'S': {
         "description": 'a barren, rocky Super-Earth, its surface molten when it orbits close to its star',
         "composition": 'silicate rock over a large iron core',
@@ -2056,6 +2113,7 @@ PLANET_CLASSES = {
         "description": 'a gas dwarf with a thick atmosphere',
         "composition": 'hydrogen, helium, and hydrocarbons',
         "type": 'g',
+        "also_type": 't',       # GEN.1142: a terrestrial-kind body under about 10 Earth masses with a hydrogen-dominated air is a gas dwarf too
     },
     'V': {
         "description": 'a Super-Earth with high gravity',
@@ -2068,59 +2126,9 @@ PLANET_CLASSES = {
 # --- Life Data ---
 # What lives on a world is a life class (`physics/data/life_classes.json`, GEN.889), drawn from the conditions the world stores.
 
-# Main-sequence lifespan ranges, derived from t = 10 Gy * (M/Msun)^-2.5 (the
-# standard mass-luminosity-based lifetime scaling, anchored to the Sun at 1
-# Msun/10 Gy) applied to each spectral class's real mass range (O: >=16 Msun,
-# B: 2.1-16, A: 1.4-2.1, F: 1.04-1.4, G: 0.8-1.04, K: 0.45-0.8, M: 0.08-0.45
-# Msun -- the same boundaries implied by SPECTRAL_LUMINOSITY_RANGES). Each
-# class's range now meets its neighbors' at the shared mass boundary instead
-# of jumping (the previous table, e.g., capped A at 1.0 Gy while F started at
-# 2.0 Gy, silently skipping the ~1.5-2.3 Gy lifespans of real late-A stars).
-# O keeps a literature-cited floor (~1-10 Myr) rather than extrapolating the
-# power law out to 150 Msun, which understates real mass-loss effects at
-# extreme masses and would predict lifespans of only tens of thousands of
-# years for the most massive O stars -- shorter than any observed star.
-STAR_EVOLUTION = {
-    "O": {
-        "lifespan_gy": (0.001, 0.01), # 1 Million - 10 Million years
-        "supported_evolutionary_scales": ["fast"],
-        "evolutionary_constraint_notes": "It burns out and explodes before planets can cool enough to hold oceans, so only the simplest light-driven chemistry could arise."
-    },
-    "B": {
-        "lifespan_gy": (0.01, 1.5), # 10 Million - 1.5 Billion years
-        "supported_evolutionary_scales": ["fast"],
-        "evolutionary_constraint_notes": "It is volatile and short-lived, which leaves barely enough time for a planet to cool and for single-celled life to appear."
-    },
-    "A": {
-        "lifespan_gy": (1.5, 4.3), # 1.5 Billion - 4.3 Billion years
-        "supported_evolutionary_scales": ["fast", "normal"],
-        "evolutionary_constraint_notes": "It lasts long enough for early biospheres and radiation-tolerant life, but probably not for slow, complex photosynthesis to mature."
-    },
-    "F": {
-        "lifespan_gy": (4.3, 9.1), # 4.3 Billion - 9.1 Billion years
-        "supported_evolutionary_scales": ["fast", "normal", "slow"],
-        "evolutionary_constraint_notes": "It lasts long enough for complex biospheres to emerge, including UV shielding and fluorescent adaptations."
-    },
-    "G": {
-        "lifespan_gy": (9.1, 17.5), # 9.1 Billion - 17.5 Billion years
-        "supported_evolutionary_scales": ["fast", "normal", "slow"],
-        "evolutionary_constraint_notes": "It is steady for a long time, which suits the slow evolution of complex, oxygen-making photosynthesis."
-    },
-    "K": {
-        "lifespan_gy": (17.5, 73.5), # 17.5 Billion - 73.5 Billion years
-        "supported_evolutionary_scales": ["fast", "normal", "slow"],
-        "evolutionary_constraint_notes": "It is very stable and lives for tens of billions of years, so slow-evolving biospheres can reach a climax and adapt to its slight red shift."
-    },
-    "M": {
-        "lifespan_gy": (73.5, 5500.0), # 73.5 Billion - 5.5 Trillion years
-        "supported_evolutionary_scales": ["fast", "normal", "slow"],
-        "evolutionary_constraint_notes": "Early flares demand quick adaptation, such as radiotrophic melanin, but trillions of years of stability let deep-infrared photosynthesis last for good."
-    }
-}
-
 # Not a world's schedule since GEN.750: a world draws its own five ages (`physics.life_timeline`, `LIFE_STEP_MEANS_GYR`). This table
-# names the three paces (the words `life_facts.pace_label` writes), gives the star-level helpers their lifespan classes
-# (`stellar_object.get_star_evolutionary_profile`, `age_needs`) and is what migration 0156 read to fill the ages of an older database.
+# names the three paces (the words `life_facts.pace_label` writes), gives the star-level helpers the paces a star's lifespan allows
+# (`stellar_object.supported_evolutionary_scales`, `age_needs`; GEN.942) and is what migration 0156 read to fill the ages of an older database.
 EVOLUTIONARY_TIMELINES = {
     "normal": { # Changed from "norm" to "normal" for consistency
         "star_lifespan": 10.0, # Billion Years
@@ -2153,7 +2161,7 @@ EVOLUTIONARY_PACE_LABELS = {"fast": "hyper-accelerated", "normal": "standard", "
 table, so a page is written from a world's stored pace and needs no table of ages)."""
 
 # --- Planet Generation Specific Constants ---
-HABITABLE_PLANET_CLASSES = ['E', 'F', 'G', 'H', 'K', 'L', 'M', 'O', 'P', 'Q', 'V']
+HABITABLE_PLANET_CLASSES = ['E', 'F', 'G', 'H', 'K', 'L', 'M', 'O', 'P', 'V']
 """
 list: A list of planet class codes that are considered habitable.
 """
@@ -2986,12 +2994,13 @@ ROGUE_TOPUP_PLACEMENT = 1.0
 """float: The share of the sector's edge, centred on the sector, inside which the top-up places a rogue uniformly (1 is the whole sector). Boss wants to play with it
 (`region-object-store.md` 8.5). Source tier T9, tweak level L3 (GEN.725 row 6.86:RT2)."""
 
-# Above this mass (in Jupiter masses, ~16 Earth masses), a generated rogue
-# planet is treated as a gas giant rather than terrestrial -- roughly
-# where the solar system's own ice giants (Uranus ~14.5, Neptune ~17
-# Earth masses) sit, a common rough dividing line between rocky/icy
-# terrestrial-scale bodies and volatile-dominated giants.
-ROGUE_PLANET_GAS_GIANT_MASS_THRESHOLD_JUPITER = 0.05
+# Above this mass (in Jupiter masses, 10 Earth masses), a generated rogue planet is a giant rather than terrestrial: the mass
+# a core must reach to hold a hydrogen and helium envelope (`GIANT_CORE_CRITICAL_MASS_EARTH`), so a rogue is a giant exactly where
+# a bound planet is (GEN.1133; a bound rocky planet never passes it, and a rogue's rock does not either). Between this and
+# `GIANT_RUNAWAY_MIN_MASS_EARTH` it is an ice giant (class I by its conditions); the rogue's old line of 0.05 (about 16 Earth masses,
+# "where the Solar System's ice giants sit") let 10 to 16 Earth-mass rock come out at up to 17,600 km, past class S.
+ROGUE_PLANET_GAS_GIANT_MASS_THRESHOLD_JUPITER = (
+    _kg_to_mjup(_mearth_to_kg(GIANT_CORE_CRITICAL_MASS_EARTH)))
 
 # --- Rogue planet surface conditions (rogueSurface; Boss's research,
 # 2026-10-01: Stevenson 1999, Burrows et al. 2001, Guillot 2005, Abbot &
@@ -3033,10 +3042,6 @@ RADIOGENIC_K_DEPLETION_RANGE = (0.03, 1.0)
 inside it; the range itself is a placeholder tied to the large K differences of Solar System bodies (Nimmo et al. 2020), not a measured
 spread (radiation-model.md R15, part E 3.3)."""
 
-RADIOGENIC_AL26_FACTOR_RANGE = (0.1, 10.0)
-"""tuple: The 26Al/27Al at formation over the Solar System's 5.23e-5, drawn log-uniformly (Lichtenberg et al. 2019). A stand-in until
-GEN.476 derives it from the star's formation environment."""
-
 INTERIOR_VISCOSITY_PREFACTOR_RANGE_PA_S = (2.6e10, 5.3e13)
 """tuple: The mantle viscosity prefactor `eta0` of `eta = eta0 exp(Ea / R T)`, Pa s, drawn uniformly: the bounds Guimond, Rudge and
 Shorttle 2022 take (arXiv:2201.05636 section 2.2.3; READ), wet olivine's 1.6e11 Karato and Wu 1993 less an order of magnitude to dry
@@ -3073,12 +3078,6 @@ ROGUE_NEPTUNE_INTERNAL_TEMPERATURE_K = 53.0
 """float: Neptune's internal temperature (Pearl & Conrath 1991). With
 Jupiter it fixes how a sub-Jupiter giant's heat scales with mass
 (L ~ M^1.65)."""
-
-ROGUE_MAX_EFFECTIVE_TEMPERATURE_K = 2800.0
-"""float: The hottest a rogue gets. The cooling law above assumes an old,
-shrunken body; a brown dwarf younger than a few hundred million years is
-still puffed up, so the law (with today's radius) overshoots. Young brown
-dwarfs near the hydrogen-burning limit are late-M dwarfs, ~2,800 K."""
 
 # Brown dwarfs as stars (GEN.252, GEN.549, GEN.948, docs/design/systems/brown-dwarf-state.md): the cooling track (the Baraffe table,
 # `datasets/baraffe_isochrones.py`), the mass function and the map from temperature to spectral type.
@@ -3763,6 +3762,17 @@ BLACK_HOLE_FAILED_SHARE_METAL_FREE_RANGE = (0.15, 0.32)
 """tuple: The same share for a metal-free population, 15% (O'Connor and Ott 2011) to 32% (Ebinger et al. 2020's
 highest; Sukhbold et al. give solar only). Drawn uniform over the range, cut at the neutron star budget and not below
 the galaxy's solar share. GEN.563."""
+
+REFERENCE_BLACK_HOLE_DRAWS = (0.55, 0.5)
+"""tuple: The two uniform draws (solar share first, then metal-free) of a galaxy built with no seed, the reference structure that
+stands for the Milky Way (`physics.black_hole_formation.reference_failed_shares`). The metal-free draw is the middle of its range.
+The solar draw was the middle (0.5) until the halo of the 5e10 solar masses of stars got lighter (GEN.1154: 1.6e12 against 2.0e12
+solar masses), which lifted the neutron stars' unbound share from 0.159 to 0.208, cut the black hole budget (`share_cap`) from 0.35
+to 0.32 and so the middle share from 0.175 to 0.161: 9.3e7 black holes in a galaxy of 5e10 solar masses of stars, under the 1e8 to 1e9
+of the older estimates Olejak et al. 2020 list (their own count is 1.3e8). 0.55 gives a share of 0.177 (0.175 before) and 1.02e8, back
+inside that range at its low edge, and keeps the second moment the design note records (the draw that would give Olejak's 1.3e8,
+0.70, moves that moment by 13 percent). A stand-in tuned to the edge of one published range (tier T1, level L2, row BR1 of the registry,
+GEN.725)."""
 
 BLACK_HOLE_FORMED_MASS_STEPS = 64
 BLACK_HOLE_FORMED_AGE_STEPS = 64

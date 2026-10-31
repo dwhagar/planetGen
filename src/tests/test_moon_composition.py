@@ -207,7 +207,8 @@ def test_generated_moons_draw_their_origin_first_and_the_orbit_follows_from_it()
 def _disk_ice_sides(moons):
     """`(near, far)`: the disk moons formed under a third of their disk's ice line and past one and a half times it."""
     disk = [moon for moon in moons if moon.moon_origin == "disk"]
-    ratio = lambda moon: moon.distance * 1.495978707e8 / moon.moon_disk_system.ice_line_km
+    # a moon's makeup is set where it formed (`_birth_distance_au`); the tide has since moved it (`moon_history`, GEN.959)
+    ratio = lambda moon: moon._birth_distance_au * 1.495978707e8 / moon.moon_disk_system.ice_line_km
     return [m for m in disk if ratio(m) < 0.3], [m for m in disk if ratio(m) > 1.5]
 
 
@@ -229,7 +230,7 @@ def generated_moons():
             system = StarSystem(system_config=config)
             for planet in system.planets:
                 if planet.body_type != "a":
-                    moons.extend(planet.moons)
+                    moons.extend(getattr(planet, "_born_moons", None) or planet.moons)      # the moons as generated: the tide has since removed some (GEN.959)
     return moons
 
 

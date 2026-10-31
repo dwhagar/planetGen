@@ -693,7 +693,7 @@ def add_sectors_arguments(parser):
                                  "81, 27, 9 or 3). Sectors are generated shell by shell outward, with "
                                  "the same progress and cancel as the other modes.")
     mode_group.add_argument('--around', type=finite_float, nargs=3, metavar=('X', 'Y', 'Z'),
-                            help="Region mode (GEN.1128): generate every not-yet-generated sector a sphere of --radius-pc touches, "
+                            help="Region mode: generate every not-yet-generated sector a sphere of --radius-pc touches, "
                                  "centred on this point (parsecs from the galactic centre), nearest first, in units of at most "
                                  "--unit-sectors consecutive wedges of one shell and band. The same seed gives the same sectors "
                                  "whatever the point, the radius or the order regions are run in. Rerun it after a stop: charted "

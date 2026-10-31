@@ -10,7 +10,7 @@ from planetgen.galaxy import density, dials, disk_history, enclosed_mass, mass_c
 
 SEED = bytes.fromhex("00112233445566778899AABBCCDDEEFF")
 HALO_FUNCTIONS = (
-    (mass_chain, "median_halo_mass"), (mass_chain, "effective_halo_scatter_dex"), (mass_chain, "virial_radius_kpc"),
+    (mass_chain, "median_halo_mass"), (mass_chain, "conditional_halo_mass"), (mass_chain, "virial_radius_kpc"),
     (mass_chain, "median_concentration"), (disk_history, "halo_track"),
 )
 BELOW = mass_chain.HALO_MIN_STELLAR_MASS_SOLAR * 0.9
@@ -58,7 +58,7 @@ def test_at_and_above_the_threshold_the_halo_functions_run(monkeypatch):
         calls = _watch(monkeypatch)
         chain = mass_chain.draw_mass_chain(SEED, mass * (1.0 + 1e-9))
         assert chain.halo_mass_solar > 0 and chain.virial_radius_kpc > 0 and chain.concentration > 0
-        assert {"median_halo_mass", "effective_halo_scatter_dex", "virial_radius_kpc", "median_concentration"} <= set(calls)
+        assert {"conditional_halo_mass", "virial_radius_kpc", "median_concentration"} <= set(calls)
         monkeypatch.undo()
 
 

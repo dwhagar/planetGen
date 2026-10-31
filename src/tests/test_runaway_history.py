@@ -64,8 +64,9 @@ def test_a_sun_like_star_leaves_the_earth_its_ocean():
     assert runaway_history.loss_kg(_star(1.0, 1.0, 5772.0, 4.6), 1.0, *EARTH) == 0.0
 
 
-def test_a_planet_well_inside_the_zone_of_a_sun_like_star_loses_many_oceans():
-    assert runaway_history.loss_kg(_star(1.0, 1.0, 5772.0, 4.6), 0.72, *EARTH) > 5 * EARTH_OCEAN_KG
+def test_a_planet_well_inside_the_zone_of_a_sun_like_star_loses_oceans():
+    # the median Sun leaves saturation at 23 Myr (GEN.493): a Venus-orbit Earth loses about two oceans, the 100 Myr of the earlier table gave seven
+    assert runaway_history.loss_kg(_star(1.0, 1.0, 5772.0, 4.6), 0.72, *EARTH) > 1 * EARTH_OCEAN_KG
 
 
 def test_a_cool_star_dries_the_planets_of_its_present_zone():
@@ -102,7 +103,7 @@ def test_the_loss_is_deterministic_and_follows_the_stars_own_activity():
     star = _star(0.3, 0.013, 3400.0, 5.0)
     assert runaway_history.loss_kg(star, 0.1, *EARTH) == runaway_history.loss_kg(star, 0.1, *EARTH)
     activity = runaway_history.activity
-    t_sat, decay = activity._interp(activity.ACTIVITY_TABLE, 0.3)
+    t_sat, decay = activity.saturation_age_gy(0.3), activity.decay_exponent(0.3)
     nominal = activity.lx_lbol_at(5.0, activity.saturated_lx_lbol(0.3), t_sat, decay)
     # at 0.1 AU the planet is past the limit the whole time, so the decaying activity after saturation counts
     quiet = _star(0.3, 0.013, 3400.0, 5.0, log_lx_lbol=math.log10(nominal) - 0.7)

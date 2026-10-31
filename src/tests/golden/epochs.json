@@ -753,6 +753,24 @@
       "first_release": "8.0.2729",
       "reason": "Train 4: the planet architecture wires into generation with the snow line and ice from Lodders (GEN.728, GEN.729, GEN.730, GEN.828, GEN.829, GEN.920, GEN.950), rocky bodies are made again at the star's final age (GEN.992), a built star tree that does not clear its orbits is redrawn (GEN.1004), arm contrast by population (GEN.931), the main sequence under 0.1 solar masses and brown dwarf cooling (GEN.936, GEN.948), the state word and white dwarf decay age of every star (GEN.785, GEN.786), UV shares and star colour from the spectra library (GEN.971), the greenhouse table and a gas-free haze rule (GEN.850, GEN.851, GEN.1003), stellar wind and flares at a world (GEN.800)",
       "affects": ["plan", "scatter", "fill", "population"]
+    },
+    {
+      "epoch": 127,
+      "first_release": "8.0.2863",
+      "reason": "Train 5: Tides 1 (GEN.955/778/979/957/959/960), Star 2 lethal events and age-metallicity (GEN.785/744/944), giant core cap (GEN.1096), life paces and outside hours and life scores (GEN.942/768/TEST.486), surface liquid (GEN.1035)",
+      "affects": ["plan", "population", "fill", "scatter"]
+    },
+    {
+      "epoch": 128,
+      "first_release": "8.0.2893",
+      "reason": "Train 6: class epoch (Q retired, V at 2 g, new class lines), halo mass function, star spin and white dwarf luminosity, ocean tides, ring ages, day and night state, resonance capture draw, Cassini tilts, birth spin adaptation, close-binary period trend",
+      "affects": ["plan", "population", "fill", "scatter"]
+    },
+    {
+      "epoch": 129,
+      "first_release": "8.0.2989",
+      "reason": "Train 7: giant structure, heat and dynamo (GEN.733, 810, 838, 839, 967, 983, 981), the escape filter now sees the star mass (GEN.1199), alpha-shifted star tracks and thick-disc ages (GEN.1024, 1025), Ap and Am stars (GEN.1027), clusters of barred galaxies (GEN.1195, 1196), seven latitude bands (GEN.1108), redox and comet draws (GEN.1005), gas-disc and satellite changes (GEN.1191 to 1193, 1198), Air 1 (GEN.1030, 1032), Aux 7 (GEN.1173)",
+      "affects": ["plan", "population", "fill", "scatter"]
     }
   ]
 }

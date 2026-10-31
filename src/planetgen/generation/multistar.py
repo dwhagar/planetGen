@@ -52,10 +52,12 @@ from dataclasses import dataclass
 from statistics import NormalDist
 
 from planetgen import tuning
+from planetgen.generation import member_record
+from planetgen.generation import close_binary_trend
 from planetgen.generation.phenomena import hosts, system_types
 from planetgen.physics import (
-    accretion, brown_dwarf, constants, imf, mass_boundaries, mass_loss, ms_lifetime, neutron_star, pre_main_sequence, remnant_mass, remnant_progenitors, roche,
-    stability, stellar_abundances, stellar_composition)
+    accretion, alpha_tracks, brown_dwarf, constants, imf, mass_boundaries, ms_lifetime, neutron_star, pair_history, remnant_mass, remnant_progenitors,
+    roche, stability, stellar_abundances, stellar_composition)
 from planetgen.physics import stellar_evolution as evolution
 from planetgen.util import draw
 from planetgen.physics import unit_registry as units
@@ -83,6 +85,10 @@ or more, the law that peaks at log P = 3.5 (Moe and Di Stefano 2017); the sigma 
 the second is a design default."""
 
 MASSIVE_PRIMARY_MIN_MASS_SOL = 2.1
+
+CLOSE_COMPANION_AXIS_AU = 10.0
+"""float: The axis inside which a star's [Fe/H] moves its chance of a companion (GEN.103; Moe, Kratter and Badenes 2019 measured
+the trend for periods under 10^4 days, which is 10 AU for two solar masses)."""
 ROOT_MAX_AXIS_AU = 20_000.0
 """float: The widest root pair (0.1 pc), a directive raises it."""
 
@@ -104,8 +110,66 @@ MAX_FILL_FACTOR = 1.2
 """float: How far past its Roche lobe a star may reach at the pair's closest approach (1 is semi-detached,
 both past 1 is contact). Pairs of two single members use this in place of `EXTENT_AXIS_FACTOR`."""
 
+STABILITY_MARGIN = 1.15
+"""float: How much wider than the bare criterion an inner orbit's outer partner must be, at every level of a tree (GEN.1010, GM15): the
+Eggleton and Kiseleva criterion is reliable to about 20 percent, and the nested-triple test over-predicts stable trees
+(Vynatheya, Mardling and Hamers 2023), so each triple of the tree has to clear the criterion by this factor. A stand-in."""
+
+
+@dataclass(frozen=True)
+class Side:
+    """One side of a pair for the keep-out rule: its `mass` (solar), its `extent` (AU: a single member's radius, a node's greatest
+    distance from its own barycentre to the surface of a star below it, `node_extent_au`) and its `radius`, the radius of a single
+    member (None for a node)."""
+    mass: float
+    extent: float
+    radius: float | None = None
+
+
+def single_side(mass, radius_au):
+    return Side(mass, radius_au, radius_au)
+
+
+def node_extent_au(axis_au, eccentricity, low, high):
+    """The extent of the node of the pair `low`, `high` (`Side`s): the farthest a star below it reaches from the node's barycentre,
+    both sides at the apocentre. The one definition the build, the tree and the verifier (`physics/clearance.py`) share."""
+    apocentre = axis_au * (1.0 + eccentricity)
+    total = low.mass + high.mass
+    return max(apocentre * high.mass / total + low.extent, apocentre * low.mass / total + high.extent)
+
+
+def pair_floor_au(low, high):
+    """The closest the pair may be (GEN.1010): the Roche-lobe limit for two single members, else the extent rule, at every depth of
+    the tree."""
+    if low.radius is None or high.radius is None:
+        return EXTENT_AXIS_FACTOR * (low.extent + high.extent)
+    return max(roche.separation_for_filling(low.radius, MAX_FILL_FACTOR, low.mass, high.mass),
+               roche.separation_for_filling(high.radius, MAX_FILL_FACTOR, high.mass, low.mass))
+
+
+def pair_pericentre_floor_au(low, high):
+    """The closest the pair's pericentre may be: the Roche-lobe limit for two single members, else `PERICENTRE_EXTENT_FACTOR` times the
+    extents (what `pair_clears` asks)."""
+    if low.radius is None or high.radius is None:
+        return PERICENTRE_EXTENT_FACTOR * (low.extent + high.extent)
+    return pair_floor_au(low, high)
+
+
+def pair_clears(axis_au, eccentricity, low, high):
+    """Whether the pair's closest approach keeps its sides inside their limits: neither single member past `MAX_FILL_FACTOR` of its
+    Roche lobe, else the pericentre at least `PERICENTRE_EXTENT_FACTOR` times the sides' extents. The one rule for the tree, the
+    build (`built_tree_clears`) and, re-derived, the verifier."""
+    peri = axis_au * (1.0 - eccentricity)
+    if low.radius is None or high.radius is None:
+        return peri >= PERICENTRE_EXTENT_FACTOR * (low.extent + high.extent)
+    return (roche.filling_factor(low.radius, peri, low.mass, high.mass) <= MAX_FILL_FACTOR
+            and roche.filling_factor(high.radius, peri, high.mass, low.mass) <= MAX_FILL_FACTOR)
+
 ACCRETOR_KINDS = ("white-dwarf", "neutron-star", "black-hole")
 """tuple: The member kinds that receive mass from a lobe-filling partner (an `accreting` pair)."""
+
+SUDDEN_MASS_LOSS_KINDS = ("neutron-star", "black-hole")
+"""tuple: The member kinds whose mass left in a supernova, not slowly (`pair_history.Member.sudden`)."""
 
 INTERACTIONS = ("detached", "semi-detached", "contact", "accreting", "post-common-envelope", "merger-product")
 """tuple: The `Node.interaction` values; the classifier gives the first four and `post-common-envelope`
@@ -118,6 +182,8 @@ FRAGILE_AXIS_AU = 10_000.0
 """float: A root pair wider than this is ultra-wide and flagged `fragile` (passing stars unbind it)."""
 
 PAIR_RETRIES = 60
+"""int: How many times a pair's draw may be repeated, for the screens that depend on the draw itself and for an orientation that leaves
+no room (GEN.1011). The period and eccentricity are drawn once from their cut laws; no draw is repeated for overlap or stability."""
 TREE_RESTARTS = 30
 MAX_COMPACT_MEMBERS = 3
 WIDE_COMPACT_AXIS_AU = 1000.0
@@ -223,13 +289,16 @@ it. The low-mass X-ray binaries are part of a neutron star's and a black hole's 
 class Placed:
     """The object a tree is drawn for. `mass_solar` is its present mass; `initial_mass_solar` its birth mass
     (defaults to the present mass). `recycled` marks a millisecond pulsar; `planetary_nebula` a
-    planetary-nebula central star (a white dwarf). `fe_h` is the placed star's birth [Fe/H], when known."""
+    planetary-nebula central star (a white dwarf). `fe_h` is the placed star's birth [Fe/H], when known. `record` is the
+    `member_record.MemberRecord` of a placed star that is already built (a system's primary): the tree reads its radius
+    and mass, so it clears the star the build has; None for a scattered object, whose tree is drawn from its birth mass."""
     kind: str
     mass_solar: float
     initial_mass_solar: float | None = None
     recycled: bool = False
     planetary_nebula: bool = False
     fe_h: float | None = None
+    record: "member_record.MemberRecord | None" = None
 
     @property
     def birth_mass_solar(self):
@@ -249,7 +318,9 @@ class Member:
     Yerkes class of a star (`V`, `III`, `VII`, ...), `PMS` or `protostar` for a young one, the spectral type of a brown
     dwarf (`M8`, `L5`, `T2`, `Y0`; `physics/brown_dwarf.py`, GEN.252), and None for a remnant; it is stored in
     `scatter_members.state`, a VARCHAR(16). A member of a `group` node carries its `offset_au` from the group's centre, its
-    `velocity_kms` and the group's `decay_age_yr` (GEN.327); every other member has none of the three."""
+    `velocity_kms` and the group's `decay_age_yr` (GEN.327); every other member has none of the three. `radius_max_au` and
+    `mass_max_solar` are the largest radius and mass the member has had (GEN.1009, `member_record`); a tree draws them for
+    every member."""
     member_no: int
     parent_node_no: int | None
     slot: int
@@ -264,6 +335,8 @@ class Member:
     offset_au: tuple | None = None
     velocity_kms: tuple | None = None
     decay_age_yr: float | None = None
+    radius_max_au: float | None = None
+    mass_max_solar: float | None = None
 
 
 @dataclass(frozen=True)
@@ -413,6 +486,23 @@ class _Leaf:
     accretes: str | None = None
     """str or None: `wind`, `disc` or `overflow` on the neutron star or black hole of a pair that accretes (GEN.272): the
     pair is `accreting` whatever its geometry says, and a pair of a neutron star or black hole with no such leaf never is."""
+    radius_max_au: float | None = None
+    mass_max_solar: float | None = None
+    """float or None: The largest radius and mass the member has had (`member_record.MemberRecord`); None for a leaf with no
+    larger past than its present, which reads as the present radius and the larger of its birth and present mass."""
+    seed: int | None = None
+    """int or None: The seed the member's record was made under, which its `Member` keeps; None draws one from the tree's source."""
+
+    @property
+    def largest_radius_au(self):
+        return self.radius_au if self.radius_max_au is None else max(self.radius_max_au, self.radius_au)
+
+    @property
+    def largest_mass_solar(self):
+        return max(self.initial, self.mass) if self.mass_max_solar is None else max(self.mass_max_solar, self.mass)
+
+    def member_seed(self, rng):
+        return rng.getrandbits(63) if self.seed is None else self.seed
 
     @property
     def compact(self):
@@ -562,6 +652,56 @@ def star_count_weights(initial_mass_sol, prevalence=1.0):
     return hosts.star_count_weights(companion_class(initial_mass_sol), prevalence)
 
 
+def _tilted(u, share, weight):
+    """`u`, a uniform draw, moved so the part of the range under `share` of it has the odds of `share` times `weight`: the
+    inside part stretches to the new share, the outside part to what is left."""
+    if not 0.0 < share < 1.0:
+        return u
+    odds = share / (1.0 - share) * weight
+    moved = odds / (1.0 + odds)
+    if u < moved:
+        return u * share / moved
+    return share + (u - moved) * (1.0 - share) / (1.0 - moved)
+
+
+def _inside_share(initial_mass_sol):
+    """The share of a star's companions that are inside `CLOSE_COMPANION_AXIS_AU`: the part of the period law of its mass
+    under the period of that axis for the star and a companion of the mean mass ratio."""
+    low, high = companion_ratio_range(initial_mass_sol)
+    total = initial_mass_sol * (1.0 + 0.5 * (low + high))
+    period_d = _yr_to_d(math.sqrt(CLOSE_COMPANION_AXIS_AU ** 3 / total))
+    mu, sigma = PERIOD_LAWS_LOG10_DAYS["massive" if initial_mass_sol >= MASSIVE_PRIMARY_MIN_MASS_SOL else "solar"]
+    return NormalDist(mu, sigma).cdf(math.log10(period_d))
+
+
+def close_trend(initial_mass_sol, fe_h, prevalence=1.0):
+    """
+    The `star-count` weights of a star of this birth [Fe/H], and the weight its root pair's inside range carries (GEN.103,
+    GEN.705). The table is the Sun's neighbourhood (`fe_h` 0); a metal-poorer star has more companions inside
+    `CLOSE_COMPANION_AXIS_AU`, a metal-richer one fewer, by `close_binary_trend.scaled_close_chance` (the factor on the *odds*
+    of a companion inside the axis), and the chance of one outside it stays. The chance of any companion moves with it, and
+    the share of the companions that are inside moves with it too: the weight returned multiplies the odds of the root pair
+    being inside (`_Builder.period_days`).
+
+    Returns:
+        tuple: `(weights, inside_weight)`; `(None, 1.0)` for a star with no [Fe/H] or at the factor's 1, where the table stands.
+    """
+    if close_binary_trend.close_companion_factor(fe_h) == 1.0:
+        return None, 1.0
+    weights = star_count_weights(initial_mass_sol, prevalence)
+    inside = _inside_share(initial_mass_sol)
+    total = sum(weights)
+    chance = 1.0 - weights[0] / total
+    if not (0.0 < chance < 1.0 and 0.0 < inside < 1.0):
+        return None, 1.0
+    inside_chance = chance * inside
+    moved = close_binary_trend.scaled_close_chance(inside_chance, fe_h)
+    new_chance = min(moved + chance - inside_chance, 1.0 - 1.0e-9)
+    new_inside = moved / new_chance
+    scaled = (total * (1.0 - new_chance),) + tuple(w * new_chance / chance for w in weights[1:])
+    return scaled, (new_inside / (1.0 - new_inside)) / (inside / (1.0 - inside))
+
+
 def expected_star_count(initial_mass_sol, max_stars=MAX_MEMBERS, prevalence=1.0):
     """The mean number of stars in the system of a star of this initial mass (GEN.545): the `star-count` table's 1 to 7
     stars, and the tail from 7 up to `max_stars` that `_draw_star_count` walks, in expectation."""
@@ -576,8 +716,12 @@ def expected_star_count(initial_mass_sol, max_stars=MAX_MEMBERS, prevalence=1.0)
     return mean
 
 
-def _draw_star_count(initial_mass_sol, max_stars, prevalence, rng):
-    count = hosts.draw_star_count(companion_class(initial_mass_sol), prevalence, rng)
+def _draw_star_count(initial_mass_sol, max_stars, prevalence, rng, weights=None):
+    """The number of stars: one draw of the `star-count` table, or of `weights` (`close_trend`'s) when the caller moved them."""
+    if weights is None:
+        count = hosts.draw_star_count(companion_class(initial_mass_sol), prevalence, rng)
+    else:
+        count = rng.choices(range(1, len(weights) + 1), weights=weights)[0]
     ratio = TAIL_RATIOS[0]
     while count >= 7 and count < max_stars and rng.random() < min(1.0, ratio * prevalence):
         count += 1
@@ -592,32 +736,17 @@ def _radius_au(state):
     return _m_to_au(radius_sol * constants.SOLAR_RADIUS_M)
 
 
+def _leaf_of(record):
+    """The roster leaf of a member record: what the tree draws the orbits from."""
+    return _Leaf(record.kind, record.state, record.mass_solar, record.initial_mass_solar, record.radius_au,
+                 radius_max_au=record.radius_max_au, mass_max_solar=record.mass_max_solar, seed=record.seed)
+
+
 def _star_leaf(initial_mass, age_yr, rng, lighten=True, fe_h=0.0, substellar=False):
-    """A star-like member of this birth mass at the system's age. A `substellar` one was drawn from the brown dwarf mass function (the
+    """A star-like member of this birth mass at the system's age: its record (`member_record.make`, under a seed drawn here, which
+    the member keeps, so the build makes the same star). A `substellar` one was drawn from the brown dwarf mass function (the
     objects of 0.074 to 0.08 solar masses among them are the stable late-M and L dwarfs of the census, `physics/brown_dwarf.py`)."""
-    if substellar or initial_mass < stellar_abundances.hydrogen_burning_limit_for_fe_h(fe_h):
-        # GEN.252: the L, T or Y type its cooling gives at the system's age, and the radius the same laws fix. Under the limit
-        # of its place's [Fe/H] (GEN.936): 0.074 at solar Z, up to 0.092 at none.
-        dwarf = brown_dwarf.state(initial_mass, age_yr / 1.0e9)
-        return _Leaf("brown-dwarf", dwarf["spectral_type"], initial_mass, initial_mass,
-                     _m_to_au(dwarf["radius_sol"] * constants.SOLAR_RADIUS_M))
-    young = pre_main_sequence.state(initial_mass, age_yr, fe_h)
-    if young is not None:
-        # GEN.242: still contracting; the radius follows from the track's luminosity and temperature.
-        kind = "protostar" if young["yerkes_class"] == pre_main_sequence.PROTOSTAR else "pre-main-sequence"
-        return _Leaf(kind, young["yerkes_class"], initial_mass, initial_mass, _radius_au(young))
-    mass = initial_mass
-    while True:
-        state = evolution.evolve_star(mass, age_yr / 1.0e9, rng, fe_h=fe_h)
-        if state is not None or not lighten:
-            break
-        draw.redrawn("star.mass_lightened")
-        mass *= 0.8
-    if state is None:
-        raise ValueError(f"a star of {initial_mass:g} solar masses has collapsed by {age_yr:g} years")
-    yerkes = state["yerkes_class"]
-    kind = "main-sequence" if yerkes == "V" else "white-dwarf" if yerkes == "VII" else "giant"
-    return _Leaf(kind, yerkes, state["mass_sol"], mass, _radius_au(state))
+    return _leaf_of(member_record.make(rng.getrandbits(63), initial_mass, age_yr, fe_h, lighten, substellar))
 
 
 def _schwarzschild_au(mass_solar):
@@ -645,7 +774,8 @@ def _remnant(kind, age_yr, lowest, rng, limit_mass=None, fe_h=0.0):
         if low >= high:
             return None
         progenitor = imf.sample(low, high, rng)
-        return _remnant_leaf(kind, progenitor, remnant_mass.white_dwarf_mass_sol(progenitor))
+        record = member_record.make(rng.getrandbits(63), progenitor, age_yr, fe_h, lighten=False)
+        return _leaf_of(record) if record.kind == "white-dwarf" else None
     progenitor = remnant_progenitors.sample_mass_sol(kind, max(lowest, evolution.youngest_progenitor_sol(age_yr, fe_h)),
                                                      rng)
     if progenitor is None:
@@ -659,7 +789,7 @@ def _remnant(kind, age_yr, lowest, rng, limit_mass=None, fe_h=0.0):
 def _alive_star_mass(low, high, age_yr, rng, fe_h=0.0):
     """An IMF mass in `[low, high]` that is still on the main sequence at this age (the heaviest such mass
     caps the range) for a star of birth [Fe/H] `fe_h`."""
-    cap = ms_lifetime.mass_for_lifetime_gy(age_yr / 1.0e9, fe_h)
+    cap = ms_lifetime.mass_for_lifetime_gy(age_yr / 1.0e9, alpha_tracks.track_fe_h(fe_h, age_yr / 1.0e9))
     high = max(min(high, cap), low * 1.0001)
     return imf.sample(low, high, rng)
 
@@ -671,7 +801,8 @@ def _is_direct_collapse(leaf):
 
 
 class _Failed(Exception):
-    """A pair could not be placed in `PAIR_RETRIES` tries; the tree restarts."""
+    """A pair could not be placed in `PAIR_RETRIES` tries (its draws all found no room or failed a screen, `draw.counting` says which);
+    the tree restarts."""
 
 
 UNFUSING_KINDS = ("brown-dwarf", "pre-main-sequence", "protostar")
@@ -697,13 +828,29 @@ def _gate_forbids(interaction, heavy_initial_sol, age_yr, kinds=()):
     return age_gy >= tuning.OLD_POPULATION_MIN_AGE_GY
 
 
+def _history_member(leaf):
+    """A pair member as `pair_history` reads it: present and largest mass (solar masses) and radius (AU); a neutron star or a black hole lost its mass in a supernova."""
+    return pair_history.Member(leaf.mass, leaf.largest_mass_solar, leaf.radius_au, leaf.largest_radius_au,
+                               sudden=leaf.kind in SUDDEN_MASS_LOSS_KINDS)
+
+
+def _detached_or_post_common_envelope(a, b, axis_au, e):
+    """`detached`, or `post-common-envelope` when the history rule (GEN.1012; `pair_history`) finds that a member's largest radius
+    reached its Roche lobe, or its partner, at the orbit the pair had when its members were their heaviest."""
+    if pair_history.must_be_post_common_envelope(axis_au, e, _history_member(a), _history_member(b)):
+        return "post-common-envelope", ()
+    return "detached", ()
+
+
 def classify_pair(a, b, axis_au, e):
     """
     The `interaction` of a pair of two single members from their geometry (GEN.269): `(interaction, gainers)`, where
     `gainers` are the members that receive mass (a tuple of `a` and `b`). `a` and `b` have a `kind`, a `radius_au`, a
-    `mass` and an `initial` (a white dwarf's progenitor mass, solar masses). A lobe-filling donor feeds an accretor
-    (`accreting`); two stars past their lobes at closest approach are `contact`, one is `semi-detached`; a white dwarf
-    inside its progenitor's engulfment radius is `post-common-envelope`; otherwise `detached`.
+    `mass`, an `initial` (a white dwarf's progenitor mass, solar masses) and the largest radius and mass they have had
+    (`largest_radius_au`, `largest_mass_solar`). A lobe-filling donor feeds an accretor (`accreting`); two stars past
+    their lobes at closest approach are `contact`, one is `semi-detached`; a pair that is not filling a lobe now but whose
+    history forced a common envelope (`pair_history.must_be_post_common_envelope`, any member and any depth, GEN.1012)
+    is `post-common-envelope`; otherwise `detached`.
     """
     peri = axis_au * (1.0 - e)
     fill_a = roche.filling_factor(a.radius_au, peri, a.mass, b.mass)
@@ -713,30 +860,30 @@ def classify_pair(a, b, axis_au, e):
         donor_fill = fill_b if accretor_a else fill_a
         if donor_fill >= 1.0:
             return "accreting", ()
-        dwarf = a if a.kind == "white-dwarf" else b if b.kind == "white-dwarf" else None
-        if dwarf is not None and axis_au < mass_loss.engulfment_radius_au(dwarf.initial):
-            return "post-common-envelope", ()
-        return "detached", ()
+        return _detached_or_post_common_envelope(a, b, axis_au, e)
     if accretor_a:
-        return "detached", ()
+        return _detached_or_post_common_envelope(a, b, axis_au, e)
     if fill_a >= 1.0 and fill_b >= 1.0:
         return "contact", (a, b)
     if fill_a >= 1.0:
         return "semi-detached", (b,)
     if fill_b >= 1.0:
         return "semi-detached", (a,)
-    return "detached", ()
+    return _detached_or_post_common_envelope(a, b, axis_au, e)
 
 
 class _Builder:
     """Draws the orbits of one tree shape, top down."""
 
-    def __init__(self, leaves, age_yr, rng, fixed=None, max_axis_au=math.inf):
+    def __init__(self, leaves, age_yr, rng, fixed=None, max_axis_au=math.inf, inside_weight=1.0):
         self.max_axis_au = max_axis_au
+        self.inside_weight = inside_weight
+        """float: The weight on the odds that the root pair is inside `CLOSE_COMPANION_AXIS_AU` (`close_trend`)."""
         self.leaves = leaves
         self.age_yr = age_yr
         self.rng = rng
         self.nodes = []
+        self.by_sub = {}
         self.extra_flags = {}
         self.fixed = fixed or {}
         """dict: `id(pair) -> (period_days, axis_au, eccentricity)` of a pair whose size and shape are kept (the inner
@@ -769,24 +916,18 @@ class _Builder:
             return self.leaves[left], self.leaves[right]
         return None
 
-    def axis_floor(self, left, right, extent):
-        """The closest the pair may be: the Roche-lobe limit for two single members, else the extent rule."""
-        pair = self.pair_leaves(left, right)
-        if pair is None:
-            return EXTENT_AXIS_FACTOR * extent
-        a, b = pair
-        return max(roche.separation_for_filling(a.radius_au, MAX_FILL_FACTOR, a.mass, b.mass),
-                   roche.separation_for_filling(b.radius_au, MAX_FILL_FACTOR, b.mass, a.mass))
-
-    def clears(self, left, right, axis, e, extent):
-        """Whether the pair's closest approach keeps its members inside their limits."""
-        pair = self.pair_leaves(left, right)
-        if pair is None:
-            return axis * (1.0 - e) >= PERICENTRE_EXTENT_FACTOR * extent
-        a, b = pair
-        peri = axis * (1.0 - e)
-        return (roche.filling_factor(a.radius_au, peri, a.mass, b.mass) <= MAX_FILL_FACTOR
-                and roche.filling_factor(b.radius_au, peri, b.mass, a.mass) <= MAX_FILL_FACTOR)
+    def side(self, sub, placed=None):
+        """The `Side` of `sub` for the keep-out rule: a single member's radius, else the node's extent. Before the orbits below it are
+        drawn (`placed` None) a node's extent is the sum of the radii of its stars, the least it can be; with `placed`
+        (`id(sub) -> record` of the drawn nodes) it is the barycentric extent of the orbits as drawn (`node_extent_au`)."""
+        if isinstance(sub, int):
+            leaf = self.leaves[sub]
+            return single_side(leaf.mass, leaf.radius_au)
+        if placed is None:
+            return self.min_side(sub)
+        record = placed[id(sub)]
+        low, high = self.side(record["left"], placed), self.side(record["right"], placed)
+        return Side(low.mass + high.mass, node_extent_au(record["separation_au"], record["eccentricity"], low, high))
 
     def interaction(self, left, right, axis, e):
         """The pair's `interaction` and the flags it puts on the two single members: `(interaction, {leaf: flag})`."""
@@ -822,7 +963,7 @@ class _Builder:
             return WIDE_COMPACT_AXIS_AU
         return math.inf
 
-    def period_days(self, law, mass, a_lo, a_hi, massive):
+    def period_days(self, law, mass, a_lo, a_hi, massive, inside_weight=1.0):
         lo = _yr_to_d(math.sqrt(a_lo ** 3 / mass))
         hi = _yr_to_d(math.sqrt(a_hi ** 3 / mass)) if math.isfinite(a_hi) else math.inf
         u = self.rng.random()
@@ -848,21 +989,71 @@ class _Builder:
         weight = 1.0 if massive else system_types.TUNING_KNOBS["tight_tail_weight"]
         split = min(max(dist.cdf(0.0), p_lo), p_hi)
         tail, rest = (split - p_lo) * weight, p_hi - split
+        if inside_weight != 1.0:
+            # The odds of an axis inside `CLOSE_COMPANION_AXIS_AU` follow the star's [Fe/H] (`close_trend`): the draw's
+            # inside part grows or shrinks, the outside part keeps its shape.
+            edge = min(max(math.log10(_yr_to_d(math.sqrt(CLOSE_COMPANION_AXIS_AU ** 3 / mass))), log_lo), log_hi)
+            reach = min(max(dist.cdf(edge), p_lo), p_hi)
+            inside = (reach - p_lo) * weight if reach <= split else tail + (reach - split)
+            u = _tilted(u, inside / (tail + rest), inside_weight)
         target = u * (tail + rest)
         point = p_lo + target / weight if target < tail else split + (target - tail)
         return 10.0 ** dist.inv_cdf(min(max(point, 1.0e-15), 1.0 - 1.0e-15))
 
-    def eccentricity(self, law, period_d, a_au, root):
+    def eccentricity(self, law, period_d, a_au, root, limit=math.inf):
+        """The pair's eccentricity from the law of its kind cut at `limit`, the largest the room it has allows (GEN.1011): the
+        thermal law `2 e` on `[0, cap]` cut at `limit` has the inverse `limit * sqrt(u)`, the exact conditional draw."""
         u = self.rng.random()
         if (law == "compact-pair" and a_au < COMPACT_PAIR_CIRCULAR_BELOW_AU) or period_d < CIRCULAR_BELOW_DAYS:
             return 0.0
         cap = min(1.0 - (period_d / 2.0) ** (-2.0 / 3.0),
-                  ROOT_ECCENTRICITY_CAP if root else INNER_ECCENTRICITY_CAP)
+                  ROOT_ECCENTRICITY_CAP if root else INNER_ECCENTRICITY_CAP, limit)
         return cap * math.sqrt(u)
 
-    def place(self, sub, parent, slot, parent_no):
-        """Places the orbit of the pair `sub`, then its child pairs. `parent` is
-        `(axis, eccentricity, inclination, node, sibling_mass)` or None for the root."""
+    def min_side(self, sub):
+        """The `Side` of `sub` at its least: its stars at the closest their own floors let them be, on circular orbits."""
+        if isinstance(sub, int):
+            leaf = self.leaves[sub]
+            return single_side(leaf.mass, leaf.radius_au)
+        low, high = self.min_side(sub[0]), self.min_side(sub[1])
+        return Side(low.mass + high.mass, node_extent_au(pair_floor_au(low, high), 0.0, low, high))
+
+    def _apocentre_limit_au(self, budget, low, high):
+        """The largest apocentre the pair may have so its extent stays inside `budget` (AU), `inf` without one."""
+        if not math.isfinite(budget):
+            return math.inf
+        total = low.mass + high.mass
+        return min((budget - low.extent) * total / high.mass, (budget - high.extent) * total / low.mass)
+
+    def _eccentricity_limit(self, axis, peri_floor, apocentre_limit, stable_at):
+        """The largest eccentricity at `axis` that keeps the pair's pericentre clear, its extent inside its budget and the triple above it
+        stable (`stable_at(e)`, monotone in e: bisected), negative when even a circular orbit does not fit."""
+        limit = 1.0 - peri_floor / axis
+        if math.isfinite(apocentre_limit):
+            limit = min(limit, apocentre_limit / axis - 1.0)
+        if limit < 0.0:
+            return limit
+        if stable_at is None or stable_at(limit):
+            return limit
+        if not stable_at(0.0):
+            return -1.0
+        low, high = 0.0, limit
+        for _ in range(30):
+            middle = 0.5 * (low + high)
+            low, high = (middle, high) if stable_at(middle) else (low, middle)
+        return low
+
+    def place(self, sub, parent, slot, parent_no, budget=math.inf):
+        """
+        Places the orbit of the pair `sub`, then its child pairs. `parent` is `(axis, eccentricity, inclination, node,
+        sibling_mass)` or None for the root. `budget` is the most extent (AU) the pair may have, from the keep-out rule of the
+        pair above it (`inf` for the root).
+
+        The period and eccentricity are drawn once, from their laws cut to the range the pair's room allows (GEN.1011): the axis
+        between the keep-out floor and the least of the stability limit, the cap and the extent budget; the eccentricity
+        up to what the pericentre floor, the budget and the stability of the triple above allow. A draw can then only fail
+        the screens that depend on the draw itself, or find no room (`pair.no_allowed_period`; `draw.redrawn` counts which).
+        """
         left, right = sub
         if self.mass(left) < self.mass(right):
             left, right = right, left
@@ -870,8 +1061,11 @@ class _Builder:
         total = m_left + m_right
         law = self.law(left, right)
         extent = self.extent(left) + self.extent(right)
-        a_lo = self.axis_floor(left, right, extent)
-        cap = min(self.wide_cap(sub), self.max_axis_au)
+        sides = self.side(left), self.side(right)
+        a_lo = pair_floor_au(*sides)
+        peri_floor = pair_pericentre_floor_au(*sides)
+        apocentre_limit = self._apocentre_limit_au(budget, *sides)
+        cap = min(self.wide_cap(sub), self.max_axis_au, apocentre_limit)
         heavy = max(self.leaves[i].initial for i in self.leaves_of(sub))
         massive = heavy >= MASSIVE_PRIMARY_MIN_MASS_SOL
         fixed = self.fixed.get(id(sub))
@@ -885,30 +1079,43 @@ class _Builder:
             anomaly = 2.0 * math.pi * rng.random()
             mutual = None
             a_hi = ROOT_MAX_AXIS_AU
+            stable_at = None
             if parent is not None:
                 mutual = stability.mutual_inclination(inclination, node, parent[2], parent[3])
-                a_hi = stability.max_inner_axis(m_left, m_right, parent[4], parent[0], 0.0, parent[1], mutual)
+                a_hi = stability.max_inner_axis(m_left, m_right, parent[4], parent[0], 0.0, parent[1], mutual,
+                                                safety=STABILITY_MARGIN)
+
+                def stable_at(e, mutual=mutual):
+                    return stability.is_triple_stable(m_left, m_right, parent[4], axis, parent[0], e, parent[1], mutual,
+                                                      safety=STABILITY_MARGIN)
+            a_hi = min(a_hi, cap)
             if fixed is None and span is not None:
-                axis = 10.0 ** (math.log10(span[0]) + rng.random() * (math.log10(span[1]) - math.log10(span[0])))
-                period_d = 365.25 * math.sqrt(axis ** 3 / total)
-                if axis < a_lo or axis > min(a_hi, cap):
+                low, high = max(a_lo, span[0]), min(a_hi, span[1])
+                if low > high:                # a span of one axis (a cataclysmic variable's, an AM CVn's) has low == high
                     draw.redrawn("pair.axis_out_of_range")
                     continue
-                e = self.eccentricity(law, period_d, axis, parent is None)
+                axis = 10.0 ** (math.log10(low) + rng.random() * (math.log10(high) - math.log10(low)))
+                period_d = 365.25 * math.sqrt(axis ** 3 / total)
             elif fixed is None:
-                period_d = self.period_days(law, total, a_lo, min(a_hi, cap), massive)
+                period_d = self.period_days(law, total, a_lo, a_hi, massive,
+                                            self.inside_weight if parent is None else 1.0)
                 if period_d is None:
                     draw.redrawn("pair.no_allowed_period")
                     continue
                 axis = stability.axis_au(_d_to_yr(period_d), total)
-                e = self.eccentricity(law, period_d, axis, parent is None)
             else:
                 period_d, axis, e = fixed
-                if axis > min(a_hi, cap):
+                if axis > a_hi:
                     draw.redrawn("pair.axis_out_of_range")
                     continue
-            if not self.clears(left, right, axis, e, extent):
-                draw.redrawn("pair.overlap")
+            if fixed is None:
+                limit = self._eccentricity_limit(axis, peri_floor, apocentre_limit, stable_at)
+                if limit < 0.0:
+                    draw.redrawn("pair.no_allowed_period")
+                    continue
+                e = self.eccentricity(law, period_d, axis, parent is None, limit)
+            if not pair_clears(axis, e, *sides):
+                draw.redrawn("pair.overlap")         # cannot happen from a cut draw; counted so TEST.476 can hold it at zero
                 continue
             interaction, member_flags = self.interaction(left, right, axis, e)
             pair = self.pair_leaves(left, right)
@@ -928,8 +1135,8 @@ class _Builder:
             flags = NODE_INTERACTED if law != "star" or interaction in ("accreting", "post-common-envelope") else 0
             flags |= {"wind": NODE_WIND_FED, "disc": NODE_DISC_FED}.get(accretes, 0)
             if parent is not None:
-                if not stability.is_triple_stable(m_left, m_right, parent[4], axis, parent[0], e, parent[1], mutual):
-                    draw.redrawn("pair.unstable_triple")
+                if not stable_at(e):
+                    draw.redrawn("pair.unstable_triple")   # likewise cannot happen from a cut draw
                     continue
                 verdict = stability.kozai_verdict(m_left, m_right, parent[4], axis, parent[0], e, parent[1], mutual,
                                                   self.age_yr, extent)
@@ -959,9 +1166,19 @@ class _Builder:
                   "flags": flags, "left": left, "right": right, "sub": sub,
                   "interaction": interaction}
         self.nodes.append(record)
+        self.by_sub[id(sub)] = record
+        peri, apocentre = axis * (1.0 - e), axis * (1.0 + e)
         for child_slot, (child, sibling) in enumerate(((left, right), (right, left))):
-            if not isinstance(child, int):
-                self.place(child, (axis, e, inclination, node, self.mass(sibling)), child_slot, node_no)
+            if isinstance(child, int):
+                continue
+            # The room the child has is what this pair's keep-out rule and its own budget leave once its sibling is
+            # accounted for (the sibling's extent as drawn, or its least when it is not drawn yet).
+            sibling_extent = self.side(sibling, self.by_sub).extent if isinstance(sibling, int) or id(sibling) in self.by_sub \
+                else self.min_side(sibling).extent
+            room = peri / PERICENTRE_EXTENT_FACTOR - sibling_extent
+            if math.isfinite(budget):
+                room = min(room, budget - apocentre * self.mass(sibling) / total)
+            self.place(child, (axis, e, inclination, node, self.mass(sibling)), child_slot, node_no, room)
         return node_no
 
     def _in_desert(self, left, right, axis):
@@ -973,21 +1190,11 @@ class _Builder:
         return self.rng.random() >= BROWN_DWARF_DESERT_KEEP
 
     def clears_extents(self):
-        """The final check: every pair's closest approach clears what it holds (the Roche limit for two single
-        members, the apocentres of the inner pairs otherwise)."""
+        """The final check: every pair's closest approach clears what it holds (`pair_clears` with the extents of the orbits as
+        drawn)."""
         by_sub = {id(record["sub"]): record for record in self.nodes}
-        for record in self.nodes:
-            extent = 0.0
-            for child in (record["left"], record["right"]):
-                if isinstance(child, int):
-                    extent += self.leaves[child].radius_au
-                else:
-                    inner = by_sub[id(child)]
-                    extent += inner["separation_au"] * (1.0 + inner["eccentricity"])
-            if not self.clears(record["left"], record["right"], record["separation_au"], record["eccentricity"],
-                               extent):
-                return False
-        return True
+        return all(pair_clears(record["separation_au"], record["eccentricity"], self.side(record["left"], by_sub),
+                               self.side(record["right"], by_sub)) for record in self.nodes)
 
     def finish(self):
         """Flags the members of an ultra-wide system `fragile` and the theoretical kinds `theoretical`."""
@@ -1001,31 +1208,30 @@ class _Builder:
 
 def built_tree_clears(nodes, stars):
     """
-    Whether the built stars of a tree clear its orbits: the same screen `_Builder.clears_extents` runs on the drawn leaves, run
-    on the radii and masses the build gave the stars (`nodes` the tree's `OrbitNode`s, `stars` `(parent_node_no, radius_au,
-    mass_solar)` for each). A star the build makes from a birth mass and an age can come out larger than the tree's member
-    (a giant where the tree had a white dwarf), and a pair then holds a star inside its partner.
+    Whether the built stars of a tree clear its orbits: the same `pair_clears` rule `_Builder.clears_extents` runs on the drawn leaves,
+    run on the radii and masses the build gave the stars (`nodes` the tree's `OrbitNode`s, `stars` `(parent_node_no, radius_au,
+    mass_solar)` for each).
     """
-    singles, inner = {}, {}
+    below = {}
     for parent, radius_au, mass_solar in stars:
-        singles.setdefault(parent, []).append((radius_au, mass_solar))
+        below.setdefault(parent, []).append(single_side(mass_solar, radius_au))
+    by_parent = {}
     for node in nodes:
-        inner.setdefault(node.parent_node_no, []).append(node)
-    for node in nodes:
-        axis_au = _km_to_au(node.separation_km)
-        peri = axis_au * (1.0 - node.eccentricity)
-        pair = singles.get(node.node_no, [])
-        if len(pair) == 2 and node.node_no not in inner:
-            (radius_a, mass_a), (radius_b, mass_b) = pair
-            if (roche.filling_factor(radius_a, peri, mass_a, mass_b) > MAX_FILL_FACTOR
-                    or roche.filling_factor(radius_b, peri, mass_b, mass_a) > MAX_FILL_FACTOR):
-                return False
-            continue
-        extent = sum(radius for radius, _mass in pair) + sum(
-            child.separation_km / constants.AU_TO_KM * (1.0 + child.eccentricity) for child in inner.get(node.node_no, ()))
-        if peri < PERICENTRE_EXTENT_FACTOR * extent:
-            return False
-    return True
+        by_parent.setdefault(node.parent_node_no, []).append(node)
+    sides = {}
+
+    def side_of(node):
+        if node.node_no not in sides:
+            low, high = children_of(node)
+            sides[node.node_no] = Side(low.mass + high.mass, node_extent_au(
+                _km_to_au(node.separation_km), node.eccentricity, low, high))
+        return sides[node.node_no]
+
+    def children_of(node):
+        found = below.get(node.node_no, []) + [side_of(child) for child in by_parent.get(node.node_no, ())]
+        return found[0], found[1]
+
+    return all(pair_clears(_km_to_au(node.separation_km), node.eccentricity, *children_of(node)) for node in nodes)
 
 
 def _shape(units, rng):
@@ -1381,23 +1587,32 @@ _DRAW_COMPANION = object()
 state itself."""
 
 
-def companion_ratio_range(birth):
+def companion_floor_solar(fe_h=None):
+    """The lightest birth mass of another star of a tree: the hydrogen-burning limit (`mass_boundaries.sol("hydrogen_burning_limit")`),
+    or, for a place of birth [Fe/H] `fe_h` whose own limit is higher (GEN.936: 0.0804 at -0.2, 0.09 at -1), that one. A lighter object
+    is a brown dwarf (`_star_leaf`) and would use up one of the table's places (GEN.899)."""
+    limit = mass_boundaries.sol("hydrogen_burning_limit")
+    return limit if fe_h is None else max(limit, stellar_abundances.hydrogen_burning_limit_for_fe_h(fe_h))
+
+
+def companion_ratio_range(birth, fe_h=None):
     """The range `(low, high)` the birth mass of another star of a tree is drawn over, as a share of the primary's `birth`
-    solar masses, uniform: `tuning.BINARY_MASS_RATIO_RANGE`, the low end no lower than puts the star under the hydrogen-burning
-    limit (`mass_boundaries.sol("hydrogen_burning_limit")`): the `star-count` table counts stars, so a lighter object would use up one of its
+    solar masses, uniform: `tuning.BINARY_MASS_RATIO_RANGE`, the low end no lower than puts the star under the floor
+    (`companion_floor_solar`): the `star-count` table counts stars, so a lighter object would use up one of its
     places (GEN.899). The brown dwarfs of a tree are a member of their own (`tuning.BROWN_DWARF_COMPANION_CHANCE`); lighter
     objects than they are planets, filled in as planets are, not members of a tree (GEN.596)."""
     low_ratio, high_ratio = tuning.BINARY_MASS_RATIO_RANGE
-    return min(max(low_ratio, mass_boundaries.sol("hydrogen_burning_limit") / birth), high_ratio), high_ratio
+    return min(max(low_ratio, companion_floor_solar(fe_h) / birth), high_ratio), high_ratio
 
 
-def _companion_mass(birth, rng):
+def _companion_mass(birth, rng, fe_h=None):
     """The initial mass of another star of a tree whose primary was born with `birth` solar masses: `birth * U(low, high)`
     over `companion_ratio_range`."""
-    return birth * rng.uniform(*companion_ratio_range(birth))
+    return birth * rng.uniform(*companion_ratio_range(birth, fe_h))
 
 
-def _roster(placed, age_yr, rng, max_stars, n_stars, prevalence, companion=_DRAW_COMPANION, bound_runaway=False):
+def _roster(placed, age_yr, rng, max_stars, n_stars, prevalence, companion=_DRAW_COMPANION, bound_runaway=False,
+            star_weights=None):
     """The members and the shape units of a tree: `(leaves, units)`, leaf 0 being the placed object."""
     birth = placed.birth_mass_solar
     if placed.kind == "star":
@@ -1406,8 +1621,11 @@ def _roster(placed, age_yr, rng, max_stars, n_stars, prevalence, companion=_DRAW
         be, stripped = draw_be_star(birth, age_yr, types[1], types[2])
         effective_age = age_yr * (REJUVENATION_FRACTION_RANGE[0] + types[5] * (
             REJUVENATION_FRACTION_RANGE[1] - REJUVENATION_FRACTION_RANGE[0])) if merger else None
-        leaf = _star_leaf(birth, effective_age or age_yr, rng, lighten=False, fe_h=placed.tree_fe_h)
+        leaf = (_star_leaf(birth, effective_age or age_yr, rng, lighten=False, fe_h=placed.tree_fe_h) if placed.record is None
+                else _leaf_of(placed.record))
         leaf.mass = placed.mass_solar if leaf.kind != "white-dwarf" else leaf.mass
+        if placed.record is not None:
+            leaf.seed = None                 # the built primary needs no seed of its own: the member draws one
         leaf.effective_age_yr = effective_age
         if merger:
             leaf.flags |= MEMBER_MERGER_PRODUCT
@@ -1435,7 +1653,7 @@ def _roster(placed, age_yr, rng, max_stars, n_stars, prevalence, companion=_DRAW
             if mode is not None:
                 _feed_compact(leaf, compact, mode, types[9])
         if n_stars is None:
-            count = _draw_star_count(birth, max_stars - (compact is not None), prevalence, rng)
+            count = _draw_star_count(birth, max_stars - (compact is not None), prevalence, rng, star_weights)
             if merger == "massive":
                 count = max(1, count - 1)
             if stripped:
@@ -1443,7 +1661,7 @@ def _roster(placed, age_yr, rng, max_stars, n_stars, prevalence, companion=_DRAW
         else:
             count = max(1, min(n_stars, max_stars - (compact is not None)))
         for _ in range(count - 1):
-            leaves.append(_star_leaf(_companion_mass(birth, rng), age_yr, rng, fe_h=placed.tree_fe_h))
+            leaves.append(_star_leaf(_companion_mass(birth, rng, placed.fe_h), age_yr, rng, fe_h=placed.tree_fe_h))
         # A brown dwarf is no star of the table's count: a drawn tree may hold one more member (a directive's count is
         # of stars, so it adds none).
         brown = (n_stars is None and birth > mass_boundaries.sol("hydrogen_burning_limit") and len(leaves) < max_stars - (compact is not None)
@@ -1504,7 +1722,8 @@ def _placed_direct_collapse(placed):
 def _star_compact_companion(placed, age_yr, rng):
     """The compact companion of a living star, or None (one draw)."""
     table = MEMBER_STATE_BY_PLACED.get(placed_class(placed), {})
-    lifetime_yr = evolution.remnant_formation_time_gy(placed.birth_mass_solar, placed.tree_fe_h) * 1.0e9
+    track = alpha_tracks.track_fe_h(placed.tree_fe_h, age_yr / 1.0e9)
+    lifetime_yr = evolution.remnant_formation_time_gy(placed.birth_mass_solar, track) * 1.0e9
     in_window = age_yr >= lifetime_yr * (1.0 - REMNANT_WINDOW_FRACTION)
     pick = rng.random()
     for kind, (default, _low, _high) in table.items():
@@ -1577,8 +1796,9 @@ def _assemble(leaves, builder, age_yr, dropped, rng):
         node_no, slot = where[leaf_index]
         members.append(Member(member_no=number[leaf_index], parent_node_no=node_no, slot=slot, kind=leaf.kind,
                               state=leaf.state, flags=leaf.flags | builder.extra_flags.get(leaf_index, 0), mass_solar=leaf.mass,
-                              initial_mass_solar=leaf.initial, radius_au=leaf.radius_au, seed=rng.getrandbits(63),
-                              effective_age_yr=leaf.effective_age_yr))
+                              initial_mass_solar=leaf.initial, radius_au=leaf.radius_au, seed=leaf.member_seed(rng),
+                              effective_age_yr=leaf.effective_age_yr, radius_max_au=leaf.largest_radius_au,
+                              mass_max_solar=leaf.largest_mass_solar))
     return MemberTree(tuple(members), tuple(nodes), age_yr, dropped)
 
 
@@ -1622,12 +1842,6 @@ def rejuvenated_age_yr(age_yr, rng=draw):
     return age_yr * rng.uniform(*REJUVENATION_FRACTION_RANGE)
 
 
-def mark_merger_product(member, age_yr, rng=draw):
-    """The member as a merger product: flagged `merger_product`, with a rejuvenated `effective_age_yr`."""
-    return dataclasses.replace(member, flags=member.flags | MEMBER_MERGER_PRODUCT,
-                               effective_age_yr=rejuvenated_age_yr(age_yr, rng))
-
-
 def _in_sphere(radius, rng):
     """A point drawn uniformly inside a sphere of this radius, as a 3-tuple."""
     while True:
@@ -1640,7 +1854,8 @@ def _group_member(number, leaf, rng, parent_node_no, slot, flags, **extra):
     """A `Member` of a young group's tree from a roster leaf."""
     return Member(member_no=number, parent_node_no=parent_node_no, slot=slot, kind=leaf.kind, state=leaf.state,
                   flags=leaf.flags | flags, mass_solar=leaf.mass, initial_mass_solar=leaf.initial,
-                  radius_au=leaf.radius_au, seed=rng.getrandbits(63), effective_age_yr=leaf.effective_age_yr, **extra)
+                  radius_au=leaf.radius_au, seed=leaf.member_seed(rng), effective_age_yr=leaf.effective_age_yr,
+                  radius_max_au=leaf.largest_radius_au, mass_max_solar=leaf.largest_mass_solar, **extra)
 
 
 def _group_tree(leaves, age_yr, decay_age_yr, rng):
@@ -1727,65 +1942,9 @@ def draw_young_group(placed, age_yr, rng=draw, max_stars=MAX_MEMBERS, prevalence
 
 def _single(leaf, age_yr, dropped, rng):
     member = Member(0, None, 0, leaf.kind, leaf.state, leaf.flags, leaf.mass, leaf.initial, leaf.radius_au,
-                    rng.getrandbits(63), leaf.effective_age_yr)
+                    leaf.member_seed(rng), leaf.effective_age_yr, radius_max_au=leaf.largest_radius_au,
+                    mass_max_solar=leaf.largest_mass_solar)
     return MemberTree((member,), (), age_yr, dropped)
-
-
-def without_members(tree, kinds):
-    """
-    `tree` with every member whose kind is in `kinds` taken out (member 0, the placed object, stays): the node a member hung
-    in goes with it and the member's sibling takes its place, so the orbits of every other pair stay as they were drawn.
-    The nodes above are given the mass that is left and the period of their own axis about it, and are numbered again
-    from 1 in the tree's order, as are the members. A system build uses it for the members it cannot make from a birth mass
-    (a brown dwarf, a neutron star, a black hole).
-
-    Args:
-        tree (MemberTree): The tree drawn.
-        kinds (tuple): The member kinds to take out.
-
-    Returns:
-        MemberTree: `tree` itself when no member has such a kind, else the smaller tree (`dropped` unchanged).
-    """
-    if not any(member.kind in kinds for member in tree.members[1:]):
-        return tree
-    members = {member.member_no: member for member in tree.members}
-    nodes = {node.node_no: node for node in tree.nodes}
-    for member_no in [m.member_no for m in tree.members[1:] if m.kind in kinds]:
-        gone = members.pop(member_no)
-        parent = nodes.pop(gone.parent_node_no)
-        sibling_member = next((m for m in members.values()
-                               if m.parent_node_no == parent.node_no and m.slot != gone.slot), None)
-        if sibling_member is not None:
-            if parent.parent_node_no is None:     # the root went: the sibling is all that is left
-                return MemberTree((dataclasses.replace(sibling_member, member_no=0, parent_node_no=None, slot=0),), (),
-                                  tree.age_yr, tree.dropped)
-            members[sibling_member.member_no] = dataclasses.replace(
-                sibling_member, parent_node_no=parent.parent_node_no, slot=parent.slot,
-                flags=sibling_member.flags & ~(MEMBER_MASS_GAINER | MEMBER_MASS_REVERSED))
-        else:
-            sibling = next(n for n in nodes.values() if n.parent_node_no == parent.node_no)
-            nodes[sibling.node_no] = dataclasses.replace(sibling, parent_node_no=parent.parent_node_no, slot=parent.slot)
-    node_number = {node_no: number for number, node_no in enumerate(sorted(nodes), start=1)}
-    member_number = {member_no: number for number, member_no in enumerate(sorted(members))}
-    below = {}
-
-    def mass_below(node_no):
-        if node_no not in below:
-            below[node_no] = sum(m.mass_solar for m in members.values() if m.parent_node_no == node_no) + sum(
-                mass_below(n.node_no) for n in nodes.values() if n.parent_node_no == node_no)
-        return below[node_no]
-
-    kept = []
-    for node_no in sorted(nodes):
-        node = nodes[node_no]
-        mass = mass_below(node_no)
-        kept.append(dataclasses.replace(
-            node, node_no=node_number[node_no], parent_node_no=node_number.get(node.parent_node_no), mass_solar=mass,
-            period_years=math.sqrt(node.separation_au ** 3 / mass)))
-    ordered = tuple(dataclasses.replace(members[member_no], member_no=member_number[member_no],
-                                        parent_node_no=node_number[members[member_no].parent_node_no])
-                    for member_no in sorted(members))
-    return MemberTree(ordered, tuple(kept), tree.age_yr, tree.dropped)
 
 
 def draw_member_tree(placed, age_yr, rng=draw, max_stars=MAX_MEMBERS, n_stars=None, prevalence=1.0,
@@ -1829,11 +1988,12 @@ def draw_member_tree(placed, age_yr, rng=draw, max_stars=MAX_MEMBERS, n_stars=No
         group = draw_young_group(placed, age_yr, rng, max_stars, prevalence, bound_runaway, max_axis_au, pair_placed)
         if group is not None:
             return group
-    leaves, units = _roster(placed, age_yr, rng, max_stars, n_stars, prevalence, companion, bound_runaway)
-    return _grow_tree(leaves, units, age_yr, rng, n_stars, max_axis_au, pair_placed)
+    weights, inside_weight = close_trend(placed.birth_mass_solar, placed.fe_h, prevalence) if placed.kind == "star" else (None, 1.0)
+    leaves, units = _roster(placed, age_yr, rng, max_stars, n_stars, prevalence, companion, bound_runaway, weights)
+    return _grow_tree(leaves, units, age_yr, rng, n_stars, max_axis_au, pair_placed, inside_weight)
 
 
-def _grow_tree(leaves, units, age_yr, rng, n_stars, max_axis_au, pair_placed):
+def _grow_tree(leaves, units, age_yr, rng, n_stars, max_axis_au, pair_placed, inside_weight=1.0):
     """The `MemberTree` of the `leaves` in the shape `units` names (the placed leaf first): hierarchies are drawn until one
     clears the stability and extent screens, and when none does the lightest loose member is dropped and the draw tries again."""
     dropped = 0
@@ -1846,7 +2006,7 @@ def _grow_tree(leaves, units, age_yr, rng, n_stars, max_axis_au, pair_placed):
         if len(units) == 1 and isinstance(units[0], int):
             return _single(leaves[units[0]], age_yr, dropped, rng)
         for _ in range(TREE_RESTARTS):
-            builder = _Builder(leaves, age_yr, rng, max_axis_au=max_axis_au)
+            builder = _Builder(leaves, age_yr, rng, max_axis_au=max_axis_au, inside_weight=inside_weight)
             try:
                 builder.place(shape_of(units, rng), None, 0, None)
             except _Failed:

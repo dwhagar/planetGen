@@ -130,11 +130,11 @@ def test_a_unit_saves_under_its_run_and_the_run_adds_its_sectors_up(mysql_config
                 Inner()
             assert object_timing.save(conn, run_id, timings) == 2 + 3
         conn.commit()
-        totals = object_timing.run_totals(conn, run_id)
-        assert totals["system"].count == 2 and totals["star"].count == 4
-        assert sum(totals["star"].histogram) == 4 and totals["star"].total > 0.012
-        means = object_timing.type_means(conn)
-        assert 0.003 < means["star"] < 0.008
+        rows = {row["kind"]: row for row in object_timing.kind_summaries(conn)}
+        assert rows["system"]["objects"] == 2 and rows["star"]["objects"] == 4
+        assert rows["star"]["total_seconds"] > 0.012 and 0.003 < rows["star"]["mean_seconds"] < 0.008
+        assert rows["star"]["fastest_seconds"] <= rows["star"]["mean_seconds"] <= rows["star"]["slowest_seconds"]
+        assert [row["kind"] for row in object_timing.kind_summaries(conn)][0] == "system"
         assert conn.execute("SELECT COUNT(*) AS n FROM object_timing_samples WHERE run_id = ?",
                             (run_id,)).fetchone()["n"] == 6
     finally:

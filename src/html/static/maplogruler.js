@@ -16,6 +16,7 @@ export const STOPS = [
   { key: "system", label: "Planetary system", pc: 1e-3 },
   { key: "planet", label: "Planet", pc: 1e-8 },
   { key: "moon", label: "Moon", pc: 1e-10 },
+  { key: "surface", label: "Surface", pc: 1e-12 },
 ];
 
 // The stops that fit between `farPc` (the whole galaxy in view) and `floorPc`, with each one's distance and share along the ruler

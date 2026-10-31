@@ -34,12 +34,12 @@ Use:
     ratio = angular_momentum_ratio(mass_earth, radius_earth, impactor_earth, spin_period_h, u_parameter)
     tilt = tilt_deg(ratio, cos_alpha)
     period_h = final_period_h(mass_earth, radius_earth, ratio, cos_alpha)
-    ring_plane_tilt_deg(tilt)             # = tilt
 """
 
 import math
 
 from planetgen.physics import constants
+from planetgen.util import draw
 
 MOMENT_OF_INERTIA_FACTOR = 0.225
 """float: `I / (M R^2)` of an ice giant: Uranus 0.225, Neptune 0.23 (recalled from the Helled et al. 2010 interior models, row GT2)."""
@@ -156,6 +156,27 @@ def final_period_h(mass_earth, radius_earth, ratio, cos_alpha, spin_fraction=PRE
     return 2.0 * math.pi / omega / 3600.0
 
 
-def ring_plane_tilt_deg(tilt_deg_):
-    """The tilt to the orbit of the ring and the moon plane: the equator's, the planet's own, by construction (R3, G1)."""
-    return tilt_deg_
+
+
+def combined_tilt_deg(initial_tilt_deg, turn_deg, cos_azimuth):
+    """
+    The obliquity after the axis turns through `turn_deg` from where it stood at `initial_tilt_deg` to the orbit normal, degrees: the turn is about an axis at
+    an azimuth round the old one with cosine `cos_azimuth`, so `cos(e) = cos(e0) cos(t) + sin(e0) sin(t) cos(phi)`. From an upright planet the obliquity is the turn.
+    """
+    e0, t = math.radians(initial_tilt_deg), math.radians(turn_deg)
+    cos_e = math.cos(e0) * math.cos(t) + math.sin(e0) * math.sin(t) * cos_azimuth
+    return math.degrees(math.acos(max(-1.0, min(1.0, cos_e))))
+
+
+def tilt_after_merger_deg(mass_kg, radius_km, initial_tilt_deg):
+    """
+    The obliquity of a giant planet, degrees, given the tilt it had before any giant impact (GEN.1165): a giant of `MASS_RANGE_EARTH` has a recorded merger with the chance
+    `MERGER_SHARE` (the share of the ice giants whose history holds one) and then takes the turn of `draw_tilt_deg` (impactor mass, impact parameter and direction drawn) on
+    top of the earlier tilt; any other giant keeps it. A giant over the range is not turned because the impact brings a small share of its spin (`angular_momentum_ratio`
+    stays under 1), so it is not drawn at all. Draws nothing outside the range.
+    """
+    mass_earth = mass_kg / _M_EARTH
+    if not MASS_RANGE_EARTH[0] <= mass_earth <= MASS_RANGE_EARTH[1] or draw.random() >= MERGER_SHARE:
+        return initial_tilt_deg
+    turn = draw_tilt_deg(mass_earth, radius_km / constants.EARTH_RADIUS_KM, draw.random(), draw.random(), draw.random())
+    return combined_tilt_deg(initial_tilt_deg, turn, math.cos(draw.uniform(0.0, 2.0 * math.pi)))

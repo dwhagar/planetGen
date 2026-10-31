@@ -75,7 +75,7 @@ from planetgen.names import object_id as objectId
 from planetgen import tuning
 from planetgen.galaxy import component_field as componentField, components as galaxyComponents, containment, mass_chain as massChain, nebula_field as nebulaField, object_uid as objectUid, scales, scatter_limits as scatterLimits, seed as galaxySeed, shape_draw, uid as galaxyUid, version_key as versionKey
 from planetgen.physics import activity, atmosphere, bulk_mass, constants as physical_constants, climate_draws, habitability, habitability_world, hydrosphere, insolation, interior_heat, kepler, magnetism, pre_main_sequence, radiation, radiogenic, spin
-from planetgen.physics import aerosols, body_colour, bulk_composition, daylight, giant_interior, life_classes, moon_composition, orbit_elements, rings, surface_composition
+from planetgen.physics import aerosols, body_colour, bulk_composition, daylight, giant_interior, life_classes, moon_composition, ocean_tides, orbit_elements, rings, surface_composition
 from planetgen.generation import generator_battery as generatorBattery
 from planetgen.util import fingerprint_encoding as fingerprintEncoding, generator_epoch as generatorEpoch, log
 from planetgen.util.settings import env_name, get_settings
@@ -608,7 +608,7 @@ BATCH_CHILD_TABLES = frozenset((
     "system_config_slots", "planet_reflection_spectrum", "moon_reflection_spectrum", "planet_interior_layers", "moon_interior_layers",
     "planet_gases", "moon_gases", "planet_life_class_scores", "moon_life_class_scores",
     "asteroid_belt_composition",
-    "comet_composition", "interstellar_comet_composition", "asteroid_field_composition", "orbit_nodes",
+    "comet_composition", "interstellar_comet_composition", "asteroid_field_composition", "orbit_nodes", "dark_members",
 ))
 """frozenset: Child tables nothing refers to by id, so `Connection.batched`
 may hold their INSERTs back and write them many rows at a time with no
@@ -2980,6 +2980,7 @@ BODY_FIELDS = (
     object_rows.each(bulk_composition.COLUMN_FIELDS),
     object_rows.each(surface_composition.COLUMN_FIELDS),
     object_rows.each(daylight.FIELDS),
+    object_rows.each(ocean_tides.FIELDS),
     object_rows.each(moon_composition.BODY_FIELDS),
     object_rows.computed("carbon_rock", lambda body, context: _tristate(body.carbon_rock),
                          lambda row: {"carbon_rock": _tristate_from_db(row["carbon_rock"])}),
@@ -3280,12 +3281,12 @@ BELT_FIELDS = (
                          lambda belt, context: planet_parent(context["star_id"], context["star_system_id"])),
     object_rows.scaled("distance_km", "distance", _AU_KM), object_rows.scaled("lower_limit_km", "lower_limit", _AU_KM),
     object_rows.scaled("upper_limit_km", "upper_limit", _AU_KM),
-    object_rows.attr("density"),
+    object_rows.attr("density"), object_rows.attr("mass_kg"), object_rows.optional("chondrite_group"),
     object_rows.computed("composition_summary", lambda belt, context: belt.get_composition_summary()),
     # GEN.337: a belt is a ring about its star, so its point is the star's (the system centre) and it carries no vector
-    # of its own; its bulk has no mass model yet, a stated zero the gravity sum skips.
+    # of its own.
     object_rows.computed(("position_x_km", "position_y_km", "position_z_km", "velocity_x_kms", "velocity_y_kms",
-                          "velocity_z_kms", "mass_kg"), lambda belt, context: (0.0,) * 7),
+                          "velocity_z_kms"), lambda belt, context: (0.0,) * 6),
 )
 """tuple: The `Field`s of an `asteroid_belts` row."""
 
@@ -3824,6 +3825,7 @@ def insert_interstellar_comet(conn, comet: InterstellarComet, sector_id=None, pl
 ASTEROID_FIELD_FIELDS = (
     object_rows.context("sector_id"), object_rows.attr("name"), object_rows.attr("field_class"),
     object_rows.attr("composition_family"), object_rows.attr("density"), object_rows.attr("radius_ly"),
+    object_rows.optional("chondrite_group"),
     object_rows.computed("composition_summary", lambda field, context: field.get_composition_summary()),
     _FREE_VECTOR_FIELD, object_rows.computed("mass_kg", lambda field, context: 0.0), _GALACTIC_ORBIT_FIELD,
     _PLACEMENT_FIELD,
@@ -4440,6 +4442,7 @@ def insert_star_system(conn, star_system: StarSystem, system_config: SystemConfi
         else:
             nodes = orbit_trees.binary_nodes(star_system, orbit_epoch)
     orbit_trees.write_nodes(conn, star_system_id, nodes, replace=False)
+    orbit_trees.write_dark_members(conn, star_system_id, star_system.dark_members, replace=False)    # GEN.1013
     star_system.orbit_nodes = nodes
     places = orbit_trees.star_places(star_system)
     # GEN.329: how a runaway star came to move so fast, in the flags of its (first) star row
@@ -4789,7 +4792,7 @@ def _refresh_cloud_doses(conn, system_changes):
                 column = radiation.column_g_cm2(row["atmospheric_pressure_pa"], row["gravity_g"])
                 multiplier = radiation.helio_multiplier(column, compression)
                 total = radiation.total_dose_msv_yr(
-                    row["dose_gcr_msv_yr"], multiplier, row["dose_sep_msv_yr"], row["dose_ground_msv_yr"])
+                    row["dose_gcr_msv_yr"], multiplier, row["dose_sep_msv_yr"], row["dose_ground_msv_yr"], row["dose_belt_msv_yr"])
                 scored = ()
                 if not compact and row["energy_flux_w_m2"] is not None:
                     # GEN.89: the dose is one of the score's inputs. (A compact host's planet is
@@ -9197,6 +9200,7 @@ def load_star_system(conn, star_system_id) -> StarSystem:
     system.binary_type = binary_configuration
     system.wide_binary = wide_binary
     system.orbit_nodes = orbit_trees.read_nodes(conn, star_system_id)    # GEN.311
+    system.dark_members = orbit_trees.read_dark_members(conn, star_system_id)    # GEN.1013
 
     # v20: only meaningful (non-NULL) for a 'close' pair -- see
     # schema.sql's "v20" header note and StarSystem.__init__'s own comment.
@@ -9243,8 +9247,11 @@ def load_star_system(conn, star_system_id) -> StarSystem:
             member.db_id = member_row["id"]
         system.member_stars = tuple(members)
         system.stars = system.stars + members
-        system.star_slots = tuple((place["parent_node_id"], place["slot"])
-                                  for place in (primary_row, secondary_row, *member_rows))
+    if member_rows or system.dark_members:    # (GEN.1013: a tree with a dark member says where its stars hang too)
+        places = (primary_row, secondary_row, *member_rows) if binary_configuration in ("close", "wide") else (
+            conn.execute("SELECT parent_node_id, slot FROM stars WHERE star_system_id = ? AND role = 'single'",
+                         (star_system_id,)).fetchone(),)
+        system.star_slots = tuple((place["parent_node_id"], place["slot"]) for place in places)
 
     planet_rows = conn.execute(
         "SELECT * FROM planets WHERE star_system_id = ? ORDER BY orbital_index", (star_system_id,)

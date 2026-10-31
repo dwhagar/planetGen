@@ -27,9 +27,11 @@ const { makeBandTexture, makeGlowMaterial, paintedTexture } = await import(`./bo
 const Spin = await import(`./spin.js${VERSION_QUERY}`);
 const { makeCache, makeQueue, tierForDiameter, TIER_SIZES } = await import(`./bodytexture.js${VERSION_QUERY}`);
 const { paintSolid } = await import(`./solidpaint.js${VERSION_QUERY}`);
+const { isLumpy, lumpyGeometry } = await import(`./lumpymesh.js${VERSION_QUERY}`);
 const { paintStar } = await import(`./starpaint.js${VERSION_QUERY}`);
 const { createPointerControl, orbitByDrag, orbitByKey, panInScreenPlane, wheelPixels } = await import(`./mapcontrol.js${VERSION_QUERY}`);
 const { fitRendererToCanvas, watchResize } = await import(`./mapcore.js${VERSION_QUERY}`);
+const { watchWindowFit } = await import(`./mapfit.js${VERSION_QUERY}`);
 const { createPicker, createTooltip, infoPanelOf } = await import(`./mappick.js${VERSION_QUERY}`);
 const { navActions, nearbyLinks, viewLink } = await import(`./systemnav.js${VERSION_QUERY}`);
 const { fitDistance: framingDistance } = await import(`./flytofit.js${VERSION_QUERY}`);
@@ -67,9 +69,16 @@ function colorOf(body) {
 }
 
 // The shell of a planet's air, as the System Map draws it (systemmap.js).
+// MAP.277: the glow of a body's air reaches `look.glowWidth` radii past the limb (this many when the look does not say: the composition of the air is not stored),
+// as strongly as `look.glowStrength`; the night side is lit by the light the air scatters round the terminator, `look.twilight` (none for a world with no air).
 const AIR_SHELL = 1.14;
 const AIR_GLOW_POWER = 1.4;
-const AIR_GLOW_STRENGTH = 0.7;
+const NIGHT_FILL_NO_LOOK = 0.12;      // a body with no look record (what the system view draws as a plain sphere) keeps the old fill
+const NIGHT_FILL_NO_AIR = 0.04;
+const NIGHT_FILL_PER_TWILIGHT = 0.494;
+function nightFill(look) {
+  return look ? NIGHT_FILL_NO_AIR + NIGHT_FILL_PER_TWILIGHT * (look.twilight || 0) : NIGHT_FILL_NO_LOOK;
+}
 
 function lineFrom(layout, around, rel, color, opacity) {
   const points = rel.map((p) => new THREE.Vector3(...layout.place(around, p)));
@@ -123,11 +132,12 @@ export function buildSystemScene(scene, layout, options) {
     const body = item.body;
     const radius = Math.max(layout.radiusOf(item.ref), 1e-9);
     const color = colorOf(body);
+    const lump = isLumpy(body.look) ? lumpyGeometry(THREE, body.look, SPHERE_SEGMENTS[0], SPHERE_SEGMENTS[1]) : null;     // MAP.279: a body its weight has not made round
     const mesh = new THREE.Mesh(
-      new THREE.SphereGeometry(1, SPHERE_SEGMENTS[0], SPHERE_SEGMENTS[1]),
+      lump ? lump.geometry : new THREE.SphereGeometry(1, SPHERE_SEGMENTS[0], SPHERE_SEGMENTS[1]),
       item.kind === "star"
         ? new THREE.MeshBasicMaterial({ color: color })
-        : new THREE.MeshLambertMaterial({ color: color, emissive: color, emissiveIntensity: 0.12 }));
+        : new THREE.MeshLambertMaterial({ color: color, emissive: color, emissiveIntensity: nightFill(body.look) }));
     mesh.scale.setScalar(radius);
     mesh.userData.ref = item.ref;
     group.add(mesh);
@@ -141,10 +151,11 @@ export function buildSystemScene(scene, layout, options) {
       mesh.material.map = bands;
       mesh.material.color.set("#ffffff");
     }
-    if (look && look.atm && look.body !== "star" && opts.glow !== false) {
+    if (look && look.glowStrength && look.body !== "star" && opts.glow !== false) {
+      const shell = look.glowWidth ? 1 + look.glowWidth : AIR_SHELL;
       const air = new THREE.Mesh(
-        new THREE.SphereGeometry(1, 20, 14), makeGlowMaterial(THREE, look.glow || "#bcdfff", AIR_GLOW_POWER, AIR_GLOW_STRENGTH, AIR_SHELL));
-      air.scale.setScalar(AIR_SHELL);
+        new THREE.SphereGeometry(1, 20, 14), makeGlowMaterial(THREE, look.glow || "#bcdfff", AIR_GLOW_POWER, look.glowStrength, shell));
+      air.scale.setScalar(shell);
       mesh.add(air);
     }
     if (item.kind === "star") {
@@ -705,6 +716,9 @@ export function createSystemView(options) {
   }
 
   const stopWatching = watchResize(canvasEl, function () { fitRendererToCanvas(renderer, camera, canvasEl); });
+  // MAP.359: the 3D system view is as wide as its column and as tall as the Galaxy Map is for the browser window (95% of it).
+  const viewportEl = canvasEl.closest(".sysview-viewport");
+  const stopFitting = viewportEl ? watchWindowFit(viewportEl, null, { fill: true }) : null;
 
   rebuild();
   reset();
@@ -748,6 +762,7 @@ export function createSystemView(options) {
       disposed = true;
       cancelAnimationFrame(frame);
       if (stopWatching) stopWatching();
+      if (stopFitting) stopFitting.stop();
       built.dispose();
       renderer.dispose();
     },

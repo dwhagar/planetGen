@@ -136,7 +136,8 @@ def water_boiling_k(pressure_pa):
 
 def ice_shell_thickness_km(flux_w_m2, top_temperature_k, base_temperature_k=WATER_MELTING_K):
     """The conducting lid: with k = A / T, Fourier's law integrates to
-    D = (A / F) ln(T_base / T_top). 0 when the top is already at melting."""
+    D = (A / F) ln(T_base / T_top). 0 when the top is already at melting. The flux an icy body's shell conducts includes its own tide, which
+    in turn depends on this thickness (`icy_tide`, GEN.960): the stored `internal + tidal` flux is the one in equilibrium with it."""
     if top_temperature_k >= base_temperature_k:
         return 0.0
     return ICE_CONDUCTIVITY_A_W_M / flux_w_m2 * math.log(base_temperature_k / top_temperature_k) / 1000.0

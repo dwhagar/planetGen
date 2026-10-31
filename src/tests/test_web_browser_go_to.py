@@ -136,9 +136,9 @@ def test_the_log_ruler_names_its_scales_and_each_stop_is_a_go_to(page, map_site)
     _open_galaxy(page, map_site, OPEN_PRIME)
     stops = page.eval_on_selector_all("#galaxymap3d-ruler .starmap-ruler-stop",
                                       "els => els.map(e => ({key: e.dataset.stop, y: e.getBoundingClientRect().y, title: e.title}))")
-    assert [s["key"] for s in stops] == ["galaxy", "arm", "region", "sector", "neighbourhood", "system", "planet", "moon"]
+    assert [s["key"] for s in stops] == ["galaxy", "arm", "region", "sector", "neighbourhood", "system", "planet", "moon", "surface"]
     ys = [s["y"] for s in stops]
-    assert ys == sorted(ys) and ys[0] < ys[-1] - 100, "the whole galaxy is at the top and a moon at the bottom"
+    assert ys == sorted(ys) and ys[0] < ys[-1] - 100, "the whole galaxy is at the top and the surface at the bottom"
     assert all(s["title"].startswith("Go to ") for s in stops)
     readout = page.locator("#galaxymap3d-altitude")
     assert readout.inner_text().startswith("Distance from focus: ")
@@ -232,3 +232,75 @@ def test_go_to_a_region_lands_framed_by_default_and_on_the_densest_cluster_by_se
     assert page.evaluate(f"(t) => {CANVAS_JS}.galaxyGoTo(t)", target)
     again = _stable_camera(page)
     assert again["dist"] == pytest.approx(framed["dist"], rel=0.02)
+
+
+# --- UX.236: the Preferences page sets what the map reads ------------------------------------------------------------------------------
+
+STORED = "(key) => localStorage.getItem('planetgen.pref.' + key)"
+
+
+def test_a_setting_made_on_the_preferences_page_changes_where_a_go_to_a_region_lands(page, map_site):
+    """UX.236: the page lists each setting with its words and its default; choosing Land on the densest part stores map.regionLanding, the
+    Galaxy Map then lands a Go to a region on the cluster of its heaviest sectors, and Reset to defaults brings the framed landing back."""
+    target = _region_target()
+    page.goto(f"{map_site}/preferences", wait_until="load")
+    page.wait_for_selector("[data-preference='map.regionLanding'] input[type=radio]", state="attached")
+    landing = page.locator("[data-preference='map.regionLanding']")
+    assert "Where Go to a region lands" in landing.inner_text() and "Default: Frame the region" in landing.inner_text()
+    assert page.locator("[data-preference='map.blackHoleDensity']").inner_text().count("Default: 120 pixels") == 1
+    assert page.locator("input[value=frame]").is_checked() and not page.locator("input[value=densest]").is_checked()
+    assert page.evaluate(STORED, "map.regionLanding") is None, "a page that only looks stores nothing"
+
+    page.locator("input[value=densest]").check()
+    assert page.evaluate(STORED, "map.regionLanding") == "densest"
+    assert "Saved" in page.locator("[data-preferences-status]").inner_text()
+
+    _open_galaxy(page, map_site)
+    assert page.evaluate(f"(t) => {CANVAS_JS}.galaxyGoTo(t)", target)
+    dense = _stable_camera(page)
+    page.click('#galaxymap3d-controls [data-action="reset"]')
+    _settle(page)
+
+    page.goto(f"{map_site}/preferences", wait_until="load")
+    page.wait_for_selector("input[value=densest]", state="attached")
+    assert page.locator("input[value=densest]").is_checked(), "the page shows what is stored when it is opened again"
+    page.get_by_role("button", name="Reset to defaults").click()
+    assert page.evaluate(STORED, "map.regionLanding") is None and page.locator("input[value=frame]").is_checked()
+
+    _open_galaxy(page, map_site)
+    assert page.evaluate(f"(t) => {CANVAS_JS}.galaxyGoTo(t)", target)
+    framed = _stable_camera(page)
+    assert dense["dist"] < framed["dist"] * 0.6, (dense["dist"], framed["dist"])
+
+
+def test_a_number_on_the_preferences_page_is_stored_when_in_range_and_refused_when_not(page, map_site):
+    """UX.236: map.blackHoleDensity takes 30 to 1000; a number outside that is not stored and the page says so, an emptied box is the
+    default again, and the other settings stay as they were."""
+    page.goto(f"{map_site}/preferences", wait_until="load")
+    box = page.locator("input[data-key='map.blackHoleDensity']")
+    box.wait_for(state="attached")
+    page.locator("input[value=densest]").check()
+    box.fill("60")
+    box.dispatch_event("change")
+    assert page.evaluate(STORED, "map.blackHoleDensity") == "60"
+    box.fill("5")
+    box.dispatch_event("change")
+    assert page.evaluate(STORED, "map.blackHoleDensity") == "60", "an out-of-range number is not stored"
+    assert "not between 30 and 1000" in page.locator("[data-preferences-status]").inner_text()
+    box.fill("")
+    box.dispatch_event("change")
+    assert page.evaluate(STORED, "map.blackHoleDensity") is None
+    assert page.evaluate(STORED, "map.regionLanding") == "densest", "the other setting stays"
+    page.reload(wait_until="load")
+    page.wait_for_selector("input[value=densest]", state="attached")
+    assert page.locator("input[value=densest]").is_checked() and box.input_value() == ""
+
+
+def test_the_gear_menu_leads_to_the_preferences_page(page, map_site):
+    page.goto(f"{map_site}/", wait_until="load")
+    page.locator("header .site-gear sl-icon-button").click()
+    link = page.locator("header .site-gear-panel a", has_text="Preferences")
+    link.wait_for(state="visible")
+    link.click()
+    page.wait_for_url("**/preferences")
+    assert page.locator("h2", has_text="Preferences").count() == 1

@@ -6,9 +6,12 @@ for the plausibility checks of the drawn population (`test_satellite_law.py`) an
 the sector gate, the profile and the store do with `catalogue` satellites. The generator reads none of it: its
 satellites are drawn from the galaxy's seed and halo (`generation/satellites.py`).
 
-Every value in the table is recalled from McConnachie (2012, AJ 144, 4) and not checked against it, so each is good to a
-few tens of percent in size and distance and a factor of two in mass. The half-light radius stands in for the half-mass
-radius. The velocities are zero.
+Checked against McConnachie (2012, AJ 144, 4; arXiv:1204.1562) on 2026-10-31 (GEN.366): the position and distance of each row are Table 2
+(l, b, D), the half-light radius is the semi-major axis radius of Table 3 in parsecs, the stellar mass is Table 4 (a stellar mass-to-light ratio of
+1) and [Fe/H] is Table 5. The paper gives no half-light radius for the two Magellanic Clouds (they are not fitted by a single profile): 2700 and 1100 pc are
+not from it. The stellar ages are not in the paper either (the ages are the table's own estimates, unchecked; Leo I's was 5 Gy, which asks for a rising history and so for gas, and Leo I has none: Grcevich and Putman 2009 (arXiv:0901.4975) find the Milky Way's dwarfs within about 270 kpc under 1e5 solar masses of HI, and a limit of under 3e4 for Leo I, TEST.508; it is 9 Gy here so the row forms no stars, and the age is a choice, not a measurement). Canes Venatici I (TEST.507) is Tables 2 to 5 as well, its age is a choice (an old dwarf: 11 Gy, as Draco and Sculptor). The table holds the 12 satellites of the paper above 1e5 solar masses; Canis Major (4.9e7 solar masses) is left out: the paper lists its type as unknown (Table 1, "MW disk substructure?") and says there is "considerable debate as to whether it is a dwarf galaxy or an unrelated disk substructure", so it is not a settled satellite for a table that checks a drawn population.
+`test_reference_satellites.py` pins
+the checked values. The half-light radius stands in for the half-mass radius. The velocities are zero.
 """
 
 import collections
@@ -23,19 +26,20 @@ Satellite = collections.namedtuple(
 """One real satellite: where it lies on the sky and how far, how heavy and how big, and its stars' [Fe/H] and age."""
 
 MILKY_WAY_SATELLITES = (
-    Satellite("Large Magellanic Cloud", 280.47, -32.89, 49.6, 2.5e9, 2700.0, "exponential", -0.4, 5.0),
-    Satellite("Small Magellanic Cloud", 302.8, -44.3, 62.4, 5.2e8, 1100.0, "exponential", -0.9, 6.0),
-    Satellite("Sagittarius dwarf", 5.6, -14.2, 24.0, 1.0e8, 2600.0, "exponential", -0.6, 8.0),
-    Satellite("Fornax dwarf", 237.1, -65.7, 143.0, 2.0e7, 710.0, "plummer", -1.0, 7.0),
-    Satellite("Sculptor dwarf", 287.5, -83.2, 86.0, 2.3e6, 283.0, "plummer", -1.7, 11.0),
-    Satellite("Carina dwarf", 260.1, -22.2, 105.0, 3.8e5, 250.0, "plummer", -1.7, 7.0),
-    Satellite("Draco dwarf", 86.4, 34.7, 76.0, 2.9e5, 221.0, "plummer", -2.0, 11.0),
-    Satellite("Ursa Minor dwarf", 105.0, 44.8, 76.0, 2.9e5, 405.0, "plummer", -2.1, 12.0),
-    Satellite("Sextans dwarf", 243.5, 42.3, 86.0, 4.4e5, 695.0, "plummer", -1.9, 11.0),
-    Satellite("Leo I", 226.0, 49.1, 254.0, 5.5e6, 251.0, "plummer", -1.4, 5.0),
-    Satellite("Leo II", 220.2, 67.2, 233.0, 7.4e5, 176.0, "plummer", -1.6, 9.0),
+    Satellite("Large Magellanic Cloud", 280.5, -32.9, 51.0, 1.5e9, 2700.0, "exponential", -0.5, 5.0),
+    Satellite("Small Magellanic Cloud", 302.8, -44.3, 64.0, 4.6e8, 1100.0, "exponential", -1.0, 6.0),
+    Satellite("Sagittarius dwarf", 5.6, -14.2, 26.0, 2.1e7, 2587.0, "exponential", -0.4, 8.0),
+    Satellite("Fornax dwarf", 237.1, -65.7, 147.0, 2.0e7, 710.0, "plummer", -0.99, 7.0),
+    Satellite("Sculptor dwarf", 287.5, -83.2, 86.0, 2.3e6, 283.0, "plummer", -1.68, 11.0),
+    Satellite("Carina dwarf", 260.1, -22.2, 105.0, 3.8e5, 250.0, "plummer", -1.72, 7.0),
+    Satellite("Draco dwarf", 86.4, 34.7, 76.0, 2.9e5, 221.0, "plummer", -1.93, 11.0),
+    Satellite("Ursa Minor dwarf", 105.0, 44.8, 76.0, 2.9e5, 181.0, "plummer", -2.13, 12.0),
+    Satellite("Sextans dwarf", 243.5, 42.3, 86.0, 4.4e5, 695.0, "plummer", -1.93, 11.0),
+    Satellite("Leo I", 226.0, 49.1, 254.0, 5.5e6, 251.0, "plummer", -1.43, 9.0),
+    Satellite("Leo II", 220.2, 67.2, 233.0, 7.4e5, 176.0, "plummer", -1.62, 9.0),
+    Satellite("Canes Venatici I", 74.3, 79.8, 218.0, 2.3e5, 564.0, "plummer", -1.98, 11.0),
 )
-"""tuple: The Milky Way's satellites (recalled from McConnachie 2012, unchecked: see the module docstring)."""
+"""tuple: The Milky Way's satellites (checked against McConnachie 2012: see the module docstring)."""
 
 
 def sun_frame(frame_radius_pc, frame_angle_rad):

@@ -56,15 +56,6 @@ def test_a_day_at_a_latitude_gets_longer_in_summer_and_a_pole_has_a_polar_night(
     assert daylight.day_share_at(80.0, -23.44, EARTH_ALPHA) == 0.0
 
 
-def test_a_world_that_turns_once_an_orbit_has_a_day_side_and_a_night_side_and_no_day():
-    zones = daylight.locked_zone_shares()
-    assert zones == {"day_side": 1.0, "terminator": 0.5, "night_side": 0.0}
-    locked = daylight.compute(_body(0.25 * EARTH_YEAR_HOURS, 0.25, 0.0, distance_au=0.2))
-    assert locked["day_share_equator"] is None and locked["solar_day_hours"] is None and locked["daylight_hours"] is None
-    alpha = daylight.angular_radius(SUN_RADIUS_KM, 0.2)
-    assert locked["day_share_mean"] == pytest.approx(0.5 * (1.0 + math.sin(alpha)))   # a little over half of the surface is lit
-
-
 def test_a_fast_spinner_and_a_retrograde_one_get_their_solar_day_from_both_motions():
     fast = daylight.compute(_body(10.0, 1.0, 5.0))
     assert fast["solar_day_hours"] == pytest.approx(1.0 / (1.0 / 10.0 - 1.0 / EARTH_YEAR_HOURS), rel=1e-3)
@@ -148,3 +139,10 @@ def test_the_longest_eclipse_is_the_planets_angular_radius_over_pi_of_an_orbit()
     assert 2.2 < hours < 2.4
     assert daylight.longest_eclipse_hours(60000.0, 71492.0, 42.46) == 0.0
     assert daylight.longest_eclipse_hours(421700.0, 71492.0, 0.0) == 0.0
+
+
+def test_a_world_that_turns_once_an_orbit_has_no_day_and_a_little_over_half_of_it_is_lit():
+    locked = daylight.compute(_body(0.25 * EARTH_YEAR_HOURS, 0.25, 0.0, distance_au=0.2))
+    assert locked["day_share_equator"] is None and locked["solar_day_hours"] is None and locked["daylight_hours"] is None
+    alpha = daylight.angular_radius(SUN_RADIUS_KM, 0.2)
+    assert locked["day_share_mean"] == pytest.approx(0.5 * (1.0 + math.sin(alpha)))

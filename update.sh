@@ -66,12 +66,12 @@
 # to run by hand; a reload that worked but whose /api/health probe never got a good answer only warns and the site opens; nothing running prints the command and ends zero. A reload aborts a
 # mod_wsgi request still running after about 4 seconds; touching src/html/wsgi.py does not.
 #
-# After the steps it starts building the site's caches in the background
-# (`planetgen warm`, MAP.134, PERF.104 and PERF.127): the Galaxy Map's opening
-# view, the lists, the sector, system and phenomenon pages and the search, so
-# the first visit after the update is fast. Each part is its own command, run
-# in order by the wrapper, and the log has a line for each; the update does not
-# wait for it.
+# Once the code, the database, the permissions and Redis are in place it starts building
+# the site's caches in the background (`planetgen warm`, MAP.134, PERF.104 and PERF.127):
+# the Galaxy Map's opening view, the lists, the sector, system and phenomenon pages and
+# the search, so the first visit after the update is fast. Before it reloads it waits
+# (at most 20 minutes) until the first phase, the opening views, is built, waits 5 seconds (UPDATE_SETTLE_SECONDS), reloads,
+# waits 10 seconds (HEALTH_SETTLE_SECONDS) and checks /api/health; the other phases go on after the update ends.
 #
 # Steps 2, 3 and 6 share their code with install.sh (scripts/), so the
 # two can't disagree about what a working server needs. `sudo
@@ -282,6 +282,14 @@ ensure_redis
 check_redis_settings
 
 echo
+log_info "Checking the size of MySQL's redo log:"
+show_redo_log_advice
+
+echo
+log_info "Checking the out-of-memory protection of MySQL and Redis:"
+show_oom_advice
+
+echo
 warm_galaxy_map
 
 echo
@@ -297,6 +305,10 @@ log_info "  planetgen population && planetgen territories"
 if [[ "$before" == "$after" ]] && (( ! APACHE_NEEDS_RESTART )); then
     log_notice "Done. Nothing new was pulled."
 else
+    UPDATE_STEP="waiting for the cache warm-up's opening phase"
+    wait_for_warm_opening
+    echo "The update steps are finished: waiting ${UPDATE_SETTLE_SECONDS:-5} seconds before reloading the site."
+    sleep "${UPDATE_SETTLE_SECONDS:-5}"
     UPDATE_STEP="reloading what serves the site and checking that it answers /api/health"
     reload_status=0
     reload_web_if_running || reload_status=$?

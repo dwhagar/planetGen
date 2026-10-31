@@ -17,13 +17,14 @@ and for a star the full `star_params` the build makes its star from.
 
 import dataclasses
 
-from planetgen.physics import brown_dwarf, constants, mass_boundaries, post_main_sequence, pre_main_sequence
+from planetgen.physics import alpha_tracks, brown_dwarf, constants, post_main_sequence, pre_main_sequence, stellar_abundances
 from planetgen.physics import stellar_evolution as evolution
 from planetgen.physics import unit_registry as units
 from planetgen.util import draw
 
 _km_to_m = units.converter("km", "m")
 _m_to_au = units.converter("m", "au")
+_kg_to_msun = units.converter("kg", "Msun")
 
 LIGHTEN_FACTOR = 0.8
 """float: A birth mass that has already collapsed at the system's age is cut by this factor until it is alive (the same cut
@@ -77,7 +78,12 @@ def _radius_au_of_km(radius_km):
 
 
 def _kind_of(yerkes):
-    return "main-sequence" if yerkes == "V" else "white-dwarf" if yerkes == "VII" else "giant"
+    """The member kind of a star of this Yerkes class (a contracting star's is its stage)."""
+    if yerkes == pre_main_sequence.PROTOSTAR:
+        return "protostar"
+    if yerkes in pre_main_sequence.STAGE_CLASSES:
+        return "pre-main-sequence"
+    return "main-sequence" if yerkes in ("V", "VI") else "white-dwarf" if yerkes == "VII" else "giant"
 
 
 def _brown_dwarf(initial_mass_solar, age_yr, fe_h, seed):
@@ -88,24 +94,35 @@ def _brown_dwarf(initial_mass_solar, age_yr, fe_h, seed):
                         initial_mass_solar, dwarf["temperature_k"], dwarf["luminosity_sol"], age_yr, fe_h, seed)
 
 
+REMNANT_AGE_YR = 1.0e13
+"""float: An age at which every window of any star's track is finished, for the tips a remnant's progenitor passed. Source tier T6, tweak level L0."""
+
+
 def _largest_radius_au(initial_mass_solar, age_yr, fe_h, present_radius_au):
     """The largest radius a star of this birth mass has had by `age_yr`: the larger of its present radius and its giant-branch tips."""
     try:
-        line = post_main_sequence.timeline(initial_mass_solar, fe_h)
+        line = post_main_sequence.timeline(initial_mass_solar, alpha_tracks.track_fe_h(fe_h, age_yr / 1.0e9))
     except ValueError:
         return present_radius_au
     tip_sol = line.radius_max_sol(age_yr / 1.0e9)
     return max(present_radius_au, _m_to_au(tip_sol * constants.SOLAR_RADIUS_M))
 
 
-def make(seed, initial_mass_solar, age_yr, fe_h, lighten=True):
+def progenitor_tip_au(initial_mass_solar, fe_h=0.0):
+    """The largest radius, AU, a star born at this mass reaches before it becomes a remnant: its giant-branch tips, every window finished (0 for a mass that has no track)."""
+    return _largest_radius_au(initial_mass_solar, REMNANT_AGE_YR, fe_h, 0.0)
+
+
+def make(seed, initial_mass_solar, age_yr, fe_h, lighten=True, substellar=False):
     """
     The record of the member born at `initial_mass_solar` and seen at `age_yr` with birth [Fe/H] `fe_h`, evolved under the stream of
     `seed`. A brown dwarf is below the hydrogen-burning limit. A star is `evolution.evolve_star`'s state (a contracting one's too);
     its radius is the one `star_params` gives, so the star made from the record has exactly the record's radius. A birth mass that has
-    collapsed by the age is cut by `LIGHTEN_FACTOR` until it is alive when `lighten`, and raises `ValueError` when not.
+    collapsed by the age is cut by `LIGHTEN_FACTOR` until it is alive when `lighten`, and raises `ValueError` when not. A `substellar`
+    member was drawn from the brown dwarf mass function and stays one at any mass (the objects of 0.074 to 0.08 solar masses among them
+    are the stable late-M and L dwarfs of the census); the limit is the one of the member's [Fe/H] (GEN.936).
     """
-    if initial_mass_solar < mass_boundaries.sol("hydrogen_burning_limit"):
+    if substellar or initial_mass_solar < stellar_abundances.hydrogen_burning_limit_for_fe_h(fe_h):
         return _brown_dwarf(initial_mass_solar, age_yr, fe_h, seed)
     rng = stream(seed)
     mass = initial_mass_solar
@@ -113,17 +130,13 @@ def make(seed, initial_mass_solar, age_yr, fe_h, lighten=True):
         state = evolution.evolve_star(mass, age_yr / 1.0e9, rng, fe_h=fe_h)
         if state is not None or not lighten:
             break
+        draw.redrawn("star.mass_lightened")
         mass *= LIGHTEN_FACTOR
     if state is None:
         raise ValueError(f"a star of {initial_mass_solar:g} solar masses has collapsed by {age_yr:g} years")
     params = evolution.star_params(mass, age_yr / 1.0e9, state)
     yerkes = params["yerkes_class"]
-    if yerkes == pre_main_sequence.PROTOSTAR:
-        kind = "protostar"
-    elif yerkes in pre_main_sequence.STAGE_CLASSES:
-        kind = "pre-main-sequence"
-    else:
-        kind = _kind_of(yerkes)
+    kind = _kind_of(yerkes)
     radius = _radius_au_of_km(params["radius_km"])
     largest = radius if kind in YOUNG_KINDS else _largest_radius_au(mass, age_yr, fe_h, radius)
     return MemberRecord(kind, yerkes, state["mass_sol"], mass, radius, largest, mass, params["temperature_k"],
@@ -136,3 +149,20 @@ def compact(kind, seed, mass_solar, progenitor_solar, radius_au, age_yr, fe_h):
     rule's, GEN.1012)."""
     return MemberRecord(kind, None, mass_solar, progenitor_solar, radius_au, radius_au, max(progenitor_solar, mass_solar), None,
                         None, age_yr, fe_h, seed)
+
+
+def of_star(star, seed=0):
+    """
+    The record of a `Star` that already exists (the primary of a system, which the tree is drawn around): its present values, its
+    birth mass as the star holds it, and the largest radius its birth mass and age give. Its `params` are None, as the star is
+    built and nothing is built from this record.
+    """
+    mass = _kg_to_msun(star.mass)
+    initial = getattr(star, "initial_mass_sol", None) or mass
+    kind = _kind_of(star.yerkes_class)
+    radius = _radius_au_of_km(star.radius)
+    age_yr = star.age * 1.0e9
+    fe_h = star.metallicity_fe_h
+    largest = radius if kind in YOUNG_KINDS else _largest_radius_au(initial, age_yr, fe_h, radius)
+    return MemberRecord(kind, star.yerkes_class, mass, initial, radius, largest, max(initial, mass), star.temperature,
+                        star.luminosity / constants.SOLAR_LUMINOSITY, age_yr, fe_h, seed)

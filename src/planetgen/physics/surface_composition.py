@@ -35,7 +35,7 @@ Use:
     composition.components                      # {materials row: mass share}, adds up to 1
     composition.mix                             # {ground type: areal share}, adds up to 1
     band_albedo(composition)                    # the albedo by band, area-weighted over the rows that have one
-    crust_reservoir(composition)                # K, Th, U of the crust, for the radiogenic heat of GEN.459
+    land_rock_ppm(body)                         # K, Th, U of the rock of the land, for the ground dose
 """
 
 import math
@@ -43,7 +43,7 @@ from dataclasses import dataclass, field
 
 from planetgen import tuning
 from planetgen.generation import possibility_table as pt
-from planetgen.physics import constants, hydrosphere, ice_species, materials, mixture, saturation
+from planetgen.physics import bulk_draw, comet_population, constants, hydrosphere, ice_species, materials, mixture, rock_types, saturation, surface_liquid_world
 from planetgen.util import draw
 from planetgen.util.random import log_uniform
 
@@ -53,6 +53,7 @@ SOURCES = {
              "shielding.md) section 3.2, the ground-type decision rules",
     "palme2014": "Palme and O'Neill 2014 via pyrolite; Workman and Hart 2005; Gale et al. 2013; Rudnick and Gao 2014 "
                  "(part E table 2.8b, second-hand)",
+    "rock_types": "physics/rock_types.py: the CIPW norm and the total alkali-silica bands (Le Bas et al. 1986) applied to a melt of the stored mantle",
     "millero": "mean ocean salinity 35 g/kg (Millero et al. 2008, Deep-Sea Research I 55, 50)",
 }
 
@@ -85,6 +86,13 @@ RANGES = {
 - `molten_k`: a surface at least this hot is molten (the lava-world threshold of `physics.mixture_draw`).
 - `ocean_salt`: salts as a share of the ocean's mass (Earth's mean; no other world's is known).
 """
+
+MELT_FRACTION_RANGE = (0.03, 0.30)
+"""tuple: The share of the mantle that melts to make the volcanic crust at the lowest and the highest heat flow (GEN.474). [Stand-in MF1, tier T9, tweak L3.]"""
+
+MELT_FLUX_DECADES = 5.0
+"""float: The decades of heat flow over the middle of the volcanism floor's range over which the melt share runs from its lowest to its highest (log-linear). Earth's heat flow of
+0.09 W/m2 is 2.5 decades over it and melts 8 to 9 percent of its mantle, the share of the mid-ocean ridges; Io's 2 W/m2 is 3.8 decades and melts about 17. [Stand-in MF1, tier T9, tweak L3.]"""
 
 OCEAN, ICE = "ocean", "ice"
 LIQUID_STATES = ("surface ocean", "brine seep", "hycean", "ice-covered ocean")
@@ -122,6 +130,10 @@ GROUND_TYPES = pt.REGISTRY.register(pt.Table(
         pt.Row("felsic", (pt.ANY_CLASS,), 1.0, SOURCES["hu2012"], state=pt.STAND_IN, replacement=GROUND_TYPES_DERIVED,
                fractions={"orthoclase": 0.40, "quartz": 0.35, "plagioclase": 0.20, "biotite": 0.05},
                notes="granitoid tertiary crust; Hu's K-feldspar is `orthoclase`"),
+        pt.Row("intermediate", (pt.ANY_CLASS,), 1.0, SOURCES["rock_types"], state=pt.PARTLY_VERIFIED,
+               limit="the assemblage is the norm of an average andesite rounded onto the rows of the materials table (registry RT4)",
+               fractions={"plagioclase": 0.52, "orthoclase": 0.10, "quartz": 0.12, "diopside": 0.08, "enstatite": 0.15, "biotite": 0.03},
+               notes="a melt of 52 to 63 percent silica (andesitic), made from the stored mantle"),
         pt.Row("clay", (pt.ANY_CLASS,), 1.0, SOURCES["hu2012"], state=pt.PARTLY_VERIFIED,
                limit="Hu's Mg-smectite has no row; kaolinite stands in",
                fractions={"kaolinite": 0.50, "serpentine": 0.50}, notes="aqueous alteration of basalt"),
@@ -178,19 +190,19 @@ RESERVOIRS = {
 }
 """dict: The K, Th and U of the ground types that have a measured reservoir model."""
 
-RESERVOIR_OF = {"ultramafic": "ultramafic", "basaltic": "basaltic", "felsic": "felsic", "clay": "basaltic", "oxidised": "basaltic"}
+RESERVOIR_OF = {"ultramafic": "ultramafic", "basaltic": "basaltic", "intermediate": "basaltic", "felsic": "felsic", "clay": "basaltic", "oxidised": "basaltic"}
 """dict: Which reservoir a ground type's K, Th and U follow. Clay and iron-oxidised ground are altered basalt (Hu et al. 2012 Table 2),
-so they keep its heat producers; anorthositic, metal, carbon, evaporite and sulfur ground have no reservoir in the sources read and are
+so they keep its heat producers, and intermediate ground keeps basalt's until a reservoir of its own is read (registry RT4); anorthositic, metal, carbon, evaporite and sulfur ground have no reservoir in the sources read and are
 left to the caller's default."""
 
 GROUND_FRACTION_TYPES = (OCEAN, ICE, "ultramafic", "anorthositic", "basaltic", "felsic", "clay", "oxidised", "metal", "carbon",
-                         "evaporite", "sulfur")
+                         "evaporite", "sulfur", "intermediate")
 """tuple: The ground types a body's areal mix is stored for, in column order."""
 
 FRACTION_FIELDS = tuple(f"ground_{name}_fraction" for name in GROUND_FRACTION_TYPES)
 """tuple: The stored areal share of each ground type (`ground_ocean_fraction`, ...), `None` for a body with no solid ground."""
 
-COLUMN_FIELDS = ("ground_type", "ground_grain", *FRACTION_FIELDS)
+COLUMN_FIELDS = ("ground_type", "ground_grain", *FRACTION_FIELDS, *surface_liquid_world.COLUMN_FIELDS)
 """tuple: Everything a body stores of its surface composition (columns of `planets` and `moons`)."""
 
 
@@ -217,6 +229,7 @@ class SurfaceInputs:
         tidal_heat_flux_w_m2 (float): The tidal heat flow (0 for none).
         age_gy (float): The body's age.
         mobile_lid (bool): Whether the body has plate tectonics (its stored `lid_regime`, GEN.721).
+        rock_oxides (dict or None): The oxides of the rock in weight percent (`rock_types.rock_oxides`), None where the body stores no silicate rock (carbon rock, no composition).
     """
 
     surface_temperature_k: float
@@ -238,6 +251,7 @@ class SurfaceInputs:
     tidal_heat_flux_w_m2: float = 0.0
     age_gy: float = 4.5
     mobile_lid: bool = False
+    rock_oxides: dict | None = None
 
 
 @dataclass(frozen=True)
@@ -349,6 +363,28 @@ def _modifiers(inputs, covered_kind):
     return shares
 
 
+def melt_fraction(heat_flux_w_m2):
+    """
+    The share of the mantle that melts to make the volcanic crust at a heat flow (GEN.474): log-linear from `MELT_FRACTION_RANGE`'s lowest at the middle of the volcanism floor's range
+    to its highest `MELT_FLUX_DECADES` decades over it.
+    """
+    floor = math.sqrt(RANGES["volcanism_floor_w_m2"][0] * RANGES["volcanism_floor_w_m2"][1])
+    low, high = MELT_FRACTION_RANGE
+    position = min(1.0, max(0.0, math.log10(max(heat_flux_w_m2, 1e-30) / floor) / MELT_FLUX_DECADES))
+    return low * (high / low) ** position
+
+
+def volcanic_ground_type(inputs):
+    """
+    The ground type the melt of the body's mantle makes at its heat flow (`rock_types.ground_type_of` of `partial_melt`). A melt the staged allocation gives as pure plagioclase
+    (the feldspars melt before the pyroxene joins them, and the stored rock has no alkalis) is a plagioclase-rich basalt, not an anorthosite, which is a flotation cumulate
+    and never a melt of a mantle: it reads basaltic (registry RT4).
+    """
+    melt, _residue = rock_types.partial_melt(inputs.rock_oxides, melt_fraction(inputs.internal_heat_flux_w_m2))
+    ground = rock_types.ground_type_of(melt)
+    return "basaltic" if ground == "anorthositic" else ground
+
+
 def draw_surface(inputs):
     """
     Draws the surface composition of a body (see the module text for the order).
@@ -372,6 +408,8 @@ def draw_surface(inputs):
     land = 1.0 - covered
     if land > 1e-12:
         dominant = DOMINANT_TABLE.draw(pt.ANY_CLASS, quantities).name
+        if dominant == "basaltic" and inputs.rock_oxides is not None:  # the volcanic crust is the melt of the stored mantle (GEN.474)
+            dominant = volcanic_ground_type(inputs)
         mods = _modifiers(inputs, kind)
         if dominant in ("metal", "carbon"):
             mods.pop("felsic", None)
@@ -456,17 +494,6 @@ def band_albedo(composition):
     return result, covered
 
 
-def crust_reservoir(composition):
-    """
-    The K, Th and U (ppm by mass) of the crust, area-weighted over the land types that have a reservoir (`RESERVOIR_OF`), and the
-    share of the land they cover.
-
-    Returns:
-        tuple: `({k_ppm, th_ppm, u_ppm} or None, covered share of the land)`.
-    """
-    return _reservoir_of_mix(composition.mix)
-
-
 def _reservoir_of_mix(mix):
     land = {name: share for name, share in mix.items() if name not in (OCEAN, ICE) and share}
     total_land = math.fsum(land.values())
@@ -486,7 +513,7 @@ def _reservoir_of_mix(mix):
 def land_rock_ppm(body):
     """
     `(K, Th, U)` ppm of the rock a body's land is made of, for the ground dose: the area-weighted reservoirs of its stored ground
-    (`crust_reservoir`), with the land that has no reservoir of its own taking basalt's (the secondary crust of any body that was
+    (`_reservoir_of_mix`), with the land that has no reservoir of its own taking basalt's (the secondary crust of any body that was
     still melting, part E 3.2 rule 4). A body with no stored ground, or no land, is basalt.
     """
     basalt = RESERVOIRS["basaltic"]
@@ -528,7 +555,15 @@ def inputs_of(body):
         ocean_fraction=getattr(body, "ocean_fraction", None) or 0.0, ocean_class=getattr(body, "ocean_class", None),
         internal_heat_flux_w_m2=planets.internal_heat_flux_w_m2(body),
         age_gy=getattr(body.star, "age", None) or tuning.ROGUE_EARTH_REFERENCE_AGE_GY,
-        mobile_lid=interior_heat.lid_of(body) == magnetism.LID_MOBILE)
+        mobile_lid=interior_heat.lid_of(body) == magnetism.LID_MOBILE, rock_oxides=_rock_oxides_of(body))
+
+
+def _rock_oxides_of(body):
+    """The oxides of the body's silicate rock from its stored FeO and Al2O3 shares and Mg/Si, with the star's Ca/Mg; None for carbon rock or a body that stores no rock composition."""
+    feo, al2o3, mg_si = (getattr(body, name, None) for name in ("rock_feo_fraction", "rock_al2o3_fraction", "rock_mg_si_ratio"))
+    if getattr(body, "carbon_rock", False) or None in (feo, al2o3, mg_si):
+        return None
+    return rock_types.rock_oxides(feo, al2o3, mg_si, bulk_draw.host_ratios(body.star).ca)
 
 
 def _volatile_shares(body):
@@ -550,9 +585,9 @@ def generate_surface(body):
     if body.body_type == "g":
         return
     result = draw_surface(inputs_of(body))
-    if result is None:
-        return
-    body.ground_type = result.ground_type
-    body.ground_grain = result.grain
-    for name in GROUND_FRACTION_TYPES:
-        setattr(body, f"ground_{name}_fraction", result.mix.get(name, 0.0))
+    if result is not None:
+        body.ground_type = result.ground_type
+        body.ground_grain = result.grain
+        for name in GROUND_FRACTION_TYPES:
+            setattr(body, f"ground_{name}_fraction", result.mix.get(name, 0.0))
+    surface_liquid_world.generate(body)

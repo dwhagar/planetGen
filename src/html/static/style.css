@@ -1880,6 +1880,19 @@ a:focus-visible .navmap-point circle {
 
 .search-field-main {
   flex: 1 1 16rem;
+  display: block;
+}
+
+/* The name box sits in a `.ui-field`, whose `flex: 1 1 12rem` is a width in a
+   row but a 12rem-tall minimum inside a column: it made this row tall and
+   pushed Stars and Search to the bottom right. Block flow keeps it one box high. */
+.search-field-main > .ui-field {
+  flex: none;
+  width: 100%;
+}
+
+.search-main > .search-field-stars {
+  flex: 0 1 12rem;
 }
 
 .search-field input[type="search"] {
@@ -1917,6 +1930,28 @@ a:focus-visible .navmap-point circle {
 
 .search-more .search-field-size > span:first-child {
   flex: 1 0 100%;
+}
+
+.search-values-heading {
+  font-size: 0.95rem;
+  margin: 1rem 0 0.5rem;
+}
+
+.search-field-value select,
+.search-field-value-sort select {
+  font: inherit;
+  font-weight: 400;
+  color: var(--text);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.4rem 0.5rem;
+  min-width: 0;
+}
+
+.search-field-value .search-unit {
+  font-weight: 400;
+  color: var(--text-muted);
 }
 
 .search-more .hint {
@@ -2708,11 +2743,34 @@ code {
   list-style: revert;
 }
 
+/* MAP.356: the Key is a small box in the map's corner: one column of short lines in small type, as wide as its longest line within
+   two fifths of the map (13 rem at most), and as tall as its lines within a quarter of the window, scrolling inside itself past that. */
 .map-key-lines {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.25rem 1rem;
-  margin-top: 0.25rem;
+  flex-direction: column;
+  flex-wrap: nowrap;
+  gap: 0.15rem;
+  margin-top: 0.2rem;
+  max-height: min(11rem, 26vh);
+  overflow-y: auto;
+  pointer-events: auto;
+}
+
+.map-layer-legend:has(> .map-key) {
+  display: block;
+  font-size: 0.72rem;
+  line-height: 1.25;
+  width: max-content;
+  max-width: min(13rem, 40%);
+}
+
+.starmap-viewport > .map-layer-legend:has(> .map-key),
+.map-corner-stack > .map-layer-legend:has(> .map-key) {
+  max-width: min(13rem, 40%);
+}
+
+.map-key > summary {
+  font-size: 0.78rem;
 }
 
 /* The marks of the key lines for what the map draws as shapes. */
@@ -3240,6 +3298,12 @@ code {
    one on the left of the legend and scale stack (MAP.323). */
 :is(.galaxy-map-main, .starmap-viewport):has(.starmap-navpad) > .starmap-info[data-overlay] {
   max-height: calc(100% - 10.5rem);
+}
+
+/* MAP.358: on the Galaxy Map the card is never shorter than 13 rem, enough for its first view (name, kind, three values and the
+   View system / Expand buttons), however small the map. */
+:is(.galaxy-map-main, .starmap-viewport):has(#galaxymap3d-canvas):has(.starmap-navpad) > .starmap-info[data-overlay]:not([data-beside]) {
+  max-height: max(calc(100% - 10.5rem), 13rem);
 }
 
 /* MAP.336: a card on the right stands to the left of the log ruler, which then keeps its ticks only (the names come back on hover or
@@ -4856,15 +4920,11 @@ body.app {
 .sysview-viewport {
   width: 100%;
   max-width: none;
-  aspect-ratio: 4 / 3;
+  /* MAP.359: its height is the window's (mapfit.js fills it as the Galaxy Map's); this is the height before the script runs. */
+  height: 70vh;
+  min-height: 20rem;
   background: #05070d;
   color-scheme: dark;
-}
-
-@media (max-width: 599px) {
-  .sysview-viewport {
-    aspect-ratio: 1 / 1;
-  }
 }
 
 .sysview-canvas {
@@ -5755,6 +5815,58 @@ p.hint a {
   margin: 0 0 0.4rem;
 }
 
+/* UX.251: the Life paragraph of At a glance and the table of the three words for each kind of life. */
+.life-glance {
+  margin: 0.5rem 0;
+}
+
+.life-readings {
+  border-collapse: collapse;
+  margin: 0.5rem 0;
+}
+
+.life-readings th,
+.life-readings td {
+  border-bottom: 1px solid var(--border);
+  padding: 0.2rem 0.75rem 0.2rem 0;
+  text-align: left;
+}
+
+.life-facts,
+.life-help-facts {
+  margin: 0.5rem 0;
+}
+
+.life-help-facts dt {
+  font-weight: 600;
+}
+
+.life-help-facts dd {
+  margin: 0 0 0.4rem;
+}
+
+.life-help-nav ul {
+  list-style: none;
+  margin: 0 0 0.75rem;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1rem;
+}
+
+a.help-mark {
+  font-weight: 600;
+  margin-left: 0.15rem;
+}
+
+.life-facts dt {
+  font-weight: 600;
+}
+
+.life-facts dd {
+  margin: 0 0 0.4rem;
+}
+
 /* UX.237: the Life and air chart. */
 .life-air-chart {
   width: 100%;
@@ -6076,3 +6188,50 @@ p.hint a {
 .map-hover-preview dd {
   margin: 0;
 }
+
+/* MAP.357: every charted region as a point of interest on the Galaxy Map, each with its link; regions too close to tell apart are one point
+   with a count. The layer takes no pointer; only the points do. */
+.map-region-pois {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  overflow: hidden;
+}
+.map-region-poi {
+  position: absolute;
+  /* Above the region's own click spot, which stays the region's card. */
+  transform: translate(-50%, calc(-100% - 16px));
+  display: inline-flex;
+  align-items: center;
+  gap: 0.15rem;
+  padding: 0.1rem 0.3rem;
+  font: inherit;
+  font-size: 0.75rem;
+  color: var(--text);
+  background: color-mix(in srgb, var(--bg-elevated) 88%, transparent);
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  cursor: pointer;
+  pointer-events: auto;
+}
+.map-region-poi[hidden] {
+  display: none;
+}
+.map-region-poi:hover,
+.map-region-poi:focus-visible {
+  background: var(--bg-elevated);
+}
+.map-region-poi-count:empty {
+  display: none;
+}
+
+/* The Preferences page (UX.236): one block per setting, its words, its control, its default. */
+.preference { margin: 0 0 1.25rem; }
+.preference h4 { margin: 0 0 0.25rem; }
+.preference-about, .preference-default { margin: 0.25rem 0; }
+.preference-default { color: var(--muted, inherit); }
+.preference-choice { border: 0; padding: 0; margin: 0.25rem 0; }
+.preference-option { display: block; margin: 0.25rem 0; }
+.preference-controls input[type="number"] { margin-left: 0.5rem; max-width: 8rem; }
+.preferences-status { min-height: 1.5em; }

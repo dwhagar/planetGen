@@ -12,6 +12,7 @@ import pytest
 
 from planetgen.db import store
 from planetgen.generation.config import SystemConfig
+from planetgen.galaxy import scales
 from planetgen.galaxy.sector import SpaceSector
 from planetgen.generation.system import StarSystem
 from planetgen import tuning
@@ -270,7 +271,9 @@ def _bodies(system):
 
 def test_every_generated_body_has_a_consistent_dose():
     seen = {"rocky": 0, "giant": 0, "ozone": 0}
-    for seed in range(24):    # the planet architecture (GEN.728) makes a giant in about 1 system of 10, so 12 seeds held none
+    for seed in range(80):    # the planet architecture (GEN.728) makes a giant in about 1 system of 10, so 12 seeds held none and 24 held none once the draws moved
+        if seen["rocky"] > 10 and seen["giant"] > 0:
+            break
         with deterministic_entropy(seed):
             draw.set_run_seed(seed)
             system = StarSystem(SystemConfig(), galactic_center_dist_ly=26000.0)
@@ -282,13 +285,26 @@ def test_every_generated_body_has_a_consistent_dose():
             seen["rocky"] += 1
             assert body.dose_helio_mult == 1.0
             assert body.surface_dose_msv_yr == pytest.approx(
-                body.dose_gcr_msv_yr + body.dose_sep_msv_yr + body.dose_ground_msv_yr)
+                body.dose_gcr_msv_yr + body.dose_sep_msv_yr + body.dose_ground_msv_yr + body.dose_belt_msv_yr)
+            assert body.dose_belt_msv_yr >= 0 and (body.dose_belt_msv_yr == 0 or body.is_moon)
             assert body.dose_gcr_msv_yr > 0 and body.dose_ground_msv_yr > 0
             assert isinstance(body.ozone_loss_flag, bool)
             assert (body.ozone_column_du > 0.0) == (atmosphere.partial_kpa(body, "o2") > 0.0 and bool(body.star.temperature))
             seen["ozone"] += body.ozone_loss_flag
-            assert body.uv_surface_index is None or body.uv_surface_index > 0
+            assert body.uv_surface_index is None or body.uv_surface_index >= 0.0
+            assert body.uv_surface_index != 0.0 or body.atmospheric_pressure > 0.0     # a dose of exactly 0 is an opaque air (a dense vapour air passes no UV), never a bare body
     assert seen["rocky"] > 10 and seen["giant"] > 0
+
+
+def test_a_star_with_no_galaxy_placement_is_rated_where_a_system_with_no_place_is_taken():
+    """GEN.785: the column is filled for every star; one placed nowhere takes the distance a system with no place is taken at."""
+    class Unplaced:
+        galactic_center_dist_ly = None
+
+    star = Unplaced()
+    activity.set_galactic_hazard(star)
+    assert star.lethal_event_rate_per_gyr == pytest.approx(activity.lethal_event_rate_per_gyr(scales.default_galactocentric_ly()))
+    assert star.lethal_event_rate_per_gyr > 0.0
 
 
 def test_a_star_nearer_the_centre_flags_ozone_loss_on_a_world_with_air():
@@ -325,47 +341,6 @@ def test_a_real_world_gets_a_finite_ground_dose_that_follows_the_rock_of_its_gro
             rad.generate_dose(body)
         doses[ground] = body.dose_ground_msv_yr
     assert 0.0 < doses["ultramafic"] < doses["felsic"] < float("inf")
-
-
-def test_a_planet_that_loses_half_its_air_keeps_half_its_ozone_and_its_ultraviolet_rises(monkeypatch):
-    """GEN.668: a loss event scales the stored ozone column by the share of the air kept, and the UV index follows."""
-    body = _rocky_world_with_air()
-    monkeypatch.setattr(rad, "ozone_lost", lambda body: False)       # GEN.808 is tested on its own: here the flares do not hold the ozone down
-    monkeypatch.setattr(rad.ozone, "draw_column_du", lambda *args, **kwargs: 300.0)
-    with deterministic_entropy(1):
-        rad.generate_dose(body)
-    before, uv_before = body.ozone_column_du, body.uv_surface_index
-    assert before == pytest.approx(300.0)
-    rad.apply_air_loss(body, 0.5)
-    assert body.ozone_column_du == pytest.approx(150.0)
-    assert body.uv_surface_index > uv_before
-
-
-def test_an_air_loss_that_keeps_all_of_the_air_changes_nothing_and_one_that_keeps_none_leaves_no_ozone(monkeypatch):
-    body = _rocky_world_with_air()
-    monkeypatch.setattr(rad, "ozone_lost", lambda body: False)       # GEN.808 is tested on its own: here the flares do not hold the ozone down
-    monkeypatch.setattr(rad.ozone, "draw_column_du", lambda *args, **kwargs: 300.0)
-    with deterministic_entropy(1):
-        rad.generate_dose(body)
-    uv = body.uv_surface_index
-    rad.apply_air_loss(body, 1.0)
-    assert body.ozone_column_du == pytest.approx(300.0) and body.uv_surface_index == pytest.approx(uv)
-    rad.apply_air_loss(body, 0.0)
-    assert body.ozone_column_du == 0.0 and body.uv_surface_index > uv
-
-
-def test_the_ozone_after_an_air_loss_is_held_between_none_and_all_of_it():
-    from planetgen.physics import ozone
-    assert ozone.column_after_air_loss(300.0, 0.5) == 150.0
-    assert ozone.column_after_air_loss(300.0, 1.7) == 300.0
-    assert ozone.column_after_air_loss(300.0, -0.2) == 0.0
-    assert ozone.column_after_air_loss(-4.0, 0.5) == 0.0
-
-
-def test_a_body_with_no_ozone_column_is_left_as_it_is_by_an_air_loss():
-    body = types.SimpleNamespace(ozone_column_du=None, uv_surface_index=None)
-    rad.apply_air_loss(body, 0.5)
-    assert body.ozone_column_du is None and body.uv_surface_index is None
 
 
 def _system_with_rocky_worlds():

@@ -385,20 +385,6 @@ def water_world_radius_earth(mass_earth, cmf, water):
     return (a - b * cmf * (1.0 - water)) * mass_earth ** WATER_FIT_EXPONENT * (1.0 + c * water + d * water * water)
 
 
-def water_fraction_from_mass_radius(mass_earth, radius_earth, cmf, low=0.0, high=1.0):
-    """The water fraction that gives `radius_earth` at `mass_earth` for `cmf` (the radius rises with it), `None` outside."""
-    def excess(water):
-        return water_world_radius_earth(mass_earth, cmf, water) - radius_earth
-
-    if excess(low) > 0.0 or excess(high) < 0.0:
-        return None
-    for _ in range(50):
-        mid = 0.5 * (low + high)
-        if excess(mid) < 0.0:
-            low = mid
-        else:
-            high = mid
-    return 0.5 * (low + high)
 
 
 SMALL_FIT_RANGE = {"mass_earth": (1.5e-4, 0.3), "cmf": (0.0, 0.6), "water": (0.0, 1.0)}

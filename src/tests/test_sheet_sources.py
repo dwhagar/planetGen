@@ -34,7 +34,7 @@ AUDIT_ROWS = {
 
 @pytest.mark.parametrize("kind", sorted(SOURCES))
 def test_every_source_belongs_to_a_row_of_the_sheet_and_reads_as_one_sentence(kind):
-    keys = {spec.key for spec in sheet.SPECS[kind]}
+    keys = {spec.key for spec in sheet.SPECS[kind]} | (set(sheet.CHEMISTRY_KEYS) if kind == "star" else set())    # UX.254: rows worked out from the stored values
     for key, line in SOURCES[kind].items():
         assert key in keys, f"{kind} has no row {key}"
         assert "\n" not in line and line.endswith(".") and 20 < len(line) < 240, (kind, key)

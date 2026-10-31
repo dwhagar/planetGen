@@ -11,7 +11,7 @@ import statistics
 
 import pytest
 
-from planetgen.galaxy import mass_chain
+from planetgen.galaxy import mass_chain, satellite_history
 from planetgen.generation import plan_outline, satellites
 from tests import reference_satellites
 
@@ -78,7 +78,7 @@ def test_no_satellite_lies_beyond_the_virial_radius_and_the_radius_is_the_halos(
 
 
 def test_the_milky_way_mass_population_is_plausible_against_the_milky_ways_own_rows():
-    """The Milky Way has 11 classical satellites above 2e5 solar masses; the drawn median of those above 1e5 is of that order."""
+    """The Milky Way has 12 satellites above 1e5 solar masses (McConnachie 2012); the drawn median of those above 1e5 is of that order."""
     reference = sum(1 for row in reference_satellites.MILKY_WAY_SATELLITES if row.stellar_mass_sol > 1.0e5)
     drawn = [sum(1 for c in found if c.mass_solar > 1.0e5) for _chain, found in _population(5.0e10, count=60)]
     assert reference / 3.0 <= statistics.median(drawn) <= reference * 3.0
@@ -119,3 +119,55 @@ def test_no_satellite_out_weighs_a_quarter_of_its_host():
     for stellar_mass in (3.0e9, 5.0e10):
         for chain, found in _population(stellar_mass, count=100):
             assert all(c.mass_solar <= satellites.SATELLITE_MAX_STELLAR_FRACTION * chain.stellar_mass_solar for c in found)
+
+
+def test_the_stripping_radius_is_270_kpc_for_the_milky_ways_halo_and_scales_with_the_virial_radius():
+    """GEN.1193: Grcevich and Putman 2009 put the cutoff of the dwarfs' HI at 250 to 280 kpc."""
+    milky_way = mass_chain.virial_radius_kpc(mass_chain.median_halo_mass(5.0e10))
+    assert satellites.stripping_radius_kpc(milky_way) == pytest.approx(270.0)
+    assert satellites.stripping_radius_kpc(2.0 * milky_way) == pytest.approx(540.0)
+
+
+def _forming_row(mass=1.0e8, radius=800.0):
+    """A satellite that forms stars at the young end of the age range and not at the old end."""
+    limit = satellite_history.oldest_forming_age_gy(mass, radius, *satellites.AGE_RANGE_GY)
+    assert limit is not None and limit < satellites.AGE_RANGE_GY[1]
+    return mass, radius, limit
+
+
+def test_a_light_satellite_inside_the_stripping_radius_forms_no_stars_whatever_age_it_was_drawn():
+    mass, radius, limit = _forming_row()
+    inside = satellites.age_with_gas_by_distance(mass, radius, limit - 1.0, 100.0e3, 270.0e3, 0.0)
+    assert inside > limit
+    assert not satellite_history.history(mass, radius, inside).forming
+    beyond = satellites.age_with_gas_by_distance(mass, radius, limit - 1.0, 400.0e3, 270.0e3, 0.0)
+    assert beyond == limit - 1.0 and satellite_history.history(mass, radius, beyond).forming
+
+
+def test_a_satellite_as_heavy_as_the_small_cloud_keeps_its_gas_inside_the_stripping_radius():
+    mass = satellites.STRIPPING_RETAINED_MIN_STELLAR_MASS_SOLAR
+    radius = satellites.half_light_radius_pc(mass, 0.0)
+    youngest = satellites.AGE_RANGE_GY[0]
+    assert satellite_history.history(mass, radius, youngest).forming
+    assert satellites.age_with_gas_by_distance(mass, radius, youngest, 50.0e3, 270.0e3, 0.0) == youngest
+
+
+def test_a_satellite_beyond_the_stripping_radius_keeps_its_gas_for_the_share_that_does():
+    mass, radius, limit = _forming_row()
+    old = limit + 2.0
+    kept = satellites.age_with_gas_by_distance(mass, radius, old, 400.0e3, 270.0e3, 0.5)
+    assert kept == limit and satellite_history.history(mass, radius, kept).forming
+    lost = satellites.age_with_gas_by_distance(
+        mass, radius, old, 400.0e3, 270.0e3, satellites.GAS_DETECTED_BEYOND_STRIPPING + 0.01)
+    assert lost == old
+    assert satellites.age_with_gas_by_distance(1.0e4, 100.0, 12.0, 400.0e3, 270.0e3, 0.0) == 12.0       # forms at no age
+
+
+def test_no_drawn_satellite_inside_the_stripping_radius_forms_stars_unless_it_is_heavy():
+    for chain, found in _population(5.0e10, count=12):
+        radius_pc = satellites.stripping_radius_kpc(chain.virial_radius_kpc) * 1000.0
+        for component in found:
+            if math.sqrt(sum(c * c for c in component.center_pc)) < radius_pc and component.mass_solar < \
+                    satellites.STRIPPING_RETAINED_MIN_STELLAR_MASS_SOLAR:
+                assert not satellite_history.history(
+                    component.mass_solar, component.half_mass_radius_pc, component.age_gy).forming, component.name

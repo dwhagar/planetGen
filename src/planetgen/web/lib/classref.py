@@ -158,9 +158,9 @@ def _star_spectral():
         "label": "Spectral class",
         "summary": "A star's color and surface temperature, hottest (O) to coolest (M).",
         "notes": [
-            "A star's type reads like G2V: the spectral class letter, a subclass digit from 0 (hottest) to 9, "
-            "and the luminosity class (see Star Luminosity Classes).",
-            "Mass and luminosity here are for main-sequence (class V) stars; giants and white dwarfs of the "
+            "A star's type reads like G2V. The letter is the spectral class, the digit is the subclass from 0 "
+            "(hottest) to 9, and the roman numeral is the luminosity class (see Star Luminosity Classes).",
+            "Mass and luminosity here are for main-sequence (class V) stars. Giants and white dwarfs of the "
             "same color differ.",
         ],
         "classes": classes,
@@ -189,8 +189,9 @@ def _star_luminosity():
         "label": "Luminosity class",
         "summary": "The Yerkes (MK) luminosity class: a star's size and brightness for its color.",
         "notes": [
-            "The roman numeral at the end of a star's type (the V in G2V) says how big and bright the star is "
-            "for its color, from hypergiants (0) down to white dwarfs (VII).",
+            "The roman numeral at the end of a star's type, like the V in G2V, says how big and bright the star is "
+            "for its color.",
+            "It runs from hypergiants (0) down to white dwarfs (VII).",
         ],
         "classes": classes,
     }
@@ -201,7 +202,11 @@ def _planet():
     body's conditions say, so a page gives the rule, not a table of ranges the class was drawn from."""
     classes = {}
     ordered = planet_classes.CLASSES
+    high_gravity = next((rule["min"] for c in ordered if c.letter == "V" for rule in c.when if rule["quantity"] == "gravity_g"), None)
     for cls in sorted(ordered, key=lambda c: c.letter):
+        if cls.letter in classes:     # GEN.1142: T has a giant row and a terrestrial one; the page is the giant row's, with a line for the other
+            classes[cls.letter]["facts"].append(("Also", f"{PLANET_TYPE_LABELS[cls.kind]} bodies that meet: " + "; ".join(planet_classes.rule_words(cls))))
+            continue
         before = [c.letter for c in ordered if c.kind == cls.kind and ordered.index(c) < ordered.index(cls)]
         rule = planet_classes.rule_words(cls)
         facts = [
@@ -212,6 +217,8 @@ def _planet():
             ("Checked after", ", ".join(before) if before else "Nothing: checked first"),
             ("Core class", "Yes" if cls.core else "No"),
         ]
+        if cls.letter == "M":     # GEN.1136: the class above takes over at the high-gravity line
+            facts.append(("Gravity", f"Any gravity up to the {number(high_gravity)} g line of class V (a super-Earth can be a temperate world)"))
         classes[cls.letter] = _entry(cls.letter, cls.name, cls.sentence, facts)
     return {
         "name": "Planet Classes",

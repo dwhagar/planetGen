@@ -3,7 +3,8 @@
 """
 The short written summary of a planet or moon page (UX.220): a paragraph made from the stored data alone, so no two
 sentences are canned text. It says what class the body is and the zone it is in, what its surface is like, how the PHI-6
-rating and the Suitability score read, what safety equipment a person needs, and how much life it holds.
+rating and the Suitability score read and what safety equipment a person needs. The life of the world is its own paragraph
+(`planet_layout.life_class_view`, UX.251), not part of this one.
 
 The quantities arrive as HTML (`values`, a sheet key to the page's own rendering, so they read in the reader's unit
 system); everything else is written here from the row of the system detail. Imports no Flask.
@@ -14,11 +15,6 @@ from html import escape
 from planetgen.describe import sheet as sheet_registry
 from planetgen.physics import habitability
 from planetgen.physics.habitability_world import TIER_NAMES
-from planetgen.web.lib.habitability_symbols import LIFE_MAX, LIFE_NAMES, LIFE_LABELS
-
-PROSE_ROLES = {"life": "life", "timeline": "life"}
-"""dict: The description's prose roles the Life paragraph of a page is made from."""
-
 
 def _class_sentence(name, row, values):
     code = values.get("planet_class") or escape(str(row.get("planet_class") or ""))
@@ -100,20 +96,10 @@ def _equipment_sentence(row):
     return "A person on the surface needs no safety equipment."
 
 
-def _life_sentence(row):
-    scores = [row.get(f"life_{name}") for name in LIFE_NAMES]
-    if any(score is None for score in scores):
-        return None
-    if not any(scores):
-        return "No life has been found here."
-    shown = ", ".join(f"{LIFE_LABELS[name].lower()} {score} of {LIFE_MAX}" for name, score in zip(LIFE_NAMES, scores) if score)
-    return f"Its life scores are {shown}."
-
-
 def summary_sentences(name, row, values, raw=None):
     """The sentences of the page's summary paragraph, as HTML, in the order they are read. `raw` is the stored numbers of the sheet's
     rows (a sheet key to its number)."""
     sentences = [_class_sentence(name, row, values), _surface_sentence(row, values), _day_sentence(values),
                  _shadow_sentence(values, raw or {}), _rating_sentence(row),
-                 _equipment_sentence(row), _life_sentence(row)]
+                 _equipment_sentence(row)]
     return [sentence for sentence in sentences if sentence]

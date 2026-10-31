@@ -5287,7 +5287,7 @@
    },
    "eos": [],
    "labels": "rho=R",
-   "note": "Choukroun et al. 2020 is reported (not read in the repository) to have about 2 g/cm3 for a comet's refractory organics; Blum and Bischoff's 1.0 to 2.0 covers it, so the row keeps the middle, 1.5, inside the widest range (GEN.660). The comet draw reads this row and holds no density of its own for the organics (GEN.712).",
+   "note": "Choukroun et al. 2020 (read, section 3.3, the CONSERT permittivity review, citing Fulle et al. 2019) gives only a rough 'some organics (permittivity about 2, rho about 2)' with no unit written (g/cm3 by the ice value beside it) and no organics density of its own elsewhere; Blum and Bischoff's 1.0 to 2.0 covers it, so the row keeps the middle, 1.5, inside the widest range (two sources in question: GEN.660). The comet draw reads this row and holds no density of its own for the organics (GEN.712).",
    "source": "blum-bischoff",
    "state": "verified",
    "limit": ""

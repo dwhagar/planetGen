@@ -11,7 +11,7 @@ import pytest
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.phenomena.compact_remnant import BlackHole, NeutronStar
 from planetgen.generation.system import StarSystem
-from planetgen.physics import activity, constants, magnetism, orbit_elements, spin
+from planetgen.physics import activity, constants, dynamo, giant_dynamo, interior_heat, magnetism, orbit_elements, radiogenic, spin
 from planetgen.util import draw
 
 from tests.fuzz_support import deterministic_entropy
@@ -20,7 +20,7 @@ SUN = constants.SOLAR_LUMINOSITY
 
 
 def test_the_sun_today_matches_the_design_validation():
-    t_sat, decay = activity._interp(activity.ACTIVITY_TABLE, 1.0)
+    t_sat, decay = activity.saturation_age_gy(1.0), activity.decay_exponent(1.0)
     l_x = activity.lx_lbol_at(4.57, activity.saturated_lx_lbol(1.0), t_sat, decay) * SUN
     assert 1e27 <= l_x * activity.ERG_PER_J <= 2e27
     flux = activity.coronal_xuv_w(l_x) / (4 * math.pi * constants.AU_TO_M ** 2) / constants.EARTH_XUV_FLUX_W_M2
@@ -33,8 +33,8 @@ def test_saturation_falls_through_the_f_stars():
     assert activity.saturated_lx_lbol(0.5) == 7.4e-4
     assert activity.saturated_lx_lbol(1.4) == pytest.approx(5e-5)
     assert activity.saturated_lx_lbol(5.0) == pytest.approx(1e-7)
-    assert activity._interp(activity.ACTIVITY_TABLE, 0.1) == (4.0, 1.0)
-    assert activity._interp(activity.ACTIVITY_TABLE, 2.0) == (0.1, 2.0)
+    assert activity.decay_exponent(0.1) == 1.0 and activity.decay_exponent(2.0) == 1.45
+    assert activity.decay_exponent(0.7) == pytest.approx((1.8 + 1.45) / 2)
 
 
 def test_a_hot_photosphere_emits_its_own_xuv():
@@ -63,6 +63,42 @@ def test_m_dwarfs_stay_saturated_longer():
     assert sum(star.xuv_saturated for star in young_m) > 150
     assert sum(star.xuv_saturated for star in old_g) < 20
     assert all(1.8 <= star.flare_alpha <= 2.2 for star in young_m)
+
+
+def test_a_stars_saturation_age_is_the_one_its_rotation_percentile_gives():
+    """GEN.493: the age a star leaves saturation is `saturation_time` at the star's mass and its own uniformly drawn percentile."""
+    from planetgen.physics import saturation_time
+
+    assert activity.saturation_age_gy(0.3) == pytest.approx(saturation_time.saturation_time_myr(0.3, 50.0) / 1000.0)
+    assert activity.saturation_age_gy(0.3, 5.0) < activity.saturation_age_gy(0.3) < activity.saturation_age_gy(0.3, 95.0)
+    ages = []
+    for seed in range(400):
+        star = _star(1.0, 0.1)  # 100 Myr old: past the median saturation (23 Myr), inside the fast tail (297 Myr at the 95th percentile)
+        draw.set_run_seed(seed)
+        activity.generate_activity(star)
+        ages.append(star.xuv_saturated)
+    share = sum(ages) / len(ages)
+    # saturated at 100 Myr when the percentile is above where the curve crosses 100 Myr (about the 75th of the 2 to 98 draw)
+    assert 0.15 < share < 0.40
+
+
+def test_the_stream_after_a_stars_activity_draws_does_not_depend_on_its_mass():
+    """The percentile draw is made for every star, so a star's mass moves no later draw of the run."""
+    after = []
+    for mass in (0.15, 1.0, 3.0):
+        draw.set_run_seed(17)
+        activity.generate_activity(_star(mass, 2.0))
+        after.append(draw.uniform(0.0, 1.0))
+    assert after[0] == after[1] == after[2]
+
+
+def test_the_decay_exponents_hold_the_old_table_level_at_the_reference_age():
+    """AB1: with the median saturation age of Johnstone et al. 2021 the exponents give the `L_X/L_bol` at 5 Gyr the earlier table gave."""
+    earlier = {0.45: 4.43e-5, 0.6: 4.74e-6, 0.8: 6.66e-7, 1.0: 2.96e-7}
+    for mass, ratio in earlier.items():
+        now = activity.lx_lbol_at(5.0, activity.saturated_lx_lbol(mass), activity.saturation_age_gy(mass), activity.decay_exponent(mass))
+        assert now == pytest.approx(ratio, rel=0.08), mass
+    assert 1.35 <= activity.decay_exponent(1.0) <= 1.5  # the Skumanich band
 
 
 def _spinning(mass_sol, age_gy, temperature, period_over_nominal):
@@ -99,7 +135,8 @@ def test_a_fast_rotator_stays_saturated_longer_and_a_slow_one_leaves_saturation_
             star = _spinning(1.0, 0.3, 5772.0, ratio)
             activity.generate_activity(star)
             saturated[name] += bool(star.xuv_saturated)
-    assert saturated["fast"] > 30 > saturated["slow"] + 10, saturated
+    # the saturation age is also drawn from the initial-rotation percentile (GEN.493), so the fast rotator is saturated at 0.3 Gyr in a share of the draws, not in all of them
+    assert saturated["fast"] > 15 > saturated["slow"] + 10, saturated
 
 
 def test_a_star_without_a_spin_or_with_a_law_that_does_not_cover_it_keeps_the_table():
@@ -153,44 +190,110 @@ def test_core_fractions_follow_density():
     assert magnetism.core_mass_fraction(0.055, 5.43) > 0.4    # Mercury
 
 
+def _core(mass_earth, radius_km, metal, age=4.5, lid=interior_heat.STAGNANT):
+    """The `core_heat.Core` of a rocky planet (`interior_heat.heat`, bulk silicate Earth's radiogenic content)."""
+    k, th, u = radiogenic.BULK_SILICATE_EARTH
+    content = radiogenic.Content(k * radiogenic.formation_mix("K")[1], th * radiogenic.formation_mix("Th")[1],
+                                 u * radiogenic.formation_mix("U")[1], radiogenic.SOLAR_AL26_RATIO)
+    rock = radiogenic.Rock(1.0 - metal, metal, 0.0, radiogenic.BULK_SILICATE_EARTH_AL_MASS_FRACTION)
+    return interior_heat.heat_flow(content, interior_heat.Interior(1.0e12, 250.0), mass_earth * constants.EARTH_MASS_TO_KG, radius_km,
+                                   age, rock, None, lid).core
+
+
 def test_a_mercury_like_planet_keeps_its_field_at_any_age():
-    """GEN.213: the lifetime test used to run first and always zeroed a 0.055 Earth-mass iron world at 4.5 Gyr."""
+    """GEN.213: an iron world of 0.055 Earth masses keeps Mercury's field, whatever the core model says of a pure-iron core."""
     draw.set_run_seed(13)
     for age in (0.5, 4.5, 10.0):
         for _ in range(50):
             body = _body(0.055, 5.43, 1407.6, age=age)
-            magnetism.generate_field(body)
-            assert 1e18 < body.magnetic_moment_a_m2 < 3e21  # 3e19 A m2, log-normal 0.5 dex
+            magnetism.generate_field(body, _core(0.055, 2440.0, 0.68, age=age))
+            assert 1e17 < body.magnetic_moment_a_m2 < 3e21  # 3e19 A m2, log-normal 0.5 dex (four sigma each way)
     small_rocky = _body(0.03, 5.43, 24.0)  # under 0.05 Earth masses: too small for a dynamo
-    magnetism.generate_field(small_rocky)
+    magnetism.generate_field(small_rocky, None)
     assert small_rocky.magnetic_moment_a_m2 == 0.0
 
 
 def test_earth_mercury_and_jupiter_get_their_fields():
     draw.set_run_seed(4)
-    earths = []
+    core = _core(1.0, 6371.0, 0.325, age=4.568)
+    assert core.running
+    moments = []
     for _ in range(300):
-        body = _body(1.0, 5.51, 24.0)
-        body.hydrosphere = "surface ocean"
-        body.lid_regime = "mobile" if draw.random() < magnetism.mobile_lid_chance(body, 1.0) else "stagnant"  # GEN.721: the stored regime
-        magnetism.generate_field(body)
-        earths.append(body)
-    alive = [body.magnetic_moment_a_m2 for body in earths if body.magnetic_moment_a_m2]
-    # The dynamo lasts 2 to 6 Gyr at one Earth mass with plate tectonics (60% of watery Earth-mass worlds)
-    # and 0.8 to 2.4 Gyr under a stagnant lid: about 0.6 x 3/8 + 0.4 x 0 of them are alive at 4.5 Gyr.
-    assert 40 < len(alive) < 110
-    median = sorted(alive)[len(alive) // 2]
-    assert 0.1 * magnetism.EARTH_MOMENT_A_M2 < median < 3 * magnetism.EARTH_MOMENT_A_M2
-    jupiter = _body(318.0, 1.33, 10.0, body_type="g")
-    magnetism.generate_field(jupiter)
-    assert jupiter.dipole_class == "strong" and jupiter.magnetic_moment_a_m2 > 1e26
+        body = _body(1.0, 5.51, 24.0, age=4.568)
+        magnetism.generate_field(body, core)
+        moments.append(body.magnetic_moment_a_m2)
+    median = sorted(moments)[len(moments) // 2]
+    assert all(moment > 0.0 for moment in moments)
+    field = dynamo.field(core.dynamo_w * magnetism.CORE_POWER_SCALE, core.radius_m, core.inner_fraction * core.radius_m, core.density_kg_m3, giant_dynamo.spin_rad_s(24.0))
+    assert median == pytest.approx(field.moment_a_m2, rel=0.05)           # log-normal 0.07 dex about the dynamo's moment
+    assert 0.5 * magnetism.EARTH_MOMENT_A_M2 < median < 2 * magnetism.EARTH_MOMENT_A_M2
     locked = _body(1.0, 5.51, 24.0 * 11)
-    locked.hydrosphere = "surface ocean"
-    locked.lid_regime = "mobile"
-    magnetism.generate_field(locked)
-    while not locked.magnetic_moment_a_m2:
-        magnetism.generate_field(locked)
+    magnetism.generate_field(locked, core)
     assert locked.dipole_class == "multipolar"
+
+
+def _giant(spec, seed, period_hours):
+    """A giant that stores the layers of `tests.test_giant_interior.interior` (the structure's radii placed) and what it radiates."""
+    from planetgen.physics import giant_interior
+    from tests.test_giant_interior import interior
+    layers = interior(spec, seed)
+    body = _body(spec["mass_earth"], 1.33, period_hours, body_type="g")
+    body.radius = spec["radius_km"]
+    for name, value in giant_interior.body_values(layers).items():
+        setattr(body, name, value)
+    return body
+
+
+def test_a_giants_field_comes_from_its_convecting_layer_and_its_heat():
+    """GEN.967: Jupiter-like and Saturn-like giants are strong dipoles of the right size, the ice giant is weaker, none is drawn from anchors."""
+    from tests.test_giant_interior import JUPITER, SATURN
+    draw.set_run_seed(7)
+    jupiter = _giant(JUPITER, 1, 9.93)
+    magnetism.generate_field(jupiter)
+    assert 3.0e26 < jupiter.magnetic_moment_a_m2 < 6.0e27             # Jupiter's 1.5e27 within a factor of four; its Rossby number 0.13 sits on the gate (0.12), so the class may be either
+    assert jupiter.dipole_class in ("strong", "multipolar", "earth-like")
+    saturn = _giant(SATURN, 5, 10.66)
+    magnetism.generate_field(saturn)
+    assert 0.0 < saturn.magnetic_moment_a_m2 < jupiter.magnetic_moment_a_m2
+    bare = _body(318.0, 1.33, 10.0, body_type="g")                                 # no stored layers: no region, no field
+    magnetism.generate_field(bare)
+    assert bare.magnetic_moment_a_m2 == 0.0 and bare.dipole_class == "none"
+
+
+def test_a_moons_core_is_run_like_a_planets():
+    """GEN.967: a moon with a running core has a field from `dynamo.field`; no Ganymede chance is drawn."""
+    draw.set_run_seed(8)
+    young = _core(0.025, 2630.0, 0.3, age=0.3)
+    moon = _body(0.025, 1.94, 171.7, is_moon=True)
+    magnetism.generate_field(moon, young)
+    expected = dynamo.field(young.dynamo_w * magnetism.CORE_POWER_SCALE, young.radius_m, young.inner_fraction * young.radius_m, young.density_kg_m3,
+                            giant_dynamo.spin_rad_s(171.7)).moment_a_m2
+    if young.running:
+        assert moon.magnetic_moment_a_m2 == pytest.approx(expected, rel=0.5) and moon.magnetic_moment_a_m2 > 0.0
+    dead = _body(0.025, 1.94, 171.7, is_moon=True)
+    magnetism.generate_field(dead, None)
+    assert dead.magnetic_moment_a_m2 == 0.0
+
+
+def test_the_core_decides_whether_a_planet_has_a_field():
+    """GEN.838: a dead core (Mars) has no field at 4.5 Gyr and a young one has; a bigger planet's stronger core makes a stronger field."""
+    draw.set_run_seed(5)
+    mars_old, mars_young = _core(0.107, 3390.0, 0.22), _core(0.107, 3390.0, 0.22, age=0.3)
+    assert not mars_old.running and mars_young.running
+    old, young = _body(0.107, 3.93, 24.6), _body(0.107, 3.93, 24.6, age=0.3)
+    magnetism.generate_field(old, mars_old)
+    magnetism.generate_field(young, mars_young)
+    assert old.magnetic_moment_a_m2 == 0.0 and old.dipole_class == "none"
+    assert young.magnetic_moment_a_m2 > 0.0
+    heavy = _core(2.0, 7800.0, 0.33)
+    assert heavy.dipole_scale > _core(1.0, 6371.0, 0.325).dipole_scale > mars_young.dipole_scale > 0.0
+
+
+def test_a_planet_with_no_core_to_read_has_no_field():
+    draw.set_run_seed(6)
+    body = _body(1.0, 5.51, 24.0)
+    magnetism.generate_field(body, None)
+    assert body.magnetic_moment_a_m2 == 0.0 and body.dipole_class == "none"
 
 
 def test_only_a_planet_with_a_surface_ocean_can_have_a_mobile_lid():
@@ -206,27 +309,16 @@ def test_only_a_planet_with_a_surface_ocean_can_have_a_mobile_lid():
         assert magnetism.mobile_lid_chance(venus, 0.8) == 0.0
 
 
-def test_a_stagnant_lid_shortens_the_dynamo_and_a_mobile_lid_keeps_it():
-    """GEN.177: the same planet at 4.5 Gyr keeps its field far more often with plate tectonics."""
-    def alive(hydrosphere, mass=1.0):
-        draw.set_run_seed(11)
-        count = 0
-        for _ in range(400):
-            body = _body(mass, 5.51, 24.0)
-            body.hydrosphere = hydrosphere
-            body.lid_regime = "mobile" if draw.random() < magnetism.mobile_lid_chance(body, mass) else "stagnant"  # GEN.721: the stored regime
-            magnetism.generate_field(body)
-            count += bool(body.magnetic_moment_a_m2)
-        return count
-    mobile, stagnant = alive("surface ocean"), alive("dry")
-    assert stagnant == 0  # 0.4 x (2 to 6 Gyr) is under 4.5 Gyr for every draw
-    assert mobile > 60    # 0.6 x about 3 in 8, with room for the seed
-    # A watery planet that is 4.5 Gyr old has a lid that decides its field; a young one has a field either way.
-    young = _body(1.0, 5.51, 24.0, age=0.3)
-    young.hydrosphere = "dry"
-    young.lid_regime = "stagnant"
-    magnetism.generate_field(young)
-    assert young.magnetic_moment_a_m2 > 0
+def test_the_lid_reaches_the_field_through_the_mantle_the_core_sits_under():
+    """GEN.838 (GEN.177 before it): a stagnant lid keeps the mantle, and so the base of it the core is measured against, hotter; Earth's
+    core makes its field under either lid."""
+    stagnant, mobile = _core(1.0, 6371.0, 0.325, lid=interior_heat.STAGNANT), _core(1.0, 6371.0, 0.325, lid=interior_heat.MOBILE)
+    assert stagnant.boundary_k > mobile.boundary_k
+    draw.set_run_seed(11)
+    for core in (stagnant, mobile):
+        body = _body(1.0, 5.51, 24.0)
+        magnetism.generate_field(body, core)
+        assert body.magnetic_moment_a_m2 > 0.0
 
 
 def test_europas_ocean_gives_the_induced_dipole_galileo_saw():
@@ -268,9 +360,9 @@ def test_induction_needs_an_ocean_a_field_and_a_changing_field():
 def test_earths_magnetopause_is_ten_radii():
     body = _body(1.0, 5.51, 24.0)
     body.magnetic_moment_a_m2 = magnetism.EARTH_MOMENT_A_M2
-    share = magnetism.dipole_share(24.0)
-    assert magnetism.magnetopause_rp(body, 1.0) == pytest.approx(9.75 * share ** (1 / 3), rel=0.02)
-    assert magnetism.dipole_share(10.0) > 0.95 and magnetism.dipole_share(24.0 * 30) < 0.2
+    assert magnetism.magnetopause_rp(body, 1.0) == pytest.approx(9.75, rel=0.02)
+    body.magnetic_moment_a_m2 = magnetism.EARTH_MOMENT_A_M2 / 8.0            # the stored moment is the dipole's: an eighth of it, half the standoff
+    assert magnetism.magnetopause_rp(body, 1.0) == pytest.approx(9.75 / 2.0, rel=0.02)
 
 
 def test_the_stored_magnetopause_is_in_radii_of_the_body_itself():
@@ -287,18 +379,17 @@ def test_the_stored_magnetopause_is_in_radii_of_the_body_itself():
         body.radius = radius_km
         body.magnetic_moment_a_m2 = moment
         stored[name] = magnetism.magnetopause_rp(body, 1.0)
-        metres = radiation_belts.standoff_m(moment * magnetism.body_dipole_share(body),
+        metres = radiation_belts.standoff_m(moment,
                                             magnetism.wind_pressure_pa(body.star, 1.0))
         assert stored[name] == pytest.approx(metres / (radius_km * 1000.0), rel=1e-9), name
-    share = magnetism.dipole_share(24.0)
-    assert stored["Earth"] == pytest.approx(9.75 * share ** (1 / 3), rel=0.02)
+    assert stored["Earth"] == pytest.approx(9.75, rel=0.02)
     assert stored["Jupiter"] * 69911.0 > stored["Earth"] * constants.EARTH_RADIUS_KM     # a Jupiter-strong field reaches farther in metres
     assert stored["Mars"] > stored["Earth"]                                                                # a smaller body has more radii in the same distance
 
 
 def test_generated_bodies_store_their_field_and_exposure():
     seen = set()
-    for seed in range(10):
+    for seed in range(30):         # GEN.967: a giant's field is the dynamo's, so a strong one needs a giant that turns fast; seed 25 has one
         with deterministic_entropy(seed):
             system = StarSystem(system_config=SystemConfig())
         star = system.star
@@ -318,24 +409,52 @@ def test_generated_bodies_store_their_field_and_exposure():
     assert {"none", "strong"} <= seen
 
 
-def test_a_generated_moon_has_an_induced_field_figure_and_a_planet_has_none():
-    """GEN.178: `generate_moons` sets the induced moment (0 without an ocean) on each moon; a planet keeps None."""
+def test_a_generated_moon_has_an_induced_field_figure_and_a_giant_has_none():
+    """GEN.178: `generate_moons` sets the induced moment (0 without an ocean) on each moon. GEN.959: the tide pulls the moons
+    of a planet locked to its star in, so the seeds that give moons are the ones with a planet that turns freely (seeds 6, 10 and 11 of the first twelve)."""
     from planetgen.generation.config import SystemConfig
     from planetgen.generation.system import StarSystem
     from tests.fuzz_support import deterministic_entropy
 
     moons = 0
-    for seed in range(6):
+    for seed in range(24):
         with deterministic_entropy(seed):
             draw.set_run_seed(seed)
             system = StarSystem(SystemConfig(), galactic_center_dist_ly=26000.0)
         for planet in system.planets:
             if not hasattr(planet, "moons"):
                 continue
-            assert planet.induced_moment_a_m2 is None
+            assert (planet.induced_moment_a_m2 is None) == (planet.body_type == "g")      # GEN.981: a rocky planet has its star's induction, a giant none
             for moon in planet.moons:
                 moons += 1
                 assert moon.induced_moment_a_m2 is not None and moon.induced_moment_a_m2 >= 0.0
-                if moon.hydrosphere not in magnetism.INDUCTION_HYDROSPHERES:
-                    assert moon.induced_moment_a_m2 == 0.0
+                if moon.hydrosphere not in magnetism.INDUCTION_HYDROSPHERES and interior_heat.core_of(moon) is None:
+                    assert moon.induced_moment_a_m2 == 0.0           # GEN.981: a moon with no ocean answers with its metal core, if it has one
     assert moons > 5
+
+
+# --- GEN.982: the far-ultraviolet flux a star gives at a distance, relative to the quiet Sun at 1 AU ---------------------------------
+
+def _plain_star(temperature, luminosity_solar, mass_solar, radius_solar, log_lx_lbol):
+    return types.SimpleNamespace(temperature=temperature, luminosity=luminosity_solar * constants.SOLAR_LUMINOSITY, mass=mass_solar * constants.SOLAR_MASS_TO_KG,
+                           radius=radius_solar * constants.SOLAR_RADIUS_M / 1.0e3, log_lx_lbol=log_lx_lbol)
+
+
+def test_the_far_ultraviolet_flux_falls_with_the_square_of_the_distance_and_is_one_for_the_quiet_sun_at_one_au():
+    sun_log_ratio = math.log10(activity.lx_lbol_at(activity.SUN_AGE_GY, activity.saturated_lx_lbol(1.0), activity.saturation_age_gy(1.0), activity.decay_exponent(1.0)))
+    sun = _plain_star(activity.SUN_TEMPERATURE_K, 1.0, 1.0, 1.0, sun_log_ratio)
+    assert activity.far_uv_flux_ratio(sun, 1.0) == pytest.approx(1.0, rel=0.05)
+    assert activity.far_uv_flux_ratio(sun, 2.0) == pytest.approx(activity.far_uv_flux_ratio(sun, 1.0) / 4.0)
+
+
+def test_a_more_active_star_gives_more_far_ultraviolet_at_the_same_luminosity_and_distance():
+    quiet = _plain_star(3400.0, 0.03, 0.3, 0.3, -5.5)
+    active = _plain_star(3400.0, 0.03, 0.3, 0.3, -3.5)
+    assert activity.far_uv_flux_ratio(active, 0.1) > 10.0 * activity.far_uv_flux_ratio(quiet, 0.1)
+
+
+def test_a_star_without_its_quantities_or_a_distance_has_no_ratio():
+    star = _plain_star(5772.0, 1.0, 1.0, 1.0, -6.0)
+    assert activity.far_uv_flux_ratio(star, 0.0) is None and activity.far_uv_flux_ratio(star, None) is None
+    star.luminosity = None
+    assert activity.far_uv_flux_ratio(star, 1.0) is None

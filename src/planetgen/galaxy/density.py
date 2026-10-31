@@ -751,6 +751,12 @@ def integrated_masses(shape, steps=40):
     }
 
 
+def thick_disk_units(shape):
+    """The thick disk's systems in the model's unnormalized units (the part of `population_units`'s `old` that is not the thin disk's)."""
+    terms = model_terms(shape)
+    return _disk_mass(terms["thick_disk_amplitude"], terms["thick_disk_scale_length_pc"], terms["thick_disk_scale_height_pc"])
+
+
 def population_units(shape):
     """
     How many systems each population holds, in the model's unnormalized units (only the ratios mean anything): the thin
@@ -760,8 +766,7 @@ def population_units(shape):
     """
     terms = model_terms(shape)
     thin = _disk_mass(shape.arm_level, shape.disk_scale_length_pc, shape.disk_scale_height_pc)
-    thick = _disk_mass(terms["thick_disk_amplitude"], terms["thick_disk_scale_length_pc"],
-                       terms["thick_disk_scale_height_pc"])
+    thick = thick_disk_units(shape)
     return {
         "young": thin * starFormation.disk_population_share("young", shape),
         "intermediate": thin * starFormation.disk_population_share("intermediate", shape),

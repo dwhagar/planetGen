@@ -11,7 +11,7 @@ import pytest
 from planetgen.db import store
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
-from planetgen.physics import climate_draws, orbit_elements
+from planetgen.physics import climate_draws, orbit_elements, surface_air
 from planetgen.util import draw
 from tests import db_schema_support
 
@@ -63,8 +63,10 @@ def test_a_saved_system_keeps_its_draws_and_the_temperature_follows_them(mysql_c
                 distance_km, eccentricity = orbits[body_id]
                 # the climate goes by the mean light of the orbit (GEN.727)
                 flux = climate_draws.starlight_w_m2(luminosity, distance_km) * orbit_elements.mean_flux_factor(eccentricity)
+                # the air solve stops a runaway greenhouse at the molten-surface limit (`surface_air.MAX_SURFACE_TEMPERATURE_K`)
                 assert row["surface_temperature_k"] == pytest.approx(
-                    climate_draws.surface_temperature_k(row["bond_albedo"], row["greenhouse_factor"], flux), rel=1e-9)
+                    min(climate_draws.surface_temperature_k(row["bond_albedo"], row["greenhouse_factor"], flux),
+                        surface_air.MAX_SURFACE_TEMPERATURE_K), rel=1e-9)
         loaded = store.load_star_system(conn, system_id)
         for planet, original in zip((p for p in loaded.planets if p.body_type != "a"),
                                     (p for p in system.planets if p.body_type != "a")):

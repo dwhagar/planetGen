@@ -392,52 +392,6 @@ with `clamp()`.
   any of it (UX.93, done).
   Prerequisite: MAP.168. Related: MAP.167.
 
-- [ ] **UX.102 One logging standard for every output the user or an admin reads: the same timestamps, format, dividers and step markers everywhere**
-  (Boss, 2026-10-14 14:16Z): "Add a TODO item to standardize all user
-  output logs, timestamps, same formatting, same style, dividers, step
-  markers, etc, etc, etc, adopt an industry based standard for file and
-  log output." Today the Generate page log, the CLI text, the downloaded
-  log, the job log files and the other commands each format their own
-  lines (UX.98, done in #1369, was the first visible symptom: stage numbering and section
-  separators differ). Done: a design note that lists every place the
-  program writes a log or report a person reads (Generate log, CLI
-  commands, job log files, the downloadable log, update.sh output, admin
-  pages that show logs), picks the standard, and a build that moves all
-  of them onto one logging layer, with tests that fail if a new output
-  path formats its own lines. Decided (Boss, 2026-10-14 14:17Z, approved as proposed): use
-  Python's standard logging module as the one entry point; every record
-  carries an RFC 3339 UTC timestamp, a severity from the RFC 5424 syslog
-  levels (debug, info, notice, warning, error, critical), a short
-  component name and a message, with machine-readable key=value fields
-  (logfmt style) for numbers such as counts and elapsed time; files are
-  one record per line in that format, with an optional JSON Lines form
-  for machines; the readable display in the web log and CLI is rendered
-  from the same records, with one divider style, one stage marker form
-  ("Stage N of M: name", "Stages N to M of M: name" for a run) and one
-  wording for start, finish and failure, so a downloaded log and the
-  screen always agree; timestamps are always UTC in files and local time
-  only in the page display, labelled). Bugfixes lane 1 built
-  UX.98 as the first slice (done, #1369: one stage formatter); the rest is
-  a Phase 2 item for the interface builders.
-  Split (2026-10-16, Boss 1:07 PM EDT: look at each item for smaller
-  chunks and shared work): this item is now the umbrella and is done
-  when its subitems are: UX.121, UX.122, UX.123, TEST.183. A design
-  note, a library and a migration of every output in the program
-  (Generate page log, CLI commands, job log files, the downloadable log,
-  update.sh output, admin log pages) with an enforcement test: weeks of
-  work across Python, web and shell, none of it one PR.
-  Owner: Core 5 (proposed, 2026-10-17, 10:54 PM EDT, relayed by the coordinator: Core 2 confirmed it has no code on
-  this item and asked to drop it; it was Core 2's by the 10:06 AM EDT lane assignment).
-  Order on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the coordinator
-  relayed): after PERF.135 and the command follow-ups (PERF.99, PERF.100, DB.29,
-  PERF.120 to PERF.128), and after the DOC.18 sweep (Boss's 'Sweep first').
-  Decided (Boss, 2026-10-17, 10:57 PM EDT, two cards answered in the
-  project chat, relayed by the coordinator): Core 5 builds the command
-  follow-ups first (PERF.99, PERF.100, DB.29, PERF.120 to PERF.128)
-  after PERF.135; this logging standard chain (UX.121 to UX.123,
-  TEST.183) comes after them. Core 5 is the proposed owner.
-  Prerequisites: TEST.183. Related: PERF.66.
-
 - [ ] **UX.115 Interface update: every page and control works with the spherical grid, 96-bit IDs, the new phenomena and the region queries (stage after the sphere and generation stages)**
   Boss (2026-10-16, 12:52 AM EDT): "also we need to run an interface
   update on everything once this is done so all the controls work
@@ -762,13 +716,6 @@ with `clamp()`.
   test filters by class and by colour.
   Prerequisites: DB.90, GEN.647. Related: UX.100, MAP.220, GEN.430.
 
-- [ ] **UX.158 Info panel line: how this colour was worked out, which inputs and whether partial or full quality**
-  A short line in the info panel naming the inputs. Design draft
-  design-drafts/body-rendering-from-composition-2026-10-24.md (section
-  10), filed by the body-rendering design thread, 10:18 PM EDT
-  2026-10-23 as the thread reported. Placement follows Boss's plan of 10:26 PM EDT 2026-10-23 (section 11 of the draft).
-  Prerequisites: none.
-
 - [ ] **UX.164 The wipe line reads "Wiped 75 tables (about 1 row)" (bug)**
   From the generation-log analysis of Boss's run
   job-20261024-031001-f81d (relayed 11:56 PM EDT 2026-10-23 as the lane
@@ -848,6 +795,15 @@ with `clamp()`.
   for columns on main, then the rows for columns not on main yet
   (GEN.738 to 740, GEN.741 to 745, GEN.762, GEN.730, the brown dwarf
   label), after train 1. The X-ray luminosity is GEN.952.
+  Boss approved first list slice (2026-10-31 1:48 PM EDT): Boss said yes
+  at 1:47 PM EDT 2026-10-31 to Core 3's first slice: the object index
+  and the star, planet and moon lists gain three stored, sortable
+  columns each (stars: temperature, luminosity, age; planets and moons:
+  orbit axis, eccentricity, surface temperature). It adds object-index
+  columns, so it is lock work: a migration, the API field list and a
+  backfill, on a train slot. Core 3 builds it on a branch off main, no
+  merge, and reports the head to TODO for the Train Manager. Later
+  slices add the rest.
 
 - [ ] **UX.206 Link-preview (SEO and social) images for pages with a rendered image or map view are a cached snapshot of that view**
   Boss, 8:19 PM EDT 2026-10-24 (message
@@ -906,29 +862,6 @@ with `clamp()`.
   it, confirmed with TODO, one lock-free item at a time.
   Prerequisites: GEN.799. Related: UX.214, UX.143, UX.187.
 
-- [ ] **UX.224 A planet's chips and description never show Habitable, Inhabited and Habitable class together: only the most specific one (bug)**
-  Boss, 10:33 PM EDT 2026-10-24 (relayed by the coordinator): "should
-  never have both Habitable, Inhabited, and Habitable Class in a
-  planet's chips or description since Inhabited means it is both
-  inhabitable and a habitable class." web/lib/habitability_chips.py
-  chips_html adds Habitable, Habitable class and Inhabited
-  independently, so an inhabited habitable-class world shows all three;
-  the same holds for the moon chips and for the description text that
-  names them. Do: show only the most specific of the three (Inhabited
-  over Habitable over Habitable class), likewise Habitable moon over
-  Habitable-class moon, in the chips on pages, lists, search and the
-  infobox, and make the description say it once; update the chip help
-  (habitability_ref.CHIPS) so Inhabited says it is habitable and of a
-  habitable class. Done: a unit test for every combination of the three
-  flags and a browser test on an inhabited world showing one chip.
-  Version 8.1. Owner: Aux 6 (chips and description), with Aux 3 if the
-  flag logic sits in habitability. Rules: no backward-compat shims;
-  every number has a unit or scale (GEN.772); draws through draw.py; a
-  changed generated value carries `tests.golden_update --reason ...
-  --affects <stage>` and the next epoch; tests are `scripts/test.py
-  changed --resume`; stand-ins get GEN.725 registry rows.
-  Prerequisites: none. Related: UX.100, UX.181, GEN.643.
-
 - [ ] **UX.225 Search, object lists, Nearby and /api/search filter and sort on every stored physical number: gravity, temperature, pressure, orbit, day, star mass, dose, field, ocean depth, moon count and gases (G4)**
   Unused stored values audit (the "Find stored values nothing uses"
   thread, report reports/unused-stored-values-audit-2026-10-24.md,
@@ -955,45 +888,7 @@ with `clamp()`.
   Owner (housekeeping) (2026-10-30 2:55 PM EDT): released to the pool:
   the owner named above (Aux 12) is a retired lane. A waiting lane takes
   it, confirmed with TODO, one lock-free item at a time.
-  Prerequisites: UX.226, UX.227, UX.228. Related: UX.214, UX.150, GEN.568, UX.226, UX.227, UX.228.
-
-- [ ] **UX.226 Numeric range filters and sort keys for the stored physical values: one engine in db/query.py and the /api/search parameters (G4, step 1)**
-  Unused stored values audit chain
-  (reports/unused-stored-values-audit-2026-10-24.md, Boss 10:16 PM EDT
-  and 10:35 PM EDT 2026-10-24: make each a chain, with a GitHub goal
-  issue). SEARCH_TAG_FACETS is tag facets only and the sorts are name,
-  class, mass and radius. Add a registry of numeric keys (gravity,
-  surface temperature, pressure, orbit distance, day length, year
-  length, star mass, luminosity, age, surface dose, magnetic field,
-  ocean depth, moon count and each atmosphere gas) with unit, range
-  filter and sort, read from the stored columns and the unit registry
-  (GEN.568). Done: a query for 0.8 to 1.2 g and a dose under 2 mSv a
-  year works through the API, documented. Version 8.2, phase 2. Owner:
-  Aux 12 with Aux 11. Rules: no backward-compat shims; every number has
-  a unit or scale (GEN.772); a changed generated value carries
-  `tests.golden_update --reason ... --affects <stage>` and the next
-  epoch; tests are `scripts/test.py changed --resume`.
-  Owner (housekeeping) (2026-10-30 2:55 PM EDT): released to the pool:
-  the owner named above (Aux 11) is a retired lane. A waiting lane takes
-  it, confirmed with TODO, one lock-free item at a time.
-  Prerequisites: none. Related: UX.225, UX.214, GEN.568.
-
-- [ ] **UX.227 The search page shows range controls for the physical values, with units, and the active filters as chips (G4, step 2)**
-  Unused stored values audit chain
-  (reports/unused-stored-values-audit-2026-10-24.md, Boss 10:16 PM EDT
-  and 10:35 PM EDT 2026-10-24: make each a chain, with a GitHub goal
-  issue). Range inputs and sort options on the search page for the keys
-  of UX.226, with the unit beside each, shown as filter chips
-  (active_filters). Done: a browser test sets a gravity and a dose range
-  and gets the right planets. Version 8.2, phase 2. Owner: Aux 6.
-  Rules: no backward-compat shims; every number has a unit or scale
-  (GEN.772); a changed generated value carries `tests.golden_update
-  --reason ... --affects <stage>` and the next epoch; tests are
-  `scripts/test.py changed --resume`.
-  Owner (housekeeping) (2026-10-30 2:55 PM EDT): released to the pool:
-  the owner named above (Aux 6) is a retired lane. A waiting lane takes
-  it, confirmed with TODO, one lock-free item at a time.
-  Prerequisites: UX.226. Related: UX.225.
+  Prerequisites: UX.228. Related: UX.214, UX.150, GEN.568, UX.226, UX.227, UX.228.
 
 - [ ] **UX.228 The object lists and Nearby filter and sort by the same physical values (G4, step 3)**
   Unused stored values audit chain
@@ -1010,40 +905,6 @@ with `clamp()`.
   the owner named above (Aux 6) is a retired lane. A waiting lane takes
   it, confirmed with TODO, one lock-free item at a time.
   Prerequisites: UX.226. Related: UX.225.
-
-- [ ] **UX.236 User preferences: a screen and storage for per-user settings, starting with the Galaxy Map region landing (frame or densest)**
-  Boss, 6:19 PM EDT 2026-10-28 (relayed by the coordinator): the zoom
-  redesign codes both options and a user preference chooses, default
-  option 1. Plan and build the setting itself: a preferences page
-  (reached from the account area and the site menu), storage per browser
-  now with the same keys moving into the account when accounts land
-  (USR.7, 8.2), a read helper the map calls, and an API route to read
-  and write the keys for signed-in users later. First key
-  map.regionLanding with values frame (default) and densest; a missing
-  key reads as the default. The page lists each preference with its
-  plain-words description and its default, and a Reset to defaults
-  button. The map work (MAP.336) only reads the key and does not wait
-  for this screen. Done: a browser test sets the key on the page and
-  sees the Galaxy Map land accordingly. Owner: Core 5 (not the map
-  lane).
-  Research (2026-10-09): Second key (Boss 6:22 PM EDT 2026-10-28):
-  map.blackHoleDensity, the cap on black hole marks per screen area,
-  default one per 120 by 120 px (MAP.339); a missing key reads as the
-  default. List it on the same screen with its plain-words description
-  and a Reset.
-  Research (2026-10-09): Black hole density preference (Core 3, MAP.339
-  #3636, 12:16 AM EDT 2026-10-29 as the lane reported): the map reads
-  the number key map.blackHoleDensity (the side in pixels of the square
-  one mark may stand on; default 120, valid 30 to 1000) through
-  src/html/static/mappreferences.js, from localStorage under
-  planetgen.pref.map.blackHoleDensity as the number's text, falling back
-  to 120 when missing or out of range. The preferences screen can write
-  that key (or replace the one reader function); the map picks it up at
-  its next marker refresh.
-  Owner (housekeeping) (2026-10-30 2:55 PM EDT): released to the pool:
-  the owner named above (Core 5) is a retired lane. A waiting lane takes
-  it, confirmed with TODO, one lock-free item at a time.
-  Prerequisites: none. Related: MAP.336, USR.7.
 
 - [ ] **UX.237 Planet page Life section: Supports Class N, also supports, Has Class N at the X stage with its animal grade, the eats-drinks-breathes-gives-off block, the Life and air chart and the adaptation traits; the class number on lists**
   Life class system design (design thread, Boss 9:10 to 9:13 PM EDT
@@ -1080,31 +941,23 @@ with `clamp()`.
   Owner (housekeeping) (2026-10-30 2:55 PM EDT): released to the pool:
   the owner named above (Aux 11) is a retired lane. A waiting lane takes
   it, confirmed with TODO, one lock-free item at a time.
+  Changed by GEN.1209 (several life types per planet) (2026-10-31 10:10
+  AM EDT): The Life section must read the list of living classes from
+  GEN.1209 when it lands: each living class with its stage, animal
+  grade, kinds and prevalence, the dominant one first. Until then it
+  shows the one dominant class (PR 4471 folds the kind scores into one
+  Life paragraph).
+  Changed by the life readings work (Boss, 10:07 AM EDT 2026-10-31)
+  (2026-10-31 10:14 AM EDT): Boss wants a Life section in the details
+  holding every life fact (classes, stages, animal grades, the three
+  readings per kind from GEN.1210, eats, drinks, breathes and gives off,
+  life and air through the ages), with a short Life summary in At a
+  glance (UX.251). PR 4471 already puts a first Life paragraph at the
+  top of the Life section; this item now owns the rest of the details
+  section on top of it, and the readings from GEN.1210 and the several
+  living classes of GEN.1209 are shown as they land. Help links for each
+  word come from DOC.84.
   Prerequisites: none. Related: UX.221.
-
-- [ ] **UX.239 Search for star systems by how many stars they hold: single, binary, trinary, quaternary and more**
-  Boss (2026-10-30, 9:33 AM EDT): we need a way to search for star
-  groups, such as binary, trinary, quaternary and so on. Do: a
-  multiplicity filter (exactly N stars, or N or more, with named choices
-  Single, Binary, Trinary, Quaternary, Quintenary and beyond) in the
-  search page, Nearby, /api/search (parameter `stars`) and the command
-  line, plus a sort key and the count shown in each result row; it reads
-  the stored star count of the system, so it needs no new column unless
-  the count is not stored on the system row (then the owner adds it with
-  its unit entry). It rides the same engine as the physical-value
-  filters (UX.226, UX.227). Done: a browser test finds a known binary
-  and a known triple by the filter, the API and command line agree, and
-  the help text names every choice.
-  Boss 5:49 PM EDT 10-30 (owner and priority) (2026-10-30 5:50 PM EDT):
-  Boss needs this now to find and test multi-star systems (the
-  third-star fix): owner Core 1, right after UX.242 (PR #4142 adds
-  star_count to the list). First slice, not waiting for the general
-  engine: a `stars` filter (exactly N, or N or more; Single, Binary,
-  Trinary, Quaternary, Quintenary and beyond) in the search box and the
-  Systems panel of the search page and in /api/search?stars=, reading
-  the stored star count; the numeric engine of UX.226 absorbs it later.
-  The prerequisite on UX.226 is dropped for this slice.
-  Prerequisites: none. Related: UX.226, UX.227, GEN.728, TEST.162.
 
 - [ ] **UX.241 Asteroid belt information page: route, template and API field showing the individually tracked bodies (by designation, each linked to its member page), the contents and sizes of the rest of the belt mass, and the density factor with its unit; link from the system page and the belt row**
   Asteroid belt information page (Boss, 4:37 PM EDT 2026-10-30: "an
@@ -1136,7 +989,66 @@ with `clamp()`.
   shows the day and night hours of each latitude band beside its
   temperature (from GEN.1108), and the spin-speed fix for slow and
   locked bodies is UX.244.
-  Prerequisites: GEN.1097. Related: MAP.277, VIEW.14.
+  Prerequisites: none. Related: MAP.277, VIEW.14.
+
+- [ ] **UX.252 Readability rewrite of ALL planet, moon and belt text: summary sentences, descriptions, notes, labels, class pages**
+  Boss, 10:07 AM EDT 2026-10-31 (and 10:08 AM EDT for the help pages):
+  build and ship all the life recommendations, a full readability
+  rewrite of ALL planet and star text, a life summary paragraph in At a
+  glance, a Life section in the details with the nitty-gritty, and a
+  full help page suite on all life types and the categories we use.
+  Brief:
+  /mnt/project-files/reports/life-and-text-readability-brief-2026-10-31.md;
+  coexistence write-up:
+  reports/multi-life-types-per-planet-2026-10-31.md. PR 4471 (branch
+  claude/project-thread-5xwcu1, wording and layout of the first Life
+  paragraph) merges first and these build on it. Filed by the TODO
+  thread. Do: rewrite every sentence the site writes about planets,
+  moons and belts to the style guide: the summary paragraph, the
+  descriptions, the notes and warnings, the table labels, the class
+  pages and the Life text, in plain words with short sentences and one
+  idea each, no repeated facts and the same class names and units
+  everywhere. Find every source of text by scanning the generator's text
+  builders, the templates and the generated class pages, and list what
+  was rewritten in the changes note. Presentation and wording only; no
+  computed value changes. If any of the text is stored at generation (a
+  text column) the change needs an epoch with a migration, so check
+  first and prefer building the text at render time; if a stored text
+  must change, say so and make it a separate lock item. Splits by page
+  kind if large: planets, moons, belts and fields. Where we think it
+  belongs (best guess, can move): Core 5, after PR 4471 merges.
+  Boss, 10:09 AM EDT 2026-10-31 (2026-10-31 10:17 AM EDT): once the life
+  class help pages and definitions exist (DOC.84), link the terms in the
+  planet text to them (class names, abundance, trend and security words,
+  suitability, life stages) and remove the inline explanations the help
+  pages now cover, so the planet text is decluttered. The order is: the
+  style guide (DOC.83), the life readings (GEN.1210) and the help suite
+  (DOC.84) first, then this rewrite does the linking and the
+  decluttering in the same pass as the readability rewrite, so each
+  sentence is rewritten once.
+  Stored text found (10:24 AM EDT 2026-10-31) (2026-10-31 10:24 AM EDT):
+  planets.description is a stored copy of the class description
+  (generation/life.py line 156), so editing the class descriptions alone
+  changes stored output. In the lock-free rewrite read the class
+  description at view time and leave the column alone; GEN.1212 decides
+  removing the stored copy (lock). Everything built at view time
+  (describe/build.py, describe/sheet.py, classref.py, the templates) is
+  yours to rewrite now.
+  Spelling rule (2026-10-31 10:34 AM EDT): Boss decided (10:33 AM EDT
+  2026-10-31): American spelling, option 1, so "color" not "colour"; he
+  does not mind which as long as it is consistent everywhere. The style
+  guide (docs/design/interface/text-style.md) records American spelling
+  and the checker (planetgen/util/plainwords.py) flags British spellings
+  (colour, grey, centre, metre, litre, kilometre, analyse, neighbour and
+  the like, with a short allow-list for proper names and quotes); each
+  rewrite changes its own text to American spelling, and the number of
+  "colour" uses (333 on the site) goes to zero. The word list and the
+  checker change are made by Core 5 with the next guide edit.
+  Boss rule, 2:50 PM EDT (2026-10-31 2:55 PM EDT): Oxford comma: apply
+  the serial comma in the rewrite (rule 15 of the plain-words guide;
+  DOC.86 adds the check). Links to References pages wait for DOC.87 (R1)
+  and are done in this same pass.
+  Prerequisites: none. Related: UX.237, GEN.1208.
 
 ## MAP: Galaxy Map, Sector Map, System Map
 
@@ -2032,20 +1944,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   galaxymap3d.js and sectorscene.js).
   Prerequisites: none. Related: MAP.208, MAP.266, MAP.267.
 
-- [ ] **MAP.274 Land colour from the bulk composition: oxidation and rock type**
-  Land colour follows the bulk fractions instead of the temperature and
-  class estimate. Design draft
-  design-drafts/body-rendering-from-composition-2026-10-24.md (section
-  4), filed by the body-rendering design thread, 10:18 PM EDT 2026-10-23
-  as the thread reported. Placement follows Boss's plan of 10:26 PM EDT 2026-10-23 (section 11 of the draft).
-  Research (2026-10-09, Owner 6:36 PM EDT): Owner (TODO, 6:36 PM EDT
-  2026-10-24, coordinator request): Aux 10 (Map nodes) after MAP.287
-  (#3130), after GEN.411 (4c, Aux 1).
-  Owner (housekeeping) (2026-10-30 2:55 PM EDT): released to the pool:
-  the owner named above (Aux 1) is a retired lane. A waiting lane takes
-  it, confirmed with TODO, one lock-free item at a time.
-  Prerequisites: GEN.411.
-
 - [ ] **MAP.275 Gas and ice giant painter: bands, storms and thermal glow from rotation, temperature and the atmosphere colour, rings with resonance gaps from the moons**
   Bands, storms, a chemistry tint, thermal glow, and rings with
   resonance gaps. Design draft
@@ -2059,26 +1957,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the owner named above (Aux 10) is a retired lane. A waiting lane takes
   it, confirmed with TODO, one lock-free item at a time.
   Prerequisites: GEN.670, GEN.419.
-
-- [ ] **MAP.277 Atmosphere glow from pressure and composition, and the day and night terminator**
-  Thin air, none and thick air each draw their own glow. Design draft
-  design-drafts/body-rendering-from-composition-2026-10-24.md (section
-  4), filed by the body-rendering design thread, 10:18 PM EDT 2026-10-23
-  as the thread reported. Placement follows Boss's plan of 10:26 PM EDT 2026-10-23 (section 11 of the draft).
-  Research (2026-10-09, Owner 6:36 PM EDT): Owner (TODO, 6:36 PM EDT
-  2026-10-24, coordinator request): Aux 10 (Map nodes) after MAP.287
-  (#3130), when DB.96 merges (DB.96 is with Aux 12 after DB.100 and
-  GEN.701); nobody has started it.
-  Owner (housekeeping) (2026-10-30 2:55 PM EDT): released to the pool:
-  the owner named above (Aux 12) is a retired lane. A waiting lane takes
-  it, confirmed with TODO, one lock-free item at a time.
-  Prerequisites: DB.96.
-
-- [ ] **MAP.279 Small bodies: lumpy meshes for moons and asteroids under about 400 km, from the stored shape**
-  Spheres above the threshold. Design draft
-  design-drafts/body-rendering-from-composition-2026-10-24.md (section
-  11), Boss's plan of 10:26 PM EDT 2026-10-23.
-  Prerequisites: none.
 
 - [ ] **MAP.280 Cloud layer, terminator and cover on solid worlds; cloud-deck worlds paint the deck as the surface**
    Design draft
@@ -2120,7 +1998,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
    Design draft
   design-drafts/body-rendering-from-composition-2026-10-24.md (section
   11), Boss's plan of 10:26 PM EDT 2026-10-23.
-  Prerequisites: GEN.488.
+  Sources 2 (as the lane reported, 12:15 PM EDT) (2026-10-31 1:00 PM
+  EDT): not startable as written: the species behind the colours are not
+  stored, only the names of the three largest components. A lock-free
+  painter could only recolour the nucleus, which would be thrown away.
+  It now waits on the new item that stores the coma class and dominant
+  volatiles (the GEN item filed for this); Core 2 owns the painter.
+  Sources 2 does not take it now.
+  Prerequisites: GEN.488, GEN.1227.
 
 - [ ] **MAP.284 Night-side thermal glow on hot worlds, with no city lights until 9.2**
    Design draft
@@ -2286,37 +2171,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   nothing in 8.1.
   Prerequisites: MAP.312, DB.106. Related: MAP.312, MAP.309, MAP.170.
 
-- [ ] **MAP.337 Zoom redesign Z4: delete the stage code and stage URLs and rewrite the stage browser tests**
-  Size M. Boss answered the research cards at 6:19 PM EDT 2026-10-28
-  (1.1 quick fixes then the full rebuild, 2.1 one verb Go to, 3.1
-  vertical log ruler with named stops, 4.1 a region lands framed on the
-  charted part, 5.1 moon in view first). Design:
-  /mnt/project-files/design-drafts/galaxy-map-continuous-zoom-redesign-2026-10-28.md
-  (section 6 plan, section 9 decisions). Owner: Core 2. Remove the stage
-  machinery and the stage URLs once the camera-driven scenes (Z2) and
-  goTo (Z3) carry everything; no compatibility shim. Done: no stage code
-  or URL remains, and the rewritten browser tests pass.
-  Prerequisites: none. Related: MAP.257.
-
-- [ ] **MAP.338 Zoom redesign Z5: planet and moon frames, the camera as frame plus offset, automatic near and far planes, and the MAP.240 leftovers**
-  Size M. Boss answered the research cards at 6:19 PM EDT 2026-10-28
-  (1.1 quick fixes then the full rebuild, 2.1 one verb Go to, 3.1
-  vertical log ruler with named stops, 4.1 a region lands framed on the
-  charted part, 5.1 moon in view first). Design:
-  /mnt/project-files/design-drafts/galaxy-map-continuous-zoom-redesign-2026-10-28.md
-  (section 6 plan, section 9 decisions). Owner: Core 2. Zooming into a
-  planet or moon works in its own frame (camera = frame plus offset),
-  the near and far planes follow the distance, and the zoom floor drops
-  to 1e-12 pc. A moon comes into view first (Boss 5.1). Done: a browser
-  test zooms from a system to a moon and to the surface scale without
-  precision loss.
-  Prerequisites: MAP.335. Related: MAP.257, MAP.240.
-
 - [ ] **MAP.354 Lagrange trojans T4: System Map icon at the centre of each Lagrange point that has objects, labelled with the host and point (for example Jupiter-L4); shares the geometry of the MAP.169 gravity layer**
   Boss 7:48 PM EDT 10-30: objects around a Lagrange point get an icon at
   the centre of the point that says [host]-L# so the pair of objects is
   clear. Rides with T2 (train 8). Shares the Lagrange geometry of
   MAP.169 and does not wait for the heat map.
+  Wiring sweep (Boss, 12:03 PM EDT: nothing built and left unused;
+  report reports/wiring-sweep-2026-10-31.md) (2026-10-31 12:25 PM EDT):
+  The trojan icon had no owner. Owner now: Core 2 (after GEN.1150)
+  (proposed by the TODO thread; the lane says if it cannot take it).
   Prerequisites: GEN.1150. Related: MAP.169.
 
 ## NAV: Navigation and courses
@@ -3100,7 +2963,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   potential's masses and scale lengths are derived from the generated
   galaxy; 2,600 pc and 1,580 pc (and 229.3 km/s) stay test references
   only, never defaults (GEN.338 carries the rewrite).
-    Prerequisites: GEN.338, GEN.339, GEN.340.
+    Prerequisites: GEN.339, GEN.340.
     Design: [docs/design/orbits/orbital-updates.md](design/orbits/orbital-updates.md)
 
   - [ ] **GEN.109 N-body influence from every object inside the largest nearby Hill sphere plus the galactic gradient, with a Hill-radius warning**
@@ -3203,7 +3066,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the one core function, sectors are shells, bands and wedges (not
   rings, layers and slots), and the visit order is tier, then mass, in
   chunks that each read the state at their start.
-    Prerequisites: GEN.342, GEN.343, GEN.344.
+    Prerequisites: GEN.343, GEN.344.
     Design: [docs/design/orbits/orbital-updates.md](design/orbits/orbital-updates.md)
 
   - [ ] **GEN.110 Rogue planet collisions: asteroid fields, merged giants and new stars**
@@ -3695,6 +3558,31 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the Outcome). Finding TEST.306, Bug Hunt, 12:40 AM EDT 2026-10-24 (as
   the lane reported), reports/test-306-test-only-modules-2026-10-24.md.
   Do not delete them.
+  Wiring sweep (Boss, 12:03 PM EDT: nothing built and left unused;
+  report reports/wiring-sweep-2026-10-31.md) (2026-10-31 12:25 PM EDT):
+  The closest-approach library is unread until the orbital event writer
+  lands, and the item had no owner. Owner now: Aux 7 (orbital update)
+  (proposed by the TODO thread; the lane says if it cannot take it).
+  Aux 7 built the lock-free part (as the lane reported) (2026-10-31 1:10
+  PM EDT): branch claude/gen197 head 641b504a6 off main 0f63ebf22: new
+  planetgen/db/orbital_events.py (find_contact reads closest_approach,
+  resolve_contact uses collision_outcome, record_event writes
+  orbital_events and orbital_event_bodies from an Outcome with a mass
+  and momentum check and one activity-log line) and the ID rules (a
+  merger keeps the heavier body's ID, an ejected planet keeps its ID,
+  field and split fragments take new run-time IDs, counters never
+  reuse). No migration, no epoch, generation output unchanged; 9 tests
+  including a DB read-back. Two remainders stay open: the orbital update
+  that calls find_contact for every pair (broad phase), and turning an
+  ejected planet into a rogue_planets row (GEN.291 unbind).
+  Lock-free part merged as #4514 (Aux 7, as the lane reported)
+  (2026-10-31 1:55 PM EDT): planetgen/db/orbital_events.py
+  (find_contact, resolve_contact, record_event, the ID rules) on main,
+  no migration, no epoch. The item stays open for the two remainders:
+  the orbital update that calls find_contact for every pair (broad
+  phase) and the unbind of an ejected planet into a rogue_planets row
+  (GEN.291). The register line for closest_approach is gone because it
+  is read now.
   Prerequisites: none. Related: GEN.105, GEN.143, GEN.170.
 
 - [ ] **GEN.198 The gravity field evaluator: pull, potential and tidal gradient at any point from the point masses and the galaxy potential**
@@ -3717,7 +3605,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   drawn (galactic for a sector, system for the System Map, planetary for
   a moon neighbourhood), read from the same constants, not a copy. See
   the new section in docs/design/orbits/gravity-map.md.
-  Prerequisites: GEN.338, GEN.342. Related: GEN.105, NAV.6, PERF.72,
+  Prerequisites: GEN.342. Related: GEN.105, NAV.6, PERF.72,
   MAP.167.
   Scope after the review (2026-10-16 review): the tidal tensor and its
   eigenvalue, the galaxy potential term (GEN.115, GEN.285), the near and
@@ -4608,7 +4496,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Core 5 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue is
   in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
   owner line).
-  Prerequisites: SEC.33, TEST.261, GEN.733, GEN.736, GEN.743, GEN.744, GEN.745, GEN.752, GEN.753.
+  Prerequisites: SEC.33, TEST.261, GEN.743, GEN.744, GEN.745, GEN.752, GEN.753.
   GEN.639, GEN.445, DOC.75, TEST.300.
   Decided (Boss, 2026-10-17, 10:02 AM EDT, card "Add a lane to shorten
   the 8.1 headline chain?", tapped "Split Core 3"; relayed by the
@@ -4947,69 +4835,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   wait; Blocker 4 after GEN.315 (slice 1 merged earlier by Core 3).
   Prerequisites: GEN.315. Related: GEN.275, GEN.316.
 
-- [ ] **GEN.338 The galactic potential as one pure module: Hernquist bulge, Miyamoto-Nagai disk and NFW halo, with settings and the rotation-curve tests**
-  Split from GEN.115 (2026-10-16, Boss 1:07 PM EDT: look at each item
-  for smaller chunks and shared work). One function of position returns
-  acceleration, potential and circular speed from a Hernquist bulge, a
-  Miyamoto-Nagai disk and an NFW halo (the flattened log halo only if
-  its v0 and R_c are corrected and tested). Masses and scales are
-  settings with the document's values at the default galaxy shape
-  (lengths follow the disk scale length of 2,600 pc, bulge 1,580 pc,
-  radius about 15.3 kpc; masses scale by s^p with p = 1); Plummer
-  softening of 1 pc applies to the central black hole only; the
-  acceleration is finite at (0, 0, 0). Why: GEN.109, GEN.198 and the
-  stepper read it and no generator or table has to change for it. Done:
-  the module and its settings with tests for a circular speed of 229.3
-  +- 0.1 km/s at 8.128 kpc, 213 to 231 km/s on a 2 kpc grid from 4 to 20
-  kpc, Kz(1.1 kpc) about 75 Msun/pc2 and local density about 0.10
-  Msun/pc3 at 5 percent, a circular orbit keeping its radius to 1 pc
-  over 5 Gyr at dt <= 1 Myr, Lz conserved to 1e-10, energy drift under
-  1e-3 per Gyr, and a finite pull at the origin. No database or
-  generator change.
-  Drops the duplicate change of the Sun distance: GEN.144 (first in the
-  Galactic gravity thread) names the 8.128 kpc test radius and the 8.2
-  kpc placement value, and this module only reads them (2026-10-16
-  review).
-  Rewrite for NO FIXED CONTENT (finding from the read-only "galactic
-  potential realism" thread, 2026-10-16, 8:43 PM EDT; Boss, 4:11 and 4:14
-  PM EDT): the values above (a circular speed of 229.3 km/s, a bulge of
-  1.0e10, a disk of 6.8e10 with a 3.5 kpc scale, a halo of 5.4e11 with r_h
-  16 kpc, the 8.128 and 8.2 kpc radii, the 213 to 231 km/s band) are the
-  Milky Way's and are reference values for a plausibility test, never
-  defaults. The module's masses and scales are derived from the generated
-  galaxy: the bulge, disk and halo masses from the density model of this
-  galaxy's shape, the halo mass and scale from GEN.369's halo derivation,
-  and the circular speed follows from them; it is not a constant. The
-  tests check the shape and internal consistency of the curve (a rising
-  then flat or gently falling curve, v_c squared equal to r times the
-  radial pull, Kz and local density from the same masses, an orbit
-  keeping its radius, Lz conserved, energy drift, a finite pull at the
-  origin), and compare the Milky Way's numbers only as a reference for a
-  galaxy built with the Milky Way's shape. The module is also the one
-  source for the other rotation numbers in the code today: the flat
-  velocity of 220 km/s with a 3,000 pc core in `physics/constants.py`
-  (every star's orbit, about 206 km/s at 7.91 kpc), `tuning.CLUSTER_HALO_CIRCULAR_KMS`
-  (220, the cluster Jacobi radius and cluster rotation) and
-  `constants.MILKY_WAY_MASS` (1.15e12, the Hill spheres in
-  `generation/binary.py`; GEN.370), so the cluster generator and the Hill
-  spheres read it too, not only GEN.339 and GEN.340.
-  Galaxy types (2026-10-16, 8:50 PM EDT, Boss for 9.4): the bulge, disk
-  and halo masses come from GEN.379's `component_masses`, and a
-  component of zero mass is legal and tested (a galaxy without a disk,
-  an elliptical, needs no change in the potential); GEN.379 and DB.66
-  sit just before this item in the thread.
-  GEN.368's approved table (Boss, 10:11 PM EDT), row 12: the rotation
-  curve and the enclosed mass are calculated from this potential (v
-  squared = G M(<r) / r), not set, and `MILKY_WAY_MASS` goes as the
-  central mass of every Hill sphere (GEN.400); the baryonic Tully-Fisher
-  relation is a cross-check only.
-  Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
-  newer note wins, report todo-contradictions-2026-10-18.md): where the
-  text names an 8.2 kpc "placement value", GEN.378 (Boss, 2026-10-16,
-  9:43 PM EDT) wins: no home or Sun position is stored; 8.128 and 8.2
-  kpc are reference radii for tests only.
-  Prerequisites: none. Related: GEN.115.
-
 - [ ] **GEN.339 Generated and stored galactic velocities follow the potential: the old curve is replaced, dispersions are seeded, stored velocities are reseeded**
   Split from GEN.115 (2026-10-16, Boss 1:07 PM EDT: look at each item
   for smaller chunks and shared work). Replace
@@ -5064,49 +4889,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 3
   held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.338, GEN.139. Related: GEN.115.
-
-- [ ] **GEN.342 The acceleration kernel: the pull of the influence set plus the galactic gradient, as one function, and the velocity update from it**
-  Split from GEN.109 (2026-10-16, Boss 1:07 PM EDT: look at each item
-  for smaller chunks and shared work). One function returns the
-  acceleration at a point from child a's set (pairwise point masses,
-  Plummer 1 pc on the central black hole only, other masses unsoftened
-  or 1e-3 to 1e-2 pc, no a_min filter) plus the galactic gradient of
-  GEN.115's module, leaving out the object itself. For a star it is the
-  extra term in GEN.115's stepper; for a planet or moon it works in the
-  host's frame with the host's own pull subtracted. Trajectories change
-  only when an update runs. GEN.198 later wraps this same kernel instead
-  of summing masses a second time. Done: tests against a direct sum for
-  random sets, momentum conserved for an isolated pair, a star's orbit
-  unchanged to the stepper's tolerance when the set is empty, and finite
-  everywhere.
-  The force on a body comes from the shared field kernel (PERF.88); this
-  item adds the influence-set term, the galactic gradient hook and the
-  velocity update (2026-10-16 review).
-  Decided (Boss, 2026-10-18, F2 and F3, approved to build; card taps as
-  the coordinator reported them, 5:31 and 5:32 PM EDT): the kernel runs
-  for every object, evaluated at the object's own location right after
-  its position change, in per object order; later objects see a mix of
-  old and new positions. Full wording on GEN.105.
-  Decided (Boss, 2026-10-18, 5:38 PM EDT words, tap 5:41 PM EDT as the
-  coordinator reported it): due objects are visited in the order of
-  GEN.105's tier-then-mass sort (a stable sort on tier, heaviest first,
-  ties by id); tier names are labels only. Sort cost on millions of due
-  rows is an open measurement.
-  Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
-  2026-10-18, as the coordinator reported them): fork 3, "Chunk start
-  state": every object in one chunk (tier, then mass band) reads the
-  state at the chunk start, and a chunk sees the results of the earlier
-  chunks, so the row order inside a chunk does not matter; this replaces
-  the earlier "later objects see a mix of old and new positions"
-  sentence (F3).
-  Reworded to match GEN.105 (contradiction sweep, 2026-10-21, 7:45 AM
-  EDT; GEN.105's Decided notes win where this item's older text
-  differs): the run applies the chunk order (tier, then mass band,
-  stable sort on tier, mass heaviest first, ties by id) with each chunk
-  reading the state at its start; new records are always visited and
-  advance only from their own epoch (F5).
-  Prerequisites: GEN.338, GEN.340. Related: GEN.109.
+  Prerequisites: GEN.139. Related: GEN.115.
 
 - [ ] **GEN.343 The perturbed pass for a system: host, siblings, moons and outside perturbers integrated through an encounter**
   Split from GEN.109 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -5303,49 +5086,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   with the Python solver for a few bodies.
   Prerequisites: GEN.362. Related: GEN.112, GEN.139.
   Design: [docs/design/systems/nebula-and-asteroid-field-classes.md](design/systems/nebula-and-asteroid-field-classes.md)
-
-- [ ] **GEN.365 Hot white dwarf and planetary-nebula central star radius disagrees with the radius that its luminosity and temperature imply (bug)**
-  Found by a lane (2026-10-16), filed by the TODO thread. The radius
-  stored for a hot white dwarf or the central star of a planetary nebula
-  does not match the radius that L and T give (L = 4 pi R^2 sigma T^4).
-  It was carried over from GEN.149. Done: the generator derives the
-  radius from L and T for these stars or the luminosity from the radius,
-  whichever is the model input, and a test checks the relation within 1%
-  on a sample. Fails on main: yes. Frequency: every such star.
-  Reproducer: draw 100 hot white dwarfs and compare R with the radius
-  from L and T.
-  Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Owner change (2026-10-09): Update 5:18 PM EDT 2026-10-24 (Boss, 5:16
-  PM EDT via the coordinator: add the 14 code-contradicts-physics items
-  to the Math lane; assessment
-  reports/physics-grounding-assessment-2026-10-24.md contradiction 6):
-  Owner: Math lane. This replaces any earlier owner line on this item.
-  Taken from Core 1, which has not started it; the Math lane confirms
-  with TODO before starting.
-  Prerequisites: none. Related: GEN.149.
-
-- [ ] **GEN.366 Check the reference satellite table against McConnachie 2012: it only tests that the derived population looks plausible**
-  Found by a lane (2026-10-16), filed by the TODO thread. The table of
-  Milky Way satellites (11 rows) was written from memory of McConnachie
-  (2012) and is unverified. Done: every row (position, distance,
-  luminosity, size) is checked against the published table, corrected
-  where it differs, with the source named in a comment and a test that
-  pins the checked values. GEN.237 (merged as #1851, 2026-10-16, 3:15 PM
-  EDT) created the table; Core 1 reports that the Large and Small
-  Magellanic Cloud, Sagittarius and eight dwarf galaxies (sizes, masses
-  and distances) were recalled from memory and could not be checked.
-  A galaxy planned before #1851 has no satellites until `planetgen plan`
-  runs again on it.
-  Folded into GEN.369 (Boss, 2026-10-16, 4:01 PM EDT, "Draw them"): the
-  real rows are kept only as reference data for the plausibility test of
-  GEN.369, with no Milky Way option (Boss, 2026-10-16, 4:11 PM EDT), so
-  this check matters only for that test and waits on GEN.369.
-  Decided (Boss, 2026-10-16, 9:16 PM EDT, card "Both next"; relayed by
-  the coordinator): Core 1 does it last of its four (order: GEN.368,
-  GEN.369, GEN.371, GEN.366). Owner: Core 1.
-  Prerequisites: none.
 
 - [ ] **GEN.367 The Magellanic Clouds' gas is not in `kind_factors` and `nebula_field`: the Clouds hold stars but no nebulae**
   Found by a lane (2026-10-16), filed by the TODO thread. The Large and
@@ -5978,41 +5718,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   Prerequisites: none. Related: GEN.286, GEN.287, GEN.259.
-
-- [ ] **GEN.399 Research the halo mass function and compare it with the halo mass approximation GEN.368 uses**
-  Boss (2026-10-16, 10:11 PM EDT, in the Core 1 thread): on the GEN.368
-  halo mass card he picked "Approximate" for now, and wants an item in
-  8.2 to research and find the halo mass function and compare it with
-  the approximation. Done: a research note in docs/design (named in
-  GEN.368's table once built) that names the halo mass function the
-  literature gives for the galaxy's stellar mass (the stellar-to-halo
-  relation with its scatter, and the halo mass function behind it, with
-  every source checked against the paper), states the approximation
-  GEN.368 actually built (Core 1 reports which), and compares them over
-  the stellar mass range of the first family (3e9 to 2e11 solar): a
-  table of halo mass against stellar mass for both, the largest
-  difference, and whether the approximation stays inside the scatter. If
-  the difference is larger than the scatter, a follow-up item replaces
-  the approximation with the researched function; if not, the note says
-  the approximation stands. A comparison test keeps the two within the
-  stated bound. No fixed content (Boss, 4:11 and 4:14 PM EDT): no named
-  galaxy sets any number. Method (Core 1's suggestion, 2026-10-16, 10:12
-  PM EDT): read a halo mass function source in the paper (for example
-  Tinker et al. 2008 or Sheth and Tormen 1999), build the exact
-  conditional P(Mh | M*) as the halo mass function times the log-normal
-  in M* about the Moster median with 0.15 dex scatter, and compare it
-  with GEN.368's approximation (the median inverse with an effective Mh
-  scatter of 0.15 dex divided by the slope). Done adds: a test and a
-  note showing the typical halo mass and the scatter difference per
-  stellar mass, and a switch to the exact conditional if the difference
-  matters. Needs GEN.368's build (GEN.400).
-  Data we hold (2026-10-29 8:55 PM EDT): VizieR galaxy tables (Courteau
-  and Comeron c18, Pizzella 2005, digitised occupation, size and cluster
-  figures) and the Harris file are held under
-  reports/vizier-courteau-comeron-2026-10-17-files and data/harris; the
-  galaxy-laws research is in docs/design/galaxy/galaxy-laws-research.md.
-  Catalog section 3.
-  Prerequisites: none. Related: GEN.368, GEN.380.
 
 - [ ] **GEN.405 Metallicity and rates by position from the galaxy's own model: the mass-metallicity relation and the local rates replace the fixed gradient and the quoted-at-the-Sun values**
   GEN.368's table (Boss approved it 2026-10-16, 10:11 PM EDT: size
@@ -6975,6 +6680,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Step 2, the wiring (radiogenic.draw_content takes the draw plus Barrat
   CI K/U 71,429; Earth K heat drops about 20 percent; new epoch, no
   migration), rides train 6. Item stays open until step 2 merges.
+  Wiring sweep (Boss, 12:03 PM EDT: nothing built and left unused;
+  report reports/wiring-sweep-2026-10-31.md) (2026-10-31 12:25 PM EDT):
+  The potassium depletion module and its data file are unread until this
+  item wires them, and the item was unowned. Owner now: Sources 1 (after
+  GEN.1225) (proposed by the TODO thread; the lane says if it cannot
+  take it).
   Prerequisites: none. Related: GEN.478, GEN.472, TEST.214.
 
 - [ ] **GEN.493 Source the initial-rotation distribution and the saturation time against stellar mass for the host-star UV regime (AR14)**
@@ -7321,6 +7032,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   9:20 PM EDT): The guard found no open item wiring mixture_trace.py and
   design_flags.json (GEN.479 is closed); this item (B16: halogens and
   trace gases) is the wiring item. Owner is Sources 1's call with Air 1.
+  Wiring sweep (Boss, 12:03 PM EDT: nothing built and left unused;
+  report reports/wiring-sweep-2026-10-31.md) (2026-10-31 12:25 PM EDT):
+  The trace-gas module and design flags are unread until this item wires
+  them; the owner was only proposed. Owner now: Core 4 (proposed by the
+  TODO thread; the lane says if it cannot take it).
   Prerequisites: GEN.503. Related: GEN.503, GEN.478, GEN.472.
   Design: [docs/design/composition/tunable-gaps.md](design/composition/tunable-gaps.md)
 
@@ -7658,70 +7374,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   behind its queue).
   Prerequisites: none. Related: GEN.528, GEN.526, GEN.319.
 
-- [ ] **GEN.535 Check the Magellanic gas fraction and supernova-remnant count against the observed Clouds, and the dwarfs that still come out with gas (Leo I)**
-  Open inferences of GEN.528 (merged #2077, 2026-10-17, about 3:02 PM
-  EDT as Core 3 reported), filed by the TODO thread from Core 3's
-  report. (1) The gas fraction of a satellite is the young stars'
-  density against the solar circle's through the Schmidt-Kennicutt
-  exponent (0.33 at the Large Cloud's centre, 0.89 at the Small
-  Cloud's), an inference and not a measured gas map. (2) The Large Cloud
-  keeps about 7 of 67 remnant candidates, so its count is low against
-  the real Cloud's roughly 60 remnants. (3) Leo I still comes out with
-  gas, because its recalled mean age is from GEN.369. Do: read the
-  observed gas masses or fractions of the two Clouds and of Leo I
-  (verified sources only, citations checked first), compare them with
-  the generated fractions, and find why the remnant count is low (the
-  kept fraction, the age range of the remnant progenitors or the gas
-  fraction at the radius); fix the derivation if a law explains it, else
-  record the gap in the gap plan with a label. Done: the generated gas
-  fraction and remnant count of each Cloud sit within the observed range
-  (or the gap is labelled and tunable), Leo I's gas follows a verified
-  age, and the research is dated on the goal issue. Owner: unowned
-  (research, then Core 3 for the fix).
-  Data we hold (2026-10-29 8:55 PM EDT): VizieR galaxy tables (Courteau
-  and Comeron c18, Pizzella 2005, digitised occupation, size and cluster
-  figures) and the Harris file are held under
-  reports/vizier-courteau-comeron-2026-10-17-files and data/harris; the
-  galaxy-laws research is in docs/design/galaxy/galaxy-laws-research.md.
-  Catalog section 3.
-  Prerequisites: none. Related: GEN.528, GEN.369, GEN.526.
-
-- [ ] **GEN.536 Research the velocity dispersion of molecular gas (CO) in nearby spirals to set the young stars' scale height**
-  Filed by the TODO thread from Core 1's GEN.532 report (2026-10-17,
-  3:12 PM EDT as the lane reported). The generator's gas dispersion is
-  10 +/- 2 km/s (Tamburro 2009), which is the atomic (HI) value, so the
-  young stars' scale height comes out 0.40 of the old disc's (116 pc for
-  a 300 pc disc) against the observed about 50 pc; molecular gas is
-  colder and its dispersion was not read. Do: find a measured CO
-  velocity dispersion in a sample of nearby spirals (verified sources
-  only, citations checked first, read in full or marked as not read),
-  give the value and scatter against galaxy mass or Vc where the data
-  allow, and say what the young scale height becomes. Done: the research
-  is dated on the goal issue and labelled READ or NOT REACHED, the value
-  and its source are recorded for the stand-in registry, and the
-  replacement of the 10 km/s young-population dispersion is its own item
-  if the law is found. Owner: unowned (research; Boss or a read-only
-  research lane). This is a Boss research item.
-  Stand-in in GEN.532 (Core 1, 2026-10-17, 5:55 PM EDT as the lane
-  reported): the first gate of GEN.532 showed the atomic-gas 10 km/s
-  made the young disc 0.40 of the old disc's height (nebula counts over
-  the ceiling: class M 22,804 against 20,000), so GEN.532 carries a
-  molecular birth-gas stand-in of 6.5 +/- 1 km/s (young disc 0.22 of the
-  old), labelled as replaced by this item. The reading to compare the
-  research against is the old atomic one (10 km/s, 0.40) and the
-  observed about 50 pc; the stand-in value itself has no source and is
-  entered in the stand-in registry as a placeholder.
-  Owner: Core 3 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue is
-  in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
-  owner line).
-  Data we hold (2026-10-29 8:55 PM EDT): VizieR galaxy tables (Courteau
-  and Comeron c18, Pizzella 2005, digitised occupation, size and cluster
-  figures) and the Harris file are held under
-  reports/vizier-courteau-comeron-2026-10-17-files and data/harris; the
-  galaxy-laws research is in docs/design/galaxy/galaxy-laws-research.md.
-  Catalog section 3.
-  Prerequisites: none. Related: GEN.532, GEN.531.
-
 - [ ] **GEN.537 Design the plan configuration: the boundaries of the sector plan, how far scatters go, which sector addresses are valid, and the two switches halo and satellite galaxies (both default off)**
   Boss, 2026-10-17, 4:31 PM EDT: "begin planning for the halo and
   intergalactic generation to be a switch that defaults to off, put that
@@ -8045,23 +7697,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   how far)" above; satellite galaxies and their own stars, clusters and
   phenomena follow this switch (decision 4); the command refuses a
   galaxy whose draw gives no satellites, saying why.
-
-- [ ] **GEN.542 scripts/star_type_by_radius.py fails with a TypeError because the plan arguments now default the disk and arm options to None (bug)**
-  Found by Core 4 (2026-10-17, 5:30 PM EDT as the lane reported, relayed
-  7:08 PM EDT), filed by the TODO thread; reproduced on current main at
-  7:10 PM EDT. `scripts/star_type_by_radius.py` (the analysis script of
-  GEN.133, changed by GEN.134) stops in `default_shape` with `TypeError:
-  must be real number, not NoneType` at
-  `math.radians(a.pitch_angle_deg)`, because `add_plan_arguments` now
-  defaults the disk and arm options to None (the shape is drawn from the
-  seed). Fails on main: yes. Frequency: every run. Reproducer: `python
-  scripts/star_type_by_radius.py --stars 100`. Do: build the shape the
-  way the plan does (the seed's drawn shape through the same function
-  the plan calls) or give the script its own explicit arguments, with no
-  fixed Milky Way values. Done: the script runs to its table and a small
-  test runs it with a few stars and checks it exits 0. Owner: Bug Hunt
-  (proposed).
-  Prerequisites: none. Related: GEN.133, GEN.134.
 
 - [ ] **GEN.550 Umbrella (placeholder): one recursive generation process for anything that can have something else orbiting it, from a planet with moons up to a group of star-like objects that each have a system**
   Boss's request (2026-10-17, 11:19 PM EDT, project chat, and an
@@ -9625,35 +9260,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: GEN.550, GEN.568, GEN.569.
   Design: [docs/design/architecture/unified-unit-quantity.md](design/architecture/unified-unit-quantity.md)
 
-- [ ] **GEN.589 Research: the central molecular zone's upper cluster mass and its cloud-shock disruption, so the young clusters of the core match the few that are observed**
-  Finding from Core 3 while building GEN.244 and GEN.282 (1:58 AM EDT
-  2026-10-18 as the lane reported), filed by the TODO thread. Kind:
-  generation result against observation. Object: the central molecular
-  zone ring of a drawn galaxy. Result: 5 to 12 young clusters above 5e3
-  solar masses per galaxy against about 2 observed (Arches and
-  Quintuplet), and 7 to 21 clusters older than 10 Myr above 5e4 against
-  none. Cause as the lane reads it: the cluster mass function M^-2 runs
-  to 1e6 solar masses (the widest limit under Boss's widest-range rule),
-  the ambient density of the disruption law leaves out the gas, and
-  there is no disruption by cloud shocks. Do (research first, nothing
-  built until the sources are read): find a published upper cluster mass
-  for the central molecular zone and a cloud-shock disruption rate (Core
-  3 names Trujillo-Gomez 2019 as a lead; it is a lead until a lane has
-  read it, and a lane verifies each citation before use), say what the
-  sources give, and propose the change to GEN.244's mass function and
-  disruption for the core ring; the fill ships as the labelled stand-in
-  meanwhile. A change to the stored clusters rides the pending epoch and
-  the one wiped rescatter. Done: the note names the sources with their
-  evidence state, gives the upper mass and the disruption law with their
-  scatter, and a test shows the young clusters of the core above 5e3
-  solar masses are few (the observed count is the plausibility target,
-  not a preset). Owner: Core 3 (proposed; it built GEN.244). Not a
-  prerequisite of GEN.301.
-  Owner: Core 4 (8.1 queue, Boss, 7:44 PM EDT 2026-10-22; the queue is
-  in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
-  owner line).
-  Prerequisites: none. Related: GEN.244, GEN.282.
-
 - [ ] **GEN.593 Pulsar planets: the disc range stops short of PSR B1257+12's planets, and two of the three formation paths (a captured giant, an ablated companion) leave a pulsar with no planets**
   Design gaps in GEN.317 found by Core 3 while building it (reported
   11:18 AM EDT 2026-10-18, real clock; its GEN.317 gate started 11:17 AM
@@ -10204,6 +9810,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (web/lib/classref.py). Steps C1, C2 and C4 are done; C5 is
   unconfirmed; C3 merged as #2833; C6 to C16 are filed as GEN.681 to
   GEN.690, TEST.314 and TEST.315 below.
+  Changed by best-fit classes GEN.1205 to GEN.1208 (2026-10-31 9:46 AM
+  EDT): Boss told us (9:44 AM EDT 2026-10-31) to build best-fit scoring:
+  the class is still assigned after the body is complete and from the
+  same stored conditions, but classify(body) no longer walks rows in
+  file order; it scores every class by percent match and the best match
+  wins (GEN.1207). The rule that the class is derived from the finished
+  body stands.
 
 - [ ] **GEN.648 The generation request for a habitable world (+habitable_world) runs an ordered ladder of nine adaptations before it gives up: redraw the surface, restrict the planet, more starting water, aquifers, regenerate the planet, adapt the system, add a brighter primary, regenerate the star, then the best result**
   Decided (Boss, 6:09 PM EDT 2026-10-23, card option 3 of GEN.644, 'A
@@ -10279,27 +9892,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the request is a probability tweak only and never forces (see
   GEN.1130); the forcing ladder is removed by GEN.1130. Do not build
   further steps of the ladder.
-
-- [ ] **GEN.660 The complex_organics row of the materials table has a density of 1.5 g/cm3 while Choukroun 2020, used by the comet draw, has about 2 g/cm3 (bug)**
-  Found by Habitability lane K (relayed 8:21 PM EDT 2026-10-23 as the
-  lane reported, reports/lane-k-contracts-2026-10-23.md); filed by the
-  TODO thread. Reproducer: compare the complex_organics row of the
-  materials table with the Choukroun 2020 value the comet draw reads.
-  Kind: bug (two sources disagree). Do: reconcile the two under the
-  standing source rules (verified wins; two verified in doubt = newest;
-  two in question = widest range), by the data owner of GEN.427, with
-  the chosen value and its source recorded in the materials table and
-  DATA-LICENSE.md only if a licence applies. Done: one density for
-  complex organics in the table and the comet draw reading it. Owner:
-  Blocker 3 data owner of GEN.427 (finished lane; the TODO thread
-  proposes lane K, which found it, takes it).
-  Owner (2026-10-09): Boss 1:45 AM EDT 2026-10-25: idle or blocked lanes
-  take one-off 8.1 items. Owner: Aux 1 (class lane) takes it while
-  GEN.646 waits on 4c; a small table fix.
-  Owner (housekeeping) (2026-10-30 2:55 PM EDT): released to the pool:
-  the owner named above (Aux 1) is a retired lane. A waiting lane takes
-  it, confirmed with TODO, one lock-free item at a time.
-  Prerequisites: none. Related: GEN.427, GEN.442.
 
 - [ ] **GEN.669 Residuals of the generator laws after GEN.450 and GEN.270: the star-formation profile shares and the Algol rate against their observed windows**
   Finding of Core 4 (10:20 PM EDT 2026-10-23 as the lane reported), left
@@ -10408,6 +10000,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   at setup and read by nothing (ir_ktables.npz, ir_cia.npz); gases.json,
   nasa_glenn_species.json and saturation_pressure.json are in the repo.
   Catalog sections 1 and 2.
+  Wiring sweep (Boss, 12:03 PM EDT: nothing built and left unused;
+  report reports/wiring-sweep-2026-10-31.md) (2026-10-31 12:25 PM EDT):
+  The ground albedo module is unread until this item wires it, and its
+  owners Composition K and L are retired. Owner now: Aux 3 (proposed by
+  the TODO thread; the lane says if it cannot take it).
   Prerequisites: GEN.462.
 
 - [ ] **GEN.685 Water comes from the composition and the origin; delete WATER_MASS_FRACTION[class]**
@@ -10462,6 +10059,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   classes lane with the TODO thread for the epoch.
   Prerequisites: GEN.681, GEN.682, GEN.684, GEN.685, GEN.686,
   GEN.687, DB.67, DB.69, DB.70.
+  Changed by best-fit classes GEN.1205 to GEN.1208 (2026-10-31 9:46 AM
+  EDT): The cut-over rule stays (classify at the end of generation,
+  total and derived). GEN.1207 changes what classify does inside:
+  best-fit instead of first-match, with class_match and runner-up
+  columns in the same kind of migration. If this item is still unbuilt
+  when GEN.1207 is, build the best-fit classifier, not the first-match
+  tree.
 
 - [ ] **GEN.690 Delete PLANET_CLASSES generation fields, PLANET_CLASS_PROBABILITIES, LIFE_PLANET_CLASSES, PLANET_CLASS_MAX_LIFE_STAGE and MOON_BLACKLIST; update the golden outputs**
   Step C15 of the condition-based classes build (design draft
@@ -10473,42 +10077,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   shim and update the golden outputs. Done: no reader of the deleted
   names is left. Owner: Condition-based classes lane.
   Prerequisites: GEN.689.
-
-- [ ] **GEN.705 The metallicity ([Fe/H]) factor on close companions no longer reaches the fill since the tree draw replaced the old companion draw (bug)**
-  Found by Core 3 while merging GEN.631 (#2915, epoch 72), as the lane
-  reported at 5:30 AM EDT 2026-10-24; report
-  /mnt/project-files/reports/gen631-findings-2026-10-24.md. The
-  close-companion factor from [Fe/H] (GEN.103, GEN.448) was applied by
-  the old one-companion draw. The tree draw (draw_member_tree) does not
-  take it, so metal-poor and metal-rich stars have the same
-  close-companion odds at fill. The TEST.196 audit of that factor was
-  removed with the draw it checked. Do: pass the star's [Fe/H] into the
-  tree draw so the close-companion share follows it as GEN.103 and
-  GEN.448 say, and restore a test of the dependence (a metal-poor sample
-  has a higher close share than a metal-rich one, at the observed
-  slope). Changes generated values, so it takes the next free generator
-  epoch. Owner: Core 3 (proposed).
-  Prerequisites: none. Related: GEN.631, GEN.103, GEN.448, TEST.196.
-
-- [ ] **GEN.706 Low-mass M dwarfs get fewer companions than the star-count table, forced pairs around M8 primaries come back unmet, and compact companions of living stars are cut from fill trees (bug)**
-  Found by Core 3 while merging GEN.631 (#2915), as the lane reported at
-  5:30 AM EDT 2026-10-24; report
-  /mnt/project-files/reports/gen631-findings-2026-10-24.md. Brown dwarfs
-  are no host class, so the tree draw drops companions it cannot place:
-  the single share of M dwarfs measures 0.846 against 0.73 in the table,
-  forced pairs around M8 primaries return 'a companion star' unmet, and
-  compact companions of living stars are cut because no pair class holds
-  them. Measured after the merge: mean stars per system about 1.31 (the
-  table implies about 1.38), 23.9 percent of systems have a pair, 81
-  percent of the pairs are wide. Do: either add brown dwarfs (and the
-  compact pair classes) as companion classes so the census returns to
-  the table, or state in the table that the cut is intended and update
-  its shares; make a forced pair around an M8 primary succeed or refuse
-  with a stated reason. Done: the census of stars per system matches the
-  table within a stated tolerance for every spectral class. Owner: Core
-  3 (proposed); the base prevalence shares were remeasured in the same
-  report.
-  Prerequisites: none. Related: GEN.631, GEN.267, GEN.332.
 
 - [ ] **GEN.707 Register the white dwarf binary stand-ins in the gap plan registry: kind, evidence label, knobs, validity range and falsifier test for each**
   Found by Core 4 while merging GEN.271 (#2928, epoch 73), report
@@ -10547,135 +10115,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   unflagged white dwarfs are unchanged. Changes generated values, so it
   takes the next free generator epoch. Owner: Core 4 (proposed).
   Prerequisites: none. Related: GEN.271.
-
-- [ ] **GEN.716 add_star_hosted_nebulae lights a nebula from stars[0], which for a pre-placed row with a stored tree is the structural primary and not the row star, so the built nebula can differ from the predicted one (bug)**
-  Found by Bug Hunt (10:41 AM EDT 2026-10-24 as the lane reported, while
-  fixing TEST.338). After GEN.631 a system built around a scattered star
-  is a tree: the row star is member 0, and the primary and secondary
-  roles belong to the top pair of the tree shape, so in about 2 of 7
-  systems the row star has role "member" (for example row B0V 2.71e31 kg
-  is a member while the primary is a lighter B1V).
-  run_sector.add_star_hosted_nebulae lights a nebula from stars[0],
-  which is the structural primary. The GEN.530 row_nebula prediction,
-  the star page and the uncharted scene use the row star. So the built
-  nebula can differ in class, size or existence from the predicted one
-  whenever a stored-tree row star is not the top pair. Do: light the
-  nebula from the row star (the member the bright_star row links to), or
-  have the prediction read the primary; pick one and make both read the
-  same star. Done: a test that builds systems whose row star is a member
-  and finds the built nebula equal to the predicted one; the epoch is
-  bumped if a drawn value changes (next free at merge). May need a Boss
-  decision on which star hosts the nebula; if the lane finds the two
-  readings equally defensible, ask the coordinator with the plain-words
-  question. Owner: not assigned (Bug Hunt found it; the star scatter
-  lane, Core 3 or Core 1, is the nearest owner).
-  Prerequisites: none. Related: GEN.530, GEN.631, TEST.338.
-
-- [ ] **GEN.720 star.age is adjusted after the planets are generated (adjust_age_for_planets), so any age-dependent planet value goes stale (bug)**
-  Found by lane H (12:19 PM EDT 2026-10-24 as the lane reported, GEN.461
-  #2993). A pre-existing quirk: adjust_age_for_planets changes the star
-  age after the planets of a system have been generated, so any planet
-  value that depends on the star age (primordial heat, radiogenic heat,
-  tidal or cooling terms) was computed with the old age and is stale.
-  GEN.699 recomputes heat lazily and so avoids it for heat only. Do:
-  decide one order (adjust the age first, or recompute the age-dependent
-  values after the adjustment), apply it to every age-dependent planet
-  and moon value, and say so in the generation docs. Done: a test that
-  builds systems whose age is adjusted and finds every age-dependent
-  value equal to a fresh computation at the final age; the epoch is
-  bumped if a drawn value changes (next free at merge). Owner: none
-  (pool); lane H is the nearest owner after GEN.699.
-  Research (2026-10-09, Math lane): Update 3:52 PM EDT 2026-10-24 (Boss,
-  3:49 PM EDT, via the coordinator): Math lane. This item is cleared for
-  the new Math lane (physics route 'derivable now',
-  reports/physics-gaps-2026-10-24.md). Owner: Math lane (proposed by the
-  TODO thread; nobody has started it).
-  Prerequisites: none. Related: GEN.699, GEN.461.
-
-- [ ] **GEN.733 Hydrogen-helium equation-of-state tables for giant interiors: download job and use in the interior model**
-  From the physics gaps report (reports/physics-gaps-2026-10-24.md, row
-  C4; relayed by the coordinator 3:43 PM EDT 2026-10-24; filed by the
-  TODO thread). Kind: realism. Source tier of today's value: T5
-  (polytrope), T7 (helium rain), T6 (core odds). Today: Giant interiors
-  use an n=1 polytrope for layer pressures, helium rain as a straight
-  line through Jupiter and Saturn, and placeholders for a 50 percent
-  compact-core chance and its mass range; the hydrogen-helium
-  equation-of-state tables are not downloaded. GEN.642 is built on these
-  stand-ins. Real physics: a real hydrogen-helium equation of state (CMS
-  or Saumon-Chabrier) and interior models. Do: add the table download to
-  the shared setup fetch step (Boss manages licensing, the licence goes
-  in DATA-LICENSE.md only) and replace the polytrope in the giant
-  interior solver. Done: giant radius and layer pressures come from the
-  tables, with tests on Jupiter, Saturn, Uranus and Neptune. Each
-  stand-in it touches records its source tier and tweak level in the gap
-  plan registry (GEN.725). Owner: pool (first free lane; 8.1 core lanes
-  do not take it before 8.1 closes).
-  Stand-in (2026-10-09): Best-guess stand-in (Update 4:12 PM EDT
-  2026-10-24, from reports/best-guess-standins-2026-10-24.md, written about 4:15 PM EDT as the lane reported; relayed by the stand-ins thread): section 7: giant
-  dense-core share (lognormal, median 0.30), compact-core odds and
-  inflation; the Juno core numbers are from memory (Wahl et al. 2017)
-  and unread. Each row carries its source tier and tweak level in the
-  report; record both in the registry (GEN.725) in the same PR that uses
-  the value. Nothing changes a generated world until the owning item
-  uses it.
-  Sources (2026-10-09): Update 4:22 PM EDT 2026-10-24, from
-  reports/secondhand-citations-2026-10-24.md (written 4:25 PM EDT as the
-  lane reported; second-hand citations thread): the Chabrier, Mazevet
-  and Soubiran 2019 and 2021 hydrogen-helium equation-of-state tables
-  are open and downloadable (perso.ens-lyon.fr/gilles.chabrier/DirEOS),
-  so the data source for this item exists. Download at setup, raw tables
-  never in the repository, licence note only in DATA-LICENSE.md (Boss
-  manages it).
-  Research (2026-10-09, Moved to 8.1): Moved from 8.4 into 8.1 (Boss,
-  5:31 PM EDT 2026-10-24, accepting the physics fix plan: "I don't want
-  to go forward without correcting the physics"); it is a prerequisite
-  of the headline GEN.301.
-  Split (2026-10-29 8:30 PM EDT): Built as GEN.964 (lock-free part) and
-  GEN.965 (wiring, rides a train); GEN.733 closes when both are done.
-  Owner: Aux 3 (giants chain GEN.801, GEN.809 to GEN.811).
-  Data we hold (2026-10-29 8:55 PM EDT): Fortney 2007 giant radii are
-  transcribed in full (physics/giant_radius_tables.py); Lopez and
-  Fortney 2014 and Zeng and Sasselov 2013 enter as laws; Core 4's parked
-  branch holds the H-He table reader. Hydrogen-helium EOS tables are not
-  held otherwise. Catalog sections 3 and 4.
-  Prerequisites: none. Related: GEN.642, GEN.460, GEN.964, GEN.965.
-
-- [ ] **GEN.736 Magnetic field from a dynamo: the core's heat flow and rotation (buoyancy-flux scaling), reading the interior heat model**
-  From the physics gaps report (reports/physics-gaps-2026-10-24.md, row
-  H3; relayed by the coordinator 3:43 PM EDT 2026-10-24; filed by the
-  TODO thread). Kind: realism. Source tier of today's value: T7. Today:
-  Magnetic field is a set of design defaults: a dynamo needs 0.05 Earth
-  masses and a core fraction of 0.15; lifetime is 4 Gyr times mass^0.5
-  times a uniform factor; moment is 7.8e22 A m2 times mass; giants are
-  interpolated between Neptune, Saturn and Jupiter; moons are 10 percent
-  Ganymede-like. Real physics: a dynamo from the core's heat flow and
-  rotation (the buoyancy-flux scaling), reading the new interior heat
-  model. Do: compute the field strength and its lifetime from the core
-  heat flow (GEN.699) and the spin (GEN.731), and feed it to the
-  radiation shielding. Done: field strength comes from heat flow and
-  spin, with tests on Earth, Mercury, Ganymede, Jupiter and Mars (dead).
-  Each stand-in it touches records its source tier and tweak level in
-  the gap plan registry (GEN.725). Owner: pool (first free lane; 8.1
-  core lanes do not take it before 8.1 closes).
-  Research (2026-10-09, Owner): Boss (5:30 PM EDT 2026-10-24, tapped the
-  card 'Yes, pool lanes may start them'): free pool lanes may start
-  unstarted 8.4 physics items (GEN.727 to GEN.750, GEN.752, GEN.753,
-  GEN.755) before 8.1 closes; the core lanes stay on 8.1; a lane takes
-  only items nobody has started and confirms with TODO first. Proposed
-  owner: Lane H, after GEN.735.
-  Research (2026-10-09, Moved to 8.1): Moved from 8.4 into 8.1 (Boss,
-  5:31 PM EDT 2026-10-24, accepting the physics fix plan: "I don't want
-  to go forward without correcting the physics"); it is a prerequisite
-  of the headline GEN.301.
-  Split (2026-10-29 8:30 PM EDT): Built as GEN.966 (lock-free part) and
-  GEN.967 (wiring, rides a train); GEN.736 closes when both are done.
-  Owner: Aux 4 (magnetosphere chain GEN.800).
-  Data we hold (2026-10-29 8:55 PM EDT): No external interior or dynamo
-  dataset is held; Core 4's parked branch has core_heat.py;
-  compaction_table.json, clathrate_brine.json, decay_series.json and
-  isotopes.json are in the repo for interior heat and ices. Catalog
-  section 4.
-  Prerequisites: none. Related: GEN.699, GEN.444, GEN.731, GEN.966, GEN.967.
 
 - [ ] **GEN.743 Neutron star equation of state: integrate the tables for radius and structure, and add helium-core and oxygen-neon white dwarfs**
   From the physics gaps report (reports/physics-gaps-2026-10-24.md, row
@@ -10743,6 +10182,19 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   only 6 columns of the main sequence; MIST phase durations at 4 [Fe/H]
   are in the project files; Bedard white dwarf sequences and the neutron
   star tables are also held. Catalog sections 1 to 3.
+  Train 5 merged (#4321, 11:34 PM EDT) (2026-10-30 11:38 PM EDT): The
+  age-metallicity part merged with Star 2 #4077. The alpha shift is
+  GEN.1024 (Star 2, PR to follow); the item stays open for that.
+  Wiring sweep (Boss, 12:03 PM EDT: nothing built and left unused;
+  report reports/wiring-sweep-2026-10-31.md) (2026-10-31 12:25 PM EDT):
+  The alpha-track module and its register row are unread until the track
+  lookup is wired, and the item was in the pool. Owner now: Star 2
+  (proposed by the TODO thread; the lane says if it cannot take it).
+  Star 2 (as the lane reported) (2026-10-31 12:50 PM EDT): the
+  alpha-track wiring itself merged as #4397 (GEN.1024). What remains
+  here is the age-metallicity relation and the thick-disc and halo alpha
+  tracks from the galaxy model; it changes stored output, so it rides a
+  train.
   Prerequisites: none. Related: GEN.405, GEN.652.
 
 - [ ] **GEN.745 Stellar spectra by temperature, gravity and activity (model atmospheres) instead of a blackbody with a seeded UV share**
@@ -10799,7 +10251,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   of the headline GEN.301.
   Split (2026-10-29 8:30 PM EDT): Built as GEN.972 (ice-albedo), GEN.973
   (water vapour), GEN.974 (cloud albedo) and GEN.975 (the sweep test);
-  GEN.752 closes when all four are done. Owner: Air 1 (not after 8.1:
+  GEN.752 closes when all four are done. Owner: Aux 2 (not after 8.1:
   Boss's full build).
   Rescoped (2026-10-29 8:30 PM EDT): Boss, 8:16 PM EDT 2026-10-29 (full
   build in 8.1): the 'after 8.1' and 'pool' wording is revoked; this is
@@ -10816,6 +10268,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   at setup and read by nothing (ir_ktables.npz, ir_cia.npz); gases.json,
   nasa_glenn_species.json and saturation_pressure.json are in the repo.
   Catalog sections 1 and 2.
+  Owner changed (2026-10-31 3:40 PM EDT): Air 1 was retired by the
+  coordinator at 3:21 PM EDT; owner is now Aux 2.
 
 - [ ] **GEN.753 Validation sweep for each physics area: compare generated populations with published statistics**
   Generate large populations and compare each with the published
@@ -10853,87 +10307,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   dataset is held as a setup dataset. Catalog sections 1, 3 and 4.
   Prerequisites: GEN.503, GEN.504. Related: GEN.725, GEN.711.
 
-- [ ] **GEN.768 Hours a person can be outside in a day: daylight hours limited by heat, cold, pressure, air supply and radiation dose, computed and stored per planet and moon**
-  Boss, 8:22 PM EDT 2026-10-24 (message
-  cmsg_01RuNTFUNB92A8cm5CbojQAiGGDyBByq5momrqKfYqJRdr, relayed by the
-  coordinator): "make sure we have an item to fill in the hours of
-  daylight a person can be outside, and a value for how many hours of
-  daylight the planet has." TODO checked the code: the stored
-  `outside_hours` (physics/equipment.py `_outside_hours`) is the hours
-  outside in a working year that the listed radiation suit allows before
-  the dose limit, `None` unless a limit; the property sheet
-  (describe/sheet.py line 177) labels it "Hours of daylight a person can
-  be outside", which it is not, so it shows "not stored" nearly
-  everywhere. No value for the hours of daylight of the planet exists.
-  Do: compute and store `outside_hours_day`, the hours of daylight a
-  person can be outside in one local day wearing the equipment the
-  survival rules list for the world (physics/equipment.py levels): the
-  smallest of (1) the daylight hours of the day (GEN.767's
-  `daylight_hours`; for a locked world the hours the terminator belt
-  allows or none), (2) the daily share of the radiation allowance (the
-  hours a year the listed suit allows, `outside_hours`, over the days of
-  the year, and the full day when there is no dose limit), (3) the
-  exposure time to heat or cold injury in the listed body protection (a
-  named function of the surface temperature range over the day from the
-  GEN.656 regional temperatures and the garment's insulation, with named
-  constants in protection_limits.py), (4) the air supply of the listed
-  breathing gear against the work shifts (a shift length constant), (5)
-  the UV exposure rule of the listed garment. Store the binding limit as
-  its kind (daylight, dose, heat, cold, air, uv) beside the hours so the
-  page can say why. No stand-in values: constants come from the
-  protection limits registry with their source tier (GEN.725). Relabel
-  the existing yearly `outside_hours` on the sheet as "Hours a person
-  can work outside per year (dose limit)" so it is no longer mistaken
-  for daylight hours. Done: tests for Earth (the full daylight), a hot
-  desert world (heat binds), a cold world (cold binds), a high-dose
-  world (dose binds), a locked world, and a vacuum world (air binds);
-  the column and its unit are in column_units.py; one migration and one
-  epoch with `--affects fill`. Owner: Aux 2 (Lane E: radiation,
-  protection limits, the equipment rules), after GEN.767 (Aux 5).
-  Related: GEN.767, GEN.656, GEN.725, UX.199, UX.205.
-  Prerequisites: none. Related: GEN.767, GEN.656, GEN.725, UX.199,
-  UX.205.
-  Progress (2026-10-09): Progress (Aux 4, 1:35 AM EDT 2026-10-25): part
-  1 merged as #3297, the model of the hours a person can be outside in
-  one local day (daylight, the day's share of the radiation allowance,
-  the worn garment against the day's heat and cold, breathing gas
-  against an 8-hour shift, ultraviolet against the garment rating, and
-  which limit binds), constants in protection_limits rows OH1 to OH10 in
-  the stand-in registry, design section 17 of
-  survival-equipment-fields.md; nothing stored or shown yet. Part 2
-  (stored outside_hours_day and its binding limit, relabel the yearly
-  outside_hours on the sheet, one migration and epoch) waits for
-  GEN.767's daylight_hours (Aux 5).
-  Research (2026-10-09): Aux 4 handoff (12:48 PM EDT 2026-10-28): part 1
-  is merged (#3297, physics/outside_hours.py outside_hours_day). Part 2
-  is open and released to the pool: store the outside hours per day and
-  the binding limit (a stored column plus its unit in
-  db/column_units.py), relabel the sheet label (describe/sheet.py about
-  line 177), migration, epoch with --affects fill (own lock turn), tests
-  for Earth, hot desert, cold, high dose, locked world and vacuum.
-  Depends on GEN.767 (Aux 5, daylight_hours).
-  Research (2026-10-09): UX.205 merged (#3755, Aux 7, as the lane
-  reported 6:16 PM EDT) and left one line open for this item: once
-  outside_hours_day is stored, the pages show the per-day hours-outside
-  value (the old row is relabelled 'Hours a person can work outside per
-  year (dose limit)').
-  Trimmed (2026-10-29 8:30 PM EDT): The line 'No stand-in values:
-  constants come from the sources' is lifted. Boss, 8:16 PM EDT
-  2026-10-29 (full build in 8.1): registered stand-ins are allowed where
-  no source gives the value, each with a GEN.725 row (tier and tweak
-  level); secondary sources are accepted by default. The rest of the
-  item stands.
-  Data we hold (2026-10-29 8:55 PM EDT): proton_range.json,
-  ozone_chappuis.json, gases.json and materials.json are in the repo;
-  MPI-Mainz ozone cross sections are downloaded; the class census
-  expectations are in src/tests/data/prevalence_expectations.json.
-  Catalog sections 2 and 4.
-  Ready for train 5 (4:06 PM EDT 2026-10-30): Aux 2 (as the lane
-  reported): branch claude/gen768-outside-hours, one migration
-  (provisional 0187_outside_hours_day, schema v187, v186 fixture), epoch
-  --affects fill, no draw changes, does not move life, air or class
-  shares. Bug 2 renumbers and re-tags golden and census on the train.
-
 - [ ] **GEN.774 Settlement draw streams: the named draw.py streams for nation count, dominance, city sizes, city names, city positions and the city to nation assignment, and their stand-in registry rows**
   Boss, 9:27 PM EDT 2026-10-24 (relayed by the coordinator): "I want to
   say somewhere in the 8.x chain I want to add editable civilizations,
@@ -10966,166 +10339,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the owner named above (Aux 8) is a retired lane. A waiting lane takes
   it, confirmed with TODO, one lock-free item at a time.
   Prerequisites: POP.16. Related: GEN.725, GEN.772.
-
-- [ ] **GEN.778 Fill tidal_flux_w_m2 for planets and moons: tidal heating flux at the surface from eccentricity, spin and the body's interior (never filled in the sample)**
-  Aux 11 UX.208 fill audit (merged #3205, relayed 9:46 PM EDT 2026-10-24
-  as the lane reported; reports/sheet-fill-summary-2026-10-25.md, full
-  table reports/sheet-fill-report-2026-10-25.md, 400 systems from seed
-  1000): Empty for every planet (4493 of 4493) and 4649 of 4958 moons
-  (only 309 of the 413 class D moons filled). The producer is missing or
-  not wired to the sheet. Done: the column is filled for every body the
-  sheet rule says it applies to, or the sheet rule is changed to say why
-  it does not apply (a sentence of reason in describe/sheet.py APPLIES),
-  and the UX.208 test lists no empty applicable pair for it; a drawn or
-  computed value has a source and a GEN.725 registry row with tier and
-  tweak level, a unit (GEN.772) and a column_units entry; a change to
-  generated output carries `tests.golden_update --reason ... --affects
-  <stage>` and the next epoch; tests are `scripts/test.py changed
-  --resume`. Version 8.1, with UX.208. Suggested owner: Aux 5 (heat and
-  dose).
-  Owner (full build) (2026-10-29 8:30 PM EDT): Tides 1 (new lane,
-  proposed by TODO). This replaces any earlier owner line (pool,
-  unowned, retired lane or 'after 8.1'). If it is already started
-  elsewhere, the lane tells TODO before taking it. Lock-free parts
-  first; the part that changes generated output rides a train.
-  Data we hold (2026-10-29 8:55 PM EDT): No external interior or dynamo
-  dataset is held; Core 4's parked branch has core_heat.py;
-  compaction_table.json, clathrate_brine.json, decay_series.json and
-  isotopes.json are in the repo for interior heat and ices. Catalog
-  section 4.
-  Prerequisites: none. Related: UX.208, GEN.725, GEN.684.
-
-- [ ] **GEN.780 Fill porosity for rocky and icy bodies: the surface and crust porosity from composition and gravity (never filled)**
-  Aux 11 UX.208 fill audit (merged #3205, relayed 9:46 PM EDT 2026-10-24
-  as the lane reported; reports/sheet-fill-summary-2026-10-25.md, full
-  table reports/sheet-fill-report-2026-10-25.md, 400 systems from seed
-  1000): Empty for every planet and moon of classes where it applies
-  (4371 planets, 4545 moons in the sample). Done: the column is filled
-  for every body the sheet rule says it applies to, or the sheet rule is
-  changed to say why it does not apply (a sentence of reason in
-  describe/sheet.py APPLIES), and the UX.208 test lists no empty
-  applicable pair for it; a drawn or computed value has a source and a
-  GEN.725 registry row with tier and tweak level, a unit (GEN.772) and a
-  column_units entry; a change to generated output carries
-  `tests.golden_update --reason ... --affects <stage>` and the next
-  epoch; tests are `scripts/test.py changed --resume`. Version 8.1, with
-  UX.208. Suggested owner: Aux 6 (bulk composition).
-  Owner (full build) (2026-10-29 8:30 PM EDT): Aux 5. This replaces any
-  earlier owner line (pool, unowned, retired lane or 'after 8.1'). If it
-  is already started elsewhere, the lane tells TODO before taking it.
-  Lock-free parts first; the part that changes generated output rides a
-  train.
-  Data we hold (2026-10-29 8:55 PM EDT): No external interior or dynamo
-  dataset is held; Core 4's parked branch has core_heat.py;
-  compaction_table.json, clathrate_brine.json, decay_series.json and
-  isotopes.json are in the repo for interior heat and ices. Catalog
-  section 4.
-  Order (TODO, 12:24 AM EDT) (2026-10-30 12:24 AM EDT): Core 1's
-  TEST.461 (train 2) removes the planets.porosity column because nothing
-  writes it. GEN.780 still wants porosity filled for planets and moons,
-  so it stays whole: if it stores a value it adds the column back on its
-  own migration, or writes it where the sheet reads it. Aux 5 starts
-  GEN.780 after train 2 has merged so the column state is known.
-  Prerequisites: none. Related: UX.208, GEN.725, GEN.642.
-
-- [ ] **GEN.781 Fill hp_ice_km: the thickness of the high-pressure ice layer under an ocean (never filled)**
-  Aux 11 UX.208 fill audit (merged #3205, relayed 9:46 PM EDT 2026-10-24
-  as the lane reported; reports/sheet-fill-summary-2026-10-25.md, full
-  table reports/sheet-fill-report-2026-10-25.md, 400 systems from seed
-  1000): Empty for 3542 planets and 4935 moons in the sample; it applies
-  to a world with a deep water or ice layer. Done: the column is filled
-  for every body the sheet rule says it applies to, or the sheet rule is
-  changed to say why it does not apply (a sentence of reason in
-  describe/sheet.py APPLIES), and the UX.208 test lists no empty
-  applicable pair for it; a drawn or computed value has a source and a
-  GEN.725 registry row with tier and tweak level, a unit (GEN.772) and a
-  column_units entry; a change to generated output carries
-  `tests.golden_update --reason ... --affects <stage>` and the next
-  epoch; tests are `scripts/test.py changed --resume`. Version 8.1, with
-  UX.208. Suggested owner: Aux 6 (bulk composition).
-  Owner (full build) (2026-10-29 8:30 PM EDT): Aux 5. This replaces any
-  earlier owner line (pool, unowned, retired lane or 'after 8.1'). If it
-  is already started elsewhere, the lane tells TODO before taking it.
-  Lock-free parts first; the part that changes generated output rides a
-  train.
-  Data we hold (2026-10-29 8:55 PM EDT): No external interior or dynamo
-  dataset is held; Core 4's parked branch has core_heat.py;
-  compaction_table.json, clathrate_brine.json, decay_series.json and
-  isotopes.json are in the repo for interior heat and ices. Catalog
-  section 4.
-  Prerequisites: none. Related: UX.208, GEN.725, GEN.642.
-
-- [ ] **GEN.784 Fill energy_flux_w_m2 and flux_variation for giant planets: internal and absorbed energy flux and its variation (never filled for classes I, J, T)**
-  Aux 11 UX.208 fill audit (merged #3205, relayed 9:46 PM EDT 2026-10-24
-  as the lane reported; reports/sheet-fill-summary-2026-10-25.md, full
-  table reports/sheet-fill-report-2026-10-25.md, 400 systems from seed
-  1000): Empty for 464 class I, 483 class J and 1 class T planets. Done:
-  the column is filled for every body the sheet rule says it applies to,
-  or the sheet rule is changed to say why it does not apply (a sentence
-  of reason in describe/sheet.py APPLIES), and the UX.208 test lists no
-  empty applicable pair for it; a drawn or computed value has a source
-  and a GEN.725 registry row with tier and tweak level, a unit (GEN.772)
-  and a column_units entry; a change to generated output carries
-  `tests.golden_update --reason ... --affects <stage>` and the next
-  epoch; tests are `scripts/test.py changed --resume`. Version 8.1, with
-  UX.208. Suggested owner: Aux 5 (heat and dose).
-  Owner (full build) (2026-10-29 8:30 PM EDT): Aux 3. This replaces any
-  earlier owner line (pool, unowned, retired lane or 'after 8.1'). If it
-  is already started elsewhere, the lane tells TODO before taking it.
-  Lock-free parts first; the part that changes generated output rides a
-  train.
-  Data we hold (2026-10-29 8:55 PM EDT): Fortney 2007 giant radii are
-  transcribed in full (physics/giant_radius_tables.py); Lopez and
-  Fortney 2014 and Zeng and Sasselov 2013 enter as laws; Core 4's parked
-  branch holds the H-He table reader. Hydrogen-helium EOS tables are not
-  held otherwise. Catalog sections 3 and 4.
-  Prerequisites: none. Related: UX.208, GEN.725.
-
-- [ ] **GEN.789 Write the sheet rule for wide_binary_a_crit_km: not applicable to a single star, filled for a binary (348 of 522 stars empty)**
-  Aux 11 UX.208 fill audit (merged #3205, relayed 9:46 PM EDT 2026-10-24
-  as the lane reported; reports/sheet-fill-summary-2026-10-25.md, full
-  table reports/sheet-fill-report-2026-10-25.md, 400 systems from seed
-  1000): Probably not applicable to a single star once the rule is
-  written; check that it is filled for every binary star, and that the
-  page hides it for the rest. Done: the column is filled for every body
-  the sheet rule says it applies to, or the sheet rule is changed to say
-  why it does not apply (a sentence of reason in describe/sheet.py
-  APPLIES), and the UX.208 test lists no empty applicable pair for it; a
-  drawn or computed value has a source and a GEN.725 registry row with
-  tier and tweak level, a unit (GEN.772) and a column_units entry; a
-  change to generated output carries `tests.golden_update --reason ...
-  --affects <stage>` and the next epoch; tests are `scripts/test.py
-  changed --resume`. Version 8.1, with UX.208. Suggested owner: Aux 11
-  (pages).
-  Owner (full build) (2026-10-29 8:30 PM EDT): Aux 5. This replaces any
-  earlier owner line (pool, unowned, retired lane or 'after 8.1'). If it
-  is already started elsewhere, the lane tells TODO before taking it.
-  Lock-free parts first; the part that changes generated output rides a
-  train.
-  Prerequisites: none. Related: UX.208.
-
-- [ ] **GEN.790 Write the sheet rule for the comet columns mean_anomaly_deg, orbital_period_years and period_class (54 of 234 comets empty)**
-  Aux 11 UX.208 fill audit (merged #3205, relayed 9:46 PM EDT 2026-10-24
-  as the lane reported; reports/sheet-fill-summary-2026-10-25.md, full
-  table reports/sheet-fill-report-2026-10-25.md, 400 systems from seed
-  1000): Probably the parabolic and hyperbolic comets: not applicable by
-  a rule. Confirm it, write the rule with its sentence of reason, and
-  fill any comet that has a bound orbit. Done: the column is filled for
-  every body the sheet rule says it applies to, or the sheet rule is
-  changed to say why it does not apply (a sentence of reason in
-  describe/sheet.py APPLIES), and the UX.208 test lists no empty
-  applicable pair for it; a drawn or computed value has a source and a
-  GEN.725 registry row with tier and tweak level, a unit (GEN.772) and a
-  column_units entry; a change to generated output carries
-  `tests.golden_update --reason ... --affects <stage>` and the next
-  epoch; tests are `scripts/test.py changed --resume`. Version 8.1, with
-  UX.208. Suggested owner: Aux 11 (pages).
-  Owner (full build) (2026-10-29 8:30 PM EDT): Aux 5. This replaces any
-  earlier owner line (pool, unowned, retired lane or 'after 8.1'). If it
-  is already started elsewhere, the lane tells TODO before taking it.
-  Lock-free parts first; the part that changes generated output rides a
-  train.
-  Prerequisites: none. Related: UX.208.
 
 - [ ] **GEN.798 Design: resource locations (what counts as a valuable resource, how a belt, field, giant or icy body is scored, the sources and the stand-in tiers)**
   Boss, 10:29 PM EDT 2026-10-24 (relayed by the coordinator): "For 8.2,
@@ -11228,7 +10441,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Fortney 2014 and Zeng and Sasselov 2013 enter as laws; Core 4's parked
   branch holds the H-He table reader. Hydrogen-helium EOS tables are not
   held otherwise. Catalog sections 3 and 4.
-  Prerequisites: GEN.733, GEN.809, GEN.810. Related: GEN.733, GEN.736, GEN.642, GEN.809, GEN.810, GEN.811.
+  Prerequisites: GEN.809. Related: GEN.733, GEN.736, GEN.642, GEN.809, GEN.810, GEN.811.
 
 - [ ] **GEN.804 Atmosphere escape and retention read the stored XUV exposure, flare irradiation and magnetopause (G2, step 1)**
   Unused stored values audit chain
@@ -11309,7 +10522,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and the XUV saturation to the rotation period (the activity-rotation
   relation), and let the stored values feed GEN.804 and GEN.805. Done: a
   fast rotator has a higher flare rate than a slow one of the same mass,
-  and the six columns have readers. Version 8.4, phase 1. Owner: Aux 4
+  and the six columns have readers. Version 8.4, phase 1. Owner: Core 4
   (stars). Rules: no backward-compat shims; every number has a unit or
   scale (GEN.772); a changed generated value carries
   `tests.golden_update --reason ... --affects <stage>` and the next
@@ -11319,6 +10532,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   is already started elsewhere, the lane tells TODO before taking it.
   Lock-free parts first; the part that changes generated output rides a
   train.
+  Owner changed (2026-10-31 3:40 PM EDT): Aux 4 was retired by the
+  coordinator at 3:21 PM EDT (Boss: retire threads that served their
+  purpose); owner is now Core 4.
   Prerequisites: none. Related: GEN.800, GEN.788.
 
 - [ ] **GEN.808 The ozone-loss flag feeds the UV limit on life and the surface look (G2, step 5)**
@@ -11378,35 +10594,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.967 (Aux 4) calls giant_dynamo.giant_field instead of rebuilding
   the region
   Prerequisites: GEN.733. Related: GEN.801, GEN.733, GEN.736.
-
-- [ ] **GEN.810 A giant's internal heat reads the interior layers and the helium shell (G3, step 2)**
-  Unused stored values audit chain
-  (reports/unused-stored-values-audit-2026-10-24.md, Boss 10:16 PM EDT
-  and 10:35 PM EDT 2026-10-24: make each a chain, with a GitHub goal
-  issue). The internal heat of a giant reads interior_layers,
-  helium_depletion and has_helium_shell (helium rain heating). Done: a
-  Saturn-like giant with a helium shell has a larger internal heat flux
-  than one without, and the columns have readers. Version 8.4, phase 1.
-  Owner: Aux 3. Rules: no backward-compat shims; every number has a unit
-  or scale (GEN.772); a changed generated value carries
-  `tests.golden_update --reason ... --affects <stage>` and the next
-  epoch; tests are `scripts/test.py changed --resume`.
-  Owner (full build) (2026-10-29 8:30 PM EDT): Aux 3. This replaces any
-  earlier owner line (pool, unowned, retired lane or 'after 8.1'). If it
-  is already started elsewhere, the lane tells TODO before taking it.
-  Lock-free parts first; the part that changes generated output rides a
-  train.
-  Owner (full build, corrected) (2026-10-29 8:35 PM EDT): Core 4.
-  Already built in Core 4's parked branch claude/project-thread-wm6oti
-  (physics/giant_structure.py, datasets/hhe_eos.py, core_heat.py),
-  waiting for a train; nobody rebuilds it. This replaces the owner line
-  above.
-  Data we hold (2026-10-29 8:55 PM EDT): Fortney 2007 giant radii are
-  transcribed in full (physics/giant_radius_tables.py); Lopez and
-  Fortney 2014 and Zeng and Sasselov 2013 enter as laws; Core 4's parked
-  branch holds the H-He table reader. Hydrogen-helium EOS tables are not
-  held otherwise. Catalog sections 3 and 4.
-  Prerequisites: GEN.733. Related: GEN.801, GEN.735.
 
 - [ ] **GEN.819 Wire impact_inventory (GEN.739) into the pressure supply law: late delivery and impact erosion enter the air of a rocky planet**
   GEN.739 (#3246) added physics/impact_history.py and
@@ -11520,70 +10707,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   isotopes.json are in the repo for interior heat and ices. Catalog
   section 4.
   Prerequisites: none. Related: GEN.441, GEN.778, .
-
-- [ ] **GEN.838 A separate core temperature: the interior heat model keeps one mantle temperature, so the core heat flow, inner-core growth and the dynamo cannot follow their own cooling**
-  Split from GEN.735 by Aux 5 (as the lane reported 7:28 AM EDT
-  2026-10-28): GEN.735 ships one mantle temperature and zero heat flux
-  for a non-convecting mantle; the core needs its own temperature and
-  the core-mantle boundary heat flow. Do: add a core temperature to the
-  interior heat model (core heat capacity, latent heat of inner-core
-  growth, the core-mantle boundary heat flow set by the mantle boundary
-  layer) so the dynamo and the magnetic field read the core, not the
-  mantle. Source: Thiriet et al. 2019 was not readable (use second-hand,
-  reports/secondhand-citations-2026-10-24.md, and label the result a
-  stand-in with its tier and tweak level). Done: the core cools on its
-  own curve, the stored urey_ratio and heat flow do not change for
-  planets without a core split, stand-ins registered in
-  docs/design/stand-in-values.md. Owner: unowned (old Aux 5, retired) after its stack. Changes
-  stored values, so it needs a lock turn (epoch, --affects fill).
-  Owner (full build) (2026-10-29 8:30 PM EDT): Aux 5. This replaces any
-  earlier owner line (pool, unowned, retired lane or 'after 8.1'). If it
-  is already started elsewhere, the lane tells TODO before taking it.
-  Lock-free parts first; the part that changes generated output rides a
-  train.
-  Owner (full build, corrected) (2026-10-29 8:35 PM EDT): Core 4.
-  Already built in Core 4's parked branch claude/project-thread-wm6oti
-  (physics/giant_structure.py, datasets/hhe_eos.py, core_heat.py),
-  waiting for a train; nobody rebuilds it. This replaces the owner line
-  above.
-  Data we hold (2026-10-29 8:55 PM EDT): No external interior or dynamo
-  dataset is held; Core 4's parked branch has core_heat.py;
-  compaction_table.json, clathrate_brine.json, decay_series.json and
-  isotopes.json are in the repo for interior heat and ices. Catalog
-  section 4.
-  Prerequisites: none. Related: GEN.735, GEN.763.
-
-- [ ] **GEN.839 The hydrosphere ice shell and the surface composition volcanism gate still read the provisional-age heat, so they disagree with the final-age heat GEN.763 stores (bug)**
-  Found by Aux 5 (as the lane reported 7:28 AM EDT 2026-10-28) while
-  fixing GEN.763: a body stores its heat flow and Urey ratio when it is
-  made at the star's provisional age, and Star.adjust_age_for_planets
-  raises the age afterwards; GEN.763 reruns interior_heat.update_heat at
-  the final age in the life pass (no draws), but the hydrosphere's ice
-  shell thickness and the surface composition's volcanism gate draw
-  random numbers and read the provisional-age heat, and cannot be rerun
-  without moving the stream. Do: move those two reads to the final-age
-  heat without changing the draw order (compute them after the final age
-  with the same draws kept, or use an epoch to reorder the draws), then
-  rescore. Done: ice shell and volcanism gate follow the stored
-  final-age heat. Owner: unowned (old Aux 5, retired) after GEN.763; changes generated output
-  so it needs an epoch (--affects fill) and a lock turn, ideally the
-  same one as the rest of Aux 5's stack if it is not yet merged.
-  Owner (full build) (2026-10-29 8:30 PM EDT): Aux 5. This replaces any
-  earlier owner line (pool, unowned, retired lane or 'after 8.1'). If it
-  is already started elsewhere, the lane tells TODO before taking it.
-  Lock-free parts first; the part that changes generated output rides a
-  train.
-  Owner (full build, corrected) (2026-10-29 8:35 PM EDT): Core 4.
-  Already built in Core 4's parked branch claude/project-thread-wm6oti
-  (physics/giant_structure.py, datasets/hhe_eos.py, core_heat.py),
-  waiting for a train; nobody rebuilds it. This replaces the owner line
-  above.
-  Data we hold (2026-10-29 8:55 PM EDT): No external interior or dynamo
-  dataset is held; Core 4's parked branch has core_heat.py;
-  compaction_table.json, clathrate_brine.json, decay_series.json and
-  isotopes.json are in the repo for interior heat and ices. Catalog
-  section 4.
-  Prerequisites: none. Related: GEN.763, GEN.735.
 
 - [ ] **GEN.842 Follow-ups to elliptical orbits, tidal heating and planet spin: the approximations GEN.727, GEN.737 and GEN.731 left**
   Reported by Math 2 (as the lane reported 10:18 AM EDT 2026-10-28,
@@ -11779,6 +10902,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   life classes are in reports/life-chemistry-review-2026-10-28-files;
   the registry holds the life-class stand-in rows (LF*). Catalog
   sections 3 and 4.
+  Changed by GEN.1209 (several life types per planet) (2026-10-31 10:10
+  AM EDT): Boss wants more than one life type to coexist on a planet
+  (10:05 AM EDT 2026-10-31). The per-class scores built here stay as
+  what could live there; GEN.1209 adds the list of what does live there,
+  with a prevalence each. Do not make life_class_id a single-valued
+  public contract: GEN.1209 adds a list beside it.
   Prerequisites: GEN.862, UX.237.
 
 - [ ] **GEN.864 Sentient life per life class: sentient species and civilizations draw from the life class scores of a world**
@@ -11947,28 +11076,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the registry holds the life-class stand-in rows (LF*). Catalog
   sections 3 and 4.
   Prerequisites: none.
-
-- [ ] **GEN.912 The planet albedo draw does not follow the star's colour, so planets of cool stars come out a little too cold (stand-in)**
-  Found by Core 4 (about 5:07 AM EDT 2026-10-29 as the lane reported) in
-  the GEN.910 diagnosis, report
-  /mnt/project-files/reports/gen910-k5v-cold-share-2026-10-29.md. Real
-  planets around cool (red) stars absorb more of the star's light (water
-  ice and clouds are darker in the near infrared), so their Bond albedo
-  is lower than around a Sun-like star. The generator draws albedo
-  without regard to the star's colour, which makes K and M dwarf planets
-  somewhat too cold; the size is unknown. Do: derive the albedo shift
-  from the star's spectrum and the surface and cloud reflectance spectra
-  (Joshi and Haberle 2012 and Shields 2013 give the published size for
-  ice and snow), measure how many K5V and M2V bodies change class of
-  temperature, and record the stand-in tier and tweak level. A
-  generation change: lock turn, version 8.4 (physics). Owner: Core 4.
-  Data we hold (2026-10-29 8:55 PM EDT): proton_range.json,
-  ozone_chappuis.json, gases.json and materials.json are in the repo;
-  MPI-Mainz ozone cross sections are downloaded; the class census
-  expectations are in src/tests/data/prevalence_expectations.json.
-  Catalog sections 2 and 4.
-  Prerequisites: none. Related: GEN.909, GEN.910, GEN.911.
-  Prerequisites: none. Related: GEN.909, GEN.910, GEN.911.
 
 - [ ] **GEN.915 Life depends only on the conditions, never on the planet class letter: every combination of conditions that can host life can evolve it on any class**
   Boss requirement (2:46 PM EDT 2026-10-29): "I want to make sure every
@@ -12182,38 +11289,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   are in the project files; Bedard white dwarf sequences and the neutron
   star tables are also held. Catalog sections 1 to 3.
 
-- [ ] **GEN.942 Supported life paces come from the star's actual lifespan; the per-letter lifespan table (tuning.STAR_EVOLUTION) is removed**
-  Audit finding M6. The per-letter lifespan table (from the old 10 Gy x
-  M^-2.5 law) still decides which life paces a planet may use: it says G
-  stars (9.1 to 17.5 Gy) and F stars (4.3 to 9.1 Gy) support the slow
-  pace whose milestone is 35 Gy and A stars (1.5 to 4.3 Gy) the normal
-  pace (4.5 Gy), so a planet can be asked to wait past its star's death;
-  the model's own lifetimes are G 10 to 35, F 2.1 to 9.6, A 0.65 to 2.2
-  Gy. Do: derive the supported paces from the star's actual lifespan as
-  the evolved-star branch already does and remove the table (life
-  depends on conditions only, GEN.915). Touches the life code that
-  GEN.888 and GEN.894 extend, so coordinate with Aux 2. From the star
-  class audit
-  (/mnt/project-files/reports/star-class-audit-2026-10-29.md,
-  2026-10-29, section 4; evidence tags [run], [file], [T2] there). Rides
-  the GEN.932 epoch with the GEN.922 star mass function chain unless
-  stated. Owner: Bug 1 (proposed by TODO; the audit lane suggested Bug 1
-  or a fresh star-physics lane). Version 8.1.
-  Research (2026-10-09): BOSS DECIDED (5:42 PM EDT 2026-10-29, card
-  answer option 1): this item is IN the long-term epoch GEN.932, so star
-  subclass names, forced types and life paces are settled once. Owner
-  Bug 1.
-  Research (2026-10-09): Bug 1 triage (5:47 PM EDT 2026-10-29 as the
-  lane reported): owner moves to Aux 2 (life paces are its area); in the
-  long-term epoch GEN.932 (Boss 5:42 PM EDT).
-  Data we hold (2026-10-29 8:55 PM EDT): MIST v1.2 is downloaded at
-  setup with all phases (pre-main-sequence, subgiant, giant, core helium
-  burning, AGB, post-AGB, Wolf-Rayet) and 25 columns, but setup keeps
-  only 6 columns of the main sequence; MIST phase durations at 4 [Fe/H]
-  are in the project files; Bedard white dwarf sequences and the neutron
-  star tables are also held. Catalog sections 1 to 3.
-  Prerequisites: none. Related: GEN.922, GEN.932.
-
 - [ ] **GEN.944 Later: an age-metallicity relation inside each population and a 10 to 13 Gy thick-disk window; variable-star flags (Cepheids, Mira and long-period variables, carbon and S stars)**
   Audit findings L3 and L4 (low urgency). [Fe/H] is drawn first but is
   independent of age inside each population window (0 to 0.1, 0.1 to 3,
@@ -12236,6 +11311,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   only 6 columns of the main sequence; MIST phase durations at 4 [Fe/H]
   are in the project files; Bedard white dwarf sequences and the neutron
   star tables are also held. Catalog sections 1 to 3.
+  Train 5 merged (#4321, 11:34 PM EDT) (2026-10-30 11:38 PM EDT): The
+  age-metallicity relation inside each population merged with Star 2
+  #4077. The variable-star flag refresh (#4082) stays open.
+  Variability row merged (2026-10-31 4:25 AM EDT): The cheap flags of
+  the variable-star part merged as #4082 (lock-free): the star sheet has
+  a derived Variability row for classical Cepheid, Mira or semiregular,
+  T Tauri and Herbig Ae/Be stars (physics/variability.py, stand-ins VR1
+  to VR3 in section 6.138, design note
+  docs/design/systems/variability.md). Still open: carbon and S stars
+  (GEN.1026, needs the thermal-pulse count), Ap and Am stars,
+  red-giant-branch semiregulars, and the alpha-shift wiring (GEN.1024).
   Prerequisites: none. Related: GEN.922.
 
 - [ ] **GEN.945 Audit every numeric constant the generator uses against the data we already download or hold: which are registered stand-ins, which come from a table, and which are unregistered hand-tuned numbers; ranked findings with a data source named for each**
@@ -12278,44 +11364,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Catalog sections 1 and 4.
   Prerequisites: none. Related: GEN.725, GEN.754, GEN.922.
 
-- [ ] **GEN.946 Burn down the hand-tuned constants: replace each L3 or L4 registry row and each unregistered constant the audit ranks high with the data we hold, or record why no data exists**
-  Follows GEN.945 (Boss, 5:44 PM EDT 2026-10-29): the registry shows 74
-  rows at tweak level L3 or L4. For each one, and for each high-ranked
-  unregistered constant from the audit, replace the number with a value
-  read from the downloaded or table data (MIST, Baraffe, Harris, HITRAN
-  and the rest) where the data exists, lowering the tier and tweak level
-  to L0 or L1, or record in the registry why no data exists and which
-  tier it keeps. Findings that change generated values are one epoch;
-  Boss decides which ride the long-term epoch GEN.932 and which wait.
-  Split into per-area items from the audit report as they are filed
-  (stars are GEN.935 to GEN.940 already). Owner: per area, assigned from
-  the audit. Version 8.1.
-  Relaxed (2026-10-29 8:30 PM EDT): Boss, 8:16 PM EDT 2026-10-29 (full
-  build in 8.1): replace a hand-tuned constant with a value from a
-  secondary source (a paper that cites a paper) when one exists,
-  otherwise register it as a stand-in with tier and tweak level; neither
-  is a reason to stall a build. The completeness gate of TEST.455 stands
-  (the list of unregistered constants may only shrink).
-  Owner (full build) (2026-10-29 8:30 PM EDT): Sources 1 (new lane,
-  proposed by TODO). This replaces any earlier owner line (pool,
-  unowned, retired lane or 'after 8.1'). If it is already started
-  elsewhere, the lane tells TODO before taking it. Lock-free parts
-  first; the part that changes generated output rides a train.
-  Data we hold (2026-10-29 8:55 PM EDT): The stand-in registry
-  (docs/design/research/stand-in-values.md) lists 316 rows with source,
-  tier and tweak level; the data-use audit ranks which L3 and L4 rows a
-  held dataset could replace (planet formation PM1, PM2, PM6, PM7,
-  radius valley RV2, RV3, SEP rows, neutron star anchors, cluster laws).
-  Catalog sections 1 and 4.
-  Step 1 done (2026-10-29 9:20 PM EDT): Sources 1 merged step 1 (#3808,
-  as the lane reported 9:18 PM EDT):
-  docs/design/research/burn-down-register.md has a disposition for each
-  of the 73 L3 and L4 registry rows and test_burn_down_register.py; the
-  per-area replace items it names are GEN.804, GEN.722, GEN.842,
-  GEN.728, GEN.684, GEN.878, GEN.894 and GEN.962 (for CC1 and CC2). The
-  replace steps stay open.
-  Prerequisites: GEN.945. Related: GEN.725, GEN.945.
-
 - [ ] **GEN.949 Wire the held methane absorption tables (AD1 Karkoschka k-tables, PDS, NMSU) into the visible colour of giant planets**
   Found by the data-use audit (rank 8, 10-29): giant visible colour
   comes from coarse bins; the better tables are held and not read, and
@@ -12352,105 +11400,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   it closes with it.
   Prerequisites: none. Related: GEN.922, GEN.932.
 
-- [ ] **GEN.955 Tides stage 1b: wire the rheology into tidal_heating, interior_heat and circularisation**
-  Boss, 8:16 PM EDT 2026-10-29 (full build in 8.1: build all of it;
-  secondary sources accepted by default; registered stand-ins allowed).
-  Tides plan /mnt/project-files/reports/gen842-tides-2026-10-29.md
-  section 9, stage 1. Do: tidal_heating.response takes temperature, melt
-  and frequency; solid_power_w and molten_power_w follow it (c-full
-  drops the fitted molten state); interior_heat.heat, cool and
-  update_heat use a tide source that depends on temperature;
-  orbit_elements.circularisation_time_yr takes the new Q. Also fills
-  tidal_flux_w_m2 for planets and moons (GEN.778 rides here). Tests:
-  test_tidal_heating, test_interior_heat, test_orbit_elements,
-  test_hydrosphere, the golden seed. Changes generated output: one epoch
-  with --affects fill, rides a train. Stage 1 must land before stages 2
-  and 3 because they read its heat. Every stand-in it adds gets a
-  GEN.725 registry row with tier and tweak level (L0 to L4). Owner:
-  Tides 1. Version 8.1.
-  Data we hold (2026-10-29 8:55 PM EDT): No dataset of rocky-planet
-  rotations or tides is held (none exists); the measurement scripts and
-  censuses are in reports/gen842-tides-2026-10-29, reports/gen842 and
-  reports/gen842-eccentricity-first-2026-10-29-files; Fortney 2007 radii
-  serve the giant radius; Solar System statistics may check, never copy
-  (NO FIXED CONTENT). Catalog section 3.
-  Spin must read the final star age (2026-10-29 9:27 PM EDT): Aux 7's
-  stale-age audit (9:26 PM EDT 2026-10-29): planets.generate_spin runs
-  tidal_spin.evolve with the provisional star age, so the stage 1 wiring
-  must keep the birth spin and evolve again at the final age (the settle
-  pass of GEN.961), not only at draw time. Same for GEN.959 stage 3.
-  Prerequisites: GEN.954. Related: GEN.842, GEN.778, GEN.737.
-
-- [ ] **GEN.957 Tides stage 2b: wire the torque sum into planet spin, with the moon-on-planet tide after the moons exist**
-  Boss, 8:16 PM EDT 2026-10-29 (full build in 8.1: build all of it;
-  secondary sources accepted by default; registered stand-ins allowed).
-  Tides plan /mnt/project-files/reports/gen842-tides-2026-10-29.md
-  section 9, stage 2; spin report
-  /mnt/project-files/reports/gen842-spin-down-2026-10-29.md section 4b
-  to 4c and 5. Do: planets.generate_spin and tidal_spin.evolve use the
-  torque list; a no-draw post-pass after planet.add_moons and before
-  daylight.generate gives the planet its day from its moons; magnetism,
-  radiation, body_colour and habitability_world are re-run for the
-  planet; moons read the parent's new day (magnetism.py around line 270;
-  validation.py around line 245 re-calls generate_spin); the independent
-  moon draw is correlated with the planet's birth spin only if that can
-  be done without moving the stream. Tests: test_tidal_spin,
-  test_daylight, test_hydrosphere, the golden seed. Changes generated
-  output: epoch with --affects fill, rides a train, in the same train as
-  stage 1 if both are ready. Every stand-in it adds gets a GEN.725
-  registry row with tier and tweak level (L0 to L4). Owner: Tides 1.
-  Version 8.1.
-  Prerequisites: GEN.955. Related: GEN.842, GEN.731,, GEN.979.
-  GEN.904.
-  Data we hold (2026-10-29 8:55 PM EDT): No dataset of rocky-planet
-  rotations or tides is held (none exists); the measurement scripts and
-  censuses are in reports/gen842-tides-2026-10-29, reports/gen842 and
-  reports/gen842-eccentricity-first-2026-10-29-files; Fortney 2007 radii
-  serve the giant radius; Solar System statistics may check, never copy
-  (NO FIXED CONTENT). Catalog section 3.
-
-- [ ] **GEN.959 Tides stage 3b: wire moon orbit history, rings from fallen moons and the moons' tide into the planet's heat**
-  Boss, 8:16 PM EDT 2026-10-29 (full build in 8.1: build all of it;
-  secondary sources accepted by default; registered stand-ins allowed).
-  Tides plan /mnt/project-files/reports/gen842-tides-2026-10-29.md
-  section 9, stage 3. Do: add_moons post-pass moves moon distances and
-  drops spiralled-in moons; rings.py takes the ring mass of a fallen
-  moon; interior_heat reads the moons' tide as a forcing on the planet
-  (the report calls the counts uncertain: record them as stand-ins).
-  Changes generated output: epoch with --affects fill, rides a train.
-  The fallback if stage 2 is late is to merge stages 1 and 2 together
-  and stage 3 on its own. Every stand-in it adds gets a GEN.725 registry
-  row with tier and tweak level (L0 to L4). Owner: Tides 1. Version 8.1.
-  Data we hold (2026-10-29 8:55 PM EDT): No dataset of rocky-planet
-  rotations or tides is held (none exists); the measurement scripts and
-  censuses are in reports/gen842-tides-2026-10-29, reports/gen842 and
-  reports/gen842-eccentricity-first-2026-10-29-files; Fortney 2007 radii
-  serve the giant radius; Solar System statistics may check, never copy
-  (NO FIXED CONTENT). Catalog section 3.
-  Prerequisites: GEN.957. Related: GEN.842, GEN.739.
-
-- [ ] **GEN.960 Tides side thread: ice rheology for the hydrosphere ice shell and the icy branch of tidal_heating (c-ice)**
-  Boss, 8:16 PM EDT 2026-10-29 (full build in 8.1: build all of it;
-  secondary sources accepted by default; registered stand-ins allowed).
-  Tides plan /mnt/project-files/reports/gen842-tides-2026-10-29.md
-  section 9, side thread (c-ice, 15 to 22 lane-hours). Do: the ice shell
-  link in hydrosphere.py and the icy branch of
-  tidal_heating.icy_flux_w_m2 read the temperature-dependent Q of
-  GEN.954's module (ice form, secondary sources accepted); retires the
-  fitted ice stand-ins in the registry. Files differ from stage 2, so it
-  can run beside it once stage 1 has landed. Changes generated output:
-  epoch with --affects fill, rides a train. Every stand-in it adds gets
-  a GEN.725 registry row with tier and tweak level (L0 to L4). Owner:
-  Tides 1 after stage 1, or a second tides lane if Boss starts one.
-  Version 8.1.
-  Data we hold (2026-10-29 8:55 PM EDT): No dataset of rocky-planet
-  rotations or tides is held (none exists); the measurement scripts and
-  censuses are in reports/gen842-tides-2026-10-29, reports/gen842 and
-  reports/gen842-eccentricity-first-2026-10-29-files; Fortney 2007 radii
-  serve the giant radius; Solar System statistics may check, never copy
-  (NO FIXED CONTENT). Catalog section 3.
-  Prerequisites: GEN.955. Related: GEN.842, GEN.839, GEN.908.
-
 - [ ] **GEN.962 Rocky planets hold 1.5 to 2.0 moons of 1e20 kg and over each (the Solar System has 1 for 4 rocky planets): ground the moon rate in giant-impact and capture frequency**
   Found by Bug 1 with GEN.921 (report
   /mnt/project-files/reports/bug1/moons-per-planet-gen921-2026-10-30.md,
@@ -12471,78 +11420,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   serve the giant radius; Solar System statistics may check, never copy
   (NO FIXED CONTENT). Catalog section 3.
   Prerequisites: none. Related: GEN.921, GEN.522, GEN.725.
-
-- [ ] **GEN.964 H-He equation of state tables (a): a setup catalogue entry and a reader with tests on Jupiter, Saturn, Uranus and Neptune**
-  Boss, 8:16 PM EDT 2026-10-29 (full build in 8.1: build all of it;
-  secondary sources accepted by default; registered stand-ins allowed).
-  Split of GEN.733 into a lock-free part and a wiring part. Do: add the
-  hydrogen-helium equation of state tables (CMS or Saumon-Chabrier,
-  secondary-source copies accepted) to the shared setup fetch step, with
-  the licence note left to Boss (DATA-LICENSE.md only), and a reader
-  that gives pressure and density against temperature and composition;
-  tests reproduce the radius and layer pressures of Jupiter, Saturn,
-  Uranus and Neptune. Changes no generated output, so it merges freely
-  and a lane waiting for a train can do it. Every stand-in it adds gets
-  a GEN.725 registry row with tier and tweak level (L0 to L4). Owner:
-  Aux 3 (giants chain GEN.801, GEN.809 to GEN.811). Version 8.1.
-  Owner (full build, corrected) (2026-10-29 8:35 PM EDT): Core 4.
-  Already built in Core 4's parked branch claude/project-thread-wm6oti
-  (physics/giant_structure.py, datasets/hhe_eos.py, core_heat.py),
-  waiting for a train; nobody rebuilds it. This replaces the owner line
-  above.
-  Data we hold (2026-10-29 8:55 PM EDT): Fortney 2007 giant radii are
-  transcribed in full (physics/giant_radius_tables.py); Lopez and
-  Fortney 2014 and Zeng and Sasselov 2013 enter as laws; Core 4's parked
-  branch holds the H-He table reader. Hydrogen-helium EOS tables are not
-  held otherwise. Catalog sections 3 and 4.
-  Prerequisites: none. Related: GEN.733.
-
-- [ ] **GEN.965 H-He equation of state tables (b): replace the n=1 polytrope in the giant interior solver with the tables**
-  Boss, 8:16 PM EDT 2026-10-29 (full build in 8.1: build all of it;
-  secondary sources accepted by default; registered stand-ins allowed).
-  Split of GEN.733. Do: the giant interior solver (GEN.642) reads the
-  reader of the (a) item instead of the polytrope; the helium rain line
-  and the compact-core odds stay registered stand-ins until sourced.
-  Giant radius and layer pressures change. --affects fill. Changes
-  generated output: epoch with the stated --affects, rides a train.
-  Every stand-in it adds gets a GEN.725 registry row with tier and tweak
-  level (L0 to L4). Owner: Aux 3 (giants chain GEN.801, GEN.809 to
-  GEN.811). Version 8.1.
-  Owner (full build, corrected) (2026-10-29 8:35 PM EDT): Core 4.
-  Already built in Core 4's parked branch claude/project-thread-wm6oti
-  (physics/giant_structure.py, datasets/hhe_eos.py, core_heat.py),
-  waiting for a train; nobody rebuilds it. This replaces the owner line
-  above.
-  Data we hold (2026-10-29 8:55 PM EDT): Fortney 2007 giant radii are
-  transcribed in full (physics/giant_radius_tables.py); Lopez and
-  Fortney 2014 and Zeng and Sasselov 2013 enter as laws; Core 4's parked
-  branch holds the H-He table reader. Hydrogen-helium EOS tables are not
-  held otherwise. Catalog sections 3 and 4.
-  Prerequisites: GEN.964. Related: GEN.733.
-
-- [ ] **GEN.967 Dynamo field (b): the stored field strength, moment and lifetime come from the dynamo module and feed the radiation shielding**
-  Boss, 8:16 PM EDT 2026-10-29 (full build in 8.1: build all of it;
-  secondary sources accepted by default; registered stand-ins allowed).
-  Split of GEN.736. Do: replace the design defaults (0.05 Earth mass
-  threshold, core fraction 0.15, 4 Gyr times mass^0.5, 7.8e22 A m2 times
-  mass, interpolated giants, Ganymede-like moons) with the module's
-  values; radiation shielding and the magnetopause read the result.
-  --affects fill. Changes generated output: epoch with the stated
-  --affects, rides a train. Every stand-in it adds gets a GEN.725
-  registry row with tier and tweak level (L0 to L4). Owner: Aux 4
-  (magnetosphere chain GEN.800). Version 8.1.
-  Start point (2026-10-29 8:35 PM EDT): Core 4's parked branch
-  claude/project-thread-wm6oti has core_heat.py: a core thermal model
-  whose dipole moment comes from the core's buoyancy flux and whose
-  dynamo lifetime is the history of the liquid shell (tested on Earth, a
-  dead Mars and a super-Earth). Aux 4 starts from it: add the Ganymede
-  and Jupiter tests and the dipole at the final star age.
-  Data we hold (2026-10-29 8:55 PM EDT): No external interior or dynamo
-  dataset is held; Core 4's parked branch has core_heat.py;
-  compaction_table.json, clathrate_brine.json, decay_series.json and
-  isotopes.json are in the repo for interior heat and ices. Catalog
-  section 4.
-  Prerequisites: GEN.966. Related: GEN.736.
 
 - [ ] **GEN.968 Neutron star structure (a): a TOV integration over the equation-of-state tables held on disk, tested against NICER radii**
   Boss, 8:16 PM EDT 2026-10-29 (full build in 8.1: build all of it;
@@ -12585,7 +11462,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   cooling sweep that find the snowball threshold the literature gives
   (secondary sources accepted). Changes generated output: epoch
   --affects fill, rides a train. Every stand-in it adds gets a GEN.725
-  registry row with tier and tweak level (L0 to L4). Owner: Air 1.
+  registry row with tier and tweak level (L0 to L4). Owner: Aux 2.
   Version 8.1.
   Data we hold (2026-10-29 8:55 PM EDT): ExoMol correlated-k tables
   (H2O, CO2, CH4) and HITRAN collision-induced absorption are downloaded
@@ -12598,29 +11475,28 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.973 and GEN.974; the response today is about 0.4 K per W/m2. When
   the last of the three lands the test passes, the strict xfail fails
   the run, and this item removes the mark.
+  Wiring sweep (Boss, 12:03 PM EDT: nothing built and left unused;
+  report reports/wiring-sweep-2026-10-31.md) (2026-10-31 12:25 PM EDT):
+  The wiring register names this item for the unread ice-albedo feedback
+  and its owner lane Air 1 is retired. Owner now: Aux 4 (proposed by the
+  TODO thread; the lane says if it cannot take it).
+  Lock branch ready (2026-10-31 3:20 PM EDT): Aux 4 (as the lane
+  reported, 3:19 PM EDT): READY as one lock branch
+  claude/project-thread-nfytfi-gen1229, head 7135c287e, based on main
+  c82ecfcd5 plus #4558; it contains GEN.972 (head 29e0f68a0, one test
+  fix since 3dc7948e8) and GEN.982 part 3 and GEN.1229, so skip the old
+  -gen982-haze branch. Epoch --affects fill, no migration. Census (480
+  bodies): hazy bodies 98 to 82; median haze depth 0.02 to 3.8; bodies
+  over depth 1: 3 to 62; Titan's measured depth 9.6 now comes out of its
+  own production. Depths above about 100 are suspect (the only sink is
+  fall; no rain-out or haze destruction). Stand-ins HZ1 to HZ3, SL4, SL5
+  registered. Tests: 1263 passed; test_giant_one_bar_temperature (two)
+  red on clean main is GEN.1030.
+  Owner changed (2026-10-31 3:40 PM EDT): Air 1 was retired by the
+  coordinator at 3:21 PM EDT; owner is now Aux 2. The lock branch
+  claude/project-thread-nfytfi-gen1229 (head 7135c287e) is built and
+  rides a train through the Train Manager.
   Prerequisites: none. Related: GEN.752, GEN.462.
-
-- [ ] **GEN.973 Climate feedback 2: water vapour on the fixed point (a warmer ocean world holds more vapour and warms further, up to the runaway limit of GEN.639)**
-  Boss, 8:16 PM EDT 2026-10-29 (full build in 8.1: build all of it;
-  secondary sources accepted by default; registered stand-ins allowed).
-  Split of GEN.752. Do: the water vapour feedback in the fixed point
-  with the runaway threshold of GEN.639; tests on a warming sweep that
-  converge below the limit and run away above it. Changes generated
-  output: epoch --affects fill, rides a train. Every stand-in it adds
-  gets a GEN.725 registry row with tier and tweak level (L0 to L4).
-  Owner: Air 1. Version 8.1.
-  Data we hold (2026-10-29 8:55 PM EDT): ExoMol correlated-k tables
-  (H2O, CO2, CH4) and HITRAN collision-induced absorption are downloaded
-  at setup and read by nothing (ir_ktables.npz, ir_cia.npz); gases.json,
-  nasa_glenn_species.json and saturation_pressure.json are in the repo.
-  Catalog sections 1 and 2.
-  GEN.975 note (Air 1, #3895, as the lane reported) (2026-10-30 12:34 AM
-  EDT): the climate sweep test src/tests/test_climate_sweep.py holds the
-  lower bound (0.54 K per W/m2) as a strict xfail naming GEN.972,
-  GEN.973 and GEN.974; the response today is about 0.4 K per W/m2. When
-  the last of the three lands the test passes, the strict xfail fails
-  the run, and this item removes the mark.
-  Prerequisites: GEN.972. Related: GEN.752, GEN.639.
 
 - [ ] **GEN.974 Climate feedback 3: cloud albedo on the fixed point (cloud cover changes the reflected share)**
   Boss, 8:16 PM EDT 2026-10-29 (full build in 8.1: build all of it;
@@ -12629,7 +11505,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   function of temperature and water content in the fixed point, a
   labelled stand-in where no law exists. Changes generated output: epoch
   --affects fill, rides a train. Every stand-in it adds gets a GEN.725
-  registry row with tier and tweak level (L0 to L4). Owner: Air 1.
+  registry row with tier and tweak level (L0 to L4). Owner: Aux 2.
   Version 8.1.
   Data we hold (2026-10-29 8:55 PM EDT): ExoMol correlated-k tables
   (H2O, CO2, CH4) and HITRAN collision-induced absorption are downloaded
@@ -12642,44 +11518,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.973 and GEN.974; the response today is about 0.4 K per W/m2. When
   the last of the three lands the test passes, the strict xfail fails
   the run, and this item removes the mark.
-  Prerequisites: GEN.973. Related: GEN.752, GEN.684.
-
-- [ ] **GEN.979 Birth spin derivation (b): the birth rotation of a rocky planet follows Kokubo and Genda eq. 4 with the gamma law, replacing the scale factor of GEN.953**
-  Boss, 8:48 PM EDT 2026-10-29 ('Yes, build it': build the birth-spin
-  derivation, not only the scale tweak). Do: accretion_spin draws the
-  birth spin from the eq. 4 form with the gamma law of the (a) item
-  instead of the fitted scale factor (the three Gaussian draws should
-  stay so the random stream does not move; check it); decide the tilt
-  law (the code's isotropic tilt against the prograde bias of
-  Schlichting and Sari 2007) and record it; the 0.4 scale and the
-  small-planet factor of GEN.953 are removed and their registry rows
-  name this item as the replacement. Re-target the law tests in
-  test_tidal_spin.py, update the sheet source sentence, re-measure the
-  day and night swing readers. Changes values: epoch with --affects
-  fill, rides the same train as the tides stage 2 wiring. About 7 to 10
-  lane-hours for (a) and (b) together, from the report. Every stand-in
-  it adds gets a GEN.725 registry row with tier and tweak level (L0 to
-  L4). Owner: Tides 1. Version 8.1.
-  Data we hold (2026-10-29 8:55 PM EDT): No dataset of rocky-planet
-  rotations or tides is held (none exists); the measurement scripts and
-  censuses are in reports/gen842-tides-2026-10-29, reports/gen842 and
-  reports/gen842-eccentricity-first-2026-10-29-files; Fortney 2007 radii
-  serve the giant radius; Solar System statistics may check, never copy
-  (NO FIXED CONTENT). Catalog section 3.
-  Prerequisites: GEN.953. Related: GEN.953, GEN.842, GEN.731.
-
-- [ ] **GEN.981 Induced magnetic moment part (b): conducting cores and planets in the star's field (the part of GEN.779 that remains)**
-  Left by Aux 4 with GEN.779 (part (a) merged as #3796: the moons'
-  induced moment was already filled by GEN.178, so the stale open-gap
-  excuse was removed; as the lane reported 8:58 PM EDT 2026-10-29). Part
-  (b) needs the core's liquid state: the induced moment of conducting
-  cores and of planets in the star's varying field. Do: compute it once
-  the core thermal model (Core 4's core_heat.py, parked branch
-  claude/project-thread-wm6oti) is on a train. Changes generated output:
-  epoch with --affects fill, rides train 6. Every stand-in it adds gets
-  a GEN.725 registry row with tier and tweak level. Owner: Aux 4.
-  Version 8.1.
-  Prerequisites: GEN.967. Related: GEN.779, GEN.967, GEN.838.
+  Design done (2026-10-31 12:25 AM EDT): Air 1 merged the design note
+  docs/design/composition/cloud-albedo.md (#4378): cloud thinning with
+  warming sized to the AR6 cloud feedback (+0.42 W/m2 per K at 288 K,
+  beta 1.2e-3 per K) and a substellar deck for a body locked 1:1 to its
+  star (Yang 2013 table 1). With the ice law of GEN.972 the Earth twin
+  sweep response is 0.58 against the 0.54 bound. Stand-in rows CL1 to
+  CL4 are proposed (none L3 or L4) and enter GEN.725 with the build. The
+  build is lock work, waits for GEN.972, and may share an epoch with
+  GEN.972 and GEN.1194.
+  Owner changed (2026-10-31 3:40 PM EDT): Air 1 was retired by the
+  coordinator at 3:21 PM EDT; owner is now Aux 2.
+  Prerequisites: GEN.972. Related: GEN.752, GEN.684.
 
 - [ ] **GEN.982 Wire the photolysis lifetimes (physics/photolysis.py and photolysis_lifetimes.json) into the atmosphere chemistry**
   Found by Sources 1 with the wiring guard GEN.754 (as the lane reported
@@ -12691,21 +11541,41 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   star's UV spectrum; add the wiring-register line when it merges.
   Changes generated output: epoch with --affects fill, rides train 6.
   Every stand-in it adds gets a GEN.725 registry row with tier and tweak
-  level. Owner: Air 1. Version 8.1.
+  level. Owner: Aux 2. Version 8.1.
+  Wiring sweep (Boss, 12:03 PM EDT: nothing built and left unused;
+  report reports/wiring-sweep-2026-10-31.md) (2026-10-31 12:25 PM EDT):
+  The photolysis lifetime table has no caller until this item wires it,
+  and its owner lane Air 1 is retired. Owner now: Aux 4 (proposed by the
+  TODO thread; the lane says if it cannot take it).
+  Reading chosen and GEN.972 head (2026-10-31 2:13 PM EDT): Aux 4 (as
+  the lane reported, 2:12 PM EDT): a gross photolysis lifetime cannot be
+  a plain loss on a net gas inventory (photon-limited methane loss for
+  an Earth-sized air is about 78 Tmol a year, while the life ledger
+  holds anoxic methane at 100 ppmv to 3.5 percent on 9 to 67 Tmol a year
+  because the products recombine), so it is NOT wired into life_air. It
+  is wired where the table is the physical limit and is missing: the
+  methane haze supply in aerosols.haze_in, which is diffusion limited
+  only. Three parts: (1) Hu 2012 table 6 UV cross sections and a pure
+  photon-limited gross loss function in photolysis.py (lock-free); (2)
+  the star far-UV flux at the body as a subject quantity (lock-free);
+  (3) the haze supply becomes the smaller of the diffusion and
+  photon-limited supplies, a GEN.725 row for the one-layer
+  optical-depth-1 closure (lock work, epoch --affects fill). TODO
+  approved the reading. GEN.972 (ice-albedo feedback) is ready as lock
+  work: branch claude/project-thread-nfytfi-gen972, head 3dc7948e8,
+  epoch --affects fill, passed to the Train Manager.
+  Parts 1 and 2 merged (2026-10-31 2:25 PM EDT): Parts 1 and 2 merged
+  lock-free (cross sections, shielded_column_mol_m2,
+  photon_limited_flux_mol_m2_s, far_uv_power_w, far_uv_flux_ratio;
+  register lines name part 3). Part 3 (haze supply) is built on branch
+  claude/project-thread-nfytfi-gen982-haze, head ef2b42ecc, stacked on
+  GEN.972, held back until GEN.1229 (haze depth per unit of mass flux)
+  is built; the two ride one lock window.
+  Owner changed (2026-10-31 3:40 PM EDT): Air 1 was retired by the
+  coordinator at 3:21 PM EDT; owner is now Aux 2. The lock branch
+  claude/project-thread-nfytfi-gen1229 (head 7135c287e) is built and
+  rides a train through the Train Manager.
   Prerequisites: none. Related: GEN.754, GEN.794, GEN.748.
-
-- [ ] **GEN.983 Wire the radiation belts (physics/radiation_belts.py) into the surface dose and the habitability radiation score**
-  Found by Sources 1 with the wiring guard GEN.754 (9:18 PM EDT
-  2026-10-29): physics/radiation_belts.py has no caller and GEN.749 is
-  closed. Do: a planet or moon with a magnetosphere carries
-  trapped-particle belts that raise the dose in the belt region (moons
-  of giants most of all), read by the dose and the habitability
-  radiation component together with the stored magnetopause (GEN.804,
-  GEN.805); no belt data is held (AP-8 and AE-8 would be needed), so a
-  labelled stand-in is fine. Changes generated output: epoch with
-  --affects fill, rides train 6. Owner: Aux 4 (with the magnetosphere
-  chain). Version 8.1.
-  Prerequisites: none. Related: GEN.754, GEN.804, GEN.805, GEN.800.
 
 - [ ] **GEN.993 Widen the core light-element total in bulk_draw to 0.02 to 0.25 (0.25 dex) instead of the uniform 0.03 to 0.12**
   Found by GEN.777 (Sources 1, as the lane reported 10:35 PM EDT
@@ -12760,6 +11630,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   accepted range. Changes generated output: epoch, --affects fill, rides
   the star-side train after GEN.932. Owner: Bug 1 (reassignable to Star
   1). Version 8.1.
+  Sources 2 finding (GEN.1168) (2026-10-30 11:14 PM EDT): The 20 pc
+  sample (Giammichele 2012 Table 4, 136 rows; Tremblay 2016 counts 8 of
+  105 under 0.45) has 7.4 percent of white dwarfs under 0.45 solar
+  masses and 10 percent from 0.45 to 0.56; the generator has 0.3 percent
+  under 0.57 and its floor is the Cummings 2018 relation (0.555 at the
+  lightest progenitor 0.83). Target the shares, not only the mean: about
+  7 percent helium-core white dwarfs near 0.4 (a cap, since some are
+  unresolved double degenerates with underestimated mass) and a thinner
+  0.45 to 0.56 band (Giammichele say 0.50 to 0.55 is thin, so under 5
+  percent). Report reports/gen1168-low-mass-white-dwarfs-2026-10-31.md.
   Prerequisites: none. Related: GEN.932, GEN.995.
 
 - [ ] **GEN.998 The default galaxy disc gas depletion time is 0.85 Gy against the 4.2 Gy the Galaxy measures: check the value and its source (bug)**
@@ -12773,7 +11653,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   or a stand-in), say whether it is the right quantity for the disc gas
   depletion, correct it or register it in GEN.725 with its tier and
   tweak level, and list every reader that moves. Changes generated
-  output if the value moves: epoch and --affects fill. Owner: Sources 2.
+  output if the value moves: epoch and --affects fill. Owner: Core 3.
   Version 8.1.
   Sources 2 answer (as the lane reported 11:33 PM EDT) (2026-10-29 11:33
   PM EDT): the 0.85 Gy is the default small galaxy (5.8e9 solar masses,
@@ -12782,6 +11662,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   is right and the value about 3 times short; it is registered as 6.49
   AL1 and the fix is filed as GEN.999. Close this item when the registry
   row AL1 lands with the train 6 wiring branch.
+  Owner changed (2026-10-31 3:40 PM EDT): Sources 2 was retired by the
+  coordinator at 3:21 PM EDT; owner is now Core 3.
   Prerequisites: none. Related: GEN.469, GEN.476, GEN.477.
 
 - [ ] **GEN.999 Give the disc gas law a low-density threshold so a Milky Way mass disc depletes its gas in about 4.2 Gy, not 1.46 Gy**
@@ -12799,6 +11681,28 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   plan,scatter,fill,population and a census re-baseline; rides the
   star-side train after GEN.932 (Bug 1 owns star_formation.py). Owner:
   Sources 2 with Bug 1. Version 8.1.
+  Owner change (2026-10-31 1:25 PM EDT): Core 3 measured (as the lane
+  reported, 1:22 PM EDT 2026-10-31) that GEN.1200 (ring inflow 0.50 a
+  year against 0.8 measured, plus or minus 0.6) and GEN.1202 (8 kpc gas
+  4.3 against 13 per pc2) are the same factor of 3 this item fixes. Core
+  3 takes GEN.999 (lock work, a branch off main, no merge); GEN.1202
+  then closes with it if the re-measured 8 kpc gas reads about 13, and
+  GEN.1200 follows with the inflow-time step (CORE_GAS_INFLOW_TIME_GY, a
+  stand-in, registered in GEN.725).
+  Ready for train 8 (2026-10-31 1:58 PM EDT): Core 3 (as the lane
+  reported, 1:54 PM EDT): draft PR #4549, branch gen999, head 8b9448957,
+  lock work (epoch, --affects plan,scatter,fill,population; no
+  migration; census re-baseline). The disc gas law steepens where the
+  gas thins, using the saturation 9 per pc2 and index 2.1 of GEN.450 (no
+  new constant). Milky Way shape: depletion 2.2 to 3.7 Gy, star
+  formation now 1.50 to 1.70 solar masses a year, ring inflow 0.50 to
+  0.62 a year. The thin disc population shares move (young 0.54 to 0.60
+  percent, intermediate 25.0 to 26.8 percent). Train 8 candidate.
+  GEN.1200 closes with it (the ring inflow test now passes, no
+  inflow-time step needed). GEN.1202 stays open: 8 kpc gas is 7.2
+  against 13.7 measured (all-phase total), the residual is registered
+  (AL1) and the disc cluster maximum is re-measured after GEN.1196
+  merges.
   Prerequisites: GEN.932. Related: GEN.998, GEN.476, GEN.469.
 
 - [ ] **GEN.1000 Draw the largest body of every belt from the small body size law (replaces the stand-in largest-body size in the GEN.477 belt mass)**
@@ -12811,98 +11715,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   from it (own random stream, via draw.py), feed GEN.477 and the belt
   detail, and retire the stand-in registry row. Changes generated output
   (belt mass): epoch, --affects fill, rides the train after GEN.477
-  wiring. Owner: Sources 2. Version 8.1.
+  wiring. Owner: Aux 5. Version 8.1.
+  Owner changed (2026-10-31 3:40 PM EDT): Sources 2 was retired by the
+  coordinator at 3:21 PM EDT; owner is now Aux 5.
   Prerequisites: GEN.477. Related: GEN.477, GEN.566, GEN.725.
-
-- [ ] **GEN.1004 A triple system whose third star cannot be found: it may sit inside another star or on an orbit that is not drawn (bug)**
-  Boss (2026-10-30, 9:33 AM EDT, live observation): found a three-star
-  system on the maps but could never find the third star; he thinks it
-  may have had an orbit or position inside one of the other stars, and
-  is not sure. Do: find which system it is (ask Boss, or scan every
-  stored triple for a member whose orbit lies inside a sibling star's
-  radius or whose position is not placed), then fix the cause in the
-  orbit tree draw (the stable range of an inner companion against its
-  parent's radius), the placement, or the map and system page, as it
-  turns out. The coordinator started a research thread on it. Done: a
-  test over generated triples and deeper trees finds no star inside
-  another star's radius and no star missing from the system page, the
-  system map and the 3D view; the fix says which of the three it was.
-  Owner: first free lane after the research thread reports.
-  Core 3 (as the lane reported) (2026-10-30 9:52 AM EDT): Before MAP.255
-  (#4015) the browser put any star without a stored pair orbit, a
-  triple's third star included, at the barycenter on top of the other
-  stars (orbitpositions.js returned [0,0,0]); MAP.255 fixes that in the
-  3D view and MAP.213 slice A also draws each node's orbit. The Python
-  and System Map SVG side is MAP.213 slice B and is not yet checked.
-  This may be the whole cause; confirm with Boss on a rebuilt map before
-  closing.
-  Investigation thread (relayed by the coordinator, PR #4026, branch
-  claude/project-thread-xhsx5n) (2026-10-30 9:54 AM EDT): Cause found in
-  the generator: a drawn star tree is rebuilt from each member's birth
-  mass and the system age, and a member the tree had evolved (for
-  example a white dwarf of a post-common-envelope pair, born 1.38 Msun
-  at 4.39 Gy) is rebuilt as a still-living giant of 0.033 AU radius
-  while its orbit with its partner is 0.0088 AU, so the partner or a
-  third star sits inside it. Seen in about 1 of 150 forced triples and 1
-  of 50 forced quadruples. Fix: multistar.built_tree_clears runs the
-  Roche and extent screen on the built radii and masses and the draw
-  loop redraws a tree that fails. Changes what rare seeds generate:
-  needs an epoch (--affects fill) and a golden refresh, so it rides
-  train 4; do not merge before. The browser-side barycenter fault
-  (MAP.255) was a second, separate cause for stars with no stored pair
-  orbit.
-  TODO thread (10:58 AM EDT) (2026-10-30 10:57 AM EDT): Replaced by
-  GEN.1006 P9 when that part is scheduled; until then the quick fix
-  (#4026) stays.
-  Train 4 merged (PR #4105) (3:38 PM EDT 2026-10-30): The quick fix
-  (#4026) was already on main; the item stays open until Boss confirms
-  the third star shows after ./update.sh.
-  Prerequisites: TEST.162. Related: TEST.162, GEN.728, MAP.255.
-
-- [ ] **GEN.1005 Replace the Solar System-anchored redox, dry carbon and comet species rows with models that carry the physics (replaces the Solar System-resting rows of GEN.1002 that GEN.474 does not cover)**
-  Found by Aux 3 while building GEN.1002 (relayed 9:48 AM EDT 2026-10-30
-  as the lane reported). Four registry rows still rest on the Solar
-  System: (1) atmosphere-a a1 and a2, the magma-ocean and later-mantle
-  oxygen fugacity, a mean and width tuned to Moon, Mars and Earth
-  anchors: replace with a Fe3+/Fe2+ and mantle-mass model; (2)
-  atmosphere-b b1, the dry-delivery carbon, a log bracket tuned to the
-  bulk silicate Earth's 100 ppm: replace with the accreted-material
-  budget (chondrite groups, with the GEN.595 belt and comet side); (3)
-  atmosphere-k k7, the N2, O2, OCS, SO2, Ar, Kr and Xe of comets:
-  replace with more than one comet (67P, Rubin 2019) or ice trapping at
-  the formation temperature. Each replacement is a registered stand-in
-  in GEN.725 (section 6.54 of gap-filling-plan.md as Aux 3 numbers it;
-  allocate_numbers renumbers) with its tier and tweak level, so a later
-  study can swap it. Secondary sources are accepted. Done: the three
-  rows are replaced or re-sourced and registered, the test that ties the
-  rows to the table passes, and no Solar System planet or comet is a
-  fixed input. Two steps: the model and rows (lock-free) and the digest
-  flip that rides a train. Owner: Aux 3 (after GEN.1002).
-  Progress (2026-10-30 12:56 PM EDT): Aux 3 (as the lane reported 12:59
-  PM EDT): part 1 for a1/a2 merged in #4057:
-  physics/magma_ocean_redox.py (surface redox of a magma ocean from base
-  pressure through the ferric share), registry rows MR1 to MR7 in
-  section 6.57 (tiers T3 to T7, tweaks L0 to L2, section number a
-  placeholder for allocate_numbers), three recipe expression functions;
-  nothing generated changes. Hirschmann 2022 Eq. 21/34 and Deng 2020
-  equation bodies were not readable, so MR3 to MR5 use the numbers
-  GEN.482 recorded. Next: b1 dry carbon (soot-line model, Li 2021), then
-  k7, then the flip for a1/a2/b1/k7 as one digest step that rides a
-  train.
-  Progress (2026-10-30 1:06 PM EDT): Aux 3 (as the lane reported 1:06 PM
-  EDT): b1 merged in #4059: physics/dry_carbon.py derives the dry-class
-  carbon bracket 0.029 to 0.108 wt percent CO2 (old 0.018 to 0.1) from
-  Blanchard 2022 (building-block carbon, differentiated share, core
-  share), rows DC1 to DC3 in 6.58; Earth is a test, not the anchor. For
-  k7 no laboratory trapping table per species was reachable, so TODO
-  decided (1:06 PM EDT; stand-ins are allowed when registered with tier
-  and tweak level): build each species relative to CO from the host star
-  own N/C, Ar/C and S/C times one trapping factor per species calibrated
-  to comet 67P, registered in GEN.725 as T7 and L3 so a second comet or
-  a lab table replaces it later, with the width from the star spread
-  plus the trapping bracket instead of the design 0.6 dex. Then flip
-  a1/a2/b1/k7 together as one digest step on a train.
-  Prerequisites: GEN.474. Related: GEN.1002, GEN.474, GEN.595, GEN.725.
 
 - [ ] **GEN.1006 Stars and bodies in one system never overlap by design: every member knows the others when any is rebuilt, then fit and adjust afterwards**
   Boss (2026-10-30, 10:51 AM EDT): merge the quick fix for the missing
@@ -12984,106 +11800,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   research GEN.1029 Sources 1. Trains: 8 = P0 + P3, 9 = P4 to P7, 10 =
   P8 + P9, 11 = P10; each lock part rides its train, the lock-free
   pieces merge freely first.
-  Prerequisites: GEN.1017, GEN.1009, GEN.1010, GEN.1011, GEN.1012, GEN.1013, GEN.1014, GEN.1015, GEN.1016.
-
-- [ ] **GEN.1009 Overlap-free stars P3: evolve each star once into a frozen MemberRecord that the tree, the build and the planets all read (replaces GEN.1007 and GEN.1008)**
-  Add `MemberRecord` and `Star.from_record`; the tree and the build read
-  the record, so class, mass and radius (with a giant's branch position
-  and [Fe/H]) come from one evolution; schema adds radius_max_au and
-  mass_max_solar; a radius-equality test replaces MASS_TOLERANCE as the
-  guard. Done: tree radius equals built radius for every member over the
-  TEST.476 sample. Design:
-  /mnt/project-files/design-drafts/overlap-free-systems-gen1006-2026-10-30.md
-  (section 4 and 10; sources recalled, not opened, so registry rows stay
-  below Verified until a lane checks them). Changes generated output:
-  --affects star and planet suites, epoch, golden and census re-tag on a
-  merge train. No shim.
-  Prerequisites: TEST.476. Related: GEN.1006, GEN.1004,
-  TEST.476.
-  Owner (full build) (2026-10-30 2:48 PM EDT): Boss, 2:47 PM EDT
-  2026-10-30: build all of GEN.1006. Star 2 (the pivot, ahead of
-  GEN.1024): MemberRecord and Star.from_record, tree and build read the
-  record, schema adds radius_max_au and mass_max_solar. Lock-free pieces
-  first (pure record, tests), then the wiring. Train 5. Merge
-  authorization: all merges without human review. Times to Boss in EDT
-  only.
-
-- [ ] **GEN.1010 Overlap-free stars P4: one keep-out rule at every depth of the star tree, replacing the Roche-or-extent split**
-  One keep-out rule (Roche filling for two singles, the extent rule
-  above) at every depth, with the per-level stability margin as a
-  registered stand-in (GEN.725, tier and tweak level). Done: the same
-  rule is used by the tree, the build and the verifier. Design:
-  /mnt/project-files/design-drafts/overlap-free-systems-gen1006-2026-10-30.md
-  (section 4 and 10; sources recalled, not opened, so registry rows stay
-  below Verified until a lane checks them). Changes generated output:
-  --affects star and planet suites, epoch, golden and census re-tag on a
-  merge train. No shim.
-  Owner (full build) (2026-10-30 2:48 PM EDT): Boss, 2:47 PM EDT
-  2026-10-30: build all of GEN.1006. Star 2, after GEN.1009 (same
-  module): one keep-out rule at every depth. Branch from the GEN.1009
-  branch. Train 5. Merge authorization: all merges without human review.
-  Times to Boss in EDT only.
-  Prerequisites: GEN.1009. Related: GEN.1006, GEN.1004, TEST.476.
-
-- [ ] **GEN.1011 Overlap-free stars P5: truncated sampling of period and eccentricity, deleting the 60-try loop and the tree restart loop**
-  Draw each pair's period and eccentricity from the allowed range by
-  truncated sampling instead of retrying; the shape step reports "no
-  allowed range" when there is none, and the only legal star redraw is
-  that reason. Done: TEST.476's overlap-redraw count is exactly zero.
-  Design:
-  /mnt/project-files/design-drafts/overlap-free-systems-gen1006-2026-10-30.md
-  (section 4 and 10; sources recalled, not opened, so registry rows stay
-  below Verified until a lane checks them). Changes generated output:
-  --affects star and planet suites, epoch, golden and census re-tag on a
-  merge train. No shim.
-  Prerequisites: GEN.1009, GEN.1010. Related: GEN.1006, GEN.1004,
-  TEST.476.
-  Owner (full build) (2026-10-30 2:48 PM EDT): Boss, 2:47 PM EDT
-  2026-10-30: build all of GEN.1006. Star 2, after GEN.1010: truncated
-  sampling of period and eccentricity, deleting the 60-try loop and the
-  restart loop. Train 5. Merge authorization: all merges without human
-  review. Times to Boss in EDT only.
-
-- [ ] **GEN.1012 Overlap-free stars P6: a general history rule replacing the white-dwarf-only engulfment test in classify_pair**
-  A history rule for pairs that interact as a member evolves (common
-  envelope, mass transfer, mergers, stripping), taking the built objects
-  of a node and returning replacement objects, with the engulfment
-  factor as a registered stand-in (checked against Mustill and Villaver
-  2012 when a lane can open it). Done: a post-common-envelope pair keeps
-  a consistent class and radius after the rule. Design:
-  /mnt/project-files/design-drafts/overlap-free-systems-gen1006-2026-10-30.md
-  (section 4 and 10; sources recalled, not opened, so registry rows stay
-  below Verified until a lane checks them). Changes generated output:
-  --affects star and planet suites, epoch, golden and census re-tag on a
-  merge train. No shim.
-  Revised design (11:14 AM EDT) (2026-10-30 11:15 AM EDT): The repo
-  white-dwarf engulfment constants sit below Mustill and Villaver 2012;
-  register the corrected values as a GEN.725 row with tier and tweak
-  level.
-  Owner (full build) (2026-10-30 2:48 PM EDT): Boss, 2:47 PM EDT
-  2026-10-30: build all of GEN.1006. Tides 1 (engulfment and tides are
-  its area), after GEN.1009: the history rule replacing the
-  white-dwarf-only engulfment test; registers the engulfment constants
-  below Mustill and Villaver 2012. Train 6. Merge authorization: all
-  merges without human review. Times to Boss in EDT only.
-  Prerequisites: GEN.1009. Related: GEN.1006, GEN.1004, TEST.476.
-
-- [ ] **GEN.1013 Overlap-free stars P7: keep compact members and brown dwarfs in the tree for the orbit draw**
-  Neutron stars, black holes and brown dwarfs as nodes in the tree for
-  the orbit draw (design 4.4), pending the code check of whether a
-  system build can carry a non-Star member. Done: no orbit is drawn
-  without regard to a compact member of the same system. Design:
-  /mnt/project-files/design-drafts/overlap-free-systems-gen1006-2026-10-30.md
-  (section 4 and 10; sources recalled, not opened, so registry rows stay
-  below Verified until a lane checks them). Changes generated output:
-  --affects star and planet suites, epoch, golden and census re-tag on a
-  merge train. No shim.
-  Owner (full build) (2026-10-30 2:48 PM EDT): Boss, 2:47 PM EDT
-  2026-10-30: build all of GEN.1006. Aux 3 (waiting lane), after
-  GEN.1009: compact members and brown dwarfs kept in the tree for the
-  orbit draw. Train 6. Merge authorization: all merges without human
-  review. Times to Boss in EDT only.
-  Prerequisites: GEN.1009. Related: GEN.1006, GEN.1004, TEST.476.
+  Prerequisites: GEN.1017, GEN.1014, GEN.1015, GEN.1016.
 
 - [ ] **GEN.1014 Overlap-free stars P8: a clearance ledger and planet, moon and belt sampling from it**
   A derived clearance ledger (not stored) of every star's keep-out and
@@ -13097,7 +11814,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   below Verified until a lane checks them). Changes generated output:
   --affects star and planet suites, epoch, golden and census re-tag on a
   merge train. No shim.
-  Prerequisites: GEN.1009, GEN.1011. Related: GEN.1006, GEN.1004,
+  Prerequisites: GEN.1011. Related: GEN.1006, GEN.1004,
   TEST.476.
   Revised design (11:14 AM EDT) (2026-10-30 11:15 AM EDT): The moon code
   lacks the Domingos et al. 2006 eccentricity terms and the retrograde
@@ -13125,7 +11842,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   below Verified until a lane checks them). Changes generated output:
   --affects star and planet suites, epoch, golden and census re-tag on a
   merge train. No shim.
-  Prerequisites: GEN.1011, GEN.1014. Related: GEN.1006, GEN.1004,
+  Prerequisites: GEN.1014. Related: GEN.1006, GEN.1004,
   TEST.476.
   Owner (full build) (2026-10-30 2:48 PM EDT): Boss, 2:47 PM EDT
   2026-10-30: build all of GEN.1006. Bug 1, after GEN.1011 and GEN.1014:
@@ -13311,110 +12028,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   so the GEN.1014 wiring fixes it and removes the expected-fail entry.
   Prerequisites: none. Related: TEST.477, GEN.1014, GEN.1006.
 
-- [ ] **GEN.1024 GEN.744 part B: the alpha-enhanced track shift through evolve_star and the scatter tables**
-  Split from GEN.744 by Star 2 (relayed 2:14 PM EDT 2026-10-30 as the
-  lane reported). Part A (age-metallicity wiring, draft PR #4077) is on
-  a train branch. Part B: apply the alpha-track shift
-  (physics/alpha_tracks.py, unwired and listed in the wiring register)
-  through evolve_star and the scatter tables. The tables mirror
-  evolve_star and the branch depends on age, so the tables need the
-  shift in their age windows first. Done: thick-disc and halo stars
-  evolve on alpha-enhanced tracks in evolve_star and in the scatter
-  tables, the two agree to the digit where they mirror each other,
-  alpha_tracks.py leaves the wiring register, and the stand-ins it
-  touches are recorded in GEN.725. Changes generated output (new epoch,
-  --affects population and fill), so it rides a train; the table windows
-  and a test of the mirror are lock-free first. Owner: Star 2.
-  Prerequisites: GEN.744. Related: GEN.744, GEN.944, GEN.405, GEN.725.
-
-- [ ] **GEN.1025 GEN.944 part 1b: the 10 to 13 Gyr thick-disc window in the galaxy density and age-law tables**
-  Split from GEN.944 part 1 by Star 2 (relayed 2:14 PM EDT 2026-10-30 as
-  the lane reported). The old population ends at 10 Gyr today, so no
-  thick-disc stars exist from 10 to 13 Gyr. Do: extend the old
-  population's end to 13 Gyr in the galaxy density and age-law tables
-  (GEN.405's area), keeping the mean ages and the star counts per sector
-  consistent with the galaxy model. Done: thick-disc stars of 10 to 13
-  Gyr are drawn, the census and the age-law tables agree, and the
-  stand-in rows are updated with tier and tweak level. Changes generated
-  output (new epoch, --affects population and fill), so it rides a
-  train. Owner: Star 2 (after GEN.744 part A merges).
-  Prerequisites: GEN.944. Related: GEN.944, GEN.744, GEN.405.
-
-- [ ] **GEN.1026 Carbon star and S star flags on the star sheet from the thermal-pulse and dredge-up count of the post-main-sequence track**
-  Split from GEN.944 by Star 2 (relayed 2:33 PM EDT 2026-10-30 as the
-  lane reported). The variability flags (Cepheid, Mira and semiregular,
-  T Tauri, Herbig Ae/Be) are in draft PR #4082; carbon stars and S stars
-  need the thermal-pulse count and the third dredge-up from the
-  post-main-sequence track (the carbon-star abundances already exist in
-  the composition code). Do: count the thermal pulses and dredge-up on
-  the asymptotic giant branch track, derive the carbon-to-oxygen ratio
-  from it, and flag a star with C/O above 1 as a carbon star and one
-  near 1 with s-process enhancement as an S star, as a derived row on
-  the star sheet. Done: the flags follow from the track and the
-  composition, with a test over a mass and metallicity sweep, and the
-  stand-ins are registered in GEN.725 with tier and tweak level. Owner:
-  Star 2 (after GEN.944 flags merge).
-  Prerequisites: GEN.944. Related: GEN.944, GEN.725.
-
-- [ ] **GEN.1027 Ap and Am stars: a chemically peculiar branch of the A-star draw with rotation and magnetic field**
-  Split from GEN.944 by Star 2 (relayed 2:33 PM EDT 2026-10-30 as the
-  lane reported). Ap and Am stars need a chemically peculiar branch with
-  slow rotation and, for Ap, a strong magnetic field. Do: add the branch
-  to the A-star draw (share of A stars, slow rotation, field strength
-  range) from published statistics, flag the star on the sheet, and
-  register the stand-ins in GEN.725 with tier and tweak level. Done: A
-  stars carry the flag at the published share with the matching rotation
-  and field, with a test. Changes generated output, so it rides a train.
-  Owner: Star 2 (after GEN.1024).
-  Prerequisites: GEN.944. Related: GEN.944, GEN.725.
-
-- [ ] **GEN.1028 The Mardling and Aarseth 2001 stability criterion holds only for an outer mass ratio q_out of 5 or less and the code does not enforce it (bug)**
-  Found by the GEN.1006 research thread reading Mardling and Aarseth
-  2001 (Equation 90) from the ADS scan (relayed 2:35 PM EDT 2026-10-30):
-  the formula matches the repo, but the paper says it holds only for
-  q_out <= 5, and the stability test in the star tree does not check
-  that bound. Do: find where the MA01 criterion is applied (the
-  stability check in the tree and the GEN.1004 quick fix), enforce or
-  handle q_out above 5 (use the published validity limit and a stated
-  fallback, record it as a stand-in in GEN.725 if the fallback is not
-  from a source), and add a test with q_out above 5. Done: no
-  hierarchical triple is judged by MA01 outside its stated range. May
-  fold into GEN.1010 (P4) or GEN.1016 (P10); if so, close this with it.
-  Changes generated output only if a system is judged differently, so
-  check the census. Owner: Bug 1 (star lane). Version 8.1.
-  Prerequisites: none. Related: GEN.1006, GEN.1010, GEN.1016, GEN.1004.
-
-- [ ] **GEN.1030 Methane pseudo-adiabat in the giant planet column, so Uranus-like and Neptune-like one-bar temperatures match Voyager (GEN.852 tropopause and condensables family)**
-  Found by Air 1 (relayed 3:16 PM EDT 2026-10-30 as the lane reported).
-  test_giant_one_bar_temperature: Uranus-like 95 K and Neptune-like 84 K
-  against Voyager 76 K and 72 K (tolerance 10 to 12 percent; Jupiter
-  passes). Cause is the model, not the fit: with the real Uranus inputs
-  the column gives 89.5 K (table 83), +18 percent, because the column
-  has only a dry or water adiabat while methane condenses near 1.3 bar
-  and halves the real lapse rate. The drawn internal heat of the test
-  giants (0.33 to 0.37 W/m2 against near zero for Uranus) adds about 5
-  percent. Do: a methane pseudo-adiabat in the column and a refit of the
-  table (about a day of lane compute); the two tolerances are not
-  loosened and the test is not skipped. Done:
-  test_giant_one_bar_temperature passes at its tolerances. Owner: Air 1
-  (rides train 6, lock work). Version 8.1.
-  Prerequisites: none. Related: GEN.852, TEST.479.
-
-- [ ] **GEN.1032 Refit the greenhouse table on the far-wing and acid-cloud model that GEN.1019 and GEN.1020 landed, and move the tropopause-jump sweep (GEN.852 family)**
-  Found by Bug 2's train 4 merge (PR #4105; relayed 3:37 PM EDT
-  2026-10-30 as the lane reported), red after the merge.
-  test_greenhouse_table disagrees with the model (Venus 705 K model
-  against 540 K table, 5 bar CO2) and the tropopause-jump sweep in
-  test_radiative_convective_real needs its sweep moved; both fail only
-  because GEN.1019/1020 landed after the table was fitted. Do: refit the
-  table on main's model (registry rows with tier and tweak level) and
-  move the sweep. Output changes, so it rides a later train (lock work).
-  Done: both tests pass at their tolerances. Owner: Air 1 (after
-  GEN.1030, same refit pass if the lane sees fit). Version 8.1.
-  Owner (3:43 PM EDT 2026-10-30): Air 1 (assigned by TODO; rides a later
-  train, after GEN.1030 or in the same refit pass).
-  Prerequisites: none. Related: GEN.852, GEN.1019, GEN.1020, GEN.1030.
-
 - [ ] **GEN.1033 Ice-giant internal heat: the law goes through Jupiter and Neptune, so a Uranus-mass giant gets Neptune's 0.33 W/m2 instead of Uranus's 0.04 (the Uranus anomaly), and giants draw their Bond albedo from the rock range 0.12 to 0.35**
   Found by Air 1 on GEN.1030 (relayed 3:54 PM EDT 2026-10-30 as the lane
   reported). Decision (TODO, 3:54 PM EDT 2026-10-30): Air 1 gives giants
@@ -13432,143 +12045,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   stand-in row is retired. Owner: none yet (pool; Air 1 or Core 4 giants
   chain after train 6). Version 8.1.
   Prerequisites: GEN.1030. Related: GEN.1030, GEN.810.
-
-- [ ] **GEN.1034 Ocean tide data: the open-ocean equilibrium tide height and range at a world's surface from each moon and the star, for worlds with a surface ocean**
-  Asked for by Boss (4:00 PM EDT 2026-10-30, curiosity turned into a
-  build request; relayed by the coordinator). Do: a lock-free module
-  (physics/ocean_tides.py) giving the equilibrium tide of each
-  tide-raising body, h = (3/2) (m / M) (R / d)^3 R times the Love-number
-  factor (1 + k2 - h2) for the solid body (Pugh and Woodworth 2014,
-  Sea-Level Science, chapter 3; Cartwright 1999, Tides: A Scientific
-  History), summed over the moons and the star for the spring-tide range
-  (all bodies in line) and the neap range (the Moon-Sun style difference
-  for the two largest), with the eccentric-orbit perihelion and
-  apohelion extremes (the tidal force goes as 1/d^3). A tidally locked
-  body to a tide-raiser has a fixed bulge and no oscillating tide from
-  it: the module states which bodies raise a changing tide given the
-  spin (GEN.957). The result is the open-ocean equilibrium value only;
-  real coastal range depends on basin shape and resonance, which is not
-  modelled (say so in the design note and the column description).
-  Wiring: new columns on planets with surface ocean
-  (tide_range_spring_m, tide_range_neap_m), registered in
-  db/column_units.py with units, filled in the fill pass, rides a train
-  after train 5 (it needs the moons and the spin) with an epoch
-  --affects fill; registry rows in GEN.725 with tier and tweak level
-  (the Love-number factor is Verified from Earth; a world without a
-  measured k2 uses the interior model's). Done: Earth's Moon-and-Sun
-  equilibrium tide (before the Love-number factor) comes out near the published 0.54 m lunar and 0.25 m
-  solar peak-to-peak and about 0.8 m spring range, an ocean world with
-  no moon shows only the star's tide, a locked-to-the-star ocean world
-  shows none from it, and the property sheet carries the columns. Owner:
-  Tides 1 (lock-free module now; wiring rides train 6 after train 5
-  merges). Version 8.1.
-  Boss widened the scope (4:07 PM EDT 2026-10-30): Boss, 4:07 PM EDT
-  2026-10-30: gather all the data we can for ocean tides, and check
-  whether the model can handle liquids other than water: methane or
-  ethane oceans (Titan-like), a mercury ocean or other metals, molten
-  rock lava oceans, ammonia-water, sulfuric acid, and so on. Secondary
-  and tertiary sources and stand-ins are accepted when each is
-  registered in GEN.725 (docs/design/research/stand-in-values.md) with
-  tier and tweak level and documented as the best available fit. The
-  equilibrium height does not depend on the fluid density; what does is
-  dissipation and the depth response (the basin and resonance, the
-  fluid's viscosity and density in the shallow-water speed sqrt(g d)),
-  the Love-number factor for the solid or liquid-over-solid body, which
-  liquids are stable at the surface temperature and pressure (freezing,
-  boiling, which liquids exist as oceans on which worlds, the registry
-  of ocean liquids), and ice-covered oceans. A research thread (not the
-  Tides lane) does the sweep across every lane's data, writes the
-  findings in a design draft
-  (/mnt/project-files/reports/design-drafts/), and this item is
-  rewritten from the result: the stored column names, the liquid list,
-  the stand-ins.
-  Research result (4:09 PM EDT 2026-10-30): TODO research (Boss 4:07 PM
-  EDT), draft
-  /mnt/project-files/reports/design-drafts/ocean-tides-and-liquids-2026-10-30.md:
-  the equilibrium tide height does not depend on the liquid, so the
-  module takes a liquid parameter (density, name) and stores
-  ocean_liquid beside the tide columns (water for now). Depth,
-  resonance, loading, Love factor and dissipation do depend on it (draft
-  section 3). A global liquid layer that is heavy against the body
-  (mercury on a rocky planet) breaks the thin-layer loading factor 1/(1
-  - 3 rho_l / 5 rho_mean): the module refuses above 0.9 and says so.
-  Mercury is left out (no generated composition carries it). Other
-  liquids need the surface liquid inventory, GEN.1035. Stand-in rows OT1
-  to OT5 go in GEN.725 when built, as the draft lists.
-  Boss decision (4:13 PM EDT) (4:13 PM EDT 2026-10-30): Mercury is left
-  out of the tide module and moves to the weird-conditions research
-  thread ("Research plausible weird planet conditions"). The tide module
-  for non-water liquids waits for GEN.1035 (surface liquid inventory,
-  Aux 4), planned train 6 or later; the water columns stay on train 6.
-  The weird-conditions thread inherits: mercury and other liquid metals,
-  deep global heavy-liquid layers (fluid Love-number path), and exotic
-  liquids not in GEN.1035's first table.
-  Prerequisites: none. Related: GEN.957, GEN.959, GEN.842.
-
-- [ ] **GEN.1035 Surface liquid inventory: which liquid a cold or hot world holds as a sea (methane-ethane-nitrogen, liquid nitrogen, liquid CO2, ammonia-water, sulfur) from its temperature, pressure, ice and air, so non-water oceans can have tides**
-  Proposed by the TODO research for GEN.1034 (4:09 PM EDT 2026-10-30;
-  draft
-  /mnt/project-files/reports/design-drafts/ocean-tides-and-liquids-2026-10-30.md,
-  sections 2, 4 and 5). Today the generator holds only water oceans
-  (hydrosphere.py, surface_composition LIQUID_STATES); the liquid
-  windows of 18 species are already in physics/saturation.py. Do: a
-  lock-free module that, for a body with a surface temperature and
-  pressure, lists the liquids stable there (the window from the triple
-  point to the boiling temperature at the surface pressure, using
-  saturation.py), picks the dominant one from the ice fractions and the
-  air (a stand-in rule, OT3), gives a methane-ethane-nitrogen mixture
-  for Titan-like seas (Cordier et al. 2009, memory), and returns the
-  liquid's density from a table of NIST/Glenn values (OT2); then the
-  wiring (a stored surface_liquid column, coverage, the ocean_fraction
-  for non-water, the habitability and description text) as a lock turn
-  after GEN.1034. Boss accepts secondary and tertiary sources and
-  stand-ins when each is registered in GEN.725 with tier and tweak
-  level. Done: a Titan-like world draws a hydrocarbon sea, a warm water
-  world still draws water, a body outside every window draws none, a
-  test sweep shows each liquid in its window, and the registry rows are
-  in. Owner: none yet (pool; Tides 1 after GEN.1034, or any free lane).
-  Version 8.1 or later, Boss to say.
-  Boss decision, scope and owner (4:13 PM EDT 2026-10-30): Boss, 4:13 PM
-  EDT 2026-10-30: build it, and cover ALL possible and plausible surface
-  liquids, not only the 18 species in saturation.py: lava and silicate
-  melts, molten salts, sulfur, metal melts where the physics allows,
-  hydrocarbons, ammonia mixes, brines, acids, cryogenic liquids; each
-  with a source or a stand-in registered in GEN.725 with tier and tweak
-  level (secondary and tertiary sources accepted). Mercury and the very
-  exotic cases are carried by the weird-conditions research thread; this
-  item builds the table and rules so they can be added as rows. Owner:
-  Aux 4 (assigned by TODO, free after GEN.800). Plan: the lock-free
-  module and the liquid data table (physics/surface_liquids.py,
-  physics/data/surface_liquids.json: name, phase window or
-  melting/boiling curve, density, viscosity, surface tension where
-  known, source or stand-in) first, in small parts, merged by Aux 4; the
-  wiring (stored surface_liquid, coverage, hydrosphere interplay,
-  description text) is lock work, planned for train 5 (the GEN.1035 liquid part), before the
-  non-water parts of GEN.1034 (train 6 or later). The water-ocean tide
-  columns of GEN.1034 ride train 5 unchanged.
-  Part 1 merged (PR #4123) (4:24 PM EDT 2026-10-30): Aux 4 (as the lane
-  reported): physics/surface_liquids.py and
-  physics/data/surface_liquids.json, 51 liquids (19 species with
-  saturation curves, hydrocarbons, brines, sulfuric acid, sulfur, molten
-  salts, metals including mercury, sulfide melts, lavas,
-  natrocarbonatite) each with window, density, viscosity, surface
-  tension, tier, tweak and source; the supply rule and the ideal
-  methane-ethane-nitrogen sea; registry rows LQ1 to LQ10 (section 6.69).
-  No output change. Wiring turn (train 5) is next, Aux 4.
-  Prerequisites: GEN.1034. Related: GEN.1034, GEN.461, GEN.894.
-
-- [ ] **GEN.1046 W20 design: the two-branch climate output (snowball or warm, runaway or temperate) from the ice-albedo feedback and the CO2 exit rule, as a history draw between branches**
-  Weird worlds build (Boss, 4:15 PM EDT 2026-10-30, goal issue #4117;
-  design docs/design/systems/weird-worlds.md). Secondary and tertiary
-  sources and stand-ins are accepted when each is registered in GEN.725
-  with tier and tweak level; every rate marked [R] in the design must be
-  confirmed by the lane that builds it. Do: a design note and a pure
-  function returning both branches in the bistable flux window (about 10
-  to 20 percent in flux for an Earth twin [R]; Budyko 1969, Sellers
-  1969, Pierrehumbert 2011, Kasting 1993). Waits for GEN.972 (ice-albedo
-  feedback). Lock-free. Owner: Air 1 (after GEN.972). Version 8.1.
-  Prerequisites: GEN.972.
-  Design: [docs/design/systems/weird-worlds.md](design/systems/weird-worlds.md)
 
 - [ ] **GEN.1047 Wire the oddity table and the weirdness dial: epoch, stored oddities text column and numeric columns (db/column_units.py), the "Odd: ..." line with its cause sentence on the object page, the API field, an admin force-oddity like FORCE_CLASS, the dial in settings (default 1, 0 turns all off)**
   Weird worlds build (Boss, 4:15 PM EDT 2026-10-30, goal issue #4117;
@@ -13625,7 +12101,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   confirmed by the lane that builds it. Lock work, train 9. Done:
   tests, harness, census; W20 only after GEN.972. Owner: Aux 3 (W19),
   Air 1 (W20). Version 8.1.
-  Prerequisites: GEN.1046, GEN.1047.
+  Prerequisites: GEN.1047.
   Design: [docs/design/systems/weird-worlds.md](design/systems/weird-worlds.md)
 
 - [ ] **GEN.1052 Heavy-liquid layers and mercury (from GEN.1034): the deep global heavy-liquid path with the fluid Love number, the thin-layer refusal, and mercury and other liquid metals as rows of the surface liquid table**
@@ -13643,7 +12119,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Mercury rows (4:24 PM EDT 2026-10-30): Mercury and the other liquid
   metals are rows of the GEN.1035 table already (PR #4123). What is left
   here is the deep global heavy-liquid path with the fluid Love number.
-  Prerequisites: GEN.1035, GEN.955. Related: GEN.1034, GEN.1035.
+  Prerequisites: GEN.1035. Related: GEN.1034, GEN.1035.
   Design: [docs/design/systems/weird-worlds.md](design/systems/weird-worlds.md)
 
 - [ ] **GEN.1055 Ring age and pollution darkening: a ring stores its age and its ice share and darkness follow from pollution over time (R6); ring shadow climate hook (R8)**
@@ -13658,19 +12134,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Lock-free module. Owner: Core 2 (map lane that owns the ring painter,
   MAP.275; separate branch). Version 8.1.
   Prerequisites: GEN.1036. Related: GEN.732, MAP.275.
-  Design: [docs/design/systems/weird-worlds.md](design/systems/weird-worlds.md)
-
-- [ ] **GEN.1057 Wire conditional rings: a ring follows from moon decay or comet passage and a giant with neither has none, so Saturn-like broad rings are the tail (epoch, replaces the BC20 draw), plus ring age, R4 and R9**
-  Weird worlds build (Boss, 4:17 PM EDT 2026-10-30, goal issue #4117;
-  design docs/design/systems/weird-worlds.md sections 8 and 9).
-  Secondary and tertiary sources and stand-ins are accepted when each is
-  registered in GEN.725 with tier and tweak level; [R] rates are
-  confirmed by the lane that builds it. Lock work, train 9 (with the
-  W14 and W9 wiring). Done: tests, harness, the census ring shares.
-  Owner: Tides 1 (ring origin), with Core 2 (age and painter). Version
-  8.1.
-  Prerequisites: GEN.1055, GEN.1047. Related:
-  GEN.732, GEN.959.
   Design: [docs/design/systems/weird-worlds.md](design/systems/weird-worlds.md)
 
 - [ ] **GEN.1058 Wire the G1 giant-impact tilt and the ring plane following the equator**
@@ -13692,8 +12155,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   internal heat in the inversion (or store the factors it needs), with a
   round-trip test (draw a giant, invert, reproduce its temperature).
   Done: the round trip holds for giants of every mass; it may change
-  outputs, so a lock turn if so. Owner: Air 1 (assigned by TODO, while
+  outputs, so a lock turn if so. Owner: Aux 2 (assigned by TODO, while
   in the giant column with GEN.1030/1033). Version 8.1.
+  Owner changed (2026-10-31 3:40 PM EDT): Air 1 was retired by the
+  coordinator at 3:21 PM EDT; owner is now Aux 2.
   Prerequisites: none. Related: GEN.1030, GEN.1033, GEN.412, GEN.816.
 
 - [ ] **GEN.1066 Design the system body table or view (system_bodies: id, parent, kind, mass, radius, density, a, e, i, status, tier) and the barycentre that includes the belts; decide view versus table**
@@ -13751,6 +12216,23 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Scatter placement (Boss confirmed 4:37 PM EDT) (2026-10-30 4:40 PM
   EDT): The scatter sweep (GEN.1089) runs after the giants are placed
   and before the belts are finalised; this item calls it at that point.
+  Aux 5 (2026-10-30 9:21 PM EDT) (2026-10-30 9:21 PM EDT): takes this
+  item as the build of GEN.1156 (raise the belt share toward 4 to 14
+  percent with the physics route); stacks on the GEN.1014 wiring head.
+  Check with Planets 1 before starting, in case it has begun.
+  Boss belt decisions (relayed by Aux 5) (2026-10-30 10:26 PM EDT): (1)
+  The inner belt is the asteroid belt and counts in the 4 to 14 percent;
+  the outer belt and the Kuiper belt are separate kinds; belts and
+  asteroid fields share one small-body population base (class split,
+  belt and asteroid field branches). (2) Individual bodies above the
+  1e19 kg mass cutoff are stored in belts and asteroid fields: round
+  ones are dwarf planets (Class D), too-small ones are a new object type
+  Asteroid (no class letter), and asteroids can be moons. (3) Class D is
+  airless, round and lighter than the planet minimum (0.1 Earth masses
+  inside the snow line, 0.6 beyond; Aux 5 asked Boss whether to use 0.05
+  instead); Class C is airless at or above it; the water rule is
+  dropped; moons use the same classes. GEN.1068 carries 1 to 3 plus the
+  field member ledger once a field mass rule is agreed.
   Design: [docs/design/systems/belt-evolution.md](design/systems/belt-evolution.md)
 
 - [ ] **GEN.1069 Store the belt mass, Dc, age history text and formation snow line (DB.70 column, migration) and wire belt_mass into AsteroidBelt, replacing the three density words**
@@ -13775,6 +12257,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Belt origins (2026-10-30 4:35 PM EDT): Adds the origin, formation and
   history text columns to the belt record (design belt-origins section
   4).
+  Wiring sweep (Boss, 12:03 PM EDT: nothing built and left unused;
+  report reports/wiring-sweep-2026-10-31.md) (2026-10-31 12:25 PM EDT):
+  It had no owner; the belt page and the scatter wiring read what it
+  stores. Owner now: Sources 2 (with GEN.1092) (proposed by the TODO
+  thread; the lane says if it cannot take it).
   Prerequisites: GEN.477, GEN.1068. Related: GEN.477.
   Design: [docs/design/systems/belt-evolution.md](design/systems/belt-evolution.md)
 
@@ -13912,6 +12399,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   tests, census share of giants with irregulars and the head counts per
   giant. Where we think it belongs (best guess, can move): Core 3 (owns
   the moon draw lock), train 7.
+  Note (Star 2, GEN.1072 #4430) (6:14 AM EDT 2026-10-31, as Star 2
+  reported): belt_history.SURFACE_DENSITY_SLOPE (registry row 6.119:CP2)
+  is still not read by the captured composition. The wiring register
+  line for it was removed because the wiring guard judges a row by
+  whether its module is reached, and GEN.1072 now imports belt_history
+  in generation code. The reminder lives here: wire
+  SURFACE_DENSITY_SLOPE into the captured composition when this lands.
   Prerequisites: GEN.1082.
   Design: [docs/design/systems/captured-asteroid-moons.md](design/systems/captured-asteroid-moons.md)
 
@@ -13992,35 +12486,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.1070, GEN.1071.
   Design: [docs/design/systems/belt-origins.md](design/systems/belt-origins.md)
 
-- [ ] **GEN.1096 planet_mass.gas_outcome returns max(runaway, core) and the core is capped at 0.01 of the star, not at the 13 Jupiter-mass edge: a 1.5 to 2 solar-mass host at twice solar metals draws 15 to 21 Jupiter masses (4 in 3,000 draws) (bug)**
-  Found by Aux 3 in TEST.493 (PR #4138): the case is a strict xfail in
-  tests/test_giant_oddity_audit.py. A Sun-like host ceiling is 10.5
-  Jupiter masses; 10 to 13 appear only above about 1.24 solar masses.
-  Fix: cap the draw at the brown-dwarf edge with the host-mass
-  dependence. The fix changes generated output (lock work, epoch,
-  --affects plan) and removes the xfail. Where we think it belongs (best
-  guess): Core 4 giants chain, train 5.
-  Prerequisites: none.
-
-- [ ] **GEN.1097 Every object has a day-and-night state and counter: solar day length, day and night hours, and an explicit state for tidally locked, non-rotating, polar-day and no-solid-surface bodies, stored for planets, moons, belt bodies and (where meaningful) stars (bug)**
-  Boss, 4:47 PM EDT 2026-10-30: spins run in effectively real time on
-  screen but not all objects have a night and day, and ALL objects
-  should have a night-and-day counter. Today daylight_hours and the day
-  and night shares are stored for planets (migration 0170, GEN.767) and
-  GEN.768 builds the hours outside; moons, belt bodies and stars carry
-  no day state, and a locked body has no stated state. Do: a pure
-  function of spin period, orbital period, eccentricity, tilt and the
-  host giving the solar (synodic) day, the day and night hours by
-  latitude band, and the state word (cycle, tidally locked with a
-  permanent day side, non-rotating, polar day or night, no surface);
-  stars show the rotation period and the word "no night". Done: tests on
-  Earth, Mars, Venus, Mercury (3:2), a locked M-dwarf planet, Io, a belt
-  body, the Sun; the values stored for every object kind (columns in
-  db/column_units.py, migration, API bump). Lock work (epoch if a value
-  draws, migration). Where we think it belongs (best guess, can move):
-  Aux 2 (owns GEN.768 hours outside), train 6.
-  Prerequisites: none. Related: GEN.768, GEN.957.
-
 - [ ] **GEN.1103 AsteroidField columns, radius derived from age, the field density leaving 0, registry text changed**
   Interstellar asteroid fields from rogue-planet collisions and the
   other sources (Boss, 4:40 PM EDT 2026-10-30; design
@@ -14097,44 +12562,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   retire is confirmed.
   Prerequisites: GEN.1103, GEN.1006.
   Design: [docs/design/systems/interstellar-asteroid-fields.md](design/systems/interstellar-asteroid-fields.md)
-
-- [ ] **GEN.1108 Part B (storage, page and move of regional_temperature): climate by latitude band for every body in seven bands (the equator, three above, three below, the poles inside the outermost band each side), the temperature categories of regional_temperature.py extended to seven: day and night length and the temperature range by day and by night (bug)**
-  Boss, 4:52 and 4:53 PM EDT 2026-10-30: every body says how much day
-  and night it has at various places from the equator, in the same
-  categories as the temperatures. He means lines of latitude: the
-  equator, three bands above it and three below, the poles included in
-  the outermost band on each side (seven bands), each with climate data
-  including day length and night length and the temperature range for
-  day and for night. regional_temperature.py has four bands today
-  (BANDS: polar, north, equator, south; 60 to 90, 20 to 60, -20 to 20,
-  -60 to -20 degrees), so this widens the category set to seven (the
-  lane keeps the existing names where they still fit and names the new
-  ones, widths a stand-in registered in GEN.725) and moves the stored
-  regional temperatures to it. Do: a pure function of tilt, orbit,
-  eccentricity, spin and host returning for each band the mean day and
-  night hours per day, the longest polar day and night over the year,
-  the state (cycle, permanent day side, permanent night side, terminator
-  band, non-rotating with the year as the day), and the temperature
-  range by day and by night from the existing day and night shares and
-  the regional model; the page shows the seven bands beside each other,
-  replacing the "no day and night range stored for this place" note.
-  Done: tests on Earth (24 h at the equator, a polar day of about 186
-  days north of the Arctic circle), Uranus (98 degrees), a locked
-  planet, Venus; values stored per band for every object kind (columns
-  in db/column_units.py, migration, API bump); the units shown. Lock
-  work (migration, API version, regional temperatures move). Where we
-  think it belongs (best guess, can move): Aux 2 with the day-and-night
-  state item, train 6.
-  Part A done (2026-10-30 8:42 PM EDT): part A (the pure function
-  physics/latitude_bands.py, registry row LB1, tests on Earth, Uranus,
-  Venus and a locked planet) merged as PR #4286, lock-free. What remains
-  is part B, the lock part: columns in db/column_units.py, migration,
-  API bump, the page showing the seven bands beside each other, and
-  replacing the four stored bands of regional_temperature (and the
-  readers in protection.py, the sheet and the API) with the seven. Owner
-  Aux 2, stacked on claude/gen768-outside-hours and claude/gen1097 for
-  train 6.
-  Prerequisites: GEN.1097. Related: GEN.768, GEN.1048.
 
 - [ ] **GEN.1110 Average wind speeds by day and by night in each of the seven latitude bands: the day-to-night thermal wind from the pressure difference, zonal jets and trade winds from the equator-to-pole temperature difference and the Rossby number, faded out below about 1 kPa**
   Boss asked, 4:53 PM EDT 2026-10-30, whether wind speed by day and
@@ -14280,27 +12707,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   compatibility shim.
   Prerequisites: GEN.1014. Related: GEN.291, GEN.557, GEN.728.
   Design: [docs/design/systems/interstellar-asteroid-fields.md](design/systems/interstellar-asteroid-fields.md)
-
-- [ ] **GEN.1119 RP1: classify every architecture loss as ejected, collided or bound by the Safronov number and return an ejection record (mass, composition, kept moons, orbit at ejection, time), counting the small bodies the chain deletes today**
-  Rogue planet physics (goal #4130, review report
-  docs/design/research/rogue-planet-review.md, GEN.1109 merged).
-  Measured on 1500 stars: the architecture ejects only about 0.3 bodies
-  (about 9 Earth masses, almost all giants) per star while the flat rate
-  gives about 2.7 per star over the range microlensing probes (Sumi 2023
-  central value 21, lower 1 sigma 8; Mroz 2017 Jupiter limit holds);
-  about 125 sub-minimum bodies per star are deleted and merges lose 10
-  percent of mass; Barclay 2017's 2.5 terrestrial bodies per star is the
-  target scale. Do: a pure extension of the scatter module (GEN.1089,
-  merged) so no body is simply deleted: each loss is classed ejected,
-  collided (merge, with the lost mass kept) or bound by its Safronov
-  number and the ejected ones return a record; the ejection record is
-  what GEN.1111 consumes. Done: tests with giant-free and giant-rich
-  systems, mass conserved, the per-star ejected counts reported (target
-  scale 2.5 terrestrial bodies per star, Barclay 2017). Lock-free. Where
-  we think it belongs (best guess, can move): Planets 1 (now; GEN.1066
-  waits for the GEN.1014 wiring), separate branch.
-  Prerequisites: none. Related: GEN.1111, GEN.1112.
-  Design: [docs/design/research/rogue-planet-review.md](design/research/rogue-planet-review.md)
 
 - [ ] **GEN.1120 Rogue planet abundance option: a None, Few, Normal, Many dropdown in the galaxy and the sector generation options, with Normal the target and the physics-based spread tweaked to the low side of the observed range**
   Boss, 5:28 PM EDT 2026-10-30: add a tweak to bring our physics-based
@@ -14453,97 +12859,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Aux 2 (life), after the life class build, a later train.
   Prerequisites: none. Related: GEN.648, GEN.688, GEN.644.
 
-- [ ] **GEN.1133 Rocky rogue planets of 10 to 16 Earth masses come out up to 17,600 km, past class S's 11,468 km top: apply Core 4's recommendation so the size range and the class agree**
-  Class sweep (GEN.29, report reports/core4-class-sweep-2026-10-30.md,
-  1,788 bodies; Boss answered 5:51 PM EDT 2026-10-30). Boss: yes, apply
-  what Core 4 recommended. The earlier research
-  (atmospheres-retention-and-classes.md, 2026-10-09) offered a new class
-  R at 10 to 16 Earth masses or a cap of S at 13,500 km; new class
-  letters are revoked (Boss, 8:16 PM EDT 10-29), so the recommendation
-  to apply is Core 4's in the sweep report and this note. Do: read the
-  sweep report and the GEN.29 history, state in the item which of the
-  two (or the nearest conditions-based fit) is applied, change the class
-  range or the size draw so no body is classed outside its size range,
-  and keep one body chain for rogues and bound planets (a rogue is
-  identical to a bound planet, Boss 10-30). Done: tests that every rogue
-  and planet of 10 to 16 Earth masses sits inside its class range,
-  census re-baseline. Lock work if the draw or the range changes output
-  (epoch with --affects, golden). Where we think it belongs (best guess,
-  can move): Core 4, a later train.
-  Prerequisites: none. Related: GEN.29, GEN.1111.
-
-- [ ] **GEN.1135 Retire Class Q: remove the row from planet_classes.json, tuning.PLANET_CLASSES and HABITABLE_PLANET_CLASSES, and show the orbit swing as the stored flux_variation plus an "At a glance" flag when it is very high**
-  Boss, 6:07 PM EDT 2026-10-30: retire Class Q entirely; eccentricity
-  stays in the orbit data with an at-a-glance flag when very high.
-  Assessment: reports/core4-class-q-assessment-2026-10-30.md (GEN.1132).
-  What depends on Q: the Q row of planet_classes.json (name, sentence,
-  basis, flux_variation minimum 0.25, the quantity and the reserve list;
-  the order of rows decides ties, Q sits between N and V);
-  tuning.PLANET_CLASSES['Q'] (read by generation/life.py into
-  planet.description) and tuning.HABITABLE_PLANET_CLASSES (Q is listed);
-  a map colour; the forced-class request; and the tests
-  test_planet_classes (the Q case of the quantity table),
-  test_class_sample (its letter list) and audit/sweep_classes. The 128 Q
-  bodies of the 1,788-body sample go to V 59, K 34, P 22, B 6, F 3, O 3,
-  M 1, so the stored class letter changes for about 7 percent of bodies,
-  plus the description text and habitable_class for B; positions,
-  masses, climates and life do not change. The letter Q stays reserved
-  (the 20-letter rule is changed by Boss: 19 classes in use). Default
-  taken until Boss gives the line: the flag shows a row "Seasonal swing
-  of starlight: very high" in the glance panel of planets and moons only
-  at flux_variation 0.75 or more (4 percent of bodies; 0.5 would flag 12
-  percent, 0.25 would flag 36 percent), with the number on the full
-  sheet as now. Done: row and description removed, flag in the glance
-  panel, tests, golden update, census re-baseline. Lock work (epoch with
-  --affects for the class column and description, golden). Where we
-  think it belongs (best guess, can move): Core 4, train 6, the first
-  window after train 5 (Boss, 6:12 PM EDT 2026-10-30: as soon as possible
-  so he can test it as a lever for Class M; train 5 had its golden
-  started at 6:13 PM EDT as the runner reported, so it cannot join).
-  Build it now so it is ready when the train 6 list freezes; the Class M
-  fix rides the same window if its research reports in time, else a
-  later one.
-  Class M (6:08 PM EDT) (2026-10-30 6:08 PM EDT): Boss, 6:07 PM EDT:
-  investigate how to fix the Class M problem (Class M never appears: 0
-  of 3,164 bodies in Aux 2's sweep, 1 of 1,788 in Core 4's) since no one
-  knows how rare Earth-type planets are in the actual universe. A
-  research thread is being started by the coordinator; its items are
-  filed when it reports and ride the same window as this item.
-  Boss, 6:26 PM EDT (2026-10-30 6:27 PM EDT): redo ALL classes when the
-  epoch updates: the epoch for this item and GEN.1136 re-derives the
-  stored class of every body from the finished body (--affects for the
-  class column, description and habitable_class), golden update, census
-  re-baseline. Both items ride train 6 as one epoch; GEN.1136 moves the
-  Class V line to 2 g.
-  Prerequisites: none. Related: GEN.1132, GEN.1131, GEN.854.
-
-- [ ] **GEN.1136 Move the Class V gravity line from 1.25 g to 2 g so Earth-sized and super-Earth temperate worlds can land in Class M, and register the line in GEN.725**
-  Boss, 6:26 PM EDT 2026-10-30, confirmed: "that is an excellent change,
-  do that in Train 6 with the Class Q retire. Make sure TODO knows to
-  redo all classes when updating epoch." Class M never appears because
-  the class V line (1.25 g, about 1.14 Earth radii) catches most of the
-  planets the literature calls Earth-sized in the habitable zone (Bryson
-  2021, arXiv:2010.14812, radius 0.5 to 1.5 Earth radii, about 2 g at
-  1.5). Report reports/class-m-investigation-2026-10-30.md. Boss did not
-  pick between 1.5 g and 2 g: take 2 g from the report (stand-in,
-  GEN.725, Confident Unverified, tweak L1, source Bryson 2021 limit of
-  1.5 Earth radii); keep V as the class above it. Do: change min in the
-  V row of planet_classes.json and its sentence and basis; add the
-  registry row (and a burn-down line only if it ends at L3 or L4, which
-  it should not); add a text note on the M class page that gravity runs
-  to 2 g; keep M's other conditions; no forced class and no game rate.
-  Re-derive EVERY class (Boss: redo all classes when the epoch updates):
-  the epoch carries --affects for the class column, the description and
-  habitable_class, and the stored class of every body is recomputed from
-  the finished body, not only the V and Q bodies. Done: tests for the
-  new line, golden update and census re-baseline, and after the epoch a
-  printed count per class of temperate (250 to 330 K) bodies with an
-  ocean, so Boss can see what M yields; change nothing else until that
-  is read. Lock work, same epoch as GEN.1135. Where we think it belongs
-  (best guess, can move): Core 4, train 6, first in the window together
-  with GEN.1135.
-  Prerequisites: none. Related: GEN.1135, GEN.1132, GEN.909, GEN.911.
-
 - [ ] **GEN.1137 cooling_track (GEN.948) jumps for a mass just under the lowest mass the table holds: 0.0699 solar masses at 5 Gy gives 1220 K, 0.07 gives 1627 K, so the temperature cap never binds below the limit mass (bug)**
   Sources 2, 6:35 PM EDT 2026-10-30 (as the lane reported), found while
   wiring GEN.494: the track extrapolates at t^-0.32 from the age at
@@ -14634,92 +12949,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.1138. Related: GEN.1121, GEN.1070.
   Design: [docs/design/architecture/designation-history.md](design/architecture/designation-history.md)
 
-- [ ] **GEN.1142 Class lines patch for the train 6 epoch: T hydrogen-envelope test ahead of N, N Venus-like sentence and hot, not-hydrogen-dominated rule, K without the under 273 K condition and ordered after P**
-  Class index patch
-  (reports/class-index-rebuild-assessment-2026-10-30.md; Boss said yes
-  at 6:48 PM EDT 2026-10-30 to patching the class lines in the same
-  train 6 epoch as the Class Q retirement GEN.1135 and the Class V line
-  GEN.1136). Do: (1) class T: a hydrogen-envelope test ahead of N so
-  hydrogen-rich terrestrial-kind bodies under about 10 Earth masses
-  become T (today 35 of 105 N bodies are hydrogen-rich, median 5.7 Earth
-  masses, and T gets none); (2) class N: 10 bar or more, hot, and not
-  hydrogen dominated, sentence back to Venus-like dense carbon dioxide
-  and sulfur air; (3) class K: drop the under 273 K condition, order it
-  after P, sentence back to an adaptable world with a thin atmosphere
-  (43 of 44 K bodies are frozen ocean); (4) GEN.725 rows for the V line
-  at 2 g, the flux flag at 0.75 and the N temperature line. If the
-  counts of GEN.1143 are not back before the train 6 cut, ship GEN.1135
-  and GEN.1136 alone and hold this item for the next window. Done: tests
-  naming the letters, class page and condition-based-planet-classes.md
-  text updated, covered by the same epoch re-derivation of every class.
-  Lock work, same epoch as GEN.1135. Where we think it belongs (best
-  guess, can move): Core 4, train 6.
-  Boss, 6:57 PM EDT 2026-10-30, SUPERSEDES the K rule above and widens
-  the patch (2026-10-30 7:00 PM EDT): class decisions: (1) E and F are
-  near duplicates whose lore purpose (stages on the chain to an
-  Earth-like world) Boss dislikes: retire one and keep one, or make each
-  more distinct, our choice. (2) Class K: above freezing, thin
-  atmosphere and LOW atmospheric pressure, near-Earth temperature,
-  pretty close to Earth-like but not quite; below freezing goes to Class
-  P (glaciated) at the top end of what P accepts. (3) Class L:
-  Earth-like except high CO2 and low oxygen, difficult to breathe
-  without a mask but not toxic (the original description fits),
-  near-Earth temperature. (4) Class H: desert world, less than about 20
-  percent available surface water (Boss: if I recall correctly, check
-  the source). (5) Class O: ocean world, about 80 percent of the surface
-  ocean. (6) CONDITIONS ONLY, no zone (hot, eco, cold) in any class
-  rule: a K or L world may sit closer to or farther from its star if
-  that is what the temperature needs. H and L are unreached today (zero
-  bodies) and must be fixed in this epoch; O (1 to 3 bodies) must be
-  checked against the 80 percent rule. The class index thread's result
-  sets the exact lines; this item and the train 6 epoch scope follow it.
-  Still one epoch for every class re-derivation.
-  Class index thread result, 7:05 PM EDT 2026-10-30 (Boss decisions of
-  6:57 PM EDT turned into lines; SUPERSEDES the T, N, K lines above
-  where they differ) (2026-10-30 7:08 PM EDT): E retired (letter
-  reserved); F kept as the reducing-air world (no free oxygen, methane
-  or hydrogen 5 percent or more), sentence loses the stage idea; K =
-  thin air under 3 kPa, mean surface 273.15 K to about 320 K, little
-  oxygen (the cold part goes away); P = every mean surface below 273.15
-  K (line moves from 210 K, a large change, P takes the cold Q and K
-  bodies, census moves); L = Earth-like pressure (about 30 kPa to 3
-  bar), 273.15 K to about 320 K, CO2 about 1 percent or more (ahead of G
-  at 20 percent) and O2 3 to about 16 percent, sentence hard to breathe
-  without a mask, not toxic; O = ocean fraction 80 percent or more; H =
-  under 20 percent; M = the rest (20 to 80 percent); T and N lines as
-  above. Result: 18 live classes (Q and E retired, letters reserved).
-  Temperature and pressure make K, L, M, P disjoint; G stays after L.
-  Register every new line in GEN.725 (L1 or L2). Classification already
-  reads conditions only, never zone. H got zero bodies at 15 percent and
-  widening alone may not fill it (bodies with air nearly always keep
-  their water): see GEN.1145 and GEN.1146.
-  Boss, 7:05 PM EDT 2026-10-30, two more changes (2026-10-30 7:08 PM
-  EDT): (1) E is NOT reserved: retire it fully (the letter is free, not
-  held); this changes the 18 live classes count only if the new cold
-  class takes a letter (see 2). (2) Class P is too cold at the bottom: P
-  only goes down to -40 C (233.15 K); bodies colder than that need a NEW
-  class designator (letter proposed by the class index thread, may reuse
-  E). P then spans 233.15 K to 273.15 K. Register the new line in
-  GEN.725 and add the class to the sentence, colour, glance panel and
-  tests. Same epoch, same full re-derivation. The exact letter and
-  sentence follow the class index result.
-  Class index thread, 7:12 PM EDT 2026-10-30 (update to the Boss 7:05 PM
-  EDT note) (2026-10-30 7:12 PM EDT): old E is retired outright (reserve
-  list stays R U W X Y Z); P covers air-bearing bodies 233.15 K (-40 C)
-  to 273.15 K; the new class for air-bearing bodies under 233.15 K is
-  recommended to reuse the letter E as "Deep-frozen world" (option 2:
-  take R); Boss still to confirm the letter (build with E as the
-  default); live classes 19 (A to P, S, T, V). Update docs, tests and
-  the sweep script that name old E, the system map legend colour, the
-  class pages, and GEN.725 rows for the 233.15 K line. Detail: Update
-  7:12 PM section of
-  reports/class-index-rebuild-assessment-2026-10-30.md.
-  Boss, 7:06 PM EDT 2026-10-30 (2026-10-30 7:10 PM EDT): letter
-  confirmed: the new Deep-frozen class (air-bearing bodies under 233.15
-  K) takes Class E; P is 233.15 K to freezing. The letter is no longer
-  open.
-  Prerequisites: none. Related: GEN.1135, GEN.1136, GEN.1143.
-
 - [ ] **GEN.1144 Post-train-6 class re-sweep on the new main, then decide the E and F merge, the T versus N boundary and the H and L reach**
   Class index patch
   (reports/class-index-rebuild-assessment-2026-10-30.md; Boss said yes
@@ -14738,9 +12967,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   inside the train 6 epoch (GEN.1142). This re-sweep now checks that H,
   L, O and K reach bodies with their new lines, and reports the
   temperate-ocean count per class.
-  Prerequisites: GEN.1135, GEN.1136. Related: GEN.1142.
+  Changed by best-fit classes GEN.1205 to GEN.1208 (2026-10-31 9:46 AM
+  EDT): The re-sweep question of which classes reach zero bodies (H, L,
+  E against F, T against N) is answered much better by the best-fit
+  shadow scorer (GEN.1206): its low-match list shows the bodies no class
+  fits and its confusion table shows where each old letter goes. Run the
+  re-sweep with that tool once it exists, and make the E and F, T and N
+  and H and L decisions from its report. The row-order reasons for those
+  decisions go away under GEN.1207.
+  Prerequisites: none. Related: GEN.1142.
 
-- [ ] **GEN.1147 Ocean-fraction law: replace the sqrt cover law with a two-level hypsometry plus the mantle water cap by mass (2 to 8 oceans), in one epoch (BOSS DECIDES before any code)**
+- [ ] **GEN.1147 Ocean-fraction law: replace the sqrt cover law with a two-level hypsometry plus the mantle water cap by mass (2 to 8 oceans), in one epoch**
   Aux 2, GEN.1146 report
   reports/ocean-fraction-physics-gen1146-2026-10-30.md (as the lane
   reported, 1,000 systems): 16 percent of temperate air-bearing bodies
@@ -14761,20 +12998,21 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   until Boss picks. Lock work if built (epoch, golden, census). Where we
   think it belongs (best guess, can move): Aux 2 with Aux 3, a later
   train window.
+  Decided (Boss, 9:28 AM EDT 2026-10-31) (9:28 AM EDT 2026-10-31):
+  option 1, the recommended one: replace the square-root cover law with
+  a two-level hypsometry plus the mantle water cap by mass (2 to 8
+  oceans), in one epoch, report the share as a physics result, and leave
+  the Bern water prior alone. The BOSS DECIDES hold is lifted. Owner Aux
+  2 with Aux 3, a later train window. Lock work: epoch, golden, census
+  re-tag.
+  Changed by best-fit classes GEN.1205 to GEN.1208 (2026-10-31 9:46 AM
+  EDT): GEN.1147 is the biggest lever on how many bodies are class M,
+  because M needs 20 to 80 percent water cover (best-fit design,
+  GEN.1205). Boss chose option 1 earlier, so it is not blocked. After it
+  lands, GEN.1206 prints the temperate-ocean count per class (M against
+  O, V, F, G); read that count before GEN.1207 is built, and if both
+  want an epoch they may share one.
   Prerequisites: none. Related: GEN.1146, GEN.1142, GEN.909.
-
-- [ ] **GEN.1148 Asteroid belt share fell from 55 percent of systems to 3 percent and binary share rose from 24 percent to 31.5 percent between the census before trains 3 and 4 and current main (Bug 2 census); find out whether each is the intended change or a bug (bug)**
-  Bug 2 measured these in the prevalence suite (PREVALENCE_BASE_SHARES,
-  #4251). A belt cut was decided (belt mass cut is the rule) but 55 to 3
-  percent is far larger than a mass cut should do unless the cut removes
-  small belts the old rule counted. For each shift name the change that
-  caused it (bisect by merge), say whether the new value is what the
-  physics and the belt rule give, and if not file the fix. Binary share:
-  the star mass function epoch changed the draw, so say whether 31.5
-  percent matches the multiplicity sources. Report numbers per version
-  of main, no fix without the cause. Source: prevalence census
-  (TEST.430).
-  Prerequisites: none.
 
 - [ ] **GEN.1150 Lagrange trojans T2: the generator draws a trojan swarm at the L4 and L5 of each giant planet or brown dwarf from the scatter trojan share; new columns co_orbital_host_id, lagrange_point, libration amplitude and phase (db/column_units.py); orbit updater libration overlay; the object and sector pages and the designation rule "<host> L4 trojan region"**
   Epoch lock, migration, --affects on the generator and orbit-tree
@@ -14814,7 +13052,1350 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   sheet. Stars and rogue planets store nothing yet. Belt bodies get
   theirs with GEN.1069. Needs a migration for any stored column, so it
   rides a train after GEN.1097.
-  Prerequisites: GEN.1097.
+  Prerequisites: none.
+
+- [ ] **GEN.1156 Raise the belt share after the GEN.728 disc architecture (3 to 12 percent of systems) toward the documented 4 to 14 percent with a physics-driven change**
+  From Aux 5 (GEN.1148,
+  reports/gen1148-belt-binary-shift-2026-10-31.md): belts per system
+  fell from 53 to 3 percent (11.8 percent in the fixed-type census) at
+  train 4 (GEN.728/729/730, epoch 126) because orbital slots fell from
+  10.4 to 4.2 per system and only 18 percent of slots now hold a body
+  under 1 Earth mass (eligible slots 8.5 to 0.62). That matches the 4 to
+  14 percent the GEN.728 note and
+  tests/data/prevalence_systems_expectations.json expect, but it sits at
+  the low end on the default mix. Boss approved raising the share
+  (9:13 PM EDT 2026-10-30), physics-driven. Aux 5 picks the way from
+  these, all train-bound because they change output: (1) raise
+  ASTEROID_BELT_PROBABILITY (0.1) to a stated target, a stand-in at tier
+  L3 in GEN.725; (2) make the belt its own component of the disc
+  architecture, reserved when the disc leaves leftover mass, instead of
+  a slot swap (larger, physics-driven; recommended). Owner Aux 5,
+  train-bound (changes output: epoch, golden, generation-output:
+  changed). Any stand-in goes in GEN.725 with tier and tweak level.
+  Prerequisites: none. Related: GEN.728, GEN.729, GEN.730, GEN.1061,
+  GEN.725.
+  Aux 5 finding (2026-10-30 9:21 PM EDT): the physics route is GEN.1068
+  (belt birth from the architecture, belt_origin.py written). Measured
+  on main (400 default-mix systems), 99.5 percent of systems have
+  leftover solids that could form a belt (tail 80, snow-line bump 42,
+  outer disc 16, gap 12.5 percent), so the share is set by the line
+  where a leftover counts as a belt; after Wyatt grinding the share with
+  a belt of at least 0.01 Earth masses is 9, 37 and 87 percent for a
+  largest body of 100, 500 and 1000 km. Raising
+  ASTEROID_BELT_PROBABILITY to about 0.25 gives about 8 percent but is a
+  game rate. Aux 5 asks Boss where the line sits. GEN.1156 is built as
+  part of GEN.1068 (same lane, same train 7 lock window), not
+  separately.
+
+- [ ] **GEN.1157 Earth-type moons around gas giants: how often a giant has a moon the size of a planet, and how big, from the physics of moon formation and capture**
+  Boss, relayed by Aux 5 (10:26 PM EDT 2026-10-30): file separately the
+  case of planets as moons, Earth-type moons around gas giants. Decide
+  from physics (circumplanetary disc formation, capture of a binary
+  planet, giant impact) how often a giant has a moon of planet size and
+  how large it can be (mass range, with the satellite-to-planet mass
+  ratio limit), draw it with the same generator as in-system planets and
+  moons (no special case), and give it the same classes and life rules
+  as a planet. No fixed content from the Solar System. Needs a research
+  read first (registered sources, stand-ins in GEN.725 with tier and
+  tweak level), then an epoch, so it rides a later train; lock work.
+  Related GEN.962 (moons) and GEN.1068.
+  Prerequisites: none. Related: GEN.962, GEN.1068, GEN.725.
+
+- [ ] **GEN.1159 Store ice fraction, bulk density, roundness ratio, yield strength and binding energy on planets, moons, asteroids and belt or field members (columns, migration, API version)**
+  Research: reports/round-shape-minimum-mass-2026-10-31.md (in
+  /mnt/project-files/reports/). Boss decision (8:41 PM EDT 2026-10-30,
+  relayed by Aux 5): Class D's primary qualifier is a roundness ratio of
+  1; airless is kept; Class D below 0.1 Earth masses, Class C at or
+  above; build the engine; store ice fraction, bulk density, roundness
+  ratio, yield strength (from composition) and gravitational binding
+  energy for every planet, moon, asteroid and belt or field member.
+  Owner Aux 5. Columns registered in db/column_units.py, migration,
+  schema fixture, API version bump if the API changes, sheet rules. Lock
+  work (migration, epoch, golden): rides the GEN.1068 window. Done:
+  columns filled for every body kind, fill audit green.
+  Prerequisites: GEN.1158. Related: GEN.1068, GEN.1158.
+
+- [ ] **GEN.1160 Class D and C rules read the roundness ratio and the 0.1 Earth mass line, and the Asteroid object type (no class letter, moon-capable) for bodies under roundness ratio 1**
+  Research: reports/round-shape-minimum-mass-2026-10-31.md (in
+  /mnt/project-files/reports/). Boss decision (8:41 PM EDT 2026-10-30,
+  relayed by Aux 5): Class D's primary qualifier is a roundness ratio of
+  1; airless is kept; Class D below 0.1 Earth masses, Class C at or
+  above; build the engine; store ice fraction, bulk density, roundness
+  ratio, yield strength (from composition) and gravitational binding
+  energy for every planet, moon, asteroid and belt or field member.
+  Owner Aux 5. Class D is airless, round (ratio 1) and below 0.1 Earth
+  masses; Class C is airless at or above it; the water rule is dropped;
+  moons use the same classes. Bodies under ratio 1 are the new object
+  type Asteroid, which is not a planet class and can be a moon. Lock
+  work, same window as GEN.1068, folds into it. Done: classes derived
+  from the ratio, the Asteroid type in the data and pages, tests, census
+  re-tag.
+  Changed by best-fit classes GEN.1205 to GEN.1208 (2026-10-31 9:46 AM
+  EDT): Class D and C rules here are the first-match rules; under
+  best-fit (GEN.1205 to GEN.1207) D and C each get a positive condition
+  set (airless, round, below 0.1 Earth masses versus at or above) with a
+  shoulder on the 0.1 line, and the Asteroid type stays outside the
+  class letters. Build the rules so GEN.1205 can read the same edges: no
+  second copy of the 0.1 line.
+  Prerequisites: GEN.1159. Related: GEN.1068, GEN.725.
+
+- [ ] **GEN.1161 Asteroid field mass rule and a member ledger like the belts' (individual bodies above 1e19 kg stored, the rest drawn on demand)**
+  Research: reports/round-shape-minimum-mass-2026-10-31.md (in
+  /mnt/project-files/reports/). Boss decision (8:41 PM EDT 2026-10-30,
+  relayed by Aux 5): Class D's primary qualifier is a roundness ratio of
+  1; airless is kept; Class D below 0.1 Earth masses, Class C at or
+  above; build the engine; store ice fraction, bulk density, roundness
+  ratio, yield strength (from composition) and gravitational binding
+  energy for every planet, moon, asteroid and belt or field member.
+  Owner Aux 5. Proposal first: Aux 5 writes the field mass rule (how
+  much mass a field holds by origin) and Boss agrees it, then the member
+  ledger reuses the belt rule of GEN.1068. Lock work, same window as
+  GEN.1068 or later.
+  Mass rule part merged (#4586), Aux 5 (2026-10-31 3:23 PM EDT): The
+  mass rule is done and merged lock-free (physics/field_mass.py, 11
+  tests, stand-ins FM1 and FM2 in section 6.161); the module is not
+  wired yet: the field columns and member rows (GEN.1103, GEN.1104,
+  GEN.1105) call it. Boss approved option 1 at 3:14 PM EDT. This item
+  stays open for the member ledger
+  (planetgen.galaxy.object_uid.is_on_demand is named by the wiring
+  register) until that wiring is built. Aux 5 is the owner.
+  Prerequisites: GEN.1160. Related: GEN.1068, GEN.1160.
+
+- [ ] **GEN.1162 Store bulk density and binding energy (and roundness ratio, yield strength and ice fraction where they apply) on stars, brown dwarfs, giant planets, white dwarfs, neutron stars and black holes; a black hole's binding energy is stored as -1, meaning infinite (Boss, 8:45 PM EDT 2026-10-30)**
+  Research: reports/round-shape-minimum-mass-2026-10-31.md (in
+  /mnt/project-files/reports/). Boss (8:44 PM EDT 2026-10-30, relayed by
+  Aux 5): every mass object that can have them gets bulk density, ice
+  fraction where it applies, roundness ratio, yield strength and binding
+  energy, stars and compact objects included, each with the right
+  formula; a black hole's binding energy is stored as -1, meaning infinite (Boss, 8:45 PM EDT 2026-10-30), not infinite. Owner
+  Aux 5. Columns registered in db/column_units.py, migration, schema
+  fixture, API version, sheet rules; the pure binding-energy formulas
+  for every structure live in the roundness engine GEN.1158 (uniform
+  sphere, two-shell, polytrope for stars, brown dwarfs and giants,
+  degenerate white dwarf, neutron star from Lattimer and Prakash 2001
+  eq. 33). GEN.1159 stays planets, moons, asteroids, comets, rogue
+  bodies and belt or field members. Lock work, rides the GEN.1159
+  window.
+  Prerequisites: GEN.1158. Related: GEN.1158, GEN.1159, GEN.1068.
+
+- [ ] **GEN.1167 The stellar-to-halo relation (Moster 2013) has 0.3 to 0.4 dex more stars than Behroozi 2019 in halos of 1e10.75 to 1e11.5 and 0.06 to 0.26 dex fewer in halos of 1e12.5 to 1e14.5: compare the published fits and pick the best-supported relation**
+  Found by the GEN.753 stars and galaxy validation sweep (Sources 2,
+  reports/gen753-stars-galaxy-validation-2026-10-31.md; PR #4329 added
+  the agreeing statistics as tests). The first range matches Leauthaud
+  2012 to 0.1 dex, and the automatic galaxy range draws from there.
+  Sources 2 compares the published fits (Moster 2013, Behroozi 2019,
+  Leauthaud 2012, Girelli 2020), says which one the source rules pick
+  (verified wins; two in doubt newest; two in question widest range),
+  and either keeps the relation with a stated tier or replaces it. A
+  replacement changes galaxy output and rides a train with GEN.1154,
+  whose halo draw reads this relation. Owner Sources 2.
+  Prerequisites: none. Related: GEN.753, GEN.1154, GEN.368.
+
+- [ ] **GEN.1171 Ring lifetime by ring mass and planet instead of one fixed decay, because fallen-moon rings now persist on 13 percent of rocky planets**
+  From Tides 1 (GEN.1057 sweep, 60 systems): with rings tied to fallen
+  moons and comet passages, giants are ringed 15 of 47 and rocky planets
+  53 of 412 (13 percent, high). 26 percent of rocky planets lose a moon
+  to the star's tide (GEN.959), and a big early-fallen moon leaves a 1e7
+  to 1e13 kg ring even after 10 Gyr of 1/e decay (median ring age 10
+  Gyr). The 1/e per 0.5 Gyr decay is registered stand-in RO2 (L3).
+  Replace it with a ring lifetime that depends on ring mass and the
+  planet (viscous spreading, Poynting-Robertson drag, meteoroid
+  bombardment; Crida and Charnoz 2012 for the spreading and re-accretion
+  side), register the new rows in GEN.725 with tier and tweak level, and
+  re-run the 60-system sweep. Output changes, so train-bound after
+  GEN.1057 merges. Owner Tides 1.
+  Prerequisites: none. Related: GEN.1057, GEN.959, GEN.725.
+
+- [ ] **GEN.1174 Decide the pre-main-sequence time definition: the generator's time to the main sequence is 3 to 4 times BHAC15 for 0.1 to 0.3 solar masses and 1.5 to 2 times from 0.4 up**
+  From Sources 2 (GEN.1169): against BHAC15 the generator's time for the
+  radius to settle is 3 to 4 times longer for 0.1 to 0.3 solar masses
+  (0.2 solar masses: 727 Myr against 188 Myr) and 1.5 to 2 times from
+  0.4 up, partly by definition because the clock is stretched to MIST's
+  nuclear arrival (GEN.947). The pre-main-sequence share is 2.5 percent
+  of living stars at the Sun's position; the BHAC15 criterion would give
+  about 0.7 percent. Options: (1) keep the nuclear-arrival definition
+  and say so in the design note; (2) report both a radius-settled time
+  (BHAC15) and a nuclear-arrival time and let classification use the
+  radius-settled one (recommended, physics-driven); (3) replace the
+  clock with BHAC15. Boss decides; not started until he picks. Owner
+  Sources 2.
+  Decided (Boss, 9:25 AM EDT 2026-10-31) (9:25 AM EDT 2026-10-31):
+  option 2 of the item, the recommended one: report both a
+  radius-settled time (BHAC15) and a nuclear-arrival time, store both,
+  and let classification use the radius-settled one. Owner changed from
+  Sources 2 to Aux 7, who builds it (output change, rides a train).
+  Aux 7 head update (as the lane reported) (2026-10-31 1:55 PM EDT):
+  part 2 branch claude/gen1174-store is now 4538e59b9 (the train takes
+  this head, not 5470a095e); part 1 claude/gen1174 stays 45a9296b7.
+  Prerequisites: none. Related: GEN.1169, GEN.947.
+
+- [ ] **GEN.1175 Porosity weakening of body strength from a sourced law instead of the placeholder exponential**
+  The engine's porosity rule is 'none' (RN5, L3) and an 'exponential'
+  rule (strength times exp(-b x porosity), b 4 to 7) is built and off,
+  resting on recalled ceramics coefficients (Pabst 2015); Pohl and Britt
+  2020 find no usable porosity trend in meteorites and with the
+  exponential on Proteus (porous, ice-rich, 210 km, not round) comes out
+  round. Find a rock-mechanics or ceramics source (Grott 2019 Ryugu
+  boulders at 200 to 280 kPa are a whole-body data point), choose the
+  law, and register it in GEN.725 with tier and tweak level. Owner Aux
+  5. Source: reports/planetary-material-strength-2026-10-31.md section
+  9. Additive to the roundness engine (physics/roundness.py, GEN.1158,
+  merged); no generation output changes until GEN.1159 to GEN.1162 wire
+  it, so lock-free until then.
+  Sources 1 finding
+  (reports/strength-followup-gen1180-gen1175-2026-10-31.md) (2026-10-30
+  11:33 PM EDT): One fitted law found, strength times (1 - phi/0.5)^1.67
+  from Alomari, Ng and Khatri 2025, from a summary only, so the paper
+  must be read; it sits inside the placeholder's b 4 to 7 band for
+  porosity 0.1 to 0.4. It is a carbonate rock law: ice-rich bodies have
+  no sourced porosity law. Boss uploads that matter: Alomari 2025 (open
+  access, mdpi.com/1996-1944/18/6/1211) and Yamashita, Kato and Arakawa
+  2010 (Icarus 207:972). Keep open until the Alomari paper is read.
+  Boss uploads read (Sources 1) (9:38 AM EDT 2026-10-31, as Sources 1
+  reported): Alomari, Ng and Khatri 2025 (Materials 18:1211, doi
+  10.3390/ma18061211) is CONFIRMED: UCS = 60.251 (1 - 0.02 n)^1.67 MPa
+  with n in percent, which is (1 - phi/n*)^1.67 with n* = 0.5 assumed,
+  not fitted; also E = 30.31 (1 - 0.02 n)^1.82 GPa. Data: 178 training
+  and 75 test points, porosity 0.4 to 50 percent, carbonate rocks and
+  gypsum, uniaxial, no ice. Relative strength at phi 0.1, 0.2, 0.3, 0.4
+  is 0.69, 0.43, 0.22, 0.07, inside our exponential b 4 to 7 band (the
+  paper lists exponentials with b 4.8 to 9.3). Register as T3 (right
+  form, wrong material) at tweak L1. Report:
+  reports/uploaded-ice-rock-papers-check-2026-10-31.md.
+  Prerequisites: none. Related: GEN.1158, GEN.725.
+
+- [ ] **GEN.1178 Strength of a body sampled from its range so the round boundary is fuzzy, as in the real Solar System**
+  Whole-body strength is never measured directly: each value is a lab
+  figure scaled by a factor and checked against real bodies, good to a
+  factor of 2 to 3 in strength and about 1.5 in round radius (section
+  13). The research recommends drawing each body's strength from the
+  stated range (ice 0.4 to 3 MPa, rock 4 to 30, metal 50 to 250) with a
+  seeded draw instead of one fixed value. Needs a seeded draw per body
+  (draw.py), so it changes output and rides a lock window once GEN.1159
+  wires the engine. Owner Aux 5. Source:
+  reports/planetary-material-strength-2026-10-31.md section 9. Additive
+  to the roundness engine (physics/roundness.py, GEN.1158, merged); no
+  generation output changes until GEN.1159 to GEN.1162 wire it, so
+  lock-free until then.
+  Prerequisites: GEN.1159. Related: GEN.1158, GEN.725.
+
+- [ ] **GEN.1179 Optional: Hoek-Brown geological strength index as a body parameter for rock**
+  A fractured versus intact rock dial (Hoek-Brown GSI) gives the 4 to 30
+  MPa whole-body rock range from one number instead of a flat 16.5 MPa.
+  Only worth building if the sampling item (strength drawn from its
+  range) shows the fixed range is too coarse. Optional. Owner Aux 5.
+  Source: reports/planetary-material-strength-2026-10-31.md section 9.
+  Additive to the roundness engine (physics/roundness.py, GEN.1158,
+  merged); no generation output changes until GEN.1159 to GEN.1162 wire
+  it, so lock-free until then.
+  Prerequisites: none. Related: GEN.1158, GEN.725.
+
+- [ ] **GEN.1185 Interior activation energy range 260 to 390 kJ/mol instead of 200 to 300, with the reference viscosity retuned**
+  Change INTERIOR_ACTIVATION_RANGE_KJ_MOL from 200 to 300 to 260 to 390
+  kJ/mol and retune eta0 so the reference viscosity holds (medium
+  confidence in the review). Changes tidal heating and interior outputs,
+  so a lock window plus a census; do it with the next Tides 1 window.
+  Owner Tides 1. Source: reports/papers-vs-standins-2026-10-31.md
+  section 7 (the strength papers review of all 14 uploaded and 35
+  downloaded papers, Boss's request).
+  Prerequisites: none. Related: GEN.725.
+
+- [ ] **GEN.1186 Small evidence updates to registered stand-ins from the strength papers review**
+  Update the registry text only (no value used by generation changes):
+  TR9 ice activation range to 40 to 90 kJ/mol and ice rigidity to 3.5
+  GPa as the knob range, RN5 range to 4 to 9, and the evidence lists of
+  RN2 and RN8. Lock-free docs and registry rows. Owner Aux 5 for
+  RN2/RN5/RN8, Tides 1 for TR9. Source:
+  reports/papers-vs-standins-2026-10-31.md section 7 (the strength
+  papers review of all 14 uploaded and 35 downloaded papers, Boss's
+  request).
+  Prerequisites: none. Related: GEN.725.
+
+- [ ] **GEN.1189 Greenhouse refit method: the refit table is blind to the methane share of a hydrogen air and a dense carbon dioxide air is 2 to 8 percent warm, so find a better fit than one L-BFGS network**
+  From Air 1 (GEN.1030/GEN.1032 ready for train 7): a drawn ice giant
+  with a few percent methane reads about 5 percent warm because the
+  refit table does not see the methane share of a hydrogen air, and a
+  dense carbon dioxide air is 2 to 8 percent warm. A round with 3,000
+  designed ice-giant airs did not fix the first and made Earth-like airs
+  5 to 8 K cold, so it was not shipped. Find a better fit method
+  (per-regime fits, a different basis or a second network for
+  hydrogen-dominated airs) and compare against the line-by-line
+  reference; register the fit tier and tweak in GEN.725. Output changes,
+  so it rides a lock window after GEN.1030/GEN.1032 merge. Owner Air 1.
+  Prerequisites: GEN.1032. Related: GEN.1030, GEN.1032, GEN.1033,
+  GEN.725.
+  Re-scoped by Air 1 research (2026-10-31 3:45 AM EDT): Report
+  reports/air1/gen1189-fit-method-2026-10-31.md: the table error is
+  mostly under-training plus thin data in the hot band, not a blind
+  spot, and no fit method tried is worth its own lock window. A
+  15,000-iteration refit lowers validation p90 from 5.3 to 4.65 percent
+  but fails two checks the shipped table passes (seed scatter); a warm
+  restart was worse; averaging three seeds gives p90 4.1 percent. Scope
+  now: fold a longer fit, a three-seed ensemble and extra hot-band (500
+  to 1000 K) and Earth-like designed airs into the one table refit that
+  GEN.972, GEN.974 and GEN.1194 need anyway. It rides with GEN.1194 and
+  stays open until then; no separate epoch.
+
+- [ ] **GEN.1190 Replace unsourced rheology constants with the sourced ones: partial-melt factor, Andrade exponent and ratio, ice grain-boundary sliding and the ice melting curves**
+  From Sources 1
+  (reports/gen1187-strength-constant-sources-2026-10-31.md): sourced
+  values exist for the partial-melt factor exp(-alpha x melt) (alpha 30
+  for diffusion creep, 30 to 45 for dislocation creep, Hirth and
+  Kohlstedt 2003; ice melt law B 22), the Andrade exponent 0.2 to 0.4
+  and the Andrade over Maxwell ratio near 1 at low stress (the repo's
+  0.3 and 1.0 stay; the rock ratio has a source conflict, record it),
+  ice grain-boundary sliding n 1.8, grain exponent 1.4, Q 49 kJ/mol (two
+  sources agree, prefactors from one secondary table), and the ice
+  melting curves for Ih, III, V, VI and VII with all coefficients (IAPWS
+  2011). Not found and still open: the ammonia dihydrate 1993 constants
+  and the solid-solid ice boundaries (Boss uploads, in order of value:
+  Durham, Kirby and Stern 1993 JGR 98:17667, Goldsby and Kohlstedt 2001
+  JGR 106:11017, Choukroun and Grasset 2007 J. Chem. Phys. 127:124506).
+  Replace the matching stand-ins in the tidal rheology and the ice-type
+  strength table (GEN.1183) with these values and update their registry
+  rows (tier and tweak level) in GEN.725. Changes tidal heating inputs,
+  so it rides a Tides 1 lock window. Owner Tides 1.
+  Boss uploads read (Sources 1) (9:38 AM EDT 2026-10-31, as Sources 1
+  reported): Goldsby and Kohlstedt 1997 (Scripta Mater. 37:1399-1406)
+  read: dislocation n 4, Q 64; grain-boundary sliding n 1.8, grain
+  exponent 1.4, Q 49; basal-limited n 2.4, Q 55 to 62. The GBS and basal
+  Mitri 2010 numbers are now verified; the Mitri diffusion row is not in
+  this paper. No prefactor A in the text (it is in Goldsby and Kohlstedt
+  2001, JGR 106:11017, not in hand). Morison, Labrosse and Choblet 2021
+  (Nature 600:419): N2 ice n = 2.1 (Yamashita 2010, Icarus 207:972,
+  confirmed; correct an earlier 2.2), Q 3.5 kJ/mol non-Newtonian or 8.6
+  kJ/mol Newtonian (Eluszkiewicz and Stevenson 1990), viscosity 1e10
+  (non-Newtonian) to 1e16 to 1e19 Pa s (diffusion), 1e16 to 1e17 from
+  pit relaxation. Still needed: Goldsby and Kohlstedt 2001, Durham,
+  Kirby and Stern 1993 (JGR 98:17667) and Durham, Kirby and Stern 1997
+  (JGR 102:16293, for ice types IT1 to IT3). The 'Rheology of Water and
+  Ammonia-Water Ices' upload is only the 1993 LPSC abstract with no
+  constants.
+  Sources 1 read Goldsby and Kohlstedt 2001 (2026-10-31 9:47 AM EDT):
+  Boss uploaded the paper; Sources 1 read Table 5 from the page image
+  (report
+  /mnt/project-files/reports/goldsby-2001-and-durham-planetary-ices-2026-10-31.md).
+  Rate = A sigma^n d^-p exp(-Q/RT), sigma in MPa, d in metres.
+  Grain-boundary-sliding-accommodated basal slip, T under 255 K: A
+  3.9e-3 MPa^-1.8 m^1.4 s^-1, n 1.8, p 1.4, Q 49 kJ/mol (T over 255 K: A
+  3.0e26, Q about 192). Basal-slip-accommodated GBS: A 5.5e7 MPa^-2.4
+  s^-1, n 2.4, Q 60. Dislocation creep, T under 258 K: A 4.0e5 MPa^-4
+  s^-1, n 4, Q 60 (T over 258 K: A 6.0e28, Q about 181). Combination:
+  diffusion + (1/basal + 1/GBS)^-1 + dislocation. Mitri's GBS and basal
+  log A match exactly, so those two are verified. The diffusion row is
+  derived (Eq. 4 volume term at about 260 K), not measured, and the
+  boundary D0 of about 6e-4 m2/s is an estimate (upper bounds 5.8e-4 to
+  8.4e-4). The paper has no melt law or melting curves. The authors
+  print only initials (D. L. Goldsby, D. L. Kohlstedt). Also read: the
+  Durham, Kirby and Stern 1996 preprint Rheology of Planetary Ices
+  (UCRL-JC-123734); its Table 1 has the 1993 ammonia dihydrate law (log
+  A 21.55, n 5.81, E* 107.5 kJ/mol, tested 130 to 176 K). The dihydrate
+  to ice I strength ratio is 1.7 at 135 K, 0.91 at 143 K, 0.57 at 150 K,
+  0.18 at 170 K and 0.14 at 176 K (1e-15 per s; Sources 1 corrected the
+  first figures, which used the preprint's ice I row below 195 K; the
+  1997 row, log A -3.8, n 6.0, E* 39, is the right one). Our IT6 point at
+  170 K (0.3) is above the law, 135 K (1.0) is below it, and 110 K (2.0)
+  is outside the tested range. Ice II, III, V and VI constants are
+  already held in Durham, Kirby and Stern 1997 Table 2 (same as the 1996
+  preprint; Durham, Stern and Kirby 1996 JGR 101:2989 confirms V and VI);
+  Echelmeyer and Kamb 1986 (GRL 13:693) gives ice II about 10 times ice
+  I viscosity and ice III about 0.01 times near 240 K. The high-pressure
+  ratios depend strongly on depth: at lab rate ice II, V and VI come out
+  1 to 2 times ice I and ice III 0.4 to 0.6, at 1e-15 per s ice II, V and
+  VI 3 to 7. The ice VI row above 250 K jumps 50 times across 250 K, so
+  do not use it as it stands. Not found: Choukroun and Grasset 2007 and
+  the solid-solid boundary equations. Melting curves are covered by
+  Wagner 2011. Report: reports/ice-high-pressure-sources-held-2026-10-31.md.
+  Sources 1: solid-solid ice boundaries from a tertiary source
+  (2026-10-31 10:03 AM EDT): Choukroun and Grasset 2007 cannot be had
+  (Boss cannot get it), so the boundaries below 0.7 GPa come from one
+  TERTIARY source: Martin Chaplin, Water Phase Diagram, water.lsbu.ac.uk
+  (updated 5 Nov 2021; its references are by number only and the list is
+  unreachable). Register them in GEN.725 as tier Unverified (T3), L0,
+  until a paper matches. P in MPa, T in K, d = T - 273.15: Ih-II 176.0 +
+  0.918 (T - 198.15); II-III 213 + 99.517 [(T/238.45)^19.676 - 1]; II-V
+  412.0 - 7.01 (T - 239.15); Ih-III 198.2 - 0.42 (T - 273.15) (the
+  quadratic version fails its own triple point, 166 against 209.9, do
+  not use); III-V 344.3 - 0.275 d - 0.01099 d^2; V-VI 625.9 + 0.06086 d
+  - 0.0008571 d^2. Triple points: L-Ih-III 251.165 K, 209.9 MPa; L-III-V
+  256.164 K, 350.1 MPa; L-V-VI 273.31 K, 632.4 MPa (Wagner 2011, also
+  Journaux et al. arXiv 1907.09598 Table 4); Ih-II-III 238.45 K, 212.9
+  MPa; II-III-V 248.85 K, 344.3 MPa; II-V-VI about 218 K, 620 MPa
+  (approximate; the printed II-V line gives 559 there, so do not extend
+  a line past its triple points); VI-VII-L 2216 MPa, 355 K. Sources 1
+  checked that every line meets its triple points within 1 MPa except
+  III-V at the liquid point (345.8 against 350.1). Chaplin's short Simon
+  form for ice VII melting is 10 percent off at 550 K: use the exact
+  IAPWS form already held. AQUA (A&A 2020, arXiv 2009.10098) Eq. 22
+  gives a VI-VII fit; the extraction is garbled, verify before use. No
+  equation found for II-VI, VI-VII-VIII or VII-VIII. Fortes 2009 (J.
+  Appl. Cryst. 42:846) says Choukroun and Grasset's ice Ih K0' is wrong
+  by 10 times and their ice VI density has no pressure term, so do not
+  trust their equation of state for volumes. Still missing: Dunaeva 2010
+  (Solar System Research 44:202) or Choukroun and Grasset by upload.
+  Report: reports/ice-phase-boundaries-secondary-sources-2026-10-31.md.
+  Prerequisites: none. Related: GEN.1183, GEN.1185, GEN.725.
+
+- [ ] **GEN.1194 Runaway greenhouse: the radiative-convective model has no plateau in outgoing flux, so water window opacity, continuum temperature dependence and wings must be reworked until it plateaus**
+  From Air 1 (GEN.973 finding): outgoing flux rises monotonically with
+  temperature in the radiative-convective model (343 W/m2 at 330 K
+  saturated against Simpson and Nakajima's plateau near 280), and the
+  fixed point stays near 320 K at 320 W/m2 absorbed with no step through
+  350 K, so a runaway-threshold test against GEN.639 cannot pass as a
+  model-behaviour test. The fix is not new feedback code but different
+  opacity: the water window opacity, the continuum's temperature
+  dependence and the line wings, so the outgoing flux plateaus near 280
+  W/m2. The same too-steep slope explains the sweep's low sensitivity
+  (model Earth twin about 0.43 K per W/m2 against the 0.54 bound; the
+  missing ice-albedo +0.4 and cloud +0.4 W/m2 per K feedbacks close the
+  gap by the AR6 budget). Register changed stand-ins in GEN.725, then
+  add the runaway-threshold test (converges below the limit, runs away
+  above it). Output changes, an epoch with GEN.972 if the train allows.
+  Owner Air 1.
+  Prerequisites: none. Related: GEN.973, GEN.639, GEN.972, GEN.974,
+  GEN.725.
+
+- [ ] **GEN.1200 The galactic-centre ring inflow of the generator is 0.044 solar masses per year against the measured 0.07**
+  Finding from Core 3's GEN.1195 build (as the lane reported, 4:34 AM
+  EDT 2026-10-31), filed by the TODO thread. Kind: generation result
+  against observation. Object: the Milky Way shaped barred galaxy's
+  central molecular zone ring inflow (core gas module). Result:
+  test_core_gas Milky Way ring inflow reads 0.50 of the 0.8 target; the
+  generator's ring rate is 0.044 solar masses per year against the
+  measured 0.07. The ring's gas surface density (stand-in CMX4 of
+  GEN.1195) is the inflow times 50 Myr over the ring area and the
+  maximum cluster mass goes as its cube, so this rate matters for the
+  cluster maximum mass. Do: find the source of the 0.07 figure and the
+  inflow law, say why the generator's rate is low (law, bar torque or
+  ring area), and fix the law or document the stand-in in GEN.725 with
+  tier and tweak level; the Milky Way figure is the plausibility target,
+  never fixed content. Lock work (stored gas and clusters change); rides
+  after GEN.1195. Prerequisites: GEN.1195. Owner: Core 3 (proposed).
+  Prerequisites: GEN.1195.
+
+- [ ] **GEN.1201 A per-body shape-setting temperature: the roundness engine uses the temperature a body took its shape at, but no body stores one, so strength is the cold strength today**
+  Finding from Aux 5's GEN.1159 build (as the lane reported, 4:46 AM EDT
+  2026-10-31), filed by the TODO thread. Kind: missing input. Object:
+  the roundness and binding-energy engine (physics/roundness.py, wired
+  by GEN.1159). Result: the engine's strength depends on the temperature
+  at which a body took its shape (ice and rock creep strength fall with
+  temperature, RN11 ROCK_CREEP_COLUMNS), but no body stores such a
+  temperature, so the strength used today is the cold strength. Do:
+  define the shape-setting temperature per body kind from the body's own
+  thermal history (accretion heat, tidal heat, radiogenic heat, the
+  star's light at the time it solidified), compute it with a pure module
+  from stored values where possible, wire it into the engine, and
+  register any stand-in in GEN.725 with tier and tweak level; the census
+  must show the round boundary against the measured Solar System one
+  only as a plausibility target, never fixed content. Lock work (stored
+  roundness and strength change); rides the GEN.1159 window.
+  Pure part merged (#4588), Aux 5 (2026-10-31 3:30 PM EDT): The
+  shape-temperature module physics/shape_temperature.py is merged
+  lock-free (stand-ins SHT1 and SHT2, section 6.162; wiring-register
+  line and change note done): a body's strength falls with the heat it
+  made while its weight shaped it (accretion heat, radioactive heat,
+  tides, capped at the rock's melting). Nothing reads it yet. The wiring
+  step (store the temperature, feed the engine, new column, migration,
+  API version) is lock work and needs GEN.1159 on main first.
+  Prerequisites: GEN.1159.
+
+- [ ] **GEN.1202 The generator's disc gas surface density at 8 kpc is 4.3 solar masses per pc2 against 13 measured, which holds the disc cluster maximum mass too low**
+  Finding from Core 3's GEN.1196 build (as the lane reported, 4:52 AM
+  EDT 2026-10-31), filed by the TODO thread. Kind: generation result
+  against observation. Object: the disc gas profile of a drawn spiral
+  galaxy (Milky Way shape) used for the cluster maximum mass. Result:
+  the generator's disc gas at 8 kpc is 4.3 solar masses per pc2 against
+  about 13 measured (neutral plus molecular gas near the solar circle);
+  the cluster maximum goes steeply with gas surface density, so with the
+  sourced relation of Reina-Campos and Kruijssen 2017 the heaviest Milky
+  Way shape disc cluster comes out at 4.1e3 solar masses, below the 1e4
+  to 4e4 observed. Do: find the source of the 13 figure and the gas
+  profile it belongs to (atomic plus molecular gas by radius), say why
+  the generator's disc gas is low (law, star formation history
+  consumption or radius mapping), fix the profile or register the
+  stand-in in GEN.725 with tier and tweak level; the measured profile is
+  the plausibility target, never fixed Milky Way content. Lock work
+  (stored gas and clusters change). Prerequisites: GEN.1196. Owner: Core
+  3 (proposed).
+  Prerequisites: GEN.1196.
+
+- [ ] **GEN.1203 Polluted white dwarf census: 25 to 50 percent of white dwarf systems polluted once belt birth sees the giants**
+  Found by Star 2 on GEN.1072 (as the lane reported, 6:12 AM EDT
+  2026-10-31), filed by the TODO thread. GEN.1072 (partial engulfment,
+  mass-loss scatter, pollution rate in remnant_orbits.py, PR #4430,
+  train 16) is built on today's belts and does not meet the census band:
+  of 300 built white dwarf systems 20 had a belt and 24 a giant, none
+  both, so belts scatter nothing yet. Do: once GEN.1068 gives belts that
+  see the giants, add a prevalence census row for the polluted fraction
+  of white dwarf systems (band 25 to 50 percent, the published fraction
+  of polluted white dwarfs) and tune nothing by hand: if the band is
+  still missed, report which input is the cause (belt occurrence next to
+  giants, scatter efficiency, the pollution rate) with a stand-in row in
+  GEN.725 per the source rules. Epoch-bound: rides the train that
+  carries GEN.1068. Owner: unowned until GEN.1068 merges (Star 2
+  proposed as the author of GEN.1072).
+  Prerequisites: GEN.1068, GEN.1072.
+
+- [ ] **GEN.1204 Dark members of an orbit tree (brown dwarf, neutron star, black hole in dark_members) store density, binding energy and the shape values the stars, rogues and comets store**
+  Found by Aux 5 on GEN.1162 (as the lane reported, 8:04 AM EDT
+  2026-10-31), filed by the TODO thread. GEN.1162 stores density and
+  binding energy on stars, black holes and neutron stars, roundness and
+  strength on rogue planets, and the comet values on interstellar
+  comets, but not on the dark members of an orbit tree (a brown dwarf,
+  neutron star or black hole carried in dark_members), because a dark
+  member has no radius of its own yet. Do: give a dark member the radius
+  its kind implies from the same mass-radius laws the single-body
+  versions use (no fixed values), then store the same bulk values
+  through the same code. Output change (stored values), rides a train.
+  Owner: unowned until GEN.1162 merges (Aux 5 proposed).
+  Prerequisites: GEN.1162.
+
+- [ ] **GEN.1207 Best-fit classes, step 3: the classifier replaces the first-match tree, stores class_match and the runner-up letter and match, and the class pages show the percent match**
+  Boss, 9:44 AM EDT 2026-10-31: build and ship the best-fit class
+  scoring (a percent match per class, best match wins, replacing the
+  first-match tree) and send it to TODO. Design:
+  /mnt/project-files/reports/class-m-and-trek-classes-2026-10-31.md
+  sections 4 to 6 (Class M research thread). Filed by the TODO thread.
+  Waits for Boss to read the step 2 report. Do: in
+  src/planetgen/physics/planet_classes.py replace the first-match walk
+  with the best-fit classifier: the hard gates (giant or terrestrial,
+  air or airless) first, then each class's match is the geometric mean
+  of its condition memberships, the highest match wins, a tie goes to
+  the class with the narrower box, then to letter order. The classifier
+  still writes one letter, so the roughly 40 files that read
+  planet_class keep working. Add the columns class_match,
+  runner_up_class and runner_up_match to planets and moons (one
+  migration, declared in db/column_units.py and the schema document, a
+  rebuild step for existing rows, DB.90 reclassification keeps them true
+  after an edit). The class pages show the match, for example 'M 92
+  percent, O 41 percent', and say once on every page: 'A class is the
+  world's state now; a world can change class as its air, water or heat
+  change.' test_planet_classes changes from 'the last row always
+  matches' to 'a best class always exists and a body inside a core box
+  keeps its old letter', plus a tie test for the narrower-box rule. One
+  generator epoch with --affects, golden, census re-baseline and a
+  census re-tag, on a train. Lock work. Supersedes the first-match row
+  order everywhere (see the notes on GEN.647, GEN.689, GEN.1144,
+  GEN.1147, GEN.1160, DB.90, TEST.443 and DOC.76). Done: every body has
+  the best-fit letter and its match stored, the sweep lists no body
+  under 50 percent that Boss has not accepted, and the temperate-ocean
+  count per class is printed. Where we think it belongs (best guess, can
+  move): same lane as step 1.
+  Class M thread, shadow report (as the lane reported) (2026-10-31 10:16
+  AM EDT): GEN.1205 (PR #4469, planet_class_fit.json,
+  physics/class_fit.py, GEN.725 rows CF1 to CF7 in section 6.150) and
+  GEN.1206 (PR #4473, src/tests/class_fit_cli.py) are merged; report
+  /mnt/project-files/reports/class-fit-shadow-2026-10-31.md. Findings
+  that change this item's scope, pending Boss: (1) class M with the
+  oxygen 16 percent or more window matches none of the sampled
+  first-match M bodies (all have 0 percent oxygen), so Boss picks: keep
+  the window, drop it, or add an abiotic temperate-ocean class from the
+  reserve letters; (2) about 1.6 percent of bodies are hot thin-air
+  rocks of 1.4 to 2 g (340 to 1100 K, 1 to 10 kPa) that fit no class, a
+  gap that needs a new class or a lifted 400 K ceiling on F, G and H.
+  This item stays blocked until Boss has read the report. It must also
+  handle a body with no class match (best_class returns letter None).
+  Boss, via the Class M thread (10:13 AM EDT 2026-10-31) (2026-10-31
+  10:20 AM EDT): Boss approved a new reserve-letter class for the hot
+  thin-air gap (GEN.1211, he has not named the letter yet). He has NOT
+  chosen on Class M and the oxygen window; he first asked for a full
+  inventory of every class's criteria:
+  /mnt/project-files/reports/planet-class-criteria-inventory-2026-10-31.md.
+  This item stays blocked until he has chosen.
+  Plan changed by Boss (between 10:04 and 11:07 AM EDT 2026-10-31)
+  (2026-10-31 11:25 AM EDT): the switch now means: body types
+  (GEN.1219), the letter plus digit class code (GEN.1220) and the
+  class-by-domain matrix (GEN.1221) are built first, and the classifier
+  then scores every class by percent match inside its type, with the
+  digit set by which domain deviates. Stays blocked until Boss confirms
+  the proposed letters U, Y, X and Z and reads the shadow report. Also
+  build in: the sea supply fixes (GEN.1214), the stored liquid fractions
+  (GEN.1215) and the airless moon ocean bug (GEN.1222) land first, so
+  the scorer reads true inputs. Must handle a body that fits no class
+  (best_class returns letter None).
+  GEN.1223 research done (Sources 1) (2026-10-31 11:40 AM EDT): report
+  /mnt/project-files/reports/gen1223-giant-and-transitional-classes-2026-10-31.md,
+  proposed giant rows in its section 6 and GEN.725 entries GC1 to GC12
+  in section 7. Key points: the T and I and J mass cuts of the sources
+  are about 10 Earth masses (T/I) and 50 to about 130 (I/J), not 35, and
+  the overlap is better expressed by the envelope share (under 5 percent
+  below 10 Earth masses, 10 to 30 percent for 10 to 50); Sudarsky I to V
+  should be a stored derived field from the equilibrium temperature
+  (edges 150, about 300, 900, 1500 K; pM/TiO above about 1900 K;
+  recommend the f 0.5 convention) rather than letters; planet inflation
+  starts near 1000 K; the deuterium limit is 13 Jupiter masses, fuzzy 11
+  to 16.3. An optional water-world row needs a free letter (Boss's call;
+  check overlap with O).
+  GEN.1224 research done: corrects the GEN.1223 note (Sources 1)
+  (2026-10-31 11:48 AM EDT): report
+  /mnt/project-files/reports/gen1224-giant-heavy-element-and-envelope-share-2026-10-31.md.
+  A newer paper supersedes Thorngren 2016: Chachan, Fortney, Ohno,
+  Thorngren, Murray-Clay, arXiv 2509.20428 (Sep 2025, preprint), 147
+  planets; law M_Z = 14.7 + 0.09 (M_p - 14.7) Earth masses, H/He share =
+  1 - M_Z/M_p, half H/He at 32.6 Earth masses. So the ice giant to gas
+  giant cut near 35 Earth masses is sourced after all (the earlier idea
+  of about 100 was the radius-plateau onset, a radius rule, not a class
+  edge). The overlap is large: the chance a planet is metal-majority is
+  0.70 at 20, 0.49 at 33, 0.27 at 50 and 0.03 at 100 Earth masses, so
+  the envelope share must decide the letter, expressed by the best-fit
+  shoulders. Registry changes: GC2 becomes 33 Earth masses (shoulder 25
+  to 60) T1 L0; GC5 J H/He at least 0.5 upgraded from T9 L4 to T1 L0;
+  GC4 I envelope 0.05 to 0.50; GC1 T/I stays 10; new GC13 (the law) and
+  GC14 (validity: 20 Earth masses to 20 Jupiter masses, equilibrium
+  temperature under 1000 K only; below 20 the Lopez and Fortney relation
+  governs). The J radius floor drops to 4.5 radii (sub-Saturns). Census
+  targets are in section 6 of the report.
+  Letters confirmed (2026-10-31 12:08 PM EDT): Boss confirmed the class
+  letters (11:59 AM EDT 2026-10-31): Y is the sulfuric acid class
+  (swapped with the proposal, because Trek labels a Class Y a Demon
+  world; the definition is ours, the name sounds right for sulfuric
+  acid), U is methane-ethane, X is ammonia-water and Z is the hot
+  thin-air world. Class R is Hothouse. The wait on the letters is
+  cleared.
+  Prerequisites: GEN.1219, GEN.1220, GEN.1221, GEN.1222, GEN.1214.
+  Related: GEN.1215, GEN.1211.
+
+- [ ] **GEN.1208 Best-fit classes, wording: drop the age and stage words from the class tier labels and the "Checked after" and "leftover" wording from the class pages**
+  Boss, 9:44 AM EDT 2026-10-31: build and ship the best-fit class
+  scoring (a percent match per class, best match wins, replacing the
+  first-match tree) and send it to TODO. Design:
+  /mnt/project-files/reports/class-m-and-trek-classes-2026-10-31.md
+  sections 4 to 6 (Class M research thread). Filed by the TODO thread.
+  Do: reword the age_needs reducing-air tier label ('young, hot or
+  still-outgassing') and any 'cools' or 'young' phrasing in the
+  generated class pages, and remove 'Checked after' and 'leftover'
+  wording that makes M the endpoint of an order. A class is the world's
+  state now, not a stage. Docs and page text, but the class pages are
+  generated from the rules: if the generated pages are part of the
+  golden, fold this into step 3's epoch, else it is lock-free. Where we
+  think it belongs (best guess, can move): same lane as step 1.
+  Prerequisites: none.
+
+- [ ] **GEN.1209 Several life types coexist on one planet: a per-body list of living classes, each with its stage, animal grade, kinds (microbes, flora, fauna) and prevalence**
+  Boss, 10:05 AM EDT 2026-10-31: let more than one life type exist on a
+  planet, each with a kind (microbes, flora, fauna and so on) and a
+  prevalence, so users know what they will meet; even Earth has several
+  categories of carbon life. Write-up:
+  /mnt/project-files/reports/multi-life-types-per-planet-2026-10-31.md.
+  Filed by the TODO thread. What exists: one living class per body
+  (life_class_id, life_stage, life_animal_grade, the dominant class by
+  food production, GEN.862 chain); suitability scores 0 to 9 for every
+  class the conditions support (life_class_scores, life_class_best,
+  life_class_best_score), which say what could live there, not what
+  does; four kind scores 0 to 9 on planets and moons (life_microbial,
+  life_flora, life_fauna, life_sentient, GEN.649, done), which are
+  already a prevalence per kind but belong to the one living class. The
+  display (one Life paragraph with the kinds, prevalence words and the
+  classes that suit) is UX.237 and PR 4471 and needs no change here
+  beyond reading the new list. Do: (1) Model: a per-body list of living
+  classes, each with stage, animal grade, kind scores and a prevalence
+  share, in a new table or one JSON column (never a column per class);
+  the dominant class stays as the headline, so the 40 or so readers of
+  life_class_id keep working. (2) Generation: after the dominant class
+  is chosen, decide which other supported classes also took hold, from
+  the share of food production, niche overlap, the same solvent and
+  oxidant, and the order of appearance on the evolutionary timeline
+  (GEN.750, done); physics decides, nothing is forced (Boss, 10-30), and
+  a civilization is never forced. (3) Kind scores per class, with the
+  body's four kind scores becoming the combined view of them. (4) The
+  air ledger is keyed by class number, so several living classes need
+  their gas budgets summed (the report names GEN.1013 for this, but
+  GEN.1013 is the overlap-free stars item and is done; Aux 4 or Core 1
+  must name the real ledger item). (5) API and search: a list field
+  instead of the single life_class_id; filters such as has Class 3 life
+  match any living class. (6) Page and map text list each living class
+  with its kinds. Output change with a migration: one epoch, golden,
+  census re-baseline, on a train; stand-ins for the share rules go in
+  GEN.725. Done: a world can store and show two or more living classes
+  with prevalence, the dominant one is unchanged for single-class
+  worlds, and the prevalence census (TEST.435) covers the list. Where we
+  think it belongs (best guess, can move): Aux 2 with Aux 4 for the air
+  ledger.
+  Aux 2 plan (as the lane reported, 10:08 AM EDT 2026-10-31) (2026-10-31
+  10:14 AM EDT): The air ledger items are GEN.862 (design,
+  life-classes.md section 4, life_ledger.json) with GEN.891, GEN.857,
+  GEN.858 and GEN.859 for the gases (physics/life_air.py,
+  biogenic_oxygen.py), not GEN.1013; Aux 4 only needs a sum over living
+  classes where it now takes one. Plan: (1) a child table body_life
+  (body ref, class and variant, stage, animal grade, four kind scores,
+  share of food production) with a migration; the headline columns stay
+  the dominant class and the body's four kind scores become the highest
+  of each kind across classes; the API gets a life_classes list and the
+  life_class filter matches any living class. (2) After the dominant
+  class, every other class whose conditions score above 0 gets its own
+  run of the life timeline from its own first producers; it takes hold
+  only if its stage is reached inside the system age and the final air
+  does not poison it (the existing toxin test). Nothing forced. (3)
+  life_air and biogenic_oxygen sum the classes' fluxes and uptake in
+  timeline order. (4) Page text lists each class with its kinds (UX.237,
+  UX.251). Two PRs, same window as GEN.1147. Questions for Boss: (a) may
+  classes of different solvents live on one body (a water class and an
+  acid or sulfur class), or only classes sharing a solvent as Earth's
+  do; (b) may a minor class reach the sentient kind, or does a
+  civilization stay with the dominant class. Aux 2 recommends (a) only
+  classes sharing a solvent whose conditions both hold, (b) dominant
+  class only. The per-kind readings of GEN.1210 are given per living
+  class once this lands.
+  Boss decided (A.2, B.2, 10:14 AM EDT 2026-10-31) (2026-10-31 10:25 AM
+  EDT): (a) any life classes whose conditions both hold may coexist on
+  one body, including classes of different solvents (a water class and a
+  sulfur or acid class); (b) a minor life class may reach the sentient
+  kind if its stage is reached inside the system age and the final air
+  does not poison it. This replaces Aux 2's recommended limits (same
+  solvent only, dominant class only). Nothing is forced and a
+  civilization is still never forced: each class runs its own timeline,
+  so a sentient minor class exists only when its own stages are reached.
+  The sentient kind score of the body becomes the highest across
+  classes; the civilization code (GEN.864) must say which class built a
+  civilization.
+  Air coupling split out (Boss, 10:54 AM EDT 2026-10-31) (2026-10-31
+  10:56 AM EDT): Step 3 (the air sum over living classes) is now its own
+  item, GEN.1213, built as a separate PR in the same epoch and train as
+  this item; the air of multi-life worlds changes, the air of one-class
+  worlds does not.
+  References design, 2:52 PM EDT (2026-10-31 2:57 PM EDT): The
+  speculative-chemistry help rewrite and per-class links are DOC.92 (R6
+  of the References menu); this item does not cover the help rewrite.
+  Prerequisites: GEN.862. Related: GEN.863, UX.237, TEST.435.
+
+- [ ] **GEN.1211 A new class for hot thin-air rocks (about 1.6 percent of bodies: 1.4 to 2 g, 340 to 1100 K, 1 to 10 kPa, no ocean) is Class Z of the class code system (Boss confirmed)**
+  Boss approved the class option for the hot thin-air gap (Class M
+  thread, relayed 10:13 AM EDT 2026-10-31); he has not yet named the
+  letter or the class name. Source: the best-fit shadow report
+  /mnt/project-files/reports/class-fit-shadow-2026-10-31.md (GEN.1206):
+  about 1.6 percent of sampled bodies fit no class. Filed by the TODO
+  thread. Waits on Boss for the letter (from the reserve letters R U W X
+  Y Z) and the name. Do, once named: give the class its own full
+  positive conditions in planet_class_fit.json (gravity 1.4 to 2 g or
+  the swept edges, 340 to 1100 K, 1 to 10 kPa, no hydrosphere, with
+  shoulders registered in GEN.725), the page text in the style guide
+  (DOC.83), the class page and its help page, and the rule row for the
+  first-match tree if GEN.1207 has not replaced it yet; the sweep must
+  then list no body under 50 percent in this gap. Feeds GEN.1207 (the
+  best-fit switch); the same epoch. Where we think it belongs (best
+  guess, can move): the Class M research thread.
+  Boss named it (11:04 AM EDT 2026-10-31, via the class thread)
+  (2026-10-31 11:08 AM EDT): the hot thin-air class is Class R,
+  Hothouse. Boss is also moving the class names to a letter plus a
+  number from 1 to 9 for variants (0 is not written), 26 letters with 0
+  to 9 giving 260 possible classes for the 44 needed (30 now plus 14
+  new); the class thread is writing the system that says when a number
+  applies, what it means and how it differs, and will send the items.
+  Build Class R as a letter under that system, not as a separate
+  sub-letter scheme.
+  Replaced by the class code system (11:25 AM EDT 2026-10-31)
+  (2026-10-31 11:25 AM EDT): the hot thin-air gap is now the proposed
+  letter Z (a hot thin-air world) of the class code system (GEN.1220),
+  awaiting Boss to confirm Z; Class R is the Hothouse of the
+  oxygen-water family (digit 0), not this class. Build this item as the
+  Z row of the class-by-domain matrix (GEN.1221), not separately.
+  Letters confirmed (2026-10-31 12:08 PM EDT): Boss confirmed the class
+  letters (11:59 AM EDT 2026-10-31): Y is the sulfuric acid class
+  (swapped with the proposal, because Trek labels a Class Y a Demon
+  world; the definition is ours, the name sounds right for sulfuric
+  acid), U is methane-ethane, X is ammonia-water and Z is the hot
+  thin-air world. Class R is Hothouse. The wait on the letters is
+  cleared.
+  Prerequisites: none. Related: GEN.1207, GEN.1208.
+
+- [ ] **GEN.1212 Rewrite the stored system flavour lines (tuning.SYSTEM_FLAVOR, 23 story lines) to the plain-words style guide, and stop storing text the pages can build**
+  Found by Core 2 while scanning UX.253 (as the lane reported, 10:13 AM
+  EDT 2026-10-31); part of the readability rewrite Boss ordered (10:07
+  AM EDT). Filed by the TODO thread. star_systems.system_flavor_text is
+  a stored sentence drawn once from tuning.SYSTEM_FLAVOR, so rewriting
+  those lines changes stored generator output: LOCK work (epoch with
+  --affects, golden, census re-tag), on a train. Do: after the style
+  guide (DOC.83) is merged, rewrite the list in plain words, short
+  sentences, one idea each; keep the number and order of the lines so
+  the draw does not move; no in-universe line may state a computed fact
+  that can disagree with the data. Core 5 found the same for planets:
+  planets.description is a stored copy of
+  tuning.PLANET_CLASSES[class]['description'] (generation/life.py), so
+  rewriting class descriptions would change stored output too. Prefer to
+  remove the copy: read the class description at view time and stop
+  writing the column (a later migration drops it), which makes the
+  planet rewrite lock-free; decide that in this item. Owner Core 2
+  (flavour lines) with Core 5 (the planet description copy). Where we
+  think it belongs (best guess, can move): Core 2.
+  Core 2 built the flavour lines (2026-10-31 12:10 PM EDT): branch
+  claude/core2-gen1212-flavour, head 5d13a04586b9, on main 0f0e76b5 plus
+  #4496, ready for a train (as the lane reported). tuning.SYSTEM_FLAVOR
+  has 23 lines, not about 40 (the title count was off); all 23 rewritten
+  in plain words, same count and order so the draw does not move; a
+  "now-dead world" claim removed; a new test checks every line after
+  "Sensors show". No migration; epoch --affects fill (golden files hold
+  no flavour text, so the golden rewrite only moves the epoch). Census
+  effect none. PLANET_FLAVOR, ORBITAL_FLAVOR and HABITABLE_FLAVOR are
+  stored as a key (category:index) and read at view time, so rewriting
+  them is lock-free (UX.252 side). Core 2 proposed to Core 5 to stop
+  writing planets.description and read the class description at view
+  time (a later migration drops the column); waiting on Core 5.
+  Prerequisites: none. Related: UX.252, UX.253.
+
+- [ ] **GEN.1213 Atmospheric composition accounts for the whole mix of living classes on a planet: each class changes the air in its own way, summed in timeline order**
+  Boss, 10:54 AM EDT 2026-10-31: in atmospheric composition we need to
+  account for our new mix of life on a planet, as each life type
+  modifies the atmosphere in its own way. Filed by the TODO thread.
+  Overlap checked: the air ledger work (GEN.857 to 859, GEN.891,
+  physics/life_air.py, biogenic_oxygen.py) is done and takes ONE living
+  class; GEN.862 (the design, life-classes.md section 4 and
+  life_ledger.json) is still open; GEN.1209 (several living classes per
+  planet, Aux 2) lists the air sum as step 3 and Aux 4 was told. This
+  item owns the air physics of that step so it is built and tested on
+  its own. Do: (1) the final stored air (gases, partial pressures, the
+  oxygen rise, the methane, carbon dioxide and sulfur, hydrogen and
+  reduced gases) is the result of EVERY living class that took hold, not
+  only the dominant one: each class contributes its own fluxes
+  (produces, consumes, gives off, as in life_ledger.json) over its own
+  timeline from its first producers, and the classes are summed in
+  timeline order, so an earlier class's methane is burned by a later
+  oxygen rise as the single-class code already does; (2) classes can
+  poison each other through the air: the toxin test of each class reads
+  the air the other classes left, so a class takes hold only if the air
+  the earlier classes made does not poison it (the existing toxin test,
+  GEN.1209 step 2); (3) the Life and air through the ages chart (UX.237
+  part 2) and the life-air API route draw the summed history and can
+  show each class's share of every gas; (4) the life readings (GEN.1210)
+  trend and security read the summed air; (5) the single-class air is revisited too (Boss changed his mind, 10:57 AM EDT 2026-10-31): audit the existing single-class calculation (GEN.857 to 859, GEN.891, physics/life_air.py, biogenic_oxygen.py, life_ledger.json) against this vision and fix what does not fit, so a one-class world is no longer guaranteed to keep today's air; report what changed for one-class worlds in the changes note and the census; (6)
+  stand-ins for new coupling rules go in GEN.725 with tier and tweak
+  level. Nothing forced; physics decides. Output change: the air of
+  multi-life worlds, so it rides GEN.1209's epoch and train, as a
+  separate PR. Where we think it belongs (best guess, can move): Aux 2
+  (class timelines) with Aux 4 (air) and Core 1 (ledger owner)
+  reviewing.
+  Boss changed his mind (10:57 AM EDT 2026-10-31) (2026-10-31 10:58 AM
+  EDT): after approving the item as filed, Boss asked to revisit the old
+  single-class air too, to make sure it aligns with the new multi-life
+  vision. So one-class worlds are no longer guaranteed today's air: the
+  plan is PR A = the audit of the single-class calculation plus the
+  summed multi-class ledger, with a short report of what moves for
+  one-class worlds (the oxygen rise timing, methane burning, hydrogen
+  and the toxin test), then PR B of GEN.1209. The earlier test that a
+  one-class list equals today's air becomes a test that any difference
+  from today is one the audit explains and Boss has seen.
+  Prerequisites: GEN.862. Related: GEN.1209, GEN.1210, UX.237.
+
+- [ ] **GEN.1214 Carbon dioxide and hydrocarbon (methane-ethane) seas are not being created: find out why on a census of the surface liquid and fix it (bug)**
+  Boss, 11:04 AM EDT 2026-10-31 (via the class thread): investigate and
+  fix why CO2 and hydrocarbon (methane-ethane) seas are not being
+  created. Filed by the TODO thread. Overlap checked: the surface liquid
+  inventory GEN.1035 is done and wired (surface_liquids.py,
+  surface_liquid_world.py, migration 0188: surface_liquid,
+  surface_liquid_fraction, surface_liquid_depth_km); it should give a
+  Titan-like body a methane sea and a cold CO2 world a liquid CO2 sea,
+  but Boss sees none. Do: (1) a census over a few hundred generated
+  systems of surface_liquid by value (water, lava,
+  methane-ethane-nitrogen, liquid nitrogen, liquid CO2, ammonia-water,
+  sulfur, none) split by class and by temperature and pressure band,
+  printing the cold bodies (below 120 K) that hold a volatile ice or air
+  but get none, with the reason each time (ice mass fraction, saturation
+  pressure, the SURFACE_SHARE_OF_ICE share, the triple point window of
+  CO2 which needs more than 5.2 bar, the generator never reaching the
+  cold band, or a code path not called for moons or planets); (2) find
+  the cause and fix it at the cause; if a stand-in (LQ11 to LQ14) is the
+  cause, change it with tier and tweak level in GEN.725; (3) the fix
+  changes stored output (new liquids on worlds that had none), so it is
+  an epoch with --affects on a train, and the census is printed before
+  and after in the report. Physics drives; no forced seas. Owner: Tides
+  1 (built GEN.1035). Where we think it belongs (best guess, can move):
+  Tides 1.
+  Part of the surface liquid composition chain (Boss, 11:05 AM EDT
+  2026-10-31) (2026-10-31 11:12 AM EDT): the research GEN.1216 will say
+  what composition the seas this item creates should have; fix the
+  creation first (this item), the composition follows in GEN.1218.
+  Evidence from the Class M thread (11:20 AM EDT 2026-10-31) (2026-10-31
+  11:25 AM EDT): two 300-system samples (seed 1000, seed 5): methane
+  seas 7 and 19, CO2 seas 2, pure ammonia 7, no sulfuric acid. Causes
+  found: about 17 percent of 90 to 190 K bodies get methane ice; 25 of
+  35 cold bodies over 50 kPa with methane ice get no sea
+  (SURFACE_SHARE_OF_ICE, stand-in LQ11); of 48 and 59 bodies in the CO2
+  sea window 42 and 52 take a water liquid first (one surface liquid per
+  body) and only 16 hold CO2 ice; ICE_LIQUID has no sulfuric acid and no
+  ammonia-water solution. So the item is: review the supply of non-water
+  seas (the ice draws, the share, one liquid per body, the missing
+  liquids) and add the missing liquids, not only a bug hunt.
+  Tides 1 census (as the lane reported, 11:25 AM EDT 2026-10-31)
+  (2026-10-31 11:35 AM EDT): report
+  /mnt/project-files/reports/tides1/gen1214/census-report-2026-10-31.md
+  (300 systems, 5,311 bodies). No single faulty stage: seas are rare
+  because three quarters of the cold volatile holders are under the
+  triple pressure (the ice sublimes) and the rest are outside narrow
+  windows; no in-window supplied body was left sealess, so LQ11 is not
+  the cause. Real gaps: N2 ice is never stored (the comet table has no
+  N2), no ethane liquid, no sulfuric acid or ammonia-water solution, and
+  one liquid per body (28 of 37 CO2-window bodies show water only). The
+  gaps go to the composition chain (GEN.1217, GEN.1218) and GEN.1215;
+  GEN.1215 can share an epoch with this item and GEN.1222.
+  Build ready (2026-10-31 1:45 PM EDT): Tides 1 built GEN.1214, GEN.1215
+  and GEN.1222 as one lock branch (as the lane reported):
+  claude/gen1215-liquid-fractions head 69faa0bb3 on train 7 (175e199f8);
+  replaces the earlier GEN.1222 head e6af56ae1. One epoch, migration
+  0197_surface_liquid_solutes (renumber at merge). GEN.1222:
+  melting-point fall under an ice lid stops at 251.2 K (124 of 370 water
+  seas in its sample were wrong), and warm water under crushing air (4.5
+  GPa) is ice. GEN.1215: new columns surface_liquid_acid_wt,
+  surface_liquid_acid_layer, surface_liquid_ammonia_wt; sheet rows; life
+  classes read them, classes unchanged on 404 bodies. Goes after train 7
+  merges.
+  Prerequisites: none. Related: GEN.1035, GEN.888, GEN.821.
+
+- [ ] **GEN.1215 Store the acid and ammonia fractions of the surface liquid, and let habitability read them (an acid or ammonia sea can make a world uninhabitable)**
+  Boss, 11:04 AM EDT 2026-10-31 (via the class thread): store the acid
+  and ammonia fractions of the surface liquid, because they can make a
+  planet uninhabitable. Filed by the TODO thread. Overlap checked:
+  GEN.1035 stores only which liquid (surface_liquid), its cover fraction
+  and its depth; the ammonia-water row and the sulfuric branch of the
+  acid medium (GEN.888, still open) are not stored as numbers. Do: (1)
+  new numeric columns on planets and moons, for example
+  surface_liquid_ammonia_fraction and surface_liquid_acid_fraction (mass
+  fraction of the liquid; and the acid kind or strength where the model
+  has it, sulfuric from GEN.888), declared in db/column_units.py with a
+  migration, the schema document, the API and the property sheet; (2)
+  the surface liquid world step fills them from the same inputs it
+  already uses (the ammonia ice, the SO2 and water shares for sulfuric
+  acid, the temperature) with no new random draws; (3) habitability and
+  the life class tests read them: an ammonia fraction or an acid
+  strength past the tolerance of a life class makes the world unsuitable
+  for that class (the stand-ins for the tolerances go in GEN.725 with
+  tier and tweak level, L3 until a source is read); (4) the Life section
+  says why a sea is not livable. Output change with a migration: one
+  epoch on a train, can share the epoch of the seas bug. Owner: Tides 1
+  with Aux 2 (habitability and life classes). Where we think it belongs
+  (best guess, can move): Tides 1.
+  Part of the surface liquid composition chain (Boss, 11:05 AM EDT
+  2026-10-31) (2026-10-31 11:12 AM EDT): this item is the first part of
+  the full composition model; the research is GEN.1216, the design
+  GEN.1217 and the build GEN.1218. Keep the columns of this item
+  compatible with the design (fractions of each component), and do not
+  build a second storage scheme.
+  Evidence from the Class M thread (11:20 AM EDT 2026-10-31) (2026-10-31
+  11:25 AM EDT): the functions exist in acid_medium.py and
+  strange_solvents.py but nothing stores them; Boss: they can make a
+  world uninhabitable. The class code system (GEN.1220) uses the acid
+  medium for the sulfuric acid class U and the ammonia-water mass
+  fraction for class X.
+  Boss decisions on the design (11:56 AM EDT 2026-10-31) (2026-10-31
+  11:58 AM EDT): Boss answered (11:56 AM EDT 2026-10-31): (1) yes, a
+  body may hold one extra liquid beside its main one; (2) store a
+  liquid's makeup as separate columns; (3) acid clouds vs pools NOT
+  answered, the coordinator will ask again, build pools only until he
+  does; (4) the ammonia life gate near 5 percent of the liquid's mass is
+  accepted as a starting guess, BUT it must be tuned from real physics
+  and chemistry (research GEN.1225); (5) invent the nitrogen ice amount
+  from where nitrogen freezes as a registered stand-in, also to be tuned
+  from physics and chemistry (same research); (6) a body with methane
+  and carbon monoxide ice warm enough for liquid methane gets a methane
+  sea. Build the acid and ammonia columns as the design says (separate
+  columns, percent of the liquid's mass); the acid cloud flag waits for
+  the answer to (3).
+  Question 3 answered (2026-10-31 12:01 PM EDT): Boss answered question
+  3 (11:57 AM EDT 2026-10-31): option 1, store sulfuric acid clouds too,
+  the strongest level with a pool-or-cloud flag. This replaces the
+  earlier note that cloud storage waited for an answer; all six surface
+  liquid questions are now answered (1.1, 2.1, 3.1, 4.1, 5.1, 6.1, with
+  4 and 5 to be tuned from physics by GEN.1225).
+  Boss asked for the ammonia gate and nitrogen ice amount to be tuned
+  from physics (2026-10-31 12:40 PM EDT): See the GEN.1225 findings in
+  GEN.1217 (report gen1225-ammonia-gate-and-nitrogen-ice-2026-10-31.md):
+  the ammonia gate follows the liquidus share, and nitrogen ice uses the
+  trapping factor and the partial-pressure condensation temperature.
+  Build ready (2026-10-31 1:45 PM EDT): Tides 1 built GEN.1214, GEN.1215
+  and GEN.1222 as one lock branch (as the lane reported):
+  claude/gen1215-liquid-fractions head 69faa0bb3 on train 7 (175e199f8);
+  replaces the earlier GEN.1222 head e6af56ae1. One epoch, migration
+  0197_surface_liquid_solutes (renumber at merge). GEN.1222:
+  melting-point fall under an ice lid stops at 251.2 K (124 of 370 water
+  seas in its sample were wrong), and warm water under crushing air (4.5
+  GPa) is ice. GEN.1215: new columns surface_liquid_acid_wt,
+  surface_liquid_acid_layer, surface_liquid_ammonia_wt; sheet rows; life
+  classes read them, classes unchanged on 404 bodies. Goes after train 7
+  merges.
+  Prerequisites: none. Related: GEN.1035, GEN.888, GEN.862.
+
+- [ ] **GEN.1217 Design: the surface liquid composition model: what is stored (fractions of water, salts, acid, ammonia, CO2, hydrocarbons), how it is derived, and how life changes it**
+  Boss, 11:05 AM EDT 2026-10-31: start working out, as best we can from
+  life and physics, the composition of surface liquids. Filed by the
+  TODO thread as a research-then-build chain with GEN.1214 (CO2 and
+  hydrocarbon seas not created) and GEN.1215 (acid and ammonia fractions
+  stored). Design step, after the research. Write
+  docs/design/habitability/surface-liquid-composition.md: the stored
+  columns (the fractions of each component of the liquid, with acid
+  strength and pH where it applies, extending GEN.1215's ammonia and
+  acid fractions into one set of columns), the derivation from the
+  finished body (ices, air, rain, the crust, temperature and pressure;
+  no new random draws where avoidable), the effect of each living class
+  on the composition and the effect of the composition on each life
+  class (tolerances, with stand-ins), the habitability test, how the
+  ocean family classes (the best-fit class conditions, GEN.1207) read
+  the composition, the page and API wording, and the migration and epoch
+  plan. Boss reads the design before the build. Done: the design is
+  merged and Boss has answered its questions. Where we think it belongs
+  (best guess, can move): Tides 1 with Aux 2.
+  GEN.1216 research done (Sources 1, 3:25 PM UTC lane clock) (2026-10-31
+  11:35 AM EDT): report
+  /mnt/project-files/reports/gen1216-surface-liquid-composition-2026-10-31.md.
+  Headline: every liquid family has anchors but no published closed law
+  of composition against conditions, so the generator must build the law
+  (solubility, saturation, equilibrium) and use the anchors as checks.
+  Sourced: TEOS-10 seawater ion table; Mars perchlorate and chloride
+  eutectics (Marion 2010, Toner 2014); Enceladus Na-Cl-CO3 at pH 11 to
+  12 and Europa MgSO4 1.1 to 96.8 g/kg; H2SO4-H2O eutectics 211 K at 36
+  wt percent and 199 K at 38; ammonia-water eutectic 176 K at 33 wt
+  percent plus 7 liquidus points; CO2 triple point and saturated density
+  and viscosity (Span and Wagner, Fenghour); Titan seas CH4 71 to 80, N2
+  17 to 20, C2H6 0 to 12 mol percent against a model spread of 10 times.
+  Stand-ins checked: CO2 viscosity at 220 K is 21 percent low; MgSO4
+  eutectic 1.2 K low; NaClO4 3 K low; sulfur melting 388.4 should be 392
+  K; ammonia-water viscosity and density off 2 to 6 times; ammonia share
+  0.1 is the top of the comet to disc range. Life: water limits sourced
+  (pH -0.06 to 12.5, water activity 0.611 to 0.635, ionic strength about
+  10 mol/L, MgCl2 about 2.3 M); nothing for acid above a few percent,
+  ammonia above about 1.6 percent, or CO2 or hydrocarbon as a solvent,
+  so classes 5 to 9 stay at the lowest tiers (T8 or T9, L3 or L4).
+  Questions answered (2026-10-31 11:58 AM EDT): Boss answered (11:56 AM
+  EDT 2026-10-31): (1) yes, a body may hold one extra liquid beside its
+  main one; (2) store a liquid's makeup as separate columns; (3) acid
+  clouds vs pools NOT answered, the coordinator will ask again, build
+  pools only until he does; (4) the ammonia life gate near 5 percent of
+  the liquid's mass is accepted as a starting guess, BUT it must be
+  tuned from real physics and chemistry (research GEN.1225); (5) invent
+  the nitrogen ice amount from where nitrogen freezes as a registered
+  stand-in, also to be tuned from physics and chemistry (same research);
+  (6) a body with methane and carbon monoxide ice warm enough for liquid
+  methane gets a methane sea.
+  Question 3 answered (2026-10-31 12:01 PM EDT): Boss answered question
+  3 (11:57 AM EDT 2026-10-31): option 1, store sulfuric acid clouds too,
+  the strongest level with a pool-or-cloud flag. This replaces the
+  earlier note that cloud storage waited for an answer; all six surface
+  liquid questions are now answered (1.1, 2.1, 3.1, 4.1, 5.1, 6.1, with
+  4 and 5 to be tuned from physics by GEN.1225).
+  Boss asked for the ammonia gate and nitrogen ice amount to be tuned
+  from physics (2026-10-31 12:40 PM EDT): GEN.1225 research done by
+  Sources 1 (as the lane reported), report
+  /mnt/project-files/reports/gen1225-ammonia-gate-and-nitrogen-ice-2026-10-31.md
+  (stand-in table in section 4). Ammonia gate: the earlier 1 to 1.6
+  percent figure was an arithmetic error; 1500 to 7000 mg N/L is 0.18 to
+  0.85 wt percent NH3; the highest reported growth in solution is about
+  0.7 to 0.9 wt percent and nothing near 10 percent exists, so class 8
+  is pure inference. The 10 percent only has meaning as antifreeze
+  (liquidus 259.6 K, 13 K below water). Proposed gate: ammonia share at
+  least the liquidus share for the body's temperature (5 percent at 267
+  K, 14 at 251, 20 at 235), upper bound the 33 percent peritectic, with
+  a note that no measurement exists above 0.9 wt percent; replaces LF44
+  (T9 L4) with T3 L1 for the gate, the life statement stays T9 L4.
+  Nitrogen ice: N2 condenses only below the partial-pressure temperature
+  (22 to 30 K, 28 K at 1e-4 bar; add to CS1 ICE_CONDENSATION_K); the
+  solar ceiling N2/H2O is 0.107 by mass but observed cold bodies hold
+  1e-4 to 1.4e-3 (67P, Pluto) through trapping in amorphous ice; the 2
+  percent used in the retention papers is 15 to 170 times too high.
+  Proposed GN1 trapping 0.001 to 0.013 of the ceiling (T3 L2), GN2
+  retention stays T8 L4. Touches LF62 (NH3 share 0.1, top of range), IS1
+  and CS1. Build these as registered stand-ins (GEN.725, with burn-down
+  lines for any L3/L4 row).
+  Prerequisites: none. Related: GEN.1215, GEN.1207, GEN.862.
+
+- [ ] **GEN.1218 Build the surface liquid composition model: the composition columns, the derivation, the effect of life on it and of it on life, pages and API**
+  Boss, 11:05 AM EDT 2026-10-31: start working out, as best we can from
+  life and physics, the composition of surface liquids. Filed by the
+  TODO thread as a research-then-build chain with GEN.1214 (CO2 and
+  hydrocarbon seas not created) and GEN.1215 (acid and ammonia fractions
+  stored). Build step, after the design is merged. Implements the
+  design: composition columns with their migration, the pure derivation
+  module and its wiring after the surface liquid step, the life coupling
+  (the air and the liquid change each other: GEN.1213 summed air and
+  this composition), the habitability tolerances, the pages, the API,
+  the property sheet and the census suite. GEN.1215 (acid and ammonia
+  fractions) is its first part and may be built first, with its columns
+  taken into this set. Output change: one epoch with --affects,
+  migration, golden, census re-baseline, on a train. Where we think it
+  belongs (best guess, can move): Tides 1 with Aux 2.
+  Boss decisions on the design (11:56 AM EDT 2026-10-31) (2026-10-31
+  11:58 AM EDT): Boss answered (11:56 AM EDT 2026-10-31): (1) yes, a
+  body may hold one extra liquid beside its main one; (2) store a
+  liquid's makeup as separate columns; (3) acid clouds vs pools NOT
+  answered, the coordinator will ask again, build pools only until he
+  does; (4) the ammonia life gate near 5 percent of the liquid's mass is
+  accepted as a starting guess, BUT it must be tuned from real physics
+  and chemistry (research GEN.1225); (5) invent the nitrogen ice amount
+  from where nitrogen freezes as a registered stand-in, also to be tuned
+  from physics and chemistry (same research); (6) a body with methane
+  and carbon monoxide ice warm enough for liquid methane gets a methane
+  sea. The build follows these answers, with the gate and nitrogen
+  amount replaced by the sourced values of GEN.1225 when that research
+  lands.
+  Question 3 answered (2026-10-31 12:01 PM EDT): Boss answered question
+  3 (11:57 AM EDT 2026-10-31): option 1, store sulfuric acid clouds too,
+  the strongest level with a pool-or-cloud flag. This replaces the
+  earlier note that cloud storage waited for an answer; all six surface
+  liquid questions are now answered (1.1, 2.1, 3.1, 4.1, 5.1, 6.1, with
+  4 and 5 to be tuned from physics by GEN.1225).
+  Boss asked for the ammonia gate and nitrogen ice amount to be tuned
+  from physics (2026-10-31 12:40 PM EDT): See the GEN.1225 findings in
+  GEN.1217 (report gen1225-ammonia-gate-and-nitrogen-ice-2026-10-31.md):
+  the ammonia gate follows the liquidus share, and nitrogen ice uses the
+  trapping factor and the partial-pressure condensation temperature.
+  Prerequisites: GEN.1217. Related: GEN.1213, GEN.1214, GEN.1215.
+
+- [ ] **GEN.1219 Body types: planet_type (terrestrial, transitional, gas) from the envelope share of the mass, with a shadow report first**
+  From the Class M research thread's handoff
+  (/mnt/project-files/reports/class-todo-handoff-2026-10-31.md; designs
+  in class-type-and-domain-scoring-design-2026-10-31.md,
+  class-families-and-positions-design-2026-10-31.md,
+  class-code-system-2026-10-31.md, class-fit-shadow-2026-10-31.md,
+  planet-class-criteria-inventory-2026-10-31.md), after Boss changed the
+  best-fit plan between 10:04 and 11:07 AM EDT 2026-10-31. Filed by the
+  TODO thread. Boss chose the types: terrestrial under 0.5 percent
+  envelope, transitional 0.5 to 50 percent, gas 50 percent and over; ice
+  giants are Transitional by Boss's choice (10:36 AM EDT). Do: (1) a
+  read-only shadow report that types a few hundred generated systems and
+  prints the counts and the bodies near each cut; (2) a pure function
+  planet_type(body) and a stored planet_type column on planets and moons
+  (migration, db/column_units.py, schema document, API, sheet); (3)
+  GEN.725 rows for the two cuts (tier and tweak level; the 0.5 and 50
+  percent cuts are Boss's choice, so L0 as envisioned, with the physical
+  basis noted). The type is a gate for the class lists (gas and
+  transitional classes use their own lists, item for sources below).
+  Output change with a migration: one epoch, can share GEN.1207's epoch.
+  Where we think it belongs (best guess, can move): the Class M research
+  thread.
+  Envelope share stored (Boss, 11:57 AM EDT 2026-10-31) (2026-10-31
+  12:00 PM EDT): Boss decided to store the envelope share for every body
+  so class T hydrogen-air dwarfs are typed correctly; it is GEN.1226,
+  one epoch with this item and GEN.1220. The type function reads that
+  column.
+  Wiring sweep (Boss, 12:03 PM EDT: nothing built and left unused;
+  report reports/wiring-sweep-2026-10-31.md) (2026-10-31 12:25 PM EDT):
+  Item had no owner; the thread has the lock-free part merged (#4490).
+  Owner now: the Class M thread (building it now) (proposed by the TODO
+  thread; the lane says if it cannot take it).
+  Prerequisites: none. Related: GEN.1207.
+
+- [ ] **GEN.1220 Class code system: a letter plus a digit (class_variant column, 0 not written), the digit meanings and the letters of the oxygen-water, anoxic-water, CO2, acid, methane-ethane, ammonia-water and hot thin-air families**
+  From the Class M research thread's handoff
+  (/mnt/project-files/reports/class-todo-handoff-2026-10-31.md; designs
+  in class-type-and-domain-scoring-design-2026-10-31.md,
+  class-families-and-positions-design-2026-10-31.md,
+  class-code-system-2026-10-31.md, class-fit-shadow-2026-10-31.md,
+  planet-class-criteria-inventory-2026-10-31.md), after Boss changed the
+  best-fit plan between 10:04 and 11:07 AM EDT 2026-10-31. Filed by the
+  TODO thread. Boss: 26 letters with a digit 0 to 9 (0 not written, 1 to
+  9 variations) give 260 possible classes for the 44 needed (30 now plus
+  14 new), and wants a system that says when a digit applies, what it
+  means and how it differs. Do: build the code system from
+  class-code-system-2026-10-31.md: a new class_variant column
+  (migration), the parse and format functions (Class M, Class M1, Class
+  H3 and so on), the digit meanings (1 hot, 2 cold, 3 too wet, 4 too
+  dry, 5 to 8 double deviations, 9 other-domain, 5 to 9 reserved), and
+  the letters: M, R (Hothouse, Boss), P, O, H in the oxygen-water
+  family; F anoxic water; G dense CO2; Y sulfuric acid (Demon world, Boss); U methane-ethane; X ammonia-water; Z hot thin-air world. Boss confirmed these letters (11:59 AM EDT 2026-10-31), so they are final. Every place that
+  prints or sorts a class (pages, API, search, map filters, the
+  habitability index, life-class gates) goes through the one format
+  function. Output change: epoch and migration with GEN.1207. Where we
+  think it belongs (best guess, can move): the Class M research thread.
+  Letters confirmed (2026-10-31 12:08 PM EDT): Boss confirmed the class
+  letters (11:59 AM EDT 2026-10-31): Y is the sulfuric acid class
+  (swapped with the proposal, because Trek labels a Class Y a Demon
+  world; the definition is ours, the name sounds right for sulfuric
+  acid), U is methane-ethane, X is ammonia-water and Z is the hot
+  thin-air world. Class R is Hothouse. The wait on the letters is
+  cleared.
+  Prerequisites: none. Related: GEN.1207, GEN.1211, GEN.862.
+
+- [ ] **GEN.1221 Class-by-domain matrix as data: six domains plus regional, day and night temperature and wet bulb, stored relative humidity and a groundwater flag, and a phase gate per solvent**
+  From the Class M research thread's handoff
+  (/mnt/project-files/reports/class-todo-handoff-2026-10-31.md; designs
+  in class-type-and-domain-scoring-design-2026-10-31.md,
+  class-families-and-positions-design-2026-10-31.md,
+  class-code-system-2026-10-31.md, class-fit-shadow-2026-10-31.md,
+  planet-class-criteria-inventory-2026-10-31.md), after Boss changed the
+  best-fit plan between 10:04 and 11:07 AM EDT 2026-10-31. Filed by the
+  TODO thread. Do: the class-by-domain matrix of
+  class-families-and-positions-design-2026-10-31.md as data (the ranges
+  for M, H, O, P, R are in its section 3): per class and per domain (six
+  domains plus regional, day temperature, night temperature, wet-bulb),
+  the core edge and the shoulder of the best-fit scoring (GEN.1205's
+  planet_class_fit.json grows these; no second table). Needs a stored
+  relative humidity (or a recompute from the air and the surface liquid)
+  and a groundwater flag for class H. Phase-gate helpers for each
+  solvent: water_boiling_k exists; liquid CO2, methane-ethane, sulfuric
+  acid and ammonia-water are new (surface_liquids.py already has
+  windows; reuse them). New numbers are stand-ins in GEN.725 with tier
+  and tweak level; burn-down register lines for L3 and L4 rows. Data and
+  pure functions plus the two stored values; the stored values need a
+  migration and an epoch with GEN.1207. Where we think it belongs (best
+  guess, can move): the Class M research thread.
+  Prerequisites: GEN.1219, GEN.1220. Related: GEN.1205, GEN.1207,
+  GEN.1035.
+  Letters confirmed (2026-10-31 12:08 PM EDT): Boss confirmed the class
+  letters (11:59 AM EDT 2026-10-31): Y is the sulfuric acid class
+  (swapped with the proposal, because Trek labels a Class Y a Demon
+  world; the definition is ours, the name sounds right for sulfuric
+  acid), U is methane-ethane, X is ammonia-water and Z is the hot
+  thin-air world. Class R is Hothouse. The wait on the letters is
+  cleared.
+
+- [ ] **GEN.1222 Tiny airless moons hold a water surface ocean at 20 to 33 K: 60 of 2,071 bodies in one sample (39 class D, 20 class C, 1 class T), all moons (bug)**
+  From the Class M research thread's handoff
+  (/mnt/project-files/reports/class-todo-handoff-2026-10-31.md; designs
+  in class-type-and-domain-scoring-design-2026-10-31.md,
+  class-families-and-positions-design-2026-10-31.md,
+  class-code-system-2026-10-31.md, class-fit-shadow-2026-10-31.md,
+  planet-class-criteria-inventory-2026-10-31.md), after Boss changed the
+  best-fit plan between 10:04 and 11:07 AM EDT 2026-10-31. Filed by the
+  TODO thread. Found by the Class M thread. In the seed-5 sample 60 of
+  2,071 bodies are tiny airless moons with hydrosphere 'surface ocean'
+  and surface_liquid water at 20 to 33 K, which is frozen solid.
+  Reproduce: class_sweep_cli.sample_bodies(300, 5, 0.25), moons with
+  surface_temperature under 250 K and hydrosphere 'surface ocean'. Do:
+  find which step gives a liquid water state to a moon with no air and a
+  surface far under 273 K (the hydrosphere rule, a moon path that skips
+  the phase gate, or the surface liquid step reading the stored
+  hydrosphere), fix at the cause with the phase gate, and print the
+  census before and after. Changes stored output: epoch with --affects
+  on a train. Where we think it belongs (best guess, can move): Tides 1
+  (owns the surface liquid step) or the Class M thread.
+  Fixed by Tides 1 (as the lane reported, 11:25 AM EDT 2026-10-31)
+  (2026-10-31 11:35 AM EDT): pressure_melted_shell_km had no floor on
+  the melting-point fall, so a thick lid on a cold low-heat body gave a
+  shell of 0 and a water ocean at 25 K (124 of 370 water seas in its
+  sample). Fix: floor at the ice III triple point, 251.2 K. Branch
+  claude/gen1214-volatile-seas head e6af56ae1 off train 7, a lock item
+  (changes stored output), change note included. Stays open until it
+  merges on a train.
+  Build ready (2026-10-31 1:45 PM EDT): Tides 1 built GEN.1214, GEN.1215
+  and GEN.1222 as one lock branch (as the lane reported):
+  claude/gen1215-liquid-fractions head 69faa0bb3 on train 7 (175e199f8);
+  replaces the earlier GEN.1222 head e6af56ae1. One epoch, migration
+  0197_surface_liquid_solutes (renumber at merge). GEN.1222:
+  melting-point fall under an ice lid stops at 251.2 K (124 of 370 water
+  seas in its sample were wrong), and warm water under crushing air (4.5
+  GPa) is ice. GEN.1215: new columns surface_liquid_acid_wt,
+  surface_liquid_acid_layer, surface_liquid_ammonia_wt; sheet rows; life
+  classes read them, classes unchanged on 404 bodies. Goes after train 7
+  merges.
+  Prerequisites: none. Related: GEN.1035, GEN.1214.
+
+- [ ] **GEN.1226 Store the envelope share for EVERY body, so hydrogen-air dwarfs (about 400 class T bodies) are typed and classed correctly**
+  Boss, 11:57 AM EDT 2026-10-31 (via the Class M thread): store the
+  envelope share (hydrogen-helium envelope mass fraction) for every
+  body, so Class T gas dwarfs can be typed correctly under the body
+  types (GEN.1219). Filed by the TODO thread. Finding behind it (Class M
+  thread, GEN.1219 shadow report): all terrestrial-typed bodies store
+  envelope 0, including about 400 class T hydrogen-air dwarfs, so the
+  type cut cannot see them. The column envelope_mass_fraction already
+  exists on planets and moons (models.py, column_units.py); the work is
+  to FILL it for every body: for a body with a hydrogen-rich air the
+  envelope share is the air's mass over the body's mass (surface
+  pressure times the area over the gravity, from the stored air, radius
+  and mass), for a giant it is the envelope the interior model already
+  stores, and for a body with no hydrogen-rich air it is 0 honestly.
+  Check whether moons and the small-body tables have the column, and add
+  it with a migration where missing. Do: a pure function
+  envelope_share(body); fill it in the generation step where the air and
+  the interior are complete, and in the rebuild step for old rows;
+  GEN.1219's planet_type reads it; GEN.1220/1221 class T and the other
+  hydrogen classes read it; the giant class rows (GEN.1224 report: H/He
+  share = 1 - M_Z/M_p for giants) agree with it; the property sheet and
+  API show it. Output change: epoch with --affects, golden, census
+  re-tag, on a train, with GEN.1219 and GEN.1220 (one epoch). Where we
+  think it belongs (best guess, can move): the Class M research thread.
+  Boss approved option 1 (2026-10-31 1:58 PM EDT): Boss answered Yes at
+  1:56 PM EDT 2026-10-31 to the Class T envelope question (option 1):
+  store the true air share (the hydrogen-rich air's mass over the body's
+  mass) as the envelope share of every body, not a class-based stand-in.
+  GEN.1219, GEN.1220, GEN.1221 and GEN.1207 read that stored value; they
+  may now be built on it.
+  Prerequisites: none. Related: GEN.1219, GEN.1220, GEN.1207.
+
+- [ ] **GEN.1227 Store the coma class and the dominant volatiles of an interstellar comet, so the map can colour its coma**
+  Found by Sources 2 (as the lane reported, 12:15 PM EDT 2026-10-31)
+  while starting MAP.283, filed by the TODO thread as a wiring gap
+  (Boss, 12:03 PM EDT: nothing built and left unused). An interstellar
+  comet stores only is_active, its size and speed and the names of its
+  three largest components (complex organics, silicate dust, CO2 ice or
+  water ice). The species that set a comet's colours (CN and C2 green, a
+  CO+ blue ion tail) are drawn at generation
+  (comet_population.draw_volatiles) and then thrown away; over 300 draws
+  CO, CN and C2 never reach the top three. Do: derive from the makeup
+  already drawn a coma class and the dominant volatiles and store them
+  as a small column or two (new numeric columns in db/column_units.py),
+  after the species factors of GEN.1021 are on main; MAP.283 then reads
+  them. LOCK work (migration, epoch with --affects, golden, census
+  re-tag): ride a train. Owner Sources 2 (proposed, it knows the comet
+  species work).
+  Prerequisites: GEN.1021.
+
+- [ ] **GEN.1228 Hematite (the oxidised ground type) reflects the same in all three bands, so a rusty world renders dark grey instead of red; give it a sourced spectrum or finer bands (bug)**
+    Finding from Aux 4's MAP.274 build (as the lane reported, 12:52 PM
+  EDT 2026-10-31).
+    The materials table's hematite_fine reflectance is flat across the
+  three bands the land colour reads (0.092 at 450 nm, 0.086 at 550 nm,
+  0.085 at 650 nm), so ground that is mostly oxidised iron renders dark
+  grey, where real hematite dust is red because it reflects far more at
+  650 nm than at 450 nm. Fix: a sourced hematite spectrum, or finer
+  bands in the table (written in docs/design/interface/body-rendering.md
+  section 4.1). Changes the colour of oxidised worlds on the map and
+  body pages only; no stored generator value moves. Lock-free (the
+  land colour, MAP.274, has merged).
+  Prerequisites: none.
+
+- [ ] **GEN.1229 Methane haze depth per unit of mass flux: the fall term in aerosols.haze_fall (eddy speed replacing fall speed) and the aggregate cross section give Titan its depth only through an oversized mass flux (bug)**
+    Finding from Aux 4's GEN.982 build (as the lane reported, 2:22 PM
+  EDT 2026-10-31). The photon-limited methane loss at Titan's distance
+  is about 6e9 molecules per cm2 per second, which is Titan's own
+  methane loss, and it is 100 to 100000 times under the diffusion supply
+  the haze depth was tuned with. With the physical supply, Titan-like
+  hazes drop from optical depth 0.007 to 3 down to 3e-7 to 0.2 and
+  Titan's 9.6 is not reachable: the old model got its Titan order from
+  an oversized mass flux, so the depth per unit of mass flux is what is
+  off (the fall term in aerosols.haze_fall, where the eddy speed
+  replaces the fall speed, and the aggregate cross section). Do: derive
+  the depth per unit of mass flux from the physics (sourced), fix the
+  fall term and the cross section, then let GEN.982 part 3 (haze supply
+  is the smaller of diffusion and photon-limited, branch
+  claude/project-thread-nfytfi-gen982-haze, head ef2b42ecc, stacked on
+  GEN.972) ride the same lock window. Done: Titan's depth reached from
+  the physical flux; the strict expected failure of the Titan test
+  removed; census of methane hazes before and after. Lock work (epoch,
+  --affects fill). Owner: Aux 2.
+  Lock branch ready (2026-10-31 3:20 PM EDT): Aux 4 (as the lane
+  reported, 3:19 PM EDT): READY as one lock branch
+  claude/project-thread-nfytfi-gen1229, head 7135c287e, based on main
+  c82ecfcd5 plus #4558; it contains GEN.972 (head 29e0f68a0, one test
+  fix since 3dc7948e8) and GEN.982 part 3 and GEN.1229, so skip the old
+  -gen982-haze branch. Epoch --affects fill, no migration. Census (480
+  bodies): hazy bodies 98 to 82; median haze depth 0.02 to 3.8; bodies
+  over depth 1: 3 to 62; Titan's measured depth 9.6 now comes out of its
+  own production. Depths above about 100 are suspect (the only sink is
+  fall; no rain-out or haze destruction). Stand-ins HZ1 to HZ3, SL4, SL5
+  registered. Tests: 1263 passed; test_giant_one_bar_temperature (two)
+  red on clean main is GEN.1030.
+  Owner changed (2026-10-31 3:40 PM EDT): Aux 4 was retired by the
+  coordinator at 3:21 PM EDT (Boss: retire threads that served their
+  purpose); owner is now Aux 2. The lock branch
+  claude/project-thread-nfytfi-gen1229 (head 7135c287e) is built and
+  rides a train through the Train Manager.
+    Prerequisites: GEN.982. Related: GEN.972.
+  Prerequisites: none.
+
+- [ ] **GEN.1230 The disc star formation history should decline to the present for a Milky Way mass galaxy: the model gives 0.49 to 0.55 of the ten Gy mean, measured is 0.20 to 0.3 (bug)**
+  Found by Core 3 while closing TEST.533 (#4575, 2:55 PM EDT 10-31 as
+  the lane reported). Present star formation over its ten-Gy mean for
+  the model disc is 0.49 (0.55 after GEN.999) against 0.20 to 0.3
+  measured for the Milky Way (Licquia and Newman 2015). Cause is not the
+  gas law: the inflow in disk_history follows the halo's stellar growth,
+  and for a light halo that rises to the present, while the Milky Way's
+  own history declines. Measured for the test's disc by halo mass:
+  1.0e12 gives 0.89, 1.6e12 0.49, 2.0e12 0.39, 3.1e12 0.29. GEN.1154
+  lowered the median halo of a 5e10 galaxy from 2.0e12 to 1.57e12 solar
+  masses. Candidate causes: the inflow shape (halo growth rate against
+  the stellar-to-halo relation) and the thin disc's age. Physics
+  decides, no game rate; any stand-in goes in GEN.725 with tier and
+  level. TEST.533 widened the bound to a factor of three with the reason
+  in the test; tighten it back when this lands. Interacts with GEN.999
+  (adds 10 percent), so look at it after train 8. Lock work (epoch).
+  Related: GEN.999, GEN.1154, GEN.1200, GEN.1202. Owner: Core 3.
+  Prerequisites: none.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -14999,54 +14580,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   it, confirmed with TODO, one lock-free item at a time.
   Prerequisites: GEN.558, GEN.559. Related: GEN.550.
 
-- [ ] **PERF.137 Audit the remaining `LIMIT ? OFFSET ?` queries: say which serve a big table and move those to keyset paging**
-  Found by Core 5 (3:15 AM EDT 2026-10-18 as the lane reported), filed
-  by the TODO thread. Keyset paging is done for the Systems, Uncharted
-  stars and Phenomena tables (PERF.20 umbrella and PERF.75, #2154);
-  `grep 'LIMIT ? OFFSET ?' src/planetgen` on main at 8.0.1795 still
-  finds 16 sites, as candidates only (Core 5 did not trace which serve
-  big tables): `db/query.py` lines 214, 501, 576, 618, 857, 898, 1781,
-  2270, 2365, 4234 and 6045 (11 queries), `population/model.py` 695, 778
-  and 830 (list queries), `db/stats.py` 310 (base names) and
-  `queue/work.py` 907 (task listing). The API list routes take `offset`
-  (api/routes.py MAX_PAGE_OFFSET) and `web/lib/pagination.py` clamps a
-  page past the end. Why it matters: `OFFSET` makes page n cost n times
-  as much (measured for the Systems table: rows 0, 20,000, 500,000 and
-  1,500,000 take 0.004, 0.13, 5.8 and 12.1 s idle, where a keyset page
-  costs 2 ms). Do: for each site, read the caller and the table it pages
-  (row count at a full galaxy, from the schema or a measured count) and
-  write one line per site: big or small, and the deepest page a user or
-  the API can ask for. Move the big ones to the keyset form the three
-  finished tables use (`after=<sort key, id>` next to `offset=`) and
-  leave the small ones with a one-line comment saying the table stays
-  under a few thousand rows. Done: a table of the 16 sites on this item
-  with the verdict for each, every big site on keyset paging with a test
-  that pages to the end, and the deepest-page time under 50 ms at a full
-  galaxy. Owner: Core 5 (proposed, it found the list and wrote the
-  PERF.126 and PERF.127 commands); low priority, no version blocker.
-  Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
-  2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 5
-  held it before; this replaces any earlier owner line).
-  Research (2026-10-09): Audit done (Core 5, 4:40 PM EDT 2026-10-29 as
-  the lane reported), report
-  /mnt/project-files/reports/limit-offset-audit-2026-10-29.md: 15 OFFSET
-  sites; measured at 1,000,000 sectors the Sectors list takes 0.9 to 2.6
-  s on page 1 and 5 to 8 s deep on every sort (full filesort), while the
-  keyset form takes 1 to 26 ms. The 'deepest page under 50 ms at a full
-  galaxy' check cannot be measured without a full-galaxy database (only
-  1,000,000 sectors were measured). Slice 1 (Sectors list default and
-  name sorts: placed-then-unplaced reads plus keyset) is Core 5's, in
-  progress as PERF.137's first slice. The other slices are separate
-  items filed 2026-10-29 (PERF.205 species list and built phenomena,
-  PERF.206 octant and binary system group walk, PERF.207 planetgen
-  planets and moons --limit and --after, PERF.208 a stored indexed
-  sector system count, density and quadrant). PERF.137 closes when
-  the slices are done.
-  Owner (housekeeping) (2026-10-30 2:55 PM EDT): released to the pool:
-  the owner named above (Core 5) is a retired lane. A waiting lane takes
-  it, confirmed with TODO, one lock-free item at a time.
-  Prerequisites: none. Related: PERF.75, PERF.135, PERF.205, PERF.206, PERF.207, PERF.208.
-
 - [ ] **PERF.147 A per-task progress bar with an ETA for any task expected to take, or taking, longer than 15 seconds**
   Boss (2026-10-21, as the coordinator relayed at 8:46 PM EDT): every
   task gets its own progress bar once it is expected to take, or does
@@ -15143,6 +14676,19 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   track evaluations); making that faster is this item, by one-pass
   bright pieces per mass and [Fe/H], or by turning the kept folder on in
   production (Boss call: it trades a disk folder for time).
+  Star 2 profile (as the lane reported) (2026-10-31 12:50 PM EDT): one
+  solar-bin table (threshold 100 Lsun, 718 cells) takes 20.4 s under the
+  profiler and the work is distinct, not repeats: about 28 percent
+  main-sequence edge rows that miss the memo (isochrones.edge_point,
+  main_sequence._low_mass), 29 percent post_main_sequence.bright_pieces,
+  12 percent timeline. A five-fold gain needs the edge, low-mass,
+  timeline and bright-piece functions vectorised across a cell grid, and
+  numpy log10 and pow need not match math to the last bit, so
+  bit-identical output cannot be promised: treat the vectorised version
+  as lock work (epoch) or take the Boss call already noted in the item
+  (turn on the kept-table folder in production). A bit-identical cache
+  of the low-mass edge pieces (about 10 percent) is available as a small
+  lock-free step.
   Prerequisites: none. Related: TEST.344, GEN.394.
 
 - [ ] **PERF.195 Generation timing records are shown or no longer recorded: object_timing_stats and object_timing_samples (G5)**
@@ -15166,25 +14712,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner (housekeeping) (2026-10-30 2:55 PM EDT): released to the pool:
   the owner named above (Aux 16) is a retired lane. A waiting lane takes
   it, confirmed with TODO, one lock-free item at a time.
-  Prerequisites: PERF.196, PERF.197. Related: PERF.125, PERF.196, PERF.197.
-
-- [ ] **PERF.196 Decide: show the object timing records or stop recording them (G5, step 1)**
-  Unused stored values audit chain
-  (reports/unused-stored-values-audit-2026-10-24.md, Boss 10:16 PM EDT
-  and 10:35 PM EDT 2026-10-24: make each a chain, with a GitHub goal
-  issue). generation/object_timing.py writes object_timing_stats and
-  object_timing_samples every run; nothing reads them. Decide, with a
-  number from a run (cost of recording against the use), whether to show
-  them on the run page and `planetgen stats` or stop recording, and
-  write the decision in the item. Done: the decision with its reason.
-  Version 8.2, phase 2. Owner: Aux 16. Rules: no backward-compat shims;
-  every number has a unit or scale (GEN.772); a changed generated value
-  carries `tests.golden_update --reason ... --affects <stage>` and the
-  next epoch; tests are `scripts/test.py changed --resume`.
-  Owner (housekeeping) (2026-10-30 2:55 PM EDT): released to the pool:
-  the owner named above (Aux 16) is a retired lane. A waiting lane takes
-  it, confirmed with TODO, one lock-free item at a time.
-  Prerequisites: none. Related: PERF.195.
+  Prerequisites: PERF.197. Related: PERF.125, PERF.196, PERF.197.
 
 - [ ] **PERF.197 Carry out the object timing decision: show the records with a test, or delete the recording, the tables, the migration and the fingerprint entry (G5, step 2)**
   Unused stored values audit chain
@@ -15198,7 +14726,29 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (GEN.772); a changed generated value carries `tests.golden_update
   --reason ... --affects <stage>` and the next epoch; tests are
   `scripts/test.py changed --resume`.
-  Prerequisites: PERF.196. Related: PERF.195.
+  PERF.196 decided by Sources 2 (report
+  reports/perf196-object-timing-decision-2026-10-31.md) (2026-10-31 2:05
+  PM EDT): SHOW the stats table, STOP the samples table. Recording costs
+  1.9 microseconds an object, about 42 microseconds a system (0.004
+  percent of the 1.1 s mean), so cost is no reason to stop. Correction
+  to the audit: object_timing_stats is read (type_means, served as
+  object_types in the admin generation-stats API) but the Stats page
+  drops it; run_totals has no caller outside tests;
+  object_timing_samples has no reader. Part (a), lock-free: a "Seconds
+  per object" table by kind on the Stats page and the same for one run
+  on the run page, with a test (this is what Boss asked for on 10-14).
+  Part (b), lock work: delete the sample recording, its table, the
+  column_units and fingerprint entries and add a migration dropping it;
+  rides a train. Owner Sources 2.
+  Part (a) merged as #4529 (Sources 2, as the lane reported) (2026-10-31
+  2:15 PM EDT): the admin Stats page has a "Seconds per object" table
+  (objects timed, mean, fastest, slowest, share of all object time per
+  kind) over every saved run; the generation-stats API field
+  object_types is now a list of rows; the run_totals register line is
+  gone. No migration, output unchanged. The item stays open for part
+  (b), the lock work (drop the sample recording, its table, column_units
+  and fingerprint entries, migration), which Sources 2 is building.
+  Prerequisites: none. Related: PERF.195.
 
 - [ ] **PERF.198 Speed up util/detmath.matmul and cache equal gas_equilibrium.solve calls (finding 6)**
   Found by the air fixed point (GEN.411, GEN.422, Aux 1 lane I),
@@ -15255,6 +14805,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the owner named above (Core 5) is a retired lane. A waiting lane takes
   it, confirmed with TODO, one lock-free item at a time.
   Prerequisites: none. Related: PERF.149.
+
+- [ ] **PERF.219 The Systems list with a star type filter and the sector or octant sort pages with OFFSET only (a G filter matches about a tenth of the galaxy); move it to keyset paging, with a MySQL measurement at a full galaxy against the 50 ms target**
+  Left over from the PERF.137 audit
+  (reports/limit-offset-final-audit-perf137-2026-10-31.md): the name
+  sort is already keyset, the filter plus the sector or octant sort is
+  not. Also residual and smaller: planetgen planets and moons with a
+  class or radius filter and no cursor (CLI only), and a hand-typed deep
+  offset on the Phenomena list. Measure on a real MySQL at a full galaxy
+  before and after.
+  Prerequisites: none.
 
 ## DB: Database and schema
 
@@ -15563,13 +15123,17 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   notes /mnt/project-files/reports/class-lane-notes-2026-10-23.md);
   Habitability lane D keeps GEN.645 and GEN.643. This replaces
   'Habitability lane D' above for the build.
+  Changed by best-fit classes GEN.1205 to GEN.1208 (2026-10-31 9:46 AM
+  EDT): GEN.1207 adds class_match, runner_up_class and runner_up_match
+  beside the stored letter. The reclassification step here must keep all
+  of them true after an edit or a rebuild, not just the letter.
 
 - [ ] **DB.99 Store the ground colour and the ice fraction on planets and moons**
   One migration, one generator epoch and the column_units.py entries.
   Design draft
   design-drafts/body-rendering-from-composition-2026-10-24.md (section
   11), Boss's plan of 10:26 PM EDT 2026-10-23.
-  Prerequisites: MAP.274.
+  Prerequisites: none.
 
 - [ ] **DB.101 Storage and units for every physics rectification output: a column, a column_units entry and a migration shipped with its item**
   Boss asked (5:47 PM EDT 2026-10-24) whether the wiring reaches the
@@ -15826,7 +15390,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
     it uses (`upload_runs`, `upload_claims`, `upload_id_ranges`)
     (2026-10-16 review). Added to Done: applying a change plan refuses a
     sector an upload run has claimed, with a test.
-    Prerequisites: none.
 
   - [ ] **API.11 Staging tables**
     Done: staging storage (a galaxy schema migration) for received
@@ -15853,7 +15416,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
     Scope after the review (2026-10-16 review): this item is the
     umbrella of the upload bookkeeping tables in the control database
     (child a, Core 1) and the spool and unit-state code (child b).
-    Prerequisites: API.29.
 
   - [ ] **API.12 The download: seed, skeleton and name state**
     Done: a route that returns, compressed, what a local run needs
@@ -16217,6 +15779,12 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Owner (housekeeping) (2026-10-30 2:55 PM EDT): released to the pool:
   the owner named above (Core 5) is a retired lane. A waiting lane takes
   it, confirmed with TODO, one lock-free item at a time.
+  Bug 1 check (as the lane reported, 12:35 PM EDT) (2026-10-31 1:15 PM
+  EDT): Core 5's #3902 and #3958 and Aux 12's #3418 and #3423 already
+  did the API answers, the CLI help and printed lines, the stats and
+  settings pages and the orbit infobox eccentricity (UX.210 says what
+  the number is). What is left is only the in-site help pages and
+  glossary, which wait for DOC.15; nothing to build until then.
   Prerequisites: none. Related: GEN.771, DOC.15.
 
 - [ ] **API.34 API and remote uploads carry resource locations: the resource fields are in the API, and an uploaded galaxy is checked for them**
@@ -17719,20 +17287,6 @@ clears each one.
   the owner named above (Core 5) is a retired lane. A waiting lane takes
   it, confirmed with TODO, one lock-free item at a time.
   Prerequisites: GEN.309. Related: GEN.42.
-
-- [ ] **TEST.183 A test that fails when a new output path formats its own lines**
-  Split from UX.102 (2026-10-16, Boss 1:07 PM EDT: look at each item for
-  smaller chunks and shared work). A guard test (an AST scan with an
-  allow-list) that fails when code under `planetgen/` writes a log or
-  report line with its own timestamp or divider instead of the layer.
-  Done: the test, with the allow-list empty except for named exceptions
-  with a reason.
-  Owner: Core 5 (proposed, 2026-10-17, 10:54 PM EDT, relayed by the coordinator: Core 2 confirmed it has no code on
-  this item and asked to drop it; it was Core 2's by the 10:06 AM EDT lane assignment).
-  Order on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the coordinator
-  relayed): after PERF.135 and the command follow-ups (PERF.99, PERF.100, DB.29,
-  PERF.120 to PERF.128), and after the DOC.18 sweep (Boss's 'Sweep first').
-  Prerequisites: UX.122. Related: UX.102.
 
 - [ ] **TEST.190 A failing session fixture makes every dependent test wait its full 900 s timeout: fail the dependents at once (bug)**
   Found by a lane (2026-10-16), filed by the TODO thread. When a
@@ -19283,6 +18837,10 @@ clears each one.
   life classes are in reports/life-chemistry-review-2026-10-28-files;
   the registry holds the life-class stand-in rows (LF*). Catalog
   sections 3 and 4.
+  Changed by GEN.1209 (several life types per planet) (2026-10-31 10:10
+  AM EDT): Once GEN.1209 lands the prevalence census also covers the
+  list: the share of worlds with two or more living classes, and the
+  prevalence shares per class, inside researched ranges.
   Prerequisites: GEN.863, TEST.430.
 
 - [ ] **TEST.436 Prevalence tests for the chemistries, the adaptation traits and the animal routes: shares per chemistry per star letter, per route and per trait inside researched ranges**
@@ -19313,6 +18871,11 @@ clears each one.
   finds the new class and PHI-6 colour after approval, and one that
   edits a field not used by the rules and finds the class unchanged;
   undo restores the class. Version 8.6. Owner: unowned until 8.6.
+  Changed by best-fit classes GEN.1205 to GEN.1208 (2026-10-31 9:46 AM
+  EDT): Under best-fit (GEN.1207) a reclassification after an edit
+  changes the letter when another class scores a higher match, and keeps
+  it when the same class stays best; the test should assert on the best
+  match, and also that class_match and the runner-up are recomputed.
   Prerequisites: DB.90, ADM.80. Related: TEST.301, DB.90, TEST.176.
 
 - [ ] **TEST.455 A completeness gate: every numeric constant in the generation and physics modules has a stand-in registry row or is read from a table; the list of unregistered constants may only shrink**
@@ -19343,15 +18906,6 @@ clears each one.
   Catalog sections 1 and 4.
   Prerequisites: GEN.945. Related: GEN.725, GEN.754, GEN.945.
 
-- [ ] **TEST.459 The point_phenomena links browser test is red on clean main (bug)**
-  Found by Core 2 while merging MAP.336 (as the lane reported 7:11 PM
-  EDT 2026-10-29): the browser test for the point phenomena links fails
-  on bare main and is not from MAP.336. Do: find the cause (a real fault
-  in the links or a stale test after the Z2 and Z3 map changes), fix it
-  at the cause, never skip it. Owner: Aux 4 (its next lock-free item
-  after the train 1 rebase). Version 8.1.
-  Prerequisites: none. Related: MAP.336.
-
 - [ ] **TEST.461 test_db_column_round_trip fails on planets.porosity: the column is never written (bug)**
   Found by Core 1's gate for epoch 122 (as the lane reported 7:23 PM EDT
   2026-10-29), red on clean main: the round-trip test finds
@@ -19367,136 +18921,6 @@ clears each one.
   and the excusal is removed.
   Prerequisites: none. Related: DB.70.
 
-- [ ] **TEST.463 Reds on main reported by Core 5 at 10:33 PM EDT 2026-10-29: triage each one and fix or assign it (bug)**
-  Core 5 (as the lane reported) hit these failing tests on main, none
-  from its own change: test_api search facets (the new 'supports'
-  facets), the four search browser tests and test_fuzz_web_routes
-  /api/search returning 500 (all look like the MAP.345 search half,
-  #3829, Core 3), test_sql_portability (VALUES in migrations 0165 to
-  0167), test_saturation_single_source (WATER_CRITICAL_K in
-  radiative_convective), test_step_registry, test_fuzz_api_auth avatar,
-  test_star_composition_sweep, test_db_batching and test_web_sector_nav
-  neighbourhood. Do: for each, say whether it fails on a clean main,
-  name the commit that broke it, and fix it or hand it to the lane that
-  owns the code; the Core 3 group goes to Core 3 first. Some may be this
-  machine's MariaDB or the flaky class-mismatch (GEN.980, fixed on Core
-  1's branch for train 2). Owner: Bug 2. Version 8.1.
-  More reds from Core 5 (as the lane reported 11:17 PM EDT) (2026-10-29
-  11:17 PM EDT): test_maintenance map rebuild and
-  test_db_column_round_trip test_every_column_is_written (the porosity
-  column, GEN.980/TEST.461 on train 2) are red on main; test_population
-  species setup hit one random failure in the gas solver
-  (gas_equilibrium np.diag) that passed alone: find the input that makes
-  np.diag fail and fix it or file it. Not Core 5's.
-  Another red (Sources 2, as the lane reported 12:11 AM EDT) (2026-10-30
-  12:11 AM EDT):
-  test_object_rows::test_planets_moons_belts_and_comets_are_read_back
-  fails on main with KeyError score in the life_class loader (the
-  life-class fields were reshaped by API.37 #3871 or the earlier class
-  work); find the commit and fix it or hand it to its owner.
-  Gate-finish note (Core 5, as the lane reported 12:15 AM EDT)
-  (2026-10-30 12:15 AM EDT): the 8 test_habitability_end_to_end_browser
-  tests error in the habitable_galaxy fixture on a slow machine (900 s
-  setup timeout in the gas solver), so they did not run to assertions
-  there; the train gate or a fast machine must run them.
-  Two more reds (Aux 5, as the lane reported 12:24 AM EDT) (2026-10-30
-  12:24 AM EDT):
-  test_aquifers::test_a_reachable_aquifer_is_a_yellow_water_rung_and_lets_microbes_score_but_not_flora
-  is red on main (flora 0, fauna 2): find the commit and fix or hand it
-  on;
-  test_star_population::test_planets_respect_their_stars_age_and_history
-  takes over 500 s on a slow machine and times out under load (it passes
-  alone, GEN.997 #3887 fixed its logic).
-  Bug 1 and Aux 5 both confirm (2026-10-30 1:57 AM EDT):
-  test_saturation_single_source (WATER_CRITICAL_K in
-  radiative_convective.py) is red on clean main; Aux 5 also saw
-  test_aquifers and test_sweep_classes red on clean main. The query_db
-  exit code red is filed as TEST.465
-  Bug 2 merged #3932 (about 3:15 AM EDT as the lane reported)
-  (2026-10-30 3:16 AM EDT): closes the step registry, SQL portability
-  (interest migrations), object-rows binary star, /api/auth/me avatar,
-  map-rebuild stubs (PERF.180 slices), sector page second job (waits in
-  the PERF.154 list, test updated), the save transaction error in
-  test_db_batching (store commits before SET TRANSACTION),
-  test_saturation_single_source (water table limit renamed, value
-  unchanged) and test_wiring_guard (CR4 read via GCR_PEAK_G_CM2;
-  surface_dose line dropped from the register).
-  test_star_composition_sweep and test_aquifers pass on a clean run.
-  Still open: the gas solver np.diag random failure (needs the failing
-  input), the habitability browser fixture 900 s timeouts on slow
-  machines, planets.porosity (TEST.461, Core 1)
-  Prerequisites: none. Related: MAP.345, GEN.980, TEST.461.
-
-- [ ] **TEST.468 test_work_units::test_the_batch_fills_are_units_of_id_ranges_recorded_as_their_commands and test_generation_stats::test_an_unmeasured_server_estimates_from_the_defaults are red on a clean main (bug)**
-  Reported by Core 3 (as the lane reported, 6:04 AM EDT 2026-10-30) on a
-  clean main after train 2: both tests fail and neither is from Core 3's
-  work. Do: recheck both on current main first (it may be train 2's
-  migrations 0182/0183 or the fixture schema, or machine setup such as
-  the ozone_uv dataset); find whether the product or the test is wrong
-  and fix the right one with the reason recorded. Done: both pass on
-  main. Related: TEST.463, TEST.290. Owner: Bug 2 (proposed), after
-  TEST.417.
-  Prerequisites: none. Related: TEST.463, TEST.290.
-
-- [ ] **TEST.469 test_interior_heat::test_a_generated_body_has_a_urey_ratio_above_one_only_while_its_mantle_is_still_warming fails on main: a generated body has urey_ratio 1.85 with a mantle that is no longer warming (bug)**
-  Reported by Sources 1 (as the lane reported, 6:18 AM EDT 2026-10-30)
-  on a worktree at origin/main: the assertion 1.8538154881179374 <= 1.0
-  + 1e-06 fails on a generated planet's urey_ratio, a body with a ratio
-  above one although its mantle is no longer warming. It may come from a
-  recent change to the bulk water, radiogenic heating or ages (train 2,
-  epoch 124), or it may be an older latent case the random stream now
-  reaches. Do: capture the failing body (seed, star, age, composition,
-  mantle state) from the test; find whether the ratio is computed
-  wrongly (heat production against loss) or the test's 'still warming'
-  condition is wrong for that body; fix the right one with the reason
-  recorded, no change to results that were already right. Done: the test
-  passes on main. Related: TEST.463, TEST.468, GEN.842. Owner: Bug 2
-  (proposed), after TEST.417.
-  Prerequisites: none. Related: TEST.463, TEST.468, GEN.842.
-
-- [ ] **TEST.470 test_orbit_elements fails on main: the moon-light test (relative error 6e-6) and the ellipse tests (a lunar-range problem) (bug)**
-  Reported by Aux 7 (as the lane reported, 6:22 AM EDT 2026-10-30) on
-  main d60b9df15 after train 2: tests/test_orbit_elements.py moon-light
-  test misses its tolerance by a relative 6e-6, and the ellipse tests
-  fail on what Aux 7 read as a lunar-range problem. Not from Aux 7's
-  branches. Tides 1 saw the same file's
-  test_every_generated_orbit_is_the_ellipse_it_was_drawn_on stop on a
-  gas-solver stall (GEN.1003), so one of the ellipse failures may be
-  that. Do: run the file on current main with the datasets fetched
-  (ozone_uv needed to generate a system); separate the failures into
-  solver stall (GEN.1003), a tolerance that is tighter than the float
-  error of the lunar-range case, and a real orbit error; for the
-  tolerance cases, set the tolerance from the float error with the
-  reason recorded, never by loosening past it; for a real orbit error,
-  fix the orbit. Done: the file passes on main. Related: TEST.463,
-  GEN.1003, GEN.957. Owner: Bug 2 (proposed), after TEST.417.
-  Prerequisites: none. Related: TEST.463, GEN.1003, GEN.957.
-
-- [ ] **TEST.472 Four migration tests are red on clean main: aerosols same-seed draws, albedo_greenhouse saved-system temperature, and two gas_tables tests (AsteroidBelt has no attribute moons) (bug)**
-  Reported by Bug 2 (as the lane reported, 7:36 AM EDT 2026-10-30),
-  checked on a worktree of origin/main after train 3 with ozone_uv
-  fetched:
-  test_migration_aerosols::test_the_same_seed_draws_the_same_aerosols_and_they_move_no_other_draw
-  (list comparison fails),
-  test_migration_albedo_greenhouse::test_a_saved_system_keeps_its_draws_and_the_temperature_follows_them
-  (assert 2000.0 == 2346.97),
-  test_migration_gas_tables::test_a_saved_system_keeps_every_bodys_air
-  and ::test_a_v154_galaxy_gets_its_air_in_the_child_tables
-  ('AsteroidBelt' object has no attribute 'moons' at
-  test_migration_gas_tables.py:30). Do: for each, find whether a
-  generator change since the test was written (the star epoch, GEN.846
-  rotation, GEN.849 delivered water, GEN.916 temperate aim) moved the
-  draw and the expectation must follow, or the product is wrong; for the
-  AsteroidBelt case the test fixture reads a field belts no longer have;
-  fix the right side with the reason recorded and never loosen a check
-  past what the change explains. Done: all four pass on main. Related:
-  TEST.463, TEST.468, TEST.469, TEST.470. Owner: Bug 2 (proposed), after
-  TEST.417.
-  Seen again (3:52 PM EDT 2026-10-30): test_migration_albedo_greenhouse
-  is still red after train 4 (Bug 2, relayed 3:52 PM EDT 2026-10-30 as
-  the lane reported).
-  Prerequisites: none. Related: TEST.463, TEST.468, TEST.469, TEST.470.
-
 - [ ] **TEST.479 test_radiative_convective_real::test_earth_sends_out_what_it_absorbs fails on the train 4 branch: the Earth tropopause temperature is 168.33 K against the test bound of 170 to 230 K (bug)**
   Found by Bug 2's train 4 gate (relayed 2:08 PM EDT 2026-10-30 as the
   lane reported): earth.tropopause_temperature_k is 168.33 K, outside
@@ -19507,40 +18931,10 @@ clears each one.
   one without loosening the test beyond what the source supports, and
   push to claude/project-thread-bvcbav with the head named. Done: the
   test passes on the train branch with a stated source for the bound.
-  Owner: Air 1. Version 8.1.
+  Owner: Aux 2. Version 8.1.
+  Owner changed (2026-10-31 3:40 PM EDT): Air 1 was retired by the
+  coordinator at 3:21 PM EDT; owner is now Aux 2.
   Prerequisites: none. Related: GEN.850, GEN.851.
-
-- [ ] **TEST.480 test_gen_builder_internals::test_slot_planet_honours_class_and_moon_count gets class J where it forced class I at a cold slot (bug)**
-  Found by Bug 2's train 4 gate (relayed 2:08 PM EDT 2026-10-30 as the
-  lane reported, sent to Planets 1 directly): the test forces class I at
-  a cold slot and the build returns class J. Do: find out whether the
-  test's expectation is stale after the class rules or the wiring of
-  GEN.728 changed the slot's class, or the build ignores the forced
-  class; fix the right one. Done: the test passes on the train branch
-  with the property it checks kept. Owner: Planets 1. Version 8.1.
-  Prerequisites: none. Related: GEN.728.
-
-- [ ] **TEST.483 test_disregard_missing_data (6 tests) and test_rq_time_limits::test_the_generate_pages_job_gets_a_limit_from_the_time_its_steps_are_recorded_to_take (3 params) are red on clean main (bug)**
-  Found by Aux 2 on PERF.203 step 4 (relayed 3:06 PM EDT 2026-10-30 as
-  the lane reported), red with the change stashed, so on clean main. Do:
-  triage each (stale expectation, a real regression, or a moved seed)
-  and fix the right side without skipping or loosening beyond the
-  property. Done: all of them pass on main. Owner: Bug 2 (after
-  TEST.481) or any free lane. Version 8.1.
-  Prerequisites: none. Related: PERF.203.
-
-- [ ] **TEST.486 test_planets c-2: a life class is kept but life_class_scores is None when no class scores above the line after the oxygen build (bug)**
-  Found by Bug 2's train 4 merge (PR #4105; relayed 3:37 PM EDT
-  2026-10-30 as the lane reported), red after the merge. life.py
-  _set_best leaves life_class_scores empty while keeping the class. Do:
-  decide the rule (drop the class or keep the scores) from the life
-  class design (docs/design/composition/life-class-system.md), fix, and
-  add the case to the tests. This may change generated output: lock
-  turn. Done: test_planets c-2 passes and the rule is stated in the
-  design note. Owner: Aux 2 (life area). Version 8.1.
-  Owner (3:43 PM EDT 2026-10-30): Aux 2 (assigned by TODO; a lock turn
-  if the output moves).
-  Prerequisites: none. Related: TEST.484.
 
 - [ ] **TEST.492 Census re-baseline for every oddity share and the prevalence suite rows (one pass after train 9)**
   Weird worlds build (Boss, 4:15 PM EDT 2026-10-30, goal issue #4117;
@@ -19556,13 +18950,6 @@ clears each one.
   (GEN.1053, GEN.1058): one pass after train 9.
   Prerequisites: GEN.1047.
   Design: [docs/design/systems/weird-worlds.md](design/systems/weird-worlds.md)
-
-- [ ] **TEST.496 test_the_wheel_carries_the_map_from_the_whole_galaxy_into_a_system fails on main in its wheel-out leg (the URL keeps sector= after wheeling out) (bug)**
-  Found by Core 2 after MAP.337 step 1 (PR #4119, 4:41 PM EDT as the
-  lane reported). Core 2 leaves it for MAP.337 steps 2 and 3, which
-  remove the stage URLs; it closes when they merge and the test passes.
-  Owner: Core 2. Version 8.1.
-  Prerequisites: MAP.337.
 
 - [ ] **TEST.498 A rogue planet is functionally and programmatically identical to a bound planet: the same columns, the same moon and composition generation, the same classes, differing only in the rogue note and having no host star**
   Boss, 4:57 PM EDT 2026-10-30. Test: draw matched planets with and
@@ -19608,47 +18995,69 @@ clears each one.
   command.
   Prerequisites: none. Related: GEN.1118.
 
-- [ ] **TEST.502 test_orbital_motion::test_moon_having_planet_reflex_offset_matches_manual_formula fails on a clean main: settle_orbit moves captured moons without refreshing the planet offset (bug)**
-  Tides 1, 6:19 PM EDT 2026-10-30 (as the lane reported): the test fails
-  on main, not from the train 5 branch; settle_orbit moves captured
-  moons without refreshing the planet's reflex offset, so the stored
-  offset no longer matches the manual formula. Do: reproduce with the
-  datasets fetched, find which merge broke it, and fix the code or the
-  test, whichever is wrong; if the generated offset is wrong, say so and
-  it becomes a GEN bug. Lock-free unless the code changes output. Where
-  we think it belongs (best guess, can move): Core 1 (test owner),
-  separate branch, after TEST.500.
-  Aux 5, 6:35 PM EDT (as the lane reported) (2026-10-30 6:38 PM EDT):
-  the cause is real: a planet wobble from its moons is made when the
-  moons are, then the moons move (orbits settle, GEN.992 remake), so 24
-  of 117 planets had a stale reflex_offset_*. Fix is 4 lines in
-  StarSystem.__init__ (refresh each planet offset together with the
-  stars), 0 of 104 off after, test_orbital_motion 40/40; branch
-  claude/aux5-test489-reflex, written by Aux 5, NOT merged because it
-  changes generated output (planets with moons). Lock work for train 6,
-  --affects fill,population (stored reflex columns), golden. Owner Aux
-  5; Bug 2 takes it into train 6.
+- [ ] **TEST.520 Extend the wiring guard to stored columns and shadow functions, and wire, show or drop every column only the Details sheet reads**
+  Boss, 12:03 PM EDT 2026-10-31: make sure everything built is wired in
+  and read; no more building something and not using it. Filed by the
+  TODO thread after a sweep (report
+  /mnt/project-files/reports/wiring-sweep-2026-10-31.md). The guard of
+  GEN.754 already proves that no module, dataset, data file or registry
+  row is left unread without an open item. It does not see two things.
+  (1) A stored column that is written and read by nothing but the
+  generic Details sheet (describe/sheet.py): 207 candidate columns of
+  planets, moons, stars, star systems, rogue planets, belts, fields and
+  comets are listed in the report; many are read by other physics
+  modules, so each needs a look. (2) A public function of a reachable
+  module that only tests call (a shadow function). Do: add two kinds to
+  scripts/wiring_guard.py, `column` (a column of a generated table that
+  no file outside the schema, models, column units, store, storage
+  checksum, checks and the generic sheet mentions, counting physics
+  modules that read it) and `function` (a public function of a module of
+  physics, generation or galaxy whose only callers are tests), register
+  today's findings in wiring-register.md with the open item that will
+  read them (or `by design`), and let tests/test_wiring_guard.py fail on
+  a new one. Then go through the register's new column lines and, for
+  each, file or name the item that shows it on a page or reads it
+  downstream, or file a drop item (no unused column stays stored).
+  Lock-free (scripts, tests, docs); the drops and the wiring that
+  changes stored output ride trains. Owner Core 1 (proposed; it asked
+  for a lock-free item while GEN.1138 waits for a window).
+  Merged as #4513 (Core 1); owners assigned by the TODO thread
+  (2026-10-31 1:55 PM EDT): columns: 207 candidates, 7 unread
+  (binary_epoch_unix and binary_next_update_due by design; cluster_id
+  GEN.359; dynamical_state GEN.291; formed_at and origin_event_id
+  GEN.346; host_node_id GEN.332), none dropped. Functions: 157 shadow
+  functions in 90 modules, split among seven lanes as TEST.521 for Core
+  1, TEST.522 for Core 3, TEST.523 for Star 2, TEST.524 for Aux 4,
+  TEST.525 for Aux 3, TEST.526 for Tides 1, TEST.527 for Bug 1. This
+  item stays open until none of its register lines names TEST.520 (the
+  guard fails on a line whose item is closed). Rule for every lane: a
+  public function that only tests call needs a register line in the same
+  change, like a module.
   Prerequisites: none.
 
-- [ ] **TEST.503 Four tests are red on a clean main: test_db_column_round_trip::test_every_column_is_written (moons.magnetopause_rp is NULL in every row), the test_object_rows star read-back (columns state and decay_age_yr), test_gen_hosting_wiring directed moon count, and test_reproducible_draws hypot/BLAS (bug)**
-  Aux 5 found these red on clean main, none from its own branches. Find
-  each cause. A column never written (moons.magnetopause_rp) or never
-  read back (state, decay_age_yr) is a wiring gap; fix it lock-free if
-  it changes no generated value, else say so and list it for the next
-  train window. The hypot/BLAS draw test may depend on the machine
-  library; say which, and make the test robust only if the draw itself
-  is not what differs. Report each as fixed, train-bound or
-  machine-bound.
-  Bug 2 (2026-10-09): Bug 2 (10-30 gate pass) also reports red on main:
-  the climate sweep (2 tests), aquifers, and the deploy_scripts path
-  test. Include them in the diagnosis.
-  Prerequisites: none.
-
-- [ ] **TEST.504 test_runaway_history::test_the_surface_water_a_planet_keeps_is_what_its_class_gave_less_what_it_lost fails on main (the M3V case sees no loss) (bug)**
-  Sources 1 found it red on origin/main, not from GEN.934. Find the
-  cause: a loss that is no longer drawn for the M3V case, a changed
-  expectation, or a bug in the runaway history. Fix lock-free if no
-  generated value changes; else list it train-bound.
+- [ ] **TEST.526 Wire, register or delete the 8 pure functions nothing calls in 4 modules (Tides 1's share of the TEST.520 shadow functions)**
+  Boss, 12:03 PM EDT 2026-10-31: nothing built and left unused. Core 1's
+  wiring guard (TEST.520, PR #4513) found 157 public functions in
+  physics, generation and galaxy that only tests call or nothing calls;
+  its register lines name TEST.520 because no owner was guessed. Report:
+  /mnt/project-files/reports/wiring-guard-test520-2026-10-31.md. Filed
+  by the TODO thread. Your share (8 functions): physics.moon_orbits
+  (drift_rate_m_s, tidal_power_w); physics.tidal_rheology
+  (tidal_frequency_rad_s); physics.surface_liquids (ideal_sea,
+  liquid_ids, sea_density_kg_m3, stable_liquids);
+  physics.habitability_world (harshness). Do, for each function: (1)
+  wire it, naming the open item that will call it (or filing one) in its
+  register line of docs/design/research/wiring-register.md; (2) mark it
+  `by design` with the reason when it is a tuning or test harness reader
+  (an observed sampler, an expected count) and say who runs it; or (3)
+  delete it and its tests (no dead code, no shim). Done: none of your
+  functions names TEST.520 in the register, and test_wiring_guard
+  passes. Lock-free (register, tests and deletions of unreferenced code
+  change no stored value; if a wiring step changes output it rides a
+  train under its own item). Owner Tides 1 (proposed by the TODO thread,
+  one lock-free item at a time; the lane says if it clashes). Rule for
+  every lane: a public function that only tests call needs a register
+  line in the same change, like a module.
   Prerequisites: none.
 
 ## USR: User accounts
@@ -19736,7 +19145,6 @@ clears each one.
   2026-10-18, as the coordinator reported them): fork 9: ADM.86 stays in
   8.1 on the Owner account stub USR.31; the full accounts of this item
   replace the stub in 8.2.
-    Prerequisites: USR.26, USR.27.
 
   - [ ] **USR.3 SMTP settings in the admin config**
     Boss: "We'll use SMTP for
@@ -19766,7 +19174,6 @@ clears each one.
     and builds the mail module and the "send test email" action; the
     form is the generated settings page (ADM.84 and ADM.86), not a
     second form.
-    Prerequisites: USR.26.
 
   - [ ] **USR.4 Invite-only sign-up by unique link**
     Boss: "only an admin can
@@ -19798,7 +19205,6 @@ clears each one.
     valid link; tokens and `invite_uses` come from the account-token
     library and the first child of USR.2. Placed after USR.5 because its
     sign-up ends in the set-password email loop.
-    Prerequisites: USR.26, USR.3, USR.28, USR.5.
 
   - [ ] **USR.5 Email loop for setting and resetting passwords**
     Boss: "an
@@ -19824,7 +19230,6 @@ clears each one.
     and forgot-password flows, per-address and per-IP limits, ending
     other sessions on use; tokens come from the account-token library.
     Placed before USR.4, which needs it.
-    Prerequisites: USR.3, USR.28.
 
   - [ ] **USR.6 Owner transfer**
     Boss: "The owner CAN (with specific approval
@@ -19850,7 +19255,6 @@ clears each one.
     transfer expires in 48 hours.
     Scope after the review (2026-10-16 review): the Owner-transfer state
     machine and its pages; tokens come from the account-token library.
-    Prerequisites: USR.5, USR.28.
 
   - [ ] **USR.7 A user-level interface with bookmarks**
     Boss: "a full user
@@ -19877,7 +19281,14 @@ clears each one.
     for every kind (bookmark, course), the routes for a user's own rows
     only, the account page and the one-time import of
     the browser list); the list and rename UI is UX.47's.
-    Prerequisites: USR.26.
+    Note (UX.236 #4448) (9:05 AM EDT 2026-10-31, as Core 5 reported):
+    The preferences page (/preferences) stores map.regionLanding,
+    map.blackHoleDensity and map.labelBuffer per browser in localStorage
+    under the keys the map reads (src/html/static/mappreferences.js,
+    preferencespage.js). When the account page lands, move the same keys
+    into the account and add the signed-in API route to read and write
+    them, with the browser values as the signed-out fallback; the page
+    and the map reads stay as they are.
 
   - [ ] **USR.8 Every signed-in user can generate a one-off system**
     Boss (2026-10-02 05:16Z): "TODO Item, all users can generate a
@@ -19924,7 +19335,6 @@ clears each one.
   (admin_users.avatar, POST and DELETE /api/auth/avatar, an account page
   section). The Users page and account deletion that USR.1 builds must
   show the picture and call adminAuth.forget_avatar_file on deletion.
-    Prerequisites: USR.26.
 
 - [ ] **USR.9 `seo.privacy_note` text, "download my data" and "delete my account" on the account page**
   A `seo.privacy_note` text setting shown on the account page, plus
@@ -20503,26 +19913,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   the owner named above (Core 5) is a retired lane. A waiting lane takes
   it, confirmed with TODO, one lock-free item at a time.
 
-- [ ] **DOC.19 After UX.102: document the log output standard for the CLI, the Generate page and admin logs**
-  Requested by the coordinator from Boss's instruction of 2026-10-14
-  18:06Z to compare the docs with merged work. UX.102 sets one logging
-  standard (timestamps, format, dividers, step markers) for everything
-  the user or an admin reads; once it is built, docs/reference/cli.md,
-  docs/reference/html-interface.md (Generate page and job log) and docs/reference/testing.md
-  need a short section on it. Done: the standard is described once and
-  the three docs link to it.
-  Owner: Core 5 (proposed, 2026-10-17, 10:54 PM EDT, relayed by the coordinator: Core 2 confirmed it has no code on
-  this item and asked to drop it; it was Core 2's by the 10:06 AM EDT lane assignment).
-  Order on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the coordinator
-  relayed): after PERF.135 and the command follow-ups (PERF.99, PERF.100, DB.29,
-  PERF.120 to PERF.128), and after the DOC.18 sweep (Boss's 'Sweep first').
-  Decided (Boss, 2026-10-17, 10:57 PM EDT, two cards answered in the
-  project chat, relayed by the coordinator): 'Sweep first': the DOC.18
-  sweep no longer waits on this item; it is written after the logging
-  standard (UX.121, UX.122, UX.123, TEST.183) is built. Core 5 is its
-  proposed owner, after the command follow-ups.
-  Prerequisite: UX.102.
-
 - [ ] **DOC.50 Docs: the schema, the multi-star note and the catalogue say where the members live**
   Step 10 (design note 11 item 10). `database-schema.md` (the two new
   tables and the two new columns), `multistar-and-compact-systems.md`
@@ -20665,6 +20055,12 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   coverage test with the burn-down allowlist, and this item removes the
   allowlist and keeps only the allow-list file of deliberately
   undocumented routes, each with a reason.
+  Core 5 (as the lane reported, 12:19 PM EDT) (2026-10-31 1:10 PM EDT):
+  DOC.84 added the Help > Life pages (/help/life,
+  /help/life/abundance|trend|security|suitability|stages|classes and
+  /help/life/classes/1 to 9) as menu pages, not "?" header links; the
+  route-to-help test of this item must know these routes. DOC.57 (the
+  help framework) does not exist yet.
 
 - [ ] **DOC.59 Docs: the galaxy types note moves to built and the density, potential, schema, API and Generate page notes say the shape holds a family and components**
   Boss (2026-10-16, 8:48 PM EDT, for 9.4): different galactic models for
@@ -20779,6 +20175,11 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   notes /mnt/project-files/reports/class-lane-notes-2026-10-23.md);
   Habitability lane D keeps GEN.645 and GEN.643. This replaces
   'Habitability lane D' above for the build.
+  Changed by best-fit classes GEN.1205 to GEN.1208 (2026-10-31 9:46 AM
+  EDT): Class pages show the percent match from GEN.1207 (for example M
+  92 percent, O 41 percent) and the line about a world changing class as
+  its conditions change; the rule table text must describe positive
+  conditions and shoulders, not row order (GEN.1205, GEN.1208).
 
 - [ ] **DOC.81 Help page: resource locations, what the scores mean and how to find them on the map**
   Boss, 10:29 PM EDT 2026-10-24 (relayed by the coordinator): "For 8.2,
@@ -20806,8 +20207,142 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   it, confirmed with TODO, one lock-free item at a time.
   Prerequisites: UX.223, NAV.64. Related: DOC.6, DOC.9.
 
-## VIEW: The view from a planet
+- [ ] **DOC.86 Oxford comma everywhere: check lists of three or more for the serial comma, and fix every template, help page and generated sentence**
+  Boss (2026-10-31, 2:50 PM EDT): "introduce our text pages to the
+  oxford comma, sometimes you use it, sometimes you don't, use it, it's
+  important." Rule 15 of the plain-words guide
+  (docs/design/interface/text-style.md) now says every list of three or
+  more has a comma before its and or or. Do: (1) add a checker to
+  planetgen/util/plainwords.py that flags a list of three or more items
+  without the comma, reliably enough to hold (a clause list like 'X,
+  which is big and cold' must not fire: flag only a run of at least
+  three short noun phrases joined by commas ending in and or or without
+  the comma; test sentences for both the hits and the safe cases, then
+  run it over the corpus to see what it flags), and move rule 15 into
+  the checked list; (2) run it over the generated text
+  (tests/test_plain_words.py), the class pages, the life help pages
+  (tests/test_life_help.py), the help suite, the templates and the
+  static pages, and fix every hit; (3) hold the new help pages
+  (References, glossary) to it as they land. Lock-free; text only, no
+  generation change. Owner: Core 5 (with UX.252, which applies the rule
+  in its rewrite).
+  Prerequisites: none.
 
+- [ ] **DOC.87 References R1: link helper (reference_link(kind, id)), the anchor and URL scheme, the banned-words rule for out-of-universe words, and the crawl test**
+  Boss (2026-10-31, as the coordinator relayed): a Help > References
+  menu, out of universe, for sources, the GEN.725 stand-in registry with
+  how each was decided, fitted values, speculative chemistry and gaps;
+  the rest of the site stays in universe. Design:
+  /mnt/project-files/design-drafts/references-help-menu-2026-10-31.md
+  (section 6, R1 to R8). Wording and pages only: no epoch, no lock, no
+  computed change, lock-free. Add `reference_link(kind, id)`, the URL
+  layout, the list of banned out-of-universe words and the exemption for
+  the References pages (a new rule 16 of the plain-words guide, after
+  the Oxford comma rule 15 of DOC.86), and
+  the page crawl test. Related: DOC.83, DOC.57, DOC.86. Owner: Core 1,
+  after TEST.534.
+  Prerequisites: none.
+
+- [ ] **DOC.88 References R2: the References shell and generator (Help menu entry, /references with the Out of universe banner, scripts/build_reference_pages.py with --check, built by update.sh)**
+  Boss (2026-10-31, as the coordinator relayed): a Help > References
+  menu, out of universe, for sources, the GEN.725 stand-in registry with
+  how each was decided, fitted values, speculative chemistry and gaps;
+  the rest of the site stays in universe. Design:
+  /mnt/project-files/design-drafts/references-help-menu-2026-10-31.md
+  (section 6, R1 to R8). Wording and pages only: no epoch, no lock, no
+  computed change, lock-free. Ship the shell before DOC.57 and let
+  DOC.57 absorb it. The generator is built by update.sh and `--check` is
+  held by a test. Related: DOC.57, DOC.58. Owner: Core 1.
+  Prerequisites: DOC.87.
+
+- [ ] **DOC.89 References R3: Sources pages (papers, datasets, archives, licenses, credits), each paper linking to where it is used**
+  Boss (2026-10-31, as the coordinator relayed): a Help > References
+  menu, out of universe, for sources, the GEN.725 stand-in registry with
+  how each was decided, fitted values, speculative chemistry and gaps;
+  the rest of the site stays in universe. Design:
+  /mnt/project-files/design-drafts/references-help-menu-2026-10-31.md
+  (section 6, R1 to R8). Wording and pages only: no epoch, no lock, no
+  computed change, lock-free. Reuse the REFERENCES data. Related:
+  DOC.57. Owner: Sources 1.
+  Boss approved the design with an addendum, 2:54 PM EDT (2026-10-31
+  2:59 PM EDT): R3 grows to: papers with DOI links, browse by research
+  area and by field, search and computed totals. Every paper row links
+  to its DOI page, else arXiv, else ADS, else a search link from title
+  and first author, and a test fails if a row has none. Two browse axes,
+  both computed: where we use it (the area of the code or data that
+  cites it; a paper used in two areas appears in both) and the field of
+  the paper (from the journal), plus year, decade and type. Totals per
+  area, field and decade, oldest and newest, most cited by us, with DOI,
+  with arXiv, books, datasets. /references/papers has A to Z, area,
+  field and year views and a text search over title, author and DOI, and
+  each entry shows which values, stand-ins and pages use it. The
+  citations not yet matched to a paper get their own page with a search
+  link each. Details: section 8 of
+  /mnt/project-files/design-drafts/references-help-menu-2026-10-31.md.
+  Prerequisites: DOC.88.
+
+- [ ] **DOC.90 References R4: stand-in registry pages (every GEN.725 row, one page per stand-in with how it was made and decided, tier and level legends, filters, and the fitted-to-a-result page for L2 to L4 with tuning targets)**
+  Boss (2026-10-31, as the coordinator relayed): a Help > References
+  menu, out of universe, for sources, the GEN.725 stand-in registry with
+  how each was decided, fitted values, speculative chemistry and gaps;
+  the rest of the site stays in universe. Design:
+  /mnt/project-files/design-drafts/references-help-menu-2026-10-31.md
+  (section 6, R1 to R8). Wording and pages only: no epoch, no lock, no
+  computed change, lock-free. Stand-ins already have rows, so no GEN.725
+  change. Related: GEN.725. Owner: Sources 1.
+  Prerequisites: DOC.88.
+
+- [ ] **DOC.91 References R5: method pages by area, what we have and lack, and the computed scorecard; /help/properties moves here with no redirect**
+  Boss (2026-10-31, as the coordinator relayed): a Help > References
+  menu, out of universe, for sources, the GEN.725 stand-in registry with
+  how each was decided, fitted values, speculative chemistry and gaps;
+  the rest of the site stays in universe. Design:
+  /mnt/project-files/design-drafts/references-help-menu-2026-10-31.md
+  (section 6, R1 to R8). Wording and pages only: no epoch, no lock, no
+  computed change, lock-free. Method pages come from the sheet sources
+  and data files. Related: GEN.725, DOC.57. Owner: Core 5.
+  Prerequisites: DOC.88, DOC.90.
+
+- [ ] **DOC.92 References R6: move the speculative chemistry out of the life help and the air chart into /references/speculative, with per-class links (including the multi-class section for GEN.1209 and GEN.1213)**
+  Boss (2026-10-31, as the coordinator relayed): a Help > References
+  menu, out of universe, for sources, the GEN.725 stand-in registry with
+  how each was decided, fitted values, speculative chemistry and gaps;
+  the rest of the site stays in universe. Design:
+  /mnt/project-files/design-drafts/references-help-menu-2026-10-31.md
+  (section 6, R1 to R8). Wording and pages only: no epoch, no lock, no
+  computed change, lock-free. Cut it from `life_help.py` and
+  `life_air_chart.py`. GEN.1209 itself does not cover the help rewrite;
+  this item does. The API field `speculative` stays. Related: GEN.1209,
+  GEN.1210, GEN.1213, UX.237, DOC.84. Owner: Core 5.
+  Prerequisites: DOC.88.
+
+- [ ] **DOC.93 References R7: strip model hints from the leftover pages (maps, sector estimates text, API docs strings) and add links at the important places**
+  Boss (2026-10-31, as the coordinator relayed): a Help > References
+  menu, out of universe, for sources, the GEN.725 stand-in registry with
+  how each was decided, fitted values, speculative chemistry and gaps;
+  the rest of the site stays in universe. Design:
+  /mnt/project-files/design-drafts/references-help-menu-2026-10-31.md
+  (section 6, R1 to R8). Wording and pages only: no epoch, no lock, no
+  computed change, lock-free. UX.252 and UX.253 wait for R1 and do their
+  own links in the same pass over the text they already rewrite; this
+  item covers only what they leave: color note, sector estimated text,
+  life class reaches, sheet source lines to links, class page basis.
+  Split by page kind if large. Related: UX.252, UX.253, DOC.83. Owner:
+  Core 5.
+  Prerequisites: DOC.87, DOC.88, DOC.89, DOC.90, DOC.91.
+
+- [ ] **DOC.94 References R8: test lock: the page crawl proves no out-of-universe word outside References and every link resolves, in the gate for changed pages**
+  Boss (2026-10-31, as the coordinator relayed): a Help > References
+  menu, out of universe, for sources, the GEN.725 stand-in registry with
+  how each was decided, fitted values, speculative chemistry and gaps;
+  the rest of the site stays in universe. Design:
+  /mnt/project-files/design-drafts/references-help-menu-2026-10-31.md
+  (section 6, R1 to R8). Wording and pages only: no epoch, no lock, no
+  computed change, lock-free.  Related: DOC.83. Owner: Core 1.
+  Prerequisites: DOC.93.
+
+- [ ] **DOC.95 References R3b (very important, first, ahead of the page build): tie every unmatched citation to its real paper, or label it not a paper, in batches by heaviest first**
+  Boss (2026-10-31, 2:55 PM EDT, as the lane relayed): finding the real citation for every unmatched citation is "very very important"; high priority, ahead of the References page build, no wait for the shell. Facts: 2,562 of 4,595 author-year mentions in docs/reference/references-data.json are not tied to a paper (about 16,900 places); only about 35 are noise or organizations; 997 appear three or more times; decades 1970s 112, 1980s 164, 1990s 256, 2000s 568, 2010s 912, 2020s 439. The lane reports in /mnt/project-files/reports (294 files) were never harvested and hold many full citations. Crossref works from a build machine; OpenAlex and Semantic Scholar answered 429 until a free key is set. Plan, in order: (1) triage noise ("EDT 2026" read as a citation, Copyright, months) and non-papers (organizations, web pages, software, standards) into a labeled list "Not a paper: what it is, link"; (2) harvest the reports, design drafts and handoffs with `build_references.py harvest --extra`, so a full citation there settles a mention by identifier; (3) search the rest by author, year and the citing sentence's title words on Crossref, then OpenAlex and Semantic Scholar, then arXiv, then ADS, and accept a hit only when first author, year and title or journal agree (near misses go to a review list; none is guessed); (4) work heaviest first (the 997 with three or more places), in batches by decade or by weight; (5) old papers, books and reports get a record by journal, volume, page and publisher with an ADS or library link. Done: every mention is tied to a paper (DOI link, else arXiv, else ADS, else a search link), or sits in the Not a paper list, or in a review list with the citing sentences and what was tried; the overview shows the three counts; a test fails if a new unmatched mention appears without a reason; a missing-DOI report is part of the build. Wording and data only (references-data.json and the REFERENCES pages): no epoch, no lock, lock-free. Boss may supply free OpenAlex and Semantic Scholar keys; ask through TODO. Dataset licensing stays Boss's. Design: section 9 of /mnt/project-files/design-drafts/references-help-menu-2026-10-31.md. Prerequisites: none. Related: DOC.89. Owner: Sources 1.
 - [ ] **VIEW.1 View from a planet**
   **Research first.** Boss: "view-from-planet will have to do
   calculations on colors and A LOT Of stuff, so make special note of
@@ -20886,7 +20421,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   2026-10-22 as the lane's clock reads): `physics/light_travel.py` is built and
   tested but no production Python imports it yet; this item is one of its planned callers. Boss (8:04 PM
   EDT): code built for a pending feature stays.
-    Prerequisites: VIEW.11, VIEW.12, VIEW.13, VIEW.14.
 
   - [ ] **VIEW.3 Render the view as a PNG, with constellations**
     Boss: "when
@@ -20926,7 +20460,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
     `planetgen.web.seo_pages.register_card_renderer("system" or
     "sector", fn)` and turn on the setting `og.generated_cards`; any new
     web page VIEW.3 adds must be classified in `planetgen/web/seo.py`.
-    Prerequisites: VIEW.15, VIEW.16, VIEW.17.
 
   - [ ] **VIEW.4 Constellation names in the name generator**
     Boss: "add to our
@@ -20991,11 +20524,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Prerequisite: VIEW.1.
   Design: [docs/design/orbits/sky-view.md](design/orbits/sky-view.md)
 
-- [ ] **VIEW.9 Replace the BC_V table with a published relation (Flower 1996 or Torres 2010)**
-  Before any star count depends on the bolometric correction.
-  Prerequisites: none.
-  Design: [docs/design/orbits/sky-view.md](design/orbits/sky-view.md)
-
 - [ ] **VIEW.11 Photometry library: apparent magnitude, bolometric correction, blackbody colour and the extinction law**
   Split from VIEW.2 (2026-10-16, Boss 1:07 PM EDT: look at each item for
   smaller chunks and shared work). Pure array functions in
@@ -21015,7 +20543,14 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   newer note wins, report todo-contradictions-2026-10-18.md): the HYG
   calibration test is VIEW.12's (VIEW.10 was folded into VIEW.12, Boss,
   2026-10-16, 11:58 PM EDT), not VIEW.10's.
-  Prerequisites: VIEW.1, VIEW.9. Related: VIEW.2.
+  VIEW.9 merged as #4508 (Star 2, as the lane reported) (2026-10-31 1:30
+  PM EDT): physics/photometry.bolometric_correction_v (Flower 1996 with
+  Torres 2010 coefficients, read from the paper) answers 3,500 to 50,000
+  K and raises outside; M_bol of the Sun 4.74 goes with it. Nothing
+  reads it yet: this item wires it, and decides what a star cooler than
+  3,500 K gets (no value is invented in the library). The wiring guard
+  function check (TEST.520) will list it until this item reads it.
+  Prerequisites: VIEW.1. Related: VIEW.2.
 
 - [ ] **VIEW.12 Sky catalogue: the stars an observer sees, with direction, brightness and light-time**
   Split from VIEW.2 (2026-10-16, Boss 1:07 PM EDT: look at each item for

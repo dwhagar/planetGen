@@ -238,16 +238,9 @@ def overlap_systems():
     return found
 
 
-def test_the_known_overlap_systems_still_redraw_for_overlap(overlap_systems):
-    """The invariant below can only fail where the redraw happens: this test proves it sees them, and is removed in GEN.1015 with the quick fix
-    (the systems then need other seeds, or none, and the xfail mark comes off)."""
-    for group, number, kind in OVERLAP_SYSTEMS:
-        assert overlap_systems[(group, number)].get(kind, 0) > 0, (group, number, kind, overlap_systems[(group, number)])
-
-
-@pytest.mark.xfail(strict=True, reason="GEN.1015 deletes the GEN.1004 quick fix and the overlap redraws; until then these systems redraw "
-                                       "(TEST.476 invariant; remove this mark and the sensitivity test above in GEN.1015)")
 def test_the_overlap_redraw_count_is_exactly_zero(sample, overlap_systems):
-    """GEN.1006's Done clause: no pair, tree or companion set is drawn again because a star overlaps what it holds."""
+    """GEN.1006's Done clause: no pair, tree or companion set is drawn again because a star overlaps what it holds. Holds from the member
+    record (GEN.1009), the keep-out rule (GEN.1010) and the truncated draws (GEN.1011); the systems that used to redraw are the sample
+    it reads."""
     assert rr.overlap_events(sample) == {}
     assert not {key: counts for key, counts in overlap_systems.items() if counts}

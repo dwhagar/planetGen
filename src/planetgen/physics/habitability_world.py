@@ -52,7 +52,7 @@ A gas giant has no surface and no score (every field `None`).
 import math
 
 from planetgen import tuning
-from planetgen.physics import aerosols, aquifers, atmosphere, constants, equipment, habitability, life_scores, magnetism, protection_limits, radiation, regional_temperature
+from planetgen.physics import aerosols, aquifers, atmosphere, constants, equipment, habitability, life_scores, magnetism, outside_hours, protection_limits, radiation, regional_temperature
 from planetgen.physics import unit_registry as units
 
 _pa_to_kpa = units.converter("Pa", "kPa")
@@ -74,7 +74,7 @@ CORE_DOMAINS = tuple(name.lower() for name in habitability.CORE_DOMAINS)
 BODY_FIELDS = (
     "phi4", *(f"phi4_{domain}" for domain in DOMAINS), *(f"tier_{domain}" for domain in DOMAINS),
     *life_scores.FIELDS, "l_solv", "l_chem", "l_ener", "l_rad",
-    *equipment.FIELDS, *regional_temperature.FIELDS, "energy_flux_w_m2", "flux_variation",
+    *equipment.FIELDS, *regional_temperature.FIELDS, *outside_hours.FIELDS, "energy_flux_w_m2", "flux_variation",
 )
 """tuple: What `generate` sets on a planet or moon, as stored in `planets` and
 `moons` (`energy_flux_w_m2` and `flux_variation` are the inputs the score keeps: the
@@ -165,12 +165,14 @@ def values_from_body(body):
         "dose_ground_msv_yr": getattr(body, "dose_ground_msv_yr", None),
         "dose_gcr_msv_yr": getattr(body, "dose_gcr_msv_yr", None),
         "dose_sep_msv_yr": getattr(body, "dose_sep_msv_yr", None),
+        "dose_belt_msv_yr": getattr(body, "dose_belt_msv_yr", None),
         "dose_helio_mult": getattr(body, "dose_helio_mult", None),
         "uv_surface_index": getattr(body, "uv_surface_index", None),
         "tau_dust": getattr(body, "tau_dust", None),
         "scale_height_km": getattr(body, "scale_height", None),
         "magnetic_moment_a_m2": getattr(body, "magnetic_moment_a_m2", None),
         "rotation_period_hours": getattr(body, "rotation_period_hours", None),
+        "daylight_hours": getattr(body, "daylight_hours", None),
         "axial_tilt_deg": getattr(body, "axial_tilt_deg", None),
         "period_years": getattr(body, "period", None),
         "is_moon": bool(getattr(body, "is_moon", False)),
@@ -351,6 +353,7 @@ def world_from(values, lethal_host=None):
         life_stage=values.get("native_life") or "none",
         life_on_surface=values.get("hydrosphere") != "ice-covered ocean" and underground != "deep",
         dose_gcr_sv_yr=parts[0], dose_sep_sv_yr=parts[1], dose_ground_sv_yr=parts[2],
+        dose_belt_sv_yr=(values.get("dose_belt_msv_yr") or 0.0) / 1000.0 if parts[0] is not None else None,
         cutoff_gv=cutoff_gv(values), uv_index=values.get("uv_surface_index") or 0.0,
         dust_mg_m3=aerosols.dust_loading_mg_m3(values.get("tau_dust"), values.get("scale_height_km")),
     )
@@ -367,11 +370,9 @@ def _dose_parts_sv(values):
 
 
 def cutoff_gv(values):
-    """The equatorial cutoff rigidity of the body's dipole, GV (0 without a field): the moment, times the dipole's
-    share for a slow-rotating planet (a moon keeps its dipole), over the radius squared (`radiation.cutoff_rigidity_gv`)."""
-    share = 1.0 if values.get("is_moon") or values.get("body_type") == "g" else magnetism.dipole_share(
-        values.get("rotation_period_hours"))
-    return radiation.cutoff_rigidity_gv((values.get("magnetic_moment_a_m2") or 0.0) * share, values.get("radius_km") or 0.0)
+    """The equatorial cutoff rigidity of the body's dipole, GV (0 without a field): the stored dipole moment over the radius squared
+    (`radiation.cutoff_rigidity_gv`)."""
+    return radiation.cutoff_rigidity_gv(values.get("magnetic_moment_a_m2") or 0.0, values.get("radius_km") or 0.0)
 
 
 def compute(values, compact_host=None):
@@ -400,6 +401,7 @@ def compute(values, compact_host=None):
         out[f"tier_{domain}"] = TIER_INDEX[colour]
     out.update(equipment.compute(world))
     out.update(regional_temperature.compute(values))
+    out.update(outside_hours.fields(world, out, {**values, **out}))
     return out
 
 

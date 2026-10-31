@@ -15,7 +15,7 @@ import math
 
 from planetgen import tuning
 from planetgen.describe import life_facts, model
-from planetgen.describe.hierarchy import hierarchy_text
+from planetgen.describe.hierarchy import hierarchy_sentences
 from planetgen.describe.model import (
     fact,
     facts,
@@ -29,6 +29,7 @@ from planetgen.describe.model import (
 from planetgen.generation.belt import format_composition_summary
 from planetgen.generation.comet import PERIOD_CLASS_LABELS
 from planetgen.generation.star import compressed_heliosphere_radius
+from planetgen.generation.stellar_object import supported_evolutionary_scales
 from planetgen.names.bodies import close_pair_label
 from planetgen.physics import atmosphere as atmosphere_physics
 from planetgen.physics import (
@@ -38,6 +39,8 @@ from planetgen.physics import (
     giant_interior,
     habitability,
     habitability_explain,
+    meteorite_groups,
+    outside_hours,
     pre_main_sequence,
     protection,
     regional_temperature,
@@ -140,12 +143,12 @@ def _star_facts(star):
         fact("mass", "Mass", _mass(star.mass, solar=True)),
         fact("temp", "Temperature", _kelvin(star.temperature, companions=False)),
         fact("lum", "Luminosity", _luminosity(star.luminosity)),
-        fact("hab", "Habitable Zone", "Between ", _au(star.habitable_zone[0]), " and ", _au(star.habitable_zone[1])),
-        fact("orbit", "Galactic Orbit", _galactic_orbit(star.galactic_orbital_speed_kms, star.galactic_orbital_period_gy)),
+        fact("hab", "Habitable zone", "Between ", _au(star.habitable_zone[0]), " and ", _au(star.habitable_zone[1])),
+        fact("orbit", "Galactic orbit", _galactic_orbit(star.galactic_orbital_speed_kms, star.galactic_orbital_period_gy)),
     ]
     if star.reflex_offset_x or star.reflex_offset_y or star.reflex_offset_z:
         offset = _offset(star.reflex_offset_x, star.reflex_offset_y, star.reflex_offset_z)
-        rows.append(fact("wobble", "Planetary Wobble", _au(offset), " from its nominal position, pulled by its own planets"))
+        rows.append(fact("wobble", "Planetary wobble", _au(offset), " from its nominal position, pulled by its own planets"))
     if star.disk_kind:
         rows.append(fact("disk", "Disk", _star_disk_text(star)))
     rows.append(fact("loc", "Location", star.name))
@@ -165,8 +168,16 @@ def _star_disk_text(star):
                   _au(star.disk_inner_au), " to ", _au(star.disk_outer_au), ", with no bodies in it")
 
 
+LIFESPAN_SENTENCES = {
+    "fast": "Its lifespan is too short for anything slower than the fastest evolution, so only the simplest light-driven chemistry could arise.",
+    "normal": "That is long enough for life that evolves as fast as Earth's did, but not for the slower paces of evolution.",
+    "slow": "That is long enough for even the slowest paces of evolution to reach a technological civilization.",
+}
+"""dict: What a main-sequence star's lifespan means for life, by the slowest pace it allows (`stellar_object.supported_evolutionary_scales`, GEN.942)."""
+
+
 def _star_age_sentence(star):
-    """Two short sentences: the star's age and lifespan, then what that means for life (`STAR_EVOLUTION`'s notes)."""
+    """Two short sentences: the star's age and lifespan, then what that means for life (the slowest pace its lifespan allows)."""
     age = _gy(star.age)
     if star.yerkes_class in pre_main_sequence.STAGE_CLASSES:
         # GEN.242: still contracting.
@@ -176,11 +187,11 @@ def _star_age_sentence(star):
         sentence = inline("The star is about ", age, " old and is now a white dwarf, which will cool for trillions of years.")
     else:
         sentence = inline("The star is about ", age, " old and should last about ", _gy(star.lifespan), ".")
-    # STAR_EVOLUTION's notes describe a main-sequence star's lifespan window only.
+    # What the lifespan allows is told of a main-sequence star only: an evolved star's letter and lifespan are not those of its main sequence.
     if star.yerkes_class in ("V", "VI"):
-        notes = tuning.STAR_EVOLUTION.get(star.type[0], {}).get("evolutionary_constraint_notes")
-        if notes:
-            sentence = inline(sentence, " ", notes)
+        scales = supported_evolutionary_scales(star)
+        if scales:
+            sentence = inline(sentence, " ", LIFESPAN_SENTENCES[scales[-1]])
     return sentence
 
 
@@ -196,7 +207,7 @@ def _galactic_orbit_or_centre(star):
 def _wobble_row(star):
     if star.reflex_offset_x or star.reflex_offset_y or star.reflex_offset_z:
         offset = _offset(star.reflex_offset_x, star.reflex_offset_y, star.reflex_offset_z)
-        return [fact("wobble", "Planetary Wobble", _au(offset), " from its nominal position, pulled by its own planets")]
+        return [fact("wobble", "Planetary wobble", _au(offset), " from its nominal position, pulled by its own planets")]
     return []
 
 
@@ -204,10 +215,10 @@ def _black_hole_blocks(hole):
     rows = [
         fact("type", "Type", hole.type),
         fact("mass", "Mass", _mass(hole.mass, solar=True)),
-        fact("event_horizon", "Event Horizon Radius", _radius_km(hole.radius)),
-        fact("spin", "Spin Parameter", qty("ratio", hole.spin, note="of the maximum (0 is not spinning)")),
-        fact("disk", "Accretion Disk", "Active accretion disk detected" if hole.has_accretion_disk else "None detected"),
-        fact("orbit", "Galactic Orbit", _galactic_orbit_or_centre(hole)),
+        fact("event_horizon", "Event horizon radius", _radius_km(hole.radius)),
+        fact("spin", "Spin parameter", qty("ratio", hole.spin, note="of the maximum (0 is not spinning)")),
+        fact("disk", "Accretion disk", "Active accretion disk detected" if hole.has_accretion_disk else "None detected"),
+        fact("orbit", "Galactic orbit", _galactic_orbit_or_centre(hole)),
         *_wobble_row(hole),
         fact("loc", "Location", hole.name),
     ]
@@ -236,10 +247,10 @@ def _neutron_star_blocks(star):
         fact("type", "Type", star.type),
         fact("mass", "Mass", _mass(star.mass, solar=True)),
         fact("radius", "Radius", _radius_km(star.radius)),
-        fact("spin_period", "Spin Period", spin),
-        fact("magnetic_field", "Magnetic Field", _held("G", star.magnetic_field_gauss, shown="magnetic field")),
-        fact("surface_temp", "Surface Temperature", _kelvin(star.surface_temperature_k, companions=False)),
-        fact("orbit", "Galactic Orbit", _galactic_orbit_or_centre(star)),
+        fact("spin_period", "Spin period", spin),
+        fact("magnetic_field", "Magnetic field", _held("G", star.magnetic_field_gauss, shown="magnetic field")),
+        fact("surface_temp", "Surface temperature", _kelvin(star.surface_temperature_k, companions=False)),
+        fact("orbit", "Galactic orbit", _galactic_orbit_or_centre(star)),
         *_wobble_row(star),
         fact("loc", "Location", star.name),
     ]
@@ -278,12 +289,12 @@ def _close_pair_section(pair):
         fact("type", "Type", pair.type),
         fact("mass", "Mass", _mass(pair.mass)),
         fact("lum", "Luminosity", _luminosity(pair.luminosity)),
-        fact("hab", "Habitable Zone", "Between ", _au(pair.habitable_zone[0]), " and ", _au(pair.habitable_zone[1])),
-        fact("separation", "Stellar Separation", _au(pair.binary_separation_au)),
-        fact("mutual_orbit", "Mutual Orbit", _kms(pair.binary_mutual_orbital_speed_kms), " (",
+        fact("hab", "Habitable zone", "Between ", _au(pair.habitable_zone[0]), " and ", _au(pair.habitable_zone[1])),
+        fact("separation", "Stellar separation", _au(pair.binary_separation_au)),
+        fact("mutual_orbit", "Mutual orbit", _kms(pair.binary_mutual_orbital_speed_kms), " (",
              _years(pair.binary_mutual_orbital_period_years), " per orbit)"),
-        fact("wobble", "Barycenter Offset", offsets[0], ", ", offsets[1], " from the barycenter"),
-        fact("orbit", "Galactic Orbit", _galactic_orbit(pair.galactic_orbital_speed_kms, pair.galactic_orbital_period_gy)),
+        fact("wobble", "Barycenter offset", offsets[0], ", ", offsets[1], " from the barycenter"),
+        fact("orbit", "Galactic orbit", _galactic_orbit(pair.galactic_orbital_speed_kms, pair.galactic_orbital_period_gy)),
         fact("loc", "Location", f"{close_pair_label(primary.name, secondary.name)} Binary System"),
     ]
     age = inline("The binary system is about ", _gy(pair.age), " old.")
@@ -297,14 +308,14 @@ def _wide_pair_section(pair):
         (primary, (pair.primary_position_x_au, pair.primary_position_y_au, pair.primary_position_z_au)),
         (secondary, (pair.secondary_position_x_au, pair.secondary_position_y_au, pair.secondary_position_z_au)))]
     rows = [
-        fact("separation", "Stellar Separation", _au(pair.separation_au), ", ranging from ", _au(pair.periapsis_au),
+        fact("separation", "Stellar separation", _au(pair.separation_au), ", ranging from ", _au(pair.periapsis_au),
              " at periapsis to ", _au(pair.apoapsis_au), " at apoapsis"),
-        fact("eccentricity", "Orbital Eccentricity", qty("ratio", pair.eccentricity, note=ECCENTRICITY_NOTE)),
-        fact("mutual_orbit", "Mutual Orbit", _kms(pair.speed_kms), " (", _years(pair.period_years), " per orbit)"),
-        fact("wobble", "Barycenter Offset", offsets[0], ", ", offsets[1], " from the barycenter"),
-        fact("primary_limit", "Primary's Planetary Limit", f"{primary.name}'s planetary system is stable out to ",
+        fact("eccentricity", "Orbital eccentricity", qty("ratio", pair.eccentricity, note=ECCENTRICITY_NOTE)),
+        fact("mutual_orbit", "Mutual orbit", _kms(pair.speed_kms), " (", _years(pair.period_years), " per orbit)"),
+        fact("wobble", "Barycenter offset", offsets[0], ", ", offsets[1], " from the barycenter"),
+        fact("primary_limit", "Planetary limit of the primary", f"{primary.name}'s planetary system is stable out to ",
              _au(pair.primary_a_crit_au), f" due to {secondary.name}'s gravity."),
-        fact("secondary_limit", "Secondary's Planetary Limit", f"{secondary.name}'s planetary system is stable out to ",
+        fact("secondary_limit", "Planetary limit of the secondary", f"{secondary.name}'s planetary system is stable out to ",
              _au(pair.secondary_a_crit_au), f" due to {primary.name}'s gravity."),
     ]
     return section("pair", None, f"{primary.name} and {secondary.name}", [facts("Wide binary system", rows)])
@@ -346,16 +357,17 @@ def _atmosphere_composition(planet):
 
 
 def _timeline_sentences(life):
-    """The timeline, written from the `life_facts.LifeFacts` alone: the system's age, then the latest milestone the
-    world's life has reached (a generated world states what is there)."""
+    """The system's age, from the `life_facts.LifeFacts` alone (the "timeline" block)."""
+    return [inline("The system is about ", _gy(life.timeline.system_age_gyr), " old.")]
+
+
+def _milestone_sentences(life):
+    """The latest milestone the world's life has reached (the "milestone" block; a generated world states what is there)."""
     timeline = life.timeline
-    sentences = [inline("The system is about ", _gy(timeline.system_age_gyr), " old.")]
     if timeline.stage is None:
-        sentences.append(inline("No milestone has been reached yet at the system's age."))
-    else:
-        sentences.append(inline("Its latest milestone is ", timeline.stage_name, ", reached when the system was ",
-                                _gy(timeline.milestone_age_gyr), " old. ", timeline.stage_text))
-    return sentences
+        return [inline("No milestone has been reached yet at the system's age.")]
+    return [inline("Its latest milestone is ", timeline.stage_name, ", reached when the system was ", _gy(timeline.milestone_age_gyr),
+                   " old. ", timeline.stage_text)]
 
 
 def _colours(names):
@@ -368,20 +380,26 @@ def _colours(names):
     return ", ".join(words[:-1]) + " and " + words[-1] if len(words) > 1 else words[0]
 
 
-def _life_sentences(life):
-    """The life paragraph, written from the `life_facts.LifeFacts` alone, in the present tense: life that has reached a
+def _life_class_sentences(life):
+    """The first sentence of the life paragraph, from the `life_facts.LifeFacts` alone, in the present tense: life that has reached a
     milestone lives on the world; a world that suits a life class and has no life yet says so."""
     if life is None:
         return []
-    lives = life.timeline is None or life.timeline.stage is not None
-    if lives:
+    name = life.class_name[0].lower() + life.class_name[1:]
+    if life.timeline is None or life.timeline.stage is not None:
         pace = "" if life.pace is None else f", evolving at a {life.pace} pace"
-        sentences = [f"Class {life.class_id} life, the {life.class_name[0].lower() + life.class_name[1:]}, lives on this {life.noun}{pace}."]
-        subject = "that life"
-    else:
-        pace = "" if life.pace is None else f", which evolves at a {life.pace} pace"
-        sentences = [f"Conditions on this {life.noun} suit Class {life.class_id} life, the {life.class_name[0].lower() + life.class_name[1:]}{pace}, but none has appeared yet."]
-        subject = "such life"
+        return [f"Class {life.class_id} life, the {name}, lives on this {life.noun}{pace}."]
+    pace = "" if life.pace is None else f", which evolves at a {life.pace} pace"
+    return [f"Conditions on this {life.noun} suit Class {life.class_id} life, the {name}{pace}, but none has appeared yet."]
+
+
+def _life_sentences(life):
+    """What the life looks like, from the `life_facts.LifeFacts` alone: its colors in visible light and outside it."""
+    if life is None:
+        return []
+    lives = life.timeline is None or life.timeline.stage is not None
+    subject = "that life" if lives else "such life"
+    sentences = []
     if life.visible:
         sentences.append(f"In visible light {subject} looks {_colours(life.visible)}.")
     if life.non_visible:
@@ -462,6 +480,8 @@ def _radiation_block(planet):
         fact("radiation-cosmic", "Cosmic rays", dose(terms.gcr_msv_yr), shield + field),
         fact("radiation-stellar", "Stellar particles", dose(terms.sep_msv_yr), ", from the star's flares, cut by the same air and field"),
         fact("radiation-ground", "Ground", dose(terms.ground_msv_yr), ground),
+        *([fact("radiation-belts", "Parent planet's radiation belts", dose(terms.belt_msv_yr),
+                ", trapped particles of the parent's field at this moon's orbit, cut by its air")] if terms.belt_msv_yr > 0.0 else []),
         fact("radiation-uv", "Ultraviolet", qty("ratio", terms.uv_index, note="times Earth's DNA-damaging dose"), ozone),
     ]
     return facts("Radiation", rows)
@@ -490,6 +510,10 @@ def _equipment_block(planet):
         rows.append(fact("shelter-shielding", "Shelter shielding", f"{round(levels['shelter_column_g_cm2']):,} g/cm2"))
     if levels.get("outside_hours") is not None:
         rows.append(fact("outside-hours", "Hours outside a year", f"{round(levels['outside_hours']):,} hours"))
+    day, limit = getattr(planet, "outside_hours_day", None), getattr(planet, "outside_hours_limit", None)
+    if day is not None:
+        cause = outside_hours.LIMIT_WORDS.get(limit, limit)
+        rows.append(fact("outside-hours-day", "Hours outside in a day", f"{day:.1f} hours", f", set by {cause}"))
     return facts("Survival equipment", rows) if rows else None
 
 
@@ -509,9 +533,11 @@ def _planet_section(planet):
     blocks.append(_radiation_block(planet))
     blocks.append(_equipment_block(planet))
     life = life_facts.resolve(planet)
+    blocks.append(prose("life-class", *_life_class_sentences(life)))
     blocks.append(prose("life", *_life_sentences(life)))
     if life is not None and life.timeline is not None:
         blocks.append(prose("timeline", *_timeline_sentences(life)))
+        blocks.append(prose("milestone", *_milestone_sentences(life)))
     if planet.flavor_text:
         blocks.append(prose("flavour", f"Sensors show {planet.flavor_text}"))
     kind = _noun(planet)
@@ -520,12 +546,22 @@ def _planet_section(planet):
                    children)
 
 
+def meteorite_group_fact(body):
+    """The row naming the chondrite group a belt's or field's mean composition is nearest (`small_body_composition.chondrite_group`), or `None` for one stored without it."""
+    group = body.chondrite_group
+    if group is None:
+        return None
+    return fact("meteorite-group", "Nearest Meteorite Group", "None fits (not a chondrite mix)" if group == meteorite_groups.NONE else f"{group} chondrites")
+
+
 def _belt_section(belt):
     rows = [
         fact("inner", "Inner Edge", _au(belt.lower_limit)),
         fact("outer", "Outer Edge", _au(belt.upper_limit)),
         fact("density", "Density", belt.density),
+        fact("mass", "Mass", _mass(belt.mass_kg)),
     ]
+    rows.append(meteorite_group_fact(belt))
     parts = [{"name": component, "level": level} for component, level in belt.composition]
     return section("belt", _ref("belt", belt), "Asteroid Belt",
                    [facts("Asteroid belt", rows),
@@ -580,24 +616,21 @@ def _habitable_count(system):
     return count
 
 
-def _hierarchy_sentence(system):
-    """What the system's stars are to one another (a triple's close pair and the star that orbits it), or `None` for a single
+def _hierarchy_sentences(system):
+    """What the system's stars are to one another (a triple's close pair and the star that orbits it), as short sentences, or `[]` for a single
     star or a system stored without its tree of orbits."""
     slots = system.star_slots
     if not system.orbit_nodes or not slots or len(slots) != len(system.stars):
-        return None
-    text = hierarchy_text(
+        return []
+    return hierarchy_sentences(
         [{"name": star.name, "type": star.type, "node_no": node_no, "slot": slot} for star, (node_no, slot) in zip(system.stars, slots)],
         [{"node_no": node.node_no, "parent_node_no": node.parent_node_no, "slot": node.slot, "kind": node.kind}
-         for node in system.orbit_nodes])
-    return f"{text}." if text else None
+         for node in system.orbit_nodes]) or []
 
 
 def _overview_sentences(system):
     sentences = []
-    hierarchy = _hierarchy_sentence(system)
-    if hierarchy:
-        sentences.append(hierarchy)
+    sentences += _hierarchy_sentences(system)
     segments = []
     if system.planet_count > 0:
         segments.append(f"{system.planet_count} planet{'s' if system.planet_count > 1 else ''}")
@@ -633,19 +666,18 @@ def _overview_sentences(system):
                   if cloud and wind else None)
     if compressed is not None and compressed < star.heliosphere_radius * HELIOSPHERE_COMPRESSION_NOTED:
         sentences.append(inline(
-            "The star's stellar wind creates a bubble, known as the heliosphere, which would extend out to approximately ",
-            _au(star.heliosphere_radius), f" in open space, but the gas of {cloud['name'] or 'the cloud'} around the system presses it in "
-            "to approximately ", _au(compressed), "."))
+            "The star's wind blows a bubble called the heliosphere. In open space it would reach about ",
+            _au(star.heliosphere_radius), f", but the gas of {cloud['name'] or 'the cloud'} around the system presses it in to about ",
+            _au(compressed), "."))
     elif wind:
-        sentences.append(inline("The star's stellar wind creates a bubble, known as the heliosphere, which extends out "
-                                "to approximately ", _au(star.heliosphere_radius), "."))
+        sentences.append(inline("The star's wind blows a bubble called the heliosphere, which reaches about ",
+                                _au(star.heliosphere_radius), "."))
     if wind:
-        sentences.append(inline("Beyond this, the star's gravitational influence extends out to a distance of ",
-                                _au(star.system_perimeter), ", marking the ultimate edge of the system."))
+        sentences.append(inline("Beyond the bubble, the star's gravity still holds on out to ",
+                                _au(star.system_perimeter), ", the outer edge of the system."))
     else:
         # A black hole or neutron star blows no stellar wind: only its gravity bounds the system.
-        sentences.append(inline("The star's gravitational influence extends out to a distance of ",
-                                _au(star.system_perimeter), ", marking the edge of the system."))
+        sentences.append(inline("The star's gravity holds on out to ", _au(star.system_perimeter), ", the edge of the system."))
     return sentences
 
 

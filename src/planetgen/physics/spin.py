@@ -16,14 +16,17 @@ section 6):
    from gyrochronology, `P = a t^n (B - V - c)^b` (Barnes 2007, with the
    document's fit), with 10% log-normal scatter.
 3. Hot stars draw an equatorial speed log-normal round 180 km/s, capped
-   at 85% of breakup, `sqrt(2/3 G M / R)`.
+   at 85% of breakup, `sqrt(2/3 G M / R)`. Between 6450 and 6650 K (the Kraft
+   break, GEN.1163) the median speed passes smoothly, in log, from the
+   gyrochronology one to the hot star's, which itself rises from 80 km/s at
+   the break to 180 km/s at 1.8 solar masses.
 4. Comets (and every small body over 200 m) draw a period log-normal
    (median e^2.1 h, about 8 h), never under the 2.2-hour spin barrier.
 5. Black holes draw a* from Beta(1.4, 3.6) (first-generation collapse).
 
 Tilts: stars, gas giants and untidied moons Rayleigh(15 deg) from their
-reference normal; rocky planets isotropic, `p(e) = sin(e) / 2` (the giant impacts that
-build them, `accretion_spin`); small bodies the YORP pair near 10 or 170 deg. The axis
+reference normal; rocky planets isotropic, `p(e) = sin(e) / 2`, after a giant impact and prograde when planetesimals built them
+(the last impacts, `accretion_spin`); small bodies the YORP pair near 10 or 170 deg. The axis
 is the reference normal tilted by the obliquity at a random precession angle.
 
 A planet's or moon's spin as generated is its birth spin worn down by the tide of what it
@@ -40,7 +43,7 @@ import math
 
 from scipy import special
 
-from planetgen.physics import constants, unit_registry as units
+from planetgen.physics import chemically_peculiar, constants, impact_spin, unit_registry as units
 from planetgen.util import draw
 
 _kg_to_mearth = units.converter("kg", "Mearth")
@@ -52,30 +55,6 @@ of anything on its own galactic orbit."""
 
 STELLAR_TILT_SIGMA_DEG = 15.0
 """float: Rayleigh sigma of a star's, gas giant's or free moon's obliquity."""
-
-ACCRETION_SPIN_SIGMA_PER_HOUR = (1.32 + 1.26 + 1.49) / 3.0
-"""float: The dispersion of each component of a rocky planet's birth spin vector, rad/h (Kokubo and Genda 2010, ApJ 714:L21, the 'realistic'
-accretion model: 1.32, 1.26 and 1.49 for x, y and z, each component Gaussian and the average independent of the planet's mass; rms 2.35
-rad/h, a period of 2.7 hours). Source tier T2 (read through a summary of the paper), tweak level L0."""
-
-ACCRETION_CRITICAL_PER_HOUR = 3.3
-"""float: The critical (breakup) spin of the paper's planets, `sqrt(G M / R^3)`, rad/h (3.3 at their density of 3000 kg/m3): what the
-dispersion above is a share of (0.41), so a planet of another density spins in proportion to its own breakup rate."""
-
-ACCRETION_SPIN_SCALE = 0.4
-"""float: INTERIM stand-in (GEN.953): a scale on the width of the Gaussian components above. The paper's width is the average over planets built by
-protoplanet-on-protoplanet impacts; Vesta (5.3 h), Ceres (9.1 h), the Earth after the Moon-forming impact (about 5 h) and Mars (24.6 h) spin at a
-quarter to a third of breakup or less. 0.4 puts the median free day of a planet at about 7 hours. Source tier T6, tweak level L3 (chosen by running the
-generator over the planets and reading the day). Replaced by Kokubo and Genda equation 4 with the distribution of the last impacts' mass ratio
-(`impact_spin`, GEN.978) when GEN.979 wires it."""
-
-SMALL_PLANET_MASS_EARTH = 0.3
-"""float: Below this mass (Earth masses) a planet is an embryo that may never have had a giant impact, and `small_planet_factor` slows its spin in proportion to
-its mass. Interim stand-in (GEN.953), source tier T6, tweak level L3 (chosen so that a Mars, 0.107 Earth masses, is reachable: about a third of the draws are
-slower than its 24.6 hours at 0.07 of breakup)."""
-
-SMALL_PLANET_FACTOR_FLOOR = 0.05
-"""float: The least `small_planet_factor` (a planet of 0.015 Earth masses or less). Interim stand-in (GEN.953), source tier T6, tweak level L3."""
 
 YORP_TILT_DEG = (10.0, 170.0)
 YORP_TILT_SIGMA_DEG = 8.0
@@ -90,17 +69,32 @@ GYRO_SCATTER = 0.10
 (the document's fit to Barnes 2007): the Sun (4.6 Gyr, B - V 0.65) comes
 out 23 days."""
 
-COOL_STAR_MAX_MASS_SOL = 1.3
-"""float: Heaviest star with a convective envelope deep enough to brake."""
+KRAFT_BREAK_LOW_K = 6450.0
+KRAFT_BREAK_HIGH_K = 6650.0
+"""float: The Kraft break (GEN.1163): below `KRAFT_BREAK_LOW_K` a dwarf has a convective envelope deep enough to brake (gyrochronology); above
+`KRAFT_BREAK_HIGH_K` it keeps the speed it was born with; between them the median speed passes from one to the other. Beyer and White 2024
+(arXiv:2408.02638, read in full): centred on 6550 K, about 200 K wide (6450 to 6650 K, 1.32 to 1.41 solar masses)."""
 
 GYRO_MIN_COLOUR_EXCESS = 0.05
-"""float: Gyrochronology needs `B - V - c` positive; a star bluer than
-c + 0.05 (about 6200 K) spins like a hot star instead."""
+"""float: The least `B - V - c` the gyrochronology law is given: a star bluer than c + 0.05 (about 6200 K) has the period of that colour, not the
+law's steep fall to zero, up to the Kraft break."""
 
 HOT_STAR_SPEED_KMS = 180.0
 HOT_STAR_SPEED_SIGMA = 0.45
+HOT_STAR_FULL_SPEED_MASS_SOL = 1.8
+HOT_STAR_PEAK_MASS_SOL = 3.5
+HOT_STAR_PEAK_SPEED_KMS = 268.0
+HOT_STAR_FALL_MASS_SOL = 8.0
+HOT_STAR_BREAK_SPEED_KMS = 80.0
+KRAFT_BREAK_TOP_MASS_SOL = 1.41
 BREAKUP_FRACTION = 0.85
-"""Hot stars: `ln v ~ N(ln 180 km/s, 0.45)`, at most 85% of breakup. A rocky planet's birth spin is held at the same share
+"""Hot stars: `ln v ~ N(ln 180 km/s, 0.45)`, at most 85% of breakup. The 180 km/s is the mean equatorial speed of the 1.6 to 2.0 solar mass bin
+(Zorec and Royer 2012, Table 4: the Maxwellian mode 160 km/s, mean 2 / sqrt(pi) times it), so it holds from `HOT_STAR_FULL_SPEED_MASS_SOL`
+up; just above the Kraft break the stars' mean v sin i is 63 km/s (Beyer and White 2024), a mean equatorial speed of 63 * 4 / pi, about
+`HOT_STAR_BREAK_SPEED_KMS`, and between `KRAFT_BREAK_TOP_MASS_SOL` and the full-speed mass the median runs between the two, linear in ln v over mass.
+Above it the median keeps rising with mass to `HOT_STAR_PEAK_SPEED_KMS` at `HOT_STAR_PEAK_MASS_SOL` (Zorec and Royer 2012: mode 238 km/s in their 3.15 to 3.85 solar mass
+bin, mean 1.128 times it), then falls back to `HOT_STAR_SPEED_KMS` at `HOT_STAR_FALL_MASS_SOL` and stays there (GEN.1170: the B stars of 8 solar masses and more are mostly
+slow, 84% under half the critical speed, Huang, Gies and McSwain 2010). A rocky planet's birth spin is held at the same share
 (`accretion_spin`; about 14 percent of the Gaussian vectors lie above it; planetGen's choice)."""
 
 GIANT_SPEED_RANGE_KMS = (1.0, 10.0)
@@ -225,13 +219,36 @@ def gyro_median_days(colour_excess, age_gy):
     return GYRO_A * max(age_gy * 1000.0, 1.0) ** GYRO_N * colour_excess ** GYRO_B
 
 
+def kraft_weight(temperature_k):
+    """How far a dwarf of this temperature is across the Kraft break: 0 at `KRAFT_BREAK_LOW_K` and below, 1 at `KRAFT_BREAK_HIGH_K` and above, a
+    smoothstep between."""
+    x = (temperature_k - KRAFT_BREAK_LOW_K) / (KRAFT_BREAK_HIGH_K - KRAFT_BREAK_LOW_K)
+    x = min(max(x, 0.0), 1.0)
+    return x * x * (3.0 - 2.0 * x)
+
+
+def hot_star_median_speed_kms(mass_sol):
+    """The median equatorial speed, km/s, of a dwarf above the Kraft break by mass: `HOT_STAR_BREAK_SPEED_KMS` at `KRAFT_BREAK_TOP_MASS_SOL` and below, `HOT_STAR_SPEED_KMS`
+    at `HOT_STAR_FULL_SPEED_MASS_SOL`, `HOT_STAR_PEAK_SPEED_KMS` at `HOT_STAR_PEAK_MASS_SOL`, `HOT_STAR_SPEED_KMS` again from `HOT_STAR_FALL_MASS_SOL` up, linear in ln v over
+    mass between (GEN.1163, GEN.1170)."""
+    knots = ((KRAFT_BREAK_TOP_MASS_SOL, HOT_STAR_BREAK_SPEED_KMS), (HOT_STAR_FULL_SPEED_MASS_SOL, HOT_STAR_SPEED_KMS),
+             (HOT_STAR_PEAK_MASS_SOL, HOT_STAR_PEAK_SPEED_KMS), (HOT_STAR_FALL_MASS_SOL, HOT_STAR_SPEED_KMS))
+    if mass_sol <= knots[0][0]:
+        return knots[0][1]
+    for (low_mass, low_speed), (high_mass, high_speed) in zip(knots, knots[1:]):
+        if mass_sol <= high_mass:
+            share = (mass_sol - low_mass) / (high_mass - low_mass)
+            return math.exp(math.log(low_speed) + share * (math.log(high_speed) - math.log(low_speed)))
+    return knots[-1][1]
+
+
 def nominal_rotation_period_hours(mass_kg, temperature_k, age_gy):
-    """The period, hours, a star of this mass and temperature at `age_gy` has by gyrochronology before its scatter, or `None` for a star the law
-    does not cover (a hot star, whose spin is a speed it keeps)."""
-    colour = b_minus_v(temperature_k) - GYRO_C
-    if _kg_to_msun(mass_kg) <= COOL_STAR_MAX_MASS_SOL and colour > GYRO_MIN_COLOUR_EXCESS:
-        return gyro_median_days(colour, age_gy) * 24.0
-    return None
+    """The period, hours, a star of this temperature at `age_gy` has by gyrochronology before its scatter, or `None` for a star the law does not
+    cover (one past the start of the Kraft break, whose spin is a speed it keeps)."""
+    if kraft_weight(temperature_k) > 0.0:
+        return None
+    colour = max(b_minus_v(temperature_k) - GYRO_C, GYRO_MIN_COLOUR_EXCESS)
+    return gyro_median_days(colour, age_gy) * 24.0
 
 
 def star_rotation_period_hours(mass_kg, radius_km, temperature_k, age_gy, yerkes_class):
@@ -239,8 +256,9 @@ def star_rotation_period_hours(mass_kg, radius_km, temperature_k, age_gy, yerkes
     A star's rotation period, hours, by the cascade: white dwarfs
     (`yerkes_class` "D...") log-normal round a day; giants and supergiants
     (`GIANT_CLASSES`) a slow log-uniform 1 to 10 km/s; cool dwarfs gyrochronology;
-    the rest a hot star's log-normal speed under breakup. Never faster
-    than 85% of breakup.
+    the rest a hot star's log-normal speed under breakup, with the median
+    passing from one to the other across the Kraft break (GEN.1163); an Ap or Am dwarf (`chemically_peculiar`) takes the slow period of its kind.
+    Never faster than 85% of breakup.
     """
     mass_sol = _kg_to_msun(mass_kg)
     cls = (yerkes_class or "").strip()
@@ -250,14 +268,20 @@ def star_rotation_period_hours(mass_kg, radius_km, temperature_k, age_gy, yerkes
     elif cls in GIANT_CLASSES:
         low, high = (math.log(s) for s in GIANT_SPEED_RANGE_KMS)
         period = period_hours_from_speed(radius_km, math.exp(draw.uniform(low, high)))
+    elif (peculiar := chemically_peculiar.of_star(cls, mass_kg, radius_km, temperature_k, age_gy)) is not None:
+        # GEN.1027: an Ap or Am dwarf spins slowly; its period is from the star's own keyed stream, not a draw of the run.
+        period = peculiar.period_hours
     else:
-        colour = b_minus_v(temperature_k) - GYRO_C
-        if mass_sol <= COOL_STAR_MAX_MASS_SOL and colour > GYRO_MIN_COLOUR_EXCESS:
+        weight = kraft_weight(temperature_k)
+        colour = max(b_minus_v(temperature_k) - GYRO_C, GYRO_MIN_COLOUR_EXCESS)
+        if weight == 0.0:
             days = gyro_median_days(colour, age_gy) * math.exp(draw.gauss(0.0, GYRO_SCATTER))
             period = days * 24.0
         else:
-            speed = math.exp(draw.gauss(math.log(HOT_STAR_SPEED_KMS), HOT_STAR_SPEED_SIGMA))
-            period = period_hours_from_speed(radius_km, speed)
+            gyro_speed = 2.0 * math.pi * radius_km / (gyro_median_days(colour, age_gy) * 86400.0)
+            log_median = (1.0 - weight) * math.log(gyro_speed) + weight * math.log(hot_star_median_speed_kms(mass_sol))
+            sigma = (1.0 - weight) * GYRO_SCATTER + weight * HOT_STAR_SPEED_SIGMA
+            period = period_hours_from_speed(radius_km, math.exp(draw.gauss(log_median, sigma)))
     return max(period, period_hours_from_speed(radius_km, cap))
 
 
@@ -276,21 +300,22 @@ def critical_spin_rad_s(mass_kg, radius_km):
     return math.sqrt(constants.G * mass_kg / (radius_km * 1000.0) ** 3)
 
 
-def small_planet_factor(mass_kg):
-    """The extra slowing of a planet under `SMALL_PLANET_MASS_EARTH` Earth masses: its mass over that mass, never under `SMALL_PLANET_FACTOR_FLOOR`; 1 above it."""
-    return min(1.0, max(_kg_to_mearth(mass_kg) / SMALL_PLANET_MASS_EARTH, SMALL_PLANET_FACTOR_FLOOR))
-
-
 def accretion_spin(mass_kg, radius_km):
     """
-    A rocky planet's birth spin from the giant impacts that built it (GEN.731, Kokubo and Genda 2010): a vector whose three components are
-    Gaussian, each with `ACCRETION_SPIN_SIGMA_PER_HOUR` at the paper's density, scaled to the breakup rate of this body, by `ACCRETION_SPIN_SCALE` and by
-    `small_planet_factor` (the interim of GEN.953), and held under `BREAKUP_FRACTION` of the breakup rate. Returns `(rate, tilt_deg)`: the spin rate, rad/s, and its angle from the vector's own z axis (taken as the
-    orbit normal), which for components of one width is isotropic, `p(e) = sin(e) / 2`, as the paper finds.
+    A rocky planet's birth spin from the last impacts that built it (GEN.979, Kokubo and Genda 2010 equation 4 through `impact_spin`): the mass ratio
+    `gamma` of the last impacts is drawn for the planet's mass (a giant impact of embryos, or planetesimals alone), the three components of the
+    spin vector are Gaussian with the width that `gamma` gives as a share of this body's breakup rate, and the rate is held under `BREAKUP_FRACTION` of
+    it. Returns `(rate, tilt_deg)`: the spin rate, rad/s, and its angle from the vector's own z axis (taken as the orbit normal). After a giant
+    impact the axis is isotropic, `p(e) = sin(e) / 2`, as the paper finds; a planet built by planetesimals alone spins prograde (`z` folded positive,
+    the sense of the shear that feeds it: Schlichting and Sari 2007, recalled). Three draws beyond the components: the branch and the place in its range.
     """
     critical = critical_spin_rad_s(mass_kg, radius_km)
-    sigma = ACCRETION_SPIN_SIGMA_PER_HOUR / ACCRETION_CRITICAL_PER_HOUR * critical * ACCRETION_SPIN_SCALE * small_planet_factor(mass_kg)
+    mass_earth = _kg_to_mearth(mass_kg)
+    branch_u, within_u = draw.random(), draw.random()
+    sigma = impact_spin.component_sigma_rad_s(critical, impact_spin.sample_gamma(mass_earth, branch_u, within_u))
     x, y, z = (draw.gauss(0.0, sigma) for _ in range(3))
+    if not impact_spin.had_giant_impact(mass_earth, branch_u):
+        z = abs(z)
     rate = math.sqrt(x * x + y * y + z * z)
     tilt = math.degrees(math.acos(max(-1.0, min(1.0, z / rate)))) if rate > 0.0 else 0.0
     return min(rate, BREAKUP_FRACTION * critical), tilt

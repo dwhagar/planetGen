@@ -32,6 +32,7 @@ are in `docs/design/research/gap-filling-plan.md` section 6.25.
 """
 
 import math
+import warnings
 from dataclasses import dataclass
 
 from scipy import integrate
@@ -44,10 +45,19 @@ COROTATION_SOFTNESS = 1.0e-2
 HILL_ESCAPE_FRACTION = 0.4
 """float: The share of the planet's Hill radius beyond which a prograde moon is no longer bound for long (stable prograde orbits reach about a half of the Hill radius,
 a retrograde moon's about 0.7; Hamilton and Burns 1991, Domingos et al. 2006; recalled). Source tier T2, tweak level L1 (the prograde figure, a little under its half)."""
-RTOL = 1.0e-7
-"""float: The integrator's relative tolerance."""
+RTOL = 1.0e-5
+"""float: The integrator's relative tolerance. A spin held near a balance of the tides (a thermal tide against the rheology's) makes the system stiff, and at 1e-7 LSODA took
+tens of seconds to minutes on such a planet where 1e-5 takes one (the end spin agrees to 1e-6 with Radau at 1e-7); the distances are good to a part in 1e5.  Source tier T6, tweak level L0."""
 MAX_EVENTS = 40
 """int: The most Roche falls and escapes handled in one run."""
+STRATEGIES = (("LSODA", RTOL, 40000), ("BDF", 1.0e-6, 400000))
+"""tuple: The integrators tried in turn, `(method, relative tolerance, most right-hand-side evaluations)`. A planet whose spin is held at a balance of the tides, or turns with
+a moon (corotation), is stiff: LSODA takes under a second for nearly every system and fails or crawls on about one in five hundred, which BDF finishes in a few seconds.
+Source tier T6, tweak level L0."""
+
+
+class IntegrationFailed(RuntimeError):
+    """No integrator in `STRATEGIES` finished a stretch of the history (the caller keeps the moons as they were born)."""
 
 
 @dataclass(frozen=True)
@@ -135,6 +145,32 @@ def tidal_power_w(torques, spin_rate, planet_mass_kg, moon):
     return max(-torques.gravitational(spin_rate, raiser) * (spin_rate - raiser.orbital_rate), 0.0)
 
 
+class _TooManyEvaluations(Exception):
+    pass
+
+
+def _solve(rhs, y0, events, atol):
+    """`solve_ivp` of `rhs` over the unit span by the first of `STRATEGIES` that finishes; `IntegrationFailed` if none does."""
+    for method, rtol, limit in STRATEGIES:
+        count = [0]
+
+        def counted(t, y):
+            count[0] += 1
+            if count[0] > limit:
+                raise _TooManyEvaluations()
+            return rhs(t, y)
+
+        try:
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")      # LSODA says it is failing; the next integrator is the answer to that
+                solution = integrate.solve_ivp(counted, (0.0, 1.0), y0, method=method, events=events, rtol=rtol, atol=atol)
+        except (_TooManyEvaluations, OverflowError, ValueError, ZeroDivisionError):
+            continue
+        if solution.success:
+            return solution
+    raise IntegrationFailed("the moon orbits did not integrate")
+
+
 def evolve(planet, star, dissipation, moons, spin_rate, age_s, thermal=None, planet_density_kg_m3=None, hill_radius_m=None,
            factor=spin_torques.GRAVITATIONAL_TORQUE_FACTOR):
     """
@@ -215,10 +251,8 @@ def evolve(planet, star, dissipation, moons, spin_rate, age_s, thermal=None, pla
         y0 = [spin / scale] + [math.log(distance[i]) for i in indices] + [0.0]
 
         # the heat is the last state; its derivative is the sum of the moon powers
-        solution = integrate.solve_ivp(rhs, (0.0, 1.0), y0, method="LSODA", events=events, rtol=RTOL,
-                                       atol=[1.0e-12] + [1.0e-12] * len(indices) + [1.0e20])
-        if not solution.success:
-            raise RuntimeError(f"the moon orbits did not integrate: {solution.message}")
+        atol = [1.0e-12] + [1.0e-12] * len(indices) + [1.0e20]
+        solution = _solve(rhs, y0, events, atol)
         end = solution.y[:, -1]
         spin = end[0] * scale
         heat += end[-1]

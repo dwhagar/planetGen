@@ -59,8 +59,6 @@ def test_the_architecture_of_ordinary_stars_makes_super_jupiters_but_none_above_
     assert heaviest <= BROWN_DWARF_EDGE_KG
 
 
-@pytest.mark.xfail(strict=True, reason="BUG (filed with TODO): planet_mass.gas_outcome returns max(runaway mass, core) and the core is capped at 0.01 of the star, "
-                   "not at the brown dwarf edge, so a metal-rich 1.5 to 2 solar-mass host draws giants of 15 to 21 Jupiter masses (4 in 3,000 draws)")
 def test_no_giant_of_a_heavy_metal_rich_star_is_above_the_brown_dwarf_edge():
     for star_solar in (1.5, 2.0):
         for i in range(3000):

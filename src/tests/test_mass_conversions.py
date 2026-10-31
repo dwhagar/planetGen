@@ -19,7 +19,6 @@ REMAINING = {
     "generation/open_clusters.py": 1,
     "generation/place_terms.py": 1,
     "physics/accretion.py": 5,
-    "physics/belt_mass.py": 1,
     "physics/body_status.py": 1,
     "physics/mathcheck.py": 1,
     "physics/planet_survival.py": 1,

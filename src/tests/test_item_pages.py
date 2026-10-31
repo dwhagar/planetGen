@@ -287,6 +287,25 @@ def test_a_page_lists_a_row_only_when_it_holds_something_or_its_absence_matters(
     assert [r["label"] for r in glance_view(sheet)] == ["surface_temperature_k", "atmospheric_pressure_pa"]
 
 
+def test_the_glance_panel_flags_a_very_high_swing_of_starlight_only(monkeypatch):
+    """GEN.1135: Class Q is retired; the panel says "very high" at 0.75 peak to peak or more and shows nothing below it."""
+    from planetgen.describe import sheet as sheet_registry
+    from planetgen.web.item_pages import glance_view
+
+    def sheet_with(swing):
+        return {"kind": "planet", "groups": [{"key": "climate", "label": "Climate", "rows": [
+            {"key": "flux_variation", "label": "Seasonal variation of that energy, peak to peak", "value": [f"{swing * 100:.0f} %"],
+             "text": f"{swing * 100:.0f} %", "raw": swing, "stored": True, "absent": swing == 0, "show_absent": False}]}]}
+
+    assert "flux_variation" in sheet_registry.GLANCE["planet"] and "flux_variation" in sheet_registry.GLANCE["moon"]
+    assert glance_view(sheet_with(0.74)) == []
+    assert glance_view(sheet_with(0.0)) == []
+    flagged = glance_view(sheet_with(0.9))
+    assert [r["label"] for r in flagged] == [sheet_registry.SWING_FLAG_LABEL]
+    assert str(flagged[0]["html"]).startswith("Very high")
+    assert glance_view(sheet_with(sheet_registry.SWING_FLAG_MIN))
+
+
 def test_the_symbols_on_a_planets_page_go_to_its_own_habitability_group_and_that_group_links_the_help_page(client):
     """UX.197: the icons link to this page's Habitability section, whose help link goes on to the levels page."""
     page = client.get(f"/object/{PLANET}").get_data(as_text=True)
@@ -450,6 +469,26 @@ def test_a_planet_page_is_laid_out_about_habitability_atmosphere_composition_the
     assert "Dominant species" not in page and "A technological civilization or a colony lives here." in page
 
 
+def test_gen1108_a_planets_page_has_the_climate_by_latitude_table_between_the_atmosphere_and_the_composition(client, monkeypatch):
+    from planetgen.describe import sheet as sheet_registry
+    from planetgen.physics import regional_temperature
+    earth = regional_temperature.compute(dict(surface_temperature_k=288.0, atmospheric_pressure_pa=101325.0, gravity_g=1.0, rotation_period_hours=24.0,
+                                              axial_tilt_deg=23.4, period_years=1.0))
+    monkeypatch.setattr(apiclient, "get_object_sheet", lambda db, ref: {**_rich_sheet(ref), "bands": sheet_registry.bands_table(earth)})
+    monkeypatch.setattr(apiclient, "get_system_description", lambda db, system_id: _rich_document())
+    detail = _detail()
+    detail["planets"][0].update(planet_class="M", zone="e", body_type="t", phi4=0.8, tier_suitability=1, life_microbial=2, life_flora=0,
+                                life_fauna=0, life_sentient=0, atmospheric_pressure_pa=101325.0, inhabited=True,
+                                equipment={"required": ["a gas-mix mask"], "items": []})
+    monkeypatch.setattr(apiclient, "get_system", lambda db, system_id: detail)
+    page = client.get(f"/object/{PLANET}").get_data(as_text=True)
+    assert page.index('id="sheet-atmosphere"') < page.index('id="sheet-bands"') < page.index('id="sheet-composition"')
+    table = page.split('id="sheet-bands"')[1].split("</section>")[0]
+    assert "Climate by latitude" in table and "North polar" in table and "South polar" in table and "Equator" in table
+    assert "Annual mean temperature" in table and "Longest day of the year" in table and "Polar day and night" in table
+    assert "no day and night range stored" not in page
+
+
 def test_a_planet_with_no_life_or_people_has_no_life_or_civilization_section(client):
     page = client.get(f"/object/{PLANET}").get_data(as_text=True)
     assert 'id="life-paragraph-heading"' not in page and 'id="civilization-heading"' not in page
@@ -465,11 +504,34 @@ def test_a_planet_with_life_lists_the_classes_it_supports_and_what_the_class_liv
     found = apiclient.get_object
     monkeypatch.setattr(apiclient, "get_object", lambda db, ref: {**found(db, ref), "life_microbial": 2, "life_flora": 3,
                                                                   "life_fauna": 1, "life_sentient": 0})
+    readings = [
+        {"kind": "microbial", "label": "Microbes", "score": 2, "abundance": "Rare", "trend": "Stable", "security": "Secure",
+         "years_left_gyr": None, "text": "Microbes: rare, stable, secure."},
+        {"kind": "flora", "label": "Flora", "score": 3, "abundance": "Occasional", "trend": "Declining", "security": "Precarious",
+         "years_left_gyr": 0.4, "text": "Flora: occasional, declining, precarious."},
+        {"kind": "fauna", "label": "Fauna", "score": 1, "abundance": "Rare", "trend": "Stable", "security": "Secure",
+         "years_left_gyr": None, "text": "Fauna: rare, stable, secure."},
+        {"kind": "sentient", "label": "Sentient life", "score": 0, "abundance": "Absent", "trend": None, "security": None,
+         "years_left_gyr": None, "text": "Sentient life: absent."}]
+    monkeypatch.setattr(apiclient, "get_life_readings", lambda db, kind, body_id: {"id": body_id, "life_class_id": "1a", "readings": readings})
     page = client.get(f"/object/{PLANET}").get_data(as_text=True)
-    assert "Supports Class 1a life (oxygenic light-eaters), score 7 of 9." in page
-    assert re.search(r"Also supports Class 2 \(anoxygenic light-eaters[^<]*, 4 of 9\)\.", page)
-    assert "Has Class 1a life, at the stage of small mobile animals (animal grade A2)." in page
-    assert page.index('id="life-paragraph-heading"') < page.index("Supports Class 1a") < page.index('id="life-class-words"')
+    assert re.search(r"Conditions here suit <a [^>]*>Class 1a</a> life \(oxygenic light-eaters\) best, suitability 7 of 9", page)
+    assert re.search(r"they also suit <a [^>]*>Class 2</a> \(anoxygenic light-eaters[^<]*, suitability 4 of 9\)\.", page)
+    assert re.search(r"Life here is <a [^>]*>Class 1a</a>, at the stage of small mobile animals \(animal grade A2\)\. Conditions here suit", page)
+    glance = page.split('class="life-glance"')[1].split("</p>")[0]
+    assert "Microbes: rare, stable, secure. Flora: occasional, declining, precarious. Fauna: rare, stable, secure. Conditions suit <a" in glance
+    assert "Sentient" not in glance and "of 9" not in glance
+    assert page.index('id="item-glance-heading"') < page.index('class="life-glance"') < page.index('id="item-summary-heading"')
+    table = page.split('class="life-readings"')[1].split("</table>")[0]
+    assert "<th scope=\"row\">Flora</th><td>Occasional (3 of 9)</td><td>Declining</td><td>Precarious</td><td>about 0.4 billion years</td>" in table
+    assert "Its life scores are" not in page and "latest milestone" not in page and "evolving at" not in page
+    assert '<a class="help-link" href="/help/life/classes/1#class-1a">Class 1a</a> (oxygenic light-eaters) best, then <a class="help-link" href="/help/life/classes/2#class-2">Class 2</a>' in glance
+    assert 'href="/help/life">What these words mean</a>' in glance
+    for topic in ("abundance", "trend", "security"):
+        assert f'<a class="help-link help-mark" href="/help/life/{topic}"' in table
+    assert 'href="/help/life/classes/1#class-1a">Class 1a</a>, at the stage of small mobile animals' in page
+    assert '/help/life/stages">stages and animal grades</a>' in page and '/help/life/suitability">suitability</a>' in page
+    assert page.index('id="life-paragraph-heading"') < page.index("Life here is <a") < page.index('id="life-class-words"')
     block = page.split('id="life-class-words"')[1].split("</details>")[0]
     assert "eats, drinks, breathes and gives off" in page and "<dt>Drinks</dt><dd>water</dd>" in block
     assert re.search(r'<details[^>]*id="life-class-words"(?![^>]*\bopen\b)', page), "the block starts collapsed"
@@ -515,3 +577,21 @@ def test_a_planet_with_no_living_class_does_not_ask_for_a_chart(client, monkeypa
     monkeypatch.setattr(apiclient, "get_life_air", lambda *args: pytest.fail("the chart is asked for only for a body with a living class"))
     page = client.get(f"/object/{PLANET}").get_data(as_text=True)
     assert 'id="life-and-air"' not in page
+
+
+def test_gen1108_the_page_draws_the_seven_bands_as_a_table_of_columns():
+    """GEN.1108: the sheet's bands are a table with a column for each band and a row for each figure, a band with no such figure a dash; a body with no bands has no table."""
+    from planetgen.describe import sheet as sheet_registry
+    from planetgen.physics import latitude_bands, regional_temperature
+    earth = regional_temperature.compute(dict(surface_temperature_k=288.0, atmospheric_pressure_pa=101325.0, gravity_g=1.0, rotation_period_hours=24.0,
+                                              axial_tilt_deg=23.4, period_years=1.0))
+    view = item_pages.bands_view({"bands": sheet_registry.bands_table(earth)})
+    assert view["columns"] == [sheet_registry.BAND_LABELS[name] for name in latitude_bands.NAMES]
+    assert [row["label"] for row in view["rows"]][:2] == ["Annual mean temperature", "Day and night swing (hottest to coldest)"]
+    assert all(len(row["cells"]) == 7 for row in view["rows"])
+    moon = regional_temperature.compute(dict(surface_temperature_k=250.0, atmospheric_pressure_pa=0.0, gravity_g=0.165, rotation_period_hours=655.7,
+                                             axial_tilt_deg=1.5, period_years=0.0748))
+    rings = item_pages.bands_view({"bands": sheet_registry.bands_table(moon)})
+    assert "point under its star" in rings["caption"] and [row["label"] for row in rings["rows"]] == ["Annual mean temperature",
+                                                                                                      "Day and night swing (hottest to coldest)", "State"]
+    assert item_pages.bands_view({"bands": None}) is None and item_pages.bands_view({}) is None

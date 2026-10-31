@@ -135,3 +135,24 @@ def test_several_moons_are_followed_together():
     assert [f.moon for f in result.moons] == moons
     assert result.moons[0].fate == "stays" or result.moons[0].fate == "fell"
     assert result.moons[2].distance_m >= moons[2].distance_m
+
+
+def test_a_planet_held_near_a_balance_of_the_tides_integrates_in_seconds():
+    """A planet of 0.2 Earth masses with a thermal tide and three moons, one inside its Roche limit, whose spin hovers at a balance of the thermal and rheology
+    tides: at a relative tolerance of 1e-7 LSODA took minutes; at the module's tolerance it takes about a second, and the answer (the spin it ends at) agrees."""
+    import time
+    from planetgen.physics import tidal_rheology
+    planet = spin_torques.Planet(1.1944335735582758e+24, 3931635.019609854, 0.33)
+    star = spin_torques.Raiser(1.9471535274991518e+30, 68448422524.914894, 6.365870419227959e-07)
+    thermal = spin_torques.ThermalTide(star, 17.65749914006499, 7.491435544865652e-06)
+
+    def dissipation(frequency):
+        return tidal_rheology.response(planet.mass_kg, planet.radius_m, max(frequency, 1.0e-20), 1746.3423804466247, 640405843720.1215, 265994.4516871315, 0.0).k2_over_q
+
+    moons = [moon_orbits.Moon(6.082467392073513e+21, 8958795.337131515, 2355.2), moon_orbits.Moon(9.227560476330121e+20, 128270066.15492842, 2310.6),
+             moon_orbits.Moon(2.257114046278461e+22, 169499247.46339804, 2061.5)]
+    start = time.time()
+    result = moon_orbits.evolve(planet, star, dissipation, moons, 1.1462362329176932e-05, 3.3536155063031206e+17, thermal, 4691.9546812192075, 403252317.70733774)
+    assert time.time() - start < 30.0
+    assert result.spin_rate == pytest.approx(8.2504e-6, rel=1.0e-3)
+    assert all(f.fate == "fell" for f in result.moons) and result.ring_mass_kg == pytest.approx(sum(m.mass_kg for m in moons))

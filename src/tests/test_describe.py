@@ -20,6 +20,7 @@ from planetgen.describe import build
 from planetgen.describe.quantity import display_value, inline_text
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.phenomena.compact_remnant import BlackHole, NeutronStar
+from planetgen.generation import stellar_object
 from planetgen.generation.system import StarSystem
 from planetgen.physics import habitability, protection, regional_temperature
 from planetgen.util import draw, ladders
@@ -198,12 +199,12 @@ def test_every_body_has_a_section_in_page_order():
 
 
 def test_the_overview_keeps_the_old_summary_but_counts_worlds_by_their_rating():
-    """GEN.220: the heliosphere and edge sentences are the old ones; the habitable line counts overall Green or Blue."""
+    """GEN.220: the heliosphere and edge sentences close the overview (UX.253 put them in plain words); the habitable line counts overall Green or Blue."""
     for _overrides, system in _systems():
         overview = describe(system)["sections"][0]["blocks"][0]
         assert overview["role"] == "overview"
         text = [_plain(sentence) for sentence in overview["text"]]
-        assert any("gravitational influence extends out to" in sentence for sentence in text[-2:])
+        assert any("holds on out to" in sentence for sentence in text[-2:])
         count = build._habitable_count(system)
         line = {0: "There are no habitable worlds in this system.",
                 1: "There is 1 habitable world in the system."}.get(
@@ -232,7 +233,7 @@ def test_the_life_sentences_are_short_and_plain():
             if body.body_type == "a" or not body.life_class:
                 continue
             section = next(s for s in model.sections(document) if s["title"] == body.name)
-            life = [_plain(sentence) for block in section["blocks"] if block["type"] == "prose" and block["role"] == "life"
+            life = [_plain(sentence) for block in section["blocks"] if block["type"] == "prose" and block["role"] in ("life-class", "life")
                     for sentence in block["text"]]
             assert life and f"class {body.life_class}{body.life_class_variant or ''} life" in life[0].lower() and "could arise" not in life[0]
             assert all(len(sentence) < 160 and "suitable for the development" not in sentence for sentence in life)
@@ -333,8 +334,8 @@ def test_the_star_sentence_is_two_short_sentences_and_makes_no_claim_about_the_u
             summary = [block for block in section["blocks"] if block["type"] == "prose" and block["role"] == "summary"]
             text = " ".join(_plain(sentence) for block in summary for sentence in block["text"])
             assert text.startswith("The star is about ") and "in the universe" not in text and "approximately" not in text
-            if star.yerkes_class == "V" and star.type[0] in tuning.STAR_EVOLUTION:
-                assert tuning.STAR_EVOLUTION[star.type[0]]["evolutionary_constraint_notes"] in text
+            if star.yerkes_class == "V" and stellar_object.supported_evolutionary_scales(star):
+                assert build.LIFESPAN_SENTENCES[stellar_object.supported_evolutionary_scales(star)[-1]] in text
                 assert text.count(". ") >= 1
             seen += 1
     assert seen > 0

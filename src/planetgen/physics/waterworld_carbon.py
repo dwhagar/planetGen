@@ -48,7 +48,7 @@ Every number that is not read from a source is a design constant with its source
 import math
 from dataclasses import dataclass
 
-from planetgen.physics import atmosphere_state, constants, elements, saturation
+from planetgen.physics import constants, elements
 from planetgen.physics.mixture_base import bracket
 from planetgen.physics.sulfur_balance import CRUST_CALCIUM_WT
 from planetgen.physics.surface_pressure import (CO2_MODERN_BAR, HEAT_FLUX_EARTH_W_M2, MIN_PCO2_BAR, TS_MODERN_K)
@@ -394,95 +394,3 @@ def seafloor_pco2_bar(supply_bar, heat_flux_w_m2, temperature_of, law, outgassin
         if high - low < 1e-9:
             break
     return math.exp(0.5 * (low + high))
-
-
-# --- the temperature of a sealed world --------------------------------------------------------------------------------------
-
-TEMPERATURE_SCAN_K = (273.15, 640.0)
-"""tuple: The surface temperatures `sealed_state` looks for a liquid-ocean balance in, K: from the freezing point to just under water's critical
-point (647 K), above which there is no ocean to hold the carbon."""
-
-SCAN_POINTS = 14
-"""int: The temperatures of the coarse scan that brackets the balance before the bisection."""
-
-TEMPERATE, FROZEN, RUNAWAY = "temperate", "frozen", "runaway"
-"""str: The statuses of a sealed world: a liquid ocean in balance, an ocean that freezes at the balance, no balance below the critical point."""
-
-
-@dataclass(frozen=True)
-class SealedState:
-    """
-    A sealed world's surface balance.
-
-    Attributes:
-        status (str): `TEMPERATE`, `FROZEN` (the balance is below 273.15 K; `carbon` is that at 273.15 K), or `RUNAWAY` (the greenhouse of the
-            ocean's carbon and steam keeps the surface above `TEMPERATURE_SCAN_K[1]` at every temperature of the scan; `carbon` is that at the top).
-        temperature_k (float): The surface temperature, K (the greenhouse's value at the end of the scan for `FROZEN` and `RUNAWAY`).
-        carbon (OceanCarbon): The partition of the carbon at `temperature_k` (or at the scan's end).
-        water_vapour_pa (float): The saturated water vapour in the air, Pa.
-    """
-
-    status: str
-    temperature_k: float
-    carbon: OceanCarbon
-    water_vapour_pa: float
-
-
-def sealed_state(carbon_mol_m2, ocean_column_kg_m2, gravity_m_s2, absorbed_flux_w_m2, *, sodium_mol_m2, calcium_mol_m2,
-                 other_pressures_pa=None, air_molar_mass_kg_mol=0.04401, warming=None):
-    """
-    The surface temperature and carbon dioxide of a sealed world under an absorbed flux: the coolest temperature at which the greenhouse of
-    the ocean's carbon dioxide and saturated water vapour gives back the temperature the ocean chemistry was solved at.
-
-    The ocean degasses as it warms, so the carbon dioxide and the temperature feed each other: the balance is the first crossing of the
-    scan from below (the stable one, reached by a world that starts cold), as for the carbonate-silicate thermostat of `surface_pressure`.
-
-    Args:
-        carbon_mol_m2 (float): The closed system's carbon (`ocean_pco2`).
-        ocean_column_kg_m2 (float): The ocean's mass per square metre.
-        gravity_m_s2 (float): The surface gravity.
-        absorbed_flux_w_m2 (float): The globally averaged absorbed flux (`greenhouse.absorbed_flux_w_m2`).
-        sodium_mol_m2, calcium_mol_m2 (float): The leached cations (`leached_cations_mol_m2`).
-        other_pressures_pa (dict | None): The partial pressures of the rest of the air (nitrogen and so on), Pa, added to the greenhouse.
-        air_molar_mass_kg_mol (float): As `ocean_pco2`.
-        warming (callable | None): `warming(partial_pressures_pa, gravity_m_s2, absorbed_flux_w_m2)` giving an object with
-            `surface_temperature_k`; `atmosphere_state.greenhouse_warming` by default.
-
-    Returns:
-        SealedState: The balance.
-    """
-    warming = warming or atmosphere_state.greenhouse_warming
-    others = dict(other_pressures_pa or {})
-
-    def at(temperature_k):
-        carbon = ocean_pco2(carbon_mol_m2, temperature_k, ocean_column_kg_m2, gravity_m_s2, sodium_mol_m2=sodium_mol_m2,
-                            calcium_mol_m2=calcium_mol_m2, air_molar_mass_kg_mol=air_molar_mass_kg_mol)
-        vapour = saturation.saturation("H2O", temperature_k).pressure_pa
-        pressures = dict(others)
-        pressures["H2O"] = pressures.get("H2O", 0.0) + vapour
-        pressures["CO2"] = pressures.get("CO2", 0.0) + max(carbon.pco2_bar, MIN_PCO2_BAR) * BAR_PA
-        return carbon, vapour, warming(pressures, gravity_m_s2, absorbed_flux_w_m2).surface_temperature_k
-
-    low_k, high_k = TEMPERATURE_SCAN_K
-    grid = [low_k + (high_k - low_k) * i / (SCAN_POINTS - 1) for i in range(SCAN_POINTS)]
-    previous = None
-    for temperature in grid:
-        carbon, vapour, produced = at(temperature)
-        gap = produced - temperature
-        if previous is None and gap <= 0.0:
-            return SealedState(FROZEN, produced, carbon, vapour)
-        if previous is not None and gap <= 0.0:
-            lo, hi = previous, temperature
-            for _ in range(30):
-                middle = 0.5 * (lo + hi)
-                if at(middle)[2] - middle > 0.0:
-                    lo = middle
-                else:
-                    hi = middle
-                if hi - lo < 1e-3:
-                    break
-            temperature = 0.5 * (lo + hi)
-            carbon, vapour, produced = at(temperature)
-            return SealedState(TEMPERATE, temperature, carbon, vapour)
-        previous = temperature
-    return SealedState(RUNAWAY, produced, carbon, vapour)

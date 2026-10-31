@@ -22,22 +22,22 @@ What the physics fixes
 * **What it is made of.** A ring beyond the snow line that has lost nothing to heat keeps its ice (Saturn's is 90 to 99 percent
   water ice); inside the snow line the ice is gone, and the ring is rock and dust. The density of the mixture is volume additive.
 
-What is drawn (every number is a labelled stand-in; the registry rows are BC20 to BC23 of the gap plan)
--------------------------------------------------------------------------------------------------------
-1. **Whether, and which kind.** A giant always has some ring (all four have): `broad` (a massive ring of large particles, Saturn), `narrow`
-   (a few dense narrow rings, Uranus and Neptune) or `dusty` (a faint dust ring from the erosion of small moons, Jupiter), in the
-   ratio 1 : 2 : 1 of the Solar System's four. A terrestrial planet or a dwarf planet has a ring with probability `RING_CHANCE`
-   (a transient ring of a disrupted moon, or the narrow rings of Haumea and Quaoar).
-2. **Origin.** `moon_erosion` for dust, `disrupted_moon` for narrow rings, and for a broad ring `disrupted_moon` or `captured_body`
-   with equal weight (a stripped differentiated moon, Canup 2010, or a captured comet, Dones 1991; no source weighs them).
-3. **Ice share, mass, extent.** See `RANGES`.
+What is drawn (every number is a labelled stand-in; the registry rows are BC20 to BC23 of the gap plan and RO1 to RO8, RR1 to RR4)
+--------------------------------------------------------------------------------------------------------------------------------
+1. **Whether, and where it came from (GEN.1057).** A ring follows from history, not from a chance: `ring_origin.ring_origin` sums the rings of the moons the tide pulled inside
+   the Roche limit (`moon_history`, the planet's `fallen_moons`) and of the comets that passed inside it (`ring_origin.draw_comet_passages`, drawn here from the unit's stream),
+   each spread for the time since it came to be. A planet with neither has no ring, a planet inside 0.1 AU has none (R9), and a ring is the origin of the event that holds most
+   of it (`disrupted_moon` or `captured_body`) and as old as that event (`ring_age_yr`). A dwarf planet with no such ring may still hold the narrow ring of its spin-orbit
+   resonance (`small_body_rings`, R4).
+2. **Which kind.** From the ring's mass (`kind_of_mass`): a faint one is `dusty`, a middling one `narrow`, a massive one `broad` (Jupiter, Uranus and Neptune, Saturn).
+3. **Ice share, extent.** See `RANGES`.
 
 The draw order is the order above and is part of the generator epoch.
 
 Use:
 
-    ring = draw_ring(parent_kind, radius_km, mass_kg, distance_au, snow_line_au, moon_distances_km)   # a Ring or None
-    apply(planet)                                                                                       # sets the stored fields
+    ring = build_ring(origin, mass_kg, age_yr, radius_km, planet_mass_kg, cold, moon_distances_km)   # a Ring or None
+    apply(planet, host)                                                                              # sets the stored fields
 """
 
 import math
@@ -52,11 +52,11 @@ KINDS = ("dusty", "narrow", "broad")
 ORIGINS = ("moon_erosion", "disrupted_moon", "captured_body")
 
 BODY_FIELDS = ("ring_kind", "ring_origin", "ring_inner_km", "ring_outer_km", "ring_mass_kg", "ring_optical_depth",
-               "ring_ice_fraction")
+               "ring_ice_fraction", "ring_age_yr")
 """tuple: The attributes (and `planets`/`moons` columns, GEN.732) of a ring system; all `None` on a body without one."""
 
 UNITS = {"ring_kind": "text", "ring_origin": "text", "ring_inner_km": "km", "ring_outer_km": "km", "ring_mass_kg": "kg",
-         "ring_optical_depth": "ratio", "ring_ice_fraction": "frac"}
+         "ring_optical_depth": "ratio", "ring_ice_fraction": "frac", "ring_age_yr": "yr"}
 """dict: Each field of `BODY_FIELDS` and its native unit (GEN.570), as `RoguePlanet.FIELD_UNITS` carries it."""
 
 ROCHE_COEFFICIENT = 2.456
@@ -67,16 +67,11 @@ ICE_DENSITY_KG_M3 = 917.0
 ROCK_DENSITY_KG_M3 = 2500.0
 """float: The density of a ring's silicate or dark rock; a stand-in between chondritic grains (3300) and porous dust (1000 to 2000), T6, L0."""
 
-KIND_WEIGHTS = {"giant": (("dusty", 1.0), ("narrow", 2.0), ("broad", 1.0))}
-"""dict: The kind of a giant's ring: Jupiter dusty, Uranus and Neptune narrow, Saturn broad (n = 4: T6, L0)."""
-RING_CHANCE = {"terrestrial": 0.01, "dwarf-planet": 0.01}
-"""dict: The chance that a terrestrial planet or a dwarf planet has a ring (none among the Solar System's terrestrial planets; Haumea, Quaoar
-and Chariklo are small-body rings). A stand-in with no source, T7, L0."""
-NON_GIANT_KIND = {"terrestrial": "dusty", "dwarf-planet": "narrow"}
-"""dict: The kind of the ring of a body that is not a giant: dust from a disrupted moon, or narrow dense rings."""
+KIND_MASS_LIMITS_KG = (1.0e12, 3.0e17)
+"""tuple: A ring lighter than the first is `dusty`, one lighter than the second `narrow`, else `broad`: the middles (in log mass) of the gaps between the masses of the four Solar System
+kinds (Jupiter's dust 1e7 to 1e9 kg, Uranus's rings about 1e16, Saturn's 1.5e19). Source tier T6, tweak level L3."""
 
 RANGES = {
-    "mass_kg": {"dusty": (1.0e7, 1.0e11), "narrow": (1.0e13, 1.0e17), "broad": (1.0e18, 1.0e21)},
     "particle_radius_m": {"dusty": 1.0e-5, "narrow": 1.0, "broad": 1.0},
     "filling": {"dusty": (1.0, 1.0), "narrow": (1.0e-3, 1.0e-2), "broad": (1.0, 1.0)},
     "ice_fraction": {"dusty": (0.0, 0.0), "narrow": (0.0, 0.3), "broad": (0.90, 0.99)},
@@ -85,8 +80,6 @@ RANGES = {
 }
 """dict: The drawn ranges (stand-ins, T3 to T6, L0).
 
-- `mass_kg`: log-uniform. Jupiter's main ring and halo hold 1e7 to 1e9 kg of dust, Uranus's rings about 1e16 kg, Saturn's 1.5e19 kg
-  (Iess et al. 2019, recalled); the ranges bracket each with a decade or more either side.
 - `particle_radius_m`: the effective particle radius that turns a mass into an optical depth (Saturn's particles run from centimetres to
   ten metres; dust grains are about 10 micrometres).
 - `filling`: the share of the annulus a ring covers, log-uniform; Uranus's rings cover about 0.3 percent of theirs.
@@ -149,44 +142,31 @@ def optical_depth(mass_kg, inner_km, outer_km, filling, ice_fraction, particle_r
     return 3.0 * mass_kg / (4.0 * mixture_density_kg_m3(ice_fraction) * particle_radius_m * area_m2)
 
 
-def _draw_kind(parent):
-    """The kind of a giant's ring by `KIND_WEIGHTS`: one draw."""
-    kinds, weights = zip(*KIND_WEIGHTS[parent])
-    pick = draw.random() * sum(weights)
-    for kind, weight in zip(kinds, weights):
-        pick -= weight
-        if pick < 0.0:
-            return kind
-    return kinds[-1]
+def kind_of_mass(mass_kg):
+    """The kind of a ring of this mass: `dusty`, `narrow` or `broad` by `KIND_MASS_LIMITS_KG`."""
+    dusty_below, narrow_below = KIND_MASS_LIMITS_KG
+    return "dusty" if mass_kg < dusty_below else "narrow" if mass_kg < narrow_below else "broad"
 
 
-def draw_ring(parent, radius_km, mass_kg, cold, moon_distances_km=()):
+def build_ring(origin, mass_kg, age_yr, radius_km, planet_mass_kg, cold, moon_distances_km=()):
     """
-    A planet's ring system, or `None` when it has none.
+    The ring system of a planet whose history made a ring of `mass_kg` that came to be `age_yr` ago (`ring_origin.ring_origin`), or `None` when its edges do not fit between the planet
+    and its innermost moon. The kind follows from the mass; the ice share, the outer edge and the inner edge are drawn in that order, the filling after the ice share.
 
     Args:
-        parent (str): `moon_composition.GIANT`, `TERRESTRIAL` or `DWARF_PLANET`.
-        radius_km (float): The planet's radius.
-        mass_kg (float): The planet's mass.
+        origin (str): `ORIGINS`.
+        mass_kg (float): The ring's mass now.
+        age_yr (float): The years since its main event.
+        radius_km, planet_mass_kg (float): The planet's radius and mass.
         cold (bool): Whether the planet orbits beyond its star's snow line, where a ring keeps its ice.
         moon_distances_km (iterable): The distances of the planet's moons from its centre.
-
-    Returns:
-        Ring or None: The draws are made in the order of the module docstring whether or not a ring results.
     """
-    if parent == moon_composition.GIANT:
-        kind = _draw_kind(parent)
-    else:
-        if draw.random() >= RING_CHANCE[parent]:
-            return None
-        kind = NON_GIANT_KIND[parent]
-    origin = {"dusty": "moon_erosion", "narrow": "disrupted_moon"}.get(kind) or draw.choice(("disrupted_moon", "captured_body"))
+    kind = kind_of_mass(mass_kg)
     low, high = RANGES["ice_fraction"][kind]
     share = draw.uniform(low, high)
     ice_fraction = share if cold else 0.0
-    mass = min(log_uniform(*RANGES["mass_kg"][kind]), MAX_MASS_OVER_PLANET * mass_kg)
     filling = log_uniform(*RANGES["filling"][kind]) if RANGES["filling"][kind][0] < RANGES["filling"][kind][1] else 1.0
-    planet_density = mass_kg / (4.0 / 3.0 * math.pi * (radius_km * 1000.0) ** 3)
+    planet_density = planet_mass_kg / (4.0 / 3.0 * math.pi * (radius_km * 1000.0) ** 3)
     roche = roche_limit_km(radius_km, planet_density, mixture_density_kg_m3(ice_fraction))
     outer = roche * draw.uniform(*RANGES["outer_over_roche"])
     if moon_distances_km:
@@ -196,9 +176,9 @@ def draw_ring(parent, radius_km, mass_kg, cold, moon_distances_km=()):
     if high <= low:
         return None
     inner = radius_km * draw.uniform(low, high)
-    tau = optical_depth(mass, inner, outer, filling, ice_fraction, RANGES["particle_radius_m"][kind])
-    return Ring(ring_kind=kind, ring_origin=origin, ring_inner_km=inner, ring_outer_km=outer, ring_mass_kg=mass,
-                ring_optical_depth=tau, ring_ice_fraction=ice_fraction)
+    tau = optical_depth(mass_kg, inner, outer, filling, ice_fraction, RANGES["particle_radius_m"][kind])
+    return Ring(ring_kind=kind, ring_origin=origin, ring_inner_km=inner, ring_outer_km=outer, ring_mass_kg=mass_kg,
+                ring_optical_depth=tau, ring_ice_fraction=ice_fraction, ring_age_yr=age_yr)
 
 
 def clear(body):
@@ -207,12 +187,15 @@ def clear(body):
         setattr(body, name, None)
 
 
-def apply(planet):
+def apply(planet, host=None):
     """
-    Draws and stores `planet`'s ring system (`BODY_FIELDS`), replacing any it held; a belt and a body with no radius or mass have none.
-    A moon draws like a planet of its own kind around no moons (GEN.836), cold when its parent is beyond the snow line. Run once the
-    planet's moons and its star's snow line are final.
+    Stores `planet`'s ring system (`BODY_FIELDS`), replacing any it held; a belt and a body with no radius or mass have none (GEN.1057). The ring is what the planet's history made
+    (`ring_origin.ring_origin`): the moons it lost to the tide (`planet.fallen_moons`, `moon_history`) and the comets that passed inside its Roche limit over the star's age, which are
+    drawn here (the passages come at a rate scaled from Saturn's by the Roche sphere's cross-section, so a moon, whose Roche sphere is tiny, almost never has one). A dwarf planet that orbits a star with
+    no ring from its history may have the narrow ring of its spin-orbit resonance (`small_body_rings`, R4). A moon is a planet of its own kind (GEN.836) whose star distance
+    is its `host`'s, and has no fallen moons. Run once the planet's moons and its star's snow line are final.
     """
+    from planetgen.physics import ring_origin, small_body_rings   # these import this module
     if planet.body_type == 'a':  # a belt is not a body
         return None
     clear(planet)
@@ -223,23 +206,19 @@ def apply(planet):
         cold, distances = bool(planet.born_beyond_snow_line), []
     else:
         cold, distances = planet.distance >= planet.star.snow_line_au, [_au_to_km(moon.distance) for moon in planet.moons]
-    return _store(planet, draw_ring(parent, planet.radius, planet.mass, cold, distances))
-
-
-def apply_rogue(rogue):
-    """
-    Draws and stores a rogue planet's ring system (GEN.836): the same law as a bound planet with no host and no moon distances. It is
-    cold, and keeps its ice, when its effective temperature is below the snow-line temperature. A brown dwarf is no planet and has none.
-    """
-    clear(rogue)
-    if rogue.planet_class is None:
-        return None
-    if rogue.planet_type == 'g':
-        parent = moon_composition.GIANT
-    else:
-        parent = moon_composition.DWARF_PLANET if rogue.mass_kg < moon_composition.DWARF_PLANET_MAX_MASS_KG else moon_composition.TERRESTRIAL
-    cold = rogue.effective_temperature_k < condensate_shares.ICE_CONDENSATION_K["H2O"]
-    return _store(rogue, draw_ring(parent, rogue.radius_km, rogue.mass_kg, cold))
+    around = host if planet.is_moon and host is not None else planet
+    star_mass_kg = planet.star.mass
+    age_yr = planet.star.age * 1.0e9
+    body = ring_origin.Planet(planet.mass, planet.radius, around.distance, star_mass_kg)
+    passages = ring_origin.draw_comet_passages(body, age_yr, cold)
+    history = ring_origin.ring_origin(body, age_yr, getattr(planet, "fallen_moons", ()) or (), passages)
+    resonance = None
+    if parent == moon_composition.DWARF_PLANET and not planet.is_moon and planet.rotation_period_hours:
+        resonance = small_body_rings.resonance_ring(planet.mass, planet.radius, planet.rotation_period_hours, around.distance, star_mass_kg, cold, draw)
+    ring = build_ring(history.origin, history.mass_kg, history.age_yr, planet.radius, planet.mass, cold, distances) if history.exists else None
+    if ring is None and resonance is not None:
+        ring = resonance.ring
+    return _store(planet, ring)
 
 
 def _store(body, ring):

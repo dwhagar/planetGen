@@ -56,13 +56,15 @@ def solids_surface_density_gcm2(distance_au, star_mass_kg, snow_line_au, metal_r
 def oligarch_core_kg(distance_au, star_mass_kg, snow_line_au, metal_ratio, scatter, separation):
     """
     The mass of the oligarch a feeding zone `separation` mutual Hill radii wide builds at `distance_au` in a disc scattered by `scatter`: the
-    isolation mass, less beyond `PLANET_OUTER_GROWTH_AU` where the disc has built less, never above `PLANET_MAX_STAR_MASS_RATIO` of the star.
+    isolation mass, less beyond `PLANET_OUTER_GROWTH_AU` where the disc has built less, never above `PLANET_MAX_STAR_MASS_RATIO` of the star
+    nor above the brown dwarf edge (GEN.1096: a metal-rich star of 1.5 to 2 solar masses has a 0.01 ratio of 15 to 21 Jupiter masses, and
+    `gas_outcome` returns the larger of the runaway mass and the core, so the core was the planet's mass).
     """
     density = solids_surface_density_gcm2(distance_au, star_mass_kg, snow_line_au, metal_ratio, scatter)
     mass = formation.isolation_mass_kg(distance_au, density, star_mass_kg, separation)
     if distance_au > tuning.PLANET_OUTER_GROWTH_AU:
         mass *= (tuning.PLANET_OUTER_GROWTH_AU / distance_au) ** tuning.PLANET_OUTER_GROWTH_EXPONENT
-    return min(mass, tuning.PLANET_MAX_STAR_MASS_RATIO * star_mass_kg)
+    return min(mass, tuning.PLANET_MAX_STAR_MASS_RATIO * star_mass_kg, _BROWN_DWARF_LIMIT_KG)
 
 
 def draw_disc_scatter(stream=None):
@@ -156,6 +158,7 @@ def gas_outcome(core_kg, distance_au, star_mass_kg, snow_line_au, fe_h=0.0, stre
                  * metallicity.giant_occurrence_factor(fe_h))
         found *= min(1.0, (tuning.GIANT_GAS_SURVIVAL_CUT_AU / distance_au) ** 2)
         if source.random() < found:
+            core = min(core, _BROWN_DWARF_LIMIT_KG)      # two giants' cores that merged past the deuterium limit leave a planet of at most the limit
             return PlanetMass(max(runaway_mass_kg(star_mass_kg, source), core), core, True)
     cap = tuning.GIANT_NO_GAS_CORE_MAX_EARTH if distance_au >= snow_line_au else tuning.PLANET_INNER_CORE_MAX_EARTH
     core = saturate_kg(core, cap * _EARTH_KG)

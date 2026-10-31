@@ -262,11 +262,13 @@ def test_the_score_round_trips_and_a_cloud_rescores_the_dose(mysql_config):
             store.refresh_containment(conn, [sector_id])
             conn.execute("UPDATE nebulae SET center_x_pc = ? WHERE id = ?", (home, cloud))
             store.refresh_containment(conn, [sector_id])
-        rows = conn.execute("SELECT * FROM planets WHERE body_type = 't'").fetchall()
-        assert rows
+        stored = conn.execute("SELECT * FROM planets WHERE body_type = 't'").fetchall()
+        assert stored
+        # The re-score reads a row with its air and its star's temperature (`with_life_inputs`), which the life classes need.
+        rows = store.with_life_inputs(conn, stored, False)
         for row in rows:
             assert row["dose_helio_mult"] == pytest.approx(2.5, abs=0.01)
-            again = hw.compute({**dict(row), "native_life": store._stored_native_life(row)})
+            again = hw.compute({**row, "is_moon": False, "native_life": store._stored_native_life(row)})
             assert row["eq_body"] >= 4  # an airless world needs a pressure suit at least: a hot or a cold surface asks for a heavier body
             for name in hw.SCORE_FIELDS:
                 assert row[name] == pytest.approx(again[name]), name

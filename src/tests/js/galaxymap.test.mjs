@@ -225,9 +225,16 @@ async function drillOnce(m) {
   const resolved = S.resolveStage(stage, outline, F.edgePc);
   const next = resolved.options && resolved.options.length ? S.windowInto(stage, resolved.options[0].blocks[0], null, F.edgePc) : null;
   if (!next) return false;
-  m.view.go(next);
+  m.view.flyToStage(next);
   await arrive(m);
   return JSON.stringify(m.view.stage()) !== before;
+}
+
+// A flight to a window moves the camera only (MAP.337): the map is reopened on the address it wrote, which opens the display on the window
+// that holds the camera.
+async function reopenOnAddress(m) {
+  m.view.setActive(false);
+  return start(undefined, { reload: m.win });
 }
 
 function lastCamera(m) {
@@ -356,9 +363,10 @@ function gridEdges(m) {
 }
 
 test("the whole galaxy has no grid lines; a window shows the lines between its blocks (MAP.85)", async () => {
-  const m = await start();
-  assert.deepEqual(gridEdges(m), [0]);
-  await drillOnce(m);
+  const first = await start();
+  assert.deepEqual(gridEdges(first), [0]);
+  await drillOnce(first);
+  const m = await reopenOnAddress(first);
   assert.equal(m.view.stage().win.centre.m, 81);
   const rest = gridEdges(m);
   assert.ok(rest.length === 1 && rest[0] > 0 && rest[0] <= 0.15, "nearly invisible at rest (MAP.202): " + rest);
@@ -619,9 +627,10 @@ test("the address bar looks names up: one match flies there, several are listed"
 // --- The free view -------------------------------------------------------------
 
 async function freeStage() {
-  const m = await start();
+  const first = await start();
   // A window of blocks one size down, seen at the isometric slant.
-  await drillOnce(m);
+  await drillOnce(first);
+  const m = await reopenOnAddress(first);
   assert.equal(m.view.stage().win.centre.m, 81);
   assert.ok(Math.abs(lastCamera(m).tilt - SV.ISO_TILT) < 1e-9, "a window is seen at a slant");
   assert.equal(button(m, "reset-view").disabled, false);
@@ -721,9 +730,10 @@ test("Reset view flies back to the stage's own view", async () => {
   button(m, "reset-view").click();
   await arrive(m);
   const back = lastCamera(m);
-  assert.ok(Math.abs(back.dist - fit.dist) < 1e-9 * fit.dist, "dist");
-  for (let i = 0; i < 4; i++) assert.ok(Math.abs(Math.abs(back.quaternion[i]) - Math.abs(fit.quaternion[i])) < 1e-9, "quaternion " + i);
-  assert.deepEqual(back.target, fit.target);
+  // (The address the map was reopened on carries the camera to ten digits.)
+  assert.ok(Math.abs(back.dist - fit.dist) < 1e-6 * fit.dist, "dist");
+  for (let i = 0; i < 4; i++) assert.ok(Math.abs(Math.abs(back.quaternion[i]) - Math.abs(fit.quaternion[i])) < 1e-6, "quaternion " + i);
+  for (let i = 0; i < 3; i++) assert.ok(Math.abs(back.target[i] - fit.target[i]) < 1e-6 * fit.dist, "target " + i);
 });
 
 test("a pinch zooms a free stage in and out past the stage's own range, the zoom being the camera's alone (MAP.337)", async () => {
@@ -795,7 +805,10 @@ test("the galaxy's thousands of blocks are one mesh; a window's are one each (MA
   assert.ok(S.resolveStage({ win: null }, outline, F.edgePc).options.length > 800, "more blocks than a mesh each");
   assert.ok(meshes() <= 2, `the galaxy is one solid and one glass mesh (${meshes()})`);
   await drillOnce(m);
-  assert.ok(meshes() > 20, "a window has a mesh or two for each block");
+  const window = await reopenOnAddress(m);
+  const windowMeshes = [];
+  window.host.scene.traverse((object) => { if (object.isMesh) windowMeshes.push(object); });
+  assert.ok(windowMeshes.length > 20, "a window has a mesh or two for each block");
 });
 
 // The address of a sector whose map opens in place (the sector blocks are not picked on the Galaxy Map since

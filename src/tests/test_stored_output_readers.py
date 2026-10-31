@@ -66,7 +66,7 @@ def test_the_runaway_history_follows_the_stars_own_saturation_age():
     from planetgen.physics import activity, constants, runaway_history
     mass_sol, age = 0.3, 3.0
     star = types.SimpleNamespace(mass=mass_sol * constants.SOLAR_MASS_TO_KG, age=age, xuv_saturated=True, log_lx_lbol=None)
-    table_age = activity._interp(activity.ACTIVITY_TABLE, mass_sol)[0]
+    table_age = activity.saturation_age_gy(mass_sol)
     assert runaway_history._saturation_age_gy(star, mass_sol) == max(age, table_age)
     star.xuv_saturated, star.log_lx_lbol = False, -4.0
     assert runaway_history._saturation_age_gy(star, mass_sol) == pytest.approx(activity.effective_saturation_age_gy(mass_sol, age, -4.0))

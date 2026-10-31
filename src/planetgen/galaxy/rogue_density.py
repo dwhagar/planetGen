@@ -34,6 +34,7 @@ import math
 
 import numpy as np
 
+from planetgen.util import detmath
 from planetgen.util.checks import finite_domain
 
 RING_STEPS = 16
@@ -92,7 +93,7 @@ def old_density(density_at, radius_pc, z_pc, radial_smooth_pc=RADIAL_SMOOTH_PC, 
     z = np.concatenate([np.full(RING_STEPS, h) for _ in radii for h in heights])
     values = np.asarray(density_at(x, y, z), dtype=float).reshape(len(radii) * len(heights), RING_STEPS).mean(axis=1)
     weights = np.array([wr * wz for wr in radial_w for wz in vertical_w])
-    return float(np.dot(weights, values))
+    return float(detmath.matmul(weights, values[:, None])[0])
 
 
 def young_share(history_myr):
@@ -115,4 +116,4 @@ def rogue_density(density_at, position_pc, history_myr, radial_smooth_pc=RADIAL_
     x, y, z = position_pc
     share = young_share(history_myr)
     local = float(np.asarray(density_at(np.array([x], dtype=float), np.array([y], dtype=float), np.array([z], dtype=float)), dtype=float)[0]) if share > 0.0 else 0.0
-    return share * local + (1.0 - share) * old_density(density_at, math.hypot(x, y), z, radial_smooth_pc, vertical_smooth_pc)
+    return share * local + (1.0 - share) * old_density(density_at, detmath.hypot(x, y), z, radial_smooth_pc, vertical_smooth_pc)

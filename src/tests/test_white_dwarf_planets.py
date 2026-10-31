@@ -31,10 +31,14 @@ def _system(seed, *, binary, planets=True, **config):
         return StarSystem(system_config=cfg)
 
 
-def test_the_engulfment_radius_grows_with_the_progenitor_from_one_and_a_half_au():
-    assert mass_loss.engulfment_radius_au(1.0) == pytest.approx(1.5)
-    assert mass_loss.engulfment_radius_au(3.0) == pytest.approx(3.1)
-    assert mass_loss.engulfment_radius_au(8.0) == pytest.approx(7.1)
+def test_the_engulfment_radius_runs_through_the_jovian_points_of_mustill_and_villaver_2012():
+    for progenitor, au in tuning.WD_ENGULFMENT_POINTS_AU:
+        assert mass_loss.engulfment_radius_au(progenitor) == pytest.approx(au)
+    assert mass_loss.engulfment_radius_au(1.0) == pytest.approx(2.7)
+    assert mass_loss.engulfment_radius_au(0.8) == pytest.approx(2.7)
+    assert mass_loss.engulfment_radius_au(1.75) == pytest.approx(3.25)
+    assert mass_loss.engulfment_radius_au(3.75) == pytest.approx(6.9)
+    assert mass_loss.engulfment_radius_au(8.0) == pytest.approx(10.0 + 6.2 / 2.5 * 3.0)
 
 
 @pytest.mark.parametrize("initial, final, expected", [(1.0, 0.54, 1.85), (2.0, 0.65, 3.1), (5.0, 0.9, 5.6),
