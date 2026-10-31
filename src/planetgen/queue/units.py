@@ -191,10 +191,28 @@ def run_unit(run_id, stage, unit, kind, args, cost=None):
         return _do_unit(conn, run_id, stage, unit, kind, args, cost)
 
 
+def _proportional_mb(pid):
+    """The memory a process holds, MB, with the pages it shares split among the processes that share them (the `Pss` of
+    /proc/<pid>/smaps_rollup); 0.0 where the system does not say."""
+    try:
+        with open(f"/proc/{pid}/smaps_rollup", encoding="ascii") as handle:
+            for line in handle:
+                if line.startswith("Pss:"):
+                    return int(line.split()[1]) / 1024.0                   # kilobytes
+    except (OSError, ValueError):
+        pass
+    return 0.0
+
+
 def peak_resident_mb():
-    """The most resident memory this process has held, MB (PERF.226): a unit's horse is a fork of its worker, so it counts the worker's
-    pages too, which is what one worker of the stage takes of the host."""
-    return resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024.0     # kilobytes on Linux
+    """
+    What the worker that ran this unit holds of the host's memory, MB (PERF.226): the horse's own and its worker's together, shared
+    pages counted once (`Pss` of the two), or, where the system does not say, the most resident memory this process has held. A horse is
+    a fork of its worker, so its resident size counts the worker's tables but not the worker's own pages beside it: a worker and its
+    horse measured 1,487 MB resident in the horse and 2,180 MB together.
+    """
+    resident = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024.0     # kilobytes on Linux
+    return max(resident, _proportional_mb(os.getpid()) + _proportional_mb(os.getppid()))
 
 
 def _do_unit(conn, run_id, stage, unit, kind, args, cost):

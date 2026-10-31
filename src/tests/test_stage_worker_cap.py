@@ -93,3 +93,17 @@ def test_the_stage_that_ends_logs_the_largest_worker_beside_its_figure():
         wrapper.runrecord.log = original
     assert [fields["level"] for _text, fields in logged] == ["info", "warning", "info"]                            # over its figure; a one-worker stage is told, not warned
     assert "1,487 MB of the 1,600 MB" in logged[0][0] and "over the 1,600 MB" in logged[1][0] and "one worker by nature" in logged[2][0]
+
+
+def test_peak_counts_the_worker_beside_its_horse():
+    """PERF.226: a horse forked from a worker reports its own resident size; the figure includes the worker's pages too (the
+    proportional share of the two), where the system gives it, and is never below the process's own peak."""
+    import os
+    import resource
+    from planetgen.queue import units
+    own = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024.0
+    peak = units.peak_resident_mb()
+    assert peak >= own > 0
+    if units._proportional_mb(os.getpid()) > 0:
+        assert peak >= units._proportional_mb(os.getpid()) + units._proportional_mb(os.getppid())
+    assert units._proportional_mb(2 ** 31) == 0.0                           # no such process: nothing to count
