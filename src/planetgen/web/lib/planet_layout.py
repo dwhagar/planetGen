@@ -7,6 +7,7 @@ air by mole fraction (UX.219), the table of the body's make-up by mass (UX.219) 
 Imports no Flask.
 """
 
+import re
 from html import escape
 
 from planetgen import tuning
@@ -115,7 +116,7 @@ def _class_name(class_id):
 
 def _short_name(class_id):
     """The name of a class before its variant, such as "oxygenic light-eaters"."""
-    name = _class_name(class_id).partition(":")[0]
+    name = re.sub(r"\s*\([^)]*\)$", "", _class_name(class_id).partition(":")[0])
     return name[:1].lower() + name[1:]
 
 
@@ -123,15 +124,22 @@ GLANCE_OTHERS = 2
 """int: How many classes besides the best-suited one the At a glance paragraph names."""
 
 
-def _class_phrase(class_id):
-    return f"Class {class_id} ({_short_name(class_id)})"
+def _label(class_id, class_url=None):
+    """"Class 1a", a link to the class's help page when `class_url` (a function from a class id to an address) is given."""
+    if class_url is None:
+        return f"Class {class_id}"
+    return f'<a class="help-link" href="{escape(class_url(class_id))}">Class {escape(class_id)}</a>'
 
 
-def _glance_classes(best, others):
+def _class_phrase(class_id, class_url=None):
+    return f"{_label(class_id, class_url)} ({escape(_short_name(class_id))})"
+
+
+def _glance_classes(best, others, class_url=None):
     """The At a glance sentence naming the classes the conditions suit: "Conditions suit Class 1a (oxygenic light-eaters) best, then
     Class 2 (...) and Class 3a (...)." No scores; at most `GLANCE_OTHERS` others, then "and others"."""
-    text = f"Conditions suit {_class_phrase(best)} best"
-    named = [_class_phrase(class_id) for class_id in others[:GLANCE_OTHERS]]
+    text = f"Conditions suit {_class_phrase(best, class_url)} best"
+    named = [_class_phrase(class_id, class_url) for class_id in others[:GLANCE_OTHERS]]
     if len(others) > GLANCE_OTHERS:
         named.append("others")
     if named:
@@ -139,7 +147,7 @@ def _glance_classes(best, others):
     return text + "."
 
 
-def _glance(readings, living, best, best_score, others):
+def _glance(readings, living, best, best_score, others, class_url=None):
     """
     The Life paragraph of At a glance (UX.251): the sentence of each kind of life that is there ("Microbes: abundant, stable, secure."),
     or "Nothing lives here yet." when the conditions suit a class and none has appeared, then the classes the conditions suit. `None`
@@ -149,7 +157,7 @@ def _glance(readings, living, best, best_score, others):
     if not parts and best and best_score:
         parts.append("Nothing lives here yet." if not living else "Life here is too sparse to count.")
     if best and best_score:
-        parts.append(_glance_classes(best, others))
+        parts.append(_glance_classes(best, others, class_url))
     return " ".join(parts) or None
 
 
@@ -189,14 +197,15 @@ def _life_facts(row, living):
     return facts
 
 
-def life_class_view(row, readings=()):
+def life_class_view(row, readings=(), class_url=None):
     """
     The life lines of a planet's or moon's page (UX.237, UX.251) from its system-detail row (API.37) and, for a world with life, the
     `readings` of `GET /api/planets/<id>/life-readings`: `glance` (the paragraph of At a glance), `paragraph` (the lead of the Life
     section: what lives there and the classes the conditions suit with their suitability), `readings` (the table of the three words for each
     kind of life), `facts` (the stage, grade, pace and ages as `[(label, text)]`), `supports`, `also`, `has` and `words` (what that class,
     or else the best-supported one, drinks, eats, breathes and gives off, as `{"class", "name", "rows": [(label, text)]}`). A line with
-    nothing to say is `None` or empty; a body that supports no class and has no life gives `None` for the whole view.
+    nothing to say is `None` or empty; a body that supports no class and has no life gives `None` for the whole view. `glance` and
+    `paragraph` are HTML: with `class_url` (a function from a class id to the address of its help page) each class name links to it.
     """
     if not row:
         return None
@@ -219,27 +228,31 @@ def life_class_view(row, readings=()):
         view["words"] = {"class": shown, "name": _class_name(shown), "lives": bool(living),
                          "rows": [(label, said[key]) for label, key in (("Drinks", "drinks"), ("Eats", "eats"),
                                                                        ("Breathes", "breathes"), ("Gives off", "gives_off"))]}
-    view["glance"] = _glance(readings, living, best, best_score, [class_id for class_id, _score in others])
+    view["glance"] = _glance(readings, living, best, best_score, [class_id for class_id, _score in others], class_url)
     view["readings"] = _reading_rows(readings)
     view["facts"] = _life_facts(row, living)
-    view["paragraph"] = _life_paragraph(view, best, best_score)
+    view["paragraph"] = _life_paragraph(view, best, best_score, living, row, others, class_url)
     return view if any((view["supports"], view["also"], view["has"], view["words"], view["glance"])) else None
 
 
-def _life_paragraph(view, best, best_score):
+def _life_paragraph(view, best, best_score, living, row, others, class_url=None):
     """
-    The lead of the Life section (UX.237): what lives there ("Nothing lives here yet." when the conditions suit a class and none has
-    appeared), then the classes the conditions suit with their suitability. `None` when there is nothing to say. How common each kind of
-    life is comes in the table under it (`_reading_rows`).
+    The lead of the Life section (UX.237), as HTML: what lives there ("Nothing lives here yet." when the conditions suit a class and none
+    has appeared), then the classes the conditions suit with their suitability. `None` when there is nothing to say. How common each kind
+    of life is comes in the table under it (`_reading_rows`).
     """
     parts = []
     if view["has"]:
-        parts.append(view["has"])
+        stage = row.get("life_stage")
+        grade = int(row.get("life_animal_grade") or 0) if stage == "multicellularity" else 0
+        text = f"Life here is {_label(living, class_url)}, at the stage of {escape(evolution.stage_name(stage, living, grade).lower())}"
+        parts.append(text + (f" (animal grade {life_class_text.GRADES[min(grade, 3) - 1]})." if grade else "."))
     elif best and best_score:
         parts.append("Nothing lives here yet.")
     if best and best_score:
-        suited = f"Conditions here suit Class {best} life ({_short_name(best)}) best, suitability {best_score} of {LIFE_SCORE_MAX}"
-        if view["also"]:
-            suited += "; they also suit " + ", ".join(view["also"])
+        suited = f"Conditions here suit {_label(best, class_url)} life ({escape(_short_name(best))}) best, suitability {best_score} of {LIFE_SCORE_MAX}"
+        if others:
+            suited += "; they also suit " + ", ".join(
+                f"{_label(class_id, class_url)} ({escape(_short_name(class_id))}, suitability {score} of {LIFE_SCORE_MAX})" for class_id, score in others)
         parts.append(suited + ".")
     return " ".join(parts) or None
