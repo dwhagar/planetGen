@@ -56,7 +56,7 @@ Earth's) or multipolar (`f_dip` under 0.5).
 import math
 
 from planetgen import tuning
-from planetgen.physics import activity, constants, dynamo, giant_draw, giant_dynamo, giant_interior
+from planetgen.physics import activity, constants, dynamo, giant_dynamo, giant_interior
 from planetgen.util import draw
 from planetgen.physics import unit_registry as units
 
@@ -176,6 +176,8 @@ def _giant_moment(mass_earth):
 def giant_field(body):
     """The `giant_dynamo.GiantField` of a giant from its stored interior, radius, own heat and spin, or `None` when its interior is not
     stored or has no placed dynamo layer."""
+    from planetgen.physics import giant_draw    # here: giant_draw reaches interior_heat, which reads LID_MOBILE of this module
+
     interior = giant_interior.interior_of(body)
     rotation_hours = getattr(body, "rotation_period_hours", None)
     if interior is None or not rotation_hours:
