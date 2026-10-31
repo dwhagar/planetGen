@@ -1121,7 +1121,7 @@ with `clamp()`.
   removing the stored copy (lock). Everything built at view time
   (describe/build.py, describe/sheet.py, classref.py, the templates) is
   yours to rewrite now.
-  Prerequisites: DOC.83, DOC.84. Related: UX.237, GEN.1208.
+  Prerequisites: DOC.84. Related: UX.237, GEN.1208.
 
 - [ ] **UX.253 Readability rewrite of ALL star, system and star-class text: summary sentences, descriptions, notes, labels, spectral class pages**
   Boss, 10:07 AM EDT 2026-10-31 (and 10:08 AM EDT for the help pages):
@@ -1150,7 +1150,7 @@ with `clamp()`.
   (describe/build.py summaries and notes, describe/sheet.py labels, the
   spectral and luminosity class pages in web/lib/classref.py, the system
   page text) is built at view time and belongs here.
-  Prerequisites: DOC.83. Related: UX.150.
+  Prerequisites: none. Related: UX.150.
 
 ## MAP: Galaxy Map, Sector Map, System Map
 
@@ -14378,7 +14378,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   planet rewrite lock-free; decide that in this item. Owner Core 2
   (flavour lines) with Core 5 (the planet description copy). Where we
   think it belongs (best guess, can move): Core 2.
-  Prerequisites: none. Related: UX.252, UX.253, DOC.83.
+  Prerequisites: none. Related: UX.252, UX.253.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -20094,33 +20094,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   it, confirmed with TODO, one lock-free item at a time.
   Prerequisites: UX.223, NAV.64. Related: DOC.6, DOC.9.
 
-- [ ] **DOC.83 Plain-words style guide for every sentence the site writes about a planet or a star, with a test that enforces it**
-  Boss, 10:07 AM EDT 2026-10-31 (and 10:08 AM EDT for the help pages):
-  build and ship all the life recommendations, a full readability
-  rewrite of ALL planet and star text, a life summary paragraph in At a
-  glance, a Life section in the details with the nitty-gritty, and a
-  full help page suite on all life types and the categories we use.
-  Brief:
-  /mnt/project-files/reports/life-and-text-readability-brief-2026-10-31.md;
-  coexistence write-up:
-  reports/multi-life-types-per-planet-2026-10-31.md. PR 4471 (branch
-  claude/project-thread-5xwcu1, wording and layout of the first Life
-  paragraph) merges first and these build on it. Filed by the TODO
-  thread. Do: write docs/design/ui/text-style.md (or the existing UI
-  design folder): plain words, short sentences, one idea in each, no
-  repeated fact on a page, the same class name form everywhere (Class
-  3a, never Class 3 in one place and 3a in another), one unit per
-  quantity with the unit spelled as the page's unit setting says, no
-  stage or age words in a class description (see GEN.1208), no jargon
-  without a help link (DOC.15 glossary). Add a test that checks the
-  generated sentences against the checkable rules: maximum sentence
-  length, a banned-word list, class-name form, units present (extends
-  API.33's unit scan). Docs and test only, lock-free. Done: the guide is
-  merged and the test passes on the current text, or lists the sentences
-  the two rewrite items must fix. Where we think it belongs (best guess,
-  can move): Core 5.
-  Prerequisites: none. Related: API.33, DOC.15, GEN.1208.
-
 - [ ] **DOC.84 Help page suite for life: the four kinds of life, every life class, and the scales we use (abundance, trend, security, suitability)**
   Boss, 10:07 AM EDT 2026-10-31 (and 10:08 AM EDT for the help pages):
   build and ship all the life recommendations, a full readability
@@ -20150,7 +20123,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   number is stated that the generator does not use. Docs and templates
   only, lock-free. Where we think it belongs (best guess, can move):
   Core 5 or a docs lane, after the life readings exist.
-  Prerequisites: GEN.1210, DOC.83. Related: DOC.57, DOC.58, DOC.76,
+  Prerequisites: GEN.1210. Related: DOC.57, DOC.58, DOC.76,
   DOC.15.
 
 - [ ] **DOC.85 Refresh the class table in docs/reference/system-file-format.md: the F, G, B and N meanings and the zone and habitable columns are from the old zone-drawn classes**
