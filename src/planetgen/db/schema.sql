@@ -2344,6 +2344,7 @@ CREATE TABLE IF NOT EXISTS planets (
     dose_gcr_msv_yr             DOUBLE,
     dose_sep_msv_yr             DOUBLE,
     dose_ground_msv_yr          DOUBLE,
+    dose_belt_msv_yr            DOUBLE,  -- v187 (GEN.983): the dose a moon takes from its parent's trapped-particle belts, mSv/yr (0 for a planet)
     dose_helio_mult             DOUBLE,
     uv_surface_index            DOUBLE,
     ozone_loss_flag             BOOLEAN,
@@ -2702,6 +2703,7 @@ CREATE TABLE IF NOT EXISTS moons (
     dose_gcr_msv_yr             DOUBLE,
     dose_sep_msv_yr             DOUBLE,
     dose_ground_msv_yr          DOUBLE,
+    dose_belt_msv_yr            DOUBLE,  -- v187 (GEN.983): the dose a moon takes from its parent's trapped-particle belts, mSv/yr (0 for a planet)
     dose_helio_mult             DOUBLE,
     uv_surface_index            DOUBLE,
     ozone_loss_flag             BOOLEAN,
