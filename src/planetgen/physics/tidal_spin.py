@@ -17,7 +17,7 @@ eccentricity's chaotic variation) 55 percent): `RESONANCE_CAPTURE_PROBABILITY` t
 
 **What this does not do.** The eccentricity is the one stored with the body (a planet's was larger in its past, which would have caught more
 resonances); the core-mantle coupling is not in it; a locked body is taken at exactly one turn per orbit, not the pseudo-synchronous rate
-`1 + 6 e^2` of a constant-time-lag tide; the obliquity is kept as drawn until the spin has fallen to its final state, and is zero after. These are stand-ins and
+`1 + 6 e^2` of a constant-time-lag tide; the obliquity is kept as drawn until the spin has fallen to its final state, and is then the Cassini-state tilt of `cassini_tilt_deg` (a share of the orbit's inclination, not zero). These are stand-ins and
 approximations stated in the gap-filling plan (section 6.14).
 """
 
@@ -34,6 +34,26 @@ RESONANCE_CAPTURE_PROBABILITY = {2.0: 0.1, 1.5: 0.3}
 frequency-dependent rheology, Goldreich and Peale 1966 give 0.07 at Mercury's eccentricity with a constant-torque tide, and Correia and Laskar 2004 give 0.55 with the eccentricity's chaotic
 history; 3:2 takes the geometric middle of 0.07 and 0.55 rounded down, and 2:1, which has the narrower basin of attraction at the eccentricities of its window, a third of that. The synchronous state is
 caught for sure. Source tier educated guess from the sources named (T3), tweak level L1; the bracket is 0.07 to 1."""
+
+
+CASSINI_COUPLING_RANGE = (0.003, 1.0)
+"""tuple: The share `x = |g| / (alpha + |g|)` of its orbit's inclination that a locked or resonant body's axis keeps, log-uniform. In the first Cassini
+state (Peale 1969) the spin axis precesses about the orbit normal at `alpha`, the normal precesses about the Laplace plane's at `g` (negative: nodal regression),
+and the axis settles in the plane of the two with an obliquity `eps = x i` for small `i`: 0 where the body's shape holds the axis to the orbit (`alpha >> |g|`) and
+`i` where it does not (`alpha << |g|`), so `x` is between 0 and 1 by the physics. The ends of the range are Mercury's 0.034 degrees (2.04 arcmin; Margot et al. 2012,
+recalled) against an inclination of about 8 degrees to its Laplace plane (`x` 0.004) and the physical bound 1; the log-uniform draw between them is the stand-in. Source tier
+T3, tweak level L3 (the spread is chosen so a locked body's median tilt is a fraction of a degree to 2 degrees, the sweep's statistic of GEN.1165, GEN.753)."""
+
+
+def cassini_tilt_deg(inclination_deg, u):
+    """
+    The obliquity of a locked or resonant body, degrees, in its first Cassini state: `x i` for the orbit's inclination `i` to its Laplace plane
+    (`inclination_deg`, folded to under 90 for a retrograde orbit) and `x` log-uniform over `CASSINI_COUPLING_RANGE` for the unit draw `u`. 0 for an orbit
+    in the plane.
+    """
+    i = min(abs(inclination_deg), 180.0 - abs(inclination_deg))
+    low, high = CASSINI_COUPLING_RANGE
+    return i * low * (high / low) ** u
 
 
 def moment_factor(body):

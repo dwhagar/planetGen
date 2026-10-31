@@ -22,7 +22,7 @@ and moon in a system after all of them have been generated.
 import math
 import re
 
-from planetgen.physics import moon_history, body_state, bulk_draw, constants, giant_draw, giant_interior, kepler, metallicity, moon_composition, orbit_elements, planet_classes, planet_kind, planet_mass, rings
+from planetgen.physics import moon_history, body_state, bulk_draw, constants, giant_draw, giant_interior, giant_tilt, kepler, metallicity, moon_composition, orbit_elements, planet_classes, planet_kind, planet_mass, rings
 from planetgen.physics import aerosols, atmosphere, body_colour, body_spin, daylight, spin_torques, climate_draws, habitability_world, hosting_gate, hydrosphere, interior_heat, magnetism, ocean_tides, radiation, radiogenic, relations, spin, surface_air, surface_composition
 from planetgen import tuning
 from planetgen.util import draw
@@ -666,6 +666,8 @@ def draw_birth_spin(planet):
         rate, tilt = spin.accretion_spin(planet.mass, planet.radius)
     else:
         rate, tilt = 2.0 * math.pi / _h_to_s(spin.planet_day_hours(planet.body_type)), spin.rayleigh_tilt_deg()
+        if planet.body_type == "g" and not planet.is_moon:
+            tilt = giant_tilt.tilt_after_merger_deg(planet.mass, planet.radius, tilt)    # GEN.1165: an ice giant's merger can lay it on its side
     return rate, tilt, tuple(draw.random() for _ in spin_torques.CAPTURE_RATIOS)
 
 
@@ -678,7 +680,7 @@ def generate_spin(planet, primary_mass_kg, birth=None, found=None):
     eccentricity from `generate_orbit_shape`). A planet with moons runs the history of the moons with its spin
     (`moon_history.apply`, GEN.959), which calls this again with the `found` state it reached. A body
     the tide has brought all the way down turns once an orbit (locked) or in a spin-orbit resonance such as Mercury's 3:2
-    (`spin.spin_state`), with its axis on the orbit normal; one the thermal and gravitational tides hold in balance away from synchronism turns at that
+    (`spin.spin_state`), with its axis in the first Cassini state (a small share of the orbit's inclination off the orbit normal, `tidal_spin.cassini_tilt_deg`); one the thermal and gravitational tides hold in balance away from synchronism turns at that
     rate, upright or upside down; any other keeps its tilt, a rocky planet's from the impacts and a moon's or giant's a Rayleigh one. Called again when a move changes the body's period, since that can change the state.
 
     Args:
@@ -699,7 +701,7 @@ def generate_spin(planet, primary_mass_kg, birth=None, found=None):
     period_hours = planet.period * _yr_to_h(1.0)
     if found.ratio is not None:
         planet.rotation_period_hours = period_hours / found.ratio
-        tilt = 0.0
+        tilt = tidal_spin.cassini_tilt_deg(planet.orbital_inclination_deg, draw.random())    # GEN.1165: the first Cassini state, not exactly 0
     else:
         planet.rotation_period_hours = 2.0 * math.pi / abs(found.rate) / 3600.0
         if found.kind == "asynchronous":
