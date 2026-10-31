@@ -4495,7 +4495,11 @@ def test_galaxy_map_opens_zoomed_in_on_the_charted_space(page, map_site):
     assert page.evaluate(CAMERA)["zoom"] == pytest.approx(1)
     # A view the address names is not moved.
     _open_window(page, map_site, 3, 250, 0, 0)
-    assert page.evaluate(CAMERA)["zoom"] == pytest.approx(1)
+    # MAP.337: the window is a camera move, so its fit is the distance the camera rests at (it is a ratio of the whole galaxy's fit now).
+    rest = page.evaluate(CAMERA)["dist"]
+    assert rest < 1e4, rest
+    page.wait_for_timeout(1000)
+    assert page.evaluate(CAMERA)["dist"] == pytest.approx(rest)
 
 
 def test_galaxy_map_star_classes_and_the_luminosity_floor_hide_stars_and_ride_in_the_url(page, map_site):
