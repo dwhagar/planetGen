@@ -2190,3 +2190,5 @@ Baseline: PR #1817.
 | TEST.496 | 8.2 | The continuous zoom (headline, Boss 6:28 PM EDT 2026-10-28) |
 | MAP.338 | 8.2 | The continuous zoom (headline, Boss 6:28 PM EDT 2026-10-28) |
 | UX.236 | 8.2 | The continuous zoom (headline, Boss 6:28 PM EDT 2026-10-28) |
+| TEST.183 | 8.1 | Admin and API housekeeping |
+| UX.102 | 8.1 | Admin and API housekeeping |

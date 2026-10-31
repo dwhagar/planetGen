@@ -392,52 +392,6 @@ with `clamp()`.
   any of it (UX.93, done).
   Prerequisite: MAP.168. Related: MAP.167.
 
-- [ ] **UX.102 One logging standard for every output the user or an admin reads: the same timestamps, format, dividers and step markers everywhere**
-  (Boss, 2026-10-14 14:16Z): "Add a TODO item to standardize all user
-  output logs, timestamps, same formatting, same style, dividers, step
-  markers, etc, etc, etc, adopt an industry based standard for file and
-  log output." Today the Generate page log, the CLI text, the downloaded
-  log, the job log files and the other commands each format their own
-  lines (UX.98, done in #1369, was the first visible symptom: stage numbering and section
-  separators differ). Done: a design note that lists every place the
-  program writes a log or report a person reads (Generate log, CLI
-  commands, job log files, the downloadable log, update.sh output, admin
-  pages that show logs), picks the standard, and a build that moves all
-  of them onto one logging layer, with tests that fail if a new output
-  path formats its own lines. Decided (Boss, 2026-10-14 14:17Z, approved as proposed): use
-  Python's standard logging module as the one entry point; every record
-  carries an RFC 3339 UTC timestamp, a severity from the RFC 5424 syslog
-  levels (debug, info, notice, warning, error, critical), a short
-  component name and a message, with machine-readable key=value fields
-  (logfmt style) for numbers such as counts and elapsed time; files are
-  one record per line in that format, with an optional JSON Lines form
-  for machines; the readable display in the web log and CLI is rendered
-  from the same records, with one divider style, one stage marker form
-  ("Stage N of M: name", "Stages N to M of M: name" for a run) and one
-  wording for start, finish and failure, so a downloaded log and the
-  screen always agree; timestamps are always UTC in files and local time
-  only in the page display, labelled). Bugfixes lane 1 built
-  UX.98 as the first slice (done, #1369: one stage formatter); the rest is
-  a Phase 2 item for the interface builders.
-  Split (2026-10-16, Boss 1:07 PM EDT: look at each item for smaller
-  chunks and shared work): this item is now the umbrella and is done
-  when its subitems are: UX.121, UX.122, UX.123, TEST.183. A design
-  note, a library and a migration of every output in the program
-  (Generate page log, CLI commands, job log files, the downloadable log,
-  update.sh output, admin log pages) with an enforcement test: weeks of
-  work across Python, web and shell, none of it one PR.
-  Owner: Core 5 (proposed, 2026-10-17, 10:54 PM EDT, relayed by the coordinator: Core 2 confirmed it has no code on
-  this item and asked to drop it; it was Core 2's by the 10:06 AM EDT lane assignment).
-  Order on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the coordinator
-  relayed): after PERF.135 and the command follow-ups (PERF.99, PERF.100, DB.29,
-  PERF.120 to PERF.128), and after the DOC.18 sweep (Boss's 'Sweep first').
-  Decided (Boss, 2026-10-17, 10:57 PM EDT, two cards answered in the
-  project chat, relayed by the coordinator): Core 5 builds the command
-  follow-ups first (PERF.99, PERF.100, DB.29, PERF.120 to PERF.128)
-  after PERF.135; this logging standard chain (UX.121 to UX.123,
-  TEST.183) comes after them. Core 5 is the proposed owner.
-  Prerequisites: TEST.183. Related: PERF.66.
-
 - [ ] **UX.115 Interface update: every page and control works with the spherical grid, 96-bit IDs, the new phenomena and the region queries (stage after the sphere and generation stages)**
   Boss (2026-10-16, 12:52 AM EDT): "also we need to run an interface
   update on everything once this is done so all the controls work
@@ -16830,20 +16784,6 @@ clears each one.
   it, confirmed with TODO, one lock-free item at a time.
   Prerequisites: GEN.309. Related: GEN.42.
 
-- [ ] **TEST.183 A test that fails when a new output path formats its own lines**
-  Split from UX.102 (2026-10-16, Boss 1:07 PM EDT: look at each item for
-  smaller chunks and shared work). A guard test (an AST scan with an
-  allow-list) that fails when code under `planetgen/` writes a log or
-  report line with its own timestamp or divider instead of the layer.
-  Done: the test, with the allow-list empty except for named exceptions
-  with a reason.
-  Owner: Core 5 (proposed, 2026-10-17, 10:54 PM EDT, relayed by the coordinator: Core 2 confirmed it has no code on
-  this item and asked to drop it; it was Core 2's by the 10:06 AM EDT lane assignment).
-  Order on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the coordinator
-  relayed): after PERF.135 and the command follow-ups (PERF.99, PERF.100, DB.29,
-  PERF.120 to PERF.128), and after the DOC.18 sweep (Boss's 'Sweep first').
-  Prerequisites: UX.122. Related: UX.102.
-
 - [ ] **TEST.190 A failing session fixture makes every dependent test wait its full 900 s timeout: fail the dependents at once (bug)**
   Found by a lane (2026-10-16), filed by the TODO thread. When a
   session-scoped fixture (for example the browser-test server) fails to
@@ -19411,7 +19351,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   sweep no longer waits on this item; it is written after the logging
   standard (UX.121, UX.122, UX.123, TEST.183) is built. Core 5 is its
   proposed owner, after the command follow-ups.
-  Prerequisite: UX.102.
 
 - [ ] **DOC.50 Docs: the schema, the multi-star note and the catalogue say where the members live**
   Step 10 (design note 11 item 10). `database-schema.md` (the two new
