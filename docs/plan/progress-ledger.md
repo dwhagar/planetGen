@@ -2184,3 +2184,4 @@ Baseline: PR #1817.
 | MAP.337 | 8.2 | The continuous zoom (headline, Boss 6:28 PM EDT 2026-10-28) |
 | TEST.468 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | TEST.469 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.459 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
