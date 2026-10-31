@@ -23,7 +23,7 @@ import math
 import re
 
 from planetgen.physics import body_state, bulk_draw, constants, giant_draw, giant_interior, kepler, metallicity, moon_composition, orbit_elements, planet_classes, planet_kind, planet_mass, rings
-from planetgen.physics import aerosols, atmosphere, body_colour, climate_draws, habitability_world, hosting_gate, hydrosphere, interior_heat, magnetism, radiation, radiogenic, relations, spin, surface_air, surface_composition, tidal_spin
+from planetgen.physics import aerosols, atmosphere, body_colour, climate_draws, habitability_world, hosting_gate, hydrosphere, interior_heat, magnetism, ocean_tides, radiation, radiogenic, relations, spin, surface_air, surface_composition, tidal_spin
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.util import log
@@ -340,6 +340,11 @@ def refinish_rocky(planet):
                 generate_spin(body, body.primary_mass_kg)
         body._age_drawn = body.star.age
         made += 1
+    if made:
+        # GEN.1034: the sea and the spin are new, and the tide worked out from the old ones follows them (no draws)
+        ocean_tides.generate(planet)
+        for moon in planet.moons:
+            ocean_tides.generate(moon, planet)
     return made
 
 

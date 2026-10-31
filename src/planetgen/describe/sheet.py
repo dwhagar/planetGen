@@ -216,6 +216,9 @@ _BODY_GROUPS = (
            ("hp_ice_km", "High-pressure ice thickness"), ("ocean_class", "Ocean chemistry", TEXT),
            ("ocean_ph", "Ocean pH"), ("water_activity", "Water activity"),
            ("water_base_pressure_pa", "Pressure at the bottom of the water layer"),
+           ("ocean_liquid", "Ocean liquid", TEXT),
+           ("tide_range_spring_m", "Open-ocean spring tide range (equilibrium value; a coast can differ many times)"),
+           ("tide_range_neap_m", "Open-ocean neap tide range (equilibrium value)"),
            ("tidal_flux_w_m2", "Tidal heat flow"), ("aquifer_depth_km", "Depth to underground water"),
            ("aquifer_thickness_km", "Thickness of the underground water")),
     *_rows("magnetism", ("dipole_class", "Dipole field", TEXT), ("magnetic_moment_a_m2", "Magnetic moment"),
@@ -730,7 +733,7 @@ _BANDS_AND_ZONES = ("temp_polar_k", "temp_north_k", "temp_equator_k", "temp_sout
                     "temp_day_side_k", "temp_terminator_k", "temp_night_side_k")
 _SURFACE = (
     "hydrosphere", "ocean_fraction", "land_fraction", "ocean_depth_km", "ocean_class", "ocean_ph", "water_activity",
-    "water_base_pressure_pa", "ice_shell_km", "hp_ice_km",
+    "water_base_pressure_pa", "ocean_liquid", "tide_range_spring_m", "tide_range_neap_m", "ice_shell_km", "hp_ice_km",
     "mantle_redox", "mantle_delta_iw", "rock_feo_fraction", "rock_al2o3_fraction", "rock_mg_si_ratio",
     "ozone_column_du", "ozone_loss_flag", "surface_dose_msv_yr", "dose_gcr_msv_yr", "dose_sep_msv_yr",
     "dose_ground_msv_yr", "dose_helio_mult", "uv_surface_index", "shelter_column_g_cm2",
@@ -745,6 +748,7 @@ _SURFACE = (
     "life_age_multicellularity_gyr", "life_age_technological_civilization_gyr", "phosphorus", "magnetopause_rp",
 )
 _OCEAN = ("ocean_depth_km", "ocean_class", "ocean_ph", "water_activity", "phosphorus", "water_base_pressure_pa")
+_TIDE_COLUMNS = ("ocean_liquid", "tide_range_spring_m", "tide_range_neap_m")
 OCEAN_STATES = ("surface ocean", "brine seep", "ice-covered ocean", "hycean")
 """tuple: The hydrospheres that hold a liquid ocean, the ones the ocean columns describe."""
 _LIFE_DETAIL = ("life_class", "life_class_variant", "life_class_best", "life_class_best_score", "life_animal_grade", "life_complexity",
@@ -795,6 +799,8 @@ _BODY_RULES = [
      "high-pressure ice lies under the water of a body whose water is ice or a frozen-over ocean; a dry body, an open ocean and a vapour world have none"),
     (_OCEAN, lambda klass, row: row is None or row.get("hydrosphere") in OCEAN_STATES,
      "an ocean's depth, chemistry, pH and water activity exist only where there is a liquid ocean"),
+    (_TIDE_COLUMNS, lambda klass, row: row is None or row.get("hydrosphere") in ("surface ocean", "ice-covered ocean"),
+     "an ocean tide is worked out for a sea with a free surface or one frozen over (zero); a brine seep, a deep hycean sea and a dry, ice or vapour world store none"),
     (_LIFE_DETAIL, lambda klass, row: row is None or any((row.get(key) or 0) > 0 for key in LIFE_SCORES),
      "the life chemistry, stage and milestone ages describe a living world; a lifeless one has none"),
     (_LIFE_AFTER_OXYGEN, lambda klass, row: row is None or row.get("life_stage") in _STAGES_AFTER_OXYGEN,
