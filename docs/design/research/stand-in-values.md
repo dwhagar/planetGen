@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 927 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 938 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -38,14 +38,14 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 |---|---|---|---|---|---|---|
 | T1 | 140 | 13 | 8 | 1 | 0 | 162 |
 | T2 | 111 | 36 | 0 | 1 | 0 | 148 |
-| T3 | 76 | 35 | 5 | 10 | 0 | 126 |
+| T3 | 79 | 36 | 5 | 10 | 0 | 130 |
 | T4 | 37 | 5 | 0 | 14 | 10 | 66 |
 | T5 | 43 | 17 | 0 | 1 | 0 | 61 |
-| T6 | 89 | 63 | 16 | 41 | 0 | 209 |
+| T6 | 90 | 67 | 18 | 41 | 0 | 216 |
 | T7 | 27 | 8 | 8 | 8 | 0 | 51 |
 | T8 | 0 | 1 | 1 | 5 | 1 | 8 |
 | T9 | 17 | 14 | 4 | 42 | 19 | 96 |
-| All | 540 | 192 | 42 | 123 | 30 | 927 |
+| All | 544 | 197 | 44 | 123 | 30 | 938 |
 
 ## How the labels were given
 
@@ -1531,6 +1531,22 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | VR1 | P | T6 | L1 | variability.MIRA_MAX_TEMPERATURE_K 3500 (an asymptotic-giant star cooler than this is a Mira or semiregular variable; Miras run from about 2,500 to 3,500 K) | 3200 to 3800 | asymptotic-giant stars | a measured asymptotic-giant population whose cool stars are mostly not variable, or whose variables reach 4,000 K | a pulsation model of the asymptotic-giant branch (period-luminosity-temperature) | test_variability::test_only_a_cool_asymptotic_giant_is_a_mira | - | - |
 | VR2 | P | T6 | L0 | variability.HERBIG_MIN_MASS_SOL 2 (a pre-main-sequence star of this mass or more is a Herbig Ae/Be star, under it a T Tauri star) | 1.5 to 2.5 | pre-main-sequence stars | a catalogue split of the two classes by spectral type that puts the boundary more than 0.5 solar masses away | the spectral-type definition of the classes | test_variability::test_a_pre_main_sequence_star_is_a_t_tauri_or_a_herbig_star_by_mass | - | - |
 | VR3 | P | T6 | L0 | variability.HERBIG_MAX_MASS_SOL 8 (a pre-main-sequence star of this mass or more is neither: it reaches the main sequence still accreting) | 6 to 10 | pre-main-sequence stars | a Herbig Be star of more than 10 solar masses on a pre-main-sequence track | a massive-star accretion model | test_variability::test_a_pre_main_sequence_star_is_a_t_tauri_or_a_herbig_star_by_mass | - | - |
+
+## 6.139 Stand-ins of the carbon and S stars
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| CS1 | P | T3 | L0 | agb_carbon.PULSES_BY_MASS_SOL (17, 19, 25, 22, 22.5 thermal pulses at 1.5, 1.75, 2.75, 3.25, 3.75 solar masses) | none | stars of 1.5 to 3.75 solar masses on the asymptotic branch | a TP-AGB grid whose pulse counts differ from the table by more than a third | a pulse count from the star's own track (a thermally pulsing track set) | Karakas and Lugaro 2016 Table 1 (arXiv:1604.02178), the Z 0.007 and 0.014 rows | - | - |
+| CS2 | P | T3 | L0 | agb_carbon.LAMBDA_MAX_BY_MASS_SOL (0.41, 0.50, 0.80, 0.92, 0.96 at the same masses) | none | as CS1 | a dredge-up efficiency from another grid differing by more than 0.2 | the lambda of a thermally pulsing track set | Karakas and Lugaro 2016 Table 1 lambda_max column (mean of the two metallicities at 1.5 and 3.75) | - | - |
+| CS3 | P | T6 | L1 | agb_carbon.DREDGE_RISE_PULSES 4 (pulses over which lambda rises to 63 percent of its largest) | 3 to 6 | as CS1 | a lambda-against-pulse curve rising over more than 8 pulses | the fit of Karakas et al. 2002 | the form lambda_max (1 - exp(-N/Nr)) of the population-synthesis papers; the coefficient is a handful of pulses as the published curves show; Karakas et al. 2002 not at hand | - | - |
+| CS4 | P | T6 | L2 | agb_carbon.CORE_GROWTH_PER_PULSE_SOL 0.004 (core growth of one pulse cycle) | 0.003 to 0.006 | as CS1 | a core-mass growth per pulse outside 0.002 to 0.008 | the core-mass interpulse relation of the track set | the core grows by about 0.1 solar masses over the 20 to 25 pulses of CS1 | - | - |
+| CS5 | P | T6 | L1 | agb_carbon.INTERSHELL_CARBON_FRACTION 0.22 (carbon mass fraction of the dredged material) | 0.15 to 0.3 | as CS1 | an intershell carbon fraction outside 0.15 to 0.3 | the intershell abundances of the track set | about a fifth to a quarter in the published AGB models; read second-hand | - | - |
+| CS6 | P | T6 | L0 | agb_carbon.CORE_MASS_SOL 0.6 (core mass subtracted from the envelope) | 0.55 to 0.7 | as CS1 | a core outside 0.55 to 0.7 | the core mass of the track set | the helium core of a thermally pulsing star | - | - |
+| CS7 | P | T3 | L1 | agb_carbon.TDU_MIN_MASS_AT_SOLAR_SOL 1.5 (lightest star at solar [Fe/H] that dredges carbon up) | 1.4 to 2.0 | stars near solar [Fe/H] | a lightest carbon star at solar metals under 1.3 or over 2.2 | the minimum of a TP-AGB grid at the star's own [Fe/H] | Karakas and Lugaro 2016 (1.5 solar masses is carbon-rich at Z 0.007 and 0.014 with overshoot); Cristallo et al. 2011 (1.5 at Z 0.02, 1.4 at 0.01); models without overshoot give 2 | - | - |
+| CS8 | P | T6 | L2 | agb_carbon.TDU_MIN_MASS_SLOPE_PER_DEX 0.2 (fall of the lightest dredging mass per dex of [Fe/H] below solar) | 0.1 to 0.35 | metal-poor stars | a metal-poor dwarf-galaxy carbon star population whose lightest progenitor differs by more than 0.3 solar masses | carbon-star progenitor masses in the Magellanic Clouds and dwarf spheroidals | Cristallo et al. step of 0.33 per dex (1.5 at Z 0.02, 1.4 at 0.01); carbon stars of metal-poor dwarf galaxies reach below 1.2 | - | - |
+| CS9 | P | T6 | L1 | agb_carbon.TDU_MIN_MASS_FLOOR_SOL 1.0 (lightest dredging star at any [Fe/H]) | 0.9 to 1.3 | very metal-poor stars | a carbon star from a progenitor under 0.9 solar masses | as CS8 | an educated guess; the helium flash closes the thermal-pulse phase below about a solar mass | - | - |
+| CS10 | P | T3 | L0 | agb_carbon.HBB_MIN_MASS_SOL 4.0 (initial mass from which hot bottom burning keeps a star oxygen-rich) | 3.5 to 4.5 | stars of 3.5 to 4.5 solar masses | a carbon star of initial mass above 4.5 or an oxygen-rich AGB star of 3.5 | a TP-AGB grid at the star's [Fe/H] | Karakas and Lugaro 2016 (hot bottom burning from about 4); the population-synthesis paper arXiv:0808.2112 takes 4.0 as the upper edge of carbon stars | - | - |
+| CS11 | P | T6 | L1 | agb_carbon.S_STAR_MIN_C_TO_O 0.9 (surface C/O from which, to 1, an AGB star with dredge-up is an S star) | 0.75 to 0.95 | S stars | a measured S-star C/O range that does not reach 0.9 | the C/O of observed S stars | S stars run from about 0.5 to 0.99 in C/O but those with the dredged s-process come up with the carbon, so near 1 | - | - |
 
 ## 6.95 Stand-ins of the belt sources
 

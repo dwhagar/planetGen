@@ -371,3 +371,29 @@ def test_a_star_that_varies_by_its_phase_has_a_variability_row_and_one_that_does
     finally:
         conn.close()
     assert sheet.VARIABILITY_KEY not in _rows(client.get(f"/api/objects/{ref}/sheet").get_json())
+
+
+def test_an_asymptotic_giant_that_has_dredged_carbon_up_has_a_carbon_star_row(client, mysql_config):
+    """GEN.1026: the carbon or S star row is worked out from the stored state, initial mass, mass, [Fe/H] and age when the sheet is made."""
+    from planetgen.physics import constants, post_main_sequence
+    window = post_main_sequence.timeline(2.5, 0.0).window(post_main_sequence.ASYMPTOTIC_GIANT)
+    age_gy = window.start_gy + 0.9 * (window.end_gy - window.start_gy)
+    system_id = _save_wide_binary_with_moons(mysql_config)
+    conn = store.get_connection(mysql_config)
+    try:
+        star = conn.execute("SELECT id FROM stars WHERE star_system_id = ? ORDER BY id", (system_id,)).fetchone()
+        conn.execute("UPDATE stars SET state = 'asymptotic-giant', yerkes_class = 'III', lifespan_gy = ?, mass_kg = ?, metallicity_fe_h = 0.0, "
+                     "age_gy = ? WHERE id = ?", (window.end_gy, 1.2 * constants.SOLAR_MASS_TO_KG, age_gy, star["id"]))
+        conn.commit()
+    finally:
+        conn.close()
+    ref = f"star:{pid('star', star['id'])}"
+    rows = _rows(client.get(f"/api/objects/{ref}/sheet").get_json())
+    assert rows[sheet.CARBON_KEY]["text"] == "carbon star" and rows[sheet.CARBON_KEY]["label"] == "Carbon or S star"
+    conn = store.get_connection(mysql_config)
+    try:
+        conn.execute("UPDATE stars SET state = 'red-giant' WHERE id = ?", (star["id"],))
+        conn.commit()
+    finally:
+        conn.close()
+    assert sheet.CARBON_KEY not in _rows(client.get(f"/api/objects/{ref}/sheet").get_json())
