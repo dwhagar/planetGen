@@ -4385,7 +4385,7 @@ CREATE TABLE IF NOT EXISTS orbit_nodes (
 
 
 -- ---------------------------------------------------------------------
--- dark_members (v188, GEN.1013): the members of a built system's tree that are not stars of it, one row each: a brown dwarf, a
+-- dark_members (v194, GEN.1013): the members of a built system's tree that are not stars of it, one row each: a brown dwarf, a
 -- neutron star, a black hole or a stripped helium star. `parent_node_no` and `slot` name the node it hangs in and its place among
 -- that node's children (the numbering of `orbit_nodes`); the node masses above it count its `mass_solar`. It has no light and no
 -- planets. A row goes with its system.

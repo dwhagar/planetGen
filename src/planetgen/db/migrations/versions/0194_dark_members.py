@@ -1,6 +1,6 @@
 """The members of a system's tree that are not stars (GEN.1013).
 
-Schema v188. `dark_members` holds one row for each brown dwarf, neutron star, black hole or stripped helium star that hangs in a built
+Schema v194. `dark_members` holds one row for each brown dwarf, neutron star, black hole or stripped helium star that hangs in a built
 system's orbit tree without being one of its stars: where it hangs (`parent_node_no`, `slot`, the numbering of `orbit_nodes`), its
 `kind`, its mass in solar masses and its radius in AU. A node's mass is the sum of what hangs below it, these included, so the
 orbits and the gravity are the tree the system was drawn with. No row is made for a system already stored; a system gets its rows when
