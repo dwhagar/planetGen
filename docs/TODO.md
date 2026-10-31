@@ -14357,7 +14357,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   cleared.
   Prerequisites: none. Related: GEN.1207, GEN.1208.
 
-- [ ] **GEN.1212 Rewrite the stored system flavour lines (tuning.SYSTEM_FLAVOR, about 40 story lines) to the plain-words style guide, and stop storing text the pages can build**
+- [ ] **GEN.1212 Rewrite the stored system flavour lines (tuning.SYSTEM_FLAVOR, 23 story lines) to the plain-words style guide, and stop storing text the pages can build**
   Found by Core 2 while scanning UX.253 (as the lane reported, 10:13 AM
   EDT 2026-10-31); part of the readability rewrite Boss ordered (10:07
   AM EDT). Filed by the TODO thread. star_systems.system_flavor_text is
@@ -14376,6 +14376,19 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   planet rewrite lock-free; decide that in this item. Owner Core 2
   (flavour lines) with Core 5 (the planet description copy). Where we
   think it belongs (best guess, can move): Core 2.
+  Core 2 built the flavour lines (2026-10-31 12:10 PM EDT): branch
+  claude/core2-gen1212-flavour, head 5d13a04586b9, on main 0f0e76b5 plus
+  #4496, ready for a train (as the lane reported). tuning.SYSTEM_FLAVOR
+  has 23 lines, not about 40 (the title count was off); all 23 rewritten
+  in plain words, same count and order so the draw does not move; a
+  "now-dead world" claim removed; a new test checks every line after
+  "Sensors show". No migration; epoch --affects fill (golden files hold
+  no flavour text, so the golden rewrite only moves the epoch). Census
+  effect none. PLANET_FLAVOR, ORBITAL_FLAVOR and HABITABLE_FLAVOR are
+  stored as a key (category:index) and read at view time, so rewriting
+  them is lock-free (UX.252 side). Core 2 proposed to Core 5 to stop
+  writing planets.description and read the class description at view
+  time (a later migration drops the column); waiting on Core 5.
   Prerequisites: none. Related: UX.252, UX.253.
 
 - [ ] **GEN.1213 Atmospheric composition accounts for the whole mix of living classes on a planet: each class changes the air in its own way, summed in timeline order**
@@ -20560,20 +20573,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Core 5 or a docs lane, after the life readings exist.
   Prerequisites: none. Related: DOC.57, DOC.58, DOC.76,
   DOC.15.
-
-- [ ] **DOC.85 Refresh the class table in docs/reference/system-file-format.md: the F, G, B and N meanings and the zone and habitable columns are from the old zone-drawn classes**
-  Suggested by the Class M research thread (10:13 AM EDT 2026-10-31).
-  Filed by the TODO thread. Do: rewrite the class table in
-  docs/reference/system-file-format.md from the current rules
-  (planet_classes.json now, planet_class_fit.json after GEN.1207): the
-  meaning of every class letter A to V, with the conditions that decide
-  it, and remove the zone and habitable columns that come from the old
-  zone-drawn classes (a class is the world's state, derived from the
-  finished body, GEN.647). Do it alongside GEN.1208 (wording) and
-  re-check after GEN.1207 and the new hot-class letter land. Docs only,
-  lock-free. Where we think it belongs (best guess, can move): the Class
-  M research thread or Core 5.
-  Prerequisites: none. Related: GEN.1208, DOC.76.
 
 ## VIEW: The view from a planet
 
