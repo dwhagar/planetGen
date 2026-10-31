@@ -13968,6 +13968,26 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   roundness and strength change); rides the GEN.1159 window.
   Prerequisites: GEN.1159.
 
+- [ ] **GEN.1202 The generator's disc gas surface density at 8 kpc is 4.3 solar masses per pc2 against 13 measured, which holds the disc cluster maximum mass too low**
+  Finding from Core 3's GEN.1196 build (as the lane reported, 4:52 AM
+  EDT 2026-10-31), filed by the TODO thread. Kind: generation result
+  against observation. Object: the disc gas profile of a drawn spiral
+  galaxy (Milky Way shape) used for the cluster maximum mass. Result:
+  the generator's disc gas at 8 kpc is 4.3 solar masses per pc2 against
+  about 13 measured (neutral plus molecular gas near the solar circle);
+  the cluster maximum goes steeply with gas surface density, so with the
+  sourced relation of Reina-Campos and Kruijssen 2017 the heaviest Milky
+  Way shape disc cluster comes out at 4.1e3 solar masses, below the 1e4
+  to 4e4 observed. Do: find the source of the 13 figure and the gas
+  profile it belongs to (atomic plus molecular gas by radius), say why
+  the generator's disc gas is low (law, star formation history
+  consumption or radius mapping), fix the profile or register the
+  stand-in in GEN.725 with tier and tweak level; the measured profile is
+  the plausibility target, never fixed Milky Way content. Lock work
+  (stored gas and clusters change). Prerequisites: GEN.1196. Owner: Core
+  3 (proposed).
+  Prerequisites: GEN.1196.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
