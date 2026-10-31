@@ -2,6 +2,19 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2935] - 2026-10-31
+
+**Headline:** A planet's page shows one habitability chip, the most specific of Inhabited, Habitable and Habitable class, not several.
+
+### Changed
+- **Habitability chips (UX.224).** `habitability_chips.chips_html` shows "Inhabited" over "Habitable" over "Habitable class" for the body itself and "Habitable moon" over "Habitable-class moon" for its moons, where it showed every one that held. The chip help on the habitability page says Inhabited stands for the other two. The system description already counted each world once ("There is 1 habitable world in the system").
+
+No generator output changes.
+
+generation-output: unchanged
+
+TODO items resolved: UX.224.
+
 ## [8.0.2934] - 2026-10-31
 
 **Headline:** A Preferences page lists the Galaxy Map's settings, with what each does and its default, and a Reset to defaults button.
