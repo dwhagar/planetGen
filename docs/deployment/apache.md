@@ -32,7 +32,7 @@ Later updates: `sudo ./update.sh`. When Apache is running it tests the configura
 it (a graceful reload loads new modules too; it restarts only when it just installed mod_wsgi), and checks that
 `/api/health` answers (`PLANETGEN_HEALTH_URL` names another address). It asks `http://127.0.0.1/api/health` first; if that does not answer (Apache may give the bare address to another virtual host, OPS.77) it asks the site's own address, `base_url` in `config.json` plus `api/health`, pointed at this machine, and passes on a 2xx answer, so keep `base_url` set to the name in your Apache site. A `planetgen-gunicorn` unit, or the launchd
 gunicorn daemon on macOS, is sent a reload the same way. If a step fails the update ends non-zero and prints the
-command to run by hand; when nothing that serves the site is running it prints the commands and ends zero. A reload
+command to run by hand; if only the `/api/health` check gets no good answer (the reload itself worked, and the database is migrated by then) it warns, says why ("HTTP 000" means no answer at all, and the warning names the cause) and opens the site; when nothing that serves the site is running it prints the commands and ends zero. A reload
 aborts the requests a mod_wsgi daemon is serving after about 4 seconds, where `touch src/html/wsgi.py` does not.
 
 ## Deployment files

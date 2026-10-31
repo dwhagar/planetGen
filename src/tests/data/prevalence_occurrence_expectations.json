@@ -1,7 +1,6 @@
 {
  "anomalies": {
-  "GEN.646": "the class cut-over (GEN.646) builds giants less often at 2 to 8 AU than the California Legacy Survey finds (0.05 of K stars against 0.056 to 0.228); Core 4's combined giants change (GEN.733, GEN.964, GEN.965) is the fix",
-  "GEN.728": "stars with a Kepler-like planet are 60 to 70 percent against 30 observed (the count is a uniform integer, not an occurrence law); the number of Kepler-like planets of a host is not drawn from a multiplicity law; planets of 1 to 20 Earth radii per star are not the observed number; planets of 1 to 4 Earth radii per M dwarf are not the observed number"
+  "GEN.728": "The giant-planet and planets-per-star rates of the planet architecture (GEN.728, wired on train 4, epoch 126) against the observed bands; Planets 1 tunes the architecture toward them, so the gap is carried by GEN.728."
  },
  "errors": {
   "anomaly": ""
@@ -32,13 +31,13 @@
   "F": {
    "measures": {
     "inner_fraction": {
-     "anomaly": "GEN.728",
      "kind": "observed",
      "max": 0.5668,
      "min": 0.1332,
      "source": "stars hotter than 6500 K with Kepler-like planets (Yang, Xie and Zhou 2020, arXiv:2002.02840; READ, T1)"
     },
     "inner_multiplicity": {
+     "anomaly": "GEN.728",
      "kind": "observed",
      "max": 2.8291,
      "min": 0.7709,
@@ -67,14 +66,12 @@
      "source": "planets of 8 to 20 Earth radii with periods under 10 days, Kepler field (Zhu and Dong 2021, arXiv:2103.02127; READ, T1); or hot Jupiters of F, G and K dwarfs of the solar neighbourhood, radial velocity (the larger of the two measured rates; Zhu and Dong 2021 give 0.9 to 1.2 percent from Mayor et al. 2011 and Wright et al. 2012) (Wright et al. 2012, arXiv:1205.2273; READ, T1)"
     },
     "inner_fraction": {
-     "anomaly": "GEN.728",
      "kind": "observed",
      "max": 0.4245,
      "min": 0.1755,
      "source": "stars with at least one planet of radius 1 Earth radius or more and period under 400 days (Zhu et al. 2018, arXiv:1802.09526; READ, T1)"
     },
     "inner_multiplicity": {
-     "anomaly": "GEN.728",
      "kind": "observed",
      "max": 3.8428,
      "min": 2.1572,
@@ -87,6 +84,7 @@
      "source": "adjacent pairs in multi-planet Kepler systems at least 10 mutual Hill radii apart; the most common spacing is about 20; essentially no pair has a period ratio under 1.2 (Weiss et al. 2018, arXiv:1706.06204; READ, T1)"
     },
     "planets_per_star": {
+     "anomaly": "GEN.728",
      "kind": "observed",
      "max": 1.5437,
      "min": 0.9163,
@@ -97,7 +95,6 @@
   "K": {
    "measures": {
     "giants_2_8_au": {
-     "anomaly": "GEN.646",
      "kind": "observed",
      "max": 0.2283,
      "min": 0.0556,

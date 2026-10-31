@@ -1,8 +1,6 @@
 {#- One star, planet, moon, belt, comet or facility (/object/<ref>, web/item_pages.py, UX.143, UX.170): where it is, its property
     sheet, what the description says about it and the tree of what belongs to it. -#}
 {% extends "base.html" %}
-{#- UX.238: the "On this page" bar sits under the tab bar (static/pagetoc.js), not in a column at the left. -#}
-{% block main_class %} toc-top{% endblock %}
 {% from "partials/admin_menu.html" import admin_menu_button, admin_dialogs, add_edit_actions with context %}
 {% from "partials/action_bar.html" import action_bar %}
 {% from "partials/poi_key.html" import poi_key_panel with context %}
@@ -103,6 +101,9 @@
   <div class="panel-header"><h2 id="item-facts-heading">About {{ title }}</h2></div>
   <h3 id="item-glance-heading">At a glance</h3>
   {{ glance_table(symbols) }}
+  {%- if planet.life_class and planet.life_class.glance %}
+  <p class="life-glance"><strong>Life.</strong> {{ planet.life_class.glance }} <a class="help-link" href="{{ page_url('life_help_page') }}">What these words mean</a></p>
+  {%- endif %}
   {%- if planet.summary %}
   <h3 id="item-summary-heading">Summary</h3>
   <p class="summary inline-links">{% for sentence in planet.summary %}{{ sentence }}{{ " " if not loop.last }}{% endfor %}</p>
@@ -111,9 +112,24 @@
   {%- if planet.life or planet.life_class %}
   <h3 id="life-paragraph-heading">Life</h3>
   {%- if planet.life_class %}
-  {%- if planet.life_class.supports %}<p class="life-supports">{{ planet.life_class.supports }}</p>{% endif %}
-  {%- if planet.life_class.also %}<p class="life-also">Also supports {{ planet.life_class.also|join(", ") }}.</p>{% endif %}
-  {%- if planet.life_class.has %}<p class="life-has">{{ planet.life_class.has }}</p>{% endif %}
+  {%- if planet.life_class.paragraph %}<p class="life-summary">{{ planet.life_class.paragraph }}</p>{% endif %}
+  {%- if planet.life_class.readings %}
+  <table class="life-readings">
+    <caption class="sr-only">Each kind of life on this {{ kind_label|lower }}</caption>
+    <thead><tr><th scope="col">Kind <a class="help-link help-mark" href="{{ page_url('life_help_page') }}" aria-label="What the kinds of life are">?</a></th><th scope="col">How much <a class="help-link help-mark" href="{{ page_url('life_help_topic', topic='abundance') }}" aria-label="What the words for how much mean">?</a></th><th scope="col">Trend <a class="help-link help-mark" href="{{ page_url('life_help_topic', topic='trend') }}" aria-label="What the words for trend mean">?</a></th><th scope="col">Security <a class="help-link help-mark" href="{{ page_url('life_help_topic', topic='security') }}" aria-label="What the words for security mean">?</a></th>{% if planet.life_class.readings|selectattr("left")|list %}<th scope="col">Conditions last</th>{% endif %}</tr></thead>
+    <tbody>
+      {%- for r in planet.life_class.readings %}
+      <tr><th scope="row">{{ r.kind }}</th><td>{{ r.abundance }}</td><td>{{ r.trend }}</td><td>{{ r.security }}</td>{% if planet.life_class.readings|selectattr("left")|list %}<td>{{ r.left }}</td>{% endif %}</tr>
+      {%- endfor %}
+    </tbody>
+  </table>
+  {%- endif %}
+  {%- if planet.life_class.facts %}
+  <dl class="life-facts">
+    {%- for label, text in planet.life_class.facts %}<dt>{{ label }}</dt><dd>{{ text }}</dd>{% endfor %}
+  </dl>
+  {%- endif %}
+  <p class="sheet-help life-help-links">Help: <a class="help-link" href="{{ page_url('life_help_topic', topic='stages') }}">stages and animal grades</a>, <a class="help-link" href="{{ page_url('life_help_topic', topic='suitability') }}">suitability</a>, <a class="help-link" href="{{ page_url('life_help_topic', topic='classes') }}">the life classes</a>.</p>
   {%- endif %}
   {%- if planet.life %}<div class="prose">{{ planet.life }}</div>{% endif %}
   {%- if planet.life_class and planet.life_class.words %}
@@ -178,6 +194,20 @@
     </tbody>
   </table></div>
   {%- endif %}
+</section>
+{%- endif %}
+{%- if planet.bands %}
+<section class="panel" id="sheet-bands" aria-labelledby="bands-heading">
+  <div class="panel-header"><h2 id="bands-heading">Climate by latitude</h2></div>
+  <div class="table-scroll" tabindex="0"><table class="doc-composition band-table">
+    <caption>{{ planet.bands.caption }}</caption>
+    <thead><tr><td></td>{%- for label in planet.bands.columns %}<th scope="col">{{ label }}</th>{%- endfor %}</tr></thead>
+    <tbody>
+      {%- for row in planet.bands.rows %}
+      <tr><th scope="row">{{ row.label }}</th>{%- for cell in row.cells %}<td>{{ cell }}</td>{%- endfor %}</tr>
+      {%- endfor %}
+    </tbody>
+  </table></div>
 </section>
 {%- endif %}
 {%- if planet.composition or planet.mass %}

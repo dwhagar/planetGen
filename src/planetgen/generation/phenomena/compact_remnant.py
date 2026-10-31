@@ -26,9 +26,9 @@ radiation, a neutron star's thermal glow) unless it has an accretion disk,
 which makes `orbits.calculate_habitable_zone` naturally collapse its
 `habitable_zone` to (0, 0) AU -- there is no thermal habitable zone around a
 dark object -- without any special-casing in `StarSystem._generate_planets`.
-Likewise, `StarSystem._estimate_max_objects_from_disk_physics`'s snow-line
--driven ceiling naturally comes out to zero planets for such a dim
-remnant, matching the real rarity of confirmed planets around black
+Likewise, the planet architecture's disc (`StarSystem._plan_architecture`,
+out to a multiple of the snow line) naturally comes out to zero planets for
+such a dim remnant, matching the real rarity of confirmed planets around black
 holes/neutron stars; `SystemConfig.PLANETS`/`NUM_ORBITS` can still force
 orbiting bodies explicitly (see `phenomenonGen.py --num-orbits`).
 
@@ -68,7 +68,7 @@ def hawking_temperature_k(mass_solar):
     A black hole's Hawking temperature, T = hbar c^3 / (8 pi G M k_B):
     about 6.2e-8 K for one solar mass, falling as 1/M (GEN.82).
     """
-    mass_kg = mass_solar * constants.SOLAR_MASS_TO_KG
+    mass_kg = _msun_to_kg(mass_solar)
     return (constants.REDUCED_PLANCK * constants.SPEED_OF_LIGHT_M_S ** 3
             / (8 * math.pi * constants.G * mass_kg * constants.BOLTZMANN))
 
@@ -79,7 +79,7 @@ def hawking_luminosity_w(mass_solar):
     (photons only): about 9e-29 W for one solar mass, falling as 1/M^2
     (GEN.82).
     """
-    mass_kg = mass_solar * constants.SOLAR_MASS_TO_KG
+    mass_kg = _msun_to_kg(mass_solar)
     return (constants.REDUCED_PLANCK * constants.SPEED_OF_LIGHT_M_S ** 6
             / (15360 * math.pi * constants.G ** 2 * mass_kg ** 2))
 
@@ -268,7 +268,7 @@ class BlackHole(CompactRemnant):
                 self.mass_solar = log_uniform(*remnant_mass.within(tuning.BLACK_HOLE_INTERMEDIATE_MASS_RANGE_SOLAR, mass_range))
             else:
                 self.mass_solar = remnant_mass.draw_mass_sol("black-hole", mass_range)
-        self.mass = self.mass_solar * constants.SOLAR_MASS_TO_KG
+        self.mass = _msun_to_kg(self.mass_solar)
 
         # Schwarzschild radius: r_s = 2GM/c^2 (the non-rotating event
         # horizon radius -- spin technically shrinks this for a Kerr black
@@ -403,7 +403,7 @@ class NeutronStar(CompactRemnant):
         self.name_given = bool(name)  # a given name is kept over an object ID (GEN.64)
 
         self.mass_solar = mass_solar or remnant_mass.draw_mass_sol("neutron-star", mass_range)
-        self.mass = self.mass_solar * constants.SOLAR_MASS_TO_KG
+        self.mass = _msun_to_kg(self.mass_solar)
         self.radius = neutron_star.radius_km(self.mass_solar, draw.gauss())
         self.surface_temperature_k = draw.uniform(*tuning.NEUTRON_STAR_SURFACE_TEMPERATURE_RANGE_K)
         self.temperature = self.surface_temperature_k
@@ -481,5 +481,7 @@ class NeutronStar(CompactRemnant):
         return activity.neutron_star_xuv_w(self)
 
 from planetgen.generation import object_timing  # noqa: E402 -- registers the generators below (PERF.92)
+
+_msun_to_kg = units.converter("Msun", "kg")
 object_timing.track(BlackHole, "black-hole")
 object_timing.track(NeutronStar, "neutron-star")

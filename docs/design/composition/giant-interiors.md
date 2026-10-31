@@ -96,7 +96,7 @@ Every number below is OPEN or STAND-IN unless it names a source; each draw is a 
 
 ### 4.1 Where the layers sit
 
-The hydrostatic profile of the layers is the n = 1 polytrope that the repo already uses for the central pressure: P(xi)/P_c = (sin xi / xi)^2 with xi = pi r / R, and the mass inside xi is M (sin xi - xi cos xi)/pi, P_c = pi G M^2 / (8 R^4). It is a rough shape for a hydrogen-helium sphere, good enough to place layer boundaries to a few percent of the radius (COMPUTED here: for Jupiter's mass and radius the 2 Mbar level falls at 0.81 R_J and 16 percent of the mass lies above it, against 0.8 to 0.9 R_J in Debras and Chabrier; for Saturn 0.59 R_S against 0.55 in Mankovich and Fortney). It is a stand-in until the radius tables of GEN.460 supply real density profiles. For an envelope under 30 percent of the mass (ice giants, sub-Saturns) the shell formula `P_base = G M_core M_env / (4 pi R_core^4)` replaces it, because the mass is in the core. The radius R is the one GEN.429 and GEN.460 derive, so the layers never change mass or radius.
+The hydrostatic profile of the layers is the n = 1 polytrope that the repo already uses for the central pressure: P(xi)/P_c = (sin xi / xi)^2 with xi = pi r / R, and the mass inside xi is M (sin xi - xi cos xi)/pi, P_c = pi G M^2 / (8 R^4). It is a rough shape for a hydrogen-helium sphere, good enough to place layer boundaries to a few percent of the radius (COMPUTED here: for Jupiter's mass and radius the 2 Mbar level falls at 0.81 R_J and 16 percent of the mass lies above it, against 0.8 to 0.9 R_J in Debras and Chabrier; for Saturn 0.59 R_S against 0.55 in Mankovich and Fortney). It is the stand-in of a run without the downloaded tables; with them the profile is the structure of section 11. For an envelope under 30 percent of the mass (ice giants, sub-Saturns) the shell formula `P_base = G M_core M_env / (4 pi R_core^4)` replaces it, because the mass is in the core. The radius R is the one GEN.429 and GEN.460 derive, so the layers never change mass or radius.
 
 | Level | Pressure | Mass above, Jupiter | Mass above, Saturn | Radius, Jupiter | Radius, Saturn |
 |---|---|---|---|---|---|
@@ -160,14 +160,14 @@ Each target is met by some draw inside the allowed distributions, not by one dra
 | D4 | A dilute core of 20 to 100 Earth masses, at most 0.65 of the mass, gradient in Z | Default taken | Debras and Chabrier 2019, Mankovich and Fuller 2021, Helled and Stevenson 2024 |
 | D5 | Rock and iron to the compact core first, then the dilute core; ice outward first (molecular envelope, metallic envelope, dilute core); split from GEN.428's formation branch | Default taken | Helled and Stevenson 2024 section 4 |
 | D6 | A brown dwarf has no compact or dilute core; metallic envelope below P_MM; no helium rain until a source is read | Default taken, rain open | Chabrier and Baraffe 2000 |
-| D7 | The layer pressures come from the n = 1 polytrope (shell formula under 30 percent envelope) until GEN.460's tables supply real profiles | STAND-IN | `constants.py` line 195; COMPUTED checks in 4.1 |
+| D7 | The layer pressures come from the n = 1 polytrope (shell formula under 30 percent envelope) until GEN.460's tables supply real profiles; with the hydrogen-helium download the structure of section 11 replaces it (GEN.733), and the polytrope is the fallback of a run that disregards missing data | STAND-IN | `constants.py` line 195; COMPUTED checks in 4.1 |
 | D8 | Layer rows live in the composition child table with a layer index; summary columns extend BulkFractions | Default taken | contracts file of lane I, section 1.1 |
 | D9 | Whole-body accounting: heavy elements in envelope layers count as `envelope_z` of the envelope; heavy elements in core layers count as metal, rock, water and ice; all hydrogen and helium (the dilute core's too) is envelope; the helium share is Y/(X+Y) of the hydrogen and helium | Default taken | Lane I's `BulkFractions` contract |
 
 ## 8. Gaps
 
 1. **The Schottler and Redmer 2018 phase curve** and the Morales 2013 curve are not in hand; their data (Figure 1 of Mankovich and Fortney is a plot of them) would replace D2's line. To fetch.
-2. **Equation-of-state tables** for hydrogen-helium (the CMS and Saumon-Chabrier-van Horn tables) are not downloaded; the polytrope is the stand-in (D7).
+2. **Equation-of-state tables** for hydrogen-helium: the Chabrier and Debras 2021 tables are downloaded since GEN.733 (section 11); the polytrope stays as the fallback of a run that disregards missing data (D7).
 3. **Cool brown dwarf helium rain**, neon rain, and the helium content of Y dwarfs: no source read.
 4. **The probability of a compact core** and the gradient shape in the dilute core: no source; the placeholders are flagged.
 5. **Mazzola 2018 crossover** is at 6000 K; the pressure at 3000 to 5000 K has no number in the read papers, so the bracket 0.4 to 2 Mbar is temperature-independent.
@@ -203,3 +203,55 @@ the envelope's Z and the heavy-element mass are the draws it keeps (`DrawnGiant`
 (`giant_draw.settle_stream`, keyed by its mass, distance, star and the age and radius it settles from), so the run's stream does not move and
 a system whose planets the age did not move is bit-identical. Giants the tables do not size (ice giants, giants under 17 Earth masses, a
 given radius, a moon) are not touched. A moon that the smaller giant can no longer hold (larger than `planet.radius / 10**(1/3)`, or outside the range of orbits the new radius and scale height leave) is dropped (`drop_unstable_moons`). A moon's tide does not read its parent's radius (`tidal_heating.forcing_of`: the host's mass, the moon's distance and eccentricity; GEN.987, tested), so the moons' heat needs nothing more. The tides of every planet's and captured moon's orbit are taken again at the final age in the same pass (`planets.settle_orbit`, GEN.985; the birth eccentricity is kept with the body, the position and velocity are made again on the new ellipse, a planet's moons are told). Not settled, and filed: the air, class, dose and spin of a rocky planet or moon (GEN.992 and the notes of GEN.955; `reports/gen961-stale-age-audit-2026-10-30.md`, `reports/gen986-final-age-rocky-planets-2026-10-30.md`).
+
+## 11. The structure from the equation of state (GEN.733)
+
+The pressure at a layer boundary is read from a hydrostatic profile (section 4.1), which was the n = 1 polytrope for a gas giant, the
+n = 3/2 polytrope for a brown dwarf and three layers of constant density for an ice giant (D7). A polytrope has one index for the
+whole body where the real fluid goes from an ideal molecular gas to a degenerate metal, so the profile now comes from the equations
+of hydrostatic balance, `dP/dm = -G m / (4 pi r^4)` and `dr/dm = 1 / (4 pi r^2 rho)`, integrated inward from the one-bar level in ln P
+(`physics/giant_structure.py`).
+
+**The density.** The hydrogen and helium of the envelope come from the (T, P) tables of Chabrier and Debras 2021 (DirEOS2021,
+registry fill GS1; `datasets/hhe_eos.py`, downloaded by `update.sh`): the mixture of helium share 0.275 with the helium-hydrogen
+interaction, moved to the body's helium share by the ideal volume law (GS3). The temperature at each pressure is on an adiabat, a
+line of the table's entropy (the tables' adiabatic gradient carries numerical noise, GS6). The heavy elements are the repository's
+own curves (iron's Vinet fit, the silicate mantle table, the water isotherm of `bulk_structure`, GS4), as a core, an ice mantle and
+a share of the envelope mixed in by the ideal volume law (GS2).
+
+**What fixes the entropy.** The radius is GEN.460's and is kept. The generator's one-bar temperature comes from the starlight, and
+an irradiated or inflated giant is not on the adiabat that temperature starts, so the model takes the one-bar temperature of the
+adiabat that closes it on the radius (`fit_adiabat`, about ten integrations, 10 to 40 ms a giant) and reports it (`Profile.adiabat_1bar_k`).
+The generator's own one-bar temperature is only the fit's starting point. A radius no adiabat in 30 to 8000 K closes (a body too
+light or too dense for it) takes the nearest adiabat, says it did not close (`Profile.closed`) and the layers use the fractions of
+the radius it did close at.
+
+**Checks against the sky** (the real tables, `tests/test_datasets_real.py`): Uranus and Neptune close on one-bar adiabats of 50 to
+100 K for the heavy-element masses and ice shares of the interior models (measured 76 and 72 K); Jupiter and Saturn close with their
+radii; a 40 Jupiter-mass brown dwarf reaches the degenerate regime at the centre. Where the tables matter most is a Saturn-like body,
+whose envelope is far from n = 1: the mass above 100 GPa is 31 percent of the body against the polytrope's 37 percent and the
+central pressure is ten times higher.
+
+**Without the download.** A run told to disregard missing data (GEN.599) takes the profiles of section 4.1 and records it
+(`fetch.stand_ins_used`); any other run is refused (GEN.590), like the other datasets.
+
+**Limits** (registry 6.134): the heavy elements are a core and a uniformly mixed envelope with no dilute core or helium gradient
+inside the structure (GS2); one natal helium share for the body (GS3); ammonia and methane ice take water's density (GS4); the
+adiabat of a body under 100 K is carried up the molecular gas's own (GS5); the tables' unphysical regions are read as they stand
+(GS6); the centre is closed as a sphere (GS7).
+
+## 12. The internal heat (GEN.810)
+
+A giant's own heat (`physics/giant_heat.py`, registry 6.135) is stored as its `internal_heat_flux_w_m2`, the heat it radiates per square metre of
+its 1 bar surface, and has two parts. The **base** is the cooling law of `rogue_surface.giant_internal_flux_w_m2` (GEN.816: luminosity as the mass to the 1.65 below a Jupiter mass, the age to
+the -1.3), the same law the one-bar temperature in `giant_draw` is made from before the interior exists. The **helium rain** is read back from what the interior stored: every layer's
+helium against the natal share of its hydrogen and helium says which layers lost helium (the envelope above) and which gained it (the
+helium-enriched zone, the shell, the dilute core); the potential at each layer's half-mass radius follows from the layers' stored radii
+and masses (each a shell of uniform density, exactly the potential of a uniform sphere for one layer); the energy is the mass that sank
+times the potential it fell through; half of it leaves as heat (GH2), over the star's age (GH3). Nothing is added when the helium did not
+rain (`helium_depletion` is 1), and a giant whose helium went to a shell radiates more than one whose helium stayed in a gradient, because
+the shell is deeper.
+
+A Saturn-like giant (95 Earth masses, 140 K at one bar) lands at about 2.4 W/m2 against the 1.88 W/m2 measured (the base 1.1 and the rain 1.3: with
+the share at 0.3, the low end of GH2's knob, it is 1.85), a Jupiter-like one at 5.7 against 5.4, and a Neptune-like one at 0.43 against 0.43; none is fitted. The rain's heat is not fed back to the one-bar temperature that decided the rain (GH4). An ice giant
+radiates the base only, which is what the law through Neptune gives it.

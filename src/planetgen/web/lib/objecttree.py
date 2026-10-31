@@ -20,6 +20,7 @@ formatters (built from floats and fixed unit literals), the habitability symbols
 
 import dataclasses
 
+from planetgen.names.bodies import close_pair_label
 from planetgen.web.lib.classref import PARABOLIC_COMET_CLASS, class_entry, star_type_classes, star_type_split
 from planetgen.web.lib.fmt import distance_km_html, esc, measured_html, period_years_html
 from planetgen.web.lib import poi_icons
@@ -100,7 +101,7 @@ def _stat(text_html):
 
 def _star_stats(summary, context):
     return [_stat(star_type_html(summary.get("star_type") or "", context.class_url)),
-            _stat(esc(summary["role"].capitalize()) if summary.get("role") not in (None, "single") else ""),
+            _stat(esc(summary["role"].capitalize()) if summary.get("role") not in (None, "single", "member") else ""),
             _stat(f"{measured_html('kg', summary['mass_kg'])}" if summary.get("mass_kg") is not None else ""),
             _stat(f"{measured_html('W', summary['luminosity_w'])}" if summary.get("luminosity_w") is not None else "")]
 
@@ -168,6 +169,8 @@ def stats_html(item, context):
         stats = _STATS[kind](item.get("summary") or {}, context) if kind in _STATS else [_stat(esc(KIND_LABELS.get(kind, kind)))]
         if kind == "belt":
             stats.insert(0, poi_mark_html(kind, {}, context))
+    if item.get("orbits"):
+        stats.insert(0, _stat(f"Orbits {esc(item['orbits'])}"))
     below = counts_text(item.get("counts") or {})
     return "".join(stats) + _stat(esc(below))
 
@@ -211,8 +214,23 @@ def node_html(item, context, loaded=None):
             f'<ul class="tree-children" aria-label="{label}">{body}</ul></li>')
 
 
+def _pair_label(items):
+    """What the pair of a level that also holds a further star is called ("Abralinar A / B"), or `None` for a level that is not
+    that: the stars beyond a close pair sit beside it, and the bodies that go round the pair rather than a star are listed
+    after the stars (db/children.py)."""
+    stars = {item["summary"].get("role"): item["name"] for item in items if item["kind"] == "star"}
+    if "member" not in stars or "primary" not in stars or "secondary" not in stars:
+        return None
+    return close_pair_label(stars["primary"], stars["secondary"])
+
+
 def nodes_html(items, context, loaded=None):
-    """The rows of one level."""
+    """The rows of one level. On a level that holds a close pair and a star beyond it, the further stars and the bodies that go
+    round the whole pair say so, so the rows read as a hierarchy."""
+    pair = _pair_label(items)
+    if pair:
+        items = [{**item, "orbits": pair} if item["kind"] in ("planet", "belt", "comet")
+                 or (item["kind"] == "star" and item["summary"].get("role") == "member") else item for item in items]
     return "".join(node_html(item, context, loaded) for item in items)
 
 

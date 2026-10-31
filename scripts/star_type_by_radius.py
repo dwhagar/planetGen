@@ -18,23 +18,12 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from planetgen.cli.generate import add_plan_arguments  # noqa: E402
-from planetgen.galaxy import density  # noqa: E402
+from planetgen.galaxy import density, shape_draw  # noqa: E402
 from planetgen.physics.stellar_evolution import sample_living_star, star_params  # noqa: E402
 from planetgen.util import draw  # noqa: E402
 
 RADII_KPC = (0.25, 0.5, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 8.0, 10.0, 12.0, 15.0)
 CLASSES = ("O", "B", "A", "F", "G", "K", "M")
-
-
-def default_shape():
-    parser = argparse.ArgumentParser()
-    add_plan_arguments(parser)
-    a = parser.parse_args([])
-    arm_amplitude, arm_level = density.arm_terms(a.arm_density, a.interarm_density)
-    return density.build_galaxy_shape(
-        a.disk_scale_length_pc, a.disk_scale_height_pc, a.bulge_scale_radius_pc, a.bulge_amplitude,
-        a.arm_count, math.radians(a.pitch_angle_deg), arm_amplitude, arm_level=arm_level)
 
 
 def population_classes(population, count):
@@ -61,7 +50,7 @@ def main():
     parser.add_argument("--stars", type=int, default=20000)
     parser.add_argument("--seed", type=int, default=1)
     args = parser.parse_args()
-    shape = default_shape()
+    shape = shape_draw.default_shape(args.seed.to_bytes(16, "big"))       # the shape the plan draws from this seed with every dial on Auto
     draw.set_run_seed(args.seed)
     per_pop = {pop: population_classes(pop, args.stars) for pop in density.tuning.STELLAR_POPULATION_AGE_RANGES_GY}
     print("## Class shares inside each population (main-sequence dwarfs by class)\n")

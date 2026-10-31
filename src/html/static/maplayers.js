@@ -424,6 +424,10 @@ export function createLayerRegistry(mode, options) {
       summary.title = "What the map draws; press to fold it away";
       body = doc.createElement("div");
       body.className = "map-key-lines";
+      // TEST.519: the lines scroll inside their box, so the box takes the keyboard (arrow keys scroll it) and has a name.
+      body.tabIndex = 0;
+      body.setAttribute("role", "group");
+      body.setAttribute("aria-label", "What the map draws");
       let folded = false;
       try { folded = doc.defaultView.localStorage.getItem(storageKey) === "1"; } catch (error) { /* no storage: it starts open */ }
       fold.open = !folded;

@@ -9,8 +9,9 @@
 
 export const MIN_HEIGHT_PX = 320;
 export const GAP_PX = 16;
-// MAP.350: the margin a map that fills the window keeps above and below it.
-export const BUFFER_PX = 20;
+// MAP.350: a map that fills the window takes this share of the window's height (what a held header leaves of it); the rest
+// is split evenly above and below it. Boss: always 95% of the window, however the window is sized.
+export const FILL_SHARE = 0.95;
 // How far (pixels) the page may be from the aligned place and still count as there, so a rounding does not scroll it again and again.
 const ALIGN_TOLERANCE_PX = 2;
 
@@ -23,20 +24,26 @@ export function fitHeight(windowHeight, top, below, options) {
   return Math.max(min, Math.round(Number.isFinite(room) ? room : min));
 }
 
-// MAP.350: the height of a map that fills its browser window: the window less a buffer above and below, and less what a header held at the top
+// MAP.350: the height of a map that fills its browser window: `FILL_SHARE` (95%) of the window's height less what a header held at the top
 // of the window covers (`options.covered`, pixels), kept at or above `min`.
 export function fillHeight(windowHeight, options) {
   const min = options && options.min !== undefined ? options.min : MIN_HEIGHT_PX;
-  const buffer = options && options.buffer !== undefined ? options.buffer : BUFFER_PX;
+  const share = options && options.share !== undefined ? options.share : FILL_SHARE;
   const covered = options && Number.isFinite(options.covered) ? options.covered : 0;
-  const room = windowHeight - covered - 2 * buffer;
+  const room = (windowHeight - covered) * share;
   return Math.max(min, Math.round(Number.isFinite(room) ? room : min));
+}
+
+// The margin above (and below) a map of `height` pixels in a window `windowHeight` tall under `covered` pixels of header: half of what the map leaves.
+export function fillBuffer(windowHeight, height, covered) {
+  const room = (windowHeight - (Number.isFinite(covered) ? covered : 0) - height) / 2;
+  return Number.isFinite(room) ? Math.max(0, Math.round(room)) : 0;
 }
 
 // MAP.350: where to scroll the page (pixels down it) so a map whose top edge is `top` pixels down the page has `buffer` pixels of window
 // above it under what a header held at the top of the window covers, or null when it is there already (or the page cannot be scrolled that far; `maxScroll` is the farthest it goes).
 export function alignScroll(top, scrollY, maxScroll, options) {
-  const buffer = options && options.buffer !== undefined ? options.buffer : BUFFER_PX;
+  const buffer = options && options.buffer !== undefined ? options.buffer : 0;
   if (![top, scrollY, maxScroll].every(Number.isFinite)) return null;
   const covered = options && Number.isFinite(options.covered) ? options.covered : 0;
   const wanted = Math.max(0, Math.min(maxScroll, Math.round(top - covered - buffer)));
@@ -45,7 +52,7 @@ export function alignScroll(top, scrollY, maxScroll, options) {
 
 // Sets `view.style.height` to the fitting height now, when the window is resized and when the page above the view
 // changes height (a notice, wrapped crumbs). `below` is the element after the view (or null). Returns {refit, stop}.
-// MAP.350: with `options.fill` the view is as tall as the window less `options.buffer` (20 pixels) above and below, and the page is scrolled
+// MAP.350: with `options.fill` the view is 95% of the window's height (less what a held header covers), with the rest split above and below it, and the page is scrolled
 // so it sits there, once it has loaded and as what is above it settles, until the reader scrolls the page themselves.
 export function watchWindowFit(view, below, options) {
   let busy = false;
@@ -63,7 +70,9 @@ export function watchWindowFit(view, below, options) {
     if (!fill || readerScrolled) return;
     const doc = document.documentElement;
     const rect = view.getBoundingClientRect();
-    const to = alignScroll(rect.top + (window.scrollY || 0), window.scrollY || 0, Math.max(0, doc.scrollHeight - window.innerHeight), Object.assign({}, options, { covered: covered() }));
+    const hidden = covered();
+    const buffer = fillBuffer(window.innerHeight, rect.height, hidden);
+    const to = alignScroll(rect.top + (window.scrollY || 0), window.scrollY || 0, Math.max(0, doc.scrollHeight - window.innerHeight), Object.assign({}, options, { covered: hidden, buffer: buffer }));
     if (to === null) return;
     ourScroll = true;
     window.scrollTo(0, to);

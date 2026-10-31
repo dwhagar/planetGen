@@ -31,6 +31,7 @@ import dataclasses
 from planetgen import tuning
 from planetgen.physics import constants, unit_registry
 
+_msun_to_kg = unit_registry.converter("Msun", "kg")
 _yr_to_s = unit_registry.converter("yr", "s")
 
 
@@ -60,7 +61,7 @@ LOCAL_UNITS = {
     "pc3": LocalUnit("volume", constants.PARSEC_M ** 3),
     "Lsun*pc": LocalUnit("power times length", constants.SOLAR_LUMINOSITY * constants.PARSEC_M),
     "Lsun*K": LocalUnit("power times temperature", constants.SOLAR_LUMINOSITY),
-    "Msun/yr": LocalUnit("mass rate", constants.SOLAR_MASS_TO_KG / _YEAR_S),
+    "Msun/yr": LocalUnit("mass rate", _msun_to_kg(1.0) / _YEAR_S),
     "J/kg": LocalUnit("specific energy", 1.0), "kg/mol": LocalUnit("molar mass", 1.0),
     "mSv/yr": LocalUnit("dose rate", 1e-3 / _YEAR_S), "A*m2": LocalUnit("magnetic moment", 1.0),
     "DU": LocalUnit("column density", 2.687e20),
@@ -80,6 +81,8 @@ LOCAL_UNITS = {
     "mg-si": LocalUnit("ratio", suffix=" Mg atoms per Si atom"),
     "al26": LocalUnit("ratio", suffix=" ²⁶Al atoms per ²⁷Al atom"),
     "flare-slope": LocalUnit("ratio", suffix=" (slope of the flare size law)"),
+    "disk-alpha-f": LocalUnit("ratio", suffix=" (α/f of the disk the moons formed in; it sets their total mass)"),
+    "uv-mult": LocalUnit("ratio", suffix="× its blackbody's UV-C power (the library's, with the corona)"),
     "orbit-e": LocalUnit("ratio", suffix=" (0 is a circle, 1 is the escape orbit)"),
     "bh-spin": LocalUnit("ratio", suffix=" of the maximum (0 is not spinning)"),
     "shell": LocalUnit("index", prefix="shell "), "band": LocalUnit("index", prefix="band "),
@@ -123,14 +126,21 @@ EQUIPMENT_LEVELS = (
 )
 """tuple: The survival equipment levels on `planets` and `moons` (GEN.655): small whole numbers, like the tiers."""
 
-REGIONAL_TEMPERATURES = (
-    "temp_polar_k", "temp_north_k", "temp_equator_k", "temp_south_k", "temp_swing_k", "temp_day_side_k", "temp_terminator_k",
-    "temp_night_side_k", "temp_polar_swing_k", "temp_north_swing_k", "temp_south_swing_k", "temp_mean_swing_k",
-    "temp_day_side_swing_k", "temp_terminator_swing_k", "temp_night_side_swing_k",
-)
-"""tuple: The regional temperatures and the day and night swing on `planets` and `moons` (GEN.656), kelvin."""
-TEMPERATURE_DIFFERENCES = ("temp_swing_k", "temp_polar_swing_k", "temp_north_swing_k", "temp_south_swing_k", "temp_mean_swing_k",
-                           "temp_day_side_swing_k", "temp_terminator_swing_k", "temp_night_side_swing_k")
+BAND_NUMBERS = range(1, 8)
+"""range: The seven bands of latitude (GEN.1108, `physics/regional_temperature.py`), `band1` the north pole to `band7` the south pole."""
+
+BAND_TEMPERATURES = tuple(f"band{number}_mean_k" for number in BAND_NUMBERS)
+"""tuple: The annual mean temperature of each band on `planets` and `moons`, kelvin."""
+BAND_SWINGS = tuple(f"band{number}_swing_k" for number in BAND_NUMBERS)
+"""tuple: The day and night swing of each band, peak to peak, kelvin of difference."""
+BAND_HOURS = tuple(f"band{number}_{part}_hours" for number in BAND_NUMBERS for part in ("day", "night"))
+"""tuple: The hours of day and of night in a solar day at each band."""
+BAND_LONGEST_DAYS = tuple(f"band{number}_longest_{part}_days" for number in BAND_NUMBERS for part in ("day", "night"))
+"""tuple: The longest polar day and night of the year at the poleward edge of each band, days."""
+
+REGIONAL_TEMPERATURES = (*BAND_TEMPERATURES, *BAND_SWINGS, "temp_mean_swing_k")
+"""tuple: The regional temperatures and the day and night swing on `planets` and `moons` (GEN.656, GEN.1108), kelvin."""
+TEMPERATURE_DIFFERENCES = (*BAND_SWINGS, "temp_mean_swing_k")
 """tuple: The columns of `REGIONAL_TEMPERATURES` that are a size and not a place on the scale: the swing between the
 hottest and the coldest hour is in kelvin of difference (`dK`), so it is never shown as -264 °C."""
 
@@ -232,6 +242,12 @@ TABLES = {
         "id": ("id",),
         "index": ("constellation_index",),
         "seed": ("seed",),
+    },
+    "dark_members": {
+        "id": ("star_system_id",),
+        "index": ("member_no", "parent_node_no", "slot"),
+        "Msun": ("mass_solar",),
+        "au": ("radius_au",),
     },
     "edit_journal": {
         "id": ("id", "op_id", "plan_id", "sector_id"),
@@ -406,14 +422,15 @@ TABLES = {
         "km": ("ring_inner_km", "ring_outer_km",
             "distance_km", "radius_km", "scale_height_km", "hill_radius_km", "min_orbit_distance_km",
             "habitable_zone_inner_km", "habitable_zone_outer_km", "position_x_km", "position_y_km", "position_z_km",
-            "ocean_depth_km", "ice_shell_km", "hp_ice_km", "aquifer_depth_km", "aquifer_thickness_km", "moon_disk_ice_line_km",
+            "ocean_depth_km", "surface_liquid_depth_km", "ice_shell_km", "hp_ice_km", "aquifer_depth_km", "aquifer_thickness_km", "moon_disk_ice_line_km",
         ),
         "kg": ("ring_mass_kg", "mass_kg",),
         "km3": ("volume_km3",),
-        "yr": ("period_years", "min_update_interval_years"),
+        "yr": ("period_years", "min_update_interval_years", "ring_age_yr"),
         "g0": ("gravity_g",),
         "K": ("surface_temperature_k", *(name for name in REGIONAL_TEMPERATURES if name not in TEMPERATURE_DIFFERENCES)),
         "dK": TEMPERATURE_DIFFERENCES,
+        "d": BAND_LONGEST_DAYS,
         "g_cm3": ("density_g_cm3",),
         "kg_m3": ("atm_density",),
         "kg/mol": ("atm_molar_density",),
@@ -423,14 +440,16 @@ TABLES = {
         "deg": ("orbital_inclination_deg", "orbital_ascending_node_deg", "axial_tilt_deg", "polar_circle_deg"),
         "km_s": ("orbital_speed_kms", "velocity_x_kms", "velocity_y_kms", "velocity_z_kms"),
         "unix_s": ("epoch_unix", "next_update_due"),
-        "h": ("rotation_period_hours", "outside_hours", "solar_day_hours", "daylight_hours"),
+        "h": ("rotation_period_hours", "outside_hours", "outside_hours_day", "solar_day_hours", "daylight_hours", "night_hours", *BAND_HOURS),
+        "m": ("tide_range_spring_m", "tide_range_neap_m"),
         "g_cm2": ("shelter_column_g_cm2",),
         "unit-vector": ("spin_axis_x", "spin_axis_y", "spin_axis_z"),
         "dex": ("mantle_delta_iw",),
         "A*m2": ("magnetic_moment_a_m2", "induced_moment_a_m2"),
         "R_planet": ("magnetopause_rp",),
         "xuv-earth": ("xuv_flux_earth",),
-        "ratio": ("aerosol_draw", "moon_disk_alpha_over_f"),
+        "ratio": ("aerosol_draw",),
+        "disk-alpha-f": ("moon_disk_alpha_over_f",),
         "grade3": ("life_animal_grade",),
         "complexity": ("life_complexity",),
         "dose-mult": ("dose_helio_mult",),
@@ -454,13 +473,14 @@ TABLES = {
             "helium_depletion",
             "ground_ocean_fraction", "ground_ice_fraction", "ground_ultramafic_fraction", "ground_anorthositic_fraction",
             "ground_basaltic_fraction", "ground_felsic_fraction", "ground_clay_fraction", "ground_oxidised_fraction",
-            "ground_metal_fraction", "ground_carbon_fraction", "ground_evaporite_fraction", "ground_sulfur_fraction",
-            "day_share_equator", "day_share_mean", "parent_shadow_share",
+            "ground_metal_fraction", "ground_carbon_fraction", "ground_evaporite_fraction", "ground_sulfur_fraction", "surface_liquid_fraction",
+            "ground_intermediate_fraction",
+            "day_share_equator", "day_share_mean", "parent_shadow_share", "days_per_year",
             "moon_disk_f_inf",
         ),
         "aw": ("water_activity",),
         "pH": ("ocean_ph",),
-        "mSv/yr": ("surface_dose_msv_yr", "dose_gcr_msv_yr", "dose_sep_msv_yr", "dose_ground_msv_yr"),
+        "mSv/yr": ("surface_dose_msv_yr", "dose_gcr_msv_yr", "dose_sep_msv_yr", "dose_ground_msv_yr", "dose_belt_msv_yr"),
         "DU": ("ozone_column_du",),
         "flag": ("ozone_loss_flag", "born_beyond_snow_line", "carbon_rock", "has_helium_shell"),
         "Mearth": ("core_mass_earth", "dilute_core_mass_earth"),
@@ -653,15 +673,16 @@ TABLES = {
         "km": ("ring_inner_km", "ring_outer_km",
             "distance_km", "radius_km", "scale_height_km", "hill_radius_km", "min_orbit_distance_km",
             "habitable_zone_inner_km", "habitable_zone_outer_km", "position_x_km", "position_y_km", "position_z_km",
-            "ocean_depth_km", "ice_shell_km", "hp_ice_km", "aquifer_depth_km", "aquifer_thickness_km", "moon_disk_ice_line_km", "reflex_offset_x_km", "reflex_offset_y_km",
+            "ocean_depth_km", "surface_liquid_depth_km", "ice_shell_km", "hp_ice_km", "aquifer_depth_km", "aquifer_thickness_km", "moon_disk_ice_line_km", "reflex_offset_x_km", "reflex_offset_y_km",
             "reflex_offset_z_km",
         ),
         "kg": ("ring_mass_kg", "mass_kg",),
         "km3": ("volume_km3",),
-        "yr": ("period_years", "min_update_interval_years"),
+        "yr": ("period_years", "min_update_interval_years", "ring_age_yr"),
         "g0": ("gravity_g",),
         "K": ("surface_temperature_k", *(name for name in REGIONAL_TEMPERATURES if name not in TEMPERATURE_DIFFERENCES)),
         "dK": TEMPERATURE_DIFFERENCES,
+        "d": BAND_LONGEST_DAYS,
         "g_cm3": ("density_g_cm3",),
         "kg_m3": ("atm_density",),
         "kg/mol": ("atm_molar_density",),
@@ -671,14 +692,16 @@ TABLES = {
         "deg": ("orbital_inclination_deg", "orbital_ascending_node_deg", "axial_tilt_deg", "polar_circle_deg"),
         "km_s": ("orbital_speed_kms", "velocity_x_kms", "velocity_y_kms", "velocity_z_kms"),
         "unix_s": ("epoch_unix", "next_update_due"),
-        "h": ("rotation_period_hours", "outside_hours", "solar_day_hours", "daylight_hours"),
+        "h": ("rotation_period_hours", "outside_hours", "outside_hours_day", "solar_day_hours", "daylight_hours", "night_hours", *BAND_HOURS),
+        "m": ("tide_range_spring_m", "tide_range_neap_m"),
         "g_cm2": ("shelter_column_g_cm2",),
         "unit-vector": ("spin_axis_x", "spin_axis_y", "spin_axis_z"),
         "dex": ("mantle_delta_iw",),
         "A*m2": ("magnetic_moment_a_m2", "induced_moment_a_m2"),
         "R_planet": ("magnetopause_rp",),
         "xuv-earth": ("xuv_flux_earth",),
-        "ratio": ("aerosol_draw", "moon_disk_alpha_over_f"),
+        "ratio": ("aerosol_draw",),
+        "disk-alpha-f": ("moon_disk_alpha_over_f",),
         "grade3": ("life_animal_grade",),
         "complexity": ("life_complexity",),
         "dose-mult": ("dose_helio_mult",),
@@ -702,13 +725,14 @@ TABLES = {
             "helium_depletion",
             "ground_ocean_fraction", "ground_ice_fraction", "ground_ultramafic_fraction", "ground_anorthositic_fraction",
             "ground_basaltic_fraction", "ground_felsic_fraction", "ground_clay_fraction", "ground_oxidised_fraction",
-            "ground_metal_fraction", "ground_carbon_fraction", "ground_evaporite_fraction", "ground_sulfur_fraction",
-            "day_share_equator", "day_share_mean", "parent_shadow_share",
+            "ground_metal_fraction", "ground_carbon_fraction", "ground_evaporite_fraction", "ground_sulfur_fraction", "surface_liquid_fraction",
+            "ground_intermediate_fraction",
+            "day_share_equator", "day_share_mean", "parent_shadow_share", "days_per_year",
             "moon_disk_f_inf",
         ),
         "aw": ("water_activity",),
         "pH": ("ocean_ph",),
-        "mSv/yr": ("surface_dose_msv_yr", "dose_gcr_msv_yr", "dose_sep_msv_yr", "dose_ground_msv_yr"),
+        "mSv/yr": ("surface_dose_msv_yr", "dose_gcr_msv_yr", "dose_sep_msv_yr", "dose_ground_msv_yr", "dose_belt_msv_yr"),
         "DU": ("ozone_column_du",),
         "flag": ("ozone_loss_flag", "born_beyond_snow_line", "carbon_rock", "has_helium_shell"),
         "Mearth": ("core_mass_earth", "dilute_core_mass_earth"),
@@ -763,7 +787,7 @@ TABLES = {
         "K": ("effective_temperature_k", "surface_temperature_k"),
         "Pa": ("surface_pressure_pa",),
         "deg": ("galactic_orbital_phase_deg", "axial_tilt_deg"),
-        "yr": ("galactic_min_update_interval_years",),
+        "yr": ("galactic_min_update_interval_years", "ring_age_yr"),
         "unix_s": ("epoch_unix", "next_update_due"),
         "h": ("rotation_period_hours",),
         "g_cm2": ("shelter_column_g_cm2",),
@@ -783,10 +807,10 @@ TABLES = {
         "index": ("source", "member_no", "parent_node_no", "slot"),
         "id": ("source_id",),
         "flag": ("flags",),
-        "au": ("offset_x_au", "offset_y_au", "offset_z_au", "radius_au"),
+        "au": ("offset_x_au", "offset_y_au", "offset_z_au", "radius_au", "radius_max_au"),
         "km_s": ("velocity_x_kms", "velocity_y_kms", "velocity_z_kms"),
         "yr": ("decay_age_yr",),
-        "Msun": ("mass_solar", "initial_mass_solar"),
+        "Msun": ("mass_solar", "initial_mass_solar", "mass_max_solar"),
         "seed": ("seed",),
         "unix_s": ("epoch_unix",),
     },
@@ -921,7 +945,7 @@ TABLES = {
         "flag": ("xuv_saturated", "flags"),
         "1/yr": ("flare_n33_per_yr",),
         "flare-slope": ("flare_alpha",),
-        "frac": ("uv_c_share",),
+        "uv-mult": ("uv_c_share",),
         "J": ("xuv_fluence_j",),
         "1/Gy": ("lethal_event_rate_per_gyr",),
         "au": ("offset_x_au", "offset_y_au", "offset_z_au", "disk_inner_au", "disk_outer_au"),

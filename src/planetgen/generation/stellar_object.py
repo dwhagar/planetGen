@@ -161,11 +161,7 @@ class StellarObject(LazySaladName, MassObject):
         this star's `supported_evolutionary_scales` (`physics.age_needs`, GEN.686).
         0.0 when none needs any. See `adjust_age_for_planets`.
         """
-        # Uses get_star_evolutionary_profile rather than a raw
-        # STAR_EVOLUTION[spectral_class] lookup so giants/supergiants/white
-        # dwarfs etc. (whose spectral letter reflects only current
-        # temperature, not a main-sequence lifespan) are handled correctly.
-        supported_scales = get_star_evolutionary_profile(self).get("supported_evolutionary_scales", [])
+        supported_scales = supported_evolutionary_scales(self)
         required = 0.0
         for planet in planets:
             if hasattr(planet, 'planet_class'):
@@ -354,77 +350,29 @@ class StellarObject(LazySaladName, MassObject):
         return calculate_galactic_orbit(galactic_center_dist_ly)
 
 
-def get_star_spectral_class(star):
-    """
-    Returns the uppercase spectral class character (e.g. 'G') for a star.
+SPECTRAL_LETTERS = "OBAFGKM"
+"""str: The spectral letters of a star whose life the paces are judged for; a remnant or a substellar object (any other letter) has none."""
 
-    Works for both a plain `Star` and a `BinaryStarProxy`, without importing
-    `BinaryStarProxy` here (which would create a circular import) — a proxy
-    is detected by duck-typing on its `_primary` attribute, and its primary
-    star's type is used as the representative spectral class.
+
+def supported_evolutionary_scales(star):
+    """
+    The evolutionary paces (`tuning.EVOLUTIONARY_TIMELINES`: `fast`, `normal`, `slow`) a planet of `star` can follow to a technological
+    civilization, from the time the star gives (GEN.942): the paces whose last milestone comes at or before the end of the star's own
+    lifespan, the star model's, not a table of lifespans by spectral letter. A white dwarf's lifespan is infinite (it just cools forever),
+    so the time it has had so far, its age, stands in. A star that gives less time than the fastest pace needs still has `fast`, as
+    `get_evolutionary_state` does. A remnant or substellar object (a letter outside `SPECTRAL_LETTERS`) has none.
 
     Args:
         star: A `Star` or `BinaryStarProxy` instance.
 
     Returns:
-        str: The uppercase spectral class character.
+        list[str]: The paces, fastest first; empty for a star with no spectral letter of the main sequence.
     """
     reference_star = star._primary if hasattr(star, '_primary') else star
-    return reference_star.type[0].upper()
-
-
-def get_star_evolutionary_profile(star):
-    """
-    Returns the `STAR_EVOLUTION`-shaped profile describing which
-    evolutionary paces are plausible for planets orbiting
-    `star`, correctly accounting for its Yerkes luminosity class.
-
-    `STAR_EVOLUTION` is keyed by spectral letter (e.g. 'G'), which for a
-    main-sequence (Yerkes 'V') star fully determines both its current
-    temperature and its total lifespan -- so that class's fixed entry
-    applies directly.
-
-    For any evolved or remnant star (giants, supergiants, subgiants, bright
-    giants, hypergiants, subdwarfs, white dwarfs), the spectral letter only
-    reflects the star's *current* temperature/color, not a lifespan -- e.g.
-    an "F5VII" white dwarf merely glows at F-like temperature; it did not
-    live and die as an F-type main-sequence star. Using STAR_EVOLUTION['F']
-    directly for such a star would misapply a main-sequence lifespan/scale
-    table to an unrelated evolutionary history. `supported_evolutionary_scales`, which is really a proxy for how
-    much time was available for a biosphere to develop, is instead derived
-    from the star's own already-computed age/lifespan (already correctly
-    fixed by the star model with the rest of its state),
-    by checking which evolutionary paces could reach their technological
-    civilization milestone within that time budget.
-
-    Args:
-        star: A `Star` or `BinaryStarProxy` instance.
-
-    Returns:
-        dict: A `STAR_EVOLUTION`-entry-shaped dict (with at least
-              the `supported_evolutionary_scales` key), or `{}` if the spectral letter has no entry.
-    """
-    reference_star = star._primary if hasattr(star, '_primary') else star
-    spectral_class_char = reference_star.type[0].upper()
-    base_info = tuning.STAR_EVOLUTION.get(spectral_class_char, {})
-    if not base_info:
-        return {}
-
-    if reference_star.yerkes_class in ("V", "VI"):
-        return base_info
-
-    # A white dwarf's lifespan is infinite (it just cools forever), so "how
-    # much time has been available so far" is better represented by its age.
-    # Every other evolved class has a finite lifespan, used as-is.
+    letter = reference_star.type[0].upper()
+    if letter not in SPECTRAL_LETTERS:
+        return []
     time_budget = reference_star.age if reference_star.lifespan == float('inf') else reference_star.lifespan
-
-    reachable_scales = [
-        scale for scale in ["fast", "normal", "slow"]
-        if tuning.EVOLUTIONARY_TIMELINES[scale]['technological_civilization'] <= time_budget
-    ]
-    if not reachable_scales:
-        # Even the fastest pace doesn't fit -- still return it so callers have
-        # something to work with, mirroring the fallback in get_evolutionary_state.
-        reachable_scales = ["fast"]
-
-    return {**base_info, "supported_evolutionary_scales": reachable_scales}
+    reachable = [scale for scale in ["fast", "normal", "slow"]
+                 if tuning.EVOLUTIONARY_TIMELINES[scale]['technological_civilization'] <= time_budget]
+    return reachable or ["fast"]

@@ -168,7 +168,10 @@ def test_class_pages_show_the_constants(client):
     assert classref.number_range(low, high, "solar masses") in _html(client, "/classes/black-hole/intermediate")
 
     low, high = tuning.ROGUE_BROWN_DWARF_MASS_RANGE_JUPITER
-    assert f"{low:.0f} to {high:.0f} Jupiter masses" in _html(client, "/classes/rogue-planet/brown-dwarf")
+    # The upper limit is the mass boundaries table's 83.8 Jupiter masses (`brown_dwarf_upper_limit`), which the page's number rule
+    # shows as "13 to 83.8" (rounding it to a whole number, as this line did, read 84 and missed). The page reads the generator's
+    # own range, so the test asks `number_range` for the same text as the lines above.
+    assert classref.number_range(low, high, "Jupiter masses") in _html(client, "/classes/rogue-planet/brown-dwarf")
 
 
 def test_number_formatting():
@@ -492,7 +495,7 @@ def test_the_help_menu_holds_classes_and_habitability_and_the_old_links_are_gone
     assert 'href="/classes"' not in bar.split("site-help-menu")[0]
     help_menu = re.search(r'<sl-dropdown class="site-help-menu".*?</sl-dropdown>', bar, re.S).group(0)
     assert re.findall(r'data-href="([^"]*)"[^>]*>([^<]*)<', help_menu) == [
-        ("/classes", "Classes"), ("/help/habitability", "Habitability"), ("/help/properties", "Properties")]
+        ("/classes", "Classes"), ("/help/habitability", "Habitability"), ("/help/properties", "Properties"), ("/help/life", "Life")]
     assert bar.index("site-help-menu") < bar.index("site-search-link") < bar.index("site-gear")
     assert "Habitability levels" not in html
     page = _html(client, "/help/habitability")
@@ -522,7 +525,7 @@ def test_the_tree_symbols_and_the_page_chips_link_to_their_sections_of_the_habit
             "summary": planet}
     html = objecttree.nodes_html([item], _tree_context(sprite_url="/static/icons.svg", help_url=url)) + chips_html(planet, url)
     assert "Habitability levels" not in html
-    for anchor in ("chip-habitable-class", "equipment-gas-mix-mask"):
+    for anchor in ("chip-habitable", "equipment-gas-mix-mask"):   # UX.224: a habitable world of a habitable class shows the one chip, Habitable
         assert f'<a class="help-link" href="{url}#{anchor}">' in html, anchor
     # UX.197: the tree's symbols and life scores go to the Habitability and Life groups of the body's own page.
     assert html.count('href="/object/planet:FE81000A2B-0000005-001#habitability"') == 7
@@ -575,3 +578,17 @@ def test_the_habitability_page_explains_the_map_views_the_temperatures_and_the_c
     for text in ("On the Galaxy Map", "Color by: Habitable worlds", "show=marker-habitable", "Temperatures across a world",
                  "terminator ring", "solid for a required item, outlined for a recommended one", "0.1 mg/m3"):
         assert text in html, text
+
+
+def test_a_missing_dataset_does_not_stop_the_site_booting(monkeypatch):
+    """update.sh pulls the new code before its downloads finish; a worker that started then died at boot on
+    DataMissing (mamajek_dwarf_sequence) and every page was a 500."""
+    from planetgen.datasets.fetch import DataMissing
+
+    def missing():
+        raise DataMissing("mamajek_dwarf_sequence: not downloaded")
+
+    monkeypatch.setattr(classref, "catalog", missing)
+    assert classref.preload() is False
+    monkeypatch.setattr(classref, "catalog", lambda: {})
+    assert classref.preload() is True

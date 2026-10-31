@@ -36,9 +36,12 @@ import math
 import numpy as np
 
 from planetgen import tuning
-from planetgen.physics import constants, gas_equilibrium, saturation, species_thermo
+from planetgen.physics import constants, gas_equilibrium, saturation, species_thermo, unit_registry as units
 from planetgen.physics.atmosphere_recipes import RECIPES
 from planetgen.physics.mixture_base import MixtureError, bracket, finish, require
+
+_mearth_to_kg = units.converter("Mearth", "kg")
+_mjup_to_kg = units.converter("Mjup", "kg")
 
 CATEGORIES = "efgh"
 """str: The recipe tables a giant reads (`e` for a sub-Neptune envelope, `f` giants, `g` brown dwarfs, `h` hot Jupiters), and the
@@ -270,11 +273,6 @@ def log_carbon_monoxide_time(temperature_k, pressure_bar, metallicity):
     return -float(np.logaddexp(-log_t1, -log_t2))
 
 
-def carbon_monoxide_time_s(temperature_k, pressure_bar, metallicity):
-    """The chemical time of the CO to CH4 conversion, s (`log_carbon_monoxide_time`)."""
-    return math.exp(log_carbon_monoxide_time(temperature_k, pressure_bar, metallicity))
-
-
 def mixing_time_s(temperature_k, mean_molar_mass, gravity, kzz_cm2_s):
     """The time to mix one scale height, s: `H^2 / Kzz` with `H = R T / (M g)`."""
     scale_height = constants.R * temperature_k / (mean_molar_mass * gravity)
@@ -348,7 +346,7 @@ def _layer_temperature(subject, family):
 
 def _gravity(subject):
     mass = subject.get("mass_jupiter")
-    mass_kg = mass * constants.JUPITER_MASS_TO_KG if mass is not None else subject["mass_earth"] * constants.EARTH_MASS_TO_KG
+    mass_kg = _mjup_to_kg(mass) if mass is not None else _mearth_to_kg(subject["mass_earth"])
     return constants.G * mass_kg / (subject["radius_km"] * 1e3) ** 2
 
 

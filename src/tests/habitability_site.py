@@ -18,7 +18,7 @@ import pytest
 
 from planetgen.api.config import Config
 from planetgen.api.limiter import API_LIMIT_OFF, PAGE_LIMITS_OFF
-from planetgen.db import block_stats, objectindex, store
+from planetgen.db import block_stats, interests, objectindex, store
 from planetgen.db.store import MySQLConfig
 from planetgen.galaxy import spherical
 from planetgen.generation.config import SystemConfig
@@ -47,7 +47,8 @@ class HabitableGalaxy:
     habitable_sector_id: int
     habitable_system_id: int
     habitable_system_name: str
-    habitable_worlds: int
+    habitable_worlds: int      # the Blue and Green planets and moons: the sector's stored count
+    marker_worlds: int         # the Yellow and better ones the map's habitable marker counts for the system (Boss, 7:31 PM EDT 2026-10-24)
     barren_sector_id: int
     barren_system_id: int
     barren_system_name: str
@@ -145,6 +146,8 @@ def habitable_galaxy(_mysql_server_available):
             objectindex.build(conn)
             conn.commit()
             habitable, barren = (_renamed(conn, sector) for sector in (habitable, barren))     # two systems of one seed get an Alpha and a Beta
+            marker_worlds = sum(conn.execute(f"SELECT COUNT(*) AS n FROM {table} WHERE star_system_id = ? AND phi4 >= ?",
+                                             (habitable[1], interests.HABITABLE_MIN_SCORE)).fetchone()["n"] for table in ("planets", "moons"))
         finally:
             conn.close()
         app = create_app(_config_for(config))
@@ -156,7 +159,7 @@ def habitable_galaxy(_mysql_server_available):
             with served(app) as url:
                 yield HabitableGalaxy(
                     habitable_sector_id=habitable[0], habitable_system_id=habitable[1], habitable_system_name=habitable[2],
-                    habitable_worlds=len(habitable[3]), barren_sector_id=barren[0], barren_system_id=barren[1],
+                    habitable_worlds=len(habitable[3]), marker_worlds=marker_worlds, barren_sector_id=barren[0], barren_system_id=barren[1],
                     barren_system_name=barren[2], habitable_bodies=habitable[3], base_url=url, config=config)
         finally:
             tuning.SLOW_PAGE_SECONDS = kept

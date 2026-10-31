@@ -38,7 +38,7 @@ def test_a_saved_moon_keeps_its_tide(mysql_config):
         stored = [row["tidal_flux_w_m2"] for row in conn.execute(
             "SELECT tidal_flux_w_m2 FROM moons WHERE star_system_id = ?", (system_id,)).fetchall()]
         assert any(value for value in stored)
-        assert all(value is None or value > 0 for value in stored)
+        assert all(value is None or value >= 0 for value in stored)   # GEN.778: a circular orbit stores 0.0
         loaded = store.load_star_system(conn, system_id)
         original = sorted(m.tidal_flux_w_m2 or 0.0 for p in system.planets if p.body_type != "a" for m in p.moons)
         again = sorted(m.tidal_flux_w_m2 or 0.0 for p in loaded.planets if p.body_type != "a" for m in p.moons)

@@ -15,7 +15,7 @@ from planetgen.generation import plausibility
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.planet import Planet
 from planetgen.generation.star import Star
-from planetgen.physics import climate_draws, constants, orbit_elements
+from planetgen.physics import climate_draws, constants, orbit_elements, surface_air
 from planetgen.util import draw
 
 TOLERANCE = 1e-9
@@ -64,6 +64,12 @@ def test_nothing_is_colder_than_the_background():
     assert climate_draws.surface_temperature_k(0.3, 5.0, 1e-30) == constants.COSMIC_BACKGROUND_TEMPERATURE_K
 
 
+def _temperature_of_draws(planet, flux):
+    """What the stored albedo and greenhouse quantity give: the starlight alone, `T_e (1 + G)^(1/4)`, for a giant too (its own heat flux radiated with the
+    starlight is inside the stored G, GEN.1030, so the pair reproduces the temperature, GEN.412); the air solve stops at `surface_air.MAX_SURFACE_TEMPERATURE_K`."""
+    return min(climate_draws.surface_temperature_k(planet.bond_albedo, planet.greenhouse_factor, flux), surface_air.MAX_SURFACE_TEMPERATURE_K)
+
+
 @pytest.mark.parametrize("zone", ["h", "e", "c"])
 def test_every_body_stores_the_draws_its_temperature_is_made_of(host_star, zone):
     for seed in range(5):
@@ -74,13 +80,25 @@ def test_every_body_stores_the_draws_its_temperature_is_made_of(host_star, zone)
         assert planet.albedo_basis == climate_draws.BASIS_GENERATED
         assert planet.bond_albedo is not None and 0.0 <= planet.bond_albedo < 1.0
         assert planet.greenhouse_factor is not None and planet.greenhouse_factor >= 0.0
-        assert planet.surface_temperature == pytest.approx(
-            climate_draws.surface_temperature_k(planet.bond_albedo, planet.greenhouse_factor, flux), rel=TOLERANCE)
+        assert planet.surface_temperature == pytest.approx(_temperature_of_draws(planet, flux), rel=TOLERANCE)
         if planet.atmosphere == "None":
             assert planet.greenhouse_factor == 0.0
         if planet.body_type == "t":
-            low, high = climate_draws.albedo_range(planet.body_type, planet.water_mass_fraction, flux)
+            low, high = climate_draws.albedo_range(planet.body_type, planet.water_mass_fraction, flux, getattr(planet.star, "temperature", None))
             assert low <= planet.bond_albedo <= high
+
+
+def test_a_giant_stores_the_pair_that_gives_its_temperature_with_its_own_heat_in_the_greenhouse(host_star):
+    """GEN.1030: a giant radiates its own heat as well, which the air's factor leaves out of T_e; the stored G is against the starlight alone."""
+    for seed in range(4):
+        with draw.bound(seed):
+            planet = Planet(SystemConfig(), host_star, host_star.habitable_zone, plausibility.distance_for_zone(host_star, "c"),
+                            mass=300.0 * constants.EARTH_MASS_TO_KG, zone_override="c", moon_count=0)
+        assert planet.body_type == "g"
+        low, high = climate_draws.GIANT_BOND_ALBEDO_RANGE
+        assert low <= planet.bond_albedo <= high
+        assert planet.surface_temperature == pytest.approx(
+            climate_draws.surface_temperature_k(planet.bond_albedo, planet.greenhouse_factor, _flux(planet, host_star)), rel=TOLERANCE)
 
 
 def _old_convention_row(albedo, factor, flux, gravity_g, molar_kg_mol=0.029):
@@ -146,7 +164,7 @@ def test_a_backfill_draw_never_gives_a_negative_greenhouse():
 
 def test_the_albedo_range_follows_the_water_and_the_cold():
     sun = 1361.0
-    assert climate_draws.albedo_range("g", 0.3, sun) == climate_draws.DEFAULT_ALBEDO_RANGE
+    assert climate_draws.albedo_range("g", 0.3, sun) == climate_draws.GIANT_BOND_ALBEDO_RANGE == (0.29, 0.503)
     assert climate_draws.albedo_range("t", 1e-6, sun) == climate_draws.DEFAULT_ALBEDO_RANGE
     assert climate_draws.albedo_range("t", 1e-3, 0.0) == climate_draws.DEFAULT_ALBEDO_RANGE
     assert climate_draws.albedo_range("t", 1e-3, sun) == tuning.ALBEDO_WET_RANGE

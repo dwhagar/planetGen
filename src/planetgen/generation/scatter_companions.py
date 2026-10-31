@@ -38,9 +38,11 @@ import itertools
 from planetgen import tuning
 from planetgen.db import scatter_systems, store
 from planetgen.generation import multistar, phenomenon_scatter
-from planetgen.physics import constants, imf, remnant_mass
-from planetgen.physics import stellar_evolution as evolution
+from planetgen.physics import imf, remnant_mass
+from planetgen.physics import stellar_evolution as evolution, unit_registry as units
 from planetgen.util import draw
+
+_kg_to_msun = units.converter("kg", "Msun")
 
 MEMBERS_STREAM = "members"
 """str: The suffix of a row's seed that names the stream its tree is drawn from (and, later, `planets`)."""
@@ -164,7 +166,7 @@ def star_tree(row):
     seed = row[_STAR_COLUMN["seed"]]
     white_dwarf = row[_STAR_COLUMN["yerkes_class"]] == "VII"
     placed = multistar.Placed("white-dwarf" if white_dwarf else "star",
-                              row[_STAR_COLUMN["mass_kg"]] / constants.SOLAR_MASS_TO_KG,
+                              _kg_to_msun(row[_STAR_COLUMN["mass_kg"]]),
                               row[_STAR_COLUMN["initial_mass_sol"]], fe_h=row[_STAR_COLUMN["metallicity_fe_h"]])
     age_yr = max(row[_STAR_COLUMN["age_gy"]], 1.0e-6) * 1.0e9
     runaway = None if white_dwarf else runaway_draw(seed, placed.birth_mass_solar)

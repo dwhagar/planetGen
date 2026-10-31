@@ -19,7 +19,9 @@ import math
 import numpy as np
 
 from planetgen import tuning
-from planetgen.physics import constants
+from planetgen.physics import constants, unit_registry as units
+
+_kg_to_msun = units.converter("kg", "Msun")
 
 _YEAR_PER_MYR = 1.0e6
 
@@ -38,24 +40,35 @@ def cluster_formation_efficiency(sigma_sfr_msun_yr_kpc2):
     return np.where(sigma > 0.0, 1.0 / denominator, 0.0)
 
 
-def mean_initial_mass_sol():
+def mean_initial_mass_sol(high_mass_sol=None):
     """The mean initial mass of a cluster, solar masses, for the power-law mass function between
-    `tuning.OPEN_CLUSTER_MASS_RANGE_SOL`: how many clusters a mass of bound star formation makes."""
-    low, high = tuning.OPEN_CLUSTER_MASS_RANGE_SOL
+    `tuning.OPEN_CLUSTER_MASS_RANGE_SOL` (its high end held under `high_mass_sol`, a maximum cluster mass,
+    `physics.cluster_maximum_mass`; an array gives an array): how many clusters a mass of bound star formation makes."""
+    low, high = _mass_range(high_mass_sol)
     slope = tuning.OPEN_CLUSTER_MASS_FUNCTION_SLOPE
     if abs(slope - 2.0) < 1.0e-12:
-        return math.log(high / low) / (1.0 / low - 1.0 / high)
+        return np.log(high / low) / (1.0 / low - 1.0 / high)
     one = 1.0 - slope
     two = 2.0 - slope
     return ((high ** two - low ** two) / two) / ((high ** one - low ** one) / one)
 
 
-def initial_masses(uniform, low_mass_sol=None):
-    """Initial masses (solar masses) by inverse transform of the power-law mass function, from uniform draws in 0..1,
-    between `low_mass_sol` (the range's low end when not given) and its high end."""
+def _mass_range(high_mass_sol, low_mass_sol=None):
+    """`tuning.OPEN_CLUSTER_MASS_RANGE_SOL` with its high end held under `high_mass_sol` (a number or an array) and over twice
+    its low end (`low_mass_sol` when given)."""
     low, high = tuning.OPEN_CLUSTER_MASS_RANGE_SOL
     if low_mass_sol is not None:
         low = low_mass_sol
+    if high_mass_sol is not None:
+        high = np.minimum(high, np.maximum(high_mass_sol, 2.0 * low))
+    return low, high
+
+
+def initial_masses(uniform, low_mass_sol=None, high_mass_sol=None):
+    """Initial masses (solar masses) by inverse transform of the power-law mass function, from uniform draws in 0..1,
+    between `low_mass_sol` (the range's low end when not given) and its high end (held under `high_mass_sol`, a maximum
+    cluster mass: a number, or an array with a value for each draw)."""
+    low, high = _mass_range(high_mass_sol, low_mass_sol)
     one = 1.0 - tuning.OPEN_CLUSTER_MASS_FUNCTION_SLOPE
     u = np.asarray(uniform, dtype=float)
     return (low ** one + u * (high ** one - low ** one)) ** (1.0 / one)
@@ -115,20 +128,55 @@ def present_masses(initial_sol, age_yr, t0_yr, z):
     return np.where(inside > 0.0, initial * np.maximum(inside, 0.0) ** (1.0 / gamma), 0.0)
 
 
-def half_mass_radii_pc(mass_sol, age_gy, density_z, expansion_unit):
-    """
-    The half-mass radius (pc) of clusters of `mass_sol` at `age_gy`. At birth `(3 M / (8 pi rho)) ** (1/3)` with the
-    half-mass density `rho` lognormal about `tuning.OPEN_CLUSTER_HALF_MASS_DENSITY_LOG10` (`density_z` a standard normal
-    draw); it grows by a factor from `tuning.OPEN_CLUSTER_EXPANSION_FACTOR_RANGE` (`expansion_unit`, uniform in 0..1)
-    over `tuning.OPEN_CLUSTER_EXPANSION_AGE_GY`, linearly in age, and stays there (Portegies Zwart et al. 2010).
-    """
+def birth_half_mass_radii_pc(mass_sol, density_z):
+    """The half-mass radius (pc) of clusters of `mass_sol` at birth: `(3 M / (8 pi rho)) ** (1/3)` with the half-mass density
+    `rho` lognormal about `tuning.OPEN_CLUSTER_HALF_MASS_DENSITY_LOG10` (`density_z` a standard normal draw)."""
     mean, sigma = tuning.OPEN_CLUSTER_HALF_MASS_DENSITY_LOG10["mean"], tuning.OPEN_CLUSTER_HALF_MASS_DENSITY_LOG10["sigma"]
     density = 10.0 ** (mean + sigma * np.asarray(density_z, dtype=float))
-    born = (3.0 * np.asarray(mass_sol, dtype=float) / (8.0 * math.pi * density)) ** (1.0 / 3.0)
+    return (3.0 * np.asarray(mass_sol, dtype=float) / (8.0 * math.pi * density)) ** (1.0 / 3.0)
+
+
+def expansion_factors(expansion_unit):
+    """The factor a cluster's half-mass radius grows by, from `tuning.OPEN_CLUSTER_EXPANSION_FACTOR_RANGE` (`expansion_unit`
+    uniform in 0..1)."""
     low, high = tuning.OPEN_CLUSTER_EXPANSION_FACTOR_RANGE
-    factor = low + (high - low) * np.asarray(expansion_unit, dtype=float)
+    return low + (high - low) * np.asarray(expansion_unit, dtype=float)
+
+
+def half_mass_radii_pc(mass_sol, age_gy, density_z, expansion_unit):
+    """
+    The half-mass radius (pc) of clusters of `mass_sol` at `age_gy`. At birth `birth_half_mass_radii_pc`; it grows by
+    `expansion_factors` over `tuning.OPEN_CLUSTER_EXPANSION_AGE_GY`, linearly in age, and stays there (Portegies Zwart et al.
+    2010).
+    """
+    born = birth_half_mass_radii_pc(mass_sol, density_z)
+    factor = expansion_factors(expansion_unit)
     grown = np.minimum(np.asarray(age_gy, dtype=float) / tuning.OPEN_CLUSTER_EXPANSION_AGE_GY, 1.0)
     return born * (1.0 + (factor - 1.0) * grown)
+
+
+def cloud_shock_mass_lost_sol(born_radius_pc, factor, age_gy, cloud_surface_density_msun_pc2, cloud_density_msun_pc3):
+    """
+    The mass (solar masses) passing molecular clouds have taken from clusters by `age_gy` (Gieles et al. 2006, Eq 24, as
+    Kruijssen et al. 2014 put it in the central ring): the disruption time `t_dis = 2.0 S (M / 1e4) (3.75 pc / r_h) ** 3` Gyr
+    with `S = 5.1 / (Sigma_n rho_n)` makes the loss rate `M / t_dis = 1e4 (r_h / 3.75 pc) ** 3 Sigma_n rho_n / (2.0 x 5.1)` per
+    Gyr, the same for every mass, so it is integrated along the half-mass radius `r_h` each cluster has had: `born_radius_pc`
+    growing by `factor` over `tuning.OPEN_CLUSTER_EXPANSION_AGE_GY` and staying (`half_mass_radii_pc`). Loss on top of the tidal
+    and evolutionary loss of `present_masses`, taken from the mass left.
+    """
+    born = np.asarray(born_radius_pc, dtype=float)
+    growth = np.asarray(factor, dtype=float) - 1.0
+    age = np.asarray(age_gy, dtype=float)
+    span = tuning.OPEN_CLUSTER_EXPANSION_AGE_GY
+    slope = born * growth / span                   # pc per Gy while the radius grows
+    grown_for = np.minimum(age, span)
+    with np.errstate(divide="ignore", invalid="ignore"):
+        growing = np.where(slope > 0.0, ((born + slope * grown_for) ** 4 - born ** 4) / (4.0 * slope), born ** 3 * grown_for)
+    steady = (born * (1.0 + growth)) ** 3 * np.maximum(age - span, 0.0)
+    rate = (tuning.CLUSTER_SHOCK_REFERENCE_MASS_SOL * cloud_surface_density_msun_pc2 * cloud_density_msun_pc3
+            / (tuning.CLUSTER_SHOCK_GIELES_COEFFICIENT_GYR * tuning.CLUSTER_SHOCK_GIELES_NUMERATOR
+               * tuning.CLUSTER_SHOCK_REFERENCE_RADIUS_PC ** 3))
+    return rate * (growing + steady)
 
 
 def jacobi_radii_pc(mass_sol, galactocentric_pc):
@@ -136,6 +184,6 @@ def jacobi_radii_pc(mass_sol, galactocentric_pc):
     in an isothermal halo of circular speed `tuning.CLUSTER_HALO_CIRCULAR_KMS`."""
     speed = tuning.CLUSTER_HALO_CIRCULAR_KMS * 1.0e3
     radius_pc = np.maximum(np.asarray(galactocentric_pc, dtype=float), 1.0)
-    galaxy_mass = speed * speed * radius_pc * constants.PARSEC_M / constants.G / constants.SOLAR_MASS_TO_KG
+    galaxy_mass = _kg_to_msun(speed * speed * radius_pc * constants.PARSEC_M / constants.G)
     return radius_pc * (np.asarray(mass_sol, dtype=float) / (2.0 * galaxy_mass)) ** (1.0 / 3.0)
 

@@ -16,7 +16,8 @@ from planetgen.generation.system import StarSystem
 from planetgen import tuning
 from planetgen.physics import atmosphere, body_radiation, constants, equipment
 from planetgen.physics import habitability_world as hw
-from planetgen.physics import life_scores
+from planetgen.physics import habitability, life_scores
+from planetgen.physics.protection_limits import limit
 from planetgen.util import draw
 
 from tests.air_support import fold_air
@@ -153,7 +154,9 @@ def _bodies(system):
 
 def test_every_generated_body_is_scored_consistently():
     seen = {"rocky": 0, "giant": 0}
-    for seed in range(12):
+    for seed in range(60):
+        if seed >= 12 and seen["giant"]:      # twelve systems, and more only until a gas giant has been seen (whether one is drawn moves with the epochs)
+            break
         with deterministic_entropy(seed):
             draw.set_run_seed(seed)
             system = StarSystem(SystemConfig(), galactic_center_dist_ly=26000.0)
@@ -175,7 +178,13 @@ def test_every_generated_body_is_scored_consistently():
                 assert 0 <= getattr(body, name) <= tuning.LIFE_SCORE_MAX
             assert body.phi_cpx <= body.phi_bio + 1e-9
             if body.tier_radiation == 3:
-                assert body.eq_rad_suit or body.eq_shelter  # a Red dose needs radiation gear
+                world = hw.world_from(hw.values_from_body(body))
+                if world.dose_sv_yr > habitability.HUMAN.dose[6]:
+                    assert body.eq_rad_suit or body.eq_shelter  # a Red dose needs radiation gear
+                else:
+                    # Red from the ultraviolet alone (GEN.445): the body ladder covers it, not the dose gear
+                    assert world.uv_index > limit("uv_cover_index")
+                    assert body.eq_body >= (2 if world.uv_index > limit("uv_suit_index") else 1)
     assert seen["rocky"] > 10 and seen["giant"] > 0
 
 
@@ -253,12 +262,14 @@ def test_the_score_round_trips_and_a_cloud_rescores_the_dose(mysql_config):
             store.refresh_containment(conn, [sector_id])
             conn.execute("UPDATE nebulae SET center_x_pc = ? WHERE id = ?", (home, cloud))
             store.refresh_containment(conn, [sector_id])
-        rows = conn.execute("SELECT * FROM planets WHERE body_type = 't'").fetchall()
-        assert rows
+        stored = conn.execute("SELECT * FROM planets WHERE body_type = 't'").fetchall()
+        assert stored
+        # The re-score reads a row with its air and its star's temperature (`with_life_inputs`), which the life classes need.
+        rows = store.with_life_inputs(conn, stored, False)
         for row in rows:
             assert row["dose_helio_mult"] == pytest.approx(2.5, abs=0.01)
-            again = hw.compute({**dict(row), "native_life": store._stored_native_life(row)})
-            assert row["eq_body"] == 4  # an airless world needs a pressure suit
+            again = hw.compute({**row, "is_moon": False, "native_life": store._stored_native_life(row)})
+            assert row["eq_body"] >= 4  # an airless world needs a pressure suit at least: a hot or a cold surface asks for a heavier body
             for name in hw.SCORE_FIELDS:
                 assert row[name] == pytest.approx(again[name]), name
     finally:

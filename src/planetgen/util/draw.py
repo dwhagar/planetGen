@@ -301,3 +301,30 @@ def getstate():
 
 def setstate(state):
     current().setstate(state)
+
+
+_tally = contextvars.ContextVar("planetgen_redraw_tally", default=None)
+
+
+def redrawn(kind, count=1):
+    """Notes that a drawn item was thrown away and drawn again (or moved, or cut) to make it fit: `count` redraws of `kind`
+    (a name of `planetgen.generation.redraw_kinds.KINDS`). It reads no stream and draws nothing, so what is generated is the
+    same with or without a tally; outside `counting` it does nothing (TEST.476)."""
+    tally = _tally.get()
+    if tally is not None:
+        tally[kind] = tally.get(kind, 0) + count
+
+
+@contextlib.contextmanager
+def counting():
+    """Counts every `redrawn` call made in this thread for the length of the block, as a dict `{kind: count}` that fills as the
+    block runs. Blocks nest: the inner one counts its own and the outer one sees them too."""
+    tally = {}
+    token = _tally.set(tally)
+    try:
+        yield tally
+    finally:
+        _tally.reset(token)
+        if token.old_value is not contextvars.Token.MISSING and token.old_value is not None:
+            for kind, count in tally.items():
+                token.old_value[kind] = token.old_value.get(kind, 0) + count

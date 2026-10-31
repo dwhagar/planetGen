@@ -88,15 +88,15 @@ def test_a_larger_core_makes_a_stronger_field():
     assert _earth(outer_m=1.5 * dynamo.EARTH_OUTER_CORE_M, inner_m=1.5 * dynamo.EARTH_INNER_CORE_M).moment_a_m2 > 2.0 * _earth().moment_a_m2
 
 
-def test_the_share_of_the_dipole_is_the_rule_the_magnetism_module_uses():
-    """`magnetism.dipole_share` is this rule at Earth's power, with the Rossby number from the rotation period alone."""
+def test_the_share_of_the_dipole_follows_the_rotation_at_earths_power():
+    """GEN.86's rule (the Rossby number from the rotation period alone at Earth's power) is this rule: a locked planet keeps about 0.15."""
     for hours in (6.0, 24.0, 48.0, 100.0, 1000.0):
         rossby = dynamo.local_rossby(dynamo.EARTH_DYNAMO_POWER_W, dynamo.EARTH_OUTER_CORE_M, dynamo.EARTH_INNER_CORE_M,
                                      dynamo.EARTH_OUTER_CORE_DENSITY_KG_M3, _spin(hours))
         assert rossby == pytest.approx(0.09 * (hours / 23.934) ** 1.23, rel=0.002)
-        assert dynamo.dipole_fraction(rossby) == pytest.approx(magnetism.dipole_share(hours), abs=0.01)
+        assert dynamo.dipole_fraction(rossby) == pytest.approx(dynamo.dipole_fraction(0.09 * (hours / 24.0) ** 1.23), abs=0.01)
     assert dynamo.dipole_fraction(0.0) == 1.0
-    assert magnetism.dipole_share(None) == 1.0
+    assert dynamo.dipole_fraction(10.0) == pytest.approx(0.15, abs=0.01)
 
 
 def test_the_lifetime_is_the_run_of_ages_with_power():

@@ -87,6 +87,7 @@ SECTORS = [
     for i in range(130)
 ]
 STANDALONE = [{"id": 1000 + i, "name": f"Drifting {i:03d}", "is_binary": i % 2, "star_summary": "G2V",
+               "star_count": 1 + i % 2, "object_count": 5 + i % 3, "has_habitable_world": bool(i % 2),
                "sector_id": None, "sector_name": None, "quadrant": None} for i in range(130)]
 
 
@@ -104,8 +105,8 @@ def _fake_sectors(db, limit=None, offset=None, sort=None, descending=False, quad
 def _fake_systems(db, star_type=None, sector_id=None, limit=None, offset=None, sort=None, descending=False,
                   binary=None, placement=None, octants=(), facets=False, after=None, start=None):
     rows = [row for row in STANDALONE if binary is None or bool(row["is_binary"]) == binary]
-    key = {"binary": "is_binary"}.get(sort or "name", "name")
-    rows = sorted(rows, key=lambda row: (row[key], row["name"]), reverse=bool(descending))
+    key = {"octant": "quadrant"}.get(sort or "name", "name")
+    rows = sorted(rows, key=lambda row: (row[key] or "", row["name"]), reverse=bool(descending))
     if start and (sort or "name") == "name":  # PERF.75: the jump-by-value box, as the real reader applies it
         rows = [row for row in rows if (row["name"].casefold() < queryDb._after_prefix(start.casefold())
                                         if descending else row["name"].casefold() >= start.casefold())]
@@ -164,7 +165,7 @@ def _fake_sector(db, sector_id):
     return SECTOR
 
 
-def _fake_search(db, texts, tags, sizes=None, limit=None, offsets=None, panels=None, sorts=None):
+def _fake_search(db, texts, tags, sizes=None, limit=None, offsets=None, panels=None, sorts=None, stars=None, ranges=None):
     offsets = offsets or {}
     offset = offsets.get("sectors", 0)
     rows = [{"id": i, "name": f"Found {i:03d}", "edge_mpc": 3.07} for i in range(120)]
@@ -172,6 +173,15 @@ def _fake_search(db, texts, tags, sizes=None, limit=None, offsets=None, panels=N
              "offset": offset, "truncated": False}
     results = {name: None for name in ("sectors", "systems", "stars", "planets", "moons", "belts", "phenomena")}
     results["sectors"] = panel
+    if stars:       # UX.239: known systems of one, two, three and four stars
+        from planetgen.util import star_count
+        least, most = star_count.parse_star_count(stars)
+        known = [("Lone Fixture", 1), ("Binary Fixture", 2), ("Triple Fixture", 3), ("Quad Fixture", 4)]
+        kept = [(name, n) for name, n in known if n >= least and (most is None or n <= most)]
+        results["sectors"] = None
+        results["systems"] = {"rows": [{"id": 900 + n, "name": name, "sector_id": None, "is_binary": int(n == 2), "star_summary": "G2V",
+                                        "star_count": n, "object_count": n + 3, "has_habitable_world": False} for name, n in kept],
+                              "total": len(kept), "total_capped": False, "limit": limit, "offset": 0, "truncated": False}
     if texts.get("planet_q"):
         tiers = {f"tier_{d}": i % 4 for i, d in enumerate(("pressure", "temperature", "air", "water", "radiation",
                                                            "suitability"))}
@@ -481,9 +491,9 @@ def test_a_table_keeps_its_sort_and_filter_across_a_reload(page, table_site):
     page.locator("#systems-table[data-enhanced='true']").wait_for(state="attached", timeout=15000)
     assert page.locator("#systems-table .datatable-count-line").inner_text() == "130 systems"
 
-    page.locator("#systems-table th[data-col='binary'] .datatable-sort").click()
-    page.locator("#systems-table th[data-col='binary'][aria-sort='ascending']").wait_for(state="attached")
-    assert parse_qs(urlparse(page.url).query) == {"systems_sort": ["binary"]}
+    page.locator("#systems-table th[data-col='octant'] .datatable-sort").click()
+    page.locator("#systems-table th[data-col='octant'][aria-sort='ascending']").wait_for(state="attached")
+    assert parse_qs(urlparse(page.url).query) == {"systems_sort": ["octant"]}
 
     facet = page.locator("#systems-table .datatable-facet", has_text="Stars")
     facet.locator("summary").click()
@@ -491,12 +501,12 @@ def test_a_table_keeps_its_sort_and_filter_across_a_reload(page, table_site):
     page.locator("#systems-table .datatable-count-line", has_text="65 systems match") \
         .wait_for(state="attached", timeout=10000)
     query = parse_qs(urlparse(page.url).query)
-    assert query["systems_sort"] == ["binary"] and query["binary"] == ["yes"]
+    assert query["systems_sort"] == ["octant"] and query["binary"] == ["yes"]
 
     # A reload renders the table the way it was left.
     page.reload()
     page.locator("#systems-table[data-enhanced='true']").wait_for(state="attached", timeout=15000)
-    assert page.locator("#systems-table th[data-col='binary']").get_attribute("aria-sort") == "ascending"
+    assert page.locator("#systems-table th[data-col='octant']").get_attribute("aria-sort") == "ascending"
     assert page.locator("#systems-table .datatable-count-line").inner_text() == "65 systems match"
 
 
@@ -515,11 +525,11 @@ def test_the_systems_jump_box_begins_the_list_at_a_typed_name(page, table_site):
     assert parse_qs(urlparse(page.url).query) == {"systems_from": ["Drifting 100"]}
 
     # A sort with no box drops the start and hides the box; the name sort again begins at the top.
-    page.locator("#systems-table th[data-col='binary'] .datatable-sort").click()
-    page.locator("#systems-table th[data-col='binary'][aria-sort='ascending']").wait_for(state="attached")
+    page.locator("#systems-table th[data-col='octant'] .datatable-sort").click()
+    page.locator("#systems-table th[data-col='octant'][aria-sort='ascending']").wait_for(state="attached")
     page.locator("#systems-table .datatable-count-line", has_text="130 systems").wait_for(state="attached")
     assert not page.locator("#systems-table .datatable-jump").is_visible()
-    assert parse_qs(urlparse(page.url).query) == {"systems_sort": ["binary"]}
+    assert parse_qs(urlparse(page.url).query) == {"systems_sort": ["octant"]}
 
     # The address gives the same list on a reload, and the link beside the box goes back to the top.
     page.goto(f"{table_site}/systems?systems_from=Drifting+100", wait_until="load")
@@ -818,3 +828,21 @@ def test_every_filtered_table_keeps_its_apply_button(page, table_site, admin_sit
         assert page.goto(f"{base}{path}", wait_until="load").status == 200
         page.locator(f"{root} [data-datatable][data-enhanced='true']").wait_for(state="attached", timeout=15000)
         assert page.locator(f"{root} .datatable-apply").is_visible(), root
+
+
+def test_search_finds_a_known_binary_and_a_known_triple_by_the_stars_filter(page, table_site):
+    """UX.239: the Stars menu of the search form, and `stars:3` typed into the search box."""
+    assert page.goto(f"{table_site}/search", wait_until="load").status == 200
+    page.select_option("#search-star-count", label="Trinary")
+    page.locator("#search-filters-form button[type=submit]").click()
+    page.wait_for_url("**/search?stars=3")
+    systems = page.locator("#search-systems")
+    systems.wait_for(state="attached", timeout=15000)
+    assert "Triple Fixture" in systems.inner_text()
+    assert "Binary Fixture" not in systems.inner_text() and "Quad Fixture" not in systems.inner_text()
+
+    assert page.goto(f"{table_site}/search?q=stars:binary", wait_until="load").status == 200
+    systems = page.locator("#search-systems")
+    systems.wait_for(state="attached", timeout=15000)
+    assert "Binary Fixture" in systems.inner_text() and "Triple Fixture" not in systems.inner_text()
+    assert "Stars: Binary" in page.locator(".active-filters").inner_text()

@@ -1,0 +1,26 @@
+{
+ "title": "Potassium depletion of the bulk silicate of differentiated bodies against CI chondrites (GEN.492)",
+ "source": "Dauphas et al. 2022, Planetary Science Journal 3:29 (arXiv-free open access, doi 10.3847/PSJ/ac2e09), Table 1: weight ratios K/U of the bulk silicate Earth, Moon, Mars and Vesta, the angrite parent body (ADOR angrite) and the Mercury surface (MESSENGER), with CI chondrites from Barrat et al. 2012",
+ "label": "READ",
+ "reference": {"name": "CI chondrites", "k_ppm": 550.0, "u_ppm": 0.0077, "k_over_u": 71429.0},
+ "bodies": [
+  {"name": "bulk silicate Earth", "mass_earth": 1.0, "k_over_u": 9704.0, "sigma": 2054.0},
+  {"name": "bulk silicate Mars", "mass_earth": 0.1074, "k_over_u": 17331.0, "sigma": 1771.0},
+  {"name": "Mercury (surface)", "mass_earth": 0.0553, "k_over_u": 14311.0, "sigma": 4108.0},
+  {"name": "bulk silicate Moon", "mass_earth": 0.0123, "k_over_u": 2448.0, "sigma": 140.0},
+  {"name": "bulk silicate Vesta", "mass_earth": 4.3e-5, "k_over_u": 4140.0, "sigma": 805.0},
+  {"name": "angrite parent body", "mass_earth": null, "k_over_u": 129.0, "sigma": 74.0}
+ ],
+ "chondrites": [
+  {"name": "CM", "k_over_u": 36364.0},
+  {"name": "CO", "k_over_u": 26538.0},
+  {"name": "CV", "k_over_u": 18235.0},
+  {"name": "H", "k_over_u": 65000.0},
+  {"name": "L", "k_over_u": 63462.0},
+  {"name": "LL", "k_over_u": 60769.0},
+  {"name": "EH", "k_over_u": 88889.0},
+  {"name": "EL", "k_over_u": 73500.0}
+ ],
+ "class_mass_earth": 0.03,
+ "note": "Masses of the bodies are the standard planetary values; the angrite parent body has no mass in the paper (a differentiated planetesimal) and joins the small bodies. The mass that separates the two classes lies in the gap between the Moon (0.0123) and Mercury (0.0553)."
+}

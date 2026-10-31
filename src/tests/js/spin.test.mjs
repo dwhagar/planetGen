@@ -20,13 +20,13 @@ test("a day of a few hours shows about a turn in half a minute, never faster tha
 
 test("the slowest period shows one turn in ten minutes and nothing is slower", () => {
   near(S.secondsPerTurn(S.SLOWEST_PERIOD_HOURS), S.SLOWEST_SECONDS_PER_TURN);
-  near(S.secondsPerTurn(243 * 24), S.SLOWEST_SECONDS_PER_TURN, 1e-9);
+  near(S.secondsPerTurn(S.SLOWEST_PERIOD_HOURS * 3), S.SLOWEST_SECONDS_PER_TURN, 1e-9);
   assert.equal(S.FASTEST_SECONDS_PER_TURN, 20);
   assert.equal(S.SLOWEST_SECONDS_PER_TURN, 600);
 });
 
 test("one law for every body keeps the order of speeds: a longer period never turns faster", () => {
-  const periods = [0.5, 2, 5, 10, 24, 100, 600, 1000, 5000];
+  const periods = [0.5, 2, 5, 10, 24, 100, 600, 1000, 5000, 20000];
   const rates = periods.map((p) => S.rateOf({ spinH: p }));
   for (let n = 1; n < rates.length; n += 1) assert.ok(rates[n] <= rates[n - 1], `${periods[n]} h is faster than ${periods[n - 1]} h`);
   assert.ok(rates[3] > rates[4] && rates[4] > rates[5], "inside the range the order is strict");
@@ -125,4 +125,48 @@ test("a point of a body's picture is found in the body's own frame, its axis lea
   near(S.bodyPoint({ tiltDeg: 90 }, 0, 1, 0)[1], 0);
   // Past 90 degrees the picture shows the south pole at the top: a body that turns the other way.
   near(S.bodyPoint({ tiltDeg: 180 }, 0, 1, 0)[1], -Math.PI / 2);
+});
+
+test("a slow rotator still turns visibly and a year-long day is told apart from a 47-day one (UX.244)", () => {
+  const forty7 = S.secondsPerTurn(46.8 * 24);
+  const venus = S.secondsPerTurn(243 * 24);
+  assert.ok(forty7 > 100 && forty7 < 350, `${forty7}`);
+  assert.ok(venus > forty7 && venus < S.SLOWEST_SECONDS_PER_TURN, "not clamped to the slowest turn");
+  assert.ok(S.rateOf({ spinH: 46.8 * 24 }) > 2 * Math.PI / 400, "a quarter of a degree a second at least");
+});
+
+test("a locked body turns to keep its longitude 0 toward what it orbits, wherever it is, about any axis", () => {
+  const look = { spinH: 1123, seed: 7, locked: true };
+  for (const axis of [[0, 1, 0], [0.3, 0.9, 0.2], [1, 0, 0], [0, -1, 0], [0.6, -0.6, 0.5]]) {
+    for (const toward of [[1, 0, 0], [0, 0, -1], [-0.5, 0.2, 0.7], [0.2, 0.9, -0.1]]) {
+      const mesh = new THREE.Mesh(new THREE.SphereGeometry(1, 8, 6));
+      S.turn(THREE, mesh, look, 12345, axis, toward);
+      const face = new THREE.Vector3(1, 0, 0).applyQuaternion(mesh.quaternion);
+      const pole = new THREE.Vector3(0, 1, 0).applyQuaternion(mesh.quaternion);
+      const ax = new THREE.Vector3(...axis).normalize();
+      near(pole.dot(ax), 1, 1e-9);
+      // The face is the direction to the parent as far as the axis allows: its part off the axis lies along the parent's.
+      const t = new THREE.Vector3(...toward).normalize();
+      const wanted = t.clone().sub(ax.clone().multiplyScalar(t.dot(ax)));
+      if (wanted.length() < 1e-6) continue;
+      near(face.clone().normalize().dot(wanted.normalize()), 1, 1e-9);
+    }
+  }
+});
+
+test("a locked body is not turned by the display law, and an unlocked one ignores the direction given", () => {
+  const mesh = new THREE.Mesh(new THREE.SphereGeometry(1, 8, 6));
+  S.turn(THREE, mesh, { spinH: 1123, seed: 7, locked: true }, 0, null, [0, 0, 1]);
+  const first = new THREE.Vector3(1, 0, 0).applyQuaternion(mesh.quaternion);
+  S.turn(THREE, mesh, { spinH: 1123, seed: 7, locked: true }, 500, null, [0, 0, 1]);
+  const later = new THREE.Vector3(1, 0, 0).applyQuaternion(mesh.quaternion);
+  near(first.distanceTo(later), 0, 1e-9);
+  const free = { spinH: 24, seed: 7 };
+  S.turn(THREE, mesh, free, 0, null, [0, 0, 1]);
+  const a = new THREE.Vector3(1, 0, 0).applyQuaternion(mesh.quaternion);
+  S.turn(THREE, mesh, free, 50, null, [0, 0, 1]);
+  assert.ok(a.distanceTo(new THREE.Vector3(1, 0, 0).applyQuaternion(mesh.quaternion)) > 0.1);
+  assert.equal(S.isLocked({ locked: true }), true);
+  assert.equal(S.isLocked({}), false);
+  assert.equal(S.isLocked(null), false);
 });

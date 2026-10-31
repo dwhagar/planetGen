@@ -35,6 +35,7 @@ import numpy as np
 
 from planetgen import tuning
 from planetgen.generation import mass_ratio, multistar
+from planetgen.util import detmath
 from planetgen.generation.phenomena import hosts
 from planetgen.physics import imf, mass_boundaries
 
@@ -75,7 +76,8 @@ def _solve():
         rows = slice(i, end)
         share = (ratios.fraction_below(edges[i + 1] / centre[rows], rows) - ratios.fraction_below(edges[i] / centre[rows], rows))
         own = n_c[i] * share[0]
-        from_heavier = float(np.dot(primaries[i + 1:end], n_c[i + 1:end] * share[1:]))
+        heavier = n_c[i + 1:end] * share[1:]
+        from_heavier = float(detmath.matmul(primaries[i + 1:end], heavier[:, None])[0]) if heavier.size else 0.0
         primaries[i] = max(0.0, (born[i] - from_heavier) / (1.0 + own))
     return edges, primaries
 

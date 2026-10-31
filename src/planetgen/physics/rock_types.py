@@ -28,9 +28,9 @@ basalt; the upper continental crust (Rudnick and Gao 2014 Table 11) is felsic an
 Limits. The norm has no hydrous or carbonate minerals, no sulfur and no peralkaline allocation (acmite and sodium metasilicate): a rock whose alkalis exceed its
 alumina is refused. The melt is a staged allocation, not a phase-equilibrium calculation (MELTS or pMELTS would give the real liquid at a pressure; the real
 first melts of a peridotite are alkaline and richer in the pyroxene's magnesium than the stage mix gives); the iron split between minerals is proportional
-(one Fe/(Fe+Mg) for all the mafic minerals, so the norm's olivine is not as magnesian as a real one). The ground type has no mixed or sedimentary rocks. Nothing in generation calls this
-yet: the wiring step has the surface draw take the primary and secondary crust from the stored mantle through here and replaces the fixed assemblages of `GROUND_TYPES`
-with the norm of the crust, the library remaining the calibration.
+(one Fe/(Fe+Mg) for all the mafic minerals, so the norm's olivine is not as magnesian as a real one). The ground type has no mixed or sedimentary rocks. Wired (GEN.474): the surface draw
+takes the volcanic (secondary) crust of a body from its stored mantle through `rock_oxides`, `partial_melt` and `ground_type_of`; the library of `GROUND_TYPES` stays as the
+assemblages of the types and as the calibration.
 """
 
 import math
@@ -168,10 +168,6 @@ def cipw_norm(oxides):
     return {name: units[name] * _mass(name, iron) for name in MINERALS if units[name] > 0.0}
 
 
-def mafic_share(norm):
-    """The share of the norm that is mafic: diopside, wollastonite, hypersthene, olivine, periclase and the iron-titanium oxides."""
-    total = sum(norm.values())
-    return sum(norm.get(name, 0.0) for name in ("diopside", "wollastonite", "hypersthene", "olivine", "periclase", "magnetite", "hematite", "ilmenite")) / total
 
 
 @finite_domain()
@@ -225,10 +221,24 @@ def batch_enrichment(melt_fraction, partition=INCOMPATIBLE_D):
 
 
 @finite_domain()
+def rock_oxides(feo_fraction, al2o3_fraction, mg_si_ratio, ca_over_mg):
+    """
+    The oxides of a rock the generator stores as a few numbers, in weight percent adding to 100: `MgO` and `SiO2` in the molar `mg_si_ratio` (Mg/Si), `CaO` at `ca_over_mg` Ca atoms
+    per Mg atom (the star's), and `Al2O3` and `FeO` as the given mass fractions of the whole rock. The alkalis, titanium and phosphorus are not stored and are zero (the norm then
+    has anorthite for its feldspar and no orthoclase or albite).
+    """
+    if not (0.0 <= feo_fraction and 0.0 <= al2o3_fraction and feo_fraction + al2o3_fraction < 1.0 and mg_si_ratio > 0.0 and ca_over_mg >= 0.0):
+        raise ValueError("the oxide fractions must be non-negative and leave room for the rest of the rock, with Mg/Si positive")
+    mgo, sio2, cao = _MASS["MgO"], _MASS["SiO2"] / mg_si_ratio, ca_over_mg * _MASS["CaO"]
+    rock = (mgo + sio2 + cao) / (1.0 - feo_fraction - al2o3_fraction)
+    parts = {"SiO2": sio2, "MgO": mgo, "CaO": cao, "Al2O3": al2o3_fraction * rock, "FeO": feo_fraction * rock}
+    return {oxide: 100.0 * mass / rock for oxide, mass in parts.items()}
+
+
+@finite_domain()
 def ground_type_of(oxides):
     """
-    The ground type the oxides make, one of `anorthositic`, `ultramafic`, `basaltic`, `intermediate` or `felsic` (the generator's ground types of the same names;
-    `intermediate` has no row in `surface_composition.GROUND_TYPES` yet).
+    The ground type the oxides make, one of `anorthositic`, `ultramafic`, `basaltic`, `intermediate` or `felsic` (the generator's ground types of the same names).
     """
     norm = cipw_norm(oxides)
     total = sum(oxides.values())

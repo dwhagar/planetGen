@@ -29,7 +29,7 @@ back), when a scatter is drawn or cleared, and when luminosities are filled, so:
   `planetgen fill-block-totals`, the migration, and what a scatter does at its end.
 """
 
-from planetgen.db import query
+from planetgen.db import query, store
 from planetgen.galaxy.drill import DRILL_LEVELS, DRILL_STEP, DrillBlock, drill_children, drill_block_sectors, drill_chain_of, drill_parent
 from planetgen.physics import constants
 
@@ -50,6 +50,9 @@ COLUMNS = ("m", "shell_index", "band_index", "wedge_index") + SUMS
 """tuple: The table's columns in the order `rows` writes them."""
 
 INSERT = f"INSERT INTO galaxy_block_lights ({', '.join(COLUMNS)}) VALUES ({', '.join('?' for _ in COLUMNS)})"
+
+_INSERT_HEAD = f"INSERT INTO galaxy_block_lights ({', '.join(COLUMNS)}) VALUES "
+_WRITE_ROWS = 1000
 
 _PC_PER_MPC = 1.0e-3
 _SOL_W = constants.SOLAR_LUMINOSITY
@@ -176,6 +179,19 @@ def refresh_sectors(conn, addresses, on_progress=None):
     return written
 
 
+def _not_a_number(value):
+    raise TypeError(f"a block light row holds only ints and floats, not {value!r}")
+
+
+def _write_rows(conn, rows):
+    """Inserts `rows` (`_row` tuples, plain ints and floats) as multi-row INSERTs of `_WRITE_ROWS` rows. The text is
+    made by `store._row_literal`, not by the driver's per-value dispatch, which was a third of a unit's time at
+    2.5 million rows per unit (PERF.190)."""
+    for start in range(0, len(rows), _WRITE_ROWS):
+        conn.execute_literal(_INSERT_HEAD + ",".join(
+            store._row_literal(_not_a_number, None, row) for row in rows[start:start + _WRITE_ROWS]))
+
+
 def _unit_of(shell):
     """The unit a sector shell is rebuilt in: the shell of the level-`UNIT_LEVEL` block holding it."""
     return shell // UNIT_LEVEL
@@ -257,8 +273,7 @@ def _above_unit(conn):
                 into[index] += value
             parent = drill_parent(parent)
     rows = [_row(block, sums) for block, sums in sorted(cells.items(), key=lambda item: _order(item[0]))]
-    for start in range(0, len(rows), 1000):
-        conn.executemany(INSERT, rows[start:start + 1000])
+    _write_rows(conn, rows)
     return len(rows)
 
 
@@ -283,8 +298,7 @@ def rebuild(conn, on_progress=None, on_phase=None):
     written = 0
     for done, unit in enumerate(sorted(units), start=1):
         for batch in _unit_batches(conn, units[unit]):
-            for start in range(0, len(batch), 1000):
-                conn.executemany(INSERT, batch[start:start + 1000])
+            _write_rows(conn, batch)
             written += len(batch)
         conn.commit()
         if on_progress is not None:

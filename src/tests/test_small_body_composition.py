@@ -10,14 +10,20 @@ import statistics
 import pytest
 
 from planetgen.generation import possibility_table as pt
-from planetgen.physics import compaction
+from planetgen.physics import compaction, condensate_shares
 from planetgen.physics import small_body_composition as sb
 from planetgen.util import draw
 
 
-def _belts(x, count, seed):
+SUN_W = 3.828e26
+WATER_LINE_AU = condensate_shares.ice_line_au(SUN_W)        # where a blackbody round the Sun is as cold as the water line of the derived kernel
+AL26 = 5.2e-5
+
+
+def _belts(x, count, seed, al26=AL26):
+    """Belts at `x` times the water line of a Sun-like star, round a star born with `al26`."""
     with draw.bound(seed):
-        return [sb.draw_belt(x * 2.7, 2.7) for _ in range(count)]
+        return [sb.draw_belt(x * WATER_LINE_AU, SUN_W, al26) for _ in range(count)]
 
 
 def _comets(count, seed, **kwargs):
@@ -35,22 +41,10 @@ def test_the_taxon_table_is_registered_gated_by_kind_and_every_row_is_a_stand_in
     pt.REGISTRY.validate()
     assert sb.REPLACEMENT in pt.REGISTRY.report()
     for kind in (sb.BELT, sb.FIELD):
-        total = math.fsum(p for _row, p in table.probabilities(pt.Subject(kind, {"x": 1.0})))
+        total = math.fsum(p for _row, p in table.probabilities(pt.Subject(kind, {"temperature_k": 150.0, "al26_ratio": AL26})))
         assert total == pytest.approx(1.0, abs=1e-12)
     with pytest.raises(pt.PossibilityError):
-        table.probabilities(pt.Subject("planet", {"x": 1.0}))
-
-
-def test_the_kernel_adds_up_to_one_interpolates_and_holds_beyond_the_table():
-    for x in (0.1, 0.66, 0.72, 0.9, 1.0, 1.1, 1.3, 1.5, 1.7, 1.9, 5.0):
-        weights = sb.kernel(x)
-        assert math.fsum(weights.values()) == pytest.approx(1.0, abs=1e-12) and set(weights) == set(sb.TAXA)
-    assert sb.kernel(0.2) == sb.kernel(0.5) and sb.kernel(3.0) == sb.kernel(10.0)
-    assert sb.kernel(0.983)["C"] == pytest.approx(0.70 / 0.97, rel=0.01)       # the middle belt's centre
-    a, b = sb.kernel(1.0), sb.kernel(1.01)
-    assert max(abs(a[t] - b[t]) for t in sb.TAXA) < 0.02                         # continuous
-    with pytest.raises(ValueError):
-        sb.kernel(0.0)
+        table.probabilities(pt.Subject("planet", {"temperature_k": 150.0, "al26_ratio": AL26}))
 
 
 def test_the_taxa_are_mixes_of_the_shared_table_with_grain_densities_near_their_analogues():
@@ -89,33 +83,44 @@ def test_a_belt_has_shares_that_add_up_and_a_density_that_follows_them():
         assert belt.bulk_density_kg_m3 < belt.grain_density_kg_m3
 
 
-def test_a_belt_moves_with_its_distance_over_the_snow_line_in_the_physical_direction():
+def test_a_belt_moves_with_its_distance_over_the_water_line_in_the_physical_direction():
     water, density = {}, {}
-    for x in (0.7, 0.85, 1.0, 1.25, 1.5, 1.95):
+    xs = (0.7, 0.85, 1.0, 1.25, 1.5, 1.95)
+    for x in xs:
         belts = _belts(x, 150, seed=11)
         water[x] = statistics.mean(b.water for b in belts)
         density[x] = statistics.mean(b.bulk_density_kg_m3 for b in belts)
     assert water[0.7] < 0.02 and water[1.95] > 0.1                              # dry and igneous inside, ice-rich beyond
-    ordered = [water[x] for x in (0.7, 0.85, 1.0, 1.25, 1.5, 1.95)]
+    ordered = [water[x] for x in xs]
     assert all(b >= a - 0.005 for a, b in zip(ordered, ordered[1:])), water
     assert density[1.95] < density[0.85] and density[1.0] < density[0.85]       # the ice-rich outer belt is lighter than the dry inner one
+    dry = ("S", "A", "K", "L", "M", "V")
     inner = _belts(0.85, 150, seed=5)
-    assert statistics.mean(b.detail["taxon_shares"]["V"] + b.detail["taxon_shares"]["S"] for b in inner) > 0.5
+    assert statistics.mean(sum(b.detail["taxon_shares"][t] for t in dry) for b in inner) > 0.6
     middle = _belts(1.0, 150, seed=5)
-    assert statistics.mean(b.detail["taxon_shares"]["C"] for b in middle) > 0.4
+    assert statistics.mean(b.detail["taxon_shares"]["C"] for b in middle) > 0.3
     outer = _belts(1.95, 150, seed=5)
     assert statistics.mean(b.detail["taxon_shares"]["D"] + b.detail["taxon_shares"]["P"] for b in outer) > 0.6
 
 
-def test_the_snow_line_not_the_distance_sets_the_zone():
-    near = _belts(1.0, 5, seed=2)
-    hot = [sb.draw_belt(2.0, 2.0) for _ in range(1)]
-    assert hot[0].detail["x"] == 1.0
-    assert near[0].detail["x"] == pytest.approx(1.0)
-    with pytest.raises(ValueError):
-        sb.draw_belt(0.0, 2.7)
-    with pytest.raises(ValueError):
-        sb.draw_belt(2.0, 0.0)
+def test_the_aluminium_26_of_the_star_sets_how_igneous_the_dry_belt_is():
+    """GEN.473: a star born without aluminium-26 has an undifferentiated dry belt; one born with the Solar System's has a core, mantle and crust share."""
+    igneous = ("M", "A", "V")
+    cold = statistics.mean(sum(b.detail["taxon_shares"][t] for t in igneous) for b in _belts(0.7, 100, seed=3, al26=1e-7))
+    hot = statistics.mean(sum(b.detail["taxon_shares"][t] for t in igneous) for b in _belts(0.7, 100, seed=3, al26=2e-4))
+    assert cold < 0.02 and hot > 0.4
+
+
+def test_the_disk_temperature_and_not_the_distance_sets_the_zone():
+    """A brighter star puts the same zone farther out: the belt is the same at the same disk temperature, and the draw says which temperature."""
+    near = sb.draw_belt(WATER_LINE_AU, SUN_W, AL26)
+    bright = sb.draw_belt(2.0 * WATER_LINE_AU, 4.0 * SUN_W, AL26)
+    assert bright.detail["temperature_k"] == pytest.approx(near.detail["temperature_k"])
+    assert near.detail["temperature_k"] == pytest.approx(condensate_shares.ICE_CONDENSATION_K["H2O"], rel=1e-3)
+    assert near.detail["al26_ratio"] == AL26
+    for bad in ((0.0, SUN_W, AL26), (2.0, 0.0, AL26), (2.0, SUN_W, -1e-5)):
+        with pytest.raises(ValueError):
+            sb.draw_belt(*bad)
 
 
 # --- a comet -----------------------------------------------------------------------------------------------------
@@ -223,7 +228,7 @@ def test_a_makeup_converts_to_lane_is_bulk_fractions_when_they_exist():
 
 def _worker(seed):
     with draw.bound(seed):
-        belt = sb.draw_belt(3.1, 2.8)
+        belt = sb.draw_belt(3.1, SUN_W, AL26)
         comet = sb.draw_comet("halley_type")
         icy = sb.draw_icy_body(sb.DWARF_PLANET)
         ring = sb.draw_ring(1.4)
@@ -247,10 +252,38 @@ def test_a_comets_organics_take_the_shared_tables_density_not_a_separate_one():
     prop = row.props["rho_grain_g_cm3"]
     assert prop.value == 1.5
     assert tuple(prop.measured_range) == (1.0, 2.0)
-    # GEN.660: the 2 g/cm3 that Choukroun et al. 2020 is reported to give is the top of the table's range, and the row says so.
+    # GEN.660: the 2 g/cm3 that Choukroun et al. 2020 gives (section 3.3, read) is the top of the table's range, and the row says so.
     assert prop.measured_range[1] >= 2.0 and "Choukroun" in row.note
     comet = sb.draw_comet()
     assert "complex_organics" not in comet.densities
     assert sb.REFRACTORY_DENSITIES == {"silicate_dust": 3500.0}
     organics_only = compaction.grain_density_kg_m3({"complex_organics": 1.0})
     assert organics_only == pytest.approx(1500.0)
+
+
+def test_a_belt_names_the_chondrite_group_its_mean_grains_are_nearest():
+    """GEN.475: the group is written into the draw's detail, and it is a group of the map or `none`; a dry inner belt is never named a carbonaceous group's ice-rich kin."""
+    from planetgen.physics import meteorite_groups
+    allowed = {*meteorite_groups.CHONDRITE_GROUPS, meteorite_groups.NONE}
+    dry = _belts(0.5, 40, 5)
+    wet = _belts(3.0, 40, 6)
+    assert all(b.detail["group"] in allowed and b.detail["group_distance"] >= 0.0 for b in dry + wet)
+    assert len({b.detail["group"] for b in dry}) > 1, "the group follows the draw, it is not one fixed word"
+    assert {b.detail["group"] for b in wet} == {meteorite_groups.NONE}, "an icy belt is far from every chondrite group"
+
+
+def test_the_group_axes_of_a_pure_mix_are_the_volume_shares_of_its_rows():
+    pure_metal = sb.group_axes({"kamacite": 0.6, "taenite": 0.4})
+    assert pure_metal[0] is None and pure_metal[1] == pytest.approx(100.0) and pure_metal[2:] == (0.0, 0.0)
+    olivine = sb.group_axes({"forsterite": 0.8, "fayalite": 0.2, "serpentine": 0.0})
+    assert olivine[0] is not None and 5.0 < olivine[0] < 30.0 and olivine[1:] == (0.0, 0.0, 0.0)
+
+
+def test_the_group_costs_no_draw():
+    with draw.bound(11):
+        first = sb.draw_belt(2.0, SUN_W, AL26)
+        after_first = draw.uniform(0.0, 1.0)
+    with draw.bound(11):
+        sb.draw_belt(2.0, SUN_W, AL26)
+        assert draw.uniform(0.0, 1.0) == after_first
+    assert first.detail["group"]

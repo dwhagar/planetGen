@@ -46,10 +46,12 @@ _NO_COMPANIONS = 1.0e-12
 companion is as heavy as it (the ratio 1)."""
 
 
-def floor_ratio(mass_sol):
+def floor_ratio(mass_sol, floor_sol=None):
     """The lowest mass ratio a companion of a primary of `mass_sol` solar masses can have: `tuning.BINARY_MASS_RATIO_RANGE`'s
-    low end, no lower than puts the companion under the hydrogen-burning limit (GEN.899); one for a primary under the limit."""
-    return np.minimum(np.maximum(_LOW, mass_boundaries.sol("hydrogen_burning_limit") / np.asarray(mass_sol, dtype=float)), _HIGH)
+    low end, no lower than puts the companion under the hydrogen-burning limit (GEN.899), or under `floor_sol` solar masses when the
+    place's own limit is higher (GEN.936); one for a primary under the limit."""
+    floor_sol = mass_boundaries.sol("hydrogen_burning_limit") if floor_sol is None else floor_sol
+    return np.minimum(np.maximum(_LOW, floor_sol / np.asarray(mass_sol, dtype=float)), _HIGH)
 
 
 def _blend(table, masses):
@@ -70,9 +72,9 @@ def _integral(a, b, gamma):
 class Ratios:
     """The mass-ratio laws of a list of primary masses (solar masses): one mix of four laws, one per period, for each."""
 
-    def __init__(self, masses):
+    def __init__(self, masses, floor_sol=None):
         masses = np.atleast_1d(np.asarray(masses, dtype=float))
-        self.floor = floor_ratio(masses)
+        self.floor = floor_ratio(masses, floor_sol)
         self.weight = _blend([values for _mass, values in tuning.COMPANIONS_PER_DECADE_BY_PRIMARY_MASS], masses)
         self.small = _blend(tuning.MASS_RATIO_SMALL_Q_SLOPE, masses)
         self.large = _blend(tuning.MASS_RATIO_LARGE_Q_SLOPE, masses)
@@ -183,9 +185,10 @@ def _clamp(ratio):
     return min(max(ratio, _LOW), _HIGH)
 
 
-def draw(mass_sol, unit):
-    """The mass ratio of a companion of a primary born with `mass_sol` solar masses at `unit` (0 to 1) of the way through the law."""
-    return Ratios(mass_sol).sample(unit)
+def draw(mass_sol, unit, floor_sol=None):
+    """The mass ratio of a companion of a primary born with `mass_sol` solar masses at `unit` (0 to 1) of the way through the law, no
+    lighter than `floor_sol` solar masses (the hydrogen-burning limit when None)."""
+    return Ratios(mass_sol, floor_sol).sample(unit)
 
 
 def mean_ratio(mass_sol):

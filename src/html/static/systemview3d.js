@@ -27,13 +27,15 @@ const { makeBandTexture, makeGlowMaterial, paintedTexture } = await import(`./bo
 const Spin = await import(`./spin.js${VERSION_QUERY}`);
 const { makeCache, makeQueue, tierForDiameter, TIER_SIZES } = await import(`./bodytexture.js${VERSION_QUERY}`);
 const { paintSolid } = await import(`./solidpaint.js${VERSION_QUERY}`);
+const { isLumpy, lumpyGeometry } = await import(`./lumpymesh.js${VERSION_QUERY}`);
 const { paintStar } = await import(`./starpaint.js${VERSION_QUERY}`);
 const { createPointerControl, orbitByDrag, orbitByKey, panInScreenPlane, wheelPixels } = await import(`./mapcontrol.js${VERSION_QUERY}`);
 const { fitRendererToCanvas, watchResize } = await import(`./mapcore.js${VERSION_QUERY}`);
+const { watchWindowFit } = await import(`./mapfit.js${VERSION_QUERY}`);
 const { createPicker, createTooltip, infoPanelOf } = await import(`./mappick.js${VERSION_QUERY}`);
 const { navActions, nearbyLinks, viewLink } = await import(`./systemnav.js${VERSION_QUERY}`);
 const { fitDistance: framingDistance } = await import(`./flytofit.js${VERSION_QUERY}`);
-const { orbitPath, relativeAt, cometOrbitFields } = await import(`./orbitpositions.js${VERSION_QUERY}`);
+const { orbitPath, nodePaths, relativeAt, cometOrbitFields } = await import(`./orbitpositions.js${VERSION_QUERY}`);
 const { createLayout, layoutPositions, MODE_COMPRESSED } = await import(`./systemscale.js${VERSION_QUERY}`);
 const { formatBodyRadiusKm, formatDistanceKm, formatPeriodYears } = await import(`./unitladder.js${VERSION_QUERY}`);
 const { convert } = await import(`./unitregistry.js${VERSION_QUERY}`);
@@ -67,9 +69,16 @@ function colorOf(body) {
 }
 
 // The shell of a planet's air, as the System Map draws it (systemmap.js).
+// MAP.277: the glow of a body's air reaches `look.glowWidth` radii past the limb (this many when the look does not say: the composition of the air is not stored),
+// as strongly as `look.glowStrength`; the night side is lit by the light the air scatters round the terminator, `look.twilight` (none for a world with no air).
 const AIR_SHELL = 1.14;
 const AIR_GLOW_POWER = 1.4;
-const AIR_GLOW_STRENGTH = 0.7;
+const NIGHT_FILL_NO_LOOK = 0.12;      // a body with no look record (what the system view draws as a plain sphere) keeps the old fill
+const NIGHT_FILL_NO_AIR = 0.04;
+const NIGHT_FILL_PER_TWILIGHT = 0.494;
+function nightFill(look) {
+  return look ? NIGHT_FILL_NO_AIR + NIGHT_FILL_PER_TWILIGHT * (look.twilight || 0) : NIGHT_FILL_NO_LOOK;
+}
 
 function lineFrom(layout, around, rel, color, opacity) {
   const points = rel.map((p) => new THREE.Vector3(...layout.place(around, p)));
@@ -123,11 +132,12 @@ export function buildSystemScene(scene, layout, options) {
     const body = item.body;
     const radius = Math.max(layout.radiusOf(item.ref), 1e-9);
     const color = colorOf(body);
+    const lump = isLumpy(body.look) ? lumpyGeometry(THREE, body.look, SPHERE_SEGMENTS[0], SPHERE_SEGMENTS[1]) : null;     // MAP.279: a body its weight has not made round
     const mesh = new THREE.Mesh(
-      new THREE.SphereGeometry(1, SPHERE_SEGMENTS[0], SPHERE_SEGMENTS[1]),
+      lump ? lump.geometry : new THREE.SphereGeometry(1, SPHERE_SEGMENTS[0], SPHERE_SEGMENTS[1]),
       item.kind === "star"
         ? new THREE.MeshBasicMaterial({ color: color })
-        : new THREE.MeshLambertMaterial({ color: color, emissive: color, emissiveIntensity: 0.12 }));
+        : new THREE.MeshLambertMaterial({ color: color, emissive: color, emissiveIntensity: nightFill(body.look) }));
     mesh.scale.setScalar(radius);
     mesh.userData.ref = item.ref;
     group.add(mesh);
@@ -141,10 +151,11 @@ export function buildSystemScene(scene, layout, options) {
       mesh.material.map = bands;
       mesh.material.color.set("#ffffff");
     }
-    if (look && look.atm && look.body !== "star" && opts.glow !== false) {
+    if (look && look.glowStrength && look.body !== "star" && opts.glow !== false) {
+      const shell = look.glowWidth ? 1 + look.glowWidth : AIR_SHELL;
       const air = new THREE.Mesh(
-        new THREE.SphereGeometry(1, 20, 14), makeGlowMaterial(THREE, look.glow || "#bcdfff", AIR_GLOW_POWER, AIR_GLOW_STRENGTH, AIR_SHELL));
-      air.scale.setScalar(AIR_SHELL);
+        new THREE.SphereGeometry(1, 20, 14), makeGlowMaterial(THREE, look.glow || "#bcdfff", AIR_GLOW_POWER, look.glowStrength, shell));
+      air.scale.setScalar(shell);
       mesh.add(air);
     }
     if (item.kind === "star") {
@@ -160,35 +171,37 @@ export function buildSystemScene(scene, layout, options) {
       lights.push({ ref: item.ref, light: light });
     }
     const entry = {
-      ref: item.ref, key: item.ref, name: item.name, kind: item.kind, body: body, x: 0, y: 0, z: 0, radius: radius,
+      ref: item.ref, key: item.ref, name: item.name, kind: item.kind, parent: item.parent, body: body, x: 0, y: 0, z: 0, radius: radius,
     };
     entries.push(entry);
     byRef[item.ref] = entry;
 
-    if (item.kind === "planet" || item.kind === "moon" || item.kind === "comet"
-        || (item.kind === "star" && body.orbit)) {
-      // A close pair circles its barycenter, each star at the other's share
-      // of the separation: the second star on (1 - f) of it, the first on
-      // f of it, on the opposite side (MAP.136). Drawing the whole
-      // separation for the second star put its line through the first.
+    if (item.kind === "planet" || item.kind === "moon" || item.kind === "comet") {
       const around = body.orbit.around;
-      const share = item.kind === "star" && around === "barycenter" ? 1 - body.orbit.secondary_mass_fraction : 1;
-      const addTrail = (ref, scale, trailColor) => {
-        const path = orbitPath(body.orbit).map((point) => point.map((c) => c * scale));
-        const line = lineFrom(layout, around, path, trailColor, item.kind === "moon" ? 0.45 : 0.6);
-        line.userData.ref = ref;
-        line.userData.base = { color: line.material.color.clone(), opacity: line.material.opacity };
-        trails[ref] = line;
-        hang(around, line);
-      };
-      addTrail(item.ref, share, color);
-      if (item.kind === "star" && around === "barycenter") {
-        scene.stars.filter((other) => !other.orbit).forEach((other) => {
-          addTrail(other.ref, -body.orbit.secondary_mass_fraction, colorOf(other));
-        });
-      }
+      const path = orbitPath(body.orbit);
+      const line = lineFrom(layout, around, path, color, item.kind === "moon" ? 0.45 : 0.6);
+      line.userData.ref = item.ref;
+      line.userData.base = { color: line.material.color.clone(), opacity: line.material.opacity };
+      trails[item.ref] = line;
+      hang(around, line);
     }
   });
+
+  // MAP.213: the stars' paths are the orbits of the scene's tree, each child of a node on its own ellipse about the node's
+  // centre of mass, the slot-0 child on the other side of it from the slot-1 child, each at the other's share of the
+  // separation (MAP.136); a sub-pair's centre follows its own path about its parent node's centre.
+  if (scene.stars.length) {
+    const colors = {};
+    scene.stars.forEach((star) => { colors[star.ref] = colorOf(star); });
+    nodePaths(scene).forEach((path) => {
+      const trailColor = colors[path.ref] || new THREE.Color("#ffffff");
+      const line = lineFrom(layout, path.around, path.points, trailColor, 0.6);
+      line.userData.ref = path.ref;
+      line.userData.base = { color: line.material.color.clone(), opacity: line.material.opacity };
+      trails[path.ref] = line;
+      hang(path.around, line);
+    });
+  }
 
   // A dot for every body, a few pixels across whatever its size, so a body
   // too small to see at true scale is still found; the sphere covers it once
@@ -252,6 +265,7 @@ export function buildSystemScene(scene, layout, options) {
     for (const ref of Object.keys(placed)) {
       const p = placed[ref];
       const entry = byRef[ref];
+      if (!entry) continue;    // a tree node's centre of mass: a point the stars hang from, not a body
       objects[ref].position.set(p[0], p[1], p[2]);
       entry.x = p[0];
       entry.y = p[1];
@@ -349,8 +363,22 @@ export function buildSystemScene(scene, layout, options) {
   function spin(spinSeconds) {
     entries.forEach((entry) => {
       const look = entry.body.look;
-      if (look && look.spinH > 0 && !entry.hidden) Spin.turn(THREE, objects[entry.ref], look, spinSeconds);
+      if (look && look.spinH > 0 && !entry.hidden) Spin.turn(THREE, objects[entry.ref], look, spinSeconds, null, Spin.isLocked(look) ? towardParent(entry) : null);
     });
+  }
+
+  // UX.244: the direction from a body to what it orbits (a barycentre: the nearest star), for a tidally locked body to keep its face toward.
+  function towardParent(entry) {
+    const own = objects[entry.ref].position;
+    let target = objects[entry.parent];
+    if (!target) {
+      let best = Infinity;
+      entries.forEach((other) => {
+        const distance = other.kind === "star" ? own.distanceToSquared(objects[other.ref].position) : Infinity;
+        if (distance < best) { best = distance; target = objects[other.ref]; }
+      });
+    }
+    return target ? [target.position.x - own.x, target.position.y - own.y, target.position.z - own.z] : null;
   }
 
   function trailReach(ref) {
@@ -688,6 +716,9 @@ export function createSystemView(options) {
   }
 
   const stopWatching = watchResize(canvasEl, function () { fitRendererToCanvas(renderer, camera, canvasEl); });
+  // MAP.359: the 3D system view is as wide as its column and as tall as the Galaxy Map is for the browser window (95% of it).
+  const viewportEl = canvasEl.closest(".sysview-viewport");
+  const stopFitting = viewportEl ? watchWindowFit(viewportEl, null, { fill: true }) : null;
 
   rebuild();
   reset();
@@ -721,7 +752,9 @@ export function createSystemView(options) {
       seed: e.body.look ? e.body.look.seed : null, texture: built.textureKey(e.ref) })),
     // MAP.328, for the browser tests: how far each body has turned, its rate (radians a second) and its axis.
     spins: () => built.entries.map((e) => ({ ref: e.ref, angle: Spin.angleAt(e.body.look, Spin.seconds()),
-      rate: Spin.rateOf(e.body.look), axis: Spin.axisOf(e.body.look), at: Spin.seconds(), quaternion: built.objects[e.ref].quaternion.toArray() })),
+      rate: Spin.rateOf(e.body.look), axis: Spin.axisOf(e.body.look), at: Spin.seconds(), locked: Spin.isLocked(e.body.look), quaternion: built.objects[e.ref].quaternion.toArray() })),
+    // MAP.213, for the browser tests: where each body is drawn now, in world units, and how large.
+    placed: () => built.entries.map((e) => ({ ref: e.ref, kind: e.kind, x: e.x, y: e.y, z: e.z, radius: e.radius })),
     // The bodies by name, for the screen-reader list.
     list: () => built.entries.map((e) => ({ ref: e.ref, name: e.name, kind: e.kind })),
     camera: camera,
@@ -729,6 +762,7 @@ export function createSystemView(options) {
       disposed = true;
       cancelAnimationFrame(frame);
       if (stopWatching) stopWatching();
+      if (stopFitting) stopFitting.stop();
       built.dispose();
       renderer.dispose();
     },

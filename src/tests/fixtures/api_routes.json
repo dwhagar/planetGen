@@ -1,5 +1,5 @@
 {
- "api_version": 11,
+ "api_version": 12,
  "routes": [
   "/api/admin/backups GET",
   "/api/admin/backups POST",
@@ -97,6 +97,7 @@
   "/api/moons/<uid:moon_id> PATCH",
   "/api/moons/<uid:moon_id>/habitable-species GET",
   "/api/moons/<uid:moon_id>/life-air GET",
+  "/api/moons/<uid:moon_id>/life-readings GET",
   "/api/nav GET",
   "/api/nav/chart GET",
   "/api/near GET",
@@ -118,6 +119,7 @@
   "/api/planets/<uid:planet_id> PATCH",
   "/api/planets/<uid:planet_id>/habitable-species GET",
   "/api/planets/<uid:planet_id>/life-air GET",
+  "/api/planets/<uid:planet_id>/life-readings GET",
   "/api/planets/<uid:planet_id>/species GET",
   "/api/polities GET",
   "/api/polities/<int:polity_id> GET",

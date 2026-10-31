@@ -1,18 +1,19 @@
 # tests/test_planet_rings.py
 
 """
-GEN.732: planetary rings. The Roche limit and the optical depth are checked against the four giants of the Solar System; a draw keeps
-every ring inside the Roche limit of its own material and inside the innermost moon; a giant has a ring; a belt and a
+GEN.732, GEN.1057: planetary rings. The Roche limit and the optical depth are checked against the four giants of the Solar System; a built ring keeps
+every ring inside the Roche limit of its own material and inside the innermost moon; a ring is the result of history (a fallen moon, a passing comet); a belt and a
 reclassified body are handled (moons and rogue planets: tests/test_moon_and_rogue_rings.py).
 """
 
 import math
+import types
 
 import pytest
 
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
-from planetgen.physics import moon_composition, rings
+from planetgen.physics import ring_origin, rings
 from planetgen.util import draw
 
 # name: (radius km, mass kg, material density kg/m3, outermost edge of the observed rings km, mean optical-depth case)
@@ -49,23 +50,32 @@ def test_the_mixture_density_is_volume_additive_between_ice_and_rock():
     assert rings.ROCK_DENSITY_KG_M3 > rings.mixture_density_kg_m3(0.5) > rings.ICE_DENSITY_KG_M3
 
 
-def _draws(parent, radius, mass, cold, moons=(), n=400, seed=0):
+MASSES_KG = (1.0e8, 1.0e10, 1.0e15, 1.0e17, 1.5e19, 1.0e21)
+"""tuple: Ring masses across the three kinds, for the geometry tests."""
+
+
+def _builds(radius, mass, cold, moons=(), n=100, seed=0):
     out = []
     with draw.bound(draw.Stream(seed)):
         for _ in range(n):
-            out.append(rings.draw_ring(parent, radius, mass, cold, moons))
+            for ring_mass in MASSES_KG:
+                out.append(rings.build_ring("disrupted_moon", ring_mass, 2.0e8, radius, mass, cold, moons))
     return out
 
 
-def test_a_giant_s_rings_obey_the_physics_the_module_names():
+def test_the_kind_of_a_ring_follows_from_its_mass():
+    assert [rings.kind_of_mass(mass) for mass in MASSES_KG] == ["dusty", "dusty", "narrow", "narrow", "broad", "broad"]
+    assert rings.kind_of_mass(1.5e19) == "broad" and rings.kind_of_mass(1.0e16) == "narrow" and rings.kind_of_mass(1.0e9) == "dusty"
+
+
+def test_a_ring_of_any_kind_obeys_the_physics_the_module_names():
     radius, mass = 60000.0, 5.7e26
     density = _density(radius, mass)
-    drawn = [ring for ring in _draws(moon_composition.GIANT, radius, mass, True) if ring is not None]
-    assert len(drawn) > 350
+    drawn = [ring for ring in _builds(radius, mass, True) if ring is not None]
+    assert len(drawn) > 500
     assert {ring.ring_kind for ring in drawn} == set(rings.KINDS)
     for ring in drawn:
-        low, high = rings.RANGES["mass_kg"][ring.ring_kind]
-        assert low <= ring.ring_mass_kg <= high
+        assert ring.ring_kind == rings.kind_of_mass(ring.ring_mass_kg) and ring.ring_age_yr == 2.0e8
         limit = rings.roche_limit_km(radius, density, rings.mixture_density_kg_m3(ring.ring_ice_fraction))
         assert ring.ring_outer_km <= limit * rings.RANGES["outer_over_roche"][1] * (1 + 1e-9)
         assert radius * rings.RANGES["inner_over_radius"][0] <= ring.ring_inner_km < ring.ring_outer_km
@@ -74,45 +84,45 @@ def test_a_giant_s_rings_obey_the_physics_the_module_names():
 
 
 def test_a_ring_beyond_the_snow_line_keeps_its_ice_and_one_inside_has_none():
-    cold = [r for r in _draws(moon_composition.GIANT, 60000.0, 5.7e26, True) if r and r.ring_kind == "broad"]
-    warm = [r for r in _draws(moon_composition.GIANT, 60000.0, 5.7e26, False) if r and r.ring_kind == "broad"]
+    cold = [r for r in _builds(60000.0, 5.7e26, True) if r and r.ring_kind == "broad"]
+    warm = [r for r in _builds(60000.0, 5.7e26, False) if r and r.ring_kind == "broad"]
     assert cold and warm
     assert all(0.90 <= r.ring_ice_fraction <= 0.99 for r in cold)
     assert all(r.ring_ice_fraction == 0.0 for r in warm)
-    assert all(r.ring_kind != "dusty" or r.ring_ice_fraction == 0.0 for r in _draws(moon_composition.GIANT, 60000.0, 5.7e26, True))
+    assert all(r.ring_kind != "dusty" or r.ring_ice_fraction == 0.0 for r in _builds(60000.0, 5.7e26, True) if r)
 
 
 def test_a_ring_ends_inside_the_innermost_moon():
     inner_moon = 120000.0
-    for ring in _draws(moon_composition.GIANT, 60000.0, 5.7e26, True, moons=[inner_moon, 900000.0]):
+    for ring in _builds(60000.0, 5.7e26, True, moons=[inner_moon, 900000.0]):
         assert ring is None or ring.ring_outer_km <= rings.MOON_CLEARANCE * inner_moon * (1 + 1e-9)
 
 
 def test_a_moon_too_close_leaves_no_room_for_a_ring():
-    assert all(ring is None for ring in _draws(moon_composition.GIANT, 60000.0, 5.7e26, True, moons=[61000.0], n=50))
+    assert all(ring is None for ring in _builds(60000.0, 5.7e26, True, moons=[61000.0], n=20))
 
 
-def test_a_terrestrial_planet_seldom_has_a_ring_and_the_same_seed_gives_the_same_rings():
-    share = sum(r is not None for r in _draws(moon_composition.TERRESTRIAL, 6371.0, 5.97e24, True, n=3000)) / 3000
-    assert 0.0 < share < 0.03
-    first = [r.values() if r else None for r in _draws(moon_composition.GIANT, 60000.0, 5.7e26, True, n=20, seed=7)]
-    again = [r.values() if r else None for r in _draws(moon_composition.GIANT, 60000.0, 5.7e26, True, n=20, seed=7)]
+def test_the_same_seed_gives_the_same_rings():
+    first = [r.values() if r else None for r in _builds(60000.0, 5.7e26, True, n=20, seed=7)]
+    again = [r.values() if r else None for r in _builds(60000.0, 5.7e26, True, n=20, seed=7)]
     assert first == again
 
 
-def _systems():
+def _systems(count=40):
     cfg = SystemConfig()
     cfg.PLANETS = True
     cfg.MAX_PLANETS = True
     cfg.BINARY_SYSTEM = False
-    for seed in range(40):
+    for seed in range(count):
         with draw.bound(seed):
             yield StarSystem(system_config=cfg)
 
 
-def test_generated_giants_have_rings_and_moons_and_belts_have_none():
+def test_a_ring_is_a_result_of_history_and_belts_have_none():
     giants = ringed = 0
-    for system in _systems():
+    for system in _systems(count=200):
+        if giants >= 10:      # giants are rarer since the ice boost fell to 2.17 (GEN.950): generate systems until there are enough to count
+            break
         for planet in system.all_planets:
             if planet.body_type == "a":
                 assert getattr(planet, "ring_kind", None) is None
@@ -124,7 +134,7 @@ def test_generated_giants_have_rings_and_moons_and_belts_have_none():
                 ringed += planet.ring_kind is not None
                 if planet.ring_kind is not None:
                     assert planet.ring_inner_km < planet.ring_outer_km
-    assert giants > 10 and ringed >= 0.8 * giants
+    assert giants >= 10 and 0 < ringed < giants    # GEN.1057: a giant with neither a fallen moon nor a passing comet has no ring
 
 
 def test_a_body_regenerated_as_another_class_loses_its_ring():
@@ -135,3 +145,42 @@ def test_a_body_regenerated_as_another_class_loses_its_ring():
                 assert all(getattr(planet, name) is None for name in rings.BODY_FIELDS)
                 return
     pytest.fail("no ringed planet in 40 systems")
+
+
+def _planet(mass=5.97e24, radius=6371.0, distance=1.0, fallen=(), moons=(), age_gy=4.5, body_type="t", spin_h=10.0):
+    star = types.SimpleNamespace(snow_line_au=3.0, mass=1.989e30, age=age_gy)
+    return types.SimpleNamespace(body_type=body_type, radius=radius, mass=mass, envelope_mass_fraction=0.0, is_moon=False, born_beyond_snow_line=distance >= 3.0,
+                                 distance=distance, star=star, moons=list(moons), fallen_moons=tuple(fallen), rotation_period_hours=spin_h,
+                                 **{name: None for name in rings.BODY_FIELDS})
+
+
+def test_a_planet_with_no_fallen_moon_and_no_comet_has_no_ring():
+    with draw.bound(draw.Stream(3)):
+        rings.apply(planet := _planet(distance=0.3, age_gy=0.001))
+    assert all(getattr(planet, name) is None for name in rings.BODY_FIELDS)
+
+
+def test_a_fallen_moon_leaves_a_disrupted_moon_ring_with_its_age():
+    moon = ring_origin.FallenMoon(2.0e20, 4.0e9)
+    with draw.bound(draw.Stream(3)):
+        rings.apply(planet := _planet(distance=1.0, fallen=(moon,), age_gy=4.5))
+    assert planet.ring_kind is not None and planet.ring_origin == "disrupted_moon"
+    assert planet.ring_age_yr == pytest.approx(5.0e8)
+    assert planet.ring_mass_kg == pytest.approx(ring_origin.spread(ring_origin.RING_RETAINED_FRACTION * 2.0e20, 5.0e8), rel=0.05) or planet.ring_origin == "captured_body"
+
+
+def test_a_planet_inside_the_inner_limit_has_no_ring_even_after_a_moon_fell():
+    with draw.bound(draw.Stream(3)):
+        rings.apply(planet := _planet(distance=0.05, fallen=(ring_origin.FallenMoon(2.0e20, 4.0e9),)))
+    assert planet.ring_kind is None
+
+
+def test_a_dwarf_planet_may_have_a_narrow_resonance_ring_without_an_age():
+    found = []
+    for seed in range(400):
+        with draw.bound(draw.Stream(seed)):
+            rings.apply(planet := _planet(mass=1.0e21, radius=500.0, distance=40.0, body_type="d", spin_h=4.0))
+        if planet.ring_kind is not None:
+            found.append(planet)
+    assert found and all(p.ring_kind == "narrow" and p.ring_origin == "disrupted_moon" and p.ring_age_yr is None for p in found)
+    assert len(found) < 100

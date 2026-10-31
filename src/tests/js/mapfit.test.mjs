@@ -24,20 +24,28 @@ test("a window that is not a number falls back to the least", () => {
   assert.equal(F.fitHeight(undefined, 10, 10), F.MIN_HEIGHT_PX);
 });
 
-test("a map that fills its window is the window less the buffer above and below (MAP.350)", () => {
-  assert.equal(F.fillHeight(950), 950 - 2 * F.BUFFER_PX);
-  assert.equal(F.fillHeight(1080, { buffer: 10 }), 1060);
+test("a map that fills its window is 95% of the window (MAP.350)", () => {
+  assert.equal(F.fillHeight(1000), 950);
+  assert.equal(F.fillHeight(950), Math.round(950 * 0.95));
+  assert.equal(F.fillHeight(1080, { share: 1 }), 1080);
   assert.equal(F.fillHeight(300), F.MIN_HEIGHT_PX, "a short window keeps the least");
   assert.equal(F.fillHeight(NaN), F.MIN_HEIGHT_PX);
-  assert.equal(F.fillHeight(950, { covered: 56 }), 950 - 56 - 2 * F.BUFFER_PX, "less what a header at the top of the window covers");
+  assert.equal(F.fillHeight(1056, { covered: 56 }), 950, "95% of what a header at the top of the window leaves");
+});
+
+test("the margin above a filling map is half of what it leaves", () => {
+  assert.equal(F.fillBuffer(1000, 950, 0), 25);
+  assert.equal(F.fillBuffer(1056, 950, 56), 25);
+  assert.equal(F.fillBuffer(300, 320, 0), 0, "never negative");
+  assert.equal(F.fillBuffer(NaN, 320, 0), 0);
 });
 
 test("the page is scrolled so the map has the buffer above it, and left alone where it is already there (MAP.350)", () => {
-  assert.equal(F.alignScroll(319, 0, 700), 319 - F.BUFFER_PX);
-  assert.equal(F.alignScroll(319, 299, 700), null);
-  assert.equal(F.alignScroll(319, 300, 700), null, "a pixel or two off is there");
-  assert.equal(F.alignScroll(319, 0, 100), 100, "never past the end of the page");
-  assert.equal(F.alignScroll(10, 0, 700), null, "never above the top");
+  assert.equal(F.alignScroll(319, 0, 700, { buffer: 20 }), 319 - 20);
+  assert.equal(F.alignScroll(319, 299, 700, { buffer: 20 }), null);
+  assert.equal(F.alignScroll(319, 300, 700, { buffer: 20 }), null, "a pixel or two off is there");
+  assert.equal(F.alignScroll(319, 0, 100, { buffer: 20 }), 100, "never past the end of the page");
+  assert.equal(F.alignScroll(10, 0, 700, { buffer: 20 }), null, "never above the top");
   assert.equal(F.alignScroll(NaN, 0, 700), null);
-  assert.equal(F.alignScroll(319, 0, 700, { covered: 56 }), 319 - 56 - F.BUFFER_PX, "under a header held at the top of the window");
+  assert.equal(F.alignScroll(319, 0, 700, { covered: 56, buffer: 20 }), 319 - 56 - 20, "under a header held at the top of the window");
 });

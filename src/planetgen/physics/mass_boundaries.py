@@ -21,7 +21,12 @@ function of [Fe/H] is GEN.936's.
 
 from dataclasses import dataclass
 
-from planetgen.physics import constants
+from planetgen.physics import constants, unit_registry as units
+
+_kg_to_mjup = units.converter("kg", "Mjup")
+_kg_to_msun = units.converter("kg", "Msun")
+_mjup_to_kg = units.converter("Mjup", "kg")
+_msun_to_kg = units.converter("Msun", "kg")
 
 
 @dataclass(frozen=True)
@@ -35,21 +40,27 @@ class Boundary:
     note: str = ""
 
 
+STAR_BROWN_DWARF_SPLIT_SOL = 0.08
+"""float: Where the stellar mass function ends and the brown dwarf one begins (Kroupa 2001's floor of the stars). Both read this one number,
+so no mass between them is left out and none is counted twice (GEN.936)."""
+
 BOUNDARIES = (
-    Boundary("hydrogen_burning_limit", 0.08, "Msun",
-             "the least mass of a star the generator makes: the floor of the initial mass function (Kroupa 2001) and the edge between "
-             "a star and a brown dwarf in the companion code",
+    Boundary("hydrogen_burning_limit", STAR_BROWN_DWARF_SPLIT_SOL, "Msun",
+             "the least mass of a star the mass function draws, and the mass the companion code splits its stars and brown dwarfs at: "
+             "the draw split, not the class of the object it draws",
              "Confident Unverified (recalled: Chabrier and Baraffe 2000 give 0.072 solar masses at solar metallicity, Burrows et al. 1997 "
              "about 0.075; the 0.08 is the round figure the mass function uses)",
-             "disagrees with the brown dwarf upper limit below (80 Jupiter masses is 0.0764 solar masses): the stretch between is empty. "
-             "The edge will depend on [Fe/H], which closes it."),
+             "whether a drawn object burns hydrogen is decided at its place, by its birth [Fe/H] "
+             "(`stellar_abundances.hydrogen_burning_limit_sol`: 0.074 at solar Z, 0.092 at Z = 0)."),
     Boundary("deuterium_burning_limit", 13.0, "Mjup",
              "the edge between a planet and a brown dwarf: the working definition of the IAU Working Group on Extrasolar Planets",
              "Confident Unverified (recalled: Spiegel, Burrows and Milsom 2011 give 11 to 16 Jupiter masses with composition)"),
-    Boundary("brown_dwarf_upper_limit", 80.0, "Mjup",
-             "the heaviest rogue brown dwarf the generator makes (the rogue planet mass bins)",
-             "Marginal Unverified (a round figure for the hydrogen-burning limit)",
-             "see `hydrogen_burning_limit`: 80 Jupiter masses is 0.0764 solar masses, under the 0.08 of the mass function; the edge will depend on [Fe/H]."),
+    Boundary("brown_dwarf_upper_limit", STAR_BROWN_DWARF_SPLIT_SOL, "Msun",
+             "the heaviest brown dwarf the generator draws: the floor of the stars' mass function, so the two functions meet",
+             "Confident Unverified (the draw split above; it was a round 80 Jupiter masses, 0.0764 solar masses, and left the stretch to the "
+             "stars' 0.08 empty)",
+             "the objects of this stretch burn hydrogen or not by their place's [Fe/H]: the brown dwarf tracks give a stable "
+             "late-M or L dwarf to one that does."),
     Boundary("core_collapse_limit", 8.0, "Msun",
              "the initial mass above which a star ends its life in a core collapse (a neutron star or a black hole) and below which it "
              "ends as a white dwarf; also where the giant branch gives way to the supergiants",
@@ -83,7 +94,7 @@ def sol(name):
     found = _BY_NAME[name]
     if found.unit == "Msun":
         return found.value
-    return found.value * constants.JUPITER_MASS_TO_KG / constants.SOLAR_MASS_TO_KG
+    return _kg_to_msun(_mjup_to_kg(found.value))
 
 
 def jupiter(name):
@@ -91,7 +102,7 @@ def jupiter(name):
     found = _BY_NAME[name]
     if found.unit == "Mjup":
         return found.value
-    return found.value * constants.SOLAR_MASS_TO_KG / constants.JUPITER_MASS_TO_KG
+    return _kg_to_mjup(_msun_to_kg(found.value))
 
 
 def kg(name):

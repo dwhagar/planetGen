@@ -41,6 +41,9 @@ class Follower:
     own_row = True
     """bool: Whether the unit that completes the stage stores its `generation_stage_runs` row (false for a stage the
     process that started the run keeps open past its units, and stores for all of it)."""
+    repeatable = False
+    """bool: Whether a run that several commands put the stage in does it once, at the last place (PERF.203): the stage
+    redoes a total that each of them changed (`dedupe`)."""
 
     def __init__(self, args):
         self.args = args
@@ -107,6 +110,23 @@ def run_planned(args, planned):
     return planned.result() if planned.result is not None else None
 
 
+def dedupe(followers):
+    """
+    The followers of a run made of several commands' (PERF.203): a `repeatable` stage that more than one of them ends with
+    (the block light totals) is kept at its last place only, since the last redoes what all of them changed.
+
+    Raises:
+        ValueError: A stage that is not `repeatable` is there twice: the run's steps are keyed by their stage.
+    """
+    last = {f.key: place for place, f in enumerate(followers) if f.repeatable}
+    kept = [f for place, f in enumerate(followers) if not f.repeatable or last[f.key] == place]
+    keys = [f.key for f in kept]
+    for key in keys:
+        if keys.count(key) > 1:
+            raise ValueError(f"the stage {key!r} comes twice in one run")
+    return kept
+
+
 def _enter(follower):
     """Enters the follower's stage for the run's numbering, as one whose row the queue stores unless it keeps its own."""
     key = follower.key
@@ -118,7 +138,7 @@ def _enter(follower):
         stages.enter(key, queued=True)
 
 
-def run_followed(args, followers, title, seed=None, kind=runrecord.GENERATION, workers=None, galaxy=True):
+def run_followed(args, followers, title, seed=None, kind=runrecord.GENERATION, workers=None, galaxy=True, settings=None):
     """
     Runs the stages of `followers` as one run in the queue and follows it to its end: the steps are the followers'
     (`wrapper.plan_steps`, each with its parameters), the stage rows are handed to the queue up front
@@ -133,18 +153,20 @@ def run_followed(args, followers, title, seed=None, kind=runrecord.GENERATION, w
         workers (int, optional): The workers to use, the run's `--workers` when not given.
         galaxy (bool): Whether to record the stored galaxy's seed and build with the run, so `planetgen finish-run` can
             carry it on (false for a run that belongs to no galaxy: one sector or one system).
+        settings (dict, optional): `{key: settings}` of the stages of a run of several commands (`wrapper.plan_steps`).
 
     Raises:
         redisqueue.Unavailable: No Redis server answers.
         runrecord.Busy: Another run is running and this one may not wait.
         units.RunStopped: A unit failed or the run was cancelled.
     """
+    followers = dedupe(followers)
     mysql_config = store.mysql_config_from_args(args)
     workers = workers or run_common._worker_count(args)
     database = wrapper.database_args(mysql_config)
     galaxy_seed, build = finish_run.current_galaxy(args) if galaxy else (None, None)
-    steps, listing = wrapper.plan_steps(
-        args, [(f.key, f.label, {"database": database, "workers": workers, **f.params()}) for f in followers])
+    parts = [(f.key, f.label, {"database": database, "workers": workers, **f.params()}) for f in followers]
+    steps, listing = wrapper.plan_steps(args, parts) if settings is None else wrapper.plan_steps(args, parts, settings)
     rows = {f.key: row for f in followers if f.own_row and (row := stages.row_for(f.key)) is not None}
     open_ones = []
 

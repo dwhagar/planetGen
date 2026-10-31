@@ -11,6 +11,9 @@ ultraviolet against effective temperature and activity. So the shares are an **o
 shares follow it on one family, `share_b = share_c ** UV_B_EXPONENT`, `share_a = share_c ** UV_A_EXPONENT`, fitted to the Sun's
 measured shares (0.256, 0.625, 0.787) as a labelled stand-in: the Sun's values are a **target, never a preset**. Replace the
 family when a source for the ultraviolet against T_eff and activity is read (BT-Settl and MUSCLES spectra are reachable).
+**Since GEN.971 the seeded share and the family are the fallback only**: a star's shares come from `physics.stellar_library` (model atmospheres
+and the MUSCLES corona), and this module's seeded share serves a run that disregards a missing library and a body whose star lacks the
+quantities the library needs.
 
 Bands (R6, nm): UV-C 100 to 280, UV-B 280 to 315, UV-A 315 to 400, visible 400 to 700, near infrared 700 to 4000, and the
 thermal infrared beyond 4000 nm; below 100 nm is ionising and never reaches the ground (R18).
@@ -89,7 +92,7 @@ def draw_uv_c_share(rng):
     return math.exp(math.log(low) + rng.random() * (math.log(high) - math.log(low)))
 
 
-def irradiance_w_m2(edges_nm, temperature_k, flux_w_m2, uv_c_share=1.0):
+def irradiance_w_m2(edges_nm, temperature_k, flux_w_m2, uv_c_share=1.0, shares=None):
     """
     The star's flux in each cell of a wavelength grid at the planet.
 
@@ -98,6 +101,7 @@ def irradiance_w_m2(edges_nm, temperature_k, flux_w_m2, uv_c_share=1.0):
         temperature_k (float): The star's effective temperature.
         flux_w_m2 (float): The bolometric flux at the planet, W/m2 (`L / 4 pi d^2`).
         uv_c_share (float, optional): The star's UV-C share of its blackbody (`uv_shares` gives the other two); 1 is the blackbody.
+        shares (dict, optional): The `uv_c`, `uv_b` and `uv_a` shares themselves (`stellar_library.uv_shares`), in place of `uv_c_share`'s family.
 
     Returns:
         ndarray: W/m2 in each cell, with the ultraviolet bands cut by their shares.
@@ -105,7 +109,7 @@ def irradiance_w_m2(edges_nm, temperature_k, flux_w_m2, uv_c_share=1.0):
     edges = np.asarray(edges_nm, dtype=float)
     low, high = edges[:-1], edges[1:]
     power = flux_w_m2 * blackbody_fraction(low, high, temperature_k)
-    shares = uv_shares(uv_c_share)
+    shares = uv_shares(uv_c_share) if shares is None else shares
     middle = 0.5 * (low + high)
     factor = np.ones_like(middle)
     for band, share in shares.items():

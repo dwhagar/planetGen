@@ -92,6 +92,5 @@ Registry section 6.50 of `research/gap-filling-plan.md`.
 ## Open
 
 * GEN.931: the arm contrast by population and the A stars.
-* GEN.936: Baraffe et al. 2015 (BHAC15) below 0.1 solar masses, now read from `planetgen.datasets.baraffe_isochrones`.
-* GEN.948: the brown dwarf radius by age, from the same table.
+* GEN.936 and GEN.948 (built on their own branch): the main sequence from 0.07 to 0.1 solar masses and the brown dwarf cooling track are read from the Baraffe et al. 2015 table, and the star/brown-dwarf boundary is one split at 0.08 with a class that depends on the place's [Fe/H].
 * GEN.951: the remaining items of the chain.

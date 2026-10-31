@@ -20,10 +20,15 @@ of the temperature between the three templates (4000 K, the Sun at 5772 K, 10000
   a 10000 K star CO2 rises 6.5 times and NH3 falls to 0.41.
 * **Outside 4000 to 10000 K the ratio is the end template's** (`outside_templates` says so): the sources have no
   spectrum there, so a star cooler than 4000 K is under-corrected for CO, N2, CH4 and HCN. It is an open item.
-* **The active-Sun factor is only for the species whose value was read** (H2O 1.68, CO2 2.35, NH3 1.075, HCN 2.1 from
-  a search snippet). For the others `active_sun=True` raises `NoData` rather than assume one.
-* **Shielding is not included**: CO and N2 self-shield in a dense inner coma and in a thick air column, and the lifetimes
-  in an atmosphere are longer (docs/design/composition/atmosphere-composition-parts/04-photochemistry-lifetimes-escape.md).
+* **The active-Sun factor is only for the species whose value was read** (H2O 1.68, CO2 2.35, HCN 2.1 from a search
+  snippet) or computed (NH3 1.07 from measured solar spectra, `scripts/nh3_activity_factor.py`, GEN.794; a measured cycle
+  maximum, milder than the Huebner and Mukherjee active Sun of H2O and CO2). For the others `active_sun=True` raises `NoData`
+  rather than assume one.
+* **Shielding is not in the lifetimes**: CO and N2 self-shield in a dense inner coma and in a thick air column, and the lifetimes
+  in an atmosphere are longer (docs/design/composition/atmosphere-composition-parts/04-photochemistry-lifetimes-escape.md). For the
+  species with a read mean UV cross section (H2O, NH3, CH4, CO2, H2S; Hu, Seager and Bains 2012 table 6) the column that absorbs the light
+  is one optical depth, `shielded_column_mol_m2`, and `photon_limited_flux_mol_m2_s` is the most the light can break in a thick air
+  (GEN.982). It is the gross loss: the products that recombine are not taken off.
 * **Source values** are labelled in the file: the quiet-Sun lifetime of H2O, CO, CO2, HCN, CH3OH and CH2O is the
   comet-community value, of CH4, C2H6, H2S and N2 the Heays 2017 total (a factor 2 for C2H6, H2S and N2), and NH3
   6.7e3 s (1.5e-4 per s), not the 5.6e3 s that is a mean of quiet and active Sun.
@@ -66,6 +71,8 @@ class Species:
         activity_factor (float or None): How many times shorter the lifetime is for the active Sun, if read.
         ratio_4000k, ratio_10000k (float): The dissociation rate relative to the Sun's at equal 91.2 to 200 nm flux.
         lifetime_source, status (str): Where the lifetime comes from, and how it was got.
+        uv_cross_section_cm2 (float or None): The mean UV cross section (Hu, Seager and Bains 2012 table 6), `None` when none was read.
+        uv_cross_section_source (str): Where it comes from.
     """
 
     formula: str
@@ -78,6 +85,8 @@ class Species:
     ratio_10000k: float
     lifetime_source: str
     status: str
+    uv_cross_section_cm2: Optional[float] = None
+    uv_cross_section_source: str = ""
 
 
 def _load():
@@ -95,6 +104,7 @@ def _load():
         table[formula] = Species(
             formula, row["lifetime_s"], (low, high), row["beta_diss_per_s"], row["beta_ion_per_s"],
             row["activity_factor"], row["ratio_4000k"], row["ratio_10000k"], row["lifetime_source"], row["status"],
+            row.get("uv_cross_section_cm2"), row.get("uv_cross_section_source", ""),
         )
     return table
 
@@ -167,6 +177,34 @@ def lifetime_s(formula, flux_ratio=1.0, teff_k=TEMPLATE_TEMPERATURES_K[1], activ
     """The photolysis lifetime, seconds: `1 / rate_per_s`; infinite with no flux."""
     rate = rate_per_s(formula, flux_ratio, teff_k, active_sun)
     return math.inf if rate == 0 else 1.0 / rate
+
+
+def shielded_column_mol_m2(formula):
+    """
+    The column of `formula` that absorbs its light, mol per m2 (GEN.982): the one that has an optical depth of 1 at the species' mean UV cross
+    section `sigma`, `1 / sigma` molecules per cm2. Gas below it sees none of the far ultraviolet, so a thick air loses the species only from this column
+    however much of it there is (the critical-pressure rule of Hu, Seager and Bains 2012: a gas is photolysed above the pressure where its
+    column is one optical depth).
+
+    Raises:
+        NoData: If no mean cross section was read for the species.
+    """
+    sigma = species(formula).uv_cross_section_cm2
+    if sigma is None:
+        raise NoData(f"no mean UV cross section was read for {formula}")
+    return 1.0e4 / (sigma * elements.AVOGADRO)
+
+
+def photon_limited_flux_mol_m2_s(formula, flux_ratio=1.0, teff_k=TEMPLATE_TEMPERATURES_K[1], active_sun=False):
+    """
+    The most of `formula` the light can break in a thick air, mol per m2 of ground per second (GEN.982): the unshielded rate per molecule
+    (`rate_per_s`) of the column that absorbs the light (`shielded_column_mol_m2`). This is the gross photolysis; what a species' products recombine
+    into is not taken off. For the Sun at 1 AU, methane comes to about 78 Tmol a year over the Earth's area.
+
+    Raises:
+        NoData: If no mean cross section was read for the species.
+    """
+    return shielded_column_mol_m2(formula) * rate_per_s(formula, flux_ratio, teff_k, active_sun)
 
 
 def inverse_square(distance_au):

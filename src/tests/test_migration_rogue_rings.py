@@ -17,12 +17,16 @@ pytestmark = pytest.mark.fresh_database
 
 
 def _ringed_rogue():
-    for seed in range(80):
-        with draw.bound(seed):
-            planet = RoguePlanet(SystemConfig(), mass_bin="saturn")
-        if planet.ring_kind is not None:
-            return planet
-    pytest.fail("no ringed rogue planet in 80 seeds")
+    """A rogue planet with a ring set by hand: GEN.1057 gave a rogue planet no ring, since it has no moons and no comets to make one, so
+    the columns are never drawn into but are still stored."""
+    with draw.bound(1):
+        planet = RoguePlanet(SystemConfig(), mass_bin="saturn")
+    values = {"ring_kind": "narrow", "ring_origin": "disrupted_moon", "ring_inner_km": 70000.0, "ring_outer_km": 90000.0,
+              "ring_mass_kg": 1.0e15, "ring_optical_depth": 0.1, "ring_ice_fraction": 0.5, "ring_age_yr": 1.0e8}
+    assert tuple(values) == rings.BODY_FIELDS
+    for name, value in values.items():
+        setattr(planet, name, value)
+    return planet
 
 
 def _downgrade(config):

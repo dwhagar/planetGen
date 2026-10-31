@@ -78,7 +78,7 @@ def test_an_unmeasured_server_estimates_from_the_defaults():
     assert not result.measured
     assert math.isclose(result.seconds, 30 * generationStats.DEFAULT_SECONDS_PER_SYSTEM)
     assert result.bytes == math.ceil(round(30 * generationStats.DEFAULT_BYTES_PER_SYSTEM * 1.1, 6))
-    assert "not yet measured" in result.summary()
+    assert "not timed yet on this server" in result.summary()
 
 
 def test_measured_buckets_drive_the_time_and_workers_divide_it():
@@ -365,9 +365,6 @@ def test_yes_skips_the_question(mysql_config, monkeypatch):
 def test_a_run_records_its_speed_and_the_databases_size(control_config, monkeypatch):
     monkeypatch.setenv(generationStats.STATS_ENV_VAR, "1")
     monkeypatch.setenv("PLANETGEN_CONTROL_DATABASE", control_config.database)
-    # Without the GEN.23 bright-star backfill each sector holds exactly
-    # its --num-systems, so the per-task counts below are exact.
-    monkeypatch.setattr(run_galaxy, "backfill_bright_stars", lambda *args, **kwargs: {"blocks": 0, "stars": 0})
     first_fill.without_the_deepest_floor(monkeypatch)   # nor the first fill's own draw (GEN.633)
     _plan_wide_galaxy(control_config)
     _run_cli(FIRST_THREE + _mysql_argv(control_config))

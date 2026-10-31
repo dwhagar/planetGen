@@ -44,7 +44,8 @@ def _sector(i, name=None, placed=False):
 
 
 def _system(i, name=None):
-    return {"id": 1000 + i, "name": name or f"System {i:03d}", "is_binary": i % 2, "star_summary": "G2V"}
+    return {"id": 1000 + i, "name": name or f"System {i:03d}", "is_binary": i % 2, "star_summary": "G2V",
+            "star_count": 1 + i % 2, "object_count": 4, "has_habitable_world": bool(i % 2)}
 
 
 class FakeData:
@@ -242,6 +243,26 @@ def test_the_gear_menu_lists_lists(client, fake):
     assert '<li><a href="/lists">Lists</a></li>' in gear
     assert gear.index('href="/lists"') < gear.index("data-theme-toggle")
     assert 'class="site-search"' not in gear
+
+
+def test_the_gear_menu_links_the_preferences_page_after_lists(client, fake):
+    """UX.236: the Preferences page is one click from the gear, between Lists and the theme switch, for a visitor who is not signed in."""
+    html = client.get("/").get_data(as_text=True)
+    gear = re.search(r'<div class="site-gear-panel">.*?</sl-dropdown>', html, re.S).group(0)
+    assert '<li><a href="/preferences">Preferences</a></li>' in gear
+    assert gear.index('href="/lists"') < gear.index('href="/preferences"') < gear.index("data-theme-toggle")
+
+
+def test_the_preferences_page_holds_the_frame_the_script_fills(client, fake):
+    """UX.236: the list is drawn in the browser from mappreferences.js, so the page holds its script, the list's place, the Reset button
+    and the status line, and says what happens without script."""
+    response = client.get("/preferences")
+    assert response.status_code == 200
+    html = response.get_data(as_text=True)
+    assert "<title>Preferences" in html and 'aria-current="page"' in html
+    assert re.search(r'<script type="module" src="[^"]*preferencespage\.js', html)
+    for marker in ("data-preferences-list", "data-preferences-reset", "data-preferences-status", "<noscript>"):
+        assert marker in html, marker
 
 
 def test_the_search_control_is_an_icon_link_to_the_search_page(client, fake):
@@ -613,7 +634,7 @@ def test_table_route_serves_the_sectors_and_systems_tables(client, fake):
     assert ("sectors", "systems", True, []) in fake.asked
 
     body = client.get("/table/systems?facets=1&placement=standalone").get_json()
-    assert [cell["text"] for cell in body["rows"][0]] == ["System 000", "Standalone", "–", "No", "G2V"]
+    assert [cell["text"] for cell in body["rows"][0]] == ["System 000", "Standalone", "–", "1", "4", "No", "G2V"]
     assert {o["value"]: o["label"] for o in body["facets"]["binary"]} == {"yes": "Binary", "no": "Single star"}
     assert client.get("/table/standalone-systems").status_code == 404
 

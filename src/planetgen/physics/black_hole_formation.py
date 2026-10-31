@@ -102,7 +102,9 @@ def draw_failed_shares(uniform_solar, uniform_metal_free, cap):
     return solar, max(free, solar)
 
 
-def middle_failed_shares(neutron_star_unbound_share):
-    """`draw_failed_shares` for the middle of both draws and a neutron star unbound share: the shares of a galaxy built with
-    no seed (`galaxy.structure.REFERENCE_STRUCTURE`, whose unbound share is `galaxy.natal_kick`'s for the Milky Way's masses)."""
-    return draw_failed_shares(0.5, 0.5, share_cap(neutron_star_unbound_share))
+def reference_failed_shares(neutron_star_unbound_share):
+    """`draw_failed_shares` for the draws of a galaxy built with no seed (`tuning.REFERENCE_BLACK_HOLE_DRAWS`) and a neutron star
+    unbound share: the shares of the reference structure (`galaxy.structure.REFERENCE_STRUCTURE`, whose unbound share is
+    `galaxy.natal_kick`'s for the Milky Way's masses)."""
+    solar_draw, metal_free_draw = tuning.REFERENCE_BLACK_HOLE_DRAWS
+    return draw_failed_shares(solar_draw, metal_free_draw, share_cap(neutron_star_unbound_share))

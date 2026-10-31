@@ -8,7 +8,7 @@ import pytest
 
 from planetgen import tuning
 from planetgen.galaxy import system_mass as galaxy_system_mass
-from planetgen.generation import companion_classes, mass_ratio, place_terms, system_mass
+from planetgen.generation import close_binary_trend, companion_classes, mass_ratio, place_terms, system_mass
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from planetgen.physics import imf, remnant_progenitors
@@ -20,34 +20,34 @@ POINTS = sorted(tuning.CLOSE_BINARY_FRACTION_BY_FE_H.items())
 
 def test_the_factor_is_the_pooled_line_over_its_solar_value():
     f0 = 0.20  # the line at [Fe/H] 0: between the -0.2 and +0.5 points
-    assert place_terms.close_companion_factor(0.0) == pytest.approx(1.0)
+    assert close_binary_trend.close_companion_factor(0.0) == pytest.approx(1.0)
     for fe_h, fraction in POINTS:
-        assert place_terms.close_companion_factor(fe_h) == pytest.approx(fraction / f0)
+        assert close_binary_trend.close_companion_factor(fe_h) == pytest.approx(fraction / f0)
     # Flat past the ends, and 1 for a star with no [Fe/H].
-    assert place_terms.close_companion_factor(-9.0) == place_terms.close_companion_factor(-3.0)
-    assert place_terms.close_companion_factor(3.0) == place_terms.close_companion_factor(0.5)
-    assert place_terms.close_companion_factor(None) == 1.0
+    assert close_binary_trend.close_companion_factor(-9.0) == close_binary_trend.close_companion_factor(-3.0)
+    assert close_binary_trend.close_companion_factor(3.0) == close_binary_trend.close_companion_factor(0.5)
+    assert close_binary_trend.close_companion_factor(None) == 1.0
     # Straight between two points.
-    assert place_terms.close_companion_factor(-0.6) == pytest.approx((0.40 + 0.24) / 2 / f0)
+    assert close_binary_trend.close_companion_factor(-0.6) == pytest.approx((0.40 + 0.24) / 2 / f0)
 
 
 def test_the_factor_moves_the_odds_and_never_passes_one():
     # Boss, 7:19 PM EDT: the odds p / (1 - p), not p.
-    assert place_terms.scaled_close_chance(0.22, 0.0) == pytest.approx(0.22)
+    assert close_binary_trend.scaled_close_chance(0.22, 0.0) == pytest.approx(0.22)
     for chance in (0.05, 0.22, 0.45, 0.9, 0.99):
         for fe_h in (-5.0, -3.0, -1.0, -0.2, 0.0, 0.5, 2.0):
-            moved = place_terms.scaled_close_chance(chance, fe_h)
+            moved = close_binary_trend.scaled_close_chance(chance, fe_h)
             assert 0.0 < moved < 1.0
-            odds = chance / (1 - chance) * place_terms.close_companion_factor(fe_h)
+            odds = chance / (1 - chance) * close_binary_trend.close_companion_factor(fe_h)
             assert moved / (1 - moved) == pytest.approx(odds)
-    assert place_terms.scaled_close_chance(0.0, -3.0) == 0.0 and place_terms.scaled_close_chance(1.0, 0.5) == 1.0
+    assert close_binary_trend.scaled_close_chance(0.0, -3.0) == 0.0 and close_binary_trend.scaled_close_chance(1.0, 0.5) == 1.0
     # A star already likely to have a companion rises less in absolute terms.
-    assert (place_terms.scaled_close_chance(0.45, -1.0) - 0.45) < (1 - place_terms.scaled_close_chance(0.1, -1.0)) * 10
-    assert place_terms.scaled_close_chance(0.45, -0.7) / 0.45 == pytest.approx(1.29, abs=0.02)   # inside "within about 30%"
+    assert (close_binary_trend.scaled_close_chance(0.45, -1.0) - 0.45) < (1 - close_binary_trend.scaled_close_chance(0.1, -1.0)) * 10
+    assert close_binary_trend.scaled_close_chance(0.45, -0.7) / 0.45 == pytest.approx(1.29, abs=0.02)   # inside "within about 30%"
 
 
 def test_the_factor_falls_as_metallicity_rises():
-    values = [place_terms.close_companion_factor(x / 10) for x in range(-40, 10)]
+    values = [close_binary_trend.close_companion_factor(x / 10) for x in range(-40, 10)]
     assert all(a >= b for a, b in zip(values, values[1:]))
 
 
@@ -191,7 +191,7 @@ def test_a_g_dwarfs_chance_inside_10_au_follows_the_pooled_line_on_the_odds(fe_h
 
     def odds_of(p):
         return p / (1.0 - p)
-    assert odds_of(inside(fe_h)) / odds_of(inside(0.0)) == pytest.approx(place_terms.close_companion_factor(fe_h),
+    assert odds_of(inside(fe_h)) / odds_of(inside(0.0)) == pytest.approx(close_binary_trend.close_companion_factor(fe_h),
                                                                          rel=1e-6)
 
 

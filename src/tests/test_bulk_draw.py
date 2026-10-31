@@ -129,7 +129,7 @@ def test_an_icy_small_body_is_a_porous_heap_of_ice_and_rock():
     body = _body(150.0, icy=True)
     bulk_draw.draw_terrestrial(body, True, False)
     bulk = bc.bulk_fractions(body)
-    assert bulk.ice > 0.0 and bulk.water >= tuning.ICY_WATER_MASS_FRACTION[0] * 0.01 and 0.0 <= bulk.porosity <= 0.3
+    assert bulk.ice > 0.0 and bulk.water >= tuning.ICY_WATER_MASS_FRACTION_FLOOR * 0.01 and 0.0 <= bulk.porosity <= 0.3
     assert body.mass < bulk_structure.SMALL_BODY_MASS_KG
     assert 0.5 < body.density < 3.0
 
@@ -171,3 +171,17 @@ def test_generated_bodies_store_a_composition_that_gives_their_density():
                     assert bulk.envelope == 0.0 and body.water_mass_fraction == bulk.water
                 seen_classes.add(body.planet_class)
     assert len(seen_classes) >= 3
+
+
+def test_an_icy_bodys_water_tops_out_at_the_condensed_share_of_its_formation_temperature():
+    """GEN.950: the water of an icy body is at most the water share of the solids that its disk temperature condenses (Lodders 2003 Table 11)."""
+    from planetgen.physics import condensate_shares
+    near = _body(1000.0, icy=True, distance=2.7)    # just beyond the snow line of 2.7 AU: 182 K, water alone
+    _, top = bulk_draw._icy_water_range(near)
+    assert top == pytest.approx(condensate_shares.water_share_of_solids(181.9), abs=1e-3) and top == pytest.approx(0.539, abs=0.002)
+    far = _body(1000.0, icy=True, distance=2.7 * (182.0 / 100.0) ** 2)   # 100 K: ammonia is in as well
+    _, top = bulk_draw._icy_water_range(far)
+    assert top == pytest.approx(0.494, abs=0.002)
+    farthest = _body(1000.0, icy=True, distance=2.7 * (182.0 / 30.0) ** 2)   # 30 K: methane too
+    low, top = bulk_draw._icy_water_range(farthest)
+    assert top == pytest.approx(0.384, abs=0.002) and low == tuning.ICY_WATER_MASS_FRACTION_FLOOR

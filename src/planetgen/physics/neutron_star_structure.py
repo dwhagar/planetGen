@@ -41,12 +41,14 @@ from scipy.interpolate import PchipInterpolator
 from scipy.optimize import minimize_scalar
 
 from planetgen.datasets import neutron_star_matter
-from planetgen.physics import constants
+from planetgen.physics import constants, unit_registry as units
+
+_msun_to_kg = units.converter("Msun", "kg")
 
 MEV_FM3_PER_KM2 = 1.0 / (1.602176634e-13 * 1e45 * constants.G / constants.SPEED_OF_LIGHT_M_S ** 4 * 1e6)
 """float: One km^-2 (the geometrised pressure) in MeV fm^-3. G/c^4 turns a J/m^3 into m^-2."""
 
-SOLAR_MASS_KM = constants.G * constants.SOLAR_MASS_TO_KG / constants.SPEED_OF_LIGHT_M_S ** 2 / 1e3
+SOLAR_MASS_KM = _msun_to_kg(constants.G) / constants.SPEED_OF_LIGHT_M_S ** 2 / 1e3
 """float: The length G M / c^2 of a solar mass, km (1.4766)."""
 
 CRUST_CORE_DENSITY_FM3 = 0.08

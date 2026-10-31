@@ -6,7 +6,7 @@ import types
 import pytest
 
 from planetgen.generation import possibility_table as pt
-from planetgen.physics import surface_composition as sc
+from planetgen.physics import rock_types, surface_composition as sc
 from planetgen.util import draw
 
 
@@ -139,6 +139,56 @@ def test_dominant_ground_rules():
     assert seen["old"] == {"ultramafic", "anorthositic"}
 
 
+def _oxides(mg_si, feo=0.08):
+    return rock_types.rock_oxides(feo, 0.045, mg_si, 0.067)
+
+
+def test_the_melt_share_rises_with_the_heat_flow_and_is_a_mid_ocean_ridge_s_at_earths():
+    low, high = sc.MELT_FRACTION_RANGE
+    shares = [sc.melt_fraction(flux) for flux in (1e-6, 3e-4, 1e-2, 0.09, 2.0, 1e6)]
+    assert shares == sorted(shares) and shares[0] == low and shares[-1] == high
+    assert shares[3] == pytest.approx(0.09, abs=0.02), "8 to 10 percent melts make the oceanic crust"
+
+
+def test_the_volcanic_crust_is_the_melt_of_the_stored_mantle():
+    """GEN.474: an Earth-like mantle makes basalt, a silica-richer one andesite or granite, and the types are the rows of `GROUND_TYPES`."""
+    base = dict(hydrosphere="dry", ocean_fraction=0.0, o2_partial_pa=0.0, mobile_lid=False, internal_heat_flux_w_m2=0.09)
+    seen = {}
+    for mg_si in (1.2, 0.7, 0.6):
+        seen[mg_si] = sc.draw_surface(earth(rock_oxides=_oxides(mg_si), **base))
+        check_sums(seen[mg_si])
+    assert seen[1.2].ground_type == "basaltic" and seen[0.7].ground_type == "intermediate" and seen[0.6].ground_type == "felsic"
+    assert set(sc.GROUND_TYPES.row("intermediate").normalised_fractions()) <= set(sc.GROUND_TYPES.row("felsic").normalised_fractions()) | {"enstatite", "diopside"}
+    assert sc.volcanic_ground_type(earth(rock_oxides=_oxides(0.9), internal_heat_flux_w_m2=0.09)) == "ultramafic"
+
+
+def test_a_plagioclase_only_melt_reads_basaltic_never_anorthositic():
+    """The stage melt of a calcium-poor stored rock is pure feldspar; an anorthosite is a flotation cumulate, not a melt of a mantle."""
+    poor = rock_types.rock_oxides(0.08, 0.045, 1.2, 0.02)
+    melt, _ = rock_types.partial_melt(poor, sc.melt_fraction(3e-4))
+    assert rock_types.ground_type_of(melt) == "anorthositic"
+    assert sc.volcanic_ground_type(earth(rock_oxides=poor, internal_heat_flux_w_m2=3e-4)) == "basaltic"
+
+
+def test_the_primary_crust_and_the_bodies_without_a_stored_rock_keep_the_table_rules():
+    base = dict(hydrosphere="dry", ocean_fraction=0.0, o2_partial_pa=0.0, mobile_lid=False)
+    for seed in range(20):
+        draw.set_run_seed(seed)
+        assert sc.draw_surface(earth(internal_heat_flux_w_m2=1.0, **base)).ground_type == "basaltic"
+        cold = sc.draw_surface(earth(internal_heat_flux_w_m2=0.0, rock_oxides=_oxides(0.7), rock_feo_fraction=0.18, **base)).ground_type
+        assert cold in ("ultramafic", "anorthositic"), "no volcanism, no melt: the overturn rule decides"
+
+
+def test_the_volcanic_crust_draws_nothing_the_table_rules_did_not():
+    base = dict(hydrosphere="dry", ocean_fraction=0.0, o2_partial_pa=0.0, mobile_lid=True, internal_heat_flux_w_m2=0.09)
+    after = []
+    for oxides in (None, _oxides(1.2), _oxides(0.6)):
+        draw.set_run_seed(5)
+        sc.draw_surface(earth(rock_oxides=oxides, **base))
+        after.append(draw.random())
+    assert after[0] == after[1] == after[2]
+
+
 def test_overturn_follows_feo():
     base = dict(hydrosphere="dry", ocean_fraction=0.0, o2_partial_pa=0.0, mobile_lid=False, internal_heat_flux_w_m2=0.0)
     ultramafic = {}
@@ -179,13 +229,11 @@ def test_albedo_is_between_the_ground_types():
 
 def test_reservoir_orders_heat_producers():
     def reservoir(name):
-        mix = {name: 1.0}
-        return sc.crust_reservoir(sc.SurfaceComposition(name, mix, {"olivine": 1.0}, sc.POWDER))[0]
+        return sc.land_rock_ppm(types.SimpleNamespace(**{f"ground_{name}_fraction": 1.0}))
 
     ultramafic, basaltic, felsic = (reservoir(n) for n in ("ultramafic", "basaltic", "felsic"))
-    for key in ("k_ppm", "th_ppm", "u_ppm"):
-        assert ultramafic[key] < basaltic[key] < felsic[key]
-    assert sc.crust_reservoir(sc.SurfaceComposition("ice", {sc.ICE: 1.0}, {"water_ice": 1.0}, sc.POWDER)) == (None, 0.0)
+    for index in range(3):      # K, Th, U
+        assert ultramafic[index] < basaltic[index] < felsic[index]
 
 
 def _bodies(count=25):

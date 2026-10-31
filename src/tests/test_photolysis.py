@@ -70,7 +70,7 @@ def test_outside_the_templates_the_end_value_holds_and_is_flagged():
 def test_the_active_sun_shortens_water_and_carbon_dioxide_by_the_read_factors():
     assert photolysis.species("H2O").lifetime_s / photolysis.lifetime_s("H2O", active_sun=True) == pytest.approx(1.68)
     assert photolysis.species("CO2").lifetime_s / photolysis.lifetime_s("CO2", active_sun=True) == pytest.approx(2.35)
-    assert 1.05 <= photolysis.species("NH3").activity_factor <= 1.10
+    assert photolysis.species("NH3").activity_factor == pytest.approx(1.07)
 
 
 def test_a_species_with_no_read_activity_factor_refuses_rather_than_assume_one():
@@ -106,3 +106,49 @@ def test_errors():
         photolysis.rate_per_s("CO", -1.0)
     with pytest.raises(ValueError):
         photolysis.inverse_square(0.0)
+
+
+def test_the_nh3_activity_factor_is_the_computed_one_and_names_its_inputs():
+    """GEN.794: 1.07 is the mean of the three measured records (1.066, 1.083, 1.060), inside the 1.05 to 1.15 bracket of its registry row."""
+    row = photolysis.species("NH3")
+    assert 1.05 <= row.activity_factor <= 1.15
+    assert row.activity_factor == pytest.approx((1.066 + 1.083 + 1.060) / 3.0, abs=0.005)
+    with open(photolysis.DATA_FILE, encoding="utf-8") as handle:
+        source = json.load(handle)["species"]["NH3"]["activity_source"]
+    for name in ("SORCE SOLSTICE", "UARS SUSIM", "UARS SOLSTICE", "scripts/nh3_activity_factor.py"):
+        assert name in source
+
+
+# --- GEN.982: the column that absorbs the light and the most the light can break in a thick air ------------------------------------
+
+SECONDS_PER_YEAR = 365.25 * 86400.0
+EARTH_AREA_M2 = 5.1007e14
+
+
+def test_the_shielded_column_is_one_optical_depth_of_the_read_cross_section():
+    assert photolysis.shielded_column_mol_m2("CH4") == pytest.approx(1.0e4 / (1.81e-17 * 6.02214076e23))
+    assert photolysis.shielded_column_mol_m2("CO2") > 1000.0 * photolysis.shielded_column_mol_m2("CH4")     # carbon dioxide barely absorbs
+    for formula in photolysis.formulas():
+        assert (photolysis.species(formula).uv_cross_section_cm2 is None) == (formula not in ("H2O", "NH3", "CH4", "CO2", "H2S"))
+
+
+def test_a_species_with_no_read_cross_section_refuses_rather_than_assume_one():
+    with pytest.raises(photolysis.NoData):
+        photolysis.shielded_column_mol_m2("CO")
+    with pytest.raises(photolysis.NoData):
+        photolysis.photon_limited_flux_mol_m2_s("HCN")
+
+
+def test_the_methane_the_sun_can_break_over_the_earths_area_is_within_the_range_of_the_anoxic_methane_fluxes():
+    """Tens of Tmol a year: the same order as the 9 to 67 Tmol a year that Kharecha et al. (2005) give for the anoxic Earth's methane (which is a net flux,
+    the products recombining, so the gross loss is the larger)."""
+    tmol_per_year = photolysis.photon_limited_flux_mol_m2_s("CH4") * EARTH_AREA_M2 * SECONDS_PER_YEAR / 1.0e12
+    assert 30.0 < tmol_per_year < 150.0
+
+
+def test_the_photon_limited_flux_follows_the_light_and_the_spectrum_of_the_star():
+    base = photolysis.photon_limited_flux_mol_m2_s("CH4")
+    assert photolysis.photon_limited_flux_mol_m2_s("CH4", flux_ratio=0.25) == pytest.approx(0.25 * base)
+    assert photolysis.photon_limited_flux_mol_m2_s("CH4", flux_ratio=1.0, teff_k=4000.0) == pytest.approx(
+        base * photolysis.spectral_ratio("CH4", 4000.0))
+    assert photolysis.photon_limited_flux_mol_m2_s("CH4", flux_ratio=0.0) == 0.0

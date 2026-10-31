@@ -97,6 +97,7 @@ def test_the_plateau_bracket_covers_the_published_shares_and_the_rows_are_labell
     assert low == 0.0 and high == 1.0 and high >= 0.87
     for row in ROWS:
         entry = RECIPES.entry(row)
+        # b1's dry carbon is derived from the building blocks and the core (GEN.1005), so it is partly verified like the others; its limit stays the model's
         assert entry.state == "partly verified" and "MODEL" in entry.limit and "not an observation" in entry.limit, row
         assert entry.status == "DERIVED", row
 

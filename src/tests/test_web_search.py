@@ -43,14 +43,14 @@ class SearchFake(FakeData):
         self.search_calls = []
         self.results = None
 
-    def get_search(self, db, texts, tags, sizes=None, limit=None, offsets=None, panels=None, sorts=None):
-        self.search_calls.append({"db": db, "texts": dict(texts), "tags": {k: set(v) for k, v in tags.items()},
+    def get_search(self, db, texts, tags, sizes=None, limit=None, offsets=None, panels=None, sorts=None, stars=None, ranges=None):
+        self.search_calls.append({"stars": stars, "ranges": dict(ranges or {}), "db": db, "texts": dict(texts), "tags": {k: set(v) for k, v in tags.items()},
                                   "sizes": dict(sizes or {}), "limit": limit, "offsets": dict(offsets or {}),
                                   "panels": panels, "sorts": dict(sorts or {})})
         results = self.results or {
             "sectors": _result([{"id": 5, "name": "Kepler <Reach>", "edge_mpc": 3.07}]) if texts.get("sector_q") else None,
             "systems": _result([{"id": 7, "name": "Kepler-42", "sector_id": None, "is_binary": 0,
-                                 "star_summary": "M5V"}]) if texts.get("system_q") else None,
+                                 "star_summary": "M5V", "star_count": 1, "object_count": 6, "has_habitable_world": True}]) if texts.get("system_q") or stars else None,
             "stars": _result([{"id": 3, "ref": "star:FE81000A2B-0000005-001", "name": "Kepler-42 A", "role": "primary", "star_type": "M5V", "radius_km": 118000.4,
                                "star_system_id": 7, "system_name": "Kepler-42", "sector_id": 5}])
             if texts.get("star_q") or tags.get("spectral") else None,
@@ -199,10 +199,10 @@ def test_a_panel_that_times_out_says_so_and_the_others_show(client, fake, monkey
     """UX.97: each panel runs under its own limit; one that hits it is a note, not the busy page."""
     answer = fake.get_search
 
-    def one_slow(db, texts, tags, sizes=None, limit=None, offsets=None, panels=None, sorts=None):
+    def one_slow(db, texts, tags, sizes=None, limit=None, offsets=None, panels=None, sorts=None, stars=None, ranges=None):
         if panels == ["systems"]:
             raise apiclient.ApiError("QUERY_TIMEOUT", status_code=504)
-        return answer(db, texts, tags, sizes=sizes, limit=limit, offsets=offsets, panels=panels, sorts=sorts)
+        return answer(db, texts, tags, sizes=sizes, limit=limit, offsets=offsets, panels=panels, sorts=sorts, stars=stars)
 
     monkeypatch.setattr(apiclient, "get_search", one_slow)
     resp = client.get("/search?q=Kepler")
@@ -212,10 +212,10 @@ def test_a_panel_that_times_out_says_so_and_the_others_show(client, fake, monkey
     assert 'href="/search?q=Kepler"' in _panel(html, "systems")
     assert "Kepler &lt;Reach&gt;" in _panel(html, "sectors")
 
-    def broken(db, texts, tags, sizes=None, limit=None, offsets=None, panels=None, sorts=None):
+    def broken(db, texts, tags, sizes=None, limit=None, offsets=None, panels=None, sorts=None, stars=None, ranges=None):
         if panels == ["systems"]:
             raise apiclient.ApiError("down", status_code=500)
-        return answer(db, texts, tags, sizes=sizes, limit=limit, offsets=offsets, panels=panels, sorts=sorts)
+        return answer(db, texts, tags, sizes=sizes, limit=limit, offsets=offsets, panels=panels, sorts=sorts, stars=stars)
 
     monkeypatch.setattr(apiclient, "get_search", broken)
     assert client.get("/search?q=Kepler").status_code == 502
@@ -408,3 +408,142 @@ def test_a_score_column_sorts_and_the_sort_goes_to_the_api(client, fake):
     assert fake.search_calls[-1]["sorts"] == {"planet": "-phi4"}
     client.get("/search?planet_q=Sc&planets_sort=nonsense")
     assert fake.search_calls[-1]["sorts"] == {}
+
+
+# --- Ranges on physical values (UX.227) ------------------------------------------------------
+
+def _planet_only(fake, rows):
+    fake.results = {"planets": _result(rows), **{p: None for p in ("sectors", "systems", "stars", "moons", "belts", "phenomena")}}
+
+
+def test_value_ranges_show_as_chips_and_go_to_the_api_in_their_unit(client, fake):
+    """UX.227: a range on a physical value is a removable chip with its unit, and the API gets the bounds and the unit named."""
+    _planet_only(fake, [_body_row(11, "Scored", phi4=0.8, **_SCORED)])
+    html = client.get("/search?planet_min_gravity=0.8&planet_max_gravity=1.2&planet_max_surface_dose=2"
+                      "&moon_min_surface_pressure=50&moon_surface_pressure_unit=kPa&star_min_luminosity=0.5").get_data(as_text=True)
+    assert fake.search_calls[-1]["ranges"] == {
+        "planet": {"gravity": (0.8, 1.2, None), "surface_dose": (None, 2.0, None)},
+        "moon": {"surface_pressure": (50.0, None, "kPa")}, "star": {"luminosity": (0.5, None, None)}}
+    assert 'Planet surface gravity: 0.8–1.2 g₀' in html and 'Planet surface radiation dose: ≤ 2 mSv/yr' in html
+    assert 'Moon surface pressure: ≥ 50 kPa' in html and 'Star luminosity: ≥ 0.5 L☉' in html
+    # a chip's cross takes that one range away and keeps the rest
+    cross = re.search(r'Planet surface gravity: 0\.8–1\.2 g₀<a href="([^"]+)"', html).group(1)
+    assert "planet_min_gravity" not in cross and "planet_max_gravity" not in cross and "planet_max_surface_dose=2" in cross
+    assert '<details class="search-more search-values" open>' in html
+
+
+def test_the_form_has_a_row_with_two_boxes_and_a_unit_menu_for_each_value(client, fake):
+    html = client.get("/search?moon_min_surface_pressure=50&moon_surface_pressure_unit=kPa").get_data(as_text=True)
+    assert "<summary>Search by physical values</summary>" in html
+    assert 'name="planet_min_gravity"' in html and 'name="planet_max_gravity"' in html and 'name="star_max_age"' in html
+    # the unit menu offers the units of the kind and shows the chosen one
+    menu = re.search(r'<select name="moon_surface_pressure_unit"[^>]*>(.*?)</select>', html, re.S).group(1)
+    assert '<option value="kPa" selected>kPa</option>' in menu and '<option value="bar">bar</option>' in menu
+    assert '<select name="planet_surface_pressure_unit"' in html and 'value="bar" selected' in html
+    # gases: the short list has rows, any other gas has the "another gas" row, and a gas in use gets its own row
+    assert 'name="planet_min_gas_O2"' in html and 'name="planet_min_gas_C6H6"' not in html and 'name="planet_other_gas"' in html
+    assert '<option value="C6H6">C6H6</option>' in html
+    html = client.get("/search?planet_min_gas_C6H6=0.001").get_data(as_text=True)
+    assert 'name="planet_min_gas_C6H6"' in html and '<option value="C6H6">C6H6</option>' not in html.split('name="planet_other_gas"')[1].split("</select>")[0]
+    # a number of moons has no unit to choose and no menu
+    assert 'name="planet_moon_count_unit"' not in html and 'name="planet_min_moon_count"' in html
+
+
+def test_a_bad_value_range_is_ignored_like_a_bad_size(client, fake):
+    _planet_only(fake, [_body_row(11, "Scored", phi4=0.8, **_SCORED)])
+    client.get("/search?planet_min_gravity=abc&planet_max_surface_dose=nan&planet_min_surface_temperature=300"
+               "&planet_max_surface_temperature=200&planet_min_surface_pressure=1&planet_surface_pressure_unit=km&moon_max_gravity=inf")
+    assert fake.search_calls[-1]["ranges"] == {"planet": {"surface_pressure": (1.0, None, None)}}
+
+
+def test_a_unit_that_says_nothing_is_dropped_from_the_url(client, fake):
+    """The form sends every row's unit: one with no bound beside it, or the key's own unit, redirects to the short form."""
+    resp = client.get("/search?planet_min_gravity=1&planet_gravity_unit=g0&planet_surface_pressure_unit=kPa&planet_other_gas=&planet_other_gas_unit=bar")
+    assert resp.status_code == 302 and resp.headers["Location"] == "/search?planet_min_gravity=1"
+    resp = client.get("/search?planet_min_gravity=1&planet_gravity_unit=m_s2")
+    assert resp.status_code == 200
+
+
+def test_the_another_gas_row_turns_into_the_key_of_that_gas(client, fake):
+    resp = client.get("/search?moon_other_gas=C6H6&moon_other_gas_min=0.001&moon_other_gas_unit=mbar&moon_other_gas_max=")
+    assert resp.status_code == 302 and resp.headers["Location"] == "/search?moon_min_gas_C6H6=0.001&moon_gas_C6H6_unit=mbar"
+    client.get(resp.headers["Location"])
+    assert fake.search_calls[-1]["ranges"] == {"moon": {"gas_C6H6": (0.001, None, "mbar")}}
+    resp = client.get("/search?planet_other_gas=Unobtainium&planet_other_gas_min=1")
+    assert resp.status_code == 302 and resp.headers["Location"] == "/search"
+
+
+def test_an_order_by_a_value_goes_to_the_api_unless_a_table_header_orders_the_panel(client, fake):
+    _planet_only(fake, [_body_row(11, "Scored", phi4=0.8, **_SCORED)])
+    html = client.get("/search?planet_q=Sc&planet_value_sort=-gravity&star_value_sort=age&moon_value_sort=luminosity").get_data(as_text=True)
+    assert fake.search_calls[-1]["sorts"] == {"planet": "-gravity", "star": "age"}       # a moon has no luminosity: ignored
+    assert "Planets ordered by surface gravity, high to low" in html and "Stars ordered by age, low to high" in html
+    assert '<option value="-gravity" selected>' in html
+    client.get("/search?planet_q=Sc&planet_value_sort=-gravity&planets_sort=flora")
+    assert fake.search_calls[-1]["sorts"] == {"planet": "flora"}
+    # an order alone is not a search
+    html = client.get("/search?planet_value_sort=gravity").get_data(as_text=True)
+    assert "Enter a name above, or pick a tag below" in html
+
+
+def test_the_values_a_search_used_are_shown_with_their_units(client, fake):
+    row = _body_row(11, "Scored", phi4=0.8, **_SCORED)
+    row["values"] = {"gravity": {"value": 0.93417, "unit": "g0", "symbol": "g₀"},
+                     "surface_pressure": {"value": 101.3, "unit": "kPa", "symbol": "kPa"}}
+    _planet_only(fake, [row])
+    html = client.get("/search?planet_min_gravity=0.5").get_data(as_text=True)
+    assert "Surface gravity 0.9342 g₀; Surface pressure 101.3 kPa" in _panel(html, "planets")
+    _planet_only(fake, [_body_row(12, "Plain", phi4=0.8, **_SCORED)])
+    assert "Surface gravity" not in _panel(client.get("/search?planet_q=Pl").get_data(as_text=True), "planets")
+
+
+# --- The stars filter (UX.239) ---------------------------------------------------------------
+
+def test_the_stars_filter_is_a_menu_in_the_form_and_goes_to_the_api(client, fake):
+    html = client.get("/search?stars=3").get_data(as_text=True)
+    assert fake.search_calls[0]["stars"] == "3"
+    assert '<select name="stars" id="search-star-count">' in html and '<option value="3" selected>Trinary</option>' in html
+    for label in ("Single", "Binary", "Trinary", "Quaternary", "Quintenary and beyond"):
+        assert f">{label}</option>" in html
+    assert "Stars: Trinary" in html                                    # the removable chip
+    assert 'id="search-systems"' in html                               # the Systems panel runs with no name
+    assert 'href="/search"' in html
+
+
+def test_stars_typed_in_the_search_box_is_the_same_filter_and_the_rest_stays_a_name(client, fake):
+    client.get("/search?q=Kepler+stars:3%2B")
+    call = fake.search_calls[0]
+    assert call["stars"] == "3+" and call["texts"]["system_q"] == "Kepler"
+    client.get("/search?q=stars:Binary")
+    call = fake.search_calls[-1]
+    assert call["stars"] == "binary" and call["texts"]["system_q"] == ""
+
+
+def test_a_stars_filter_that_is_not_one_is_ignored_on_the_page(client, fake):
+    client.get("/search?stars=lots&q=Kepler")
+    assert fake.search_calls[0]["stars"] is None
+
+
+def test_no_filter_sends_none_and_the_menu_says_any(client, fake):
+    html = client.get("/search?q=Kepler").get_data(as_text=True)
+    assert fake.search_calls[0]["stars"] is None and '<option value="">Any number</option>' in html
+
+
+def test_real_search_finds_a_known_binary_and_a_known_triple(db_client, mysql_config):
+    from planetgen.util import draw
+    for name, count in (("Lone Omicron", 1), ("Pair Omicron", 2), ("Triple Omicron", 3)):
+        config = SystemConfig()
+        config.PLANETS = False
+        config.STARS = count
+        with draw.bound(f"stars-filter-page:{name}"):
+            system = StarSystem(system_config=config)
+        assert len(system.stars) == count
+        system.name = name
+        store.save_system(system, config, config=mysql_config)
+
+    binary = _panel(db_client.get("/search?stars=binary").get_data(as_text=True), "systems")
+    assert "Pair Omicron" in binary and "Triple Omicron" not in binary and "Lone Omicron" not in binary
+    triple = _panel(db_client.get("/search?q=stars:3").get_data(as_text=True), "systems")
+    assert "Triple Omicron" in triple and "Pair Omicron" not in triple
+    more = _panel(db_client.get("/search?stars=2%2B&q=Omicron").get_data(as_text=True), "systems")
+    assert "Pair Omicron" in more and "Triple Omicron" in more and "Lone Omicron" not in more

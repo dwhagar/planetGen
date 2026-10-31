@@ -22,7 +22,7 @@ WORDS = "words"
 def unit_text(kind, spec):
     """The unit a sheet row is shown in, as the page's unit column writes it: the registry's symbol, a local unit's noun or
     scale, or `WORDS` for a row that is text."""
-    if spec.quantity in (sheet.TEXT, sheet.FLAG, sheet.TIER, sheet.RATING):
+    if spec.quantity in (sheet.TEXT, sheet.FLAG, sheet.TIER, sheet.RATING, sheet.LIMIT):
         return WORDS
     unit = column_units.COLUMNS[(sheet.TABLES[kind], spec.stored_column())]
     if unit in sheet._SYMBOLS:
@@ -52,6 +52,10 @@ def rows():
                 "group": sheet.GROUPS[spec.group], "label": spec.label, "unit": unit_text(kind, spec), "applies": [], "source": line,
                 "order": len(found)})
             entry["applies"].append(name)
+    for key, (label, unit) in sheet.CHEMISTRY_ROWS.items():    # UX.254: the star's rows worked out from its stored values
+        found[("composition", label, source_of("star", key))] = {
+            "group": sheet.GROUPS["composition"], "label": label, "unit": unit, "applies": ["Stars"], "source": source_of("star", key),
+            "order": len(found)}
     return [{**entry, "applies": ", ".join(entry["applies"])} for entry in sorted(found.values(), key=lambda e: e["order"])]
 
 

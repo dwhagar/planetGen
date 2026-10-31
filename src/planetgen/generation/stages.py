@@ -25,7 +25,7 @@ from planetgen.galaxy import dials
 from planetgen.queue import progress_file
 from planetgen.util import log, logrecord
 
-SECTOR_MODES = ("block", "span", "course", "shell", "center_sector")
+SECTOR_MODES = ("block", "span", "course", "around", "shell", "center_sector")
 
 STAGE_OFFSET_ENV = "PLANETGEN_STAGE_OFFSET"
 """str: Set by a web job's runner to the number of stages the job's earlier steps hold, so this run's stages
@@ -45,11 +45,12 @@ SCATTER_KEYS = ("mass", "luminosity", "phenomena", "backfill")
 backfill, each also stored on its own."""
 
 _state = {"stages": [], "next": 0, "args": None, "command": None, "open": None,
-          "job_shells": 0, "job_seconds": 0.0, "overall": None, "ran": 0, "scatters": []}
+          "job_shells": 0, "job_seconds": 0.0, "overall": None, "ran": 0, "scatters": [], "key_args": {}}
 """The run's stage list, the next one to enter, its arguments (for the settings each stage is recorded
 with), its command, the stage open now (`_open`), the shells and seconds of the stages finished so far (the
-whole-job stat), the command-line overall bar's clock and estimate (`overall`) and how many stages have
-finished running (`ran`, skipped ones not counted)."""
+whole-job stat), the command-line overall bar's clock and estimate (`overall`), how many stages have
+finished running (`ran`, skipped ones not counted) and the arguments of the stages that have their own
+(`key_args`, PERF.203: a run of several commands)."""
 
 
 class Stage:
@@ -71,7 +72,7 @@ def sectors_stages(args):
     if _random_start(args):
         return [Stage("start", "Generate the starting sector"), Stage("neighborhood", "Generate the neighborhood")]
     if getattr(args, "wedge", None) is not None and getattr(args, "radius_pc", None) is not None and not any(
-            getattr(args, name, None) is not None for name in ("span", "course", "block")):
+            getattr(args, name, None) is not None for name in ("span", "course", "block", "around")):
         return [Stage("sectors", "Generate the sector"), Stage("neighborhood", "Generate the neighborhood")]
     return [Stage("sectors", "Generate the sectors")]
 
@@ -330,7 +331,7 @@ def row_for(key):
         return None
     index = keys.index(key)
     return {"command": _state["command"] or "", "n": index + 1, "total": len(keys),
-            "label": _state["stages"][index].label, "settings": stage_settings(key, _state["args"])}
+            "label": _state["stages"][index].label, "settings": stage_settings(key, args_of(key))}
 
 
 def write_skipped_row(config, key, row, reason):
@@ -395,7 +396,7 @@ def _write_job():
         return
     total = len(_state["stages"])
     args = _state["args"]
-    settings = stage_settings(JOB_KEY, args) if args is not None else {}
+    settings = stage_settings(JOB_KEY, args_of(JOB_KEY)) if args is not None else {}
     metrics = {"stages_run": _state["ran"], "shells": shells}
     if shells > 0 and seconds > 0:
         metrics["shells_per_second"] = shells / seconds
@@ -517,11 +518,19 @@ def _numbering():
     return (offset, total) if offset >= 0 and total >= offset + len(_state["stages"]) else (0, len(_state["stages"]))
 
 
-def begin(stages, args=None, command=None):
+def begin(stages, args=None, command=None, key_args=None):
     """Starts a run's stage list. With `args`, each stage's time is stored with the settings it ran with (PERF.56).
-    It logs nothing: each stage is logged once, when it is entered (`_announce`)."""
+    `key_args` gives the arguments of the stages that have their own, by key (a run of several commands, PERF.203: the
+    settings of a stage are the ones its own command was given). It logs nothing: each stage is logged once, when it is
+    entered (`_announce`)."""
     _state.update(stages=list(stages), next=0, args=args, command=command, open=None, job_shells=0,
-                  job_seconds=0.0, overall=_start_overall(stages, args, command), ran=0, scatters=[])
+                  job_seconds=0.0, overall=_start_overall(stages, args, command), ran=0, scatters=[],
+                  key_args=dict(key_args or {}))
+
+
+def args_of(key):
+    """The arguments the settings of stage `key` come from: its own (`begin`'s `key_args`), else the run's."""
+    return _state["key_args"].get(key, _state["args"])
 
 
 def _under_banner():
@@ -536,7 +545,7 @@ def _announce(index, skipped=None, queued=False):
     stage = _state["stages"][index]
     total = len(_state["stages"])
     record = {"key": stage.key, "n": index + 1, "total": total, "label": stage.label, "skipped": skipped,
-              "settings": stage_settings(stage.key, _state["args"]) if _state["args"] is not None else {},
+              "settings": stage_settings(stage.key, args_of(stage.key)) if _state["args"] is not None else {},
               "metrics": {}, "t0": time.perf_counter()}
     if queued:
         record["queued"] = True
@@ -594,7 +603,7 @@ def finish(reason=None):
     _close_open()
     _write_job()
     _state.update(stages=[], next=0, args=None, command=None, open=None, job_shells=0, job_seconds=0.0,
-                  overall=None, ran=0, scatters=[])
+                  overall=None, ran=0, scatters=[], key_args={})
 
 
 def fail(reason):
@@ -607,7 +616,7 @@ def fail(reason):
     if record is not None:
         _say_end(record, time.perf_counter() - record["t0"], reason=str(reason) or "failed")
     _state.update(stages=[], next=0, args=None, command=None, open=None, job_shells=0, job_seconds=0.0,
-                  overall=None, ran=0, scatters=[])
+                  overall=None, ran=0, scatters=[], key_args={})
 
 
 def stage_estimates(conn, command, args):

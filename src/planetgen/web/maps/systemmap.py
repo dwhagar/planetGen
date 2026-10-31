@@ -121,9 +121,10 @@ _RADIUS_SPREAD_PX = 280.0
 # fixed-layout map needed.
 _MARKER_GAP_PX = 6.0
 
-# MAP.290: how far in toward the middle a further star's marker steps when it would land on another one, and the
-# angle (radians) the directions of further stars with no stored offset are spread by.
+# MAP.290: how far in toward the middle a further star's marker steps when it would land on another one, how far it turns (MAP.213)
+# when that line is full, and the angle (radians) the directions of further stars with no stored offset are spread by.
 _COMPANION_STEP_PX = 36.0
+_COMPANION_TURN_RAD = 0.35
 _GOLDEN_ANGLE_RAD = 2.399963
 _RELAX_ITERATIONS = 30
 
@@ -178,7 +179,7 @@ _CLASS_COLORS = {
     "B": "#e8823a",
     "C": "#8a7a66",
     "D": "#c9d6e0",
-    "E": "#8b3a2b",
+    "E": "#6b84b8",
     "F": "#5f8a72",
     "G": "#a89a5c",
     "H": "#d9b568",
@@ -190,7 +191,6 @@ _CLASS_COLORS = {
     "N": "#cbb03a",
     "O": "#2f8fc9",
     "P": "#a9d8f0",
-    "Q": "#7a5cc9",
     "S": "#5b6878",
     "T": "#7a86d9",
     "V": "#9c3f63",
@@ -1279,6 +1279,37 @@ def _wide_binary_star_attrs(system, star, role, scene_target=None):
     return attrs
 
 
+def _companion_position(x_km, y_km, reach, placed):
+    """
+    Where a companion marker (`_companion_star`) of footprint `reach` goes: the first spot that clears every obstacle in `placed`,
+    looked for at its real direction first, stepping in from this scene's outer edge toward the middle, then, when that line is
+    full, at the next direction round the circle (`_COMPANION_TURN_RAD` at a time, one side and the other, nearest first), so six
+    stars that lie the same way (a tree's members often do) still get six places. When no spot clears, the one farthest from every
+    obstacle.
+
+    Returns:
+        tuple: `(cx, cy)` in pixels.
+    """
+    direction = math.atan2(y_km, x_km)
+    best, best_gap = None, -math.inf
+    turns = [0.0]
+    for number in range(1, int(math.pi / _COMPANION_TURN_RAD) + 1):
+        turns.extend((number * _COMPANION_TURN_RAD, -number * _COMPANION_TURN_RAD))
+    for turn in turns:
+        distance_px = _MIN_RADIUS_PX + _RADIUS_SPREAD_PX
+        while True:
+            cx, cy = _polar_to_px(_CENTER_PX, _CENTER_PX, distance_px, math.cos(direction + turn), math.sin(direction + turn))
+            gap = min((math.hypot(cx - other["cx"], cy - other["cy"]) - reach - other["r"] for other in placed), default=math.inf)
+            if gap >= 0:
+                return cx, cy
+            if gap > best_gap:
+                best, best_gap = (cx, cy), gap
+            if distance_px - _COMPANION_STEP_PX < _MIN_RADIUS_PX:
+                break
+            distance_px -= _COMPANION_STEP_PX
+    return best
+
+
 def _companion_star(system, star, role, scene_target, x_km, y_km, placed):
     """
     The marker a scene draws for a star whose own planets are in a scene of
@@ -1290,7 +1321,8 @@ def _companion_star(system, star, role, scene_target, x_km, y_km, placed):
     place the marker far outside this diagram's fixed frame (see
     `_render_wide_binary_scenes`). A marker that would land on one already
     `placed` (the obstacle dicts of the companions drawn so far) steps in
-    toward the middle until it clears.
+    toward the middle until it clears, and when that line of directions is full
+    turns to the nearest free one (`_companion_position`, MAP.213).
 
     Returns:
         tuple: `(marker_svg, obstacle)`, the obstacle in `_star_scene_svg`'s
@@ -1303,13 +1335,7 @@ def _companion_star(system, star, role, scene_target, x_km, y_km, placed):
     # planet's own circle could clear the companion's circle only to still
     # land its *label* on top of the companion's name underneath it.
     reach = radius + _LABEL_GAP_PX + _LABEL_HALF_HEIGHT_PX * 2
-    distance_px = _MIN_RADIUS_PX + _RADIUS_SPREAD_PX
-    while True:
-        cx, cy = _polar_to_px(_CENTER_PX, _CENTER_PX, distance_px, x_km, y_km)
-        clear = all(math.hypot(cx - other["cx"], cy - other["cy"]) >= reach + other["r"] for other in placed)
-        if clear or distance_px - _COMPANION_STEP_PX < _MIN_RADIUS_PX:
-            break
-        distance_px -= _COMPANION_STEP_PX
+    cx, cy = _companion_position(x_km, y_km, reach, placed)
     attrs = _wide_binary_star_attrs(system, star, role, scene_target=scene_target)
     # Override the "own scene" (0, 0) default `_wide_binary_star_attrs`
     # sets -- this marker represents the star at its real position

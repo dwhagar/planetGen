@@ -22,6 +22,7 @@ process that started the run does it, between the queued stages. No registered c
 PERF.108 and PERF.121 to PERF.128 gave each its units), so every step of a run is a stage.
 """
 
+import importlib
 import json
 import logging
 import os
@@ -74,13 +75,14 @@ def step_for(args, key, label, params):
     return step, listing[:later] + [step] + listing[later:]
 
 
-def plan_steps(args, parts):
+def plan_steps(args, parts, settings=None):
     """
     The steps of a run that follows several stages (PERF.172), and the run's whole list with them: `parts` is
     `(key, label, params)` for each stage the run queues, in order, `params` what the stage needs besides the request's
     own settings (`step_for` for one). A stage the request's list holds takes that step's label and settings; one it
     does not (a luminosity redo with no scatter stored yet needs the massive stars too) is added to the list before the
-    luminosity pass, where `step_for` puts it.
+    luminosity pass, where `step_for` puts it. `settings` (`{key: settings}`, PERF.203) are the settings of the stages of a run of
+    several commands, each the ones its own command was given, in place of `stages.stage_settings(key, args)` of the run's.
 
     Returns:
         tuple: `(steps, listing)`.
@@ -91,8 +93,10 @@ def plan_steps(args, parts):
     steps = []
     for key, label, params in parts:
         found = next((step for step in listing if step.key == key), None)
+        own = (settings or {}).get(key)
         steps.append(commands.Step(key, commands.KIND_OF_STAGE[key], found.label if found else label,
-                                   {**(found.params if found else stages.stage_settings(key, args)), **params}))
+                                   {**(found.params if found else own if own is not None
+                                       else stages.stage_settings(key, args)), **params}))
     by_key = {step.key: step for step in steps}
     listing = [by_key.pop(item.key, item) if item.key in by_key else item for item in listing]
     if by_key:
@@ -210,28 +214,84 @@ def _plan_field(conn, run_id, marker):
     return detail[marker["field"]]
 
 
-RESOLVERS = {"stage-clock": _stage_clock, "plan-detail": _plan_field}
-"""dict: Each deferred parameter's name to `resolver(conn, run_id, marker)`, which gives its value (or raises `Unresolved`). A
-command that needs a value worked out when its stage opens adds its resolver here."""
+RESOLVERS = {"stage-clock": _stage_clock, "plan-detail": _plan_field,
+             "scatter-settings": "planetgen.generation.run_plan:resolve_scatter_settings"}
+"""dict: Each deferred parameter's name to `resolver(conn, run_id, marker)`, which gives its value (or raises `Unresolved`), or to
+`"module:function"` naming it, for a resolver in a module that imports this one. A command that needs a value worked out when its
+stage opens adds its resolver here. A marker that has `MERGE` set stands for several parameters at once: the resolver gives a dict
+and the stage's parameters take it (PERF.212)."""
+
+MERGE = "merge"
+"""str: The key of a deferred parameter whose value is a dict of parameters, which join the stage's (the marker's own name is then
+only a label)."""
+
+
+def deferred(name, merge=False, **fields):
+    """A deferred parameter (PERF.212): the resolver `name` of `RESOLVERS`, given `fields` (plain JSON) to work from. With `merge`
+    it stands for the dict of parameters the resolver gives."""
+    return {DEFERRED: name, **({MERGE: True} if merge else {}), **fields}
+
+
+def cached(conn, run_id, name, compute):
+    """
+    The value `compute()` gave the first time a stage of the run asked for `name`, kept in the run record (PERF.212). A value read from
+    the database when a stage opens would not be the same later: the stage may empty what it read (the scatter's own record), and a
+    resolver runs again at the stage's end and when a stopped run is carried on. The first stage to open computes it, before its
+    own `prepare`, and the later ones, the conclude hooks and `finish_run` take what was kept.
+    """
+    field = f"deferred:{name}"
+    kept = conn.hget(runrecord.run_key(run_id), field)
+    if kept is not None:
+        return json.loads(runrecord._s(kept))
+    value = compute()
+    conn.hsetnx(runrecord.run_key(run_id), field, json.dumps(value))
+    return json.loads(runrecord._s(conn.hget(runrecord.run_key(run_id), field)))
+
+
+def _resolver(name):
+    """The function that resolves deferred parameter `name`."""
+    found = RESOLVERS[name]
+    if isinstance(found, str):
+        module, function = found.split(":")
+        found = getattr(importlib.import_module(module), function)
+        RESOLVERS[name] = found
+    return found
+
+
+def scatter_settings_name(marker):
+    """The name a `scatter-settings` marker's value is kept under in the run record (`cached`): its scatter's scope and tag, so the
+    scatters of one run (a job holds several, PERF.203) keep theirs apart."""
+    return marker["scope"] + marker.get("tag", "")
 
 
 def resolve_params(conn, run_id, params, strict=True):
     """
     `params` with each deferred parameter (`opened_by`) replaced by its value as the run record has it now. With `strict` false a
     parameter that cannot be resolved yet stays as it is (`generation.finish_run` copies the steps of a run that stopped before
-    some stage opened).
+    some stage opened), and so does a `scatter-settings` parameter no stage has worked out yet: reading the database for a stage that
+    has not opened would keep a value the stages before it may still change (a clear, a mass pass that stores the limit).
 
     Raises:
         Unresolved: A deferred parameter has no value and `strict` is true.
+        RuntimeError: A resolver refuses (and `strict` is true).
     """
     out = {}
     for name, value in params.items():
         if is_deferred(value):
+            if (not strict and value[DEFERRED] == "scatter-settings"
+                    and conn.hget(runrecord.run_key(run_id), f"deferred:{scatter_settings_name(value)}") is None):
+                out[name] = value
+                continue
             try:
-                value = RESOLVERS[value[DEFERRED]](conn, run_id, value)
-            except Unresolved:
+                found = _resolver(value[DEFERRED])(conn, run_id, value)
+            except (Unresolved, RuntimeError):      # a RuntimeError is a resolver's refusal (the galaxy has no skeleton, say)
                 if strict:
                     raise
+                found = value
+            if value.get(MERGE) and found is not value:
+                out.update(found)
+                continue
+            value = found
         out[name] = value
     return out
 
@@ -272,6 +332,16 @@ def stage_label(conn, run_id, index):
     """The label stage `index` of the run was declared with, `None` past the last."""
     declared = json.loads(runrecord._s(conn.hget(runrecord.run_key(run_id), "stages")))
     return runrecord._s(declared[index]["label"]) if 0 <= index < len(declared) else None
+
+
+def stage_name(conn, run_id, index):
+    """What a message calls stage `index` (PERF.221): the label the page shows for it, not the internal number; the
+    number only where the run record cannot say (a run already gone from Redis)."""
+    try:
+        label = stage_label(conn, run_id, index)
+    except Exception:  # noqa: BLE001 -- naming the stage must never hide the failure being reported
+        label = None
+    return label or str(index)
 
 
 def _stage_step(conn, run_id, index):
@@ -479,6 +549,23 @@ def report_wait(holder, position):
         pass
 
 
+def stage_ensure(conn, url, kind, step_kind, workers_count=None):
+    """
+    The `ensure` for one stage of a run (PERF.220): `workers.ensure_workers` with the run's worker count held to what
+    the stage's workers can take in memory (`workers.stage_worker_cap`), and, on the bulk queue, the live workers over
+    that asked to finish their unit and exit (`workers.shed_bulk`), so the workers an earlier stage left do not all
+    scatter at once. A stage with ordinary workers is not limited.
+    """
+    cap = workers.stage_worker_cap(step_kind)
+    count = workers_count if cap is None else min(workers_count or cap, cap)
+
+    def ensure():
+        if cap is not None and queue_of(kind) == redisqueue.BULK_QUEUE:
+            workers.shed_bulk(conn, cap)
+        return workers.ensure_workers(queue_of(kind), conn, url, count=count)
+    return ensure
+
+
 def run(title, steps, on_plan, on_result, on_progress=None, workers_count=None, who=None, database=None, argv=None,
         seed=None, listing=None, url=None, kind=runrecord.GENERATION, rows=None, on_stage_done=None, galaxy_seed=None,
         build=None, finishes=None):
@@ -544,7 +631,7 @@ def run(title, steps, on_plan, on_result, on_progress=None, workers_count=None, 
                                          admitted=bool(os.environ.get(JOB_ENV)))
     else:
         run_id = start()
-    ensure = lambda: workers.ensure_workers(queue_of(kind), conn, url, count=workers_count)  # noqa: E731
+    ensures = [stage_ensure(conn, url, kind, step.kind, workers_count) for step in steps]
     relay = log.RelayReader(conn, runrecord.debug_key(run_id)) if debug else None
     on_debug = relay.drain if relay else None
     log.trace(f"run {run_id} ({title}) started: {len(steps)} stage(s) on the {queue_of(kind)} queue, "
@@ -555,6 +642,7 @@ def run(title, steps, on_plan, on_result, on_progress=None, workers_count=None, 
     try:
         advance(conn, run_id, 0)
         for index in range(len(steps)):
+            ensure = ensures[index]
             plan = _await_plan(conn, run_id, index, ensure, on_debug=on_debug)
             log.trace(f"run {run_id}: stage {index} ({steps[index].label}) queued as {plan['units']} unit(s) of total "
                       f"cost {plan['cost']}", area="queue")

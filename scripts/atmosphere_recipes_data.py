@@ -114,30 +114,25 @@ _SHORE = {"delta": _DELTA, "p_atm": _P_ATM}
 MACHINE = {
     # ---- a. mantle redox ----
     "a1": dict(state="partly verified", kind="param", classes=ROCKY, sets="redox_diw",
-               limit="the mean is inside the first-hand ranges at three Solar System anchors (Moon, Mars, Earth) and the width follows their published "
-                     "half-ranges (0.5 at 0.1 Earth masses to 0.9 at 1); above 1 Earth mass the rise of 1.0 per dex up to 5.4 Earth masses (where the "
-                     "base pressure passes the 140 GPa of the calculations, assuming the base pressure scales as M^0.55) is a stand-in with the "
-                     "bracket 0 to 2 per dex; the graphite-flotation alternative of Gaillard 2022 is not drawn (GEN.482, GEN.482b)",
-               source="Hirschmann 2022 (GCA 328, section 6.3 and Table 1): magma-ocean surface delta IW Earth -1.2 to +1.8, Mars -1.4 to +0.2, core-forming "
-                      "Moon -2.2 to -1.5; Deng 2020 Fig. 2 (Moon about -2); Sossi 2020 0.037 Fe3+/sumFe; the mean is within 0.3 of the middle of "
-                      "each range (READ, COMPUTED); the floor on sigma 0.22 is COMPUTED; the slope between and above the anchors, the width 0.5 and "
-                      "the rise above 1 Earth mass are DESIGN; the width 0.5 + 0.4 clamp(log10 M + 1, 0, 1) is tuned to the published Moon, Mars and Earth ranges "
-                      "(docs/design/composition/magma-ocean-redox-against-mass.md)",
-               correction="Corrected 2026-10-23 (GEN.479): the gate M >= 0.01 left a body under 0.01 Earth masses (a class A to Q world of 500 to "
-                          "1500 km radius) with no redox row at all, and the mean's own clamp already holds -2 below 0.01.",
-               dist={"kind": "normal",
-                     "mu": "clamp(-2 + 1.25*(log10(mass_earth) + 2), -2, 0.5) + clamp(log10(mass_earth), 0, 0.7324)",
-                     "sigma": "0.5 + 0.4*clamp(log10(mass_earth) + 1, 0, 1)"}),
+               limit="the surface redox of the magma ocean from physics.magma_ocean_redox (stand-in rows MR1 to MR7): the base pressure is a power of the mass, held at the 140 GPa where the "
+                     "first-principles calculations end (5.4 Earth masses; no source above), the ferric-share power (0.5 to 1.0) and the offset are read from two papers whose equations were not "
+                     "available when it was built, there is no temperature or composition term, and the graphite-flotation alternative of Gaillard 2022 is not drawn (GEN.482, GEN.1005)",
+               source="Hirschmann 2022 (GCA 328, section 6.3 and Table 1): Fe3+/FeT of the ocean surface 0.034 to 0.103 and the dIW it gives; Deng 2020: the ferric share of the melt against the "
+                      "pressure at the base of the ocean (factor of two from 55 to 25 GPa) and the base pressures; Sossi 2020 0.037 Fe3+/sumFe (READ, COMPUTED); the form, the pressure "
+                      "scaling and the width are DESIGN brackets of docs/design/composition/magma-ocean-redox-model.md",
+               correction="Corrected 2026-10-23 (GEN.479): the gate M >= 0.01 left a body under 0.01 Earth masses with no redox row at all. GEN.1005 (2026-10-30): the mean and width are the "
+                          "model of physics.magma_ocean_redox in place of the line through three Solar System bodies, which are now tests of the model.",
+               dist={"kind": "normal", "mu": "magma_ocean_diw(mass_earth)", "sigma": "magma_ocean_diw_sigma(mass_earth)"}),
     "a2": dict(kind="param", classes=AIR, when=[c("long_lived_geology", equals=True)], sets="redox_diw_later",
                state="partly verified",
-               limit="a straight-line fit to three Solar System anchors (Earth IW+3.5, Mars IW to IW+1, Moon IW to IW-2), each inside one standard "
-                     "deviation; no source above 1 Earth mass, so the mean is held at the Earth value there; the later mantle is never below the magma-ocean "
-                     "surface of the same body (the sources give a gap of 0 to 3 that grows with mass) (GEN.482, GEN.482b)",
-               source="Earth IW+3.5 (Deng 2020 with its refs 37, 6, 7; Hirschmann 2022 section 4: above IW+3), Mars most reduced basalts IW and primitive "
-                      "mantle IW to IW+1 (Hirschmann 2022 introduction and section 4), Moon basalts IW to IW-2 (Deng 2020 refs 8 to 10); the law "
-                      "3.5 + 2 log10 M, the width 1.0 and the clip are DESIGN (READ, COMPUTED; docs/design/composition/magma-ocean-redox-against-mass.md)",
-               dist={"kind": "normal", "mu": "3.5 + 2*clamp(log10(mass_earth), -3, 0)", "sigma": 1.0, "range": [-6, 6]},
-               correction="A law fitted to the Moon, Mars and Earth (tunable-gaps 3.2); checked against first-hand anchors by GEN.482; GEN.482b holds the mean at the Earth value above 1 Earth mass and takes the larger of a2 and a1 in `draw_redox`."),
+               limit="the magma-ocean surface of the body (physics.magma_ocean_redox, at most that of one Earth mass) plus an oxidation increment of 1.2 to 2.4 that grows with the mass: a "
+                     "line between two numbers (stand-in row MR7), not a model of the oxidation (hydrogen loss, lower-mantle disproportionation, recycling); the sources give a gap of 0 to 3 "
+                     "that grows with mass; the later mantle is never below the magma-ocean surface of the same body (GEN.482, GEN.482b, GEN.1005)",
+               source="the later upper mantle of the rocky bodies measured: dIW +3.5 for the one with plate tectonics (Deng 2020 with its refs 37, 6, 7; Hirschmann 2022 section 4: above IW+3), "
+                      "IW to IW+1 for the primitive mantle of the next lighter one and IW to IW-2 for the lightest (Hirschmann 2022 introduction and section 4; Deng 2020 refs 8 to 10); the "
+                      "increment, its growth with mass and the width 1.0 are DESIGN (READ, COMPUTED; docs/design/composition/magma-ocean-redox-model.md)",
+               dist={"kind": "normal", "mu": "later_mantle_diw(mass_earth)", "sigma": 1.0, "range": [-6, 6]},
+               correction="GEN.1005 (2026-10-30): the mean is the magma-ocean model's surface value plus the increment, in place of the straight line through three Solar System bodies; GEN.482b takes the larger of a2 and a1 in `draw_redox`."),
     "a3": dict(state="partly verified", limit="22 polluted white dwarf values (READ, COMPUTED), a selection-biased sample of core-formation redox; the scale differs from a1; the width 0.22 is tuned with the detection model (GEN.513)", kind="param", classes=["asteroid"], sets="redox_diw", tunable=True,
                dist={"kind": "normal", "mu": -1.25, "sigma": 0.22},
                source="22 polluted white dwarf values: median -1.26, mean -1.25, sample sd 0.45 of the reported medians (Doyle 2020 Table "
@@ -260,7 +255,7 @@ MACHINE = {
                weight="phi((1100 - teff_k)/100) if body_class == 'brown-dwarf' else phi((500 - teq_k)/100)"),
 
     # ---- g. brown dwarfs ----
-    "g1": dict(state="partly verified", limit="late M is the extension of the map above L0 (2238 K); the map has no M-type fit (Table 13) and the 2800 K cap is the repo's rogue maximum (GEN.517)", kind="option", group="g", classes=BD, weight="phi((2800 - teff_k)/100) - phi((2238 - teff_k)/134)"),
+    "g1": dict(state="partly verified", limit="late M is the extension of the map above L0 (2238 K); the map has no M-type fit (Table 13) and the 2950 K cap is the BHAC15 temperature of the hydrogen-burning limit at its peak (GEN.494)", kind="option", group="g", classes=BD, weight="phi((2950 - teff_k)/100) - phi((2238 - teff_k)/134)"),
     "g2": dict(kind="option", group="g", classes=BD, weight="phi((2238 - teff_k)/134) - phi((1273 - teff_k)/79)"),
     "g3": dict(kind="option", group="g", classes=BD, weight="phi((1273 - teff_k)/79) - phi((686 - teff_k)/79)"),
     "g4": dict(state="partly verified", limit="late T (T8 to T9) is a subclass of T, not a type of its own; its edges are the map's T8 and Y0 values (Kirkpatrick 2021 Table 13, GEN.494)", kind="option", group="g", classes=BD, weight="phi((686 - teff_k)/79) - phi((460 - teff_k)/79)"),
@@ -329,16 +324,17 @@ MACHINE = {
                dists={"CH3OH": {"kind": "loguniform", "lo": 0.002, "hi": 0.026},
                       "NH3": {"kind": "loguniform", "lo": 0.001, "hi": 0.0073},
                       "HCN": {"kind": "loguniform", "lo": 0.0009, "hi": 0.0029}}),
-    "k7": dict(kind="param", classes=["comet", "asteroid"], state="partly verified", tunable=True,
-               limit="CH4, C2H6, H2CO and H2S take the geometric mean and spread of 9 to 18 comets at r_h up to 2.5 AU (Robinson database); N2, O2, OCS, SO2, Ar, Kr and Xe are from one comet (67P, Rubin 2019) with a design width of 0.6 dex and stay stand-in values (GEN.520)",
+    "k7": dict(kind="param", classes=["comet", "asteroid"], state="stand-in", replacement="GEN.1021", tunable=True,
+               limit="CH4, C2H6, H2CO and H2S take the geometric mean and spread of 9 to 18 comets at r_h up to 2.5 AU (Robinson database); N2, Ar, OCS and SO2 are the host's own nitrogen, argon "
+                     "and sulfur per carbon over the nebula's carbon in CO, times a trapping share and the median CO/H2O, and O2, Kr and Xe keep one value (physics.comet_species, stand-in "
+                     "rows CK1 to CK6): the trapping shares and the three values are tuned to one measured comet (tier T7, tweak L3), so one comet still fixes the seven (GEN.520, GEN.1005)",
                dists={**{name: {"kind": "normal", "log10": True, "mu": f"log10({v})", "sigma": sd}
                          for name, v, sd in (("CH4", 6.8e-3, 0.33), ("C2H6", 4.1e-3, 0.33), ("H2CO", 2.5e-3, 0.35), ("H2S", 7.1e-3, 0.39))},
-                      **{name: {"kind": "normal", "log10": True, "mu": f"log10({v})", "sigma": 0.6}
-                         for name, v in (("N2", 8.9e-4), ("O2", 3.1e-2), ("OCS", 4.1e-4), ("SO2", 1.3e-3), ("Ar", 5.8e-6),
-                                         ("Kr", 4.9e-7), ("Xe", 2.4e-7))}},
-               correction="N2, O2, OCS, SO2, Ar, Kr and Xe are built from one measured comet (67P, Rubin 2019) and stay flagged "
-                          "stand-in values; O2 presence cannot be set from one comet. Ne is only an upper limit (below 5e-8) "
-                          "and is not drawn."),
+                      **{name: {"kind": "normal", "log10": True,
+                                "mu": f"log10(comet_species_median('{name}', n_over_c, ar_over_c, s_over_c))", "sigma": "comet_species_sigma()"}
+                         for name in ("N2", "O2", "OCS", "SO2", "Ar", "Kr", "Xe")}},
+               correction="GEN.1005 (2026-10-30): N2, Ar, OCS and SO2 follow the host's ratios to carbon and the width is 0.4 dex (Bar-Nun's 5 K in the formation temperature) in place of the design 0.6; "
+                          "O2 presence cannot be set from one comet. Ne is only an upper limit (below 5e-8) and is not drawn."),
 
     # ---- l. white-dwarf and pulsar planets ----
     "l1": dict(state="stand-in", replacement="GEN.513", kind="option", group="l", classes=ROCKY, when=[c("host_type", one_of=["WD", "PSR"])],
@@ -429,12 +425,13 @@ MACHINE = {
                           "solar masses, 0.6 at 0.2 to 0.3, 2.3 at 0.1 to 0.2), interpolated in log mass, and replaces "
                           "LU[0.162, 2]."),
     "p5": dict(kind="option", group="p", classes=ANY, when=[c("age_gy", maximum=0.1)], weight=1),
-    "p6": dict(state="partly verified", limit="the percentile of an observed rotation distribution is uniform by construction (drawn 0.02 to 0.98, the range Johnstone 2021 offers); the saturation time against mass is read off Johnstone 2021 Fig. 10 (`saturation_time.py`, registry RS1, GEN.493); the draw does not yet read it (wiring step)", kind="param", classes=ANY, when=[drawn("p", "p4", "p5")],
+    "p6": dict(state="partly verified", limit="the percentile of an observed rotation distribution is uniform by construction (drawn 0.02 to 0.98, the range Johnstone 2021 offers); the saturation time against mass is read off Johnstone 2021 Fig. 10 (`saturation_time.py`, registry RS1, GEN.493) and is held to 0.1 to 1.2 solar masses; the generator's own star draws its percentile in `activity.generate_activity`, and this row does not yet read that star's value", kind="param", classes=ANY, when=[drawn("p", "p4", "p5")],
                dist={"kind": "uniform", "lo": 0.02, "hi": 0.98}, sets="rotation_percentile",
-               values={"t_sat_myr": "5.7*(23/5.7)**((value - 0.1)/0.4) if value < 0.5 else 23*(226/23)**((value - 0.5)/0.4)"},
-               source="Tu et al. 2015 (arXiv:1504.04546, READ): the 10th, 50th and 90th percentile tracks of the initial rotation "
-                      "distribution with saturation times 5.7, 23 and 226 Myr; Johnstone et al. 2021 (READ): tracks at every "
-                      "integer percentile 2 to 98; the 150 Myr rotation distribution of the clusters is the observed one"),
+               values={"t_sat_myr": "saturation_time_myr(host_mass_solar, 100*value)"},
+               source="Johnstone, Bartel and Guedel 2021 (arXiv:2009.07695, READ): the saturation age against mass for the 5th, 50th and 95th "
+                      "percentiles of the 150 Myr rotation distribution of the clusters (Fig. 10, read off by pixel position), which is the "
+                      "observed distribution, so the percentile is uniform; at one solar mass the curves agree with Tu et al. 2015 "
+                      "(arXiv:1504.04546, READ: 5.7, 23 and 226 Myr at the 10th, 50th and 90th percentiles)"),
 }
 
 # The group a row belongs to carries its fallback; these rows sit in no group (independent draws).

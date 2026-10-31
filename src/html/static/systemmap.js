@@ -37,6 +37,7 @@ const THREE = await import(`./vendor/three.module.min.js${VERSION_QUERY}`);
 const { glowInnerRatio, makeBandTexture, makeGasRingTexture, makeGlowMaterial, paintedTexture } = await import(`./bodyRendering.js${VERSION_QUERY}`);
 const { makeCache, makeQueue, parseLook, tierForDiameter, TIER_SIZES } = await import(`./bodytexture.js${VERSION_QUERY}`);
 const { paintSolid } = await import(`./solidpaint.js${VERSION_QUERY}`);
+const { isLumpy, lumpyGeometry } = await import(`./lumpymesh.js${VERSION_QUERY}`);
 const { glowFor, paintStar } = await import(`./starpaint.js${VERSION_QUERY}`);
 const { formatDistanceKm: formatLadderKm } = await import(`./unitladder.js${VERSION_QUERY}`);
 const { addField } = await import(`./mapcore.js${VERSION_QUERY}`);
@@ -120,7 +121,13 @@ function initSphereField(canvasEl) {
     camera.lookAt(0, 0, 0);
   }
 
-  scene.add(new THREE.AmbientLight(0xffffff, 0.35));
+  // MAP.277: the light on the night side is what the air scatters round the terminator: 0.35 for the Earth's air, less for a thin one, none for a world with no air
+  // (a star keeps 0.35).
+  var AMBIENT_STAR = 0.35;
+  var AMBIENT_NO_AIR = 0.15;
+  var AMBIENT_PER_TWILIGHT = 1.25;
+  var ambient = new THREE.AmbientLight(0xffffff, AMBIENT_STAR);
+  scene.add(ambient);
   var sun = new THREE.DirectionalLight(0xffffff, 1.15);
   sun.position.set(-3, 2, 4);
   scene.add(sun);
@@ -140,7 +147,8 @@ function initSphereField(canvasEl) {
   // time regardless.
   var planetMaterial = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.9, metalness: 0.05 });
   var starMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
-  var sphere = new THREE.Mesh(new THREE.SphereGeometry(SPHERE_R, 48, 32), planetMaterial);
+  var roundGeometry = new THREE.SphereGeometry(SPHERE_R, 48, 32);
+  var sphere = new THREE.Mesh(roundGeometry, planetMaterial);
   bodyGroup.add(sphere);
 
   var ring = new THREE.Mesh(
@@ -151,14 +159,13 @@ function initSphereField(canvasEl) {
   bodyGroup.add(ring);
 
   var PLANET_GLOW_POWER = 1.4;
-  var PLANET_GLOW_STRENGTH = 0.7;
+  var DEFAULT_GLOW_WIDTH = 0.14;   // how far a glow reaches past the limb, in radii, when the look record does not say (its air's composition is not stored)
   var STAR_GLOW_POWER = 1.8;
   // The glow shell's radius relative to the body sphere's own, planet
   // (unscaled) and star (scaled up by the star's own glow scale, from its luminosity) -- the shader
   // starts its fade at the body's limb (see bodyRendering.js).
-  var PLANET_GLOW_INNER = glowInnerRatio(GLOW_R / SPHERE_R);
 
-  var glowMaterial = makeGlowMaterial(THREE, 0xbcdfff, PLANET_GLOW_POWER, PLANET_GLOW_STRENGTH, GLOW_R / SPHERE_R);
+  var glowMaterial = makeGlowMaterial(THREE, 0xbcdfff, PLANET_GLOW_POWER, 1.0, GLOW_R / SPHERE_R);
   var glow = new THREE.Mesh(new THREE.SphereGeometry(GLOW_R, 48, 32), glowMaterial);
   bodyGroup.add(glow);
 
@@ -198,6 +205,9 @@ function initSphereField(canvasEl) {
   }
 
   function disposeMarker(marker) {
+    if (marker.lumpy) {
+      marker.lumpy.geometry.dispose();
+    }
     if (marker.bandTexture) {
       marker.bandTexture.dispose();
     }
@@ -229,7 +239,7 @@ function initSphereField(canvasEl) {
         ? RING_OUTER_R * 1.15
         : marker.isStar
           ? GLOW_R * marker.glowScale * 1.15
-          : GLOW_R * 1.15;
+          : Math.max(GLOW_R, marker.lumpy ? marker.lumpy.extent : 0) * 1.15;
       return { cx: cx, cy: cy, side: 2 * halfExtent * r, halfExtent: halfExtent };
     });
   }
@@ -255,6 +265,7 @@ function initSphereField(canvasEl) {
   function configureBody(marker) {
     if (marker.isStar) {
       sphere.material = starMaterial;
+      sphere.geometry = roundGeometry;
       // the painted star texture (starpaint.js) already bakes the
       // star's own color into its granulation pattern -- tinting
       // starMaterial.color on top of that too would double-multiply it
@@ -278,6 +289,7 @@ function initSphereField(canvasEl) {
       // than a planet's own subtle atmosphere rim (the marker's glowScale/
       // glowStrength, from luminosity, vs. PLANET_*) -- it needs to read unmistakably
       // as "this is the light source", not just a faint haze.
+      ambient.intensity = AMBIENT_STAR;
       glow.visible = true;
       glow.scale.setScalar(marker.glowScale);
       glowMaterial.uniforms.glowColor.value.set(marker.color);
@@ -287,6 +299,7 @@ function initSphereField(canvasEl) {
       return;
     }
     sphere.material = planetMaterial;
+    sphere.geometry = marker.lumpy ? marker.lumpy.geometry : roundGeometry;     // MAP.279: a body its weight has not made round is a lump
     var painted = marker.isGasGiant ? null : textureFor(marker, tierForDiameter(marker.diameterPx));
     planetMaterial.map = marker.isGasGiant ? marker.bandTexture : painted;
     planetMaterial.color.set(marker.isGasGiant || painted ? "#ffffff" : marker.color);
@@ -298,14 +311,40 @@ function initSphereField(canvasEl) {
       ring.material.needsUpdate = true;
     }
 
-    glow.visible = marker.hasAtmosphere;
-    if (marker.hasAtmosphere) {
-      glow.scale.setScalar(1);
+    ambient.intensity = AMBIENT_NO_AIR + AMBIENT_PER_TWILIGHT * marker.twilight;
+    // MAP.277: an air thin enough not to show has no glow (its look has none), and a thick one's reaches farther and stronger
+    glow.visible = marker.hasGlow;
+    if (marker.hasGlow) {
+      var reach = 1 + (marker.glowWidth || DEFAULT_GLOW_WIDTH);
+      glow.scale.setScalar(reach / GLOW_R);
       glowMaterial.uniforms.glowColor.value.set(marker.glowColor);
       glowMaterial.uniforms.glowPower.value = PLANET_GLOW_POWER;
-      glowMaterial.uniforms.glowStrength.value = PLANET_GLOW_STRENGTH;
-      glowMaterial.uniforms.innerRatio.value = PLANET_GLOW_INNER;
+      glowMaterial.uniforms.glowStrength.value = marker.airGlowStrength;
+      glowMaterial.uniforms.innerRatio.value = glowInnerRatio(reach / SPHERE_R);
     }
+  }
+
+  // UX.244, UX.245: the direction in the picture (x right, y up) from marker `i` to what a tidally locked body keeps its day side toward: the
+  // nearest star marker for a planet, the moon scene's own planet (the marker marked `data-self`) for a moon; null when the scene has none.
+  function towardParent(i) {
+    var rect = rects[i];
+    if (!rect) {
+      return null;
+    }
+    var moon = markers[i].look.kind === "moon";
+    var best = null;
+    var nearest = Infinity;
+    for (var j = 0; j < markers.length; j++) {
+      if (j === i || !rects[j] || (moon ? !markers[j].isSelf : !markers[j].isStar)) {
+        continue;
+      }
+      var d = Math.hypot(rects[j].cx - rect.cx, rects[j].cy - rect.cy);
+      if (d < nearest) {
+        nearest = d;
+        best = rects[j];
+      }
+    }
+    return best && nearest > 0 ? [best.cx - rect.cx, -(best.cy - rect.cy), 0] : null;
   }
 
   // Renders every current marker's own sphere into its own scissored
@@ -336,7 +375,8 @@ function initSphereField(canvasEl) {
       }
       // MAP.328: the body turns about its own axis at the rate its stored rotation period gives (spin.js), the
       // flat picture's axis leaned by its axial tilt; the glow and ring stay put, the lighting is the scene's.
-      Spin.turn(THREE, sphere, marker.look, spinSeconds, marker.axis);
+      marker.toward = Spin.isLocked(marker.look) ? towardParent(i) : null;
+      Spin.turn(THREE, sphere, marker.look, spinSeconds, marker.axis, marker.toward);
       configureBody(marker);
 
       // `setViewport`/`setScissor` both take the rect's bottom-left
@@ -359,9 +399,11 @@ function initSphereField(canvasEl) {
 
   // For the browser tests: how far each current marker's body has turned and at what rate (radians, radians a second).
   function spins() {
-    return markers.map(function (marker) {
+    return markers.map(function (marker, i) {
       return { name: marker.circle.parentNode.dataset.name, angle: Spin.angleAt(marker.look, Spin.seconds()),
-        rate: Spin.rateOf(marker.look), spinH: marker.look.spinH, axis: marker.axis, at: Spin.seconds() };
+        rate: Spin.rateOf(marker.look), spinH: marker.look.spinH, axis: marker.axis, at: Spin.seconds(),
+        kind: marker.look.kind, locked: Spin.isLocked(marker.look), isSelf: marker.isSelf, toward: marker.toward || null,
+        cx: rects[i] ? rects[i].cx : null, cy: rects[i] ? rects[i].cy : null };
     });
   }
 
@@ -406,16 +448,23 @@ function gatherSphereMarkers(sceneEl) {
       circle: circle,
       look: look,
       isStar: isStar,
+      isSelf: !!(circle.parentNode && circle.parentNode.dataset && circle.parentNode.dataset.self === "true"),
       isGasGiant: isGasGiant,
       paintable: look.body === "solid" || isStar,
       glowScale: glowFor(look.lumSolar).scale,
       glowStrength: glowFor(look.lumSolar).strength,
       diameterPx: 0,
       color: look.color,
-      hasAtmosphere: !!look.atm,
+      hasGlow: !!look.glowStrength,
+      airGlowStrength: look.glowStrength || 0,
+      glowWidth: look.glowWidth,
+      twilight: look.twilight || 0,
       glowColor: look.glow || "#bcdfff",
       axis: Spin.pictureAxisOf(look),
     };
+    if (isLumpy(look)) {
+      marker.lumpy = lumpyGeometry(THREE, look);
+    }
     if (isGasGiant) {
       marker.bandTexture = makeBandTexture(THREE, marker.color);
       marker.ringTexture = makeGasRingTexture(THREE, marker.color);

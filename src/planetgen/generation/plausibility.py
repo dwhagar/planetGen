@@ -75,6 +75,9 @@ from planetgen.generation.star import Star
 from planetgen.util import draw
 from planetgen.physics import unit_registry as units
 
+_kg_to_mearth = units.converter("kg", "Mearth")
+_mearth_to_kg = units.converter("Mearth", "kg")
+
 _km_to_m = units.converter("km", "m")
 
 ZONE_CHARS = "hec"
@@ -121,7 +124,7 @@ def distance_for_zone(star, zone):
 
 GIANT_RADIUS_KM_BOUNDS = (10000.0, 200000.0)
 """tuple: The smallest and largest radius a giant can have (a Neptune-like body of ten Earth masses; a hot, inflated gas giant), km."""
-GIANT_MASS_EARTH_BOUNDS = (10.0, mass_boundaries.kg("deuterium_burning_limit") / pc.EARTH_MASS_TO_KG)
+GIANT_MASS_EARTH_BOUNDS = (10.0, _kg_to_mearth(mass_boundaries.kg("deuterium_burning_limit")))
 """tuple: The lightest and heaviest giant, Earth masses (the core-critical mass; the 13 Jupiter-mass limit)."""
 TERRESTRIAL_MAX_RADIUS_KM = 40000.0
 """float: The largest radius a terrestrial body has (a 20 Earth-mass water world is about 25,000 km), km."""
@@ -143,8 +146,8 @@ def theoretical_gravity_bounds_g(body_type):
     if body_type == "g":
         low_earth, high_earth = GIANT_MASS_EARTH_BOUNDS
         low_r, high_r = (_km_to_m(r) for r in GIANT_RADIUS_KM_BOUNDS)
-        return (relations.surface_gravity(low_earth * pc.EARTH_MASS_TO_KG, high_r) / pc.EARTH_GRAVITY,
-                relations.surface_gravity(high_earth * pc.EARTH_MASS_TO_KG, low_r) / pc.EARTH_GRAVITY)
+        return (relations.surface_gravity(_mearth_to_kg(low_earth), high_r) / pc.EARTH_GRAVITY,
+                relations.surface_gravity(_mearth_to_kg(high_earth), low_r) / pc.EARTH_GRAVITY)
     min_d, max_d = bulk_draw.DENSITY_BOUNDS_G_CM3
     mass = min(prog_c.PLANET_MIN_MASS_KG, prog_c.MOON_MIN_MASS_KG)
     radius = (3 * mass / (4 * math.pi * min_d * 1000)) ** (1 / 3)

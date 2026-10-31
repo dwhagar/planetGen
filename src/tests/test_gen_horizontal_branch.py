@@ -16,7 +16,7 @@ import pytest
 from planetgen import tuning
 from planetgen.generation import star_population as sp
 from planetgen.generation.bright_stars import star_fe_h
-from planetgen.physics import giant_branch, post_main_sequence
+from planetgen.physics import alpha_tracks, giant_branch, ms_lifetime, post_main_sequence
 from planetgen.physics import stellar_evolution as se
 
 MASS = 0.95
@@ -45,10 +45,14 @@ def _state_at(fraction, **kwargs):
 
 def _horizontal_branch_age(fe_h, share):
     """The age, Gy, `share` of the way through the horizontal branch of the test star of birth [Fe/H] `fe_h`
-    (lifetimes follow the composition, GEN.651)."""
-    t_ms = se.main_sequence_lifetime_gy(MASS, fe_h)
-    start = giant_branch.giant_end_fraction(MASS, fe_h)
-    return t_ms * (start + share * tuning.HORIZONTAL_BRANCH_DURATION_GY / t_ms)
+    (lifetimes follow the composition, GEN.651, on the track of the star's branch, GEN.1024: the piece of the age axis the age falls in)."""
+    for start, end, track in alpha_tracks.track_segments(fe_h):
+        t_ms = se.main_sequence_lifetime_gy(MASS, track)
+        first = giant_branch.giant_end_fraction(MASS, track)
+        age = t_ms * (first + share * tuning.HORIZONTAL_BRANCH_DURATION_GY / t_ms)
+        if start <= age < end:
+            return age
+    raise AssertionError(fe_h)
 
 
 def test_a_light_star_has_a_horizontal_branch_and_an_asymptotic_branch_between_its_giant_branch_and_its_white_dwarf():
@@ -233,14 +237,18 @@ def test_the_horizontal_branch_to_red_giants_above_it_ratio_is_the_observed_one(
         assert abs(ratio - SALARIS_R) < 0.05, (mass, ratio)
 
 
+HALO_FE_H = sp.reference_fe_h("halo")
+"""float: The composition `bright_star_fraction` counts the halo at (-1.6 since GEN.651/GEN.662; the test once worked at the Sun's)."""
+
+
 @pytest.fixture(scope="module")
 def halo_mean_luminosity():
     """The mean luminosity of a halo star at the reference composition, from 120,000 draws: a few giants carry most of it,
-    so a smaller sample moves it by a third."""
+    so a smaller sample moves it by a third (a mean of 40,000 draws has a spread of 25%, of 120,000 about 14%)."""
     total = 0.0
     for seed in (11, 12):
         rng = random.Random(seed)
-        total += sum(se.sample_living_star(rng=rng, population="halo", fe_h=0.0)[2]["luminosity_sol"] for _ in range(60000))
+        total += sum(se.sample_living_star(rng=rng, population="halo", fe_h=HALO_FE_H)[2]["luminosity_sol"] for _ in range(60000))
     return total / 120000
 
 
@@ -249,10 +257,14 @@ def test_the_halo_counts_match_the_evolutionary_flux_of_an_old_population(floor,
     """The number of stars at least `floor` bright for each solar luminosity of an old population's light is the
     evolutionary flux times the time a turn-off star spends above it, on the red giant and asymptotic giant branches
     (the horizontal branch is under 51 Lsun). The model's count must agree to within 35%."""
-    # At the reference composition, the one `bright_star_fraction` counts and the constants below were worked out at
-    # (GEN.651: a halo of its own [Fe/H] draws is another population of lifetimes and branches).
+    # All at the reference composition, the one `bright_star_fraction` counts: the mean luminosity above, and the turn-off star, the mass
+    # whose main sequence lasts as long as MASS's does at the Sun's composition (12.5 Gy; 0.82 solar masses at [Fe/H] -1.6). The
+    # test took the Sun's composition for the mean and the track while the count moved to the halo's, which left the model's count
+    # 1.2 to 1.5 times the flux's, and a mean of too few draws moved it as much again (TEST.481).
     per_lsun = sp.bright_star_fraction(floor, "halo") / halo_mean_luminosity
-    line = post_main_sequence.timeline(MASS, 0.0)
+    track = alpha_tracks.track_fe_h(HALO_FE_H, T_MS)      # GEN.1024: the halo is alpha-enhanced and reads the track of its branch
+    turnoff = ms_lifetime.mass_for_lifetime_gy(T_MS, track)
+    line = post_main_sequence.timeline(turnoff, track)
     years = 1.0e9 * sum(end - start for _, start, end in line.bright_pieces(floor, skip=("horizontal-branch",)))
     expected = FLUX_PER_YEAR_PER_LSUN * years
     assert expected * 0.65 < per_lsun < expected * 1.35, (per_lsun, expected)

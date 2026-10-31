@@ -40,7 +40,7 @@ from typing import Optional
 
 import numpy as np
 
-from planetgen.physics import air_column, atmospheric_radiation as radiation, elements, photometry, two_stream
+from planetgen.physics import air_column, atmospheric_radiation as radiation, elements, photometry, stellar_library, two_stream
 from planetgen.util import detmath
 
 WAVELENGTHS_NM = np.arange(380.0, 781.0, 5.0)
@@ -223,6 +223,7 @@ def star_spectrum(temperature_k, spread_x=0.0, spread_y=0.0):
     """
     The star's relative spectral power on `WAVELENGTHS_NM`: Planck from 4500 K up; cooler, the Planck spectrum bent by `exp(a t + b t^2)`
     until its chromaticity is the blackbody's plus the BT-Settl offset and the seeded spread (`spread_x`, `spread_y` from -1 to 1).
+    This is the star's light when no model atmosphere answers (`body_light`).
     """
     base = np.array([photometry.planck_relative(float(nm), temperature_k) for nm in WAVELENGTHS_NM])
     dx, dy, weight = photometry.cool_offset(temperature_k)
@@ -354,7 +355,8 @@ def _sky_colour(star, hue, reflected):
 
 
 def atmosphere_colour(column, *, temperature_k, ozone_du=0.0, ground_albedo=0.0, mu0=DEFAULT_MU0,
-                      haze=None, dust=None, cloud=None, cloud_cover=1.0, spread_x=0.0, spread_y=0.0, ozone_temperature_k=None):
+                      haze=None, dust=None, cloud=None, cloud_cover=1.0, spread_x=0.0, spread_y=0.0, ozone_temperature_k=None,
+                      light=None):
     """
     The atmosphere colour of a world with a ground.
 
@@ -369,8 +371,10 @@ def atmosphere_colour(column, *, temperature_k, ozone_du=0.0, ground_albedo=0.0,
         dust (Aerosol, optional): Dust mixed with the lower air (GEN.414).
         cloud (Aerosol, optional): Cloud near the ground (GEN.414), covering `cloud_cover` of the sky.
         cloud_cover (float, optional): The share of the sky the cloud covers; the rest is clear.
-        spread_x, spread_y (float, optional): A cool star's seeded chromaticity draws, -1 to 1 (`photometry.star_colour`).
+        spread_x, spread_y (float, optional): A cool star's seeded chromaticity draws, -1 to 1 (`photometry.star_colour`); not used with `light`.
         ozone_temperature_k (float, optional): The temperature of the ozone layer, K (`radiation.ozone_layer_temperature_k`, GEN.748); 220 when `None`.
+        light (ndarray, optional): The star's relative spectral power on `WAVELENGTHS_NM` (`body_light`: its model atmosphere's); the blackbody
+            of `temperature_k` (`star_spectrum`) when `None`.
 
     Returns:
         AtmosphereColour
@@ -380,7 +384,7 @@ def atmosphere_colour(column, *, temperature_k, ozone_du=0.0, ground_albedo=0.0,
     """
     if not 0.2 <= mu0 <= 1.0:
         raise ValueError("the two-stream model is made for the star between 0.2 and 1 in cosine of the zenith angle")
-    star = star_spectrum(temperature_k, spread_x, spread_y)
+    star = star_spectrum(temperature_k, spread_x, spread_y) if light is None else np.asarray(light, dtype=float)
     albedo = np.broadcast_to(np.asarray(ground_albedo, dtype=float), WAVELENGTHS_NM.shape)
     sky, ratio, sun, sun_ratio, tau_550, tau_rayleigh_550, regime = _colour_of(
         column, star, ozone_du, albedo, mu0, haze, dust, cloud, cloud_cover, ozone_temperature_k)
@@ -390,6 +394,13 @@ def atmosphere_colour(column, *, temperature_k, ozone_du=0.0, ground_albedo=0.0,
         shift = detmath.hypot(sky.x - bare.x, sky.y - bare.y)
     return AtmosphereColour(sky, colour_word(sky.rgb8), ratio, sun, sun_ratio, tau_550, tau_rayleigh_550, regime, shift,
                             shift >= AEROSOL_DOMINATES_SHIFT)
+
+
+def body_light(star):
+    """The relative spectral power on `WAVELENGTHS_NM` of the star of a body from its model atmosphere (GEN.971, `stellar_library.visible_spectrum`
+    at its effective temperature and surface gravity), or `None` outside the library's temperatures and for a run that disregards a missing
+    library: `atmosphere_colour` then takes the blackbody (`star_spectrum`)."""
+    return stellar_library.visible_spectrum(star.temperature, stellar_library.logg_of(star), WAVELENGTHS_NM)
 
 
 STAND_IN_GROUND_ALBEDO = 0.15
@@ -418,6 +429,6 @@ def body_atmosphere_colour(body):
     ozone_temperature = None if lit is None else radiation.ozone_layer_temperature_k(lit[1], getattr(body, "bond_albedo", None))
     try:
         return atmosphere_colour(column, temperature_k=temperature, ozone_du=getattr(body, "ozone_column_du", None) or 0.0,
-                                 ground_albedo=STAND_IN_GROUND_ALBEDO, ozone_temperature_k=ozone_temperature)
+                                 ground_albedo=STAND_IN_GROUND_ALBEDO, ozone_temperature_k=ozone_temperature, light=body_light(body.star))
     except ValueError:
         return None

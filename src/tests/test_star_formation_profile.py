@@ -173,7 +173,7 @@ def test_the_thin_gas_factor_is_one_in_dense_gas_and_a_power_of_the_gas_where_it
     factor = star_formation._thin_gas_factor(np.array([0.1, 8.0]), SHAPE)[0]
     saturation = tuning.STAR_FORMATION_SATURATION_GAS_MSUN_PC2
     power = tuning.STAR_FORMATION_LOW_DENSITY_EXPONENT - tuning.STAR_FORMATION_LAW_EXPONENT
-    assert gas[0] > 3.0 * saturation and factor[0] > 0.75     # dense gas: the factor is near 1
+    assert gas[0] > 2.0 * saturation and factor[0] > 0.75     # dense gas: the factor is near 1 (at twice the saturation it is (2/3)^0.7 = 0.75)
     assert factor[1] == pytest.approx((gas[1] / (gas[1] + saturation)) ** power)
     assert factor[1] < 0.2
 

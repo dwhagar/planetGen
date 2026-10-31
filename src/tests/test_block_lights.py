@@ -200,6 +200,28 @@ def test_no_row_for_a_block_without_a_pre_placed_object(lit):
         conn.close()
 
 
+def test_the_rows_are_written_as_the_driver_would_write_them(lit, monkeypatch):
+    """PERF.190: `_write_rows` makes its INSERT text itself; the table it leaves equals the one the driver's
+    `executemany` leaves for the same rows, exactly, in more than one statement."""
+    config, stars, points = lit
+    conn = store.get_connection(config)
+    try:
+        by_driver = dict(_stored(conn))
+        assert len(by_driver) > 3
+        monkeypatch.setattr(block_lights, "_WRITE_ROWS", 3)
+        statements = []
+        real = conn.execute_literal
+        monkeypatch.setattr(conn, "execute_literal", lambda sql: statements.append(sql) or real(sql))
+        rows = [block_lights._row(block_lights.DrillBlock(*key), sums) for key, sums in sorted(by_driver.items())]
+        conn.execute("DELETE FROM galaxy_block_lights")
+        block_lights._write_rows(conn, rows)
+        conn.commit()
+        assert len(statements) == -(-len(rows) // 3)
+        assert _stored(conn) == by_driver
+    finally:
+        conn.close()
+
+
 def test_a_deleted_scatter_leaves_no_rows_after_a_rebuild(lit):
     config, *_rest = lit
     conn = store.get_connection(config)

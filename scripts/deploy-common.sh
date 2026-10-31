@@ -183,6 +183,18 @@ check_redis_settings() {
     "$PYTHON" "$SCRIPT_DIR/scripts/check_redis_settings.py" "$url" || true
 }
 
+# Prints how big MySQL's InnoDB redo log should be for the writes the server has seen (PERF.222): a log that is too
+# small makes the checkpointer lag (MY-014084) while a galaxy generates. Advice only: never changes MySQL, never fails.
+show_redo_log_advice() {
+    "$PYTHON" "$SCRIPT_DIR/scripts/redo_log_advice.py" || true
+}
+
+# Prints how to keep the kernel's out-of-memory killer off MySQL and Redis, and an optional memory limit for Apache's
+# unit, where the generation workers run (PERF.223). Advice only: never changes a unit, never fails.
+show_oom_advice() {
+    "$PYTHON" "$SCRIPT_DIR/scripts/oom_advice.py" || true
+}
+
 # Whether a Redis server answers PING at the URL in $1, using the redis
 # library install-python-deps.sh installed.
 redis_answers() {
@@ -242,15 +254,18 @@ ensure_apache_modules() {
 # A reload aborts the requests a mod_wsgi daemon is serving after about 4 seconds (touching src/html/wsgi.py does
 # not), which is why a reload is quick and a long request at that moment can fail.
 # Returns 0 when everything reloaded answers, 1 when a step failed (the caller prints the command and ends non-zero),
-# 2 when nothing that serves the site is running (the caller prints the command, the update is fine).
+# 2 when nothing that serves the site is running (the caller prints the command, the update is fine), 3 when every
+# reload succeeded but the /api/health probe never got a good answer (the probe can be wrong for reasons that are not
+# the new code's: another virtual host owns the address, no listener on the https port; the caller warns and opens the
+# site, since the database migration has finished by then).
 reload_web_if_running() {
-    local acted=0 failed=0 unit="" verb=reload check=""
+    local acted=0 failed=0 unhealthy=0 unit="" verb=reload check=""
     if is_macos; then
         if launchctl print "system/$GUNICORN_LABEL" >/dev/null 2>&1; then
             if launchctl kill SIGHUP "system/$GUNICORN_LABEL" >/dev/null 2>&1; then
                 echo "reloaded gunicorn."
                 acted=1
-                wait_for_health "${PLANETGEN_HEALTH_URL:-http://127.0.0.1:8000/api/health}" gunicorn || failed=1
+                wait_for_health "${PLANETGEN_HEALTH_URL:-http://127.0.0.1:8000/api/health}" gunicorn || unhealthy=1
             else
                 echo "warning: launchctl kill SIGHUP system/$GUNICORN_LABEL failed." >&2
                 failed=1
@@ -264,12 +279,13 @@ reload_web_if_running() {
         if [[ -n "$unit" ]]; then
             (( APACHE_NEEDS_RESTART )) && verb=restart
             acted=1
+            echo "Testing Apache's configuration, then ${verb}ing it (a request still running is cut off):"
             if ! apache_configtest; then
                 echo "warning: Apache's configuration test failed, so Apache was not ${verb}ed (the running one keeps serving)." >&2
                 failed=1
             elif systemctl "$verb" "$unit" >/dev/null 2>&1; then
                 echo "${verb}ed Apache."
-                wait_for_health "${PLANETGEN_HEALTH_URL:-http://127.0.0.1/api/health}" Apache "${PLANETGEN_HEALTH_URL:-$(site_health_target)}" || failed=1
+                wait_for_health "${PLANETGEN_HEALTH_URL:-http://127.0.0.1/api/health}" Apache "${PLANETGEN_HEALTH_URL:-$(site_health_target)}" || unhealthy=1
             else
                 echo "warning: systemctl $verb $unit failed." >&2
                 failed=1
@@ -279,7 +295,7 @@ reload_web_if_running() {
             acted=1
             if systemctl reload planetgen-gunicorn >/dev/null 2>&1; then
                 echo "reloaded gunicorn."
-                wait_for_health "${PLANETGEN_HEALTH_URL:-http://127.0.0.1:8000/api/health}" gunicorn || failed=1
+                wait_for_health "${PLANETGEN_HEALTH_URL:-http://127.0.0.1:8000/api/health}" gunicorn || unhealthy=1
             else
                 echo "warning: systemctl reload planetgen-gunicorn failed." >&2
                 failed=1
@@ -287,6 +303,7 @@ reload_web_if_running() {
         fi
     fi
     (( failed )) && return 1
+    (( unhealthy )) && return 3
     (( acted )) && return 0
     return 2
 }
@@ -334,18 +351,40 @@ if host and host not in ("localhost", "127.0.0.1", "::1"):
 ' 2>/dev/null || true
 }
 
+# What curl's exit status says when it got no HTTP answer at all (the "HTTP 000" in a warning), in plain words.
+curl_failure_words() {
+    case "${1:-0}" in
+        0) echo "no answer" ;;
+        6) echo "the name could not be looked up" ;;
+        7) echo "the connection was refused: nothing listens on that address and port" ;;
+        28) echo "no answer in time" ;;
+        35|51|53|54|58|59|60|77|80|82|83|90|91) echo "the TLS (https) handshake or certificate failed, curl exit $1" ;;
+        47) echo "too many redirects" ;;
+        52) echo "the server closed the connection without an answer" ;;
+        56) echo "the connection was reset" ;;
+        *) echo "curl exit $1" ;;
+    esac
+}
+
 # Waits up to HEALTH_WAIT_SECONDS for $1 (an address) to answer below 400, naming $2 in the warning; true without curl.
 # $3, when given, is the site's own address and its two curl --resolve values (site_health_target), tried each round when $1
 # does not answer below 400: it passes on a 2xx answer, so a host whose bare loopback address belongs to another virtual
-# host (OPS.77) is checked through the site's own name. A passing answer by that route is said so.
+# host (OPS.77) is checked through the site's own name. A passing answer by that route is said so. The site's own address
+# is pointed at this machine, so what is checked is this Apache and not DNS, NAT or the certificate (-k: a name the
+# certificate does not cover, or one that has lapsed, is not a reason to call the new code unhealthy).
 # /api/health stays open while the site is closed for the update (OPS.75), so a reload is checked while the update's
 # own maintenance mode is still on; a closed site is said so (and why), on success and in the warning alike.
+# Returns 0 when it answers, 1 when it never did.
 wait_for_health() {
     command -v curl >/dev/null 2>&1 || return 0
-    local end=$(( SECONDS + ${HEALTH_WAIT_SECONDS:-20} )) reply code body site_url="" resolve_http="" resolve_https="" site_code="" site_note=""
+    # The reload has just restarted the workers: they get HEALTH_SETTLE_SECONDS (default 10) to start before the first probe.
+    echo "Giving the workers ${HEALTH_SETTLE_SECONDS:-10} seconds to start, then asking $1 for /api/health (up to ${HEALTH_WAIT_SECONDS:-20} seconds):"
+    sleep "${HEALTH_SETTLE_SECONDS:-10}"
+    local end=$(( SECONDS + ${HEALTH_WAIT_SECONDS:-20} )) reply code body rc site_url="" resolve_http="" resolve_https="" site_code="" site_rc=0 site_note=""
     if [[ -n "${3:-}" ]]; then read -r site_url resolve_http resolve_https <<<"$3"; fi
     while :; do
-        reply="$(curl -s --max-time 5 -w '\n%{http_code}' "$1" 2>/dev/null)"
+        rc=0
+        reply="$(curl -s --max-time 5 -w '\n%{http_code}' "$1" 2>/dev/null)" || rc=$?
         code="${reply##*$'\n'}"
         body="${reply%$'\n'*}"
         if [[ "$code" =~ ^[23] ]]; then
@@ -353,7 +392,8 @@ wait_for_health() {
             return 0
         fi
         if [[ -n "$site_url" ]]; then
-            reply="$(curl -sL --max-time 5 --resolve "$resolve_http" --resolve "$resolve_https" -w '\n%{http_code}' "$site_url" 2>/dev/null)"
+            site_rc=0
+            reply="$(curl -skL --max-time 8 --resolve "$resolve_http" --resolve "$resolve_https" -w '\n%{http_code}' "$site_url" 2>/dev/null)" || site_rc=$?
             site_code="${reply##*$'\n'}"
             body="${reply%$'\n'*}"
             if [[ "$site_code" =~ ^2 ]]; then
@@ -361,12 +401,17 @@ wait_for_health() {
                 health_maintenance_note "$body"
                 return 0
             fi
-            site_note=" The site's own address $site_url answered HTTP ${site_code:-000}."
+            site_note=" The site's own address $site_url answered HTTP ${site_code:-000}"
+            [[ "${site_code:-000}" == 000 ]] && site_note+=" (no HTTP answer at all: $(curl_failure_words "$site_rc"))"
+            site_note+="."
         fi
         if (( SECONDS >= end )); then
-            echo "warning: the health check of $2 failed: $1 answered HTTP ${code:-000} for ${HEALTH_WAIT_SECONDS:-20} seconds after the reload.${site_note}$(health_maintenance_note "$body" brief)" >&2
+            local bare_note=""
+            [[ "${code:-000}" == 000 ]] && bare_note=" (no HTTP answer at all: $(curl_failure_words "$rc"))"
+            echo "warning: the health check of $2 failed: $1 answered HTTP ${code:-000}${bare_note} for ${HEALTH_WAIT_SECONDS:-20} seconds after the reload.${site_note}$(health_maintenance_note "$body" brief)" >&2
             return 1
         fi
+        (( SECONDS % 5 == 0 )) && echo "  no good answer yet (HTTP ${code:-000}); asking again, $(( end - SECONDS )) s left"
         sleep 1
     done
 }
@@ -636,17 +681,22 @@ finish_update_guard() {
 
 # Builds the site's caches (MAP.134, PERF.104, PERF.127): the Galaxy Map's opening view,
 # the lists, every sector, system and phenomenon page (up to the warm-up cap)
-# and the search, in the background as Apache's user (the caches belong to it),
-# so the update doesn't wait for it and the first visitor after it doesn't
-# either. `planetgen warm` builds the list of the warm-* commands (one per
-# family) and hands it to the wrapper, which runs them in order on the Redis
-# queue; it waits for the update to finish, then for them, and prints one line
-# per family. At most 30 minutes; the output goes to $WARM_MAP_LOG, and its exit
-# status is non-zero if any family failed. Never fails the update: the first
+# and the search, as Apache's user (the caches belong to it). It starts as soon as
+# the code, the database, the permissions and Redis are in place (Boss, 10-30 EDT),
+# in the background, and `wait_for_warm_opening` holds the update until its first
+# phase (the opening views and the first page of each list) is built, before the
+# reload and the /api/health check; the other phases go on after the update ends.
+# `planetgen warm` builds the list of the warm-* commands (one per family) and
+# hands it to the wrapper, which runs them in order on the Redis queue and prints
+# one line per family; the update's own commands pass the update guard. At most
+# 30 minutes; the output goes to $WARM_MAP_LOG. Never fails the update: the first
 # visit builds what the warm-up did not.
 warm_galaxy_map() {
     local user="" runner=()
     WARM_MAP_LOG="${WARM_MAP_LOG:-/tmp/planetgen-warm-map.log}"
+    WARM_OPENING_FILE="${WARM_OPENING_FILE:-/tmp/planetgen-warm-opening.$$}"
+    WARM_PID=""
+    rm -f "$WARM_OPENING_FILE"
     if [[ -r "$SCRIPT_DIR/examples/apache/apache-identity.sh" ]]; then
         # shellcheck source=../examples/apache/apache-identity.sh
         source "$SCRIPT_DIR/examples/apache/apache-identity.sh"
@@ -661,9 +711,35 @@ warm_galaxy_map() {
     if command -v timeout >/dev/null 2>&1; then
         limit=(timeout 1800)
     fi
-    (cd / && nohup ${runner[@]+"${runner[@]}"} ${limit[@]+"${limit[@]}"} "$PYTHON" -m planetgen.cli.generate warm \
-        >"$WARM_MAP_LOG" 2>&1 </dev/null &) || true
+    WARM_PID="$(cd / && nohup ${runner[@]+"${runner[@]}"} ${limit[@]+"${limit[@]}"} "$PYTHON" -m planetgen.cli.generate warm \
+        --opening-done "$WARM_OPENING_FILE" >"$WARM_MAP_LOG" 2>&1 </dev/null & echo $!)" || WARM_PID=""
     echo "Building the site's caches in the background (log: $WARM_MAP_LOG)."
+}
+
+# Waits (at most WARM_OPENING_WAIT_SECONDS, default 1200) until the warm-up's opening phase is built, or the warm-up
+# ends, whichever comes first, so the reload and the health check come after the data the site opens with exists.
+# Says what happened and never fails the update.
+wait_for_warm_opening() {
+    [[ -n "${WARM_PID:-}" ]] || return 0
+    local end=$(( SECONDS + ${WARM_OPENING_WAIT_SECONDS:-1200} )) next=$(( SECONDS + 30 )) last
+    echo "Waiting for the cache warm-up's opening phase (the opening views and the first page of each list) before reloading the site, at most $(( ${WARM_OPENING_WAIT_SECONDS:-1200} / 60 )) minutes:"
+    while [[ ! -e "$WARM_OPENING_FILE" ]]; do
+        if ! kill -0 "$WARM_PID" 2>/dev/null; then
+            [[ -e "$WARM_OPENING_FILE" ]] || echo "warning: the cache warm-up ended before its opening phase was reported (see $WARM_MAP_LOG); the site is reloaded anyway." >&2
+            return 0
+        fi
+        if (( SECONDS >= end )); then
+            echo "warning: the cache warm-up's opening phase was not built in ${WARM_OPENING_WAIT_SECONDS:-1200} seconds; the site is reloaded anyway, the warm-up goes on." >&2
+            return 0
+        fi
+        if (( SECONDS >= next )); then
+            last="$(tail -n 1 "$WARM_MAP_LOG" 2>/dev/null | cut -c1-110)"
+            echo "  still building, $(( end - SECONDS )) s left at most${last:+; last line of the warm-up log: $last}"
+            next=$(( SECONDS + 30 ))
+        fi
+        sleep 1
+    done
+    echo "The opening phase is built; the rest of the warm-up goes on after the update."
 }
 
 # Tells the admin when an update changed an example config they copied
@@ -705,6 +781,7 @@ check_app_imports() {
     else
         user=root
     fi
+    echo "Importing the web app as $user (a few seconds):"
     if (cd / && ${runner[@]+"${runner[@]}"} "$PYTHON" - <<'EOF'
 import planetgen.generation.system  # noqa: F401
 from planetgen.web.app import create_app  # noqa: F401
@@ -762,6 +839,15 @@ record_version_key() {
     run_cli version_history || echo "warning: could not record the version key (see above); the update carries on." >&2
 }
 
+# Works out, once and as part of the update, the mean system mass of every stored cluster age (`planetgen.cli.warm_shape`),
+# which building the galaxy's density shape needs and no web request may spend the time on; the web app reads the results
+# from the data cache folder. A failure only warns: the web app then works them out when it is asked.
+warm_shape_means() {
+    echo "Working out the cluster system masses the galaxy shape needs (a few minutes on a big galaxy, once per release):"
+    run_cli warm_shape || echo "warning: could not work out the cluster system masses (see above); the update carries on." >&2
+    chmod -R a+rX "${PLANETGEN_DATA_DIR:-/var/cache/planetgen/datasets}" 2>/dev/null || true
+}
+
 # The math check (`planetgen check-math`, TEST.68): known answers from
 # real astronomy, identities and sampler distributions. A failure only
 # warns -- the update carries on and the site keeps serving -- but sets
@@ -771,6 +857,7 @@ record_version_key() {
 # runs it on request.
 MATH_CHECK_FAILED=0
 check_math() {
+    echo "Running the math check (a few seconds):"
     if run_cli generate check-math; then
         MATH_CHECK_FAILED=0
     else

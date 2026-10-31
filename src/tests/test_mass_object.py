@@ -107,7 +107,8 @@ def test_a_moon_advances_about_its_planet_by_the_same_function():
     moon.advance(0.25 * moon.period * constants.SECONDS_PER_YEAR)
     assert (moon.position_x, moon.position_y, moon.position_z) != pytest.approx(start)
     distance = math.sqrt(moon.position_x ** 2 + moon.position_y ** 2 + moon.position_z ** 2)
-    assert distance == pytest.approx(moon.distance, rel=1e-6)
+    # on its ellipse: between the periapsis and apoapsis of the moon's own orbit (a moon on a round orbit sits at its distance)
+    assert moon.distance * (1.0 - moon.eccentricity) - 1e-9 <= distance <= moon.distance * (1.0 + moon.eccentricity) + 1e-9
 
 
 def test_a_comet_advances_on_its_hosts_pull():

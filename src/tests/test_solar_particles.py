@@ -40,7 +40,13 @@ def test_the_noaa_rate_falls_with_size_and_the_tail_is_steeper_than_the_record()
     rates = [sp.events_per_year_above(p) for p in peaks]
     assert rates == sorted(rates, reverse=True)
     assert 255.0 / 42.0 == pytest.approx(6.07, abs=0.01)
-    assert sp.events_per_year_above(1.2e5) == pytest.approx(1.0 / 500.0, rel=0.35)  # one Carrington-class event in 500 years
+    # Usoskin and Kovaltsov 2012: four events of 1e10 cm-2 in 600 years of annual 10Be data, 0.0077 a year (0.0032 to 0.0150, 90 percent)
+    assert sp.events_per_year_above(1.2e5) == pytest.approx(0.0077, rel=1e-9)
+    assert 0.0032 < sp.events_per_year_above(1.2e5) < 0.0150
+    assert sp.TAIL_SLOPE == pytest.approx(1.34, abs=0.01)
+    # no event above 2e10 in 600 years: the one-sided 90 percent bound is 0.0027 a year, and the power law of the tail keeps under it
+    assert sp.events_per_year_above(2.4e5) < 0.0027
+    assert sp.events_per_year_above(1.2e5) / sp.events_per_year_above(2.4e5) == pytest.approx(2.0 ** sp.EXTREME_SLOPE)
 
 
 def test_the_yearly_fluence_above_30_mev_is_a_few_1e8_to_1e9_and_the_dose_is_hundreds_of_msv_in_free_space():

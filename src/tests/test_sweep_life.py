@@ -193,19 +193,19 @@ def supported_planet(planets):
 def test_the_sampler_holds_every_class_letter_and_enough_supported_planets(planets):
     rates = rules.draw_rates(planets)
     assert len(rates) >= 8, rates
-    assert sum(supported for _, supported, _ in rates.values()) >= 30
-    assert len([letter for letter, (_, supported, _) in rates.items() if supported]) >= 6
+    assert sum(supported for _, supported, _, _ in rates.values()) >= 30
+    assert len([letter for letter, (_, supported, _, _) in rates.items() if supported]) >= 6
 
 
 @pytest.mark.slow
 def test_the_generator_gives_life_to_every_supported_planet_and_the_same_life_under_every_class_letter(planets):
     problems = [(label, problem) for label, planet in planets for problem in rules.draw_problems(planet)]
     rates = rules.draw_rates(planets)
-    lines = [f"draw-rates: {len(problems)} problems over {len(planets)} planets and moons of the sweep", "class letter: planets, supported by the model, given life by the generator:"]
-    lines += [f"  {letter}: {total}, {supported}, {drawn}" for letter, (total, supported, drawn) in sorted(rates.items())]
+    lines = [f"draw-rates: {len(problems)} problems over {len(planets)} planets and moons of the sweep", "class letter: planets, supported by the model, given life by the generator, supported but waiting for the star's age:"]
+    lines += [f"  {letter}: {total}, {supported}, {drawn}, {waiting}" for letter, (total, supported, drawn, waiting) in sorted(rates.items())]
     census.write_report("\n".join(lines) + "\n", name="class-blind-life-draws-latest.md")
     assert not problems, f"{len(problems)} problems, first {problems[:5]}"
-    assert all(drawn == supported for _, supported, drawn in rates.values())
+    assert all(drawn + waiting == supported for _, supported, drawn, waiting in rates.values())
 
 
 @pytest.mark.slow
@@ -225,6 +225,22 @@ def test_a_generator_that_skips_life_for_one_letter_is_reported(monkeypatch, sup
     assert any("as class K give None" in problem for problem in problems), problems
     monkeypatch.setattr(supported_planet, "planet_class", "K")
     assert any("the generator drew no life" in problem for problem in rules.draw_problems(supported_planet, other_letters=[]))
+
+
+@pytest.mark.slow
+def test_a_supported_world_whose_life_has_not_begun_yet_is_not_reported(monkeypatch, supported_planet):
+    from planetgen.generation import life
+
+    monkeypatch.setattr(life, "_life_has_begun", lambda planet: False)     # GEN.1001: the first step comes after the star's age
+    assert not any("drew no life" in problem for problem in rules.draw_problems(supported_planet, other_letters=[]))
+    total, supported, drawn, waiting = rules.draw_rates([("planet", supported_planet)])[supported_planet.planet_class]
+    assert (supported, drawn, waiting) == (1, 0, 1)
+
+
+@pytest.mark.slow
+def test_a_supported_world_around_a_star_too_young_for_life_is_not_reported(monkeypatch, supported_planet):
+    monkeypatch.setattr(supported_planet.star, "age", 0.05)                # GEN.997: a crust and oceans take about 0.1 Gyr
+    assert not any("drew no life" in problem for problem in rules.draw_problems(supported_planet, other_letters=[]))
 
 
 @pytest.mark.slow

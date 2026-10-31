@@ -36,7 +36,7 @@ import functools
 import math
 
 from planetgen import tuning
-from planetgen.physics import activity, constants, gases
+from planetgen.physics import activity, constants, gases, ion_escape
 
 # --- the exobase temperature ------------------------------------------------------------------------------------------------
 
@@ -111,7 +111,7 @@ HYDRO_BASED_SIGMA = (15.611, -0.578, 1.537, 1.018, 5.564, 0.894)
 
 HYDRO_BASED_MASS_RANGE_EARTH = (1.0, 40.0)
 HYDRO_BASED_TEQ_RANGE_K = (300.0, 2000.0)
-"""tuple: The grid the fit covers; outside it the rate is an extrapolation (`hydro_based_in_grid`)."""
+"""tuple: The grid the fit covers; outside it the rate is an extrapolation."""
 
 _G = constants.G
 _K = constants.BOLTZMANN
@@ -259,10 +259,15 @@ def xuv_flux_earth(subject):
     return activity.coronal_xuv_at(mass_sol, age, luminosity_w) / (4.0 * math.pi * distance_m ** 2) / constants.EARTH_XUV_FLUX_W_M2
 
 
-def xuv_ratio(mass_sol, luminosity_w, age_gy, at_gy):
-    """The star's `L_XUV` at `at_gy` over its `L_XUV` at `age_gy` (the corona of `activity`)."""
-    now = activity.coronal_xuv_at(mass_sol, age_gy, luminosity_w)
-    return activity.coronal_xuv_at(mass_sol, at_gy, luminosity_w) / now if now > 0.0 else 1.0
+def xuv_ratio(mass_sol, luminosity_w, age_gy, at_gy, log_lx_lbol=None):
+    """The star's `L_XUV` at `at_gy` over its `L_XUV` at `age_gy` (the corona of `activity`); with the star's own stored `log_lx_lbol` the decay is the one
+    through it (`activity.effective_saturation_age_gy`, GEN.804), the table's nominal one without."""
+    if log_lx_lbol is None:
+        now = activity.coronal_xuv_at(mass_sol, age_gy, luminosity_w)
+        return activity.coronal_xuv_at(mass_sol, at_gy, luminosity_w) / now if now > 0.0 else 1.0
+    t_sat = activity.effective_saturation_age_gy(mass_sol, age_gy, log_lx_lbol)
+    now = activity.coronal_xuv_with(mass_sol, age_gy, luminosity_w, t_sat)
+    return activity.coronal_xuv_with(mass_sol, at_gy, luminosity_w, t_sat) / now if now > 0.0 else 1.0
 
 
 # --- the share of an air that is kept --------------------------------------------------------------------------------------
@@ -271,7 +276,8 @@ HISTORY_STEPS = 48
 """int: Log-spaced steps of the loss history from `tuning.RUNAWAY_HISTORY_START_YR` to the body's age."""
 
 
-def kept_shares(fractions, mass_kg, radius_m, teq_k, pressure_pa, age_gy, xuv_flux_now, host_mass_sol=None, luminosity_w=None, mesopause_k=None):
+def kept_shares(fractions, mass_kg, radius_m, teq_k, pressure_pa, age_gy, xuv_flux_now, host_mass_sol=None, luminosity_w=None, mesopause_k=None,
+                magnetopause_rp=None, log_lx_lbol=None):
     """
     The share of each species of an air that is left at `age_gy`, after thermal escape through the star's XUV history.
 
@@ -288,6 +294,10 @@ def kept_shares(fractions, mass_kg, radius_m, teq_k, pressure_pa, age_gy, xuv_fl
         xuv_flux_now (float): `xuv_flux_earth` of the body.
         host_mass_sol, luminosity_w (float, optional): The star's, for the shape of its XUV decay; without them the flux is held at its present value.
         mesopause_k (float, optional): The mesopause temperature where the lower air is not in radiative equilibrium with the star.
+        magnetopause_rp (float, optional): The magnetopause in planet radii (GEN.804): the stellar wind carries off ions (`ion_escape`) through the share of the
+            surface the field leaves open, 0 for a world with no field (open all over). `None` is a field not yet drawn: the ion loss is not followed.
+        log_lx_lbol (float, optional): The star's own `log10 L_X/L_bol` at `age_gy`: the XUV history then follows the decay through it (a star that spun
+            slowly or fast kept its saturation for a different time) instead of the table's nominal one.
 
     Returns:
         tuple: `(kept, present_exobase_k)`, `kept` the formula -> share 0..1 and the temperature that of the air as it is supplied.
@@ -305,6 +315,7 @@ def kept_shares(fractions, mass_kg, radius_m, teq_k, pressure_pa, age_gy, xuv_fl
     start_gy = min(tuning.RUNAWAY_HISTORY_START_YR / 1e9, 0.5 * age_gy)
     ratio_step = (age_gy / start_gy) ** (1.0 / HISTORY_STEPS)
     t0 = start_gy
+    limit_key, limits = None, {}
     for _ in range(HISTORY_STEPS):
         t1 = t0 * ratio_step
         alive = {formula: n for formula, n in column.items() if n > 1e-12 * column0[formula]}
@@ -313,30 +324,38 @@ def kept_shares(fractions, mass_kg, radius_m, teq_k, pressure_pa, age_gy, xuv_fl
         count = sum(alive.values())
         now = {formula: n / count for formula, n in alive.items()}
         mean_now = mean_mass_kg(now)
-        history = xuv_ratio(host_mass_sol, luminosity_w, age_gy, math.sqrt(t0 * t1)) if host_mass_sol and luminosity_w else 1.0
+        history = xuv_ratio(host_mass_sol, luminosity_w, age_gy, math.sqrt(t0 * t1), log_lx_lbol) if host_mass_sol and luminosity_w else 1.0
         flux = xuv_flux_now * history
         temperature = exobase_temperature_k(flux, meso, now.get("CO2", 0.0))
         r_exo, density, _ = exobase(radius_m, gravity, mean_now, temperature, meso)
         area_ratio = (r_exo / radius_m) ** 2
-        rate = {formula: min(jeans_flux(share * density, masses[formula], temperature, gm, r_exo) * area_ratio,
-                             diffusion_limited_flux(formula, now, gravity, meso, mean_now)) for formula, share in now.items()}
+        key = (tuple(now.items()), mean_now)
+        if key != limit_key:                                                      # a heavy gas that loses nothing leaves the air as it was
+            limit_key, limits = key, {}
+        rate = {}
+        for formula, share in now.items():
+            jeans = jeans_flux(share * density, masses[formula], temperature, gm, r_exo) * area_ratio
+            if jeans > 0.0:                                                       # `min(0, limit)` is 0 for any limit that is not negative
+                limit = limits.get(formula)
+                if limit is None:
+                    limit = limits[formula] = diffusion_limited_flux(formula, now, gravity, meso, mean_now)
+                jeans = min(jeans, limit)
+            rate[formula] = jeans
         budget = energy_limited_mass_loss_kg_s(min(flux, XUV_FLUX_MAX_EARTH) * constants.EARTH_XUV_FLUX_W_M2, r_exo, mass_kg)
         demanded = 4.0 * math.pi * radius_m ** 2 * sum(rate[f] * masses[f] for f in rate)
         scale = min(1.0, budget / demanded) if demanded > 0.0 else 1.0
         dt = (t1 - t0) * _GY_S
+        ion_kg_s = 0.0 if magnetopause_rp is None else ion_escape.ion_loss_kg_s(
+            energy_limited_mass_loss_kg_s(min(flux, XUV_FLUX_MAX_EARTH) * constants.EARTH_XUV_FLUX_W_M2, 1.05 * radius_m, mass_kg, efficiency=1.0),
+            magnetopause_rp)
+        ion_per_m2 = ion_kg_s / (mean_now * 4.0 * math.pi * radius_m ** 2)     # molecules per m2 s, taken from the species in the proportion they are in
         for formula, value in rate.items():
-            column[formula] = alive[formula] * math.exp(-min(scale * value * dt / alive[formula], 700.0))
+            column[formula] = alive[formula] * math.exp(-min((scale * value + ion_per_m2 * now[formula]) * dt / alive[formula], 700.0))
         t0 = t1
     return {formula: column[formula] / column0[formula] for formula in shares}, present
 
 
 # --- the hydrodynamic rate of a hydrogen envelope -------------------------------------------------------------------------
-
-def hydro_based_in_grid(mass_earth, teq_k):
-    """Whether a planet is inside the grid of Kubyshkina et al. 2018 (1 to 40 Earth masses, 300 to 2000 K)."""
-    return (HYDRO_BASED_MASS_RANGE_EARTH[0] <= mass_earth <= HYDRO_BASED_MASS_RANGE_EARTH[1]
-            and HYDRO_BASED_TEQ_RANGE_K[0] <= teq_k <= HYDRO_BASED_TEQ_RANGE_K[1])
-
 
 def hydro_based_mass_loss_g_s(mass_earth, radius_earth, teq_k, distance_au, xuv_flux_erg_cm2_s):
     """

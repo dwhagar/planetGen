@@ -61,7 +61,7 @@ from planetgen.galaxy import bring_to_epoch as bringToEpoch, drill, seed as gala
 from planetgen import tuning as program_constants
 from planetgen.util import log
 from planetgen._version import VersionAction, version_banner
-from planetgen.galaxy import scatter_limits
+from planetgen.galaxy import region_run, scatter_limits
 from planetgen.galaxy import dials
 from planetgen.galaxy import shape_draw as shapeDraw
 from planetgen.galaxy.skeleton import DEFAULT_REACH_SHELL
@@ -70,6 +70,7 @@ from planetgen.generation import star_population
 from planetgen.generation.star_population import bright_star_fraction
 from planetgen.generation import stages
 from planetgen.generation import finish_run as finishRun
+from planetgen.generation import job as generationJob
 from planetgen.generation import run_common
 from planetgen.generation import run_galaxy
 from planetgen.generation import run_phenomenon
@@ -691,6 +692,12 @@ def add_sectors_arguments(parser):
                                  "(size.shell.band.wedge, as in the map's stage links; the size is 243, "
                                  "81, 27, 9 or 3). Sectors are generated shell by shell outward, with "
                                  "the same progress and cancel as the other modes.")
+    mode_group.add_argument('--around', type=finite_float, nargs=3, metavar=('X', 'Y', 'Z'),
+                            help="Region mode: generate every not-yet-generated sector a sphere of --radius-pc touches, "
+                                 "centred on this point (parsecs from the galactic centre), nearest first, in units of at most "
+                                 "--unit-sectors consecutive wedges of one shell and band. The same seed gives the same sectors "
+                                 "whatever the point, the radius or the order regions are run in. Rerun it after a stop: charted "
+                                 "sectors are skipped.")
     mode_group.add_argument('--center-sector', type=int, metavar='SECTOR_ID',
                             help="Local-neighborhood mode: generate every not-yet-generated sector "
                                  "within --radius-pc of the given, already galaxy-placed sector's own "
@@ -753,6 +760,12 @@ def add_sectors_arguments(parser):
                              "neither --shell nor --center-sector (random-start mode): overrides the "
                              "default 12 pc neighborhood radius around the randomly chosen starting "
                              "sector.")
+    parser.add_argument('--grow-shells', type=int, metavar='K',
+                        help="With --around: grow the sphere by K whole shells of one sector edge (about the surface times K "
+                             "more sectors).")
+    parser.add_argument('--unit-sectors', type=int, metavar='N',
+                        help="With --around: the most sectors in a unit of work, the retry and resume grain (default "
+                             f"{region_run.BLOCK_SECTORS}).")
     parser.add_argument('--max-shell', type=int,
                         help="With neither --shell nor --center-sector (random-start mode): the highest "
                              "shell the randomly chosen starting sector may land in. Default: anywhere "
@@ -832,6 +845,13 @@ def validate_sectors_args(args, parser):
     problem found, then shapes `args` into the namespace `generate_sector()`/`iter_sector_configs()` expect. Doesn't
     include `add_shared_generation_options`'s own validation (`validate_shared_generation_args`).
     """
+    if getattr(args, "around", None) is not None:
+        _validate_around(args, parser)
+        return
+    for flag, value in (("--grow-shells", getattr(args, "grow_shells", None)), ("--unit-sectors", getattr(args, "unit_sectors", None))):
+        if value is not None:
+            parser.error(f"{flag} requires --around.")
+
     if getattr(args, "block", None) is not None:
         _validate_block(args, parser)
         return
@@ -947,6 +967,29 @@ def _validate_course(args, parser):
     ) if value is not None]
     if others:
         parser.error(f"--course can't be combined with {', '.join(others)}.")
+    args.sector_name = args.system_file = args.num_orbits = args.name = None
+
+
+def _validate_around(args, parser):
+    """Checks `--around` (GEN.1128): a start point, a positive `--radius-pc`, whole non-negative `--grow-shells` and a positive `--unit-sectors`,
+    nothing that names another region; shapes `args` like the other modes."""
+    others = [flag for flag, value in (
+        ("--shell", args.shell), ("--band", args.band), ("--wedge", args.wedge), ("--center-sector", args.center_sector),
+        ("--max-shell", args.max_shell), ("--min-start-density", args.min_start_density), ("--limit", args.limit),
+        ("--shells", args.shells), ("--bands", args.bands), ("--wedges", args.wedges), ("--region", args.region or None),
+    ) if value is not None]
+    if others:
+        parser.error(f"--around can't be combined with {', '.join(others)}.")
+    if args.radius_pc is None:
+        parser.error("--around requires --radius-pc.")
+    if args.radius_pc <= 0:
+        parser.error("--radius-pc must be a positive number.")
+    if args.radius_pc > limits.MAX_GENERATE_RADIUS_PC:
+        parser.error(f"--radius-pc must be at most {limits.MAX_GENERATE_RADIUS_PC:g}.")
+    if args.grow_shells is not None and args.grow_shells < 0:
+        parser.error("--grow-shells must be >= 0.")
+    if args.unit_sectors is not None and args.unit_sectors < 1:
+        parser.error("--unit-sectors must be >= 1.")
     args.sector_name = args.system_file = args.num_orbits = args.name = None
 
 
@@ -1628,6 +1671,21 @@ def build_parser():
                                     "them, for a sector a black hole or neutron star was added to ('planetgen "
                                     "phenomenon --sector-id' saves no paths itself).")
 
+    run_job_parser = subparsers.add_parser(
+        'run-job',
+        description="Runs a Generate job as one run: the commands of SPEC, a JSON list of {\"command\", \"argv\"} "
+                    "(argv: the command's options, what follows its name on its own command line), put together as the stages "
+                    "of one run in the work queue, with one stage list and one estimate. A command's checks are made when "
+                    "its own stage opens, so a job can plan the galaxy and scatter it. A job holds "
+                    + ", ".join(generationJob.JOB_COMMANDS) + ".",
+        help="Run a list of generation commands as one run.")
+    run_job_parser.add_argument('spec', metavar='SPEC', help="The job as JSON, or @FILE to read it from a file.")
+    run_job_parser.add_argument('--workers', type=int, default=None,
+                                help="How many worker processes the run uses at most. Default: 80%% of this machine's cores "
+                                     "(one fewer when MySQL runs here too), or PLANETGEN_WORKERS.")
+    store.add_mysql_connection_args(run_job_parser)
+    add_logging_arguments(run_job_parser)
+
     finish_run_parser = subparsers.add_parser(
         'finish-run',
         description="Carries on a generation run that stopped partway (a killed process, an out-of-memory database, a "
@@ -1787,6 +1845,7 @@ def build_parser():
         'link': link_parser,
         'backfill': backfill_parser,
         'settle': settle_parser,
+        'run-job': run_job_parser,
         'phenomenon': phenomenon_parser,
         'finish-run': finish_run_parser,
         'population': population_parser,
@@ -1820,6 +1879,22 @@ def process_args():
     # --mysql-port's range (1 to 65535) is checked by its argparse type,
     # planetgen.db.store._mysql_port (OPS.6).
 
+    validate_command(args, command_parser)
+    if args.command == 'run-job':
+        try:
+            args.job = generationJob.parse_entries(args.spec, args, command_parsers, validate_command)
+        except ValueError as exc:
+            command_parser.error(str(exc))
+
+    return args
+
+
+def validate_command(args, command_parser):
+    """
+    Validates the arguments of the subcommand `args.command` through its own `validate_*_args` function(s), calling
+    `command_parser.error` (which exits) on the first problem. A command with none needs none. A job (`run-job`) validates each
+    of its commands' with this too.
+    """
     if args.command == 'system':
         validate_system_args(args, command_parser)
     elif args.command == 'sector':
@@ -1841,8 +1916,8 @@ def process_args():
         validate_fill_args(args, command_parser)
     elif args.command == 'phenomenon':
         validate_phenomenon_args(args, command_parser)
-
-    return args
+    elif args.command == 'run-job' and args.workers is not None and args.workers < 0:
+        command_parser.error("--workers must be 0 (automatic) or more.")
 
 
 def run_fingerprint(args):
@@ -1925,7 +2000,7 @@ READ_ONLY_COMMANDS = ("check-db", "check-math", "fingerprint", "versions", "benc
 (no activity log lines or run history)."""
 
 
-BULK_COMMANDS = ("galaxy", "plan", "scatter", "population", "territories", "finish-run")
+BULK_COMMANDS = ("galaxy", "plan", "scatter", "population", "territories", "finish-run", "run-job")
 """tuple: Subcommands that always generate in bulk, so the data check runs
 first (GEN.590); `sector` joins them when it makes more than one sector
 (`is_bulk_run`)."""
@@ -1963,6 +2038,7 @@ _COMMAND_HANDLERS = {
     'link': run_galaxy.run_link,
     'backfill': run_galaxy.run_backfill,
     'settle': run_galaxy.run_settle,
+    'run-job': generationJob.run_job,
     'phenomenon': run_phenomenon.run_phenomenon,
     'finish-run': finishRun.run_finish,
     'population': run_population.run_population,
@@ -1986,7 +2062,8 @@ generation; any other writing command is `generated`."""
 def _note_data_changed(args, database):
     """Tells the page cache what this run changed (PERF.104), so the pages read it at once instead of at the next
     check of the galaxy's content stamp. A run that stopped part-way changed what it had written."""
-    kinds = list(DATA_CHANGES.get(args.command, ("generated",)))
+    commands = [command for command, _args in args.job] if args.command == "run-job" else [args.command]
+    kinds = list(dict.fromkeys(kind for command in commands for kind in DATA_CHANGES.get(command, ("generated",))))
     for kind in kinds:
         dataversion.record(database, kind)
 
@@ -2147,6 +2224,10 @@ def _run_line_seed(args):
     """
     if getattr(args, "seed", None) is not None and args.command == "plan":
         return args.seed
+    if args.command == "run-job":       # a job that plans the galaxy names the seed it plans with
+        seeds = [entry.seed for command, entry in args.job if command == "plan" and getattr(entry, "seed", None) is not None]
+        if seeds:
+            return seeds[0]
     try:
         conn = store.get_connection(store.mysql_config_from_args(args), ensure_schema=False)
     except Exception as exc:  # noqa: BLE001 -- the run reports its own database errors

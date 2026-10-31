@@ -129,3 +129,20 @@ def test_refused_inputs():
         ge.solve({"H": 1.0, "O": 1.0}, 1000.0, 1.0, fixed_o2_log_fugacity=-12.0)
     with pytest.raises(ge.EquilibriumError):
         ge.solve({"Zz": 1.0}, 1000.0, 1.0)
+
+
+@pytest.mark.parametrize("abundances", [
+    {"H": 2.0000000259769655, "O": 1.0, "Ar": 1.0608501544615678e-12},
+    {"H": 2.0000000024410274, "O": 1.0, "Ar": 1.01370169311403e-12, "C": 3.021494751116587e-11},
+    {"H": 1.9980520712128589, "O": 1.0, "Ar": 1.2121667733025634e-12, "N": 2.043517676950264e-06},
+])
+def test_water_with_a_trace_of_argon_at_726_k_converges(abundances):
+    """GEN.1003: the generator reached 'no convergence at 725.97 K and 1.0 bar' on a mixture of hydrogen and oxygen at the proportion of water with
+    argon at 1e-12 of it. The Newton step jittered at the 1e-3 level for ever (the total row of the scaled system was rounding noise), so the solve
+    is retried with that row scaled by the total."""
+    result = ge.solve(abundances, 725.97, 1.0)
+    assert result.mole_fractions["H2O"] > 0.999
+    assert result.mole_fractions["Ar"] == pytest.approx(abundances["Ar"] / sum(abundances.values()), rel=1e-2)
+    assert result.iterations < 150
+    balance = sum(result.moles[name] * st.SPECIES[name].elements.get("H", 0) for name in result.moles) / abundances["H"]
+    assert balance == pytest.approx(1.0, abs=1e-8)

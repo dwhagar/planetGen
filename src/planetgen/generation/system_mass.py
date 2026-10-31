@@ -31,11 +31,16 @@ populations' by their densities, not the mass-weighted one.
 """
 
 import functools
+import json
+import os
+import tempfile
 
 import numpy as np
 
 from planetgen import tuning
+from planetgen._version import __version__
 from planetgen.generation import mass_ratio, multistar
+from planetgen.datasets import fetch
 from planetgen.physics import imf, mass_boundaries, ms_lifetime, remnant_mass, remnant_progenitors, stellar_evolution
 
 COHORT_AGES = 24
@@ -181,16 +186,98 @@ def _placed_states():
     return number, others, _remnant_states(mean_mass), _remnant_states(companions)
 
 
+@functools.lru_cache(maxsize=1)
+def _age_table():
+    """
+    What `mean_system_mass_at_age_solar` sums over, ready to be read at any turn-off: every placed star and every further
+    star of its system, sorted by birth mass, with running sums of each one's weight times its birth mass and times its
+    remnant mass. The mean mass at a turn-off is the weight of the stars at or below it at their birth masses plus the weight of
+    the rest at their remnant masses: one search of the sorted masses and two running sums, where each age took a
+    pass over about 40,000 stars. A galaxy holds up to `tuning.OPEN_CLUSTER_MAX_COUNT` open clusters, each with its own age, and the
+    density model asks once for each.
+    """
+    number, others, (placed_birth, placed_remnant), (further_birth, further_remnant) = _placed_states()
+    total = float(np.sum(number))
+    steps = further_birth.shape[1]
+    weight = np.concatenate([number / total, (number * others / total)[:, None].repeat(steps, axis=1).ravel() / steps])
+    birth = np.concatenate([placed_birth, further_birth.ravel()])
+    remnant = np.concatenate([placed_remnant, further_remnant.ravel()])
+    order = np.argsort(birth, kind="stable")
+    birth, remnant, weight = birth[order], remnant[order], weight[order]
+    return birth, np.concatenate([[0.0], np.cumsum(weight * birth)]), np.concatenate([[0.0], np.cumsum(weight * remnant)])
+
+
+STORE_FILE = "system_mass_means.json"
+"""str: The file, in the data cache folder, where `update.sh` leaves the mean system mass of every cluster age of the stored
+galaxies (`save_means`), worked out for the release that wrote it, so a web process looks them up instead of working them out."""
+
+
+def _store_path():
+    return os.path.join(fetch.cache_dir(), STORE_FILE)
+
+
+@functools.lru_cache(maxsize=1)
+def _stored_means():
+    """`{age: mean}` from the file `save_means` wrote for this release, or an empty dict (none yet, another release's, or
+    unreadable: the means are then worked out as they are asked for)."""
+    try:
+        with open(_store_path(), encoding="utf-8") as handle:
+            data = json.load(handle)
+        if data.get("release") != __version__:
+            return {}
+        return {float(age): float(mean) for age, mean in data["means"].items()}
+    except (OSError, ValueError, KeyError, AttributeError):
+        return {}
+
+
+def save_means(ages_gy, progress=None):
+    """
+    Works out `mean_system_mass_at_age_solar` for every age of `ages_gy` and writes them, with those already written for
+    this release, to the cache folder (atomically, world-readable: the web app only reads). A galaxy with tens of thousands
+    of clusters asks for tens of thousands of ages, a minute or more of work that no web request may do (the daemon
+    is killed at 60 seconds); `update.sh` does it once, as part of the update (`planetgen.cli.warm_shape`).
+
+    Args:
+        ages_gy (iterable): The ages to work out.
+        progress (callable): Called as `progress(done, total)` after each age, when given.
+
+    Returns:
+        int: How many ages the file now holds.
+    """
+    means = dict(_stored_means())
+    ages_gy = list(ages_gy)
+    for done, age in enumerate(ages_gy, 1):
+        age = max(float(age), 1.0e-4)
+        means[age] = mean_system_mass_at_age_solar(age)
+        if progress is not None:
+            progress(done, len(ages_gy))
+    path = _store_path()
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    handle, temporary = tempfile.mkstemp(dir=os.path.dirname(path), suffix=".tmp")
+    with os.fdopen(handle, "w", encoding="utf-8") as out:
+        json.dump({"release": __version__, "means": {repr(age): mean for age, mean in means.items()}}, out)
+    os.chmod(temporary, 0o644)
+    os.replace(temporary, path)
+    _stored_means.cache_clear()
+    return len(means)
+
+
 @functools.lru_cache(maxsize=65536)
 def mean_system_mass_at_age_solar(age_gy):
     """The mean mass of a system whose stars formed `age_gy` ago, solar masses: the placed star's (remnants included)
     and the other stars of its system (see the module docstring)."""
     age_gy = max(float(age_gy), 1.0e-4)
-    number, others, placed_states, companion_states = _placed_states()
-    turn_off = _turn_off_sol(age_gy)
-    placed = float(np.sum(number * _present_mass(placed_states, turn_off)) / np.sum(number))
-    further = _present_mass(companion_states, turn_off).mean(axis=1)
-    return placed + float(np.sum(number * others * further) / np.sum(number))
+    stored = _stored_means().get(age_gy)
+    if stored is not None:
+        return stored
+    birth, alive_sum, remnant_sum = _age_table()
+
+    def settled(low, high):
+        return np.searchsorted(birth, low, side="right") == np.searchsorted(birth, high, side="right")
+
+    turn_off = min(imf.highest_mass_sol(), stellar_evolution.youngest_progenitor_sol(age_gy * 1.0e9, settled=settled))
+    alive = int(np.searchsorted(birth, turn_off, side="right"))      # the stars at or below the turn-off, still at their birth mass
+    return float(alive_sum[alive] + (remnant_sum[-1] - remnant_sum[alive]))
 
 
 def cohort_mean_system_mass_solar(ages_gy, weights=None):

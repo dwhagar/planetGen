@@ -16,8 +16,9 @@ from planetgen.galaxy import spherical
 from planetgen.api.config import Config
 from planetgen.db import store
 from planetgen.galaxy.spherical import sector_position_pc
-from planetgen.generation import run_galaxy
+from planetgen.generation import run_galaxy, run_plan
 from planetgen.physics.units import ly_to_pc
+from tests import first_fill
 from planetgen.web.app import create_app
 from tests.toy_shape import toy_shape
 from tests.publicids import pid
@@ -31,7 +32,9 @@ ADDRESSES = [(2, 0, 0), (2, 0, 1)]
 
 
 @pytest.fixture
-def client(mysql_config):
+def client(mysql_config, monkeypatch):
+    first_fill.without_the_deepest_floor(monkeypatch)   # the four systems asked for, not the deep floor's thousands per sector (GEN.633; TEST.475)
+    monkeypatch.setattr(run_plan, "_draw_sector_bands", lambda *_args, **_kwargs: (0, 0))   # nor the bright-star bands of a capped cell (minutes of band tables; TEST.475)
     store.save_galaxy_shape(SHAPE, edge_pc=EDGE_PC, outer_shell_index=8,
                             expected_system_count_at_density_1=2000.0, config=mysql_config)
     store.replace_galaxy_shells([(shell, min(1, spherical.band_range(shell)[1])) for shell in range(9)],
@@ -93,7 +96,7 @@ def _add_unbuilt_bright_star(mysql_config, system_id):
         point = (row["x"] + 1.0, row["y"], row["z"])
         store.insert_bright_stars(conn, [(*spherical.sector_address_at(point, EDGE_PC),
                                           *(int(round(v * 1000)) for v in point), "young", "B", "III", 1e31, 1e7,
-                                          15000.0, 1e28, 0.05, 0.1, 8.0, None, 1, None)])
+                                          15000.0, 1e28, 0.05, 0.1, 8.0, None, 1, None, None)])   # the last value: the rotation period (GEN.846), which a scattered star stores
         conn.commit()
     finally:
         conn.close()

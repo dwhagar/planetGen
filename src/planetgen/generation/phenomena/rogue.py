@@ -23,7 +23,7 @@ import math
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.phenomena import hosts
 from planetgen.physics.rogue_surface import ROGUE_SURFACE_FIELDS, ROGUE_SURFACE_UNITS, SURFACE_REGIME_LABELS, rogue_surface_conditions
-from planetgen.physics import brown_dwarf as brownDwarf, constants, planet_classes, planets as planetPhysics, relations, rings, rogue_habitability, small_body_composition, spin
+from planetgen.physics import brown_dwarf as brownDwarf, bulk_structure, constants, planet_classes, planets as planetPhysics, relations, rings, rogue_habitability, small_body_composition, spin
 from planetgen.physics.stellar_evolution import sample_star_age_gy
 from planetgen import tuning
 from planetgen.util import draw
@@ -68,9 +68,9 @@ def format_comet_composition_summary(composition):
 def infer_rogue_mass_bin(mass_kg):
     """The `ROGUE_PLANET_MASS_BIN_CHOICES` bin `mass_kg` falls in, for
     rows saved before the bin was stored (schema v37)."""
-    if mass_kg >= tuning.ROGUE_BROWN_DWARF_MASS_RANGE_JUPITER[0] * constants.JUPITER_MASS_TO_KG:
+    if mass_kg >= _mjup_to_kg(tuning.ROGUE_BROWN_DWARF_MASS_RANGE_JUPITER[0]):
         return "brown-dwarf"
-    mass_earth = mass_kg / constants.EARTH_MASS_TO_KG
+    mass_earth = _kg_to_mearth(mass_kg)
     for name, (_low, high, _rate) in tuning.ROGUE_PLANET_MASS_BINS.items():
         if mass_earth < high:
             return name
@@ -96,6 +96,20 @@ def water_mass_fraction(mass_kg, radius_km, ice_shell_km, ocean_km, hp_ice_km):
             kg += 4.0 / 3.0 * math.pi * (outer_m ** 3 - inner_m ** 3) * density
             outer_m = inner_m
     return min(1.0, kg / mass_kg)
+
+
+def rocky_radius_km(mass_kg, density_kg_m3):
+    """
+    The radius of a rogue's rock, km (GEN.1133): the drawn density is the bulk density the body has at one Earth mass, which says its core
+    mass fraction (`bulk_structure.cmf_from_mass_radius`; a rock lighter than any dry mix is the coreless one), and the radius at its own
+    mass is the law of the bound planets (`bulk_structure.radius_fit_earth`, with the compression a sphere of fixed density leaves out).
+    A rogue of 10 Earth masses is then 1.8 to 2.0 Earth radii, as a bound one is, and not the 2.2 to 2.4 of a body that does not compress.
+    """
+    earth_radius_m = constants.EARTH_RADIUS_KM * 1000.0
+    radius_at_one = (_mearth_to_kg(1.0) / ((4 / 3) * math.pi * density_kg_m3)) ** (1 / 3) / earth_radius_m
+    core = bulk_structure.cmf_from_mass_radius(1.0, radius_at_one)
+    mass_earth = _kg_to_mearth(mass_kg)
+    return bulk_structure.radius_fit_earth(mass_earth, 0.0 if core is None else core) * constants.EARTH_RADIUS_KM
 
 
 def rogue_class(planet):
@@ -183,13 +197,13 @@ class RoguePlanet(LazySaladName, PlanetaryObject):
 
         if mass_bin == "brown-dwarf":
             # GEN.252: the substellar mass function of the 20 pc census (Kirkpatrick et al. 2021), not log-uniform.
-            self.mass_kg = brownDwarf.sample_mass_solar(draw) * constants.SOLAR_MASS_TO_KG
+            self.mass_kg = _msun_to_kg(brownDwarf.sample_mass_solar(draw))
         else:
             # The same mass function the bins' rates come from (GEN.45).
             low, high, _rate = tuning.ROGUE_PLANET_MASS_BINS[mass_bin]
-            low, high = low * constants.EARTH_MASS_TO_KG, high * constants.EARTH_MASS_TO_KG
+            low, high = _mearth_to_kg(low), _mearth_to_kg(high)
             self.mass_kg = sample_power_law(low, high, tuning.ROGUE_PLANET_MASS_FUNCTION_SLOPE)
-        mass_jupiter = self.mass_kg / constants.JUPITER_MASS_TO_KG
+        mass_jupiter = _kg_to_mjup(self.mass_kg)
 
         if mass_bin == "brown-dwarf":
             log.choice("Rogue planet type", "brown dwarf", "mass_bin 'brown-dwarf'")
@@ -201,7 +215,7 @@ class RoguePlanet(LazySaladName, PlanetaryObject):
             brown_dwarf_age_gy = sample_star_age_gy(
                 system_config.AGE, draw, getattr(system_config, "POPULATION", None), getattr(system_config, "AGE_LAW", None))
             self.radius_km = _m_to_km(
-                brownDwarf.radius_sol(self.mass_kg / constants.SOLAR_MASS_TO_KG, brown_dwarf_age_gy) * constants.SOLAR_RADIUS_M)
+                brownDwarf.radius_sol(_kg_to_msun(self.mass_kg), brown_dwarf_age_gy) * constants.SOLAR_RADIUS_M)
             self.composition = (
                 "hydrogen and helium, a failed star that briefly fused deuterium and now glows faintly "
                 "in the infrared as it cools"
@@ -215,7 +229,12 @@ class RoguePlanet(LazySaladName, PlanetaryObject):
             # GEN.60): radius grows with mass up to about Saturn's mass,
             # then stays near Jupiter's as degeneracy pressure takes over.
             self.radius_km = planetPhysics.sample_giant_radius_km(self.mass_kg)
-            self.composition = "hydrogen and helium, similar in bulk composition to Jupiter or Saturn"
+            if self.mass_kg < _mearth_to_kg(tuning.GIANT_RUNAWAY_MIN_MASS_EARTH):
+                # GEN.1133: the core that did not run away (the bound chain's ice giant, `planet_mass.gas_outcome`)
+                self.composition = ("water, ammonia and methane ices and rock under a hydrogen and helium envelope, an ice giant "
+                                    "similar in bulk composition to Uranus or Neptune")
+            else:
+                self.composition = "hydrogen and helium, similar in bulk composition to Jupiter or Saturn"
         else:
             log.choice("Rogue planet type", "terrestrial",
                        f"mass {mass_jupiter:.4g} Mjup < ROGUE_PLANET_GAS_GIANT_MASS_THRESHOLD_JUPITER "
@@ -223,8 +242,7 @@ class RoguePlanet(LazySaladName, PlanetaryObject):
             self.planet_type = 't'
             density_range_gcm3 = constants.PLANET_DENSITY["t"]
             density_kg_m3 = draw.uniform(*density_range_gcm3) * 1000
-            radius_m = (self.mass_kg / ((4 / 3) * math.pi * density_kg_m3)) ** (1 / 3)
-            self.radius_km = radius_m / 1000
+            self.radius_km = rocky_radius_km(self.mass_kg, density_kg_m3)
             if mass_bin == "sub-neptune":
                 self.composition = (
                     "rock and ice, possibly beneath a thin hydrogen envelope, between a super-Earth and "
@@ -239,7 +257,7 @@ class RoguePlanet(LazySaladName, PlanetaryObject):
             age_gy=brown_dwarf_age_gy if mass_bin == "brown-dwarf" else None))
         self.planet_class = rogue_class(self)    # from the surface its own heat gave it (GEN.687)
 
-        rings.apply_rogue(self)  # GEN.836
+        rings.clear(self)  # GEN.1057: a ring is what a planet's history made, and a rogue planet's moons and comets are not followed
         self.set_galactic_motion()
         # GEN.104, GEN.842: a rocky rogue planet is born spinning at the rate and angle the giant impacts that built it leave
         # (`spin.accretion_spin`, GEN.731), with no star to tide it; a giant keeps a day from the gas-giant law and a Rayleigh tilt.
@@ -429,5 +447,12 @@ class InterstellarComet(SmallBody):
         return format_comet_composition_summary(self.composition)
 
 from planetgen.generation import object_timing  # noqa: E402 -- registers the generators below (PERF.92)
+
+_kg_to_mearth = units.converter("kg", "Mearth")
+_kg_to_mjup = units.converter("kg", "Mjup")
+_kg_to_msun = units.converter("kg", "Msun")
+_mearth_to_kg = units.converter("Mearth", "kg")
+_mjup_to_kg = units.converter("Mjup", "kg")
+_msun_to_kg = units.converter("Msun", "kg")
 object_timing.track(RoguePlanet, "rogue-planet")
 object_timing.track(InterstellarComet, "interstellar-comet")

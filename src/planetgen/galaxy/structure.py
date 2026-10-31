@@ -13,8 +13,8 @@ The populations' scale heights and dispersions follow ONE law, here, from the di
 gas and the way a disc's dispersion grows with age:
 
 - A thin-disc star of age `t` has a vertical dispersion `sigma_z(t)^2 = sigma_gas^2 + sigma_age^2 (t / tau)^(2 beta)`:
-  the dispersion of the gas it was born from (a molecular stand-in of 6.5 +/- 1 km/s until GEN.536 reads the CO
-  dispersions; the atomic gas's is 10 +/- 2 km/s: Tamburro et al. 2009, arXiv:0903.0183) plus a heating that grows as `t^beta` (`beta` = 0.441 +/- 0.007:
+  the dispersion of the gas it was born from (molecular, 6.5 +/- 1 km/s inside the CO widths of 7.3 +/- 1.7 km/s, Mogotsi et al.
+  2016, and 4.4 to 7.5 km/s, Sun et al. 2020, GEN.536; the atomic gas's is 10 +/- 2 km/s: Tamburro et al. 2009, arXiv:0903.0183) plus a heating that grows as `t^beta` (`beta` = 0.441 +/- 0.007:
   Sharma and Hayden 2020, arXiv:2004.06556 Table 2; 0.5 +/- 0.1: Mackereth et al. 2019, arXiv:1901.04502).
 - `sigma_age` is fixed by the disc's central vertical dispersion, which is a fraction of the circular speed
   (`0.248 +/- 0.038 V`, Martinsson et al. 2013, arXiv:1307.8130, 30 spirals): the root mean square of `sigma_z` over
@@ -116,7 +116,7 @@ _MILKY_WAY_CHAIN = mass_chain.MassChain(
     mass_chain.median_concentration(_MILKY_WAY_HALO_MASS_SOLAR))
 _MILKY_WAY_NEUTRON_STAR_UNBOUND_SHARE = natal_kick.neutron_star_unbound_share(
     _MILKY_WAY_CHAIN, 220.0, _MILKY_WAY_DISC_SCALE_LENGTH_KPC)
-_MIDDLE_BLACK_HOLE_SHARES = black_hole_formation.middle_failed_shares(_MILKY_WAY_NEUTRON_STAR_UNBOUND_SHARE)
+_REFERENCE_BLACK_HOLE_SHARES = black_hole_formation.reference_failed_shares(_MILKY_WAY_NEUTRON_STAR_UNBOUND_SHARE)
 
 REFERENCE_STRUCTURE = Structure(
     vc_kms=220.0,
@@ -129,7 +129,7 @@ REFERENCE_STRUCTURE = Structure(
     bulge_dispersion_scatter_dex=0.0,
     stellar_mass_solar=5.0e10, classical_bulge=False, black_hole_deviation=0.0, nuclear_cluster_mass_solar=2.5e7,
     nuclear_disc_mass_solar=1.5e9,
-    black_hole_solar_share=_MIDDLE_BLACK_HOLE_SHARES[0], black_hole_metal_free_share=_MIDDLE_BLACK_HOLE_SHARES[1],
+    black_hole_solar_share=_REFERENCE_BLACK_HOLE_SHARES[0], black_hole_metal_free_share=_REFERENCE_BLACK_HOLE_SHARES[1],
     neutron_star_unbound_share=_MILKY_WAY_NEUTRON_STAR_UNBOUND_SHARE,
     neutron_star_ejecta_speeds_kms=natal_kick.ejecta_speeds_kms(_MILKY_WAY_CHAIN, 220.0, _MILKY_WAY_DISC_SCALE_LENGTH_KPC),
 )
@@ -151,7 +151,7 @@ def stellar_halo_system_fraction(structure):
 def _heated_square(structure, name):
     """The squared vertical dispersion the heating gives population `name` at the solar-like radius, km^2 s^-2 (the
     root mean square over the population's ages of `sigma_age^2 (t / tau)^(2 beta)` times the radial fall squared)."""
-    low, high = tuning.STELLAR_POPULATION_AGE_RANGES_GY[name]
+    low, high = tuning.THIN_DISC_OLD_WINDOW_GY if name == "old" else tuning.STELLAR_POPULATION_AGE_RANGES_GY[name]    # GEN.1025: the thin disc's
     tau = tuning.STAR_FORMATION_AGE_RANGE_GY[1]
     power = 1.0 + 2.0 * structure.disc_age_exponent
     at_tau = (structure.disc_central_dispersion_kms ** 2 - structure.disc_gas_dispersion_kms ** 2) * power

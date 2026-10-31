@@ -23,10 +23,13 @@ line centres and open between them keeps its windows. `radiative_convective` use
   the centres of the bands of every infrared-active gas and nothing more, so such a gas gets a plateau of opacity at each centre
   with exponential wings (the form of GEN.703), turned into a k-distribution by sorting the opacity inside a band. The plateau
   strength and the wing reach are class values, not measurements.
-* **The far wings of carbon dioxide** (stand-in IR3): the tables cut every line at 25 cm-1 from its centre, so the opacity of a
-  dense carbon dioxide air between its bands is missing (Venus' surface is 92 bar of carbon dioxide). The wing of GEN.703
-  (`CO2_FAR_WING_M2_KG`, Koll 2019's statement of how thick a pure carbon dioxide air is) is added to the tabled gas; it matters
-  above about 10 bar and is negligible at Earth's pressure.
+* **The far wings of the gases** (`physics/co2_far_wing.py`, GEN.1019, GEN.1020): the tables cut every line at 25 cm-1 from its centre, so the
+  opacity of a dense carbon dioxide air between its bands is missing (Venus' surface is 92 bar of carbon dioxide). The wing of every
+  carbon dioxide band (Perrin and Hartmann's sub-Lorentzian factor) and the wings of the minor gases the tables hold (water, sulfur dioxide,
+  carbon monoxide) in a carbon dioxide air are added, with the band strengths read off each table at its lowest pressure. It is skipped
+  where the carbon dioxide partial pressure is under `WING_MIN_CO2_PA` (it goes as that pressure times the total).
+* **The sulfuric acid cloud** (`physics/cloud_infrared.py`, GEN.1020): `radiative_convective` adds the cloud's infrared depth to the
+  layers of the column; this module is not involved.
 
 If a table dataset is missing and the run disregards missing data, the gases it would hold take the stand-in path and the pairs
 are left out (`fetch.stand_ins_used` lists it); any other run raises `fetch.DataMissing`.
@@ -44,7 +47,7 @@ from dataclasses import dataclass, field
 import numpy as np
 
 from planetgen.datasets import fetch, hitran_cia, ir_ktables
-from planetgen.physics import constants, gases, mixture
+from planetgen.physics import co2_far_wing, constants, gases, mixture
 from planetgen.physics.air_column import AVOGADRO
 
 SECOND_RADIATION_CM_K = (2.0 * math.pi * constants.REDUCED_PLANCK * constants.SPEED_OF_LIGHT_M_S / constants.BOLTZMANN) * 100.0
@@ -93,10 +96,9 @@ STANDIN_WEAK_WING_M2_KG = 1.0e-5
 STANDIN_WING_REACH_CM1 = 600.0
 """float: STAND-IN (IR2, tier T7, L0): how far from a band the far wing reaches at one bar; it grows with the pressure (line widths do)."""
 
-CO2_FAR_WING_M2_KG = 3.0e-4
-"""float: STAND-IN (IR3, tier T5, L0): the far-wing mass opacity of carbon dioxide at one bar, m2/kg, added to the tabled gas for what the
-tables' 25 cm-1 line cutoff leaves out. Koll 2019 (arXiv:1907.13145, text of his Fig. 4) says a pure CO2 air is of order unity thick at one
-bar: 3e-4 m2/kg times the 1e4 kg/m2 of a bar is 3. Not tuned to Earth or Venus."""
+WING_MIN_CO2_PA = 1.0e3
+"""float: A layer whose carbon dioxide partial pressure is under this adds no far wing (a numerical floor: the wing goes as that pressure times
+the total, 1e-9 of Venus's at Earth's air; it saves the cost of the wing for every layer of a thin air)."""
 
 WATER_CONTINUUM = (
     # nu cm-1, sigma_self (cm2 per molecule at n_h2o = n_ref, 296 K), sigma_foreign (same, n_for = n_ref), self temperature exponent
@@ -362,14 +364,25 @@ def _standin_distribution(formula, pressure_pa):
     return reduce_distribution(opacity, np.full(STANDIN_SUBSAMPLES, 1.0 / STANDIN_SUBSAMPLES), G_EDGES)
 
 
-def _far_wing_depth(mass_kg_m2, pressure_pa):
-    """The far wing added to the tabled carbon dioxide (layer, band): `kappa_w u (P / P_REF)` within a reach of its bands that grows with the pressure."""
-    scaling = pressure_pa / PRESSURE_REFERENCE_PA
-    depth = np.zeros((len(scaling), BANDS))
-    for low, high, _factor in _plateaus("CO2"):
-        reach = STANDIN_WING_REACH_CM1 * scaling
-        near = (CENTRES_CM1[None, :] >= low - reach[:, None]) & (CENTRES_CM1[None, :] <= high + reach[:, None])
-        depth += np.where(near, (CO2_FAR_WING_M2_KG * scaling * mass_kg_m2)[:, None], 0.0)
+def _wing_depth(prepared, temperature, pressure, water, molecules):
+    """The far wings of the carbon dioxide and the minor gases in a carbon dioxide air (layer, band), grey across the g points."""
+    depth = np.zeros((len(temperature), BANDS))
+    co2 = prepared.dry.get("CO2", 0.0) * (1.0 - water)
+    active = (co2 * pressure >= WING_MIN_CO2_PA) & (co2 > 0.0)
+    if "CO2" not in prepared.tabled or not active.any():
+        return depth
+    for gas in ("CO2", *(g for g in prepared.tabled if g in co2_far_wing.number("minor_gamma_cm1_atm"))):
+        x = water if gas == "H2O" else prepared.dry.get(gas, 0.0) * (1.0 - water)
+        mask = active & (x > 0.0)
+        if not mask.any():
+            continue
+        k = _lookup(prepared.tables[gas], prepared.table_temperatures, temperature[mask], np.full(int(mask.sum()), co2_far_wing.REFERENCE_PRESSURE_BAR))
+        strengths = co2_far_wing.band_strengths((k * G_WEIGHTS).sum(axis=-1), EDGES_CM1)
+        if gas == "CO2":
+            cross = co2_far_wing.cross_section_cm2(strengths, EDGES_CM1, temperature[mask], pressure[mask], co2[mask])
+        else:
+            cross = co2_far_wing.minor_gas_cross_section_cm2(gas, strengths, EDGES_CM1, temperature[mask], pressure[mask], co2[mask])
+        depth[mask] += cross * (x[mask] * molecules[mask])[:, None]
     return depth
 
 
@@ -465,7 +478,5 @@ def layer_depth(prepared, temperature_k, pressure_pa, water_fraction, molecules_
     if prepared.pairs:
         density = pressure / (constants.BOLTZMANN * temperature) * 1.0e-6
         grey += _pair_depth(prepared, temperature, water, molecules, density)
-    if "CO2" in prepared.tabled:
-        x = prepared.dry.get("CO2", 0.0) * (1.0 - water)
-        grey += _far_wing_depth(x * molecules * 1.0e4 * gases.gas("CO2").molar_mass / AVOGADRO, pressure)
+    grey += _wing_depth(prepared, temperature, pressure, water, molecules)
     return depth + grey[:, :, None]

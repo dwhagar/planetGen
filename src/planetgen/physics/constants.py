@@ -72,24 +72,9 @@ JUPITER_RADIUS_KM = 71_492.0  # Jupiter's mean equatorial radius in kilometers
 # with (~1700 g/cm^2 at 1 AU) -- using the gas value here would overstate
 # every isolation mass below by roughly (1700/7)^1.5 ~= 3800x. See
 # `formation.mmsn_surface_density_gcm2`/`formation.isolation_mass_kg`, used by
-# `StarSystem._estimate_max_objects_from_disk_physics`.
+# `planet_mass.oligarch_core_kg`.
 MMSN_SOLID_SURFACE_DENSITY_SOL_GCM2 = 7.0
 MMSN_SURFACE_DENSITY_EXPONENT = -1.5
-
-# Beyond the snow line, water ice condenses onto grains and adds to the
-# solid budget -- Hayashi (1981) puts the boosted surface density at
-# 30 g/cm^2 (a/1AU)^-1.5, vs. 7 g/cm^2 inside it (see
-# MMSN_SOLID_SURFACE_DENSITY_SOL_GCM2 above): a factor of 30/7 ~= 4.3.
-SNOW_LINE_ICE_BOOST_FACTOR = 30 / 7
-
-# The temperature at which water ice condenses in a protoplanetary disc, in K
-# (Kennedy and Kenyon 2008, where the mid-plane temperature reaches 170 K).
-# `formation.snow_line_au` puts the snow line where a blackbody in the star's
-# light is this warm, which scales as sqrt(L/Lsun) -- the same shape
-# `orbits.calculate_habitable_zone` uses for its boundaries (both follow the
-# stellar flux falling off as 1/distance^2): 2.68 AU for the Sun. A real
-# star's own line is drawn around this position and stored (GEN.458).
-SNOW_LINE_TEMPERATURE_K = 170.0
 
 # Rotation-curve model for a star's circular orbit around the galactic
 # center (see `galactic_orbit.calculate_galactic_orbit`): v(r) = FLAT_VELOCITY * r /

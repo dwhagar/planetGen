@@ -100,7 +100,9 @@ def test_research_rates_per_star():
     # the half of the cap they keep: 25% over with the Chabrier function's 0.71% massive stars (16% over on the Kroupa function's
     # 0.64%, GEN.927), the kick ejecting 16% of them.
     assert _rate("neutron-star") == pytest.approx(0.004, rel=0.3)
-    assert 0.0002 < _rate("black-hole") < 0.0012          # the old 5e-4 sits inside the new range
+    # The bound remnants of the massive stars are 0.70% of the stars (the Chabrier function, GEN.927) and 0.17 of them fail to black holes at
+    # solar metallicity: 1.2e-3; with no metals 0.235 of them do, 1.65e-3, the most any place can roll.
+    assert 0.0002 < _rate("black-hole") < 0.0017          # the old 5e-4 sits inside the new range
     assert _rate("comet") == pytest.approx(0.05)
     assert _rate("asteroid-field") == 0.0
     assert _rate("runaway-star") == pytest.approx(0.015)
@@ -136,7 +138,8 @@ def test_generate_sector_phenomena_builds_the_right_type_and_count(monkeypatch):
     assert len(sector.entries) == 4 + 3
     for entry in entries:
         host = next(e for e in sector.entries if e.position == entry.position)
-        assert run_sector._spectral_code(host.star_system.stars[0]) in tuning.PLANETARY_NEBULA_CENTRAL_STAR_TYPES
+        # (a fifth of them have a close companion, GEN.320, and the primary of a pair is its more massive star, which can be the companion)
+        assert any(run_sector._spectral_code(star) in tuning.PLANETARY_NEBULA_CENTRAL_STAR_TYPES for star in host.star_system.stars)
 
 
 def test_molecular_clouds_are_dark_family_nebulae(monkeypatch):

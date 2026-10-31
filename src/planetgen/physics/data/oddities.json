@@ -1,0 +1,70 @@
+{
+  "title": "Oddities: physically plausible rare outcomes that enter the chain as a cause at one input (GEN.1036)",
+  "version": 1,
+  "status": "the table and its vocabulary; rows are added by the modules that implement them (docs/design/systems/weird-worlds.md). Every rate is a rate on a gated population with its source, label, tier and tweak level, and a GEN.725 registry row.",
+  "kinds": ["planet", "moon", "giant", "rogue", "small body", "star system"],
+  "levers": {
+    "L1": {"label": "spin axis and rate", "inputs": ["obliquity_deg", "spin_period_days", "spin_sign"]},
+    "L2": {"label": "orbit", "inputs": ["eccentricity", "inclination_deg", "resonance", "host_binary"]},
+    "L3": {"label": "bulk composition", "inputs": ["core_mass_fraction", "water_mass_fraction", "carbon_to_oxygen", "envelope_mass_fraction", "ice_mix"]},
+    "L4": {"label": "interior heat and structure", "inputs": ["internal_heat_flux", "tidal_power", "dynamo", "lid_regime"]},
+    "L5": {"label": "history", "inputs": ["collision_count", "migration", "mass_loss", "event_age_gyr"]},
+    "L6": {"label": "moon and ring set", "inputs": ["moon_origin", "moon_retrograde", "ring_mass"]},
+    "L7": {"label": "air state (bistable only)", "inputs": ["air_branch"]}
+  },
+  "quantities": {
+    "body_type": {"label": "kind of body", "note": "'t' for a terrestrial body, 'g' for a giant"},
+    "mass_earth": {"label": "mass", "unit": "Earth masses", "note": "the body's mass"},
+    "radius_earth": {"label": "radius", "unit": "Earth radii", "note": "the body's radius"},
+    "density_g_cm3": {"label": "bulk density", "unit": "g/cm3", "note": "mass over volume"},
+    "semi_major_axis_au": {"label": "distance from its star", "unit": "AU", "note": "semi-major axis of the orbit"},
+    "eccentricity": {"label": "orbital eccentricity", "note": "of the orbit about its star (a moon's: about its planet)"},
+    "orbital_period_days": {"label": "orbital period", "unit": "days", "note": "of the orbit"},
+    "age_gyr": {"label": "age of the star", "unit": "Gyr", "note": "the system's age"},
+    "host_teff_k": {"label": "star's effective temperature", "unit": "K", "note": "of the star the body goes round"},
+    "host_mass_sun": {"label": "star's mass", "unit": "solar masses", "note": "of the star the body goes round"},
+    "host_close_binary": {"label": "close binary host", "note": "1 when the body goes round a close pair, else 0"},
+    "equilibrium_temperature_k": {"label": "equilibrium temperature", "unit": "K", "note": "from the light the body gets and its albedo"},
+    "surface_pressure_pa": {"label": "surface pressure", "unit": "Pa", "note": "0 for no air"},
+    "tidally_locked": {"label": "tidally locked", "note": "1 when its day is its year, else 0"},
+    "obliquity_deg": {"label": "tilt of the spin axis", "unit": "degrees", "note": "to its orbit"},
+    "spin_period_days": {"label": "rotation period", "unit": "days", "note": "sidereal day, positive"},
+    "core_mass_fraction": {"label": "core share of the mass", "percent": true, "note": "iron core over the whole body"},
+    "water_mass_fraction": {"label": "water share of the mass", "percent": true, "note": "all water, liquid, ice and bound"},
+    "envelope_mass_fraction": {"label": "gas envelope share of the mass", "percent": true, "note": "hydrogen and helium over the whole body"},
+    "collision_count": {"label": "recorded giant impacts", "note": "mergers the planet architecture recorded for this body"},
+    "moon_mass_ratio": {"label": "largest moon over its planet", "note": "mass ratio, 0 for no moon"},
+    "neighbour_period_ratio": {"label": "closest neighbour's period ratio", "note": "outer period over inner, 0 for no neighbour"}
+  },
+  "rows": [
+    {
+      "id": "W10",
+      "name": "Iron-rich core",
+      "kind": "planet",
+      "requires": [
+        {"quantity": "body_type", "equals": "t"},
+        {"quantity": "mass_earth", "lt": 10.0},
+        {"quantity": "collision_count", "min": 1}
+      ],
+      "rate": {
+        "value": 0.05,
+        "source": "registry row WR4: iron-rich rocky planets are 5 of 22 and 6 of 28 in Adibekyan and others 2021, about 1 in 21 in Plotnykov and others 2025 and none distinct in Brinkman and others 2024; log-uniform 0.01 to 0.23, middle 0.05",
+        "label": "READ",
+        "tier": "T3",
+        "tweak": "L1",
+        "registry": "WR4"
+      },
+      "apply": {
+        "lever": "L3",
+        "input": "core_mass_fraction",
+        "effect": "strip_mantle",
+        "params": {"max_fraction": 0.85}
+      },
+      "limits": [
+        {"quantity": "core_mass_fraction", "lt": 0.85}
+      ],
+      "source": "Marcus, Stewart, Sasselov and Hernquist 2010 (ApJL 712, L73); Benz and others 2007 (Space Science Reviews 132, 189); Bonomo and others 2019 (Nature Astronomy 3, 416); the module is physics/mantle_stripping.py",
+      "text": "A giant impact knocked most of its rocky mantle off, so it is mostly iron, like Mercury."
+    }
+  ]
+}

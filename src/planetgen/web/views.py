@@ -79,7 +79,9 @@ def _system_row(system, with_sector):
         row.append({"text": system["sector_name"], "href": page_url("sector", sector_id=system["sector_id"])}
                    if system.get("sector_id") else {"text": "Standalone"})
         row.append({"text": system.get("quadrant") or "\u2013"})
-    row.append({"text": "Yes" if system["is_binary"] else "No"})
+    row.append({"text": str(system["star_count"])})
+    row.append({"text": str(system["object_count"])})
+    row.append({"text": "Yes" if system["has_habitable_world"] else "No"})
     row.append({"text": system["star_summary"] or "\u2013"})
     return row
 
@@ -110,8 +112,9 @@ def _all_systems_load(state, limit, offset, want_facets, after=None):
 
 ALL_SYSTEMS_TABLE = tables.register(Table(
     "systems", "All systems",
-    [Column("name", "Name"), Column("sector", "Sector"), Column("octant", "Octant"), Column("binary", "Binary"),
-     Column("star_type", "Star type", sortable=False)],
+    [Column("name", "Name"), Column("sector", "Sector"), Column("octant", "Octant"),
+     Column("stars", "Stars"), Column("objects", "Objects", sortable=False),
+     Column("habitable", "Habitable world", sortable=False), Column("star_type", "Star type", sortable=False)],
     _all_systems_load,
     facets=[Facet("placement", "Where"), Facet("binary", "Stars"), Facet("octant", "Octant")],
     prefix="systems_", noun=("system", "systems"), keyset=True, jump={"name": "A letter or the start of a name", "sector": "A sector name or its first letters"},
@@ -353,6 +356,8 @@ def search():
         state=state,
         name_fields=searchpage.NAME_FIELDS,
         size_entities=searchpage.SIZE_ENTITIES,
+        value_groups=searchpage.value_form(state),
+        star_choices=searchpage.STAR_COUNT_CHOICES,
         autocomplete=data["autocomplete"],
         tag_groups=searchpage.tag_groups(state, data["facets"]),
         chips=searchpage.active_filters(state, data["facet_labels"]),

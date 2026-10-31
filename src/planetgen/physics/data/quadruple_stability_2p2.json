@@ -1,0 +1,13 @@
+{
+ "version": 1,
+ "source": "Vynatheya, Mardling and Hamers 2023, MNRAS 525, 3 (arXiv 2301.09930); weights from https://github.com/pavanvyn/quadruple-stability, mlp_model_2p2_ghost_v1.2.2.pkl (read 2026-10-30 without running its code, scripts/build_quadruple_stability.py)",
+ "numbers": {
+  "stable_below": {"value": 0.5, "tier": "T1", "tweak": "L0", "basis": "classify_quad_2p2.py of the authors: a system is stable when the network's probability of 'unstable' is below 0.5"},
+  "q_in_min": {"value": 0.1, "tier": "T1", "tweak": "L0", "basis": "paper section 3.1: masses log-uniform over one order of magnitude, so each inner mass ratio (m2/m1, m4/m3) is at least 0.1"},
+  "q_out_max": {"value": 1.0, "tier": "T1", "tweak": "L0", "basis": "paper section 2 and the help text of classify_quad_2p2.py: q_out = (m3+m4)/(m1+m2) <= 1, the first binary being the heavier"},
+  "eccentricity_max": {"value": 0.95, "tier": "T1", "tweak": "L0", "basis": "paper section 3.1: eccentricities uniform from 0 to 0.95"},
+  "outer_orbits": {"value": 100, "tier": "T1", "tweak": "L0", "basis": "paper section 2: 'stable' means bound and not chaotic over 100 outer orbits (a ghost run with the inner axis of the lighter inner binary larger by 1e-6 au diverging by less than 1e-2 in that axis), not stable for a stellar lifetime"},
+  "divergence_limit": {"value": 0.01, "tier": "T1", "tweak": "L0", "basis": "paper section 2: delta(t) = (a_orig - a_ghost) / a_orig above 1e-2 at any step is unstable"},
+  "axis_margin": {"value": 1.5, "tier": "T6", "tweak": "L2", "basis": "GEN.1155: a system the 2+2 network calls stable is accepted only if it is still stable with both alpha_in1_out and alpha_in2_out multiplied by this number. Tuned to the precision for 'stable' the paper publishes (0.94, Vynatheya, Mardling and Hamers 2023) on our own REBOUND 2+2 samples: 1.5 gives 0.94 on the 185 paper-like systems of GEN.1031 (1.3 gave 0.81) and 0.99 on 302 systems of GEN.1155 drawn log-uniform over masses and axis ratios, weighted by the sampling strata (1.3 gave 0.95), at recall 0.58 and 0.83; on the 787 near-boundary systems of GEN.1031 it gives 0.80 (1.3 gave 0.62)"}
+ }
+}

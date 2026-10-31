@@ -11,7 +11,8 @@ axes (AU), eccentricities and angles (radians, except where a name says
   ratios leave the fitted range of the newer fit), Eggleton and Kiseleva
   1995 (`"ek95"`, a cross-check) and Vynatheya et al. 2022, Equation 4
   (`"eq4"`, for star-only triples inside its fitted range). `"auto"` picks
-  Equation 4 inside its range and Mardling and Aarseth outside it. The
+  Equation 4 inside its range, Mardling and Aarseth outside it where their
+  `q_out <= 5` holds, and Eggleton and Kiseleva beyond that (GEN.1028). The
   forms and their unit-test values are in
   docs/design/systems/exotic-environments-planets-and-compact-binaries.md 2.3 and
   docs/design/systems/multistar-and-compact-systems.md 5.1.
@@ -31,10 +32,12 @@ import math
 
 from planetgen.physics import constants, unit_registry as units
 
+_msun_to_kg = units.converter("Msun", "kg")
+
 _m_to_au = units.converter("m", "au")
 _au_to_m = units.converter("au", "m")
 _s_to_yr = units.converter("s", "yr")
-_SOLAR_GM_OVER_C2_AU = _m_to_au(constants.G * constants.SOLAR_MASS_TO_KG / constants.SPEED_OF_LIGHT_M_S ** 2)
+_SOLAR_GM_OVER_C2_AU = _m_to_au(_msun_to_kg(constants.G) / constants.SPEED_OF_LIGHT_M_S ** 2)
 """float: Half the Schwarzschild radius of the Sun, `G M / c^2`, in AU (9.87e-9)."""
 
 _PETERS_COEFFICIENT_S = (5.0 / 256.0) * constants.SPEED_OF_LIGHT_M_S ** 5 / constants.G ** 3
@@ -42,6 +45,10 @@ _PETERS_COEFFICIENT_S = (5.0 / 256.0) * constants.SPEED_OF_LIGHT_M_S ** 5 / cons
 
 METHODS = ("auto", "ma01", "ek95", "eq4")
 """tuple: The criteria `is_triple_stable` accepts."""
+
+MA01_Q_OUT_MAX = 5.0
+"""float: The largest `q_out` Mardling and Aarseth 2001 give their criterion for (Equation 90: "holds for q_out <= 5"; beyond it the failure is
+exchange, not escape). `required_axis_ratio` refuses `"ma01"` past it and `"auto"` takes `"ek95"` there (GEN.1028, registry row GM12)."""
 
 KOZAI_WINDOW_COS2 = 3.0 / 5.0
 """float: Kozai-Lidov needs `cos^2 i < 3/5`: a mutual inclination of 39.2 to 140.8 degrees."""
@@ -109,13 +116,29 @@ def eq4_in_range(q_in, q_out, alpha):
     return 1e-2 <= q_in <= 1.0 and 1e-2 <= q_out <= 1e2 and 1e-4 < alpha < 1.0
 
 
+def ma01_in_range(q_out):
+    """Whether Mardling and Aarseth's criterion is given for this outer mass ratio (`MA01_Q_OUT_MAX`)."""
+    return q_out <= MA01_Q_OUT_MAX
+
+
+def criterion(m1, m2, m3, alpha=None):
+    """
+    The criterion `"auto"` takes for a triple: `"eq4"` where `eq4_in_range` holds (`alpha`, `a_in / a_out`, defaults to a mid-range value
+    when not given), else `"ma01"` where `ma01_in_range` holds (a star-sized inner pair with a tiny or small outer body), else `"ek95"`
+    (a planet pair about a star, a star pair about a black hole: the outer body outweighs the pair past what either fit covers).
+    """
+    heavy, light = max(m1, m2), min(m1, m2)
+    q_out = _q_out(m1, m2, m3)
+    if eq4_in_range(light / heavy, q_out, 0.1 if alpha is None else alpha):
+        return "eq4"
+    return "ma01" if ma01_in_range(q_out) else "ek95"
+
+
 def required_axis_ratio(m1, m2, m3, e_in, e_out, i, method="auto", alpha=None):
     """
     The smallest stable `a_out / a_in` for the triple by `method` (`METHODS`).
 
-    `"auto"` is Equation 4 where `eq4_in_range` holds (`alpha`, `a_in / a_out`,
-    defaults to a mid-range value when not given) and Mardling and Aarseth
-    elsewhere.
+    `"auto"` is the one `criterion` picks. `"ma01"` asked for by name is refused past `MA01_Q_OUT_MAX` (GEN.1028).
     """
     if method not in METHODS:
         raise ValueError(f"unknown stability method {method!r}; choose from {METHODS}")
@@ -123,17 +146,19 @@ def required_axis_ratio(m1, m2, m3, e_in, e_out, i, method="auto", alpha=None):
     q_in = light / heavy
     q_out = _q_out(m1, m2, m3)
     if method == "auto":
-        method = "eq4" if eq4_in_range(q_in, q_out, 0.1 if alpha is None else alpha) else "ma01"
+        method = criterion(m1, m2, m3, alpha)
     if method == "ma01":
+        if not ma01_in_range(q_out):
+            raise ValueError(f"Mardling and Aarseth 2001 holds for q_out <= {MA01_Q_OUT_MAX:g}, got {q_out:.4g}; use method='auto'")
         return mardling_aarseth_axis_ratio(q_out, e_out, i)
     if method == "eq4":
         return eq4_axis_ratio(q_out, e_in, e_out, i)
     return eggleton_kiseleva_ycrit(q_out, q_in) * (1.0 + e_in) / (1.0 - e_out)
 
 
-def is_triple_stable(m1, m2, m3, a_in, a_out, e_in, e_out, i, method="auto"):
-    """Whether the triple is stable: `a_out / a_in` exceeds `required_axis_ratio`."""
-    return a_out / a_in > required_axis_ratio(m1, m2, m3, e_in, e_out, i, method, alpha=a_in / a_out)
+def is_triple_stable(m1, m2, m3, a_in, a_out, e_in, e_out, i, method="auto", safety=1.0):
+    """Whether the triple is stable: `a_out / a_in` exceeds `required_axis_ratio` times `safety`."""
+    return a_out / a_in > safety * required_axis_ratio(m1, m2, m3, e_in, e_out, i, method, alpha=a_in / a_out)
 
 
 def max_inner_axis(m1, m2, m3, a_out, e_in, e_out, i, method="auto", safety=1.0):
@@ -182,7 +207,7 @@ def kozai_verdict(m1, m2, m3, a_in, a_out, e_in, e_out, i, age_yr, extent_sum_au
     octupole = eps > 0.01 and math.radians(25.0) < mutual < math.radians(90.0)
     if x >= 1.0 and not octupole:
         return "safe"
-    e_max = math.sqrt(1.0 - x) if x < 1.0 else e_in
+    e_max = kozai_max_eccentricity(e_in, i)
     if octupole:
         e_max = max(e_max, 0.98)
     p_in = orbital_period_yr(a_in, m_in)
@@ -201,8 +226,8 @@ def peters_merger_time_yr(m1, m2, a_au, e=0.0):
     factor of a few at high eccentricity).
     """
     seconds = _PETERS_COEFFICIENT_S * _au_to_m(a_au) ** 4 / (
-        (m1 * constants.SOLAR_MASS_TO_KG) * (m2 * constants.SOLAR_MASS_TO_KG)
-        * ((m1 + m2) * constants.SOLAR_MASS_TO_KG))
+        (_msun_to_kg(m1)) * (_msun_to_kg(m2))
+        * (_msun_to_kg(m1 + m2)))
     return _s_to_yr(seconds * (1.0 - e ** 2) ** 3.5)
 
 

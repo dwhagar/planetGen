@@ -554,6 +554,14 @@ Python 3.13).
   - `test_fuzz_web_routes.py` and `test_fuzz_api_auth.py`: every web page
     and API endpoint, logins, CSRF and API keys.
 
+- **Guard tests** (`test_no_*`): read the source and fail when a rule is
+  broken, with a named list of exceptions each carrying its reason.
+  `test_no_own_log_formatting.py` (TEST.183) fails when code under
+  `planetgen/` writes or logs a line built with its own timestamp or
+  divider instead of the logging layer; an exception goes in its
+  `ALLOWED` list with the reason it is not a log line (the form and the
+  rules are in [`logging.md`](logging.md)).
+
 - **Browser checks** (`test_web_a11y.py`): every page in headless
   Chromium at phone and desktop widths, in light and dark, against
   axe-core and the layout rules described in

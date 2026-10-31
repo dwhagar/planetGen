@@ -4,8 +4,8 @@
 The birth spin of a rocky planet from the mass ratio of its last impacts (GEN.978)
 ==================================================================================
 
-`spin.accretion_spin` draws a rocky planet's birth spin as three Gaussian components of a width fixed by Kokubo and Genda 2010 (ApJ 714:L21,
-arXiv:1003.4384): 0.41 of the breakup spin per component, whatever the planet's mass, which puts every planet at a 2 to 3 hour day. That width is the
+Before GEN.979 `spin.accretion_spin` drew a rocky planet's birth spin as three Gaussian components of one width fixed by Kokubo and Genda 2010 (ApJ 714:L21,
+arXiv:1003.4384): 0.41 of the breakup spin per component, whatever the planet's mass, which put every planet at a 2 to 3 hour day. That width is the
 average over the planets of their N-body runs, whose last impacts were collisions between protoplanets of comparable mass. The paper's equation 4 says what
 sets the spin: the angular momentum the last one or few collisions leave,
 
@@ -16,7 +16,7 @@ with `gamma = m_impactor / (m_impactor + m_target)`, `theta` the angle of the im
 (read in full text, 10-29). A planet hit by a body of its own size has `g = 0.315` and spins near breakup; one built from small bodies (`g` is about `gamma`)
 spins slowly, which is how Mars (24.6 h, 0.07 of breakup) comes about without a fitted scale. This module is that law and a **stand-in for the
 distribution of `gamma` by planet mass**, which the papers do not publish in a form we hold (Kokubo and Ida 2007 and Agnor, Canup and Levison 1999 hold
-the N-body statistics; Boss accepted a registered stand-in for it, 10-29 8:48 PM EDT). Nothing calls it yet (GEN.979 wires it into `spin.accretion_spin`).
+the N-body statistics; Boss accepted a registered stand-in for it, 10-29 8:48 PM EDT). `spin.accretion_spin` calls it (GEN.979).
 
 **The vector rms.** With the impact parameter uniform in area, `<sin^2 theta> = 1/2`; with the impact velocity a little above the escape velocity,
 `nu_rms = IMPACT_SPEED_RATIO` (1.1). Then `omega_rms / omega_cr = C g(gamma)`, `C = (5/sqrt 2) sqrt(1/2) nu_rms = 2.75`, and each of the three Gaussian
@@ -32,13 +32,10 @@ the paper's own runs are protoplanet-on-protoplanet impacts of mass ratio near 0
 * Without one it is log-uniform over `PLANETESIMAL_GAMMA_RANGE` (0.001 to 0.03: the effective ratio of the planetesimals that spun the embryo up).
 
 The resulting periods run from 1.3 hours (a near-breakup spin) to some thousand hours: the widest range of the two sources in question, Kokubo and Genda's 2 to 3 hours and Miguel and Brunini
-2010's 10 to 10,000 hours (arXiv:1004.1406, read in full), as Boss's rule for two sources in question asks. The tilt is the caller's (GEN.979 decides between the isotropic
-law of the paper and the prograde bias of Schlichting and Sari 2007). The stand-ins are in `docs/design/research/gap-filling-plan.md` section 6.26.
+2010's 10 to 10,000 hours (arXiv:1004.1406, read in full), as Boss's rule for two sources in question asks. The tilt is `spin.accretion_spin`'s: isotropic after a giant impact (the paper), prograde on the planetesimal branch (Schlichting and Sari 2007). The stand-ins are in `docs/design/research/gap-filling-plan.md` section 6.26.
 """
 
 import math
-
-from planetgen.physics import spin
 
 IMPACT_SPEED_RATIO = 1.1
 """float: `nu_rms = <(v_impact / v_escape)^2>^(1/2)` of the last impacts: a body falling in from rest at infinity arrives at the escape speed (1), the
@@ -90,6 +87,11 @@ def giant_impact_probability(mass_earth):
     return 1.0 / (1.0 + (ISOLATION_MASS_EARTH / mass_earth) ** ISOLATION_STEEPNESS)
 
 
+def had_giant_impact(mass_earth, branch_u):
+    """Whether a planet of `mass_earth` Earth masses is on the giant-impact branch for the uniform number `branch_u`."""
+    return branch_u < giant_impact_probability(mass_earth)
+
+
 def _log_uniform(bounds, u):
     low, high = bounds
     return low * (high / low) ** u
@@ -100,7 +102,7 @@ def sample_gamma(mass_earth, branch_u, within_u):
     `gamma` for a planet of `mass_earth` Earth masses from two uniform numbers in `[0, 1)`: `branch_u` below `giant_impact_probability` picks the giant
     branch, and `within_u` places it in that branch's log-uniform range. The caller supplies the numbers (so the random stream is its to place).
     """
-    if branch_u < giant_impact_probability(mass_earth):
+    if had_giant_impact(mass_earth, branch_u):
         return _log_uniform(GIANT_GAMMA_RANGE, within_u)
     return _log_uniform(PLANETESIMAL_GAMMA_RANGE, within_u)
 
@@ -124,7 +126,7 @@ def mean_rms_breakup_fraction(mass_earth):
     return spin_constant() * math.sqrt(p * _MEAN_G2_GIANT + (1.0 - p) * _MEAN_G2_PLANETESIMAL)
 
 
-def component_sigma_rad_s(mass_kg, radius_km, gamma):
+def component_sigma_rad_s(critical_spin_rad_s, gamma):
     """The Gaussian width of each component of a planet's birth spin vector, rad/s, for last impacts of mass ratio `gamma`: the share
-    `component_breakup_fraction` of the breakup spin of this mass and radius (`spin.critical_spin_rad_s`)."""
-    return component_breakup_fraction(gamma) * spin.critical_spin_rad_s(mass_kg, radius_km)
+    `component_breakup_fraction` of the body's breakup spin `critical_spin_rad_s`."""
+    return component_breakup_fraction(gamma) * critical_spin_rad_s

@@ -71,8 +71,12 @@ def test_the_water_line_of_the_sun_is_where_a_blackbody_is_182_k():
 
 def test_the_share_by_distance_is_zero_inside_the_line_and_never_rises_outward():
     line = shares.ice_line_au(SUN_W)
-    assert shares.water_share_at_distance(0.9 * line, SUN_W) == 0.0
-    outward = [shares.water_share_at_distance(line * 1.05 ** step, SUN_W) for step in range(1, 200)]
+
+    def share_at(distance_au):
+        return shares.water_share_of_solids(shares.disk_temperature_k(distance_au, SUN_W))
+
+    assert share_at(0.9 * line) == 0.0
+    outward = [share_at(line * 1.05 ** step) for step in range(1, 200)]
     assert outward[0] == pytest.approx(0.539, abs=0.001)
     assert all(a >= b for a, b in zip(outward, outward[1:]))
     assert outward[-1] == pytest.approx(0.571 / 1.487, abs=0.001)

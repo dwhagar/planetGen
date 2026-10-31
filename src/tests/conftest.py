@@ -94,6 +94,12 @@ os.environ.setdefault("PLANETGEN_RATELIMIT_STORAGE_URI", "memory://")
 os.environ.setdefault("PLANETGEN_GENERATION_STATS", "0")
 # A data change never starts the warm-up by itself in a test (PERF.141); tests/test_warm_start.py turns it on.
 os.environ.setdefault("PLANETGEN_WARM_ON_CHANGE", "0")
+# PERF.209: the generator battery digest takes about half a minute and the code does not change during a run, so the workers share one copy
+# (kept under a key of every file it reads, so a changed generator works it out again).
+os.environ.setdefault("PLANETGEN_BATTERY_DIGEST_CACHE", os.path.join(tempfile.gettempdir(), "planetgen-battery-digest"))
+# PERF.218: a first sector fill builds hundreds of bright-star sampling tables (minutes), the same ones in every process of a run and the next
+# run; they are kept under a key of every file, dataset and tuning constant they read, so a changed generator builds them again.
+os.environ.setdefault("PLANETGEN_BAND_TABLE_CACHE", os.path.join(tempfile.gettempdir(), "planetgen-band-tables"))
 # Table pages count exactly in the tests; tests/test_count_cache.py turns the stored counts (PERF.64) on.
 os.environ.setdefault("PLANETGEN_COUNT_CACHE", "off")
 
@@ -389,26 +395,6 @@ def unit_density_plans(monkeypatch):
     from planetgen.galaxy import shape_draw
     from tests import toy_shape
     monkeypatch.setattr(shape_draw, "plan_shape", toy_shape.plan_at_unit_density(shape_draw.plan_shape))
-    yield
-
-
-@pytest.fixture(autouse=True)
-def _settle_jobs_run_inline(monkeypatch):
-    """A sector generated on the spot queues a settle job (GEN.126:
-    `run_galaxy.queue_settle`), which starts a detached worker process. A
-    test would leave one behind per sector, working against a database
-    that is about to be dropped, so the queue refuses that one job and
-    `queue_settle` runs it inline instead -- the same code, in the test's
-    own process. A test of the queueing itself patches `api_jobs.submit` again."""
-    from planetgen.queue import api_jobs
-    real_submit = api_jobs.submit
-
-    def submit(function, *args, **options):
-        if function is api_jobs.settle_sectors:
-            raise api_jobs.NoQueue("settle jobs run inline in tests")
-        return real_submit(function, *args, **options)
-
-    monkeypatch.setattr(api_jobs, "submit", submit)
     yield
 
 

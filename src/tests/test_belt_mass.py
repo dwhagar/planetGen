@@ -7,6 +7,7 @@ import math
 import pytest
 
 from planetgen.physics import belt_mass as bm, constants, formation
+from planetgen.util import draw
 
 SUN_KG = constants.SOLAR_MASS_TO_KG
 SUN_W = 3.828e26
@@ -74,6 +75,25 @@ def test_the_density_word_follows_the_mass_per_area_against_its_reference():
     assert math.isclose(bm.surface_density_earth_per_au2(math.pi * (9 - 1), 1.0, 3.0), 1.0)
 
 
+def test_a_belts_largest_body_is_drawn_inside_its_range_from_its_own_stream():
+    sizes = [bm.draw_largest_km(draw.Stream(f"belt:{i}")) for i in range(400)]
+    low, high = bm.LARGEST_BODY_RANGE_KM
+    assert low <= min(sizes) and max(sizes) <= high
+    assert sum(size < math.sqrt(low * high) for size in sizes) == pytest.approx(200, abs=40), "log-uniform: half below the geometric mean"
+    assert bm.draw_largest_km(draw.Stream("belt:7")) == bm.draw_largest_km(draw.Stream("belt:7"))
+
+
+def test_a_belt_state_gives_the_mass_in_kilograms_and_the_word_against_the_median_largest_body():
+    line = formation.snow_line_au(SUN_W)
+    median = math.sqrt(bm.LARGEST_BODY_RANGE_KM[0] * bm.LARGEST_BODY_RANGE_KM[1])
+    mass_kg, word = bm.belt_state(2.2, 3.4, SUN_KG, line, 1.0, 4.5, median)
+    assert word == "typical" and 1e-4 < mass_kg / constants.EARTH_MASS_TO_KG < 1e-2
+    assert bm.belt_state(2.2, 3.4, SUN_KG, line, 1.0, 4.5, bm.LARGEST_BODY_RANGE_KM[1])[1] == "dense"
+    assert bm.belt_state(2.2, 3.4, SUN_KG, line, 1.0, 4.5, bm.LARGEST_BODY_RANGE_KM[0])[1] == "sparse"
+    assert bm.belt_state(2.2, 3.4, SUN_KG, line, 1.0, 0.01, median)[0] > mass_kg, "a young belt has not been ground down"
+    assert bm.belt_state(2.2, 3.4, SUN_KG, line, 2.0, 4.5, median)[0] >= mass_kg, "a metal-rich disc leaves no less"
+
+
 def test_bad_inputs_raise():
     with pytest.raises(ValueError):
         bm.belt_mass_earth(0.0, 2.2, 3.4, 1.0, 100.0, 500.0)
@@ -83,3 +103,9 @@ def test_bad_inputs_raise():
         bm.disruption_threshold_j_per_kg(0.0)
     with pytest.raises(ValueError):
         bm.density_word(0.0, 1.0)
+
+
+def test_a_belt_whose_largest_body_is_too_strong_to_disrupt_keeps_what_formed():
+    """Past Xc = 1 the constant of Wyatt et al.'s law goes negative; the mass is then the primordial one, not a negative number (GEN.1061)."""
+    assert bm.collisional_constant(10.0, 10.2, 1.0, 5000.0) < 0.0
+    assert bm.belt_mass_earth(2.0, 10.0, 10.2, 1.0, 4500.0, 5000.0) == pytest.approx(2.0)

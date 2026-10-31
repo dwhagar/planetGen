@@ -34,6 +34,7 @@ from planetgen.web.lib.fmt import (
 )
 from planetgen.web.lib.datatable import Column, Facet, Result, Table, read_from_start
 from planetgen.web.maps.starmap import HYPERVELOCITY_EXPECTED_STAR
+from planetgen.web import system_orbits_view
 from planetgen.web.scatter_members_view import members_view
 from planetgen.web.maps.phenomenonmap import render_phenomenon_map_panel
 from planetgen.web.maps.phenomenonrender import render_nebula_view_panel, render_phenomenon_view_panel, view_kind
@@ -334,6 +335,7 @@ def system(system_id):
         glance=glance.system_rows(detail, facilities, habitability_symbol_row),
         tree=tree,
         tree_marks=tree_marks,
+        orbits=system_orbits_view.orbit_rows(detail),
         territory=_territory(db, system_id),
         admin=admin,
         facilities=system_facilities.facility_rows(facilities),

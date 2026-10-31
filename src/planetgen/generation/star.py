@@ -23,7 +23,8 @@ import re
 from planetgen.generation import forced_star
 from planetgen.generation.config import SystemConfig
 from planetgen.physics import constants
-from planetgen.physics import activity, debris_disk, formation, imf, metallicity, pre_main_sequence, spin
+from planetgen.physics import (activity, age_metallicity, debris_disk, formation, imf, metallicity, pre_main_sequence,
+                              spin, stellar_state)
 from planetgen.util import draw
 from planetgen.util import log
 from planetgen.physics.stellar_evolution import (YERKES_CLASS_NAMES, birth_fe_h, evolve_star, sample_living_star,
@@ -150,7 +151,7 @@ class Star(StellarObject):
         # --- 1. Get Fundamental Stellar Properties (from arguments) ---
         radius_m = _km_to_m(radius_km)
         lum_sol = luminosity / constants.SOLAR_LUMINOSITY
-        mass_sol = mass / constants.SOLAR_MASS_TO_KG
+        mass_sol = _kg_to_msun(mass)
         radius_sol = radius_m / constants.SOLAR_RADIUS_M
         spectral_class = star_type[0].upper() if star_type else None
 
@@ -217,7 +218,7 @@ class Star(StellarObject):
         # --- 3. Convert and Calculate Final Radius ---
 
         # Convert M-dot from (solar masses/year) to (kg/s)
-        mass_loss_rate_kgs = mass_loss_rate_smyr * constants.SOLAR_MASS_TO_KG / constants.SECONDS_PER_YEAR
+        mass_loss_rate_kgs = _msun_to_kg(mass_loss_rate_smyr) / constants.SECONDS_PER_YEAR
 
         # The heliopause radius is where the stellar wind's momentum flux balances the ISM pressure.
         # R = sqrt( (M-dot * v_inf) / (4 * pi * P_ism) )
@@ -340,6 +341,8 @@ class Star(StellarObject):
                 else self.galactic_center_dist_ly,
                 draw.Stream(f"metallicity:{self.mass!r}:{self.age!r}:{self.galactic_center_dist_ly!r}"),
                 peaks=getattr(self.system_config, "FE_H_PEAKS", None))
+        # GEN.786 and GEN.785: its evolutionary state and, for a white dwarf, the age since it stopped burning (no draw).
+        stellar_state.set_state(self)
         # GEN.458: this star's own snow line, drawn once around the blackbody position and stored; its stream is its
         # own, like the [Fe/H] above, so no older draw moves.
         self.snow_line_au = formation.draw_snow_line_au(
@@ -347,13 +350,13 @@ class Star(StellarObject):
         # GEN.242: the disk of a young star, from its own stream like the [Fe/H] above.
         if self.yerkes_class in pre_main_sequence.STAGE_CLASSES:
             disk = pre_main_sequence.draw_disk(
-                self.mass / constants.SOLAR_MASS_TO_KG, self.age * 1.0e9, self.luminosity / constants.SOLAR_LUMINOSITY,
+                _kg_to_msun(self.mass), self.age * 1.0e9, self.luminosity / constants.SOLAR_LUMINOSITY,
                 draw.Stream(f"disk:{self.mass!r}:{self.age!r}"))
             for name, value in (disk or {}).items():
                 setattr(self, name, value)
         elif self.yerkes_class in debris_disk.DEBRIS_CLASSES:
             # GEN.787: the cold belt of a main-sequence star, from a stream of its own like the disk above.
-            disk = debris_disk.draw_disk(self.mass / constants.SOLAR_MASS_TO_KG, self.luminosity / constants.SOLAR_LUMINOSITY,
+            disk = debris_disk.draw_disk(_kg_to_msun(self.mass), self.luminosity / constants.SOLAR_LUMINOSITY,
                                          draw.Stream(f"debris:{self.mass!r}:{self.age!r}"))
             for name, value in (disk or {}).items():
                 setattr(self, name, value)
@@ -384,9 +387,10 @@ class Star(StellarObject):
         state = None
         if initial_mass_sol is not None:
             initial_mass_sol = max(initial_mass_sol, imf.lowest_mass_sol())
-            age = age_gy if age_gy is not None else sample_star_age_gy(age_bias)
             if fe_h is None:
                 fe_h = birth_fe_h(draw, population, fe_h_peaks, self.galactic_center_dist_ly)
+            age = age_gy if age_gy is not None else age_metallicity.tilted_age(
+                fe_h, population, lambda: sample_star_age_gy(age_bias), draw)
             state = evolve_star(initial_mass_sol, age, fe_h=fe_h, population=population, fe_h_peaks=fe_h_peaks,
                                 galactic_center_dist_ly=self.galactic_center_dist_ly)
             # A companion of a specified-type primary takes a fraction of
@@ -395,6 +399,7 @@ class Star(StellarObject):
             # alive rather than redraw it at another age: the pair shares
             # one age (GEN.53).
             while state is None and initial_mass_sol > imf.lowest_mass_sol():
+                draw.redrawn("star.mass_lightened")
                 initial_mass_sol = max(initial_mass_sol * 0.8, imf.lowest_mass_sol())
                 state = evolve_star(initial_mass_sol, age, fe_h=fe_h, population=population, fe_h_peaks=fe_h_peaks,
                                     galactic_center_dist_ly=self.galactic_center_dist_ly)
@@ -463,6 +468,20 @@ class Star(StellarObject):
         star._apply_params(params)
         star._finish_init(kwargs)
         return star
+
+    @classmethod
+    def from_record(cls, record, system_config, name=None, **kwargs):
+        """
+        Builds the `Star` of a member record (`member_record.MemberRecord`, GEN.1009) without evolving it: the state the tree drew the
+        member from is the state the star has, so its mass, radius and temperature are the record's. Takes `from_params`'s keywords.
+
+        Raises:
+            ValueError: If the record is not a star (a brown dwarf or a compact remnant has no `star_params`).
+        """
+        params = record.star_params()
+        if params is None:
+            raise ValueError(f"a {record.kind} member has no star to build")
+        return cls.from_params(params, system_config, name=name, **kwargs)
 
     def generate_star(self, initial_mass_sol=None, age_gy=None, fe_h=None):
         """
@@ -546,4 +565,7 @@ def adjust_pair_age_for_planets(primary, secondary, primary_planets, secondary_p
 
 
 from planetgen.generation import object_timing  # noqa: E402 -- registers the generators below (PERF.92)
+
+_kg_to_msun = units.converter("kg", "Msun")
+_msun_to_kg = units.converter("Msun", "kg")
 object_timing.track(Star, "star")

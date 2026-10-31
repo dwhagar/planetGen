@@ -26,7 +26,7 @@ the stored levels alone (`items`, `required_names`, `recommended_names`, `code`,
 from collections import namedtuple
 from dataclasses import replace
 
-from planetgen.physics import constants, habitability, radiation, regional_temperature
+from planetgen.physics import constants, habitability, radiation, radiation_belts, regional_temperature
 from planetgen.physics.protection_limits import RADIATION_STEPS, TOXIC, limit
 
 FIELDS = (
@@ -289,6 +289,7 @@ class _Shield:
 
     def __init__(self, world):
         self.gcr, self.sep, self.ground = _dose_parts(world)
+        self.belt = world.dose_belt_sv_yr or 0.0
         pressure_pa = world.pressure_kpa * 1000.0
         self.column = radiation.column_g_cm2(pressure_pa, _gravity_g(world))
         self.cutoff = world.cutoff_gv
@@ -310,12 +311,12 @@ class _Shield:
         if found is not None:
             return found
         if grams <= 0:
-            found = self.gcr + self.sep
+            found = self.gcr + self.sep + self.belt
         else:
             column = self.column + grams
             gcr = self.gcr * radiation.gcr_dose_msv_yr(column, self.cutoff) / self.gcr_base if self.gcr_base > 0 else 0.0
             sep = self.sep * radiation.sep_dose_msv_yr(1.0, column, self.cutoff) / self.sep_base if self.sep_base > 0 else 0.0
-            found = gcr + sep
+            found = gcr + sep + self.belt * radiation_belts.air_cut(grams)
         self._attenuated_at[grams] = found
         return found
 
@@ -615,7 +616,7 @@ def code(levels):
 
 def summary(levels):
     """The `equipment` object the API serves (`None` for an unscored body): `required` and `recommended` names, the
-    `code`, the `items` (slot, item, severity, domain), the `line` and the shelter's depth and the hours outside."""
+    `code`, the `items` (slot, item, severity, domain), the `line` and the shelter's depth and the hours outside (a year under the dose limit, and a day with what limits it, GEN.768)."""
     if not scored(levels):
         return None
     return {
@@ -625,7 +626,8 @@ def summary(levels):
                   for item in items(levels)],
         "line": line(levels), "required_line": lines(levels)[0], "recommended_line": lines(levels)[1],
         "shelter_column_g_cm2": levels.get("shelter_column_g_cm2"),
-        "outside_hours": levels.get("outside_hours"), "regions": regional_temperature.summary(levels),
+        "outside_hours": levels.get("outside_hours"), "outside_hours_day": levels.get("outside_hours_day"),
+        "outside_hours_limit": levels.get("outside_hours_limit"), "regions": regional_temperature.summary(levels),
     }
 
 

@@ -1,0 +1,1541 @@
+{
+ "version": 1,
+ "title": "The liquids a surface can hold (GEN.1035)",
+ "description": "Name, window, density, viscosity, surface tension and source of every liquid the generator can put on a surface. A row with `saturation` takes its melting and boiling temperature at a pressure from physics/saturation.py; the other rows carry a melting point, a boiling point at one bar and a heat of vaporization for a Clausius-Clapeyron curve. The density is linear from `density_kg_m3` in `expansion_per_k`; the viscosity is log-linear between the listed (K, mPa s) points. Every row carries its source tier (T1..T9) and tweak level (L0..L4). A row is added by adding a line here; nothing else reads the list but physics/surface_liquids.py.",
+ "liquids": [
+  {
+   "id": "helium4",
+   "name": "liquid helium-4",
+   "kind": "cryogenic",
+   "saturation": null,
+   "melting_k": 0.0,
+   "boiling_k": 4.22,
+   "vaporization_kj_mol": 0.083,
+   "critical_k": 5.19,
+   "density_kg_m3": {
+    "at_k": 4.2,
+    "value": 125.0
+   },
+   "expansion_per_k": 0.01,
+   "viscosity_mpa_s": [
+    [
+     4.2,
+     0.0033
+    ]
+   ],
+   "surface_tension_mn_m": 0.1,
+   "tier": "T2",
+   "tweak": "L0",
+   "source": "recalled CRC Handbook and NIST WebBook liquid values",
+   "note": "liquid to absolute zero below about 25 bar (no triple point); the window is 0 K to the boiling point"
+  },
+  {
+   "id": "hydrogen",
+   "name": "liquid hydrogen",
+   "kind": "cryogenic",
+   "saturation": "H2",
+   "melting_k": 13.96,
+   "boiling_k": 20.3,
+   "vaporization_kj_mol": 0.9,
+   "critical_k": 33.2,
+   "density_kg_m3": {
+    "at_k": 20.3,
+    "value": 70.8
+   },
+   "expansion_per_k": 0.012,
+   "viscosity_mpa_s": [
+    [
+     20.3,
+     0.013
+    ],
+    [
+     14.0,
+     0.026
+    ]
+   ],
+   "surface_tension_mn_m": 2.0,
+   "tier": "T2",
+   "tweak": "L0",
+   "source": "recalled CRC Handbook and NIST WebBook liquid values",
+   "note": ""
+  },
+  {
+   "id": "neon",
+   "name": "liquid neon",
+   "kind": "cryogenic",
+   "saturation": "Ne",
+   "melting_k": 24.56,
+   "boiling_k": 27.1,
+   "vaporization_kj_mol": 1.73,
+   "critical_k": 44.4,
+   "density_kg_m3": {
+    "at_k": 27.1,
+    "value": 1207.0
+   },
+   "expansion_per_k": 0.014,
+   "viscosity_mpa_s": [
+    [
+     27.1,
+     0.13
+    ],
+    [
+     25.0,
+     0.15
+    ]
+   ],
+   "surface_tension_mn_m": 5.5,
+   "tier": "T2",
+   "tweak": "L0",
+   "source": "recalled CRC Handbook and NIST WebBook liquid values",
+   "note": ""
+  },
+  {
+   "id": "nitrogen",
+   "name": "liquid nitrogen",
+   "kind": "cryogenic",
+   "saturation": "N2",
+   "melting_k": 63.15,
+   "boiling_k": 77.4,
+   "vaporization_kj_mol": 5.57,
+   "critical_k": 126.2,
+   "density_kg_m3": {
+    "at_k": 77.4,
+    "value": 807.0
+   },
+   "expansion_per_k": 0.0054,
+   "viscosity_mpa_s": [
+    [
+     77.4,
+     0.161
+    ],
+    [
+     65.0,
+     0.28
+    ]
+   ],
+   "surface_tension_mn_m": 8.9,
+   "tier": "T2",
+   "tweak": "L0",
+   "source": "recalled CRC Handbook and NIST WebBook liquid values",
+   "note": ""
+  },
+  {
+   "id": "carbon_monoxide",
+   "name": "liquid carbon monoxide",
+   "kind": "cryogenic",
+   "saturation": "CO",
+   "melting_k": 68.16,
+   "boiling_k": 81.6,
+   "vaporization_kj_mol": 6.04,
+   "critical_k": 132.9,
+   "density_kg_m3": {
+    "at_k": 81.6,
+    "value": 789.0
+   },
+   "expansion_per_k": 0.0048,
+   "viscosity_mpa_s": [
+    [
+     81.6,
+     0.17
+    ],
+    [
+     68.2,
+     0.3
+    ]
+   ],
+   "surface_tension_mn_m": 9.7,
+   "tier": "T2",
+   "tweak": "L0",
+   "source": "recalled CRC Handbook and NIST WebBook liquid values",
+   "note": ""
+  },
+  {
+   "id": "argon",
+   "name": "liquid argon",
+   "kind": "cryogenic",
+   "saturation": "Ar",
+   "melting_k": 83.81,
+   "boiling_k": 87.3,
+   "vaporization_kj_mol": 6.43,
+   "critical_k": 150.7,
+   "density_kg_m3": {
+    "at_k": 87.3,
+    "value": 1394.0
+   },
+   "expansion_per_k": 0.0047,
+   "viscosity_mpa_s": [
+    [
+     87.3,
+     0.275
+    ],
+    [
+     84.0,
+     0.31
+    ]
+   ],
+   "surface_tension_mn_m": 12.2,
+   "tier": "T2",
+   "tweak": "L0",
+   "source": "recalled CRC Handbook and NIST WebBook liquid values",
+   "note": ""
+  },
+  {
+   "id": "oxygen",
+   "name": "liquid oxygen",
+   "kind": "cryogenic",
+   "saturation": "O2",
+   "melting_k": 54.36,
+   "boiling_k": 90.2,
+   "vaporization_kj_mol": 6.82,
+   "critical_k": 154.6,
+   "density_kg_m3": {
+    "at_k": 90.2,
+    "value": 1141.0
+   },
+   "expansion_per_k": 0.0049,
+   "viscosity_mpa_s": [
+    [
+     90.2,
+     0.195
+    ],
+    [
+     70.0,
+     0.29
+    ]
+   ],
+   "surface_tension_mn_m": 13.2,
+   "tier": "T2",
+   "tweak": "L0",
+   "source": "recalled CRC Handbook and NIST WebBook liquid values",
+   "note": ""
+  },
+  {
+   "id": "methane",
+   "name": "liquid methane",
+   "kind": "hydrocarbon",
+   "saturation": "CH4",
+   "melting_k": 90.69,
+   "boiling_k": 111.7,
+   "vaporization_kj_mol": 8.19,
+   "critical_k": 190.6,
+   "density_kg_m3": {
+    "at_k": 111.7,
+    "value": 422.6
+   },
+   "expansion_per_k": 0.0032,
+   "viscosity_mpa_s": [
+    [
+     111.7,
+     0.118
+    ],
+    [
+     91.0,
+     0.18
+    ]
+   ],
+   "surface_tension_mn_m": 13.8,
+   "tier": "T2",
+   "tweak": "L0",
+   "source": "recalled CRC Handbook and NIST WebBook liquid values",
+   "note": ""
+  },
+  {
+   "id": "ethane",
+   "name": "liquid ethane",
+   "kind": "hydrocarbon",
+   "saturation": "C2H6",
+   "melting_k": 90.37,
+   "boiling_k": 184.5,
+   "vaporization_kj_mol": 14.7,
+   "critical_k": 305.3,
+   "density_kg_m3": {
+    "at_k": 184.5,
+    "value": 546.0
+   },
+   "expansion_per_k": 0.0021,
+   "viscosity_mpa_s": [
+    [
+     184.5,
+     0.17
+    ],
+    [
+     110.0,
+     0.6
+    ]
+   ],
+   "surface_tension_mn_m": 16.0,
+   "tier": "T3",
+   "tweak": "L0",
+   "source": "recalled CRC Handbook and NIST WebBook liquid values",
+   "note": "the low-temperature viscosity is the weakest figure here"
+  },
+  {
+   "id": "ethylene",
+   "name": "liquid ethylene",
+   "kind": "hydrocarbon",
+   "saturation": "C2H4",
+   "melting_k": 103.99,
+   "boiling_k": 169.4,
+   "vaporization_kj_mol": 13.5,
+   "critical_k": 282.4,
+   "density_kg_m3": {
+    "at_k": 169.4,
+    "value": 568.0
+   },
+   "expansion_per_k": 0.0023,
+   "viscosity_mpa_s": [
+    [
+     169.4,
+     0.17
+    ],
+    [
+     110.0,
+     0.5
+    ]
+   ],
+   "surface_tension_mn_m": 16.0,
+   "tier": "T3",
+   "tweak": "L0",
+   "source": "recalled CRC Handbook and NIST WebBook liquid values",
+   "note": ""
+  },
+  {
+   "id": "propane",
+   "name": "liquid propane",
+   "kind": "hydrocarbon",
+   "saturation": null,
+   "melting_k": 85.5,
+   "boiling_k": 231.1,
+   "vaporization_kj_mol": 19.0,
+   "critical_k": 369.8,
+   "density_kg_m3": {
+    "at_k": 231.1,
+    "value": 580.0
+   },
+   "expansion_per_k": 0.0022,
+   "viscosity_mpa_s": [
+    [
+     231.1,
+     0.2
+    ],
+    [
+     293.0,
+     0.096
+    ]
+   ],
+   "surface_tension_mn_m": 16.0,
+   "tier": "T2",
+   "tweak": "L0",
+   "source": "recalled CRC Handbook and NIST WebBook liquid values",
+   "note": ""
+  },
+  {
+   "id": "butane",
+   "name": "liquid n-butane",
+   "kind": "hydrocarbon",
+   "saturation": null,
+   "melting_k": 134.9,
+   "boiling_k": 272.7,
+   "vaporization_kj_mol": 22.4,
+   "critical_k": 425.1,
+   "density_kg_m3": {
+    "at_k": 272.7,
+    "value": 601.0
+   },
+   "expansion_per_k": 0.0018,
+   "viscosity_mpa_s": [
+    [
+     272.7,
+     0.21
+    ],
+    [
+     293.0,
+     0.17
+    ]
+   ],
+   "surface_tension_mn_m": 14.0,
+   "tier": "T2",
+   "tweak": "L0",
+   "source": "recalled CRC Handbook and NIST WebBook liquid values",
+   "note": ""
+  },
+  {
+   "id": "krypton",
+   "name": "liquid krypton",
+   "kind": "cryogenic",
+   "saturation": "Kr",
+   "melting_k": 115.78,
+   "boiling_k": 119.8,
+   "vaporization_kj_mol": 9.03,
+   "critical_k": 209.4,
+   "density_kg_m3": {
+    "at_k": 119.8,
+    "value": 2413.0
+   },
+   "expansion_per_k": 0.0045,
+   "viscosity_mpa_s": [
+    [
+     119.8,
+     0.4
+    ],
+    [
+     116.0,
+     0.46
+    ]
+   ],
+   "surface_tension_mn_m": 16.0,
+   "tier": "T2",
+   "tweak": "L0",
+   "source": "recalled CRC Handbook and NIST WebBook liquid values",
+   "note": ""
+  },
+  {
+   "id": "xenon",
+   "name": "liquid xenon",
+   "kind": "cryogenic",
+   "saturation": "Xe",
+   "melting_k": 161.41,
+   "boiling_k": 165.0,
+   "vaporization_kj_mol": 12.6,
+   "critical_k": 289.7,
+   "density_kg_m3": {
+    "at_k": 165.0,
+    "value": 2942.0
+   },
+   "expansion_per_k": 0.004,
+   "viscosity_mpa_s": [
+    [
+     165.0,
+     0.5
+    ],
+    [
+     162.0,
+     0.55
+    ]
+   ],
+   "surface_tension_mn_m": 18.0,
+   "tier": "T2",
+   "tweak": "L0",
+   "source": "recalled CRC Handbook and NIST WebBook liquid values",
+   "note": ""
+  },
+  {
+   "id": "carbon_dioxide",
+   "name": "liquid carbon dioxide",
+   "kind": "molecular",
+   "saturation": "CO2",
+   "melting_k": 216.59,
+   "boiling_k": 194.7,
+   "vaporization_kj_mol": 15.3,
+   "critical_k": 304.1,
+   "density_kg_m3": {
+    "at_k": 220.0,
+    "value": 1170.0
+   },
+   "expansion_per_k": 0.0038,
+   "viscosity_mpa_s": [
+    [
+     220.0,
+     0.19
+    ],
+    [
+     273.0,
+     0.07
+    ]
+   ],
+   "surface_tension_mn_m": 16.0,
+   "tier": "T2",
+   "tweak": "L0",
+   "source": "recalled CRC Handbook and NIST WebBook liquid values",
+   "note": "liquid only above the triple pressure of 5.2 bar; the 1-bar boiling point is the sublimation point and the module takes the window from the saturation curve"
+  },
+  {
+   "id": "hydrogen_sulfide",
+   "name": "liquid hydrogen sulfide",
+   "kind": "molecular",
+   "saturation": "H2S",
+   "melting_k": 187.7,
+   "boiling_k": 212.8,
+   "vaporization_kj_mol": 18.7,
+   "critical_k": 373.1,
+   "density_kg_m3": {
+    "at_k": 190.0,
+    "value": 990.0
+   },
+   "expansion_per_k": 0.002,
+   "viscosity_mpa_s": [
+    [
+     213.0,
+     0.42
+    ],
+    [
+     190.0,
+     0.65
+    ]
+   ],
+   "surface_tension_mn_m": 30.0,
+   "tier": "T3",
+   "tweak": "L0",
+   "source": "recalled CRC Handbook and NIST WebBook liquid values",
+   "note": ""
+  },
+  {
+   "id": "ammonia",
+   "name": "liquid ammonia",
+   "kind": "molecular",
+   "saturation": "NH3",
+   "melting_k": 195.49,
+   "boiling_k": 239.8,
+   "vaporization_kj_mol": 23.3,
+   "critical_k": 405.6,
+   "density_kg_m3": {
+    "at_k": 239.8,
+    "value": 682.0
+   },
+   "expansion_per_k": 0.002,
+   "viscosity_mpa_s": [
+    [
+     239.8,
+     0.276
+    ],
+    [
+     273.0,
+     0.14
+    ]
+   ],
+   "surface_tension_mn_m": 34.0,
+   "tier": "T2",
+   "tweak": "L0",
+   "source": "recalled CRC Handbook and NIST WebBook liquid values",
+   "note": ""
+  },
+  {
+   "id": "sulfur_dioxide",
+   "name": "liquid sulfur dioxide",
+   "kind": "molecular",
+   "saturation": "SO2",
+   "melting_k": 197.7,
+   "boiling_k": 263.1,
+   "vaporization_kj_mol": 24.9,
+   "critical_k": 430.6,
+   "density_kg_m3": {
+    "at_k": 263.0,
+    "value": 1460.0
+   },
+   "expansion_per_k": 0.0013,
+   "viscosity_mpa_s": [
+    [
+     263.0,
+     0.37
+    ],
+    [
+     215.0,
+     0.7
+    ]
+   ],
+   "surface_tension_mn_m": 31.0,
+   "tier": "T2",
+   "tweak": "L0",
+   "source": "recalled CRC Handbook and NIST WebBook liquid values",
+   "note": ""
+  },
+  {
+   "id": "hydrogen_cyanide",
+   "name": "liquid hydrogen cyanide",
+   "kind": "molecular",
+   "saturation": "HCN",
+   "melting_k": 259.86,
+   "boiling_k": 298.9,
+   "vaporization_kj_mol": 25.2,
+   "critical_k": 456.7,
+   "density_kg_m3": {
+    "at_k": 298.0,
+    "value": 687.0
+   },
+   "expansion_per_k": 0.0015,
+   "viscosity_mpa_s": [
+    [
+     298.0,
+     0.2
+    ],
+    [
+     273.0,
+     0.25
+    ]
+   ],
+   "surface_tension_mn_m": 18.0,
+   "tier": "T2",
+   "tweak": "L0",
+   "source": "recalled CRC Handbook and NIST WebBook liquid values",
+   "note": ""
+  },
+  {
+   "id": "methanol",
+   "name": "liquid methanol",
+   "kind": "molecular",
+   "saturation": "CH3OH",
+   "melting_k": 175.61,
+   "boiling_k": 337.8,
+   "vaporization_kj_mol": 35.2,
+   "critical_k": 512.6,
+   "density_kg_m3": {
+    "at_k": 293.0,
+    "value": 792.0
+   },
+   "expansion_per_k": 0.0012,
+   "viscosity_mpa_s": [
+    [
+     293.0,
+     0.59
+    ],
+    [
+     253.0,
+     1.3
+    ]
+   ],
+   "surface_tension_mn_m": 22.5,
+   "tier": "T2",
+   "tweak": "L0",
+   "source": "recalled CRC Handbook and NIST WebBook liquid values",
+   "note": ""
+  },
+  {
+   "id": "benzene",
+   "name": "liquid benzene",
+   "kind": "hydrocarbon",
+   "saturation": "C6H6",
+   "melting_k": 278.67,
+   "boiling_k": 353.2,
+   "vaporization_kj_mol": 30.7,
+   "critical_k": 562.0,
+   "density_kg_m3": {
+    "at_k": 293.0,
+    "value": 877.0
+   },
+   "expansion_per_k": 0.0012,
+   "viscosity_mpa_s": [
+    [
+     293.0,
+     0.65
+    ],
+    [
+     280.0,
+     0.9
+    ]
+   ],
+   "surface_tension_mn_m": 28.9,
+   "tier": "T2",
+   "tweak": "L0",
+   "source": "recalled CRC Handbook and NIST WebBook liquid values",
+   "note": ""
+  },
+  {
+   "id": "water",
+   "name": "liquid water",
+   "kind": "aqueous",
+   "saturation": "H2O",
+   "melting_k": 273.16,
+   "boiling_k": 373.15,
+   "vaporization_kj_mol": 40.7,
+   "critical_k": 647.1,
+   "density_kg_m3": {
+    "at_k": 293.0,
+    "value": 998.2
+   },
+   "expansion_per_k": 0.0002,
+   "viscosity_mpa_s": [
+    [
+     293.0,
+     1.0
+    ],
+    [
+     373.0,
+     0.28
+    ]
+   ],
+   "surface_tension_mn_m": 72.8,
+   "tier": "T2",
+   "tweak": "L0",
+   "source": "recalled CRC Handbook and NIST WebBook liquid values",
+   "note": "the generator's existing ocean; fresh, and the reference the brines below shift"
+  },
+  {
+   "id": "ammonia_water",
+   "name": "ammonia-water eutectic (32 mass percent ammonia)",
+   "kind": "aqueous",
+   "saturation": null,
+   "melting_k": 176.0,
+   "boiling_k": 310.0,
+   "vaporization_kj_mol": 35.0,
+   "critical_k": null,
+   "density_kg_m3": {
+    "at_k": 273.0,
+    "value": 950.0
+   },
+   "expansion_per_k": 0.0006,
+   "viscosity_mpa_s": [
+    [
+     273.0,
+     6.0
+    ],
+    [
+     200.0,
+     300.0
+    ]
+   ],
+   "surface_tension_mn_m": 45.0,
+   "tier": "T6",
+   "tweak": "L4",
+   "source": "Kargel 1991 eutectic 176 K (recalled); density, viscosity and boiling point are stand-ins fitted to a plausible range",
+   "note": "the cryolava of icy moons; the boiling point is where the ammonia leaves the solution at one bar, argued not read"
+  },
+  {
+   "id": "brine_nacl",
+   "name": "sodium chloride brine (eutectic, 23 mass percent)",
+   "kind": "brine",
+   "saturation": null,
+   "melting_k": 252.1,
+   "boiling_k": 381.0,
+   "vaporization_kj_mol": 40.0,
+   "critical_k": null,
+   "density_kg_m3": {
+    "at_k": 273.0,
+    "value": 1190.0
+   },
+   "expansion_per_k": 0.0003,
+   "viscosity_mpa_s": [
+    [
+     273.0,
+     2.3
+    ]
+   ],
+   "surface_tension_mn_m": 80.0,
+   "tier": "T2",
+   "tweak": "L0",
+   "source": "recalled CRC eutectic 252.1 K and saturated brine properties",
+   "note": ""
+  },
+  {
+   "id": "brine_mgso4",
+   "name": "magnesium sulfate brine (eutectic, 17 mass percent)",
+   "kind": "brine",
+   "saturation": null,
+   "melting_k": 268.4,
+   "boiling_k": 374.0,
+   "vaporization_kj_mol": 40.0,
+   "critical_k": null,
+   "density_kg_m3": {
+    "at_k": 273.0,
+    "value": 1180.0
+   },
+   "expansion_per_k": 0.0003,
+   "viscosity_mpa_s": [
+    [
+     273.0,
+     2.5
+    ]
+   ],
+   "surface_tension_mn_m": 77.0,
+   "tier": "T3",
+   "tweak": "L0",
+   "source": "recalled eutectic 268.4 K (Europa surface-salt literature); density and viscosity argued from the salt strength",
+   "note": ""
+  },
+  {
+   "id": "brine_cacl2",
+   "name": "calcium chloride brine (eutectic, 30 mass percent)",
+   "kind": "brine",
+   "saturation": null,
+   "melting_k": 223.0,
+   "boiling_k": 380.0,
+   "vaporization_kj_mol": 40.0,
+   "critical_k": null,
+   "density_kg_m3": {
+    "at_k": 273.0,
+    "value": 1290.0
+   },
+   "expansion_per_k": 0.0003,
+   "viscosity_mpa_s": [
+    [
+     273.0,
+     6.0
+    ],
+    [
+     230.0,
+     60.0
+    ]
+   ],
+   "surface_tension_mn_m": 85.0,
+   "tier": "T3",
+   "tweak": "L0",
+   "source": "recalled eutectic 223 K; viscosity argued",
+   "note": ""
+  },
+  {
+   "id": "brine_ca_perchlorate",
+   "name": "calcium perchlorate brine (eutectic, 198 K)",
+   "kind": "brine",
+   "saturation": null,
+   "melting_k": 198.0,
+   "boiling_k": 400.0,
+   "vaporization_kj_mol": 40.0,
+   "critical_k": null,
+   "density_kg_m3": {
+    "at_k": 273.0,
+    "value": 1500.0
+   },
+   "expansion_per_k": 0.0004,
+   "viscosity_mpa_s": [
+    [
+     273.0,
+     10.0
+    ],
+    [
+     200.0,
+     3000.0
+    ]
+   ],
+   "surface_tension_mn_m": 70.0,
+   "tier": "T4",
+   "tweak": "L4",
+   "source": "eutectic 198 K from the Mars brine literature (recalled; the generator's hydrosphere already uses 198 K); density and viscosity are stand-ins",
+   "note": ""
+  },
+  {
+   "id": "brine_mg_perchlorate",
+   "name": "magnesium perchlorate brine (eutectic, 206 K)",
+   "kind": "brine",
+   "saturation": null,
+   "melting_k": 206.0,
+   "boiling_k": 400.0,
+   "vaporization_kj_mol": 40.0,
+   "critical_k": null,
+   "density_kg_m3": {
+    "at_k": 273.0,
+    "value": 1500.0
+   },
+   "expansion_per_k": 0.0004,
+   "viscosity_mpa_s": [
+    [
+     273.0,
+     10.0
+    ],
+    [
+     210.0,
+     2000.0
+    ]
+   ],
+   "surface_tension_mn_m": 70.0,
+   "tier": "T4",
+   "tweak": "L4",
+   "source": "eutectic 206 K from the Mars brine literature (recalled); density and viscosity are stand-ins",
+   "note": ""
+  },
+  {
+   "id": "brine_na_perchlorate",
+   "name": "sodium perchlorate brine (eutectic, 236 K)",
+   "kind": "brine",
+   "saturation": null,
+   "melting_k": 236.0,
+   "boiling_k": 400.0,
+   "vaporization_kj_mol": 40.0,
+   "critical_k": null,
+   "density_kg_m3": {
+    "at_k": 273.0,
+    "value": 1400.0
+   },
+   "expansion_per_k": 0.0004,
+   "viscosity_mpa_s": [
+    [
+     273.0,
+     6.0
+    ],
+    [
+     240.0,
+     40.0
+    ]
+   ],
+   "surface_tension_mn_m": 70.0,
+   "tier": "T4",
+   "tweak": "L4",
+   "source": "eutectic 236 K (the top of the generator's brine range); density and viscosity are stand-ins",
+   "note": ""
+  },
+  {
+   "id": "sulfuric_acid",
+   "name": "sulfuric acid (100 percent)",
+   "kind": "acid",
+   "saturation": null,
+   "melting_k": 283.5,
+   "boiling_k": 610.0,
+   "vaporization_kj_mol": 50.0,
+   "critical_k": null,
+   "density_kg_m3": {
+    "at_k": 298.0,
+    "value": 1830.0
+   },
+   "expansion_per_k": 0.0006,
+   "viscosity_mpa_s": [
+    [
+     298.0,
+     24.5
+    ],
+    [
+     350.0,
+     6.0
+    ]
+   ],
+   "surface_tension_mn_m": 55.0,
+   "tier": "T2",
+   "tweak": "L0",
+   "source": "recalled CRC Handbook and NIST WebBook liquid values",
+   "note": "decomposes near 610 K; the boiling point is the decomposition point"
+  },
+  {
+   "id": "sulfuric_acid_75",
+   "name": "sulfuric acid-water (75 mass percent, Venus cloud drops)",
+   "kind": "acid",
+   "saturation": null,
+   "melting_k": 215.0,
+   "boiling_k": 550.0,
+   "vaporization_kj_mol": 50.0,
+   "critical_k": null,
+   "density_kg_m3": {
+    "at_k": 298.0,
+    "value": 1670.0
+   },
+   "expansion_per_k": 0.0006,
+   "viscosity_mpa_s": [
+    [
+     298.0,
+     10.0
+    ],
+    [
+     230.0,
+     300.0
+    ]
+   ],
+   "surface_tension_mn_m": 70.0,
+   "tier": "T3",
+   "tweak": "L0",
+   "source": "freezing point and properties recalled from the Venus cloud literature; uncertain by several kelvin",
+   "note": ""
+  },
+  {
+   "id": "sulfur",
+   "name": "molten sulfur",
+   "kind": "sulfur",
+   "saturation": null,
+   "melting_k": 388.4,
+   "boiling_k": 717.8,
+   "vaporization_kj_mol": 45.0,
+   "critical_k": 1313.0,
+   "density_kg_m3": {
+    "at_k": 392.0,
+    "value": 1800.0
+   },
+   "expansion_per_k": 0.0006,
+   "viscosity_mpa_s": [
+    [
+     392.0,
+     11.0
+    ],
+    [
+     430.0,
+     7.0
+    ],
+    [
+     460.0,
+     93000.0
+    ],
+    [
+     520.0,
+     2000.0
+    ],
+    [
+     600.0,
+     200.0
+    ],
+    [
+     700.0,
+     10.0
+    ]
+   ],
+   "surface_tension_mn_m": 60.0,
+   "tier": "T3",
+   "tweak": "L0",
+   "source": "recalled lambda-transition viscosity curve of S8 (a minimum near 430 K, a peak of about 93 Pa s near 460 K); density at the melting point",
+   "note": ""
+  },
+  {
+   "id": "salt_nacl",
+   "name": "molten sodium chloride",
+   "kind": "salt",
+   "saturation": null,
+   "melting_k": 1074.0,
+   "boiling_k": 1738.0,
+   "vaporization_kj_mol": 170.0,
+   "critical_k": 3400.0,
+   "density_kg_m3": {
+    "at_k": 1100.0,
+    "value": 1550.0
+   },
+   "expansion_per_k": 0.00034,
+   "viscosity_mpa_s": [
+    [
+     1100.0,
+     1.3
+    ],
+    [
+     1200.0,
+     0.95
+    ]
+   ],
+   "surface_tension_mn_m": 115.0,
+   "tier": "T2",
+   "tweak": "L0",
+   "source": "recalled CRC Handbook and NIST WebBook liquid values",
+   "note": ""
+  },
+  {
+   "id": "salt_kcl",
+   "name": "molten potassium chloride",
+   "kind": "salt",
+   "saturation": null,
+   "melting_k": 1044.0,
+   "boiling_k": 1690.0,
+   "vaporization_kj_mol": 160.0,
+   "critical_k": 3200.0,
+   "density_kg_m3": {
+    "at_k": 1100.0,
+    "value": 1500.0
+   },
+   "expansion_per_k": 0.00036,
+   "viscosity_mpa_s": [
+    [
+     1100.0,
+     1.2
+    ],
+    [
+     1200.0,
+     0.9
+    ]
+   ],
+   "surface_tension_mn_m": 95.0,
+   "tier": "T2",
+   "tweak": "L0",
+   "source": "recalled CRC Handbook and NIST WebBook liquid values",
+   "note": ""
+  },
+  {
+   "id": "mercury",
+   "name": "liquid mercury",
+   "kind": "metal",
+   "saturation": null,
+   "melting_k": 234.3,
+   "boiling_k": 629.9,
+   "vaporization_kj_mol": 59.1,
+   "critical_k": 1750.0,
+   "density_kg_m3": {
+    "at_k": 293.0,
+    "value": 13545.0
+   },
+   "expansion_per_k": 0.000181,
+   "viscosity_mpa_s": [
+    [
+     293.0,
+     1.526
+    ],
+    [
+     273.0,
+     1.685
+    ]
+   ],
+   "surface_tension_mn_m": 485.0,
+   "tier": "T2",
+   "tweak": "L0",
+   "source": "recalled CRC Handbook and NIST WebBook liquid values",
+   "note": ""
+  },
+  {
+   "id": "gallium",
+   "name": "liquid gallium",
+   "kind": "metal",
+   "saturation": null,
+   "melting_k": 302.9,
+   "boiling_k": 2673.0,
+   "vaporization_kj_mol": 256.0,
+   "critical_k": 7620.0,
+   "density_kg_m3": {
+    "at_k": 303.0,
+    "value": 6095.0
+   },
+   "expansion_per_k": 0.00011,
+   "viscosity_mpa_s": [
+    [
+     303.0,
+     1.9
+    ],
+    [
+     500.0,
+     1.0
+    ]
+   ],
+   "surface_tension_mn_m": 720.0,
+   "tier": "T2",
+   "tweak": "L0",
+   "source": "recalled CRC Handbook and NIST WebBook liquid values",
+   "note": ""
+  },
+  {
+   "id": "sodium",
+   "name": "liquid sodium",
+   "kind": "metal",
+   "saturation": null,
+   "melting_k": 370.9,
+   "boiling_k": 1156.0,
+   "vaporization_kj_mol": 97.4,
+   "critical_k": 2573.0,
+   "density_kg_m3": {
+    "at_k": 371.0,
+    "value": 927.0
+   },
+   "expansion_per_k": 0.00021,
+   "viscosity_mpa_s": [
+    [
+     371.0,
+     0.69
+    ],
+    [
+     700.0,
+     0.23
+    ]
+   ],
+   "surface_tension_mn_m": 192.0,
+   "tier": "T2",
+   "tweak": "L0",
+   "source": "recalled CRC Handbook and NIST WebBook liquid values",
+   "note": ""
+  },
+  {
+   "id": "potassium",
+   "name": "liquid potassium",
+   "kind": "metal",
+   "saturation": null,
+   "melting_k": 336.5,
+   "boiling_k": 1032.0,
+   "vaporization_kj_mol": 79.0,
+   "critical_k": 2223.0,
+   "density_kg_m3": {
+    "at_k": 337.0,
+    "value": 828.0
+   },
+   "expansion_per_k": 0.00028,
+   "viscosity_mpa_s": [
+    [
+     337.0,
+     0.54
+    ],
+    [
+     700.0,
+     0.2
+    ]
+   ],
+   "surface_tension_mn_m": 115.0,
+   "tier": "T2",
+   "tweak": "L0",
+   "source": "recalled CRC Handbook and NIST WebBook liquid values",
+   "note": ""
+  },
+  {
+   "id": "lithium",
+   "name": "liquid lithium",
+   "kind": "metal",
+   "saturation": null,
+   "melting_k": 453.7,
+   "boiling_k": 1615.0,
+   "vaporization_kj_mol": 147.0,
+   "critical_k": 3220.0,
+   "density_kg_m3": {
+    "at_k": 454.0,
+    "value": 512.0
+   },
+   "expansion_per_k": 0.00018,
+   "viscosity_mpa_s": [
+    [
+     454.0,
+     0.57
+    ],
+    [
+     700.0,
+     0.4
+    ]
+   ],
+   "surface_tension_mn_m": 398.0,
+   "tier": "T2",
+   "tweak": "L0",
+   "source": "recalled CRC Handbook and NIST WebBook liquid values",
+   "note": ""
+  },
+  {
+   "id": "tin",
+   "name": "liquid tin",
+   "kind": "metal",
+   "saturation": null,
+   "melting_k": 505.1,
+   "boiling_k": 2875.0,
+   "vaporization_kj_mol": 296.0,
+   "critical_k": 8000.0,
+   "density_kg_m3": {
+    "at_k": 505.0,
+    "value": 6990.0
+   },
+   "expansion_per_k": 0.00012,
+   "viscosity_mpa_s": [
+    [
+     505.0,
+     1.85
+    ],
+    [
+     1000.0,
+     0.9
+    ]
+   ],
+   "surface_tension_mn_m": 550.0,
+   "tier": "T2",
+   "tweak": "L0",
+   "source": "recalled CRC Handbook and NIST WebBook liquid values",
+   "note": ""
+  },
+  {
+   "id": "lead",
+   "name": "liquid lead",
+   "kind": "metal",
+   "saturation": null,
+   "melting_k": 600.6,
+   "boiling_k": 2022.0,
+   "vaporization_kj_mol": 179.5,
+   "critical_k": 5400.0,
+   "density_kg_m3": {
+    "at_k": 601.0,
+    "value": 10660.0
+   },
+   "expansion_per_k": 0.00012,
+   "viscosity_mpa_s": [
+    [
+     601.0,
+     2.65
+    ],
+    [
+     800.0,
+     1.9
+    ]
+   ],
+   "surface_tension_mn_m": 460.0,
+   "tier": "T2",
+   "tweak": "L0",
+   "source": "recalled CRC Handbook and NIST WebBook liquid values",
+   "note": ""
+  },
+  {
+   "id": "zinc",
+   "name": "liquid zinc",
+   "kind": "metal",
+   "saturation": null,
+   "melting_k": 692.7,
+   "boiling_k": 1180.0,
+   "vaporization_kj_mol": 115.3,
+   "critical_k": 3170.0,
+   "density_kg_m3": {
+    "at_k": 693.0,
+    "value": 6570.0
+   },
+   "expansion_per_k": 0.00014,
+   "viscosity_mpa_s": [
+    [
+     693.0,
+     3.9
+    ],
+    [
+     900.0,
+     2.5
+    ]
+   ],
+   "surface_tension_mn_m": 782.0,
+   "tier": "T3",
+   "tweak": "L0",
+   "source": "recalled CRC Handbook and NIST WebBook liquid values",
+   "note": ""
+  },
+  {
+   "id": "aluminium",
+   "name": "liquid aluminium",
+   "kind": "metal",
+   "saturation": null,
+   "melting_k": 933.5,
+   "boiling_k": 2792.0,
+   "vaporization_kj_mol": 294.0,
+   "critical_k": 8000.0,
+   "density_kg_m3": {
+    "at_k": 933.0,
+    "value": 2375.0
+   },
+   "expansion_per_k": 0.00013,
+   "viscosity_mpa_s": [
+    [
+     933.0,
+     1.3
+    ],
+    [
+     1200.0,
+     1.0
+    ]
+   ],
+   "surface_tension_mn_m": 870.0,
+   "tier": "T2",
+   "tweak": "L0",
+   "source": "recalled CRC Handbook and NIST WebBook liquid values",
+   "note": ""
+  },
+  {
+   "id": "iron",
+   "name": "liquid iron",
+   "kind": "metal",
+   "saturation": null,
+   "melting_k": 1811.0,
+   "boiling_k": 3134.0,
+   "vaporization_kj_mol": 340.0,
+   "critical_k": 9250.0,
+   "density_kg_m3": {
+    "at_k": 1811.0,
+    "value": 6980.0
+   },
+   "expansion_per_k": 0.00012,
+   "viscosity_mpa_s": [
+    [
+     1811.0,
+     5.5
+    ],
+    [
+     2000.0,
+     4.5
+    ]
+   ],
+   "surface_tension_mn_m": 1800.0,
+   "tier": "T2",
+   "tweak": "L0",
+   "source": "recalled CRC Handbook and NIST WebBook liquid values",
+   "note": ""
+  },
+  {
+   "id": "iron_sulfide",
+   "name": "molten iron sulfide (FeS)",
+   "kind": "sulfide",
+   "saturation": null,
+   "melting_k": 1463.0,
+   "boiling_k": 3000.0,
+   "vaporization_kj_mol": 300.0,
+   "critical_k": null,
+   "density_kg_m3": {
+    "at_k": 1500.0,
+    "value": 3900.0
+   },
+   "expansion_per_k": 0.0002,
+   "viscosity_mpa_s": [
+    [
+     1500.0,
+     8.0
+    ],
+    [
+     1800.0,
+     4.0
+    ]
+   ],
+   "surface_tension_mn_m": 400.0,
+   "tier": "T4",
+   "tweak": "L4",
+   "source": "melting point recalled; density, viscosity and boiling point are stand-ins (FeS decomposes)",
+   "note": ""
+  },
+  {
+   "id": "iron_sulfur_eutectic",
+   "name": "iron-iron sulfide eutectic melt",
+   "kind": "sulfide",
+   "saturation": null,
+   "melting_k": 1261.0,
+   "boiling_k": 3000.0,
+   "vaporization_kj_mol": 300.0,
+   "critical_k": null,
+   "density_kg_m3": {
+    "at_k": 1400.0,
+    "value": 5200.0
+   },
+   "expansion_per_k": 0.00015,
+   "viscosity_mpa_s": [
+    [
+     1400.0,
+     6.0
+    ],
+    [
+     1800.0,
+     3.0
+    ]
+   ],
+   "surface_tension_mn_m": 800.0,
+   "tier": "T4",
+   "tweak": "L4",
+   "source": "eutectic of the Fe-FeS system at one bar recalled (about 1261 K); density, viscosity and boiling point are stand-ins (core liquids)",
+   "note": ""
+  },
+  {
+   "id": "basalt_melt",
+   "name": "basaltic lava",
+   "kind": "silicate",
+   "saturation": null,
+   "melting_k": 1473.0,
+   "boiling_k": 3300.0,
+   "vaporization_kj_mol": 450.0,
+   "critical_k": null,
+   "density_kg_m3": {
+    "at_k": 1473.0,
+    "value": 2650.0
+   },
+   "expansion_per_k": 8e-05,
+   "viscosity_mpa_s": [
+    [
+     1473.0,
+     10000.0
+    ],
+    [
+     1673.0,
+     1000.0
+    ]
+   ],
+   "surface_tension_mn_m": 350.0,
+   "tier": "T3",
+   "tweak": "L0",
+   "source": "recalled: solidus near 1270 K, liquidus near 1470 K, viscosity of order 10 Pa s at the liquidus rising by orders of magnitude on cooling; the lava vapour is `mixture_lava`",
+   "note": "fully liquid above the liquidus; partly molten (a slush) between the solidus and the liquidus"
+  },
+  {
+   "id": "komatiite_melt",
+   "name": "komatiite lava (ultramafic)",
+   "kind": "silicate",
+   "saturation": null,
+   "melting_k": 1900.0,
+   "boiling_k": 3400.0,
+   "vaporization_kj_mol": 450.0,
+   "critical_k": null,
+   "density_kg_m3": {
+    "at_k": 1900.0,
+    "value": 2750.0
+   },
+   "expansion_per_k": 8e-05,
+   "viscosity_mpa_s": [
+    [
+     1900.0,
+     500.0
+    ],
+    [
+     2100.0,
+     100.0
+    ]
+   ],
+   "surface_tension_mn_m": 350.0,
+   "tier": "T3",
+   "tweak": "L0",
+   "source": "recalled: liquidus near 1900 K, viscosity of order 0.1 to 1 Pa s",
+   "note": ""
+  },
+  {
+   "id": "peridotite_magma",
+   "name": "peridotitic magma ocean",
+   "kind": "silicate",
+   "saturation": null,
+   "melting_k": 2150.0,
+   "boiling_k": 3600.0,
+   "vaporization_kj_mol": 450.0,
+   "critical_k": null,
+   "density_kg_m3": {
+    "at_k": 2150.0,
+    "value": 2800.0
+   },
+   "expansion_per_k": 8e-05,
+   "viscosity_mpa_s": [
+    [
+     2150.0,
+     300.0
+    ],
+    [
+     3000.0,
+     20.0
+    ]
+   ],
+   "surface_tension_mn_m": 350.0,
+   "tier": "T4",
+   "tweak": "L0",
+   "source": "liquidus about 2000 K at one bar (recalled), rising with pressure; viscosity argued from the temperature, the melt of an early magma ocean",
+   "note": ""
+  },
+  {
+   "id": "rhyolite_melt",
+   "name": "rhyolitic melt (felsic)",
+   "kind": "silicate",
+   "saturation": null,
+   "melting_k": 1250.0,
+   "boiling_k": 3000.0,
+   "vaporization_kj_mol": 450.0,
+   "critical_k": null,
+   "density_kg_m3": {
+    "at_k": 1250.0,
+    "value": 2300.0
+   },
+   "expansion_per_k": 8e-05,
+   "viscosity_mpa_s": [
+    [
+     1250.0,
+     100000000000.0
+    ],
+    [
+     1500.0,
+     1000000000.0
+    ]
+   ],
+   "surface_tension_mn_m": 300.0,
+   "tier": "T3",
+   "tweak": "L0",
+   "source": "recalled: liquidus near 1250 K dry, viscosity of 1e6 to 1e8 Pa s",
+   "note": ""
+  },
+  {
+   "id": "carbonatite_melt",
+   "name": "natrocarbonatite lava",
+   "kind": "carbonate",
+   "saturation": null,
+   "melting_k": 823.0,
+   "boiling_k": 1700.0,
+   "vaporization_kj_mol": 300.0,
+   "critical_k": null,
+   "density_kg_m3": {
+    "at_k": 823.0,
+    "value": 2400.0
+   },
+   "expansion_per_k": 0.0001,
+   "viscosity_mpa_s": [
+    [
+     823.0,
+     50.0
+    ],
+    [
+     1000.0,
+     20.0
+    ]
+   ],
+   "surface_tension_mn_m": 200.0,
+   "tier": "T3",
+   "tweak": "L0",
+   "source": "Ol Doinyo Lengai erupts near 770 to 820 K (recalled); the viscosity is argued from the range of 10 to 100 mPa s measured",
+   "note": ""
+  }
+ ]
+}

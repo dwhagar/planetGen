@@ -127,6 +127,10 @@ class StoreConnection:
             sql, _ = self._named(sql, rows[0])
             self.connection.execute(sa.text(sql), [{f"p{i}": v for i, v in enumerate(row)} for row in rows])
 
+    def execute_literal(self, sql):
+        """A statement that already holds its values (the store connection's `execute_literal`)."""
+        self.connection.execute(sa.text(sql))
+
     def commit(self):
         """The revision commits as a whole."""
 

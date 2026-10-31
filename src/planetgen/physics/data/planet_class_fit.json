@@ -1,0 +1,637 @@
+{
+  "title": "Planet and moon classes as percent matches: every class's own positive conditions (GEN.1205)",
+  "version": 1,
+  "status": "design (GEN.1205): read by nothing in the app yet. physics/class_fit.py loads and checks it; the shadow scorer (GEN.1206) and the best-fit classifier (GEN.1207) read it. planet_classes.json still decides every stored letter.",
+  "how": "A class is described by its own conditions; no row relies on an earlier row having said no. `air` is a hard gate (true: pressure 10 Pa or more; false: under 10 Pa; null: giants). `kind` t or g is a hard gate. Every condition is graded: membership 1 inside the edge and a linear fall to 0 across the shoulder beyond it (`shoulders`, per quantity). The class match is the geometric mean of its conditions' memberships; the best match wins; a tie goes to the class with more conditions, then to the letter.",
+  "gate_pressure_pa": 10.0,
+  "shoulders": {
+    "mass_earth": {
+      "relative": 0.4,
+      "basis": "CF1"
+    },
+    "gravity_g": {
+      "relative": 0.1,
+      "basis": "CF2"
+    },
+    "temperature_k": {
+      "absolute": 10.0,
+      "basis": "CF3"
+    },
+    "pressure_pa": {
+      "relative": 0.3,
+      "basis": "CF4"
+    },
+    "ocean_fraction": {
+      "absolute": 0.05,
+      "basis": "CF5"
+    },
+    "water_mass_fraction": {
+      "relative": 0.5,
+      "basis": "CF6"
+    },
+    "share_o2": {
+      "relative": 0.25,
+      "floor": 0.005,
+      "basis": "CF7"
+    },
+    "share_co2": {
+      "relative": 0.25,
+      "floor": 0.002,
+      "basis": "CF7"
+    },
+    "share_h2": {
+      "relative": 0.25,
+      "floor": 0.005,
+      "basis": "CF7"
+    },
+    "share_so2": {
+      "relative": 0.25,
+      "floor": 0.002,
+      "basis": "CF7"
+    },
+    "reducing_share": {
+      "relative": 0.25,
+      "floor": 0.005,
+      "basis": "CF7"
+    }
+  },
+  "shoulder_note": "relative: the shoulder is that share of the edge value (at least `floor` when given); absolute: the shoulder in the quantity's own unit. A shoulder of zero would make a hard edge.",
+  "classes": [
+    {
+      "letter": "T",
+      "name": "Gas dwarf",
+      "kind": "g",
+      "air": null,
+      "when": [
+        {
+          "quantity": "mass_earth",
+          "lt": 10.0
+        }
+      ],
+      "note": "a giant under 10 Earth masses"
+    },
+    {
+      "letter": "I",
+      "name": "Ice giant",
+      "kind": "g",
+      "air": null,
+      "when": [
+        {
+          "quantity": "mass_earth",
+          "min": 10.0
+        },
+        {
+          "quantity": "mass_earth",
+          "lt": 35.0
+        }
+      ],
+      "note": "10 to 35 Earth masses"
+    },
+    {
+      "letter": "J",
+      "name": "Gas giant",
+      "kind": "g",
+      "air": null,
+      "when": [
+        {
+          "quantity": "mass_earth",
+          "min": 35.0
+        }
+      ],
+      "note": "35 Earth masses or more"
+    },
+    {
+      "letter": "D",
+      "name": "Small icy body",
+      "kind": "t",
+      "air": false,
+      "when": [
+        {
+          "quantity": "water_mass_fraction",
+          "min": 0.01
+        }
+      ],
+      "note": "no air, at least 1 percent water"
+    },
+    {
+      "letter": "S",
+      "name": "Airless super-Earth",
+      "kind": "t",
+      "air": false,
+      "when": [
+        {
+          "quantity": "mass_earth",
+          "min": 1.5
+        },
+        {
+          "quantity": "water_mass_fraction",
+          "lt": 0.01
+        }
+      ],
+      "note": "no air, 1.5 Earth masses or more, dry"
+    },
+    {
+      "letter": "C",
+      "name": "Dead world",
+      "kind": "t",
+      "air": false,
+      "when": [
+        {
+          "quantity": "mass_earth",
+          "lt": 1.5
+        },
+        {
+          "quantity": "water_mass_fraction",
+          "lt": 0.01
+        }
+      ],
+      "note": "no air, under 1.5 Earth masses, dry"
+    },
+    {
+      "letter": "A",
+      "name": "Volcanic world",
+      "kind": "t",
+      "air": true,
+      "when": [
+        {
+          "quantity": "share_so2",
+          "min": 0.03
+        }
+      ],
+      "note": "sulfur dioxide 3 percent or more of the air"
+    },
+    {
+      "letter": "T",
+      "name": "Gas dwarf",
+      "kind": "t",
+      "air": true,
+      "when": [
+        {
+          "quantity": "share_h2",
+          "min": 0.3
+        },
+        {
+          "quantity": "mass_earth",
+          "lt": 10.0
+        }
+      ],
+      "note": "hydrogen-dominated envelope under 10 Earth masses"
+    },
+    {
+      "letter": "N",
+      "name": "Hot dense world",
+      "kind": "t",
+      "air": true,
+      "when": [
+        {
+          "quantity": "pressure_pa",
+          "min": 1000000.0
+        },
+        {
+          "quantity": "temperature_k",
+          "min": 400.0
+        },
+        {
+          "quantity": "share_h2",
+          "lt": 0.3
+        }
+      ],
+      "note": "10 bar, 400 K, not hydrogen"
+    },
+    {
+      "letter": "V",
+      "name": "High-gravity world",
+      "kind": "t",
+      "air": true,
+      "when": [
+        {
+          "quantity": "gravity_g",
+          "min": 2.0
+        },
+        {
+          "quantity": "share_h2",
+          "lt": 0.3
+        },
+        {
+          "quantity": "share_so2",
+          "lt": 0.03
+        }
+      ],
+      "note": "2 g or more; not a hydrogen envelope and not a volcanic air (sulfur dioxide under 3 percent)"
+    },
+    {
+      "letter": "L",
+      "name": "Marginal thin-air world",
+      "kind": "t",
+      "air": true,
+      "when": [
+        {
+          "quantity": "pressure_pa",
+          "min": 30000.0
+        },
+        {
+          "quantity": "pressure_pa",
+          "lt": 300000.0
+        },
+        {
+          "quantity": "temperature_k",
+          "min": 273.15
+        },
+        {
+          "quantity": "temperature_k",
+          "lt": 320.0
+        },
+        {
+          "quantity": "share_co2",
+          "min": 0.01
+        },
+        {
+          "quantity": "share_o2",
+          "min": 0.03
+        },
+        {
+          "quantity": "share_o2",
+          "lt": 0.16
+        },
+        {
+          "quantity": "gravity_g",
+          "min": 0.5
+        },
+        {
+          "quantity": "gravity_g",
+          "lt": 2.0
+        },
+        {
+          "quantity": "share_h2",
+          "lt": 0.3
+        },
+        {
+          "quantity": "share_so2",
+          "lt": 0.03
+        }
+      ],
+      "note": "Earth-like but hard to breathe: 3 to 16 percent oxygen, carbon dioxide 1 percent or more; not a hydrogen envelope and not a volcanic air (sulfur dioxide under 3 percent)"
+    },
+    {
+      "letter": "K",
+      "name": "Thin-air world",
+      "kind": "t",
+      "air": true,
+      "when": [
+        {
+          "quantity": "pressure_pa",
+          "lt": 3000.0
+        },
+        {
+          "quantity": "temperature_k",
+          "min": 273.15
+        },
+        {
+          "quantity": "temperature_k",
+          "lt": 320.0
+        },
+        {
+          "quantity": "share_o2",
+          "lt": 0.1
+        },
+        {
+          "quantity": "gravity_g",
+          "lt": 2.0
+        },
+        {
+          "quantity": "share_h2",
+          "lt": 0.3
+        },
+        {
+          "quantity": "share_so2",
+          "lt": 0.03
+        }
+      ],
+      "note": "air under 3 kPa, 273 to 320 K, little oxygen; not a hydrogen envelope and not a volcanic air (sulfur dioxide under 3 percent)"
+    },
+    {
+      "letter": "E",
+      "name": "Deep-frozen world",
+      "kind": "t",
+      "air": true,
+      "when": [
+        {
+          "quantity": "temperature_k",
+          "lt": 233.15
+        },
+        {
+          "quantity": "gravity_g",
+          "lt": 2.0
+        },
+        {
+          "quantity": "share_h2",
+          "lt": 0.3
+        },
+        {
+          "quantity": "share_so2",
+          "lt": 0.03
+        }
+      ],
+      "note": "mean surface under -40 C; not a hydrogen envelope and not a volcanic air (sulfur dioxide under 3 percent)"
+    },
+    {
+      "letter": "P",
+      "name": "Glaciated world",
+      "kind": "t",
+      "air": true,
+      "when": [
+        {
+          "quantity": "temperature_k",
+          "min": 233.15
+        },
+        {
+          "quantity": "temperature_k",
+          "lt": 273.15
+        },
+        {
+          "quantity": "gravity_g",
+          "lt": 2.0
+        },
+        {
+          "quantity": "share_h2",
+          "lt": 0.3
+        },
+        {
+          "quantity": "share_so2",
+          "lt": 0.03
+        }
+      ],
+      "note": "-40 C to freezing; not a hydrogen envelope and not a volcanic air (sulfur dioxide under 3 percent)"
+    },
+    {
+      "letter": "B",
+      "name": "Small hot world",
+      "kind": "t",
+      "air": true,
+      "when": [
+        {
+          "quantity": "gravity_g",
+          "lt": 0.5
+        },
+        {
+          "quantity": "temperature_k",
+          "min": 273.15
+        },
+        {
+          "quantity": "share_h2",
+          "lt": 0.3
+        },
+        {
+          "quantity": "share_so2",
+          "lt": 0.03
+        }
+      ],
+      "note": "under 0.5 g, above freezing; not a hydrogen envelope and not a volcanic air (sulfur dioxide under 3 percent)"
+    },
+    {
+      "letter": "F",
+      "name": "Reducing world",
+      "kind": "t",
+      "air": true,
+      "when": [
+        {
+          "quantity": "share_o2",
+          "lt": 0.03
+        },
+        {
+          "quantity": "reducing_share",
+          "min": 0.05
+        },
+        {
+          "quantity": "share_h2",
+          "lt": 0.3
+        },
+        {
+          "quantity": "pressure_pa",
+          "min": 3000.0
+        },
+        {
+          "quantity": "temperature_k",
+          "min": 273.15
+        },
+        {
+          "quantity": "gravity_g",
+          "min": 0.5
+        },
+        {
+          "quantity": "gravity_g",
+          "lt": 2.0
+        },
+        {
+          "quantity": "temperature_k",
+          "lt": 400.0
+        },
+        {
+          "quantity": "share_so2",
+          "lt": 0.03
+        }
+      ],
+      "note": "no free oxygen, methane and hydrogen 5 percent or more but not a hydrogen envelope, a warm world of 0.5 to 2 g, under 400 K (a hotter dense air is class N); not a hydrogen envelope and not a volcanic air (sulfur dioxide under 3 percent)"
+    },
+    {
+      "letter": "G",
+      "name": "Carbon dioxide world",
+      "kind": "t",
+      "air": true,
+      "when": [
+        {
+          "quantity": "share_co2",
+          "min": 0.2
+        },
+        {
+          "quantity": "share_o2",
+          "lt": 0.16
+        },
+        {
+          "quantity": "pressure_pa",
+          "min": 3000.0
+        },
+        {
+          "quantity": "temperature_k",
+          "min": 273.15
+        },
+        {
+          "quantity": "gravity_g",
+          "min": 0.5
+        },
+        {
+          "quantity": "gravity_g",
+          "lt": 2.0
+        },
+        {
+          "quantity": "temperature_k",
+          "lt": 400.0
+        },
+        {
+          "quantity": "share_h2",
+          "lt": 0.3
+        },
+        {
+          "quantity": "share_so2",
+          "lt": 0.03
+        }
+      ],
+      "note": "carbon dioxide 20 percent or more, a warm world of 0.5 to 2 g, under 400 K (a hotter dense air is class N); not a hydrogen envelope and not a volcanic air (sulfur dioxide under 3 percent)"
+    },
+    {
+      "letter": "O",
+      "name": "Ocean world",
+      "kind": "t",
+      "air": true,
+      "when": [
+        {
+          "quantity": "ocean_fraction",
+          "min": 0.8
+        },
+        {
+          "quantity": "share_co2",
+          "lt": 0.2
+        },
+        {
+          "quantity": "reducing_share",
+          "lt": 0.05
+        },
+        {
+          "quantity": "pressure_pa",
+          "min": 3000.0
+        },
+        {
+          "quantity": "temperature_k",
+          "min": 273.15
+        },
+        {
+          "quantity": "gravity_g",
+          "min": 0.5
+        },
+        {
+          "quantity": "gravity_g",
+          "lt": 2.0
+        },
+        {
+          "quantity": "temperature_k",
+          "lt": 400.0
+        },
+        {
+          "quantity": "share_h2",
+          "lt": 0.3
+        },
+        {
+          "quantity": "share_so2",
+          "lt": 0.03
+        }
+      ],
+      "note": "water over 80 percent, ordinary air (carbon dioxide under 20 percent, reducing gases under 5 percent), warm, 0.5 to 2 g, under 400 K (a hotter dense air is class N); not a hydrogen envelope and not a volcanic air (sulfur dioxide under 3 percent)"
+    },
+    {
+      "letter": "H",
+      "name": "Desert world",
+      "kind": "t",
+      "air": true,
+      "when": [
+        {
+          "quantity": "ocean_fraction",
+          "lt": 0.2
+        },
+        {
+          "quantity": "share_co2",
+          "lt": 0.2
+        },
+        {
+          "quantity": "reducing_share",
+          "lt": 0.05
+        },
+        {
+          "quantity": "pressure_pa",
+          "min": 3000.0
+        },
+        {
+          "quantity": "temperature_k",
+          "min": 273.15
+        },
+        {
+          "quantity": "gravity_g",
+          "min": 0.5
+        },
+        {
+          "quantity": "gravity_g",
+          "lt": 2.0
+        },
+        {
+          "quantity": "temperature_k",
+          "lt": 400.0
+        },
+        {
+          "quantity": "share_h2",
+          "lt": 0.3
+        },
+        {
+          "quantity": "share_so2",
+          "lt": 0.03
+        }
+      ],
+      "note": "water under 20 percent, ordinary air, warm, 0.5 to 2 g, under 400 K (a hotter dense air is class N); not a hydrogen envelope and not a volcanic air (sulfur dioxide under 3 percent)"
+    },
+    {
+      "letter": "M",
+      "name": "Temperate world",
+      "kind": "t",
+      "air": true,
+      "when": [
+        {
+          "quantity": "ocean_fraction",
+          "min": 0.2
+        },
+        {
+          "quantity": "ocean_fraction",
+          "lt": 0.8
+        },
+        {
+          "quantity": "pressure_pa",
+          "min": 30000.0
+        },
+        {
+          "quantity": "pressure_pa",
+          "lt": 300000.0
+        },
+        {
+          "quantity": "temperature_k",
+          "min": 273.15
+        },
+        {
+          "quantity": "temperature_k",
+          "lt": 320.0
+        },
+        {
+          "quantity": "share_o2",
+          "min": 0.16
+        },
+        {
+          "quantity": "share_co2",
+          "lt": 0.01
+        },
+        {
+          "quantity": "gravity_g",
+          "min": 0.5
+        },
+        {
+          "quantity": "gravity_g",
+          "lt": 2.0
+        },
+        {
+          "quantity": "share_h2",
+          "lt": 0.3
+        },
+        {
+          "quantity": "share_so2",
+          "lt": 0.03
+        }
+      ],
+      "note": "water 20 to 80 percent and an Earth-like air window (GEN.1205, Class M thread report section 4); not a hydrogen envelope and not a volcanic air (sulfur dioxide under 3 percent)"
+    }
+  ]
+}

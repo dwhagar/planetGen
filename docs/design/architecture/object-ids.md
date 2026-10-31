@@ -172,6 +172,10 @@ section 0).
   bubbles by column and draw; `generation/containers.build`), worked out
   from the galaxy seed alone.
 
+### Members of a belt (GEN.1065)
+
+A belt's members take no body number of their own (the body field is 12 bits and a belt can hold far more bodies than that). A member is designated `<belt ID>.<rank hex>`, such as `FE81000A2B-0000005-003.0042`: the belt's printed ID, a point, and the member's rank by the mass drawn once at birth (1 is the heaviest), at least four hex digits and up to eight. `galaxy/object_uid.designation(belt_id, rank)` prints it and `parse_designation(text)` reads it back (the belt's ID by `parse_id`); both are pure, read no stream and no naming key, and give a member one text. A member has no name: `naming_key` lists the kinds it renames and belt members are not among them. A rank above the belt's individual count (`is_on_demand`) names a body drawn on demand and never stored. A belt member that a planet captures keeps this designation and gains a parent link to the planet (`captured_member(belt_id, rank, planet_id)`, the planet in the same system); a body from a reservoir that is no belt of the system prints `<planet ID>.<rank hex>` (`outside_reservoir_member`), the body field untouched; `parse_captured` reads either back (TEST.495, [captured-asteroid-moons.md](../systems/captured-asteroid-moons.md) section 4). Design: [belt-evolution.md](../systems/belt-evolution.md) section 9.
+
 ### What the codec guarantees (GEN.120)
 
 Tests: `src/tests/test_gated_phoneme_codec.py`. Its golden words are

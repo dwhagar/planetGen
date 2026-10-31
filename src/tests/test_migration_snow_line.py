@@ -6,12 +6,14 @@ migration 0132 gives a galaxy made at v131 the blackbody position for each star 
 """
 
 
+import math
+
 import pytest
 
 from planetgen.db import store
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
-from planetgen.physics import constants, formation
+from planetgen.physics import constants
 from planetgen.util import draw
 from tests import db_schema_support
 
@@ -73,7 +75,8 @@ def test_a_v131_galaxy_gets_the_blackbody_line_and_the_flag_from_the_distance(my
     conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
         star = conn.execute("SELECT snow_line_km, luminosity_w FROM stars WHERE star_system_id = ?", (system_id,)).fetchone()
-        centre_km = formation.snow_line_au(star["luminosity_w"]) * constants.AU_TO_KM
+        # the migration is frozen at the 170 K it was written with (the generator moved to 182 K in GEN.950): an older galaxy keeps its line
+        centre_km = math.sqrt(star["luminosity_w"] / (16.0 * math.pi * constants.STEFAN_BOLTZMANN_CONSTANT)) / 170.0 ** 2 / 1000.0
         assert star["snow_line_km"] == pytest.approx(centre_km, rel=1e-9)
         planets = conn.execute("SELECT id, distance_km, born_beyond_snow_line FROM planets WHERE star_system_id = ?",
                                (system_id,)).fetchall()

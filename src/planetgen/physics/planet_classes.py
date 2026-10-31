@@ -17,7 +17,8 @@ gets exactly one letter (`tests/test_planet_classes.py` also proves it over gene
 Quantities (all derived here from the stored columns, named as `db.models` names them):
 
 * `mass_earth`, `gravity_g`, `temperature_k`, `pressure_pa` (0 for no air), `ocean_fraction`, `water_mass_fraction`,
-  `hydrosphere`, `flux_variation`, `ocean_ph` (`None` without an ocean; no class reads it, the pigments of life do);
+  `hydrosphere`, `flux_variation` (no class reads it since GEN.1135; the At a glance flag does), `ocean_ph` (`None` without an ocean; no class reads it, the
+  pigments of life do);
 * `share_o2` ... `share_so2`: a stored gas's partial pressure over the surface pressure;
 * `reducing_share`: the methane and hydrogen shares together.
 
@@ -35,7 +36,9 @@ import json
 import os
 from collections.abc import Mapping
 
-from planetgen.physics import atmosphere, constants, elements
+from planetgen.physics import atmosphere, elements, unit_registry as units
+
+_kg_to_mearth = units.converter("kg", "Mearth")
 
 DATA_FILE = os.path.join(elements.DATA_DIRECTORY, "planet_classes.json")
 
@@ -79,7 +82,7 @@ def quantities(values):
     pressure = values.get("atmospheric_pressure_pa") or 0.0
     found = {
         "body_type": body_type,
-        "mass_earth": mass_kg / constants.EARTH_MASS_TO_KG,
+        "mass_earth": _kg_to_mearth(mass_kg),
         "pressure_pa": pressure,
         "gravity_g": values.get("gravity_g"),
         "temperature_k": values.get("surface_temperature_k"),
@@ -152,8 +155,10 @@ def _load():
         if any(not c.when for c in rows[:-1]):
             raise ClassError(f"a {kind!r} row before the last has no conditions, so the rows after it never match")
     letters = [c.letter for c in classes]
-    if len(set(letters)) != len(letters):
-        raise ClassError("a class letter is used by two rows")
+    if len({(c.letter, c.kind) for c in classes}) != len(letters):
+        raise ClassError("a class letter is used by two rows of one kind")
+    if any(len({c.name for c in classes if c.letter == letter}) != 1 for letter in letters):
+        raise ClassError("the rows of one letter in the two kinds have different names")
     reserve = tuple(document["reserve"])
     if set(reserve) & set(letters):
         raise ClassError("a reserved letter is also a class")
@@ -163,7 +168,10 @@ def _load():
 DOCUMENT, CLASSES, RESERVE = _load()
 """tuple: The `Class` rows in rule order; `RESERVE` the free letters kept for new designations."""
 
-BY_LETTER = {c.letter: c for c in CLASSES}
+BY_LETTER = {}
+for _c in CLASSES:
+    BY_LETTER.setdefault(_c.letter, _c)     # GEN.1142: class T has a giant row and a terrestrial one; the first is the letter's own
+del _c
 LETTERS = tuple(sorted(BY_LETTER))
 CORE_LETTERS = tuple(DOCUMENT["core"])
 VERSION = DOCUMENT["version"]

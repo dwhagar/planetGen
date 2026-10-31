@@ -25,7 +25,7 @@ BOOKKEEPING_TABLES = {
     "schema_migrations", "alembic_version", "generation_run_arguments", "phenomenon_scatter", "phenomenon_scatter_classes", "sector_system_counts", "system_interests", "nebula_field", "galaxy_components", "facility_types", "facility_type_fields", "facility_field_values", "galaxy_block_stats", "galaxy_block_lights", "region_stats", "object_timing_stats", "object_timing_samples", "id_blocks", "id_counters", "system_name_registry", "sector_name_registry", "population_state",
     "orbit_simulation_state", "galaxy_column", "galaxy_layer", "sector_stats", "bright_stars",
     "nearest_systems", "sector_paths", "sector_path_knots", "scatter_members", "scatter_nodes",
-    "orbit_nodes", "object_index", "galaxy_containers", "vessels", "constellations", "request_comments", "request_notifications", "region_density_overrides", "object_locks", "change_plans", "change_plan_ops", "edit_journal", "sector_tree_nodes", "species_limit_values", "galaxy_shape_pins", "nebula_block_stats", "nebula_block_classes", "nebula_block_state",
+    "orbit_nodes", "dark_members", "object_index", "galaxy_containers", "vessels", "constellations", "request_comments", "request_notifications", "region_density_overrides", "object_locks", "change_plans", "change_plan_ops", "edit_journal", "sector_tree_nodes", "species_limit_values", "galaxy_shape_pins", "nebula_block_stats", "nebula_block_classes", "nebula_block_state",
     "orbital_events", "orbital_event_bodies",
 }
 """Tables no object loader reads row by row: migration and id bookkeeping,
@@ -33,7 +33,7 @@ the name registries, generation progress, and the galaxy skeleton and
 bright-star scatter (read in bulk by the Galaxy Map's tile queries,
 covered by test_galaxymap3d.py/test_bright_star_scatter.py), the galaxy's components (read by `store.get_galaxy_components`, covered by test_migration_galaxy_components.py) and the saved
 sector paths (read by `db/sector_paths.py`, covered by test_sector_paths_db.py) and the orbit tree's nodes (DB.53: the
-migration builds them, the generator and the loaders follow in the DB.53 chain; covered by test_migration_orbit_nodes.py) and the nebula totals per block of the Galaxy Map's ladder (MAP.172: the plan keeps them with the field; covered by test_nebula_blocks_db.py)."""
+migration builds them, the generator and the loaders follow in the DB.53 chain; covered by test_migration_orbit_nodes.py) and the dark members of a tree (GEN.1013: few systems have one; covered by test_gen_stored_trees.py) and the nebula totals per block of the Galaxy Map's ladder (MAP.172: the plan keeps them with the field; covered by test_nebula_blocks_db.py)."""
 
 CHANCE = "chance"
 """Reason for a column whose value in this galaxy depends on the draw."""
@@ -53,9 +53,6 @@ NULL_IN_THIS_GALAXY = {
     # DB.66: the bar and the thick disk were never stored, so a spiral leaves them NULL ("as the structure draw gives them").
     **{("galaxy_shape", column): "NULL means as the structure draw gives it from the seed (DB.66)" for column in (
         "bar_present", "bar_axis_ratio_b", "bar_axis_ratio_c", "bar_angle_rad", "thick_disk_amplitude")},
-    # TEST.461: a planet is never a heap of grains (it starts at the mass a body stops being one), so the heap porosity is moons' only;
-    # GEN.780 fills the surface and crust porosity of rocky and icy planets, and drops this entry.
-    ("planets", "porosity"): "filled for a planet by GEN.780 (surface and crust porosity); a planet is never a heap of grains (TEST.461)",
     # DB.61: nothing writes the cluster link until the cluster membership of a star is generated (GEN.209).
     ("stars", "cluster_id"): "written when a star's cluster is known (DB.61 adds the column only)",
     # GEN.267: only `planetgen system --stars N` stores a forced star count; sector and galaxy runs refuse it.
@@ -78,7 +75,11 @@ NULL_IN_THIS_GALAXY = {
     ("galaxy_shape", "core_min_luminosity_sol"): "follows the galaxy-wide limit until set (DB.54)",
     ("galaxy_shape", "core_mass_limit_sol"): "follows the galaxy-wide limit until set (DB.54)",
     # High-pressure ice lies only under the deepest oceans.
+    # GEN.1057: a rogue planet has no moon that fell and no comet that passed, so it has no ring (the columns are stored for a ring set by hand).
+    **{("rogue_planets", column): "a rogue planet has no ring (GEN.1057)" for column in rings.BODY_FIELDS},
     **{(table, "hp_ice_km"): CHANCE for table in ("planets", "moons", "rogue_planets")},
+    # Only a heap of grains lighter than SMALL_BODY_MASS_KG has a porosity, and a planet that small is a rare draw (a moon's is set by its origin).
+    ("planets", "porosity"): CHANCE,
     # Whether any moon of this small galaxy holds an ocean is chance.
     **{("moons", column): CHANCE for column in
        ("ocean_class", "ocean_depth_km", "ocean_ph", "phosphorus", "water_activity", "tidal_flux_w_m2")},
@@ -86,6 +87,8 @@ NULL_IN_THIS_GALAXY = {
     **{("moons", column): CHANCE for column in ("envelope_helium_fraction", "envelope_z_fraction")},
     # Only a world with no liquid at its surface can hold an aquifer, and whether any of this small galaxy's does is chance.
     **{(table, column): CHANCE for table in ("planets", "moons") for column in ("aquifer_depth_km", "aquifer_thickness_km")},
+    # GEN.1035: only a world with a liquid at its surface stores one, and the depth of a lava surface is not known.
+    **{(table, column): CHANCE for table in ("planets", "moons") for column in ("surface_liquid", "surface_liquid_fraction", "surface_liquid_depth_km")},
     ("planets", "moon_origin"): "a planet has no origin as a moon (DB.70)",
     **{("moons", column): "a moon has no circumplanetary disk of its own (DB.70)" for column in (
         "moon_disk_lifetime_myr", "moon_disk_alpha_over_f", "moon_disk_f_inf", "moon_disk_ice_line_km")},
@@ -104,6 +107,8 @@ NULL_IN_THIS_GALAXY = {
     **{("moons", column): CHANCE for column in (
         "interior_kind", "core_mass_earth", "dilute_core_mass_earth", "metallization_pressure_gpa", "helium_depletion",
         "has_helium_shell")},
+    # A moon has a field only when it is over `magnetism.GANYMEDE_MIN_MASS_EARTH` and wins `GANYMEDE_CHANCE`, and only then a magnetopause (GEN.843).
+    ("moons", "magnetopause_rp"): CHANCE,
     # A moon has no ring (GEN.732).
     **{("moons", column): CHANCE for column in rings.BODY_FIELDS},
     **{("moon_interior_layers", column): CHANCE for column in (
@@ -134,8 +139,8 @@ NULL_IN_THIS_GALAXY = {
     ("star_systems", "system_flavor_text"): CHANCE,
     ("star_systems", "runaway_class"): CHANCE, ("star_systems", "runaway_speed_kms"): CHANCE,
     ("system_configs", "age"): "only with --age",
-    # GEN.178: only a moon has an induced field.
-    ("planets", "induced_moment_a_m2"): "moons only",
+    # GEN.178, GEN.981: a moon and a rocky planet have an induced field; a giant has none.
+    ("planets", "induced_moment_a_m2"): CHANCE,
     # v89 (DB.28): the facility type, affiliation and ratings the POP.10 pass and admin pages set.
     **{("facilities", column): "not set yet" for column in (
         "type_id", "affiliation_polity_id", "affiliation_name", "rating_crime", "rating_housing",
@@ -149,8 +154,7 @@ NULL_IN_THIS_GALAXY = {
        for column in ("formed_at", "origin_event_id")},
     **{("sectors", column): "worked out by GEN.109" for column in ("max_mass_id", "max_mass_kg")},
     **{("stars", column): "a member of a built multi-star system, filled by the DB.53 chain" for column in (
-        "decay_age_yr", "epoch_unix",
-        "state", "velocity_x_kms", "velocity_y_kms", "velocity_z_kms")},
+        "epoch_unix", "velocity_x_kms", "velocity_y_kms", "velocity_z_kms")},
     ("planets", "host_node_id"): "a circumbinary planet, filled by the DB.53 chain",
     # DB.73: a free planet or comet is always `free`, so its parent_id stays NULL; only a moon of a free planet names one.
     **{(table, "parent_id"): "a free object has no parent row" for table in ("interstellar_comets", "rogue_planets")},
@@ -226,7 +230,7 @@ NEVER_READ = {
     # DB.55 and DB.53 columns nothing loads yet (the gravity sum, GEN.109 and the DB.53 chain read them).
     ("facilities", "mass_kg"): "read by the gravity sum (GEN.294 chain)",
     **{("sectors", column): "read by GEN.109" for column in ("max_mass_id", "max_mass_kg")},
-    **{("stars", column): "read by the DB.53 chain" for column in ("decay_age_yr", "epoch_unix", "state")},
+    **{("stars", column): "read by the DB.53 chain" for column in ("epoch_unix",)},
     **{("stars", column): CHANCE for column in ("parent_node_id", "slot")},    # read back for a system of 3 stars or more
     # DB.73: the link is stored for the readers of 8.4 (the unified object); a system loader rebuilds the tree from parent_node_id.
     **{("stars", column): "stored for the parent-link readers (DB.73)" for column in ("parent_type", "parent_id")},

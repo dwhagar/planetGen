@@ -54,7 +54,7 @@ def _ids(rows):
     return [row["id"] for row in rows]
 
 
-@pytest.mark.parametrize("sort", ["sector", "octant", "binary"])
+@pytest.mark.parametrize("sort", ["sector", "octant"])
 @pytest.mark.parametrize("descending", [False, True])
 @pytest.mark.parametrize("filters", [{}, {"binary": True}, {"octants": ("I", "V")}])
 def test_a_page_sorted_by_group_is_the_page_the_full_sort_gives(galaxy, sort, descending, filters):
@@ -171,11 +171,11 @@ def test_a_keyset_page_is_the_page_offset_paging_gives(galaxy, descending):
         _ids(queryDb.list_systems(galaxy, limit=3, offset=2, sort="octant", star_type_prefix="K"))
 
 
-@pytest.mark.parametrize("sort", ["sector", "octant", "binary"])
+@pytest.mark.parametrize("sort", ["sector", "octant"])
 @pytest.mark.parametrize("descending", [False, True])
 @pytest.mark.parametrize("filters", [{}, {"binary": True}, {"octants": ("I", "V")}])
 def test_a_page_sorted_by_group_after_a_system_is_the_page_the_full_sort_gives(galaxy, sort, descending, filters):
-    """PERF.206: the group walks (sector, octant, binary) start after the system the previous page ended on, in any group
+    """PERF.206: the group walks (sector, octant) start after the system the previous page ended on, in any group
     and in the systems with no sector or octant at the end, and give the pages of one long read; `offset` is ignored."""
     everything = _ids(queryDb.list_systems(galaxy, sort=sort, descending=descending, **filters))
     assert len(everything) > 4

@@ -8,21 +8,23 @@ One root draw and two links, all from the galaxy seed, with no Milky Way value a
 1. The stellar mass `M*` is drawn from the galaxy stellar mass function, a double Schechter function (Baldry et al.
    2012, arXiv:1111.5707, Eq. 6, with the density per dex `ln(10) x exp(-x) [phi1 x^alpha1 + phi2 x^alpha2]`,
    `x = M / M*` of the function), by the inverse of its cumulative sum over the Auto window (`AUTO_LOG_MASS_RANGE`).
-2. The halo mass `Mh` (200 times the critical density) is the median stellar-to-halo relation of Moster, Naab and
-   White 2013 (arXiv:1205.5807, Eq. 2 and Table 1, z = 0) inverted numerically, with a log-normal draw about it.
+2. The halo mass `Mh` (200 times the critical density; Moster et al. measure theirs the same way) comes from the
+   median stellar-to-halo relation of Moster, Naab and White 2013 (arXiv:1205.5807, Eq. 2 and Table 1, z = 0) and
+   the halo mass function (`halo_function`, GEN.1154), by the conditional below.
 3. The virial radius `r200` follows from `Mh` and the critical density, and the NFW concentration `c200` from
    Dutton and Maccio 2014 (arXiv:1402.7073, Eq. 8) with their 0.11 dex scatter.
 
-**The approximation, and what it biases.** The relation's scatter is 0.15 dex in `M*` at fixed `Mh`. The chain draws
-`M*` first, so the true `P(Mh | M*)` is the halo mass function times that log-normal, which is not the inverse of the
-median with a scatter in `Mh`. This build uses the approximation Boss chose (2026-10-16, 10:11 PM EDT, "Approximate
-now"): the median inverse with an effective scatter in `log Mh` of `0.15 / (d log M* / d log Mh)` at the median. It
-biases the typical `Mh` at fixed `M*` low, because a steep halo mass function weights the heavy side more; GEN.399
-(8.2) finds the halo mass function and compares.
+**The halo of a given stellar mass.** The relation's scatter is 0.15 dex in `M*` at fixed `Mh`. The chain draws `M*`
+first, so the halos that hold a galaxy of that mass are the halo mass function times that log-normal, `P(Mh | M*)`
+proportional to `n(Mh) x LogNormal(log M*; log m*(Mh), 0.15)` (`halo_function.halo_log_mass_at`), and the halo is the
+point of its cumulative distribution that a uniform draw from the seed picks. The first build (GEN.368) inverted the
+median and put a Gaussian in `log Mh` about it; that is within 0.03 dex of this up to 3e10 solar masses of stars and up
+to 0.34 dex too heavy at 2e11 (GEN.399).
 
-**One cosmology.** Planck-like, h = 0.671 and Omega_m = 0.3175 (the table's choice) for the critical density and the
-concentration's `h`. Moster's relation is quoted for WMAP7 (h = 0.704) in solar masses; its halo masses are used as
-printed, a small offset the approximation absorbs.
+**One cosmology.** Planck 2013, h = 0.671 and Omega_m = 0.3175 (`halo_function` holds them with sigma_8, n_s and
+Omega_b h^2) for the critical density, the concentration's `h` and the halo mass function. Moster's relation is quoted
+for WMAP7 (h = 0.704) in solar masses; its halo masses are used as printed against the Planck halo function, a small
+offset (stand-in HF3).
 
 Every scatter is a log-normal about the median law, drawn through the one random wrapper
 (`planetgen.util.draw.Stream`) from `unit_seed(galaxy_seed, "mass-chain", <link>)`, so one seed gives one galaxy and
@@ -34,10 +36,13 @@ import functools
 import math
 
 from planetgen.galaxy import dials
+from planetgen.galaxy import halo_function
 from planetgen.galaxy import seed as galaxySeed
 from planetgen.physics import constants
 from planetgen.util import draw
 from planetgen.physics import unit_registry as units
+
+_msun_to_kg = units.converter("Msun", "kg")
 
 _kpc_to_m = units.converter("kpc", "m")
 
@@ -74,12 +79,14 @@ STELLAR_SCATTER_DEX = 0.15
 
 # --- Row 3: the virial radius and the concentration (Planck-like cosmology; Dutton and Maccio 2014, Eq. 8) --------
 
-HUBBLE_H = 0.671
-OMEGA_MATTER = 0.3175
+HUBBLE_H = halo_function.HUBBLE_H
+OMEGA_MATTER = halo_function.OMEGA_MATTER
 """float: The matter density parameter; kept with `HUBBLE_H` as the one cosmology the chain states."""
 OVERDENSITY = 200.0
 """float: The halo mass and radius are measured inside this many times the critical density (Moster's masses and
 Dutton and Maccio's concentrations are both 200c, so no conversion is needed)."""
+HALO_DELTA = OVERDENSITY / OMEGA_MATTER
+"""float: `OVERDENSITY` times the critical density as a multiple of the mean matter density, which Tinker et al. 2008 use."""
 CONCENTRATION_SCATTER_DEX = 0.11
 
 _KPC_M = _kpc_to_m(1.0)
@@ -146,7 +153,8 @@ def stellar_to_halo_ratio(halo_mass_solar):
 
 
 def median_stellar_mass(halo_mass_solar):
-    """The median stellar mass, solar masses, of a halo of `halo_mass_solar`."""
+    """The median stellar mass, solar masses, of a halo of `halo_mass_solar`. [Stand-in HF3, tier T1, tweak L1: the
+    relation is Moster et al. 2013's, fitted in a WMAP7 cosmology and read against the Planck halo mass function.]"""
     return halo_mass_solar * stellar_to_halo_ratio(halo_mass_solar)
 
 
@@ -155,43 +163,38 @@ HALO_MIN_STELLAR_MASS_SOLAR = median_stellar_mass(dials.HALO_MIN_HALO_MASS_SOLAR
 lighter than this has no halo (`has_halo`)."""
 
 
-def median_halo_mass(stellar_mass_solar):
-    """The halo mass whose median stellar mass is `stellar_mass_solar`: the relation inverted by bisection in log
-    space (it is monotonic: the slope `d log M* / d log Mh` runs from 1 + beta at low mass to 1 - gamma at high mass).
+@functools.lru_cache(maxsize=1)
+def _log_median_stellar_grid():
+    return tuple(math.log10(median_stellar_mass(10.0 ** g)) for g in halo_function.grid_log_masses())
+
+
+def conditional_halo_mass(stellar_mass_solar, share):
+    """The halo mass, solar masses, below which a fraction `share` of the halos that hold `stellar_mass_solar` of stars
+    lie: the quantile of `P(Mh | M*)` (see the module note).
 
     Raises:
         ValueError: If the stellar mass lies outside what halos of 1e8 to 1e17 solar masses hold.
     """
-    low, high = 8.0, 17.0
     target = math.log10(stellar_mass_solar)
-    if not math.log10(median_stellar_mass(10.0 ** low)) <= target <= math.log10(median_stellar_mass(10.0 ** high)):
+    if not math.log10(median_stellar_mass(1.0e8)) <= target <= math.log10(median_stellar_mass(1.0e17)):
         raise ValueError(f"no halo of 1e8 to 1e17 solar masses holds {stellar_mass_solar:.3g} solar masses of stars")
-    for _ in range(60):
-        middle = 0.5 * (low + high)
-        if math.log10(median_stellar_mass(10.0 ** middle)) < target:
-            low = middle
-        else:
-            high = middle
-    return 10.0 ** (0.5 * (low + high))
+    return 10.0 ** halo_function.halo_log_mass_at(target, share, _log_median_stellar_grid(), STELLAR_SCATTER_DEX,
+                                                  HALO_DELTA)
 
 
-def stellar_halo_slope(halo_mass_solar):
-    """`d log M* / d log Mh` of the median relation at `halo_mass_solar`, by a central difference of 0.01 dex."""
-    log_mass = math.log10(halo_mass_solar)
-    step = 0.01
-    above = math.log10(median_stellar_mass(10.0 ** (log_mass + step)))
-    below = math.log10(median_stellar_mass(10.0 ** (log_mass - step)))
-    return (above - below) / (2.0 * step)
+def median_halo_mass(stellar_mass_solar):
+    """The median halo mass, solar masses, of the galaxies that hold `stellar_mass_solar` of stars (the middle of
+    `conditional_halo_mass`).
 
-
-def effective_halo_scatter_dex(halo_mass_solar):
-    """The approximation's scatter in `log Mh` at a stellar mass: the relation's 0.15 dex in `log M*` over the slope."""
-    return STELLAR_SCATTER_DEX / stellar_halo_slope(halo_mass_solar)
+    Raises:
+        ValueError: If the stellar mass lies outside what halos of 1e8 to 1e17 solar masses hold.
+    """
+    return conditional_halo_mass(stellar_mass_solar, 0.5)
 
 
 def virial_radius_kpc(halo_mass_solar):
     """The radius, kpc, inside which the mean density is `OVERDENSITY` times the critical density."""
-    mass_kg = halo_mass_solar * constants.SOLAR_MASS_TO_KG
+    mass_kg = _msun_to_kg(halo_mass_solar)
     radius_m = (3.0 * mass_kg / (4.0 * math.pi * OVERDENSITY * CRITICAL_DENSITY_KG_M3)) ** (1.0 / 3.0)
     return radius_m / _KPC_M
 
@@ -202,8 +205,8 @@ def median_concentration(halo_mass_solar):
 
 
 def has_halo(stellar_mass_solar):
-    """Whether a galaxy of this stellar mass has a halo: its median halo (`median_halo_mass`) weighs at least
-    `dials.HALO_MIN_HALO_MASS_SOLAR`. Under it no halo is drawn and no law that reads one runs (Boss, 7:33 PM EDT
+    """Whether a galaxy of this stellar mass has a halo: it is at least the stellar mass the relation puts in a halo of
+    `dials.HALO_MIN_HALO_MASS_SOLAR` (`HALO_MIN_STELLAR_MASS_SOLAR`). Under it no halo is drawn and no law that reads one runs (Boss, 7:33 PM EDT
     10-21)."""
     return stellar_mass_solar >= HALO_MIN_STELLAR_MASS_SOLAR
 
@@ -233,10 +236,7 @@ def chain_from_stellar_mass(stellar_mass_solar, galaxy_seed, halo_mass_solar=Non
                              f"(under {HALO_MIN_STELLAR_MASS_SOLAR:.3g})")
         return MassChain(stellar_mass_solar, None, None, None)
     if halo_mass_solar is None:
-        median = median_halo_mass(stellar_mass_solar)
-        scatter = effective_halo_scatter_dex(median)
-        log_halo = math.log10(median) + _stream(galaxy_seed, "halo-mass").gauss(0.0, scatter)
-        halo = 10.0 ** log_halo
+        halo = conditional_halo_mass(stellar_mass_solar, _stream(galaxy_seed, "halo-mass").random())
     else:
         halo = float(halo_mass_solar)
     log_c = math.log10(median_concentration(halo)) + _stream(galaxy_seed, "concentration").gauss(
@@ -272,7 +272,7 @@ def draw_mass_chain(galaxy_seed, stellar_mass_solar=None, halo_mass_solar=None):
         virial radius and concentration it draws.
 
     Raises:
-        ValueError: If a pinned mass is one no halo of 1e8 to 1e17 solar masses holds (`median_halo_mass`); a mass under
+        ValueError: If a pinned mass is one no halo of 1e8 to 1e17 solar masses holds (`conditional_halo_mass`); a mass under
             `HALO_MIN_STELLAR_MASS_SOLAR` has no halo and does not reach it.
     """
     seed = bytes(galaxy_seed) if galaxy_seed else FALLBACK_SEED

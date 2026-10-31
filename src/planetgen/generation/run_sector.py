@@ -352,7 +352,7 @@ def _group_plan(tree):
     the member is in no group, or in a live one, whose mates are systems of their own and which builds as any star)."""
     if tree is None or nebula_contents.is_live_group(tree):
         return None
-    return stored_trees.drawn(multistar.without_members(tree, stored_trees.UNBUILT_KINDS))
+    return stored_trees.drawn(tree)
 
 
 def add_group_stars(sector, args, member, tree, center_pc, galactic_center_dist_ly, label):

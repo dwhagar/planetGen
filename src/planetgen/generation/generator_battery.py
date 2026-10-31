@@ -25,7 +25,7 @@ a `full`, a `structural` (floats written as `~`) and a `floats` digest. The over
 digests in the order of `CASES`. A structural difference is a change of the code; a difference in the floats alone is
 a change of the platform or its libraries (docs/design/generation/reproducible-galaxies.md).
 
-Nothing here reads the clock, the environment or a stored file, and every case runs on a stream of its own, so the
+Nothing in a case reads the clock, the environment or a stored file (only `kept_battery_digest` may look for a copy a test run kept, PERF.209), and every case runs on a stream of its own, so the
 result does not depend on what ran before or on the hash seed.
 """
 
@@ -269,8 +269,15 @@ def running_digest():
     """
     global _running
     if _running is None:
-        _running = generator_battery_digest()
+        _running = kept_battery_digest()
     return _running
+
+
+def kept_battery_digest():
+    """`generator_battery_digest()`, or the copy a test run kept for the same code and data (`battery_digest_cache`, PERF.209)."""
+    from planetgen.generation import battery_digest_cache
+
+    return battery_digest_cache.digest(generator_battery_digest, BatteryDigest, CaseDigest)
 
 
 def start_running_digest():
@@ -287,7 +294,7 @@ def start_running_digest():
         return lambda: None
     try:
         pool = concurrent.futures.ProcessPoolExecutor(max_workers=1, mp_context=multiprocessing.get_context("spawn"))
-        future = pool.submit(generator_battery_digest)
+        future = pool.submit(kept_battery_digest)
     except Exception:  # noqa: BLE001 -- no process to be had: the digest is worked out where it is asked for
         return lambda: None
 

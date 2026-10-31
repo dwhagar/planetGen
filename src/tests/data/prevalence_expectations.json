@@ -1,19 +1,24 @@
 {
  "anomalies": {
+  "GEN.1135": "Train 6 (epoch 128, about 4:10 AM EDT 10-31) moved this share. The class epoch (GEN.1135 retires Class Q, GEN.1136 raises the Class V line from 1.25 g to 2 g, GEN.1142 adds the class lines and Class E) re-derives every planet class, and the same train changed the halo mass function (GEN.1154), ocean tides (GEN.1034), ring ages (GEN.1057), day and night state (GEN.1097), the resonance capture draw (GEN.1172), giant tilts (GEN.1165), star spin (GEN.1163, GEN.1170) and the close-binary period trend (GEN.705). The ranges stay until the planet and star chains settle; re-baseline after the last 8.1 train (TEST.430).",
+  "GEN.728": "Train 4 (epoch 126, 3:40 PM EDT 10-30) moved this share. The planet architecture (GEN.728, GEN.729, GEN.730, GEN.828, GEN.829, GEN.920) now sets the planet count, spacing, belts and giants of every system, with the snow line and ice from Lodders (GEN.950), the greenhouse table (GEN.850) and rocky bodies made again at the star's final age (GEN.992). The ranges are the post-cut-over (GEN.646) ones and stay until the planet and star chains settle; re-baseline after the last 8.1 train (TEST.430).",
   "GEN.746": "an intended change, not a fault: the dose laws rebuilt from measured data (GEN.746, GEN.747, GEN.748) put the radiation of an airless moon in the Red tier, so a K5V moon that Temperature alone left Yellow (about 17 of 100) is now Red; the shares are the post-cut-over measurement and wait for the re-baseline after the train",
-  "GEN.829": "class T (gas dwarf) is never drawn: no 2 to 20 Earth-mass sub-Neptune population exists (GEN.829); the pre-cut-over spine drew it almost never either"
+  "GEN.829": "class T (gas dwarf) is never drawn: no 2 to 20 Earth-mass sub-Neptune population exists (GEN.829); the pre-cut-over spine drew it almost never either",
+  "GEN.941": "Train 3 (epoch 125, 7:27 AM EDT 10-30) moved this share. Every census cell is a forced star type, and forced types are now stars of the population model (GEN.941; their mass, age and metallicity come from the tracks of GEN.935 and the mass function of GEN.927 to GEN.930, not from the hand-made letter ranges), the spectral letters follow the Pecaut and Mamajek table (GEN.943), giants settle at the final age (GEN.961) and a world gets no life class before its first life step (GEN.1001). The ranges are the post-cut-over (GEN.646) ones and stay until the star and planet chains settle; re-baseline after the last 8.1 train (TEST.430)."
  },
  "cells": {
   "A0V/cold/moon": {
    "barred": [],
    "ceilings": {
     "microbial": {
+     "anomaly": "GEN.1135",
      "kind": "stand-in",
      "max": 0.2364,
      "min": 0.0183,
      "source": "post-cut-over (GEN.646) share 0.127 of 746 scored bodies at 8656686b7"
     },
     "none": {
+     "anomaly": "GEN.1135",
      "kind": "stand-in",
      "max": 0.9796,
      "min": 0.7603,
@@ -28,12 +33,14 @@
    },
    "classes": {
     "C": {
+     "anomaly": "GEN.941",
      "kind": "stand-in",
      "max": 0.2347,
      "min": 0.0173,
      "source": "post-cut-over (GEN.646) share 0.126 at 8656686b7"
     },
     "D": {
+     "anomaly": "GEN.941",
      "kind": "stand-in",
      "max": 0.9585,
      "min": 0.7278,
@@ -91,12 +98,14 @@
    "barred": [],
    "ceilings": {
     "microbial": {
+     "anomaly": "GEN.941",
      "kind": "stand-in",
      "max": 1.0,
      "min": 0.7225,
      "source": "post-cut-over (GEN.646) share 0.922 of 90 scored bodies at 8656686b7"
     },
     "none": {
+     "anomaly": "GEN.941",
      "kind": "stand-in",
      "max": 0.04,
      "min": 0.0,
@@ -111,12 +120,14 @@
    },
    "classes": {
     "D": {
+     "anomaly": "GEN.1135",
      "kind": "stand-in",
      "max": 0.0732,
      "min": 0.0,
      "source": "post-cut-over (GEN.646) share 0.007 at 8656686b7"
     },
     "I": {
+     "anomaly": "GEN.941",
      "kind": "stand-in",
      "max": 0.8337,
      "min": 0.4396,
@@ -129,18 +140,21 @@
      "source": "post-cut-over (GEN.646) share 0.063 at 8656686b7"
     },
     "K": {
+     "anomaly": "GEN.728",
      "kind": "stand-in",
      "max": 0.1722,
      "min": 0.0,
      "source": "post-cut-over (GEN.646) share 0.057 at 8656686b7"
     },
     "N": {
+     "anomaly": "GEN.941",
      "kind": "stand-in",
      "max": 0.138,
      "min": 0.0,
      "source": "post-cut-over (GEN.646) share 0.037 at 8656686b7"
     },
     "P": {
+     "anomaly": "GEN.728",
      "kind": "stand-in",
      "max": 0.1126,
      "min": 0.0,
@@ -176,12 +190,14 @@
      "source": "post-cut-over (GEN.646) share 0.000 of 90 scored bodies at 8656686b7"
     },
     "Red": {
+     "anomaly": "GEN.1135",
      "kind": "stand-in",
      "max": 1.0,
      "min": 0.8864,
      "source": "post-cut-over (GEN.646) share 0.989 of 90 scored bodies at 8656686b7"
     },
     "Yellow": {
+     "anomaly": "GEN.1135",
      "kind": "stand-in",
      "max": 0.1136,
      "min": 0.0,
@@ -193,12 +209,14 @@
    "barred": [],
    "ceilings": {
     "microbial": {
+     "anomaly": "GEN.941",
      "kind": "stand-in",
      "max": 0.6712,
      "min": 0.3712,
      "source": "post-cut-over (GEN.646) share 0.521 of 660 scored bodies at 8656686b7"
     },
     "none": {
+     "anomaly": "GEN.941",
      "kind": "stand-in",
      "max": 0.6273,
      "min": 0.3273,
@@ -276,12 +294,14 @@
      "source": "post-cut-over (GEN.646) share 0.007 of 300 scored bodies at 8656686b7"
     },
     "none": {
+     "anomaly": "GEN.941",
      "kind": "stand-in",
      "max": 0.7621,
      "min": 0.3579,
      "source": "post-cut-over (GEN.646) share 0.560 of 300 scored bodies at 8656686b7"
     },
     "unlimited": {
+     "anomaly": "GEN.941",
      "kind": "stand-in",
      "max": 0.6352,
      "min": 0.2315,
@@ -296,6 +316,7 @@
      "source": "post-cut-over (GEN.646) share 0.007 at 8656686b7"
     },
     "B": {
+     "anomaly": "GEN.728",
      "kind": "stand-in",
      "max": 0.0622,
      "min": 0.0,
@@ -332,12 +353,14 @@
      "source": "post-cut-over (GEN.646) share 0.017 at 8656686b7"
     },
     "N": {
+     "anomaly": "GEN.728",
      "kind": "stand-in",
      "max": 0.71,
      "min": 0.3034,
      "source": "post-cut-over (GEN.646) share 0.507 at 8656686b7"
     },
     "V": {
+     "anomaly": "GEN.1135",
      "kind": "stand-in",
      "max": 0.4935,
      "min": 0.1132,
@@ -377,18 +400,21 @@
    "barred": [],
    "ceilings": {
     "microbial": {
+     "anomaly": "GEN.941",
      "kind": "stand-in",
      "max": 0.258,
      "min": 0.014,
      "source": "post-cut-over (GEN.646) share 0.136 of 559 scored bodies at 8656686b7"
     },
     "none": {
+     "anomaly": "GEN.941",
      "kind": "stand-in",
      "max": 0.9383,
      "min": 0.6681,
      "source": "post-cut-over (GEN.646) share 0.803 of 559 scored bodies at 8656686b7"
     },
     "unlimited": {
+     "anomaly": "GEN.941",
      "kind": "stand-in",
      "max": 0.158,
      "min": 0.0018,
@@ -460,6 +486,7 @@
      "source": "post-cut-over (GEN.646) share 0.963 of 300 scored bodies at 8656686b7"
     },
     "unlimited": {
+     "anomaly": "GEN.941",
      "kind": "stand-in",
      "max": 0.138,
      "min": 0.0033,
@@ -468,12 +495,14 @@
    },
    "classes": {
     "B": {
+     "anomaly": "GEN.728",
      "kind": "stand-in",
      "max": 0.1556,
      "min": 0.0,
      "source": "post-cut-over (GEN.646) share 0.047 at 8656686b7"
     },
     "C": {
+     "anomaly": "GEN.728",
      "kind": "stand-in",
      "max": 0.0622,
      "min": 0.0,
@@ -510,6 +539,7 @@
      "source": "post-cut-over (GEN.646) share 0.003 at 8656686b7"
     },
     "N": {
+     "anomaly": "GEN.728",
      "kind": "stand-in",
      "max": 0.8954,
      "min": 0.518,
@@ -555,12 +585,14 @@
    "barred": [],
    "ceilings": {
     "microbial": {
+     "anomaly": "GEN.1135",
      "kind": "stand-in",
      "max": 0.3653,
      "min": 0.104,
      "source": "post-cut-over (GEN.646) share 0.235 of 699 scored bodies at 8656686b7"
     },
     "none": {
+     "anomaly": "GEN.1135",
      "kind": "stand-in",
      "max": 0.8948,
      "min": 0.6331,
@@ -575,12 +607,14 @@
    },
    "classes": {
     "C": {
+     "anomaly": "GEN.728",
      "kind": "stand-in",
      "max": 0.3685,
      "min": 0.1064,
      "source": "post-cut-over (GEN.646) share 0.237 at 8656686b7"
     },
     "D": {
+     "anomaly": "GEN.728",
      "kind": "stand-in",
      "max": 0.8697,
      "min": 0.6009,
@@ -638,12 +672,14 @@
      "source": "post-cut-over (GEN.646) share 0.368 of 144 scored bodies at 8656686b7"
     },
     "none": {
+     "anomaly": "GEN.941",
      "kind": "stand-in",
      "max": 0.4115,
      "min": 0.0069,
      "source": "post-cut-over (GEN.646) share 0.188 of 144 scored bodies at 8656686b7"
     },
     "unlimited": {
+     "anomaly": "GEN.728",
      "kind": "stand-in",
      "max": 0.7187,
      "min": 0.1702,
@@ -658,6 +694,7 @@
      "source": "post-cut-over (GEN.646) share 0.003 at 8656686b7"
     },
     "D": {
+     "anomaly": "GEN.728",
      "kind": "stand-in",
      "max": 0.1057,
      "min": 0.0,
@@ -682,6 +719,7 @@
      "source": "post-cut-over (GEN.646) share 0.003 at 8656686b7"
     },
     "I": {
+     "anomaly": "GEN.728",
      "kind": "stand-in",
      "max": 0.6966,
      "min": 0.29,
@@ -694,6 +732,7 @@
      "source": "post-cut-over (GEN.646) share 0.027 at 8656686b7"
     },
     "K": {
+     "anomaly": "GEN.728",
      "kind": "stand-in",
      "max": 0.1257,
      "min": 0.0,
@@ -706,6 +745,7 @@
      "source": "post-cut-over (GEN.646) share 0.153 at 8656686b7"
     },
     "P": {
+     "anomaly": "GEN.728",
      "kind": "stand-in",
      "max": 0.1193,
      "min": 0.0,
@@ -719,6 +759,7 @@
      "source": "GEN.350 keeps class T (the sub-Neptune row); sub-Neptunes are the most common planets observed (Fressin 2013, Petigura 2018, recalled, unverified, tier T2/T3), so class T must appear among cold planets; the pre-cut-over spine drew it almost never"
     },
     "V": {
+     "anomaly": "GEN.1135",
      "kind": "stand-in",
      "max": 0.383,
      "min": 0.037,
@@ -741,12 +782,14 @@
      "source": "post-cut-over (GEN.646) share 0.000 of 144 scored bodies at 8656686b7"
     },
     "Red": {
+     "anomaly": "GEN.941",
      "kind": "stand-in",
      "max": 0.8932,
      "min": 0.3568,
      "source": "post-cut-over (GEN.646) share 0.625 of 144 scored bodies at 8656686b7"
     },
     "Yellow": {
+     "anomaly": "GEN.941",
      "kind": "stand-in",
      "max": 0.6432,
      "min": 0.1068,
@@ -758,12 +801,14 @@
    "barred": [],
    "ceilings": {
     "microbial": {
+     "anomaly": "GEN.941",
      "kind": "stand-in",
      "max": 0.3284,
      "min": 0.0603,
      "source": "post-cut-over (GEN.646) share 0.194 of 566 scored bodies at 8656686b7"
     },
     "none": {
+     "anomaly": "GEN.941",
      "kind": "stand-in",
      "max": 0.9383,
      "min": 0.6695,
@@ -835,6 +880,7 @@
    "barred": [],
    "ceilings": {
     "microbial": {
+     "anomaly": "GEN.728",
      "kind": "stand-in",
      "max": 0.2086,
      "min": 0.0033,
@@ -861,6 +907,7 @@
      "source": "post-cut-over (GEN.646) share 0.023 at 8656686b7"
     },
     "B": {
+     "anomaly": "GEN.728",
      "kind": "stand-in",
      "max": 0.0825,
      "min": 0.0,
@@ -897,6 +944,7 @@
      "source": "post-cut-over (GEN.646) share 0.047 at 8656686b7"
     },
     "N": {
+     "anomaly": "GEN.728",
      "kind": "stand-in",
      "max": 0.5604,
      "min": 0.1663,
@@ -909,12 +957,14 @@
      "source": "post-cut-over (GEN.646) share 0.003 at 8656686b7"
     },
     "P": {
+     "anomaly": "GEN.1135",
      "kind": "stand-in",
      "max": 0.0825,
      "min": 0.0,
      "source": "post-cut-over (GEN.646) share 0.010 at 8656686b7"
     },
     "V": {
+     "anomaly": "GEN.728",
      "kind": "stand-in",
      "max": 0.5273,
      "min": 0.1394,
@@ -937,12 +987,14 @@
      "source": "post-cut-over (GEN.646) share 0.003 of 300 scored bodies at 8656686b7"
     },
     "Red": {
+     "anomaly": "GEN.728",
      "kind": "stand-in",
      "max": 0.7875,
      "min": 0.3858,
      "source": "post-cut-over (GEN.646) share 0.587 of 300 scored bodies at 8656686b7"
     },
     "Yellow": {
+     "anomaly": "GEN.728",
      "kind": "stand-in",
      "max": 0.6106,
      "min": 0.2094,
@@ -954,18 +1006,21 @@
    "barred": [],
    "ceilings": {
     "microbial": {
+     "anomaly": "GEN.1135",
      "kind": "stand-in",
      "max": 0.3868,
      "min": 0.0793,
      "source": "post-cut-over (GEN.646) share 0.233 of 442 scored bodies at 8656686b7"
     },
     "none": {
+     "anomaly": "GEN.1135",
      "kind": "stand-in",
      "max": 0.8784,
      "min": 0.556,
      "source": "post-cut-over (GEN.646) share 0.717 of 442 scored bodies at 8656686b7"
     },
     "unlimited": {
+     "anomaly": "GEN.1135",
      "kind": "stand-in",
      "max": 0.1483,
      "min": 0.0023,
@@ -1025,18 +1080,21 @@
    "barred": [],
    "ceilings": {
     "microbial": {
+     "anomaly": "GEN.728",
      "kind": "stand-in",
      "max": 0.04,
      "min": 0.0,
      "source": "post-cut-over (GEN.646) share 0.000 of 300 scored bodies at 8656686b7"
     },
     "none": {
+     "anomaly": "GEN.728",
      "kind": "stand-in",
      "max": 1.0,
      "min": 0.862,
      "source": "post-cut-over (GEN.646) share 0.963 of 300 scored bodies at 8656686b7"
     },
     "unlimited": {
+     "anomaly": "GEN.1135",
      "kind": "stand-in",
      "max": 0.138,
      "min": 0.0033,
@@ -1057,6 +1115,7 @@
      "source": "post-cut-over (GEN.646) share 0.063 at 8656686b7"
     },
     "C": {
+     "anomaly": "GEN.728",
      "kind": "stand-in",
      "max": 0.1829,
      "min": 0.0,
@@ -1087,6 +1146,7 @@
      "source": "post-cut-over (GEN.646) share 0.003 at 8656686b7"
     },
     "N": {
+     "anomaly": "GEN.728",
      "kind": "stand-in",
      "max": 0.8368,
      "min": 0.4432,
@@ -1209,12 +1269,14 @@
    "barred": [],
    "ceilings": {
     "microbial": {
+     "anomaly": "GEN.728",
      "kind": "stand-in",
      "max": 1.0,
      "min": 0.8551,
      "source": "post-cut-over (GEN.646) share 0.966 of 207 scored bodies at 8656686b7"
     },
     "none": {
+     "anomaly": "GEN.941",
      "kind": "stand-in",
      "max": 0.04,
      "min": 0.0,
@@ -1229,6 +1291,7 @@
    },
    "classes": {
     "D": {
+     "anomaly": "GEN.728",
      "kind": "stand-in",
      "max": 0.1257,
      "min": 0.0,
@@ -1241,6 +1304,7 @@
      "source": "post-cut-over (GEN.646) share 0.003 at 8656686b7"
     },
     "I": {
+     "anomaly": "GEN.728",
      "kind": "stand-in",
      "max": 0.4074,
      "min": 0.0526,
@@ -1253,6 +1317,7 @@
      "source": "post-cut-over (GEN.646) share 0.080 at 8656686b7"
     },
     "K": {
+     "anomaly": "GEN.728",
      "kind": "stand-in",
      "max": 0.2707,
      "min": 0.0,
@@ -1284,6 +1349,7 @@
      "source": "GEN.350 keeps class T (the sub-Neptune row); sub-Neptunes are the most common planets observed (Fressin 2013, Petigura 2018, recalled, unverified, tier T2/T3), so class T must appear among cold planets; the pre-cut-over spine drew it almost never"
     },
     "V": {
+     "anomaly": "GEN.728",
      "kind": "stand-in",
      "max": 0.531,
      "min": 0.1423,
@@ -1323,12 +1389,14 @@
    "barred": [],
    "ceilings": {
     "microbial": {
+     "anomaly": "GEN.941",
      "kind": "stand-in",
      "max": 0.5761,
      "min": 0.2535,
      "source": "post-cut-over (GEN.646) share 0.415 of 528 scored bodies at 8656686b7"
     },
     "none": {
+     "anomaly": "GEN.941",
      "kind": "stand-in",
      "max": 0.7411,
      "min": 0.418,
@@ -1400,6 +1468,7 @@
      "source": "post-cut-over (GEN.646) share 0.406 of 281 scored bodies at 8656686b7"
     },
     "unlimited": {
+     "anomaly": "GEN.728",
      "kind": "stand-in",
      "max": 0.5535,
      "min": 0.1511,
@@ -1420,6 +1489,7 @@
      "source": "post-cut-over (GEN.646) share 0.053 at 8656686b7"
     },
     "C": {
+     "anomaly": "GEN.728",
      "kind": "stand-in",
      "max": 0.138,
      "min": 0.0,
@@ -1432,6 +1502,7 @@
      "source": "post-cut-over (GEN.646) share 0.037 at 8656686b7"
     },
     "F": {
+     "anomaly": "GEN.728",
      "kind": "stand-in",
      "max": 0.4782,
      "min": 0.1018,
@@ -1480,6 +1551,7 @@
      "source": "post-cut-over (GEN.646) share 0.173 at 8656686b7"
     },
     "P": {
+     "anomaly": "GEN.1135",
      "kind": "stand-in",
      "max": 0.0825,
      "min": 0.0,
@@ -1508,12 +1580,14 @@
      "source": "post-cut-over (GEN.646) share 0.004 of 281 scored bodies at 8656686b7"
     },
     "Red": {
+     "anomaly": "GEN.728",
      "kind": "stand-in",
      "max": 0.6525,
      "min": 0.2371,
      "source": "post-cut-over (GEN.646) share 0.445 of 281 scored bodies at 8656686b7"
     },
     "Yellow": {
+     "anomaly": "GEN.728",
      "kind": "stand-in",
      "max": 0.7594,
      "min": 0.3438,
@@ -1525,12 +1599,14 @@
    "barred": [],
    "ceilings": {
     "microbial": {
+     "anomaly": "GEN.1135",
      "kind": "stand-in",
      "max": 0.1802,
      "min": 0.0018,
      "source": "post-cut-over (GEN.646) share 0.076 of 551 scored bodies at 8656686b7"
     },
     "none": {
+     "anomaly": "GEN.1135",
      "kind": "stand-in",
      "max": 1.0,
      "min": 0.8173,
@@ -1590,12 +1666,14 @@
    "barred": [],
    "ceilings": {
     "microbial": {
+     "anomaly": "GEN.728",
      "kind": "stand-in",
      "max": 0.1257,
      "min": 0.0033,
      "source": "post-cut-over (GEN.646) share 0.030 of 300 scored bodies at 8656686b7"
     },
     "none": {
+     "anomaly": "GEN.728",
      "kind": "stand-in",
      "max": 1.0,
      "min": 0.7431,
@@ -1616,12 +1694,14 @@
      "source": "post-cut-over (GEN.646) share 0.023 at 8656686b7"
     },
     "C": {
+     "anomaly": "GEN.941",
      "kind": "stand-in",
      "max": 0.1193,
      "min": 0.0,
      "source": "post-cut-over (GEN.646) share 0.027 at 8656686b7"
     },
     "D": {
+     "anomaly": "GEN.941",
      "kind": "stand-in",
      "max": 0.0622,
      "min": 0.0,
@@ -1658,6 +1738,7 @@
      "source": "post-cut-over (GEN.646) share 0.017 at 8656686b7"
     },
     "N": {
+     "anomaly": "GEN.941",
      "kind": "stand-in",
      "max": 0.8839,
      "min": 0.5027,
@@ -1703,18 +1784,21 @@
    "barred": [],
    "ceilings": {
     "microbial": {
+     "anomaly": "GEN.941",
      "kind": "stand-in",
      "max": 0.6335,
      "min": 0.3352,
      "source": "post-cut-over (GEN.646) share 0.484 of 671 scored bodies at 8656686b7"
     },
     "none": {
+     "anomaly": "GEN.941",
      "kind": "stand-in",
      "max": 0.6559,
      "min": 0.3575,
      "source": "post-cut-over (GEN.646) share 0.507 of 671 scored bodies at 8656686b7"
     },
     "unlimited": {
+     "anomaly": "GEN.941",
      "kind": "stand-in",
      "max": 0.0695,
      "min": 0.0015,
@@ -1792,18 +1876,21 @@
    "barred": [],
    "ceilings": {
     "microbial": {
+     "anomaly": "GEN.728",
      "kind": "stand-in",
      "max": 0.6623,
      "min": 0.2239,
      "source": "post-cut-over (GEN.646) share 0.443 of 246 scored bodies at 8656686b7"
     },
     "none": {
+     "anomaly": "GEN.941",
      "kind": "stand-in",
      "max": 0.1112,
      "min": 0.0041,
      "source": "post-cut-over (GEN.646) share 0.020 of 246 scored bodies at 8656686b7"
     },
     "unlimited": {
+     "anomaly": "GEN.941",
      "kind": "stand-in",
      "max": 0.7564,
      "min": 0.3167,
@@ -1812,6 +1899,7 @@
    },
    "classes": {
     "D": {
+     "anomaly": "GEN.728",
      "kind": "stand-in",
      "max": 0.138,
      "min": 0.0,
@@ -1824,12 +1912,14 @@
      "source": "post-cut-over (GEN.646) share 0.007 at 8656686b7"
     },
     "I": {
+     "anomaly": "GEN.728",
      "kind": "stand-in",
      "max": 0.3455,
      "min": 0.0145,
      "source": "post-cut-over (GEN.646) share 0.180 at 8656686b7"
     },
     "K": {
+     "anomaly": "GEN.728",
      "kind": "stand-in",
      "max": 0.3154,
      "min": 0.0,
@@ -1855,6 +1945,7 @@
      "source": "GEN.350 keeps class T (the sub-Neptune row); sub-Neptunes are the most common planets observed (Fressin 2013, Petigura 2018, recalled, unverified, tier T2/T3), so class T must appear among cold planets; the pre-cut-over spine drew it almost never"
     },
     "V": {
+     "anomaly": "GEN.728",
      "kind": "stand-in",
      "max": 0.4393,
      "min": 0.074,
@@ -1877,12 +1968,14 @@
      "source": "post-cut-over (GEN.646) share 0.000 of 246 scored bodies at 8656686b7"
     },
     "Red": {
+     "anomaly": "GEN.728",
      "kind": "stand-in",
      "max": 1.0,
      "min": 0.8557,
      "source": "post-cut-over (GEN.646) share 0.963 of 246 scored bodies at 8656686b7"
     },
     "Yellow": {
+     "anomaly": "GEN.728",
      "kind": "stand-in",
      "max": 0.1443,
      "min": 0.0041,
@@ -1894,12 +1987,14 @@
    "barred": [],
    "ceilings": {
     "microbial": {
+     "anomaly": "GEN.941",
      "kind": "stand-in",
      "max": 0.3369,
      "min": 0.0792,
      "source": "post-cut-over (GEN.646) share 0.208 of 668 scored bodies at 8656686b7"
     },
     "none": {
+     "anomaly": "GEN.941",
      "kind": "stand-in",
      "max": 0.9182,
      "min": 0.6596,
@@ -1960,12 +2055,14 @@
      "source": "post-cut-over (GEN.646) share 0.000 of 668 scored bodies at 8656686b7"
     },
     "Red": {
+     "anomaly": "GEN.728",
      "kind": "stand-in",
      "max": 1.0,
      "min": 0.9371,
      "source": "post-cut-over (GEN.646) share 0.994 of 668 scored bodies at 8656686b7"
     },
     "Yellow": {
+     "anomaly": "GEN.728",
      "kind": "stand-in",
      "max": 0.0629,
      "min": 0.0,
@@ -1977,6 +2074,7 @@
    "barred": [],
    "ceilings": {
     "microbial": {
+     "anomaly": "GEN.728",
      "kind": "stand-in",
      "max": 0.2889,
      "min": 0.0033,
@@ -1989,6 +2087,7 @@
      "source": "post-cut-over (GEN.646) share 0.470 of 300 scored bodies at 8656686b7"
     },
     "unlimited": {
+     "anomaly": "GEN.728",
      "kind": "stand-in",
      "max": 0.5929,
      "min": 0.1938,
@@ -2009,12 +2108,14 @@
      "source": "post-cut-over (GEN.646) share 0.053 at 8656686b7"
     },
     "E": {
+     "anomaly": "GEN.1135",
      "kind": "stand-in",
      "max": 0.1057,
      "min": 0.0,
      "source": "post-cut-over (GEN.646) share 0.020 at 8656686b7"
     },
     "F": {
+     "anomaly": "GEN.728",
      "kind": "stand-in",
      "max": 0.501,
      "min": 0.119,
@@ -2033,6 +2134,7 @@
      "source": "post-cut-over (GEN.646) share 0.087 at 8656686b7"
     },
     "K": {
+     "anomaly": "GEN.728",
      "kind": "stand-in",
      "max": 0.0732,
      "min": 0.0,
@@ -2057,12 +2159,14 @@
      "source": "post-cut-over (GEN.646) share 0.007 at 8656686b7"
     },
     "P": {
+     "anomaly": "GEN.1135",
      "kind": "stand-in",
      "max": 0.0622,
      "min": 0.0,
      "source": "post-cut-over (GEN.646) share 0.003 at 8656686b7"
     },
     "V": {
+     "anomaly": "GEN.728",
      "kind": "stand-in",
      "max": 0.4354,
      "min": 0.0713,
@@ -2085,12 +2189,14 @@
      "source": "post-cut-over (GEN.646) share 0.003 of 300 scored bodies at 8656686b7"
     },
     "Red": {
+     "anomaly": "GEN.941",
      "kind": "stand-in",
      "max": 0.4628,
      "min": 0.0906,
      "source": "post-cut-over (GEN.646) share 0.277 of 300 scored bodies at 8656686b7"
     },
     "Yellow": {
+     "anomaly": "GEN.941",
      "kind": "stand-in",
      "max": 0.9066,
      "min": 0.5334,
@@ -2114,6 +2220,7 @@
      "source": "post-cut-over (GEN.646) share 0.732 of 563 scored bodies at 8656686b7"
     },
     "unlimited": {
+     "anomaly": "GEN.728",
      "kind": "stand-in",
      "max": 0.1362,
      "min": 0.0018,
@@ -2185,18 +2292,21 @@
    "barred": [],
    "ceilings": {
     "microbial": {
+     "anomaly": "GEN.941",
      "kind": "stand-in",
      "max": 0.04,
      "min": 0.0,
      "source": "post-cut-over (GEN.646) share 0.000 of 300 scored bodies at 8656686b7"
     },
     "none": {
+     "anomaly": "GEN.941",
      "kind": "stand-in",
      "max": 1.0,
      "min": 0.9378,
      "source": "post-cut-over (GEN.646) share 0.997 of 300 scored bodies at 8656686b7"
     },
     "unlimited": {
+     "anomaly": "GEN.941",
      "kind": "stand-in",
      "max": 0.0622,
      "min": 0.0,
@@ -2205,12 +2315,14 @@
    },
    "classes": {
     "G": {
+     "anomaly": "GEN.941",
      "kind": "stand-in",
      "max": 0.0622,
      "min": 0.0,
      "source": "post-cut-over (GEN.646) share 0.003 at 8656686b7"
     },
     "N": {
+     "anomaly": "GEN.941",
      "kind": "stand-in",
      "max": 1.0,
      "min": 0.9175,
@@ -2333,12 +2445,14 @@
    "barred": [],
    "ceilings": {
     "microbial": {
+     "anomaly": "GEN.941",
      "kind": "stand-in",
      "max": 0.7158,
      "min": 0.252,
      "source": "post-cut-over (GEN.646) share 0.484 of 217 scored bodies at 8656686b7"
     },
     "none": {
+     "anomaly": "GEN.941",
      "kind": "stand-in",
      "max": 0.6439,
      "min": 0.1856,
@@ -2359,6 +2473,7 @@
      "source": "post-cut-over (GEN.646) share 0.010 at 8656686b7"
     },
     "D": {
+     "anomaly": "GEN.728",
      "kind": "stand-in",
      "max": 0.1722,
      "min": 0.0,
@@ -2383,6 +2498,7 @@
      "source": "post-cut-over (GEN.646) share 0.007 at 8656686b7"
     },
     "I": {
+     "anomaly": "GEN.728",
      "kind": "stand-in",
      "max": 0.4195,
      "min": 0.0605,
@@ -2395,6 +2511,7 @@
      "source": "post-cut-over (GEN.646) share 0.037 at 8656686b7"
     },
     "K": {
+     "anomaly": "GEN.728",
      "kind": "stand-in",
      "max": 0.1612,
      "min": 0.0,
@@ -2413,6 +2530,7 @@
      "source": "post-cut-over (GEN.646) share 0.147 at 8656686b7"
     },
     "P": {
+     "anomaly": "GEN.1135",
      "kind": "stand-in",
      "max": 0.3623,
      "min": 0.0244,
@@ -2426,6 +2544,7 @@
      "source": "GEN.350 keeps class T (the sub-Neptune row); sub-Neptunes are the most common planets observed (Fressin 2013, Petigura 2018, recalled, unverified, tier T2/T3), so class T must appear among cold planets; the pre-cut-over spine drew it almost never"
     },
     "V": {
+     "anomaly": "GEN.1135",
      "kind": "stand-in",
      "max": 0.3953,
      "min": 0.0447,
@@ -2465,12 +2584,14 @@
    "barred": [],
    "ceilings": {
     "microbial": {
+     "anomaly": "GEN.941",
      "kind": "stand-in",
      "max": 0.1886,
      "min": 0.0021,
      "source": "post-cut-over (GEN.646) share 0.079 of 481 scored bodies at 8656686b7"
     },
     "none": {
+     "anomaly": "GEN.941",
      "kind": "stand-in",
      "max": 1.0,
      "min": 0.7999,
@@ -2532,12 +2653,14 @@
    "barred": [],
    "ceilings": {
     "microbial": {
+     "anomaly": "GEN.941",
      "kind": "stand-in",
      "max": 0.3623,
      "min": 0.0244,
      "source": "post-cut-over (GEN.646) share 0.193 of 300 scored bodies at 8656686b7"
     },
     "none": {
+     "anomaly": "GEN.941",
      "kind": "stand-in",
      "max": 0.7717,
      "min": 0.3683,
@@ -2564,18 +2687,21 @@
      "source": "post-cut-over (GEN.646) share 0.003 at 8656686b7"
     },
     "C": {
+     "anomaly": "GEN.728",
      "kind": "stand-in",
      "max": 0.3665,
      "min": 0.0269,
      "source": "post-cut-over (GEN.646) share 0.197 at 8656686b7"
     },
     "E": {
+     "anomaly": "GEN.1135",
      "kind": "stand-in",
      "max": 0.0732,
      "min": 0.0,
      "source": "post-cut-over (GEN.646) share 0.007 at 8656686b7"
     },
     "F": {
+     "anomaly": "GEN.941",
      "kind": "stand-in",
      "max": 0.4935,
      "min": 0.1132,
@@ -2640,12 +2766,14 @@
      "source": "post-cut-over (GEN.646) share 0.000 of 300 scored bodies at 8656686b7"
     },
     "Red": {
+     "anomaly": "GEN.728",
      "kind": "stand-in",
      "max": 0.7,
      "min": 0.2934,
      "source": "post-cut-over (GEN.646) share 0.497 of 300 scored bodies at 8656686b7"
     },
     "Yellow": {
+     "anomaly": "GEN.728",
      "kind": "stand-in",
      "max": 0.7066,
      "min": 0.3,
@@ -2657,12 +2785,14 @@
    "barred": [],
    "ceilings": {
     "microbial": {
+     "anomaly": "GEN.941",
      "kind": "stand-in",
      "max": 0.1747,
      "min": 0.0022,
      "source": "post-cut-over (GEN.646) share 0.067 of 445 scored bodies at 8656686b7"
     },
     "none": {
+     "anomaly": "GEN.941",
      "kind": "stand-in",
      "max": 1.0,
      "min": 0.8188,
@@ -2724,6 +2854,7 @@
    "barred": [],
    "ceilings": {
     "microbial": {
+     "anomaly": "GEN.941",
      "kind": "stand-in",
      "max": 0.4195,
      "min": 0.0605,
@@ -2744,6 +2875,7 @@
    },
    "classes": {
     "C": {
+     "anomaly": "GEN.941",
      "kind": "stand-in",
      "max": 0.8925,
      "min": 0.5141,
@@ -2786,6 +2918,7 @@
      "source": "post-cut-over (GEN.646) share 0.003 at 8656686b7"
     },
     "N": {
+     "anomaly": "GEN.941",
      "kind": "stand-in",
      "max": 0.1556,
      "min": 0.0,
@@ -2814,12 +2947,14 @@
      "source": "post-cut-over (GEN.646) share 0.000 of 300 scored bodies at 8656686b7"
     },
     "Red": {
+     "anomaly": "GEN.1135",
      "kind": "stand-in",
      "max": 0.9756,
      "min": 0.6377,
      "source": "post-cut-over (GEN.646) share 0.807 of 300 scored bodies at 8656686b7"
     },
     "Yellow": {
+     "anomaly": "GEN.1135",
      "kind": "stand-in",
      "max": 0.3623,
      "min": 0.0244,
@@ -2851,12 +2986,14 @@
    },
    "classes": {
     "C": {
+     "anomaly": "GEN.941",
      "kind": "stand-in",
      "max": 0.6284,
      "min": 0.3042,
      "source": "post-cut-over (GEN.646) share 0.466 at 8656686b7"
     },
     "D": {
+     "anomaly": "GEN.941",
      "kind": "stand-in",
      "max": 0.6903,
      "min": 0.3659,
@@ -2902,12 +3039,14 @@
    "barred": [],
    "ceilings": {
     "microbial": {
+     "anomaly": "GEN.941",
      "kind": "stand-in",
      "max": 0.8599,
      "min": 0.4689,
      "source": "post-cut-over (GEN.646) share 0.664 of 295 scored bodies at 8656686b7"
     },
     "none": {
+     "anomaly": "GEN.941",
      "kind": "stand-in",
      "max": 0.5273,
      "min": 0.1371,
@@ -2922,30 +3061,35 @@
    },
    "classes": {
     "C": {
+     "anomaly": "GEN.941",
      "kind": "stand-in",
      "max": 0.3789,
      "min": 0.0344,
      "source": "post-cut-over (GEN.646) share 0.207 at 8656686b7"
     },
     "D": {
+     "anomaly": "GEN.728",
      "kind": "stand-in",
      "max": 0.238,
      "min": 0.0,
      "source": "post-cut-over (GEN.646) share 0.100 at 8656686b7"
     },
     "I": {
+     "anomaly": "GEN.941",
      "kind": "stand-in",
      "max": 0.0908,
      "min": 0.0,
      "source": "post-cut-over (GEN.646) share 0.013 at 8656686b7"
     },
     "J": {
+     "anomaly": "GEN.941",
      "kind": "stand-in",
      "max": 0.0622,
      "min": 0.0,
      "source": "post-cut-over (GEN.646) share 0.003 at 8656686b7"
     },
     "K": {
+     "anomaly": "GEN.941",
      "kind": "stand-in",
      "max": 0.4433,
      "min": 0.0767,
@@ -2958,6 +3102,7 @@
      "source": "post-cut-over (GEN.646) share 0.050 at 8656686b7"
     },
     "P": {
+     "anomaly": "GEN.941",
      "kind": "stand-in",
      "max": 0.4393,
      "min": 0.074,
@@ -3022,6 +3167,7 @@
      "source": "post-cut-over (GEN.646) share 0.969 of 354 scored bodies at 8656686b7"
     },
     "unlimited": {
+     "anomaly": "GEN.1135",
      "kind": "stand-in",
      "max": 0.1127,
      "min": 0.0028,
@@ -3095,12 +3241,14 @@
    },
    "classes": {
     "C": {
+     "anomaly": "GEN.941",
      "kind": "stand-in",
      "max": 1.0,
      "min": 0.8502,
      "source": "post-cut-over (GEN.646) share 0.957 at 8656686b7"
     },
     "D": {
+     "anomaly": "GEN.941",
      "kind": "stand-in",
      "max": 0.138,
      "min": 0.0,
@@ -3113,6 +3261,7 @@
      "source": "post-cut-over (GEN.646) share 0.003 at 8656686b7"
     },
     "V": {
+     "anomaly": "GEN.941",
      "kind": "stand-in",
      "max": 0.0622,
      "min": 0.0,
@@ -3135,12 +3284,14 @@
      "source": "post-cut-over (GEN.646) share 0.000 of 300 scored bodies at 8656686b7"
     },
     "Red": {
+     "anomaly": "GEN.941",
      "kind": "stand-in",
      "max": 1.0,
      "min": 0.96,
      "source": "post-cut-over (GEN.646) share 1.000 of 300 scored bodies at 8656686b7"
     },
     "Yellow": {
+     "anomaly": "GEN.941",
      "kind": "stand-in",
      "max": 0.04,
      "min": 0.0,
@@ -3237,12 +3388,14 @@
    },
    "classes": {
     "C": {
+     "anomaly": "GEN.941",
      "kind": "stand-in",
      "max": 1.0,
      "min": 0.862,
      "source": "post-cut-over (GEN.646) share 0.963 at 8656686b7"
     },
     "D": {
+     "anomaly": "GEN.941",
      "kind": "stand-in",
      "max": 0.0825,
      "min": 0.0,
@@ -3255,6 +3408,7 @@
      "source": "post-cut-over (GEN.646) share 0.023 at 8656686b7"
     },
     "V": {
+     "anomaly": "GEN.941",
      "kind": "stand-in",
      "max": 0.0622,
      "min": 0.0,

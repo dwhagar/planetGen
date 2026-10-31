@@ -24,8 +24,8 @@ Why this and not the grey closure of GEN.703: the closure needs one number for t
 band does when water vapour thins aloft (GEN.717) or what a haze that absorbs sunlight high up does to the ground (GEN.718).
 Here the vapour profile is a profile, and `Column.sunlight_aloft` puts a share of the absorbed flux where a haze takes it.
 
-Limits (stated, registry rows IR1 to IR8 in docs/design/research/gap-filling-plan.md section 6): no clouds in the infrared and no
-condensation of anything but water; the humidity profile is Manabe and Wetherald's, not a computed one; sunlight is deposited by the
+Limits (stated, registry rows IR1 to IR8 in docs/design/research/gap-filling-plan.md section 6): the only infrared cloud is the sulfuric
+acid one the caller passes (`cloud`), scaled for scattering, and no condensation of anything but water; the humidity profile is Manabe and Wetherald's, not a computed one; sunlight is deposited by the
 caller, never absorbed by the gases here; the stratosphere is clear-sky radiative equilibrium without ozone heating
 (a gas without a table has stand-in bands); the tables hold 100 K as the lowest temperature and 100 bar as the highest pressure, beyond
 which a lookup takes the edge; the model is a global mean (one column, the absorbed flux already averaged over the sphere).
@@ -41,6 +41,7 @@ Use:
 
 import functools
 import math
+import re
 from dataclasses import dataclass
 
 import numpy as np
@@ -50,8 +51,10 @@ from planetgen.physics import (
     constants,
     gases,
     greenhouse,
+    cloud_infrared,
     line_opacity,
     mixture,
+    radiative_kernel,
     saturation,
     species_thermo,
 )
@@ -72,10 +75,23 @@ WATER_TABLE_TOP_K = min(640.0, saturation.species("H2O").liquid.t_max_k)
 """float: Where the water table ends and above which the vapour is taken as unable to condense: 640 K, just under water's critical temperature (the
 `saturation` module's, 647.1 K), so the latent heat, which diverges at the critical point, stays finite on the grid. A numerical limit of this
 table, not a saturation constant: the curve itself is `saturation`'s."""
+METHANE_TABLE_TOP_K = 188.0
+"""float: Where the methane curve ends and above which methane is taken as unable to condense: 188 K, just under its critical temperature (190.56 K), so the latent
+heat, which diverges at the critical point, stays finite (GEN.1030)."""
 
 SUNLIGHT_WIDTH_LN_P = 1.0
 """float: STAND-IN (IR8, tier T7, L0): the width of the layer of sunlight deposited aloft, in ln P (a Gaussian: a haze or an upper methane band is a few
 scale heights deep). The share and the pressure are inputs the caller supplies; nothing here derives them from the aerosols."""
+CLOUD_LONGWAVE_SHARE = 0.13
+"""float: STAND-IN (IR12, tier T9, L3): the share of the clear-sky outgoing infrared flux the cloud of an air whose surface humidity is `EARTH_HUMIDITY` keeps in.
+The model is a clear-sky one and the albedo of a body is its all-sky one, so without this a world that keeps the Earth's cloud (and its cloud shortwave
+cooling) would lose the cloud's longwave warming: 26.5 W/m2 of the 266 W/m2 the clear-sky Earth sends out (CERES EBAF, 0.10; that leaves the Earth twin of the
+fixed point at 284.6 K, the clear-sky model's own bias of 3 K, and 0.13 puts it at 287.9 K, the measured 288 K, which is the value held). The sky sends out
+`(1 - share) * clear` and the cloud scales with the surface humidity (to 1.3 times at most, a saturated surface) and is nil without water vapour. A cloud
+that is a share of the flux, not a layer in the column, masks the carbon dioxide forcing and the vapour feedback by the same tenth, as the cloudy
+sky of the Earth does, and keeps the feedbacks of the clear column whole (a grey layer over the sky hid all of the vapour's)."""
+EARTH_HUMIDITY = 0.77
+"""float: The mean relative humidity of the Earth's surface air (Manabe and Wetherald 1967), the humidity at which `CLOUD_LONGWAVE_SHARE` holds (tier T1)."""
 FINITE_DIFFERENCE_K = 0.5
 """float: The step of the Jacobian of the stratosphere, K."""
 STRATOSPHERE_STEPS = 25
@@ -163,15 +179,87 @@ def latent_heat_j_mol(temperature_k):
     return np.interp(temperature_k, grid, latent)
 
 
-_CP_GRID = np.arange(100.0, 4001.0, 20.0)
+@functools.lru_cache(maxsize=1)
+def _methane_curve():
+    """`(temperature grid, ln of the saturation pressure, latent heat J/mol)` of methane from 30 K to `METHANE_TABLE_TOP_K` (GEN.1030)."""
+    grid = np.arange(30.0, METHANE_TABLE_TOP_K + 0.25, 0.5)
+    log_pressure = np.log([saturation.pressure_pa("CH4", float(t)) for t in grid])
+    latent = R * grid ** 2 * np.gradient(log_pressure, grid)
+    return grid, log_pressure, latent
+
+
+def methane_saturation_pressure_pa(temperature_k):
+    """Methane's saturation pressure at `temperature_k` (scalar or array), Pa; infinite above `METHANE_TABLE_TOP_K`."""
+    grid, log_pressure, _latent = _methane_curve()
+    temperature = np.asarray(temperature_k, dtype=float)
+    value = np.exp(np.interp(np.maximum(temperature, grid[0]), grid, log_pressure))
+    return np.where(temperature > grid[-1], np.inf, value)
+
+
+def methane_latent_heat_j_mol(temperature_k):
+    """Methane's latent heat at `temperature_k`, J/mol, from the slope of its saturation curve (Clausius and Clapeyron)."""
+    grid, _log, latent = _methane_curve()
+    return np.interp(temperature_k, grid, latent)
+
+
+_CP_GRID = np.arange(40.0, 4001.0, 20.0)
+
+H2_ROTATION_TEMPERATURE_K = 87.55
+"""float: The rotational temperature of molecular hydrogen, hc B / k with B = 60.853 cm-1 (Herzberg 1950; NIST Chemistry WebBook) and hc/k = 1.43878 cm K."""
+EQUILIBRIUM_HYDROGEN_BELOW_K = 200.0
+"""float: Below this temperature the heat capacity of hydrogen is that of equilibrium ortho and para forms (GEN.1030); the NASA fit of `species_thermo` starts here, where the two agree to 1 percent."""
+
+
+def equilibrium_hydrogen_cp_over_r(temperature_k):
+    """
+    The heat capacity at constant pressure over R of molecular hydrogen whose ortho and para forms stay in equilibrium (translation 5/2 plus the rotational
+    fluctuation, levels of weight (2J + 1) with a nuclear spin factor of 3 for odd J and 1 for even J). Cold hydrogen is far from the 7/2 of a hot one: it
+    reaches 4.4 at 60 K, which makes the lapse rate of a giant's troposphere there about a fifth shallower (Gierasch 1985).
+    """
+    temperature = np.asarray(temperature_k, dtype=float)[..., None]
+    level = np.arange(40)
+    energy = level * (level + 1) * H2_ROTATION_TEMPERATURE_K
+    weight = (2 * level + 1) * np.where(level % 2 == 1, 3.0, 1.0)
+    boltzmann = weight * np.exp(-energy / temperature)
+    total = boltzmann.sum(axis=-1)
+    mean = (boltzmann * energy).sum(axis=-1) / total
+    spread = (boltzmann * energy ** 2).sum(axis=-1) / total - mean ** 2
+    return 2.5 + spread / temperature[..., 0] ** 2
+
+
+def _atoms(formula):
+    """The number of atoms in a molecule written without brackets (`"HC3N"` is 5)."""
+    return sum(int(count or 1) for _symbol, count in re.findall(r"([A-Z][a-z]?)(\d*)", formula))
 
 
 @functools.cache
 def _cp_over_r(formula):
-    """The heat capacity at constant pressure over R of a gas on `_CP_GRID` (the cold end of its fit stands in below the fit)."""
-    thermo = species_thermo.species(formula)
-    low, high = thermo.range_k
-    return np.array([thermo.cp_over_r(min(max(t, low), high)) for t in _CP_GRID])
+    """
+    The heat capacity at constant pressure over R of a gas on `_CP_GRID`, from the first source the gas has (GEN.852, row IR9):
+
+    1. its NASA Glenn fit (`species_thermo.gas`; the cold end of the fit stands in below it, the hot end above it; for hydrogen, below
+       `EQUILIBRIUM_HYDROGEN_BELOW_K` the heat capacity of ortho and para forms in equilibrium instead, GEN.1030, row IR15);
+    2. the heat capacities the gas table gives at 100, 300 and 1000 K (`gases.Gas.cp_j_mol_k`), interpolated linearly in temperature and
+       held at the end values beyond them (a polyatomic gas gains heat capacity above 1000 K, so this is low there);
+    3. a rigid-rotor count of the atoms: 5/2 for one, 7/2 for two, and 4 + (3N - 6) / 2 for a molecule of N atoms, half its vibrations awake.
+    """
+    try:
+        thermo = species_thermo.gas(formula)
+    except KeyError:
+        pass
+    else:
+        low, high = thermo.range_k
+        values = np.array([thermo.cp_over_r(min(max(t, low), high)) for t in _CP_GRID])
+        if formula == "H2":
+            join = float(equilibrium_hydrogen_cp_over_r(EQUILIBRIUM_HYDROGEN_BELOW_K))
+            cold = _CP_GRID < EQUILIBRIUM_HYDROGEN_BELOW_K
+            values[cold] = equilibrium_hydrogen_cp_over_r(_CP_GRID[cold]) + (thermo.cp_over_r(max(low, EQUILIBRIUM_HYDROGEN_BELOW_K)) - join)
+        return values
+    known = sorted((float(t), v / R) for t, v in gases.gas(formula).cp_j_mol_k.items() if v is not None)
+    if known:
+        return np.interp(_CP_GRID, [t for t, _ in known], [v for _, v in known])
+    atoms = _atoms(formula)
+    return np.full_like(_CP_GRID, {1: 2.5, 2: 3.5}.get(atoms, 4.0 + 0.5 * (3 * atoms - 6)))
 
 
 # ---- the column ----
@@ -179,7 +267,8 @@ def _cp_over_r(formula):
 class Column:
     """An air cut into layers: its geometry, its composition and the pieces of the thermodynamics the solver needs."""
 
-    def __init__(self, partial_pressures_pa, gravity_m_s2, layers=LAYERS, water_fraction=None):
+    def __init__(self, partial_pressures_pa, gravity_m_s2, layers=LAYERS, water_fraction=None, cloud=None):
+        self.cloud = cloud
         self.fixed_water = None if water_fraction is None else np.asarray(water_fraction, dtype=float)
         fractions = mixture.mole_fractions(partial_pressures_pa)
         self.gravity = gravity_m_s2
@@ -195,23 +284,41 @@ class Column:
         self.dry_molar_mass = sum(fraction * gases.gas(formula).molar_mass for formula, fraction in self.dry.items())
         self.cp_dry = R * sum(fraction * _cp_over_r(formula) for formula, fraction in self.dry.items()) if self.dry else np.zeros_like(_CP_GRID)
         self.cp_water = R * _cp_over_r("H2O")
+        # the condensable of the adiabat (GEN.1030): water when the air holds any; else methane, whose condensation makes the lapse rate of the cold
+        # hydrogen giants about half the dry one (Uranus and Neptune near 1.3 bar). Every other gas is the background it rides in.
+        methane = fractions.get("CH4", 0.0) if self.water_surface <= 0.0 else 0.0
+        if self.water_surface > 0.0:
+            self.condensable_surface, self.background_molar_mass, self.cp_background = self.water_surface, self.dry_molar_mass, self.cp_dry
+            self.cp_condensable = self.cp_water
+            self._saturation, self._latent = saturation_pressure_pa, latent_heat_j_mol
+        elif 0.0 < methane < 1.0:
+            others = {formula: fraction / (1.0 - methane) for formula, fraction in fractions.items() if formula != "CH4"}
+            self.condensable_surface = methane
+            self.background_molar_mass = sum(fraction * gases.gas(formula).molar_mass for formula, fraction in others.items())
+            self.cp_background = R * sum(fraction * _cp_over_r(formula) for formula, fraction in others.items())
+            self.cp_condensable = R * _cp_over_r("CH4")
+            self._saturation, self._latent = methane_saturation_pressure_pa, methane_latent_heat_j_mol
+        else:
+            self.condensable_surface, self.background_molar_mass, self.cp_background = 0.0, 0.0, self.cp_dry
+            self.cp_condensable = self.cp_water
+            self._saturation, self._latent = saturation_pressure_pa, latent_heat_j_mol
         self.prepared = line_opacity.prepare(partial_pressures_pa)
 
     # -- the adiabat --
 
     def _dlnT_dlnP(self, temperature, pressure, condensing=None):
-        """d ln T / d ln P along the adiabat: dry or unsaturated, or the water pseudo-adiabat once the vapour saturates (`condensing`: take that
-        branch whatever the state, so a step that starts on one branch uses it at its midpoint too; None decides from the state)."""
-        cp_dry = np.interp(temperature, _CP_GRID, self.cp_dry)
-        x = self.water_surface
+        """d ln T / d ln P along the adiabat: dry or unsaturated, or the pseudo-adiabat of the condensable (water, else methane) once its vapour saturates
+        (`condensing`: take that branch whatever the state, so a step that starts on one branch uses it at its midpoint too; None decides from the state)."""
+        x = self.condensable_surface
         if x <= 0.0:
-            return R / cp_dry
-        cp_water = np.interp(temperature, _CP_GRID, self.cp_water)
-        saturated = float(saturation_pressure_pa(temperature))
+            return R / np.interp(temperature, _CP_GRID, self.cp_dry)
+        cp_dry = np.interp(temperature, _CP_GRID, self.cp_background)
+        cp_water = np.interp(temperature, _CP_GRID, self.cp_condensable)
+        saturated = float(self._saturation(temperature))
         if not (x * pressure >= saturated if condensing is None else condensing):
             return R / ((1.0 - x) * cp_dry + x * cp_water)
-        latent = float(latent_heat_j_mol(temperature))
-        if self.dry_molar_mass <= 0.0 or pressure <= saturated * (1.0 + 1.0e-9):
+        latent = float(self._latent(temperature))
+        if self.background_molar_mass <= 0.0 or pressure <= saturated * (1.0 + 1.0e-9):
             return min(R * temperature / latent, R / cp_water)
         r = saturated / (pressure - saturated)
         numerator = (1.0 + r) * (R + r * latent / temperature)
@@ -220,8 +327,8 @@ class Column:
         return numerator / denominator
 
     def _saturated(self, temperature, pressure):
-        """Whether the surface's vapour mixing ratio saturates at this temperature and pressure."""
-        return self.water_surface > 0.0 and self.water_surface * pressure >= float(saturation_pressure_pa(temperature))
+        """Whether the surface's vapour mixing ratio of the condensable saturates at this temperature and pressure."""
+        return self.condensable_surface > 0.0 and self.condensable_surface * pressure >= float(self._saturation(temperature))
 
     def _advance(self, temperature, log_pressure, step):
         """One second-order (midpoint) step of ln T along the adiabat, with the branch (dry or saturated) taken at the start."""
@@ -297,7 +404,22 @@ class Column:
         water = self.water_profile(layer_temperature, level_temperature[-1])
         mean_molar_mass = (1.0 - water) * self.dry_molar_mass + water * WATER_MOLAR_MASS
         molecules_cm2 = self.layer_mass / mean_molar_mass * AVOGADRO * 1.0e-4
-        return line_opacity.layer_depth(self.prepared, layer_temperature, self.layer_pressure, water, molecules_cm2), water
+        depth = line_opacity.layer_depth(self.prepared, layer_temperature, self.layer_pressure, water, molecules_cm2)
+        if self.cloud is not None:
+            tau_550, radius_um = self.cloud
+            depth = depth + cloud_infrared.layer_depth(self.layer_pressure, self.layer_mass, layer_temperature, tau_550, radius_um)[:, :, None]
+        return depth, water
+
+    def cloud_share(self, surface_temperature):
+        """The share of the clear-sky outgoing flux the cloud keeps in (stand-in IR12): `CLOUD_LONGWAVE_SHARE` at the humidity of the Earth, in proportion to the
+        surface humidity, nil where the air holds no water vapour."""
+        if self.water_surface <= 0.0:
+            return 0.0
+        if not self.dry:
+            return CLOUD_LONGWAVE_SHARE / EARTH_HUMIDITY
+        saturated = float(saturation_pressure_pa(surface_temperature))
+        humidity = min(1.0, self.water_surface * self.surface_pressure_pa / saturated) if math.isfinite(saturated) else 1.0
+        return CLOUD_LONGWAVE_SHARE * humidity / EARTH_HUMIDITY
 
 
 # ---- the flux ----
@@ -305,35 +427,13 @@ class Column:
 def sweep(level_temperature, depth, surface_temperature):
     """
     The upward and downward infrared flux at every level, W/m2: `level_temperature` is (profile, level), `depth` the layers' optical
-    depths (layer, band, g), `surface_temperature` (profile). The source is linear in optical depth between level temperatures.
+    depths (layer, band, g), `surface_temperature` (profile). The source is linear in optical depth between level temperatures. The
+    layer-by-layer sweep is `radiative_kernel.sweep`.
     """
-    count, levels = level_temperature.shape
-    layers = levels - 1
-    weights = line_opacity.G_WEIGHTS
     emission = line_opacity.band_emission(level_temperature)                  # (profile, level, band)
     ground = line_opacity.band_emission(surface_temperature)                  # (profile, band)
-    path = DIFFUSIVITY * depth
-    transmitted = np.exp(-path)
-    absorbed = -np.expm1(-path)
-    with np.errstate(divide="ignore", invalid="ignore"):
-        slope = np.where(path > 1.0e-6, 1.0 - absorbed / np.maximum(path, 1.0e-300), path / 2.0)
-    bands, points = depth.shape[1], depth.shape[2]
-    down = np.zeros((count, bands, points))
-    flux_down = np.zeros((count, levels))
-    for layer in range(layers):
-        top = emission[:, layer, :, None]
-        bottom = emission[:, layer + 1, :, None]
-        down = down * transmitted[layer] + top * absorbed[layer] + (bottom - top) * slope[layer]
-        flux_down[:, layer + 1] = (down * weights).sum((1, 2))
-    up = np.broadcast_to(ground[:, :, None], (count, bands, points)).copy()
-    flux_up = np.zeros((count, levels))
-    flux_up[:, layers] = (up * weights).sum((1, 2))
-    for layer in range(layers - 1, -1, -1):
-        top = emission[:, layer, :, None]
-        bottom = emission[:, layer + 1, :, None]
-        up = up * transmitted[layer] + bottom * absorbed[layer] + (top - bottom) * slope[layer]
-        flux_up[:, layer] = (up * weights).sum((1, 2))
-    return flux_up, flux_down
+    return radiative_kernel.sweep(np.ascontiguousarray(emission), np.ascontiguousarray(ground), np.ascontiguousarray(depth),
+                                  line_opacity.G_WEIGHTS, DIFFUSIVITY)
 
 
 def _upper_levels(layer_temperature):
@@ -484,7 +584,7 @@ class _Solver:
         depth, water = column.optical_depth(levels)
         up, down = sweep(levels[None, :], depth, levels[None, -1])
         self.last = (surface_temperature, levels, m, water)
-        return float((up - down)[0, 0])
+        return float((up - down)[0, 0]) * (1.0 - column.cloud_share(surface_temperature))
 
     def residual(self, surface_temperature):
         return self.outgoing(surface_temperature) - self.absorbed
@@ -542,7 +642,7 @@ def sunlight_aloft(column, absorbed_w_m2, share, pressure_pa):
 
 
 def solve(partial_pressures_pa, gravity_m_s2, absorbed_flux_w_m2, aloft_share=0.0, aloft_pressure_pa=None, layers=LAYERS,
-          water_fraction=None):
+          water_fraction=None, cloud=None):
     """
     The radiative-convective state of an air under an absorbed flux.
 
@@ -556,6 +656,8 @@ def solve(partial_pressures_pa, gravity_m_s2, absorbed_flux_w_m2, aloft_share=0.
         layers (int): The number of layers.
         water_fraction (ndarray or None): Hold the water vapour mole fraction of each layer (top first, `layers` long) at these values instead of
             the humidity profile (a previous solution's `water_fraction`: the experiment of a change with the vapour fixed).
+        cloud (tuple or None): `(tau_550, radius_um)` of a sulfuric acid cloud (`sulfuric_cloud.of_draw`): its depth at 550 nm and droplet radius.
+            Its infrared opacity (`cloud_infrared`) sits in the layers between the level cooler than the cloud base temperature and its top.
 
     Returns:
         Solution: Its `converged` is False when the search for the surface temperature did not reach a balance (for example when the sunlight
@@ -567,7 +669,7 @@ def solve(partial_pressures_pa, gravity_m_s2, absorbed_flux_w_m2, aloft_share=0.
     for name, value in (("gravity_m_s2", gravity_m_s2), ("absorbed_flux_w_m2", absorbed_flux_w_m2)):
         if not (value > 0.0 and math.isfinite(value)):
             raise ValueError(f"{name} must be a positive number, not {value!r}")
-    column = Column(partial_pressures_pa, gravity_m_s2, layers, water_fraction)
+    column = Column(partial_pressures_pa, gravity_m_s2, layers, water_fraction, cloud)
     heating = None
     if aloft_share > 0.0:
         if aloft_pressure_pa is None or not aloft_pressure_pa > 0.0:

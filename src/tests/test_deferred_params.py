@@ -4,6 +4,7 @@ stage that takes it as its parameter, what `finish_run` keeps of it, and the fol
 The autouse `_run_queue_inline` fixture gives each test a queue of its own and runs the waiting units in this process."""
 
 import datetime
+import json
 
 import pytest
 
@@ -105,6 +106,16 @@ def test_a_stage_that_has_not_opened_has_no_clock_to_take(conn):
     run_id = _run([_step("a"), _step("b", since=wrapper.opened_by("a"))])
     with pytest.raises(wrapper.Unresolved):
         wrapper.resolve_params(conn, run_id, {"since": wrapper.opened_by("b")})
+
+
+def test_scatter_settings_of_a_stage_that_has_not_opened_are_left_for_when_it_opens_when_not_strict(conn):
+    """PERF.203 step 5: finishing a run plans its stages from the record with `strict=False`; settings that only the scatter's own
+    stage works out (from the galaxy as the stages before it leave it) must not be worked out then."""
+    marker = {"deferred": "scatter-settings", "scope": "bright-stars", "stage": "mass"}
+    run_id = _run([_step("a")])
+    assert wrapper.resolve_params(conn, run_id, {"settings": marker}, strict=False) == {"settings": marker}
+    conn.hset(runrecord.run_key(run_id), f"deferred:{wrapper.scatter_settings_name(marker)}", json.dumps({"mass": {"limit": 8.0}}))
+    assert wrapper.resolve_params(conn, run_id, {"settings": marker}, strict=False) == {"settings": {"limit": 8.0}}
 
 
 def test_other_parameters_pass_through_unchanged(conn):

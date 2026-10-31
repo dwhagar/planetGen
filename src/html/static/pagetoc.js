@@ -61,41 +61,12 @@
   if (anchor) anchor.after(nav);
   main.classList.add("has-page-toc");
 
-  // UX.238: on a page with `toc-top` the bar sticks under the site header, so the two heights are published for the
-  // sticky offset and the scroll margin of the headings, and the link of the section in view is marked.
-  if (!main.classList.contains("toc-top")) return;
-  const root = document.documentElement;
-  const header = document.querySelector(".site-header");
-  const measure = () => {
-    root.style.setProperty("--site-header-height", (header ? header.getBoundingClientRect().height : 0) + "px");
-    root.style.setProperty("--page-toc-height", nav.getBoundingClientRect().height + "px");
-  };
-  measure();
-  window.addEventListener("resize", measure);
-  if (window.ResizeObserver) {
-    const sizes = new ResizeObserver(measure);
-    sizes.observe(nav);
-    if (header) sizes.observe(header);
+  // If every link fits in one row across the top, show the row; if any would need scrolling, use the grouped menu.
+  function fit() {
+    main.classList.add("toc-strip");
+    if (nav.scrollWidth > nav.clientWidth + 1) main.classList.remove("toc-strip");
   }
-  const links = [...nav.querySelectorAll("a")];
-  const targets = links.map(a => document.getElementById(a.getAttribute("href").slice(1)));
-  let current = null, queued = false;
-  function mark() {
-    queued = false;
-    const line = (header ? header.getBoundingClientRect().height : 0) + nav.getBoundingClientRect().height + 24;
-    let at = 0;
-    targets.forEach((h, i) => { if (h.getBoundingClientRect().top <= line) at = i; });
-    if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 2) at = targets.length - 1;
-    if (current === links[at]) return;
-    if (current) current.removeAttribute("aria-current");
-    current = links[at];
-    current.setAttribute("aria-current", "location");
-    // keep the marked link in view inside the bar without moving the page
-    const box = current.getBoundingClientRect(), bar = nav.getBoundingClientRect();
-    if (box.left < bar.left || box.right > bar.right) nav.scrollLeft += box.left - bar.left - (bar.width - box.width) / 2;
-  }
-  const later = () => { if (!queued) { queued = true; requestAnimationFrame(mark); } };
-  window.addEventListener("scroll", later, { passive: true });
-  window.addEventListener("resize", later);
-  mark();
+  fit();
+  window.addEventListener("resize", fit);
+  window.addEventListener("load", fit);
 })();

@@ -88,15 +88,18 @@ def _scaled(vector, factor):
     return (vector[0] * factor, vector[1] * factor, vector[2] * factor)
 
 
-def star_offsets_au(masses_solar, slots, nodes, unix):
+def star_offsets_au(masses_solar, slots, nodes, unix, dark=()):
     """
     The offsets from the barycentre, in AU, of the stars of a system with a tree of `nodes`, in the order of
-    `masses_solar` and `slots` (`(node_no, slot)` for each star: the child of that node it is), at `unix`.
+    `masses_solar` and `slots` (`(node_no, slot)` for each star: the child of that node it is), at `unix`. `dark` lists the
+    members that are not stars, `(mass_solar, (node_no, slot))` each (GEN.1013): they weigh in the tree and are left out of
+    the offsets returned.
     """
     members = [TreeMember(number, parent, slot, mass)
                for number, (mass, (parent, slot)) in enumerate(zip(masses_solar, slots))]
+    members += [TreeMember(len(members) + index, parent, slot, mass) for index, (mass, (parent, slot)) in enumerate(dark)]
     offsets = member_offsets_au(members, nodes, unix)
-    return [offsets[number] for number in range(len(members))]
+    return [offsets[number] for number in range(len(masses_solar))]
 
 
 def member_offsets_au(members, nodes, unix):

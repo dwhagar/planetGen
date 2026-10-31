@@ -26,10 +26,14 @@ a new `RoguePlanet` and back-fills stored rows (`store._migrate_v47_to_v48`).
 
 import math
 
-from planetgen.physics import brown_dwarf, constants, gases, hydrosphere, interior_heat, mass_boundaries, radiogenic, relations, saturation, water_layer
+from planetgen.physics import brown_dwarf, constants, gases, hydrosphere, interior_heat, mass_boundaries, radiogenic, relations, saturation, substellar_ceiling, water_layer, unit_registry as units
 from planetgen import tuning
 from planetgen.util.random import log_uniform
 from planetgen.util import draw
+
+_kg_to_mearth = units.converter("kg", "Mearth")
+_kg_to_mjup = units.converter("kg", "Mjup")
+_kg_to_msun = units.converter("kg", "Msun")
 
 SURFACE_REGIMES = (
     "bare-rock", "frozen-atmosphere", "ice-shell-ocean", "ice-world",
@@ -83,9 +87,9 @@ def _giant_luminosity_w(mass_kg, age_gy):
     neptune_l = _sigma() * pc.ROGUE_NEPTUNE_INTERNAL_TEMPERATURE_K ** 4 * 4 * math.pi * neptune_radius_m ** 2
 
     def brown_dwarf_l(m_kg, t_gy):
-        return brown_dwarf.luminosity_sol(m_kg / phys.SOLAR_MASS_TO_KG, t_gy) * phys.SOLAR_LUMINOSITY
+        return brown_dwarf.luminosity_sol(_kg_to_msun(m_kg), t_gy) * phys.SOLAR_LUMINOSITY
 
-    m_jup = mass_kg / phys.JUPITER_MASS_TO_KG
+    m_jup = _kg_to_mjup(mass_kg)
     age_factor = (age_gy / pc.ROGUE_EARTH_REFERENCE_AGE_GY) ** pc.ROGUE_GIANT_COOLING_TIME_EXPONENT
     if m_jup >= deuterium_jup:
         return brown_dwarf_l(mass_kg, age_gy)
@@ -99,9 +103,10 @@ def _giant_luminosity_w(mass_kg, age_gy):
 
 def giant_internal_flux_w_m2(mass_kg, radius_km, age_gy):
     """A giant's or brown dwarf's internal heat flux at its photosphere,
-    W/m^2, capped at `ROGUE_MAX_EFFECTIVE_TEMPERATURE_K`'s."""
+    W/m^2, capped at the flux of the hottest a body of its mass and age can be (`substellar_ceiling.cap_k`)."""
     flux = _giant_luminosity_w(mass_kg, age_gy) / (4 * math.pi * (radius_km * 1000.0) ** 2)
-    return min(flux, _sigma() * tuning.ROGUE_MAX_EFFECTIVE_TEMPERATURE_K ** 4)
+    cap_k = substellar_ceiling.cap_k(_kg_to_msun(mass_kg), age_gy)
+    return min(flux, _sigma() * cap_k ** 4)
 
 
 def effective_temperature_k(flux_w_m2):
@@ -219,7 +224,7 @@ def rogue_surface_conditions(mass_kg, radius_km, planet_type, mass_bin, has_moon
     water_fraction = None
     if rng.random() < pc.ROGUE_WATER_RICH_CHANCE.get(mass_bin, 0.0):
         water_fraction = log_uniform(*pc.ROGUE_WATER_MASS_FRACTION_RANGE, rng=rng)
-    had_air = mass_kg / constants.EARTH_MASS_TO_KG >= pc.ROGUE_FROZEN_ATMOSPHERE_MIN_MASS_EARTH
+    had_air = _kg_to_mearth(mass_kg) >= pc.ROGUE_FROZEN_ATMOSPHERE_MIN_MASS_EARTH
 
     # Step 4: down the envelope's adiabat, or the bare surface at T_eff.
     if envelope_pa is not None:

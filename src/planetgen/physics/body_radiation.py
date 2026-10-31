@@ -24,7 +24,7 @@ import functools
 
 import numpy as np
 
-from planetgen.physics import aerosols, air_column, atmospheric_radiation, constants, stellar_spectrum, uv_cross_sections
+from planetgen.physics import activity, aerosols, air_column, atmospheric_radiation, constants, stellar_spectrum, uv_cross_sections
 
 DEFAULT_GROUND_ALBEDO = 0.15
 """float: The ground reflectance used until GEN.462 gives it by band (stand-in: the Earth-like land mean)."""
@@ -73,7 +73,7 @@ def surface_spectrum(body, mu0=1.0, ground_albedo=DEFAULT_GROUND_ALBEDO, distanc
     centres = uv_cross_sections.centres(uv_cross_sections.standard_edges())
     haze, cloud = aerosols.layers(stored, centres)
     return atmospheric_radiation.surface_radiation(
-        column, temperature_k=temperature, flux_w_m2=flux, uv_c_share=1.0 if share is None else share,
+        column, temperature_k=temperature, flux_w_m2=flux, uv_c_share=1.0 if share is None else share, uv_shares=activity.uv_shares_of(star),
         ozone_du=getattr(body, "ozone_column_du", None) or 0.0,
         ozone_temperature_k=atmospheric_radiation.ozone_layer_temperature_k(flux, getattr(body, "bond_albedo", None)), mu0=mu0,
         ground_albedo=ground_albedo,
@@ -101,7 +101,7 @@ def bare_dna_dose_w_m2(body, mu0=1.0, distance_au=None):
     temperature, flux = lit
     share = getattr(body.star, "uv_c_share", None)
     edges = uv_cross_sections.standard_edges()
-    top = stellar_spectrum.irradiance_w_m2(edges, temperature, flux, 1.0 if share is None else share)
+    top = stellar_spectrum.irradiance_w_m2(edges, temperature, flux, 1.0 if share is None else share, activity.uv_shares_of(body.star))
     return float(mu0 * np.sum(top * atmospheric_radiation.setlow_weight(uv_cross_sections.centres(edges))))
 
 

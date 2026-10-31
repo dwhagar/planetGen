@@ -18,8 +18,18 @@
         {{ ui_input("q", "Name", state.q, type="search", autocomplete="off", enterkeyhint="search",
                     placeholder="Any sector, system, star, planet, moon") }}
       </div>
+      <label class="search-field search-field-stars">Stars
+        <select name="stars" id="search-star-count">
+          <option value="">Any number</option>
+          {%- for value, label in star_choices %}
+          <option value="{{ value }}"{% if state.texts['stars'] == value %} selected{% endif %}>{{ label }}</option>
+          {%- endfor %}
+        </select>
+      </label>
       <button type="submit" class="btn">Search</button>
     </div>
+    <p class="hint">Stars is how many stars the system holds. In the search box, <code>stars:3</code> finds triples, <code>stars:3+</code> three or more,
+      and <code>stars:binary</code>, <code>trinary</code>, <code>quaternary</code> or <code>quintenary</code> work too.</p>
     <details class="search-more"{% if state.advanced_open() %} open{% endif %}>
       <summary>Search by object and size</summary>
       <div class="search-fields">
@@ -40,6 +50,50 @@
         {%- endfor %}
       </div>
       <p class="hint">A field here searches only that kind of object and replaces the main name search for it.</p>
+    </details>
+    <details class="search-more search-values"{% if state.values_open() %} open{% endif %}>
+      <summary>Search by physical values</summary>
+      {%- for group in value_groups %}
+      <h3 class="search-values-heading">{{ group.label }}s</h3>
+      <div class="search-fields search-fields-size search-fields-values" data-values-group="{{ group.entity }}">
+        {%- for row in group.rows %}
+        <div class="search-field search-field-size search-field-value" role="group" aria-label="{{ group.label }} {{ row.label|lower }}">
+          <span>{{ row.label }}</span>
+          {{ ui_input(row.min_name, "Minimum " ~ group.label|lower ~ " " ~ row.label|lower, row.min, type="number", bare=True, step="any", placeholder="least") }}
+          <span aria-hidden="true">&ndash;</span>
+          {{ ui_input(row.max_name, "Maximum " ~ group.label|lower ~ " " ~ row.label|lower, row.max, type="number", bare=True, step="any", placeholder="most") }}
+          {%- if row.units|length > 1 %}
+          <select name="{{ row.unit_name }}" aria-label="Unit of the {{ group.label|lower }} {{ row.label|lower }}">
+            {%- for unit in row.units %}<option value="{{ unit.value }}"{% if unit.selected %} selected{% endif %}>{{ unit.label }}</option>{% endfor %}
+          </select>
+          {%- elif row.symbol %}<span class="search-unit">{{ row.symbol }}</span>{% endif %}
+        </div>
+        {%- endfor %}
+        {%- if group.other_gas and group.other_gas.gases %}
+        {%- set gas = group.other_gas %}
+        <div class="search-field search-field-size search-field-value" role="group" aria-label="{{ group.label }} partial pressure of another gas">
+          <span>Partial pressure of another gas</span>
+          <select name="{{ gas.name }}" aria-label="Gas for the {{ group.label|lower }} partial pressure">
+            <option value="">Pick a gas</option>
+            {%- for formula in gas.gases %}<option value="{{ formula }}">{{ formula }}</option>{% endfor %}
+          </select>
+          {{ ui_input(gas.min_name, "Minimum " ~ group.label|lower ~ " partial pressure of the gas picked", "", type="number", bare=True, step="any", placeholder="least") }}
+          <span aria-hidden="true">&ndash;</span>
+          {{ ui_input(gas.max_name, "Maximum " ~ group.label|lower ~ " partial pressure of the gas picked", "", type="number", bare=True, step="any", placeholder="most") }}
+          <select name="{{ gas.unit_name }}" aria-label="Unit of the {{ group.label|lower }} partial pressure of the gas picked">
+            {%- for unit in gas.units %}<option value="{{ unit.value }}"{% if unit.selected %} selected{% endif %}>{{ unit.label }}</option>{% endfor %}
+          </select>
+        </div>
+        {%- endif %}
+        <label class="search-field search-field-value-sort">Order the {{ group.label|lower }}s by
+          <select name="{{ group.sort.name }}">
+            {%- for option in group.sort.options %}<option value="{{ option.value }}"{% if option.selected %} selected{% endif %}>{{ option.label }}</option>{% endfor %}
+          </select>
+        </label>
+      </div>
+      {%- endfor %}
+      <p class="hint">A range keeps the bodies whose stored value lies between the two boxes, ends included; a body with no value for it is left out.
+        Each range is in the unit beside it. Gases are the partial pressure at the surface, 0 for a body without that gas.</p>
     </details>
     {%- for key, label, list_key, placeholder in name_fields %}
     <datalist id="dl-{{ list_key }}">

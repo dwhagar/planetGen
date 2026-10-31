@@ -22,8 +22,8 @@ and moon in a system after all of them have been generated.
 import math
 import re
 
-from planetgen.physics import body_state, bulk_draw, constants, giant_draw, giant_interior, kepler, metallicity, moon_composition, orbit_elements, planet_classes, planet_kind, planet_mass, rings
-from planetgen.physics import aerosols, atmosphere, body_colour, climate_draws, habitability_world, hosting_gate, hydrosphere, interior_heat, magnetism, radiation, radiogenic, relations, spin, surface_air, surface_composition, tidal_spin
+from planetgen.physics import moon_history, body_state, bulk_draw, constants, giant_draw, giant_interior, giant_tilt, kepler, metallicity, moon_composition, orbit_elements, planet_classes, planet_kind, planet_mass, rings
+from planetgen.physics import aerosols, atmosphere, body_colour, body_spin, daylight, spin_torques, climate_draws, habitability_world, hosting_gate, hydrosphere, interior_heat, magnetism, ocean_tides, radiation, radiogenic, relations, spin, surface_air, surface_composition, tidal_spin
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.util import log
@@ -32,6 +32,10 @@ from planetgen.physics.state_vectors import state_from_elements
 from planetgen.util.checks import finite_domain
 from planetgen.util.random import sample_bounded_bell, sample_power_law
 from planetgen.physics import unit_registry as units
+
+_kg_to_mearth = units.converter("kg", "Mearth")
+_kg_to_msun = units.converter("kg", "Msun")
+_mearth_to_kg = units.converter("Mearth", "kg")
 
 _km_to_m = units.converter("km", "m")
 _m_to_km = units.converter("m", "km")
@@ -68,14 +72,14 @@ GIANT_TRANSITION_MASS_EARTH, GIANT_TRANSITION_RADIUS_EARTH = _giant_transition_e
 
 def giant_regime(mass_kg):
     """`"neptunian"` below the relation's transition mass, else `"jovian"`."""
-    mass_earth = mass_kg / constants.EARTH_MASS_TO_KG
+    mass_earth = _kg_to_mearth(mass_kg)
     return "neptunian" if mass_earth < GIANT_TRANSITION_MASS_EARTH else "jovian"
 
 
 def giant_radius_km(mass_kg):
     """The giant mass-radius relation's median radius (km) for `mass_kg`
     (`constants.GIANT_NEPTUNIAN_MASS_RADIUS`), with no scatter."""
-    mass_earth = mass_kg / constants.EARTH_MASS_TO_KG
+    mass_earth = _kg_to_mearth(mass_kg)
     if giant_regime(mass_kg) == "neptunian":
         m0, r0, slope = constants.GIANT_NEPTUNIAN_MASS_RADIUS
     else:
@@ -105,12 +109,12 @@ def _giant_mass_for_radius_kg(radius_km, star_mass_kg):
     radius, never under the core-critical mass, else a draw from the runaway mass function (the Jovian branch is nearly flat, so
     radius barely constrains mass there), never under the transition mass.
     """
-    transition_kg = GIANT_TRANSITION_MASS_EARTH * constants.EARTH_MASS_TO_KG
+    transition_kg = _mearth_to_kg(GIANT_TRANSITION_MASS_EARTH)
     radius_earth = radius_km / constants.EARTH_RADIUS_KM
     if radius_earth < GIANT_TRANSITION_RADIUS_EARTH:
         m0, r0, slope = constants.GIANT_NEPTUNIAN_MASS_RADIUS
         mass_kg = m0 * (radius_earth / r0) ** (1 / slope) * constants.EARTH_MASS_TO_KG
-        return max(mass_kg, tuning.GIANT_CORE_CRITICAL_MASS_EARTH * constants.EARTH_MASS_TO_KG)
+        return max(mass_kg, _mearth_to_kg(tuning.GIANT_CORE_CRITICAL_MASS_EARTH))
     return max(transition_kg, planet_mass.runaway_mass_kg(star_mass_kg))
 
 
@@ -164,7 +168,7 @@ def calculate_orbital_period_years(distance_au, primary_mass_kg):
             f"calculate_orbital_period_years: distance_au ({distance_au}) and primary_mass_kg "
             f"({primary_mass_kg}) must both be positive."
         )
-    primary_mass_sol = primary_mass_kg / constants.SOLAR_MASS_TO_KG
+    primary_mass_sol = _kg_to_msun(primary_mass_kg)
     return math.sqrt(distance_au ** 3 / primary_mass_sol)
 
 
@@ -271,7 +275,7 @@ def settle_orbit(planet):
     body's radius as it is now. Ages only rise, so the eccentricity only falls (it is never raised above what the body has, which the spacing of the orbits may have cut), and a lower one clears the star and the neighbours better.
     The position and velocity are made again on the new ellipse (`update_orbital_position`, the body keeps its place in its plane) and
     a planet's moons are told (`host_eccentricity`). The air, the tide's heat and the spin of a rocky body are read again by the
-    re-finish of GEN.992, not here.
+    re-finish of GEN.992, not here; the star's XUV flux, exposure and flares at the new mean light are set here, so the stored flux follows the stored orbit.
 
     Returns:
         bool: Whether the eccentricity moved by more than `ECCENTRICITY_SETTLE_TOLERANCE`.
@@ -288,14 +292,81 @@ def settle_orbit(planet):
     for moon in getattr(planet, "moons", ()):
         moon.host_eccentricity = eccentricity
     update_orbital_position(planet)
+    # the star's XUV and flares at the mean light of the new orbit (no draws), so the stored flux follows the stored ellipse; the air waits for the re-finish
+    light_au = orbit_elements.flux_distance_au(planet.distance, eccentricity)
+    for body in (planet, *getattr(planet, "moons", ())):
+        if getattr(body, "_star_distance_au", None):
+            magnetism.update_exposure(body, light_au)
     return True
+
+
+AGE_SETTLE_TOLERANCE = 0.02
+"""float: A rocky planet or moon made when the star's age was within this share of its final age keeps its air, class and dose
+(`refinish_rocky`); the age the decay clock and the heat history read is then within 2 percent of the right one. A stand-in, registry
+row OE15."""
+
+
+def age_moved(body):
+    """Whether the star's age has risen by more than `AGE_SETTLE_TOLERANCE` of the age `body` was made at."""
+    drawn = getattr(body, "_age_drawn", None)
+    return drawn is not None and body.star.age - drawn > AGE_SETTLE_TOLERANCE * max(drawn, 0.1)
+
+
+def refinish_rocky(planet):
+    """
+    Makes a rocky planet's end stages again at the star's final age, and its moons' (GEN.992, found by GEN.986): the air, the water and the
+    surface (`calculate_atmospheric_conditions`), the class, the spin at that age (its own birth spin worn by the tide again, `generate_spin` with `birth`, GEN.961) and what ends it (the field, the dose, the colour and the
+    habitability score; `generate_spin`), the same sequence a moved planet gets (`validation.reconcile_moved_planet`), but from a stream of
+    the body's own (mass, distance, star and the age it settles to), so the run's stream does not move. A body keeps its mass, radius,
+    composition and orbit. The forced requests are judged on the classes this makes (`StarSystem`), and the moons' induced fields, rings and
+    life follow in later passes. A planet or moon whose star's age rose by under `AGE_SETTLE_TOLERANCE` of the age it was made at is left.
+
+    Args:
+        planet (Planet): A rocky planet (`body_type` "t", not a moon) with its moons; a giant's moons are made again too.
+
+    Returns:
+        int: How many bodies were made again (the planet and its moons).
+    """
+    made = 0
+    with_planet = planet.body_type == "t" and not planet.is_moon and age_moved(planet)
+
+    def bodies():
+        if with_planet:
+            yield planet
+        yield from list(planet.moons)      # read after the planet is made again: its moons' history (GEN.959) can replace a moon with a new body
+
+    for body in bodies():
+        if not age_moved(body):
+            continue
+        stream = draw.Stream(f"refinish-rocky:{float(body.mass)!r}:{float(body.distance)!r}:{float(planet.distance)!r}:"
+                             f"{float(body.star.mass)!r}:{float(body.star.age)!r}:{float(body.radius)!r}:{int(body.is_moon)}")
+        with draw.bound(stream):
+            if body.is_moon:
+                calculate_atmospheric_conditions(body, planet.distance, planet.eccentricity)
+                apply_class(body)
+                generate_spin(body, planet.mass, birth=getattr(body, "_birth_spin", None))
+            else:
+                calculate_atmospheric_conditions(body)
+                apply_class(body)
+                generate_spin(body, body.primary_mass_kg, birth=getattr(body, "_birth_spin", None))
+        body._age_drawn = body.star.age
+        made += 1
+    if made:  # GEN.767: the spin and period changed, the moons' day and night shares follow (no draws)
+        for moon in planet.moons:
+            daylight.generate(moon, planet)
+    if made:
+        # GEN.1034: the sea and the spin are new, and the tide worked out from the old ones follows them (no draws)
+        ocean_tides.generate(planet)
+        for moon in planet.moons:
+            ocean_tides.generate(moon, planet)
+    return made
 
 
 def settle_giant(planet):
     """
     Settles a giant sized from the radius tables once the star's age and the orbit are final (GEN.961, `giant_draw.settle`): when its
     radius moves, the volume and the gravity follow, and the air is made again from a stream of its own (the gravity sets its scale
-    height; the run's stream is not touched), then the class, the dose, the colour and the habitability score that follow the air.
+    height; the run's stream is not touched), then the class and the spin (which ends with the field, the dose, the colour and the habitability score).
 
     Returns:
         bool: Whether the giant's radius moved.
@@ -309,10 +380,7 @@ def settle_giant(planet):
     with draw.bound(stream):
         calculate_atmospheric_conditions(planet)
         apply_class(planet)
-        # what `generate_spin` makes last, from the air above: the dose, the colour and the habitability score (the field is of the mass)
-        radiation.generate_dose(planet)
-        body_colour.generate(planet)
-        habitability_world.generate(planet, internal_heat_flux_w_m2(planet))
+        generate_spin(planet, planet.primary_mass_kg, birth=getattr(planet, "_birth_spin", None))  # the birth spin again worn to the final age, then the field, the dose, the colour and the score
     if drop_unstable_moons(planet):  # a smaller giant holds a smaller moon and a smaller range of orbits
         planet.reflex_offset_x, planet.reflex_offset_y, planet.reflex_offset_z = calculate_reflex_offset(
             planet.mass, [(m.mass, m.position_x, m.position_y, m.position_z) for m in planet.moons])
@@ -435,7 +503,8 @@ def calculate_atmospheric_conditions(planet, distance_override=None, host_eccent
     solar_output_at_orbit = (planet.star.luminosity / output_area) / 1e6
     # The range of the body's regime (a frozen or a wet world reflects more than dry rock): it reads only what the body is made of and
     # the starlight, so it can be drawn before the air it will be solved with.
-    albedo = draw.uniform(*climate_draws.albedo_range(planet.body_type, planet.water_mass_fraction, solar_output_at_orbit))
+    albedo = draw.uniform(*climate_draws.albedo_range(planet.body_type, planet.water_mass_fraction, solar_output_at_orbit,
+                                                      getattr(planet.star, "temperature", None)))
     # Floored at the cosmic microwave background: starlight alone can put a
     # body around a very dim star (or far out) below ~2.7 K, but nothing in
     # space is colder than the background it sits in.
@@ -447,6 +516,7 @@ def calculate_atmospheric_conditions(planet, distance_override=None, host_eccent
     heat = interior_heat.update_heat(planet)
     giant = planet.body_type == "g"
     surface_w = None if giant else hydrosphere.draw_surface_water(planet)
+    planet._surface_w = surface_w                   # GEN.839: kept for `refresh_at_final_age`, not stored
     water_lost = (not giant) and hydrosphere.water_loss_kg(planet) > 0.0
 
     planet.surface_temperature = surface_temperature_no_atmosphere
@@ -464,7 +534,13 @@ def calculate_atmospheric_conditions(planet, distance_override=None, host_eccent
         planet.atm_molar_density = air.state.mean_molar_mass_kg_mol
         planet.atm_density = air.state.density_kg_m3
         planet.scale_height = _m_to_km(air.state.scale_height_m)
-        climate_draws.record(planet, albedo, air.greenhouse_factor)     # GEN.412: the two numbers the temperature is made of
+        factor = air.greenhouse_factor
+        if giant:
+            # GEN.412 reads the temperature as starlight alone times (1 + G)^(1/4); a giant also radiates its own heat, which the air's factor
+            # leaves out of T_e, so the stored G is taken against the starlight alone (GEN.1030) and the pair reproduces the temperature
+            factor = climate_draws.greenhouse_from_temperature(air.temperature_k, albedo, solar_output_at_orbit)
+            factor = air.greenhouse_factor if factor is None else max(factor, 0.0)
+        climate_draws.record(planet, albedo, factor)     # GEN.412: the two numbers the temperature is made of
         atmosphere.store_air(planet, air.partials_pa, None if giant else _mantle_redox(planet, air, distance, water_lost))
 
     # GEN.88: water, land, ice and the ocean's chemistry.
@@ -477,6 +553,29 @@ def calculate_atmospheric_conditions(planet, distance_override=None, host_eccent
     surface_composition.generate_surface(planet)
     # GEN.414: cloud, haze and dust depths, on the body's own stream (no draw of the run's moves).
     aerosols.generate_aerosols(planet)
+
+
+def refresh_at_final_age(body):
+    """
+    GEN.839: makes again, at the heat of the star's final age, what read the heat of the provisional one: the ice shell and the rest of
+    the hydrosphere (`hydrosphere.generate_hydrosphere`), the ground with its volcanism gate (`surface_composition.generate_surface`),
+    the ground dose when the ground changed (`radiation.update_ground_dose`), and the habitability score that reads them all. Called in the life pass, after
+    `interior_heat.update_heat` has run again at the final age. The draws these make (the brine, the ocean chemistry, the ground and its
+    gates) come from the body's own stream (`util.draw.Stream`, seeded from what is final about it), so no draw of the run's stream moves;
+    a body with no water drawn (a giant, a belt, or one loaded from the database) is left as it is.
+    """
+    surface_w = getattr(body, "_surface_w", None)
+    if body.body_type in ("g", "a") or surface_w is None:
+        return
+    seed = f"final-age:{body.is_moon}:{body.planet_class}:{body.mass!r}:{body.radius!r}:{body.distance!r}:{getattr(body.star, 'age', None)!r}"
+    flux = internal_heat_flux_w_m2(body)            # the heat at the star's age now (no draws; the life pass has run it already)
+    ground = surface_composition.mix_of(body)
+    with draw.bound(draw.Stream(seed)):
+        hydrosphere.generate_hydrosphere(body, flux, surface_w)
+        surface_composition.generate_surface(body)
+        if surface_composition.mix_of(body) != ground:
+            radiation.update_ground_dose(body)
+    habitability_world.generate(body, flux)
 
 
 def _mantle_redox(planet, air, distance, water_lost):
@@ -558,7 +657,7 @@ def generate_orbital_motion_properties(planet, primary_mass_kg):
     stat (this generator doesn't track rotational phase -- nothing consumes
     "which side currently faces the primary"). `generate_spin` draws the
     body's birth spin and wears it down by the tide of what it orbits for the
-    age of its star (`tidal_spin`, GEN.731): the moon ends up locked
+    age of its star (`body_spin`, GEN.731 and GEN.957): the moon ends up locked
     (`rotation_period_hours` == its own orbital period, converted to hours)
     or in a spin-orbit resonance when the tide has had time to bring it there,
     which is the norm for large or close-in moons, not a rare special case,
@@ -594,36 +693,65 @@ def generate_orbital_motion_properties(planet, primary_mass_kg):
     update_orbital_position(planet, arg_periapsis_deg + math.degrees(true_anomaly_rad), arg_periapsis_deg)
 
 
-def generate_spin(planet, primary_mass_kg):
-    """
-    Draws a planet's or moon's `rotation_period_hours` and spin axis (GEN.104, GEN.731; `physics.spin.SPIN_FIELDS`). It is born spinning (a
-    rocky planet at the rate and angle the giant impacts that built it leave, `spin.accretion_spin`; a moon at a rate from
-    `spin.planet_day_hours`, as a gas giant) and the tide of what it orbits then wears the spin toward the orbit's rate for the age of its
-    star (`tidal_spin.evolve`, the body's own Love number and quality factor, the orbit's eccentricity from `generate_orbit_shape`). A body
-    the tide has brought all the way down turns once an orbit (locked) or in a spin-orbit resonance such as Mercury's 3:2
-    (`spin.spin_state`), with its axis on the orbit normal; any other keeps its tilt, a rocky planet's from the impacts and a moon's or giant's
-    a Rayleigh one. Called again when a move changes the body's period, since that can change the state.
-    """
-    age_s = _yr_to_s(_gyr_to_yr(planet.star.age))
-    semi_major_axis_m = _au_to_m(planet.distance)
-    eccentricity = getattr(planet, "eccentricity", 0.0) or 0.0
-    impact_tilt = None
+def draw_birth_spin(planet):
+    """The spin a planet or moon is born with, `(rate rad/s, tilt degrees, capture units)`: a rocky planet's from the giant impacts that built it
+    (`spin.accretion_spin`), a moon's or giant's at a rate from `spin.planet_day_hours` with a Rayleigh tilt (GEN.104, GEN.979). The capture units are one uniform
+    for each resonance the spin can pass without being caught (`spin_torques.CAPTURE_RATIOS`, GEN.1172), drawn here so that running the history again decides the same."""
     if planet.body_type == "t" and not planet.is_moon:
-        spin_rate, impact_tilt = spin.accretion_spin(planet.mass, planet.radius)
+        rate, tilt = spin.accretion_spin(planet.mass, planet.radius)
     else:
-        spin_rate = 2.0 * math.pi / _h_to_s(spin.planet_day_hours(planet.body_type))
-    spin_rate, ratio = tidal_spin.evolve(planet, primary_mass_kg, semi_major_axis_m, spin_rate, age_s, eccentricity)
+        rate, tilt = 2.0 * math.pi / _h_to_s(spin.planet_day_hours(planet.body_type)), spin.rayleigh_tilt_deg()
+        if planet.body_type == "g" and not planet.is_moon:
+            tilt = giant_tilt.tilt_after_merger_deg(planet.mass, planet.radius, tilt)    # GEN.1165: an ice giant's merger can lay it on its side
+    return rate, tilt, tuple(draw.random() for _ in spin_torques.CAPTURE_RATIOS)
+
+
+def generate_spin(planet, primary_mass_kg, birth=None, found=None):
+    """
+    Draws a planet's or moon's `rotation_period_hours` and spin axis (GEN.104, GEN.731; `physics.spin.SPIN_FIELDS`). It is born spinning
+    (`draw_birth_spin`, kept on the body as `_birth_spin` so that a later pass can run its history again without drawing it) and the tide
+    of what it orbits then wears the spin toward the orbit's rate for the age of its star (`body_spin.evolve`: the gravitational tide with
+    the body's own frequency-dependent rheology and, for a rocky planet with an air, the thermal tide of the air, GEN.957; the orbit's
+    eccentricity from `generate_orbit_shape`). A planet with moons runs the history of the moons with its spin
+    (`moon_history.apply`, GEN.959), which calls this again with the `found` state it reached. A body
+    the tide has brought all the way down turns once an orbit (locked) or in a spin-orbit resonance such as Mercury's 3:2
+    (`spin.spin_state`), with its axis in the first Cassini state (a small share of the orbit's inclination off the orbit normal, `tidal_spin.cassini_tilt_deg`); one the thermal and gravitational tides hold in balance away from synchronism turns at that
+    rate, upright or upside down; any other keeps its tilt, a rocky planet's from the impacts and a moon's or giant's a Rayleigh one. Called again when a move changes the body's period, since that can change the state.
+
+    Args:
+        planet (Planet): The planet or moon.
+        primary_mass_kg (float): What it orbits.
+        birth (tuple, optional): `(rate, tilt, capture units)` to start from instead of drawing it.
+        found (spin_torques.SpinResult, optional): The state to set instead of running the history (`moon_history.apply`'s).
+    """
+    if birth is None:
+        birth = draw_birth_spin(planet)
+    planet._birth_spin = birth
+    spin_rate, birth_tilt, capture_units = birth
+    if found is None:
+        if not planet.is_moon and (getattr(planet, "moons", None) or getattr(planet, "_born_moons", None)):
+            return moon_history.apply(planet, primary_mass_kg)
+        found = body_spin.evolve(planet, primary_mass_kg, _au_to_m(planet.distance), spin_rate, _yr_to_s(_gyr_to_yr(planet.star.age)),
+                                 getattr(planet, "eccentricity", 0.0) or 0.0, capture_units=capture_units)
     period_hours = planet.period * _yr_to_h(1.0)
-    if ratio is not None:
-        planet.rotation_period_hours = period_hours / ratio
-        tilt = 0.0
+    if found.ratio is not None:
+        planet.rotation_period_hours = period_hours / found.ratio
+        tilt = tidal_spin.cassini_tilt_deg(planet.orbital_inclination_deg, draw.random())    # GEN.1165: the first Cassini state, not exactly 0
     else:
-        planet.rotation_period_hours = 2.0 * math.pi / spin_rate / 3600.0
-        tilt = impact_tilt if impact_tilt is not None else spin.rayleigh_tilt_deg()
+        planet.rotation_period_hours = 2.0 * math.pi / abs(found.rate) / 3600.0
+        if found.kind == "asynchronous":
+            tilt = 0.0 if found.rate > 0.0 else 180.0      # the tides have brought it to its balance: upright, or upside down (Venus)
+        else:
+            tilt = birth_tilt
+            if found.rate < 0.0:
+                tilt = 180.0 - tilt
     spin.set_spin(planet, spin.orbit_normal(planet.orbital_inclination_deg,
                                             planet.orbital_ascending_node_deg), tilt)
+    # GEN.767: the day and night shares follow the rotation and tilt just set (a planet's; a moon's need its parent's axis, `refinish_rocky`)
+    if not planet.is_moon:
+        daylight.generate(planet)
     # GEN.86: the field depends on the rotation just set.
-    magnetism.generate_field(planet)
+    magnetism.generate_field(planet, None if planet.body_type == "g" else interior_heat.core_of(planet))
     # GEN.87: the surface dose, from the air, water and field above.
     radiation.generate_dose(planet)
     # DB.96: the atmosphere colour, from the air, the ozone and the aerosols above.
@@ -631,6 +759,21 @@ def generate_spin(planet, primary_mass_kg):
     # GEN.89: the habitability score, from all of the above.
     habitability_world.generate(planet, internal_heat_flux_w_m2(planet))
 
+
+
+def move_orbit(body, distance_au, primary_mass_kg):
+    """
+    Sets the semi-major axis of a planet's or moon's orbit and what follows from it (period, Hill sphere, position and speed), keeping the
+    plane, the shape and where the body is along the orbit (no draws): the move of a moon by the tide of its planet (`moon_history`, GEN.959).
+    """
+    orbit = body.orbit_from_vector()
+    arg_periapsis_deg = math.degrees(orbit["arg_periapsis"])
+    phase_deg = body_state.argument_of_latitude_deg((body.position_x, body.position_y, body.position_z),
+                                                    body.orbital_inclination_deg, body.orbital_ascending_node_deg)
+    body.distance = distance_au
+    body.period = calculate_orbital_period_years(distance_au, primary_mass_kg)
+    update_hill_sphere(body)
+    update_orbital_position(body, phase_deg, arg_periapsis_deg)
 
 
 def update_orbital_position(planet, phase_deg=None, arg_periapsis_deg=0.0):
@@ -890,7 +1033,7 @@ def generate_moons(planet, moon_count=None):
         # log-uniformly gives every order of magnitude equal weight instead,
         # which both matches that real spacing pattern better and -- since
         # tidal-locking timescale scales with distance^6
-        # (`tidal_spin.locking_time_s`) -- stops real tidal-locking
+        # (`body_spin.evolve`) -- stops real tidal-locking
         # physics from calling almost every moon unlocked purely because the
         # old distribution pushed it implausibly far from its primary.
         moon_distance_km = math.exp(draw.uniform(math.log(total_orbit_distance), math.log(high_orbit)))
@@ -902,6 +1045,7 @@ def generate_moons(planet, moon_count=None):
                           distance_override=planet.distance, is_moon=True, primary_mass_kg=planet.mass,
                           moon_origin=origin, moon_disk_system=disk_system, host_eccentricity=planet.eccentricity)
         if new_moon.radius > limit_radius_km:    # denser or lighter than the parent could hold; its slot stays open
+            draw.redrawn("moon.too_large")
             rejected += 1
             if rejected >= MOON_REJECTION_LIMIT:
                 break

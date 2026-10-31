@@ -94,3 +94,25 @@ def test_the_co2_of_3i_atlas_is_beyond_any_zone_of_this_budget():
     """CO2/H2O 7.6 (Cordiner et al. 2025) is over twenty times the most carbon and oxygen of a solar star give."""
     assert 7.6 / cib.nebular_ratios()[0] > 20.0
     assert 7.6 / cib.nebular_ratios(carbon=2.0)[0] > 10.0
+
+
+def test_a_comet_forms_between_the_snow_line_and_the_edge_of_the_disc_in_equal_masses_per_interval_of_ln_r():
+    """GEN.595 wiring: the uniform draw is a position in ln r, so u = 0 is the inner edge (the water zone) and u near 1 the outer (the CO zone)."""
+    inner = cib.formation_ratios(SOLAR, 2.7, 50.0, 1.0, 1.0, 0.0)
+    outer = cib.formation_ratios(SOLAR, 2.7, 50.0, 1.0, 1.0, 0.999)
+    assert inner == cib.ice_ratios(2.7, SOLAR)
+    assert outer == cib.ice_ratios(50.0 ** 0.999 * 2.7 ** 0.001, SOLAR) and outer[1] > inner[1]
+    shares = cib.zone_shares(2.7, 50.0, SOLAR)
+    hits = [cib.zone_of(2.7 * (50.0 / 2.7) ** ((i + 0.5) / 4000), SOLAR) for i in range(4000)]
+    for zone in ("water", "carbon dioxide", "carbon monoxide"):
+        assert hits.count(zone) / 4000 == pytest.approx(shares[zone], abs=0.01)
+
+
+def test_a_disc_that_ends_inside_the_water_line_still_gives_the_ice_at_its_inner_edge():
+    assert cib.formation_ratios(SOLAR, 1.0, 1.5, 1.0, 1.0, 0.5) is not None
+    assert cib.formation_ratios(SOLAR, 1.0, 0.5, 1.0, 1.0, 0.5) is not None
+
+
+def test_a_formation_draw_must_be_a_fraction():
+    with pytest.raises(ValueError):
+        cib.formation_ratios(SOLAR, 2.7, 50.0, 1.0, 1.0, 1.0)

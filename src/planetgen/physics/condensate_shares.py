@@ -20,9 +20,10 @@ its fixed line.
 
 Limits. The table is for a gas of solar C/O at 10^-4 bar with every carbon atom in methane and every nitrogen atom in ammonia; the
 kinetic models of Lodders's Table 10 (graphite kept, methane and ammonia not formed) are not read here. The ice mass of a comet
-(Marboeuf et al. 2014, ice over rock near 1) is half of this equilibrium (about 2); which one planetesimals follow is open. Nothing in
-generation calls this yet: the wiring is GEN.950's second step (the snow line temperature, the ice boost of the surface density and
-the water range of an icy body).
+(Marboeuf et al. 2014, ice over rock near 1) is half of this equilibrium (about 2); which one planetesimals follow is open. The snow line
+(`formation.snow_line_au`), the ice boost of the surface density (`WATER_ICE_SOLID_BOOST`), the temperature below which a ring is cold
+and the water share an icy body can reach (`bulk_draw`) read it (GEN.950); the star's oxygen over its rock-forming metals is not
+passed on, so the ice masses are those of the Sun's composition.
 """
 
 import math
@@ -107,6 +108,11 @@ def solid_boost(temperature_k, oxygen=1.0, carbon=1.0, nitrogen=1.0):
     return 1.0 + ice_over_rock(temperature_k, oxygen, carbon, nitrogen)
 
 
+WATER_ICE_SOLID_BOOST = solid_boost(0.5 * (ICE_CONDENSATION_K["H2O"] + ICE_CONDENSATION_K["NH3"]))
+"""float: How many times the rock's surface density the solids make just beyond the water line, between the water and ammonia lines (2.17 for
+the Sun's composition; Hayashi 1981 has 30 / 7 = 4.3). The jump of the minimum-mass nebula at the snow line (`formation.mmsn_surface_density_gcm2`)."""
+
+
 @finite_domain()
 def disk_temperature_k(distance_au, luminosity_w):
     """The temperature a blackbody reaches in the light of a star of `luminosity_w` at `distance_au`: `(L / 16 pi sigma)^(1/4) / sqrt(d)`."""
@@ -123,8 +129,3 @@ def ice_line_au(luminosity_w, ice="H2O"):
         raise ValueError(f"not an ice of the table: {ice!r}")
     distance_m = math.sqrt(luminosity_w / (16.0 * math.pi * physical_constants.STEFAN_BOLTZMANN_CONSTANT)) / ICE_CONDENSATION_K[ice] ** 2
     return _m_to_au(distance_m)
-
-
-def water_share_at_distance(distance_au, luminosity_w, oxygen=1.0, carbon=1.0, nitrogen=1.0):
-    """The water share of the solids at `distance_au` from a star of `luminosity_w`, at the blackbody temperature there."""
-    return water_share_of_solids(disk_temperature_k(distance_au, luminosity_w), oxygen, carbon, nitrogen)

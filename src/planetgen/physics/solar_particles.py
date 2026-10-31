@@ -30,8 +30,7 @@ cutoff averaged over the latitudes (area weighted, `Rc cos^4(latitude)`, the dip
 
 **What it does not do.** The star's flare rate and the distance scale it (`radiation.free_sep_msv_yr`, the activity module GEN.493); the dose is
 the primary protons' only (no cascade, no helium or heavier ions, no energy lost in the column: a proton that crosses it is taken to deposit its
-incident `S(T)`), and the 18 years are 1.6 solar cycles of one star. A Carrington-class event above the record (about 1 in 500 years, McCracken
-2001, recalled) adds about 2 percent of the mean fluence and is left out. These are stand-ins and approximations stated in the gap-filling plan
+incident `S(T)`), and the 18 years are 1.6 solar cycles of one star. An event of 1e10 cm-2 above 30 MeV, bigger than any in the record (about 1 in 130 years, Usoskin and Kovaltsov 2012), adds about 8 percent of the mean fluence above 30 MeV (1e10 cm-2 in 130 years against 9e8 a year) and is left out. These are stand-ins and approximations stated in the gap-filling plan
 (section 6.15).
 """
 
@@ -100,9 +99,22 @@ NOAA_YEARS = 42.0
 NOAA_CUMULATIVE_COUNTS = ((10.0, 255), (30.0, 177), (100.0, 109), (300.0, 72), (1000.0, 40), (3000.0, 18), (10000.0, 9))
 """tuple: `(peak flux above 10 MeV, pfu; events at or above it)` in the NOAA SWPC list of 1976 to 2017 (`NOAA_YEARS`), counted from the 255
 events of 10 pfu or more (reports/best-guess-standins-2026-10-24.md section 17). Source tier T1 (the list is NOAA's; the counts are computed)."""
-TAIL_SLOPE = 1.9
-"""float: The cumulative slope of the number of events above 10 000 pfu, fitted to one Carrington-class event (1e10 cm-2 above 30 MeV, 1.2e5 pfu)
-in 500 years (McCracken 2001, recalled; reports/best-guess-standins-2026-10-24.md section 17). Source tier T9, tweak level L3."""
+TAIL_ANCHOR_PFU = 1.2e5
+"""float: The peak flux above 10 MeV, pfu, paired with an annual fluence above 30 MeV of 1e10 cm-2 (`TAIL_ANCHOR_RATE_PER_YEAR`); the pairing is
+McCracken's for the Carrington event, recalled (reports/best-guess-standins-2026-10-24.md section 17). [Stand-in SE4, tier T3, tweak level L1.]"""
+TAIL_ANCHOR_RATE_PER_YEAR = 0.0077
+"""float: The events a year with an annual fluence above 30 MeV of 1e10 cm-2: four in the 600 years of annual 10Be data, 0.0077 (+0.0073, -0.0045,
+90 percent) with Poisson errors (Usoskin and Kovaltsov 2012, ApJ 757, 92, section 4, READ). Nothing above 2e10 in 600 years (median 0.0012 a year,
+one-sided 90 percent under 0.0027) and nothing above 5e10 in 11 400 years; the Carrington event itself is not supported by the isotope data.
+[Stand-in SE4, tier T1, tweak level L0.]"""
+EXTREME_SLOPE = 4.0
+"""float: The cumulative power-law slope of the events past `TAIL_ANCHOR_PFU`: Usoskin and Kovaltsov 2012 fit the tail above 7e9 cm-2 by
+p proportional to F30^-4 (an exponential fits as well; section 4, READ). [Stand-in SE4, tier T1, tweak level L1.]"""
+TAIL_SLOPE = math.log(NOAA_CUMULATIVE_COUNTS[-1][1] / NOAA_YEARS / TAIL_ANCHOR_RATE_PER_YEAR) / math.log(
+    TAIL_ANCHOR_PFU / NOAA_CUMULATIVE_COUNTS[-1][0])
+"""float: The cumulative slope of the number of events from 10 000 pfu to `TAIL_ANCHOR_PFU`, about 1.34: the straight line in log-log between the
+last NOAA node (9 events in 42 years) and the isotope-record rate at the anchor (Usoskin and Kovaltsov 2012). Replaces the 1.9 of GEN.747, which was
+fitted to one Carrington-class event in 500 years (McCracken 2001, recalled). [Stand-in SE4, tier T3, tweak level L1.]"""
 
 BFO_DEPTH_G_CM2 = 5.0
 """float: The depth of water at which the dose is taken, g/cm2: the blood-forming organs (NASA's standard 5 cm; recalled). Source tier T3."""
@@ -188,10 +200,13 @@ def dose_share(rigidity_gv, geomagnetic_cutoff_gv=0.0, steps=90):
 
 def events_per_year_above(peak_flux_pfu):
     """The events a year of the NOAA list at or above a peak flux (>10 MeV, pfu): straight lines in log-log between `NOAA_CUMULATIVE_COUNTS`,
-    the last segment's slope to 10 000 pfu and `TAIL_SLOPE` beyond; the count of the first node (255 in 42 years) held below 10 pfu."""
+    `TAIL_SLOPE` from 10 000 pfu to `TAIL_ANCHOR_PFU` and `EXTREME_SLOPE` beyond; the count of the first node (255 in 42 years) held below
+    10 pfu."""
     nodes = NOAA_CUMULATIVE_COUNTS
     if peak_flux_pfu <= nodes[0][0]:
         return nodes[0][1] / NOAA_YEARS
+    if peak_flux_pfu >= TAIL_ANCHOR_PFU:
+        return TAIL_ANCHOR_RATE_PER_YEAR * (peak_flux_pfu / TAIL_ANCHOR_PFU) ** -EXTREME_SLOPE
     if peak_flux_pfu >= nodes[-1][0]:
         return nodes[-1][1] / NOAA_YEARS * (peak_flux_pfu / nodes[-1][0]) ** -TAIL_SLOPE
     for (p0, n0), (p1, n1) in zip(nodes, nodes[1:]):

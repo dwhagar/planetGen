@@ -8,10 +8,10 @@ Every small body draws its composition first and derives its bulk density from i
 of the one shared materials table (GEN.427), a porosity, and from them `physics.compaction`'s mixing rule. Four kinds:
 
 * **A belt or field of asteroids** (`draw_belt`). Its mass is shared out among the taxa of Bus and DeMeo by a Dirichlet draw
-  around a kernel in `x = a / a_snow`, the belt's distance over its star's own snow line (the star's stored
-  `snow_line_au`, GEN.458): dry and igneous inside, hydrated carbonaceous in the middle, ice-rich beyond. The kernel is the one
-  belt of the Solar System (DeMeo and Carry 2013, Table 6) and so every taxon row is a flagged `stand-in` that GEN.473 replaces,
-  and the Dirichlet concentration is open (Boss, 1:43 and 1:44 AM EDT on 2026-10-17). Each taxon is a mix of the shared table's
+  around a kernel of the disk temperature at the belt's distance (the blackbody one for the star's luminosity) and the aluminium-26
+  its star was born with (`taxon_kernel`, GEN.473): dry and igneous (the more so the more aluminium-26) where the disk is above the
+  water line, hydrated carbonaceous below it, primitive and ice-rich colder still. Each taxon's mix of materials is a meteorite analogue,
+  so every taxon row stays a flagged `stand-in` that GEN.475 replaces, and the Dirichlet concentration is open (Boss, 1:43 and 1:44 AM EDT on 2026-10-17). Each taxon is a mix of the shared table's
   rows (the chemistry of its meteorite analogue), a porosity from its family's range, and an albedo.
 * **A comet** (`draw_comet`). A refractory-to-ice ratio (Choukroun et al. 2020), the organic share of the refractories, a
   porosity (65 to 79 percent, Choukroun), and the volatile percentages of water of the population of GEN.495
@@ -30,20 +30,19 @@ design note's section 8 are test targets).
 
 Use:
 
-    makeup = draw_belt(distance_au=3.1, snow_line_au=2.8)           # SmallBodyMakeup, taxon_shares in makeup.detail
+    makeup = draw_belt(distance_au=3.1, luminosity_w=3.828e26, al26_ratio=5.2e-5)    # SmallBodyMakeup, taxon_shares in makeup.detail
     comet = draw_comet("jupiter_family")                            # refractory_ice_ratio, volatiles in comet.detail
     mass_kg = comet.mass_kg(nucleus_diameter_km=3.5)
     body = draw_icy_body("dwarf-planet")                            # then body.bulk_density_kg_m3(radius_km)
 """
 
-import bisect
 import math
 import statistics
 from dataclasses import dataclass, field
 
 from planetgen import tuning
 from planetgen.generation import possibility_table as pt
-from planetgen.physics import comet_population, compaction, elements, materials
+from planetgen.physics import comet_population, compaction, condensate_shares, elements, materials, meteorite_groups, taxon_kernel
 from planetgen.util import draw
 
 # ---------------------------------------------------------------------------------------------------------------------
@@ -168,6 +167,11 @@ def _makeup(kind, components, porosity, albedo=None, detail=None, densities=None
                            albedo, detail or {}, dict(densities or {}))
 
 
+def makeup_from_components(kind, components, porosity, detail=None):
+    """The makeup of a body whose grains are the rows `components` of the shared materials table (mass fractions, normalised here) at the porosity `porosity`; `kind` and `detail` as stored."""
+    return _makeup(kind, components, porosity, detail=detail)
+
+
 # ---------------------------------------------------------------------------------------------------------------------
 # The taxa of a belt or field
 
@@ -249,73 +253,87 @@ TAXON_DATA = {
 TAXON_DATA = {name: TAXON_DATA[name] for name in TAXA}
 
 
-def _zone_centres():
-    return [math.sqrt(lo * hi) for _name, lo, hi, _shares in ZONES]
-
-
-def kernel(x):
-    """
-    The taxon weights at `x = a / a_snow`, adding up to 1: each zone's mass percentages (scaled to 1), interpolated linearly in
-    log x between zone centres; outside the table the nearest zone holds (no extrapolation).
-    """
-    if not x > 0.0:
-        raise ValueError("x must be positive")
-    centres = _zone_centres()
-    zone_weights = []
-    for _name, _lo, _hi, shares in ZONES:
-        total = float(sum(shares.values()))
-        zone_weights.append({taxon: shares.get(taxon, 0.0) / total for taxon in TAXA})
-    log_x = math.log(x)
-    log_c = [math.log(c) for c in centres]
-    if log_x <= log_c[0]:
-        return dict(zone_weights[0])
-    if log_x >= log_c[-1]:
-        return dict(zone_weights[-1])
-    i = bisect.bisect_right(log_c, log_x) - 1
-    t = (log_x - log_c[i]) / (log_c[i + 1] - log_c[i])
-    return {taxon: zone_weights[i][taxon] * (1.0 - t) + zone_weights[i + 1][taxon] * t for taxon in TAXA}
-
-
-REPLACEMENT = "the distribution of asteroid taxa derived from the star's own disk (docs/design/small-bodies-composition.md section 7)"
-"""str: What replaces the stand-in taxon rows (the research item GEN.473 of the to-do list)."""
+REPLACEMENT = "the meteorite-group map (each taxon's mix of materials is still a meteorite analogue; the weights are derived, `taxon_kernel`)"
+"""str: What replaces the stand-in taxon rows' mixes of materials (the meteorite-group map of GEN.475)."""
 
 
 def _taxon_row(taxon):
     data = TAXON_DATA[taxon]
     return pt.Row(
-        name=f"taxon-{taxon}", classes=(BELT, FIELD), weight=lambda subject, taxon=taxon: kernel(subject["x"])[taxon],
-        source="DeMeo and Carry 2013 (arXiv:1307.2424) Table 6, the zone kernel of the Solar System's belt in units of its snow line",
+        name=f"taxon-{taxon}", classes=(BELT, FIELD), weight=lambda subject, taxon=taxon: taxon_kernel.kernel(subject["temperature_k"], subject["al26_ratio"])[taxon],
+        source="the belt's taxa from the disk's ice lines and the early heating by aluminium-26 (taxon_kernel); the mix of each taxon is a meteorite analogue (DeMeo and Carry 2013, arXiv:1307.2424)",
         state=pt.STAND_IN, replacement=REPLACEMENT, fractions=data.fractions, concentration=None,
         notes=f"{data.analogue}; {data.family} family; albedo {data.albedo}")
 
 
 TAXON_TABLE = pt.REGISTRY.register(pt.Table(
     "small-body-taxa", 1, [_taxon_row(t) for t in TAXA], components=pt.SHARED_COMPONENTS,
-    description="The taxa of a belt or field of asteroids: the weight is the share of the belt's mass at x = a / a_snow, "
-                "drawn as a Dirichlet around it; the fractions are the taxon's mix of the shared materials."))
-"""Table: The belt and field taxa, a flagged stand-in at every row until GEN.473."""
+    description="The taxa of a belt or field of asteroids: the weight is the share of the belt's mass at the disk temperature of its "
+                "distance for a star born with a given aluminium-26 ratio, drawn as a Dirichlet around it; the fractions are the taxon's mix of the shared materials."))
+"""Table: The belt and field taxa, a flagged stand-in at every row until GEN.475 (the weights are derived)."""
 
 
-def draw_belt(distance_au, snow_line_au, kind=BELT, concentration=DIRICHLET_CONCENTRATION):
+def draw_belt(distance_au, luminosity_w, al26_ratio, kind=BELT, concentration=DIRICHLET_CONCENTRATION):
     """
-    The composition of a belt or a field of asteroids at `distance_au` from a star whose snow line is `snow_line_au`.
+    The composition of a belt or a field of asteroids at `distance_au` from a star of luminosity `luminosity_w` that was born with the aluminium-26 ratio `al26_ratio`
+    (`radiogenic.star_al26_ratio`): the disk is at its blackbody temperature there and `taxon_kernel` gives the taxa.
 
     The draws, in order: the Dirichlet shares of the taxa the kernel gives weight (in table order), then one porosity for each of
     those taxa. Each taxon's bulk density is its grains' mixing density and its porosity; the belt's is the mass-weighted
     harmonic mean of those, and its albedo the mass-weighted mean.
 
     Returns:
-        SmallBodyMakeup: With `detail["taxon_shares"]` (all `TAXA`, zero where the kernel gave none), `detail["x"]`,
+        SmallBodyMakeup: With `detail["taxon_shares"]` (all `TAXA`, zero where the kernel gave none), `detail["temperature_k"]`, `detail["al26_ratio"]`,
         `detail["taxon_porosity"]` and `detail["taxon_bulk_density_kg_m3"]`.
     """
-    if not distance_au > 0.0 or not snow_line_au > 0.0:
-        raise ValueError("the distance and the snow line must be positive")
-    x = distance_au / snow_line_au
-    subject = pt.Subject(kind, {"x": x})
+    if not distance_au > 0.0 or not luminosity_w > 0.0:
+        raise ValueError("the distance and the luminosity must be positive")
+    if not al26_ratio >= 0.0:
+        raise ValueError("the aluminium-26 ratio must be zero or more")
+    temperature_k = condensate_shares.disk_temperature_k(distance_au, luminosity_w)
+    subject = pt.Subject(kind, {"temperature_k": temperature_k, "al26_ratio": al26_ratio})
     probabilities = TAXON_TABLE.probabilities(subject)
     names = [row.name[len("taxon-"):] for row, _p in probabilities]
     weights = [p for _row, p in probabilities]
-    return _from_taxa(kind, names, weights, concentration, {"x": x})
+    return _from_taxa(kind, names, weights, concentration, {"temperature_k": temperature_k, "al26_ratio": al26_ratio})
+
+
+METAL_ROWS = ("kamacite", "taenite", "schreibersite")
+"""tuple: The rows of the materials table that are the iron-nickel metal of the group map's metal axis."""
+
+REFRACTORY_ROWS = ("spinel", "anorthite")
+"""tuple: The rows that stand for the refractory inclusions (calcium-aluminium-rich) of its refractory axis."""
+
+MATRIX_ROWS = ("serpentine", "magnetite", "complex_organics", "calcite")
+"""tuple: The rows of the fine-grained matrix of its matrix axis: the water-altered minerals and the organics (ice is not matrix; an icy mix is far from every group, `ICE_MAX`)."""
+
+OLIVINE_MIN_VOLUME = 0.05
+"""float: The share of the grains' volume below which a mix has no olivine to give an oxidation state. [Stand-in MG3, tier T9, tweak L1.]"""
+
+ICE_MAX = 0.05
+"""float: The ice (and water) mass share from which a mix is far from every chondrite group: the groups are rocks, and the nearest one would mislabel an icy body. [Stand-in MG3, tier T9, tweak L1.]"""
+
+
+def group_axes(components):
+    """
+    `(fayalite mol percent or None, metal, refractory, matrix volume percent)` of a mix of grains, the axes of `meteorite_groups`: the olivine's iron against magnesium from its two
+    rows, and the volume percent of the metal, refractory and matrix rows of `components` (mass fractions of rows of the materials table).
+    """
+    volumes = {name: share / (compaction.grain_density_kg_m3({name: 1.0})) for name, share in components.items() if share > 0.0}
+    total = math.fsum(volumes.values())
+    percent = lambda rows: 100.0 * math.fsum(volumes.get(name, 0.0) for name in rows) / total    # noqa: E731
+    fayalite = components.get("fayalite", 0.0) / (materials.material("fayalite").molar_mass * 1000.0)
+    forsterite = components.get("forsterite", 0.0) / (materials.material("forsterite").molar_mass * 1000.0)
+    olivine_volume = percent(("fayalite", "forsterite"))
+    iron = 100.0 * fayalite / (fayalite + forsterite) if olivine_volume >= 100.0 * OLIVINE_MIN_VOLUME else None
+    return iron, percent(METAL_ROWS), percent(REFRACTORY_ROWS), percent(MATRIX_ROWS)
+
+
+def chondrite_group(components):
+    """The nearest chondrite group of a mix of grains (`meteorite_groups.nearest_group` of `group_axes`) and its distance: `none` for a mix far from every group or with `ICE_MAX` of ice."""
+    group, distance = meteorite_groups.nearest_group(*group_axes(components))
+    ice = math.fsum(share for name, share in components.items() if group_of(name) in ("water", "ice"))
+    return (meteorite_groups.NONE if ice >= ICE_MAX else group), distance
 
 
 def _from_taxa(kind, names, weights, concentration, detail, porosity=None):
@@ -343,6 +361,8 @@ def _from_taxa(kind, names, weights, concentration, detail, porosity=None):
     mean_porosity = math.fsum(shares[t] * taxon_porosity[t] for t in names)
     albedo = math.fsum(shares[t] * TAXON_DATA[t].albedo for t in names)
     makeup = _makeup(kind, components, 0.0, albedo)
+    group, group_distance = chondrite_group(makeup.components)
+    detail = dict(detail, group=group, group_distance=group_distance)
     # the belt's own figures: the grains' mixing density of the whole belt and the mass-weighted bulk density of its taxa
     return SmallBodyMakeup(kind, makeup.components, makeup.metal, makeup.rock, makeup.water, makeup.ice, mean_porosity,
                            makeup.grain_density_kg_m3, mean_bulk, albedo,
@@ -444,7 +464,7 @@ WATER_FORMULA = "H2O"
 COMET_DYNAMICAL_CLASS = {None: "long_period"}
 
 
-def draw_comet(period_class=None, interstellar=False):
+def draw_comet(period_class=None, interstellar=False, ice_ratios=None):
     """
     The composition of a comet nucleus.
 
@@ -456,6 +476,8 @@ def draw_comet(period_class=None, interstellar=False):
         period_class (str or None): `jupiter_family`, `halley_type`, `long_period`; `None` (a parabolic or interstellar
             comet) takes `long_period`.
         interstellar (bool): True for an interstellar comet (the wider carbon-oxide ranges).
+        ice_ratios (tuple or None): `(CO2/H2O, CO/H2O)` of the disc zone the comet formed in (`comet_ice_budget.ice_ratios`): the median
+            carbon oxides come from the zone (`comet_population.draw_volatiles`); `None` keeps the population's.
 
     Returns:
         SmallBodyMakeup: With `detail` holding `refractory_ice_ratio`, `organic_share`, `volatiles` (percent of water by number),
@@ -465,7 +487,8 @@ def draw_comet(period_class=None, interstellar=False):
     delta = math.exp(draw.uniform(math.log(low), math.log(high)))
     organic = min(max(draw.gauss(*ORGANIC_SHARE), 0.0), 1.0)
     porosity = draw.uniform(*COMET_POROSITY_RANGE)
-    volatiles = comet_population.draw_volatiles(COMET_DYNAMICAL_CLASS.get(period_class, period_class), interstellar=interstellar)
+    volatiles = comet_population.draw_volatiles(COMET_DYNAMICAL_CLASS.get(period_class, period_class), interstellar=interstellar,
+                                              ice_ratios=ice_ratios)
     ice_fraction = 1.0 / (1.0 + delta)
     water_mass = elements.molar_mass(WATER_FORMULA)
     masses = {"water_ice": water_mass}

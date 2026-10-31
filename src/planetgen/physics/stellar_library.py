@@ -5,8 +5,9 @@ The light of a star by band from model atmospheres and measured chromospheres (G
 
 `physics.stellar_spectrum` (GEN.443) gives a star a blackbody of its effective temperature with its ultraviolet cut by a seeded
 share. This module answers from the spectra instead (`datasets.stellar_spectra`: ATLAS9 and PHOENIX-ACES photospheres) and adds
-what the photosphere lacks, the chromosphere and corona, from the MUSCLES Treasury Survey. Nothing in generation calls it yet:
-the wiring that replaces the seeded shares and the blackbody colour is GEN.971.
+what the photosphere lacks, the chromosphere and corona, from the MUSCLES Treasury Survey. `physics.activity.uv_shares_of(star)` (which calls `uv_shares`) is what generation
+calls (GEN.971): `physics.activity` stores its UV-C share as the star's `uv_c_share`, and `physics.body_radiation` takes the three
+shares of a lit body's star, in place of the seeded share and the family built on it.
 
 What the library does against the sky (the tests, `test_stellar_library_real.py`):
 
@@ -27,8 +28,13 @@ Where the chromospheric far ultraviolet lies in the generator's bands (`stellar_
 in UV-C (the 91.2 to 100 nm sliver goes with the ionising light, `FUV_IN_UV_C`).
 """
 
-from planetgen.datasets import stellar_spectra
-from planetgen.physics import stellar_spectrum
+import functools
+import math
+
+import numpy as np
+
+from planetgen.datasets import fetch, stellar_spectra
+from planetgen.physics import constants, photometry, stellar_spectrum
 
 MUSCLES_STARS = (
     # name, T_eff K (France et al. 2016 Table 1), then log10 of the share of the bolometric luminosity (Table 3) in
@@ -101,3 +107,94 @@ def shares_of_blackbody(teff_k, logg=DEFAULT_LOGG, xuv_over_lbol=0.0, lib=None):
         low, high = stellar_spectrum.BAND_EDGES_NM[band]
         result[band] = shares[band] / float(stellar_spectrum.blackbody_fraction(low, high, teff_k))
     return result
+
+
+FAR_UV_NM = (91.2, 200.0)
+"""tuple: The band the photolysis rates of `physics.photolysis` are per unit flux of (91.2 to 200 nm)."""
+
+
+def far_uv_power_w(teff_k, logg, luminosity_w, xuv_over_lbol=0.0):
+    """
+    The power a star puts into 91.2 to 200 nm, W (GEN.982): its photosphere's share of the luminosity in the band (the model atmosphere, or the
+    blackbody when the library is missing and the run disregards that) plus the chromosphere's far ultraviolet, `FUV_OVER_XUV` times the
+    star's XUV power over its luminosity `xuv_over_lbol` (all of it lies under 170 nm, inside the band). Zero for a star with no luminosity.
+    """
+    share = None
+    if not fetch.locate(stellar_spectra.DATASET).use_stand_in("the blackbody share of the star's far ultraviolet"):
+        shares = stellar_spectra.band_fractions(teff_k, logg, [FAR_UV_NM], stellar_spectra.library())
+        share = None if shares is None else shares[0]
+    if share is None:
+        share = float(stellar_spectrum.blackbody_fraction(FAR_UV_NM[0], FAR_UV_NM[1], teff_k))
+    return luminosity_w * (share + FUV_OVER_XUV * xuv_over_lbol)
+
+
+def surface_logg(mass_kg, radius_km):
+    """log10 of the surface gravity, cm/s^2, of a star of this mass and radius."""
+    return math.log10(constants.G * mass_kg / (radius_km * 1.0e3) ** 2 * 100.0)
+
+
+@functools.lru_cache(maxsize=8192)
+def _shares_of_blackbody_cached(teff_k, logg, xuv_over_lbol):
+    return shares_of_blackbody(teff_k, logg, xuv_over_lbol, stellar_spectra.library())
+
+
+def uv_shares(mass_kg, radius_km, teff_k, xuv_over_lbol):
+    """
+    The UV-C, UV-B and UV-A power of a star of this mass, radius and effective temperature as multiples of its blackbody's
+    (`shares_of_blackbody`; `xuv_over_lbol` is the corona's XUV power over the luminosity). A star outside the library's
+    temperatures (2300 to 50000 K) takes the blackbody (1 in every band). When the library is not downloaded and the run
+    disregards missing data, None: the caller takes the seeded shares (`fetch.stand_ins_used` lists it); any other run raises
+    `fetch.DataMissing`.
+    """
+    if fetch.locate(stellar_spectra.DATASET).use_stand_in("the blackbody with the seeded UV shares of stellar_spectrum"):
+        return None
+    shares = _shares_of_blackbody_cached(round(float(teff_k), 1), round(surface_logg(mass_kg, radius_km), 3), float(xuv_over_lbol))
+    return {"uv_c": 1.0, "uv_b": 1.0, "uv_a": 1.0} if shares is None else shares
+
+
+def logg_of(star):
+    """log10 of the surface gravity, cm/s^2, of an object with `mass` (kg) and `radius` (km), `DEFAULT_LOGG` when it lacks either."""
+    mass, radius = getattr(star, "mass", None), getattr(star, "radius", None)
+    return surface_logg(mass, radius) if mass and radius else DEFAULT_LOGG
+
+
+_MISSING = "the blackbody with the BT-Settl offsets of physics/photometry.py"
+
+
+def visible_spectrum(teff_k, logg, wavelengths_nm):
+    """
+    The relative spectral power per nm of a star at `wavelengths_nm` (nm, ascending, inside 380 to 780), read off its model atmosphere
+    (`stellar_spectra.spectrum`: the share of the bolometric power in each log-spaced bin, divided by the bin's width), or None
+    outside the library's temperatures. None too when the library is not downloaded and the run disregards missing data
+    (`fetch.stand_ins_used` lists it); any other run raises `fetch.DataMissing`.
+    """
+    if fetch.locate(stellar_spectra.DATASET).use_stand_in(_MISSING):
+        return None
+    return _visible_cached(round(float(teff_k), 1), round(float(logg), 3), tuple(float(nm) for nm in wavelengths_nm))
+
+
+@functools.lru_cache(maxsize=2048)
+def _visible_cached(teff_k, logg, wavelengths_nm):
+    shares = stellar_spectra.spectrum(teff_k, logg, stellar_spectra.library())
+    if shares is None:
+        return None
+    edges = stellar_spectra.EDGES_NM
+    density = shares / np.diff(edges)
+    centres = np.sqrt(edges[:-1] * edges[1:])
+    return np.interp(np.asarray(wavelengths_nm), centres, density) / density.max()
+
+
+@functools.lru_cache(maxsize=2048)
+def _colour(teff_k, logg):
+    grid = tuple(float(nm) for nm in np.arange(photometry.WAVELENGTH_MIN_NM, photometry.WAVELENGTH_MAX_NM + 1.0))
+    density = visible_spectrum(teff_k, logg, grid)
+    if density is None:
+        return None
+    return photometry.colour_from_xyz(photometry.spectrum_to_xyz([float(v) for v in density], list(grid)))
+
+
+def star_colour(teff_k, logg=DEFAULT_LOGG):
+    """The `photometry.Colour` of a star as seen from space (absolute, no white adaptation) from its model atmosphere, or, outside the
+    library's temperatures or for a run that disregards a missing library, `photometry.star_colour`'s blackbody with the BT-Settl offsets."""
+    found = _colour(round(float(teff_k), 1), round(float(logg), 3))
+    return photometry.star_colour(teff_k) if found is None else found

@@ -29,11 +29,6 @@ def rgb_integer(rgb8):
     return (red << 16) | (green << 8) | blue
 
 
-def rgb8_of(integer):
-    """The `(r, g, b)` of a stored colour integer."""
-    return ((integer >> 16) & 0xFF, (integer >> 8) & 0xFF, integer & 0xFF)
-
-
 def ground_albedo(body):
     """
     The reflectance of a solid body's ground, one value per wavelength of the colour grid (GEN.462): the lab reflectance in the three visible
@@ -68,7 +63,8 @@ def _solid_colour(body):
     haze, dust, cloud = aerosols.colour_layers(stored, _CENTRES)
     result = atmosphere_colour.atmosphere_colour(
         column, temperature_k=temperature, ozone_du=getattr(body, "ozone_column_du", None) or 0.0,
-        ground_albedo=ground_albedo(body), haze=haze, dust=dust, cloud=cloud, cloud_cover=stored.cloud_cover)
+        ground_albedo=ground_albedo(body), haze=haze, dust=dust, cloud=cloud, cloud_cover=stored.cloud_cover,
+        light=atmosphere_colour.body_light(body.star))
     return result.colour.rgb8
 
 

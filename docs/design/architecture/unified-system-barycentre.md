@@ -167,7 +167,7 @@ The `group` node (a young non-hierarchical system) stays as it is under any opti
 2. Strictly two children everywhere (a chain of nodes, one per planet). Exactly hierarchical; a system of ten planets becomes ten nested nodes.
 3. N members for planets and moons, strictly two for stars, as in the code. No change; keeps two rules.
 
-**S5. Where is the line for bodies that cannot have satellites?** (class D in the code is 50 to 500 km radius, not 500 m; the Hill zone never sets the line, section 4.4.)
+**S5. Where is the line for bodies that cannot have satellites?** (class D in the code is a small airless body with at least 1 percent ice, intended scale 50 to 500 km radius, not 500 m, GEN.1091; the Hill zone never sets the line, section 4.4.)
 1. A stand-in size cut (a tunable, labelled placeholder, set at a diameter of 1 km until the verified law replaces it), plus the fit and stability checks. **Recommended.** Ships with the first build, is labelled, and the research item replaces the cut with a sourced law.
 2. A class cut: only class D and larger can host (radius from 50 km). Simplest; wrong for the small binaries known to exist **[R]**.
 3. No cut: any body of at least 20 m can host, with the share by size from a table that is zero until the research lands. Needs no number invented, but nothing below class D can have satellites before the research is done, so it behaves as option 2 first.

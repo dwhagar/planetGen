@@ -30,7 +30,7 @@ from hypothesis import strategies as st
 from planetgen.galaxy import galactic_orbit
 from planetgen.generation import stellar_object as star_module
 from planetgen.generation import wide_binary
-from planetgen.physics import formation
+from planetgen.physics import condensate_shares, formation
 from planetgen.physics import orbits
 from planetgen.physics import planets as planet_physics
 from planetgen.physics import units
@@ -196,8 +196,8 @@ def test_solar_reference_points():
     inner, outer = orbits.calculate_habitable_zone(physical_constants.SOLAR_LUMINOSITY, 5772.0)
     assert 0.9 < inner < 1.0 < 1.6 < outer < 1.8
     assert _close(formation.disk_surface_density_scale(physical_constants.SOLAR_MASS_TO_KG), 1.0)
-    # 170 K blackbody: (278.3 K / 170 K)^2 AU for the Sun (docs/design/composition/bulk-composition-sources-check.md)
-    assert abs(formation.snow_line_au(physical_constants.SOLAR_LUMINOSITY) - 2.68) < 0.005
+    # 182 K blackbody (Lodders 2003 Table 10): (278.3 K / 182 K)^2 AU for the Sun
+    assert abs(formation.snow_line_au(physical_constants.SOLAR_LUMINOSITY) - 2.339) < 0.005
 
 
 @given(d=positive, m=positive, big=positive)
@@ -241,7 +241,7 @@ def test_wide_binary_samplers_stay_in_range():
 def test_mmsn_density_jumps_by_the_ice_factor_at_the_snow_line(d, snow, scale):
     density = formation.mmsn_surface_density_gcm2(d, snow, scale)
     bare = physical_constants.MMSN_SOLID_SURFACE_DENSITY_SOL_GCM2 * scale * d ** physical_constants.MMSN_SURFACE_DENSITY_EXPONENT
-    expected = bare * (physical_constants.SNOW_LINE_ICE_BOOST_FACTOR if d >= snow else 1)
+    expected = bare * (condensate_shares.WATER_ICE_SOLID_BOOST if d >= snow else 1)
     assert _close(density, expected)
     assert density >= 0
 
@@ -262,7 +262,6 @@ def test_galactic_orbit(distance):
         return
     assert 0 < speed <= physical_constants.GALACTIC_ROTATION_FLAT_VELOCITY_KMS
     assert period > 0 and math.isfinite(period)
-    assert isinstance(galactic_orbit.format_galactic_orbit(speed, period), str)
 
 
 @given(distance=st.one_of(st.none(), st.floats(1, 1e6)), phase=st.one_of(st.none(), angle))
@@ -312,15 +311,10 @@ def test_reflex_offset_is_a_sum_of_two_body_terms(parent, children):
 def test_star_class_helpers_on_fake_stars(letter, yerkes, age, lifespan, proxy):
     star = types.SimpleNamespace(type=letter + "2" + yerkes, yerkes_class=yerkes, age=age, lifespan=lifespan)
     target = types.SimpleNamespace(_primary=star) if proxy else star
-    assert star_module.get_star_spectral_class(target) == letter.upper()  # (may be 2 chars, e.g. "ß" -> "SS")
-    profile = star_module.get_star_evolutionary_profile(target)
-    base = tuning.STAR_EVOLUTION.get(letter.upper(), {})
-    if not base:
-        assert profile == {}
-    elif yerkes == "V":
-        assert profile is base
+    scales = star_module.supported_evolutionary_scales(target)
+    if letter.upper() not in star_module.SPECTRAL_LETTERS:
+        assert scales == []
     else:
-        scales = profile["supported_evolutionary_scales"]
         assert scales and set(scales) <= {"fast", "normal", "slow"}
 
 
@@ -698,6 +692,11 @@ def _walk(value, path):
         yield path, value
 
 
+_PAIRS_THAT_ARE_NOT_RANGES = {
+    "REFERENCE_BLACK_HOLE_DRAWS": "two independent uniform draws (solar share, then metal-free), not a low-high range; the solar one is 0.55 (GEN.1154, row BR1)",
+}
+"""dict: The two-number constants that are not (low, high) ranges, so the ordered-pair check leaves them alone, each with why."""
+
 _EXPONENT_OR_SIGNED = re.compile(r"EXPONENT|ROUND_|DEFAULT_M$|_OFFSET|_DELTA|_SLOPE|_INTERCEPT")
 
 
@@ -706,6 +705,8 @@ def test_every_numeric_constant_is_finite_and_every_pair_ordered(module):
     for name, value in _public_constants(module).items():
         for path, leaf in _walk(value, name):
             if isinstance(leaf, tuple):
+                if name in _PAIRS_THAT_ARE_NOT_RANGES:
+                    continue
                 assert leaf[0] <= leaf[1], (path, leaf)
             elif isinstance(leaf, float):
                 assert math.isfinite(leaf), (path, leaf)

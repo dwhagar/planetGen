@@ -8,11 +8,12 @@ sections 2.1 to 2.4; every rate here is a design default good to about
 1. **Coronal X-rays.** A young star's `L_X/L_bol` is saturated at
    `SATURATED_LX_LBOL` (7.4e-4 for G, K and M; falling through F to the
    1e-7 of A, B and O stars, whose X-rays come from wind shocks). After the
-   saturation age `t_sat` it decays as `(t / t_sat)^-b`. Both `t_sat` and
-   `b` depend on mass (`ACTIVITY_TABLE`): fully convective M dwarfs stay
-   saturated for billions of years and then decline slowly. Each star draws
-   a log-normal scatter on `t_sat` (`T_SAT_SIGMA_DEX`) and on its decayed
-   level (`DECAY_SIGMA_DEX`).
+   saturation age `t_sat` it decays as `(t / t_sat)^-b`. `t_sat` comes from
+   `saturation_time` (GEN.493, Johnstone et al. 2021) by the star's mass and
+   its own draw of the initial-rotation percentile: fully convective M dwarfs
+   stay saturated for billions of years. `b` depends on mass
+   (`DECAY_EXPONENTS`), and each star draws a log-normal scatter on its
+   decayed level (`DECAY_SIGMA_DEX`).
 2. **XUV.** The EUV (100 to 920 A) follows the X-rays,
    `log L_EUV = 4.80 + 0.860 log L_X` (erg/s; Sanz-Forcada 2011), and
    `L_XUV = L_X + L_EUV`. A hot photosphere adds its own blackbody output
@@ -26,15 +27,24 @@ sections 2.1 to 2.4; every rate here is a design default good to about
    neutron star's is its thermal X-rays or a thousandth of its spin-down
    power (magnetic dipole), whichever is larger; a black hole's is its
    accretion disk's luminosity (or its Hawking glow without one).
-5. **Fluence.** `xuv_fluence_j` integrates `L_XUV` over the star's age; a
+5. **Rotation (GEN.807).** The activity-rotation relation (Wright et al. 2011): X-rays saturate while the Rossby number `Ro = P_rot / tau_conv` is
+   under 0.13 and fall as `Ro^-2.7` after, so a star that spins faster than a star of its mass and age spins stays saturated longer by the factor
+   `(P_nominal / P)^(2.7 / b)` of its saturation age (`rotation_saturation_scale`), and flares correspondingly more often. The saturation
+   age of 1 stays the mean (it is the observed one of M dwarfs, whose spin-down the gyrochronology law does not follow); a star's own
+   rotation (`spin.star_rotation_period_hours`, drawn before) moves it about that mean. A star the law does not cover (a hot star, a giant, a
+   white dwarf) keeps its saturation age.
+6. **Fluence.** `xuv_fluence_j` integrates `L_XUV` over the star's age; a
    planet's exposure index divides it by its distance squared and by a
    1 solar mass star's at 1 AU over 5 Gyr (`REFERENCE_FLUENCE_J`).
 """
 
 import math
 
-from planetgen.physics import constants, stellar_spectrum, unit_registry as units
+from planetgen.galaxy import scales
+from planetgen.physics import constants, saturation_time, spin, stellar_library, stellar_spectrum, unit_registry as units
 from planetgen.util import draw
+
+_kg_to_msun = units.converter("kg", "Msun")
 
 _au_to_m = units.converter("au", "m")
 _ly_to_m = units.converter("ly", "m")
@@ -79,27 +89,35 @@ GRB_LETHAL_RATE_AT_SUN_PER_GYR = 2.0
 AGN_EPISODES_PER_GYR = 10.0
 AGN_LETHAL_RADIUS_PC = 2900.0
 
-ACTIVITY_TABLE = (
-    # mass (Msun), t_sat (Gyr), decay exponent b
-    (0.1, 4.0, 1.0),
-    (0.2, 3.0, 1.0),
-    (0.3, 2.0, 1.0),
-    (0.45, 1.0, 1.75),
-    (0.6, 0.4, 2.0),
-    (0.8, 0.15, 2.0),
-    (1.0, 0.10, 2.0),
+DECAY_EXPONENTS = (
+    # mass (Msun), decay exponent b
+    (0.1, 1.0),
+    (0.2, 1.0),
+    (0.3, 1.0),
+    (0.45, 1.35),
+    (0.6, 1.8),
+    (0.8, 1.45),
+    (1.0, 1.45),
 )
-"""tuple: Section 2.1's saturation age and decay exponent by mass, linear
-in between and held at the ends."""
+"""tuple: Section 2.1's decay exponent after saturation by mass, linear in
+between and held at the ends. Fully convective stars (0.3 and below) decline
+slowly (Wright 2018). From 0.45 up the exponent is the one that holds each
+mass's `L_X/L_bol` at `REFERENCE_AGE_GY` where the earlier table put it, now
+that `t_sat` is the median of Johnstone et al. 2021 and not the table's own:
+1.45 at 1 solar mass is the Skumanich band (1.35 to 1.5) and gives the Sun
+1.3e27 erg/s today. [Stand-in AB1, tier T9, tweak L3.]"""
+
+PERCENTILE_RANGE = (2.0, 98.0)
+"""tuple: The initial-rotation percentiles a star draws uniformly between: the range
+the tracks of Johnstone et al. 2021 offer, uniform because the distribution is the
+observed one (row p6)."""
+
+MEDIAN_PERCENTILE = 50.0
 
 SATURATED_LX_LBOL = ((1.0, 7.4e-4), (1.4, 5e-5), (2.0, 1e-7))
 """tuple: `(mass, saturated L_X/L_bol)`: 7.4e-4 up to 1 solar mass (Wright
 2011, Jackson 2012), log-linear to 5e-5 at 1.4 and to the 1e-7 of hot stars'
 wind shocks at 2, held beyond."""
-
-T_SAT_SIGMA_DEX = 0.3
-"""float: Per-star scatter of the saturation age (Tu et al. 2015: slow and
-fast starters differ tenfold)."""
 
 DECAY_SIGMA_DEX = 0.4
 """float: Per-star scatter of `L_X` after saturation (section 2.1)."""
@@ -126,6 +144,10 @@ HOT_STAR_LOG_N33 = -4.0
 FLARE_SCATTER_DEX = 0.5
 FLARE_ALPHA_RANGE = (1.8, 2.2)
 
+ROTATION_SLOPE = 2.7
+"""float: The exponent of the Rossby number in the unsaturated `L_X/L_bol` (Wright et al. 2011: -2.70 +/- 0.13), which sets how far a star's
+own spin moves its saturation age (GEN.807)."""
+
 XUV_EDGE_EV = 13.6
 """float: The XUV band starts at the hydrogen ionization edge (912 A)."""
 
@@ -137,16 +159,20 @@ DIPOLE_EDOT_TO_LX = 1e-3
 Truemper 1997)."""
 
 
-def _interp(table, mass):
-    """Linear interpolation of `(t_sat, b)` in `ACTIVITY_TABLE`, held at
-    the ends."""
-    if mass <= table[0][0]:
-        return table[0][1:]
-    for (m0, *v0), (m1, *v1) in zip(table, table[1:]):
-        if mass <= m1:
-            f = (mass - m0) / (m1 - m0)
-            return tuple(a + f * (b - a) for a, b in zip(v0, v1))
-    return table[-1][1:]
+def decay_exponent(mass_sol):
+    """Linear interpolation of the decay exponent in `DECAY_EXPONENTS`, held at the ends."""
+    table = DECAY_EXPONENTS
+    if mass_sol <= table[0][0]:
+        return table[0][1]
+    for (m0, b0), (m1, b1) in zip(table, table[1:]):
+        if mass_sol <= m1:
+            return b0 + (mass_sol - m0) / (m1 - m0) * (b1 - b0)
+    return table[-1][1]
+
+
+def saturation_age_gy(mass_sol, percentile=MEDIAN_PERCENTILE):
+    """The age, Gyr, a star of `mass_sol` and initial-rotation `percentile` leaves X-ray saturation (GEN.493; the median unless a percentile is given)."""
+    return saturation_time.saturation_time_myr(mass_sol, percentile) / 1000.0
 
 
 def saturated_lx_lbol(mass_sol):
@@ -177,10 +203,31 @@ def coronal_xuv_w(l_x_w):
 
 
 def coronal_xuv_at(mass_sol, age_gy, luminosity_w):
-    """`L_XUV` of the corona of a `mass_sol` star at `age_gy`, W, at the nominal (unscattered) saturation age and decay of
-    `ACTIVITY_TABLE`; the photosphere's share is not added (the history of an escape model needs the shape of the decay)."""
-    t_sat, decay = _interp(ACTIVITY_TABLE, mass_sol)
+    """`L_XUV` of the corona of a `mass_sol` star at `age_gy`, W, at the nominal (unscattered) saturation age, the median of
+    `saturation_time`, and the decay of `DECAY_EXPONENTS`; the photosphere's share is not added (the history of an escape model needs the shape of the decay)."""
+    t_sat, decay = saturation_age_gy(mass_sol), decay_exponent(mass_sol)
     return coronal_xuv_w(lx_lbol_at(age_gy, saturated_lx_lbol(mass_sol), t_sat, decay) * luminosity_w)
+
+
+def effective_saturation_age_gy(mass_sol, age_gy, log_lx_lbol=None):
+    """
+    The saturation age that reproduces a star's own `L_X/L_bol` at `age_gy` in the decay of its mass (GEN.804): a star that spun slowly or fast, or that
+    drew a high or low decay offset, ran along the decay of its mass shifted in time, and its stored `log_lx_lbol` fixes the shift. The nominal
+    age without the stored value, and the older of the two for a star still saturated (its saturation has not ended, so its end is not known).
+    """
+    nominal, decay = saturation_age_gy(mass_sol), decay_exponent(mass_sol)
+    if log_lx_lbol is None or decay <= 0.0 or age_gy <= 0.0:
+        return nominal
+    ratio = 10 ** log_lx_lbol / saturated_lx_lbol(mass_sol)
+    if ratio >= 1.0:
+        return max(age_gy, nominal)
+    return age_gy * ratio ** (1.0 / decay)
+
+
+def coronal_xuv_with(mass_sol, at_gy, luminosity_w, t_sat_gy):
+    """`coronal_xuv_at` along the decay with a given saturation age (`effective_saturation_age_gy` for a star's own)."""
+    decay = decay_exponent(mass_sol)
+    return coronal_xuv_w(lx_lbol_at(at_gy, saturated_lx_lbol(mass_sol), t_sat_gy, decay) * luminosity_w)
 
 
 def blackbody_fraction_above(energy_ev, temperature_k):
@@ -234,7 +281,7 @@ def _fluence_j(luminosity_w, temperature_k, mass_sol, age_gy, t_sat_gy, decay, o
 def reference_fluence_j():
     """A 1 solar mass, solar-luminosity star's XUV over `REFERENCE_AGE_GY`,
     with no scatter: the exposure index's unit (section 2.3)."""
-    t_sat, decay = _interp(ACTIVITY_TABLE, 1.0)
+    t_sat, decay = saturation_age_gy(1.0), decay_exponent(1.0)
     return _fluence_j(constants.SOLAR_LUMINOSITY, 5772.0, 1.0, REFERENCE_AGE_GY, t_sat, decay, 0.0)
 
 
@@ -280,17 +327,28 @@ def lethal_event_rate_per_gyr(galactic_distance_ly):
 
 
 def set_galactic_hazard(star):
-    """Sets `lethal_event_rate_per_gyr` from the star's galaxy placement."""
-    star.lethal_event_rate_per_gyr = lethal_event_rate_per_gyr(getattr(star, "galactic_center_dist_ly", None))
+    """Sets `lethal_event_rate_per_gyr` from the star's galaxy placement; a star with none is rated where a system with no place in the galaxy
+    is taken to be (`scales.default_galactocentric_ly`, where its metallicity and orbit are also taken), so the column is filled for every star."""
+    distance = getattr(star, "galactic_center_dist_ly", None)
+    star.lethal_event_rate_per_gyr = lethal_event_rate_per_gyr(scales.default_galactocentric_ly() if distance is None else distance)
+
+
+def rotation_saturation_scale(nominal_period_hours, period_hours, decay):
+    """
+    The factor on a star's saturation age from its own rotation (GEN.807): the unsaturated `L_X/L_bol` falls as `Ro^-2.7`, the Rossby number
+    follows the period, and the period grows as `t^0.55` (`spin.GYRO_N`), so a star whose period is `nominal / x` is as active as a nominal star
+    `x^(2.7 / b)` times younger in the decay `b`. 1 for a star with no period or no nominal one.
+    """
+    if not nominal_period_hours or not period_hours or period_hours <= 0.0 or decay <= 0.0:
+        return 1.0
+    return (nominal_period_hours / period_hours) ** (ROTATION_SLOPE / decay)
 
 
 def generate_activity(star):
     """Sets `STAR_ACTIVITY_FIELDS` on an ordinary star (main sequence,
     subgiant, subdwarf, giant or white dwarf)."""
     set_galactic_hazard(star)
-    # GEN.443: the UV-C share of the blackbody (R17), from the star's own stream so no draw of the run's moves.
-    star.uv_c_share = stellar_spectrum.draw_uv_c_share(draw.Stream(f"uv_c_share:{star.mass!r}:{star.age!r}:{star.temperature!r}"))
-    mass_sol = star.mass / constants.SOLAR_MASS_TO_KG
+    mass_sol = _kg_to_msun(star.mass)
     luminosity = star.luminosity or 0.0
     age = max(star.age or 0.0, 1e-4)
     photosphere = luminosity * blackbody_fraction_above(XUV_EDGE_EV, star.temperature)
@@ -298,11 +356,17 @@ def generate_activity(star):
     if yerkes == "VII":
         _set_remnant(star, photosphere, age)
         return
-    t_sat, decay = _interp(ACTIVITY_TABLE, mass_sol)
-    t_sat *= 10 ** draw.gauss(0.0, T_SAT_SIGMA_DEX)
+    t_sat, decay = saturation_age_gy(mass_sol, draw.uniform(*PERCENTILE_RANGE)), decay_exponent(mass_sol)
     offset = draw.gauss(0.0, DECAY_SIGMA_DEX)
     log_n33 = flare_log_n33(mass_sol, age) + draw.uniform(-FLARE_SCATTER_DEX, FLARE_SCATTER_DEX)
     star.flare_alpha = draw.uniform(*FLARE_ALPHA_RANGE)
+    saturated_ratio = saturated_lx_lbol(mass_sol)
+    spin_scale = rotation_saturation_scale(
+        spin.nominal_rotation_period_hours(star.mass, star.temperature, age) if star.temperature else None,
+        getattr(star, "rotation_period_hours", None), decay)
+    if spin_scale != 1.0:     # GEN.807: the star's own spin moves its activity, and its flares, about the table's mean
+        log_n33 += math.log10(lx_lbol_at(age, saturated_ratio, t_sat * spin_scale, decay) / lx_lbol_at(age, saturated_ratio, t_sat, decay))
+        t_sat *= spin_scale
     if yerkes in ("IV", "V", "VI", "PMS", "protostar"):  # a young star is saturated (GEN.242)
         ratio = lx_lbol_at(age, saturated_lx_lbol(mass_sol), t_sat, decay, offset)
         star.xuv_saturated = bool(age <= t_sat)
@@ -317,6 +381,62 @@ def generate_activity(star):
         star.xuv_fluence_j = _yr_to_s(_gyr_to_yr((coronal_xuv_w(ratio * luminosity) + photosphere) * age))
     star.log_lx_lbol = math.log10(ratio)
     star.l_xuv_w = coronal_xuv_w(ratio * luminosity) + photosphere
+    star.uv_c_share = _uv_c_share(star)
+
+
+def uv_shares_of(star):
+    """
+    The UV-C, UV-B and UV-A power of an ordinary star as multiples of its blackbody's (GEN.971, `stellar_library.uv_shares`): the
+    model atmosphere of its effective temperature and surface gravity plus the far ultraviolet of its corona, which is its coronal
+    XUV (`log_lx_lbol`; the photosphere's own XUV is in the model). None when the star lacks one of those quantities or the library
+    is missing and the run disregards that.
+    """
+    mass, radius = getattr(star, "mass", None), getattr(star, "radius", None)
+    temperature, luminosity = getattr(star, "temperature", None), getattr(star, "luminosity", None)
+    if not (mass and radius and temperature and luminosity):
+        return None
+    log_ratio = getattr(star, "log_lx_lbol", None)
+    corona = 0.0 if log_ratio is None else coronal_xuv_w(10 ** log_ratio * luminosity) / luminosity
+    return stellar_library.uv_shares(mass, radius, temperature, corona)
+
+
+SUN_AGE_GY = 4.57
+"""float: The age of the Sun the far-ultraviolet flux of `far_uv_flux_ratio` is measured against."""
+SUN_TEMPERATURE_K = 5772.0
+SUN_LOGG = 4.438
+"""float: The effective temperature (IAU 2015) and the surface gravity of the Sun, the model atmosphere that stands for the reference star."""
+
+
+def _sun_far_uv_flux_w_m2():
+    """The 91.2 to 200 nm flux the Sun gives at 1 AU in the same model as any other star (`far_uv_flux_ratio` is 1 there by construction)."""
+    luminosity = constants.SOLAR_LUMINOSITY
+    corona = coronal_xuv_at(1.0, SUN_AGE_GY, luminosity) / luminosity
+    return stellar_library.far_uv_power_w(SUN_TEMPERATURE_K, SUN_LOGG, luminosity, corona) / (4.0 * math.pi * constants.AU_M ** 2)
+
+
+def far_uv_flux_ratio(star, distance_au):
+    """
+    The 91.2 to 200 nm flux of `star` at `distance_au`, relative to the quiet Sun at 1 AU (GEN.982): the number `physics.photolysis.rate_per_s`
+    takes as `flux_ratio`. The star's model-atmosphere share plus its corona's far ultraviolet (`stellar_library.far_uv_power_w`) over the
+    area of the sphere at that distance, over the Sun's own flux in the same model. `None` when the star lacks a mass, radius, temperature
+    or luminosity, or the distance is not above zero.
+    """
+    temperature, luminosity = getattr(star, "temperature", None), getattr(star, "luminosity", None)
+    if not (getattr(star, "mass", None) and getattr(star, "radius", None) and temperature and luminosity and distance_au and distance_au > 0.0):
+        return None
+    log_ratio = getattr(star, "log_lx_lbol", None)
+    corona = 0.0 if log_ratio is None else coronal_xuv_w(10 ** log_ratio * luminosity) / luminosity
+    power = stellar_library.far_uv_power_w(temperature, stellar_library.surface_logg(star.mass, star.radius), luminosity, corona)
+    return power / (4.0 * math.pi * (distance_au * constants.AU_M) ** 2) / _sun_far_uv_flux_w_m2()
+
+
+def _uv_c_share(star):
+    """The star's `uv_c_share`: the library's (GEN.971); the seeded GEN.443 share, from the star's own stream so no draw of the run's
+    moves, for a run that disregards a missing library."""
+    shares = uv_shares_of(star)
+    if shares is not None:
+        return shares["uv_c"]
+    return stellar_spectrum.draw_uv_c_share(draw.Stream(f"uv_c_share:{star.mass!r}:{star.age!r}:{star.temperature!r}"))
 
 
 def _set_remnant(star, l_xuv_w, age_gy):

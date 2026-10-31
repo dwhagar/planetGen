@@ -28,10 +28,16 @@ def test_same_stream_same_planet():
     assert first == second
 
 
-def test_the_core_is_the_isolation_mass_times_the_assembly_factor_at_zero_scatter(monkeypatch):
-    monkeypatch.setattr(tuning, "PLANET_ASSEMBLY_SCATTER_DEX", 0.0)
+def _no_scatter(monkeypatch):
+    """The disc and the spacing at their medians: nothing is drawn but the median."""
+    monkeypatch.setattr(tuning, "DISC_SOLIDS_SCATTER_DEX", 0.0)
+    monkeypatch.setattr(tuning, "OLIGARCH_SEPARATION_SIGMA_LN", 0.0)
+
+
+def test_the_core_is_the_isolation_mass_of_the_median_spacing_at_zero_scatter(monkeypatch):
+    _no_scatter(monkeypatch)
     density = formation.mmsn_surface_density_gcm2(1.0, SNOW_LINE_AU, tuning.PLANET_DISC_SOLIDS_ENHANCEMENT)
-    expected = formation.isolation_mass_kg(1.0, density, SUN_KG) / tuning.GIANT_IMPACT_SURVIVAL_FRACTION
+    expected = formation.isolation_mass_kg(1.0, density, SUN_KG, tuning.OLIGARCH_SEPARATION_MEDIAN)
     got = planet_mass.assembled_core_kg(1.0, SUN_KG, SNOW_LINE_AU, 1.0, draw.Stream(3))
     assert got == pytest.approx(expected)
 
@@ -47,7 +53,7 @@ def test_solids_grow_outward_and_jump_at_the_snow_line():
 
 
 def test_the_slow_outer_disc_builds_less_than_the_isolation_mass_alone(monkeypatch):
-    monkeypatch.setattr(tuning, "PLANET_ASSEMBLY_SCATTER_DEX", 0.0)
+    _no_scatter(monkeypatch)
     far = 4 * tuning.PLANET_OUTER_GROWTH_AU
     tapered = planet_mass.assembled_core_kg(far, SUN_KG, SNOW_LINE_AU, 0.0, draw.Stream(3))
     monkeypatch.setattr(tuning, "PLANET_OUTER_GROWTH_AU", 1.0e6)
@@ -69,12 +75,13 @@ def test_a_core_inside_the_snow_line_stays_under_the_inner_cap():
 
 
 def test_cooler_stars_keep_more_of_their_solids_than_the_dust_law_gives(monkeypatch):
-    monkeypatch.setattr(tuning, "PLANET_ASSEMBLY_SCATTER_DEX", 0.0)
+    _no_scatter(monkeypatch)
     light = 0.3 * SUN_KG
     got = planet_mass.assembled_core_kg(1.0, light, SNOW_LINE_AU, 1.0, draw.Stream(3))
     dust_scale = formation.disk_surface_density_scale(light, 1.0) * tuning.PLANET_DISC_SOLIDS_ENHANCEMENT
     dust = formation.isolation_mass_kg(1.0, formation.mmsn_surface_density_gcm2(1.0, SNOW_LINE_AU, dust_scale), light)
-    assert got > dust / tuning.GIANT_IMPACT_SURVIVAL_FRACTION
+    assert got > formation.isolation_mass_kg(1.0, formation.mmsn_surface_density_gcm2(1.0, SNOW_LINE_AU, dust_scale), light,
+                                             tuning.OLIGARCH_SEPARATION_MEDIAN)
 
 
 def test_metal_rich_discs_build_heavier_planets():
@@ -94,6 +101,17 @@ def test_runaway_giants_are_heavy_and_beyond_the_line_only():
     assert all(d.mass_kg >= tuning.GIANT_RUNAWAY_MIN_MASS_EARTH * EARTH_KG for d in giants)
     assert all(d.core_kg >= tuning.GIANT_CORE_CRITICAL_MASS_EARTH * EARTH_KG for d in giants)
     assert all(d.mass_kg == d.core_kg for d in draws if not d.runaway)
+
+
+def test_a_merged_core_past_the_deuterium_limit_makes_a_giant_no_heavier_than_the_limit():
+    """Two cores that merged (`planet_architecture.sculpt`) can sum to more than 13 Jupiter masses; the giant they make is held to the limit (a heavier
+    body is a brown dwarf and the planet code refuses it)."""
+    limit_kg = planet_mass._BROWN_DWARF_LIMIT_KG
+    stream = draw.Stream(3)
+    outcomes = [planet_mass.gas_outcome(1.4 * limit_kg, 5.0, SUN_KG, SNOW_LINE_AU, 0.5, stream) for _ in range(200)]
+    giants = [outcome for outcome in outcomes if outcome.runaway]
+    assert len(giants) > 10
+    assert all(outcome.mass_kg <= limit_kg and outcome.core_kg <= limit_kg for outcome in giants)
 
 
 def test_metal_poor_stars_make_fewer_giants():
@@ -144,9 +162,9 @@ def test_a_sun_like_star_has_about_a_tenth_of_a_giant_between_a_third_and_ten_au
 
 
 def test_the_inner_disc_is_steeper_than_the_nebula_inside_one_au(monkeypatch):
-    monkeypatch.setattr(tuning, "PLANET_ASSEMBLY_SCATTER_DEX", 0.0)
+    _no_scatter(monkeypatch)
     got = planet_mass.assembled_core_kg(0.1, SUN_KG, SNOW_LINE_AU, 1.0, draw.Stream(3))
     scale = tuning.PLANET_DISC_SOLIDS_ENHANCEMENT
-    plain = formation.isolation_mass_kg(0.1, formation.mmsn_surface_density_gcm2(0.1, SNOW_LINE_AU, scale), SUN_KG)
-    plain /= tuning.GIANT_IMPACT_SURVIVAL_FRACTION
+    plain = formation.isolation_mass_kg(0.1, formation.mmsn_surface_density_gcm2(0.1, SNOW_LINE_AU, scale), SUN_KG,
+                                        tuning.OLIGARCH_SEPARATION_MEDIAN)
     assert got == pytest.approx(plain * (0.1 ** -tuning.PLANET_INNER_DISC_STEEPENING) ** 1.5)

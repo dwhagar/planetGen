@@ -1,7 +1,5 @@
 {#- The sector page (web/sector_page.py). -#}
 {% extends "base.html" %}
-{#- UX.238: the "On this page" bar sits under the tab bar (static/pagetoc.js), not in a column at the left. -#}
-{% block main_class %} toc-top{% endblock %}
 {% from "partials/admin_menu.html" import admin_menu_button, admin_dialogs, add_edit_actions with context %}
 {% from "partials/action_bar.html" import action_bar %}
 {% from "partials/datatable.html" import datatable with context %}

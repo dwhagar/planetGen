@@ -254,9 +254,6 @@
     skipping what it already saved, and so do the stages after it
     {%- if finish.again|length > 1 %} ({{ finish.again|join(", ") }}){% endif %}. The finished galaxy is the one an
     uninterrupted run makes.</p>
-    {%- if finish.later %}
-    <p>It then goes on with the steps of that job that never started: {{ finish.later|map(attribute="label")|join(", ") }}.</p>
-    {%- endif %}
     {%- endif %}
     {%- elif task.key == "check" %}
     <p>Looks for damage in <code>{{ database }}</code>: the schema version, table health, rows whose parent is gone,

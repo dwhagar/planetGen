@@ -58,7 +58,10 @@ from planetgen import tuning
 from planetgen.physics import constants
 from planetgen.physics import planets
 from planetgen.physics import relations
-from planetgen.physics import stellar_abundances
+from planetgen.physics import stellar_abundances, unit_registry as units
+
+_kg_to_msun = units.converter("kg", "Msun")
+_mjup_to_kg = units.converter("Mjup", "kg")
 
 KINDS = ("T", "G", "B", "S", "X")
 """tuple: The kinds of body section 5.1 names."""
@@ -224,8 +227,8 @@ def _survivor(body, mass_kg, radius_m, position_m, velocity_ms, flags=(), kind=N
 
 
 def _fusion(survivor, z, parents, flags, records):
-    mass_sol = survivor.mass_kg / constants.SOLAR_MASS_TO_KG
-    deuterium_kg = stellar_abundances.deuterium_burning_limit_mj(z) * constants.JUPITER_MASS_TO_KG
+    mass_sol = _kg_to_msun(survivor.mass_kg)
+    deuterium_kg = _mjup_to_kg(stellar_abundances.deuterium_burning_limit_mj(z))
     hydrogen_sol = stellar_abundances.hydrogen_burning_limit_sol(z)
     if abs(mass_sol / hydrogen_sol - 1.0) <= tuning.COLLISION_BORDERLINE_SHARE:
         flags.append("borderline")

@@ -14,8 +14,6 @@ project's bright-star pre-placement plan):
 - `sample_bright_stars(n, min_luminosity_sol, population, rng)`: `n` stars
   drawn from the model conditional on being at least that bright, each as
   `stellarEvolution.star_params` (what `Star.from_params` rebuilds).
-- `sample_dim_star(max_luminosity_sol, population, rng)`: one star from the
-  model conditional on being dimmer than the threshold.
 
 `population` is one of `stellarEvolution.population_age_range_gy`'s names
 ("young", "intermediate", "old", "bulge") or None for the whole disk.
@@ -66,12 +64,13 @@ import functools
 import math
 
 from planetgen.galaxy import scales
+from planetgen.generation import band_table_cache
 from planetgen.galaxy.age_law import AgeLaw
 from planetgen.galaxy.component_field import POPULATIONS_IN_THE_GATE
-from planetgen.physics import constants, imf, metallicity, post_main_sequence, wolf_rayet
+from planetgen.physics import age_metallicity, alpha_tracks, constants, imf, metallicity, post_main_sequence, wolf_rayet
 from planetgen import tuning
 from planetgen.physics.stellar_evolution import (
-    birth_fe_h, evolve_star, horizontal_branch_bright_chance,
+    alive_until_gy, birth_fe_h, evolve_star, horizontal_branch_bright_chance,
     main_sequence_bright_from_gy, main_sequence_lifetime_gy, population_age_range_gy,
     remnant_formation_time_gy, sample_living_star, star_params,
 )
@@ -118,17 +117,28 @@ def _evolved_bright_windows(mass_sol, min_luminosity_sol, fe_h=0.0):
     return tuple(windows)
 
 
+def _bright_windows_on_track(mass_sol, min_luminosity_sol, track):
+    t_ms = main_sequence_lifetime_gy(mass_sol, track)
+    bright_from = main_sequence_bright_from_gy(mass_sol, min_luminosity_sol, t_ms, track)
+    evolved = _evolved_bright_windows(mass_sol, min_luminosity_sol, track)
+    return evolved if bright_from is None else ((bright_from, t_ms, 1.0),) + evolved
+
+
 def _bright_windows(mass_sol, min_luminosity_sol, fe_h=0.0):
     """
     Every age window in which a star of initial mass `mass_sol` and birth [Fe/H] `fe_h` is at
     least `min_luminosity_sol` bright, as `(start_gy, end_gy, chance)`:
     within the window the star clears the threshold with probability `chance` (1 where its state is a point of its
-    track, less on the horizontal branch and for a Wolf-Rayet star, whose luminosity is drawn). Mirrors `evolve_star`.
+    track, less on the horizontal branch and for a Wolf-Rayet star, whose luminosity is drawn). Mirrors `evolve_star`, which reads
+    the track of the star's branch (GEN.1024): each piece of the age axis (`alpha_tracks.track_segments`) has the windows of its track.
     """
-    t_ms = main_sequence_lifetime_gy(mass_sol, fe_h)
-    bright_from = main_sequence_bright_from_gy(mass_sol, min_luminosity_sol, t_ms, fe_h)
-    evolved = _evolved_bright_windows(mass_sol, min_luminosity_sol, fe_h)
-    return evolved if bright_from is None else ((bright_from, t_ms, 1.0),) + evolved
+    windows = []
+    for start, end, track in alpha_tracks.track_segments(fe_h):
+        for low, high, chance in _bright_windows_on_track(mass_sol, min_luminosity_sol, track):
+            low, high = max(low, start), min(high, end)
+            if high > low:
+                windows.append((low, high, chance))
+    return tuple(windows)
 
 
 def _bright_measure(mass_sol, min_luminosity_sol, window, fe_h=0.0):
@@ -144,8 +154,12 @@ def _living_measure(mass_sol, window, fe_h=0.0):
     span = window.span
     if mass_sol < tuning.SUPERGIANT_MIN_MASS_SOL:
         return span
-    dead_from = remnant_formation_time_gy(mass_sol, fe_h)
-    return span - _overlap(dead_from, math.inf, window)
+    dead = 0.0
+    for start, end, track in alpha_tracks.track_segments(fe_h):
+        dead_from = max(remnant_formation_time_gy(mass_sol, track), start)
+        if dead_from < end:
+            dead += _overlap(dead_from, end, window)
+    return span - dead
 
 
 _LONGEST_LIFE_OVER_MAIN_SEQUENCE = 1.5
@@ -176,15 +190,19 @@ def _bright_measure_bound(low_mass, high_mass, min_luminosity_sol, window, fe_hs
     start, end = math.inf, -math.inf
     evolved = 0.0
     for fe_h in fe_hs:
-        for mass in masses:
-            t_ms = main_sequence_lifetime_gy(mass, fe_h)
-            bright_from = main_sequence_bright_from_gy(mass, min_luminosity_sol / slack, t_ms, fe_h)
-            if bright_from is not None:
-                start, end = min(start, bright_from), max(end, t_ms)
-            if t_ms >= window.window[1] or _LONGEST_LIFE_OVER_MAIN_SEQUENCE * t_ms + _HORIZONTAL_BRANCH_ALLOWANCE_GY <= window.window[0]:
-                continue                  # not yet off the main sequence in the window, or a remnant before it
-            evolved = max(evolved, sum(_overlap(a, b, window) * chance
-                                       for a, b, chance in _evolved_bright_windows(mass, min_luminosity_sol, fe_h)))
+        for piece_start, piece_end, track in alpha_tracks.possible_segments(fe_h):    # every track a star of the bin could read, by age
+            if piece_end <= window.window[0] or piece_start >= window.window[1]:
+                continue                      # an age the population does not reach
+            for mass in masses:
+                t_ms = main_sequence_lifetime_gy(mass, track)
+                bright_from = main_sequence_bright_from_gy(mass, min_luminosity_sol / slack, t_ms, track)
+                if bright_from is not None:
+                    start, end = min(start, max(bright_from, piece_start)), max(end, min(t_ms, piece_end))
+                if t_ms >= window.window[1] or _LONGEST_LIFE_OVER_MAIN_SEQUENCE * t_ms + _HORIZONTAL_BRANCH_ALLOWANCE_GY <= window.window[0]:
+                    continue                  # not yet off the main sequence in the window, or a remnant before it
+                evolved = max(evolved, sum(_overlap(max(a, piece_start), min(b, piece_end), window) * chance
+                                           for a, b, chance in _evolved_bright_windows(mass, min_luminosity_sol, track)
+                                           if min(b, piece_end) > max(a, piece_start)))
     main_sequence = _overlap(start, end, window) if end > start else 0.0
     return main_sequence + tuning.BRIGHT_TABLE_EVOLVED_MARGIN * evolved
 
@@ -285,10 +303,24 @@ def _grid_cells(fe_bin, reference=False):
 
 
 def _bin_fe_hs(fe_bin):
-    """The composition a sampling table's bounds are taken over: the bin's two edges and its centre. A star in the bin
-    draws from the table with its own [Fe/H], so a cell's bound has to hold anywhere in the bin."""
+    """The composition a sampling table's bounds are taken over: the bin's two edges, its centre and the points half way between
+    (GEN.1024: a star reads the track of its branch, which moves the thermal-pulse windows of the rarest floors faster across a bin).
+    A star in the bin draws from the table with its own [Fe/H], so a cell's bound has to hold anywhere in the bin."""
     half = tuning.BRIGHT_TABLE_FE_H_STEP_DEX / 2.0
-    return (fe_bin - half, fe_bin, fe_bin + half)
+    return tuple(fe_bin + half * k / 2.0 for k in (-2, -1, 0, 1, 2))
+
+
+def _encode_table(table):
+    """The kept form of a sampling table (`band_table_cache`): its numbers; the age law is the caller's own."""
+    return {"cells": table["cells"], "cumulative": table["cumulative"], "fraction": table["fraction"]}
+
+
+def _decoder(window, population):
+    """The table again from its kept form, for the age law `window` and `population` it was kept for."""
+    def decode(form):
+        return {"window": window.window, "law": window, "cells": [tuple(cell) for cell in form["cells"]],
+                "cumulative": form["cumulative"], "population": population, "fraction": form["fraction"]}
+    return decode
 
 
 @functools.lru_cache(maxsize=None)
@@ -306,10 +338,19 @@ def _bright_table(min_luminosity_sol, population, mass_range=None, window=None, 
     valid for it. The `fraction` is worked out only for a `reference` table, built at the population's own mean
     composition (`reference_fe_h`, `fe_bin` the composition itself, GEN.661), the one the counts use; a sampling table's is
     `None`.
+    Worked out by `_build_bright_table`; a test run keeps each across processes (`band_table_cache`, PERF.218).
     """
     check_threshold(min_luminosity_sol)
     if window is None:
         window = _law(population, None)
+    return band_table_cache.kept(
+        "bright", (min_luminosity_sol, population, mass_range, window, fe_bin, reference),
+        lambda: _build_bright_table(min_luminosity_sol, population, mass_range, window, fe_bin, reference),
+        _encode_table, _decoder(window, population))
+
+
+def _build_bright_table(min_luminosity_sol, population, mass_range, window, fe_bin, reference):
+    """The sampling table `_bright_table` describes, for the age law `window` (never `None`)."""
     cells, cumulative = [], []
     running = bright = living = 0.0
     mass_low, mass_high = mass_range if mass_range is not None else (None, None)
@@ -466,7 +507,7 @@ def _sample_one_bright(min_luminosity_sol, population, mass_range, window, rng, 
             if pick < weight:
                 break
             pick -= weight
-        age = law.sample(start, end, rng)
+        age = age_metallicity.tilted_age(fe_h, table["population"], lambda: law.sample(start, end, rng), rng)
         state = evolve_star(mass, age, rng, min_luminosity_sol=min_luminosity_sol, fe_h=fe_h,
                             population=table["population"])
         # Guards the window edges against rounding (an age landing exactly
@@ -565,9 +606,18 @@ def _mass_band_table(mass_range, population, window=None, fe_bin=0.0, reference=
     window and the band's `fraction` of ALL living stars (the same
     denominator `bright_star_fraction` uses, so the two subtract). `window` is the population's `AgeLaw` (an even
     spread across its window when `None`).
+    Worked out by `_build_mass_band_table`; a test run keeps each across processes (`band_table_cache`, PERF.218).
     """
     if window is None:
         window = _law(population, None)
+    return band_table_cache.kept(
+        "mass", (mass_range, population, window, fe_bin, reference),
+        lambda: _build_mass_band_table(mass_range, population, window, fe_bin, reference),
+        _encode_table, _decoder(window, population))
+
+
+def _build_mass_band_table(mass_range, population, window, fe_bin, reference):
+    """The sampling table `_mass_band_table` describes, for the age law `window` (never `None`)."""
     mass_low, mass_high = mass_range
     cells, cumulative = [], []
     running = born = living = 0.0
@@ -633,8 +683,8 @@ def _sample_one_in_mass_band(band, population, law, max_luminosity_sol, rng, sou
             continue
         oldest = window[1]
         if mass >= tuning.SUPERGIANT_MIN_MASS_SOL:
-            oldest = min(oldest, remnant_formation_time_gy(mass, fe_h))
-        age = law.sample(window[0], oldest, rng)
+            oldest = min(oldest, alive_until_gy(mass, fe_h))
+        age = age_metallicity.tilted_age(fe_h, table["population"], lambda: law.sample(window[0], oldest, rng), rng)
         state = evolve_star(mass, age, rng, fe_h=fe_h, population=table["population"])
         if state is None:
             continue
@@ -673,24 +723,6 @@ def placed_star_fraction(min_luminosity_sol, min_mass_sol, population=None, age_
         return massive_star_fraction(min_mass_sol, population, age_laws)
     return (massive_star_fraction(min_mass_sol, population, age_laws)
             + bright_star_fraction(min_luminosity_sol, population, (None, min_mass_sol), age_laws))
-
-
-def sample_dim_star(max_luminosity_sol, population=None, rng=draw, max_mass_sol=None, age_laws=None,
-                    fe_h_peaks=None, galactic_center_dist_ly=None):
-    """
-    Draws one star from the population model conditional on luminosity
-    `< max_luminosity_sol` (a sector's own stars once its bright ones were
-    pre-placed). Nearly every star is that dim, so it simply redraws the
-    rare bright one.
-
-    Returns:
-        dict: As one of `sample_bright_stars`'s.
-    """
-    mass, age, state = sample_living_star(rng=rng, population=population, max_luminosity_sol=max_luminosity_sol,
-                                          max_mass_sol=max_mass_sol, fe_h_peaks=fe_h_peaks,
-                                          galactic_center_dist_ly=galactic_center_dist_ly,
-                                          age_law=None if age_laws is None else age_laws.get(population))
-    return star_params(mass, age, state)
 
 
 def pick_population(densities, rng=draw):

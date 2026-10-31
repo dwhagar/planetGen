@@ -12,7 +12,7 @@ from planetgen import tuning
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.planet import Planet
 from planetgen.generation.star import Star
-from planetgen.physics import activity, constants, mixture_draw, mixture_subject as ms
+from planetgen.physics import activity, constants, mixture_draw, mixture_subject as ms, thermosphere
 from planetgen.physics.mixture_base import MixtureError
 from planetgen.util import draw
 
@@ -48,10 +48,20 @@ def test_the_earth_gives_the_quantities_the_world_gives():
     assert q["ocean_present"] is True and q["water_lost"] is False
 
 
+def test_the_xuv_index_is_the_one_stored_for_the_distance_the_body_sits_at():
+    """GEN.806: a body that stored its exposure index at its distance gives that value, and the one implementation answers at another distance."""
+    stored = _earth(xuv_exposure_index=7.5, _star_distance_au=1.0)
+    assert ms.quantities_of_body(stored, ts_k=288.0, pressure_bar=1.0)["xuv_index"] == 7.5
+    assert ms.quantities_of_body(stored, ts_k=288.0, pressure_bar=1.0, star_distance_au=2.0)["xuv_index"] == pytest.approx(0.25)
+    unstored = _earth(xuv_exposure_index=None)
+    assert ms.quantities_of_body(unstored, ts_k=288.0, pressure_bar=1.0)["xuv_index"] == pytest.approx(1.0)
+
+
 def test_the_subject_holds_exactly_what_the_class_reads():
     subject = ms.subject_of_body(_earth(), ts_k=288.0, pressure_bar=1.0, ocean_present=True, long_lived_geology=True)
     assert subject.body_class == "terrestrial"
-    assert set(subject.quantities) == set(mixture_draw.required_inputs("terrestrial"))
+    required = set(mixture_draw.required_inputs("terrestrial"))
+    assert set(subject.quantities) == required | {"host_mass_solar"}       # GEN.1199: the escape filter finds the XUV from the star's mass
 
 
 def test_the_zone_follows_the_habitable_zone():
@@ -142,7 +152,12 @@ def test_a_generated_body_gives_a_subject_the_draw_accepts(host, mass_earth, zon
     planet = _real(host, mass_earth, zone)
     subject = ms.subject_of_body(planet, ts_k=planet.surface_temperature, pressure_bar=max(planet.atmospheric_pressure, 1.0) / 1e5,
                                  long_lived_geology=True)
-    assert set(subject.quantities) == set(mixture_draw.required_inputs(subject.body_class))
+    required = set(mixture_draw.required_inputs(subject.body_class))
+    assert required <= set(subject.quantities) <= required | set(ms.OPTIONAL_INPUTS)       # GEN.804: the star's own activity rides along
+    assert subject.quantities["log_lx_lbol"] == host.log_lx_lbol
+    assert subject.quantities["host_mass_solar"] == pytest.approx(host.mass / constants.SOLAR_MASS_TO_KG)      # GEN.1199: the escape filter needs the star to find the XUV
+    assert thermosphere.xuv_flux_earth(subject) > 0.0
+    assert "magnetopause_rp" not in subject.quantities
     with draw.bound(draw.Stream("mixture-subject")):
         result = mixture_draw.draw_mixture(subject)
     assert result.mole_fractions and sum(result.mole_fractions.values()) == pytest.approx(1.0)

@@ -68,7 +68,7 @@ def test_the_milky_ways_neutron_stars_are_ejected_inside_the_old_target_range():
 
 
 def test_the_reference_structure_holds_the_median_halos_share_and_shows_the_gap():
-    """The median halo of 5e10 solar masses of stars (2e12) ejects fewer than the old 20% to 40% target: the gap is shown."""
+    """The median halo of 5e10 solar masses of stars (1.6e12) ejects fewer than the old 20% to 40% target: the gap is shown."""
     low, high = tuning.NEUTRON_STAR_UNBOUND_FRACTION_TARGET_RANGE
     share = galaxyStructure.REFERENCE_STRUCTURE.neutron_star_unbound_share
     assert 0.5 * low <= share <= high

@@ -45,9 +45,14 @@ import os
 from dataclasses import dataclass
 
 from planetgen import tuning
+from planetgen.datasets import baraffe_isochrones
 from planetgen.generation import possibility_table as pt
 from planetgen.physics import constants
-from planetgen.physics import elements
+from planetgen.physics import elements, unit_registry as units
+from planetgen.util import draw
+
+_kg_to_msun = units.converter("kg", "Msun")
+_msun_to_kg = units.converter("Msun", "kg")
 
 BRANCH_THIN = "thin"
 BRANCH_HIGH_ALPHA = "high-alpha"
@@ -219,6 +224,21 @@ def branch_from_uniform(fe_h, age_gy, u):
     return BRANCH_HIGH_ALPHA if u < branch_probability(fe_h, age_gy) else BRANCH_THIN
 
 
+@functools.lru_cache(maxsize=1 << 16)
+def _branch_uniform(fe_h):
+    return draw.Stream(f"branch:{fe_h!r}").random()
+
+
+def branch_of(fe_h, age_gy):
+    """
+    The branch of a star of this birth [Fe/H] and age (GEN.1024): high-alpha when the star's own uniform number, a stream named for its
+    [Fe/H] (a float no other star shares), is under `branch_probability`. The star's track (`alpha_tracks.track_fe_h`), its composition
+    and its radiogenic offsets all read it, from the two numbers a stored star keeps, so they agree and a star read back from the database
+    has the branch it was made with.
+    """
+    return branch_from_uniform(fe_h, age_gy, _branch_uniform(fe_h))
+
+
 def branch_probabilities(fe_h, age_gy):
     """`{branch: probability}` from the table, for a test or a report."""
     found = BRANCH_TABLE.probabilities(pt.Subject("star", {"fe_h": fe_h, "age_gy": age_gy}))
@@ -367,12 +387,7 @@ def composition(fe_h, offsets):
 
 
 _solar_metal_fraction = composition(0.0, {}).z
-"""float: Z0 (`solar_metal_fraction`)."""
-
-
-def solar_metal_fraction():
-    """Z0, the metal mass fraction of a star of [Fe/H] 0 with every [X/Fe] 0 (the proto-solar mix of `PROTO_MASS_FRACTION`)."""
-    return _solar_metal_fraction
+"""float: Z0, the metal mass fraction of a star of [Fe/H] 0 with every [X/Fe] 0 (the proto-solar mix of `PROTO_MASS_FRACTION`)."""
 
 
 def metal_ratio_to_solar(metal_mass_fraction):
@@ -386,6 +401,17 @@ def number_ratio(composition_or_offsets, a, b, fe_h=None):
     offsets = composition_or_offsets.offsets if isinstance(composition_or_offsets, StellarComposition) \
         else composition_or_offsets
     return 10.0 ** (tuning.STELLAR_SOLAR_LOG_EPS[a] - tuning.STELLAR_SOLAR_LOG_EPS[b] + offsets.get(a, 0.0) - offsets.get(b, 0.0))
+
+
+ALPHA_ELEMENTS = ("O", "Mg", "Si", "Ca")
+"""tuple: The elements whose mean [X/Fe] is a star's alpha enhancement (S and Ar follow Ca, so they add nothing)."""
+
+
+def alpha_enhancement(composition_or_offsets):
+    """[alpha/Fe] (dex): the mean [X/Fe] of `ALPHA_ELEMENTS`, for a `StellarComposition` or an offsets dict. A thin-disc star at [Fe/H] 0 is near 0, a
+    high-alpha one near +0.2 to +0.3 (the branches' fits, `tuning.STELLAR_XFE_FITS`)."""
+    offsets = composition_or_offsets.offsets if isinstance(composition_or_offsets, StellarComposition) else composition_or_offsets
+    return sum(offsets[symbol] for symbol in ALPHA_ELEMENTS) / len(ALPHA_ELEMENTS)
 
 
 def mass_ratio(composition_or_offsets, a, b):
@@ -602,7 +628,7 @@ def black_hole(mass_sol, spin=0.0):
     """The quantities of a black hole of `mass_sol` solar masses and dimensionless `spin` (0 to 1; charge is 0)."""
     if not 0.0 <= spin < 1.0:
         raise StellarAbundanceError("the spin is from 0 up to, not including, 1")
-    mass = mass_sol * constants.SOLAR_MASS_TO_KG
+    mass = _msun_to_kg(mass_sol)
     gravitational_radius = constants.G * mass / constants.SPEED_OF_LIGHT_M_S ** 2
     z1 = 1.0 + (1.0 - spin * spin) ** (1.0 / 3.0) * ((1.0 + spin) ** (1.0 / 3.0) + (1.0 - spin) ** (1.0 / 3.0))
     z2 = math.sqrt(3.0 * spin * spin + z1 * z1)
@@ -616,19 +642,8 @@ def black_hole(mass_sol, spin=0.0):
 
 # --- Brown dwarfs ------------------------------------------------------------------------------------------------------
 
-JUPITER_MASS_SOL = 1.89813e27 / constants.SOLAR_MASS_TO_KG
+JUPITER_MASS_SOL = _kg_to_msun(1.89813e27)
 """float: One Jupiter mass in solar masses (IAU nominal values)."""
-
-BROWN_DWARF_RADIUS_1_GY = (
-    (0.050, 0.0960), (0.060, 0.0940), (0.070, 0.0944), (0.075, 0.0971), (0.080, 0.102), (0.090, 0.113), (0.100, 0.124),
-    (0.150, 0.174), (0.300, 0.291), (0.500, 0.460))
-"""tuple: `(mass in solar masses, radius in solar radii)` of a brown dwarf or low-mass star at 1 Gyr, solar metallicity (BHAC15
-track file, Baraffe et al. 2015, interpolated; part A 2.14). A stand-in: one age and one Z; the MIST grid does not reach brown dwarfs."""
-
-BROWN_DWARF_TEFF_1_GY = (
-    (0.050, 1383.0), (0.060, 1586.0), (0.070, 2051.0), (0.080, 2401.0), (0.100, 2810.0), (0.150, 3130.0))
-"""tuple: `(mass, effective temperature K)` at 1 Gyr, solar Z, from the same file."""
-
 
 def deuterium_burning_limit_mj(z, y=None):
     """The mass (Jupiter masses) above which a brown dwarf burns deuterium: 13.55 - 0.9 log10(Z / 0.0189) - 0.2 (Y - 0.25) / 0.01
@@ -657,13 +672,20 @@ def hydrogen_burning_limit_sol(z):
     return law["hydrogen_zero_z_sol"] + share * (solar - law["hydrogen_zero_z_sol"])
 
 
-def brown_dwarf_radius_solar(mass_sol):
-    """The radius (solar radii) at 1 Gyr, solar metallicity, interpolated in `BROWN_DWARF_RADIUS_1_GY`.
+def hydrogen_burning_limit_for_fe_h(fe_h):
+    """`hydrogen_burning_limit_sol` of a place's birth [Fe/H] `fe_h` (its Z from `composition`, every [X/Fe] 0), the one edge between a
+    star and a brown dwarf that the primaries, the companions and the star's makeup all read (GEN.936)."""
+    return hydrogen_burning_limit_sol(composition(fe_h, {}).z)
+
+
+def brown_dwarf_radius_solar(mass_sol, age_gy=1.0):
+    """The radius (solar radii) of a brown dwarf or low-mass star at an age, solar metallicity, from the Baraffe et al. 2015 table, continued
+    past the age it loses the mass (`baraffe_isochrones.cooling_track`; GEN.948: it was nine points at 1 Gyr).
 
     Raises:
-        StellarAbundanceError: The mass is outside the table (0.05 to 0.5 solar masses).
+        StellarAbundanceError: The mass is outside the table (0.01 to 1.4 solar masses).
     """
-    masses = [row[0] for row in BROWN_DWARF_RADIUS_1_GY]
-    if not masses[0] <= mass_sol <= masses[-1]:
-        raise StellarAbundanceError(f"a {mass_sol} solar mass object is outside the radius table ({masses[0]} to {masses[-1]})")
-    return _interpolate(masses, [row[1] for row in BROWN_DWARF_RADIUS_1_GY], mass_sol)
+    try:
+        return baraffe_isochrones.cooling_track(mass_sol, age_gy)[1]
+    except ValueError as error:
+        raise StellarAbundanceError(str(error)) from error

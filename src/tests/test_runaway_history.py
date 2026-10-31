@@ -64,8 +64,9 @@ def test_a_sun_like_star_leaves_the_earth_its_ocean():
     assert runaway_history.loss_kg(_star(1.0, 1.0, 5772.0, 4.6), 1.0, *EARTH) == 0.0
 
 
-def test_a_planet_well_inside_the_zone_of_a_sun_like_star_loses_many_oceans():
-    assert runaway_history.loss_kg(_star(1.0, 1.0, 5772.0, 4.6), 0.72, *EARTH) > 5 * EARTH_OCEAN_KG
+def test_a_planet_well_inside_the_zone_of_a_sun_like_star_loses_oceans():
+    # the median Sun leaves saturation at 23 Myr (GEN.493): a Venus-orbit Earth loses about two oceans, the 100 Myr of the earlier table gave seven
+    assert runaway_history.loss_kg(_star(1.0, 1.0, 5772.0, 4.6), 0.72, *EARTH) > 1 * EARTH_OCEAN_KG
 
 
 def test_a_cool_star_dries_the_planets_of_its_present_zone():
@@ -102,7 +103,7 @@ def test_the_loss_is_deterministic_and_follows_the_stars_own_activity():
     star = _star(0.3, 0.013, 3400.0, 5.0)
     assert runaway_history.loss_kg(star, 0.1, *EARTH) == runaway_history.loss_kg(star, 0.1, *EARTH)
     activity = runaway_history.activity
-    t_sat, decay = activity._interp(activity.ACTIVITY_TABLE, 0.3)
+    t_sat, decay = activity.saturation_age_gy(0.3), activity.decay_exponent(0.3)
     nominal = activity.lx_lbol_at(5.0, activity.saturated_lx_lbol(0.3), t_sat, decay)
     # at 0.1 AU the planet is past the limit the whole time, so the decaying activity after saturation counts
     quiet = _star(0.3, 0.013, 3400.0, 5.0, log_lx_lbol=math.log10(nominal) - 0.7)
@@ -136,7 +137,14 @@ def test_the_surface_water_a_planet_keeps_is_what_its_class_gave_less_what_it_lo
             _, untouched = _planet("M3V", 1.0, seed)
         assert cool.water_mass_fraction == untouched.water_mass_fraction  # the bulk water of the composition stays
         assert cool.ocean_fraction <= untouched.ocean_fraction  # the escape takes surface water, never makes it
-        lost_any = lost_any or cool.ocean_fraction < untouched.ocean_fraction
+        # the cover is 1.0 on a world that holds many oceans, so the loss shows in the surface water itself (TEST.504)
+        with draw.bound(seed):
+            surface = hydrosphere.draw_surface_water(cool)
+        with monkeypatch.context() as patch, draw.bound(seed):                    # the same buffer draw with and without the loss
+            patch.setattr(hydrosphere.runaway_history, "loss_kg", lambda *args: 0.0)
+            surface_untouched = hydrosphere.draw_surface_water(cool)
+        assert surface <= surface_untouched
+        lost_any = lost_any or surface < surface_untouched
     assert lost_any  # the zone of a 0.3 solar-mass star lost some of its surface water while the star was young
 
 

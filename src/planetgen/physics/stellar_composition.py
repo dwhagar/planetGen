@@ -55,8 +55,8 @@ import re
 from dataclasses import dataclass, field
 
 from planetgen import tuning
-from planetgen.datasets import fetch, isochrones, neutron_star_matter, white_dwarf_models
-from planetgen.physics import constants, elements, main_sequence, wolf_rayet
+from planetgen.datasets import baraffe_isochrones, fetch, isochrones, neutron_star_matter, white_dwarf_models
+from planetgen.physics import alpha_tracks, constants, elements, main_sequence, wolf_rayet
 from planetgen.physics import stellar_abundances as sa
 from planetgen.util import draw
 
@@ -105,7 +105,6 @@ class StarDraws:
     A star's draws, in the fixed order they are consumed in; every one is always drawn.
 
     Attributes:
-        u_branch (float): Decides the branch (`stellar_abundances.branch_from_uniform`).
         normals (tuple): Five standard normals for the C, O, Mg, Si and Ca residuals (the calcium one is drawn last of all, so no earlier draw moved
             when calcium gained its scatter, GEN.988).
         u_enhanced (float): Decides a carbon-enhanced metal-poor star.
@@ -118,7 +117,6 @@ class StarDraws:
         u_pollution (float): Decides whether a cool white dwarf is polluted (`white_dwarf_polluted`).
     """
 
-    u_branch: float
     normals: tuple
     u_enhanced: float
     u_carbon: float
@@ -151,20 +149,14 @@ def abundance_key(uid=None, mass=None, distance_ly=None, bright_seed=None, group
     return f"{mass!r}:{distance_ly!r}"
 
 
-def cluster_key(seed):
-    """The key a cluster's stars share (`abundance:cluster:{seed}`): the draws are shared, so only the [Fe/H]-dependent means move
-    from one star to the next."""
-    return f"cluster:{seed}"
-
-
 def key_draws(key):
     """The draws of `key`: a stream of its own, `abundance:{key}`, drawn in the order of `StarDraws`."""
     stream = draw.Stream(f"abundance:{key}")
-    u_branch = stream.random()
+    stream.random()    # unread: the branch left the key (`stellar_abundances.branch_of`) and every later draw keeps its place
     normals = tuple(stream.gauss(0.0, 1.0) for _ in range(4))
     rest = (stream.random(), stream.random(), stream.gauss(0.0, 1.0), stream.gauss(0.0, 1.0),
             stream.random(), stream.random(), stream.random(), stream.random())
-    return StarDraws(u_branch, normals + (stream.gauss(0.0, 1.0),), *rest)
+    return StarDraws(normals + (stream.gauss(0.0, 1.0),), *rest)
 
 
 def white_dwarf_polluted(teff_k, u_pollution, share=POLLUTED_SHARE):
@@ -291,6 +283,22 @@ def _neutron_star_crust(draws):
             "radius_band_km": tuning.STELLAR_NS_RADIUS_BAND_KM}
 
 
+def _grid_radius_solar(mass_sol, teff_k, envelope):
+    """
+    A white dwarf's radius from the cooling sequences, solar radii. The initial-final mass relation reaches 1.33 solar masses and the
+    sequences stop at `white_dwarf_models.CRYSTAL_MASS_SOL` (1.30): a heavier star reads the 1.30 sequence at its temperature, scaled by the
+    zero-temperature mass-radius relation's ratio of the two masses (the shrinking toward the Chandrasekhar mass).
+    """
+    top = white_dwarf_models.CRYSTAL_MASS_SOL
+    if mass_sol <= top:
+        return white_dwarf_models.radius_solar(mass_sol, teff_k, envelope)
+    try:
+        return (white_dwarf_models.radius_solar(top, teff_k, envelope)
+                * sa.white_dwarf_radius_solar(mass_sol) / sa.white_dwarf_radius_solar(top))
+    except sa.StellarAbundanceError:
+        return None  # heavier than any white dwarf the relation makes
+
+
 def star_makeup(kind, fe_h, age_gy, mass_sol, key, wolf_rayet_subtype=None, spin=0.0, teff_k=None):
     """
     The composition of a star or remnant.
@@ -323,7 +331,7 @@ def star_makeup(kind, fe_h, age_gy, mass_sol, key, wolf_rayet_subtype=None, spin
         return StarMakeup(kind, None, None, None, draws, crust, open_items=open_items)
     if fe_h is None:
         raise StarMakeupError(f"a {kind} needs a [Fe/H]")
-    branch = sa.branch_from_uniform(fe_h, age_gy, draws.u_branch)
+    branch = sa.branch_of(fe_h, age_gy)
     offsets = sa.abundance_offsets(fe_h, branch, draws.normals, draws.u_enhanced, draws.u_carbon)
     birth = sa.composition(fe_h, offsets)
     surface, detail, open_items = birth, {}, ()
@@ -339,11 +347,12 @@ def star_makeup(kind, fe_h, age_gy, mass_sol, key, wolf_rayet_subtype=None, spin
             point, detail["main_sequence_lifetime_gy"] = None, None
             open_items = (f"the isochrones are missing: {isochrones.DATASET.fallback}",)
         else:
-            point = isochrones.main_sequence_point(mass_sol, age_gy, fe_h)
-            detail["main_sequence_lifetime_gy"] = isochrones.main_sequence_lifetime_gy(mass_sol, fe_h)
+            track = alpha_tracks.track_fe_h(fe_h, age_gy)    # the track the star's own record reads (GEN.1024)
+            point = isochrones.main_sequence_point(mass_sol, age_gy, track)
+            detail["main_sequence_lifetime_gy"] = isochrones.main_sequence_lifetime_gy(mass_sol, track)
             if point is None and tuning.IMF_BREAKS_SOL[0] <= mass_sol < tuning.MAIN_SEQUENCE_GRID_MASS_RANGE_SOL[0]:
                 # GEN.652: a mass under the grid reads the extension the star's own record reads (`main_sequence.state`).
-                row = main_sequence.state(mass_sol, age_gy, fe_h)
+                row = main_sequence.state(mass_sol, age_gy, track)
                 point = (math.log10(row.luminosity_sol), math.log10(row.temperature_k), math.log10(row.radius_sol))
             elif point is None:
                 open_items = ("the track does not cover this mass or age (0.1 solar masses and up, 0.1 Myr to about 20 Gy)",)
@@ -360,11 +369,15 @@ def star_makeup(kind, fe_h, age_gy, mass_sol, key, wolf_rayet_subtype=None, spin
             mass_jupiter=mass_jupiter, deuterium_limit_mj=deuterium, burned_deuterium=mass_jupiter > deuterium,
             burned_lithium=mass_sol > sa.lithium_burning_limit_sol(),
             burns_hydrogen=mass_sol > sa.hydrogen_burning_limit_sol(birth.z))
-        try:
-            detail["radius_solar_at_1_gy"] = sa.brown_dwarf_radius_solar(mass_sol)
-        except sa.StellarAbundanceError:
-            detail["radius_solar_at_1_gy"] = None
-        open_items = ("radius at other ages and metallicities", "the hydrogen limit against metallicity")
+        if fetch.locate(baraffe_isochrones.DATASET).use_stand_in("no brown dwarf radius"):
+            detail["radius_solar"] = None
+            open_items = (f"the Baraffe table is missing: {baraffe_isochrones.DATASET.fallback}", "radius at other metallicities")
+        else:
+            try:
+                detail["radius_solar"] = sa.brown_dwarf_radius_solar(mass_sol, age_gy)
+            except sa.StellarAbundanceError:
+                detail["radius_solar"] = None
+            open_items = ("radius at other metallicities",)
     elif kind == WHITE_DWARF:
         if teff_k is None:
             raise StarMakeupError("a white dwarf needs its effective temperature")
@@ -381,7 +394,7 @@ def star_makeup(kind, fe_h, age_gy, mass_sol, key, wolf_rayet_subtype=None, spin
             detail["layers"] = None
             open_items = (f"the white-dwarf sequences are missing: {white_dwarf_models.DATASET.fallback}",)
         else:
-            detail["radius_solar"] = white_dwarf_models.radius_solar(mass_sol, teff_k, envelope)
+            detail["radius_solar"] = _grid_radius_solar(mass_sol, teff_k, envelope)
             detail["layers"] = (white_dwarf_models.layer_mass_fractions(mass_sol, envelope)
                                 if detail["core"] == "carbon-oxygen" else None)
             open_items = ("the carbon-to-oxygen split of the core (the sequences assume an even one)",

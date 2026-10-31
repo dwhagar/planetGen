@@ -1,0 +1,30 @@
+# Rogue ejection kick: what the full texts say (GEN.1113)
+
+Read on 2026-10-30 (as the lane reported 5:5x PM EDT): the full texts of Huang and Lai 2025 (arXiv:2508.18239), Kramer and Profumo 2026 (arXiv:2608.02945, last 17 k characters only as a summary, marked [S]), Sayed, Profumo and Smyth 2026 (arXiv:2609.21027, appendix A.14 and the references missing) and Veras and Raymond 2012 (arXiv:1201.2175). The code is `physics/rogue_kick.py`; the registry rows are RK1 to RK8 in `gap-filling-plan.md` section 6.87. Boss's answer on direction (isotropic in the origin planet's frame, plus its real motion) stands, so only the speed and the moons were read for.
+
+## 1. Speed against perturber mass and orbit
+
+* **Huang and Lai** find from N-body scattering that speeds at infinity peak near `v_c = sqrt(G m1 / 0.12 a2) (m1 / m12) (a1 / a2)^(1/4)` (Eq. 19), for a scatterer `m1` ejecting a body `m2` (`m12` their sum). The paper's own simplification (Eq. 26) is `v_c = 3 km/s (m_p / M_Jup)^(1/2) (a_p / 1 AU)^(-1/2)`, independent of the star for star-to-scatterer mass ratios of 100 to 1000 (Eq. 19 breaks down for larger scatterers). The distribution runs from 0 to 2.5 `v_c` with a peak near 1 for two planets, to 5 to 8 `v_c` for three (Sec. 4.3 and 5.3, figures only: no median or percentile is printed). Circumbinary ejections are ten times faster (Sec. 6).
+* **Kramer and Profumo** (star plus giant plus light planet, 10 000 runs per setting, 10 Myr): mean `v_inf` 3.4 to 3.6 km/s for a 10 Jupiter-mass giant at 5.2 AU with no trend over ejected masses of 1e-5 to 1e-1 Jupiter masses (Sec. 4.1); 1.15 km/s for 1 Jupiter mass up to 7.07 for 75 (Sec. 4.2, fit exponent 0.42); 3.0 to 3.5 km/s across the light planet's orbit (Sec. 4.3); eccentric giants and light planets raise the mean to 5.5 to 7 km/s and the first-outbound-step speed to 23 km/s (eccentric light planet) and 80 km/s (giant of eccentricity 0.9), with 5.9 percent above 20 km/s and under 0.2 percent above 50 km/s (Sec. 4.4, 4.5, 5.2). The abstract's 23 and 80 km/s are speeds at the first accepted step inside the star's potential, not speeds at infinity. Only means are given.
+* **Agreement.** The two independent N-body sets agree to 15 percent: `v_c` is 1.32 and 4.16 km/s for 1 and 10 Jupiter masses at 5.2 AU, the means 1.15 and 3.5 (0.87 and 0.84 of `v_c`). The ejected mass does not matter (both papers); the star's mass does not enter (Huang and Lai). The model takes `v_inf = v_c X`, `X` log-normal with mean 0.87 and 99th percentile 2.5.
+* **Sayed, Profumo and Smyth** do not measure a kick: it is a stated prescription (Gaussian components of 10 km/s for a circumbinary channel, a 4 km/s Gaussian falling as `M^-1/2` with the ejected mass for planet-planet scattering; Table 8 medians 15 and 4 km/s null, 14.3 to 7.3 and 3.1 to 0.7 coupled). The combined medians of 0.708 to 10.716 km/s (Table 10) are the range quoted in the earlier design note. The `M^-1/2` fall with the ejected mass contradicts the no-trend result of the N-body papers, so it is not used. Median kicked-minus-control separation after 100 Myr: 0.054 to 0.77 kpc by bin; 3 percent leave the disc (Table 5); no Galactic unbound fraction is printed.
+* **Veras and Raymond** print no velocities: 20 to 70 percent of planets are ejected (positional cut at 1e5 AU, Sec. 2), more for unequal masses.
+
+## 2. Direction
+
+None of the four papers measures a direction. Sayed et al. use isotropic. Kramer and Profumo assume it uncorrelated with the Galactic motion (Sec. 5.2) and argue outer configurations favour outward kicks. Boss's rule (isotropic in the planet's frame plus the planet's motion) is used.
+
+## 3. Moon survival
+
+* **Huang and Lai** simulate no moons. They infer survival from the closest approach `r_min` of the ejected planet to the scatterer: a moon stays bound if `r_moon < f r_min (m2 / m12)^(1/3)` (Eq. 4), "a high survival probability requires f ~ 1/2". Medians of `r_min` in mutual Hill radii for a scatterer ejecting a tenth of its mass: 0.089, 0.034, 0.0066 at 10, 5, 1 Jupiter masses; against the ejected mass 0.089, 0.065, 0.039, 0.052; against the inclination 0.089 to 0.0030; against the planet spacing (2.5 to 1) 0.60 to 0.051. In the fiducial run 48 percent of ejections have `r_min` above 0.1 and 82 percent above 0.01; the authors read moons at the Solar System's `1e-2` of the Hill radius as surviving "at least 70 percent" (Sec. 4.2.4), and three-planet systems 30 to 40 percent for moons inside 0.1 (Sec. 5.2). Their headline numbers use `r_min` directly; Eq. 4 with `f = 0.5` is stricter (a moon at 0.01 of the mutual Hill radius survives 65 percent, `rogue_kick.moon_survival_probability`).
+* **Kramer and Profumo, Sayed et al., Veras and Raymond:** no moons.
+* **Not found:** Hong et al. 2018 (moons during scattering) and Debes and Sigurdsson 2007 could not be located by the fetch tool (search pages are blocked by robots rules); they are the next read if moon retention needs an N-body source.
+
+## 4. What the code does and does not do
+
+Done: the speed (RK1, RK3, RK4), the Safronov cut (RK2), the closest approach and moon rule (RK5 to RK8), isotropic direction, tested against the two N-body papers' means (1.15 and 3.5 km/s), the zero ejected-mass trend, the 2.5 `v_c` top, Huang and Lai's closest-approach median and the 48 and 82 percent shares, and Sayed et al.'s 0.7 to 10.7 km/s window.
+Not done: the tail that eccentric scatterers (Kramer and Profumo: mean up to 7 km/s at e = 0.9) and three-planet systems (5 to 8 `v_c`) add; the dependence of `r_min` on spacing, inclination and the ejected mass; scatterers above about 10 Jupiter masses (Kramer's mean is 7.07 km/s at 75, the formula gives 11); secular heating of floaters after ejection (Lau and Lai 2026); stellar flyby ejections (Hurley and Shara 2002, Malmberg et al. 2011), still unread.
+
+## 5. Kramer and Profumo internal inconsistencies noticed
+
+Ejection-fraction drop over the ejected-mass range: 1.67 points (Sec. 4.1) against 2.3 (Sec. 5.3 and 6.1); maximum first-step speed 7.5 (text) against 7.76 km/s (caption); 79.7 (text) against 79.8 km/s (caption). None changes a number used here.

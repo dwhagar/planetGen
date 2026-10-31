@@ -1,0 +1,73 @@
+{
+ "version": 1,
+ "title": "The carbon dioxide far wing rules",
+ "description": "What the 25 cm-1 line cutoff of the infrared k-tables leaves out of a dense carbon dioxide air (GEN.1019, docs/design/composition/line-opacity.md). The wing of every carbon dioxide band is the Lorentz tail of its lines times the sub-Lorentzian factor chi of Perrin and Hartmann 1989 (JQSRT 42, 311), from the cutoff out to a reach. The parameters of chi are the HELIOS-K files chiPH89__CO2-CO2.dat and chiPH89__CO2-N2.dat; the band strengths are the k-tables' own, not stored here. Every number carries its source tier (T1 to T9) and tweak level (L0 to L4).",
+ "numbers": {
+  "cutoff_cm1": {
+   "value": 25.0,
+   "tier": "T1",
+   "tweak": "L0",
+   "basis": "The distance from a line centre at which the ExoMolOP k-tables cut every line (physics/line_opacity.py); the wing starts where the tables stop, so nothing is counted twice"
+  },
+  "reach_cm1": {
+   "value": 500.0,
+   "tier": "T3",
+   "tweak": "L0",
+   "basis": "How far from a line the wing is carried: Simonetti and others 2021 (arXiv 2110.11702, appendix step 1, read) use the Perrin and Hartmann chi factors truncated at 500 cm-1 for carbon dioxide dominated air and say proposed truncations run from 120 cm-1 to none; their other option is 350 cm-1 with the Tonkov 1996 chi. The widest range of the two in question is 120 cm-1 to the whole grid, which the tests sweep"
+  },
+  "temperature_low_k": {
+   "value": 190.0,
+   "tier": "T3",
+   "tweak": "L0",
+   "basis": "The coolest temperature the chi parameters are used at (colder is held at this value): Perrin and Hartmann measured near 190 to 800 K (Wordsworth, Forget and Eymet 2010, read); the exponential form would give a chi above 1 for B1 under about 140 K"
+  },
+  "temperature_high_k": {
+   "value": 800.0,
+   "tier": "T3",
+   "tweak": "L0",
+   "basis": "The warmest temperature of the chi parameters' measurements (as above); hotter air holds the 800 K value, so the wing of a hot atmosphere is a lower bound"
+  },
+  "gamma_self_cm1_atm": {
+   "value": 0.10,
+   "tier": "T4",
+   "tweak": "L0",
+   "basis": "The Lorentz half width of a carbon dioxide line broadened by carbon dioxide at 296 K and one atmosphere: HITRAN's values for the strong lines of the 4.3 and 15 micron bands lie near 0.09 to 0.11 (recalled, not read); the wing goes as this width"
+  },
+  "gamma_foreign_cm1_atm": {
+   "value": 0.07,
+   "tier": "T4",
+   "tweak": "L0",
+   "basis": "The same broadened by nitrogen or air (HITRAN air broadening of the strong lines is near 0.07, recalled, not read); every gas that is not carbon dioxide takes the nitrogen value and its chi"
+  },
+  "gamma_exponent": {
+   "value": 0.7,
+   "tier": "T4",
+   "tweak": "L0",
+   "basis": "The width goes as (296 K / T) to this power (the HITRAN air exponent of the strong carbon dioxide lines is near 0.7, recalled, not read)"
+  },
+  "minor_gamma_cm1_atm": {
+   "value": {"H2O": 0.13, "SO2": 0.10, "CO": 0.065},
+   "tier": "T4",
+   "tweak": "L0",
+   "basis": "The Lorentz half width at 296 K and one atmosphere of a line of a minor gas broadened by carbon dioxide: water 0.13 (HITRAN's CO2 broadening of water lines is above its air value of about 0.09, recalled), sulfur dioxide 0.10, carbon monoxide 0.065 (recalled, not read); none was found in an open source. The widest range of the two in doubt is the knob of its registry row"
+  },
+  "minor_uses_chi": {
+   "value": 1,
+   "tier": "T6",
+   "tweak": "L1",
+   "basis": "Whether the minor gases take the carbon dioxide self factor chi: 1 yes (the same collision partner, no minor-gas factor was found), 0 for a pure Lorentz tail. Real water wings are stronger than Lorentz in windows (the continuum), so 1 is a lower bound"
+  },
+  "chi_co2_co2": {
+   "value": {"sigma_cm1": [3.0, 30.0, 120.0], "alpha": [0.0888, 0.0, 0.0232], "beta": [-0.160, 0.0526, 0.0], "epsilon": [0.00410, 0.00152, 0.0]},
+   "tier": "T2",
+   "tweak": "L0",
+   "basis": "Perrin and Hartmann 1989, carbon dioxide in carbon dioxide: chi is 1 up to sigma1, then falls as exp(-b1 (d - sigma1)), exp(-b1 (sigma2 - sigma1) - b2 (d - sigma2)) and the same with b3 beyond sigma3, with b_i(T) = alpha_i + beta_i exp(-epsilon_i T) per cm-1. The numbers are second-hand: the HELIOS-K file chiPH89__CO2-CO2.dat (github.com/exoclime/HELIOS-K, read 10-30), whose form Simonetti and others 2021 print as their equations 12 to 15. The paper itself was not opened"
+  },
+  "chi_co2_n2": {
+   "value": {"sigma_cm1": [3.0, 10.0, 70.0], "alpha": [0.416, 0.00167, 0.0200], "beta": [-0.354, 0.0421, 0.0], "epsilon": [0.00386, 0.00248, 0.0]},
+   "tier": "T2",
+   "tweak": "L0",
+   "basis": "Perrin and Hartmann 1989, carbon dioxide in nitrogen, same form and same second-hand source (chiPH89__CO2-N2.dat)"
+  }
+ }
+}

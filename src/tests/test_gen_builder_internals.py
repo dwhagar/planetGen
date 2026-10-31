@@ -278,7 +278,7 @@ def test_reconcile_reruns_spin_dose_and_score_for_each_moon_of_a_moved_planet(sy
     assert planet.moons
     reran = []
     real = planetPhysics.generate_spin
-    monkeypatch.setattr(planetPhysics, "generate_spin", lambda body, mass: (reran.append(body), real(body, mass))[1])
+    monkeypatch.setattr(planetPhysics, "generate_spin", lambda body, mass, **kwargs: (reran.append(body), real(body, mass, **kwargs))[1])
     planet.distance *= 2
     system._reconcile_moved_planet(planet)
     assert all(any(body is moon for body in reran) for moon in planet.moons)

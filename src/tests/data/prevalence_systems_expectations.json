@@ -1,9 +1,12 @@
 {
  "anomalies": {
+  "GEN.1135": "Train 6 (epoch 128, about 4:10 AM EDT 10-31) moved this share. The class epoch (GEN.1135 retires Class Q, GEN.1136 raises the Class V line from 1.25 g to 2 g, GEN.1142 adds the class lines and Class E) re-derives every planet class, and the same train changed the halo mass function (GEN.1154), ocean tides (GEN.1034), ring ages (GEN.1057), day and night state (GEN.1097), the resonance capture draw (GEN.1172), giant tilts (GEN.1165), star spin (GEN.1163, GEN.1170) and the close-binary period trend (GEN.705). The ranges stay until the planet and star chains settle; re-baseline after the last 8.1 train (TEST.430).",
   "GEN.646": "the class cut-over (GEN.646) derives every class from the finished body and builds a moon from its mass: more bodies end in the classes that can carry life (Q, P, V, K), moons per planet rise, and the life shares follow the new air; the ranges are the pre-cut-over measurement and wait for Bug 2's re-baseline",
+  "GEN.728": "Train 4 (epoch 126, 3:40 PM EDT 10-30) moved this share. The planet architecture (GEN.728, GEN.729, GEN.730, GEN.828, GEN.829, GEN.920) now sets the planet count, spacing, belts and giants of every system, with the snow line and ice from Lodders (GEN.950), the greenhouse table (GEN.850) and rocky bodies made again at the star's final age (GEN.992). The ranges are the post-cut-over (GEN.646) ones and stay until the planet and star chains settle; re-baseline after the last 8.1 train (TEST.430).",
   "GEN.750": "an intended change, not a fault: the life timeline is five hard steps with the means Boss chose (epoch 119: 0.5, 1.5, 2.5, 3 and 60 Gyr), so photosynthesis comes later than the old pace tables gave and a civilization needs more time than an F star lives; the ranges wait for the re-baseline",
   "GEN.889": "an intended change, not a fault: each life world stores one of the life classes (epoch 120). Chemical classes under ice reach complex cells more often than the old pace tables allowed, and a world counts as Blue or Green only with a sunlit sea for the Flora its food rung needs, which the cold air of GEN.909 and the frozen oceans of GEN.908 keep rare; the ranges wait for the re-baseline after the class cut-over (GEN.646)",
-  "GEN.911": "an intended change, not a fault (epoch 124): a habitable request is judged by conditions (273 to 323 K, at least 10 kPa, a surface ocean) and the orbit is aimed by the solved temperature, so a temperate sea world is present in 28 to 30 of 30 G2V and K5V systems (was 2 to 5); A stars that carry such a world reach complex cells more often; the ranges wait for the re-baseline"
+  "GEN.911": "an intended change, not a fault (epoch 124): a habitable request is judged by conditions (273 to 323 K, at least 10 kPa, a surface ocean) and the orbit is aimed by the solved temperature, so a temperate sea world is present in 28 to 30 of 30 G2V and K5V systems (was 2 to 5); A stars that carry such a world reach complex cells more often; the ranges wait for the re-baseline",
+  "GEN.941": "Train 3 (epoch 125, 7:27 AM EDT 10-30) moved this share. Every census cell is a forced star type, and forced types are now stars of the population model (GEN.941; their mass, age and metallicity come from the tracks of GEN.935 and the mass function of GEN.927 to GEN.930, not from the hand-made letter ranges), the spectral letters follow the Pecaut and Mamajek table (GEN.943), giants settle at the final age (GEN.961) and a world gets no life class before its first life step (GEN.1001). The ranges are the post-cut-over (GEN.646) ones and stay until the star and planet chains settle; re-baseline after the last 8.1 train (TEST.430)."
  },
  "errors": {
   "anomaly": ""
@@ -69,6 +72,7 @@
      "source": "pre-cut-over 0.300 over 150 systems at 0b4d0ccef"
     },
     "life_abiogenesis": {
+     "anomaly": "GEN.1135",
      "kind": "stand-in",
      "max": 0.8474,
      "min": 0.2326,
@@ -113,6 +117,7 @@
      "source": "pre-cut-over 5.680 over 150 systems at 0b4d0ccef"
     },
     "zero_planets": {
+     "anomaly": "GEN.1135",
      "kind": "stand-in",
      "max": 0.4473,
      "min": 0.01,
@@ -124,6 +129,7 @@
   "F5V": {
    "measures": {
     "belts": {
+     "anomaly": "GEN.728",
      "kind": "stand-in",
      "max": 0.7534,
      "min": 0.1399,
@@ -161,6 +167,7 @@
      "source": "pre-cut-over 0.753 over 150 systems at 0b4d0ccef"
     },
     "habitable_class": {
+     "anomaly": "GEN.941",
      "kind": "stand-in",
      "max": 0.7463,
      "min": 0.1337,
@@ -200,6 +207,7 @@
      "source": "pre-cut-over 0.113 over 150 systems at 0b4d0ccef"
     },
     "moons_per_planet": {
+     "anomaly": "GEN.728",
      "kind": "stand-in",
      "max": 1.8252,
      "min": 0.6645,
@@ -223,12 +231,14 @@
   "G2V": {
    "measures": {
     "belts": {
+     "anomaly": "GEN.728",
      "kind": "stand-in",
      "max": 0.8082,
      "min": 0.1918,
      "source": "pre-cut-over 0.500 over 150 systems at 0b4d0ccef"
     },
     "belts_count": {
+     "anomaly": "GEN.1135",
      "kind": "stand-in",
      "max": 1.2654,
      "min": 0.1613,
@@ -312,6 +322,7 @@
      "source": "pre-cut-over 8.067 over 150 systems at 0b4d0ccef"
     },
     "zero_planets": {
+     "anomaly": "GEN.728",
      "kind": "stand-in",
      "max": 0.2326,
      "min": 0.01,
@@ -329,12 +340,14 @@
      "source": "pre-cut-over 0.233 over 150 systems at 0b4d0ccef"
     },
     "belts_count": {
+     "anomaly": "GEN.941",
      "kind": "stand-in",
      "max": 0.5558,
      "min": 0.0,
      "source": "pre-cut-over 0.260 over 150 systems at 0b4d0ccef"
     },
     "binary": {
+     "anomaly": "GEN.941",
      "kind": "stand-in",
      "max": 1.0,
      "min": 0.4983,
@@ -366,24 +379,28 @@
      "source": "pre-cut-over 0.080 over 150 systems at 0b4d0ccef"
     },
     "life_abiogenesis": {
+     "anomaly": "GEN.941",
      "kind": "stand-in",
      "max": 0.4839,
      "min": 0.01,
      "source": "pre-cut-over 0.220 over 150 systems at 0b4d0ccef"
     },
     "life_complex_cells": {
+     "anomaly": "GEN.941",
      "kind": "stand-in",
      "max": 0.1423,
      "min": 0.0,
      "source": "pre-cut-over 0.020 over 150 systems at 0b4d0ccef"
     },
     "life_multicellularity": {
+     "anomaly": "GEN.941",
      "kind": "stand-in",
      "max": 0.1423,
      "min": 0.0,
      "source": "pre-cut-over 0.020 over 150 systems at 0b4d0ccef"
     },
     "life_photosynthesis": {
+     "anomaly": "GEN.941",
      "kind": "stand-in",
      "max": 0.3378,
      "min": 0.01,
@@ -403,12 +420,14 @@
      "source": "pre-cut-over 1.192 over 150 systems at 0b4d0ccef"
     },
     "planets": {
+     "anomaly": "GEN.941",
      "kind": "stand-in",
      "max": 4.3484,
      "min": 0.3716,
      "source": "pre-cut-over 2.360 over 150 systems at 0b4d0ccef"
     },
     "zero_planets": {
+     "anomaly": "GEN.941",
      "kind": "stand-in",
      "max": 0.7321,
      "min": 0.1213,
@@ -420,12 +439,14 @@
   "K5V": {
    "measures": {
     "belts": {
+     "anomaly": "GEN.728",
      "kind": "stand-in",
      "max": 0.788,
      "min": 0.172,
      "source": "pre-cut-over 0.480 over 150 systems at 0b4d0ccef"
     },
     "belts_count": {
+     "anomaly": "GEN.728",
      "kind": "stand-in",
      "max": 1.1897,
      "min": 0.1303,
@@ -464,6 +485,7 @@
      "source": "pre-cut-over 0.407 over 150 systems at 0b4d0ccef"
     },
     "life_abiogenesis": {
+     "anomaly": "GEN.728",
      "kind": "stand-in",
      "max": 1.0,
      "min": 0.5342,
@@ -521,12 +543,14 @@
   "M2V": {
    "measures": {
     "belts": {
+     "anomaly": "GEN.728",
      "kind": "stand-in",
      "max": 0.9148,
      "min": 0.3119,
      "source": "pre-cut-over 0.613 over 150 systems at 0b4d0ccef"
     },
     "belts_count": {
+     "anomaly": "GEN.728",
      "kind": "stand-in",
      "max": 1.5812,
      "min": 0.3121,
@@ -564,6 +588,7 @@
      "source": "pre-cut-over 0.427 over 150 systems at 0b4d0ccef"
     },
     "life_abiogenesis": {
+     "anomaly": "GEN.728",
      "kind": "stand-in",
      "max": 1.0,
      "min": 0.673,
@@ -604,12 +629,14 @@
      "source": "pre-cut-over 0.996 over 150 systems at 0b4d0ccef"
     },
     "planets": {
+     "anomaly": "GEN.728",
      "kind": "stand-in",
      "max": 12.6226,
      "min": 5.2974,
      "source": "pre-cut-over 8.960 over 150 systems at 0b4d0ccef"
     },
     "zero_planets": {
+     "anomaly": "GEN.728",
      "kind": "stand-in",
      "max": 0.1599,
      "min": 0.0,

@@ -42,6 +42,7 @@ from planetgen.generation.system import StarSystem
 from planetgen.db import edits as db_edits
 from planetgen.db import query
 
+from tests.bright_star_rows import star_row as _star_row
 from tests.publicids import pid, pids
 
 TEST_ADMIN_PASSWORD = "a-strong-test-password-123"
@@ -829,12 +830,17 @@ def test_galaxy_clouds_in_box_lists_every_cloud_reaching_the_box(mysql_config):
     assert [c["id"] for c in capped] == [nebula_id]
 
 
+def _b2v_row(luminosity_sol, seed=42):
+    """A B2V star of ring 3 layer 0 slot 1, as the tests of the bright-star routes place them."""
+    return _star_row((3, 0, 1), (12000, 3000, 0), star_type="B2V", yerkes_class="V", mass_kg=1.4e31, radius_km=3.0e6, temperature_k=22000.0,
+                     luminosity_w=luminosity_sol * 3.828e26, age_gy=0.02, lifespan_gy=0.03, initial_mass_sol=7.0, phase_end_age_gy=0.03, seed=seed)
+
+
 def _bright_row(position_pc, luminosity_sol, edge_pc):
     from planetgen.galaxy.spherical import sector_address_at
 
-    shell, band, wedge = sector_address_at(position_pc, edge_pc)
-    return (shell, band, wedge, *(int(round(v * 1000)) for v in position_pc), "young", "B", "III", 1e31, 1e7,
-            15000.0, luminosity_sol * SOLAR_LUMINOSITY_W, 0.05, 0.1, 8.0, None, 1, None)
+    return _star_row(sector_address_at(position_pc, edge_pc), tuple(int(round(v * 1000)) for v in position_pc),
+                     luminosity_w=luminosity_sol * SOLAR_LUMINOSITY_W)
 
 
 @pytest.mark.parametrize("outline, ranges_per_ring", [(False, False), (True, False), (True, True)])
@@ -1113,12 +1119,10 @@ def test_galaxy_bright_stars_in_one_cell(client, mysql_config):
     """`GET /api/galaxy/bright-stars`: one cell's waiting bright stars,
     brightest first; `all=1` adds the filled ones; bad addresses are 400."""
     assert client.get("/api/galaxy/bright-stars?shell=3&band=0&wedge=1").get_json() == {"items": []}
-    row = (3, 0, 1, 12000, 3000, 0, "young", "B2V", "V", 1.4e31, 3.0e6, 22000.0)
     conn = _db.get_connection(mysql_config)
     try:
         with conn:
-            _db.insert_bright_stars(conn, [row + (800 * 3.828e26, 0.02, 0.03, 7.0, 0.03, 42, None),
-                                           row + (600 * 3.828e26, 0.02, 0.03, 7.0, 0.03, 42, None)])
+            _db.insert_bright_stars(conn, [_b2v_row(800), _b2v_row(600)])
     finally:
         conn.close()
     items = client.get("/api/galaxy/bright-stars?shell=3&band=0&wedge=1").get_json()["items"]
@@ -1488,8 +1492,9 @@ def test_galaxy_changes_is_busy_when_a_run_changes_too_much_at_once(client, mysq
     settled = client.get("/api/galaxy/stamp").get_json()
     conn = _db.get_connection(mysql_config)
     try:
-        _db.insert_bright_stars(conn, [(1, 0, 0, 1.0, 2.0, 3.0, "old", "G2", "V", 2e30, 7e5, 5772.0, 4e26,
-                                        4.0, 10.0, 1.0, 9.0, 123, None)])
+        _db.insert_bright_stars(conn, [_star_row((1, 0, 0), (1.0, 2.0, 3.0), population="old", star_type="G2", yerkes_class="V", mass_kg=2e30,
+                                                 radius_km=7e5, temperature_k=5772.0, luminosity_w=4e26, age_gy=4.0, lifespan_gy=10.0,
+                                                 initial_mass_sol=1.0, phase_end_age_gy=9.0, seed=123)])
         conn.commit()
     finally:
         conn.close()
@@ -2315,11 +2320,10 @@ def test_galaxy_uncharted_sector_lists_what_the_scatters_left_in_a_cell(client, 
     empty = client.get("/api/galaxy/uncharted?shell=3&band=0&wedge=1").get_json()
     assert empty["stars"] == [] and empty["scattered"] == [] and empty["sector_id"] is None
     assert empty["designation"] and len(empty["center_pc"]) == 3 and empty["edge_pc"] > 0
-    star = (3, 0, 1, 12000, 3000, 0, "young", "B2V", "V", 1.4e31, 3.0e6, 22000.0)
     conn = _db.get_connection(mysql_config)
     try:
         with conn:
-            _db.insert_bright_stars(conn, [star + (800 * 3.828e26, 0.02, 0.03, 7.0, 0.03, 42, None)])
+            _db.insert_bright_stars(conn, [_b2v_row(800)])
             for kind, subtype, built in (("black-hole", "stellar", False), ("planetary-nebula", None, False),
                                          ("neutron-star", None, True)):
                 conn.execute("INSERT INTO phenomenon_scatter (shell_index, band_index, wedge_index, kind, subtype,"
@@ -2341,12 +2345,10 @@ def test_galaxy_uncharted_sector_lists_what_the_scatters_left_in_a_cell(client, 
 def _scatter_stars(mysql_config, luminosities=(800, 600, 900)):
     """Scattered stars (B2V, ring 3 layer 0 slot 1) of these luminosities in solar units; returns their ids."""
     _db.get_connection(mysql_config).close()  # the schema
-    base = (3, 0, 1, 12000, 3000, 0, "young", "B2V", "V", 1.4e31, 3.0e6, 22000.0)
     conn = _db.get_connection(mysql_config)
     try:
         with conn:
-            _db.insert_bright_stars(conn, [base + (lum * 3.828e26, 0.02, 0.03, 7.0, 0.03, 42 + n, None)
-                                           for n, lum in enumerate(luminosities)])
+            _db.insert_bright_stars(conn, [_b2v_row(lum, 42 + n) for n, lum in enumerate(luminosities)])
         return [row["id"] for row in conn.execute("SELECT id FROM bright_stars ORDER BY id").fetchall()]
     finally:
         conn.close()

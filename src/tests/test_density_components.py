@@ -186,7 +186,11 @@ def _close(got, wanted):
 def test_the_spiral_written_as_components_gives_the_density_it_gave_before(name):
     """The fixture holds the density, the population split, the array forms and the halo of six shapes at 24 points, made
     by the code before GEN.379's rewrite (`relative_density`, `population_densities`, `population_densities_array`,
-    `total_density_array`, `halo_density`, `total_mass`): the same to 1e-12 (it is the same to the last digit)."""
+    `total_density_array`, `halo_density`, `total_mass`): the same to 1e-12 (it is the same to the last digit). The fixture was made again with GEN.929
+    and GEN.931, which move two things of the old code's output and nothing else: every density is the old one times one
+    number per shape (0.9515 to 0.9540: the model's units per solar mass follow the primary mass function's systems per solar
+    mass, GEN.929; checked point by point before the fixture was rewritten, and the total mass is unchanged), and the split of
+    a place into populations follows the arm contrast of each (GEN.931; it moves the mix of a place, never its total)."""
     with open(IDENTITY, encoding="utf-8") as handle:
         data = json.load(handle)
     shape, wanted = IDENTITY_SHAPES[name](), data["shapes"][name]
