@@ -108,7 +108,7 @@ def apply(planet, primary_mass_kg):
             if abs(moon.distance / moon._birth_distance_au - 1.0) > 1.0e-12:
                 planets.move_orbit(moon, moon._birth_distance_au, planet.mass)
         planet.moons[:] = born
-        found = body_spin.evolve(planet, primary_mass_kg, semi_major_axis_m, birth[0], age_s, getattr(planet, "eccentricity", 0.0) or 0.0)
+        found = body_spin.evolve(planet, primary_mass_kg, semi_major_axis_m, birth[0], age_s, getattr(planet, "eccentricity", 0.0) or 0.0, capture_units=birth[2])
         planets.generate_spin(planet, primary_mass_kg, birth=birth, found=found)
         return None
     entry = {id(m): m.distance for m in born}

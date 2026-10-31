@@ -38,14 +38,14 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 |---|---|---|---|---|---|---|
 | T1 | 126 | 10 | 7 | 1 | 0 | 144 |
 | T2 | 103 | 21 | 0 | 1 | 0 | 125 |
-| T3 | 76 | 33 | 5 | 9 | 0 | 123 |
+| T3 | 75 | 34 | 5 | 9 | 0 | 123 |
 | T4 | 36 | 3 | 0 | 15 | 6 | 60 |
 | T5 | 42 | 13 | 0 | 0 | 0 | 55 |
 | T6 | 79 | 51 | 13 | 34 | 0 | 177 |
 | T7 | 27 | 8 | 8 | 8 | 0 | 51 |
 | T8 | 0 | 1 | 1 | 5 | 1 | 8 |
 | T9 | 7 | 3 | 4 | 38 | 19 | 71 |
-| All | 496 | 143 | 38 | 111 | 26 | 814 |
+| All | 495 | 144 | 38 | 111 | 26 | 814 |
 
 ## How the labels were given
 
@@ -339,7 +339,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | SP6 | P | T2 | L0 | tidal_spin.ROCKY_MOMENT_FACTOR, GIANT_MOMENT_FACTOR | 0.25 to 0.4 | rocky bodies; gas giants | a factor from the body's core fraction | the moment-of-inertia factor I / (m R^2): Earth 0.331, Venus 0.33, Mars 0.365, Mercury 0.346, the Moon 0.393 (rock, 0.33); Jupiter 0.254, Saturn 0.22 (giants, 0.25); recalled | - | - |
 | SP7 | T | T3 | L0 | body_spin.dissipation_of | none | a body spun down to the orbital rate | the layered-planet response with an ocean or a molten core | the despinning torque is the rheology's: `k2/Q` at the semi-diurnal frequency `2 (spin - n)` in magnitude of the body's own mantle (`spin_torques.rheology_dissipation` at `interior_heat.tide_temperature_k`, GEN.957), so a hot body despins fast and a cold stiff one slowly, and a gas giant keeps a fixed pair (`tidal_heating.GIANT_K2`, `GIANT_TIDAL_Q`) while ice has its shell's (`icy_tide.k2_over_q`, GEN.960); Gladman et al. 1996 (Icarus 122:166, recalled) is the constant-Q special case | - | - |
 | SP8 | P | T2 | L0 | tidal_spin.RESONANCES | the window edges | a rocky planet brought down from a fast spin | the same windows for a layered planet | READ through a summary of Makarov 2012 (ApJ 752:73, arXiv:1110.2658): with a frequency-dependent rheology capture is certain in 0.34 < e < 0.49 for 2:1, 0.2 < e < 0.41 for 3:2 and e < 0.29 for 1:1; the first window met coming down takes the spin | - | - |
-| SP9 | P | T3 | L0 | tidal_spin.RESONANCE_CAPTURE_PROBABILITY | 0.07 to 1 | Mercury-like captures | a draw once one model is chosen | capture probability inside a window is 1 (Makarov 2012: 40 of 40); Goldreich and Peale 1966 give 0.07 at Mercury's eccentricity with a constant-torque tide and Correia and Laskar 2004 give 0.55 with the eccentricity's chaotic history; the sources split, the bracket is kept | - | - |
+| SP9 | P | T3 | L1 | tidal_spin.RESONANCE_CAPTURE_PROBABILITY | 0.07 to 1 | Mercury-like captures; captured moons with e of 0.2 to 0.5 | a rheology-dependent capture probability from one model | capture inside a window is a chance (GEN.1172): 0.3 for the 3:2 and 0.1 for the 2:1, decided by two uniforms the body keeps from its birth spin; the sources split (Makarov 2012: 40 of 40; Goldreich and Peale 1966: 0.07 at Mercury's eccentricity with a constant-torque tide; Correia and Laskar 2004: 0.55 with the eccentricity's chaotic history), 3:2 is the middle of 0.07 and 0.55 rounded down and 2:1 a third of it, an educated guess from the sources; the synchronous state is caught for sure | - | - |
 | SP10 | T | T6 | L0 | planets.generate_spin | none | every planet and moon | a coupled spin, obliquity and eccentricity history | approximations of the spin state: a locked body turns exactly once an orbit (not 1 + 6 e^2 of a constant-time-lag tide); the eccentricity is the stored one, not the larger past one; the obliquity stays as drawn until the spin has come all the way down, then is zero; the planet's air is a thermal tide (SP13) and the moons are in the sum from GEN.959, but there is no core-mantle coupling | - | - |
 | SP13 | T | T6 | L0 | body_spin.thermal_tide_of | none | rocky planets with air | a thermal tide for a moon with air and for a giant's envelope | the thermal tide of the air acts on a rocky planet with a stored surface pressure above 0 and starlight above 0; not on a moon (its planet holds it), an icy body or a gas giant (its air has no surface) | - | - |
 | SP14 | T | T6 | L0 | planets.generate_spin | none | planets held away from synchronism by the air | the obliquity history under the thermal tide | an asynchronous balance of the tides is reported at obliquity zero, prograde (tilt 0) if the rate is positive and retrograde (tilt 180) if it is negative (Venus), whatever tilt it was born with | - | - |

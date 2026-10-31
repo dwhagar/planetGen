@@ -23,7 +23,7 @@ import math
 import re
 
 from planetgen.physics import moon_history, body_state, bulk_draw, constants, giant_draw, giant_interior, kepler, metallicity, moon_composition, orbit_elements, planet_classes, planet_kind, planet_mass, rings
-from planetgen.physics import aerosols, atmosphere, body_colour, body_spin, climate_draws, habitability_world, hosting_gate, hydrosphere, interior_heat, magnetism, radiation, radiogenic, relations, spin, surface_air, surface_composition
+from planetgen.physics import aerosols, atmosphere, body_colour, body_spin, spin_torques, climate_draws, habitability_world, hosting_gate, hydrosphere, interior_heat, magnetism, radiation, radiogenic, relations, spin, surface_air, surface_composition
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.util import log
@@ -640,11 +640,14 @@ def generate_orbital_motion_properties(planet, primary_mass_kg):
 
 
 def draw_birth_spin(planet):
-    """The spin a planet or moon is born with, `(rate rad/s, tilt degrees)`: a rocky planet's from the giant impacts that built it
-    (`spin.accretion_spin`), a moon's or giant's at a rate from `spin.planet_day_hours` with a Rayleigh tilt (GEN.104, GEN.979)."""
+    """The spin a planet or moon is born with, `(rate rad/s, tilt degrees, capture units)`: a rocky planet's from the giant impacts that built it
+    (`spin.accretion_spin`), a moon's or giant's at a rate from `spin.planet_day_hours` with a Rayleigh tilt (GEN.104, GEN.979). The capture units are one uniform
+    for each resonance the spin can pass without being caught (`spin_torques.CAPTURE_RATIOS`, GEN.1172), drawn here so that running the history again decides the same."""
     if planet.body_type == "t" and not planet.is_moon:
-        return spin.accretion_spin(planet.mass, planet.radius)
-    return 2.0 * math.pi / _h_to_s(spin.planet_day_hours(planet.body_type)), spin.rayleigh_tilt_deg()
+        rate, tilt = spin.accretion_spin(planet.mass, planet.radius)
+    else:
+        rate, tilt = 2.0 * math.pi / _h_to_s(spin.planet_day_hours(planet.body_type)), spin.rayleigh_tilt_deg()
+    return rate, tilt, tuple(draw.random() for _ in spin_torques.CAPTURE_RATIOS)
 
 
 def generate_spin(planet, primary_mass_kg, birth=None, found=None):
@@ -662,18 +665,18 @@ def generate_spin(planet, primary_mass_kg, birth=None, found=None):
     Args:
         planet (Planet): The planet or moon.
         primary_mass_kg (float): What it orbits.
-        birth (tuple, optional): `(rate, tilt)` to start from instead of drawing it.
+        birth (tuple, optional): `(rate, tilt, capture units)` to start from instead of drawing it.
         found (spin_torques.SpinResult, optional): The state to set instead of running the history (`moon_history.apply`'s).
     """
     if birth is None:
         birth = draw_birth_spin(planet)
     planet._birth_spin = birth
-    spin_rate, birth_tilt = birth
+    spin_rate, birth_tilt, capture_units = birth
     if found is None:
         if not planet.is_moon and (getattr(planet, "moons", None) or getattr(planet, "_born_moons", None)):
             return moon_history.apply(planet, primary_mass_kg)
         found = body_spin.evolve(planet, primary_mass_kg, _au_to_m(planet.distance), spin_rate, _yr_to_s(_gyr_to_yr(planet.star.age)),
-                                 getattr(planet, "eccentricity", 0.0) or 0.0)
+                                 getattr(planet, "eccentricity", 0.0) or 0.0, capture_units=capture_units)
     period_hours = planet.period * _yr_to_h(1.0)
     if found.ratio is not None:
         planet.rotation_period_hours = period_hours / found.ratio

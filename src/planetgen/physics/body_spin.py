@@ -81,9 +81,9 @@ def torques_of(body, host_mass_kg, semi_major_axis_m, moons=()):
     return spin_torques.Torques(planet, (star, *moons), dissipation_of(body, planet), thermal_tide_of(body, star))
 
 
-def evolve(body, host_mass_kg, semi_major_axis_m, spin_rate, age_s, eccentricity=0.0, moons=()):
+def evolve(body, host_mass_kg, semi_major_axis_m, spin_rate, age_s, eccentricity=0.0, moons=(), capture_units=spin_torques.ALWAYS_CAPTURED):
     """
     A body born spinning at `spin_rate` (rad/s) after `age_s` of the torques on it: the `spin_torques.SpinResult`, with the rate in rad/s (negative for a
     retrograde spin), the ratio of the spin to the orbital rate if a synchronous state or a resonance has caught it, and the kind of state.
     """
-    return spin_torques.evolve(torques_of(body, host_mass_kg, semi_major_axis_m, moons), spin_rate, age_s, eccentricity)
+    return spin_torques.evolve(torques_of(body, host_mass_kg, semi_major_axis_m, moons), spin_rate, age_s, eccentricity, capture_units)
