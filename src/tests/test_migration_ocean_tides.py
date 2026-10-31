@@ -1,7 +1,7 @@
 # tests/test_migration_ocean_tides.py
 
 """
-GEN.1034: migration 0191 adds `tide_range_spring_m`, `tide_range_neap_m` and `ocean_liquid` to `planets` and `moons`. A body from before v191 keeps its
+GEN.1034: migration 0190 adds `tide_range_spring_m`, `tide_range_neap_m` and `ocean_liquid` to `planets` and `moons`. A body from before v190 keeps its
 rows with NULL there.
 """
 

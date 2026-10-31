@@ -1446,8 +1446,8 @@
 -- v169 (GEN.721): `planets` and `moons` also keep `lid_regime`, 'mobile' (plate tectonics) or 'stagnant' (one rigid plate), drawn once after the
 --   hydrosphere (`physics/interior_heat.py`); the heat flux law, the dynamo lifetime and the ground dose's felsic crust read it. NULL for a gas giant
 --   and a row made before v169, whose heat flux was a stagnant lid's.
--- v191 (GEN.1034): `planets` and `moons` also keep the open-ocean equilibrium tide of a world with a sea (`physics/ocean_tides.py`): `tide_range_spring_m` and `tide_range_neap_m` (DOUBLE, metres,
---   0 for an ice-covered ocean, NULL for a body without a free sea) and `ocean_liquid` (VARCHAR(40), the liquid of that sea, water until GEN.1035). NULL for a row made before v191.
+-- v190 (GEN.1034): `planets` and `moons` also keep the open-ocean equilibrium tide of a world with a sea (`physics/ocean_tides.py`): `tide_range_spring_m` and `tide_range_neap_m` (DOUBLE, metres,
+--   0 for an ice-covered ocean, NULL for a body without a free sea) and `ocean_liquid` (VARCHAR(40), the liquid of that sea, water until GEN.1035). NULL for a row made before v190.
 -- v170 (GEN.767): `planets` and `moons` also keep the day and night shares and the hours of daylight (`physics/daylight.py`): `day_share_equator`, `day_share_mean`,
 --   `parent_shadow_share` (a moon in its planet's shadow), `solar_day_hours`, `daylight_hours` and `polar_circle_deg`. NULL for a row made before v170.
 --
@@ -2508,9 +2508,9 @@ CREATE TABLE IF NOT EXISTS planets (
     life_class_best_score       TINYINT UNSIGNED NULL,  -- v175: its score, 0 to 9
     life_animal_grade           TINYINT UNSIGNED NULL,  -- v175 (GEN.890): 0 no animals, 1 sessile, 2 small and mobile, 3 large and active
     life_complexity             DOUBLE NULL,  -- v175: the complexity index of its life class, 1 for an Earth-like biosphere
-    tide_range_spring_m         DOUBLE NULL,  -- v191 (GEN.1034): open-ocean equilibrium spring tide range, metres, 0 under an ice cover, NULL without a sea
-    tide_range_neap_m           DOUBLE NULL,  -- v191 (GEN.1034): the neap range, metres
-    ocean_liquid                VARCHAR(40) NULL,  -- v191 (GEN.1034): the liquid of the sea the tide is of (water until GEN.1035), NULL without a sea
+    tide_range_spring_m         DOUBLE NULL,  -- v190 (GEN.1034): open-ocean equilibrium spring tide range, metres, 0 under an ice cover, NULL without a sea
+    tide_range_neap_m           DOUBLE NULL,  -- v190 (GEN.1034): the neap range, metres
+    ocean_liquid                VARCHAR(40) NULL,  -- v190 (GEN.1034): the liquid of the sea the tide is of (water until GEN.1035), NULL without a sea
 
     UNIQUE KEY uq_planets_uid (uid),
     CONSTRAINT fk_planets_star_system
@@ -2864,9 +2864,9 @@ CREATE TABLE IF NOT EXISTS moons (
     life_class_best_score       TINYINT UNSIGNED NULL,  -- v175: its score, 0 to 9
     life_animal_grade           TINYINT UNSIGNED NULL,  -- v175 (GEN.890): 0 no animals, 1 sessile, 2 small and mobile, 3 large and active
     life_complexity             DOUBLE NULL,  -- v175: the complexity index of its life class, 1 for an Earth-like biosphere
-    tide_range_spring_m         DOUBLE NULL,  -- v191 (GEN.1034): open-ocean equilibrium spring tide range, metres, 0 under an ice cover, NULL without a sea
-    tide_range_neap_m           DOUBLE NULL,  -- v191 (GEN.1034): the neap range, metres
-    ocean_liquid                VARCHAR(40) NULL,  -- v191 (GEN.1034): the liquid of the sea the tide is of (water until GEN.1035), NULL without a sea
+    tide_range_spring_m         DOUBLE NULL,  -- v190 (GEN.1034): open-ocean equilibrium spring tide range, metres, 0 under an ice cover, NULL without a sea
+    tide_range_neap_m           DOUBLE NULL,  -- v190 (GEN.1034): the neap range, metres
+    ocean_liquid                VARCHAR(40) NULL,  -- v190 (GEN.1034): the liquid of the sea the tide is of (water until GEN.1035), NULL without a sea
 
     UNIQUE KEY uq_moons_uid (uid),
     CONSTRAINT fk_moons_planet
