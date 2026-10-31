@@ -5,7 +5,7 @@ Evolutionary Timeline
 =====================
 
 What a world's life has reached at its star's age: the stage whose age on the world's schedule is the latest not past it, capped by what
-its life class can reach (`physics.life_complexity`) and by a forced or forbidden civilization. The schedule itself, a draw of five hard steps (GEN.750), is
+its life class can reach (`physics.life_complexity`) and by a forbidden civilization (`-intelligent_life`; a request for one only raises the odds, GEN.1130). The schedule itself, a draw of five hard steps (GEN.750), is
 `physics.life_timeline`; the oxygen the oxygenic ones make is `physics.biogenic_oxygen`; `generation.life.apply_life_data` joins them.
 """
 
@@ -39,7 +39,7 @@ def get_evolutionary_state(star, ages, max_stage=None):
         star (Star): The host star.
         ages (tuple): The age, Gyr, of each `MILESTONE_KEYS` milestone (`None` for one the world never reaches).
         max_stage (str, optional): A `MILESTONE_KEYS` key capping the milestone, whether from the natural age-based
-            roll below or a forced `INTELLIGENT_LIFE=True`: the complexity of its life class allows a world only so
+            roll below: the complexity of its life class allows a world only so
             far (`physics.life_complexity.top_stage`). The planet class letter caps nothing (GEN.647).
 
     Returns:
@@ -74,16 +74,6 @@ def get_evolutionary_state(star, ages, max_stage=None):
         if age is not None and age <= current_system_age and age > most_recent_milestone_age:
             most_recent_milestone_age = age
             most_recent_key = key
-
-    # Apply INTELLIGENT_LIFE=True: force the HIGHEST milestone `max_index`
-    # above actually allows -- "Technological Civilization" unless the
-    # habitability index caps it lower.
-    if star.system_config.INTELLIGENT_LIFE is True:
-        most_recent_key = allowed_keys[-1]
-        # Capped at the current system age: a timeline that could not be fitted into the world's age (it never
-        # makes the oxygen) still can't claim a milestone that predates "now".
-        forced_age = timeline[most_recent_key]
-        most_recent_milestone_age = current_system_age if forced_age is None else min(forced_age, current_system_age)
 
     # Hard invariant, not just a silent clamp: whatever got selected above
     # must never exceed max_index. Structurally impossible given the

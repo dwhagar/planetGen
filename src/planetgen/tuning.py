@@ -223,14 +223,9 @@ GIANT_DENSITY_BOUNDS_G_CM3 = (0.05, 60.0)
 GIVEN_MASS_KG_BOUNDS = (1.0e12, 2.47e28)
 GIVEN_RADIUS_KM_BOUNDS = (0.5, 200000.0)
 
-# How many planets a request that names a class (a slot's `planet_class`, `FORCE_CLASS`, a forced habitable world) draws at its distance
-# before it keeps the last (GEN.688; `StarSystem.build_planet`).
+# How many planets a request that names a class (a slot's `planet_class`, `FORCE_CLASS`) draws at its distance before it keeps the last
+# (`StarSystem.build_planet`), and how many a habitable request draws for one place before it keeps the last (`habitable_request`).
 REQUEST_MAX_PLANET_ATTEMPTS = 40
-# A request for a habitable world draws this many planets freely, then draws planets of an Earth-like mass (log-uniform between the two bounds,
-# Earth masses) for the rest: a planetGen stand-in (registry row CC10) found by the sweep, where a free draw in the ecosphere of an M5 dwarf
-# gave a life class in none of 30 and an Earth-like mass in 20 of 30.
-HABITABLE_REQUEST_FREE_ATTEMPTS = 8
-HABITABLE_REQUEST_MASS_EARTH = (0.5, 2.0)
 CLASS_REQUEST_FREE_ATTEMPTS = 8
 CLASS_REQUEST_MASS_EARTH = (0.05, 1000.0)
 """int, tuple: A request for a planet class (a slot's `planet_class`, `FORCE_CLASS`) is first left to chance for this many draws; the draws
@@ -238,14 +233,17 @@ after it take a mass log-uniform over this range in Earth masses, so a class the
 one) is still reached inside `REQUEST_MAX_PLANET_ATTEMPTS`. A planetGen stand-in (tier T9, tweak L3; registry row PA14)."""
 # What a request for a habitable world asks of a finished planet or moon (GEN.916, `generation/habitable_request.py`): conditions, not a
 # class letter. The surface temperature range is the liquid-water range, the pressure floor is the air a world must hold to count as having
-# any (10 kPa), and the water a surface ocean; the target is the middle of the range, where a draw that missed by its temperature aims the
-# next (GEN.911).
+# any (10 kPa), and the water a surface ocean.
 REQUEST_TEMPERATURE_K = (273.15, 323.15)
 REQUEST_MIN_PRESSURE_PA = 10000.0
 REQUEST_HYDROSPHERES = ("surface ocean",)
-REQUEST_TARGET_K = 298.15
-# A habitable request leaves its first draws at the distance it was given, then aims each next draw by the temperature the last one solved.
-HABITABLE_REQUEST_AIM_AFTER_ATTEMPTS = 2
+REQUEST_MAX_TIMELINE_TRIES = 200
+"""int: How many timelines a request for a technological civilization draws before the last stands (`life_timeline.raised_waits`)."""
+REQUEST_ODDS = 10.0
+"""float: What `+habitable_world` and `+intelligent_life` do (GEN.1130): they multiply the odds of the wanted outcome by this and never force it
+(`util.request_odds`). A host star too young to hold life or a white dwarf, a planet in the ecosphere without a surface ocean, a system with no such
+planet, a timeline that does not reach a civilization within the star's age and a world that has no civilization now are each kept one time
+in this many when a request asks against them. A planetGen stand-in (tier "from needed output", tweak L3; registry row CC10)."""
 
 # How many times a planet or moon is drawn again when its finished class is one that can carry life and the system bars habitable worlds
 # from its ecosphere (`HABITABLE_WORLD` False); the last draw is kept.
@@ -2234,9 +2232,6 @@ LIFE_PACE_SLOW_BELOW = 0.67
 """float: A world whose rate factor is above `LIFE_PACE_FAST_ABOVE` has the pace "fast", below `LIFE_PACE_SLOW_BELOW` "slow", else "normal"
 (the words the life sentence uses; the pace is a label of how warm the world is, not a table)."""
 
-LIFE_FORCED_TRIES = 4000
-"""int: How many timelines a forced technological civilization (`INTELLIGENT_LIFE`) tries before it falls back to squeezing the last one into the
-world's age (`life_timeline.forced_waits`)."""
 
 LIFE_SCORE_MAX = 9
 """int: The top of the four life scores (Microbial, Flora, Fauna, Sentient): 0 is none, 9 is abundant (GEN.649)."""
@@ -4171,8 +4166,8 @@ has opened -- about one generated system in seven reaches it) actually has
 a civilization now. 1 in 1,000 gives about one civilization per 7,000
 systems, so spacefaring neighbors sit roughly 150-200 ly apart and their
 territories (`TERRITORY_REACH_CAP_LY`) just about meet. A system generated
-with intelligent life forced on (`system_configs.intelligent_life = 1`)
-always has one. The rest still get a named dominant species, with no
+with intelligent life requested (`system_configs.intelligent_life = 1`)
+has the odds of that chance multiplied by `REQUEST_ODDS` and no more (GEN.1130). The rest still get a named dominant species, with no
 civilization."""
 
 CIVILIZATION_MIN_AGE_YEARS = 100.0

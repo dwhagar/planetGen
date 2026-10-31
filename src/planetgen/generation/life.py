@@ -162,17 +162,16 @@ def _draw_schedule(planet, row):
     (`life_timeline.rate_factor`), the first step scaled by the class's (`life.first_step_scale`: anoxygenic photosynthesis comes before the
     oxygenic kind), and the wait for complex cells starting once the class has its oxidant: at once for one that breathes something else, and for
     one that breathes oxygen when the air already holds it (an abiotic oxygen air) or a delay after the first photosynthesis when the class makes
-    it and the world can make enough (`biogenic_oxygen.profile_of`). A forced technological civilization draws a timeline that finishes in the
-    star's age.
+    it and the world can make enough (`biogenic_oxygen.profile_of`). A request for a technological civilization raises the odds of a timeline that finishes in the
+    star's age (GEN.1130).
     """
     factor = life_timeline.rate_factor(getattr(planet, "surface_temperature", None))
     needs_oxygen = row.oxidant == "o2"
     at_start = (not needs_oxygen) or atmosphere.partial_kpa(planet, "o2") * 1000.0 >= biogenic_oxygen.EUKARYOTE_MINIMUM_PA
     delay = biogenic_oxygen.profile_of(planet).delay_gyr if needs_oxygen and row.releases_oxygen else None
-    waits = None
     if planet.star.system_config.INTELLIGENT_LIFE is True:
-        waits = life_timeline.forced_waits(planet.star.age, factor, delay, at_start)
-    if waits is None:
+        waits = life_timeline.raised_waits(planet.star.age, factor, delay, at_start)
+    else:
         waits = life_timeline.unit_waits()
     waits = (waits[0], waits[1] * row.life["first_step_scale"], *waits[2:])
     ages = life_timeline.schedule(waits, factor, delay, at_start)

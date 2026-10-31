@@ -1,8 +1,8 @@
 # planetgen/generation/habitable_request.py
 
 """
-What a request for a habitable world asks of a finished body (GEN.911, GEN.916)
-=================================================================================
+What a request for a habitable world asks of a finished body (GEN.911, GEN.916, GEN.1130)
+==========================================================================================
 
 A request for a habitable world (`system_config.HABITABLE_WORLD`) asks for conditions, never for a class letter: a planet or moon is
 what was asked for when its solved surface is temperate (`tuning.REQUEST_TEMPERATURE_K`), its air at least `tuning.REQUEST_MIN_PRESSURE_PA`
@@ -10,11 +10,10 @@ thick and its water a surface ocean (`tuning.REQUEST_HYDROSPHERES`). Its class i
 (GEN.646), and the classes that "can carry life" (`tuning.HABITABLE_PLANET_CLASSES`) include a hot reducing world, a glaciated one and a
 carbon dioxide one, so the letter is no test of them.
 
-The orbit is aimed by the climate the draw solved (GEN.911). The zone's outer edge is where about 8 bar of carbon dioxide would hold 273 K,
-and the carbonate-silicate thermostat leaves far less there, so a world drawn at a distance in the zone is most often frozen. A draw that
-misses by its temperature moves the next draw to where the star's light would give `tuning.REQUEST_TARGET_K` (the surface temperature of a
-world with the same air goes as the flux to the quarter, so the distance goes as the square of the ratio of temperatures), kept inside the
-zone. The solve decides what each draw is; nothing is forced.
+The request only raises the odds (GEN.1130, `util.request_odds`): the star, the planet in the ecosphere and the system's planets are
+drawn as they would be, and a draw without the conditions is kept one time in `tuning.REQUEST_ODDS` (the host star, `physics.stellar_evolution`;
+the planet, `StarSystem._planet_in_ecosphere`; the system, `StarSystem._habitable_request_stands`). Nothing is placed, aimed or adapted, and
+a system the request did not reach says `"unmet"` (`StarSystem.habitable_request_status`).
 """
 
 from planetgen import tuning
@@ -39,13 +38,3 @@ def count(planets):
     """The planets and moons of `planets` (belts skipped) that meet the request (`meets`)."""
     return sum(1 for planet in planets if planet.body_type != "a" for body in (planet, *planet.moons) if meets(body))
 
-
-def aimed_distance(distance_au, temperature_k, inner_au, outer_au):
-    """
-    Where the next draw of a request goes, in AU: the distance at which the light would give a world of this air the target temperature
-    (`distance * (T / target)^2`), kept inside `[inner_au, outer_au]`. A draw with no solved temperature keeps its distance.
-    """
-    if not temperature_k or temperature_k <= 0.0:
-        return distance_au
-    aimed = distance_au * (temperature_k / tuning.REQUEST_TARGET_K) ** 2
-    return min(max(aimed, inner_au), outer_au)

@@ -420,27 +420,3 @@ def test_a_habitable_world_with_no_viable_chemistry_gets_no_timeline(monkeypatch
     planetLife.apply_life_data(planet)
     assert planet.life_class is None
     assert not planet.has_timeline and planet.evolutionary_pace is None
-
-
-# --- build_planet: a request for a habitable world (GEN.688) ------------------------------------------
-
-def test_a_habitable_request_turns_to_earth_like_masses_after_its_free_draws(system, monkeypatch):
-    built = []
-
-    class Recorder:
-        planet_class = "C"
-        moons = []
-
-        def __init__(self, config, star, zone, distance, **kwargs):
-            built.append(kwargs.get("mass"))
-
-        def add_moons(self, count):
-            pass
-
-    monkeypatch.setattr(systemData, "Planet", Recorder)
-    system.build_planet(system.star, system.star.habitable_zone, 1.0, life=True)
-    assert len(built) == tuning.REQUEST_MAX_PLANET_ATTEMPTS
-    assert built[:tuning.HABITABLE_REQUEST_FREE_ATTEMPTS] == [None] * tuning.HABITABLE_REQUEST_FREE_ATTEMPTS
-    low, high = (m * constants.EARTH_MASS_TO_KG for m in tuning.HABITABLE_REQUEST_MASS_EARTH)
-    assert all(low <= mass <= high for mass in built[tuning.HABITABLE_REQUEST_FREE_ATTEMPTS:])
-    assert system._request_unreachable                   # no draw gave a life class, so the system is not drawn again
