@@ -2298,6 +2298,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   to 1e-12 pc. A moon comes into view first (Boss 5.1). Done: a browser
   test zooms from a system to a moon and to the surface scale without
   precision loss.
+  Update (Core 2) (6:10 AM EDT 2026-10-31, as Core 2 reported): Read of
+  the code: the near plane already follows the camera distance (1e-3 of
+  it) and the depth buffer is logarithmic, so near and far need nothing
+  more, and bodies already hang from their parents in small local
+  coordinates. What is left is the camera as frame plus offset. A camera
+  position stored as one number is only exact to 1.8e-12 pc at 8 kpc
+  from the core, 6.7e-12 pc at 30 kpc and 5.6e-11 pc at 250 kpc, so the
+  current 1e-10 pc floor already wobbles by about 2 percent of the view
+  at 8 kpc and 7 percent at the edge, and a 1e-12 pc floor needs the
+  frame (camera target held as a frame origin plus a small offset,
+  through the stage view, picker, labels and rings). Size L, not M;
+  cannot be proven on a real GPU from the lane. Plan: Core 2 builds the
+  frame plus offset with the 1e-12 floor after GEN.1055; near and far
+  count as done.
   Prerequisites: MAP.335. Related: MAP.257, MAP.240.
 
 - [ ] **MAP.354 Lagrange trojans T4: System Map icon at the centre of each Lagrange point that has objects, labelled with the host and point (for example Jupiter-L4); shares the geometry of the MAP.169 gravity layer**
@@ -18486,33 +18500,6 @@ clears each one.
   the test passes. The item stays open until GEN.780 fills the column
   and the excusal is removed.
   Prerequisites: none. Related: DB.70.
-
-- [ ] **TEST.468 test_work_units::test_the_batch_fills_are_units_of_id_ranges_recorded_as_their_commands and test_generation_stats::test_an_unmeasured_server_estimates_from_the_defaults are red on a clean main (bug)**
-  Reported by Core 3 (as the lane reported, 6:04 AM EDT 2026-10-30) on a
-  clean main after train 2: both tests fail and neither is from Core 3's
-  work. Do: recheck both on current main first (it may be train 2's
-  migrations 0182/0183 or the fixture schema, or machine setup such as
-  the ozone_uv dataset); find whether the product or the test is wrong
-  and fix the right one with the reason recorded. Done: both pass on
-  main. Related: TEST.463, TEST.290. Owner: Bug 2 (proposed), after
-  TEST.417.
-  Prerequisites: none. Related: TEST.463, TEST.290.
-
-- [ ] **TEST.469 test_interior_heat::test_a_generated_body_has_a_urey_ratio_above_one_only_while_its_mantle_is_still_warming fails on main: a generated body has urey_ratio 1.85 with a mantle that is no longer warming (bug)**
-  Reported by Sources 1 (as the lane reported, 6:18 AM EDT 2026-10-30)
-  on a worktree at origin/main: the assertion 1.8538154881179374 <= 1.0
-  + 1e-06 fails on a generated planet's urey_ratio, a body with a ratio
-  above one although its mantle is no longer warming. It may come from a
-  recent change to the bulk water, radiogenic heating or ages (train 2,
-  epoch 124), or it may be an older latent case the random stream now
-  reaches. Do: capture the failing body (seed, star, age, composition,
-  mantle state) from the test; find whether the ratio is computed
-  wrongly (heat production against loss) or the test's 'still warming'
-  condition is wrong for that body; fix the right one with the reason
-  recorded, no change to results that were already right. Done: the test
-  passes on main. Related: TEST.463, TEST.468, GEN.842. Owner: Bug 2
-  (proposed), after TEST.417.
-  Prerequisites: none. Related: TEST.463, TEST.468, GEN.842.
 
 - [ ] **TEST.479 test_radiative_convective_real::test_earth_sends_out_what_it_absorbs fails on the train 4 branch: the Earth tropopause temperature is 168.33 K against the test bound of 170 to 230 K (bug)**
   Found by Bug 2's train 4 gate (relayed 2:08 PM EDT 2026-10-30 as the
