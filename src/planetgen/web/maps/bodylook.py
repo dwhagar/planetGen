@@ -16,8 +16,10 @@ Fields (all optional but `v`, `kind`, `body`, `seed`):
     seed        32 bits from the body's id and kind (`seed_for`); display noise only, never generation
     cls         planet class letter
     color       the base colour as `#rrggbb`: a star's blackbody colour, a solid world's land colour, a giant's cloud top
-    quality     "estimate" while `color` comes from temperature and body family alone (MAP.274 replaces it with
-                the composition colour), absent for a star
+    quality     "composition" when a solid world's `color` is the lab colour of its stored ground types (MAP.274),
+                "estimate" while it comes from temperature alone (no stored ground, no land, or too little of the land
+                with a measured colour), absent for a star
+    landKnown   with quality "composition": the share of the land whose ground types have a measured colour, 0.5 to 1
     glow        atmosphere limb colour (`#rrggbb`): the atmosphere colour of the body's air under its star (MAP.244,
                 `physics/atmosphere_colour.py`), present only when the body has air and the row carries its star's
                 temperature (`_star_temperature_k`, put there by `systemmap.py`)
@@ -51,7 +53,8 @@ import json
 import math
 from types import SimpleNamespace
 
-from planetgen.physics import atmosphere, atmosphere_colour, giant_colour, photometry, regional_temperature, stellar_library
+from planetgen.physics import (
+    atmosphere, atmosphere_colour, giant_colour, photometry, regional_temperature, stellar_library, surface_composition)
 from planetgen.web.maps.starmap import star_color
 from planetgen.physics import unit_registry as units
 
@@ -109,6 +112,52 @@ def _band(bands, value):
 def land_color(temp_k):
     """Bare-land colour estimate from the mean surface temperature alone."""
     return _DEFAULT_LAND_COLOR if temp_k is None else _band(_LAND_BANDS, temp_k)
+
+
+# The share of the land that must have a measured colour for the composition colour to stand in for the estimate.
+MIN_KNOWN_LAND_SHARE = 0.5
+
+
+def _srgb_byte(linear):
+    """The 8-bit sRGB value of a linear reflectance (clipped to 0 to 1)."""
+    linear = min(1.0, max(0.0, linear))
+    encoded = 12.92 * linear if linear <= 0.0031308 else 1.055 * linear ** (1.0 / 2.4) - 0.055
+    return round(255.0 * encoded)
+
+
+def composition_land_color(row):
+    """
+    The colour of a solid world's bare land from its stored ground types (MAP.274): the lab reflectance in the 450, 550 and 650 nm bands
+    (`surface_composition.band_albedo`) of the areal mix of the land types, read as blue, green and red under white light, linear to sRGB.
+    The ocean and the ice are not land (the painter draws them on their own), and a land type with no measured visible spectrum (the metal, the
+    intermediate mixes) is left out of the average.
+
+    Returns:
+        tuple: `(#rrggbb, known share of the land)`, or `None` when the row stores no ground, has no land, or fewer than
+        `MIN_KNOWN_LAND_SHARE` of its land has a measured colour.
+    """
+    mix = surface_composition.mix_of(planet_row_namespace(row))
+    if not mix:
+        return None
+    land = {name: share for name, share in mix.items() if name not in (surface_composition.OCEAN, surface_composition.ICE)}
+    total = math.fsum(land.values())
+    if not total > 0.0:
+        return None
+    composition = surface_composition.SurfaceComposition(
+        ground_type=row.get("ground_type") or max(land, key=land.get), mix=land, components={},
+        grain=row.get("ground_grain") or surface_composition.POWDER)
+    bands, covered = surface_composition.band_albedo(composition)
+    known = covered / total
+    values = [bands[band] for band in surface_composition.BANDS]
+    if known < MIN_KNOWN_LAND_SHARE or any(value is None for value in values):
+        return None
+    blue, green, red = values
+    return "#{:02x}{:02x}{:02x}".format(_srgb_byte(red), _srgb_byte(green), _srgb_byte(blue)), min(1.0, known)
+
+
+def planet_row_namespace(row):
+    """The row's ground columns as attributes, the shape `surface_composition.mix_of` reads."""
+    return SimpleNamespace(**{field: row.get(field) for field in surface_composition.FRACTION_FIELDS})
 
 
 def giant_color(temp_k):
@@ -173,6 +222,12 @@ def planet_look(planet, kind="planet"):
         "color": giant_color(temp_k) if gas else land_color(temp_k),
         "quality": "estimate",
     }
+    if not gas:
+        found = composition_land_color(planet)
+        if found is not None:
+            look["color"], known_land = found
+            look["quality"] = "composition"
+            look["landKnown"] = round(known_land, 3)
     _put(look, "cls", (planet.get("planet_class") or "").upper() or None)
     _put_spin(look, planet)
     if has_atmosphere:
@@ -236,7 +291,11 @@ def look_note(look):
     """The info panel's line about how the picture was worked out (UX.158 replaces it with the full account)."""
     notes = []
     if look.get("quality") == "estimate":
-        notes.append("Estimate from temperature and stored water fractions; not yet from composition")
+        notes.append("Estimate from temperature and stored water fractions; the ground types are not stored or have no measured colour")
+    elif look.get("quality") == "composition":
+        notes.append("Land colour from the stored ground types (lab reflectance)" + (
+            "" if (look.get("landKnown") or 1.0) >= 0.995 else
+            "; %d percent of the land has no measured colour and is left out" % round(100.0 * (1.0 - look["landKnown"]))))
     if look.get("locked") and look.get("body") != "star":
         notes.append("Tidally locked: its day side stays toward " + ("its planet" if look.get("kind") == "moon" else "its star"))
     elif look.get("spinH") and look.get("body") == "solid":

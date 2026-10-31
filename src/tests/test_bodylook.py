@@ -215,3 +215,55 @@ def test_a_body_whose_day_is_its_orbit_is_marked_locked_and_the_caption_says_so(
     assert "its planet" in bl.look_note(dict(locked, kind="moon"))
     assert "turning much faster" in bl.look_note(free)
     assert bl.look_note({"quality": "x"}) is None
+
+
+# --- Land colour from the stored ground types (MAP.274) ---------------------------------------------------------------------
+
+def _ground(**shares):
+    return {f"ground_{name}_fraction": share for name, share in shares.items()}
+
+
+def _channels(hexcolour):
+    return tuple(int(hexcolour[i:i + 2], 16) for i in (1, 3, 5))
+
+
+def test_a_world_with_stored_ground_takes_the_lab_colour_of_its_land_not_the_temperature_band():
+    look = bl.planet_look(dict(_planet(), **_ground(ocean=0.71, basaltic=0.29)))
+    assert look["quality"] == "composition" and look["landKnown"] == 1.0
+    assert look["color"] != bl.land_color(288.0)
+
+
+def test_sulfur_land_is_yellow_and_the_lighter_rocks_are_lighter():
+    colours = {name: _channels(bl.planet_look(dict(_planet(), **_ground(**{name: 1.0})))["color"])
+               for name in ("sulfur", "basaltic", "anorthositic", "carbon")}
+    red, green, blue = colours["sulfur"]
+    assert red > blue and blue < 0.8 * green  # the 450 nm band of sulfur is far below the other two
+    assert sum(colours["anorthositic"]) > sum(colours["basaltic"]) > sum(colours["carbon"])
+
+
+def test_ocean_and_ice_are_not_land_and_do_not_change_the_land_colour():
+    dry = bl.planet_look(dict(_planet(), **_ground(felsic=0.4)))
+    wet = bl.planet_look(dict(_planet(), **_ground(ocean=0.5, ice=0.1, felsic=0.4)))
+    assert dry["color"] == wet["color"]
+
+
+def test_land_with_no_measured_colour_is_left_out_and_too_little_known_falls_back_to_the_estimate():
+    half = bl.planet_look(dict(_planet(), **_ground(basaltic=0.5, metal=0.5)))
+    assert half["quality"] == "composition" and half["landKnown"] == 0.5
+    assert half["color"] == bl.planet_look(dict(_planet(), **_ground(basaltic=1.0)))["color"]
+    mostly_metal = bl.planet_look(dict(_planet(), **_ground(basaltic=0.2, metal=0.8)))
+    assert mostly_metal["quality"] == "estimate" and mostly_metal["color"] == bl.land_color(288.0)
+
+
+def test_a_world_with_no_stored_ground_or_no_land_keeps_the_estimate_and_a_giant_is_untouched():
+    assert bl.planet_look(_planet())["quality"] == "estimate"
+    assert bl.planet_look(dict(_planet(), **_ground(ocean=1.0)))["quality"] == "estimate"
+    giant = bl.planet_look(dict(_planet(), body_type="g", **_ground(basaltic=1.0)))
+    assert giant["quality"] == "estimate" and giant["color"] == bl.giant_color(288.0)
+
+
+def test_the_note_says_where_the_land_colour_came_from_and_what_was_left_out():
+    whole = bl.planet_look(dict(_planet(), **_ground(basaltic=1.0)))
+    assert "stored ground types" in bl.look_note(whole)
+    partial = bl.planet_look(dict(_planet(), **_ground(basaltic=0.6, metal=0.4)))
+    assert "40 percent of the land has no measured colour" in bl.look_note(partial)
