@@ -349,7 +349,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | function | planetgen.galaxy.structure_draw.draw_neutron_star_unbound_share | TEST.520 | only tests call it; wire it into the code that needs it or delete it (TEST.520 first sweep) |
 | function | planetgen.generation.bright_stars.cell_band_rate | TEST.520 | only tests call it; wire it into the code that needs it or delete it (TEST.520 first sweep) |
 | function | planetgen.generation.multistar.mark_merger_product | TEST.520 | only tests call it; wire it into the code that needs it or delete it (TEST.520 first sweep) |
-| function | planetgen.generation.object_timing.run_totals | TEST.520 | only tests call it; wire it into the code that needs it or delete it (TEST.520 first sweep) |
 | function | planetgen.generation.phenomena.hosts.host_of | TEST.520 | only tests call it; wire it into the code that needs it or delete it (TEST.520 first sweep) |
 | function | planetgen.generation.phenomena.hosts.reweighted | TEST.520 | only tests call it; wire it into the code that needs it or delete it (TEST.520 first sweep) |
 | function | planetgen.generation.possibility_table.concentration_from_spread | TEST.520 | only tests call it; wire it into the code that needs it or delete it (TEST.520 first sweep) |
