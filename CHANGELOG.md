@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2987] - 2026-10-31
+
+**Headline:** A test of the stored-tree fill now expects a brown dwarf or remnant in a tree to be a dark member, not a star row.
+
+### Changed
+- The stored-trees fill test (`test_gen_stored_trees.py`) counted every member of a stored tree as a star row of the built system, so it failed on any tree holding a brown dwarf, a neutron star or a black hole since GEN.1013 keeps those as dark members. It now expects the star rows to be the lit members and the `dark_members` rows to be the dark ones. Test only: no code, stored value or page changes.
+generation-output: unchanged
+
 ## [8.0.2986] - 2026-10-31
 
 **Headline:** A body's weight now has a temperature to shape it at: the roundness strength can fall with the heat the body made, instead of always being the cold strength.
