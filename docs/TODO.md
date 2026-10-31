@@ -14808,6 +14808,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   API show it. Output change: epoch with --affects, golden, census
   re-tag, on a train, with GEN.1219 and GEN.1220 (one epoch). Where we
   think it belongs (best guess, can move): the Class M research thread.
+  Boss approved option 1 (2026-10-31 1:58 PM EDT): Boss answered Yes at
+  1:56 PM EDT 2026-10-31 to the Class T envelope question (option 1):
+  store the true air share (the hydrogen-rich air's mass over the body's
+  mass) as the envelope share of every body, not a class-based stand-in.
+  GEN.1219, GEN.1220, GEN.1221 and GEN.1207 read that stored value; they
+  may now be built on it.
   Prerequisites: none. Related: GEN.1219, GEN.1220, GEN.1207.
 
 - [ ] **GEN.1227 Store the coma class and the dominant volatiles of an interstellar comet, so the map can colour its coma**
