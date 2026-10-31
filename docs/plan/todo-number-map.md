@@ -14,7 +14,7 @@ release is stamped.
 | Category | Next free ID |
 |---|---|
 | UX | UX.250 |
-| MAP | MAP.362 |
+| MAP | MAP.363 |
 | NAV | NAV.65 |
 | GEN | GEN.1197 |
 | PERF | PERF.220 |
@@ -2308,6 +2308,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.359 | The sector map and system map should match the size of the galaxy map for the browser window (bug) | none | open |
 | MAP.360 | Sector view highlights only the sector being viewed and zooms in as close as the window allows (bug) | none | open |
 | MAP.361 | Sector view shows every star system that fits when there is room, so it shows more of the sector than the galaxy view would | MAP.360 | open |
+| MAP.362 | Superbubbles are hidden on the map at load, with a Menu button to show them (bug) | none | open |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
 | NAV.3 | One shared picker for the Galaxy, Sector and System displays | none | done, PR #724 |
