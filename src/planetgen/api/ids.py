@@ -247,8 +247,10 @@ def retired_answer(conn, kind, text, method):
     if row is None or row.object_kind != table:
         return None
     current = conn.execute(f"SELECT uid FROM {table} WHERE id = ?", (row.object_row_id,)).fetchone()
-    exists = current is not None and row.gone_epoch is None
-    resolution = designations.Resolution(designations.REDIRECT if exists else designations.GONE, table, row.object_row_id, (row,))
+    resolution = designations.resolve_uid(uid, lambda _uid: None, [row])
+    exists = current is not None and resolution.status == designations.REDIRECT
+    if resolution.status == designations.REDIRECT and not exists:
+        resolution = designations.Resolution(designations.GONE, table, row.object_row_id, (row,))  # the row went without its tombstone
     status = designations.status_of(method, resolution)
     asked = object_uid.format_id(uid)
     formerly = [{"designation": text_, "kind": kind_, "reason": reason, "retired_epoch": epoch}

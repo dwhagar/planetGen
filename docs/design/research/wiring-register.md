@@ -489,7 +489,5 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | function | planetgen.physics.wd_pollution.expected_sample | TEST.520 | only tests call it; wire it into the code that needs it or delete it (TEST.520 first sweep) |
 | function | planetgen.physics.photometry.bolometric_correction_v | TEST.520 | only tests call it; wire it into the code that needs it or delete it (TEST.520 first sweep) |
 | function | planetgen.galaxy.designations.cascade | GEN.1141 | the new IDs of a system's bodies when its ID changes; the cascade of GEN.1141 calls it |
-| function | planetgen.galaxy.designations.former_lines | GEN.1140 | the "Formerly" list of an object page and its `former_designations` field; GEN.1140 calls it |
 | function | planetgen.galaxy.designations.resolve_member | GEN.1141 | a belt member's or captured body's old designation follows its parent's new ID; GEN.1141 calls it |
 | function | planetgen.galaxy.designations.resolve_name | GEN.1140 | the search by a past name; GEN.1140 calls it |
-| function | planetgen.galaxy.designations.resolve_uid | GEN.1139 | the redirect, 409 and 410 lookup of a retired ID; GEN.1139 calls it |
