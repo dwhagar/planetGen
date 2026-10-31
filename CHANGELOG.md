@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2880] - 2026-10-31
+
+**Headline:** The stand-in registry rows for the roundness engine now cite all the papers read, and the porosity range is widened to 4 to 9.
+
+### Changed
+- **GEN.1186.** Registry rows RN2 (rock and ice strengths), RN5 (porosity, range 4 to 9, tier Marginal educated guess) and RN8 (rubble cohesion and friction) list the further evidence from `reports/papers-vs-standins-2026-10-31.md`. Documentation only; no code or generated output changes.
+generation-output: unchanged
+
 ## [8.0.2879] - 2026-10-31
 
 **Headline:** The roundness engine now knows that rock that took its shape hot is much weaker than cold rock, using the olivine creep laws, and the hot rubble-pile strength has a physical basis.
