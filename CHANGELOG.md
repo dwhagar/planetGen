@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2941] - 2026-10-31
+
+**Headline:** The Search page's Name box, Stars selector and Search button now sit together on one row.
+
+### Fixed
+- **The Search page left a large empty gap above Stars and Search.** The Name box's field wrapper carried a row-sized `flex-basis` that acted as a 12rem minimum height inside its column, stretching the row and pushing Stars and Search to the bottom right. The wrapper now sizes to its content, and Stars keeps a fixed width beside it; the row still wraps on narrow screens.
+
 ## [8.0.2940] - 2026-10-31
 
 **Headline:** The references list and DATA-LICENSE.md now cover the strength, roundness, Trojan and stellar-to-halo sources.
