@@ -11923,6 +11923,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   then closes with it if the re-measured 8 kpc gas reads about 13, and
   GEN.1200 follows with the inflow-time step (CORE_GAS_INFLOW_TIME_GY, a
   stand-in, registered in GEN.725).
+  Ready for train 8 (2026-10-31 1:58 PM EDT): Core 3 (as the lane
+  reported, 1:54 PM EDT): draft PR #4549, branch gen999, head 8b9448957,
+  lock work (epoch, --affects plan,scatter,fill,population; no
+  migration; census re-baseline). The disc gas law steepens where the
+  gas thins, using the saturation 9 per pc2 and index 2.1 of GEN.450 (no
+  new constant). Milky Way shape: depletion 2.2 to 3.7 Gy, star
+  formation now 1.50 to 1.70 solar masses a year, ring inflow 0.50 to
+  0.62 a year. The thin disc population shares move (young 0.54 to 0.60
+  percent, intermediate 25.0 to 26.8 percent). Train 8 candidate.
+  GEN.1200 closes with it (the ring inflow test now passes, no
+  inflow-time step needed). GEN.1202 stays open: 8 kpc gas is 7.2
+  against 13.7 measured (all-phase total), the residual is registered
+  (AL1) and the disc cluster maximum is re-measured after GEN.1196
+  merges.
   Prerequisites: GEN.932. Related: GEN.998, GEN.476, GEN.469.
 
 - [ ] **GEN.1000 Draw the largest body of every belt from the small body size law (replaces the stand-in largest-body size in the GEN.477 belt mass)**
@@ -19521,6 +19535,16 @@ clears each one.
   the same sector, then decide whether the serial form stays as a test
   reference (registered by design) or goes. Lock-free, tests only.
   Owner: Core 1 when its designations work waits.
+    Prerequisites: none.
+  Prerequisites: none.
+
+- [ ] **TEST.533 test_disk_history::test_the_present_rate_over_the_mean_is_within_a_factor_of_two_of_the_milky_ways is red on main (0.505 against a bound of 0.393, 0.554 after GEN.999): the model's recent star formation rate over its mean is about 2.5 times the Milky Way's (bug)**
+    Finding from Core 3's GEN.999 build (as the lane reported, 1:54 PM
+  EDT 2026-10-31). The test was red on main before GEN.999 and is not
+  caused by it. Either the model's recent-over-mean rate is wrong (find
+  which input and fix it, with a source) or the bound is (then change
+  the test and say why). Lock-free if only the test changes; lock work
+  if the model changes. Owner: Core 3 after UX.187.
     Prerequisites: none.
   Prerequisites: none.
 
