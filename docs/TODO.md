@@ -14653,6 +14653,66 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Related GEN.962 (moons) and GEN.1068.
   Prerequisites: none. Related: GEN.962, GEN.1068, GEN.725.
 
+- [ ] **GEN.1158 Roundness engine: a pure module physics/roundness.py with yield strength from ice fraction, the round radius from density and strength by the Lineweaver and Norman law, the roundness ratio, the 10 percent sphericity rule and the binding energy of a sphere**
+  Research: reports/round-shape-minimum-mass-2026-10-31.md (in
+  /mnt/project-files/reports/). Boss decision (8:41 PM EDT 2026-10-30,
+  relayed by Aux 5): Class D's primary qualifier is a roundness ratio of
+  1; airless is kept; Class D below 0.1 Earth masses, Class C at or
+  above; build the engine; store ice fraction, bulk density, roundness
+  ratio, yield strength (from composition) and gravitational binding
+  energy for every planet, moon, asteroid and belt or field member.
+  Owner Aux 5. Build physics/roundness.py with tests on ten known bodies
+  (the Solar System bodies are test targets, never inputs), stand-in
+  rows in GEN.725 with tier and tweak level. Lock-free (nothing reads it
+  yet), branch claude/aux5-roundness-engine, merges first. Done: module,
+  tests, registry rows, wiring-register line naming the wiring items.
+  Prerequisites: none. Related: GEN.1068, GEN.725.
+
+- [ ] **GEN.1159 Store ice fraction, bulk density, roundness ratio, yield strength and binding energy on planets, moons, asteroids and belt or field members (columns, migration, API version)**
+  Research: reports/round-shape-minimum-mass-2026-10-31.md (in
+  /mnt/project-files/reports/). Boss decision (8:41 PM EDT 2026-10-30,
+  relayed by Aux 5): Class D's primary qualifier is a roundness ratio of
+  1; airless is kept; Class D below 0.1 Earth masses, Class C at or
+  above; build the engine; store ice fraction, bulk density, roundness
+  ratio, yield strength (from composition) and gravitational binding
+  energy for every planet, moon, asteroid and belt or field member.
+  Owner Aux 5. Columns registered in db/column_units.py, migration,
+  schema fixture, API version bump if the API changes, sheet rules. Lock
+  work (migration, epoch, golden): rides the GEN.1068 window. Done:
+  columns filled for every body kind, fill audit green.
+  Prerequisites: GEN.1158. Related: GEN.1068, GEN.1158.
+
+- [ ] **GEN.1160 Class D and C rules read the roundness ratio and the 0.1 Earth mass line, and the Asteroid object type (no class letter, moon-capable) for bodies under roundness ratio 1**
+  Research: reports/round-shape-minimum-mass-2026-10-31.md (in
+  /mnt/project-files/reports/). Boss decision (8:41 PM EDT 2026-10-30,
+  relayed by Aux 5): Class D's primary qualifier is a roundness ratio of
+  1; airless is kept; Class D below 0.1 Earth masses, Class C at or
+  above; build the engine; store ice fraction, bulk density, roundness
+  ratio, yield strength (from composition) and gravitational binding
+  energy for every planet, moon, asteroid and belt or field member.
+  Owner Aux 5. Class D is airless, round (ratio 1) and below 0.1 Earth
+  masses; Class C is airless at or above it; the water rule is dropped;
+  moons use the same classes. Bodies under ratio 1 are the new object
+  type Asteroid, which is not a planet class and can be a moon. Lock
+  work, same window as GEN.1068, folds into it. Done: classes derived
+  from the ratio, the Asteroid type in the data and pages, tests, census
+  re-tag.
+  Prerequisites: GEN.1158, GEN.1159. Related: GEN.1068, GEN.725.
+
+- [ ] **GEN.1161 Asteroid field mass rule and a member ledger like the belts' (individual bodies above 1e19 kg stored, the rest drawn on demand)**
+  Research: reports/round-shape-minimum-mass-2026-10-31.md (in
+  /mnt/project-files/reports/). Boss decision (8:41 PM EDT 2026-10-30,
+  relayed by Aux 5): Class D's primary qualifier is a roundness ratio of
+  1; airless is kept; Class D below 0.1 Earth masses, Class C at or
+  above; build the engine; store ice fraction, bulk density, roundness
+  ratio, yield strength (from composition) and gravitational binding
+  energy for every planet, moon, asteroid and belt or field member.
+  Owner Aux 5. Proposal first: Aux 5 writes the field mass rule (how
+  much mass a field holds by origin) and Boss agrees it, then the member
+  ledger reuses the belt rule of GEN.1068. Lock work, same window as
+  GEN.1068 or later.
+  Prerequisites: GEN.1160. Related: GEN.1068, GEN.1160.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -15625,7 +15685,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
     it uses (`upload_runs`, `upload_claims`, `upload_id_ranges`)
     (2026-10-16 review). Added to Done: applying a change plan refuses a
     sector an upload run has claimed, with a test.
-    Prerequisites: none.
 
   - [ ] **API.11 Staging tables**
     Done: staging storage (a galaxy schema migration) for received
@@ -15652,7 +15711,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
     Scope after the review (2026-10-16 review): this item is the
     umbrella of the upload bookkeeping tables in the control database
     (child a, Core 1) and the spool and unit-state code (child b).
-    Prerequisites: API.29.
 
   - [ ] **API.12 The download: seed, skeleton and name state**
     Done: a route that returns, compressed, what a local run needs
@@ -19484,7 +19542,6 @@ clears each one.
   2026-10-18, as the coordinator reported them): fork 9: ADM.86 stays in
   8.1 on the Owner account stub USR.31; the full accounts of this item
   replace the stub in 8.2.
-    Prerequisites: USR.26, USR.27.
 
   - [ ] **USR.3 SMTP settings in the admin config**
     Boss: "We'll use SMTP for
@@ -19514,7 +19571,6 @@ clears each one.
     and builds the mail module and the "send test email" action; the
     form is the generated settings page (ADM.84 and ADM.86), not a
     second form.
-    Prerequisites: USR.26.
 
   - [ ] **USR.4 Invite-only sign-up by unique link**
     Boss: "only an admin can
@@ -19546,7 +19602,6 @@ clears each one.
     valid link; tokens and `invite_uses` come from the account-token
     library and the first child of USR.2. Placed after USR.5 because its
     sign-up ends in the set-password email loop.
-    Prerequisites: USR.26, USR.3, USR.28, USR.5.
 
   - [ ] **USR.5 Email loop for setting and resetting passwords**
     Boss: "an
@@ -19572,7 +19627,6 @@ clears each one.
     and forgot-password flows, per-address and per-IP limits, ending
     other sessions on use; tokens come from the account-token library.
     Placed before USR.4, which needs it.
-    Prerequisites: USR.3, USR.28.
 
   - [ ] **USR.6 Owner transfer**
     Boss: "The owner CAN (with specific approval
@@ -19598,7 +19652,6 @@ clears each one.
     transfer expires in 48 hours.
     Scope after the review (2026-10-16 review): the Owner-transfer state
     machine and its pages; tokens come from the account-token library.
-    Prerequisites: USR.5, USR.28.
 
   - [ ] **USR.7 A user-level interface with bookmarks**
     Boss: "a full user
@@ -19625,7 +19678,6 @@ clears each one.
     for every kind (bookmark, course), the routes for a user's own rows
     only, the account page and the one-time import of
     the browser list); the list and rename UI is UX.47's.
-    Prerequisites: USR.26.
 
   - [ ] **USR.8 Every signed-in user can generate a one-off system**
     Boss (2026-10-02 05:16Z): "TODO Item, all users can generate a
@@ -19672,7 +19724,6 @@ clears each one.
   (admin_users.avatar, POST and DELETE /api/auth/avatar, an account page
   section). The Users page and account deletion that USR.1 builds must
   show the picture and call adminAuth.forget_avatar_file on deletion.
-    Prerequisites: USR.26.
 
 - [ ] **USR.9 `seo.privacy_note` text, "download my data" and "delete my account" on the account page**
   A `seo.privacy_note` text setting shown on the account page, plus
@@ -20634,7 +20685,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   2026-10-22 as the lane's clock reads): `physics/light_travel.py` is built and
   tested but no production Python imports it yet; this item is one of its planned callers. Boss (8:04 PM
   EDT): code built for a pending feature stays.
-    Prerequisites: VIEW.11, VIEW.12, VIEW.13, VIEW.14.
 
   - [ ] **VIEW.3 Render the view as a PNG, with constellations**
     Boss: "when
@@ -20674,7 +20724,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
     `planetgen.web.seo_pages.register_card_renderer("system" or
     "sector", fn)` and turn on the setting `og.generated_cards`; any new
     web page VIEW.3 adds must be classified in `planetgen/web/seo.py`.
-    Prerequisites: VIEW.15, VIEW.16, VIEW.17.
 
   - [ ] **VIEW.4 Constellation names in the name generator**
     Boss: "add to our
