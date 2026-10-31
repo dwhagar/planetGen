@@ -37,15 +37,15 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
 | T1 | 140 | 13 | 8 | 1 | 0 | 162 |
-| T2 | 111 | 34 | 0 | 1 | 0 | 146 |
+| T2 | 111 | 37 | 0 | 1 | 0 | 149 |
 | T3 | 76 | 35 | 5 | 10 | 0 | 126 |
 | T4 | 37 | 5 | 0 | 14 | 10 | 66 |
 | T5 | 43 | 17 | 0 | 1 | 0 | 61 |
-| T6 | 85 | 62 | 16 | 44 | 0 | 207 |
+| T6 | 85 | 62 | 16 | 41 | 0 | 204 |
 | T7 | 27 | 8 | 8 | 8 | 0 | 51 |
 | T8 | 0 | 1 | 1 | 5 | 1 | 8 |
 | T9 | 15 | 14 | 4 | 42 | 19 | 94 |
-| All | 534 | 189 | 42 | 126 | 30 | 921 |
+| All | 534 | 192 | 42 | 123 | 30 | 921 |
 
 ## How the labels were given
 
@@ -1382,9 +1382,9 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| IT1 | P | T6 | L3 | ice_types ice_ii and ice_vi `strength_ratio` 1.0 (and ice VII and ice X take the ice VI value): as strong as ice Ih | 0.5 to 3 (ice II may exceed VI at planetary rates) | water ice of a body whose centre is over 0.2 GPa | a measured creep strength of ice II or VI at a body's shape-set temperature far from ice Ih | the creep laws of Durham 1997 Table 2 for II and VI used as the Ih law is (a regime table per phase) | Durham 1987 (abstract only), Durham 2010 (READ): II and VI the two strongest phases at lab rates; strength research sections 2b, 9, 14 | - | no data |
-| IT2 | P | T6 | L3 | ice_types ice_iii `strength_ratio` 0.001: near zero | 0.0001 to 0.01 | a body whose centre is in the 240 to 256 K wedge of ice III | a measured strength of ice III over a geologic strain rate far from a liquid | the ice III creep law of Durham and others 1988 (Table 2 of the 1997 compilation) | Durham, Kirby and Stern 1997 Table 2: the weakest phase at all rates, about six orders of magnitude of viscosity under ice II; section 9 asks for 'near zero' | - | no data |
-| IT3 | P | T6 | L3 | ice_types ice_v `strength_ratio` 0.5: a bit lower than ice II | 0.3 to 1 | water ice of a body whose centre is at 250 K and over and 0.35 to 0.63 GPa | a measured strength of ice V that is far from half of ice II | the ice V creep law of Durham and others 1996 (Table 2 of the 1997 compilation) | Durham 1987 (abstract only): 'somewhat weaker than ice II'; the 1997 paper notes the Poirier and Sotin ice V is about three orders more viscous than its own, unresolved | - | no data |
+| IT1 | D | T2 | L1 | ice_types ice_ii and ice_vi `ratio_by_temperature_k`: ice II 1.7 at 150 K, 1.0 at 180 K, 5.2 at 200 K, 6.0 at 230 K, 6.5 at 250 K; ice VI 5.5 at 150 K, 1.3 at 180 K, 4.9 at 200 K, 4.2 at 230 K (ice VII and ice X take the ice VI value); log-linear, held at the ends | ice II 0.5 to 9, ice VI 0.8 to 7 | water ice of a body whose centre is over 0.2 GPa | a measured creep strength of ice II or VI at a body's shape-set temperature that differs from the table by more than the 40 percent the strain-rate range gives | measured strengths of the phases at planetary strain rates (grain-size-sensitive creep is weaker at low stress, so the table is an upper bound at the low end) | Durham, Kirby and Stern 1997 Table 2 (READ): the strain-rate laws of II and VI over the ice Ih law at the same temperature, 1e-15 per second, phase pressures 400 and 1000 MPa; `reports/papers-vs-standins-2026-10-31.md` section 1 | - | - |
+| IT2 | D | T2 | L1 | ice_types ice_iii `ratio_by_temperature_k`: 0.6 at 240 K, 0.45 at 250 K, held at the ends | 0.3 to 0.9 | a body whose centre is in the 240 to 256 K wedge of ice III | a measured strength of ice III over a geologic strain rate that is far from half of ice Ih | measured strength of ice III at planetary strain rates | Durham, Kirby and Stern 1997 Table 2 (READ), the ice III laws of Durham and others 1988 below and above 230 K, phase pressure 300 MPa: 0.8 of ice Ih at 230 K and 0.45 at 250 K; weaker than Ih by a factor of two, not three decades | - | - |
+| IT3 | D | T2 | L1 | ice_types ice_v `ratio_by_temperature_k`: 8.4 at 180 K, 18 at 200 K, 8.4 at 230 K, 7.2 at 250 K, held at the ends | 4 to 40 | water ice of a body whose centre is at 250 K and over and 0.35 to 0.63 GPa | a measured strength of ice V that is outside 4 to 40 times ice Ih at 250 K | a resolution of the Poirier and Sotin ice V, which the 1997 paper notes is about three orders more viscous than its own | Durham, Kirby and Stern 1997 Table 2 (READ), the ice V law of Durham and others 1996, phase pressure 500 MPa: 7 to 10 times ice Ih at 230 to 250 K; the points at 200 K and below are extrapolations | - | - |
 | IT4 | D | T2 | L1 | ice_types ch4_clathrate `strength_ratio` 25: methane clathrate hydrate is 20 to 30 times as strong as ice Ih | 20 to 30 | methane hydrate at the shape-set temperature (a lower bound: the samples partly dissociate) | a measured hydrate strength over 30 or under 20 times ice at the same temperature and rate | the n = 4.5 low-temperature constants of the hydrate (not given in the paper) | Durham, Kirby, Stern and Zhang 2003 (READ): over 20 times near 273 K, the gap grows on cooling; strength research sections 2b, 11c, 14 | - | - |
 | IT5 | D | T2 | L1 | ice_types co2_ice `strength_pa` 0.3 MPa: solid carbon dioxide has a strength of its own, not scaled by ice Ih | 0.1 to 0.5 MPa | solid CO2 at 100 to 150 K | a measured dry-ice strength outside 0.1 to 0.5 MPa at the shape-set temperature | the CO2 flow law of Durham, Kirby and Stern 1999 at the body's shape-set temperature (0.05 MPa at 150 K, 0.5 at 100 K at 1e-15 per second) | Durham, Kirby and Stern 1999 (READ): A = 10^3.86 MPa^-n s^-1, n = 5.6, Q = 33 kJ/mol; strength research sections 2b and 9 | - | - |
 | IT6 | P | T6 | L3 | ice_types nh3_dihydrate `ratio_by_temperature_k` 2.0 at 110 K, 1.0 at 135 K, 0.3 at 170 K, log-linear, held at the ends | ratio 0.15 to 4 | ammonia dihydrate and ammonia-water ices between 100 and 176 K | a measured dihydrate strength far from the three points at those temperatures | the ammonia-water constants of Durham, Kirby and Stern 1993 (not in hand) | Durham and Kirby, NASA NTRS N92-10735 (READ): weaker than water ice near 176 K, stronger below 135 K; the three points are the interpolation of strength research section 14 | - | no data |
