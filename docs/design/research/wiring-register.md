@@ -324,9 +324,3 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | module | planetgen.physics.class_fit | GEN.1207 | the percent-match scorer; the shadow scorer in src/tests reads it, the classifier replaces the first-match tree with it |
 | module | planetgen.physics.planet_type | GEN.1219 | the terrestrial, transitional or gas type from the envelope share of the mass; the shadow report in src/tests reads it, GEN.1219 stores the type with GEN.1207's epoch |
 | row | 6.156:PT1 | GEN.1219 | read by planet_type.type_of; the stored type waits for GEN.1207's epoch |
-| module | planetgen.physics.life_readings | UX.251 | the abundance, trend and security words of each kind of life on a world, from its stored values; the Life summary and the Life details of a planet or moon page, and the API, read it when UX.251 wires it |
-| row | 6.155:LR1 | UX.251 | `life_readings.ABUNDANCE_BANDS`, not read until UX.251 wires the module |
-| row | 6.155:LR2 | UX.251 | `life_readings.TREND_SPAN_GYR`, `TREND_BAND` and `SPREAD_GYR`, not read until UX.251 wires the module |
-| row | 6.155:LR3 | UX.251 | `life_readings.DYING_GYR`, `PRECARIOUS_GYR`, `MARGINAL_GYR` and `MARGINAL_SCORE`, not read until UX.251 wires the module |
-| row | 6.155:LR4 | UX.251 | `life_readings.TEMPERATURE_EXPONENT`, not read until UX.251 wires the module |
-| row | 6.155:LR5 | UX.251 | `life_readings.KIND_MILESTONES`, not read until UX.251 wires the module |

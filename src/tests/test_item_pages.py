@@ -484,11 +484,27 @@ def test_a_planet_with_life_lists_the_classes_it_supports_and_what_the_class_liv
     found = apiclient.get_object
     monkeypatch.setattr(apiclient, "get_object", lambda db, ref: {**found(db, ref), "life_microbial": 2, "life_flora": 3,
                                                                   "life_fauna": 1, "life_sentient": 0})
+    readings = [
+        {"kind": "microbial", "label": "Microbes", "score": 2, "abundance": "Rare", "trend": "Stable", "security": "Secure",
+         "years_left_gyr": None, "text": "Microbes: rare, stable, secure."},
+        {"kind": "flora", "label": "Flora", "score": 3, "abundance": "Occasional", "trend": "Declining", "security": "Precarious",
+         "years_left_gyr": 0.4, "text": "Flora: occasional, declining, precarious."},
+        {"kind": "fauna", "label": "Fauna", "score": 1, "abundance": "Rare", "trend": "Stable", "security": "Secure",
+         "years_left_gyr": None, "text": "Fauna: rare, stable, secure."},
+        {"kind": "sentient", "label": "Sentient life", "score": 0, "abundance": "Absent", "trend": None, "security": None,
+         "years_left_gyr": None, "text": "Sentient life: absent."}]
+    monkeypatch.setattr(apiclient, "get_life_readings", lambda db, kind, body_id: {"id": body_id, "life_class_id": "1a", "readings": readings})
     page = client.get(f"/object/{PLANET}").get_data(as_text=True)
     assert "Conditions here suit Class 1a life (oxygenic light-eaters) best, suitability 7 of 9" in page
     assert re.search(r"they also suit Class 2 \(anoxygenic light-eaters[^<]*, suitability 4 of 9\)\.", page)
-    assert "Life here is Class 1a, at the stage of small mobile animals (animal grade A2). By kind: microbes sparse (2 of 9)" in page
-    assert "no sentient life." in page
+    assert "Life here is Class 1a, at the stage of small mobile animals (animal grade A2). Conditions here suit" in page
+    glance = page.split('class="life-glance"')[1].split("</p>")[0]
+    assert "Microbes: rare, stable, secure. Flora: occasional, declining, precarious. Fauna: rare, stable, secure. Conditions suit Class 1a" in glance
+    assert "Sentient" not in glance and "of 9" not in glance
+    assert page.index('id="item-glance-heading"') < page.index('class="life-glance"') < page.index('id="item-summary-heading"')
+    table = page.split('class="life-readings"')[1].split("</table>")[0]
+    assert "<th scope=\"row\">Flora</th><td>Occasional (3 of 9)</td><td>Declining</td><td>Precarious</td><td>about 0.4 billion years</td>" in table
+    assert "Its life scores are" not in page and "latest milestone" not in page and "evolving at" not in page
     assert page.index('id="life-paragraph-heading"') < page.index("Life here is Class 1a") < page.index('id="life-class-words"')
     block = page.split('id="life-class-words"')[1].split("</details>")[0]
     assert "eats, drinks, breathes and gives off" in page and "<dt>Drinks</dt><dd>water</dd>" in block

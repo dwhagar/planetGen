@@ -1051,33 +1051,6 @@ with `clamp()`.
   locked bodies is UX.244.
   Prerequisites: none. Related: MAP.277, VIEW.14.
 
-- [ ] **UX.251 Planet and moon pages: a Life summary paragraph in At a glance, from the life readings**
-  Boss, 10:07 AM EDT 2026-10-31 (and 10:08 AM EDT for the help pages):
-  build and ship all the life recommendations, a full readability
-  rewrite of ALL planet and star text, a life summary paragraph in At a
-  glance, a Life section in the details with the nitty-gritty, and a
-  full help page suite on all life types and the categories we use.
-  Brief:
-  /mnt/project-files/reports/life-and-text-readability-brief-2026-10-31.md;
-  coexistence write-up:
-  reports/multi-life-types-per-planet-2026-10-31.md. PR 4471 (branch
-  claude/project-thread-5xwcu1, wording and layout of the first Life
-  paragraph) merges first and these build on it. Filed by the TODO
-  thread. Do: add one short Life paragraph to the At a glance section
-  (the summary of UX.220 and UX.221): what lives there by kind with the
-  three words each, for example 'Microbes: abundant, stable, secure.
-  Plants: occasional, declining, precarious.', and the classes that suit
-  it, in plain words with no numbers other than the readings; only when
-  the world has life or could have it. It reads the pure function of the
-  life readings item, and the first Life paragraph of PR 4471 (what
-  lives there, kinds with prevalence words, classes that suit with their
-  suitability). The older prose lines (lives on this planet, evolving at
-  a pace; latest milestone) repeat the paragraph and are removed from
-  the summary, and 'Class 3 life has grown' says 3a. Presentation only;
-  no stored value changes, no epoch. Where we think it belongs (best
-  guess, can move): Core 5.
-  Prerequisites: none. Related: UX.237.
-
 - [ ] **UX.252 Readability rewrite of ALL planet, moon and belt text: summary sentences, descriptions, notes, labels, class pages**
   Boss, 10:07 AM EDT 2026-10-31 (and 10:08 AM EDT for the help pages):
   build and ship all the life recommendations, a full readability
@@ -14480,6 +14453,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   ammonia-water solution. So the item is: review the supply of non-water
   seas (the ice draws, the share, one liquid per body, the missing
   liquids) and add the missing liquids, not only a bug hunt.
+  Tides 1 census (as the lane reported, 11:25 AM EDT 2026-10-31)
+  (2026-10-31 11:35 AM EDT): report
+  /mnt/project-files/reports/tides1/gen1214/census-report-2026-10-31.md
+  (300 systems, 5,311 bodies). No single faulty stage: seas are rare
+  because three quarters of the cold volatile holders are under the
+  triple pressure (the ice sublimes) and the rest are outside narrow
+  windows; no in-window supplied body was left sealess, so LQ11 is not
+  the cause. Real gaps: N2 ice is never stored (the comet table has no
+  N2), no ethane liquid, no sulfuric acid or ammonia-water solution, and
+  one liquid per body (28 of 37 CO2-window bodies show water only). The
+  gaps go to the composition chain (GEN.1217, GEN.1218) and GEN.1215;
+  GEN.1215 can share an epoch with this item and GEN.1222.
   Prerequisites: none. Related: GEN.1035, GEN.888, GEN.821.
 
 - [ ] **GEN.1215 Store the acid and ammonia fractions of the surface liquid, and let habitability read them (an acid or ammonia sea can make a world uninhabitable)**
@@ -14519,35 +14504,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   fraction for class X.
   Prerequisites: none. Related: GEN.1035, GEN.888, GEN.862.
 
-- [ ] **GEN.1216 Research: the composition of surface liquids from physics and from life: salts and brines, acids, ammonia-water, liquid CO2, methane-ethane-nitrogen mixes, sulfur and what life and chemistry do to each**
-  Boss, 11:05 AM EDT 2026-10-31: start working out, as best we can from
-  life and physics, the composition of surface liquids. Filed by the
-  TODO thread as a research-then-build chain with GEN.1214 (CO2 and
-  hydrocarbon seas not created) and GEN.1215 (acid and ammonia fractions
-  stored). Research step. Report in /mnt/project-files/reports, sources
-  read with the source rules (physics found wins, secondary sources
-  accepted, stand-ins registered). Cover: (1) water seas: salinity and
-  ion mix by what the crust and the rain supply (chloride, sulfate,
-  carbonate, bicarbonate; Earth ocean, Mars brines, Europa and Enceladus
-  oceans), pH and how carbon dioxide, volcanic acid gases and weathering
-  set it; (2) acid seas and pools: sulfuric acid and water at Venus-like
-  clouds and surface pools, hydrochloric and nitric acid, how strong an
-  acid a pool holds at a temperature and pressure (GEN.888); (3)
-  ammonia-water mixes: the eutectic and the freezing curve, ammonia
-  fraction by the ammonia ice a body holds; (4) liquid carbon dioxide,
-  which needs more than 5.2 bar and 216.6 K or more; (5)
-  methane-ethane-nitrogen mixes at Titan and colder: the ratios by
-  temperature and pressure and what dissolves; (6) sulfur, hydrocarbon
-  and other seas of hot and cold worlds; (7) how life changes each:
-  biogenic oxygen and carbon dioxide drawdown on pH and carbonate,
-  methane and hydrocarbon production, sulfur cycling, and which
-  compositions each life class tolerates (the nine life classes of
-  life-classes.md; the tolerance limits become stand-ins for GEN.725).
-  Say what each source gives as a number or a law and what is missing;
-  list papers Boss must upload, in order of value. Where we think it
-  belongs (best guess, can move): Sources 1 (research).
-  Prerequisites: none. Related: GEN.1214, GEN.1215, GEN.888, GEN.1035.
-
 - [ ] **GEN.1217 Design: the surface liquid composition model: what is stored (fractions of water, salts, acid, ammonia, CO2, hydrocarbons), how it is derived, and how life changes it**
   Boss, 11:05 AM EDT 2026-10-31: start working out, as best we can from
   life and physics, the composition of surface liquids. Filed by the
@@ -14567,7 +14523,28 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   plan. Boss reads the design before the build. Done: the design is
   merged and Boss has answered its questions. Where we think it belongs
   (best guess, can move): Tides 1 with Aux 2.
-  Prerequisites: GEN.1216. Related: GEN.1215, GEN.1207, GEN.862.
+  GEN.1216 research done (Sources 1, 3:25 PM UTC lane clock) (2026-10-31
+  11:35 AM EDT): report
+  /mnt/project-files/reports/gen1216-surface-liquid-composition-2026-10-31.md.
+  Headline: every liquid family has anchors but no published closed law
+  of composition against conditions, so the generator must build the law
+  (solubility, saturation, equilibrium) and use the anchors as checks.
+  Sourced: TEOS-10 seawater ion table; Mars perchlorate and chloride
+  eutectics (Marion 2010, Toner 2014); Enceladus Na-Cl-CO3 at pH 11 to
+  12 and Europa MgSO4 1.1 to 96.8 g/kg; H2SO4-H2O eutectics 211 K at 36
+  wt percent and 199 K at 38; ammonia-water eutectic 176 K at 33 wt
+  percent plus 7 liquidus points; CO2 triple point and saturated density
+  and viscosity (Span and Wagner, Fenghour); Titan seas CH4 71 to 80, N2
+  17 to 20, C2H6 0 to 12 mol percent against a model spread of 10 times.
+  Stand-ins checked: CO2 viscosity at 220 K is 21 percent low; MgSO4
+  eutectic 1.2 K low; NaClO4 3 K low; sulfur melting 388.4 should be 392
+  K; ammonia-water viscosity and density off 2 to 6 times; ammonia share
+  0.1 is the top of the comet to disc range. Life: water limits sourced
+  (pH -0.06 to 12.5, water activity 0.611 to 0.635, ionic strength about
+  10 mol/L, MgCl2 about 2.3 M); nothing for acid above a few percent,
+  ammonia above about 1.6 percent, or CO2 or hydrocarbon as a solvent,
+  so classes 5 to 9 stay at the lowest tiers (T8 or T9, L3 or L4).
+  Prerequisites: none. Related: GEN.1215, GEN.1207, GEN.862.
 
 - [ ] **GEN.1218 Build the surface liquid composition model: the composition columns, the derivation, the effect of life on it and of it on life, pages and API**
   Boss, 11:05 AM EDT 2026-10-31: start working out, as best we can from
@@ -14683,6 +14660,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   census before and after. Changes stored output: epoch with --affects
   on a train. Where we think it belongs (best guess, can move): Tides 1
   (owns the surface liquid step) or the Class M thread.
+  Fixed by Tides 1 (as the lane reported, 11:25 AM EDT 2026-10-31)
+  (2026-10-31 11:35 AM EDT): pressure_melted_shell_km had no floor on
+  the melting-point fall, so a thick lid on a cold low-heat body gave a
+  shell of 0 and a water ocean at 25 K (124 of 370 water seas in its
+  sample). Fix: floor at the ice III triple point, 251.2 K. Branch
+  claude/gen1214-volatile-seas head e6af56ae1 off train 7, a lock item
+  (changes stored output), change note included. Stays open until it
+  merges on a train.
   Prerequisites: none. Related: GEN.1035, GEN.1214.
 
 - [ ] **GEN.1223 Research: the gas and Transitional class lists from sources (Sudarsky-style temperature classes, sub-Neptune, ice giant, sub-Saturn, water world)**
@@ -19279,6 +19264,21 @@ clears each one.
   guess, can move): Core 1 (reproducible galaxies), after the region run
   command.
   Prerequisites: none. Related: GEN.1118.
+
+- [ ] **TEST.519 tests/test_web_a11y.py::test_page_is_accessible_and_fits[web.galaxy-*] fails the axe rule scrollable-region-focusable on .map-key-lines (all four size and theme runs) on clean main (bug)**
+  Found by Core 5 (as the lane reported, 11:25 AM EDT 2026-10-31;
+  checked with its changes stashed), filed by the TODO thread. Kind: red
+  test on main. Object:
+  tests/test_web_a11y.py::test_page_is_accessible_and_fits for the
+  galaxy map page, all four size and theme runs; the axe rule
+  scrollable-region-focusable flags the scrollable .map-key-lines region
+  of the map key because it cannot be reached by keyboard. Do: make the
+  region keyboard reachable (tabindex 0 and a label) or stop it
+  scrolling, in the template and CSS, never by turning the rule off.
+  Also seen once and probably a flake: system-desktop-dark skip link not
+  visible; if it recurs, file it separately. Web only, lock-free. Owner:
+  Core 5 (proposed).
+  Prerequisites: none.
 
 ## USR: User accounts
 
