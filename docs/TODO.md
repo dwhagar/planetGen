@@ -959,30 +959,6 @@ with `clamp()`.
   word come from DOC.84.
   Prerequisites: none. Related: UX.221.
 
-- [ ] **UX.239 Search for star systems by how many stars they hold: single, binary, trinary, quaternary and more**
-  Boss (2026-10-30, 9:33 AM EDT): we need a way to search for star
-  groups, such as binary, trinary, quaternary and so on. Do: a
-  multiplicity filter (exactly N stars, or N or more, with named choices
-  Single, Binary, Trinary, Quaternary, Quintenary and beyond) in the
-  search page, Nearby, /api/search (parameter `stars`) and the command
-  line, plus a sort key and the count shown in each result row; it reads
-  the stored star count of the system, so it needs no new column unless
-  the count is not stored on the system row (then the owner adds it with
-  its unit entry). It rides the same engine as the physical-value
-  filters (UX.226, UX.227). Done: a browser test finds a known binary
-  and a known triple by the filter, the API and command line agree, and
-  the help text names every choice.
-  Boss 5:49 PM EDT 10-30 (owner and priority) (2026-10-30 5:50 PM EDT):
-  Boss needs this now to find and test multi-star systems (the
-  third-star fix): owner Core 1, right after UX.242 (PR #4142 adds
-  star_count to the list). First slice, not waiting for the general
-  engine: a `stars` filter (exactly N, or N or more; Single, Binary,
-  Trinary, Quaternary, Quintenary and beyond) in the search box and the
-  Systems panel of the search page and in /api/search?stars=, reading
-  the stored star count; the numeric engine of UX.226 absorbs it later.
-  The prerequisite on UX.226 is dropped for this slice.
-  Prerequisites: none. Related: UX.226, UX.227, GEN.728, TEST.162.
-
 - [ ] **UX.241 Asteroid belt information page: route, template and API field showing the individually tracked bodies (by designation, each linked to its member page), the contents and sizes of the rest of the belt mass, and the density factor with its unit; link from the system page and the belt row**
   Asteroid belt information page (Boss, 4:37 PM EDT 2026-10-30: "an
   asteroid belt information page that will show the bodies in the
@@ -19617,6 +19593,28 @@ clears each one.
   the test and say why). Lock-free if only the test changes; lock work
   if the model changes. Owner: Core 3 after UX.187.
     Prerequisites: none.
+  Prerequisites: none.
+
+- [ ] **TEST.534 test_near::test_the_search_counts_what_is_not_generated_yet_and_never_reads_the_sectors_to_search is red on clean main: its _scatter_rows insert fails with column count does not match value count (bug)**
+  Reported by Planets 1 at 2:44 PM EDT 10-31 (as the lane reported), not
+  from the stars filter. The test helper `_scatter_rows` in src/tests/test_near.py
+  inserts rows by hand into bright_stars (`store.insert_bright_stars`)
+  and phenomenon_scatter (`store.insert_phenomenon_scatter`) whose
+  tuples no longer match `BRIGHT_STAR_COLUMNS` and
+  `PHENOMENON_SCATTER_COLUMNS` after a column change. Fix: build the
+  rows from the column lists (by name) so the next column change cannot
+  break it, and say which change broke it. Tests only. Owner: Core 1
+  (search and near).
+  Prerequisites: none.
+
+- [ ] **TEST.535 The two test_planet_zones P-type share tests are red on clean main (dark members) (bug)**
+  Reported by Planets 1 earlier and again at 2:44 PM EDT 10-31 (as the
+  lane reported). The P-type share tests in
+  src/tests/test_planet_zones.py fail since the dark-member change
+  (GEN.1013, train 6): the share of P-type systems now counts dark
+  members. Decide whether the code or the expected share is right
+  (physics decides; no game rates), fix it, and say which. Tests only
+  unless the code is wrong. Owner: Aux 3 (built GEN.1013).
   Prerequisites: none.
 
 ## USR: User accounts
