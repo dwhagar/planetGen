@@ -175,6 +175,9 @@ def values_from_body(body):
         "daylight_hours": getattr(body, "daylight_hours", None),
         "axial_tilt_deg": getattr(body, "axial_tilt_deg", None),
         "period_years": getattr(body, "period", None),
+        "ring_inner_km": getattr(body, "ring_inner_km", None),                    # GEN.1055 R8: the ring shades the latitude bands behind it
+        "ring_outer_km": getattr(body, "ring_outer_km", None),
+        "ring_optical_depth": getattr(body, "ring_optical_depth", None),
         "is_moon": bool(getattr(body, "is_moon", False)),
         "energy_flux_w_m2": getattr(body, "energy_flux_w_m2", None),
         "native_life": native_life(getattr(body, "life_class", None), getattr(body, "life_stage", None),
