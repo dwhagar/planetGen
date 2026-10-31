@@ -29,6 +29,12 @@ and more of them, because a particle diffusing inward gains energy as the field 
 times Earth's at the peak. The profile of each belt is a rise `((L - L_in) / (L_pk - L_in))^p` to the peak (`INNER_RISE_EXPONENT` 2 for the protons, which reach down to the air, `OUTER_RISE_EXPONENT` 4 for the electrons, which leave a slot between the belts), a fall `(L_pk / L)^FALL_EXPONENT` beyond it and
 a cut `1 - (L / L_max)^EDGE_EXPONENT` to nothing at the edge (`profile`).
 
+**What a moon in them takes (GEN.983).** A planet's own belts begin above its air, so its ground takes nothing from them. A moon that orbits inside the belts of its
+parent (`moon_dose_msv_yr`) takes the dose at its orbit's `L`: the sum of the belts' rates, each in Sv by the weight of its particles (`BELT_WEIGHT`: 1 for electrons, 2
+for protons, ICRP 103's radiation weights), seen from the side of the sky the moon does not block (`SURFACE_VIEW_FRACTION`, 0.5), and cut by its own air by `exp(-column /
+STOP_COLUMN_G_CM2)`: the particles are electrons of MeV and protons of tens of MeV, which a few g/cm2 stop. The moon's own field and its minimagnetosphere are not
+taken (the ones a moon draws are weak beside the parent's belts). A moon deep in the belts of a Jupiter-strength field takes thousands of Sv/yr, a moon outside the belts nothing.
+
 **What it does not do.** It is a model of the main belts of a dipole: no tilt or offset of the field (the South Atlantic Anomaly), no multipole body (the dipole
 share only), no moons or rings that sweep the belts clean (Saturn's), no plasma source of a moon (Io's torus), no solar-cycle or storm variation, no heavy ions,
 and the shield is aluminium of one thickness. The intensities are Earth's scaled, not derived; the stand-ins and their tiers are in the gap-filling plan (section 6.15).
@@ -57,6 +63,12 @@ EARTH_OUTER_PEAK_GY_YR = 3000.0
 EARTH_INNER_PEAK_GY_YR = 3000.0
 SHIELD_G_CM2 = 0.69
 """float: 100 mil of aluminium, g/cm2 (2.54 mm at 2.7 g/cm3)."""
+BELT_WEIGHT = {"electrons": 1.0, "protons": 2.0}
+"""dict: Sv per Gy of each belt's particles: the radiation weighting factors of ICRP 103 (photons and electrons 1, protons 2)."""
+SURFACE_VIEW_FRACTION = 0.5
+"""float: The share of the belt's dose a ground takes: the body blocks half the sky."""
+STOP_COLUMN_G_CM2 = 2.0
+"""float: The air column, g/cm2, that cuts the belts' dose by a factor of e (MeV electrons go about 1 g/cm2 and tens of MeV protons 1 to 3)."""
 EARTH_STANDOFF_RP = magnetism.EARTH_STANDOFF_RP
 EARTH_WIND_PA = magnetism.EARTH_WIND_PA
 EARTH_RADIUS_M = constants.EARTH_RADIUS_KM * 1000.0
@@ -146,7 +158,7 @@ def air_scale_height_m(body):
 
 def belts_of_body(body, star_distance_au=None):
     """
-    The belts of a planet or moon from what it stores: its dipole moment and the dipole's share (`magnetism.body_dipole_share`), radius (km) and mass (kg),
+    The belts of a planet or moon from what it stores: its dipole moment, radius (km) and mass (kg),
     rotation period, air scale height, and the star's wind at its distance (`magnetism.wind_pressure_pa`). `()` for a body with no field, no star or
     no distance.
     """
@@ -155,7 +167,7 @@ def belts_of_body(body, star_distance_au=None):
     if not moment or not distance or getattr(body, "star", None) is None:
         return ()
     rotation_h = getattr(body, "rotation_period_hours", None)
-    return belts_for(moment * magnetism.body_dipole_share(body), body.radius * 1000.0, body.mass,
+    return belts_for(moment, body.radius * 1000.0, body.mass,
                      rotation_h * 3600.0 if rotation_h else None, magnetism.wind_pressure_pa(body.star, distance), air_scale_height_m(body))
 
 
@@ -167,3 +179,21 @@ def dose_gy_yr(belts, l_shell):
 def dose_at_orbit_gy_yr(belts, orbit_radius_m, body_radius_m):
     """The dose rate of a circular equatorial orbit of `orbit_radius_m` around a body of `body_radius_m`, Gy/yr behind the standard shield."""
     return dose_gy_yr(belts, orbit_radius_m / body_radius_m)
+
+
+def air_cut(column_g_cm2):
+    """The share of the belts' dose that gets through an air of `column_g_cm2` g/cm2 (1 for an airless body)."""
+    return math.exp(-max(column_g_cm2, 0.0) / STOP_COLUMN_G_CM2)
+
+
+def moon_exposure_msv_yr(parent, orbit_au):
+    """
+    The dose, mSv/yr, an airless moon at `orbit_au` from `parent` takes from the parent's belts: each belt's dose behind the standard shield at the moon's `L` in
+    Sv by its weight, seen from half the sky. `0.0` when the parent has no belts or the moon is outside them.
+    """
+    belts = belts_of_body(parent)
+    if not belts or not orbit_au or orbit_au <= 0 or not parent.radius:
+        return 0.0
+    l_shell = orbit_au * constants.AU_M / (parent.radius * 1000.0)
+    gray_per_year = sum(BELT_WEIGHT[belt.species] * belt.dose_gy_yr(l_shell) for belt in belts)
+    return gray_per_year * 1000.0 * SURFACE_VIEW_FRACTION
