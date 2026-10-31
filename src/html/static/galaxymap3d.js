@@ -900,6 +900,69 @@ function initGalaxyMap3d(canvasEl, data) {
   }
   applyCamera();
 
+  // MAP.338: the camera as a frame plus an offset. `camera.position` is a double, but at 8 kpc one step of a double is 1.8e-12 pc (55 km),
+  // as big as the nearest view (1e-12 pc), so the position the camera draws from would jitter. `eyeBack` is the camera's own offset from
+  // `target`, exact however far the target is; once the camera is nearer its target than DEEP_FRAME_PC and a system is open in place, the
+  // system is drawn in a second pass from the eye's own frame (the eye at the origin, the system at its offset from it, all scaled so the
+  // view is about a unit across: the same picture, with the log depth buffer's resolution where the bodies are).
+  var eyeBack = new THREE.Vector3();
+  var DEEP_FRAME_PC = 1e-6;
+  var deepFrame = { active: false, scale: 1, passes: 0 };
+  var DEEP_CLEAR = new THREE.Vector3();
+
+  function renderDeepFrame(frame) {
+    var dist = eyeBack.length();
+    var scale = Math.pow(10, Math.round(-Math.log10(Math.max(dist, 1e-15))));
+    var group = frame.group;
+    var saved = { position: group.position.clone(), scale: group.scale.clone(), visible: group.visible,
+      cameraPosition: camera.position.clone(), near: camera.near, far: camera.far };
+    var hidden = [];
+    scene.children.forEach(function (child) {
+      if (child !== group && child.visible && !child.isLight) { child.visible = false; hidden.push(child); }
+    });
+    // The offset of the system from the eye, worked out as (centre - target) - back so no step of a double at the galaxy's size is in it.
+    group.position.set((frame.centre[0] - target.x - eyeBack.x) * scale, (frame.centre[1] - target.y - eyeBack.y) * scale,
+      (frame.centre[2] - target.z - eyeBack.z) * scale);
+    group.scale.multiplyScalar(scale);
+    camera.position.copy(DEEP_CLEAR);
+    camera.near = Math.min(BASE_NEAR, dist * 1e-3) * scale;
+    camera.far = Math.max(dist * 1e6, 1) * scale;
+    camera.updateProjectionMatrix();
+    camera.updateMatrixWorld();
+    group.updateMatrixWorld(true);
+    renderer.autoClear = false;
+    renderer.clearDepth();
+    renderer.render(scene, camera);
+    renderer.autoClear = true;
+    hidden.forEach(function (child) { child.visible = true; });
+    group.position.copy(saved.position);
+    group.scale.copy(saved.scale);
+    group.visible = saved.visible;
+    camera.position.copy(saved.cameraPosition);
+    camera.near = saved.near;
+    camera.far = saved.far;
+    camera.updateProjectionMatrix();
+    camera.updateMatrixWorld();
+    group.updateMatrixWorld(true);
+    deepFrame.scale = scale;
+  }
+
+  function renderFrame() {
+    var frame = stageView.systemFrame();
+    var deep = !!frame && frame.group.visible && eyeBack.length() > 0 && eyeBack.length() < DEEP_FRAME_PC;
+    deepFrame.active = deep;
+    if (!deep) {
+      renderer.render(scene, camera);
+      return;
+    }
+    // The map without the system first, then the system over it from its own frame.
+    frame.group.visible = false;
+    renderer.render(scene, camera);
+    frame.group.visible = true;
+    renderDeepFrame(frame);
+    deepFrame.passes++;
+  }
+
   // Nothing of the galaxy is clipped to the window the drill-down shows (MAP.264): the stars and clouds all stay
   // when you zoom, and the visibility law decides what is drawn. There are no wedge lines: the galaxy shows its stars
   // and spiral structure with no grid drawn over it (MAP.85).
@@ -2521,6 +2584,12 @@ function initGalaxyMap3d(canvasEl, data) {
     });
   };
 
+  // For tests (MAP.338): whether the open system is being drawn from the eye's own frame, the scale it was drawn at, the camera's exact offset from
+  // its target (not the difference of two positions), and how many frames were drawn so.
+  canvasEl.galaxyDeepFrame = function () {
+    return { active: deepFrame.active, scale: deepFrame.scale, passes: deepFrame.passes, back: eyeBack.toArray(), dist: eyeBack.length() };
+  };
+
   canvasEl.galaxyStarFrame = function () {
     // MAP.267: the stars are relative-to-eye pairs. `far` is the farthest star from the camera, measured as the shader
     // does (each difference in float32), and `error` the largest gap between that and the star's own double position.
@@ -3686,6 +3755,7 @@ function initGalaxyMap3d(canvasEl, data) {
       else nearUniforms.insideCenter.value.set(NO_BLOCK_INSIDE, NO_BLOCK_INSIDE, NO_BLOCK_INSIDE);
       camera.quaternion.fromArray(v.quaternion);
       var back = new THREE.Vector3(0, 0, v.dist).applyQuaternion(camera.quaternion);
+      eyeBack.copy(back);
       camera.position.copy(target).add(back);
       // A system opened in place is zoomed to a moon, far inside the usual
       // near plane (the depth buffer is logarithmic, so a near plane close
@@ -5021,7 +5091,7 @@ function initGalaxyMap3d(canvasEl, data) {
     }
     if (sectorFrame) sectorFrame.update();
     if (galaxyLabels) galaxyLabels.update(now, false);
-    renderer.render(scene, camera);
+    renderFrame();
   })();
 }
 

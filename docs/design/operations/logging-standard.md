@@ -1,7 +1,7 @@
 # The logging standard (UX.121)
 
 Informs: UX.102 (the umbrella), UX.121, UX.122, UX.123, TEST.183, DOC.19
-Status: the layer is built (`planetgen/util/logrecord.py`, `src/tests/test_logrecord.py`, UX.121). The command line's log channel, the run record's log file, the job runner's stage marks and records file, the finish and failure marks of `generate`'s stages, and the job-step commands (`datasets`, `reset`, `orbits`) are on it (UX.122); the activity log keeps its own line by decision (below); the Generate page's log, the queue run page and `update.sh`'s own output are on it (UX.123, `scripts/logrecord.sh`); the enforcement test is TEST.183.
+Status: the layer is built (`planetgen/util/logrecord.py`, `src/tests/test_logrecord.py`, UX.121). The command line's log channel, the run record's log file, the job runner's stage marks and records file, the finish and failure marks of `generate`'s stages, and the job-step commands (`datasets`, `reset`, `orbits`) are on it (UX.122); the activity log keeps its own line by decision (below); the Generate page's log, the queue run page and `update.sh`'s own output are on it (UX.123, `scripts/logrecord.sh`); the enforcement test is TEST.183 (`src/tests/test_no_own_log_formatting.py`, built). The reader's reference is [`docs/reference/logging.md`](../../reference/logging.md) (DOC.19).
 
 ## What it is for
 
@@ -70,7 +70,7 @@ The display draws each of them as the same divider, `=== message ===`, with noth
 2. Put the sentence in the message and the numbers a tool may want in fields; do not write a number only in the message when a tool would want it.
 3. Never put a secret, a password, a key or a token in a message or a field (the settings writer's `(changed)` form for secrets stays).
 4. The time is taken when the record is made, in the process that made it; a record relayed from a worker keeps its time.
-5. A new output path that formats its own lines fails a test (TEST.183): the test lists the places that write to a file or a screen and requires each to go through the layer or to be named in an allowed list with its reason.
+5. A new output path that formats its own lines fails a test (TEST.183, `src/tests/test_no_own_log_formatting.py`): the test reads every module under `planetgen/` as a syntax tree and finds each print, write or logger call whose text is built with a time call or a hand-drawn divider; each such place is required to go through the layer or to be named in `ALLOWED` with its reason.
 6. No work after a progress block may run longer than the bar threshold (`tuning.PROGRESS_BAR_SECONDS`) without a `Step` of its own (DOC.80, PERF.189). The cases found were `refresh_block_lights` and `record_phenomenon_scatter*`, which ran after the scatter's last step and printed nothing, so a run looked hung. A checklist for new work that follows a scatter or a fill: (a) give it a `Step` with a kind in `steps.STEP_KINDS`; (b) when it works in units, advance the bar once per unit and write a log line before it starts, at each phase and about every `tuning.PROGRESS_LOG_SECONDS`; (c) read big tables a slice at a time and write what is complete as it completes, so its memory does not grow with the galaxy (PERF.187); (d) a step the smoke run (`python -m planetgen.cli.smoke`) sees has a memory budget in `tuning.SMOKE_STEP_BUDGET_MB`.
 
 ## Open points for the items that follow

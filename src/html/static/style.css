@@ -1880,6 +1880,19 @@ a:focus-visible .navmap-point circle {
 
 .search-field-main {
   flex: 1 1 16rem;
+  display: block;
+}
+
+/* The name box sits in a `.ui-field`, whose `flex: 1 1 12rem` is a width in a
+   row but a 12rem-tall minimum inside a column: it made this row tall and
+   pushed Stars and Search to the bottom right. Block flow keeps it one box high. */
+.search-field-main > .ui-field {
+  flex: none;
+  width: 100%;
+}
+
+.search-main > .search-field-stars {
+  flex: 0 1 12rem;
 }
 
 .search-field input[type="search"] {
@@ -6138,3 +6151,13 @@ p.hint a {
 .map-region-poi-count:empty {
   display: none;
 }
+
+/* The Preferences page (UX.236): one block per setting, its words, its control, its default. */
+.preference { margin: 0 0 1.25rem; }
+.preference h4 { margin: 0 0 0.25rem; }
+.preference-about, .preference-default { margin: 0.25rem 0; }
+.preference-default { color: var(--muted, inherit); }
+.preference-choice { border: 0; padding: 0; margin: 0.25rem 0; }
+.preference-option { display: block; margin: 0.25rem 0; }
+.preference-controls input[type="number"] { margin-left: 0.5rem; max-width: 8rem; }
+.preferences-status { min-height: 1.5em; }

@@ -72,9 +72,6 @@ Boss: the zoom chain is a seminal feature of 8.2. Z0 (MAP.333, the quick fixes) 
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| TEST.496 | test_the_wheel_carries_the_map_from_the_whole_galaxy_into_a_system fails on main in its wheel-out leg (the URL keeps sector= after wheeling out) (bug) |  |  |
-| MAP.338 | Zoom redesign Z5: planet and moon frames, the camera as frame plus offset, automatic near and far planes, and the MAP.240 leftovers |  |  |
-| UX.236 | User preferences: a screen and storage for per-user settings, starting with the Galaxy Map region landing (frame or densest) |  |  |
 
 ### Halo mass research
 

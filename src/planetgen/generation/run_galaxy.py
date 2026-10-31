@@ -1119,6 +1119,11 @@ def _default_generation_args(config=None):
     return args
 
 
+def _since_text(moment):
+    """The text of a start time as `--since` takes it (the one place that spells it, so a message never words a value of its own)."""
+    return moment.strftime("%Y-%m-%d %H:%M:%S")
+
+
 def _resolve_since(args):
     """Fills in `args.since` when `--since` was not given: the start of the newest `sectors` or `galaxy` run.
 
@@ -1135,7 +1140,7 @@ def _resolve_since(args):
     if args.since is None:
         log.error("No 'sectors' or 'galaxy' run is recorded, so there is no start time: give --since TIME.")
         raise SystemExit(1)
-    log.normal(f"Working on the sectors saved since {args.since:%Y-%m-%d %H:%M:%S}, the start of the newest "
+    log.normal(f"Working on the sectors saved since {_since_text(args.since)}, the start of the newest "
                f"'sectors' or 'galaxy' run.")
 
 
@@ -2808,7 +2813,7 @@ def _start_clock(args):
     finally:
         conn.close()
     if not getattr(args, "estimate_only", False):
-        log.normal(f"Run started at {started_at:%Y-%m-%d %H:%M:%S} on the database's clock (the --since of "
+        log.normal(f"Run started at {_since_text(started_at)} on the database's clock (the --since of "
                    f"'planetgen link', 'backfill' and 'settle' for this run's sectors).")
     return started_at
 
@@ -3006,7 +3011,7 @@ def run_sectors(args):
     """
     started_at = _run_stages(args, "sectors", lambda _started_at: [])
     if started_at is not None:
-        log.normal(f"The sectors are saved. 'planetgen link --since \"{started_at:%Y-%m-%d %H:%M:%S}\"' links them to "
+        log.normal(f"The sectors are saved. 'planetgen link --since \"{_since_text(started_at)}\"' links them to "
                    f"their neighbours.")
 
 

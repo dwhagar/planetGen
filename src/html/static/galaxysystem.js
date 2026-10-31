@@ -351,6 +351,8 @@ export function createSystemStage(host) {
     fade: function () { return open ? open.fade : 0; },
     // The real radius (pc) of the system that is up, once its scene is known.
     radiusPc: function () { return open ? open.radiusPc : null; },
+    // MAP.338: the group the open system hangs from and where it sits, for the map's deep-zoom pass (which draws it from the eye's own frame).
+    frame: function () { return live() ? { group: open.wrapper, centre: open.center.slice() } : null; },
     // MAP.321: where the open system sits in the map's world (parsecs), or null.
     centre: function () { return live() ? open.center.slice() : null; },
     systemId: function () { return live() ? open.id : null; },

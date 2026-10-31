@@ -2185,3 +2185,20 @@ Baseline: PR #1817.
 | TEST.468 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | TEST.469 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | TEST.459 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.514 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.515 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.496 | 8.2 | The continuous zoom (headline, Boss 6:28 PM EDT 2026-10-28) |
+| MAP.338 | 8.2 | The continuous zoom (headline, Boss 6:28 PM EDT 2026-10-28) |
+| UX.236 | 8.2 | The continuous zoom (headline, Boss 6:28 PM EDT 2026-10-28) |
+| TEST.183 | 8.1 | Admin and API housekeeping |
+| UX.102 | 8.1 | Admin and API housekeeping |
+| UX.224 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| DOC.19 | 8.1 | Docs |
+| TEST.516 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.517 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| UX.250 | 8.2 | Search by physical values |
+| TEST.518 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.1205 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.1206 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| DOC.83 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.1210 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |

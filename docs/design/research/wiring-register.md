@@ -292,3 +292,11 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.148:RGD2 | GEN.1055 | `ring_darkening.DARK_ALBEDO`, not read until GEN.1055 wires the module |
 | row | 6.148:RGD3 | GEN.1055 | `ring_darkening.SATURN_POLLUTION_FLUX_KG_M2_S`, not read until GEN.1055 wires the module |
 | row | 6.148:RGD4 | GEN.1055 | `ring_darkening.FLUX_DISTANCE_EXPONENT` and `DUST_SPEED_AT_INFINITY_KMS`, not read until GEN.1055 wires the module |
+| data | planet_class_fit.json | GEN.1207 | the percent-match table of every class; the shadow scorer reads it (GEN.1206) and the best-fit classifier makes it the way a stored letter is decided |
+| module | planetgen.physics.class_fit | GEN.1207 | the percent-match scorer; the shadow scorer in src/tests reads it, the classifier replaces the first-match tree with it |
+| module | planetgen.physics.life_readings | UX.251 | the abundance, trend and security words of each kind of life on a world, from its stored values; the Life summary and the Life details of a planet or moon page, and the API, read it when UX.251 wires it |
+| row | 6.155:LR1 | UX.251 | `life_readings.ABUNDANCE_BANDS`, not read until UX.251 wires the module |
+| row | 6.155:LR2 | UX.251 | `life_readings.TREND_SPAN_GYR`, `TREND_BAND` and `SPREAD_GYR`, not read until UX.251 wires the module |
+| row | 6.155:LR3 | UX.251 | `life_readings.DYING_GYR`, `PRECARIOUS_GYR`, `MARGINAL_GYR` and `MARGINAL_SCORE`, not read until UX.251 wires the module |
+| row | 6.155:LR4 | UX.251 | `life_readings.TEMPERATURE_EXPONENT`, not read until UX.251 wires the module |
+| row | 6.155:LR5 | UX.251 | `life_readings.KIND_MILESTONES`, not read until UX.251 wires the module |

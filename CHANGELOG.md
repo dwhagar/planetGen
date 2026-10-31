@@ -2,6 +2,103 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2941] - 2026-10-31
+
+**Headline:** The Search page's Name box, Stars selector and Search button now sit together on one row.
+
+### Fixed
+- **The Search page left a large empty gap above Stars and Search.** The Name box's field wrapper carried a row-sized `flex-basis` that acted as a 12rem minimum height inside its column, stretching the row and pushing Stars and Search to the bottom right. The wrapper now sizes to its content, and Stars keeps a fixed width beside it; the row still wraps on narrow screens.
+
+## [8.0.2940] - 2026-10-31
+
+**Headline:** The references list and DATA-LICENSE.md now cover the strength, roundness, Trojan and stellar-to-halo sources.
+
+### Changed
+- **References list rebuilt.** `docs/REFERENCES.md` and `.html` gain the newly cited papers (Durham, Kirby and Stern 1997, Durham et al. 2010, Korenaga and Karato 2008, Chu and Korenaga 2012, Lattimer and Prakash 2001, Leauthaud et al., Lineweaver and Norman 2010 and the rest), 58 new arXiv papers and 19 DOIs resolved.
+- **DATA-LICENSE.md** has a new section with the terms of each new source (publisher copyright, arXiv licence, public-domain reports) and a flag for the reuse restrictions (CC BY-NC-SA for Maurice et al. and for the MIT OCW lecture).
+
+## [8.0.2939] - 2026-10-31
+
+**Headline:** The Life section of a planet page now opens with one paragraph: what lives there, how common each kind of life is, then which life classes the conditions suit.
+
+### Changed
+- **One Life paragraph.** It leads with the life that lives there (class and stage), then microbes, flora, fauna and sentient life each with a prevalence word and its score out of 9, then the classes the conditions suit, best first, with suitability. The old separate "Supports", "Also supports" and "Has" lines are folded into it. Wording and layout only; no stored value changes.
+
+## [8.0.2938] - 2026-10-31
+
+**Headline:** A read-only report now compares today's class letters with the best-fit percent match for every generated world.
+
+### Added
+- **The best-fit class shadow scorer (GEN.1206).** `src/tests/class_fit_cli.py` scores generated systems both ways (the first-match rules and the percent-match table of GEN.1205) and prints the confusion table, the share at 100 percent, the low-match list, the close pairs and the temperate surface-ocean count per class. Nothing stored changes.
+
+## [8.0.2937] - 2026-10-31
+
+**Headline:** Every planet class now has its own full list of conditions, ready for a percent-match classifier.
+
+### Added
+- **The best-fit class table (GEN.1205).** `physics/data/planet_class_fit.json` gives every class letter its own positive conditions (F and G a warm, 0.5 to 2 g band; M an Earth-like air window; O and H ordinary air), with a shoulder width per quantity, and `physics/class_fit.py` scores a body against them. Nothing stored changes: the first-match rules still decide every letter. Shoulder widths are stand-ins CF1 to CF7 in GEN.725.
+
+## [8.0.2936] - 2026-10-31
+
+**Headline:** A planet's rendered example is lit from the left and a little from the front, so its day and night line is a clear curve with most of the disc lit, and a tidally locked world's arrow to the star no longer sits on the planet.
+
+### Changed
+- **The light on a rendered body (UX.250).** `bodyview.js` lights a world from a star 55 degrees round from the line of sight toward the left (79 percent of the disc lit), where it lit it from the side so the line was straight down the middle; the shade goes from night to full day across a narrow band at the line, so the line shows as a curve. A tidally locked world holds still with its sub-stellar point where the light comes from.
+- **The arrow to the star (UX.250).** A tidally locked world's picture keeps a strip on the left for the arrow and its word ("star" or "planet", on a dark chip like the "Tidally locked" label) and a strip under the disc for the label; the disc is fitted into what is left, so neither covers it.
+
+No generator output changes.
+
+generation-output: unchanged
+
+TODO items resolved: UX.250.
+
+## [8.0.2935] - 2026-10-31
+
+**Headline:** A planet's page shows one habitability chip, the most specific of Inhabited, Habitable and Habitable class, not several.
+
+### Changed
+- **Habitability chips (UX.224).** `habitability_chips.chips_html` shows "Inhabited" over "Habitable" over "Habitable class" for the body itself and "Habitable moon" over "Habitable-class moon" for its moons, where it showed every one that held. The chip help on the habitability page says Inhabited stands for the other two. The system description already counted each world once ("There is 1 habitable world in the system").
+
+No generator output changes.
+
+generation-output: unchanged
+
+TODO items resolved: UX.224.
+
+## [8.0.2934] - 2026-10-31
+
+**Headline:** A Preferences page lists the Galaxy Map's settings, with what each does and its default, and a Reset to defaults button.
+
+### Changed
+- **Preferences** is a new page, linked from the gear menu (and from the Account page). It lists where Go to a region lands (frame the region, the default, or the densest part), the black hole mark density (one mark per 120 by 120 pixels by default, 30 to 1000) and the space between names, each with a plain-words description and its default. A change is saved in this browser as you make it, the Galaxy Map uses it the next time it reads it, an out-of-range number is refused with a reason, and Reset to defaults brings every default back. The same keys move into your account when accounts arrive.
+
+generation-output: unchanged
+
+## [8.0.2933] - 2026-10-31
+
+**Headline:** Two tests that were red on main are green again, with no change to what the generator makes.
+
+### Fixed
+- `test_solar_system_standin_rows` (SSR5): a registered row may show what replaces it in plain words (TEST.487 took the item code off the page), so the test now checks the code only where a row still shows one.
+- `test_oddity_plausibility` (W10): the harness has an effect for the mantle-stripping row, so every shipped oddity row can be forced and held to the invariants.
+
+generation-output: unchanged
+
+## [8.0.2932] - 2026-10-31
+
+**Headline:** The Galaxy Map zooms in to 30 km from an opened system (it stopped at 3,000 km), drawing the system from the camera's own frame so it holds steady.
+
+### Changed
+- **The nearest view is 1e-12 pc (MAP.338).** `GLOBAL_FLOOR_PC` goes from 1e-10 to 1e-12. The zoom slider, the ruler and the wheel reach it, and the ruler has a Surface stop at it.
+- **The open system is drawn from the eye's own frame once the camera is within 1e-6 pc of its target.** `galaxymap3d.js` keeps the camera's exact offset from its target (`eyeBack`) beside the position (a double whose step is 1.8e-12 pc at 8 kpc), draws the map without the system, then draws the system over it with the eye at the origin and everything scaled so the view is about a unit across (the log depth buffer keeps its resolution there). `galaxysystem.js` gains `frame()` and `galaxystageview.js` `systemFrame()` for it; `galaxyDeepFrame()` is the test hook.
+- **The address drops `sector=` once the camera is far from the sector (TEST.496).** After the wheel carried the camera out of an opened sector the address kept `?sector=...` with the camera at the whole galaxy; the address now names the sector only while the camera is within 81 sector edges of its target.
+
+No generator output changes.
+
+generation-output: unchanged
+
+TODO items resolved: TEST.496 (the wheel-out leg), MAP.338 (near and far count as done earlier; this is the frame plus offset and the 1e-12 pc floor; it cannot be proven on a real GPU from the lane, only on the headless browser).
+
 ## [8.0.2931] - 2026-10-31
 
 **Headline:** The prevalence census ranges that train 6 moved are tagged with the train, so the census checks stay quiet until the last 8.1 re-baseline.

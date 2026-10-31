@@ -13,19 +13,19 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.250 |
+| UX | UX.254 |
 | MAP | MAP.363 |
 | NAV | NAV.65 |
-| GEN | GEN.1204 |
+| GEN | GEN.1219 |
 | PERF | PERF.220 |
 | DB | DB.110 |
 | API | API.38 |
 | ADM | ADM.135 |
 | SEC | SEC.37 |
-| TEST | TEST.515 |
+| TEST | TEST.519 |
 | USR | USR.32 |
 | OPS | OPS.85 |
-| DOC | DOC.83 |
+| DOC | DOC.86 |
 | VIEW | VIEW.19 |
 | POP | POP.46 |
 
@@ -687,7 +687,7 @@ Parents marked "new parent" had no old number of their own.
 | DOC.16 | The API help page for visitors: what the API is, how to get a key, and where the reference lives | none | open |
 | DOC.17 | Describe the object ID in api.md | none | done, PR #1133 |
 | DOC.18 | Last pass: re-run the documentation sweep when the other DOC items are done and Phase 1 is complete | none | open |
-| DOC.19 | After UX.102: document the log output standard for the CLI, the Generate page and admin logs | none | open |
+| DOC.19 | After UX.102: document the log output standard for the CLI, the Generate page and admin logs | none | done, PR #4453 |
 | DOC.20 | After PERF.86: rewrite the queue and scatter notes and the queue docstrings | none | done, PR #3661 |
 | DOC.21 | Rewrite the package docstrings that are wrong or missing, and the queryDb mentions | none | done, PR #1698 |
 | DOC.22 | Update the orbital, slow-reads, login, ops, test-suite and db-check notes to their built state | none | done, PR #1599 |
@@ -751,6 +751,9 @@ Parents marked "new parent" had no old number of their own.
 | DOC.80 | Progress docs rule: nothing after a progress block may run longer than the bar threshold without its own Step | none | done, PR #3125 |
 | DOC.81 | Help page: resource locations, what the scores mean and how to find them on the map | none | open |
 | DOC.82 | Region names docs and the audit check "region names stay unique among neighbours" (regions chain, step 7) | none | done, PR #3400 |
+| DOC.83 | Plain-words style guide for every sentence the site writes about a planet or a star, with a test that enforces it | none | done, PR #4478 |
+| DOC.84 | Help page suite for life: the four kinds of life, every life class, and the scales we use (abundance, trend, security, suitability) | none | open |
+| DOC.85 | Refresh the class table in docs/reference/system-file-format.md: the F, G, B and N meanings and the zone and habitable columns are from the old zone-drawn classes | none | open |
 | GEN.1 | Real-world rates for interstellar objects | 5 (2026-09-30 18:14Z to 23:21Z) | done in 7.18.0, PR #136 |
 | GEN.2 | Rogue planet mass bins | 6 (2026-09-30 18:14Z to 23:21Z) | done in 7.18.0, PR #136 |
 | GEN.3 | A supermassive black hole in every galaxy | 7 (2026-09-30 18:14Z to 22:54Z) | done in 7.15.0, PR #132 |
@@ -1897,7 +1900,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1144 | Post-train-6 class re-sweep on the new main, then decide the E and F merge, the T versus N boundary and the H and L reach | none | open |
 | GEN.1145 | Ocean-fraction spread of temperate air-bearing bodies, printed before the train 6 epoch (decides whether the H line can fill) | none | done, PR #4247 |
 | GEN.1146 | Upstream water inventory and land share: temperate bodies with air nearly always keep their water, so no desert world (Class H) exists; decide whether the generator should produce dry temperate planets (only if GEN.1145 shows H stays empty) | none | done, PR #report-ocean-fraction-physics-gen1146 |
-| GEN.1147 | Ocean-fraction law: replace the sqrt cover law with a two-level hypsometry plus the mantle water cap by mass (2 to 8 oceans), in one epoch (BOSS DECIDES before any code) | none | open |
+| GEN.1147 | Ocean-fraction law: replace the sqrt cover law with a two-level hypsometry plus the mantle water cap by mass (2 to 8 oceans), in one epoch | none | open |
 | GEN.1148 | Asteroid belt share fell from 55 percent of systems to 3 percent and binary share rose from 24 percent to 31.5 percent between the census before trains 3 and 4 and current main (Bug 2 census); find out whether each is the intended change or a bug (bug) | none | done, report gen1148-belt-binary-shift-2026-10-31.md |
 | GEN.1149 | Lagrange trojans T1: pure physics module physics/trojans.py: Gascheau-Routh stability test (host, secondary and trojan masses), libration period, tadpole and horseshoe limit, e and i screen, swarm mass from the scatter trojan share with leading and trailing split, plausibility harness against Jupiter, Neptune, Saturn moons and the exoplanet upper bound (WR10), GEN.725 registry rows, design note | none | done, PR #4273 |
 | GEN.1150 | Lagrange trojans T2: the generator draws a trojan swarm at the L4 and L5 of each giant planet or brown dwarf from the scatter trojan share; new columns co_orbital_host_id, lagrange_point, libration amplitude and phase (db/column_units.py); orbit updater libration overlay; the object and sector pages and the designation rule "<host> L4 trojan region" | none | open |
@@ -1954,6 +1957,21 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1201 | A per-body shape-setting temperature: the roundness engine uses the temperature a body took its shape at, but no body stores one, so strength is the cold strength today | none | open |
 | GEN.1202 | The generator's disc gas surface density at 8 kpc is 4.3 solar masses per pc2 against 13 measured, which holds the disc cluster maximum mass too low | none | open |
 | GEN.1203 | Polluted white dwarf census: 25 to 50 percent of white dwarf systems polluted once belt birth sees the giants | none | open |
+| GEN.1204 | Dark members of an orbit tree (brown dwarf, neutron star, black hole in dark_members) store density, binding energy and the shape values the stars, rogues and comets store | none | open |
+| GEN.1205 | Best-fit classes, step 1: every class gets its own full positive conditions (temperature, pressure, gravity, water, air chemistry) as new data, with shoulder widths registered in GEN.725 | none | done, PR #4469 |
+| GEN.1206 | Best-fit classes, step 2: a read-only shadow scorer prints the confusion table (stored letter against best-fit letter), the share at 100 percent and the low-match list | none | done, PR #4473 |
+| GEN.1207 | Best-fit classes, step 3: the classifier replaces the first-match tree, stores class_match and the runner-up letter and match, and the class pages show the percent match | none | open |
+| GEN.1208 | Best-fit classes, wording: drop the age and stage words from the class tier labels and the "Checked after" and "leftover" wording from the class pages | none | open |
+| GEN.1209 | Several life types coexist on one planet: a per-body list of living classes, each with its stage, animal grade, kinds (microbes, flora, fauna) and prevalence | none | open |
+| GEN.1210 | Life readings: abundance, trend and security for each kind of life (microbes, flora, fauna, sentient), as one pure function over stored values with no new column | none | done, PR #4481 |
+| GEN.1211 | A new class for hot thin-air rocks (about 1.6 percent of bodies: 1.4 to 2 g, 340 to 1100 K, 1 to 10 kPa, no ocean) is Class R, Hothouse (Boss named it) | none | open |
+| GEN.1212 | Rewrite the stored system flavour lines (tuning.SYSTEM_FLAVOR, about 40 story lines) to the plain-words style guide, and stop storing text the pages can build | none | open |
+| GEN.1213 | Atmospheric composition accounts for the whole mix of living classes on a planet: each class changes the air in its own way, summed in timeline order | none | open |
+| GEN.1214 | Carbon dioxide and hydrocarbon (methane-ethane) seas are not being created: find out why on a census of the surface liquid and fix it (bug) | none | open |
+| GEN.1215 | Store the acid and ammonia fractions of the surface liquid, and let habitability read them (an acid or ammonia sea can make a world uninhabitable) | none | open |
+| GEN.1216 | Research: the composition of surface liquids from physics and from life: salts and brines, acids, ammonia-water, liquid CO2, methane-ethane-nitrogen mixes, sulfur and what life and chemistry do to each | none | open |
+| GEN.1217 | Design: the surface liquid composition model: what is stored (fractions of water, salts, acid, ammonia, CO2, hydrocarbons), how it is derived, and how life changes it | none | open |
+| GEN.1218 | Build the surface liquid composition model: the composition columns, the derivation, the effect of life on it and of it on life, pages and API | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -2291,7 +2309,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.335 | Zoom redesign Z2: sector and system scenes are chosen from the camera position, with one new server read (generated sectors near a point); the window fetch stops being a display source | none | done, PR #3647 |
 | MAP.336 | Zoom redesign Z3: one goTo(target) for every fly with the verb Go to, a find-a-place box, a vertical log ruler with named clickable stops, crumbs as Go to, and Up one level | none | done, PR #3778 |
 | MAP.337 | Zoom redesign Z4: delete the stage code and stage URLs and rewrite the stage browser tests | none | done, PR #4423 |
-| MAP.338 | Zoom redesign Z5: planet and moon frames, the camera as frame plus offset, automatic near and far planes, and the MAP.240 leftovers | none | open |
+| MAP.338 | Zoom redesign Z5: planet and moon frames, the camera as frame plus offset, automatic near and far planes, and the MAP.240 leftovers | none | done, PR #4444 |
 | MAP.339 | Black holes: 237 of 240 drawn at a 10 pc zoom are far from the view; show them by a near-field rule (bug) | none | done, PR #3636 |
 | MAP.340 | Black hole crowd badges: crowded black hole marks merge into one mark with a count badge and a click list (bug) | none | done, PR #3640 |
 | MAP.341 | Markers outside an opened sector do not dim like the stars do (a MAP.327 gap) (bug) | none | done, PR #3652 |
@@ -2897,7 +2915,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.99 | Rogue planets do not show their surface gravity (bug) | none | done, PR #1355 |
 | UX.100 | Planet and moon lists show habitability as symbols, not notes | none | done, PR #2784 |
 | UX.101 | The PHI-6 symbols as vector shapes in the icon library, both themes, coloured by rating | none | done, PR #2706 |
-| UX.102 | One logging standard for every output the user or an admin reads: the same timestamps, format, dividers and step markers everywhere | none | open |
+| UX.102 | One logging standard for every output the user or an admin reads: the same timestamps, format, dividers and step markers everywhere | none | done, PR #4450 |
 | UX.103 | Design note for the description layer | none | done, PR #1496 |
 | UX.104 | Build the document model for stars, pairs, planets, moons, belts, comets and the overview | none | done, PR #1509 |
 | UX.105 | The system page builds every body's detail from the document model as HTML tables | none | done, PR #2206 |
@@ -3019,7 +3037,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.221 | Planet pages: a Life paragraph (only when the world has life) and a Civilization / Political paragraph (only when it has a civilization), in paragraph form from the life scores and the polities | none | done, PR #3573 |
 | UX.222 | Planet pages: the section order is About planet, Table, Summary, Life, Civ / Political, PHI-6 table and details with Radiation and Survival equipment, Atmosphere, Composition, each a heading in the TOC menu | none | done, PR #3573 |
 | UX.223 | Resource pages: belts, fields, giants and icy bodies show their resources, and lists, search and the API filter and sort by resource and score | none | open |
-| UX.224 | A planet's chips and description never show Habitable, Inhabited and Habitable class together: only the most specific one (bug) | none | open |
+| UX.224 | A planet's chips and description never show Habitable, Inhabited and Habitable class together: only the most specific one (bug) | none | done, PR #4452 |
 | UX.225 | Search, object lists, Nearby and /api/search filter and sort on every stored physical number: gravity, temperature, pressure, orbit, day, star mass, dose, field, ocean depth, moon count and gases (G4) | none | open |
 | UX.226 | Numeric range filters and sort keys for the stored physical values: one engine in db/query.py and the /api/search parameters (G4, step 1) | none | open |
 | UX.227 | The search page shows range controls for the physical values, with units, and the active filters as chips (G4, step 2) | none | open |
@@ -3031,7 +3049,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.233 | The Map symbols key on the object pages | none | done, PR #3611 |
 | UX.234 | Searching for all M class planets with the search button says it is preparing the results, loops and never shows data (bug) | none | done, PR #3498 |
 | UX.235 | Pages that already have a table of contents also show the automatic contents bar, so the contents appear twice (bug) | none | done, PR #3515 |
-| UX.236 | User preferences: a screen and storage for per-user settings, starting with the Galaxy Map region landing (frame or densest) | none | open |
+| UX.236 | User preferences: a screen and storage for per-user settings, starting with the Galaxy Map region landing (frame or densest) | none | done, PR #4448 |
 | UX.237 | Planet page Life section: Supports Class N, also supports, Has Class N at the X stage with its animal grade, the eats-drinks-breathes-gives-off block, the Life and air chart and the adaptation traits; the class number on lists | none | open |
 | UX.238 | The "On this page" table of contents on object pages goes under the tab bar, not off to the left (bug) | none | done, PR #3900 |
 | UX.239 | Search for star systems by how many stars they hold: single, binary, trinary, quaternary and more | none | open |
@@ -3045,6 +3063,10 @@ Parents marked "new parent" had no old number of their own.
 | UX.247 | The "On this page" menu on object pages is a single sideways-scrolling row (UX.238); restore the grouped list of sections and subsections (left column on wide windows, list under the title on narrow ones) (bug) | none | done, PR #4263 |
 | UX.248 | Abralinar (triple star: close A/B pair plus distant C): Abralinar I is drawn circling the system barycenter instead of the A/B pair it orbits, and nothing says the system is a close pair orbited by a third star (bug) | none | done, PR #4268 |
 | UX.249 | The "On this page" menu should sit in one row across the top when every link fits without scrolling, and be the grouped list otherwise (follow-up to UX.247) (bug) | none | done, PR #4274 |
+| UX.250 | Planet render: the terminator between night and day should be more of a crescent, showing more of the day side, and the "to star" arrow overlaps the render (bug) | none | done, PR #4462 |
+| UX.251 | Planet and moon pages: a Life summary paragraph in At a glance, from the life readings | none | open |
+| UX.252 | Readability rewrite of ALL planet, moon and belt text: summary sentences, descriptions, notes, labels, class pages | none | open |
+| UX.253 | Readability rewrite of ALL star, system and star-class text: summary sentences, descriptions, notes, labels, spectral class pages | none | open |
 | VIEW.1 | View from a planet | none | open |
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG, with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |
@@ -3332,7 +3354,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.180 | Backup and repair end to end: take a full archive, lose the control schema and the live parity file, restore and repair, and prove the galaxy and the logins come back | none | open |
 | TEST.181 | The order-independence test: the same sectors at 1 and 4 workers and in two orders | none | done, PR #2628 |
 | TEST.182 | Put one block-first backfill into the golden galaxy | none | open |
-| TEST.183 | A test that fails when a new output path formats its own lines | none | open |
+| TEST.183 | A test that fails when a new output path formats its own lines | none | done, PR #4450 |
 | TEST.184 | Whole-sphere tests, nebula and Wolf-Rayet side: contents per class, the Wolf-Rayet count, tiling, determinism and the King solver | none | done, PR #2504 |
 | TEST.185 | Whole-sphere tests, component side: pre-placed share per population, no double count of a cluster star, nothing hosted in a halo or old cluster cell, D and E members inside their radius | none | done, PR #2504 |
 | TEST.186 | Census audit harness: fill seeded sectors per region class, count by kind and stage, compare to expectation within k Poisson sigma, print one report | none | done, PR #2040 |
@@ -3645,7 +3667,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.493 | Giant oddity audit: the super-Jupiter mass ceiling (G9), the hot Neptune desert survivors (G7, LTT 9779 b), and which G rows are derived outputs only (G2 to G6, G8, G10, G11); file bugs for any that are not | none | done, PR #4138 |
 | TEST.494 | Ring invariants in the plausibility harness: ring mass under 1e-4 of the planet, ring inside the Roche limit unless R4 names its resonance, optical depth an output, no ring inside 0.1 AU, ring plane in the equator | none | done, PR #4147 |
 | TEST.495 | Designation for captured bodies: the belt-member designation `<belt ID>.<rank hex>` is kept with a parent link, outside-reservoir bodies print `<planet ID>.<rank hex>`; both pure and round-trip through parse_id | none | done, PR #4163 |
-| TEST.496 | test_the_wheel_carries_the_map_from_the_whole_galaxy_into_a_system fails on main in its wheel-out leg (the URL keeps sector= after wheeling out) (bug) | none | open |
+| TEST.496 | test_the_wheel_carries_the_map_from_the_whole_galaxy_into_a_system fails on main in its wheel-out leg (the URL keeps sector= after wheeling out) (bug) | none | done, PR #4444 |
 | TEST.497 | test_planet_physical_properties e-3 fails on an unseeded star (air pressure 0.99999 Pa against a floor of 1.0), the same cause as TEST.486 (bug) | none | done, PR #4165 |
 | TEST.498 | A rogue planet is functionally and programmatically identical to a bound planet: the same columns, the same moon and composition generation, the same classes, differing only in the rogue note and having no host star | none | open |
 | TEST.499 | RP9: rogue yield calibration against microlensing and the terrestrial scale: rogues per star against Sumi 2023 (central 21, lower 1 sigma 8 over the probed range), the Mroz 2017 Jupiter limit and Barclay 2017's 2.5 terrestrial bodies per star | none | open |
@@ -3663,7 +3685,11 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.511 | test_every_column_is_on_the_sheet_or_says_why_it_is_not is red on main for belt and asteroid_field: chondrite_group (GEN.475) is neither on the sheet nor excused | none | done, PR #4410 |
 | TEST.512 | test_rogue_planet_parity::test_the_gap_between_a_rogue_and_a_bound_planet_never_grows is red on main | none | done, PR #4405 |
 | TEST.513 | test_strings_the_code_shows_have_no_todo_code is red on main: TODO codes in shown strings (sheet.py GEN.1142, small_body_composition.py GEN.475/GEN.473, surface_composition.py GEN.474 twice) | none | done, PR #4412 |
-| TEST.514 | test_habitability_world::test_the_score_round_trips_and_a_cloud_rescores_the_dose is red on main: phi4_temperature 0.75 against 0.8075 after the cloud refresh (bug) | none | open |
+| TEST.514 | test_habitability_world::test_the_score_round_trips_and_a_cloud_rescores_the_dose is red on main: phi4_temperature 0.75 against 0.8075 after the cloud refresh (bug) | none | done, PR #4437 |
+| TEST.515 | test_planet_zones::test_the_share_of_pair_nodes_with_a_p_type_window_is_the_measured_one is red on main for 2 and 7 stars after the dark members (GEN.1013) changed the tree draw (bug) | none | done, PR #4442 |
+| TEST.516 | tests/test_readme_external_files.py has 3 failures on main: the README external-files section differs from the dataset catalogue (bug) | none | done, PR #4457 |
+| TEST.517 | test_class_pages_show_the_constants is red on main: the brown dwarf mass range text on the class page differs from the test (bug) | none | done, PR #4458 |
+| TEST.518 | test_a_body_with_a_stored_day_turns_at_the_shared_rate_and_a_tilted_one_turns_backwards fails in a whole-file run of test_web_browser_bodyview.py but passes alone (timing sensitive) (bug) | none | done, PR #4465 |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

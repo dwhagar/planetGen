@@ -505,10 +505,11 @@ def test_a_planet_with_life_lists_the_classes_it_supports_and_what_the_class_liv
     monkeypatch.setattr(apiclient, "get_object", lambda db, ref: {**found(db, ref), "life_microbial": 2, "life_flora": 3,
                                                                   "life_fauna": 1, "life_sentient": 0})
     page = client.get(f"/object/{PLANET}").get_data(as_text=True)
-    assert "Supports Class 1a life (oxygenic light-eaters), score 7 of 9." in page
-    assert re.search(r"Also supports Class 2 \(anoxygenic light-eaters[^<]*, 4 of 9\)\.", page)
-    assert "Has Class 1a life, at the stage of small mobile animals (animal grade A2)." in page
-    assert page.index('id="life-paragraph-heading"') < page.index("Supports Class 1a") < page.index('id="life-class-words"')
+    assert "Conditions here suit Class 1a life (oxygenic light-eaters) best, suitability 7 of 9" in page
+    assert re.search(r"they also suit Class 2 \(anoxygenic light-eaters[^<]*, suitability 4 of 9\)\.", page)
+    assert "Life here is Class 1a, at the stage of small mobile animals (animal grade A2). By kind: microbes sparse (2 of 9)" in page
+    assert "no sentient life." in page
+    assert page.index('id="life-paragraph-heading"') < page.index("Life here is Class 1a") < page.index('id="life-class-words"')
     block = page.split('id="life-class-words"')[1].split("</details>")[0]
     assert "eats, drinks, breathes and gives off" in page and "<dt>Drinks</dt><dd>water</dd>" in block
     assert re.search(r'<details[^>]*id="life-class-words"(?![^>]*\bopen\b)', page), "the block starts collapsed"
