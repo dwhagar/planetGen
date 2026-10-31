@@ -170,3 +170,20 @@ def test_the_star_cap_and_the_multi_star_prevalence_reach_the_draw():
     many = [len(_system(seed, PREVALENCE={"multi_star": 100})[0].stars) for seed in range(600)]
     # the scale thins and thickens the table's counts, it does not forbid them (a white dwarf of a massive progenitor can still be one of five)
     assert sum(few) < sum(many) and sum(count >= 4 for count in few) < sum(count >= 4 for count in many)
+
+
+def test_the_tree_is_drawn_at_the_primarys_own_metallicity(monkeypatch):
+    """GEN.1017: the build gives a companion the primary's [Fe/H] (`_add_companions`), so the tree evolves its stars at it too
+    (it was drawn at the reference 0 and the radii of tree and build disagreed)."""
+    seen = []
+    draw_tree = multistar.draw_member_tree
+
+    def watch(placed, *args, **kwargs):
+        seen.append(placed.fe_h)
+        return draw_tree(placed, *args, **kwargs)
+
+    monkeypatch.setattr(multistar, "draw_member_tree", watch)
+    for seed in range(60):
+        system, _cfg = _system(seed)
+        assert seen and all(fe_h == system.primary_star.metallicity_fe_h for fe_h in seen), seed
+        seen.clear()

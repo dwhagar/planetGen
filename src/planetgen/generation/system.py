@@ -870,7 +870,10 @@ class StarSystem:
         at_least_two = False
         special = self._special_companion_chance()
         percent = prevalence.percent(config, "binary_system")
-        placed = multistar.Placed("star", primary.mass / constants.SOLAR_MASS_TO_KG, place_terms.born_mass_solar(primary))
+        # The tree evolves its stars at the primary's [Fe/H], as the build does (`_add_companions`); drawn at the reference 0 the
+        # tree and the build gave a metal-poor or metal-rich star different radii, and the mismatch was redrawn (GEN.1017).
+        placed = multistar.Placed("star", primary.mass / constants.SOLAR_MASS_TO_KG, place_terms.born_mass_solar(primary),
+                                  fe_h=getattr(primary, "metallicity_fe_h", None))
         if count is not None:
             pass
         elif special is not None:
