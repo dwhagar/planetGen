@@ -101,8 +101,9 @@ def test_the_response_to_the_flux_is_not_above_the_published_climate_sensitivity
     assert all(0.0 < response < SENSITIVITY_K_PER_W_M2[1] for response in _responses(sweep))
 
 
-@pytest.mark.xfail(strict=True, reason="GEN.972, GEN.973 and GEN.974: no ice-albedo, water-vapour or cloud-albedo feedback in the fixed point yet, so the response "
-                                       "is the Planck response with the vapour of the ocean's evaporation, under the published lower bound")
+@pytest.mark.xfail(strict=True, reason="GEN.972 and GEN.974: no ice-albedo or cloud feedback in the fixed point yet, so the response (0.40 K per W/m2 at 288 K) is the Planck one "
+                                       "with the vapour and the lapse rate, under the published lower bound of 0.54; with them (+0.35 and +0.42 W/m2 per K, AR6 table 7.10) "
+                                       "it is 0.58. GEN.1194 (the outgoing flux rising too fast with the temperature) moves it too")
 def test_the_response_to_the_flux_is_not_below_the_published_climate_sensitivity(sweep):
     assert all(response > SENSITIVITY_K_PER_W_M2[0] for response in _responses(sweep))
 
