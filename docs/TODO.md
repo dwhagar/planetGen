@@ -14436,6 +14436,42 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (proposed).
   Prerequisites: GEN.1195.
 
+- [ ] **GEN.1197 Faint gas-bearing dwarfs far from the host: the star formation threshold stops anything under 1e7 solar masses, so Leo T-like dwarfs are never made**
+  Finding from Aux 4's GEN.1193 build (as the lane reported, 1:52 AM EDT
+  2026-10-31), filed by the TODO thread. Kind: generation result against
+  observation. Object: faint satellites (1e5 to 1e7 solar masses) of a
+  Milky Way mass halo beyond the stripping radius of about 270 kpc
+  scaled by the host's virial radius. Result: the star formation
+  threshold of 3 solar masses per pc2 stops any satellite under 1e7
+  solar masses forming stars at any age, so gas-bearing faint dwarfs
+  like Leo T (1e5 to 1e7 solar masses of HI, still forming stars) are
+  never made. Do: read the threshold's source for low-mass dwarfs (the
+  threshold is a surface density law that a faint dwarf's gas can sit
+  under while still forming stars in clumps), say what the sources give
+  for the lowest mass that forms stars with gas, and change the
+  threshold or its mass floor with a registered stand-in (GEN.725, tier
+  and tweak level); the Leo T case and the Grcevich and Putman 2009
+  detection fractions are the plausibility targets, never fixed content.
+  Lock work (satellite star formation changes). Prerequisites: GEN.1193
+  (its gas test). Owner: Aux 4 (proposed).
+  Prerequisites: GEN.1193.
+
+- [ ] **GEN.1198 The sector profile's remnant factor in a Magellanic Cloud cell uses the gas factor, so scatter and fill disagree with the satellite remnant count**
+  Finding from Aux 4's GEN.1191 build (as the lane reported, 12:34 AM
+  EDT 2026-10-31), filed by the TODO thread. Kind: consistency. Object:
+  the supernova remnant factor of the sector profile in a Cloud's cells.
+  Result: GEN.1191 gives a satellite's remnants as systems times the
+  rate per system times a star-formation factor (3 to 1 core-collapse to
+  Type Ia odds times the satellite's young and old share against the
+  solar circle's), but the sector profile's own remnant factor in a
+  Cloud's cells still uses the gas factor, so the scatter of a cell and
+  the fill of the satellite give different remnant counts. Do: make the
+  sector profile read the same star-formation factor so the cells sum to
+  the satellite's count, with a test that the cells of a Cloud sum to
+  the satellite row. Lock work (stored remnants change). Prerequisites:
+  GEN.1191. Owner: Aux 4 (proposed).
+  Prerequisites: GEN.1191.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
