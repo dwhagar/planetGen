@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 954 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 958 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -38,14 +38,14 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 |---|---|---|---|---|---|---|
 | T1 | 141 | 13 | 8 | 1 | 0 | 163 |
 | T2 | 111 | 37 | 0 | 1 | 0 | 149 |
-| T3 | 78 | 35 | 6 | 10 | 0 | 129 |
+| T3 | 80 | 35 | 6 | 10 | 0 | 131 |
 | T4 | 39 | 5 | 0 | 14 | 10 | 68 |
 | T5 | 47 | 19 | 1 | 1 | 0 | 68 |
 | T6 | 92 | 64 | 17 | 41 | 0 | 214 |
-| T7 | 28 | 10 | 9 | 9 | 0 | 56 |
+| T7 | 28 | 12 | 9 | 9 | 0 | 58 |
 | T8 | 0 | 1 | 1 | 5 | 1 | 8 |
 | T9 | 17 | 14 | 5 | 44 | 19 | 99 |
-| All | 553 | 198 | 47 | 126 | 30 | 954 |
+| All | 555 | 200 | 47 | 126 | 30 | 958 |
 
 ## How the labels were given
 
@@ -572,6 +572,15 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | RB9 | T | T3 | L0 | radiation_belts.BELT_WEIGHT: the effective dose per absorbed dose of the belts' particles, 1 Sv per Gy for electrons and 2 for protons (ICRP 103's radiation weighting factors; second-hand, the standard cannot be read) | protons 2 to 5 | the belts of a dipole | a dose measurement of the belts' mixed field in Sv | a belt model with a spectrum and a fluence-to-dose table | ICRP 103 (second-hand) | - | - |
 | RB10 | P | T7 | L1 | radiation_belts.SURFACE_VIEW_FRACTION 0.5: the ground takes the belt dose from the half of the sky the body does not block | 0.35 to 0.6 | an airless or thin-aired moon | a dose map of a moon in a belt against the open-orbit rate | an angular flux through the body's shadow and the field's pitch-angle distribution | geometry, the dose behind the standard shield taken as the dose in open space | - | - |
 | RB11 | P | T7 | L1 | radiation_belts.STOP_COLUMN_G_CM2 2.0: the air column that cuts the belts' dose by a factor of e (MeV electrons go about 1 g/cm2, tens of MeV protons 1 to 3) | 1 to 4 | a moon with air | a dose through a thick air or a depth-dose curve of the belt spectrum that is not e-folding | a depth-dose curve of the belt spectrum through air (the PSTAR and ESTAR ranges the proton cutoff already reads, `proton_range`) | ranges of electrons and protons recalled from NIST | - | - |
+
+## 6.144 Stand-ins of the induced field of cores and planets
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| IN1 | P | T3 | L0 | magnetism.CORE_CONDUCTIVITY_S_M 1.0e6: the electrical conductivity of an iron-alloy core, S/m, the same for a solid one (Earth's outer core at its pressure and temperature, 1.0 to 1.5 million; second-hand) | 0.5e6 to 1.5e6 | metal cores | a core whose induced answer differs (the response is 1 for any core many skin depths across, so the knob matters only for a small or a slowly excited core) | a conductivity from the core's own alloy and temperature (the core model's light elements) | Pozzo et al. 2012 and Gomi et al. 2013 (second-hand) | - | - |
+| IN2 | P | T3 | L0 | magnetism.IMF_EARTH_T 5e-9: the field a star's wind carries at 1 AU, T (the Sun's interplanetary field, Parker spiral), scaled to another star and distance by the square root of the wind's pressure over Earth's (the field's energy a fixed share of the wind's) | 3e-9 to 8e-9 | a star with a wind of the activity model (`wind_pressure_pa`) | a measured interplanetary field of another star (none) | a field from the star's own surface field and the wind's speed | recalled (Parker 1958; the Sun's field at 1 AU is 3 to 6 nT) | - | - |
+| IN3 | P | T7 | L1 | magnetism.STELLAR_EXCITATION_SHARE 0.5: the share of the wind's field that a planet sees as a changing field (the part perpendicular to its spin axis, averaged over the tilt) | 0.3 to 0.8 | a rocky planet | a measured induced response of a planet to the interplanetary field | the planet's axial tilt and the field's direction (the orientation draws) | geometry: the mean sine of an angle on a sphere is 0.785, the spiral takes it lower | - | - |
+| IN4 | P | T7 | L1 | the share of a surface ocean's covering that counts as a shell (the conductance times the ocean fraction) and the field a moon's or planet's core takes past an ocean (the square root of one less the ocean's answer squared), both in `magnetism._ocean_and_core_moment` | none | a body with an ocean and a metal core | an induction sounding of a body with both | a layered induction model with the mantle | design: a one-layer approximation of a layered Earth-like response | - | - |
 
 ## 6.31 Stand-ins of the accreting compact binaries
 
