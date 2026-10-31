@@ -75,3 +75,34 @@ def test_the_turn_off_search_that_stops_early_lands_among_the_same_masses_as_the
             age_gy * 1.0e9, settled=lambda low, high: births.searchsorted(low, side="right") == births.searchsorted(high, side="right"))
         full = stellar_evolution.youngest_progenitor_sol(age_gy * 1.0e9)
         assert births.searchsorted(early, side="right") == births.searchsorted(full, side="right")
+
+
+def test_means_the_update_stored_are_read_back_without_any_stellar_evolution(tmp_path, monkeypatch):
+    """`update.sh` works the cluster ages out once (`save_means`); a web process then looks them up (the daemon is stopped
+    at 60 seconds and a galaxy has tens of thousands of ages)."""
+    monkeypatch.setattr(system_mass, "_store_path", lambda: str(tmp_path / system_mass.STORE_FILE))
+    system_mass._stored_means.cache_clear()
+    ages = (0.123457, 4.567891)
+    worked_out = {age: system_mass.mean_system_mass_at_age_solar(age) for age in ages}
+    assert system_mass.save_means(ages) == 2
+    assert (tmp_path / system_mass.STORE_FILE).stat().st_mode & 0o044 == 0o044           # the web app only reads it
+    system_mass.mean_system_mass_at_age_solar.cache_clear()
+    monkeypatch.setattr(stellar_evolution, "youngest_progenitor_sol", lambda *args, **kwargs: pytest.fail("worked out again"))
+    try:
+        for age, mean in worked_out.items():
+            assert system_mass.mean_system_mass_at_age_solar(age) == mean
+    finally:
+        system_mass._stored_means.cache_clear()
+        system_mass.mean_system_mass_at_age_solar.cache_clear()
+
+
+def test_means_stored_by_another_release_are_not_used(tmp_path, monkeypatch):
+    monkeypatch.setattr(system_mass, "_store_path", lambda: str(tmp_path / system_mass.STORE_FILE))
+    (tmp_path / system_mass.STORE_FILE).write_text('{"release": "0.0.0", "means": {"1.5": 99.0}}')
+    system_mass._stored_means.cache_clear()
+    system_mass.mean_system_mass_at_age_solar.cache_clear()
+    try:
+        assert system_mass.mean_system_mass_at_age_solar(1.5) != 99.0
+    finally:
+        system_mass._stored_means.cache_clear()
+        system_mass.mean_system_mass_at_age_solar.cache_clear()

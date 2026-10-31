@@ -30,11 +30,16 @@ populations' by their densities, not the mass-weighted one.
 """
 
 import functools
+import json
+import os
+import tempfile
 
 import numpy as np
 
 from planetgen import tuning
+from planetgen._version import __version__
 from planetgen.generation import multistar
+from planetgen.datasets import fetch
 from planetgen.physics import imf, mass_boundaries, ms_lifetime, remnant_mass, remnant_progenitors, stellar_evolution
 
 COHORT_AGES = 24
@@ -202,11 +207,62 @@ def _age_table():
     return birth, np.concatenate([[0.0], np.cumsum(weight * birth)]), np.concatenate([[0.0], np.cumsum(weight * remnant)])
 
 
+STORE_FILE = "system_mass_means.json"
+"""str: The file, in the data cache folder, where `update.sh` leaves the mean system mass of every cluster age of the stored
+galaxies (`save_means`), worked out for the release that wrote it, so a web process looks them up instead of working them out."""
+
+
+def _store_path():
+    return os.path.join(fetch.cache_dir(), STORE_FILE)
+
+
+@functools.lru_cache(maxsize=1)
+def _stored_means():
+    """`{age: mean}` from the file `save_means` wrote for this release, or an empty dict (none yet, another release's, or
+    unreadable: the means are then worked out as they are asked for)."""
+    try:
+        with open(_store_path(), encoding="utf-8") as handle:
+            data = json.load(handle)
+        if data.get("release") != __version__:
+            return {}
+        return {float(age): float(mean) for age, mean in data["means"].items()}
+    except (OSError, ValueError, KeyError, AttributeError):
+        return {}
+
+
+def save_means(ages_gy):
+    """
+    Works out `mean_system_mass_at_age_solar` for every age of `ages_gy` and writes them, with those already written for
+    this release, to the cache folder (atomically, world-readable: the web app only reads). A galaxy with tens of thousands
+    of clusters asks for tens of thousands of ages, a minute or more of work that no web request may do (the daemon
+    is killed at 60 seconds); `update.sh` does it once, as part of the update (`planetgen.cli.warm_shape`).
+
+    Returns:
+        int: How many ages the file now holds.
+    """
+    means = dict(_stored_means())
+    for age in ages_gy:
+        age = max(float(age), 1.0e-4)
+        means[age] = mean_system_mass_at_age_solar(age)
+    path = _store_path()
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    handle, temporary = tempfile.mkstemp(dir=os.path.dirname(path), suffix=".tmp")
+    with os.fdopen(handle, "w", encoding="utf-8") as out:
+        json.dump({"release": __version__, "means": {repr(age): mean for age, mean in means.items()}}, out)
+    os.chmod(temporary, 0o644)
+    os.replace(temporary, path)
+    _stored_means.cache_clear()
+    return len(means)
+
+
 @functools.lru_cache(maxsize=65536)
 def mean_system_mass_at_age_solar(age_gy):
     """The mean mass of a system whose stars formed `age_gy` ago, solar masses: the placed star's (remnants included)
     and the other stars of its system (see the module docstring)."""
     age_gy = max(float(age_gy), 1.0e-4)
+    stored = _stored_means().get(age_gy)
+    if stored is not None:
+        return stored
     birth, alive_sum, remnant_sum = _age_table()
 
     def settled(low, high):
