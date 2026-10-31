@@ -14,12 +14,13 @@ while its sector and galactic coordinates follow.
 
 import math
 
-from planetgen.physics import constants as physical_constants
 from planetgen.physics import system_tree
 from planetgen.physics.position import SpatialPosition3D
 from planetgen.util import draw
 from planetgen.util import detmath
 from planetgen.physics import unit_registry as units
+
+_kg_to_msun = units.converter("kg", "Msun")
 
 _ly_to_au = units.converter("ly", "au")
 
@@ -33,7 +34,7 @@ def _star_offsets_au(system):
         return [(stars[0], (0.0, 0.0, 0.0))]
     if getattr(system, "star_slots", None) is not None:    # GEN.630: more than a pair, placed by the whole tree
         return list(zip(stars, system_tree.star_offsets_au(
-            [star.mass / physical_constants.SOLAR_MASS_TO_KG for star in stars], system.star_slots, system.orbit_nodes,
+            [_kg_to_msun(star.mass) for star in stars], system.star_slots, system.orbit_nodes,
             system.orbit_nodes[0].epoch_unix)))
     if getattr(system, "binary_type", None) == "wide" and getattr(system, "wide_binary", None) is not None:
         pair, template = system.wide_binary, "{which}_position_{axis}_au"

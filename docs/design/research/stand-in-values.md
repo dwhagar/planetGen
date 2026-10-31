@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 844 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 850 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -36,16 +36,16 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 131 | 11 | 7 | 1 | 0 | 150 |
+| T1 | 132 | 11 | 7 | 1 | 0 | 151 |
 | T2 | 109 | 25 | 0 | 1 | 0 | 135 |
 | T3 | 77 | 31 | 5 | 10 | 0 | 123 |
-| T4 | 36 | 4 | 0 | 15 | 8 | 63 |
+| T4 | 36 | 4 | 0 | 15 | 10 | 65 |
 | T5 | 42 | 13 | 0 | 0 | 0 | 55 |
-| T6 | 70 | 53 | 13 | 41 | 1 | 178 |
+| T6 | 70 | 55 | 13 | 42 | 1 | 181 |
 | T7 | 26 | 8 | 8 | 8 | 0 | 50 |
 | T8 | 0 | 1 | 1 | 5 | 2 | 9 |
 | T9 | 13 | 6 | 4 | 39 | 19 | 81 |
-| All | 504 | 152 | 38 | 120 | 30 | 844 |
+| All | 505 | 154 | 38 | 121 | 32 | 850 |
 
 ## How the labels were given
 
@@ -480,6 +480,8 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | CC10 | P | T9 | L3 | tuning.HABITABLE_REQUEST_FREE_ATTEMPTS 8 and HABITABLE_REQUEST_MASS_EARTH (0.5, 2.0) (a request for a habitable world draws freely, then draws Earth-like masses) | free attempts 4 to 16; masses 0.3 to 3 | the request only | test_gen_builder_internals::test_a_habitable_request_turns_to_earth_like_masses_after_its_free_draws; a request met in under 80 percent of systems around a K or A star | the PHI-6 steering of habitable requests (a follow-up of GEN.688) | design (needed output: a free draw in the ecosphere of an M5 dwarf gave a life class in none of 30, an Earth-like mass in 20 of 30) | - | no data |
 | CC11 | D | T1 | L0 | tuning.REQUEST_TEMPERATURE_K (273.15, 323.15), REQUEST_HYDROSPHERES ("surface ocean",) and REQUEST_TARGET_K 298.15 (the conditions a request for a habitable world asks of a finished body, GEN.916, and the middle of the range where a missed draw aims the next, GEN.911) | the range edges are the liquid-water range at the surface; the target anywhere inside it | every request for a habitable world | a request met by a body outside 273 to 323 K or without a surface ocean | none needed | the liquid range of water at the surface (verified physics); the target is the middle of the range (design) | - | - |
 | CC12 | P | T6 | L1 | tuning.REQUEST_MIN_PRESSURE_PA 10000 (the air a body must hold to count as having any, the floor the generator already uses for a world with air) and HABITABLE_REQUEST_AIM_AFTER_ATTEMPTS 2 (draws left at the given distance before each next one is aimed by the solved temperature) | pressure 5 to 20 kPa; aim after 1 to 4 draws | every request for a habitable world | a request met by a body with under 10 kPa of air | the PHI-6 domains of habitable requests | design (the pressure floor is the generator's own; the aim count keeps a chance draw before the feedback starts) | - | - |
+| CC15 | P | T6 | L1 | climate_branches.ICE_FREE_ALBEDO 0.30 and ICE_COVERED_ALBEDO 0.62 (the Bond albedo of a world with no ice, which is Earth's, and of one wholly under ice and snow, sea ice and snow 0.5 to 0.8; GEN.1046) | ice-free 0.25 to 0.35, covered 0.5 to 0.8 | ocean worlds | test_climate_branches | an albedo from the ice, ocean and cloud of the surface-air state itself (GEN.972, GEN.974) | RECALLED (Budyko 1969, Sellers 1969, Hoffman 1998; none opened) | GEN.972 | - |
+| CC16 | P | T6 | L3 | climate_branches.ICE_FREE_ABOVE_K 283 and ICE_COVERED_BELOW_K 263 (the mean surface temperatures between which the ice grows from none to the equator, a straight ramp; the width stands for the spread between equator and poles) | each end 5 K, the width 10 to 30 K | ocean worlds | the width of the bistable window of an Earth twin, 10 to 20 percent of the flux (W20), once the real response is wired | a one-dimensional energy balance with an ice line (North 1975) | RECALLED (Ghil and Childress 1987 style 0-D ramp; not opened); tuned in the wiring to the window width of W20 | GEN.972 | no data |
 
 ## 6.23 Stand-ins of the tidal rheology
 
@@ -1310,6 +1312,15 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | TJ3 | D | T2 | L0 | trojans.libration_period, trojans.TADPOLE_LIMIT_DEG 23.9: the slow libration period of the linearised problem and the tadpole to horseshoe limit | limit 23 to 25 | small-mass trojans | a librating body whose period differs from the law by over 10 percent | none | Murray and Dermott 1999 ch. 3 (recalled, not opened) | GEN.1150 | - |
 | TJ4 | P | T4 | L4 | trojans.LEADING_SHARE_RANGE (0.5, 0.62): the share of a swarm in L4 | 0.5 to 0.7 | swarms of giants | a swarm whose leading share is outside the range | the capture history of the generated giant | none read; Jupiter's L4 outnumbers its L5 by about 1.6 to 1 (recalled) | GEN.1150 | no data |
 | TJ5 | P | T4 | L4 | trojans.ECC_MAX 0.2 and INCLINATION_MAX_DEG 35: the largest eccentricity and inclination of a trojan's orbit | e 0.1 to 0.3; i 30 to 40 | every trojan | an N-body run of a trojan inside the limits that leaves in 1 Gyr | an N-body map of the trojan region by mass ratio | none read for a limit; Earth Trojans (arXiv 1812.01244, abstract READ) are stable under 15 degrees and between 24 and 37 degrees | GEN.1150 | no data |
+
+## 6.125 Stand-ins of the whole bodies at Lagrange points
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| TB1 | D | T1 | L0 | trojan_bodies.CLASS_J_MIN_EARTH 35: a Class J world is 35 Earth masses or more | none | every giant | a change of the class row | the class row itself | planet_classes.json, the class J sentence | GEN.1151 | - |
+| TB2 | P | T6 | L1 | trojan_bodies.CLASS_M_MASS_EARTH (0.1, 10): the masses a Class M world is drawn from | 0.05 to 0.3 low; 5 to 10 high | terrestrial worlds | a generated Class M world outside the range | the generated planet's own mass | planet_classes.json giants from 10 Earth masses; no source for a floor | GEN.1151 | - |
+| TB3 | P | T4 | L4 | trojan_bodies.FORMATION_EFFICIENCY 0.1: the share of the solids in the secondary's co-orbital zone that grow into the trojan | 0.02 to 0.5 | whole bodies at L4 and L5 | a disc run in which trojans of planet mass grow from a far smaller share | a hydrodynamic or N-body formation map | none read; Cresswell and Nelson 2009 (arXiv 0811.4611, abstract READ) grow trojans in the disc | GEN.1151 | no data |
+| TB4 | P | T4 | L4 | trojan_bodies.MIN_DISC_LIFETIME_MYR 1: the shortest gas-disc life in which a trojan of planet mass grows | 0.3 to 3 | whole bodies at L4 and L5 | a trojan growing in a disc shorter than that | a formation map | none read | GEN.1151 | no data |
 
 ## 6.94 Stand-ins of the irregular zone
 

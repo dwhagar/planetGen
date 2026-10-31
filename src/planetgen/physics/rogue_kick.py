@@ -43,8 +43,10 @@ Stand-ins are in `docs/design/research/gap-filling-plan.md` section 6.87.
 import math
 from statistics import NormalDist
 
-from planetgen.physics import constants, rogue_drift
+from planetgen.physics import constants, rogue_drift, unit_registry as units
 from planetgen.util.checks import finite_domain
+
+_kg_to_mjup = units.converter("kg", "Mjup")
 
 SCATTER_SPEED_KM_S = 3.0
 """float: The scale of the ejection speed for a scatterer of one Jupiter mass at 1 AU, km/s: `v_c = SCATTER_SPEED_KM_S (m_p / M_Jup)^(1/2) (a / 1 AU)^(-1/2) m_p / (m_p + m_ej)`
@@ -105,7 +107,7 @@ def scatter_speed_km_s(planet_mass_kg, distance_au, ejected_mass_kg=0.0):
     """`v_c`, the scale of the speeds a scatterer gives what it ejects, km/s: `SCATTER_SPEED_KM_S (m_p / M_Jup)^(1/2) (a / 1 AU)^(-1/2) m_p / (m_p + m_ej)`."""
     if not planet_mass_kg > 0.0 or not distance_au > 0.0 or ejected_mass_kg < 0.0:
         raise RogueKickError("the scatterer's mass and distance must be positive and the ejected mass not negative")
-    return (SCATTER_SPEED_KM_S * math.sqrt(planet_mass_kg / constants.JUPITER_MASS_TO_KG / distance_au)
+    return (SCATTER_SPEED_KM_S * math.sqrt(_kg_to_mjup(planet_mass_kg) / distance_au)
             * planet_mass_kg / (planet_mass_kg + ejected_mass_kg))
 
 
@@ -136,7 +138,7 @@ def mutual_hill_radius_m(host_mass_kg, distance_au, planet_mass_kg, ejected_mass
 
 
 def _closest_approach_median_hill(planet_mass_kg):
-    return CLOSEST_APPROACH_MEDIAN_HILL * (planet_mass_kg / constants.JUPITER_MASS_TO_KG / CLOSEST_APPROACH_REFERENCE_JUPITERS) ** CLOSEST_APPROACH_MASS_INDEX
+    return CLOSEST_APPROACH_MEDIAN_HILL * (_kg_to_mjup(planet_mass_kg) / CLOSEST_APPROACH_REFERENCE_JUPITERS) ** CLOSEST_APPROACH_MASS_INDEX
 
 
 @finite_domain()

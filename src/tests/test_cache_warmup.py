@@ -901,6 +901,14 @@ def test_the_script_waits_for_an_update_and_gives_up_after_the_wait(monkeypatch)
         warm_cli._wait_for_update()
 
 
+def test_the_warm_up_the_update_runs_does_not_wait_for_the_update(monkeypatch):
+    """update.sh runs `planetgen warm` itself, before the reload: waiting for the update it belongs to would never end."""
+    monkeypatch.setattr(warm_cli.updateguard, "is_updating", lambda: True)
+    monkeypatch.setattr(warm_cli.updateguard, "inside_update", lambda: True)
+    monkeypatch.setattr(warm_cli, "UPDATE_WAIT_SECONDS", -1)
+    warm_cli._wait_for_update()
+
+
 def test_a_sigterm_ends_the_run_as_cancelled_not_stranded(script, redis_server, monkeypatch):
     """SIGTERM (the update guard's cancel, update.sh's timeout) reaches the starter as Ctrl+C does, and the run ends
     as cancelled in Redis, freeing its place."""

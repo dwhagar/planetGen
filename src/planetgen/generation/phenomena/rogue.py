@@ -68,9 +68,9 @@ def format_comet_composition_summary(composition):
 def infer_rogue_mass_bin(mass_kg):
     """The `ROGUE_PLANET_MASS_BIN_CHOICES` bin `mass_kg` falls in, for
     rows saved before the bin was stored (schema v37)."""
-    if mass_kg >= tuning.ROGUE_BROWN_DWARF_MASS_RANGE_JUPITER[0] * constants.JUPITER_MASS_TO_KG:
+    if mass_kg >= _mjup_to_kg(tuning.ROGUE_BROWN_DWARF_MASS_RANGE_JUPITER[0]):
         return "brown-dwarf"
-    mass_earth = mass_kg / constants.EARTH_MASS_TO_KG
+    mass_earth = _kg_to_mearth(mass_kg)
     for name, (_low, high, _rate) in tuning.ROGUE_PLANET_MASS_BINS.items():
         if mass_earth < high:
             return name
@@ -183,13 +183,13 @@ class RoguePlanet(LazySaladName, PlanetaryObject):
 
         if mass_bin == "brown-dwarf":
             # GEN.252: the substellar mass function of the 20 pc census (Kirkpatrick et al. 2021), not log-uniform.
-            self.mass_kg = brownDwarf.sample_mass_solar(draw) * constants.SOLAR_MASS_TO_KG
+            self.mass_kg = _msun_to_kg(brownDwarf.sample_mass_solar(draw))
         else:
             # The same mass function the bins' rates come from (GEN.45).
             low, high, _rate = tuning.ROGUE_PLANET_MASS_BINS[mass_bin]
-            low, high = low * constants.EARTH_MASS_TO_KG, high * constants.EARTH_MASS_TO_KG
+            low, high = _mearth_to_kg(low), _mearth_to_kg(high)
             self.mass_kg = sample_power_law(low, high, tuning.ROGUE_PLANET_MASS_FUNCTION_SLOPE)
-        mass_jupiter = self.mass_kg / constants.JUPITER_MASS_TO_KG
+        mass_jupiter = _kg_to_mjup(self.mass_kg)
 
         if mass_bin == "brown-dwarf":
             log.choice("Rogue planet type", "brown dwarf", "mass_bin 'brown-dwarf'")
@@ -201,7 +201,7 @@ class RoguePlanet(LazySaladName, PlanetaryObject):
             brown_dwarf_age_gy = sample_star_age_gy(
                 system_config.AGE, draw, getattr(system_config, "POPULATION", None), getattr(system_config, "AGE_LAW", None))
             self.radius_km = _m_to_km(
-                brownDwarf.radius_sol(self.mass_kg / constants.SOLAR_MASS_TO_KG, brown_dwarf_age_gy) * constants.SOLAR_RADIUS_M)
+                brownDwarf.radius_sol(_kg_to_msun(self.mass_kg), brown_dwarf_age_gy) * constants.SOLAR_RADIUS_M)
             self.composition = (
                 "hydrogen and helium, a failed star that briefly fused deuterium and now glows faintly "
                 "in the infrared as it cools"
@@ -429,5 +429,12 @@ class InterstellarComet(SmallBody):
         return format_comet_composition_summary(self.composition)
 
 from planetgen.generation import object_timing  # noqa: E402 -- registers the generators below (PERF.92)
+
+_kg_to_mearth = units.converter("kg", "Mearth")
+_kg_to_mjup = units.converter("kg", "Mjup")
+_kg_to_msun = units.converter("kg", "Msun")
+_mearth_to_kg = units.converter("Mearth", "kg")
+_mjup_to_kg = units.converter("Mjup", "kg")
+_msun_to_kg = units.converter("Msun", "kg")
 object_timing.track(RoguePlanet, "rogue-planet")
 object_timing.track(InterstellarComet, "interstellar-comet")

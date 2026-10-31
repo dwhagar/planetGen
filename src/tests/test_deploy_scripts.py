@@ -634,7 +634,7 @@ def _run_reload(tmp_path, active=("apache2",), restart=0, fail=(), configtest=Tr
         fake_python.chmod(0o755)
     script = (f'source "{REPO_DIR}/scripts/deploy-common.sh"; APACHE_NEEDS_RESTART={restart}; '
               'reload_web_if_running')
-    env = dict(os.environ, PATH=f"{bin_dir}:{os.environ['PATH']}", HEALTH_WAIT_SECONDS="1")
+    env = dict(os.environ, PATH=f"{bin_dir}:{os.environ['PATH']}", HEALTH_WAIT_SECONDS="1", HEALTH_SETTLE_SECONDS="0")
     if site is not None:
         env["PYTHON"] = str(bin_dir / "fakepython")
     proc = subprocess.run(["bash", "-c", script], env=env, capture_output=True, text=True)
@@ -925,3 +925,21 @@ def test_the_updates_dirty_check_ignores_mode_changes():
     """set-permissions.sh makes every script executable; that is not a local edit to warn about."""
     with open(os.path.join(REPO_DIR, "update.sh"), encoding="utf-8") as f:
         assert 'git -c core.fileMode=false status --porcelain' in f.read()
+
+
+def test_the_update_works_out_the_cluster_system_masses_after_the_migration():
+    """The web daemon is stopped at 60 seconds and building the galaxy shape needs a mean system mass for every stored
+    cluster age, which takes longer on a big galaxy: the update does it once and the web app reads the result."""
+    update = (pathlib.Path(REPO_DIR) / "update.sh").read_text()
+    assert update.index("migrate_or_reset_db\nrecord_version_key\nwarm_shape_means") < update.index("log_stage 6 9")
+    assert "run_cli warm_shape" in (pathlib.Path(REPO_DIR) / "scripts" / "deploy-common.sh").read_text()
+
+
+def test_the_update_warms_the_caches_before_it_reloads_and_checks_health():
+    """The warm-up runs in the update (not in the background after it) so the first visitor and the health probe meet a
+    warm site; the probe then waits for the workers to start."""
+    update = (pathlib.Path(REPO_DIR) / "update.sh").read_text()
+    common = (pathlib.Path(REPO_DIR) / "scripts" / "deploy-common.sh").read_text()
+    assert update.index("\nwarm_galaxy_map\n") < update.index("reload_web_if_running")
+    assert "nohup" not in common[common.index("warm_galaxy_map() {"):common.index("note_changed_example_configs() {")]
+    assert 'sleep "${HEALTH_SETTLE_SECONDS:-10}"' in common

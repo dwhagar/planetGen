@@ -34,6 +34,9 @@ from planetgen.physics import (bulk_composition, bulk_draw, climate_draws, compo
                                orbit_elements, rogue_surface)
 from planetgen.util import draw
 from planetgen.util.random import log_uniform
+from planetgen.physics import unit_registry as units
+
+_kg_to_mearth = units.converter("kg", "Mearth")
 
 SOURCES = {
     "chachan2025": "Chachan et al. 2025, arXiv:2509.20428 (the heavy-element mass of giants)",
@@ -168,7 +171,7 @@ def draw_giant(planet, radius_given, fallback_radius_km):
         `radius` (unless given), `density` (g/cm3), the attributes of `bulk_composition.BODY_FIELDS` and the interior's
         (`giant_interior.body_values`, DB.89), and for a giant sized from the tables the `DrawnGiant` that `settle` reads.
     """
-    mass_earth = planet.mass / constants.EARTH_MASS_TO_KG
+    mass_earth = _kg_to_mearth(planet.mass)
     ratios = bulk_draw.host_ratios(planet.star)
     regime = regime_of(mass_earth)
     z_low, z_high = ENVELOPE_Z[regime]
@@ -237,7 +240,7 @@ def settle(planet):
     drawn = getattr(planet, SETTLE_ATTRIBUTE, None)
     if drawn is None or planet.is_moon:
         return False
-    mass_earth = planet.mass / constants.EARTH_MASS_TO_KG
+    mass_earth = _kg_to_mearth(planet.mass)
     regime = regime_of(mass_earth)
     core_earth = _table_core_earth(mass_earth, drawn.heavy_earth, drawn.envelope_z)
     if core_earth is None:

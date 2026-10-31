@@ -25,6 +25,8 @@ from planetgen import tuning
 from planetgen.physics import constants
 from planetgen.physics import unit_registry as units
 
+_kg_to_msun = units.converter("kg", "Msun")
+
 _km_to_m = units.converter("km", "m")
 _pc_to_m = units.converter("pc", "m")
 
@@ -159,7 +161,7 @@ def jacobi_radius_pc(mass_solar, galactocentric_pc):
     `tuning.CLUSTER_HALO_CIRCULAR_KMS`, where `M_gal(<R) = v^2 R / G`."""
     speed = _km_to_m(tuning.CLUSTER_HALO_CIRCULAR_KMS)
     radius_m = _pc_to_m(galactocentric_pc)
-    galaxy_mass = speed * speed * radius_m / constants.G / constants.SOLAR_MASS_TO_KG
+    galaxy_mass = _kg_to_msun(speed * speed * radius_m / constants.G)
     return galactocentric_pc * (mass_solar / (2.0 * galaxy_mass)) ** (1.0 / 3.0)
 
 

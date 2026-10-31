@@ -35,8 +35,10 @@ import collections
 import math
 
 from planetgen import tuning
-from planetgen.physics import constants, formation, metallicity, planet_mass
+from planetgen.physics import constants, formation, metallicity, planet_mass, unit_registry as units
 from planetgen.util import draw
+
+_kg_to_msun = units.converter("kg", "Msun")
 
 _EARTH_KG = constants.EARTH_MASS_TO_KG
 _G = constants.G
@@ -113,7 +115,7 @@ def inner_system_fraction(star_mass_kg):
     log-linear in the star's mass between `INNER_SYSTEM_FRACTION_MASSES` and `INNER_SYSTEM_FRACTION_SHARES`, held at the ends. Zhu et al. 2018
     find 30 percent of Sun-like stars and Yang et al. 2020 about 75 percent of stars under 5000 K and 35 percent over 6500 K.
     """
-    mass = star_mass_kg / constants.SOLAR_MASS_TO_KG
+    mass = _kg_to_msun(star_mass_kg)
     anchors = list(zip(tuning.INNER_SYSTEM_FRACTION_MASSES, tuning.INNER_SYSTEM_FRACTION_SHARES))
     if mass <= anchors[0][0]:
         return anchors[0][1]
@@ -151,7 +153,7 @@ def inner_chain(star_mass_kg, scatter, fe_h, stream=None, force=False, extra_sig
         return []
     count = 1 + _poisson(tuning.INNER_INITIAL_COUNT_EXTRA
                          * math.exp(tuning.INNER_COUNT_SIGMA_LN * (source.gauss(0.0, 1.0) + extra_sigmas)), source)
-    solar_masses = star_mass_kg / constants.SOLAR_MASS_TO_KG
+    solar_masses = _kg_to_msun(star_mass_kg)
     scale_kg = (tuning.INNER_PLANET_MASS_EARTH * solar_masses ** tuning.INNER_PLANET_MASS_STELLAR_EXPONENT
                 * scatter ** tuning.INNER_PLANET_MASS_DISC_EXPONENT * 10.0 ** (tuning.INNER_PLANET_MASS_METALLICITY_EXPONENT * fe_h)) * _EARTH_KG
     separation = planet_mass.draw_separation(tuning.INNER_SEPARATION_MEDIAN, source)

@@ -32,7 +32,10 @@ Use:
 
 import math
 
-from planetgen.physics import constants
+from planetgen.physics import constants, unit_registry as units
+
+_mearth_to_kg = units.converter("Mearth", "kg")
+_msun_to_kg = units.converter("Msun", "kg")
 
 ZONE_COEFFICIENT = 1.3
 """float: The half-width of the chaotic zone over `a q^(2/7)` (Wisdom 1980, recalled from the design's table, row SX1)."""
@@ -64,7 +67,7 @@ _R_EARTH_M = constants.EARTH_RADIUS_KM * 1.0e3
 
 def mass_ratio(giant_mass_earth, star_mass_solar):
     """`q = m / M*`."""
-    return giant_mass_earth * constants.EARTH_MASS_TO_KG / (star_mass_solar * constants.SOLAR_MASS_TO_KG)
+    return _mearth_to_kg(giant_mass_earth) / (_msun_to_kg(star_mass_solar))
 
 
 def zone_half_width_au(giant_au, giant_mass_earth, star_mass_solar):

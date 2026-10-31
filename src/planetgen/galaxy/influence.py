@@ -38,6 +38,8 @@ from planetgen.galaxy import enclosed_mass, spherical
 from planetgen.physics import constants
 from planetgen.physics import unit_registry as units
 
+_msun_to_kg = units.converter("Msun", "kg")
+
 _ly_to_m = units.converter("ly", "m")
 _m_to_pc = units.converter("m", "pc")
 
@@ -121,7 +123,7 @@ def galactic_hill_radius_pc(masses_kg, radii_pc, shape, galaxy_seed):
     floor_pc = _m_to_pc(_ly_to_m(constants.MIN_TIDAL_DISTANCE_LY))
     radii = np.maximum(np.asarray(radii_pc, dtype=float), floor_pc)
     masses = np.asarray(masses_kg, dtype=float)
-    central = enclosed_mass.mass_model(shape, galaxy_seed).enclosed_solar(radii) * constants.SOLAR_MASS_TO_KG
+    central = _msun_to_kg(enclosed_mass.mass_model(shape, galaxy_seed).enclosed_solar(radii))
     return radii * np.cbrt(masses / (3.0 * (central + masses)))
 
 
