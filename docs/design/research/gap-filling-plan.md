@@ -1950,6 +1950,22 @@ The recalled [R] rates of the weird-worlds design (docs/design/systems/weird-wor
 | TD1 | P | T3 | L0 | tuning.THICK_DISC_AGE_RANGE_GY (8, 13) Gy, the ages over which the thick disc formed its stars | 8 to 9.5 for the start; 12 to 13.5 for the end | the thick disc of a Milky Way-like galaxy | an age-metallicity or age-alpha relation of thick-disc stars with a population older than 13 or younger than 7 Gy | the star formation history of the thick disc fitted to its own relation | Haywood et al. 2013: the thick disc formed from about 13 to about 8 Gy ago |
 | TD2 | P | T6 | L1 | thick_ages.mixed_old_law: the thick disc's star formation is flat over its window | a rate falling by up to a factor of 3 over the window | the thick disc | a thick-disc age distribution that is not within a third of flat | the thick disc's own history from the gas model (GEN.469 for the thin disc is the template) | the neutral shape: Haywood et al. 2013 Fig. 9 has the rate falling over the window, so the oldest ages are under-weighted here |
 
+### 6.147 Stand-ins of the chemically peculiar stars (GEN.1027)
+
+`physics/chemically_peculiar.py` names an Ap or Am star from a main-sequence star's temperature and a uniform number, and draws its slow rotation and its field (design note `docs/design/systems/chemically-peculiar.md`). Not wired yet (GEN.1027 part 2).
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
+|---|---|---|---|---|---|---|---|---|---|
+| PEC1 | P | T3 | L0 | chemically_peculiar.AP_TEMPERATURE_RANGE_K (7500, 13000) K | none | main-sequence late-B to early-F stars | magnetic peculiar stars found outside 7000 to 14000 K | the spectral-type range of the Ap/Bp catalogues | Kochukhov and Bagnulo 2006; Auriere et al. 2007: Ap and Bp stars run B8 to F0 |
+| PEC2 | P | T3 | L0 | chemically_peculiar.AM_TEMPERATURE_RANGE_K (7000, 9500) K | none | main-sequence A stars | Am stars outside 6800 to 10000 K | the spectral-type range of the Am catalogues | Abt 2009; Smith 1996: Am stars are the A1 to F2 dwarfs |
+| PEC3 | P | T3 | L1 | chemically_peculiar.AP_SHARE 0.10 (the share of stars in the Ap range that are Ap or Bp) | 0.05 to 0.15 | stars in PEC1 | a volume-limited magnetic survey with a share outside 0.04 to 0.15 | the share of a complete survey | Wolff 1968 (about 10 percent of A stars); Auriere et al. 2007 (8 percent) |
+| PEC4 | P | T3 | L1 | chemically_peculiar.AM_SHARE 0.33 (the share of stars in the Am range that are Am) | 0.25 to 0.4 | stars in PEC2 | an Am share of a complete sample outside 0.2 to 0.45 | the share of a complete survey | Smith 1996 (about a third of A4 to F1); Abt 2009 (30 to 40 percent) |
+| PEC5 | P | T6 | L1 | chemically_peculiar.AP_PERIOD_MEDIAN_DAYS 4.5 (median Ap rotation period) | 3 to 8 d | Ap stars | a median period of the Ap catalogue outside 2 to 10 d | the period distribution of the Ap catalogue | periods run from half a day to decades with the bulk at days (Mathys 2017); read second-hand |
+| PEC6 | P | T6 | L1 | chemically_peculiar.AP_PERIOD_SIGMA_LN 1.3 (ln-width of the Ap periods) | 1.0 to 1.8 | Ap stars | a width of the period distribution outside 0.8 to 2 | as PEC5 | spans the half-day to 30-day bulk within about two widths |
+| PEC7 | P | T6 | L0 | chemically_peculiar.AP_PERIOD_RANGE_DAYS (0.5, 30) d | none | Ap stars | a share of Ap stars above 30 d over 10 percent of the draw | as PEC5 | the decades-long tail is left out of the draw |
+| PEC8 | P | T6 | L1 | chemically_peculiar.AM_SPEED_RANGE_KMS (10, 90) km/s, uniform | mean 40 to 60 | Am stars | a mean Am equatorial speed outside 30 to 70 km/s | the v sin i distribution of Am stars | Am stars rotate slowly, v sin i under about 100 km/s with a mean near 50 (Abt and Morrell 1995) |
+| PEC9 | P | T3 | L0 | chemically_peculiar.AP_POLAR_FIELD_GAUSS (300, 30000) G, log-uniform | none | Ap stars | a strong Ap field distribution whose median is outside 1 to 6 kG | the field distribution of the magnetic survey | dipole fields of 300 G to 34 kG (Auriere et al. 2007); the lower edge is their detection floor |
+
 ### 6.131 Stand-ins of the halo mass function and the conditional halo (GEN.1154)
 
 `galaxy/halo_function.py` builds the halo mass function of Tinker et al. 2008 on the Eisenstein and Hu 1998 no-wiggle power spectrum, and `mass_chain.conditional_halo_mass` draws the halo of a galaxy from it (report `reports/gen399-halo-mass-function-2026-10-31.md`).
