@@ -80,6 +80,10 @@ const HOVER_SHADE_OPACITY = 0.16; // MAP.198: the shade over the block a click w
 const FADE_IN_MS = 200;
 // The block of the sector opened in place, round its own scene.
 const ENTERED_BLOCK_FADE = 0.06;
+// The other sectors' blocks while one is opened: only the sector being viewed stands out.
+const ENTERED_OTHERS_FADE = 0.12;
+// The sector opened fills the window as closely as its corners allow (the usual fit leaves a tenth).
+const SECTOR_FIT_MARGIN = 1.02;
 const DRAG_CLICK_PX = 6;
 // What the + and - buttons of a sector page's map zoom by (MAP.68).
 const BUTTON_ZOOM = 1.25;
@@ -562,7 +566,7 @@ export function createStageView(host) {
     const tanV = Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2);
     const aspect = canvasEl.clientWidth && canvasEl.clientHeight ? canvasEl.clientWidth / canvasEl.clientHeight : camera.aspect || 1;
     const tanH = tanV * aspect;
-    const margin = S.FIT_MARGIN;
+    const margin = entered && points === entered.fitPoints ? SECTOR_FIT_MARGIN : S.FIT_MARGIN;
     let dist = 0;
     for (let k = 0; k + 2 < points.length; k += 3) {
       const vx = points[k] - target[0];
@@ -1717,7 +1721,7 @@ export function createStageView(host) {
       group.fade = index < 0 || n === index ? 1 : OTHER_FADE;
       // The sector opened in place is drawn by its own scene: its block
       // is only a faint cell round it.
-      if (entered && sectorOption(entered.sector) === n) group.fade = ENTERED_BLOCK_FADE;
+      if (entered) group.fade = sectorOption(entered.sector) === n ? ENTERED_BLOCK_FADE : Math.min(group.fade, ENTERED_OTHERS_FADE);
       group.baseFade = group.fade;
       // ... and so is the one the camera is coming up to, as much as its scene shows (MAP.152).
       if (n === ambientIndex) group.fade = Math.min(group.fade, ambientBlockFade());
@@ -2195,6 +2199,21 @@ export function createStageView(host) {
   // (the panel names the sector from its address before the scene has been fetched, and a click then falls on a cell).
   canvasEl.galaxyOpenSector = function () {
     return sectorStage.isOpen() ? { id: sectorStage.sectorId(), share: sectorStage.fade() } : null;
+  };
+
+  // For the browser tests (MAP.360): the share of the map's width and of its height the opened sector's fit points cover, {x, y}, or null.
+  canvasEl.galaxySectorFitShare = function () {
+    if (!entered) return null;
+    camera.updateMatrixWorld();
+    const lo = [Infinity, Infinity];
+    const hi = [-Infinity, -Infinity];
+    const point = new THREE.Vector3();
+    for (let k = 0; k + 2 < entered.fitPoints.length; k += 3) {
+      point.set(entered.fitPoints[k], entered.fitPoints[k + 1], entered.fitPoints[k + 2]).project(camera);
+      lo[0] = Math.min(lo[0], point.x); hi[0] = Math.max(hi[0], point.x);
+      lo[1] = Math.min(lo[1], point.y); hi[1] = Math.max(hi[1], point.y);
+    }
+    return { x: (hi[0] - lo[0]) / 2, y: (hi[1] - lo[1]) / 2 };
   };
 
   // For the browser tests (MAP.302): every entry of the sector opened in place, {key, kind, name, x, y, z, hidden}, in the map's frame
