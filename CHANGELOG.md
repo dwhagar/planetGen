@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2988] - 2026-10-31
+
+**Headline:** The object page now draws a small body that its own weight has not pulled round as the same bumpy lump the System Map shows, and turns it with the body.
+
+### Changed
+- **MAP.363.** The picture on an object page (`bodyview.js`) was a lit round disc for every solid body, while the System Map and the 3D system view (MAP.279) draw a moon or asteroid under its round line as a lump. The object page now reads the same look record (`roundness`, or under 400 km without one) and the same lump (`lumpymesh.js`: same seed, same axes, same bumps), so the three views agree. It has no WebGL, so the new `lumpyview.js` turns the lump's grid of points as the body turns (its axis leaned by the axial tilt), fills the triangles nearest the viewer into the canvas with a depth test and smooth normals, reads the painted texture at the longitude and latitude of each point and shades it by the same light; a tidally locked lump holds its day side toward the star. A round body is drawn as before. Display only, no stored value changes, no new constants.
+generation-output: unchanged
+
 ## [8.0.2987] - 2026-10-31
 
 **Headline:** A test of the stored-tree fill now expects a brown dwarf or remnant in a tree to be a dark member, not a star row.
