@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2962] - 2026-10-31
+
+**Headline:** Three tests that failed on main were out of date with two decisions already made; they now state those decisions. Nothing the generator makes changes.
+
+### Changed
+- **TEST.530.** The pair-order check of the tuning constants read `REFERENCE_BLACK_HOLE_DRAWS` (0.55, 0.5) as a low-high range; it is two independent draws (GEN.1154 moved the solar one to 0.55), so the check now names the two-number constants that are not ranges, with why. Two roche-interaction tests still held the pre-GEN.1012 expectations: a white dwarf with no larger past than its present is never forced into a post-common-envelope pair, and only a white dwarf could be. The test dwarf now has a past (a 2 solar mass star that swelled to 1.5 AU), and a post-common-envelope pair may hold any member that shrank (a neutron star, a black hole, a contracted young star).
+
 ## [8.0.2961] - 2026-10-31
 
 **Headline:** Eight functions nothing used are deleted, and the other 18 that only tests called are now named in the wiring register with the item that will use them or the test that reads them.
