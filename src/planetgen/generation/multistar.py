@@ -56,8 +56,8 @@ from planetgen.generation import member_record
 from planetgen.generation import close_binary_trend
 from planetgen.generation.phenomena import hosts, system_types
 from planetgen.physics import (
-    accretion, brown_dwarf, constants, imf, mass_boundaries, ms_lifetime, neutron_star, pair_history, remnant_mass, remnant_progenitors, roche,
-    stability, stellar_abundances, stellar_composition)
+    accretion, alpha_tracks, brown_dwarf, constants, imf, mass_boundaries, ms_lifetime, neutron_star, pair_history, remnant_mass, remnant_progenitors,
+    roche, stability, stellar_abundances, stellar_composition)
 from planetgen.physics import stellar_evolution as evolution
 from planetgen.util import draw
 from planetgen.physics import unit_registry as units
@@ -789,7 +789,7 @@ def _remnant(kind, age_yr, lowest, rng, limit_mass=None, fe_h=0.0):
 def _alive_star_mass(low, high, age_yr, rng, fe_h=0.0):
     """An IMF mass in `[low, high]` that is still on the main sequence at this age (the heaviest such mass
     caps the range) for a star of birth [Fe/H] `fe_h`."""
-    cap = ms_lifetime.mass_for_lifetime_gy(age_yr / 1.0e9, fe_h)
+    cap = ms_lifetime.mass_for_lifetime_gy(age_yr / 1.0e9, alpha_tracks.track_fe_h(fe_h, age_yr / 1.0e9))
     high = max(min(high, cap), low * 1.0001)
     return imf.sample(low, high, rng)
 
@@ -1722,7 +1722,8 @@ def _placed_direct_collapse(placed):
 def _star_compact_companion(placed, age_yr, rng):
     """The compact companion of a living star, or None (one draw)."""
     table = MEMBER_STATE_BY_PLACED.get(placed_class(placed), {})
-    lifetime_yr = evolution.remnant_formation_time_gy(placed.birth_mass_solar, placed.tree_fe_h) * 1.0e9
+    track = alpha_tracks.track_fe_h(placed.tree_fe_h, age_yr / 1.0e9)
+    lifetime_yr = evolution.remnant_formation_time_gy(placed.birth_mass_solar, track) * 1.0e9
     in_window = age_yr >= lifetime_yr * (1.0 - REMNANT_WINDOW_FRACTION)
     pick = rng.random()
     for kind, (default, _low, _high) in table.items():

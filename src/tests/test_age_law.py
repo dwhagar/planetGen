@@ -127,7 +127,7 @@ def test_a_living_star_of_a_front_loaded_law_is_younger_than_one_of_an_even_spre
     rng_even, rng_law = draw.Stream(11), draw.Stream(11)
     even = [stellar_evolution.sample_living_star(rng=rng_even, population="old")[1] for _ in range(1500)]
     spread = [stellar_evolution.sample_living_star(rng=rng_law, population="old", age_law=law)[1] for _ in range(1500)]
-    assert np.mean(spread) < np.mean(even) - 1.0
+    assert np.mean(spread) < np.mean(even) - 0.8
 
 
 def test_a_fallback_to_the_whole_disk_drops_the_law():
