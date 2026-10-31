@@ -1,7 +1,7 @@
 # tests/test_migration_ring_age.py
 
 """
-GEN.1057: migration 0191 adds `ring_age_yr` to `planets`, `moons` and `rogue_planets`, after `ring_ice_fraction`. A body from before v191 keeps its rows with NULL there.
+GEN.1057: migration 0192 adds `ring_age_yr` to `planets`, `moons` and `rogue_planets`, after `ring_ice_fraction`. A body from before v191 keeps its rows with NULL there.
 """
 
 import pytest
@@ -20,7 +20,7 @@ def _position(conn, table, column):
     return row["p"] if row else None
 
 
-def test_a_v190_galaxy_gets_the_ring_age_column_empty_after_the_ice_share(mysql_config):
+def test_a_v191_galaxy_gets_the_ring_age_column_empty_after_the_ice_share(mysql_config):
     load_old_schema(mysql_config, 190)
     conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
