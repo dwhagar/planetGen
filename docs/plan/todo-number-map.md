@@ -1530,8 +1530,8 @@ Parents marked "new parent" had no old number of their own.
 | GEN.777 | Replace the core light-element split (registry row BC18) with a second body that has seismic or core-density data | none | done, Mars check made; the wider core light-element range is filed as a wiring item |
 | GEN.778 | Fill tidal_flux_w_m2 for planets and moons: tidal heating flux at the surface from eccentricity, spin and the body's interior (never filled in the sample) | none | done, PR #4323 |
 | GEN.779 | Fill induced_moment_a_m2: the induced magnetic dipole moment of conducting oceans and cores in a varying field (never filled; every planet empty) | none | done, PR #3796 |
-| GEN.780 | Fill porosity for rocky and icy bodies: the surface and crust porosity from composition and gravity (never filled) | none | open |
-| GEN.781 | Fill hp_ice_km: the thickness of the high-pressure ice layer under an ocean (never filled) | none | open |
+| GEN.780 | Fill porosity for rocky and icy bodies: the surface and crust porosity from composition and gravity (never filled) | none | done, PR #4327 |
+| GEN.781 | Fill hp_ice_km: the thickness of the high-pressure ice layer under an ocean (never filled) | none | done, PR #4327 |
 | GEN.782 | Fill ice_shell_km for every world with a surface ice shell, and state in the sheet rule which worlds have none | none | done, PR #3629 |
 | GEN.783 | Fill shelter_column_g_cm2: the column mass of rock or ice that shields a shelter from radiation, for every world where it applies | none | done, PR #3629 |
 | GEN.784 | Fill energy_flux_w_m2 and flux_variation for giant planets: internal and absorbed energy flux and its variation (never filled for classes I, J, T) | none | open |
