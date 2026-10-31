@@ -14,6 +14,8 @@ const { parseLook, parseHex } = await import(`./bodytexture.js${VERSION_QUERY}`)
 const { paintSolid } = await import(`./solidpaint.js${VERSION_QUERY}`);
 const { glowFor, paintStar } = await import(`./starpaint.js${VERSION_QUERY}`);
 const Spin = await import(`./spin.js${VERSION_QUERY}`);
+const { isLumpy } = await import(`./lumpymesh.js${VERSION_QUERY}`);
+const { lumpMesh, rasterise } = await import(`./lumpyview.js${VERSION_QUERY}`);
 
 const TEXTURE = [512, 256];
 // UX.250: a world is lit from the left and a little from the front: the star is PHASE_DEG round from the line of sight toward the left, so the lit part is
@@ -116,8 +118,9 @@ function prepare(canvas, look) {
   const base = parseHex(look.color);
   const twilight = look.twilight || 0;
   const light = Math.hypot(LIGHT[0], LIGHT[1], LIGHT[2]);
+  const lumpy = isLumpy(look);       // MAP.363: a body its weight has not made round is the lump the System Map draws, not a disc
   const places = [];
-  for (let y = 0; y < size; y++) {
+  for (let y = 0; y < size && !lumpy; y++) {
     for (let x = 0; x < size; x++) {
       const nx = (x + 0.5 - centreX) / radius;
       const ny = (y + 0.5 - centreY) / radius;
@@ -151,6 +154,47 @@ function prepare(canvas, look) {
   const scratchContext = scratch.getContext("2d");
   const image = scratchContext.createImageData(size, size);
   const context = canvas.getContext("2d");
+
+  if (lumpy) {
+    // The lump is turned with the body, so the silhouette and the light on it change every frame; the picture is filled from the grid of points of `lumpyview.js`.
+    const mesh = lumpMesh(look);
+    const scale = radius / mesh.extent;
+    const covered = new Uint8Array(size * size);
+    const depth = new Float32Array(size * size);
+    const view = { angle: 0, tiltDeg: look.tiltDeg };
+    const lightLength = Math.hypot(LIGHT[0], LIGHT[1], LIGHT[2]);
+    const data = image.data;
+    const width = TEXTURE[0];
+    const paint = (pixel, longitude, latitude, nx, ny, nz) => {
+      let r = base[0];
+      let g = base[1];
+      let b = base[2];
+      if (pixels) {
+        let u = longitude / (2 * Math.PI) + 0.5;
+        u -= Math.floor(u);
+        const t = (Math.min(TEXTURE[1] - 1, Math.floor((0.5 - latitude / Math.PI) * TEXTURE[1])) * width + Math.min(width - 1, Math.floor(u * width))) * 4;
+        r = pixels[t];
+        g = pixels[t + 1];
+        b = pixels[t + 2];
+      }
+      const shade = 0.12 + 0.88 * lit((nx * LIGHT[0] + ny * LIGHT[1] + nz * LIGHT[2]) / lightLength, twilight);
+      const at = pixel * 4;
+      data[at] = Math.min(255, r * shade);
+      data[at + 1] = Math.min(255, g * shade);
+      data[at + 2] = Math.min(255, b * shade);
+      data[at + 3] = 255;
+    };
+    return function lumpFrame(angle) {
+      view.angle = angle;
+      data.fill(0);
+      rasterise(mesh, view, size, centreX, centreY, scale, covered, depth, paint);
+      scratchContext.putImageData(image, 0, 0);
+      context.clearRect(0, 0, size, size);
+      context.drawImage(halo, 0, 0);
+      context.drawImage(scratch, 0, 0);
+      if (locked) drawLockLabel(context, size, look, centreY);
+    };
+  }
 
   // Draws the body turned `angle` radians (see `Spin.angleAt`).
   return function frame(angle) {

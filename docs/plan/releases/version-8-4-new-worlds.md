@@ -39,11 +39,9 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | GEN.361 | The asteroid field page has a 3D view | GEN.360 | Split from GEN.112, plan approved by Boss 3:00 PM EDT. |
 | GEN.362 | Rocks are instanced meshes in chunks with three levels of detail, within a frame budget | GEN.361 | Split from GEN.112, plan approved by Boss 3:00 PM EDT. |
 | GEN.363 | Belt bodies move on the GPU: the vertex shader solves Kepler from per-instance elements | GEN.362 | Split from GEN.112, plan approved by Boss 3:00 PM EDT. |
-| MAP.274 | Land colour from the bulk composition: oxidation and rock type |  | Body rendering R5; Boss's plan of 10:26 PM EDT 2026-10-23. |
-| GEN.1228 | Hematite (the oxidised ground type) reflects the same in all three bands, so a rusty world renders dark grey instead of red; give it a sourced spectrum or finer bands (bug) | MAP.274 |  |
+| GEN.1228 | Hematite (the oxidised ground type) reflects the same in all three bands, so a rusty world renders dark grey instead of red; give it a sourced spectrum or finer bands (bug) |  |  |
 | MAP.275 | Gas and ice giant painter: bands, storms and thermal glow from rotation, temperature and the atmosphere colour, rings with resonance gaps from the moons | GEN.670, GEN.419 | Body rendering R6a; Boss's plan of 10:26 PM EDT 2026-10-23. |
-| MAP.279 | Small bodies: lumpy meshes for moons and asteroids under about 400 km, from the stored shape |  | Body rendering R13; Boss's plan of 10:26 PM EDT 2026-10-23. |
-| DB.99 | Store the ground colour and the ice fraction on planets and moons | MAP.274 | Body rendering R2a; Boss's plan of 10:26 PM EDT 2026-10-23. |
+| DB.99 | Store the ground colour and the ice fraction on planets and moons |  | Body rendering R2a; Boss's plan of 10:26 PM EDT 2026-10-23. |
 
 ### Wiring stored outputs
 

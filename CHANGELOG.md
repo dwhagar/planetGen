@@ -2,6 +2,226 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2988] - 2026-10-31
+
+**Headline:** The object page now draws a small body that its own weight has not pulled round as the same bumpy lump the System Map shows, and turns it with the body.
+
+### Changed
+- **MAP.363.** The picture on an object page (`bodyview.js`) was a lit round disc for every solid body, while the System Map and the 3D system view (MAP.279) draw a moon or asteroid under its round line as a lump. The object page now reads the same look record (`roundness`, or under 400 km without one) and the same lump (`lumpymesh.js`: same seed, same axes, same bumps), so the three views agree. It has no WebGL, so the new `lumpyview.js` turns the lump's grid of points as the body turns (its axis leaned by the axial tilt), fills the triangles nearest the viewer into the canvas with a depth test and smooth normals, reads the painted texture at the longitude and latitude of each point and shades it by the same light; a tidally locked lump holds its day side toward the star. A round body is drawn as before. Display only, no stored value changes, no new constants.
+generation-output: unchanged
+
+## [8.0.2987] - 2026-10-31
+
+**Headline:** A test of the stored-tree fill now expects a brown dwarf or remnant in a tree to be a dark member, not a star row.
+
+### Changed
+- The stored-trees fill test (`test_gen_stored_trees.py`) counted every member of a stored tree as a star row of the built system, so it failed on any tree holding a brown dwarf, a neutron star or a black hole since GEN.1013 keeps those as dark members. It now expects the star rows to be the lit members and the `dark_members` rows to be the dark ones. Test only: no code, stored value or page changes.
+generation-output: unchanged
+
+## [8.0.2986] - 2026-10-31
+
+**Headline:** A body's weight now has a temperature to shape it at: the roundness strength can fall with the heat the body made, instead of always being the cold strength.
+
+### Changed
+- **GEN.1201.** New `physics/shape_temperature.py` (not yet called by the generator): the temperature a body took its shape at is its surface temperature plus its accretion heat (the stored binding energy over its heat capacity) plus the heat its rock and the tides make in the time heat takes to leave a body of its size (`R^2 / (pi^2 kappa)`, from the stored radioactive content with 26Al included), capped at the rock's liquidus at the middle of the body. A kilometre-sized body keeps its cold; a body of 10 km radius with a solar-system share of 26Al melts; a Moon-sized body is hot from its assembly. The roundness engine already weakens ice and rock with a shape-set temperature, so the next step (the wiring, once GEN.1159's stored columns are on main) passes this number in and stores it. New stand-ins SHT1 and SHT2 (section 6.162). The surface is the body's temperature now, not the young star's; the heat is the centre's, an upper bound for the mean.
+generation-output: unchanged
+
+## [8.0.2985] - 2026-10-31
+
+**Headline:** An interstellar asteroid field now has a mass by the same rule as a belt, and a list of its largest bodies.
+
+### Changed
+- **GEN.1161.** New `physics/field_mass.py` (not yet called by the generator): a field holds what the disc stretch it came from has left, by the belts' own rule, and its stored bodies add up to that mass. A belt unbound by a supernova is the progenitor's belt ground by collisions for the progenitor's life (the belts' `solve_belt`) and then kept, because nothing grinds a free field. A field made by two colliding rogue planets is the unbound share of their mass (the Leinhardt and Stewart law of `rogue_collision`), with the remnant planet apart. Both draw the stored bodies from the belt ledger (every body above 1e19 kg, up to 300), so ranks are stable and `<field ID>.<rank hex>` names one body. A mass under 1e-9 Earth masses, the belts' line, is no field. New stand-ins FM1 and FM2 (section 6.161). The field columns, the supernova host rule and the member rows (GEN.1103, GEN.1104, GEN.1105) call it.
+generation-output: unchanged
+
+## [8.0.2984] - 2026-10-31
+
+**Headline:** An interstellar asteroid field now has a mass by the same rule as a belt, and a list of its largest bodies.
+
+### Changed
+- **GEN.1161.** New `physics/field_mass.py` (not yet called by the generator): a field holds what the disc stretch it came from has left, by the belts' own rule, and its stored bodies add up to that mass. A belt unbound by a supernova is the progenitor's belt ground by collisions for the progenitor's life (the belts' `solve_belt`) and then kept, because nothing grinds a free field. A field made by two colliding rogue planets is the unbound share of their mass (the Leinhardt and Stewart law of `rogue_collision`), with the remnant planet apart. Both draw the stored bodies from the belt ledger (every body above 1e19 kg, up to 300), so ranks are stable and `<field ID>.<rank hex>` names one body. A mass under 1e-9 Earth masses, the belts' line, is no field. New stand-ins FM1 and FM2 (section 6.161). The field columns, the supernova host rule and the member rows (GEN.1103, GEN.1104, GEN.1105) call it.
+generation-output: unchanged
+
+## [8.0.2983] - 2026-10-31
+
+**Headline:** The near-search test builds its scattered-star and black-hole rows by column name, so a new column no longer breaks it.
+
+### Fixed
+- **`test_near.py::_scatter_rows` built its `bright_stars` row as a 19-value tuple.** GEN.846 (schema v176, commit 04ed93b4d) added `rotation_period_hours` as the twentieth column of `store.BRIGHT_STAR_COLUMNS`, so the insert failed with "Column count doesn't match value count" and `test_the_search_counts_what_is_not_generated_yet` was red on main. The `phenomenon_scatter` tuple was still the right length (14) by luck.
+- **Both rows are now built by name** from `store.BRIGHT_STAR_COLUMNS` and `store.PHENOMENON_SCATTER_COLUMNS` through a small `_row_of` helper: a column the test does not set is `None`, and a name that is not a column fails the test with its name. A column added to either table later cannot shift the values after it again.
+
+Tests only. No generator output changes.
+
+generation-output: unchanged
+
+TODO items resolved: none (TEST.534 closes when this merges; the TODO thread owns the file).
+
+## [8.0.2982] - 2026-10-31
+
+**Headline:** A test that checks the deploy scripts name only files that exist no longer fails on a comment in the wiring guard.
+
+### Changed
+
+- `scripts/wiring_guard.py` names `planetgen/db/kind_tables.py`, `planetgen/db/models.py` and `planetgen/db/store.py` in full in its text; it wrote `db/kind_tables.py` and so on, which the deploy-script path test read as repo paths that do not exist (the files live under `src/planetgen/`). Behaviour is unchanged. generation-output: unchanged
+
+## [8.0.2981] - 2026-10-31
+
+**Headline:** A failed or killed unit's message now names the stage as the page shows it, not an internal number.
+
+### Changed
+
+- The messages "unit 101 of stage 5 failed" and "unit 101 of stage 5 was killed" in the run's error (the Generate page, the queue page and the log) now read, for example, "unit 101 of stage Scatter the bright stars was killed", using the stage's label (`wrapper.stage_name`); the number is only used when the run record cannot say. generation-output: unchanged
+
+## [8.0.2980] - 2026-10-31
+
+**Headline:** The test that holds the disc's present star formation against the Milky Way's was red since the lighter halo of GEN.1154; its bound now says why, and nothing the generator makes changes.
+
+### Changed
+- **TEST.533.** `test_the_present_rate_over_the_mean_...` compared the disc's present star formation rate over its ten-Gy mean (0.49 for a 5e10 galaxy) with the Milky Way's 0.20 within a factor of two. GEN.1154 lowered the median halo of a 5e10 galaxy from 2.0e12 to 1.57e12 solar masses, which moved the ratio from 0.39 to 0.49, past the bound. A halo of 3.1e12 gives 0.29 and 1.0e12 gives 0.89, so the mismatch is the shape of the inflow (it follows the halo's growth, which for a light halo rises to the present), not the gas law. The bound is now a factor of three, with the reason in the test, until the inflow shape is reworked.
+
+## [8.0.2979] - 2026-10-31
+
+**Headline:** The lists of stars, planets and moons now show the physics values of each object: temperature, luminosity and age for a star, orbit size, eccentricity and surface temperature for a planet or moon.
+
+### Changed
+- **Physics values in the lists (UX.187, lists slice).** `/lists/star` has Temperature, Luminosity and Age columns, and `/lists/planet` and `/lists/moon` have Orbit, Eccentricity and Surface temperature columns, in the reader's chosen units, with a dash where a row holds none. The values are the stored ones, read from the kind's table with the page (as the habitability symbols are), and `GET /api/object-lists/<kind>` items carry them (`temperature_k`, `luminosity_w`, `age_gy`; `distance_km`, `eccentricity`, `surface_temperature_k`). They do not sort, because the object index holds no column to order them by. No stored value and no migration.
+
+## [8.0.2978] - 2026-10-31
+
+**Headline:** A moon or an asteroid that its own weight has not pulled round is now drawn as an elongated, bumpy lump instead of a perfect sphere.
+
+### Changed
+- **MAP.279.** The System Map and the 3D system view drew every body as a sphere. A solid body whose stored roundness ratio is under 1 (`roundness_ratio`, GEN.1158 and GEN.1159: the body's radius over the radius at which its weight beats its strength) is now a lump: a three.js mesh stretched along three axes and bumped by seven smooth waves, from the body's look seed, so the same body is the same lump on every page. The farther from round the ratio is, the longer the long axis (up to 1.8 times the short) and the taller the bumps. The look record carries the new `roundness` field for solid bodies (a giant has none); a body stored before GEN.1159 has no ratio and is a lump when its radius is under 400 km (Boss, 10:26 PM EDT 2026-10-23). The painted surface lies on the lump as on a sphere. Display only: no stored value changes. The object page (`bodyview.js`) still draws a round disc; its lumpy silhouette is a follow-up. New stand-ins LUM1 to LUM5 (section 6.160).
+generation-output: unchanged
+
+## [8.0.2977] - 2026-10-31
+
+**Headline:** The installer and updater now check that MySQL and Redis are protected from the kernel's out-of-memory killer, and offer a memory limit for the generation workers.
+
+### Changed
+
+- `scripts/oom_advice.py` (run by `install.sh` and `update.sh` after the redo log check, advice only) prints the `OOMScoreAdjust=-900` drop-in for the MySQL and Redis units that are loaded and not at -900 or lower (INSTALL.md said -800), and an optional `MemoryHigh`/`MemoryMax` drop-in for `apache2.service`, where the workers run, sized at 55 and 65 percent of the host's memory. INSTALL.md says so. Nothing on the server is changed. generation-output: unchanged
+
+## [8.0.2976] - 2026-10-31
+
+**Headline:** The stars filter now also works in Nearby, the Systems list and its API, and the command line, and a system can be sorted by how many stars it holds.
+
+### Added
+- **The stars filter everywhere a system is listed (UX.239, the later slices).** What's nearby has a Stars menu (Single, Binary, Trinary, Quaternary, Quintenary and beyond) that keeps the systems with that many stars and what is in them, and a Stars column on its rows; `GET /api/near` takes `stars=` (a count, a count and a plus, or a name, as in `/api/search`) and a `system` row carries `star_count`. `GET /api/systems` takes `stars=` too and a `sort=stars` that orders by the number of stars, and the Stars column of the Systems tables sorts by it. The command line takes `--stars` on `query systems` and `query near` (the help names every choice) and says how many stars each system holds (single, binary, trinary, quaternary, or the count). A value that is none of these is a 400 from the API and an argument error on the command line; a hand-edited Nearby address with a bad value is ignored. Phenomena and facilities outside a system are left out of a Nearby list with the filter on, since they have no stars.
+
+No generator output changes.
+
+generation-output: unchanged
+
+## [8.0.2975] - 2026-10-31
+
+**Headline:** The installer and updater now tell you how big MySQL's redo log should be, from the writes the server has actually seen.
+
+### Changed
+
+- `scripts/redo_log_advice.py` reads how much redo MySQL has written and its redo log capacity, and prints the capacity that holds 30 minutes of those writes (1 to 16 GB) with the config line and the `SET GLOBAL innodb_redo_log_capacity` that changes it without a restart on MySQL 8.0.30 and later. `install.sh` and `update.sh` run it after the Redis check and only print; with `--seconds N` it measures a live window, and it counts the checkpointer warnings (MY-014084) in the error log. INSTALL.md says how to read it. Nothing on the server is changed. generation-output: unchanged
+
+## [8.0.2974] - 2026-10-31
+
+**Headline:** The bright-star backfill path a run really takes now has a test that runs it directly.
+
+### Changed
+- **`backfill_bright_stars_unit` is tested against the serial backfill (TEST.532).** A run backfills in `scatter-backfill` units, but the older tests covered the serial `backfill_bright_stars_around`. A new test runs `expand_backfill_bright_stars` and each unit through `backfill_bright_stars_unit` on one database and the serial form on another, for the same new sector, and shows the sectors, stars (mass, luminosity, type, position, seed) and the unit's per-sector progress reports agree. The serial form stays as the test reference (it is already registered by design in the wiring register). No code or generated output changes.
+
+generation-output: unchanged
+
+TODO items resolved: TEST.532.
+
+## [8.0.2973] - 2026-10-31
+
+**Headline:** The star scatter stages now leave half the machine's memory free, so a big run slows down instead of taking the database down with it.
+
+### Changed
+
+- The cap on the workers of the massive-star, bright-star, backfill and band scatter stages (PERF.220) is sized for a worker at its peak, 900 MB (Boss's kernel log showed 450 to 900 MB resident each), and for half the host's memory, leaving the rest to MySQL, Redis and the web server: 8 workers on a 16 GB host, was 15. MySQL was the first process the kernel killed on 2026-10-31. generation-output: unchanged
+
+## [8.0.2972] - 2026-10-31
+
+**Headline:** The queued sector-settle job that no page or route reached any more is gone.
+
+### Changed
+- **`api_jobs.settle_sectors` and the test helper `queue_settle` are deleted (TEST.531).** Since PERF.149 no route generates a sector on a visit, so only a test helper queued this job. The tests that existed only for the queue are removed (a sector generated on the spot queues a settle job, a settle that can be neither queued nor run, the conftest rule that ran settle jobs inline); the behavior a run still has stays tested through `run_galaxy.settle_named_sectors`, which `make_sector` now calls directly. No generated output changes.
+
+generation-output: unchanged
+
+TODO items resolved: TEST.531.
+
+## [8.0.2971] - 2026-10-31
+
+**Headline:** The bright-star and massive-star scatter stages no longer start more workers than the machine's memory holds, so a big run is not killed for running out of memory.
+
+### Changed
+
+- The scatter stages (massive stars, bright stars, the neighborhood backfill and the dimmer band) now use at most 60 percent of the host's memory divided by 600 MB per worker (15 workers on a 16 GB host), whatever the run's worker count, and ask the workers an earlier stage left to finish their unit and exit when there are more. On 2026-10-31 36 workers took 16,285 MB of a 15,992 MB host in the bright-star stage and the run was killed. Other stages are unchanged. What a stage generates does not depend on the number of workers (each unit has its own seed), so the stars are the same; only the time can be longer on a big machine. generation-output: unchanged
+
+## [8.0.2970] - 2026-10-31
+
+**Headline:** The photolysis table can now say how much of a gas the light breaks in a thick air, and a star's far-ultraviolet light at a body can be asked for; nothing reads them yet.
+
+### Changed
+- **GEN.982, parts 1 and 2.** `photolysis_lifetimes.json` gains the mean UV cross sections of water, ammonia, methane, carbon dioxide and hydrogen sulfide (Hu, Seager and Bains 2012, table 6), and `photolysis.shielded_column_mol_m2` and `photon_limited_flux_mol_m2_s` give the column that absorbs the light and the most of a gas the light can break per square metre per second (for methane over the Earth's area about 78 Tmol a year, the order of the anoxic methane fluxes). `stellar_library.far_uv_power_w` and `activity.far_uv_flux_ratio` give a star's 91.2 to 200 nm flux at a distance relative to the quiet Sun at 1 AU, the number the photolysis rates take. Both are for part 3 (the methane haze supply), which is a lock branch; no generated value changes.
+generation-output: unchanged
+
+## [8.0.2969] - 2026-10-31
+
+**Headline:** The admin job strip test no longer depends on whether the machine it runs on has Redis, a writable jobs folder or jobs of its own.
+
+### Changed
+- **Test fix, no code change.** The strip is hidden when Redis or the jobs folder cannot be read, so on a machine without a Redis server the test saw it hidden while a job ran and failed. The test now sets up its own job state (an empty jobs folder, nothing waiting, no running lock) and still fails when the strip stops showing a running job.
+
+## [8.0.2968] - 2026-10-31
+
+**Headline:** The Search page now has range boxes for gravity, temperature, pressure, radiation dose and the other physical values, each with its unit beside it, and shows the ranges as chips.
+
+### Added
+- **Search by physical values.** A new fold on the Search page, with a row for each value of planets, moons and stars: surface gravity, surface temperature, surface pressure, surface radiation dose, orbit distance, day and year length, rotation period, mass, magnetic moment, ocean depth, number of moons, and for stars luminosity, age and temperature. Each row has a least and a most box and a unit menu (for example bar, kPa or atm for pressure). Typing 0.8 to 1.2 g and a dose of at most 2 mSv a year finds the planets that have both.
+- **Gases.** Rows for the common gases (nitrogen, oxygen, carbon dioxide, water, methane, argon, hydrogen, helium, ammonia, sulfur dioxide) give the partial pressure at the surface; a row called "another gas" reaches any other gas the generator knows.
+- **Chips and a Values column.** Each range is a chip with its unit and a cross that takes only that range away. The planet, moon and star tables have a new Values column that shows the values the search asked for, with their units.
+- **Order by a value.** A menu for each kind of object orders its results by any of the values, smallest or largest first; a table header's own sort still wins.
+
+### Changed
+- **The address stays short.** A unit that is the value's own, or that has no range beside it, is not put in the address.
+
+## [8.0.2967] - 2026-10-31
+
+**Headline:** The wiring register says why the simulated survey samplers are only run by the tuning tests.
+
+### Changed
+- **Twelve test-only functions are named by design (TEST.527).** The observed samplers and expected counts of the five selection models (comet admission, JWST target selection, Kepler recovery, mass and radius sample, polluted white dwarf detection) are the simulated side of the tuning harness's checks, reached through `tuning_harness.SELECTION_MODEL_MODULES`. Each register line now names who runs it and why the generator never does. No code or generated output changes.
+
+generation-output: unchanged
+
+TODO items resolved: TEST.527.
+
+## [8.0.2966] - 2026-10-31
+
+**Headline:** Core 1's twenty-seven functions that only tests called now each have an owner: six moved out of the library into the tests (one deleted), seven named to an open item, thirteen marked as test readers.
+
+### Changed
+- **Six functions that only tests called left the library (TEST.521).** `hosts.host_of` and `hosts.reweighted` (a test helper by its own docstring) now live in `tests/test_host_tables.py`; `run_galaxy.backfill_bright_stars` (the one-centre form of the backfill) and `run_galaxy.queue_settle` (no route generates a sector on a visit any more, PERF.149) now live in `tests/sector_support.py`, with the no-op `monkeypatch.setattr(run_galaxy, "backfill_bright_stars", ...)` stubs in two tests removed because nothing in the app called that name; `protection_limits.chosen_pairs` is a helper in `tests/test_protection.py`; `run_galaxy.ball_extent` (the Generate page's old "sectors" to radius rule, which nothing calls since the region run) is deleted, and its two tests read `region_run.reach_pc`, which holds the same allowance.
+- **`spherical.cells_touching_sphere` is read by the influence set.** `influence.influence_set` called `enumerate_sectors_within_radius` with the same margin spelled out; it now calls `cells_touching_sphere(center, radius, edge, reach_edges)`, which takes the margin as an argument (default `CELL_REACH_EDGES`). Its register line names GEN.105, because `galaxy/influence.py` is itself not in the app yet.
+- **`docs/design/research/wiring-register.md`: the twenty-seven lines no longer name TEST.520.** Seven name the open item that wires them: `object_uid.is_on_demand` (GEN.1161), `captured_member`, `outside_reservoir_member` and `parse_captured` (GEN.1083), `region_run.next_units` (GEN.1128), `stats.job_shells_per_second` (PERF.147) and `cells_touching_sphere` (GEN.105). `object_timing.run_totals` was already gone from main (PERF.197 a). Thirteen are `by design` with the reader named: the numpy and SQL twins of the cell key, the whole-shell cell walk, the Dirichlet spread helper, the tuning harness entry, the box and ball path domains, the path integrator's selection step, and the unit registry's constant, listing, compound-unit and inverse-conversion functions. One new line, `run_galaxy.backfill_bright_stars_around`, is `by design`: with the one-centre wrapper gone it is the serial form of the backfill that the tests call, while a run does the same draw in `scatter-backfill` units.
+- **`docs/design/architecture/architecture.md`** no longer lists `backfill_bright_stars` among the library functions other code calls.
+
+No generator output changes.
+
+generation-output: unchanged
+
+TODO items resolved: none (TEST.521 closes when this merges; the TODO thread owns the file).
+
+## [8.0.2965] - 2026-10-31
+
+**Headline:** The land on a planet or moon picture now takes its colour from the rock it is made of, not from its temperature.
+
+### Changed
+- **MAP.274.** The land colour of a solid world on the System Map and the object page was a single stand-in from its mean temperature. It is now the lab colour of the stored ground types: the 450, 550 and 650 nm reflectance (`surface_composition.band_albedo`, the same sourced spectra the albedo uses) of the areal mix of the land types, read as blue, green and red under white light and converted to sRGB. The ocean and the ice are not land (the painter draws them on their own). A land type with no measured visible spectrum (the metal and the intermediate mixes) is left out, and the record says how much of the land that was (`landKnown`). A body with no stored ground, no land, or under half of its land with a measured colour keeps the temperature estimate, and the info panel line says which one it is. The look record has the new `landKnown` field and `quality` can be `composition`; no new stored value, no new constants.
+generation-output: unchanged
+
 ## [8.0.2964] - 2026-10-31
 
 **Headline:** A star's page and sheet now show its chemistry: thin or thick disc, alpha enhancement, the metal mass fraction it formed with, and the helium a red giant's first dredge-up added.

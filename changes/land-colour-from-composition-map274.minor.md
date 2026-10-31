@@ -1,5 +1,0 @@
-**Headline:** The land on a planet or moon picture now takes its colour from the rock it is made of, not from its temperature.
-
-### Changed
-- **MAP.274.** The land colour of a solid world on the System Map and the object page was a single stand-in from its mean temperature. It is now the lab colour of the stored ground types: the 450, 550 and 650 nm reflectance (`surface_composition.band_albedo`, the same sourced spectra the albedo uses) of the areal mix of the land types, read as blue, green and red under white light and converted to sRGB. The ocean and the ice are not land (the painter draws them on their own). A land type with no measured visible spectrum (the metal and the intermediate mixes) is left out, and the record says how much of the land that was (`landKnown`). A body with no stored ground, no land, or under half of its land with a measured colour keeps the temperature estimate, and the info panel line says which one it is. The look record has the new `landKnown` field and `quality` can be `composition`; no new stored value, no new constants.
-generation-output: unchanged
