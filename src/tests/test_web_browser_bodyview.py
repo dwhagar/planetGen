@@ -113,6 +113,31 @@ def _opened(browser, url, kind, **context):
     return page, errors
 
 
+TURN_MIN = 0.08
+TURN_MAX = 0.17
+"""float: The turn, in radians, that two samples of a turning body must be apart: enough to see which way the surface moved, and not so much that it moved further than `_shift` looks (about 25 px, 0.18 rad on the 320 px sphere), where a pattern that repeats reads as moving the other way."""
+
+
+def _turned(page, errors, attempts=20):
+    """Two samples of the canvas whose angles differ by `TURN_MIN` to `TURN_MAX` radians (TEST.518). The interval is chosen by the angle the
+    page reports, not by a sleep: a fixed wait turned the body 0.17 radians on a quiet machine, which is as far as `_shift` can see, and
+    further on a busy one, so the shift came out the wrong way. A pair that turned too far (a stall between two polls) is dropped and the
+    wait starts again from the newest sample."""
+    first = second = _sample(page)
+    turned = 0.0
+    for _ in range(attempts):
+        while not errors:
+            page.wait_for_timeout(20)
+            second = _sample(page)
+            turned = second["angle"] - first["angle"]
+            if turned >= TURN_MIN:
+                break
+        if errors or turned <= TURN_MAX:
+            return first, second
+        first = second
+    raise AssertionError(f"no two samples {TURN_MIN} to {TURN_MAX} radians apart in {attempts} tries")
+
+
 def test_a_body_with_a_stored_day_turns_at_the_shared_rate_and_a_tilted_one_turns_backwards(browser, url):
     """MAP.328: the rendered example turns about its own axis: its angle follows spin.js's rate for its stored period (a 2-hour
     day is the fastest turn, one in 20 s), the surface moves to the right on a body with its axis up and to the left on one
@@ -121,12 +146,7 @@ def test_a_body_with_a_stored_day_turns_at_the_shared_rate_and_a_tilted_one_turn
     for kind in ("turning", "backwards"):
         page, errors = _opened(browser, url, kind)
         try:
-            first = _sample(page)
-            page.wait_for_timeout(500)
-            second = _sample(page)
-            while second["angle"] - first["angle"] < 0.08 and not errors:
-                page.wait_for_timeout(100)
-                second = _sample(page)
+            first, second = _turned(page, errors)
             rate = 2 * 3.141592653589793 / 20
             elapsed_rate = (second["angle"] - first["angle"])
             assert elapsed_rate > 0, (first["angle"], second["angle"])
