@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 928 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 927 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -36,16 +36,16 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 141 | 13 | 8 | 1 | 0 | 163 |
+| T1 | 140 | 13 | 8 | 1 | 0 | 162 |
 | T2 | 111 | 36 | 0 | 1 | 0 | 148 |
 | T3 | 76 | 35 | 5 | 10 | 0 | 126 |
 | T4 | 37 | 5 | 0 | 14 | 10 | 66 |
-| T5 | 45 | 17 | 0 | 1 | 0 | 63 |
-| T6 | 87 | 62 | 16 | 41 | 0 | 206 |
-| T7 | 28 | 8 | 8 | 8 | 0 | 52 |
+| T5 | 43 | 17 | 0 | 1 | 0 | 61 |
+| T6 | 89 | 63 | 16 | 41 | 0 | 209 |
+| T7 | 27 | 8 | 8 | 8 | 0 | 51 |
 | T8 | 0 | 1 | 1 | 5 | 1 | 8 |
 | T9 | 17 | 14 | 4 | 42 | 19 | 96 |
-| All | 542 | 191 | 42 | 123 | 30 | 928 |
+| All | 540 | 192 | 42 | 123 | 30 | 927 |
 
 ## How the labels were given
 
@@ -893,15 +893,6 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | NA1 | P | T5 | L0 | the NH3 active-Sun factor of `photolysis_lifetimes.json` 1.07: the rate of the strongest year of a measured solar record over its weakest year, mean of three instruments | 1.05 to 1.15 | the Sun between the cycle minimum and maximum measured since 1991 | an NH3 line of Huebner and Mukherjee 2015 outside 1.05 to 1.15, or a cross section whose 200 to 217 nm part differs from the Leiden one by a different spectral shape | the Huebner and Mukherjee 2015 NH3 quiet and active rates | `scripts/nh3_activity_factor.py` run 10-30 on the Leiden NH3_partial_cross_sections.h5 and the NASA GSFC SORCE SOLSTICE v16, SUSIM v22 and UARS SOLSTICE v18 files; annual medians; the Leiden quiet rate 1.538e-4 per s is reproduced (1.542e-4) | - | - |
 | NA2 | P | T6 | L0 | the meaning of "active Sun" in the NH3 factor: the strongest measured year of a modern record, not the Huebner and Mukherjee 2015 active Sun, which is stronger than any measured maximum (H2O 1.68 against 1.33 by the earlier lane's method), so the table mixes two conventions (H2O 1.68 and CO2 2.35 on theirs, NH3 on this) | 1.07 to 1.15, the top being NA1 scaled by the H2O ratio of the two conventions | any use of `active_sun=True` for NH3 | an NH3 factor of Huebner and Mukherjee 2015 outside 1.05 to 1.15 | the Huebner and Mukherjee 2015 NH3 quiet and active rates | docs/design/composition/atmosphere-composition-parts/10-verification-second-note-E-nh3-lifetime.md section 3 (H2O 1.33 against 1.68) | - | - |
 
-## 6.65 Stand-ins of the variable-star kinds
-
-| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
-|---|---|---|---|---|---|---|---|---|---|---|---|
-| ARM1 | P | T1 | L0 | tuning.ARM_CONTRAST_OLD_DISK 0.10: the old disk's arm contrast `A` in `1 + A cos(arm phase)` | 0.09 to 0.14 | old disk stars (red giants, near-infrared light) near the solar radius | an arm to inter-arm surface density ratio outside 1.2 to 1.35 for an old sample at the solar radius | a contrast by age from Gaia samples of A, F and G stars when one is published | READ (Eilers et al. 2020, ApJ 900:186, abstract: a surface mass density contrast of about +-10% at the solar radius; Drimmel and Spergel 2001, ApJ 556:181, section 4.3: arm to inter-arm 1.2 in J and 1.32 in K; Siebert et al. 2012: 14%) | - | - |
-| ARM2 | D | T5 | L0 | tuning.ARM_GAS_TO_INTERARM_RATIO 4.0 raised to tuning.STAR_FORMATION_LAW_EXPONENT 1.4, as an amplitude (the young population's `A`, 0.749) | gas ratio 2 to 5 (A 0.45 to 0.80) | stars under 0.1 Gy, which have not left the gas they formed in | an arm to inter-arm ratio of young upper main sequence stars outside 3 to 12 | a number from the Gaia maps of young stars (Poggio et al. 2021 give maps and no number) | RECALLED (Koda et al. 2009, ApJ 700:L132: CO arm to inter-arm contrasts of about 2 to 5; Kennicutt 1998 index 1.4, a surface-density law applied here to the volume ratio) | - | - |
-| ARM3 | P | T7 | L0 | the intermediate population's `A` (0.418): the fall of the contrast with the log of the age from the young value at 0.05 Gy to the old one at the old window's geometric mean age (5.5 Gy), read at the intermediate window's (0.55 Gy) | none | stars of 0.1 to 3 Gy | an observed arm contrast of A and F stars far from 0.2 to 0.6 | a contrast by age from a published sample | an inference from the two ends: stars drift out of their birth arm in a few hundred Myr, and the contrast of A and F stars is not published as a number | - | - |
-| ARM4 | P | T5 | L0 | tuning.ARM_CONTRAST_AGE_YOUNG_GY 0.05 | 0.03 to 0.07 | the young population | none | the age law of the disk history | the middle of the young window, 0 to 0.1 Gy | - | - |
-
 ## 6.56 Stand-ins of the registered rows that rest on a Solar System body
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
@@ -1532,6 +1523,14 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | DN1 | P | T9 | L0 | day_night.NON_ROTATING_TURNS 0.01 and day_night.POLAR_CIRCLE_MAX_DEG 30: a body that turns less than a hundredth of a turn in an orbit is non-rotating (the star goes round once a year), and a body whose polar circle is within 30 degrees of the equator has half its surface or more in the polar zone (the area beyond latitude L is 1 - sin L) | turns 0.001 to 0.1; circle 15 to 45 degrees | planets and moons with a stored spin | a body the generator makes with a turn count under 0.01 that has a day the page calls a year, or a body at 60 degrees tilt shown as an ordinary cycle | a word chosen from the length of the solar day and the polar zone's area on the page | needed output (words for the day and night state) | - | - |
+
+## 6.138 Stand-ins of the variable-star kinds
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| VR1 | P | T6 | L1 | variability.MIRA_MAX_TEMPERATURE_K 3500 (an asymptotic-giant star cooler than this is a Mira or semiregular variable; Miras run from about 2,500 to 3,500 K) | 3200 to 3800 | asymptotic-giant stars | a measured asymptotic-giant population whose cool stars are mostly not variable, or whose variables reach 4,000 K | a pulsation model of the asymptotic-giant branch (period-luminosity-temperature) | test_variability::test_only_a_cool_asymptotic_giant_is_a_mira | - | - |
+| VR2 | P | T6 | L0 | variability.HERBIG_MIN_MASS_SOL 2 (a pre-main-sequence star of this mass or more is a Herbig Ae/Be star, under it a T Tauri star) | 1.5 to 2.5 | pre-main-sequence stars | a catalogue split of the two classes by spectral type that puts the boundary more than 0.5 solar masses away | the spectral-type definition of the classes | test_variability::test_a_pre_main_sequence_star_is_a_t_tauri_or_a_herbig_star_by_mass | - | - |
+| VR3 | P | T6 | L0 | variability.HERBIG_MAX_MASS_SOL 8 (a pre-main-sequence star of this mass or more is neither: it reaches the main sequence still accreting) | 6 to 10 | pre-main-sequence stars | a Herbig Be star of more than 10 solar masses on a pre-main-sequence track | a massive-star accretion model | test_variability::test_a_pre_main_sequence_star_is_a_t_tauri_or_a_herbig_star_by_mass | - | - |
 
 ## 6.95 Stand-ins of the belt sources
 

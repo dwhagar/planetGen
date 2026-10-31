@@ -1,6 +1,6 @@
 # Variable-star kinds (GEN.944, the cheap flags)
 
-Code: `physics/variability.py`. Sheet: the derived "Variability" row of a star (`describe.sheet.VARIABILITY_KEY`), in the identity group. Tests: `tests/test_variability.py`, `tests/test_property_sheet.py`. Registry 6.65 (VR1 to VR3).
+Code: `physics/variability.py`. Sheet: the derived "Variability" row of a star (`describe.sheet.VARIABILITY_KEY`), in the identity group. Tests: `tests/test_variability.py`, `tests/test_property_sheet.py`. Registry 6.138 (VR1 to VR3).
 
 Nothing is stored and nothing in generation changes: the kind follows from the star's stored `state` (GEN.786), class, temperature and mass when the sheet is made, as the moon's longest eclipse is. A star that does not vary in a way its phase explains has no row.
 
