@@ -106,7 +106,7 @@ def test_a_generated_system_stores_the_belt_dose_in_its_surface_dose():
     from planetgen.util import draw
     from tests.fuzz_support import deterministic_entropy
     moons_in_belts = 0
-    for seed in range(5, 25):
+    for seed in range(5, 60):
         with deterministic_entropy(seed):
             draw.set_run_seed(seed)
             system = StarSystem(SystemConfig(), galactic_center_dist_ly=26000.0)
