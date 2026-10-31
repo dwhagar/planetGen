@@ -511,6 +511,7 @@ Shared page-building code.
 | [`__init__.py`](../../../src/planetgen/web/lib/__init__.py) | Shared page-building code. |
 | [`apiclient.py`](../../../src/planetgen/web/lib/apiclient.py) | The API client every page uses: in-process inside Flask (via `web/transport.py`), over HTTP (`api_base_url`) anywhere else. |
 | [`classref.py`](../../../src/planetgen/web/lib/classref.py) | The class reference catalog behind `/classes`, built once per process from the generator's own tables, never hand-copied. |
+| [`reference_urls.py`](../../../src/planetgen/web/lib/reference_urls.py) | Where the References pages are (`/references/...`) and how an id becomes an address (DOC.87): `reference_path(kind, id)`, `anchor`, the method `AREAS`. Pages link there through `web.helpers.reference_link`, never by a hand-written address. |
 | [`datatable.py`](../../../src/planetgen/web/lib/datatable.py) | The site's shared data table (UX.41): sortable columns, faceted filters and a page of rows fed by the API, 50 at a time. |
 | [`facility_display.py`](../../../src/planetgen/web/lib/facility_display.py) | How a facility's type, affiliation, ratings and field values read on a page (POP.10): the rating chips and the small text cells of the Facilities table. |
 | [`estimatecache.py`](../../../src/planetgen/web/lib/estimatecache.py) | The Generate page's size-and-time estimate kept in Redis (PERF.109), served while the generator epoch, the galaxy's data version and the speed statistics are as they were; concurrent identical requests run it once. |
