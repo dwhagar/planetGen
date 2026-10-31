@@ -3081,13 +3081,15 @@ RADIOGENIC_K_DEPLETION_RANGE = (0.03, 1.0)
 inside it; the range itself is a placeholder tied to the large K differences of Solar System bodies (Nimmo et al. 2020), not a measured
 spread (radiation-model.md R15, part E 3.3)."""
 
-INTERIOR_VISCOSITY_PREFACTOR_RANGE_PA_S = (2.6e10, 5.3e13)
-"""tuple: The mantle viscosity prefactor `eta0` of `eta = eta0 exp(Ea / R T)`, Pa s, drawn uniformly: the bounds Guimond, Rudge and
-Shorttle 2022 take (arXiv:2201.05636 section 2.2.3; READ), wet olivine's 1.6e11 Karato and Wu 1993 less an order of magnitude to dry
-enstatite's (Zhang et al. 2017). Their uncertainty on the rheology of other planets' mantles."""
+INTERIOR_VISCOSITY_PREFACTOR_RANGE_PA_S = (9.3e7, 1.9e11)
+"""tuple: The mantle viscosity prefactor `eta0` of `eta = eta0 exp(Ea / R T)`, Pa s, drawn uniformly (GEN.1185). Guimond, Rudge and Shorttle 2022 take 2.6e10 to 5.3e13 with an
+activation energy of 200 to 300 kJ/mol (arXiv:2201.05636 section 2.2.3; READ); the activation range moved up to the diffusion-creep values of the laboratory
+(`INTERIOR_ACTIVATION_RANGE_KJ_MOL`), and these bounds are theirs multiplied by `exp(-(325 - 250) kJ/mol / (R 1600 K))`, 3.56e-3, so the viscosity of a mantle at 1,600 K in the middle of the
+ranges holds (1.7e20 Pa s) and the corners of the viscosity at 1,600 K go from 9e16 and 3e23 Pa s to 3e16 and 1e24 Pa s. Source tier T4, tweak level L3 (registry GEN.725, row IHA1)."""
 
-INTERIOR_ACTIVATION_RANGE_KJ_MOL = (200.0, 300.0)
-"""tuple: The viscosity activation energy `Ea`, kJ/mol, drawn uniformly: Guimond et al. 2022 (wet enstatite 200, dry olivine 300)."""
+INTERIOR_ACTIVATION_RANGE_KJ_MOL = (260.0, 390.0)
+"""tuple: The viscosity activation energy `Ea`, kJ/mol, drawn uniformly (GEN.1185): the diffusion creep a tide and a convecting mantle follow, 261 to 375 kJ/mol dry and 335 to 387 wet
+(Korenaga and Karato 2008 Table 3; READ). Guimond et al. 2022 take 200 (wet enstatite) to 300 (dry olivine), below every laboratory value for olivine. Source tier T1, tweak level L1 (row IHA2)."""
 
 INTERIOR_LIQUIDUS_COEFFICIENT_K_GPA = 310.317
 """float: `a_l` of the mantle's liquidus `T_l(p) = a_l (p + p_l)^c_l`, K per GPa^c_l: chondritic material, Manske, Ruedas, Plesa et al. 2025
