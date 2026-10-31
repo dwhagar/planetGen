@@ -162,6 +162,12 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.45:MF1 | no data | - | no measurement gives the melt share of a mantle outside the Earth (and Io's lavas); a mantle potential temperature and solidus model is the replacement and nothing we hold supplies it |
 | 6.125:TB3 | no data | - | no source read gives the share of co-orbital solids that grow into a trojan; a disc formation map replaces it |
 | 6.125:TB4 | no data | - | no source read gives the shortest disc life for a trojan to grow; a formation map replaces it |
+| 6.150:CF2 | no data | - | the 0.5 g and 2 g lines of the habitable classes have no measured soft edge; the width is hand-picked until the GEN.1207 sweep shows how far the class scatter reaches |
+| 6.150:CF3 | no data | - | the temperature shoulder is hand-picked; a measured scatter of one class at fixed insolation would replace it |
+| 6.150:CF4 | no data | - | the pressure shoulder is hand-picked on a log scale; no source gives a soft edge for the survival pressure limits |
+| 6.150:CF5 | no data | - | the ocean-fraction shoulder is hand-picked; the law of GEN.1147 fixes how bimodal the cover is and the GEN.1207 sweep then sets the width |
+| 6.150:CF6 | no data | - | the airless icy line shoulder is hand-picked; no source gives a soft edge for dry against icy airless bodies |
+| 6.150:CF7 | no data | - | the gas-share shoulders are hand-picked; no source gives a soft edge for the oxygen, carbon dioxide and reducing-gas limits |
 | 6.126:RN3 | no data | - | no measured strength of ice with rock grains above 56 percent solids by volume; a measured curve replaces the extrapolated leg from 0.56 to the rock strength at 1 |
 | 6.126:RN5 | no data | - | no source gives a porosity law for body-scale strength; the rubble-pile branch (friction plus a little cohesion) replaces it |
 | 6.129:IT6 | no data | - | the 1993 ammonia-water constants of Durham, Kirby and Stern are not in hand; they replace the three interpolated points |

@@ -1957,8 +1957,8 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1202 | The generator's disc gas surface density at 8 kpc is 4.3 solar masses per pc2 against 13 measured, which holds the disc cluster maximum mass too low | none | open |
 | GEN.1203 | Polluted white dwarf census: 25 to 50 percent of white dwarf systems polluted once belt birth sees the giants | none | open |
 | GEN.1204 | Dark members of an orbit tree (brown dwarf, neutron star, black hole in dark_members) store density, binding energy and the shape values the stars, rogues and comets store | none | open |
-| GEN.1205 | Best-fit classes, step 1: every class gets its own full positive conditions (temperature, pressure, gravity, water, air chemistry) as new data, with shoulder widths registered in GEN.725 | none | open |
-| GEN.1206 | Best-fit classes, step 2: a read-only shadow scorer prints the confusion table (stored letter against best-fit letter), the share at 100 percent and the low-match list | none | open |
+| GEN.1205 | Best-fit classes, step 1: every class gets its own full positive conditions (temperature, pressure, gravity, water, air chemistry) as new data, with shoulder widths registered in GEN.725 | none | done, PR #4469 |
+| GEN.1206 | Best-fit classes, step 2: a read-only shadow scorer prints the confusion table (stored letter against best-fit letter), the share at 100 percent and the low-match list | none | done, PR #4473 |
 | GEN.1207 | Best-fit classes, step 3: the classifier replaces the first-match tree, stores class_match and the runner-up letter and match, and the class pages show the percent match | none | open |
 | GEN.1208 | Best-fit classes, wording: drop the age and stage words from the class tier labels and the "Checked after" and "leftover" wording from the class pages | none | open |
 | GEN.1209 | Several life types coexist on one planet: a per-body list of living classes, each with its stage, animal grade, kinds (microbes, flora, fauna) and prevalence | none | open |

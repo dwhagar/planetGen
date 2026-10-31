@@ -1104,7 +1104,16 @@ with `clamp()`.
   must change, say so and make it a separate lock item. Splits by page
   kind if large: planets, moons, belts and fields. Where we think it
   belongs (best guess, can move): Core 5, after PR 4471 merges.
-  Prerequisites: DOC.83. Related: UX.237, GEN.1208.
+  Boss, 10:09 AM EDT 2026-10-31 (2026-10-31 10:17 AM EDT): once the life
+  class help pages and definitions exist (DOC.84), link the terms in the
+  planet text to them (class names, abundance, trend and security words,
+  suitability, life stages) and remove the inline explanations the help
+  pages now cover, so the planet text is decluttered. The order is: the
+  style guide (DOC.83), the life readings (GEN.1210) and the help suite
+  (DOC.84) first, then this rewrite does the linking and the
+  decluttering in the same pass as the readability rewrite, so each
+  sentence is rewritten once.
+  Prerequisites: DOC.83, DOC.84. Related: UX.237, GEN.1208.
 
 - [ ] **UX.253 Readability rewrite of ALL star, system and star-class text: summary sentences, descriptions, notes, labels, spectral class pages**
   Boss, 10:07 AM EDT 2026-10-31 (and 10:08 AM EDT for the help pages):
@@ -14134,61 +14143,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: unowned until GEN.1162 merges (Aux 5 proposed).
   Prerequisites: GEN.1162.
 
-- [ ] **GEN.1205 Best-fit classes, step 1: every class gets its own full positive conditions (temperature, pressure, gravity, water, air chemistry) as new data, with shoulder widths registered in GEN.725**
-  Boss, 9:44 AM EDT 2026-10-31: build and ship the best-fit class
-  scoring (a percent match per class, best match wins, replacing the
-  first-match tree) and send it to TODO. Design:
-  /mnt/project-files/reports/class-m-and-trek-classes-2026-10-31.md
-  sections 4 to 6 (Class M research thread). Filed by the TODO thread.
-  Do: in src/planetgen/physics/data (a new file beside
-  planet_classes.json, read by nothing yet, so the first-match tree and
-  every stored letter are unchanged), describe every class by its own
-  positive conditions so that no row relies on an earlier row having
-  said no. M gets its air window (oxygen 16 percent or more, carbon
-  dioxide under 1 percent, 30 kPa to 3 bar, 273 to 320 K, 0.5 to 2 g,
-  water 20 to 80 percent); F and G get a temperature, pressure and
-  gravity band and physical limits with GEN.725 basis rows; L keeps its
-  3 to 16 percent oxygen. Hard gates stay kinds, not degrees: giant
-  versus terrestrial, and has-air versus airless (10 Pa). Every other
-  condition is graded: membership 1 inside today's edge and a linear
-  shoulder to 0 beyond it, the shoulder width per quantity (a share of
-  the edge value, or kelvin for temperatures); `equals` conditions
-  (hydrosphere) stay 0 or 1. The numbers already in planet_classes.json
-  become the core edges. Every shoulder width is a new stand-in:
-  register each in GEN.725 (docs/design/research/stand-in-values.md via
-  scripts/build_stand_in_values.py) as tier Confident educated guess
-  from physics, L1 where it follows a source uncertainty, L3 where
-  hand-picked; a wiring-register line names the follow-on item so the
-  guard stays green. Giants use the same method on mass (the T, I and J
-  overlap from 30 to 60 Earth masses is a shoulder, not a hard cut at
-  35). The Class M thread (and the report) is the design source. Data
-  and tests only, lock-free. Done: the table covers every class letter A
-  to V, a test shows every class has at least one complete positive
-  condition set, and the registry rows exist. Where we think it belongs
-  (best guess, can move): Aux 2 or the Class M research thread.
-  Prerequisites: none.
-
-- [ ] **GEN.1206 Best-fit classes, step 2: a read-only shadow scorer prints the confusion table (stored letter against best-fit letter), the share at 100 percent and the low-match list**
-  Boss, 9:44 AM EDT 2026-10-31: build and ship the best-fit class
-  scoring (a percent match per class, best match wins, replacing the
-  first-match tree) and send it to TODO. Design:
-  /mnt/project-files/reports/class-m-and-trek-classes-2026-10-31.md
-  sections 4 to 6 (Class M research thread). Filed by the TODO thread.
-  Do: score a few hundred generated systems both ways with the step 1
-  table, in a read-only tool in src/tests (extend class_shadow_cli.py
-  where it exists, otherwise a new one beside the other class sweep
-  scripts), and write a short report in /mnt/project-files/reports: the
-  confusion table of old letter against best-fit letter, the share of
-  bodies that score 100 percent for their class, the bodies whose best
-  match is under 50 percent (each one is a hole in the class set, which
-  is how to decide what the reserve letters R U W X Y Z are for), the
-  runner-up pairs that are close, and the temperate-ocean count per
-  class (M against O, V, F, G). Boss reads the report before step 3 is
-  built. Nothing stored changes. Read-only, lock-free. Done: the report
-  is merged and Boss has seen it. Where we think it belongs (best guess,
-  can move): same lane as step 1.
-  Prerequisites: GEN.1205.
-
 - [ ] **GEN.1207 Best-fit classes, step 3: the classifier replaces the first-match tree, stores class_match and the runner-up letter and match, and the class pages show the percent match**
   Boss, 9:44 AM EDT 2026-10-31: build and ship the best-fit class
   scoring (a percent match per class, best match wins, replacing the
@@ -14220,7 +14174,21 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   under 50 percent that Boss has not accepted, and the temperate-ocean
   count per class is printed. Where we think it belongs (best guess, can
   move): same lane as step 1.
-  Prerequisites: GEN.1205, GEN.1206.
+  Class M thread, shadow report (as the lane reported) (2026-10-31 10:16
+  AM EDT): GEN.1205 (PR #4469, planet_class_fit.json,
+  physics/class_fit.py, GEN.725 rows CF1 to CF7 in section 6.150) and
+  GEN.1206 (PR #4473, src/tests/class_fit_cli.py) are merged; report
+  /mnt/project-files/reports/class-fit-shadow-2026-10-31.md. Findings
+  that change this item's scope, pending Boss: (1) class M with the
+  oxygen 16 percent or more window matches none of the sampled
+  first-match M bodies (all have 0 percent oxygen), so Boss picks: keep
+  the window, drop it, or add an abiotic temperate-ocean class from the
+  reserve letters; (2) about 1.6 percent of bodies are hot thin-air
+  rocks of 1.4 to 2 g (340 to 1100 K, 1 to 10 kPa) that fit no class, a
+  gap that needs a new class or a lifted 400 K ceiling on F, G and H.
+  This item stays blocked until Boss has read the report. It must also
+  handle a body with no class match (best_class returns letter None).
+  Prerequisites: GEN.1206.
 
 - [ ] **GEN.1208 Best-fit classes, wording: drop the age and stage words from the class tier labels and the "Checked after" and "leftover" wording from the class pages**
   Boss, 9:44 AM EDT 2026-10-31: build and ship the best-fit class
