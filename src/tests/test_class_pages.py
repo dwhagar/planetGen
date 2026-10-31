@@ -168,7 +168,10 @@ def test_class_pages_show_the_constants(client):
     assert classref.number_range(low, high, "solar masses") in _html(client, "/classes/black-hole/intermediate")
 
     low, high = tuning.ROGUE_BROWN_DWARF_MASS_RANGE_JUPITER
-    assert f"{low:.0f} to {high:.0f} Jupiter masses" in _html(client, "/classes/rogue-planet/brown-dwarf")
+    # The upper limit is the mass boundaries table's 83.8 Jupiter masses (`brown_dwarf_upper_limit`), which the page's number rule
+    # shows as "13 to 83.8" (rounding it to a whole number, as this line did, read 84 and missed). The page reads the generator's
+    # own range, so the test asks `number_range` for the same text as the lines above.
+    assert classref.number_range(low, high, "Jupiter masses") in _html(client, "/classes/rogue-planet/brown-dwarf")
 
 
 def test_number_formatting():
