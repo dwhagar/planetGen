@@ -130,7 +130,7 @@ def life_class_view(row):
     scores = {class_id: int(score) for class_id, score in (row.get("life_class_scores") or {}).items() if score}
     best, best_score = row.get("life_class_best"), row.get("life_class_best_score")
     living = row.get("life_class_id")
-    view = {"supports": None, "also": [], "has": None, "words": None}
+    view = {"supports": None, "also": [], "has": None, "words": None, "paragraph": None}
     if best and best_score:
         view["supports"] = f"Best suited to Class {best} life ({_short_name(best)}), suitability {best_score} of {LIFE_SCORE_MAX}."
     others = sorted(((class_id, score) for class_id, score in scores.items() if class_id != best), key=lambda pair: (-pair[1], pair[0]))
@@ -146,4 +146,36 @@ def life_class_view(row):
         view["words"] = {"class": shown, "name": _class_name(shown), "lives": bool(living),
                          "rows": [(label, said[key]) for label, key in (("Drinks", "drinks"), ("Eats", "eats"),
                                                                        ("Breathes", "breathes"), ("Gives off", "gives_off"))]}
+    view["paragraph"] = _life_paragraph(row, view, living, best, best_score)
     return view if any((view["supports"], view["also"], view["has"], view["words"])) else None
+
+
+PREVALENCE_WORDS = ("none", "sparse", "sparse", "uncommon", "uncommon", "common", "common", "widespread", "widespread", "abundant")
+"""tuple: The word for a life score of 0 to 9."""
+
+KIND_WORDS = (("microbial", "microbes"), ("flora", "plant-like life (flora)"), ("fauna", "animal life (fauna)"), ("sentient", "sentient life"))
+
+
+def _life_paragraph(row, view, living, best, best_score):
+    """
+    The one Life paragraph (UX.237): it leads with what lives there, then how common each kind of life is (microbes, flora, fauna,
+    sentient, from the four stored life scores), then the classes the conditions suit. `None` when there is nothing to say.
+    """
+    parts = []
+    if view["has"]:
+        parts.append(view["has"])
+    elif best and best_score:
+        parts.append("Nothing is known to live here yet.")
+    kinds = []
+    for key, words in KIND_WORDS:
+        score = row.get(f"life_{key}")
+        if score is not None:
+            kinds.append(f"{words} {PREVALENCE_WORDS[min(int(score), 9)]} ({int(score)} of {LIFE_SCORE_MAX})" if score else f"no {words}")
+    if kinds:
+        parts.append("By kind: " + ", ".join(kinds) + ".")
+    if best and best_score:
+        suited = f"Conditions here suit Class {best} life ({_short_name(best)}) best, suitability {best_score} of {LIFE_SCORE_MAX}"
+        if view["also"]:
+            suited += "; they also suit " + ", ".join(view["also"])
+        parts.append(suited + ".")
+    return " ".join(parts) or None

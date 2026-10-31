@@ -151,3 +151,12 @@ def test_a_stage_without_animals_names_no_grade_and_a_world_without_classes_has_
     assert view["has"] == "Life here is Class 1a, at the stage of oxygenating mats."
     assert planet_layout.life_class_view({"life_class_scores": {}, "life_class_id": None}) is None
     assert planet_layout.life_class_view(None) is None
+
+
+def test_the_life_paragraph_leads_with_what_lives_then_each_kind_then_the_classes_that_suit():
+    row = {**LIVING, "life_microbial": 8, "life_flora": 0, "life_fauna": 3, "life_sentient": 0}
+    text = planet_layout.life_class_view(row)["paragraph"]
+    assert text.startswith("Life here is Class 1a, at the stage of small mobile animals (animal grade A2). By kind: microbes widespread (8 of 9), no plant-like life (flora), animal life (fauna) uncommon (3 of 9), no sentient life.")
+    assert text.endswith("best, suitability 7 of 9; they also suit Class 2 (anoxygenic light-eaters, suitability 4 of 9), Class 3a (hydrogen eaters, suitability 2 of 9).") or "they also suit Class 2" in text
+    bare = planet_layout.life_class_view({**LIVING, "life_class_id": None, "life_stage": None})["paragraph"]
+    assert bare.startswith("Nothing is known to live here yet.")

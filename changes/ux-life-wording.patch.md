@@ -1,4 +1,4 @@
-**Headline:** The Life lines on a planet page now say "best suited to" and "suitability" so they no longer read like contradictions.
+**Headline:** The Life section of a planet page now opens with one paragraph: what lives there, how common each kind of life is, then which life classes the conditions suit.
 
 ### Changed
-- **Clearer Life wording.** "Supports Class 4b life ... score 5 of 9" is now "Best suited to Class 4b life ..., suitability 5 of 9", "Also supports" is "Also suited to" with each class's suitability, and "Has Class 3a life" is "Life here is Class 3a". Wording only; no stored value changes.
+- **One Life paragraph.** It leads with the life that lives there (class and stage), then microbes, flora, fauna and sentient life each with a prevalence word and its score out of 9, then the classes the conditions suit, best first, with suitability. The old separate "Supports", "Also supports" and "Has" lines are folded into it. Wording and layout only; no stored value changes.
