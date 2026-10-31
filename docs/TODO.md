@@ -14548,6 +14548,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   sea. Build the acid and ammonia columns as the design says (separate
   columns, percent of the liquid's mass); the acid cloud flag waits for
   the answer to (3).
+  Question 3 answered (2026-10-31 12:01 PM EDT): Boss answered question
+  3 (11:57 AM EDT 2026-10-31): option 1, store sulfuric acid clouds too,
+  the strongest level with a pool-or-cloud flag. This replaces the
+  earlier note that cloud storage waited for an answer; all six surface
+  liquid questions are now answered (1.1, 2.1, 3.1, 4.1, 5.1, 6.1, with
+  4 and 5 to be tuned from physics by GEN.1225).
   Prerequisites: none. Related: GEN.1035, GEN.888, GEN.862.
 
 - [ ] **GEN.1217 Design: the surface liquid composition model: what is stored (fractions of water, salts, acid, ammonia, CO2, hydrocarbons), how it is derived, and how life changes it**
@@ -14601,6 +14607,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   stand-in, also to be tuned from physics and chemistry (same research);
   (6) a body with methane and carbon monoxide ice warm enough for liquid
   methane gets a methane sea.
+  Question 3 answered (2026-10-31 12:01 PM EDT): Boss answered question
+  3 (11:57 AM EDT 2026-10-31): option 1, store sulfuric acid clouds too,
+  the strongest level with a pool-or-cloud flag. This replaces the
+  earlier note that cloud storage waited for an answer; all six surface
+  liquid questions are now answered (1.1, 2.1, 3.1, 4.1, 5.1, 6.1, with
+  4 and 5 to be tuned from physics by GEN.1225).
   Prerequisites: none. Related: GEN.1215, GEN.1207, GEN.862.
 
 - [ ] **GEN.1218 Build the surface liquid composition model: the composition columns, the derivation, the effect of life on it and of it on life, pages and API**
@@ -14632,6 +14644,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   sea. The build follows these answers, with the gate and nitrogen
   amount replaced by the sourced values of GEN.1225 when that research
   lands.
+  Question 3 answered (2026-10-31 12:01 PM EDT): Boss answered question
+  3 (11:57 AM EDT 2026-10-31): option 1, store sulfuric acid clouds too,
+  the strongest level with a pool-or-cloud flag. This replaces the
+  earlier note that cloud storage waited for an answer; all six surface
+  liquid questions are now answered (1.1, 2.1, 3.1, 4.1, 5.1, 6.1, with
+  4 and 5 to be tuned from physics by GEN.1225).
   Prerequisites: GEN.1217. Related: GEN.1213, GEN.1214, GEN.1215.
 
 - [ ] **GEN.1219 Body types: planet_type (terrestrial, transitional, gas) from the envelope share of the mass, with a shadow report first**
@@ -14656,6 +14674,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Output change with a migration: one epoch, can share GEN.1207's epoch.
   Where we think it belongs (best guess, can move): the Class M research
   thread.
+  Envelope share stored (Boss, 11:57 AM EDT 2026-10-31) (2026-10-31
+  12:00 PM EDT): Boss decided to store the envelope share for every body
+  so class T hydrogen-air dwarfs are typed correctly; it is GEN.1226,
+  one epoch with this item and GEN.1220. The type function reads that
+  column.
   Prerequisites: none. Related: GEN.1207.
 
 - [ ] **GEN.1220 Class code system: a letter plus a digit (class_variant column, 0 not written), the digit meanings and the letters of the oxygen-water, anoxic-water, CO2, acid, methane-ethane, ammonia-water and hot thin-air families**
@@ -14764,6 +14787,32 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   what tier and tweak level. Papers Boss must upload listed in order of
   value. Where we think it belongs (best guess, can move): Sources 1.
   Prerequisites: none. Related: GEN.1215, GEN.1217, GEN.1218, GEN.1216.
+
+- [ ] **GEN.1226 Store the envelope share for EVERY body, so hydrogen-air dwarfs (about 400 class T bodies) are typed and classed correctly**
+  Boss, 11:57 AM EDT 2026-10-31 (via the Class M thread): store the
+  envelope share (hydrogen-helium envelope mass fraction) for every
+  body, so Class T gas dwarfs can be typed correctly under the body
+  types (GEN.1219). Filed by the TODO thread. Finding behind it (Class M
+  thread, GEN.1219 shadow report): all terrestrial-typed bodies store
+  envelope 0, including about 400 class T hydrogen-air dwarfs, so the
+  type cut cannot see them. The column envelope_mass_fraction already
+  exists on planets and moons (models.py, column_units.py); the work is
+  to FILL it for every body: for a body with a hydrogen-rich air the
+  envelope share is the air's mass over the body's mass (surface
+  pressure times the area over the gravity, from the stored air, radius
+  and mass), for a giant it is the envelope the interior model already
+  stores, and for a body with no hydrogen-rich air it is 0 honestly.
+  Check whether moons and the small-body tables have the column, and add
+  it with a migration where missing. Do: a pure function
+  envelope_share(body); fill it in the generation step where the air and
+  the interior are complete, and in the rebuild step for old rows;
+  GEN.1219's planet_type reads it; GEN.1220/1221 class T and the other
+  hydrogen classes read it; the giant class rows (GEN.1224 report: H/He
+  share = 1 - M_Z/M_p for giants) agree with it; the property sheet and
+  API show it. Output change: epoch with --affects, golden, census
+  re-tag, on a train, with GEN.1219 and GEN.1220 (one epoch). Where we
+  think it belongs (best guess, can move): the Class M research thread.
+  Prerequisites: none. Related: GEN.1219, GEN.1220, GEN.1207.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
