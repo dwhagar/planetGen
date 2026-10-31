@@ -183,6 +183,12 @@ check_redis_settings() {
     "$PYTHON" "$SCRIPT_DIR/scripts/check_redis_settings.py" "$url" || true
 }
 
+# Prints how big MySQL's InnoDB redo log should be for the writes the server has seen (PERF.222): a log that is too
+# small makes the checkpointer lag (MY-014084) while a galaxy generates. Advice only: never changes MySQL, never fails.
+show_redo_log_advice() {
+    "$PYTHON" "$SCRIPT_DIR/scripts/redo_log_advice.py" || true
+}
+
 # Whether a Redis server answers PING at the URL in $1, using the redis
 # library install-python-deps.sh installed.
 redis_answers() {

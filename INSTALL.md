@@ -84,8 +84,12 @@ On a machine that runs the whole test gate (`scripts/test.py full`, many tests w
 `innodb_redo_log_capacity` from its 100 MB default to 2 GB in the same file (`innodb_redo_log_capacity = 2G`, or at
 run time `SET GLOBAL innodb_redo_log_capacity = 2147483648;`, which MySQL 8.0.30 and later accept without a restart).
 At the default the log checkpointer falls behind under that load (`log_checkpointer lagging` in the MySQL error log,
-84 warnings in one gate), the gate slows, and tests can lose their connection. A server that only runs the site and
-generation does not need it.
+84 warnings in one gate), the gate slows, and tests can lose their connection. A galaxy run does the same: the redo
+log must hold the writes of its busiest half hour or the checkpointer lags (MY-014084 in the error log).
+`install.sh` and `update.sh` print what the server has written and the capacity that holds 30 minutes of it
+(`scripts/redo_log_advice.py`, advice only, it changes nothing); run `scripts/redo_log_advice.py --seconds 60` while a
+galaxy generates for the real rate. The `SET GLOBAL` it prints needs MySQL 8.0.30 or later and a MySQL account with
+the privilege; the line for the config file keeps it after a restart.
 
 ### Ubuntu 24.04 and 26.04 LTS
 

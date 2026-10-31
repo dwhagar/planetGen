@@ -194,6 +194,10 @@ echo "Checking the Redis server (config.json's redis.url):"
 ensure_redis
 check_redis_settings
 
+echo
+echo "Checking the size of MySQL's redo log:"
+show_redo_log_advice
+
 if is_macos; then
     cat <<EOF
 
