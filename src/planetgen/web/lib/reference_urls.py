@@ -12,8 +12,8 @@ crawl test (`tests/test_references_crawl.py`) and the pages themselves cannot dr
 The address of an entry is `/references/<page>` and, for one entry on a page, `#<anchor>`. The kinds:
 
 * `overview`: `/references`, the start page (no id);
-* `papers`: `/references/papers`; the id of a paper (its DOI, or its arXiv or ADS id) gives `#paper-<anchor>`;
-* `data`: `/references/data`; the id of a dataset, catalog or archive gives `#<anchor>`;
+* `papers`: `/references/papers`; the id of a source is its citation ID (`R0123`, DOC.100), which gives `#paper-r0123`;
+* `data`: `/references/data`; the id of a dataset, catalog or archive is its citation ID too, and gives `#paper-<id>`;
 * `method`: `/references/method/<area>`; the id is the area (`atmospheres`) or the area and a value (`atmospheres/surface_pressure`),
   which gives `#<anchor of the value>`;
 * `stand-in`: `/references/stand-ins` for the whole registry and `/references/stand-ins/<anchor of the id>` for one (`GR1` is
@@ -53,8 +53,29 @@ def _page(name):
     return lambda entry: (f"{ROOT}/{name}", f"#{anchor(entry)}" if entry is not None else "")
 
 
+PAPER_ID = re.compile(r"R\d{4,}")
+"""re.Pattern: A citation ID (DOC.100): `R` and at least four digits, given once to every paper, book, dataset and archive of the reference
+list (`docs/reference/references-data.json`) and never reused. The one key a text, a page and a link use for a source."""
+
+
+def is_paper_id(text):
+    """True when `text` is the shape of a citation ID (it may still name no source; the build checks that)."""
+    return bool(PAPER_ID.fullmatch(str(text)))
+
+
+def paper_anchor(paper_id):
+    """The fragment that names one source on the Papers page and in `docs/REFERENCES.md`: `paper-r0123` for `R0123`."""
+    if not is_paper_id(paper_id):
+        raise ValueError(f"{paper_id!r} is not a citation ID: an ID is R and at least four digits (R0123)")
+    return f"paper-{paper_id.lower()}"
+
+
 def _paper(entry):
-    return f"{ROOT}/papers", f"#paper-{anchor(entry)}" if entry is not None else ""
+    return (f"{ROOT}/papers", f"#{paper_anchor(entry)}") if entry is not None else (f"{ROOT}/papers", "")
+
+
+def _data(entry):
+    return (f"{ROOT}/data", f"#{paper_anchor(entry)}") if entry is not None else (f"{ROOT}/data", "")
 
 
 def _method(entry):
@@ -85,7 +106,7 @@ def _refuse(name):
 KINDS = {
     "overview": lambda entry: (ROOT, "") if entry is None else _refuse("overview"),
     "papers": _paper,
-    "data": _page("data"),
+    "data": _data,
     "method": _method,
     "stand-in": _stand_in,
     "fitted": _page("fitted"),
@@ -100,7 +121,7 @@ KINDS = {
 def reference_path(kind, entry=None):
     """
     The address of a References entry: `reference_path("stand-in", "GR1")` is `/references/stand-ins/gr1`, `reference_path("papers",
-    "10.1086/151682")` is `/references/papers#paper-10-1086-151682` and `reference_path("speculative", "3a")` is
+    "R0123")` is `/references/papers#paper-r0123` and `reference_path("speculative", "3a")` is
     `/references/speculative#class-3a`. `entry` is `None` for the page as a whole. A kind that does not exist, or an id the kind cannot
     use, is a `ValueError`, so a typo in a template fails the page and the crawl test instead of leaving a dead link.
     """
