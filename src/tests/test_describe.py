@@ -233,7 +233,7 @@ def test_the_life_sentences_are_short_and_plain():
             if body.body_type == "a" or not body.life_class:
                 continue
             section = next(s for s in model.sections(document) if s["title"] == body.name)
-            life = [_plain(sentence) for block in section["blocks"] if block["type"] == "prose" and block["role"] == "life"
+            life = [_plain(sentence) for block in section["blocks"] if block["type"] == "prose" and block["role"] in ("life-class", "life")
                     for sentence in block["text"]]
             assert life and f"class {body.life_class}{body.life_class_variant or ''} life" in life[0].lower() and "could arise" not in life[0]
             assert all(len(sentence) < 160 and "suitable for the development" not in sentence for sentence in life)

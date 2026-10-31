@@ -9,6 +9,7 @@ Imports no Flask.
 
 from html import escape
 
+from planetgen import tuning
 from planetgen.describe.html import inline_html
 from planetgen.generation import evolution
 from planetgen.physics import gases, life_class_text, life_classes
@@ -34,16 +35,17 @@ MASS_SHARED_KEYS = frozenset(key for key, _label in MASS_KEYS)
 def split_blocks(blocks):
     """
     The description's blocks of a planet or moon sorted by where the page puts them: `phi6` (the ratings table and the
-    radiation and survival equipment tables), `life` (the life and timeline paragraphs) and `rest` (anything else the page
+    radiation and survival equipment tables), `life` (what the life looks like) and `rest` (anything else the page
     still shows, such as the sensors' flavour line and a gas giant's depth). The facts table of the body, the class
-    sentence and the atmosphere and composition summaries are dropped: the page builds those from the stored columns.
+    sentence, the atmosphere and composition summaries, and the life class, system age and milestone sentences (`life-class`, `timeline`
+    and `milestone`, which the Life section says from the stored columns and the life readings, UX.251) are dropped.
     """
     parts = {"phi6": [], "life": [], "rest": []}
     for block in blocks:
         kind = block["type"]
         if kind == "ratings" or (kind == "facts" and block["caption"] in PHI6_CAPTIONS):
             parts["phi6"].append(block)
-        elif kind == "prose" and block["role"] in ("life", "timeline"):
+        elif kind == "prose" and block["role"] == "life":
             parts["life"].append(block)
         elif kind == "prose" and block["role"] in ("flavour", "depth"):
             parts["rest"].append(block)
@@ -117,20 +119,91 @@ def _short_name(class_id):
     return name[:1].lower() + name[1:]
 
 
-def life_class_view(row):
+GLANCE_OTHERS = 2
+"""int: How many classes besides the best-suited one the At a glance paragraph names."""
+
+
+def _class_phrase(class_id):
+    return f"Class {class_id} ({_short_name(class_id)})"
+
+
+def _glance_classes(best, others):
+    """The At a glance sentence naming the classes the conditions suit: "Conditions suit Class 1a (oxygenic light-eaters) best, then
+    Class 2 (...) and Class 3a (...)." No scores; at most `GLANCE_OTHERS` others, then "and others"."""
+    text = f"Conditions suit {_class_phrase(best)} best"
+    named = [_class_phrase(class_id) for class_id in others[:GLANCE_OTHERS]]
+    if len(others) > GLANCE_OTHERS:
+        named.append("others")
+    if named:
+        text += ", then " + (", ".join(named[:-1]) + " and " if len(named) > 1 else "") + named[-1]
+    return text + "."
+
+
+def _glance(readings, living, best, best_score, others):
     """
-    The life class lines of a planet's or moon's Life section (UX.237) from its system-detail row (API.37): `supports` (the
-    best-supported class and its score), `also` (the other classes it supports, best first, as text), `has` (the class that
-    lives there and the stage it has reached, with its animal grade), and `words` (what that class, or else the best-supported
-    one, drinks, eats, breathes and gives off, as `{"class", "name", "rows": [(label, text)]}`). A line with nothing to say is
-    `None` or empty; a body that supports no class gives all four empty and `None` for the whole view.
+    The Life paragraph of At a glance (UX.251): the sentence of each kind of life that is there ("Microbes: abundant, stable, secure."),
+    or "Nothing lives here yet." when the conditions suit a class and none has appeared, then the classes the conditions suit. `None`
+    for a world with no life that could not have any. Words only; the numbers are in the Life section.
+    """
+    parts = [reading["text"] for reading in readings if reading.get("abundance") not in (None, "Absent")]
+    if not parts and best and best_score:
+        parts.append("Nothing lives here yet." if not living else "Life here is too sparse to count.")
+    if best and best_score:
+        parts.append(_glance_classes(best, others))
+    return " ".join(parts) or None
+
+
+def _years_text(gyr):
+    return None if gyr is None else f"about {gyr:.1f} billion years"
+
+
+def _reading_rows(readings):
+    """The per-kind rows of the Life section's table: `{"kind", "abundance", "trend", "security", "left"}`, each cell the plain word
+    (empty for what a kind that is not there has no word for) and `left` the time the living class's conditions last, empty unless it is known."""
+    rows = []
+    for reading in readings:
+        score = reading.get("score")
+        shown = reading.get("abundance") or "Unknown"
+        rows.append({"kind": reading["label"], "abundance": f"{shown} ({int(score)} of {LIFE_SCORE_MAX})" if score else shown,
+                     "trend": reading.get("trend") or "", "security": reading.get("security") or "",
+                     "left": _years_text(reading.get("years_left_gyr")) or ""})
+    return rows
+
+
+def _life_facts(row, living):
+    """The stored facts of the world's life as `[(label, text)]` for the Life section: the stage, the animal grade, the pace and the ages."""
+    facts = []
+    stage = row.get("life_stage")
+    grade = int(row.get("life_animal_grade") or 0) if stage == "multicellularity" else 0
+    if living and stage:
+        facts.append(("Stage", evolution.stage_name(stage, living, grade).lower()))
+    if grade:
+        facts.append(("Animal grade", life_class_text.GRADES[min(grade, 3) - 1]))
+    pace = row.get("evolutionary_pace")
+    if pace in tuning.EVOLUTIONARY_PACE_LABELS and (living or row.get("life_class_best")):
+        facts.append(("Pace of evolution", tuning.EVOLUTIONARY_PACE_LABELS[pace]))
+    if row.get("life_system_age_gyr") is not None and (living or row.get("life_class_best")):
+        facts.append(("Age of the system", f"{row['life_system_age_gyr']:.2f} billion years"))
+    if living and stage and row.get("life_milestone_age_gyr") is not None:
+        facts.append(("Stage reached at", f"{row['life_milestone_age_gyr']:.2f} billion years"))
+    return facts
+
+
+def life_class_view(row, readings=()):
+    """
+    The life lines of a planet's or moon's page (UX.237, UX.251) from its system-detail row (API.37) and, for a world with life, the
+    `readings` of `GET /api/planets/<id>/life-readings`: `glance` (the paragraph of At a glance), `paragraph` (the lead of the Life
+    section: what lives there and the classes the conditions suit with their suitability), `readings` (the table of the three words for each
+    kind of life), `facts` (the stage, grade, pace and ages as `[(label, text)]`), `supports`, `also`, `has` and `words` (what that class,
+    or else the best-supported one, drinks, eats, breathes and gives off, as `{"class", "name", "rows": [(label, text)]}`). A line with
+    nothing to say is `None` or empty; a body that supports no class and has no life gives `None` for the whole view.
     """
     if not row:
         return None
     scores = {class_id: int(score) for class_id, score in (row.get("life_class_scores") or {}).items() if score}
     best, best_score = row.get("life_class_best"), row.get("life_class_best_score")
     living = row.get("life_class_id")
-    view = {"supports": None, "also": [], "has": None, "words": None, "paragraph": None}
+    view = {"supports": None, "also": [], "has": None, "words": None, "paragraph": None, "glance": None, "readings": [], "facts": []}
     if best and best_score:
         view["supports"] = f"Best suited to Class {best} life ({_short_name(best)}), suitability {best_score} of {LIFE_SCORE_MAX}."
     others = sorted(((class_id, score) for class_id, score in scores.items() if class_id != best), key=lambda pair: (-pair[1], pair[0]))
@@ -146,33 +219,24 @@ def life_class_view(row):
         view["words"] = {"class": shown, "name": _class_name(shown), "lives": bool(living),
                          "rows": [(label, said[key]) for label, key in (("Drinks", "drinks"), ("Eats", "eats"),
                                                                        ("Breathes", "breathes"), ("Gives off", "gives_off"))]}
-    view["paragraph"] = _life_paragraph(row, view, living, best, best_score)
-    return view if any((view["supports"], view["also"], view["has"], view["words"])) else None
+    view["glance"] = _glance(readings, living, best, best_score, [class_id for class_id, _score in others])
+    view["readings"] = _reading_rows(readings)
+    view["facts"] = _life_facts(row, living)
+    view["paragraph"] = _life_paragraph(view, best, best_score)
+    return view if any((view["supports"], view["also"], view["has"], view["words"], view["glance"])) else None
 
 
-PREVALENCE_WORDS = ("none", "sparse", "sparse", "uncommon", "uncommon", "common", "common", "widespread", "widespread", "abundant")
-"""tuple: The word for a life score of 0 to 9."""
-
-KIND_WORDS = (("microbial", "microbes"), ("flora", "plant-like life (flora)"), ("fauna", "animal life (fauna)"), ("sentient", "sentient life"))
-
-
-def _life_paragraph(row, view, living, best, best_score):
+def _life_paragraph(view, best, best_score):
     """
-    The one Life paragraph (UX.237): it leads with what lives there, then how common each kind of life is (microbes, flora, fauna,
-    sentient, from the four stored life scores), then the classes the conditions suit. `None` when there is nothing to say.
+    The lead of the Life section (UX.237): what lives there ("Nothing lives here yet." when the conditions suit a class and none has
+    appeared), then the classes the conditions suit with their suitability. `None` when there is nothing to say. How common each kind of
+    life is comes in the table under it (`_reading_rows`).
     """
     parts = []
     if view["has"]:
         parts.append(view["has"])
     elif best and best_score:
-        parts.append("Nothing is known to live here yet.")
-    kinds = []
-    for key, words in KIND_WORDS:
-        score = row.get(f"life_{key}")
-        if score is not None:
-            kinds.append(f"{words} {PREVALENCE_WORDS[min(int(score), 9)]} ({int(score)} of {LIFE_SCORE_MAX})" if score else f"no {words}")
-    if kinds:
-        parts.append("By kind: " + ", ".join(kinds) + ".")
+        parts.append("Nothing lives here yet.")
     if best and best_score:
         suited = f"Conditions here suit Class {best} life ({_short_name(best)}) best, suitability {best_score} of {LIFE_SCORE_MAX}"
         if view["also"]:

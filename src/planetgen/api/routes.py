@@ -707,6 +707,49 @@ def moon_life_air(moon_id):
     return _life_air("moons", moon_id)
 
 
+def _life_readings(table, body_id):
+    """Shared body of `planet_life_readings` and `moon_life_readings`."""
+    from planetgen.physics import constants, life_classes, life_readings
+
+    conn = get_db()
+    rows = conn.execute(f"SELECT * FROM {table} WHERE id = ?", (body_id,)).fetchall()
+    if not rows:
+        raise ApiError(f"no such {table[:-1]}: {body_id}", status_code=404)
+    values = store.with_life_inputs(conn, rows, table == "moons")[0]
+    values["is_moon"] = table == "moons"
+    star = None
+    star_row = None if values.get("star_id") is None else conn.execute(
+        "SELECT mass_kg, age_gy, metallicity_fe_h FROM stars WHERE id = ?", (values["star_id"],)).fetchone()
+    if star_row is not None:
+        star = life_readings.star_of({"mass_sol": star_row["mass_kg"] / constants.SOLAR_MASS_TO_KG, "age_gyr": star_row["age_gy"],
+                                      "fe_h": star_row["metallicity_fe_h"] or 0.0})
+    found = [{"kind": reading.kind, "label": reading.label, "score": reading.score, "abundance": reading.abundance,
+              "trend": reading.trend, "security": reading.security, "years_left_gyr": reading.years_left_gyr,
+              "text": life_readings.sentence(reading)} for reading in life_readings.readings(values, star)]
+    class_id = life_classes.living_class_id(values.get("life_class"), values.get("life_class_variant"), values.get("life_stage"))
+    return jsonify({"id": ids.printed(conn, table[:-1], body_id), "life_class_id": class_id, "readings": found})
+
+
+@bp.route("/planets/<uid:planet_id>/life-readings")
+def planet_life_readings(planet_id):
+    """
+    `GET /api/planets/<id>/life-readings` -- the three words for each kind of life on the planet (UX.251, `physics.life_readings`),
+    worked out on request from the stored body and its star and stored nowhere. `{"id", "life_class_id", "readings"}`; `readings` is
+    empty for a gas giant and for a body whose kind scores are not stored, otherwise one entry for each of microbes, flora, fauna and
+    sentient life in that order: `kind`, `label`, `score` (the stored 0 to 9), `abundance` (Absent, Rare, Occasional, Frequent, Abundant or
+    Dominant), `trend` (Growing, Stable or Declining), `security` (Secure, Marginal, Precarious or Dying out), `years_left_gyr` (Gyr until the
+    living class stops scoring on the world as its star brightens, `null` when it lasts or is not known) and `text` ("Microbes: abundant,
+    stable, secure."). The trend and security of a kind that is Absent are `null`.
+    """
+    return _life_readings("planets", planet_id)
+
+
+@bp.route("/moons/<uid:moon_id>/life-readings")
+def moon_life_readings(moon_id):
+    """`GET /api/moons/<id>/life-readings` -- the same for a moon (see `planet_life_readings`)."""
+    return _life_readings("moons", moon_id)
+
+
 @bp.route("/near")
 def near():
     """

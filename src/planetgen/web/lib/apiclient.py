@@ -484,6 +484,13 @@ def get_life_air(db, kind, body_id):
     return _request(f"/{kind}s/{body_id}/life-air", {"db": db})
 
 
+def get_life_readings(db, kind, body_id):
+    """Returns `GET /api/planets/<id>/life-readings` (or `moons`)'s `{id, life_class_id, readings}`: the three words for each kind of life
+    on the body, `readings` being empty when there is nothing to say (UX.251)."""
+    _require_db(db)
+    return _request(f"/{kind}s/{body_id}/life-readings", {"db": db})
+
+
 def get_system_text(db, system_id, fmt):
     """Returns `GET /api/systems/<id>/text`'s `{id, format, content}` --
     the system's description as `fmt` (`"markdown"` or `"text"`)."""

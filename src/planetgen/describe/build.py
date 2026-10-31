@@ -357,16 +357,17 @@ def _atmosphere_composition(planet):
 
 
 def _timeline_sentences(life):
-    """The timeline, written from the `life_facts.LifeFacts` alone: the system's age, then the latest milestone the
-    world's life has reached (a generated world states what is there)."""
+    """The system's age, from the `life_facts.LifeFacts` alone (the "timeline" block)."""
+    return [inline("The system is about ", _gy(life.timeline.system_age_gyr), " old.")]
+
+
+def _milestone_sentences(life):
+    """The latest milestone the world's life has reached (the "milestone" block; a generated world states what is there)."""
     timeline = life.timeline
-    sentences = [inline("The system is about ", _gy(timeline.system_age_gyr), " old.")]
     if timeline.stage is None:
-        sentences.append(inline("No milestone has been reached yet at the system's age."))
-    else:
-        sentences.append(inline("Its latest milestone is ", timeline.stage_name, ", reached when the system was ",
-                                _gy(timeline.milestone_age_gyr), " old. ", timeline.stage_text))
-    return sentences
+        return [inline("No milestone has been reached yet at the system's age.")]
+    return [inline("Its latest milestone is ", timeline.stage_name, ", reached when the system was ", _gy(timeline.milestone_age_gyr),
+                   " old. ", timeline.stage_text)]
 
 
 def _colours(names):
@@ -379,20 +380,26 @@ def _colours(names):
     return ", ".join(words[:-1]) + " and " + words[-1] if len(words) > 1 else words[0]
 
 
-def _life_sentences(life):
-    """The life paragraph, written from the `life_facts.LifeFacts` alone, in the present tense: life that has reached a
+def _life_class_sentences(life):
+    """The first sentence of the life paragraph, from the `life_facts.LifeFacts` alone, in the present tense: life that has reached a
     milestone lives on the world; a world that suits a life class and has no life yet says so."""
     if life is None:
         return []
-    lives = life.timeline is None or life.timeline.stage is not None
-    if lives:
+    name = life.class_name[0].lower() + life.class_name[1:]
+    if life.timeline is None or life.timeline.stage is not None:
         pace = "" if life.pace is None else f", evolving at a {life.pace} pace"
-        sentences = [f"Class {life.class_id} life, the {life.class_name[0].lower() + life.class_name[1:]}, lives on this {life.noun}{pace}."]
-        subject = "that life"
-    else:
-        pace = "" if life.pace is None else f", which evolves at a {life.pace} pace"
-        sentences = [f"Conditions on this {life.noun} suit Class {life.class_id} life, the {life.class_name[0].lower() + life.class_name[1:]}{pace}, but none has appeared yet."]
-        subject = "such life"
+        return [f"Class {life.class_id} life, the {name}, lives on this {life.noun}{pace}."]
+    pace = "" if life.pace is None else f", which evolves at a {life.pace} pace"
+    return [f"Conditions on this {life.noun} suit Class {life.class_id} life, the {name}{pace}, but none has appeared yet."]
+
+
+def _life_sentences(life):
+    """What the life looks like, from the `life_facts.LifeFacts` alone: its colors in visible light and outside it."""
+    if life is None:
+        return []
+    lives = life.timeline is None or life.timeline.stage is not None
+    subject = "that life" if lives else "such life"
+    sentences = []
     if life.visible:
         sentences.append(f"In visible light {subject} looks {_colours(life.visible)}.")
     if life.non_visible:
@@ -524,9 +531,11 @@ def _planet_section(planet):
     blocks.append(_radiation_block(planet))
     blocks.append(_equipment_block(planet))
     life = life_facts.resolve(planet)
+    blocks.append(prose("life-class", *_life_class_sentences(life)))
     blocks.append(prose("life", *_life_sentences(life)))
     if life is not None and life.timeline is not None:
         blocks.append(prose("timeline", *_timeline_sentences(life)))
+        blocks.append(prose("milestone", *_milestone_sentences(life)))
     if planet.flavor_text:
         blocks.append(prose("flavour", f"Sensors show {planet.flavor_text}"))
     kind = _noun(planet)

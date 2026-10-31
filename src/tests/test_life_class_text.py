@@ -93,3 +93,12 @@ def test_a_text_file_with_a_missing_part_is_refused():
     del document["grades"]["A2"]
     with pytest.raises(life_class_text.LifeClassTextError):
         life_class_text._check(document)
+
+
+def test_a_stage_sentence_names_the_whole_class_not_its_family():
+    """UX.251: "Class 3a life has grown ...", never "Class 3 life" for a class with letters; a bare number stays a number."""
+    said = [life_class_text.stage_description("3a", rung) for rung in life_class_text.RUNGS]
+    assert any("Class 3a life" in text for text in said) and not any("Class 3 life" in text for text in said)
+    assert any("Class 2 life" in life_class_text.stage_description("2", rung) for rung in life_class_text.RUNGS)
+    assert any("Class 3 life" in life_class_text.stage_description(3, rung) for rung in life_class_text.RUNGS)
+    assert "Class 3a life" in life_class_text.stage_description("3a", 5, "A1")
