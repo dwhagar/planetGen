@@ -69,7 +69,7 @@ import sqlalchemy.exc
 import sqlalchemy.pool
 
 from planetgen.admin import activity_log
-from planetgen.db import alembic_runner, kind_tables, login, object_rows, orbit_trees, parity, point_columns, scatter_systems, sector_mass, storage_checksum
+from planetgen.db import alembic_runner, designation_rows, kind_tables, login, object_rows, orbit_trees, parity, point_columns, scatter_systems, sector_mass, storage_checksum
 from planetgen.db import fingerprint_tree as fingerprintTree
 from planetgen.names import object_id as objectId
 from planetgen import tuning
@@ -1946,29 +1946,32 @@ def insert_system_config(conn, config: SystemConfig) -> int:
 # docstring for the full sector > system hierarchy.
 # ---------------------------------------------------------------------------
 
-def _rename_bodies_with_prefix(conn, star_system_id, old_prefix, new_prefix):
+def _rename_bodies_with_prefix(conn, star_system_id, old_prefix, new_prefix, reason="rename"):
     """
     Renames every star, planet and moon in one system whose name carries
     `old_prefix` (`names.bodies.rename_prefix`), so derived names such as
     `Voranthis II` follow their system or star. Names set by hand that
-    don't carry the prefix are left alone.
+    don't carry the prefix are left alone. Each old name is kept
+    (`designation_rows.set_name`) for `reason`; `None` for bodies whose
+    old name was a placeholder (a system built again).
     """
     for table in ("stars", "planets", "moons"):
         rows = conn.execute(f"SELECT id, name FROM {table} WHERE star_system_id = ?", (star_system_id,)).fetchall()
         for row in rows:
             renamed = rename_prefix(row["name"], old_prefix, new_prefix)
             if renamed is not None and renamed != row["name"]:
-                conn.execute(f"UPDATE {table} SET name = ? WHERE id = ?", (renamed, row["id"]))
-    _rename_comets(conn, "star_system_id = ?", (star_system_id,), old_prefix, new_prefix)
+                designation_rows.set_name(conn, table, row["id"], renamed, reason, old_name=row["name"])
+    _rename_comets(conn, "star_system_id = ?", (star_system_id,), old_prefix, new_prefix, reason)
 
 
-def _rename_comets(conn, where, params, old_host, new_host):
+def _rename_comets(conn, where, params, old_host, new_host, reason="rename"):
     """Moves the comets matching `where` whose designation
-    (`cometData.comet_designation`) names `old_host` over to `new_host`."""
+    (`cometData.comet_designation`) names `old_host` over to `new_host`,
+    keeping each old designation for `reason` (`None`: a placeholder)."""
     for row in conn.execute(f"SELECT id, name FROM comets WHERE {where}", params).fetchall():
         renamed = rename_comet_designation(row["name"], old_host, new_host)
         if renamed is not None and renamed != row["name"]:
-            conn.execute("UPDATE comets SET name = ? WHERE id = ?", (renamed, row["id"]))
+            designation_rows.set_name(conn, "comets", row["id"], renamed, reason, old_name=row["name"])
 
 
 SYSTEM_NAME_MAX_LENGTH = 200
@@ -1988,12 +1991,14 @@ def check_system_name_length(name):
                          f"(this one has {len(name)})")
 
 
-def rename_star_system(conn, star_system_id, new_name):
+def rename_star_system(conn, star_system_id, new_name, reason="rename"):
     """
     Renames one system and every star, planet and moon still named after
     it (`_rename_bodies_with_prefix`). The one place a system's name
     changes after it's saved: the name-uniqueness decorations below, and
-    `PATCH /api/systems/<id>`.
+    `PATCH /api/systems/<id>`. Every old name is kept (GEN.1138) for
+    `reason`: `rename` for a person's change, `collision bump` for the
+    decorations.
 
     Returns:
         bool: `False` if no such system exists.
@@ -2002,18 +2007,16 @@ def rename_star_system(conn, star_system_id, new_name):
                        (star_system_id,)).fetchone()
     if row is None:
         return False
-    conn.execute(
-        "UPDATE star_systems SET name = ?, modified_at = CURRENT_TIMESTAMP(3) WHERE id = ?",
-        (new_name, star_system_id),
-    )
+    designation_rows.set_name(conn, "star_systems", star_system_id, new_name, reason, old_name=row["name"],
+                              extra_set="modified_at = CURRENT_TIMESTAMP(3)")
     storage_checksum.mark_system(conn, star_system_id)
     if row["binary_configuration"] == "wide":
         # A wide pair's stars and its primary's planets carry only the
         # system name's first word (GEN.62).
         _rename_bodies_with_prefix(conn, star_system_id, wide_pair_first_word(row["name"]),
-                                   wide_pair_first_word(new_name))
+                                   wide_pair_first_word(new_name), reason)
     else:
-        _rename_bodies_with_prefix(conn, star_system_id, row["name"], new_name)
+        _rename_bodies_with_prefix(conn, star_system_id, row["name"], new_name, reason)
     return True
 
 
@@ -2032,7 +2035,7 @@ def rename_star(conn, star_id, new_name):
         return False
     if row["role"] == "single":
         return rename_star_system(conn, row["star_system_id"], new_name)
-    conn.execute("UPDATE stars SET name = ? WHERE id = ?", (new_name, star_id))
+    designation_rows.set_name(conn, "stars", star_id, new_name, "rename", old_name=row["name"])
     storage_checksum.mark_system(conn, row["star_system_id"])
     # Since GEN.62 a wide pair's planets carry one word of their star's
     # name: the primary's the shared first word, the secondary's its own
@@ -2050,7 +2053,7 @@ def rename_star(conn, star_id, new_name):
             renamed = next((r for r in (rename_prefix(body["name"], old, new) for old, new in prefixes)
                             if r is not None), None)
             if renamed is not None:
-                conn.execute(f"UPDATE {table} SET name = ? WHERE id = ?", (renamed, body["id"]))
+                designation_rows.set_name(conn, table, body["id"], renamed, "rename", old_name=body["name"])
     _rename_comets(conn, "star_system_id = ? AND star_id = ?", (row["star_system_id"], star_id),
                    row["name"], new_name)
     touch_star_system(conn, row["star_system_id"])
@@ -2070,7 +2073,7 @@ def rename_body(conn, table, body_id, new_name):
     row = conn.execute(f"SELECT star_system_id FROM {table} WHERE id = ?", (body_id,)).fetchone()
     if row is None:
         return False
-    conn.execute(f"UPDATE {table} SET name = ? WHERE id = ?", (new_name, body_id))
+    designation_rows.set_name(conn, table, body_id, new_name, "rename")
     touch_star_system(conn, row["star_system_id"])
     return True
 
@@ -2221,7 +2224,9 @@ def reserve_sector_name(conn, candidate_name, sector_id):
             # (`WHERE name = ?` still finds it: the collation ignores case
             # and accents).
             old_name, renamed_to = resolve_greek_roman_collision(row["base_name"], existing_count)[1]
-            conn.execute("UPDATE sectors SET name = ?, parity_dirty = 1 WHERE name = ? AND id <> ?", (renamed_to, old_name, sector_id))
+            for holder in conn.execute("SELECT id, name FROM sectors WHERE name = ? AND id <> ?", (old_name, sector_id)).fetchall():
+                designation_rows.set_name(conn, "sectors", holder["id"], renamed_to, "collision bump", old_name=holder["name"],
+                                          extra_set="parity_dirty = 1")
 
         return new_name, base
 
@@ -2259,16 +2264,16 @@ def _rename_registry_holder(conn, row, new_name):
     """Renames a `system_name_registry` row's first holder: a star system
     (`rename_star_system`) or a phenomenon (`rename_phenomenon`)."""
     if row["first_star_system_id"] is not None:
-        rename_star_system(conn, row["first_star_system_id"], new_name)
+        rename_star_system(conn, row["first_star_system_id"], new_name, "collision bump")
     elif row["first_object_table"] in NAMED_PHENOMENON_TABLES:
-        rename_phenomenon(conn, row["first_object_table"], row["first_object_id"], new_name)
+        rename_phenomenon(conn, row["first_object_table"], row["first_object_id"], new_name, "collision bump")
 
 
-def rename_phenomenon(conn, table, object_id, new_name):
+def rename_phenomenon(conn, table, object_id, new_name, reason="rename"):
     """
     Renames one uniquely named phenomenon (`NAMED_PHENOMENON_TABLES`). A
     supernova remnant's collapsed core, named `"<remnant> Core"`, follows
-    it.
+    it. Each old name is kept (GEN.1138) for `reason`.
 
     Returns:
         bool: `False` if no such row exists.
@@ -2278,7 +2283,7 @@ def rename_phenomenon(conn, table, object_id, new_name):
     row = conn.execute(f"SELECT name FROM {table} WHERE id = ?", (object_id,)).fetchone()
     if row is None:
         return False
-    conn.execute(f"UPDATE {table} SET name = ? WHERE id = ?", (new_name, object_id))
+    designation_rows.set_name(conn, table, object_id, new_name, reason, old_name=row["name"])
     if table == "supernova_remnants":
         core = conn.execute(
             "SELECT compact_remnant_black_hole_id, compact_remnant_neutron_star_id "
@@ -2287,10 +2292,10 @@ def rename_phenomenon(conn, table, object_id, new_name):
         for core_table, core_id in (("black_holes", core["compact_remnant_black_hole_id"]),
                                     ("neutron_stars", core["compact_remnant_neutron_star_id"])):
             if core_id is not None:
-                conn.execute(
-                    f"UPDATE {core_table} SET name = ? WHERE id = ? AND name = ?",
-                    (f"{new_name} Core", core_id, f"{row['name']} Core"),
-                )
+                core_row = conn.execute(f"SELECT name FROM {core_table} WHERE id = ? AND name = ?",
+                                        (core_id, f"{row['name']} Core")).fetchone()
+                if core_row is not None:
+                    designation_rows.set_name(conn, core_table, core_id, f"{new_name} Core", reason, old_name=core_row["name"])
     return True
 
 
@@ -2608,9 +2613,9 @@ def _rename_unconfirmed_holders(conn, ordered, held):
         if target is None:
             continue
         if system_id is not None:
-            rename_star_system(conn, system_id, target)
+            rename_star_system(conn, system_id, target, "collision bump")
         else:
-            rename_phenomenon(conn, table, object_id, target)
+            rename_phenomenon(conn, table, object_id, target, "collision bump")
         healed[key] = target
     return healed
 
@@ -2796,7 +2801,7 @@ def _rank_chain(conn, table, base, count, address, taken):
         given = names[len(lower):len(lower) + count]
         for row, name in zip(lower + higher, names[:len(lower)] + names[len(lower) + count:]):
             if row["name"].upper() != name:
-                conn.execute(f"UPDATE {table} SET name = ? WHERE id = ?", (name, row["id"]))
+                designation_rows.set_name(conn, table, row["id"], name, "collision bump", old_name=row["name"])
     taken.update(given)
     return given
 
@@ -7700,7 +7705,7 @@ def replace_star_system_content(conn, star_system_id, star_system, system_config
             mpc_to_pc(kept[f"position_{axis}_mpc"]) for axis in "xyz"))
         conn.execute("UPDATE star_systems SET velocity_x_kms = ?, velocity_y_kms = ?, velocity_z_kms = ?,"
                      " modified_at = modified_at WHERE id = ?", (*velocity, star_system_id))
-    _rename_bodies_with_prefix(conn, star_system_id, temp_name, row["name"])
+    _rename_bodies_with_prefix(conn, star_system_id, temp_name, row["name"], reason=None)  # new rows: the placeholder was never a name
     _carry_uids(conn, star_system_id, kept_uids)  # a body keeps the ID of the one that held its place (DB.75)
     assign_uids(conn, system_ids=[star_system_id])  # the others take the system's next body numbers
     return True

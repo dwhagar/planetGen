@@ -260,6 +260,7 @@ VOLATILE = "writes only what the orbit update owns (VOLATILE_COLUMNS), which the
 NEW = "a new sector: parity_dirty is 1 by default (DB.44)"
 GONE = "deletes rows with the sector or system, or inserts a sector; nothing is left to protect"
 DERIVED = "writes a column the checksum leaves out"
+SET_NAME = "writes through designation_rows.set_name or renumber, which marks the sector of the row itself (GEN.1138)"
 MIGRATION = "a migration; sealed again by the parity rebuild that follows a schema change"
 
 WRITERS = {
@@ -277,6 +278,10 @@ WRITERS = {
     ("db/storage_checksum.py", "seal"): DERIVED,
     ("db/storage_checksum.py", "_mark"): MARKS,
     ("db/store.py", "_rename_comets"): PARENT,
+    ("db/store.py", "_rename_bodies_with_prefix"): SET_NAME,
+    ("db/store.py", "_rank_chain"): SET_NAME,
+    ("db/store.py", "rename_body"): SET_NAME,
+    ("db/store.py", "rename_phenomenon"): SET_NAME,
     ("db/store.py", "rename_star_system"): MARKS,
     ("db/store.py", "rename_star"): MARKS,
     ("db/store.py", "reserve_sector_name"): MARKS,
@@ -312,7 +317,8 @@ covered table without an entry here fails `test_every_writer_of_a_covered_table_
 def _writers():
     root = pathlib.Path(sc.__file__).resolve().parents[1]
     tables = sorted(set(sc.CONTENT_TABLES))
-    pattern = re.compile(r"\b(UPDATE|INSERT\s+(?:IGNORE\s+)?INTO|DELETE\s+FROM)\s+`?(%s)\b(?!_)" % "|".join(tables))
+    pattern = re.compile(r"\b(UPDATE|INSERT\s+(?:IGNORE\s+)?INTO|DELETE\s+FROM)\s+`?(%s)\b(?!_)" % "|".join(tables)
+                         + r"|\bdesignation_rows\.(?:set_name|renumber)\(")  # GEN.1138: the one writer of a name and an ID takes the table as an argument
     found = {}
     for path in sorted(root.rglob("*.py")):
         relative = path.relative_to(root).as_posix()
