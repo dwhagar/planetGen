@@ -226,7 +226,7 @@ below the lowest size they work for reliably runs none of them). Each law in the
 and Maccio 2014's concentration is quoted for M200 of 1e10 and over (Wang et al. 2020 say the same of formulas derived
 there, arXiv:1911.09720), Behroozi et al. 2019's stellar-to-halo fit holds from 10^10.5 and Read et al. 2017 agree with
 abundance matching down to 5e9 (arXiv:1607.03127, read by the galaxy size research thread). The stellar mass it
-corresponds to is `galaxy.mass_chain.HALO_MIN_STELLAR_MASS_SOLAR`, about 4.6e6 solar masses. Status: bracket, since
+corresponds to is `galaxy.mass_chain.HALO_MIN_STELLAR_MASS_SOLAR`, about 1.9e7 solar masses. Status: bracket, since
 the bound is read from papers that agree to within half a dex and is not itself printed in one."""
 
 FULL_STRUCTURE_MIN_STELLAR_MASS_SOLAR = 3.0e8
@@ -252,7 +252,7 @@ LEVERS = (
         name="mass", flag="--mass", dial="scale", label="Stellar mass", kind="float",
         unit="solar masses", minimum=281.0, maximum=1.55e11, step=0.01, log=True,
         law="the total mass of the galaxy's stars (not its dark halo, which the Halo dial sets); the size, the halo, "
-            "the thick disc, the bulge and the black hole all follow it through their laws; under about 4.6e6 the "
+            "the thick disc, the bulge and the black hole all follow it through their laws; under about 1.9e7 the "
             "galaxy has no dark halo (no halo draw, no halo law runs), and under 3e8 it is one disc plus a bulge",
         auto_text="drawn from the galaxy stellar mass function (Baldry et al. 2012) between 3e9 and 6e9 solar masses, a small spiral (Boss, 10-21)",
         help="The total mass of the galaxy's stars, solar masses. Size and density follow it unless pinned; pin any "
@@ -340,14 +340,14 @@ LEVERS = (
                "reach of 65,535 shells, 262 kpc (spherical.MAX_ADDRESSABLE_SHELL)", status="derived"),
     Lever(
         name="halo_ratio", flag="--halo-ratio", dial="halo", label="Dark halo mass over stellar mass", kind="float",
-        unit="", minimum=10.0, maximum=3000.0, step=1.0, log=True,
+        unit="", minimum=10.0, maximum=600.0, step=1.0, log=True,
         law="the dark halo's mass (M200) as a multiple of the galaxy's stellar mass; the virial radius, the tidal "
             "field and the disc's gas inflow follow it. Refused for a galaxy under the halo threshold",
-        auto_text="drawn from the stellar-to-halo relation of the stellar mass (Moster et al. 2013), with its scatter",
-        help="The dark halo's mass over the stellar mass. A galaxy under about 4.6e6 solar masses of stars has no halo "
+        auto_text="drawn from the stellar-to-halo relation of the stellar mass (Girelli et al. 2020), with its scatter",
+        help="The dark halo's mass over the stellar mass. A galaxy under about 1.9e7 solar masses of stars has no halo "
              "and refuses it.",
-        source="the relation's own range: a halo holds 26 times its stars at the peak of star formation efficiency "
-               "(Moster et al. 2013, read in the repository) and 2200 times at the halo threshold of 1e10 solar masses; "
+        source="the relation's own range: a halo holds 21 times its stars at the peak of star formation efficiency "
+               "(Girelli et al. 2020, read in the repository) and 510 times at the halo threshold of 1e10 solar masses; "
                "the ends are those, rounded", status="derived"),
     Lever(
         name="stellar_halo_share", flag="--stellar-halo-share", dial="halo", label="Stellar halo share", kind="float",
@@ -516,7 +516,7 @@ DOCS_END = "<!-- dials:end -->"
 def halo_note():
     """The sentence under the docs table that says where the halo laws stop."""
     return (f"A galaxy whose halo would weigh under {HALO_MIN_HALO_MASS_SOLAR:.0e} solar masses (a stellar mass under "
-            f"about 4.6e6) has no dark halo: none is drawn and no law that reads one runs ({HALO_MIN_STATUS}; see "
+            f"about 1.9e7) has no dark halo: none is drawn and no law that reads one runs ({HALO_MIN_STATUS}; see "
             f"`dials.HALO_MIN_HALO_MASS_SOLAR`). A galaxy under {FULL_STRUCTURE_MIN_STELLAR_MASS_SOLAR:.0e} solar masses of "
             f"stars is one disc plus a bulge: no thick disc, bar, stellar halo or nuclear structures "
             f"(`dials.FULL_STRUCTURE_MIN_STELLAR_MASS_SOLAR`).")

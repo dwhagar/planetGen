@@ -13,7 +13,7 @@ The chain, each link from the one before it and each scatter drawn through `unit
    as the peak mass, the one a galaxy forms by.
 2. **Occupation**: a subhalo hosts a galaxy with the probability `0.5 [1 + erf((log Mpeak - log M50) / (sqrt(2) sigma))]`
    (Nadler et al. 2020, arXiv:1912.03303, Eq. 3: `M50` at its 95 percent upper limit, 8.5e7 solar masses, `sigma` 0.03 dex).
-3. **Stellar mass** from the peak mass by the stellar-to-halo relation of the mass chain (Moster, Naab and White 2013,
+3. **Stellar mass** from the peak mass by the stellar-to-halo relation of the mass chain (Girelli et al. 2020,
    `mass_chain.median_stellar_mass`, extrapolated down to the dwarf end, which the research note marks as an underestimate
    of the faintest galaxies), scattered by 0.19 dex (Nadler's 95 percent upper limit for satellites). A galaxy under
    `MIN_STELLAR_MASS_SOLAR` is not made.

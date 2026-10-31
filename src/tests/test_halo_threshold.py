@@ -35,7 +35,7 @@ def test_the_threshold_is_the_stellar_mass_of_the_lowest_halo():
     assert dials.HALO_MIN_HALO_MASS_SOLAR == 1.0e10
     assert mass_chain.HALO_MIN_STELLAR_MASS_SOLAR == pytest.approx(
         mass_chain.median_stellar_mass(dials.HALO_MIN_HALO_MASS_SOLAR))
-    assert 4.0e6 < mass_chain.HALO_MIN_STELLAR_MASS_SOLAR < 5.0e6
+    assert 1.5e7 < mass_chain.HALO_MIN_STELLAR_MASS_SOLAR < 2.5e7
     assert mass_chain.has_halo(mass_chain.HALO_MIN_STELLAR_MASS_SOLAR)
     assert not mass_chain.has_halo(BELOW) and mass_chain.has_halo(ABOVE)
 
@@ -124,7 +124,7 @@ def test_a_stellar_halo_pin_is_refused_under_3e8_and_a_dark_halo_pin_under_the_h
     with pytest.raises(ValueError, match="no stellar halo to pin"):
         structure_draw.draw_structure(SEED, 1.0e8, 0.1)
     assert structure_draw.draw_structure(SEED, FULL, 0.1).halo_stellar_ratio == 0.1
-    # a galaxy with a dark halo (over 4.6e6) but under 3e8 may pin the dark halo only
+    # a galaxy with a dark halo (over 1.9e7) but under 3e8 may pin the dark halo only
     assert mass_chain.draw_mass_chain(SEED, 1.0e8, 5.0e10).halo_mass_solar == 5.0e10
 
 

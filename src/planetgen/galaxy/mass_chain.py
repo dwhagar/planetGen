@@ -8,23 +8,26 @@ One root draw and two links, all from the galaxy seed, with no Milky Way value a
 1. The stellar mass `M*` is drawn from the galaxy stellar mass function, a double Schechter function (Baldry et al.
    2012, arXiv:1111.5707, Eq. 6, with the density per dex `ln(10) x exp(-x) [phi1 x^alpha1 + phi2 x^alpha2]`,
    `x = M / M*` of the function), by the inverse of its cumulative sum over the Auto window (`AUTO_LOG_MASS_RANGE`).
-2. The halo mass `Mh` (200 times the critical density; Moster et al. measure theirs the same way) comes from the
-   median stellar-to-halo relation of Moster, Naab and White 2013 (arXiv:1205.5807, Eq. 2 and Table 1, z = 0) and
-   the halo mass function (`halo_function`, GEN.1154), by the conditional below.
+2. The halo mass `Mh` (200 times the critical density; Girelli et al. measure theirs the same way) comes from the
+   median stellar-to-halo relation of Girelli et al. 2020 (A&A 634, A135, arXiv:2001.02230, Eq. 6, Eqs. 7 to 10 at
+   z = 0 and Table 4, the fit with scatter) and the halo mass function (`halo_function`, GEN.1154), by the conditional
+   below. The relation replaced Moster, Naab and White 2013's (GEN.1167): of four published fits (Moster 2013, Leauthaud
+   et al. 2012, Behroozi et al. 2019, Girelli et al. 2020) the other three all hold more stars than it in halos of 1e12.5
+   solar masses and up, the fits spread 0.6 dex at 1e11, and the newest wins (reports/gen753-stars-galaxy-validation-2026-10-31.md).
 3. The virial radius `r200` follows from `Mh` and the critical density, and the NFW concentration `c200` from
    Dutton and Maccio 2014 (arXiv:1402.7073, Eq. 8) with their 0.11 dex scatter.
 
-**The halo of a given stellar mass.** The relation's scatter is 0.15 dex in `M*` at fixed `Mh`. The chain draws `M*`
+**The halo of a given stellar mass.** The relation's scatter is 0.2 dex in `M*` at fixed `Mh` (the scatter Girelli's fit with scatter assumes). The chain draws `M*`
 first, so the halos that hold a galaxy of that mass are the halo mass function times that log-normal, `P(Mh | M*)`
 proportional to `n(Mh) x LogNormal(log M*; log m*(Mh), 0.15)` (`halo_function.halo_log_mass_at`), and the halo is the
 point of its cumulative distribution that a uniform draw from the seed picks. The first build (GEN.368) inverted the
 median and put a Gaussian in `log Mh` about it; that is within 0.03 dex of this up to 3e10 solar masses of stars and up
-to 0.34 dex too heavy at 2e11 (GEN.399).
+to 0.34 dex too heavy at 2e11 (GEN.399, measured with the earlier Moster relation).
 
 **One cosmology.** Planck 2013, h = 0.671 and Omega_m = 0.3175 (`halo_function` holds them with sigma_8, n_s and
-Omega_b h^2) for the critical density, the concentration's `h` and the halo mass function. Moster's relation is quoted
-for WMAP7 (h = 0.704) in solar masses; its halo masses are used as printed against the Planck halo function, a small
-offset (stand-in HF3).
+Omega_b h^2) for the critical density, the concentration's `h` and the halo mass function. Girelli's relation is fitted
+in Planck 2015 (h = 0.6774) in solar masses; its halo masses are used as printed against the Planck 2013 halo function,
+a small offset (stand-in HF3).
 
 Every scatter is a log-normal about the median law, drawn through the one random wrapper
 (`planetgen.util.draw.Stream`) from `unit_seed(galaxy_seed, "mass-chain", <link>)`, so one seed gives one galaxy and
@@ -68,14 +71,18 @@ smaller spiral, the user pushes up). A pinned mass is not limited to it (`dials`
 _GRID_STEPS = 4000
 """int: Steps of the grid the inverse cumulative sum is built on, about 0.00046 dex each."""
 
-# --- Row 2: the stellar-to-halo relation (Moster, Naab and White 2013, Eq. 2, Table 1, z = 0) ---------------------
+# --- Row 2: the stellar-to-halo relation (Girelli et al. 2020, Eq. 6, Eqs. 7 to 10 at z = 0, Table 4) --------------
 
-LOG_M1 = 11.590
-N_NORM = 0.0351
-BETA = 1.376
-GAMMA = 0.608
-STELLAR_SCATTER_DEX = 0.15
-"""float: The relation's scatter, dex in M* at fixed Mh (constant)."""
+LOG_MA = 11.83
+"""float: log10 of the halo mass at which the stellar-to-halo ratio peaks, solar masses (`B`, Table 4)."""
+A_NORM = 0.047
+"""float: Half the ratio's peak value (`C`, Table 4)."""
+BETA = 0.92
+"""float: The slope of the ratio below the peak (`E`, Table 4)."""
+GAMMA = 0.728
+"""float: The slope of the ratio above the peak, falling (`D`, Table 4)."""
+STELLAR_SCATTER_DEX = 0.2
+"""float: The relation's scatter, dex in M* at fixed Mh (constant; the relative scatter of the fit with scatter)."""
 
 # --- Row 3: the virial radius and the concentration (Planck-like cosmology; Dutton and Maccio 2014, Eq. 8) --------
 
@@ -83,7 +90,7 @@ HUBBLE_H = halo_function.HUBBLE_H
 OMEGA_MATTER = halo_function.OMEGA_MATTER
 """float: The matter density parameter; kept with `HUBBLE_H` as the one cosmology the chain states."""
 OVERDENSITY = 200.0
-"""float: The halo mass and radius are measured inside this many times the critical density (Moster's masses and
+"""float: The halo mass and radius are measured inside this many times the critical density (Girelli's masses and
 Dutton and Maccio's concentrations are both 200c, so no conversion is needed)."""
 HALO_DELTA = OVERDENSITY / OMEGA_MATTER
 """float: `OVERDENSITY` times the critical density as a multiple of the mean matter density, which Tinker et al. 2008 use."""
@@ -146,20 +153,19 @@ def log_stellar_mass_at(share, log_range=AUTO_LOG_MASS_RANGE):
 
 
 def stellar_to_halo_ratio(halo_mass_solar):
-    """Moster, Naab and White 2013's median `M* / Mh` at z = 0 for a halo of `halo_mass_solar`."""
-    m1 = 10.0 ** LOG_M1
-    r = halo_mass_solar / m1
-    return 2.0 * N_NORM / (r ** -BETA + r ** GAMMA)
+    """Girelli et al. 2020's median `M* / Mh` at z = 0 for a halo of `halo_mass_solar` (Eq. 6)."""
+    r = halo_mass_solar / 10.0 ** LOG_MA
+    return 2.0 * A_NORM / (r ** -BETA + r ** GAMMA)
 
 
 def median_stellar_mass(halo_mass_solar):
     """The median stellar mass, solar masses, of a halo of `halo_mass_solar`. [Stand-in HF3, tier T1, tweak L1: the
-    relation is Moster et al. 2013's, fitted in a WMAP7 cosmology and read against the Planck halo mass function.]"""
+    relation is Girelli et al. 2020's, fitted in a Planck 2015 cosmology and read against the Planck 2013 halo mass function.]"""
     return halo_mass_solar * stellar_to_halo_ratio(halo_mass_solar)
 
 
 HALO_MIN_STELLAR_MASS_SOLAR = median_stellar_mass(dials.HALO_MIN_HALO_MASS_SOLAR)
-"""float: The median stellar mass of a halo of `dials.HALO_MIN_HALO_MASS_SOLAR`, about 4.6e6 solar masses: a galaxy
+"""float: The median stellar mass of a halo of `dials.HALO_MIN_HALO_MASS_SOLAR`, about 1.9e7 solar masses: a galaxy
 lighter than this has no halo (`has_halo`)."""
 
 

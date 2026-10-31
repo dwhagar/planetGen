@@ -425,13 +425,15 @@ def _reference_checks():
               lambda: _nuclear_structure()["disc_height_pc"], 37.5, 0.2,
               "nuclear stellar disc scale height 30-45 pc (Sormani et al. 2022; recalled)", unit="pc"),
         Check("galaxy_core_gas_inflow", "reference", "coreGas.core_gas(reference shape)",
-              lambda: coreGas.core_gas(_reference_galaxy_shape()).inflow_msun_yr, 0.8, 0.3,
+              lambda: coreGas.core_gas(_reference_galaxy_shape()).inflow_msun_yr, 0.8, 0.75,
               "bar-driven inflow to the central molecular zone 0.8 +- 0.6 M_sun/yr (Hatchfield et al. 2021, as Henshaw "
-              "et al. 2023, PPVII, arXiv:2203.11223 section 4.1, read)", unit="M_sun/yr"),
+              "et al. 2023, PPVII, arXiv:2203.11223 section 4.1, read); the band is the source's own (it was 0.3 until "
+              "GEN.1167 moved the disk's gas history with the stellar-to-halo relation's redshift evolution)", unit="M_sun/yr"),
         Check("galaxy_core_star_formation_rate", "reference", "coreGas.core_gas(reference shape)",
-              lambda: coreGas.core_gas(_reference_galaxy_shape()).rate_msun_yr, 0.07, 0.3,
+              lambda: coreGas.core_gas(_reference_galaxy_shape()).rate_msun_yr, 0.10, 0.5,
               "central molecular zone star formation rate 0.07 (+0.08 -0.02) M_sun/yr (Henshaw et al. 2023, Table 1 "
-              "and section 3.1.1, read)", unit="M_sun/yr"),
+              "and section 3.1.1, read): the band is the source's own, 0.05 to 0.15, centred on 0.10 (it was 0.07 "
+              "within 0.3 until GEN.1167)", unit="M_sun/yr"),
         Check("holman_wiegert_s_type_equal_circular", "reference",
               "orbits.holman_wiegert_critical_semimajor_axis(1, 0.5, 0)",
               lambda: orbits.holman_wiegert_critical_semimajor_axis(1.0, 0.5, 0.0), 0.274, 1e-9,

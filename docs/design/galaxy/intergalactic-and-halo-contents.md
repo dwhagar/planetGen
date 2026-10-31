@@ -437,18 +437,18 @@ One root draw, then each link reads only the links before it. Every link that ha
 6. **Globular clusters** from `Mh` (row 9) and **satellites** from the subhalo population of `Mh` (row 10).
 7. **Metallicity** and **rates** from the shapes above, computed at each object's own position (rows 13, 14). There is no stored home position.
 
-The worked example below is arithmetic, not a measurement (re-run and reproduced by the paper check): Moster, Naab and White 2013 at z = 0 (row 2) with the halo taken at the median of the conditional distribution of GEN.1154 (the halo mass function of Tinker et al. 2008 times the relation's scatter; 5.13.5), a virial radius at 200 times the critical density with h = 0.671, and the concentration of row 3. It shows that the chain gives plausible orders of magnitude from one root number. It mixes Moster's h = 0.704 for the relation with h = 0.671 for r200, a small inconsistency the build removes by using one cosmology.
+The worked example below is arithmetic, not a measurement (re-run and reproduced by the paper check): Girelli et al. 2020 at z = 0 (row 2; GEN.1167 replaced Moster, Naab and White 2013's relation, which the first table here was worked with) with the halo taken at the median of the conditional distribution of GEN.1154 (the halo mass function of Tinker et al. 2008 times the relation's scatter; 5.13.5), a virial radius at 200 times the critical density with h = 0.671, and the concentration of row 3. It shows that the chain gives plausible orders of magnitude from one root number. It mixes Girelli's Planck 2015 h = 0.6774 for the relation with h = 0.671 for r200, a negligible inconsistency (stand-in HF3).
 
 | `M*` (solar) | `Mh` (solar) | `M*/Mh` | c200 | r200 (kpc) |
 |---|---|---|---|---|
-| 3e9 | 1.62e11 | 0.019 | 10.1 | 116 |
-| 1e10 | 3.11e11 | 0.032 | 9.4 | 144 |
-| 3e10 | 7.92e11 | 0.038 | 8.6 | 196 |
-| 5e10 | 1.57e12 | 0.032 | 8.0 | 247 |
-| 1e11 | 5.69e12 | 0.018 | 7.0 | 379 |
-| 3e11 | 7.06e13 | 0.0043 | 5.4 | 877 |
+| 3e9 | 1.36e11 | 0.0221 | 10.23 | 109 |
+| 1e10 | 2.75e11 | 0.0364 | 9.53 | 138 |
+| 3e10 | 6.08e11 | 0.0493 | 8.80 | 180 |
+| 5e10 | 1.00e12 | 0.0498 | 8.36 | 212 |
+| 1e11 | 2.41e12 | 0.0415 | 7.65 | 284 |
+| 3e11 | 1.70e13 | 0.0177 | 6.28 | 545 |
 
-Two things follow from it. The reach of 262 kpc (decided 2026-10-15) holds a halo's r200 only up to about `M*` = 5e10; a heavier galaxy's halo extends past the grid, which the halo density term already handles by being a profile, not a cutoff. And the mass range of the first family (3e9 to 2e11) covers r200 from about 120 to 640 kpc.
+Two things follow from it. The reach of 262 kpc (decided 2026-10-15) holds a halo's r200 only up to about `M*` = 8e10; a heavier galaxy's halo extends past the grid, which the halo density term already handles by being a profile, not a cutoff. And the mass range of the first family (3e9 to 2e11) covers r200 from about 110 to 410 kpc.
 
 #### 5.13.2 The table
 
@@ -481,7 +481,7 @@ The five different Sun radii (row 11, removed with the home position); the super
 
 #### 5.13.5 The build that follows approval
 
-**Built so far (GEN.400, rows 1 to 3).** `galaxy/mass_chain.py` holds `draw_mass_chain(galaxy_seed)`: the stellar mass from the double Schechter function (inverse of its cumulative sum over 3e9 to 2e11 solar masses), the halo mass from the Moster relation and the halo mass function (GEN.1154, below; first built as the median inverse with an effective scatter of 0.15 dex over the local slope, GEN.368), the 200c virial radius and the Dutton and Maccio concentration with 0.11 dex. The worked table above is reproduced to its printed digits (re-run for GEN.1154). `constants.MILKY_WAY_MASS` is gone: every Hill sphere read the chain's virial mass until GEN.370 (below). `HALO_MASS_SOLAR` and `HALO_SYSTEM_FRACTION` stay: they are the *stellar* halo (3% of the visible mass), not the dark matter halo this chain draws, and the law for the stellar halo fraction is GEN.406's research.
+**Built so far (GEN.400, rows 1 to 3).** `galaxy/mass_chain.py` holds `draw_mass_chain(galaxy_seed)`: the stellar mass from the double Schechter function (inverse of its cumulative sum over 3e9 to 2e11 solar masses), the halo mass from the Girelli relation (GEN.1167; Moster's before) and the halo mass function (GEN.1154, below; first built as the median inverse with an effective scatter of 0.15 dex over the local slope, GEN.368), the 200c virial radius and the Dutton and Maccio concentration with 0.11 dex. The worked table above is reproduced to its printed digits (re-run for GEN.1167). `constants.MILKY_WAY_MASS` is gone: every Hill sphere read the chain's virial mass until GEN.370 (below). `HALO_MASS_SOLAR` and `HALO_SYSTEM_FRACTION` stay: they are the *stellar* halo (3% of the visible mass), not the dark matter halo this chain draws, and the law for the stellar halo fraction is GEN.406's research.
 
 **Built (GEN.1154).** `galaxy/halo_function.py` holds Tinker et al. 2008's halo mass function on the Eisenstein and Hu 1998 no-wiggle spectrum (Planck 2013 cosmology, sigma_8 0.8344) and `mass_chain.conditional_halo_mass(stellar_mass, share)` is the share-quantile of `P(Mh | M*)` proportional to `n(Mh)` times the relation's log-normal; the chain draws the share from the seed's "halo-mass" stream. The median halo for a galaxy of 1e11 solar masses of stars drops from 1.07e13 to 5.7e12 and for 5e10 from 2.0e12 to 1.6e12; under 2e10 nothing moves by over 0.01 dex. `median_halo_mass` is now the conditional's median; `effective_halo_scatter_dex` and `stellar_halo_slope` are gone.
 

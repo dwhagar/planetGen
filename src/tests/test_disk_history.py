@@ -52,7 +52,7 @@ def test_the_return_fraction_reproduces_madau_and_dickinsons_salpeter_value():
 def test_the_stellar_to_halo_ratio_is_the_chains_at_redshift_zero_and_moves_with_redshift():
     for mass in (1.0e11, 1.0e12, 1.0e13):
         assert disk_history.stellar_to_halo_ratio_at(mass, 0.0) == pytest.approx(mass_chain.stellar_to_halo_ratio(mass))
-    # Moster, Naab and White 2013: a 1e12 halo holds fewer stars at z = 2 than a 1e12 halo does now.
+    # Girelli et al. 2020: a 1e12 halo holds fewer stars at z = 2 than a 1e12 halo does now.
     assert disk_history.stellar_to_halo_ratio_at(1.0e12, 2.0) < disk_history.stellar_to_halo_ratio_at(1.0e12, 0.0)
 
 

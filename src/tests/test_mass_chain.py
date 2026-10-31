@@ -61,8 +61,8 @@ def test_the_function_is_the_papers_per_dex_density():
 
 
 @pytest.mark.parametrize("stellar, halo, ratio, c200, r200", [
-    (3e9, 1.62e11, 0.0185, 10.1, 116), (1e10, 3.11e11, 0.0322, 9.4, 144), (3e10, 7.92e11, 0.0379, 8.6, 196),
-    (5e10, 1.57e12, 0.0319, 8.0, 247), (1e11, 5.69e12, 0.0176, 7.0, 379),
+    (3e9, 1.36e11, 0.0221, 10.23, 109), (1e10, 2.75e11, 0.0364, 9.53, 138), (3e10, 6.08e11, 0.0493, 8.80, 180),
+    (5e10, 1.00e12, 0.0498, 8.36, 212), (1e11, 2.41e12, 0.0415, 7.65, 284), (3e11, 1.70e13, 0.0177, 6.28, 545),
 ])
 def test_the_worked_table_of_the_design_note_is_reproduced(stellar, halo, ratio, c200, r200):
     median = mass_chain.median_halo_mass(stellar)
@@ -73,13 +73,14 @@ def test_the_worked_table_of_the_design_note_is_reproduced(stellar, halo, ratio,
 
 
 def test_the_conditional_halo_is_the_median_relation_inverted_where_the_scatter_is_small():
-    """Up to 3e10 solar masses of stars the first build's median inverse was within 0.03 dex of the conditional
-    (GEN.399); above it the conditional is lighter by the Eddington bias of the steep halo mass function."""
+    """Up to 3e10 solar masses of stars the median inverse is within 0.03 dex of the conditional (GEN.399); above it
+    the conditional is lighter by the Eddington bias of the steep halo mass function (0.06 dex at 6e10, 0.25 at 1e11,
+    0.8 at 2e11 with the 0.2 dex scatter and the relation's flat top, GEN.1167)."""
     for stellar in (3e9, 1e10, 2e10):
         inverse = _inverse_of_the_median_relation(stellar)
         assert abs(math.log10(mass_chain.median_halo_mass(stellar) / inverse)) < 0.03
     gaps = [math.log10(_inverse_of_the_median_relation(s) / mass_chain.median_halo_mass(s)) for s in (6e10, 1e11, 2e11)]
-    assert gaps[0] > 0.15 and gaps == sorted(gaps) and 0.3 < gaps[2] < 0.4
+    assert gaps[0] > 0.04 and gaps == sorted(gaps) and 0.7 < gaps[2] < 0.9
 
 
 def _inverse_of_the_median_relation(stellar):

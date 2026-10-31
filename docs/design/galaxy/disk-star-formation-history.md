@@ -19,7 +19,7 @@ One disk, forty rings out to ten scale lengths, each following gas continuity fr
 | Depletion | `A = 2.5e-4` solar masses/yr/kpc2 per (solar masses/pc2)^1.4, `n = 1.4` | Kennicutt 1998, ApJ 498, 541, eq. 4 (arXiv astro-ph/9712213), already in `tuning` |
 | Return fraction `R` | 0.384 from the generator's own mass function (`IMF_BREAKS_SOL`, `IMF_SLOPES`, the Chabrier function of `stellar-mass-function.md`; 0.371 on the Kroupa function before GEN.927); the same code gives 0.272 for a Salpeter slope of 2.35 from 0.1 to 100 solar masses, Madau and Dickinson's 0.27 | Madau and Dickinson 2014, ARA&A 52, 415 (arXiv 1403.0007), section 2.1: instantaneous recycling above 1 solar mass, white dwarf remnants by the Cummings et al. 2018 relation of `tuning.WD_IFMR_PIECES` (Weidemann 2000's `0.444 + 0.084 m` before GEN.930), 1.4 solar masses to 40, black holes keep all |
 | Halo growth | `46.1 Msun/yr (M / 1e12)^1.1 (1 + 1.11 z) E(z)`, integrated back from the halo's mass today | Fakhouri, Ma and Boylan-Kolchin 2010, MNRAS 406, 2267 (arXiv 1001.2304), eq. 2 |
-| Stars a halo holds | Stellar-to-halo relation with its four parameters moving as `z / (z + 1)` (log M1 11.590 + 1.195, N 0.0351 - 0.0247, beta 1.376 - 0.826, gamma 0.608 + 0.329) | Moster, Naab and White 2013, MNRAS 428, 3121 (arXiv 1205.5807), eqs. 11 to 14 and Table 1 |
+| Stars a halo holds | Stellar-to-halo relation: log MA 11.83 + 0.18 z, A 0.047 (1 + z)^-0.40, beta 0.92 + 0.052 z, gamma 0.728 (1 + z)^-0.16 | Girelli et al. 2020, A&A 634, A135 (arXiv 2001.02230), eqs. 6 to 10 and Table 4 (fit with scatter); Moster, Naab and White 2013 before GEN.1167 |
 | Cosmology | h 0.671, Omega_m 0.3175 (the mass chain's; the Universe is 13.83 Gy old against `UNIVERSE_AGE_GY` 13.8) | `galaxy.mass_chain`; Planck 2018 (arXiv 1807.06209) gives 67.4 and 0.315 |
 
 **The inflow** is the growth of the stellar mass the galaxy's halo holds along its growth track, never below zero. The
@@ -102,8 +102,8 @@ star is drawn from the history's own rate inside its window.
   the young and intermediate shares and averages 1 over the disk, so the disk-wide shares are the history's.
 - **The relation's stellar mass is that of the central galaxy**, bulge, thick disk and thin disk together. The thin disk
   takes the whole of it over its ten Gy, which puts a little too much of the early growth into the thin disk.
-- The halo's mass today is the median for the galaxy's stellar mass with the chain's scatter; Moster's relation puts a
-  galaxy of the Milky Way's mass in a halo about twice as heavy as dynamical estimates.
+- The halo's mass today is the median for the galaxy's stellar mass with the chain's scatter; Girelli's relation puts a
+  galaxy of 5e10 solar masses of stars in a halo of 1.0e12 solar masses (Moster's put it at 1.6e12).
 
 ## Code
 

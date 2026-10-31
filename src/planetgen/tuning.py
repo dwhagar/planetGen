@@ -1197,11 +1197,12 @@ HALO_GROWTH_MASS_EXPONENT = 1.1
 MNRAS 406, 2267, arXiv 1001.2304, eq. 2, read: fitted to the Millennium simulations)."""
 HALO_GROWTH_REDSHIFT_SLOPE = 1.11
 """float: The `1 + 1.11 z` in the same fit's mean growth rate, `46.1 Msun/yr (M / 1e12)^1.1 (1 + 1.11 z) E(z)`."""
-STELLAR_TO_HALO_EVOLUTION = {"log_m1": 1.195, "norm": -0.0247, "beta": -0.826, "gamma": 0.329}
-"""dict: How the stellar-to-halo mass relation moves with redshift: each of its four parameters is its present value
-(`galaxy.mass_chain.LOG_M1`, `N_NORM`, `BETA`, `GAMMA`) plus this times `z / (z + 1)` (Moster, Naab and White 2013,
-MNRAS 428, 3121, arXiv 1205.5807, eqs. 11 to 14 and Table 1, read: the multi-epoch abundance-matching fit with errors
-in the observed masses). It gives the stars a halo of a given mass and age holds, so the disk's gas inflow
+STELLAR_TO_HALO_EVOLUTION = {"log_ma_per_z": 0.18, "norm_exponent": -0.40, "beta_per_z": 0.052, "gamma_exponent": -0.16}
+"""dict: How the stellar-to-halo mass relation moves with redshift (Girelli, Pozzetti, Bolzonella et al. 2020, A&A 634, A135,
+arXiv 2001.02230, Eqs. 7 to 10 and Table 4, the fit with scatter): the log of the peak halo mass
+(`galaxy.mass_chain.LOG_MA`) rises by `log_ma_per_z` per unit of redshift, the normalisation (`A_NORM`) and the high-mass
+slope (`GAMMA`) scale as `(1 + z)` to `norm_exponent` and `gamma_exponent`, and the low-mass slope (`BETA`) rises by
+`beta_per_z` per unit of redshift. It gives the stars a halo of a given mass and age holds, so the disk's gas inflow
 follows the stellar mass the halo's growth builds."""
 HALO_GROWTH_RATE_AT_1E12_MSUN_YR = 46.1
 """float: That fit's amplitude, solar masses per year for a halo of 1e12 solar masses at z = 0. It only sets how the
