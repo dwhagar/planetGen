@@ -426,5 +426,6 @@ def test_an_airless_wet_body_settles_on_the_albedo_its_temperature_keeps():
     law = sa.climate_branches.IceAlbedoLaw(ice_free=0.3, ice_covered=0.62)
     cold, albedo_cold = sa.airless_state(law, 30.0, climate_draws.equilibrium_temperature_k(0.3, 30.0))
     assert albedo_cold == pytest.approx(0.62) and cold == pytest.approx(climate_draws.equilibrium_temperature_k(0.62, 30.0), rel=1e-12)
-    warm, albedo_warm = sa.airless_state(law, 1361.0, climate_draws.equilibrium_temperature_k(0.3, 1361.0))
-    assert albedo_warm == 0.3 and warm == pytest.approx(climate_draws.equilibrium_temperature_k(0.3, 1361.0), rel=1e-12)
+    hot_light = 3500.0                  # an ice-free equilibrium over 305 K
+    warm, albedo_warm = sa.airless_state(law, hot_light, climate_draws.equilibrium_temperature_k(0.3, hot_light))
+    assert albedo_warm == 0.3 and warm == pytest.approx(climate_draws.equilibrium_temperature_k(0.3, hot_light), rel=1e-12)
