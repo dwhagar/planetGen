@@ -19568,15 +19568,6 @@ clears each one.
   unless the code is wrong. Owner: Aux 3 (built GEN.1013).
   Prerequisites: none.
 
-- [ ] **TEST.536 test_deploy_scripts::test_scripts_only_name_repo_paths_that_exist is red on main (bug)**
-  Reported by Sources 2 at 2:55 PM EDT 10-31 (as the lane reported): red
-  on main and not from PERF.221, 222 or 223. Find which script names a
-  repo path that no longer exists (or which new script,
-  scripts/redo_log_advice.py or scripts/oom_advice.py, is not found by
-  the test), fix the script or the path, and say which. Tests and
-  scripts only, lock-free. Owner: Sources 2.
-  Prerequisites: none.
-
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
