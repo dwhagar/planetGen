@@ -2820,8 +2820,8 @@ export function createStageView(host) {
       zoomGoal = 0;
       return;
     }
-    if (!entered && !enteredSystem && !isSectorView(resolved)) {
-      // A window above the sectors, or the whole galaxy, has no range's end to stop at: the zoom is the camera's alone.
+    if (!entered && !enteredSystem) {
+      // Out of an opened sector or system the stage has no range's end to stop at: the zoom is the camera's alone.
       view.zoom = MC.clampDistance(zoomLimits(), want, 1);
       reframe();
       applyView();
@@ -3184,6 +3184,13 @@ export function createStageView(host) {
 
   // For the browser tests: the stage on screen.
   canvasEl.galaxyStage = function () { return stage; };
+  // For the browser tests (MAP.337): the zoom level the camera is at, the window stage whose fit the camera's distance reaches (the one it would load
+  // on from its address), `win.centre.m` being its block size; the whole-galaxy stage when it is out past them all.
+  canvasEl.galaxyZoomLevel = function () {
+    if (!view) return stage;
+    const now = currentCamera();
+    return stageForCamera({ target: now.target, dist: now.dist, quat: now.quat.toArray ? now.quat.toArray() : now.quat });
+  };
 
   // For the browser tests: goTo (MAP.336) with a target as the stage view takes it; true when the move began.
   canvasEl.galaxyGoTo = function (target) { return goTo(target); };
