@@ -1407,7 +1407,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | FM1 | P | T9 | L3 | field_mass.MIN_FIELD_MASS_EARTH 1e-9: a field under this mass is not a field (the belts' line, BG14) | 1e-10 to 1e-8 Earth masses | any field | a survey of warm dust around remnants that finds fields below the line, or none above it | the same replacement as BG14 | Boss, 2026-10-31: the belt minimum of 1e-9 Earth masses stands, the same rule for fields | GEN.1103 | no data |
-| FM2 | P | T9 | L4 | field_mass.COLLISION_LAW: the rubble of a rogue collision follows the rocky main-belt size law (`belt_ledger.ROCKY_LAW`) | the law's breaks and exponents | the stored bodies of a collision field | a measured or modelled largest-fragment mass of a planetary collision that differs from the law's by more than a factor 3 | the largest-fragment reading (LS12) | a stand-in with no source for the rubble of a planet-planet collision | GEN.1105 | no data |
+| FM2 | P | T9 | L4 | field_mass.COLLISION_LAW: the rubble of a rogue collision follows the rocky main-belt size law (`belt_ledger.ROCKY_LAW`) | the law's breaks and exponents | the stored bodies of a collision field | a measured or modelled largest-fragment mass of a planetary collision that differs from the law's by more than a factor 3 | the largest-fragment reading (LS12) | a stand-in with no source for the rubble of a planet-planet collision | - | no data |
 
 ## 6.160 Stand-ins of the lumpy mesh of a small body
 
