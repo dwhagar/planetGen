@@ -2,8 +2,8 @@
 evolution.get_evolutionary_state regression tests.
 
 The most advanced milestone a timeline reports is capped by `max_stage` (the habitability index's ceiling,
-`life_complexity.top_stage`) and by INTELLIGENT_LIFE=False, never by a class letter (GEN.92, GEN.647): a forced
-INTELLIGENT_LIFE=True at a very old age must still stop at the cap it is given. GEN.750: the state reads the schedule the world drew
+`life_complexity.top_stage`) and by INTELLIGENT_LIFE=False, never by a class letter (GEN.92, GEN.647). INTELLIGENT_LIFE=True forces no
+milestone (GEN.1130): at a very old age the state is the latest stage on the schedule, under the cap it is given. GEN.750: the state reads the schedule the world drew
 (`physics.life_timeline`) and draws nothing.
 
 Run with: pytest src/tests/test_evolution.py
@@ -47,9 +47,8 @@ def _stage(star, max_stage=None):
     ("photosynthesis", ["complex_cells", "multicellularity", "technological_civilization"]),
     ("multicellularity", ["technological_civilization"]),
 ])
-def test_a_capped_timeline_never_exceeds_its_ceiling_even_when_forced(max_stage, forbidden_milestones):
-    """INTELLIGENT_LIFE=True at a very old age (every milestone is reachable) must still never report a milestone
-    above the cap."""
+def test_a_capped_timeline_never_exceeds_its_ceiling_when_a_civilization_is_requested(max_stage, forbidden_milestones):
+    """INTELLIGENT_LIFE=True at a very old age (every milestone is reachable) never reports a milestone above the cap."""
     star = _star(intelligent_life=True, age=20.0)
     stage = _stage(star, max_stage)
     assert stage not in forbidden_milestones, f"{max_stage} reported {stage!r} despite its cap"
@@ -71,9 +70,10 @@ def test_intelligent_life_false_does_not_raise_a_capped_timeline():
     assert _stage(star, "photosynthesis") in ("abiogenesis", "photosynthesis")
 
 
-def test_forced_milestone_for_a_capped_timeline_is_its_ceiling_not_no_milestone():
+def test_a_requested_civilization_reports_the_stage_the_schedule_reached():
     star = _star(intelligent_life=True, age=20.0)
     assert _stage(star, "photosynthesis") == "photosynthesis"
+    assert get_evolutionary_state(star, (0.1, 0.5, None, None, None))["stage"] == "photosynthesis"      # nothing is forced past it
 
 
 # --- GEN.750: the state reads a schedule and draws nothing ---------------------------------------------------------
@@ -92,7 +92,7 @@ def test_the_state_reads_the_schedule_it_was_given_and_draws_nothing(age, intell
     if state["stage"] is None:
         assert state["milestone_age_gyr"] is None
     else:
-        assert state["milestone_age_gyr"] <= age or intelligent_life is True
+        assert state["milestone_age_gyr"] <= age
 
 
 def test_the_stage_is_the_latest_one_whose_age_is_not_past_the_star():
@@ -105,12 +105,6 @@ def test_a_schedule_that_never_reaches_a_stage_stops_before_it():
     """A world that cannot make the oxygen has no age for complex cells and the stages after (`None`)."""
     star = _star(age=20.0)
     assert get_evolutionary_state(star, (0.1, 0.5, None, None, None))["stage"] == "photosynthesis"
-
-
-def test_a_forced_civilization_on_a_world_without_oxygen_is_still_not_before_now():
-    star = _star(intelligent_life=True, age=4.0)
-    state = get_evolutionary_state(star, (0.1, 0.5, None, None, None))
-    assert state["stage"] == "technological_civilization" and state["milestone_age_gyr"] == 4.0
 
 
 @pytest.mark.parametrize("class_id", sorted(life_classes.BY_ID))

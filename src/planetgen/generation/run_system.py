@@ -46,6 +46,10 @@ TRISTATE_OPTIONS = [
 ]
 
 
+ODDS_OPTIONS = ("habitable_world", "intelligent_life")
+"""tuple: The options that raise the odds of their outcome and force nothing (GEN.1130): the system may come out without it and says so."""
+
+
 def load_system_file(path):
     """
     Loads a system generation specification from a JSON file.
@@ -188,7 +192,7 @@ def build_system_config(args):
         program_constants.MAX_FLAVOR_TOTAL = 99
         program_constants.FLAVOR_CHANCE_PLANET = 1
 
-    # Intelligent life requires (and forbids the absence of) a habitable world.
+    # Intelligent life raises the odds of a habitable world as well; -intelligent_life leaves them alone.
     if system_config.INTELLIGENT_LIFE is not None:
         system_config.HABITABLE_WORLD = True
 

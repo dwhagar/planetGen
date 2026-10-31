@@ -38,7 +38,7 @@ from planetgen.physics import (
     age_metallicity, alpha_tracks, constants, imf, main_sequence, metallicity, ms_lifetime, post_main_sequence, remnant_mass,
     stellar_abundances, wolf_rayet)
 from planetgen import tuning
-from planetgen.util import draw
+from planetgen.util import draw, request_odds
 from planetgen.physics import unit_registry as units
 
 _km_to_m = units.converter("km", "m")
@@ -545,9 +545,10 @@ def sample_living_star(age_bias=None, large_star=None, rng=draw, habitable_host=
     and the age drawn inside the star's own lifetime (and the default
     star-formation window), so a large star is always still shining;
     `large_star=False` (`-large_star`) redraws any star born that massive.
-    With `habitable_host` (a habitable world is required), the star must
-    be at least `LIFE_MIN_STAR_AGE_GY` old and not a white dwarf, whose
-    progenitor would have engulfed its habitable zone.
+    With `habitable_host` (a habitable world is requested), a star younger
+    than `LIFE_MIN_STAR_AGE_GY` or a white dwarf, whose progenitor would have
+    engulfed its habitable zone, is kept one time in `REQUEST_ODDS`
+    (`util.request_odds.keeps`, GEN.1130) and otherwise drawn again.
 
     `population` draws the age from that population's range instead of the
     whole disk's (see `population_age_range_gy`), and `max_luminosity_sol`
@@ -570,8 +571,6 @@ def sample_living_star(age_bias=None, large_star=None, rng=draw, habitable_host=
             # large star is asked for anyway (+large_star), so it keeps the
             # whole disk's ages rather than fail.
             population, age_law = None, None
-    if habitable_host and population is not None and population_age_range_gy(population)[1] <= pc.LIFE_MIN_STAR_AGE_GY:
-        population, age_law = None, None  # likewise, no star this young can host life yet
     for _ in range(pc.STAR_MODEL_MAX_REDRAWS):
         birth = fe_h if fe_h is not None else birth_fe_h(rng, population, fe_h_peaks, galactic_center_dist_ly)
         if large_star:
@@ -598,11 +597,11 @@ def sample_living_star(age_bias=None, large_star=None, rng=draw, habitable_host=
                 draw.redrawn("star.model_redraw")
                 continue
             age = age_metallicity.tilted_age(birth, population, lambda: sample_star_age_gy(age_bias, rng, population, age_law), rng)
-        if habitable_host and age < pc.LIFE_MIN_STAR_AGE_GY:
+        if habitable_host and age < pc.LIFE_MIN_STAR_AGE_GY and not request_odds.keeps(False, rng):
             draw.redrawn("star.model_redraw")
             continue
         state = evolve_star(mass, age, rng, fe_h=birth, population=population, fe_h_peaks=fe_h_peaks)
-        if state is None or (habitable_host and state["yerkes_class"] == "VII"):
+        if state is None or (habitable_host and state["yerkes_class"] == "VII" and not request_odds.keeps(False, rng)):
             draw.redrawn("star.model_redraw")
             continue
         # A white dwarf is never pre-placed, so the cap never removes one
