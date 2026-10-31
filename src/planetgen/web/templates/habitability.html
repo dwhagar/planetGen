@@ -1,5 +1,5 @@
 {#- What the habitability ratings mean (/help/habitability, web/class_pages.py, UX.90, UX.180); the ids are what the
-    symbols, life scores and chips link to (UX.181). -#}
+    symbols, life scores, and chips link to (UX.181). -#}
 {% extends "base.html" %}
 {% from "partials/poi_key.html" import poi_key with context %}
 {% block content %}
@@ -30,7 +30,7 @@
       {%- endfor %}
     </tbody>
   </table></div>
-  <p>Left to right: Blue, Green, Yellow and Red. The overall symbol takes the colour of the planet's PHI-6 score.</p>
+  <p>Left to right: Blue, Green, Yellow, and Red. The overall symbol takes the colour of the planet's PHI-6 score.</p>
 </section>
 
 <section class="panel" aria-labelledby="where-heading">
@@ -85,14 +85,14 @@
       {%- endfor %}
     </tbody>
   </table></div>
-  <p>Left to right: a score of 0, 3 and 9. A 0 is drawn muted.</p>
+  <p>Left to right: a score of 0, 3, and 9. A 0 is drawn muted.</p>
   <p>{{ life_food }}</p>
 </section>
 
 <section class="panel" aria-labelledby="domains-heading">
   <div class="panel-header"><h2 id="domains-heading">The six PHI-6 domains</h2></div>
-  <p>The chip's colour comes from six domains: pressure, temperature, air, water, radiation and suitability, held under
-  the gates below. Each domain is Blue, Green, Yellow or Red.</p>
+  <p>The chip's colour comes from six domains: pressure, temperature, air, water, radiation, and suitability, held under
+  the gates below. Each domain is Blue, Green, Yellow, or Red.</p>
   <dl>
     {%- for colour, meaning in domain_tiers %}
     <dt>{{ colour }}</dt><dd>{{ meaning }}</dd>
@@ -119,7 +119,7 @@
 </section>
 
 <section class="panel" aria-labelledby="hosts-heading">
-  <div class="panel-header"><h2 id="hosts-heading">Planets of pulsars, neutron stars and black holes</h2></div>
+  <div class="panel-header"><h2 id="hosts-heading">Planets of pulsars, neutron stars, and black holes</h2></div>
   <p>{{ compact_host_rule }}</p>
 </section>
 

@@ -48,14 +48,14 @@ ACTION_TEXT = {
     "delete": ("Delete", "The run's record and log are deleted. Nothing it generated is touched."),
     "fill-habitability": ("Regenerate habitability",
                           "Re-scores the habitability of every planet and moon from the conditions already stored: the "
-                          "PHI-6 index, the six domains with their tiers, the survival equipment levels, the note and "
+                          "PHI-6 index, the six domains with their tiers, the survival equipment levels, the note, and "
                           "the double-star flux swing. It does not re-draw a planet, so after a change that alters how "
                           "planets are drawn a regeneration is needed instead. It runs as a queue run you can follow "
-                          "here, stop and start again; the result is the same however often it runs."),
+                          "here, stop, and start again; the result is the same however often it runs."),
     "fill-map-luminosity": ("Fill map luminosity",
                             "Fills the map luminosity of the scattered phenomena that do not have it yet, from their "
                             "stored masses, so the Galaxy Map's glow includes them. It only fills rows still empty. It "
-                            "runs as a queue run you can follow here, stop and start again."),
+                            "runs as a queue run you can follow here, stop, and start again."),
     "clear-finished": ("Clear finished runs", "Every finished run's record is deleted, leaving the ones still running. "
                                               "Nothing they generated is touched."),
     "queue-pause": ("Pause the queue", "No run starts or takes another unit until you resume the queue. "
@@ -74,7 +74,7 @@ QUEUE_WIDE_ACTIONS = ("clear-finished",)
 
 FILL_COMMANDS = {"fill-habitability": "rescore-habitability", "fill-map-luminosity": "fill-map-luminosity"}
 """dict: The Queue page's start buttons (ADM.129) and the `planetgen` command each starts as a job, with the rules of
-any generation run: refused while another run is live, one run lock, the audit entry, Stop and Retry."""
+any generation run: refused while another run is live, one run lock, the audit entry, Stop, and Retry."""
 
 
 def _is_site_wide(action):
@@ -325,7 +325,7 @@ def admin_queue():
     return _render(
         "admin_queue.html", flashed=True, title="Work Queue", section="admin_queue",
         breadcrumbs=[crumb("Admin", "admin"), crumb("Queue")],
-        description="The generation runs on this server, and the controls to cancel, clear, retry or delete them.",
+        description="The generation runs on this server, and the controls to cancel, clear, retry, or delete them.",
         admin=admin, available=body["available"], queue=_status_view(body["status"]), stopped=_stopped_view(body.get("stopped")), jobs_table=jobs_table, workers=workers,
         warm=_warm_view(warm),
         error=error or flashed.get("error"), message=flashed.get("message"),

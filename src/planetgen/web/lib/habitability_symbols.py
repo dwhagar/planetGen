@@ -23,7 +23,7 @@ OVERALL = "overall"
 """str: The name of the overall symbol, beside the six domains of `DOMAINS`."""
 
 SYMBOL_NAMES = (*DOMAINS, OVERALL)
-"""tuple: The seven symbols: pressure, temperature, air, water, radiation, suitability and overall."""
+"""tuple: The seven symbols: pressure, temperature, air, water, radiation, suitability, and overall."""
 
 LABELS = {
     "pressure": "Pressure",

@@ -190,7 +190,7 @@ al. 2024, [R3502]: planetGen's choice); no stable liquid 0,
 a hard gate."""
 
 X_REF_EARTH = 0.25
-"""float: X_j,ref for carbon, nitrogen and hydrogen, in Earth inventories:
+"""float: X_j,ref for carbon, nitrogen, and hydrogen, in Earth inventories:
 a quarter of Earth's gives tanh(4) = 0.999, a tenth of Earth's 0.38.
 Planetgen's choice (the doc leaves it open)."""
 

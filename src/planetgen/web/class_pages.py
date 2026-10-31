@@ -56,7 +56,7 @@ def classes():
         title="Classes",
         section="classes",
         breadcrumbs=[crumb("Classes")],
-        description="Every class of star, planet, nebula and other object this galaxy survey assigns.",
+        description="Every class of star, planet, nebula, and other object this galaxy survey assigns.",
         rows=rows,
         population=_population_links(),
     )
@@ -120,7 +120,7 @@ def property_help_page():
         title="Properties",
         section="help",
         breadcrumbs=[crumb("Properties")],
-        description="Where the orbit, heat, spin, field, ring and life values on a star, planet or moon page come from.",
+        description="Where the orbit, heat, spin, field, ring, and life values on a star, planet, or moon page come from.",
         **property_help.page(),
     )
 

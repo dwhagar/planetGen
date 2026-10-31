@@ -48,6 +48,7 @@ from planetgen.physics import (
 )
 from planetgen.physics.quantity import Quantity
 from planetgen.util.format import three_figures_or_tiny
+from planetgen.util.wordlist import join_words
 
 ECCENTRICITY_NOTE = "(0 is a circle, 1 is the escape orbit)"
 """str: What a bare eccentricity reads beside its number (GEN.772)."""
@@ -377,7 +378,7 @@ def _colours(names):
         if name.lower().startswith("none (") and name.endswith(")"):
             name = name[6:-1]
         words.append(name[0].lower() + name[1:] if not name[:2].isupper() else name)
-    return ", ".join(words[:-1]) + " and " + words[-1] if len(words) > 1 else words[0]
+    return join_words(words)
 
 
 def _life_class_sentences(life):

@@ -30,7 +30,7 @@
       <button type="submit" class="btn">Search</button>
     </div>
     <p class="hint">Stars is how many stars the system holds. In the search box, <code>stars:3</code> finds triples, <code>stars:3+</code> three or more,
-      and <code>stars:binary</code>, <code>trinary</code>, <code>quaternary</code> or <code>quintenary</code> work too.</p>
+      and <code>stars:binary</code>, <code>trinary</code>, <code>quaternary</code>, or <code>quintenary</code> work too.</p>
     <details class="search-more"{% if state.advanced_open() %} open{% endif %}>
       <summary>Search by object and size</summary>
       <div class="search-fields">
@@ -80,7 +80,7 @@
 {%- if panels is none %}
 <p class="hint">Enter a name above, or pick a tag below, to see matching results.</p>
 {%- elif not panels %}
-<p class="hint">No sectors, systems, stars, planets or moons match.</p>
+<p class="hint">No sectors, systems, stars, planets, or moons match.</p>
 {%- else %}
 {%- for p in panels %}
 <section class="panel" id="search-{{ p.panel }}" aria-labelledby="search-{{ p.panel }}-heading">

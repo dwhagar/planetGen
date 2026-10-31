@@ -135,6 +135,104 @@ def british_spellings(text):
     return found
 
 
+_CLAUSE_STARTS = frozenset("""which who whom whose that where when while but so because then if though although since as it its they
+there this these those he she we you i not also however thus therefore yet whereas unless until after before once""".split())
+"""frozenset: Words that begin a clause, not a list item: "red, which is big and cold" is not a list of three."""
+
+_LEADING_PHRASE = frozenset("""in on at by for from with without during under over near within across between through into onto
+about above below beyond before after if when while since as once because although though yet then thus however also instead
+first second third finally""".split())
+"""frozenset: Words that open an introductory phrase ("In the north, rock and ice cover it") whose comma is not a list comma."""
+
+_FINITE_VERBS = frozenset("""is are was were be been being am has have had can could may might will would shall should must do does did
+holds hold writes write makes make means mean gives give takes take shows show lies lie sits sit stays stay reaches reach forms form
+rises rise falls fall runs run grows grow keeps keep needs need lets let sets set gets get comes come goes go says say tells tell
+calls call counts count rates rate""".split())
+"""frozenset: Verbs that make a stretch of words a clause, not one item of a list."""
+
+_DETERMINERS = frozenset("a an the its their his her this that some each every no any".split())
+"""frozenset: Words an item of a list of noun phrases may open with; a list repeats them ("the day side, the ring and the night side")."""
+
+_AND_OR = re.compile(r"^(?P<first>[^,;:]+?) (?P<join>and|or) (?P<last>[^,;:]+)$")
+_MAX_ITEM_WORDS = 4
+
+
+def _bare(word):
+    return word.strip("()\"'“”‘’.:").lower()
+
+
+def _list_item(words):
+    """True when `words` can be one item of a list: a few words, no clause opener, no finite verb."""
+    if not words or len(words) > _MAX_ITEM_WORDS:
+        return False
+    bare = [_bare(w) for w in words]
+    return bare[0] not in _CLAUSE_STARTS and bare[0] not in ("and", "or") and not any(w in _FINITE_VERBS for w in bare)
+
+
+def _tail_item(segment):
+    """The words a segment can end a list item with: those after its last verb, so "The surface is rock" ends with "rock"."""
+    words = segment.split()
+    for index in range(len(words) - 1, -1, -1):
+        if _bare(words[index]) in _FINITE_VERBS:
+            return words[index + 1:]
+    return words[-_MAX_ITEM_WORDS:]
+
+
+def unpunctuated_lists(text):
+    """
+    The lists in `text` that have no comma before their last "and" or "or", as `[(before, first, join, last)]`: the item before the comma,
+    the item after it, "and" or "or", and the words that follow ("red, green and blue" gives `("red", "green", "and", "blue")`).
+    """
+    plain = _QUOTED.sub(" ", text)
+    found = []
+    for sentence in sentences(plain) or [plain]:
+        depth, start, segments = 0, 0, []
+        for index, ch in enumerate(sentence):
+            depth += ch == "("
+            depth -= ch == ")"
+            if ch == "," and depth <= 0 and not (sentence[index - 1:index].isdigit() and sentence[index + 1:index + 2].isdigit()):
+                segments.append(sentence[start:index])
+                start = index + 1
+        segments.append(sentence[start:])
+        for k in range(1, len(segments)):
+            match = _AND_OR.match(segments[k].strip().rstrip(".!?"))
+            if not match:
+                continue
+            first_words = match["first"].split()
+            last_words = match["last"].split()
+            if not _list_item(first_words) or not last_words or _bare(last_words[0]) in _CLAUSE_STARTS:
+                continue
+            first_word = _bare(first_words[0])
+            if first_word in _LEADING_PHRASE or first_word.endswith("ly"):
+                continue    # "Clouds of gas and dust, by family and contents": a phrase after the comma, not a list item
+            if first_word in ("a", "an", "the") and len(last_words) > 5:
+                continue    # "a giant, a deep hydrogen and helium envelope over a core": two items, the second with a pair inside
+            if first_word in _DETERMINERS and _bare(last_words[0]) not in _DETERMINERS:
+                continue    # "the chronic and acute inspired edges": two adjectives for one noun, not three items
+            if len(first_words) > 1 and first_word.endswith("ing"):
+                continue    # "living on sulfur and carbon": the pair belongs to the verb, not a list of its own
+            if any(_bare(w) in _FINITE_VERBS for w in last_words[:2]):
+                continue
+            previous = segments[k - 1].split()
+            if k == 1 and previous and (_bare(previous[0]) in _LEADING_PHRASE or (len(previous) == 1 and _bare(previous[0]).endswith("ly"))):
+                continue
+            before = _tail_item(segments[k - 1])
+            if not _list_item(before):
+                continue
+            found.append((" ".join(before), match["first"], match["join"], match["last"]))
+    return found
+
+
+def oxford_commas(text):
+    """
+    The lists in `text` that have no comma before their last "and" or "or", as `[("oxford-comma", detail)]`: "red, green and blue" is
+    flagged and "red, green, and blue" is not (Boss, 2:50 PM EDT 2026-10-31). A list is three or more short items (no verb, no clause
+    opener) with a comma between the first two; a clause ("X, which is big and cold"), an introductory phrase ("In the north, rock and
+    ice") and a pair ("red and blue") are not lists. Text in quotation marks is not read.
+    """
+    return [("oxford-comma", f"'{before}, {first} {join} {last}': write a comma before '{join}'") for before, first, join, last in unpunctuated_lists(text)]
+
+
 def sentences(text):
     """
     `text` split into its sentences. A full stop, `!` or `?` ends one when a capital letter or a digit follows after a space, and not
@@ -162,6 +260,8 @@ def check_sentence(sentence, references=False):
     * `ideas`: more than `MAX_SEMICOLONS` semicolons;
     * `banned`: a word or phrase of `BANNED`, with what to write instead;
     * `class-name`: a life class named by its family ("Class 3") where the class has letters ("Class 3a");
+    * `oxford-comma`: a list of three or more with no comma before its last "and" or "or" ("red, green and blue"; Boss, 2:50 PM EDT
+      2026-10-31);
     * `spelling`: a British spelling (`colour`, `centre`, `metre`, `analyse`, `organise`); the site is in American English (Boss,
       10:33 AM EDT 2026-10-31). Quoted passages and the names in `BRITISH_NAMES` are left alone.
     """
@@ -180,6 +280,7 @@ def check_sentence(sentence, references=False):
         if f"{digits}{letter}" not in life_classes.BY_ID:
             found.append(("class-name", f"'Class {digits}{letter}' is not a class: the classes are {', '.join(life_classes.BY_ID)}"))
     found += british_spellings(sentence)
+    found += oxford_commas(sentence)
     return found
 
 
