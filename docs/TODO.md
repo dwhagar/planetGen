@@ -14022,6 +14022,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   must show the round boundary against the measured Solar System one
   only as a plausibility target, never fixed content. Lock work (stored
   roundness and strength change); rides the GEN.1159 window.
+  Pure part merged (#4588), Aux 5 (2026-10-31 3:30 PM EDT): The
+  shape-temperature module physics/shape_temperature.py is merged
+  lock-free (stand-ins SHT1 and SHT2, section 6.162; wiring-register
+  line and change note done): a body's strength falls with the heat it
+  made while its weight shaped it (accretion heat, radioactive heat,
+  tides, capped at the rock's melting). Nothing reads it yet. The wiring
+  step (store the temperature, feed the engine, new column, migration,
+  API version) is lock work and needs GEN.1159 on main first.
   Prerequisites: GEN.1159.
 
 - [ ] **GEN.1202 The generator's disc gas surface density at 8 kpc is 4.3 solar masses per pc2 against 13 measured, which holds the disc cluster maximum mass too low**
