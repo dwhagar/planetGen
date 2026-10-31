@@ -66,7 +66,7 @@ def test_the_large_cloud_forms_stars_at_about_the_rate_and_with_about_the_gas_ob
 
 def test_the_small_cloud_forms_stars_too_and_the_dwarf_spheroidals_do_not():
     assert _history("Small Magellanic Cloud").forming and _history("Small Magellanic Cloud").young_share > 0.0
-    for name in ("Sculptor dwarf", "Draco dwarf", "Ursa Minor dwarf", "Sextans dwarf", "Carina dwarf"):
+    for name in ("Sculptor dwarf", "Draco dwarf", "Ursa Minor dwarf", "Sextans dwarf", "Carina dwarf", "Leo I", "Leo II"):    # TEST.508: Leo I holds no HI
         found = _history(name)
         assert not found.forming and found.young_share == 0.0, name
     for name in ("Sculptor dwarf", "Draco dwarf", "Ursa Minor dwarf", "Sextans dwarf"):

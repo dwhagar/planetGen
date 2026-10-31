@@ -9,7 +9,7 @@ satellites are drawn from the galaxy's seed and halo (`generation/satellites.py`
 Checked against McConnachie (2012, AJ 144, 4; arXiv:1204.1562) on 2026-10-31 (GEN.366): the position and distance of each row are Table 2
 (l, b, D), the half-light radius is the semi-major axis radius of Table 3 in parsecs, the stellar mass is Table 4 (a stellar mass-to-light ratio of
 1) and [Fe/H] is Table 5. The paper gives no half-light radius for the two Magellanic Clouds (they are not fitted by a single profile): 2700 and 1100 pc are
-not from it. The stellar ages are not in the paper either (the ages are the table's own estimates, unchecked). `test_reference_satellites.py` pins
+not from it. The stellar ages are not in the paper either (the ages are the table's own estimates, unchecked; Leo I's was 5 Gy, which asks for a rising history and so for gas, and Leo I has none: Grcevich and Putman 2009 (arXiv:0901.4975) find the Milky Way's dwarfs within about 270 kpc under 1e5 solar masses of HI, and a limit of under 3e4 for Leo I, TEST.508; it is 9 Gy here so the row forms no stars, and the age is a choice, not a measurement). `test_reference_satellites.py` pins
 the checked values. The half-light radius stands in for the half-mass radius. The velocities are zero.
 """
 
@@ -34,7 +34,7 @@ MILKY_WAY_SATELLITES = (
     Satellite("Draco dwarf", 86.4, 34.7, 76.0, 2.9e5, 221.0, "plummer", -1.93, 11.0),
     Satellite("Ursa Minor dwarf", 105.0, 44.8, 76.0, 2.9e5, 181.0, "plummer", -2.13, 12.0),
     Satellite("Sextans dwarf", 243.5, 42.3, 86.0, 4.4e5, 695.0, "plummer", -1.93, 11.0),
-    Satellite("Leo I", 226.0, 49.1, 254.0, 5.5e6, 251.0, "plummer", -1.43, 5.0),
+    Satellite("Leo I", 226.0, 49.1, 254.0, 5.5e6, 251.0, "plummer", -1.43, 9.0),
     Satellite("Leo II", 220.2, 67.2, 233.0, 7.4e5, 176.0, "plummer", -1.62, 9.0),
 )
 """tuple: The Milky Way's satellites (checked against McConnachie 2012: see the module docstring)."""

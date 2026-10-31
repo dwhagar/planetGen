@@ -2,6 +2,32 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2883] - 2026-10-31
+
+**Headline:** The test table of the Milky Way's satellites no longer gives Leo I a rising star-formation history and so gas it does not have.
+
+### Changed
+- **TEST.508.** The Leo I row of `tests/reference_satellites.py` had a mean age of 5 Gy, which the satellite history reads as a rising rate: it formed stars now and held 1.4e6 solar masses of gas, where Leo I has under 3e4 of HI (Grcevich and Putman 2009). The row is 9 Gy now, so it forms none; the age is the table's own choice (its docstring says so). `test_satellite_history` lists Leo I and Leo II among the satellites that form no stars. Test data only; nothing a generator draws or stores changes.
+generation-output: unchanged
+
+## [8.0.2882] - 2026-10-31
+
+**Headline:** A test now shows that the water vapour feedback is already in the surface-air fixed point.
+
+### Added
+- **GEN.973: the vapour of the ocean is a feedback in the fixed point, and a test says so.** Holding the air of the climate-sweep twin and asking the greenhouse table for each flux gives a smaller response than the fixed point does, with the vapour 1.5 times thicker at the warm end. No behaviour changes.
+- generation-output: unchanged
+
+## [8.0.2881] - 2026-10-31
+
+**Headline:** The birth-gas dispersion of 6.5 km/s now has its sources, and the young disc's height is pinned to the Milky Way's young stars.
+
+### Added
+- **Sources for the molecular birth-gas dispersion (GEN.1188, from GEN.536 and GEN.1182).** The CO line widths of nearby spirals (Mogotsi 2016: 7.3 +/- 1.7 km/s; Sun 2020: 6.3 to 7.5 mass-weighted and 4.4 to 4.9 area-weighted; Malhotra 1994: 7.1 to 7.8 near the Sun; Caldu-Primo 2013: 12.0 +/- 3.9 as an upper bound) bracket the 6.5 km/s the generator uses; it stays and is registered as GR16 (confident unverified, tweak L1) in the stand-in registry, in the comments of `structure.py` and `structure_draw.py` and in `galaxy-laws-research.md`.
+- **A Milky Way check on the young disc's height** in `test_structure_draw.py`: the young population stands 0.12 to 0.23 of the old disc's height (35 to 70 pc for 300 pc), the band of the Milky Way's OB stars, HII regions, Cepheids and young open clusters (about 50 pc, 36 to 66 by tracer). It is a Milky Way check, not a law for every galaxy.
+
+generation-output: unchanged
+
 ## [8.0.2880] - 2026-10-31
 
 **Headline:** The stand-in registry rows for the roundness engine now cite all the papers read, and the porosity range is widened to 4 to 9.

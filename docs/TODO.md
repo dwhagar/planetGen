@@ -7667,34 +7667,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   behind its queue).
   Prerequisites: none. Related: GEN.528, GEN.526, GEN.319.
 
-- [ ] **GEN.535 Check the Magellanic gas fraction and supernova-remnant count against the observed Clouds, and the dwarfs that still come out with gas (Leo I)**
-  Open inferences of GEN.528 (merged #2077, 2026-10-17, about 3:02 PM
-  EDT as Core 3 reported), filed by the TODO thread from Core 3's
-  report. (1) The gas fraction of a satellite is the young stars'
-  density against the solar circle's through the Schmidt-Kennicutt
-  exponent (0.33 at the Large Cloud's centre, 0.89 at the Small
-  Cloud's), an inference and not a measured gas map. (2) The Large Cloud
-  keeps about 7 of 67 remnant candidates, so its count is low against
-  the real Cloud's roughly 60 remnants. (3) Leo I still comes out with
-  gas, because its recalled mean age is from GEN.369. Do: read the
-  observed gas masses or fractions of the two Clouds and of Leo I
-  (verified sources only, citations checked first), compare them with
-  the generated fractions, and find why the remnant count is low (the
-  kept fraction, the age range of the remnant progenitors or the gas
-  fraction at the radius); fix the derivation if a law explains it, else
-  record the gap in the gap plan with a label. Done: the generated gas
-  fraction and remnant count of each Cloud sit within the observed range
-  (or the gap is labelled and tunable), Leo I's gas follows a verified
-  age, and the research is dated on the goal issue. Owner: unowned
-  (research, then Core 3 for the fix).
-  Data we hold (2026-10-29 8:55 PM EDT): VizieR galaxy tables (Courteau
-  and Comeron c18, Pizzella 2005, digitised occupation, size and cluster
-  figures) and the Harris file are held under
-  reports/vizier-courteau-comeron-2026-10-17-files and data/harris; the
-  galaxy-laws research is in docs/design/galaxy/galaxy-laws-research.md.
-  Catalog section 3.
-  Prerequisites: none. Related: GEN.528, GEN.369, GEN.526.
-
 - [ ] **GEN.537 Design the plan configuration: the boundaries of the sector plan, how far scatters go, which sector addresses are valid, and the two switches halo and satellite galaxies (both default off)**
   Boss, 2026-10-17, 4:31 PM EDT: "begin planning for the halo and
   intergalactic generation to be a switch that defaults to off, put that
@@ -12075,6 +12047,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.973 and GEN.974; the response today is about 0.4 K per W/m2. When
   the last of the three lands the test passes, the strict xfail fails
   the run, and this item removes the mark.
+  Air 1 finding (GEN.972 design, 2026-10-31) (2026-10-31 12:09 AM EDT):
+  The water vapour feedback is already in the surface-air loop twice:
+  the ocean sets the surface vapour at 0.77 of saturation at the step's
+  own temperature (4.2 to 7.4 kPa across the 0.9 to 1.1 flux sweep), and
+  the radiative-convective column follows Manabe and Wetherald humidity
+  (CO2 doubling warms 1.72 K with the vapour free against 1.04 K held).
+  With the refitted table the sweep responses are 0.54, 0.51, 0.48, 0.45
+  K per W/m2 against the 0.54 lower bound, and the twin sits at 313 K,
+  far above the ice ramp (263 to 283 K), so GEN.972 does not close the
+  strict xfail alone. Re-scoped: this item becomes a held-vapour test
+  (hold the vapour fixed and show the response drops; lock-free, Air 1
+  writes it) plus the runaway-threshold test against GEN.639; no new
+  feedback code unless the held-vapour test shows the loop lacks it. The
+  remaining gap in the sweep goes to GEN.974 and to TEST.509.
   Prerequisites: GEN.972. Related: GEN.752, GEN.639.
 
 - [ ] **GEN.974 Climate feedback 3: cloud albedo on the fixed point (cloud cover changes the reflected share)**
@@ -14392,35 +14378,79 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   request).
   Prerequisites: none. Related: GEN.725.
 
-- [ ] **GEN.1187 Strength constants still without a source: ammonia dihydrate 1993 constants, the melt factor, Andrade creep, ice grain-boundary-sliding laws and the ice phase boundary table**
-  Find sources or report which papers Boss would need to upload for: the
-  ammonia dihydrate 1993 creep constants, the partial-melt strength
-  factor, Andrade creep parameters for the tidal response, ice
-  grain-boundary-sliding flow laws and the ice phase boundary table
-  (pressure-temperature lines for II, III, V, VI). Research item, no
-  code. Owner Sources 1. Source:
-  reports/papers-vs-standins-2026-10-31.md section 7 (the strength
-  papers review of all 14 uploaded and 35 downloaded papers, Boss's
-  request).
-  Prerequisites: none. Related: GEN.1175, GEN.725.
+- [ ] **GEN.1189 Greenhouse refit method: the refit table is blind to the methane share of a hydrogen air and a dense carbon dioxide air is 2 to 8 percent warm, so find a better fit than one L-BFGS network**
+  From Air 1 (GEN.1030/GEN.1032 ready for train 7): a drawn ice giant
+  with a few percent methane reads about 5 percent warm because the
+  refit table does not see the methane share of a hydrogen air, and a
+  dense carbon dioxide air is 2 to 8 percent warm. A round with 3,000
+  designed ice-giant airs did not fix the first and made Earth-like airs
+  5 to 8 K cold, so it was not shipped. Find a better fit method
+  (per-regime fits, a different basis or a second network for
+  hydrogen-dominated airs) and compare against the line-by-line
+  reference; register the fit tier and tweak in GEN.725. Output changes,
+  so it rides a lock window after GEN.1030/GEN.1032 merge. Owner Air 1.
+  Prerequisites: GEN.1032. Related: GEN.1030, GEN.1032, GEN.1033,
+  GEN.725.
 
-- [ ] **GEN.1188 Record the sources of the 6.5 km/s molecular gas dispersion and pin the Milky Way young-star scale height test to the sourced band of 35 to 70 pc**
-  From Sources 1 (reports/gen536-co-velocity-dispersion-2026-10-31.md,
-  reports/gen1182-young-star-scale-height-2026-10-31.md): keep the 6.5
-  km/s stand-in (it sits inside the sourced 7.0 +/- 1.7 and inside the
-  CO range 5 to 9); record its four sources (Caldu-Primo 2013, Mogotsi
-  2016, Sun 2020, Malhotra 1994) in GEN.725 and the structure.py comment
-  as tier Confident Unverified, tweak L1. Young objects of the Milky Way
-  (under about 100 Myr) have an exponential scale height of about 50 pc,
-  36 to 66 pc by tracer (Bobylev and Bajkova 2015 and 2016, Urquhart
-  2011, Bonatto 2006, Joshi 2016, Hao 2021, Moreira 2025, all read); pin
-  the test for a Milky Way twin with a 300 pc old disc to 35 to 70 pc
-  (young over old 0.12 to 0.23). 6.5 km/s gives 66 pc inside it; 7.0
-  gives 73 pc just outside, so the value stays. The band is a Milky Way
-  check, not a law for every galaxy (six low-mass edge-on spirals show
-  young over old of 0.40 to 0.59, Seth 2005). No stored output changes,
-  lock-free. Owner Sources 1.
-  Prerequisites: none. Related: GEN.536, GEN.725.
+- [ ] **GEN.1190 Replace unsourced rheology constants with the sourced ones: partial-melt factor, Andrade exponent and ratio, ice grain-boundary sliding and the ice melting curves**
+  From Sources 1
+  (reports/gen1187-strength-constant-sources-2026-10-31.md): sourced
+  values exist for the partial-melt factor exp(-alpha x melt) (alpha 30
+  for diffusion creep, 30 to 45 for dislocation creep, Hirth and
+  Kohlstedt 2003; ice melt law B 22), the Andrade exponent 0.2 to 0.4
+  and the Andrade over Maxwell ratio near 1 at low stress (the repo's
+  0.3 and 1.0 stay; the rock ratio has a source conflict, record it),
+  ice grain-boundary sliding n 1.8, grain exponent 1.4, Q 49 kJ/mol (two
+  sources agree, prefactors from one secondary table), and the ice
+  melting curves for Ih, III, V, VI and VII with all coefficients (IAPWS
+  2011). Not found and still open: the ammonia dihydrate 1993 constants
+  and the solid-solid ice boundaries (Boss uploads, in order of value:
+  Durham, Kirby and Stern 1993 JGR 98:17667, Goldsby and Kohlstedt 2001
+  JGR 106:11017, Choukroun and Grasset 2007 J. Chem. Phys. 127:124506).
+  Replace the matching stand-ins in the tidal rheology and the ice-type
+  strength table (GEN.1183) with these values and update their registry
+  rows (tier and tweak level) in GEN.725. Changes tidal heating inputs,
+  so it rides a Tides 1 lock window. Owner Tides 1.
+  Prerequisites: none. Related: GEN.1183, GEN.1185, GEN.725.
+
+- [ ] **GEN.1191 Satellite supernova remnants scale with the satellite's own star formation instead of the Milky Way's per-system rate**
+  The Large Cloud has 31 candidates and 5.5 kept against 59 listed
+  (Maggi 2016, read); the Small Cloud 9.6 and 3.9 against about 23
+  (recalled; find a source). Candidates use the Milky Way's per-system
+  rate while a Cloud has 3 to 4 times the specific star formation, and
+  the gas factor (capped at 1, falling to 0.06 at one half-mass radius)
+  counts the young stars twice; scaling by star formation would give
+  about 100 and 25. Scale remnants by the satellite's star formation
+  rate per star against the solar circle's (uncapped) and place them by
+  the young stars' radial profile; check against 59 and the Small Cloud
+  count. From Aux 4
+  (reports/gen535-magellanic-gas-remnants-2026-10-31.md). Output
+  changing, a lock item built on a separate branch. Owner Aux 4.
+  Prerequisites: none. Related: GEN.535.
+
+- [ ] **GEN.1192 Satellite gas: a gas disc longer than the stars and a longer depletion time at low density**
+  The Small Cloud's gas is 5.9e7 solar masses against a recalled 4e8
+  (about 7 times low) because gas is the star-formation inversion over
+  the half-mass circle only; the Large Cloud (3.1e8 against about 4.9e8
+  for the whole system, Bruns 2005) is fine. Give satellites a gas disc
+  longer than the stars and a longer depletion time at low density;
+  verify Stanimirovic 1999 and Staveley-Smith 2003 for the Small Cloud's
+  HI first. From Aux 4
+  (reports/gen535-magellanic-gas-remnants-2026-10-31.md). Output
+  changing, a lock item built on a separate branch. Owner Aux 4.
+  Prerequisites: none. Related: GEN.535.
+
+- [ ] **GEN.1193 Stripping rule on a satellite's distance to its host so gas follows Grcevich and Putman**
+  No distance-to-host stripping exists: dwarfs within about 270 kpc of a
+  host are gas-free and beyond it gas-rich (Grcevich and Putman 2009,
+  read; their Leo I limit under 3e4 solar masses is second-hand). Add a
+  stripping rule on the satellite's distance to its host scaled by the
+  host's halo (about 270 kpc for the Milky Way); open the Leo I table
+  row first (no named satellite exists in src, only the test fixture
+  row). From Aux 4
+  (reports/gen535-magellanic-gas-remnants-2026-10-31.md). Output
+  changing, a lock item built on a separate branch. Owner Aux 4.
+  Prerequisites: none. Related: GEN.535.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -19156,6 +19186,18 @@ clears each one.
   update that test with it. Test data only, no generated value changes.
   Owner Core 4.
   Prerequisites: none. Related: GEN.366.
+
+- [ ] **TEST.509 The climate sweep twin sits at 313 K, far above the 288 K of the Earth it stands for: make it a real Earth twin so the sweep tests the feedbacks where they act**
+  From Air 1 (GEN.972 design): the climate sweep twin in
+  src/tests/test_climate_sweep.py is at 313 K at its reference flux, far
+  above the ice ramp (263 to 283 K) and Earth's 288 K, so GEN.972 cannot
+  close the strict xfail and the response (0.45 to 0.54 K per W/m2) is
+  measured on a hot world. Make the twin an Earth twin (about 288 K at
+  its flux, Earth composition) and re-measure the response and the 0.54
+  lower bound against it; the bound's source needs rechecking with the
+  new twin. Test and fixture work, no generated value changes. Owner Air
+  1.
+  Prerequisites: none. Related: GEN.972, GEN.973, GEN.974.
 
 ## USR: User accounts
 

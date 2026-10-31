@@ -2134,3 +2134,7 @@ Baseline: PR #1817.
 | GEN.366 | 8.1 | Globular clusters |
 | GEN.1184 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | GEN.1182 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.1188 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.1187 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.535 | 8.1 | Components and wanderers |
+| TEST.508 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |

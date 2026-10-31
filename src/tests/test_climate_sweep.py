@@ -18,7 +18,7 @@ import dataclasses
 import pytest
 
 from planetgen.generation.config import SystemConfig
-from planetgen.physics import constants, surface_air as sa
+from planetgen.physics import atmosphere_state, constants, surface_air as sa
 from planetgen.util import draw
 
 SENSITIVITY_K_PER_W_M2 = (2.0 / 3.7, 5.0 / 3.7)
@@ -96,3 +96,23 @@ def test_the_response_to_the_flux_is_not_above_the_published_climate_sensitivity
                                        "is the Planck response with the vapour of the ocean's evaporation, under the published lower bound")
 def test_the_response_to_the_flux_is_not_below_the_published_climate_sensitivity(sweep):
     assert all(response > SENSITIVITY_K_PER_W_M2[0] for response in _responses(sweep))
+
+
+@pytest.fixture(scope="module")
+def twin_gravity():
+    with pytest.MonkeyPatch.context() as monkeypatch:
+        setting, _start = _earth_twin_setting(monkeypatch)
+    return setting.gravity_m_s2
+
+
+def test_the_vapour_of_the_ocean_is_a_feedback_in_the_fixed_point(sweep, twin_gravity):
+    """GEN.973: the fixed point already lets the vapour follow the temperature (the ocean holds it at a share of saturation at each step's own temperature, and the
+    column's humidity follows Manabe and Wetherald). Hold the air of the unchanged twin and ask the table for each flux of the sweep: the response is smaller than the
+    fixed point's, so the vapour feedback is in it and the held-air response is the Planck one with the lapse rate."""
+    flux, airs = sweep
+    held = airs[1.0].partials_pa
+    held_response = (atmosphere_state.greenhouse_warming(held, twin_gravity, flux * FACTORS[-1]).surface_temperature_k
+                     - atmosphere_state.greenhouse_warming(held, twin_gravity, flux * FACTORS[0]).surface_temperature_k) / (flux * (FACTORS[-1] - FACTORS[0]))
+    free_response = (airs[FACTORS[-1]].temperature_k - airs[FACTORS[0]].temperature_k) / (flux * (FACTORS[-1] - FACTORS[0]))
+    assert 0.0 < held_response < free_response
+    assert airs[FACTORS[-1]].partials_pa["H2O"] > 1.5 * airs[FACTORS[0]].partials_pa["H2O"]          # the vapour that carried the extra warming

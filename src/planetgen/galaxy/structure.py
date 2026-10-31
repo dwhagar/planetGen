@@ -13,8 +13,8 @@ The populations' scale heights and dispersions follow ONE law, here, from the di
 gas and the way a disc's dispersion grows with age:
 
 - A thin-disc star of age `t` has a vertical dispersion `sigma_z(t)^2 = sigma_gas^2 + sigma_age^2 (t / tau)^(2 beta)`:
-  the dispersion of the gas it was born from (a molecular stand-in of 6.5 +/- 1 km/s until GEN.536 reads the CO
-  dispersions; the atomic gas's is 10 +/- 2 km/s: Tamburro et al. 2009, arXiv:0903.0183) plus a heating that grows as `t^beta` (`beta` = 0.441 +/- 0.007:
+  the dispersion of the gas it was born from (molecular, 6.5 +/- 1 km/s inside the CO widths of 7.3 +/- 1.7 km/s, Mogotsi et al.
+  2016, and 4.4 to 7.5 km/s, Sun et al. 2020, GEN.536; the atomic gas's is 10 +/- 2 km/s: Tamburro et al. 2009, arXiv:0903.0183) plus a heating that grows as `t^beta` (`beta` = 0.441 +/- 0.007:
   Sharma and Hayden 2020, arXiv:2004.06556 Table 2; 0.5 +/- 0.1: Mackereth et al. 2019, arXiv:1901.04502).
 - `sigma_age` is fixed by the disc's central vertical dispersion, which is a fraction of the circular speed
   (`0.248 +/- 0.038 V`, Martinsson et al. 2013, arXiv:1307.8130, 30 spirals): the root mean square of `sigma_z` over
