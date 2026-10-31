@@ -863,7 +863,7 @@ class StarSystem:
         special = self._special_companion_chance()
         percent = prevalence.percent(config, "binary_system")
         placed = multistar.Placed("star", _kg_to_msun(primary.mass), place_terms.born_mass_solar(primary),
-                                  fe_h=primary.metallicity_fe_h, record=member_record.of_star(primary))
+                                  fe_h=getattr(primary, "metallicity_fe_h", None), record=member_record.of_star(primary))
         if count is not None:
             pass
         elif special is not None:

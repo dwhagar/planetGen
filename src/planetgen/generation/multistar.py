@@ -53,6 +53,7 @@ from statistics import NormalDist
 
 from planetgen import tuning
 from planetgen.generation import member_record
+from planetgen.generation import close_binary_trend
 from planetgen.generation.phenomena import hosts, system_types
 from planetgen.physics import (
     accretion, brown_dwarf, constants, imf, mass_boundaries, mass_loss, ms_lifetime, neutron_star, remnant_mass, remnant_progenitors, roche,
@@ -84,6 +85,10 @@ or more, the law that peaks at log P = 3.5 (Moe and Di Stefano 2017); the sigma 
 the second is a design default."""
 
 MASSIVE_PRIMARY_MIN_MASS_SOL = 2.1
+
+CLOSE_COMPANION_AXIS_AU = 10.0
+"""float: The axis inside which a star's [Fe/H] moves its chance of a companion (GEN.103; Moe, Kratter and Badenes 2019 measured
+the trend for periods under 10^4 days, which is 10 AU for two solar masses)."""
 ROOT_MAX_AXIS_AU = 20_000.0
 """float: The widest root pair (0.1 pc), a directive raises it."""
 
@@ -644,6 +649,56 @@ def star_count_weights(initial_mass_sol, prevalence=1.0):
     return hosts.star_count_weights(companion_class(initial_mass_sol), prevalence)
 
 
+def _tilted(u, share, weight):
+    """`u`, a uniform draw, moved so the part of the range under `share` of it has the odds of `share` times `weight`: the
+    inside part stretches to the new share, the outside part to what is left."""
+    if not 0.0 < share < 1.0:
+        return u
+    odds = share / (1.0 - share) * weight
+    moved = odds / (1.0 + odds)
+    if u < moved:
+        return u * share / moved
+    return share + (u - moved) * (1.0 - share) / (1.0 - moved)
+
+
+def _inside_share(initial_mass_sol):
+    """The share of a star's companions that are inside `CLOSE_COMPANION_AXIS_AU`: the part of the period law of its mass
+    under the period of that axis for the star and a companion of the mean mass ratio."""
+    low, high = companion_ratio_range(initial_mass_sol)
+    total = initial_mass_sol * (1.0 + 0.5 * (low + high))
+    period_d = _yr_to_d(math.sqrt(CLOSE_COMPANION_AXIS_AU ** 3 / total))
+    mu, sigma = PERIOD_LAWS_LOG10_DAYS["massive" if initial_mass_sol >= MASSIVE_PRIMARY_MIN_MASS_SOL else "solar"]
+    return NormalDist(mu, sigma).cdf(math.log10(period_d))
+
+
+def close_trend(initial_mass_sol, fe_h, prevalence=1.0):
+    """
+    The `star-count` weights of a star of this birth [Fe/H], and the weight its root pair's inside range carries (GEN.103,
+    GEN.705). The table is the Sun's neighbourhood (`fe_h` 0); a metal-poorer star has more companions inside
+    `CLOSE_COMPANION_AXIS_AU`, a metal-richer one fewer, by `close_binary_trend.scaled_close_chance` (the factor on the *odds*
+    of a companion inside the axis), and the chance of one outside it stays. The chance of any companion moves with it, and
+    the share of the companions that are inside moves with it too: the weight returned multiplies the odds of the root pair
+    being inside (`_Builder.period_days`).
+
+    Returns:
+        tuple: `(weights, inside_weight)`; `(None, 1.0)` for a star with no [Fe/H] or at the factor's 1, where the table stands.
+    """
+    if close_binary_trend.close_companion_factor(fe_h) == 1.0:
+        return None, 1.0
+    weights = star_count_weights(initial_mass_sol, prevalence)
+    inside = _inside_share(initial_mass_sol)
+    total = sum(weights)
+    chance = 1.0 - weights[0] / total
+    if not (0.0 < chance < 1.0 and 0.0 < inside < 1.0):
+        return None, 1.0
+    inside_chance = chance * inside
+    moved = close_binary_trend.scaled_close_chance(inside_chance, fe_h)
+    new_chance = min(moved + chance - inside_chance, 1.0 - 1.0e-9)
+    new_inside = moved / new_chance
+    scaled = (total * (1.0 - new_chance),) + tuple(w * new_chance / chance for w in weights[1:])
+    return scaled, (new_inside / (1.0 - new_inside)) / (inside / (1.0 - inside))
+
+
 def expected_star_count(initial_mass_sol, max_stars=MAX_MEMBERS, prevalence=1.0):
     """The mean number of stars in the system of a star of this initial mass (GEN.545): the `star-count` table's 1 to 7
     stars, and the tail from 7 up to `max_stars` that `_draw_star_count` walks, in expectation."""
@@ -658,8 +713,12 @@ def expected_star_count(initial_mass_sol, max_stars=MAX_MEMBERS, prevalence=1.0)
     return mean
 
 
-def _draw_star_count(initial_mass_sol, max_stars, prevalence, rng):
-    count = hosts.draw_star_count(companion_class(initial_mass_sol), prevalence, rng)
+def _draw_star_count(initial_mass_sol, max_stars, prevalence, rng, weights=None):
+    """The number of stars: one draw of the `star-count` table, or of `weights` (`close_trend`'s) when the caller moved them."""
+    if weights is None:
+        count = hosts.draw_star_count(companion_class(initial_mass_sol), prevalence, rng)
+    else:
+        count = rng.choices(range(1, len(weights) + 1), weights=weights)[0]
     ratio = TAIL_RATIOS[0]
     while count >= 7 and count < max_stars and rng.random() < min(1.0, ratio * prevalence):
         count += 1
@@ -800,8 +859,10 @@ def classify_pair(a, b, axis_au, e):
 class _Builder:
     """Draws the orbits of one tree shape, top down."""
 
-    def __init__(self, leaves, age_yr, rng, fixed=None, max_axis_au=math.inf):
+    def __init__(self, leaves, age_yr, rng, fixed=None, max_axis_au=math.inf, inside_weight=1.0):
         self.max_axis_au = max_axis_au
+        self.inside_weight = inside_weight
+        """float: The weight on the odds that the root pair is inside `CLOSE_COMPANION_AXIS_AU` (`close_trend`)."""
         self.leaves = leaves
         self.age_yr = age_yr
         self.rng = rng
@@ -886,7 +947,7 @@ class _Builder:
             return WIDE_COMPACT_AXIS_AU
         return math.inf
 
-    def period_days(self, law, mass, a_lo, a_hi, massive):
+    def period_days(self, law, mass, a_lo, a_hi, massive, inside_weight=1.0):
         lo = _yr_to_d(math.sqrt(a_lo ** 3 / mass))
         hi = _yr_to_d(math.sqrt(a_hi ** 3 / mass)) if math.isfinite(a_hi) else math.inf
         u = self.rng.random()
@@ -912,6 +973,13 @@ class _Builder:
         weight = 1.0 if massive else system_types.TUNING_KNOBS["tight_tail_weight"]
         split = min(max(dist.cdf(0.0), p_lo), p_hi)
         tail, rest = (split - p_lo) * weight, p_hi - split
+        if inside_weight != 1.0:
+            # The odds of an axis inside `CLOSE_COMPANION_AXIS_AU` follow the star's [Fe/H] (`close_trend`): the draw's
+            # inside part grows or shrinks, the outside part keeps its shape.
+            edge = min(max(math.log10(_yr_to_d(math.sqrt(CLOSE_COMPANION_AXIS_AU ** 3 / mass))), log_lo), log_hi)
+            reach = min(max(dist.cdf(edge), p_lo), p_hi)
+            inside = (reach - p_lo) * weight if reach <= split else tail + (reach - split)
+            u = _tilted(u, inside / (tail + rest), inside_weight)
         target = u * (tail + rest)
         point = p_lo + target / weight if target < tail else split + (target - tail)
         return 10.0 ** dist.inv_cdf(min(max(point, 1.0e-15), 1.0 - 1.0e-15))
@@ -1013,7 +1081,8 @@ class _Builder:
                 axis = 10.0 ** (math.log10(low) + rng.random() * (math.log10(high) - math.log10(low)))
                 period_d = 365.25 * math.sqrt(axis ** 3 / total)
             elif fixed is None:
-                period_d = self.period_days(law, total, a_lo, a_hi, massive)
+                period_d = self.period_days(law, total, a_lo, a_hi, massive,
+                                            self.inside_weight if parent is None else 1.0)
                 if period_d is None:
                     draw.redrawn("pair.no_allowed_period")
                     continue
@@ -1518,7 +1587,8 @@ def _companion_mass(birth, rng):
     return birth * rng.uniform(*companion_ratio_range(birth))
 
 
-def _roster(placed, age_yr, rng, max_stars, n_stars, prevalence, companion=_DRAW_COMPANION, bound_runaway=False):
+def _roster(placed, age_yr, rng, max_stars, n_stars, prevalence, companion=_DRAW_COMPANION, bound_runaway=False,
+            star_weights=None):
     """The members and the shape units of a tree: `(leaves, units)`, leaf 0 being the placed object."""
     birth = placed.birth_mass_solar
     if placed.kind == "star":
@@ -1559,7 +1629,7 @@ def _roster(placed, age_yr, rng, max_stars, n_stars, prevalence, companion=_DRAW
             if mode is not None:
                 _feed_compact(leaf, compact, mode, types[9])
         if n_stars is None:
-            count = _draw_star_count(birth, max_stars - (compact is not None), prevalence, rng)
+            count = _draw_star_count(birth, max_stars - (compact is not None), prevalence, rng, star_weights)
             if merger == "massive":
                 count = max(1, count - 1)
             if stripped:
@@ -1956,11 +2026,12 @@ def draw_member_tree(placed, age_yr, rng=draw, max_stars=MAX_MEMBERS, n_stars=No
         group = draw_young_group(placed, age_yr, rng, max_stars, prevalence, bound_runaway, max_axis_au, pair_placed)
         if group is not None:
             return group
-    leaves, units = _roster(placed, age_yr, rng, max_stars, n_stars, prevalence, companion, bound_runaway)
-    return _grow_tree(leaves, units, age_yr, rng, n_stars, max_axis_au, pair_placed)
+    weights, inside_weight = close_trend(placed.birth_mass_solar, placed.fe_h, prevalence) if placed.kind == "star" else (None, 1.0)
+    leaves, units = _roster(placed, age_yr, rng, max_stars, n_stars, prevalence, companion, bound_runaway, weights)
+    return _grow_tree(leaves, units, age_yr, rng, n_stars, max_axis_au, pair_placed, inside_weight)
 
 
-def _grow_tree(leaves, units, age_yr, rng, n_stars, max_axis_au, pair_placed):
+def _grow_tree(leaves, units, age_yr, rng, n_stars, max_axis_au, pair_placed, inside_weight=1.0):
     """The `MemberTree` of the `leaves` in the shape `units` names (the placed leaf first): hierarchies are drawn until one
     clears the stability and extent screens, and when none does the lightest loose member is dropped and the draw tries again."""
     dropped = 0
@@ -1973,7 +2044,7 @@ def _grow_tree(leaves, units, age_yr, rng, n_stars, max_axis_au, pair_placed):
         if len(units) == 1 and isinstance(units[0], int):
             return _single(leaves[units[0]], age_yr, dropped, rng)
         for _ in range(TREE_RESTARTS):
-            builder = _Builder(leaves, age_yr, rng, max_axis_au=max_axis_au)
+            builder = _Builder(leaves, age_yr, rng, max_axis_au=max_axis_au, inside_weight=inside_weight)
             try:
                 builder.place(shape_of(units, rng), None, 0, None)
             except _Failed:
