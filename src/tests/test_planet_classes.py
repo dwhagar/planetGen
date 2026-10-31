@@ -64,9 +64,9 @@ CASES = {
     "T": body(body_type="g", mass_earth=6.0),
     "I": body(body_type="g", mass_earth=20.0),
     "J": body(body_type="g", mass_earth=300.0),
-    "D": airless(water_mass_fraction=0.3, mass_earth=0.01),
+    "D": airless(mass_earth=0.01, roundness_ratio=3.0),
     "S": airless(mass_earth=3.0, gravity_g=1.4),
-    "C": airless(mass_earth=0.05, gravity_g=0.3),
+    "C": airless(mass_earth=0.2, gravity_g=0.3),
     "A": body(share_so2=0.2, p_o2_kpa=0.0),
     "N": body(atmospheric_pressure_pa=9e6, surface_temperature_k=700.0, hydrosphere="vapour", ocean_fraction=0.0,
               p_o2_kpa=0.0, p_n2_kpa=0.0, p_ar_kpa=0.0, p_co2_kpa=8800.0),
@@ -241,3 +241,21 @@ def test_gen_1142_lines():
     assert pc.classify(dict(mask, atmospheric_pressure_pa=29000.0)) != "L" and pc.classify(dict(mask, atmospheric_pressure_pa=310000.0)) != "L"
     put_kpa(mask, "o2", 20.0)
     assert pc.classify(mask) != "L"                                      # too much oxygen to need a mask
+
+
+def test_class_d_is_airless_round_and_under_a_tenth_of_an_earth_mass_and_the_water_rule_is_gone():
+    """GEN.1160 (Boss 8:41 PM EDT 2026-10-30): D is airless, round and below 0.1 Earth masses, C is airless at or above it; water decides nothing."""
+    assert pc.classify(airless(mass_earth=0.01, roundness_ratio=3.0, water_mass_fraction=0.0)) == "D"
+    assert pc.classify(airless(mass_earth=0.01, roundness_ratio=3.0, water_mass_fraction=0.5)) == "D"
+    assert pc.classify(airless(mass_earth=0.0999, roundness_ratio=3.0)) == "D" and pc.classify(airless(mass_earth=0.1, roundness_ratio=3.0)) == "C"
+    assert pc.classify(airless(mass_earth=0.5, roundness_ratio=9.0, water_mass_fraction=0.5)) == "C"
+
+
+def test_a_terrestrial_body_under_a_roundness_ratio_of_one_is_an_asteroid_with_no_letter():
+    for ratio in (0.0, 0.5, 0.9999):
+        assert pc.classify(airless(mass_earth=1e-5, roundness_ratio=ratio)) is None
+        assert pc.classify_values(airless(mass_earth=1e-5, roundness_ratio=ratio)) is pc.ASTEROID
+    assert pc.classify(airless(mass_earth=1e-5, roundness_ratio=1.0)) == "D"
+    assert pc.ASTEROID.letter is None and pc.ASTEROID.name == "Asteroid"
+    assert pc.classify(body(body_type="g", mass_earth=300.0, roundness_ratio=0.1)) == "J"           # a giant is never an asteroid
+    assert pc.classify(airless(mass_earth=0.01)) == "D"                                              # a body that states no ratio is not one

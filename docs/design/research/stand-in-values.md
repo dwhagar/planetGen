@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 938 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 935 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -39,13 +39,13 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T1 | 140 | 13 | 8 | 1 | 0 | 162 |
 | T2 | 111 | 36 | 0 | 1 | 0 | 148 |
 | T3 | 79 | 36 | 5 | 10 | 0 | 130 |
-| T4 | 37 | 5 | 0 | 14 | 10 | 66 |
+| T4 | 37 | 3 | 0 | 14 | 10 | 64 |
 | T5 | 43 | 17 | 0 | 1 | 0 | 61 |
-| T6 | 90 | 67 | 18 | 41 | 0 | 216 |
+| T6 | 90 | 66 | 18 | 41 | 0 | 215 |
 | T7 | 27 | 8 | 8 | 8 | 0 | 51 |
 | T8 | 0 | 1 | 1 | 5 | 1 | 8 |
 | T9 | 17 | 14 | 4 | 42 | 19 | 96 |
-| All | 544 | 197 | 44 | 123 | 30 | 938 |
+| All | 544 | 194 | 44 | 123 | 30 | 935 |
 
 ## How the labels were given
 
@@ -1428,12 +1428,6 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | CL7 | P | T9 | L1 | planet_classes.json class E (the deep-frozen world, was the retired wet reducing E): temperature_k lt 233.15 (-40 C), and class P from there up to 273.15 K | 213 to 253 K | terrestrial bodies with air | a measured change of the surface (ice behaviour, a habitable subsurface ocean) between 233 K and 253 K | the lines of the habitability index for cold | Boss's decision, 7:06 PM EDT 10-30 (P ends at -40 C); GEN.1143 and GEN.29 find most air-bearing bodies are cold, with a median near 125 K for the old Q bodies | - | - |
 | CL6 | P | T9 | L1 | planet_classes.json class O: ocean_fraction min 0.8 (was 0.9) and class H: ocean_fraction lt 0.2 (was 0.15); M is 0.2 to 0.8 | O 0.75 to 0.9; H 0.1 to 0.25 | terrestrial bodies with air | the ocean share of measured or modelled Earth-like worlds (Boss asked for the source of the 20 percent) | the land share of the habitable-zone model of the planet generator's water inventory | Boss's recollection (20 and 80 percent); GEN.1145: ocean share by tenths has a hole from 50 to 80 percent, so the lines sit in it | - | - |
 
-## 6.104 Stand-ins of the dwarf planet population
-
-| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
-|---|---|---|---|---|---|---|---|---|---|---|---|
-| DPM1 | P | T6 | L1 | dwarf_population.ICE_BODY_FRACTION 0.5: the ice mass fraction at and above which a body is as weak as pure ice; the round mass runs log-linearly from the rock value at no ice to the ice value here | 0.3 to 1.0 | belt members and dwarf planets | a body of 20 to 40 percent ice whose measured shape is far from the mixed round mass (Ceres, round at 9.4e20 kg and about a quarter water, sits inside it) | the relaxed hydrostatic mass from the body's strength and heat (BR9) | educated guess from physics (a mixture is as weak as its weak phase once that phase is half the mass) | GEN.1092 | - |
-
 ## 6.105 Stand-ins of the field dispersal
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
@@ -1559,8 +1553,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | BR5 | P | T2 | L1 | survival of a belt in a giant-planet instability alone: 0.1 to 0.5 of the mass (50 to 90 percent lost), then half of the rest by resonances (BR3) | 0.05 to 0.7 | belts of systems with a Nice type instability | a belt of such a system outside the range | N-body instability runs with the system's giants | Walsh et al. 2011 (READ); Morbidelli et al. 2015 (READ) | - | - |
 | BR6 | P | T1 | L0 | dwarf_population.SOTER_MU_PLANET 100: Soter's planet discriminant: a body with mu = M over the mass of the others in its zone above 100 is a planet | threshold 10 to 1000 (the gap is 4 to 5 orders) | bodies orbiting a star in a mature system | a system whose bodies fill the gap between mu 1 and 100 | Margot's discriminant (BR7) as the cross-check | Soter 2006 (arXiv:astro-ph/0608359, READ) | GEN.1092 | - |
 | BR7 | P | T1 | L0 | dwarf_population.MARGOT_COEFFICIENT_EARTH 1.9e-4 and dwarf_population.MARGOT_C 2 sqrt 3: Margot's orbit-clearing mass: 1.9e-4 C^(3/2) (a over 1 au)^(9/8) (M* over Msun)^(5/2) Earth masses with C = 2 sqrt 3; planet if Pi = M over this is at least 1 | none (printed) | bodies orbiting a main-sequence star | a body with Pi above 1 that has not cleared its zone in the star's lifetime | the same with the star's own lifetime (exponent 5/8 and 3/4 form) | Margot 2015 (arXiv:1507.06300, READ) | GEN.1092 | - |
-| BR8 | P | T2 | L0 | the radius where a solid body turns round (potato radius): 200 km for ice, 300 km for rock (3.3e19 kg and 3.4e20 kg) | 150 to 400 km | icy and rocky small bodies | a measured round body well below the radius or a lumpy one well above | the relaxed hydrostatic mass from the body's strength and heat (BR9) | Lineweaver and Norman 2010 (arXiv:1004.1091, READ); stands for Thomas 2010 | - | - |
-| BR9 | P | T4 | L1 | dwarf_population.ROUND_MASS_ICE_KG 3.2e20 and dwarf_population.ROUND_MASS_ROCK_KG 3.2e21: the mass of a fully relaxed hydrostatic body: ice 1e20 to 1e21 kg, rock 1e21 to 1e22 kg (the dwarf planet band, geometric centres) | one decade each way | dwarf planets and large minor bodies | a body inside the band with a measured shape that is not an equilibrium figure | Bierson and Nimmo 2019 and Thomas 2010 read and fitted to composition and heat | design band; Bierson and Nimmo and Thomas not reached for this table | GEN.1092 | - |
+| BR8 | P | T2 | L0 | the radius where a solid body turns round (potato radius): 200 km for ice, 300 km for rock (3.3e19 kg and 3.4e20 kg) | 150 to 400 km | icy and rocky small bodies | a measured round body well below the radius or a lumpy one well above | the roundness engine's strengths (`physics/roundness.py`, GEN.1158; the BR9 band is retired, GEN.1160) | Lineweaver and Norman 2010 (arXiv:1004.1091, READ); stands for Thomas 2010 | - | - |
 | BR10 | P | T2 | L0 | the largest body a young icy disc grows: radius about 1 750 km, at most 3 to 4 percent of the initial solids, nearly independent of disc mass, stellar mass and age | 1 000 to 2 500 km | icy discs at 30 to 150 au round 1 to 3 solar mass stars | a Kuiper-type disc whose largest body is outside this radius | the order statistic of the size law (GEN.1061) checked against it | Kenyon and Bromley 2008 (arXiv:0807.1134, READ) | - | - |
 | BR11 | P | T1 | L0 | the Kuiper belt size law: cold bright-end slope 1.5 (+0.4 -0.2), break H_B 6.9; hot slope 0.87, break 7.7; faint-end slope near 0.2; masses hot 0.01 and cold 3e-4 Earth masses; classical belt 0.010 Earth masses, mostly near 100 km, its largest 2 percent of its mass | measured errors | Kuiper-type discs | a belt whose size law is outside the errors | a size law derived from the disc's own collisional equilibrium | Fraser et al. 2014 (arXiv:1401.2157, READ); Bernstein et al. 2004 (arXiv:astro-ph/0308467, READ) | - | - |
 | BR12 | P | T2 | L0 | post-main-sequence survival of a planet or belt: inside about 5 au it is lost, beyond it survives and its orbit widens by M_initial over M_final | 3 to 8 au | stars of 1 to 8 solar masses | a planet or belt measured near a white dwarf inside 3 au | the engulfment radius of the star's own giant branch (built for white dwarfs: widen_for_mass_loss) | Debes and Sigurdsson 2002 (arXiv:astro-ph/0202273, READ) | - | - |
@@ -1575,7 +1568,6 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | BR21 | P | T9 | L0 | belt_ledger.LEDGER_MAX_SHARE 0.95, belt_ledger.SOLVE_TOLERANCE 1e-3 and belt_ledger.SOLVE_MIN_KM 1e-3: the most of the belt's mass the stored bodies may hold, and the stopping test and bracket of the search for the belt's largest body | share 0.9 to 0.99 | every belt and outer disc | not applicable (a guard and a numerical bracket) | a guard from the cost of a draw | needed output (mass is conserved) | GEN.1069 | - |
 | BR22 | P | T2 | L0 | body_status.ZONE_HILL_RADII 2 sqrt 3: the half-width of the zone of a body, in its Hill radii, within which Soter's mu counts the other bodies (Margot's C, so the two discriminants use one zone) | 2 to 5 Hill radii | bodies orbiting a star | a zone width at which a Solar System planet's mu falls below 100 or a dwarf planet's rises above it | the zone from the chaotic-zone width of BR2 | Margot 2015 (arXiv:1507.06300, READ) | GEN.1069 | - |
 | BR23 | P | T2 | L0 | body_status.LAMBDA_K: the k of Stern and Levison's Lambda = k m^2 / P, fixed so that Lambda is 1 at Margot's clearing mass at 1 au round the Sun (6.7e5 per Earth mass squared per year); their own k was not read | none (a normalisation) | bodies orbiting a star | a Lambda that puts a Solar System dwarf planet above 1 or a planet below it | Stern and Levison's printed k | Soter 2006 (arXiv:astro-ph/0608359, READ) quoting Stern and Levison 2002 | GEN.1069 | - |
-| BR24 | P | T4 | L1 | body_status.ROUND_ROCK_SHIFT_DECADES 1 and ROUND_THRESHOLD 0.5: the roundness of a body is 1 minus the compaction taper (1e19 to 1e21 kg for ice) moved up one decade for rock, round at 0.5 (1e20 kg of ice, 1e21 kg of rock, the lower edges of the BR9 bands) | shift 0.5 to 1.5 decades; threshold 0.3 to 0.7 | icy and rocky small bodies | a measured round body below the half-round mass of its composition or a lumpy one above | BR8 and BR9 read and fitted to composition and heat | design bands of BR8 and BR9 | GEN.1069 | - |
 
 ## 6.96 Stand-ins of the irregular orbits
 

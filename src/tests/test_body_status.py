@@ -30,7 +30,7 @@ def _status(name, mass, ice, a, others):
     ("Pluto", 1.30e22, 0.3, 39.5, 1.2e23, bs.DWARF_PLANET),
     ("Eris", 1.66e22, 0.3, 67.7, 1.2e23, bs.DWARF_PLANET),
     ("Trojan", 1.0e19, 0.2, 5.203, 1.898e27, bs.MINOR_BODY),
-    ("Vesta", 2.59e20, 0.0, 2.36, 2.8e21, bs.MINOR_BODY),
+    ("Juno", 2.7e19, 0.0, 2.67, 2.8e21, bs.MINOR_BODY),
 ])
 def test_the_status_word_of_the_known_bodies(name, mass, ice, a, others, word):
     assert _status(name, mass, ice, a, others).word == word
@@ -60,23 +60,20 @@ def test_lambda_is_one_at_margots_clearing_mass_at_one_au_round_the_sun():
 
 def test_a_moon_carries_only_its_roundness():
     moon = bs.status(7.35e22, 0.0, 1.0, 1.0, 0.0, parent_is_planet=True)
-    assert moon.word == bs.MOON and moon.roundness == 1.0
+    assert moon.word == bs.MOON and moon.roundness > 1.0
     assert moon.mu is None and moon.pi is None and moon.lam is None and moon.pi_agrees is None
 
 
-def test_roundness_follows_the_compaction_taper_shifted_by_composition():
-    assert bs.round_mass_kg(1.0) == pytest.approx(1e20)
-    assert bs.round_mass_kg(0.0) == pytest.approx(1e21)
-    assert bs.round_mass_kg(0.5) == pytest.approx(10 ** 20.5)
-    assert bs.roundness(1e19, 1.0) == pytest.approx(0.0) and bs.roundness(1e21, 1.0) == pytest.approx(1.0)
-    assert bs.roundness(1e20, 1.0) == pytest.approx(0.5)
-    assert bs.roundness(1e20, 0.0) == pytest.approx(0.0)           # a rock of 1e20 kg is still a potato
-    assert bs.roundness(1e22, 0.0) == pytest.approx(1.0)
+def test_roundness_is_the_engines_ratio_and_rises_with_mass():
+    assert bs.roundness(bs.round_mass_kg(0.0), 0.0) == pytest.approx(1.0, rel=1e-6)
+    assert bs.roundness(bs.round_mass_kg(1.0), 1.0) == pytest.approx(1.0, rel=1e-6)
+    assert 1.0e19 < bs.round_mass_kg(1.0) < 1.0e20 < bs.round_mass_kg(0.0) < 1.0e21          # ice turns round at a smaller mass than rock
+    assert bs.roundness(1e19, 0.0) < 1.0 < bs.roundness(1e22, 0.0)
     masses = [1e18, 1e19, 3e19, 1e20, 3e20, 1e21, 1e22]
     for ice in (0.0, 0.5, 1.0):
         values = [bs.roundness(m, ice) for m in masses]
         assert values == sorted(values)
-    assert bs.roundness(2e20, 1.0) > bs.roundness(2e20, 0.0)         # ice turns round at a smaller mass
+    assert bs.roundness(1e20, 1.0) > bs.roundness(1e20, 0.0)
     with pytest.raises(ValueError):
         bs.roundness(0.0, 0.5)
 

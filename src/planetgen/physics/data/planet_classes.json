@@ -65,6 +65,10 @@
     "body_type": {
       "label": "body type",
       "note": "t terrestrial, g giant"
+    },
+    "roundness_ratio": {
+      "label": "roundness ratio",
+      "note": "the mean radius over the radius at which the body's own weight beats the strength of its material; 1 or more is round (physics/roundness.py)"
     }
   },
   "rows": [
@@ -104,7 +108,7 @@
     },
     {
       "letter": "D",
-      "name": "Small icy body",
+      "name": "Small airless world",
       "kind": "t",
       "when": [
         {
@@ -112,12 +116,12 @@
           "lt": 10.0
         },
         {
-          "quantity": "water_mass_fraction",
-          "min": 0.01
+          "quantity": "mass_earth",
+          "lt": 0.1
         }
       ],
-      "sentence": "A small icy body: no air and at least 1 percent of its mass water or ice.",
-      "basis": "design: 1 percent, between the dry rocky bodies (under 1e-4) and the icy ones (5 to 50 percent)"
+      "sentence": "A small airless world: round (its own weight beats the strength of its material) and under 0.1 Earth masses, with no air.",
+      "basis": "design (Boss 8:41 PM EDT 2026-10-30): airless, round (the roundness ratio, which Asteroid bodies fail) and below 0.1 Earth masses; the water rule is dropped. 0.1 Earth masses is the planet minimum inside the snow line"
     },
     {
       "letter": "S",
@@ -144,10 +148,14 @@
         {
           "quantity": "pressure_pa",
           "lt": 10.0
+        },
+        {
+          "quantity": "mass_earth",
+          "min": 0.1
         }
       ],
-      "sentence": "A dead world: rock with no air (under 10 Pa).",
-      "basis": "design: 10 Pa, the edge of an exosphere"
+      "sentence": "A dead world: rock with no air (under 10 Pa) at 0.1 Earth masses or more.",
+      "basis": "design: 10 Pa, the edge of an exosphere; 0.1 Earth masses and up (Boss 8:41 PM EDT 2026-10-30)"
     },
     {
       "letter": "A",
@@ -398,5 +406,17 @@
     "D",
     "N"
   ],
-  "core_note": "Boss (6:30 PM EDT 2026-10-23): H, P, O, J, M, I, C, D and N are the core classes. Keep their letters and meanings as close to today's as the conditions allow."
+  "core_note": "Boss (6:30 PM EDT 2026-10-23): H, P, O, J, M, I, C, D and N are the core classes. Keep their letters and meanings as close to today's as the conditions allow.",
+  "asteroid": {
+    "name": "Asteroid",
+    "kind": "t",
+    "when": [
+      {
+        "quantity": "roundness_ratio",
+        "lt": 1.0
+      }
+    ],
+    "sentence": "An asteroid: a body whose own weight does not beat the strength of its material, so it is not round. It is an object type, not a planet class, has no class letter, and can be a moon.",
+    "basis": "Boss 8:41 PM EDT 2026-10-30 and 10:26 PM EDT: bodies under a roundness ratio of 1 are the object type Asteroid"
+  }
 }

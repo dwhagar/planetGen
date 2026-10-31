@@ -153,3 +153,20 @@ def population_values(population):
         return None, None
     density = None if makeup.bulk_density_kg_m3 is None else makeup.bulk_density_kg_m3 / 1000.0
     return density, makeup.water + makeup.ice
+
+
+def grain_density_kg_m3(ice, metal=0.0):
+    """The density of a body of this ice and metal share of its mass and no porosity: its grains mixed by volume (`roundness.GRAIN_DENSITIES_KG_M3`), the rest rock."""
+    rock = 1.0 - ice - metal
+    grains = roundness.GRAIN_DENSITIES_KG_M3
+    return 1.0 / (ice / grains["ice"] + metal / grains["metal"] + rock / grains["rock"])
+
+
+def round_mass_for(ice, metal=0.0, quantile=None):
+    """The mass, kg, at which a body of this ice and metal share (no porosity) turns round: its round radius at the median strength (or at `quantile`), as a sphere of its grain density."""
+    return roundness.round_mass_kg(grain_density_kg_m3(ice, metal), ice, metal, draw=quantile)
+
+
+def ratio_for(mass_kg, ice, metal=0.0, quantile=None):
+    """The roundness ratio of a body of this mass, ice and metal share (no porosity), at the median strength (or at `quantile`): 1 or more is round."""
+    return roundness.roundness_ratio_from_mass(mass_kg, grain_density_kg_m3(ice, metal), ice, metal, draw=quantile)

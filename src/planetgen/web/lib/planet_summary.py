@@ -23,7 +23,9 @@ PROSE_ROLES = {"life": "life", "timeline": "life"}
 def _class_sentence(name, row, values):
     code = values.get("planet_class") or escape(str(row.get("planet_class") or ""))
     giant = row.get("body_type") == "g"
-    kind = ("Class " + code + " " if code else "") + ("gas giant" if giant else "world")
+    ratio = row.get("roundness_ratio")
+    asteroid = not code and not giant and ratio is not None and ratio < 1.0          # GEN.1160: under a roundness ratio of 1 a body has no class, it is an Asteroid
+    kind = "asteroid" if asteroid else ("Class " + code + " " if code else "") + ("gas giant" if giant else "world")
     zone = sheet_registry.ZONE_NAMES.get(str(row.get("zone") or "").lower())
     where = f" in the {zone}" if zone else ""
     article = "an" if kind[:1] in "aeiouAEIOU" else "a"

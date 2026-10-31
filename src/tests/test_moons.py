@@ -54,9 +54,12 @@ def make_host_planet(host_star, mass_earth, zone, moon_count=None):
 def assert_moons_are_valid(host):
     for i, moon in enumerate(host.moons):
         assert moon.is_moon
-        assert moon.planet_class in prog_c.PLANET_CLASSES
-        shown = prog_c.PLANET_CLASSES[moon.planet_class]
-        assert moon.body_type in (shown["type"], shown.get("also_type"))  # GEN.1142: a rocky moon with a hydrogen air is class T
+        if moon.planet_class is None:      # GEN.1160: an Asteroid, which has no class letter
+            assert moon.roundness_ratio < 1.0 and moon.body_type == "t"
+        else:
+            assert moon.planet_class in prog_c.PLANET_CLASSES
+            shown = prog_c.PLANET_CLASSES[moon.planet_class]
+            assert moon.body_type in (shown["type"], shown.get("also_type"))  # GEN.1142: a rocky moon with a hydrogen air is class T
         assert moon.zone == host.zone
         assert math.isfinite(moon.mass) and moon.mass > 0
         ceiling = planet_kind.moon_mass_ceiling_kg(host.mass, host.body_type == "g")

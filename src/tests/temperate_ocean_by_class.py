@@ -26,7 +26,7 @@ def temperate_ocean_counts(bodies):
     every, temperate, wet = collections.Counter(), collections.Counter(), collections.Counter()
     for body, _is_moon in bodies:
         quantities = planet_classes.quantities(planet_classes.values_from_body(body))
-        letter = body.planet_class
+        letter = body.planet_class or class_sweep_cli.ASTEROID_LABEL
         every[letter] += 1
         temperature = quantities["temperature_k"]
         if temperature is not None and TEMPERATE_K[0] <= temperature <= TEMPERATE_K[1]:
