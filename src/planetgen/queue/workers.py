@@ -60,10 +60,15 @@ WORKER_MEMORY_MB = 300
 HOST_MEMORY_SHARE = 0.6
 """float: The share of the host's memory the workers may take at most; the rest is for MySQL, Redis and the web server."""
 
-SCATTER_WORKER_MEMORY_MB = 600
-"""int: What one worker takes while it scatters stars (PERF.220). The bright-star scatter of 2026-10-31 had 36 workers at
-16,285 MB (about 450 MB each and still growing) on a 15,992 MB host and was killed; the idle stages before it took 3 to
-5 GB. A stand-in sized from that run: a scatter worker is taken as 600 MB, so 60 percent of a 16 GB host is 15 workers."""
+SCATTER_WORKER_MEMORY_MB = 900
+"""int: What one worker takes at most while it scatters stars (PERF.220). The bright-star scatter of 2026-10-31 had 36
+workers at 16,285 MB on a 15,992 MB host and the kernel killed it (MySQL first, at 3:22 AM EDT, then the workers, 450 to
+900 MB resident each, by Boss's kernel log). The cap is sized for the 900 MB end, not the mean."""
+
+STAGE_MEMORY_SHARE = 0.5
+"""float: The share of the host's memory a memory-heavy stage's workers may take (less than `HOST_MEMORY_SHARE`): MySQL's
+buffer pool, Redis, the web server and the kernel keep the rest, so a stage that grows past its guess is slowed, not
+killed. 50 percent of a 16 GB host in 900 MB workers is 8."""
 
 MEMORY_HEAVY_KINDS = {"scatter-mass": SCATTER_WORKER_MEMORY_MB, "scatter-luminosity": SCATTER_WORKER_MEMORY_MB,
                       "scatter-backfill": SCATTER_WORKER_MEMORY_MB, "scatter-band": SCATTER_WORKER_MEMORY_MB}
@@ -280,7 +285,7 @@ def host_worker_cap():
 
 def stage_worker_cap(kind):
     """
-    The most workers a stage of command `kind` may use at once (PERF.220): `HOST_MEMORY_SHARE` of the host's memory in
+    The most workers a stage of command `kind` may use at once (PERF.220): `STAGE_MEMORY_SHARE` of the host's memory in
     workers of what that stage's worker takes (`MEMORY_HEAVY_KINDS`), at least 1. `None` for a stage whose workers are
     ordinary (the host cap and the run's count rule it) or where the OS does not say how much memory there is. What a
     stage generates does not depend on how many workers share it (`work.task_seed`), so the cap only changes the time.
@@ -289,7 +294,7 @@ def stage_worker_cap(kind):
     total = _physical_memory_bytes()
     if per_worker_mb is None or total is None:
         return None
-    return max(1, int(total * HOST_MEMORY_SHARE / (per_worker_mb * 2 ** 20)))
+    return max(1, int(total * STAGE_MEMORY_SHARE / (per_worker_mb * 2 ** 20)))
 
 
 def count_worker_processes(listing):
