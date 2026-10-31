@@ -60,8 +60,18 @@ def test_the_score_bands_are_built_from_the_limit_table():
     assert hab.MASK_MIN_KPA == pytest.approx(limit("mask_min_kpa"))
 
 
+def _chosen_pairs():
+    """The limits where the built table and the research notes gave two different values, as `(name, built, notes, value in use)`."""
+    out = []
+    for row in protection_limits.LIMIT_ROWS:
+        if row.built is None or row.notes is None or row.built == row.notes:
+            continue
+        out.append((row.name, row.built, row.notes, row.value))
+    return out
+
+
 def test_where_the_notes_and_the_built_table_differ_the_more_permissive_value_is_in_use():
-    pairs = {name: (built, notes, value) for name, built, notes, value in protection_limits.chosen_pairs()}
+    pairs = {name: (built, notes, value) for name, built, notes, value in _chosen_pairs()}
     assert pairs == {
         "mask_min_kpa": (14.3, 20.0, 14.3), "pressure_no_gear_kpa": (50.0, 70.0, 50.0),
         "pressure_hyperbaric_max_kpa": (10000.0, 5000.0, 10000.0), "inspired_o2_min_kpa": (8.0, 19.5, 8.0),
