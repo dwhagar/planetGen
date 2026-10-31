@@ -237,6 +237,8 @@ SECTIONS = (
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.121", "6.121 Stand-ins of the Lagrange trojans",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.122", "6.122 Stand-ins of the albedo colour of the star",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.125", "6.125 Stand-ins of the whole bodies at Lagrange points",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.126", "6.126 Stand-ins of the roundness engine and the binding energy",
