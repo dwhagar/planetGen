@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 975 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 978 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -38,14 +38,14 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 |---|---|---|---|---|---|---|
 | T1 | 140 | 13 | 8 | 1 | 0 | 162 |
 | T2 | 112 | 36 | 0 | 1 | 0 | 149 |
-| T3 | 84 | 38 | 5 | 10 | 0 | 137 |
+| T3 | 84 | 40 | 5 | 10 | 0 | 139 |
 | T4 | 40 | 5 | 0 | 15 | 10 | 70 |
 | T5 | 44 | 17 | 0 | 1 | 0 | 62 |
-| T6 | 95 | 72 | 20 | 51 | 0 | 238 |
+| T6 | 96 | 72 | 20 | 51 | 0 | 239 |
 | T7 | 27 | 8 | 8 | 8 | 0 | 51 |
 | T8 | 0 | 1 | 1 | 5 | 1 | 8 |
 | T9 | 19 | 14 | 4 | 42 | 19 | 98 |
-| All | 561 | 204 | 46 | 134 | 30 | 975 |
+| All | 562 | 206 | 46 | 134 | 30 | 978 |
 
 ## How the labels were given
 
@@ -587,6 +587,9 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | SL2 | P | T2 | L0 | stellar_library.FUV_OVER_XUV 1.12 (the far-ultraviolet 912 to 1700 A power of a star's chromosphere over its XUV 5 to 911 A power; median of the eleven MUSCLES stars) | 0.3 to 2.3 (the eleven stars' own range) | stars with a corona, 2900 to 5200 K; applied to every temperature | a star whose measured far-ultraviolet is not within a factor of 3 of its XUV | the star-by-star HLSP spectra, or a relation against rotation and age (Linsky et al. 2020; Youngblood et al. 2017 Ca II K relations) | test_stellar_library_real::test_the_far_ultraviolet_of_a_muscles_star_is_the_corona_and_not_the_photosphere | - | - |
 | SL3 | T | T5 | L0 | stellar_library.FUV_IN_UV_C 0.89 (the chromospheric far ultraviolet is spread evenly in wavelength over 91.2 to 170 nm, and the share above 100 nm is UV-C) | 0.8 to 0.95 | the split of the corona's light between the ionising band and UV-C | a measured spectrum with the 91.2 to 100 nm part above 20 percent of the band | the HLSP spectra (Lyman alpha at 121.6 nm lies inside UV-C either way) | test_stellar_spectra::test_a_star_with_a_corona_has_more_far_ultraviolet_and_ionising_light_and_the_same_visible | - | - |
 | SL4 | P | T6 | L0 | photolysis.blended_spectral_ratio (the rate per unit 91.2 to 200 nm flux of a star is its chromospheric power share times the Sun's ratio 1 plus the photospheric share times the blackbody template ratio of its temperature; GEN.982) | the weighting 0 to 1 | every star the haze methane supply is asked of | a measured rate of methane around a cool active star more than a factor of 3 off the blend | a band-by-band integral of the cross section over the star's spectrum (MUSCLES HLSP) | test_aerosols::test_a_cool_active_star_is_not_given_the_blackbody_templates_small_methane_rate | - | - |
+| HZ1 | P | T3 | L1 | aerosols.HAZE_MONOMER_RADIUS_UM (0.03, 0.1): the radius of the monomers of a haze aggregate (Titan's about 0.05 from Huygens DISR, Tomasko et al. 2008, second hand through the Arney et al. 2016 haze model; lab tholin 0.03 to 0.1) | the span itself | hazes of methane airs | a measured monomer radius outside it | a haze microphysics model (CARMA, Lavvas 2010) | test_aerosols::test_titans_own_mass_flux_gives_a_haze_of_titans_order_with_aggregates_of_some_microns | - | - |
+| HZ2 | P | T3 | L1 | aerosols.HAZE_FRACTAL_DIMENSION 2.0 (aggregates grown by cluster-cluster coagulation, 1.8 to 2.2; Titan's about 2: Cabane et al. 1993, Tomasko et al. 2008, both second hand) | 1.8 to 2.2 | hazes of methane airs | a measured dimension under 1.7 or over 2.3 | the aggregate model of a haze microphysics code | test_aerosols::test_the_grain_is_where_it_falls_out_as_fast_as_it_coagulates | - | - |
+| HZ3 | P | T6 | L0 | aerosols.haze_grain (the aggregate grows until it falls out as fast as it coagulates: the Smoluchowski half-time 3 eta / (4 k T n) of the column's number equals the Stokes fall time; one layer, monodisperse, Brownian, continuum kernel, no electric charge) | the closure within a factor of 3 in radius | hazes of methane airs | Titan's measured depth 9.6 from its production 1e-14 to 3.5e-14 g per cm2 per s more than a factor of 3 off | a bin-resolved coagulation and settling model | test_aerosols::test_titans_own_mass_flux_gives_a_haze_of_titans_order_with_aggregates_of_some_microns | - | - |
 | SL5 | P | T6 | L0 | photolysis.shielded_column_mol_m2 (light is absorbed in one layer, the column of optical depth 1 at the species' mean UV cross section of Hu, Seager and Bains 2012 table 6, so a thick air is photolysed only in that column; GEN.982) | the column within a factor of 2 (Hu's critical pressure 126 Pa at 1 ppm methane against 1 / sigma giving 260 Pa) | H2O, NH3, CH4, CO2, H2S in a thick air | a modelled methane photolysis rate of Titan's air more than a factor of 3 off the 3e9 to 1e10 molecules per cm2 per s that the column gives | a photochemical column model with the species' cross sections by wavelength | test_photolysis::test_the_methane_the_sun_can_break_over_the_earths_area_is_within_the_range_of_the_anoxic_methane_fluxes | - | - |
 | SL4 | P | T5 | L0 | stellar_spectra: the grids are solar metallicity; the models hold no chromosphere (SP2 adds it); a giant cooler than 3500 K reads the log g 4.5 dwarf; the part of a bin the grid does not reach takes the blackbody and the bins are renormalised to one (closure 0.97 to 1.00) | none | stars of 2300 to 50000 K | a metal-poor or metal-rich star whose ultraviolet differs from the solar-metallicity model by more than 0.2 dex | metallicity-dependent grids (ATLAS9 and PHOENIX both have them; a larger download) | test_stellar_library_real::test_the_library_covers_the_temperatures_the_generator_makes_stars_at | - | - |
 

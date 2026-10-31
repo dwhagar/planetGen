@@ -16,11 +16,12 @@ from 0.1 to its limit; `cloud_cover` is 0 without a condensate, else uniform on 
 albedo of 1 and an asymmetry of 0.85 (the Monte Carlo table of part 06 3.10).
 
 **Haze (10.2, stand-in).** Above a CH4/CO2 ratio of 0.1 (thick above 0.2; a tenth of the production in hydrogen-rich air) methane
-photolysis makes a haze. The supply is diffusion limited, `N K_zz f_CH4 / H_a`, with `N` the air at the level where the methane
-column is one Lyman-alpha optical depth, `K_zz` log-uniform on 1e6 to 1e10 cm2/s (a nuisance parameter, decision 12), times a yield
-log-uniform on 0.01 to 1. The steady depth is the particles' mass flux over their fall speed (Stokes with the Cunningham slip
-correction) summed down the air column, `tau = 3 Q_ext Mdot / (4 rho_p r_eff) integral dz / v_f`, with the particle radius
-log-uniform on 0.05 to 0.3 micron and the density of the Titan tholin (1000 kg/m3). The Titan laws (9.6 at 500 nm) are a test
+photolysis makes a haze. The supply is the smaller of the diffusion-limited one, `N K_zz f_CH4 / H_a`, with `N` the air at the level where the methane
+column is one Lyman-alpha optical depth and `K_zz` log-uniform on 1e6 to 1e10 cm2/s (a nuisance parameter, decision 12), and the most methane the star's far
+ultraviolet can break (`photolysis.photon_limited_flux_mol_m2_s`, GEN.982), times a yield log-uniform on 0.01 to 1. The grains are fractal
+aggregates (dimension 2) of monomers of radius log-uniform on 0.03 to 0.1 micron and the density of the Titan tholin (1000 kg/m3); they grow until they fall out
+as fast as they coagulate (`haze_grain`, GEN.1229: the Brownian half-time of the column's number equals the Stokes fall time with the Cunningham slip
+correction), the steady column is the mass flux times that fall time, and the depth is the monomers' extinction of it, `tau = 3 Q_ext Mdot t_fall / (4 rho_p a)`. The Titan laws (9.6 at 500 nm) are a test
 target, never a preset. The extinction goes as `lambda^-a` with `a` between 0.97 and 2.34 (aggregates); the absorption follows the
 Khare tholin imaginary index at 450, 550 and 650 nm. The haze is part of the air the temperature is solved with (GEN.851): the fixed point of
 `surface_air.solve` reads `haze_of` at each step, which gives the share of the absorbed sunlight the haze takes (`haze_absorbed_share`, the tholin's
@@ -45,6 +46,7 @@ import math
 from dataclasses import dataclass
 
 import numpy as np
+from scipy.optimize import brentq
 
 from planetgen.physics import activity, air_column, atmospheric_radiation, constants, gases, photolysis, saturation, stellar_spectrum
 from planetgen.util import draw
@@ -84,7 +86,15 @@ HAZE_H2_FRACTION = 0.3
 HAZE_YIELD_RANGE = (0.01, 1.0)
 HAZE_KZZ_RANGE_M2_S = (1e2, 1e6)
 """tuple: K_zz, 1e6 to 1e10 cm2/s (Gao 2018: 1e6 to 1e8; Adams 2019: 1e8 to 1e10)."""
-HAZE_RADIUS_UM = (0.05, 0.3)
+HAZE_MONOMER_RADIUS_UM = (0.03, 0.1)
+"""tuple: The radius of the monomers a haze grain is an aggregate of, micron: Titan's are about 0.05 (Huygens DISR, Tomasko et al. 2008, second hand through the Arney
+et al. 2016 haze model, which takes 0.05 for the monomers of an Archean haze), and the lab tholin monomers are 0.03 to 0.1. [Stand-in, tier confident
+unverified, tweak L1: the span is the sourced values' spread.]"""
+HAZE_FRACTAL_DIMENSION = 2.0
+"""float: The fractal dimension of a haze aggregate: grown by cluster-cluster coagulation they have 1.8 to 2.2 (Titan's haze aggregates, about 2: Cabane et
+al. 1993; Tomasko et al. 2008; both second hand). [Stand-in, tier confident unverified, tweak L1.]"""
+HAZE_GRAIN_MAX_M = 1.0e-3
+"""float: The largest aggregate `haze_grain` looks for, m (a numerical bound: a grain this size falls out of any air in a day)."""
 HAZE_DENSITY_KG_M3 = 1000.0
 """float: Titan tholin, 1 g/cm3 (assumed by the haze papers; part 06 2.8)."""
 HAZE_Q_EXT = 1.0
@@ -252,36 +262,77 @@ def _viscosity_pa_s(column, temperature_k):
     return (total / weight if weight else 1.5e1) * 1e-6
 
 
-def haze_fall(column, temperature_k, radius_m, density_kg_m3, top_pressure_pa, kzz_m2_s):
+class _FallProfile:
+    """The air a haze falls through, once per column and temperature: pressure, density, viscosity and mean free path from the ground up to the top of the
+    haze, so that the fall of many grain sizes (`haze_grain`) does not build the profile again."""
+
+    def __init__(self, column, temperature_k, top_pressure_pa):
+        self.gravity = column.gravity_m_s2
+        self.pressure, temperature = profile(column, temperature_k, levels=400, decades=min(12.0, math.log10(column.pressure_pa / top_pressure_pa)))
+        molar = column.mean_molar_mass_kg_mol
+        self.rho = self.pressure * molar / (constants.R * temperature)
+        by_temperature = {}                                                  # the profile holds the same temperature over many levels
+        self.eta = np.array([by_temperature[t] if t in by_temperature else by_temperature.setdefault(t, _viscosity_pa_s(column, t)) for t in temperature])
+        self.path = self.eta / (0.499 * self.rho * np.sqrt(8.0 * constants.R * temperature / (math.pi * molar)))
+        self.scale_height_m = constants.R * float(temperature[-1]) / (molar * self.gravity)
+        self.skin_viscosity = float(self.eta[-1])
+        self.skin_k = float(temperature[-1])
+
+    def fall(self, radius_m, density_kg_m3):
+        """`(integral dz / v_f, cumulative)`: the time, s, a grain of `radius_m` and `density_kg_m3` takes to fall through the column at the Stokes speed with the
+        Cunningham slip correction (hydrostatic `dz = dp / (rho g)`), and the same integral from the ground to each level."""
+        kn = self.path / radius_m
+        slip = 1.0 + 1.257 * kn + 0.400 * kn * np.exp(-1.10 / kn)
+        speed = 2.0 / 9.0 * density_kg_m3 * self.gravity * radius_m ** 2 * slip / self.eta
+        integrand = 1.0 / (self.rho * self.gravity * speed)
+        cells = 0.5 * (integrand[1:] + integrand[:-1]) * -np.diff(self.pressure)
+        from_ground = np.concatenate([[0.0], np.cumsum(cells)])
+        return float(from_ground[-1]), from_ground
+
+    def level_pa(self, from_ground, share_from_top):
+        """The pressure where `share_from_top` of the fall integral lies above: the steady haze holds its mass in proportion to the integrand, so its optical
+        depth is spread the same way."""
+        total = float(from_ground[-1])
+        return float(np.exp(np.interp((1.0 - share_from_top) * total, from_ground, np.log(self.pressure)))) if total > 0.0 else float(self.pressure[0])
+
+
+def haze_grain(column, temperature_k, monomer_radius_m, mdot_kg_m2_s, top_pressure_pa):
     """
-    `integral dz / v_f` from the ground to `top_pressure_pa`, the time in seconds a grain takes to fall through the air
-    column: the Stokes speed with the Cunningham slip correction, or the eddy speed `K_zz / H` where that is faster (a grain stays aloft where
-    the mixing time `H^2 / K_zz` is shorter than the fall time `H / v`), and hydrostatic `dz = dp / (rho g)`.
+    The haze grain a steady production of `mdot_kg_m2_s` grows to, and the haze it holds (GEN.1229): `(radius_m, fall_s, level_pa)`, the aggregate radius,
+    the time it takes to fall through the column, and a function of a share of the fall integral, from the top, that gives the pressure it lies above.
 
-    Returns:
-        tuple: `(integral_s_m, level_pa)`: the integral, and a function of a share of it, taken down from the top, that gives the pressure where
-        that share of it lies above: the steady haze holds its mass in proportion to the integrand, so its optical depth is spread the same way.
+    The grains are fractal aggregates of monomers of `monomer_radius_m` (`HAZE_FRACTAL_DIMENSION`, `N = (R / a)^D_f` monomers, so the density of an aggregate falls
+    as `R^(D_f - 3)`, which is why large aggregates fall slowly), and they fall at the Stokes speed (settling carries all the flux through the column; mixing
+    only moves a grain that is slower than `K_zz / H`, which a micron grain at these pressures never is). The size is where the grains fall out as fast as
+    they coagulate: the column holds `M = mdot t_fall` and a number `n = M / (m H)`, the Brownian coagulation half-time is `1 / (K n)` with
+    `K = 4 k T / (3 eta)` (Smoluchowski), and the aggregates grow until `t_fall = 1 / (K n)`. A body whose monomers already fall faster than they coagulate keeps its
+    monomers; a mass flux of 0 has no haze (radius of the monomer, no fall).
     """
-    pressure, temperature = profile(column, temperature_k, levels=400, decades=min(12.0, math.log10(column.pressure_pa / top_pressure_pa)))
-    molar = column.mean_molar_mass_kg_mol
-    rho = pressure * molar / (constants.R * temperature)
-    by_temperature = {}                                                      # the profile holds the same temperature over many levels
-    eta = np.array([by_temperature[t] if t in by_temperature else by_temperature.setdefault(t, _viscosity_pa_s(column, t)) for t in temperature])
-    path = eta / (0.499 * rho * np.sqrt(8.0 * constants.R * temperature / (math.pi * molar)))
-    kn = path / radius_m
-    slip = 1.0 + 1.257 * kn + 0.400 * kn * np.exp(-1.10 / kn)
-    speed = 2.0 / 9.0 * density_kg_m3 * column.gravity_m_s2 * radius_m ** 2 * slip / eta
-    scale_height = constants.R * temperature / (molar * column.gravity_m_s2)
-    integrand = 1.0 / (rho * column.gravity_m_s2 * np.maximum(speed, kzz_m2_s / scale_height))
-    cells = 0.5 * (integrand[1:] + integrand[:-1]) * -np.diff(pressure)
-    from_ground = np.concatenate([[0.0], np.cumsum(cells)])
-    total = float(from_ground[-1])
-    log_pressure = np.log(pressure)
+    fall_profile = _FallProfile(column, temperature_k, top_pressure_pa)
+    a = monomer_radius_m
+    dimension = HAZE_FRACTAL_DIMENSION
+    coagulation_k = 4.0 * constants.BOLTZMANN * fall_profile.skin_k / (3.0 * fall_profile.skin_viscosity)
 
-    def level_pa(share_from_top):
-        return float(np.exp(np.interp((1.0 - share_from_top) * total, from_ground, log_pressure))) if total > 0.0 else float(pressure[0])
+    def density(radius):
+        return HAZE_DENSITY_KG_M3 * (radius / a) ** (dimension - 3.0)
 
-    return total, level_pa
+    def imbalance(log_radius):
+        radius = math.exp(log_radius)
+        fall_s, _ = fall_profile.fall(radius, density(radius))
+        mass_kg = HAZE_DENSITY_KG_M3 * 4.0 / 3.0 * math.pi * a ** 3 * (radius / a) ** dimension
+        column_kg = mdot_kg_m2_s * fall_s
+        coagulation_s = fall_profile.scale_height_m * mass_kg / (coagulation_k * column_kg) if column_kg > 0.0 else math.inf
+        return math.log(fall_s / coagulation_s) if math.isfinite(coagulation_s) else math.inf
+
+    low, high = math.log(a), math.log(HAZE_GRAIN_MAX_M)
+    if mdot_kg_m2_s <= 0.0 or imbalance(low) <= 0.0:
+        radius = a
+    elif imbalance(high) >= 0.0:
+        radius = HAZE_GRAIN_MAX_M
+    else:
+        radius = math.exp(brentq(imbalance, low, high, xtol=1e-3))
+    fall_s, from_ground = fall_profile.fall(radius, density(radius))
+    return radius, fall_s, (lambda share: fall_profile.level_pa(from_ground, share))
 
 
 @dataclass(frozen=True)
@@ -348,7 +399,7 @@ def haze_gate(column):
 
 @dataclass(frozen=True)
 class HazeDraws:
-    """The three draws of a body's haze: the mixing `kzz_m2_s`, the `yield_` of the supply and the grain `radius_m`."""
+    """The three draws of a body's haze: the mixing `kzz_m2_s`, the `yield_` of the supply and the `radius_m` of the monomers of its aggregates."""
 
     kzz_m2_s: float
     yield_: float
@@ -384,10 +435,10 @@ def haze_stream_of(body):
 
 
 def draw_haze_draws(rng):
-    """The three draws of a haze (K_zz, yield, radius) from `rng`, whether or not the air hazes."""
+    """The three draws of a haze (K_zz, yield, monomer radius) from `rng`, whether or not the air hazes."""
     kzz = _log_uniform(rng, *HAZE_KZZ_RANGE_M2_S)
     yield_ = _log_uniform(rng, *HAZE_YIELD_RANGE)
-    radius = _log_uniform(rng, *HAZE_RADIUS_UM) * 1e-6
+    radius = _log_uniform(rng, *HAZE_MONOMER_RADIUS_UM) * 1e-6
     return HazeDraws(kzz, yield_, radius)
 
 
@@ -437,8 +488,10 @@ def haze_in(column, temperature_k, draws, star_temperature_k, far_uv):
     supply = min(haze_supply_kg_m2_s(column, temperature_k, draws.kzz_m2_s), photon_limited_supply_kg_m2_s(column, star_temperature_k, far_uv))
     mdot = supply * draws.yield_ * gate
     top = min(column.pressure_pa * 1e-8, 1e-4)
-    fall, level_pa = haze_fall(column, temperature_k, draws.radius_m, HAZE_DENSITY_KG_M3, max(top, 1e-12), draws.kzz_m2_s)
-    tau = 3.0 * HAZE_Q_EXT * mdot * fall / (4.0 * HAZE_DENSITY_KG_M3 * draws.radius_m)
+    if mdot <= 0.0:
+        return NO_HAZE
+    _, fall, level_pa = haze_grain(column, temperature_k, draws.radius_m, mdot, max(top, 1e-12))
+    tau = 3.0 * HAZE_Q_EXT * mdot * fall / (4.0 * HAZE_DENSITY_KG_M3 * draws.radius_m)       # the extinction of the monomers: the aggregate's light is theirs
     if tau <= 0.0:
         return NO_HAZE
     share = haze_absorbed_share(tau, star_temperature_k)

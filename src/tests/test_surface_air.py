@@ -11,7 +11,7 @@ import pytest
 
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
-from planetgen.physics import aerosols, atmosphere, atmosphere_state, clathrate_brine, climate_draws, constants, gases, greenhouse_table, orbit_elements, saturation, sulfur_balance, surface_air as sa, surface_pressure
+from planetgen.physics import aerosols, atmosphere, atmosphere_state, clathrate_brine, climate_draws, constants, gases, greenhouse, greenhouse_table, orbit_elements, saturation, sulfur_balance, surface_air as sa, surface_pressure
 from planetgen import tuning
 from planetgen.util import draw
 
@@ -268,8 +268,8 @@ def test_every_generated_body_stores_the_density_scale_height_and_greenhouse_its
     its stored partial pressures give at its surface temperature and gravity: the molar mass is `sum x_i M_i`, the density `P M / (R T)`,
     the scale height `R T / (M g)`, and the multiplier is the warming `atmosphere_state.greenhouse_warming` finds for the stored mixture
     at the starlight the body absorbs, with the sunlight its haze takes aloft (GEN.851), which is the one its stored temperature `T_e (1 + G)^(1/4)` is made
-    of; the haze is read at the stored temperature, the fixed point's last step read it at the one before (under 0.1 K away), and a giant that radiates more than it absorbs
-    (its internal flux) has a haze share of the radiated flux the test reads as the absorbed one (under 1 percent of the factor)."""
+    of; the haze is read at the stored temperature, the fixed point's last step read it at the one before (under 0.1 K away; a giant's haze is the one of its single step), and a giant that radiates more than it absorbs
+    (its internal flux) has a haze share of the radiated flux, which the test scales from the starlight it absorbs."""
     bodies = 0
     for body in _generated(range(10)):
         air = atmosphere.gas_partials_pa(body)
@@ -288,9 +288,18 @@ def test_every_generated_body_stores_the_density_scale_height_and_greenhouse_its
             continue            # the table holds its edge above 1000 bar and the fixed point caps the temperature (2000 K): no reproduction there
         if getattr(body, "life_class", None):
             continue            # life changes the air after the temperature is solved (its methane and oxygen, GEN.855), and with it the haze the temperature was solved under
-        haze = aerosols.haze_of(air, gravity, body.surface_temperature, aerosols.draw_haze_draws(aerosols.haze_stream_of(body)),
+        haze_temperature = body.surface_temperature
+        aloft_scale = 1.0
+        if body.body_type == "g":
+            # a giant takes one step of the fixed point, so its haze is the one of the temperature the step starts from (the no-air one at the stored albedo), and
+            # takes its share of the starlight absorbed, of the flux the giant radiates (its own heat is in that)
+            starlight = body.star.luminosity / (4.0 * math.pi * (body._star_distance_au * constants.AU_M) ** 2)
+            haze_temperature = climate_draws.equilibrium_temperature_k(body.bond_albedo, starlight)
+            aloft_scale = greenhouse.absorbed_flux_w_m2(starlight, body.bond_albedo) / absorbed
+        haze = aerosols.haze_of(air, gravity, haze_temperature, aerosols.draw_haze_draws(aerosols.haze_stream_of(body)),
                                 body.star.temperature, aerosols.far_uv_of(body.star, body._star_distance_au))
-        warming = atmosphere_state.greenhouse_warming(air, gravity, absorbed, haze.absorbed_share, haze.pressure_pa)
+        aloft = haze.absorbed_share * aloft_scale
+        warming = atmosphere_state.greenhouse_warming(air, gravity, absorbed, aloft, haze.pressure_pa)
         assert body.greenhouse_factor == pytest.approx(warming.factor, rel=1.5e-2, abs=1e-6)
     assert bodies > 5
 
