@@ -629,13 +629,6 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.1152 | Mass literals that differ from constants.py (changing them changes output): moon_composition JUPITER_MASS_KG 1.89813e27, ring_origin star_mass_kg 1.989e30, giant_interior 317.8 and EARTH_MASS_JUPITER 317.83, stellar_abundances JUPITER_MASS_SOL, tuning 317.8; use the constants.py values with an epoch |  | Sources 1 report 10-30, train-bound |
 | GEN.1151 | Lagrange trojans T3: whole planets and moons (Class M and Class J allowed by the mass rule) at L4 and L5 from the disc formation model only; no forced rate, the observed 5 percent upper bound (WR10) is a plausibility test only; folds in the weird-worlds W7 row | GEN.1150 | Trojans T3, epoch lock, train 8 or 9 |
 | MAP.354 | Lagrange trojans T4: System Map icon at the centre of each Lagrange point that has objects, labelled with the host and point (for example Jupiter-L4); shares the geometry of the MAP.169 gravity layer | GEN.1150 | Trojans T4, with T2 |
-| MAP.361 | Sector view shows every star system that fits when there is room, so it shows more of the sector than the galaxy view would |  |  |
-| MAP.362 | Superbubbles are hidden on the map at load, with a Menu button to show them (bug) |  |  |
-| MAP.360 | Sector view highlights only the sector being viewed and zooms in as close as the window allows (bug) |  |  |
-| MAP.359 | The sector map and system map should match the size of the galaxy map for the browser window (bug) |  | Boss live bug 10-30 |
-| MAP.358 | The View system and Expand buttons of the sector info display cannot be seen or reached (bug) |  | Boss live bug 10-30 |
-| MAP.357 | Boss cannot reliably find and navigate from the galaxy down to filled and charted sectors and regions (bug) |  | Boss live bug 10-30 |
-| MAP.356 | The map legend covers too much of the map; make it a small corner of the map (bug) |  | Boss live bug 10-30 |
 | GEN.1150 | Lagrange trojans T2: the generator draws a trojan swarm at the L4 and L5 of each giant planet or brown dwarf from the scatter trojan share; new columns co_orbital_host_id, lagrange_point, libration amplitude and phase (db/column_units.py); orbit updater libration overlay; the object and sector pages and the designation rule "<host> L4 trojan region" | GEN.1006 | Trojans T2, epoch lock, train 8 |
 | GEN.1133 | Rocky rogue planets of 10 to 16 Earth masses come out up to 17,600 km, past class S's 11,468 km top: apply Core 4's recommendation so the size range and the class agree |  |  |
 | GEN.1130 | The +intelligent_life and +habitable_world request options become probability tweaks only: they raise the odds of such a world in the generated system and never force a placement, a ladder of adaptations or a civilization |  |  |
