@@ -11781,6 +11781,23 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   The photolysis lifetime table has no caller until this item wires it,
   and its owner lane Air 1 is retired. Owner now: Aux 4 (proposed by the
   TODO thread; the lane says if it cannot take it).
+  Reading chosen and GEN.972 head (2026-10-31 2:13 PM EDT): Aux 4 (as
+  the lane reported, 2:12 PM EDT): a gross photolysis lifetime cannot be
+  a plain loss on a net gas inventory (photon-limited methane loss for
+  an Earth-sized air is about 78 Tmol a year, while the life ledger
+  holds anoxic methane at 100 ppmv to 3.5 percent on 9 to 67 Tmol a year
+  because the products recombine), so it is NOT wired into life_air. It
+  is wired where the table is the physical limit and is missing: the
+  methane haze supply in aerosols.haze_in, which is diffusion limited
+  only. Three parts: (1) Hu 2012 table 6 UV cross sections and a pure
+  photon-limited gross loss function in photolysis.py (lock-free); (2)
+  the star far-UV flux at the body as a subject quantity (lock-free);
+  (3) the haze supply becomes the smaller of the diffusion and
+  photon-limited supplies, a GEN.725 row for the one-layer
+  optical-depth-1 closure (lock work, epoch --affects fill). TODO
+  approved the reading. GEN.972 (ice-albedo feedback) is ready as lock
+  work: branch claude/project-thread-nfytfi-gen972, head 3dc7948e8,
+  epoch --affects fill, passed to the Train Manager.
   Prerequisites: none. Related: GEN.754, GEN.794, GEN.748.
 
 - [ ] **GEN.983 Wire the radiation belts (physics/radiation_belts.py) into the surface dose and the habitability radiation score**
