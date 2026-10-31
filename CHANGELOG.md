@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2994] - 2026-10-31
+
+**Headline:** The galactic centre's ring now forms clusters up to the mass its gas allows and loses them to passing clouds, so it holds a few young clusters instead of dozens.
+
+### Changed
+- **Most massive cluster of the central ring (GEN.1195).** A barred galaxy's central molecular zone ring formed clusters up to 1e6 solar masses and disrupted them only by the slow stellar-density law, so a Milky Way shape held about 4 young clusters above 5e3 solar masses and 11 older ones above 5e4, against the two (the Arches and the Quintuplet) and none the Milky Way's centre has. The ring now draws its clusters under `eps Gamma M_T` (Reina-Campos and Kruijssen 2017): the Toomre mass of its gas surface density and rotation, a tenth of it into stars and the ring's bound share of those into one cluster. For the Milky Way shape that is 1.6e4 solar masses, never over 1e5. The new module is `physics/cluster_maximum_mass.py`.
+- **Passing clouds disrupt the ring's clusters.** Gieles et al. 2006 as Kruijssen et al. 2014 put it in the ring: a cluster of 1e4 solar masses and half-mass radius 0.5 pc lasts 5.7 Myr. Over 40 seeds the ring now holds 0.6 young clusters above 5e3 solar masses on average (none old above 5e4) against 4.2 and 11 before. The stored clusters of every barred galaxy change, so it needs an epoch.
+- The ring's gas surface density is a registered stand-in (the inflow times a 50 Myr residence over the ring's area, about 800 solar masses per pc2), rows CMX1 to CMX7 in the stand-in list. The disc's flat 1e6 cap stays until GEN.1196.
+
 ## [8.0.2993] - 2026-10-31
 
 **Headline:** A planet or moon now keeps its climate in seven bands of latitude, and its page shows the seven side by side.
