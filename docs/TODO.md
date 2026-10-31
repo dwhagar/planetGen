@@ -14495,6 +14495,24 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   giant_event name this item. Owner: Star 2.
   Prerequisites: none. Related: GEN.1072, GEN.1068.
 
+- [ ] **GEN.1233 Dust rings fed by small moons (Jupiter, Uranus, Neptune): a steady-state supply so giants with faint rings are not left ringless by the ring lifetime law**
+  From Tides 1 (relayed 5:06 PM EDT 2026-10-31 as the lane reported),
+  the follow-up of GEN.1171: the ring lifetime law (viscous spreading
+  plus meteoroid erosion) correctly kills a ring that has no supply, but
+  dust rings that small moons and impacts keep feeding (Jupiter's,
+  Uranus's and Neptune's rings, steady-state) are not modelled, so
+  giants with 4 of 4 rings in the Solar System now come out ringed about
+  9 percent of the time. Do: a supply term for rings near small moons
+  (impact ejecta from meteoroid flux on the moons' surfaces, with a
+  yield and a loss time from the same erosion and drag laws), so a faint
+  dust ring persists where a moon feeds it; the Solar System rings are
+  tests, not anchors; every stand-in goes in GEN.725 with tier and tweak
+  level. Done: the ringed share of giants moves toward the observed
+  share of giants with rings (all four in the Solar System, with the
+  sample caveat) by the physics, the census is printed before and after.
+  Changes stored ring columns, so it rides a train. Owner: Tides 1.
+  Prerequisites: none. Related: GEN.1171, GEN.725.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -14913,6 +14931,27 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   offset on the Phenomena list. Measure on a real MySQL at a full galaxy
   before and after.
   Prerequisites: none.
+
+- [ ] **PERF.224 Cheaper bright-table bound: fewer compositions per bin, so the star tables build about 1.7 times faster**
+  From Star 2 (relayed 5:05 PM EDT 2026-10-31 as the lane reported):
+  since GEN.1024 (train 7) a table's per-cell bound reads five
+  compositions of the bin (was three), each on both branches' tracks
+  (thin and alpha-rich) wherever the age window reaches the thick disc,
+  so about ten distinct tracks per cell against three. One table build
+  (old population, solar bin) takes 7.0 s against 2.3 s before at 100
+  solar luminosities, and 3.3 s against 0.9 s at 2500;
+  test_backfilled_cells_get_band_stars_in_their_own_cell takes about 12
+  minutes. The cost is spread over MIST lookups
+  (main_sequence_bright_from_gy 54 percent), nothing hot to cache, and
+  memoising was tried for PERF.218 (3 to 28 percent). Do: bound each bin
+  with three compositions per branch, or the minimum and maximum of the
+  bin, about 1.7 times faster; this changes which draws are rejected, so
+  it is a lock item (epoch, golden, --affects scatter,fill,population),
+  and the bound must stay certified (never below the true maximum).
+  Done: the table build time is back near its old value, the
+  certified-bound test passes, and the census is unchanged within noise.
+  Owner: Star 2, train 9.
+  Prerequisites: none. Related: GEN.1024, PERF.218.
 
 ## DB: Database and schema
 
