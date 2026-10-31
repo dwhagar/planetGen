@@ -19496,47 +19496,6 @@ clears each one.
   change, like a module.
   Prerequisites: none.
 
-- [ ] **TEST.524 Wire, register or delete the 38 pure functions nothing calls in 21 modules (Aux 4's share of the TEST.520 shadow functions)**
-  Boss, 12:03 PM EDT 2026-10-31: nothing built and left unused. Core 1's
-  wiring guard (TEST.520, PR #4513) found 157 public functions in
-  physics, generation and galaxy that only tests call or nothing calls;
-  its register lines name TEST.520 because no owner was guessed. Report:
-  /mnt/project-files/reports/wiring-guard-test520-2026-10-31.md. Filed
-  by the TODO thread. Your share (38 functions): physics.aerosols
-  (haze_fall_integral_s_m); physics.atmosphere (hydrogen_kpa,
-  other_kpa); physics.atmosphere_state (gas_column_mass_kg_m2);
-  physics.ozone (column_mean_partial_pressure_pa); physics.rayleigh
-  (band_optical_depth, optical_depth_by_gas, uncovered_fraction);
-  physics.thermosphere (hydro_based_in_grid); physics.two_stream
-  (vacuum); physics.mixture_giant (carbon_monoxide_time_s);
-  physics.mixture_sinks (apply_ocean_sinks); physics.surface_pressure
-  (can_weather, degassed_inventory, gas_mass_kg, impact_inventory);
-  physics.surface_composition (crust_reservoir);
-  physics.waterworld_carbon (sealed_state); physics.oxygen_fugacity
-  (buffer_offset, co2_to_co, convert_delta_iw,
-  delta_iw_from_fe3_fraction, delta_iw_where_equal, h2o_to_h2);
-  physics.radiation (apply_air_loss); physics.radiogenic
-  (aluminium_26_mass_fraction, present_ppm, radiogenic_flux_w_m2);
-  physics.surface_dose (effective_air_column_g_cm2, neutron_weight,
-  share_past_cutoffs); physics.proton_range (csda_range_g_cm2);
-  physics.body_colour (rgb8_of); physics.giant_colour
-  (cloud_top_pressure_pa, sudarsky_class); physics.daylight
-  (locked_zone_shares); physics.scatter (history_line, scatter_shares).
-  Do, for each function: (1) wire it, naming the open item that will
-  call it (or filing one) in its register line of
-  docs/design/research/wiring-register.md; (2) mark it `by design` with
-  the reason when it is a tuning or test harness reader (an observed
-  sampler, an expected count) and say who runs it; or (3) delete it and
-  its tests (no dead code, no shim). Done: none of your functions names
-  TEST.520 in the register, and test_wiring_guard passes. Lock-free
-  (register, tests and deletions of unreferenced code change no stored
-  value; if a wiring step changes output it rides a train under its own
-  item). Owner Aux 4 (proposed by the TODO thread, one lock-free item at
-  a time; the lane says if it clashes). Rule for every lane: a public
-  function that only tests call needs a register line in the same
-  change, like a module.
-  Prerequisites: none.
-
 - [ ] **TEST.526 Wire, register or delete the 8 pure functions nothing calls in 4 modules (Tides 1's share of the TEST.520 shadow functions)**
   Boss, 12:03 PM EDT 2026-10-31: nothing built and left unused. Core 1's
   wiring guard (TEST.520, PR #4513) found 157 public functions in
