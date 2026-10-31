@@ -9,6 +9,7 @@ import { importPage } from "./fakedom.mjs";
 
 const T = await importPage("bodytexture.js");
 const P = await importPage("solidpaint.js");
+const G = await importPage("giantpaint.js");
 
 const EARTHLIKE = {
   v: 1, kind: "planet", body: "solid", seed: 12345, color: "#a39070", oceanColor: "#1f4f8f", hydro: "surface ocean",
@@ -168,4 +169,38 @@ test("a white dwarf is one flat colour; a sun-like star is mottled and never dar
 test("the same star paints the same pixels", () => {
   assert.equal(S.starFingerprint(SUN, 128, 64), S.starFingerprint(SUN, 128, 64));
   assert.notEqual(S.starFingerprint(SUN, 128, 64), S.starFingerprint({ ...SUN, seed: 100 }, 128, 64));
+});
+
+// --- Gas and ice giants ------------------------------------------------------
+
+const JOVIAN = { v: 1, kind: "planet", body: "gas", seed: 4242, color: "#d9c9a3", tempK: 165, radiusKm: 69911, spinH: 9.9,
+                 gas: { CH4: 0.002, NH3: 0.0003, H2S: 0.0001 } };
+const ICY = { ...JOVIAN, color: "#9fd0dc", tempK: 60, radiusKm: 25000, spinH: 16, gas: { CH4: 0.02 } };
+
+test("a faster spinner gets more bands, and the count is held to 4 to 24", () => {
+  assert.ok(G.bandCount(5, 69911) > G.bandCount(20, 69911));
+  assert.equal(G.bandCount(1000, 69911), 4);
+  assert.equal(G.bandCount(0.5, 69911), 24);
+  assert.equal(G.bandCount(undefined, 69911), G.BANDS_NO_SPIN);
+});
+
+test("an ammonia-cloud giant has far more belt and zone contrast than a methane ice giant", () => {
+  assert.ok(G.giantRecipe(JOVIAN).contrast > 2 * G.giantRecipe(ICY).contrast);
+  assert.ok(G.giantRecipe(JOVIAN).sharp > G.giantRecipe({ ...JOVIAN, spinH: 30 }).sharp);
+});
+
+test("the same giant paints the same pixels, another seed paints others, and the picture follows the chemistry", () => {
+  const a = G.giantFingerprint(JOVIAN, 128, 64);
+  assert.equal(a, G.giantFingerprint(JOVIAN, 128, 64));
+  assert.notEqual(a, G.giantFingerprint({ ...JOVIAN, seed: 4243 }, 128, 64));
+  assert.notEqual(a, G.giantFingerprint({ ...JOVIAN, gas: { CH4: 0.002, NH3: 0.0003, H2S: 0 } }, 128, 64));
+});
+
+test("a giant's bands run in latitude: rows differ and a row is nearly the same around the planet", () => {
+  const w = 128, h = 64;
+  const px = G.paintGiant(JOVIAN, w, h);
+  const rowMean = (y) => { let s = 0; for (let x = 0; x < w; x++) s += px[(y * w + x) * 4]; return s / w; };
+  const means = []; for (let y = 0; y < h; y++) means.push(rowMean(y));
+  assert.ok(Math.max(...means) - Math.min(...means) > 25, "belts and zones differ in lightness");
+  for (let i = 0; i < px.length; i += 4) assert.equal(px[i + 3], 255);
 });

@@ -355,6 +355,18 @@ def test_a_solid_body_carries_its_stored_roundness_and_a_giant_does_not():
     assert "roundness" not in bl.planet_look(_planet(body_type="g", roundness_ratio=None))
 
 
+def test_giant_look_carries_the_cloud_gas_fractions_of_its_stored_mixture():
+    row = fold_air(_planet(body_type="g", planet_class="j", gravity_g=2.5, atmosphere="Hydrogen-Helium", atmospheric_pressure_pa=1e5,
+                           surface_temperature_k=165.0, p_h2_kpa=85.0, p_ch4_kpa=0.5, p_h2s_kpa=0.03))
+    row["gas_partials_pa"]["NH3"] = 1.0e3
+    row["gas_partials_pa"]["He"] = 13.0e3
+    look = bl.planet_look(row)
+    assert set(look["gas"]) == {"CH4", "NH3", "H2S"}          # a gas the mixture lacks is left out
+    assert abs(look["gas"]["NH3"] - 0.01) < 1e-4
+    assert "gas" not in bl.planet_look(_planet())              # a solid world has none
+    assert "gas" not in bl.planet_look(_planet(body_type="g"))  # no stored mixture: left out, the painter goes by temperature
+
+
 def test_the_air_veils_the_ground_by_its_optical_depth_and_stored_haze_and_cloud():
     """MAP.350: a thicker air veils more; haze and cloud fields appear only when stored; an airless or giant body has none."""
     from types import SimpleNamespace

@@ -527,6 +527,81 @@ def catalogue_datasets():
     return out
 
 
+# ---------------------------------------------------------------- citation IDs (DOC.100)
+
+ID_PREFIX = "R"
+ID_WIDTH = 4
+
+
+def format_id(number):
+    """`R0123`: the ID of the 123rd source ever listed. Four digits at least; the number grows past 9999 without changing earlier IDs."""
+    return "%s%0*d" % (ID_PREFIX, ID_WIDTH, number)
+
+
+def identifiers(key, e):
+    """Every name one source goes by in the cache, lower case: its key (a DOI, `arXiv:<id>` or a hand-made key), its DOI and its arXiv id.
+    A source whose arXiv preprint later gets a DOI keeps the ID it had, because the arXiv name is still among these."""
+    names = {str(key).lower()}
+    if e.get("doi"):
+        names.add(e["doi"].lower())
+    if e.get("arxiv"):
+        names.add("arxiv:" + e["arxiv"].lower())
+    return sorted(names)
+
+
+def assign_ids(c):
+    """
+    Gives every source in the list (papers, books, datasets, and the archives and setup datasets) one ID, once, and keeps it.
+
+    The cache holds `ids` (each name a source has ever gone by -> its ID), `id_next` (the number the next new source takes; an ID is never
+    reused, even when its source is removed) and `id_aliases` (an ID that was merged into another -> the one that stays, so an old ID in a text
+    still resolves). A source is looked up by all of its names: the first ID found is its ID, and a second ID found means two records have
+    become one paper, so the higher ID becomes an alias of the lower. A source with no ID takes the next number, in list order.
+    Returns the number of IDs assigned.
+    """
+    ids = c.setdefault("ids", {})
+    aliases = c.setdefault("id_aliases", {})
+    nxt = c.get("id_next") or (1 + max([int(v[len(ID_PREFIX):]) for v in ids.values()] + [0]))
+    given = 0
+    sources = []
+    for k, e in c["entries"].items():
+        if e.get("authors") or e.get("title"):
+            sources.append((k, identifiers(k, e)))
+    for a in c.get("archives", []):
+        sources.append(("archive:" + a["url"], ["archive:" + a["url"].lower()]))
+    for d in c.get("setup_datasets", []):
+        sources.append(("setup:" + d["url"], ["setup:" + d["url"].lower()]))
+    # list order, so a first build numbers the sources in the order the page prints them
+    ents = c["entries"]
+    order = sorted((s for s in sources if s[0] in ents), key=lambda s: (auth_key(ents[s[0]]), int(ents[s[0]].get("year") or 0), (ents[s[0]].get("title") or "").lower(), s[0]))
+    order += [s for s in sources if s[0] not in ents]
+    for k, names in order:
+        found = sorted({ids[n] for n in names if n in ids})
+        if found:
+            keep = found[0]
+            for other in found[1:]:
+                aliases[other] = keep
+        else:
+            keep = format_id(nxt)
+            nxt += 1
+            given += 1
+        for n in names:
+            ids[n] = keep
+    c["id_next"] = nxt
+    return given
+
+
+def id_of(c, key):
+    """The ID of the source whose key is `key` (a key of `entries`), after `assign_ids`."""
+    return c["ids"][str(key).lower()]
+
+
+def resolve_id(c, text):
+    """The ID a text names, following an alias; `None` when it names no source."""
+    text = c.get("id_aliases", {}).get(text, text)
+    return text if text in c.get("ids", {}).values() else None
+
+
 # ---------------------------------------------------------------- rendering
 
 def auth_key(e):
@@ -565,8 +640,8 @@ def entry_urls(e):
     return None, None
 
 
-def entry_parts(e, suffix):
-    """The pieces of one reference, shared by the markdown and the HTML writers so the two pages carry the same text."""
+def entry_parts(e, suffix, sid=""):
+    """The pieces of one reference, shared by the markdown and the HTML writers so the two pages carry the same text. `sid` is its ID."""
     authors = fmt_authors(e["authors"]) or (e.get("publisher") or "Anonymous")
     year = "%s%s" % (e.get("year") or "n.d.", suffix)
     journal = e.get("journal") or ""
@@ -596,7 +671,7 @@ def entry_parts(e, suffix):
         ids.append("arXiv:" + e["arxiv"])
     url, ads = entry_urls(e)
     return {"authors": authors, "year": year, "title": e.get("title") or "", "bits": bits, "ids": ids, "url": url, "ads": ads,
-            "kind": e.get("type") or ""}
+            "kind": e.get("type") or "", "sid": sid}
 
 
 def sorted_entries(ents):
@@ -618,6 +693,11 @@ def md_escape(t):
     return re.sub(r"([\\`*_{}\[\]<>#|])", r"\\\1", t).replace("&", "&amp;") if False else re.sub(r"([\\`*_\[\]<>|])", r"\\\1", t)
 
 
+def paper_anchor_md(sid):
+    """The ID of a source and the anchor `#paper-<id>` that the Papers page of the References section uses for the same source."""
+    return '<a id="paper-%s"></a>**%s** ' % (sid.lower(), sid) if sid else ""
+
+
 def md_entry(parts):
     line = "%s %s" % (md_escape(parts["authors"]), md_escape(parts["year"]))
     if parts["title"]:
@@ -634,10 +714,10 @@ def md_entry(parts):
         links.append("[ADS](%s)" % parts["ads"])
     if links:
         line += " " + " · ".join(links)
-    return "- " + line
+    return "- " + paper_anchor_md(parts["sid"]) + line
 
 
-def html_entry(parts, anchor):
+def html_entry(parts):
     h = html.escape
     line = "%s %s" % (h(parts["authors"]), h(parts["year"]))
     if parts["title"]:
@@ -655,7 +735,7 @@ def html_entry(parts, anchor):
         links.append('<a class="u" href="%s">%s</a>' % (h(parts["url"]), "paper" if parts["kind"] != "dataset" else "data"))
     if parts["ads"]:
         links.append('<a class="u" href="%s">ADS</a>' % h(parts["ads"]))
-    return '<li id="%s">%s <span class="links">%s</span></li>' % (anchor, line, " &middot; ".join(links))
+    return '<li id="paper-%s"><b class="rid">%s</b> %s <span class="links">%s</span></li>' % (parts["sid"].lower(), parts["sid"], line, " &middot; ".join(links))
 
 
 INTRO = (
@@ -679,11 +759,12 @@ CONVENTIONS = (
 
 
 def datasets_for_render(c):
+    ids = c["ids"]
     rows = []
     for a in c.get("archives", []):
-        rows.append((a["name"], a["provider"], a["url"], ""))
+        rows.append((a["name"], a["provider"], a["url"], "", ids["archive:" + a["url"].lower()]))
     for d in c.get("setup_datasets", []):
-        rows.append((d["title"], d["source"], d["url"], "downloaded at setup"))
+        rows.append((d["title"], d["source"], d["url"], "downloaded at setup", ids["setup:" + d["url"].lower()]))
     seen, out = set(), []
     for r in sorted(rows, key=lambda r: r[0].lower()):
         if r[2] not in seen or r[3]:
@@ -699,6 +780,7 @@ def _slug(heading):
 
 
 def render_all(c):
+    ids = c["ids"]
     ents = {k: e for k, e in c["entries"].items() if e.get("authors") or e.get("title")}
     papers = {k: e for k, e in ents.items() if e.get("type") != "dataset"}
     datas = {k: e for k, e in ents.items() if e.get("type") == "dataset"}
@@ -728,17 +810,17 @@ def render_all(c):
     for L in sorted(letters):
         md += ["### %s" % names.get(L, L), ""]
         for k, e in letters[L]:
-            md.append(md_entry(entry_parts(e, suffix.get(k, ""))))
+            md.append(md_entry(entry_parts(e, suffix.get(k, ""), ids[k.lower()])))
         md.append("")
     md += ["## Datasets, catalogs, archives and tools", "", "Archives and catalogs the project reads, with the page each is served from. A dataset the setup "
            "step downloads says so; the exact files and checksums are in `src/planetgen/datasets/catalogue.py`.", ""]
-    for name, prov, url, note in datasets_for_render(c):
-        md.append("- %s. %s%s. <%s>" % (md_escape(name), md_escape(prov), (" (" + note + ")") if note else "", url))
+    for name, prov, url, note, sid in datasets_for_render(c):
+        md.append("- %s%s. %s%s. <%s>" % (paper_anchor_md(sid), md_escape(name), md_escape(prov), (" (" + note + ")") if note else "", url))
     md.append("")
     if dkeyed:
         md += ["### Published datasets (with a DOI)", ""]
         for k, e in dkeyed:
-            md.append(md_entry(entry_parts(e, dsuffix.get(k, ""))))
+            md.append(md_entry(entry_parts(e, dsuffix.get(k, ""), ids[k.lower()])))
         md.append("")
     md += ["## Author-year citations: where each one stands", "",
            "The design notes, reports and code cite many sources only as 'Author year'. Each of those citations is in exactly one of three "
@@ -777,17 +859,17 @@ def render_all(c):
     for L in sorted(letters):
         out += ['<h3 id="L-%s">%s</h3>' % (L, names.get(L, L)), "<ul>"]
         for k, e in letters[L]:
-            out.append(html_entry(entry_parts(e, suffix.get(k, "")), "r" + re.sub(r"[^A-Za-z0-9]", "-", k)))
+            out.append(html_entry(entry_parts(e, suffix.get(k, ""), ids[k.lower()])))
         out.append("</ul>")
     out += ['<h2 id="datasets">Datasets, catalogs, archives and tools</h2>', '<p>Archives and catalogs the project reads, with the page each is served from. '
             'A dataset the setup step downloads says so; the exact files and checksums are in <code>src/planetgen/datasets/catalogue.py</code>.</p>', "<ul>"]
-    for name, prov, url, note in datasets_for_render(c):
-        out.append('<li>%s. %s%s. <a href="%s">%s</a></li>' % (h(name), h(prov), h(" (" + note + ")") if note else "", h(url), h(url)))
+    for name, prov, url, note, sid in datasets_for_render(c):
+        out.append('<li id="paper-%s"><b class="rid">%s</b> %s. %s%s. <a href="%s">%s</a></li>' % (sid.lower(), sid, h(name), h(prov), h(" (" + note + ")") if note else "", h(url), h(url)))
     out.append("</ul>")
     if dkeyed:
         out += ["<h3>Published datasets (with a DOI)</h3>", "<ul>"]
         for k, e in dkeyed:
-            out.append(html_entry(entry_parts(e, dsuffix.get(k, "")), "d" + re.sub(r"[^A-Za-z0-9]", "-", k)))
+            out.append(html_entry(entry_parts(e, dsuffix.get(k, ""), ids[k.lower()])))
         out.append("</ul>")
     out += ['<h2 id="authoryear">Author-year citations: where each one stands</h2>',
             "<p>The design notes, reports and code cite many sources only as &lsquo;Author year&rsquo;. Each of those citations is in exactly one of three groups. "
@@ -820,7 +902,7 @@ h1{font-size:2rem;margin:.2em 0 .5em}h2{margin-top:2.2em;border-bottom:1px solid
 .intro{font-size:1.1rem;background:var(--card);padding:1em 1.2em;border-left:4px solid var(--link);border-radius:4px}
 nav{display:flex;flex-wrap:wrap;gap:.4em .7em;margin:1em 0;font-family:system-ui,sans-serif;font-size:.9rem}
 ul{list-style:none;padding:0}li{margin:.55em 0;padding-left:2em;text-indent:-2em;font-size:.95rem;overflow-wrap:anywhere}
-a{color:var(--link)}.links{white-space:nowrap;font-family:system-ui,sans-serif;font-size:.8rem}
+a{color:var(--link)}.rid{font-family:ui-monospace,monospace;font-size:.8rem;color:var(--mut)}.links{white-space:nowrap;font-family:system-ui,sans-serif;font-size:.8rem}
 code{font-size:.9em}
 """
 
@@ -892,7 +974,13 @@ def near_text(near):
 
 def cmd_render(args):
     c = load_cache()
+    given = assign_ids(c)
+    if args.check and given:
+        sys.exit("%d sources have no ID (run python scripts/build_references.py render)" % given)
     md, ht = render_all(c)
+    if given:
+        save_cache(c)
+        log("gave IDs to", given, "sources")
     if args.check:
         bad = [p for p, t in ((OUT_MD, md), (OUT_HTML, ht)) if not os.path.exists(p) or open(p).read() != t]
         if bad:

@@ -74,9 +74,9 @@ ADVICE = ("\nSay it in universe and, where a reader may want the why, link to th
 @pytest.mark.parametrize("kind, entry, path", [
     ("overview", None, "/references"),
     ("papers", None, "/references/papers"),
-    ("papers", "10.1086/151682", "/references/papers#paper-10-1086-151682"),
+    ("papers", "R0123", "/references/papers#paper-r0123"),
     ("data", None, "/references/data"),
-    ("data", "Isochrones", "/references/data#isochrones"),
+    ("data", "R4821", "/references/data#paper-r4821"),
     ("method", "atmospheres", "/references/method/atmospheres"),
     ("method", "atmospheres/surface_pressure", "/references/method/atmospheres#surface-pressure"),
     ("stand-in", None, "/references/stand-ins"),
@@ -96,7 +96,7 @@ def test_each_kind_of_entry_has_one_address(kind, entry, path):
 
 @pytest.mark.parametrize("kind, entry", [
     ("nope", None), ("method", None), ("method", "wizardry"), ("method", "wizardry/surface_pressure"), ("about", "x"), ("overview", "x"),
-    ("papers", "!!"), ("stand-in", ""),
+    ("papers", "!!"), ("papers", "10.1086/151682"), ("papers", "R12"), ("data", "Isochrones"), ("stand-in", ""),
 ])
 def test_a_typo_in_a_kind_or_an_id_is_an_error_not_a_dead_link(kind, entry):
     with pytest.raises(ValueError):

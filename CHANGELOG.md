@@ -2,6 +2,30 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3028] - 2026-10-31
+
+**Headline:** Every paper, book, dataset, and archive in the reference list has one fixed citation ID, shown on the References pages.
+
+### Changed
+- **Citation IDs (DOC.100).** Each source in `docs/reference/references-data.json` gets an ID such as `R0123`, given once and never reused. A preprint that later gets a DOI keeps its ID. `docs/REFERENCES.md` and `.html` print the ID before every entry with the anchor `#paper-r0123`, and `web/lib/reference_urls.py` addresses the Papers page by it. The in-line citation style (a bracketed ID, `[R0123]`, after the words it supports) is written into the References design and the plain-words guide. Display only: no schema change.
+
+## [8.0.3027] - 2026-10-31
+
+**Headline:** Gas and ice giants are painted with belts, zones, wavy edges and storms, colored by their cloud chemistry.
+
+### Added
+- **Banded giants on the System Map, the 3D system view and the body page.** `static/giantpaint.js` replaces the old fixed stripe texture. The band
+  count follows the spin and the size, the contrast follows the cloud-top temperature (ammonia-cloud giants show the most, methane ice giants are nearly
+  plain), and the palette follows the stored methane, ammonia, water and hydrogen sulfide. Each giant looks the same on every visit (seeded from its ID).
+  The look record gains a `gas` field. Display only: no schema change.
+
+## [8.0.3026] - 2026-10-31
+
+**Headline:** A planet's surface is now seen through its air: the ground takes on the sky's color, hazy worlds look softer, and cloud cover shows.
+
+### Added
+- **Surface tint, softening, and clouds from the atmosphere (MAP.350).** The look record of a solid world with air carries `veil` (from the air's optical depth at 550 nm), `haze` (from the stored haze and dust depths), and `cloudCover` and `cloudTau` (from the stored cloud). The solid-world painter tints the ground toward the sky color at the same brightness, lowers its contrast, blurs it a second time under a thick haze, and lays a seeded whitish cloud layer over it. A world with thin air, or with none of those values stored, is drawn exactly as before.
+
 ## [8.0.3025] - 2026-10-31
 
 **Headline:** The galaxy's cluster field is now built ahead by the warm-up, in small saved parts, and the web only reads it.

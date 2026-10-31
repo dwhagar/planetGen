@@ -20869,6 +20869,123 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   EDT): code built for a pending feature stays.
   Prerequisites: none. Related: VIEW.1, MAP.167, GEN.421.
 
+- [ ] **DOC.97 Citation links in Help > References: every citation on a References page is a link to its entry on the reference list and to its document information**
+  Boss (2026-10-31, 7:22 PM EDT, as the coordinator relayed): "move all
+  references to the registry and references documentation, oh and let's
+  build a citation system for the whole references section so that a
+  user can click a link in that section (only in references section
+  under help) to go to the references list and the document information.
+  I don't want references anywhere else, all citations and references go
+  in our central registry and references.md file." Design:
+  docs/design/interface/references.md. Do: give every source one stable
+  key in the central registry (docs/reference/references-data.json,
+  which builds docs/REFERENCES.md and the Papers and Datasets pages of
+  DOC.89), and have the page generator
+  (`scripts/build_reference_pages.py`) turn each citation written on a
+  /references page (a stand-in row, a method page, the speculative page)
+  into a link that goes to the source's entry on the reference list and
+  from there to its document information (DOI, arXiv or ADS link, where
+  it is used, how it was verified). A citation that matches no key, or
+  two keys, fails the build and `--check`, never a dead link. Links
+  exist only inside the References section; no other page links a
+  citation. The visible form of a citation is the NASA-style in-line
+  form decided on DOC.98, the same everywhere. Done: tests that every
+  citation on every References page is a link, that every link resolves,
+  that the build fails on an unknown or ambiguous citation, and a crawl
+  of the section. Lock-free, display only. Owner: the Citations thread
+  (it works with Sources 1 and Core 1). Version 8.1. Prerequisites:
+  DOC.89, DOC.100. Related: DOC.87, DOC.88, DOC.89, DOC.90.
+  Citation IDs and style (2026-10-31 7:33 PM EDT): DOC.100 merged as
+  #4648 (Citations thread): every source has a fixed ID R0123 (anchor
+  #paper-r0123 on /references/papers and in docs/REFERENCES.md;
+  /references addresses by ID, no longer by DOI). The in-line style,
+  decided with Boss's NASA-style answer, is a bracketed ID after the
+  words it supports: [R0123], several as [R0123, R0456] in ascending
+  order, a place inside the source as [R0123: Table 2]; rule 17 of the
+  plain-words guide and docs/design/interface/references.md. No author,
+  year, journal, DOI or arXiv number outside the registry, REFERENCES.md
+  and the References pages.
+
+- [ ] **DOC.98 Citations live only in the central registry and references.md: move them out of every other page, design document and code comment**
+  Boss (2026-10-31, 7:22 PM EDT, as the coordinator relayed): "move all
+  references to the registry and references documentation, oh and let's
+  build a citation system for the whole references section so that a
+  user can click a link in that section (only in references section
+  under help) to go to the references list and the document information.
+  I don't want references anywhere else, all citations and references go
+  in our central registry and references.md file." Design:
+  docs/design/interface/references.md. Do, in three steps with a plain
+  check after each: (1) user pages (class pages, help pages, maps,
+  sector text, API docs strings): no citation, only the quiet "Where
+  this comes from" link of DOC.93 to the References entry; (2) design
+  documents, stand-in rows and the TODO text under docs: a citation
+  becomes the short key of the registry (or a link to the reference
+  list) instead of author and year, with any note about the source moved
+  into the registry entry; (3) code comments, docstrings, tuning notes
+  and data-file headers under src: the same, with the key. The registry
+  and docs/REFERENCES.md are the only place that spell out author, year
+  and journal. Step 3 (code comments, docstrings, tuning notes,
+  data-file headers, TODO text) is confirmed in scope. Decided (Boss,
+  2026-10-31, 7:27 PM EDT, as the coordinator relayed): "Yes lets be
+  consistent use whatever in line citation style is standard for NASA
+  documentation" - code comments and the TODO text also lose author-year
+  names, and the in-line style is the one NASA documentation uses, the
+  same everywhere (numbered bracket references such as [12] that resolve
+  to the registry ID, as the coordinator understood it); the Citations
+  thread confirms the exact style it picks (NASA STI style guidance) and
+  writes it into docs/design/interface/references.md and the text-style
+  guide before the sweep starts. Sources 1 already removed the citations
+  that did not resolve (DOC.96), so what remains are the real ones.
+  Done: a search shows no author-year citation outside the registry,
+  docs/REFERENCES.md and the References pages (the DOC.94 crawl and the
+  new lock of the next item hold it), and every citation that was moved
+  still resolves to a registry entry. Lock-free, no generator output
+  change. Owner: the Citations thread, with Core 5 for the user pages
+  (DOC.93) and Sources 1 for the registry. Version 8.1. Prerequisites:
+  DOC.93, DOC.100. Related: DOC.93, DOC.94, DOC.96.
+  Citation IDs and style (2026-10-31 7:33 PM EDT): DOC.100 merged as
+  #4648 (Citations thread): every source has a fixed ID R0123 (anchor
+  #paper-r0123 on /references/papers and in docs/REFERENCES.md;
+  /references addresses by ID, no longer by DOI). The in-line style,
+  decided with Boss's NASA-style answer, is a bracketed ID after the
+  words it supports: [R0123], several as [R0123, R0456] in ascending
+  order, a place inside the source as [R0123: Table 2]; rule 17 of the
+  plain-words guide and docs/design/interface/references.md. No author,
+  year, journal, DOI or arXiv number outside the registry, REFERENCES.md
+  and the References pages.
+
+- [ ] **DOC.99 Test lock: a citation written outside the registry and references.md fails the gate**
+  Boss (2026-10-31, 7:22 PM EDT, as the coordinator relayed): "move all
+  references to the registry and references documentation, oh and let's
+  build a citation system for the whole references section so that a
+  user can click a link in that section (only in references section
+  under help) to go to the references list and the document information.
+  I don't want references anywhere else, all citations and references go
+  in our central registry and references.md file." Design:
+  docs/design/interface/references.md. Do: a test that also checks every
+  in-line citation is in the one NASA-style form decided on DOC.98
+  (bracket number or the style the Citations thread confirms), and a
+  test (and a line in `scripts/test.py changed`) that scans the files a
+  change touches and fails on an author-year citation, a DOI or an arXiv
+  number written anywhere except the registry, docs/REFERENCES.md and
+  the References pages, naming the file, the line and the registry key
+  it should use. The words list is the registry's own; a short
+  allow-list names the files that must keep one (changelog history,
+  data-license, downloaded source texts). Done: the test passes on main
+  after the previous item, fails on a planted citation, and runs in the
+  gate for changed files. Lock-free. Owner: the Citations thread.
+  Version 8.1. Prerequisites: DOC.98. Related: DOC.94.
+  Citation IDs and style (2026-10-31 7:33 PM EDT): DOC.100 merged as
+  #4648 (Citations thread): every source has a fixed ID R0123 (anchor
+  #paper-r0123 on /references/papers and in docs/REFERENCES.md;
+  /references addresses by ID, no longer by DOI). The in-line style,
+  decided with Boss's NASA-style answer, is a bracketed ID after the
+  words it supports: [R0123], several as [R0123, R0456] in ascending
+  order, a place inside the source as [R0123: Table 2]; rule 17 of the
+  plain-words guide and docs/design/interface/references.md. No author,
+  year, journal, DOI or arXiv number outside the registry, REFERENCES.md
+  and the References pages.
+
 ## POP: Population and politics
 
 Population, species and polities (POP.1 to POP.6) shipped in PRs #169 to

@@ -25,7 +25,7 @@ release is stamped.
 | TEST | TEST.542 |
 | USR | USR.32 |
 | OPS | OPS.85 |
-| DOC | DOC.97 |
+| DOC | DOC.101 |
 | VIEW | VIEW.19 |
 | POP | POP.46 |
 
@@ -765,6 +765,10 @@ Parents marked "new parent" had no old number of their own.
 | DOC.94 | References R8: test lock: the page crawl proves no out-of-universe word outside References and every link resolves, in the gate for changed pages | none | open |
 | DOC.95 | References R3b (very important, first, ahead of the page build): tie every unmatched citation to its real paper, or label it not a paper, in batches by heaviest first | none | done, PR #4603 |
 | DOC.96 | Remove every reference to a paper that did not resolve, and rewrite the text so it reads naturally without it | none | done, PR #4638 |
+| DOC.97 | Citation links in Help > References: every citation on a References page is a link to its entry on the reference list and to its document information | none | open |
+| DOC.98 | Citations live only in the central registry and references.md: move them out of every other page, design document and code comment | none | open |
+| DOC.99 | Test lock: a citation written outside the registry and references.md fails the gate | none | open |
+| DOC.100 | A stable citation ID for every paper in the registry, shown in the registry, docs/REFERENCES.md and the Papers page | none | done, PR #4648 |
 | GEN.1 | Real-world rates for interstellar objects | 5 (2026-09-30 18:14Z to 23:21Z) | done in 7.18.0, PR #136 |
 | GEN.2 | Rogue planet mass bins | 6 (2026-09-30 18:14Z to 23:21Z) | done in 7.18.0, PR #136 |
 | GEN.3 | A supermassive black hole in every galaxy | 7 (2026-09-30 18:14Z to 22:54Z) | done in 7.15.0, PR #132 |
