@@ -15022,6 +15022,36 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   migration. Owner: Core 1 (waiting lane; knows the store). Version 8.1.
   Prerequisites: none. Related: PERF.219, PERF.220.
 
+- [ ] **PERF.226 Every generation stage has a measured worker memory, and the worker cap uses it, so no stage past the scatter can run the host out of memory**
+  Boss (2026-10-31, 6:01 PM EDT, as the coordinator relayed): the
+  generation run on hal that began about 2:34 PM EDT failed after 11104
+  s with an out-of-memory error (Boss confirmed). PERF.220 (#4560,
+  #4565) caps only the four scatter kinds (`MEMORY_HEAVY_KINDS` in
+  `src/planetgen/queue/workers.py`: scatter-mass, scatter-luminosity,
+  scatter-backfill, scatter-band) at 900 MB per worker and half the
+  host; every other stage uses the ordinary 300 MB per worker guess
+  (`WORKER_MEMORY_MB`) and 60 percent of the host (`HOST_MEMORY_SHARE`),
+  which nobody has measured. A run that dies three hours in is more
+  likely a later stage (bright-star units, system fill, planets,
+  phenomena) than a scatter. Do: (1) read the failed run's log for the
+  last stage line and the host's kernel log for the process the killer
+  chose and its resident size, and say which stage it was; (2) measure
+  the peak resident memory of one worker of every stage kind on a
+  populated database (a run with a memory sampler, or
+  `resource.getrusage` at the end of each task, written to the stage's
+  progress line); (3) put each stage's measured peak in
+  `MEMORY_HEAVY_KINDS` (renamed for what it is) with a margin, and have
+  `stage_worker_cap` apply to every stage, so a stage that grows past
+  its guess is slowed, not killed; (4) print the measured peak per
+  worker in the run report so the next growth shows before it kills.
+  Done: a test that every command kind has a memory figure or says it is
+  ordinary on purpose, and a measured run on a populated database whose
+  report lists the peak per stage and finishes under the cap. Lock-free,
+  generation output unchanged (the work seed does not depend on the
+  worker count). Owner: none for now (pool; the Train Manager proposes
+  who). Version 8.1.
+  Prerequisites: none. Related: PERF.220, PERF.222, PERF.223.
+
 ## DB: Database and schema
 
 DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
