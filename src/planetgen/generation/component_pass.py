@@ -26,8 +26,8 @@ component's systems, at the same positions. A component's remnants are not the d
 layer does not apply. A cluster has no gas to speak of (no supernova remnants) and no young stars (no magnetars). A
 satellite's classes follow its history (GEN.528, `galaxy.satellite_history`): its planetary nebulae scale with the share
 of its stars that are not young against the solar circle's (as a sector's do, `profile.kind_factors_at`), its magnetars
-with the young share of its systems, and each candidate supernova remnant is kept with the gas fraction at its radius
-(`nebula_field.gas_factor`, which counts a satellite's young stars), so a Cloud shows every class its profile allows.
+with the young share of its systems, and its supernova remnants with its star formation against the solar circle's (GEN.1191, `supernova_remnant_factor`: none where it forms no stars,
+more than the disk's per system where it forms them faster per star), so a Cloud shows every class its profile allows.
 """
 
 import math
@@ -318,28 +318,23 @@ def planetary_nebula_factor(component, shape):
     return min(1.0, (1.0 - young) / (1.0 - reference))
 
 
-GAS_PROFILE_POINTS = 96
-"""int: The radii a satellite's gas fraction is tabulated at, evenly from its centre to its tidal radius."""
-
-
-def gas_by_radius(component, shape):
+def supernova_remnant_factor(component, shape):
     """
-    `(radii_pc, factor)`: the gas fraction (`nebula_field.gas_factor`, capped at 1 as `SectorProfile.kind_factors` has
-    it) along a ray from a satellite's centre. The satellite is spherical and lies away from the disk, so one ray gives
-    the fraction at any radius, and a table of it lets a whole component's candidates be kept at once.
+    The factor on a satellite's supernova remnants against the rate per system at the solar circle (GEN.1191): remnants follow the star formation. A
+    core-collapse remnant comes from a young star and a Type Ia from one that is not, so the factor is the solar circle's odds of each
+    (`tuning.SUPERNOVA_PROGENITOR_TYPE_IA_CHANCE`, 3 to 1) times the satellite's young share and old share against the solar circle's
+    (`profile._reference_young_share`): 1 for the solar circle's mix, above 1 for a Cloud that forms stars faster per star than the disk, and
+    0 for a satellite with no young stars, which forms none now and so holds none of the gas a remnant needs to be seen in (the old gas factor's zero). It is
+    not capped, as the old gas factor was at 1, and not cut by a gas profile: the young stars of a satellite share its stars' profile, so the remnants are placed with them.
     """
-    radii = np.linspace(0.0, component.tidal_radius_pc, GAS_PROFILE_POINTS)
-    centre = component.center_pc
-    factor = np.array([min(1.0, max(nebula_field.gas_factor((centre[0] + r, centre[1], centre[2]), shape), 0.0))
-                       for r in radii])
-    return radii, factor
+    return profile.supernova_progenitor_factor(component_field.population_shares(component).get("satellite_young", 0.0), shape)
 
 
 def _class_mean(component, kind, subtype, rate, shape):
     """The Poisson mean of one class in one component: its systems times the rate per system, times the component's
     factor for the class (GEN.528): the planetary nebulae's old-star share, the magnetars' young share of the
-    satellite's systems, the stellar-mass black holes' metallicity factor of the component's populations (GEN.563). A satellite's supernova remnants take the full rate and are kept by the gas fraction
-    (`scatter_phenomena`)."""
+    satellite's systems, the stellar-mass black holes' metallicity factor of the component's populations (GEN.563). A satellite's supernova remnants take the rate times
+    their star-formation factor (`supernova_remnant_factor`, GEN.1191)."""
     mean = systems_of(component) * rate
     if kind == "black-hole" and subtype == "stellar":
         mean *= remnant_density.component_factor(component_field.population_shares(component),
@@ -348,6 +343,8 @@ def _class_mean(component, kind, subtype, rate, shape):
         mean *= planetary_nebula_factor(component, shape)
     elif phenomenon_reach._follows_young_stars(kind, subtype):
         mean *= component_field.population_shares(component).get("satellite_young", 0.0)
+    elif kind in phenomenon_scatter.GAS_WEIGHTED_KINDS and component.kind == "satellite":
+        mean *= supernova_remnant_factor(component, shape)
     return mean
 
 
@@ -356,11 +353,10 @@ def scatter_phenomena(components, edge_pc, seed, skip_addresses=None, min_mass_s
     The phenomena in the components, in `PHENOMENON_SCATTER_COLUMNS` order: per component and class, Poisson in its
     systems times the class's rate per system (and its factor, `_class_mean`), at positions from the profile. A
     satellite's supernova remnants and magnetars follow the others in its stream, so the draws of the classes every
-    component has do not move; each remnant candidate is kept with the gas fraction at its radius.
+    component has do not move; the remnants' count scales with the satellite's star formation (GEN.1191).
 
     Args:
-        shape (GalaxyShape): The galaxy's shape, with its components: the solar circle's young share and a satellite's
-            gas (`gas_by_radius`) come from it. Needed for a satellite, and for the planetary nebulae of any component.
+        shape (GalaxyShape): The galaxy's shape, with its components: the solar circle's young share comes from it. Needed for a satellite, and for the planetary nebulae of any component.
         slices (dict): Which slice of a component to draw, `{(kind, name): (slice, slices)}` (`chosen`), as
             `scatter_stars` takes them; a component it leaves out is drawn whole.
     """
@@ -372,24 +368,16 @@ def scatter_phenomena(components, edge_pc, seed, skip_addresses=None, min_mass_s
     for component in components:
         if component.kind not in COMPONENT_KINDS or component_table.is_open_cluster(component):
             continue
-        gas = gas_by_radius(component, shape) if component.kind == "satellite" else None
+        is_satellite = component.kind == "satellite"
         here = (slices or {}).get((component.kind, component.name), (0, 1))
-        for kind, subtype, rate in rates + (extra if gas is not None else []):
+        for kind, subtype, rate in rates + (extra if is_satellite else []):
             rng = phenomenon_scatter.class_stream(
                 f"{seed}:phenomena:component:{component.kind}:{_stream_name(component.name, here)}", kind, subtype)
             points, (mass_draw, keep) = _candidates(
                 component, _class_mean(component, kind, subtype, rate, shape) / here[1], rng)
             masses = phenomenon_scatter._masses(kind, subtype, min_mass_solar, mass_draw)
-            if kind in phenomenon_scatter.GAS_WEIGHTED_KINDS and points.shape[1]:
-                offsets = points / MPC_PER_PC - np.asarray(component.center_pc, dtype=float)[:, None]
-                radius = np.sqrt((offsets ** 2).sum(axis=0))
-                kept = keep < np.interp(radius, *gas)
-            else:
-                kept = np.ones(points.shape[1], dtype=bool)
             for index in range(points.shape[1]):
                 seed_here = rng.getrandbits(63)
-                if not kept[index]:
-                    continue
                 point = tuple(int(value) for value in points[:, index])
                 address = _address(point, edge_pc)
                 if address in skip_addresses:
