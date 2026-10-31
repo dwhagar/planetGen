@@ -2,6 +2,129 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3022] - 2026-10-31
+
+**Headline:** The "On this page" bar now sits under a page's tab bar.
+
+### Changed
+
+On the Generate screens the contents row used to appear above the Start, History and Work queue tabs. It now appears directly below them.
+
+## [8.0.3021] - 2026-10-31
+
+**Headline:** Every map is drawn on black in either theme: the Galaxy Map, the sector and System Maps (diagram and 3D), the Phenomena and navigation maps, the rendered picture of a world, and the nebula and phenomenon views.
+
+### Changed
+- **Black map backgrounds (Boss, 2026-10-31).** A new `--map-bg` token (black) is the background of every map viewport (`static/style.css`), where the maps used the page's themed panel colour, and two near-black navy fills (the 3D system view, the phenomenon picture) and two scene backgrounds (`nebulaview.js`, `phenomenonrender.js`) are black too. The rendered picture of a world on its page sits on black.
+- **Readable on black.** The map viewports always take the dark theme's colours (text, controls, accent), so labels and controls are light on black in the light theme as well. Ring, axis, compass and orbit lines use a new `--map-line` token that is 3:1 or more against black. The scripts no longer treat a map as light (`mapcore.isLightBackground()` is always false) and read the map's colours from a viewport (`mapcore.mapVar`).
+
+Display only: no generator output, schema or API change.
+
+generation-output: unchanged
+
+TODO items resolved: none. Follow-up for TODO to file: remove the light-theme branches in the map scripts that this leaves unused (`isLightBackground` and its callers, `nebulalook.js` light looks, the glow layer's `light` option, `sectorscene.js`'s `lightBackground` uniform).
+
+## [8.0.3020] - 2026-10-31
+
+**Headline:** The installer and updater no longer print advice about systemd memory settings or the MySQL redo log; the memory problem is solved in the program, not in the operating system.
+
+### Changed
+
+- `install.sh` and `update.sh` no longer run the redo log check (`scripts/redo_log_advice.py`, PERF.222) or the out-of-memory protection check (`scripts/oom_advice.py`, PERF.223), and both scripts, their tests and the INSTALL.md text that told you to add the `OOMScoreAdjust` drop-ins, the `MemoryHigh`/`MemoryMax` limit on `apache2.service` and the redo log capacity are removed (Boss, 2026-10-31, 6:07 PM and 6:09 PM EDT: no systemd drop-ins and no Apache memory limit, fix the memory use in code). Memory is held down by the worker caps (PERF.220, and PERF.226 for every stage). generation-output: unchanged
+
+## [8.0.3019] - 2026-10-31
+
+**Headline:** Help now ends with a References page, the one place that says where the numbers come from and how sure each part is, built from the registries and marked as out of the story.
+
+### Added
+- **Help > References, `/references` (DOC.88, References R2).** The last entry of the Help menu, after a divider. The start page opens with the Out of universe banner (`id="out-of-universe-banner"`), and the site header takes another tint (`body.references-mode`, new `--references-bg` and `--references-border` tokens in light and dark), so a reader always knows they have left the story. It shows what the section is, the headline shares computed from the stand-in registry (read from a source, unverified, educated guess from physics, chosen for the output, fitted to a result), how many papers, books and data sets are on the reference list and how many have a DOI page or an arXiv copy, and the nine source tiers and five tweak levels with their counts. It is a static page: no database and no script. It is in the sitemap lists (`seo.TOP`).
+- **`scripts/build_reference_pages.py`.** Writes `docs/references/overview.json` from `docs/reference/references-data.json` and the stand-in registry of the gap-filling plan (read with `build_stand_in_values.py`'s parser). `--check` fails when the committed file differs; later pages add their files to `BUILDERS`. The same bytes every build.
+- **`update.sh` step 3 builds the pages** (`build_reference_pages` in `deploy-common.sh`): on a current checkout it changes nothing; a failure only warns, now and in the closing warnings, and `/references` then says its pages are not built.
+- **`web/references_pages.py`, `web/lib/references_site.py`, `templates/references.html`, `docs/design/interface/references.md`** (the design, the page tree, the rules; indexed in `docs/design/README.md`), rows in `architecture.md`.
+
+### Changed
+- **`plainwords.check_sentence(sentence, references=True)`** reads a sentence of a References page: the process words (stand-in, tweak, epoch, placeholder) are allowed there and every other rule holds.
+- **`HELP_MENU` and `HELP_SECTIONS`** gain References; `base.html` gains a `body_class` block.
+- **`tests/test_references_crawl.py`:** the banner test no longer skips (a page exists), and the crawl reads `/references` too.
+
+`tests/test_references_pages.py` (18 tests) holds the build (same bytes, `--check`, counts equal the registry counted a second way), the page (banner, tint, menu order, guide), and the setup step. No generator output changes.
+
+generation-output: unchanged
+
+TODO items resolved: none (DOC.88 closes when this merges; the TODO thread owns the file).
+
+## [8.0.3018] - 2026-10-31
+
+**Headline:** The stand-in row for the ice rheology now states the 40 to 90 kJ/mol activation range the Durham 1997 data support.
+
+### Changed
+- **GEN.1186 (TR9 part).** The registry row TR9 widens its activation-energy validity range from 40 to 60 to 40 to 90 kJ/mol and records Durham et al. 1997 Table 2 (Ih dislocation creep 39, 61 and 91 kJ/mol by temperature band) as evidence. The 49 kJ/mol used is unchanged. The rigidity range 3.3 to 3.5 GPa already holds the review's 3.5 GPa. Registry text only.
+
+generation-output: unchanged
+
+TODO items advanced: GEN.1186.
+
+## [8.0.3017] - 2026-10-31
+
+**Headline:** The test of the black-widow and redback spiders now expects the post-common-envelope history the generator gives them, which is the physics.
+
+### Changed
+- **`test_accreting_compact_binaries` spider case (TEST.539).** It expected `detached` for the pulsar-and-companion pair of a spider, a label from before the pair history rule (GEN.1012, `pair_history.must_be_post_common_envelope`). A pair with a period of hours cannot have held the pulsar's giant progenitor, whose largest radius is far beyond the whole orbit, so the generator is right to call it `post-common-envelope` (the usual route to a low-mass X-ray binary and then a spider); the test is the side that was wrong. The generator is unchanged.
+
+No generator output changes.
+
+generation-output: unchanged
+
+TODO items resolved: TEST.539.
+
+## [8.0.3016] - 2026-10-31
+
+**Headline:** The eight tide and surface-liquid functions that only tests called are wired, registered with the item that will call them, or deleted.
+
+### Changed
+- **TEST.526.** `orbit_elements` now takes the frequency of the eccentricity tide from `tidal_rheology.tidal_frequency_rad_s` (the orbital rate, the same number as before). `moon_orbits.tidal_power_w` and `surface_liquids.liquid_ids` had no caller and are deleted. `moon_orbits.drift_rate_m_s` is registered `by design` (the tests hold the Earth-Moon, Phobos and Triton recession to it), `surface_liquids.stable_liquids`, `ideal_sea` and `sea_density_kg_m3` are registered to GEN.1218 (the second liquid and mixed seas) and `habitability_world.harshness` to POP.38. None of the eight names TEST.520 in the wiring register now.
+
+generation-output: unchanged
+
+TODO items advanced: TEST.526.
+
+## [8.0.3015] - 2026-10-31
+
+**Headline:** The stand-ins for how much of each element a planet's volcanoes bring up point at a test that exists again.
+
+### Changed
+- **TEST.538.** The deletion sweep of TEST.524 removed the one test the stand-in rows AM28 (hydrogen degassing efficiency) and AM29 (carbon, nitrogen, argon and sulfur efficiencies) named as their falsifier. A test in `test_surface_air.py` now checks the efficiencies where the air uses them: the hydrogen draw stays in its registered bracket and is recorded, carbon, nitrogen and argon are degassed in full, sulfur at a half, and the share the surface holds is the heat released times each of them (and nothing when no heat was released). Both rows point at it.
+
+generation-output: unchanged
+
+TODO items advanced: TEST.538.
+
+## [8.0.3014] - 2026-10-31
+
+**Headline:** The pages that will explain where the numbers come from have one address scheme, one link helper, and a word check that keeps the doubt words out of the rest of the site.
+
+### Added
+- **`web/lib/reference_urls.py`: the addresses of the References pages (DOC.87, References R1).** `reference_path(kind, id)` gives the address of an entry: `/references`, `/references/papers#paper-<doi>`, `/references/data`, `/references/method/<area>#<value>`, `/references/stand-ins/<id>`, `/references/fitted`, `/references/speculative#class-<id>`, `/references/gaps`, `/references/scorecard` and `/references/about`. An id becomes an anchor by `anchor(text)` (lower case, one hyphen for each run of other characters). A kind or an id that does not exist raises `ValueError`, so a typo fails the page instead of leaving a dead link. `AREAS` is the one list of the eleven method areas.
+- **`reference_link(kind, id, label)` in `web/helpers.py`, and a template global of the same name.** It returns the quiet "Where this comes from" link (`class="reference-link"`) and is the only way a page points at References; the layout lives in one module.
+- **`plainwords.OUT_OF_UNIVERSE`, `out_of_universe(text)` and `exempt(path)` (rule 16 of the plain-words guide).** The words that tell a reader the site is a model (speculative, stand-in, tweak, fitted, tuned, educated guess, tier, generator, generated, seed, simulated, model, version, and their forms) belong only on the References pages and the admin pages. "Level" is not on the list; "sea level" is in universe.
+- **`tests/test_references_crawl.py`: the page crawl.** It renders the Help pages and the class pages, reads the Document of ten seeded systems, every sheet label and every sheet source line, and fails on an out-of-universe word that its `KNOWN` list does not name. The words that exist today are listed under the item that removes them: the properties page (DOC.91), the life help pages (DOC.92) and the sheet source lines (DOC.93); an entry that no longer happens fails, so its owner deletes it. It also fails when a template or module writes a `/references` address by hand, when a link into `/references` on a crawled page does not resolve, and (from the first References page, DOC.88) when a References page lacks the Out of universe banner.
+
+### Changed
+- **`docs/design/interface/text-style.md`:** rule 16 now names the list, the exemption, the banner and the link helper, and a new section "Links into References" gives the address layout. `architecture.md` lists the new module.
+
+No page text changes and no generator output changes: the check only reads text, and nothing calls `reference_link` yet (DOC.88 builds the pages, DOC.92 and DOC.93 and the rewrite items add the links).
+
+generation-output: unchanged
+
+TODO items resolved: none (DOC.87 closes when this merges; the TODO thread owns the file).
+
+## [8.0.3013] - 2026-10-31
+
+**Headline:** The temperate-ocean table by class now counts a surface ocean and an ice-covered ocean in separate columns.
+
+### Changed
+- **`src/tests/temperate_ocean_by_class.py` splits the ocean (GEN.1144 follow-up).** The first version counted any body with an ocean fraction over zero and a hydrosphere other than ice, so the glaciated worlds of class P (an ocean under an ice shell, whose ocean fraction is the ice cover) showed as 27 of 32 wet while `scripts/class_counts.py` found none with a surface ocean. The table now has a column for a surface ocean (hydrosphere surface ocean, hycean or brine seep, the set `class_counts.py` uses) and one for an ice-covered ocean. A tool only: no generated value changes.
+
 ## [8.0.3012] - 2026-10-31
 
 **Headline:** The old stars of a galaxy now include thick-disc stars up to 13 billion years old.

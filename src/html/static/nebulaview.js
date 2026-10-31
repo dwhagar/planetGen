@@ -84,7 +84,7 @@ function start(view, shape, around) {
   }
   var radius = around.radius_pc;
   var scene = new THREE.Scene();
-  scene.background = new THREE.Color(0x05070c);
+  scene.background = new THREE.Color(0x000000);
 
   var pivot = new THREE.Group();
   scene.add(pivot);

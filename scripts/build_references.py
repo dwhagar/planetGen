@@ -6,12 +6,14 @@ that NASA journals use (author-year, alphabetical, journal, volume, page, DOI or
     python scripts/build_references.py harvest [--extra DIR ...]   # scan the repo (and extra folders) for citations -> candidates file
     python scripts/build_references.py resolve [--offline]         # look up each candidate (arXiv API, Crossref), update the cache
     python scripts/build_references.py render                      # write the .md and .html from the cache
-    python scripts/build_references.py match                       # tie author-year mentions to papers (identifier match, then Crossref search)
+    python scripts/build_references.py match                       # tie author-year mentions to papers by first author, year and second author
+    python scripts/settle_references.py triage|local|search|report # label non-papers, tie the rest by identifier and Crossref (DOC.95)
     python scripts/build_references.py render --check              # fail if the committed pages differ from the cache
 
 The cache `docs/reference/references-data.json` is the one record both pages are rendered from, so the two always match. A citation is
 never guessed: an author-year mention that no identifier or search result can be tied to a paper with matching first author and year
-is listed under "Citations not yet resolved to a paper" for a person to settle, with the number of places it appears.
+is labelled "not a paper" (with what it is and a link) or listed "for review" with what was tried, and a test fails if any mention has none
+of those three outcomes.
 """
 
 import argparse
@@ -35,7 +37,7 @@ OUT_HTML = os.path.join(ROOT, "docs", "REFERENCES.html")
 MAILTO = "david.hagar@gmail.com"
 
 TEXT_EXT = (".md", ".py", ".js", ".mjs", ".html", ".json", ".sh", ".txt", ".csv", ".tsv", ".bib", ".yml", ".yaml", ".rst", ".toml")
-SKIP_PARTS = ("docs/REFERENCES", "docs/reference/references-data", "scripts/build_references.py", "/node_modules/", "/vendor/",
+SKIP_PARTS = ("docs/REFERENCES", "docs/reference/references-data", "scripts/build_references.py", "scripts/settle_references.py", "scripts/references_curated.py", "/node_modules/", "/vendor/",
               "three.min", ".min.js", "package-lock")
 MAX_BYTES = 4_000_000
 
@@ -88,6 +90,19 @@ def read(p):
         return ""
 
 
+# Publisher stems that a wrapped line leaves behind, and DOIs mistyped in the text with the right one (checked against Crossref).
+DOI_STEMS = {"10.1051/0004-6361", "10.1051/0004-"}
+DOI_FIXES = {
+    "10.1007/978-1-4020-6933-8-7": "10.1007/978-1-4020-6933-8_7",
+    "10.1146/annurev-astro081915-023441": "10.1146/annurev-astro-081915-023441",
+    "10.1111/cgf13202": "10.1111/cgf.13202",
+    "10.1016/0019-1035(63)90074-6": "10.1016/0019-1035(63)90072-1",
+    "10.1038/s41550-020-1069-3": "10.1038/s41550-020-1069-4",
+    "10.3847/1538-4357/abf22d": "10.3847/1538-4357/abfd9c",
+    "10.1007/s11214-015-0158-y": "10.1146/annurev-earth-060313-054834",
+}
+
+
 def clean_doi(d):
     d = d.rstrip(".:")
     while d and d[-1] in ")]" and d.count("(") < d.count(")"):
@@ -95,12 +110,18 @@ def clean_doi(d):
     if d.count("(") > d.count(")") or re.search(r"/(?:\d+)?$", d):
         return None
     d = re.sub(r"(?i)\.(?:pdf|html?|xml)$", "", d)
-    return d.lower() if len(d) > 9 else None
+    d = re.sub(r"(?i)/(?:pdf|full|epdf|abstract)$", "", d).replace("\u2013", "-").lower()
+    # a DOI cut at a line break in the text ends in a hyphen or is only a publisher stem; it names no paper
+    if d.endswith("-") or d in DOI_STEMS:
+        return None
+    d = DOI_FIXES.get(d, d)
+    return d if len(d) > 9 else None
 
 
 def harvest(extra):
     arx, dois, bibs, ays = Counter(), Counter(), Counter(), Counter()
     ay_ctx = {}
+    ay_more = defaultdict(list)
     for p, label in iter_texts(extra):
         t = read(p)
         if not t:
@@ -127,7 +148,13 @@ def harvest(extra):
             ays[key] += 1
             if key not in ay_ctx:
                 ay_ctx[key] = t[max(0, m.start() - 90):m.end() + 90].replace("\n", " ")
-    return arx, dois, bibs, ays, ay_ctx
+            # up to six different citing places per key (60 characters before, 220 after), kept so the settle step can read a
+            # journal, volume and page or title words that follow the author and year
+            if len(ay_more[key]) < 6:
+                snip = t[max(0, m.start() - 60):m.end() + 220].replace("\n", " ")
+                if all(snip[:80] != o[:80] for o in ay_more[key]):
+                    ay_more[key].append(snip)
+    return arx, dois, bibs, ays, ay_ctx, ay_more
 
 
 def load_cache():
@@ -145,11 +172,11 @@ def save_cache(c):
 
 
 def cmd_harvest(args):
-    arx, dois, bibs, ays, ctx = harvest(args.extra)
+    arx, dois, bibs, ays, ctx, more = harvest(args.extra)
     c = load_cache()
     c["candidates"] = {
         "arxiv": dict(arx), "doi": dict(dois), "bibcode": dict(bibs),
-        "authoryear": {"|".join(k): {"n": n, "ctx": ctx[k]} for k, n in ays.items()},
+        "authoryear": {"|".join(k): {"n": n, "ctx": ctx[k], "ctxs": more[k]} for k, n in ays.items()},
     }
     counts = find_archives(args.extra)
     c["archives"] = [{"name": ARCHIVES[i][0], "provider": ARCHIVES[i][1], "url": ARCHIVES[i][2], "mentions": n} for i, n in sorted(counts.items())]
@@ -345,6 +372,8 @@ def cmd_resolve(args):
     have_doi = {e["doi"]: k for k, e in ents.items() if e.get("doi")}
     have_arx = {e["arxiv"]: k for k, e in ents.items() if e.get("arxiv")}
     bad = c.setdefault("unresolved_ids", {})
+    for k in [k for k in bad if k not in cand["doi"] and k not in cand["arxiv"]]:
+        del bad[k]  # an identifier the text no longer carries (or that the harvest now repairs) is not a standing failure
     todo_arx = [a for a in cand["arxiv"] if a not in have_arx and a not in bad]
     log("arXiv to look up:", len(todo_arx))
     got = fetch_arxiv(todo_arx)
@@ -390,7 +419,7 @@ def cmd_resolve(args):
 
 def fold(s):
     import unicodedata
-    return re.sub(r"[^a-z]", "", unicodedata.normalize("NFKD", s).encode("ascii", "ignore").decode().lower())
+    return re.sub(r"[^a-z]", "", unicodedata.normalize("NFKD", s.replace("\u00df", "ss")).encode("ascii", "ignore").decode().lower())
 
 
 STOP = set("the of and for with from that this are was were its their into over under between about using use based new first one two".split())
@@ -426,31 +455,6 @@ def match_authoryear(c):
         pick = exact or [k for k, _ in hits]
         out[key] = {"n": v["n"], "matched": pick}
     return out
-
-
-def search_crossref(first, second, year, ctx):
-    q = {"query.author": first, "filter": "from-pub-date:%d,until-pub-date:%d" % (year, year), "rows": "5",
-         "query.bibliographic": " ".join(sorted(words(ctx)))[:300], "mailto": MAILTO}
-    data = http_get("https://api.crossref.org/works?" + urllib.parse.urlencode(q))
-    if not data:
-        return None
-    try:
-        items = json.loads(data)["message"]["items"]
-    except (ValueError, KeyError):
-        return None
-    cw = words(ctx)
-    for it in items:
-        au = it.get("author") or []
-        if not au or fold(au[0].get("family", "")) != fold(first):
-            continue
-        if second and not (len(au) > 1 and fold(au[1].get("family", "")) == fold(second)):
-            continue
-        e = crossref_entry(it)
-        # the paper's title must share two or more content words with the sentence that cites it
-        if len(words(e["title"]) & cw) >= 2:
-            e["src"] = "crossref-search"
-            return e
-    return None
 
 
 # Archives, catalogs, tables and software the project reads that are not a single paper. Each is listed only when the harvest finds
@@ -543,9 +547,17 @@ def fmt_authors(authors):
     return ", ".join(names[:-1]) + ", & " + names[-1]
 
 
+def ads_title_url(first, year, title):
+    """An ADS search link for a paper that has no DOI: first author, year and a few title words."""
+    words_ = " ".join(re.findall(r"[A-Za-z]{4,}", title)[:6])
+    return "https://ui.adsabs.harvard.edu/search/q=" + urllib.parse.quote('author:"^%s" year:%s title:(%s)' % (first, year, words_))
+
+
 def entry_urls(e):
-    """The primary URL (DOI when there is one, else arXiv) and the ADS abstract page for it."""
+    """The primary URL (DOI when there is one, else arXiv, else the search link a hand-written record carries) and the ADS page for it."""
     doi, ax = e.get("doi"), e.get("arxiv")
+    if not doi and not ax and e.get("url"):
+        return e["url"], e["url"]
     if doi:
         return "https://doi.org/" + urllib.parse.quote(doi, safe="/()"), "https://ui.adsabs.harvard.edu/abs/" + urllib.parse.quote(doi, safe="/()") + "/abstract"
     if ax:
@@ -692,23 +704,27 @@ def render_all(c):
     datas = {k: e for k, e in ents.items() if e.get("type") == "dataset"}
     keyed, suffix = sorted_entries(papers)
     dkeyed, dsuffix = sorted_entries(datas)
-    unres = unresolved_rows(c)
+    groups = citation_groups(c)
+    npr, rvr = not_paper_rows(groups), review_rows(groups)
+    places = {g: sum(n for _, n, _ in groups[g]) for g in groups}
     letters = defaultdict(list)
     for k, e in keyed:
         f = fold(e["authors"][0][0])[:1].upper() if e["authors"] else "0"
         letters[f or "0"].append((k, e))
     names = {"0": "No author listed (publisher or organisation)"}
-    stats = {"papers": len(papers), "datasets": len(datas), "archives": len(datasets_for_render(c)), "unresolved": len(unres),
+    stats = {"papers": len(papers), "datasets": len(datas), "archives": len(datasets_for_render(c)), "tied": len(groups["tied"]), "not": len(groups["not"]), "review": len(groups["review"]),
              "bad_ids": len(c.get("unresolved_ids", {}))}
     # ---- markdown
     md = ["# References", "", INTRO, "", "## How to read this list", "", CONVENTIONS, "",
           "This page is written by `scripts/build_references.py` from `docs/reference/references-data.json`; the HTML twin "
           "[REFERENCES.html](REFERENCES.html) is built from the same data. Do not edit either by hand.", "",
-          "**%d papers and books, %d datasets with their own DOI, %d archives, catalogs and tools, and %d citations still to be settled.**" %
-          (stats["papers"], stats["datasets"], stats["archives"], stats["unresolved"]), "",
+          "**%d papers and books, %d datasets with their own DOI, and %d archives, catalogs and tools. Of the %s author-year citations in the "
+          "notes, reports and code (%s places), %s are tied to a paper above, %s are labelled as not a paper, and %s are listed for review.**" %
+          (stats["papers"], stats["datasets"], stats["archives"], format(sum(stats[k] for k in ("tied", "not", "review")), ","),
+           format(sum(places[g] for g in ("tied", "not", "review")), ","), format(stats["tied"], ","), format(stats["not"], ","), format(stats["review"], ",")), "",
           "## Contents", "", "- [Papers and books](#papers-and-books) (" + ", ".join("[%s](#%s)" % (L if L != "0" else "other", _slug(names.get(L, L))) for L in sorted(letters)) + ")",
           "- [Datasets, catalogs, archives and tools](#datasets-catalogs-archives-and-tools)",
-          "- [Citations not yet resolved to a paper](#citations-not-yet-resolved-to-a-paper)", "", "## Papers and books", ""]
+          "- [Author-year citations: where each one stands](#author-year-citations-where-each-one-stands)", "", "## Papers and books", ""]
     for L in sorted(letters):
         md += ["### %s" % names.get(L, L), ""]
         for k, e in letters[L]:
@@ -724,12 +740,20 @@ def render_all(c):
         for k, e in dkeyed:
             md.append(md_entry(entry_parts(e, dsuffix.get(k, ""))))
         md.append("")
-    md += ["## Citations not yet resolved to a paper", "",
-           "These are cited by author and year in the design notes, reports or code, but no DOI, arXiv identifier or search result could "
-           "be tied to one paper with confidence. Each is listed as written, with the number of places it appears, so a person can settle it; "
-           "none was guessed. Identifiers that the arXiv API or Crossref could not find are listed last.", ""]
-    for text, n in unres:
-        md.append("- %s (%d mention%s)" % (md_escape(text), n, "" if n == 1 else "s"))
+    md += ["## Author-year citations: where each one stands", "",
+           "The design notes, reports and code cite many sources only as 'Author year'. Each of those citations is in exactly one of three "
+           "groups. **Tied to a paper:** %s citations (%s places) are matched to a paper in the list above, by an identifier beside the mention, "
+           "by the volume and page, or by the first author, year and words of the citing sentence; nothing is tied on a guess. **Not a paper:** "
+           "%s are time stamps, organisations, standards, web pages, programs or sentence words, listed below with what each is and a link. "
+           "**For review:** %s (%s places) could not be tied with confidence; each is listed with what was tried and a link that searches ADS "
+           "for it." % (format(stats["tied"], ","), format(places["tied"], ","), format(stats["not"], ","), format(stats["review"], ","),
+                        format(places["review"], ",")), "", "### Not a paper", ""]
+    for a_, ys, n_, what, url, cls in npr:
+        md.append("- %s %s (%s place%s): %s%s" % (md_escape(a_), years_text(ys), format(n_, ","), "" if n_ == 1 else "s", md_escape(what), (". <%s>" % url) if url else ""))
+    md += ["", "### For review", ""]
+    for text, n_, why, near, ads, tried in rvr:
+        md.append("- %s (%d place%s). Tried: %s. %s%s ADS: <%s>" % (md_escape(text), n_, "" if n_ == 1 else "s", ", ".join(tried) or "nothing yet", md_escape(why) + ".",
+                                                                 (" Nearest: " + md_escape(near_text(near)) + ".") if near else "", ads))
     md.append("")
     bad = sorted(c.get("unresolved_ids", {}).items())
     if bad:
@@ -744,10 +768,12 @@ def render_all(c):
            '<p class="intro">%s</p>' % h(INTRO), '<h2>How to read this list</h2>', '<p>%s</p>' % h(CONVENTIONS),
            '<p>This page is written by <code>scripts/build_references.py</code> from <code>docs/reference/references-data.json</code>; its Markdown twin '
            '<a href="REFERENCES.md">REFERENCES.md</a> is built from the same data. Do not edit either by hand.</p>',
-           '<p class="count"><b>%d papers and books, %d datasets with their own DOI, %d archives, catalogs and tools, and %d citations still to be settled.</b></p>' %
-           (stats["papers"], stats["datasets"], stats["archives"], stats["unresolved"]),
+           '<p class="count"><b>%d papers and books, %d datasets with their own DOI, and %d archives, catalogs and tools. Of the %s author-year citations in the '
+           'notes, reports and code (%s places), %s are tied to a paper above, %s are labelled as not a paper, and %s are listed for review.</b></p>' %
+           (stats["papers"], stats["datasets"], stats["archives"], format(sum(stats[k] for k in ("tied", "not", "review")), ","),
+            format(sum(places[g] for g in ("tied", "not", "review")), ","), format(stats["tied"], ","), format(stats["not"], ","), format(stats["review"], ",")),
            '<nav><b>Papers and books:</b> ' + " ".join('<a href="#L-%s">%s</a>' % (L, L) for L in sorted(letters)) +
-           ' &middot; <a href="#datasets">Datasets and archives</a> &middot; <a href="#unresolved">Unresolved</a></nav>', '<h2 id="papers">Papers and books</h2>']
+           ' &middot; <a href="#datasets">Datasets and archives</a> &middot; <a href="#authoryear">Author-year citations</a></nav>', '<h2 id="papers">Papers and books</h2>']
     for L in sorted(letters):
         out += ['<h3 id="L-%s">%s</h3>' % (L, names.get(L, L)), "<ul>"]
         for k, e in letters[L]:
@@ -763,12 +789,20 @@ def render_all(c):
         for k, e in dkeyed:
             out.append(html_entry(entry_parts(e, dsuffix.get(k, "")), "d" + re.sub(r"[^A-Za-z0-9]", "-", k)))
         out.append("</ul>")
-    out += ['<h2 id="unresolved">Citations not yet resolved to a paper</h2>',
-            "<p>These are cited by author and year in the design notes, reports or code, but no DOI, arXiv identifier or search result could be tied to one paper "
-            "with confidence. Each is listed as written, with the number of places it appears, so a person can settle it; none was guessed. Identifiers that the "
-            "arXiv API or Crossref could not find are listed last.</p>", "<ul>"]
-    for text, n in unres:
-        out.append("<li>%s (%d mention%s)</li>" % (h(text), n, "" if n == 1 else "s"))
+    out += ['<h2 id="authoryear">Author-year citations: where each one stands</h2>',
+            "<p>The design notes, reports and code cite many sources only as &lsquo;Author year&rsquo;. Each of those citations is in exactly one of three groups. "
+            "<b>Tied to a paper:</b> %s citations (%s places) are matched to a paper in the list above, by an identifier beside the mention, by the volume and page, "
+            "or by the first author, year and words of the citing sentence; nothing is tied on a guess. <b>Not a paper:</b> %s are time stamps, organisations, standards, "
+            "web pages, programs or sentence words, listed below with what each is and a link. <b>For review:</b> %s (%s places) could not be tied with confidence; "
+            "each is listed with what was tried and a link that searches ADS for it.</p>" % (format(stats["tied"], ","), format(places["tied"], ","),
+            format(stats["not"], ","), format(stats["review"], ","), format(places["review"], ",")), "<h3>Not a paper</h3>", "<ul>"]
+    for a_, ys, n_, what, url, cls in npr:
+        out.append("<li>%s %s (%s place%s): %s%s</li>" % (h(a_), years_text(ys), format(n_, ","), "" if n_ == 1 else "s", h(what),
+                                                         (' <a href="%s">%s</a>' % (h(url), h(url))) if url else ""))
+    out += ["</ul>", "<h3>For review</h3>", "<ul>"]
+    for text, n_, why, near, ads, tried in rvr:
+        out.append('<li>%s (%d place%s). Tried: %s. %s%s <a href="%s">Search ADS</a></li>' % (
+            h(text), n_, "" if n_ == 1 else "s", h(", ".join(tried) or "nothing yet"), h(why) + ".", (" Nearest: " + h(near_text(near)) + ".") if near else "", h(ads)))
     out.append("</ul>")
     if bad:
         out += ["<h3>Identifiers that did not resolve</h3>", "<ul>"] + ["<li>%s: %s</li>" % (h(k), h(w)) for k, w in bad] + ["</ul>"]
@@ -791,18 +825,69 @@ code{font-size:.9em}
 """
 
 
-def unresolved_rows(c):
-    """The author-year mentions no paper was tied to, as 'Author et al. 2007' text with their counts."""
-    rows = []
-    for key, v in c.get("authoryear_status", {}).items():
-        if v.get("matched"):
-            continue
+def ay_text(key):
+    """'Hamilton and Burns 1991' for the key 'Hamilton|Burns|pair|1991'."""
+    a, b, kind, y = key.split("|")
+    return "%s%s %s" % (a, " and " + b if kind == "pair" else (" et al." if kind == "etal" else ""), y)
+
+
+def citation_groups(c):
+    """Every author-year mention the last harvest found, in three groups: tied to a paper in the list, labelled as not a paper (what it
+    is, a link), and still for review (what was tried). A mention with none of the three is returned in 'open' and fails the test."""
+    st = c.get("authoryear_status", {})
+    out = {"tied": [], "not": [], "review": [], "open": []}
+    for key, v in c.get("candidates", {}).get("authoryear", {}).items():
+        s = st.get(key, {})
+        n = v["n"]
+        if s.get("matched"):
+            out["tied"].append((key, n, s))
+        elif s.get("not_a_paper"):
+            out["not"].append((key, n, s))
+        elif s.get("review"):
+            out["review"].append((key, n, s))
+        else:
+            out["open"].append((key, n, s))
+    return out
+
+
+def ads_search_url(key):
+    a, b, kind, y = key.split("|")
+    q = 'author:"^%s" year:%s' % (a, y)
+    return "https://ui.adsabs.harvard.edu/search/q=" + urllib.parse.quote(q)
+
+
+def not_paper_rows(groups):
+    """One row per name: (name, years, places, what, url, class), grouped so '5,874 time stamps' is one line."""
+    by = defaultdict(lambda: {"years": set(), "n": 0, "what": "", "url": "", "class": ""})
+    for key, n, s in groups["not"]:
         a, b, kind, y = key.split("|")
-        if a in NOT_CITATIONS:
-            continue
-        text = "%s%s %s" % (a, " and " + b if kind == "pair" else (" et al." if kind == "etal" else ""), y)
-        rows.append((text, v["n"]))
-    return sorted(rows, key=lambda r: (fold(r[0]), r[0]))
+        r = by[a]
+        r["years"].add(int(y))
+        r["n"] += n
+        r["what"], r["url"], r["class"] = s["not_a_paper"]["what"], s["not_a_paper"].get("url", ""), s["not_a_paper"].get("class", "")
+    return sorted(((a, sorted(r["years"]), r["n"], r["what"], r["url"], r["class"]) for a, r in by.items()), key=lambda r: (r[5], fold(r[0])))
+
+
+def review_rows(groups):
+    """The mentions still for review, heaviest first: (text, places, why not tied, nearest records, ADS search link)."""
+    rows = []
+    for key, n, s in groups["review"]:
+        r = s["review"]
+        rows.append((ay_text(key), n, r.get("why", ""), r.get("near", []), ads_search_url(key), s.get("tried", [])))
+    return sorted(rows, key=lambda x: (-x[1], fold(x[0])))
+
+
+def years_text(ys):
+    return ", ".join(str(y) for y in ys) if len(ys) <= 6 else "%d to %d" % (ys[0], ys[-1])
+
+
+def near_text(near):
+    """The nearest records Crossref returned, as 'Title (Journal vol page, year, doi:...)'."""
+    out = []
+    for x in near[:2]:
+        where = " ".join(str(t) for t in (x.get("journal"), x.get("volume"), x.get("page")) if t)
+        out.append("%s (%s%s; doi:%s)" % (x.get("title", "").rstrip("."), where + ", " if where else "", x.get("year", ""), x.get("doi", "")))
+    return "; ".join(out)
 
 
 def cmd_render(args):
@@ -822,35 +907,36 @@ def cmd_render(args):
 
 
 def cmd_match(args):
-    """Tie author-year mentions to resolved entries; search Crossref for the rest, accepting only a paper whose first author, year and
-    title words agree with the citing sentence."""
+    """Tie author-year mentions to resolved entries by first author, year and (for pairs) second author. The decisions made later by
+    scripts/settle_references.py (searches, labels, review notes) are kept; mentions the last harvest no longer finds are dropped."""
     c = load_cache()
-    status = match_authoryear(c)
+    base = match_authoryear(c)
     old = c.get("authoryear_status", {})
-    todo = [k for k, v in status.items() if not v["matched"] and k not in old]
-    for k, v in old.items():
-        if k in status and (v.get("matched") or v.get("searched")):
-            status[k] = v if v.get("matched") else dict(status[k], searched=True)
-    log("author-year keys:", len(status), "matched by identifier:", sum(1 for v in status.values() if v["matched"]), "to search:", len(todo))
-    todo = [k for k in todo if int(k.split("|")[3]) >= 1900]
-
-    def one(k):
-        a, b, kind, y = k.split("|")
-        ctx = c["candidates"]["authoryear"][k]["ctx"]
-        return k, search_crossref(a, b if kind == "pair" else "", int(y), ctx)
-    found = 0
+    status = {}
+    for k, v in base.items():
+        s = dict(old.get(k, {}))
+        s["n"] = v["n"]
+        if v["matched"]:
+            s["matched"] = v["matched"]
+        s.setdefault("matched", [])
+        status[k] = s
+    # `resolve` merges an arXiv entry into the entry for its published DOI; follow a tie to the entry that now carries the paper
     ents = c["entries"]
-    for k, e in parallel(one, todo):
-        status[k]["searched"] = True
-        if e:
-            kk = e["doi"] or ("search:" + k)
-            e["via"] = "crossref search on first author, year and the citing sentence"
-            ents.setdefault(kk, e)
-            status[k]["matched"] = [kk]
-            found += 1
+    by_id = {}
+    for k, e in ents.items():
+        for i in (e.get("doi"), e.get("arxiv")):
+            if i:
+                by_id[i.lower()] = k
+    for s in status.values():
+        fixed = []
+        for ref in s.get("matched", []):
+            ref = ref if ref in ents else by_id.get(ref.lower().replace("arxiv:", ""), by_id.get(ref.lower()))
+            if ref and ref not in fixed:
+                fixed.append(ref)
+        s["matched"] = fixed
     c["authoryear_status"] = status
     save_cache(c)
-    log("found by search:", found, "still unresolved:", sum(1 for v in status.values() if not v["matched"]))
+    log("author-year keys:", len(status), "tied:", sum(1 for v in status.values() if v["matched"]))
 
 
 if __name__ == "__main__":

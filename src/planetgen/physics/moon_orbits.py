@@ -139,12 +139,6 @@ def drift_rate_m_s(torques, spin_rate, planet_mass_kg, moon):
     return -2.0 * torque * moon.distance_m / orbital_angular_momentum(planet_mass_kg, moon)
 
 
-def tidal_power_w(torques, spin_rate, planet_mass_kg, moon):
-    """The power one moon's tide dissipates in the planet, W: `-N (omega - n)`, never negative."""
-    raiser = spin_torques.Raiser(moon.mass_kg, moon.distance_m, _rate(planet_mass_kg, moon, moon.distance_m))
-    return max(-torques.gravitational(spin_rate, raiser) * (spin_rate - raiser.orbital_rate), 0.0)
-
-
 class _TooManyEvaluations(Exception):
     pass
 
