@@ -1520,6 +1520,7 @@
 -- v187 (GEN.768): `planets` and `moons` keep the hours of one local day a person can be outside (`outside_hours_day`, DOUBLE) and the limit that sets them (`outside_hours_limit`, VARCHAR(16): daylight, dose,
 --   heat, cold, air, uv or vehicle; `physics/outside_hours.py`). NULL for a gas giant, an unscored body, a world whose daylight is not stored and a row made before v187, which gets them when the galaxy is regenerated.
 -- v189 (GEN.1009): `scatter_members.radius_max_au` and `mass_max_solar` (DOUBLE, NULL), the largest radius and mass a member has had (a white dwarf's red-giant tip and birth mass), so the history rule and the build read what the tree drew from; NULL on a row made before v187, nothing is backfilled.
+-- v194 (GEN.1013): `dark_members`, one row for each member of a built system's tree that is not one of its stars (a brown dwarf, neutron star, black hole or stripped helium star): `parent_node_no`, `slot`, `kind`, `mass_solar`, `radius_au`. A system stored before has none; nothing is backfilled.
 --
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
@@ -4380,6 +4381,27 @@ CREATE TABLE IF NOT EXISTS orbit_nodes (
     CONSTRAINT chk_orbit_nodes_kind CHECK (kind IN ('close', 'wide', 'compact', 'group')),
     CONSTRAINT chk_orbit_nodes_interaction CHECK (interaction IS NULL OR interaction IN (
         'detached', 'semi-detached', 'contact', 'accreting', 'post-common-envelope', 'merger-product'))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+-- ---------------------------------------------------------------------
+-- dark_members (v188, GEN.1013): the members of a built system's tree that are not stars of it, one row each: a brown dwarf, a
+-- neutron star, a black hole or a stripped helium star. `parent_node_no` and `slot` name the node it hangs in and its place among
+-- that node's children (the numbering of `orbit_nodes`); the node masses above it count its `mass_solar`. It has no light and no
+-- planets. A row goes with its system.
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS dark_members (
+    star_system_id       BIGINT UNSIGNED NOT NULL,
+    member_no            SMALLINT NOT NULL,
+    parent_node_no       SMALLINT NOT NULL,
+    slot                 SMALLINT NOT NULL,
+    kind                 VARCHAR(16) NOT NULL,
+    mass_solar           DOUBLE NOT NULL,
+    radius_au            DOUBLE NULL,
+    PRIMARY KEY (star_system_id, member_no),
+    CONSTRAINT fk_dark_members_star_system
+        FOREIGN KEY (star_system_id) REFERENCES star_systems(id) ON DELETE CASCADE,
+    CONSTRAINT chk_dark_members_kind CHECK (kind IN ('brown-dwarf', 'neutron-star', 'black-hole', 'stripped-helium'))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 

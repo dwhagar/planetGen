@@ -297,10 +297,12 @@ def _host_of(row, tree):
     star_id = row.get("star_id")
     if star_id is not None and star_id in tree.stars:
         return ("star", tree.stars[star_id])
-    pairs = [node for node in tree.nodes.values() if all(kind == "star" for kind, _ in tree.children.get(node["node_no"], {}).values())
+    pairs = [node for node in tree.nodes.values()
+             if all(kind == "star" and not row.get("dark") for kind, row in tree.children.get(node["node_no"], {}).values())
              and len(tree.children.get(node["node_no"], {})) == 2]
-    if len(tree.stars) == 1:
-        return ("star", next(iter(tree.stars.values())))
+    lit = [row for row in tree.stars.values() if not row.get("dark")]
+    if len(lit) == 1:
+        return ("star", lit[0])
     if len(pairs) == 1:
         return ("pair", pairs[0])
     roots = [node for node in pairs if node["parent_node_no"] is None]
@@ -463,7 +465,8 @@ def audit(rows):
     Every violation in one finished system, from what it stores, advisories (`Violation.hard` false) included.
 
     Args:
-        rows (dict): `stars` (`id`, `mass_kg`, `radius_km`, `parent_node_no`, `slot`), `nodes` (the `orbit_nodes` columns),
+        rows (dict): `stars` (`id`, `mass_kg`, `radius_km`, `parent_node_no`, `slot`; a dark member of the tree, GEN.1013, is a row
+            too, with `dark` true: it weighs in the tree and takes up room, and no planet goes round it), `nodes` (the `orbit_nodes` columns),
             `planets` (`id`, `star_id`, `distance_km`, `eccentricity`, `radius_km`, `mass_kg`), `moons` (`id`, `planet_id`,
             `distance_km`, `eccentricity`, `radius_km`, `mass_kg`) and `belts` (`id`, `star_id`, `lower_limit_km`,
             `upper_limit_km`); the last three may be empty. A planet or belt with no `star_id` goes round the system's pair.
@@ -480,9 +483,14 @@ def audit(rows):
 
 def stored_rows(conn, system_id):
     """The rows `audit` reads for one stored system, read with plain SELECTs: the star rows' `parent_node_id` is the node number
-    they hang from (`parent_node_no`), as `systemscene` reads it."""
+    they hang from (`parent_node_no`), as `systemscene` reads it. The system's `dark_members` come after its stars, with negative ids
+    and `dark` true."""
     stars = [dict(row, parent_node_no=row["parent_node_id"]) for row in conn.execute(
         "SELECT id, mass_kg, radius_km, parent_node_id, slot FROM stars WHERE star_system_id = ? ORDER BY id", (system_id,)).fetchall()]
+    stars += [{"id": -1 - row["member_no"], "mass_kg": row["mass_solar"] * SOLAR_MASS_KG, "radius_km": (row["radius_au"] or 0.0) * AU_KM,
+               "parent_node_no": row["parent_node_no"], "slot": row["slot"], "dark": True, "kind": row["kind"]}
+              for row in conn.execute("SELECT member_no, parent_node_no, slot, kind, mass_solar, radius_au FROM dark_members"
+                                      " WHERE star_system_id = ? ORDER BY member_no", (system_id,)).fetchall()]
     nodes = [dict(row) for row in conn.execute(
         "SELECT node_no, parent_node_no, slot, mass_solar, separation_km, eccentricity, inclination_deg, ascending_node_deg,"
         " arg_periapsis_deg, mean_anomaly_deg, period_years, kind, interaction, flags FROM orbit_nodes WHERE star_system_id = ?"
