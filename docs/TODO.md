@@ -2384,6 +2384,19 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   system that fits at 1280 px and fewer, without overlap, at 390 px.
   Prerequisites: MAP.360. Related: MAP.355, MAP.359.
 
+- [ ] **MAP.362 Superbubbles are hidden on the map at load, with a Menu button to show them (bug)**
+  Boss observation (relayed by the coordinator to Core 2, 12:27 AM EDT
+  2026-10-31), filed by the TODO thread. Kind: map behaviour. Object:
+  the superbubbles layer of the galaxy map. Result: superbubbles show by
+  default and crowd the map. Wanted: they are off at load; the Menu gets
+  a Superbubbles button that turns them on and off; the address
+  ?show=superbubbles turns them on at load; the Key line for
+  superbubbles shows only while they are shown. Done: browser test that
+  a fresh load shows no superbubble and no Key line, the button shows
+  both, ?show=superbubbles shows both at load. Owner: Core 2, built in
+  the same PR as MAP.356 to MAP.361 (already coded).
+  Prerequisites: none.
+
 ## NAV: Navigation and courses
 
 - [ ] **NAV.4 Save a course**

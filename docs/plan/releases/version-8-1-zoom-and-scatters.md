@@ -632,6 +632,7 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.1151 | Lagrange trojans T3: whole planets and moons (Class M and Class J allowed by the mass rule) at L4 and L5 from the disc formation model only; no forced rate, the observed 5 percent upper bound (WR10) is a plausibility test only; folds in the weird-worlds W7 row | GEN.1150 | Trojans T3, epoch lock, train 8 or 9 |
 | MAP.354 | Lagrange trojans T4: System Map icon at the centre of each Lagrange point that has objects, labelled with the host and point (for example Jupiter-L4); shares the geometry of the MAP.169 gravity layer | GEN.1150 | Trojans T4, with T2 |
 | MAP.361 | Sector view shows every star system that fits when there is room, so it shows more of the sector than the galaxy view would |  |  |
+| MAP.362 | Superbubbles are hidden on the map at load, with a Menu button to show them (bug) |  |  |
 | MAP.360 | Sector view highlights only the sector being viewed and zooms in as close as the window allows (bug) |  |  |
 | MAP.359 | The sector map and system map should match the size of the galaxy map for the browser window (bug) |  | Boss live bug 10-30 |
 | MAP.358 | The View system and Expand buttons of the sector info display cannot be seen or reached (bug) |  | Boss live bug 10-30 |
