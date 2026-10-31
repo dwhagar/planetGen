@@ -19496,45 +19496,6 @@ clears each one.
   change, like a module.
   Prerequisites: none.
 
-- [ ] **TEST.522 Wire, register or delete the 29 pure functions nothing calls in 21 modules (Core 3's share of the TEST.520 shadow functions)**
-  Boss, 12:03 PM EDT 2026-10-31: nothing built and left unused. Core 1's
-  wiring guard (TEST.520, PR #4513) found 157 public functions in
-  physics, generation and galaxy that only tests call or nothing calls;
-  its register lines name TEST.520 because no owner was guessed. Report:
-  /mnt/project-files/reports/wiring-guard-test520-2026-10-31.md. Filed
-  by the TODO thread. Your share (29 functions): galaxy.density
-  (component_masses, predicted_star_count); galaxy.profile
-  (expected_systems_in); galaxy.frame (cylindrical_radius_pc);
-  galaxy.galactic_orbit (format_galactic_orbit); galaxy.star_formation
-  (star_formation_rate_profile); galaxy.structure_draw
-  (draw_neutron_star_unbound_share, hot_component_bound);
-  generation.bright_stars (cell_band_rate); generation.multistar
-  (mark_merger_product); generation.primary_mass_function
-  (systems_per_star); generation.star_population (sample_dim_star);
-  generation.stellar_object (get_star_spectral_class); physics.king
-  (density_per_pc3, mass_within_pc); physics.pair_history
-  (widest_forced_axis_au); physics.stability (kozai_max_eccentricity);
-  physics.planet_zones (ancestor_limits_au, flux_at, pair_sides_solar);
-  physics.planet_architecture (ejection_yield, survival_probability);
-  physics.planet_survival (expected_passes); physics.state_vectors
-  (equinoctial_from_state, mean_anomaly_from_true,
-  state_from_equinoctial); physics.field_kernel (accelerations);
-  physics.collision_outcome (conservation_error); physics.orbits
-  (classify_encounter). Do, for each function: (1) wire it, naming the
-  open item that will call it (or filing one) in its register line of
-  docs/design/research/wiring-register.md; (2) mark it `by design` with
-  the reason when it is a tuning or test harness reader (an observed
-  sampler, an expected count) and say who runs it; or (3) delete it and
-  its tests (no dead code, no shim). Done: none of your functions names
-  TEST.520 in the register, and test_wiring_guard passes. Lock-free
-  (register, tests and deletions of unreferenced code change no stored
-  value; if a wiring step changes output it rides a train under its own
-  item). Owner Core 3 (proposed by the TODO thread, one lock-free item
-  at a time; the lane says if it clashes). Rule for every lane: a public
-  function that only tests call needs a register line in the same
-  change, like a module.
-  Prerequisites: none.
-
 - [ ] **TEST.524 Wire, register or delete the 38 pure functions nothing calls in 21 modules (Aux 4's share of the TEST.520 shadow functions)**
   Boss, 12:03 PM EDT 2026-10-31: nothing built and left unused. Core 1's
   wiring guard (TEST.520, PR #4513) found 157 public functions in
@@ -19672,6 +19633,20 @@ clears each one.
   fixture or an order dependency) and fix the code or the test with a
   reason, never by skipping or loosening it without one. Web only,
   lock-free. Owner Core 5 (proposed; it owns the admin and queue pages).
+  Prerequisites: none.
+
+- [ ] **TEST.530 Three tests are red on clean main: two in test_roche_interaction (post-common-envelope classifier) and the tuning pair-order check (REFERENCE_BLACK_HOLE_DRAWS 0.55 against 0.5) (bug)**
+  Found by Core 3 (as the lane reported, 12:49 PM EDT 2026-10-31; red on
+  clean main, not from its change), filed by the TODO thread. Kind: red
+  tests on main. Objects: two tests in tests/test_roche_interaction.py
+  that check the post-common-envelope classifier, and the tuning
+  pair-order check that holds REFERENCE_BLACK_HOLE_DRAWS at 0.55 where
+  the test expects 0.5. Do: find which side moved (a recent epoch, the
+  classifier, the constant or the expectation) and fix the code or the
+  test with a reason, never by skipping or loosening without one.
+  Lock-free unless the cause is a stored-output change; if so stop and
+  tell the TODO thread. Owner Core 3 (proposed; it is idle and owns the
+  multistar pair code).
   Prerequisites: none.
 
 ## USR: User accounts
