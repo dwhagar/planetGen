@@ -19133,19 +19133,6 @@ clears each one.
   change, like a module.
   Prerequisites: none.
 
-- [ ] **TEST.539 test_accreting_compact_binaries: the black-widow and redback spider cases fail on main (post-common-envelope against detached) (bug)**
-  Found by Core 5 (relayed 4:44 PM EDT 2026-10-31 as the lane reported),
-  clean main: tests/test_accreting_compact_binaries.py fails for the
-  black-widow and redback spider cases, which expect a
-  post-common-envelope history where the generated system is detached.
-  Do: find whether the generator or the test is wrong against the
-  physics (a millisecond pulsar with an irradiated companion is a
-  post-common-envelope or recycled system, so the history label the
-  generator gives decides), fix that side, and state which. The test is
-  not skipped. Done: the file passes. Lock-free if the test is wrong, a
-  lock item if the generated history changes. Owner: Star 2.
-  Prerequisites: none. Related: GEN.1027.
-
 - [ ] **TEST.540 test_orbit_elements: an eccentric planet is as warm as a circular one, and a moon gets the light of its parent's orbit, both fail on main (bug)**
   Found by Tides 1 (relayed 4:49 PM EDT 2026-10-31 as the lane
   reported), reproduced on main without its change: two tests in
