@@ -18595,20 +18595,6 @@ clears each one.
   command.
   Prerequisites: none. Related: GEN.1118.
 
-- [ ] **TEST.514 test_habitability_world::test_the_score_round_trips_and_a_cloud_rescores_the_dose is red on main: phi4_temperature 0.75 against 0.8075 after the cloud refresh (bug)**
-  Found by Aux 2 (as the lane reported, 5:56 AM EDT 2026-10-31), filed
-  by the TODO thread. Kind: red test on main. Object:
-  tests/test_habitability_world.py::test_the_score_round_trips_and_a_cloud_rescores_the_dose.
-  Result: after the cloud refresh the stored phi4_temperature is 0.75
-  where the test expects 0.8075. Do: confirm it is red on current main
-  with the datasets fetched, find the cause (the refresh path not
-  rescoring temperature the same way the build does, or a stale
-  expectation after the class and climate epochs), fix at the cause,
-  never loosen the bound without stating why. If the fix changes a
-  stored value it rides a train; say so and stop. Owner: Core 5
-  (proposed, lock-free if wording or test only).
-  Prerequisites: none.
-
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
