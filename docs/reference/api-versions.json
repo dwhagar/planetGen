@@ -134,5 +134,19 @@
         "GET /api/admin/backups and GET /api/admin/backups/<name>: an archive and each of its parts have size_bytes where they had size"
       ]
     }
+,
+    {
+      "version": 12,
+      "first_release": null,
+      "pending": true,
+      "items": [
+        "GEN.1108"
+      ],
+      "summary": "A planet or moon gives its climate in seven bands of latitude, not in a few named places.",
+      "changes": [
+        "GET /api/systems/<id>: the regions of a planet or moon's equipment is {bands, mean_swing_k}: bands is the seven bands from the north pole to the south pole (the day centre to the night centre for a world that turns once an orbit), each {name, mean_k, swing_k, day_hours, night_hours, longest_day_days, longest_night_days, state}; polar, north, equator, south, day_side, terminator, night_side and the swings by those names are gone",
+        "GET /api/objects/<ref>/sheet: a planet or moon has bands, the table of its seven bands, and no temp_polar_k, temp_north_k, temp_equator_k, temp_south_k, temp_swing_k, temp_day_side_k, temp_terminator_k or temp_night_side_k rows"
+      ]
+    }
   ]
 }

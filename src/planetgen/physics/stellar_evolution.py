@@ -35,8 +35,8 @@ import math
 from planetgen.datasets import fetch, mamajek_sequence, white_dwarf_models
 from planetgen.galaxy import scales
 from planetgen.physics import (
-    age_metallicity, constants, imf, main_sequence, metallicity, ms_lifetime, post_main_sequence, remnant_mass, stellar_abundances,
-    wolf_rayet)
+    age_metallicity, alpha_tracks, constants, imf, main_sequence, metallicity, ms_lifetime, post_main_sequence, remnant_mass,
+    stellar_abundances, wolf_rayet)
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.physics import unit_registry as units
@@ -282,6 +282,17 @@ def remnant_age_fraction(mass_sol, fe_h=0.0):
     return line.end_gy / line.main_sequence_gy
 
 
+def alive_until_gy(mass_sol, fe_h=0.0):
+    """The greatest age a star of initial mass `mass_sol` and birth [Fe/H] `fe_h` is still alive at, Gy: the end of its last giant phase
+    on the track of the last age piece of its branch's tracks (`alpha_tracks.track_segments`, GEN.1024) that has it alive."""
+    latest = 0.0
+    for start, end, track in alpha_tracks.track_segments(fe_h):
+        dead_from = remnant_formation_time_gy(mass_sol, track)
+        if dead_from > start:
+            latest = max(latest, min(end, dead_from))
+    return latest
+
+
 def remnant_formation_time_gy(mass_sol, fe_h=0.0):
     """The age at which a star of initial mass `mass_sol` and birth [Fe/H] `fe_h` has become its remnant, Gy: the end
     of its last giant phase."""
@@ -303,6 +314,7 @@ def youngest_progenitor_sol(age_yr, fe_h=0.0, settled=None):
     stops as soon as no mass of the list lies between the bounds (the answer is somewhere in them), after a few steps
     instead of fifty. Without it the search runs on to the end."""
     age_gy = age_yr / 1.0e9
+    fe_h = alpha_tracks.track_fe_h(fe_h, age_gy)    # GEN.1024: the track the star of this [Fe/H] reads at this age
     low = max(ms_lifetime.mass_for_lifetime_gy(age_gy, fe_h), ms_lifetime.MIN_MASS_SOL)
     high = max(ms_lifetime.mass_for_lifetime_gy(age_gy / _LONGEST_POST_MAIN_SEQUENCE, fe_h), low)
     if remnant_formation_time_gy(low, fe_h) <= age_gy:
@@ -423,7 +435,8 @@ def evolve_star(mass_sol, age_gy, rng=draw, min_luminosity_sol=None, fe_h=None, 
     uses it once it has picked a mass and age that can reach it).
 
     The star's birth [Fe/H] sets its lifetimes and its tracks (`ms_lifetime`, `giant_branch`, `post_main_sequence`, GEN.651)
-    and a horizontal-branch star's colour. `fe_h` is the star's own; without it one is drawn first, before any other draw
+    and a horizontal-branch star's colour; the tracks are read at `alpha_tracks.track_fe_h`, the [Fe/H] raised by the star's branch's alpha excess
+    (GEN.1024), and the colour at the star's own. `fe_h` is the star's own; without it one is drawn first, before any other draw
     here (`birth_fe_h`: the star's `population` or `fe_h_peaks`, at `galactic_center_dist_ly` from the centre, the Sun's
     distance without one), and either way returned as `metallicity_fe_h` for the star to keep.
 
@@ -449,18 +462,19 @@ def evolve_star(mass_sol, age_gy, rng=draw, min_luminosity_sol=None, fe_h=None, 
     pc = tuning
     if fe_h is None:
         fe_h = birth_fe_h(rng, population, fe_h_peaks, galactic_center_dist_ly)
-    line = post_main_sequence.timeline(mass_sol, fe_h)
+    track = alpha_tracks.track_fe_h(fe_h, age_gy)    # GEN.1024: the solar-scaled track an alpha-enhanced star reads
+    line = post_main_sequence.timeline(mass_sol, track)
     t_ms, t_end = line.main_sequence_gy, line.end_gy
     massive = mass_sol >= pc.SUPERGIANT_MIN_MASS_SOL
     state = {"mass_sol": mass_sol, "radius_km": None, "lifespan_gy": t_end, "metallicity_fe_h": fe_h}
 
-    wr_start = wolf_rayet.start_gy(mass_sol, t_ms, t_end, fe_h) if massive else None
-    young = pre_main_sequence.state(mass_sol, age_gy * 1.0e9, fe_h)
+    wr_start = wolf_rayet.start_gy(mass_sol, t_ms, t_end, track) if massive else None
+    young = pre_main_sequence.state(mass_sol, age_gy * 1.0e9, track)
     if young is not None:
         # GEN.242: still contracting, a protostar (Class 0 and I) or a pre-main-sequence star.
         state.update(young)
     elif age_gy < t_ms:
-        on_sequence = main_sequence.state(mass_sol, age_gy, fe_h)
+        on_sequence = main_sequence.state(mass_sol, age_gy, track)
         state.update(yerkes_class="V", luminosity_sol=on_sequence.luminosity_sol, mass_sol=on_sequence.mass_sol,
                      temperature_k=on_sequence.temperature_k, phase_end_gy=t_ms)
     elif wr_start is not None and wr_start <= age_gy < t_end:
@@ -482,7 +496,8 @@ def evolve_star(mass_sol, age_gy, rng=draw, min_luminosity_sol=None, fe_h=None, 
 def cooling_age_gy(initial_mass_sol, age_gy, fe_h):
     """How long, Gy, a white dwarf of this progenitor has been cooling at `age_gy`: the age less the end of the progenitor's life, at least
     `tuning.WD_MIN_COOLING_AGE_GY`."""
-    return max(age_gy - post_main_sequence.timeline(initial_mass_sol, fe_h).end_gy, tuning.WD_MIN_COOLING_AGE_GY)
+    track = alpha_tracks.track_fe_h(fe_h, age_gy)    # GEN.1024: the track the progenitor read, as `evolve_star` does
+    return max(age_gy - post_main_sequence.timeline(initial_mass_sol, track).end_gy, tuning.WD_MIN_COOLING_AGE_GY)
 
 
 def _white_dwarf_state(final_mass_sol, cooling_age_gy, rng):
@@ -554,7 +569,7 @@ def sample_living_star(age_bias=None, large_star=None, rng=draw, habitable_host=
                 draw.redrawn("star.model_redraw")
                 continue
             low, high = population_age_range_gy(population)
-            high = min(high, remnant_formation_time_gy(mass, birth))
+            high = min(high, alive_until_gy(mass, birth))
             if high <= low:
                 draw.redrawn("star.model_redraw")
                 continue  # an old population has no living star this massive

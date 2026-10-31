@@ -1,0 +1,6 @@
+**Headline:** A world's ice shell and the volcanism of its ground now follow the heat it has at its star's final age, not the younger provisional age they were first made at.
+
+### Changed
+- **The hydrosphere and the ground are made again at the final heat (GEN.839).** A star's age only rises after its planets and moons are made. GEN.763 ran the heat again at the final age, but the ice shell over an ocean and the volcanism gate of the ground had already read the provisional heat and drew random numbers, so they could not be repeated without moving the run's stream. The life pass now makes them again after the heat (`planets.refresh_at_final_age`): the hydrosphere with its ice shell, the ground with its volcanism gate, the ground dose when the ground changed, and the habitability score. These draws come from the body's own stream, so no draw of the run's stream moves and nothing else is reordered. A body whose heat falls with the older age has a thicker ice lid, and a body whose ground is no longer volcanic takes the rows of a quiet ground.
+- Generator epoch bump (numbered at merge): the stored ice shells, ocean chemistry, ground and surface dose of rocky bodies change, and the habitability scores that follow them.
+generation-output: changed
