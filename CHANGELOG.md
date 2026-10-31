@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2869] - 2026-10-31
+
+**Headline:** Every star now shows how often galactic events would strip a nearby world's ozone.
+
+### Changed
+- **Lethal events per billion years, filled for every star (GEN.785).** The star sheet's "Lethal events per billion years" row was empty for a star the generator had placed nowhere in the galaxy; such a star is now rated where a system with no place is taken to be, the same distance its metallicity and orbit already use. Stars with a place in the galaxy are unchanged.
+- generation-output: changed
+
 ## [8.0.2868] - 2026-10-31
 
 **Headline:** Every pair of stars in a system, at any depth of its tree, now keeps out of its partner by one rule, and each level of a tree keeps a margin of stability.
