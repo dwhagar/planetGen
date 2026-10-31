@@ -14,7 +14,7 @@ release is stamped.
 | Category | Next free ID |
 |---|---|
 | UX | UX.255 |
-| MAP | MAP.363 |
+| MAP | MAP.364 |
 | NAV | NAV.65 |
 | GEN | GEN.1230 |
 | PERF | PERF.224 |
@@ -2261,7 +2261,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.276 | Star painter: blackbody colour shared with star_spectrum, class texture, spots and glow | none | done, PR #2793 |
 | MAP.277 | Atmosphere glow from pressure and composition, and the day and night terminator | none | done, PR #4515 |
 | MAP.278 | Phenomena painted from classes: nebula tints, remnant shells by age, asteroid field grains, black hole and pulsar geometry, rogue planet and comet with today's data | none | done, PR #2798 |
-| MAP.279 | Small bodies: lumpy meshes for moons and asteroids under about 400 km, from the stored shape | none | open |
+| MAP.279 | Small bodies: lumpy meshes for moons and asteroids under about 400 km, from the stored shape | none | done, PR #4572 |
 | MAP.280 | Cloud layer, terminator and cover on solid worlds; cloud-deck worlds paint the deck as the surface | none | open |
 | MAP.281 | Giant chemistry bands once the band strengths exist | none | open |
 | MAP.282 | Life tint: the pigment colour of the life chemistry, faint, on worlds rated Yellow or better; life that is not green mixes in the colour of its own evolutionary chemistry | none | open |
@@ -2345,6 +2345,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.360 | Sector view highlights only the sector being viewed and zooms in as close as the window allows (bug) | none | done, PR #4393 |
 | MAP.361 | Sector view shows every star system that fits when there is room, so it shows more of the sector than the galaxy view would | MAP.360 | done, PR #4393 |
 | MAP.362 | Superbubbles are hidden on the map at load, with a Menu button to show them (bug) | none | done, PR #4393 |
+| MAP.363 | Object page: draw the lumpy silhouette of an unrounded small body, as the System Map and the 3D system view do (bodyview.js) | none | open |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
 | NAV.3 | One shared picker for the Galaxy, Sector and System displays | none | done, PR #724 |

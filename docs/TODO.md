@@ -1954,12 +1954,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   it, confirmed with TODO, one lock-free item at a time.
   Prerequisites: GEN.670, GEN.419.
 
-- [ ] **MAP.279 Small bodies: lumpy meshes for moons and asteroids under about 400 km, from the stored shape**
-  Spheres above the threshold. Design draft
-  design-drafts/body-rendering-from-composition-2026-10-24.md (section
-  11), Boss's plan of 10:26 PM EDT 2026-10-23.
-  Prerequisites: none.
-
 - [ ] **MAP.280 Cloud layer, terminator and cover on solid worlds; cloud-deck worlds paint the deck as the surface**
    Design draft
   design-drafts/body-rendering-from-composition-2026-10-24.md (section
@@ -2183,6 +2177,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   The trojan icon had no owner. Owner now: Core 2 (after GEN.1150)
   (proposed by the TODO thread; the lane says if it cannot take it).
   Prerequisites: GEN.1150. Related: MAP.169.
+
+- [ ] **MAP.363 Object page: draw the lumpy silhouette of an unrounded small body, as the System Map and the 3D system view do (bodyview.js)**
+  Follow-up of MAP.279 (merged #4572 at about 2:50 PM EDT 10-31): the
+  System Map and the 3D system view draw a moon or asteroid that its own
+  weight has not pulled round as an elongated, bumpy lump
+  (src/html/static/lumpymesh.js, the look record field roundness), but
+  the object page (bodyview.js) still draws a round disc. Make it use
+  the same lump from the same look record, so the three views agree.
+  Display only, no generation change. Owner: Aux 5 (Core 2 owns the
+  painter files and agreed to MAP.279; tell Core 2 before touching
+  them).
+  Prerequisites: none.
 
 ## NAV: Navigation and courses
 
