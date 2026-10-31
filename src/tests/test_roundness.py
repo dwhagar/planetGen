@@ -484,6 +484,7 @@ def test_a_material_with_no_range_does_not_move(monkeypatch):
     document = copy.deepcopy(_document())
     del document["materials"]["metal"]["range_pa"]
     monkeypatch.setattr(rn, "TABLE", rn.load_table(document))
+    monkeypatch.setattr(rn, "RANGES_PA", rn.TABLE.ranges_pa)       # the draw reads the module's ranges (GEN.1178)
     assert rn.drawn_strengths_pa(0.0)["metal"] == rn.drawn_strengths_pa(1.0)["metal"] == rn.TABLE.strengths_pa["metal"]
 
 

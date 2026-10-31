@@ -29,7 +29,7 @@ Use:
 
 import math
 
-from planetgen.physics import binding_energy, roundness
+from planetgen.physics import binding_energy, planet_classes, roundness
 from planetgen.physics import unit_registry as units
 from planetgen.util import draw
 
@@ -64,6 +64,12 @@ def _core(body, mass_kg, radius_m):
     return metal * mass_kg, radius_m * math.sqrt(share)
 
 
+def _is_giant(body):
+    """Whether the body is a giant: its body type says so, or its class is one of the giant classes (an ice giant of rock and water is a terrestrial body type with a giant class)."""
+    letter = getattr(body, "planet_class", None)
+    return getattr(body, "body_type", None) == planet_classes.GIANT or (letter in planet_classes.BY_LETTER and planet_classes.BY_LETTER[letter].kind == planet_classes.GIANT)
+
+
 def solid(mass_kg, radius_m, density_kg_m3, ice, metal, porosity=0.0, temperature_k=None, quantile=0.5, core_kg=0.0, core_m=0.0):
     """
     The `FIELDS` of a solid body from its mass, mean radius, density and composition: `{name: value}`. `ice` and `metal` are the shares of its mass,
@@ -89,7 +95,7 @@ def values(body, quantile=None):
     if not (mass_kg and radius_km and mass_kg > 0.0 and radius_km > 0.0):
         return out
     radius_m = _km_to_m(radius_km)
-    if getattr(body, "body_type", None) == "g":
+    if _is_giant(body):
         out["binding_energy_j"] = binding_energy.binding_energy_j("gas-giant", mass_kg, radius_m)
         return out
     core_kg, core_m = _core(body, mass_kg, radius_m)

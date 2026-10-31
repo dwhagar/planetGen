@@ -126,6 +126,7 @@ def apply_class(planet):
     """
     planet.planet_class = planet_classes.classify(planet)
     data = tuning.PLANET_CLASSES[planet.planet_class]
+    body_strength.generate(planet)    # GEN.1159: with the class, since a giant class has no strength to measure (the fields follow every new class)
     planet.description = data["description"]
     if planet.is_moon:
         # Class descriptions are authored generically (e.g. "shields the inner planets"); a moon knows it's a moon.
@@ -728,8 +729,6 @@ def generate_spin(planet, primary_mass_kg, birth=None, found=None):
     body_colour.generate(planet)
     # GEN.89: the habitability score, from all of the above.
     habitability_world.generate(planet, internal_heat_flux_w_m2(planet))
-    # GEN.1159: the roundness ratio, the yield strength and the binding energy, from the mass, radius and composition above.
-    body_strength.generate(planet)
 
 
 

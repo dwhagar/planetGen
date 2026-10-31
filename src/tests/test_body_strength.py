@@ -104,7 +104,7 @@ def test_a_generated_system_stores_the_values_wherever_the_body_has_them(mysql_c
                                         (saved,)).fetchall():
                     seen[table] += 1
                     assert row["binding_energy_j"] is not None and row["binding_energy_j"] > 0.0
-                    giant = row.get("body_type") == "g" or row["planet_class"] in "IJT"
+                    giant = row["planet_class"] in ("I", "J", "T")
                     assert (row["roundness_ratio"] is None) == giant
                     assert (row["yield_strength_pa"] is None) == giant
             for row in conn.execute("SELECT density_g_cm3, ice_mass_fraction, roundness_ratio, yield_strength_pa, binding_energy_j FROM comets WHERE star_system_id = ?", (saved,)).fetchall():
