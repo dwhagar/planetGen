@@ -867,6 +867,21 @@ check_math() {
     fi
 }
 
+# Builds the data of the References pages (DOC.88): `scripts/build_reference_pages.py` writes docs/references/*.json from the
+# reference list and the stand-in registry. The files are committed, so on a current checkout this changes nothing; it makes sure
+# a server never shows numbers older than its own registries. A failure only warns: /references then says its pages are not built.
+REFERENCE_PAGES_FAILED=0
+build_reference_pages() {
+    echo "Building the References pages:"
+    if "$PYTHON" "$SCRIPT_DIR/scripts/build_reference_pages.py"; then
+        REFERENCE_PAGES_FAILED=0
+    else
+        REFERENCE_PAGES_FAILED=1
+        echo "warning: the References pages could not be built (above); /references may show old numbers." >&2
+        echo "         run 'python3 scripts/build_reference_pages.py' to see why." >&2
+    fi
+}
+
 # Optionally runs the population pass and the territories pass (`planetgen population`: species,
 # civilizations and polities, then `planetgen territories`, docs/design/habitability/population-and-politics.md)
 # over the stored galaxy. Off by default (Boss, 2026-10-01): it runs only

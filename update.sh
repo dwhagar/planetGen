@@ -30,7 +30,9 @@
 #      warns; bulk generation refuses to start until the next update has
 #      fetched it (GEN.590). Every file's https URL is printed with what
 #      happened to it (fetched, kept, failed and why), so the output says
-#      where each piece comes from (GEN.600).
+#      where each piece comes from (GEN.600). Then the data of the References
+#      pages (`scripts/build_reference_pages.py`, DOC.88), built from the
+#      reference list and the stand-in registry; a failure only warns.
 #   4. `planetgen check-math`: the math check (TEST.68). A failure only
 #      warns (repeated at the end). Generation does not run it (PERF.170); the
 #      admin page can run it any time.
@@ -234,6 +236,7 @@ UPDATE_STEP="step 3/9, checking the NLTK words corpus and the downloaded data"
 log_stage 3 9 "Checking the NLTK 'words' corpus and the downloaded data sets"
 ensure_nltk_words "$NLTK_DATA_DIR"
 ensure_datasets
+build_reference_pages
 
 echo
 UPDATE_STEP="step 4/9, checking the generator's math"
@@ -299,6 +302,9 @@ if [[ "$MATH_CHECK_FAILED" == 1 ]]; then
 fi
 if [[ "$DATASETS_MISSING" == 1 ]]; then
     log_warning "some data sets could not be downloaded (step 3): bulk generation refuses to start until they are."
+fi
+if [[ "${REFERENCE_PAGES_FAILED:-0}" == 1 ]]; then
+    log_warning "the References pages could not be built (step 3): /references may show old numbers."
 fi
 log_info "The update doesn't run the population pass (species, civilizations, territories); when wanted:"
 log_info "  planetgen population && planetgen territories"

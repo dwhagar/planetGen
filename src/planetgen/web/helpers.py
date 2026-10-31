@@ -213,12 +213,14 @@ HELP_MENU = (
     ("habitability_levels", "Habitability"),
     ("property_help_page", "Properties"),
     ("life_help_page", "Life"),
+    ("references_page", "References"),
 )
 """tuple: What the Help menu beside the search button opens (UX.180), in order. The menu is current on these pages and
-on the class pages under Classes (a page names `section="classes"` or `section="help"`)."""
+on the class pages under Classes (a page names `section="classes"` or `section="help"`). References is last, after a divider (DOC.88):
+it is the one section that speaks out of universe, and its pages name `section="references"`."""
 
-HELP_SECTIONS = ("classes", "help")
-"""tuple: The `section` names that mark the Help menu current."""
+HELP_SECTIONS = ("classes", "help", "references")
+"""tuple: The `section` names that mark the Help menu current: the class pages, the help pages and the References pages."""
 
 POPULATION_SECTIONS = {"species"}
 """set: Sections shown only once population data exists

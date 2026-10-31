@@ -104,6 +104,7 @@ flowchart LR
 | `scripts/generate_db_models.py` | Writes `planetgen/db/models.py` (SQLAlchemy `Table` declarations) from `schema.sql` (DB.11). |
 | `scripts/check_redis_settings.py` | Warns about Redis server settings that do not suit planetGen (OPS.48); run by `install.sh` and `update.sh`. |
 | [`scripts/build_architecture_map.py`](../../../scripts/build_architecture_map.py) | Writes `docs/generated/architecture-map.html`, the code map that drills down from the project's areas to a function's source with the calls between them (DOC.67); `--check` fails when a module of the package is missing from the page. Its page shell is `scripts/architecture_map/template.html`. |
+| [`scripts/build_reference_pages.py`](../../../scripts/build_reference_pages.py) | Writes, or with `--check` checks, the data of the References pages (`docs/references/overview.json`) from the reference list and the stand-in registry; `update.sh` runs it in step 3 (DOC.88). |
 | `scripts/build_unit_ladders.py` | Writes the browser's copy of the unit ladders (`static/unitladders.js`) from `planetgen/util/ladders.py` (UX.23). |
 | `scripts/build_unit_registry.py` | Writes the browser's copy of the unit registry (`static/unitregistry.js`: every unit, its kind, factor and offset, and `convert`) from `planetgen/physics/unit_registry.py` (UX.140). |
 | `scripts/vendor_shoelace.py` | Copies the parts of Shoelace the site uses into `static/vendor/shoelace/`. |
@@ -475,6 +476,7 @@ The HTML pages (see [html-interface.md](../../reference/html-interface.md)). `te
 | [`admin_pages.py`](../../../src/planetgen/web/admin_pages.py) | `/login`, `/logout`, `/account`, `/admin` (API keys), `/admin/stats`. |
 | [`app.py`](../../../src/planetgen/web/app.py) | `create_app`: the Flask application factory. Registers the API blueprints and the page blueprint, the rate limiter, proxy fix, security headers and error handlers (including the 503 BUSY and 504 QUERY_TIMEOUT answers). |
 | [`class_pages.py`](../../../src/planetgen/web/class_pages.py) | `/classes`, `/classes/<type>` and `/classes/<type>/<code>`, from `planetgen/web/lib/classref.py`; `class_url` for the pages that link a class. |
+| [`references_pages.py`](../../../src/planetgen/web/references_pages.py) | `/references` (DOC.88), the one out-of-universe section: a static page that opens with the Out of universe banner, from `planetgen/web/lib/references_site.py` and `docs/references/*.json`. |
 | [`csrf.py`](../../../src/planetgen/web/csrf.py) | Signed double-submit CSRF protection for every page POST. |
 | [`edit_actions.py`](../../../src/planetgen/web/edit_actions.py) | The admin Delete and Regenerate buttons (TODO ADM.8) on the sector, system and phenomenon pages, and the system page's Change class (ADM.6) and Change star (ADM.7) forms. |
 | [`errors.py`](../../../src/planetgen/web/errors.py) | HTML error pages (404, 502, 500 without tracebacks). |
@@ -512,6 +514,7 @@ Shared page-building code.
 | [`apiclient.py`](../../../src/planetgen/web/lib/apiclient.py) | The API client every page uses: in-process inside Flask (via `web/transport.py`), over HTTP (`api_base_url`) anywhere else. |
 | [`classref.py`](../../../src/planetgen/web/lib/classref.py) | The class reference catalog behind `/classes`, built once per process from the generator's own tables, never hand-copied. |
 | [`reference_urls.py`](../../../src/planetgen/web/lib/reference_urls.py) | Where the References pages are (`/references/...`) and how an id becomes an address (DOC.87): `reference_path(kind, id)`, `anchor`, the method `AREAS`. Pages link there through `web.helpers.reference_link`, never by a hand-written address. |
+| [`references_site.py`](../../../src/planetgen/web/lib/references_site.py) | The text of the References pages, with the numbers read from `docs/references/*.json` (built by `scripts/build_reference_pages.py`). |
 | [`datatable.py`](../../../src/planetgen/web/lib/datatable.py) | The site's shared data table (UX.41): sortable columns, faceted filters and a page of rows fed by the API, 50 at a time. |
 | [`facility_display.py`](../../../src/planetgen/web/lib/facility_display.py) | How a facility's type, affiliation, ratings and field values read on a page (POP.10): the rating chips and the small text cells of the Facilities table. |
 | [`estimatecache.py`](../../../src/planetgen/web/lib/estimatecache.py) | The Generate page's size-and-time estimate kept in Redis (PERF.109), served while the generator epoch, the galaxy's data version and the speed statistics are as they were; concurrent identical requests run it once. |
