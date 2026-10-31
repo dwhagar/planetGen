@@ -1035,23 +1035,6 @@ with `clamp()`.
   locked bodies is UX.244.
   Prerequisites: none. Related: MAP.277, VIEW.14.
 
-- [ ] **UX.250 Planet render: the terminator between night and day should be more of a crescent, showing more of the day side, and the "to star" arrow overlaps the render (bug)**
-  Boss, 9:32 AM EDT 2026-10-31 (live observation, relayed by the
-  coordinator): "ok let's make the terminator between night and day on
-  planet renders more of a crescent, favoring more day side shown, and
-  the 'to star' arrow overlaps". Two parts. (1) The night and day
-  boundary drawn on planet renders (object pages and any other planet
-  render) should read as a crescent-style terminator that shows more of
-  the day side than now (the lit part larger, the night shading
-  smaller), still computed from the real phase geometry, not a fixed
-  look. (2) The "to star" arrow overlaps something (the planet, its
-  label or another mark): move or size it so it never overlaps. Do: find
-  the render code, state in the PR which parts of the picture changed
-  and the phase the render assumes, and keep the sunward direction
-  correct. Page and render code only, no stored value, lock-free. Owner:
-  Core 2 (assigned by the coordinator).
-  Prerequisites: none.
-
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
@@ -18512,6 +18495,19 @@ clears each one.
   guess, can move): Core 1 (reproducible galaxies), after the region run
   command.
   Prerequisites: none. Related: GEN.1118.
+
+- [ ] **TEST.518 test_a_body_with_a_stored_day_turns_at_the_shared_rate_and_a_tilted_one_turns_backwards fails in a whole-file run of test_web_browser_bodyview.py but passes alone (timing sensitive) (bug)**
+  Found by Core 2 (as the lane reported, 9:41 AM EDT 2026-10-31), filed
+  by the TODO thread. Kind: flaky browser test, red on main in a
+  whole-file run. Object:
+  src/tests/test_web_browser_bodyview.py::test_a_body_with_a_stored_day_turns_at_the_shared_rate_and_a_tilted_one_turns_backwards.
+  Result: the test passes alone and fails when the whole file runs, so
+  it depends on wall-clock timing or shared page state. Do: find what
+  the test waits on (a fixed sleep or a frame count against a rotation
+  read) and make it deterministic: read the rotation angle against the
+  page's own clock or step the clock, never loosen the tolerance and
+  never skip the test. Lock-free, test only. Owner: Core 5 (proposed).
+  Prerequisites: none.
 
 ## USR: User accounts
 
