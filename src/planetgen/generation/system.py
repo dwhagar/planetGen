@@ -30,7 +30,7 @@ from planetgen.generation import (
     cloud as cloudContext, life as planetLife, member_record, multistar, place_terms, prevalence, stored_trees, validation,
 )
 from planetgen.physics import stellar_evolution as evolution
-from planetgen.physics import habitability, insolation, interior_heat, magnetism, mass_loss, pre_main_sequence, rings, wolf_rayet
+from planetgen.physics import habitability, insolation, interior_heat, magnetism, mass_loss, pre_main_sequence, radiation, rings, wolf_rayet
 from planetgen.physics import planets as planetPhysics
 from planetgen import tuning
 from planetgen.util import draw
@@ -561,6 +561,7 @@ class StarSystem:
                     interior_heat.update_heat(moon)
                     planetPhysics.refresh_at_final_age(moon)
                     magnetism.generate_induced_field(moon, obj)  # GEN.178: from the final water and orbit
+                    radiation.apply_parent_belts(moon, obj)  # GEN.983: the parent's belts at the moon's orbit; the life pass rebuilds the dose from it
                     planetLife.apply_life_data(moon)
                     planetLife.decide_flavor_text(moon)
             # The swing of the light (class Q) is known only now, so a forced class is judged again on the final classes: one the final

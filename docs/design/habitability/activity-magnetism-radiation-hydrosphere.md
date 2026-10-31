@@ -448,7 +448,7 @@ atmosphere around an active M dwarf with no dipole receives Sv per year.
 `planetgen/physics/radiation.py` runs at the end of `planets.generate_spin`
 (after the air, water and field exist) and sets `surface_dose_msv_yr` =
 `dose_gcr_msv_yr` x `dose_helio_mult` + `dose_sep_msv_yr` +
-`dose_ground_msv_yr`, `uv_surface_index` and `ozone_loss_flag` on every
+`dose_ground_msv_yr` + `dose_belt_msv_yr` (GEN.983: a moon in its parent's trapped-particle belts, 0 for a planet), `uv_surface_index` and `ozone_loss_flag` on every
 rocky planet and moon (a gas giant has none). Choices the sections above
 leave open:
 

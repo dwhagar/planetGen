@@ -272,6 +272,7 @@ class World:
     dose_gcr_sv_yr: float = None
     dose_sep_sv_yr: float = None
     dose_ground_sv_yr: float = None
+    dose_belt_sv_yr: float = None
     cutoff_gv: float = 0.0
     uv_index: float = 0.0
     dust_mg_m3: float = None
