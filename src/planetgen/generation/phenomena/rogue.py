@@ -106,9 +106,9 @@ def rocky_radius_km(mass_kg, density_kg_m3):
     A rogue of 10 Earth masses is then 1.8 to 2.0 Earth radii, as a bound one is, and not the 2.2 to 2.4 of a body that does not compress.
     """
     earth_radius_m = constants.EARTH_RADIUS_KM * 1000.0
-    radius_at_one = (constants.EARTH_MASS_TO_KG / ((4 / 3) * math.pi * density_kg_m3)) ** (1 / 3) / earth_radius_m
+    radius_at_one = (_mearth_to_kg(1.0) / ((4 / 3) * math.pi * density_kg_m3)) ** (1 / 3) / earth_radius_m
     core = bulk_structure.cmf_from_mass_radius(1.0, radius_at_one)
-    mass_earth = mass_kg / constants.EARTH_MASS_TO_KG
+    mass_earth = _kg_to_mearth(mass_kg)
     return bulk_structure.radius_fit_earth(mass_earth, 0.0 if core is None else core) * constants.EARTH_RADIUS_KM
 
 
@@ -229,7 +229,7 @@ class RoguePlanet(LazySaladName, PlanetaryObject):
             # GEN.60): radius grows with mass up to about Saturn's mass,
             # then stays near Jupiter's as degeneracy pressure takes over.
             self.radius_km = planetPhysics.sample_giant_radius_km(self.mass_kg)
-            if self.mass_kg < tuning.GIANT_RUNAWAY_MIN_MASS_EARTH * constants.EARTH_MASS_TO_KG:
+            if self.mass_kg < _mearth_to_kg(tuning.GIANT_RUNAWAY_MIN_MASS_EARTH):
                 # GEN.1133: the core that did not run away (the bound chain's ice giant, `planet_mass.gas_outcome`)
                 self.composition = ("water, ammonia and methane ices and rock under a hydrogen and helium envelope, an ice giant "
                                     "similar in bulk composition to Uranus or Neptune")

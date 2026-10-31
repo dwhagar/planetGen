@@ -32,6 +32,10 @@ word. The belt's composition thresholds still take the Dirichlet draw's shares; 
 import math
 
 from planetgen.physics import collision_outcome, constants, planet_mass
+from planetgen.physics import unit_registry as units
+
+_kg_to_msun = units.converter("kg", "Msun")
+_mearth_to_kg = units.converter("Mearth", "kg")
 from planetgen.util.checks import finite_domain
 
 GRAIN_DENSITY_KG_M3 = 2700.0
@@ -76,7 +80,7 @@ def primordial_mass_earth(lower_au, upper_au, star_mass_kg, snow_line_au, metal_
         a_mid = math.sqrt(a_low * a_high)
         sigma = planet_mass.solids_surface_density_gcm2(a_mid, star_mass_kg, snow_line_au, metal_ratio, scatter)
         total_g += math.pi * (a_high ** 2 - a_low ** 2) * au_cm ** 2 * sigma
-    return total_g / (constants.EARTH_MASS_TO_KG * 1000.0)
+    return total_g / _mearth_to_kg(1000.0)
 
 
 @finite_domain()
@@ -119,14 +123,14 @@ def belt_state(lower_au, upper_au, star_mass_kg, snow_line_au, metal_ratio, age_
     `(mass_kg, density word)` of a belt: what its disc's solids leave after `age_gy` of collisions (`belt_mass_earth`), and the word that mass per area earns against the same belt of the
     median largest body (the geometric mean of `LARGEST_BODY_RANGE_KM`) around a star of the Sun's metals.
     """
-    star_solar = star_mass_kg / constants.SOLAR_MASS_TO_KG
+    star_solar = _kg_to_msun(star_mass_kg)
     age_myr = age_gy * 1000.0
     primordial = primordial_mass_earth(lower_au, upper_au, star_mass_kg, snow_line_au, metal_ratio)
     mass = belt_mass_earth(primordial, lower_au, upper_au, star_solar, age_myr, largest_km)
     median_km = math.sqrt(LARGEST_BODY_RANGE_KM[0] * LARGEST_BODY_RANGE_KM[1])
     reference = belt_mass_earth(primordial_mass_earth(lower_au, upper_au, star_mass_kg, snow_line_au), lower_au, upper_au, star_solar, age_myr, median_km)
     word = density_word(surface_density_earth_per_au2(mass, lower_au, upper_au), surface_density_earth_per_au2(reference, lower_au, upper_au))
-    return mass * constants.EARTH_MASS_TO_KG, word
+    return _mearth_to_kg(mass), word
 
 
 def density_word(mass_per_area, reference_mass_per_area):
