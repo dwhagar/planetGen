@@ -546,9 +546,9 @@ class StarSystem:
 
         with log.timed_phase("ring pass"):
             for obj in self.all_planets:
-                rings.apply(obj)  # GEN.732: after the moons and the snow line are final
+                rings.apply(obj)  # GEN.732, GEN.1057: after the moons and the snow line are final
                 for moon in getattr(obj, "moons", ()):  # a belt has none
-                    rings.apply(moon)  # GEN.836
+                    rings.apply(moon, obj)  # GEN.836
 
         with log.timed_phase("life data pass"):
             insolation.refresh_system(self)  # GEN.148: the light each planet sums over the stars, from their final orbits

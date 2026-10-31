@@ -257,7 +257,7 @@ class RoguePlanet(LazySaladName, PlanetaryObject):
             age_gy=brown_dwarf_age_gy if mass_bin == "brown-dwarf" else None))
         self.planet_class = rogue_class(self)    # from the surface its own heat gave it (GEN.687)
 
-        rings.apply_rogue(self)  # GEN.836
+        rings.clear(self)  # GEN.1057: a ring is what a planet's history made, and a rogue planet's moons and comets are not followed
         self.set_galactic_motion()
         # GEN.104, GEN.842: a rocky rogue planet is born spinning at the rate and angle the giant impacts that built it leave
         # (`spin.accretion_spin`, GEN.731), with no star to tide it; a giant keeps a day from the gas-giant law and a Rayleigh tilt.

@@ -236,6 +236,8 @@ The ring draw is independent of the planet's history, so every giant has a ring 
 - Ring plane is the equator, so oddities that move the spin (G1, W1, W2) move the ring.
 - Invariants for the harness: ring mass under 1e-4 of the planet, ring inside the Roche limit unless R4 names its resonance, optical depth from the formula (an output), no ring inside 0.1 AU.
 
+**Built (GEN.1057, wiring).** R1, R2, R4 and R9 are wired in `rings.apply` (a ring from `moon_history`'s fallen moons and `ring_origin`'s comet passages; a dwarf planet's resonance ring; no ring inside 0.1 AU); a ring stores its age (`ring_age_yr`, schema v187). BC20 and BC22 are replaced (kind from mass, `rings.KIND_MASS_LIMITS_KG`). R6 and R8 (GEN.1055) are not built.
+
 ### 9.4 Added TODO items
 
 Non-lock: (20) ring origin from moon decay and comet passage, pure function, tests on Saturn and Phobos; (21) ring age and pollution darkening; (22) R4 resonance rings for small bodies, Quaoar and Haumea tests; (23) ring invariants in the plausibility harness. Lock: (24) wire conditional rings (epoch, replaces the BC20 draw); (25) wire ring age, R4, R9; (26) census re-baseline for ring shares.
