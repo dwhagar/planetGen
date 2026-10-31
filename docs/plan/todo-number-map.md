@@ -14,7 +14,7 @@ release is stamped.
 | Category | Next free ID |
 |---|---|
 | UX | UX.250 |
-| MAP | MAP.356 |
+| MAP | MAP.360 |
 | NAV | NAV.65 |
 | GEN | GEN.1154 |
 | PERF | PERF.220 |
@@ -2259,6 +2259,10 @@ Parents marked "new parent" had no old number of their own.
 | MAP.353 | Galaxy Map is always 95 percent of the window height, recomputed on every resize (follow-up to MAP.350) | none | done, PR #4139 |
 | MAP.354 | Lagrange trojans T4: System Map icon at the centre of each Lagrange point that has objects, labelled with the host and point (for example Jupiter-L4); shares the geometry of the MAP.169 gravity layer | none | open |
 | MAP.355 | The map on a sector page zooms out to the whole galaxy and pans into neighbouring sectors; limit it to the sector (zoom-out capped at 1.1 times the sector fit, pan kept inside the sector block) with the Show on Galaxy Map link at the top (bug) | none | done, PR #4279 |
+| MAP.356 | The map legend covers too much of the map; make it a small corner of the map (bug) | none | open |
+| MAP.357 | Boss cannot reliably find and navigate from the galaxy down to filled and charted sectors and regions (bug) | none | open |
+| MAP.358 | The View system and Expand buttons of the sector info display cannot be seen or reached (bug) | none | open |
+| MAP.359 | The sector map and system map should match the size of the galaxy map for the browser window (bug) | none | open |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
 | NAV.3 | One shared picker for the Galaxy, Sector and System displays | none | done, PR #724 |

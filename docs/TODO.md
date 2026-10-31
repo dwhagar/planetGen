@@ -2319,6 +2319,40 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   MAP.169 and does not wait for the heat map.
   Prerequisites: GEN.1150. Related: MAP.169.
 
+- [ ] **MAP.356 The map legend covers too much of the map; make it a small corner of the map (bug)**
+  Boss live observation 8:57 PM EDT 10-30 (bug). Owner: Core 2 (map
+  area), no epoch or migration. Shrink the legend to a small corner box
+  (collapsed by default or a compact list) on the Galaxy Map, Sector Map
+  and System Map, with a toggle to open it; browser test at 1280 and 390
+  px that it covers at most a small corner.
+  Prerequisites: none.
+
+- [ ] **MAP.357 Boss cannot reliably find and navigate from the galaxy down to filled and charted sectors and regions (bug)**
+  Boss live observation 8:57 PM EDT 10-30 (bug). Owner: Core 2 (map
+  area), no epoch or migration. Make charted and filled sectors and
+  regions findable and reachable from the Galaxy Map: a visible marker
+  or outline for charted regions, a list or jump control for them, and a
+  path from galaxy to region to sector that always works at every zoom.
+  Reproduce first on the live data, then fix; a browser test walks
+  galaxy to a charted sector.
+  Prerequisites: none.
+
+- [ ] **MAP.358 The View system and Expand buttons of the sector info display cannot be seen or reached (bug)**
+  Boss live observation 8:57 PM EDT 10-30 (bug). Owner: Core 2 (map
+  area), no epoch or migration. Find why the sector info panel hides its
+  View system and Expand buttons (clipped, covered by the legend or the
+  map, or off screen at the browser size) and make them always visible
+  and clickable; browser test clicks both at 1280 and 390 px.
+  Prerequisites: none.
+
+- [ ] **MAP.359 The sector map and system map should match the size of the galaxy map for the browser window (bug)**
+  Boss live observation 8:57 PM EDT 10-30 (bug). Owner: Core 2 (map
+  area), no epoch or migration. The sector and system map stages fill
+  the same area per window size as the Galaxy Map (same height rule,
+  same width); browser test compares the stage boxes of the three maps
+  at 1280 and 390 px.
+  Prerequisites: none.
+
 ## NAV: Navigation and courses
 
 - [ ] **NAV.4 Save a course**
