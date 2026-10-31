@@ -6022,41 +6022,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   Prerequisites: none. Related: GEN.286, GEN.287, GEN.259.
 
-- [ ] **GEN.399 Research the halo mass function and compare it with the halo mass approximation GEN.368 uses**
-  Boss (2026-10-16, 10:11 PM EDT, in the Core 1 thread): on the GEN.368
-  halo mass card he picked "Approximate" for now, and wants an item in
-  8.2 to research and find the halo mass function and compare it with
-  the approximation. Done: a research note in docs/design (named in
-  GEN.368's table once built) that names the halo mass function the
-  literature gives for the galaxy's stellar mass (the stellar-to-halo
-  relation with its scatter, and the halo mass function behind it, with
-  every source checked against the paper), states the approximation
-  GEN.368 actually built (Core 1 reports which), and compares them over
-  the stellar mass range of the first family (3e9 to 2e11 solar): a
-  table of halo mass against stellar mass for both, the largest
-  difference, and whether the approximation stays inside the scatter. If
-  the difference is larger than the scatter, a follow-up item replaces
-  the approximation with the researched function; if not, the note says
-  the approximation stands. A comparison test keeps the two within the
-  stated bound. No fixed content (Boss, 4:11 and 4:14 PM EDT): no named
-  galaxy sets any number. Method (Core 1's suggestion, 2026-10-16, 10:12
-  PM EDT): read a halo mass function source in the paper (for example
-  Tinker et al. 2008 or Sheth and Tormen 1999), build the exact
-  conditional P(Mh | M*) as the halo mass function times the log-normal
-  in M* about the Moster median with 0.15 dex scatter, and compare it
-  with GEN.368's approximation (the median inverse with an effective Mh
-  scatter of 0.15 dex divided by the slope). Done adds: a test and a
-  note showing the typical halo mass and the scatter difference per
-  stellar mass, and a switch to the exact conditional if the difference
-  matters. Needs GEN.368's build (GEN.400).
-  Data we hold (2026-10-29 8:55 PM EDT): VizieR galaxy tables (Courteau
-  and Comeron c18, Pizzella 2005, digitised occupation, size and cluster
-  figures) and the Harris file are held under
-  reports/vizier-courteau-comeron-2026-10-17-files and data/harris; the
-  galaxy-laws research is in docs/design/galaxy/galaxy-laws-research.md.
-  Catalog section 3.
-  Prerequisites: none. Related: GEN.368, GEN.380.
-
 - [ ] **GEN.405 Metallicity and rates by position from the galaxy's own model: the mass-metallicity relation and the local rates replace the fixed gradient and the quoted-at-the-Sun values**
   GEN.368's table (Boss approved it 2026-10-16, 10:11 PM EDT: size
   source Shen et al. 2003, approximation for the halo mass, no home
@@ -14845,6 +14810,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   theirs with GEN.1069. Needs a migration for any stored column, so it
   rides a train after GEN.1097.
   Prerequisites: GEN.1097.
+
+- [ ] **GEN.1154 Halo mass of galaxies above 3e10 solar masses of stars is drawn too heavy by GEN.368 (0.17 dex at 6e10, 0.27 at 1e11, 0.34 at 2e11 against a Tinker 2008 halo function): replace median_halo_mass plus the Gaussian with a precomputed Tinker-based conditional drawn by inverse CDF; read the Moster 2013 halo masses as virial, not M200c (0.05 to 0.08 dex)**
+  Found by GEN.399 (reports/gen399-halo-mass-function-2026-10-31.md,
+  script in reports/gen399/): below about 3e10 the current law is within
+  0.01 to 0.03 dex and the automatic 3e9 to 6e9 range is untouched at
+  0.013 dex; above it the halo shape is fine and only the centre moves.
+  Needs an epoch and a train slot; only galaxies above 3e10 change.
+  Stand-ins registered in GEN.725. Owner Sources 2 (build-only branch).
+  Prerequisites: none.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
