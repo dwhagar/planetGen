@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 889 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 897 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -36,16 +36,16 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 135 | 11 | 7 | 1 | 0 | 154 |
-| T2 | 110 | 31 | 0 | 1 | 0 | 142 |
+| T1 | 136 | 11 | 7 | 1 | 0 | 155 |
+| T2 | 110 | 32 | 0 | 1 | 0 | 143 |
 | T3 | 76 | 34 | 5 | 11 | 0 | 126 |
 | T4 | 37 | 4 | 0 | 14 | 10 | 65 |
 | T5 | 43 | 15 | 0 | 1 | 0 | 59 |
 | T6 | 82 | 61 | 15 | 45 | 0 | 203 |
 | T7 | 27 | 8 | 8 | 8 | 0 | 51 |
 | T8 | 0 | 1 | 1 | 5 | 1 | 8 |
-| T9 | 13 | 6 | 4 | 39 | 19 | 81 |
-| All | 523 | 171 | 40 | 125 | 30 | 889 |
+| T9 | 13 | 12 | 4 | 39 | 19 | 87 |
+| All | 524 | 178 | 40 | 125 | 30 | 897 |
 
 ## How the labels were given
 
@@ -1387,6 +1387,24 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | RSM2 | D | T6 | L1 | rogue_density.VERTICAL_SMOOTH_PC 30: the same in height | 20 to 50 pc (the design's range) | rogues older than 1 Gyr in a disc | the scale height of observed free-floating planets against their donors' | the same as RSM1 | rogue_drift.drift over the stand-in kick distribution (computed) | GEN.1111 | - |
 | RSM3 | D | T6 | L1 | rogue_density.YOUNG_AGE_MYR 100: rogues ejected within this long keep the donor's structure; the share is this over the population's history (ejections uniform in time) | 30 to 300 Myr | sectors of any galaxy | a time-resolved ejection rate (planet scattering peaks early, so the share is higher in young populations) | the ejection-time distribution of the yield table (R1) | the design note's "younger than about 100 Myr" and its uniform-in-donor-age test (recalled from rogue-planet-drift.md) | GEN.1111 | - |
 | RSM4 | P | T9 | L0 | rogue_density.RING_STEPS 16: points round a ring (exact for fewer than 16 arms or bar ends), with 3 nodes each in radius and height | 8 to 64 | every smoothing | not applicable (a quadrature) | a finer rule if a density with finer azimuthal structure is added | the design note's "about 16 density evaluations" | GEN.1111 | - |
+
+## 6.127 Stand-ins of the high-gravity class line
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| GV1 | P | T2 | L1 | planet_classes.json class V: gravity_g min 2.0 (a body with air at 2 g or more is class V; below it the other rows decide) | 1.5 to 2.0 g (Boss left the choice; 1.5 g is about 1.3 Earth radii) | terrestrial bodies with air | a measured occurrence of rocky planets above 1.5 Earth radii with thin N2 and O2 air at a temperate surface, or a habitability model that scores 1.5 to 2 g as unsafe | the high-gravity rows of the habitability index (GEN.646 family) once they read the finished body | Bryson et al. 2021 limit of 1.5 Earth radii for Earth-sized planets (read, per the class M report); the 2 g value is chosen from it by the rocky mass-radius law, not measured | - | - |
+
+## 6.128 Stand-ins of the class lines of the train 6 epoch
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| CL1 | P | T9 | L1 | planet_classes.json class T terrestrial row: share_h2 min 0.3 and mass_earth lt 10 (a terrestrial-kind body with a hydrogen-dominated air under 10 Earth masses is a gas dwarf, ahead of N) | 0.2 to 0.5 hydrogen; 5 to 15 Earth masses | terrestrial-kind bodies with a thick air | a survey of planets of 2 to 10 Earth masses with hydrogen-dominated atmospheres that finds a different share | the envelope law (`bulk_structure.envelope_radius_earth`, GEN.1042) deciding gas dwarf versus rocky by the envelope fraction | GEN.1143: 47 of 229 N bodies are hydrogen-rich under 15 Earth masses, median 4.3; the old T row is giant-kind only | - | - |
+| CL2 | P | T9 | L1 | planet_classes.json class N: pressure_pa min 1e6, temperature_k min 400, share_h2 lt 0.3 (a hot dense non-hydrogen air, Venus-like) | 350 to 500 K; 0.2 to 0.5 hydrogen | terrestrial bodies with a 10 bar air | a temperate 10 bar carbon dioxide air that the solver places under 400 K and a measured Venus-like class | the class from the solved greenhouse state (surface temperature against the runaway line) | 30 of 105 N bodies were under 400 K in the GEN.29 sweep; Venus 737 K and 92 bar | - | - |
+| CL3 | P | T9 | L1 | planet_classes.json class L: pressure_pa 30 kPa to 3 bar, temperature_k 273.15 to 320, share_co2 min 0.01, share_o2 3 to 16 percent, gravity_g min 0.5 | pressure 20 to 50 kPa and 2 to 5 bar; CO2 0.5 to 5 percent; O2 2 to 5 and 14 to 18 percent | terrestrial bodies with air | the pressure, carbon dioxide and oxygen at which a person needs a mask (the survival equipment fields, `protection.py`) | the lines of the habitability index for the air of a world that needs a mask but is not toxic | Boss's 6:57 PM EDT 10-30 reading (Earth-like, high CO2, low oxygen, near-Earth temperature); GEN.1143 reached none of L today | - | - |
+| CL4 | P | T9 | L1 | planet_classes.json class K: pressure_pa lt 3000, temperature_k 273.15 to 320, share_o2 lt 0.1 (a thin-air adaptable world; the cold part is class P) | 2 to 5 kPa; 300 to 330 K; 0.05 to 0.2 oxygen | terrestrial bodies with a thin air | the old definition ("adaptable world with a thin atmosphere", system-file-format.md) and a habitability model of thin air | the survival equipment fields of thin air | 43 of 44 K bodies were frozen ocean under the old under-273 K line (GEN.29) | - | - |
+| CL5 | D | T1 | L0 | planet_classes.json class P: temperature_k lt 273.15 at the top (every mean surface below freezing is glaciated; was 210 K) | none (the freezing point of water) | terrestrial bodies with air | not applicable (a definition) | not applicable | the freezing point of water at 1 bar; Boss 6:57 PM EDT 10-30 | - | - |
+| CL7 | P | T9 | L1 | planet_classes.json class E (the deep-frozen world, was the retired wet reducing E): temperature_k lt 233.15 (-40 C), and class P from there up to 273.15 K | 213 to 253 K | terrestrial bodies with air | a measured change of the surface (ice behaviour, a habitable subsurface ocean) between 233 K and 253 K | the lines of the habitability index for cold | Boss's decision, 7:06 PM EDT 10-30 (P ends at -40 C); GEN.1143 and GEN.29 find most air-bearing bodies are cold, with a median near 125 K for the old Q bodies | - | - |
+| CL6 | P | T9 | L1 | planet_classes.json class O: ocean_fraction min 0.8 (was 0.9) and class H: ocean_fraction lt 0.2 (was 0.15); M is 0.2 to 0.8 | O 0.75 to 0.9; H 0.1 to 0.25 | terrestrial bodies with air | the ocean share of measured or modelled Earth-like worlds (Boss asked for the source of the 20 percent) | the land share of the habitable-zone model of the planet generator's water inventory | Boss's recollection (20 and 80 percent); GEN.1145: ocean share by tenths has a hole from 50 to 80 percent, so the lines sit in it | - | - |
 
 ## 6.104 Stand-ins of the dwarf planet population
 

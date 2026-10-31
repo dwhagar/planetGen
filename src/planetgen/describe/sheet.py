@@ -65,9 +65,9 @@ captain (no air, no magnetic field, a quiet star); every other row is left out o
 API sheet always returns every row and says which are `absent` and which are `show_absent`."""
 
 GLANCE = {
-    "planet": ("planet_class", "zone", "surface_temperature_k", "atmospheric_pressure_pa", "gravity_g",
+    "planet": ("planet_class", "zone", "surface_temperature_k", "flux_variation", "atmospheric_pressure_pa", "gravity_g",
                "surface_dose_msv_yr", "outside_hours_day", "rotation_period_hours", "daylight_hours", "day_share_equator", "distance_km", "period_years"),
-    "moon": ("planet_class", "zone", "surface_temperature_k", "atmospheric_pressure_pa", "gravity_g",
+    "moon": ("planet_class", "zone", "surface_temperature_k", "flux_variation", "atmospheric_pressure_pa", "gravity_g",
              "surface_dose_msv_yr", "outside_hours_day", "rotation_period_hours", "daylight_hours", "day_share_equator", "distance_km", "period_years"),
     "star": ("role", "star_type", "yerkes_class", "state", "mass_kg", "luminosity_w", "temperature_k",
              "habitable_zone_inner_km", "habitable_zone_outer_km", "snow_line_km", "flare_n33_per_yr",
@@ -91,6 +91,14 @@ GLANCE = {
 }
 """dict: For each kind, the row keys of its "At a glance" panel (UX.188), in a captain's order: what it is, can I
 survive there, how long is a day and how far is it. Each is a row of the same sheet."""
+
+SWING_FLAG_MIN = 0.75
+"""float: The peak-to-peak swing of a body's starlight (`flux_variation`, about 4 times its orbit's eccentricity) from which the "At a glance"
+panel flags it as very high (GEN.1135, which retired Class Q: a class that was only an orbit). 4 percent of bodies; 0.5 would flag 12 percent and the
+old class line of 0.25 would flag 36 percent. A default until Boss gives a line."""
+
+SWING_FLAG_LABEL = "Seasonal swing of starlight"
+"""str: What the panel calls the flag row (the sheet's own row for the number is "Seasonal variation of that energy, peak to peak")."""
 
 NOT_STORED = "not stored"
 """str: What a row with no stored value says."""
