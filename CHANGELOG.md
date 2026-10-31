@@ -2,6 +2,19 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2929] - 2026-10-31
+
+**Headline:** The Galaxy Map's history entries keep only the camera's address; Back, Forward and a reload work the stage out from where the camera is.
+
+### Changed
+- **History entries no longer carry a stage (MAP.337, steps 3 and 4).** `galaxystageview.js` stores `{galaxyStage, mapIndex, maxIndex}` in each entry and derives the stage the page loads on from the `cam` address (`stageForCamera`), where an entry used to hold the stage it was made at. Dead code is removed (`fovHalf`, `optionAt`, `matchAddress`).
+
+No generator output changes.
+
+generation-output: unchanged
+
+TODO items resolved: MAP.337 (steps 1 to 4 merged; `parentStage` stays as the container trail the crumbs and Up read, MAP.227).
+
 ## [8.0.2928] - 2026-10-31
 
 **Headline:** Two migration tests that were red on main now say what they check: the aerosols test lists the scores worked from the radiation score, and the albedo test knows the air solve caps a surface at 2000 K.
