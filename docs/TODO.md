@@ -14729,6 +14729,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   9. Additive to the roundness engine (physics/roundness.py, GEN.1158,
   merged); no generation output changes until GEN.1159 to GEN.1162 wire
   it, so lock-free until then.
+  Sources 1 finding
+  (reports/strength-followup-gen1180-gen1175-2026-10-31.md) (2026-10-30
+  11:33 PM EDT): One fitted law found, strength times (1 - phi/0.5)^1.67
+  from Alomari, Ng and Khatri 2025, from a summary only, so the paper
+  must be read; it sits inside the placeholder's b 4 to 7 band for
+  porosity 0.1 to 0.4. It is a carbonate rock law: ice-rich bodies have
+  no sourced porosity law. Boss uploads that matter: Alomari 2025 (open
+  access, mdpi.com/1996-1944/18/6/1211) and Yamashita, Kato and Arakawa
+  2010 (Icarus 207:972). Keep open until the Alomari paper is read.
   Prerequisites: none. Related: GEN.1158, GEN.725.
 
 - [ ] **GEN.1177 Strength rows for the ice phases, methane clathrate, solid CO2 and ammonia ices**
@@ -14767,18 +14776,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Additive to the roundness engine (physics/roundness.py, GEN.1158,
   merged); no generation output changes until GEN.1159 to GEN.1162 wire
   it, so lock-free until then.
-  Prerequisites: none. Related: GEN.1158, GEN.725.
-
-- [ ] **GEN.1180 Follow-up strength research: peridotite and olivine, rock fracture toughness, solid N2 and CO ices, ices VII and X, methane hydrate constants at low temperature**
-  Gaps left by the strength research
-  (reports/planetary-material-strength-2026-10-31.md section 9 item 7
-  and section 12): no peridotite-specific rock mass strength (the
-  generic rock value is used; intact olivine crystal is about 10 GPa,
-  Wallis and others 2020); rock fracture toughness; solid nitrogen and
-  carbon monoxide ices (Eluszkiewicz and Stevenson 1990); ices VII and
-  X; methane hydrate n = 4.5 creep constants at low temperature. Find
-  papers, read them, and report; Boss uploads the ones he can reach.
-  Research item, no code. Owner a research thread.
   Prerequisites: none. Related: GEN.1158, GEN.725.
 
 ## PERF: Speed, caching, bulk generation and parallel work
