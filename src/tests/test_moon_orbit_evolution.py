@@ -76,7 +76,7 @@ def test_phobos_spirals_in_at_a_rate_of_the_order_measured():
 
 
 def test_triton_goes_in_because_it_is_retrograde_and_never_recedes():
-    """Triton at Neptune: retrograde, so the tide takes its orbital angular momentum; the decay time to the Roche limit is some Gy at Q of 1e4 (Chyba et al. 1989)."""
+    """Triton at Neptune: retrograde, so the tide takes its orbital angular momentum; the decay time to the Roche limit is some Gy at Q of 1e4."""
     neptune = spin_torques.Planet(1.024e26, 2.4622e7)
     triton = moon_orbits.Moon(2.139e22, 3.548e8, 2061.0, retrograde=True)
     torques = spin_torques.Torques(neptune, (), spin_torques.constant_dissipation(0.41, 1.0e4), None, 1.5, moon_orbits.COROTATION_SOFTNESS)

@@ -230,8 +230,7 @@ Every reference cited above, in order of first citation. Mark: V-rec = record co
 - **[Poi00]** Poirier 2000, Introduction to the Physics of the Earth's Interior, 2nd ed., Cambridge University Press. *Mark: V-rec.*
 - **[SD08]** Stacey and Davis 2008, Physics of the Earth, 4th ed., Cambridge University Press, doi 10.1017/CBO9780511812910. *Mark: V-rec.*
 - **[LP16]** Lattimer and Prakash 2016, Phys. Rep. 621, 127 (The equation of state of hot, dense matter and neutron stars). *Mark: V-rec.*
-- **[Typ22]** Typel et al. 2022, Eur. Phys. J. A 58, 221 (CompOSE reference manual). *Mark: V-rec.*
-- **[Cot14]** Cottaar, Heister, Rose et al. 2014, Geochem. Geophys. Geosyst. 15, 1164 (BurnMan: a lower mantle mineral physics toolkit). *Mark: V-rec.*
+- **[Cot14]** Cottaar, Heister, Geochem. Geophys. Geosyst. 15, 1164 (BurnMan: a lower mantle mineral physics toolkit). *Mark: V-rec.*
 - **[BT08]** Binney and Tremaine 2008, Galactic Dynamics, 2nd ed., Princeton University Press, doi 10.1515/9781400828722. *Mark: V-rec.*
 - **[Ken98]** Kennicutt 1998, ApJ 498, 541 (The global Schmidt law in star-forming galaxies). *Mark: V-rec; PT (index 1.4 +- 0.15).*
 - **[KE12]** Kennicutt and Evans 2012, ARA&A 50, 531 (Star formation in the Milky Way and nearby galaxies). *Mark: V-rec.*
@@ -250,7 +249,6 @@ Every reference cited above, in order of first citation. Mark: V-rec = record co
 - **[Bu89]** Buzzoni 1989, ApJS 71, 817, doi 10.1086/191399 (Evolutionary population synthesis in stellar systems I). *Mark: V-rec; PT.*
 - **[Cho16]** Choi et al. 2016, ApJ 823, 102 (MIST I). *Mark: V-rec.*
 - **[You81]** Young 1981, Appl. Opt. 20, 533 (Rayleigh scattering). *Mark: V-rec; PT.*
-- **[BH83]** Bohren and Huffman 1983, Absorption and Scattering of Light by Small Particles, Wiley (the DOI on record, 10.1002/9783527618156, is the 1998 reprint). *Mark: V-rec.*
 - **[Bat84]** Bates 1984, Planet. Space Sci. 32, 785 (Rayleigh scattering by air). *Mark: V-rec; PT.*
 - **[Buc95]** Bucholtz 1995, Appl. Opt. 34, 2765 (Rayleigh-scattering calculations for the terrestrial atmosphere). *Mark: V-rec; PT.*
 - **[GY89]** Goody and Yung 1989, Atmospheric Radiation: Theoretical Basis, 2nd ed., Oxford University Press. *Mark: V-rec (Open Library).*
@@ -325,11 +323,11 @@ Every reference cited above, in order of first citation. Mark: V-rec = record co
 - **[Dot16]** Dotter 2016, ApJS 222, 8 (MIST 0). *Mark: V-rec.*
 - **[Sta83]** Stahler 1983, ApJ 274, 822, doi 10.1086/161495 (The birthline for low-mass stars). *Mark: V-rec.*
 - **[Bar15]** Baraffe et al. 2015, A&A 577, A42, arXiv:1503.04107 (BHAC15; tables at CDS). *Mark: V-rec; PT (paper has no tables).*
-- **[Sie00]** Siess, Dufour and Forestini 2000, A&A 358, 593 (pre-main-sequence tracks). *Mark: V-rec.*
+- **[Sie00]** Siess, A&A 358, 593 (pre-main-sequence tracks). *Mark: V-rec.*
 - **[Wri11]** Wright et al. 2011, ApJ 743, 48, arXiv:1109.4634 (The stellar activity-rotation relationship and the evolution of stellar dynamos). *Mark: V-rec; PT.*
 - **[Sku72]** Skumanich 1972, ApJ 171, 565. *Mark: V-rec.*
 - **[Joh21]** Johnstone et al. 2021, A&A 649, A96 (The active lives of stars). *Mark: V-rec; PT.*
-- **[Jac12]** Jackson, Jeffries and Bryson 2012, MNRAS 422, 2024, arXiv:1111.0031 (coronal X-ray - age relation). *Mark: V-rec; PT.*
+- **[Jac12]** Jackson, MNRAS 422, 2024, arXiv:1111.0031 (coronal X-ray - age relation). *Mark: V-rec; PT.*
 - **[Med22]** Medina et al. 2022, arXiv:2205.02331 (Galactic kinematics and observed flare rates of mid-to-late M dwarfs). *Mark: V-rec; PT.*
 - **[Kir21]** Kirkpatrick et al. 2021, ApJS 253, 7, arXiv:2011.11616 (Field substellar mass function from the 20-pc census); Table 13. *Mark: V-rec; PT.*
 - **[BL93]** Burrows and Liebert 1993, Rev. Mod. Phys. 65, 301 (The science of brown dwarfs). *Mark: V-rec.*
@@ -338,8 +336,6 @@ Every reference cited above, in order of first citation. Mark: V-rec = record co
 - **[Ser17]** Serenelli et al. 2017, A&A 606, A33 (The brightness of the red giant branch tip). *Mark: V-rec; PT.*
 - **[Ree25]** Rees and Izzard 2025, arXiv:2503.17772 (A stellar evolutionary grid for binary population synthesis: from the main sequence to helium ignition); the core-mass-luminosity fit used in GEN.502. *Mark: V-rec; PT.*
 - **[Sal04]** Salaris et al. 2004, A&A 420, 911 (The initial helium abundance of the Galactic globular cluster system). *Mark: V-rec; PT.*
-- **[Rei75]** Reimers 1975, in Problems in Stellar Atmospheres and Envelopes, pp. 229-256 (Circumstellar envelopes and mass loss of red giant stars). *Mark: V-rec.*
-- **[SC05b]** Schroeder and Cuntz 2005, ApJ 630, L73 (A new version of Reimers' law of mass loss based on a physical approach). *Mark: V-rec.*
 - **[LDZ94]** Lee, Demarque and Zinn 1994, ApJ 423, 248 (horizontal-branch stars in globular clusters II: the second parameter). *Mark: V-rec.*
 - **[Dot10]** Dotter et al. 2010, ApJ 708, 698 (ACS Survey of Galactic Globular Clusters IX: horizontal branch morphology). *Mark: V-rec.*
 - **[RB86]** Renzini and Buzzoni 1986, in Spectral Evolution of Galaxies, Reidel, p. 195 (Global properties of stellar populations and the spectral evolution of galaxies). *Mark: V-rec (chapter); text not opened.*
@@ -347,7 +343,6 @@ Every reference cited above, in order of first citation. Mark: V-rec = record co
 - **[GBB19]** Genest-Beaulieu and Bergeron 2019, ApJ 871, 169 (DA and DB white dwarfs from SDSS and Gaia). *Mark: V-rec.*
 - **[Kep19]** Kepler et al. 2019, MNRAS 486, 2169, doi 10.1093/mnras/stz960 (White dwarf and subdwarf stars in SDSS DR14). *Mark: V-rec.*
 - **[WSH19]** Wood, Smythe and Harrison 2019, Am. Mineral. 104, 844 (The condensation temperatures of the elements: a reappraisal). *Mark: V-rec.*
-- **[LF98]** Lodders and Fegley 1998, The Planetary Scientist's Companion, Oxford University Press. *Mark: V-rec (Open Library).*
 - **[Asp21]** Asplund et al. 2021, A&A 653, A141, arXiv:2105.01661 (The chemical make-up of the Sun: a 2020 vision); Table 2. *Mark: V-rec; PT.*
 - **[Bre16]** Brewer, Fischer, Valenti and Piskunov 2016, ApJS 225, 32, doi 10.3847/0067-0049/225/2/32 (Spectral properties of cool stars: extended abundance analysis of 1,617 planet-search stars); VizieR J/ApJS/225/32. *Mark: V-rec; PT (table downloaded and fitted).*
 - **[SLB05]** Stixrude and Lithgow-Bertelloni 2005, GJI 162, 610 (Thermodynamics of mantle minerals I). *Mark: V-rec.*
@@ -362,12 +357,11 @@ Every reference cited above, in order of first citation. Mark: V-rec = record co
 - **[Sas10]** Sasaki, Stewart and Ida 2010, ApJ 714, 1052 (Origin of the different architectures of the Jovian and Saturnian satellite systems). *Mark: V-rec; PT.*
 - **[CW06]** Canup and Ward 2006, Nature 441, 834 (A common mass scaling for satellite systems of gaseous planets). *Mark: V-rec.*
 - **[CW02]** Canup and Ward 2002, AJ 124, 3404 (Formation of the Galilean satellites). *Mark: V-rec.*
-- **[Cil18]** Cilibrasi, Szulagyi, Mayer et al. 2018, MNRAS 480, 4355, doi 10.1093/mnras/sty2163 (Satellites form fast and late). *Mark: V-rec; PT.*
+- **[Cil18]** Cilibrasi, Szulagyi, MNRAS 480, 4355, doi 10.1093/mnras/sty2163 (Satellites form fast and late). *Mark: V-rec; PT.*
 - **[BN19]** Bierson and Nimmo 2019, Icarus 326, 10 (Using the density of Kuiper Belt objects to constrain their composition and formation history); Table 1. *Mark: V-rec; PT (Table 1 read); free copy PMC7058130 (U).*
 - **[PV26]** Plotnykov, Valencia and Ross 2026, ApJ 997, 253, doi 10.3847/1538-4357/ae200b; preprint arXiv:2511.17717 (Evidence of 1:1 slope between rocky super-Earths and their host stars). *Mark: V-rec; PT (slope 0.94, band +1.02/-1.07).*
 - **[PV20]** Plotnykov and Valencia 2020, MNRAS 499, 932, doi 10.1093/mnras/staa2615 (Chemical fingerprints of formation in rocky super-Earths' data). *Mark: V-rec.*
 - **[Adi21]** Adibekyan et al. 2021, Science 374, 330 (A compositional link between rocky exoplanets and their host stars). *Mark: V-rec.*
-- **[WP02]** Wagner and Pruss 2002, J. Phys. Chem. Ref. Data 31, 387 (IAPWS formulation 1995). *Mark: V-rec.*
 - **[Fre09]** French, Mattsson, Nettelmann and Redmer 2009, Phys. Rev. B 79, 054107 (water at ultrahigh pressures). *Mark: V-rec.*
 - **[Jou20]** Journaux et al. 2020, JGR Planets 125, e2019JE006176 (Gibbs representation of ice thermodynamics). *Mark: V-rec.*
 - **[Hal20]** Haldemann, Alibert, Mordasini and Benz 2020, A&A 643, A105 (AQUA: a collection of H2O equations of state). *Mark: V-rec.*

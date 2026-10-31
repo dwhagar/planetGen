@@ -8,7 +8,7 @@ Four of the seven design rates stand, three need changing. **Stand:** W3 (about 
 
 ## Added for GEN.1094: the heating-capable (librating) share of near-resonant pairs (W5)
 
-Source read: Goldberg and Batygin 2023, ApJ, "Dynamics and Origins of the Near-Resonant Kepler Planets" (arXiv 2211.16725; text opened, sections 3.2 to 3.3, 5.1, 5.2 and 6). They take 105 first-order pairs (40 near 2:1, 37 near 3:2) with transit-timing fits from Hadden and Lithwick 2017 and Jontof-Hutter and others 2021 and compute the mixed resonant angle psi of each from the posterior.
+Source read: Goldberg and Batygin 2023, ApJ, "Dynamics and Origins of the Near-Resonant Kepler Planets" (arXiv 2211.16725; text opened, sections 3.2 to 3.3, 5.1, 5.2 and 6). They take 105 first-order pairs (40 near 2:1, 37 near 3:2) with transit-timing fits from Jontof-Hutter and others 2021 and compute the mixed resonant angle psi of each from the posterior.
 
 | Quantity | Value | Where |
 |---|---|---|
@@ -46,11 +46,11 @@ Tier and tweak as in GEN.725 (T1 a number as a paper I read prints it; T2 a numb
 
 ## What was not done
 
-Not read: Checlair and others 2017 on locked planets (the claim is cited by Wolf 2017 and by the 2025 eccentricity paper, both read), the full text of Lucarini 2010 and Boschi 2013 (windows are quoted by Wolf 2017), Sanchis-Ojeda 2014 (the USP occurrence, quoted by Adams 2016, arXiv 1603.06488, section 4.2), Rappaport 2012 and 2014 (the Kepler-1520 b and KOI-2700 b discoveries; counted from Schlawin 2021). The other [R] rates of the design (W1, W2 share is replaced by GEN.1038, W6, W7, W9, W12, W16, W21 to W26 and the G rows) were not part of this item; the ones that remain recalled are listed in the wiring of the oddity table as stand-ins by whoever builds each module. All the papers above are open on arXiv.
+Not read: Checlair and others 2017 on locked planets (the claim is cited by Wolf 2017 and by the 2025 eccentricity paper, both read), the full text of the two papers (windows are quoted by Wolf 2017), Sanchis-Ojeda 2014 (the USP occurrence, quoted by Adams 2016, arXiv 1603.06488, section 4.2), Rappaport 2012 and 2014 (the Kepler-1520 b and KOI-2700 b discoveries; counted from Schlawin 2021). The other [R] rates of the design (W1, W2 share is replaced by GEN.1038, W6, W7, W9, W12, W16, W21 to W26 and the G rows) were not part of this item; the ones that remain recalled are listed in the wiring of the oddity table as stand-ins by whoever builds each module. All the papers above are open on arXiv.
 
 ## GEN.1095: the remaining [R] rates (W6, W7, W9, W12, W16, W21, W22, W23, W26, G1, G7)
 
-Sources 1 lane, 10-30, same method as above; registry rows WR8 to WR19 in plan section 6.101. Papers read (arXiv text, abstract plus the sections named in the rows): Armstrong 2014, Janson 2013, TROY 2024, Hesselbrock and Minton 2020, Brewer and Fischer 2016, Malsky 2023, Luger and Barnes 2015, Yee 2020, Kipping and Spiegel 2011, Madhusudhan 2021, Izidoro 2015, Mazeh 2016 (and the abstract of Magliano 2024). **Result: six stand, three change, two have no rate to confirm.**
+Sources 1 lane, 10-30, same method as above; registry rows WR8 to WR19 in plan section 6.101. Papers read (arXiv text, abstract plus the sections named in the rows): Armstrong 2014, Janson 2013, Brewer and Fischer 2016, Luger and Barnes 2015, Kipping and Spiegel 2011, Madhusudhan 2021, Izidoro 2015, Mazeh 2016 (and the abstract of Magliano 2024). **Result: six stand, three change, two have no rate to confirm.**
 
 | ID | Design value [R] | Found | Verdict |
 |---|---|---|---|
@@ -62,9 +62,9 @@ Sources 1 lane, 10-30, same method as above; registry rows WR8 to WR19 in plan s
 | W21 | a large share of M-dwarf habitable-zone planets lose water | no share in the paper; the rates are: 5 bar/Myr O2 on an Earth-mass planet, up to 25 on super-Earths, several hundred Myr of runaway, up to 10 Earth oceans, up to 2000 bar | **rate stands, share has no source**; let the generated water, star history and sink decide (WR14) |
 | W22 | all ultra-hot locked giants; WASP-12 b decays about 29 ms per yr | 29 +/- 2 ms per yr, P over its derivative 3.25 +/- 0.23 Myr | **stands**; the condensate lists (Ehrenreich 2020 and others) not opened (WR15) |
 | W23 | TrES-2 b albedo about 0.01 | 0.0253 +/- 0.0072 as scattering, under 0.01 with emission | **stands** (WR16) |
-| W24, W25 | follow from W5 and the moons; Io about 2 W/m2 | Io heat-flow papers fetched (Rathbun 2018, Mura 2025) give maps, not the mean; Veeder 2012 not reached, 2.24 W/m2 stays recalled | **no rate**; not registered |
+| W24, W25 | follow from W5 and the moons; Io about 2 W/m2 | Io heat-flow papers fetched give maps, not the mean; Veeder 2012 not reached, 2.24 W/m2 stays recalled | **no rate**; not registered |
 | W26 | about a third of sub-Neptunes in the ecosphere qualify as Hycean | **no occurrence rate in the paper**; it defines the box (up to 10 Earth masses, up to 2.6 Earth radii, water at least 10 percent, base 300 to 400 K) and the existing box HC1 has a density range (1.5 to 3.0) the paper does not state | **changes**: drop the 'third'; the flag follows from the generated planet (WR17) |
 | G1 | about 1 ice giant in 5 tilted over 60 degrees | embryo-collision runs: 14 to 43 percent give a Uranus-Neptune pair with a giant collision each, 9 to 16 percent of those pairs have two or more collisions (the Morbidelli 2012 condition for a tilt with prograde moons) | **stands**: supports the 0.2 of GT3 (6.78) (WR18) |
 | G7 | few Neptunes inside 3 d | desert edges as straight lines in log period; reaches 5 to 10 d, not 3; flux-based edges exist (Magliano 2024, abstract only) | **stands, widened** (WR19) |
 
-Not opened: Hesselbrock and Minton 2017, Ehrenreich 2020 and the other ultra-hot-giant condensate papers, Veeder 2012 (Io), Jenkins 2020 (LTT 9779 b), Magliano 2024 beyond the abstract. No L3 or L4 row was added, so there is no burn-down line.
+Not opened: Hesselbrock and Minton 2017, Ehrenreich 2020 and the other ultra-hot-giant condensate papers, Veeder 2012 (Io), Magliano 2024 beyond the abstract. No L3 or L4 row was added, so there is no burn-down line.

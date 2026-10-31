@@ -2169,7 +2169,7 @@
    "option": "Mars-like thin CO2-N2-Ar",
    "gate_text": "K, L, U[P]; M<0.5; 1<r<=2.5 (d3); 190<=Ts<=270 K",
    "weight_text": "c[0.1,1]",
-   "source": "same CO2-N2 ratio at lower pressure (Sossi, READ); TEST Mars CO2 .96 N2 .019 Ar .019 (Mahaffy 2013, READ)",
+   "source": "same CO2-N2 ratio at lower pressure (Sossi, READ); TEST Mars CO2 .96 N2 .019 Ar .019",
    "status": "DERIVED",
    "research": [],
    "notes": "Decided (Boss, 2026-10-18, fork 7): the Mars-, Titan- and Pluto-like occurrence is an output of the escape and retention physics, not a design flag; the gate carries it and the weight is 1.",

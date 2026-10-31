@@ -149,7 +149,7 @@ Schwarzschild radius `r_s = 2GM/c^2`; photon sphere 1.5 r_s; innermost stable ci
 | Supermassive (Sgr A*) | 4e6 | 1.18e7 km (0.08 AU) | 1.8e7 km | 4.8e6 km | 0 (at the centre) |
 | Quasar nucleus | 1e8 to 1e10 | 2 to 200 AU | | 1.4e7 to 6.5e7 km | 0 (at the centre) |
 
-The tidal-disruption radius of a star is `R_star (M_bh / M_star)^(1/3)` (Hills 1975), equal to r_s at about 1e8 solar masses for a Sun-like star [S]; for a ship it is far smaller than the 1 g tide radius. Accretion-disk radiation at 1% of Eddington for a 10 solar-mass hole is 1.3e30 W, 21 AU at 10 kW/m^2 [C]. All of this is far below the galactic Hill and sphere-of-influence radii, so the rule for black holes is a "gravity well" rule in Boss's sense.
+The tidal-disruption radius of a star is `R_star (M_bh / M_star)^(1/3)`, equal to r_s at about 1e8 solar masses for a Sun-like star [S]; for a ship it is far smaller than the 1 g tide radius. Accretion-disk radiation at 1% of Eddington for a 10 solar-mass hole is 1.3e30 W, 21 AU at 10 kW/m^2 [C]. All of this is far below the galactic Hill and sphere-of-influence radii, so the rule for black holes is a "gravity well" rule in Boss's sense.
 
 ### 4.4 Neutron stars, pulsars, magnetars
 
@@ -171,7 +171,7 @@ Mass 1.1 to 2.2 solar, radius about 11 to 14 km, the band of Miller et al. 2021 
 
 ### 5.1 Known results
 
-- For disjoint spheres in 3D, a shortest path is straight segments tangent to spheres joined by arcs of great circles on the sphere surfaces. This is the standard picture for convex smooth obstacles [R]; the general 3D shortest-path problem among obstacles is NP-hard with an FPTAS (Kisfaludi-Bak, ISAAC 2025) [S]. Exact algorithms exist for one, two and three spheres (Chou, Hsieh and Lee, IEEE 2008; Chou 2009; a fixed-sequence n-sphere version in 2012) and an approximation scheme for disjoint spheres [S]; the papers were not read.
+- For disjoint spheres in 3D, a shortest path is straight segments tangent to spheres joined by arcs of great circles on the sphere surfaces. This is the standard picture for convex smooth obstacles [R]; the general 3D shortest-path problem among obstacles is NP-hard with an FPTAS (Kisfaludi-Bak) [S]. Exact algorithms exist for one, two and three spheres (Chou, Hsieh and Lee, IEEE 2008; Chou 2009; a fixed-sequence n-sphere version in 2012) and an approximation scheme for disjoint spheres [S]; the papers were not read.
 - Tangent lines between two spheres are continuous families in 3D, so no exact visibility graph exists; any graph needs sampled points per sphere. A lattice A* built as the reference was never better than the method below.
 - **One sphere, closed form and planar.** If the straight segment A to B meets sphere (c, R), the shortest path lies in the plane through A, B and c. With `a = |A-c|`, `b = |B-c|` and `phi` the angle at c between them, the wrap exists when `acos(R/a) + acos(R/b) < phi`. Entry and exit are at angles `acos(R/a)` and `phi - acos(R/b)` from the direction of A in that plane. Length: `sqrt(a^2-R^2) + R (phi - acos(R/a) - acos(R/b)) + sqrt(b^2-R^2)`. If A, c, B are collinear any plane through the line gives the same length. The planner reproduces it to 7e-15 (compared at the waypoint radius `R (1 + 1e-6)`). Overhead for a dead-centre sphere of radius r on a leg of length L: 2e-4 at r/L = 0.01, 1.8e-3 at 0.03, 2.0e-2 at 0.1, 0.128 at 0.25, 0.54 at 0.49 [C]; about `2 (r/L)^2` for small r/L.
 

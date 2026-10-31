@@ -4,7 +4,7 @@
  "sources": [
   "chemicals 1.5.2 (heos_constants, critical, triple and vapour-pressure tables), thermo 0.6.1, periodictable 2.1.0, cantera nasa_gas.yaml, NIST WebBook and NIST fluid saturation tables, Yaws and CRC values as tagged in part 01",
   "He et al. 2021, ACP 21, 14927 (N2O, CH4, CO2, O2 refractivity); Peck and Huang 1977; Mansfield and Peck; Bideau-Mehu et al.; Cuthbertson; Allen/Cox; NIST CCCBDB polarizabilities as read in part 02",
-  "Shimanouchi 1972 gas-phase fundamentals at NIST and Byrne and Goldblatt 2014b (arXiv:1409.1880) as read in part 03 table 2.1; photochem_clima_data 0.3.4 (Heays 2017, Huebner 2015, Burkholder 2020, Schmidt 2013, Karkoschka 1994, Keller-Rudek 2013) binned to 35 bins in part 02 section 2.3"
+  "Shimanouchi 1972 gas-phase fundamentals at NIST and Byrne and Goldblatt 2014b (arXiv:1409.1880) as read in part 03 table 2.1; photochem_clima_data 0.3.4 (Heays 2017, Huebner 2015, Schmidt 2013, Karkoschka 1994, Keller-Rudek 2013) binned to 35 bins in part 02 section 2.3"
  ],
  "notes": "Each block of a row has its own status word from the research part (DATA, COMPUTED, READ, 2ND-HAND, NOT REACHED); `state` and `limit` are the row's source state in the vocabulary of GEN.472. The molar mass in the file is the research part's, kept for the audit; the loader computes the working value from `physics.elements` (GEN.438). Rayleigh sigma is per molecule in cm2; `reference_temperature_k` is the temperature the refractivity fit was made at (GEN.408). Henry constants are mol/(kg bar) at 298.15 K with d = -dln kH/d(1/T) in K; viscosity needs the Lennard-Jones sigma (Angstrom) and epsilon/k (K). `infrared` lists the band centres (cm-1) the research gives, `approximate` where it writes 'about'; `uv` holds each gas's mean photoabsorption cross section (cm2 per molecule) in the bins of `uv_bins_nm`, `null` outside the data and `partial_bin` where under half of the bin is covered.",
  "uv_bins_nm": [
@@ -2618,7 +2618,7 @@
      5.7,
      1000.0
     ],
-    "origin": "Lee 2001 for 142 to 152 nm, Karkoschka 1994 for 152 to 1000 nm, so all visible CH4 bands rest on a paper that was NOT REACHED",
+    "origin": " Karkoschka 1994 for 152 to 1000 nm, so all visible CH4 bands rest on a paper that was NOT REACHED",
     "cross_section_cm2": [
      2.3e-18,
      1.8e-17,
@@ -4835,7 +4835,7 @@
      0.06,
      660.0
     ],
-    "origin": "Burkholder 2020 above 397.75 nm",
+    "origin": "no source",
     "cross_section_cm2": [
      1.1e-17,
      2.8e-17,

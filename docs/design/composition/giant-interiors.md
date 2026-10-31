@@ -20,7 +20,7 @@ All numbers are for the four Solar System giants, which are the only ones measur
 |---|---|---|
 | Insulating molecular liquid to metallic liquid, above about 1 Mbar at high temperature | stated as the general picture | Helled and Howard 2024 (arXiv 2407.05853), section 2.0.1: READ |
 | Crossover in Jupiter's conditions, pure H and H-He mixture of proto-solar composition, 6000 K isotherm, quantum Monte Carlo | 0.4 to 0.6 Mbar (40 to 60 GPa); helium delays metallization by about 70 GPa at 1500 K and 30 GPa at 6000 K | Mazzola, Helled and Sorella 2018 (arXiv 1709.08648), abstract and section 3; Helled, Mazzola and Redmer 2020 (arXiv 2006.12219) section 3: READ |
-| Older and other estimates | liquid-liquid transition at 1 to 2 Mbar below a critical temperature of about 2000 to 5000 K; experiment 1.4 Mbar (Weir 1996) | Debras and Chabrier 2019 (arXiv 1901.05697) section 3: READ; Weir via Helled 2020: 2ND-HAND |
+| Older and other estimates | liquid-liquid transition at 1 to 2 Mbar below a critical temperature of about 2000 to 5000 K; experiment 1.4 Mbar | Debras and Chabrier 2019 (arXiv 1901.05697) section 3: READ; Weir via Helled 2020: 2ND-HAND |
 | Magnetic field generation in Jupiter | starts near 140 GPa | Helled 2020 section 1: READ |
 
 Rule 3 (widest range) gives the **molecular-to-metallic pressure P_MM drawn log-uniform from 0.4 to 2 Mbar** once per body (decision D1). The fixed 1 Mbar constant of `constants.py` goes (no shim).
@@ -49,13 +49,13 @@ Cooler planets differentiate earlier and deeper: a Saturn-mass planet at a given
 | Jupiter, other models | dilute core out to 60 to 75 percent of the radius; region between 0.1 and 2 Mbar with an entropy and composition change; outer envelope near solar Z | Debras and Chabrier 2019 abstract and Figures 3 to 4: READ |
 | Jupiter's total heavy elements | 18 to 45 Earth masses (adiabatic about 20, non-adiabatic up to 60) | Helled and Howard 2024 section 3.1.1; Helled and Stevenson 2024 section 2.1: READ |
 | Saturn's dilute core | stable region out to 0.59 +/- 0.01 R_S, 55.1 +/- 1.7 Earth masses of which 17.4 +/- 1.2 are rock and ice (Z about 0.32 there); central density about 6 g/cm3; up to 80 percent heavy elements in the inner part | Mankovich and Fuller 2021 (arXiv 2104.13385) text: READ; Helled and Howard 2024 section 3.1.2: READ |
-| Saturn, compact-core models | pure core of 15 to 18 Earth masses with under 5 Earth masses in the envelope; 4-layer fit 12 to 18 Earth masses total | Militzer et al. 2019, Ni 2020, via Helled and Howard 2024: 2ND-HAND |
+| Saturn, compact-core models | pure core of 15 to 18 Earth masses with under 5 Earth masses in the envelope; 4-layer fit 12 to 18 Earth masses total | Ni 2020, via Helled and Howard 2024: 2ND-HAND |
 | A compact pure heavy-element core | "a few Earth masses at most" for Jupiter; may not exist; invisible to gravity (a 5 Earth-mass core adds about 1e-4 of the moment of inertia); formation models predict it, and convective mixing or a giant impact could erase it | Helled and Stevenson 2024 section 2.3: READ |
 | Why the core is dilute | four candidate origins: evaporated accreted solids mixing in (confined to about the inner 20 Earth masses by runaway gas accretion), giant impacts, convective erosion, and delayed runaway accretion at about 100 Earth masses | Helled and Stevenson 2024 section 3: READ |
-| What it is made of | water and rock mix with metallic hydrogen in all proportions at these temperatures; gravity cannot tell water from rock; rocks may sink deeper than water during accretion, so a compact core is rock-and-iron rich and the ice mixes higher up | Helled and Stevenson 2024 section 4 ("Differentiation", "The chemical composition of heavy elements"): READ; Lozovsky 2017 via it: 2ND-HAND |
+| What it is made of | water and rock mix with metallic hydrogen in all proportions at these temperatures; gravity cannot tell water from rock; rocks may sink deeper than water during accretion, so a compact core is rock-and-iron rich and the ice mixes higher up | Helled and Stevenson 2024 section 4 ("Differentiation", "The chemical composition of heavy elements"): READ; 2ND-HAND |
 | Temperature | central temperature about 20,000 K adiabatic, 35,000 K for superadiabatic (Jupiter); 10 Mbar region 9,500 to 13,000 K; boundary 1 to 2 Mbar at 5,000 to 9,000 K; heavy-element mass and central temperature trade off | Helled and Howard 2024 section 3.1.1; Debras and Chabrier 2019 Figure 4: READ |
 
-Conflict (rule 3): compact core 0 to a few Earth masses (Jupiter, Helled 2024) against 15 to 18 (Saturn, Militzer 2019, 2ND-HAND). **The compact core is drawn between 0 and 20 Earth masses** (the older decision 22 range of 5 to 20 reaches the Saturn value; the lower end now includes none), D3.
+Conflict (rule 3): compact core 0 to a few Earth masses (Jupiter, Helled 2024) against 15 to 18 (Saturn, 2ND-HAND). **The compact core is drawn between 0 and 20 Earth masses** (the older decision 22 range of 5 to 20 reaches the Saturn value; the lower end now includes none), D3.
 
 ### 2.4 Ice giants
 
@@ -63,10 +63,10 @@ Conflict (rule 3): compact core 0 to a few Earth masses (Jupiter, Helled 2024) a
 |---|---|---|
 | H/He share of the mass | about 10 to 20 percent (Helled and Fortney 2020); up to about 2 Earth masses in three-layer models | Helled and Howard 2024 section 3.2: READ |
 | Heavy-element share | Uranus 76 to 90 percent, Neptune 77 to 90 percent, depending on whether the heavy element is rock (SiO2) or water | Helled et al. 2011 (arXiv 1010.5546) via Helled and Howard 2024: READ |
-| Structure | three layers (rock core, water-rich mantle, H/He envelope) or gradients with no distinct layers; outer envelope Z up to 0.17 (Voyager rotation) or 0.08 (revised), inner envelope Z about 0.9; solar-Z envelopes also fit | Nettelmann et al. 2013 via Helled and Howard 2024: 2ND-HAND |
-| Rock to water ratio | unknown: at most about 2 (Podolak 2022); 0.05 to 0.38 maximum for non-adiabatic empirical models (Neuenschwander 2024); solar 1/2; carbon-rich planetesimals give more methane and water than rock (Malamud 2024: methane planets) | Helled and Howard 2024 sections 3.2.1 and 3.2.2: READ; each paper 2ND-HAND |
+| Structure | three layers (rock core, water-rich mantle, H/He envelope) or gradients with no distinct layers; outer envelope Z up to 0.17 (Voyager rotation) or 0.08 (revised), inner envelope Z about 0.9; solar-Z envelopes also fit | Helled and Howard 2024: 2ND-HAND |
+| Rock to water ratio | unknown: at most about 2; 0.05 to 0.38 maximum for non-adiabatic empirical models; solar 1/2; carbon-rich planetesimals give more methane and water than rock (Malamud 2024: methane planets) | Helled and Howard 2024 sections 3.2.1 and 3.2.2: READ; each paper 2ND-HAND |
 | Is the hydrogen metallic | the adiabats cross the molecular-to-metallic line, but "it is unclear whether H-He exist in the planetary deep interiors" | Helled and Howard 2024 Figure 1 caption: READ. Estimate here: the pressure at the base of a 2 Earth-mass envelope on a 13 Earth-mass core is about 21 GPa (0.2 Mbar), below P_MM, so no metallic layer (a thin-shell estimate, `G M_core M_env / (4 pi R_core^4)`, COMPUTED) |
-| Water in the deep interior | superionic ice (ice XVIII) at 100 to 400 GPa and 2000 to 3000 K; solid oxygen lattice, mobile protons; the generator needs its density and that it is solid | C-volatile-and-giants.md section 2.3 (Millot 2019 abstract, French 2009 via Zeng and Sasselov): READ (abstract), 2ND-HAND |
+| Water in the deep interior | superionic ice (ice XVIII) at 100 to 400 GPa and 2000 to 3000 K; solid oxygen lattice, mobile protons; the generator needs its density and that it is solid | C-volatile-and-giants.md section 2.3 (French 2009 via Zeng and Sasselov): READ (abstract), 2ND-HAND |
 | Low luminosity | composition gradients and thermal boundary layers; central temperatures 5,000 to 6,500 K adiabatic, above 20,000 K non-adiabatic | Helled and Howard 2024 section 3.2.1: READ |
 
 ### 2.5 Brown dwarfs
@@ -114,7 +114,7 @@ The hydrostatic profile of the layers is the n = 1 polytrope that the repo alrea
 ### 4.3 The core
 
 - **Compact core mass M_cc**, log-uniform from 0.5 to 20 Earth masses with probability 0.5 that none exists, capped at M_Z (D3, OPEN: the probability is a placeholder; Helled and Stevenson say it is unknown and that gravity cannot see it).
-- **Dilute core mass M_dil**: log-uniform from 20 to 100 Earth masses (the evaporated-solid mixing zone of Muller 2020 at the low end, the delayed-runaway mass of Venturini and Helled at the high end, both 2ND-HAND through Helled and Stevenson), capped at 0.65 M (Saturn's 55 of 95 Earth masses is 0.58, READ). Below M = 30 Earth masses there is no separate dilute core and the heavy elements are a gradient through the whole body (the ice-giant picture).
+- **Dilute core mass M_dil**: log-uniform from 20 to 100 Earth masses (the delayed-runaway mass of Venturini and Helled at the high end, both 2ND-HAND through Helled and Stevenson), capped at 0.65 M (Saturn's 55 of 95 Earth masses is 0.58, READ). Below M = 30 Earth masses there is no separate dilute core and the heavy elements are a gradient through the whole body (the ice-giant picture).
 - **Heavy-element budget.** M_Z (GEN.460) is split: Z_out M_mol in the outer envelope (Z_out = Z_env from decision 21), M_cc in the compact core, and the rest in the dilute core and the metallic envelope. The dilute core's mean Z_dil is that rest over M_dil and must fall between Z_out and 0.8 (Saturn's inner part, READ); if it does not, M_dil is moved inside its bracket until it does, and when no value fits the planet has no dilute core and the heavy elements are spread through the metallic envelope. Z rises inward through the dilute core; the shape of the gradient is OPEN (a linear rise from Z_out at its top is the placeholder) and only the mean, which the budget fixes, is a constraint.
 - **What the heavy elements are made of.** The rock-to-ice split of the heavy elements comes from the formation branch GEN.428 stored: a body born beyond the snow line takes the water share W of its solids (decision 2, 0.14 to 0.39 of the solids) and the ice set of decision 18; a body born inside takes none. The compact core takes the rock and iron first (rocks sink deeper than water, Helled and Stevenson section 4), and the ice goes outward first: the molecular envelope (which holds it as vapour), then the metallic envelope, then the dilute core. Rock and iron that the compact core cannot hold fill the dilute core, then the deep metallic envelope. Heavy elements the dilute core cannot hold (it takes at most 80 percent of its mass) enrich the deep envelope, never the atmosphere, whose metallicity the caller fixed. The iron-to-rock split of the refractory part is the star's, as for a terrestrial planet (GEN.428's `metal_mass_fraction` over `rock_mass_fraction`, CMF 0.2917 for solar abundances).
 - **Temperature** is not drawn or stored (OPEN): the boundary temperatures of Debras and Chabrier (5,000 to 9,000 K at 1 to 2 Mbar, 9,500 to 13,000 K at 3 to 7 Mbar, 19,000 to 30,000 K at 40 Mbar) are test targets, not inputs.
@@ -122,7 +122,7 @@ The hydrostatic profile of the layers is the n = 1 polytrope that the repo alrea
 ### 4.4 Ice giants
 
 - f_env is GEN.428's; the H/He share is 0.05 to 0.20 of the mass (Helled and Fortney 10 to 20 percent for Uranus and Neptune; widest range with the three-layer fits that give 1 to 2 Earth masses).
-- **Rock fraction of the heavy elements** 0.05 to 0.67 (Neuenschwander 2024 low, Podolak 2022 and Zeng 2019 high; rule 3 widest, OPEN). Water, ammonia and methane share the rest by the ice set (GEN.428), which already follows Marboeuf's table; the carbon-rich option of Malamud 2024 (methane above water) is a table row with weight set by the share of refractory organics, OPEN.
+- **Rock fraction of the heavy elements** 0.05 to 0.67 (Zeng 2019 high; rule 3 widest, OPEN). Water, ammonia and methane share the rest by the ice set (GEN.428), which already follows Marboeuf's table; the carbon-rich option of Malamud 2024 (methane above water) is a table row with weight set by the share of refractory organics, OPEN.
 - Mantle water is `water_liquid` above a drawn depth and `ice_x` (superionic) when the layer's pressure exceeds 100 GPa; the radius does not change (the radius tables already carry it, decision 12).
 - A gradient (no distinct layers) is the default representation of Z; the three layers are the rows a description names.
 
@@ -156,7 +156,7 @@ Each target is met by some draw inside the allowed distributions, not by one dra
 |---|---|---|---|
 | D1 | The molecular-to-metallic pressure is drawn per body, log-uniform 0.4 to 2 Mbar; the fixed 1 Mbar goes | Default taken | Mazzola 2018 (0.4 to 0.6), Debras and Chabrier 2019 (1 to 2), rule 3 widest |
 | D2 | Helium rain by the one-bar temperature: a line through two measured points, a helium shell at strong depletion | STAND-IN, flagged in the gap plan registry | Mankovich and Fortney 2020 give the mechanism and the 149 K unshifted onset; the line and the shell rule are placeholders until the Schottler and Redmer curve and the adiabat replace them |
-| D3 | Compact core 0 to 20 Earth masses, probability 0.5 of none, replaces decision 22's 5 to 20 | Open | Helled and Stevenson 2024 (a few Earth masses, may not exist); Militzer 2019 (15 to 18) |
+| D3 | Compact core 0 to 20 Earth masses, probability 0.5 of none, replaces decision 22's 5 to 20 | Open | Helled and Stevenson 2024 (a few Earth masses, may not exist) |
 | D4 | A dilute core of 20 to 100 Earth masses, at most 0.65 of the mass, gradient in Z | Default taken | Debras and Chabrier 2019, Mankovich and Fuller 2021, Helled and Stevenson 2024 |
 | D5 | Rock and iron to the compact core first, then the dilute core; ice outward first (molecular envelope, metallic envelope, dilute core); split from GEN.428's formation branch | Default taken | Helled and Stevenson 2024 section 4 |
 | D6 | A brown dwarf has no compact or dilute core; metallic envelope below P_MM; no helium rain until a source is read | Default taken, rain open | Chabrier and Baraffe 2000 |
@@ -166,7 +166,7 @@ Each target is met by some draw inside the allowed distributions, not by one dra
 
 ## 8. Gaps
 
-1. **The Schottler and Redmer 2018 phase curve** and the Morales 2013 curve are not in hand; their data (Figure 1 of Mankovich and Fortney is a plot of them) would replace D2's line. To fetch.
+1. **The Schottler and Redmer 2018 phase curve** are not in hand; their data (Figure 1 of Mankovich and Fortney is a plot of them) would replace D2's line. To fetch.
 2. **Equation-of-state tables** for hydrogen-helium: the Chabrier and Debras 2021 tables are downloaded since GEN.733 (section 11); the polytrope stays as the fallback of a run that disregards missing data (D7).
 3. **Cool brown dwarf helium rain**, neon rain, and the helium content of Y dwarfs: no source read.
 4. **The probability of a compact core** and the gradient shape in the dilute core: no source; the placeholders are flagged.

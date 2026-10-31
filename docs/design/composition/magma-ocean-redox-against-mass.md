@@ -20,9 +20,9 @@ All opened and read in full text for the numbers taken.
 |---|---|---|
 | Hirschmann 2022, Geochimica et Cosmochimica Acta 328, 221-241, "Magma oceans, iron and chromium redox, and the origin of comparatively oxidized planetary mantles" | public copy on the NSF Public Access Repository (par.nsf.gov, purl 10335656) | Table 1 (core-forming conditions), the Fe3+/FeT ranges of Earth and Mars, section 6.3 (surface redox of the magma ocean, Eq. 21 and the corrected Sossi relation Eq. 34), the redox of the present mantles |
 | Deng, Du, Karki, Ghosh and Lee 2020, Nature Communications 11, 2007 | PMC7181735 | the pressure dependence (the molar volume difference stays positive to 140 GPa), the base conditions and the surface redox of the Moon, Mars and Earth |
-| Sossi, Burnham, Badro, Lanzirotti, Newville and O'Neill 2020, Science Advances 6, eabd1387 | uploaded by Boss | the 0.037 Fe3+/FeT anchor and the Eq. 33 relation (read earlier, GEN.481 and the citation pass) |
+| Sossi, Burnham, Badro, Lanzirotti, Science Advances 6, eabd1387 | uploaded by Boss | the 0.037 Fe3+/FeT anchor and the Eq. 33 relation (read earlier, GEN.481 and the citation pass) |
 | Hirschmann 2021, GCA 313, 74 | uploaded by Boss | the iron-wuestite scale the repo already uses |
-| Gaillard, Bernadou, Roskosz, Bouhifd, Marrocchi, Iacono-Marziano, Moreira, Scaillet and Rogerie 2022, Earth and Planetary Science Letters 577, 117255 | HAL copy insu-03383209 | the three published views of the Earth's surface magma ocean (section 3.2) |
+| Gaillard, Bernadou, Roskosz, Bouhifd, Marrocchi, Iacono-Marziano, Moreira, Earth and Planetary Science Letters 577, 117255 | HAL copy insu-03383209 | the three published views of the Earth's surface magma ocean (section 3.2) |
 | Schaefer and Fegley 2017, The Astrophysical Journal 843, 120 | public copy on par.nsf.gov (purl 10038075) | Table 2 (oxygen fugacity fits of meteoritic material), the text on the end members |
 | Lodders 2003, The Astrophysical Journal 591, 1220 | uploaded by Boss | Table 8 (condensation temperatures) |
 
@@ -44,7 +44,7 @@ The widest honest span for Earth is the union of the first-hand model results, -
 
 ### 3.2 The published views of Earth
 
-Gaillard et al. 2022 lists three, and the table above sits between the first two. (i) Armstrong et al. 2019: oxidised surface close to the FMQ buffer (Fe3+/Fe-total 0.03 to 0.1). (ii) Sossi et al. 2020: IW+0.5 plus or minus 0.7. (iii) Keppler and Golabek 2019: graphite flotation holding the shallow ocean down to IW-5 at low pressure. View (iii) is a different mechanism, not a spread of the same one: it is the only way the sources get far below -1.2. It stays out of the draw and is flagged as an alternative (limit of the row).
+Gaillard et al. 2022 lists three, and the table above sits between the first two. (i) One model: oxidised surface close to the FMQ buffer (Fe3+/Fe-total 0.03 to 0.1). (ii) Sossi et al. 2020: IW+0.5 plus or minus 0.7. (iii) Keppler and Golabek 2019: graphite flotation holding the shallow ocean down to IW-5 at low pressure. View (iii) is a different mechanism, not a spread of the same one: it is the only way the sources get far below -1.2. It stays out of the draw and is flagged as an alternative (limit of the row).
 
 ### 3.3 The check of the row
 
@@ -74,7 +74,7 @@ Anchors (all first-hand):
 | Body | Later upper mantle | Source | Row a2 now |
 |---|---|---|---|
 | Earth | IW+3.5, constant within about 1 log unit since the early Archean; above IW+3 in spinel peridotite (Hirschmann 2022 section 4) | Deng 2020 (refs 37, 6, 7); Hirschmann 2022 | +3.5 |
-| Mars | the most reduced basalts record IW (Herd 2008; Schmidt 2013; Nicklas 2021), many up to IW+5; the primitive upper mantle IW to IW+1 | Hirschmann 2022 introduction and section 4; Deng 2020 | +1.6 |
+| Mars | the most reduced basalts record IW (Schmidt 2013; Nicklas 2021), many up to IW+5; the primitive upper mantle IW to IW+1 | Hirschmann 2022 introduction and section 4; Deng 2020 | +1.6 |
 | Moon | lunar basalts IW to IW-2 | Deng 2020 (refs 8 to 10) | -0.3 |
 
 With the width 1.0, Mars is +0.6 above the middle of its range and the Moon +0.7 above its middle; both are inside one standard deviation. The law is a straight-line fit to three points and says so.

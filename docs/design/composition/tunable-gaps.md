@@ -142,7 +142,7 @@ The best new find of this investigation is a real extrasolar ensemble for the sm
 
 ### 3.6 Rows outside the 48 that the workers also checked
 
-d1 to d5 and p4 (above), e1/e2 (above), f5/f6 (above), f8 (carbon carrier, derived). T3 (white-dwarf type against temperature) and T7 (core light elements) were **not checked in this pass**. Lane judgement, not verified: T3 is very likely class T (white-dwarf spectral evolution is a classic large ensemble; RECALLED candidates Kleinman 2013, Kepler 2019, Genest-Beaulieu and Bergeron 2019); T7 is class X or P (planet cores are unobservable; derive light-element content from redox and pressure partitioning, Hakim 2018 and Unterborn 2023 ranges). Section 6 item 11 asks for a short follow-up on both.
+d1 to d5 and p4 (above), e1/e2 (above), f5/f6 (above), f8 (carbon carrier, derived). T3 (white-dwarf type against temperature) and T7 (core light elements) were **not checked in this pass**. Lane judgement, not verified: T3 is very likely class T (white-dwarf spectral evolution is a classic large ensemble; RECALLED candidates Kepler 2019, Genest-Beaulieu and Bergeron 2019); T7 is class X or P (planet cores are unobservable; derive light-element content from redox and pressure partitioning, Hakim 2018 and Unterborn 2023 ranges). Section 6 item 11 asks for a short follow-up on both.
 
 The body-composition "water share switch" (Marboeuf-derived 0.14 to 0.39 against about 0.5, GEN.468): the planet data cannot discriminate (NGPPS water planets 0.03 to 0.49, median 0.28; Chakrabarty 2026 peak near 41 percent; ice-line material about 50 percent in Bean 2021). The discriminating source stays Lodders 2003 (Boss's rank 1 research item), so the switch stays.
 
@@ -240,7 +240,7 @@ Tuning a knob to these would break the rule; keep them as test points or flagged
 6. Dello Russo 2016 (Icarus 278:301), Mumma and Charnley 2011, Bockelee-Morvan and Biver 2017 (comet ranges); Bierson and Nimmo 2019; Schaller and Brown 2007; Harman 2018 full text.
 7. Lodders 2003 (already Boss's rank 1), Hirschmann 2021 full text, Deng 2020 Fig. 3 data, Frank, Meyer and Mojzsis 2014 (r-process history for Th/U), a primary Na and K condensation-temperature source.
 8. Licences: Hypatia (copyright notice, no licence stated), the Zenodo NGPPS record (open, no licence field), Zenodo 17986129 (Paragas texture data), LExACoM CSV (no licence stated), CKS and DR25 tables.
-9. Schreiber 2019 and Wilson 2019 (the l3 upper bracket and the volume-limited polluted fraction 45 +- 4 percent), JWST rocky-planet papers that postdate the workers' reach.
+9. Wilson 2019 (the l3 upper bracket and the volume-limited polluted fraction 45 +- 4 percent), JWST rocky-planet papers that postdate the workers' reach.
 10. A follow-up on T3 and T7 (section 3.6).
 
 **Absent from the public record, not merely locked** (nothing to supply; build the derivation and flag the row): the mass dependence of mantle redox beyond theory; water as a function of formation distance outside population synthesis; Kzz and haze yield as populations; moon origin weights; surface (not bulk) rock-type frequencies of any exoplanet; K depletion beyond the Solar System; envelope Z occurrence; planet-side halogen depletion; coreless-planet counts; and any measurement of N2O, PH3, NO2 or CH3Cl on an exoplanet.

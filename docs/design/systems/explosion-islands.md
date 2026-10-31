@@ -17,7 +17,7 @@ Only two windows are sourced: O'Connor and Ott 2011 give, for the Woosley and He
 | 0 | none: every massive star leaves a neutron star |
 | up to 6.8% | the two islands, shrunk about their centres in log mass until they hold `F` |
 | above 6.8% | the two islands and the top of the mass range down to the mass that makes up `F` (9%: 89.7 to 150; 20%: 28.5 to 150 with 23 to 25; 32%: 18.6 to 150) |
-| 45% (the widest verified share) | 14.5 to 150, where Ertl et al. 2016 (quoting Ugliano et al. 2012) put the lowest island at about 15 |
+| 45% (the widest verified share) | 14.5 to 150, where Ertl et al. 2016) put the lowest island at about 15 |
 
 The windows nest: a larger share fails every mass a smaller one does (a test).
 

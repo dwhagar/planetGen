@@ -101,19 +101,18 @@ hydrogen and helium."""
 
 COMPACT_CORE_RANGE_EARTH = (0.5, 20.0)
 """tuple: The compact core mass, log-uniform (D3). A few Earth masses at most for Jupiter (Helled and Stevenson 2024, READ),
-15 to 18 for Saturn (Militzer et al. 2019, via Helled and Howard 2024, 2ND-HAND); the widest range wins."""
+15 to 18 for Saturn (via Helled and Howard 2024, 2ND-HAND); the widest range wins."""
 
 DILUTE_CORE_RANGE_EARTH = (20.0, 100.0)
 """tuple: The dilute core mass (hydrogen and helium with heavy elements), log-uniform (D4). About 20 Earth masses where
-evaporated solids mix in (Muller et al. 2020, 2ND-HAND through Helled and Stevenson 2024) to about 100 (Helled and Stevenson
+evaporated solids mix in (2ND-HAND through Helled and Stevenson 2024) to about 100 (Helled and Stevenson
 2024, READ)."""
 
 DILUTE_CORE_MAX_MASS_FRACTION = 0.65
 """float: Saturn's stable region is 55 of 95 Earth masses, 0.58 (Mankovich and Fuller 2021, READ); the cap is a little above."""
 
 DILUTE_CORE_MAX_HEAVY_FRACTION = 0.8
-"""float: The heavy-element share of the dilute core's inner part reaches 0.8 (Mankovich and Fuller 2021 via Helled and
-Howard 2024, READ)."""
+"""float: The heavy-element share of the dilute core's inner part reaches 0.8 (Mankovich and Fuller 2021, READ)."""
 
 DILUTE_CORE_MIN_BODY_EARTH = 30.0
 """float: Below this mass the heavy elements are a gradient through the whole body and there is no separate dilute core (D4)."""
@@ -123,8 +122,7 @@ ICE_GIANT_ENVELOPE_LIMIT = 0.5
 20 percent for Uranus and Neptune)."""
 
 ICE_GIANT_ROCK_FRACTION_RANGE = (0.05, 0.67)
-"""tuple: The rock and iron share of an ice giant's heavy elements (D4.4, OPEN): 0.05 from the non-adiabatic empirical models
-(Neuenschwander et al. 2024, 2ND-HAND), 0.67 from Podolak et al. 2022 and Zeng et al. 2019 (rock to water at most 2)."""
+"""tuple: The rock and iron share of an ice giant's heavy elements (D4.4, OPEN): 0.05 from the non-adiabatic empirical models, 0.67 from Zeng et al. 2019 (rock to water at most 2)."""
 
 ICE_GIANT_RELATIVE_DENSITY = {"rock_core": 2.0, "ice_mantle": 1.0, "molecular_envelope": 0.25}
 """dict: STAND-IN (D7): the relative densities of the three constant-density layers of an ice giant. Only the ratios matter:

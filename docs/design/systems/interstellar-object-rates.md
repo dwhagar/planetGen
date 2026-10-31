@@ -140,7 +140,7 @@ so it is read per logarithm of mass.
 | Terrestrial | 0.1-2 M⊕ | 5.6 | 2-10: Johnson et al. 2020; Mróz et al. 2020 (OGLE-2016-BLG-1928, 0.3-2 M⊕) |
 | Sub-Neptune / ice giant | 2-20 M⊕ | 0.72 | Sumi et al. 2023 find Neptune-mass candidates; no rate given |
 | Saturn-class | 20 M⊕-1 Mjup | 0.17 | no rate in the research |
-| Jupiter-mass | 1-13 Mjup | 0.028 | under Mróz et al. 2017's upper limit of 0.25 (replacing Sumi et al. 2011's 1.8) |
+| Jupiter-mass | 1-13 Mjup | 0.028 | under Mróz et al. 2017's upper limit of 0.25 |
 
 That is about 95% terrestrial and 5% giants (past
 `ROGUE_PLANET_GAS_GIANT_MASS_THRESHOLD_JUPITER`, 10 M⊕, the core mass that holds an envelope; GEN.1133 moved it from 16). The
@@ -209,9 +209,9 @@ rarer are fine as rows; most sectors simply get none.
 
 ## References (short form)
 
-Rogue planets: Sumi et al. 2011 (Nature 473:349); Mróz et al. 2017
+Rogue planets: Mróz et al. 2017
 (Nature 548:183); Johnson et al. 2020 (AJ 160:123); Mróz et al. 2020
-(ApJL 903:L11); Barclay et al. 2023 (AJ 166:162); Sumi et al. 2023 (AJ
+(ApJL 903:L11); Sumi et al. 2023 (AJ
 166:109); Liu et al. 2013 (ApJL 777:L20); Miret-Roig et al. 2022 (Nat.
 Astron. 6:89); Pearson & McCaughrean 2023 (arXiv:2310.01231).
 
@@ -223,9 +223,8 @@ Olejak et al. 2020 (A&A 638:A94), Lam et al. 2022 (ApJL 933:L23) and Sahu
 et al. 2022 (ApJ 933:83), isolated compact remnants; Engelhardt et al.
 2017 (AJ 153:133), Seligman & Laughlin 2020 (ApJL 896:L8) and Raymond et
 al. 2020 (ApJL 894:L22), interstellar comets and the absence of free
-asteroid fields; Draine 2011 and Kennicutt & Evans 2012 (ARA&A 50:531),
-nebulae and remnants; Graham et al. 2015, Sand et al. 2011 and McGee &
-Balogh 2010, intracluster supernovae.
+asteroid fields; Kennicutt & Evans 2012 (ARA&A 50:531),
+nebulae and remnants; Sand et al. 2011 and McGee &, intracluster supernovae.
 
 ## Why it works this way
 

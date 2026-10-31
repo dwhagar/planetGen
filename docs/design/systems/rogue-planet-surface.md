@@ -87,5 +87,5 @@ A gas giant or brown dwarf has no surface and scores nothing.
 
 Abbot & Switzer 2011 (ApJL 735:L27); Burrows et al. 2001 (Rev. Mod.
 Phys. 73:719); Burrows & Liebert 1993; Guillot 2005 (AREPS 33:493);
-Lissauer & de Pater 2019; Pierrehumbert 2010; Stevenson 1999 (Nature
+Pierrehumbert 2010; Stevenson 1999 (Nature
 400:32); Turcotte & Schubert 2014 (Geodynamics, 3rd ed.).

@@ -8,8 +8,7 @@ The stellar-particle dose of a body (`radiation.sep_dose_msv_yr`) used a free-sp
 proton's rigidity (`R0` 0.2 GV). This module replaces both with the particles of the events that were measured.
 
 **The events.** 47 Band-function fits of the event-integrated fluence of the solar proton events of 1997 to 2015 (`EVENTS`): 21 events that
-reached the ground (the ground-level enhancements, GLE, with four of them in a second, storm-shock fit, `esp`) and 26 that did not (sub-GLE;
-Tylka and Dietrich 2009, as fitted and tabulated in Vainio et al. 2017, A&A 604:A8, Tables A.1 and A.2; typed second-hand into
+reached the ground (the ground-level enhancements, GLE, with four of them in a second, storm-shock fit, `esp`) and 26 that did not (sub-GLE; as fitted and tabulated in Vainio et al. 2017, A&A 604:A8, Tables A.1 and A.2; typed second-hand into
 `reports/secondhand-citations-2026-10-24-files/sep-band-parameters-vainio2017.csv`). Each is the integral rigidity spectrum of
 `surface_dose.BandSpectrum`, `J(>R) = J0 R^-g1 exp(-R/R0)` up to `R1 = (g2 - g1) R0` and a steeper power law above, `J` in cm-2 for the
 whole event at 1 AU and `R` in GV. The spectra are hard or soft, the fluences span five orders of magnitude, and a few events carry the dose.
@@ -114,7 +113,7 @@ TAIL_SLOPE = math.log(NOAA_CUMULATIVE_COUNTS[-1][1] / NOAA_YEARS / TAIL_ANCHOR_R
     TAIL_ANCHOR_PFU / NOAA_CUMULATIVE_COUNTS[-1][0])
 """float: The cumulative slope of the number of events from 10 000 pfu to `TAIL_ANCHOR_PFU`, about 1.34: the straight line in log-log between the
 last NOAA node (9 events in 42 years) and the isotope-record rate at the anchor (Usoskin and Kovaltsov 2012). Replaces the 1.9 of GEN.747, which was
-fitted to one Carrington-class event in 500 years (McCracken 2001, recalled). [Stand-in SE4, tier T3, tweak level L1.]"""
+fitted to one Carrington-class event in 500 years. [Stand-in SE4, tier T3, tweak level L1.]"""
 
 BFO_DEPTH_G_CM2 = 5.0
 """float: The depth of water at which the dose is taken, g/cm2: the blood-forming organs (NASA's standard 5 cm; recalled). Source tier T3."""

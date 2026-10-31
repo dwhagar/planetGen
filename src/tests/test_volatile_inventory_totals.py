@@ -36,7 +36,7 @@ VENUS_C_PPM = VENUS_AIR_KG * (1.0 - VENUS_N2_MASS_SHARE) * C_G_MOL / 44.01 / VEN
 VENUS_N_PPM = VENUS_AIR_KG * VENUS_N2_MASS_SHARE / VENUS_MANTLE_KG * 1e6
 
 # Mars: the carbon dioxide of the source magma, 5 ppm at IW-1 to 1000 ppm at IW+1 (Hirschmann and Withers 2008; Grott et al. 2011,
-# as the model of arXiv:2302.04241 adopts them), and the nitrogen of the source magma 1.9 ppm (Marty and Dauphas 2003, same paper)
+# as the model of arXiv:2302.04241 adopts them), and the nitrogen of the source magma 1.9 ppm (same paper)
 MARS_C_PPM = (5.0 * C_G_MOL / 44.01, 1000.0 * C_G_MOL / 44.01)
 MARS_N_PPM = 1.9
 

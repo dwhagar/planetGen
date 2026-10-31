@@ -8,7 +8,7 @@ The seasonal swing of the temperature at a latitude, from the planet's tilt and 
 *means* (a pole is warmer than the equator over the year above 54.8 degrees of tilt), but nothing says how far a place swings between its summer and its winter. A
 tilted planet's seasons are its weather: Uranus-like tilts give a pole in daylight at noon-equator brightness for decades, Mars's eccentric orbit adds a second
 season, and the Earth without its Moon is the middle case (Williams and Kasting 1997, Icarus 129:254; Williams and Pollard 2002, 2003, Int. J. Astrobiol. 1:61 and
-2:1; Spiegel, Menou and Scharf 2009, ApJ 691:596; Dobrovolskis 2009, 2013, Icarus; Armstrong et al. 2014, Astrobiology 14:277; recalled, none opened). This module is that
+2:1; Spiegel, Menou and Scharf 2009, ApJ 691:596, Icarus; Armstrong et al. 2014, Astrobiology 14:277; recalled, none opened). This module is that
 calculation as a pure function of stored quantities. Nothing calls it yet (GEN.1048 wires it into the regional temperatures).
 
 **The light.** The day's mean insolation at latitude `phi` for the Sun at declination `delta` is the closed form of `regional_temperature._daily_insolation`

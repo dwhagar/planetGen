@@ -54,7 +54,7 @@ which the draw does not make either.
   fit, equations 4 to 6, read): `0.080 M + 0.489` for 0.83 to 2.85 solar masses, `0.187 M + 0.184` for 2.85 to 3.6, `0.107 M
   + 0.471` for 3.6 to 7.2, the last piece carried to 8 (a 1.33 solar mass white dwarf at the top). Read by the star model, the
   member draw, the disk history and `mass_loss`, through `physics/remnant_mass.py`. The Kalirai et al. (2008) relation the
-  generator used before ran 0.04 to 0.06 under it, and Weidemann (2000), the disk history's, 0.1 to 0.16 under at 5 to 7
+  generator used before ran 0.04 to 0.06 under it, and another relation, the disk history's, 0.1 to 0.16 under at 5 to 7
   solar masses. The disk history's return fraction is 0.384 (it was 0.371).
 * **Neutron stars** are drawn from the Gaussian of the slow pulsars (Ozel and Freire 2016: 1.49 +- 0.19), held to 1.1 to 2.2
   solar masses; `remnant_mass.share_above` and `moments` are the same Gaussian's for the scatter cut and the placement terms.

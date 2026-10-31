@@ -491,7 +491,7 @@ Options for the nebula clause:
 - Members (rendering only, GEN.112): cumulative N(>D) ~ D^-2.5 with explicit hero
   bodies (differential slope 3.5 aged, 2.2 to 2.7 for a fresh disruption [S:
   https://arxiv.org/pdf/0911.3937 snippet]); the largest fragment is M_lr.
-- Life span: free fields disperse in 1e6 to 1e7 years (Raymond et al. 2020, in
+- Life span: free fields disperse in 1e6 to 1e7 years (in
   interstellar-object-rates.md). The generator makes no free fields
   (`PHENOMENON_DENSITY_PC3["asteroid-field"]` is 0), so event-made and hand-made
   fields are the only ones. Let galactic shear stretch the radius, which the

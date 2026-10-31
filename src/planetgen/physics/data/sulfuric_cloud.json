@@ -31,7 +31,7 @@
    "value": 3.85,
    "tier": "T3",
    "tweak": "L0",
-   "basis": "The largest mode radius: Arney and Kane 2018 Table 2 (Crisp 1986) effective radius of mode 3, 3.85 micron (Gillmann and others: 3.0 to 4.0). The radius only sets how much acid a given depth needs"
+   "basis": "The largest mode radius: Arney and Kane 2018 Table 2 effective radius of mode 3, 3.85 micron (Gillmann and others: 3.0 to 4.0). The radius only sets how much acid a given depth needs"
   },
   "density_kg_m3": {
    "value": 1800.0,

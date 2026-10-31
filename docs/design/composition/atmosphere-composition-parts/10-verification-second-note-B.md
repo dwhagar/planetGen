@@ -9,7 +9,7 @@ Scope: read-only verification of nine claims in the owner's second research note
 | 1a | Band form J(>E) as written | CONTRADICTED | high branch has an extra x^-(g2-g1); discontinuous at break unless g2-g1 = 1; slope -(2g2-g1) | COMPUTED, 2ND-HAND | integral in rigidity, J0 R^-g2 [(g2-g1)R0]^(g2-g1) e^(g1-g2) above R1 = (g2-g1)R0 |
 | 1b | Weibull/exp-in-rigidity underestimate above 100 MeV | PARTLY | exp in rigidity under-estimates in 12 of 12 GLEs; Weibull varies, agrees only Feb 1956; Xapsos is Weibull, not rigidity-exponential | READ, 2ND-HAND | event dependent |
 | 1c | NM data support Band | CONFIRMED | F80/F200 6.02 vs 6.15 (PAMELA, GLE 71) | READ | |
-| 1d | Tylka and Dietrich 2009 original | NOT REACHED | form read in four later papers, two by the authors | | |
+| 1d | Original ICRC paper | NOT REACHED | form read in four later papers, two by the authors | | |
 | 2a | Column 20 to 22 g/cm2 | CONFIRMED | Gale 18.9 to 25.7 | READ | |
 | 2b | Cutoff 150 MeV/nuc | PARTLY | Guo 2017 says about 150 (140 to 160); PSTAR CO2: 165 MeV at 21 g/cm2 | READ, COMPUTED | 165 vertical, 247 at 60 deg |
 | 2c | 0.21 mGy/d, 0.64 mSv/d, 76 and 232 per yr | CONFIRMED | +/-0.04 and +/-0.12; 76.7 and 233.6 per yr | 2ND-HAND | solar-cycle factor 3.3 |
@@ -19,10 +19,10 @@ Scope: read-only verification of nine claims in the owner's second research note
 | 3c | 1e3 to 1e4 Gy/yr | CONTRADICTED | literature compilation 1e7 at surface, 3e5 at 1 mm | READ (figure) | 1e3 to 1e4 at 2 to 4 cm |
 | 3d | X-rays decimetres | CONFIRMED | 6 to 15 cm (0.1 to 1 MeV), yield 0.4 to 4 percent | COMPUTED | |
 | 3e | 5.4 Sv/day from Nordheim | CONTRADICTED | traced to Zubrin book table (forum quote); equals 1.97e3 Gy/yr for wR = 1 | SNIPPET | no primary source |
-| 3f | Cooper 2001, Paranicas 2009, Patterson 2012, Nordheim 2018 tables | NOT REACHED | only via Mergny 2025 figure | | |
+| 3f | Cooper 2001, Patterson 2012, Nordheim 2018 tables | NOT REACHED | only via Mergny 2025 figure | | |
 | 4a | Titan column 1000 g/cm2 | CONTRADICTED | 1.467 bar / 1.352 = 10,850 g/cm2 | COMPUTED | 10.85 kg/cm2 |
 | 4b | 1 to 3 GeV | CONTRADICTED | Earth column 2.25 GeV; Titan about 22 GeV ionisation, 121 interaction lengths, secondaries from over 100 to 350 GeV primaries | COMPUTED, READ | |
-| 4c | 1.5 mGy/yr, 3 to 5 mSv/yr | CONTRADICTED | Sittler 2019: 1e-11 rad/s = 3.2e-6 Gy/yr | READ | factor 475 lower |
+| 4c | 1.5 mGy/yr, 3 to 5 mSv/yr | CONTRADICTED | 1e-11 rad/s = 3.2e-6 Gy/yr | READ | factor 475 lower |
 | 4d | Muons and neutrons dominate | PARTLY | muons and photons; neutrons do not reach the surface | READ | |
 | 5a | W 33.85 eV | PARTLY | ICRU 31 value; ICRU 90 33.97 +/- 0.12 | 2ND-HAND | 33.97 |
 | 5b | W above 1 keV constant, rises below 100 eV | PARTLY | W(air) 35.5 at 1 keV, 42.5 at 100 eV, 125 at 20.7 eV | READ | |
@@ -38,16 +38,15 @@ Scope: read-only verification of nine claims in the owner's second research note
 
 Counts (29 sub-claims): CONFIRMED 6, PARTLY 8, CONTRADICTED 10, UNSUPPORTED 2, NOT REACHED 3 (1d, 3f, 5d). The JPL 19-5 licence question (section 7) was answered: not public domain.
 
-## 1. Claim 1: Band function for SEP spectra (Tylka and Dietrich 2009)
+## 1. Claim 1: Band function for SEP spectra
 
 ### 1.1 Published form
 
-Tylka and Dietrich 2009 is an ICRC (Lodz) proceedings paper. The proceedings host (icrc2009.uni.lodz.pl) did not resolve and no arXiv/NTRS/OSTI copy was found, so the original text is NOT REACHED. The formula was read in four papers that reproduce it:
 
 | Source | What it shows | Label |
 |---|---|---|
-| Kim et al. 2010 slides, NTRS 20100005687 ("Radiation dose assessments of SPEs with spectral representation at high energies") | Band function in RIGIDITY, 4 parameters (J0, gamma1, gamma2, R0). Integral: Phi(>R) = J0 R^-g1 exp(-R/R0) for R <= (g2-g1) R0; Phi(>R) = J0 R^-g2 [(g2-g1) R0]^(g2-g1) exp(g1-g2) for R >= (g2-g1) R0. States that Tylka and Dietrich 2009 is ref. 7 for the NM analysis and the integral form | 2ND-HAND (text extracted from the slide PDF; formula typography garbled but parseable) |
-| Vainio, Raukunen, Tylka, Dietrich and Afanasiev 2017, "Why is solar cycle 24 an inefficient producer of high-energy particle events?" (A&A 604, A47; arXiv:1707.00485) eq. 4; Tylka and Dietrich are co-authors | "Tylka & Dietrich (2009) established that the integral rigidity spectra of proton fluences in GLEs can be represented as double power laws": J(>R) = J0 R^-g1 exp(-R/R0) for R < R1 = (g2-g1) R0; J(>R) = J0 R1^-g1 exp(-R1/R0) (R/R1)^-g2 for R >= R1. "The Band function and its derivative are continuous." | 2ND-HAND (READ in arXiv PDF; by the original authors) |
+| Kim et al. 2010 slides, NTRS 20100005687 ("Radiation dose assessments of SPEs with spectral representation at high energies") | Band function in RIGIDITY, 4 parameters (J0, gamma1, gamma2, R0). Integral: Phi(>R) = J0 R^-g1 exp(-R/R0) for R <= (g2-g1) R0; Phi(>R) = J0 R^-g2 [(g2-g1) R0]^(g2-g1) exp(g1-g2) for R >= (g2-g1) R0. | 2ND-HAND (text extracted from the slide PDF; formula typography garbled but parseable) |
+| Vainio, Raukunen, Tylka, Dietrich and Afanasiev 2017, "Why is solar cycle 24 an inefficient producer of high-energy particle events?" (A&A 604, A47; arXiv:1707.00485) eq. 4; Tylka and Dietrich are co-authors | the integral rigidity spectra of proton fluences in GLEs are double power laws: J(>R) = J0 R^-g1 exp(-R/R0) for R < R1 = (g2-g1) R0; J(>R) = J0 R1^-g1 exp(-R1/R0) (R/R1)^-g2 for R >= R1. "The Band function and its derivative are continuous." | 2ND-HAND (READ in arXiv PDF; by the original authors) |
 | Bruno et al. 2019, arXiv:1902.03969 eq. 2 | Same shape in kinetic energy, break (gb-ga)E0 (a different parametrisation, different fitted values) | 2ND-HAND (READ) |
 | Asvestari et al. 2017, arXiv:1612.02446 | Band is "a double power law in rigidity with a smooth exponential junction"; Tylka and Dietrich fitted about 59 GLEs | 2ND-HAND (READ) |
 
@@ -84,15 +83,15 @@ Verdict claim 1a (formula): CONTRADICTED as written (not the published form; dis
 
 | Statement | Evidence | Label |
 |---|---|---|
-| Exponential in rigidity grossly under-estimates both Band and Weibull in all 12 GLEs studied | Atwell, Tylka, Dietrich, Badavi 2011 (AIAA 2011-5253, NTRS 20110011264): "In every case we find that the exponential in proton rigidity fitting method grossly under-estimates both the Band and Weibull fitting methods"; Weibull varies considerably against Band, reasonable agreement only for 23 Feb 1956 | READ (NTRS PDF) |
+| Exponential in rigidity grossly under-estimates both Band and Weibull in all 12 GLEs studied | no source; Weibull varies considerably against Band, reasonable agreement only for 23 Feb 1956 | READ (NTRS PDF) |
 | Exponential/Weibull extrapolation in proton energy underestimates the proton spectrum above 100 MeV | Kim et al. 2010 slides concluding remarks: "exponential/Weibull extrapolation in proton energy underestimates the actual proton spectrum above 100 MeV"; but 23 Feb 1956 exponential OVER-estimates fluence, Weibull and Band agree; Aug 1972 Band LOWER at 60-200 MeV because satellite data there (IMP8 channel) read high; Sept/Oct 1989 effective dose similar for all three | 2ND-HAND (NTRS 20100005687) |
-| "Weibull/exponential-in-rigidity (Xapsos 2000)" | Mislabelled: Xapsos 2000 is the Weibull (stretched exponential in kinetic energy, Phi = Phi0 exp(-k E^alpha)); the exponential in rigidity is Freier and Webber 1963 / Malitson and Webber (Atwell 2011 text). Two different fits | READ (Atwell 2011) |
+| "Weibull/exponential-in-rigidity (Xapsos 2000)" | Mislabelled: Xapsos 2000 is the Weibull (stretched exponential in kinetic energy, Phi = Phi0 exp(-k E^alpha)); the exponential in rigidity is Freier and Webber 1963 / Malitson and Webber. Two different fits | READ |
 | GLE neutron-monitor data support Band | Band is fitted with satellite data below about 100 MeV and world-wide neutron monitor data above about 430 MeV (1 GV); fit of about 59 to 66 GLEs; Asvestari 2017 tests the Band parametrisation against PAMELA direct data for GLE 71: F80/F200 ratio 6.15 +/- 0.9 (PAMELA) vs 6.02 +/- 1.38 (Band); agreement below 1 GeV, PAMELA errors grow above 1 GeV from GCR subtraction; PAMELA was not used in the fit | READ (arXiv:1612.02446) |
 | Limit of Band | Reduces to a single power law at high energy and misses rollovers seen by PAMELA; Bruno 2019 multiplies Band by exp(-E/Er) | 2ND-HAND (arXiv:1902.03969) |
 
 Verdict claim 1b: PARTLY (underestimate above 100 MeV is true for exponential-in-rigidity in all 12 tested events and for Weibull in most, not all; Xapsos is Weibull, not rigidity-exponential). Verdict claim 1c (NM data support Band): CONFIRMED with the single-event PAMELA test.
 
-Reconciliation with part 07 section 2.8: its Band and Weibull parameter gap is partly filled by the Atwell 2015 rows in 1.2a (two events plus ranges); the full 34-event table is in NTRS 20150009484 and was not transcribed.
+Reconciliation with part 07 section 2.8: its Band and Weibull parameter gap is partly filled by the rows in 1.2a (two events plus ranges); the full 34-event table is in NTRS 20150009484 and was not transcribed.
 
 ## 2. Claim 2: Mars RAD numbers
 
@@ -140,11 +139,11 @@ Verdicts claim 2: column 20 to 22 g/cm2 CONFIRMED (Gale 18.9 to 25.7, mean about
 
 ## 3. Claim 3: Europa
 
-Primary papers: Nordheim, Hand and Paranicas 2018 is Nature Astronomy 2, 673 to 679 (published 23 July 2018; the note's year is right, the volume is not given). Only its abstract was reached (nature.com, preview); the dose-rate tables and figures are behind the paywall. Cooper 2001 (Icarus 149, 133), Paranicas 2009 (Europa book chapter) and Patterson 2012 (Icarus 220, 30) are on refused hosts; their numbers were read second-hand through Mergny 2025 (arXiv:2505.09490, Figure 1, which combines Cooper 2001, Paranicas 2009 and Pavlov 2018) and Yoffe 2026 (arXiv:2604.01927).
+Primary papers: Nordheim, Hand and Paranicas 2018 is Nature Astronomy 2, 673 to 679 (published 23 July 2018; the note's year is right, the volume is not given). Only its abstract was reached (nature.com, preview); the dose-rate tables and figures are behind the paywall. Cooper 2001 (Icarus 149, 133), and Patterson 2012 (Icarus 220, 30) are on refused hosts; their numbers were read second-hand through Mergny 2025 (arXiv:2505.09490, Figure 1, which combines Cooper 2001) and Yoffe 2026 (arXiv:2604.01927).
 
 | Statement in the note | Evidence | Label | Verdict and corrected value |
 |---|---|---|---|
-| Trailing hemisphere is the electron target | Paranicas, Carlson and Johnson 2001 GRL abstract (Crossref): 10 keV to 10 MeV electrons "precipitate primarily on the trailing hemisphere". Mergny 2025: electrons below 25 MeV hit the trailing hemisphere preferentially, above 25 MeV the leading one (citing Cooper 2001, Paranicas 2009, Nordheim 2018); ion difference between hemispheres is only a few times. Yoffe 2026: trailing deposition confined to the upper 0.1 cm or less; leading deposition reaches tens of cm | READ (abstract, arXiv) | CONFIRMED |
+| Trailing hemisphere is the electron target | Paranicas, Carlson and Johnson 2001 GRL abstract (Crossref): 10 keV to 10 MeV electrons "precipitate primarily on the trailing hemisphere". Mergny 2025: electrons below 25 MeV hit the trailing hemisphere preferentially, above 25 MeV the leading one (citing Cooper 2001, Nordheim 2018); ion difference between hemispheres is only a few times. Yoffe 2026: trailing deposition confined to the upper 0.1 cm or less; leading deposition reaches tens of cm | READ (abstract, arXiv) | CONFIRMED |
 | Electrons of 1 to 10 MeV penetrate "mm depths" | ESTAR liquid water CSDA range (physics.nist.gov, matno 276): 1, 2, 5, 10, 25 MeV = 0.437, 0.979, 2.55, 4.98, 11.3 g/cm2; in ice of 0.917 g/cm3 = 0.48, 1.07, 2.8, 5.4, 12 cm. Mm depths belong to about 0.1 to 0.5 MeV electrons (0.02 to 0.19 cm) | COMPUTED (DATA) | CONTRADICTED for 1 to 10 MeV: mm to about 5 cm. Nordheim abstract: processing significant to about 1 cm at mid to high latitudes and 10 to 20 cm in the "radiation lenses" centred on the leading and trailing hemispheres (READ abstract) |
 | Dose "about 1e3 to 1e4 Gy per year" | Mergny 2025 Figure 1 (compilation of three studies, maximum of the interpolated values; READ figure, values eyeballed, uncertainty a factor of 3): electron dose rate about 1e7 Gy/yr down to 10 micrometres, 4e6 at 0.1 mm, 3e5 at 1 mm, 4e4 at 1 cm, 7e1 at 10 cm, 2 at 1 m; protons about 1e5 at 1 mm, 1e2 at 1 cm, 1 at 10 cm. The 1e3 to 1e4 Gy/yr band is reached at roughly 2 to 4 cm depth for electrons | READ (figure, approximate) | CONTRADICTED as a surface or mm-depth value (3 to 4 orders too low); correct only as a rate at about 2 to 4 cm in ice. Oxygen and sulfur ion doses differ by over 3 orders between the studies |
 | Bremsstrahlung X-rays penetrate decimetres | XCOM water (physics.nist.gov, ComTab/water): mu/rho 0.171, 0.0969, 0.0707, 0.0222 cm2/g at 0.1, 0.5, 1, 10 MeV; attenuation length in ice 6.4, 11, 15, 49 cm. ESTAR radiation yield 0.36 percent at 1 MeV, 4.1 percent at 10 MeV, 10 percent at 25 MeV. Yoffe 2026 adds that radiative loss is small below the electron critical energy of water (78 MeV) | COMPUTED (DATA); READ (Yoffe) | CONFIRMED for range (decimetres), but the dose it adds is small (under 4 percent of the electron energy at 10 MeV); |
@@ -156,7 +155,7 @@ Generator reading: a Europa-like surface dose is a depth profile (values above),
 
 ### 4.1 Column mass (COMPUTED)
 
-X = P / g = 1.467e5 Pa / 1.352 m/s2 = 1.085e5 kg/m2 = 10,850 g/cm2 (10.85 kg/cm2). This is 10.9 times the note's 1000 g/cm2 and 10.5 times Earth's 1033 g/cm2 (101325 Pa / 9.80665 = 1033 g/cm2). Sittler et al. 2019 (Icarus; NTRS 20205001059, READ) write "Titan's dense atmosphere with about 10^4 g/cm2 column mass density". P = 1.467 bar and g = 1.352 m/s2 are the note's inputs (the Huygens and Cassini values are RECALLED, not re-read here).
+X = P / g = 1.467e5 Pa / 1.352 m/s2 = 1.085e5 kg/m2 = 10,850 g/cm2 (10.85 kg/cm2). This is 10.9 times the note's 1000 g/cm2 and 10.5 times Earth's 1033 g/cm2 (101325 Pa / 9.80665 = 1033 g/cm2). P = 1.467 bar and g = 1.352 m/s2 are the note's inputs (the Huygens and Cassini values are RECALLED, not re-read here).
 
 | Quantity | Value | Label |
 |---|---|---|
@@ -173,7 +172,7 @@ Verdict on "E_proton >= 1 to 3 GeV for the 1000 g/cm2 column": CONFIRMED for Ear
 
 | Source | Value | Label |
 |---|---|---|
-| Sittler 2019 | total dose rate about 1e-11 rad/s at the surface (tholin, density 1 g/cm3); 142 krad accumulated over 450 Myr (30 krad to 1350 krad over 100 Myr to 4.5 Gyr); surface energy flux 8.01e-6 erg/cm2/s; model lower limit, factor of 2 allowance for heavy ions and quality factor | READ |
+| no source | total dose rate about 1e-11 rad/s at the surface (tholin, density 1 g/cm3); 142 krad accumulated over 450 Myr (30 krad to 1350 krad over 100 Myr to 4.5 Gyr); surface energy flux 8.01e-6 erg/cm2/s; model lower limit, factor of 2 allowance for heavy ions and quality factor | READ |
 | Converted | 1e-11 rad/s = 3.2e-6 Gy/yr = 0.003 mGy/yr; 142 krad / 450 Myr = 3.2e-6 Gy/yr (the two agree) | COMPUTED |
 | Note | 1.5 mGy/yr and 3 to 5 mSv/yr | claim |
 | Ratio | note / Sittler = 475 | COMPUTED |
@@ -222,7 +221,7 @@ Leiden / Heays, Bosman and van Dishoeck 2017, A&A 602, A105 (arXiv:1701.04459), 
 | HF | No | Mainz atlas file HF.spc listed in part 02 (not read here) | NOT REACHED here |
 | CH3Cl | No | JPL 19-5 photochemical section (host refused in this pass; the JPL 19-5 PDF itself was reachable at science.jpl.nasa.gov, CH3Cl cross-section table not extracted) | NOT REACHED |
 | TiO, VO | No | no VUV photoionisation data; line lists only (ExoMol, RECALLED) | NOT REACHED |
-| Metals | Li, Na, Mg, Al, Si, K, Ca, Ti, Cr, Mn, Fe, Co, Ni, Zn, Rb listed (Kelly 1987 thresholds) | NIST ASD line data (part 02) | reachable for these elements |
+| Metals | Li, Na, Mg, Al, Si, K, Ca, Ti, Cr, Mn, Fe, Co, Ni, Zn, Rb listed | NIST ASD line data (part 02) | reachable for these elements |
 
 
 ## 6. Claim 6: Troe falloff form
@@ -255,9 +254,9 @@ JPL Publication 15-10 (Evaluation 18, NTRS 20160006735, rendered page 2-1): k0(T
 
 | Item | Evidence | Label | Verdict |
 |---|---|---|---|
-| "Updated VUV cross sections beyond Sousa-Silva 2020 show shorter PH3 lifetimes" | Sousa-Silva et al. 2020 (arXiv:1910.05224) take PH3 UV cross sections at 295 K from Chen et al. 1991 (via Ranjan and Sasselov 2017 and the Mainz atlas), quantum yield 1 below 230 nm, branching unity (Kaye and Strobel 1984). Bains et al. 2021 (arXiv:2009.06499) use the same Chen 1991 295 K set and the same yield. Mainz atlas PH3 files (Chen 1991 at 295 K 120 to 230 nm and 155 K 127 to 200 nm; Xia 1990, 1991; Halmann 1963; Zarate 1990; Becker and Welge 1964) were seen only in a search listing. arXiv searches for PH3 photodissociation, VUV, cross section, lifetime returned no new cross-section paper; a 2024 Frontiers paper found is about PH+ and PO and is not relevant | READ (two papers); SNIPPET (Mainz listing) | UNSUPPORTED: no measurement newer than Chen 1991 was found; the "shorter lifetime" results (Bains 2021: below 1 s above 78 to 98 km; transport-limited about 400 to 700 yr) are modelling with old cross sections. Bains 2021 states direct photolysis is not the dominant PH3 sink below 100 km on Venus |
+| "Updated VUV cross sections beyond Sousa-Silva 2020 show shorter PH3 lifetimes" | Sousa-Silva et al. 2020 (arXiv:1910.05224) take PH3 UV cross sections at 295 K from Chen et al. 1991 (via Ranjan and Sasselov 2017 and the Mainz atlas), quantum yield 1 below 230 nm, branching unity. Bains et al. 2021 (arXiv:2009.06499) use the same Chen 1991 295 K set and the same yield. Mainz atlas PH3 files (Chen 1991 at 295 K 120 to 230 nm and 155 K 127 to 200 nm) were seen only in a search listing. arXiv searches for PH3 photodissociation, VUV, cross section, lifetime returned no new cross-section paper; a 2024 Frontiers paper found is about PH+ and PO and is not relevant | READ (two papers); SNIPPET (Mainz listing) | UNSUPPORTED: no measurement newer than Chen 1991 was found; the "shorter lifetime" results (Bains 2021: below 1 s above 78 to 98 km; transport-limited about 400 to 700 yr) are modelling with old cross sections. Bains 2021 states direct photolysis is not the dominant PH3 sink below 100 km on Venus |
 | "needing continuous production" | PH3 destruction by OH, H, O, Cl and photolysis is the standing argument of Bains 2021 and Sousa-Silva 2020 (surface or biological source on UV-shielded or CO2 worlds); lifetimes of 5 to 28 h with OH (part 04) | READ | CONFIRMED in general (not tied to new cross sections) |
-| PH2 + H + M -> PH3 + M | Bains 2021 SI: this is "included as the reverse reaction for thermolytic decay of PH3" (PH3 + M -> PH2 + H + M), and they neglect other PH3 recombination. Sousa-Silva 2020 give the two-body form PH2 + H -> PH3, k = 3.7e-10 exp(-340 K / T) cm3/s = 1.1e-10 at 288 K (Kaye and Strobel 1984), important for H2-rich worlds. COMPUTED: 3.7e-10 exp(-340/288) = 1.14e-10 | READ; COMPUTED | PARTLY: both forms exist (three-body reverse in Bains, two-body in Sousa-Silva); neither is "new" |
+| PH2 + H + M -> PH3 + M | Bains 2021 SI: this is "included as the reverse reaction for thermolytic decay of PH3" (PH3 + M -> PH2 + H + M), and they neglect other PH3 recombination. Sousa-Silva 2020 give the two-body form PH2 + H -> PH3, k = 3.7e-10 exp(-340 K / T) cm3/s = 1.1e-10 at 288 K, important for H2-rich worlds. COMPUTED: 3.7e-10 exp(-340/288) = 1.14e-10 | READ; COMPUTED | PARTLY: both forms exist (three-body reverse in Bains, two-body in Sousa-Silva); neither is "new" |
 
 ## 9. Claim 9: "Harman 2015, Zahnle 2006, Hunten 1973 are updated by incorporating revised cross sections"
 
@@ -272,9 +271,9 @@ Judgement: as written the claim is not meaningful: published papers are not upda
 ## 10. What this changes in the generator items
 
 Radiation items (part 07 F4, F5 and Mars, Titan, Europa rows):
-- SEP source: use the published integral rigidity Band form (section 1.1), not the note's; event library from the Atwell 2015 rows (GLE 2006: J0 1.33e8, g1 1.045, g2 5.80, R0 0.1765 GV). Keep R0 a drawn parameter (0.019 to 0.364 GV).
+- SEP source: use the published integral rigidity Band form (section 1.1), not the note's; event library from the rows (GLE 2006: J0 1.33e8, g1 1.045, g2 5.80, R0 0.1765 GV). Keep R0 a drawn parameter (0.019 to 0.364 GV).
 - Atmospheric cutoff from the PSTAR CSDA inversion of X = P/g in the local gas, not a fixed 150 MeV: 165 MeV at 21 g/cm2 CO2 vertical, 247 MeV at 60 degrees. Dose below cutoff comes from secondaries.
-- Thick columns: Titan X = 10,850 g/cm2 (not 1000). Ionisation alone needs about 22 GeV; the surface sees muon and photon secondaries only. The one calibration point (labelled as such) is Sittler 2019 at 3.2e-6 Gy/yr. The note's 1.5 mGy/yr is not to be used.
+- Thick columns: Titan X = 10,850 g/cm2 (not 1000). Ionisation alone needs about 22 GeV; the surface sees muon and photon secondaries only. The one calibration point (labelled as such) is a single value at 3.2e-6 Gy/yr. The note's 1.5 mGy/yr is not to be used.
 - Neutron share: RAD 2.2 to 7 percent of dose and 3.8 to 10 percent of dose equivalent; 33 to 50 percent only as a model effective-dose share.
 - W: asymptotic 33.97 +/- 0.12 eV for air (ICRU 90); 33.85 is superseded; W(E) table (35.5 eV at 1 keV, 42.5 at 100 eV) only for electrons below a few keV; per-gas W in 5.2.
 - Europa-like: dose is a depth profile (1e7 Gy/yr at the surface to about 1e3 to 1e4 at 2 to 4 cm, electrons 1 to 10 MeV reaching 0.5 to 5 cm); drop "5.4 Sv/day".
@@ -285,8 +284,8 @@ Part 09 row d (retention regimes d1 to d5): add a derived column X = P/g so d3 t
 
 ## 11. NOT REACHED
 
-- Tylka and Dietrich 2009 ICRC paper (host unresolved); Atwell 2015 Band table for all 34 events (not transcribed); Weibull parameters.
-- Cooper 2001, Paranicas 2009, Patterson 2012 and Nordheim 2018 dose tables (paywall or refused); Gronoff 2009, 2011; Dartnell Titan dose.
+- Weibull parameters.
+- Cooper 2001, Patterson 2012 and Nordheim 2018 dose tables (paywall or refused); Gronoff 2009, 2011; Dartnell Titan dose.
 - Photoionisation of Kr, Xe, HF, CH3Cl, TiO, VO; W for NH3, SO2, CO, HCN, CH3Cl, Ne.
 
 ## 12. Recalled / to verify
@@ -294,4 +293,3 @@ Part 09 row d (retention regimes d1 to d5): add a derived column X = P/g so d3 t
 - Zubrin, Entering Space, p. 167 as the origin of 5.4 Sv/day (title and page from a forum quote).
 - Titan P = 1.467 bar and g = 1.352 m/s2 (the note's inputs) and a vertical muon intensity of about 1e-4 cm-2 s-1 sr-1 at 1e4 g/cm2.
 - Kr and Xe outer-shell data (Samson and Stolte; Marr and West); TiO and VO line lists in ExoMol.
-- Broussard 2024 H2O cross-section paper (title only).

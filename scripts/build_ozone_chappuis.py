@@ -34,7 +34,7 @@ def main():
     centres = 0.5 * (EDGES_NM[:-1] + EDGES_NM[1:])
     ratios = [ozone_uv.chappuis_ratio(located, EDGES_NM, temperature) for temperature in ozone_uv.CHAPPUIS_TEMPERATURES_K]
     document = {
-        "source": "Brion-team (1992-1998) 295 K, 1 nm, MPI-Mainz UV/VIS Spectral Atlas snapshot 2013-06-24, Zenodo record 6951, CC BY 4.0 "
+        "source": "the Brion team's 1992 to 1998 measurements, 295 K, 1 nm, MPI-Mainz UV/VIS Spectral Atlas snapshot 2013-06-24, Zenodo record 6951, CC BY 4.0 "
                   "(Keller-Rudek et al. 2013, Earth Syst. Sci. Data 5, 365); cell means on 5 nm cells",
         "temperature_k": 295.0,
         "wavelength_nm": [float(v) for v in centres],

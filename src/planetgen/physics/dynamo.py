@@ -6,7 +6,7 @@ and draws nothing. The power comes from the core's own thermal history (the heat
 GEN.838) or, for a giant, from its luminosity (`giant_power_w`); the spin is the body's (`spin`, GEN.731). The values stored on a body are set by
 GEN.967, which replaces the design defaults of `magnetism` with these.
 
-1. **Strength.** The buoyancy-flux scaling of Olson and Christensen (2006), which Christensen and Aubert (2006) and Christensen (2010) extend: the
+1. **Strength.** The buoyancy-flux scaling of Olson and Christensen (2006), which Christensen and Aubert (2006) extend: the
    dipole's equatorial field at the top of a dipolar dynamo's region does not depend on the spin or the conductivity, only on the buoyancy flux
    `F = P / (rho V)` (W/kg, the power per mass of the region), its thickness `D` and the density `rho`:
    `B = gamma sqrt(rho mu0 / 2) (F D)^(1/3)` with `gamma` about 0.2, and the moment is `4 pi r_o^3 B / mu0` (the design note section 3.1). The same

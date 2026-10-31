@@ -26,7 +26,7 @@ delay and nothing before. A world with `S <= R` never holds any. The most the ai
 fire limit).
 
 The numbers are those of the one world we know (`EARTH_*`, round figures from the literature of the oxygen cycle: Holland 2002; Lenton and
-Watson 2000; Catling and Claire 2005; Bergman et al. 2004, from memory), used as the test point and the scale and not as a preset: a world
+Catling and Claire 2005, from memory), used as the test point and the scale and not as a preset: a world
 with another light, water, heat, redox and gravity gets another oxygen. Every constant is a stand-in in section 6.21 of
 `docs/design/research/gap-filling-plan.md` with its tier and tweak level.
 
@@ -79,7 +79,7 @@ PAR_NM = (400.0, 700.0)
 SUN_TEMPERATURE_K = 5772.0
 
 TEMPERATURE_ACTIVATION_EV = 0.32
-"""float: The activation energy of photosynthesis, eV (Allen et al. 2005, about a half of a heterotroph's; T2, L0)."""
+"""float: The activation energy of photosynthesis, eV (about a half of a heterotroph's; T2, L0)."""
 
 REFERENCE_TEMPERATURE_K = 288.0
 OCEAN_SPAN_K = (258.0, 275.0, 315.0, 343.0)

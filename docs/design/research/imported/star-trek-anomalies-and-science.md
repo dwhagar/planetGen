@@ -3,7 +3,7 @@
 Comprehensive Analysis of Canonical Star Trek Spatial Anomalies, Subspace Phenomena, and Nebulae: Physics Foundations and Game Mechanics Translation
 ====================================================================================================================================================
 
-Interstellar space within the _Star Trek_ canonical narrative continuum is populated by a vast spectrum of subspatial disruptions, gravimetric distortions, topological defects, and non-baryonic nebular formations (Memory Alpha, n.d.). While these phenomena were initially conceptualized as narrative catalysts to test starship crews, many of them map directly onto formal constructs in general relativity, theoretical cosmology, quantum field theory, and high-energy particle physics (Ahmed, 2023; Alcubierre, 1994; Santos & Castro, 2012; Vilenkin, 1985).
+Interstellar space within the _Star Trek_ canonical narrative continuum is populated by a vast spectrum of subspatial disruptions, gravimetric distortions, topological defects, and non-baryonic nebular formations (Memory Alpha, n.d.). While these phenomena were initially conceptualized as narrative catalysts to test starship crews, many of them map directly onto formal constructs in general relativity, theoretical cosmology, quantum field theory, and high-energy particle physics (Ahmed, 2023; Alcubierre, 1994; Vilenkin, 1985).
 
 Translating these phenomena into a scientifically grounded game engine requires converting qualitative episode lore into quantitative field equations, dynamic metric tensors, volumetric fluid systems, and systemic player interactions.
 
@@ -144,13 +144,13 @@ The primary physical challenge of the Alcubierre metric—and by extension Star 
 
 $$\rho = T_{\mu\nu} n^\mu n^\nu = -\frac{c^4}{32\pi G} \frac{v_s^2 \rho^2}{r_s^2} \left( \frac{df}{dr_s} \right)^2$$
 
-Because this value is strictly negative, maintaining an Alcubierre warp bubble requires exotic matter with negative mass-energy density, violating the Weak Energy Condition ($\text{WEC}: T_{\mu\nu} u^\mu u^\nu \ge 0$) and Dominant Energy Condition (DEC) (Alcubierre, 1994; Santos & Castro, 2012).
+Because this value is strictly negative, maintaining an Alcubierre warp bubble requires exotic matter with negative mass-energy density, violating the Weak Energy Condition ($\text{WEC}: T_{\mu\nu} u^\mu u^\nu \ge 0$) and Dominant Energy Condition (DEC) (Alcubierre, 1994).
 
 In a scientifically grounded game framework:
 
 * **Subspace Tears and Omega Disruption**: An Omega destabilization or isolytic weapon burst can be modeled as suppressing the Casimir vacuum energy states or quantum field fluctuations required to sustain local negative energy density, causing localized warp metrics to collapse (Alcubierre, 1994; Memory Alpha, n.d.).
 
-* **Conformal Gravity Alternatives**: By evaluating spacetime using Conformal Gravity ($C_{\lambda\mu\nu\rho} C^{\lambda\mu\nu\rho}$ action) rather than standard General Relativity, fourth-order field equations allow metric warping and warp bubbles without requiring exotic negative mass matter (Santos & Castro, 2012).
+* **Conformal Gravity Alternatives**: By evaluating spacetime using Conformal Gravity ($C_{\lambda\mu\nu\rho} C^{\lambda\mu\nu\rho}$ action) rather than standard General Relativity, fourth-order field equations allow metric warping and warp bubbles without requiring exotic negative mass matter.
 
 ### Cosmic String Theory and Quantum Filaments
 

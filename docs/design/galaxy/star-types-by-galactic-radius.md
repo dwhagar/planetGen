@@ -74,7 +74,7 @@ fractions of B, A and white dwarfs change, and M, K and G stay flat (M 74-75%, K
 | B stars, solar neighborhood | 0.13% between arms, 0.37% in an arm | about 0.04% | [Mamajek](https://www.pas.rochester.edu/~emamajek/memo_star_dens.html) |
 | A stars | 0.8-1.3% | about 0.6% | same |
 | O stars | 7e-5% to 9e-4% | about 5e-5% | same |
-| Bulge stars younger than 5 Gyr | 0% (bulge ages 8-12 Gyr) | 3% (HST) to 16-23% (microlensing, disputed) | [Valle et al. 2015, quoting Clarkson 2011](https://arxiv.org/pdf/1503.04570), [Bensby 2017](https://arxiv.org/pdf/1702.02971) |
+| Bulge stars younger than 5 Gyr | 0% (bulge ages 8-12 Gyr) | 3% (HST) to 16-23% (microlensing, disputed) | [Valle et al. 2015](https://arxiv.org/pdf/1503.04570), [Bensby 2017](https://arxiv.org/pdf/1702.02971) |
 | Star formation across the disk | young share flat from 2 to 15 kpc | rate peaks near 5 kpc, falls about 0.28 dex per kpc beyond; 84% inside the solar circle, 1% beyond 13.5 kpc | [Herschel Hi-GAL study](https://www.arxiv.org/pdf/2211.05573) |
 | Galactic center star formation | none (bulge is old) | Central Molecular Zone holds ~5% of the Galaxy's rate | same, [Galactic center review](https://arxiv.org/pdf/1905.01309) |
 | Iron gradient | none | -0.06 dex/kpc for young stars, flatter (-0.03) for 6-10 Gyr | [Anders et al. 2017](https://arxiv.org/pdf/1608.04951.pdf) |
@@ -154,7 +154,7 @@ and bulge scale radius. The Milky Way's figures are test targets in `tests/test_
    a bar, and the causes are discussed, not settled ([Wang et al. 2020](https://arxiv.org/pdf/2003.05190)); galaxies with bar-driven radial gas flows have
    suppressed star-formation efficiency with "no indication of depleted gas mass fractions", so gas exhaustion is not the cause there
    ([ALMaQUEST XIV](https://arxiv.org/pdf/2312.14702)). Observed in the Milky Way: the molecular gas shows "a pronounced deficit at R about 0.5 to 3.5 kpc (a bar gap)", an outer boundary at
-   3.5 kpc that "is consistent with the dynamical estimate of the Galactic bar half-length (Lucey et al. 2023)", with the caveat that axisymmetric distance
+   3.5 kpc that "is consistent with the dynamical estimate of the Galactic bar half-length", with the caveat that axisymmetric distance
    inversions can partly fill such a gap ([Bar-Informed Kinematic-Distance Mapping](https://arxiv.org/pdf/2603.17341)); the long bar's half-length is
    5.0 +-0.2 kpc in [Wegg, Gerhard and Portail 2015](https://arxiv.org/pdf/1504.01401), so the estimates differ. The Central Molecular Zone forms stars at
    a rate at least ten times below what its dense gas predicts ([Kruijssen et al. 2014](https://arxiv.org/pdf/1303.6286), after [Longmore et al.

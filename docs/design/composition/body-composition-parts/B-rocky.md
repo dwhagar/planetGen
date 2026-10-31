@@ -97,7 +97,7 @@ Notes. (1) The "stable at" column is the output of my own Gibbs-energy minimisat
 | Diamond | C | 12.011 | 3.512 (V0 3.42 cm3/mol) | 446.5 | 1.61 | | alpha 4e-6 /K | Holland-Powell tmt; unsuitable above about 100 GPa; use Dewaele 2008 EOS and TFD above 1000 GPa | burnman HP_2011_ds62 (2ND-HAND); EOS route per Madhusudhan 2012 (READ) | 2ND-HAND |
 | Graphite | C | 12.011 | (V0 5.3 cm3/mol) | 31.2 | 3.9 | | | Holland-Powell tmt | burnman HP_2011_ds62 | 2ND-HAND |
 | Graphite, planet EOS | C | | 2.250 | 33.8 | 8.9 | | | BM3 | Madhusudhan 2012 (Wang 2012 fit) as used in my run | 2ND-HAND |
-| Graphite to diamond transition | | | | | | | | at about 10 GPa (Bundy 1994) | Madhusudhan 2012 | READ (paper's own statement) |
+| Graphite to diamond transition | | | | | | | | at about 10 GPa | Madhusudhan 2012 | READ (paper's own statement) |
 | SiC | SiC | 40.10 | 3.220 | 227 | 4.1 | | | BM3 | Seager 2007 Table 1 via G425 s.2.7 | 2ND-HAND |
 | High-pressure ice VII/X, water | H2O | | | | | | | owned by part C | C-volatile-and-giants.md | not mine |
 
@@ -222,7 +222,7 @@ hcp-Fe density cross-comparison (g/cm3, COMPUTED): at P = 50 / 135 / 234.4 / 330
 | Item | Value | Source | Label |
 |---|---|---|---|
 | Equilibrium C/O (number) above which solid carbon (SiC plus graphite) replaces silicates | 0.8 (at 1e-4 bar) | Bond 2010 / Thiabaud via G425 s.2.10 | 2ND-HAND |
-| Sequential condensation | carbon-rich planetesimals as low as C/O about 0.65 | Moriarty 2014 (abstract) | READ |
+| Sequential condensation | carbon-rich planetesimals as low as C/O about 0.65 | no source | READ |
 | Host-star distribution (849 FGK dwarfs) | C/O median 0.47, sd 0.07, max 0.66 (+/-0.068), Sun 0.55; C/O > 1 in under 0.13 % ; Mg/Si median 1.02, 40 % below 1, 60 % in 1 to 1.4; C/O rises with [Fe/H] and plateaus above about -0.1 dex | Brewer and Fischer 2016 (arXiv:1608.06286) | READ |
 | Older data | mean Mg/Si 1.32, C/O 0.77 for hosts; 21/60 above 0.8; with error propagation only 5 of 61 (8 %) at 2 sigma and 7 (11 %) at 1 sigma | Bond 2010 | 2ND-HAND (via G425) |
 | EOS | graphite below 10 GPa, diamond above (Dewaele 2008), TFD above 1000 GPa; SiC/MgSiO3/Fe from Seager 2007 | Madhusudhan 2012 (arXiv:1210.2720) | READ |
@@ -623,7 +623,7 @@ These are tests only; no default uses them.
 
 | Target | Data (NASA fact sheets, via the scratchpad HTML) | Outcome | Label |
 |---|---|---|---|
-| Earth | M 5.9722e24 kg, R 6371 km, MoI 0.3308, core radius 3485 km | Route 2 from Earth-like bulk (Fe/Mg 0.9, Si/Mg 0.9, McDonough 2003 values as quoted by Unterborn; calibration only) with 8 wt% FeO: R = 0.9993, MoI 0.3302 (NASA 0.3308), g 9.835, v_esc 11.190 km/s, P_cmb 148.0 GPa (PREM about 135.8 GPa per G425, +9 %), Pc 379 GPa. Fitting CMF 0.326: core scale 0.835, MoI 0.3335, Rcore/R 0.554 (0.547), P_cmb 132.9 | COMPUTED |
+| Earth | M 5.9722e24 kg, R 6371 km, MoI 0.3308, core radius 3485 km | Route 2 from Earth-like bulk (Fe/Mg 0.9, Si/Mg 0.9, values as quoted by Unterborn; calibration only) with 8 wt% FeO: R = 0.9993, MoI 0.3302 (NASA 0.3308), g 9.835, v_esc 11.190 km/s, P_cmb 148.0 GPa (PREM about 135.8 GPa per G425, +9 %), Pc 379 GPa. Fitting CMF 0.326: core scale 0.835, MoI 0.3335, Rcore/R 0.554 (0.547), P_cmb 132.9 | COMPUTED |
 | Earth, (R, MoI) fit | | CMF 0.286, scale 0.926, Rcore/R 0.508 | COMPUTED |
 | Venus | M 4.8673e24, R 6051.8 km, MoI 0.337 | CMF 0.283, scale 0.850 | COMPUTED |
 | Mars | M 0.64169e24, R 3389.5 km, MoI 0.366 | CMF 0.181, scale 0.705, Rcore/R 0.476 (NASA 0.54): a pure-Fe core cannot match; needs an S-rich core (Hakim: 0.8 rho_Fe at 50 mol% S) and 17 wt% FeO | COMPUTED |
@@ -645,7 +645,7 @@ Ranked.
 4. **Crust mass fraction and crust composition law** (part E owns the types); B hands over mantle oxides only.
 5. **Volatile (C, N, H) inventory of the mantle and core**: no source gives ranges per planet; needed by the atmosphere lane. Candidates: Schlichting and Young 2022, Bergin et al.
 6. **K2O and Na2O mantle contents**: only the Na2O ceiling (Putirka) was read; K2O is part E's radiogenic table.
-7. **Primary EOS papers**: SLB 2011 and 2024 originals (OUP refused), Dewaele 2006 PRL, Sata 2010, Anderson and Ahrens 1994, Dewaele 2008 diamond, Occelli diamond, Sotin/Noack/Wagner 2012, Valencia 2007, Thiabaud 2014, Unterborn 2014/2016. Gives original tabulated EOS to replace the 2ND-HAND copy.
+7. **Primary EOS papers**: SLB 2011 and 2024 originals (OUP refused), Dewaele 2006 PRL, Sata 2010, Anderson and Ahrens 1994, Dewaele 2008 diamond, Occelli diamond, Sotin/Noack/Wagner 2012, Valencia 2007, Thiabaud 2014/2016. Gives original tabulated EOS to replace the 2ND-HAND copy.
 8. **Low-pressure Fe-alloy EOS (Fe-Ni, Fe-S, Fe-Si, Fe-O) and liquid-core density** with temperature; only Hakim's 300-K-type refits were read. The 0.8 to 1.0 `core_scale` range is the stand-in.
 9. **IOP-hosted full texts**: a bot check blocked access; not bypassed.
 
@@ -680,7 +680,7 @@ Counts are of table rows whose label cell carries the label (the prose lines tha
 
 | Label | Rows | What |
 |---|---|---|
-| READ | 33 | Hakim 2018, Unterborn 2023, Putirka and Rarick 2019, Brewer and Fischer 2016, Adibekyan 2021, Plotnykov and Valencia 2020, Schulze 2021, Brinkman 2024, Plotnykov 2025/2026, Rogers 2015, Otegi 2020, Zeng and Jacobsen 2017, Madhusudhan 2012, abstracts of Moriarty 2014, Elkins-Tanton and Seager 2008, Unterborn and Panero 2017 |
+| READ | 33 | Hakim 2018, Unterborn 2023, Putirka and Rarick 2019, Brewer and Fischer 2016, Adibekyan 2021, Plotnykov and Valencia 2020, Schulze 2021, Brinkman 2024, Plotnykov 2025/2026, Rogers 2015, Otegi 2020, Zeng and Jacobsen 2017, Madhusudhan 2012, abstracts of Elkins-Tanton and Seager 2008, Unterborn and Panero 2017 |
 | 2ND-HAND | 46 | 32 SLB 2024 rows (via burnman 2.1.0), SLB hcp-Fe, liquid Fe and ExoPlex constants (sdist), diamond and graphite (burnman HP), SiC and Mg/Si thresholds (via G425) |
 | COMPUTED | 31 | mass-radius tables, degeneracy, limits, carbon radii, thermal factor, stoichiometry check numbers, calibration fits, solver validation |
 | SNIPPET | 0 | the earlier snippet-level slope claims were replaced by the full-text reads of arXiv:2511.17717 and arXiv:2409.08361 |
