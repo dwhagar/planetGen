@@ -38,13 +38,13 @@ The depth of the basin, the dissipation of the tide and non-water liquids (GEN.1
 The raisers of a planet are its star and each of its moons; those of a moon are its planet and the star (at the planet's distance). The other planets'
 tides are not counted (a planet at one astronomical unit raises on the Earth 1 percent of the Moon's). The spin sense is read against each raiser's orbit
 normal: a raiser that goes round the other way is a retrograde one for the body and can never lock it. `k2` is the interior model's
-(`tidal_heating.response`): the homogeneous rigid-sphere figure for rock, an icy body's 0.03.
+(`_love_k2`): the homogeneous rigid-sphere figure for rock (`tidal_heating.rigid_k2`), the ice sphere's for an icy body (`icy_tide.love_k2`, GEN.960), a gas giant's `tidal_heating.GIANT_K2`.
 """
 
 import math
 from dataclasses import dataclass
 
-from planetgen.physics import constants, spin, tidal_heating
+from planetgen.physics import constants, icy_tide, spin, tidal_heating
 
 FIELDS = ("tide_range_spring_m", "tide_range_neap_m", "ocean_liquid")
 """tuple: The stored columns on `planets` and `moons` (see the module text)."""
@@ -199,6 +199,15 @@ def _retrograde(axis, normal):
     return sum(a * n for a, n in zip(axis, normal)) < 0.0
 
 
+def _love_k2(body, mass, radius_m, rate):
+    """The Love number `k2` of the body whose sea is raised: a gas giant's fixed one, an icy body's from its ice sphere at the body's spin rate, else a rocky sphere's rigid one."""
+    if getattr(body, "body_type", None) == "g":
+        return tidal_heating.GIANT_K2
+    if tidal_heating.is_icy(body):
+        return icy_tide.love_k2(mass, radius_m, rate)
+    return tidal_heating.rigid_k2(mass, radius_m)
+
+
 def compute(body, parent=None):
     """
     The `FIELDS` of a planet or moon as a dict (`parent` the planet a moon orbits): a `surface ocean` gets its spring and neap ranges and its liquid, an
@@ -223,7 +232,7 @@ def compute(body, parent=None):
         raisers.append(Raiser.of("moon", moon.mass, moon.distance * constants.AU_TO_M, mass, getattr(moon, "eccentricity", 0.0) or 0.0,
                                  _retrograde(axis, _normal(moon))))
     liquid = _liquid_of(body)
-    tide = ocean_tide(mass, radius_m, rate, raisers, tidal_heating.response(body)[0], liquid, ice_covered=hydrosphere == "ice-covered ocean")
+    tide = ocean_tide(mass, radius_m, rate, raisers, _love_k2(body, mass, radius_m, rate), liquid, ice_covered=hydrosphere == "ice-covered ocean")
     out["tide_range_spring_m"], out["tide_range_neap_m"], out["ocean_liquid"] = tide.spring_range_m, tide.neap_range_m, liquid.name
     return out
 
