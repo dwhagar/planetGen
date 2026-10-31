@@ -14819,16 +14819,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   under 1 Earth mass (eligible slots 8.5 to 0.62). That matches the 4 to
   14 percent the GEN.728 note and
   tests/data/prevalence_systems_expectations.json expect, but it sits at
-  the low end on the default mix. Boss decides the rate. Options, all
-  train-bound because they change output: (1) raise
+  the low end on the default mix. Boss approved raising the share
+  (9:13 PM EDT 2026-10-30), physics-driven. Aux 5 picks the way from
+  these, all train-bound because they change output: (1) raise
   ASTEROID_BELT_PROBABILITY (0.1) to a stated target, a stand-in at tier
   L3 in GEN.725; (2) make the belt its own component of the disc
   architecture, reserved when the disc leaves leftover mass, instead of
-  a slot swap (larger, physics-driven; recommended); (3) leave as is and
-  update the prevalence expectation to the measured 3 to 12 percent. Not
-  started until Boss picks. Owner Aux 5 (report), build lane by Boss's
-  choice.
-    Prerequisites: none.
+  a slot swap (larger, physics-driven; recommended). Owner Aux 5,
+  train-bound (changes output: epoch, golden, generation-output:
+  changed). Any stand-in goes in GEN.725 with tier and tweak level.
   Prerequisites: none. Related: GEN.728, GEN.729, GEN.730, GEN.1061,
   GEN.725.
 
