@@ -1007,7 +1007,7 @@ class _Builder:
             a_hi = min(a_hi, cap)
             if fixed is None and span is not None:
                 low, high = max(a_lo, span[0]), min(a_hi, span[1])
-                if not low < high:
+                if low > high:                # a span of one axis (a cataclysmic variable's, an AM CVn's) has low == high
                     draw.redrawn("pair.axis_out_of_range")
                     continue
                 axis = 10.0 ** (math.log10(low) + rng.random() * (math.log10(high) - math.log10(low)))
