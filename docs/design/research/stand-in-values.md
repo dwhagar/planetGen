@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 973 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 977 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -36,16 +36,16 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 140 | 13 | 8 | 1 | 0 | 162 |
-| T2 | 112 | 36 | 0 | 1 | 0 | 149 |
+| T1 | 141 | 13 | 8 | 1 | 0 | 163 |
+| T2 | 113 | 37 | 0 | 1 | 0 | 151 |
 | T3 | 84 | 38 | 5 | 10 | 0 | 137 |
 | T4 | 40 | 5 | 0 | 15 | 10 | 70 |
 | T5 | 44 | 17 | 0 | 1 | 0 | 62 |
 | T6 | 93 | 72 | 20 | 51 | 0 | 236 |
-| T7 | 27 | 8 | 8 | 8 | 0 | 51 |
+| T7 | 28 | 8 | 8 | 8 | 0 | 52 |
 | T8 | 0 | 1 | 1 | 5 | 1 | 8 |
 | T9 | 19 | 14 | 4 | 42 | 19 | 98 |
-| All | 559 | 204 | 46 | 134 | 30 | 973 |
+| All | 562 | 205 | 46 | 134 | 30 | 977 |
 
 ## How the labels were given
 
@@ -1396,6 +1396,15 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | PT1 | P | T9 | L0 | planet_type.TERRESTRIAL_MAX_ENVELOPE 0.005: an envelope under 0.5 percent of the mass is a terrestrial body (about the 1.6 Earth radii where rocky planets end) | 0.002 to 0.02 | planets and moons | a measured planet of 1.6 to 2 Earth radii that is rocky with no envelope, or a rocky world of 1.3 radii with a thick hydrogen envelope | the radius valley limit of GEN.722 read from the envelope the planet holds | Rogers 2015 and Fulton and Petigura 2018 (rocky limit near 1.6 Earth radii); Lopez and Fortney 2014 (envelope share against radius) | GEN.1219 | - |
 | PT2 | P | T9 | L0 | planet_type.GAS_MIN_ENVELOPE 0.5: an envelope of half the mass or more is a gas body (the line of bulk_structure.GIANT_ENVELOPE_FRACTION) | 0.3 to 0.7 | planets | a giant of Neptune's mass that is more than half envelope, or a Jupiter whose core outweighs its envelope | the envelope share the giant interior model gives (GEN.428) | Boss's choice of the pure rule; Neptune 10 to 15 percent envelope (Helled 2011) and Jupiter 90 percent or more | - | - |
+
+## 6.160 Stand-ins of the helium-core white dwarf
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| HC1 | P | T1 | L0 | tuning.HELIUM_FLASH_CORE_MASS_SOL 0.45 and HELIUM_CORE_PROGENITOR_MAX_SOL 2.3: the core mass at the helium flash and the heaviest star with a degenerate core | 0.45 to 0.47; 2.0 to 2.3 | stars of 0.8 to 2.3 solar masses | a helium flash at a core mass outside 0.43 to 0.5 in a published track set | a track set read for the core mass at the tip by mass and metallicity | READ (Tauris and van den Heuvel 2006, section 16.2 of the review, astro-ph/0303456: "about 0.45 Msun at helium flash ignition" for all stars under 2.3 Msun) | - | - |
+| HC2 | P | T2 | L0 | tuning.GIANT_RADIUS_BY_CORE_MASS_RSUN: R0 5500 at Z 0.02 and 3300 at Z 0.001 of Rappaport et al. 1995's R = R0 Mc^4.5 / (1 + 4 Mc^4) + 0.5 solar radii; straight in log Z between, held beyond | R0 3300 to 5500 | red giants of 0.8 to 2 solar masses with a core of 0.18 to 0.45 | a red giant track whose radius at a 0.3 solar mass core differs from 24 solar radii (Pop I) by more than 30 percent | a detailed binary track set (MESA) for the core at overflow, since the relation is not accurate at small cores (Tauris and Savonije 1999) | READ SECOND HAND (the formula and the two R0 as printed in Li et al. 2024, arXiv 2410.14151, and Chen et al. 2013, arXiv 1203.3439; Rappaport et al. 1995 itself is not opened); the log Z line between the two points is an inference | - | - |
+| HC3 | P | T2 | L1 | tuning.HELIUM_CORE_MIN_MASS_SOL 0.18: under it a giant that fills its lobe is a subgiant (contact or Algol), not a helium white dwarf maker | 0.15 to 0.2 | pairs whose lobe is 4 to 6 solar radii | a helium white dwarf of mass under 0.18 made on the red giant branch by stable overflow | the lower end of a detailed binary track set | READ SECOND HAND (Tauris and Savonije 1999 fit the white dwarf mass and orbital period for 0.18 to 0.45, as quoted by Chen et al. 2013); the cut is read as the edge of the relation | - | - |
+| HC4 | P | T7 | L0 | helium_core_white_dwarf.overflow_core_mass_sol: the giant fills its lobe at periastron (axis x (1 - e)) with a circular Eggleton lobe; the core at that moment is the white dwarf, whether the overflow is stable or a common envelope that is ejected; the companion does not change it | none | pairs of a giant with a companion of any mass that survives | a common envelope that leaves a core different from the one at the onset by more than 10 percent (the core grows during an unstable overflow) | a common-envelope model with the energy budget | an inference (Tauris and van den Heuvel 2006: a helium core in a binary keeps the mass it had at detachment); the merger of a pair too unequal to eject the envelope is not modelled | - | - |
 
 ## 6.159 Stand-ins of the star stepper
 

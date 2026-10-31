@@ -15,6 +15,10 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | module | planetgen.galaxy.thick_ages | GEN.1025 | the old population's age law with the thick disc's 8 to 13 Gy; part 2 wires it into the galaxy's age laws |
 | row | 6.146:TD1 | GEN.1025 | `tuning.THICK_DISC_AGE_RANGE_GY`, read by `thick_ages` only until part 2 |
 | module | planetgen.physics.chemically_peculiar | GEN.1027 | the Ap and Am kinds, slow rotation and field; part 2 draws them in the star build |
+| module | planetgen.physics.helium_core_white_dwarf | GEN.996 | the helium core a giant leaves when it fills its lobe on the red giant branch; the tree and the build read it once the member record of GEN.1006 P3 can carry a white dwarf mass the single-star relation does not give |
+| row | 6.160:HC1 | GEN.996 | `HELIUM_FLASH_CORE_MASS_SOL` and `HELIUM_CORE_PROGENITOR_MAX_SOL`, read by `helium_core_white_dwarf` until it is wired |
+| row | 6.160:HC2 | GEN.996 | `GIANT_RADIUS_BY_CORE_MASS_RSUN`, read by `helium_core_white_dwarf` until it is wired |
+| row | 6.160:HC3 | GEN.996 | `HELIUM_CORE_MIN_MASS_SOL`, read by `helium_core_white_dwarf` until it is wired |
 | row | 6.147:PEC1 | GEN.1027 | `chemically_peculiar` constant, not read until part 2 |
 | row | 6.147:PEC2 | GEN.1027 | `chemically_peculiar` constant, not read until part 2 |
 | row | 6.147:PEC3 | GEN.1027 | `chemically_peculiar` constant, not read until part 2 |
