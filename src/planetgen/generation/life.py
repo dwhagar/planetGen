@@ -225,7 +225,6 @@ def _rebuild(planet):
     stream of the body's own, so the run's draws do not move), the colour of the atmosphere, the surface liquid (a different temperature and pressure
     leave a different liquid stable, GEN.1035), the habitability score and the class (derived from the air as it is now, GEN.980)."""
     from planetgen.physics import planets as physics_planets          # the heat flow the score reads; planets imports this chain
-    physics_planets.refresh_at_final_age(planet)    # GEN.839: the ice shell reads the surface temperature, which the new air moved (own stream)
     aerosols.generate_aerosols(planet)
     surface_liquid_world.generate(planet)
     with draw.bound(f"life-air:{planet.is_moon}:{planet.mass!r}:{planet.radius!r}:{planet.distance!r}"):
