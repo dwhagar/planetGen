@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 803 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 802 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -38,14 +38,14 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 |---|---|---|---|---|---|---|
 | T1 | 126 | 10 | 7 | 1 | 0 | 144 |
 | T2 | 105 | 21 | 0 | 1 | 0 | 127 |
-| T3 | 77 | 31 | 5 | 10 | 0 | 123 |
+| T3 | 77 | 31 | 5 | 9 | 0 | 122 |
 | T4 | 36 | 3 | 0 | 15 | 6 | 60 |
 | T5 | 41 | 13 | 0 | 0 | 0 | 54 |
 | T6 | 69 | 47 | 13 | 36 | 0 | 165 |
 | T7 | 26 | 8 | 8 | 8 | 0 | 50 |
 | T8 | 0 | 1 | 1 | 5 | 2 | 9 |
 | T9 | 7 | 3 | 4 | 38 | 19 | 71 |
-| All | 487 | 137 | 38 | 114 | 27 | 803 |
+| All | 487 | 137 | 38 | 113 | 27 | 802 |
 
 ## How the labels were given
 
@@ -778,8 +778,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| GM1 | P | T3 | L1 | tuning.WD_ENGULFMENT_BASE_AU 1.5 AU, the radius inside which a solar-mass progenitor cleared its planets | 1.5 to 2.7 AU | white dwarfs with a progenitor near one solar mass | already met at the top of the bracket: Mustill and Villaver 2012 print 2.7 AU for Jovian planets (Zahn tides) and 1.6 AU with the Nordhaus et al. 2010 tides, so 1.5 sits just under the low value | a lookup through the paper's three Jovian points (2.7, 3.8, 10 AU at 1, 2.5, 5 solar masses), terrestrial 15 AU at 5 solar masses as the upper bracket (GEN.1006 build) | arXiv 1210.0328 read (sections 4.3 and 5, abstract); the choice of 1.5 is the GEN.318 note's | - | - |
-| GM2 | P | T3 | L3 | tuning.WD_ENGULFMENT_AU_PER_PROGENITOR_MSUN 0.8 AU per solar mass above one | 0.8 to 2.0 | white dwarfs with a progenitor of 1 to 8 solar masses | already met: the line gives 2.7 AU at 2.5 solar masses (paper 3.8) and 4.7 AU at 5 solar masses (paper about 10 for Jovian, 15 or more for terrestrial planets) | the same lookup as GM1 | arXiv 1210.0328 read; the slope is the GEN.318 note's hand choice | - | replace (GEN.1006) |
+| GM1 | P | T3 | L1 | tuning.WD_ENGULFMENT_POINTS_AU ((1, 2.7), (2.5, 3.8), (5, 10)) AU at those progenitor masses, straight lines between them, the last slope carried to 8 solar masses (GEN.1012) | 1 to 8 solar masses | white dwarfs, whose progenitors cleared their Jovian planets inside it | the paper's own Figure 7 curve is not a straight line between its three points, and its terrestrial limit (15 AU or more at 5 solar masses) and its Nordhaus et al. 2010 tides (1.6 AU at one solar mass) are outside this lookup | a lookup from the star's largest radius and a tidal factor (design 4.3), the points as its check | arXiv 1210.0328 read (sections 4.3 and 5, abstract); the straight lines between the points and the carried slope are the lane's | - | - |
 | GM3 | P | T6 | L3 | multistar.EXTENT_AXIS_FACTOR 2.5 and multistar.PERICENTRE_EXTENT_FACTOR 2.0, how many summed radii a pair's axis and its pericentre must clear | 2 to 4; 1.5 to 3 | stellar pairs of two single members | an N-body run of a close pair whose tides stay below the contact limit at a smaller factor | a tidal-stability limit from the pair's spin and Roche lobe (GEN.842 tides) | design default of the multi-star build | - | no data |
 | GM4 | P | T6 | L1 | multistar.MAX_FILL_FACTOR 1.2, how far past its Roche lobe a star may reach at closest approach | 1.0 to 1.3 | close and contact pairs | a contact-binary sample whose fill factors lie mostly above 1.3 | the contact-binary fill-factor distribution of a catalogue | Eggleton 1983 lobe formula read in the paper (Equation 2, within 1 percent for all q; ADS scan) and equal to `roche.roche_lobe_fraction`; the 1.2 is the design default | - | - |
 | GM5 | P | T1 | L1 | tuning.MOON_PROGRADE_STABLE_HILL_FRACTION 0.4895 of the Hill radius, with none of Domingos et al.'s eccentricity terms and no retrograde fraction | planet and moon eccentricity terms 1.03 and 0.27 (prograde); 0.9309 (1 - 1.0764 e_planet - 0.9812 e_moon) (retrograde) | circular host orbit; moons on prograde orbits | a host with e_planet 0.3 where the paper's cut is 0.69 of the circular one | the full two-term fits of both senses | Domingos, Winter and Yokoyama 2006 read in the paper (publisher PDF supplied by Boss 10-30): prograde 0.4895 (1 - 1.0305 e_P - 0.2738 e_sat), retrograde 0.9309 (1 - 1.0764 e_P - 0.9812 e_sat), in Hill radii; the 0.4895 is the paper's, the missing terms are the code's gap | - | - |

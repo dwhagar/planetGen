@@ -93,6 +93,10 @@ def _brown_dwarf(initial_mass_solar, age_yr, fe_h, seed):
                         initial_mass_solar, dwarf["temperature_k"], dwarf["luminosity_sol"], age_yr, fe_h, seed)
 
 
+REMNANT_AGE_YR = 1.0e13
+"""float: An age at which every window of any star's track is finished, for the tips a remnant's progenitor passed. Source tier T6, tweak level L0."""
+
+
 def _largest_radius_au(initial_mass_solar, age_yr, fe_h, present_radius_au):
     """The largest radius a star of this birth mass has had by `age_yr`: the larger of its present radius and its giant-branch tips."""
     try:
@@ -101,6 +105,11 @@ def _largest_radius_au(initial_mass_solar, age_yr, fe_h, present_radius_au):
         return present_radius_au
     tip_sol = line.radius_max_sol(age_yr / 1.0e9)
     return max(present_radius_au, _m_to_au(tip_sol * constants.SOLAR_RADIUS_M))
+
+
+def progenitor_tip_au(initial_mass_solar, fe_h=0.0):
+    """The largest radius, AU, a star born at this mass reaches before it becomes a remnant: its giant-branch tips, every window finished (0 for a mass that has no track)."""
+    return _largest_radius_au(initial_mass_solar, REMNANT_AGE_YR, fe_h, 0.0)
 
 
 def make(seed, initial_mass_solar, age_yr, fe_h, lighten=True, substellar=False):

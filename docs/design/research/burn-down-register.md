@@ -111,7 +111,6 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.14:SP11 | replace | GEN.979 | Kokubo and Genda 2010 equation 4 with the distribution of the last impacts' mass ratio (GEN.978, `impact_spin`) replaces the interim scale |
 | 6.14:SP12 | replace | GEN.979 | the chance of a giant impact by planet mass (`impact_spin.giant_impact_probability`, GEN.978) replaces the interim small-planet factor |
 | 6.51:PS14 | no data | - | the label is a margin between the model's own solar-metallicity and metal-poor stars; no survey count of subdwarfs by luminosity deficit is held, and the first one replaces the margin |
-| 6.60:GM2 | replace | GEN.1006 | Mustill and Villaver 2012 (read) print three Jovian points and a terrestrial bracket; the multi-star build replaces the linear lookup with an interpolation through them |
 | 6.60:GM3 | no data | - | a design default of the multi-star build; no measured limit for a close pair's separation in summed radii is held, and an N-body audit (GEN.1006 section 9) is optional; tier T6 stays |
 | 6.60:GM7 | replace | GEN.1006 | the 3+1 network of Vynatheya, Mardling and Hamers 2023 replaces the margin inside its training range; outside it the margin stays, flagged lower confidence |
 | 6.60:GM12 | replace | GEN.1028 | the criterion holds only for q_out up to 5; GEN.1028 enforces the range and GEN.1016 replaces it with the quadruple fit and the 3+1 criterion beyond it |
