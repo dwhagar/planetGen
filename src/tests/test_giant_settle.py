@@ -98,7 +98,10 @@ def test_every_table_giant_of_a_finished_system_has_the_radius_of_its_final_age_
     assert checked, "the sweep made no giant sized from the tables"
 
 
-def test_a_moon_the_smaller_giant_cannot_hold_is_dropped(host_star):
+def test_a_moon_the_smaller_giant_cannot_hold_is_dropped(host_star, monkeypatch):
+    """The moons here are bare stand-ins, so the history of the moons (`moon_history.apply`, GEN.959) is left out: it would carry them
+    through the tide and could remove the kept one for a reason of its own, and what is tested is the size limit of the smaller giant."""
+    monkeypatch.setattr(planets.moon_history, "apply", lambda planet, primary_mass_kg: None)
     planet = _table_giant(host_star)
     limit_km, _ = planets.moon_size_limits(planet)
     kept = SimpleNamespace(radius=0.1 * limit_km, mass=1e-6 * planet.mass, distance=planet.hill_radius * 0.1 / constants.AU_TO_KM,

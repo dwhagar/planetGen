@@ -29,22 +29,25 @@ from planetgen.physics.system_tree import OrbitNode
 from planetgen.physics import unit_registry as units
 
 _kg_to_msun = units.converter("kg", "Msun")
+_km_to_au = units.converter("km", "au")
 
 _yr_to_s = units.converter("yr", "s")
 
 PAIR_STAR_KINDS = ("main-sequence", "pre-main-sequence", "protostar", "giant", "white-dwarf")
 """tuple: The member kinds `Star` builds from a birth mass and an age, which the pair classes can hold."""
 
-UNBUILT_KINDS = ("brown-dwarf", "neutron-star", "black-hole")
-"""tuple: The member kinds of a drawn tree that `Star` cannot be built as: there is no brown-dwarf host class, and a
-compact remnant is a `phenomena.compact_remnant` object, not a star of a pair (`multistar.without_members` cuts them out)."""
+UNBUILT_KINDS = ("brown-dwarf", "neutron-star", "black-hole", "stripped-helium")
+"""tuple: The member kinds of a drawn tree that `Star` cannot be built as: there is no brown-dwarf host class, a compact
+remnant is a `phenomena.compact_remnant` object, not a star of a pair, and a stripped helium star has no record a star is made
+from (`multistar.without_members` cuts them out)."""
 
 PAIR_NODE_KINDS = ("close", "wide")
 """tuple: The node kinds the pair classes stand for (a P-type pair is `close`, an S-type pair `wide`)."""
 
-MASS_TOLERANCE = 1.0e-6
-"""float: How far a built companion's mass may differ from its stored mass, as a share of it. A pair the evolution
-changed in a way the stored mass records (mass transfer, a merger) does not build from a birth mass and an age."""
+RECORD_TOLERANCE = 1.0e-9
+"""float: How far a built companion's mass and radius may differ from the member's, as a share of it (GEN.1009). The build makes the
+star from the member record the tree drew its orbits from, so the two are the same numbers to rounding; a member that is not
+(a pair the evolution changed by mass transfer or a merger does not build from a birth mass and an age) is left out."""
 
 
 GENERATED_EPOCH_UNIX = 0.0
@@ -55,7 +58,8 @@ orbit epoch there (no real orbit epoch is the start of 1970)."""
 @dataclasses.dataclass(frozen=True)
 class PlannedStar:
     """One member of a plan: where it hangs in the plan's nodes (`parent_node_no`, `slot`) and what builds it (`seed`,
-    `initial_mass_solar`; `mass_solar` is the mass the tree gave it)."""
+    `initial_mass_solar`; `mass_solar` and `radius_au` are the mass and radius the tree gave it, which the star built from the
+    record has to have too; `age_yr` is the age the record is made at, None for the primary's)."""
     member_no: int
     parent_node_no: int
     slot: int
@@ -63,6 +67,8 @@ class PlannedStar:
     mass_solar: float
     initial_mass_solar: float
     seed: int
+    radius_au: float | None = None
+    age_yr: float | None = None
 
 
 @dataclasses.dataclass(frozen=True)
@@ -72,13 +78,12 @@ class StoredPlan:
     already built) first, and `nodes` its orbits, numbered from 0 in the tree's order with the phases held at the build's
     epoch; both are empty for a single star. `complete` says every stored member is in the system built, so the row's
     stored members and nodes can go; it is `False` for a tree the build cannot hold, which builds the placed object alone.
-    `exact` says a built star must have the mass the tree gave it (a stored tree: a star that does not is a change the
-    birth mass and age do not give); without it (a tree just drawn) the nodes take the masses the build made.
+    A built star must have the mass and radius the tree gave its member (`matches`): one that does not is a change the birth mass
+    and age do not give.
     """
     members: tuple = ()
     nodes: tuple = ()
     complete: bool = True
-    exact: bool = True
 
     def pair_node_no(self):
         """The node of the system's pair (module docstring), `None` for a single star: the node of the placed star when its
@@ -109,16 +114,17 @@ def node_at(node, epoch_unix):
                                epoch_unix=float(epoch_unix))
 
 
-def _planned(members, nodes, node_for, exact):
+def _planned(members, nodes, node_for, age_for):
     """The plan of `members` and `nodes` (anything with the fields of `PlannedStar`, and `OrbitNode`s), the node numbers
-    taken from 0 in node order and each node made by `node_for`."""
+    taken from 0 in node order and each node made by `node_for`; `age_for(member)` is the age its record is made at."""
     ordered = sorted(nodes, key=lambda node: node.node_no)
     number = {node.node_no: index for index, node in enumerate(ordered)}
     planned_nodes = tuple(dataclasses.replace(node_for(node), node_no=number[node.node_no],
                                               parent_node_no=number.get(node.parent_node_no)) for node in ordered)
     planned_members = tuple(PlannedStar(m.member_no, number[m.parent_node_no], m.slot, m.kind, m.mass_solar,
-                                        m.initial_mass_solar, m.seed) for m in sorted(members, key=lambda m: m.member_no))
-    return StoredPlan(planned_members, planned_nodes, True, exact)
+                                        m.initial_mass_solar, m.seed, m.radius_au, age_for(m))
+                            for m in sorted(members, key=lambda m: m.member_no))
+    return StoredPlan(planned_members, planned_nodes, True)
 
 
 def plan(tree, epoch_unix=None):
@@ -131,12 +137,13 @@ def plan(tree, epoch_unix=None):
     if len(tree.members) < 2 or any(member.kind not in PAIR_STAR_KINDS for member in tree.members[1:]) \
             or any(node.kind not in PAIR_NODE_KINDS for node in tree.nodes):
         return StoredPlan(complete=False)
-    return _planned(tree.members, tree.nodes, lambda node: node_at(node, epoch_unix), True)
+    return _planned(tree.members, tree.nodes, lambda node: node_at(node, epoch_unix), lambda member: None)
 
 
 def drawn(tree):
     """The `StoredPlan` of a `multistar.MemberTree` just drawn and pruned (`multistar.without_members`) of the members a
-    build cannot hold: its phases held at `GENERATED_EPOCH_UNIX`, its masses the build's to correct."""
+    build cannot hold: its phases held at `GENERATED_EPOCH_UNIX`, each member's record made at the age the tree drew it at (a
+    merger product's rejuvenated one)."""
     if tree.member_count < 2:
         return SINGLE
     return _planned(tree.members, tree.nodes, lambda node: OrbitNode(
@@ -144,9 +151,15 @@ def drawn(tree):
         separation_km=node.separation_km, eccentricity=node.eccentricity, inclination_deg=node.inclination_deg,
         ascending_node_deg=node.ascending_node_deg, arg_periapsis_deg=node.arg_periapsis_deg,
         mean_anomaly_deg=node.mean_anomaly_deg, epoch_unix=GENERATED_EPOCH_UNIX, period_years=node.period_years,
-        kind=node.kind, interaction=node.interaction, flags=node.flags), False)
+        kind=node.kind, interaction=node.interaction, flags=node.flags),
+        lambda member: member.effective_age_yr or tree.age_yr)
 
 
 def matches(star, member):
-    """Whether the built `star` is the stored `member`: its mass is the stored mass."""
-    return abs(_kg_to_msun(star.mass) - member.mass_solar) <= MASS_TOLERANCE * member.mass_solar
+    """Whether the built `star` is the member the tree drew: its mass and radius are the member's (GEN.1009), which they are
+    when it was made from the member's record. A member with no stored radius (a row made before v184) is not."""
+    if member.radius_au is None:
+        return False
+    radius_au = _km_to_au(star.radius)
+    return (abs(_kg_to_msun(star.mass) - member.mass_solar) <= RECORD_TOLERANCE * member.mass_solar
+            and abs(radius_au - member.radius_au) <= RECORD_TOLERANCE * member.radius_au)

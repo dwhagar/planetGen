@@ -39,7 +39,7 @@ def test_a_row_has_a_label_a_known_group_and_one_place(kind):
     assert len(keys) == len(set(keys))
     for spec in sheet.SPECS[kind]:
         assert spec.label and spec.group in sheet.GROUPS
-        if spec.quantity == sheet.AUTO or spec.quantity not in (sheet.TEXT, sheet.FLAG, sheet.TIER):
+        if spec.quantity == sheet.AUTO or spec.quantity not in (sheet.TEXT, sheet.FLAG, sheet.TIER, sheet.LIMIT):
             assert (sheet.TABLES[kind], spec.stored_column()) in column_units.COLUMNS, f"{kind}.{spec.key} has no unit"
 
 
@@ -72,7 +72,7 @@ def _length_rows():
     for kind, specs in sorted(sheet.SPECS.items()):
         table = sheet.TABLES[kind]
         for spec in specs:
-            if spec.quantity in (sheet.TEXT, sheet.FLAG, sheet.RATING, sheet.TIER, "radius"):
+            if spec.quantity in (sheet.TEXT, sheet.FLAG, sheet.RATING, sheet.TIER, sheet.LIMIT, "radius"):
                 continue
             unit = column_units.COLUMNS[(table, spec.stored_column())]
             if column_units.unit_info(unit).kind == "length" and unit in unit_registry.UNITS:
@@ -145,7 +145,7 @@ def _numeric_rows():
     for kind, specs in sorted(sheet.SPECS.items()):
         table = sheet.TABLES[kind]
         for spec in specs:
-            if spec.quantity in (sheet.TEXT, sheet.FLAG, sheet.RATING, sheet.TIER):
+            if spec.quantity in (sheet.TEXT, sheet.FLAG, sheet.RATING, sheet.TIER, sheet.LIMIT):
                 continue
             rows.append((kind, spec, table, column_units.COLUMNS[(table, spec.stored_column())]))
     return rows

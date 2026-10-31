@@ -298,10 +298,14 @@ def test_the_stand_in_porosity_rule_leaves_the_strength_alone():
     lambda d: d["materials"].__setitem__("metal", {"same_as": "plasma"}),
     lambda d: d["mixing"].__setitem__("rule", "voigt"),
     lambda d: d["porosity"].__setitem__("rule", "sponge"),
-    lambda d: d["temperature"].__setitem__("rule", "balmy"),
+    lambda d: d["temperature"]["ice"].__setitem__("rule", "balmy"),
+    lambda d: d["temperature"].__setitem__("plasma", {"rule": "none"}),
+    lambda d: d["temperature"]["rock"]["columns"].pop(),
+    lambda d: d["temperature"]["rock"].pop("rate_per_s"),
+    lambda d: d["temperature"]["rock"]["columns"][0].pop("e_kj_mol"),
     lambda d: d["mixing"].__setitem__("close_packing", 0.3),
-    lambda d: d["temperature"].__setitem__("regimes", []),
-    lambda d: d["temperature"]["regimes"][0].pop("n"),
+    lambda d: d["temperature"]["ice"].__setitem__("regimes", []),
+    lambda d: d["temperature"]["ice"]["regimes"][0].pop("n"),
 ])
 def test_a_table_that_is_wrong_is_refused(change):
     document = copy.deepcopy(_document())
@@ -313,3 +317,256 @@ def test_a_table_that_is_wrong_is_refused(change):
 def test_the_metal_and_ice_fractions_cannot_exceed_the_whole_body():
     with pytest.raises(ValueError):
         rn.yield_strength_pa(0.7, metal_fraction=0.6)
+
+
+# --- the rubble-pile branch (GEN.1176) --------------------------------------------------------------------------------------------------
+
+def _with_rubble(monkeypatch, **changes):
+    document = copy.deepcopy(_document())
+    document["rubble"].update(changes)
+    monkeypatch.setattr(rn, "TABLE", rn.load_table(document))
+
+
+def test_the_rubble_numbers_are_the_researchs():
+    rule = rn.TABLE.rubble
+    assert rule["friction_angle_deg"] == 35.0
+    assert 44.0 <= rule["cohesion_pa"] <= 210.0
+    assert 1.0e6 <= rule["hot_strength_pa"] <= 4.0e6
+
+
+def test_the_failure_stress_is_mohr_coulomb_with_cohesion_and_the_centre_pressure():
+    phi, cohesion = math.radians(35.0), rn.TABLE.rubble["cohesion_pa"]
+    radius, density = 50.0e3, 2000.0
+    pressure = (2.0 * math.pi / 3.0) * G * density ** 2 * radius ** 2
+    expected = (2.0 * cohesion * math.cos(phi) + 2.0 * pressure * math.sin(phi)) / (1.0 - math.sin(phi))
+    assert rn.rubble_strength_pa(radius, density) == pytest.approx(expected)
+
+
+def test_a_cold_rubble_pile_is_never_round_at_any_size():
+    ratios = [rn.roundness_ratio(radius, 2500.0, 0.0, structure="rubble") for radius in (1.0e2, 1.0e4, 3.0e5, 1.0e7)]
+    assert max(ratios) < 0.3
+    assert all(not rn.is_round(ratio) for ratio in ratios)
+    assert rn.roundness_ratio(1.0e7, 2500.0, 0.0, structure="rubble") == pytest.approx(rn.roundness_ratio(1.0e6, 2500.0, 0.0, structure="rubble"), rel=1e-3)   # size-free at large size
+
+
+def test_a_cold_rubble_pile_of_ceres_size_is_not_round_but_the_same_monolith_is():
+    assert not rn.is_round(rn.roundness_ratio(469.7e3, 2161.0, 0.18, structure="rubble"))
+    assert rn.is_round(rn.roundness_ratio(469.7e3, 2161.0, 0.18))
+
+
+def test_a_hot_rubble_pile_rounds_at_the_hot_strength():
+    radius = rn.rubble_round_radius_m(2500.0, heated=True)
+    assert radius == pytest.approx(math.sqrt(rn.TABLE.rubble["hot_strength_pa"] / (rn.stress_coefficient(rn.TABLE.sphericity_factor) * G * 2500.0 ** 2)))
+    assert rn.is_round(rn.roundness_ratio(radius * 1.01, 2500.0, 0.0, structure="rubble", heated=True))
+    assert not rn.is_round(rn.roundness_ratio(radius * 0.99, 2500.0, 0.0, structure="rubble", heated=True))
+    assert radius < rn.round_radius_m(2500.0, 0.0)                         # weaker than the cold monolith, so it rounds at a smaller size
+
+
+def test_an_icy_rubble_pile_that_took_its_shape_warm_rounds_like_the_ice_creeps():
+    warm = rn.rubble_round_radius_m(1000.0, 1.0, temperature_k=200.0)
+    assert warm == pytest.approx(rn.round_radius_m(1000.0, 1.0, temperature_k=200.0))
+    assert rn.rubble_round_radius_m(1000.0, 1.0, temperature_k=100.0) > warm      # colder ice is stronger, so a larger body is needed
+    with pytest.raises(ValueError):
+        rn.rubble_round_radius_m(1000.0, 1.0)                                   # no shape-set temperature: friction only
+
+
+def test_a_cold_rubble_pile_has_no_round_radius():
+    with pytest.raises(ValueError):
+        rn.rubble_round_radius_m(2500.0)
+
+
+def test_rock_with_a_shape_set_temperature_and_no_ice_is_not_made_weak_by_it():
+    assert rn.rubble_strength_pa(100.0e3, 2500.0, 0.0, temperature_k=150.0) == rn.rubble_strength_pa(100.0e3, 2500.0)
+
+
+def test_a_shallow_enough_friction_angle_does_let_a_pile_round_by_size(monkeypatch):
+    _with_rubble(monkeypatch, friction_angle_deg=3.0)
+    assert rn.is_round(rn.roundness_ratio(1.0e6, 2500.0, 0.0, structure="rubble"))
+    assert math.isfinite(rn.rubble_round_radius_m(2500.0))
+
+
+def test_the_ratio_from_mass_takes_the_structure():
+    mass = 4.0 / 3.0 * math.pi * (100.0e3) ** 3 * 2500.0
+    assert rn.roundness_ratio_from_mass(mass, 2500.0, 0.0, structure="rubble", heated=True) == pytest.approx(
+        rn.roundness_ratio(100.0e3, 2500.0, 0.0, structure="rubble", heated=True))
+
+
+def test_an_unknown_structure_or_a_bad_rubble_input_is_refused():
+    with pytest.raises(ValueError):
+        rn.roundness_ratio(1.0e5, 2500.0, 0.0, structure="sponge")
+    for bad in (0.0, -1.0, float("nan")):
+        with pytest.raises(ValueError):
+            rn.rubble_strength_pa(bad, 2500.0)
+    with pytest.raises(ValueError):
+        rn.rubble_strength_pa(1.0e5, 2500.0, ice_fraction=1.5)
+
+
+@pytest.mark.parametrize("change", [
+    lambda d: d.pop("rubble"),
+    lambda d: d["rubble"].__setitem__("rule", "sand"),
+    lambda d: d["rubble"].__setitem__("friction_angle_deg", 95.0),
+    lambda d: d["rubble"].__setitem__("friction_angle_deg", 0.0),
+    lambda d: d["rubble"].pop("cohesion_pa"),
+    lambda d: d["rubble"].pop("hot_strength_pa"),
+])
+def test_a_wrong_rubble_table_is_refused(change):
+    document = copy.deepcopy(_document())
+    change(document)
+    with pytest.raises(rn.RoundnessError):
+        rn.load_table(document)
+
+
+# --- the strength draw (GEN.1178) -------------------------------------------------------------------------------------------------------
+
+def test_the_median_draw_is_the_stand_in_and_none_is_the_same():
+    assert rn.drawn_strengths_pa(0.5) == pytest.approx(rn.TABLE.strengths_pa)
+    for call in (lambda draw: rn.yield_strength_pa(0.4, draw=draw), lambda draw: rn.round_radius_m(2000.0, 0.4, draw=draw),
+                 lambda draw: rn.roundness_ratio(2.0e5, 2000.0, 0.4, draw=draw), lambda draw: rn.rubble_strength_pa(2.0e5, 2000.0, heated=True, draw=draw)):
+        assert call(0.5) == pytest.approx(call(None))
+
+
+def test_the_ends_of_the_draw_are_the_ends_of_each_range():
+    low, high = rn.drawn_strengths_pa(0.0), rn.drawn_strengths_pa(1.0)
+    for name, (lo, hi) in rn.RANGES_PA.items():
+        assert low[name] == pytest.approx(lo) and high[name] == pytest.approx(hi)
+    assert (low["ice"], low["rock"], low["metal"]) == pytest.approx((0.4e6, 4.0e6, 50.0e6))
+    assert (high["ice"], high["rock"], high["metal"]) == pytest.approx((3.0e6, 30.0e6, 250.0e6))
+
+
+def test_a_higher_draw_is_a_stronger_body_and_a_bigger_round_radius():
+    draws = [x / 10.0 for x in range(11)]
+    for values in ([rn.yield_strength_pa(0.0, draw=d) for d in draws], [rn.yield_strength_pa(1.0, draw=d) for d in draws],
+                   [rn.round_radius_m(2500.0, 0.0, draw=d) for d in draws], [rn.rubble_round_radius_m(2500.0, heated=True, draw=d) for d in draws]):
+        assert values == sorted(values) and values[0] < values[-1]
+
+
+def test_the_round_radius_moves_about_one_and_a_half_either_way():
+    low, mid, high = (rn.round_radius_m(2500.0, 0.0, draw=d) for d in (0.0, 0.5, 1.0))
+    assert 1.3 < mid / low < 2.2 and 1.0 < high / mid < 1.8
+
+
+def test_a_drawn_body_is_round_on_one_side_of_its_own_boundary():
+    boundary = rn.round_radius_m(2500.0, 0.0, draw=0.2)
+    assert rn.is_round(rn.roundness_ratio(boundary * 1.01, 2500.0, 0.0, draw=0.2))
+    assert not rn.is_round(rn.roundness_ratio(boundary * 0.99, 2500.0, 0.0, draw=0.2))
+    assert not rn.is_round(rn.roundness_ratio(boundary * 1.01, 2500.0, 0.0, draw=0.9))      # a tougher body of that size is still a potato
+
+
+def test_the_draw_scales_the_ice_creep_law_and_the_rubble_numbers():
+    assert rn.yield_strength_pa(1.0, temperature_k=140.0, draw=1.0) / rn.yield_strength_pa(1.0, temperature_k=140.0) == pytest.approx(3.0)
+    assert rn.yield_strength_pa(1.0, temperature_k=140.0, draw=0.0) / rn.yield_strength_pa(1.0, temperature_k=140.0) == pytest.approx(0.4)
+    assert rn.rubble_strength_pa(1.0e4, 2500.0, draw=1.0) > rn.rubble_strength_pa(1.0e4, 2500.0, draw=0.0)
+    hot = rn.TABLE.rubble
+    assert rn.rubble_strength_pa(1.0e6, 2500.0, heated=True, draw=1.0) == pytest.approx(hot["hot_range_pa"][1])
+
+
+def test_a_cold_rubble_pile_stays_unround_at_every_draw():
+    for draw in (0.0, 0.5, 1.0):
+        assert rn.roundness_ratio(1.0e6, 2500.0, 0.0, structure="rubble", draw=draw) < 0.5
+
+
+def test_the_draw_does_not_change_the_table_in_use():
+    before = dict(rn.TABLE.strengths_pa), dict(rn.TABLE.rubble)
+    rn.drawn_strengths_pa(0.9)
+    rn.rubble_strength_pa(1.0e5, 2500.0, draw=0.9)
+    assert (dict(rn.TABLE.strengths_pa), dict(rn.TABLE.rubble)) == before
+
+
+@pytest.mark.parametrize("bad", [-0.1, 1.1, float("nan"), float("inf"), "high", True])
+def test_a_draw_outside_zero_to_one_is_refused(bad):
+    with pytest.raises(ValueError):
+        rn.drawn_strengths_pa(bad)
+    with pytest.raises(ValueError):
+        rn.yield_strength_pa(0.5, draw=bad)
+
+
+def test_a_material_with_no_range_does_not_move(monkeypatch):
+    document = copy.deepcopy(_document())
+    del document["materials"]["metal"]["range_pa"]
+    monkeypatch.setattr(rn, "TABLE", rn.load_table(document))
+    assert rn.drawn_strengths_pa(0.0)["metal"] == rn.drawn_strengths_pa(1.0)["metal"] == rn.TABLE.strengths_pa["metal"]
+
+
+@pytest.mark.parametrize("change", [
+    lambda d: d["materials"]["rock"].__setitem__("range_pa", [20.0e6, 30.0e6]),         # the strength is outside its range
+    lambda d: d["materials"]["rock"].__setitem__("range_pa", [4.0e6]),
+    lambda d: d["rubble"].__setitem__("hot_range_pa", [4.0e6, 1.0e6]),
+])
+def test_a_wrong_range_is_refused(change):
+    document = copy.deepcopy(_document())
+    change(document)
+    with pytest.raises(rn.RoundnessError):
+        rn.load_table(document)
+
+
+# --- the rock creep law (GEN.1184) -------------------------------------------------------------------------------------------------------
+
+def _rock(kelvin, draw=None):
+    return rn.yield_strength_pa(0.0, temperature_k=kelvin, draw=draw) / 1e6
+
+
+def test_cold_rock_keeps_its_whole_body_strength_up_to_the_creep_line():
+    for kelvin in (100.0, 300.0, 900.0, 1000.0, 1100.0):
+        assert _rock(kelvin) == pytest.approx(rn.ROCK_STRENGTH_PA / 1e6)
+    assert _rock(None) == pytest.approx(rn.ROCK_STRENGTH_PA / 1e6)
+
+
+def test_hot_rock_weakens_by_the_olivine_creep_law():
+    # strength research section 15 (MPa at 1e-15 per second): Hirth and Kohlstedt / Korenaga and Karato columns
+    rule = rn.TABLE.temperature["rock"]
+    for kelvin, hk, kk in ((1200.0, 7.3, 12.8), (1300.0, 2.3, 4.9), (1400.0, 0.84, 2.2)):
+        low, high = (rn._creep_stress_mpa(column, rule["rate_per_s"], kelvin) for column in rule["columns"])
+        assert low == pytest.approx(hk, rel=0.05) and high == pytest.approx(kk, rel=0.05)
+        assert _rock(kelvin) == pytest.approx(math.sqrt(hk * kk), rel=0.07)        # the median is between the columns
+
+
+def test_a_drawn_body_is_capped_by_its_own_cold_strength_and_otherwise_follows_its_column():
+    assert _rock(1200.0, 0.0) == pytest.approx(4.0)                  # weak rock (4 MPa cold) is already under the 7.3 MPa creep stress at 1200 K
+    assert _rock(1400.0, 0.0) == pytest.approx(0.84, rel=0.05)
+    assert _rock(1300.0, 1.0) == pytest.approx(4.9, rel=0.05)
+    assert [_rock(1300.0, d) for d in (0.0, 0.5, 1.0)] == sorted(_rock(1300.0, d) for d in (0.0, 0.5, 1.0))
+
+
+def test_the_rock_creep_columns_match_at_1000_kelvin():
+    rule = rn.TABLE.temperature["rock"]
+    low, high = (rn._creep_stress_mpa(column, rule["rate_per_s"], 1000.0) for column in rule["columns"])
+    assert low == pytest.approx(153.0, rel=0.03) and high == pytest.approx(152.0, rel=0.03)
+
+
+def test_rock_strength_never_rises_as_it_warms_and_a_hotter_body_rounds_smaller():
+    values = [_rock(kelvin) for kelvin in range(300, 1600, 50)]
+    assert values == sorted(values, reverse=True)
+    assert rn.round_radius_m(2500.0, 0.0, temperature_k=1300.0) < rn.round_radius_m(2500.0, 0.0) / 2.0
+
+
+def test_the_hot_rubble_strength_is_olivine_creep_near_1330_kelvin():
+    hot = rn.TABLE.rubble["hot_strength_pa"] / 1e6
+    assert _rock(1330.0) == pytest.approx(hot, rel=0.45)
+    assert _rock(1250.0) > 4.0 * 0.7 and _rock(1400.0) < 2.5          # the 1 to 4 MPa range is about 1250 to 1400 K
+
+
+def test_a_hot_rubble_pile_with_a_shape_set_temperature_rounds_at_the_creep_strength():
+    radius = rn.rubble_round_radius_m(2500.0, temperature_k=1300.0)
+    assert radius == pytest.approx(rn.round_radius_m(2500.0, 0.0, temperature_k=1300.0))
+    assert rn.is_round(rn.roundness_ratio(radius * 1.02, 2500.0, 0.0, temperature_k=1300.0, structure="rubble"))
+    with pytest.raises(ValueError):
+        rn.rubble_round_radius_m(2500.0, temperature_k=300.0)        # a cold rock pile has nothing to creep: friction only
+
+
+def test_rock_in_an_icy_mix_is_unaffected_at_ice_temperatures():
+    assert rn.yield_strength_pa(0.5, temperature_k=150.0) == pytest.approx(rn.yield_strength_pa(0.5, temperature_k=150.0, draw=0.5))
+    assert rn.yield_strength_pa(0.2, temperature_k=100.0) > rn.yield_strength_pa(0.2)       # the cold-ice side of the mix is still stronger
+
+
+def test_the_creep_rule_follows_the_table_rate(monkeypatch):
+    document = copy.deepcopy(_document())
+    document["temperature"]["rock"]["rate_per_s"] = 1.0e-14
+    monkeypatch.setattr(rn, "TABLE", rn.load_table(document))
+    assert _rock(1300.0) > 1.5 * 3.35            # a faster rate takes more stress (rate^(1/n)): 3.35 MPa at the stand-in rate
+
+
+def test_a_table_may_leave_rock_without_a_temperature_rule(monkeypatch):
+    document = copy.deepcopy(_document())
+    del document["temperature"]["rock"]
+    monkeypatch.setattr(rn, "TABLE", rn.load_table(document))
+    assert _rock(1300.0) == pytest.approx(rn.ROCK_STRENGTH_PA / 1e6)

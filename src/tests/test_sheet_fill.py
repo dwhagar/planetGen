@@ -41,7 +41,7 @@ def test_the_new_rules_read_the_physics_they_state():
     assert not sheet.applies("planet", "M", "solar_day_hours", locked) and sheet.applies("planet", "M", "solar_day_hours", {"rotation_period_hours": 24.0, "period_years": 1.0})
     assert sheet.applies("planet", "C", "shelter_column_g_cm2", {"eq_shelter": 0, "eq_shelter_rec": 2})
     assert not sheet.applies("planet", "C", "shelter_column_g_cm2", {"eq_shelter": 0, "eq_shelter_rec": 0})
-    assert sheet.applies("moon", "C", "outside_hours", {"eq_shelter": 2}) and not sheet.applies("moon", "C", "outside_hours", {"eq_shelter": 0})
+    assert sheet.applies("moon", "C", "outside_hours", {"outside_hours": 800.0}) and not sheet.applies("moon", "C", "outside_hours", {"outside_hours": None})
     assert sheet.applies("moon", "C", "ice_shell_km", {"hydrosphere": "ice"}) and not sheet.applies("moon", "C", "ice_shell_km", {"hydrosphere": "dry"})
     assert sheet.applies("moon", "C", "hp_ice_km", {"hydrosphere": "ice-covered ocean", "water_base_pressure_pa": 1.0e9})
     assert not sheet.applies("moon", "C", "hp_ice_km", {"hydrosphere": "surface ocean", "water_base_pressure_pa": 1.0e9})
@@ -139,11 +139,13 @@ def test_a_giant_keeps_no_starlight_while_its_moons_and_a_rocky_planet_do():
 
 
 def test_a_placed_star_stores_its_rate_of_lethal_galactic_events(mysql_config):
-    """GEN.785: the rate is worked out from the star's place in the galaxy (`activity.set_galactic_hazard`) and stored with the star; only a system
-    built with no place has none, which no galaxy produces."""
+    """GEN.785: the rate is worked out from the star's place in the galaxy (`activity.set_galactic_hazard`) and stored with the star; a system
+    built with no place is rated where such a system is taken to be (`scales.default_galactocentric_ly`), so every star has one."""
     from planetgen.db import store
     from planetgen.generation.config import SystemConfig
+    from planetgen.galaxy import scales
     from planetgen.generation.system import StarSystem
+    from planetgen.physics import activity
     from planetgen.util import draw
     assert ("star", "lethal_event_rate_per_gyr") not in sheet.OPEN_GAPS
     rates = {}
@@ -159,7 +161,8 @@ def test_a_placed_star_stores_its_rate_of_lethal_galactic_events(mysql_config):
         finally:
             conn.close()
     assert rates[True] and all(rate is not None and rate > 0.0 for rate in rates[True])
-    assert all(rate is None for rate in rates[False])
+    default_rate = activity.lethal_event_rate_per_gyr(scales.default_galactocentric_ly())
+    assert rates[False] and all(rate == default_rate for rate in rates[False])
 
 
 def test_star_and_comet_rules():
