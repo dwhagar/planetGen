@@ -27,10 +27,9 @@ def test_conditional_rules_read_the_bodys_own_columns():
     assert not sheet.applies("planet", "M", "magnetopause_rp", {"magnetic_moment_a_m2": 0})
     locked = {"rotation_period_hours": 8766.0, "period_years": 1.0}
     turning = {"rotation_period_hours": 24.0, "period_years": 1.0}
-    assert sheet.applies("planet", "M", "temp_day_side_k", locked) and not sheet.applies("planet", "M", "temp_polar_k", locked)
-    assert sheet.applies("planet", "M", "temp_polar_k", turning) and not sheet.applies("planet", "M", "temp_day_side_k", turning)
+    assert not sheet.applies("planet", "M", "day_share_equator", locked) and sheet.applies("planet", "M", "day_share_equator", turning)
     # a rule that reads the body does not rule a column out when the body is not known
-    assert sheet.applies("planet", "M", "ocean_depth_km") and sheet.applies("planet", "M", "temp_polar_k")
+    assert sheet.applies("planet", "M", "ocean_depth_km") and sheet.applies("planet", "M", "day_share_equator")
 
 
 def test_the_new_rules_read_the_physics_they_state():
