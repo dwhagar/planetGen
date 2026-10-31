@@ -3733,7 +3733,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.531 | Delete the sector-settle queue chain that no route reaches any more (api_jobs.settle_sectors and the test helper queue_settle) | none | done, PR #4563 |
 | TEST.532 | Give the bright-star backfill unit path (backfill_bright_stars_unit) its own direct tests, since the serial form the tests cover is no longer the path a run takes | none | done, PR #4566 |
 | TEST.533 | test_disk_history::test_the_present_rate_over_the_mean_is_within_a_factor_of_two_of_the_milky_ways is red on main (0.505 against a bound of 0.393, 0.554 after GEN.999): the model's recent star formation rate over its mean is about 2.5 times the Milky Way's (bug) | none | done, PR #4575 |
-| TEST.534 | test_near::test_the_search_counts_what_is_not_generated_yet_and_never_reads_the_sectors_to_search is red on clean main: its _scatter_rows insert fails with column count does not match value count (bug) | none | open |
+| TEST.534 | test_near::test_the_search_counts_what_is_not_generated_yet_and_never_reads_the_sectors_to_search is red on clean main: its _scatter_rows insert fails with column count does not match value count (bug) | none | done, PR #4580 |
 | TEST.535 | The two test_planet_zones P-type share tests are red on clean main (dark members) (bug) | none | open |
 | TEST.536 | test_deploy_scripts::test_scripts_only_name_repo_paths_that_exist is red on main (bug) | none | done, PR #4578 |
 | USR.1.1 | USR.2 |

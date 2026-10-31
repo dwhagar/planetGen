@@ -19546,18 +19546,6 @@ clears each one.
   line in the same change, like a module.
   Prerequisites: none.
 
-- [ ] **TEST.534 test_near::test_the_search_counts_what_is_not_generated_yet_and_never_reads_the_sectors_to_search is red on clean main: its _scatter_rows insert fails with column count does not match value count (bug)**
-  Reported by Planets 1 at 2:44 PM EDT 10-31 (as the lane reported), not
-  from the stars filter. The test helper `_scatter_rows` in src/tests/test_near.py
-  inserts rows by hand into bright_stars (`store.insert_bright_stars`)
-  and phenomenon_scatter (`store.insert_phenomenon_scatter`) whose
-  tuples no longer match `BRIGHT_STAR_COLUMNS` and
-  `PHENOMENON_SCATTER_COLUMNS` after a column change. Fix: build the
-  rows from the column lists (by name) so the next column change cannot
-  break it, and say which change broke it. Tests only. Owner: Core 1
-  (search and near).
-  Prerequisites: none.
-
 - [ ] **TEST.535 The two test_planet_zones P-type share tests are red on clean main (dark members) (bug)**
   Reported by Planets 1 earlier and again at 2:44 PM EDT 10-31 (as the
   lane reported). The P-type share tests in
