@@ -925,3 +925,11 @@ def test_the_updates_dirty_check_ignores_mode_changes():
     """set-permissions.sh makes every script executable; that is not a local edit to warn about."""
     with open(os.path.join(REPO_DIR, "update.sh"), encoding="utf-8") as f:
         assert 'git -c core.fileMode=false status --porcelain' in f.read()
+
+
+def test_the_update_works_out_the_cluster_system_masses_after_the_migration():
+    """The web daemon is stopped at 60 seconds and building the galaxy shape needs a mean system mass for every stored
+    cluster age, which takes longer on a big galaxy: the update does it once and the web app reads the result."""
+    update = (pathlib.Path(REPO_DIR) / "update.sh").read_text()
+    assert update.index("migrate_or_reset_db\nrecord_version_key\nwarm_shape_means") < update.index("log_stage 6 9")
+    assert "run_cli warm_shape" in (pathlib.Path(REPO_DIR) / "scripts" / "deploy-common.sh").read_text()

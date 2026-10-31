@@ -245,6 +245,7 @@ UPDATE_STEP="step 5/9, migrating the database"
 log_stage 5 9 "Migrating the configured MySQL database to the current schema"
 migrate_or_reset_db
 record_version_key
+warm_shape_means
 
 echo
 UPDATE_STEP="step 6/9, checking Apache's modules"

@@ -790,6 +790,14 @@ record_version_key() {
     run_cli version_history || echo "warning: could not record the version key (see above); the update carries on." >&2
 }
 
+# Works out, once and as part of the update, the mean system mass of every stored cluster age (`planetgen.cli.warm_shape`),
+# which building the galaxy's density shape needs and no web request may spend the time on; the web app reads the results
+# from the data cache folder. A failure only warns: the web app then works them out when it is asked.
+warm_shape_means() {
+    run_cli warm_shape || echo "warning: could not work out the cluster system masses (see above); the update carries on." >&2
+    chmod -R a+rX "${PLANETGEN_DATA_DIR:-/var/cache/planetgen/datasets}" 2>/dev/null || true
+}
+
 # The math check (`planetgen check-math`, TEST.68): known answers from
 # real astronomy, identities and sampler distributions. A failure only
 # warns -- the update carries on and the site keeps serving -- but sets
