@@ -13,10 +13,10 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.251 |
+| UX | UX.254 |
 | MAP | MAP.363 |
 | NAV | NAV.65 |
-| GEN | GEN.1210 |
+| GEN | GEN.1211 |
 | PERF | PERF.220 |
 | DB | DB.110 |
 | API | API.38 |
@@ -25,7 +25,7 @@ release is stamped.
 | TEST | TEST.519 |
 | USR | USR.32 |
 | OPS | OPS.85 |
-| DOC | DOC.83 |
+| DOC | DOC.85 |
 | VIEW | VIEW.19 |
 | POP | POP.46 |
 
@@ -751,6 +751,8 @@ Parents marked "new parent" had no old number of their own.
 | DOC.80 | Progress docs rule: nothing after a progress block may run longer than the bar threshold without its own Step | none | done, PR #3125 |
 | DOC.81 | Help page: resource locations, what the scores mean and how to find them on the map | none | open |
 | DOC.82 | Region names docs and the audit check "region names stay unique among neighbours" (regions chain, step 7) | none | done, PR #3400 |
+| DOC.83 | Plain-words style guide for every sentence the site writes about a planet or a star, with a test that enforces it | none | open |
+| DOC.84 | Help page suite for life: the four kinds of life, every life class, and the scales we use (abundance, trend, security, suitability) | none | open |
 | GEN.1 | Real-world rates for interstellar objects | 5 (2026-09-30 18:14Z to 23:21Z) | done in 7.18.0, PR #136 |
 | GEN.2 | Rogue planet mass bins | 6 (2026-09-30 18:14Z to 23:21Z) | done in 7.18.0, PR #136 |
 | GEN.3 | A supermassive black hole in every galaxy | 7 (2026-09-30 18:14Z to 22:54Z) | done in 7.15.0, PR #132 |
@@ -1960,6 +1962,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1207 | Best-fit classes, step 3: the classifier replaces the first-match tree, stores class_match and the runner-up letter and match, and the class pages show the percent match | none | open |
 | GEN.1208 | Best-fit classes, wording: drop the age and stage words from the class tier labels and the "Checked after" and "leftover" wording from the class pages | none | open |
 | GEN.1209 | Several life types coexist on one planet: a per-body list of living classes, each with its stage, animal grade, kinds (microbes, flora, fauna) and prevalence | none | open |
+| GEN.1210 | Life readings: abundance, trend and security for each kind of life (microbes, flora, fauna, sentient), as one pure function over stored values with no new column | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -3052,6 +3055,9 @@ Parents marked "new parent" had no old number of their own.
 | UX.248 | Abralinar (triple star: close A/B pair plus distant C): Abralinar I is drawn circling the system barycenter instead of the A/B pair it orbits, and nothing says the system is a close pair orbited by a third star (bug) | none | done, PR #4268 |
 | UX.249 | The "On this page" menu should sit in one row across the top when every link fits without scrolling, and be the grouped list otherwise (follow-up to UX.247) (bug) | none | done, PR #4274 |
 | UX.250 | Planet render: the terminator between night and day should be more of a crescent, showing more of the day side, and the "to star" arrow overlaps the render (bug) | none | done, PR #4462 |
+| UX.251 | Planet and moon pages: a Life summary paragraph in At a glance, from the life readings | none | open |
+| UX.252 | Readability rewrite of ALL planet, moon and belt text: summary sentences, descriptions, notes, labels, class pages | none | open |
+| UX.253 | Readability rewrite of ALL star, system and star-class text: summary sentences, descriptions, notes, labels, spectral class pages | none | open |
 | VIEW.1 | View from a planet | none | open |
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG, with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |
