@@ -2089,3 +2089,5 @@ Baseline: PR #1817.
 | PERF.137 | later | Paging audit |
 | OPS.82 | 8.2 | Robust tile caching |
 | GEN.399 | 8.2 | Halo mass research |
+| GEN.1028 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| OPS.83 | 8.2 | Robust tile caching |

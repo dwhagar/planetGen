@@ -13376,22 +13376,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Star 2 (after GEN.1024).
   Prerequisites: GEN.944. Related: GEN.944, GEN.725.
 
-- [ ] **GEN.1028 The Mardling and Aarseth 2001 stability criterion holds only for an outer mass ratio q_out of 5 or less and the code does not enforce it (bug)**
-  Found by the GEN.1006 research thread reading Mardling and Aarseth
-  2001 (Equation 90) from the ADS scan (relayed 2:35 PM EDT 2026-10-30):
-  the formula matches the repo, but the paper says it holds only for
-  q_out <= 5, and the stability test in the star tree does not check
-  that bound. Do: find where the MA01 criterion is applied (the
-  stability check in the tree and the GEN.1004 quick fix), enforce or
-  handle q_out above 5 (use the published validity limit and a stated
-  fallback, record it as a stand-in in GEN.725 if the fallback is not
-  from a source), and add a test with q_out above 5. Done: no
-  hierarchical triple is judged by MA01 outside its stated range. May
-  fold into GEN.1010 (P4) or GEN.1016 (P10); if so, close this with it.
-  Changes generated output only if a system is judged differently, so
-  check the census. Owner: Bug 1 (star lane). Version 8.1.
-  Prerequisites: none. Related: GEN.1006, GEN.1010, GEN.1016, GEN.1004.
-
 - [ ] **GEN.1030 Methane pseudo-adiabat in the giant planet column, so Uranus-like and Neptune-like one-bar temperatures match Voyager (GEN.852 tropopause and condensables family)**
   Found by Air 1 (relayed 3:16 PM EDT 2026-10-30 as the lane reported).
   test_giant_one_bar_temperature: Uranus-like 95 K and Neptune-like 84 K
@@ -14818,6 +14802,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   0.013 dex; above it the halo shape is fine and only the centre moves.
   Needs an epoch and a train slot; only galaxies above 3e10 change.
   Stand-ins registered in GEN.725. Owner Sources 2 (build-only branch).
+  Prerequisites: none.
+
+- [ ] **GEN.1155 A REBOUND N-body sample of 2+2 quadruple systems to replace the 2+2 stability margin GM14 that has no N-body sample behind it (the 3+1 margin GM13 was tuned on the 331 systems of GEN.1029)**
+  From Core 3 (GEN.1016 part 1): GM14 carries the 3+1 margin over to the
+  2+2 network of GEN.1031 with no 2+2 sample. Build a REBOUND sample of
+  2+2 systems across mass ratios and separations, fit the margin,
+  register it in GEN.725 with the new tier and tweak level, and replace
+  GM14. Lock-free until the wiring (GEN.1016 wiring, train 11) uses it.
+  Source: reports/gen1016-quadruple-need-2026-10-30.md.
   Prerequisites: none.
 
 ## PERF: Speed, caching, bulk generation and parallel work
@@ -19608,6 +19601,15 @@ clears each one.
   Bug 2 (2026-10-09): Bug 2 (10-30 gate pass) also reports red on main:
   the climate sweep (2 tests), aquifers, and the deploy_scripts path
   test. Include them in the diagnosis.
+  Sources 1 progress (2026-10-30 9:09 PM EDT): mostly merged as #4292,
+  lock-free: object_rows, db_column_round_trip, work_units x2, aquifers,
+  climate sweep x2, deploy_scripts path, gen_hosting_wiring (passes
+  alone, was order or seed luck), 7 unread modules moved to detmath.
+  Open: the 3 modules the app reads (primary_mass_function,
+  greenhouse_table, magma_ocean_redox) still trip the maths scan;
+  swapping them changes last bits, so train-bound (swap ready on
+  claude/test503-detmath-read, golden check in progress). The Venus and
+  5 bar CO2 greenhouse table cases are filed as TEST.505.
   Prerequisites: none.
 
 - [ ] **TEST.504 test_runaway_history::test_the_surface_water_a_planet_keeps_is_what_its_class_gave_less_what_it_lost fails on main (the M3V case sees no loss) (bug)**
@@ -19615,6 +19617,12 @@ clears each one.
   cause: a loss that is no longer drawn for the M3V case, a changed
   expectation, or a bug in the runaway history. Fix lock-free if no
   generated value changes; else list it train-bound.
+  Prerequisites: none.
+
+- [ ] **TEST.505 test_greenhouse_table agreement with the model fails for the Venus and 5 bar CO2 airs (2 cases) on main, with and without the detmath swap (bug)**
+  Found by Sources 1 while fixing TEST.503. Find the cause (a table
+  edge, a changed model constant or a stale expectation); fix lock-free
+  if no stored value changes, else list it train-bound.
   Prerequisites: none.
 
 ## USR: User accounts
