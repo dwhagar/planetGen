@@ -246,7 +246,7 @@ def test_the_cassini_tilt_is_a_share_of_the_inclination():
 def test_a_locked_or_resonant_planet_keeps_a_small_tilt_not_exactly_zero():
     """GEN.1165 / GEN.753 row 7: a locked planet's obliquity is a fraction of a degree to 2 degrees, no longer exactly 0."""
     tilts = []
-    for seed in range(12):
+    for seed in range(24):
         with deterministic_entropy(seed):
             draw.set_run_seed(seed)
             system = StarSystem(SystemConfig(), galactic_center_dist_ly=26000.0)
