@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2844] - 2026-10-31
+
+**Headline:** `update.sh` starts building the site's caches early and reloads the site only once the opening views are built.
+
+### Changed
+- The cache warm-up starts in the background as soon as the code, database, permissions and Redis are ready, and the update waits (at most 20 minutes) for its opening phase before it reloads Apache. The other phases go on after the update ends.
+- The health probe waits 10 seconds after the reload (`HEALTH_SETTLE_SECONDS`).
+
 ## [8.0.2843] - 2026-10-31
 
 **Headline:** The stability test for a Mardling and Aarseth triple now stays inside its range, and the code to judge four-star systems level by level is in place.
