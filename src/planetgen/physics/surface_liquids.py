@@ -252,6 +252,18 @@ def condensing(temperature_k, partial_pressures_pa):
     return found
 
 
+def _methane_before_carbon_monoxide(supplied):
+    """GEN.1218a, Boss's answer 6 (11:56 AM EDT 2026-10-31): where methane and carbon monoxide are both liquid and both supplied, the sea is methane, not whichever ice
+    is the larger (the pick by amount gave carbon monoxide seas where a Titan-like body would hold methane). Nothing else changes order."""
+    ids = [c.liquid_id for c in supplied]
+    if "methane" not in ids or "carbon_monoxide" not in ids or ids.index("methane") < ids.index("carbon_monoxide"):
+        return supplied
+    methane = supplied[ids.index("methane")]
+    rest = [c for c in supplied if c is not methane]
+    rest.insert(ids.index("carbon_monoxide"), methane)
+    return rest
+
+
 def candidates(temperature_k, pressure_pa, partial_pressures_pa=None, reservoir=None):
     """
     The liquids a world at `temperature_k` and `pressure_pa` could hold, best first: those stable there (`is_stable`) that a volatile at saturation in the air
@@ -267,7 +279,7 @@ def candidates(temperature_k, pressure_pa, partial_pressures_pa=None, reservoir=
     supplied = [Candidate(liquid_id, "reservoir", amount) for liquid_id, amount in (reservoir or {}).items()
                 if amount > 0.0 and is_stable(liquid_id, temperature_k, pressure_pa) and all(c.liquid_id != liquid_id for c in out)]
     supplied.sort(key=lambda c: -c.score)
-    return tuple(out + supplied)
+    return tuple(out + _methane_before_carbon_monoxide(supplied))
 
 
 def dominant(temperature_k, pressure_pa, partial_pressures_pa=None, reservoir=None):
