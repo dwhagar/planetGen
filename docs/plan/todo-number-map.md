@@ -1496,10 +1496,10 @@ Parents marked "new parent" had no old number of their own.
 | GEN.730 | Formation-era dynamics: giant impacts, scattering and instability instead of one survival constant | none | done, PR #4105 |
 | GEN.731 | Planet spin: day length from accretion angular momentum, tidal despinning with per-body Q and k2, and spin-orbit resonances | none | done, PR #3380 |
 | GEN.732 | Planetary rings: existence, mass, extent and composition from the Roche limit and a disrupted moon or captured body | none | done, PR #3348 |
-| GEN.733 | Hydrogen-helium equation-of-state tables for giant interiors: download job and use in the interior model | none | open |
+| GEN.733 | Hydrogen-helium equation-of-state tables for giant interiors: download job and use in the interior model | none | done, PR #4436 |
 | GEN.734 | Open weight tables of the atmosphere and bulk recipes: planet-minus-star Fe/Mg scatter, core light elements, rogue-planet stripping, moon composition against distance | none | done, PR #3208 |
 | GEN.735 | Interior heat beyond the stagnant lid: mobile-lid cooling, a separate core, a pressure-dependent liquidus and coupling to climate | none | done, PR #3510 |
-| GEN.736 | Magnetic field from a dynamo: the core's heat flow and rotation (buoyancy-flux scaling), reading the interior heat model | none | open |
+| GEN.736 | Magnetic field from a dynamo: the core's heat flow and rotation (buoyancy-flux scaling), reading the interior heat model | none | done, PR #4436 |
 | GEN.737 | Tidal heating from the orbit's real eccentricity for rocky bodies and planets, with the random 1 to 50 boost removed | none | done, PR #3380 |
 | GEN.738 | Atmospheric escape: a thermosphere model, hydrodynamic escape and time-integrated XUV loss | none | done, PR #3260 |
 | GEN.739 | Impact erosion and late delivery of atmospheres, with history | none | done, PR #3246 |
@@ -1573,7 +1573,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.807 | Stellar activity (flare rate, XUV saturation) follows the star's rotation: rotation_period_hours, flare_alpha and xuv_saturated get readers (G2, step 4) | none | open |
 | GEN.808 | The ozone-loss flag feeds the UV limit on life and the surface look (G2, step 5) | none | open |
 | GEN.809 | A giant's dipole moment and class come from the metallic-hydrogen shell and the dilute core (G3, step 1) | none | open |
-| GEN.810 | A giant's internal heat reads the interior layers and the helium shell (G3, step 2) | none | open |
+| GEN.810 | A giant's internal heat reads the interior layers and the helium shell (G3, step 2) | none | done, PR #4436 |
 | GEN.811 | The description of a giant says what its interior is (G3, step 3) | none | done, PR #3952 |
 | GEN.812 | Greenhouse module: a water-vapour profile that dries with height, and pressure broadening checked against Venus and Earth, so an Earth twin at its own fixed point comes out near 288 K (finding 1) | none | done, PR #3551 |
 | GEN.813 | Volatile inventory brackets recalibrated against the totals of the Earth, Venus, Mars and Titan, not only the ratios (finding 2) | none | done, PR #3254 |
@@ -1601,7 +1601,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.835 | The tidal heat flux (tidal_flux_w_m2) is wired into the ground draw's sulfur rule | none | open |
 | GEN.836 | Moon ring hooks and rogue planets use the ring fields: has_ring for moon origin in moon_composition, and rogue planets draw rings | none | done, PR #3523 |
 | GEN.837 | Forced class M and class P planets in the habitable zone carry far too much steam: about a third of 300 draws sit above 400 K because the wet volatile inventories give hundreds of bar (bug) | none | done, PR #3504 |
-| GEN.838 | A separate core temperature: the interior heat model keeps one mantle temperature, so the core heat flow, inner-core growth and the dynamo cannot follow their own cooling | none | open |
+| GEN.838 | A separate core temperature: the interior heat model keeps one mantle temperature, so the core heat flow, inner-core growth and the dynamo cannot follow their own cooling | none | done, PR #4436 |
 | GEN.839 | The hydrosphere ice shell and the surface composition volcanism gate still read the provisional-age heat, so they disagree with the final-age heat GEN.763 stores (bug) | none | done, PR #4313 |
 | GEN.840 | The atmosphere recipe tables still gate each mixture row on class letters: change the gate to kind plus conditions and drop the letter from the mixture subject (the recipe-gate half of GEN.683) | none | done, PR #3729 |
 | GEN.841 | thermosphere.exobase can loop for over 20 minutes in the planet atmosphere draw: a planet whose exobase never closes steps through a huge range (bug) | none | done, PR #3405 |
@@ -1727,10 +1727,10 @@ Parents marked "new parent" had no old number of their own.
 | GEN.961 | Settle giants: after the star's age is final, recompute each giant's radius and redraw its interior, at the mean light of its real orbit (eccentricity-first folded in) | none | done, PR #3984 |
 | GEN.962 | Rocky planets hold 1.5 to 2.0 moons of 1e20 kg and over each (the Solar System has 1 for 4 rocky planets): ground the moon rate in giant-impact and capture frequency | none | open |
 | GEN.963 | The envelope-survival rule and the Hycean flag on the existing sub-Neptune classes (the part of GEN.350 that stays; no new class letter) | none | done, PR #4156 |
-| GEN.964 | H-He equation of state tables (a): a setup catalogue entry and a reader with tests on Jupiter, Saturn, Uranus and Neptune | none | open |
-| GEN.965 | H-He equation of state tables (b): replace the n=1 polytrope in the giant interior solver with the tables | none | open |
+| GEN.964 | H-He equation of state tables (a): a setup catalogue entry and a reader with tests on Jupiter, Saturn, Uranus and Neptune | none | done, PR #4436 |
+| GEN.965 | H-He equation of state tables (b): replace the n=1 polytrope in the giant interior solver with the tables | none | done, PR #4436 |
 | GEN.966 | Dynamo field (a): a pure module giving field strength and lifetime from core heat flow and spin, with tests on Earth, Mercury, Ganymede, Jupiter and Mars (dead) | none | done, PR #3802 |
-| GEN.967 | Dynamo field (b): the stored field strength, moment and lifetime come from the dynamo module and feed the radiation shielding | none | open |
+| GEN.967 | Dynamo field (b): the stored field strength, moment and lifetime come from the dynamo module and feed the radiation shielding | none | done, PR #4436 |
 | GEN.968 | Neutron star structure (a): a TOV integration over the equation-of-state tables held on disk, tested against NICER radii | none | open |
 | GEN.969 | Neutron star structure (b): wire the integrated radius and layers into the neutron star model, and add helium-core and oxygen-neon white dwarf layers | none | done, PR #3984 |
 | GEN.970 | Stellar spectra (a): a spectral library entry (BT-Settl, MUSCLES for M dwarfs) and a lookup by temperature, gravity and activity, with tests on the Sun and an M dwarf | none | open |
@@ -1744,9 +1744,9 @@ Parents marked "new parent" had no old number of their own.
 | GEN.978 | Birth spin derivation (a): a module for the last-impact mass ratio gamma by planet mass, from the N-body impact statistics | none | done, PR #3809 |
 | GEN.979 | Birth spin derivation (b): the birth rotation of a rocky planet follows Kokubo and Genda eq. 4 with the gamma law, replacing the scale factor of GEN.953 | none | done, PR #4321 |
 | GEN.980 | The stored class of 4 to 8 bodies differs from the class their final body gives (stored Q, conditions give D; stored P or K, derived D or P): the class is derived before the air is final (bug) | none | done, PR #3973 |
-| GEN.981 | Induced magnetic moment part (b): conducting cores and planets in the star's field (the part of GEN.779 that remains) | none | open |
+| GEN.981 | Induced magnetic moment part (b): conducting cores and planets in the star's field (the part of GEN.779 that remains) | none | done, PR #4436 |
 | GEN.982 | Wire the photolysis lifetimes (physics/photolysis.py and photolysis_lifetimes.json) into the atmosphere chemistry | none | open |
-| GEN.983 | Wire the radiation belts (physics/radiation_belts.py) into the surface dose and the habitability radiation score | none | open |
+| GEN.983 | Wire the radiation belts (physics/radiation_belts.py) into the surface dose and the habitability radiation score | none | done, PR #4436 |
 | GEN.984 | Make the star's composition draw independent of its age so every planet reads the final composition (bug) | none | done, PR #3984 |
 | GEN.985 | Circularise a close-in planet's eccentricity again at the final star age | none | done, PR #3984 |
 | GEN.986 | Measure how far the rocky planets' dose, surface ages and magnetism move when read at the final star age | none | done, measured in reports/gen986-final-age-rocky-planets-2026-10-30.md |
@@ -1768,7 +1768,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1002 | Registered table rows that rest on a Solar System body are flagged stand-in with a replacement item, or re-sourced | none | done, PR #4038 |
 | GEN.1003 | The gas equilibrium solver can stall with no convergence on a hot hydrogen-oxygen mixture (EquilibriumError at 725.97 K and 1.0 bar) (bug) | none | done, PR #4105 |
 | GEN.1004 | A triple system whose third star cannot be found: it may sit inside another star or on an orbit that is not drawn (bug) | none | done, not reproducible on main; fixed by #4026 and MAP.255 (Aux 7) |
-| GEN.1005 | Replace the Solar System-anchored redox, dry carbon and comet species rows with models that carry the physics (replaces the Solar System-resting rows of GEN.1002 that GEN.474 does not cover) | none | open |
+| GEN.1005 | Replace the Solar System-anchored redox, dry carbon and comet species rows with models that carry the physics (replaces the Solar System-resting rows of GEN.1002 that GEN.474 does not cover) | none | done, PR #4436 |
 | GEN.1006 | Stars and bodies in one system never overlap by design: every member knows the others when any is rebuilt, then fit and adjust afterwards | none | open |
 | GEN.1007 | Overlap-free stars, part a: pass the primary's [Fe/H] into the star tree (the tree evolves companions at [Fe/H] 0 while the build uses the real value) | none | dropped (folded into GEN.1006 P3 (MemberRecord), design 10:56 AM EDT 2026-10-30) |
 | GEN.1008 | Overlap-free stars, part b: store a giant's radius draw on the member and read it at build, so the radius is drawn once | none | dropped (folded into GEN.1006 P3 (MemberRecord), design 10:56 AM EDT 2026-10-30) |
@@ -1787,15 +1787,15 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1021 | Replace the 67P calibration of the comet species factors with a second comet or a laboratory trapping table | none | open |
 | GEN.1022 | One latent ice formation temperature per comet drives its CO/H2O, N2 and Ar together (option B of the comet species model) | none | open |
 | GEN.1023 | Two planets of a close pair in triple seed 208 sit 9.93 mutual Hill radii apart where the generator promises 10 (bug) | none | open |
-| GEN.1024 | GEN.744 part B: the alpha-enhanced track shift through evolve_star and the scatter tables | none | open |
-| GEN.1025 | GEN.944 part 1b: the 10 to 13 Gyr thick-disc window in the galaxy density and age-law tables | none | open |
+| GEN.1024 | GEN.744 part B: the alpha-enhanced track shift through evolve_star and the scatter tables | none | done, PR #4436 |
+| GEN.1025 | GEN.944 part 1b: the 10 to 13 Gyr thick-disc window in the galaxy density and age-law tables | none | done, PR #4436 |
 | GEN.1026 | Carbon star and S star flags on the star sheet from the thermal-pulse and dredge-up count of the post-main-sequence track | none | done, PR #4399 |
-| GEN.1027 | Ap and Am stars: a chemically peculiar branch of the A-star draw with rotation and magnetic field | none | open |
+| GEN.1027 | Ap and Am stars: a chemically peculiar branch of the A-star draw with rotation and magnetic field | none | done, PR #4436 |
 | GEN.1028 | The Mardling and Aarseth 2001 stability criterion holds only for an outer mass ratio q_out of 5 or less and the code does not enforce it (bug) | none | done, PR #4276 |
 | GEN.1029 | Research: port a 3+1 quadruple stability criterion without a machine-learning dependency (Vynatheya, Mardling and Hamers 2023 model files) | none | done, PR #4098 |
-| GEN.1030 | Methane pseudo-adiabat in the giant planet column, so Uranus-like and Neptune-like one-bar temperatures match Voyager (GEN.852 tropopause and condensables family) | none | open |
+| GEN.1030 | Methane pseudo-adiabat in the giant planet column, so Uranus-like and Neptune-like one-bar temperatures match Voyager (GEN.852 tropopause and condensables family) | none | done, PR #4436 |
 | GEN.1031 | Port the 2+2 quadruple stability network of Vynatheya, Mardling and Hamers 2023 the same way as the 3+1 one (about 8,300 numbers, plain numpy forward pass, no machine-learning dependency) | none | done, PR #4129 |
-| GEN.1032 | Refit the greenhouse table on the far-wing and acid-cloud model that GEN.1019 and GEN.1020 landed, and move the tropopause-jump sweep (GEN.852 family) | none | open |
+| GEN.1032 | Refit the greenhouse table on the far-wing and acid-cloud model that GEN.1019 and GEN.1020 landed, and move the tropopause-jump sweep (GEN.852 family) | none | done, PR #4436 |
 | GEN.1033 | Ice-giant internal heat: the law goes through Jupiter and Neptune, so a Uranus-mass giant gets Neptune's 0.33 W/m2 instead of Uranus's 0.04 (the Uranus anomaly), and giants draw their Bond albedo from the rock range 0.12 to 0.35 | none | open |
 | GEN.1034 | Ocean tide data: the open-ocean equilibrium tide height and range at a world's surface from each moon and the star, for worlds with a surface ocean | none | done, PR #4385 |
 | GEN.1035 | Surface liquid inventory: which liquid a cold or hot world holds as a sea (methane-ethane-nitrogen, liquid nitrogen, liquid CO2, ammonia-water, sulfur) from its temperature, pressure, ice and air, so non-water oceans can have tides | none | done, PR #4321 |
@@ -1871,7 +1871,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1105 | Field members (individual bodies by the belt cut rule) with `<field ID>.<rank hex>` designations, status flags, and the sector and field pages | none | open |
 | GEN.1106 | Field render: a 3D view for the field page (today _NO_VIEW), the sector map drawing the cloud or annulus plus the individual points at v x age, the render seed from the uid not the database id | none | open |
 | GEN.1107 | Bring-to-epoch for fields: age advances, radius follows, retirement past 1 ly marks or deletes the row (Boss to pick; default retire) | none | open |
-| GEN.1108 | Climate by latitude band for every body in seven bands (the equator, three above, three below, the poles inside the outermost band each side), the temperature categories of regional_temperature.py extended to seven: day and night length and the temperature range by day and by night (bug) | none | open |
+| GEN.1108 | Climate by latitude band for every body in seven bands (the equator, three above, three below, the poles inside the outermost band each side), the temperature categories of regional_temperature.py extended to seven: day and night length and the temperature range by day and by night (bug) | none | done, PR #4436 |
 | GEN.1109 | Review rogue planet generation so physics drives it: where the counts, masses and properties rest on stand-ins or flat rates, and what replaces each (ejection from the architecture, scattering, the mass function, the survival of moons and air) | none | done, PR #4176 |
 | GEN.1110 | Average wind speeds by day and by night in each of the seven latitude bands: the day-to-night thermal wind from the pressure difference, zonal jets and trade winds from the equator-to-pole temperature difference and the Rossby number, faded out below about 1 kPa | none | open |
 | GEN.1111 | Rogue rows created from the architecture's ejections: mass, composition, moons kept, ejection speed, age and the parent system, with the flat rate becoming a test target | none | open |
@@ -1936,7 +1936,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1170 | Spin of A and B stars follows mass: the fast-rotator mode rises from 160 km/s at 1.6 to 2 solar masses to 238 km/s at 3.15 to 3.85 (about 46 km/s per solar mass), where the generator keeps one 180 km/s median for every hot star from 1.8 solar masses up | none | done, PR #4385 |
 | GEN.1171 | Ring lifetime by ring mass and planet instead of one fixed decay, because fallen-moon rings now persist on 13 percent of rocky planets | GEN.1057 | open |
 | GEN.1172 | Spin-orbit resonance capture is a draw, not a certainty: 3:2 and 2:1 capture inside the window with a probability inside the published 0.07 to 0.55 bracket | none | done, PR #4385 |
-| GEN.1173 | Time to the main sequence for 0.1 to 0.3 solar-mass stars has an unphysical step between 0.105 and 0.11 solar masses (718 to 1358 Myr) from the isochrone arrival grid | none | open |
+| GEN.1173 | Time to the main sequence for 0.1 to 0.3 solar-mass stars has an unphysical step between 0.105 and 0.11 solar masses (718 to 1358 Myr) from the isochrone arrival grid | none | done, PR #4436 |
 | GEN.1174 | Decide the pre-main-sequence time definition: the generator's time to the main sequence is 3 to 4 times BHAC15 for 0.1 to 0.3 solar masses and 1.5 to 2 times from 0.4 up | none | open |
 | GEN.1175 | Porosity weakening of body strength from a sourced law instead of the placeholder exponential | none | open |
 | GEN.1176 | Rubble-pile branch for the rounding engine: friction plus a little cohesion and a shape-set temperature instead of a size threshold | none | done, PR #4347 |
@@ -1954,15 +1954,15 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1188 | Record the sources of the 6.5 km/s molecular gas dispersion and pin the Milky Way young-star scale height test to the sourced band of 35 to 70 pc | none | done, PR #4364 |
 | GEN.1189 | Greenhouse refit method: the refit table is blind to the methane share of a hydrogen air and a dense carbon dioxide air is 2 to 8 percent warm, so find a better fit than one L-BFGS network | GEN.1032 | open |
 | GEN.1190 | Replace unsourced rheology constants with the sourced ones: partial-melt factor, Andrade exponent and ratio, ice grain-boundary sliding and the ice melting curves | none | open |
-| GEN.1191 | Satellite supernova remnants scale with the satellite's own star formation instead of the Milky Way's per-system rate | none | open |
-| GEN.1192 | Satellite gas: a gas disc longer than the stars and a longer depletion time at low density | none | open |
-| GEN.1193 | Stripping rule on a satellite's distance to its host so gas follows Grcevich and Putman | none | open |
+| GEN.1191 | Satellite supernova remnants scale with the satellite's own star formation instead of the Milky Way's per-system rate | none | done, PR #4436 |
+| GEN.1192 | Satellite gas: a gas disc longer than the stars and a longer depletion time at low density | none | done, PR #4436 |
+| GEN.1193 | Stripping rule on a satellite's distance to its host so gas follows Grcevich and Putman | none | done, PR #4436 |
 | GEN.1194 | Runaway greenhouse: the radiative-convective model has no plateau in outgoing flux, so water window opacity, continuum temperature dependence and wings must be reworked until it plateaus | none | open |
-| GEN.1195 | Cluster maximum mass of the central ring from the gas, and cloud-shock disruption of its clusters | none | open |
-| GEN.1196 | Disc cluster maximum mass per ring, replacing the flat 1e6 cap | none | open |
+| GEN.1195 | Cluster maximum mass of the central ring from the gas, and cloud-shock disruption of its clusters | none | done, PR #4436 |
+| GEN.1196 | Disc cluster maximum mass per ring, replacing the flat 1e6 cap | none | done, PR #4436 |
 | GEN.1197 | Faint gas-bearing dwarfs far from the host: the star formation threshold stops anything under 1e7 solar masses, so Leo T-like dwarfs are never made | none | done, research only, no change (gen1197-faint-gas-dwarfs-2026-10-31.md) |
-| GEN.1198 | The sector profile's remnant factor in a Magellanic Cloud cell uses the gas factor, so scatter and fill disagree with the satellite remnant count | none | open |
-| GEN.1199 | A small moon of a giant carries a hydrogen air and is called class T: can a 0.1 Earth-mass moon keep a hydrogen air at all? | none | open |
+| GEN.1198 | The sector profile's remnant factor in a Magellanic Cloud cell uses the gas factor, so scatter and fill disagree with the satellite remnant count | none | done, PR #4436 |
+| GEN.1199 | A small moon of a giant carries a hydrogen air and is called class T: can a 0.1 Earth-mass moon keep a hydrogen air at all? | none | done, PR #4436 |
 | GEN.1200 | The galactic-centre ring inflow of the generator is 0.044 solar masses per year against the measured 0.07 | none | open |
 | GEN.1201 | A per-body shape-setting temperature: the roundness engine uses the temperature a body took its shape at, but no body stores one, so strength is the cold strength today | none | open |
 | GEN.1202 | The generator's disc gas surface density at 8 kpc is 4.3 solar masses per pc2 against 13 measured, which holds the disc cluster maximum mass too low | none | open |
