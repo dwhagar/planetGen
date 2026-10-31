@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 938 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 940 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -38,14 +38,14 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 |---|---|---|---|---|---|---|
 | T1 | 140 | 13 | 8 | 1 | 0 | 162 |
 | T2 | 111 | 36 | 0 | 1 | 0 | 148 |
-| T3 | 79 | 36 | 5 | 10 | 0 | 130 |
+| T3 | 80 | 36 | 5 | 10 | 0 | 131 |
 | T4 | 37 | 5 | 0 | 14 | 10 | 66 |
 | T5 | 43 | 17 | 0 | 1 | 0 | 61 |
-| T6 | 90 | 67 | 18 | 41 | 0 | 216 |
+| T6 | 90 | 68 | 18 | 41 | 0 | 217 |
 | T7 | 27 | 8 | 8 | 8 | 0 | 51 |
 | T8 | 0 | 1 | 1 | 5 | 1 | 8 |
 | T9 | 17 | 14 | 4 | 42 | 19 | 96 |
-| All | 544 | 197 | 44 | 123 | 30 | 938 |
+| All | 545 | 198 | 44 | 123 | 30 | 940 |
 
 ## How the labels were given
 
@@ -1376,7 +1376,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | RN8 | D | T2 | L1 | roundness.RUBBLE_RULES mohr-coulomb, friction angle 35 degrees and cohesion 100 Pa: the failure stress of a pile of rubble, `(2 c cos(phi) + 2 P sin(phi)) / (1 - sin(phi))` with the centre pressure P | friction 30 to 40 degrees; cohesion 44 to 210 Pa | rubble piles, kilometre to hundreds of km | a cold pile of rubble over 100 km that is observed round | measured cohesion and friction of an asteroid regolith (Hayabusa2, OSIRIS-REx samples) | Hirabayashi and Scheeres (arXiv 1411.5926, READ), Rozitis, MacLennan and Emery 2014 (READ), Sanchez and Scheeres 2014 (lunar regolith 0.1 to 3 kPa; Van der Waals 300 Pa at 1 micron), Walsh 2018 (READ); Polishook and others 2016, DEEP VII 2024 (100 Pa to about 10 kPa), the Bennu paper (300 Pa at 50 percent porosity, friction about 37 degrees); friction angle from Lambe and Whitman 1969 (quoted) | GEN.1159 | - |
 | RN9 | D | T5 | L1 | roundness.RUBBLE_RULES hot strength 2.5 MPa (`hot_strength_pa` in roundness_strengths.json): the strength of a pile that took its shape hot, the creep strength of dry olivine at about 1330 K | 1 to 4 MPa, which is 1250 to 1400 K | rubble piles that were heated at formation | a heated rubble pile whose measured shape needs another strength | a thermal history of the body that sets its strength at shape-setting (the `olivine-creep-law` already takes a shape-set temperature) | Korenaga and Karato 2008 Table 3 (READ), Hirth and Kohlstedt 2003 as printed there; `reports/papers-vs-standins-2026-10-31.md` section 2 (re-tiered from L3) | GEN.1159 | - |
 | RN10 | P | T4 | L0 | roundness.RANGES_PA: ice 0.4 to 3 MPa, rock 4 to 30 MPa, metal 50 to 250 MPa, and the rubble ranges (friction 30 to 40 degrees, cohesion 44 to 210 Pa, hot strength 1 to 4 MPa), and, for hot rock, the quantile between the two olivine creep columns (RN11); a body's strength is the log-linear quantile `draw` of its range with the stand-in at 0.5 | the ranges; the shape of the quantile (log-linear through the median) | every solid body | a body whose measured strength is outside its range, or a population whose round boundary is wider or narrower than the draw gives | a population statistic of the round boundary (the sizes of the largest non-round and smallest round bodies of a class) | Lineweaver and Norman 2010 (rock 4 to 30 MPa, ice 0.4 to 3 MPa), strength research section 7 ranges; the quantile shape is a design choice (`reports/planetary-material-strength-2026-10-31.md` section 13 recommends sampling from the range) | GEN.1178 | - |
-| RN11 | D | T2 | L0 | roundness.ROCK_CREEP_COLUMNS: dry olivine dislocation creep, strain rate = A sigma^n exp(-E / R T), Hirth and Kohlstedt 2003 (log10 A 5.04, n 3.5, E 530 kJ/mol) and Korenaga and Karato 2008 (6.09, 4.94, 610) at 1e-15 per second, never above the cold rock strength; between the columns by the body's quantile | E +/- 4 to 30 kJ/mol, n +/- 0.3; rate 1e-16 to 1e-14 per second | silicate rock that took its shape at 1100 K or more; below that cold rock (RN2) governs | a hot rock body whose shape and temperature need a strength outside the two columns | a measured body-scale strength of hot rock; wet olivine (about 1.3 to 2 times weaker) and a pressure term | Korenaga and Karato 2008 Table 3 (READ, both columns); Chu and Korenaga 2012 (READ) test the laws at geologic rates; `reports/planetary-material-strength-2026-10-31.md` section 15 | GEN.1159 | - |
+| RN11 | D | T2 | L0 | roundness.ROCK_CREEP_COLUMNS: dry olivine dislocation creep, strain rate = A sigma^n exp(-E / R T), Hirth and Kohlstedt 2003 (log10 A 5.04, n 3.5, E 530 kJ/mol) and Korenaga and Karato 2008 (6.09, 4.94, 610) at 1e-15 per second, never above the cold rock strength; between the columns by the body's quantile | E +/- 4 to 30 kJ/mol, n +/- 0.3; rate 1e-16 to 1e-14 per second | silicate rock that took its shape at 1100 K or more; below that cold rock (RN2) governs | a hot rock body whose shape and temperature need a strength outside the two columns | a measured body-scale strength of hot rock; wet olivine (about 1.3 to 2 times weaker) and a pressure term | Korenaga and Karato 2008 Table 3 (READ, both columns); Chu and Korenaga 2012 (READ) test the laws at geologic rates; `reports/planetary-material-strength-2026-10-31.md` section 15 | GEN.1201 | - |
 
 ## 6.129 Stand-ins of the strengths of the ice types
 
@@ -1523,6 +1523,13 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | DN1 | P | T9 | L0 | day_night.NON_ROTATING_TURNS 0.01 and day_night.POLAR_CIRCLE_MAX_DEG 30: a body that turns less than a hundredth of a turn in an orbit is non-rotating (the star goes round once a year), and a body whose polar circle is within 30 degrees of the equator has half its surface or more in the polar zone (the area beyond latitude L is 1 - sin L) | turns 0.001 to 0.1; circle 15 to 45 degrees | planets and moons with a stored spin | a body the generator makes with a turn count under 0.01 that has a day the page calls a year, or a body at 60 degrees tilt shown as an ordinary cycle | a word chosen from the length of the solar day and the polar zone's area on the page | needed output (words for the day and night state) | - | - |
+
+## 6.146 Stand-ins of the thick disc's ages
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| TD1 | P | T3 | L0 | tuning.THICK_DISC_AGE_RANGE_GY (8, 13) Gy, the ages over which the thick disc formed its stars | 8 to 9.5 for the start; 12 to 13.5 for the end | the thick disc of a Milky Way-like galaxy | an age-metallicity or age-alpha relation of thick-disc stars with a population older than 13 or younger than 7 Gy | the star formation history of the thick disc fitted to its own relation | Haywood et al. 2013: the thick disc formed from about 13 to about 8 Gy ago | GEN.1025 | - |
+| TD2 | P | T6 | L1 | thick_ages.mixed_old_law: the thick disc's star formation is flat over its window | a rate falling by up to a factor of 3 over the window | the thick disc | a thick-disc age distribution that is not within a third of flat | the thick disc's own history from the gas model (GEN.469 for the thin disc is the template) | the neutral shape: Haywood et al. 2013 Fig. 9 has the rate falling over the window, so the oldest ages are under-weighted here | - | - |
 
 ## 6.138 Stand-ins of the variable-star kinds
 

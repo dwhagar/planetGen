@@ -1278,6 +1278,12 @@ STELLAR_THICK_START_GY = 8.0
 thick disc formed from about 13 to about 8 Gy ago, the age scale uncertain by 1 to 1.5 Gy; Boss's papers); range 6.5 to
 9.5. The first draft's 3.0 was the project's intermediate/old boundary and the paper contradicts it (Boss approved
 8.0, 2026-10-17)."""
+
+THICK_DISC_AGE_RANGE_GY = (STELLAR_THICK_START_GY, 13.0)
+"""tuple: The ages, Gy, over which the thick disc formed its stars: from where its branch starts (`STELLAR_THICK_START_GY`) to the oldest the old
+population holds (GEN.1025, `galaxy.thick_ages`). [Stand-in TD1, tier T3, tweak L0: Haywood et al. 2013 (the thick disc formed from about 13 to
+about 8 Gy ago).]"""
+
 STELLAR_HIGH_ALPHA_LOGISTIC = (-0.350, 0.132)
 """tuple: `(f0, w)`: P(high-alpha) = 1 / (1 + exp(([Fe/H] - f0) / w)) for a star old enough to be thick-disc (Bensby, Feltzing
 and Oey 2014, fit to the chemically high-alpha fraction; their paper is not in the repository's papers, so partly verified)."""
