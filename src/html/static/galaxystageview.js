@@ -105,6 +105,8 @@ const KEY_TURN = (5 * Math.PI) / 180;
 export const MIN_ZOOM = 1 / 8;
 export const MAX_ZOOM = 2.5;
 export const GALAXY_MIN_ZOOM = 0.5;
+// A sector page's map (pinned) zooms out no further than this times the sector's own fit: the sector, not its surroundings.
+export const PINNED_MAX_ZOOM = 1.1;
 // An opened system zooms from its fit down to a moon, nine orders closer.
 export const SYSTEM_MIN_ZOOM = 1e-9;
 // MAP.333: the nearest the camera may be asked to come to its target by any move, about a moon framed (Boss, 6:19 PM EDT 2026-10-28), and
@@ -355,6 +357,7 @@ export function createStageView(host) {
   function zoomPolicyFor(r, at) {
     if (enteredSystem) return SYSTEM_ZOOM;
     if (r && r.view && isWholeGalaxy(r)) return GALAXY_ZOOM;
+    if (pinned) return MC.zoomPolicy(MC.ZOOM_RANGE, MIN_ZOOM, PINNED_MAX_ZOOM);
     if (entered && !pinned && view && view.fit && host.fetchSystemScene) {
       // MAP.152: in an opened sector the camera may come right up to a star near the middle of the view, to
       // where its system's disc is whole, but no closer to the middle than keeps that star in reach.
@@ -2534,7 +2537,12 @@ export function createStageView(host) {
     } else {
       followBody = null;
       const perPx = worldUnitsPerPixel(camera, view.dist, canvasEl.clientHeight);
+      const before = view.target.slice();
       MC.panInScreenPlane(THREE, camera, view.target, dx, dy, perPx);
+      // A sector page's map keeps its target inside the sector: a move that would leave it is not taken.
+      if (pinned && !NF.blockContains(sectorCell(pinned).bounds, view.target[0], view.target[1], view.target[2])) {
+        view.target[0] = before[0]; view.target[1] = before[1]; view.target[2] = before[2];
+      }
     }
     applyView();
   }
@@ -2721,6 +2729,7 @@ export function createStageView(host) {
     // The nearest is the floor, except that outside a system it is never short of the stage's own hand-over (a floor above where a star's
     // system opens would be a wall); a system has nothing nearer to hand over to.
     const nearest = enteredSystem ? GLOBAL_FLOOR_PC / fit : Math.min(handover.nearest, FIELD_FLOOR_PC / fit);
+    if (pinned) return MC.zoomPolicy(MC.ZOOM_RANGE, nearest, PINNED_MAX_ZOOM);
     return MC.zoomPolicy(MC.ZOOM_RANGE, nearest, Math.max(handover.farthest, globalFarPc() / fit));
   }
 
@@ -2747,6 +2756,7 @@ export function createStageView(host) {
   // MAP.333: the farthest the camera goes, the whole galaxy in view: the whole-galaxy stage's own camera distance.
   let galaxyFarPc = 0;
   function globalFarPc() {
+    if (pinned) return (fitNow() || cameraFor(resolved).dist) * PINNED_MAX_ZOOM;   // a sector page's map ends at its sector
     if (!galaxyFarPc) {
       const whole = S.resolveStage(S.galaxyStage(), getOutline(), edgePc);
       galaxyFarPc = whole && !whole.problem && whole.view && whole.view.blocks.length ? cameraFor(whole).dist : host.galaxyRadius * GALAXY_FAR_RADII;

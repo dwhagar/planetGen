@@ -6668,29 +6668,29 @@ def _search_facet_type(conn):
 
 
 def _search_facet_spectral(conn):
-    rows = conn.execute(
-        "SELECT SUBSTR(star_type, 1, 1) AS v, COUNT(*) AS c FROM stars GROUP BY v ORDER BY v"
-    ).fetchall()
+    """Every spectral class the generator produces (`SPECTRAL_CLASS_COLORS`), with its star count (0 when none yet),
+    then any other letter the stars hold."""
+    counts = {row["v"]: row["c"] for row in conn.execute(
+        "SELECT SUBSTR(star_type, 1, 1) AS v, COUNT(*) AS c FROM stars GROUP BY v ORDER BY v").fetchall()}
+    letters = [*SPECTRAL_CLASS_COLORS, *sorted(letter for letter in counts if letter not in SPECTRAL_CLASS_COLORS)]
     opts = []
-    for row in rows:
-        letter = row["v"]
+    for letter in letters:
         color = SPECTRAL_CLASS_COLORS.get(letter)
         tip = f"{color} star" if color else None
-        opts.append({"value": letter, "label": f"{letter}-Type Star", "count": row["c"], "tooltip": tip})
+        opts.append({"value": letter, "label": f"{letter}-Type Star", "count": counts.get(letter, 0), "tooltip": tip})
     return opts
 
 
 def _search_facet_luminosity(conn):
-    rows = conn.execute(
-        "SELECT yerkes_class AS v, COUNT(*) AS c FROM stars WHERE yerkes_class IS NOT NULL GROUP BY v"
-    ).fetchall()
-    rows = sorted(
-        rows, key=lambda r: _SEARCH_YERKES_ORDER.index(r["v"]) if r["v"] in _SEARCH_YERKES_ORDER else len(_SEARCH_YERKES_ORDER)
-    )
+    """Every Yerkes class (`_SEARCH_YERKES_ORDER`) with its star count (0 when none yet), then any other class the
+    stars hold."""
+    counts = {row["v"]: row["c"] for row in conn.execute(
+        "SELECT yerkes_class AS v, COUNT(*) AS c FROM stars WHERE yerkes_class IS NOT NULL GROUP BY v").fetchall()}
+    classes = [*_SEARCH_YERKES_ORDER, *sorted(value for value in counts if value not in _SEARCH_YERKES_ORDER)]
     return [
-        {"value": row["v"], "label": _SEARCH_YERKES_LABELS.get(row["v"], row["v"]), "count": row["c"],
-         "tooltip": f"Yerkes class {row['v']}"}
-        for row in rows
+        {"value": value, "label": _SEARCH_YERKES_LABELS.get(value, value), "count": counts.get(value, 0),
+         "tooltip": f"Yerkes class {value}"}
+        for value in classes
     ]
 
 

@@ -1138,19 +1138,6 @@ with `clamp()`.
   locked bodies is UX.244.
   Prerequisites: GEN.1097. Related: MAP.277, VIEW.14.
 
-- [ ] **UX.245 Tidally locked moon faces its planet in the System Map, and the locked label is drawn on the sensor view picture itself (follow-up to UX.244) (bug)**
-  Tides 1, 7:11 PM EDT 2026-10-30 (as the lane reported), after UX.244
-  merged (#4254): a tidally locked planet now faces its star in the
-  System Map and in the 3D views, and the sensor view carries a locked
-  caption, but a locked moon in the System Map is not yet turned to face
-  its planet, and the label "locked" is in the caption only, not drawn
-  on the picture. Do: turn a locked moon to face its planet in the
-  System Map and draw the locked label on the sensor view picture. Done:
-  browser checks for a locked moon and for the label on the picture.
-  Lock-free (display only). Where we think it belongs (best guess, can
-  move): Tides 1.
-  Prerequisites: none. Related: UX.244.
-
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
@@ -2324,6 +2311,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   test zooms from a system to a moon and to the surface scale without
   precision loss.
   Prerequisites: MAP.335. Related: MAP.257, MAP.240.
+
+- [ ] **MAP.354 Lagrange trojans T4: System Map icon at the centre of each Lagrange point that has objects, labelled with the host and point (for example Jupiter-L4); shares the geometry of the MAP.169 gravity layer**
+  Boss 7:48 PM EDT 10-30: objects around a Lagrange point get an icon at
+  the centre of the point that says [host]-L# so the pair of objects is
+  clear. Rides with T2 (train 8). Shares the Lagrange geometry of
+  MAP.169 and does not wait for the heat map.
+  Prerequisites: GEN.1150. Related: MAP.169.
 
 ## NAV: Navigation and courses
 
@@ -14770,6 +14764,43 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   train window.
   Prerequisites: none. Related: GEN.1146, GEN.1142, GEN.909.
 
+- [ ] **GEN.1148 Asteroid belt share fell from 55 percent of systems to 3 percent and binary share rose from 24 percent to 31.5 percent between the census before trains 3 and 4 and current main (Bug 2 census); find out whether each is the intended change or a bug (bug)**
+  Bug 2 measured these in the prevalence suite (PREVALENCE_BASE_SHARES,
+  #4251). A belt cut was decided (belt mass cut is the rule) but 55 to 3
+  percent is far larger than a mass cut should do unless the cut removes
+  small belts the old rule counted. For each shift name the change that
+  caused it (bisect by merge), say whether the new value is what the
+  physics and the belt rule give, and if not file the fix. Binary share:
+  the star mass function epoch changed the draw, so say whether 31.5
+  percent matches the multiplicity sources. Report numbers per version
+  of main, no fix without the cause. Source: prevalence census
+  (TEST.430).
+  Prerequisites: none.
+
+- [ ] **GEN.1150 Lagrange trojans T2: the generator draws a trojan swarm at the L4 and L5 of each giant planet or brown dwarf from the scatter trojan share; new columns co_orbital_host_id, lagrange_point, libration amplitude and phase (db/column_units.py); orbit updater libration overlay; the object and sector pages and the designation rule "<host> L4 trojan region"**
+  Epoch lock, migration, --affects on the generator and orbit-tree
+  tests. Train 8 with belts, clearance and the region store. Report
+  /mnt/project-files/reports/lagrange-trojans-2026-10-30.md (not in the
+  repo). Boss approved building it 10-30 7:48 PM EDT. Rule: no forced
+  rate, no L1/L2/L3 bodies, stability test (m2+m3)/M under 0.0385.
+  Owner: Trojans lane. A giant that never swept anything gets none; the
+  swarm is what the sweep leaves. The belt clearance ledger must allow a
+  belt-like region at 1:1 with a giant and exclude it from free-zone
+  belt placement. GEN.1006 must treat a trojan as a member at the
+  secondary orbit, not an overlap.
+  Prerequisites: GEN.1006. Related: GEN.1077.
+
+- [ ] **GEN.1151 Lagrange trojans T3: whole planets and moons (Class M and Class J allowed by the mass rule) at L4 and L5 from the disc formation model only; no forced rate, the observed 5 percent upper bound (WR10) is a plausibility test only; folds in the weird-worlds W7 row**
+  Epoch lock, train 8 or 9. Report
+  /mnt/project-files/reports/lagrange-trojans-2026-10-30.md (not in the
+  repo). Boss approved building it 10-30 7:48 PM EDT. Rule: no forced
+  rate, no L1/L2/L3 bodies, stability test (m2+m3)/M under 0.0385.
+  Owner: Trojans lane. Needs the formation gate from the planet
+  architecture oligarch chain (solids in the 1:1 zone of a growing
+  planet), which does not model it yet. Brown dwarf and star secondaries
+  are allowed when the secondary is under 4 percent of the primary.
+  Prerequisites: GEN.1150.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -19582,6 +19613,20 @@ clears each one.
   changes generated output (planets with moons). Lock work for train 6,
   --affects fill,population (stored reflex columns), golden. Owner Aux
   5; Bug 2 takes it into train 6.
+  Prerequisites: none.
+
+- [ ] **TEST.503 Four tests are red on a clean main: test_db_column_round_trip::test_every_column_is_written (moons.magnetopause_rp is NULL in every row), the test_object_rows star read-back (columns state and decay_age_yr), test_gen_hosting_wiring directed moon count, and test_reproducible_draws hypot/BLAS (bug)**
+  Aux 5 found these red on clean main, none from its own branches. Find
+  each cause. A column never written (moons.magnetopause_rp) or never
+  read back (state, decay_age_yr) is a wiring gap; fix it lock-free if
+  it changes no generated value, else say so and list it for the next
+  train window. The hypot/BLAS draw test may depend on the machine
+  library; say which, and make the test robust only if the draw itself
+  is not what differs. Report each as fixed, train-bound or
+  machine-bound.
+  Bug 2 (2026-10-09): Bug 2 (10-30 gate pass) also reports red on main:
+  the climate sweep (2 tests), aquifers, and the deploy_scripts path
+  test. Include them in the diagnosis.
   Prerequisites: none.
 
 ## USR: User accounts
