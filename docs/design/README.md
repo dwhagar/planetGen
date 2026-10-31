@@ -243,6 +243,7 @@ A note's own status line, at its top, is the authority; this page only points at
 | [galaxy-drilldown-navigation.md](interface/galaxy-drilldown-navigation.md) | The Galaxy Map's drill-down | built (partly replaced by the fly-through) |
 | [drilldown-region-sizes.md](interface/drilldown-region-sizes.md) | Step sizes and region shapes for the drill-down | built (MAP.151) |
 | [galaxy-map-performance.md](interface/galaxy-map-performance.md) | The Galaxy Map node path held to a budget: the MAP.249 benchmark over a synthetic 46,000-star galaxy, its numbers and where the time goes | built (MAP.249) |
+| [text-style.md](interface/text-style.md) | The plain-words style guide for every sentence about a planet, moon, belt, star or system: short sentences, plain words, one name for a class, sentence-case labels, and the test that holds new text to it | built (DOC.83) |
 | [body-rendering.md](interface/body-rendering.md) | Rendering bodies from composition: the look record, the shared painter, solid worlds, giants, stars and phenomena, items by version | approved (R1, R3, R4a built in 8.1) |
 | [edit-everything.md](interface/edit-everything.md) | The 8.6 headline: every admin change is a plan the admin approves; aspects, locks, regions, the rearranger | plan |
 | [roles-and-requests.md](interface/roles-and-requests.md) | The 10.0 headline: user, moderator and admin roles; edit requests are change plans that the role above approves | plan |
