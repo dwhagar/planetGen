@@ -7,9 +7,9 @@ Orbits around a star that lost mass (GEN.318; docs/design/systems/exotic-environ
 A star of M_initial solar masses that becomes a white dwarf of M_final loses the difference on its giant branches, slowly
 and in every direction. Two things follow for a planet that was there:
 
-* **Engulfment.** The giant's envelope took, or drove off, every planet inside `engulfment_radius_au` of the progenitor:
-  `WD_ENGULFMENT_BASE_AU` for a solar-mass star and `WD_ENGULFMENT_AU_PER_PROGENITOR_MSUN` more per solar mass above
-  one.
+* **Engulfment.** The giant's envelope took, or drove off, every planet inside `engulfment_radius_au` of the progenitor: a lookup through
+  `WD_ENGULFMENT_POINTS_AU`, the Jovian-planet points of Mustill and Villaver (2012), ApJ 761, 121 (2.7 AU for a
+  solar-mass star, 10 AU for five solar masses).
 * **Expansion.** A planet outside it keeps its angular momentum while the star loses mass adiabatically, so
   `a (M_star + M_p)` is constant (Jeans 1924; Hadjidemetriou 1963; Veras et al. 2011, MNRAS 417, 2104; section 1.2 of the
   note): the orbit grows by `(M_initial + M_p) / (M_final + M_p)`, 1.85 for a star of one solar mass that leaves 0.54.
@@ -35,8 +35,16 @@ def progenitor_mass_sol(remnant_mass_sol, initial_mass_sol=None):
 
 
 def engulfment_radius_au(progenitor_sol):
-    """The distance, AU, inside which a progenitor of `progenitor_sol` solar masses removed every planet."""
-    return tuning.WD_ENGULFMENT_BASE_AU + tuning.WD_ENGULFMENT_AU_PER_PROGENITOR_MSUN * (progenitor_sol - 1.0)
+    """The distance, AU, inside which a progenitor of `progenitor_sol` solar masses removed every planet: straight lines
+    through `WD_ENGULFMENT_POINTS_AU`, the first value below the first point and the last segment's slope above the last."""
+    points = tuning.WD_ENGULFMENT_POINTS_AU
+    if progenitor_sol <= points[0][0]:
+        return points[0][1]
+    for (mass_low, au_low), (mass_high, au_high) in zip(points, points[1:]):
+        if progenitor_sol <= mass_high:
+            return au_low + (au_high - au_low) * (progenitor_sol - mass_low) / (mass_high - mass_low)
+    (mass_low, au_low), (mass_high, au_high) = points[-2:]
+    return au_high + (au_high - au_low) / (mass_high - mass_low) * (progenitor_sol - mass_high)
 
 
 def expansion_factor(initial_mass_kg, final_mass_kg, planet_mass_kg=0.0):

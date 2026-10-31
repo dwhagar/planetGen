@@ -22,7 +22,7 @@ WORDS = "words"
 def unit_text(kind, spec):
     """The unit a sheet row is shown in, as the page's unit column writes it: the registry's symbol, a local unit's noun or
     scale, or `WORDS` for a row that is text."""
-    if spec.quantity in (sheet.TEXT, sheet.FLAG, sheet.TIER, sheet.RATING):
+    if spec.quantity in (sheet.TEXT, sheet.FLAG, sheet.TIER, sheet.RATING, sheet.LIMIT):
         return WORDS
     unit = column_units.COLUMNS[(sheet.TABLES[kind], spec.stored_column())]
     if unit in sheet._SYMBOLS:

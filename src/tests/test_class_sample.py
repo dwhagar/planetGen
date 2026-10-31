@@ -22,7 +22,7 @@ def test_the_switch_is_off_by_default():
     assert "FORCE_CLASS" not in SystemConfig().to_dict()
 
 
-@pytest.mark.parametrize("letter", ["P", "V", "K", "L", "N", "F", "G", "Q"])
+@pytest.mark.parametrize("letter", ["E", "P", "V", "N", "G"])
 def test_a_forced_rare_class_is_in_the_system(letter):
     for seed in range(1, 25):
         system = forced_system(letter, seed)
@@ -32,10 +32,10 @@ def test_a_forced_rare_class_is_in_the_system(letter):
     pytest.fail(f"no system with a class {letter} planet in 24 tries")
 
 
-@pytest.mark.parametrize("letter", ["O", "T", "E"])
+@pytest.mark.parametrize("letter", ["O", "T", "K", "L", "F"])
 def test_a_class_the_conditions_hardly_give_is_met_or_reported_unmet(letter):
-    # GEN.646: the class is derived from the finished body, so an ocean world (O), a gas dwarf (T: until the envelope law GEN.822) or a wet
-    # reducing world (E) is not reachable by a request at most places; the system says so and never claims a class it does not hold.
+    # GEN.646: the class is derived from the finished body, so an ocean world (O), a gas dwarf (T: until the envelope law GEN.822), a temperate thin-air world (K), a marginal thick-air world (L) or a reducing world (F) (GEN.1142: the cold ones are E and P now, and
+    # a body that keeps under 3 kPa at 273 to 320 K is rare) is not reachable by a request at most places; the system says so and never claims a class it does not hold.
     for seed in range(1, 4):
         system = forced_system(letter, seed)
         held = any(getattr(planet, "planet_class", None) == letter for planet in system.planets)
@@ -60,7 +60,7 @@ def test_the_switch_refuses_slots_and_unknown_letters():
 
 
 def test_fill_reaches_the_count_and_is_repeatable():
-    letters = ["P", "Q", "N"]
+    letters = ["E", "V", "N"]
     systems, counts, short = class_sample.fill(per_class=2, seed=5, letters=letters)
     assert not short
     assert all(counts[letter] >= 2 for letter in letters)

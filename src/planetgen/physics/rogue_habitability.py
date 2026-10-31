@@ -23,10 +23,10 @@ A rogue planet has no star, so its score is `habitability_world.compute` read fr
 A gas giant or brown dwarf has no surface and scores nothing (every field `None`).
 """
 
-from planetgen.physics import atmosphere, constants, gases, habitability_world, hydrosphere, radiation, radiogenic, regional_temperature, rogue_surface, surface_composition
+from planetgen.physics import atmosphere, constants, gases, habitability_world, hydrosphere, outside_hours, radiation, radiogenic, regional_temperature, rogue_surface, surface_composition
 
 ROGUE_FIELDS = (*(name for name in habitability_world.SCORE_FIELDS
-                  if name not in (*regional_temperature.FIELDS, "outside_hours")), "energy_flux_w_m2")
+                  if name not in (*regional_temperature.FIELDS, "outside_hours", *outside_hours.FIELDS)), "energy_flux_w_m2")
 """tuple: What `generate` sets on a rogue planet, as stored in `rogue_planets`: the score of a star system's body without the
 regional temperatures and the hours outside (a rogue planet has no star, so no latitude bands, day side or daylight) and its stored energy flux (there is
 no star, so no flux variation)."""

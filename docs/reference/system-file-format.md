@@ -129,7 +129,7 @@ a "class M world".
 | `B` | Small, molten world with a thin atmosphere | terrestrial | h | no |
 | `C` | Dead world, no atmosphere | terrestrial | h, e, c | no |
 | `D` | Small icy body | terrestrial | h, e, c | no |
-| `E` | Molten core/crust world with a thin atmosphere | terrestrial | e | yes |
+| `E` | Deep-frozen world, air and a mean surface under -40 C | terrestrial | h, e, c | yes |
 | `F` | Volcanic world with shallow seas | terrestrial | e | yes |
 | `G` | Rocky, barren world | terrestrial | e | yes |
 | `H` | Desert world, little liquid water | terrestrial | e | yes |
@@ -140,13 +140,12 @@ a "class M world".
 | `M` | Temperate terrestrial world | terrestrial | e | yes |
 | `N` | Hot world with a dense, reducing atmosphere | terrestrial | e | no |
 | `O` | Ocean world, most of the surface liquid water | terrestrial | e | yes |
-| `P` | Cold, glaciated world | terrestrial | e | yes |
-| `Q` | Eccentric orbit, extreme temperature swings | terrestrial | e | yes |
+| `P` | Cold, glaciated world, -40 C to freezing | terrestrial | h, e, c | yes |
 | `S` | Barren, rocky Super-Earth | terrestrial | h, e, c | no |
 | `T` | Gas dwarf with a thick atmosphere | gas giant | c | no |
 | `V` | Super-Earth with high gravity | terrestrial | e | yes |
 
-Classes `Q`, `S` and `V` can't be generated as **moons**
+Classes `S` and `V` can't be generated as **moons**
 (they're too large or physically implausible as satellites,
 `tuning.MOON_BLACKLIST`) — this only matters for random moon
 generation, since a slot's own `planet_class` always describes the planet

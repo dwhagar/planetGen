@@ -29,6 +29,7 @@ from planetgen.describe.model import (
 from planetgen.generation.belt import format_composition_summary
 from planetgen.generation.comet import PERIOD_CLASS_LABELS
 from planetgen.generation.star import compressed_heliosphere_radius
+from planetgen.generation.stellar_object import supported_evolutionary_scales
 from planetgen.names.bodies import close_pair_label
 from planetgen.physics import atmosphere as atmosphere_physics
 from planetgen.physics import (
@@ -39,6 +40,7 @@ from planetgen.physics import (
     habitability,
     habitability_explain,
     meteorite_groups,
+    outside_hours,
     pre_main_sequence,
     protection,
     regional_temperature,
@@ -166,8 +168,16 @@ def _star_disk_text(star):
                   _au(star.disk_inner_au), " to ", _au(star.disk_outer_au), ", with no bodies in it")
 
 
+LIFESPAN_SENTENCES = {
+    "fast": "Its lifespan is too short for anything slower than the fastest evolution, so only the simplest light-driven chemistry could arise.",
+    "normal": "That is long enough for life that evolves as fast as Earth's did, but not for the slower paces of evolution.",
+    "slow": "That is long enough for even the slowest paces of evolution to reach a technological civilization.",
+}
+"""dict: What a main-sequence star's lifespan means for life, by the slowest pace it allows (`stellar_object.supported_evolutionary_scales`, GEN.942)."""
+
+
 def _star_age_sentence(star):
-    """Two short sentences: the star's age and lifespan, then what that means for life (`STAR_EVOLUTION`'s notes)."""
+    """Two short sentences: the star's age and lifespan, then what that means for life (the slowest pace its lifespan allows)."""
     age = _gy(star.age)
     if star.yerkes_class in pre_main_sequence.STAGE_CLASSES:
         # GEN.242: still contracting.
@@ -177,11 +187,11 @@ def _star_age_sentence(star):
         sentence = inline("The star is about ", age, " old and is now a white dwarf, which will cool for trillions of years.")
     else:
         sentence = inline("The star is about ", age, " old and should last about ", _gy(star.lifespan), ".")
-    # STAR_EVOLUTION's notes describe a main-sequence star's lifespan window only.
+    # What the lifespan allows is told of a main-sequence star only: an evolved star's letter and lifespan are not those of its main sequence.
     if star.yerkes_class in ("V", "VI"):
-        notes = tuning.STAR_EVOLUTION.get(star.type[0], {}).get("evolutionary_constraint_notes")
-        if notes:
-            sentence = inline(sentence, " ", notes)
+        scales = supported_evolutionary_scales(star)
+        if scales:
+            sentence = inline(sentence, " ", LIFESPAN_SENTENCES[scales[-1]])
     return sentence
 
 
@@ -491,6 +501,10 @@ def _equipment_block(planet):
         rows.append(fact("shelter-shielding", "Shelter shielding", f"{round(levels['shelter_column_g_cm2']):,} g/cm2"))
     if levels.get("outside_hours") is not None:
         rows.append(fact("outside-hours", "Hours outside a year", f"{round(levels['outside_hours']):,} hours"))
+    day, limit = getattr(planet, "outside_hours_day", None), getattr(planet, "outside_hours_limit", None)
+    if day is not None:
+        cause = outside_hours.LIMIT_WORDS.get(limit, limit)
+        rows.append(fact("outside-hours-day", "Hours outside in a day", f"{day:.1f} hours", f", set by {cause}"))
     return facts("Survival equipment", rows) if rows else None
 
 

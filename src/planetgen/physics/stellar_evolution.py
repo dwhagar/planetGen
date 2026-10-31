@@ -35,7 +35,8 @@ import math
 from planetgen.datasets import fetch, mamajek_sequence, white_dwarf_models
 from planetgen.galaxy import scales
 from planetgen.physics import (
-    constants, imf, main_sequence, metallicity, ms_lifetime, post_main_sequence, remnant_mass, stellar_abundances, wolf_rayet)
+    age_metallicity, constants, imf, main_sequence, metallicity, ms_lifetime, post_main_sequence, remnant_mass, stellar_abundances,
+    wolf_rayet)
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.physics import unit_registry as units
@@ -565,7 +566,8 @@ def sample_living_star(age_bias=None, large_star=None, rng=draw, habitable_host=
                 draw.redrawn("star.model_redraw")
                 continue  # an old population has no living star this massive
             low, high = age_window_gy(low, high, age_bias)
-            age = rng.uniform(low, high) if age_law is None else age_law.sample(low, high, rng)
+            age = age_metallicity.tilted_age(
+                birth, population, lambda: rng.uniform(low, high) if age_law is None else age_law.sample(low, high, rng), rng)
         else:
             mass = imf.sample(rng=rng, curve=imf.PRIMARY)
             if mass < stellar_abundances.hydrogen_burning_limit_for_fe_h(birth):
@@ -576,7 +578,7 @@ def sample_living_star(age_bias=None, large_star=None, rng=draw, habitable_host=
             if max_mass_sol is not None and mass >= max_mass_sol:
                 draw.redrawn("star.model_redraw")
                 continue
-            age = sample_star_age_gy(age_bias, rng, population, age_law)
+            age = age_metallicity.tilted_age(birth, population, lambda: sample_star_age_gy(age_bias, rng, population, age_law), rng)
         if habitable_host and age < pc.LIFE_MIN_STAR_AGE_GY:
             draw.redrawn("star.model_redraw")
             continue
@@ -601,7 +603,8 @@ def star_params(initial_mass_sol, age_gy, state):
     database stores. The temperature is rounded to the nearest hundred
     kelvin, as for every generated star; the radius follows from
     Stefan-Boltzmann at that temperature (a white dwarf's from its
-    mass-radius relation).
+    mass-radius relation, and then the luminosity follows from the radius and
+    the stored temperature instead, GEN.365).
 
     Returns:
         dict: `type` (e.g. "G2V Yellow Main Sequence Star"),
@@ -614,6 +617,9 @@ def star_params(initial_mass_sol, age_gy, state):
     luminosity_w = state["luminosity_sol"] * constants.SOLAR_LUMINOSITY
     if state["radius_km"] is not None:
         radius_km = state["radius_km"]
+        # GEN.365: a white dwarf's radius is the degenerate star's (its mass sets it) and its temperature the one stored (rounded, or the
+        # forced type's), so its luminosity is what those two give, and L = 4 pi R^2 sigma T^4 holds for the stored numbers.
+        luminosity_w = constants.FOUR_PI * (radius_km * 1000.0) ** 2 * constants.STEFAN_BOLTZMANN_CONSTANT * temperature ** 4
     else:
         radius_km = math.sqrt(luminosity_w / (constants.FOUR_PI * constants.STEFAN_BOLTZMANN_CONSTANT
                                               * temperature ** 4))

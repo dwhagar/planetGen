@@ -116,7 +116,7 @@ def test_white_dwarfs_are_earth_sized_and_dim(population):
     smallest = stellar_abundances.white_dwarf_radius_solar(high) * phys_c.SOLAR_RADIUS_M / 1000.0
     for state in white_dwarfs:
         assert low <= state["mass_sol"] <= high
-        assert smallest < state["radius_km"] < 15000          # a hot 0.2 solar-mass white dwarf of the cooling sequences is 10,100 km (GEN.742)
+        assert smallest < state["radius_km"] < 20000          # a white dwarf just formed is inflated: 15,700 km at 93,000 K and 0.62 solar masses (GEN.742)
         assert state["luminosity_sol"] <= prog_c.WD_LUMINOSITY_RANGE_SOL[1]
 
 

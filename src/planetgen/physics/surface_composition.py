@@ -43,7 +43,7 @@ from dataclasses import dataclass, field
 
 from planetgen import tuning
 from planetgen.generation import possibility_table as pt
-from planetgen.physics import bulk_draw, comet_population, constants, hydrosphere, ice_species, materials, mixture, rock_types, saturation
+from planetgen.physics import bulk_draw, comet_population, constants, hydrosphere, ice_species, materials, mixture, rock_types, saturation, surface_liquid_world
 from planetgen.util import draw
 from planetgen.util.random import log_uniform
 
@@ -202,7 +202,7 @@ GROUND_FRACTION_TYPES = (OCEAN, ICE, "ultramafic", "anorthositic", "basaltic", "
 FRACTION_FIELDS = tuple(f"ground_{name}_fraction" for name in GROUND_FRACTION_TYPES)
 """tuple: The stored areal share of each ground type (`ground_ocean_fraction`, ...), `None` for a body with no solid ground."""
 
-COLUMN_FIELDS = ("ground_type", "ground_grain", *FRACTION_FIELDS)
+COLUMN_FIELDS = ("ground_type", "ground_grain", *FRACTION_FIELDS, *surface_liquid_world.COLUMN_FIELDS)
 """tuple: Everything a body stores of its surface composition (columns of `planets` and `moons`)."""
 
 
@@ -596,9 +596,9 @@ def generate_surface(body):
     if body.body_type == "g":
         return
     result = draw_surface(inputs_of(body))
-    if result is None:
-        return
-    body.ground_type = result.ground_type
-    body.ground_grain = result.grain
-    for name in GROUND_FRACTION_TYPES:
-        setattr(body, f"ground_{name}_fraction", result.mix.get(name, 0.0))
+    if result is not None:
+        body.ground_type = result.ground_type
+        body.ground_grain = result.grain
+        for name in GROUND_FRACTION_TYPES:
+            setattr(body, f"ground_{name}_fraction", result.mix.get(name, 0.0))
+    surface_liquid_world.generate(body)

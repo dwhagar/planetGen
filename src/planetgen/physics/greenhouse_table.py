@@ -39,6 +39,7 @@ import numpy as np
 
 from planetgen.datasets import hitran_cia, ir_ktables
 from planetgen.physics import constants, elements, gases, mixture
+from planetgen.util import detmath
 
 DATA_FILE = os.path.join(elements.DATA_DIRECTORY, "greenhouse_table.json")
 """str: The fitted table (`scripts/fit_greenhouse_table.py`)."""
@@ -146,8 +147,8 @@ def log_ratio(vector, fitted=None):
     fitted = fitted or table()
     hidden = (np.clip(vector, fitted.low, fitted.high) - fitted.mean) / fitted.scale
     for weights, biases in zip(fitted.weights[:-1], fitted.biases[:-1]):
-        hidden = np.tanh(hidden @ weights + biases)
-    return max(float((hidden @ fitted.weights[-1] + fitted.biases[-1])[0]), 0.0)
+        hidden = np.tanh(detmath.matmul(hidden, weights) + biases)
+    return max(float((detmath.matmul(hidden, fitted.weights[-1]) + fitted.biases[-1])[0]), 0.0)
 
 
 def warming(partial_pressures_pa, gravity_m_s2, absorbed_flux_w_m2, aloft_share=0.0, aloft_pressure_pa=None):

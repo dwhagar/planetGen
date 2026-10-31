@@ -1517,9 +1517,12 @@
 --   `ice_mass_fraction`. NULL for a row made before v183 and for a body with no composition; 0 for a body with no ice. Nothing is backfilled.
 -- v184 (GEN.952): `scatter_members.radius_au` (DOUBLE, NULL), a member's extent in AU, so a page can work out the X-ray luminosity of an accreting pair; NULL on a row made before v184, nothing is backfilled.
 -- v185 (GEN.846): `bright_stars.rotation_period_hours` (DOUBLE, NULL), the spin period in hours of a star the scatter placed, drawn from the star's own seed; NULL on a row made before v184, nothing is backfilled.
--- v187 (GEN.474): `planets` and `moons` gain `ground_intermediate_fraction`, the areal share of intermediate (andesitic) ground, a ground type the volcanic crust of a body takes when the melt of its mantle
---   is 52 to 63 percent silica; NULL on a row made before v187 (the regenerated galaxy replaces it; see `migrations/versions/0187_ground_intermediate.py`). (GEN.475) `asteroid_belts` and `asteroid_fields`
---   also gain `chondrite_group`, the nearest meteorite group of the body's mean composition (`none` far from every group), NULL before v187.
+-- v187 (GEN.768): `planets` and `moons` keep the hours of one local day a person can be outside (`outside_hours_day`, DOUBLE) and the limit that sets them (`outside_hours_limit`, VARCHAR(16): daylight, dose,
+--   heat, cold, air, uv or vehicle; `physics/outside_hours.py`). NULL for a gas giant, an unscored body, a world whose daylight is not stored and a row made before v187, which gets them when the galaxy is regenerated.
+-- v189 (GEN.1009): `scatter_members.radius_max_au` and `mass_max_solar` (DOUBLE, NULL), the largest radius and mass a member has had (a white dwarf's red-giant tip and birth mass), so the history rule and the build read what the tree drew from; NULL on a row made before v187, nothing is backfilled.
+-- v190 (GEN.474): `planets` and `moons` gain `ground_intermediate_fraction`, the areal share of intermediate (andesitic) ground, a ground type the volcanic crust of a body takes when the melt of its mantle
+--   is 52 to 63 percent silica; NULL on a row made before v190 (the regenerated galaxy replaces it; see `migrations/versions/0190_ground_intermediate.py`). (v190, GEN.475) `asteroid_belts` and `asteroid_fields`
+--   also gain `chondrite_group`, the nearest meteorite group of the body's mean composition (`none` far from every group), NULL before v190.
 --
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
@@ -2400,6 +2403,8 @@ CREATE TABLE IF NOT EXISTS planets (
     temp_day_side_swing_k       DOUBLE,  -- v182 (GEN.848): the day and night swing of that place, peak to peak, kelvin of difference
     temp_terminator_swing_k     DOUBLE,  -- v182 (GEN.848): the day and night swing of that place, peak to peak, kelvin of difference
     temp_night_side_swing_k     DOUBLE,  -- v182 (GEN.848): the day and night swing of that place, peak to peak, kelvin of difference
+    outside_hours_day           DOUBLE,  -- v187 (GEN.768): the hours of one local day a person can be outside in the listed equipment
+    outside_hours_limit         VARCHAR(16),  -- v187 (GEN.768): what sets them: daylight, dose, heat, cold, air, uv or vehicle
     energy_flux_w_m2            DOUBLE,
     flux_variation              DOUBLE,
     -- v20 (see header comment): this planet's own reflex-offset "wobble"
@@ -2462,7 +2467,10 @@ CREATE TABLE IF NOT EXISTS planets (
     ground_carbon_fraction        DOUBLE,  -- v159: the areal share of the surface that is carbon
     ground_evaporite_fraction     DOUBLE,  -- v159: the areal share of the surface that is evaporite
     ground_sulfur_fraction        DOUBLE,  -- v159: the areal share of the surface that is sulfur
-    ground_intermediate_fraction  DOUBLE,  -- v187 (GEN.474): the areal share of the surface that is intermediate (andesitic) ground
+    ground_intermediate_fraction  DOUBLE,  -- v190 (GEN.474): the areal share of the surface that is intermediate (andesitic) ground
+    surface_liquid                VARCHAR(32),  -- v188 (GEN.1035): the liquid the surface holds (an id of physics/surface_liquids.py, NULL: none)
+    surface_liquid_fraction       DOUBLE,  -- v188: the share of the surface that liquid covers
+    surface_liquid_depth_km       DOUBLE,  -- v188: its mean depth over that share, km (NULL: not known)
     moon_origin                   VARCHAR(8),  -- v180 (DB.70): how a moon came to orbit its parent (NULL for a planet and for a moon saved before)
     moon_disk_lifetime_myr        DOUBLE,  -- v180: a giant planet's circumplanetary disk: its lifetime, Myr (NULL for a body with no disk)
     moon_disk_alpha_over_f        DOUBLE,  -- v180: the disk's alpha over f (the viscosity over the supply ratio of Canup and Ward)
@@ -2754,6 +2762,8 @@ CREATE TABLE IF NOT EXISTS moons (
     temp_day_side_swing_k       DOUBLE,  -- v182 (GEN.848): the day and night swing of that place, peak to peak, kelvin of difference
     temp_terminator_swing_k     DOUBLE,  -- v182 (GEN.848): the day and night swing of that place, peak to peak, kelvin of difference
     temp_night_side_swing_k     DOUBLE,  -- v182 (GEN.848): the day and night swing of that place, peak to peak, kelvin of difference
+    outside_hours_day           DOUBLE,  -- v187 (GEN.768): the hours of one local day a person can be outside in the listed equipment
+    outside_hours_limit         VARCHAR(16),  -- v187 (GEN.768): what sets them: daylight, dose, heat, cold, air, uv or vehicle
     energy_flux_w_m2            DOUBLE,
     flux_variation              DOUBLE,
     -- v58: this object's unique ID, see the header comment's "v58" note. NULL for a row saved before v58.
@@ -2811,7 +2821,10 @@ CREATE TABLE IF NOT EXISTS moons (
     ground_carbon_fraction        DOUBLE,  -- v159: the areal share of the surface that is carbon
     ground_evaporite_fraction     DOUBLE,  -- v159: the areal share of the surface that is evaporite
     ground_sulfur_fraction        DOUBLE,  -- v159: the areal share of the surface that is sulfur
-    ground_intermediate_fraction  DOUBLE,  -- v187 (GEN.474): the areal share of the surface that is intermediate (andesitic) ground
+    ground_intermediate_fraction  DOUBLE,  -- v190 (GEN.474): the areal share of the surface that is intermediate (andesitic) ground
+    surface_liquid                VARCHAR(32),  -- v188 (GEN.1035): the liquid the surface holds (an id of physics/surface_liquids.py, NULL: none)
+    surface_liquid_fraction       DOUBLE,  -- v188: the share of the surface that liquid covers
+    surface_liquid_depth_km       DOUBLE,  -- v188: its mean depth over that share, km (NULL: not known)
     moon_origin                   VARCHAR(8),  -- v180 (DB.70): how a moon came to orbit its parent (NULL for a planet and for a moon saved before)
     moon_disk_lifetime_myr        DOUBLE,  -- v180: a giant planet's circumplanetary disk: its lifetime, Myr (NULL for a body with no disk)
     moon_disk_alpha_over_f        DOUBLE,  -- v180: the disk's alpha over f (the viscosity over the supply ratio of Canup and Ward)
@@ -2984,7 +2997,7 @@ CREATE TABLE IF NOT EXISTS asteroid_belts (
 
     parent_type                 VARCHAR(16) NOT NULL DEFAULT 'system',  -- v140 (DB.73): what it orbits, see the v140 note
     parent_id                   BIGINT UNSIGNED NULL,  -- v140 (DB.73)
-    chondrite_group             VARCHAR(4) NULL,  -- v187 (GEN.475): the nearest chondrite group of the belt's mean composition (CI, CM, H, L ...), `none` far from every group, NULL before v187
+    chondrite_group             VARCHAR(4) NULL,  -- v190 (GEN.475): the nearest chondrite group of the belt's mean composition (CI, CM, H, L ...), `none` far from every group, NULL before v190
 
     UNIQUE KEY uq_asteroid_belts_uid (uid),
     KEY idx_asteroid_belts_parent (parent_type, parent_id),
@@ -3895,7 +3908,7 @@ CREATE TABLE IF NOT EXISTS asteroid_fields (
 
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     modified_at         TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
-    chondrite_group     VARCHAR(4) NULL,  -- v187 (GEN.475): the nearest chondrite group of the field's mean composition, `none` far from every group, NULL before v187
+    chondrite_group     VARCHAR(4) NULL,  -- v190 (GEN.475): the nearest chondrite group of the field's mean composition, `none` far from every group, NULL before v190
     -- v58: this object's unique ID, see the header comment's "v58" note. NULL for a row saved before v58.
     uid                   BINARY(12),
 
@@ -4304,6 +4317,8 @@ CREATE TABLE IF NOT EXISTS scatter_members (
     seed                 BIGINT UNSIGNED NOT NULL,
     epoch_unix                  DOUBLE NULL,  -- v102 (DB.55): when the position and velocity hold
     radius_au                   DOUBLE NULL,  -- v184 (GEN.952): the extent of the member in AU, NULL on a row made before v184
+    radius_max_au               DOUBLE NULL,  -- v189 (GEN.1009): the largest radius the member has had, in AU, NULL on a row made before v187
+    mass_max_solar              DOUBLE NULL,  -- v189 (GEN.1009): the largest mass the member has had, in solar masses, NULL on a row made before v187
     PRIMARY KEY (source, source_id, member_no),
     CONSTRAINT chk_scatter_members_source CHECK (source IN (1, 2)),
     CONSTRAINT chk_scatter_members_kind CHECK (kind IN (

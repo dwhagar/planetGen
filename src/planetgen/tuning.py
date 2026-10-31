@@ -925,20 +925,21 @@ STAR_MODEL_MAX_REDRAWS = 1000
 # GIANT_ENGULFMENT_RADIUS_FACTOR times its present radius (tidal capture
 # reaches a few stellar radii), and a white dwarf's progenitor, on its
 # asymptotic giant branch, engulfed or drove off everything inside
-# WD_ENGULFMENT_BASE_AU + WD_ENGULFMENT_AU_PER_PROGENITOR_MSUN * (M - 1) AU
-# for a progenitor of M solar masses (GEN.318, docs/design/systems/
-# exotic-environments-planets-and-compact-binaries.md 1.2: 1.5 AU for a
-# solar-mass star, as the generator had it, growing with the progenitor's
-# size). A white dwarf without a model progenitor mass (a forced type, a
-# planetary nebula's central star) takes the mass that leaves it
+# the distance a lookup through WD_ENGULFMENT_POINTS_AU gives for a progenitor
+# of M solar masses (GEN.1012, GM1/GM2: the three Jovian-planet points of
+# Mustill and Villaver 2012, ApJ 761, 121, Figure 7, with their Zahn tides:
+# 2.7 AU for a solar-mass star, 3.8 AU at 2.5 and 10 AU at 5; straight lines
+# between them, the last slope carried on to 8). A white dwarf without a
+# model progenitor mass (a forced type, a planetary nebula's central star)
+# takes the mass that leaves it
 # (WHITE_DWARF_REMNANT_MASS_SOL inverted), kept inside
 # WD_PROGENITOR_MASS_RANGE_SOL: nothing under a solar mass has had time to
 # become one, and above 8 the relation hands over to neutron stars.
 PLANET_MIN_STAR_AGE_GY = 0.01
 LIFE_MIN_STAR_AGE_GY = 0.1
 GIANT_ENGULFMENT_RADIUS_FACTOR = 2.0
-WD_ENGULFMENT_BASE_AU = 1.5
-WD_ENGULFMENT_AU_PER_PROGENITOR_MSUN = 0.8
+WD_ENGULFMENT_POINTS_AU = ((1.0, 2.7), (2.5, 3.8), (5.0, 10.0))
+"""tuple: `(progenitor solar masses, AU)` points of the engulfment radius, Mustill and Villaver 2012 (Jovian planets). Source tier T3, tweak level L1 (GM1, GM2)."""
 WD_PROGENITOR_MASS_RANGE_SOL = (1.0, _boundaries.sol("core_collapse_limit"))
 
 # A planetary nebula's central star is a close pair in PLANETARY_NEBULA_COMPANION_CHANCE of nebulae (a post-common-envelope
@@ -1925,7 +1926,7 @@ momentum loss of a main-sequence donor and the expansion of a giant)."""
 # The chance of a companion inside 10 AU against the star's own [Fe/H] (GEN.103; Boss, 2026-10-16, 6:12 to 6:15 PM
 # EDT: one pooled trend, every star mass). Moe, Kratter & Badenes 2019, ApJ 875:61 (arXiv 1808.02116), for solar-type
 # primaries (0.6 to 1.5 Msun, periods under 10^4 d): 53 +-12% at [Fe/H] -3.0, 40 +-6% at -1.0, 24 +-4% at -0.2 and
-# 10 +-3% at +0.5. `generation.place_terms.close_companion_factor` reads the straight line through them, held flat
+# 10 +-3% at +0.5. `generation.close_binary_trend.close_companion_factor` reads the straight line through them, held flat
 # past the ends, as `F(fe_h) / F(0)` on the odds of the generator's own close share (Boss, 2026-10-16: the odds, not the chance). The errors are reference values for the check
 # (TEST.196), not inputs.
 CLOSE_BINARY_FRACTION_BY_FE_H = {-3.0: 0.53, -1.0: 0.40, -0.2: 0.24, 0.5: 0.10}
@@ -1983,8 +1984,8 @@ PLANET_CLASSES = {
         "type": 't',
     },
     'E': {
-        "description": 'a world with a molten core and crust',
-        "composition": 'silicon, iron, and magnesium',
+        "description": 'a deep-frozen world',
+        "composition": 'silicon, iron, magnesium, and ice',
         "type": 't',
     },
     'F': {
@@ -2042,11 +2043,6 @@ PLANET_CLASSES = {
         "composition": 'silicon, iron, magnesium, and ice',
         "type": 't',
     },
-    'Q': {
-        "description": 'a world with an eccentric orbit and extreme temperature variations',
-        "composition": 'silicon, iron, and magnesium',
-        "type": 't',
-    },
     'S': {
         "description": 'a barren, rocky Super-Earth, its surface molten when it orbits close to its star',
         "composition": 'silicate rock over a large iron core',
@@ -2056,6 +2052,7 @@ PLANET_CLASSES = {
         "description": 'a gas dwarf with a thick atmosphere',
         "composition": 'hydrogen, helium, and hydrocarbons',
         "type": 'g',
+        "also_type": 't',       # GEN.1142: a terrestrial-kind body under about 10 Earth masses with a hydrogen-dominated air is a gas dwarf too
     },
     'V': {
         "description": 'a Super-Earth with high gravity',
@@ -2068,59 +2065,9 @@ PLANET_CLASSES = {
 # --- Life Data ---
 # What lives on a world is a life class (`physics/data/life_classes.json`, GEN.889), drawn from the conditions the world stores.
 
-# Main-sequence lifespan ranges, derived from t = 10 Gy * (M/Msun)^-2.5 (the
-# standard mass-luminosity-based lifetime scaling, anchored to the Sun at 1
-# Msun/10 Gy) applied to each spectral class's real mass range (O: >=16 Msun,
-# B: 2.1-16, A: 1.4-2.1, F: 1.04-1.4, G: 0.8-1.04, K: 0.45-0.8, M: 0.08-0.45
-# Msun -- the same boundaries implied by SPECTRAL_LUMINOSITY_RANGES). Each
-# class's range now meets its neighbors' at the shared mass boundary instead
-# of jumping (the previous table, e.g., capped A at 1.0 Gy while F started at
-# 2.0 Gy, silently skipping the ~1.5-2.3 Gy lifespans of real late-A stars).
-# O keeps a literature-cited floor (~1-10 Myr) rather than extrapolating the
-# power law out to 150 Msun, which understates real mass-loss effects at
-# extreme masses and would predict lifespans of only tens of thousands of
-# years for the most massive O stars -- shorter than any observed star.
-STAR_EVOLUTION = {
-    "O": {
-        "lifespan_gy": (0.001, 0.01), # 1 Million - 10 Million years
-        "supported_evolutionary_scales": ["fast"],
-        "evolutionary_constraint_notes": "It burns out and explodes before planets can cool enough to hold oceans, so only the simplest light-driven chemistry could arise."
-    },
-    "B": {
-        "lifespan_gy": (0.01, 1.5), # 10 Million - 1.5 Billion years
-        "supported_evolutionary_scales": ["fast"],
-        "evolutionary_constraint_notes": "It is volatile and short-lived, which leaves barely enough time for a planet to cool and for single-celled life to appear."
-    },
-    "A": {
-        "lifespan_gy": (1.5, 4.3), # 1.5 Billion - 4.3 Billion years
-        "supported_evolutionary_scales": ["fast", "normal"],
-        "evolutionary_constraint_notes": "It lasts long enough for early biospheres and radiation-tolerant life, but probably not for slow, complex photosynthesis to mature."
-    },
-    "F": {
-        "lifespan_gy": (4.3, 9.1), # 4.3 Billion - 9.1 Billion years
-        "supported_evolutionary_scales": ["fast", "normal", "slow"],
-        "evolutionary_constraint_notes": "It lasts long enough for complex biospheres to emerge, including UV shielding and fluorescent adaptations."
-    },
-    "G": {
-        "lifespan_gy": (9.1, 17.5), # 9.1 Billion - 17.5 Billion years
-        "supported_evolutionary_scales": ["fast", "normal", "slow"],
-        "evolutionary_constraint_notes": "It is steady for a long time, which suits the slow evolution of complex, oxygen-making photosynthesis."
-    },
-    "K": {
-        "lifespan_gy": (17.5, 73.5), # 17.5 Billion - 73.5 Billion years
-        "supported_evolutionary_scales": ["fast", "normal", "slow"],
-        "evolutionary_constraint_notes": "It is very stable and lives for tens of billions of years, so slow-evolving biospheres can reach a climax and adapt to its slight red shift."
-    },
-    "M": {
-        "lifespan_gy": (73.5, 5500.0), # 73.5 Billion - 5.5 Trillion years
-        "supported_evolutionary_scales": ["fast", "normal", "slow"],
-        "evolutionary_constraint_notes": "Early flares demand quick adaptation, such as radiotrophic melanin, but trillions of years of stability let deep-infrared photosynthesis last for good."
-    }
-}
-
 # Not a world's schedule since GEN.750: a world draws its own five ages (`physics.life_timeline`, `LIFE_STEP_MEANS_GYR`). This table
-# names the three paces (the words `life_facts.pace_label` writes), gives the star-level helpers their lifespan classes
-# (`stellar_object.get_star_evolutionary_profile`, `age_needs`) and is what migration 0156 read to fill the ages of an older database.
+# names the three paces (the words `life_facts.pace_label` writes), gives the star-level helpers the paces a star's lifespan allows
+# (`stellar_object.supported_evolutionary_scales`, `age_needs`; GEN.942) and is what migration 0156 read to fill the ages of an older database.
 EVOLUTIONARY_TIMELINES = {
     "normal": { # Changed from "norm" to "normal" for consistency
         "star_lifespan": 10.0, # Billion Years
@@ -2153,7 +2100,7 @@ EVOLUTIONARY_PACE_LABELS = {"fast": "hyper-accelerated", "normal": "standard", "
 table, so a page is written from a world's stored pace and needs no table of ages)."""
 
 # --- Planet Generation Specific Constants ---
-HABITABLE_PLANET_CLASSES = ['E', 'F', 'G', 'H', 'K', 'L', 'M', 'O', 'P', 'Q', 'V']
+HABITABLE_PLANET_CLASSES = ['E', 'F', 'G', 'H', 'K', 'L', 'M', 'O', 'P', 'V']
 """
 list: A list of planet class codes that are considered habitable.
 """
@@ -2986,12 +2933,13 @@ ROGUE_TOPUP_PLACEMENT = 1.0
 """float: The share of the sector's edge, centred on the sector, inside which the top-up places a rogue uniformly (1 is the whole sector). Boss wants to play with it
 (`region-object-store.md` 8.5). Source tier T9, tweak level L3 (GEN.725 row 6.86:RT2)."""
 
-# Above this mass (in Jupiter masses, ~16 Earth masses), a generated rogue
-# planet is treated as a gas giant rather than terrestrial -- roughly
-# where the solar system's own ice giants (Uranus ~14.5, Neptune ~17
-# Earth masses) sit, a common rough dividing line between rocky/icy
-# terrestrial-scale bodies and volatile-dominated giants.
-ROGUE_PLANET_GAS_GIANT_MASS_THRESHOLD_JUPITER = 0.05
+# Above this mass (in Jupiter masses, 10 Earth masses), a generated rogue planet is a giant rather than terrestrial: the mass
+# a core must reach to hold a hydrogen and helium envelope (`GIANT_CORE_CRITICAL_MASS_EARTH`), so a rogue is a giant exactly where
+# a bound planet is (GEN.1133; a bound rocky planet never passes it, and a rogue's rock does not either). Between this and
+# `GIANT_RUNAWAY_MIN_MASS_EARTH` it is an ice giant (class I by its conditions); the rogue's old line of 0.05 (about 16 Earth masses,
+# "where the Solar System's ice giants sit") let 10 to 16 Earth-mass rock come out at up to 17,600 km, past class S.
+ROGUE_PLANET_GAS_GIANT_MASS_THRESHOLD_JUPITER = (
+    GIANT_CORE_CRITICAL_MASS_EARTH * _physical_constants.EARTH_MASS_TO_KG / _physical_constants.JUPITER_MASS_TO_KG)
 
 # --- Rogue planet surface conditions (rogueSurface; Boss's research,
 # 2026-10-01: Stevenson 1999, Burrows et al. 2001, Guillot 2005, Abbot &

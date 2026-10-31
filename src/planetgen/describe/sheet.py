@@ -25,7 +25,8 @@ from planetgen.db import column_units, models
 from planetgen.describe import model
 from planetgen.describe.quantity import inline_text
 from planetgen.describe.sheet_sources import source_of
-from planetgen.physics import constants, daylight, gases, habitability_world, regional_temperature, unit_registry
+from planetgen.physics import (compaction, constants, daylight, gases, habitability_world, outside_hours, regional_temperature,
+                               surface_liquid_world, unit_registry)
 from planetgen.population import facility_ratings
 from planetgen.util.format import format_number, scientific_text
 
@@ -52,7 +53,7 @@ SHOW_GROUPS = frozenset({"identity", "habitability", "life", "ratings"})
 or a facility with no ratings set is itself the answer."""
 
 _PLANET_ABSENT = frozenset({
-    "atmospheric_pressure_pa", "outside_hours", "hydrosphere", "ocean_fraction", "water_mass_fraction",
+    "atmospheric_pressure_pa", "outside_hours_day", "hydrosphere", "ocean_fraction", "water_mass_fraction",
     "dipole_class", "magnetic_moment_a_m2",
 })
 SHOW_WHEN_ABSENT = {
@@ -64,10 +65,10 @@ captain (no air, no magnetic field, a quiet star); every other row is left out o
 API sheet always returns every row and says which are `absent` and which are `show_absent`."""
 
 GLANCE = {
-    "planet": ("planet_class", "zone", "surface_temperature_k", "atmospheric_pressure_pa", "gravity_g",
-               "surface_dose_msv_yr", "outside_hours", "rotation_period_hours", "daylight_hours", "day_share_equator", "distance_km", "period_years"),
-    "moon": ("planet_class", "zone", "surface_temperature_k", "atmospheric_pressure_pa", "gravity_g",
-             "surface_dose_msv_yr", "outside_hours", "rotation_period_hours", "daylight_hours", "day_share_equator", "distance_km", "period_years"),
+    "planet": ("planet_class", "zone", "surface_temperature_k", "flux_variation", "atmospheric_pressure_pa", "gravity_g",
+               "surface_dose_msv_yr", "outside_hours_day", "rotation_period_hours", "daylight_hours", "day_share_equator", "distance_km", "period_years"),
+    "moon": ("planet_class", "zone", "surface_temperature_k", "flux_variation", "atmospheric_pressure_pa", "gravity_g",
+             "surface_dose_msv_yr", "outside_hours_day", "rotation_period_hours", "daylight_hours", "day_share_equator", "distance_km", "period_years"),
     "star": ("role", "star_type", "yerkes_class", "state", "mass_kg", "luminosity_w", "temperature_k",
              "habitable_zone_inner_km", "habitable_zone_outer_km", "snow_line_km", "flare_n33_per_yr",
              "lethal_event_rate_per_gyr", "heliosphere_radius_km", "system_perimeter_km"),
@@ -91,6 +92,14 @@ GLANCE = {
 """dict: For each kind, the row keys of its "At a glance" panel (UX.188), in a captain's order: what it is, can I
 survive there, how long is a day and how far is it. Each is a row of the same sheet."""
 
+SWING_FLAG_MIN = 0.75
+"""float: The peak-to-peak swing of a body's starlight (`flux_variation`, about 4 times its orbit's eccentricity) from which the "At a glance"
+panel flags it as very high (GEN.1135, which retired Class Q: a class that was only an orbit). 4 percent of bodies; 0.5 would flag 12 percent and the
+old class line of 0.25 would flag 36 percent. A default until Boss gives a line."""
+
+SWING_FLAG_LABEL = "Seasonal swing of starlight"
+"""str: What the panel calls the flag row (the sheet's own row for the number is "Seasonal variation of that energy, peak to peak")."""
+
 NOT_STORED = "not stored"
 """str: What a row with no stored value says."""
 
@@ -101,9 +110,10 @@ REGISTRY_QUANTITIES = {
 """dict: A unit registry kind, to the Document quantity kind that shows it with its ladder. Any other kind is written
 as a number and the unit's symbol."""
 
-TEXT, FLAG, TIER, RATING, AUTO = "text", "flag", "tier", "rating", "auto"
+TEXT, FLAG, TIER, RATING, LIMIT, AUTO = "text", "flag", "tier", "rating", "limit", "auto"
 """str: How a column is shown besides a ladder quantity: as stored text, as Yes or No, as a PHI-6 colour, as a facility
-rating (1 Green to 3 Red, `population/facility_ratings.py`), or from its unit (`AUTO`)."""
+rating (1 Green to 3 Red, `population/facility_ratings.py`), as what limits the hours a person can be outside (`LIMIT`, GEN.768), or from
+its unit (`AUTO`)."""
 
 
 @dataclasses.dataclass(frozen=True)
@@ -181,7 +191,9 @@ _BODY_GROUPS = (
     *_rows("physical", ("radius_km", "Radius", "radius"), ("mass_kg", "Mass"), ("volume_km3", "Volume"),
            ("density_g_cm3", "Density"), ("gravity_g", "Surface gravity")),
     *_rows("rotation", ("rotation_period_hours", "Rotation period"), ("axial_tilt_deg", "Axial tilt"),
-           ("outside_hours", "Hours a person can work outside per year (dose limit)"), ("solar_day_hours", "Length of the solar day"),
+           ("outside_hours", "Hours a person can work outside per year (dose limit)"),
+           ("outside_hours_day", "Hours a person can be outside in a day"), ("outside_hours_limit", "What limits those hours", LIMIT),
+           ("solar_day_hours", "Length of the solar day"),
            ("daylight_hours", "Hours of daylight at the equator"), ("day_share_equator", "Share of the time the star is up, equator"),
            ("day_share_mean", "Share of the time the star is up, whole surface"),
            ("parent_shadow_share", "Share of the time in the planet's shadow"),
@@ -213,6 +225,8 @@ _BODY_GROUPS = (
     *_rows("water", ("hydrosphere", "Hydrosphere", TEXT), ("water_mass_fraction", "Water share of the mass"),
            ("ocean_fraction", "Surface under ocean"), ("land_fraction", "Surface above sea level"),
            ("ocean_depth_km", "Ocean depth"), ("ice_shell_km", "Ice shell thickness"),
+           ("surface_liquid", "Surface liquid", TEXT), ("surface_liquid_fraction", "Surface under that liquid"),
+           ("surface_liquid_depth_km", "Depth of that liquid"),
            ("hp_ice_km", "High-pressure ice thickness"), ("ocean_class", "Ocean chemistry", TEXT),
            ("ocean_ph", "Ocean pH"), ("water_activity", "Water activity"),
            ("water_base_pressure_pa", "Pressure at the bottom of the water layer"),
@@ -656,6 +670,8 @@ def _value(spec, table, stored):
         return ["Yes" if stored else "No"]
     if quantity == RATING:
         return [facility_ratings.COLORS[int(stored) - 1].capitalize()] if 1 <= int(stored) <= 3 else [str(stored)]
+    if quantity == LIMIT:
+        return [outside_hours.LIMIT_WORDS.get(stored, str(stored))]
     if quantity == TIER:
         names = habitability_world.TIER_NAMES
         return [names[int(stored)]] if 0 <= int(stored) < len(names) else [str(stored)]
@@ -721,6 +737,15 @@ def missing(kind, stored):
 GIANT_CLASSES = frozenset("IJT")
 """frozenset: The planet classes that are giants (ice giant, gas giant, gas dwarf): no surface, a deep envelope."""
 
+NEGLIGIBLE_TIDE_ECCENTRICITY = 1e-12
+"""float: The eccentricity below which a body's tide heat is taken as nil and is not stored (`interior_heat.update_heat`): the heat goes as the
+square of it, so at 1e-12 it is 1e-24 of the heat at an eccentricity of 1, and the circularised orbits the generator draws are far smaller still (1e-170)."""
+HP_ICE_MIN_BASE_PA = 6.2e8
+"""float: The pressure at the base of a body's water, Pa, from which ice VI (the first high-pressure ice that `water_layer.column` counts in `hp_ice_km`)
+forms: 620 MPa, where ice VI melts at 272 K (`water_layer.LIQUIDUS_K_MPA`)."""
+POROSITY_MAX_MASS_KG = compaction.TAPER_END_KG
+"""float: The mass, kg, below which a body keeps voids (1e21, the end of the compaction taper): `bulk_draw` stores a porosity for every body lighter than this and
+none for a heavier one."""
 AIRLESS_CLASSES = frozenset("CDS")
 """frozenset: The classes with no air (dead world, small icy body, airless super-Earth): no air column to describe."""
 
@@ -730,10 +755,10 @@ _BANDS_AND_ZONES = ("temp_polar_k", "temp_north_k", "temp_equator_k", "temp_sout
                     "temp_day_side_k", "temp_terminator_k", "temp_night_side_k")
 _SURFACE = (
     "hydrosphere", "ocean_fraction", "land_fraction", "ocean_depth_km", "ocean_class", "ocean_ph", "water_activity",
-    "water_base_pressure_pa", "ice_shell_km", "hp_ice_km",
+    "water_base_pressure_pa", "ice_shell_km", "hp_ice_km", "surface_liquid", "surface_liquid_fraction", "surface_liquid_depth_km",
     "mantle_redox", "mantle_delta_iw", "rock_feo_fraction", "rock_al2o3_fraction", "rock_mg_si_ratio",
     "ozone_column_du", "ozone_loss_flag", "surface_dose_msv_yr", "dose_gcr_msv_yr", "dose_sep_msv_yr",
-    "dose_ground_msv_yr", "dose_helio_mult", "uv_surface_index", "shelter_column_g_cm2",
+    "dose_ground_msv_yr", "dose_helio_mult", "uv_surface_index", "shelter_column_g_cm2", "outside_hours", "outside_hours_day", "outside_hours_limit",
     "phi4", "phi4_pressure", "phi4_temperature", "phi4_air", "phi4_water", "phi4_suitability", "phi4_radiation",
     "tier_pressure", "tier_temperature", "tier_air", "tier_water", "tier_suitability", "tier_radiation",
     "life_microbial", "life_flora", "life_fauna", "life_sentient", "l_solv", "l_chem", "l_ener", "l_rad",
@@ -758,6 +783,7 @@ _ZONES = ("temp_day_side_k", "temp_terminator_k", "temp_night_side_k")
 _DAYLIGHT = ("day_share_equator", "solar_day_hours", "daylight_hours")
 _RING_COLUMNS = ("ring_kind", "ring_origin", "ring_inner_km", "ring_outer_km", "ring_mass_kg", "ring_optical_depth", "ring_ice_fraction")
 _AQUIFER_COLUMNS = ("aquifer_depth_km", "aquifer_thickness_km")
+_SURFACE_LIQUID_COLUMNS = ("surface_liquid", "surface_liquid_fraction", "surface_liquid_depth_km")
 ICE_SHELL_STATES = ("ice", "ice-covered ocean")
 """tuple: The hydrospheres with an ice shell (`ice_shell_km`)."""
 _AIR = ("atm_density", "atm_molar_density", "scale_height_km", "tau_haze", "tau_dust", "tau_cloud", "cloud_cover")
@@ -777,22 +803,37 @@ _BODY_RULES = [
      "a giant has no surface: no ocean, rock chemistry, ground dose, habitability score, life or surface temperature"),
     (_AIR, lambda klass, row: klass not in AIRLESS_CLASSES and (row is None or (row.get("atmospheric_pressure_pa") or 0) > 0),
      "a dead world, a small icy body and an airless super-Earth, and any body whose air has gone to nothing, have no air column to give a density, scale height or haze"),
+    (("energy_flux_w_m2", "flux_variation"), lambda klass, row: klass not in GIANT_CLASSES,
+     "a giant is not scored for habitability, so it keeps no starlight or seasonal swing of its own (`insolation` and `habitability_world` leave them none); "
+     "its moons, which are scored in its light, store the flux they receive and the swing"),
     (("lid_regime",), lambda klass, row: klass not in GIANT_CLASSES,
      "a giant has no lid: only a rocky or icy body has a crust over a mantle"),
+    (("tidal_flux_w_m2",), lambda klass, row: klass not in GIANT_CLASSES,
+     "the tide's heat is worked out for the interior of a rocky or icy body; a giant's own heat is the heat it radiates, which has its own row"),
+    (("tidal_flux_w_m2",), lambda klass, row: row is None or (row.get("eccentricity") or 0.0) >= NEGLIGIBLE_TIDE_ECCENTRICITY,
+     "a body on a circular orbit is not flexed, so the tide gives it no heat: the flow is stored only for an orbit with an eccentricity"),
     (_DAYLIGHT, lambda klass, row: _locked(row) is not True,
      "a tidally locked world keeps one face to its star, so it has no solar day, equatorial daylight or day share to give"),
     (("shelter_column_g_cm2",), lambda klass, row: row is None or (row.get("eq_shelter") or 0) > 0 or (row.get("eq_shelter_rec") or 0) > 0,
      "a shelter column is given only for a body whose radiation calls for a shelter, required or recommended"),
-    (("outside_hours",), lambda klass, row: row is None or (row.get("eq_shelter") or 0) > 0,
-     "the hours a person can be outside in a year are limited by dose only where a shelter is required"),
+    (("outside_hours",), lambda klass, row: row is None or row.get("outside_hours") is not None,
+     "the hours a person can work outside in a year are limited by dose only where the dose is a limit; a suit that allows a full working year outside has none"),
     (("ice_shell_km",), lambda klass, row: row is None or row.get("hydrosphere") in ICE_SHELL_STATES,
      "an ice shell covers a body whose water is ice or an ocean frozen over; a dry body, an open ocean and a vapour world have none"),
     (_RING_COLUMNS, lambda klass, row: row is None or any(row.get(key) is not None for key in _RING_COLUMNS),
      "only a body with a ring system has ring columns; a body without rings stores none"),
+    (_SURFACE_LIQUID_COLUMNS, lambda klass, row: row is None or any(row.get(key) is not None for key in _SURFACE_LIQUID_COLUMNS),
+     "only a body with a liquid at its surface (an ocean, a lava sea, a sea of a volatile) stores one; a dry, frozen or airless body has none"),
+    (("surface_liquid_depth_km",), lambda klass, row: row is None or row.get("surface_liquid") not in surface_liquid_world.LAVA_IDS,
+     "the depth of a lava sea is not known: the rules that give a molten surface say nothing of how deep it goes"),
     (_AQUIFER_COLUMNS, lambda klass, row: row is None or any(row.get(key) is not None for key in _AQUIFER_COLUMNS),
      "underground water needs a layer between the freezing and the boiling line of water under the crust, which a body either has or lacks; a body without one stores none"),
-    (("hp_ice_km",), lambda klass, row: row is None or row.get("hydrosphere") in ICE_SHELL_STATES,
-     "high-pressure ice lies under the water of a body whose water is ice or a frozen-over ocean; a dry body, an open ocean and a vapour world have none"),
+    (("hp_ice_km",), lambda klass, row: row is None or (row.get("hydrosphere") in ICE_SHELL_STATES
+                                                         and (row.get("water_base_pressure_pa") or 0.0) >= HP_ICE_MIN_BASE_PA),
+     "high-pressure ice (ice VI and VII) forms only where the water's weight reaches 620 MPa: a dry body, an open ocean, a vapour world and a "
+     "body whose ice or ocean is too shallow for that pressure have none"),
+    (("porosity",), lambda klass, row: row is None or (row.get("mass_kg") or 0.0) < POROSITY_MAX_MASS_KG,
+     "only a body lighter than 1e21 kg is a heap with voids; above it gravity has closed them, so a planet or a large moon stores no porosity"),
     (_OCEAN, lambda klass, row: row is None or row.get("hydrosphere") in OCEAN_STATES,
      "an ocean's depth, chemistry, pH and water activity exist only where there is a liquid ocean"),
     (_LIFE_DETAIL, lambda klass, row: row is None or any((row.get(key) or 0) > 0 for key in LIFE_SCORES),
@@ -828,8 +869,9 @@ _STAR_RULES = [
      "to one in four) and the pair inside a planetary nebula do"),
     (("disk_mass_solar",), lambda klass, row: row is None or row.get("disk_kind") not in (None, "debris"),
      "the mass of a debris disk is not measured, only the light of its dust, so a star with a debris belt has no mass for it"),
-    (("wide_binary_a_crit_km",), lambda klass, row: row is None or row.get("role") != "single",
-     "the critical orbit radius is set by a companion star, so a single star has none"),
+    (("wide_binary_a_crit_km",), lambda klass, row: row is None or row.get("role") == "member" or row.get("binary_configuration") == "wide",
+     "the widest stable orbit around a star is set by a companion that orbits beyond it: the two stars of a wide pair and every further member of a "
+     "system have one, but a single star has no companion, and the stars of a close pair are orbited as one body with nothing outside them to set a limit"),
 ]
 
 _COMET_RULES = [
@@ -844,13 +886,7 @@ apply elsewhere. A column no rule names applies to every class of its kind, so o
 generation pathway, not a rule."""
 
 
-OPEN_GAPS = {
-    **{(kind, key): item for kind in ("planet", "moon") for key, item in (
-        ("tidal_flux_w_m2", "GEN.778"), ("porosity", "GEN.780"), ("hp_ice_km", "GEN.781"), ("outside_hours", "GEN.768"),
-        ("energy_flux_w_m2", "GEN.784"), ("flux_variation", "GEN.784"))},
-    **{("star", key): item for key, item in (
-        ("lethal_event_rate_per_gyr", "GEN.785"), ("wide_binary_a_crit_km", "GEN.789"))},
-}
+OPEN_GAPS = {}
 """dict: The columns known to be empty where they apply (UX.208), `{(kind, key): item id}`: each is a gap in the generation
 pathway, filed as the item named, and excused until that item is done. The fill audit (`tests/test_sheet_fill.py`) fails
 for an empty applicable column that is not here, and the item's owner removes its entry when the column is filled."""

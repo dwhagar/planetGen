@@ -451,6 +451,9 @@ class Planet(PlanetaryObject):
                 self.system_config.MOONS is True
                 or self._draw_moons()):
             planetPhysics.generate_moons(self)
+        # GEN.959: the moons' history with the planet's spin (outward drift, the fall of a moon into a ring, the planet's day), from its birth spin
+        if self.moons and getattr(self, "_birth_spin", None) is not None:
+            planetPhysics.generate_spin(self, self.star.mass, birth=self._birth_spin)
         # GEN.767: the day and night shares, the moons' with their parent's shadow (no draws)
         daylight.generate(self)
         for moon in self.moons:

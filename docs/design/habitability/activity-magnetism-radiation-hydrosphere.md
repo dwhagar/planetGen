@@ -221,7 +221,7 @@ induced fields from their oceans, a flag for GEN.88).
 ### 3.3 Tidal locking
 
 Gladman et al. 1996 (the form used by `tidal_spin`, GEN.731, which gives every body its own Love number and quality factor,
-`tidal_heating.response`): `t = (omega0 - omega_final) / rate`, `rate = 3 k2 G M*^2 R^3 / (alpha m a^6 Q)`, with alpha the moment-of-inertia
+`interior_heat.tidal_response`): `t = (omega0 - omega_final) / rate`, `rate = 3 k2 G M*^2 R^3 / (alpha m a^6 Q)`, with alpha the moment-of-inertia
 factor (0.33 rock). The table below was worked with the earlier fixed Q/k2 = 3,333 for moons (Q 100, k2 0.03) and with k2 = 0.3 for a
 rocky planet (10x faster); a rigid Earth-sized planet now has k2 about 0.5.
 Earth-mass, Earth-size planet at S = 1, initial P = 24 h [C]:

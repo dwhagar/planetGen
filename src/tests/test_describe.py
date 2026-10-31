@@ -20,6 +20,7 @@ from planetgen.describe import build
 from planetgen.describe.quantity import display_value, inline_text
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.phenomena.compact_remnant import BlackHole, NeutronStar
+from planetgen.generation import stellar_object
 from planetgen.generation.system import StarSystem
 from planetgen.physics import habitability, protection, regional_temperature
 from planetgen.util import draw, ladders
@@ -333,8 +334,8 @@ def test_the_star_sentence_is_two_short_sentences_and_makes_no_claim_about_the_u
             summary = [block for block in section["blocks"] if block["type"] == "prose" and block["role"] == "summary"]
             text = " ".join(_plain(sentence) for block in summary for sentence in block["text"])
             assert text.startswith("The star is about ") and "in the universe" not in text and "approximately" not in text
-            if star.yerkes_class == "V" and star.type[0] in tuning.STAR_EVOLUTION:
-                assert tuning.STAR_EVOLUTION[star.type[0]]["evolutionary_constraint_notes"] in text
+            if star.yerkes_class == "V" and stellar_object.supported_evolutionary_scales(star):
+                assert build.LIFESPAN_SENTENCES[stellar_object.supported_evolutionary_scales(star)[-1]] in text
                 assert text.count(". ") >= 1
             seen += 1
     assert seen > 0
