@@ -15,7 +15,7 @@ import pytest
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from planetgen.physics import icy_tide, constants as pc
-from planetgen.physics import body_spin, impact_spin, interior_heat, spin, tidal_heating
+from planetgen.physics import body_spin, impact_spin, interior_heat, spin, spin_torques, tidal_heating
 from planetgen.physics.planets import generate_spin
 from planetgen.util import draw
 from tests.fuzz_support import deterministic_entropy
@@ -195,7 +195,7 @@ def test_generate_spin_stores_the_state_the_tide_leaves(monkeypatch):
     monkeypatch.setattr(spin, "accretion_spin", lambda mass, radius: (BIRTH, 40.0))  # a spin of five hours, tilted 40 degrees
     draw.set_run_seed(3)
     mercury = _planet(MERCURY, 0.387, 87.969 / 365.25, 0.2056, 4.5)
-    generate_spin(mercury, SUN)
+    generate_spin(mercury, SUN, birth=(BIRTH, 40.0, spin_torques.ALWAYS_CAPTURED))   # a body whose draws take the 3:2 (GEN.1172: capture there is a chance)
     assert mercury.axial_tilt_deg == 0.0
     assert spin.spin_state(mercury.rotation_period_hours, mercury.period) == ("resonant", 1.5)
     assert mercury.axial_tilt_deg == 0.0

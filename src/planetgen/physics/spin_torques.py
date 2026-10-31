@@ -37,7 +37,7 @@ caller's to switch off.
 
 **Equilibria.** The spin obeys `I d omega/dt = sum of the torques`. It is a one-dimensional flow, so it runs from its birth value in the
 direction of the net torque until it meets an attractor: a synchronous state (torque changing sign at the orbital rate), a spin-orbit
-resonance whose window of eccentricity holds the orbit's (`tidal_spin.RESONANCES`, Makarov 2012; captured for sure), or a zero of the smooth torque where the
+resonance whose window of eccentricity holds the orbit's (`tidal_spin.RESONANCES`, Makarov 2012) that takes the spin with the chance `tidal_spin.RESONANCE_CAPTURE_PROBABILITY` (a uniform the body carries, GEN.1172), or a zero of the smooth torque where the
 thermal and gravitational tides balance (an asynchronous state, prograde or retrograde: `equilibria`). With constant `Q` those zeros are at
 `x = (1 +- sqrt(1 - 4 c^2)) / (2 c)`, `c = K_g (k2/Q) / (K_a q0)`, which exist when `c <= 1/2`, the `gamma_Q >= 1` of Leconte et al.'s equation 12 (their
 equation 13), the outer one stable.
@@ -336,16 +336,26 @@ class SpinResult:
     kind: str
 
 
+CAPTURE_RATIOS = tuple(sorted(tidal_spin.RESONANCE_CAPTURE_PROBABILITY, reverse=True))
+"""tuple: The resonances a spin can pass without being caught (2.0, 1.5), from the highest ratio down; `capture_units` of `evolve` is one uniform for each, in this order."""
+ALWAYS_CAPTURED = (0.0,) * len(CAPTURE_RATIOS)
+"""tuple: `capture_units` that take every resonance whose window holds the eccentricity (the lowest uniform is under any chance above zero), for a caller that wants the window alone."""
+
+
 def _window_ratios(eccentricity):
-    return [target for target, low, high in tidal_spin.RESONANCES
-            if low < eccentricity < high and tidal_spin.RESONANCE_CAPTURE_PROBABILITY >= 1.0 and target != 1.0]
+    return [target for target, low, high in tidal_spin.RESONANCES if low < eccentricity < high and target in tidal_spin.RESONANCE_CAPTURE_PROBABILITY]
 
 
-def evolve(torques, spin_rate, age_s, eccentricity=0.0):
+def evolve(torques, spin_rate, age_s, eccentricity=0.0, capture_units=ALWAYS_CAPTURED):
     """
     A planet born spinning at `spin_rate` (rad/s) after `age_s` under `torques`: the one-dimensional flow `I d omega/dt = N(omega)`, run in
-    the direction of the net torque until it is caught (a resonance whose window holds `eccentricity`, a synchronous state, an asynchronous balance) or the age is up.
-    With constant `Q` and one raiser the spin falls linearly at the rate `F K k2 / (I Q)` to the first stop.
+    the direction of the net torque until it is caught (a resonance whose window holds `eccentricity` and whose chance the body's uniform is under, a synchronous state, an
+    asynchronous balance) or the age is up. A resonance whose window holds `eccentricity` but that does not catch the spin lets it go on down. With constant `Q` and one
+    raiser the spin falls linearly at the rate `F K k2 / (I Q)` to the first stop.
+
+    Args:
+        capture_units (tuple): One uniform in [0, 1) for each of `CAPTURE_RATIOS`; the spin is caught at a resonance when its uniform is below
+            `tidal_spin.RESONANCE_CAPTURE_PROBABILITY` of it. A body keeps its own (`planets.draw_birth_spin`), so running its history again gives the same state.
     """
     inertia = torques.planet.inertia
     star_rate = torques.raisers[0].orbital_rate
@@ -376,7 +386,10 @@ def evolve(torques, spin_rate, age_s, eccentricity=0.0):
         spin = stop
         kind, ratio = stops[stop]
         if kind == "resonance":
-            return SpinResult(stop, ratio, "resonance")
+            if capture_units[CAPTURE_RATIOS.index(ratio)] < tidal_spin.RESONANCE_CAPTURE_PROBABILITY[ratio]:
+                return SpinResult(stop, ratio, "resonance")
+            spin = stop + direction * 1.0e-9 * max(abs(stop), 1.0e-12)      # not caught: on down to the next stop
+            continue
         if kind == "balance":
             return SpinResult(stop, None, "asynchronous")
         eps = 1.0e-9 * max(abs(stop), 1.0e-12)
