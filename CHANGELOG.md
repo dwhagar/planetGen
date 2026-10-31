@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2906] - 2026-10-31
+
+**Headline:** A forced pair around a star too light to have a star companion now says why, and a metal-poor star's lightest companion is a star, not a brown dwarf.
+
+### Changed
+- **Stars per system match the star-count table in every class (GEN.706).** The three findings of the GEN.631 merge were re-measured on the tree draw: the share of systems with a companion star is the table's for every class (M dwarfs 0.27 against 0.27, the old 0.846 single share came from the dropped brown dwarfs that GEN.899 fixed), and compact companions of living massive and intermediate stars are drawn by the member-state table. A census test now holds the hotter classes (F to O) to the table within four standard errors.
+- **A forced pair that cannot be built says so.** `--binary-system` or `--stars 2` around a primary under the hydrogen-burning limit of its own [Fe/H] (a late M dwarf of 0.078 solar masses, say) is reported as "a companion star (a primary under the hydrogen-burning limit has no lighter star, and a brown dwarf is no star of the count)"; every other forced pair around an M8 or M9 primary is built (500 of 500 but 15, all of them primaries under their own limit).
+- **The lightest companion of a metal-poor star follows its place's limit.** Under [Fe/H] about -0.2 the limit between a star and a brown dwarf is above 0.08 solar masses (GEN.936), so a companion drawn between the two was a brown dwarf using up a place of the table; the floor is now the larger of 0.08 and the place's own limit (`multistar.companion_floor_solar`). Stars at the solar composition and above are unchanged.
+
 ## [8.0.2905] - 2026-10-31
 
 **Headline:** A metal-poor star again gets more companions inside 10 AU than a metal-rich one; the [Fe/H] trend had stopped reaching the tree draw.
