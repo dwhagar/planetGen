@@ -253,3 +253,15 @@ def test_gen833_below_earths_gravity_ice_relief_does_not_grow_but_a_rock_basins_
     assert hy.ocean_fraction(layer_km, small, icy=True) > hy.ocean_fraction(layer_km, small)
     heavy = 3.0 * constants.EARTH_GRAVITY
     assert hy.ocean_fraction(layer_km, heavy, icy=True) == hy.ocean_fraction(layer_km, heavy)
+
+
+def test_gen1222_a_thick_cold_lid_does_not_melt_its_own_base_under_the_surface_temperature():
+    """GEN.1222: the pressure of a lid lowers its base melting point, but not past the ice III triple point; with no floor a cold, low-heat
+    body's thick lid pulled its base under 25 K, the shell came out 0 and the body a liquid ocean at the surface."""
+    gravity = 0.1
+    for flux in (1e-6, 1e-5, 1e-4, 1e-3):
+        shell = hy.pressure_melted_shell_km(flux, 25.0, gravity)
+        assert shell > 0.0
+        assert shell >= hy.ice_shell_thickness_km(flux, 25.0, 251.2)
+    # the Earth-like case stays where it was: a warm top under a thin lid is untouched by the floor
+    assert hy.pressure_melted_shell_km(0.06, 273.0 - 1.0, 9.8) == pytest.approx(hy.ice_shell_thickness_km(0.06, 272.0, hy.WATER_MELTING_K), rel=0.2)
