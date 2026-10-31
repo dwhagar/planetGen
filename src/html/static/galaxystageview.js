@@ -525,12 +525,6 @@ export function createStageView(host) {
 
   // --- Framing -----------------------------------------------------------------
 
-  function fovHalf() {
-    const vertical = THREE.MathUtils.degToRad(camera.fov) / 2;
-    const aspect = camera.aspect || 1;
-    return Math.min(vertical, Math.atan(Math.tan(vertical) * aspect));
-  }
-
   // The points a stage's view is fitted round, worked out once per stage.
   const fitPointsCache = new WeakMap();
   function fitPointsOf(r) {
@@ -1115,11 +1109,11 @@ export function createStageView(host) {
   }
 
   // A new entry in the browser history (the map's Back and Forward).
-  function pushEntry(query, nextStage) {
+  function pushEntry(query) {
     if (pinned) return;
     mapIndex += 1;
     maxIndex = mapIndex;
-    history.pushState({ galaxyStage: true, mapIndex: mapIndex, maxIndex: maxIndex, stage: nextStage }, "", location.pathname + query + location.hash);
+    history.pushState({ galaxyStage: true, mapIndex: mapIndex, maxIndex: maxIndex }, "", location.pathname + query + location.hash);
   }
 
   // MAP.337: goes to stage `next` by moving the camera: it flies to the stage's own camera (or `options.camera`) and the
@@ -1154,7 +1148,7 @@ export function createStageView(host) {
     const to = options.camera ? asCamera(options.camera) : cameraFor(r);
     const query = withKept(options.query || cameraQueryFor(r, to));
     if (options.push !== false && (!S.sameStage(stage, r.stage) || withoutCam(query) !== withoutCam(location.search))) {
-      pushEntry(query, r.stage);
+      pushEntry(query);
     }
     stage = r.stage;
     renderCrumbs();
@@ -1589,14 +1583,6 @@ export function createStageView(host) {
     if (!needGenerated) return true;
     const data = display.data;
     return display.options[index].blocks.some(function (b) { return generatedOf(b, data) > 0; });
-  }
-
-  // The choice under a screen point (an index into display.options), or
-  // -1. Every choice lights on hover, picking a NAV end too: only taking one
-  // needs something generated (pickable, NAV.31).
-  function optionAt(clientX, clientY) {
-    const found = picker.pick(clientX, clientY, function (layer) { return layer === choiceLayer; });
-    return found ? found.entry : -1;
   }
 
   // The whole galaxy is seen from above, where a ray meets the topmost of
@@ -3722,13 +3708,6 @@ export function createStageView(host) {
 
   // --- The address bar (section 9.3) -----------------------------------------
 
-  // Flies to the stage showing sector {shell, band, wedge} among its
-  // neighbours (MAP.26) and selects it.
-  // The sector a locate match (`/galaxy/locate`) sits in, as {shell, band, wedge}.
-  function matchAddress(match) {
-    return { shell: match.shell_index, band: match.band_index, wedge: match.wedge_index };
-  }
-
   function locate(sector) {
     const next = S.sectorStage(sector.shell, sector.band, sector.wedge);
     if (!next) {
@@ -3829,10 +3808,9 @@ export function createStageView(host) {
     }
     const parsed = S.parseStageQuery(location.search);
     if (parsed.problem && !parsed.camera && !parsed.sector) return { stage: S.galaxyStage(), sector: null, problem: parsed.problem };
-    // The stage the camera asked for is the one whose window holds what it looks at (MAP.228); a history entry
-    // keeps the stage it was made at, so Back, Forward and a reload return to it exactly.
-    const kept = history.state && history.state.galaxyStage && history.state.stage && history.state.stage.win ? history.state.stage : null;
-    const asked = parsed.camera ? (kept && !S.resolveStage(kept, getOutline(), edgePc).problem ? kept : stageForCamera(parsed.camera)) : null;
+    // The stage the camera asked for is the one whose window holds what it looks at (MAP.228, MAP.337): the camera in the address
+    // is all a history entry keeps, so Back, Forward and a reload work the stage out from it.
+    const asked = parsed.camera ? stageForCamera(parsed.camera) : null;
     if (parsed.sector) {
       const s = parsed.sector;
       const next = asked || S.sectorStage(s.shell, s.band, s.wedge);
@@ -3854,7 +3832,7 @@ export function createStageView(host) {
     const state = history.state && history.state.galaxyStage ? history.state : null;
     mapIndex = state && state.mapIndex != null ? state.mapIndex : 0;
     maxIndex = Math.max(mapIndex, state && state.maxIndex != null ? state.maxIndex : mapIndex);
-    if (!pinned) history.replaceState({ galaxyStage: true, mapIndex: mapIndex, maxIndex: maxIndex, stage: state ? state.stage : undefined }, "");
+    if (!pinned) history.replaceState({ galaxyStage: true, mapIndex: mapIndex, maxIndex: maxIndex }, "");
     // The marks, star classes and floor first: taking the hidden kinds up rewrites the URL
     // from what is set so far, and would drop a `mark` that wasn't set yet.
     applyStarFiltersFromLocation();
@@ -3886,7 +3864,7 @@ export function createStageView(host) {
     maxIndex = Math.max(maxIndex, mapIndex);
     // Remembered on this entry too, so a reload here still knows how far
     // Forward goes.
-    if (state) history.replaceState({ galaxyStage: true, mapIndex: mapIndex, maxIndex: maxIndex, stage: state.stage }, "");
+    if (state) history.replaceState({ galaxyStage: true, mapIndex: mapIndex, maxIndex: maxIndex }, "");
     // The marks, star classes and floor first: taking the hidden kinds up rewrites the URL
     // from what is set so far, and would drop a `mark` that wasn't set yet.
     applyStarFiltersFromLocation();
