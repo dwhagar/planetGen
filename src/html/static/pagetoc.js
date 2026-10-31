@@ -1,5 +1,5 @@
 // UX.196: the contents list of a page, built from its headings. Every h2 and h3 of <main> becomes a link in a
-// "On this page" navigation after the page title (and its sub-head), nested by level. A heading with no id gets one.
+// "On this page" navigation after the page title (and its sub-head, and its tab bar if it has one), nested by level. A heading with no id gets one.
 // A link to a heading inside a collapsed section opens that section (opensection.js). Pages with fewer than three
 // headings, and headings in dialogs or hidden regions, get no list. A page that already has a contents list of its own gets no
 // second one (UX.235): a nav in <main>, or any element flagged `data-own-toc`, with three or more links to headings or sections on
@@ -57,7 +57,8 @@
   }
   nav.append(list);
 
-  const anchor = main.querySelector(".page-subhead") || main.querySelector("h1");
+  // Under the page's tab bar when it has one (the Generate screens'), so the two horizontal bars read tabs first, then contents.
+  const anchor = main.querySelector(".generate-tabs, [role='tablist']") || main.querySelector(".page-subhead") || main.querySelector("h1");
   if (anchor) anchor.after(nav);
   main.classList.add("has-page-toc");
 
