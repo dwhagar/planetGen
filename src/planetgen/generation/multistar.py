@@ -52,6 +52,7 @@ from dataclasses import dataclass
 from statistics import NormalDist
 
 from planetgen import tuning
+from planetgen.generation import mass_ratio
 from planetgen.generation import member_record
 from planetgen.generation import close_binary_trend
 from planetgen.generation.phenomena import hosts, system_types
@@ -1596,19 +1597,20 @@ def companion_floor_solar(fe_h=None):
 
 
 def companion_ratio_range(birth, fe_h=None):
-    """The range `(low, high)` the birth mass of another star of a tree is drawn over, as a share of the primary's `birth`
-    solar masses, uniform: `tuning.BINARY_MASS_RATIO_RANGE`, the low end no lower than puts the star under the floor
-    (`companion_floor_solar`): the `star-count` table counts stars, so a lighter object would use up one of its
-    places (GEN.899). The brown dwarfs of a tree are a member of their own (`tuning.BROWN_DWARF_COMPANION_CHANCE`); lighter
-    objects than they are planets, filled in as planets are, not members of a tree (GEN.596)."""
-    low_ratio, high_ratio = tuning.BINARY_MASS_RATIO_RANGE
-    return min(max(low_ratio, companion_floor_solar(fe_h) / birth), high_ratio), high_ratio
+    """The range `(low, high)` a star of a tree's birth mass is drawn over as a share of the primary's `birth` solar masses
+    (`mass_ratio.floor_ratio`: `tuning.BINARY_MASS_RATIO_RANGE`, the low end no lower than puts the star under the floor
+    (`companion_floor_solar`, the hydrogen-burning limit of the place's [Fe/H]), because the `star-count` table counts stars and a
+    lighter object would use up one of its places, GEN.899). The law over it is `mass_ratio.py`'s (GEN.951). The brown dwarfs of a
+    tree are a member of their own (`tuning.BROWN_DWARF_COMPANION_CHANCE`); lighter objects than they are planets, filled in as
+    planets are, not members of a tree (GEN.596)."""
+    return float(mass_ratio.floor_ratio(birth, companion_floor_solar(fe_h))), tuning.BINARY_MASS_RATIO_RANGE[1]
 
 
-def _companion_mass(birth, rng, fe_h=None):
-    """The initial mass of another star of a tree whose primary was born with `birth` solar masses: `birth * U(low, high)`
-    over `companion_ratio_range`."""
-    return birth * rng.uniform(*companion_ratio_range(birth, fe_h))
+def companion_mass(birth, rng, fe_h=None):
+    """The initial mass of another star of a tree whose primary was born with `birth` solar masses: `birth` times a ratio from the
+    law of `mass_ratio.py` (Moe and Di Stefano 2017: a power law by primary mass and period, with a twin excess), no lighter than the
+    floor of the place's [Fe/H] (`companion_floor_solar`)."""
+    return birth * mass_ratio.draw(birth, rng.random(), companion_floor_solar(fe_h))
 
 
 def _roster(placed, age_yr, rng, max_stars, n_stars, prevalence, companion=_DRAW_COMPANION, bound_runaway=False,
@@ -1661,7 +1663,7 @@ def _roster(placed, age_yr, rng, max_stars, n_stars, prevalence, companion=_DRAW
         else:
             count = max(1, min(n_stars, max_stars - (compact is not None)))
         for _ in range(count - 1):
-            leaves.append(_star_leaf(_companion_mass(birth, rng, placed.fe_h), age_yr, rng, fe_h=placed.tree_fe_h))
+            leaves.append(_star_leaf(companion_mass(birth, rng, placed.fe_h), age_yr, rng, fe_h=placed.tree_fe_h))
         # A brown dwarf is no star of the table's count: a drawn tree may hold one more member (a directive's count is
         # of stars, so it adds none).
         brown = (n_stars is None and birth > mass_boundaries.sol("hydrogen_burning_limit") and len(leaves) < max_stars - (compact is not None)

@@ -90,7 +90,7 @@
   "white dwarfs mean mass": "GEN.996"
  },
  "anomaly_notes": {
-  "GEN.951": "the primary function is derived from the single-star function and the companion draw (a flat mass ratio of 0.1 to 1, GEN.928); the system function (Chabrier 2003, centre 0.22 solar masses) has 7.7 to 12% of the primaries at 0.6 to 0.8 solar masses and the derivation 6.8%: too many companions fall there from the 0.8 to 1.5 solar mass primaries, where the observed mass ratios peak low and have a twin excess (Moe and Di Stefano 2017, GEN.951)",
+  "GEN.951": "the primary function is derived from the single-star function and the companion draw (GEN.928); the system function (Chabrier 2003, centre 0.22 solar masses) has 7.7 to 12% of the primaries at 0.6 to 0.8 solar masses and the derivation 6.8%. GEN.951 drew the companions' mass ratios from Moe and Di Stefano 2017 (Table 13: a twin excess and a primary-mass and period dependent slope) and the bin did not move (7.08% to 7.05% in the derivation), so the mass ratio is not the cause; what is left is the star-count table's companion counts for G and K primaries and the system function's own range",
   "GEN.996": "white dwarfs come from single stars only, by the Cummings et al. (2018) initial-final mass relation over the generator's ages: mean mass 0.703 solar masses against 0.55 to 0.70 observed; binary evolution makes low-mass (helium core, about 0.4) white dwarfs, which the generator does not draw"
  }
 }

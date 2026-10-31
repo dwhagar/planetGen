@@ -9,7 +9,7 @@ import pytest
 
 from planetgen import tuning
 from planetgen.galaxy import density, disk_history, system_mass as galaxy_system_mass
-from planetgen.generation import multistar, system_mass
+from planetgen.generation import mass_ratio, multistar, system_mass
 from planetgen.physics import imf, mathcheck, remnant_mass, remnant_progenitors, stellar_evolution
 from planetgen.util import draw
 
@@ -48,7 +48,9 @@ def test_the_placed_stars_mean_agrees_with_the_moments_the_perturber_mass_uses()
         old = mass / imf.integral(0.0, tuning.IMF_BREAKS_SOL[0], tuning.IMF_BREAKS_SOL[-1])
         number, mean_mass, _others = system_mass._placed_bins()
         new = float(np.sum(number * system_mass.present_mass_sol(mean_mass, age_gy)) / number.sum())
-        assert new == pytest.approx(old, rel=0.03)
+        # The primaries are heavier than the stars born by the light stars that are companions: 1.6 to 2.4 percent with a flat mass ratio,
+        # 3.3 to 4.3 with the measured one (GEN.951: massive primaries' companions lean light, so fewer light stars are primaries).
+        assert new == pytest.approx(old, rel=0.05)
 
 
 @pytest.mark.parametrize("mass_sol, age_gy", [(0.3, 5.0), (1.0, 5.0), (1.0, 12.0), (3.0, 0.5), (3.0, 10.0), (8.0, 0.02)])
@@ -63,8 +65,7 @@ def test_the_other_stars_of_a_system_are_what_the_member_tree_draws(mass_sol, ag
     placed = float(system_mass.present_mass_sol(np.array([mass_sol]), age_gy)[0])
     others = [multistar.draw_member_tree(multistar.Placed("star", mass_sol), age_gy * 1.0e9, rng=rng).system_mass_solar - placed
               for _ in range(2500)]
-    low, high = multistar.companion_ratio_range(mass_sol)
-    fractions = low + (high - low) * (np.arange(64) + 0.5) / 64
+    fractions = mass_ratio.Ratios(mass_sol).quantiles((np.arange(64) + 0.5) / 64)[0]
     derived = (multistar.expected_star_count(mass_sol) - 1.0) * float(
         system_mass.present_mass_sol(mass_sol * fractions, age_gy).mean())
     error = statistics.stdev(others) / math.sqrt(len(others))

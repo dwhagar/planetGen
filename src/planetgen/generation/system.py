@@ -27,7 +27,7 @@ from planetgen.generation.comet import Comet
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.binary import BinaryStarProxy
 from planetgen.generation import (
-    cloud as cloudContext, life as planetLife, member_record, multistar, place_terms, prevalence, stored_trees, validation,
+    cloud as cloudContext, life as planetLife, mass_ratio, member_record, multistar, place_terms, prevalence, stored_trees, validation,
 )
 from planetgen.physics import stellar_evolution as evolution
 from planetgen.physics import habitability, insolation, interior_heat, magnetism, mass_loss, ocean_tides, pre_main_sequence, radiation, rings, wolf_rayet
@@ -965,7 +965,7 @@ class StarSystem:
         # The widest axis the place keeps (GEN.103), for a pair of the primary and a companion of the mean mass ratio.
         terms = getattr(config, "PLACE_TERMS", None) or place_terms.SOLAR_NEIGHBOURHOOD
         limit_au = place_terms.wide_axis_limit_au(
-            terms, placed.birth_mass_solar * (1.0 + sum(tuning.BINARY_MASS_RATIO_RANGE) / 2.0), primary.age)
+            terms, placed.birth_mass_solar * (1.0 + mass_ratio.mean_ratio(placed.birth_mass_solar)), primary.age)
 
         # A star of a type the directives named can be older than the model's lifetime for its mass: the tree is drawn at
         # the end of that lifetime, the star itself keeps its age.

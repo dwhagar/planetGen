@@ -1782,9 +1782,47 @@ POISSON_REJECTION_MEAN = 10.0
 """float: From this mean up `util/poisson.py` draws a Poisson count by transformed rejection (constant time);
 below it, by Knuth's method (PERF.60)."""
 
-# Binary mass ratio q = M2/M1, uniform (Moe & Di Stefano 2017, ApJS 230:15,
-# find it close to flat); the secondary shares the primary's age.
 BINARY_MASS_RATIO_RANGE = (0.1, 1.0)
+"""tuple: The ends of the mass ratio q = M2/M1 of a primary's companion (Moe and Di Stefano 2017, ApJS 230:15, who count
+companions with q > 0.1); the secondary shares the primary's age. The law over it is `generation/mass_ratio.py` (GEN.951)."""
+
+MASS_RATIO_BREAK = 0.3
+"""float: Where the mass ratio's small-q power law meets its large-q one (Moe and Di Stefano 2017, Eqn. 2); the density is continuous there."""
+
+MASS_RATIO_TWIN_FROM = 0.95
+"""float: The mass ratio from which the twin excess is spread, to 1 (Moe and Di Stefano 2017, Table 1)."""
+
+# The tables below are Moe and Di Stefano 2017, Table 13, one row per primary mass of `COMPANIONS_PER_DECADE_BY_PRIMARY_MASS` (straight
+# in log mass between them, flat past either end) and one column per `COMPANION_LOG_PERIODS_DAYS`; the mass ratio of a companion is
+# drawn from the mix of the four periods' laws in the shares of that table's companions per decade, the period itself being drawn
+# after the masses (`generation/mass_ratio.py`).
+MASS_RATIO_TWIN_EXCESS = (
+    (0.30, 0.20, 0.10, 0.0),
+    (0.22, 0.10, 0.0, 0.0),
+    (0.17, 0.0, 0.0, 0.0),
+    (0.14, 0.0, 0.0, 0.0),
+    (0.08, 0.0, 0.0, 0.0),
+)
+"""tuple: Per primary mass and period, the excess fraction of the companions with q > 0.3 that are twins, spread evenly over
+`MASS_RATIO_TWIN_FROM` to 1 (F_twin). Their upper limits (< 0.03) are read as none."""
+
+MASS_RATIO_LARGE_Q_SLOPE = (
+    (-0.5, -0.5, -0.5, -1.1),
+    (-0.5, -0.9, -1.4, -2.0),
+    (-0.5, -1.7, -2.0, -2.0),
+    (-0.5, -1.7, -2.0, -2.0),
+    (-0.5, -1.7, -2.0, -2.0),
+)
+"""tuple: Per primary mass and period, the power-law slope of the mass-ratio density over q = 0.3 to 1 (gamma_largeq)."""
+
+MASS_RATIO_SMALL_Q_SLOPE = (
+    (0.3, 0.3, 0.3, 0.3),
+    (0.2, 0.1, -0.5, -1.0),
+    (0.1, -0.2, -1.2, -1.5),
+    (0.1, -0.2, -1.2, -1.5),
+    (0.1, -0.2, -1.2, -1.5),
+)
+"""tuple: Per primary mass and period, the power-law slope of the mass-ratio density over q = 0.1 to 0.3 (gamma_smallq)."""
 
 BROWN_DWARF_COMPANION_CHANCE = 0.03
 """float: The chance a star heavier than the hydrogen-burning limit has a brown dwarf companion besides its stars (GEN.899).
@@ -1798,12 +1836,13 @@ SPECTROSCOPIC_MAX_AXIS_AU = 0.26
 """float: A pair closer than this is a spectroscopic binary (the catalogue's "close detached binary, a under 0.26 AU",
 design note 13.1); `MemberTree.spectroscopic_nodes`."""
 
-CONTACT_TERTIARY_KEEP_SHARE = 0.26
+CONTACT_TERTIARY_KEEP_SHARE = 0.48
 """float: The share of the contact binaries that hold the placed star and have a tertiary which keep it (GEN.270). The
-member-tree draw gives 94% of contact binaries a tertiary (84% before GEN.652 read the stars' radii from MIST), because
-the stability screen leaves the inner pair of a hierarchy only short periods; stripping the others from 74% of those where
-the pair holds the placed star brings the share to the catalogue's 60% (measured over 120,000 seeded disc systems: 48% with
-none kept, 94% with all kept; a stand-in until GEN.631's fill measures it again)."""
+member-tree draw gives 88% of contact binaries a tertiary (94% before the mass ratios of GEN.951, 84% before GEN.652 read the
+stars' radii from MIST), because the stability screen leaves the inner pair of a hierarchy only short periods; stripping the others
+from 52% of those where the pair holds the placed star brings the share to the catalogue's 60% (measured over 120,000 seeded disc
+systems: 34% with none kept, 88% with all kept, the twins of GEN.951 making more of the pairs that are alone; it was 26% kept
+before; a stand-in until GEN.631's fill measures it again)."""
 
 YOUNG_GROUP_AGE_MAX_YR = 3.0e5
 """float: A massive system (O or early B, a birth mass of `mass_boundaries.B_SUBCLASS_LOWER_MASS_SOL`'s early-B limit and up) older than this is
@@ -3306,7 +3345,7 @@ PREVALENCE_DRAW_SHARES = {
     "wide_binary": 0.810,       # pairs that are wide (S-type: an axis of 0.25 AU or more)
     "moons": 0.429,             # planets with at least one moon
     "max_planets": 0.037,       # stars that get the most orbits they can hold
-    "multi_star": 0.0044,       # systems with five or more stars (see below)
+    "multi_star": 0.0046,       # systems with five or more stars (see below)
 }
 # `multi_star` is not measured from generated systems: `StarSystem` builds only a
 # single star, a close pair or a wide pair until the member-tree host lands

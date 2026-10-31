@@ -27,7 +27,7 @@ from dataclasses import dataclass
 import numpy as np
 
 from planetgen import tuning
-from planetgen.generation import close_binary_trend, multistar
+from planetgen.generation import close_binary_trend, mass_ratio, multistar, place_terms
 from planetgen.util import draw
 from planetgen.physics import unit_registry as units
 
@@ -45,11 +45,10 @@ _GRID_POINTS = 801
 _DAYS_PER_YEAR = _yr_to_d(1.0)
 
 
-def mean_mass_ratio():
-    """The middle of `tuning.BINARY_MASS_RATIO_RANGE` (the mass ratio is uniform over it): the secondary the shares
+def mean_mass_ratio(primary_born_mass_solar):
+    """The mean mass ratio of a companion of a primary of this birth mass (`mass_ratio.mean_ratio`): the secondary the shares
     are worked out for, before the real one is drawn."""
-    low, high = tuning.BINARY_MASS_RATIO_RANGE
-    return 0.5 * (low + high)
+    return mass_ratio.mean_ratio(primary_born_mass_solar)
 
 
 def log_period_days(separation_au, total_mass_solar):
@@ -130,7 +129,7 @@ def odds(primary_born_mass_solar, chance, fe_h, limit_au, wide_share_scale=None)
     Returns:
         CompanionOdds: The chance of each kind and the inner range's weight among the wide separations.
     """
-    total = primary_born_mass_solar * (1.0 + mean_mass_ratio())
+    total = primary_born_mass_solar * (1.0 + mean_mass_ratio(primary_born_mass_solar))
     birth_top = multistar.ROOT_MAX_AXIS_AU
     top = min(limit_au, tuning.WIDE_BINARY_SEPARATION_CEILING_AU, birth_top)
     outer_low = max(INNER_LIMIT_AU, CLOSE_RANGE_AU[1])

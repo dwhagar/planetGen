@@ -165,8 +165,8 @@ def test_the_prevalence_option_takes_multi_star():
 
 def test_the_generate_page_offers_the_share_and_the_cap():
     names = {name: usual for name, _label, usual in generate_page.PREVALENCE_FIELDS}
-    assert names["prevalence_multi_star"] == "0.44"
-    argv = generate_page.prevalence_argv({"prevalence_multi_star": "0.88"})
+    assert names["prevalence_multi_star"] == "0.46"
+    argv = generate_page.prevalence_argv({"prevalence_multi_star": "0.92"})
     assert argv[:1] == ["--prevalence"] and argv[1].startswith("multi_star=") and float(argv[1].split("=")[1]) == pytest.approx(100, abs=3)
     assert generate_page.prevalence_argv({}) == []
     assert generate_page.prevalence_argv({"max_stars": "12"}) == []

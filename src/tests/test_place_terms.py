@@ -8,7 +8,7 @@ import pytest
 
 from planetgen import tuning
 from planetgen.galaxy import system_mass as galaxy_system_mass
-from planetgen.generation import close_binary_trend, companion_classes, place_terms, system_mass
+from planetgen.generation import close_binary_trend, companion_classes, mass_ratio, place_terms, system_mass
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from planetgen.physics import imf, remnant_progenitors
@@ -221,11 +221,14 @@ def test_the_chances_never_pass_one_and_a_massive_star_changes_by_the_odds_not_t
     assert m_low > 2 * m_high
 
 
-def _widest_limit(terms, system, ratio):
+def _widest_limit(terms, system):
     """The widest axis the place keeps for any star of `system` as the placed one (the heavier companion may take the primary's
     place, the limit was drawn for the star placed)."""
-    return max(place_terms.wide_axis_limit_au(
-        terms, (star.initial_mass_sol or star.mass / 1.98841e30) * ratio, system.primary_star.age) for star in system.stars)
+    def pair_mass(star):
+        birth = star.initial_mass_sol or star.mass / 1.98841e30
+        return birth * (1.0 + mass_ratio.mean_ratio(birth))
+
+    return max(place_terms.wide_axis_limit_au(terms, pair_mass(star), system.primary_star.age) for star in system.stars)
 
 
 def test_a_place_that_keeps_no_wide_pair_loses_it_from_the_chances():
@@ -235,12 +238,11 @@ def test_a_place_that_keeps_no_wide_pair_loses_it_from_the_chances():
     assert here.close == pytest.approx(companion_classes.odds(1.0, 0.44, 0.0, 11_400.0).close)
     # The tree of stars keeps no axis the place cannot (GEN.631): a dense place has a pair or none, and no wide one beyond.
     pairs = [system for system in _systems(terms=dense, count=400) if system.binary_type == "wide"]
-    ratio = 1.0 + sum(tuning.BINARY_MASS_RATIO_RANGE) / 2.0
-    assert all(system.wide_binary.separation_au <= _widest_limit(dense, system, ratio) for system in pairs)
+    assert all(system.wide_binary.separation_au <= _widest_limit(dense, system) for system in pairs)
     # A forced companion in a place that keeps little still keeps the place's limit.
     crowded = place_terms.PlaceTerms(60_000.0, 150.0)
     forced = [system for system in _systems(terms=crowded, BINARY_SYSTEM=True, count=60) if system.binary_type == "wide"]
-    assert all(system.wide_binary.separation_au <= _widest_limit(crowded, system, ratio) for system in forced)
+    assert all(system.wide_binary.separation_au <= _widest_limit(crowded, system) for system in forced)
 
 
 def test_the_ranges_of_separation_share_the_companions_by_moe_and_di_stefanos_lines():

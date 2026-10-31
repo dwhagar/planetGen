@@ -8,8 +8,9 @@ systems per solar mass are one number the placed systems' mean mass agrees with.
 import numpy as np
 import pytest
 
-from planetgen.generation import multistar, primary_mass_function as pmf, system_mass
+from planetgen.generation import mass_ratio, multistar, primary_mass_function as pmf, system_mass
 from planetgen.physics import imf
+from planetgen.util import draw
 
 MASSES = (0.1, 0.2, 0.5, 0.8, 1.0, 2.0, 5.0, 20.0, 100.0)
 
@@ -30,12 +31,13 @@ def test_primaries_and_the_companions_of_heavier_primaries_add_up_to_the_stars_b
         edges = pmf._edges()
         mid = np.sqrt(edges[:-1] * edges[1:])
         _, cells = pmf._solve()
-        for m, count in zip(mid, cells):
-            window_low, window_high = pmf.companion_window(m)
-            overlap = max(0.0, min(high, window_high) - max(low, window_low))
-            width = window_high - window_low
-            if width > 1.0e-12:
-                companions += count * pmf.companions_per_primary(m) * overlap / width
+        ratios = mass_ratio.Ratios(mid)
+        for index, (m, count) in enumerate(zip(mid, cells)):
+            if high < m * ratios.floor[index] or low > m:
+                continue
+            share = (ratios.fraction_below(np.array([min(high / m, 1.0)]), np.array([index]))[0]
+                     - ratios.fraction_below(np.array([min(low / m, 1.0)]), np.array([index]))[0])
+            companions += count * pmf.companions_per_primary(m) * share
         assert primaries + companions == pytest.approx(born, rel=0.01), (low, high)
 
 
@@ -71,8 +73,15 @@ def test_the_systems_per_solar_mass_is_the_mean_system_mass_of_the_construction_
     assert system_mass.mean_system_mass_at_age_solar(0.0) == pytest.approx(1.0 / pmf.systems_per_solar_mass(), rel=0.005)
 
 
-def test_the_companion_window_is_the_one_multistar_draws_from():
-    for mass in MASSES:
-        low, high = pmf.companion_window(mass)
-        ratio_low, ratio_high = multistar.companion_ratio_range(mass)
-        assert (low, high) == pytest.approx((ratio_low * mass, ratio_high * mass))
+def test_the_companions_the_equation_counts_are_the_ones_multistar_draws():
+    """GEN.951: the share of a primary's companions under a ratio, which the equation is solved with, is the empirical share of the
+    masses `multistar.companion_mass` gives."""
+    grid = np.linspace(0.1, 1.0, 19)
+    for mass in (0.2, 0.5, 1.0, 3.0, 20.0):
+        rng = draw.Stream(f"gen951-share-{mass}")
+        ratios = np.sort([multistar.companion_mass(mass, rng) / mass for _ in range(6000)])
+        floor = float(mass_ratio.floor_ratio(mass))
+        grid_here = np.maximum(grid, floor)
+        found = np.searchsorted(ratios, grid_here, side="right") / len(ratios)
+        derived = mass_ratio.Ratios(mass).fraction_below(grid_here)
+        assert np.max(np.abs(found - derived)) < 0.025, mass
