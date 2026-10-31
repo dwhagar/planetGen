@@ -3236,8 +3236,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   precession period.
   Verified (2026-10-09,
   exotic-environments-planets-and-compact-binaries.md): Boss's engine
-  verified the triple-stability criteria (2026-10-09): Mardling and
-  Aarseth 2001 and Eggleton and Kiseleva 1995 stay the implemented
+  verified the triple-stability criteria (2026-10-09): Mardling and Aarseth 2001
+  and Eggleton and Kiseleva 1995 stay the implemented
   forms. Acceptance tests: (1) P-type, m1 = m2 = 1, m3 close to 0, outer
   eccentricity 0, inclination 0 gives R_p / a_in = 2.80; (2) S-type, m1
   = 1, m2 close to 0, m3 = 1, outer eccentricity 0.5, inclination 0
@@ -6101,8 +6101,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Part F of the Body composition research lane
   (docs/design/composition/body-composition-parts/F-boss-note-check.md; 2026-10-17,
   1:28 AM EDT as the lane reported; checks Boss's research note of 1:22
-  AM EDT), filed by the TODO thread. Item F4 (the note names Sloan and
-  Koh 2007 and Choukroun 2010 for clathrates, and perchlorate and
+  AM EDT), filed by the TODO thread. Item F4 (the note names Sloan and Koh 2007
+  and Choukroun 2010 for clathrates, and perchlorate and
   sulfate eutectics for brines; neither paper was read). In icy crusts
   clathrate hydrates hold CH4, CO2 and N2 in water-ice cages and buffer
   an atmosphere's methane supply over gigayears (Titan-type crusts), and
@@ -6634,8 +6634,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   docs/design/composition/atmosphere-composition-parts/09-weighted-composition-tables.md,
   rows o2, o3, o4, o6 of the weighted atmosphere tables: Radioisotopes:
   Th, U and K against [Fe/H] and the Galactic population (the Frebel and
-  Hill cosmochronometers), K volatile depletion by body class, White and
-  Klein 2014 oceanic crust and the 26Al abundance spread between
+  Hill cosmochronometers), K volatile depletion by body class, White and Klein 2014
+  oceanic crust and the 26Al abundance spread between
   systems. It meets GEN.459, GEN.444 and GEN.476. Until it lands those
   rows are `DESIGN` rows: the generator draws a seeded value inside the
   bracket the row gives and the loader lists them as `open` (GEN.472);
@@ -7294,9 +7294,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   halo-fraction scatter (1.01 dex, 8 galaxies) is about three times the
   Harmsen 0.33 dex in the plan: two sources in conflict, widened and
   kept once the primary paper is read. Missing and still on the fetch
-  list: Bogaard 1978, JPL Evaluation 19, Stixrude Part I, Palme and
-  O'Neill 2014, Lodders 2003, Hirschmann 2012, Gaillard 2021 and 2022,
-  Bensby 2014, Pinna 2019b, Bottema 1993.
+  list: Bogaard 1978, JPL Evaluation 19, Stixrude Part I, Palme and O'Neill 2014,
+  Lodders 2003, Hirschmann 2012, Gaillard 2021 and 2022,
+  Bensby 2014, Pinna 2019b.
   Boss's general rules (typed in the project chat at 12:39 PM EDT on
   2026-10-17, relayed by the coordinator): when in doubt, verified wins;
   when two verified sources are in doubt, the newest wins; when two
@@ -8386,8 +8386,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   stream, the count below it stays a computed figure on the sector page
   (`interstellar_debris_count` exists). The size-frequency law and the
   cut are a research item (candidates: Jewitt and Seligman 2023, already
-  cited in `tuning.py`, and, recalled and unverified, Do, Tucker and
-  Tonry 2018); the 0.007 rate is a labelled placeholder until then. A
+  cited in `tuning.py`); the 0.007 rate is a labelled placeholder until then. A
   comet is a small body with a parent or none: origin 'ejected from a
   system' (most) or 'formed in isolation' (weight 0 until a source says
   otherwise); mass and size from the law; composition from the comet
@@ -9355,8 +9354,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.594 stays open and the lane takes one dataset's fallback at a time
   as each lands in the catalogue, checking that nobody has started it.
   Data we hold (2026-10-29 8:55 PM EDT): AD1 methane and ammonia tables
-  are held in /mnt/project-files/data/ad1-methane (Karkoschka and
-  Tomasko 2010 k-tables at 100, 198, 296 K, PDS gbat_0001, NMSU
+  are held in /mnt/project-files/data/ad1-methane (Karkoschka and Tomasko 2010
+  k-tables at 100, 198, 296 K, PDS gbat_0001, NMSU
   planetary datasets) and read by nothing; the licence entry is Boss's.
   Catalog sections 1 and 3.
   Prerequisites: none. Related: GEN.548, GEN.590, GEN.422, GEN.600, DOC.72.
@@ -11355,8 +11354,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Air 1 (after GEN.850/851; the same atmosphere opacity data path).
   Version 8.4.
   Data we hold (2026-10-29 8:55 PM EDT): AD1 methane and ammonia tables
-  are held in /mnt/project-files/data/ad1-methane (Karkoschka and
-  Tomasko 2010 k-tables at 100, 198, 296 K, PDS gbat_0001, NMSU
+  are held in /mnt/project-files/data/ad1-methane (Karkoschka and Tomasko 2010
+  k-tables at 100, 198, 296 K, PDS gbat_0001, NMSU
   planetary datasets) and read by nothing; the licence entry is Boss's.
   Catalog sections 1 and 3.
   Prerequisites: none. Related: GEN.944.
@@ -13317,7 +13316,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
 - [ ] **GEN.1175 Porosity weakening of body strength from a sourced law instead of the placeholder exponential**
   The engine's porosity rule is 'none' (RN5, L3) and an 'exponential'
   rule (strength times exp(-b x porosity), b 4 to 7) is built and off,
-  resting on recalled ceramics coefficients (Pabst 2015); Pohl and Britt
+  resting on recalled ceramics coefficients; Pohl and Britt
   2020 find no usable porosity trend in meteorites and with the
   exponential on Proteus (porous, ice-rich, 210 km, not round) comes out
   round. Find a rock-mechanics or ceramics source (Grott 2019 Ryugu
@@ -13425,8 +13424,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   From Sources 1
   (reports/gen1187-strength-constant-sources-2026-10-31.md): sourced
   values exist for the partial-melt factor exp(-alpha x melt) (alpha 30
-  for diffusion creep, 30 to 45 for dislocation creep, Hirth and
-  Kohlstedt 2003; ice melt law B 22), the Andrade exponent 0.2 to 0.4
+  for diffusion creep, 30 to 45 for dislocation creep, Hirth and Kohlstedt 2003;
+  ice melt law B 22), the Andrade exponent 0.2 to 0.4
   and the Andrade over Maxwell ratio near 1 at low stress (the repo's
   0.3 and 1.0 stay; the rock ratio has a source conflict, record it),
   ice grain-boundary sliding n 1.8, grain exponent 1.4, Q 49 kJ/mol (two
