@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 953 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 954 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -44,8 +44,8 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T6 | 92 | 71 | 18 | 42 | 0 | 223 |
 | T7 | 27 | 8 | 8 | 8 | 0 | 51 |
 | T8 | 0 | 1 | 1 | 5 | 1 | 8 |
-| T9 | 17 | 14 | 4 | 42 | 19 | 96 |
-| All | 552 | 203 | 44 | 124 | 30 | 953 |
+| T9 | 17 | 14 | 4 | 43 | 19 | 97 |
+| All | 552 | 203 | 44 | 125 | 30 | 954 |
 
 ## How the labels were given
 
@@ -1391,6 +1391,12 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | IT7 | D | T2 | L0 | ice_types phases: Ih under 0.21 GPa, II to 0.63 GPa except III at 240 to 256 K and 0.21 to 0.35 GPa and V at 250 K and over and 0.35 to 0.63 GPa, VI to 2.2 GPa and beyond | each boundary 10 percent | water ice by central pressure | a phase of the water phase diagram at a body's centre that differs | a phase-diagram table read from a source | the water phase diagram (recalled, no source read) | - | - |
 | IT8 | P | T5 | L1 | ice_types composition `clathrate_min_share_of_ice` 0.2 and `ch4_mass_in_hydrate` 0.134: methane is a clathrate when the water-caged hydrate is 0.2 of the ice (CH4 5.75 H2O, 13.4 percent methane by mass) | 0.2 to 0.3 (the volume share at which hydrate matters) | water and methane ice mixes | a measured strength of a hydrate-and-ice mix that does not follow the exp(2 f) rule at 0.2 | a volume rule for hydrate in the ice mix | strength research section 11c: hydrate matters above 20 to 30 percent by volume (a soil-engineering analogy); the formula of the hydrate is chemistry | - | - |
 | IT9 | P | T9 | L3 | ice_types composition `ammonia_min_share_of_ice` 0.1: ammonia dihydrate is the ice type when ammonia is this share of the ice | 0.05 to 0.15 | ammonia and water ice mixes | a body whose ice strength follows water ice at 10 percent ammonia | a mixing rule for ammonia and water ice | needed output: strength research section 14 says ammonia is a minor fraction (under 15 percent of the water mass); no measurement sets the share | - | no data |
+
+## 6.130 Stand-ins of the gas disc of a satellite galaxy
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| AB1 | P | T9 | L3 | activity.DECAY_EXPONENTS: the exponent b of `L_X/L_bol` after saturation by mass (1.0 up to 0.3 solar masses, 1.35 at 0.45, 1.8 at 0.6, 1.45 at 0.8 and 1.0), tuned so each mass keeps its `L_X/L_bol` at 5 Gyr from the earlier table | each value within 0.3 of the one that reproduces the earlier level; the solar-mass 1.45 inside the Skumanich band | 0.45 to 1.2 solar masses and ages past the saturation age | a measured `L_X/L_bol` of field stars at 1 to 10 Gyr by mass differing from the model's by more than 0.5 dex, or a decay slope of the Johnstone et al. 2021 model for the same masses outside 1.0 to 2.0 | the decay of the rotation and X-ray model of Johnstone, Bartel and Guedel 2021 (the spin-down torque of Johnstone 2015, not read) | test_activity::test_the_decay_exponents_hold_the_old_table_level_at_the_reference_age | - | replace (GEN.804) |
 
 ## 6.94 Stand-ins of the irregular zone
 
