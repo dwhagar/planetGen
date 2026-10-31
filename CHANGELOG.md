@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2995] - 2026-10-31
+
+**Headline:** A galaxy's disc now holds its clusters to the most massive its gas can form at each radius, instead of one flat 1e6 solar masses everywhere.
+
+### Changed
+- **Disc cluster maximum per ring (GEN.1196).** The disc drew clusters up to 1e6 solar masses at every radius, so a Milky Way shape held 484 clusters above 1e4 solar masses and a heaviest of 6.8e5, against the 1e4 to 4e4 the Milky Way's heaviest clusters have at every radius. Each ring now forms clusters up to `eps Gamma M_GMC,max` (Reina-Campos and Kruijssen 2017) from its own gas, the flat rotation curve and the disc's gas dispersion, and the count of clusters follows the capped mass function (more, lighter ones: 10,400 to 15,700 for the Milky Way shape). The rings change from shear-limited to feedback-limited at about 4 kpc, where the paper puts the Milky Way's at 4.3. The heaviest disc cluster is now about 4e3 (none above 1e4), under the observed level because the one-zone history's gas at 8 kpc is a third of the measured: stand-in row CMX8, and the gas is the next thing to read.
+- Stored clusters of every galaxy change, so it needs an epoch (same as GEN.1195).
+
 ## [8.0.2994] - 2026-10-31
 
 **Headline:** The galactic centre's ring now forms clusters up to the mass its gas allows and loses them to passing clouds, so it holds a few young clusters instead of dozens.
