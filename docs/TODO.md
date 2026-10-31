@@ -20858,23 +20858,8 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   computed change, lock-free.  Related: DOC.83. Owner: Core 1.
   Prerequisites: DOC.93.
 
-- [ ] **DOC.95 References R3b: resolve the 2,546 citations not yet matched to a paper, in batches (Crossref and ADS), and report the papers missing a DOI**
-  Boss (2026-10-31, 2:54 PM EDT, as the lane relayed): every paper we
-  use links to its DOI page and is browsable by area.
-  docs/reference/references-data.json has 2,444 resolved entries (2,257
-  with a DOI, 1,332 with an arXiv id, 187 DOI-less journal references)
-  and 2,546 citations in the code and docs still unresolved, 38 ids
-  unresolved, and no research-area field. Do: resolve the unresolved
-  citations in batches through Crossref and ADS, add a missing-DOI
-  report to the build, and let the count on the References overview fall
-  as it works. Dataset licensing stays Boss's. Wording and data only, no
-  epoch, no lock, lock-free. Design: section 8 of
-  /mnt/project-files/design-drafts/references-help-menu-2026-10-31.md.
-  Related: DOC.89. Owner: Sources 1.
-  Prerequisites: DOC.89.
-
-## VIEW: The view from a planet
-
+- [ ] **DOC.95 References R3b (very important, first, ahead of the page build): tie every unmatched citation to its real paper, or label it not a paper, in batches by heaviest first**
+  Boss (2026-10-31, 2:55 PM EDT, as the lane relayed): finding the real citation for every unmatched citation is "very very important"; high priority, ahead of the References page build, no wait for the shell. Facts: 2,562 of 4,595 author-year mentions in docs/reference/references-data.json are not tied to a paper (about 16,900 places); only about 35 are noise or organizations; 997 appear three or more times; decades 1970s 112, 1980s 164, 1990s 256, 2000s 568, 2010s 912, 2020s 439. The lane reports in /mnt/project-files/reports (294 files) were never harvested and hold many full citations. Crossref works from a build machine; OpenAlex and Semantic Scholar answered 429 until a free key is set. Plan, in order: (1) triage noise ("EDT 2026" read as a citation, Copyright, months) and non-papers (organizations, web pages, software, standards) into a labeled list "Not a paper: what it is, link"; (2) harvest the reports, design drafts and handoffs with `build_references.py harvest --extra`, so a full citation there settles a mention by identifier; (3) search the rest by author, year and the citing sentence's title words on Crossref, then OpenAlex and Semantic Scholar, then arXiv, then ADS, and accept a hit only when first author, year and title or journal agree (near misses go to a review list; none is guessed); (4) work heaviest first (the 997 with three or more places), in batches by decade or by weight; (5) old papers, books and reports get a record by journal, volume, page and publisher with an ADS or library link. Done: every mention is tied to a paper (DOI link, else arXiv, else ADS, else a search link), or sits in the Not a paper list, or in a review list with the citing sentences and what was tried; the overview shows the three counts; a test fails if a new unmatched mention appears without a reason; a missing-DOI report is part of the build. Wording and data only (references-data.json and the REFERENCES pages): no epoch, no lock, lock-free. Boss may supply free OpenAlex and Semantic Scholar keys; ask through TODO. Dataset licensing stays Boss's. Design: section 9 of /mnt/project-files/design-drafts/references-help-menu-2026-10-31.md. Prerequisites: none. Related: DOC.89. Owner: Sources 1.
 - [ ] **VIEW.1 View from a planet**
   **Research first.** Boss: "view-from-planet will have to do
   calculations on colors and A LOT Of stuff, so make special note of
