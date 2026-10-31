@@ -44,3 +44,13 @@ registry) and how it was decided, what was fitted to a result, and how scientifi
 * The API field `speculative`, the developer docs, the Debug view and the changelog keep their words.
 * DOC.93 strips the leftovers (color note, sector text, life class "reaches", sheet source lines to links); DOC.94 locks the crawl once
   DOC.93 lands.
+
+## Citations (DOC.97 to DOC.100)
+
+Boss (2026-10-31, 7:22 PM EDT): all citations and references live in the central registry (`docs/reference/references-data.json`) and `docs/REFERENCES.md`, nowhere else; and a reader of Help > References can click a citation to reach the reference list and the document information, in that section only.
+
+* **DOC.100** gives every record a stable ID and an anchor on /references/papers (`#paper-<id>`).
+* **DOC.97** makes each citation written on a References page a link to that anchor, and fails the build on an unknown or ambiguous one.
+* **DOC.98** moves citations out of everything else: user pages first, then design documents and the TODO text, then code comments, with the key in place of author and year.
+* **DOC.99** locks it: a citation written outside the registry fails the gate for changed files.
+
