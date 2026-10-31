@@ -54,14 +54,15 @@ _BANNED = [(re.compile(r"(?<![\w-])" + re.escape(phrase) + r"(?![\w-])", re.IGNO
 
 OUT_OF_UNIVERSE = (
     "speculative", "stand-in", "standin", "tweak", "tweaks", "tweaked", "fitted", "tuned", "tuning", "educated guess",
-    "tier", "tiers", "generator", "generated", "seed", "seeds", "simulated", "simulation", "model", "models", "modeled", "modelled",
+    "tier", "tiers", "generator", "generated", "random seed", "random seeds", "seeded", "seed value", "seed number", "simulated", "simulation", "model", "models", "modeled", "modelled",
     "modeling", "modelling", "version", "versions", "placeholder", "epoch",
 )
 """tuple: The words that tell a reader the site is a model (rule 16, DOC.87). The site speaks in universe: a working navigation system that
 simply knows things. Where a number came from, what is a stand-in, what was fitted to a result and how sure a part is are said only on
 the References pages (`/references`); every other page says the thing in universe and, where a reader may want the why, links to the
 References entry (`web/helpers.reference_link`). "Level" is not on the list: "sea level" and "ground level" are in universe, and the
-provenance sense ("tier and level") always comes with "tier" or "tweak", which are."""
+provenance sense ("tier and level") always comes with "tier" or "tweak", which are. A bare "seed" is not on it either: a seed vault, or the
+seeds of a plant, is in universe; only the generator's random seed is out of it."""
 
 _OUT_OF_UNIVERSE = re.compile(r"(?<![\w-])(" + "|".join(re.escape(word) for word in sorted(OUT_OF_UNIVERSE, key=len, reverse=True)) + r")(?![\w-])",
                               re.IGNORECASE)

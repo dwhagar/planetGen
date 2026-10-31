@@ -161,12 +161,13 @@ def test_no_template_or_module_writes_a_references_address_by_hand():
     ("A stand-in was used.", ["stand-in"]),
     ("The values are fitted to a result; the model is a tweak of the last.", ["fitted", "model", "tweak"]),
     ("Speculative chemistry, tier T5, tweak L3.", ["speculative", "tier", "tweak"]),
-    ("An educated guess from the seed of the generator.", ["educated guess", "seed", "generator"]),
+    ("An educated guess from the random seed of the generator.", ["educated guess", "random seed", "generator"]),
+    ("A seeded run keeps its seed value and its seed number.", ["seeded", "seed value", "seed number"]),
     ("This version was generated and simulated.", ["version", "generated", "simulated"]),
     ("The Model atmosphere and the modeled and modelled models.", ["model", "modeled", "modelled", "models"]),
     ("Sea level and ground level are in universe.", []),
     ("The seed-based and tier-less words stay, as do the modelling-free ones and a frontier.", []),
-    ("Seeds fall; the seedling grows; a tiered garden, a tierce.", ["seeds"]),
+    ("A seed vault, the seeds of a plant, the seedling and a tierce are in universe.", []),
     ("The star is 5 pc away and the planet is about 1 AU out.", []),
 ])
 def test_the_checker_flags_the_out_of_universe_words_and_only_them(text, words):
