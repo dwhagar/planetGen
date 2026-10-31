@@ -46,7 +46,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from planetgen.physics import air_column, atmospheric_radiation, constants, gases, saturation, stellar_spectrum
+from planetgen.physics import activity, air_column, atmospheric_radiation, constants, gases, photolysis, saturation, stellar_spectrum
 from planetgen.util import draw
 
 SKIN_FACTOR = 2.0 ** -0.25
@@ -284,6 +284,39 @@ def haze_fall(column, temperature_k, radius_m, density_kg_m3, top_pressure_pa, k
     return total, level_pa
 
 
+@dataclass(frozen=True)
+class FarUv:
+    """The far-ultraviolet light a body is under (GEN.982): `ratio` the 91.2 to 200 nm flux at its distance relative to the quiet Sun at 1 AU
+    (`activity.far_uv_flux_ratio`) and `chromospheric_share` the share of that light that is the star's chromosphere's
+    (`activity.far_uv_chromospheric_share`)."""
+
+    ratio: float
+    chromospheric_share: float
+
+
+def far_uv_of(star, distance_au):
+    """The `FarUv` a star gives at `distance_au` (the circle of the same mean light, as the starlight is taken), `None` for a body with no star, no distance or a
+    star lacking the quantities, which has no far ultraviolet to break methane with."""
+    ratio = activity.far_uv_flux_ratio(star, distance_au)
+    share = activity.far_uv_chromospheric_share(star)
+    if ratio is None or share is None:
+        return None
+    return FarUv(ratio, share)
+
+
+def photon_limited_supply_kg_m2_s(column, star_temperature_k, far_uv):
+    """
+    The most methane the light can break, as a mass flux, kg per m2 per s (GEN.982): the gross photolysis of the column of methane that absorbs the far
+    ultraviolet (`photolysis.photon_limited_flux_mol_m2_s`), or of all the methane there is where the air holds less than that column. 0 with no light.
+    """
+    if far_uv is None or not star_temperature_k or star_temperature_k <= 0.0:
+        return 0.0
+    methane_mol_m2 = column.fraction("CH4") * column.pressure_pa / (column.gravity_m_s2 * column.mean_molar_mass_kg_mol)
+    mol_m2_s = photolysis.photon_limited_flux_mol_m2_s("CH4", far_uv.ratio, star_temperature_k, chromospheric_share=far_uv.chromospheric_share,
+                                                      available_column_mol_m2=methane_mol_m2)
+    return mol_m2_s * gases.gas("CH4").molar_mass
+
+
 def haze_supply_kg_m2_s(column, temperature_k, kzz_m2_s):
     """The diffusion-limited methane supply as a carbon-bearing mass flux, `N K_zz f_CH4 / H_a`, kg per m2 per s, at the level where the
     methane column is one Lyman-alpha optical depth."""
@@ -376,7 +409,7 @@ def haze_absorbed_share(tau_550, star_temperature_k):
     return min(share, HAZE_SHARE_CAP)
 
 
-def haze_of(partials_pa, gravity_m_s2, temperature_k, draws, star_temperature_k):
+def haze_of(partials_pa, gravity_m_s2, temperature_k, draws, star_temperature_k, far_uv):
     """
     The haze of an air: its depth at 550 nm, the share of the absorbed sunlight it takes and the pressure it takes it at (where half of what it takes is
     taken, from the top, in the haze's mass over the air column), for the draws of the body (`draw_haze_draws`). `NO_HAZE` for an air that does not haze.
@@ -387,20 +420,22 @@ def haze_of(partials_pa, gravity_m_s2, temperature_k, draws, star_temperature_k)
         temperature_k (float): The temperature at the ground.
         draws (HazeDraws): The body's three haze draws.
         star_temperature_k (float or None): The star's effective temperature (`None`: no sunlight to absorb).
+        far_uv (FarUv or None): The far-ultraviolet light the body is under (`far_uv_of`); `None`: none, so no methane is broken and no haze made.
     """
     try:
         column = air_column.from_partials({f: p for f, p in partials_pa.items() if gases.gas(f).rayleigh is not None}, gravity_m_s2)
     except air_column.EmptyColumn:
         return NO_HAZE                  # an air of gases with no Rayleigh entry (sodium) is an exosphere, not a column that hazes
-    return haze_in(column, temperature_k, draws, star_temperature_k)
+    return haze_in(column, temperature_k, draws, star_temperature_k, far_uv)
 
 
-def haze_in(column, temperature_k, draws, star_temperature_k):
-    """`haze_of` for an `AirColumn`."""
+def haze_in(column, temperature_k, draws, star_temperature_k, far_uv):
+    """`haze_of` for an `AirColumn`. The supply of methane is the smaller of the diffusion-limited one and the one the far ultraviolet can break (GEN.982)."""
     gate = haze_gate(column)
     if gate <= 0.0:
         return NO_HAZE
-    mdot = haze_supply_kg_m2_s(column, temperature_k, draws.kzz_m2_s) * draws.yield_ * gate
+    supply = min(haze_supply_kg_m2_s(column, temperature_k, draws.kzz_m2_s), photon_limited_supply_kg_m2_s(column, star_temperature_k, far_uv))
+    mdot = supply * draws.yield_ * gate
     top = min(column.pressure_pa * 1e-8, 1e-4)
     fall, level_pa = haze_fall(column, temperature_k, draws.radius_m, HAZE_DENSITY_KG_M3, max(top, 1e-12), draws.kzz_m2_s)
     tau = 3.0 * HAZE_Q_EXT * mdot * fall / (4.0 * HAZE_DENSITY_KG_M3 * draws.radius_m)
@@ -561,7 +596,8 @@ def generate_aerosols(body):
         return
     dry = body.body_type != "g" and not (getattr(body, "ocean_fraction", None) or 0.0)
     star_temperature = getattr(getattr(body, "star", None), "temperature", None)
-    haze = haze_in(column, temperature, draw_haze_draws(haze_stream_of(body)), star_temperature)
+    star = getattr(body, "star", None)
+    haze = haze_in(column, temperature, draw_haze_draws(haze_stream_of(body)), star_temperature, far_uv_of(star, getattr(body, "_star_distance_au", None)))
     drawn = draw_aerosols(column, temperature, stream_of(body), haze, dry_surface=dry)
     for field in BODY_FIELDS:
         setattr(body, field, getattr(drawn, field))

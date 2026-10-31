@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 973 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 975 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -41,11 +41,11 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T3 | 84 | 38 | 5 | 10 | 0 | 137 |
 | T4 | 40 | 5 | 0 | 15 | 10 | 70 |
 | T5 | 44 | 17 | 0 | 1 | 0 | 62 |
-| T6 | 93 | 72 | 20 | 51 | 0 | 236 |
+| T6 | 95 | 72 | 20 | 51 | 0 | 238 |
 | T7 | 27 | 8 | 8 | 8 | 0 | 51 |
 | T8 | 0 | 1 | 1 | 5 | 1 | 8 |
 | T9 | 19 | 14 | 4 | 42 | 19 | 98 |
-| All | 559 | 204 | 46 | 134 | 30 | 973 |
+| All | 561 | 204 | 46 | 134 | 30 | 975 |
 
 ## How the labels were given
 
@@ -586,6 +586,8 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | SL2 | P | T2 | L0 | stellar_library.FUV_OVER_XUV 1.12 (the far-ultraviolet 912 to 1700 A power of a star's chromosphere over its XUV 5 to 911 A power; median of the eleven MUSCLES stars) | 0.3 to 2.3 (the eleven stars' own range) | stars with a corona, 2900 to 5200 K; applied to every temperature | a star whose measured far-ultraviolet is not within a factor of 3 of its XUV | the star-by-star HLSP spectra, or a relation against rotation and age (Linsky et al. 2020; Youngblood et al. 2017 Ca II K relations) | test_stellar_library_real::test_the_far_ultraviolet_of_a_muscles_star_is_the_corona_and_not_the_photosphere | - | - |
 | SL3 | T | T5 | L0 | stellar_library.FUV_IN_UV_C 0.89 (the chromospheric far ultraviolet is spread evenly in wavelength over 91.2 to 170 nm, and the share above 100 nm is UV-C) | 0.8 to 0.95 | the split of the corona's light between the ionising band and UV-C | a measured spectrum with the 91.2 to 100 nm part above 20 percent of the band | the HLSP spectra (Lyman alpha at 121.6 nm lies inside UV-C either way) | test_stellar_spectra::test_a_star_with_a_corona_has_more_far_ultraviolet_and_ionising_light_and_the_same_visible | - | - |
+| SL4 | P | T6 | L0 | photolysis.blended_spectral_ratio (the rate per unit 91.2 to 200 nm flux of a star is its chromospheric power share times the Sun's ratio 1 plus the photospheric share times the blackbody template ratio of its temperature; GEN.982) | the weighting 0 to 1 | every star the haze methane supply is asked of | a measured rate of methane around a cool active star more than a factor of 3 off the blend | a band-by-band integral of the cross section over the star's spectrum (MUSCLES HLSP) | test_aerosols::test_a_cool_active_star_is_not_given_the_blackbody_templates_small_methane_rate | - | - |
+| SL5 | P | T6 | L0 | photolysis.shielded_column_mol_m2 (light is absorbed in one layer, the column of optical depth 1 at the species' mean UV cross section of Hu, Seager and Bains 2012 table 6, so a thick air is photolysed only in that column; GEN.982) | the column within a factor of 2 (Hu's critical pressure 126 Pa at 1 ppm methane against 1 / sigma giving 260 Pa) | H2O, NH3, CH4, CO2, H2S in a thick air | a modelled methane photolysis rate of Titan's air more than a factor of 3 off the 3e9 to 1e10 molecules per cm2 per s that the column gives | a photochemical column model with the species' cross sections by wavelength | test_photolysis::test_the_methane_the_sun_can_break_over_the_earths_area_is_within_the_range_of_the_anoxic_methane_fluxes | - | - |
 | SL4 | P | T5 | L0 | stellar_spectra: the grids are solar metallicity; the models hold no chromosphere (SP2 adds it); a giant cooler than 3500 K reads the log g 4.5 dwarf; the part of a bin the grid does not reach takes the blackbody and the bins are renormalised to one (closure 0.97 to 1.00) | none | stars of 2300 to 50000 K | a metal-poor or metal-rich star whose ultraviolet differs from the solar-metallicity model by more than 0.2 dex | metallicity-dependent grids (ATLAS9 and PHOENIX both have them; a larger download) | test_stellar_library_real::test_the_library_covers_the_temperatures_the_generator_makes_stars_at | - | - |
 
 ## 6.34 Stand-ins of the alpha-enhanced tracks and the age-metallicity relation

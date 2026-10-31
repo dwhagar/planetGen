@@ -172,6 +172,7 @@ class Setting:
         haze_draws (HazeDraws or None): The body's haze draws (`aerosols.draw_haze_draws` of `aerosols.haze_stream_of`), `None` for a setting
             whose air makes no haze (the haze takes sunlight aloft, GEN.851).
         star_temperature_k (float or None): The star's effective temperature, whose blackbody the haze's share of the sunlight is weighted by.
+        far_uv (FarUv or None): The far-ultraviolet light the body is under (`aerosols.far_uv_of`), which limits the methane the haze is made of (GEN.982).
         starlight_w_m2 (float): The starlight at the body's orbit (`greenhouse.absorbed_flux_w_m2` takes the albedo off it); used only with `albedo_law`.
         albedo_law (IceAlbedoLaw or None): The Bond albedo as a function of the surface temperature of a body with surface water (GEN.972,
             `climate_branches`): each step of the fixed point takes its absorbed flux at the albedo of the last step's temperature. `None` holds the
@@ -195,6 +196,7 @@ class Setting:
     internal_flux_w_m2: float = 0.0
     haze_draws: object = None
     star_temperature_k: object = None
+    far_uv: object = None
     starlight_w_m2: float = 0.0
     albedo_law: object = None
 
@@ -620,7 +622,7 @@ def solve(setting, start_temperature_k):
             return _airless(setting, mixture, step, design, ocean)
 
         haze = aerosols.NO_HAZE if setting.haze_draws is None else aerosols.haze_of(partials, setting.gravity_m_s2, temperature, setting.haze_draws,
-                                                                                  setting.star_temperature_k)
+                                                                                  setting.star_temperature_k, setting.far_uv)
         # the haze takes a share of the starlight; the flux the air radiates also holds a giant's own heat, so the share of that flux is smaller
         absorbed_w_m2 = setting.absorbed_flux_at(temperature)
         albedo_of_step = None if setting.albedo_law is None else setting.albedo_law.albedo(temperature)
@@ -733,4 +735,5 @@ def setting_of(body, *, albedo, starlight_w_m2, star_distance_au, heat, surface_
         internal_flux_w_m2=giant_draw.own_flux_w_m2(body) if giant else 0.0,
         haze_draws=aerosols.draw_haze_draws(aerosols.haze_stream_of(body)),
         star_temperature_k=getattr(getattr(body, "star", None), "temperature", None),
+        far_uv=aerosols.far_uv_of(getattr(body, "star", None), star_distance_au),
         starlight_w_m2=starlight_w_m2, albedo_law=ice_albedo_law(body, albedo, surface_w))

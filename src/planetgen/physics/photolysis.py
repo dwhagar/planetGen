@@ -148,7 +148,19 @@ def spectral_ratio(formula, teff_k):
     return math.exp(math.log(lo_r) + f * (math.log(hi_r) - math.log(lo_r)))
 
 
-def rate_per_s(formula, flux_ratio=1.0, teff_k=TEMPLATE_TEMPERATURES_K[1], active_sun=False):
+def blended_spectral_ratio(formula, teff_k, chromospheric_share=0.0):
+    """
+    The rate per unit far-ultraviolet flux relative to the Sun's for a star whose 91.2 to 200 nm light is `chromospheric_share` chromosphere and the rest
+    photosphere (GEN.982): the chromosphere's lines are the Sun's own spectrum (ratio 1) and the photosphere's tail is the blackbody template of its
+    temperature (`spectral_ratio`), so a cool active star is not given the templates' small CO, N2 and CH4 rates for light that is Lyman alpha.
+    [Stand-in, tier educated guess from physics, tweak L0: the weighting by the power share is the simplest blend; the cross sections are not weighed band by band.]
+    """
+    if not 0.0 <= chromospheric_share <= 1.0:
+        raise ValueError("a share is between 0 and 1")
+    return chromospheric_share + (1.0 - chromospheric_share) * spectral_ratio(formula, teff_k)
+
+
+def rate_per_s(formula, flux_ratio=1.0, teff_k=TEMPLATE_TEMPERATURES_K[1], active_sun=False, chromospheric_share=0.0):
     """
     The photolysis rate, per second, of `formula`.
 
@@ -158,6 +170,7 @@ def rate_per_s(formula, flux_ratio=1.0, teff_k=TEMPLATE_TEMPERATURES_K[1], activ
             for the Sun at `r` AU).
         teff_k (float): The star's effective temperature, kelvin.
         active_sun (bool): Apply the species' active-Sun factor (the star is in an active phase).
+        chromospheric_share (float): The share of the star's 91.2 to 200 nm power that is chromospheric (`blended_spectral_ratio`); 0 is the pure template.
 
     Raises:
         NoData: If `active_sun` and no factor was read for the species.
@@ -170,7 +183,7 @@ def rate_per_s(formula, flux_ratio=1.0, teff_k=TEMPLATE_TEMPERATURES_K[1], activ
         if row.activity_factor is None:
             raise NoData(f"no active-Sun factor was read for {formula}")
         activity = row.activity_factor
-    return flux_ratio * activity * spectral_ratio(formula, teff_k) / row.lifetime_s
+    return flux_ratio * activity * blended_spectral_ratio(formula, teff_k, chromospheric_share) / row.lifetime_s
 
 
 def lifetime_s(formula, flux_ratio=1.0, teff_k=TEMPLATE_TEMPERATURES_K[1], active_sun=False):
@@ -195,16 +208,21 @@ def shielded_column_mol_m2(formula):
     return 1.0e4 / (sigma * elements.AVOGADRO)
 
 
-def photon_limited_flux_mol_m2_s(formula, flux_ratio=1.0, teff_k=TEMPLATE_TEMPERATURES_K[1], active_sun=False):
+def photon_limited_flux_mol_m2_s(formula, flux_ratio=1.0, teff_k=TEMPLATE_TEMPERATURES_K[1], active_sun=False, chromospheric_share=0.0,
+                                 available_column_mol_m2=None):
     """
     The most of `formula` the light can break in a thick air, mol per m2 of ground per second (GEN.982): the unshielded rate per molecule
     (`rate_per_s`) of the column that absorbs the light (`shielded_column_mol_m2`). This is the gross photolysis; what a species' products recombine
-    into is not taken off. For the Sun at 1 AU, methane comes to about 78 Tmol a year over the Earth's area.
+    into is not taken off. For the Sun at 1 AU, methane comes to about 78 Tmol a year over the Earth's area. A gas of which the air holds less than
+    the absorbing column (`available_column_mol_m2`, mol per m2 of ground) is thin to the light, and only what there is can be broken.
 
     Raises:
         NoData: If no mean cross section was read for the species.
     """
-    return shielded_column_mol_m2(formula) * rate_per_s(formula, flux_ratio, teff_k, active_sun)
+    column = shielded_column_mol_m2(formula)
+    if available_column_mol_m2 is not None:
+        column = min(column, max(0.0, available_column_mol_m2))
+    return column * rate_per_s(formula, flux_ratio, teff_k, active_sun, chromospheric_share)
 
 
 def inverse_square(distance_au):

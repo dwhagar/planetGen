@@ -289,7 +289,7 @@ def test_every_generated_body_stores_the_density_scale_height_and_greenhouse_its
         if getattr(body, "life_class", None):
             continue            # life changes the air after the temperature is solved (its methane and oxygen, GEN.855), and with it the haze the temperature was solved under
         haze = aerosols.haze_of(air, gravity, body.surface_temperature, aerosols.draw_haze_draws(aerosols.haze_stream_of(body)),
-                                body.star.temperature)
+                                body.star.temperature, aerosols.far_uv_of(body.star, body._star_distance_au))
         warming = atmosphere_state.greenhouse_warming(air, gravity, absorbed, haze.absorbed_share, haze.pressure_pa)
         assert body.greenhouse_factor == pytest.approx(warming.factor, rel=1.5e-2, abs=1e-6)
     assert bodies > 5

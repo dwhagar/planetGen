@@ -430,6 +430,22 @@ def far_uv_flux_ratio(star, distance_au):
     return power / (4.0 * math.pi * (distance_au * constants.AU_M) ** 2) / _sun_far_uv_flux_w_m2()
 
 
+def far_uv_chromospheric_share(star):
+    """
+    The share of the star's 91.2 to 200 nm power that is its chromosphere's and transition region's (GEN.982), 0 to 1: the light the photolysis table's Sun
+    row is made of (Lyman alpha and the lines around it), against a photosphere's smooth tail, which the table's blackbody templates stand for. `None`
+    when the star lacks a mass, radius, temperature or luminosity.
+    """
+    temperature, luminosity = getattr(star, "temperature", None), getattr(star, "luminosity", None)
+    if not (getattr(star, "mass", None) and getattr(star, "radius", None) and temperature and luminosity):
+        return None
+    log_ratio = getattr(star, "log_lx_lbol", None)
+    corona = 0.0 if log_ratio is None else coronal_xuv_w(10 ** log_ratio * luminosity) / luminosity
+    photosphere, chromosphere = stellar_library.far_uv_powers_w(temperature, stellar_library.surface_logg(star.mass, star.radius), luminosity, corona)
+    total = photosphere + chromosphere
+    return chromosphere / total if total > 0.0 else 0.0
+
+
 def _uv_c_share(star):
     """The star's `uv_c_share`: the library's (GEN.971); the seeded GEN.443 share, from the star's own stream so no draw of the run's
     moves, for a run that disregards a missing library."""
