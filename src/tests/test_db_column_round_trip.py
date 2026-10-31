@@ -75,6 +75,8 @@ NULL_IN_THIS_GALAXY = {
     ("galaxy_shape", "core_min_luminosity_sol"): "follows the galaxy-wide limit until set (DB.54)",
     ("galaxy_shape", "core_mass_limit_sol"): "follows the galaxy-wide limit until set (DB.54)",
     # High-pressure ice lies only under the deepest oceans.
+    # GEN.1057: a rogue planet has no moon that fell and no comet that passed, so it has no ring (the columns are stored for a ring set by hand).
+    **{("rogue_planets", column): "a rogue planet has no ring (GEN.1057)" for column in rings.BODY_FIELDS},
     **{(table, "hp_ice_km"): CHANCE for table in ("planets", "moons", "rogue_planets")},
     # Whether any moon of this small galaxy holds an ocean is chance.
     **{("moons", column): CHANCE for column in
