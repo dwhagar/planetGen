@@ -17,7 +17,7 @@ phenomenon and other pages use to link a class label here.
 from flask import abort
 from markupsafe import Markup
 
-from planetgen.web.lib import habitability_ref, life_help, property_help
+from planetgen.web.lib import habitability_ref, help_registry, life_help, property_help
 from planetgen.web.lib.classref import alphabetical, catalog, class_entry, class_type, class_url_parts
 
 from . import bp
@@ -72,6 +72,29 @@ def _population_links():
     if status["polities"]:
         links.append({"label": "Polities", "url": page_url("polities")})
     return links
+
+
+@bp.route("/help")
+def help_index():
+    """The help index: every help page of `web/lib/help_registry.py` under its category, with the pages beneath it (the class types, the
+    life topics and the life classes) read from the program's tables."""
+    groups = []
+    for category in help_registry.categories():
+        topics = []
+        for topic in category["topics"]:
+            topics.append({
+                "label": topic.label, "summary": topic.summary, "url": page_url(topic.endpoint),
+                "children": [{"label": child.label, "summary": child.summary, "url": page_url(child.endpoint, **child.values)}
+                             for child in help_registry.children(topic)]})
+        groups.append({"title": category["title"], "summary": category["summary"], "slug": category["slug"], "topics": topics})
+    return render_page(
+        "help_index.html",
+        title="Help",
+        section="help",
+        breadcrumbs=[crumb("Help")],
+        description="Every help page: the classes, the properties, the habitability ratings and the kinds of life.",
+        groups=groups,
+    )
 
 
 @bp.route("/help/habitability")

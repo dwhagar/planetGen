@@ -10,7 +10,7 @@ their sources (`domains`), so the tables cannot disagree with the score.
 """
 
 from planetgen import tuning
-from planetgen.physics import atmosphere, constants, habitability, orbits
+from planetgen.physics import atmosphere, constants, habitability, life_classes, orbits, regional_temperature
 from planetgen.physics.habitability_world import LETHAL_DOSE_SV_YR
 from planetgen.physics.protection_limits import limit
 from planetgen.web.lib import habitability_symbols
@@ -23,11 +23,13 @@ EQUIPMENT_ITEMS = (
     ("Sealed suit", "A fully enclosed suit with its own climate: heated for the deep cold, heat-shielded for the "
                     "hot, chemical-barrier where a corrosive gas or liquid is about."),
     ("Pressure suit", "The ambient pressure is too low for a mask to give enough oxygen."),
-    ("Armoured suit", "A rigid suit that holds one atmosphere inside: crushing pressure or heat past 400 C."),
-    ("Vehicle only", "No suit exists for it: heat past 500 C, pressure past 100 MPa or gravity past 3 g."),
-    ("Powered frame", "The gravity is past 1.5 g (recommended from 1.25 g)."),
+    ("Armoured suit", f"A rigid suit that holds one atmosphere inside: crushing pressure or heat past {limit('armoured_heat_c'):g} C."),
+    ("Vehicle only", f"No suit exists for it: heat past {limit('vehicle_heat_c'):g} C, pressure past {limit('vehicle_pressure_kpa') / 1000:g} MPa "
+                      f"or gravity past {limit('vehicle_gravity_g'):g} g."),
+    ("Powered frame", f"The gravity is past {limit('frame_gravity_g'):g} g (recommended from {limit('frame_gravity_rec_g'):g} g)."),
     ("Dust filter or seals", "Fine regolith dust wrecks open seals (a rocky body with almost no air), or the dust in the "
-                            "air passes 0.1 mg/m3 (recommended) or 10 mg/m3 (required)."),
+                            f"air passes {limit('dust_recommended_mg_m3'):g} mg/m3 (recommended) or "
+                            f"{limit('dust_required_mg_m3'):g} mg/m3 (required)."),
     ("Gas filter, full-face or powered", "A gas such as carbon monoxide, hydrogen sulfide or sulfur dioxide is above "
                                          "its long-term limit and has to be filtered out."),
     ("CO2 scrubber", "Carbon dioxide is above its long-term limit but short of what is acutely dangerous."),
@@ -155,10 +157,13 @@ def domains(bands=habitability.HUMAN):
     )
 
 
+_BLUE, _GREEN, _YELLOW = habitability._EDGE_SCORES[3], habitability._EDGE_SCORES[2], habitability._EDGE_SCORES[1]
+"""float: The domain score at the edge of Blue, Green and Yellow (`habitability._EDGE_SCORES`)."""
+
 SCORE_RULE = (
-    "Each variable scores 1 in Blue and falls to 0.75 at the edge of Green, 0.4 at the edge of Yellow and 0 "
-    "at the outer edge of Red. A domain takes the score of its worst variable: Blue at 1, Green from 0.75, "
-    "Yellow from 0.4, Red below. The PHI-6 score on a "
+    f"Each variable scores {_BLUE:g} in Blue and falls to {_GREEN:g} at the edge of Green, {_YELLOW:g} at the edge of Yellow and 0 "
+    f"at the outer edge of Red. A domain takes the score of its worst variable: Blue at {_BLUE:g}, Green from {_GREEN:g}, "
+    f"Yellow from {_YELLOW:g}, Red below. The PHI-6 score on a "
     "planet's tooltip is the geometric mean of the six domains, held under the colour gates: Radiation and "
     "Temperature cap it at their own colour, Pressure in Yellow or Red caps it there (unless a full suit is "
     "needed anyway), Air, Water or a Red Suitability cap it at Yellow, and it is Blue only if all six are. "
@@ -258,6 +263,22 @@ WHERE_ROWS = (
 """tuple: `(place, what it shows)` for the places the symbols appear (UX.100, UX.155, UX.156)."""
 
 
+def _class_ids():
+    """The first life class ids, as the map names them (`1a, 1b, 1c, 2, 3a`)."""
+    return ", ".join(row.id for row in life_classes.CLASSES[:5])
+
+
+def _band_text():
+    """The temperature bands `regional_temperature.BANDS` stores, with each one's share of the surface (the area between its two
+    latitudes: the sine of the latitude is spread evenly over a sphere) and its edges."""
+    import math
+    parts = {}
+    for name, low, high in regional_temperature.BANDS:
+        share = (math.sin(math.radians(high)) - math.sin(math.radians(low))) / 2.0
+        parts[name] = (low, high, share * (2.0 if name == "polar" else 1.0))
+    return parts
+
+
 MAP_INTRO = (
     "The Galaxy Map shows where habitable worlds are, in two ways that you choose. A habitable world here means a "
     "planet or moon whose overall PHI-6 colour is Blue or Green; Yellow and Red worlds are not counted."
@@ -279,7 +300,7 @@ MAP_ROWS = (
                               "one on (kept in the address as show=marker-class-K for class K). A system with a world of "
                               "the class gets a disc with the class letter, once the map is close enough to have its "
                               "sector; hovering names the system and how many worlds of the class it holds."),
-    ("Marker: Life classes", "The Menu's Life classes group has a marker for each of the 15 life classes (1a, 1b, 1c, 2, 3a and "
+    ("Marker: Life classes", f"The Menu's Life classes group has a marker for each of the {len(life_classes.CLASSES)} life classes ({_class_ids()} and "
                              "so on), all off until you turn one on (kept in the address as show=marker-lifeclass-1a for "
                              "class 1a). A system with a world on which that class of life lives gets a green disc with the "
                              "class id, once the map is close enough to have its sector; hovering names the system and how "
@@ -287,17 +308,25 @@ MAP_ROWS = (
 )
 """tuple: `(control, what it does)` for the habitable-world views of the Galaxy Map (MAP.143, MAP.220)."""
 
-TEMPERATURE_TEXT = (
-    "The surface temperature of a world is its mean, and the ratings use the mean. The Temperature row of a planet's "
-    "page also says how the mean is spread: a world that turns on its own has an annual mean for each of four bands "
-    "(Polar from 60 degrees to the pole, 13 percent of the surface; Northern and Southern, 20 to 60 degrees, 26 percent "
-    "each; Equatorial, 20 south to 20 north, 34 percent), found from the sunlight each band gets over a year at the "
-    "world's axial tilt, with a thick atmosphere carrying heat toward the poles. It also gives the day and night swing "
-    "at the equator, which a slow turn on bare ground makes as large as the mean itself and a thick atmosphere shrinks "
-    "to a few degrees. A world that is tidally locked has no day and night; its page gives the day side, the "
-    "terminator ring and the night side. Where a band or the night needs heavier gear than the mean does, the row names "
-    "the place and the gear as recommended."
-)
+_NUMBER_WORDS = {3: "three", 4: "four", 5: "five", 6: "six", 7: "seven"}
+
+
+def temperature_text():
+    """The temperature paragraph, with the bands and their shares of the surface read from `regional_temperature.BANDS`."""
+    bands = _band_text()
+    pl, ns, eq = bands["polar"], bands["north"], bands["equator"]
+    return (
+        "The surface temperature of a world is its mean, and the ratings use the mean. The Temperature row of a planet's "
+        f"page also says how the mean is spread: a world that turns on its own has an annual mean for each of {_NUMBER_WORDS.get(len(bands), len(bands))} bands "
+        f"(Polar from {pl[0]:g} degrees to the pole, {pl[2] * 100:.0f} percent of the surface; Northern and Southern, "
+        f"{ns[0]:g} to {ns[1]:g} degrees, {ns[2] * 100:.0f} percent each; Equatorial, {-eq[0]:g} south to {eq[1]:g} north, "
+        f"{eq[2] * 100:.0f} percent), found from the sunlight each band gets over a year at the "
+        "world's axial tilt, with a thick atmosphere carrying heat toward the poles. It also gives the day and night swing "
+        "at the equator, which a slow turn on bare ground makes as large as the mean itself and a thick atmosphere shrinks "
+        "to a few degrees. A world that is tidally locked has no day and night; its page gives the day side, the "
+        "terminator ring and the night side. Where a band or the night needs heavier gear than the mean does, the row names "
+        "the place and the gear as recommended."
+    )
 
 
 def radiation_text():
@@ -364,7 +393,7 @@ def page():
         "where_rows": WHERE_ROWS,
         "map_intro": MAP_INTRO,
         "map_rows": MAP_ROWS,
-        "temperature_text": TEMPERATURE_TEXT,
+        "temperature_text": temperature_text(),
         "radiation_text": radiation_text(),
         "zone_text": zone_text(),
         "tier_numbers": tuple(range(len(habitability_symbols.TIER_CLASSES))),

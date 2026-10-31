@@ -242,6 +242,13 @@ def family_name(number):
     return rows[0].name.split(":")[0] if rows else None
 
 
+def class_numbers():
+    """The life class numbers with a page of their own, read from the rule file: `[(number, label, summary)]`, in order."""
+    numbers = sorted({row.number for row in life_classes.CLASSES})
+    return [(number, f"{family_label(number)}: {family_name(number)}",
+             f"What the {family_name(number).lower()} drink, eat, breathe and give off, and where they can live.") for number in numbers]
+
+
 def family_label(number):
     """How a table names a class: "Class 2" for a class with no letters, "Class 3 family" for one with variants."""
     rows = family(number)

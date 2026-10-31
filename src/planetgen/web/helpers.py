@@ -40,7 +40,7 @@ these:
 from flask import current_app, g, render_template, request, url_for
 from markupsafe import Markup
 
-from planetgen.web.lib import apiclient
+from planetgen.web.lib import apiclient, help_registry
 from planetgen.api.authz import session_cookie_name
 from planetgen.web.lib.pagination import render_pagination
 
@@ -190,15 +190,10 @@ NAV_MENU = (
 Nav section is current on both (a page names `section="nav"` or
 `section="nearby"`)."""
 
-HELP_MENU = (
-    # (endpoint name, label)
-    ("classes", "Classes"),
-    ("habitability_levels", "Habitability"),
-    ("property_help_page", "Properties"),
-    ("life_help_page", "Life"),
-)
-"""tuple: What the Help menu beside the search button opens (UX.180), in order. The menu is current on these pages and
-on the class pages under Classes (a page names `section="classes"` or `section="help"`)."""
+HELP_MENU = (("help_index", "All help"),) + help_registry.menu()
+"""tuple: What the Help menu beside the search button opens (UX.180), in order: the help index, then every page of
+`web/lib/help_registry.py`. The menu is current on these pages and on the class pages under Classes (a page names
+`section="classes"` or `section="help"`)."""
 
 HELP_SECTIONS = ("classes", "help")
 """tuple: The `section` names that mark the Help menu current."""
