@@ -12669,6 +12669,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   wires GEN.1134 (radiogenic inputs), and removes the ROGUE_* tuning
   defaults that rogue.py and rogue_surface.py still read, with no
   compatibility shim.
+  Rogue build order (Boss asked 4:41 PM EDT whether it is merged)
+  (2026-10-31 4:44 PM EDT): Not built and not started (Planets 1, as the
+  lane reported 4:43 PM EDT): it cannot ride train 8 because it saves
+  each rogue in the sector where it lands and deletes a donor's rogues
+  when the donor is saved again, which needs the chart_ledger table of
+  GEN.1127 (not on main) and GEN.1014 (in train 8). Earliest lock branch
+  is train 9. Planets 1 builds the lock-free part now: a rogue as the
+  same Planet chain with its moons from a GEN.1119 ejection record (RP
+  modules, rogue note, no star), on a branch off main, with the lock
+  wiring on top once GEN.1127 lands.
   Prerequisites: GEN.1014. Related: GEN.291, GEN.557, GEN.728.
   Design: [docs/design/systems/interstellar-asteroid-fields.md](design/systems/interstellar-asteroid-fields.md)
 
@@ -12762,6 +12772,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   until Boss says otherwise). Needs a MySQL test of regenerating sector
   A when one of its systems drifted into C (second copy refused or
   renumbered?) before building. GEN.1123 retired.
+  Owner and train (2026-10-31) (2026-10-31 4:44 PM EDT): Owner Core 5
+  (assigned by TODO 4:44 PM EDT), moved up because GEN.1111 (rogue rows)
+  waits for the chart_ledger table: a lock branch with its migration for
+  train 9 (or train 8 if built before the freeze), ahead of the rogue
+  rows.
   Prerequisites: none. Related: GEN.1118, GEN.1111.
 
 - [ ] **GEN.1128 Region run command: a sphere of a given radius from a start point becomes whole sectors, cut into units of a block of sectors by the galaxy's own (shell, band) arcs, nearest bands first, with `--grow-shells K`, all writing the chart ledger**
