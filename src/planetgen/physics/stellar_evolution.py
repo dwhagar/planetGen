@@ -489,6 +489,13 @@ def cooling_age_gy(initial_mass_sol, age_gy, fe_h):
     return max(age_gy - post_main_sequence.timeline(initial_mass_sol, fe_h).end_gy, tuning.WD_MIN_COOLING_AGE_GY)
 
 
+def helium_core_state(initial_mass_sol, age_gy, fe_h, core_mass_sol, rng):
+    """The state fields of the white dwarf a star of `initial_mass_sol` solar masses has become at `age_gy` when it is a helium core of
+    `core_mass_sol` solar masses (GEN.996): `evolve_star`'s white dwarf fields (mass, luminosity, temperature, radius, atmosphere), to
+    update the state of the same star with. It cools from the end of its progenitor's life like any other white dwarf of it."""
+    return _white_dwarf_state(core_mass_sol, cooling_age_gy(initial_mass_sol, age_gy, fe_h), rng)
+
+
 def _white_dwarf_state(final_mass_sol, cooling_age_gy, rng):
     """
     A white dwarf of `final_mass_sol` that began cooling `cooling_age_gy` ago (GEN.742): the Bedard et al. 2020 cooling sequences

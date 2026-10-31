@@ -178,3 +178,71 @@ def test_a_star_that_is_not_a_white_dwarf_ignores_the_core_mass():
     alive = member_record.make(7, 1.0, 1.0e9, 0.0, white_dwarf_mass_sol=0.3)
     plain = member_record.make(7, 1.0, 1.0e9, 0.0)
     assert alive == plain
+
+
+# ---- the star draw (GEN.996, part 2) ----
+
+def _drawn_dwarfs(count, progenitor):
+    from planetgen.generation import helium_core_draw
+    from planetgen.util import draw
+    rng = draw.Stream("gen996:draw")
+    return [helium_core_draw.draw_core_mass_sol(progenitor, 0.0, rng) for _ in range(count)]
+
+
+def test_the_pair_laws_leave_about_the_20_pc_share_of_white_dwarfs_helium_cores_without_a_rate():
+    for progenitor in (1.0, 1.3):
+        cores = _drawn_dwarfs(3000, progenitor)
+        helium = [core for core in cores if core is not None]
+        assert 0.04 < len(helium) / len(cores) < 0.10, progenitor
+        assert all(tuning.HELIUM_CORE_MIN_MASS_SOL <= core < tuning.HELIUM_FLASH_CORE_MASS_SOL for core in helium)
+
+
+def test_a_progenitor_with_a_non_degenerate_core_never_draws_a_helium_core():
+    assert all(core is None for core in _drawn_dwarfs(500, 2.6))
+
+
+def test_a_drawn_white_dwarf_state_is_the_lighter_hotter_larger_dwarf_and_other_states_are_left_alone():
+    from planetgen.generation import helium_core_draw
+    from planetgen.physics import stellar_evolution as evolution
+    from planetgen.util import draw
+    rng = draw.Stream("gen996:state")
+    for index in range(400):
+        state = evolution.evolve_star(1.1, 9.0, rng, fe_h=0.0)
+        assert state["yerkes_class"] == "VII"
+        drawn = helium_core_draw.with_helium_core(state, 1.1, 9.0, rng)
+        if drawn is not state:
+            assert drawn["yerkes_class"] == "VII" and drawn["mass_sol"] < tuning.HELIUM_FLASH_CORE_MASS_SOL
+            assert drawn["radius_km"] > state["radius_km"]            # a light white dwarf is the larger
+            break
+    else:
+        pytest.fail("no helium core in 400 white dwarfs")
+    living = evolution.evolve_star(1.0, 1.0, rng, fe_h=0.0)
+    assert helium_core_draw.with_helium_core(living, 1.0, 1.0, rng) is living
+
+
+@pytest.mark.parametrize("kind", ("white-dwarf", "star"))
+def test_a_helium_core_the_star_draw_made_has_its_companion_on_the_circle_its_giant_filled_its_lobe_at(kind):
+    from planetgen.generation import member_record
+    from planetgen.util import draw
+    rng = draw.Stream(f"gen996:tree:{kind}")
+    for index in range(12):
+        initial, core, age_yr = 1.3 + 0.05 * index, 0.2 + 0.02 * index, 12.0e9
+        record = member_record.make(index + 1, initial, age_yr, 0.0, lighten=False, white_dwarf_mass_sol=core)
+        placed = (multistar.Placed("white-dwarf", core, initial, fe_h=0.0) if kind == "white-dwarf"
+                  else multistar.Placed("star", core, initial, fe_h=0.0, record=record))
+        tree = multistar.draw_member_tree(placed, age_yr, rng, pair_placed=kind == "star")
+        assert record.kind == "white-dwarf" and tree.members[0].mass_solar == pytest.approx(core)
+        dwarf_node = next(node for node in tree.nodes if node.node_no == tree.members[0].parent_node_no)
+        companion = next(m for m in tree.members if m.parent_node_no == dwarf_node.node_no and m.member_no != 0)
+        partner = companion.initial_mass_solar if companion.initial_mass_solar <= initial else companion.mass_solar
+        assert dwarf_node.interaction == "post-common-envelope" and dwarf_node.eccentricity == 0.0
+        assert dwarf_node.separation_au == pytest.approx(hecore.overflow_axis_au(core, initial, partner), rel=1.0e-6)
+        assert tree.members[0].radius_max_au == pytest.approx(hecore.giant_radius_rsun(core) * constants.SOLAR_RADIUS_M / constants.AU_M,
+                                                              rel=1.0e-3)
+
+
+def test_a_directive_for_a_single_object_leaves_a_helium_core_without_a_companion():
+    from planetgen.util import draw
+    placed = multistar.Placed("white-dwarf", 0.3, 1.1, fe_h=0.0)
+    tree = multistar.draw_member_tree(placed, 9.0e9, draw.Stream("gen996:single"), n_stars=1)
+    assert len(tree.members) == 1 and not tree.nodes
