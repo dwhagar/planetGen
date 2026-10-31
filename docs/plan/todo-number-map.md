@@ -687,7 +687,7 @@ Parents marked "new parent" had no old number of their own.
 | DOC.16 | The API help page for visitors: what the API is, how to get a key, and where the reference lives | none | open |
 | DOC.17 | Describe the object ID in api.md | none | done, PR #1133 |
 | DOC.18 | Last pass: re-run the documentation sweep when the other DOC items are done and Phase 1 is complete | none | open |
-| DOC.19 | After UX.102: document the log output standard for the CLI, the Generate page and admin logs | none | open |
+| DOC.19 | After UX.102: document the log output standard for the CLI, the Generate page and admin logs | none | done, PR #4453 |
 | DOC.20 | After PERF.86: rewrite the queue and scatter notes and the queue docstrings | none | done, PR #3661 |
 | DOC.21 | Rewrite the package docstrings that are wrong or missing, and the queryDb mentions | none | done, PR #1698 |
 | DOC.22 | Update the orbital, slow-reads, login, ops, test-suite and db-check notes to their built state | none | done, PR #1599 |
@@ -3020,7 +3020,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.221 | Planet pages: a Life paragraph (only when the world has life) and a Civilization / Political paragraph (only when it has a civilization), in paragraph form from the life scores and the polities | none | done, PR #3573 |
 | UX.222 | Planet pages: the section order is About planet, Table, Summary, Life, Civ / Political, PHI-6 table and details with Radiation and Survival equipment, Atmosphere, Composition, each a heading in the TOC menu | none | done, PR #3573 |
 | UX.223 | Resource pages: belts, fields, giants and icy bodies show their resources, and lists, search and the API filter and sort by resource and score | none | open |
-| UX.224 | A planet's chips and description never show Habitable, Inhabited and Habitable class together: only the most specific one (bug) | none | open |
+| UX.224 | A planet's chips and description never show Habitable, Inhabited and Habitable class together: only the most specific one (bug) | none | done, PR #4452 |
 | UX.225 | Search, object lists, Nearby and /api/search filter and sort on every stored physical number: gravity, temperature, pressure, orbit, day, star mass, dose, field, ocean depth, moon count and gases (G4) | none | open |
 | UX.226 | Numeric range filters and sort keys for the stored physical values: one engine in db/query.py and the /api/search parameters (G4, step 1) | none | open |
 | UX.227 | The search page shows range controls for the physical values, with units, and the active filters as chips (G4, step 2) | none | open |

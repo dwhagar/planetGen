@@ -2192,3 +2192,5 @@ Baseline: PR #1817.
 | UX.236 | 8.2 | The continuous zoom (headline, Boss 6:28 PM EDT 2026-10-28) |
 | TEST.183 | 8.1 | Admin and API housekeeping |
 | UX.102 | 8.1 | Admin and API housekeeping |
+| UX.224 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| DOC.19 | 8.1 | Docs |
