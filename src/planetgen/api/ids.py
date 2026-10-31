@@ -66,6 +66,12 @@ def _table(kind):
         raise IdError(f"unknown object kind: {kind!r}") from None
 
 
+def former_designations(conn, kind, row_id):
+    """The `former_designations` field of the JSON of object `row_id` of `kind` (any kind `_table` knows, a sector included): the names and IDs
+    it used to have, newest first (`designations.former_json`); `[]` for an object that never changed."""
+    return designation_rows.former_designations(conn, _table(kind), row_id)
+
+
 def parse(kind, text):
     """
     The stored value a printed ID names: an int for a sector, the 10 bytes for any other kind.
@@ -253,9 +259,7 @@ def retired_answer(conn, kind, text, method):
         resolution = designations.Resolution(designations.GONE, table, row.object_row_id, (row,))  # the row went without its tombstone
     status = designations.status_of(method, resolution)
     asked = object_uid.format_id(uid)
-    formerly = [{"designation": text_, "kind": kind_, "reason": reason, "retired_epoch": epoch}
-                for kind_, text_, reason, epoch in designations.former_lines(designation_rows.history(conn, table, row.object_row_id))]
-    extra = {"retired_id": asked, "former_designations": formerly}
+    extra = {"retired_id": asked, "former_designations": designations.former_json(designation_rows.history(conn, table, row.object_row_id))}
     if not exists:
         extra["gone_epoch"] = row.gone_epoch
         return RetiredAnswer(status, f"the {kind} that had ID {asked} was deleted", extra, None)

@@ -906,6 +906,20 @@ def get_object(db, ref):
     return _request(f"/objects/{ref}", {"db": db})
 
 
+def get_lookup(db, text):
+    """
+    Returns `GET /api/lookup`'s dict for an Object ID or a name (GEN.1140: `status` `current` or `redirect`, with the object that has it now), or
+    `None` when nobody has or had it; a designation of a deleted object answers `{"status": "gone", "query": text}`.
+    """
+    _require_db(db)
+    try:
+        return _request("/lookup", {"db": db, "text": text})
+    except GoneError:
+        return {"status": "gone", "query": text}
+    except NotFoundError:
+        return None
+
+
 def get_object_sheet(db, ref):
     """Returns `GET /api/objects/<ref>/sheet`'s dict (`kind`, `groups` of `{key, label, rows}`), the stored properties of
     a star, planet, moon, belt, comet or phenomenon -- see `describe/sheet.py`."""

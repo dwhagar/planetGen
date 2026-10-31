@@ -175,7 +175,10 @@ def test_a_renumbered_system_takes_the_new_id_everywhere_and_its_old_one_is_rese
     assert rows.live_holder(conn, new) == ("star_systems", system["id"]) and rows.live_holder(conn, old) is None
     resolved = d.resolve_uid(old, lambda uid: rows.live_holder(conn, uid), [rows.retired_uid(conn, old)])
     assert (resolved.status, resolved.object_kind, resolved.object_row_id) == (d.REDIRECT, "star_systems", system["id"])
-    assert d.former_lines(rows.history(conn, "star_systems", system["id"])) == [(d.KIND_UID, ou.format_id(old), "admin renumber", kept.retired_epoch)]
+    [former] = rows.former_designations(conn, "star_systems", system["id"])
+    assert (former["designation"], former["kind"], former["reason"], former["retired_epoch"]) == (
+        ou.format_id(old), d.KIND_UID, "admin renumber", kept.retired_epoch)
+    assert former["retired_on"] == kept.retired_at.date().isoformat()
 
 
 def test_a_renumbered_object_may_not_take_an_id_that_is_live_or_was_ever_one_even_its_own(galaxy):

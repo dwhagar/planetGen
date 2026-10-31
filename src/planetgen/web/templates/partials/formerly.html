@@ -1,0 +1,10 @@
+{#- planetgen/web/templates/partials/formerly.html -- the "Formerly" line of an object page (GEN.1140): the names and Object IDs the
+object used to have, newest first, with why each changed and when. `lines` is web.formerly.view(...); nothing is shown for an object that
+never changed. -#}
+{%- macro formerly(lines) -%}
+{%- if lines %}
+<p class="formerly"><strong>Formerly</strong>
+  {%- for line in lines %}{{ ";" if not loop.first else ":" }} <span class="formerly-entry">{{ line.designation }} <span class="formerly-why">({{ line.what | lower }}, {{ line.reason }}, epoch {{ line.epoch }}{% if line.date %}, {{ line.date }}{% endif %})</span></span>{% endfor -%}
+</p>
+{%- endif %}
+{%- endmacro -%}

@@ -4,6 +4,7 @@
 {% extends "base.html" %}
 {% from "partials/admin_menu.html" import admin_menu_button, admin_dialogs, add_edit_actions with context %}
 {% from "partials/action_bar.html" import action_bar %}
+{% from "partials/formerly.html" import formerly %}
 {% from "partials/pick_banner.html" import pick_banner %}
 {#- UX.75: the Admin menu is the last button of the action bar; its dialogs follow in the content. -#}
 {%- set groups = [] %}
@@ -37,6 +38,7 @@
     {%- if octant %}<span class="badge">Octant {{ octant }}</span>{% endif -%}
     {%- if inside %}<span class="badge">Inside: <a href="{{ inside.url }}">{{ inside.name }}</a></span>{% endif -%}
   </p>
+  {{ formerly(former) }}
   {{ action_bar(bookmark, nav_links, pick, galaxy_url, admin_button, nearby_url) }}
   {%- if nearest_html %}
   <p class="location inline-links">Nearest systems: {{ nearest_html }}</p>

@@ -4,6 +4,8 @@
 section 3): a retired ID is never reused, a retired name is not reserved, a change of system ID moves every body, an old ID resolves to the
 current object or says it is gone, and a member's designation follows its parent."""
 
+import datetime
+
 import pytest
 
 from planetgen.galaxy import designations as d
@@ -96,9 +98,12 @@ def test_a_belt_members_old_designation_follows_the_parent_the_rank_kept():
 
 
 def test_the_formerly_lines_are_newest_first_with_ids_printed_and_names_as_text():
-    rows = [retired(SYSTEM, epoch=2, reason="regeneration"), retired("Old Name", d.KIND_NAME, epoch=4, reason="collision bump")]
-    assert d.former_lines(rows) == [(d.KIND_NAME, "Old Name", "collision bump", 4), (d.KIND_UID, ou.format_id(SYSTEM), "regeneration", 2)]
-    assert d.former_lines([]) == []
+    moment = datetime.datetime(2026, 10, 31, 9, 30, 0)
+    rows = [retired(SYSTEM, epoch=2, reason="regeneration"), retired("Old Name", d.KIND_NAME, epoch=4, reason="collision bump")._replace(retired_at=moment)]
+    assert d.former_json(rows) == [
+        {"designation": "Old Name", "kind": d.KIND_NAME, "reason": "collision bump", "retired_epoch": 4, "retired_on": "2026-10-31"},
+        {"designation": ou.format_id(SYSTEM), "kind": d.KIND_UID, "reason": "regeneration", "retired_epoch": 2, "retired_on": None}]
+    assert d.former_json([]) == []
 
 
 @pytest.mark.parametrize("found,method,status", [

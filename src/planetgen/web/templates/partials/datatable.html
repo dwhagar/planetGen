@@ -11,6 +11,7 @@
 {%- elif c.chips %}<span class="eq-chips">{% for chip in c.chips %}<a class="help-link" href="{{ page_url('habitability_levels') }}#{{ chip.anchor }}"><span class="flag flag-eq flag-eq-{{ chip.severity }} flag-tier-{{ chip.tier }}">{{ chip.text|capitalize }}{% if chip.severity == "recommended" %} <span class="sr-only">(recommended)</span>{% endif %}</span></a>{% endfor %}</span>
 {%- elif c.parts %}{% for part in c.parts %}{% if part is string %}{{ part }}{% else %}<a href="{{ part.href }}">{{ part.text }}</a>{% endif %}{% endfor %}
 {%- elif c.href %}<a href="{{ c.href }}"{% if c.label %} aria-label="{{ c.label }}"{% endif %}>{{ c.text }}</a>{% elif c.muted %}<em>{{ c.text }}</em>{% else %}{{ c.text }}{% endif -%}
+{%- if c.note %} <span class="cell-note">{{ c.note }}</span>{% endif -%}
 {%- if c.map_target %} <button type="button" class="icon-btn" data-map-target="{{ c.map_target }}" title="Show on map" aria-label="Show {{ c.text }} on the map" hidden>{{ icon("show-on-map") }}</button>{% endif -%}
 {%- endmacro %}
 {% macro datatable(t) %}

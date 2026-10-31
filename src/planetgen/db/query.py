@@ -6629,6 +6629,39 @@ def _search_match(conn, column, term):
     return _name_match(conn, column, term)
 
 
+def _search_name(conn, column, id_column, table, term):
+    """
+    The name test of a result panel with the past names in it (GEN.1140): `_search_match` on the current name, or a row of `designations` that
+    kept a name of this object containing the words typed. The table of retired designations is small and holds names only for objects that
+    were renamed, so the substring test on it costs nothing next to the name index.
+    """
+    match, params = _search_match(conn, column, term)
+    past = (f"{id_column} IN (SELECT object_row_id FROM designations WHERE designation_kind = 'name' AND object_kind = ? "
+            f"AND gone_epoch IS NULL AND designation_name LIKE ? ESCAPE '\\\\')")
+    return f"({match} OR {past})", [*params, table, _search_like_pattern(term.strip())]
+
+
+def _with_formerly(conn, rows, table, term):
+    """
+    Adds `formerly` (the past names, newest first, that contain the words typed) to each result row that has such a name: the reason the row
+    was found when its current name does not say so. Rows with no matching past name are left as they are. `rows` are dicts with an `id`.
+    """
+    if not term or not rows:
+        return rows
+    ids = [row["id"] for row in rows]
+    found = conn.execute(
+        f"SELECT object_row_id, designation_name FROM designations WHERE designation_kind = 'name' AND object_kind = ? AND gone_epoch IS NULL "
+        f"AND designation_name LIKE ? ESCAPE '\\\\' AND object_row_id IN ({','.join('?' * len(ids))}) ORDER BY retired_epoch DESC, id DESC",
+        (table, _search_like_pattern(term.strip()), *ids)).fetchall()
+    names = {}
+    for entry in found:
+        names.setdefault(entry["object_row_id"], []).append(entry["designation_name"])
+    for row in rows:
+        if row["id"] in names:
+            row["formerly"] = names[row["id"]]
+    return rows
+
+
 def _search_like_pattern(term):
     """Escapes `%`/`_`/`\\` in a user-supplied substring so it's safe to
     use as a SQL LIKE pattern (paired with `ESCAPE '\\\\'` in the query)."""
@@ -7019,17 +7052,17 @@ def _with_refs(conn, rows, kind):
 
 
 def _search_result_sectors(conn, term, limit, offset):
-    match, params = _search_match(conn, "name", term)
+    match, params = _search_name(conn, "name", "id", "sectors", term)
     rows, page = _search_page(
         conn, "SELECT id, name, edge_mpc", f"FROM sectors WHERE {match}", "name, id", params, limit, offset,
     )
-    return {"rows": _with_refs(conn, [dict(r) for r in rows], "sector"), **page}
+    return {"rows": _with_refs(conn, _with_formerly(conn, [dict(r) for r in rows], "sectors", term), "sector"), **page}
 
 
 def _search_result_systems(conn, term, limit, offset, stars=None):
     clauses, params = [], []
     if term:
-        match, params = _search_match(conn, "ss.name", term)
+        match, params = _search_name(conn, "ss.name", "ss.id", "star_systems", term)
         clauses.append(match)
     if stars is not None:
         least, most = stars
@@ -7049,13 +7082,13 @@ def _search_result_systems(conn, term, limit, offset, stars=None):
     rows = _with_star_types(conn, rows)
     counts = _system_counts(conn, [r["id"] for r in rows])
     return {
-        "rows": _with_refs(conn, [
+        "rows": _with_refs(conn, _with_formerly(conn, [
             {
                 "id": r["id"], "name": r["name"], "sector_id": r["sector_id"], "is_binary": r["is_binary"],
                 "star_summary": _star_summary(r), **counts[r["id"]],
             }
             for r in rows
-        ], "system"),
+        ], "star_systems", term), "system"),
         **page,
     }
 
@@ -7070,7 +7103,7 @@ def _search_result_stars(conn, spectral_tags, luminosity_tags, term, limit, offs
         params.extend(sorted(luminosity_tags))
     _append_size_clause(clauses, params, "s.radius_km", size_range)
     if term:
-        match, match_params = _search_match(conn, "s.name", term)
+        match, match_params = _search_name(conn, "s.name", "s.id", "stars", term)
         clauses.append(match)
         params.extend(match_params)
     where = (" AND " + " AND ".join(clauses)) if clauses else ""
@@ -7081,7 +7114,7 @@ def _search_result_stars(conn, spectral_tags, luminosity_tags, term, limit, offs
         "ss.name, s.name, s.id",
         params, limit, offset,
     )
-    return {"rows": _with_refs(conn, [dict(r) for r in rows], "star"), **page}
+    return {"rows": _with_refs(conn, _with_formerly(conn, [dict(r) for r in rows], "stars", term), "star"), **page}
 
 
 def _tier_columns():
@@ -7127,7 +7160,7 @@ def _search_result_planets(conn, class_tags, body_tags, life_tags, term, limit, 
     _life_class_clause("p", life_tags, clauses, params)
     _append_size_clause(clauses, params, "p.radius_km", size_range)
     if term:
-        match, match_params = _search_match(conn, "p.name", term)
+        match, match_params = _search_name(conn, "p.name", "p.id", "planets", term)
         clauses.append(match)
         params.extend(match_params)
     where = (" AND " + " AND ".join(clauses)) if clauses else ""
@@ -7141,7 +7174,7 @@ def _search_result_planets(conn, class_tags, body_tags, life_tags, term, limit, 
         _score_order("p", sort, "ss.name, ss.id, p.orbital_index, p.id"),
         params, limit, offset,
     )
-    return {"rows": _with_refs(conn, [_with_equipment(dict(r)) for r in rows], "planet"), **page}
+    return {"rows": _with_refs(conn, _with_formerly(conn, [_with_equipment(dict(r)) for r in rows], "planets", term), "planet"), **page}
 
 
 def _search_result_moons(conn, class_tags, body_tags, life_tags, term, limit, offset, size_range=None,
@@ -7158,7 +7191,7 @@ def _search_result_moons(conn, class_tags, body_tags, life_tags, term, limit, of
     _life_class_clause("m", life_tags, clauses, params)
     _append_size_clause(clauses, params, "m.radius_km", size_range)
     if term:
-        match, match_params = _search_match(conn, "m.name", term)
+        match, match_params = _search_name(conn, "m.name", "m.id", "moons", term)
         clauses.append(match)
         params.extend(match_params)
     where = (" AND " + " AND ".join(clauses)) if clauses else ""
@@ -7179,7 +7212,7 @@ def _search_result_moons(conn, class_tags, body_tags, life_tags, term, limit, of
         _score_order("m", sort, "ss.name, ss.id, rp.name, rp.id, p.orbital_index, m.orbital_index, m.id"),
         params, limit, offset,
     )
-    return {"rows": _with_refs(conn, [_with_equipment(dict(r)) for r in rows], "moon"), **page}
+    return {"rows": _with_refs(conn, _with_formerly(conn, [_with_equipment(dict(r)) for r in rows], "moons", term), "moon"), **page}
 
 
 def _search_result_belts(conn, density_tags, limit, offset):
