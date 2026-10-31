@@ -168,6 +168,7 @@ def test_new_text_that_breaks_a_rule_and_is_not_listed_fails():
     ("Class 3 life has grown into mats.", "class-name"),
     ("Class 3a life has grown into mats.", None),
     ("Class 2 life lives in the oceans.", None),
+    ("The Class 3 family has two variants.", None),
     ("The colour of the sky is grey.", "spelling"),
     ("The color of the sky is gray.", None),
     ("It is 5 kilometres across.", "spelling"),
