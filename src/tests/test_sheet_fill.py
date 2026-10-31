@@ -61,7 +61,13 @@ def test_the_ages_after_oxygen_apply_only_to_a_world_that_reached_them():
 
 
 def test_star_and_comet_rules():
-    assert sheet.applies("star", "M", "wide_binary_a_crit_km", {"role": "primary"}) and not sheet.applies("star", "M", "wide_binary_a_crit_km", {"role": "single"})
+    key = "wide_binary_a_crit_km"
+    assert sheet.applies("star", "M", key, {"role": "primary", "binary_configuration": "wide"})
+    assert sheet.applies("star", "M", key, {"role": "secondary", "binary_configuration": "wide"})
+    assert sheet.applies("star", "M", key, {"role": "member", "binary_configuration": "close"})      # GEN.789: a further member has its window
+    assert not sheet.applies("star", "M", key, {"role": "primary", "binary_configuration": "close"})  # a close pair is orbited as one body
+    assert not sheet.applies("star", "M", key, {"role": "single", "binary_configuration": None})
+    assert ("star", key) not in sheet.OPEN_GAPS
     assert sheet.applies("comet", "comet", "orbital_period_years", {"orbit_type": "elliptical"})
     assert not sheet.applies("comet", "comet", "orbital_period_years", {"orbit_type": "parabolic"})
     assert sheet.applies("comet", "comet", "eccentricity", {"orbit_type": "parabolic"})
