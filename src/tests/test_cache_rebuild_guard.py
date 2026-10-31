@@ -155,3 +155,15 @@ def test_no_redis_means_no_generation_run(state, monkeypatch):
     monkeypatch.setitem(cachebuild._RUN_MEMO, "at", -1e9)
     monkeypatch.setattr(updateguard.RunRecordSource, "items", lambda self: (_ for _ in ()).throw(OSError("down")))
     assert cachebuild.state() is None
+
+
+def test_the_generate_console_survives_a_refused_shape(monkeypatch):
+    from planetgen.web import generate_page
+
+    def refused(_db):
+        raise cachebuild.CacheRebuilding({"cause": "generation", "since": None})
+
+    monkeypatch.setattr(apiclient, "get_galaxy_shape", refused)
+    summary = generate_page._galaxy_summary("planetgen")
+    assert summary["shape"] is None and "rebuilding" in summary["error"]
+    assert generate_page._edge_pc("galaxy", {"where": "x"}, "planetgen") is None

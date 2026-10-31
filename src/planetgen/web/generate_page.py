@@ -59,6 +59,7 @@ from flask import (Response, abort, current_app, jsonify, make_response, redirec
 
 from pydantic import Field, TypeAdapter, ValidationError
 
+from planetgen.admin import cachebuild
 from planetgen.queue import api_jobs, progress_rate, redisqueue, roughtime, runline, runrecord, runview
 from planetgen.queue.commands import DEEP_CHECKS, STAGED_COMMANDS
 from planetgen.web import limit_sliders
@@ -1075,7 +1076,9 @@ def _galaxy_summary(database):
         summary["shells"] = apiclient.get_shell_specs(database)
         summary["version_warning"] = apiclient.get_version_warning(database)
         summary["sectors"] = apiclient.get_sectors(database, limit=1, offset=0)["total"]
-    except (apiclient.ApiError, apiclient.NotFoundError) as exc:
+    except (apiclient.ApiError, apiclient.NotFoundError, cachebuild.CacheRebuilding) as exc:
+        # CacheRebuilding: a run or rebuild is on and the shape's cache is not ready (admin/cachebuild.py); the console
+        # must stay usable then, since it is where the run is watched.
         summary["error"] = str(exc)
     return summary
 
@@ -1089,7 +1092,7 @@ def _edge_pc(action, form, database):
         return None
     try:
         shape = apiclient.get_galaxy_shape(database)
-    except (apiclient.ApiError, apiclient.NotFoundError) as exc:
+    except (apiclient.ApiError, apiclient.NotFoundError, cachebuild.CacheRebuilding) as exc:
         log.error(f"Generate page: no galaxy shape for a center position: {exc}")
         return None
     return (shape or {}).get("edge_pc")
