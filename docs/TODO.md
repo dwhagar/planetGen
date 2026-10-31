@@ -13604,6 +13604,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   no sourced porosity law. Boss uploads that matter: Alomari 2025 (open
   access, mdpi.com/1996-1944/18/6/1211) and Yamashita, Kato and Arakawa
   2010 (Icarus 207:972). Keep open until the Alomari paper is read.
+  Boss uploads read (Sources 1) (9:38 AM EDT 2026-10-31, as Sources 1
+  reported): Alomari, Ng and Khatri 2025 (Materials 18:1211, doi
+  10.3390/ma18061211) is CONFIRMED: UCS = 60.251 (1 - 0.02 n)^1.67 MPa
+  with n in percent, which is (1 - phi/n*)^1.67 with n* = 0.5 assumed,
+  not fitted; also E = 30.31 (1 - 0.02 n)^1.82 GPa. Data: 178 training
+  and 75 test points, porosity 0.4 to 50 percent, carbonate rocks and
+  gypsum, uniaxial, no ice. Relative strength at phi 0.1, 0.2, 0.3, 0.4
+  is 0.69, 0.43, 0.22, 0.07, inside our exponential b 4 to 7 band (the
+  paper lists exponentials with b 4.8 to 9.3). Register as T3 (right
+  form, wrong material) at tweak L1. Report:
+  reports/uploaded-ice-rock-papers-check-2026-10-31.md.
   Prerequisites: none. Related: GEN.1158, GEN.725.
 
 - [ ] **GEN.1178 Strength of a body sampled from its range so the round boundary is fuzzy, as in the real Solar System**
@@ -13697,6 +13708,22 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   strength table (GEN.1183) with these values and update their registry
   rows (tier and tweak level) in GEN.725. Changes tidal heating inputs,
   so it rides a Tides 1 lock window. Owner Tides 1.
+  Boss uploads read (Sources 1) (9:38 AM EDT 2026-10-31, as Sources 1
+  reported): Goldsby and Kohlstedt 1997 (Scripta Mater. 37:1399-1406)
+  read: dislocation n 4, Q 64; grain-boundary sliding n 1.8, grain
+  exponent 1.4, Q 49; basal-limited n 2.4, Q 55 to 62. The GBS and basal
+  Mitri 2010 numbers are now verified; the Mitri diffusion row is not in
+  this paper. No prefactor A in the text (it is in Goldsby and Kohlstedt
+  2001, JGR 106:11017, not in hand). Morison, Labrosse and Choblet 2021
+  (Nature 600:419): N2 ice n = 2.1 (Yamashita 2010, Icarus 207:972,
+  confirmed; correct an earlier 2.2), Q 3.5 kJ/mol non-Newtonian or 8.6
+  kJ/mol Newtonian (Eluszkiewicz and Stevenson 1990), viscosity 1e10
+  (non-Newtonian) to 1e16 to 1e19 Pa s (diffusion), 1e16 to 1e17 from
+  pit relaxation. Still needed: Goldsby and Kohlstedt 2001, Durham,
+  Kirby and Stern 1993 (JGR 98:17667) and Durham, Kirby and Stern 1997
+  (JGR 102:16293, for ice types IT1 to IT3). The 'Rheology of Water and
+  Ammonia-Water Ices' upload is only the 1993 LPSC abstract with no
+  constants.
   Prerequisites: none. Related: GEN.1183, GEN.1185, GEN.725.
 
 - [ ] **GEN.1191 Satellite supernova remnants scale with the satellite's own star formation instead of the Milky Way's per-system rate**
