@@ -1538,6 +1538,7 @@
 --   permanent day side, terminator band or permanent night side). `temp_mean_swing_k` stays (the swing of the whole surface). The columns `temp_polar_k`, `temp_north_k`, `temp_equator_k`, `temp_south_k`,
 --   `temp_swing_k`, `temp_day_side_k`, `temp_terminator_k`, `temp_night_side_k` and the swings `temp_polar_swing_k`, `temp_north_swing_k`, `temp_south_swing_k`, `temp_day_side_swing_k`,
 --   `temp_terminator_swing_k` and `temp_night_side_swing_k` are gone. NULL for a body with no temperature or rotation period and a row made before v194, which gets them when the galaxy is regenerated.
+-- v197 (GEN.1174): `stars` and `bright_stars` gain `nuclear_arrival_age_gy` (Gyr, NULL), the age at which MIST's tracks put a pre-main-sequence star on the main sequence (hydrogen burning settled), kept beside `phase_end_age_gy` of `bright_stars`, which for such a star is the earlier age its radius settles (BHAC15). NULL for every star that is not pre-main-sequence and for a row made before v195; nothing is backfilled.
 --
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
@@ -2219,6 +2220,7 @@ CREATE TABLE IF NOT EXISTS stars (
     velocity_y_kms              DOUBLE NULL,  -- v104 (DB.53)
     velocity_z_kms              DOUBLE NULL,  -- v104 (DB.53)
     decay_age_yr                DOUBLE NULL,  -- v104 (DB.53)
+    nuclear_arrival_age_gy      DOUBLE NULL,  -- v197 (GEN.1174): the age MIST's tracks reach the main sequence, see the header comment
     epoch_unix                  DOUBLE NULL,  -- v104 (DB.53)
     disk_kind                   VARCHAR(16) NULL,  -- v104 (DB.53)
     disk_mass_solar             DOUBLE NULL,  -- v104 (DB.53)
@@ -4196,6 +4198,7 @@ CREATE TABLE IF NOT EXISTS bright_stars (
     metallicity_fe_h     DOUBLE,  -- v95 (GEN.158): [Fe/H] in dex, NULL for a cluster star until GEN.159 and for older rows
     cluster_id           BIGINT UNSIGNED,  -- v127 (DB.61): the cluster this star belongs to, NULL for a field star
     rotation_period_hours DOUBLE,  -- v185 (GEN.846): the spin period in hours, NULL on a row made before v185
+    nuclear_arrival_age_gy DOUBLE,  -- v197 (GEN.1174): the age MIST's tracks reach the main sequence, see the header comment
 
     KEY idx_bright_stars_address (shell_index, band_index, wedge_index),
     KEY idx_bright_stars_luminosity (luminosity_w),

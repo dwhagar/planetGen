@@ -1341,6 +1341,7 @@ anything.
 | `lethal_event_rate_per_gyr` | DOUBLE | nullable | Added in v75 (GEN.87). Supernovae within 8 pc per Gyr here: 1.5 at the Sun's 8 kpc, rising as exp((8 kpc - R) / 1.45 kpc) to at most 250 times that at the centre. NULL for a star with no galaxy placement and on a row generated before v75. |
 | `uv_c_share` | DOUBLE | nullable | Added in v145 (GEN.443). The share of the star's blackbody UV-C (100 to 280 nm) it gives off, log-uniform 0.1 to 1 (the Sun's measured 0.256 is one value of it), drawn once from the star's own stream (`physics/activity.py`); the radiation model's UV-B and UV-A shares follow from it (`physics/stellar_spectrum.py`). NULL for a remnant and for a row saved before v145, which the model reads as the blackbody (1). |
 | `metallicity_fe_h` | DOUBLE | nullable | Added in v95 (GEN.158). The star's [Fe/H] in dex against the Sun, drawn from its population and its distance from the galactic centre; a binary's secondary shares its primary's. NULL on a row generated before v95. |
+| `nuclear_arrival_age_gy` | DOUBLE | nullable | Added in v197 (GEN.1174). For a pre-main-sequence star, the age in Gyr at which MIST's tracks put it on the main sequence (`physics/pre_main_sequence.py`, `nuclear_arrival_yr`). The star counts as pre-main-sequence only until its radius has settled (BHAC15), an earlier age, so both times are kept: that one in `bright_stars.phase_end_age_gy`, this one here. NULL for every other star and for a row made before v195; nothing is backfilled. |
 
 ### `planets`
 
@@ -1874,6 +1875,7 @@ before any sector is filled. See "Bright-star pre-placement (v43)" above.
 | `created_at` | TIMESTAMP | NOT NULL | |
 | `metallicity_fe_h` | DOUBLE | nullable | Added in v95 (GEN.158). The star's [Fe/H] in dex, drawn at scatter time from its population and position on a stream of its own seed; the fill that builds its system keeps it. NULL on older rows and on a cluster star until GEN.159. |
 | `rotation_period_hours` | DOUBLE | nullable | Added in v185 (GEN.846). The star's spin period in hours, drawn at scatter time by the same cascade a built star uses (`physics/spin.py`: a white dwarf about a day, a giant slow, a cool dwarf by gyrochronology, a hot star by a drawn speed under breakup) on a stream of its own seed; the fill that builds its system keeps it. NULL on rows made before v184, nothing is backfilled. |
+| `nuclear_arrival_age_gy` | DOUBLE | nullable | Added in v197 (GEN.1174). For a pre-main-sequence star, the age in Gyr at which MIST's tracks put it on the main sequence; its `phase_end_age_gy` is the earlier age its radius settles (BHAC15). NULL for every other star and for rows made before v195, nothing is backfilled. |
 | `off_plane` | TINYINT | virtual | Added in v57 (GEN.117): 1 when `|position_z_mpc|` is 250 pc or more. Computed; nothing writes it. |
 
 Indexes: the address (`shell_index`, `band_index`, `wedge_index`),

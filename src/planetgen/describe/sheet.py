@@ -158,7 +158,8 @@ _STAR = (
     *_rows("physical", ("mass_kg", "Mass", AUTO, True), ("radius_km", "Radius", "radius"),
            ("temperature_k", "Temperature"), ("luminosity_w", "Luminosity", "luminosity", True),
            ("age_gy", "Age"), ("lifespan_gy", "Main-sequence lifetime"), ("metallicity_fe_h", "Metallicity [Fe/H]"),
-           ("decay_age_yr", "Age since it stopped burning")),
+           ("decay_age_yr", "Age since it stopped burning"),
+           ("nuclear_arrival_age_gy", "Age it reaches hydrogen burning")),
     *_rows("zones", ("habitable_zone_inner_km", "Habitable zone, inner edge"),
            ("habitable_zone_outer_km", "Habitable zone, outer edge"), ("snow_line_km", "Snow line"),
            ("heliosphere_radius_km", "Heliosphere radius"), ("system_perimeter_km", "System perimeter"),
@@ -872,6 +873,8 @@ _STAR_RULES = [
     (("decay_age_yr",), lambda klass, row: row is None or row.get("yerkes_class") == "VII",
      "a star that is still burning has not stopped, so it has no age since it did; only a white dwarf, which cooled from the end of its "
      "progenitor's life, has one"),
+    (("nuclear_arrival_age_gy",), lambda klass, row: row is None or row.get("nuclear_arrival_age_gy") is not None,
+     "only a star still contracting toward the main sequence has an age at which hydrogen burning arrives; every other star is past it, or never had one"),
     (("disk_kind", "disk_inner_au", "disk_outer_au"), lambda klass, row: row is None or row.get("disk_kind") is not None,
      "most stars hold no disk: only a young star (class 0 to II), a main-sequence star with a cold debris belt (about one in seven "
      "to one in four) and the pair inside a planetary nebula do"),

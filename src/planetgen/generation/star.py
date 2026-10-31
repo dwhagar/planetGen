@@ -445,6 +445,7 @@ class Star(StellarObject):
         self.luminosity = params["luminosity_w"]
         self.initial_mass_sol = params["initial_mass_sol"]
         self.phase_end_age_gy = params["phase_end_age_gy"]
+        self.nuclear_arrival_age_gy = params.get("nuclear_arrival_age_gy")
         self._model_age_lifespan = (params["age_gy"], params["lifespan_gy"])
         self._model_fe_h = params.get("metallicity_fe_h")
         self._model_rotation_hours = params.get("rotation_period_hours")

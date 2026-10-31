@@ -298,7 +298,7 @@ def _row(shell_index, band_index, wedge, point, population, params, rng):
         params["radius_km"], params["temperature_k"], params["luminosity_w"],
         params["age_gy"], _finite_or_none(params["lifespan_gy"]), params["initial_mass_sol"],
         _finite_or_none(params["phase_end_age_gy"]), seed, star_fe_h(params),
-        rotation_period_hours(seed, params),
+        rotation_period_hours(seed, params), params.get("nuclear_arrival_age_gy"),
     )
 
 
@@ -1363,6 +1363,7 @@ def star_params(row):
         "luminosity_w": row["luminosity_w"], "age_gy": row["age_gy"], "lifespan_gy": lifespan,
         "initial_mass_sol": row["initial_mass_sol"], "phase_end_age_gy": phase_end,
         "metallicity_fe_h": row.get("metallicity_fe_h"), "rotation_period_hours": row.get("rotation_period_hours"),
+        "nuclear_arrival_age_gy": row.get("nuclear_arrival_age_gy"),
     }
 
 
