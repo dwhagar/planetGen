@@ -14406,6 +14406,62 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   number is chosen. Owner Sources 1.
   Prerequisites: none. Related: GEN.536, GEN.725.
 
+- [ ] **GEN.1183 Ice-type strength ratios (IT1 to IT3) become a ratio-by-temperature table from Durham 1997 Table 2 instead of constants**
+  Replace the constant ratios in physics/ice_types.py (GEN.1177) with a
+  table by temperature: ice III about 0.5 in its 240 to 256 K wedge (now
+  0.001), ice V about 8 (now 0.5), ice II 1.7 at 150 K rising to about 6
+  at 200 to 250 K, ice VI about 5 at 200 to 230 K. Rows move from tweak
+  L3 to L1 in GEN.725; run the icy-body round census after. Nothing
+  reads the table yet, so lock-free until GEN.1159 wires the engine.
+  Owner Core 4. Source: reports/papers-vs-standins-2026-10-31.md section
+  7 (the strength papers review of all 14 uploaded and 35 downloaded
+  papers, Boss's request).
+  Prerequisites: none. Related: GEN.1177, GEN.725.
+
+- [ ] **GEN.1184 Rock strength follows olivine creep in the roundness temperature rules, and the hot rubble strength RN9 is re-tiered to olivine creep at about 1300 K**
+  Add a rock olivine creep-law rule to roundness TEMPERATURE_RULES
+  (Hirth and Kohlstedt 2003 and Korenaga and Karato constants, Byerlee
+  friction below 900 K), the rock counterpart of the ice creep law. RN9
+  (hot rubble strength 2.5 MPa) is re-tiered to L1 as olivine creep at
+  about 1300 K. Additive to the engine, lock-free until GEN.1159 wires
+  it. Owner Aux 5. Source: reports/papers-vs-standins-2026-10-31.md
+  section 7 (the strength papers review of all 14 uploaded and 35
+  downloaded papers, Boss's request).
+  Prerequisites: none. Related: GEN.1158, GEN.1176, GEN.725.
+
+- [ ] **GEN.1185 Interior activation energy range 260 to 390 kJ/mol instead of 200 to 300, with the reference viscosity retuned**
+  Change INTERIOR_ACTIVATION_RANGE_KJ_MOL from 200 to 300 to 260 to 390
+  kJ/mol and retune eta0 so the reference viscosity holds (medium
+  confidence in the review). Changes tidal heating and interior outputs,
+  so a lock window plus a census; do it with the next Tides 1 window.
+  Owner Tides 1. Source: reports/papers-vs-standins-2026-10-31.md
+  section 7 (the strength papers review of all 14 uploaded and 35
+  downloaded papers, Boss's request).
+  Prerequisites: none. Related: GEN.725.
+
+- [ ] **GEN.1186 Small evidence updates to registered stand-ins from the strength papers review**
+  Update the registry text only (no value used by generation changes):
+  TR9 ice activation range to 40 to 90 kJ/mol and ice rigidity to 3.5
+  GPa as the knob range, RN5 range to 4 to 9, and the evidence lists of
+  RN2 and RN8. Lock-free docs and registry rows. Owner Aux 5 for
+  RN2/RN5/RN8, Tides 1 for TR9. Source:
+  reports/papers-vs-standins-2026-10-31.md section 7 (the strength
+  papers review of all 14 uploaded and 35 downloaded papers, Boss's
+  request).
+  Prerequisites: none. Related: GEN.725.
+
+- [ ] **GEN.1187 Strength constants still without a source: ammonia dihydrate 1993 constants, the melt factor, Andrade creep, ice grain-boundary-sliding laws and the ice phase boundary table**
+  Find sources or report which papers Boss would need to upload for: the
+  ammonia dihydrate 1993 creep constants, the partial-melt strength
+  factor, Andrade creep parameters for the tidal response, ice
+  grain-boundary-sliding flow laws and the ice phase boundary table
+  (pressure-temperature lines for II, III, V, VI). Research item, no
+  code. Owner Sources 1. Source:
+  reports/papers-vs-standins-2026-10-31.md section 7 (the strength
+  papers review of all 14 uploaded and 35 downloaded papers, Boss's
+  request).
+  Prerequisites: none. Related: GEN.1175, GEN.725.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**

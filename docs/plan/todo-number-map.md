@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.250 |
 | MAP | MAP.362 |
 | NAV | NAV.65 |
-| GEN | GEN.1183 |
+| GEN | GEN.1188 |
 | PERF | PERF.220 |
 | DB | DB.110 |
 | API | API.38 |
@@ -1933,6 +1933,11 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1180 | Follow-up strength research: peridotite and olivine, rock fracture toughness, solid N2 and CO ices, ices VII and X, methane hydrate constants at low temperature | none | done, report strength-followup-gen1180 (olivine flow constants read; no data exists for the rest and none is needed for rounding) |
 | GEN.1181 | Set the molecular gas velocity dispersion to 7.0 km/s (range 5 to 9) from four read sources and record it in GEN.725 and the structure.py comment | none | open |
 | GEN.1182 | Sourced scale height of young stars: the 'observed about 50 pc' figure has no source in anything read and no CO velocity dispersion reaches it | none | open |
+| GEN.1183 | Ice-type strength ratios (IT1 to IT3) become a ratio-by-temperature table from Durham 1997 Table 2 instead of constants | none | open |
+| GEN.1184 | Rock strength follows olivine creep in the roundness temperature rules, and the hot rubble strength RN9 is re-tiered to olivine creep at about 1300 K | none | open |
+| GEN.1185 | Interior activation energy range 260 to 390 kJ/mol instead of 200 to 300, with the reference viscosity retuned | none | open |
+| GEN.1186 | Small evidence updates to registered stand-ins from the strength papers review | none | open |
+| GEN.1187 | Strength constants still without a source: ammonia dihydrate 1993 constants, the melt factor, Andrade creep, ice grain-boundary-sliding laws and the ice phase boundary table | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
