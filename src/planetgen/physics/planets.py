@@ -23,7 +23,7 @@ import math
 import re
 
 from planetgen.physics import moon_history, body_state, bulk_draw, constants, giant_draw, giant_interior, giant_tilt, kepler, metallicity, moon_composition, orbit_elements, planet_classes, planet_kind, planet_mass, rings
-from planetgen.physics import aerosols, atmosphere, body_colour, body_spin, daylight, spin_torques, climate_draws, habitability_world, hosting_gate, hydrosphere, interior_heat, magnetism, ocean_tides, radiation, radiogenic, relations, spin, surface_air, surface_composition, tidal_spin
+from planetgen.physics import air_envelope, aerosols, atmosphere, body_colour, body_spin, daylight, spin_torques, climate_draws, habitability_world, hosting_gate, hydrosphere, interior_heat, magnetism, ocean_tides, radiation, radiogenic, relations, spin, surface_air, surface_composition, tidal_spin
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.util import log
@@ -520,6 +520,9 @@ def calculate_atmospheric_conditions(planet, distance_override=None, host_eccent
 
     planet.surface_temperature = surface_temperature_no_atmosphere
     planet.atmospheric_pressure = 0.0
+    if not giant:       # GEN.1226: the air's share goes back to the rock (the five fractions add up to 1) before the air is solved again
+        planet.rock_mass_fraction += planet.envelope_mass_fraction or 0.0
+        planet.envelope_mass_fraction = 0.0
     climate_draws.record(planet, albedo, 0.0)       # the mixture subject reads the albedo
     setting = surface_air.setting_of(planet, albedo=albedo, starlight_w_m2=solar_output_at_orbit, star_distance_au=distance,
                                      heat=heat, surface_w=surface_w, water_lost=water_lost)
@@ -535,6 +538,10 @@ def calculate_atmospheric_conditions(planet, distance_override=None, host_eccent
         planet.scale_height = _m_to_km(air.state.scale_height_m)
         climate_draws.record(planet, albedo, air.greenhouse_factor)     # GEN.412: the two numbers the temperature is made of
         atmosphere.store_air(planet, air.partials_pa, None if giant else _mantle_redox(planet, air, distance, water_lost))
+        if not giant:       # GEN.1226: the true air share of a hydrogen-rich air, so the body type sees a class T dwarf
+            share = air_envelope.envelope_share(air.partials_pa, air.pressure_pa, planet.mass, planet.radius)
+            planet.envelope_mass_fraction = share
+            planet.rock_mass_fraction -= share      # the air's mass comes out of the rock's
 
     # GEN.88: water, land, ice and the ocean's chemistry.
     hydrosphere.generate_hydrosphere(planet, 0.0 if heat is None else heat.flux_w_m2, surface_w)

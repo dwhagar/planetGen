@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 973 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 974 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -44,8 +44,8 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T6 | 93 | 72 | 20 | 51 | 0 | 236 |
 | T7 | 27 | 8 | 8 | 8 | 0 | 51 |
 | T8 | 0 | 1 | 1 | 5 | 1 | 8 |
-| T9 | 19 | 14 | 4 | 42 | 19 | 98 |
-| All | 559 | 204 | 46 | 134 | 30 | 973 |
+| T9 | 20 | 14 | 4 | 42 | 19 | 99 |
+| All | 560 | 204 | 46 | 134 | 30 | 974 |
 
 ## How the labels were given
 
@@ -1396,6 +1396,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | PT1 | P | T9 | L0 | planet_type.TERRESTRIAL_MAX_ENVELOPE 0.005: an envelope under 0.5 percent of the mass is a terrestrial body (about the 1.6 Earth radii where rocky planets end) | 0.002 to 0.02 | planets and moons | a measured planet of 1.6 to 2 Earth radii that is rocky with no envelope, or a rocky world of 1.3 radii with a thick hydrogen envelope | the radius valley limit of GEN.722 read from the envelope the planet holds | Rogers 2015 and Fulton and Petigura 2018 (rocky limit near 1.6 Earth radii); Lopez and Fortney 2014 (envelope share against radius) | GEN.1219 | - |
 | PT2 | P | T9 | L0 | planet_type.GAS_MIN_ENVELOPE 0.5: an envelope of half the mass or more is a gas body (the line of bulk_structure.GIANT_ENVELOPE_FRACTION) | 0.3 to 0.7 | planets | a giant of Neptune's mass that is more than half envelope, or a Jupiter whose core outweighs its envelope | the envelope share the giant interior model gives (GEN.428) | Boss's choice of the pure rule; Neptune 10 to 15 percent envelope (Helled 2011) and Jupiter 90 percent or more | - | - |
+| AE1 | P | T9 | L0 | air_envelope.HYDROGEN_RICH_SHARE 0.3: an air with 30 percent or more of its pressure in hydrogen and helium is hydrogen-rich, and its true air mass over the body's mass is the envelope share stored (GEN.1226) | 0.2 to 0.5 | rocky planets and moons with air | a rocky body whose air is 30 to 50 percent hydrogen that is not a gas dwarf | the envelope share of the formation model once the formation keeps an envelope on a rocky planet | the share_h2 line of planet_class_fit.json (6.150) and planet_classes.json class T; Boss 1:56 PM EDT 2026-10-31: store the true air share | - | - |
 
 ## 6.159 Stand-ins of the star stepper
 
