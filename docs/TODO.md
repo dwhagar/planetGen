@@ -1106,45 +1106,6 @@ with `clamp()`.
   checker change are made by Core 5 with the next guide edit.
   Prerequisites: DOC.84. Related: UX.237, GEN.1208.
 
-- [ ] **UX.253 Readability rewrite of ALL star, system and star-class text: summary sentences, descriptions, notes, labels, spectral class pages**
-  Boss, 10:07 AM EDT 2026-10-31 (and 10:08 AM EDT for the help pages):
-  build and ship all the life recommendations, a full readability
-  rewrite of ALL planet and star text, a life summary paragraph in At a
-  glance, a Life section in the details with the nitty-gritty, and a
-  full help page suite on all life types and the categories we use.
-  Brief:
-  /mnt/project-files/reports/life-and-text-readability-brief-2026-10-31.md;
-  coexistence write-up:
-  reports/multi-life-types-per-planet-2026-10-31.md. PR 4471 (branch
-  claude/project-thread-5xwcu1, wording and layout of the first Life
-  paragraph) merges first and these build on it. Filed by the TODO
-  thread. Do: the same rewrite as the planet item for every sentence
-  about stars, multi-star systems and the star classes: the star
-  summary, descriptions, notes, table labels, spectral and luminosity
-  class pages and the system page text, to the style guide. Presentation
-  and wording only; no computed value changes; check first whether any
-  of the text is stored at generation and keep a stored change as its
-  own lock item. Where we think it belongs (best guess, can move): Core
-  2 (the UX and render lane), after the style guide.
-  Scan result from Core 2 (10:13 AM EDT 2026-10-31) (2026-10-31 10:24 AM
-  EDT): The only stored star text is star_systems.system_flavor_text
-  drawn from tuning.SYSTEM_FLAVOR; rewriting those lines is lock work
-  and is GEN.1212, left out of this item. Everything else
-  (describe/build.py summaries and notes, describe/sheet.py labels, the
-  spectral and luminosity class pages in web/lib/classref.py, the system
-  page text) is built at view time and belongs here.
-  Spelling rule (2026-10-31 10:34 AM EDT): Boss decided (10:33 AM EDT
-  2026-10-31): American spelling, option 1, so "color" not "colour"; he
-  does not mind which as long as it is consistent everywhere. The style
-  guide (docs/design/interface/text-style.md) records American spelling
-  and the checker (planetgen/util/plainwords.py) flags British spellings
-  (colour, grey, centre, metre, litre, kilometre, analyse, neighbour and
-  the like, with a short allow-list for proper names and quotes); each
-  rewrite changes its own text to American spelling, and the number of
-  "colour" uses (333 on the site) goes to zero. The word list and the
-  checker change are made by Core 5 with the next guide edit.
-  Prerequisites: none. Related: UX.150.
-
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
@@ -14246,6 +14207,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   temperature under 1000 K only; below 20 the Lopez and Fortney relation
   governs). The J radius floor drops to 4.5 radii (sub-Saturns). Census
   targets are in section 6 of the report.
+  Letters confirmed (2026-10-31 12:08 PM EDT): Boss confirmed the class
+  letters (11:59 AM EDT 2026-10-31): Y is the sulfuric acid class
+  (swapped with the proposal, because Trek labels a Class Y a Demon
+  world; the definition is ours, the name sounds right for sulfuric
+  acid), U is methane-ethane, X is ammonia-water and Z is the hot
+  thin-air world. Class R is Hothouse. The wait on the letters is
+  cleared.
   Prerequisites: GEN.1219, GEN.1220, GEN.1221, GEN.1222, GEN.1214.
   Related: GEN.1215, GEN.1211.
 
@@ -14349,7 +14317,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   worlds does not.
   Prerequisites: GEN.862. Related: GEN.863, UX.237, TEST.435.
 
-- [ ] **GEN.1211 A new class for hot thin-air rocks (about 1.6 percent of bodies: 1.4 to 2 g, 340 to 1100 K, 1 to 10 kPa, no ocean) is the proposed Class Z of the class code system (Boss to confirm)**
+- [ ] **GEN.1211 A new class for hot thin-air rocks (about 1.6 percent of bodies: 1.4 to 2 g, 340 to 1100 K, 1 to 10 kPa, no ocean) is Class Z of the class code system (Boss confirmed)**
   Boss approved the class option for the hot thin-air gap (Class M
   thread, relayed 10:13 AM EDT 2026-10-31); he has not yet named the
   letter or the class name. Source: the best-fit shadow report
@@ -14380,6 +14348,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   awaiting Boss to confirm Z; Class R is the Hothouse of the
   oxygen-water family (digit 0), not this class. Build this item as the
   Z row of the class-by-domain matrix (GEN.1221), not separately.
+  Letters confirmed (2026-10-31 12:08 PM EDT): Boss confirmed the class
+  letters (11:59 AM EDT 2026-10-31): Y is the sulfuric acid class
+  (swapped with the proposal, because Trek labels a Class Y a Demon
+  world; the definition is ours, the name sounds right for sulfuric
+  acid), U is methane-ethane, X is ammonia-water and Z is the hot
+  thin-air world. Class R is Hothouse. The wait on the letters is
+  cleared.
   Prerequisites: none. Related: GEN.1207, GEN.1208.
 
 - [ ] **GEN.1212 Rewrite the stored system flavour lines (tuning.SYSTEM_FLAVOR, about 40 story lines) to the plain-words style guide, and stop storing text the pages can build**
@@ -14698,14 +14673,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   H3 and so on), the digit meanings (1 hot, 2 cold, 3 too wet, 4 too
   dry, 5 to 8 double deviations, 9 other-domain, 5 to 9 reserved), and
   the letters: M, R (Hothouse, Boss), P, O, H in the oxygen-water
-  family; F anoxic water; G dense CO2; U sulfuric acid; Y
-  methane-ethane; X ammonia-water; Z hot thin-air world. U, Y, X, Z are
-  PROPOSALS awaiting Boss; build the code system with them as
-  placeholders and nothing else depends on the letter. Every place that
+  family; F anoxic water; G dense CO2; Y sulfuric acid (Demon world, Boss); U methane-ethane; X ammonia-water; Z hot thin-air world. Boss confirmed these letters (11:59 AM EDT 2026-10-31), so they are final. Every place that
   prints or sorts a class (pages, API, search, map filters, the
   habitability index, life-class gates) goes through the one format
   function. Output change: epoch and migration with GEN.1207. Where we
   think it belongs (best guess, can move): the Class M research thread.
+  Letters confirmed (2026-10-31 12:08 PM EDT): Boss confirmed the class
+  letters (11:59 AM EDT 2026-10-31): Y is the sulfuric acid class
+  (swapped with the proposal, because Trek labels a Class Y a Demon
+  world; the definition is ours, the name sounds right for sulfuric
+  acid), U is methane-ethane, X is ammonia-water and Z is the hot
+  thin-air world. Class R is Hothouse. The wait on the letters is
+  cleared.
   Prerequisites: none. Related: GEN.1207, GEN.1211, GEN.862.
 
 - [ ] **GEN.1221 Class-by-domain matrix as data: six domains plus regional, day and night temperature and wet bulb, stored relative humidity and a groundwater flag, and a phase gate per solvent**
@@ -14733,6 +14712,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   guess, can move): the Class M research thread.
   Prerequisites: GEN.1219, GEN.1220. Related: GEN.1205, GEN.1207,
   GEN.1035.
+  Letters confirmed (2026-10-31 12:08 PM EDT): Boss confirmed the class
+  letters (11:59 AM EDT 2026-10-31): Y is the sulfuric acid class
+  (swapped with the proposal, because Trek labels a Class Y a Demon
+  world; the definition is ours, the name sounds right for sulfuric
+  acid), U is methane-ethane, X is ammonia-water and Z is the hot
+  thin-air world. Class R is Hothouse. The wait on the letters is
+  cleared.
 
 - [ ] **GEN.1222 Tiny airless moons hold a water surface ocean at 20 to 33 K: 60 of 2,071 bodies in one sample (39 class D, 20 class C, 1 class T), all moons (bug)**
   From the Class M research thread's handoff
