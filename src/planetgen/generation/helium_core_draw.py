@@ -40,7 +40,7 @@ def draw_core_mass_sol(initial_mass_sol, fe_h, rng=draw):
         weights = multistar.star_count_weights(initial_mass_sol)
     if rng.random() >= 1.0 - weights[0] / sum(weights):
         return None
-    companion = multistar._companion_mass(initial_mass_sol, rng, fe_h)
+    companion = multistar.companion_mass(initial_mass_sol, rng, fe_h)
     total = initial_mass_sol + companion
     floor_au = ((initial_mass_sol ** ZERO_AGE_RADIUS_EXPONENT + companion ** ZERO_AGE_RADIUS_EXPONENT)
                 * constants.SOLAR_RADIUS_M / constants.AU_M)

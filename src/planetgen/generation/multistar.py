@@ -1797,7 +1797,7 @@ def _roster(placed, age_yr, rng, max_stars, n_stars, prevalence, companion=_DRAW
     if companion is _DRAW_COMPANION and _is_helium_core(base):
         # A helium-core white dwarf (GEN.996, `helium_core_draw`) was made by its companion: a star of the tree's mass law on the
         # axis its giant filled its lobe at.
-        stripper = _star_leaf(_companion_mass(birth, rng, placed.fe_h), age_yr, rng, fe_h=placed.tree_fe_h)
+        stripper = _star_leaf(companion_mass(birth, rng, placed.fe_h), age_yr, rng, fe_h=placed.tree_fe_h)
         _bind_helium_core_companion(base, stripper, placed.tree_fe_h)
         return [base, stripper], [(0, 1)]
     state = companion_state(placed, rng) if companion is _DRAW_COMPANION else companion
