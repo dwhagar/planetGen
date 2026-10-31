@@ -886,6 +886,7 @@ def _generation_panel(cookie_header, db):
     except apiclient.ApiError as exc:
         return {"error": _api_message(exc), "rows": [], "size": None, "available": False}
     size = body["sizes"].get(db)
+    objects = body.get("object_types", [])
     return {
         "error": None,
         "available": body["available"],
@@ -904,6 +905,7 @@ def _generation_panel(cookie_header, db):
             "per_system": f"{row['seconds_per_system'] * 1000:.1f} ms",
             "systems": f"{row['systems_per_task']:,.1f}",
         } for row in body["buckets"]],
+        "objects": _object_rows(objects),
         "stages": [{
             "stage": f"{row['stage_n']} of {row['stage_total']}: {row['label']}",
             "settings": _settings_text(row["settings"]),
@@ -912,6 +914,30 @@ def _generation_panel(cookie_header, db):
             "when": row["finished_at"],
         } for row in body.get("stages", [])],
     }
+
+
+def _object_rows(summaries):
+    """The Seconds per object table: `object_timing.kind_summaries` as cells, with each kind's share of all the object time."""
+    total = sum(row["total_seconds"] for row in summaries)
+    if total <= 0:
+        return []
+    return [{
+        "kind": row["kind"].replace("-", " "),
+        "objects": format_count(row["objects"]),
+        "mean": _object_seconds(row["mean_seconds"]),
+        "fastest": _object_seconds(row["fastest_seconds"]),
+        "slowest": _object_seconds(row["slowest_seconds"]),
+        "share": f"{100.0 * row['total_seconds'] / total:.1f}%",
+    } for row in summaries]
+
+
+def _object_seconds(seconds):
+    """One object's time as microseconds, milliseconds or seconds, whichever reads best."""
+    if seconds < 1e-3:
+        return f"{seconds * 1e6:,.0f} \u00b5s"
+    if seconds < 1.0:
+        return f"{seconds * 1e3:,.1f} ms"
+    return f"{seconds:,.2f} s"
 
 
 def _settings_text(values):
