@@ -618,7 +618,8 @@ def star_params(initial_mass_sol, age_gy, state):
         dict: `type` (e.g. "G2V Yellow Main Sequence Star"),
         `yerkes_class`, `mass_kg`, `radius_km`, `temperature_k`,
         `luminosity_w`, `age_gy`, `lifespan_gy`, `initial_mass_sol` and
-        `phase_end_age_gy`; and `metallicity_fe_h`, the birth [Fe/H] the star keeps (GEN.651).
+        `phase_end_age_gy`; `nuclear_arrival_age_gy` (GEN.1174: the age MIST's tracks put a pre-main-sequence star on the main sequence, later than its
+        `phase_end_age_gy`, the age its radius settles; None for every other star); and `metallicity_fe_h`, the birth [Fe/H] the star keeps (GEN.651).
     """
     temperature = int(round(state["temperature_k"], tuning.ROUND_TEMPERATURE_NEAREST_HUNDRED))
     spectral_class, subclass = spectral_letter_and_subclass(state["temperature_k"])
@@ -657,6 +658,7 @@ def star_params(initial_mass_sol, age_gy, state):
         "lifespan_gy": state["lifespan_gy"],
         "initial_mass_sol": initial_mass_sol,
         "phase_end_age_gy": state["phase_end_gy"],
+        "nuclear_arrival_age_gy": state.get("nuclear_arrival_gy"),
         "metallicity_fe_h": state["metallicity_fe_h"],
     }
 
