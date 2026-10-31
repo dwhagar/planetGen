@@ -716,13 +716,6 @@ with `clamp()`.
   test filters by class and by colour.
   Prerequisites: DB.90, GEN.647. Related: UX.100, MAP.220, GEN.430.
 
-- [ ] **UX.158 Info panel line: how this colour was worked out, which inputs and whether partial or full quality**
-  A short line in the info panel naming the inputs. Design draft
-  design-drafts/body-rendering-from-composition-2026-10-24.md (section
-  10), filed by the body-rendering design thread, 10:18 PM EDT
-  2026-10-23 as the thread reported. Placement follows Boss's plan of 10:26 PM EDT 2026-10-23 (section 11 of the draft).
-  Prerequisites: none.
-
 - [ ] **UX.164 The wipe line reads "Wiped 75 tables (about 1 row)" (bug)**
   From the generation-log analysis of Boss's run
   job-20261024-031001-f81d (relayed 11:56 PM EDT 2026-10-23 as the lane
@@ -15253,6 +15246,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner (housekeeping) (2026-10-30 2:55 PM EDT): released to the pool:
   the owner named above (Aux 16) is a retired lane. A waiting lane takes
   it, confirmed with TODO, one lock-free item at a time.
+  Wiring sweep (Boss, 12:03 PM EDT) (2026-10-31 1:40 PM EDT): this is
+  one of the stored-but-unread records Boss does not want. Owner now
+  Sources 2 (released to the pool; Sources 2 had no lock-free item
+  left): measure the cost of recording on a run, decide show or stop,
+  write the decision here. PERF.197 carries out the decision (a
+  migration if the tables go, so that step is lock work).
   Prerequisites: none. Related: PERF.195.
 
 - [ ] **PERF.197 Carry out the object timing decision: show the records with a test, or delete the recording, the tables, the migration and the fingerprint entry (G5, step 2)**
