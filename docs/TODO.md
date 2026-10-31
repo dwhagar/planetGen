@@ -13755,7 +13755,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and let classification use the radius-settled one. Owner changed from
   Sources 2 to Aux 7, who builds it (output change, rides a train).
   Aux 7 head update (as the lane reported) (2026-10-31 1:55 PM EDT):
-  part 2 branch claude/gen1174-store is now 07d8b4a (the train takes
+  part 2 branch claude/gen1174-store is now 4538e59b9 (the train takes
   this head, not 5470a095e); part 1 claude/gen1174 stays 45a9296b7.
   Prerequisites: none. Related: GEN.1169, GEN.947.
 
@@ -19811,17 +19811,6 @@ clears each one.
   a time; the lane says if it clashes). Rule for every lane: a public
   function that only tests call needs a register line in the same
   change, like a module.
-  Prerequisites: none.
-
-- [ ] **TEST.528 tests/test_systemmap.py::test_a_planet_and_its_moon_glow_in_the_colour_of_their_air_under_their_own_star is red on main (bug)**
-  Found by Core 4 (as the lane reported, 12:30 PM EDT 2026-10-31; red on
-  clean main, not from MAP.277), filed by the TODO thread. Kind: red
-  test on main. Object: the System Map test that a planet and its moon
-  glow in the colour of their air under their own star. Do: find why it
-  fails (the look record glow colour, or MAP.277's new glow strength and
-  width read by the test) and fix the code or the test's expectation
-  with a reason, never by skipping it. Lock-free. Owner Core 2
-  (proposed; it owns the System Map painters).
   Prerequisites: none.
 
 ## USR: User accounts
