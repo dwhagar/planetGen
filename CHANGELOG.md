@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2862] - 2026-10-31
+
+**Headline:** A disc star's age now goes with its metal content: poorer stars of the old disc are older.
+
+### Changed
+- **Age and metals of disc stars (GEN.744, GEN.944).** Inside the young, intermediate and old disc, a star's age now follows its [Fe/H] by the relation of Haywood et al. 2013: the thin disc gains metals slowly, the thick disc (past 8 Gyr) fast. A metal-poor star of the old disc is older than a metal-rich one, where before the two were independent. Halo, bulge, cluster and satellite stars are unchanged.
+
 ## [8.0.2861] - 2026-10-31
 
 **Headline:** The roundness engine now has strengths for the other ices of an icy body (high-pressure water ices, methane hydrate, dry ice, ammonia dihydrate) and a way to name a body's ice type from its composition.
