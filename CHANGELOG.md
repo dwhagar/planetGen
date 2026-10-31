@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2899] - 2026-10-31
+
+**Headline:** Every asteroid belt and field now says which meteorite group its rock is nearest to (CI, CM, H, L and so on, or none for an icy mix).
+
+### Changed
+
+- Belts and asteroid fields gain a "Nearest Meteorite Group" fact, worked out from the mix of grains the body was drawn with (the iron in its olivine, and its metal, refractory and fine-grained shares) and the average of each chondrite group. A mix with 5 percent or more ice or water is called none, since the groups are rocks. The belt's own mix and density are unchanged. Stored as `chondrite_group` on `asteroid_belts` and `asteroid_fields` (schema migration, nothing backfilled: a regenerated galaxy fills it). generation-output: changed
+
 ## [8.0.2898] - 2026-10-31
 
 **Headline:** The volcanic crust of a rocky world now comes from what its mantle is made of and how much of it melts, so some worlds get andesite or magnesian lava plains instead of basalt everywhere.
