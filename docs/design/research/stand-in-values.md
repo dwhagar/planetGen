@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 900 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 910 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -36,16 +36,16 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 136 | 11 | 7 | 1 | 0 | 155 |
-| T2 | 110 | 33 | 0 | 1 | 0 | 144 |
-| T3 | 77 | 34 | 5 | 11 | 0 | 127 |
+| T1 | 141 | 15 | 7 | 1 | 0 | 164 |
+| T2 | 110 | 32 | 0 | 1 | 0 | 143 |
+| T3 | 77 | 34 | 5 | 10 | 0 | 126 |
 | T4 | 37 | 4 | 0 | 14 | 10 | 65 |
 | T5 | 43 | 15 | 0 | 1 | 0 | 59 |
-| T6 | 82 | 62 | 15 | 45 | 0 | 204 |
+| T6 | 83 | 62 | 15 | 45 | 0 | 205 |
 | T7 | 27 | 8 | 8 | 8 | 0 | 51 |
 | T8 | 0 | 1 | 1 | 5 | 1 | 8 |
-| T9 | 13 | 12 | 4 | 39 | 19 | 87 |
-| All | 525 | 180 | 40 | 125 | 30 | 900 |
+| T9 | 15 | 12 | 4 | 39 | 19 | 89 |
+| All | 533 | 183 | 40 | 124 | 30 | 910 |
 
 ## How the labels were given
 
@@ -343,6 +343,10 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | SP10 | T | T6 | L0 | planets.generate_spin | none | every planet and moon | a coupled spin, obliquity and eccentricity history | approximations of the spin state: a locked body turns exactly once an orbit (not 1 + 6 e^2 of a constant-time-lag tide); the eccentricity is the stored one, not the larger past one; the obliquity stays as drawn until the spin has come all the way down, then is zero; the planet's air is a thermal tide (SP13) and the moons are in the sum from GEN.959, but there is no core-mantle coupling | - | - |
 | SP13 | T | T6 | L0 | body_spin.thermal_tide_of | none | rocky planets with air | a thermal tide for a moon with air and for a giant's envelope | the thermal tide of the air acts on a rocky planet with a stored surface pressure above 0 and starlight above 0; not on a moon (its planet holds it), an icy body or a gas giant (its air has no surface) | - | - |
 | SP14 | T | T6 | L0 | planets.generate_spin | none | planets held away from synchronism by the air | the obliquity history under the thermal tide | an asynchronous balance of the tides is reported at obliquity zero, prograde (tilt 0) if the rate is positive and retrograde (tilt 180) if it is negative (Venus), whatever tilt it was born with | - | - |
+| SP17 | P | T1 | L0 | spin.KRAFT_BREAK_LOW_K, KRAFT_BREAK_HIGH_K | 6400 to 6700 K | a main-sequence dwarf of solar metallicity | a break by mass and metallicity (GEN.1163) | READ in full, Beyer and White 2024 (arXiv:2408.02638): the Kraft break is centred at 6550 K with a width of about 200 K, from 6450 to 6650 K (uncertainty about 50 K on the limits), 1.32 to 1.41 solar masses; the 217 stars cooler than it have a mean v sin i of 6.7 km/s (standard deviation 3.6), the 40 hotter ones 63 km/s (standard deviation 35) | - | - |
+| SP18 | P | T1 | L0 | spin.HOT_STAR_BREAK_SPEED_KMS | 60 to 100 km/s | a dwarf of 1.41 solar masses or less above the break | a speed by mass from stars between the break and 1.6 solar masses | the mean v sin i of the stars just hotter than the break, 63 km/s (SP17), deprojected by 4 / pi for random orientation (the mean of sin i): about 80 km/s, kept as the median equatorial speed at the top of the break | - | - |
+| SP19 | P | T1 | L0 | spin.HOT_STAR_SPEED_KMS, HOT_STAR_SPEED_SIGMA, HOT_STAR_FULL_SPEED_MASS_SOL | 160 to 200 km/s; width 0.3 to 0.45 | a dwarf of 1.8 solar masses or more | a speed rising with mass above 1.8 solar masses (the paper's Table 4 trend, about 46 km/s per solar mass in the mode) | READ, Zorec and Royer 2012 (A&A 537:A120, arXiv:1201.2052, Table 4, read from the paper's text): the 1.60 to 2.00 solar mass bin (191 stars) has a Maxwellian mode of the fast rotators of 160 km/s and a dispersion of 54 km/s, a mean of 2 / sqrt(pi) times the mode, 180 km/s; the mode rises to 238 km/s at 3.15 to 3.85 solar masses, which the model does not follow (hot stars of every mass above 1.8 keep 180 km/s with a log-normal width of 0.45, a planetGen choice wider than the paper's 54 / 160); their lowest bin starts at 1.6 solar masses | - | - |
+| SP20 | P | T6 | L0 | spin.KRAFT_BREAK_TOP_MASS_SOL, HOT_STAR_FULL_SPEED_MASS_SOL, spin.hot_star_median_speed_kms | a straight line in v or in ln v | a dwarf of 1.41 to 1.8 solar masses | the same speed by mass from a sample of F and early A stars with masses | between the top of the break (1.41 solar masses, SP18's 80 km/s) and the first mass the paper covers (SP19) the median speed is interpolated, linear in ln v over mass; no source covers the stars of 1.41 to 1.6 solar masses (the break paper gives one mean for all hotter stars); the interpolation is a bridge between two read anchors, not fitted | - | - |
 
 ## 6.15 Stand-ins of the trapped radiation belts
 
@@ -791,8 +795,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| GM1 | P | T3 | L1 | tuning.WD_ENGULFMENT_BASE_AU 1.5 AU, the radius inside which a solar-mass progenitor cleared its planets | 1.5 to 2.7 AU | white dwarfs with a progenitor near one solar mass | already met at the top of the bracket: Mustill and Villaver 2012 print 2.7 AU for Jovian planets (Zahn tides) and 1.6 AU with the Nordhaus et al. 2010 tides, so 1.5 sits just under the low value | a lookup through the paper's three Jovian points (2.7, 3.8, 10 AU at 1, 2.5, 5 solar masses), terrestrial 15 AU at 5 solar masses as the upper bracket (GEN.1006 build) | arXiv 1210.0328 read (sections 4.3 and 5, abstract); the choice of 1.5 is the GEN.318 note's | - | - |
-| GM2 | P | T3 | L3 | tuning.WD_ENGULFMENT_AU_PER_PROGENITOR_MSUN 0.8 AU per solar mass above one | 0.8 to 2.0 | white dwarfs with a progenitor of 1 to 8 solar masses | already met: the line gives 2.7 AU at 2.5 solar masses (paper 3.8) and 4.7 AU at 5 solar masses (paper about 10 for Jovian, 15 or more for terrestrial planets) | the same lookup as GM1 | arXiv 1210.0328 read; the slope is the GEN.318 note's hand choice | - | replace (GEN.1006) |
+| GM1 | P | T3 | L1 | tuning.WD_ENGULFMENT_POINTS_AU ((1, 2.7), (2.5, 3.8), (5, 10)) AU at those progenitor masses, straight lines between them, the last slope carried to 8 solar masses (GEN.1012) | 1 to 8 solar masses | white dwarfs, whose progenitors cleared their Jovian planets inside it | the paper's own Figure 7 curve is not a straight line between its three points, and its terrestrial limit (15 AU or more at 5 solar masses) and its Nordhaus et al. 2010 tides (1.6 AU at one solar mass) are outside this lookup | a lookup from the star's largest radius and a tidal factor (design 4.3), the points as its check | arXiv 1210.0328 read (sections 4.3 and 5, abstract); the straight lines between the points and the carried slope are the lane's | - | - |
 | GM3 | P | T6 | L3 | multistar.EXTENT_AXIS_FACTOR 2.5 and multistar.PERICENTRE_EXTENT_FACTOR 2.0, how many summed radii a pair's axis and its pericentre must clear | 2 to 4; 1.5 to 3 | stellar pairs of two single members | an N-body run of a close pair whose tides stay below the contact limit at a smaller factor | a tidal-stability limit from the pair's spin and Roche lobe (GEN.842 tides) | design default of the multi-star build | - | no data |
 | GM4 | P | T6 | L1 | multistar.MAX_FILL_FACTOR 1.2, how far past its Roche lobe a star may reach at closest approach | 1.0 to 1.3 | close and contact pairs | a contact-binary sample whose fill factors lie mostly above 1.3 | the contact-binary fill-factor distribution of a catalogue | Eggleton 1983 lobe formula read in the paper (Equation 2, within 1 percent for all q; ADS scan) and equal to `roche.roche_lobe_fraction`; the 1.2 is the design default | - | - |
 | GM5 | P | T1 | L1 | tuning.MOON_PROGRADE_STABLE_HILL_FRACTION 0.4895 of the Hill radius, with none of Domingos et al.'s eccentricity terms and no retrograde fraction | planet and moon eccentricity terms 1.03 and 0.27 (prograde); 0.9309 (1 - 1.0764 e_planet - 0.9812 e_moon) (retrograde) | circular host orbit; moons on prograde orbits | a host with e_planet 0.3 where the paper's cut is 0.69 of the circular one | the full two-term fits of both senses | Domingos, Winter and Yokoyama 2006 read in the paper (publisher PDF supplied by Boss 10-30): prograde 0.4895 (1 - 1.0305 e_P - 0.2738 e_sat), retrograde 0.9309 (1 - 1.0764 e_P - 0.9812 e_sat), in Hill radii; the 0.4895 is the paper's, the missing terms are the code's gap | - | - |
@@ -1400,7 +1403,10 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| GV1 | P | T2 | L1 | planet_classes.json class V: gravity_g min 2.0 (a body with air at 2 g or more is class V; below it the other rows decide) | 1.5 to 2.0 g (Boss left the choice; 1.5 g is about 1.3 Earth radii) | terrestrial bodies with air | a measured occurrence of rocky planets above 1.5 Earth radii with thin N2 and O2 air at a temperate surface, or a habitability model that scores 1.5 to 2 g as unsafe | the high-gravity rows of the habitability index (GEN.646 family) once they read the finished body | Bryson et al. 2021 limit of 1.5 Earth radii for Earth-sized planets (read, per the class M report); the 2 g value is chosen from it by the rocky mass-radius law, not measured | - | - |
+| HF1 | D | T1 | L0 | halo_function.OMEGA_BARYON_H2 0.022068, SPECTRAL_INDEX 0.9624, SIGMA_8 0.8344: the Planck 2013 best fit beside the h 0.671 and Omega_m 0.3175 the chain already held | the Planck+WP best fit (0.022032, 0.9619, 0.8347) or a WMAP-era set | z = 0 galaxies | a later release of the cosmology that moves sigma_8 by more than 3 percent | none (the cosmology the chain states) | Planck Collaboration XVI 2014 (arXiv 1303.5076) Table 2, Planck column, READ | - | - |
+| HF2 | P | T1 | L1 | halo_function._transfer_function: the no-wiggle fit of Eisenstein and Hu 1998 Eqs. 26, 28 to 31 stands for a Boltzmann-code transfer function | a Boltzmann code (CAMB, CLASS) | halo masses of 1e8 to 1e17 solar masses | a Boltzmann transfer function that moves sigma(M) by more than a few percent over the range | a tabulated transfer function | Eisenstein and Hu 1998 (arXiv astro-ph/9709112), READ; the paper quotes the fit as good to a few percent without the wiggles | - | - |
+| HF3 | P | T1 | L1 | mass_chain.median_stellar_mass: Moster et al. 2013's relation, fitted to the Millennium haloes in a WMAP7 cosmology (h 0.704), is read against the Planck halo mass function, halo masses as printed | none | the conditional at every stellar mass | an abundance matching of the relation in the Planck cosmology that moves the median halo by more than 0.05 dex | a relation fitted in the chain's own cosmology | Moster, Naab and White 2013 (arXiv 1205.5807) section 2, READ | - | - |
+| HF4 | P | T9 | L0 | halo_function._COARSE_STEP 0.05 dex, GRID_STEP 0.01 dex, _LN_K_STEP 0.02, k from 1e-4 to 2e3 per Mpc: the numerical grids of sigma(M) and of the conditional | halving each step | every conditional | a median that moves by more than 0.003 dex when a step is halved | none (numerical) | the GEN.399 script (numpy, 6000 wave numbers, the slope of sigma by a 0.01 dex difference) gives the same medians to 0.001 dex | - | - |
 
 ## 6.128 Stand-ins of the class lines of the train 6 epoch
 
@@ -1476,6 +1482,15 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | BHS3 | P | T9 | L3 | belt_history.MASS_LOSS_SCATTER_SHARE 0.5: the share of a belt thrown inward per unit fraction of the star's mass lost, if giants remain | 0.1 to 1 | belts beyond a few au of a star that becomes a white dwarf, with giants left | an N-body run of a giant system losing 80 percent of its mass whose belt scatters a share far from the law | an N-body population synthesis of belts round mass-losing stars (Debes and Sigurdsson 2002 for planets only) | educated guess from needed output (the observed 27 to 50 percent of white dwarfs accreting) | GEN.1069 | no data |
 | BHS4 | P | T6 | L1 | belt_history.DELIVERY_MYR 100: how long the scattered rock takes to fall on the white dwarf | 20 to 200 Myr (the cooling ages surveyed) | white dwarfs of 20 to 200 Myr cooling age | polluted white dwarfs showing accretion that stops as the delivery time runs out | a delivery time from the scattering rate of the system's own giants | the cooling-age range of Koester et al. 2014 (READ), the middle in the log | GEN.1069 | - |
 | BHS5 | P | T2 | L0 | belt_history.MIN_POLLUTION_RATE_G_S 1e5: the lowest accretion rate seen on a polluted white dwarf | none (measured) | DA white dwarfs of 17 000 to 27 000 K | a white dwarf polluted at a rate well below | a larger survey with a lower detection limit | Koester, Gaensicke and Farihi 2014 (arXiv:1404.2617, READ): a few 1e5 to a few 1e8 g/s | GEN.1069 | - |
+
+## 6.127 Stand-ins of the halo mass function and the conditional halo
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| HF1 | D | T1 | L0 | halo_function.OMEGA_BARYON_H2 0.022068, SPECTRAL_INDEX 0.9624, SIGMA_8 0.8344: the Planck 2013 best fit beside the h 0.671 and Omega_m 0.3175 the chain already held | the Planck+WP best fit (0.022032, 0.9619, 0.8347) or a WMAP-era set | z = 0 galaxies | a later release of the cosmology that moves sigma_8 by more than 3 percent | none (the cosmology the chain states) | Planck Collaboration XVI 2014 (arXiv 1303.5076) Table 2, Planck column, READ | - | - |
+| HF2 | P | T1 | L1 | halo_function._transfer_function: the no-wiggle fit of Eisenstein and Hu 1998 Eqs. 26, 28 to 31 stands for a Boltzmann-code transfer function | a Boltzmann code (CAMB, CLASS) | halo masses of 1e8 to 1e17 solar masses | a Boltzmann transfer function that moves sigma(M) by more than a few percent over the range | a tabulated transfer function | Eisenstein and Hu 1998 (arXiv astro-ph/9709112), READ; the paper quotes the fit as good to a few percent without the wiggles | - | - |
+| HF3 | P | T1 | L1 | mass_chain.median_stellar_mass: Moster et al. 2013's relation, fitted to the Millennium haloes in a WMAP7 cosmology (h 0.704), is read against the Planck halo mass function, halo masses as printed | none | the conditional at every stellar mass | an abundance matching of the relation in the Planck cosmology that moves the median halo by more than 0.05 dex | a relation fitted in the chain's own cosmology | Moster, Naab and White 2013 (arXiv 1205.5807) section 2, READ | - | - |
+| HF4 | P | T9 | L0 | halo_function._COARSE_STEP 0.05 dex, GRID_STEP 0.01 dex, _LN_K_STEP 0.02, k from 1e-4 to 2e3 per Mpc: the numerical grids of sigma(M) and of the conditional | halving each step | every conditional | a median that moves by more than 0.003 dex when a step is halved | none (numerical) | the GEN.399 script (numpy, 6000 wave numbers, the slope of sigma by a 0.01 dex difference) gives the same medians to 0.001 dex | - | - |
 
 ## 6.95 Stand-ins of the belt sources
 

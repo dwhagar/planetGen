@@ -16,7 +16,10 @@ section 6):
    from gyrochronology, `P = a t^n (B - V - c)^b` (Barnes 2007, with the
    document's fit), with 10% log-normal scatter.
 3. Hot stars draw an equatorial speed log-normal round 180 km/s, capped
-   at 85% of breakup, `sqrt(2/3 G M / R)`.
+   at 85% of breakup, `sqrt(2/3 G M / R)`. Between 6450 and 6650 K (the Kraft
+   break, GEN.1163) the median speed passes smoothly, in log, from the
+   gyrochronology one to the hot star's, which itself rises from 80 km/s at
+   the break to 180 km/s at 1.8 solar masses.
 4. Comets (and every small body over 200 m) draw a period log-normal
    (median e^2.1 h, about 8 h), never under the 2.2-hour spin barrier.
 5. Black holes draw a* from Beta(1.4, 3.6) (first-generation collapse).
@@ -66,17 +69,26 @@ GYRO_SCATTER = 0.10
 (the document's fit to Barnes 2007): the Sun (4.6 Gyr, B - V 0.65) comes
 out 23 days."""
 
-COOL_STAR_MAX_MASS_SOL = 1.3
-"""float: Heaviest star with a convective envelope deep enough to brake."""
+KRAFT_BREAK_LOW_K = 6450.0
+KRAFT_BREAK_HIGH_K = 6650.0
+"""float: The Kraft break (GEN.1163): below `KRAFT_BREAK_LOW_K` a dwarf has a convective envelope deep enough to brake (gyrochronology); above
+`KRAFT_BREAK_HIGH_K` it keeps the speed it was born with; between them the median speed passes from one to the other. Beyer and White 2024
+(arXiv:2408.02638, read in full): centred on 6550 K, about 200 K wide (6450 to 6650 K, 1.32 to 1.41 solar masses)."""
 
 GYRO_MIN_COLOUR_EXCESS = 0.05
-"""float: Gyrochronology needs `B - V - c` positive; a star bluer than
-c + 0.05 (about 6200 K) spins like a hot star instead."""
+"""float: The least `B - V - c` the gyrochronology law is given: a star bluer than c + 0.05 (about 6200 K) has the period of that colour, not the
+law's steep fall to zero, up to the Kraft break."""
 
 HOT_STAR_SPEED_KMS = 180.0
 HOT_STAR_SPEED_SIGMA = 0.45
+HOT_STAR_FULL_SPEED_MASS_SOL = 1.8
+HOT_STAR_BREAK_SPEED_KMS = 80.0
+KRAFT_BREAK_TOP_MASS_SOL = 1.41
 BREAKUP_FRACTION = 0.85
-"""Hot stars: `ln v ~ N(ln 180 km/s, 0.45)`, at most 85% of breakup. A rocky planet's birth spin is held at the same share
+"""Hot stars: `ln v ~ N(ln 180 km/s, 0.45)`, at most 85% of breakup. The 180 km/s is the mean equatorial speed of the 1.6 to 2.0 solar mass bin
+(Zorec and Royer 2012, Table 4: the Maxwellian mode 160 km/s, mean 2 / sqrt(pi) times it), so it holds from `HOT_STAR_FULL_SPEED_MASS_SOL`
+up; just above the Kraft break the stars' mean v sin i is 63 km/s (Beyer and White 2024), a mean equatorial speed of 63 * 4 / pi, about
+`HOT_STAR_BREAK_SPEED_KMS`, and between `KRAFT_BREAK_TOP_MASS_SOL` and the full-speed mass the median runs between the two, linear in ln v over mass. A rocky planet's birth spin is held at the same share
 (`accretion_spin`; about 14 percent of the Gaussian vectors lie above it; planetGen's choice)."""
 
 GIANT_SPEED_RANGE_KMS = (1.0, 10.0)
@@ -201,13 +213,29 @@ def gyro_median_days(colour_excess, age_gy):
     return GYRO_A * max(age_gy * 1000.0, 1.0) ** GYRO_N * colour_excess ** GYRO_B
 
 
+def kraft_weight(temperature_k):
+    """How far a dwarf of this temperature is across the Kraft break: 0 at `KRAFT_BREAK_LOW_K` and below, 1 at `KRAFT_BREAK_HIGH_K` and above, a
+    smoothstep between."""
+    x = (temperature_k - KRAFT_BREAK_LOW_K) / (KRAFT_BREAK_HIGH_K - KRAFT_BREAK_LOW_K)
+    x = min(max(x, 0.0), 1.0)
+    return x * x * (3.0 - 2.0 * x)
+
+
+def hot_star_median_speed_kms(mass_sol):
+    """The median equatorial speed, km/s, of a dwarf above the Kraft break: `HOT_STAR_BREAK_SPEED_KMS` at `KRAFT_BREAK_TOP_MASS_SOL` and below,
+    `HOT_STAR_SPEED_KMS` from `HOT_STAR_FULL_SPEED_MASS_SOL` up, linear in ln v over mass between."""
+    share = (mass_sol - KRAFT_BREAK_TOP_MASS_SOL) / (HOT_STAR_FULL_SPEED_MASS_SOL - KRAFT_BREAK_TOP_MASS_SOL)
+    share = min(max(share, 0.0), 1.0)
+    return math.exp(math.log(HOT_STAR_BREAK_SPEED_KMS) + share * (math.log(HOT_STAR_SPEED_KMS) - math.log(HOT_STAR_BREAK_SPEED_KMS)))
+
+
 def nominal_rotation_period_hours(mass_kg, temperature_k, age_gy):
-    """The period, hours, a star of this mass and temperature at `age_gy` has by gyrochronology before its scatter, or `None` for a star the law
-    does not cover (a hot star, whose spin is a speed it keeps)."""
-    colour = b_minus_v(temperature_k) - GYRO_C
-    if _kg_to_msun(mass_kg) <= COOL_STAR_MAX_MASS_SOL and colour > GYRO_MIN_COLOUR_EXCESS:
-        return gyro_median_days(colour, age_gy) * 24.0
-    return None
+    """The period, hours, a star of this temperature at `age_gy` has by gyrochronology before its scatter, or `None` for a star the law does not
+    cover (one past the start of the Kraft break, whose spin is a speed it keeps)."""
+    if kraft_weight(temperature_k) > 0.0:
+        return None
+    colour = max(b_minus_v(temperature_k) - GYRO_C, GYRO_MIN_COLOUR_EXCESS)
+    return gyro_median_days(colour, age_gy) * 24.0
 
 
 def star_rotation_period_hours(mass_kg, radius_km, temperature_k, age_gy, yerkes_class):
@@ -215,8 +243,9 @@ def star_rotation_period_hours(mass_kg, radius_km, temperature_k, age_gy, yerkes
     A star's rotation period, hours, by the cascade: white dwarfs
     (`yerkes_class` "D...") log-normal round a day; giants and supergiants
     (`GIANT_CLASSES`) a slow log-uniform 1 to 10 km/s; cool dwarfs gyrochronology;
-    the rest a hot star's log-normal speed under breakup. Never faster
-    than 85% of breakup.
+    the rest a hot star's log-normal speed under breakup, with the median
+    passing from one to the other across the Kraft break (GEN.1163). Never
+    faster than 85% of breakup.
     """
     mass_sol = _kg_to_msun(mass_kg)
     cls = (yerkes_class or "").strip()
@@ -227,13 +256,16 @@ def star_rotation_period_hours(mass_kg, radius_km, temperature_k, age_gy, yerkes
         low, high = (math.log(s) for s in GIANT_SPEED_RANGE_KMS)
         period = period_hours_from_speed(radius_km, math.exp(draw.uniform(low, high)))
     else:
-        colour = b_minus_v(temperature_k) - GYRO_C
-        if mass_sol <= COOL_STAR_MAX_MASS_SOL and colour > GYRO_MIN_COLOUR_EXCESS:
+        weight = kraft_weight(temperature_k)
+        colour = max(b_minus_v(temperature_k) - GYRO_C, GYRO_MIN_COLOUR_EXCESS)
+        if weight == 0.0:
             days = gyro_median_days(colour, age_gy) * math.exp(draw.gauss(0.0, GYRO_SCATTER))
             period = days * 24.0
         else:
-            speed = math.exp(draw.gauss(math.log(HOT_STAR_SPEED_KMS), HOT_STAR_SPEED_SIGMA))
-            period = period_hours_from_speed(radius_km, speed)
+            gyro_speed = 2.0 * math.pi * radius_km / (gyro_median_days(colour, age_gy) * 86400.0)
+            log_median = (1.0 - weight) * math.log(gyro_speed) + weight * math.log(hot_star_median_speed_kms(mass_sol))
+            sigma = (1.0 - weight) * GYRO_SCATTER + weight * HOT_STAR_SPEED_SIGMA
+            period = period_hours_from_speed(radius_km, math.exp(draw.gauss(log_median, sigma)))
     return max(period, period_hours_from_speed(radius_km, cap))
 
 
