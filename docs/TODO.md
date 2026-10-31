@@ -11781,6 +11781,30 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   The photolysis lifetime table has no caller until this item wires it,
   and its owner lane Air 1 is retired. Owner now: Aux 4 (proposed by the
   TODO thread; the lane says if it cannot take it).
+  Reading chosen and GEN.972 head (2026-10-31 2:13 PM EDT): Aux 4 (as
+  the lane reported, 2:12 PM EDT): a gross photolysis lifetime cannot be
+  a plain loss on a net gas inventory (photon-limited methane loss for
+  an Earth-sized air is about 78 Tmol a year, while the life ledger
+  holds anoxic methane at 100 ppmv to 3.5 percent on 9 to 67 Tmol a year
+  because the products recombine), so it is NOT wired into life_air. It
+  is wired where the table is the physical limit and is missing: the
+  methane haze supply in aerosols.haze_in, which is diffusion limited
+  only. Three parts: (1) Hu 2012 table 6 UV cross sections and a pure
+  photon-limited gross loss function in photolysis.py (lock-free); (2)
+  the star far-UV flux at the body as a subject quantity (lock-free);
+  (3) the haze supply becomes the smaller of the diffusion and
+  photon-limited supplies, a GEN.725 row for the one-layer
+  optical-depth-1 closure (lock work, epoch --affects fill). TODO
+  approved the reading. GEN.972 (ice-albedo feedback) is ready as lock
+  work: branch claude/project-thread-nfytfi-gen972, head 3dc7948e8,
+  epoch --affects fill, passed to the Train Manager.
+  Parts 1 and 2 merged (2026-10-31 2:25 PM EDT): Parts 1 and 2 merged
+  lock-free (cross sections, shielded_column_mol_m2,
+  photon_limited_flux_mol_m2_s, far_uv_power_w, far_uv_flux_ratio;
+  register lines name part 3). Part 3 (haze supply) is built on branch
+  claude/project-thread-nfytfi-gen982-haze, head ef2b42ecc, stacked on
+  GEN.972, held back until GEN.1229 (haze depth per unit of mass flux)
+  is built; the two ride one lock window.
   Prerequisites: none. Related: GEN.754, GEN.794, GEN.748.
 
 - [ ] **GEN.983 Wire the radiation belts (physics/radiation_belts.py) into the surface dose and the habitability radiation score**
@@ -14831,6 +14855,28 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   land colour, MAP.274, has merged).
   Prerequisites: none.
 
+- [ ] **GEN.1229 Methane haze depth per unit of mass flux: the fall term in aerosols.haze_fall (eddy speed replacing fall speed) and the aggregate cross section give Titan its depth only through an oversized mass flux (bug)**
+    Finding from Aux 4's GEN.982 build (as the lane reported, 2:22 PM
+  EDT 2026-10-31). The photon-limited methane loss at Titan's distance
+  is about 6e9 molecules per cm2 per second, which is Titan's own
+  methane loss, and it is 100 to 100000 times under the diffusion supply
+  the haze depth was tuned with. With the physical supply, Titan-like
+  hazes drop from optical depth 0.007 to 3 down to 3e-7 to 0.2 and
+  Titan's 9.6 is not reachable: the old model got its Titan order from
+  an oversized mass flux, so the depth per unit of mass flux is what is
+  off (the fall term in aerosols.haze_fall, where the eddy speed
+  replaces the fall speed, and the aggregate cross section). Do: derive
+  the depth per unit of mass flux from the physics (sourced), fix the
+  fall term and the cross section, then let GEN.982 part 3 (haze supply
+  is the smaller of diffusion and photon-limited, branch
+  claude/project-thread-nfytfi-gen982-haze, head ef2b42ecc, stacked on
+  GEN.972) ride the same lock window. Done: Titan's depth reached from
+  the physical flux; the strict expected failure of the Titan test
+  removed; census of methane hazes before and after. Lock work (epoch,
+  --affects fill). Owner: Aux 4.
+    Prerequisites: GEN.982. Related: GEN.972.
+  Prerequisites: none.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -15248,6 +15294,77 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   class or radius filter and no cursor (CLI only), and a hand-typed deep
   offset on the Phenomena list. Measure on a real MySQL at a full galaxy
   before and after.
+  Prerequisites: none.
+
+- [ ] **PERF.221 A failed or killed unit names the wrong stage: the message says "unit 101 of stage 5" for a unit of stage 8 of 14 (bug)**
+    Boss's last run (reported by the coordinator, 2:20 PM EDT
+  2026-10-31): the failure message for the killed unit said "unit 101 of
+  stage 5" when the unit belonged to stage 8 of 14 on the run page.
+  queue/units.py unit_failed and horse_killed put the stage's internal
+  index in the message, while the page counts and labels stages
+  differently. Do: say the stage the page shows (its number of the total
+  and its label, `wrapper.stage_label`) in both messages and in the run
+  log lines that print a stage index, and keep the internal index only
+  where the code reads it. Done: a test makes a unit fail in a stage
+  whose internal index differs from its page number and the message
+  names the page's stage. Web and queue only, lock-free. Owner: Sources
+  2 (proposed).
+  Still open (2026-10-31 2:36 PM EDT): Confirmed run failure: the stage
+  in the message was wrong in Boss's run (unit 101 of stage 5 for a
+  stage 8 unit). Still to do.
+    Prerequisites: none.
+  Prerequisites: none.
+
+- [ ] **PERF.222 Generation hosts: MySQL redo log is too small (InnoDB warns the checkpointer lags behind); setup recommends and checks innodb_redo_log_capacity (bug)**
+    Boss's MySQL error log on his server (reported by the coordinator,
+  2:28 PM EDT 2026-10-31): repeated InnoDB warnings MY-014084, "Threads
+  are unable to reserve space in redo log which can't be reclaimed due
+  to the 'log_checkpointer' consumer still lagging behind ... Consider
+  increasing innodb_redo_log_capacity", at 3:25 AM EDT during the run
+  and in bursts at 12:21 PM EDT (every 11 seconds). Writers stall while
+  the redo log is full, which slows generation and raises the memory
+  held by waiting workers. Do: measure the redo write rate of a
+  generation run, choose a capacity that holds a few minutes of it
+  (MySQL 8.0.30 and later set it with innodb_redo_log_capacity, which
+  can be changed with SET GLOBAL without a restart), have update.sh read
+  the setting and print what to set (and the lines for the MySQL config
+  file) when it is below that, and put the recommendation in the setup
+  document (docs, the install page). Do not change the server's
+  configuration without Boss running it. Done: update.sh prints the
+  check; the setup doc states the value and why; the run log no longer
+  shows MY-014084 on a full run. Related: PERF.220 (workers by memory),
+  the lane note that MySQL binlogs fill disk. Owner: Sources 2
+  (proposed, with PERF.220).
+    Prerequisites: none.
+  Prerequisites: none.
+
+- [ ] **PERF.223 Protect MySQL (and Redis) from the kernel out of memory killer on a generation host: setup docs and update.sh recommend OOMScoreAdjust=-900 for mysql.service and a memory limit on the workers (bug)**
+    Confirmed by Boss's kernel log on host hal (via the coordinator,
+  2:30 PM EDT 2026-10-31): the kernel out of memory killer ran from 3:21
+  AM to 3:30 AM EDT (07:21 to 07:30 UTC) with no systemd-oomd involved,
+  and killed mysqld at 3:22:02 AM EDT (it was mostly swapped out, 280 MB
+  resident), then systemd, then several python worker processes of
+  www-data in the apache2.service cgroup (450 to 900 MB resident each).
+  The cap on scatter workers (PERF.220, merged) keeps the next run under
+  the host's memory; this item makes a miss survivable. Do: (1) setup
+  docs and update.sh print the recommended systemd override for the
+  database and Redis (`systemctl edit mysql` with `[Service]
+  OOMScoreAdjust=-900`, the same for redis-server), which makes the
+  kernel kill a worker before the database; (2) update.sh checks the
+  setting and says what to run when it is missing (it never changes
+  Boss's server itself); (3) the workers: they are started by whichever
+  web request queues work (workers.ensure_workers, PERF.95: no service
+  has to be installed), so they are children of Apache and sit in the
+  apache2.service cgroup, which counts their memory against Apache and
+  gives them Apache's OOM score. That is by design of PERF.95 but an
+  accident of accounting: decide whether to offer an optional
+  planetgen-workers systemd slice or unit with MemoryHigh and MemoryMax
+  (so the workers are limited as a group and the kernel kills inside the
+  group first) and document it; do not require it. Done: the docs and
+  update.sh output; a note on whether the slice is worth offering.
+  Related: PERF.222 (redo log), PERF.181 (host worker cap), PERF.220.
+  Owner: Sources 2 (proposed). Boss runs any change on the server.
+    Prerequisites: none.
   Prerequisites: none.
 
 ## DB: Database and schema
@@ -19490,32 +19607,6 @@ clears each one.
   one lock-free item at a time; the lane says if it clashes). Rule for
   every lane: a public function that only tests call needs a register
   line in the same change, like a module.
-  Prerequisites: none.
-
-- [ ] **TEST.529 test_the_job_strip_shows_the_running_job_on_every_admin_page fails on clean main (bug)**
-  Found by Sources 2 (as the lane reported, 12:45 PM EDT 2026-10-31; red
-  on main without its change), filed by the TODO thread. Kind: red test
-  on main. Object: the admin page test that the job strip shows the
-  running job on every admin page. Do: find the cause (the strip, the
-  fixture or an order dependency) and fix the code or the test with a
-  reason, never by skipping or loosening it without one. Web only,
-  lock-free. Owner Core 5 (proposed; it owns the admin and queue pages).
-  Owner change (2026-10-31 2:00 PM EDT): Owner is now Aux 3 (it ran out
-  of lock-free work after UX.227; Core 5 is on UX.252). Web only,
-  lock-free.
-  Prerequisites: none.
-
-- [ ] **TEST.531 Delete the sector-settle queue chain that no route reaches any more (api_jobs.settle_sectors and the test helper queue_settle)**
-    Finding from Core 1's TEST.521 (as the lane reported, 1:37 PM EDT
-  2026-10-31).
-    api_jobs.settle_sectors is now reached only by the test helper
-  queue_settle: no route generates a sector on a visit since PERF.149.
-  The queue chain behind it is a delete candidate: remove the chain and
-  the tests that exist only for it, keeping any test of behavior a route
-  still has. Lock-free. Owner: Core 1 when its designations work waits.
-  Owner (2026-10-31 2:00 PM EDT): Owner is Bug 1 (given 1:40 PM EDT),
-  not Core 1.
-    Prerequisites: none.
   Prerequisites: none.
 
 - [ ] **TEST.532 Give the bright-star backfill unit path (backfill_bright_stars_unit) its own direct tests, since the serial form the tests cover is no longer the path a run takes**

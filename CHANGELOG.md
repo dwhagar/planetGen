@@ -2,6 +2,40 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2972] - 2026-10-31
+
+**Headline:** The queued sector-settle job that no page or route reached any more is gone.
+
+### Changed
+- **`api_jobs.settle_sectors` and the test helper `queue_settle` are deleted (TEST.531).** Since PERF.149 no route generates a sector on a visit, so only a test helper queued this job. The tests that existed only for the queue are removed (a sector generated on the spot queues a settle job, a settle that can be neither queued nor run, the conftest rule that ran settle jobs inline); the behavior a run still has stays tested through `run_galaxy.settle_named_sectors`, which `make_sector` now calls directly. No generated output changes.
+
+generation-output: unchanged
+
+TODO items resolved: TEST.531.
+
+## [8.0.2971] - 2026-10-31
+
+**Headline:** The bright-star and massive-star scatter stages no longer start more workers than the machine's memory holds, so a big run is not killed for running out of memory.
+
+### Changed
+
+- The scatter stages (massive stars, bright stars, the neighborhood backfill and the dimmer band) now use at most 60 percent of the host's memory divided by 600 MB per worker (15 workers on a 16 GB host), whatever the run's worker count, and ask the workers an earlier stage left to finish their unit and exit when there are more. On 2026-10-31 36 workers took 16,285 MB of a 15,992 MB host in the bright-star stage and the run was killed. Other stages are unchanged. What a stage generates does not depend on the number of workers (each unit has its own seed), so the stars are the same; only the time can be longer on a big machine. generation-output: unchanged
+
+## [8.0.2970] - 2026-10-31
+
+**Headline:** The photolysis table can now say how much of a gas the light breaks in a thick air, and a star's far-ultraviolet light at a body can be asked for; nothing reads them yet.
+
+### Changed
+- **GEN.982, parts 1 and 2.** `photolysis_lifetimes.json` gains the mean UV cross sections of water, ammonia, methane, carbon dioxide and hydrogen sulfide (Hu, Seager and Bains 2012, table 6), and `photolysis.shielded_column_mol_m2` and `photon_limited_flux_mol_m2_s` give the column that absorbs the light and the most of a gas the light can break per square metre per second (for methane over the Earth's area about 78 Tmol a year, the order of the anoxic methane fluxes). `stellar_library.far_uv_power_w` and `activity.far_uv_flux_ratio` give a star's 91.2 to 200 nm flux at a distance relative to the quiet Sun at 1 AU, the number the photolysis rates take. Both are for part 3 (the methane haze supply), which is a lock branch; no generated value changes.
+generation-output: unchanged
+
+## [8.0.2969] - 2026-10-31
+
+**Headline:** The admin job strip test no longer depends on whether the machine it runs on has Redis, a writable jobs folder or jobs of its own.
+
+### Changed
+- **Test fix, no code change.** The strip is hidden when Redis or the jobs folder cannot be read, so on a machine without a Redis server the test saw it hidden while a job ran and failed. The test now sets up its own job state (an empty jobs folder, nothing waiting, no running lock) and still fails when the strip stops showing a running job.
+
 ## [8.0.2968] - 2026-10-31
 
 **Headline:** The Search page now has range boxes for gravity, temperature, pressure, radiation dose and the other physical values, each with its unit beside it, and shows the ranges as chips.

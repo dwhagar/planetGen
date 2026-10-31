@@ -399,26 +399,6 @@ def unit_density_plans(monkeypatch):
 
 
 @pytest.fixture(autouse=True)
-def _settle_jobs_run_inline(monkeypatch):
-    """A sector generated on the spot queues a settle job (GEN.126:
-    `tests/sector_support.queue_settle`), which starts a detached worker process. A
-    test would leave one behind per sector, working against a database
-    that is about to be dropped, so the queue refuses that one job and
-    `queue_settle` runs it inline instead -- the same code, in the test's
-    own process. A test of the queueing itself patches `api_jobs.submit` again."""
-    from planetgen.queue import api_jobs
-    real_submit = api_jobs.submit
-
-    def submit(function, *args, **options):
-        if function is api_jobs.settle_sectors:
-            raise api_jobs.NoQueue("settle jobs run inline in tests")
-        return real_submit(function, *args, **options)
-
-    monkeypatch.setattr(api_jobs, "submit", submit)
-    yield
-
-
-@pytest.fixture(autouse=True)
 def _api_jobs_queue_of_its_own(monkeypatch):
     """The API jobs share one queue and its workers in production (PERF.39); a test, running beside others
     on one Redis server, gets a queue of its own, so its job is never picked up by another test's worker

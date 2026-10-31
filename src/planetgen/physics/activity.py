@@ -430,6 +430,7 @@ def far_uv_flux_ratio(star, distance_au):
     return power / (4.0 * math.pi * (distance_au * constants.AU_M) ** 2) / _sun_far_uv_flux_w_m2()
 
 
+<<<<<<< HEAD
 def far_uv_chromospheric_share(star):
     """
     The share of the star's 91.2 to 200 nm power that is its chromosphere's and transition region's (GEN.982), 0 to 1: the light the photolysis table's Sun
@@ -446,6 +447,8 @@ def far_uv_chromospheric_share(star):
     return chromosphere / total if total > 0.0 else 0.0
 
 
+=======
+>>>>>>> origin/main
 def _uv_c_share(star):
     """The star's `uv_c_share`: the library's (GEN.971); the seeded GEN.443 share, from the star's own stream so no draw of the run's
     moves, for a run that disregards a missing library."""
