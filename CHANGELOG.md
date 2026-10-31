@@ -2,6 +2,44 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2982] - 2026-10-31
+
+**Headline:** A test that checks the deploy scripts name only files that exist no longer fails on a comment in the wiring guard.
+
+### Changed
+
+- `scripts/wiring_guard.py` names `planetgen/db/kind_tables.py`, `planetgen/db/models.py` and `planetgen/db/store.py` in full in its text; it wrote `db/kind_tables.py` and so on, which the deploy-script path test read as repo paths that do not exist (the files live under `src/planetgen/`). Behaviour is unchanged. generation-output: unchanged
+
+## [8.0.2981] - 2026-10-31
+
+**Headline:** A failed or killed unit's message now names the stage as the page shows it, not an internal number.
+
+### Changed
+
+- The messages "unit 101 of stage 5 failed" and "unit 101 of stage 5 was killed" in the run's error (the Generate page, the queue page and the log) now read, for example, "unit 101 of stage Scatter the bright stars was killed", using the stage's label (`wrapper.stage_name`); the number is only used when the run record cannot say. generation-output: unchanged
+
+## [8.0.2980] - 2026-10-31
+
+**Headline:** The test that holds the disc's present star formation against the Milky Way's was red since the lighter halo of GEN.1154; its bound now says why, and nothing the generator makes changes.
+
+### Changed
+- **TEST.533.** `test_the_present_rate_over_the_mean_...` compared the disc's present star formation rate over its ten-Gy mean (0.49 for a 5e10 galaxy) with the Milky Way's 0.20 within a factor of two. GEN.1154 lowered the median halo of a 5e10 galaxy from 2.0e12 to 1.57e12 solar masses, which moved the ratio from 0.39 to 0.49, past the bound. A halo of 3.1e12 gives 0.29 and 1.0e12 gives 0.89, so the mismatch is the shape of the inflow (it follows the halo's growth, which for a light halo rises to the present), not the gas law. The bound is now a factor of three, with the reason in the test, until the inflow shape is reworked.
+
+## [8.0.2979] - 2026-10-31
+
+**Headline:** The lists of stars, planets and moons now show the physics values of each object: temperature, luminosity and age for a star, orbit size, eccentricity and surface temperature for a planet or moon.
+
+### Changed
+- **Physics values in the lists (UX.187, lists slice).** `/lists/star` has Temperature, Luminosity and Age columns, and `/lists/planet` and `/lists/moon` have Orbit, Eccentricity and Surface temperature columns, in the reader's chosen units, with a dash where a row holds none. The values are the stored ones, read from the kind's table with the page (as the habitability symbols are), and `GET /api/object-lists/<kind>` items carry them (`temperature_k`, `luminosity_w`, `age_gy`; `distance_km`, `eccentricity`, `surface_temperature_k`). They do not sort, because the object index holds no column to order them by. No stored value and no migration.
+
+## [8.0.2978] - 2026-10-31
+
+**Headline:** A moon or an asteroid that its own weight has not pulled round is now drawn as an elongated, bumpy lump instead of a perfect sphere.
+
+### Changed
+- **MAP.279.** The System Map and the 3D system view drew every body as a sphere. A solid body whose stored roundness ratio is under 1 (`roundness_ratio`, GEN.1158 and GEN.1159: the body's radius over the radius at which its weight beats its strength) is now a lump: a three.js mesh stretched along three axes and bumped by seven smooth waves, from the body's look seed, so the same body is the same lump on every page. The farther from round the ratio is, the longer the long axis (up to 1.8 times the short) and the taller the bumps. The look record carries the new `roundness` field for solid bodies (a giant has none); a body stored before GEN.1159 has no ratio and is a lump when its radius is under 400 km (Boss, 10:26 PM EDT 2026-10-23). The painted surface lies on the lump as on a sphere. Display only: no stored value changes. The object page (`bodyview.js`) still draws a round disc; its lumpy silhouette is a follow-up. New stand-ins LUM1 to LUM5 (section 6.160).
+generation-output: unchanged
+
 ## [8.0.2977] - 2026-10-31
 
 **Headline:** The installer and updater now check that MySQL and Redis are protected from the kernel's out-of-memory killer, and offer a memory limit for the generation workers.

@@ -133,7 +133,7 @@ def test_a_failing_unit_fails_the_run_and_the_starter_says_so(monkeypatch, conn)
 
     _handlers(monkeypatch, test=handler)
     stopped = []
-    with pytest.raises(units.RunStopped, match="unit 2 of stage 0 failed: ValueError: no stars here"):
+    with pytest.raises(units.RunStopped, match="unit 2 of stage A test stage failed: ValueError: no stars here"):
         wrapper.run("T", [_step(4)], lambda index, plan: None, lambda index, unit, result: stopped.append(unit))
     run_id = runrecord.recent_runs(conn)[0]
     run = runrecord.read_run(conn, run_id)
@@ -280,7 +280,7 @@ def test_a_killed_worker_process_fails_its_run_at_once_naming_the_unit(monkeypat
     job = redisqueue.queue(redisqueue.BULK_QUEUE, conn).jobs[1]
     units.horse_killed(job, 4242, -9, None)
     run = runrecord.read_run(conn, run_id)
-    assert run["state"] == "failed" and "unit 1 of stage 0 was killed" in run["error"] and "4242" in run["error"]
+    assert run["state"] == "failed" and "unit 1 of stage T was killed" in run["error"] and "4242" in run["error"]
     assert runrecord.active_run(conn) is None, "the machine is free at once"
     from planetgen.queue import workers
     workers.ensure_workers(redisqueue.BULK_QUEUE, conn)             # RQ's retry finds the run over and does nothing
