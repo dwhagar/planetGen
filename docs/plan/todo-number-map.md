@@ -1534,7 +1534,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.781 | Fill hp_ice_km: the thickness of the high-pressure ice layer under an ocean (never filled) | none | done, PR #4327 |
 | GEN.782 | Fill ice_shell_km for every world with a surface ice shell, and state in the sheet rule which worlds have none | none | done, PR #3629 |
 | GEN.783 | Fill shelter_column_g_cm2: the column mass of rock or ice that shields a shelter from radiation, for every world where it applies | none | done, PR #3629 |
-| GEN.784 | Fill energy_flux_w_m2 and flux_variation for giant planets: internal and absorbed energy flux and its variation (never filled for classes I, J, T) | none | open |
+| GEN.784 | Fill energy_flux_w_m2 and flux_variation for giant planets: internal and absorbed energy flux and its variation (never filled for classes I, J, T) | none | done, PR #4331 |
 | GEN.785 | Fill star decay_age_yr and lethal_event_rate_per_gyr (never filled for any star) | none | done, PR #4105 |
 | GEN.786 | Fill star state (never filled for any star): the evolutionary state of each star | none | done, PR #4105 |
 | GEN.787 | Fill star disk_kind, disk_mass_solar, disk_inner_au and disk_outer_au for the stars that have a disk (never filled except for one G star) | none | done, PR #3984 |
