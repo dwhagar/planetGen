@@ -137,11 +137,10 @@ def test_more_luminous_star_has_a_larger_snow_line_and_disk():
     assert bright > dim
 
 
-# --- A belt stands where the disc built no planet (PA13) ---
+# --- A belt is what the planets leave unfinished, never a planet's slot (GEN.1068) ---
 
-def test_a_belt_never_replaces_a_giant_or_a_planet_of_an_earth_mass(monkeypatch):
+def test_a_belt_never_takes_the_slot_of_a_planned_planet(monkeypatch):
     from planetgen.physics import planet_architecture
-    monkeypatch.setattr(prog_c, "ASTEROID_BELT_PROBABILITY", 1.0)
     built = []
     original = planet_architecture.build
 
@@ -153,8 +152,6 @@ def test_a_belt_never_replaces_a_giant_or_a_planet_of_an_earth_mass(monkeypatch)
     for _ in range(3):
         built.clear()
         system = StarSystem(system_config=_make_config("M2V", PLANETS=True, MAX_PLANETS=True, MOONS=False))
-        heavy_planned = sum(1 for seed in built[0].planets if seed.mass_kg >= prog_c.BELT_REPLACES_BELOW_EARTH * constants.EARTH_MASS_TO_KG
-                            and seed.distance_au < 20.0)
-        heavy_made = sum(1 for body in system.planets if body.body_type != 'a'
-                         and body.mass >= prog_c.BELT_REPLACES_BELOW_EARTH * constants.EARTH_MASS_TO_KG)
-        assert heavy_made >= heavy_planned
+        planned = sum(1 for seed in built[0].planets if seed.distance_au < 20.0)
+        made = sum(1 for body in system.planets if body.body_type != 'a')
+        assert made >= planned

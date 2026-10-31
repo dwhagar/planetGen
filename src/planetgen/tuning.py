@@ -138,10 +138,6 @@ OLIGARCH_INNER_EDGE_PERIOD_DAYS = 5.0
 # evaporate, so the chain of a luminous star starts no closer than the distance of this temperature (a = (278.3 K / T)^2 sqrt(L / Lsun) AU).
 # About 1500 K (Dullemond and Monnier 2010, arXiv:1002.3056, secondary). A planetGen stand-in (tier T3, tweak L1).
 DUST_SUBLIMATION_K = 1500.0
-# A belt takes the place of a planet in its slot only where the disc built a body lighter than this, in Earth masses: a belt is what a
-# feeding zone leaves when it did not build a planet, so a giant or a body of an Earth mass or more is never swapped for one. A
-# planetGen stand-in (tier T5, tweak L0).
-BELT_REPLACES_BELOW_EARTH = 1.0
 OLIGARCH_INNER_EDGE_SIGMA_DEX = 0.2
 # The age to which the chain is thinned by instability, years. Pu and Wu's survival law (arXiv:1502.05449, read) loses 0.7 in spacing
 # per decade of time, so a factor of ten in age matters little; the chain is thinned to this age whatever the star's, and the later
@@ -288,7 +284,6 @@ ALBEDO_FROZEN_BELOW_K = 230.0
 ALBEDO_REGIME_REFERENCE = 0.30
 
 # --- Star System Generation Parameters ---
-ASTEROID_BELT_PROBABILITY = 0.1
 ASTEROID_BELT_MAX_DISTANCE_FACTOR_MIN = 1.1
 ASTEROID_BELT_MAX_DISTANCE_FACTOR_MAX = 2
 ABSOLUTE_MAX_SYSTEM_OBJECTS = 500

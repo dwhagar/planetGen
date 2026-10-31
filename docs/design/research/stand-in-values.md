@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 953 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 955 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -40,12 +40,12 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T2 | 112 | 36 | 0 | 1 | 0 | 149 |
 | T3 | 84 | 38 | 5 | 10 | 0 | 137 |
 | T4 | 37 | 5 | 0 | 14 | 10 | 66 |
-| T5 | 43 | 17 | 0 | 1 | 0 | 61 |
-| T6 | 92 | 71 | 18 | 42 | 0 | 223 |
+| T5 | 42 | 17 | 0 | 1 | 0 | 60 |
+| T6 | 93 | 72 | 18 | 42 | 0 | 225 |
 | T7 | 27 | 8 | 8 | 8 | 0 | 51 |
 | T8 | 0 | 1 | 1 | 5 | 1 | 8 |
-| T9 | 17 | 14 | 4 | 42 | 19 | 96 |
-| All | 553 | 202 | 44 | 124 | 30 | 953 |
+| T9 | 17 | 14 | 4 | 43 | 19 | 97 |
+| All | 553 | 203 | 44 | 125 | 30 | 955 |
 
 ## How the labels were given
 
@@ -622,7 +622,6 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | PA10 | P | T6 | L3 | tuning.GIANT_INWARD_MIGRATION_SIGMA_LN 0.7212, GIANT_CLEARING_SPACING 8 and GIANT_HOT_ORBIT_AU 0.1 (how far a giant that does not become a hot Jupiter moves in, the spacing within which it scatters planets, the orbit that counts as hot) | sigma 0.3 to 1.2; spacing 4 to 10 | giants | test_planet_architecture::test_a_hot_jupiter_has_nothing_inside_its_orbit_and_a_moved_giant_clears_its_neighbours; a giant occurrence not peaking at 1 to 3 AU | a migration model | Fulton 2021 and Cumming et al. 2008 (arXiv:0803.3357, READ: the occurrence rises by a factor of 4 at 1 AU and peaks at 1 to 3 AU) | - | no data |
 | PA11 | P | T5 | L3 | tuning.PLANET_MIN_MASS_OUTER_EARTH 0.6016 and PLANET_MIN_MASS_EARTH 0.1 (the lightest oligarch that is a planet, beyond and inside the snow line) | outer 0.3 to 1.5; inner 0.05 to 0.2 | all chains | test_planet_architecture::test_a_star_gets_its_planets_in_order_with_the_masses_a_planet_has_and_a_seeded_run_repeats; a planet count beyond 2 AU outside the microlensing counts | a belt formation and size-frequency model | design (Mercury is 0.055 Earth masses); the outer floor tuned to the count of the Neptune-mass planets beyond the snow line (Suzuki et al. 2016, ApJ 833, 145, arXiv 1612.03939, READ: dN/dlog q falls as q^0.6 (+0.5, -0.4) below the break at q 1.7e-4, about 20 Earth masses for a 0.6 solar-mass host, with no cutoff down to the survey's sensitivity edge, so the survey sets no floor and the floor stays tuned) | - | no data |
 | PA12 | P | T7 | L0 | planet_occurrence.json `disc_dust_scatter` 0.7 dex and tuning.DISC_SOLIDS_SCATTER_DEX 0.7; INNER_SYSTEM_FRACTION_MASSES (0.15, 0.6, 1.0, 1.4) and INNER_SYSTEM_FRACTION_SHARES (0.85, 0.75, 0.30, 0.30) (the scatter of the solids and the share of stars with an inner system by mass) | scatter 0.5 to 0.9; shares inside the bands | all hosts | test_planet_architecture::test_the_share_of_stars_with_an_inner_system_follows_the_observed_anchors | the formation model that gives the share from the disc (GEN.729 follow-up) | Andrews et al. 2013 (arXiv:1305.5262, READ: 0.7 dex); Zhu 2018 (30 percent Sun-like); Yang 2020 (75 percent under 5000 K, 35 percent over 6500 K) | - | - |
-| PA13 | P | T5 | L0 | tuning.BELT_REPLACES_BELOW_EARTH 1.0 (a belt takes the place of a planet in its slot only where the disc built a body lighter than this many Earth masses) | 0.3 to 2 | all hosts | test_disk_physics::test_a_belt_never_replaces_a_giant_or_a_planet_of_an_earth_mass; a belt that stands where a giant or a planet of an Earth mass or more was built | the belt formation model (GEN.442): the belt is where a feeding zone built no planet | design (a belt is what a feeding zone leaves when it built no planet) | - | - |
 | PA14 | P | T9 | L3 | tuning.CLASS_REQUEST_FREE_ATTEMPTS 8 and CLASS_REQUEST_MASS_EARTH (0.05, 1000) (a request for a planet class is left to chance for 8 draws, then takes a mass log-uniform over this range) | free draws 4 to 20; range 0.05 to 1000 up to 0.01 to 3000 | slot and forced-class requests | test_gen_builder_internals::test_slot_planet_honours_class_and_moon_count; a requested class of the table that 40 draws miss at a slot where the class can exist | the class-conditioned draw of the architecture (a plan that places the requested class) | design (needed so a request is reachable; the old law made ice giants common at a cold slot, the architecture does not) | - | no data |
 
 ## 6.37 Stand-ins of the brown dwarf ceiling
@@ -1633,6 +1632,9 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | BG11 | P | T6 | L0 | belt_origin.DEBRIS_MIN_WIDTH 0.05, the least half-width of a belt of debris as a share of its distance | 0.02 to 0.2 | belts of debris | a debris belt that stays narrower than 5 percent for a Gyr | the spread from the energy of the event | the relative speed of the pieces is of the order of the escape speed, a few percent of the orbital speed | GEN.1092 | - |
 | BG12 | P | T4 | L0 | belt_origin.COLLISIONAL_DEBRIS_PER_GYR 0.003, the chance per Gyr that a system has a standing belt of rubble from a collision of large bodies (1.3 percent over 4.5 Gyr) | 0.001 to 0.01 | systems of any age | a census of hot or warm dust that needs more than three times the rate | the occurrence of transient dust of the debris-disc surveys | no source; hot dust under 4 AU is thought to come from transient events (Sibthorpe 2018, row BR15) | GEN.1092 | - |
 | BG13 | P | T4 | L0 | belt_origin.COLLISIONAL_DEBRIS_MASS_EARTH 1e-4, the mass of a belt of collision rubble (6e20 kg) | 1e-5 to 1e-2 | collisions of large bodies | a rubble belt of the census well outside the range | the mass of the colliding pair | no source; the size of the family of a Ceres-class parent | GEN.1092 | - |
+| BG14 | P | T9 | L3 | belt_birth.MIN_PRESENT_MASS_EARTH 1e-9, the least mass a belt can have after the star's age of collisions and be kept (about 6e15 kg of warm dust) | 1e-10 to 1e-7 | every belt of a generated system | the share of main-sequence systems with an inner belt (a belt ending within BG15 snow lines) outside 4 to 14 percent, or a belt kept that holds less than its own largest body | the size law of GEN.566 with each belt's own largest body, and a survey of warm dust masses | GEN.1156: after the giants and the collisions 12 percent of systems keep an inner belt with no floor and 9 percent of main-sequence systems with this floor (a sweep of 117 of 600 systems, the belt's own present mass from `belt_mass.belt_state`); Boss decided the inner belt counts in the 4 to 14 percent and the outer and Kuiper belts are separate kinds | - | - |
+| BG15 | P | T6 | L0 | belt_birth.INNER_BELT_SNOW_LINE_RATIO 1.2, a belt that ends within this many snow lines is an inner belt (the asteroid belt kind) | 1.0 to 2.0 | every belt | a belt that ends inside the snow line by this rule and is icy, or one outside it that is dry | the zoning of belt composition (BC14) | the Solar System's belt ends at 3.4 AU and its snow line was near 2.7 to 3 AU at formation | - | - |
+| BG16 | P | T6 | L1 | belt_birth.MIGRATED_RATIO 1.25, a giant that ended this many times nearer or further than where it formed is one that moved (it swept the belts it passed) | 1.1 to 2 | giants of the planet architecture | a giant that moved less and still cleared its belt, or one that moved more and left it whole | the architecture's own migration flag carried onto the planet | the architecture marks migration only for hot Jupiters (`Seed.migrated`); a placement nudge of a few percent (spacing, mass loss) is not a migration | - | - |
 
 ## 6.127 Stand-ins of the architecture's losses
 
