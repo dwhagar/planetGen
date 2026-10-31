@@ -7667,34 +7667,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   behind its queue).
   Prerequisites: none. Related: GEN.528, GEN.526, GEN.319.
 
-- [ ] **GEN.535 Check the Magellanic gas fraction and supernova-remnant count against the observed Clouds, and the dwarfs that still come out with gas (Leo I)**
-  Open inferences of GEN.528 (merged #2077, 2026-10-17, about 3:02 PM
-  EDT as Core 3 reported), filed by the TODO thread from Core 3's
-  report. (1) The gas fraction of a satellite is the young stars'
-  density against the solar circle's through the Schmidt-Kennicutt
-  exponent (0.33 at the Large Cloud's centre, 0.89 at the Small
-  Cloud's), an inference and not a measured gas map. (2) The Large Cloud
-  keeps about 7 of 67 remnant candidates, so its count is low against
-  the real Cloud's roughly 60 remnants. (3) Leo I still comes out with
-  gas, because its recalled mean age is from GEN.369. Do: read the
-  observed gas masses or fractions of the two Clouds and of Leo I
-  (verified sources only, citations checked first), compare them with
-  the generated fractions, and find why the remnant count is low (the
-  kept fraction, the age range of the remnant progenitors or the gas
-  fraction at the radius); fix the derivation if a law explains it, else
-  record the gap in the gap plan with a label. Done: the generated gas
-  fraction and remnant count of each Cloud sit within the observed range
-  (or the gap is labelled and tunable), Leo I's gas follows a verified
-  age, and the research is dated on the goal issue. Owner: unowned
-  (research, then Core 3 for the fix).
-  Data we hold (2026-10-29 8:55 PM EDT): VizieR galaxy tables (Courteau
-  and Comeron c18, Pizzella 2005, digitised occupation, size and cluster
-  figures) and the Harris file are held under
-  reports/vizier-courteau-comeron-2026-10-17-files and data/harris; the
-  galaxy-laws research is in docs/design/galaxy/galaxy-laws-research.md.
-  Catalog section 3.
-  Prerequisites: none. Related: GEN.528, GEN.369, GEN.526.
-
 - [ ] **GEN.537 Design the plan configuration: the boundaries of the sector plan, how far scatters go, which sector addresses are valid, and the two switches halo and satellite galaxies (both default off)**
   Boss, 2026-10-17, 4:31 PM EDT: "begin planning for the halo and
   intergalactic generation to be a switch that defaults to off, put that
@@ -14427,6 +14399,45 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   so it rides a Tides 1 lock window. Owner Tides 1.
   Prerequisites: none. Related: GEN.1183, GEN.1185, GEN.725.
 
+- [ ] **GEN.1191 Satellite supernova remnants scale with the satellite's own star formation instead of the Milky Way's per-system rate**
+  The Large Cloud has 31 candidates and 5.5 kept against 59 listed
+  (Maggi 2016, read); the Small Cloud 9.6 and 3.9 against about 23
+  (recalled; find a source). Candidates use the Milky Way's per-system
+  rate while a Cloud has 3 to 4 times the specific star formation, and
+  the gas factor (capped at 1, falling to 0.06 at one half-mass radius)
+  counts the young stars twice; scaling by star formation would give
+  about 100 and 25. Scale remnants by the satellite's star formation
+  rate per star against the solar circle's (uncapped) and place them by
+  the young stars' radial profile; check against 59 and the Small Cloud
+  count. From Aux 4
+  (reports/gen535-magellanic-gas-remnants-2026-10-31.md). Output
+  changing, a lock item built on a separate branch. Owner Aux 4.
+  Prerequisites: none. Related: GEN.535.
+
+- [ ] **GEN.1192 Satellite gas: a gas disc longer than the stars and a longer depletion time at low density**
+  The Small Cloud's gas is 5.9e7 solar masses against a recalled 4e8
+  (about 7 times low) because gas is the star-formation inversion over
+  the half-mass circle only; the Large Cloud (3.1e8 against about 4.9e8
+  for the whole system, Bruns 2005) is fine. Give satellites a gas disc
+  longer than the stars and a longer depletion time at low density;
+  verify Stanimirovic 1999 and Staveley-Smith 2003 for the Small Cloud's
+  HI first. From Aux 4
+  (reports/gen535-magellanic-gas-remnants-2026-10-31.md). Output
+  changing, a lock item built on a separate branch. Owner Aux 4.
+  Prerequisites: none. Related: GEN.535.
+
+- [ ] **GEN.1193 Stripping rule on a satellite's distance to its host so gas follows Grcevich and Putman**
+  No distance-to-host stripping exists: dwarfs within about 270 kpc of a
+  host are gas-free and beyond it gas-rich (Grcevich and Putman 2009,
+  read; their Leo I limit under 3e4 solar masses is second-hand). Add a
+  stripping rule on the satellite's distance to its host scaled by the
+  host's halo (about 270 kpc for the Milky Way); open the Leo I table
+  row first (no named satellite exists in src, only the test fixture
+  row). From Aux 4
+  (reports/gen535-magellanic-gas-remnants-2026-10-31.md). Output
+  changing, a lock item built on a separate branch. Owner Aux 4.
+  Prerequisites: none. Related: GEN.535.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -19161,6 +19172,15 @@ clears each one.
   update that test with it. Test data only, no generated value changes.
   Owner Core 4.
   Prerequisites: none. Related: GEN.366.
+
+- [ ] **TEST.508 Leo I fixture row in test_satellites has an age of 5 Gy so it forms gas; change the age or label it a stand-in**
+  From Aux 4 (reports/gen535-magellanic-gas-remnants-2026-10-31.md): the
+  Leo I test fixture row has an age of 5 Gy, which forms gas, while the
+  generated laws leave a Leo I-mass satellite gas-free and Leo I is
+  gas-free in the observations. Change the age so it does not form gas,
+  or leave it labelled as a stand-in. Test data only, no generated value
+  changes. Owner Aux 4.
+  Prerequisites: none. Related: GEN.535.
 
 ## USR: User accounts
 
