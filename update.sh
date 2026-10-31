@@ -282,6 +282,10 @@ ensure_redis
 check_redis_settings
 
 echo
+log_info "Checking the size of MySQL's redo log:"
+show_redo_log_advice
+
+echo
 warm_galaxy_map
 
 echo
