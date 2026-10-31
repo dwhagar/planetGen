@@ -12478,6 +12478,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   accepted range. Changes generated output: epoch, --affects fill, rides
   the star-side train after GEN.932. Owner: Bug 1 (reassignable to Star
   1). Version 8.1.
+  Sources 2 finding (GEN.1168) (2026-10-30 11:14 PM EDT): The 20 pc
+  sample (Giammichele 2012 Table 4, 136 rows; Tremblay 2016 counts 8 of
+  105 under 0.45) has 7.4 percent of white dwarfs under 0.45 solar
+  masses and 10 percent from 0.45 to 0.56; the generator has 0.3 percent
+  under 0.57 and its floor is the Cummings 2018 relation (0.555 at the
+  lightest progenitor 0.83). Target the shares, not only the mean: about
+  7 percent helium-core white dwarfs near 0.4 (a cap, since some are
+  unresolved double degenerates with underestimated mass) and a thinner
+  0.45 to 0.56 band (Giammichele say 0.50 to 0.55 is thin, so under 5
+  percent). Report reports/gen1168-low-mass-white-dwarfs-2026-10-31.md.
   Prerequisites: none. Related: GEN.932, GEN.995.
 
 - [ ] **GEN.998 The default galaxy disc gas depletion time is 0.85 Gy against the 4.2 Gy the Galaxy measures: check the value and its source (bug)**
@@ -14615,17 +14625,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   sweep statistic agrees, tests, registry row. Owner Aux 7.
   Prerequisites: none. Related: GEN.753, GEN.807, GEN.725.
 
-- [ ] **GEN.1164 About 3 percent of moons (70 of 2,273) sit in a 3:2 or 2:1 spin-orbit state, all captured moons with eccentricity 0.2 to 0.5, where real moons have none apart from chaotic Hyperion: find out whether the tide damps the eccentricity before the spin settles**
-  Found by the GEN.753 tides and spin validation sweep (Aux 7,
-  reports/gen753-tides-spin-sweep-2026-10-30.md; 17 statistics, 14
-  agree, 3 do not; sources quoted from memory, tier T2, to be re-read by
-  the lane). This is a question for Tides 1, not a clear defect: does
-  the tide damp e before the spin settles in the spin-down order, and
-  should captured moons reach a resonant state at all? Answer from
-  physics (Maxwell rheology, GEN.955 wiring) and report; if it is a
-  defect, file the fix. Owner Tides 1.
-  Prerequisites: none. Related: GEN.753, GEN.842, GEN.955.
-
 - [ ] **GEN.1165 Giant planet obliquity never exceeds 60 degrees (312 giants) and locked planets have exactly 0 degrees tilt: draw a wider, physically derived obliquity and a small non-zero tilt for locked bodies**
   Found by the GEN.753 tides and spin validation sweep (Aux 7,
   reports/gen753-tides-spin-sweep-2026-10-30.md; 17 statistics, 14
@@ -14652,26 +14651,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   whose halo draw reads this relation. Owner Sources 2.
   Prerequisites: none. Related: GEN.753, GEN.1154, GEN.368.
 
-- [ ] **GEN.1168 No white dwarf is lighter than 0.56 solar masses in the generated population while field samples go down to 0.45: check whether the low-mass white dwarf channel is missing**
-  Found by the GEN.753 stars and galaxy validation sweep (Sources 2,
-  reports/gen753-stars-galaxy-validation-2026-10-31.md; PR #4329 added
-  the agreeing statistics as tests). Check item, not yet sized:
-  binary-made helium-core white dwarfs (GEN.996 covers part of this) and
-  the single-star lower limit. Compare with a published low-mass white
-  dwarf fraction (for example the 20 pc sample and the SDSS sample) and
-  report whether GEN.996 already closes it. Owner Sources 2.
-  Prerequisites: none. Related: GEN.753, GEN.996.
-
-- [ ] **GEN.1169 Pre-main-sequence stars are 2.5 percent of living stars at the Sun's position (late M dwarfs, median age 0.45 Gy): check the share against the contraction times of the tracks and a published fraction**
-  Found by the GEN.753 stars and galaxy validation sweep (Sources 2,
-  reports/gen753-stars-galaxy-validation-2026-10-31.md; PR #4329 added
-  the agreeing statistics as tests). Check item: likely consistent with
-  the pre-main-sequence contraction time of late M dwarfs (up to a Gy),
-  but not checked against a paper. Read the tracks' contraction times,
-  compute the expected fraction for the star formation history, and
-  report agree or disagree. Owner Sources 2.
-  Prerequisites: none. Related: GEN.753.
-
 - [ ] **GEN.1170 Spin of A and B stars follows mass: the fast-rotator mode rises from 160 km/s at 1.6 to 2 solar masses to 238 km/s at 3.15 to 3.85 (about 46 km/s per solar mass), where the generator keeps one 180 km/s median for every hot star from 1.8 solar masses up**
   From Aux 7 (GEN.1163, registry SP15): Zorec and Royer 2012 Table 4
   gives the mode of the fast rotators rising with mass, mean 1.128 times
@@ -14697,6 +14676,54 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   re-run the 60-system sweep. Output changes, so train-bound after
   GEN.1057 merges. Owner Tides 1.
   Prerequisites: GEN.1057. Related: GEN.1057, GEN.959, GEN.725.
+
+- [ ] **GEN.1172 Spin-orbit resonance capture is a draw, not a certainty: 3:2 and 2:1 capture inside the window with a probability inside the published 0.07 to 0.55 bracket**
+  From Tides 1 (answer on GEN.1164, nothing changed in code): the order
+  is not the cause. generate_orbit_shape damps a captured moon's
+  eccentricity first and generate_spin then runs spin_torques.evolve
+  with the final eccentricity; in nature the spin settles first, so the
+  final-e test is conservative. The cause is that capture inside a
+  window is certain (RESONANCE_CAPTURE_PROBABILITY 1.0, Makarov 2012: 40
+  of 40) while the file's own bracket is 0.07 (Goldreich and Peale,
+  Mercury's eccentricity) to 0.55 (Correia and Laskar 2004), and 2:1
+  should be lower than 3:2. Replace the certainty with a seeded capture
+  draw in spin_torques: P about 0.3 for 3:2 and 0.1 for 2:1 as stand-ins
+  inside the bracket (tier Confident educated guess from physics, tweak
+  L1), registered in GEN.725. Expected effect: 3 percent of moons in a
+  resonance falls to roughly 0.5 to 1 percent. Also note the windows
+  (3:2 at e 0.20 to 0.41, 2:1 at 0.34 to 0.49) are Makarov's for a
+  Mercury-like rocky rheology and are applied to icy and small captured
+  moons; a rheology-dependent window is a later refinement. Lock item
+  (adds a draw, changes output), rides the next train window. Owner
+  Tides 1.
+  Prerequisites: none. Related: GEN.1164, GEN.725.
+
+- [ ] **GEN.1173 Time to the main sequence for 0.1 to 0.3 solar-mass stars has an unphysical step between 0.105 and 0.11 solar masses (718 to 1358 Myr) from the isochrone arrival grid**
+  From Sources 2 (GEN.1169,
+  reports/gen1169-pre-main-sequence-share-2026-10-31.md): the
+  generator's time for the radius to settle jumps from 718 Myr at 0.105
+  solar masses to 1358 Myr at 0.11, an artefact of the isochrone arrival
+  grid; the BHAC15 tracks (Baraffe 2015, read) are smooth there. Smooth
+  the arrival time across the step (interpolate in mass rather than
+  snapping to the grid). Changes the pre-main-sequence share and star
+  ages near 0.1 solar masses, so a lock item for the next train window.
+  Owner Sources 2.
+  Prerequisites: none. Related: GEN.1169, GEN.947.
+
+- [ ] **GEN.1174 Decide the pre-main-sequence time definition: the generator's time to the main sequence is 3 to 4 times BHAC15 for 0.1 to 0.3 solar masses and 1.5 to 2 times from 0.4 up**
+  From Sources 2 (GEN.1169): against BHAC15 the generator's time for the
+  radius to settle is 3 to 4 times longer for 0.1 to 0.3 solar masses
+  (0.2 solar masses: 727 Myr against 188 Myr) and 1.5 to 2 times from
+  0.4 up, partly by definition because the clock is stretched to MIST's
+  nuclear arrival (GEN.947). The pre-main-sequence share is 2.5 percent
+  of living stars at the Sun's position; the BHAC15 criterion would give
+  about 0.7 percent. Options: (1) keep the nuclear-arrival definition
+  and say so in the design note; (2) report both a radius-settled time
+  (BHAC15) and a nuclear-arrival time and let classification use the
+  radius-settled one (recommended, physics-driven); (3) replace the
+  clock with BHAC15. Boss decides; not started until he picks. Owner
+  Sources 2.
+  Prerequisites: none. Related: GEN.1169, GEN.947.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 

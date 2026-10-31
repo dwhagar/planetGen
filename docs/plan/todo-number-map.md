@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.250 |
 | MAP | MAP.362 |
 | NAV | NAV.65 |
-| GEN | GEN.1172 |
+| GEN | GEN.1175 |
 | PERF | PERF.220 |
 | DB | DB.110 |
 | API | API.38 |
@@ -1914,14 +1914,17 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1161 | Asteroid field mass rule and a member ledger like the belts' (individual bodies above 1e19 kg stored, the rest drawn on demand) | none | open |
 | GEN.1162 | Store bulk density and binding energy (and roundness ratio, yield strength and ice fraction where they apply) on stars, brown dwarfs, giant planets, white dwarfs, neutron stars and black holes; a black hole's binding energy is stored as -1, meaning infinite | none | open |
 | GEN.1163 | Stars hotter than about 6300 K all take the hot-star spin branch (a median 180 km/s whatever the mass), so F stars rotate in under a day where the real Kraft break rises gradually (about 20 to 70 km/s) (bug) | none | open |
-| GEN.1164 | About 3 percent of moons (70 of 2,273) sit in a 3:2 or 2:1 spin-orbit state, all captured moons with eccentricity 0.2 to 0.5, where real moons have none apart from chaotic Hyperion: find out whether the tide damps the eccentricity before the spin settles | none | open |
+| GEN.1164 | About 3 percent of moons (70 of 2,273) sit in a 3:2 or 2:1 spin-orbit state, all captured moons with eccentricity 0.2 to 0.5, where real moons have none apart from chaotic Hyperion: find out whether the tide damps the eccentricity before the spin settles | none | done, answered by Tides 1 (GEN.1172) |
 | GEN.1165 | Giant planet obliquity never exceeds 60 degrees (312 giants) and locked planets have exactly 0 degrees tilt: draw a wider, physically derived obliquity and a small non-zero tilt for locked bodies | none | open |
 | GEN.1166 | A forced F5V star gets 1.24 to 1.69 solar masses at a fixed 6500 K: the forced-type temperature override overrules the mass, as GEN.365 found for hot types (bug) | none | dropped (withdrawn by Aux 7: a forced F5V is an exact model star; the 6500 K was rounding and the mass spread is main-sequence evolution) |
 | GEN.1167 | The stellar-to-halo relation (Moster 2013) has 0.3 to 0.4 dex more stars than Behroozi 2019 in halos of 1e10.75 to 1e11.5 and 0.06 to 0.26 dex fewer in halos of 1e12.5 to 1e14.5: compare the published fits and pick the best-supported relation | none | open |
-| GEN.1168 | No white dwarf is lighter than 0.56 solar masses in the generated population while field samples go down to 0.45: check whether the low-mass white dwarf channel is missing | none | open |
-| GEN.1169 | Pre-main-sequence stars are 2.5 percent of living stars at the Sun's position (late M dwarfs, median age 0.45 Gy): check the share against the contraction times of the tracks and a published fraction | none | open |
+| GEN.1168 | No white dwarf is lighter than 0.56 solar masses in the generated population while field samples go down to 0.45: check whether the low-mass white dwarf channel is missing | none | done, report gen1168 (GEN.996 targets the shares) |
+| GEN.1169 | Pre-main-sequence stars are 2.5 percent of living stars at the Sun's position (late M dwarfs, median age 0.45 Gy): check the share against the contraction times of the tracks and a published fraction | none | done, report gen1169 (GEN.1173, GEN.1174) |
 | GEN.1170 | Spin of A and B stars follows mass: the fast-rotator mode rises from 160 km/s at 1.6 to 2 solar masses to 238 km/s at 3.15 to 3.85 (about 46 km/s per solar mass), where the generator keeps one 180 km/s median for every hot star from 1.8 solar masses up | none | open |
 | GEN.1171 | Ring lifetime by ring mass and planet instead of one fixed decay, because fallen-moon rings now persist on 13 percent of rocky planets | GEN.1057 | open |
+| GEN.1172 | Spin-orbit resonance capture is a draw, not a certainty: 3:2 and 2:1 capture inside the window with a probability inside the published 0.07 to 0.55 bracket | none | open |
+| GEN.1173 | Time to the main sequence for 0.1 to 0.3 solar-mass stars has an unphysical step between 0.105 and 0.11 solar masses (718 to 1358 Myr) from the isochrone arrival grid | none | open |
+| GEN.1174 | Decide the pre-main-sequence time definition: the generator's time to the main sequence is 3 to 4 times BHAC15 for 0.1 to 0.3 solar masses and 1.5 to 2 times from 0.4 up | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
