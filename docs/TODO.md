@@ -13740,6 +13740,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Scatter placement (Boss confirmed 4:37 PM EDT) (2026-10-30 4:40 PM
   EDT): The scatter sweep (GEN.1089) runs after the giants are placed
   and before the belts are finalised; this item calls it at that point.
+  Aux 5 (2026-10-30 9:21 PM EDT) (2026-10-30 9:21 PM EDT): takes this
+  item as the build of GEN.1156 (raise the belt share toward 4 to 14
+  percent with the physics route); stacks on the GEN.1014 wiring head.
+  Check with Planets 1 before starting, in case it has begun.
   Design: [docs/design/systems/belt-evolution.md](design/systems/belt-evolution.md)
 
 - [ ] **GEN.1069 Store the belt mass, Dc, age history text and formation snow line (DB.70 column, migration) and wire belt_mass into AsteroidBelt, replacing the three density words**
@@ -14830,6 +14834,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   changed). Any stand-in goes in GEN.725 with tier and tweak level.
   Prerequisites: none. Related: GEN.728, GEN.729, GEN.730, GEN.1061,
   GEN.725.
+  Aux 5 finding (2026-10-30 9:21 PM EDT): the physics route is GEN.1068
+  (belt birth from the architecture, belt_origin.py written). Measured
+  on main (400 default-mix systems), 99.5 percent of systems have
+  leftover solids that could form a belt (tail 80, snow-line bump 42,
+  outer disc 16, gap 12.5 percent), so the share is set by the line
+  where a leftover counts as a belt; after Wyatt grinding the share with
+  a belt of at least 0.01 Earth masses is 9, 37 and 87 percent for a
+  largest body of 100, 500 and 1000 km. Raising
+  ASTEROID_BELT_PROBABILITY to about 0.25 gives about 8 percent but is a
+  game rate. Aux 5 asks Boss where the line sits. GEN.1156 is built as
+  part of GEN.1068 (same lane, same train 7 lock window), not
+  separately.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
