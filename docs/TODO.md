@@ -19545,19 +19545,6 @@ clears each one.
   line in the same change, like a module.
   Prerequisites: none.
 
-- [ ] **TEST.529 test_the_job_strip_shows_the_running_job_on_every_admin_page fails on clean main (bug)**
-  Found by Sources 2 (as the lane reported, 12:45 PM EDT 2026-10-31; red
-  on main without its change), filed by the TODO thread. Kind: red test
-  on main. Object: the admin page test that the job strip shows the
-  running job on every admin page. Do: find the cause (the strip, the
-  fixture or an order dependency) and fix the code or the test with a
-  reason, never by skipping or loosening it without one. Web only,
-  lock-free. Owner Core 5 (proposed; it owns the admin and queue pages).
-  Owner change (2026-10-31 2:00 PM EDT): Owner is now Aux 3 (it ran out
-  of lock-free work after UX.227; Core 5 is on UX.252). Web only,
-  lock-free.
-  Prerequisites: none.
-
 - [ ] **TEST.531 Delete the sector-settle queue chain that no route reaches any more (api_jobs.settle_sectors and the test helper queue_settle)**
     Finding from Core 1's TEST.521 (as the lane reported, 1:37 PM EDT
   2026-10-31).
