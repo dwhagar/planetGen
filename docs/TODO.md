@@ -19181,17 +19181,6 @@ clears each one.
   5 bar CO2 greenhouse table cases are filed as TEST.505.
   Prerequisites: none.
 
-- [ ] **TEST.507 Add Canes Venatici I (and decide on Canis Major) to the reference satellite table so it holds all 12 Milky Way satellites above 1e5 solar masses**
-  From Core 4 (GEN.366 check against McConnachie 2012, arXiv:1204.1562):
-  the paper lists 27 Milky Way satellites, all within 300 kpc, 12 above
-  1e5 solar masses; the reference table has 11 and misses Canes Venatici
-  I (2.3e5 solar masses). Canis Major (4.9e7, disputed) is a separate
-  decision. A test pins 11 rows (the plausibility test compares the
-  derived population with 11 within a factor of 3), so add the row and
-  update that test with it. Test data only, no generated value changes.
-  Owner Core 4.
-  Prerequisites: none. Related: GEN.366.
-
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
