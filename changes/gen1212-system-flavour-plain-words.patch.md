@@ -5,6 +5,8 @@
 
 No change to which systems get a line or which line they get.
 
-generation-output: changed (stored `system_flavor_text` wording only; affects: fill)
+generation-output: changed
+
+The stored `system_flavor_text` wording is the only output that changes (epoch affects: fill). It rides a merge train, which takes the epoch.
 
 TODO items resolved: GEN.1212 (system flavour lines; the stored planet description copy is decided separately with Core 5).
