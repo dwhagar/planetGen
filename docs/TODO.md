@@ -15296,36 +15296,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   before and after.
   Prerequisites: none.
 
-- [ ] **PERF.220 Cap the workers of the bright-star and massive-star scatter stages by the memory available, so a run is not killed for running out of memory (bug)**
-    Boss's last run (reported by the coordinator, 2:20 PM EDT
-  2026-10-31): the generation run died at 3:22 AM EDT in stage 8 of 14
-  ("Scatter the bright stars"), about 21 percent in, when MySQL dropped
-  the connection (error 2013). The log shows 36 workers using 16,285 MB
-  on a 15,992 MB host, so it looks like an out-of-memory kill; earlier
-  stages used 3 to 5 workers. Do: find how many workers a stage starts
-  and how much memory one unit of the bright-star and massive-star
-  scatter stages holds at its peak; cap the number of workers a stage
-  runs at once by the memory available (read at the start of the stage,
-  with a margin), so a stage waits for a free worker instead of
-  exceeding the host. Output must not change with the worker count
-  (draws are deterministic across worker counts, so this is lock-free).
-  Done: a test with a fake memory reading shows the cap; the run page
-  says when a stage runs fewer workers than it could, and why; the run
-  finishes on a 16 GB host. Related: PERF.106 (killed unit handling),
-  PERF.149. Owner: Sources 2 (queue and performance; proposed).
-  MySQL was the visible casualty (2026-10-31 2:32 PM EDT): Evidence
-  (Boss's server logs, via the coordinator, 2:28 PM EDT): mysqld
-  restarted at 3:22 AM EDT (07:22 UTC) with crash recovery, the same
-  minute the run died, so MySQL was killed (probably the out of memory
-  killer) and every worker lost its connection (error 2013). The host
-  has 16 GB and an 8 GB swapfile (486.9 MB used afterwards). The kernel
-  and journal lines for the kill were not captured (the command Boss ran
-  had a typo), so the killer is not yet confirmed. The worker cap must
-  leave headroom for MySQL (its buffer pool and connections) and Redis,
-  not only for the workers. See PERF.222 (small redo log).
-    Prerequisites: none.
-  Prerequisites: none.
-
 - [ ] **PERF.221 A failed or killed unit names the wrong stage: the message says "unit 101 of stage 5" for a unit of stage 8 of 14 (bug)**
     Boss's last run (reported by the coordinator, 2:20 PM EDT
   2026-10-31): the failure message for the killed unit said "unit 101 of
@@ -15339,6 +15309,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   whose internal index differs from its page number and the message
   names the page's stage. Web and queue only, lock-free. Owner: Sources
   2 (proposed).
+  Still open (2026-10-31 2:36 PM EDT): Confirmed run failure: the stage
+  in the message was wrong in Boss's run (unit 101 of stage 5 for a
+  stage 8 unit). Still to do.
     Prerequisites: none.
   Prerequisites: none.
 
@@ -15362,6 +15335,35 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   shows MY-014084 on a full run. Related: PERF.220 (workers by memory),
   the lane note that MySQL binlogs fill disk. Owner: Sources 2
   (proposed, with PERF.220).
+    Prerequisites: none.
+  Prerequisites: none.
+
+- [ ] **PERF.223 Protect MySQL (and Redis) from the kernel out of memory killer on a generation host: setup docs and update.sh recommend OOMScoreAdjust=-900 for mysql.service and a memory limit on the workers (bug)**
+    Confirmed by Boss's kernel log on host hal (via the coordinator,
+  2:30 PM EDT 2026-10-31): the kernel out of memory killer ran from 3:21
+  AM to 3:30 AM EDT (07:21 to 07:30 UTC) with no systemd-oomd involved,
+  and killed mysqld at 3:22:02 AM EDT (it was mostly swapped out, 280 MB
+  resident), then systemd, then several python worker processes of
+  www-data in the apache2.service cgroup (450 to 900 MB resident each).
+  The cap on scatter workers (PERF.220, merged) keeps the next run under
+  the host's memory; this item makes a miss survivable. Do: (1) setup
+  docs and update.sh print the recommended systemd override for the
+  database and Redis (`systemctl edit mysql` with `[Service]
+  OOMScoreAdjust=-900`, the same for redis-server), which makes the
+  kernel kill a worker before the database; (2) update.sh checks the
+  setting and says what to run when it is missing (it never changes
+  Boss's server itself); (3) the workers: they are started by whichever
+  web request queues work (workers.ensure_workers, PERF.95: no service
+  has to be installed), so they are children of Apache and sit in the
+  apache2.service cgroup, which counts their memory against Apache and
+  gives them Apache's OOM score. That is by design of PERF.95 but an
+  accident of accounting: decide whether to offer an optional
+  planetgen-workers systemd slice or unit with MemoryHigh and MemoryMax
+  (so the workers are limited as a group and the kernel kills inside the
+  group first) and document it; do not require it. Done: the docs and
+  update.sh output; a note on whether the slice is worth offering.
+  Related: PERF.222 (redo log), PERF.181 (host worker cap), PERF.220.
+  Owner: Sources 2 (proposed). Boss runs any change on the server.
     Prerequisites: none.
   Prerequisites: none.
 
