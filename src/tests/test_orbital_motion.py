@@ -226,7 +226,7 @@ def test_a_close_in_planet_locks_to_its_star():
     )
     generate_orbital_motion_properties(planet, primary_mass_kg=6e30)
     assert planet.rotation_period_hours == pytest.approx(planet.period * pc.SECONDS_PER_YEAR / 3600)
-    assert planet.axial_tilt_deg == 0.0
+    assert 0.0 < planet.axial_tilt_deg <= min(planet.orbital_inclination_deg, 180.0 - planet.orbital_inclination_deg)    # GEN.1165: Cassini state 1, not exactly 0
 
 
 def test_period_uses_the_actual_primary_not_always_the_star(bodies):

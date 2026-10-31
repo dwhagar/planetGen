@@ -113,7 +113,7 @@ def test_every_generated_system_body_spins(seed):
             _assert_spin(body, spin.orbit_normal(body.orbital_inclination_deg, body.orbital_ascending_node_deg))
             orbit_hours = body.period * constants.SECONDS_PER_YEAR / 3600
             if body.rotation_period_hours == pytest.approx(orbit_hours):
-                assert body.axial_tilt_deg == pytest.approx(0.0, abs=1e-9)  # locked: upright
+                assert body.axial_tilt_deg <= min(body.orbital_inclination_deg, 180.0 - body.orbital_inclination_deg) + 1e-9  # locked: Cassini state 1 (GEN.1165)
     for comet in system.comets:
         _assert_spin(comet, spin.orbit_normal(comet.inclination_deg, comet.ascending_node_deg))
         assert comet.rotation_period_hours >= spin.SPIN_BARRIER_HOURS
