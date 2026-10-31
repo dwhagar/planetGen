@@ -96,7 +96,7 @@ RELATIONS = (
     Relation("reference scale: proto-solar X, Y, Z and per-element mass fractions", "Asplund, Amarsi and Grevesse 2021 Table 2 "
              "and section 5 (diffusion offsets +0.064 dex metals, +0.070 dex helium)", VERIFIED),
     Relation("primordial helium", "Planck 2018 VI eq. 72a, arXiv:1807.06209", VERIFIED),
-    Relation("helium-to-metal ratio dY/dZ", "derived from the proto-solar and primordial values; Casagrande et al. 2007 observe "
+    Relation("helium-to-metal ratio dY/dZ", "derived from the proto-solar and primordial values; observed "
              "2.1 +- 0.9", VERIFIED),
     Relation("thin-disc age gate", "Haywood et al. 2013: the thick disc formed from about 13 to about 8 Gy ago", PARTLY_VERIFIED,
              "the age scale is uncertain by 1 to 1.5 Gy; range 6.5 to 9.5 Gy"),
@@ -451,8 +451,8 @@ def _interpolate(xs, ys, x):
 
 def first_dredge_up(mass_sol, z):
     """
-    The surface change of the first dredge-up for a star of `mass_sol` solar masses and metal fraction `z` (Boothroyd and
-    Sackmann 1999): the rise in helium, the factors on C/Z and N/Z, linear in mass between the table's rows (1, 1.5, 2, 2.5)
+    The surface change of the first dredge-up for a star of `mass_sol` solar masses and metal fraction `z` 
+    (Boothroyd and Sackmann 1999): the rise in helium, the factors on C/Z and N/Z, linear in mass between the table's rows (1, 1.5, 2, 2.5)
     and in log Z between its two metallicities (0.001 and 0.02). Outside either range the table's edge is held (`mass_held`,
     `z_held`). Nitrogen at low Z is not tabulated, so its factor is the Z = 0.02 one at every Z (partly verified).
     """

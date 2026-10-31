@@ -27,7 +27,7 @@ and `r_rock = (0.67 - 0.25 x^1.65)(1 - x/2) / 0.67` of its rock, and a body that
 `r_rock` of its rock (`MT5`); it is the 33 percent fit exactly where Marcus fitted it, and is never worse than the conservation of iron.
 
 **What is not modelled.** Only head-on and near head-on impacts strip. From 30 to 45 degrees the impact is a hit-and-run (the target is left
-nearly whole, Marcus 2010 section 3.2, Asphaug 2009), so `strip_probability` gives the share of random impacts that are inside `IMPACT_ANGLE_DEG`
+nearly whole, Marcus 2010 section 3.2), so `strip_probability` gives the share of random impacts that are inside `IMPACT_ANGLE_DEG`
 and the caller applies it to each impact it counts. The remnant is not cooled or relaxed, a mass of less than a tenth of the target's is not
 tracked as debris, and nothing is said about the composition of the lost mass.
 

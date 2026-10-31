@@ -58,7 +58,7 @@ Size counts need the radii; these are Wikipedia's mean radii (from JPL and Shepp
 | Turrini, Marzari and Beust 2008, arXiv 1011.5655 (Saturn) | fetched, not used beyond JH07's families | Saturn groups of 3 and 4 prograde bodies |
 | Nesvorny, Alvarellos, Dones and Levison 2003 | **not reached** (publisher copy refused) | second-hand: VNL08 (limits), JH07 (Kozai, a / r_H trend), Bottke 2010 (families, collisions) |
 | Hamilton and Burns 1991, Icarus 92, 118 | **not reached** | second-hand: JH07 section 5 (stability depends on e and i); the 0.4895 r_H circular limit is already in the repo |
-| Sheppard and Jewitt 2003, Nature 423, 261; Jewitt and Sheppard 2005; Sheppard et al. 2005, 2006; Nicholson et al. 2008 | **not reached** (UCLA and publisher copies refused) | second-hand: JH07 Tables 2 and 3, Bottke 2010, Sheppard, Jewitt and Kleyna 2005 (Uranus survey read in full) |
+| Sheppard and Jewitt 2003, Nature 423, 261; Sheppard et al. 2005, 2006 | **not reached** (UCLA and publisher copies refused) | second-hand: JH07 Tables 2 and 3, Bottke 2010, Sheppard, Jewitt and Kleyna 2005 (Uranus survey read in full) |
 
 ## What this changes in the design
 
@@ -94,8 +94,8 @@ What was reached: the abstract of Pollack, Burns and Tauber 1979 (Icarus 37, 587
 | timing | the envelope must collapse within a few thousand years of the capture, else the body spirals in; the present irregulars would be the last few captured | Sheppard 2006 3.1 |
 | orbits it predicts | retrograde bodies lose more (smaller e, i, a), smaller bodies evolve faster and are removed first, larger ones are captured nearer the planet; none of these size trends is seen | Sheppard 2006 3.1; JH07 6.2 |
 | fit to the data | Cuk and Burns 2004 explain the prograde Himalia group (disc, not envelope); JH07 call such a model dependent on weakly constrained parameters of the gas; the equal populations at the four giants argue against drag as the main agent | JH07 6.2, 6.3 |
-| pull-down (sudden planet growth) | at least a 10 percent mass jump (Vieira Neto 2004) or over 40 percent in a few thousand years (Pollack 1976); gas giants only; also works for prograde | JH07 6.1; Sheppard 2006 3.2 |
-| quasi-satellites | 5 to 20 percent of scattered planetesimals become quasi-satellites of the planet (Kortenkamp 2005) | JH07 6.3 |
+| pull-down (sudden planet growth) | at least a 10 percent mass jump (Vieira Neto 2004) or over 40 percent in a few thousand years; gas giants only; also works for prograde | JH07 6.1; Sheppard 2006 3.2 |
+| quasi-satellites | 5 to 20 percent of scattered planetesimals become quasi-satellites of the planet | JH07 6.3 |
 
 For the generator: the drag channel is switched on only for a planet with a massive envelope in the gas era, for bodies of 1 to 500 km, and its yield stays the guess of CM14 (0.1 to 0.3 of the encounter channel) with the knob 0 to 0.3, since the observed equality of the four giants (JH07) and the lack of size-orbit trends (Sheppard 2006) put the upper end at risk. A physical form is possible when the envelope is generated: capture if the column density of gas along the path times the cross-section is at least the body's mass, which gives R_max = (3/4) (rho_gas L / rho_body); it needs the gas density of the envelope (not in any paper reached).
 

@@ -46,7 +46,7 @@ Answers to the five specific questions: (1) 24 WD systems, centre -1.25, sd 0.45
 | Scope | Pollution fraction: 25 to 50 percent of WDs polluted (Zuckerman 2010; Koester 2014: 48 of 85 DAs with metals, 23 (27 percent) must be accreting, up to about 50 percent) | arXiv:1404.2617 abstract | READ |
 | Size of the bodies | Harrison 2021: 13 of 202 DZ systems have finished accretion; accreted masses Moon to half of Vesta. Buchan 2022: of 42 systems, 3 favour small parent bodies (differentiation pressure 4 to 8 GPa), 2 favour Earth-sized (GD 61, WD 0446-255), 4 degenerate with fO2, 5 unconstrained, 26 no evidence of differentiation, 1 unphysical. Doyle 2019: bodies are "asteroids ... or fragments of rocky exoplanets" | arXiv:2103.05713 abstract; arXiv:2111.08779 sec. 3 | READ |
 
-**Physical bracket.** dIW of a body with metal is set by FeO in rock against Fe in metal (Doyle Eq. 3). Solar gas is dIW -6 to -7 (Krot 2000, via Doyle 2020, 2ND-HAND); Solar System rocks span about 6 dex (Doyle 2019). Rocks with no metal give only upper limits (Doyle 2020 sec. 2.3).
+**Physical bracket.** dIW of a body with metal is set by FeO in rock against Fe in metal (Doyle Eq. 3). Solar gas is dIW -6 to -7 (via Doyle 2020, 2ND-HAND); Solar System rocks span about 6 dex (Doyle 2019). Rocks with no metal give only upper limits (Doyle 2020 sec. 2.3).
 
 **Verdict.** (a) for the small-body, core-formation quantity (rows a3, a4). Be blunt about two limits. First, Doyle's dIW is the fO2 at metal-silicate equilibrium on a scale with Earth at about -1.5 (Earth -1 to -2 depending on the FeO activity-coefficient ratio, G3 table, 2ND-HAND), whereas a1 uses the surface magma-ocean scale with Earth at +0.5 (Sossi) or +2 (Deng). These are different quantities and the project must say which one each row draws (G3 finding F2: the generator should fix one IW scale, Hirschmann 2021, DOI 10.1016/j.gca.2021.08.039, metadata verified only). Second, WD bodies have no known mass for 11 or more of the 24 systems, so the ensemble cannot supply any mass slope.
 
@@ -72,7 +72,7 @@ Answers to the five specific questions: (1) 24 WD systems, centre -1.25, sd 0.45
 | Deng, Du, Karki, Ghosh, Lee 2020, Nat. Commun. 11:2007, DOI 10.1038/s41467-020-15757-0 (the candidate "Deng et al. 2020" is right; authors Deng, Du, Karki, Ghosh, Lee) | First-principles plus thermodynamic model: magma-ocean surface fO2 rises with ocean depth. Base depths 55, 14, 5 GPa give base dIW -2, -1.5, -2 and surface about IW+2 (Earth), IW-0.3 (Mars), IW-2 (Moon). 1 sigma about 0.5 log. Earth surface falls about 1.5 log if base is 25 not 55 GPa. Mentions super-Earths only qualitatively | three Solar System bodies; no exoplanet datum | READ (Nature page) |
 | Sossi et al. 2020, Sci. Adv. 6:eabd1387, DOI 10.1126/sciadv.abd1387 | Earth magma ocean about IW+0.5 on their scale at 2173 K, Fe3+/sumFe 0.037 +- 0.005 | Earth only | 2ND-HAND (part G3), metadata verified |
 | Guimond, Shorttle, Jordan, Rudge 2023, MNRAS, arXiv:2308.09505 | At fixed Fe3+/sumFe, mineralogy alone gives at least 2 dex fO2 spread across exoplanet mantles from Hypatia host-star refractory abundances; about 3 dex from Mg/Si; "Fe3+/sumFe and thus the real fO2 is unconstrained for exoplanets" (fixed at 3 percent for figures) | no calibration | READ |
-| Gaillard, Bernadou, Roskosz, Bouhifd 2022, EPSL 577:117255 | Outgassed composition vs fO2 regimes (above IW+2 dry C-N-S atmosphere) | theory plus experiments | 2ND-HAND (part G3), metadata verified |
+| Gaillard, Bernadou, Roskosz, EPSL 577:117255 | Outgassed composition vs fO2 regimes (above IW+2 dry C-N-S atmosphere) | theory plus experiments | 2ND-HAND (part G3), metadata verified |
 | Doyle 2019/2020/2023, Buchan 2022, Harrison 2021 | Overlap check: WD 1350-162 (small parent, Buchan) dIW -1.01 +0.18/-0.21; WD 0446-255 (Earth-sized, Buchan) dIW -1.47 +0.20/-0.22. Difference 0.46 dex at about 1.5 sigma, N=2, differentiation pressure degenerate with fO2 in 4 systems | | COMPUTED from READ |
 
 **Answer to question 2.** No published constraint on the mass (or pressure) dependence of mantle redox beyond theory exists in what I could reach. The only observational tie is the two-star overlap above, which has no power. a1's slope (1.25 dex per dex of mass) was interpolated between a WD-like floor and Earth, so it is a design interpolation.
@@ -88,15 +88,15 @@ a1 as written: mu = clamp(-2 + 1.25 (log10 M + 2), -2, 0.5), sigma 0.5. WD data 
 | Ensemble | N | Finding | Source | Status |
 |---|---|---|---|---|
 | Putirka and Xu 2021, Nat. Commun. 12:6168 | 23 PWDs within 200 pc with Mg, Si, Ca, Fe | 11 fall in or next to the peridotite/pyroxenite ternary (Earth-like mantle assemblages); the other 12 are "exotic" (quartz pyroxenites, periclase dunites, etc.); only 1 matches bulk silicate Earth; no crust types found; sample is Ca-selected; Mg may be underestimated for cool WDs | Nature page (CC BY 4.0); data "available from the lead author upon request", Supplementary Table A1 | READ |
-| Trierweiler, Doyle, Young 2023, PSJ 4:136 | 31 WDs with O plus other elements | chi-square test: 15 of 31 pass as chondritic on raw abundances (21 of 31 with steady-state correction); no WD better fit by MORB or continental crust; Hypatia stars: 75 percent chondritic (F 66.5, G 75.8, K 76.6, M 56.1 percent) | arXiv:2306.03743 | READ |
-| Harrison, Bonsor, Kama, Buchan, Blouin, Koester 2021 | 202 DZ WDs | more than 60 percent consistent with primitive material; 8 systems core-rich at 3 sigma (4.0 percent); 1 crust-rich (0.5 percent); Na implies formation temperatures below 1000 K to above 1400 K | arXiv:2103.05713 abstract | READ |
+| Trierweiler, Doyle, PSJ 4:136 | 31 WDs with O plus other elements | chi-square test: 15 of 31 pass as chondritic on raw abundances (21 of 31 with steady-state correction); no WD better fit by MORB or continental crust; Hypatia stars: 75 percent chondritic (F 66.5, G 75.8, K 76.6, M 56.1 percent) | arXiv:2306.03743 | READ |
+| Harrison, Bonsor, Kama, Buchan, Blouin | 202 DZ WDs | more than 60 percent consistent with primitive material; 8 systems core-rich at 3 sigma (4.0 percent); 1 crust-rich (0.5 percent); Na implies formation temperatures below 1000 K to above 1400 K | arXiv:2103.05713 abstract | READ |
 | Harrison, Bonsor, Madhusudhan 2018, MNRAS 479:3814 | 17 systems | 1 to 9 core- or mantle-dominated; no crust-rich pollutants | arXiv:1806.09917 abstract | READ |
 | Bonsor et al. 2020, MNRAS 492:2683 | Ca/Fe of WD sample | model fit: 66 +4/-6 percent accreted differentiated-planetesimal remnants, 31 +5/-5 percent altered by heating | arXiv:2001.04499 abstract | READ |
 | Hollands et al. 2021, Nat. Astron. 5:451 | 524 northern WDs within 40 pc searched | Li in 4 cool WDs (K in one); Li, Na, Ca ratios imply crust fragments | arXiv:2101.01225 abstract | READ |
 | Swan et al. 2019, MNRAS 490:202 | 9 WDs | volatile-poor, differentiated bodies; one mantle-like with small Fe-Ni core; some Ca- or Na-anomalous | arXiv:1908.08047 abstract | READ |
 | Rogers et al. 2025 | 8 WDs with Spitzer dust | olivine/pyroxene dominance correlates tentatively with Mg/Si; GD 56 core mass fraction 0.59 | arXiv:2507.16777 abstract | READ |
 
-**What can and cannot be anchored.** WD debris is disrupted bulk material, so it constrains: (i) mantle mineral assemblage, which the project already treats as a deterministic map of Mg/Si and C/O (T6); (ii) core-rich fraction about 4 percent of DZs at 3 sigma (Harrison 2021) and 66 percent differentiated in a model (Bonsor 2020); (iii) a crust-bearing frequency of order 0.5 to 1 percent (1/202; 4/524 of the 40 pc sample have Li crust signatures, but the denominator of polluted WDs in that sample is not given); (iv) volatile content (excess oxygen for a handful, Bonsor 2024 review, 2ND-HAND). It does not constrain surface rock types (basaltic, felsic, anorthositic, evaporite, clay, sulfur, carbon, ice) of an intact planet, nor their weights.
+**What can and cannot be anchored.** WD debris is disrupted bulk material, so it constrains: (i) mantle mineral assemblage, which the project already treats as a deterministic map of Mg/Si and C/O (T6); (ii) core-rich fraction about 4 percent of DZs at 3 sigma (Harrison 2021) and 66 percent differentiated in a model (Bonsor 2020); (iii) a crust-bearing frequency of order 0.5 to 1 percent (1/202; 4/524 of the 40 pc sample have Li crust signatures, but the denominator of polluted WDs in that sample is not given); (iv) volatile content (excess oxygen for a handful, 2ND-HAND). It does not constrain surface rock types (basaltic, felsic, anorthositic, evaporite, clay, sulfur, carbon, ice) of an intact planet, nor their weights.
 
 **Verdict.** T20: (c) for the surface types as a drawn table; (b) only for three sub-statistics (core-rich/metal about 4 percent, crust-bearing about 1 percent, water-rich a "handful" with no count). Be blunt: T20's weights are a design table that cannot be tuned to any observed population of surfaces. Recommend deriving ground type by decision rules from the stored mantle, volatile, heat flux and tectonic state (as T20 already states), and testing the output against WD statistics only at the level of bulk mantle assemblage and the crust-bearing frequency. T22/R2: (c) for a drawn proportion table. Putirka and Xu and Trierweiler disagree (12 of 23 exotic versus most chondritic), so the spread of the "exotic mantle" fraction, 0 to about 50 percent, is the honest tolerance; no verified source overrides the other. Boss must request Putirka and Xu Supplementary Table A1 and the Hollands 2018 compositions (no arXiv id found; MNRAS 477:93, DOI 10.1093/mnras/sty592, Crossref only).
 
@@ -125,7 +125,7 @@ a1 as written: mu = clamp(-2 + 1.25 (log10 M + 2), -2, 0.5), sigma 0.5. WD data 
 
 ### 2.6 Th/U derivation (row o4) and K/U (row o3)
 
-**Th/U formula (nucleosynthesis, birth epoch, decay).** Let PR = (232Th/238U) production ratio (number). Published inputs: Frebel 2007 Table 1 (READ, original sources 2ND-HAND) lists log(U/Th)_initial from -0.301 (Goriely and Arnould 2001) through -0.29 (Wanajo 2002), -0.256 (Cowan 2002), -0.243 (Dauphas 2005, U/Th = 0.571) to -0.22 (Schatz 2002), i.e. PR = 1.67 to 2.0; Dauphas 2005 abstract (Nature 435:1203, DOI 10.1038/nature03645) states prior estimates of the U/Th production ratio 0.4 to 0.7 and derives a precise value from meteorites plus halo stars (value 0.571 +0.037/-0.031 from a search summary, SNIPPET; consistent with Frebel's table). Chronometer: delta t = 21.8 [log(U/Th)_initial - log eps(U/Th)_now] (Frebel 2007, READ).
+**Th/U formula (nucleosynthesis, birth epoch, decay).** Let PR = (232Th/238U) production ratio (number). Published inputs: Frebel 2007 Table 1 (READ, original sources 2ND-HAND) lists log(U/Th)_initial from -0.301 through -0.29, -0.256, -0.243 (Dauphas 2005, U/Th = 0.571) to -0.22, i.e. PR = 1.67 to 2.0; Dauphas 2005 abstract (Nature 435:1203, DOI 10.1038/nature03645) states prior estimates of the U/Th production ratio 0.4 to 0.7 and derives a precise value from meteorites plus halo stars (value 0.571 +0.037/-0.031 from a search summary, SNIPPET; consistent with Frebel's table). Chronometer: delta t = 21.8 [log(U/Th)_initial - log eps(U/Th)_now] (Frebel 2007, READ).
 
 For continuous r-process enrichment of the gas at constant rate for T Gyr before the planet's host star forms, then radioactive decay for the planet's age tau:
 
@@ -140,7 +140,7 @@ COMPUTED table (PR = 1.751; mass Th/U):
 | 10 | 2.65 | 3.28 | 4.27 | 6.18 |
 | 13 | 2.93 | 3.62 | 4.72 | 6.83 |
 
-PR = 1.667 or 2.0 at T = 6.5 gives 3.55 or 4.26 at tau = 4.5. **What is READ and what is calibrated:** PR range (READ via Frebel Table 1) and decay constants are not Solar System. T is calibrated here on one datum, CI Th/U = 3.76 (READ, McDonough 2025 via G2): it requires T = 6.5 Gyr for PR 1.751 (7.7 for PR 1.667, 3.5 for PR 2.0), COMPUTED. So the degeneracy PR versus T is closed only by the Solar System: **flag.** An independent route would fit T(birth epoch) with a Galactic chemical-evolution model (Frank, Meyer, Mojzsis 2014 Icarus 243:274, DOI from search summary only, no arXiv found, SNIPPET; Mishenina 2022 GCE with OMEGA+, READ abstract).
+PR = 1.667 or 2.0 at T = 6.5 gives 3.55 or 4.26 at tau = 4.5. **What is READ and what is calibrated:** PR range (READ via Frebel Table 1) and decay constants are not Solar System. T is calibrated here on one datum, CI Th/U = 3.76 (READ, McDonough 2025 via G2): it requires T = 6.5 Gyr for PR 1.751 (7.7 for PR 1.667, 3.5 for PR 2.0), COMPUTED. So the degeneracy PR versus T is closed only by the Solar System: **flag.** An independent route would fit T(birth epoch) with a Galactic chemical-evolution model Mishenina 2022 GCE with OMEGA+, READ abstract).
 
 **Verdict o4.** Replace U[3.8, 4.5] by this formula; the repo range is an age-4.5 Gyr Solar System value and ignores that Th/U grows with age (about x1.16 over 1.5 Gyr, COMPUTED). Knobs: PR in [1.67, 2.0] (READ), T by birth epoch (calibrated), tau from the planet age. Test: halo-star chronometer ages at [Fe/H] about -3 (N=2 with U in the same pattern, 8 stars in total per G2) and the Solar System point only; no disc star has U. Conclusion: derive, do not draw; verdict (b) for tuning because the only comparison data are one Solar System datum and about 8 halo stars.
 
@@ -155,7 +155,7 @@ PR = 1.667 or 2.0 at T = 6.5 gives 3.55 or 4.26 at tau = 4.5. **What is READ and
 | Galactic 26Al mass | 2.8 +- 0.8 solar masses (INTEGRAL/SPI, 16 sigma line) | Diehl et al. 2006 A&A, arXiv:astro-ph/0512334 | READ |
 | Star-forming regions today | molecular-cloud 26Al/27Al about 2 to 3e-5 if all interstellar 26Al sits in clouds; Orion about 3e-5 (5.8e-4 Msun 26Al in 2e5 Msun H2) | Jura, Xu, Young 2013, arXiv:1308.6325 | READ (COMPUTED by authors) |
 | Extrasolar melting | WD parent bodies with Fe/Al varying over a factor above 100 require 26Al/27Al at least 3e-5 for melting of small rocks (formation time 1.5 Myr) | same | READ |
-| WD differentiation to enriched fraction | at least 4 percent of systems enriched (conservative), most likely tens of percent; example 66 percent differentiated with 40 percent of un-enriched bodies differentiating gives 43 percent enriched; Reiter 2020: 25 percent of systems at Solar System level; Gounelle 2015: about 1 percent above Solar System | Curry, Bonsor, Lichtenberg, Shorttle 2022, MNRAS, arXiv:2206.09675 | READ (Reiter, Gounelle 2ND-HAND) |
+| WD differentiation to enriched fraction | at least 4 percent of systems enriched (conservative), most likely tens of percent; example 66 percent differentiated with 40 percent of un-enriched bodies differentiating gives 43 percent enriched: 25 percent of systems at Solar System level; Gounelle 2015: about 1 percent above Solar System | Curry, Bonsor, Lichtenberg, Shorttle 2022, MNRAS, arXiv:2206.09675 | READ (Reiter, Gounelle 2ND-HAND) |
 | Fraction differentiated pollutants | 66 +4/-6 percent (Bonsor 2020); 16 of 42 WDs (40 percent) core- or mantle-rich (Buchan 2022 via Curry) | arXiv:2001.04499; arXiv:2206.09675 | READ |
 | Cluster simulations | fraction of disks enriched f_enr 9 to 28 percent; mean 26Al/27Al of enriched disks 3.5e-5 to 2.4e-4 (sd comparable to or above the mean); 3 to 10 percent of disks have 26Al above the Solar System; 7 to 16 percent have heating above Solar System | Lichtenberg, Parker, Meyer 2016, MNRAS 462:3979, arXiv:1608.01435 Table 4 | READ |
 | Inheritance picture | Solar System 26Al explained by Wolf-Rayet-wind input to molecular clouds with cloud residence about 1e8 yr; no unusual nearby source needed. Title is "unexceptional", not "unique" | Young 2014, EPSL 392:16, arXiv:1403.0832 | READ (abstract) |
@@ -198,7 +198,7 @@ PR = 1.667 or 2.0 at T = 6.5 gives 3.55 or 4.26 at tau = 4.5. **What is READ and
 | Bedell 2018 | exists | arXiv:1802.02576 | 79 | arXiv | SNIPPET |
 | Hinkel 2014 | exists | arXiv:1405.6719; API docs hypatiacatalog.com/api | 14,085 stars (site) | open API; copyright 2026 notice, no licence | READ, DATA |
 | Delgado Mena (Eu, Th) | Eu in 2017 paper (A&A 606:A94); no Th paper by this author found | arXiv:1705.04349 | 577 Eu stars (via Carrasco) | arXiv | 2ND-HAND |
-| Frebel and Hill cosmochronometry | right paper is Frebel, Christlieb, Norris, Thom, Beers, Rhee 2007 | arXiv:astro-ph/0703414 | 1 star (+CS 31082-001 remeasured) | arXiv | READ |
+| Frebel and Hill cosmochronometry | right paper is Frebel, Christlieb, Norris, Thom, Beers | arXiv:astro-ph/0703414 | 1 star (+CS 31082-001 remeasured) | arXiv | READ |
 | Dauphas 2005 | Nature 435:1203 | DOI 10.1038/nature03645 | | abstract READ; value SNIPPET and via Frebel Table 1 | READ (abstract) |
 | Lichtenberg 2016 | exists | arXiv:1608.01435 | N-body 1e3 to 1e4 stars, 30 runs each | arXiv | READ |
 | Lichtenberg 2019 | exists (Nat. Astron.) | arXiv:1902.04026 | model | arXiv | READ (abstract) |
@@ -214,14 +214,14 @@ PR = 1.667 or 2.0 at T = 6.5 gives 3.55 or 4.26 at tau = 4.5. **What is READ and
 ## 4. Boss must supply
 
 1. Putirka and Xu 2021 Supplementary Table A1 (23 PWD abundances, "on request" from the lead author). Without it the exotic-mantle fraction cannot be re-fit.
-2. Hollands, Gansicke, Koester 2018 (MNRAS 477:93) compositions, and Xu et al. 2019 (AJ 158:242) tables, for a WD sample with Ca, Fe, Mg, Si, Na, K.
-3. Machine-readable tables for Doyle 2019, 2020, 2023 (24 systems), plus Brouwers 2023 and Rogers 2024 oxygen budgets, so the redox test can be run with per-star errors.
+2. White-dwarf compositions, and Xu et al. 2019 (AJ 158:242) tables, for a WD sample with Ca, Fe, Mg, Si, Na, K.
+3. Machine-readable tables for Doyle 2019, 2020, 2023 (24 systems), plus Rogers 2024 oxygen budgets, so the redox test can be run with per-star errors.
 4. Hypatia licence and permission to redistribute derived tables (copyright notice only; K, Eu, Th are mixtures of literature catalogues).
 5. A decision on which IW scale each row draws (core-formation dIW from WDs versus surface magma-ocean dIW) and a conversion test (G3 G-4, Hirschmann 2021 full text).
 6. Deng 2020 Fig. 3 data (surface dIW vs ocean-base pressure) and any observational source on Fe3+/sumFe in exoplanet mantles (none found).
 7. A Th (or Th/Eu) survey of halo, young and M-dwarf hosts, and any U in disc stars (none found).
 8. A Galactic chemical-evolution r-process history (Frank 2014 or equivalent) to replace the Solar-System-calibrated duration T in the Th/U formula.
-9. Distribution of enriched 26Al/27Al in Lichtenberg 2016 Fig. 7 as numbers, Reiter 2020, Gounelle 2015, Forbes 2021, Adams 2010.
+9. Distribution of enriched 26Al/27Al in Lichtenberg 2016 Fig. 7 as numbers, Gounelle 2015, Adams 2010.
 10. Na, K condensation temperatures from a primary source (Lodders 2003 or Wasson) to map WD Na depletion to K.
 
 ## 5. Recalled / to verify
@@ -232,9 +232,8 @@ PR = 1.667 or 2.0 at T = 6.5 gives 3.55 or 4.26 at tau = 4.5. **What is READ and
 | atomic masses 232.038, 238.051 (mass/number factor 0.9748) | Th/U table | standard values, not looked up |
 | 50 percent condensation temperatures K 1006 K, Na 958 K | o3 proxy | memory (Lodders 2003) |
 | Dauphas 2005 value 0.571 +0.037/-0.031 | PR range | search summary; matches Frebel Table 1 (-0.243) |
-| Reiter 2020 (25 percent), Gounelle 2015 (1 percent) | o6 | read only inside Curry 2022 |
+| Gounelle 2015 (1 percent) | o6 | read only inside Curry 2022 |
 | Tang and Dauphas 2012 ISM 3.0e-6 | o6 | read only inside Jura 2013 |
-| Frank, Meyer, Mojzsis 2014 Icarus 243:274 | Th/U GCE | summary only; no arXiv found |
 | Harrison, Shorttle, Bonsor 2021 EPSL 554:116694 | candidate | exists per search summary, not read |
 | Sossi 2020, Gaillard 2022 specifics | a1 | via part G3, not read by me |
 | Venera 9, 10 K/U | not my group | RECALLED in G2 |

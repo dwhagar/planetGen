@@ -6,7 +6,7 @@ Sun-like and A stars show in the infrared and 2 percent of the M stars do.
 
 Whether a star has one is a draw at the observed fraction of its kind (Sibthorpe et al. 2018, MNRAS 475, 3046, the Herschel
 DEBRIS survey: 47 discs round 275 FGK stars, F 23.9, G 14.3 and K 13.0 percent, M 2.2 percent of 89, 24 percent of the A
-stars; Matthews et al. 2014 find no clear dependence of the dust on the spectral type from late B to M, so a more massive
+stars; Surveys find no clear dependence of the dust on the spectral type from late B to M, so a more massive
 star takes the A figure). Where it is, the disk is a ring: its dust temperature is drawn round 58 K, the blackbody radius
 the dust sits at is `r = (278.3 / T)^2 sqrt(L)` (Sibthorpe 2018, section 2.5, for a star of `L` solar luminosities), the
 belt lies about 1.7 times further out than a blackbody grain would (their 7 to 40 AU blackbody radii "scale to about 40 AU

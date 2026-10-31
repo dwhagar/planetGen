@@ -6,7 +6,7 @@ Ideal-gas chemical equilibrium at a given temperature and pressure (GEN.451, GEN
 
 The one equilibrium solver of the atmosphere chain: the mole fractions of every gas of `physics/species_thermo.py` that can
 be made of the given elements, at the temperature and total pressure of the layer. It minimises the Gibbs energy of an ideal gas
-at constant temperature and pressure under the element balance by the method of Gordon and McBride (1994, NASA RP-1311,
+at constant temperature and pressure under the element balance by the method, NASA RP-1311,
 section 2): Newton's method on the element potentials, with the step damped so that no species changes by more than a factor
 of e^2 per iteration and a negligible species stays negligible. Two things beyond their problem are added: an element whose
 potential is held (the oxygen of a mantle whose oxygen fugacity is given, `fixed_o2_log_fugacity`), and a result that carries

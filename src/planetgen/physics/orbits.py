@@ -144,7 +144,7 @@ def calculate_hill_sphere(distance_m, body_mass_kg, central_mass_kg):
 
 ROCHE_FLUID_COEFFICIENT = 2.44
 """float: The fluid-body Roche limit, d = 2.44 R (rho_M / rho_m)^(1/3)
-(Chandrasekhar 1969): a self-gravitating satellite with no strength comes
+: a self-gravitating satellite with no strength comes
 apart inside it. A rigid body survives closer (1.26), so the fluid limit
 is the cautious one."""
 
@@ -346,7 +346,7 @@ def mutual_hill_radius_m(distance1_m, distance2_m, mass1_kg, mass2_kg, central_m
     """
     Calculates the *mutual* Hill radius of two bodies that orbit the same
     primary -- the length scale real orbital-dynamics stability criteria
-    (Gladman 1993; Chambers, Wetherill & Boslough 1996; Smith & Lissauer
+    (Gladman 1993; Chambers; Smith & Lissauer
     1999/2009) use for how close two adjacent planets' orbits can safely
     be, as distinct from `calculate_hill_sphere`'s single-body sphere of
     gravitational dominance (the right tool for "how far can a satellite

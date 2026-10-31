@@ -149,14 +149,14 @@ Radius reference is the 1 bar level; hot giants need the model atmosphere tables
 
 Seager Table 1 (section 2.1) is the verified source. Independent checks, COMPUTED:
 
-- Epsilon-iron: Seager Vinet (8.30, 156.2, 6.08) against the Dorogokupets 2017 calibrant in burnman 2.1.0 (V0 6.81706 cm3/mol so rho0 8.192, K0 148, K0' 5.86): density at 50, 100, 200, 330 GPa 9.987/9.947, 10.995/10.999, 12.41/12.48, 13.744/13.886 g/cm3, within 1.0 percent.
+- Epsilon-iron: Seager Vinet (8.30, 156.2, 6.08) against the calibrant in burnman 2.1.0 (V0 6.81706 cm3/mol so rho0 8.192, K0 148, K0' 5.86): density at 50, 100, 200, 330 GPa 9.987/9.947, 10.995/10.999, 12.41/12.48, 13.744/13.886 g/cm3, within 1.0 percent.
 - MgSiO3 perovskite: Seager (4.10, 247, 3.97; third-order BM here) against Stixrude and Lithgow-Bertelloni 2011 as shipped in burnman (V0 24.445 cm3/mol so rho0 4.107, K0 250.5, K0' 4.14): 25, 50, 100, 135 GPa density ratio 1.000, 1.001, 1.004, 1.006. Zeng 2016's lower-mantle BM2 (3.98, 206) is within 1.6 percent of it at 25 GPa and 1.1 percent at 135 GPa.
 - Periclase: SLB 2011 rho0 3.584 (agrees with 3.56) but K0 161.4 GPa against 177 (correction 7).
 - Two-layer integration (COMPUTED, `two_layer_structure_check.py`): Fe Vinet (Seager) over MgSiO3 BM3 (Seager), CMF 0.3, no phase changes, no TFD: radii 0.792, 0.978, 1.198, 1.453, 1.744 R_earth at 0.5, 1, 2, 4, 8 M_earth. Zeng 2016 Table 2 (30% Fe): 0.823, 1.005, 1.22, 1.47, 1.75 at the same masses. So **the Seager constants alone reproduce a published table to 1 to 4 percent** (a little low because the BM and Vinet forms are extrapolated cold and the Earth-like upper mantle is missing). Use BM only up to about 2.8e13 Pa; Seager Fig. 1 shows the MgSiO3 BME curve turns unphysical there and TFD must take over.
 
 **Verdict: verified.** What the table lacks: a verified density for **low-pressure ice phases** (ice Ih and the others below 2.2 GPa). Seager's 1.46 g/cm3 is ice VII at zero pressure (high-pressure phase), the wrong number for a small icy body or moon. Ice Ih was not found in any source read (section 5).
 
-### 2.8 Saumon, Chabrier, van Horn 1995, ApJS 99, 713 (original READ from the ADS scan; tables NOT obtained)
+### 2.8 Saumon, Chabrier, ApJS 99, 713 (original READ from the ADS scan; tables NOT obtained)
 
 From the paper itself: hydrogen and helium equations of state for low-mass stars (M < 1 M_sun), brown dwarfs and giant planets, covering **2.10 < log T(K) < 7.06 and 4 < log P (dyn/cm2) < 19**; free-energy minimisation; **mixtures by the additive volume rule plus an ideal entropy of mixing** (so the density of a mixture with helium mass fraction Y follows from the two pure tables); a hypothetical plasma phase transition for hydrogen, with tables both with it and with it interpolated away; tables published on the AAS CD-ROM Series Vol. 5 and by anonymous FTP; the paper's own figure uses Y = 0.25. Radiation is not included.
 
@@ -166,7 +166,7 @@ What replaced it: Chabrier, Mazevet, Soubiran 2019 (arXiv:1902.01852) keep SCvH 
 
 ### 2.9 Dorn et al. 2015, arXiv:1502.03605 (READ, verified as a method)
 
-A Bayesian inversion, not a forward law. Assumptions to carry over: bulk **Fe/Si and Mg/Si mass ratios of the planet equal the star's** (cites Bond 2010, Elser 2012, Johnson 2012, Thiabaud 2014, because Fe, Mg, Si condense together at small distances); a pure-iron core; a mantle in the Na2O-CaO-FeO-MgO-Al2O3-SiO2 system (more than 98 percent of Earth's mantle) with Na2O 2, CaO 2, Al2O3 4.8 weight percent fixed at chondritic values; mineral equations of state from Stixrude and Lithgow-Bertelloni 2005/2011 by Gibbs minimisation; core by Belonoshko 2010 (Mie-Gruneisen-Debye with rho0 8.334, q 0.489, gamma0 2.434).
+A Bayesian inversion, not a forward law. Assumptions to carry over: bulk **Fe/Si and Mg/Si mass ratios of the planet equal the star's** (cites Bond 2010, Johnson 2012, Thiabaud 2014, because Fe, Mg, Si condense together at small distances); a pure-iron core; a mantle in the Na2O-CaO-FeO-MgO-Al2O3-SiO2 system (more than 98 percent of Earth's mantle) with Na2O 2, CaO 2, Al2O3 4.8 weight percent fixed at chondritic values; mineral equations of state from Stixrude and Lithgow-Bertelloni 2005/2011 by Gibbs minimisation; core by Belonoshko 2010 (Mie-Gruneisen-Debye with rho0 8.334, q 0.489, gamma0 2.434).
 
 Relation worth keeping (Eq. 1): `Fe/Si_bulk = Fe/Si_mantle + M_core / M_Si,mantle`, so a larger core must come with less iron (FeO) in the mantle; Earth's mantle values in the paper's Table 2: Fe/Si 0.17, Mg/Si 0.83, Si 22 weight percent, core radius 3400 km. Prior ranges (Table 1): mantle Si 14 to 30 weight percent, mantle Fe/Si up to 2.23, Mg/Si 0.89 +/- 0.08 (Lodders 2003 Sun: Fe/Si 1.69 +/- 0.18). Tested to 10 M_earth and 1.7 R_earth, plus Kepler-36b. Conclusions: mass and radius fix the core size; stellar Fe, Si, Mg reduce the degeneracy.
 
@@ -259,8 +259,8 @@ Test (COMPUTED, `cmf_from_star_and_snow_line.py`): the Lodders-2003 Sun used by 
 
 ## 5. What Boss must research himself (or a lane must go and read)
 
-1. **Low-pressure ice and silicate densities for small bodies and moons.** Ice Ih (and the other ices below 2.2 GPa), CH4, NH3 and CO2 ices, olivine and enstatite bulk densities with porosity. Not in any source read. Chaplin's water page was unreachable; Choukroun and Grasset 2007 and Chaplin 2012 are the sources Zeng and Sasselov 2013 name.
-2. **Stellar Mg, Si, O and C against [Fe/H].** The project stores only [Fe/H] (`metallicity_fe_h`), but the core fraction and the water fraction need Fe/Si, Mg/Si, O and C/O. Santos 2015 points to Bensby et al. 2005 and Adibekyan et al. 2012 for the trends; I did not read them. Needs a drawn relation with scatter; no value should be fixed.
+1. **Low-pressure ice and silicate densities for small bodies and moons.** Ice Ih (and the other ices below 2.2 GPa), CH4, NH3 and CO2 ices, olivine and enstatite bulk densities with porosity. Not in any source read. Chaplin's water page was unreachable; Choukroun and Grasset 2007 are the sources Zeng and Sasselov 2013 name.
+2. **Stellar Mg, Si, O and C against [Fe/H].** The project stores only [Fe/H] (`metallicity_fe_h`), but the core fraction and the water fraction need Fe/Si, Mg/Si, O and C/O. Needs a drawn relation with scatter; no value should be fixed.
 3. **Solar abundance set.** The check above used values typed from memory (Asplund-style). The chain needs a cited abundance table to calibrate against; Lodders 2003 (full text 403) and Asplund et al. 2009 were not read.
 4. **Water inside the snow line** (rocky planets in the warm zone): condensation models say nearly zero; delivery of water by scattered or drifting bodies is a separate field. Not sourced; the existing separate `water_mass_fraction` draw needs a rule for how it relates.
 5. **Iron oxidation and light elements.** FeO in the mantle and light elements in the core change CMF by ten percent or more (Dorn 2015, Zeng 2016). No closed form exists; either accept "all iron in the core" with its stated bias or research a draw.

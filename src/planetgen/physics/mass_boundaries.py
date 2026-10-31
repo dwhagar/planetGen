@@ -48,8 +48,8 @@ BOUNDARIES = (
     Boundary("hydrogen_burning_limit", STAR_BROWN_DWARF_SPLIT_SOL, "Msun",
              "the least mass of a star the mass function draws, and the mass the companion code splits its stars and brown dwarfs at: "
              "the draw split, not the class of the object it draws",
-             "Confident Unverified (recalled: Chabrier and Baraffe 2000 give 0.072 solar masses at solar metallicity, Burrows et al. 1997 "
-             "about 0.075; the 0.08 is the round figure the mass function uses)",
+             "Confident Unverified (recalled: Chabrier and Baraffe 2000 give 0.072 solar masses at solar metallicity; "
+             "the 0.08 is the round figure the mass function uses)",
              "whether a drawn object burns hydrogen is decided at its place, by its birth [Fe/H] "
              "(`stellar_abundances.hydrogen_burning_limit_sol`: 0.074 at solar Z, 0.092 at Z = 0)."),
     Boundary("deuterium_burning_limit", 13.0, "Mjup",

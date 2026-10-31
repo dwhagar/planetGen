@@ -8,7 +8,7 @@ The rogue planets drew their mass from one fitted power law, `dN/dlogM ~ M^-0.65
 system does not eject a fitted law; it ejects what it has, and only what the scatterer can lift out. This module gives the ejected masses as the two things that decide them.
 
 **What there is to eject.** The small bodies of a disc are a collisional cascade, and a steady-state cascade has a power-law size spectrum `dN/dD ~ D^-q` with `q = 3.5` for bodies held
-by their strength (Dohnanyi 1969; `n(m) ~ m^-11/6` as quoted by Belyaev and Rafikov 2011, arXiv:1012.3220 eq. 1, and `q = 3.5` by Pan and Schlichting 2012, arXiv:1111.0667 abstract), steepening to `q` up to 4 when the bodies' velocities evolve with the cascade (Pan and Schlichting 2012).
+by their strength (`n(m) ~ m^-11/6` as quoted by Belyaev and Rafikov 2011, arXiv:1012.3220 eq. 1, and `q = 3.5` by Pan and Schlichting 2012, arXiv:1111.0667 abstract), steepening to `q` up to 4 when the bodies' velocities evolve with the cascade (Pan and Schlichting 2012).
 For a body of density that does not depend on size, `M ~ D^3` and the number per logarithm of mass is
 
     dN/dlogM ~ M^-(q - 1)/3,

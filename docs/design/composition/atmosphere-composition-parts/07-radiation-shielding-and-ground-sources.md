@@ -25,11 +25,11 @@ Key findings that change the current code (details in sections 2 to 4):
 |---|---|---|---|---|---|
 | GCR_POINTS (X, mSv/yr) | (0, 500), (16.4, 237), (100, 110) | Moon 1369 uSv/day = 500 mSv/yr (solar-minimum upper bound); Mars 22.5 g/cm2 about 0.7 mSv/day = 255 mSv/yr (range 128 to 420); X = 100 CORSIKA 171 (M=1) to 553 (M=0) | Moon and Mars points sound; X = 100 point is 2.6 (with field) to 5 (no field) times below proton-primary CORSIKA | Zhang 2020 PMC7518862; Guo 2015 1507.03473; Atri 2013 1307.4704 | READ |
 | GCR_ATTENUATION_G_CM2 | 164 | CORSIKA e-folding: 124 (X 200 to 500), 165 (500 to 1036) for M=1 | Within the spread above 500, short below | Atri 2013 Table XV, my fit | COMPUTED (READ) |
-| magnetic_factor, floor 0.6 | 0.6 at Rc >= 15 GV | Earth-strength field ratio to no-field: 0.31 (X=100), 0.37 (X=200), 0.51 (X=500), 0.61 (X=700), 0.52 (X=1036) | Factor depends on X; 0.6 is right only near sea level | Atri 2013; Griessmeier 2016 Table 2 | READ |
+| magnetic_factor, floor 0.6 | 0.6 at Rc >= 15 GV | Earth-strength field ratio to no-field: 0.31 (X=100), 0.37 (X=200), 0.51 (X=500), 0.61 (X=700), 0.52 (X=1036) | Factor depends on X; 0.6 is right only near sea level | Atri 2013 | READ |
 | EARTH_CUTOFF_GV | 14.9 | Vertical dipole cutoff c (mu0/4 pi) M / (4 r^2) = 14.34 GV for M = 7.768e22, r = 6371 km; 14.9 implies M = 8.1e22 | 4% high, acceptable | formula form RECALLED, constants evaluated by me | COMPUTED (RECALLED) |
 | cutoff scaling | (R_E/R_p)^3 | Stormer: Rc proportional to M/r^2 | Wrong exponent | F1 | COMPUTED (RECALLED) |
 | RANGE_COEFFICIENT, EXPONENT | 0.0022, 1.77 | PSTAR air: ratio 0.92 (10 MeV), 0.87 (100), 0.92 (300), 1.22 (1 GeV), 2.16 (3 GeV), 5.2 (10 GeV) | Good below 300 MeV | NIST PSTAR, my comparison | COMPUTED (DATA) |
-| SEP_R0_GV | 0.2 | Soft event value; hard 1956-type events are harder | Needs spread | Tylka and Dietrich 2009 parameters not reached | NOT REACHED |
+| SEP_R0_GV | 0.2 | Soft event value; hard 1956-type events are harder | Needs spread | no source | NOT REACHED |
 | SEP_FREE_MSV_YR | 20 | No event-level fluence mapping in code | Replace by fluence law F4 | Atri 2017 1606.07027 | READ |
 | GROUND_MSV_YR | 0.48 | UNSCEAR 2008 terrestrial external 0.48 mSv/yr (0.07 outdoors, 0.41 indoors) | Equals indoor-weighted world mean | UNSCEAR 2008 Annex B Table 12 | READ |
 | RADON_MSV_YR | 0.5 | UNSCEAR: radon inhalation 1.15 total, indoor 1.0, outdoor 0.095 | 0.5 equals a full-time outdoor value (COMPUTED 0.47) | UNSCEAR 2008 | READ |
@@ -184,7 +184,7 @@ DATA from pdg.lbl.gov AtomicNuclearProperties pages (static HTML). Values for he
 | Iron | 13.84 | 132.1 | 81.7 | 21.68 | 347 | PDG iron_Fe | DATA |
 | Polyethylene | 44.77 | 78.5 | 56.1 | 101.8 | not fetched | PDG polyethylene | DATA |
 
-Muon CSDA range, g/cm2 (PDG muon tables, Groom, Mokhov and Striganov 2001 data files, DATA; interpolated): air 508 (1 GeV), 4204 (10 GeV), 3.41e4 (100 GeV), 2.31e5 (1 TeV); water ice 472, 4268, 3.63e4, 2.43e5; standard rock 553, 4920, 4.08e4, 2.45e5; iron 640, 5532, 4.31e4, 2.06e5. Rock and ice stop a 1 GeV muon in 2.1 m and 5.1 m respectively with densities 2.65 and 0.92 (COMPUTED). Mean muon ionisation loss near minimum is about 2 MeV cm2/g (PDG a_mu).
+Muon CSDA range, g/cm2 (PDG muon tables, DATA; interpolated): air 508 (1 GeV), 4204 (10 GeV), 3.41e4 (100 GeV), 2.31e5 (1 TeV); water ice 472, 4268, 3.63e4, 2.43e5; standard rock 553, 4920, 4.08e4, 2.45e5; iron 640, 5532, 4.31e4, 2.06e5. Rock and ice stop a 1 GeV muon in 2.1 m and 5.1 m respectively with densities 2.65 and 0.92 (COMPUTED). Mean muon ionisation loss near minimum is about 2 MeV cm2/g (PDG a_mu).
 
 Light-gas consequence (design inference F8, not a measurement): a nucleon interacts after 52 g/cm2 of H2 but 90 g/cm2 of air, so hadronic cascades develop at smaller X in H2 or CH4, while electromagnetic cascades need 1.7 times (H2) or 1.27 times (CH4) more g/cm2 (X0 ratio to air); the Pfotzer maximum, an electromagnetic and muon feature, should sit deeper in g/cm2 for light gases.
 
@@ -204,9 +204,9 @@ Atri, Hariharan, Fryer et al. 2013 (1307.4704) Table XV, as tabulated by Griessm
 | 700 | 3.02 | 3.38 | 2.53 | 1.84 | 2.8 | 1.7 | none reached | Atri 2013 | READ |
 | 1033 to 1036 | 0.65 | 0.46 | 0.42 | 0.34 | 0.37 | 0.22 | sea-level cosmic 0.27 ionising + 0.05 neutron = 0.32 mSv/yr (UNSCEAR 2008 Table 5); UNSCEAR 2000: 31 nSv/h = 270 uSv/yr ionising plus 48 uSv/yr neutrons | UNSCEAR 2000, 2008 | READ |
 
-Reading: with proton primaries the CORSIKA curve reproduces the aviation point (46 against 47.9) and sea level (0.34 against 0.32). The code's curve with its 0.6 field factor is 2.6 times low at X = 100, 2.7 at X = 200, 1.9 at X = 265 and 1.5 at X = 500 and at sea level. Mars is 255 mSv/yr measured against 125 to 208 in the code. The muon share at sea level is 0.13 to 0.18 of 0.34 mSv/yr (READ). Atri states that composition changes the result by only a few percent for C/N/O atmospheres and flags pure H2 as unstudied (READ). Spread of the Pfotzer maximum: 122.7 +/- 6.3 g/cm2 (Sarkar 2017), about 100 g/cm2 (Guo 2018), 15 to 26 km (Griessmeier 2016, an altitude). The Mars absorbed dose peaks near 6 g/cm2 of atmosphere (protons near 12 g/cm2) and falls toward the surface, with a pressure anticorrelation of 0.28 uGy/day per Pa; the Gale column is 18.9 to 25.7 g/cm2 (Guo 2018, READ). The solar-cycle spread of the Mars dose equivalent is a factor 3.3. ISS: 731 uSv/day total, 523 from GCR (Zhang 2020, READ).
+Reading: with proton primaries the CORSIKA curve reproduces the aviation point (46 against 47.9) and sea level (0.34 against 0.32). The code's curve with its 0.6 field factor is 2.6 times low at X = 100, 2.7 at X = 200, 1.9 at X = 265 and 1.5 at X = 500 and at sea level. Mars is 255 mSv/yr measured against 125 to 208 in the code. The muon share at sea level is 0.13 to 0.18 of 0.34 mSv/yr (READ). Atri states that composition changes the result by only a few percent for C/N/O atmospheres and flags pure H2 as unstudied (READ). Spread of the Pfotzer maximum: 122.7 +/- 6.3 g/cm2 (Sarkar 2017), about 100 g/cm2 (Guo 2018), 15 to 26 km (an altitude). The Mars absorbed dose peaks near 6 g/cm2 of atmosphere (protons near 12 g/cm2) and falls toward the surface, with a pressure anticorrelation of 0.28 uGy/day per Pa; the Gale column is 18.9 to 25.7 g/cm2 (Guo 2018, READ). The solar-cycle spread of the Mars dose equivalent is a factor 3.3. ISS: 731 uSv/day total, 523 from GCR (Zhang 2020, READ).
 
-Magnetic-moment factor, ratio to M = 0 at the same column. Griessmeier 2016 Table 2 values (READ); ratios COMPUTED from them. M = moment in Earth units.
+Magnetic-moment factor, ratio to M = 0 at the same column. The values (READ); ratios COMPUTED from them. M = moment in Earth units.
 
 | M | 0 | 0.1 | 0.15 | 0.25 | 0.5 | 0.75 | 1 | 2 | 3 | 6 | 10 | Status |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
@@ -232,25 +232,25 @@ Pattern: the X = 1036 ratio follows the energy-weighted fraction (0.52 against 0
 
 | Quantity | Value | Source | Status |
 |---|---|---|---|
-| Belov relation, flux of protons above 10 MeV | Ip = (4.8 +/- 1.3)e7 Ix^(1.14 +/- 0.14) pfu, Ix = peak 1 to 8 Angstrom X-ray flux in W/m2 | Belov et al. 2005 via Segura 2010 (1006.0022) Eq. 1 | 2ND-HAND (read in Segura and Tilley) |
+| Belov relation, flux of protons above 10 MeV | Ip = (4.8 +/- 1.3)e7 Ix^(1.14 +/- 0.14) pfu, Ix = peak 1 to 8 Angstrom X-ray flux in W/m2 | Segura 2010 (1006.0022) Eq. 1 | 2ND-HAND (read in Segura and Tilley) |
 | Check: GOES X13 flare (Ix = 1.3e-3 W/m2) | 2.5e4 pfu; Tilley quotes 24,611 pfu | my evaluation; Tilley 2019 (1711.08484) | COMPUTED (READ) |
 | Oct 1989 event, observed peak | about 4e4 pfu above 10 MeV, duration about 27 h | Tilley 2019 | READ |
 | Carrington event fluence above 30 MeV | about 1e10 cm-2 (Rodger 2008, Segura); 1.1e10 (Tilley); about 1e10 for 1e32 erg (Atri 2017) | Segura 2010; Tilley 2019; Atri 2017 1606.07027 | READ |
-| Carrington total flare energy | 1e31.9 erg (Tilley, calibrated to fluence); 1e32 (Atri); 5e32 (Cliver and Dietrich 2013, cited by Tilley) | as listed | READ (spread factor 6) |
+| Carrington total flare energy | 1e31.9 erg (Tilley, calibrated to fluence); 1e32 (Atri); 5e32 (cited by Tilley) | as listed | READ (spread factor 6) |
 | Fluence law (Atri) | F30 = about 1e9 cm-2 for 1e31 erg and 1e10 for 1e32 erg at 1 AU (two points, a linear law in flare energy, COMPUTED); AD 775 class about 1e33 erg | Atri 2017 | READ |
 | AD Leo great flare, scaled | X-ray 9 W/m2 at 0.16 AU gives 5.9e8 pfu and fluence 1.5e12 cm-2 (200 times Carrington, upper limit) | Segura 2010 | READ |
 | Tilley scaling | 1e30.5 erg flare: 3.25e5 pfu, fluence 1.95e8 cm-2; 1e34 erg: 6.2e8 pfu, 9.6e12 cm-2 | Tilley 2019 | READ |
 | Flare frequency (GJ 1243, Kepler, U band) | log10 nu(>E) = -1.01 log10 E + 31.65 (cumulative per day, E in erg); amplitude log10(dF/F) = 0.7607 log10 E - 25.855; duration log10 t = 0.395 log10 E - 9.269 s | Hawley 2014 via Tilley 2019 | 2ND-HAND |
 | One 1e34 erg flare per | about 489 days (that star) | Tilley 2019 | READ |
-| Proton event given flare | 100% for GOES X2 or stronger (Yashiro 2006, Hudson 2011 via Tilley) | Tilley 2019 | 2ND-HAND |
-| Probability a CME hits the planet | P = (Delta + delta) sin[(Delta + delta)/2] / (2 pi sin Theta); 0.083 (restrictive) or 0.25 (permissive) for Delta = 5 pi/183 or pi/2, Theta = pi/4, delta = 1e-8 | Khodachenko 2007 via Tilley 2019 | 2ND-HAND |
-| NOx yield per ion pair | 1.25 (Porter 1976, Jackman 1980); 1.3 to 1.6 (Rusch 1981); HOx 2 per pair (Solomon 1981) | Tabataba-Vakili 2016 1511.04920; Tilley 2019; Atri 2010 | 2ND-HAND |
+| Proton event given flare | 100% for GOES X2 or stronger (Tilley) | Tilley 2019 | 2ND-HAND |
+| Probability a CME hits the planet | P = (Delta + delta) sin[(Delta + delta)/2] / (2 pi sin Theta); 0.083 (restrictive) or 0.25 (permissive) for Delta = 5 pi/183 or pi/2, Theta = pi/4, delta = 1e-8 | Tilley 2019 | 2ND-HAND |
+| NOx yield per ion pair | 1.25; 1.3 to 1.6 (Rusch 1981); HOx 2 per pair | Tabataba-Vakili 2016 1511.04920; Tilley 2019; Atri 2010 | 2ND-HAND |
 | Ion pair production rate in the middle stratosphere | 3 to 30 cm-3 s-1 (Velinov and Mateev 2008) | Tabataba-Vakili 2016 | 2ND-HAND |
 | Extinction-level SEP doses | 5 to 10 Sv at 700 g/cm2 or less for a hard 1956-type event at Proxima b distance; dose range for M = 1: 2.57e3 to 1.34e-8 Sv across columns 30 to 1000 g/cm2; M = 0.05: 1.46e4 to 5.77e-8 Sv | Atri 2017 | READ |
 | Weak composition dependence of SEP dose | C/N/O only | Atri 2017 | READ |
-| Event spectra | Band function (Tylka and Dietrich 2009) for Feb 1956, Aug 1972, Oct 1989; Weibull (Xapsos 2000) for Oct 1989; neutron-monitor fit (Duldig 1998) for Sep 1989. Parameters are in figures only | Atri 2017; Guo 2017 1705.06763 | READ (parameters NOT REACHED) |
+| Event spectra | Band function for Feb 1956, Aug 1972, Oct 1989; Weibull (Xapsos 2000) for Oct 1989; neutron-monitor fit for Sep 1989. Parameters are in figures only | Atri 2017; Guo 2017 1705.06763 | READ (parameters NOT REACHED) |
 | Share of Mars surface dose from primary protons above 1 GeV | under 4% | Guo 2017 | READ |
-| Minimum proton energy for a surface-detectable cascade, Earth | about 450 MeV | Shea and Smart via Griessmeier 2016 | 2ND-HAND |
+| Minimum proton energy for a surface-detectable cascade, Earth | about 450 MeV | Shea and Smart | 2ND-HAND |
 
 SEP survival thresholds in the atmosphere come from the PSTAR inversion table in section 2.5: only protons above 171 MeV (22.5 g/cm2), 420 MeV (100 g/cm2) or 2.2 GeV (1033 g/cm2) reach those depths as primaries in an air-like column; 285, 730 and 4660 MeV in H2 for the same columns (COMPUTED). The secondary cascade extends the dose slightly below these thresholds (Guo 2017 finds 140 to 160 MeV at 22.5 g/cm2).
 
@@ -333,12 +333,12 @@ Specific activities from half-lives and atomic masses (COMPUTED): U-238 12.35 Bq
 
 | Item | Value | Source | Status |
 |---|---|---|---|
-| Subsurface GCR energy deposition, peak depth | Mars about 0.6 m, Europa about 1 m, Enceladus about 2 m: 1e6 to 1e7 eV g-1 s-1; deep mine 1e5 to 1e6 | Atri 2022 (2207.14675); Lin 2015 via Atri | READ (mine value 2ND-HAND) |
+| Subsurface GCR energy deposition, peak depth | Mars about 0.6 m, Europa about 1 m, Enceladus about 2 m: 1e6 to 1e7 eV g-1 s-1; deep mine 1e5 to 1e6 | Atri 2022 (2207.14675); Atri | READ (mine value 2ND-HAND) |
 | Same in absorbed dose | 1 Gy/yr = 1.98e8 eV g-1 s-1, so 1e6 to 1e7 is 5 to 51 mGy/yr and the mine range is 0.5 to 5 mGy/yr | conversion | COMPUTED |
 | Peak depth in solid cover | 0.6 m of Mars regolith, 1 m of ice, 2 m of porous ice all correspond to roughly 90 to 120 g/cm2 if the densities are about 1.5 to 2, 0.92 and 0.5 g/cm3 (densities are assumptions) | my conversion of the READ depths | COMPUTED (assumed densities) |
 | Comet-ice dose peak depth | 5 m for 300 GeV protons in a low-density nucleus | Gronoff 2020 (2012.05772) | READ |
 | Shielding material ranking for GCR | hydrogen-rich (water, polyethylene) best; regolith intermediate; aluminium helpful only combined with low-Z; total dose 0.213 mGy/day on Mars surface, 0.240 on ISS | Gakis and Atri (2205.13786) | READ |
-| Europa surface charged-particle dose | Figure 1 axes span about 1e-1 to 1e7 Gy/yr over depths 1e-6 to 1 m; proton dose dominates at all depths in the amorphisation study; oxygen and sulfur ion doses disagree by over three orders between studies; helium negligible | Mergny 2025 (2505.09490), using Cooper 2001, Paranicas 2009, Pavlov 2018 | READ (curve values not extracted) |
+| Europa surface charged-particle dose | Figure 1 axes span about 1e-1 to 1e7 Gy/yr over depths 1e-6 to 1 m; proton dose dominates at all depths in the amorphisation study; oxygen and sulfur ion doses disagree by over three orders between studies; helium negligible | Mergny 2025 (2505.09490), using Cooper 2001 | READ (curve values not extracted) |
 | Europa electrons | below 25 MeV hit the trailing hemisphere preferentially, above 25 MeV the leading one; trailing electron energy confined to the upper 0.1 cm or less, leading deposition at tens of cm | Mergny 2025 (citing Cooper, Paranicas, Nordheim); Yoffe 2026 (2604.01927) | READ |
 | Europa "5.4 Sv/day" | traced through Wikipedia to a course note; not a primary source; as a conversion 5.4 Sv/day = 1.97e3 Sv/yr, a depth-dependent number, not a surface constant | Wikipedia Europa; Cooper 2001, Nordheim 2018 not reached | NOT REACHED |
 | Electron and bremsstrahlung dominance below about 1 m on trailing side, protons on leading side | search summary only | web search | SNIPPET |
@@ -351,8 +351,8 @@ Specific activities from half-lives and atomic masses (COMPUTED): U-238 12.35 Bq
 | Muon vertical intensity, deep rock | I(h) = exp(A1 + A2 h) + exp(A3 + A4 h) + I_nu, A1 = -11.22, A2 = -0.00262, A3 = -14.10, A4 = -0.001213, h in hg/cm2 (1 hg/cm2 = 1 m of water equivalent), I_nu = 2.17e-13 cm-2 s-1 sr-1; valid for at least about 1 km w.e. | Crouch 1987 in Bugaev et al. 1998 (hep-ph/9803488) | 2ND-HAND (fit READ in Bugaev) |
 | Muon flux and dose below 1 km w.e. | 1 km w.e.: I = 1.2e-6 cm-2 s-1 sr-1, dose about 4e-5 mSv/yr; 3 km w.e.: 2.5e-8 and 8e-7 mSv/yr; 10 km w.e.: 4.3e-12 and 1.4e-10 mSv/yr (omnidirectional flux taken as pi I, mean loss 2 MeV cm2/g); below 1 km w.e. the formula is out of range (100 m w.e. would give 3.5e-4 mSv/yr, an extrapolation) | COMPUTED from the fit | COMPUTED |
 | Muon energy loss and critical energy | a_mu about 2.0 MeV cm2/g; b_mu 3.5e-6 cm2/g; critical energies in table 2.6 | Bugaev 1998; PDG | 2ND-HAND / DATA |
-| Trapped belts, Earth | inner belt protons from 100 keV to over 400 MeV, outer belt electrons 0.1 to 10 MeV, inner edge near 200 km in the South Atlantic Anomaly; relativistic electrons above 5 MeV excluded inside a sharp inner edge of the outer belt | Wikipedia Van Allen radiation belt (ECSS standard, Baker 2014) | 2ND-HAND |
-| Belt fluxes, Jovian and other planets | AP8/AE8, AE9/AP9, Divine-Garrett 1983, Mauk 2004 | NOT REACHED | NOT REACHED |
+| Trapped belts, Earth | inner belt protons from 100 keV to over 400 MeV, outer belt electrons 0.1 to 10 MeV, inner edge near 200 km in the South Atlantic Anomaly; relativistic electrons above 5 MeV excluded inside a sharp inner edge of the outer belt | Wikipedia Van Allen radiation belt (ECSS standard) | 2ND-HAND |
+| Belt fluxes, Jovian and other planets | AP8/AE8, AE9/AP9, Mauk 2004 | NOT REACHED | NOT REACHED |
 
 ### 2.12 Energy per ion pair W and the ionisation profile
 
@@ -384,7 +384,7 @@ Reading: W varies by a factor 1.6 across the gases; the ionisation rate per unit
 | ICRP occupational | 20 mSv/yr averaged over 5 years, no single year above 50 mSv (some sources add 100 mSv per 5 years); public 1 mSv/yr | Wikipedia Radiation protection (cites ICRPedia), Wikipedia Sievert (cites ICRP 103) | 2ND-HAND |
 | ICRP 103 retained these limits; detriment about 5% per Sv; dose and dose-rate effectiveness factor 2 for solid cancers | qualitative text and the 5% value | ICRP 103 free extract (icrp.org) | READ (numeric limits not in the extract) |
 | Acute exposure above 8 Gy | almost always lethal even with care | Wikipedia Acute radiation syndrome | 2ND-HAND |
-| Lethal doses by taxon | humans 5 to 10 Sv; small mammals 6 to 10; goldfish 100; bats 150; insects 100 to 1000; viruses 1e4; Deinococcus radiodurans 1e4 to 1e5 Sv | Atri 2017 (1606.07027), citing Harrison and Anderson 1996 | READ |
+| Lethal doses by taxon | humans 5 to 10 Sv; small mammals 6 to 10; goldfish 100; bats 150; insects 100 to 1000; viruses 1e4; Deinococcus radiodurans 1e4 to 1e5 Sv | Atri 2017 (1606.07027) | READ |
 | LD50/30 for humans without care | 4 to 5 Gy | | RECALLED |
 | Project text: Deinococcus above 10,000 to 15,000 Gy; tardigrade (Ramazzottius) 4000 to 5000 Gy | | project documents Naturally Occuring Ionizing Radiation.md, Environmental.Extremes.and.Protection.Research.md | 2ND-HAND |
 | World mean natural background | 2.4 mSv/yr | UNSCEAR 2008 | READ |
@@ -446,12 +446,12 @@ Worked calibration (COMPUTED; Earth as a calibration point only): X = 1033, M = 
 
 ## 5. Boss must research
 
-1. Tylka and Dietrich 2009 Band-function parameters, Xapsos 2000 Weibull parameters, and a flare-energy to SEP-spectrum map for hard and soft events (Youngblood and Airapetian flare-proton links). Replaces the single R0 = 0.2 GV.
+1. Band-function parameters, Xapsos 2000 Weibull parameters, and a flare-energy to SEP-spectrum map for hard and soft events (Youngblood and Airapetian flare-proton links). Replaces the single R0 = 0.2 GV.
 2. Hassler et al. 2014 RAD surface dose (Science; domain refused). The 0.64 mSv/day figure is SNIPPET; Guo 2015 (READ) is used instead.
-3. Nordheim 2018 and Cooper 2001 (Europa dose versus depth, origin of 5.4 Sv/day); Paranicas 2009 and Pavlov 2018 tables; belt flux models AP8/AE8, AE9/AP9, Divine and Garrett 1983, Mauk 2004.
+3. Nordheim 2018 and Cooper 2001 (Europa dose versus depth, origin of 5.4 Sv/day); tables; belt flux models AP8/AE8, AE9/AP9, Divine and Garrett 1983, Mauk 2004.
 4. White and Klein 2014 (oceanic crust U, Th, K); measured K/U and Th/U for the Moon, Mars, Venus, Mercury and chondrite classes (K volatile depletion).
 5. Stellar Th/U/Eu and K trends: Frebel and Hill cosmochronometry; K versus [Fe/H] and [alpha/Fe] for K-40 scaling (Unterborn and Botelho cover Th only).
-6. CORSIKA or Geant4 runs for H2, He, CH4, NH3 and CO2 columns from 0.01 to 100 bar with helium and heavier primaries, to test F8; Moller 2013 (Pfotzer versus cutoff); the helium and HZE share of the dose.
+6. CORSIKA or Geant4 runs for H2, He, CH4, NH3 and CO2 columns from 0.01 to 100 bar with helium and heavier primaries, to test F8; the helium and HZE share of the dose.
 7. Absorbed-dose (Gy) and ionisation-rate profiles in air to calibrate F13 (Bazilevskaya; Velinov and Mateev 2008); W values for alphas and protons and for NH3, H2O vapour, SO2, CO, HCN, CH3Cl.
 8. Photoabsorption cross sections 10 to 100 nm for Ar, Ne, Kr, Xe, HCN, H2CO, HCl, HF, CH3Cl, SiO, TiO, VO, Na, K, Mg, Fe (outer-shell data; Henke gives the inner-shell part only).
 9. ICRP 103 numeric limits (not in the free extract), ICRP 132 and 137, NCRP 153; primary sources for human LD50/30 and organism D10 values.
@@ -463,16 +463,16 @@ Worked calibration (COMPUTED; Earth as a calibration point only): X = 1033, M = 
 
 | Value | Where used | What to check |
 |---|---|---|
-| Vertical dipole cutoff form 14.9 cos^4(lat) / r^2 GV and the 59.6 GV coefficient | F1 | Smart and Shea 2000 or a textbook |
-| Local interstellar proton spectrum J ~ P^-2.78 / (1 + 0.4866 P^-2.51) | section 2.7 check | Usoskin 2005 |
+| Vertical dipole cutoff form 14.9 cos^4(lat) / r^2 GV and the 59.6 GV coefficient | F1 | a textbook |
+| Local interstellar proton spectrum J ~ P^-2.78 / (1 + 0.4866 P^-2.51) | section 2.7 check | no source |
 | Bulk silicate Earth Al 2.35 wt% (Al2O3 4.45 wt%) | Al-26 heating | McDonough and Sun 1995 |
 | CI chondrite Si 10.7 wt% | CI K, Th, U | Lodders tables |
 | Th-232 to Tl-208 branching 35.94% | gamma line yield | NNDC |
 | Ar first ionisation energy 15.76 eV (78.7 nm) | Ar cross-section edge | NIST ASD |
-| Human LD50/30 of 4 to 5 Gy; astronaut career limits; deep-space cruise dose rates; D10 values | section 2.13 | ICRP, NASA-STD-3001, Zeitlin 2013 |
+| Human LD50/30 of 4 to 5 Gy; astronaut career limits; deep-space cruise dose rates; D10 values | section 2.13 | ICRP, NASA-STD-3001 |
 | Concorde and polar-flight dose rates near the Pfotzer maximum | comparison to Atri at X = 100 | EURADOS reports |
 | Knoll W values apply to electrons; alpha values are somewhat higher | section 2.12 | ICRU 31 |
-| Bazilevskaya ionisation maximum near the Pfotzer layer | section 2.12 | Bazilevskaya 2008 |
+| Bazilevskaya ionisation maximum near the Pfotzer layer | section 2.12 | no source |
 | Early radiogenic heating "1e3 to 1e4 times" statement | section 2.9 | McDonough 2020 section on short-lived nuclides |
 
 ## 7. Cross-links to neighbouring parts

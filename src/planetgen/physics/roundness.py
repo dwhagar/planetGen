@@ -50,7 +50,7 @@ The ice fraction is the share of the body's mass that is water or ice (`makeup.w
 is a fluid and always settles into a ball, so nothing here applies to it.
 
 Test (not an input): the ten bodies of the report, Mimas, Miranda, Enceladus, Proteus, Hyperion, Ceres, Vesta, Pallas and Juno fall on the right side; Hygiea (round at about 217 km with
-a density of about 1.9 g/cm3, from Vernazza et al. 2019, not opened) falls on the wrong side, because the rock strength is fixed by the 300 km of the larger asteroids.
+a density of about 1.9 g/cm3, not opened) falls on the wrong side, because the rock strength is fixed by the 300 km of the larger asteroids.
 
 Use:
 
@@ -208,8 +208,8 @@ def _ice_creep_law(table, rule, ice_strength_pa, temperature_k):
 
 
 def _olivine_creep_law(table, rule, rock_strength_pa, temperature_k):
-    """The strength of silicate rock that took its shape at `temperature_k`, Pa: dry dislocation creep of olivine, between the two compilations of Korenaga and Karato 2008 Table 3 (Hirth and
-    Kohlstedt 2003 as printed there, and their re-fit) by the quantile of the body (`table.draw`; the geometric mean at the median), and never above `rock_strength_pa`, the 16.5 MPa whole-body
+    """The strength of silicate rock that took its shape at `temperature_k`, Pa: dry dislocation creep of olivine, between the two compilations of Korenaga and Karato 2008 Table 3 (
+    Hirth and Kohlstedt 2003 as printed there, and their re-fit) by the quantile of the body (`table.draw`; the geometric mean at the median), and never above `rock_strength_pa`, the 16.5 MPa whole-body
     strength of fractured cold rock that stands for the brittle (Byerlee) limit. So rock keeps its cold strength until it is hot enough to creep below it (about 1100 to 1150 K), then weakens:
     2 to 5 MPa at 1300 K. None is cold rock. The pressure term is dropped; intact olivine crystal strength (10 GPa) is never used."""
     if temperature_k is None:

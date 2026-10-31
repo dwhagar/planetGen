@@ -4,8 +4,8 @@
 Where an irregular moon can stay round a planet (GEN.1076; docs/design/systems/captured-asteroid-moons.md 2.1 and 4.3)
 =======================================================================================================================
 
-The irregular satellites of the giants are captured small bodies on distant, eccentric, inclined orbits. Four rules, each from the numerical orbit surveys quoted by Jewitt and
-Haghighipour 2007 (ARA&A 45, 261) and Vokrouhlicky, Nesvorny and Levison 2008 (AJ 136, 1463), say where one can stay:
+The irregular satellites of the giants are captured small bodies on distant, eccentric, inclined orbits. Four rules, each from the numerical orbit surveys quoted by
+Jewitt and Haghighipour 2007 (ARA&A 45, 261) and Vokrouhlicky, Nesvorny and Levison 2008 (AJ 136, 1463), say where one can stay:
 
 * **The Hill sphere.** `r_H = a_p (m_p / 3 M_star)^(1/3)` (JH07 equation 1): 0.35, 0.43, 0.47 and 0.77 AU for Jupiter, Saturn, Uranus and Neptune. Nothing beyond a share of it stays.
 * **Stable limits.** A prograde orbit is stable out to about `PROGRADE_STABLE_FRACTION` of `r_H` and a retrograde one out to about `RETROGRADE_STABLE_FRACTION` (0.5 to 0.6; Nesvorny et al. 2003, quoted in

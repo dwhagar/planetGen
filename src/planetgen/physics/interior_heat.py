@@ -24,8 +24,8 @@ heat flux out of the top is conductive across the upper boundary layer:
 with `d` the mantle's thickness, `Ra_crit` 450, `a_rh` 2.44 (Thiriet et al. 2019, from 3D spherical convection runs) and `dT` the
 temperature drop across the upper boundary layer, the viscous temperature scale times `a_rh`. Mass enters through the gravity, the
 thickness, the area and the heat capacity; composition through the heat sources, the core share and, via the radius, the water
-(the dry part's radius is `bulk_structure.radius_fit_earth` or `small_body_radius_earth`, the core's `R CMF^0.5`, Zeng and
-Jacobsen 2017 as Guimond et al. use them).
+(the dry part's radius is `bulk_structure.radius_fit_earth` or `small_body_radius_earth`, the core's `R CMF^0.5`,
+Zeng and Jacobsen 2017 as Guimond et al. use them).
 
 Two things are drawn, the rest follows (`draw_interior`): the viscosity prefactor `eta0` and activation energy `Ea` (the paper's own
 uncertainty on the mantle's rheology, uniform over its ranges). The heat the body is born with is computed, not drawn: it starts at
@@ -46,7 +46,7 @@ heat in the first few hundred million years at the middle of the paper's rheolog
 gives 25 to 32 TW and a Urey ratio of 0.66 to 0.83 with a mobile lid and 27 to 36 TW and 0.59 to 0.76 with a stagnant one, where the
 Earth's measured values are 42 to 47 TW and 0.47 to 0.52 (Nimmo et al. 2020): this one box holds the radiogenic heat (about 21 TW) and
 the cooling of one temperature and does not reach the measured total with either lid (the heat inside the geoneutrino range, 38.2 +13.6
--12.7 TW, Agostini et al. 2019). The paper holds the surface at 273 K (a mild effect for its boundary layer); here a body's own surface temperature is used when known. The lid is thin
+-12.7 TW). The paper holds the surface at 273 K (a mild effect for its boundary layer); here a body's own surface temperature is used when known. The lid is thin
 against the mantle and is not followed, so its radiogenic heat counts with the mantle's. A body whose regime has not been drawn yet (the
 hydrosphere is made before it, and reads the heat of a stagnant lid) and a row from before GEN.721 are stagnant.
 """
@@ -96,7 +96,7 @@ CRITICAL_RAYLEIGH = 450.0
 VISCOSITY_SCALE_COEFFICIENT = 2.44
 """float: `a_rh`, the same table: the boundary layer's temperature drop in viscous temperature scales."""
 HEAT_FLOW_EXPONENT = 1.0 / 3.0
-"""float: `beta`, the same table (Solomatov 1995)."""
+"""float: `beta`, the same table."""
 MOBILE_HEAT_FLOW_EXPONENT = 1.0 / 3.0
 """float: `beta` of a mobile lid: boundary-layer theory, and what Gurnis 1989 found for systems whose lid is viscous with weak zones to
 let plates move (read in O'Neill 2020, arXiv:2006.05654 section 1; Moresi and Solomatov 1998 find 0.224 to 0.293 for a yielding lid, and

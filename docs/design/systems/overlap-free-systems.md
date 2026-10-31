@@ -239,7 +239,7 @@ Checked means read in this session. arXiv text was fetched and read for the firs
 |---|---|---|
 | Holman and Wiegert 1999, AJ 117, 621 (astro-ph/9809315) | S-type and P-type critical axes; fit range | **Read**; repo coefficients equal Equations 1 and 3; range mu 0.1 to 0.9, e to 0.8, coplanar, 1e4 periods |
 | Vynatheya, Hamers and Mardling 2022 (arXiv 2207.03151) | Triple criteria: EK95, MA01, Equation 4 | **Read**; repo's EK95 and Equation 4 equal the paper's |
-| Vynatheya, Mardling and Hamers 2023 (arXiv 2301.09930) | Quadruple stability: nested triples overestimate stable systems, 88% (2+2) and 66% (3+1) | **Read**. This replaces my earlier wrong citation "Hamers 2021; Vynatheya and Hamers 2022" |
+| Vynatheya, Mardling and Hamers 2023 (arXiv 2301.09930) | Quadruple stability: nested triples overestimate stable systems, 88% (2+2) and 66% (3+1) | **Read**. This replaces my earlier wrong citation "Vynatheya and Hamers 2022" |
 | Raghavan et al. 2010, ApJS 190, 1 (arXiv 1007.0414) | Period law log P mean 5.03, sigma 2.28 | **Read** (the values) |
 | Moe and Di Stefano 2017, ApJS 230, 15 (arXiv 1606.05347) | Massive-star period law peaks near log P = 3.5 | **Read** (abstract statement) |
 | Tokovinin 2018, ApJS 235, 6 (arXiv 1712.04750) "The Updated Multiple Star Catalog" | Observed hierarchies | Exists, title and authors confirmed; contents not used for numbers |
@@ -253,7 +253,7 @@ Checked means read in this session. arXiv text was fetched and read for the firs
 | Mardling and Aarseth 2001, MNRAS 321, 398 (ADS scan) | Triple criterion, Equation 90 | **Read** (second pass): `R_p/a_in = C [(1+q_out)(1+e_out)/(1-e_out)^(1/2)]^(2/5)`, C = 2.8 empirical; "holds for q_out <= 5" (beyond it exchange, not escape, is the failure); inclined orbits can be up to about 30% closer. Repo's `mardling_aarseth_pericentre_ratio` equals it, including the (1 - 0.3 i/pi) factor. The code does not enforce the q_out <= 5 limit; a lane should check where `ma01` is used outside it |
 | Eggleton 1983, ApJ 268, 368 (ADS scan, 2 pages) | Roche-lobe radius | **Read**: Equation 2 `r_L = 0.49 q^(2/3) / (0.6 q^(2/3) + ln(1 + q^(1/3)))`, better than 1% for all q. Repo's `roche_lobe_fraction` equals it. **Verified** |
 | Eggleton and Kiseleva 1995, ApJ 455, 640 (ADS scan, image only) | Triple criterion `Y_crit` | **Read the conclusions page**: the criterion is "reliable to about 20%", weakest at extreme mass ratio (star plus planet), their own code adds 10% to 20% for caution. The formula's page was not transcribed; the repo's form equals the one printed in the 2022 paper [P]. The 20% accuracy is the source for the per-level stability margin of section 5 |
-| Chambers, Wetherill and Boss 1996 (paywalled); Jeans 1924; Hadjidemetriou 1963; Tokovinin 2008 | Mutual-Hill spacing, mass-loss theory | **Not opened**; Chambers is covered through Obertas 2017, Jeans and Hadjidemetriou through Veras 2011; Tokovinin 2008 is not used for a number |
+| Chambers, Wetherill and Boss 1996 (paywalled); Jeans 1924; Hadjidemetriou 1963 | Mutual-Hill spacing, mass-loss theory | **Not opened**; Chambers is covered through Obertas 2017, Jeans and Hadjidemetriou through Veras 2011 is not used for a number |
 | In this repository | Code and docs named in the text | **Read** |
 
 ## 13. What to change in TODO (for the TODO thread)

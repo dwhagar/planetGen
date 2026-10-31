@@ -4960,7 +4960,7 @@ generation-output: unchanged
 **Headline:** The prevalence suite now checks the stars the generator makes against the local star census and the multiplicity surveys.
 
 ### Added
-- **The star census (TEST.432).** `src/tests/audit/prevalence_stars.py` draws 40,000 stars at the default galaxy's reference solar position and 2,500 planetless systems around each of M2V, K5V, G2V, F5V and A0V. It checks the share of M, K, G, F, A, B and O stars, white dwarfs and evolved stars against the RECONS 10 parsec census and Mamajek's number densities, and the share of systems with a companion star (G2V also with three or more) against Duchene and Kraus 2013, Raghavan 2010, De Rosa 2014 and Moe and Di Stefano 2017, in `src/tests/data/prevalence_stars_expectations.json`. The ranges are the researched norms, widest where two sources differ; each run adds four binomial sigma of its own sampling. The first draw found three faults (GEN.897 too many K dwarfs, GEN.898 too few A and B stars, GEN.899 too few companions of M dwarfs). A range the generator breaks carries the item that will fix it and prints in `star-census-latest.md` instead of failing.
+- **The star census (TEST.432).** `src/tests/audit/prevalence_stars.py` draws 40,000 stars at the default galaxy's reference solar position and 2,500 planetless systems around each of M2V, K5V, G2V, F5V and A0V. It checks the share of M, K, G, F, A, B and O stars, white dwarfs and evolved stars against the RECONS 10 parsec census and Mamajek's number densities, and the share of systems with a companion star (G2V also with three or more) against Duchene and Kraus 2013, Raghavan 2010, and Moe and Di Stefano 2017, in `src/tests/data/prevalence_stars_expectations.json`. The ranges are the researched norms, widest where two sources differ; each run adds four binomial sigma of its own sampling. The first draw found three faults (GEN.897 too many K dwarfs, GEN.898 too few A and B stars, GEN.899 too few companions of M dwarfs). A range the generator breaks carries the item that will fix it and prints in `star-census-latest.md` instead of failing.
 
 TODO items resolved: TEST.432. Added: none.
 
@@ -11689,7 +11689,7 @@ TODO items resolved: MAP.243 (and MAP.246 folded in) / Added: none
 ### Changed
 - **The thick disk, the bar and the stellar halo are drawn from the galaxy seed, not copied from the Milky Way** (`galaxy/structure.py`, `galaxy/structure_draw.py`). The structure is rebuilt from the seed on every load and stored nowhere (`galaxy_shape` gains no column; DB.66 keeps storing the drawn values in 8.3). A shape built without a seed uses `REFERENCE_STRUCTURE`, the published Milky Way values, as a check target and not as a generator default.
   - Circular speed comes from the baryonic Tully-Fisher relation (McGaugh 2012, 0.0375 dex) until the potential gives it.
-  - Thick disk: the mass ratio sits between Yoachim and Dalcanton and Comeron 2018 with 0.268 dex of scatter, the length ratio follows Comeron 2018, the height ratio is 2.5 to 4.2, and the amplitude is worked out from the three, replacing the fixed 0.04.
+  - Thick disk: the mass ratio sits between the fits with 0.268 dex of scatter, the length ratio follows Comeron 2018, the height ratio is 2.5 to 4.2, and the amplitude is worked out from the three, replacing the fixed 0.04.
   - Stellar halo: the share of the stars is `0.05 (M*/5e10)^0.79` with 1.01 dex of scatter (a stand-in until the halo research lands), cut to 0.1% to 30%.
   - Bar (GEN.533, sources in `docs/design/gen533-bar-sources.md`): presence from Erwin 2018 by stellar mass, the in-plane axis ratio from Diaz-Garcia 2016, a boxy or thin vertical ratio, an angle uniform on 0 to 180 degrees, and the unbarred bulge's axis ratios from Costantin 2018. A galaxy without a bar has no bar gap in its star formation.
 - **One law sets the scale heights and the velocity dispersions of the disc populations** (the dispersion of the gas the stars are born from, 6.5 +/- 1 km/s as a molecular stand-in until GEN.536 reads the CO values, a central disc dispersion of 0.248 Vc, an age exponent of 0.44), replacing the fixed height ratios and dispersions of the young, intermediate and old discs, the halo and the bulge. The reference check puts the old disc 32% under Sharma and Hayden's 21.1 km/s at the Sun (inside the plan's 35%) and the young disc at 0.22 of the old disc's height (65 pc for 300 pc; observed about 50 pc). The atomic gas's 10 km/s (Tamburro 2009) gave 0.40 and twice the molecular clouds the catalogues hold, so it is not used.
@@ -12523,7 +12523,7 @@ TODO items resolved: GEN.400. Added: none.
 ### Changed
 
 - GEN.242 (#2009, generator epoch 9) is retired: stars under 8 solar masses and under 10 Myr are protostars or pre-main-sequence stars with a disk descriptor, and the protostar's companion chance uses the Perseus fractions; GEN.320 no longer waits.
-- GEN.529 is filed for what it left: the Hayashi temperature, the birthline radius and the energy factor are inferred, not sourced, and the state stops at 10 Myr; it needs a Baraffe 2015 or Siess 2000 table and gates GEN.301.
+- GEN.529 is filed for what it left: the Hayashi temperature, the birthline radius and the energy factor are inferred, not sourced, and the state stops at 10 Myr; it needs a Baraffe 2015 table and gates GEN.301.
 - TEST.174 gets another sighting (the sector accessibility flake in a second gate).
 
 TODO items resolved: GEN.242 / Added: GEN.529
@@ -12850,7 +12850,7 @@ TODO items resolved: none / Added: GEN.501
 ### Changed
 
 - `docs/design/atmosphere-composition.md` has findings 21 to 30, section 3c (148 sub-claims: 39 confirmed, 57 partly, 30 contradicted, 15 unsupported, 7 not reached), the second-note check as section 10 and the updated list of what Boss must research; the four detail parts 10A to 10D are in `docs/design/atmosphere-composition-parts/` and listed in `docs/design/README.md`.
-- 18 items (GEN.410, 412, 413, 414, 417, 422, 423, 443, 453, 455, 456, 459, 460, 470, 471, 496, 500) carry the corrections: cold-ice lab fits only inside their windows, no Rayleigh coefficient from the note, the published Band form with Atwell 2015 parameters, Mars and Titan figures, neutron share 2 to 7 percent, the Troe form, Venus K/U, the Thorngren fit and the licence corrections. The earlier "awaiting verification" wording on the notes of the second note is replaced.
+- 18 items (GEN.410, 412, 413, 414, 417, 422, 423, 443, 453, 455, 456, 459, 460, 470, 471, 496, 500) carry the corrections: cold-ice lab fits only inside their windows, no Rayleigh coefficient from the note, the published Band form with parameters, Mars and Titan figures, neutron share 2 to 7 percent, the Troe form, Venus K/U, the Thorngren fit and the licence corrections. The earlier "awaiting verification" wording on the notes of the second note is replaced.
 
 TODO items resolved: none / Added: none
 
@@ -26181,7 +26181,7 @@ The Galaxy Map draws the pre-placed bright stars (every star of 500 L☉ or more
   star system (new `program_constants.PHENOMENON_RATE_PER_STAR_SYSTEM`:
   Lamberts et al. 2018 for black holes, Sartore et al. 2010 for neutron
   stars, Frew & Parker 2010 for nebulae, Diehl et al. 2006 for supernova
-  remnants, Sumi et al. 2011/Mroz et al. 2017 for rogue planets), scaled
+  remnants, Mroz et al. 2017 for rogue planets), scaled
   by however many star systems the sector actually ended up with -- a
   denser sector (`--density`) gets proportionally more, and most sectors,
   realistically, get none at all, exactly as real space this size usually
@@ -26681,7 +26681,7 @@ The Galaxy Map draws the pre-placed bright stars (every star of 500 L☉ or more
   reasonable approximation, but the real orbital-dynamics stability
   literature (the analytically rigorous two-planet minimum of `2*sqrt(3)`
   mutual Hill radii, Gladman 1993; a recommended ~8-10x margin for
-  longer-term N-body stability, Chambers, Wetherill & Boslough 1996 and
+  longer-term N-body stability, 
   Smith & Lissauer 2009) expresses this in terms of the *pair's* combined
   mass and average distance instead. New `utils.mutual_hill_radius_m`
   (`((a1+a2)/2) * ((m1+m2)/(3*M_star))^(1/3)`) and

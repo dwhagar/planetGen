@@ -38,7 +38,7 @@ def test_the_scale_reproduces_itself():
 
 def test_the_helium_per_metal_ratio_is_derived_and_inside_the_observed_one():
     assert sa.HELIUM_PER_METAL == pytest.approx(1.674, abs=1e-3)
-    assert abs(sa.HELIUM_PER_METAL - 2.1) < 0.9, "Casagrande et al. 2007: 2.1 +- 0.9"
+    assert abs(sa.HELIUM_PER_METAL - 2.1) < 0.9, "observed: 2.1 +- 0.9"
     assert sa.PROTO_Y == pytest.approx(SUN["y"], abs=1e-9)
 
 

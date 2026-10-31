@@ -94,7 +94,7 @@ GCR_SEA_LEVEL_G_CM2 = GCR_SHOWER_POINTS[-1][0]
 FIELD_COLUMNS_G_CM2 = (100.0, 200.0, 500.0, 700.0, 1036.0)
 """tuple: The columns the field's cut was run at (Atri 2013)."""
 FIELD_FULL_MOMENTS = (0.0, 0.1, 0.15, 0.25, 0.5, 0.75, 1.0, 2.0, 3.0, 6.0, 10.0)
-"""tuple: The dipole moments, Earth's = 1, of the runs at 100 and 1036 g/cm2 (Griessmeier 2016, Table 2)."""
+"""tuple: The dipole moments, Earth's = 1, of the runs at 100 and 1036 g/cm2."""
 FIELD_DOSE_100 = (553.0, 527.0, 510.0, 405.0, 257.0, 216.0, 172.0, 53.0, 15.0, 5.7, 2.3)
 FIELD_DOSE_1036 = (0.65, 0.48, 0.46, 0.44, 0.42, 0.39, 0.34, 0.28, 0.23, 0.19, 0.10)
 """tuple: Dose, mSv/yr, at each of `FIELD_FULL_MOMENTS`."""
@@ -118,7 +118,7 @@ MUON_J_PER_MEV = 1.602176634e-13
 SECONDS_PER_YEAR = 3.15576e7
 """The Crouch fit of the vertical muon intensity (cm-2 s-1 sr-1) at depth h in hg/cm2 (m of water): `exp(-11.22 - 0.00262 h)
 + exp(-14.10 - 0.001213 h) + 2.17e-13` (docs/design/composition/radiation-model.md section 5), valid from about 1 km of water; the dose is
-pi I times 2 MeV cm2/g. It is 9 times below Sittler 2019 at Titan (10 850 g/cm2), so it is a floor under the table's tail."""
+pi I times 2 MeV cm2/g. It is 9 times below a published value at Titan (10 850 g/cm2), so it is a floor under the table's tail."""
 
 EARTH_DIPOLE_A_M2 = 7.768e22
 HELIO_MAX_EXTRA = 1.5

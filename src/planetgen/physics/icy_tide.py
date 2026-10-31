@@ -6,7 +6,7 @@ The tide in an ice shell (GEN.960)
 
 An icy body's tide heats its ice shell, not its whole volume (the ocean beneath moves with the tide and dissipates almost nothing). This replaces the one
 `k2/Q` of 3e-4 that was tuned to Europa's 1.4e11 W (`tidal_heating.ICY_K2_OVER_Q`) with the shell's own rheology (`tidal_rheology.ICE`, Andrade, the viscosity
-pinned at its melting point), after Ojakangas and Stevenson 1989 (Icarus 81:220, recalled): the heat is made where the ice is warm enough that its relaxation time
+pinned at its melting point), after a standard treatment (recalled): the heat is made where the ice is warm enough that its relaxation time
 is near the tide's period, a thin layer just above the shell's base, so it depends on the shell's thickness and the shell's thickness depends on the heat.
 
 **The shell.** From the surface at `top_k` to the base at the melting point `base_k` the ice conducts a heat flux `F` (`k = A / T`, as `hydrosphere.ice_shell_thickness_km`),

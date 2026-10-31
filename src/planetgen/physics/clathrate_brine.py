@@ -8,7 +8,7 @@ Two things keep an icy crust or an ocean moon's water in a form other than ice a
 
 * **Clathrate hydrates** hold CO, CO2, CH4, H2S and N2 in cages of water ice (and NH3 as a monohydrate) and buffer an atmosphere's
   supply of those gases. A hydrate is stable above its dissociation pressure `ln P(Pa) = A0 + A1 / T` (Marboeuf et al. 2014 Table 5,
-  from Mohammadi and Richon 2010, Fray 2010 and Hersant 2004), with a hydrate number of 6 for all. The curve is the equilibrium of
+  from Hersant 2004), with a hydrate number of 6 for all. The curve is the equilibrium of
   vapour, ice and hydrate: it holds below the freezing point of water, and for CO2 below its quadruple point Q1 (271.60 K, 1.044 MPa,
   Semenov et al. 2023), above which liquid water takes the place of ice. The second quadruple point (283.13 K, 4.494 MPa) is the
   limit of the hydrate itself and is outside what this module covers (`OutOfRange`).
