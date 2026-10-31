@@ -14638,6 +14638,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   rows in GEN.725 with tier and tweak level. Lock-free (nothing reads it
   yet), branch claude/aux5-roundness-engine, merges first. Done: module,
   tests, registry rows, wiring-register line naming the wiring items.
+  Aux 5 (relayed) (2026-10-30 10:46 PM EDT): three roundness definitions
+  already sit unwired in the repo: body_status.roundness with registry
+  row BR24, dwarf_population.round_mass_kg, and the new engine. This
+  item replaces body_status.roundness with the engine; dwarf_population
+  is listed for GEN.1160, where the member ledger replaces its mass cut.
+  The engine also holds the pure binding-energy formulas for every
+  structure, so it stays lock-free.
   Prerequisites: none. Related: GEN.1068, GEN.725.
 
 - [ ] **GEN.1159 Store ice fraction, bulk density, roundness ratio, yield strength and binding energy on planets, moons, asteroids and belt or field members (columns, migration, API version)**
@@ -14684,6 +14691,23 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   ledger reuses the belt rule of GEN.1068. Lock work, same window as
   GEN.1068 or later.
   Prerequisites: GEN.1160. Related: GEN.1068, GEN.1160.
+
+- [ ] **GEN.1162 Store bulk density and binding energy (and roundness ratio, yield strength and ice fraction where they apply) on stars, brown dwarfs, giant planets, white dwarfs, neutron stars and black holes; black holes are marked not applicable**
+  Research: reports/round-shape-minimum-mass-2026-10-31.md (in
+  /mnt/project-files/reports/). Boss (8:44 PM EDT 2026-10-30, relayed by
+  Aux 5): every mass object that can have them gets bulk density, ice
+  fraction where it applies, roundness ratio, yield strength and binding
+  energy, stars and compact objects included, each with the right
+  formula; black holes are marked not applicable, not infinite. Owner
+  Aux 5. Columns registered in db/column_units.py, migration, schema
+  fixture, API version, sheet rules; the pure binding-energy formulas
+  for every structure live in the roundness engine GEN.1158 (uniform
+  sphere, two-shell, polytrope for stars, brown dwarfs and giants,
+  degenerate white dwarf, neutron star from Lattimer and Prakash 2001
+  eq. 33). GEN.1159 stays planets, moons, asteroids, comets, rogue
+  bodies and belt or field members. Lock work, rides the GEN.1159
+  window.
+  Prerequisites: GEN.1158. Related: GEN.1158, GEN.1159, GEN.1068.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
