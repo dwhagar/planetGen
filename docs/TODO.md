@@ -19518,13 +19518,6 @@ clears each one.
   5 bar CO2 greenhouse table cases are filed as TEST.505.
   Prerequisites: none.
 
-- [ ] **TEST.504 test_runaway_history::test_the_surface_water_a_planet_keeps_is_what_its_class_gave_less_what_it_lost fails on main (the M3V case sees no loss) (bug)**
-  Sources 1 found it red on origin/main, not from GEN.934. Find the
-  cause: a loss that is no longer drawn for the M3V case, a changed
-  expectation, or a bug in the runaway history. Fix lock-free if no
-  generated value changes; else list it train-bound.
-  Prerequisites: none.
-
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
