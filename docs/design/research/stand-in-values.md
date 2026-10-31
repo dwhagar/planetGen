@@ -1373,7 +1373,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | IT8 | P | T5 | L1 | ice_types composition `clathrate_min_share_of_ice` 0.2 and `ch4_mass_in_hydrate` 0.134: methane is a clathrate when the water-caged hydrate is 0.2 of the ice (CH4 5.75 H2O, 13.4 percent methane by mass) | 0.2 to 0.3 (the volume share at which hydrate matters) | water and methane ice mixes | a measured strength of a hydrate-and-ice mix that does not follow the exp(2 f) rule at 0.2 | a volume rule for hydrate in the ice mix | strength research section 11c: hydrate matters above 20 to 30 percent by volume (a soil-engineering analogy); the formula of the hydrate is chemistry | - | - |
 | IT9 | P | T9 | L3 | ice_types composition `ammonia_min_share_of_ice` 0.1: ammonia dihydrate is the ice type when ammonia is this share of the ice | 0.05 to 0.15 | ammonia and water ice mixes | a body whose ice strength follows water ice at 10 percent ammonia | a mixing rule for ammonia and water ice | needed output: strength research section 14 says ammonia is a minor fraction (under 15 percent of the water mass); no measurement sets the share | - | no data |
 
-## 6.130 Stand-ins of the gas disc of a satellite galaxy
+## 6.133 Stand-ins of the gas disc of a satellite galaxy
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
