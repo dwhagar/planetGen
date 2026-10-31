@@ -286,3 +286,71 @@ Numbers and ratios of fact were read from the sources below; nothing else was ta
 Constants and published test values were read from the open arXiv papers below; nothing else was taken. Raw files stay out of the repository. All three carry the arXiv non-exclusive licence on their abstract pages (copyright stays with the authors; read and cite, no redistribution): Johnstone et al. 2018 (1806.06897), Kubyshkina et al. 2018 (1810.06920) and Zhang 2024 (2410.04595). The exobase temperatures and altitudes of Johnstone et al. were read from their figures (values only).
 
 The envelope-escape wiring (`docs/design/composition/envelope-escape-wiring.md`, GEN.822) uses the same Kubyshkina et al. 2018 rate and the Petigura et al. 2022 valley numbers already listed under GEN.509; Alexander et al. 2014 (Protostars and Planets VI) is cited from memory for the disc lifetime and nothing was copied from it.
+
+## Planetary material strength, roundness and the other sources added 2026-10-31 (GEN.1158, GEN.1184, GEN.1186, and the Trojan, stellar-to-halo, tide and habitability work)
+
+Added by the references update of 2026-10-31. Formulas, constants and tables of fact were read; nothing else was taken. Raw papers stay out of the repository
+and are never redistributed. The strength table is `src/planetgen/physics/data/roundness_strengths.json`; its numbers are the project's own stand-ins
+(registry rows RN1 to RN9, IT1 to IT7) fitted to or checked against the works below. The reports are
+`reports/planetary-material-strength-2026-10-31.md` and `reports/papers-vs-standins-2026-10-31.md` in the project files.
+
+**Terms that restrict reuse, flagged.** (1) Maurice et al. 2023 (2301.07505, CC BY-NC-SA 4.0, already listed above) is the only NonCommercial arXiv licence; only
+values were read, so the licence does not reach the program or its tables. (2) MIT OpenCourseWare 12.524, lecture 4 (rock friction): the OCW default licence is
+CC BY-NC-SA 4.0 (the lecture page was not checked); only the Byerlee friction law as a fact was used, and no text was copied. (3) Every arXiv paper below
+under the non-exclusive licence may be read and cited but not redistributed, and every journal paper is the publisher's: values only, never the text, tables
+or figures as printed. None of these stops the program, which carries values with citations.
+
+### Journal papers and books (publisher copyright; values only)
+
+| Source | Used for | Terms known |
+|---|---|---|
+| Durham, Kirby and Stern 1997, J. Geophys. Res. 102, 16293 (doi:10.1029/97je00916) | Creep laws of ices Ih, II, III, V and VI (Table 2), the ice-with-grains mixing law (eq. 3) | (c) American Geophysical Union; read from a copy Boss uploaded; values only |
+| Durham, Prieto-Ballesteros, Goldsby and Kargel 2010, Space Sci. Rev. 153, 273 (doi:10.1007/s11214-009-9619-1) | Ordering of ice phase strengths, grain-size softening | (c) Springer; uploaded copy; values only |
+| Durham, Kirby, Stern and Zhang 2003, J. Geophys. Res. 108 (doi:10.1029/2002jb001872) | Methane clathrate hydrate strength | (c) American Geophysical Union; uploaded copy; values only |
+| Korenaga and Karato 2008, J. Geophys. Res. 113, B02403 (doi:10.1029/2007jb005100) | Olivine creep activation energies and constants (Table 3) | (c) American Geophysical Union; uploaded copy; values only |
+| Hirth and Kohlstedt 2003, Geophys. Monogr. 138 (doi:10.1029/138gm06) | Dry and wet olivine dislocation creep constants, as printed in Korenaga and Karato | (c) American Geophysical Union; read second-hand through Korenaga and Karato 2008 |
+| Chu and Korenaga 2012, Earth Planet. Sci. Lett. 333-334, 52 (doi:10.1016/j.epsl.2012.04.019) | Lithospheric olivine stress and grain growth | (c) Elsevier; values only |
+| Silber et al. 2022, Phys. Earth Planet. Inter. 331, 106840 (doi:10.1016/j.pepi.2022.106840) | Pressure term of wet olivine diffusion creep | (c) Elsevier; uploaded copy; values only |
+| Schulson and Renshaw 2022, Annu. Rev. Earth Planet. Sci. 50, 323 (doi:10.1146/annurev-earth-032320-085507) | Ice friction and compressive strength against temperature | (c) Annual Reviews; uploaded copy; values only |
+| Basri and Brown 2006, Annu. Rev. Earth Planet. Sci. 34, 193 (doi:10.1146/annurev.earth.34.031405.125058) | Critical diameter for roundness | (c) Annual Reviews; uploaded copy; values only |
+| Pohl and Britt 2020, Meteorit. Planet. Sci. 55, 962 (doi:10.1111/maps.13449) | Meteorite yield strengths and porosity | (c) Wiley and the Meteoritical Society; uploaded copy; values only |
+| Slyuta 2017, Solar System Research 51, 64 (doi:10.1134/s0038094617010051) | Stony meteorite compressive and tensile strength | (c) Pleiades Publishing and Springer; uploaded copy; values only |
+| Rozitis, MacLennan and Emery 2014, Nature 512, 174 (doi:10.1038/nature13632) | Cohesion of the rubble pile 1950 DA | (c) Springer Nature; uploaded copy; values only |
+| Thomas 1989, Icarus 77, 248 (doi:10.1016/0019-1035(89)90089-4) | Shapes of small satellites against size | (c) Elsevier; uploaded copy; values only |
+| Jones and Chew 1983, Ann. Glaciol. 4, 129 (doi:10.3189/s0260305500005358) | Ice compressive strength against sample and grain size | International Glaciological Society; uploaded copy; values only |
+| Behroozi et al. 2019, MNRAS 488, 3143 (doi:10.1093/mnras/stz1182) | Stellar-to-halo mass relation (UniverseMachine) | (c) Oxford University Press; arXiv copy 1806.07893 is the licence-checked copy; values only |
+| Leauthaud et al. 2012, Astrophys. J. 744, 159 and 746, 95 (doi:10.1088/0004-637x/746/1/95) | Stellar-to-halo mass relation, COSMOS | (c) American Astronomical Society; arXiv copy 1104.0928 is the licence-checked copy; values only |
+| Lattimer and Prakash 2001, Astrophys. J. 550, 426 (doi:10.1086/319702) | Neutron star structure and equation of state | (c) American Astronomical Society; arXiv copy astro-ph/0002232 is the licence-checked copy; values only |
+
+Not opened, used only as another paper quotes them (the quoting paper is cited with its tier): Holsapple 2007, Kohlstedt, Evans and Mackwell 1995, Arakawa and Maeno
+1997, Housen and Holsapple 1999, Durham et al. 1983, 1987, 1992, Kirby et al. 1987, Beeman, Durham and Kirby 1988, Yamashita and Kato 1997, Eluszkiewicz and
+Stevenson 1990, Wallis et al. 2020 (the report carried the numbers from the uploaded copy; no DOI was settled for it), Grott et al. 2019 (same).
+
+### Documents, reports and notes read for the strength work
+
+| Source | Terms | Basis |
+|---|---|---|
+| NIST Technical Note 2229, Weeks, Derimow and Benzing (316L tensile strength at 77 K and 4 K) | US government work, public domain in the United States | publisher |
+| USGS Open-File Report 81-277, Atkinson (fracture and friction of crustal rock) | US government work, public domain | publisher |
+| Durham and Kirby, NASA NTRS N92-10735 (flow and fracture of ice with ammonia) | US government work, public domain | publisher |
+| NASA TM-4130 (1988), Planetary Geology and Geophysics abstracts | US government work, public domain | publisher |
+| Hanssen 1988 compressive strength table (rockmass.net) | No licence statement found; one range of values used | n/a |
+| Hoek, Practical Rock Engineering ch. 11 and the GSI block-volume paper (Rocscience) | Free download from the publisher; (c) Hoek; values only | publisher |
+| Simon et al. 2009, GeoHalifax, scale effects of intact rock | (c) the authors and the Canadian Geotechnical Society; values only | file |
+| Pabst 2015, Ceramics-Silikaty, porosity and strength of ceramics | Open-access journal; licence line not checked; values only | publisher |
+| Frontiers in Earth Science 2023, granite strength from 20 to 130 C | Frontiers open access, normally CC BY; licence line not checked on the copy; values only | publisher |
+| Wan et al. 2024, ice-rich permafrost strength (ASCE Cold Regions Engineering) | (c) American Society of Civil Engineers; values only | publisher |
+| Jutzi 2010, fragmentation of porous targets; Bland 2014, Ceres crater relaxation | (c) Elsevier; values only | file |
+| MIT OpenCourseWare 12.524, lecture 4 (rock friction) | CC BY-NC-SA 4.0 by the OCW default, not checked on the page; NonCommercial, flagged above; only the friction law as a fact | publisher |
+
+### Open papers read through arXiv, with the licence shown on the abstract page
+
+| Licence | arXiv papers |
+|---|---|
+| CC BY 4.0 | Guimond 2026 (2512.09785); Walterová 2023 (2301.02476); Xu 2022 (2206.06114); Luque 2025 (2505.13407); Höning 2023 (2211.09473); Kiman 2021 (2104.01232); Strauss 2024 (2410.01147); Taylor 2026 (2510.16164); Sun 2020 (2009.01842); Jagadeesh 2018 (1801.07101); Murtagh 2025 (2512.03892) |
+| arXiv assumed-licence (pre-2003 paper) | Fleming 2000 (astro-ph/0007296); Malhotra 1994 (astro-ph/9404028); Lattimer 2001 (astro-ph/0002232); Laughlin 2002 (astro-ph/0204091); Benz and Asphaug 1999 (astro-ph/9907117) |
+| arXiv non-exclusive licence (copyright stays with the authors; read and cite, no redistribution) | Leinhardt 2009 (0811.0175); Polishook 2016 (1512.07088); Umurhan 2017 (1606.05734); Avdellidou 2020 (2111.15279); Christou 2021 (2010.10947); Madhusudhan 2008 (0807.4570); Efroimsky 2007 (0709.1995); the 2016 (1903.05571); Tasker 2017 (1708.01363); Casagrande 2011 (1103.4651); Leleu 2017 (1702.08775); Lillo-Box 2018 (1807.00773); Zhou 2019 (1812.01244); Leleu 2019 (1901.07250); Girelli 2020 (2001.02230); Maurice 2024 (2301.07505); Zhang 2026 (2603.27215); Cresswell 2008 (0811.4611); Caldú-Primo 2013 (1309.6324); Fu 2009 (1001.2890); Sharma 2011 (1101.3561); Leinhardt 2011 (1106.6084); Usoskin 2012 (1207.5932); Hippke 2015 (1508.00427); Giammichele 2012 (1202.5581); Hirabayashi 2014 (1411.5926); Jeffreson 2022 (2206.14818); Schwarz 2015 (1608.00784); Tremblay 2016 (1606.05292); Lingam 2019 (1810.02007); Sánchez 2014 (1306.1622); Lichtenberg 2021 (2101.08571); Walsh 2018 (1810.01815); Mogotsi 2016 (1511.06006); Davenport 2016 (1607.03494); Jewitt 2018 (1712.04855); Borovička 2020 (2006.07080); Kurlander 2025 (2506.02487); Suzuki 2016 (1612.03939); Zuluaga 2012 (1204.0275); Agrawal 2018 (1804.11176); Probsthain 2018 (1807.08593); Lineweaver and Norman 2010 (1004.1091); Leauthaud et al. 2012 (1104.0928); Behroozi et al. 2019 (1806.07893) |
+
+The strength set among these is Lineweaver and Norman 2010 (1004.1091), Sanchez and Scheeres 2014 (1306.1622), Walsh 2018 (1810.01815), Polishook et al. 2016
+(1512.07088), Hirabayashi and Scheeres (1411.5926), Leinhardt and Stewart 2009 (0811.0175), Borovicka et al. 2020 (2006.07080), Avdellidou et al. 2020
+(2111.15279), Umurhan et al. 2017 (1606.05734), Strauss et al. 2024 (DEEP VII, 2410.01147, CC BY 4.0) and Benz and Asphaug 1999 (astro-ph/9907117).
