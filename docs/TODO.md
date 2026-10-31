@@ -13743,6 +13743,31 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (JGR 102:16293, for ice types IT1 to IT3). The 'Rheology of Water and
   Ammonia-Water Ices' upload is only the 1993 LPSC abstract with no
   constants.
+  Sources 1 read Goldsby and Kohlstedt 2001 (2026-10-31 9:47 AM EDT):
+  Boss uploaded the paper; Sources 1 read Table 5 from the page image
+  (report
+  /mnt/project-files/reports/goldsby-2001-and-durham-planetary-ices-2026-10-31.md).
+  Rate = A sigma^n d^-p exp(-Q/RT), sigma in MPa, d in metres.
+  Grain-boundary-sliding-accommodated basal slip, T under 255 K: A
+  3.9e-3 MPa^-1.8 m^1.4 s^-1, n 1.8, p 1.4, Q 49 kJ/mol (T over 255 K: A
+  3.0e26, Q about 192). Basal-slip-accommodated GBS: A 5.5e7 MPa^-2.4
+  s^-1, n 2.4, Q 60. Dislocation creep, T under 258 K: A 4.0e5 MPa^-4
+  s^-1, n 4, Q 60 (T over 258 K: A 6.0e28, Q about 181). Combination:
+  diffusion + (1/basal + 1/GBS)^-1 + dislocation. Mitri's GBS and basal
+  log A match exactly, so those two are verified. The diffusion row is
+  derived (Eq. 4 volume term at about 260 K), not measured, and the
+  boundary D0 of about 6e-4 m2/s is an estimate (upper bounds 5.8e-4 to
+  8.4e-4). The paper has no melt law or melting curves. The authors
+  print only initials (D. L. Goldsby, D. L. Kohlstedt). Also read: the
+  Durham, Kirby and Stern 1996 preprint Rheology of Planetary Ices
+  (UCRL-JC-123734); its Table 1 has the 1993 ammonia dihydrate law (log
+  A 21.55, n 5.81, E* 107.5 kJ/mol, tested 130 to 176 K). The dihydrate
+  to ice I strength ratio from it is 2.1 at 135 K, 1.2 at 143 K, 0.81 at
+  150 K, 0.29 at 170 K and 0.22 at 176 K (1e-15 per s); our IT6 point at
+  170 K (0.3) agrees, 135 K (1.0) is half the law, and 110 K (2.0) is
+  outside the tested range. This is the 1996 preprint table, not checked
+  against the 1997 JGR table; ice II, III, V and VI ratios were not
+  computed because they need the pressure term.
   Prerequisites: none. Related: GEN.1183, GEN.1185, GEN.725.
 
 - [ ] **GEN.1191 Satellite supernova remnants scale with the satellite's own star formation instead of the Milky Way's per-system rate**
@@ -18644,19 +18669,6 @@ clears each one.
   guess, can move): Core 1 (reproducible galaxies), after the region run
   command.
   Prerequisites: none. Related: GEN.1118.
-
-- [ ] **TEST.518 test_a_body_with_a_stored_day_turns_at_the_shared_rate_and_a_tilted_one_turns_backwards fails in a whole-file run of test_web_browser_bodyview.py but passes alone (timing sensitive) (bug)**
-  Found by Core 2 (as the lane reported, 9:41 AM EDT 2026-10-31), filed
-  by the TODO thread. Kind: flaky browser test, red on main in a
-  whole-file run. Object:
-  src/tests/test_web_browser_bodyview.py::test_a_body_with_a_stored_day_turns_at_the_shared_rate_and_a_tilted_one_turns_backwards.
-  Result: the test passes alone and fails when the whole file runs, so
-  it depends on wall-clock timing or shared page state. Do: find what
-  the test waits on (a fixed sleep or a frame count against a rotation
-  read) and make it deterministic: read the rotation angle against the
-  page's own clock or step the clock, never loosen the tolerance and
-  never skip the test. Lock-free, test only. Owner: Core 5 (proposed).
-  Prerequisites: none.
 
 ## USR: User accounts
 
