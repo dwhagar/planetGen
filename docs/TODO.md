@@ -14230,7 +14230,19 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   inventory of every class's criteria:
   /mnt/project-files/reports/planet-class-criteria-inventory-2026-10-31.md.
   This item stays blocked until he has chosen.
-  Prerequisites: GEN.1206.
+  Plan changed by Boss (between 10:04 and 11:07 AM EDT 2026-10-31)
+  (2026-10-31 11:25 AM EDT): the switch now means: body types
+  (GEN.1219), the letter plus digit class code (GEN.1220) and the
+  class-by-domain matrix (GEN.1221) are built first, and the classifier
+  then scores every class by percent match inside its type, with the
+  digit set by which domain deviates. Stays blocked until Boss confirms
+  the proposed letters U, Y, X and Z and reads the shadow report. Also
+  build in: the sea supply fixes (GEN.1214), the stored liquid fractions
+  (GEN.1215) and the airless moon ocean bug (GEN.1222) land first, so
+  the scorer reads true inputs. Must handle a body that fits no class
+  (best_class returns letter None).
+  Prerequisites: GEN.1219, GEN.1220, GEN.1221, GEN.1222, GEN.1214.
+  Related: GEN.1215, GEN.1211.
 
 - [ ] **GEN.1208 Best-fit classes, wording: drop the age and stage words from the class tier labels and the "Checked after" and "leftover" wording from the class pages**
   Boss, 9:44 AM EDT 2026-10-31: build and ship the best-fit class
@@ -14332,7 +14344,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   worlds does not.
   Prerequisites: GEN.862. Related: GEN.863, UX.237, TEST.435.
 
-- [ ] **GEN.1211 A new class for hot thin-air rocks (about 1.6 percent of bodies: 1.4 to 2 g, 340 to 1100 K, 1 to 10 kPa, no ocean) is Class R, Hothouse (Boss named it)**
+- [ ] **GEN.1211 A new class for hot thin-air rocks (about 1.6 percent of bodies: 1.4 to 2 g, 340 to 1100 K, 1 to 10 kPa, no ocean) is the proposed Class Z of the class code system (Boss to confirm)**
   Boss approved the class option for the hot thin-air gap (Class M
   thread, relayed 10:13 AM EDT 2026-10-31); he has not yet named the
   letter or the class name. Source: the best-fit shadow report
@@ -14357,6 +14369,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   applies, what it means and how it differs, and will send the items.
   Build Class R as a letter under that system, not as a separate
   sub-letter scheme.
+  Replaced by the class code system (11:25 AM EDT 2026-10-31)
+  (2026-10-31 11:25 AM EDT): the hot thin-air gap is now the proposed
+  letter Z (a hot thin-air world) of the class code system (GEN.1220),
+  awaiting Boss to confirm Z; Class R is the Hothouse of the
+  oxygen-water family (digit 0), not this class. Build this item as the
+  Z row of the class-by-domain matrix (GEN.1221), not separately.
   Prerequisites: none. Related: GEN.1207, GEN.1208.
 
 - [ ] **GEN.1212 Rewrite the stored system flavour lines (tuning.SYSTEM_FLAVOR, about 40 story lines) to the plain-words style guide, and stop storing text the pages can build**
@@ -14451,6 +14469,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   2026-10-31) (2026-10-31 11:12 AM EDT): the research GEN.1216 will say
   what composition the seas this item creates should have; fix the
   creation first (this item), the composition follows in GEN.1218.
+  Evidence from the Class M thread (11:20 AM EDT 2026-10-31) (2026-10-31
+  11:25 AM EDT): two 300-system samples (seed 1000, seed 5): methane
+  seas 7 and 19, CO2 seas 2, pure ammonia 7, no sulfuric acid. Causes
+  found: about 17 percent of 90 to 190 K bodies get methane ice; 25 of
+  35 cold bodies over 50 kPa with methane ice get no sea
+  (SURFACE_SHARE_OF_ICE, stand-in LQ11); of 48 and 59 bodies in the CO2
+  sea window 42 and 52 take a water liquid first (one surface liquid per
+  body) and only 16 hold CO2 ice; ICE_LIQUID has no sulfuric acid and no
+  ammonia-water solution. So the item is: review the supply of non-water
+  seas (the ice draws, the share, one liquid per body, the missing
+  liquids) and add the missing liquids, not only a bug hunt.
   Prerequisites: none. Related: GEN.1035, GEN.888, GEN.821.
 
 - [ ] **GEN.1215 Store the acid and ammonia fractions of the surface liquid, and let habitability read them (an acid or ammonia sea can make a world uninhabitable)**
@@ -14482,6 +14511,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.1217 and the build GEN.1218. Keep the columns of this item
   compatible with the design (fractions of each component), and do not
   build a second storage scheme.
+  Evidence from the Class M thread (11:20 AM EDT 2026-10-31) (2026-10-31
+  11:25 AM EDT): the functions exist in acid_medium.py and
+  strange_solvents.py but nothing stores them; Boss: they can make a
+  world uninhabitable. The class code system (GEN.1220) uses the acid
+  medium for the sulfuric acid class U and the ammonia-water mass
+  fraction for class X.
   Prerequisites: none. Related: GEN.1035, GEN.888, GEN.862.
 
 - [ ] **GEN.1216 Research: the composition of surface liquids from physics and from life: salts and brines, acids, ammonia-water, liquid CO2, methane-ethane-nitrogen mixes, sulfur and what life and chemistry do to each**
@@ -14550,6 +14585,127 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   migration, golden, census re-baseline, on a train. Where we think it
   belongs (best guess, can move): Tides 1 with Aux 2.
   Prerequisites: GEN.1217. Related: GEN.1213, GEN.1214, GEN.1215.
+
+- [ ] **GEN.1219 Body types: planet_type (terrestrial, transitional, gas) from the envelope share of the mass, with a shadow report first**
+  From the Class M research thread's handoff
+  (/mnt/project-files/reports/class-todo-handoff-2026-10-31.md; designs
+  in class-type-and-domain-scoring-design-2026-10-31.md,
+  class-families-and-positions-design-2026-10-31.md,
+  class-code-system-2026-10-31.md, class-fit-shadow-2026-10-31.md,
+  planet-class-criteria-inventory-2026-10-31.md), after Boss changed the
+  best-fit plan between 10:04 and 11:07 AM EDT 2026-10-31. Filed by the
+  TODO thread. Boss chose the types: terrestrial under 0.5 percent
+  envelope, transitional 0.5 to 50 percent, gas 50 percent and over; ice
+  giants are Transitional by Boss's choice (10:36 AM EDT). Do: (1) a
+  read-only shadow report that types a few hundred generated systems and
+  prints the counts and the bodies near each cut; (2) a pure function
+  planet_type(body) and a stored planet_type column on planets and moons
+  (migration, db/column_units.py, schema document, API, sheet); (3)
+  GEN.725 rows for the two cuts (tier and tweak level; the 0.5 and 50
+  percent cuts are Boss's choice, so L0 as envisioned, with the physical
+  basis noted). The type is a gate for the class lists (gas and
+  transitional classes use their own lists, item for sources below).
+  Output change with a migration: one epoch, can share GEN.1207's epoch.
+  Where we think it belongs (best guess, can move): the Class M research
+  thread.
+  Prerequisites: none. Related: GEN.1207.
+
+- [ ] **GEN.1220 Class code system: a letter plus a digit (class_variant column, 0 not written), the digit meanings and the letters of the oxygen-water, anoxic-water, CO2, acid, methane-ethane, ammonia-water and hot thin-air families**
+  From the Class M research thread's handoff
+  (/mnt/project-files/reports/class-todo-handoff-2026-10-31.md; designs
+  in class-type-and-domain-scoring-design-2026-10-31.md,
+  class-families-and-positions-design-2026-10-31.md,
+  class-code-system-2026-10-31.md, class-fit-shadow-2026-10-31.md,
+  planet-class-criteria-inventory-2026-10-31.md), after Boss changed the
+  best-fit plan between 10:04 and 11:07 AM EDT 2026-10-31. Filed by the
+  TODO thread. Boss: 26 letters with a digit 0 to 9 (0 not written, 1 to
+  9 variations) give 260 possible classes for the 44 needed (30 now plus
+  14 new), and wants a system that says when a digit applies, what it
+  means and how it differs. Do: build the code system from
+  class-code-system-2026-10-31.md: a new class_variant column
+  (migration), the parse and format functions (Class M, Class M1, Class
+  H3 and so on), the digit meanings (1 hot, 2 cold, 3 too wet, 4 too
+  dry, 5 to 8 double deviations, 9 other-domain, 5 to 9 reserved), and
+  the letters: M, R (Hothouse, Boss), P, O, H in the oxygen-water
+  family; F anoxic water; G dense CO2; U sulfuric acid; Y
+  methane-ethane; X ammonia-water; Z hot thin-air world. U, Y, X, Z are
+  PROPOSALS awaiting Boss; build the code system with them as
+  placeholders and nothing else depends on the letter. Every place that
+  prints or sorts a class (pages, API, search, map filters, the
+  habitability index, life-class gates) goes through the one format
+  function. Output change: epoch and migration with GEN.1207. Where we
+  think it belongs (best guess, can move): the Class M research thread.
+  Prerequisites: none. Related: GEN.1207, GEN.1211, GEN.862.
+
+- [ ] **GEN.1221 Class-by-domain matrix as data: six domains plus regional, day and night temperature and wet bulb, stored relative humidity and a groundwater flag, and a phase gate per solvent**
+  From the Class M research thread's handoff
+  (/mnt/project-files/reports/class-todo-handoff-2026-10-31.md; designs
+  in class-type-and-domain-scoring-design-2026-10-31.md,
+  class-families-and-positions-design-2026-10-31.md,
+  class-code-system-2026-10-31.md, class-fit-shadow-2026-10-31.md,
+  planet-class-criteria-inventory-2026-10-31.md), after Boss changed the
+  best-fit plan between 10:04 and 11:07 AM EDT 2026-10-31. Filed by the
+  TODO thread. Do: the class-by-domain matrix of
+  class-families-and-positions-design-2026-10-31.md as data (the ranges
+  for M, H, O, P, R are in its section 3): per class and per domain (six
+  domains plus regional, day temperature, night temperature, wet-bulb),
+  the core edge and the shoulder of the best-fit scoring (GEN.1205's
+  planet_class_fit.json grows these; no second table). Needs a stored
+  relative humidity (or a recompute from the air and the surface liquid)
+  and a groundwater flag for class H. Phase-gate helpers for each
+  solvent: water_boiling_k exists; liquid CO2, methane-ethane, sulfuric
+  acid and ammonia-water are new (surface_liquids.py already has
+  windows; reuse them). New numbers are stand-ins in GEN.725 with tier
+  and tweak level; burn-down register lines for L3 and L4 rows. Data and
+  pure functions plus the two stored values; the stored values need a
+  migration and an epoch with GEN.1207. Where we think it belongs (best
+  guess, can move): the Class M research thread.
+  Prerequisites: GEN.1219, GEN.1220. Related: GEN.1205, GEN.1207,
+  GEN.1035.
+
+- [ ] **GEN.1222 Tiny airless moons hold a water surface ocean at 20 to 33 K: 60 of 2,071 bodies in one sample (39 class D, 20 class C, 1 class T), all moons (bug)**
+  From the Class M research thread's handoff
+  (/mnt/project-files/reports/class-todo-handoff-2026-10-31.md; designs
+  in class-type-and-domain-scoring-design-2026-10-31.md,
+  class-families-and-positions-design-2026-10-31.md,
+  class-code-system-2026-10-31.md, class-fit-shadow-2026-10-31.md,
+  planet-class-criteria-inventory-2026-10-31.md), after Boss changed the
+  best-fit plan between 10:04 and 11:07 AM EDT 2026-10-31. Filed by the
+  TODO thread. Found by the Class M thread. In the seed-5 sample 60 of
+  2,071 bodies are tiny airless moons with hydrosphere 'surface ocean'
+  and surface_liquid water at 20 to 33 K, which is frozen solid.
+  Reproduce: class_sweep_cli.sample_bodies(300, 5, 0.25), moons with
+  surface_temperature under 250 K and hydrosphere 'surface ocean'. Do:
+  find which step gives a liquid water state to a moon with no air and a
+  surface far under 273 K (the hydrosphere rule, a moon path that skips
+  the phase gate, or the surface liquid step reading the stored
+  hydrosphere), fix at the cause with the phase gate, and print the
+  census before and after. Changes stored output: epoch with --affects
+  on a train. Where we think it belongs (best guess, can move): Tides 1
+  (owns the surface liquid step) or the Class M thread.
+  Prerequisites: none. Related: GEN.1035, GEN.1214.
+
+- [ ] **GEN.1223 Research: the gas and Transitional class lists from sources (Sudarsky-style temperature classes, sub-Neptune, ice giant, sub-Saturn, water world)**
+  From the Class M research thread's handoff
+  (/mnt/project-files/reports/class-todo-handoff-2026-10-31.md; designs
+  in class-type-and-domain-scoring-design-2026-10-31.md,
+  class-families-and-positions-design-2026-10-31.md,
+  class-code-system-2026-10-31.md, class-fit-shadow-2026-10-31.md,
+  planet-class-criteria-inventory-2026-10-31.md), after Boss changed the
+  best-fit plan between 10:04 and 11:07 AM EDT 2026-10-31. Filed by the
+  TODO thread. Research step for the Gas and Transitional types (the
+  Terrestrial list is the oxygen-water, anoxic, CO2, acid,
+  methane-ethane, ammonia-water and hot thin-air families). Report in
+  /mnt/project-files/reports: the published giant and transitional
+  classifications (Sudarsky 2000 temperature classes, the sub-Neptune,
+  ice giant, sub-Saturn and water world groupings, the Kepler radius
+  gap), their boundaries by mass, radius, temperature and envelope
+  share, with sources read under the source rules, and the proposed
+  class rows for our T, I, J, N, S and other giant letters with their
+  positive conditions for the best-fit scorer. Papers Boss must upload
+  listed in order of value. Where we think it belongs (best guess, can
+  move): Sources 1.
+  Prerequisites: none. Related: GEN.1207, GEN.1160.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
