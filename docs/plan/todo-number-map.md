@@ -22,7 +22,7 @@ release is stamped.
 | API | API.38 |
 | ADM | ADM.135 |
 | SEC | SEC.37 |
-| TEST | TEST.507 |
+| TEST | TEST.508 |
 | USR | USR.32 |
 | OPS | OPS.85 |
 | DOC | DOC.83 |
@@ -1116,7 +1116,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.363 | Belt bodies move on the GPU: the vertex shader solves Kepler from per-instance elements | none | open |
 | GEN.364 | Adaptive per-cell system cap: above the cap the luminosity floor rises per cell until what is resolved fits, brightest stars first, with no step at the ceiling | none | done, PR #1868 |
 | GEN.365 | Hot white dwarf and planetary-nebula central star radius disagrees with the radius that its luminosity and temperature imply (bug) | none | open |
-| GEN.366 | Check the reference satellite table against McConnachie 2012: it only tests that the derived population looks plausible | none | open |
+| GEN.366 | Check the reference satellite table against McConnachie 2012: it only tests that the derived population looks plausible | none | done, PR #4357 |
 | GEN.367 | The Magellanic Clouds' gas is not in `kind_factors` and `nebula_field`: the Clouds hold stars but no nebulae | none | open |
 | GEN.368 | Plan the appearance rates of everything the Milky Way supplies as fixed content: the count, place and size laws, with sources, so a random galaxy draws them from its seed | none | done, PR #1960 |
 | GEN.369 | Satellites drawn from the galaxy seed: count, distance, mass, size, profile, [Fe/H] and age are calculated from stated laws, with no Milky Way option | none | done, PR #2638 |
@@ -3639,6 +3639,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.504 | test_runaway_history::test_the_surface_water_a_planet_keeps_is_what_its_class_gave_less_what_it_lost fails on main (the M3V case sees no loss) (bug) | none | done, PR #4283 |
 | TEST.505 | test_greenhouse_table agreement with the model fails for the Venus and 5 bar CO2 airs (2 cases) on main, with and without the detmath swap (bug) | none | dropped (duplicate of GEN.1032) |
 | TEST.506 | test_no_todo_codes_shown fails on main: GEN.1128 shows in the --help text of planetgen/cli/generate.py (line 696) and of the sectors and galaxy commands (bug) | none | done, PR #4333 |
+| TEST.507 | Add Canes Venatici I (and decide on Canis Major) to the reference satellite table so it holds all 12 Milky Way satellites above 1e5 solar masses | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

@@ -2131,3 +2131,4 @@ Baseline: PR #1817.
 | GEN.960 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | GEN.768 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | GEN.536 | 8.1 | Galaxy laws build |
+| GEN.366 | 8.1 | Globular clusters |
