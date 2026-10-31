@@ -15218,6 +15218,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Part (b), lock work: delete the sample recording, its table, the
   column_units and fingerprint entries and add a migration dropping it;
   rides a train. Owner Sources 2.
+  Part (a) merged as #4529 (Sources 2, as the lane reported) (2026-10-31
+  2:15 PM EDT): the admin Stats page has a "Seconds per object" table
+  (objects timed, mean, fastest, slowest, share of all object time per
+  kind) over every saved run; the generation-stats API field
+  object_types is now a list of rows; the run_totals register line is
+  gone. No migration, output unchanged. The item stays open for part
+  (b), the lock work (drop the sample recording, its table, column_units
+  and fingerprint entries, migration), which Sources 2 is building.
   Prerequisites: none. Related: PERF.195.
 
 - [ ] **PERF.198 Speed up util/detmath.matmul and cache equal gas_equilibrium.solve calls (finding 6)**
@@ -19717,6 +19725,16 @@ clears each one.
   a time; the lane says if it clashes). Rule for every lane: a public
   function that only tests call needs a register line in the same
   change, like a module.
+  Prerequisites: none.
+
+- [ ] **TEST.529 test_the_job_strip_shows_the_running_job_on_every_admin_page fails on clean main (bug)**
+  Found by Sources 2 (as the lane reported, 12:45 PM EDT 2026-10-31; red
+  on main without its change), filed by the TODO thread. Kind: red test
+  on main. Object: the admin page test that the job strip shows the
+  running job on every admin page. Do: find the cause (the strip, the
+  fixture or an order dependency) and fix the code or the test with a
+  reason, never by skipping or loosening it without one. Web only,
+  lock-free. Owner Core 5 (proposed; it owns the admin and queue pages).
   Prerequisites: none.
 
 ## USR: User accounts

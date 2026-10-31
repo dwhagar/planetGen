@@ -22,7 +22,7 @@ release is stamped.
 | API | API.38 |
 | ADM | ADM.135 |
 | SEC | SEC.37 |
-| TEST | TEST.529 |
+| TEST | TEST.530 |
 | USR | USR.32 |
 | OPS | OPS.85 |
 | DOC | DOC.86 |
@@ -3710,6 +3710,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.526 | Wire, register or delete the 8 pure functions nothing calls in 4 modules (Tides 1's share of the TEST.520 shadow functions) | none | open |
 | TEST.527 | Wire, register or delete the 12 pure functions nothing calls in 5 modules (Bug 1's share of the TEST.520 shadow functions) | none | open |
 | TEST.528 | tests/test_systemmap.py::test_a_planet_and_its_moon_glow_in_the_colour_of_their_air_under_their_own_star is red on main (bug) | none | done, PR #4520 |
+| TEST.529 | test_the_job_strip_shows_the_running_job_on_every_admin_page fails on clean main (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
