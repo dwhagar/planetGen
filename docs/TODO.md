@@ -14661,18 +14661,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Unowned.
   Prerequisites: none. Related: GEN.753, GEN.842, GEN.725.
 
-- [ ] **GEN.1166 A forced F5V star gets 1.24 to 1.69 solar masses at a fixed 6500 K: the forced-type temperature override overrules the mass, as GEN.365 found for hot types (bug)**
-  Found by the GEN.753 tides and spin validation sweep (Aux 7,
-  reports/gen753-tides-spin-sweep-2026-10-30.md; 17 statistics, 14
-  agree, 3 do not; sources quoted from memory, tier T2, to be re-read by
-  the lane). A forced F5V gets 1.24 to 1.69 solar masses with its
-  temperature fixed at 6500 K, so the type's override sets temperature
-  and the mass wanders. Make the forced type draw the mass first and
-  take the temperature from the track (or draw within the type's own
-  band), check every forced type, and add a test. Output-changing for
-  forced types only, so train-bound. Owner Aux 7 after GEN.1163.
-  Prerequisites: none. Related: GEN.753, GEN.365.
-
 - [ ] **GEN.1167 The stellar-to-halo relation (Moster 2013) has 0.3 to 0.4 dex more stars than Behroozi 2019 in halos of 1e10.75 to 1e11.5 and 0.06 to 0.26 dex fewer in halos of 1e12.5 to 1e14.5: compare the published fits and pick the best-supported relation**
   Found by the GEN.753 stars and galaxy validation sweep (Sources 2,
   reports/gen753-stars-galaxy-validation-2026-10-31.md; PR #4329 added
@@ -14705,6 +14693,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   compute the expected fraction for the star formation history, and
   report agree or disagree. Owner Sources 2.
   Prerequisites: none. Related: GEN.753.
+
+- [ ] **GEN.1170 Spin of A and B stars follows mass: the fast-rotator mode rises from 160 km/s at 1.6 to 2 solar masses to 238 km/s at 3.15 to 3.85 (about 46 km/s per solar mass), where the generator keeps one 180 km/s median for every hot star from 1.8 solar masses up**
+  From Aux 7 (GEN.1163, registry SP15): Zorec and Royer 2012 Table 4
+  gives the mode of the fast rotators rising with mass, mean 1.128 times
+  the mode; beyond 3.85 solar masses the paper does not reach, so a
+  stand-in is needed (register in GEN.725 with tier and tweak level).
+  Changing it shortens the rotation period of A stars by roughly 10 to
+  30 percent and of early B stars more, and moves only star rotation and
+  the activity that reads it. Output-changing, train-bound, no
+  migration. Low priority. Owner Aux 7, after GEN.1163 merges.
+  Prerequisites: GEN.1163. Related: GEN.1163, GEN.725.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
