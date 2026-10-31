@@ -47,6 +47,8 @@ LAVA_OF_GROUND = (("ultramafic", "komatiite_melt"), ("felsic", "rhyolite_melt"),
 """tuple: The lava a ground type of the surface melts to; every other ground (and a ground not drawn) melts to basalt. STAND-IN LQ12."""
 LAVA_DEFAULT = "basalt_melt"
 MAGMA_OCEAN = "peridotite_magma"
+LAVA_IDS = (*(liquid for _ground, liquid in LAVA_OF_GROUND), LAVA_DEFAULT, MAGMA_OCEAN)
+"""tuple: Every liquid id that is a lava; the depth of one is not known."""
 LAVA_MIN_PRESSURE_PA = 1.0e5
 """float: A lava surface holds in its own vapour, so its window is checked at least at this pressure."""
 

@@ -25,7 +25,7 @@ from planetgen.db import column_units, models
 from planetgen.describe import model
 from planetgen.describe.quantity import inline_text
 from planetgen.describe.sheet_sources import source_of
-from planetgen.physics import constants, daylight, gases, habitability_world, outside_hours, regional_temperature, unit_registry
+from planetgen.physics import constants, daylight, gases, habitability_world, outside_hours, regional_temperature, surface_liquid_world, unit_registry
 from planetgen.population import facility_ratings
 from planetgen.util.format import format_number, scientific_text
 
@@ -765,6 +765,7 @@ _ZONES = ("temp_day_side_k", "temp_terminator_k", "temp_night_side_k")
 _DAYLIGHT = ("day_share_equator", "solar_day_hours", "daylight_hours")
 _RING_COLUMNS = ("ring_kind", "ring_origin", "ring_inner_km", "ring_outer_km", "ring_mass_kg", "ring_optical_depth", "ring_ice_fraction")
 _AQUIFER_COLUMNS = ("aquifer_depth_km", "aquifer_thickness_km")
+_SURFACE_LIQUID_COLUMNS = ("surface_liquid", "surface_liquid_fraction", "surface_liquid_depth_km")
 ICE_SHELL_STATES = ("ice", "ice-covered ocean")
 """tuple: The hydrospheres with an ice shell (`ice_shell_km`)."""
 _AIR = ("atm_density", "atm_molar_density", "scale_height_km", "tau_haze", "tau_dust", "tau_cloud", "cloud_cover")
@@ -798,6 +799,10 @@ _BODY_RULES = [
      "an ice shell covers a body whose water is ice or an ocean frozen over; a dry body, an open ocean and a vapour world have none"),
     (_RING_COLUMNS, lambda klass, row: row is None or any(row.get(key) is not None for key in _RING_COLUMNS),
      "only a body with a ring system has ring columns; a body without rings stores none"),
+    (_SURFACE_LIQUID_COLUMNS, lambda klass, row: row is None or any(row.get(key) is not None for key in _SURFACE_LIQUID_COLUMNS),
+     "only a body with a liquid at its surface (an ocean, a lava sea, a sea of a volatile) stores one; a dry, frozen or airless body has none"),
+    (("surface_liquid_depth_km",), lambda klass, row: row is None or row.get("surface_liquid") not in surface_liquid_world.LAVA_IDS,
+     "the depth of a lava sea is not known: the rules that give a molten surface say nothing of how deep it goes"),
     (_AQUIFER_COLUMNS, lambda klass, row: row is None or any(row.get(key) is not None for key in _AQUIFER_COLUMNS),
      "underground water needs a layer between the freezing and the boiling line of water under the crust, which a body either has or lacks; a body without one stores none"),
     (("hp_ice_km",), lambda klass, row: row is None or row.get("hydrosphere") in ICE_SHELL_STATES,
