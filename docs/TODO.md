@@ -3130,7 +3130,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the one core function, sectors are shells, bands and wedges (not
   rings, layers and slots), and the visit order is tier, then mass, in
   chunks that each read the state at their start.
-    Prerequisites: GEN.342, GEN.343, GEN.344.
+    Prerequisites: GEN.343, GEN.344.
     Design: [docs/design/orbits/orbital-updates.md](design/orbits/orbital-updates.md)
 
   - [ ] **GEN.110 Rogue planet collisions: asteroid fields, merged giants and new stars**
@@ -4954,54 +4954,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 3
   held it before; this replaces any earlier owner line).
   Prerequisites: GEN.139. Related: GEN.115.
-
-- [ ] **GEN.342 The acceleration kernel: the pull of the influence set plus the galactic gradient, as one function, and the velocity update from it**
-  Split from GEN.109 (2026-10-16, Boss 1:07 PM EDT: look at each item
-  for smaller chunks and shared work). One function returns the
-  acceleration at a point from child a's set (pairwise point masses,
-  Plummer 1 pc on the central black hole only, other masses unsoftened
-  or 1e-3 to 1e-2 pc, no a_min filter) plus the galactic gradient of
-  GEN.115's module, leaving out the object itself. For a star it is the
-  extra term in GEN.115's stepper; for a planet or moon it works in the
-  host's frame with the host's own pull subtracted. Trajectories change
-  only when an update runs. GEN.198 later wraps this same kernel instead
-  of summing masses a second time. Done: tests against a direct sum for
-  random sets, momentum conserved for an isolated pair, a star's orbit
-  unchanged to the stepper's tolerance when the set is empty, and finite
-  everywhere.
-  The force on a body comes from the shared field kernel (PERF.88); this
-  item adds the influence-set term, the galactic gradient hook and the
-  velocity update (2026-10-16 review).
-  Decided (Boss, 2026-10-18, F2 and F3, approved to build; card taps as
-  the coordinator reported them, 5:31 and 5:32 PM EDT): the kernel runs
-  for every object, evaluated at the object's own location right after
-  its position change, in per object order; later objects see a mix of
-  old and new positions. Full wording on GEN.105.
-  Decided (Boss, 2026-10-18, 5:38 PM EDT words, tap 5:41 PM EDT as the
-  coordinator reported it): due objects are visited in the order of
-  GEN.105's tier-then-mass sort (a stable sort on tier, heaviest first,
-  ties by id); tier names are labels only. Sort cost on millions of due
-  rows is an open measurement.
-  Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
-  2026-10-18, as the coordinator reported them): fork 3, "Chunk start
-  state": every object in one chunk (tier, then mass band) reads the
-  state at the chunk start, and a chunk sees the results of the earlier
-  chunks, so the row order inside a chunk does not matter; this replaces
-  the earlier "later objects see a mix of old and new positions"
-  sentence (F3).
-  Reworded to match GEN.105 (contradiction sweep, 2026-10-21, 7:45 AM
-  EDT; GEN.105's Decided notes win where this item's older text
-  differs): the run applies the chunk order (tier, then mass band,
-  stable sort on tier, mass heaviest first, ties by id) with each chunk
-  reading the state at its start; new records are always visited and
-  advance only from their own epoch (F5).
-  Wiring sweep (Boss, 12:03 PM EDT: nothing built and left unused;
-  report reports/wiring-sweep-2026-10-31.md) (2026-10-31 12:25 PM EDT):
-  The influence set is unread until the acceleration kernel lands, and
-  the item had no owner. Owner now: Aux 7 (orbital update, after
-  GEN.338) (proposed by the TODO thread; the lane says if it cannot take
-  it).
-  Prerequisites: GEN.340. Related: GEN.109.
 
 - [ ] **GEN.343 The perturbed pass for a system: host, siblings, moons and outside perturbers integrated through an encounter**
   Split from GEN.109 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -15218,6 +15170,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Part (b), lock work: delete the sample recording, its table, the
   column_units and fingerprint entries and add a migration dropping it;
   rides a train. Owner Sources 2.
+  Part (a) merged as #4529 (Sources 2, as the lane reported) (2026-10-31
+  2:15 PM EDT): the admin Stats page has a "Seconds per object" table
+  (objects timed, mean, fastest, slowest, share of all object time per
+  kind) over every saved run; the generation-stats API field
+  object_types is now a list of rows; the run_totals register line is
+  gone. No migration, output unchanged. The item stays open for part
+  (b), the lock work (drop the sample recording, its table, column_units
+  and fingerprint entries, migration), which Sources 2 is building.
   Prerequisites: none. Related: PERF.195.
 
 - [ ] **PERF.198 Speed up util/detmath.matmul and cache equal gas_equilibrium.solve calls (finding 6)**
@@ -19463,21 +19423,6 @@ clears each one.
   command.
   Prerequisites: none. Related: GEN.1118.
 
-- [ ] **TEST.519 tests/test_web_a11y.py::test_page_is_accessible_and_fits[web.galaxy-*] fails the axe rule scrollable-region-focusable on .map-key-lines (all four size and theme runs) on clean main (bug)**
-  Found by Core 5 (as the lane reported, 11:25 AM EDT 2026-10-31;
-  checked with its changes stashed), filed by the TODO thread. Kind: red
-  test on main. Object:
-  tests/test_web_a11y.py::test_page_is_accessible_and_fits for the
-  galaxy map page, all four size and theme runs; the axe rule
-  scrollable-region-focusable flags the scrollable .map-key-lines region
-  of the map key because it cannot be reached by keyboard. Do: make the
-  region keyboard reachable (tabindex 0 and a label) or stop it
-  scrolling, in the template and CSS, never by turning the rule off.
-  Also seen once and probably a flake: system-desktop-dark skip link not
-  visible; if it recurs, file it separately. Web only, lock-free. Owner:
-  Core 5 (proposed).
-  Prerequisites: none.
-
 - [ ] **TEST.520 Extend the wiring guard to stored columns and shadow functions, and wire, show or drop every column only the Details sheet reads**
   Boss, 12:03 PM EDT 2026-10-31: make sure everything built is wired in
   and read; no more building something and not using it. Filed by the
@@ -19546,45 +19491,6 @@ clears each one.
   (register, tests and deletions of unreferenced code change no stored
   value; if a wiring step changes output it rides a train under its own
   item). Owner Core 1 (proposed by the TODO thread, one lock-free item
-  at a time; the lane says if it clashes). Rule for every lane: a public
-  function that only tests call needs a register line in the same
-  change, like a module.
-  Prerequisites: none.
-
-- [ ] **TEST.522 Wire, register or delete the 29 pure functions nothing calls in 21 modules (Core 3's share of the TEST.520 shadow functions)**
-  Boss, 12:03 PM EDT 2026-10-31: nothing built and left unused. Core 1's
-  wiring guard (TEST.520, PR #4513) found 157 public functions in
-  physics, generation and galaxy that only tests call or nothing calls;
-  its register lines name TEST.520 because no owner was guessed. Report:
-  /mnt/project-files/reports/wiring-guard-test520-2026-10-31.md. Filed
-  by the TODO thread. Your share (29 functions): galaxy.density
-  (component_masses, predicted_star_count); galaxy.profile
-  (expected_systems_in); galaxy.frame (cylindrical_radius_pc);
-  galaxy.galactic_orbit (format_galactic_orbit); galaxy.star_formation
-  (star_formation_rate_profile); galaxy.structure_draw
-  (draw_neutron_star_unbound_share, hot_component_bound);
-  generation.bright_stars (cell_band_rate); generation.multistar
-  (mark_merger_product); generation.primary_mass_function
-  (systems_per_star); generation.star_population (sample_dim_star);
-  generation.stellar_object (get_star_spectral_class); physics.king
-  (density_per_pc3, mass_within_pc); physics.pair_history
-  (widest_forced_axis_au); physics.stability (kozai_max_eccentricity);
-  physics.planet_zones (ancestor_limits_au, flux_at, pair_sides_solar);
-  physics.planet_architecture (ejection_yield, survival_probability);
-  physics.planet_survival (expected_passes); physics.state_vectors
-  (equinoctial_from_state, mean_anomaly_from_true,
-  state_from_equinoctial); physics.field_kernel (accelerations);
-  physics.collision_outcome (conservation_error); physics.orbits
-  (classify_encounter). Do, for each function: (1) wire it, naming the
-  open item that will call it (or filing one) in its register line of
-  docs/design/research/wiring-register.md; (2) mark it `by design` with
-  the reason when it is a tuning or test harness reader (an observed
-  sampler, an expected count) and say who runs it; or (3) delete it and
-  its tests (no dead code, no shim). Done: none of your functions names
-  TEST.520 in the register, and test_wiring_guard passes. Lock-free
-  (register, tests and deletions of unreferenced code change no stored
-  value; if a wiring step changes output it rides a train under its own
-  item). Owner Core 3 (proposed by the TODO thread, one lock-free item
   at a time; the lane says if it clashes). Rule for every lane: a public
   function that only tests call needs a register line in the same
   change, like a module.
@@ -19717,6 +19623,30 @@ clears each one.
   a time; the lane says if it clashes). Rule for every lane: a public
   function that only tests call needs a register line in the same
   change, like a module.
+  Prerequisites: none.
+
+- [ ] **TEST.529 test_the_job_strip_shows_the_running_job_on_every_admin_page fails on clean main (bug)**
+  Found by Sources 2 (as the lane reported, 12:45 PM EDT 2026-10-31; red
+  on main without its change), filed by the TODO thread. Kind: red test
+  on main. Object: the admin page test that the job strip shows the
+  running job on every admin page. Do: find the cause (the strip, the
+  fixture or an order dependency) and fix the code or the test with a
+  reason, never by skipping or loosening it without one. Web only,
+  lock-free. Owner Core 5 (proposed; it owns the admin and queue pages).
+  Prerequisites: none.
+
+- [ ] **TEST.530 Three tests are red on clean main: two in test_roche_interaction (post-common-envelope classifier) and the tuning pair-order check (REFERENCE_BLACK_HOLE_DRAWS 0.55 against 0.5) (bug)**
+  Found by Core 3 (as the lane reported, 12:49 PM EDT 2026-10-31; red on
+  clean main, not from its change), filed by the TODO thread. Kind: red
+  tests on main. Objects: two tests in tests/test_roche_interaction.py
+  that check the post-common-envelope classifier, and the tuning
+  pair-order check that holds REFERENCE_BLACK_HOLE_DRAWS at 0.55 where
+  the test expects 0.5. Do: find which side moved (a recent epoch, the
+  classifier, the constant or the expectation) and fix the code or the
+  test with a reason, never by skipping or loosening without one.
+  Lock-free unless the cause is a stored-output change; if so stop and
+  tell the TODO thread. Owner Core 3 (proposed; it is idle and owns the
+  multistar pair code).
   Prerequisites: none.
 
 ## USR: User accounts
