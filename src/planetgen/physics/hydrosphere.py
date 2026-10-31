@@ -298,6 +298,8 @@ def _generate_surface(body, internal_flux_w_m2, surface_w):
                                     pressure_pa=pressure)
         h2 = atmosphere.partial_kpa(body, "h2")
         state = "hycean" if h2 > HYCEAN_MIN_H2_SHARE * pressure / 1000.0 else "surface ocean"
+        if not column.liquid_km:    # GEN.1222: under the pressure of a thick air the warm water is high-pressure ice all the way, not an ocean
+            state = "ice"
     else:
         flux = internal_flux_w_m2 + (getattr(body, "tidal_flux_w_m2", None) or 0.0)  # GEN.737: the tide stored with the heat model (GEN.700: the heat an ice-covered ocean's life can use)
         melting_k = WATER_MELTING_K
@@ -311,6 +313,8 @@ def _generate_surface(body, internal_flux_w_m2, surface_w):
         else:  # a brine warmer than its eutectic is liquid at the surface (GEN.762): no lid to cover it
             state = "ice-covered ocean" if column.ice_shell_km else "surface ocean"
     shell_km, liquid_km, hp_km = column.ice_shell_km, column.liquid_km or None, column.hp_ice_km
+    if state == "ice" and not shell_km:     # GEN.1222: water that is high-pressure ice all the way (no lid over a liquid): the ice is the shell
+        shell_km = hp_km
     body.hydrosphere = state
     if state in FROZEN_COVER_STATES:    # GEN.833: the ice covers what the water the body holds makes, not the toy ocean cover
         body.ocean_fraction = max(covered, frozen_cover(body, gravity))
