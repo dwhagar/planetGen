@@ -10205,12 +10205,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   of the headline GEN.301.
   Split (2026-10-29 8:30 PM EDT): Built as GEN.966 (lock-free part) and
   GEN.967 (wiring, rides a train); GEN.736 closes when both are done.
-  Owner: Aux 4 (magnetosphere chain GEN.800).
+  Owner: Core 4 (magnetosphere chain GEN.800).
   Data we hold (2026-10-29 8:55 PM EDT): No external interior or dynamo
   dataset is held; Core 4's parked branch has core_heat.py;
   compaction_table.json, clathrate_brine.json, decay_series.json and
   isotopes.json are in the repo for interior heat and ices. Catalog
   section 4.
+  Owner changed (2026-10-31 3:40 PM EDT): Aux 4 was retired by the
+  coordinator at 3:21 PM EDT (Boss: retire threads that served their
+  purpose); owner is now Core 4.
   Prerequisites: none. Related: GEN.699, GEN.444, GEN.731, GEN.966, GEN.967.
 
 - [ ] **GEN.743 Neutron star equation of state: integrate the tables for radius and structure, and add helium-core and oxygen-neon white dwarfs**
@@ -10348,7 +10351,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   of the headline GEN.301.
   Split (2026-10-29 8:30 PM EDT): Built as GEN.972 (ice-albedo), GEN.973
   (water vapour), GEN.974 (cloud albedo) and GEN.975 (the sweep test);
-  GEN.752 closes when all four are done. Owner: Air 1 (not after 8.1:
+  GEN.752 closes when all four are done. Owner: Aux 2 (not after 8.1:
   Boss's full build).
   Rescoped (2026-10-29 8:30 PM EDT): Boss, 8:16 PM EDT 2026-10-29 (full
   build in 8.1): the 'after 8.1' and 'pool' wording is revoked; this is
@@ -10365,6 +10368,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   at setup and read by nothing (ir_ktables.npz, ir_cia.npz); gases.json,
   nasa_glenn_species.json and saturation_pressure.json are in the repo.
   Catalog sections 1 and 2.
+  Owner changed (2026-10-31 3:40 PM EDT): Air 1 was retired by the
+  coordinator at 3:21 PM EDT; owner is now Aux 2.
 
 - [ ] **GEN.753 Validation sweep for each physics area: compare generated populations with published statistics**
   Generate large populations and compare each with the published
@@ -10617,7 +10622,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and the XUV saturation to the rotation period (the activity-rotation
   relation), and let the stored values feed GEN.804 and GEN.805. Done: a
   fast rotator has a higher flare rate than a slow one of the same mass,
-  and the six columns have readers. Version 8.4, phase 1. Owner: Aux 4
+  and the six columns have readers. Version 8.4, phase 1. Owner: Core 4
   (stars). Rules: no backward-compat shims; every number has a unit or
   scale (GEN.772); a changed generated value carries
   `tests.golden_update --reason ... --affects <stage>` and the next
@@ -10627,6 +10632,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   is already started elsewhere, the lane tells TODO before taking it.
   Lock-free parts first; the part that changes generated output rides a
   train.
+  Owner changed (2026-10-31 3:40 PM EDT): Aux 4 was retired by the
+  coordinator at 3:21 PM EDT (Boss: retire threads that served their
+  purpose); owner is now Core 4.
   Prerequisites: none. Related: GEN.800, GEN.788.
 
 - [ ] **GEN.808 The ozone-loss flag feeds the UV limit on life and the surface look (G2, step 5)**
@@ -11631,7 +11639,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   values; radiation shielding and the magnetopause read the result.
   --affects fill. Changes generated output: epoch with the stated
   --affects, rides a train. Every stand-in it adds gets a GEN.725
-  registry row with tier and tweak level (L0 to L4). Owner: Aux 4
+  registry row with tier and tweak level (L0 to L4). Owner: Core 4
   (magnetosphere chain GEN.800). Version 8.1.
   Start point (2026-10-29 8:35 PM EDT): Core 4's parked branch
   claude/project-thread-wm6oti has core_heat.py: a core thermal model
@@ -11644,6 +11652,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   compaction_table.json, clathrate_brine.json, decay_series.json and
   isotopes.json are in the repo for interior heat and ices. Catalog
   section 4.
+  Owner changed (2026-10-31 3:40 PM EDT): Aux 4 was retired by the
+  coordinator at 3:21 PM EDT (Boss: retire threads that served their
+  purpose); owner is now Core 4.
   Prerequisites: GEN.966. Related: GEN.736.
 
 - [ ] **GEN.968 Neutron star structure (a): a TOV integration over the equation-of-state tables held on disk, tested against NICER radii**
@@ -11687,7 +11698,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   cooling sweep that find the snowball threshold the literature gives
   (secondary sources accepted). Changes generated output: epoch
   --affects fill, rides a train. Every stand-in it adds gets a GEN.725
-  registry row with tier and tweak level (L0 to L4). Owner: Air 1.
+  registry row with tier and tweak level (L0 to L4). Owner: Aux 2.
   Version 8.1.
   Data we hold (2026-10-29 8:55 PM EDT): ExoMol correlated-k tables
   (H2O, CO2, CH4) and HITRAN collision-induced absorption are downloaded
@@ -11717,6 +11728,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   fall; no rain-out or haze destruction). Stand-ins HZ1 to HZ3, SL4, SL5
   registered. Tests: 1263 passed; test_giant_one_bar_temperature (two)
   red on clean main is GEN.1030.
+  Owner changed (2026-10-31 3:40 PM EDT): Air 1 was retired by the
+  coordinator at 3:21 PM EDT; owner is now Aux 2. The lock branch
+  claude/project-thread-nfytfi-gen1229 (head 7135c287e) is built and
+  rides a train through the Train Manager.
   Prerequisites: none. Related: GEN.752, GEN.462.
 
 - [ ] **GEN.974 Climate feedback 3: cloud albedo on the fixed point (cloud cover changes the reflected share)**
@@ -11726,7 +11741,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   function of temperature and water content in the fixed point, a
   labelled stand-in where no law exists. Changes generated output: epoch
   --affects fill, rides a train. Every stand-in it adds gets a GEN.725
-  registry row with tier and tweak level (L0 to L4). Owner: Air 1.
+  registry row with tier and tweak level (L0 to L4). Owner: Aux 2.
   Version 8.1.
   Data we hold (2026-10-29 8:55 PM EDT): ExoMol correlated-k tables
   (H2O, CO2, CH4) and HITRAN collision-induced absorption are downloaded
@@ -11748,6 +11763,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   CL4 are proposed (none L3 or L4) and enter GEN.725 with the build. The
   build is lock work, waits for GEN.972, and may share an epoch with
   GEN.972 and GEN.1194.
+  Owner changed (2026-10-31 3:40 PM EDT): Air 1 was retired by the
+  coordinator at 3:21 PM EDT; owner is now Aux 2.
   Prerequisites: GEN.972. Related: GEN.752, GEN.684.
 
 - [ ] **GEN.981 Induced magnetic moment part (b): conducting cores and planets in the star's field (the part of GEN.779 that remains)**
@@ -11759,8 +11776,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the core thermal model (Core 4's core_heat.py, parked branch
   claude/project-thread-wm6oti) is on a train. Changes generated output:
   epoch with --affects fill, rides train 6. Every stand-in it adds gets
-  a GEN.725 registry row with tier and tweak level. Owner: Aux 4.
+  a GEN.725 registry row with tier and tweak level. Owner: Core 4.
   Version 8.1.
+  Owner changed (2026-10-31 3:40 PM EDT): Aux 4 was retired by the
+  coordinator at 3:21 PM EDT (Boss: retire threads that served their
+  purpose); owner is now Core 4.
   Prerequisites: GEN.967. Related: GEN.779, GEN.967, GEN.838.
 
 - [ ] **GEN.982 Wire the photolysis lifetimes (physics/photolysis.py and photolysis_lifetimes.json) into the atmosphere chemistry**
@@ -11773,7 +11793,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   star's UV spectrum; add the wiring-register line when it merges.
   Changes generated output: epoch with --affects fill, rides train 6.
   Every stand-in it adds gets a GEN.725 registry row with tier and tweak
-  level. Owner: Air 1. Version 8.1.
+  level. Owner: Aux 2. Version 8.1.
   Wiring sweep (Boss, 12:03 PM EDT: nothing built and left unused;
   report reports/wiring-sweep-2026-10-31.md) (2026-10-31 12:25 PM EDT):
   The photolysis lifetime table has no caller until this item wires it,
@@ -11803,6 +11823,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   claude/project-thread-nfytfi-gen982-haze, head ef2b42ecc, stacked on
   GEN.972, held back until GEN.1229 (haze depth per unit of mass flux)
   is built; the two ride one lock window.
+  Owner changed (2026-10-31 3:40 PM EDT): Air 1 was retired by the
+  coordinator at 3:21 PM EDT; owner is now Aux 2. The lock branch
+  claude/project-thread-nfytfi-gen1229 (head 7135c287e) is built and
+  rides a train through the Train Manager.
   Prerequisites: none. Related: GEN.754, GEN.794, GEN.748.
 
 - [ ] **GEN.983 Wire the radiation belts (physics/radiation_belts.py) into the surface dose and the habitability radiation score**
@@ -11814,8 +11838,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   radiation component together with the stored magnetopause (GEN.804,
   GEN.805); no belt data is held (AP-8 and AE-8 would be needed), so a
   labelled stand-in is fine. Changes generated output: epoch with
-  --affects fill, rides train 6. Owner: Aux 4 (with the magnetosphere
+  --affects fill, rides train 6. Owner: Core 4 (with the magnetosphere
   chain). Version 8.1.
+  Owner changed (2026-10-31 3:40 PM EDT): Aux 4 was retired by the
+  coordinator at 3:21 PM EDT (Boss: retire threads that served their
+  purpose); owner is now Core 4.
   Prerequisites: none. Related: GEN.754, GEN.804, GEN.805, GEN.800.
 
 - [ ] **GEN.993 Widen the core light-element total in bulk_draw to 0.02 to 0.25 (0.25 dex) instead of the uniform 0.03 to 0.12**
@@ -11894,7 +11921,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   or a stand-in), say whether it is the right quantity for the disc gas
   depletion, correct it or register it in GEN.725 with its tier and
   tweak level, and list every reader that moves. Changes generated
-  output if the value moves: epoch and --affects fill. Owner: Sources 2.
+  output if the value moves: epoch and --affects fill. Owner: Core 3.
   Version 8.1.
   Sources 2 answer (as the lane reported 11:33 PM EDT) (2026-10-29 11:33
   PM EDT): the 0.85 Gy is the default small galaxy (5.8e9 solar masses,
@@ -11903,6 +11930,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   is right and the value about 3 times short; it is registered as 6.49
   AL1 and the fix is filed as GEN.999. Close this item when the registry
   row AL1 lands with the train 6 wiring branch.
+  Owner changed (2026-10-31 3:40 PM EDT): Sources 2 was retired by the
+  coordinator at 3:21 PM EDT; owner is now Core 3.
   Prerequisites: none. Related: GEN.469, GEN.476, GEN.477.
 
 - [ ] **GEN.999 Give the disc gas law a low-density threshold so a Milky Way mass disc depletes its gas in about 4.2 Gy, not 1.46 Gy**
@@ -11954,7 +11983,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   from it (own random stream, via draw.py), feed GEN.477 and the belt
   detail, and retire the stand-in registry row. Changes generated output
   (belt mass): epoch, --affects fill, rides the train after GEN.477
-  wiring. Owner: Sources 2. Version 8.1.
+  wiring. Owner: Aux 5. Version 8.1.
+  Owner changed (2026-10-31 3:40 PM EDT): Sources 2 was retired by the
+  coordinator at 3:21 PM EDT; owner is now Aux 5.
   Prerequisites: GEN.477. Related: GEN.477, GEN.566, GEN.725.
 
 - [ ] **GEN.1005 Replace the Solar System-anchored redox, dry carbon and comet species rows with models that carry the physics (replaces the Solar System-resting rows of GEN.1002 that GEN.474 does not cover)**
@@ -12363,8 +12394,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   percent. Do: a methane pseudo-adiabat in the column and a refit of the
   table (about a day of lane compute); the two tolerances are not
   loosened and the test is not skipped. Done:
-  test_giant_one_bar_temperature passes at its tolerances. Owner: Air 1
+  test_giant_one_bar_temperature passes at its tolerances. Owner: Aux 2
   (rides train 6, lock work). Version 8.1.
+  Owner changed (2026-10-31 3:40 PM EDT): Air 1 was retired by the
+  coordinator at 3:21 PM EDT; owner is now Aux 2.
   Prerequisites: none. Related: GEN.852, TEST.479.
 
 - [ ] **GEN.1032 Refit the greenhouse table on the far-wing and acid-cloud model that GEN.1019 and GEN.1020 landed, and move the tropopause-jump sweep (GEN.852 family)**
@@ -12376,7 +12409,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   because GEN.1019/1020 landed after the table was fitted. Do: refit the
   table on main's model (registry rows with tier and tweak level) and
   move the sweep. Output changes, so it rides a later train (lock work).
-  Done: both tests pass at their tolerances. Owner: Air 1 (after
+  Done: both tests pass at their tolerances. Owner: Aux 2 (after
   GEN.1030, same refit pass if the lane sees fit). Version 8.1.
   Owner (3:43 PM EDT 2026-10-30): Air 1 (assigned by TODO; rides a later
   train, after GEN.1030 or in the same refit pass).
@@ -12390,6 +12423,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   brings the model back to 735 K, so the refit must put the cloud in its
   airs or the test must include it. TEST.505 was a duplicate of this
   item and is dropped.
+  Owner changed (2026-10-31 3:40 PM EDT): Air 1 was retired by the
+  coordinator at 3:21 PM EDT; owner is now Aux 2.
   Prerequisites: none. Related: GEN.852, GEN.1019, GEN.1020, GEN.1030.
 
 - [ ] **GEN.1033 Ice-giant internal heat: the law goes through Jupiter and Neptune, so a Uranus-mass giant gets Neptune's 0.33 W/m2 instead of Uranus's 0.04 (the Uranus anomaly), and giants draw their Bond albedo from the rock range 0.12 to 0.35**
@@ -12519,8 +12554,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   internal heat in the inversion (or store the factors it needs), with a
   round-trip test (draw a giant, invert, reproduce its temperature).
   Done: the round trip holds for giants of every mass; it may change
-  outputs, so a lock turn if so. Owner: Air 1 (assigned by TODO, while
+  outputs, so a lock turn if so. Owner: Aux 2 (assigned by TODO, while
   in the giant column with GEN.1030/1033). Version 8.1.
+  Owner changed (2026-10-31 3:40 PM EDT): Air 1 was retired by the
+  coordinator at 3:21 PM EDT; owner is now Aux 2.
   Prerequisites: none. Related: GEN.1030, GEN.1033, GEN.412, GEN.816.
 
 - [ ] **GEN.1066 Design the system body table or view (system_bodies: id, parent, kind, mass, radius, density, a, e, i, status, tier) and the barycentre that includes the belts; decide view versus table**
@@ -13967,7 +14004,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   sector profile read the same star-formation factor so the cells sum to
   the satellite's count, with a test that the cells of a Cloud sum to
   the satellite row. Lock work (stored remnants change). Prerequisites:
-  GEN.1191. Owner: Aux 4 (proposed).
+  GEN.1191. Owner: Core 3 (proposed).
+  Owner changed (2026-10-31 3:40 PM EDT): Aux 4 was retired by the
+  coordinator at 3:21 PM EDT (Boss: retire threads that served their
+  purpose); owner is now Core 3.
   Prerequisites: GEN.1191.
 
 - [ ] **GEN.1199 A small moon of a giant carries a hydrogen air and is called class T: can a 0.1 Earth-mass moon keep a hydrogen air at all?**
@@ -14890,7 +14930,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.972) ride the same lock window. Done: Titan's depth reached from
   the physical flux; the strict expected failure of the Titan test
   removed; census of methane hazes before and after. Lock work (epoch,
-  --affects fill). Owner: Aux 4.
+  --affects fill). Owner: Aux 2.
   Lock branch ready (2026-10-31 3:20 PM EDT): Aux 4 (as the lane
   reported, 3:19 PM EDT): READY as one lock branch
   claude/project-thread-nfytfi-gen1229, head 7135c287e, based on main
@@ -14903,6 +14943,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   fall; no rain-out or haze destruction). Stand-ins HZ1 to HZ3, SL4, SL5
   registered. Tests: 1263 passed; test_giant_one_bar_temperature (two)
   red on clean main is GEN.1030.
+  Owner changed (2026-10-31 3:40 PM EDT): Aux 4 was retired by the
+  coordinator at 3:21 PM EDT (Boss: retire threads that served their
+  purpose); owner is now Aux 2. The lock branch
+  claude/project-thread-nfytfi-gen1229 (head 7135c287e) is built and
+  rides a train through the Train Manager.
     Prerequisites: GEN.982. Related: GEN.972.
   Prerequisites: none.
 
@@ -19459,7 +19504,9 @@ clears each one.
   one without loosening the test beyond what the source supports, and
   push to claude/project-thread-bvcbav with the head named. Done: the
   test passes on the train branch with a stated source for the bound.
-  Owner: Air 1. Version 8.1.
+  Owner: Aux 2. Version 8.1.
+  Owner changed (2026-10-31 3:40 PM EDT): Air 1 was retired by the
+  coordinator at 3:21 PM EDT; owner is now Aux 2.
   Prerequisites: none. Related: GEN.850, GEN.851.
 
 - [ ] **TEST.492 Census re-baseline for every oddity share and the prevalence suite rows (one pass after train 9)**
