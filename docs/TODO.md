@@ -3027,7 +3027,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   potential's masses and scale lengths are derived from the generated
   galaxy; 2,600 pc and 1,580 pc (and 229.3 km/s) stay test references
   only, never defaults (GEN.338 carries the rewrite).
-    Prerequisites: GEN.338, GEN.339, GEN.340.
+    Prerequisites: GEN.339, GEN.340.
     Design: [docs/design/orbits/orbital-updates.md](design/orbits/orbital-updates.md)
 
   - [ ] **GEN.109 N-body influence from every object inside the largest nearby Hill sphere plus the galactic gradient, with a Hill-radius warning**
@@ -3669,7 +3669,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   drawn (galactic for a sector, system for the System Map, planetary for
   a moon neighbourhood), read from the same constants, not a copy. See
   the new section in docs/design/orbits/gravity-map.md.
-  Prerequisites: GEN.338, GEN.342. Related: GEN.105, NAV.6, PERF.72,
+  Prerequisites: GEN.342. Related: GEN.105, NAV.6, PERF.72,
   MAP.167.
   Scope after the review (2026-10-16 review): the tidal tensor and its
   eigenvalue, the galaxy potential term (GEN.115, GEN.285), the near and
@@ -4899,69 +4899,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   wait; Blocker 4 after GEN.315 (slice 1 merged earlier by Core 3).
   Prerequisites: GEN.315. Related: GEN.275, GEN.316.
 
-- [ ] **GEN.338 The galactic potential as one pure module: Hernquist bulge, Miyamoto-Nagai disk and NFW halo, with settings and the rotation-curve tests**
-  Split from GEN.115 (2026-10-16, Boss 1:07 PM EDT: look at each item
-  for smaller chunks and shared work). One function of position returns
-  acceleration, potential and circular speed from a Hernquist bulge, a
-  Miyamoto-Nagai disk and an NFW halo (the flattened log halo only if
-  its v0 and R_c are corrected and tested). Masses and scales are
-  settings with the document's values at the default galaxy shape
-  (lengths follow the disk scale length of 2,600 pc, bulge 1,580 pc,
-  radius about 15.3 kpc; masses scale by s^p with p = 1); Plummer
-  softening of 1 pc applies to the central black hole only; the
-  acceleration is finite at (0, 0, 0). Why: GEN.109, GEN.198 and the
-  stepper read it and no generator or table has to change for it. Done:
-  the module and its settings with tests for a circular speed of 229.3
-  +- 0.1 km/s at 8.128 kpc, 213 to 231 km/s on a 2 kpc grid from 4 to 20
-  kpc, Kz(1.1 kpc) about 75 Msun/pc2 and local density about 0.10
-  Msun/pc3 at 5 percent, a circular orbit keeping its radius to 1 pc
-  over 5 Gyr at dt <= 1 Myr, Lz conserved to 1e-10, energy drift under
-  1e-3 per Gyr, and a finite pull at the origin. No database or
-  generator change.
-  Drops the duplicate change of the Sun distance: GEN.144 (first in the
-  Galactic gravity thread) names the 8.128 kpc test radius and the 8.2
-  kpc placement value, and this module only reads them (2026-10-16
-  review).
-  Rewrite for NO FIXED CONTENT (finding from the read-only "galactic
-  potential realism" thread, 2026-10-16, 8:43 PM EDT; Boss, 4:11 and 4:14
-  PM EDT): the values above (a circular speed of 229.3 km/s, a bulge of
-  1.0e10, a disk of 6.8e10 with a 3.5 kpc scale, a halo of 5.4e11 with r_h
-  16 kpc, the 8.128 and 8.2 kpc radii, the 213 to 231 km/s band) are the
-  Milky Way's and are reference values for a plausibility test, never
-  defaults. The module's masses and scales are derived from the generated
-  galaxy: the bulge, disk and halo masses from the density model of this
-  galaxy's shape, the halo mass and scale from GEN.369's halo derivation,
-  and the circular speed follows from them; it is not a constant. The
-  tests check the shape and internal consistency of the curve (a rising
-  then flat or gently falling curve, v_c squared equal to r times the
-  radial pull, Kz and local density from the same masses, an orbit
-  keeping its radius, Lz conserved, energy drift, a finite pull at the
-  origin), and compare the Milky Way's numbers only as a reference for a
-  galaxy built with the Milky Way's shape. The module is also the one
-  source for the other rotation numbers in the code today: the flat
-  velocity of 220 km/s with a 3,000 pc core in `physics/constants.py`
-  (every star's orbit, about 206 km/s at 7.91 kpc), `tuning.CLUSTER_HALO_CIRCULAR_KMS`
-  (220, the cluster Jacobi radius and cluster rotation) and
-  `constants.MILKY_WAY_MASS` (1.15e12, the Hill spheres in
-  `generation/binary.py`; GEN.370), so the cluster generator and the Hill
-  spheres read it too, not only GEN.339 and GEN.340.
-  Galaxy types (2026-10-16, 8:50 PM EDT, Boss for 9.4): the bulge, disk
-  and halo masses come from GEN.379's `component_masses`, and a
-  component of zero mass is legal and tested (a galaxy without a disk,
-  an elliptical, needs no change in the potential); GEN.379 and DB.66
-  sit just before this item in the thread.
-  GEN.368's approved table (Boss, 10:11 PM EDT), row 12: the rotation
-  curve and the enclosed mass are calculated from this potential (v
-  squared = G M(<r) / r), not set, and `MILKY_WAY_MASS` goes as the
-  central mass of every Hill sphere (GEN.400); the baryonic Tully-Fisher
-  relation is a cross-check only.
-  Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
-  newer note wins, report todo-contradictions-2026-10-18.md): where the
-  text names an 8.2 kpc "placement value", GEN.378 (Boss, 2026-10-16,
-  9:43 PM EDT) wins: no home or Sun position is stored; 8.128 and 8.2
-  kpc are reference radii for tests only.
-  Prerequisites: none. Related: GEN.115.
-
 - [ ] **GEN.339 Generated and stored galactic velocities follow the potential: the old curve is replaced, dispersions are seeded, stored velocities are reseeded**
   Split from GEN.115 (2026-10-16, Boss 1:07 PM EDT: look at each item
   for smaller chunks and shared work). Replace
@@ -5016,7 +4953,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 3
   held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.338, GEN.139. Related: GEN.115.
+  Prerequisites: GEN.139. Related: GEN.115.
 
 - [ ] **GEN.342 The acceleration kernel: the pull of the influence set plus the galactic gradient, as one function, and the velocity update from it**
   Split from GEN.109 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -5064,7 +5001,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the item had no owner. Owner now: Aux 7 (orbital update, after
   GEN.338) (proposed by the TODO thread; the lane says if it cannot take
   it).
-  Prerequisites: GEN.338, GEN.340. Related: GEN.109.
+  Prerequisites: GEN.340. Related: GEN.109.
 
 - [ ] **GEN.343 The perturbed pass for a system: host, siblings, moons and outside perturbers integrated through an encounter**
   Split from GEN.109 (2026-10-16, Boss 1:07 PM EDT: look at each item
