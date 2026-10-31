@@ -37,8 +37,8 @@ _BISECTIONS = 60
 
 
 def reference_failed_share():
-    """The failed share of a draw with no galaxy around it: the solar share of the reference structure, the middle of the
-    draws (`black_hole_formation.middle_failed_shares`)."""
+    """The failed share of a draw with no galaxy around it: the solar share of the reference structure, from its draws
+    (`black_hole_formation.reference_failed_shares`)."""
     from planetgen.galaxy import structure   # a late import: the structure imports the physics of the shares
     return structure.REFERENCE_STRUCTURE.black_hole_solar_share
 

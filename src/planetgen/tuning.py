@@ -3702,6 +3702,17 @@ BLACK_HOLE_FAILED_SHARE_METAL_FREE_RANGE = (0.15, 0.32)
 highest; Sukhbold et al. give solar only). Drawn uniform over the range, cut at the neutron star budget and not below
 the galaxy's solar share. GEN.563."""
 
+REFERENCE_BLACK_HOLE_DRAWS = (0.55, 0.5)
+"""tuple: The two uniform draws (solar share first, then metal-free) of a galaxy built with no seed, the reference structure that
+stands for the Milky Way (`physics.black_hole_formation.reference_failed_shares`). The metal-free draw is the middle of its range.
+The solar draw was the middle (0.5) until the halo of the 5e10 solar masses of stars got lighter (GEN.1154: 1.6e12 against 2.0e12
+solar masses), which lifted the neutron stars' unbound share from 0.159 to 0.208, cut the black hole budget (`share_cap`) from 0.35
+to 0.32 and so the middle share from 0.175 to 0.161: 9.3e7 black holes in a galaxy of 5e10 solar masses of stars, under the 1e8 to 1e9
+of the older estimates Olejak et al. 2020 list (their own count is 1.3e8). 0.55 gives a share of 0.177 (0.175 before) and 1.02e8, back
+inside that range at its low edge, and keeps the second moment the design note records (the draw that would give Olejak's 1.3e8,
+0.70, moves that moment by 13 percent). A stand-in tuned to the edge of one published range (tier T1, level L2, row BR1 of the registry,
+GEN.725)."""
+
 BLACK_HOLE_FORMED_MASS_STEPS = 64
 BLACK_HOLE_FORMED_AGE_STEPS = 64
 """int: Log-spaced progenitor masses and ages across a window the share of formed remnants is averaged over (numerical,

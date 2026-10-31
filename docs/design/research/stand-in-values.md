@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 919 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 920 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -36,7 +36,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 140 | 13 | 7 | 1 | 0 | 161 |
+| T1 | 140 | 13 | 8 | 1 | 0 | 162 |
 | T2 | 111 | 34 | 0 | 1 | 0 | 146 |
 | T3 | 76 | 35 | 5 | 10 | 0 | 126 |
 | T4 | 37 | 5 | 0 | 14 | 10 | 66 |
@@ -45,7 +45,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T7 | 27 | 8 | 8 | 8 | 0 | 51 |
 | T8 | 0 | 1 | 1 | 5 | 1 | 8 |
 | T9 | 14 | 14 | 4 | 42 | 19 | 93 |
-| All | 533 | 189 | 40 | 127 | 30 | 919 |
+| All | 533 | 189 | 41 | 127 | 30 | 920 |
 
 ## How the labels were given
 
@@ -1510,6 +1510,12 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | HF2 | P | T1 | L1 | halo_function._transfer_function: the no-wiggle fit of Eisenstein and Hu 1998 Eqs. 26, 28 to 31 stands for a Boltzmann-code transfer function | a Boltzmann code (CAMB, CLASS) | halo masses of 1e8 to 1e17 solar masses | a Boltzmann transfer function that moves sigma(M) by more than a few percent over the range | a tabulated transfer function | Eisenstein and Hu 1998 (arXiv astro-ph/9709112), READ; the paper quotes the fit as good to a few percent without the wiggles | - | - |
 | HF3 | P | T1 | L1 | mass_chain.median_stellar_mass: Moster et al. 2013's relation, fitted to the Millennium haloes in a WMAP7 cosmology (h 0.704), is read against the Planck halo mass function, halo masses as printed | none | the conditional at every stellar mass | an abundance matching of the relation in the Planck cosmology that moves the median halo by more than 0.05 dex | a relation fitted in the chain's own cosmology | Moster, Naab and White 2013 (arXiv 1205.5807) section 2, READ | - | - |
 | HF4 | P | T9 | L0 | halo_function._COARSE_STEP 0.05 dex, GRID_STEP 0.01 dex, _LN_K_STEP 0.02, k from 1e-4 to 2e3 per Mpc: the numerical grids of sigma(M) and of the conditional | halving each step | every conditional | a median that moves by more than 0.003 dex when a step is halved | none (numerical) | the GEN.399 script (numpy, 6000 wave numbers, the slope of sigma by a 0.01 dex difference) gives the same medians to 0.001 dex | - | - |
+
+## 6.132 Stand-ins of the reference black hole draw
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| BR1 | P | T1 | L2 | tuning.REFERENCE_BLACK_HOLE_DRAWS (0.55, 0.5): the uniform draws of the reference structure's solar and metal-free failed shares; 0.55 gives a solar share of 0.177 (0.175 before the lighter halo) and 1.02e8 black holes in 5e10 solar masses of stars, the low edge of the 1e8 to 1e9 older estimates | 0.50 to 0.70 (9.3e7 to 1.3e8 holes; 0.70 is Olejak et al. 2020's own 1.3e8 and moves the second moment of the perturbers by 13 percent) | the reference structure only; a galaxy with a seed draws its own | a published count of black holes in the Milky Way outside 1e8 to 1e9, or a failed share of the Milky Way's massive stars measured outside 0.15 to 0.30 | a failed-supernova share measured for the Milky Way's population (a gravitational-wave merger rate fitted to the Galaxy) in place of the draw | Olejak et al. 2020 (the count 1.3e8 and the older range 1e8 to 1e9 they list), as recorded in test_place_terms::test_the_black_hole_inputs_lie_inside_the_published_ranges; the halo and neutron star shares are GEN.1154's chain | - | - |
 
 ## 6.95 Stand-ins of the belt sources
 

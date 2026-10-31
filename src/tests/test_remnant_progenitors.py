@@ -82,7 +82,7 @@ def test_a_galaxy_with_no_failures_leaves_neutron_stars_only():
 
 
 def test_the_reference_share_is_the_middle_draws_solar_share_inside_the_verified_range():
-    assert progenitors.reference_failed_share() == black_hole_formation.middle_failed_shares(structure.REFERENCE_STRUCTURE.neutron_star_unbound_share)[0]
+    assert progenitors.reference_failed_share() == black_hole_formation.reference_failed_shares(structure.REFERENCE_STRUCTURE.neutron_star_unbound_share)[0]
     low, high = tuning.BLACK_HOLE_FAILED_SHARE_SOLAR_RANGE
     assert low <= progenitors.reference_failed_share() <= high
     assert progenitors.failure_windows() == progenitors.failure_windows(progenitors.reference_failed_share())

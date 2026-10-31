@@ -116,7 +116,7 @@ _MILKY_WAY_CHAIN = mass_chain.MassChain(
     mass_chain.median_concentration(_MILKY_WAY_HALO_MASS_SOLAR))
 _MILKY_WAY_NEUTRON_STAR_UNBOUND_SHARE = natal_kick.neutron_star_unbound_share(
     _MILKY_WAY_CHAIN, 220.0, _MILKY_WAY_DISC_SCALE_LENGTH_KPC)
-_MIDDLE_BLACK_HOLE_SHARES = black_hole_formation.middle_failed_shares(_MILKY_WAY_NEUTRON_STAR_UNBOUND_SHARE)
+_REFERENCE_BLACK_HOLE_SHARES = black_hole_formation.reference_failed_shares(_MILKY_WAY_NEUTRON_STAR_UNBOUND_SHARE)
 
 REFERENCE_STRUCTURE = Structure(
     vc_kms=220.0,
@@ -129,7 +129,7 @@ REFERENCE_STRUCTURE = Structure(
     bulge_dispersion_scatter_dex=0.0,
     stellar_mass_solar=5.0e10, classical_bulge=False, black_hole_deviation=0.0, nuclear_cluster_mass_solar=2.5e7,
     nuclear_disc_mass_solar=1.5e9,
-    black_hole_solar_share=_MIDDLE_BLACK_HOLE_SHARES[0], black_hole_metal_free_share=_MIDDLE_BLACK_HOLE_SHARES[1],
+    black_hole_solar_share=_REFERENCE_BLACK_HOLE_SHARES[0], black_hole_metal_free_share=_REFERENCE_BLACK_HOLE_SHARES[1],
     neutron_star_unbound_share=_MILKY_WAY_NEUTRON_STAR_UNBOUND_SHARE,
     neutron_star_ejecta_speeds_kms=natal_kick.ejecta_speeds_kms(_MILKY_WAY_CHAIN, 220.0, _MILKY_WAY_DISC_SCALE_LENGTH_KPC),
 )
