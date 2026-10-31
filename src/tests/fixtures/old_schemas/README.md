@@ -78,3 +78,4 @@ Commit each file came from:
 - v192: train 6 (GEN.1057 ring age, before GEN.1097 day and night state)
 - v193: train 6 (GEN.1097 day and night state, before GEN.1013 dark members)
 - v194: train 6 (GEN.1013 dark members, before GEN.1159 body strength)
+- v195: train 10 (GEN.1159 body strength, before GEN.1162 stars, remnants, rogues and interstellar comets)
