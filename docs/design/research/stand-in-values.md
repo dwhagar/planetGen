@@ -37,15 +37,15 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
 | T1 | 136 | 11 | 7 | 1 | 0 | 155 |
-| T2 | 111 | 35 | 0 | 1 | 0 | 147 |
+| T2 | 111 | 36 | 0 | 1 | 0 | 148 |
 | T3 | 77 | 34 | 6 | 10 | 0 | 127 |
 | T4 | 39 | 4 | 0 | 14 | 10 | 67 |
 | T5 | 47 | 18 | 1 | 1 | 0 | 67 |
-| T6 | 88 | 63 | 17 | 41 | 0 | 209 |
+| T6 | 86 | 62 | 17 | 41 | 0 | 206 |
 | T7 | 28 | 8 | 9 | 9 | 0 | 54 |
 | T8 | 0 | 1 | 1 | 5 | 1 | 8 |
-| T9 | 14 | 6 | 4 | 40 | 19 | 83 |
-| All | 540 | 180 | 45 | 122 | 30 | 917 |
+| T9 | 14 | 6 | 5 | 41 | 19 | 85 |
+| All | 538 | 180 | 46 | 123 | 30 | 917 |
 
 ## How the labels were given
 
@@ -551,13 +551,13 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | DY3 | D | T2 | L1 | dynamo.EARTH_FLUX_DEPTH_M2_S2 1.4e-6: Earth's F D, the unit of the Rossby number and of the power (1.15 TW in the outer core) | power 0.2 to 3 TW | Earth, the unit | test_dynamo::test_earth_gives_its_own_moment_rossby_number_and_surface_field | the core's own thermal history (GEN.838) | COMPUTED (the design note section 3.1: gamma 0.2 and F D 1.4e-6 give 7.8e22 A m2; the published range of the power is 0.2 to 3 TW) | - | - |
 | DY4 | D | T5 | L0 | dynamo.MIN_DIPOLE_FRACTION 0.15, DIPOLE_ROSSBY 0.12, EARTH_ROSSBY 0.09 and FLUX_RAYLEIGH_EXPONENT 0.41: the dipole's share falls through a local Rossby number of 0.12 to 0.15 | share 0.05 to 0.2; Rossby 0.1 to 0.12 | all rotating dynamos | test_dynamo::test_the_share_of_the_dipole_is_the_rule_the_magnetism_module_uses and the Ganymede test | a dipole fraction from the dynamo simulation database | RECALLED (Christensen and Aubert 2006 for 0.41 and 0.12; Olson and Christensen 2006 for Earth's 0.09; the soft switch and 0.15 are the design note rule 3.5) | - | - |
 
-## 6.115 Stand-ins of the dynamo wiring
+## 6.135 Stand-ins of the dynamo wiring
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| MC1 | P | T6 | L1 | belt_member._filling: the filling of a stored member (one minus its porosity) is the compacted density of `compaction` over the compaction's own grain density at the member's rock fraction, applied to the taxon's grain density | the taper endpoints (`compaction.TAPER_START_KG`, `TAPER_END_KG`, stand-ins of decision S9) | members of 1e19 to 1e21 kg | a measured bulk density of a main-belt asteroid of that taxon and mass far from grain density times this filling (Carry 2012 densities by taxon) | the structure solver and viscous compaction (GEN.429) | the taper closes the pores of the Bierson and Nimmo ice and silicate mix (rock 3500, ice 920 kg/m3); using it as a filling for other grains is ours | - | - |
-| MC2 | P | T6 | L0 | belt_member._filling: a member under 1e19 kg takes a porosity drawn uniformly in its taxon family's range, 0.25 to 0.55 for the carbonaceous taxa and 0.10 to 0.35 for the rocky ones (`small_body_composition.POROSITY_RANGES`) | the ranges | on-demand members of 1e15 to 1e19 kg | a rubble pile of that size and taxon with a porosity far outside the range (Britt and Consolmagno 2003; Carry 2012) | the porosity from the size law and the collisional history of the belt | the ranges are `small_body_composition`'s (parametrisations of Britt and Consolmagno 2003 and Carry 2012); the uniform draw inside them is ours | - | - |
-| MC3 | P | T6 | L0 | belt_member._filling: a member's rock fraction for the compaction is its rock and metal, held to the table's 0.3 to 0.95 (`compaction.ROCK_FRACTION_RANGE`), the metal counted with the rock | the metal share counted with the ice instead | every taxon (the iron M taxon is held at 0.95) | a metal-rich member whose compaction filling differs from a rock one's by more than the grain density does | a compaction table with metal as a third component | the habit of `moon_composition.density_kg_m3` | - | - |
+| DY5 | D | T2 | L1 | magnetism.FIELD_SCATTER_DEX 0.07: the log-normal scatter of a dynamo's moment about the buoyancy-flux law, dex (the law fits the 145 numerical dynamos within about 15 percent) | 0.05 to 0.15 | every dynamo of the scaling | a spread of observed moments at equal power outside 0.15 dex | none: the scatter is the fit's | Olson and Christensen 2006 (second-hand, see DY1) | - | - |
+| DY6 | P | T9 | L2 | magnetism.CORE_POWER_SCALE 0.479: the core model's Earth drives its dynamo with 2.4 TW (CC10) and the scaling's Earth with 1.15 TW (DY3), so the model's power is multiplied by the ratio to put the model's Earth on the scaling's (moment 0.84 of Earth's, dipole share 0.65) | 0.3 to 1 | rocky and icy cores of the thermal model | an Earth-mass planet of the model whose moment is outside 0.5 to 2 times Earth's | one Earth calibration for both the thermal model and the scaling | tuned so the model's Earth reproduces the scaling's Earth | - | - |
+| DY7 | P | T9 | L3 | magnetism.MERCURY_MOMENT_A_M2 3e19, MERCURY_SCATTER_DEX 0.5: a body of 0.05 to 0.1 Earth masses whose bulk density says its core fraction is over 0.4 keeps this moment whatever the core model says, because its iron-sulfide core melts at lower temperatures than the pure iron the model has | moment 1e19 to 1e20 | small iron-rich planets | a small iron-rich body whose core model says dead and whose field is alive | a core model with a sulfur-bearing liquidus | the design default of GEN.86, a Solar System value (Mercury) kept until the sulfur liquidus replaces it | - | no data |
 
 ## 6.31 Stand-ins of the accreting compact binaries
 
