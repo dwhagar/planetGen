@@ -19450,15 +19450,6 @@ clears each one.
   generated value changes; else list it train-bound.
   Prerequisites: none.
 
-- [ ] **TEST.506 test_no_todo_codes_shown fails on main: GEN.1128 shows in the --help text of planetgen/cli/generate.py (line 696) and of the sectors and galaxy commands (bug)**
-  Found by the GEN.753 stars and galaxy validation sweep (Sources 2,
-  reports/gen753-stars-galaxy-validation-2026-10-31.md; PR #4329 added
-  the agreeing statistics as tests). A todo code must never appear in
-  user-facing help text. Replace the code in those help strings with a
-  plain description of the feature (no item ids), and run
-  test_no_todo_codes_shown to confirm. Lock-free, test and text only.
-  Prerequisites: none. Related: GEN.1128.
-
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
