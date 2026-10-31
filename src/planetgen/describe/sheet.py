@@ -25,7 +25,7 @@ from planetgen.db import column_units, models
 from planetgen.describe import model
 from planetgen.describe.quantity import inline_text
 from planetgen.describe.sheet_sources import source_of
-from planetgen.physics import (agb_carbon, compaction, constants, daylight, gases, habitability_world, outside_hours, regional_temperature,
+from planetgen.physics import (agb_carbon, chemically_peculiar, compaction, constants, daylight, gases, habitability_world, outside_hours, regional_temperature,
                                surface_liquid_world, unit_registry, variability)
 from planetgen.population import facility_ratings
 from planetgen.util.format import format_number, scientific_text
@@ -961,6 +961,13 @@ CARBON_KEY = "carbon_star_kind"
 """str: The key of the star's derived row for a carbon star or an S star (GEN.1026, `physics.agb_carbon`); it is worked out from the stored state,
 lifespan (which gives the initial mass), mass, [Fe/H] and age when the sheet is made and is not a column."""
 
+PECULIAR_KEY = "chemically_peculiar_kind"
+"""str: The key of the star's derived row for an Ap or Am star (GEN.1027, `physics.chemically_peculiar`); it is worked out from the stored class, mass,
+radius, temperature and age when the sheet is made and is not a column."""
+
+PECULIAR_FIELD_KEY = "chemically_peculiar_polar_field"
+"""str: The key of an Ap star's derived row for its polar magnetic field (GEN.1027); an Am star has none."""
+
 ECLIPSE_KEY = "longest_eclipse_hours"
 """str: The key of the moon's derived row for the longest eclipse in its planet's shadow (UX.205); it is worked out from the stored
 orbit and the planet's radius when the sheet is made and is not a column."""
@@ -1040,6 +1047,14 @@ def sheet(conn, kind, object_id):
     if carbon:
         by_group["identity"].append({"key": CARBON_KEY, "label": "Carbon or S star", "value": [carbon], "text": carbon, "raw": None,
                                      "stored": True, "absent": False, "source": None, "show_absent": False})
+    peculiar = chemically_peculiar.of_star(row["yerkes_class"], row["mass_kg"], row["radius_km"], row["temperature_k"], row["age_gy"]) if kind == "star" else None
+    if peculiar:
+        by_group["identity"].append({"key": PECULIAR_KEY, "label": "Chemically peculiar star", "value": [peculiar.kind], "text": peculiar.kind, "raw": None,
+                                     "stored": True, "absent": False, "source": None, "show_absent": False})
+        if peculiar.field_gauss is not None:
+            field = [model.qty("magnetic field", peculiar.field_gauss, "G")]
+            by_group["physical"].append({"key": PECULIAR_FIELD_KEY, "label": "Polar magnetic field", "value": field, "text": inline_text(field),
+                                         "raw": peculiar.field_gauss, "stored": True, "absent": False, "source": None, "show_absent": False})
     groups = [{"key": key, "label": GROUPS[key], "rows": rows} for key, rows in by_group.items() if rows]
     stored = {spec.key: row[spec.stored_column()] for spec in specs}
     return {"kind": kind, "groups": groups, "missing": missing(kind, stored)}
