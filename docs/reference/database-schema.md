@@ -2225,6 +2225,10 @@ Migration 0191 adds three nullable columns at the end of `planets` and `moons`, 
 
 Migration 0189 adds two nullable DOUBLE columns to `scatter_members`: `radius_max_au`, the largest radius the member has had (a white dwarf's red-giant or asymptotic-branch tip; the present radius for a member that has not left its main sequence), and `mass_max_solar`, the largest mass it has had (its birth mass). Both come from the member record (`generation/member_record.py`) that the tree and the build read. NULL on a row made before v187; nothing is backfilled, a row gets them when the galaxy is regenerated. A column already there is skipped, so a stopped run can be started again.
 
+### v194 (GEN.1013): the members of a tree that are not stars
+
+Migration 0194 creates `dark_members`, keyed by `star_system_id` and `member_no`: one row for each brown dwarf, neutron star, black hole or stripped helium star that hangs in a built system's orbit tree without being one of its stars. Columns: `parent_node_no` and `slot` (the numbering of `orbit_nodes`), `kind` (a CHECK on the four kinds), `mass_solar` (DOUBLE, not null) and `radius_au` (DOUBLE, nullable). A node's `mass_solar` in `orbit_nodes` is the sum of what hangs below it, these included. A row goes with its system (foreign key, ON DELETE CASCADE). A system with a dark member and no other star is a single star: its `stars` row has role `single`, `parent_node_id` the node it hangs in and its `slot`. No row is made for a system already stored; a system gets its rows when it is generated again. A table already there is kept, so a stopped run can be started again.
+
 ### v188 (GEN.1035): the liquid at the surface
 
 Migration 0188 adds `surface_liquid` (VARCHAR(32)), `surface_liquid_fraction` and `surface_liquid_depth_km` (DOUBLE, all nullable) to `planets` and `moons`, skipping a column already there. All NULL after the migration: the liquid is found with the ground, so a regenerated galaxy fills them.

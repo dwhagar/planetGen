@@ -116,23 +116,22 @@ def test_a_system_of_more_than_two_stars_is_saved_and_read_back_with_its_tree(my
         dataclasses.replace(n, epoch_unix=0.0) for n in system.orbit_nodes]
 
 
-def test_members_a_build_cannot_hold_are_cut_out_and_the_orbits_above_them_closed():
+def test_members_a_build_cannot_hold_stay_in_the_plan_as_dark_members_and_the_node_masses_are_the_drawn_ones():
     for seed in range(1500):
         tree = multistar.draw_member_tree(multistar.Placed("star", 0.2, 0.2), 4.0e9, draw.Stream(f"{seed}:members"))
-        if tree.member_count >= 3 and any(m.kind == "brown-dwarf" for m in tree.members):
+        if tree.member_count >= 3 and any(m.kind in stored_trees.UNBUILT_KINDS for m in tree.members):
             break
     else:
-        pytest.skip("no tree with a brown dwarf among three or more members")
-    cut = multistar.without_members(tree, stored_trees.UNBUILT_KINDS)
-    assert cut.member_count < tree.member_count and all(m.kind not in stored_trees.UNBUILT_KINDS for m in cut.members)
-    assert len(cut.nodes) == max(cut.member_count - 1, 0)
-    assert [m.member_no for m in cut.members] == list(range(cut.member_count))
-    assert [n.node_no for n in cut.nodes] == list(range(1, len(cut.nodes) + 1))
-    for node in cut.nodes:
-        held = [m.slot for m in cut.members if m.parent_node_no == node.node_no] + [
-            n.slot for n in cut.nodes if n.parent_node_no == node.node_no]
+        pytest.skip("no tree with a brown dwarf or remnant among three or more members")
+    plan = stored_trees.drawn(tree)
+    assert len(plan.members) == tree.member_count and len(plan.nodes) == len(tree.nodes)
+    assert {m.member_no for m in plan.dark_members} == {m.member_no for m in tree.members if m.kind in stored_trees.UNBUILT_KINDS}
+    root = next(n for n in plan.nodes if n.parent_node_no is None)
+    assert root.mass_solar == pytest.approx(sum(m.mass_solar for m in plan.members), rel=1.0e-9)
+    for node in plan.nodes:
+        held = [m.slot for m in plan.members if m.parent_node_no == node.node_no] + [
+            n.slot for n in plan.nodes if n.parent_node_no == node.node_no]
         assert sorted(held) == [0, 1]
-    assert multistar.without_members(tree, ("neutron-star",)) is tree
 
 
 def test_binary_system_off_is_one_star_and_on_is_a_pair_or_more():

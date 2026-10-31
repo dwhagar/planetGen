@@ -31,11 +31,9 @@ def test_the_built_star_of_every_member_has_the_radius_the_tree_drew(count):
                            metallicity_fe_h=0.1)
         placed = multistar.Placed("star", primary.mass / constants.SOLAR_MASS_TO_KG, primary.initial_mass_sol,
                                   fe_h=primary.metallicity_fe_h, record=member_record.of_star(primary))
-        tree = multistar.without_members(
-            multistar.draw_member_tree(placed, primary.age * GY, draw.Stream(seed), n_stars=count, pair_placed=True),
-            stored_trees.UNBUILT_KINDS)
-        plan = stored_trees.drawn(tree)
-        for member in plan.members[1:]:
+        plan = stored_trees.drawn(
+            multistar.draw_member_tree(placed, primary.age * GY, draw.Stream(seed), n_stars=count, pair_placed=True))
+        for member in plan.lit_members[1:]:
             record = member_record.make(member.seed, member.initial_mass_solar, member.age_yr or primary.age * GY,
                                         primary.metallicity_fe_h)
             built = Star.from_record(record, SystemConfig(), name="Member")

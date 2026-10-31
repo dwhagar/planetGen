@@ -608,7 +608,7 @@ BATCH_CHILD_TABLES = frozenset((
     "system_config_slots", "planet_reflection_spectrum", "moon_reflection_spectrum", "planet_interior_layers", "moon_interior_layers",
     "planet_gases", "moon_gases", "planet_life_class_scores", "moon_life_class_scores",
     "asteroid_belt_composition",
-    "comet_composition", "interstellar_comet_composition", "asteroid_field_composition", "orbit_nodes",
+    "comet_composition", "interstellar_comet_composition", "asteroid_field_composition", "orbit_nodes", "dark_members",
 ))
 """frozenset: Child tables nothing refers to by id, so `Connection.batched`
 may hold their INSERTs back and write them many rows at a time with no
@@ -4442,6 +4442,7 @@ def insert_star_system(conn, star_system: StarSystem, system_config: SystemConfi
         else:
             nodes = orbit_trees.binary_nodes(star_system, orbit_epoch)
     orbit_trees.write_nodes(conn, star_system_id, nodes, replace=False)
+    orbit_trees.write_dark_members(conn, star_system_id, star_system.dark_members, replace=False)    # GEN.1013
     star_system.orbit_nodes = nodes
     places = orbit_trees.star_places(star_system)
     # GEN.329: how a runaway star came to move so fast, in the flags of its (first) star row
@@ -9199,6 +9200,7 @@ def load_star_system(conn, star_system_id) -> StarSystem:
     system.binary_type = binary_configuration
     system.wide_binary = wide_binary
     system.orbit_nodes = orbit_trees.read_nodes(conn, star_system_id)    # GEN.311
+    system.dark_members = orbit_trees.read_dark_members(conn, star_system_id)    # GEN.1013
 
     # v20: only meaningful (non-NULL) for a 'close' pair -- see
     # schema.sql's "v20" header note and StarSystem.__init__'s own comment.
@@ -9245,8 +9247,11 @@ def load_star_system(conn, star_system_id) -> StarSystem:
             member.db_id = member_row["id"]
         system.member_stars = tuple(members)
         system.stars = system.stars + members
-        system.star_slots = tuple((place["parent_node_id"], place["slot"])
-                                  for place in (primary_row, secondary_row, *member_rows))
+    if member_rows or system.dark_members:    # (GEN.1013: a tree with a dark member says where its stars hang too)
+        places = (primary_row, secondary_row, *member_rows) if binary_configuration in ("close", "wide") else (
+            conn.execute("SELECT parent_node_id, slot FROM stars WHERE star_system_id = ? AND role = 'single'",
+                         (star_system_id,)).fetchone(),)
+        system.star_slots = tuple((place["parent_node_id"], place["slot"]) for place in places)
 
     planet_rows = conn.execute(
         "SELECT * FROM planets WHERE star_system_id = ? ORDER BY orbital_index", (star_system_id,)

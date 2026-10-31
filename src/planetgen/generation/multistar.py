@@ -1944,63 +1944,6 @@ def _single(leaf, age_yr, dropped, rng):
     return MemberTree((member,), (), age_yr, dropped)
 
 
-def without_members(tree, kinds):
-    """
-    `tree` with every member whose kind is in `kinds` taken out (member 0, the placed object, stays): the node a member hung
-    in goes with it and the member's sibling takes its place, so the orbits of every other pair stay as they were drawn.
-    The nodes above are given the mass that is left and the period of their own axis about it, and are numbered again
-    from 1 in the tree's order, as are the members. A system build uses it for the members it cannot make from a birth mass
-    (a brown dwarf, a neutron star, a black hole).
-
-    Args:
-        tree (MemberTree): The tree drawn.
-        kinds (tuple): The member kinds to take out.
-
-    Returns:
-        MemberTree: `tree` itself when no member has such a kind, else the smaller tree (`dropped` unchanged).
-    """
-    if not any(member.kind in kinds for member in tree.members[1:]):
-        return tree
-    members = {member.member_no: member for member in tree.members}
-    nodes = {node.node_no: node for node in tree.nodes}
-    for member_no in [m.member_no for m in tree.members[1:] if m.kind in kinds]:
-        gone = members.pop(member_no)
-        parent = nodes.pop(gone.parent_node_no)
-        sibling_member = next((m for m in members.values()
-                               if m.parent_node_no == parent.node_no and m.slot != gone.slot), None)
-        if sibling_member is not None:
-            if parent.parent_node_no is None:     # the root went: the sibling is all that is left
-                return MemberTree((dataclasses.replace(sibling_member, member_no=0, parent_node_no=None, slot=0),), (),
-                                  tree.age_yr, tree.dropped)
-            members[sibling_member.member_no] = dataclasses.replace(
-                sibling_member, parent_node_no=parent.parent_node_no, slot=parent.slot,
-                flags=sibling_member.flags & ~(MEMBER_MASS_GAINER | MEMBER_MASS_REVERSED))
-        else:
-            sibling = next(n for n in nodes.values() if n.parent_node_no == parent.node_no)
-            nodes[sibling.node_no] = dataclasses.replace(sibling, parent_node_no=parent.parent_node_no, slot=parent.slot)
-    node_number = {node_no: number for number, node_no in enumerate(sorted(nodes), start=1)}
-    member_number = {member_no: number for number, member_no in enumerate(sorted(members))}
-    below = {}
-
-    def mass_below(node_no):
-        if node_no not in below:
-            below[node_no] = sum(m.mass_solar for m in members.values() if m.parent_node_no == node_no) + sum(
-                mass_below(n.node_no) for n in nodes.values() if n.parent_node_no == node_no)
-        return below[node_no]
-
-    kept = []
-    for node_no in sorted(nodes):
-        node = nodes[node_no]
-        mass = mass_below(node_no)
-        kept.append(dataclasses.replace(
-            node, node_no=node_number[node_no], parent_node_no=node_number.get(node.parent_node_no), mass_solar=mass,
-            period_years=math.sqrt(node.separation_au ** 3 / mass)))
-    ordered = tuple(dataclasses.replace(members[member_no], member_no=member_number[member_no],
-                                        parent_node_no=node_number[members[member_no].parent_node_no])
-                    for member_no in sorted(members))
-    return MemberTree(ordered, tuple(kept), tree.age_yr, tree.dropped)
-
-
 def draw_member_tree(placed, age_yr, rng=draw, max_stars=MAX_MEMBERS, n_stars=None, prevalence=1.0,
                      companion=_DRAW_COMPANION, bound_runaway=False, max_axis_au=math.inf, pair_placed=False,
                      groups=False):

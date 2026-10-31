@@ -391,6 +391,22 @@ constellations = sa.Table(
 )
 
 
+dark_members = sa.Table(
+    'dark_members',
+    metadata,
+    sa.Column('star_system_id', mysql.BIGINT(unsigned=True), primary_key=True, nullable=False),
+    sa.Column('member_no', mysql.SMALLINT(), primary_key=True, nullable=False),
+    sa.Column('parent_node_no', mysql.SMALLINT(), nullable=False),
+    sa.Column('slot', mysql.SMALLINT(), nullable=False),
+    sa.Column('kind', sa.String(16), nullable=False),
+    sa.Column('mass_solar', mysql.DOUBLE(), nullable=False),
+    sa.Column('radius_au', mysql.DOUBLE(), nullable=True),
+    sa.CheckConstraint("(`kind` in (_utf8mb4'brown-dwarf',_utf8mb4'neutron-star',_utf8mb4'black-hole',_utf8mb4'stripped-helium'))", name='chk_dark_members_kind'),
+    sa.ForeignKeyConstraint(['star_system_id'], ['star_systems.id'], name='fk_dark_members_star_system', ondelete='CASCADE'),
+    mysql_engine="InnoDB",
+)
+
+
 edit_journal = sa.Table(
     'edit_journal',
     metadata,

@@ -1530,6 +1530,7 @@
 -- v193 (GEN.1097): `planets` and `moons` keep the state of their day and night (`day_night_state`, VARCHAR(24): day and night, tidally locked, spin-orbit resonance, non-rotating, polar day and night, no solid surface;
 --   `physics/day_night.py`), the hours of night in a solar day at the equator (`night_hours`, DOUBLE) and the solar days in one orbit (`days_per_year`, DOUBLE). NULL for a body whose spin is not stored, `night_hours` and
 --   `days_per_year` NULL for a world that turns once an orbit, and all NULL on a row made before v193, which gets them when the galaxy is regenerated.
+-- v194 (GEN.1013): `dark_members`, one row for each member of a built system's tree that is not one of its stars (a brown dwarf, neutron star, black hole or stripped helium star): `parent_node_no`, `slot`, `kind`, `mass_solar`, `radius_au`. A system stored before has none; nothing is backfilled.
 --
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
@@ -4409,6 +4410,27 @@ CREATE TABLE IF NOT EXISTS orbit_nodes (
     CONSTRAINT chk_orbit_nodes_kind CHECK (kind IN ('close', 'wide', 'compact', 'group')),
     CONSTRAINT chk_orbit_nodes_interaction CHECK (interaction IS NULL OR interaction IN (
         'detached', 'semi-detached', 'contact', 'accreting', 'post-common-envelope', 'merger-product'))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+-- ---------------------------------------------------------------------
+-- dark_members (v194, GEN.1013): the members of a built system's tree that are not stars of it, one row each: a brown dwarf, a
+-- neutron star, a black hole or a stripped helium star. `parent_node_no` and `slot` name the node it hangs in and its place among
+-- that node's children (the numbering of `orbit_nodes`); the node masses above it count its `mass_solar`. It has no light and no
+-- planets. A row goes with its system.
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS dark_members (
+    star_system_id       BIGINT UNSIGNED NOT NULL,
+    member_no            SMALLINT NOT NULL,
+    parent_node_no       SMALLINT NOT NULL,
+    slot                 SMALLINT NOT NULL,
+    kind                 VARCHAR(16) NOT NULL,
+    mass_solar           DOUBLE NOT NULL,
+    radius_au            DOUBLE NULL,
+    PRIMARY KEY (star_system_id, member_no),
+    CONSTRAINT fk_dark_members_star_system
+        FOREIGN KEY (star_system_id) REFERENCES star_systems(id) ON DELETE CASCADE,
+    CONSTRAINT chk_dark_members_kind CHECK (kind IN ('brown-dwarf', 'neutron-star', 'black-hole', 'stripped-helium'))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 

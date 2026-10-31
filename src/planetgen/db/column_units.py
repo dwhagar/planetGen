@@ -236,6 +236,12 @@ TABLES = {
         "index": ("constellation_index",),
         "seed": ("seed",),
     },
+    "dark_members": {
+        "id": ("star_system_id",),
+        "index": ("member_no", "parent_node_no", "slot"),
+        "Msun": ("mass_solar",),
+        "au": ("radius_au",),
+    },
     "edit_journal": {
         "id": ("id", "op_id", "plan_id", "sector_id"),
         "index": ("generator_epoch",),
