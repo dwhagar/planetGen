@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2888] - 2026-10-31
+
+**Headline:** The reference table of the Milky Way's satellites now holds all 12 satellites above 100,000 solar masses, with Canes Venatici I added from McConnachie 2012.
+
+### Changed
+- **The reference satellite table gains Canes Venatici I (TEST.507).** Position, distance, half-light radius, stellar mass and [Fe/H] are Tables 2 to 5 of McConnachie (2012), checked by `test_reference_satellites.py`; its age (11 Gy) is a choice. Canis Major is left out, because the paper itself says it may be an unrelated disk substructure. Test data only: no generator reads the table and no generated value changes.
+
 ## [8.0.2887] - 2026-10-31
 
 **Headline:** The strength of ice II, III, V and VI next to ice Ih is now a table by temperature from the creep laws of Durham, Kirby and Stern 1997, not one guessed number for each.
