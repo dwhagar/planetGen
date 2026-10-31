@@ -81,7 +81,7 @@ def test_a_topic_in_an_unregistered_category_is_refused(monkeypatch):
 def test_the_life_class_ids_are_link_terms_for_their_help_page():
     found = {term.text: term for term in help_registry.terms()}
     for row in life_classes.CLASSES:
-        assert found[row.id] == help_registry.Term(row.id, "life_help_class", {"number": row.number})
+        assert found[row.id].endpoint == "life_help_class" and found[row.id].values == {"number": row.number}
 
 
 def test_the_index_lists_every_class_type_and_life_page_the_program_has(client):  # noqa: F811

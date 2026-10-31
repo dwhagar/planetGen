@@ -415,8 +415,8 @@ def help_children():
 
 def link_terms():
     """The words a description may link to a life help page: each life class id ("4c", "2") and each class family ("Class 3 family") links to
-    the page of its number, and a life topic's title links to the topic."""
-    found = [Term(row.id, "life_help_class", {"number": row.number}) for row in life_classes.CLASSES]
+    the page of its number. A bare number ("2") is a term only after "Class "; an id with a letter ("4c") is one anywhere."""
+    found = [Term(row.id, "life_help_class", {"number": row.number}, "" if row.id[-1].isalpha() else "Class ") for row in life_classes.CLASSES]
     found += [Term(family_label(number), "life_help_class", {"number": number}) for number, _label, _summary in class_numbers()
               if len(family(number)) > 1]
     return found

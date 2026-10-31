@@ -37,10 +37,12 @@ these:
   ☆ Bookmark button saves (`templates/partials/bookmark.html`).
 """
 
+import logging
+
 from flask import current_app, g, render_template, request, url_for
 from markupsafe import Markup
 
-from planetgen.web.lib import apiclient, help_registry
+from planetgen.web.lib import apiclient, autolink, help_registry
 from planetgen.api.authz import session_cookie_name
 from planetgen.web.lib.pagination import render_pagination
 
@@ -247,11 +249,22 @@ def render_page(template, *, title, section=None, breadcrumbs=(), description=No
     Returns:
         tuple: `(html, status)`, ready to return from a view.
     """
-    return render_template(
+    html = render_template(
         template,
         title=title,
         section=section,
         breadcrumbs=list(breadcrumbs),
         description=description,
         **context,
-    ), status
+    )
+    return _with_help_links(html), status
+
+
+def _with_help_links(html):
+    """`html` with the help links of `web/lib/autolink.py` added to its main content: the first two mentions of each term the program's
+    parts registered (`help_registry.terms()`), counting links already there. A failure leaves the page as it was."""
+    try:
+        return autolink.link_page(html, help_registry.terms(), lambda term: page_url(term.endpoint, **term.values), request.path)
+    except Exception:    # a missing link must never take a page down
+        logging.getLogger(__name__).exception("the help links could not be added to %s", request.path)
+        return html

@@ -30,8 +30,8 @@ Topic = namedtuple("Topic", "endpoint label category summary order children")
 Child = namedtuple("Child", "endpoint values label summary")
 """namedtuple: A page under a topic: the endpoint, its URL values (a dict), its label and a one-line summary ('' for none)."""
 
-Term = namedtuple("Term", "text endpoint values")
-"""namedtuple: A word or phrase a description may mention, and the help page (endpoint and URL values) it links to."""
+Term = namedtuple("Term", "text endpoint values after", defaults=("",))
+"""namedtuple: A word or phrase a description may mention, and the help page (endpoint and URL values) it links to. `after` is text that must come right before it (a bare number is a term only after "Class "); the linker leaves it outside the link."""
 
 Category = namedtuple("Category", "slug title summary order")
 
