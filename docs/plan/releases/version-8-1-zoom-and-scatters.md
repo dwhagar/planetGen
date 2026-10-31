@@ -286,10 +286,9 @@ Boss, 5:42 PM EDT 2026-10-23: build the entire GEN.445 chain in 8.1; testing mod
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| DOC.19 | After UX.102: document the log output standard for the CLI, the Generate page and admin logs |  |  |
 | DOC.50 | Docs: the schema, the multi-star note and the catalogue say where the members live | GEN.264, TEST.164 | Multi-star systems at scatter time, Boss 2026-10-15. Step 10. Quality. |
 | DOC.51 | Docs: the cell key in the coordinate system and schema docs, the region note moves to built, the API states the cap and the ladder |  | Spherical region query, stage C. Step 8. Quality. |
-| DOC.18 | Last pass: re-run the documentation sweep when the other DOC items are done and Phase 1 is complete | DOC.19, DOC.50, DOC.51 |  |
+| DOC.18 | Last pass: re-run the documentation sweep when the other DOC items are done and Phase 1 is complete | DOC.50, DOC.51 |  |
 
 ### Globular clusters
 
@@ -666,7 +665,6 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | API.33 | API field descriptions, the help pages and the CLI output: every number states its unit (scan) (bug) |  |  |
 | TEST.389 | test_golden_seed one-versus-four-workers reports a sector-structure difference after epoch 101 (GEN.512); unconfirmed, the clean-main run timed out at 900 s (bug) |  |  |
 | TEST.387 | test_db_column_round_trip::test_every_column_is_written fails when a random batch has no disk star: stars.disk_inner_au, disk_kind, disk_mass_solar and disk_outer_au are NULL in every row (bug) |  |  |
-| UX.224 | A planet's chips and description never show Habitable, Inhabited and Habitable class together: only the most specific one (bug) |  |  |
 | GEN.835 | The tidal heat flux (tidal_flux_w_m2) is wired into the ground draw's sulfur rule |  |  |
 | TEST.391 | Two tests red on a clean main: the surface water a planet keeps (runaway_history) and the 95 percent abiotic oxygen bound (atmosphere_mixture_escape) (bug) |  |  |
 | DB.101 | Storage and units for every physics rectification output: a column, a column_units entry and a migration shipped with its item |  |  |

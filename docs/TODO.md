@@ -860,29 +860,6 @@ with `clamp()`.
   it, confirmed with TODO, one lock-free item at a time.
   Prerequisites: GEN.799. Related: UX.214, UX.143, UX.187.
 
-- [ ] **UX.224 A planet's chips and description never show Habitable, Inhabited and Habitable class together: only the most specific one (bug)**
-  Boss, 10:33 PM EDT 2026-10-24 (relayed by the coordinator): "should
-  never have both Habitable, Inhabited, and Habitable Class in a
-  planet's chips or description since Inhabited means it is both
-  inhabitable and a habitable class." web/lib/habitability_chips.py
-  chips_html adds Habitable, Habitable class and Inhabited
-  independently, so an inhabited habitable-class world shows all three;
-  the same holds for the moon chips and for the description text that
-  names them. Do: show only the most specific of the three (Inhabited
-  over Habitable over Habitable class), likewise Habitable moon over
-  Habitable-class moon, in the chips on pages, lists, search and the
-  infobox, and make the description say it once; update the chip help
-  (habitability_ref.CHIPS) so Inhabited says it is habitable and of a
-  habitable class. Done: a unit test for every combination of the three
-  flags and a browser test on an inhabited world showing one chip.
-  Version 8.1. Owner: Aux 6 (chips and description), with Aux 3 if the
-  flag logic sits in habitability. Rules: no backward-compat shims;
-  every number has a unit or scale (GEN.772); draws through draw.py; a
-  changed generated value carries `tests.golden_update --reason ...
-  --affects <stage>` and the next epoch; tests are `scripts/test.py
-  changed --resume`; stand-ins get GEN.725 registry rows.
-  Prerequisites: none. Related: UX.100, UX.181, GEN.643.
-
 - [ ] **UX.225 Search, object lists, Nearby and /api/search filter and sort on every stored physical number: gravity, temperature, pressure, orbit, day, star mass, dose, field, ocean depth, moon count and gases (G4)**
   Unused stored values audit (the "Find stored values nothing uses"
   thread, report reports/unused-stored-values-audit-2026-10-24.md,
@@ -13574,6 +13551,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   radius-settled one (recommended, physics-driven); (3) replace the
   clock with BHAC15. Boss decides; not started until he picks. Owner
   Sources 2.
+  Decided (Boss, 9:25 AM EDT 2026-10-31) (9:25 AM EDT 2026-10-31):
+  option 2 of the item, the recommended one: report both a
+  radius-settled time (BHAC15) and a nuclear-arrival time, store both,
+  and let classification use the radius-settled one. Owner changed from
+  Sources 2 to Aux 7, who builds it (output change, rides a train).
   Prerequisites: none. Related: GEN.1169, GEN.947.
 
 - [ ] **GEN.1175 Porosity weakening of body strength from a sourced law instead of the placeholder exponential**
@@ -19332,25 +19314,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Owner (housekeeping) (2026-10-30 2:55 PM EDT): released to the pool:
   the owner named above (Core 5) is a retired lane. A waiting lane takes
   it, confirmed with TODO, one lock-free item at a time.
-
-- [ ] **DOC.19 After UX.102: document the log output standard for the CLI, the Generate page and admin logs**
-  Requested by the coordinator from Boss's instruction of 2026-10-14
-  18:06Z to compare the docs with merged work. UX.102 sets one logging
-  standard (timestamps, format, dividers, step markers) for everything
-  the user or an admin reads; once it is built, docs/reference/cli.md,
-  docs/reference/html-interface.md (Generate page and job log) and docs/reference/testing.md
-  need a short section on it. Done: the standard is described once and
-  the three docs link to it.
-  Owner: Core 5 (proposed, 2026-10-17, 10:54 PM EDT, relayed by the coordinator: Core 2 confirmed it has no code on
-  this item and asked to drop it; it was Core 2's by the 10:06 AM EDT lane assignment).
-  Order on Core 5's lane (Boss's card, 2026-10-17, 10:57 PM EDT as the coordinator
-  relayed): after PERF.135 and the command follow-ups (PERF.99, PERF.100, DB.29,
-  PERF.120 to PERF.128), and after the DOC.18 sweep (Boss's 'Sweep first').
-  Decided (Boss, 2026-10-17, 10:57 PM EDT, two cards answered in the
-  project chat, relayed by the coordinator): 'Sweep first': the DOC.18
-  sweep no longer waits on this item; it is written after the logging
-  standard (UX.121, UX.122, UX.123, TEST.183) is built. Core 5 is its
-  proposed owner, after the command follow-ups.
 
 - [ ] **DOC.50 Docs: the schema, the multi-star note and the catalogue say where the members live**
   Step 10 (design note 11 item 10). `database-schema.md` (the two new
