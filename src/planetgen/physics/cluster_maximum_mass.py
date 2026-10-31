@@ -20,10 +20,11 @@ import math
 
 from planetgen import tuning
 from planetgen.physics import constants
+from planetgen.physics import unit_registry as units
 
 _PC_M = constants.PARSEC_M
 _MYR_S = constants.SECONDS_PER_YEAR * 1.0e6
-_G_PC3_MSUN_MYR2 = constants.G * constants.SOLAR_MASS_TO_KG * _MYR_S ** 2 / _PC_M ** 3
+_G_PC3_MSUN_MYR2 = constants.G * units.converter("Msun", "kg")(1.0) * _MYR_S ** 2 / _PC_M ** 3
 """float: The gravitational constant in parsecs cubed per solar mass per Myr squared (4.5e-3)."""
 _CM2_S3_TO_PC2_MYR3 = 1.0e-4 * _MYR_S ** 3 / _PC_M ** 2
 
