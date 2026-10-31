@@ -2,6 +2,41 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3017] - 2026-10-31
+
+**Headline:** The test of the black-widow and redback spiders now expects the post-common-envelope history the generator gives them, which is the physics.
+
+### Changed
+- **`test_accreting_compact_binaries` spider case (TEST.539).** It expected `detached` for the pulsar-and-companion pair of a spider, a label from before the pair history rule (GEN.1012, `pair_history.must_be_post_common_envelope`). A pair with a period of hours cannot have held the pulsar's giant progenitor, whose largest radius is far beyond the whole orbit, so the generator is right to call it `post-common-envelope` (the usual route to a low-mass X-ray binary and then a spider); the test is the side that was wrong. The generator is unchanged.
+
+No generator output changes.
+
+generation-output: unchanged
+
+TODO items resolved: TEST.539.
+
+## [8.0.3016] - 2026-10-31
+
+**Headline:** The eight tide and surface-liquid functions that only tests called are wired, registered with the item that will call them, or deleted.
+
+### Changed
+- **TEST.526.** `orbit_elements` now takes the frequency of the eccentricity tide from `tidal_rheology.tidal_frequency_rad_s` (the orbital rate, the same number as before). `moon_orbits.tidal_power_w` and `surface_liquids.liquid_ids` had no caller and are deleted. `moon_orbits.drift_rate_m_s` is registered `by design` (the tests hold the Earth-Moon, Phobos and Triton recession to it), `surface_liquids.stable_liquids`, `ideal_sea` and `sea_density_kg_m3` are registered to GEN.1218 (the second liquid and mixed seas) and `habitability_world.harshness` to POP.38. None of the eight names TEST.520 in the wiring register now.
+
+generation-output: unchanged
+
+TODO items advanced: TEST.526.
+
+## [8.0.3015] - 2026-10-31
+
+**Headline:** The stand-ins for how much of each element a planet's volcanoes bring up point at a test that exists again.
+
+### Changed
+- **TEST.538.** The deletion sweep of TEST.524 removed the one test the stand-in rows AM28 (hydrogen degassing efficiency) and AM29 (carbon, nitrogen, argon and sulfur efficiencies) named as their falsifier. A test in `test_surface_air.py` now checks the efficiencies where the air uses them: the hydrogen draw stays in its registered bracket and is recorded, carbon, nitrogen and argon are degassed in full, sulfur at a half, and the share the surface holds is the heat released times each of them (and nothing when no heat was released). Both rows point at it.
+
+generation-output: unchanged
+
+TODO items advanced: TEST.538.
+
 ## [8.0.3014] - 2026-10-31
 
 **Headline:** The pages that will explain where the numbers come from have one address scheme, one link helper, and a word check that keeps the doubt words out of the rest of the site.

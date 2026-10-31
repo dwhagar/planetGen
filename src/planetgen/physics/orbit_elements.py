@@ -50,7 +50,7 @@ import math
 from scipy import special
 
 from planetgen import tuning
-from planetgen.physics import clearance_ledger, constants, interior_heat
+from planetgen.physics import clearance_ledger, constants, interior_heat, tidal_rheology
 from planetgen.util import draw
 
 MULTI_SIGMA = 0.083
@@ -201,7 +201,7 @@ def circularisation_time_yr(body, primary_mass_kg, semi_major_axis_au):
         return math.inf
     a_m = semi_major_axis_au * constants.AU_TO_M
     n = math.sqrt(constants.G * primary_mass_kg / a_m ** 3)
-    k2, q = interior_heat.tidal_response(body, n)
+    k2, q = interior_heat.tidal_response(body, tidal_rheology.tidal_frequency_rad_s(n))
     seconds = (2.0 / 21.0) * (q / k2) * (body.mass / primary_mass_kg) * (a_m / (body.radius * 1000.0)) ** 5 / n
     return seconds / constants.SECONDS_PER_YEAR
 
