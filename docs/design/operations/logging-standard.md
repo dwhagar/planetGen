@@ -1,7 +1,7 @@
 # The logging standard (UX.121)
 
 Informs: UX.102 (the umbrella), UX.121, UX.122, UX.123, TEST.183, DOC.19
-Status: the layer is built (`planetgen/util/logrecord.py`, `src/tests/test_logrecord.py`, UX.121). The command line's log channel, the run record's log file, the job runner's stage marks and records file, the finish and failure marks of `generate`'s stages, and the job-step commands (`datasets`, `reset`, `orbits`) are on it (UX.122); the activity log keeps its own line by decision (below); the Generate page's log, the queue run page and `update.sh`'s own output are on it (UX.123, `scripts/logrecord.sh`); the enforcement test is TEST.183 (`src/tests/test_no_own_log_formatting.py`, built).
+Status: the layer is built (`planetgen/util/logrecord.py`, `src/tests/test_logrecord.py`, UX.121). The command line's log channel, the run record's log file, the job runner's stage marks and records file, the finish and failure marks of `generate`'s stages, and the job-step commands (`datasets`, `reset`, `orbits`) are on it (UX.122); the activity log keeps its own line by decision (below); the Generate page's log, the queue run page and `update.sh`'s own output are on it (UX.123, `scripts/logrecord.sh`); the enforcement test is TEST.183 (`src/tests/test_no_own_log_formatting.py`, built). The reader's reference is [`docs/reference/logging.md`](../../reference/logging.md) (DOC.19).
 
 ## What it is for
 
