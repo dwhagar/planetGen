@@ -371,8 +371,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | function | planetgen.generation.belt_birth.is_inner | by design | the inner-belt test (a belt ending within 1.2 snow lines) the census of GEN.1156 counts with; the prevalence suites and the tests call it, generation does not need the word |
 | function | planetgen.physics.belt_origin.conservation_error | by design | the check that a belt's formed mass equals what is left plus what the giants cleared and what was scattered; the tests hold every generated belt to it |
 | function | planetgen.physics.belt_origin.destroyed_planet | GEN.1072 | the `Debris` of a planet the star's history destroyed; the engulfment and white dwarf belt events of GEN.1072 pass it to `belt_origin.build` |
-| function | planetgen.physics.clearance_ledger.log_uniform_quantile | GEN.1014 | the ledger's log-uniform draw across the windows a planet or moon may take; read when the sampling from the ledger lands |
-| function | planetgen.physics.clearance_ledger.moon_window_km | GEN.1014 | a moon's window about its planet; read when the moon sampling from the ledger lands |
 | function | planetgen.physics.planet_zones.flux_at | GEN.129 | the light on a planet of a window's host from every star of the tree; the multi-star planet climate reads it (design 5.6, 6.5) |
 | function | planetgen.physics.proton_range.csda_range_g_cm2 | GEN.444 | the proton range table of the shielding of GEN.444 (the data file is read through this function) |
 | function | planetgen.physics.rprocess_enrichment.effective_duration_gy | by design | the inverse of constant_input_factor by bisection, read by test_rprocess_enrichment to state a history as a duration |
@@ -409,3 +407,4 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | function | planetgen.physics.radiation_belts.equatorial_field_t | TEST.520 | only tests call it; wire it into the code that needs it or delete it (TEST.520 first sweep) |
 | function | planetgen.physics.photometry.bolometric_correction_v | VIEW.11 | the VIEW.11 photometry library is the reader: apparent magnitude on a star page reads it when VIEW.11 is built |
 | function | planetgen.physics.species_thermo.log10_k | by design | the reference the equilibrium tests check the gas-equilibrium code against; only tests run it (TEST.524) |
+| function | planetgen.physics.clearance_ledger.log_uniform_quantile | GEN.1068 | the belt placer draws a belt's distance log-uniformly over the spans the ledger leaves open; read when belt birth (GEN.1068) samples from the ledger |
