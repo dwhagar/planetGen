@@ -30,6 +30,11 @@ a body with a bump on it (the longest axis `f` times the mean radius) is made le
    Porosity is `none`: meteorites show no clear strength trend with porosity (Pohl and Britt 2020). An `exponential` rule (ceramics-based, a recalled placeholder) is built and off; with it
    Proteus (a porous ice-rich moon, 210 km, not round) would come out round. Not yet in the table: methane clathrate (20 to 30 times the strength of ice), solid CO2, ammonia ices and the
    other ice phases, and the rubble-pile branch (friction plus a little cohesion, a shape-set temperature and no size threshold).
+   **Rubble piles.** A pile of pieces (`structure="rubble"`) holds together by friction and a little cohesion, not by the strength of rock. Friction grows with the pressure, and the pressure at
+   the centre grows as the square of the radius, just as the stress that would level a bump does, so with a friction angle over about 5.5 degrees a cold pile never turns round at any size: its
+   roundness ratio stays near 0.28. It rounds only if it took its shape weak from heat (`heated`, the table's hot strength of 1 to 4 MPa) or, for an icy pile, at the creep strength of its ice at
+   the `temperature_k` its shape was set at. Friction angle 35 degrees (30 to 40) and cohesion 44 to 210 Pa are from the studies of fast-spinning asteroids (1950 DA, Rozitis and others 2014;
+   Hirabayashi and Scheeres). The failure stress is a Mohr-Coulomb fit (`RUBBLE_RULES`); a body's intact crystals (olivine, about 10 GPa) are never used for any of this.
 3. **Binding energy** is in `binding_energy.py`.
 
 The ice fraction is the share of the body's mass that is water or ice (`makeup.water + makeup.ice` of a small body). Only solid bodies have a roundness or a strength: a gas giant or a star
@@ -43,6 +48,7 @@ Use:
     ratio = roundness_ratio(radius_m, density_kg_m3, ice_fraction)           # 1.0 or more is round; metal_fraction, porosity and temperature_k are optional
     sigma = yield_strength_pa(ice_fraction, metal_fraction, porosity, temperature_k)
     ratio = roundness_ratio_from_mass(mass_kg, density_kg_m3, ice_fraction)
+    ratio = roundness_ratio(radius_m, density_kg_m3, ice_fraction, structure="rubble", heated=False)       # a pile of rubble
 """
 
 import json
@@ -78,6 +84,7 @@ class StrengthTable:
     mixing: dict
     porosity: dict
     temperature: dict
+    rubble: dict
 
 
 def stress_coefficient(sphericity_factor):
@@ -118,13 +125,20 @@ def load_table(document):
             if target not in strengths:
                 raise RoundnessError(f"{name} needs a strength or a 'same_as' material that has one")
             strengths[name] = strengths[target]
-    mixing, porosity, temperature = document.get("mixing") or {}, document.get("porosity") or {}, document.get("temperature") or {}
+    mixing, porosity, temperature, rubble = document.get("mixing") or {}, document.get("porosity") or {}, document.get("temperature") or {}, document.get("rubble") or {}
     if mixing.get("rule") not in MIXING_RULES:
         raise RoundnessError(f"the mixing rule must be one of {sorted(MIXING_RULES)}")
     if porosity.get("rule") not in POROSITY_RULES:
         raise RoundnessError(f"the porosity rule must be one of {sorted(POROSITY_RULES)}")
     if temperature.get("rule") not in TEMPERATURE_RULES:
         raise RoundnessError(f"the temperature rule must be one of {sorted(TEMPERATURE_RULES)}")
+    if rubble.get("rule") not in RUBBLE_RULES:
+        raise RoundnessError(f"the rubble rule must be one of {sorted(RUBBLE_RULES)}")
+    if rubble["rule"] == "mohr-coulomb":
+        if not 0.0 < _positive(rubble.get("friction_angle_deg"), "friction_angle_deg") < 90.0:
+            raise RoundnessError("the friction angle lies between 0 and 90 degrees")
+        _positive(rubble.get("cohesion_pa"), "cohesion_pa")
+        _positive(rubble.get("hot_strength_pa"), "hot_strength_pa")
     if mixing["rule"] == "exp-volume":
         _positive(mixing.get("exponent"), "exponent")
         tested, packing = _positive(mixing.get("tested_to"), "tested_to"), _positive(mixing.get("close_packing"), "close_packing")
@@ -141,7 +155,7 @@ def load_table(document):
                 raise RoundnessError("each creep regime needs 'log10_a'")
             _positive(regime.get("n"), "n")
             _positive(regime.get("e_kj_mol"), "e_kj_mol")
-    return StrengthTable(strengths, factor, mixing, porosity, temperature)
+    return StrengthTable(strengths, factor, mixing, porosity, temperature, rubble)
 
 
 def _ice_creep_law(table, ice_strength_pa, temperature_k):
@@ -194,6 +208,20 @@ POROSITY_RULES = {
     "exponential": lambda table, strength, porosity: strength * math.exp(-_positive(table.porosity["coefficient"], "coefficient") * porosity),
 }
 """dict: Rules for what voids do to the strength, each `(table, strength_pa, porosity)` -> Pa. `none` leaves it to the density; `exponential` is `sigma exp(-b phi)` with `b` in the file (4 to 7 in the research). [Stand-in RN5, tier T3, tweak L3.]"""
+
+
+def _mohr_coulomb(table):
+    """The strength of a friction-limited pile of rubble as `(b, a)`: the differential stress it fails at, at the centre of a body, is `b + a G rho^2 R^2` Pa. Mohr-Coulomb with a confining
+    pressure of the centre's `(2 pi / 3) G rho^2 R^2`: `(2 c cos(phi) + 2 P sin(phi)) / (1 - sin(phi))` for cohesion `c` and friction angle `phi`. The cohesion is `b`, the part that does not
+    grow with the body; the friction `a` grows as its square, as the bump's stress does."""
+    rule = table.rubble
+    phi = math.radians(_positive(rule["friction_angle_deg"], "friction_angle_deg"))
+    cohesion = _positive(rule["cohesion_pa"], "cohesion_pa")
+    return 2.0 * cohesion * math.cos(phi) / (1.0 - math.sin(phi)), (2.0 * math.pi / 3.0) * 2.0 * math.sin(phi) / (1.0 - math.sin(phi))
+
+
+RUBBLE_RULES = {"mohr-coulomb": _mohr_coulomb}
+"""dict: Rules for the strength of a pile of rubble, each `(table)` -> `(b, a)` for a failure stress of `b + a G rho^2 R^2` Pa. [Stand-in RN8 (friction angle, cohesion) and RN9 (hot strength).]"""
 
 
 def _read_table(path=DATA_FILE):
@@ -250,6 +278,55 @@ def round_mass_kg(density_kg_m3, ice_fraction, metal_fraction=0.0, porosity=0.0,
     return 4.0 / 3.0 * math.pi * round_radius_m(density_kg_m3, ice_fraction, metal_fraction, porosity, temperature_k) ** 3 * density_kg_m3
 
 
+STRUCTURES = ("monolith", "rubble")
+"""tuple: How a solid body holds together: `monolith` is a coherent body with the strength of its material; `rubble` is a pile of pieces held by friction and a little cohesion."""
+
+
+def _heated_strength_pa(ice_fraction, metal_fraction, porosity, temperature_k, heated):
+    """The strength a rubble pile has if its shape was set while it was weak from heat, Pa, or None: `heated` is a rubble pile that was hot or partly molten when it took its shape (the table's
+    `hot_strength_pa`); an ice-bearing pile with a shape-set `temperature_k` creeps at the strength of its ice and rock mix at that temperature. The weakest governs."""
+    found = []
+    if heated:
+        found.append(_positive(TABLE.rubble["hot_strength_pa"], "hot_strength_pa"))
+    if temperature_k is not None and ice_fraction > 0.0:
+        found.append(yield_strength_pa(ice_fraction, metal_fraction, porosity, temperature_k))
+    return min(found) if found else None
+
+
+@finite_domain()
+def rubble_strength_pa(radius_m, density_kg_m3, ice_fraction=0.0, metal_fraction=0.0, porosity=0.0, temperature_k=None, heated=False):
+    """The differential stress, Pa, that a pile of rubble of this size and density fails at: the friction-limited stress at its centre (`RUBBLE_RULES`), or the strength it has from the heat its
+    shape was set in (`heated`, `temperature_k` of an ice-bearing pile), whichever is smaller. Friction grows with the pressure, so as the body grows its strength grows as fast as the stress that
+    would level a bump: a cold pile does not become round by being large."""
+    if not (radius_m > 0.0 and density_kg_m3 > 0.0):
+        raise ValueError("the radius and the density must be positive")
+    ice, metal, voids = _share(ice_fraction, "ice fraction"), _share(metal_fraction, "metal fraction"), _share(porosity, "porosity")
+    cohesive, friction = RUBBLE_RULES[TABLE.rubble["rule"]](TABLE)
+    failure = cohesive + friction * constants.G * density_kg_m3 ** 2 * radius_m ** 2
+    hot = _heated_strength_pa(ice, metal, voids, temperature_k, heated)
+    return failure if hot is None else min(failure, hot)
+
+
+@finite_domain()
+def rubble_round_radius_m(density_kg_m3, ice_fraction=0.0, metal_fraction=0.0, porosity=0.0, temperature_k=None, heated=False):
+    """The mean radius at which a pile of rubble turns round, m: where the stress of a bump, `K G rho^2 R^2`, reaches the smaller of the heat-set strength and the friction-limited failure stress.
+    Refused (`ValueError`) for a cold pile, which never rounds with a friction angle above about 5.5 degrees at any size."""
+    if not density_kg_m3 > 0.0:
+        raise ValueError("the density must be positive")
+    ice, metal, voids = _share(ice_fraction, "ice fraction"), _share(metal_fraction, "metal fraction"), _share(porosity, "porosity")
+    bump = stress_coefficient(TABLE.sphericity_factor) * constants.G * density_kg_m3 ** 2
+    cohesive, friction = RUBBLE_RULES[TABLE.rubble["rule"]](TABLE)
+    reaches = []
+    hot = _heated_strength_pa(ice, metal, voids, temperature_k, heated)
+    if hot is not None:
+        reaches.append(math.sqrt(hot / bump))
+    if bump > friction * constants.G * density_kg_m3 ** 2:
+        reaches.append(math.sqrt(cohesive / (bump - friction * constants.G * density_kg_m3 ** 2)))
+    if not reaches:
+        raise ValueError("a friction-limited pile of rubble with no heat-set strength never turns round")
+    return min(reaches)
+
+
 @finite_domain()
 def bulk_density_kg_m3(mass_kg, radius_m):
     """The mean density of a body of this mass and mean radius, kg/m3."""
@@ -259,20 +336,26 @@ def bulk_density_kg_m3(mass_kg, radius_m):
 
 
 @finite_domain()
-def roundness_ratio(radius_m, density_kg_m3, ice_fraction, metal_fraction=0.0, porosity=0.0, temperature_k=None):
-    """The body's mean radius over its round radius: 1 or more is round (`is_round`), less is not, and the number says how far."""
+def roundness_ratio(radius_m, density_kg_m3, ice_fraction, metal_fraction=0.0, porosity=0.0, temperature_k=None, structure="monolith", heated=False):
+    """The body's mean radius over its round radius: 1 or more is round (`is_round`), less is not, and the number says how far. For a `rubble` pile the ratio is the square root of the bump's
+    stress over the pile's failure stress (`rubble_strength_pa`), which is the same number in the same sense; it stays under 1 for a cold pile at any size."""
     if not radius_m > 0.0:
         raise ValueError("the radius must be positive")
+    if structure not in STRUCTURES:
+        raise ValueError(f"unknown structure {structure!r}")
+    if structure == "rubble":
+        bump = stress_coefficient(TABLE.sphericity_factor) * constants.G * density_kg_m3 ** 2 * radius_m ** 2
+        return math.sqrt(bump / rubble_strength_pa(radius_m, density_kg_m3, ice_fraction, metal_fraction, porosity, temperature_k, heated))
     return radius_m / round_radius_m(density_kg_m3, ice_fraction, metal_fraction, porosity, temperature_k)
 
 
 @finite_domain()
-def roundness_ratio_from_mass(mass_kg, density_kg_m3, ice_fraction, metal_fraction=0.0, porosity=0.0, temperature_k=None):
+def roundness_ratio_from_mass(mass_kg, density_kg_m3, ice_fraction, metal_fraction=0.0, porosity=0.0, temperature_k=None, structure="monolith", heated=False):
     """`roundness_ratio` of a body known by its mass and bulk density (the radius of the sphere they make)."""
     if not (mass_kg > 0.0 and density_kg_m3 > 0.0):
         raise ValueError("the mass and the density must be positive")
     radius_m = (3.0 * mass_kg / (4.0 * math.pi * density_kg_m3)) ** (1.0 / 3.0)
-    return roundness_ratio(radius_m, density_kg_m3, ice_fraction, metal_fraction, porosity, temperature_k)
+    return roundness_ratio(radius_m, density_kg_m3, ice_fraction, metal_fraction, porosity, temperature_k, structure, heated)
 
 
 def is_round(ratio):

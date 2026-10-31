@@ -313,3 +313,100 @@ def test_a_table_that_is_wrong_is_refused(change):
 def test_the_metal_and_ice_fractions_cannot_exceed_the_whole_body():
     with pytest.raises(ValueError):
         rn.yield_strength_pa(0.7, metal_fraction=0.6)
+
+
+# --- the rubble-pile branch (GEN.1176) --------------------------------------------------------------------------------------------------
+
+def _with_rubble(monkeypatch, **changes):
+    document = copy.deepcopy(_document())
+    document["rubble"].update(changes)
+    monkeypatch.setattr(rn, "TABLE", rn.load_table(document))
+
+
+def test_the_rubble_numbers_are_the_researchs():
+    rule = rn.TABLE.rubble
+    assert rule["friction_angle_deg"] == 35.0
+    assert 44.0 <= rule["cohesion_pa"] <= 210.0
+    assert 1.0e6 <= rule["hot_strength_pa"] <= 4.0e6
+
+
+def test_the_failure_stress_is_mohr_coulomb_with_cohesion_and_the_centre_pressure():
+    phi, cohesion = math.radians(35.0), rn.TABLE.rubble["cohesion_pa"]
+    radius, density = 50.0e3, 2000.0
+    pressure = (2.0 * math.pi / 3.0) * G * density ** 2 * radius ** 2
+    expected = (2.0 * cohesion * math.cos(phi) + 2.0 * pressure * math.sin(phi)) / (1.0 - math.sin(phi))
+    assert rn.rubble_strength_pa(radius, density) == pytest.approx(expected)
+
+
+def test_a_cold_rubble_pile_is_never_round_at_any_size():
+    ratios = [rn.roundness_ratio(radius, 2500.0, 0.0, structure="rubble") for radius in (1.0e2, 1.0e4, 3.0e5, 1.0e7)]
+    assert max(ratios) < 0.3
+    assert all(not rn.is_round(ratio) for ratio in ratios)
+    assert rn.roundness_ratio(1.0e7, 2500.0, 0.0, structure="rubble") == pytest.approx(rn.roundness_ratio(1.0e6, 2500.0, 0.0, structure="rubble"), rel=1e-3)   # size-free at large size
+
+
+def test_a_cold_rubble_pile_of_ceres_size_is_not_round_but_the_same_monolith_is():
+    assert not rn.is_round(rn.roundness_ratio(469.7e3, 2161.0, 0.18, structure="rubble"))
+    assert rn.is_round(rn.roundness_ratio(469.7e3, 2161.0, 0.18))
+
+
+def test_a_hot_rubble_pile_rounds_at_the_hot_strength():
+    radius = rn.rubble_round_radius_m(2500.0, heated=True)
+    assert radius == pytest.approx(math.sqrt(rn.TABLE.rubble["hot_strength_pa"] / (rn.stress_coefficient(rn.TABLE.sphericity_factor) * G * 2500.0 ** 2)))
+    assert rn.is_round(rn.roundness_ratio(radius * 1.01, 2500.0, 0.0, structure="rubble", heated=True))
+    assert not rn.is_round(rn.roundness_ratio(radius * 0.99, 2500.0, 0.0, structure="rubble", heated=True))
+    assert radius < rn.round_radius_m(2500.0, 0.0)                         # weaker than the cold monolith, so it rounds at a smaller size
+
+
+def test_an_icy_rubble_pile_that_took_its_shape_warm_rounds_like_the_ice_creeps():
+    warm = rn.rubble_round_radius_m(1000.0, 1.0, temperature_k=200.0)
+    assert warm == pytest.approx(rn.round_radius_m(1000.0, 1.0, temperature_k=200.0))
+    assert rn.rubble_round_radius_m(1000.0, 1.0, temperature_k=100.0) > warm      # colder ice is stronger, so a larger body is needed
+    with pytest.raises(ValueError):
+        rn.rubble_round_radius_m(1000.0, 1.0)                                   # no shape-set temperature: friction only
+
+
+def test_a_cold_rubble_pile_has_no_round_radius():
+    with pytest.raises(ValueError):
+        rn.rubble_round_radius_m(2500.0)
+
+
+def test_rock_with_a_shape_set_temperature_and_no_ice_is_not_made_weak_by_it():
+    assert rn.rubble_strength_pa(100.0e3, 2500.0, 0.0, temperature_k=150.0) == rn.rubble_strength_pa(100.0e3, 2500.0)
+
+
+def test_a_shallow_enough_friction_angle_does_let_a_pile_round_by_size(monkeypatch):
+    _with_rubble(monkeypatch, friction_angle_deg=3.0)
+    assert rn.is_round(rn.roundness_ratio(1.0e6, 2500.0, 0.0, structure="rubble"))
+    assert math.isfinite(rn.rubble_round_radius_m(2500.0))
+
+
+def test_the_ratio_from_mass_takes_the_structure():
+    mass = 4.0 / 3.0 * math.pi * (100.0e3) ** 3 * 2500.0
+    assert rn.roundness_ratio_from_mass(mass, 2500.0, 0.0, structure="rubble", heated=True) == pytest.approx(
+        rn.roundness_ratio(100.0e3, 2500.0, 0.0, structure="rubble", heated=True))
+
+
+def test_an_unknown_structure_or_a_bad_rubble_input_is_refused():
+    with pytest.raises(ValueError):
+        rn.roundness_ratio(1.0e5, 2500.0, 0.0, structure="sponge")
+    for bad in (0.0, -1.0, float("nan")):
+        with pytest.raises(ValueError):
+            rn.rubble_strength_pa(bad, 2500.0)
+    with pytest.raises(ValueError):
+        rn.rubble_strength_pa(1.0e5, 2500.0, ice_fraction=1.5)
+
+
+@pytest.mark.parametrize("change", [
+    lambda d: d.pop("rubble"),
+    lambda d: d["rubble"].__setitem__("rule", "sand"),
+    lambda d: d["rubble"].__setitem__("friction_angle_deg", 95.0),
+    lambda d: d["rubble"].__setitem__("friction_angle_deg", 0.0),
+    lambda d: d["rubble"].pop("cohesion_pa"),
+    lambda d: d["rubble"].pop("hot_strength_pa"),
+])
+def test_a_wrong_rubble_table_is_refused(change):
+    document = copy.deepcopy(_document())
+    change(document)
+    with pytest.raises(rn.RoundnessError):
+        rn.load_table(document)

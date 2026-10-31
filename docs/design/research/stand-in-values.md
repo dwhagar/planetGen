@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 861 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 863 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -37,15 +37,15 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
 | T1 | 135 | 11 | 7 | 1 | 0 | 154 |
-| T2 | 111 | 28 | 0 | 1 | 0 | 140 |
+| T2 | 111 | 29 | 0 | 1 | 0 | 141 |
 | T3 | 77 | 32 | 5 | 12 | 0 | 126 |
 | T4 | 36 | 4 | 0 | 14 | 10 | 64 |
 | T5 | 42 | 14 | 0 | 1 | 0 | 57 |
-| T6 | 70 | 55 | 14 | 42 | 0 | 181 |
+| T6 | 70 | 55 | 14 | 43 | 0 | 182 |
 | T7 | 26 | 8 | 8 | 8 | 0 | 50 |
 | T8 | 0 | 1 | 1 | 5 | 2 | 9 |
 | T9 | 13 | 6 | 4 | 38 | 19 | 80 |
-| All | 510 | 159 | 39 | 122 | 31 | 861 |
+| All | 510 | 160 | 39 | 123 | 31 | 863 |
 
 ## How the labels were given
 
@@ -1337,6 +1337,8 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | BE2 | D | T1 | L0 | binding_energy.POLYTROPE_INDEX_GAS_GIANT 1: a gas giant is an n = 1 polytrope | none | gas giants | a giant whose interior solution differs from n = 1 | `giant_interior` layers | the central pressure formula and `giant_interior` already use n = 1 | GEN.1159 | - |
 | BE3 | D | T1 | L0 | binding_energy.POLYTROPE_INDEX_CONVECTIVE 1.5: a fully convective star, a brown dwarf and a white dwarf are n = 3/2 | none | convective stars, brown dwarfs, white dwarfs below the relativistic limit | a heavy white dwarf (under by up to 43 percent near the Chandrasekhar mass) | a relativistic white dwarf structure factor | Lane-Emden; Chandrasekhar 1939 | GEN.1159 | - |
 | BE4 | D | T2 | L1 | binding_energy.POLYTROPE_INDEX_RADIATIVE 3: a star with a radiative core is the Eddington standard model; the Sun's own effective index is near 3.2 | 3 to 3.3 | stars over 0.35 solar masses | a stellar model whose binding energy differs by over 10 percent | a stellar structure table by mass | Eddington standard model (textbook) | GEN.1159 | - |
+| RN8 | D | T2 | L1 | roundness.RUBBLE_RULES mohr-coulomb, friction angle 35 degrees and cohesion 100 Pa: the failure stress of a pile of rubble, `(2 c cos(phi) + 2 P sin(phi)) / (1 - sin(phi))` with the centre pressure P | friction 30 to 40 degrees; cohesion 44 to 210 Pa | rubble piles, kilometre to hundreds of km | a cold pile of rubble over 100 km that is observed round | measured cohesion and friction of an asteroid regolith (Hayabusa2, OSIRIS-REx samples) | Hirabayashi and Scheeres (arXiv 1411.5926, READ), Rozitis, MacLennan and Emery 2014 (READ), Sanchez and Scheeres 2014, Walsh 2018 (READ); friction angle from Lambe and Whitman 1969 (quoted) | GEN.1159 | - |
+| RN9 | P | T6 | L3 | roundness.RUBBLE_RULES hot strength 2.5 MPa (`hot_strength_pa` in roundness_strengths.json): the strength of a pile that took its shape hot or partly molten | 1 to 4 MPa | rubble piles that were heated at formation | a heated rubble pile whose measured shape needs another strength | a thermal history of the body that sets its strength at shape-setting | `reports/planetary-material-strength-2026-10-31.md` section 7 (an educated guess from physics; Lineweaver and Norman note formative strengths were lower) | GEN.1159 | no data |
 
 ## 6.94 Stand-ins of the irregular zone
 
