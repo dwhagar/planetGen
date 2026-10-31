@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2848] - 2026-10-31
+
+**Headline:** The rate of the biggest solar particle events now comes from the isotope record in tree rings and ice instead of a number recalled from memory.
+
+### Changed
+- **Solar particle event tail from the isotope record (GEN.946, batch 1).** `solar_particles.events_per_year_above` read a slope of 1.9 fitted to one Carrington-class event in 500 years. It now reads the rate of events of 1e10 protons per square centimetre above 30 MeV from Usoskin and Kovaltsov 2012 (four in 600 years of annual beryllium-10 data, 0.0077 a year, 90 percent interval 0.0032 to 0.015) with their power law of -4 for larger ones, so the Carrington event itself, which those data do not support, no longer sets the rate. Nothing in the generator reads this function yet, so no generated value changes. Two more rows of the stand-in registry now cite the papers they were recalled from (accretion spread of planetesimals, Lichtenberg et al. 2021; the lightest planet beyond the snow line, Suzuki et al. 2016) and take a lower tier.
+
 ## [8.0.2847] - 2026-10-31
 
 **Headline:** The star property sheet now says which stars have a widest stable orbit (the stars of a wide pair and the further members of a system, not a single star or a close pair), and the comet rule is confirmed.
