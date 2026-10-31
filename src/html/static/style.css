@@ -5810,8 +5810,31 @@ p.hint a {
   text-align: left;
 }
 
-.life-facts {
+.life-facts,
+.life-help-facts {
   margin: 0.5rem 0;
+}
+
+.life-help-facts dt {
+  font-weight: 600;
+}
+
+.life-help-facts dd {
+  margin: 0 0 0.4rem;
+}
+
+.life-help-nav ul {
+  list-style: none;
+  margin: 0 0 0.75rem;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1rem;
+}
+
+a.help-mark {
+  font-weight: 600;
+  margin-left: 0.15rem;
 }
 
 .life-facts dt {

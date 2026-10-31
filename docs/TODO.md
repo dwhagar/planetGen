@@ -716,13 +716,6 @@ with `clamp()`.
   test filters by class and by colour.
   Prerequisites: DB.90, GEN.647. Related: UX.100, MAP.220, GEN.430.
 
-- [ ] **UX.158 Info panel line: how this colour was worked out, which inputs and whether partial or full quality**
-  A short line in the info panel naming the inputs. Design draft
-  design-drafts/body-rendering-from-composition-2026-10-24.md (section
-  10), filed by the body-rendering design thread, 10:18 PM EDT
-  2026-10-23 as the thread reported. Placement follows Boss's plan of 10:26 PM EDT 2026-10-23 (section 11 of the draft).
-  Prerequisites: none.
-
 - [ ] **UX.164 The wipe line reads "Wiped 75 tables (about 1 row)" (bug)**
   From the generation-log analysis of Boss's run
   job-20261024-031001-f81d (relayed 11:56 PM EDT 2026-10-23 as the lane
@@ -1104,7 +1097,7 @@ with `clamp()`.
   rewrite changes its own text to American spelling, and the number of
   "colour" uses (333 on the site) goes to zero. The word list and the
   checker change are made by Core 5 with the next guide edit.
-  Prerequisites: DOC.84. Related: UX.237, GEN.1208.
+  Prerequisites: none. Related: UX.237, GEN.1208.
 
 ## MAP: Galaxy Map, Sector Map, System Map
 
@@ -2088,7 +2081,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
    Design draft
   design-drafts/body-rendering-from-composition-2026-10-24.md (section
   11), Boss's plan of 10:26 PM EDT 2026-10-23.
-  Prerequisites: GEN.488.
+  Sources 2 (as the lane reported, 12:15 PM EDT) (2026-10-31 1:00 PM
+  EDT): not startable as written: the species behind the colours are not
+  stored, only the names of the three largest components. A lock-free
+  painter could only recolour the nucleus, which would be thrown away.
+  It now waits on the new item that stores the coma class and dominant
+  volatiles (the GEN item filed for this); Core 2 owns the painter.
+  Sources 2 does not take it now.
+  Prerequisites: GEN.488, GEN.1227.
 
 - [ ] **MAP.284 Night-side thermal glow on hot worlds, with no city lights until 9.2**
    Design draft
@@ -3646,6 +3646,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   The closest-approach library is unread until the orbital event writer
   lands, and the item had no owner. Owner now: Aux 7 (orbital update)
   (proposed by the TODO thread; the lane says if it cannot take it).
+  Aux 7 built the lock-free part (as the lane reported) (2026-10-31 1:10
+  PM EDT): branch claude/gen197 head 641b504a6 off main 0f63ebf22: new
+  planetgen/db/orbital_events.py (find_contact reads closest_approach,
+  resolve_contact uses collision_outcome, record_event writes
+  orbital_events and orbital_event_bodies from an Outcome with a mass
+  and momentum check and one activity-log line) and the ID rules (a
+  merger keeps the heavier body's ID, an ejected planet keeps its ID,
+  field and split fragments take new run-time IDs, counters never
+  reuse). No migration, no epoch, generation output unchanged; 9 tests
+  including a DB read-back. Two remainders stay open: the orbital update
+  that calls find_contact for every pair (broad phase), and turning an
+  ejected planet into a rogue_planets row (GEN.291 unbind).
   Prerequisites: none. Related: GEN.105, GEN.143, GEN.170.
 
 - [ ] **GEN.198 The gravity field evaluator: pull, potential and tidal gradient at any point from the point masses and the galaxy potential**
@@ -10449,6 +10461,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   The alpha-track module and its register row are unread until the track
   lookup is wired, and the item was in the pool. Owner now: Star 2
   (proposed by the TODO thread; the lane says if it cannot take it).
+  Star 2 (as the lane reported) (2026-10-31 12:50 PM EDT): the
+  alpha-track wiring itself merged as #4397 (GEN.1024). What remains
+  here is the age-metallicity relation and the thick-disc and halo alpha
+  tracks from the galaxy model; it changes stored output, so it rides a
+  train.
   Prerequisites: none. Related: GEN.405, GEN.652.
 
 - [ ] **GEN.745 Stellar spectra by temperature, gravity and activity (model atmospheres) instead of a blackbody with a seeded UV share**
@@ -14593,6 +14610,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   earlier note that cloud storage waited for an answer; all six surface
   liquid questions are now answered (1.1, 2.1, 3.1, 4.1, 5.1, 6.1, with
   4 and 5 to be tuned from physics by GEN.1225).
+  Boss asked for the ammonia gate and nitrogen ice amount to be tuned
+  from physics (2026-10-31 12:40 PM EDT): See the GEN.1225 findings in
+  GEN.1217 (report gen1225-ammonia-gate-and-nitrogen-ice-2026-10-31.md):
+  the ammonia gate follows the liquidus share, and nitrogen ice uses the
+  trapping factor and the partial-pressure condensation temperature.
   Prerequisites: none. Related: GEN.1035, GEN.888, GEN.862.
 
 - [ ] **GEN.1217 Design: the surface liquid composition model: what is stored (fractions of water, salts, acid, ammonia, CO2, hydrocarbons), how it is derived, and how life changes it**
@@ -14652,6 +14674,29 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   earlier note that cloud storage waited for an answer; all six surface
   liquid questions are now answered (1.1, 2.1, 3.1, 4.1, 5.1, 6.1, with
   4 and 5 to be tuned from physics by GEN.1225).
+  Boss asked for the ammonia gate and nitrogen ice amount to be tuned
+  from physics (2026-10-31 12:40 PM EDT): GEN.1225 research done by
+  Sources 1 (as the lane reported), report
+  /mnt/project-files/reports/gen1225-ammonia-gate-and-nitrogen-ice-2026-10-31.md
+  (stand-in table in section 4). Ammonia gate: the earlier 1 to 1.6
+  percent figure was an arithmetic error; 1500 to 7000 mg N/L is 0.18 to
+  0.85 wt percent NH3; the highest reported growth in solution is about
+  0.7 to 0.9 wt percent and nothing near 10 percent exists, so class 8
+  is pure inference. The 10 percent only has meaning as antifreeze
+  (liquidus 259.6 K, 13 K below water). Proposed gate: ammonia share at
+  least the liquidus share for the body's temperature (5 percent at 267
+  K, 14 at 251, 20 at 235), upper bound the 33 percent peritectic, with
+  a note that no measurement exists above 0.9 wt percent; replaces LF44
+  (T9 L4) with T3 L1 for the gate, the life statement stays T9 L4.
+  Nitrogen ice: N2 condenses only below the partial-pressure temperature
+  (22 to 30 K, 28 K at 1e-4 bar; add to CS1 ICE_CONDENSATION_K); the
+  solar ceiling N2/H2O is 0.107 by mass but observed cold bodies hold
+  1e-4 to 1.4e-3 (67P, Pluto) through trapping in amorphous ice; the 2
+  percent used in the retention papers is 15 to 170 times too high.
+  Proposed GN1 trapping 0.001 to 0.013 of the ceiling (T3 L2), GN2
+  retention stays T8 L4. Touches LF62 (NH3 share 0.1, top of range), IS1
+  and CS1. Build these as registered stand-ins (GEN.725, with burn-down
+  lines for any L3/L4 row).
   Prerequisites: none. Related: GEN.1215, GEN.1207, GEN.862.
 
 - [ ] **GEN.1218 Build the surface liquid composition model: the composition columns, the derivation, the effect of life on it and of it on life, pages and API**
@@ -14689,6 +14734,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   earlier note that cloud storage waited for an answer; all six surface
   liquid questions are now answered (1.1, 2.1, 3.1, 4.1, 5.1, 6.1, with
   4 and 5 to be tuned from physics by GEN.1225).
+  Boss asked for the ammonia gate and nitrogen ice amount to be tuned
+  from physics (2026-10-31 12:40 PM EDT): See the GEN.1225 findings in
+  GEN.1217 (report gen1225-ammonia-gate-and-nitrogen-ice-2026-10-31.md):
+  the ammonia gate follows the liquidus share, and nitrogen ice uses the
+  trapping factor and the partial-pressure condensation temperature.
   Prerequisites: GEN.1217. Related: GEN.1213, GEN.1214, GEN.1215.
 
 - [ ] **GEN.1219 Body types: planet_type (terrestrial, transitional, gas) from the envelope share of the mass, with a shadow report first**
@@ -14819,30 +14869,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   merges on a train.
   Prerequisites: none. Related: GEN.1035, GEN.1214.
 
-- [ ] **GEN.1225 Research: tune the ammonia life gate and the nitrogen ice amount from physics and chemistry (instead of guesses)**
-  Boss, 11:56 AM EDT 2026-10-31, on the surface liquid design questions
-  (GEN.1217): take option 1 for the ammonia life gate (about 5 percent
-  of the liquid's mass) and for inventing nitrogen ice from where
-  nitrogen freezes, BUT find a way to tune both from real physics and
-  chemistry, searching basic chemistry if needed. Filed by the TODO
-  thread. Do (research, no code, report in /mnt/project-files/reports):
-  (1) the ammonia gate: what limits life in an ammonia-water solvent at
-  what fraction (ammonia's effect on proteins and membranes, pH of
-  ammonia-water solutions, the ammonia tolerance of known organisms, the
-  1.6 percent figure from the GEN.1216 report, the biochemistry
-  literature on ammonia as a solvent, Hoehler/Benner-style arguments,
-  ammonia-water phase behavior), and give a gate with a source and a
-  tier or the best physical estimate with its range; (2) the nitrogen
-  ice amount: from where nitrogen freezes (the N2 vapour pressure and
-  triple point 63.15 K), the solar and disc nitrogen abundance, the
-  N2/CO ratio in comets and Pluto and Triton, the fraction of nitrogen
-  that is N2 against NH3 and the temperature at which it condenses in
-  the disc, so the amount follows from the disc model rather than a
-  number; (3) say which stand-ins (GEN.725) the findings replace and at
-  what tier and tweak level. Papers Boss must upload listed in order of
-  value. Where we think it belongs (best guess, can move): Sources 1.
-  Prerequisites: none. Related: GEN.1215, GEN.1217, GEN.1218, GEN.1216.
-
 - [ ] **GEN.1226 Store the envelope share for EVERY body, so hydrogen-air dwarfs (about 400 class T bodies) are typed and classed correctly**
   Boss, 11:57 AM EDT 2026-10-31 (via the Class M thread): store the
   envelope share (hydrogen-helium envelope mass fraction) for every
@@ -14868,6 +14894,24 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   re-tag, on a train, with GEN.1219 and GEN.1220 (one epoch). Where we
   think it belongs (best guess, can move): the Class M research thread.
   Prerequisites: none. Related: GEN.1219, GEN.1220, GEN.1207.
+
+- [ ] **GEN.1227 Store the coma class and the dominant volatiles of an interstellar comet, so the map can colour its coma**
+  Found by Sources 2 (as the lane reported, 12:15 PM EDT 2026-10-31)
+  while starting MAP.283, filed by the TODO thread as a wiring gap
+  (Boss, 12:03 PM EDT: nothing built and left unused). An interstellar
+  comet stores only is_active, its size and speed and the names of its
+  three largest components (complex organics, silicate dust, CO2 ice or
+  water ice). The species that set a comet's colours (CN and C2 green, a
+  CO+ blue ion tail) are drawn at generation
+  (comet_population.draw_volatiles) and then thrown away; over 300 draws
+  CO, CN and C2 never reach the top three. Do: derive from the makeup
+  already drawn a coma class and the dominant volatiles and store them
+  as a small column or two (new numeric columns in db/column_units.py),
+  after the species factors of GEN.1021 are on main; MAP.283 then reads
+  them. LOCK work (migration, epoch with --affects, golden, census
+  re-tag): ride a train. Owner Sources 2 (proposed, it knows the comet
+  species work).
+  Prerequisites: GEN.1021.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -15148,6 +15192,19 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   track evaluations); making that faster is this item, by one-pass
   bright pieces per mass and [Fe/H], or by turning the kept folder on in
   production (Boss call: it trades a disk folder for time).
+  Star 2 profile (as the lane reported) (2026-10-31 12:50 PM EDT): one
+  solar-bin table (threshold 100 Lsun, 718 cells) takes 20.4 s under the
+  profiler and the work is distinct, not repeats: about 28 percent
+  main-sequence edge rows that miss the memo (isochrones.edge_point,
+  main_sequence._low_mass), 29 percent post_main_sequence.bright_pieces,
+  12 percent timeline. A five-fold gain needs the edge, low-mass,
+  timeline and bright-piece functions vectorised across a cell grid, and
+  numpy log10 and pow need not match math to the last bit, so
+  bit-identical output cannot be promised: treat the vectorised version
+  as lock work (epoch) or take the Boss call already noted in the item
+  (turn on the kept-table folder in production). A bit-identical cache
+  of the low-mass edge pieces (about 10 percent) is available as a small
+  lock-free step.
   Prerequisites: none. Related: TEST.344, GEN.394.
 
 - [ ] **PERF.195 Generation timing records are shown or no longer recorded: object_timing_stats and object_timing_samples (G5)**
@@ -15189,6 +15246,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner (housekeeping) (2026-10-30 2:55 PM EDT): released to the pool:
   the owner named above (Aux 16) is a retired lane. A waiting lane takes
   it, confirmed with TODO, one lock-free item at a time.
+  Wiring sweep (Boss, 12:03 PM EDT) (2026-10-31 1:40 PM EDT): this is
+  one of the stored-but-unread records Boss does not want. Owner now
+  Sources 2 (released to the pool; Sources 2 had no lock-free item
+  left): measure the cost of recording on a run, decide show or stop,
+  write the decision here. PERF.197 carries out the decision (a
+  migration if the tables go, so that step is lock work).
   Prerequisites: none. Related: PERF.195.
 
 - [ ] **PERF.197 Carry out the object timing decision: show the records with a test, or delete the recording, the tables, the migration and the fingerprint entry (G5, step 2)**
@@ -16234,6 +16297,12 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Owner (housekeeping) (2026-10-30 2:55 PM EDT): released to the pool:
   the owner named above (Core 5) is a retired lane. A waiting lane takes
   it, confirmed with TODO, one lock-free item at a time.
+  Bug 1 check (as the lane reported, 12:35 PM EDT) (2026-10-31 1:15 PM
+  EDT): Core 5's #3902 and #3958 and Aux 12's #3418 and #3423 already
+  did the API answers, the CLI help and printed lines, the stats and
+  settings pages and the orbit infobox eccentricity (UX.210 says what
+  the number is). What is left is only the in-site help pages and
+  glossary, which wait for DOC.15; nothing to build until then.
   Prerequisites: none. Related: GEN.771, DOC.15.
 
 - [ ] **API.34 API and remote uploads carry resource locations: the resource fields are in the API, and an uploaded galaxy is checked for them**
@@ -20480,6 +20549,12 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   coverage test with the burn-down allowlist, and this item removes the
   allowlist and keeps only the allow-list file of deliberately
   undocumented routes, each with a reason.
+  Core 5 (as the lane reported, 12:19 PM EDT) (2026-10-31 1:10 PM EDT):
+  DOC.84 added the Help > Life pages (/help/life,
+  /help/life/abundance|trend|security|suitability|stages|classes and
+  /help/life/classes/1 to 9) as menu pages, not "?" header links; the
+  route-to-help test of this item must know these routes. DOC.57 (the
+  help framework) does not exist yet.
 
 - [ ] **DOC.59 Docs: the galaxy types note moves to built and the density, potential, schema, API and Generate page notes say the shape holds a family and components**
   Boss (2026-10-16, 8:48 PM EDT, for 9.4): different galactic models for
@@ -20625,38 +20700,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   the owner named above (Aux 6) is a retired lane. A waiting lane takes
   it, confirmed with TODO, one lock-free item at a time.
   Prerequisites: UX.223, NAV.64. Related: DOC.6, DOC.9.
-
-- [ ] **DOC.84 Help page suite for life: the four kinds of life, every life class, and the scales we use (abundance, trend, security, suitability)**
-  Boss, 10:07 AM EDT 2026-10-31 (and 10:08 AM EDT for the help pages):
-  build and ship all the life recommendations, a full readability
-  rewrite of ALL planet and star text, a life summary paragraph in At a
-  glance, a Life section in the details with the nitty-gritty, and a
-  full help page suite on all life types and the categories we use.
-  Brief:
-  /mnt/project-files/reports/life-and-text-readability-brief-2026-10-31.md;
-  coexistence write-up:
-  reports/multi-life-types-per-planet-2026-10-31.md. PR 4471 (branch
-  claude/project-thread-5xwcu1, wording and layout of the first Life
-  paragraph) merges first and these build on it. Filed by the TODO
-  thread. Do: build the help pages in the pattern of the existing 'What
-  the colours and symbols mean' help page: one page for the kinds of
-  life (microbes, flora, fauna, sentient) with what each word means; one
-  page for each scale we use, with every word and what it is judged
-  from: abundance (Absent, Rare, Occasional, Frequent, Abundant,
-  Dominant), trend (growing, stable, declining), security (Secure,
-  Marginal, Precarious, Dying out) and suitability; one page per life
-  class from docs/design/habitability/life-classes.md (the nine classes:
-  chemistry, temperature and pressure window, what it eats, drinks,
-  breathes and gives off, which are speculative chemistry and at what
-  tier); and a short page on the life stages and the animal grade. Each
-  page is linked from the matching word on the object pages (the '?'
-  link of DOC.57), the class letter and the Life section, and the help
-  coverage test (DOC.58) passes. Wording follows the style guide and no
-  number is stated that the generator does not use. Docs and templates
-  only, lock-free. Where we think it belongs (best guess, can move):
-  Core 5 or a docs lane, after the life readings exist.
-  Prerequisites: none. Related: DOC.57, DOC.58, DOC.76,
-  DOC.15.
 
 ## VIEW: The view from a planet
 
@@ -20841,11 +20884,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Prerequisite: VIEW.1.
   Design: [docs/design/orbits/sky-view.md](design/orbits/sky-view.md)
 
-- [ ] **VIEW.9 Replace the BC_V table with a published relation (Flower 1996 or Torres 2010)**
-  Before any star count depends on the bolometric correction.
-  Prerequisites: none.
-  Design: [docs/design/orbits/sky-view.md](design/orbits/sky-view.md)
-
 - [ ] **VIEW.11 Photometry library: apparent magnitude, bolometric correction, blackbody colour and the extinction law**
   Split from VIEW.2 (2026-10-16, Boss 1:07 PM EDT: look at each item for
   smaller chunks and shared work). Pure array functions in
@@ -20865,7 +20903,14 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   newer note wins, report todo-contradictions-2026-10-18.md): the HYG
   calibration test is VIEW.12's (VIEW.10 was folded into VIEW.12, Boss,
   2026-10-16, 11:58 PM EDT), not VIEW.10's.
-  Prerequisites: VIEW.1, VIEW.9. Related: VIEW.2.
+  VIEW.9 merged as #4508 (Star 2, as the lane reported) (2026-10-31 1:30
+  PM EDT): physics/photometry.bolometric_correction_v (Flower 1996 with
+  Torres 2010 coefficients, read from the paper) answers 3,500 to 50,000
+  K and raises outside; M_bol of the Sun 4.74 goes with it. Nothing
+  reads it yet: this item wires it, and decides what a star cooler than
+  3,500 K gets (no value is invented in the library). The wiring guard
+  function check (TEST.520) will list it until this item reads it.
+  Prerequisites: VIEW.1. Related: VIEW.2.
 
 - [ ] **VIEW.12 Sky catalogue: the stars an observer sees, with direction, brightness and light-time**
   Split from VIEW.2 (2026-10-16, Boss 1:07 PM EDT: look at each item for

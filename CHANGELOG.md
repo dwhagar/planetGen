@@ -2,6 +2,34 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2948] - 2026-10-31
+
+**Headline:** The info panel's Colour line now says which stored values gave a body's colour and whether it is a partial estimate or the full account.
+
+### Changed
+
+- `bodylook.colour_account` builds the line for a star (full when its colour is a model atmosphere at its temperature, partial from its spectral class alone), a solid world (ground colour from its mean surface temperature, sea colour from its ocean class, limb glow from its air under its star) and a giant (cloud-top colour from its temperature), each naming a default where an input is not stored and what is not used yet (surface composition, clouds and haze). `look_note` puts it ahead of the spin and lock notes. generation-output: unchanged
+
+## [8.0.2947] - 2026-10-31
+
+**Headline:** The photometry library now has a published bolometric correction (Flower 1996 with Torres 2010's coefficients) in place of the blackbody table the sky-view design carried, ready for the apparent-magnitude step.
+
+### Changed
+- VIEW.9: `physics/photometry.bolometric_correction_v(temperature_k)` is Flower's (1996) polynomial fit of BC_V against log Teff in three ranges, with the coefficients read from Torres (2010, AJ 140, 1158), Table 1; it answers from 3,500 to 50,000 K and refuses a temperature outside (the fit breaks down for M dwarfs, and no value is invented there). `SUN_ABSOLUTE_BOLOMETRIC_MAG` 4.74 is the zero point it goes with (BC_V of the Sun -0.08). The design table of docs/design/orbits/sky-view.md section 2.4 is replaced (the hot end was 0.3 to 0.6 mag off). Nothing in the generator reads it yet (VIEW.11 will), so no stored value changes.
+
+generation-output: unchanged
+
+## [8.0.2946] - 2026-10-31
+
+**Headline:** New help pages explain every word in the Life section of a planet page: the kinds of life, how much, trend, security, suitability, the stages and each of the nine life classes.
+
+### Added
+- **Life help pages under Help > Life.** One page for the four kinds of life, one for each scale (how much, trend, security, suitability), one for the stages of life and the animal grades, and one for each life class (what it drinks, eats, breathes and gives off, where it can live, how sure we are it can exist, and whether its air chemistry is speculative). The numbers on them come from the same code that works out the scores.
+- **Links from the planet page.** Life class names link to their page, the Kind, How much, Trend and Security headings have a "?" link, and the Life paragraph in At a glance has "What these words mean".
+
+### Changed
+- **Class 9 text.** Its "eats" line now says "as Class 5a and 5b" instead of "as Class 5".
+
 ## [8.0.2945] - 2026-10-31
 
 **Headline:** The planet class table in the system file guide now matches the live class rules, and says which classes are planned.

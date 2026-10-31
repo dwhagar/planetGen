@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.254 |
 | MAP | MAP.363 |
 | NAV | NAV.65 |
-| GEN | GEN.1227 |
+| GEN | GEN.1228 |
 | PERF | PERF.220 |
 | DB | DB.110 |
 | API | API.38 |
@@ -752,7 +752,7 @@ Parents marked "new parent" had no old number of their own.
 | DOC.81 | Help page: resource locations, what the scores mean and how to find them on the map | none | open |
 | DOC.82 | Region names docs and the audit check "region names stay unique among neighbours" (regions chain, step 7) | none | done, PR #3400 |
 | DOC.83 | Plain-words style guide for every sentence the site writes about a planet or a star, with a test that enforces it | none | done, PR #4478 |
-| DOC.84 | Help page suite for life: the four kinds of life, every life class, and the scales we use (abundance, trend, security, suitability) | none | open |
+| DOC.84 | Help page suite for life: the four kinds of life, every life class, and the scales we use (abundance, trend, security, suitability) | none | done, PR #4506 |
 | DOC.85 | Refresh the class table in docs/reference/system-file-format.md: the F, G, B and N meanings and the zone and habitable columns are from the old zone-drawn classes | none | done, PR #4499 |
 | GEN.1 | Real-world rates for interstellar objects | 5 (2026-09-30 18:14Z to 23:21Z) | done in 7.18.0, PR #136 |
 | GEN.2 | Rogue planet mass bins | 6 (2026-09-30 18:14Z to 23:21Z) | done in 7.18.0, PR #136 |
@@ -1978,8 +1978,9 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1222 | Tiny airless moons hold a water surface ocean at 20 to 33 K: 60 of 2,071 bodies in one sample (39 class D, 20 class C, 1 class T), all moons (bug) | none | open |
 | GEN.1223 | Research: the gas and Transitional class lists from sources (Sudarsky-style temperature classes, sub-Neptune, ice giant, sub-Saturn, water world) | none | done, research report written (reports/gen1223-giant-and-transitional-classes-2026-10-31.md) |
 | GEN.1224 | Research: envelope share against mass and metallicity (Thorngren 2016 mass-metallicity relation) to replace the envelope-share guesses of the giant and transitional class rows | none | done, research report written (reports/gen1224-giant-heavy-element-and-envelope-share-2026-10-31.md) |
-| GEN.1225 | Research: tune the ammonia life gate and the nitrogen ice amount from physics and chemistry (instead of guesses) | none | open |
+| GEN.1225 | Research: tune the ammonia life gate and the nitrogen ice amount from physics and chemistry (instead of guesses) | none | done, research report written (reports/gen1225-ammonia-gate-and-nitrogen-ice-2026-10-31.md) |
 | GEN.1226 | Store the envelope share for EVERY body, so hydrogen-air dwarfs (about 400 class T bodies) are typed and classed correctly | none | open |
+| GEN.1227 | Store the coma class and the dominant volatiles of an interstellar comet, so the map can colour its coma | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -2979,7 +2980,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.155 | The /lists planet and moon pages show the PHI-6 symbols in a Habitability column and the API fields carry them (UX.100 part 2) | none | done, PR #2784 |
 | UX.156 | The planet and moon item pages show the PHI-6 symbols (UX.100 part 3) | none | done, PR #2784 |
 | UX.157 | Every sprite icon draws as a solid black shape because the site's Content-Security-Policy refuses the sprite's own style element (bug) | none | done, PR #2890 |
-| UX.158 | Info panel line: how this colour was worked out, which inputs and whether partial or full quality | none | open |
+| UX.158 | Info panel line: how this colour was worked out, which inputs and whether partial or full quality | none | done, PR #4511 |
 | UX.159 | Remove the old /<name>.py CGI redirects (web/old_urls.py) and the old NAV from_id and to_id parameter translation, with their tests | none | done, PR #2873 |
 | UX.160 | The search icon button opens a box over the page: it should go straight to the search page (bug) | none | done, PR #2884 |
 | UX.161 | After a galaxy reset the counts on the main page do not change even though the database has been wiped (bug) | none | done, PR #2884 |
@@ -3083,7 +3084,7 @@ Parents marked "new parent" had no old number of their own.
 | VIEW.6 | Settle the handedness of the generated galaxy before mapping real sky coordinates | none | open |
 | VIEW.7 | Sky tiers and the backfill cost measurement | none | open |
 | VIEW.8 | A dust model for the sky: the galactic extinction law and `nebulae.extinction_av` | none | open |
-| VIEW.9 | Replace the BC_V table with a published relation (Flower 1996 or Torres 2010) | none | open |
+| VIEW.9 | Replace the BC_V table with a published relation (Flower 1996 or Torres 2010) | none | done, PR #4508 |
 | VIEW.10 | A HYG calibration test: a generated sky has about 9,000 stars at V <= 6.5 | none | merged into VIEW.12 (Boss, 2026-10-16, 11:58 PM EDT: consolidation sweep) |
 | VIEW.11 | Photometry library: apparent magnitude, bolometric correction, blackbody colour and the extinction law | none | open |
 | VIEW.12 | Sky catalogue: the stars an observer sees, with direction, brightness and light-time | none | open |
