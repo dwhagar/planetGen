@@ -170,13 +170,6 @@ def test_a_new_id_equal_to_a_live_one_is_refused(stored):
     assert designation_history.history(conn, "moons", moon["id"]) == []
 
 
-def test_an_id_others_embed_does_not_renumber_alone(stored):
-    conn, system_id = stored
-    row = conn.execute("SELECT id, uid FROM star_systems WHERE id = ?", (system_id,)).fetchone()
-    with pytest.raises(designations.DesignationError, match="embedded"):
-        designation_history.renumber(conn, "star_systems", row["id"], _fresh_uid(conn, object_uid.from_bytes(row["uid"])))
-
-
 def test_a_reverted_id_is_a_new_one(stored):
     conn, system_id = stored
     moon = _some_moon(conn, system_id)

@@ -1937,6 +1937,7 @@ def delete_sector(sector_id):
         with conn:
             address = conn.execute("SELECT shell_index, band_index, wedge_index FROM sectors WHERE id = ?",
                                    (sector_id,)).fetchone()
+            designation_history.tombstone(conn, "sectors", "t.id = ?", (sector_id,))
             deleted = conn.execute("DELETE FROM sectors WHERE id = ?", (sector_id,)).rowcount > 0
             if deleted:
                 store.note_sector_deleted(conn)
@@ -2463,6 +2464,7 @@ def delete_system(system_id):
     try:
         with conn:
             row = conn.execute("SELECT sector_id FROM star_systems WHERE id = ?", (system_id,)).fetchone()
+            designation_history.tombstone_systems(conn, "id", system_id)
             deleted = conn.execute("DELETE FROM star_systems WHERE id = ?", (system_id,)).rowcount > 0
             if deleted:
                 store.touch_sector(conn, row["sector_id"])

@@ -1946,30 +1946,34 @@ def insert_system_config(conn, config: SystemConfig) -> int:
 # docstring for the full sector > system hierarchy.
 # ---------------------------------------------------------------------------
 
-def _rename_bodies_with_prefix(conn, star_system_id, old_prefix, new_prefix):
+def _rename_bodies_with_prefix(conn, star_system_id, old_prefix, new_prefix, record=True):
     """
     Renames every star, planet and moon in one system whose name carries
     `old_prefix` (`names.bodies.rename_prefix`), so derived names such as
     `Voranthis II` follow their system or star. Names set by hand that
-    don't carry the prefix are left alone.
+    don't carry the prefix are left alone. The old names go to the
+    designation history unless `record` is off (the stand-in names of a
+    system being written again were never an object's).
     """
     for table in ("stars", "planets", "moons"):
         rows = conn.execute(f"SELECT id, name FROM {table} WHERE star_system_id = ?", (star_system_id,)).fetchall()
         for row in rows:
             renamed = rename_prefix(row["name"], old_prefix, new_prefix)
             if renamed is not None and renamed != row["name"]:
-                designation_history.retire_name(conn, table, row["id"], row["name"], renamed, "parent change")
+                if record:
+                    designation_history.retire_name(conn, table, row["id"], row["name"], renamed, "parent change")
                 conn.execute(f"UPDATE {table} SET name = ? WHERE id = ?", (renamed, row["id"]))
-    _rename_comets(conn, "star_system_id = ?", (star_system_id,), old_prefix, new_prefix)
+    _rename_comets(conn, "star_system_id = ?", (star_system_id,), old_prefix, new_prefix, record)
 
 
-def _rename_comets(conn, where, params, old_host, new_host):
+def _rename_comets(conn, where, params, old_host, new_host, record=True):
     """Moves the comets matching `where` whose designation
     (`cometData.comet_designation`) names `old_host` over to `new_host`."""
     for row in conn.execute(f"SELECT id, name FROM comets WHERE {where}", params).fetchall():
         renamed = rename_comet_designation(row["name"], old_host, new_host)
         if renamed is not None and renamed != row["name"]:
-            designation_history.retire_name(conn, "comets", row["id"], row["name"], renamed, "parent change")
+            if record:
+                designation_history.retire_name(conn, "comets", row["id"], row["name"], renamed, "parent change")
             conn.execute("UPDATE comets SET name = ? WHERE id = ?", (renamed, row["id"]))
 
 
@@ -7682,6 +7686,12 @@ def replace_star_system_content(conn, star_system_id, star_system, system_config
     Returns:
         bool: `False` if no such system exists.
     """
+    with designation_history.paused(conn):    # the stand-in row's names were never an object's (GEN.1141)
+        return _replace_star_system_content(conn, star_system_id, star_system, system_config)
+
+
+def _replace_star_system_content(conn, star_system_id, star_system, system_config):
+    """`replace_star_system_content` without the pause on the designation history."""
     row = conn.execute("SELECT name FROM star_systems WHERE id = ?", (star_system_id,)).fetchone()
     if row is None:
         return False
@@ -7693,6 +7703,7 @@ def replace_star_system_content(conn, star_system_id, star_system, system_config
     temp_name = conn.execute("SELECT name FROM star_systems WHERE id = ?", (temp_id,)).fetchone()["name"]
     keep_body_numbers(conn, star_system_id)  # a number the old bodies held is not given to another body
     kept_uids = _slot_uids(conn, star_system_id)
+    carried = designation_history.snapshot_bodies(conn, star_system_id)
     conn.execute("DELETE FROM facilities WHERE star_system_id = ?", (star_system_id,))
     for table in ("moons", "planets", "asteroid_belts", "comets", "stars"):
         conn.execute(f"DELETE FROM {table} WHERE star_system_id = ?", (star_system_id,))
@@ -7712,8 +7723,9 @@ def replace_star_system_content(conn, star_system_id, star_system, system_config
             mpc_to_pc(kept[f"position_{axis}_mpc"]) for axis in "xyz"))
         conn.execute("UPDATE star_systems SET velocity_x_kms = ?, velocity_y_kms = ?, velocity_z_kms = ?,"
                      " modified_at = modified_at WHERE id = ?", (*velocity, star_system_id))
-    _rename_bodies_with_prefix(conn, star_system_id, temp_name, row["name"])
+    _rename_bodies_with_prefix(conn, star_system_id, temp_name, row["name"], record=False)
     _carry_uids(conn, star_system_id, kept_uids)  # a body keeps the ID of the one that held its place (DB.75)
+    designation_history.carry_over(conn, carried)    # GEN.1141: a body's history follows it to its new row; one that did not come back is gone
     assign_uids(conn, system_ids=[star_system_id])  # the others take the system's next body numbers
     return True
 

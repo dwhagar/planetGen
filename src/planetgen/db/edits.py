@@ -15,7 +15,7 @@ its row (with what points at it).
 
 import uuid
 
-from planetgen.db import kind_tables, object_rows, storage_checksum, store
+from planetgen.db import designation_history, kind_tables, object_rows, storage_checksum, store
 from planetgen.physics import insolation, unit_registry as units
 
 _au_to_km = units.converter("au", "km")
@@ -87,7 +87,15 @@ def _save_moons(conn, system_id, star_id, planet):
 
 
 def _delete_missing(conn, table, column, owner_id, kept_ids):
-    """Deletes `table`'s rows under `owner_id` whose ids aren't kept."""
+    """Deletes `table`'s rows under `owner_id` whose ids aren't kept (GEN.1141: and writes their tombstones, a planet's moons' too)."""
+    if kept_ids:
+        marks = ", ".join("?" * len(kept_ids))
+        gone, gone_params = f"t.{column} = ? AND t.id NOT IN ({marks})", (owner_id, *kept_ids)
+    else:
+        gone, gone_params = f"t.{column} = ?", (owner_id,)
+    designation_history.tombstone(conn, table, gone, gone_params)
+    if table == "planets":
+        designation_history.tombstone(conn, "moons", f"t.planet_id IN (SELECT t2.id FROM planets t2 WHERE {gone.replace('t.', 't2.')})", gone_params)
     if kept_ids:
         marks = ", ".join("?" * len(kept_ids))
         conn.execute(f"DELETE FROM {table} WHERE {column} = ? AND id NOT IN ({marks})", (owner_id, *kept_ids))
@@ -314,6 +322,7 @@ def delete_phenomenon(conn, phenomenon_type, phenomenon_id):
         raise EditError("this is the star of a star system; delete the system instead")
     table = PHENOMENON_TABLES[phenomenon_type]
     conn.execute("DELETE FROM nearest_systems WHERE object_table = ? AND object_id = ?", (table, phenomenon_id))
+    designation_history.tombstone(conn, table, "t.id = ?", (phenomenon_id,))
     conn.execute(f"DELETE FROM {table} WHERE id = ?", (phenomenon_id,))
     store.touch_sector(conn, row.get("sector_id"))
     return True
@@ -352,13 +361,17 @@ def delete_sector_with_contents(conn, sector_id):
     if row is None:
         return None
     conn.parity_touch("id = ?", (sector_id,))        # DB.46: once this commits, the parity file lets the sector go
+    designation_history.tombstone_systems(conn, "sector_id", sector_id)
     systems = conn.execute("DELETE FROM star_systems WHERE sector_id = ?", (sector_id,)).rowcount
     phenomena = 0
     for table in PHENOMENON_TABLES.values():
         where = "sector_id = ?" + (" AND star_id IS NULL" if table in ("black_holes", "neutron_stars") else "")
+        designation_history.tombstone(conn, table, where.replace("sector_id", "t.sector_id").replace("star_id", "t.star_id"), (sector_id,))
         phenomena += conn.execute(f"DELETE FROM {table} WHERE {where}", (sector_id,)).rowcount
+    designation_history.tombstone(conn, "facilities", "t.sector_id = ?", (sector_id,))
     conn.execute("DELETE FROM facilities WHERE sector_id = ?", (sector_id,))
     conn.execute("DELETE FROM nearest_systems WHERE sector_id = ?", (sector_id,))
+    designation_history.tombstone(conn, "sectors", "t.id = ?", (sector_id,))
     conn.execute("DELETE FROM sectors WHERE id = ?", (sector_id,))
     store.note_sector_deleted(conn)
     # GEN.44: the cell goes back to the bright-star level it had unfilled.
