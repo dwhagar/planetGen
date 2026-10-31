@@ -14214,6 +14214,19 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (GEN.1215) and the airless moon ocean bug (GEN.1222) land first, so
   the scorer reads true inputs. Must handle a body that fits no class
   (best_class returns letter None).
+  GEN.1223 research done (Sources 1) (2026-10-31 11:40 AM EDT): report
+  /mnt/project-files/reports/gen1223-giant-and-transitional-classes-2026-10-31.md,
+  proposed giant rows in its section 6 and GEN.725 entries GC1 to GC12
+  in section 7. Key points: the T and I and J mass cuts of the sources
+  are about 10 Earth masses (T/I) and 50 to about 130 (I/J), not 35, and
+  the overlap is better expressed by the envelope share (under 5 percent
+  below 10 Earth masses, 10 to 30 percent for 10 to 50); Sudarsky I to V
+  should be a stored derived field from the equilibrium temperature
+  (edges 150, about 300, 900, 1500 K; pM/TiO above about 1900 K;
+  recommend the f 0.5 convention) rather than letters; planet inflation
+  starts near 1000 K; the deuterium limit is 13 Jupiter masses, fuzzy 11
+  to 16.3. An optional water-world row needs a free letter (Boss's call;
+  check overlap with O).
   Prerequisites: GEN.1219, GEN.1220, GEN.1221, GEN.1222, GEN.1214.
   Related: GEN.1215, GEN.1211.
 
@@ -14670,27 +14683,21 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   merges on a train.
   Prerequisites: none. Related: GEN.1035, GEN.1214.
 
-- [ ] **GEN.1223 Research: the gas and Transitional class lists from sources (Sudarsky-style temperature classes, sub-Neptune, ice giant, sub-Saturn, water world)**
-  From the Class M research thread's handoff
-  (/mnt/project-files/reports/class-todo-handoff-2026-10-31.md; designs
-  in class-type-and-domain-scoring-design-2026-10-31.md,
-  class-families-and-positions-design-2026-10-31.md,
-  class-code-system-2026-10-31.md, class-fit-shadow-2026-10-31.md,
-  planet-class-criteria-inventory-2026-10-31.md), after Boss changed the
-  best-fit plan between 10:04 and 11:07 AM EDT 2026-10-31. Filed by the
-  TODO thread. Research step for the Gas and Transitional types (the
-  Terrestrial list is the oxygen-water, anoxic, CO2, acid,
-  methane-ethane, ammonia-water and hot thin-air families). Report in
-  /mnt/project-files/reports: the published giant and transitional
-  classifications (Sudarsky 2000 temperature classes, the sub-Neptune,
-  ice giant, sub-Saturn and water world groupings, the Kepler radius
-  gap), their boundaries by mass, radius, temperature and envelope
-  share, with sources read under the source rules, and the proposed
-  class rows for our T, I, J, N, S and other giant letters with their
-  positive conditions for the best-fit scorer. Papers Boss must upload
-  listed in order of value. Where we think it belongs (best guess, can
-  move): Sources 1.
-  Prerequisites: none. Related: GEN.1207, GEN.1160.
+- [ ] **GEN.1224 Research: envelope share against mass and metallicity (Thorngren 2016 mass-metallicity relation) to replace the envelope-share guesses of the giant and transitional class rows**
+  Follow-up of the GEN.1223 research (Sources 1, 11:37 AM EDT as the
+  lane reported); report
+  /mnt/project-files/reports/gen1223-giant-and-transitional-classes-2026-10-31.md.
+  Filed by the TODO thread. Gaps left: envelope share below 10 Earth
+  masses is not sourced, there is no probability of class from mass,
+  radius and equilibrium temperature, and no exoplanet ice giant against
+  sub-Neptune rule. Do: read Thorngren et al. 2016 (mass-metallicity,
+  open arXiv) and the other open sources it points to, give the
+  heavy-element mass and the envelope share against mass for the
+  transitional range, say which of the proposed GC1 to GC12 stand-ins
+  (GEN.725) they replace and with what tier, and update the proposed
+  class rows. Research only, no code, lock-free. Where we think it
+  belongs (best guess, can move): Sources 1.
+  Prerequisites: none. Related: GEN.1207, GEN.1219, GEN.1160.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
