@@ -1011,40 +1011,6 @@ with `clamp()`.
   it, confirmed with TODO, one lock-free item at a time.
   Prerequisites: UX.226. Related: UX.225.
 
-- [ ] **UX.236 User preferences: a screen and storage for per-user settings, starting with the Galaxy Map region landing (frame or densest)**
-  Boss, 6:19 PM EDT 2026-10-28 (relayed by the coordinator): the zoom
-  redesign codes both options and a user preference chooses, default
-  option 1. Plan and build the setting itself: a preferences page
-  (reached from the account area and the site menu), storage per browser
-  now with the same keys moving into the account when accounts land
-  (USR.7, 8.2), a read helper the map calls, and an API route to read
-  and write the keys for signed-in users later. First key
-  map.regionLanding with values frame (default) and densest; a missing
-  key reads as the default. The page lists each preference with its
-  plain-words description and its default, and a Reset to defaults
-  button. The map work (MAP.336) only reads the key and does not wait
-  for this screen. Done: a browser test sets the key on the page and
-  sees the Galaxy Map land accordingly. Owner: Core 5 (not the map
-  lane).
-  Research (2026-10-09): Second key (Boss 6:22 PM EDT 2026-10-28):
-  map.blackHoleDensity, the cap on black hole marks per screen area,
-  default one per 120 by 120 px (MAP.339); a missing key reads as the
-  default. List it on the same screen with its plain-words description
-  and a Reset.
-  Research (2026-10-09): Black hole density preference (Core 3, MAP.339
-  #3636, 12:16 AM EDT 2026-10-29 as the lane reported): the map reads
-  the number key map.blackHoleDensity (the side in pixels of the square
-  one mark may stand on; default 120, valid 30 to 1000) through
-  src/html/static/mappreferences.js, from localStorage under
-  planetgen.pref.map.blackHoleDensity as the number's text, falling back
-  to 120 when missing or out of range. The preferences screen can write
-  that key (or replace the one reader function); the map picks it up at
-  its next marker refresh.
-  Owner (housekeeping) (2026-10-30 2:55 PM EDT): released to the pool:
-  the owner named above (Core 5) is a retired lane. A waiting lane takes
-  it, confirmed with TODO, one lock-free item at a time.
-  Prerequisites: none. Related: MAP.336, USR.7.
-
 - [ ] **UX.237 Planet page Life section: Supports Class N, also supports, Has Class N at the X stage with its animal grade, the eats-drinks-breathes-gives-off block, the Life and air chart and the adaptation traits; the class number on lists**
   Life class system design (design thread, Boss 9:10 to 9:13 PM EDT
   2026-10-28): docs/design/habitability/life-classes.md. ORDER FINAL (Boss, 9:20 PM EDT: all four design cards answered option 1). L9. The Life and air chart plots O2, CO2, CH4
@@ -18795,6 +18761,14 @@ clears each one.
     for every kind (bookmark, course), the routes for a user's own rows
     only, the account page and the one-time import of
     the browser list); the list and rename UI is UX.47's.
+    Note (UX.236 #4448) (9:05 AM EDT 2026-10-31, as Core 5 reported):
+    The preferences page (/preferences) stores map.regionLanding,
+    map.blackHoleDensity and map.labelBuffer per browser in localStorage
+    under the keys the map reads (src/html/static/mappreferences.js,
+    preferencespage.js). When the account page lands, move the same keys
+    into the account and add the signed-in API route to read and write
+    them, with the browser values as the signed-out fallback; the page
+    and the map reads stay as they are.
 
   - [ ] **USR.8 Every signed-in user can generate a one-off system**
     Boss (2026-10-02 05:16Z): "TODO Item, all users can generate a
