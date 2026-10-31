@@ -79,3 +79,4 @@ Commit each file came from:
 - v193: train 6 (GEN.1097 day and night state, before GEN.1013 dark members)
 - v194: train 7 (before GEN.983 belt dose)
 - v195: train 7 (GEN.983 belt dose, before GEN.1108 latitude bands)
+- v196: train 7 (GEN.1108 latitude bands, before GEN.1215 surface liquid solutes; built by Tides 1, the Train Manager may replace it)

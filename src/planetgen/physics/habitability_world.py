@@ -183,6 +183,8 @@ def values_from_body(body):
         "native_life": native_life(getattr(body, "life_class", None), getattr(body, "life_stage", None),
                                    getattr(body, "life_system_age_gyr", None) is not None),
         "flux_variation": getattr(body, "flux_variation", None),
+        "surface_liquid_acid_layer": getattr(body, "surface_liquid_acid_layer", None),
+        "surface_liquid_ammonia_wt": getattr(body, "surface_liquid_ammonia_wt", None),
         "life_class": getattr(body, "life_class", None),
         "life_class_variant": getattr(body, "life_class_variant", None),
         "life_animal_grade": getattr(body, "life_animal_grade", None),

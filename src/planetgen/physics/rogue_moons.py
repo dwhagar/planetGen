@@ -39,6 +39,9 @@ SURVIVAL_AT_0P1_HILL = 0.48
 """float: And beyond 0.1 mutual Hill radii (the same). Source tier T2, tweak level L1."""
 EJECTED_MOON_ECCENTRICITY = 0.13
 """float: The median eccentricity of a moon carried out with its planet (Debes and Sigurdsson 2007, a lunar-mass moon at 30 Earth radii, a Jupiter as scatterer). Source tier T3, tweak level L1 (one setup, applied to every moon)."""
+ROCK_TIDAL_Q = constants.MOON_TIDAL_DISSIPATION_Q
+"""float: The quality factor of a solid rocky planet when the caller gives no `k2/Q`: the cold-rock value the tide used before it followed the mantle's temperature
+(GEN.955; `tidal_heating` no longer holds a single rock Q). The planet of a rogue moon is a given setup, not a body with a thermal history. Source tier T3, tweak level L2."""
 
 
 class RogueMoonError(ValueError):
@@ -103,12 +106,12 @@ def circularisation_flux_w_m2(planet_mass_kg, planet_radius_m, moon_mass_kg, moo
         planet_mass_kg, planet_radius_m (float): The planet's.
         moon_mass_kg, moon_axis_m (float): The moon's, and its semi-major axis.
         eccentricity (float): The moon's orbital eccentricity after the ejection.
-        k2_over_q (float, optional): The planet's; for a rocky planet `tidal_heating.rigid_k2` over `tidal_heating.ROCK_TIDAL_Q` when not given.
+        k2_over_q (float, optional): The planet's; for a rocky planet `tidal_heating.rigid_k2` over `ROCK_TIDAL_Q` when not given.
     """
     if min(planet_mass_kg, planet_radius_m, moon_mass_kg, moon_axis_m) <= 0.0 or not 0.0 <= eccentricity < 1.0:
         raise RogueMoonError("the masses, radius and axis must be positive and the eccentricity from 0 to under 1")
     if k2_over_q is None:
-        k2_over_q = tidal_heating.rigid_k2(planet_mass_kg, planet_radius_m) / tidal_heating.ROCK_TIDAL_Q
+        k2_over_q = tidal_heating.rigid_k2(planet_mass_kg, planet_radius_m) / ROCK_TIDAL_Q
     n = math.sqrt(constants.G * (planet_mass_kg + moon_mass_kg) / moon_axis_m ** 3)
     power = 10.5 * k2_over_q * constants.G * moon_mass_kg ** 2 * n * planet_radius_m ** 5 * eccentricity ** 2 / moon_axis_m ** 6
     return power / (4.0 * math.pi * planet_radius_m ** 2)
