@@ -1112,7 +1112,7 @@ with `clamp()`.
   metal fraction, and the phase's dredge-up shift, each with its unit
   and source line. Done: a test walks a sample of stars and checks the
   rows appear with units; the register line for star_makeup is gone.
-  Lock-free. Owner Star 2 (proposed). Related: GEN.440, TEST.523.
+  Lock-free. Owner Star 2 (proposed). Related: GEN.440.
   Prerequisites: none.
 
 ## MAP: Galaxy Map, Sector Map, System Map
@@ -19668,39 +19668,6 @@ clears each one.
   (register, tests and deletions of unreferenced code change no stored
   value; if a wiring step changes output it rides a train under its own
   item). Owner Core 3 (proposed by the TODO thread, one lock-free item
-  at a time; the lane says if it clashes). Rule for every lane: a public
-  function that only tests call needs a register line in the same
-  change, like a module.
-  Prerequisites: none.
-
-- [ ] **TEST.523 Wire, register or delete the 17 pure functions nothing calls in 12 modules (Star 2's share of the TEST.520 shadow functions)**
-  Boss, 12:03 PM EDT 2026-10-31: nothing built and left unused. Core 1's
-  wiring guard (TEST.520, PR #4513) found 157 public functions in
-  physics, generation and galaxy that only tests call or nothing calls;
-  its register lines name TEST.520 because no owner was guessed. Report:
-  /mnt/project-files/reports/wiring-guard-test520-2026-10-31.md. Filed
-  by the TODO thread. Your share (17 functions):
-  physics.stellar_abundances (branch_probabilities,
-  solar_metal_fraction); physics.stellar_composition (cluster_key,
-  star_makeup); physics.stellar_evolution
-  (main_sequence_end_luminosity_sol); physics.stellar_spectrum
-  (band_flux_w_m2); physics.neutron_star (radius_limits_km);
-  physics.neutron_star_structure (curve_with_crust, integrated_curve,
-  integrated_maximum_mass_solar); physics.rprocess_enrichment
-  (effective_duration_gy); physics.birth_radioisotopes (fraction_above);
-  physics.brown_dwarf_types (type_probabilities); physics.photometry
-  (blackbody_colour); physics.solar_particles (events_per_year_above);
-  physics.elements (isotopic_mass_fraction, series). Do, for each
-  function: (1) wire it, naming the open item that will call it (or
-  filing one) in its register line of
-  docs/design/research/wiring-register.md; (2) mark it `by design` with
-  the reason when it is a tuning or test harness reader (an observed
-  sampler, an expected count) and say who runs it; or (3) delete it and
-  its tests (no dead code, no shim). Done: none of your functions names
-  TEST.520 in the register, and test_wiring_guard passes. Lock-free
-  (register, tests and deletions of unreferenced code change no stored
-  value; if a wiring step changes output it rides a train under its own
-  item). Owner Star 2 (proposed by the TODO thread, one lock-free item
   at a time; the lane says if it clashes). Rule for every lane: a public
   function that only tests call needs a register line in the same
   change, like a module.
