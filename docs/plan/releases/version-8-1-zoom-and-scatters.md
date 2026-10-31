@@ -97,7 +97,6 @@ Everything with no blocker outside its own thread: the queue steps, reproducible
 | TEST.295 | test_parallel_generation.py::test_one_worker_draws_what_two_and_four_workers_draw hit the 900 s timeout waiting for its queue workers in a saturated gate (bug) |  |  |
 | TEST.234 | test_the_review_and_error_pages_are_accessible[admin] found 606 px of width on a 390 px page once, at the site gear dropdown (bug) |  |  |
 | TEST.229 | The browser phase of a gate stalls for minutes at one test with a headless_shell gpu process near 200% CPU (bug) |  |  |
-| GEN.542 | scripts/star_type_by_radius.py fails with a TypeError because the plan arguments now default the disk and arm options to None (bug) |  |  |
 | TEST.198 | `test_galaxy_map_does_not_prefetch_on_a_data_saving_connection` failed with a `/galaxy/tiles` net::ERR under load and passed alone: find the cause and make it robust (bug) |  | Flaky test finding from Core 3, 6:22 PM EDT. Bug Hunt proposed (Boss started the lane, 10:20 PM EDT). |
 | GEN.396 | Revisit the Yerkes class III luminosity range: 50 to 1000 solar luminosities sits above many dim red giants |  | Core 3 finding, 2026-10-16 10:00 PM EDT; any Core lane. |
 
@@ -570,7 +569,6 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | TEST.486 | test_planets c-2: a life class is kept but life_class_scores is None when no class scores above the line after the oxygen build (bug) |  |  |
 | TEST.480 | test_gen_builder_internals::test_slot_planet_honours_class_and_moon_count gets class J where it forced class I at a cold slot (bug) |  |  |
 | TEST.479 | test_radiative_convective_real::test_earth_sends_out_what_it_absorbs fails on the train 4 branch: the Earth tropopause temperature is 168.33 K against the test bound of 170 to 230 K (bug) |  |  |
-| GEN.1004 | A triple system whose third star cannot be found: it may sit inside another star or on an orbit that is not drawn (bug) | TEST.162 |  |
 | TEST.472 | Four migration tests are red on clean main: aerosols same-seed draws, albedo_greenhouse saved-system temperature, and two gas_tables tests (AsteroidBelt has no attribute moons) (bug) |  |  |
 | TEST.470 | test_orbit_elements fails on main: the moon-light test (relative error 6e-6) and the ellipse tests (a lunar-range problem) (bug) |  |  |
 | TEST.469 | test_interior_heat::test_a_generated_body_has_a_urey_ratio_above_one_only_while_its_mantle_is_still_warming fails on main: a generated body has urey_ratio 1.85 with a mantle that is no longer warming (bug) |  |  |

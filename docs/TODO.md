@@ -8076,23 +8076,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   phenomena follow this switch (decision 4); the command refuses a
   galaxy whose draw gives no satellites, saying why.
 
-- [ ] **GEN.542 scripts/star_type_by_radius.py fails with a TypeError because the plan arguments now default the disk and arm options to None (bug)**
-  Found by Core 4 (2026-10-17, 5:30 PM EDT as the lane reported, relayed
-  7:08 PM EDT), filed by the TODO thread; reproduced on current main at
-  7:10 PM EDT. `scripts/star_type_by_radius.py` (the analysis script of
-  GEN.133, changed by GEN.134) stops in `default_shape` with `TypeError:
-  must be real number, not NoneType` at
-  `math.radians(a.pitch_angle_deg)`, because `add_plan_arguments` now
-  defaults the disk and arm options to None (the shape is drawn from the
-  seed). Fails on main: yes. Frequency: every run. Reproducer: `python
-  scripts/star_type_by_radius.py --stars 100`. Do: build the shape the
-  way the plan does (the seed's drawn shape through the same function
-  the plan calls) or give the script its own explicit arguments, with no
-  fixed Milky Way values. Done: the script runs to its table and a small
-  test runs it with a few stars and checks it exits 0. Owner: Bug Hunt
-  (proposed).
-  Prerequisites: none. Related: GEN.133, GEN.134.
-
 - [ ] **GEN.550 Umbrella (placeholder): one recursive generation process for anything that can have something else orbiting it, from a planet with moons up to a group of star-like objects that each have a system**
   Boss's request (2026-10-17, 11:19 PM EDT, project chat, and an
   addendum typed in the design thread at 11:21 PM EDT, both as the
@@ -12843,51 +12826,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (belt mass): epoch, --affects fill, rides the train after GEN.477
   wiring. Owner: Sources 2. Version 8.1.
   Prerequisites: GEN.477. Related: GEN.477, GEN.566, GEN.725.
-
-- [ ] **GEN.1004 A triple system whose third star cannot be found: it may sit inside another star or on an orbit that is not drawn (bug)**
-  Boss (2026-10-30, 9:33 AM EDT, live observation): found a three-star
-  system on the maps but could never find the third star; he thinks it
-  may have had an orbit or position inside one of the other stars, and
-  is not sure. Do: find which system it is (ask Boss, or scan every
-  stored triple for a member whose orbit lies inside a sibling star's
-  radius or whose position is not placed), then fix the cause in the
-  orbit tree draw (the stable range of an inner companion against its
-  parent's radius), the placement, or the map and system page, as it
-  turns out. The coordinator started a research thread on it. Done: a
-  test over generated triples and deeper trees finds no star inside
-  another star's radius and no star missing from the system page, the
-  system map and the 3D view; the fix says which of the three it was.
-  Owner: first free lane after the research thread reports.
-  Core 3 (as the lane reported) (2026-10-30 9:52 AM EDT): Before MAP.255
-  (#4015) the browser put any star without a stored pair orbit, a
-  triple's third star included, at the barycenter on top of the other
-  stars (orbitpositions.js returned [0,0,0]); MAP.255 fixes that in the
-  3D view and MAP.213 slice A also draws each node's orbit. The Python
-  and System Map SVG side is MAP.213 slice B and is not yet checked.
-  This may be the whole cause; confirm with Boss on a rebuilt map before
-  closing.
-  Investigation thread (relayed by the coordinator, PR #4026, branch
-  claude/project-thread-xhsx5n) (2026-10-30 9:54 AM EDT): Cause found in
-  the generator: a drawn star tree is rebuilt from each member's birth
-  mass and the system age, and a member the tree had evolved (for
-  example a white dwarf of a post-common-envelope pair, born 1.38 Msun
-  at 4.39 Gy) is rebuilt as a still-living giant of 0.033 AU radius
-  while its orbit with its partner is 0.0088 AU, so the partner or a
-  third star sits inside it. Seen in about 1 of 150 forced triples and 1
-  of 50 forced quadruples. Fix: multistar.built_tree_clears runs the
-  Roche and extent screen on the built radii and masses and the draw
-  loop redraws a tree that fails. Changes what rare seeds generate:
-  needs an epoch (--affects fill) and a golden refresh, so it rides
-  train 4; do not merge before. The browser-side barycenter fault
-  (MAP.255) was a second, separate cause for stars with no stored pair
-  orbit.
-  TODO thread (10:58 AM EDT) (2026-10-30 10:57 AM EDT): Replaced by
-  GEN.1006 P9 when that part is scheduled; until then the quick fix
-  (#4026) stays.
-  Train 4 merged (PR #4105) (3:38 PM EDT 2026-10-30): The quick fix
-  (#4026) was already on main; the item stays open until Boss confirms
-  the third star shows after ./update.sh.
-  Prerequisites: TEST.162. Related: TEST.162, GEN.728, MAP.255.
 
 - [ ] **GEN.1005 Replace the Solar System-anchored redox, dry carbon and comet species rows with models that carry the physics (replaces the Solar System-resting rows of GEN.1002 that GEN.474 does not cover)**
   Found by Aux 3 while building GEN.1002 (relayed 9:48 AM EDT 2026-10-30

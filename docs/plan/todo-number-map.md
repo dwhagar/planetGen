@@ -1292,7 +1292,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.539 | The halo command: its own command that switches the halo on or off in the plan configuration (default off) and sets how far the halo reaches | none | open |
 | GEN.540 | The satellite galaxies command: its own command that switches the satellite galaxies on or off in the plan configuration (default off), separate from the halo | none | open |
 | GEN.541 | The wide-pair perturber mass: black holes carry about twice the second moment of all stars; decide whether remnants stay in it, with the black-hole mass function checked | none | done, PR #2164 |
-| GEN.542 | scripts/star_type_by_radius.py fails with a TypeError because the plan arguments now default the disk and arm options to None (bug) | none | open |
+| GEN.542 | scripts/star_type_by_radius.py fails with a TypeError because the plan arguments now default the disk and arm options to None (bug) | none | done, PR #4309 |
 | GEN.543 | Define "usable" for a P-type window so the design table's pair-node row (34% falling to 18%) can be reproduced | none | done, PR #2238 |
 | GEN.544 | Revisit the disc's vertical profile: the sech-squared core has half the midplane density of the exponential fits its scale heights come from | none | done, PR #2323 |
 | GEN.545 | The mean system mass (0.4 solar, recalled within a factor of 1.5) sets every galaxy's system count once GEN.404 lands: derive it from the generator's own mass distribution | none | done, PR #2434 |
@@ -1754,7 +1754,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1001 | A world whose star is younger than the first step of its life schedule is stored with a life class but no life stage, so the map markers, the object page line and the class filters show life that has not started (bug) | none | done, PR #3984 |
 | GEN.1002 | Registered table rows that rest on a Solar System body are flagged stand-in with a replacement item, or re-sourced | none | done, PR #4038 |
 | GEN.1003 | The gas equilibrium solver can stall with no convergence on a hot hydrogen-oxygen mixture (EquilibriumError at 725.97 K and 1.0 bar) (bug) | none | done, PR #4105 |
-| GEN.1004 | A triple system whose third star cannot be found: it may sit inside another star or on an orbit that is not drawn (bug) | none | open |
+| GEN.1004 | A triple system whose third star cannot be found: it may sit inside another star or on an orbit that is not drawn (bug) | none | done, not reproducible on main; fixed by #4026 and MAP.255 (Aux 7) |
 | GEN.1005 | Replace the Solar System-anchored redox, dry carbon and comet species rows with models that carry the physics (replaces the Solar System-resting rows of GEN.1002 that GEN.474 does not cover) | none | open |
 | GEN.1006 | Stars and bodies in one system never overlap by design: every member knows the others when any is rebuilt, then fit and adjust afterwards | none | open |
 | GEN.1007 | Overlap-free stars, part a: pass the primary's [Fe/H] into the star tree (the tree evolves companions at [Fe/H] 0 while the build uses the real value) | none | dropped (folded into GEN.1006 P3 (MemberRecord), design 10:56 AM EDT 2026-10-30) |
