@@ -18,7 +18,7 @@ Evidence tags: READ = the paper (arXiv text) was opened and the number is in it;
 | Stern and Levison 2002 | the dynamical discriminant | 2ND-HAND from Soter 2006 (Lambda = k M^2 / P, a gap of five orders of magnitude) |
 | Soter 2006 (arXiv:astro-ph/0608359) | mu = M / m, planet if above 100 | READ |
 | Margot 2015 (arXiv:1507.06300) | the orbit-clearing mass and the discriminant Pi | READ |
-| Lineweaver and Norman 2010 (arXiv:1004.1091) | the radius at which bodies turn round | READ (stands for Thomas 2010, NOT REACHED) |
+| Lineweaver and Norman 2010 (arXiv:1004.1091) | the radius at which bodies turn round | READ |
 | Kenyon and Bromley 2008 (arXiv:0807.1134) | the largest body a young icy disc grows | READ |
 | Debes and Sigurdsson 2002 (arXiv:astro-ph/0202273) | planets that survive the giant branch, instability after mass loss | READ |
 | Koester, Gaensicke and Farihi 2014 (arXiv:1404.2617) | white dwarfs polluted by debris, accretion rates (stands for Zuckerman 2010) | READ; Zuckerman 2010 NOT REACHED (Koester cites 20 to 30 percent from it) |
@@ -28,13 +28,13 @@ Evidence tags: READ = the paper (arXiv text) was opened and the number is in it;
 | Pitjeva and Pitjev 2018 (arXiv:1811.05191) | the masses of the main belt and the Kuiper belt | READ |
 | Levison et al. 2008 (arXiv:0712.0553) | Kuiper belt delivered during a giant instability | READ; the disc cut at 30 to 35 AU is the Solar System's own, a test target |
 | Sibthorpe et al. 2018 (arXiv:1803.00072), Marshall et al. 2014 (arXiv:1403.6186) | debris disc incidence round Sun-like stars | READ |
-| Gladman and Volk 2021, Grundy et al. 2019, Wisdom 1982, Moons and Morbidelli 1995, Thomas 2010, Zuckerman 2010, Bottke 2006 | | NOT REACHED: closed or not on arXiv; the numbers come from the papers named above |
+| Gladman and Volk 2021, Wisdom 1982, Moons and Morbidelli 1995, Zuckerman 2010, Bottke 2006 | | NOT REACHED: closed or not on arXiv; the numbers come from the papers named above |
 
 ## 2. The numbers
 
 **Yarkovsky drift (BR1).** `da/dt` scales as 1/D for a large body (Vokrouhlicky 2015, section 2.1). The best measured case is Bennu: D = 493 m, da/dt = -18.95 +/- 0.10 e-4 au/My at a mean distance of 1.10 au; Golevka (D = 280 m) -4.52 e-4. So `da/dt x D = 9.3e-4 au km/My` at 1.1 au. Scaled to a belt with the flux (1/a^2, a stand-in that ignores the thermal-parameter dependence), a 1 km body at 2.5 au drifts 1.8e-4 au/My, the "order 1e-4" of the design note. A 40 km body drifts 0.05e-4 au/My, 0.2 au in 4.5 Gy: bodies above about 40 km do not move, as the design says.
 
-**Chaotic zone (BR2).** The zone of overlapping first-order resonances round a planet of mass ratio `mu` is `delta a / a = 1.3 mu^(2/7)` (Wisdom 1980, read here in Mustill and Wyatt 2012, who confirm 1.35 mu^0.278 by numerical integration at zero eccentricity); Malhotra 1998 gives 1.4. Mean-motion resonances stay `a_res = a_giant (q/p)^(2/3)`.
+**Chaotic zone (BR2).** The zone of overlapping first-order resonances round a planet of mass ratio `mu` is `delta a / a = 1.3 mu^(2/7)` (Wisdom 1980, read here in Mustill and Wyatt 2012, who confirm 1.35 mu^0.278 by numerical integration at zero eccentricity). Mean-motion resonances stay `a_res = a_giant (q/p)^(2/3)`.
 
 **Loss in unstable resonances (BR3).** Dynamical chaos is the main loss for bodies of 10 km and more in the present belt. The loss history follows a logarithmic law, established by 1 My after the planets reached their orbits and holding to 4 Gy: about 50 percent of the large asteroids lost since then, equal amounts (about 30 percent of the present number) in 10 to 200 My and in 0.2 to 4 Gy (Minton and Malhotra 2010). The design's "lost in 1 to 10 My" is the resonance clearing at the start, not the later tail.
 

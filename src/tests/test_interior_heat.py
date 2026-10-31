@@ -11,7 +11,7 @@ import pytest
 from planetgen import tuning
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
-from planetgen.physics import constants, interior_heat as ih, planets, radiogenic
+from planetgen.physics import constants, giant_heat, interior_heat as ih, planets, radiogenic
 from planetgen.util import draw
 
 from tests.fuzz_support import deterministic_entropy
@@ -42,7 +42,7 @@ def test_the_assembly_energy_of_an_earth_is_the_accretion_plus_the_iron_sinking(
     uniform = ih.binding_energy_j(mass, radius, 0.0, 0.0)
     assert uniform == pytest.approx(0.6 * constants.G * mass ** 2 / radius, rel=1e-12)
     differentiated = ih.binding_energy_j(mass, radius, 0.325 * mass, 0.55 * radius)
-    # the iron sinking releases 1 to 3e31 J on the Earth, a tenth of its accretion (Flasar and Birch 1973; Solomatov 2000)
+    # the iron sinking releases 1 to 3e31 J on the Earth, a tenth of its accretion (Flasar and Birch 1973)
     assert 1.0e31 < differentiated - uniform < 3.0e31
     assert differentiated > uniform
 
@@ -67,8 +67,7 @@ def test_the_radiogenic_part_is_the_stored_contents_heat():
 
 
 def test_an_earth_twin_gives_a_heat_and_a_urey_ratio_in_the_published_ranges_without_drawing_the_ratio():
-    """Whatever the rheology within the paper's ranges: the geoneutrino total 38.2 +13.6 -12.7 TW (Agostini et al. 2019 via Nimmo et al.
-    2020) and a Urey ratio between 0.1 and 0.9; the stagnant lid is under the Earth's measured 42 to 47 TW (a mobile lid, not modelled)."""
+    """Whatever the rheology within the paper's ranges: the geoneutrino total 38.2 +13.6 -12.7 TW and a Urey ratio between 0.1 and 0.9; the stagnant lid is under the Earth's measured 42 to 47 TW (a mobile lid, not modelled)."""
     for interior in CORNERS + [MID]:
         found = _earth(interior)
         assert 25.5 <= found.total_w / 1e12 <= 51.8
@@ -202,7 +201,10 @@ def test_every_generated_rocky_body_stores_its_draws_and_an_urey_ratio_that_is_a
                 if body.body_type == "a":
                     continue
                 if body.body_type == "g":
-                    assert all(getattr(body, name) is None for name in (*ih.BODY_FIELDS, *ih.OUTPUT_FIELDS))
+                    # a giant has no rock to draw and no Urey ratio or tide; its own heat is what it radiates (GEN.810)
+                    assert all(getattr(body, name) is None for name in (*ih.BODY_FIELDS, "urey_ratio", "tidal_flux_w_m2"))
+                    planets.internal_heat_flux_w_m2(body)         # runs `update_heat` again, at the star's age now
+                    assert body.internal_heat_flux_w_m2 == giant_heat.of(body).flux_w_m2 > 0.0
                     continue
                 seen += 1
                 assert ih.interior_of(body) is not None
@@ -295,7 +297,7 @@ def test_the_stored_heat_is_the_heat_at_the_stars_final_age_not_the_provisional_
     """GEN.763: the star's age only rises after its planets are made, so a heat stored at the provisional age is wrong for the finished
     system (many bodies sat at the ceiling with a Urey ratio of 1.0, and a small moon showed 4.8). The life pass runs the model again."""
     seen = 0
-    for seed in (17, 3):
+    for seed in (17, 12):
         with deterministic_entropy(seed):
             draw.set_run_seed(seed)
             system = StarSystem(SystemConfig(), galactic_center_dist_ly=26000.0)
@@ -317,8 +319,7 @@ def test_the_urey_ratio_of_a_bulk_silicate_earth_body_of_any_size_sits_between_t
     """GEN.763: a table of small and large bodies (design note, section 3.2). The bounds of the sweep over 0.0004 to 10 Earth masses, 1, 4.5
     and 10 Gy, both lids and the four rheology corners: a Urey ratio from 0.3 (a large stagnant lid, whose heat is mostly the
     cooling) to 1.0 (the mantle held at its ceiling, losing exactly what is made). Guimond et al. 2022 have about 0.65 for 0.1 to 5
-    Earth masses; for the Earth the geochemical estimate is about 0.3 and the geophysical view close to one (Stamenkovic et al. 2012,
-    arXiv:1210.3838 section 3.1)."""
+    Earth masses; for the Earth the geochemical estimate is about 0.3 and the geophysical view close to one."""
     found = []
     for mass_earth in SWEEP_MASSES_EARTH:
         for lid in (ih.STAGNANT, ih.MOBILE):
@@ -341,7 +342,7 @@ def test_a_generated_body_has_a_urey_ratio_above_one_only_while_its_mantle_is_st
     """A mantle that is warming loses less than it makes, so the ratio passes 1 only then (a moon of 0.0008 Earth masses at 3 Gy gives
     1.25), and a body past 8 Gy has settled. Over the sampled systems every body over 5e22 kg of a host past 2 Gy lies between 0.2 and 10 (a small moon whose drawn
     viscosity is near the top of the range, 3e13 Pa s and 299 kJ/mol, is still heating up at 4.7 Gy and gives 7.8, with or without its tide). A small body
-    (GEN.476: most stars are born with little aluminium-26, so a small body never had the early heat) can still be warming at any age: its ratio is only positive and finite."""
+    (GEN.476: most stars are born with little aluminium-26, so a small body never had the early heat) can still be warming at any age: its ratio is only positive and finite; so is a body whose surface is so cold (a moon of 570 km at 36 K) that its mantle only starts to convect late."""
     seen = 0
     for seed in range(12):
         with deterministic_entropy(seed):
@@ -356,7 +357,7 @@ def test_a_generated_body_has_a_urey_ratio_above_one_only_while_its_mantle_is_st
                     continue
                 seen += 1
                 assert 0.2 <= body.urey_ratio <= 10.0
-                if body.star.age >= 8.0:
+                if body.star.age >= 8.0 and ih.surface_of(body) > 100.0:
                     assert body.urey_ratio <= 1.0 + 1e-6
     assert seen > 10
 

@@ -7,7 +7,7 @@ docs/design/composition/dry-carbon-model.md).
 Row b1 of the atmosphere possibility table (a body that formed inside the snow line and took in little water) drew the carbon of its outgassing mantle as a log bracket of 0.018 to
 0.1 weight percent CO2, tuned to the bulk silicate Earth's 100 ppm of carbon (GEN.813). This module derives the bracket from three steps, none of which names a planet:
 
-1. **What the building blocks hold.** Blanchard, Siebert, Badro, Ghiorso and Hirschmann 2022 (EPSL, arXiv:2202.06809, Table 2, READ) give the carbon of undifferentiated
+1. **What the building blocks hold.** Studies (EPSL, arXiv:2202.06809, Table 2, READ) give the carbon of undifferentiated
    non-carbonaceous bodies as 0.16 weight percent and of differentiated non-carbonaceous bodies as 0.004 (the carbon left the planetesimal with its core): `NC_UNDIFFERENTIATED_C_PPM`,
    `NC_DIFFERENTIATED_C_PPM`. [Stand-in DC1, tier T1, tweak L0.]
 2. **How much of the material was already differentiated.** In their accretion model a share of the planetesimals that built the planet had cored before they were accreted: 45 +/- 15

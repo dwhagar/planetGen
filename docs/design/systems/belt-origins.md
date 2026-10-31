@@ -26,7 +26,7 @@ Each cause is a rule the generator can apply and a sentence it can print. A belt
 |---|---|---|---|
 | `failed-growth` | **A planet that did not finish.** Solids stall because the next oligarch would exceed the isolation mass, or a giant's growth starved the zone. | The inner disc forms planetesimals; where growth is stopped, the mass stays as a population. The planet architecture (GEN.728) already holds the chain; a gap or unfinished tail in it is a belt. | Planetesimals formed big, around 100 km and up, then the belt's size distribution has a bump near 100 km [S: Morbidelli et al., "Asteroids Were Born Big", arXiv:0907.2512; Weidenschilling, arXiv:1004.0270 gives the same 100 km peak]. |
 | `giant-stirring` | **A giant excites it.** Mean-motion resonances and the chaotic zone around a giant raise eccentricities until bodies collide with each other (grinding) or hit a planet or the star. Growth never completes, and the zone is cleared of what drifts into resonance. | Chaotic zone half-width about 1.3 a (m/M*)^(2/7) [R: Wisdom 1980]; resonance positions a (q/p)^(2/3) [S physics]; ledger draft section 2.3. | Main belt gaps at 3:1, 5:2, 2:1 [R]. |
-| `instability-depletion` | **A giant instability or migration swept it.** Jupiter's Grand Tack or a Nice-type scatter removes most of a belt and implants bodies from elsewhere. | Survival of a few percent; implants of outer-disc bodies into the inner belt. | Walsh et al. 2011 [R], Gomes et al. 2005 [R]; Levison and Morbidelli, who deliver KBOs during the instability, arXiv:0712.0553 [S]. |
+| `instability-depletion` | **A giant instability or migration swept it.** Jupiter's Grand Tack or a Nice-type scatter removes most of a belt and implants bodies from elsewhere. | Survival of a few percent; implants of outer-disc bodies into the inner belt. | Walsh et al. 2011 [R], Levison and Morbidelli, who deliver KBOs during the instability, arXiv:0712.0553 [S]. |
 | `outer-disc` | **The cold leftover beyond the last giant.** Solids too sparse and orbital times too long to build a planet. A Kuiper-type belt. Self-stirring by its own largest bodies (Pluto-size) sets the grinding. | Kenyon and Bromley: KBOs form in a massive disc, then substantial collisional grinding and dynamical ejection [S: arXiv:0704.0259]. Mass today in Sol: 0.0197 +/- 0.003 Earth masses [S: arXiv:1810.09771]; 0.010 Earth masses for the classical part [S: Bernstein et al., arXiv:astro-ph/0308467]. | Herschel DEBRIS: 17.1 percent of F-K stars show cold discs, most at 7 to 40 AU blackbody radius; the data fit "all stars born with a narrow belt that then grinds", with Sol's own belt near the population median, so half of stars have depleted theirs or formed less [S: arXiv:1803.00072]. |
 | `collisional-debris` | **The rubble of a destroyed planet** or a giant collision, one composition family, differentiated shards. Also transient hot dust. | A rare event, not a standing population. | DEBRIS: hot dust under 4 AU "likely transient events" [S: arXiv:1803.00072]. |
 | `captured` | A belt around a pulsar or white dwarf from a disrupted disc or scattered survivors (already used for pulsar planets). | Mass-loss destabilisation, ledger draft 2.5. | Existing repo rows. |
@@ -58,7 +58,7 @@ Stand-ins this section adds: survival factors, the disc edge, the stirring facto
 | Moons of 50 to 500 km radius | about 25 to 30 (Saturn: Mimas, Enceladus, Hyperion, Phoebe, Janus; Uranus: Miranda, Puck; Neptune: Proteus, Nereid, Larissa; others) | only a few at the top | Tethys, 530 km |
 | IAU dwarf planets | 5 (Ceres, Pluto, Eris, Haumea, Makemake) | | |
 
-The cold classical belt has **no objects of 400 km or more**; its size distribution has an exponential cutoff there [S: OSSOS, arXiv:2107.06120]. The big bodies are in the excited (scattered) population, which is the point of section 6. Size where an ice body becomes round is not one number: Grundy et al. 2019 find ice-rich bodies stay non-round and porous to about 400 to 500 km [R, search returned the paper without a readable abstract; read before use].
+The cold classical belt has **no objects of 400 km or more**; its size distribution has an exponential cutoff there [S: OSSOS, arXiv:2107.06120]. The big bodies are in the excited (scattered) population, which is the point of section 6. 
 
 ## 5. Do systems need more Class D? Yes, but as ledger members
 
@@ -122,7 +122,7 @@ The belt chain itself is in [belt-evolution.md](belt-evolution.md).
 | Disc edge and scatter fraction | educated guess from physics | L1 to L3 | Levison 2008 simulations; DEBRIS fit |
 | `collisional-debris` rate | educated guess from needed output | L3 | transient-dust statistics |
 | Cut for L1 members | design | L0 | Boss decision in ledger draft 11.1 |
-| Dwarf-planet mass line | confident unverified | L0 | Bierson and Nimmo; Grundy 2019 |
+| Dwarf-planet mass line | confident unverified | L0 | Bierson and Nimmo |
 
 ## 9. Questions for Boss (defaults taken; change on his word)
 

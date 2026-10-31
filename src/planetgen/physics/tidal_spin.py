@@ -38,9 +38,9 @@ caught for sure. Source tier educated guess from the sources named (T3), tweak l
 
 CASSINI_COUPLING_RANGE = (0.003, 1.0)
 """tuple: The share `x = |g| / (alpha + |g|)` of its orbit's inclination that a locked or resonant body's axis keeps, log-uniform. In the first Cassini
-state (Peale 1969) the spin axis precesses about the orbit normal at `alpha`, the normal precesses about the Laplace plane's at `g` (negative: nodal regression),
+state the spin axis precesses about the orbit normal at `alpha`, the normal precesses about the Laplace plane's at `g` (negative: nodal regression),
 and the axis settles in the plane of the two with an obliquity `eps = x i` for small `i`: 0 where the body's shape holds the axis to the orbit (`alpha >> |g|`) and
-`i` where it does not (`alpha << |g|`), so `x` is between 0 and 1 by the physics. The ends of the range are Mercury's 0.034 degrees (2.04 arcmin; Margot et al. 2012,
+`i` where it does not (`alpha << |g|`), so `x` is between 0 and 1 by the physics. The ends of the range are Mercury's 0.034 degrees (2.04 arcmin,
 recalled) against an inclination of about 8 degrees to its Laplace plane (`x` 0.004) and the physical bound 1; the log-uniform draw between them is the stand-in. Source tier
 T3, tweak level L3 (the spread is chosen so a locked body's median tilt is a fraction of a degree to 2 degrees, the sweep's statistic of GEN.1165, GEN.753)."""
 

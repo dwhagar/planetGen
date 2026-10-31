@@ -141,7 +141,7 @@ def _still_svg(phenomenon_type, params, name):
                  'stroke-width="2"/>')
     return (f'<svg class="phenomrender-still" viewBox="-100 -100 200 200" role="img" '
             f'aria-label="{esc(name)}, a still drawing">'
-            '<rect x="-100" y="-100" width="200" height="200" fill="#05070c"/>'
+            '<rect x="-100" y="-100" width="200" height="200" fill="#000000"/>'
             + "".join(parts) + "</svg>")
 
 
@@ -202,7 +202,7 @@ def render_nebula_view_panel(detail):
     })
     still = (f'<svg class="phenomrender-still" viewBox="-100 -100 200 200" role="img" '
              f'aria-label="{esc(name)}, a still drawing"><rect x="-100" y="-100" width="200" height="200" '
-             f'fill="#05070c"/><ellipse cx="0" cy="0" rx="62" ry="40" fill="{color}" fill-opacity="{edge:.2f}" '
+             f'fill="#000000"/><ellipse cx="0" cy="0" rx="62" ry="40" fill="{color}" fill-opacity="{edge:.2f}" '
              f'stroke="{color}" stroke-opacity="0.6" transform="rotate(-18)"/></svg>')
     return f"""
 <section class="panel" aria-labelledby="nebulaview-heading">

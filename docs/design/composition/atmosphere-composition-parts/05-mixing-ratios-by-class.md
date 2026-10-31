@@ -330,11 +330,11 @@ Frost-equilibrium (Pluto/Triton-like): p_i = chi_i * p_sat,i(T_surface)   (ideal
 | TEST body | Values | Source | Status |
 |---|---|---|---|
 | Titan | stratospheric CH4 1.48 +/- 0.09%, near-surface CH4 5.65 +/- 0.18%, H2 (1.01 +/- 0.16)e-3 | Niemann et al. 2010 (NTRS file) | READ |
-| Mars | CO2 0.960, Ar 0.0193, N2 0.0189, O2 1.45e-3, CO below 1e-3 | Mahaffy et al. 2013 (NTRS file) | READ |
-| Mars (later) | CO2 0.951, N2 0.0259, Ar 0.0194, O2 1.61e-3, CO 5.8e-4 | Trainer et al. 2019 | SNIPPET |
+| Mars | CO2 0.960, Ar 0.0193, N2 0.0189, O2 1.45e-3, CO below 1e-3 | no source | READ |
+| Mars (later) | CO2 0.951, N2 0.0259, Ar 0.0194, O2 1.61e-3, CO 5.8e-4 | no source | SNIPPET |
 | Mars spread between the two sets | N2 0.0189 vs 0.0259 (30% apart) | both above | COMPUTED |
 | Venus | CO2 96.5%, N2 below 3.5%, SO2 150 ppm, Ar 70 ppm, H2O 20 ppm, CO 17 ppm | search summary (Wikipedia-type compilation) | SNIPPET |
-| Pluto | N2 above 99%, CH4 about 0.30%, CO about 0.05% (cited from Young 2018 and Lellouch 2017); surface CH4 (3 to 3.6)e-3 in N2 ice; near-surface CO/N2 about 4e-3 and CO/CH4 about 1.7e-3 reported by one set of authors | Mousis and Anderson 2024 review, arXiv:2406.03815 | 2ND-HAND |
+| Pluto | N2 above 99%, CH4 about 0.30%, CO about 0.05% (cited); surface CH4 (3 to 3.6)e-3 in N2 ice; near-surface CO/N2 about 4e-3 and CO/CH4 about 1.7e-3 reported by one set of authors | Mousis and Anderson 2024 review, arXiv:2406.03815 | 2ND-HAND |
 | Triton | CO/N2 about 0.015% in the atmosphere (ground-based surface ice gave about 0.1%, predicted atmospheric mixing ratio 1.5e-4); CH4 partial pressure several times larger than Voyager; CO abundance similar to surface abundance, controlled by a thin CO-rich veneer | Lellouch et al. 2010, arXiv:1003.2866 (abstract READ); Mousis and Anderson 2024 | READ and 2ND-HAND |
 
 Two values for Pluto CO (about 0.05% atmospheric; CO/N2 about 4e-3 near surface) are not the same quantity and lie a factor of 8 apart; the generator should state whether it means a column-integrated or a near-surface ratio. The vapour-pressure relations for N2, CO, CH4 and CO2 ices are NOT REACHED (Fray and Schmitt 2009 not available; see 12.2 and the Boss list), so the frost-equilibrium recipe can only be used with the project's existing two-point table until those relations are obtained.
@@ -559,8 +559,8 @@ Entries are mole fractions (gas phase, dry unless noted) with the evidence statu
 | NO2 | - | lightning-driven, ? (Harman 2018) | - | - | - | - | - | - | NOT REACHED |
 | Na | - | - | Type I dominant | - | - | condensed below ~1100 K | 1.7e-6 per H | - | READ/COMPUTED |
 | K | - | - | present | - | - | KCl below ~1200 K | 1.2e-7 per H | - | READ/COMPUTED |
-| SiO | - | - | 0.24 (BSE, 2000 K, 1e-6 bar) | - | - | - | refractory gas | - | READ |
-| Mg | - | - | 0.28 (BSE, 2000 K, 1e-6 bar) | - | - | - | refractory gas | - | READ |
+| SiO | - | - | 0.24 (BSE at 2000 K, 1e-6 bar) | - | - | - | refractory gas | - | READ |
+| Mg | - | - | 0.28 (BSE at 2000 K, 1e-6 bar) | - | - | - | refractory gas | - | READ |
 | Fe | - | - | present | - | - | cloud (7.2) | refractory gas | - | READ |
 | TiO | - | - | ? | - | - | - | cold-trapped unless Kzz large | - | READ |
 | VO | - | - | ? | - | - | - | same (less likely) | - | READ |
@@ -576,7 +576,7 @@ Entries are mole fractions (gas phase, dry unless noted) with the evidence statu
 2. Sossi et al. 2020 (Sci. Adv.) and Gaillard et al. 2014 and 2021: magma-ocean redox and CO to CO2-N2 evolution; snippet only. Needed to fix the dIW prior of the generator.
 3. Hirschmann 2012 (graphite, C solubility) and carbon solubility in melt: our speciation has no graphite and no solubility, so CH4/CO at the surface is biased.
 4. Mumma and Charnley 2011, Bockelee-Morvan 2004, Dello Russo 2016, Harrington Pinto 2022 full tables: per-comet abundances of 30 or more species; Willacy 2025 has only ranges. Also A'Hearn 2012 with usable OCR.
-5. Lodders and Fegley 2002 and 2006, Lodders 2003, Marley 2007: brown dwarf chemistry and the original condensation tables; Schaefer and Fegley 2010 for silicate vapour.
+5. Lodders and Fegley 2002 and 2006, Lodders 2003: brown dwarf chemistry and the original condensation tables; Schaefer and Fegley 2010 for silicate vapour.
 6. Miguel et al. 2011 numeric tables (Type I to V compositions) for lava worlds; only figures were read.
 7. The Thorngren 2016 scatter on the Zpl/Zstar fit and the width of the atmosphere-to-bulk offset in giants.
 8. An occurrence-weighted distribution of sub-Neptune envelope metallicity (Zenv) for the generator; used here only as a bracket of TEST planets.
@@ -585,7 +585,7 @@ Entries are mole fractions (gas phase, dry unless noted) with the evidence statu
 11. Pulsar planet and white-dwarf planet atmospheres: no sourced composition.
 12. Fugacity coefficients for CO2-H2O at above 100 bar (ideal gas fails).
 13. Combi, Meech and Svoren production-rate law for comets and the CO, CO2 activity onset distance.
-14. N2O, NO2, O3 abiotic abundances (Harman 2018, Domagal-Goldman 2014 numeric values), and the Atmospheric Toxicity document items "Guzman-Marquez 2021" (not found) and Harman 2018 (ApJ 866, 56, real).
+14. N2O, NO2, O3 abiotic abundances (Harman 2018, Domagal-Goldman 2014 numeric values), and the Atmospheric Toxicity document item Harman 2018 (ApJ 866, 56, real).
 
 ## 15. Recalled / to verify
 

@@ -11,17 +11,17 @@ The classical Newton-Raphson method addresses the fundamental problem of identif
 
 $$F(x) = F(x_k) + F'(x_k)(x - x_k) + \mathcal{R}_1(x)$$
 
-Neglecting the integral remainder term $\mathcal{R}_1(x) = \int_0^1 (1-t) F''(x_k + t(x - x_k))(x - x_k)^2 \, dt$ yields an affine model of the operator, denoted $M_k(x) = F(x_k) + F'(x_k)(x - x_k)$ (Argyros, 1998; Kantorovich, 1948). Enforcing the condition $M_k(x_{k+1}) = 0$ yields the iterative scheme:
+Neglecting the integral remainder term $\mathcal{R}_1(x) = \int_0^1 (1-t) F''(x_k + t(x - x_k))(x - x_k)^2 \, dt$ yields an affine model of the operator, denoted $M_k(x) = F(x_k) + F'(x_k)(x - x_k)$ (Argyros, 1998). Enforcing the condition $M_k(x_{k+1}) = 0$ yields the iterative scheme:
 
 $$x_{k+1} = x_k - [F'(x_k)]^{-1} F(x_k)$$
 
 This iteration requires the resolution of the linear system $F'(x_k) s_k = -F(x_k)$ followed by the update $x_{k+1} = x_k + s_k$ at every discrete stage (Polyak, 2007).
 
-In infinite-dimensional functional analysis, this concept generalizes to the Newton-Kantorovich framework, which solves operator equations $F(x) = 0$ defined on open subsets $\Omega$ of a Banach space $X$ with values in a Banach space $Y$ (Ciarlet & Mardare, 2014; Kantorovich & Akilov, 1982). Originating from Leonid Kantorovich's 1948 contributions, this formulation avoids the circular assumption that an exact solution $x^*$ exists prior to convergence analysis (Kantorovich, 1948; Polyak, 2007). Instead, semi-local convergence conditions rely exclusively on structural quantities measured at the initial point $x_0 \in \Omega$ (Argyros, 1998; Ferreira & Svaiter, 2012).
+In infinite-dimensional functional analysis, this concept generalizes to the Newton-Kantorovich framework, which solves operator equations $F(x) = 0$ defined on open subsets $\Omega$ of a Banach space $X$ with values in a Banach space $Y$ (Kantorovich & Akilov, 1982). Originating from Leonid Kantorovich's 1948 contributions, this formulation avoids the circular assumption that an exact solution $x^*$ exists prior to convergence analysis (Polyak, 2007). Instead, semi-local convergence conditions rely exclusively on structural quantities measured at the initial point $x_0 \in \Omega$ (Argyros, 1998; Ferreira & Svaiter, 2012).
 
 Theorem (Newton-Kantorovich):
 
-Let $X$ and $Y$ be Banach spaces, $\Omega \subset X$ an open convex set, and $F: \Omega \to Y$ a Fréchet differentiable mapping (Ciarlet & Mardare, 2014). Assume that at an initial vector $x_0 \in \Omega$, the linear operator $\Gamma_0 = [F'(x_0)]^{-1} \in \mathcal{L}(Y, X)$ exists as a bounded inverse, satisfying the following bounds (Ciarlet & Mardare, 2014; Magreñán, 2016):
+Let $X$ and $Y$ be Banach spaces, $\Omega \subset X$ an open convex set, and $F: \Omega \to Y$ a Fréchet differentiable mapping. Assume that at an initial vector $x_0 \in \Omega$, the linear operator $\Gamma_0 = [F'(x_0)]^{-1} \in \mathcal{L}(Y, X)$ exists as a bounded inverse, satisfying the following bounds:
 
 1. $\|\Gamma_0\|_{\mathcal{L}(Y, X)} \le \beta$
 
@@ -33,11 +33,11 @@ Define the dimensionless Kantorovich parameter:
 
 $$h = \beta \eta L$$
 
-If $h \le \frac{1}{2}$ and the closed ball $\bar{B}(x_0, r_-) \subseteq \Omega$, where the radius is defined by the minor root of the scalar quadratic majorant $p(t) = \frac{1}{2} \beta L t^2 - t + \eta$ (Argyros, 1998; Kantorovich, 1948):
+If $h \le \frac{1}{2}$ and the closed ball $\bar{B}(x_0, r_-) \subseteq \Omega$, where the radius is defined by the minor root of the scalar quadratic majorant $p(t) = \frac{1}{2} \beta L t^2 - t + \eta$ (Argyros, 1998):
 
 $$r_- = \frac{1 - \sqrt{1 - 2h}}{\beta L} = \frac{2\eta}{1 + \sqrt{1 - 2h}}$$
 
-then the sequence of Newton iterates $\{x_k\}$ is well-defined, remains entirely within the closed domain $\bar{B}(x_0, r_-)$, and converges strongly to a unique solution $x^* \in \bar{B}(x_0, r_-)$ (Ciarlet & Mardare, 2014; Kantorovich & Akilov, 1982). Furthermore, this solution is geometrically unique within the larger open ball $B(x_0, r_+)$, where $r_+ = \frac{1 + \sqrt{1 - 2h}}{\beta L}$, collapsing to uniqueness in $\bar{B}(x_0, r_-)$ precisely at the critical threshold $h = \frac{1}{2}$ (Ciarlet & Mardare, 2014).
+then the sequence of Newton iterates $\{x_k\}$ is well-defined, remains entirely within the closed domain $\bar{B}(x_0, r_-)$, and converges strongly to a unique solution $x^* \in \bar{B}(x_0, r_-)$ (Kantorovich & Akilov, 1982). Furthermore, this solution is geometrically unique within the larger open ball $B(x_0, r_+)$, where $r_+ = \frac{1 + \sqrt{1 - 2h}}{\beta L}$, collapsing to uniqueness in $\bar{B}(x_0, r_-)$ precisely at the critical threshold $h = \frac{1}{2}$.
 
 The mechanism underlying this proof depends on constructing the scalar majorizing sequence $t_{k+1} = t_k - \frac{p(t_k)}{p'(t_k)}$, initialized at $t_0 = 0$ (Argyros, 1998; Ferreira & Svaiter, 2012). By invoking the Banach Lemma on invertible operators, whenever $\|I - \Gamma_0 F'(x)\| < 1$, the operator $F'(x)$ remains invertible with its norm controlled by the scalar derivative $|p'(t)|^{-1}$ (Argyros, 1998; Kantorovich & Akilov, 1982). An induction argument confirms the componentwise domination:
 
@@ -49,7 +49,7 @@ $$\|x_{k+1} - x^*\| \le \frac{\beta L}{2(1 - \beta L r_-)} \|x_k - x^*\|^2$$
 
 ### Brent's Hybrid Root-Finding Architecture
 
-The van Wijngaarden-Dekker-Brent algorithm provides root containment for continuous scalar functions $f: [a, b] \to \mathbb{R}$ where $f(a)f(b) \le 0$ without requiring evaluation of the derivative $f'(x)$ (Brent, 1973; Dekker, 1969). The method couples the linear reliability of bisection with the superlinear acceleration of open interpolation schemes (Brent, 1973).
+The van Wijngaarden-Dekker-Brent algorithm provides root containment for continuous scalar functions $f: [a, b] \to \mathbb{R}$ where $f(a)f(b) \le 0$ without requiring evaluation of the derivative $f'(x)$ (Brent, 1973). The method couples the linear reliability of bisection with the superlinear acceleration of open interpolation schemes (Brent, 1973).
 
 The primary acceleration step is Inverse Quadratic Interpolation (IQI) (Brent, 1973). Given three distinct historical support coordinates $(a_k, f(a_k))$, $(b_k, f(b_k))$, and $(c_k, f(c_k))$, where $b_k$ denotes the current best approximation such that $|f(b_k)| \le |f(a_k)|$, the inverse relationship $x = f^{-1}(y)$ is modeled via a second-order Lagrange polynomial:
 
@@ -59,7 +59,7 @@ Setting the target value $y = 0$ yields the unconstrained root estimate (Brent, 
 
 $$s = \frac{a_k f(b_k) f(c_k)}{(f(a_k) - f(b_k))(f(a_k) - f(c_k))} + \frac{b_k f(a_k) f(c_k)}{(f(b_k) - f(a_k))(f(b_k) - f(c_k))} + \frac{c_k f(a_k) f(b_k)}{(f(c_k) - f(a_k))(f(c_k) - f(b_k))}$$
 
-When two ordinate values coincide, IQI degenerates via division by zero, prompting the algorithm to switch to a linear secant interpolation step between $a_k$ and $b_k$ (Brent, 1973; Dekker, 1969):
+When two ordinate values coincide, IQI degenerates via division by zero, prompting the algorithm to switch to a linear secant interpolation step between $a_k$ and $b_k$ (Brent, 1973):
 
 $$s = b_k - f(b_k) \frac{b_k - a_k}{f(b_k) - f(a_k)}$$
 
@@ -83,7 +83,7 @@ Newton-type algorithms can fail under several distinct mathematical conditions:
 
 * Derivative Singularities: The Jacobian operator $F'(x_k)$ becomes singular, meaning $\det(F'(x_k)) = 0$, or its condition number diverges to infinity (Polyak, 2007). In this limit, the affine model loses uniqueness, and the inverse operator $[F'(x_k)]^{-1}$ is unbounded.
 
-* Violation of the Semi-Local Criterion: When the Kantorovich parameter satisfies $h = \beta \eta L > \frac{1}{2}$, the discriminant of the majorizing polynomial $p(t)$ becomes strictly negative (Kantorovich, 1948). The contraction mapping property of the step fails, leading to periodic limit cycles, chaotic orbits, or divergence (Polyak, 2007).
+* Violation of the Semi-Local Criterion: When the Kantorovich parameter satisfies $h = \beta \eta L > \frac{1}{2}$, the discriminant of the majorizing polynomial $p(t)$ becomes strictly negative. The contraction mapping property of the step fails, leading to periodic limit cycles, chaotic orbits, or divergence (Polyak, 2007).
 
 * Basin Boundary Instability: In nonlinear systems with multiple isolated zeros, the basins of attraction $\mathcal{B}(x^*_i) = \{x_0 \mid \lim_{k\to\infty} x_k = x^*_i\}$ form fractal boundaries (Polyak, 2007). Initial guesses placed near these Julia sets exhibit extreme sensitivity to roundoff errors, producing large pseudo-random displacements.
 
@@ -401,15 +401,15 @@ $$T_m = \begin{bmatrix}\alpha_1 & \beta_2 & & \\\beta_2 & \alpha_2 & \ddots & \\
 
 The eigenvalues $\theta_1^{(m)} > \theta_2^{(m)} > \dots > \theta_m^{(m)}$ of $T_m$ are the Ritz values, and the vectors $x_i = V_m y_i$ (where $T_m y_i = \theta_i y_i$ and $\|y_i\|_2 = 1$) are the Ritz vectors (Parlett, 1998).
 
-The convergence of Ritz values to the true eigenvalues $\lambda_1 \ge \lambda_2 \ge \dots \ge \lambda_n$ of $A$ is governed by the Kaniel-Paige-Saad convergence theory, which expresses the projection error through Chebyshev polynomials (Kaniel, 1966; Paige, 1971; Saad, 1980).
+The convergence of Ritz values to the true eigenvalues $\lambda_1 \ge \lambda_2 \ge \dots \ge \lambda_n$ of $A$ is governed by the Kaniel-Paige-Saad convergence theory, which expresses the projection error through Chebyshev polynomials (Saad, 1980).
 
 Theorem (Kaniel-Paige Bounds):
 
-Let $\lambda_1$ be the maximal eigenvalue of $A$, and let $\phi_1 = \angle(v_1, u_1)$ denote the angle between the initial Lanczos vector $v_1$ and the normalized eigenvector $u_1$ corresponding to $\lambda_1$ (Kaniel, 1966; Saad, 1980). The error in the maximal Ritz value $\theta_1^{(m)}$ after $m$ iterations satisfies:
+Let $\lambda_1$ be the maximal eigenvalue of $A$, and let $\phi_1 = \angle(v_1, u_1)$ denote the angle between the initial Lanczos vector $v_1$ and the normalized eigenvector $u_1$ corresponding to $\lambda_1$ (Saad, 1980). The error in the maximal Ritz value $\theta_1^{(m)}$ after $m$ iterations satisfies:
 
 $$0 \le \lambda_1 - \theta_1^{(m)} \le (\lambda_1 - \lambda_n) \left( \frac{\tan \phi_1}{C_{m-1}(1 + 2 \gamma_1)} \right)^2$$
 
-where $C_{m-1}(x)$ is the Chebyshev polynomial of the first kind of degree $m-1$, and $\gamma_1$ is the normalized spectral gap (Kaniel, 1966):
+where $C_{m-1}(x)$ is the Chebyshev polynomial of the first kind of degree $m-1$, and $\gamma_1$ is the normalized spectral gap:
 
 $$\gamma_1 = \frac{\lambda_1 - \lambda_2}{\lambda_2 - \lambda_n}$$
 
@@ -417,39 +417,39 @@ Using the explicit representation $C_{m-1}(1 + 2\gamma_1) = \frac{1}{2} \left[ R
 
 $$\lambda_1 - \theta_1^{(m)} \le 4 (\lambda_1 - \lambda_n) \tan^2(\phi_1) \cdot R_1^{-2(m-1)}$$
 
-The Ritz values converge exponentially to isolated extreme eigenvalues, with the rate determined by the spectral gap ratio $\gamma_1$ (Kaniel, 1966; Saad, 1980).
+The Ritz values converge exponentially to isolated extreme eigenvalues, with the rate determined by the spectral gap ratio $\gamma_1$ (Saad, 1980).
 
 ### Finite Precision and Paige's Loss of Orthogonality Theorem
 
-In exact arithmetic, the Lanczos basis vectors remain mutually orthogonal: $V_m^T V_m = I_m$. In finite-precision floating-point arithmetic, orthogonality degrades rapidly (Paige, 1971, 1976). The mechanics of this degradation were resolved by Christopher Paige (1971, 1976, 1980), who established that the loss of orthogonality is an analytical consequence of convergence.
+In exact arithmetic, the Lanczos basis vectors remain mutually orthogonal: $V_m^T V_m = I_m$. In finite-precision floating-point arithmetic, orthogonality degrades rapidly. The mechanics of this degradation were resolved by an analysis that established that the loss of orthogonality is an analytical consequence of convergence.
 
-Let computed quantities be denoted with hats. The finite-precision Lanczos recurrence satisfies (Paige, 1976):
+Let computed quantities be denoted with hats. The finite-precision Lanczos recurrence satisfies:
 
 $$A \hat{V}_m = \hat{V}_m \hat{T}_m + \hat{\beta}_{m+1} \hat{v}_{m+1} e_m^T + E_m, \quad \|E_m\|_2 \le c n \varepsilon_{\text{mach}} \|A\|_2$$
 
-Paige proved that the loss of orthogonality does not arise from the uniform accumulation of roundoff errors across the basis (Paige, 1976, 1980). Instead, the basis vectors lose orthogonality along the direction of a converged Ritz vector.
+Paige proved that the loss of orthogonality does not arise from the uniform accumulation of roundoff errors across the basis. Instead, the basis vectors lose orthogonality along the direction of a converged Ritz vector.
 
 Theorem (Paige's Loss of Orthogonality Bound):
 
-Let $(\theta_j^{(m)}, y_j^{(m)})$ be an eigenpair of the computed tridiagonal matrix $\hat{T}_m$, and let $\hat{x}_j = \hat{V}_m y_j^{(m)}$ be the corresponding computed Ritz vector (Paige, 1976). The projection of the next Lanczos vector $\hat{v}_{m+1}$ onto the Ritz vector $\hat{x}_j$ satisfies:
+Let $(\theta_j^{(m)}, y_j^{(m)})$ be an eigenpair of the computed tridiagonal matrix $\hat{T}_m$, and let $\hat{x}_j = \hat{V}_m y_j^{(m)}$ be the corresponding computed Ritz vector. The projection of the next Lanczos vector $\hat{v}_{m+1}$ onto the Ritz vector $\hat{x}_j$ satisfies:
 
 $$|\hat{v}_{m+1}^T \hat{x}_j| = \frac{\tau_{m, j} \varepsilon_{\text{mach}} \|A\|_2}{\hat{\beta}_{m+1} |e_m^T y_j^{(m)}|}$$
 
-where $\tau_{m, j} = \mathcal{O}(m)$ is a modest constant (Paige, 1976, 1980).
+where $\tau_{m, j} = \mathcal{O}(m)$ is a modest constant.
 
 The denominator represents the residual norm of the computed Ritz pair:
 
 $$\text{Residual}_j = \|A \hat{x}_j - \theta_j^{(m)} \hat{x}_j\|_2 = \hat{\beta}_{m+1} |e_m^T y_j^{(m)}|$$
 
-As the Ritz value converges to a true eigenvalue of $A$, its residual norm approaches machine precision ($\text{Residual}_j \to \varepsilon_{\text{mach}} \Vert{}A\Vert{}_2$) (Paige, 1976). By Paige's theorem, this causes the projection $|\hat{v}_{m+1}^T \hat{x}_j|$ to approach unity:
+As the Ritz value converges to a true eigenvalue of $A$, its residual norm approaches machine precision ($\text{Residual}_j \to \varepsilon_{\text{mach}} \Vert{}A\Vert{}_2$). By Paige's theorem, this causes the projection $|\hat{v}_{m+1}^T \hat{x}_j|$ to approach unity:
 
 $$|\hat{v}_{m+1}^T \hat{x}_j| \approx \frac{\varepsilon_{\text{mach}} \|A\|_2}{\varepsilon_{\text{mach}} \|A\|_2} = 1$$
 
-The newly generated vector $\hat{v}_{m+1}$ loses linear independence and begins aligning with the already converged Ritz vector $\hat{x}_j$ (Paige, 1976, 1980).
+The newly generated vector $\hat{v}_{m+1}$ loses linear independence and begins aligning with the already converged Ritz vector $\hat{x}_j$.
 
 ### Ghost Eigenvalues and Reorthogonalization Architectures
 
-This alignment causes the algorithm to restart a secondary, spurious Krylov recurrence along that eigenvector (Paige, 1976; Parlett, 1998). As a result, duplicate copies of the converged eigenvalue—known as ghost eigenvalues—appear in the spectrum of the tridiagonal matrix $\hat{T}_m$ (Cullum & Willoughby, 1985; Parlett & Scott, 1979). These ghost eigenvalues do not reflect true multiplicity in $A$; they are numerical artifacts of lost orthogonality.
+This alignment causes the algorithm to restart a secondary, spurious Krylov recurrence along that eigenvector (Parlett, 1998). As a result, duplicate copies of the converged eigenvalue—known as ghost eigenvalues—appear in the spectrum of the tridiagonal matrix $\hat{T}_m$ (Cullum & Willoughby, 1985; Parlett & Scott, 1979). These ghost eigenvalues do not reflect true multiplicity in $A$; they are numerical artifacts of lost orthogonality.
 
 Four main architectures are used to stabilize the Lanczos iteration:
 
@@ -501,7 +501,7 @@ For non-symmetric matrices with complex conjugate eigenvalues, a single real shi
 
 $$(A - \mu_1 I)(A - \bar{\mu}_2 I) = A^2 - 2 \text{Re}(\mu_1) A + \vert{}\mu_1\vert{}^2 I = Q R$$
 
-By the Implicit Q Theorem, computing only the first column of this matrix product and chasing the resulting bulge down the Hessenberg form using orthogonal similarity transforms maintains real arithmetic while preserving quadratic convergence (Francis, 1961; Golik, 2004).
+By the Implicit Q Theorem, computing only the first column of this matrix product and chasing the resulting bulge down the Hessenberg form using orthogonal similarity transforms maintains real arithmetic while preserving quadratic convergence (Francis, 1961).
 
 ### Golub-Kahan Bidiagonalization and Demmel-Kahan High-Accuracy SVD
 
@@ -559,11 +559,11 @@ When the eigenvectors are nearly linearly dependent ($\kappa_p(X) \gg 1$), small
 
 | **Algorithmic Class**          | **Representative Algorithm** | **Asymptotic Convergence Rate**                             | **Dominant Breakdown Mode**                                                   | **Fallback / Remediation Architecture**                                                  | **Reliability Bound Threshold**                 |
 | ------------------------------ | ---------------------------- | ----------------------------------------------------------- | ----------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- | ----------------------------------------------- |
-| Nonlinear Root-Finding         | Newton-Kantorovich           | Quadratic (q = 2) (Argyros, 1998; Kantorovich, 1948)        | Derivative singularity or h > 0.5 (Kantorovich, 1948; Polyak, 2007)           | Levenberg-Marquardt regularization, Line search (Polyak, 2007)                           | cond(F'(x_k)) >= 1 / eps_mach                   |
+| Nonlinear Root-Finding         | Newton-Kantorovich           | Quadratic (q = 2) (Argyros, 1998)        | Derivative singularity or h > 0.5 (Polyak, 2007)           | Levenberg-Marquardt regularization, Line search (Polyak, 2007)                           | cond(F'(x_k)) >= 1 / eps_mach                   |
 | Bracketed Root-Finding         | Brent's Method               | Superlinear (q approx 1.839) (Brent, 1973)                  | Essential discontinuities or even multiplicities (Brent, 1973)                | Automatic fallback to bisection (Brent, 1973)                                            |                                                 |
 | Unconstrained Optimization     | BFGS Quasi-Newton            | Superlinear (q > 1) (Nocedal & Wright, 2006)                | Curvature violation (y^T s <= 0) or loss of symmetry (Nocedal & Wright, 2006) | Powell damping, L-BFGS two-loop recursion (Nocedal & Wright, 2006; Powell, 1978)         | cond(B_k) >= 1 / eps_mach                       |
 | Direct Linear Solvers          | GEPP (PA = LU)               | Finite ((2/3) n^3 operations) (Higham, 2002)                | Exponential element growth (rho_n -> 2^(n-1)) (Wilkinson, 1961)               | Rook pivoting, Complete pivoting, Householder QR (Higham, 2002; Wilkinson, 1961)         | cond(A) * rho_n(A) >= 1 / eps_mach              |
-| Sparse Hermitian Eigensolvers  | Symmetric Lanczos            | Exponential (Chebyshev-bounded) (Kaniel, 1966; Paige, 1971) | Loss of orthogonality, Ghost eigenvalues (Paige, 1976, 1980)                  | Selective (SO) or Partial (PRO) reorthogonalization (Parlett & Scott, 1979; Simon, 1984) | Residual <= eps_mach *                          |
+| Sparse Hermitian Eigensolvers  | Symmetric Lanczos            | Exponential (Chebyshev-bounded) | Loss of orthogonality, Ghost eigenvalues                  | Selective (SO) or Partial (PRO) reorthogonalization (Parlett & Scott, 1979; Simon, 1984) | Residual <= eps_mach *                          |
 | Dense Tridiagonal Eigensolvers | QR with Wilkinson Shift      | Cubic (q = 3) (Parlett, 1998; Wilkinson, 1965)              | Stagnation on complex pairs (non-Hermitian) (Francis, 1961; Wilkinson, 1965)  | Francis Implicit Double-Shift, Deflation safeguards (Francis, 1961; Parlett, 1998)       | Subdiagonal                                     |
 | Bidiagonal SVD Solvers         | Demmel-Kahan QR              | Linear (zero-shift Cholesky) (Demmel & Kahan, 1990)         | Slow convergence for large singular values (Golub & Kahan, 1965)              | Hybrid differential quotient-difference with shifts (dqds) (Fernando & Parlett, 1994)    | sigma_min <= Underflow Limit (approx 10^(-308)) |
 
@@ -581,7 +581,7 @@ Numerical methods fall into three broad stability categories:
 
 * Conditionally Stable Algorithms: Methods where backward stability depends on problem-specific parameters. In Gaussian elimination with partial pivoting, backward stability requires that the element growth factor satisfy $\rho_n(A) = \mathcal{O}(1)$ or $\mathcal{O}(n^{1/2})$ (Higham, 2002; Wilkinson, 1961). If $\rho_n(A)$ approaches its theoretical limit of $2^{n-1}$, backward stability is lost.
 
-* Structurally Unstable Algorithms: Methods where finite-precision roundoff alters the underlying mathematical structure. In the three-term symmetric Lanczos algorithm, roundoff errors break the theoretical orthogonality of the basis vectors (Paige, 1976, 1980). Without active stabilization (such as reorthogonalization or ghost-filtering), the method cannot be run reliably over many iterations.
+* Structurally Unstable Algorithms: Methods where finite-precision roundoff alters the underlying mathematical structure. In the three-term symmetric Lanczos algorithm, roundoff errors break the theoretical orthogonality of the basis vectors. Without active stabilization (such as reorthogonalization or ghost-filtering), the method cannot be run reliably over many iterations.
 
 ### Systematic Stabilization Hierarchies and Recovery Protocols
 
@@ -595,7 +595,7 @@ where the parameter $\lambda$ is selected via the L-curve criterion to bound the
 
 When Gaussian elimination exhibits large element growth ($\rho_n \gg 1$), partial pivoting should be aborted in favor of rook pivoting or complete pivoting (Higham, 2002; Wilkinson, 1961). If the active submatrix entries continue to grow, the linear solve should fall back to Householder QR factorization, which guarantees a growth factor of $\rho_n = 1$.
 
-When the Lanczos algorithm experiences loss of orthogonality, tracking the Ritz residuals $\beta_{j+1} \vert{}e_j^T y_i\vert{}$ identifies when a Ritz pair converges to within $\sqrt{\varepsilon_{\text{mach}}} \Vert{}A\Vert{}_2$ (Paige, 1976; Parlett & Scott, 1979). At this threshold, selective reorthogonalization (SO) against the converged Ritz vectors prevents basis corruption. If memory limits prevent storing previous vectors, the Cullum-Willoughby test can be used to identify and remove ghost eigenvalues by comparing the spectrum of $T_m$ to that of its submatrix $\tilde{T}_{m-1}$ (Cullum & Willoughby, 1985).
+When the Lanczos algorithm experiences loss of orthogonality, tracking the Ritz residuals $\beta_{j+1} \vert{}e_j^T y_i\vert{}$ identifies when a Ritz pair converges to within $\sqrt{\varepsilon_{\text{mach}}} \Vert{}A\Vert{}_2$ (Parlett & Scott, 1979). At this threshold, selective reorthogonalization (SO) against the converged Ritz vectors prevents basis corruption. If memory limits prevent storing previous vectors, the Cullum-Willoughby test can be used to identify and remove ghost eigenvalues by comparing the spectrum of $T_m$ to that of its submatrix $\tilde{T}_{m-1}$ (Cullum & Willoughby, 1985).
 
 When quasi-Newton optimization encounters non-positive curvature ($y_k^T s_k \le 0$), Powell's damped update should be engaged to scale the gradient change vector $y_k$ toward $B_k s_k$ (Powell, 1978). If the search direction fails to satisfy the descent property, the Hessian approximation should be reset to the identity matrix ($H_k \leftarrow I$), restarting the optimization along the steepest descent direction with an Armijo line search.
 

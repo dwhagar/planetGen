@@ -11,7 +11,7 @@ names the physical law that turns profile fields into the number. Where a law ne
 note says so, marks it for Boss's research, and the code reads it from `tuning.py` with its source named.
 
 Informs: GEN.103, GEN.269, GEN.270, GEN.271, GEN.272, GEN.273, GEN.275.
-Status: 3.1 and 3.3 built (GEN.103); 3.2 dropped by Boss (2026-10-17, 10:07 AM EDT, GEN.373); check TEST.196 queued. Design, 2026-10-16. Evidence tags: [S] read from the repository, [R] recalled and unconfirmed, [C] computed here.
+Status: 3.1 and 3.3 built (GEN.103); 3.2 dropped by Boss (2026-10-17, 10:07 AM EDT, GEN.373); check TEST.196 queued. Design dated 2026-10-16. Evidence tags: [S] read from the repository, [R] recalled and unconfirmed, [C] computed here.
 
 ## 1. What decides where a thing goes
 
@@ -104,10 +104,7 @@ What the sources limit:
   Kepler and APOGEE, so the line between them is an interpolation of a pooled trend, not a measurement per population. Boss chose
   the pooled line (answer 1) over a per-population one, which no source gives.
 - **Mass: all masses, which the sources do not support above about 1.5 solar masses.** The points are for 0.6 to 1.5 solar masses.
-  Moe, Kratter and Badenes argue the close fraction of massive stars does not change with metallicity [R]; for O stars and early-B stars
-  Moe and Di Stefano (2013, eclipsing fractions in the Small and Large Magellanic Clouds and the Milky Way), Dunstall et al. (2015) and
-  Almeida et al. (2017) find the close fraction in the Large Magellanic Cloud ([Fe/H] about -0.4) consistent with the Milky Way's
-  [S: search summaries; the papers could not be opened]; the BLOeM survey (arXiv 2503.21936) finds early-B stars at the Small Cloud's
+  Moe, Kratter and Badenes argue the close fraction of massive stars does not change with metallicity [R]; the BLOeM survey (arXiv 2503.21936) finds early-B stars at the Small Cloud's
   metallicity ([Fe/H] about -0.7) *more* often close than in the Milky Way, so early B may follow the trend while O stars do not.
   Boss's decision is to apply the line to every mass, on the odds, and let the check (3.1b) show where the numbers leave the published ranges.
   What the line does to a massive star is in the table below: the plain factor would have pushed O stars below [Fe/H] about -0.7 past the observed
@@ -146,7 +143,7 @@ and are never read by the draw.
 | 0.6 to 1.5 Msun (G, late F, early K) | the shape: 53 +-12% at [Fe/H] -3.0, 40 +-6% at -1.0, 24 +-4% at -0.2, 10 +-3% at +0.5, as ratios to the value at 0 (2.65, 2.0, 1.2, 0.5); the level at [Fe/H] 0: 0.15 +-0.03 companions inside log P 3.7 | Moe, Kratter and Badenes 2019 [S: abstract]; Moe and Di Stefano 2017 Table 13 | fails when a ratio is outside its range widened by the sampling error, or the level outside Table 13's |
 | 7 +-2 Msun (mid B) | at least 23 +-7% (companions at periods 100 to 1500 d only, mass ratio 0.1 to 1); [Fe/H] about 0 | Moe and Di Stefano 2017 [S: search summary of the abstract] | fails below the lower bound at [Fe/H] -0.2 to 0 |
 | 28 +-8 Msun (O) | between 35 +-12% (periods 100 to 1500 d) and about 69 +-9% (Sana et al. 2012, periods to about 3000 d, intrinsic binary fraction) | Moe and Di Stefano 2017; Sana et al. 2012 [S: search summaries] | fails outside the span at [Fe/H] -0.2 to 0 |
-| O and early B across [Fe/H] -0.7 to +0.1 | the same value within about 30% (no trend) | Moe and Di Stefano 2013; Dunstall 2015; Almeida 2017 [S] | fails when the ratio of the lowest to the highest [Fe/H] bin leaves 0.7 to 1.3 (the odds form gave 1.29 for O at -0.7 before GEN.448 and gives 1.32 now, see below) |
+| O and early B across [Fe/H] -0.7 to +0.1 | the same value within about 30% (no trend) | no source | fails when the ratio of the lowest to the highest [Fe/H] bin leaves 0.7 to 1.3 (the odds form gave 1.29 for O at -0.7 before GEN.448 and gives 1.32 now, see below) |
 | below 0.6 Msun, 1.5 to 5 Msun | no number verified in this environment; the close fraction rises with mass | Moe and Di Stefano 2017 (not opened) | printed, never fails, until Boss does the research |
 | outer share (10 AU and out), all masses | no change with [Fe/H] (answer 3) | the rule itself | fails when two [Fe/H] bins differ by more than the allowance; skips the O and B bins where the companion chance saturates (see above) |
 
@@ -314,11 +311,7 @@ Sources added for the TEST.196 ranges (2026-10-16, 6:28 PM EDT; same method: sea
 | Moe and Di Stefano 2017, ApJS 230, 15 | confirmed | "Mind Your Ps and Qs" (arXiv 1606.05347). Binary fraction for periods 100 to 1500 d and mass ratio 0.1 to 1: 23 +-7% for mid-B primaries (7 +-2 Msun), 35 +-12% for O primaries (28 +-8 Msun). The companion count rises from 0.48 +-0.04 (solar-type) to 2.1 +-0.3 (O), but that counts all separations. Table 13 holds the per-mass multiplicity statistics; its close-fraction rows could not be read. |
 | Sana et al. 2012, Science 337, 444 | confirmed | Intrinsic binary fraction 0.69 +-0.09 for Galactic O stars, periods up to about 3000 d. |
 | Sana et al. 2013 (VLT-FLAMES Tarantula Survey VIII, A&A) | confirmed in substance | 0.51 +-0.04 for log P 0.15 to 3.5 in 30 Doradus; volume and page not seen. |
-| Moe and Di Stefano 2013 | confirmed in substance | Eclipsing fractions of early-B stars 0.70%, 0.69% and 1.00% (Small Cloud, Large Cloud, Milky Way), read as no metallicity dependence; title and journal not seen. |
-| Dunstall et al. 2015; Almeida et al. 2017 | confirmed in substance | Large Cloud early-B and O close fractions consistent with the Milky Way's after completeness correction; journals not seen. |
 | BLOeM (arXiv 2503.21936) | confirmed in substance | Early-B close fraction at the Small Cloud's metallicity higher than the Milky Way's and the Large Cloud's, hinting at an anticorrelation for B stars; O stars constant (observed 45 +-4%, modelled about 0.70). |
-| Kobulnicky et al. 2014 ("55% for periods under 5000 d") | not confirmed | The attribution did not survive the search; not used. |
-| Moe and Di Stefano 2013, "frequency of very close companions scales as M^0.7" | quoted by a secondary source | Not used as a range. |
 
 ## 7. Boss's answers (6:12 to 6:15 PM EDT, 2026-10-16)
 

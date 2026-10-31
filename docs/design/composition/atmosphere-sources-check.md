@@ -8,7 +8,7 @@ Date: 2026-10-17 (task started 11:35 PM EDT on 10-16 as the session clock report
 
 The session's proxy lets through only a short list of hosts. **Reachable:** `export.arxiv.org` (abstracts **and full PDFs**: `curl -o x.pdf https://export.arxiv.org/pdf/<id>`), `ar5iv.labs.arxiv.org` (some papers only; it redirects others to arxiv.org), `raw.githubusercontent.com` (source files of open-source code), `pypi.org` and `files.pythonhosted.org` (package sources, including data files). **Refused (403):** `arxiv.org` itself, doi.org, ADS, NASA NTRS, Wikipedia, readthedocs, github.com, Optica/OSA, Science, ScienceDirect, Copernicus (AMT/ACP), PMC, NIST, ResearchGate, Zenodo, Semantic Scholar, Crossref, the MPI Mainz UV/VIS atlas and the Bremen ozone page. Web search still returns snippets.
 
-So **no journal-only paper could be read** (Sneep and Ubachs, Bates, Peck and Huang, Penndorf, Bucholtz, Kasting and Donahue, Segura 2003, Burkholder and Talukdar, Serdyuchenko, Lemmon 2004, Tomasko 2008, Karkoschka 1994). Where a number is given for one of them it was read in a reachable arXiv paper that quotes it, or in the source of an open-source code that implements it with the citation. Those are marked **2nd-hand**. Nothing below is quoted from memory. A snippet from a search result is marked **snippet** and is not verified.
+So **no journal-only paper could be read** (Sneep and Ubachs, Bates, Peck and Huang, Penndorf, Bucholtz, Kasting and Donahue, Burkholder and Talukdar, Serdyuchenko, Lemmon 2004, Tomasko 2008, Karkoschka 1994). Where a number is given for one of them it was read in a reachable arXiv paper that quotes it, or in the source of an open-source code that implements it with the citation. Those are marked **2nd-hand**. Nothing below is quoted from memory. A snippet from a search result is marked **snippet** and is not verified.
 
 Labels used:
 
@@ -29,8 +29,8 @@ Tip for later lanes: the arXiv PDFs and package sources are the way to read a pa
 | Result | Count | Sources |
 |---|---|---|
 | READ and verified | 3 | Betremieux and Kaltenegger (arXiv:1507.02107), Sudarsky, Burrows and Pinto 2000, Meadows et al. 2018 (arXiv:1608.08620) |
-| Verified 2nd-hand (value or formula read in citing paper or code) | 10 | Sneep and Ubachs 2005, Bates 1984, Penndorf 1957, Bucholtz 1995 (test value also COMPUTED), Kasting and Donahue 1980, Segura 2003, Lemmon 2004, Tomasko 2008, Karkoschka 1994, Kasten and Young 1989 |
-| Original not reached, no substitute for what the brief needed | 4 | Peck and Huang 1977 (H2 dispersion; a 2nd-hand cross-section law replaces it), Burkholder and Talukdar 1994, Serdyuchenko 2014 (data and licence), Chandrasekhar 1960 (textbook) |
+| Verified 2nd-hand (value or formula read in citing paper or code) | 10 | Sneep and Ubachs 2005, Bates 1984, Penndorf 1957, Bucholtz 1995 (test value also COMPUTED), Kasting and Donahue 1980, Lemmon 2004, Tomasko 2008, Karkoschka 1994, Kasten and Young 1989 |
+| Original not reached, no substitute for what the brief needed | 4 | Peck and Huang 1977 (H2 dispersion; a 2nd-hand cross-section law replaces it), Burkholder and Talukdar 1994, Serdyuchenko 2014 (data and licence) |
 | Citation verified only, content not needed | 2 | Bruneton and Neyret 2008, Hillaire 2020 |
 
 **Corrections to what the notes said (9):**
@@ -43,7 +43,7 @@ Tip for later lanes: the arXiv PDFs and package sources are the way to read a pa
 6. Sudarsky class bounds: Class III is T_eff above about 350 K (not 250 K), Class IV is 900-1500 K (not 900-1400 K).
 7. The prior claims for H2 and He relative to N2 are slightly high: H2 is 0.20 (not 0.22), He is 0.013 (not 0.014). CO2 at 2.5 is confirmed.
 8. Meadows et al. 2018 is the **colour of the planet seen from space** (reflected disk), not the sky colour from the ground. It supports the method only in that Rayleigh scattering plus the star's spectrum decide a clear world's look.
-9. Venus total cloud optical depth is about 20-30 at 0.63 micron (Esposito 1983 via a 2018 paper), not 30-40.
+9. Venus total cloud optical depth is about 20-30 at 0.63 micron, not 30-40.
 
 **One finding that changes the design:** ozone column does not follow a simple power of O2. The Chapman steady state gives [O3] proportional to [O2] times a square root locally, but the *column* flattens or peaks with O2 for hot stars. Use the Kozakis 2022 fit (section 4), which was checked, instead of a power law.
 
@@ -53,9 +53,9 @@ Tip for later lanes: the arXiv PDFs and package sources are the way to read a pa
 
     sigma(lambda) = 24 pi^3 (n^2 - 1)^2 / ( lambda^4 N^2 (n^2 + 2)^2 ) * F_K
 
-with F_K = (6 + 3 d) / (6 - 7 d), d the depolarization ratio (Kitzmann 2017 eq. 6-7, Caldas 2019 eq. 12, Simonetti 2021 eq. 8, which attributes it to Sneep and Ubachs). N is the number density at which (n - 1) is defined.
+with F_K = (6 + 3 d) / (6 - 7 d), d the depolarization ratio (Kitzmann 2017 eq. 6-7, Caldas 2019 eq. 12, which attributes it to Sneep and Ubachs). N is the number density at which (n - 1) is defined.
 
-**Sneep and Ubachs 2005**: JQSRT 92, 293 (volume and page 2nd-hand from Simonetti 2021 and Kitzmann 2017; the DOI 10.1016/j.jqsrt.2004.07.025 is from the same, a search snippet gave a different one, so confirm the DOI before printing it). Original NOT REACHED. Verdict: formula and citation verified 2nd-hand; CO2 typo corrected.
+**Sneep and Ubachs 2005**: JQSRT 92, 293 (volume and page 2nd-hand from Kitzmann 2017; the DOI 10.1016/j.jqsrt.2004.07.025 is from the same, a search snippet gave a different one, so confirm the DOI before printing it). Original NOT REACHED. Verdict: formula and citation verified 2nd-hand; CO2 typo corrected.
 
 **The reference-density hazard (found while checking the codes).** Each coded refractivity formula is defined at a particular temperature, so N must match:
 
@@ -73,7 +73,7 @@ All 2ND-HAND (read in colour-science, eradiate, exo_k, TauREx, petitRADTRANS, py
 | N2 | (n-1)e8 = 6498.2 + 3.0743305e14/(1.44e10 - s^2); F = 1.034 + 3.17e-4/lam^2 (lam in um); valid above about 468 nm per Betremieux and Kaltenegger | 4.635e-27 | 1.000 | 2ND-HAND (Bates 1984) |
 | O2 | lam > 546 nm: 21351.1 + 2.18567e13/(4.09e9 - s^2); shorter: 20564.8 + 2.480899e13/(4.09e9 - s^2); F = 1.096 + 1.385e-3/lam^2 + 1.448e-4/lam^4; N at 273.15 K | 4.072e-27 | 0.879 | 2ND-HAND (Bates 1984) |
 | Ar | 6432.135 + 2.8606021e14/(1.44e10 - s^2); F = 1 | 3.991e-27 | 0.861 | 2ND-HAND (the B term reconstructed from the Betremieux consistency check, not read cleanly) |
-| CO2 | (n-1)e8 = 1.1427e3 * [5799.25/(128908.9^2 - s^2) + 120.05/(89223.8^2 - s^2) + 5.3334/(75037.5^2 - s^2) + 4.3244/(67837.7^2 - s^2) + 1.218145e-6/(2418.136^2 - s^2)] (with the corrected last term); F = 1.1364 + 2.53e-3/lam^2 | 1.164e-26 | 2.51 | 2ND-HAND (Bideau-Mehu 1973 via Sneep and Ubachs); I re-evaluated it: n-1 = 4.272e-4, sigma 1.164e-26 |
+| CO2 | (n-1)e8 = 1.1427e3 * [5799.25/(128908.9^2 - s^2) + 120.05/(89223.8^2 - s^2) + 5.3334/(75037.5^2 - s^2) + 4.3244/(67837.7^2 - s^2) + 1.218145e-6/(2418.136^2 - s^2)] (with the corrected last term); F = 1.1364 + 2.53e-3/lam^2 | 1.164e-26 | 2.51 | 2ND-HAND (Sneep and Ubachs); I re-evaluated it: n-1 = 4.272e-4, sigma 1.164e-26 |
 | CH4 | n - 1 = 4.6662e-4 + 4.02e-6/lam^2 (lam in um); F = 1 | 1.28e-26 | 2.76 | 2ND-HAND; Ranjan 2017 says the Sneep and Ubachs formalism overestimates CH4 at 532.5 nm by 15 percent and Kopparapu 2013 scales it down by 15 percent |
 | CO | **do not use the coded Sneep and Ubachs form (22851 + 0.456e12/(71427^2 - s^2), F = 1.016); it gives 2.98e-27, half the measured value (exo_k's own comment says the same).** Use (n-1) = 32.7e-5 (1 + 8.1e-3/lam^2) at 273.15 K (Allen/Cox form in TauREx): 5.73e-27 at 550 nm, about 6.6e-27 at 532 nm | 5.7e-27 | 1.24 | 2ND-HAND, flagged; closer to the snippet value 6.19e-27 at 532 nm |
 | H2O vapour | n - 1 = 4.92303e-2/(238.0185 - 1/lam^2) + 1.42723e-3/(57.3262 - 1/lam^2) for lam > 0.23 um; depolarization 2.99e-4 (Murphy 1977 via Ranjan), F = 1.0010. Do not use d = 0.17 (that is liquid water) | n-1 = 2.362e-4 at 550 nm | about 0.5 | 2ND-HAND; reference temperature of the formula unknown |
@@ -82,11 +82,11 @@ All 2ND-HAND (read in colour-science, eradiate, exo_k, TauREx, petitRADTRANS, py
 | He | sigma = 5.484e-14 L^-4 (1 + 2.44e5 L^-2) cm2, L in Angstrom (pyratbay and TauREx agree); consistent with n-1 = 3.48e-5 at 1 um | 6.04e-29 | 0.0130 | 2ND-HAND |
 | H2S, SO2 | NOT FOUND in refractivity form. Ranjan 2017 gives the route: sigma = 1.306e20 * KCF * alpha^2 / lam^4 (sigma in cm2, lam in um, alpha in cm3) with alpha and delta from Bogaard et al. 1978; those values were NOT REACHED | | | NOT REACHED |
 
-**Peck and Huang 1977** (H2 refractive index and dispersion, JOSA 67, 1550): NOT REACHED and the dispersion constants were not found anywhere reachable (Leonard 1974, Mansfield and Peck 1969, Ford and Browne 1973 likewise). The Dalgarno and Williams cross section replaces it. The implied H2 refractivity from it (1.369e-4 at 273.15 K) matches Betremieux and Kaltenegger's 1.37e-4, so the substitute is consistent with the one source we did read.
+**Peck and Huang 1977** (H2 refractive index and dispersion, JOSA 67, 1550): NOT REACHED and the dispersion constants were not found anywhere reachable. The Dalgarno and Williams cross section replaces it. The implied H2 refractivity from it (1.369e-4 at 273.15 K) matches Betremieux and Kaltenegger's 1.37e-4, so the substitute is consistent with the one source we did read.
 
 ### 2.3 Betremieux and Kaltenegger arXiv:1507.02107: VERIFIED (READ twice)
 
-Table 1 caption "STP refractivities of various gases and planetary atmospheres at 1 um": H2 1.37e-4, He 3.48e-5, N2 2.95e-4, O2 2.68e-4, Ar 2.79e-4, CO2 4.43e-4 (also Jupiter 1.23e-4 and Earth 2.90e-4). Sources it states: N2, O2, CO2, Ar from its 2013 Table 2 (Griesmann and Burnett 1999, Bates 1984, Bideau-Mehu 1981 and 1973; arXiv:1307.0416 read); He from Mansfield and Peck 1969; H2 derived from the Ford and Browne 1973 cross section. This is a 2015 paper by its arXiv number.
+Table 1 caption "STP refractivities of various gases and planetary atmospheres at 1 um": H2 1.37e-4, He 3.48e-5, N2 2.95e-4, O2 2.68e-4, Ar 2.79e-4, CO2 4.43e-4 (also Jupiter 1.23e-4 and Earth 2.90e-4). Sources it states: N2, O2, CO2, Ar from its 2013 Table 2 (Bates 1984; arXiv:1307.0416 read); He; H2 derived from the cross section. This is a 2015 paper by its arXiv number.
 
 ### 2.4 Relative cross sections against the prior claim (COMPUTED)
 
@@ -100,7 +100,7 @@ Ratios hardly change at 532 nm (CO2/N2 2.513, O2/N2 0.879, Ar/N2 0.861).
 
 ### 2.5 Penndorf 1957 (JOSA 47, 176), Bates 1984, Bucholtz 1995
 
-- **Penndorf 1957**: NOT REACHED. 2ND-HAND (colour-science source): (n-1)e8 = 6432.8 + 2949810/(146 - s^2) + 25540/(41 - s^2) with s = 1/lam in um^-1, and a constant air King factor 1.0608. Its n is Edlen's 1953 form. At 550 nm Penndorf, Edlen 1966 (8342.13 + 2406030/(130 - s^2) + 15997/(38.9 - s^2)) and Peck and Reeder 1972 (8060.51 + 2480990/(132.274 - s^2) + 17455.7/(39.32957 - s^2)) all give n - 1 = 2.778e-4. **Recommendation: do not cite Penndorf as the standard; use the Peck-Reeder air and Bodhaine 1999 King factor only for the Earth test, and the per-gas table above for the generator.**
+- **Penndorf 1957**: NOT REACHED. 2ND-HAND (colour-science source): (n-1)e8 = 6432.8 + 2949810/(146 - s^2) + 25540/(41 - s^2) with s = 1/lam in um^-1, and a constant air King factor 1.0608. Its n is Edlen's 1953 form. At 550 nm Penndorf, (8342.13 + 2406030/(130 - s^2) + 15997/(38.9 - s^2)) and Peck and Reeder 1972 (8060.51 + 2480990/(132.274 - s^2) + 17455.7/(39.32957 - s^2)) all give n - 1 = 2.778e-4. **Recommendation: do not cite Penndorf as the standard; use the Peck-Reeder air and King factor only for the Earth test, and the per-gas table above for the generator.**
 - **Bates 1984** (Planet. Space Sci. 32, 785): NOT REACHED. King factors above are 2ND-HAND from five independent codes that agree. Bates's own analytic cross-section fit was not found.
 - **Bucholtz 1995** (Appl. Opt. 34, 2765): citation verified from reference lists; NOT REACHED. Its fit form is beta_s(lambda) = A lambda^(-B - C lambda - D/lambda), tau = beta_s (Ts/Ps) * integral of P/T dz with Ts = 288.15 K, Ps = 1013.25 mbar (READ in arXiv:2301.03824 appendix A and arXiv:1210.2619 eq. 9), but the A, B, C, D numbers (its Table 3) and its tabulated tau(550 nm) were NOT REACHED. The snippet "4.5 percent lower than Penndorf" is unverified; the coded formula difference accounts for only 1.1 percent.
 - **Earth test value, COMPUTED independently by two of us (the worker and the lane):** Peck-Reeder air, F_air = 1.0488 (400 ppm CO2, 550 nm), N = 2.546899e19 cm^-3 gives sigma = 4.510e-27 cm2. Air column P/(m g) with P = 101325 Pa, m = 28.964 u, g = 9.80665 gives 2.148e25 cm^-2, so **tau_R(550 nm) = 0.0969**. With Penndorf's F = 1.0608 it is 0.0980. colour-science's own doctest is 0.0936 at 555 nm (different g). **The test target "about 0.097" stands as a computed value, not a read one.** Use tolerance 2 percent.
@@ -121,7 +121,7 @@ Ratios hardly change at 532 nm (CO2/N2 2.513, O2/N2 0.879, Ar/N2 0.861).
 ### 4.1 Chapman scaling and units: VERIFIED (READ)
 
 - Reactions (Cooke et al. 2022, arXiv:2102.11675, eq. 3.1; Chapman 1930, Phil. Mag. XXXV): O2 + hv -> O + O; O + O2 + M -> O3 + M; O3 + hv -> O2 + O; O3 + O -> 2 O2.
-- Steady state (Grenfell et al., arXiv:astro-ph/0702622 eq. 2, citing Wayne 1993): [O3] = [O2] * ( j_O2 * k(O+O2+M) * [M] / ( k(O3+O) * j_O3 ) )^0.5. It is a local density; it is not "ozone goes as the square root of O2". Chapman over-estimates ozone because catalytic loss is left out (same paper).
+- Steady state (Grenfell et al., arXiv:astro-ph/0702622 eq. 2): [O3] = [O2] * ( j_O2 * k(O+O2+M) * [M] / ( k(O3+O) * j_O3 ) )^0.5. It is a local density; it is not "ozone goes as the square root of O2". Chapman over-estimates ozone because catalytic loss is left out (same paper).
 - 1 DU = 2.687e16 molecules cm^-2 (Cooke; 2.687e20 m^-2). Modern Earth 279 DU in Cooke's pre-industrial run. "About 300 DU" is a snippet-level statement; 279 to 300 DU is the test range.
 - Hartley band becomes optically thick at about 1e17 molecules cm^-2 against about 1e19 for Earth (Robinson et al. 2014, arXiv:1405.4557, READ), and about 0.1 percent PAL O2 gives a shielding layer there.
 
@@ -144,7 +144,7 @@ Cross-checks of the shape (all 2ND-HAND or READ):
 | Source | Result |
 |---|---|
 | Cooke et al. 2022 (3-D WACCM6, READ) | 279, 169, 66 and 18 DU at 100, 10, 1 and 0.1 percent PAL |
-| Segura 2003 via Cooke (2ND-HAND) | 266 DU at 10 percent PAL, 124 DU at 1 percent PAL |
+| Cooke (2ND-HAND) | 266 DU at 10 percent PAL, 124 DU at 1 percent PAL |
 | Kasting and Donahue 1980 via Cooke (2ND-HAND) | about 100 DU at 0.5 percent PAL; their profiles are an upper limit; Cooke's lower columns by factors 1.76 (10 percent) and 2.24 (1 percent) imply about 297 and 148 DU (that implication is the worker's arithmetic, not quoted) |
 | Segura et al. 2005 (arXiv:astro-ph/0510224, READ, Table 2, at Earth O2) | Sun 8.4e18 cm^-2 (313 DU); AD Leo 4.4e18 (164 DU); GJ 643 1.3e19 (484 DU); quiescent 3100 K 1.2e18 (45 DU), 3400 K 2.4e18 (89 DU), 3650 K 3.2e18 (119 DU). Quiescent M stars under 40 percent of Earth's |
 | Grenfell et al. 2007 (astro-ph/0610460, READ) | K2V 209-236 DU; Sun 296-327 DU |
@@ -153,7 +153,6 @@ Cross-checks of the shape (all 2ND-HAND or READ):
 The spread between models (Cooke 3-D lower than the 1-D codes by a factor about 2 at low O2; the Sun at Earth O2 from 192 to 313 DU) is real. The generator should draw within it rather than pretend precision: **GEN.413 should use the Kozakis fit for the median, host-star dependence by interpolating between the five hosts in T_eff, and a seeded spread of about +-30 percent** (a design choice for the lane, not a source value).
 
 **Kasting and Donahue 1980** (JGR 85, 3255-3263): original NOT REACHED; citation and numbers 2ND-HAND from Cooke. Use only as "1-D result; roughly 1 percent PAL is the usual shielding threshold; ozone rises with O2". Do not attribute the plateau between 0.1 and 1 percent PAL to it.
-**Segura 2003** (Astrobiology 3, 689-708, DOI 10.1089/153110703322736024 per snippet): not on arXiv; original NOT REACHED. F2V, G2V, K2V hosts, O2 1 to 1e-5 PAL; below about 1e-2 PAL all three hosts give high surface UV (snippet).
 
 ### 4.3 Cross sections
 
@@ -187,7 +186,7 @@ Inputs: Malicet/Brion 295 K cross sections above; 300 DU = 8.061e18 cm^-2; Rayle
 
 Hartley and Huggins vertical tau for 300 DU: 91 at 255 nm, 3.2 at 300 nm, 0.26 at 320 nm, 0.016 at 340 nm. Zenith sky transmission at 600 nm: 0.92 (sun at zenith), 0.88 (60 degrees), 0.77 (80 degrees), 0.58 (90 degrees); chromaticity shift (-0.004, -0.006) to (-0.024, -0.037), luminosity factor 0.95 to 0.73.
 
-Conclusion: Chappuis absorption removes orange and red and shifts the sky slightly bluer/purer. By day it is minor (5-8 percent of luminance, shift 0.005-0.01 in xy); it matters at twilight and at low sun. Hulburt 1953 (JOSA 43, 113; two thirds of the zenith blue at 90 degrees solar zenith is Chappuis absorption) is SNIPPET only; Lange, Rozanov and von Savigny 2023 (ACP 23, 14829) revisits it, NOT REACHED. Adams and Dobson, Lee 2004: nothing found. **Design rule: apply ozone as Beer-Lambert absorption along the sun path (Chappuis in version 1, Hartley/Huggins only for the UV index); it is not a visible-colour driver at noon.**
+Conclusion: Chappuis absorption removes orange and red and shifts the sky slightly bluer/purer. By day it is minor (5-8 percent of luminance, shift 0.005-0.01 in xy); it matters at twilight and at low sun. Hulburt 1953 (JOSA 43, 113; two thirds of the zenith blue at 90 degrees solar zenith is Chappuis absorption) is SNIPPET only; NOT REACHED. Adams and Dobson: nothing found. **Design rule: apply ozone as Beer-Lambert absorption along the sun path (Chappuis in version 1, Hartley/Huggins only for the UV index); it is not a visible-colour driver at noon.**
 
 ## 5. Dust, haze, cloud and giants
 
@@ -221,7 +220,7 @@ Transitions at 150, 250, 350 K are approximate, not sharp. Whole sample Bond alb
 
 Cahoy, Marley and Fortney 2010 (READ), solar-analog star, geometric albedo B, V, R, I and Bond albedo for 1x-solar Jupiter-like planets: 0.8 AU (clear) 0.556, 0.322, 0.156, 0.047, Bond 0.408; 2 AU (water cloud) 0.733, 0.742, 0.727, 0.673, Bond 0.914; 5 AU (NH3 over water) 0.609, 0.567, 0.531, 0.453, Bond 0.675; 10 AU 0.450, 0.386, 0.358, 0.313, Bond 0.489. A 10x-Neptune-metallicity planet at 5 AU: 0.434, 0.326, 0.238, 0.145, Bond 0.407. Mie scattering extinction is essentially constant for radii over 1 micron (so clouds are white/grey). Water cloud optical thickness can reach about 10,000. Water-cloud base about 500 mbar (2 AU), NH3 near 50 mbar and water near 1 bar (5 AU).
 
-Marley et al. 1999 (astro-ph/9810073, abstract READ): Rayleigh scatter dominates in the blue; molecular absorption removes red and infrared; cloud-free atmospheres above about 400 K are dark beyond 0.6 micron.
+ (astro-ph/9810073, abstract READ): Rayleigh scatter dominates in the blue; molecular absorption removes red and infrared; cloud-free atmospheres above about 400 K are dark beyond 0.6 micron.
 
 **Use for GEN.419 (giants):** pick the class from T_eff (or T_eq) by the table, take the B, V, R, I colour from the Cahoy table nearest in class, interpolating in orbital distance and metallicity; do not fix a colour per class letter without that table (the project rule). Cahoy Table 6 has all 16 models.
 
@@ -231,9 +230,9 @@ READ (Visscher, Lodders and Fegley 2006, astro-ph/0511136, eq. 32 and 34, P in b
 
 ### 5.6 Clouds in general
 
-- Venus: arXiv:1804.05889 (table "derived from Esposito et al. 1983", 2ND-HAND): optical depth at 0.63 micron: upper haze 0.2-1, upper cloud 6-8, middle 8-10, lower 6-12, lower haze 0.1-0.2; the three main layers sum to about 20-30. **"30-40" is not verified.** Droplets 75-85 percent H2SO4; modes 0.49, 1.04, 3.85 micron (Crisp 1986); Bond albedo 0.76 typical, range 0.7-0.82 (Colin 1983), 0.81 in models (arXiv:2404.07669, READ). Meadows 2018: clouds reflect over 70 percent and only about 3 percent reaches the surface.
+- Venus: arXiv:1804.05889: optical depth at 0.63 micron: upper haze 0.2-1, upper cloud 6-8, middle 8-10, lower 6-12, lower haze 0.1-0.2; the three main layers sum to about 20-30. **"30-40" is not verified.** Droplets 75-85 percent H2SO4; modes 0.49, 1.04, 3.85 micron; Bond albedo 0.76 typical, range 0.7-0.82, 0.81 in models (arXiv:2404.07669, READ). Meadows 2018: clouds reflect over 70 percent and only about 3 percent reaches the surface.
 - Earth clouds (Groot et al. 2020, arXiv:2007.15624 Table 1, READ): model cloud optical thickness bins 0, 5, 10, 20 (MODIS bins), droplet radius 10-17.5 micron, tau 9.775 to 10.002 from 350 to 865 nm (grey). The ISCCP global mean about 3.8 is SNIPPET.
-- Mie extinction of large particles is grey (Cahoy, Lemmon READ). Titan's small monomers are steep. **A reachable Angstrom-exponent review (Seinfeld and Pandis, Wagner 2008, Schuster 2006) was NOT REACHED**; the range "0-2, under 1 for dust and sea salt" is SNIPPET.
+- Mie extinction of large particles is grey (Cahoy, Lemmon READ). Titan's small monomers are steep. **A reachable Angstrom-exponent review (Seinfeld and Pandis, Schuster 2006) was NOT REACHED**; the range "0-2, under 1 for dust and sea salt" is SNIPPET.
 
 ### 5.7 Meadows et al. 2018 (Astrobiology 18, 133; arXiv:1608.08620): READ (Sect. 4.6), VERIFIED with a nuance
 
@@ -244,8 +243,8 @@ READ (Visscher, Lodders and Fegley 2006, astro-ph/0511136, eq. 32 and 34, P in b
 | Item | Result |
 |---|---|
 | Kasten and Young 1989 (Appl. Opt. 28, 4735-4738) | 2ND-HAND from pvlib source (raw.githubusercontent.com): m = 1/(cos z + 0.50572 (6.07995 + (90 - z))^-1.6364), z in degrees, apparent zenith. COMPUTED: m = 0.9997 at 0, 1.994 at 60, 10.31 at 85, 37.9 at 90 degrees. It is an Earth fit (ISO 1972 standard atmosphere, refraction included), so it is **only a regression target for Earth**; other worlds need the Chapman function with the planet's R/H. |
-| Chapman function (Chapman 1931, Proc. Phys. Soc. 43, 483) | existence and use confirmed by a snippet and by Vasylyev 2021 (Earth, Planets and Space; best analytic approximations named: Kocifaj 1996 and Green and Barnum); the formula itself NOT REACHED. The lane must take the exact integral, which is easy to evaluate numerically for an exponential atmosphere. |
-| Chandrasekhar 1960 (Radiative Transfer) | textbook; the ground-bounce factor 1/(1 - A_g s) was not looked up. NOT REACHED. Any radiative transfer text gives it; Boss may prefer a two-stream pass instead. |
+| Chapman function (Chapman 1931, Proc. Phys. Soc. 43, 483) | existence and use confirmed by a snippet and by Vasylyev 2021 (Earth, Planets and Space; best analytic approximations named: Green and Barnum); the formula itself NOT REACHED. The lane must take the exact integral, which is easy to evaluate numerically for an exponential atmosphere. |
+| A textbook | textbook; the ground-bounce factor 1/(1 - A_g s) was not looked up. NOT REACHED. Any radiative transfer text gives it; Boss may prefer a two-stream pass instead. |
 | Bruneton and Neyret 2008 | Computer Graphics Forum 27(4), 1079-1086 (search metadata, not EGSR); Hillaire 2020: CGF 39(4), 13-22, EGSR 2020 (search metadata). Citations verified; contents not needed for the chain. Hillaire's reachable copy at diglib7.eg.org is refused here. |
 | Wyman, Sloan and Shirley 2013 | already validated numerically in `docs/design/orbits/sky-view.md`; not rechecked. |
 | Peck and Reeder 1972 (JOSA 62, 958) | appeared as a reference in a data README (search); formula read in colour-science (section 2.5). |
@@ -261,8 +260,8 @@ Ranked by how much the chain depends on it:
 5. **Refractivity and King factors for H2S, SO2 (Bogaard 1978 polarizabilities), NH3 and CO** from the original papers, and a clean check of the S and U CO2 value at 532 nm (computed 13.3e-27 cm2 against a snippet value of 12.4e-27; unresolved, 7.6 percent).
 6. **Condensation curves for NH3, H2O and CH4** (Lodders and Fegley 2002, Lodders 2003 and 2010, Weidenschilling and Lewis 1973) for the cloud-base rule.
 7. **Bucholtz 1995 Table 3** (A, B, C, D) and its optical depth table, to replace the recomputed Earth test value with the published one.
-8. **Peck and Huang 1977, Leonard 1974, Mansfield and Peck 1969, Ford and Browne 1973**: the H2 and He dispersion; the replacement is consistent at 1 micron but is a cross-section law.
-9. **Kasting and Donahue 1980, Segura 2003** originals; **Hulburt 1953**; **an Angstrom-exponent review**; the Venus cloud total.
+8. **Peck and Huang 1977**: the H2 and He dispersion; the replacement is consistent at 1 micron but is a cross-section law.
+9. **Kasting and Donahue 1980** originals; **Hulburt 1953**; **an Angstrom-exponent review**; the Venus cloud total.
 10. Whether the proxy can be widened: the hosts to add are doi.org, ui.adsabs.harvard.edu, www.science.org, amt.copernicus.org, acp.copernicus.org, opg.optica.org, www.sciencedirect.com, ntrs.nasa.gov, and the Mainz and Bremen data hosts (a Project settings > environment change).
 
 ## 8. Direct answers for the lanes

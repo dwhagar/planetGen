@@ -7,7 +7,7 @@ Builds `src/planetgen/physics/data/acid_cloud_optics.json` (GEN.1020): the infra
     python scripts/build_acid_cloud_optics.py --indices /path/to/hitran_ri      # the folder of hitran_ri.tar (https://hitran.org/data/Aerosols/)
 
 For each acid strength and each effective radius of `RADII_UM` the droplets are a gamma size distribution of effective variance `VARIANCE`
-(0.2, the order of the Crisp 1986 mode variances of Arney and Kane 2018 Table 2); the Mie efficiencies (`physics/mie.py`) are averaged over
+(0.2, the order of the mode variances of Arney and Kane 2018 Table 2); the Mie efficiencies (`physics/mie.py`) are averaged over
 four wavenumbers of each band. Stored per band: the extinction efficiency relative to the 550 nm one of the same droplets (the cloud depth in
 the generator is stated at 550 nm), the single-scattering albedo and the asymmetry factor. The raw index files are never committed.
 """

@@ -36,10 +36,10 @@ Zero-pressure (about 1 bar) crystal or solid densities at the stated temperature
 | Material | Value | Unit | Source | Label |
 |---|---|---|---|---|
 | Water ice Ih, 273 K | 0.917 | g/cm3 | PubChem compound record (CRC/HSDB entry) | READ |
-| Water ice Ih, cell-derived | 0.921-0.934 (Goto 1990: 0.926) | g/cm3 | COD crystal cell, rho = Z M / (N_A V) | COMPUTED |
-| NH3 solid | 0.834 | g/cm3 | COD cell of Olovsson and Templeton 1959, same formula | COMPUTED |
+| Water ice Ih, cell-derived | 0.921-0.934 (0.926) | g/cm3 | COD crystal cell, rho = Z M / (N_A V) | COMPUTED |
+| NH3 solid | 0.834 | g/cm3 | COD cell, same formula | COMPUTED |
 | CH4 solid, 93 K | 0.521 | g/cm3 | COD cell, same formula | COMPUTED |
-| CO2 solid, 150 K | 1.643 | g/cm3 | COD cell of Simon and Peters 1980, same formula | COMPUTED |
+| CO2 solid, 150 K | 1.643 | g/cm3 | COD cell, same formula | COMPUTED |
 | CO2 solid, -78.5 C | 1.56 | g/cm3 | PubChem | READ |
 | CO solid hexagonal, 65 K | 0.929 | g/cm3 | PubChem | READ |
 | N2 solid alpha, 4.2 K | 1.035 | g/cm3 | COD cell, same formula | COMPUTED |
@@ -181,7 +181,7 @@ Computed heating (inputs: Lodders ppm times Ruedas rates; K, Th, U decayed back 
 Consequences:
 - Al-26 at t0 is roughly 3500-12600 times the long-lived rate (COMPUTED from the table above).
 - Total Al-26 decay energy per kg: CI 4.95e6 J/kg, H 6.57e6 J/kg. With specific heat 900 J/kg/K and no heat loss, the temperature rise is 5500-7500 K (COMPUTED), so retained Al-26 heat melts or dehydrates any planetesimal that forms early and is big enough to hold the heat.
-- Canonical ratio 5.25e-5 (Kita 2013) and the 0.1-10 times variation across systems come from Lichtenberg et al. 2019 (arXiv:1902.04026); planetesimal radii 1-100 km; high Al-26 dehydrates bodies. READ.
+- Canonical ratio 5.25e-5 and the 0.1-10 times variation across systems come from Lichtenberg et al. 2019 (arXiv:1902.04026); planetesimal radii 1-100 km; high Al-26 dehydrates bodies. READ.
 
 Water upper bound from hydrogen (all H counted as H2O, so organic H is included): CI 16.6 wt %, CM 10.3 %, CV 2.5 %, CO 0.9 %, H 0.7 %. COMPUTED from the Lodders H entries above (CV, CO, H need their H values, which I did not extract: those three numbers are not reproducible from this file; treat them as RECALLED until the Lodders table is loaded). Hence CI and CM rows are COMPUTED, CV, CO, H rows are RECALLED (listed in section 5).
 
@@ -268,7 +268,7 @@ These agree with the Bierson-Nimmo constant rock fraction of 70 %. Barr and Schw
 | Ice stable for r >= 15 R_J if inflow F < 5e-5 M_E/yr | 15, 5e-5 | R_J, M_E/yr | same | READ |
 | Jovian-type disk runs (39 runs): four large satellites, inner two rocky, outer two icy; Saturn-type: one dominant icy body | n/a | n/a | Sasaki et al. 2010 | READ |
 | Sum of the four large-moon mass ratios in Sasaki Table 1 | 20.7e-5 (4.70+2.53+7.80+5.69) | none | COMPUTED | COMPUTED |
-| Composition gradient: Ganymede rock fraction about 0.55, Callisto about 0.44 | 0.55, 0.44 | none | McKinnon 1997, quoted in Canup and Ward 2009 | 2ND-HAND |
+| Composition gradient: Ganymede rock fraction about 0.55, Callisto about 0.44 | 0.55, 0.44 | none | quoted in Canup and Ward 2009 | 2ND-HAND |
 | Europa about 8 % ice and water | 8 | % | same | 2ND-HAND |
 
 Failure modes of the circumplanetary-disk law:
@@ -502,7 +502,7 @@ Test targets only, never presets. Each should be reproduced by the stated law wi
 | Io density | 3.53 g/cm3 | 0.2 | anhydrous rocky moon | NASA | READ |
 | Dwarf-planet q values | 5e-4-0.11 | covered by draw | 3.4.2 | Barr and Schwamb | READ |
 | Long-lived heating of ordinary chondrite | 4.9-5.4 pW/kg | 10 % | Lodders x Ruedas | COMPUTED | COMPUTED |
-| NEO type mix S/Sq/Q about 50 %, C about 20 % | 50, 20 | 15 points | x-scaled kernel | Binzel 2020 | READ |
+| NEO type mix S/Sq/Q about 50 %, C about 20 % | 50, 20 | 15 points | x-scaled kernel | no source | READ |
 
 ---
 

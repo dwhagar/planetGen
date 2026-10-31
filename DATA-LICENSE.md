@@ -22,7 +22,7 @@ The keys are the source keys of the file.
 | `slb2024-burnman` | Stixrude and Lithgow-Bertelloni (2024), as parameters read in `burnman` 2.1.0 | As above |
 | `e-table-2.6` | Band reflectance computed in part E from spectral library values | Computed values; the libraries (USGS splib07a and others) are public or open data |
 | `computed-e` | Values computed in part E from its other columns | None |
-| `handbook-mineralogy` | Handbook of Mineralogy, Mineral Data Publishing and the Mineralogical Society of America (2001-2005) | "All rights reserved" is printed on each page; only the density values read from the pages are kept, with the citation |
+| `handbook-mineralogy` | Handbook of Mineralogy, Mineral Data Publishing and the Mineralogical Society of America (the editions of 2001 to 2005) | "All rights reserved" is printed on each page; only the density values read from the pages are kept, with the citation |
 | `webmineral` | Webmineral Mineralogy Database (David Barthelmy) | No licence statement found; only the listed density values are kept |
 | `crc-density-wiki` | Wikipedia, "Densities of the elements (data page)" | CC BY-SA 4.0 for the page text; the values are CRC and WebElements figures; only the values are kept |
 | `pubchem` | PubChem compound pages, section Density | PubChem data are open; each annotation quotes its own source (CRC, USCG, NTP, EPA, HSDB) |
@@ -164,7 +164,7 @@ The keys are the source keys of the file. Published values only; no third-party 
 
 | Source key | Source | Terms known |
 |---|---|---|
-| `marboeuf-2014` | Marboeuf et al. 2014, Table 5 (from Mohammadi and Richon 2010, Fray 2010, Hersant 2004) | Published paper; the six fit constants only |
+| `marboeuf-2014` | Marboeuf et al. 2014, Table 5 (which draws on Hersant 2004) | Published paper; the six fit constants only |
 | `semenov-2023` | Semenov, Stoporev et al. 2023, Int. J. Mol. Sci. 24, 9321 | Open access (MDPI); two quadruple points only |
 | `chevrier-2009` | Chevrier, Hanley and Altheide 2009, GRL 36, L10202 | Published abstract; two eutectic points only |
 | `pestova-2005` | Pestova et al. 2005, Marion et al. 2010, as quoted by arXiv:1811.00862 and arXiv:2012.00100 | Second-hand; one eutectic point |
@@ -184,7 +184,7 @@ publisher's usual terms; no statement was seen, so treat as unconfirmed).
 | Curtis et al. 2020, ApJ 904, 140 | CC BY 4.0 | file |
 | Anenburg 2026, "Oxygen Fugacity Buffers and an Interactive Calculator", G-cubed 10.1029/2026GC013032 | Open access, Creative Commons Attribution (version not printed) | file |
 | Summa, Monaco, Lazzeretti and Zanasi 2021, J. Phys. Chem. Lett. 12, 8855 | (c) 2021 The Authors; ACS open licence, type not printed | file |
-| Sossi, Burnham, Badro, Lanzirotti, Newville and O'Neill 2020, Science Advances 6, eabd1387 (Redox state of Earth's magma ocean and its Venus-like early atmosphere) | AAAS exclusive licensee; Creative Commons Attribution NonCommercial 4.0 (CC BY-NC); only values are read | file |
+| Sossi et al. 2020, Science Advances 6, eabd1387 (Redox state of Earth's magma ocean and its Venus-like early atmosphere) | AAAS exclusive licensee; Creative Commons Attribution NonCommercial 4.0 (CC BY-NC); only values are read | file |
 | JPCA perspective on atmospheric photochemistry (2024) | CC BY 4.0 | file |
 | Wolff et al. 2009, JGR 114, E00D04 | (c) AGU 2009; the Wiley page states open-access articles fall under their Creative Commons licence, type not printed | file |
 | Lodders 2003, ApJ 591, 1220 | (c) American Astronomical Society, all rights reserved; values only | file |
@@ -206,7 +206,7 @@ publisher's usual terms; no statement was seen, so treat as unconfirmed).
 | Irwin et al. 2018, detection of H2S above the clouds of Uranus | Author manuscript; Nature Astronomy terms apply | publisher |
 | Hassler et al. 2014, Science 343, 1244797 (Mars RAD) | (c) AAAS; values only | publisher |
 | Mumma and Charnley 2011, Annu. Rev. Astron. Astrophys. 49, 471 | (c) 2011 Annual Reviews | file |
-| Paranicas, Cooper and Garrett 2009, Europa (Univ. of Arizona Press), 529 | (c) University of Arizona Press; no statement in the chapter text; values only | publisher |
+| Paranicas et al. 2009, Europa (Univ. of Arizona Press), 529 | (c) University of Arizona Press; no statement in the chapter text; values only | publisher |
 | Gronoff et al. 2011, A&A 529, A143 | (c) ESO; no Creative Commons statement printed in the file | publisher |
 | Poyatos et al. 2026 and Postolec et al. 2026, A&A manuscripts | (c) ESO 2026; author manuscripts, no Creative Commons statement printed | file |
 | Gunther et al. 2020, TESS flares, AJ | DTU Orbit copy; copyright and moral rights remain with the authors or other copyright owners | file |
@@ -217,11 +217,11 @@ publisher's usual terms; no statement was seen, so treat as unconfirmed).
 
 | Licence | arXiv papers |
 |---|---|
-| CC BY 4.0 | Hammond et al. 2025 (2409.04386); He et al. 2022, Titan haze optical constants (2112.08521); Bower et al. 2022 (2110.08029); Drozdovskaya et al. 2023 (2307.11486); Beth et al., ROSINA ion zoo (2008.08430); Merg et al. 2025 (2505.09490); Blum and Bischoff (2207.12731) |
+| CC BY 4.0 | Hammond et al. 2025 (2409.04386); He et al. 2022, Titan haze optical constants (2112.08521); Bower et al. 2022 (2110.08029); Drozdovskaya et al. 2023 (2307.11486); Beth et al., ROSINA ion zoo (2008.08430); Mergny et al. 2025 (2505.09490); Blum and Bischoff (2207.12731) |
 | CC BY-NC-SA 4.0 | Seignovert et al. 2017 (1704.00842); Maurice et al. 2023 (2301.07505) |
 | CC0 1.0 | Chabrier 2021, H/He equation of state II (2107.04434) |
 | Public domain dedication | Davenport 2014 (1410.7779) |
-| arXiv non-exclusive licence (copyright stays with the authors; read and cite, no redistribution) | Vainio et al. 2017 (1707.00485); Koldobskiy et al. 2021 (2101.10234); Asvestari et al. 2017 (1612.02446); Wang, Lineweaver and Ireland 2018 (1708.08718); Lisse et al. 2021 (2009.02277); Mazevet et al. 2019 (1810.05658); Haldemann et al. 2020, AQUA (2009.10098); Gao et al. 2014 (1312.3750); the Mauna Kea extinction paper (1210.2619); Irwin et al. 2019 (1812.05383); Bailey et al. 2011 (1102.2554); Corlies et al. 2021 (2012.02247); Zahnle et al. 2020 (2001.00095); Ranjan and Sasselov 2017 (1610.06223); Heays, Bosman and van Dishoeck 2017 (1701.04459); Biver et al. 2012 (1201.4318); Chabrier, Mazevet and Soubiran 2019 (1902.01852); Schlichting, Sari and Yalinewich 2015 (1406.6435); Foley 2015 (1509.00427); Charnoz et al. 2009 (0912.3017); the stagnant-lid carbon cycle paper (1712.03614); Yoshizaki and McDonough (1909.07560) |
+| arXiv non-exclusive licence (copyright stays with the authors; read and cite, no redistribution) | Vainio et al. 2017 (1707.00485); Koldobskiy et al. 2021 (2101.10234); Asvestari et al. 2017 (1612.02446); Wang, Lineweaver and Ireland 2018 (1708.08718); Lisse et al. 2021 (2009.02277); Mazevet et al. 2019 (1810.05658); Haldemann et al. 2020, AQUA (2009.10098); Gao et al. 2014 (1312.3750); the Mauna Kea extinction paper (1210.2619); Irwin et al. 2019 (1812.05383); Bailey et al. 2011 (1102.2554); Corlies et al. 2021 (2012.02247); Zahnle et al. 2020 (2001.00095); Ranjan and Sasselov 2017 (1610.06223); Heays, Bosman and van Dishoeck 2017 (1701.04459); Biver et al. 2012 (1201.4318); Chabrier, Mazevet and Soubiran 2019 (1902.01852); Schlichting, Sari and Yalinewich 2015 (1406.6435); Foley 2015 (1509.00427); Charnoz et al. 2009 (0912.3017); the stagnant-lid carbon cycle paper (1712.03614); the Yoshizaki and McDonough paper (arXiv number 1909.07560) |
 | arXiv assumed-licence (pre-2003 paper) | Crida, Morbidelli and Masset 2006 (astro-ph/0511082) |
 
 Only formulas, numbers and tables of facts were read from these papers, each with its citation in the report.
@@ -268,7 +268,7 @@ Numbers and short quotations of fact were read from the sources below; nothing e
 
 ## Impact erosion and late delivery (`docs/design/composition/impact-erosion-and-late-delivery.md`, `src/planetgen/physics/impact_history.py`, GEN.739)
 
-Formulas, constants and the planets' observed totals were read from the open arXiv papers below; nothing else was taken. Raw files stay out of the repository. All four carry the arXiv non-exclusive licence on their abstract pages (copyright stays with the authors; read and cite, no redistribution): Sakuraba, Kurokawa and Genda 2019 (1805.07094); Brasser et al. 2016 (1609.01785); Schlichting, Sari and Yalinewich 2015 (1406.6435); Raymond et al. 2013 (1306.4325). Svetsov 2000 and 2007 and Shuvalov 2009 were not opened; their formulas are used as printed in Sakuraba et al.
+Formulas, constants and the planets' observed totals were read from the open arXiv papers below; nothing else was taken. Raw files stay out of the repository. All four carry the arXiv non-exclusive licence on their abstract pages (copyright stays with the authors; read and cite, no redistribution): Sakuraba, Kurokawa and Genda 2019 (1805.07094); Brasser et al. 2016 (1609.01785); Schlichting, Sari and Yalinewich 2015 (1406.6435); Raymond et al. 2013 (1306.4325). The impact-erosion formulas are used as printed in Sakuraba et al.
 
 ## Volatile inventory against the totals of the Earth, Venus, Mars and Titan (`docs/design/composition/volatile-inventory-against-planet-totals.md`, `src/planetgen/physics/mixture_rocky.py`, GEN.813)
 
@@ -285,7 +285,7 @@ Numbers and ratios of fact were read from the sources below; nothing else was ta
 
 Constants and published test values were read from the open arXiv papers below; nothing else was taken. Raw files stay out of the repository. All three carry the arXiv non-exclusive licence on their abstract pages (copyright stays with the authors; read and cite, no redistribution): Johnstone et al. 2018 (1806.06897), Kubyshkina et al. 2018 (1810.06920) and Zhang 2024 (2410.04595). The exobase temperatures and altitudes of Johnstone et al. were read from their figures (values only).
 
-The envelope-escape wiring (`docs/design/composition/envelope-escape-wiring.md`, GEN.822) uses the same Kubyshkina et al. 2018 rate and the Petigura et al. 2022 valley numbers already listed under GEN.509; Alexander et al. 2014 (Protostars and Planets VI) is cited from memory for the disc lifetime and nothing was copied from it.
+The envelope-escape wiring (`docs/design/composition/envelope-escape-wiring.md`, GEN.822) uses the same Kubyshkina et al. 2018 rate and the Petigura et al. 2022 valley numbers already listed under GEN.509; the disc lifetime in it is a registered stand-in (GEN.725), with no source copied.
 
 ## Planetary material strength, roundness and the other sources added 2026-10-31 (GEN.1158, GEN.1184, GEN.1186, and the Trojan, stellar-to-halo, tide and habitability work)
 
@@ -322,9 +322,9 @@ or figures as printed. None of these stops the program, which carries values wit
 | Leauthaud et al. 2012, Astrophys. J. 744, 159 and 746, 95 (doi:10.1088/0004-637x/746/1/95) | Stellar-to-halo mass relation, COSMOS | (c) American Astronomical Society; arXiv copy 1104.0928 is the licence-checked copy; values only |
 | Lattimer and Prakash 2001, Astrophys. J. 550, 426 (doi:10.1086/319702) | Neutron star structure and equation of state | (c) American Astronomical Society; arXiv copy astro-ph/0002232 is the licence-checked copy; values only |
 
-Not opened, used only as another paper quotes them (the quoting paper is cited with its tier): Holsapple 2007, Kohlstedt, Evans and Mackwell 1995, Arakawa and Maeno
-1997, Housen and Holsapple 1999, Durham et al. 1983, 1987, 1992, Kirby et al. 1987, Beeman, Durham and Kirby 1988, Yamashita and Kato 1997, Eluszkiewicz and
-Stevenson 1990, Wallis et al. 2020 (the report carried the numbers from the uploaded copy; no DOI was settled for it), Grott et al. 2019 (same).
+Not opened, used only as another paper quotes them (the quoting paper is cited with its tier): Kohlstedt, Evans and Mackwell 1995, Arakawa and Maeno 1997,
+Housen and Holsapple 1999, Durham et al. 1983, 1987, 1992, Beeman, Durham and Kirby 1988, Yamashita and Kato 1997,
+Wallis et al. 2020 (the report carried the numbers from the uploaded copy; no DOI was settled for it), Grott et al. 2019 (same).
 
 ### Documents, reports and notes read for the strength work
 
@@ -334,13 +334,9 @@ Stevenson 1990, Wallis et al. 2020 (the report carried the numbers from the uplo
 | USGS Open-File Report 81-277, Atkinson (fracture and friction of crustal rock) | US government work, public domain | publisher |
 | Durham and Kirby, NASA NTRS N92-10735 (flow and fracture of ice with ammonia) | US government work, public domain | publisher |
 | NASA TM-4130 (1988), Planetary Geology and Geophysics abstracts | US government work, public domain | publisher |
-| Hanssen 1988 compressive strength table (rockmass.net) | No licence statement found; one range of values used | n/a |
 | Hoek, Practical Rock Engineering ch. 11 and the GSI block-volume paper (Rocscience) | Free download from the publisher; (c) Hoek; values only | publisher |
-| Simon et al. 2009, GeoHalifax, scale effects of intact rock | (c) the authors and the Canadian Geotechnical Society; values only | file |
-| Pabst 2015, Ceramics-Silikaty, porosity and strength of ceramics | Open-access journal; licence line not checked; values only | publisher |
 | Frontiers in Earth Science 2023, granite strength from 20 to 130 C | Frontiers open access, normally CC BY; licence line not checked on the copy; values only | publisher |
-| Wan et al. 2024, ice-rich permafrost strength (ASCE Cold Regions Engineering) | (c) American Society of Civil Engineers; values only | publisher |
-| Jutzi 2010, fragmentation of porous targets; Bland 2014, Ceres crater relaxation | (c) Elsevier; values only | file |
+| Jutzi 2010, fragmentation of porous targets | (c) Elsevier; values only | file |
 | MIT OpenCourseWare 12.524, lecture 4 (rock friction) | CC BY-NC-SA 4.0 by the OCW default, not checked on the page; NonCommercial, flagged above; only the friction law as a fact | publisher |
 
 ### Open papers read through arXiv, with the licence shown on the abstract page

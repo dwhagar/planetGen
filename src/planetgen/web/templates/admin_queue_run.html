@@ -29,7 +29,7 @@
   <div class="table-scroll" tabindex="0">
   <table>
     <caption class="sr-only">The run's stages, in the order they run</caption>
-    <thead><tr><th scope="col">Stage</th><th scope="col">State</th><th scope="col">Units done</th><th scope="col">Started</th><th scope="col">Duration</th><th scope="col">Longest unit</th></tr></thead>
+    <thead><tr><th scope="col">Stage</th><th scope="col">State</th><th scope="col">Units done</th><th scope="col">Started</th><th scope="col">Duration</th><th scope="col">Longest unit</th><th scope="col">Largest worker</th></tr></thead>
     <tbody>
     {%- for stage in stages %}
       <tr id="stage-{{ stage.number }}">
@@ -39,6 +39,7 @@
         <td>{{ utc_time(stage.started) if stage.started else "" }}</td>
         <td>{{ stage.duration }}</td>
         <td>{{ stage.longest }}</td>
+        <td>{{ stage.peak }}</td>
       </tr>
     {%- endfor %}
     </tbody>

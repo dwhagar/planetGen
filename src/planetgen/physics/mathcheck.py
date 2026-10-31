@@ -294,7 +294,7 @@ def _schwarzschild_radius_km(mass_solar):
 
 SUN_REFERENCE_RADIUS_PC = 8128.0
 """float: The Sun's distance from the galactic centre, 8.128 kpc (the Gaia rotation curve fit; GEN.144 made it the one named
-value for the Milky Way plausibility tests, the 8.2 kpc of GRAVITY Collaboration 2019 and the 7.91 kpc of the old constant
+value for the Milky Way plausibility tests, the 8.2 kpc of the GRAVITY result and the 7.91 kpc of the old constant
 are not kept): the radius the Sun's own galactic orbit is checked at. A test reference only; no generation reads a Sun
 position (GEN.404)."""
 
@@ -318,7 +318,7 @@ def _upper_crust():
     return _formation_content(felsic["k_ppm"], felsic["th_ppm"], felsic["u_ppm"])
 
 SUN_AGE_GY = 4.57
-"""float: The Sun's age (Gy, Bonanno et al. 2002), at which the main-sequence reference reads a 1 solar-mass star."""
+"""float: The Sun's age [Gy], at which the main-sequence reference reads a 1 solar-mass star."""
 
 
 def _reference_checks():
@@ -331,7 +331,7 @@ def _reference_checks():
               "a 1 M_sun star at the Sun's age on the MIST main sequence gives about 1 L_sun", unit="L_sun"),
         Check("sun_main_sequence_lifetime", "reference", "stellar_evolution.main_sequence_lifetime_gy(1)",
               lambda: stellar_evolution.main_sequence_lifetime_gy(1.0), 10.0, 0.1,
-              "the Sun's main-sequence lifetime, about 10 Gyr (Sackmann et al. 1993)", unit="Gyr"),
+              "the Sun's main-sequence lifetime, about 10 Gyr", unit="Gyr"),
         Check("sun_effective_temperature", "reference", "stellar_evolution.effective_temperature_k(1, 1)",
               lambda: stellar_evolution.effective_temperature_k(1.0, 1.0), 5772.0, 1e-3,
               "IAU 2015 Resolution B3: nominal solar T_eff 5,772 K", unit="K"),
@@ -397,7 +397,7 @@ def _reference_checks():
               unit="km"),
         Check("sun_galactic_orbital_speed", "reference", "galactic_orbit.calculate_galactic_orbit(Sun)[0]",
               lambda: galactic_orbit.calculate_galactic_orbit(gc_ly)[0], 225.0, 0.1,
-              "the Sun's circular speed around the galaxy, about 220-230 km/s (IAU 1985; Reid et al. 2014)",
+              "the Sun's circular speed around the galaxy, about 220-230 km/s (IAU 1985)",
               unit="km/s"),
         Check("sun_galactic_year", "reference", "galactic_orbit.calculate_galactic_orbit(Sun)[1]",
               lambda: galactic_orbit.calculate_galactic_orbit(gc_ly)[1] * 1000, 230.0, 0.1,
@@ -416,7 +416,7 @@ def _reference_checks():
               "nuclear star cluster projected half-light radius 4.2 pc (Schodel et al. 2014; recalled)", unit="pc"),
         Check("galaxy_nuclear_cluster_density_1pc", "reference", "galaxyDensity.model_terms(reference shape)",
               lambda: math.log10(_nuclear_structure()["density_1pc_solar_pc3"]), math.log10(2.9e5), math.log10(3.0),
-              "nuclear cluster mass density 1e5-5e5 M_sun/pc^3 at 1 pc, within a factor 3 (Schodel et al. 2018; "
+              "nuclear cluster mass density 1e5-5e5 M_sun/pc^3 at 1 pc, within a factor 3 ("
               "recalled, low confidence); log10 of M_sun/pc^3", mode="abs"),
         Check("galaxy_nuclear_disc_mass_200pc", "reference", "galaxyDensity.model_terms(reference shape)",
               lambda: _nuclear_structure()["disc_mass_200pc_solar"], 1.0e9, 0.3,
@@ -426,7 +426,7 @@ def _reference_checks():
               "nuclear stellar disc scale height 30-45 pc (Sormani et al. 2022; recalled)", unit="pc"),
         Check("galaxy_core_gas_inflow", "reference", "coreGas.core_gas(reference shape)",
               lambda: coreGas.core_gas(_reference_galaxy_shape()).inflow_msun_yr, 0.8, 0.3,
-              "bar-driven inflow to the central molecular zone 0.8 +- 0.6 M_sun/yr (Hatchfield et al. 2021, as Henshaw "
+              "bar-driven inflow to the central molecular zone 0.8 +- 0.6 M_sun/yr (as Henshaw "
               "et al. 2023, PPVII, arXiv:2203.11223 section 4.1, read)", unit="M_sun/yr"),
         Check("galaxy_core_star_formation_rate", "reference", "coreGas.core_gas(reference shape)",
               lambda: coreGas.core_gas(_reference_galaxy_shape()).rate_msun_yr, 0.07, 0.3,

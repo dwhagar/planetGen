@@ -30,7 +30,7 @@ const VERSION_QUERY = new URL(import.meta.url).search;
 const THREE = await import(`./vendor/three.module.min.js${VERSION_QUERY}`);
 const { makeGlowMaterial } = await import(`./bodyRendering.js${VERSION_QUERY}`);
 const { generateButtons } = await import(`./generatebuttons.js${VERSION_QUERY}`);
-const { cssVar, formatAddress } = await import(`./mapcore.js${VERSION_QUERY}`);
+const { mapVar, formatAddress } = await import(`./mapcore.js${VERSION_QUERY}`);
 const { endpointBookmark } = await import(`./mappick.js${VERSION_QUERY}`);
 const { fadeGroup } = await import(`./groupfade.js${VERSION_QUERY}`);
 const { buildNebulaMesh, createShapeLoader, disposeNebulaMesh } = await import(`./nebulamesh.js${VERSION_QUERY}`);
@@ -684,7 +684,7 @@ export function buildSectorScene(data, options) {
   var origin = o.origin || [0, 0, 0];
   var unit = o.unit || 1;
   var flip = o.flipY ? -1 : 1;
-  var accentColor = o.accentColor || cssVar("--accent", "#4f5fe8");
+  var accentColor = o.accentColor || mapVar("--accent", "#4f5fe8");
 
   function toLocal(x, y, z) {
     return [x * unit, flip * y * unit, z * unit];
@@ -708,7 +708,7 @@ export function buildSectorScene(data, options) {
   // focus, in the muted text color so it reads in both themes.
   if (data.outline) {
     var outlineMaterial = new THREE.LineBasicMaterial({
-      color: new THREE.Color(cssVar("--text-muted", "#5b6072")),
+      color: new THREE.Color(mapVar("--text-muted", "#9a9fb5")),
       transparent: true,
       opacity: 0.35,
       depthWrite: false,

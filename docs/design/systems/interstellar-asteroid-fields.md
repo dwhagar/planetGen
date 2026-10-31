@@ -181,7 +181,7 @@ Calibration rule for the dial: `lambda_sector = lambda_hosted(S2, S3) + lambda_f
 All carry the ledger draft's Solar System rule: no Solar System input; test targets only.
 
 ## 10. Reading list
-Leinhardt and Stewart 2012 (arXiv:1106.6084, 1109.4588); Su et al. 2006 (arXiv:astro-ph/0608563) and Rieke et al. 2005 [R] for A-star belts; Do, Tucker and Tonry 2018 (arXiv:1801.02821) for the interstellar background; Mroz et al. 2017 and 2020, Johnson et al. 2020 (already cited in tuning) for rogue density; Raymond et al. 2020 (ApJL 894:L22, cited in the rates doc, not opened) for field dispersal; Pierazzo and Melosh style shock-vaporisation work for the 400 GPa to 1 TPa vaporisation thresholds [R]; Breslau et al. 2014 for flyby truncation [R]. Boss cannot access some papers: use second-hand where closed.
+Leinhardt and Stewart 2012 (arXiv:1106.6084, 1109.4588); Su et al. 2006 (arXiv:astro-ph/0608563) and Rieke et al. 2005 [R] for A-star belts; Do, Tucker and Tonry 2018 (arXiv:1801.02821) for the interstellar background; Mroz et al. 2017 and 2020, Johnson et al. 2020 (already cited in tuning) for rogue density; Pierazzo and Melosh style shock-vaporisation work for the 400 GPa to 1 TPa vaporisation thresholds [R]; Breslau et al. 2014 for flyby truncation [R]. Boss cannot access some papers: use second-hand where closed.
 
 ## 11. TODO items
 

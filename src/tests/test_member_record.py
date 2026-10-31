@@ -10,7 +10,7 @@ import dataclasses
 import pytest
 
 from planetgen.generation import member_record
-from planetgen.physics import constants, post_main_sequence
+from planetgen.physics import alpha_tracks, constants, post_main_sequence
 from planetgen.physics import unit_registry as units
 
 _km_to_au = units.converter("km", "au")
@@ -33,7 +33,8 @@ def test_the_record_is_frozen():
 def test_a_horizontal_branch_star_keeps_the_colour_its_seed_drew():
     """The colour and luminosity of a horizontal-branch star are drawn; the stream is the member's own, so a second ask agrees and
     different seeds are different draws of the same star."""
-    window = post_main_sequence.timeline(0.85, -1.5).window(post_main_sequence.HORIZONTAL_BRANCH)
+    track = alpha_tracks.track_fe_h(-1.5, 12.0)    # GEN.1024: the track a star this old reads (the horizontal branch is past the gate)
+    window = post_main_sequence.timeline(0.85, track).window(post_main_sequence.HORIZONTAL_BRANCH)
     age_yr = 0.5 * (window.start_gy + window.end_gy) * GY
     drawn = [member_record.make(seed, 0.85, age_yr, -1.5) for seed in range(30)]
     assert drawn == [member_record.make(seed, 0.85, age_yr, -1.5) for seed in range(30)]

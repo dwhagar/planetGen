@@ -97,7 +97,7 @@ Random Variate Generation*, 1986]:
   least N stars of a type" exact (section 8) and GEN.99 safe (section 6).
 - **Given a count n, the points are i.i.d. with density proportional to the
   intensity,** so a block's count can be drawn first.
-- **Thinning** (Lewis and Shedler, 1979, *Naval Research Logistics Quarterly* 26)
+- **Thinning**
   [R]: simulate a homogeneous process at an upper bound and keep a point at x
   with probability lambda(x) / bound. Exact; cost is proportional to bound x
   volume, so the bound must be tight. **Skip-ahead** is the same idea with
@@ -109,7 +109,7 @@ Random Variate Generation*, 1986]:
   `skeleton.bound_relative_density_at(shape, r, z)` is the maximum over angle of
   the density at a ring and layer and cuts the galaxy's outline
   ([galaxy-disk-density.md](../galaxy/galaxy-disk-density.md) section 3). Inversion of
-  cumulative counts and Walker/Vose alias tables (Walker 1977; Vose 1991) [R]
+  cumulative counts and Walker/Vose alias tables [R]
   were considered; the first ties results to a region's total, the second needs
   a set-up pass over every cell, so neither suits a sparse region.
 
@@ -649,9 +649,7 @@ centres (`centres.py`); star totals (`galaxy_totals.py`). The dispersion formula
 integration pass.
 
 Recalled [R], to verify when paper access is allowed (the research environment
-could read only search-result text): Kingman 1993 and Devroye 1986; Lewis and
-Shedler 1979; Salmon et al. 2011 (Philox, Threefry); Walker 1977; Vose 1991;
-Bridson 2007; the Minecraft chunk status list and neighbour-radius rule (idea high
+could read only search-result text): Bridson 2007; the Minecraft chunk status list and neighbour-radius rule (idea high
 confidence, names medium); the outbox and idempotent-handler patterns; the 40 KB
 per system storage figure and the 8% O/B share at 750 L_sun and above (both from
 the pre-placement plan, not re-measured).

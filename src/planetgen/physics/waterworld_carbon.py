@@ -8,10 +8,10 @@ Silicate weathering (`surface_pressure.carbonate_pco2_bar`) needs land. A water-
 tallest mountain. What takes its carbon dioxide back out of the air depends on how deep the ocean is.
 
 * **A sealed world** (seafloor pressure at or above `SEAL_PRESSURE_PA`, 1 to 3 GPa). The weight of the water stops the mantle melting
-  (Kite et al. 2009; Kite and Ford 2018 appendix A: the solidus rises with pressure, the melt column shortens, the mantle under the lid
+  (Kite and Ford 2018 appendix A: the solidus rises with pressure, the melt column shortens, the mantle under the lid
   is colder) and high-pressure ice (ice VI and VII) sits on the seafloor, so the ocean and the mantle no longer exchange carbon. About
-  `SEAL_TIME_GY` after the last giant impact the atmosphere, the ocean and the shallow crust are a closed system for carbon (Kite and
-  Ford 2018 section 2 item 4). Its pCO2 is set by ocean chemistry alone: the carbon inventory is shared between the air, the dissolved
+  `SEAL_TIME_GY` after the last giant impact the atmosphere, the ocean and the shallow crust are a closed system for carbon
+  (Kite and Ford 2018 section 2 item 4). Its pCO2 is set by ocean chemistry alone: the carbon inventory is shared between the air, the dissolved
   carbon dioxide, bicarbonate and carbonate, and calcite, and the cations the water leached from the crust early on (sodium and calcium,
   `leached_cations_mol_m2`) fix the alkalinity. Calcium that pairs one carbon with one calcium takes the carbon out; sodium raises the pH
   and so the share of the dissolved carbon that is bicarbonate (`ocean_pco2`). The pCO2 follows the temperature (the carbon dioxide
@@ -57,7 +57,7 @@ from planetgen.physics.surface_pressure import (CO2_MODERN_BAR, HEAT_FLUX_EARTH_
 
 SEAL_PRESSURE_PA = (1.0e9, 3.0e9, "uniform")
 """tuple: The seafloor pressure from which the mantle no longer melts enough to exchange carbon with the ocean, Pa: Kite and Ford 2018 impose
-an abrupt 1 GPa cutoff and note it is smaller for stagnant-lid convection (about 1 to 3 GPa; Kite et al. 2009; Noack et al. 2016 put it
+an abrupt 1 GPa cutoff and note it is smaller for stagnant-lid convection (about 1 to 3 GPa; Noack et al. 2016 put it
 nearer 3 GPa). A bracket of the sources that differ (tier 3, tweak level 0)."""
 
 SEAL_TIME_GY = 0.1
@@ -150,7 +150,7 @@ CARBONATE_FITS = {
 }
 """dict: `log10 K = a + b T + c / T + d log10 T + e / T^2` for the Henry constant of carbon dioxide (mol/(kg bar)), the first and second
 dissociation constants of carbonic acid, the solubility product of calcite and the ion product of water (mol and kg): the fresh-water fits
-of Plummer and Busenberg (1982) for the carbonate system and Harned and Hamer (1933) for water, valid 0 to 90 C. They reproduce at 298.15 K
+of Plummer and Busenberg (1982) for the carbonate system and a standard fit for water, valid 0 to 90 C. They reproduce at 298.15 K
 the known 0.0340, 4.45e-7 (pK 6.35), 4.69e-11 (pK 10.33), 3.3e-9 (pK 8.48) and 1.0e-14 (READ from memory, not re-checked against the papers;
 tier 3, tweak level 0)."""
 

@@ -495,7 +495,7 @@ function start(view) {
   }
   var random = makeRandom(view.seed != null ? view.seed : 20251001); // the same still every visit, different per object
   var scene = new THREE.Scene();
-  scene.background = new THREE.Color(0x05070c);
+  scene.background = new THREE.Color(0x000000);
   scene.add(starfield(random));
   var built = builder(view, random);
   var pivot = new THREE.Group();

@@ -11,7 +11,7 @@ _LID = ("a stagnant lid (one rigid plate) or a mobile one (plate tectonics, whic
         "the interior")
 
 _STEPS = ("Five hard steps, each an exponential waiting time that starts when the one before is done, faster on a warm world "
-          "(Carter 1983; Watson 2008)")
+          "(Watson 2008)")
 _AGES = _STEPS + "."
 
 _BODY = {
@@ -29,8 +29,8 @@ _BODY = {
                              "(Gladman et al. 1996).",
     "axial_tilt_deg": "Isotropic for a rocky planet, Rayleigh about 15 degrees for a gas giant or an untidied moon, and on the orbit "
                       "normal for a locked body.",
-    "magnetic_moment_a_m2": "A dynamo needs at least 0.05 Earth masses and a core share of 0.15; the moment scales with mass and core "
-                            "share and fades with age.",
+    "magnetic_moment_a_m2": "The dipole of the dynamo that runs in the body: a rocky body's liquid core (its thermal history) or a giant's metallic or "
+                            "ionic layer (the heat it radiates), by the buoyancy-flux scaling and the spin.",
     "ring_outer_km": "Ends at the Roche limit, 2.456 R (planet density over particle density)^(1/3), and inside the innermost large moon.",
     "ring_age_yr": "The years since the moon that fell inside the Roche limit, or the comet that passed inside it, made the ring; the ring thins by 1/e every half billion years.",
     "ring_optical_depth": "An output of the drawn mass, the extent and the particle size, 3 M / (4 density r area).",

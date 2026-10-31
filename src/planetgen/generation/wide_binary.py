@@ -107,8 +107,8 @@ class WideBinaryPair:
     def __init__(self, system_config, primary: Star, secondary: Star, inner_boost=1.0, orbit=None):
         """
         Generates a fresh wide-binary orbital relationship between two
-        already-generated stars, including each star's own Holman &
-        Wiegert (1999) planetary stability limit.
+        already-generated stars, including each star's own
+        Holman & Wiegert (1999) planetary stability limit.
 
         Args:
             system_config (SystemConfig): The shared SystemConfig object

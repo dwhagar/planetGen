@@ -39,6 +39,9 @@ from the range of the body's regime because the row could not be inverted (2).""
 DEFAULT_ALBEDO_RANGE = (0.12, 0.35)
 """tuple: The Bond albedo range of a class that declares none (the generator's own default)."""
 
+GIANT_BOND_ALBEDO_RANGE = (0.29, 0.503)
+"""tuple: The Bond albedo a generated giant draws from (GEN.1030): the lowest and the highest of the four measured in the Solar System, Neptune 0.29 (Pearl and Conrath 1991), Uranus 0.30 (Pearl et al. 1990), Saturn 0.342 and Jupiter 0.503 (Li et al. 2018). Registry row CC9."""
+
 GIANT_ALBEDO_RANGE = (0.02, 0.91)
 """tuple: The open bracket for a giant with no class range (Sudarsky 2000: about 0.02 to 0.8; Cahoy 2010: Bond up to
 0.914), used only to backfill a row (docs/design/composition/atmosphere-colour.md section 8)."""
@@ -138,13 +141,15 @@ def from_stored(row, flux_w_m2):
 
 def albedo_range(body_type, water_mass_fraction, flux_w_m2, star_temperature_k=None):
     """
-    The Bond albedo range a body draws from before its air is solved (GEN.684): `DEFAULT_ALBEDO_RANGE` for a giant, a dry body
-    and a body with no starlight; a body with surface water (`tuning.ALBEDO_WET_MIN_WATER_FRACTION` or more) is ice-covered and
+    The Bond albedo range a body draws from before its air is solved (GEN.684): `GIANT_BOND_ALBEDO_RANGE` for a giant (GEN.1030),
+    `DEFAULT_ALBEDO_RANGE` for a dry body and a body with no starlight; a body with surface water (`tuning.ALBEDO_WET_MIN_WATER_FRACTION` or more) is ice-covered and
     bright (`tuning.ALBEDO_FROZEN_RANGE`) where its no-air equilibrium temperature at `tuning.ALBEDO_REGIME_REFERENCE` is under
     `tuning.ALBEDO_FROZEN_BELOW_K`, else ocean and cloud (`tuning.ALBEDO_WET_RANGE`). The two bright ranges are scaled to the colour of the
     star of `star_temperature_k` (`albedo_color.shifted_range`, GEN.912); with no star temperature they are the Sun's.
     """
-    if (body_type == "g" or not water_mass_fraction or water_mass_fraction < tuning.ALBEDO_WET_MIN_WATER_FRACTION
+    if body_type == "g":
+        return GIANT_BOND_ALBEDO_RANGE
+    if (not water_mass_fraction or water_mass_fraction < tuning.ALBEDO_WET_MIN_WATER_FRACTION
             or not flux_w_m2 or flux_w_m2 <= 0.0):
         return DEFAULT_ALBEDO_RANGE
     if equilibrium_temperature_k(tuning.ALBEDO_REGIME_REFERENCE, flux_w_m2) < tuning.ALBEDO_FROZEN_BELOW_K:

@@ -60,7 +60,7 @@ def test_europa_gets_a_tide_of_the_published_size_from_its_ice_shell_with_nothin
 
 
 def test_enceladus_gets_a_tide_within_a_factor_of_ten_of_what_it_radiates():
-    """Enceladus: 16 GW radiated at its eccentricity of 0.0047 (Howett et al. 2011); the equilibrium shell of the model makes 1e11 W, six times more (the shell
+    """Enceladus: 16 GW radiated at its eccentricity of 0.0047; the equilibrium shell of the model makes 1e11 W, six times more (the shell
     is 6 km against an observed 20 or so), the one body the stand-ins of `icy_tide` overshoot, within the factor of ten they claim."""
     from planetgen.physics import icy_tide
     _, power = icy_tide.flux_from_tide(1.08e20, 252.1e3, SATURN, 2.3802e8, 0.0047, 3.0e-4, 75.0)
@@ -83,7 +83,7 @@ def test_the_moon_is_flexed_solid_and_heated_by_a_fraction_of_a_percent_of_its_o
 def test_io_is_melt_limited_and_radiates_a_watt_or_more_a_square_metre_with_no_number_fitted_to_it():
     """Io at e = 0.0041: the tide in the box (the Andrade rheology at the mantle's temperature) is far more than its own heat (4e11 W), so its melt
     erupts, it holds the temperature of the critical melt fraction and radiates the tide there. The power depends on the mantle's drawn viscosity
-    (9e12 to 5e13 W over the corners of the drawn range) and Io's observed 0.9 to 1.5e14 W (2.24 W/m2, Veeder et al. 2004) lies a factor of 2 to 3 above the top of it."""
+    (9e12 to 5e13 W over the corners of the drawn range) and Io's observed 0.9 to 1.5e14 W (2.24 W/m2) lies a factor of 2 to 3 above the top of it."""
     forcing = tidal_heating.Forcing(JUPITER, 4.218e8, 0.0041)
     rock = _rock(0.8, 0.2)
     pipe_k = interior_heat.mantle_of(8.93e22, 1821.6, rock).heat_pipe_k

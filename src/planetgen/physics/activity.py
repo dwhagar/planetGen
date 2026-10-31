@@ -15,7 +15,7 @@ sections 2.1 to 2.4; every rate here is a design default good to about
    (`DECAY_EXPONENTS`), and each star draws a log-normal scatter on its
    decayed level (`DECAY_SIGMA_DEX`).
 2. **XUV.** The EUV (100 to 920 A) follows the X-rays,
-   `log L_EUV = 4.80 + 0.860 log L_X` (erg/s; Sanz-Forcada 2011), and
+   `log L_EUV = 4.80 + 0.860 log L_X` (erg/s), and
    `L_XUV = L_X + L_EUV`. A hot photosphere adds its own blackbody output
    above 13.6 eV (`blackbody_fraction_above`), which dominates for O and B
    stars and hot white dwarfs.
@@ -76,7 +76,7 @@ SN_MAX_BOOST = 250.0
 # (Melott et al. 2004, Int. J. Astrobiol. 3:55). Long bursts need low-metal
 # massive stars and follow star formation outward, so the rate falls
 # off beyond the Sun with the supernova scale length but is not raised
-# inside it, where metal-rich stars rarely make one (Stanek et al. 2006).
+# inside it, where metal-rich stars rarely make one.
 GRB_LETHAL_RATE_AT_SUN_PER_GYR = 2.0
 
 # Active galactic nucleus (GEN.189): there is no catalogued rate, so this is a
@@ -155,8 +155,7 @@ REFERENCE_AGE_GY = 5.0
 FLUENCE_STEPS = 64
 
 DIPOLE_EDOT_TO_LX = 1e-3
-"""float: A rotation-powered pulsar's X-ray efficiency (Becker and
-Truemper 1997)."""
+"""float: A rotation-powered pulsar's X-ray efficiency."""
 
 
 def decay_exponent(mass_sol):

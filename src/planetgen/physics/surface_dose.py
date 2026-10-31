@@ -11,7 +11,7 @@ draws, stores or reads a body; `radiation.generate_dose` calls these once GEN.44
 inputs (the second slice of GEN.444). The cosmic-ray table and the muon floor stay in `radiation.py` (GEN.453); the
 ground's gamma dose and radon come from the radiogenic module of GEN.459.
 
-Stellar particles (R14). The integral rigidity spectrum of Band form with the parameters of Atwell et al. 2015, and the
+Stellar particles (R14). The integral rigidity spectrum of Band form with the parameters, and the
 share of the fluence above 30 MeV that has a rigidity above both the atmospheric cutoff and the geomagnetic cutoff
 (area-weighted over latitude with the dipole's `cos^4` law).
 
@@ -34,7 +34,7 @@ SEP_REFERENCE_MEV = 30.0
 class BandSpectrum:
     """
     The integral rigidity spectrum of a solar particle event, `J(>R) = J0 R^-g1 exp(-R/R0)` up to `R1 = (g2 - g1) R0`
-    and `J0 R1^-g1 exp(-R1/R0) (R/R1)^-g2` above, continuous at `R1` (Atwell et al. 2015; the published form, not the
+    and `J0 R1^-g1 exp(-R1/R0) (R/R1)^-g2` above, continuous at `R1` (the published form, not the
     discontinuous one of the research note). Rigidity in GV; `J0` sets the unit of the flux and cancels in `share`.
     """
 
@@ -55,7 +55,7 @@ class BandSpectrum:
 
 EVENT_2006_12_13 = BandSpectrum(1.33e8, 1.045, 5.80, 0.1765)
 EVENT_1976 = BandSpectrum(7.62e6, 1.710, 6.33, 0.2054)
-"""The two events of Atwell 2015 the research lanes read (10B 1.2a): the 2006-12-13 event and the 1976 event."""
+"""The two events of the SEP table that research lanes read (10B 1.2a): the 2006-12-13 event and the 1976 event."""
 
 
 def rigidity_gv(kinetic_mev):

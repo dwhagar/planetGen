@@ -5287,7 +5287,7 @@
    },
    "eos": [],
    "labels": "rho=R",
-   "note": "Choukroun et al. 2020 (read, section 3.3, the CONSERT permittivity review, citing Fulle et al. 2019) gives only a rough 'some organics (permittivity about 2, rho about 2)' with no unit written (g/cm3 by the ice value beside it) and no organics density of its own elsewhere; Blum and Bischoff's 1.0 to 2.0 covers it, so the row keeps the middle, 1.5, inside the widest range (two sources in question: GEN.660). The comet draw reads this row and holds no density of its own for the organics (GEN.712).",
+   "note": "Choukroun et al. 2020 (read, section 3.3, the CONSERT permittivity review) gives only a rough 'some organics (permittivity about 2, rho about 2)' with no unit written (g/cm3 by the ice value beside it) and no organics density of its own elsewhere; Blum and Bischoff's 1.0 to 2.0 covers it, so the row keeps the middle, 1.5, inside the widest range (two sources in question: GEN.660). The comet draw reads this row and holds no density of its own for the organics (GEN.712).",
    "source": "blum-bischoff",
    "state": "verified",
    "limit": ""
@@ -5569,7 +5569,7 @@
      "valid": {},
      "source": "ideal-gas",
      "code": "C",
-     "note": "rho = P M / (R T) with the molar mass of the row; the envelope radius comes from the Lopez and Fortney and Fortney 2007 tables (part C), which GEN.428 reads, not from a constants set; no hydrogen-helium EOS constants are held here"
+     "note": "rho = P M / (R T) with the molar mass of the row; the envelope radius comes from the tables (part C), which GEN.428 reads, not from a constants set; no hydrogen-helium EOS constants are held here"
     }
    ],
    "labels": "Tm=R;Tb=H;Tt=R;Pt=R;Tc=R;Pc=R;Hfus=H;Hvap=H;rhog=H",
@@ -5606,7 +5606,7 @@
      "valid": {},
      "source": "ideal-gas",
      "code": "C",
-     "note": "rho = P M / (R T) with the molar mass of the row; the envelope radius comes from the Lopez and Fortney and Fortney 2007 tables (part C), which GEN.428 reads, not from a constants set; no hydrogen-helium EOS constants are held here"
+     "note": "rho = P M / (R T) with the molar mass of the row; the envelope radius comes from the tables (part C), which GEN.428 reads, not from a constants set; no hydrogen-helium EOS constants are held here"
     }
    ],
    "labels": "rhog=H",

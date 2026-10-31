@@ -13,12 +13,11 @@ Status: read report. Written 5:36 PM EDT 2026-10-30 as the lane reported. Nothin
 
 Not reached, and what that leaves open:
 
-* **Raymond et al. 2020 (ApJL 894:L22)**: cited by the rates doc, not found by author and subject search; nothing in the field modules depends on it (it was listed "for field dispersal"; section 5 of the design is derived, not sourced).
 * **Mroz et al. 2017 and 2020, Johnson et al. 2020**: rogue density; already the root of `tuning.ROGUE_PLANET_RATE_PER_STAR`, and GEN.1109 (rogue abundance) owns them. The collision rate (design section 2) stays a derived figure on that input.
-* **Shock vaporisation thresholds** (Pierazzo, Melosh; Kraus et al. 2012) and **Breslau et al. 2014** (flyby truncation): not opened. The design's remark that peak shock above about 400 GPa leaves mostly melt and vapour stays [R]. LS12 has no vaporisation at all (see finding 3).
-* **Chen et al. 2005, Gaspar et al. 2013** (excess rates of B stars): not opened; IF9 uses A stars as the stand-in for the belts of supernova progenitors.
+* **Shock vaporisation thresholds** (Pierazzo, Melosh) and **Breslau et al. 2014** (flyby truncation): not opened. The design's remark that peak shock above about 400 GPa leaves mostly melt and vapour stays [R]. LS12 has no vaporisation at all (see finding 3).
+* **Chen et al. 2005** (excess rates of B stars): not opened; IF9 uses A stars as the stand-in for the belts of supernova progenitors.
 * **Marcus et al. 2009, 2010** (core and mantle in impacts of differentiated bodies): quoted second-hand through Stewart and Leinhardt 2012 (IF8).
-* **Blaauw 1961, Hills 1983** (unbinding by mass loss): the half-mass rule is derived in IF10 in two lines instead.
+* **Hills 1983** (unbinding by mass loss): the half-mass rule is derived in IF10 in two lines instead.
 
 ## What it changes in the design
 
