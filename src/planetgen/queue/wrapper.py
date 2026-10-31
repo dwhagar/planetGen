@@ -334,6 +334,16 @@ def stage_label(conn, run_id, index):
     return runrecord._s(declared[index]["label"]) if 0 <= index < len(declared) else None
 
 
+def stage_name(conn, run_id, index):
+    """What a message calls stage `index` (PERF.221): the label the page shows for it, not the internal number; the
+    number only where the run record cannot say (a run already gone from Redis)."""
+    try:
+        label = stage_label(conn, run_id, index)
+    except Exception:  # noqa: BLE001 -- naming the stage must never hide the failure being reported
+        label = None
+    return label or str(index)
+
+
 def _stage_step(conn, run_id, index):
     """`(declared, step)` of stage `index`: how the run declared it and the step the run record holds for it."""
     declared = json.loads(runrecord._s(conn.hget(runrecord.run_key(run_id), "stages")))[index]

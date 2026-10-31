@@ -469,6 +469,26 @@ def test_a_planet_page_is_laid_out_about_habitability_atmosphere_composition_the
     assert "Dominant species" not in page and "A technological civilization or a colony lives here." in page
 
 
+def test_gen1108_a_planets_page_has_the_climate_by_latitude_table_between_the_atmosphere_and_the_composition(client, monkeypatch):
+    from planetgen.describe import sheet as sheet_registry
+    from planetgen.physics import regional_temperature
+    earth = regional_temperature.compute(dict(surface_temperature_k=288.0, atmospheric_pressure_pa=101325.0, gravity_g=1.0, rotation_period_hours=24.0,
+                                              axial_tilt_deg=23.4, period_years=1.0))
+    monkeypatch.setattr(apiclient, "get_object_sheet", lambda db, ref: {**_rich_sheet(ref), "bands": sheet_registry.bands_table(earth)})
+    monkeypatch.setattr(apiclient, "get_system_description", lambda db, system_id: _rich_document())
+    detail = _detail()
+    detail["planets"][0].update(planet_class="M", zone="e", body_type="t", phi4=0.8, tier_suitability=1, life_microbial=2, life_flora=0,
+                                life_fauna=0, life_sentient=0, atmospheric_pressure_pa=101325.0, inhabited=True,
+                                equipment={"required": ["a gas-mix mask"], "items": []})
+    monkeypatch.setattr(apiclient, "get_system", lambda db, system_id: detail)
+    page = client.get(f"/object/{PLANET}").get_data(as_text=True)
+    assert page.index('id="sheet-atmosphere"') < page.index('id="sheet-bands"') < page.index('id="sheet-composition"')
+    table = page.split('id="sheet-bands"')[1].split("</section>")[0]
+    assert "Climate by latitude" in table and "North polar" in table and "South polar" in table and "Equator" in table
+    assert "Annual mean temperature" in table and "Longest day of the year" in table and "Polar day and night" in table
+    assert "no day and night range stored" not in page
+
+
 def test_a_planet_with_no_life_or_people_has_no_life_or_civilization_section(client):
     page = client.get(f"/object/{PLANET}").get_data(as_text=True)
     assert 'id="life-paragraph-heading"' not in page and 'id="civilization-heading"' not in page
@@ -557,3 +577,21 @@ def test_a_planet_with_no_living_class_does_not_ask_for_a_chart(client, monkeypa
     monkeypatch.setattr(apiclient, "get_life_air", lambda *args: pytest.fail("the chart is asked for only for a body with a living class"))
     page = client.get(f"/object/{PLANET}").get_data(as_text=True)
     assert 'id="life-and-air"' not in page
+
+
+def test_gen1108_the_page_draws_the_seven_bands_as_a_table_of_columns():
+    """GEN.1108: the sheet's bands are a table with a column for each band and a row for each figure, a band with no such figure a dash; a body with no bands has no table."""
+    from planetgen.describe import sheet as sheet_registry
+    from planetgen.physics import latitude_bands, regional_temperature
+    earth = regional_temperature.compute(dict(surface_temperature_k=288.0, atmospheric_pressure_pa=101325.0, gravity_g=1.0, rotation_period_hours=24.0,
+                                              axial_tilt_deg=23.4, period_years=1.0))
+    view = item_pages.bands_view({"bands": sheet_registry.bands_table(earth)})
+    assert view["columns"] == [sheet_registry.BAND_LABELS[name] for name in latitude_bands.NAMES]
+    assert [row["label"] for row in view["rows"]][:2] == ["Annual mean temperature", "Day and night swing (hottest to coldest)"]
+    assert all(len(row["cells"]) == 7 for row in view["rows"])
+    moon = regional_temperature.compute(dict(surface_temperature_k=250.0, atmospheric_pressure_pa=0.0, gravity_g=0.165, rotation_period_hours=655.7,
+                                             axial_tilt_deg=1.5, period_years=0.0748))
+    rings = item_pages.bands_view({"bands": sheet_registry.bands_table(moon)})
+    assert "point under its star" in rings["caption"] and [row["label"] for row in rings["rows"]] == ["Annual mean temperature",
+                                                                                                      "Day and night swing (hottest to coldest)", "State"]
+    assert item_pages.bands_view({"bands": None}) is None and item_pages.bands_view({}) is None

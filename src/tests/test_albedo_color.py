@@ -43,7 +43,7 @@ def test_dry_rock_and_no_temperature_are_untouched():
     assert albedo_color.spectral_factor("frozen", None) == 1.0
     assert albedo_color.spectral_factor("wet", 0.0) == 1.0
     assert climate_draws.albedo_range("t", 1e-6, 1361.0, 3400.0) == climate_draws.DEFAULT_ALBEDO_RANGE
-    assert climate_draws.albedo_range("g", 0.3, 1361.0, 3400.0) == climate_draws.DEFAULT_ALBEDO_RANGE
+    assert climate_draws.albedo_range("g", 0.3, 1361.0, 3400.0) == climate_draws.GIANT_BOND_ALBEDO_RANGE      # GEN.1030: a giant has its own range, which the star's colour does not move
 
 
 def test_the_generator_range_follows_the_star():

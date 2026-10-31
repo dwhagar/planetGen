@@ -281,6 +281,14 @@ def _parse_sort(query_args, allowed):
     return sort, order == "desc"
 
 
+def _parse_stars(query_args):
+    """The `stars` query parameter (UX.239) as `(least, most)`, or `None` when absent; anything `parse_star_count` refuses is an `ApiError`."""
+    try:
+        return parse_star_count(query_args.get("stars"))
+    except ValueError as exc:
+        raise ApiError(str(exc))
+
+
 def _parse_yes_no(raw, name):
     """`True` for "yes", `False` for "no", `None` when absent; anything else is an `ApiError`."""
     if raw is None or raw == "":
@@ -559,8 +567,10 @@ MAX_START_LENGTH = 80
 @bp.route("/systems")
 def systems():
     """
-    The systems, by name, paginated; `star_type` and `sector_id` filter them.
-    The Systems tables (UX.41) also take `sort` (`name`, `sector` or `octant`) with `order=asc|desc`, the filters `binary=yes|no`,
+    The systems, by name, paginated; `star_type` and `sector_id` filter them, and so does `stars` (UX.239): a count (`stars=3`, exactly
+    three), a count and a plus (`stars=3+`, three or more) or a name (`single`, `binary`, `trinary`, `quaternary`: exactly that many;
+    `quintenary`: five or more), anything else a 400.
+    The Systems tables (UX.41) also take `sort` (`name`, `sector`, `octant` or `stars`, the number of stars) with `order=asc|desc`, the filters `binary=yes|no`,
     `placement=sector|standalone` and `octant` (repeatable), and `facets=1`
     for the filter menus' option counts (`facets`: `placement`, `binary`,
     `octant`). `total` counts the systems that pass the filters. `after=<system ID>` starts the page after that system in the
@@ -580,6 +590,7 @@ def systems():
         "binary": _parse_yes_no(request.args.get("binary"), "binary"),
         "octants": [v for v in request.args.getlist("octant") if v],
         "in_sector": None if not placement else placement == "sector",
+        "stars": _parse_stars(request.args),
     }
 
     limit, offset = _paginate(request.args)
@@ -758,7 +769,9 @@ def near():
     is `from` (an object reference such as `system:12`; a bare number is a
     system) or `point` (`x,y,z`, galaxy-frame parsecs); `distance` is in
     parsecs, up to 50. Optional: `kinds` (comma-separated), `limit`
-    (default 50, at most 200) and `offset`.
+    (default 50, at most 200) and `offset`. `stars` (UX.239; a count such as `3`, `3+` for three or more, or `single`, `binary`,
+    `trinary`, `quaternary`, `quintenary`) keeps the systems with that many stars and what lives in them; phenomena and facilities
+    outside a system are left out, and each `system` row carries its `star_count`.
 
     `nearest=K` (NAV.61) asks for the nearest K rows instead: the search tries 2, 4, 8, 16 and 32 pc and stops at the
     first sphere that holds K, so it is quick at the dense core as well as at the Sun; `distance` is then optional and
@@ -768,6 +781,7 @@ def near():
     """
     args = request.args
     conn = get_db()
+    stars = _parse_stars(args)
     if (args.get("from") is None) == (args.get("point") is None):
         raise ApiError("give exactly one of from (an object reference) or point (x,y,z in parsecs)")
     if args.get("distance") is None and args.get("nearest") is None:
@@ -785,11 +799,11 @@ def near():
         if args.get("nearest") is not None:
             result = near_search.nearest(
                 conn, place, _int_arg(args, "nearest", 1), kinds=kinds,
-                max_distance_pc=args.get("distance", near_search.MAX_DISTANCE_PC))
+                max_distance_pc=args.get("distance", near_search.MAX_DISTANCE_PC), stars=stars)
         else:
             result = near_search.objects_within(
                 conn, place, args["distance"], kinds=kinds,
-                limit=_int_arg(args, "limit", near_search.DEFAULT_LIMIT), offset=_int_arg(args, "offset", 0))
+                limit=_int_arg(args, "limit", near_search.DEFAULT_LIMIT), offset=_int_arg(args, "offset", 0), stars=stars)
     except near_search.NearError as exc:
         raise ApiError(str(exc))
     return jsonify(result)
@@ -1863,10 +1877,7 @@ def search():
     if args.get("panels"):
         only = {panel for panel in args["panels"].split(",") if panel in SEARCH_RESULT_PANELS}  # "none": no panel
     sorts = {entity: args.get(f"{entity}_sort") for entity in ("star", "planet", "moon") if args.get(f"{entity}_sort")}
-    try:
-        stars = parse_star_count(args.get("stars"))
-    except ValueError as exc:
-        return jsonify({"error": str(exc)}), 400
+    stars = _parse_stars(args)
     try:
         ranges = search_values.ranges_from_args(args)
     except ValueError as exc:

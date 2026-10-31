@@ -14,7 +14,9 @@ GEN.422 fixes, repeating until the pressure and the temperature stop moving:
    some of, `mixture_sinks`), and the carbonate cycle takes the carbon that weathering locks up at the temperature
    (`surface_pressure.carbonate_pco2_bar`).
 2. *Pressure.* The moles of gas are an air mass, `P = g M_air / (4 pi R^2)`, and the gas that stays is what the light-gas escape
-   (`mixture_escape`) leaves.
+   (`mixture_escape`) leaves. The escape stays out until the fixed point has settled without it; it then compares its loss to
+   that settled pressure and the fixed point goes on with the loss in it (a loss compared to the pressure of the step before is
+   compared to what stays already and takes its share again at every step).
 3. *Freeze-out.* What a gas holds above its saturation pressure at the surface temperature is condensate (an ocean, a cap): the
    column loses it, exactly, with the mean molar mass it leaves (`freeze_out`); the retention regime of the recipe (`d`) caps the
    total.
@@ -38,7 +40,7 @@ from dataclasses import dataclass, field
 
 from planetgen.physics import (
     aerosols, albedo_color, atmosphere, atmosphere_state, clathrate_brine, climate_branches, climate_draws, constants, gas_equilibrium, gases, giant_draw, greenhouse, hydrosphere, interior_heat, mixture_draw,
-    mixture_rocky,
+    mixture_escape, mixture_rocky,
     mixture_sinks, mixture_subject, radiogenic, saturation, sulfur_balance, surface_pressure, waterworld_carbon,
 )
 from planetgen import tuning
@@ -549,6 +551,7 @@ def solve(setting, start_temperature_k):
     history = [[], []]
     flips, last_ocean, cycling = 0, False, False
     stalls = 0
+    escape_bar = None       # the pressure the light-gas escape compares its loss to: set once the air has settled without it
     for step in range(1, MAX_STEPS + 1):
         pressure = math.exp(ln_pressure)
         if cycling:
@@ -566,7 +569,8 @@ def solve(setting, start_temperature_k):
                          water_world)
         try:
             with _draw_stream(seed):
-                mixture = mixture_draw.draw_mixture(subject, recipe_subject=recipe_subject, supply=shares)
+                mixture = mixture_draw.draw_mixture(subject, recipe_subject=recipe_subject, supply=shares, escape=escape_bar is not None,
+                                                    escape_column_bar=escape_bar)
         except gas_equilibrium.EquilibriumError:
             if last is None:
                 raise
@@ -634,7 +638,15 @@ def solve(setting, start_temperature_k):
         change_t = abs(new_temperature - temperature)
         last = (mixture, partials, new_pressure, new_temperature, warming, condensed_kg, ocean, haze, albedo_of_step)
         if setting.giant or (change_p < TOLERANCE_LN_P and change_t < TOLERANCE_K):
-            break
+            if setting.giant or escape_bar is not None or family not in mixture_escape.FAMILIES:
+                break
+            # The air has settled without the escape. The loss acts on the air that stands, so it is compared to this pressure (the pressure of a step
+            # that has lost its share already would lose it again at every step, and the first steps' reducing mixtures, which the settled air does not
+            # keep, would take the whole air); the fixed point goes on with the loss in it.
+            escape_bar = new_pressure / 1.0e5
+            ln_pressure, temperature = math.log(new_pressure), new_temperature
+            damping, previous_residual, history = [DAMPING, DAMPING], (0.0, 0.0), [[], []]
+            continue
         residual = (math.log(new_pressure) - ln_pressure, new_temperature - temperature)
         damping = [_damped(d, r, q, tolerance) for d, r, q, tolerance in zip(damping, residual, previous_residual,
                                                                             (TOLERANCE_LN_P, TOLERANCE_K))]

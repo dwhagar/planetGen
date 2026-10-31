@@ -267,7 +267,7 @@ def host_offset_dex(fe_h, age_gy, key):
         key (str): `stellar_composition.abundance_key(...)`: the same star always has the same offset.
     """
     draws = sc.key_draws(key)
-    branch = sa.branch_from_uniform(fe_h, age_gy, draws.u_branch)
+    branch = sa.branch_of(fe_h, age_gy)
     offsets = sa.abundance_offsets(fe_h, branch, draws.normals, draws.u_enhanced, draws.u_carbon)
     star = sa.composition(fe_h, offsets)
     found = sa.birth_radiogenic(star, branch, draws.eu_normal, draws.th_eu_normal)
