@@ -19,8 +19,8 @@ One-box parameterised convection for a stagnant lid: [R4339] as used by [R1716] 
 | rho, cm, cc, km, alpha, kappa | 3500 kg/m3, 1142 and 840 J/kg/K, 4 W/m/K, 2.5e-5 /K, 1e-6 m2/s | [R1716: Table 2] (from [R4339]) | READ |
 | Ra_crit, a_rh, beta | 450, 2.44, 1/3 | Table 2 [R4339] | READ |
 | surface temperature | 273 K in the paper; here the body's own when its climate is known, else 273 K | Table 2 | READ, body's own: GEN.735 |
-| eta0 | uniform 2.6e10 to 5.3e13 Pa s | Section 2.2.3 (wet olivine less a decade to dry enstatite) | READ |
-| Ea | uniform 200 to 300 kJ/mol | Section 2.2.3 (Karato and Wu 1993; [R4889]) | READ |
+| eta0 | uniform 9.3e7 to 1.9e11 Pa s (GEN.1185: the paper's 2.6e10 to 5.3e13 times 3.56e-3, so the viscosity at 1,600 K holds with the activation range below) | Section 2.2.3 of [R1716], retuned | stand-in IHA1 |
+| Ea | uniform 260 to 390 kJ/mol (GEN.1185; the paper takes 200 to 300) | [R2451: Table 3], diffusion creep | READ, stand-in IHA2 |
 | core radius | `R_dry CMF^0.5`; dry radius from `radius_fit_earth` or `small_body_radius_earth` | [R4879] via the paper; part B fits | READ |
 | start | `Ts + E / C`, `E` = binding energy of the differentiated body (two uniform shells) | COMPUTED | COMPUTED |
 | ceiling | the liquidus at the middle of the mantle, `a_l (p + p_l)^c_l` with 310.317, 29.102 GPa, 0.5337 (3,100 K for the Earth, 1,900 K for a Moon-sized body); a magma ocean radiates the rest away | [R2857: Table 1], Eq. 7 | READ |

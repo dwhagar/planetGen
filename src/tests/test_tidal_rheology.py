@@ -13,10 +13,10 @@ import pytest
 
 from planetgen.physics import tidal_heating, tidal_rheology
 
-ETA0 = 1.0e12
-"""float: A viscosity prefactor in the middle of the drawn range (2.6e10 to 5.3e13 Pa s)."""
-EA = 2.5e5
-"""float: And an activation energy in the middle of the drawn range (200 to 300 kJ/mol)."""
+ETA0 = 3.6e9
+"""float: A viscosity prefactor in the middle of the drawn range (9.3e7 to 1.9e11 Pa s, geometric middle 1.3e9): with EA the viscosity of the old 1e12 and 250 kJ/mol at 1,600 K."""
+EA = 3.25e5
+"""float: And an activation energy in the middle of the drawn range (260 to 390 kJ/mol)."""
 SOLIDUS, LIQUIDUS = 1700.0, 2200.0
 """float: A solidus and a liquidus 500 K apart (`tidal_heating.MELT_RANGE_K`) in the middle of the box's range; the wiring passes the body's own."""
 

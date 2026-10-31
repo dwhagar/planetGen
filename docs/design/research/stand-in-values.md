@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1044 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1046 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -36,16 +36,16 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 149 | 13 | 8 | 1 | 0 | 171 |
+| T1 | 149 | 14 | 8 | 1 | 0 | 172 |
 | T2 | 112 | 42 | 0 | 1 | 0 | 155 |
 | T3 | 83 | 38 | 7 | 9 | 0 | 137 |
-| T4 | 51 | 5 | 1 | 17 | 10 | 84 |
+| T4 | 51 | 5 | 1 | 18 | 10 | 85 |
 | T5 | 44 | 18 | 3 | 1 | 0 | 66 |
 | T6 | 96 | 82 | 20 | 51 | 0 | 249 |
 | T7 | 32 | 14 | 7 | 12 | 0 | 65 |
 | T8 | 0 | 1 | 1 | 5 | 1 | 8 |
 | T9 | 23 | 14 | 5 | 46 | 21 | 109 |
-| All | 590 | 227 | 52 | 143 | 32 | 1044 |
+| All | 590 | 228 | 52 | 144 | 32 | 1046 |
 
 ## How the labels were given
 
@@ -1457,6 +1457,13 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | PT1 | P | T9 | L0 | planet_type.TERRESTRIAL_MAX_ENVELOPE 0.005: an envelope under 0.5 percent of the mass is a terrestrial body (about the 1.6 Earth radii where rocky planets end) | 0.002 to 0.02 | planets and moons | a measured planet of 1.6 to 2 Earth radii that is rocky with no envelope, or a rocky world of 1.3 radii with a thick hydrogen envelope | the radius valley limit of GEN.722 read from the envelope the planet holds | [R1477, R3800] (rocky limit near 1.6 Earth radii); [R2741] (envelope share against radius) | GEN.1219 | - |
 | PT2 | P | T9 | L0 | planet_type.GAS_MIN_ENVELOPE 0.5: an envelope of half the mass or more is a gas body (the line of bulk_structure.GIANT_ENVELOPE_FRACTION) | 0.3 to 0.7 | planets | a giant of Neptune's mass that is more than half envelope, or a Jupiter whose core outweighs its envelope | the envelope share the giant interior model gives (GEN.428) | Boss's choice of the pure rule; Neptune 10 to 15 percent envelope and Jupiter 90 percent or more | - | - |
+
+## 6.165 Stand-ins of the interior viscosity ranges
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| IHA1 | P | T4 | L3 | tuning.INTERIOR_VISCOSITY_PREFACTOR_RANGE_PA_S 9.3e7 to 1.9e11 Pa s: the bounds of Guimond et al. 2022 times exp(-75 kJ/mol / (R 1600 K)) = 3.56e-3, so the middle of the viscosity at 1,600 K holds | factor of 10 either side | a mantle at 1,000 to 2,500 K | a viscosity of a mantle at 1,600 K, in a measured or modelled rocky planet, outside 3e16 to 1e24 Pa s | the prefactor from a creep law of the mantle's composition (the pre-exponential factor of the diffusion creep laws, grain size and water) | the retune keeps the viscosity at 1,600 K that the paper's two ranges gave; the lab prefactors are in the same range once grain size and water are chosen | - | no data |
+| IHA2 | P | T1 | L1 | tuning.INTERIOR_ACTIVATION_RANGE_KJ_MOL 260 to 390: the diffusion-creep activation energies, dry and wet | 261 to 387 | a rocky mantle | a measured diffusion creep activation energy of mantle rock outside 260 to 390 | an activation energy chosen by the mantle's water and iron content | Korenaga and Karato 2008 Table 3 (read): 261 to 375 kJ/mol dry and 335 to 387 wet | - | - |
 
 ## 6.164 Stand-ins of the mass ratio of a companion
 
