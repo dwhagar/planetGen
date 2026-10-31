@@ -14709,6 +14709,56 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   window.
   Prerequisites: GEN.1158. Related: GEN.1158, GEN.1159, GEN.1068.
 
+- [ ] **GEN.1163 Stars hotter than about 6300 K all take the hot-star spin branch (a median 180 km/s whatever the mass), so F stars rotate in under a day where the real Kraft break rises gradually (about 20 to 70 km/s) (bug)**
+  Found by the GEN.753 tides and spin validation sweep (Aux 7,
+  reports/gen753-tides-spin-sweep-2026-10-30.md; 17 statistics, 14
+  agree, 3 do not; sources quoted from memory, tier T2, to be re-read by
+  the lane). In spin.star_rotation_period_hours every dwarf hotter than
+  about 6300 K (1.2 solar masses and up) takes the hot-star branch:
+  stars of 6000 to 6600 K older than 1 Gy have 95 percent under 3 days,
+  and F5V has 179 of 181 under 2 days. Fix: a smooth speed law across
+  the Kraft break with a stand-in row in GEN.725 (tier and tweak level),
+  re-read the sources. Output-changing (star rotation and everything
+  reading it: activity, XUV, tides), so lock work, train-bound. Done:
+  sweep statistic agrees, tests, registry row. Owner Aux 7.
+  Prerequisites: none. Related: GEN.753, GEN.807, GEN.725.
+
+- [ ] **GEN.1164 About 3 percent of moons (70 of 2,273) sit in a 3:2 or 2:1 spin-orbit state, all captured moons with eccentricity 0.2 to 0.5, where real moons have none apart from chaotic Hyperion: find out whether the tide damps the eccentricity before the spin settles**
+  Found by the GEN.753 tides and spin validation sweep (Aux 7,
+  reports/gen753-tides-spin-sweep-2026-10-30.md; 17 statistics, 14
+  agree, 3 do not; sources quoted from memory, tier T2, to be re-read by
+  the lane). This is a question for Tides 1, not a clear defect: does
+  the tide damp e before the spin settles in the spin-down order, and
+  should captured moons reach a resonant state at all? Answer from
+  physics (Maxwell rheology, GEN.955 wiring) and report; if it is a
+  defect, file the fix. Owner Tides 1.
+  Prerequisites: none. Related: GEN.753, GEN.842, GEN.955.
+
+- [ ] **GEN.1165 Giant planet obliquity never exceeds 60 degrees (312 giants) and locked planets have exactly 0 degrees tilt: draw a wider, physically derived obliquity and a small non-zero tilt for locked bodies**
+  Found by the GEN.753 tides and spin validation sweep (Aux 7,
+  reports/gen753-tides-spin-sweep-2026-10-30.md; 17 statistics, 14
+  agree, 3 do not; sources quoted from memory, tier T2, to be re-read by
+  the lane). Weak agreement only. Giants never tilt past 60 degrees and
+  every locked planet has exactly zero tilt; the real distribution has
+  giants out to 98 degrees and locked bodies keep a small tilt from the
+  orbit's own inclination and perturbations. Derive from impacts,
+  spin-orbit resonance capture and perturbation physics, with stand-ins
+  registered in GEN.725. Output-changing, lock work, train-bound.
+  Unowned.
+  Prerequisites: none. Related: GEN.753, GEN.842, GEN.725.
+
+- [ ] **GEN.1166 A forced F5V star gets 1.24 to 1.69 solar masses at a fixed 6500 K: the forced-type temperature override overrules the mass, as GEN.365 found for hot types (bug)**
+  Found by the GEN.753 tides and spin validation sweep (Aux 7,
+  reports/gen753-tides-spin-sweep-2026-10-30.md; 17 statistics, 14
+  agree, 3 do not; sources quoted from memory, tier T2, to be re-read by
+  the lane). A forced F5V gets 1.24 to 1.69 solar masses with its
+  temperature fixed at 6500 K, so the type's override sets temperature
+  and the mass wanders. Make the forced type draw the mass first and
+  take the temperature from the track (or draw within the type's own
+  band), check every forced type, and add a test. Output-changing for
+  forced types only, so train-bound. Owner Aux 7 after GEN.1163.
+  Prerequisites: none. Related: GEN.753, GEN.365.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
