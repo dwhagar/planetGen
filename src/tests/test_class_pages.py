@@ -522,7 +522,7 @@ def test_the_tree_symbols_and_the_page_chips_link_to_their_sections_of_the_habit
             "summary": planet}
     html = objecttree.nodes_html([item], _tree_context(sprite_url="/static/icons.svg", help_url=url)) + chips_html(planet, url)
     assert "Habitability levels" not in html
-    for anchor in ("chip-habitable-class", "equipment-gas-mix-mask"):
+    for anchor in ("chip-habitable", "equipment-gas-mix-mask"):   # UX.224: a habitable world of a habitable class shows the one chip, Habitable
         assert f'<a class="help-link" href="{url}#{anchor}">' in html, anchor
     # UX.197: the tree's symbols and life scores go to the Habitability and Life groups of the body's own page.
     assert html.count('href="/object/planet:FE81000A2B-0000005-001#habitability"') == 7

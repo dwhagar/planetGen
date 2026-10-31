@@ -6,6 +6,8 @@ the equipment chips (solid when required, outlined when recommended, in the colo
 into the habitability page. Plain dicts in the `queryDb.system_detail` shape; no database.
 """
 
+import pytest
+
 from planetgen.web.lib.habitability_chips import chips_html
 
 URL = "/help/habitability"
@@ -19,22 +21,27 @@ def _scored(**fields):
     return body
 
 
-def test_a_habitable_world_and_a_habitable_class_get_their_own_chips():
-    """GEN.643: "Habitable" is a Blue or Green overall rating, "Habitable class" a class that can carry life."""
-    both = chips_html(_scored(habitable=True, habitable_class=True))
-    assert "Habitable</span>" in both and "Habitable class</span>" in both
-    only_class = chips_html(_scored(habitable_class=True))
-    assert "Habitable class</span>" in only_class and "Habitable</span>" not in only_class
-    assert "Habitable" not in chips_html(_scored())
-    assert "Inhabited" in chips_html(_scored(inhabited=True))
+def _flags(html):
+    return [chip for chip in ("Inhabited", "Habitable class", "Habitable moon", "Habitable-class moon", "Habitable") if f">{chip}</span>" in html]
 
 
-def test_a_planet_with_a_habitable_moon_says_so():
-    html = chips_html(_scored(moons=[{"habitable": True, "habitable_class": True}]))
-    assert "Habitable moon" in html and "Habitable-class moon" in html
-    only_class = chips_html(_scored(moons=[{"habitable": False, "habitable_class": True}]))
-    assert "Habitable-class moon" in only_class and "Habitable moon" not in only_class
+@pytest.mark.parametrize("habitable", [False, True])
+@pytest.mark.parametrize("habitable_class", [False, True])
+@pytest.mark.parametrize("inhabited", [False, True])
+def test_a_body_shows_only_the_most_specific_of_inhabited_habitable_and_habitable_class(inhabited, habitable_class, habitable):
+    """UX.224: Inhabited over Habitable over Habitable class, never two of them (GEN.643: "Habitable" is a Blue or Green overall rating, "Habitable class" a class that can carry life)."""
+    shown = _flags(chips_html(_scored(inhabited=inhabited, habitable=habitable, habitable_class=habitable_class)))
+    expected = ["Inhabited"] if inhabited else ["Habitable"] if habitable else ["Habitable class"] if habitable_class else []
+    assert shown == expected
+
+
+def test_a_planet_with_a_habitable_moon_says_so_once():
+    """UX.224: "Habitable moon" over "Habitable-class moon"; the moons' chip is the planet's own and sits beside the planet's flag."""
+    assert _flags(chips_html(_scored(moons=[{"habitable": True, "habitable_class": True}]))) == ["Habitable moon"]
+    assert _flags(chips_html(_scored(moons=[{"habitable": False, "habitable_class": True}]))) == ["Habitable-class moon"]
+    assert _flags(chips_html(_scored(moons=[{"habitable": True}, {"habitable_class": True}]))) == ["Habitable moon"]
     assert "moon" not in chips_html(_scored(moons=[{"habitable": False, "habitable_class": False}]))
+    assert _flags(chips_html(_scored(inhabited=True, moons=[{"habitable": True}]))) == ["Inhabited", "Habitable moon"]
 
 
 def test_equipment_chips_are_solid_when_required_and_outlined_when_recommended():
@@ -55,9 +62,9 @@ def test_a_body_with_no_scores_has_no_chips():
 
 
 def test_the_chips_link_to_their_sections_of_the_habitability_page():
-    html = chips_html(_scored(habitable=True, habitable_class=True), URL)
+    html = chips_html(_scored(habitable=True), URL)
     assert f'<a class="help-link" href="{URL}#chip-habitable"><span class="flag flag-yes">Habitable</span></a>' in html
-    assert f'<a class="help-link" href="{URL}#chip-habitable-class"><span class="flag flag-yes">Habitable class</span></a>' in html
+    assert f'<a class="help-link" href="{URL}#chip-habitable-class"><span class="flag flag-yes">Habitable class</span></a>' in chips_html(_scored(habitable_class=True), URL)
     assert f'<a class="help-link" href="{URL}#equipment-gas-mix-mask"><span class="flag flag-eq' in html
     body = _scored()
     body["equipment"]["items"] = []
