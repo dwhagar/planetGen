@@ -136,9 +136,9 @@ def test_the_log_ruler_names_its_scales_and_each_stop_is_a_go_to(page, map_site)
     _open_galaxy(page, map_site, OPEN_PRIME)
     stops = page.eval_on_selector_all("#galaxymap3d-ruler .starmap-ruler-stop",
                                       "els => els.map(e => ({key: e.dataset.stop, y: e.getBoundingClientRect().y, title: e.title}))")
-    assert [s["key"] for s in stops] == ["galaxy", "arm", "region", "sector", "neighbourhood", "system", "planet", "moon"]
+    assert [s["key"] for s in stops] == ["galaxy", "arm", "region", "sector", "neighbourhood", "system", "planet", "moon", "surface"]
     ys = [s["y"] for s in stops]
-    assert ys == sorted(ys) and ys[0] < ys[-1] - 100, "the whole galaxy is at the top and a moon at the bottom"
+    assert ys == sorted(ys) and ys[0] < ys[-1] - 100, "the whole galaxy is at the top and the surface at the bottom"
     assert all(s["title"].startswith("Go to ") for s in stops)
     readout = page.locator("#galaxymap3d-altitude")
     assert readout.inner_text().startswith("Distance from focus: ")
