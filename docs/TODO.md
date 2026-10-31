@@ -11626,6 +11626,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Train 5 merged (#4321, 11:34 PM EDT) (2026-10-30 11:38 PM EDT): The
   age-metallicity relation inside each population merged with Star 2
   #4077. The variable-star flag refresh (#4082) stays open.
+  Variability row merged (2026-10-31 4:25 AM EDT): The cheap flags of
+  the variable-star part merged as #4082 (lock-free): the star sheet has
+  a derived Variability row for classical Cepheid, Mira or semiregular,
+  T Tauri and Herbig Ae/Be stars (physics/variability.py, stand-ins VR1
+  to VR3 in section 6.138, design note
+  docs/design/systems/variability.md). Still open: carbon and S stars
+  (GEN.1026, needs the thermal-pulse count), Ap and Am stars,
+  red-giant-branch semiregulars, and the alpha-shift wiring (GEN.1024).
   Prerequisites: none. Related: GEN.922.
 
 - [ ] **GEN.945 Audit every numeric constant the generator uses against the data we already download or hold: which are registered stand-ins, which come from a table, and which are unregistered hand-tuned numbers; ranked findings with a data source named for each**
