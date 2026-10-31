@@ -39,6 +39,10 @@ ABUNDANCES = {
 }
 """dict: Row -> gas -> (low, high, shape) of the mole fraction the gas has when the row draws it present."""
 
+WIRED_ROWS = ("m3", "m4", "m11")
+"""tuple: The rows whose gases are added to an air. Rows m5 and m6 (HCl, HF) keep their brackets but are not drawn into any air until
+GEN.524 part 2 replaces them with a halogen budget: as brackets they would put up to 1 percent HCl and 0.1 percent HF on every crust-class body."""
+
 
 def required_trace_inputs(body_class):
     """The stored quantities the rows of table m read for `body_class` (the life stage and the air's character among them)."""
@@ -55,13 +59,44 @@ def required_trace_inputs(body_class):
     return tuple(sorted(names & set(atmosphere_recipes.INPUTS)))
 
 
-def draw_trace_gases(subject, mixture):
+def draw_trace_amounts(subject, rows=WIRED_ROWS, drawn=None):
+    """
+    The trace gases of `rows` that table m draws present for `subject`, from the stream bound at the call.
+
+    Args:
+        subject (Subject): The body, with the quantities `required_trace_inputs(subject.body_class)` names.
+        rows (tuple): The rows whose gases are returned (the `WIRED_ROWS`).
+        drawn (dict or None): The `drawn.<group>` quantities of an earlier draw of the body, when there is one.
+
+    Returns:
+        tuple: `(amounts, constants, recipe)`: the mole fraction of each gas drawn present (formula to fraction, before any
+            renormalisation), the design constants drawn for them (`trace_<formula>`), and the table-m `RecipeDraw`.
+
+    Raises:
+        MixtureError: A quantity the rows read is missing (named).
+    """
+    quantities = {**(drawn or {}), **subject.quantities}
+    try:
+        recipe = RECIPES.draw_all(Subject(subject.body_class, quantities), categories="m")
+    except KeyError as error:
+        raise MixtureError(str(error)) from error
+    constants = {}
+    amounts = {}
+    for row in rows:
+        if recipe.binaries.get(row, (False, None))[0]:
+            for formula, spec in ABUNDANCES[row].items():
+                amounts[formula] = bracket(constants, f"trace_{formula}", spec)
+    return amounts, constants, recipe
+
+
+def draw_trace_gases(subject, mixture, rows=WIRED_ROWS):
     """
     The mixture with the trace gases of table m added.
 
     Args:
         subject (Subject): The body, with the quantities `required_trace_inputs(subject.body_class)` names.
         mixture (MixtureDraw): From `draw_mixture`; its `recipe` is the draw the rows of table m follow.
+        rows (tuple): The rows whose gases are added (the `WIRED_ROWS`).
 
     Returns:
         MixtureDraw: The same mixture with the present trace gases added (mole fractions renormalised to 1), `trace` in `constants`
@@ -73,17 +108,8 @@ def draw_trace_gases(subject, mixture):
     """
     if mixture.recipe is None:
         raise MixtureError("the mixture carries no recipe draw")
-    quantities = {**mixture.recipe.subject.quantities, **subject.quantities}
-    try:
-        trace_recipe = RECIPES.draw_all(Subject(subject.body_class, quantities), categories="m")
-    except KeyError as error:
-        raise MixtureError(str(error)) from error
-    constants = dict(mixture.constants)
-    added = {}
-    for row, gases_of_row in ABUNDANCES.items():
-        if trace_recipe.binaries.get(row, (False, None))[0]:
-            for formula, spec in gases_of_row.items():
-                added[formula] = bracket(constants, f"trace_{formula}", spec)
+    added, drawn_constants, trace_recipe = draw_trace_amounts(subject, rows, drawn=mixture.recipe.subject.quantities)
+    constants = {**mixture.constants, **drawn_constants}
     fractions = dict(mixture.mole_fractions)
     if fractions:
         for formula, value in added.items():
