@@ -3,7 +3,7 @@
 """
 `planetgen warm`: builds the site's caches ahead of the first visitor (MAP.134, PERF.104, PERF.127): the Galaxy Map's
 opening view, every list, every sector, system and phenomenon page, and the search, so the first visit after a release
-(or after a cache was cleared) isn't the one who waits for it. update.sh runs it in the background after every update;
+(or after a cache was cleared) isn't the one who waits for it. update.sh runs it inside the update, before the reload and the health check;
 run it by hand after clearing a cache. Run it as the web server's user so the files it writes are readable by Apache.
 
     planetgen warm [FAMILY|PHASE ...] [--cap N]
@@ -67,7 +67,7 @@ def add_warm_arguments(parser):
 
 def _wait_for_update():
     """Waits for a running update to finish: the queue takes no job during one (OPS.53)."""
-    if not updateguard.is_updating():
+    if not updateguard.is_updating() or updateguard.inside_update():
         return
     log.normal("The update is still running: waiting for it to finish before starting the warm-up.")
     deadline = time.monotonic() + UPDATE_WAIT_SECONDS
