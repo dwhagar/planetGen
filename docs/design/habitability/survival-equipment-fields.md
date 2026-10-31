@@ -449,7 +449,12 @@ An item carries every PHI-6 domain it can come from (`Item.domains`, the likelie
 The property sheet used to label the yearly `outside_hours` "Hours of daylight a person can be outside", which it is not: it is the
 hours of a working year that the listed radiation suit allows before the dose limit, and `None` unless that is a limit. Boss asked
 for the hours of daylight a person can be outside in one local day, with the daylight hours of the planet beside it. The first
-part is built (`physics/outside_hours.py`); the stored columns follow GEN.767's `daylight_hours`.
+part is built (`physics/outside_hours.py`) and the answer is stored (schema v187): `outside_hours_day`, the hours of one local day, and
+`outside_hours_limit`, the name of the limit that sets them. `habitability_world.compute` works both out with the rest of the score
+from the equipment levels, the stored `daylight_hours` (GEN.767) and the day and night swing, so a dose refresh or a re-score keeps them
+current. A world whose daylight (or, for a locked world, terminator belt temperature) is not stored has neither (NULL). The property
+sheet shows the day's hours in the glance and in the rotation group with what limits them in plain words (`outside_hours.LIMIT_WORDS`);
+the yearly dose-limited hours keep their own row, "Hours a person can work outside per year (dose limit)".
 
 **The answer is the smallest of five limits and the one that binds is named** (`outside_hours.LIMITS`: daylight, dose, heat,
 cold, air, uv, and vehicle for a body that needs one, which has 0 hours):

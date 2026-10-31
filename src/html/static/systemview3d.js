@@ -30,6 +30,7 @@ const { paintSolid } = await import(`./solidpaint.js${VERSION_QUERY}`);
 const { paintStar } = await import(`./starpaint.js${VERSION_QUERY}`);
 const { createPointerControl, orbitByDrag, orbitByKey, panInScreenPlane, wheelPixels } = await import(`./mapcontrol.js${VERSION_QUERY}`);
 const { fitRendererToCanvas, watchResize } = await import(`./mapcore.js${VERSION_QUERY}`);
+const { watchWindowFit } = await import(`./mapfit.js${VERSION_QUERY}`);
 const { createPicker, createTooltip, infoPanelOf } = await import(`./mappick.js${VERSION_QUERY}`);
 const { navActions, nearbyLinks, viewLink } = await import(`./systemnav.js${VERSION_QUERY}`);
 const { fitDistance: framingDistance } = await import(`./flytofit.js${VERSION_QUERY}`);
@@ -160,7 +161,7 @@ export function buildSystemScene(scene, layout, options) {
       lights.push({ ref: item.ref, light: light });
     }
     const entry = {
-      ref: item.ref, key: item.ref, name: item.name, kind: item.kind, body: body, x: 0, y: 0, z: 0, radius: radius,
+      ref: item.ref, key: item.ref, name: item.name, kind: item.kind, parent: item.parent, body: body, x: 0, y: 0, z: 0, radius: radius,
     };
     entries.push(entry);
     byRef[item.ref] = entry;
@@ -352,8 +353,22 @@ export function buildSystemScene(scene, layout, options) {
   function spin(spinSeconds) {
     entries.forEach((entry) => {
       const look = entry.body.look;
-      if (look && look.spinH > 0 && !entry.hidden) Spin.turn(THREE, objects[entry.ref], look, spinSeconds);
+      if (look && look.spinH > 0 && !entry.hidden) Spin.turn(THREE, objects[entry.ref], look, spinSeconds, null, Spin.isLocked(look) ? towardParent(entry) : null);
     });
+  }
+
+  // UX.244: the direction from a body to what it orbits (a barycentre: the nearest star), for a tidally locked body to keep its face toward.
+  function towardParent(entry) {
+    const own = objects[entry.ref].position;
+    let target = objects[entry.parent];
+    if (!target) {
+      let best = Infinity;
+      entries.forEach((other) => {
+        const distance = other.kind === "star" ? own.distanceToSquared(objects[other.ref].position) : Infinity;
+        if (distance < best) { best = distance; target = objects[other.ref]; }
+      });
+    }
+    return target ? [target.position.x - own.x, target.position.y - own.y, target.position.z - own.z] : null;
   }
 
   function trailReach(ref) {
@@ -691,6 +706,9 @@ export function createSystemView(options) {
   }
 
   const stopWatching = watchResize(canvasEl, function () { fitRendererToCanvas(renderer, camera, canvasEl); });
+  // MAP.359: the 3D system view is as wide as its column and as tall as the Galaxy Map is for the browser window (95% of it).
+  const viewportEl = canvasEl.closest(".sysview-viewport");
+  const stopFitting = viewportEl ? watchWindowFit(viewportEl, null, { fill: true }) : null;
 
   rebuild();
   reset();
@@ -724,7 +742,7 @@ export function createSystemView(options) {
       seed: e.body.look ? e.body.look.seed : null, texture: built.textureKey(e.ref) })),
     // MAP.328, for the browser tests: how far each body has turned, its rate (radians a second) and its axis.
     spins: () => built.entries.map((e) => ({ ref: e.ref, angle: Spin.angleAt(e.body.look, Spin.seconds()),
-      rate: Spin.rateOf(e.body.look), axis: Spin.axisOf(e.body.look), at: Spin.seconds(), quaternion: built.objects[e.ref].quaternion.toArray() })),
+      rate: Spin.rateOf(e.body.look), axis: Spin.axisOf(e.body.look), at: Spin.seconds(), locked: Spin.isLocked(e.body.look), quaternion: built.objects[e.ref].quaternion.toArray() })),
     // MAP.213, for the browser tests: where each body is drawn now, in world units, and how large.
     placed: () => built.entries.map((e) => ({ ref: e.ref, kind: e.kind, x: e.x, y: e.y, z: e.z, radius: e.radius })),
     // The bodies by name, for the screen-reader list.
@@ -734,6 +752,7 @@ export function createSystemView(options) {
       disposed = true;
       cancelAnimationFrame(frame);
       if (stopWatching) stopWatching();
+      if (stopFitting) stopFitting.stop();
       built.dispose();
       renderer.dispose();
     },

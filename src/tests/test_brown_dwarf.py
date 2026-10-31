@@ -17,7 +17,7 @@ from planetgen import tuning
 from planetgen.generation import multistar
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.phenomena.rogue import RoguePlanet
-from planetgen.physics import brown_dwarf, brown_dwarf_types, constants
+from planetgen.physics import brown_dwarf, brown_dwarf_types, constants, substellar_ceiling
 from planetgen.util import draw
 from planetgen.web import scatter_members_view
 from tests import render_support
@@ -26,7 +26,7 @@ from tests import render_support
 def test_the_masses_run_from_the_deuterium_limit_to_the_hydrogen_limit():
     low, high = brown_dwarf.mass_range_solar()
     assert low == pytest.approx(13 * constants.JUPITER_MASS_TO_KG / constants.SOLAR_MASS_TO_KG)
-    assert high == pytest.approx(80 * constants.JUPITER_MASS_TO_KG / constants.SOLAR_MASS_TO_KG)
+    assert high == pytest.approx(0.08)      # where the stars' mass function begins (GEN.936), 83.8 Jupiter masses
     with draw.bound(252):
         masses = [brown_dwarf.sample_mass_solar() for _ in range(4000)]
     assert low <= min(masses) and max(masses) <= high
@@ -68,17 +68,32 @@ def test_a_track_that_ends_before_10_gy_cools_at_burrows_exponent_and_one_that_r
     assert brown_dwarf.radius_sol(0.05, 5.0) == pytest.approx(0.099)
 
 
-def test_a_young_brown_dwarf_is_no_hotter_than_a_late_m_dwarf():
-    assert brown_dwarf.effective_temperature_k(0.075, 0.01) == tuning.ROGUE_MAX_EFFECTIVE_TEMPERATURE_K
-    assert brown_dwarf.spectral_type(brown_dwarf.effective_temperature_k(0.075, 0.01))[0] == "M"
+def test_a_young_brown_dwarf_near_the_limit_is_a_late_m_dwarf_no_hotter_than_the_peak_of_the_limit_mass():
+    """The cap is the BHAC15 temperature of the hydrogen-burning limit (GEN.494): 2,950 K at the peak, no longer the 2,800 K of the rogue clip."""
+    for mass in (0.065, 0.0764):
+        temperature = brown_dwarf.effective_temperature_k(mass, 0.01)
+        assert 2800.0 < temperature <= substellar_ceiling.HOTTEST_K
+        assert brown_dwarf.spectral_type(temperature)[0] == "M"
+    assert brown_dwarf.effective_temperature_k(0.0764, 0.01) == substellar_ceiling.HOTTEST_K
+
+
+def test_no_brown_dwarf_is_hotter_than_the_limit_mass_of_its_age():
+    """Below 0.07 solar masses a body cools for ever, so at any age it is no hotter than the limit mass at that age (2,050 K at 1 Gy, 1,630 K at 5 Gy)."""
+    for age in (0.01, 0.1, 1.0, 5.0, 10.0, 13.0):
+        for mass in (0.0124, 0.03, 0.05, 0.065, 0.0699):
+            assert brown_dwarf.effective_temperature_k(mass, age) <= substellar_ceiling.hottest_k(age) + 1e-9
+    assert brown_dwarf.effective_temperature_k(0.0699, 0.01) == pytest.approx(substellar_ceiling.ceiling_k(0.01), rel=0.01)  # the track of a body just under the limit mass is the limit mass's while it is young
 
 
 def test_the_radius_is_about_jupiters_when_old_and_larger_when_young():
     jupiter = constants.JUPITER_RADIUS_KM * constants.KM_TO_M_FACTOR / constants.SOLAR_RADIUS_M
     for mass in (0.03, 0.05, 0.07, 0.0764):
         assert brown_dwarf.radius_sol(mass, 0.05) > brown_dwarf.radius_sol(mass, 1.0) >= brown_dwarf.radius_sol(mass, 10.0)
-    for mass in (0.0124, 0.03, 0.05, 0.07, 0.0764):
+    for mass in (0.03, 0.05, 0.07, 0.0764):
         assert 0.7 * jupiter < brown_dwarf.radius_sol(mass, 10.0) < 1.5 * jupiter
+    # The table loses a mass when it cools out of the models' range, the lightest (the deuterium limit) after 0.01 Gy, and the
+    # radius it is held at is the young one (1.7 Jupiter radii at 13 Jupiter masses): the models give no old radius there.
+    assert 0.7 * jupiter < brown_dwarf.radius_sol(0.0124, 10.0) < 1.8 * jupiter
     old = [brown_dwarf.radius_sol(mass, 8.0) for mass in (0.03, 0.05, 0.065, 0.075)]
     assert old == sorted(old, reverse=True)
 
@@ -92,7 +107,7 @@ def test_the_luminosity_is_stefan_boltzmann_of_the_tracks_radius_and_temperature
 
 
 def test_a_mass_outside_the_models_has_no_track():
-    for mass in (0.005, 0.09):
+    for mass in (0.005, 2.0):
         with pytest.raises(ValueError):
             brown_dwarf.effective_temperature_k(mass, 1.0)
 

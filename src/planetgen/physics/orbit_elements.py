@@ -35,8 +35,8 @@ stable part of its parent's Hill sphere (`MOON_PROGRADE_STABLE_HILL_FRACTION`, t
 **Tides.** Raised in the body by what it orbits, they circularise the orbit of a planet or a captured moon (a regular moon's forced
 eccentricity is renewed by its neighbours and stays, so the tide it raises keeps heating it, GEN.737) on `circularisation_time_yr`,
 `tau_e = (2 / 21) (Q / k2) (m / M) (a / R)^5 / n` (Goldreich and Soter 1966, the standard result for a synchronously rotating body;
-`e` falls as `exp(-t / tau_e)`). Q and k2 are the body's own (`tidal_heating.response`, GEN.731: the rigid-sphere k2 of its mass and radius for
-rock, the icy and the gas-giant values for the rest), the same that despin it (`tidal_spin`).
+`e` falls as `exp(-t / tau_e)`). Q and k2 are the body's own (`interior_heat.tidal_response`, GEN.731 and GEN.955: the Andrade k2 and Q of its mass, radius and
+mantle temperature for rock, the icy and the gas-giant values for the rest), the same that despin it (`tidal_spin`).
 
 Use:
 
@@ -50,7 +50,7 @@ import math
 from scipy import special
 
 from planetgen import tuning
-from planetgen.physics import constants, tidal_heating
+from planetgen.physics import constants, interior_heat
 from planetgen.util import draw
 
 MULTI_SIGMA = 0.083
@@ -198,9 +198,9 @@ def circularisation_time_yr(body, primary_mass_kg, semi_major_axis_au):
     """
     if not body.mass or not body.radius or not primary_mass_kg:
         return math.inf
-    k2, q = tidal_heating.response(body)
     a_m = semi_major_axis_au * constants.AU_TO_M
     n = math.sqrt(constants.G * primary_mass_kg / a_m ** 3)
+    k2, q = interior_heat.tidal_response(body, n)
     seconds = (2.0 / 21.0) * (q / k2) * (body.mass / primary_mass_kg) * (a_m / (body.radius * 1000.0)) ** 5 / n
     return seconds / constants.SECONDS_PER_YEAR
 

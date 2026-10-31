@@ -60,9 +60,9 @@ def test_insert_row_writes_one_plain_insert_and_returns_the_id():
     assert connection.calls == [("INSERT INTO stars (name, age_gy) VALUES (?, ?)", ("A", 2.0))]
 
 
-def test_a_belt_is_written_in_kilometres_with_a_stated_zero_point_and_mass():
-    belt = types.SimpleNamespace(distance=2.0, lower_limit=1.5, upper_limit=3.0, density=0.4,
-                                 get_composition_summary=lambda: "rock")
+def test_a_belt_is_written_in_kilometres_with_a_stated_zero_point_and_its_own_mass():
+    belt = types.SimpleNamespace(distance=2.0, lower_limit=1.5, upper_limit=3.0, density=0.4, mass_kg=1.5e21,
+                                 chondrite_group="CM", get_composition_summary=lambda: "rock")
     connection = _Connection()
     context = {"star_system_id": 5, "star_id": 2, "orbital_index": 1}
     object_rows.insert_row(connection, "asteroid_belts", store.BELT_FIELDS, belt, context)
@@ -71,7 +71,7 @@ def test_a_belt_is_written_in_kilometres_with_a_stated_zero_point_and_mass():
     assert row["distance_km"] == 2.0 * constants.AU_TO_KM and row["upper_limit_km"] == 3.0 * constants.AU_TO_KM
     assert row["composition_summary"] == "rock" and row["star_id"] == 2 and row["orbital_index"] == 1
     assert [row[name] for name in columns if name.startswith(("position_", "velocity_"))] == [0.0] * 6
-    assert row["mass_kg"] == 0.0
+    assert row["mass_kg"] == 1.5e21 and row["chondrite_group"] == "CM"
 
 
 def test_an_anchored_remnant_leaves_its_motion_and_spin_to_its_star():
@@ -125,6 +125,10 @@ def _system(seed):
     return StarSystem(system_config=SystemConfig())
 
 
+_STAR_ROW_ONLY = {"state", "decay_age_yr"}
+"""set: Columns the star row holds that `Star.to_dict()` does not carry: they are derived from the star by `stellar_state.set_state` (GEN.785, GEN.786), not serialised with it."""
+
+
 @_pytest.mark.parametrize("seed", [1, 2, 3])
 def test_a_star_is_read_back_as_the_dict_it_was_written_from(seed):
     star = _system(seed).primary_star       # a binary pair is saved as its two stars, not as the proxy that stands for both
@@ -132,9 +136,9 @@ def test_a_star_is_read_back_as_the_dict_it_was_written_from(seed):
     loaded = store._star_row_to_dict(row, 12.5)
     assert loaded["galactic_orbital_speed_kms"] == 12.5
     original = star.to_dict()
-    assert set(loaded) == set(original), set(loaded) ^ set(original)
+    assert set(loaded) - _STAR_ROW_ONLY == set(original), set(loaded) ^ set(original)
     for key, value in loaded.items():
-        if key != "galactic_orbital_speed_kms":
+        if key != "galactic_orbital_speed_kms" and key not in _STAR_ROW_ONLY:
             _same(original[key], value)
 
 
@@ -183,10 +187,12 @@ class _SpectrumConnection:
 
 
 def test_planets_moons_belts_and_comets_are_read_back_as_the_dicts_they_were_written_from():
-    checked = set()
-    for seed in range(1, 9):
+    checked, wanted = set(), {"planet", "moon", "belt", "comet"}
+    for seed in range(1, 61):                       # the first seeds that hold a belt move with the generator: read until every kind was seen
         _check_bodies(_system(seed), checked)
-    assert checked == {"planet", "moon", "belt", "comet"}
+        if checked == wanted:
+            break
+    assert checked == wanted
 
 
 def _check_bodies(system, checked):
@@ -215,7 +221,7 @@ def _check_bodies(system, checked):
             row = _stored(store.BELT_FIELDS, body, context)
             loaded = store._belt_row_to_dict(row, [{"component": "ice", "concentration": 0.5}])
             original = body.to_dict()
-            for key in ("distance", "lower_limit", "upper_limit", "density"):
+            for key in ("distance", "lower_limit", "upper_limit", "density", "mass_kg"):
                 _same(original[key], loaded[key])
             assert loaded["body_type"] == "a" and loaded["composition"] == [["ice", 0.5]]
             checked.add("belt")

@@ -81,7 +81,7 @@ the [R] items are listed under Evidence notes.
   `L_XUV ~ t^-1.29`, matching the -1.2 to -1.3 band exponents of Ribas et al.
   2005 [S].
 
-Defaults [C: design defaults calibrated as above]:
+Defaults [C: design defaults calibrated as above; the `t_sat` column is the design's first estimate: generation takes the saturation age from Johnstone et al. 2021 by mass and rotation percentile (GEN.493, [host-activity-tuning.md](../composition/host-activity-tuning.md) section 4) and retunes the exponents from 0.45 Msun up (1.35, 1.8, 1.45, 1.45) to keep the same present-day level]:
 
 | Mass (Msun) | Type | `L_X/L_bol` saturated | `t_sat` (Gyr) | Decay exponent | `L_XUV/L_bol` saturated |
 |---|---|---|---|---|---|
@@ -221,7 +221,7 @@ induced fields from their oceans, a flag for GEN.88).
 ### 3.3 Tidal locking
 
 Gladman et al. 1996 (the form used by `tidal_spin`, GEN.731, which gives every body its own Love number and quality factor,
-`tidal_heating.response`): `t = (omega0 - omega_final) / rate`, `rate = 3 k2 G M*^2 R^3 / (alpha m a^6 Q)`, with alpha the moment-of-inertia
+`interior_heat.tidal_response`): `t = (omega0 - omega_final) / rate`, `rate = 3 k2 G M*^2 R^3 / (alpha m a^6 Q)`, with alpha the moment-of-inertia
 factor (0.33 rock). The table below was worked with the earlier fixed Q/k2 = 3,333 for moons (Q 100, k2 0.03) and with k2 = 0.3 for a
 rocky planet (10x faster); a rigid Earth-sized planet now has k2 about 0.5.
 Earth-mass, Earth-size planet at S = 1, initial P = 24 h [C]:

@@ -51,6 +51,12 @@ from planetgen.generation.phenomena.supernova_remnant import SupernovaRemnant, s
 from planetgen.util.random import power_law_share
 from planetgen.physics import unit_registry as units
 
+_kg_to_mearth = units.converter("kg", "Mearth")
+_kg_to_mjup = units.converter("kg", "Mjup")
+_kg_to_msun = units.converter("kg", "Msun")
+_mjup_to_kg = units.converter("Mjup", "kg")
+_msun_to_kg = units.converter("Msun", "kg")
+
 _ly_to_au = units.converter("ly", "au")
 
 _km_to_m = units.converter("km", "m")
@@ -104,8 +110,7 @@ def _check_contents(issues, record, class_data):
             issues.append(f"{key}={record[key]!r} outside {(lo, hi)}")
 
 def _rogue_gas_giant_fraction():
-    threshold_earth = (prog_c.ROGUE_PLANET_GAS_GIANT_MASS_THRESHOLD_JUPITER
-                       * pc.JUPITER_MASS_TO_KG / pc.EARTH_MASS_TO_KG)
+    threshold_earth = (_kg_to_mearth(_mjup_to_kg(prog_c.ROGUE_PLANET_GAS_GIANT_MASS_THRESHOLD_JUPITER)))
     total = sum(rate for _lo, _hi, rate in prog_c.ROGUE_PLANET_MASS_BINS.values())
     fraction = 0.0
     for low, high, rate in prog_c.ROGUE_PLANET_MASS_BINS.values():
@@ -397,7 +402,7 @@ def check_hard_invariants(record):
         spin_lo, spin_hi = prog_c.BLACK_HOLE_SPIN_RANGE
         if not (spin_lo <= record["spin"] <= spin_hi):
             issues.append(f"spin={record['spin']!r} outside {prog_c.BLACK_HOLE_SPIN_RANGE}")
-        expected_radius_km = relations.schwarzschild_radius(mass * pc.SOLAR_MASS_TO_KG) / 1000
+        expected_radius_km = relations.schwarzschild_radius(_msun_to_kg(mass)) / 1000
         _isclose_or_flag(issues, "event_horizon_radius_km", record["event_horizon_radius_km"], expected_radius_km)
         if not record["has_accretion_disk"]:
             # Without a disk it shines only by Hawking radiation (GEN.82).
@@ -467,8 +472,8 @@ def check_hard_invariants(record):
             _check_contents(issues, record, class_data)
 
     elif phenomenon_type == "rogue-planet":
-        mass_jupiter = record["mass_kg"] / pc.JUPITER_MASS_TO_KG
-        mass_earth = record["mass_kg"] / pc.EARTH_MASS_TO_KG
+        mass_jupiter = _kg_to_mjup(record["mass_kg"])
+        mass_earth = _kg_to_mearth(record["mass_kg"])
         lo = min(low for low, _high, _rate in prog_c.ROGUE_PLANET_MASS_BINS.values())
         hi = max(high for _low, high, _rate in prog_c.ROGUE_PLANET_MASS_BINS.values())
         if not (lo * (1 - 1e-9) <= mass_earth <= hi * (1 + 1e-9)):
@@ -480,7 +485,7 @@ def check_hard_invariants(record):
         elif record["planet_type"] == 't' and mass_jupiter >= prog_c.ROGUE_PLANET_GAS_GIANT_MASS_THRESHOLD_JUPITER:
             issues.append("planet_type is 't' but mass is at/above the gas-giant threshold")
         shown = prog_c.PLANET_CLASSES.get(record["planet_class"])
-        if record["planet_class"] is not None and (shown is None or shown["type"] != record["planet_type"]):
+        if record["planet_class"] is not None and (shown is None or record["planet_type"] not in (shown["type"], shown.get("also_type"))):
             issues.append(f"planet_class={record['planet_class']!r} is not a class of type {record['planet_type']!r}")
         if not (math.isfinite(record["radius_km"]) and record["radius_km"] > 0):
             issues.append(f"radius_km={record['radius_km']!r} is not a finite, positive value")
@@ -520,13 +525,13 @@ def check_hard_invariants(record):
         lo, hi = prog_c.QUASAR_EDDINGTON_RATIO_RANGE
         if not (lo <= record["eddington_ratio"] <= hi):
             issues.append(f"eddington_ratio={record['eddington_ratio']!r} outside {prog_c.QUASAR_EDDINGTON_RATIO_RANGE}")
-        expected_radius_km = relations.schwarzschild_radius(mass * pc.SOLAR_MASS_TO_KG) / 1000
+        expected_radius_km = relations.schwarzschild_radius(_msun_to_kg(mass)) / 1000
         _isclose_or_flag(issues, "event_horizon_radius_km", record["event_horizon_radius_km"], expected_radius_km)
         expected_luminosity_w = record["eddington_ratio"] * prog_c.EDDINGTON_LUMINOSITY_W_PER_SOLAR_MASS * mass
         _isclose_or_flag(issues, "luminosity_w", record["luminosity_w"], expected_luminosity_w)
         expected_accretion = (
-            record["luminosity_w"] / (prog_c.QUASAR_RADIATIVE_EFFICIENCY * pc.SPEED_OF_LIGHT_M_S ** 2)
-            * pc.SECONDS_PER_YEAR / pc.SOLAR_MASS_TO_KG
+            _kg_to_msun(record["luminosity_w"] / (prog_c.QUASAR_RADIATIVE_EFFICIENCY * pc.SPEED_OF_LIGHT_M_S ** 2)
+            * pc.SECONDS_PER_YEAR)
         )
         _isclose_or_flag(issues, "accretion_rate_solar_per_year", record["accretion_rate_solar_per_year"],
                          expected_accretion)

@@ -133,10 +133,12 @@ _STAR_TYPES = ["M5V", "K2V", "G2V", "F5V", "A1V", "B3V", "O5V"]
 # spin period a scattered star was placed with (GEN.846), which the built star takes from the `bright_stars` row it was built from.
 _RUNTIME_ONLY = {
     Star: {"system_config", "galactic_center_dist_ly", "spatial", "_name", "_name_seed", "initial_mass_sol",
-           "phase_end_age_gy", "_model_age_lifespan", "_model_fe_h", "_model_rotation_hours"},
+           "phase_end_age_gy", "_model_age_lifespan", "_model_fe_h", "_model_rotation_hours",
+           "state", "decay_age_yr"},    # derived with no draw at __init__ from the class and the phase (GEN.785, GEN.786); the store writes the columns
     Planet: {"system_config", "star", "moons", "spatial", "_staged_au", "_staged_velocity_kms",
              "primary_mass_kg", "_star_distance_au", "phi_bio", "phi_cpx",
-             "moon_disk_system", "formation_distance_au", "_orbit_birth", "_giant_draw"},
+             "moon_disk_system", "formation_distance_au", "_orbit_birth", "_giant_draw", "_age_drawn",
+             "_birth_spin", "_born_moons", "fallen_moon_mass_kg", "fallen_moons", "_birth_distance_au"},    # kept so the moon history can run again (GEN.959); the ring it builds is stored
     AsteroidBelt: {"system_config", "composition", "makeup"},
 }
 

@@ -35,7 +35,8 @@ import math
 from planetgen.datasets import fetch, mamajek_sequence, white_dwarf_models
 from planetgen.galaxy import scales
 from planetgen.physics import (
-    constants, imf, main_sequence, metallicity, ms_lifetime, post_main_sequence, remnant_mass, wolf_rayet)
+    age_metallicity, constants, imf, main_sequence, metallicity, ms_lifetime, post_main_sequence, remnant_mass, stellar_abundances,
+    wolf_rayet)
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.physics import unit_registry as units
@@ -299,16 +300,23 @@ _LONGEST_POST_MAIN_SEQUENCE = 1.5
 stars' is 1.2 to 1.3), which brackets the search of `youngest_progenitor_sol`."""
 
 
-def youngest_progenitor_sol(age_yr, fe_h=0.0):
+def youngest_progenitor_sol(age_yr, fe_h=0.0, settled=None):
     """The lightest star of birth [Fe/H] `fe_h` whose giant phases have ended by this age (a star lighter than
     `HELIUM_FLASH_MASS_SOL` also burns helium on the horizontal branch and climbs the asymptotic giant branch, and its
-    giant branch has the length of `giant_branch`, GEN.502)."""
+    giant branch has the length of `giant_branch`, GEN.502).
+
+    `settled(low, high)`, when given, is asked before each halving of the search whether the answer is already as good as
+    it needs to be, and the search then ends with `high`: a reader that only sorts the answer among a fixed list of masses
+    stops as soon as no mass of the list lies between the bounds (the answer is somewhere in them), after a few steps
+    instead of fifty. Without it the search runs on to the end."""
     age_gy = age_yr / 1.0e9
     low = max(ms_lifetime.mass_for_lifetime_gy(age_gy, fe_h), ms_lifetime.MIN_MASS_SOL)
     high = max(ms_lifetime.mass_for_lifetime_gy(age_gy / _LONGEST_POST_MAIN_SEQUENCE, fe_h), low)
     if remnant_formation_time_gy(low, fe_h) <= age_gy:
         return low
     for _ in range(50):
+        if settled is not None and settled(low, high):
+            return high
         middle = math.sqrt(low * high)
         if remnant_formation_time_gy(middle, fe_h) > age_gy:
             low = middle
@@ -550,29 +558,39 @@ def sample_living_star(age_bias=None, large_star=None, rng=draw, habitable_host=
         if large_star:
             mass = imf.sample(min_mass_sol=pc.LARGE_STAR_MIN_MASS_SOL, rng=rng, curve=imf.PRIMARY)
             if max_mass_sol is not None and mass >= max_mass_sol:
+                draw.redrawn("star.model_redraw")
                 continue
             low, high = population_age_range_gy(population)
             high = min(high, remnant_formation_time_gy(mass, birth))
             if high <= low:
+                draw.redrawn("star.model_redraw")
                 continue  # an old population has no living star this massive
             low, high = age_window_gy(low, high, age_bias)
-            age = rng.uniform(low, high) if age_law is None else age_law.sample(low, high, rng)
+            age = age_metallicity.tilted_age(
+                birth, population, lambda: rng.uniform(low, high) if age_law is None else age_law.sample(low, high, rng), rng)
         else:
             mass = imf.sample(rng=rng, curve=imf.PRIMARY)
+            if mass < stellar_abundances.hydrogen_burning_limit_for_fe_h(birth):
+                continue    # GEN.936: under the limit of its place it is a brown dwarf, not a star a system is built around
             if large_star is False and mass >= pc.LARGE_STAR_MIN_MASS_SOL:
+                draw.redrawn("star.model_redraw")
                 continue
             if max_mass_sol is not None and mass >= max_mass_sol:
+                draw.redrawn("star.model_redraw")
                 continue
-            age = sample_star_age_gy(age_bias, rng, population, age_law)
+            age = age_metallicity.tilted_age(birth, population, lambda: sample_star_age_gy(age_bias, rng, population, age_law), rng)
         if habitable_host and age < pc.LIFE_MIN_STAR_AGE_GY:
+            draw.redrawn("star.model_redraw")
             continue
         state = evolve_star(mass, age, rng, fe_h=birth, population=population, fe_h_peaks=fe_h_peaks)
         if state is None or (habitable_host and state["yerkes_class"] == "VII"):
+            draw.redrawn("star.model_redraw")
             continue
         # A white dwarf is never pre-placed, so the cap never removes one
         # (the hottest are clamped to exactly the lowest allowed cap).
         if (max_luminosity_sol is not None and state["yerkes_class"] != "VII"
                 and state["luminosity_sol"] >= max_luminosity_sol):
+            draw.redrawn("star.model_redraw")
             continue
         return mass, age, state
     raise ValueError(f"no living star in {pc.STAR_MODEL_MAX_REDRAWS} draws")
@@ -585,7 +603,8 @@ def star_params(initial_mass_sol, age_gy, state):
     database stores. The temperature is rounded to the nearest hundred
     kelvin, as for every generated star; the radius follows from
     Stefan-Boltzmann at that temperature (a white dwarf's from its
-    mass-radius relation).
+    mass-radius relation, and then the luminosity follows from the radius and
+    the stored temperature instead, GEN.365).
 
     Returns:
         dict: `type` (e.g. "G2V Yellow Main Sequence Star"),
@@ -598,6 +617,9 @@ def star_params(initial_mass_sol, age_gy, state):
     luminosity_w = state["luminosity_sol"] * constants.SOLAR_LUMINOSITY
     if state["radius_km"] is not None:
         radius_km = state["radius_km"]
+        # GEN.365: a white dwarf's radius is the degenerate star's (its mass sets it) and its temperature the one stored (rounded, or the
+        # forced type's), so its luminosity is what those two give, and L = 4 pi R^2 sigma T^4 holds for the stored numbers.
+        luminosity_w = constants.FOUR_PI * (radius_km * 1000.0) ** 2 * constants.STEFAN_BOLTZMANN_CONSTANT * temperature ** 4
     else:
         radius_km = math.sqrt(luminosity_w / (constants.FOUR_PI * constants.STEFAN_BOLTZMANN_CONSTANT
                                               * temperature ** 4))
@@ -619,7 +641,7 @@ def star_params(initial_mass_sol, age_gy, state):
     return {
         "type": star_type,
         "yerkes_class": yerkes,
-        "mass_kg": state["mass_sol"] * constants.SOLAR_MASS_TO_KG,
+        "mass_kg": _msun_to_kg(state["mass_sol"]),
         "radius_km": radius_km,
         "temperature_k": temperature,
         "luminosity_w": luminosity_w,
@@ -633,3 +655,5 @@ def star_params(initial_mass_sol, age_gy, state):
 
 # Last, because `pre_main_sequence` reads the main-sequence relations above.
 from planetgen.physics import pre_main_sequence  # noqa: E402
+
+_msun_to_kg = units.converter("Msun", "kg")

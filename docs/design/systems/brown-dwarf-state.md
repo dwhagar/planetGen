@@ -1,6 +1,6 @@
 # A brown dwarf as a star: its type, temperature and radius (GEN.252, GEN.549)
 
-**Status (2026-10-18):** built (`physics/brown_dwarf.py`, `tests/test_brown_dwarf.py`); GEN.549 replaced the power laws with a cooling track.
+**Status (2026-10-30):** built (`physics/brown_dwarf.py`, `tests/test_brown_dwarf.py`); GEN.549 replaced the power laws with a cooling track, and GEN.948 reads the track from the whole Baraffe table instead of eleven thinned rows.
 
 A brown dwarf is too light to hold hydrogen fusion, so it only cools. It used to be a fixed 0.1 solar radius with no state
 (a multi-star member) or a Jupiter-sized body with a log-uniform mass (the free-floating row). Now both have the type, the
@@ -8,12 +8,12 @@ temperature and the radius its mass and age give.
 
 | Piece | Value | Source (read) |
 |---|---|---|
-| Cooling track | Teff and radius for 11 masses from 0.010 to 0.080 solar masses at ages from 0.01 to 10 Gy, log-linear in age and in mass between rows (`tuning.BROWN_DWARF_TRACKS`, a thinned table of the model's `BHAC15_iso.2mass` file) | Baraffe, Homeier, Allard and Chabrier 2015, A&A 577, A42 (arXiv 1503.04107), the BHAC15 tracks |
+| Cooling track | Teff and radius for every mass of the table (0.01 to 1.4 solar masses) at its 30 ages from 0.5 Myr to 10 Gy, linear in log mass and log age (`datasets/baraffe_isochrones.py`, `cooling_track`; GEN.948 replaced `tuning.BROWN_DWARF_TRACKS`, eleven thinned rows) | Baraffe, Homeier, Allard and Chabrier 2015, A&A 577, A42 (arXiv 1503.04107), the BHAC15 isochrones (`BHAC15_iso.2mass`) |
 | Past a track's last age | a track that reaches 10 Gy holds its last values (the hydrogen-burning plateau); a shorter one cools at `Teff ~ t^-0.32` with the last radius | Burrows et al. 2001, Rev. Mod. Phys. 73, 719, eq. 2 (arXiv astro-ph/0103383) |
-| Temperature | the track's, no hotter than 2,800 K (`tuning.ROGUE_MAX_EFFECTIVE_TEMPERATURE_K`, a late-M dwarf) | as above |
+| Temperature | the track's, no hotter than the temperature of the hydrogen-burning limit at the age (`substellar_ceiling.cap_k`: 2,950 K at the peak, 2,050 K at 1 Gy, 1,630 K at 5 Gy; a body at or above 0.07 solar masses only the 2,950 K peak) | Baraffe et al. 2015 section 3.3 and the BHAC15 table (GEN.494) |
 | Radius | the track's, 0.09 to 0.16 solar radii old, larger when young | as above |
 | Luminosity | `L = R^2 (Teff / Teff_sun)^4` of the two | Stefan-Boltzmann |
-| Mass function | `dN/dM ~ M^-0.6` between 13 and 80 Jupiter masses | Kirkpatrick et al. 2021, ApJS 253, 7 (arXiv 2011.11616): alpha 0.6 +- 0.1 from 525 L, T and Y dwarfs within 20 pc |
+| Mass function | `dN/dM ~ M^-0.6` between 13 Jupiter masses and 0.08 solar masses (83.8 Jupiter masses, where the stars' mass function begins; GEN.936: it ended at 80 and left 0.0764 to 0.08 empty) | Kirkpatrick et al. 2021, ApJS 253, 7 (arXiv 2011.11616): alpha 0.6 +- 0.1 from 525 L, T and Y dwarfs within 20 pc |
 | Type from temperature | Teff of the type number (L0 = 0, T0 = 10, Y0 = 20) is `2237.5 - 144.96 x + 4.0301 x^2` to L8.75, `1437.9 - 18.309 x` to T4.75, `5141.3 - 368.65 x + 6.7301 x^2` beyond; inverted. L0 is 2,238 K, T0 1,255 K, Y0 461 K | the same paper, Table 13 (rms 134, 79, 79 K) |
 
 Above L0 a brown dwarf is a late-M dwarf, named by the stellar scale (`stellar_evolution.spectral_letter_and_subclass`).
@@ -26,7 +26,7 @@ The paper's scatter is its measurement scatter, not a spread of the objects, so 
   ("a free-floating T5 brown dwarf", header "Rogue Brown Dwarf, Type T5"). The type is read from the stored effective
   temperature, so there is no new column. It is its own system; its companion (15% of brown dwarfs are in pairs) is
   GEN.275's.
-- **A brown dwarf member of a multi-star tree** (`multistar._star_leaf`, any member under 0.08 solar masses) has the type
+- **A brown dwarf member of a multi-star tree** (`multistar._star_leaf`, any member under the hydrogen-burning limit of its place's [Fe/H], 0.074 solar masses at solar Z up to 0.092 at none (GEN.936)) has the type
   as its `state` (it was NULL) and the radius the track gives at the system's age (it was 0.1 solar radii). The members
   list on a scatter row's page shows "Brown dwarf (T5)".
 - **The class page** `/classes/rogue-planet/brown-dwarf` lists the temperatures where L, T and Y begin.
@@ -64,3 +64,13 @@ cool to a plateau near 2,000 K at the hydrogen-burning limit and stay there for 
 - `generation/phenomena/rogue.py`: the free-floating brown dwarf's mass, radius, `spectral_type`, page text.
 - `generation/multistar._star_leaf`; `web/scatter_members_view`; `web/lib/classref`.
 - A change of the generator's output: epoch bumped (OPS.56).
+
+
+## The boundary with the stars (GEN.936)
+
+The stars' mass function (`imf`) begins at 0.08 solar masses and the brown dwarf one ends there: one number, `mass_boundaries.STAR_BROWN_DWARF_SPLIT_SOL`,
+so no mass between them is missing and none is counted twice. Whether an object of a mass burns hydrogen is a question of its
+place: `stellar_abundances.hydrogen_burning_limit_for_fe_h` (0.074 solar masses at solar Z, 0.092 at none, linear in Z between;
+Burrows et al. 2001, a parametrisation). A primary drawn under it is drawn again (a system is built around a star, and the
+generator makes none around a brown dwarf), and a companion under it is a brown dwarf member of its tree. The main sequence from
+0.07 to 0.1 solar masses is the Baraffe table's (`main_sequence`), scaled to meet MIST at 0.1.

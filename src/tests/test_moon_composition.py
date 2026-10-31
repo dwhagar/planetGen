@@ -204,20 +204,33 @@ def test_generated_moons_draw_their_origin_first_and_the_orbit_follows_from_it()
     assert any(i > 130.0 for i in origins["captured"])
 
 
+def _disk_ice_sides(moons):
+    """`(near, far)`: the disk moons formed under a third of their disk's ice line and past one and a half times it."""
+    disk = [moon for moon in moons if moon.moon_origin == "disk"]
+    # a moon's makeup is set where it formed (`_birth_distance_au`); the tide has since moved it (`moon_history`, GEN.959)
+    ratio = lambda moon: moon._birth_distance_au * 1.495978707e8 / moon.moon_disk_system.ice_line_km
+    return [m for m in disk if ratio(m) < 0.3], [m for m in disk if ratio(m) > 1.5]
+
+
 @pytest.fixture(scope="module")
 def generated_moons():
-    """The moons of 40 seeded systems, each with the origin and disk it was generated from (GEN.466)."""
+    """The moons of seeded Sun-like single stars (GEN.466): at least 40 systems, and more (up to 120) until a few disk moons stand on each
+    side of their disk's ice line, since only a giant makes a disk moon and few systems have one."""
     from planetgen.generation.config import SystemConfig
     from planetgen.generation.system import StarSystem
     moons = []
     with draw.bound(8):
-        for _ in range(40):
+        for count in range(120):
+            if count >= 40 and all(len(side) >= 2 for side in _disk_ice_sides(moons)):
+                break
             config = SystemConfig()
             config.MOONS = True
+            config.STAR_TYPE = "G2V"
+            config.BINARY_SYSTEM = False
             system = StarSystem(system_config=config)
-            for planet in system.planets + system.secondary_planets:
+            for planet in system.planets:
                 if planet.body_type != "a":
-                    moons.extend(planet.moons)
+                    moons.extend(getattr(planet, "_born_moons", None) or planet.moons)      # the moons as generated: the tide has since removed some (GEN.959)
     return moons
 
 
@@ -235,9 +248,8 @@ def test_every_generated_moon_has_a_composition_from_its_origin(generated_moons)
 
 
 def test_a_disk_moon_gains_ice_past_its_disks_ice_line(generated_moons):
-    disk = [moon for moon in generated_moons if moon.moon_origin == "disk"]
-    near = [m.water_mass_fraction for m in disk if m.distance * 1.495978707e8 < 0.3 * m.moon_disk_system.ice_line_km]
-    far = [m.water_mass_fraction for m in disk if m.distance * 1.495978707e8 > 1.5 * m.moon_disk_system.ice_line_km]
+    near, far = ([moon.water_mass_fraction for moon in side] for side in _disk_ice_sides(generated_moons))
+    near, far = list(near), list(far)
     assert near and far
     assert max(near) < 0.05
     assert sum(far) / len(far) > sum(near) / len(near) + 0.1
@@ -278,3 +290,36 @@ def test_the_same_seed_gives_the_same_moons():
                            for planet in system.planets if planet.body_type != "a" for moon in planet.moons)
         return out
     assert masses() == masses()
+
+
+# --- GEN.1081: the captured-origin weight depends on the moon's mass -----------------------------------------------------------
+
+def test_a_small_moon_keeps_the_open_weights():
+    assert mc.captured_weight(1e12) == 1.0 and mc.captured_weight(mc.CAPTURED_FULL_WEIGHT_MASS_KG) == 1.0
+    assert [p for _name, p in mc.origin_probabilities(mc.GIANT, 1e15)] == pytest.approx([0.5, 0.5])
+    assert [p for _name, p in mc.origin_probabilities(mc.GIANT, 1e15, has_ring=True, roche_ratio=2.0)] == pytest.approx([1 / 3] * 3)
+
+
+@pytest.mark.parametrize("mass_kg,weight", [(1e20, 0.0464), (1e22, 0.01), (2.14e22, 0.0078)])
+def test_a_heavy_moon_is_rarely_captured(mass_kg, weight):
+    assert mc.captured_weight(mass_kg) == pytest.approx(weight, rel=0.02)
+    shares = dict(mc.origin_probabilities(mc.GIANT, mass_kg))
+    assert shares["captured"] < 0.05 and shares["disk"] > 0.95 and sum(shares.values()) == pytest.approx(1.0)
+
+
+def test_the_weight_falls_with_mass_and_every_parent_kind_keeps_its_rows():
+    masses = [1e16, 1e17, 1e18, 1e19, 1e20, 1e21]
+    weights = [mc.captured_weight(m) for m in masses]
+    assert weights == sorted(weights, reverse=True) and weights[-1] < 0.1
+    for kind in mc.PARENT_KINDS:
+        names = [name for name, _p in mc.origin_probabilities(kind, 1e20)]
+        assert "captured" in names and sum(p for _name, p in mc.origin_probabilities(kind, 1e20)) == pytest.approx(1.0)
+    assert dict(mc.origin_probabilities(mc.TERRESTRIAL, 7.3e22))["impact"] > 0.99
+
+
+def test_the_weight_refuses_a_mass_that_is_not_positive():
+    for mass in (0.0, -1.0):
+        with pytest.raises(ValueError):
+            mc.captured_weight(mass)
+    with pytest.raises(ValueError):
+        mc.origin_probabilities("moon", 1e20)

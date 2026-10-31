@@ -18,8 +18,9 @@ from planetgen.generation.config import SystemConfig
 from planetgen.generation.planet import Planet
 from planetgen.generation.star import Star
 from planetgen import tuning as prog_c
-from planetgen.physics import constants, planet_classes
+from planetgen.physics import constants, gases, planet_classes, surface_air
 from planetgen.generation import habitable_request, life as planetLife
+from planetgen.util import draw
 from tests import class_support
 
 ZONE_CHARS = "hec"
@@ -31,11 +32,17 @@ ZONE_SEED_IDS = [f"{zone}-{seed}" for zone, seed in ZONE_SEEDS]
 # the 9 percent that CI chondrites carry of them in all (Lodders); the degassed share of that is far smaller.
 VOLATILE_ALLOWANCE = 0.09
 
+# TEST.485: the least pressure a stored air has. A thin regime caps the air at `surface_air.VACUUM_PRESSURE_PA` (1 Pa) and the solve then drops every
+# gas whose partial is under `STORE_MIN_FRACTION` of the total, so the stored sum sits below the cap by that share of each gas dropped, at most
+# all the gases the registry knows (a draw of 1 Pa stored as 0.99999999993 Pa).
+THIN_AIR_FLOOR_PA = surface_air.VACUUM_PRESSURE_PA * (1.0 - surface_air.STORE_MIN_FRACTION * len(gases.GASES))
+
 @pytest.fixture(scope="module")
 def host_star():
     cfg = SystemConfig()
     cfg.STAR_TYPE = "G2V"
-    return Star(cfg)
+    with draw.bound("test-planets-host-star"):      # TEST.497: a star drawn from the run's entropy gave a different air to the checks each run
+        return Star(cfg)
 
 
 def distance_for_zone(star, zone):
@@ -57,8 +64,14 @@ def test_planet_is_in_its_zone_with_a_known_class_and_the_type_of_that_class(hos
     assert planet.radius > 0
     assert planet.planet_class in prog_c.PLANET_CLASSES
     assert planet.zone == zone
-    assert planet.body_type == prog_c.PLANET_CLASSES[planet.planet_class]["type"]
+    shown = prog_c.PLANET_CLASSES[planet.planet_class]
+    assert planet.body_type in (shown["type"], shown.get("also_type"))
     assert planet.planet_class == planet_classes.classify(planet)
+
+
+def test_the_thin_air_floor_allows_the_trace_trim_and_no_more():
+    assert THIN_AIR_FLOOR_PA < 0.99999999993 < surface_air.VACUUM_PRESSURE_PA
+    assert THIN_AIR_FLOOR_PA > surface_air.VACUUM_PRESSURE_PA * (1.0 - 1.0e-6)
 
 
 @pytest.mark.parametrize("zone,seed", ZONE_SEEDS, ids=ZONE_SEED_IDS)
@@ -84,7 +97,10 @@ def test_planet_physical_properties_are_finite_and_sane(host_star, zone, seed):
         # GEN.830: the weight of the air on the surface (g * m / area) is its mass, which cannot exceed the water the body has plus the
         # degassed share of its other volatiles. This replaces the flat ceiling: a sealed ocean world that crosses the critical point of
         # water holds all its surface water as steam (several GPa), which is its own inventory and no more.
-        assert math.isfinite(planet.atmospheric_pressure) and 1.0 <= planet.atmospheric_pressure
+        # The floor is the 1 Pa a thin regime caps the air at (`surface_air.VACUUM_PRESSURE_PA`); the solve then drops every gas whose partial is
+        # under `STORE_MIN_FRACTION` of the total, so the stored sum can sit below the cap by that share of each gas dropped (TEST.485:
+        # 0.99999999993 Pa), at most all the gases the registry knows.
+        assert math.isfinite(planet.atmospheric_pressure) and THIN_AIR_FLOOR_PA <= planet.atmospheric_pressure
         air_kg = planet.atmospheric_pressure * 4.0 * math.pi * (planet.radius * 1000.0) ** 2 / (planet.gravity * constants.EARTH_GRAVITY)
         assert air_kg <= planet.mass * ((planet.water_mass_fraction or 0.0) + VOLATILE_ALLOWANCE)
         assert math.isfinite(planet.atm_density) and planet.atm_density > 0
@@ -106,6 +122,24 @@ def test_planet_life_class_is_one_its_conditions_support(host_star, zone, seed):
             assert planet.life_class is None
         elif planet.life_class_id is not None:
             assert planet.life_class_scores.get(planet.life_class_id, 0) > 0, f"{cls}-{zone}: {planet.life_class_id!r} is not supported"
+
+
+def test_the_class_that_lives_on_a_world_is_stored_among_the_classes_it_supports_even_when_its_life_used_up_its_fuel():
+    """TEST.486: a cold world whose life drew down what it lived on is scored 0 for its class once the air is built; the class still lives there
+    and is still stored among the supported ones, at the score it was chosen at. The host star is seeded, so the same stars come every run."""
+    kept = 0
+    for trial in range(40):
+        cfg = SystemConfig()
+        cfg.STAR_TYPE = "G2V"
+        with draw.bound(trial):
+            star = Star(cfg)
+        for seed in range(4):
+            planet = make_planet(star, "c", seed)
+            planetLife.apply_life_data(planet)
+            if planet.body_type != "g" and planet.life_class_id is not None:
+                kept += 1
+                assert planet.life_class_scores.get(planet.life_class_id, 0) > 0, (trial, seed, planet.life_class_id, planet.life_class_scores)
+    assert kept
 
 
 def test_decide_flavor_text_is_generation_time_only(host_star, monkeypatch):

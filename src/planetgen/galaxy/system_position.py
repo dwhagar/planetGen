@@ -14,12 +14,13 @@ while its sector and galactic coordinates follow.
 
 import math
 
-from planetgen.physics import constants as physical_constants
 from planetgen.physics import system_tree
 from planetgen.physics.position import SpatialPosition3D
 from planetgen.util import draw
 from planetgen.util import detmath
 from planetgen.physics import unit_registry as units
+
+_kg_to_msun = units.converter("kg", "Msun")
 
 _ly_to_au = units.converter("ly", "au")
 
@@ -29,12 +30,13 @@ _AXES = "xyz"
 def _star_offsets_au(system):
     """`[(star, (x, y, z))]`: each star's offset from the system's center, AU."""
     stars = list(getattr(system, "stars", None) or [system.primary_star])
+    if getattr(system, "star_slots", None) is not None:    # GEN.630: more than a pair, placed by the whole tree
+        dark = [(member.mass_solar, (member.parent_node_no, member.slot)) for member in getattr(system, "dark_members", ())]
+        return list(zip(stars, system_tree.star_offsets_au(
+            [_kg_to_msun(star.mass) for star in stars], system.star_slots, system.orbit_nodes,
+            system.orbit_nodes[0].epoch_unix, dark)))
     if len(stars) < 2:
         return [(stars[0], (0.0, 0.0, 0.0))]
-    if getattr(system, "star_slots", None) is not None:    # GEN.630: more than a pair, placed by the whole tree
-        return list(zip(stars, system_tree.star_offsets_au(
-            [star.mass / physical_constants.SOLAR_MASS_TO_KG for star in stars], system.star_slots, system.orbit_nodes,
-            system.orbit_nodes[0].epoch_unix)))
     if getattr(system, "binary_type", None) == "wide" and getattr(system, "wide_binary", None) is not None:
         pair, template = system.wide_binary, "{which}_position_{axis}_au"
     else:
@@ -184,6 +186,8 @@ def place_system(system, sector_center_ly, position_ly, sector_edge_pc=None, vel
             velocity_vector_cartesian=star_velocities[id(star)])
 
     wide = getattr(system, "binary_type", None) == "wide"
+    # (a lone star with dark members about it is off the tree's barycentre, and its planets go round the star, GEN.1013)
+    hosted = wide or (getattr(system, "binary_type", None) is None and bool(getattr(system, "dark_members", ())))
     primary_at = star_centers[id(system.primary_star)]
     secondary = getattr(system, "secondary_star", None)
     secondary_at = star_centers.get(id(secondary), center_au) if secondary is not None else center_au
@@ -191,7 +195,7 @@ def place_system(system, sector_center_ly, position_ly, sector_edge_pc=None, vel
     secondary_v = star_velocities.get(id(secondary), system_velocity) if secondary is not None else system_velocity
     groups = [
         (getattr(system, "planets", []) or [], getattr(system, "comets", []) or [],
-         primary_at if wide else center_au, primary_v if wide else system_velocity),
+         primary_at if hosted else center_au, primary_v if hosted else system_velocity),
         (getattr(system, "secondary_planets", []) or [], getattr(system, "secondary_comets", []) or [],
          secondary_at, secondary_v),
     ]

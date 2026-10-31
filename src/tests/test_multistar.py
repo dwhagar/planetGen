@@ -13,7 +13,7 @@ from collections import Counter
 import pytest
 
 from planetgen import tuning
-from planetgen.generation import multistar
+from planetgen.generation import close_binary_trend, multistar
 from planetgen.generation.phenomena import hosts
 from planetgen.physics import brown_dwarf, mass_boundaries, ms_lifetime, stability, stellar_evolution as evolution
 from planetgen.util import draw
@@ -399,3 +399,74 @@ def test_a_heavier_primary_keeps_the_whole_mass_ratio_range():
     low_ratio, high_ratio = tuning.BINARY_MASS_RATIO_RANGE
     rng, again = draw.Stream(1), draw.Stream(1)
     assert multistar._companion_mass(1.0, rng) == 1.0 * again.uniform(low_ratio, high_ratio)
+
+
+# GEN.705: the [Fe/H] factor on the close companions reaches the tree draw.
+
+def test_the_tree_draw_leaves_the_table_alone_for_a_star_at_the_solar_composition():
+    assert multistar.close_trend(1.0, None) == (None, 1.0)
+    assert multistar.close_trend(1.0, 0.0) == (None, 1.0)
+
+
+@pytest.mark.parametrize("mass", [0.3, 1.0, 5.0, 20.0])
+@pytest.mark.parametrize("fe_h", [-2.0, -0.5, 0.5])
+def test_close_trend_moves_the_odds_of_a_companion_inside_10_au_by_the_factor_and_leaves_the_rest(mass, fe_h):
+    table = multistar.star_count_weights(mass)
+    weights, inside_weight = multistar.close_trend(mass, fe_h)
+    chance, moved = 1.0 - table[0] / sum(table), 1.0 - weights[0] / sum(weights)
+    inside = multistar._inside_share(mass)
+    outside = chance * (1.0 - inside)
+    inside_after = close_binary_trend.scaled_close_chance(chance * inside, fe_h)
+    assert moved == pytest.approx(min(inside_after + outside, 1.0), abs=1e-8)      # the outside part gives way past 1
+    # the counts of 2 to 7 stars keep their proportions, and the share of the companions inside moves with the chance
+    assert [w / sum(weights[1:]) for w in weights[1:]] == pytest.approx([w / sum(table[1:]) for w in table[1:]])
+    odds = lambda p: p / (1.0 - p)
+    assert odds(inside_after / moved) / odds(inside) == pytest.approx(inside_weight, rel=1e-9)
+    assert (inside_weight > 1.0) == (fe_h < 0.0)
+
+
+@pytest.mark.parametrize("share", [0.1, 0.5, 0.9])
+@pytest.mark.parametrize("weight", [0.4, 1.0, 2.5])
+def test_a_tilted_draw_puts_the_inside_share_at_the_weighted_odds(share, weight):
+    draws = [(i + 0.5) / 4000 for i in range(4000)]
+    inside = sum(multistar._tilted(u, share, weight) < share for u in draws) / len(draws)
+    odds = share / (1.0 - share) * weight
+    assert inside == pytest.approx(odds / (1.0 + odds), abs=1e-3)
+    assert multistar._tilted(0.0, share, weight) == 0.0 and multistar._tilted(1.0, share, weight) == pytest.approx(1.0)
+
+
+def test_metal_poor_stars_have_more_companions_inside_10_au_than_metal_rich_ones():
+    def rates(fe_h, n=250):
+        multiple = close = 0
+        for seed in range(n):
+            tree = _tree(multistar.Placed("star", 1.0, 1.0, fe_h=fe_h), 4.0e9, seed)
+            if tree.member_count > 1:
+                multiple += 1
+                close += tree.nodes[0].separation_au < multistar.CLOSE_COMPANION_AXIS_AU
+        return multiple / n, close / n
+    poor, rich = rates(-2.0), rates(0.5)
+    assert poor[0] > rich[0] + 0.1      # the chance of a companion (0.60 and 0.41 at the table's 0.47)
+    assert poor[1] > rich[1] + 0.1      # and of one inside 10 AU (0.29 and 0.08)
+
+
+def test_the_lightest_companion_follows_the_places_own_hydrogen_burning_limit():
+    """GEN.706: at low [Fe/H] the limit between a star and a brown dwarf is above 0.08 (GEN.936), and a companion drawn between the two
+    would be a brown dwarf using up a place of the `star-count` table."""
+    from planetgen.physics import stellar_abundances
+    assert multistar.companion_floor_solar(None) == multistar.companion_floor_solar(0.3) == mass_boundaries.sol("hydrogen_burning_limit")
+    assert multistar.companion_floor_solar(-1.0) == pytest.approx(stellar_abundances.hydrogen_burning_limit_for_fe_h(-1.0))
+    assert multistar.companion_floor_solar(-1.0) > 0.09
+    for seed in range(300):
+        tree = _tree(multistar.Placed("star", 0.3, 0.3, fe_h=-1.0), 3.0e9, seed, n_stars=2)
+        assert tree.members[1].kind != "brown-dwarf" and tree.members[1].initial_mass_solar >= multistar.companion_floor_solar(-1.0)
+
+
+@pytest.mark.parametrize("birth,age_yr", [(1.3, 3.0e9), (2.0, 5.0e8), (5.0, 5.0e7), (15.0, 3.0e6), (40.0, 1.0e6)])
+def test_the_stars_of_a_tree_follow_the_table_for_the_hotter_classes_too(birth, age_yr):
+    """GEN.706: the share of systems with a companion star is the `star-count` table's for every class, to four standard errors of
+    the draws (a brown dwarf is a member of its own, not a star of the count)."""
+    draws = 1500
+    share = 1.0 - multistar.star_count_weights(birth)[0] / sum(multistar.star_count_weights(birth))
+    pairs = sum(sum(member.kind != "brown-dwarf" for member in _tree(multistar.Placed("star", birth), age_yr, seed).members) > 1
+                for seed in range(draws))
+    assert abs(pairs / draws - share) < 4.0 * math.sqrt(share * (1.0 - share) / draws) + 0.02     # +0.02: the compact companions

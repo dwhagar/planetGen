@@ -12,7 +12,7 @@ import math
 import pytest
 
 from planetgen import tuning
-from planetgen.physics import constants, formation, kepler_multiplicity, planet_architecture as pa, planet_occurrence as po
+from planetgen.physics import constants, formation, kepler_multiplicity, planet_architecture as pa, planet_mass, planet_occurrence as po
 from planetgen.util import draw
 
 SUN = constants.SOLAR_MASS_TO_KG
@@ -142,16 +142,25 @@ def test_the_chance_of_a_hot_jupiter_rises_steeply_with_metallicity():
 
 
 def test_a_hot_jupiter_has_nothing_inside_its_orbit_and_a_moved_giant_clears_its_neighbours():
-    hot = pa.Seed(0.05, 300 * EARTH, 30 * EARTH, True, 4, True)
-    inside = pa.Seed(0.03, 2 * EARTH, 2 * EARTH, False, 1, False)
-    outside = pa.Seed(1.5, 2 * EARTH, 2 * EARTH, False, 1, False)
+    hot = pa.Seed(0.05, 300 * EARTH, 30 * EARTH, True, 4, True, 0.05)
+    inside = pa.Seed(0.03, 2 * EARTH, 2 * EARTH, False, 1, False, 0.03)
+    outside = pa.Seed(1.5, 2 * EARTH, 2 * EARTH, False, 1, False, 1.5)
     assert pa._clear_around_giants([inside, hot, outside], SUN) == [hot, outside]
-    moved = pa.Seed(2.0, 300 * EARTH, 30 * EARTH, True, 4, True)
-    near = pa.Seed(2.2, 5 * EARTH, 5 * EARTH, False, 1, False)
-    far = pa.Seed(9.0, 5 * EARTH, 5 * EARTH, False, 1, False)
+    moved = pa.Seed(2.0, 300 * EARTH, 30 * EARTH, True, 4, True, 2.0)
+    near = pa.Seed(2.2, 5 * EARTH, 5 * EARTH, False, 1, False, 2.2)
+    far = pa.Seed(9.0, 5 * EARTH, 5 * EARTH, False, 1, False, 9.0)
     assert pa._clear_around_giants([moved, near, far], SUN) == [moved, far]
-    still = pa.Seed(2.0, 300 * EARTH, 30 * EARTH, True, 4, False)
-    assert pa._clear_around_giants([still, near, far], SUN) == [still, near, far]
+    still = pa.Seed(2.0, 300 * EARTH, 30 * EARTH, True, 4, False, 2.0)
+    assert pa._clear_around_giants([still, far], SUN) == [still, far]      # a giant that did not move clears nothing
+    assert pa._clear_around_giants([still, near, far], SUN) == [still, far]      # but one that landed on a neighbour throws it out
+
+
+def test_two_giants_that_land_on_one_another_leave_the_heavier():
+    heavy = pa.Seed(1.57, 300 * EARTH, 30 * EARTH, True, 4, False, 4.0)
+    light = pa.Seed(1.59, 80 * EARTH, 20 * EARTH, True, 3, False, 6.0)
+    apart = pa.Seed(8.0, 80 * EARTH, 20 * EARTH, True, 3, False, 8.0)
+    assert pa._clear_around_giants([heavy, light, apart], SUN) == [heavy, apart]
+    assert pa._clear_around_giants([light, heavy, apart], SUN) == [heavy, apart]
 
 
 # --- the whole architecture ------------------------------------------------------------------------------------------------
@@ -178,12 +187,15 @@ def test_the_architecture_of_a_dim_disc_is_empty_and_of_a_massive_one_is_not():
     assert min(counts) == 0 and max(counts) >= 6
 
 
-def _sky(mass_solar, fe_h, n, seed):
+def _sky(mass_solar, fe_h, n, seed, spread=0.0):
+    """`n` stars of `mass_solar`; each has [Fe/H] `fe_h` plus a normal of width `spread` (the survey stars are a mix, and the hot Jupiters
+    go as a steep power of the metallicity, so their rate is that of the mix, not of its middle)."""
     draw.set_run_seed(seed)
+    metallicities = [fe_h + spread * draw.gauss(0.0, 1.0) for _ in range(n)]
     mass_kg = mass_solar * SUN
     luminosity_w = 3.828e26 * (mass_solar ** 4.0 if mass_solar > 0.43 else 0.23 * mass_solar ** 2.3)
     snow = formation.snow_line_au(luminosity_w)
-    return mass_kg, snow, [pa.build(mass_kg, snow, 10.0 ** fe_h, fe_h, min(18.0 * snow, 100.0)) for _ in range(n)]
+    return mass_kg, snow, [pa.build(mass_kg, snow, 10.0 ** z, z, min(18.0 * snow, 100.0)) for z in metallicities]
 
 
 def _radius_earth(mass_earth):
@@ -240,7 +252,7 @@ def test_cold_giants_of_a_sun_like_star_are_as_common_as_the_survey_finds_them()
 
 def test_hot_jupiters_are_rare_and_rarer_round_a_red_dwarf():
     def rate(mass_solar, n, seed):
-        _mass, _snow, sky = _sky(mass_solar, 0.0, n, seed)
+        _mass, _snow, sky = _sky(mass_solar, -0.03, n, seed, spread=0.2)
         return sum(1 for a in sky if any(s.migrated and s.distance_au < tuning.GIANT_HOT_ORBIT_AU for s in a.planets)) / len(sky)
 
     sun, red = rate(1.0, 6000, 404), rate(0.55, 6000, 405)

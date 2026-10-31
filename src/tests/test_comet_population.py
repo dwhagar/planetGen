@@ -236,3 +236,35 @@ def test_missing_parts_and_a_duplicated_or_misplaced_species_are_refused():
         broken(lambda d: d["species"].append(dict(copy.deepcopy(d["species"][0]), name="CO")))
     with pytest.raises(DataError, match="carbon_oxides must hold"):
         broken(lambda d: d["carbon_oxides"].pop("CO2"))
+
+
+# --- GEN.595: the median from the disc zone ---------------------------------------------------------------------
+
+def test_a_zone_sets_the_median_carbon_oxides_and_the_class_no_longer_does():
+    """A comet formed in a CO2-rich zone keeps CO2 over CO whatever its class, and one from a CO-rich zone the reverse; the scatter stays the population's."""
+    co2_zone = _sample("long_period", 3000, seed=4, ice_ratios=(0.33, 0.025))
+    co_zone = _sample("long_period", 3000, seed=4, ice_ratios=(0.025, 0.33))
+    assert statistics.median(v.percent["CO2"] for v in co2_zone) == pytest.approx(33.0, rel=0.15)
+    assert statistics.median(v.percent["CO"] for v in co2_zone) == pytest.approx(2.5, rel=0.2)
+    assert statistics.median(v.percent["CO"] for v in co_zone) == pytest.approx(33.0, rel=0.3)
+    assert statistics.median(v.percent["CO2"] for v in co_zone) == pytest.approx(2.5, rel=0.25)
+    by_class = [statistics.median(v.percent["CO"] for v in _sample(c, 2000, seed=5, ice_ratios=(0.33, 0.1))) for c in cp.PERIOD_CLASSES]
+    assert max(by_class) / min(by_class) < 1.2
+    spread = statistics.pstdev(math.log10(v.percent["CO2"] + v.percent["CO"]) for v in co2_zone)
+    assert spread == pytest.approx(cp.TOTAL_CARBON_OXIDE["sigma_dex"], rel=0.25)
+
+
+def test_the_bounds_move_with_the_zones_median_and_a_zone_beyond_the_observed_range_is_drawn():
+    """A Borisov-like zone (CO over water of 1.7) lies past the 30 percent the Solar System's comets reach; its draws stay as far from its median as the observed ones from theirs."""
+    sample = _sample("long_period", 2000, seed=6, ice_ratios=(0.33, 1.67))
+    co = [v.percent["CO"] for v in sample]
+    assert statistics.median(co) == pytest.approx(167.0, rel=0.3)
+    assert max(co) <= 167.0 * cp.CARBON_OXIDES["CO"].hi_percent / cp.CARBON_OXIDES["CO"].geo_mean_percent * 1.0001
+
+
+def test_a_star_with_no_carbon_freezes_no_carbon_oxide_and_no_ratios_keeps_the_population():
+    assert cp.draw_volatiles("long_period", ice_ratios=(0.0, 0.0)).percent["CO"] == 0.0
+    with draw.bound(8):
+        plain = cp.draw_volatiles("jupiter_family")
+    with draw.bound(8):
+        assert cp.draw_volatiles("jupiter_family", ice_ratios=None).percent == plain.percent

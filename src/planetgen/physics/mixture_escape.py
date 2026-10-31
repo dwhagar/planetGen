@@ -24,8 +24,10 @@ the pressure of what stays.
 
 import dataclasses
 
-from planetgen.physics import constants, thermosphere
+from planetgen.physics import constants, thermosphere, unit_registry as units
 from planetgen.physics.mixture_base import MIN_FRACTION, MixtureError
+
+_mearth_to_kg = units.converter("Mearth", "kg")
 
 FAMILIES = ("rocky", "venus", "mars", "abiotic-oxygen")
 """tuple: The families that are filtered. Not `titan` (its hydrogen trace is the steady state of photochemical production and escape,
@@ -51,7 +53,7 @@ def body_inputs(subject):
         raise MixtureError("the escape filter needs the quantities v_esc_kms and age_gy")
     if mass_earth is None:
         raise MixtureError("the escape filter needs the quantity mass_earth")
-    mass = mass_earth * constants.EARTH_MASS_TO_KG
+    mass = _mearth_to_kg(mass_earth)
     radius = subject.get("radius_km")
     radius_m = radius * 1e3 if radius else 2.0 * constants.G * mass / (v_esc * 1e3) ** 2
     pressure_bar = subject.get("pressure_bar")
@@ -83,7 +85,8 @@ def apply(subject, result):
     flux = thermosphere.xuv_flux_earth(subject)
     mass_sol, luminosity = subject.get("host_mass_solar"), subject.get("luminosity_solar")
     kept, exobase = thermosphere.kept_shares(result.mole_fractions, mass, radius, teq, pressure, age, flux, mass_sol,
-                                             luminosity * constants.SOLAR_LUMINOSITY if luminosity else None)
+                                             luminosity * constants.SOLAR_LUMINOSITY if luminosity else None,
+                                             magnetopause_rp=subject.get("magnetopause_rp"), log_lx_lbol=subject.get("log_lx_lbol"))
     left = {formula: fraction * kept[formula] for formula, fraction in result.mole_fractions.items() if kept[formula] >= LOST_BELOW}
     left = {formula: value for formula, value in left.items() if value > MIN_FRACTION}
     total = sum(left.values())

@@ -26,7 +26,7 @@ the life model no longer re-rolls the names and flavour text of every later body
 
 from planetgen import tuning
 from planetgen.generation import evolution
-from planetgen.physics import aerosols, atmosphere, biogenic_oxygen, body_colour, habitability_world, life_air, life_classes, life_complexity, life_supply, life_timeline, planet_classes, radiation
+from planetgen.physics import aerosols, atmosphere, biogenic_oxygen, body_colour, habitability_world, life_air, life_classes, life_complexity, life_supply, life_timeline, planet_classes, radiation, surface_liquid_world
 from planetgen.util import draw
 from planetgen.util import log
 
@@ -80,8 +80,12 @@ def _apply(planet, keep_stored):
         return
     _build_air(planet, row)
     final = life_classes.score_classes(planet)             # the conditions after the oxygen the life has made
+    if not (final.get(row.id) and final[row.id].score > 0):
+        # The life has used up what it lived on (the donor or hydrogen it drew down, the air it changed): the class that lives here is still one
+        # the world supports, at the score it was chosen at, so the stored classes always hold the one that lives (TEST.486).
+        final = {**final, row.id: chosen}
     _set_best(planet, final)
-    result = final[row.id] if final.get(row.id) and final[row.id].score > 0 else chosen
+    result = final[row.id]
     anoxic = _anoxic_animals(planet, row, keep_stored)
     complexity = life_complexity.assess(row, result.npp, atmosphere.partial_kpa(planet, "o2"), planet.surface_temperature, anoxic)
     _set_evolutionary_state(planet, evolution.get_evolutionary_state(
@@ -218,9 +222,11 @@ def _build_oxygen(planet, row):
 
 def _rebuild(planet):
     """What reads the air, made again after life has changed it: the cloud, haze and dust (on the body's own stream), the ozone and doses (on a
-    stream of the body's own, so the run's draws do not move), the colour of the atmosphere, the habitability score and the class (derived from the air as it is now, GEN.980)."""
+    stream of the body's own, so the run's draws do not move), the colour of the atmosphere, the surface liquid (a different temperature and pressure
+    leave a different liquid stable, GEN.1035), the habitability score and the class (derived from the air as it is now, GEN.980)."""
     from planetgen.physics import planets as physics_planets          # the heat flow the score reads; planets imports this chain
     aerosols.generate_aerosols(planet)
+    surface_liquid_world.generate(planet)
     with draw.bound(f"life-air:{planet.is_moon}:{planet.mass!r}:{planet.radius!r}:{planet.distance!r}"):
         radiation.generate_dose(planet)
     body_colour.generate(planet)

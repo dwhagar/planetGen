@@ -32,14 +32,19 @@ below `MAX_HEAVY_FRACTION` of the mass so every giant keeps an envelope.
 import bisect
 import math
 
-from planetgen.physics import constants, giant_radius_tables as tables
+from planetgen.physics import constants, giant_radius_tables as tables, unit_registry as units
 from planetgen.util import draw
+
+_kg_to_mearth = units.converter("kg", "Mearth")
+_kg_to_mjup = units.converter("kg", "Mjup")
+_mearth_to_kg = units.converter("Mearth", "kg")
+_mjup_to_kg = units.converter("Mjup", "kg")
 
 MASS_REACH = 1.35
 """float: How far past the heaviest tabulated mass (3,594 Earth masses) the last two columns are continued, as a
 factor; a brown dwarf at the deuterium limit is 1.2 times it."""
 
-MASSES_EARTH = tuple(m * constants.JUPITER_MASS_TO_KG / constants.EARTH_MASS_TO_KG for m in tables.MASSES_MJ)
+MASSES_EARTH = tuple(_kg_to_mearth(_mjup_to_kg(m)) for m in tables.MASSES_MJ)
 """tuple: The table's masses in Earth masses."""
 
 INFLATION_BINS = (
@@ -165,7 +170,7 @@ def radius_rj(mass_earth, core_mass_earth, flux_earth, age_gy):
 def inflation_rj(mass_earth, flux_w_m2):
     """The radius a hot giant gains, in Jupiter radii, from the population relation of Sestovic et al. 2018 (see the
     module text); 0 below 0.37 Jupiter masses and below the mass bin's threshold flux."""
-    mass_mj = mass_earth * constants.EARTH_MASS_TO_KG / constants.JUPITER_MASS_TO_KG
+    mass_mj = _kg_to_mjup(_mearth_to_kg(mass_earth))
     bin_ = None
     for row in INFLATION_BINS:
         if mass_mj >= row[0]:
@@ -209,4 +214,5 @@ def heavy_mass_earth(mass_earth, rng=draw):
         value = predicted * (1.0 + CHACHAN_SCATTER * rng.gauss(0.0, 1.0))
         if low <= value <= high:
             return value
+        draw.redrawn("giant.heavy_mass")
     return min(max(value, low), high)

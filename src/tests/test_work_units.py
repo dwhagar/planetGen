@@ -594,7 +594,8 @@ def test_a_unit_of_the_phenomena_scatter_runs_alone_from_its_json_arguments(mysq
     assert expansion.units == run_plan.expand_scatter_phenomena(json.loads(json.dumps(params))).units
     assert expansion.plan == json.loads(json.dumps(expansion.plan))
     shape = run_plan._PhenomenaShape.from_json(expansion.plan)
-    assert shape.to_json() == {key: value for key, value in expansion.plan.items() if key != "filled"} \
+    assert shape.to_json() == {key: value for key, value in expansion.plan.items()
+                                      if key not in ("filled", "outline_shells", "min_mass_solar")} \
         and len(shape.tasks) == len(expansion.units) > 1
     conn = store.get_connection(mysql_config)
     try:
@@ -720,7 +721,7 @@ def test_the_batch_fills_are_units_of_id_ranges_recorded_as_their_commands(mysql
         fill(args)
     conn = redisqueue.connect()
     kinds = [[step["kind"] for step in runrecord.read_steps(conn, run)] for run in runs]
-    assert kinds == [["fill-map-luminosity"], ["rescore-habitability"]]
+    assert kinds == [["fill-map-luminosity", "refresh-block-lights"], ["rescore-habitability"]]     # a luminosity fill changes the pre-placed objects: the block lights follow (PERF.172)
     stage = runrecord.read_run(conn, runs[0])["stages"][0]
     top = run_plan.expand_fill_map_luminosity(
         {"database": wrapper.database_args(mysql_config)}).plan["top"]

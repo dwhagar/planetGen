@@ -11,7 +11,7 @@ import pytest
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.phenomena.compact_remnant import BlackHole, NeutronStar
 from planetgen.generation.system import StarSystem
-from planetgen.physics import activity, constants, magnetism, orbit_elements
+from planetgen.physics import activity, constants, magnetism, orbit_elements, spin
 from planetgen.util import draw
 
 from tests.fuzz_support import deterministic_entropy
@@ -20,7 +20,7 @@ SUN = constants.SOLAR_LUMINOSITY
 
 
 def test_the_sun_today_matches_the_design_validation():
-    t_sat, decay = activity._interp(activity.ACTIVITY_TABLE, 1.0)
+    t_sat, decay = activity.saturation_age_gy(1.0), activity.decay_exponent(1.0)
     l_x = activity.lx_lbol_at(4.57, activity.saturated_lx_lbol(1.0), t_sat, decay) * SUN
     assert 1e27 <= l_x * activity.ERG_PER_J <= 2e27
     flux = activity.coronal_xuv_w(l_x) / (4 * math.pi * constants.AU_TO_M ** 2) / constants.EARTH_XUV_FLUX_W_M2
@@ -33,8 +33,8 @@ def test_saturation_falls_through_the_f_stars():
     assert activity.saturated_lx_lbol(0.5) == 7.4e-4
     assert activity.saturated_lx_lbol(1.4) == pytest.approx(5e-5)
     assert activity.saturated_lx_lbol(5.0) == pytest.approx(1e-7)
-    assert activity._interp(activity.ACTIVITY_TABLE, 0.1) == (4.0, 1.0)
-    assert activity._interp(activity.ACTIVITY_TABLE, 2.0) == (0.1, 2.0)
+    assert activity.decay_exponent(0.1) == 1.0 and activity.decay_exponent(2.0) == 1.45
+    assert activity.decay_exponent(0.7) == pytest.approx((1.8 + 1.45) / 2)
 
 
 def test_a_hot_photosphere_emits_its_own_xuv():
@@ -63,6 +63,95 @@ def test_m_dwarfs_stay_saturated_longer():
     assert sum(star.xuv_saturated for star in young_m) > 150
     assert sum(star.xuv_saturated for star in old_g) < 20
     assert all(1.8 <= star.flare_alpha <= 2.2 for star in young_m)
+
+
+def test_a_stars_saturation_age_is_the_one_its_rotation_percentile_gives():
+    """GEN.493: the age a star leaves saturation is `saturation_time` at the star's mass and its own uniformly drawn percentile."""
+    from planetgen.physics import saturation_time
+
+    assert activity.saturation_age_gy(0.3) == pytest.approx(saturation_time.saturation_time_myr(0.3, 50.0) / 1000.0)
+    assert activity.saturation_age_gy(0.3, 5.0) < activity.saturation_age_gy(0.3) < activity.saturation_age_gy(0.3, 95.0)
+    ages = []
+    for seed in range(400):
+        star = _star(1.0, 0.1)  # 100 Myr old: past the median saturation (23 Myr), inside the fast tail (297 Myr at the 95th percentile)
+        draw.set_run_seed(seed)
+        activity.generate_activity(star)
+        ages.append(star.xuv_saturated)
+    share = sum(ages) / len(ages)
+    # saturated at 100 Myr when the percentile is above where the curve crosses 100 Myr (about the 75th of the 2 to 98 draw)
+    assert 0.15 < share < 0.40
+
+
+def test_the_stream_after_a_stars_activity_draws_does_not_depend_on_its_mass():
+    """The percentile draw is made for every star, so a star's mass moves no later draw of the run."""
+    after = []
+    for mass in (0.15, 1.0, 3.0):
+        draw.set_run_seed(17)
+        activity.generate_activity(_star(mass, 2.0))
+        after.append(draw.uniform(0.0, 1.0))
+    assert after[0] == after[1] == after[2]
+
+
+def test_the_decay_exponents_hold_the_old_table_level_at_the_reference_age():
+    """AB1: with the median saturation age of Johnstone et al. 2021 the exponents give the `L_X/L_bol` at 5 Gyr the earlier table gave."""
+    earlier = {0.45: 4.43e-5, 0.6: 4.74e-6, 0.8: 6.66e-7, 1.0: 2.96e-7}
+    for mass, ratio in earlier.items():
+        now = activity.lx_lbol_at(5.0, activity.saturated_lx_lbol(mass), activity.saturation_age_gy(mass), activity.decay_exponent(mass))
+        assert now == pytest.approx(ratio, rel=0.08), mass
+    assert 1.35 <= activity.decay_exponent(1.0) <= 1.5  # the Skumanich band
+
+
+def _spinning(mass_sol, age_gy, temperature, period_over_nominal):
+    star = _star(mass_sol, age_gy, "V", temperature)
+    nominal = spin.nominal_rotation_period_hours(star.mass, temperature, age_gy)
+    star.rotation_period_hours = nominal * period_over_nominal
+    return star
+
+
+def test_a_fast_rotator_is_more_active_and_flares_more_than_a_slow_one_of_the_same_mass_and_age():
+    """GEN.807: the same draws, a sun-like star at 3 Gyr that spins in half its nominal period and one that spins in twice it."""
+    made = {}
+    for name, ratio in (("fast", 0.5), ("nominal", 1.0), ("slow", 2.0)):
+        draw.set_run_seed(807)
+        star = _spinning(1.0, 3.0, 5772.0, ratio)
+        activity.generate_activity(star)
+        made[name] = star
+    assert made["fast"].l_xuv_w > made["nominal"].l_xuv_w > made["slow"].l_xuv_w
+    assert made["fast"].flare_n33_per_yr > made["nominal"].flare_n33_per_yr > made["slow"].flare_n33_per_yr
+    assert made["fast"].xuv_fluence_j > made["slow"].xuv_fluence_j
+    # the unsaturated law: L_X/L_bol goes as the spin's -2.7 power (at b = 2 a half-period star is 2^2.7 times as active as it would be at the
+    # same saturation age, but the decay is (t / t_sat)^-b, so the ratio between stars is (nominal period / period)^2.7 while both are unsaturated)
+    ratio = 10 ** (made["fast"].log_lx_lbol - made["nominal"].log_lx_lbol)
+    assert ratio == pytest.approx(2.0 ** activity.ROTATION_SLOPE, rel=0.02)
+    # the flare rate follows the activity
+    assert made["fast"].flare_n33_per_yr / made["nominal"].flare_n33_per_yr == pytest.approx(ratio, rel=0.02)
+
+
+def test_a_fast_rotator_stays_saturated_longer_and_a_slow_one_leaves_saturation_sooner():
+    saturated = {"fast": 0, "slow": 0}
+    for seed in range(60):
+        for name, ratio in (("fast", 0.3), ("slow", 3.0)):
+            draw.set_run_seed(900 + seed)
+            star = _spinning(1.0, 0.3, 5772.0, ratio)
+            activity.generate_activity(star)
+            saturated[name] += bool(star.xuv_saturated)
+    # the saturation age is also drawn from the initial-rotation percentile (GEN.493), so the fast rotator is saturated at 0.3 Gyr in a share of the draws, not in all of them
+    assert saturated["fast"] > 15 > saturated["slow"] + 10, saturated
+
+
+def test_a_star_without_a_spin_or_with_a_law_that_does_not_cover_it_keeps_the_table():
+    plain, hot = _star(1.0, 3.0, "V", 5772.0), _star(1.6, 1.0, "V", 8000.0)
+    hot.rotation_period_hours = 20.0
+    draw.set_run_seed(810)
+    activity.generate_activity(plain)
+    draw.set_run_seed(810)
+    spun = _spinning(1.0, 3.0, 5772.0, 1.0)
+    activity.generate_activity(spun)
+    assert spun.log_lx_lbol == pytest.approx(plain.log_lx_lbol) and spun.flare_n33_per_yr == pytest.approx(plain.flare_n33_per_yr)
+    draw.set_run_seed(811)
+    activity.generate_activity(hot)
+    assert hot.log_lx_lbol < -5.0
+    assert activity.rotation_saturation_scale(None, 10.0, 2.0) == 1.0 and activity.rotation_saturation_scale(100.0, 0.0, 2.0) == 1.0
 
 
 def test_white_dwarfs_and_giants_do_not_flare():
@@ -267,13 +356,14 @@ def test_generated_bodies_store_their_field_and_exposure():
 
 
 def test_a_generated_moon_has_an_induced_field_figure_and_a_planet_has_none():
-    """GEN.178: `generate_moons` sets the induced moment (0 without an ocean) on each moon; a planet keeps None."""
+    """GEN.178: `generate_moons` sets the induced moment (0 without an ocean) on each moon; a planet keeps None. GEN.959: the tide pulls the moons
+    of a planet locked to its star in, so the seeds that give moons are the ones with a planet that turns freely (seeds 6, 10 and 11 of the first twelve)."""
     from planetgen.generation.config import SystemConfig
     from planetgen.generation.system import StarSystem
     from tests.fuzz_support import deterministic_entropy
 
     moons = 0
-    for seed in range(6):
+    for seed in range(16):
         with deterministic_entropy(seed):
             draw.set_run_seed(seed)
             system = StarSystem(SystemConfig(), galactic_center_dist_ly=26000.0)

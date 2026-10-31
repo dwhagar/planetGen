@@ -96,6 +96,7 @@ class AsteroidField(SmallBody):
             -- the same three levels `AsteroidBelt.density` uses).
         composition (list): A list of (component, concentration) tuples,
             generated the same way `AsteroidBelt.composition` is (the words of `makeup`).
+        chondrite_group (str): The nearest meteorite group of the mean composition (`small_body_composition.chondrite_group`, GEN.475), `none` far from every group.
         makeup (SmallBodyMakeup or None): The drawn composition (GEN.477); None for a field read from a store without it.
         radius_ly (float): The field's approximate radius, in light-years
             (`tuning.ASTEROID_FIELD_RADIUS_RANGE_LY`).
@@ -113,7 +114,7 @@ class AsteroidField(SmallBody):
 
     FIELD_UNITS = {
         "name": "text", "field_class": "text", "composition_family": "text", "density": "text", "radius_ly": "ly",
-        **GALACTIC_MOTION_UNITS,
+        "chondrite_group": "text", **GALACTIC_MOTION_UNITS,
     }
     SERIALIZABLE_FIELDS = list(FIELD_UNITS)
     """Every attribute set by `__init__`, with its native unit (GEN.570), excluding `system_config` (a
@@ -142,6 +143,7 @@ class AsteroidField(SmallBody):
                    "gated draw of the asteroid-field-family table (weights are the stand-in frequencies)")
         self.makeup = small_body_composition.draw_field(self.composition_family)
         self.composition = small_body_composition.describe(self.makeup)
+        self.chondrite_group = self.makeup.detail["group"]
         self.radius_ly = draw.uniform(*tuning.ASTEROID_FIELD_RADIUS_RANGE_LY)
         self.field_class = asteroid_field_class(self.composition_family, self.density, self.radius_ly)
 

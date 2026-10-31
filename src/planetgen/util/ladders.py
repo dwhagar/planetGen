@@ -30,6 +30,11 @@ from typing import Optional, Tuple
 
 from planetgen.physics import constants as physical_constants
 from planetgen.physics import unit_registry
+from planetgen.physics import unit_registry as units
+
+_mearth_to_kg = units.converter("Mearth", "kg")
+_mjup_to_kg = units.converter("Mjup", "kg")
+_msun_to_kg = units.converter("Msun", "kg")
 
 TINY_NUMBER = 1e-3
 """float: A number below this in the unit shown is written as scientific
@@ -381,9 +386,9 @@ MASS = Ladder(
         rung("kg", start=0.0, systems=(AUTOMATIC, METRIC)),
         rung("lb", start=0.0, systems=(CUSTOMARY,)),
         rung("Mmoon", symbol="lunar masses", singular="lunar mass", start=0.01 * physical_constants.MOON_MASS_KG, systems=(AUTOMATIC,)),
-        rung("Mearth", symbol="Earth masses", singular="Earth mass", start=0.1 * physical_constants.EARTH_MASS_TO_KG, systems=(AUTOMATIC,)),
-        rung("Mjup", symbol="Jupiter masses", singular="Jupiter mass", start=0.1 * physical_constants.JUPITER_MASS_TO_KG, systems=(AUTOMATIC,)),
-        rung("Msun", symbol="solar masses", singular="solar mass", start=0.075 * physical_constants.SOLAR_MASS_TO_KG, systems=(AUTOMATIC,)),
+        rung("Mearth", symbol="Earth masses", singular="Earth mass", start=_mearth_to_kg(0.1), systems=(AUTOMATIC,)),
+        rung("Mjup", symbol="Jupiter masses", singular="Jupiter mass", start=_mjup_to_kg(0.1), systems=(AUTOMATIC,)),
+        rung("Msun", symbol="solar masses", singular="solar mass", start=_msun_to_kg(0.075), systems=(AUTOMATIC,)),
     ),
 )
 

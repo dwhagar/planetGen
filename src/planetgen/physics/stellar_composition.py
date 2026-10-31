@@ -55,7 +55,7 @@ import re
 from dataclasses import dataclass, field
 
 from planetgen import tuning
-from planetgen.datasets import fetch, isochrones, neutron_star_matter, white_dwarf_models
+from planetgen.datasets import baraffe_isochrones, fetch, isochrones, neutron_star_matter, white_dwarf_models
 from planetgen.physics import constants, elements, main_sequence, wolf_rayet
 from planetgen.physics import stellar_abundances as sa
 from planetgen.util import draw
@@ -291,6 +291,22 @@ def _neutron_star_crust(draws):
             "radius_band_km": tuning.STELLAR_NS_RADIUS_BAND_KM}
 
 
+def _grid_radius_solar(mass_sol, teff_k, envelope):
+    """
+    A white dwarf's radius from the cooling sequences, solar radii. The initial-final mass relation reaches 1.33 solar masses and the
+    sequences stop at `white_dwarf_models.CRYSTAL_MASS_SOL` (1.30): a heavier star reads the 1.30 sequence at its temperature, scaled by the
+    zero-temperature mass-radius relation's ratio of the two masses (the shrinking toward the Chandrasekhar mass).
+    """
+    top = white_dwarf_models.CRYSTAL_MASS_SOL
+    if mass_sol <= top:
+        return white_dwarf_models.radius_solar(mass_sol, teff_k, envelope)
+    try:
+        return (white_dwarf_models.radius_solar(top, teff_k, envelope)
+                * sa.white_dwarf_radius_solar(mass_sol) / sa.white_dwarf_radius_solar(top))
+    except sa.StellarAbundanceError:
+        return None  # heavier than any white dwarf the relation makes
+
+
 def star_makeup(kind, fe_h, age_gy, mass_sol, key, wolf_rayet_subtype=None, spin=0.0, teff_k=None):
     """
     The composition of a star or remnant.
@@ -360,11 +376,15 @@ def star_makeup(kind, fe_h, age_gy, mass_sol, key, wolf_rayet_subtype=None, spin
             mass_jupiter=mass_jupiter, deuterium_limit_mj=deuterium, burned_deuterium=mass_jupiter > deuterium,
             burned_lithium=mass_sol > sa.lithium_burning_limit_sol(),
             burns_hydrogen=mass_sol > sa.hydrogen_burning_limit_sol(birth.z))
-        try:
-            detail["radius_solar_at_1_gy"] = sa.brown_dwarf_radius_solar(mass_sol)
-        except sa.StellarAbundanceError:
-            detail["radius_solar_at_1_gy"] = None
-        open_items = ("radius at other ages and metallicities", "the hydrogen limit against metallicity")
+        if fetch.locate(baraffe_isochrones.DATASET).use_stand_in("no brown dwarf radius"):
+            detail["radius_solar"] = None
+            open_items = (f"the Baraffe table is missing: {baraffe_isochrones.DATASET.fallback}", "radius at other metallicities")
+        else:
+            try:
+                detail["radius_solar"] = sa.brown_dwarf_radius_solar(mass_sol, age_gy)
+            except sa.StellarAbundanceError:
+                detail["radius_solar"] = None
+            open_items = ("radius at other metallicities",)
     elif kind == WHITE_DWARF:
         if teff_k is None:
             raise StarMakeupError("a white dwarf needs its effective temperature")
@@ -381,7 +401,7 @@ def star_makeup(kind, fe_h, age_gy, mass_sol, key, wolf_rayet_subtype=None, spin
             detail["layers"] = None
             open_items = (f"the white-dwarf sequences are missing: {white_dwarf_models.DATASET.fallback}",)
         else:
-            detail["radius_solar"] = white_dwarf_models.radius_solar(mass_sol, teff_k, envelope)
+            detail["radius_solar"] = _grid_radius_solar(mass_sol, teff_k, envelope)
             detail["layers"] = (white_dwarf_models.layer_mass_fractions(mass_sol, envelope)
                                 if detail["core"] == "carbon-oxygen" else None)
             open_items = ("the carbon-to-oxygen split of the core (the sequences assume an even one)",

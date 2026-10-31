@@ -50,8 +50,10 @@ import math
 from dataclasses import dataclass, field
 
 from planetgen.generation import possibility_table as pt
-from planetgen.physics import constants
+from planetgen.physics import constants, unit_registry as units
 from planetgen.util import draw
+
+_mearth_to_kg = units.converter("Mearth", "kg")
 
 # ---------------------------------------------------------------------------------------------------------------------
 # What is known and what is a placeholder. Every entry names its source state (docs/design/composition/giant-interiors.md section 7).
@@ -635,7 +637,7 @@ def draw_interior(subject):
 
 def _gas_giant(subject):
     mass = subject.mass_earth
-    mass_kg = mass * constants.EARTH_MASS_TO_KG
+    mass_kg = _mearth_to_kg(mass)
     profile = Polytrope(1.0, mass_kg, subject.radius_km * 1e3)
     p_mm_gpa = _log_uniform(*METALLIZATION_PRESSURE_RANGE_GPA)
     ratio_mm = profile.at_pressure(p_mm_gpa * 1e9)[1]  # mass inside the P_MM level
@@ -947,7 +949,7 @@ def _ice_giant(subject):
 
 def _brown_dwarf(subject):
     mass = subject.mass_earth
-    mass_kg = mass * constants.EARTH_MASS_TO_KG
+    mass_kg = _mearth_to_kg(mass)
     profile = Polytrope(1.5, mass_kg, subject.radius_km * 1e3)
     p_mm_gpa = _log_uniform(*METALLIZATION_PRESSURE_RANGE_GPA)
     ratio_mm = profile.at_pressure(p_mm_gpa * 1e9)[1]

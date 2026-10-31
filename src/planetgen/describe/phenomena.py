@@ -180,6 +180,7 @@ def _asteroid_field(field):
         fact("density", "Density", field.density),
         fact("family", "Family", f"{field.composition_family.capitalize()} ({family})"),
         fact("radius", "Radius", _ly(field.radius_ly)),
+        build.meteorite_group_fact(field),
         _orbit_fact(field),
     ]
     parts = [{"name": component, "level": level} for component, level in field.composition]

@@ -39,6 +39,8 @@ Fields (all optional but `v`, `kind`, `body`, `seed`):
     axis        the unit spin axis [x, y, z] in the system's frame, right-handed (a retrograde body's points against its
                 orbit's normal)
     tiltDeg     axial tilt, 0 to 180 degrees (past 90 the body turns backwards)
+    locked      true when the body is tidally locked (its rotation period is its orbital period, UX.244); the views then keep
+                its day side toward what it orbits, and the object page says it is locked
 
 The colour tables are stand-ins for hue only (the gap plan registry lists them): the colours are picked to read as
 the thing they are, and they are deliberately not photographs of any one world.
@@ -49,7 +51,7 @@ import json
 import math
 from types import SimpleNamespace
 
-from planetgen.physics import atmosphere, atmosphere_colour, giant_colour, photometry
+from planetgen.physics import atmosphere, atmosphere_colour, giant_colour, photometry, regional_temperature, stellar_library
 from planetgen.web.maps.starmap import star_color
 from planetgen.physics import unit_registry as units
 
@@ -155,6 +157,8 @@ def _put_spin(look, row):
         if length > 0:
             look["axis"] = [round(v / length, 4) for v in axis]
     _put(look, "tiltDeg", _rounded(row.get("axial_tilt_deg"), 2))
+    if regional_temperature.is_locked(period, row.get("period_years")):
+        look["locked"] = True
 
 
 def planet_look(planet, kind="planet"):
@@ -192,12 +196,14 @@ def planet_look(planet, kind="planet"):
 
 
 def star_surface_color(star):
-    """The colour of a star's disc: the blackbody-based `photometry.star_colour` of its effective temperature (the
-    same function the sky colour assumes for the star, so the two agree), else the spectral-letter colour."""
+    """The colour of a star's disc: that of its model atmosphere (`stellar_library.star_colour`, GEN.971: the spectrum the sky colour
+    assumes for the star, so the two agree) at its effective temperature and surface gravity, else the spectral-letter colour."""
     temperature_k = star.get("temperature_k")
     if temperature_k and temperature_k > 0:
+        mass_kg, radius_km = star.get("mass_kg"), star.get("radius_km")
+        logg = stellar_library.surface_logg(mass_kg, radius_km) if mass_kg and radius_km else stellar_library.DEFAULT_LOGG
         try:
-            return photometry.star_colour(float(temperature_k)).hex
+            return stellar_library.star_colour(float(temperature_k), logg).hex
         except ValueError:
             pass
     return star_color(star["star_type"], temperature_k, star["luminosity_w"])[0]
@@ -228,9 +234,16 @@ def look_json(look):
 
 def look_note(look):
     """The info panel's line about how the picture was worked out (UX.158 replaces it with the full account)."""
+    notes = []
     if look.get("quality") == "estimate":
-        return "Estimate from temperature and stored water fractions; not yet from composition"
-    return None
+        notes.append("Estimate from temperature and stored water fractions; not yet from composition")
+    if look.get("locked") and look.get("body") != "star":
+        notes.append("Tidally locked: its day side stays toward " + ("its planet" if look.get("kind") == "moon" else "its star"))
+    elif look.get("spinH") and look.get("body") == "solid":
+        notes.append("Seen from the side of its orbit, with the day and night line down the middle, turning much faster than its real rotation")
+    elif look.get("spinH"):
+        notes.append("Turning much faster than its real rotation")
+    return "; ".join(notes) or None
 
 
 # --- Phenomena (MAP.278) ----------------------------------------------------

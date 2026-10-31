@@ -15,7 +15,7 @@ from planetgen.generation import plausibility
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.planet import Planet
 from planetgen.generation.star import Star
-from planetgen.physics import climate_draws, constants, orbit_elements
+from planetgen.physics import climate_draws, constants, giant_draw, greenhouse, orbit_elements, surface_air
 from planetgen.util import draw
 
 TOLERANCE = 1e-9
@@ -64,6 +64,18 @@ def test_nothing_is_colder_than_the_background():
     assert climate_draws.surface_temperature_k(0.3, 5.0, 1e-30) == constants.COSMIC_BACKGROUND_TEMPERATURE_K
 
 
+def _temperature_of_draws(planet, flux):
+    """What the stored albedo and greenhouse quantity give: the starlight alone for a body with a surface, and for a giant its own heat flux
+    radiated with it (GEN.816, `surface_air.Setting.radiated_flux_w_m2`); the air solve stops at `surface_air.MAX_SURFACE_TEMPERATURE_K`."""
+    if planet.body_type != "g":
+        formula = climate_draws.surface_temperature_k(planet.bond_albedo, planet.greenhouse_factor, flux)
+    else:
+        radiated = greenhouse.absorbed_flux_w_m2(flux, planet.bond_albedo) + giant_draw.own_flux_w_m2(planet)
+        formula = max(constants.COSMIC_BACKGROUND_TEMPERATURE_K,
+                      (radiated * (1.0 + planet.greenhouse_factor) / constants.STEFAN_BOLTZMANN_CONSTANT) ** 0.25)
+    return min(formula, surface_air.MAX_SURFACE_TEMPERATURE_K)
+
+
 @pytest.mark.parametrize("zone", ["h", "e", "c"])
 def test_every_body_stores_the_draws_its_temperature_is_made_of(host_star, zone):
     for seed in range(5):
@@ -74,12 +86,11 @@ def test_every_body_stores_the_draws_its_temperature_is_made_of(host_star, zone)
         assert planet.albedo_basis == climate_draws.BASIS_GENERATED
         assert planet.bond_albedo is not None and 0.0 <= planet.bond_albedo < 1.0
         assert planet.greenhouse_factor is not None and planet.greenhouse_factor >= 0.0
-        assert planet.surface_temperature == pytest.approx(
-            climate_draws.surface_temperature_k(planet.bond_albedo, planet.greenhouse_factor, flux), rel=TOLERANCE)
+        assert planet.surface_temperature == pytest.approx(_temperature_of_draws(planet, flux), rel=TOLERANCE)
         if planet.atmosphere == "None":
             assert planet.greenhouse_factor == 0.0
         if planet.body_type == "t":
-            low, high = climate_draws.albedo_range(planet.body_type, planet.water_mass_fraction, flux)
+            low, high = climate_draws.albedo_range(planet.body_type, planet.water_mass_fraction, flux, getattr(planet.star, "temperature", None))
             assert low <= planet.bond_albedo <= high
 
 

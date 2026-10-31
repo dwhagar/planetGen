@@ -339,9 +339,11 @@ def test_the_urey_ratio_of_a_bulk_silicate_earth_body_of_any_size_sits_between_t
 
 def test_a_generated_body_has_a_urey_ratio_above_one_only_while_its_mantle_is_still_warming():
     """A mantle that is warming loses less than it makes, so the ratio passes 1 only then (a moon of 0.0008 Earth masses at 3 Gy gives
-    1.25), and a body past 8 Gy has settled. Over the sampled systems every body of a host past 2 Gy lies between 0.2 and 2."""
+    1.25), and a body past 8 Gy has settled. Over the sampled systems every body over 5e22 kg of a host past 2 Gy lies between 0.2 and 10 (a small moon whose drawn
+    viscosity is near the top of the range, 3e13 Pa s and 299 kJ/mol, is still heating up at 4.7 Gy and gives 7.8, with or without its tide). A small body
+    (GEN.476: most stars are born with little aluminium-26, so a small body never had the early heat) can still be warming at any age: its ratio is only positive and finite."""
     seen = 0
-    for seed in range(6):
+    for seed in range(12):
         with deterministic_entropy(seed):
             draw.set_run_seed(seed)
             system = StarSystem(SystemConfig(), galactic_center_dist_ly=26000.0)
@@ -349,8 +351,11 @@ def test_a_generated_body_has_a_urey_ratio_above_one_only_while_its_mantle_is_st
             for body in [planet, *getattr(planet, "moons", [])]:
                 if body.body_type in ("a", "g") or not body.internal_heat_flux_w_m2 or body.star.age < 2.0:
                     continue
+                if body.mass < 5.0e22:
+                    assert 0.0 < body.urey_ratio < float("inf")
+                    continue
                 seen += 1
-                assert 0.2 <= body.urey_ratio <= 2.0
+                assert 0.2 <= body.urey_ratio <= 10.0
                 if body.star.age >= 8.0:
                     assert body.urey_ratio <= 1.0 + 1e-6
     assert seen > 10
@@ -398,11 +403,14 @@ def test_a_surface_exactly_at_the_liquidus_is_that_body_too():
 
 
 def test_a_molten_body_under_a_hot_surface_is_flexed_as_a_molten_one():
+    """A magma ocean has the fluid Love number and almost no loss (GEN.955): the tide it feels is the rheology's at its surface's temperature."""
     from planetgen.physics import tidal_heating
     forcing = tidal_heating.Forcing(1.9e27, 4.2e8, 0.05)
-    found = _earth_under(EARTH_CEILING_K + 300.0, ih.STAGNANT, forcing)
-    dry_m = ih.dry_radius_km(EARTH, 6371.0, EARTH_ROCK) * 1000.0
-    assert found.tidal_w == pytest.approx(tidal_heating.molten_power_w(forcing, dry_m)) and found.tidal_w > 0.0
+    surface_k = EARTH_CEILING_K + 300.0
+    found = _earth_under(surface_k, ih.STAGNANT, forcing)
+    mantle = ih.mantle_of(EARTH, 6371.0, EARTH_ROCK)
+    assert found.tidal_w == pytest.approx(ih._tide_w(forcing, mantle, surface_k, MID)) and found.tidal_w > 0.0
+    assert found.tidal_w < 1.0e-2 * tidal_heating.peale_power_w(1.5, forcing, mantle.dry_m)
     assert found.total_w == pytest.approx(found.radiogenic_w + found.tidal_w) and found.primordial_w == 0.0
 
 

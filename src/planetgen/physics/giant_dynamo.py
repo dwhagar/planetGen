@@ -25,7 +25,9 @@ Every number that is not a published value is a stand-in in the gap registry (do
 import math
 from dataclasses import dataclass
 
-from planetgen.physics import constants, dynamo
+from planetgen.physics import dynamo, unit_registry as units
+
+_mearth_to_kg = units.converter("Mearth", "kg")
 
 CONVECTING_LAYER = {"gas_giant": "metallic_envelope", "brown_dwarf": "metallic_envelope", "ice_giant": "ice_mantle"}
 """dict: The layer that carries the dynamo of each kind of interior (`giant_interior.INTERIOR_KINDS`)."""
@@ -75,7 +77,7 @@ def region_of(interior, radius_m):
     top, bottom = layer.top_radius_fraction, layer.bottom_radius_fraction
     if (top == 1.0 and bottom == 0.0) or not 0.0 <= bottom < top <= 1.0:
         return None  # the radii it is born with: no structure has placed it yet
-    return Region(layer.kind, top * radius_m, bottom * radius_m, layer.mass_earth * constants.EARTH_MASS_TO_KG)
+    return Region(layer.kind, top * radius_m, bottom * radius_m, _mearth_to_kg(layer.mass_earth))
 
 
 @dataclass(frozen=True)
