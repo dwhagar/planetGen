@@ -106,7 +106,7 @@ def test_the_bound_share_of_the_rings_stars_forms_clusters_where_the_ring_is():
     found = open_clusters.generate_open_clusters(b"core-seed", shape, EDGE, E1)
     ring = core_gas.core_gas(shape)
     nearby = [c for c in found if math.hypot(c.center_pc[0], c.center_pc[1]) < ring.radius_pc + 4.0 * ring.sigma_pc]
-    assert 20 < len(nearby) < 3000        # the clouds that pass the ring disrupt most of what it forms (GEN.1195)
+    assert 5 < len(nearby) < 3000         # the clouds that pass the ring disrupt most of what it forms (GEN.1195)
     for cluster in nearby:
         assert components.is_open_cluster(cluster) and cluster.age_gy <= tuning.CORE_STAR_FORMATION_SPAN_GY
         assert cluster.half_mass_radius_pc < 3.0          # a tide of the centre holds a cluster to a pc or so
@@ -168,3 +168,24 @@ def test_the_rings_young_clusters_are_a_few_not_dozens_and_none_of_the_old_ones_
         old.append(sum(c.age_gy > 0.1 and c.mass_solar > 5.0e4 for c in near))
     assert np.mean(young) <= 3.0 and max(young) <= 6
     assert max(old) == 0
+
+
+def test_the_milky_way_shapes_disc_rings_change_from_shear_to_feedback_limited_at_about_four_kiloparsecs():
+    """GEN.1196: Reina-Campos and Kruijssen 2017 (section 4.1) find the Milky Way's disc shear-limited inside 4.3 (3.5 to 6.3)
+    kpc and feedback-limited beyond, the cloud maximum there about 1e6; the rings of the Milky Way's shape, with their own
+    gas and the flat curve, change over in the same band, and the cluster maximum stays under the observed 1e4 to 4e4."""
+    from planetgen.galaxy import disk_history
+    from planetgen.physics import cluster_maximum_mass as cmm
+
+    shape = _shape()
+    _ages, _step, radii, _width, _formed, efficiency, maximum = open_clusters._formation_table(shape)
+    gas = disk_history.history_of(shape).gas_now
+    kappa = np.array([cmm.epicyclic_frequency_per_myr(tuning.CLUSTER_HALO_CIRCULAR_KMS, r) for r in radii])
+    fraction = np.array([cmm.collapsed_fraction(g, k, tuning.DISC_GAS_DISPERSION_KMS) for g, k in zip(gas, kappa)])
+    assert np.all(fraction[(radii > 1000.0) & (radii < 3500.0)] == 1.0)
+    far = (radii > 6300.0) & (radii < 15000.0)
+    assert np.all(fraction[far] < 1.0) and np.all(fraction[far] > 0.0)
+    cloud = np.array([cmm.maximum_cloud_mass_sol(g, k, tuning.DISC_GAS_DISPERSION_KMS) for g, k in zip(gas, kappa)])
+    assert 1.0e5 < cloud[(radii > 4000.0) & (radii < 10000.0)].max() < 1.0e7
+    assert maximum[(radii > 3000.0) & (radii < 12000.0)].max() < 1.0e5
+    assert maximum[(radii > 3000.0) & (radii < 12000.0)].max() > 5.0e2

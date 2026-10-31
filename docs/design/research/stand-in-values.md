@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 931 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 932 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -41,11 +41,11 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T3 | 76 | 35 | 6 | 10 | 0 | 127 |
 | T4 | 37 | 5 | 0 | 14 | 10 | 66 |
 | T5 | 43 | 17 | 0 | 1 | 0 | 61 |
-| T6 | 87 | 62 | 16 | 41 | 0 | 206 |
+| T6 | 87 | 63 | 16 | 41 | 0 | 207 |
 | T7 | 27 | 8 | 8 | 8 | 0 | 51 |
 | T8 | 0 | 1 | 1 | 5 | 1 | 8 |
 | T9 | 17 | 14 | 4 | 42 | 19 | 96 |
-| All | 541 | 194 | 43 | 123 | 30 | 931 |
+| All | 541 | 195 | 43 | 123 | 30 | 932 |
 
 ## How the labels were given
 
@@ -1535,6 +1535,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | CMX5 | D | T1 | L0 | tuning.CLUSTER_SHOCK_GIELES_COEFFICIENT_GYR 2.0, CLUSTER_SHOCK_GIELES_NUMERATOR 5.1, CLUSTER_SHOCK_REFERENCE_MASS_SOL 1e4, CLUSTER_SHOCK_REFERENCE_RADIUS_PC 3.75: disruption by cloud encounters t_dis = 2.0 S (M / 1e4) (3.75 pc / r_h)^3 Gyr with S = 5.1 / (Sigma_n rho_n); the loss rate M / t_dis is the same for every mass | the coefficient from the paper's simulations | clusters among clouds, mass loss integrated along the cluster's growing half-mass radius | an N-body cluster among a cloud field whose disruption time is outside a factor of 2 | the encounter rate and energy gain of the ring's own cloud field | Gieles et al. 2006 Eq 24 (READ) | - | - |
 | CMX6 | P | T2 | L1 | tuning.CORE_RING_CLOUD_SURFACE_DENSITY_MSUN_PC2 5e3 and CORE_RING_CLOUD_DENSITY_MSUN_PC3 150: the clouds of the central ring, the Brick as the template cloud and the ring's mean molecular density (5.7 Myr for a cluster of 1e4 solar masses and r_h 0.5 pc), the same for every galaxy | density 17 (the ring's own, a factor of nine lower: 1 to 3 young clusters over 5e3 either way); strength 0.03 to 1 | central rings | a measured disruption time of ring clusters outside 3 to 20 Myr for 1e4 solar masses | the ring's cloud surface density and density from the generated gas | Kruijssen et al. 2014 (READ); they call it an upper limit of the disruptive potential | - | - |
 | CMX7 | P | T2 | L1 | tuning.CORE_RING_GAS_DISPERSION_KMS 5.0 and DISC_GAS_DISPERSION_KMS 10.0: the one-dimensional velocity dispersion of the gas, which sets Q = kappa sigma / (pi G Sigma_g) and so the feedback time | ring 3 to 10 km/s; disc 7 to 15 km/s | rings and discs of every galaxy (one galaxy's values) | a measured gas dispersion of a ring or disc far from them | the dispersion from the gas's own turbulence and feedback balance | Henshaw et al. 2016 for the CMZ and Heiles and Troland 2003 for the disc, as Reina-Campos and Kruijssen 2017 take them (section 4.1, READ) | - | - |
+| CMX8 | D | T6 | L1 | open_clusters._disk_maximum_masses: each disc ring reads its gas from the last Gy of the one-zone history (disk_history.gas_now, 4.3 solar masses per pc2 at 8 kpc for the Milky Way shape against the measured 13), the flat rotation curve (tuning.CLUSTER_HALO_CIRCULAR_KMS 220) for kappa, the cell's cluster formation efficiency as the bound share and the gas dispersion of CMX7; the cap holds each cell's initial masses and sets its count | gas a factor of 3 (the cloud maximum a factor 5 to 30, the cluster maximum a factor of 3 to 30); the flat curve | spiral discs with a Kennicutt-Schmidt history | the heaviest generated cluster at 4 to 10 kpc far from the observed 1e4 to 4e4 (it is 1e3 to 4e3 for the Milky Way shape, a third of a dex to a dex under) | the disc's gas from a measured radial profile or a better history; kappa from the mass model's rotation curve | Reina-Campos and Kruijssen 2017 section 4.1 (READ): the Milky Way shear-limited inside 4.3 (3.5 to 6.3) kpc, feedback-limited beyond with a cloud maximum near 1e6 | - | - |
 
 ## 6.95 Stand-ins of the belt sources
 

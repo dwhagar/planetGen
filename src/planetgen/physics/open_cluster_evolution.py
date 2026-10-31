@@ -42,32 +42,33 @@ def cluster_formation_efficiency(sigma_sfr_msun_yr_kpc2):
 
 def mean_initial_mass_sol(high_mass_sol=None):
     """The mean initial mass of a cluster, solar masses, for the power-law mass function between
-    `tuning.OPEN_CLUSTER_MASS_RANGE_SOL` (its high end held under `high_mass_sol`, a ring's maximum cluster mass,
-    `physics.cluster_maximum_mass`): how many clusters a mass of bound star formation makes."""
+    `tuning.OPEN_CLUSTER_MASS_RANGE_SOL` (its high end held under `high_mass_sol`, a maximum cluster mass,
+    `physics.cluster_maximum_mass`; an array gives an array): how many clusters a mass of bound star formation makes."""
     low, high = _mass_range(high_mass_sol)
     slope = tuning.OPEN_CLUSTER_MASS_FUNCTION_SLOPE
     if abs(slope - 2.0) < 1.0e-12:
-        return math.log(high / low) / (1.0 / low - 1.0 / high)
+        return np.log(high / low) / (1.0 / low - 1.0 / high)
     one = 1.0 - slope
     two = 2.0 - slope
     return ((high ** two - low ** two) / two) / ((high ** one - low ** one) / one)
 
 
-def _mass_range(high_mass_sol):
-    """`tuning.OPEN_CLUSTER_MASS_RANGE_SOL` with its high end held under `high_mass_sol` (and over its low end)."""
+def _mass_range(high_mass_sol, low_mass_sol=None):
+    """`tuning.OPEN_CLUSTER_MASS_RANGE_SOL` with its high end held under `high_mass_sol` (a number or an array) and over twice
+    its low end (`low_mass_sol` when given)."""
     low, high = tuning.OPEN_CLUSTER_MASS_RANGE_SOL
+    if low_mass_sol is not None:
+        low = low_mass_sol
     if high_mass_sol is not None:
-        high = min(high, max(high_mass_sol, 2.0 * low))
+        high = np.minimum(high, np.maximum(high_mass_sol, 2.0 * low))
     return low, high
 
 
 def initial_masses(uniform, low_mass_sol=None, high_mass_sol=None):
     """Initial masses (solar masses) by inverse transform of the power-law mass function, from uniform draws in 0..1,
-    between `low_mass_sol` (the range's low end when not given) and its high end (held under `high_mass_sol`, a ring's
-    maximum cluster mass)."""
-    low, high = _mass_range(high_mass_sol)
-    if low_mass_sol is not None:
-        low = low_mass_sol
+    between `low_mass_sol` (the range's low end when not given) and its high end (held under `high_mass_sol`, a maximum
+    cluster mass: a number, or an array with a value for each draw)."""
+    low, high = _mass_range(high_mass_sol, low_mass_sol)
     one = 1.0 - tuning.OPEN_CLUSTER_MASS_FUNCTION_SLOPE
     u = np.asarray(uniform, dtype=float)
     return (low ** one + u * (high ** one - low ** one)) ** (1.0 / one)
