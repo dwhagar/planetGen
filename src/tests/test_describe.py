@@ -199,12 +199,12 @@ def test_every_body_has_a_section_in_page_order():
 
 
 def test_the_overview_keeps_the_old_summary_but_counts_worlds_by_their_rating():
-    """GEN.220: the heliosphere and edge sentences are the old ones; the habitable line counts overall Green or Blue."""
+    """GEN.220: the heliosphere and edge sentences close the overview (UX.253 put them in plain words); the habitable line counts overall Green or Blue."""
     for _overrides, system in _systems():
         overview = describe(system)["sections"][0]["blocks"][0]
         assert overview["role"] == "overview"
         text = [_plain(sentence) for sentence in overview["text"]]
-        assert any("gravitational influence extends out to" in sentence for sentence in text[-2:])
+        assert any("holds on out to" in sentence for sentence in text[-2:])
         count = build._habitable_count(system)
         line = {0: "There are no habitable worlds in this system.",
                 1: "There is 1 habitable world in the system."}.get(
