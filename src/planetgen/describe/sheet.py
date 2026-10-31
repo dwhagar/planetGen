@@ -25,7 +25,7 @@ from planetgen.db import column_units, models
 from planetgen.describe import model
 from planetgen.describe.quantity import inline_text
 from planetgen.describe.sheet_sources import source_of
-from planetgen.physics import constants, daylight, gases, habitability_world, regional_temperature, unit_registry
+from planetgen.physics import compaction, constants, daylight, gases, habitability_world, regional_temperature, unit_registry
 from planetgen.population import facility_ratings
 from planetgen.util.format import format_number, scientific_text
 
@@ -724,6 +724,12 @@ GIANT_CLASSES = frozenset("IJT")
 NEGLIGIBLE_TIDE_ECCENTRICITY = 1e-12
 """float: The eccentricity below which a body's tide heat is taken as nil and is not stored (`interior_heat.update_heat`): the heat goes as the
 square of it, so at 1e-12 it is 1e-24 of the heat at an eccentricity of 1, and the circularised orbits the generator draws are far smaller still (1e-170)."""
+HP_ICE_MIN_BASE_PA = 6.2e8
+"""float: The pressure at the base of a body's water, Pa, from which ice VI (the first high-pressure ice that `water_layer.column` counts in `hp_ice_km`)
+forms: 620 MPa, where ice VI melts at 272 K (`water_layer.LIQUIDUS_K_MPA`)."""
+POROSITY_MAX_MASS_KG = compaction.TAPER_END_KG
+"""float: The mass, kg, below which a body keeps voids (1e21, the end of the compaction taper): `bulk_draw` stores a porosity for every body lighter than this and
+none for a heavier one."""
 AIRLESS_CLASSES = frozenset("CDS")
 """frozenset: The classes with no air (dead world, small icy body, airless super-Earth): no air column to describe."""
 
@@ -798,8 +804,12 @@ _BODY_RULES = [
      "only a body with a ring system has ring columns; a body without rings stores none"),
     (_AQUIFER_COLUMNS, lambda klass, row: row is None or any(row.get(key) is not None for key in _AQUIFER_COLUMNS),
      "underground water needs a layer between the freezing and the boiling line of water under the crust, which a body either has or lacks; a body without one stores none"),
-    (("hp_ice_km",), lambda klass, row: row is None or row.get("hydrosphere") in ICE_SHELL_STATES,
-     "high-pressure ice lies under the water of a body whose water is ice or a frozen-over ocean; a dry body, an open ocean and a vapour world have none"),
+    (("hp_ice_km",), lambda klass, row: row is None or (row.get("hydrosphere") in ICE_SHELL_STATES
+                                                         and (row.get("water_base_pressure_pa") or 0.0) >= HP_ICE_MIN_BASE_PA),
+     "high-pressure ice (ice VI and VII) forms only where the water's weight reaches 620 MPa: a dry body, an open ocean, a vapour world and a "
+     "body whose ice or ocean is too shallow for that pressure have none"),
+    (("porosity",), lambda klass, row: row is None or (row.get("mass_kg") or 0.0) < POROSITY_MAX_MASS_KG,
+     "only a body lighter than 1e21 kg is a heap with voids; above it gravity has closed them, so a planet or a large moon stores no porosity"),
     (_OCEAN, lambda klass, row: row is None or row.get("hydrosphere") in OCEAN_STATES,
      "an ocean's depth, chemistry, pH and water activity exist only where there is a liquid ocean"),
     (_LIFE_DETAIL, lambda klass, row: row is None or any((row.get(key) or 0) > 0 for key in LIFE_SCORES),
@@ -854,7 +864,7 @@ generation pathway, not a rule."""
 
 OPEN_GAPS = {
     **{(kind, key): item for kind in ("planet", "moon") for key, item in (
-        ("porosity", "GEN.780"), ("hp_ice_km", "GEN.781"), ("outside_hours", "GEN.768"),
+        ("outside_hours", "GEN.768"),
         ("energy_flux_w_m2", "GEN.784"), ("flux_variation", "GEN.784"))},
     **{("star", key): item for key, item in (
         ("lethal_event_rate_per_gyr", "GEN.785"),)},
