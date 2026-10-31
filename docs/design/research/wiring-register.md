@@ -42,6 +42,7 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | module | planetgen.physics.radius_valley | by design | the simulated Kepler survey of the radius valley, a check run by the tuning tests; the valley itself comes from the envelope-loss rows of the generator (GEN.722 retired) |
 | module | planetgen.physics.iron_branch_tuning | by design | the simulated sample the iron branch table is tuned to; run by the tuning tests, not by generation |
 | module | planetgen.generation.redraw_kinds | by design | the names and one-line meanings of the redraw counters (TEST.476); `draw.redrawn` is called by name from the generator and the census reads this registry, so no generation code imports it |
+| module | planetgen.galaxy.designations | GEN.1138 | the pure rules of designation history (retired IDs reserved, cascade, resolution), read by the writers and the lookup when the table lands |
 | module | planetgen.generation.class_sample | by design | a sample that holds every class, a helper of the sheet audit tests |
 | module | planetgen.generation.plausibility | by design | the anomaly finder engine; run by the plausibility tests and their command line wrapper in `src/tests` |
 | module | planetgen.generation.phenomena_plausibility | by design | the exotic-phenomena counterpart of the anomaly finder, run by its tests |
@@ -374,3 +375,8 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.120:BP2 | UX.241 | `belt_page.DENSITY_DIAMETERS_KM`, read when the page route lands |
 | row | 6.120:BP3 | UX.241 | `belt_page.L2_FLOOR_KG`, read when the page route lands |
 | row | 6.120:BP4 | UX.241 | `belt_page.SHARE_SAMPLES, MIN_SHARE`, read when the page route lands |
+| module | planetgen.physics.trojans | GEN.1150 | what may sit at L4 and L5 of a pair: mass rule, libration, swarm split, map label (lock-free); the generator draw and the map icon call it |
+| row | 6.121:TJ1 | GEN.1150 | `trojans.MU_CRIT`, read when the swarm draw lands |
+| row | 6.121:TJ3 | GEN.1150 | `trojans.libration_period, TADPOLE_LIMIT_DEG`, read when the orbit overlay lands |
+| row | 6.121:TJ4 | GEN.1150 | `trojans.LEADING_SHARE_RANGE`, read when the swarm draw lands |
+| row | 6.121:TJ5 | GEN.1150 | `trojans.ECC_MAX, INCLINATION_MAX_DEG`, read when the swarm draw lands |

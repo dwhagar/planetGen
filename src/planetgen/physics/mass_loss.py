@@ -18,7 +18,10 @@ The drawn distances of a white dwarf's planets are the ones the planets formed a
 """
 
 from planetgen import tuning
-from planetgen.physics import constants, remnant_mass
+from planetgen.physics import remnant_mass, unit_registry as units
+
+_kg_to_msun = units.converter("kg", "Msun")
+_msun_to_kg = units.converter("Msun", "kg")
 
 
 def progenitor_mass_sol(remnant_mass_sol, initial_mass_sol=None):
@@ -45,7 +48,7 @@ def expansion_factor(initial_mass_kg, final_mass_kg, planet_mass_kg=0.0):
 def member_formation_mass_kg(member):
     """The mass, kg, a star had when its planets formed: a white dwarf's progenitor's, any other star's own."""
     if getattr(member, "yerkes_class", None) in ("VII", "D"):
-        progenitor = progenitor_mass_sol(member.mass / constants.SOLAR_MASS_TO_KG,
+        progenitor = progenitor_mass_sol(_kg_to_msun(member.mass),
                                          getattr(member, "initial_mass_sol", None))
-        return max(progenitor * constants.SOLAR_MASS_TO_KG, member.mass)
+        return max(_msun_to_kg(progenitor), member.mass)
     return member.mass

@@ -32,7 +32,10 @@ from statistics import NormalDist
 
 from planetgen import tuning
 from planetgen.galaxy.age_law import AgeLaw
-from planetgen.physics import constants, rogue_age, rogue_drift, rogue_kick
+from planetgen.physics import constants, rogue_age, rogue_drift, rogue_kick, unit_registry as units
+
+_kg_to_mearth = units.converter("kg", "Mearth")
+_mearth_to_kg = units.converter("Mearth", "kg")
 
 LEVELS = tuple(tuning.ROGUE_LEVEL_CEILINGS)
 MIN_MASS_EARTH = min(low for low, _high, _rate in tuning.ROGUE_PLANET_MASS_BINS.values())
@@ -238,15 +241,15 @@ def plan(rng, level, stars, shortfall_kg, host_masses_kg, rogues_present=0, sect
     room = max(0, ceiling - rogues_present)
     rogues, placed = [], 0.0
     remaining = shortfall_kg
-    lightest_kg = MIN_MASS_EARTH * constants.EARTH_MASS_TO_KG
+    lightest_kg = _mearth_to_kg(MIN_MASS_EARTH)
     if room and remaining >= lightest_kg and not host_masses_kg:
         raise RogueTopUpError("a top-up needs at least one host star to donate the mass")
     while len(rogues) < room and remaining >= lightest_kg:
         mass = draw_mass_earth(rng)
-        mass_kg = mass * constants.EARTH_MASS_TO_KG
+        mass_kg = _mearth_to_kg(mass)
         last = mass_kg >= remaining
         if last:
-            mass_kg, mass = remaining, remaining / constants.EARTH_MASS_TO_KG
+            mass_kg, mass = remaining, _kg_to_mearth(remaining)
         rogues.append(_rogue(mass, rng, sector_edge_pc, age_law, dispersion_km_s, placement, galactocentric_radius_pc))
         placed += mass_kg
         remaining -= mass_kg

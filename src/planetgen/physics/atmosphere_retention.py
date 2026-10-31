@@ -31,7 +31,9 @@ Use:
 import math
 from dataclasses import dataclass
 
-from planetgen.physics import constants, gases, saturation, thermosphere
+from planetgen.physics import constants, gases, saturation, thermosphere, unit_registry as units
+
+_mearth_to_kg = units.converter("Mearth", "kg")
 
 ESCAPE_VELOCITY_EARTH_KM_S = 11.186
 """float: Earth's escape velocity, km/s (the design table's v_esc is this times the square root of mass over radius, in Earth's)."""
@@ -144,7 +146,7 @@ def energy_limited_loss_fraction(mass_earth, radius_earth, cumulative_xuv_j_m2, 
     """The share of the planet's mass the absorbed XUV could lift out of its well by its age, `eps pi R^3 E / (G M^2)`: an upper bound
     (every absorbed photon lifts gas) on the loss of an envelope, and the clock of an ocean's hydrogen."""
     radius = radius_earth * constants.EARTH_RADIUS_KM * 1.0e3
-    mass = mass_earth * constants.EARTH_MASS_TO_KG
+    mass = _mearth_to_kg(mass_earth)
     return efficiency * math.pi * radius ** 3 * cumulative_xuv_j_m2 / (constants.G * mass ** 2)
 
 

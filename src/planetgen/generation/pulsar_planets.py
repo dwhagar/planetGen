@@ -32,6 +32,9 @@ from planetgen.util import draw
 from planetgen.util import log
 from planetgen.physics import unit_registry as units
 
+_kg_to_mearth = units.converter("kg", "Mearth")
+_mearth_to_kg = units.converter("Mearth", "kg")
+
 _km_to_m = units.converter("km", "m")
 _m_to_km = units.converter("m", "km")
 
@@ -66,12 +69,12 @@ def disc_mass_range_earth():
 def _mass_earth(radius_km, density_g_cm3):
     """The mass, Earth masses, of a sphere of `radius_km` and `density_g_cm3`."""
     volume_m3 = relations.sphere_volume(_km_to_m(radius_km))
-    return volume_m3 * density_g_cm3 * 1000.0 / constants.EARTH_MASS_TO_KG
+    return _kg_to_mearth(volume_m3 * density_g_cm3 * 1000.0)
 
 
 def _radius_km(mass_earth, density_g_cm3):
     """The radius, km, of a sphere of `mass_earth` and `density_g_cm3`."""
-    volume_m3 = mass_earth * constants.EARTH_MASS_TO_KG / (density_g_cm3 * 1000.0)
+    volume_m3 = _mearth_to_kg(mass_earth) / (density_g_cm3 * 1000.0)
     return _m_to_km((3.0 * volume_m3 / (4.0 * math.pi)) ** (1.0 / 3.0))
 
 
@@ -124,7 +127,7 @@ def generate(system_config, star, habitable_zone, orbit_ceiling_au):
         mass_earth = math.exp(draw.uniform(math.log(low), math.log(high)))
         radius_km = min(max_radius_km, _radius_km(mass_earth, (low_density + high_density) / 2.0))
         planets.append(Planet(system_config, star, habitable_zone, distance, radius=radius_km,
-                              mass=mass_earth * constants.EARTH_MASS_TO_KG, moon_count=0,
+                              mass=_mearth_to_kg(mass_earth), moon_count=0,
                               formation_distance_au=0.0))
     log.choice("Pulsar planets", f"{len(planets)} disc planets",
                f"origin disc, {count} drawn, masses {low:.3g} to {high:.3g} Earth masses")

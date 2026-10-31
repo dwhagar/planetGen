@@ -57,8 +57,10 @@ from planetgen.galaxy import density as galaxyDensity, sector as spaceSector, sp
 from planetgen.physics import constants as pc, kepler, main_sequence, stellar_evolution
 from planetgen import tuning
 from planetgen.util import log
-from planetgen.physics import interior_heat, planet_kind, planets, radiogenic
+from planetgen.physics import interior_heat, planet_kind, planets, radiogenic, unit_registry
 from planetgen.util import detmath
+
+_msun_to_kg = unit_registry.converter("Msun", "kg")
 
 SEED = 20261001
 """int: The seed every distribution check starts from (each check adds its
@@ -504,7 +506,7 @@ def _speed_of_light_consistency():
 
 def _kepler_units_vs_si():
     """keplerMotion's mu = 4 pi^2 AU^3/yr^2 per M_sun against G * M_sun in SI."""
-    gm_au3_yr2 = pc.G * pc.SOLAR_MASS_TO_KG * pc.SECONDS_PER_YEAR ** 2 / pc.AU_M ** 3
+    gm_au3_yr2 = _msun_to_kg(pc.G) * pc.SECONDS_PER_YEAR ** 2 / pc.AU_M ** 3
     return _rel_err(gm_au3_yr2, kepler.gravitational_parameter_au3_yr2(1.0))
 
 

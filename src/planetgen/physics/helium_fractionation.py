@@ -37,7 +37,9 @@ Use:
 
 import math
 
-from planetgen.physics import bulk_structure, constants, envelope_escape
+from planetgen.physics import bulk_structure, constants, envelope_escape, unit_registry as units
+
+_mearth_to_kg = units.converter("Mearth", "kg")
 
 SOLAR_ENVELOPE_HELIUM = 0.245
 """float: The helium share of the mass of a hydrogen-helium envelope at the start, `Y / (X + Y)` of the solar mix (Malsky et al. 2023, A: X = 0.74,
@@ -164,8 +166,8 @@ def helium_fraction_from_history(core_mass_earth, history, insolation, start=SOL
             planet = core_mass_earth + 0.5 * (envelope + left)
             radius = bulk_structure.envelope_radius_earth(planet, 0.5 * (envelope + left) / planet, insolation, next_age)
             duration = (next_age - age) * _GY_S
-            _, y = evolve(envelope * constants.EARTH_MASS_TO_KG, y, planet * constants.EARTH_MASS_TO_KG,
-                          radius * _R_EARTH_M * HOMOPAUSE_RADIUS_OVER_TRANSIT, lost * constants.EARTH_MASS_TO_KG / duration, duration,
+            _, y = evolve(_mearth_to_kg(envelope), y, _mearth_to_kg(planet),
+                          radius * _R_EARTH_M * HOMOPAUSE_RADIUS_OVER_TRANSIT, _mearth_to_kg(lost) / duration, duration,
                           temperature_k, ionised_share)
         age, envelope = next_age, left
     return envelope, y

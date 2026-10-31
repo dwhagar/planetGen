@@ -21,7 +21,12 @@ function of [Fe/H] is GEN.936's.
 
 from dataclasses import dataclass
 
-from planetgen.physics import constants
+from planetgen.physics import constants, unit_registry as units
+
+_kg_to_mjup = units.converter("kg", "Mjup")
+_kg_to_msun = units.converter("kg", "Msun")
+_mjup_to_kg = units.converter("Mjup", "kg")
+_msun_to_kg = units.converter("Msun", "kg")
 
 
 @dataclass(frozen=True)
@@ -89,7 +94,7 @@ def sol(name):
     found = _BY_NAME[name]
     if found.unit == "Msun":
         return found.value
-    return found.value * constants.JUPITER_MASS_TO_KG / constants.SOLAR_MASS_TO_KG
+    return _kg_to_msun(_mjup_to_kg(found.value))
 
 
 def jupiter(name):
@@ -97,7 +102,7 @@ def jupiter(name):
     found = _BY_NAME[name]
     if found.unit == "Mjup":
         return found.value
-    return found.value * constants.SOLAR_MASS_TO_KG / constants.JUPITER_MASS_TO_KG
+    return _kg_to_mjup(_msun_to_kg(found.value))
 
 
 def kg(name):

@@ -60,4 +60,13 @@
   const anchor = main.querySelector(".page-subhead") || main.querySelector("h1");
   if (anchor) anchor.after(nav);
   main.classList.add("has-page-toc");
+
+  // If every link fits in one row across the top, show the row; if any would need scrolling, use the grouped menu.
+  function fit() {
+    main.classList.add("toc-strip");
+    if (nav.scrollWidth > nav.clientWidth + 1) main.classList.remove("toc-strip");
+  }
+  fit();
+  window.addEventListener("resize", fit);
+  window.addEventListener("load", fit);
 })();

@@ -53,7 +53,9 @@ holds a planet's spin, as the Earth's), and spin-orbit resonances such as Mercur
 import math
 from dataclasses import dataclass
 
-from planetgen.physics import constants
+from planetgen.physics import constants, unit_registry as units
+
+_kg_to_msun = units.converter("kg", "Msun")
 
 VENUS_STRENGTH = 1.9255
 """float: `ws / n` of Venus (Cunha, Correia and Laskar 2015 Table 1, from the 243 day retrograde spin). Source tier T1, tweak level L0."""
@@ -146,7 +148,7 @@ def strength_over_orbital_rate(mass_kg, radius_m, distance_au, star_mass_kg, sta
         return 0.0
     cut = min(1.0, surface_pressure_pa / (FULL_TIDE_PRESSURE_BAR * 1.0e5))
     return (VENUS_STRENGTH * cut * (star_luminosity_w / constants.SOLAR_LUMINOSITY) * (radius_m / VENUS_RADIUS_M)
-            * (distance_au / VENUS_DISTANCE_AU) ** 2.5 * (star_mass_kg / constants.SOLAR_MASS_TO_KG) ** -1.5 * (VENUS_MASS_KG / mass_kg))
+            * (distance_au / VENUS_DISTANCE_AU) ** 2.5 * (_kg_to_msun(star_mass_kg)) ** -1.5 * (VENUS_MASS_KG / mass_kg))
 
 
 def damping_time_gy(mass_kg, radius_m, distance_au, star_mass_kg):

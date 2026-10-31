@@ -136,7 +136,14 @@ def test_the_surface_water_a_planet_keeps_is_what_its_class_gave_less_what_it_lo
             _, untouched = _planet("M3V", 1.0, seed)
         assert cool.water_mass_fraction == untouched.water_mass_fraction  # the bulk water of the composition stays
         assert cool.ocean_fraction <= untouched.ocean_fraction  # the escape takes surface water, never makes it
-        lost_any = lost_any or cool.ocean_fraction < untouched.ocean_fraction
+        # the cover is 1.0 on a world that holds many oceans, so the loss shows in the surface water itself (TEST.504)
+        with draw.bound(seed):
+            surface = hydrosphere.draw_surface_water(cool)
+        with monkeypatch.context() as patch, draw.bound(seed):                    # the same buffer draw with and without the loss
+            patch.setattr(hydrosphere.runaway_history, "loss_kg", lambda *args: 0.0)
+            surface_untouched = hydrosphere.draw_surface_water(cool)
+        assert surface <= surface_untouched
+        lost_any = lost_any or surface < surface_untouched
     assert lost_any  # the zone of a 0.3 solar-mass star lost some of its surface water while the star was young
 
 
