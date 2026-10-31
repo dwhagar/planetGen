@@ -12510,6 +12510,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   physical sources), a retired field past 1 ly is marked retired, and
   the leftover planet of a collision is its own rogue planet. The field
   density no longer comes from a flat table at all.
+  Owner changed (belt chain) (2026-10-31 4:52 PM EDT): Boss, 4:49 PM EDT
+  2026-10-31: put the interstellar asteroid fields (GEN.1103 to
+  GEN.1107) in the same chain and with the same owner as the belt chain
+  (GEN.1068 to GEN.1073, GEN.1085, GEN.1092), because it is much of the
+  same code. Owner is now Aux 5 for the whole chain; Aux 5 may hand the
+  page and render parts (GEN.1070, GEN.1105, GEN.1106) to Core 2 and
+  says so. Train: after GEN.1068 b (train 8) and the member storage
+  GEN.1070, so train 9 at the earliest; this replaces the train 8 and
+  lane guesses above.
   Prerequisites: GEN.1102.
   Design: [docs/design/systems/interstellar-asteroid-fields.md](design/systems/interstellar-asteroid-fields.md)
 
@@ -12523,6 +12532,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.725. Lock work, train 8. Design L2. Done: tests, census share of
   remnants with a field. Where we think it belongs (best guess, can
   move): Aux 4, train 8 (same train as the columns).
+  Owner changed (belt chain) (2026-10-31 4:52 PM EDT): Boss, 4:49 PM EDT
+  2026-10-31: put the interstellar asteroid fields (GEN.1103 to
+  GEN.1107) in the same chain and with the same owner as the belt chain
+  (GEN.1068 to GEN.1073, GEN.1085, GEN.1092), because it is much of the
+  same code. Owner is now Aux 5 for the whole chain; Aux 5 may hand the
+  page and render parts (GEN.1070, GEN.1105, GEN.1106) to Core 2 and
+  says so. Train: after GEN.1068 b (train 8) and the member storage
+  GEN.1070, so train 9 at the earliest; this replaces the train 8 and
+  lane guesses above.
   Prerequisites: GEN.1103.
   Design: [docs/design/systems/interstellar-asteroid-fields.md](design/systems/interstellar-asteroid-fields.md)
 
@@ -12537,6 +12555,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (belt member storage and designation). API version bump. Done: tests,
   pages. Where we think it belongs (best guess, can move): Core 2 with
   Aux 4, train 8.
+  Owner changed (belt chain) (2026-10-31 4:52 PM EDT): Boss, 4:49 PM EDT
+  2026-10-31: put the interstellar asteroid fields (GEN.1103 to
+  GEN.1107) in the same chain and with the same owner as the belt chain
+  (GEN.1068 to GEN.1073, GEN.1085, GEN.1092), because it is much of the
+  same code. Owner is now Aux 5 for the whole chain; Aux 5 may hand the
+  page and render parts (GEN.1070, GEN.1105, GEN.1106) to Core 2 and
+  says so. Train: after GEN.1068 b (train 8) and the member storage
+  GEN.1070, so train 9 at the earliest; this replaces the train 8 and
+  lane guesses above.
   Prerequisites: GEN.1103, GEN.1070.
   Design: [docs/design/systems/interstellar-asteroid-fields.md](design/systems/interstellar-asteroid-fields.md)
 
@@ -12549,6 +12576,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   with the rate as a labelled dial and registers every stand-in in
   GEN.725. Lock work, train 8. Design L4. Done: map and page checks.
   Where we think it belongs (best guess, can move): Core 2, train 8.
+  Owner changed (belt chain) (2026-10-31 4:52 PM EDT): Boss, 4:49 PM EDT
+  2026-10-31: put the interstellar asteroid fields (GEN.1103 to
+  GEN.1107) in the same chain and with the same owner as the belt chain
+  (GEN.1068 to GEN.1073, GEN.1085, GEN.1092), because it is much of the
+  same code. Owner is now Aux 5 for the whole chain; Aux 5 may hand the
+  page and render parts (GEN.1070, GEN.1105, GEN.1106) to Core 2 and
+  says so. Train: after GEN.1068 b (train 8) and the member storage
+  GEN.1070, so train 9 at the earliest; this replaces the train 8 and
+  lane guesses above.
   Prerequisites: GEN.1105.
   Design: [docs/design/systems/interstellar-asteroid-fields.md](design/systems/interstellar-asteroid-fields.md)
 
@@ -12568,6 +12604,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   physical sources), a retired field past 1 ly is marked retired, and
   the leftover planet of a collision is its own rogue planet. Default
   retire is confirmed.
+  Owner changed (belt chain) (2026-10-31 4:52 PM EDT): Boss, 4:49 PM EDT
+  2026-10-31: put the interstellar asteroid fields (GEN.1103 to
+  GEN.1107) in the same chain and with the same owner as the belt chain
+  (GEN.1068 to GEN.1073, GEN.1085, GEN.1092), because it is much of the
+  same code. Owner is now Aux 5 for the whole chain; Aux 5 may hand the
+  page and render parts (GEN.1070, GEN.1105, GEN.1106) to Core 2 and
+  says so. Train: after GEN.1068 b (train 8) and the member storage
+  GEN.1070, so train 9 at the earliest; this replaces the train 8 and
+  lane guesses above.
   Prerequisites: GEN.1103, GEN.1006.
   Design: [docs/design/systems/interstellar-asteroid-fields.md](design/systems/interstellar-asteroid-fields.md)
 
