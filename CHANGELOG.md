@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3028] - 2026-10-31
+
+**Headline:** Every paper, book, dataset, and archive in the reference list has one fixed citation ID, shown on the References pages.
+
+### Changed
+- **Citation IDs (DOC.100).** Each source in `docs/reference/references-data.json` gets an ID such as `R0123`, given once and never reused. A preprint that later gets a DOI keeps its ID. `docs/REFERENCES.md` and `.html` print the ID before every entry with the anchor `#paper-r0123`, and `web/lib/reference_urls.py` addresses the Papers page by it. The in-line citation style (a bracketed ID, `[R0123]`, after the words it supports) is written into the References design and the plain-words guide. Display only: no schema change.
+
 ## [8.0.3027] - 2026-10-31
 
 **Headline:** Gas and ice giants are painted with belts, zones, wavy edges and storms, colored by their cloud chemistry.
