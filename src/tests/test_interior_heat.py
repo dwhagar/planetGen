@@ -34,7 +34,7 @@ def _earth(interior=MID, age=EARTH_AGE_GY, mass=EARTH, radius=6371.0, rock=EARTH
     return ih.heat_flow(_bulk_silicate_earth(), interior, mass, radius, age, rock)
 
 
-CORNERS = [ih.Interior(eta0, activation) for eta0 in (2.6e10, 5.3e13) for activation in (200.0, 300.0)]
+CORNERS = [ih.Interior(eta0, activation) for eta0 in (9.3e7, 1.9e11) for activation in (260.0, 390.0)]
 
 
 def test_the_assembly_energy_of_an_earth_is_the_accretion_plus_the_iron_sinking():
@@ -142,7 +142,7 @@ def test_a_small_cold_body_is_integrated_stably():
     """The time step follows the cooling rate: a body of 50 km would blow up an explicit step sized for an Earth."""
     asteroid_rock = radiogenic.Rock(0.9, 0.1, 0.0, radiogenic.BULK_SILICATE_EARTH_AL_MASS_FRACTION)
     for age in (0.01, 1.0, 13.8):
-        found = ih.heat_flow(_bulk_silicate_earth(), ih.Interior(2.6e10, 300.0), 1.0e18, 50.0, age, asteroid_rock)
+        found = ih.heat_flow(_bulk_silicate_earth(), ih.Interior(9.3e7, 390.0), 1.0e18, 50.0, age, asteroid_rock)
         assert 273.0 <= found.mantle_temperature_k <= 3000.0 and found.total_w >= 0.0 and math.isfinite(found.urey_ratio)
 
 
