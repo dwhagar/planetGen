@@ -60,6 +60,38 @@ def test_the_ages_after_oxygen_apply_only_to_a_world_that_reached_them():
     assert sheet.applies("planet", "M", "life_age_photosynthesis_gyr", {"life_microbial": 2, "life_stage": "photosynthesis"})
 
 
+def test_the_tide_heat_applies_to_a_rocky_or_icy_body_on_an_orbit_with_an_eccentricity():
+    """GEN.778: `interior_heat.update_heat` stores the flow for a rocky or icy body whose orbit is eccentric; a giant or a circular orbit stores none."""
+    key = "tidal_flux_w_m2"
+    assert sheet.applies("moon", "D", key, {"eccentricity": 0.01}) and sheet.applies("planet", "C", key, {"eccentricity": 0.2})
+    assert not sheet.applies("moon", "D", key, {"eccentricity": 0.0}) and not sheet.applies("moon", "D", key, {"eccentricity": 3e-170})
+    assert not sheet.applies("planet", "I", key, {"eccentricity": 0.05}) and not sheet.applies("planet", "J", key, {"eccentricity": 0.05})
+    assert ("planet", key) not in sheet.OPEN_GAPS and ("moon", key) not in sheet.OPEN_GAPS
+
+
+def test_a_generated_body_stores_its_tide_wherever_the_sheet_says_it_applies():
+    from planetgen.generation.config import SystemConfig
+    from planetgen.generation.system import StarSystem
+    from planetgen.util import draw
+    from tests.fuzz_support import deterministic_entropy
+    seen = {True: 0, False: 0}
+    for seed in range(7100, 7104):
+        with deterministic_entropy(seed):
+            draw.set_run_seed(seed)
+            system = StarSystem(SystemConfig(), galactic_center_dist_ly=26000.0)
+        for planet in system.planets:
+            if not hasattr(planet, "moons"):
+                continue
+            for body in [planet, *planet.moons]:
+                if body.body_type == "g":
+                    assert body.tidal_flux_w_m2 is None
+                    continue
+                eccentric = (body.eccentricity or 0.0) >= sheet.NEGLIGIBLE_TIDE_ECCENTRICITY
+                assert body.tidal_flux_w_m2 is not None or not eccentric, (body.name, body.eccentricity)      # empty only where the rule excuses it
+                seen[eccentric] += 1
+    assert seen[True] > 5 and seen[False] > 0
+
+
 def test_star_and_comet_rules():
     key = "wide_binary_a_crit_km"
     assert sheet.applies("star", "M", key, {"role": "primary", "binary_configuration": "wide"})

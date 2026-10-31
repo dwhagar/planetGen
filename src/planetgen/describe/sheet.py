@@ -721,6 +721,9 @@ def missing(kind, stored):
 GIANT_CLASSES = frozenset("IJT")
 """frozenset: The planet classes that are giants (ice giant, gas giant, gas dwarf): no surface, a deep envelope."""
 
+NEGLIGIBLE_TIDE_ECCENTRICITY = 1e-12
+"""float: The eccentricity below which a body's tide heat is taken as nil and is not stored (`interior_heat.update_heat`): the heat goes as the
+square of it, so at 1e-12 it is 1e-24 of the heat at an eccentricity of 1, and the circularised orbits the generator draws are far smaller still (1e-170)."""
 AIRLESS_CLASSES = frozenset("CDS")
 """frozenset: The classes with no air (dead world, small icy body, airless super-Earth): no air column to describe."""
 
@@ -779,6 +782,10 @@ _BODY_RULES = [
      "a dead world, a small icy body and an airless super-Earth, and any body whose air has gone to nothing, have no air column to give a density, scale height or haze"),
     (("lid_regime",), lambda klass, row: klass not in GIANT_CLASSES,
      "a giant has no lid: only a rocky or icy body has a crust over a mantle"),
+    (("tidal_flux_w_m2",), lambda klass, row: klass not in GIANT_CLASSES,
+     "the tide's heat is worked out for the interior of a rocky or icy body; a giant's own heat is the heat it radiates, which has its own row"),
+    (("tidal_flux_w_m2",), lambda klass, row: row is None or (row.get("eccentricity") or 0.0) >= NEGLIGIBLE_TIDE_ECCENTRICITY,
+     "a body on a circular orbit is not flexed, so the tide gives it no heat: the flow is stored only for an orbit with an eccentricity"),
     (_DAYLIGHT, lambda klass, row: _locked(row) is not True,
      "a tidally locked world keeps one face to its star, so it has no solar day, equatorial daylight or day share to give"),
     (("shelter_column_g_cm2",), lambda klass, row: row is None or (row.get("eq_shelter") or 0) > 0 or (row.get("eq_shelter_rec") or 0) > 0,
@@ -847,7 +854,7 @@ generation pathway, not a rule."""
 
 OPEN_GAPS = {
     **{(kind, key): item for kind in ("planet", "moon") for key, item in (
-        ("tidal_flux_w_m2", "GEN.778"), ("porosity", "GEN.780"), ("hp_ice_km", "GEN.781"), ("outside_hours", "GEN.768"),
+        ("porosity", "GEN.780"), ("hp_ice_km", "GEN.781"), ("outside_hours", "GEN.768"),
         ("energy_flux_w_m2", "GEN.784"), ("flux_variation", "GEN.784"))},
     **{("star", key): item for key, item in (
         ("lethal_event_rate_per_gyr", "GEN.785"),)},
