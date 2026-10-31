@@ -18,7 +18,7 @@ this module's logic.
 
 
 from planetgen.generation.config import SystemConfig
-from planetgen.physics import belt_mass, bulk_draw, radiogenic, small_body_composition
+from planetgen.physics import belt_mass, belt_origin, bulk_draw, radiogenic, small_body_composition
 from planetgen.util import draw
 from planetgen.util import log
 from planetgen.util.serialization import fields_from_dict, fields_to_dict
@@ -120,6 +120,7 @@ class AsteroidBelt:
     origin_history = ()
     origin_sentence = None
     scatter_fates = None
+    _frame = None
     """Where the belt came from (GEN.1068, `physics/belt_origin.py`): the formation cause (`gap`, `tail`, `snow-line-bump`, `outer-disc`, `destroyed-planet`, `collisional-debris`), the causes that
     coincide with it, the snow line when the system formed, the mass the belt formed with, what the giants cleared from it and what an instability scattered (Earth masses), whether a giant stirs it,
     the sentences of what shaped it, its sentence for the page and, for an outer disc, the shares the scatter step gave each population (`physics/scatter.py`). All empty for a belt a `SLOTS` entry asked for."""
@@ -143,6 +144,7 @@ class AsteroidBelt:
         self.upper_limit = upper_limit
         self.body_type = 'a'
         largest_km, self.mass_kg, self.density = present_state(star, distance, lower_limit, upper_limit, None if origin is None else origin.mass_earth)
+        self._frame = (star, origin is not None)       # what `shorten_to` needs; not stored, a belt read back from a store is not shortened
         if origin is not None:
             self.origin, self.co_causes, self.formation_snow_line_au = origin.origin, list(origin.co_causes), origin.formation_snow_line_au
             self.primordial_mass_earth, self.cleared_mass_earth, self.scattered_mass_earth = origin.primordial_mass_earth, origin.cleared_earth, origin.scattered_earth
@@ -152,6 +154,28 @@ class AsteroidBelt:
         self.makeup = small_body_composition.draw_belt(distance, star.luminosity, _star_al26_ratio(system_config, star))
         self.composition = small_body_composition.describe(self.makeup)
         self.chondrite_group = self.makeup.detail["group"]
+
+    def shorten_to(self, upper_limit):
+        """
+        Cuts the belt back to end at `upper_limit` AU (the orbits the star holds, once its age is final): the mass it formed with, what the giants cleared and what was scattered shrink with
+        the disc's solids between the limits, and the mass left after the star's age is worked out again. Returns False, and changes nothing, for a belt that was not made in this run or
+        whose stretch would be narrower than `belt_origin.MIN_BELT_RATIO`.
+        """
+        if self._frame is None or self.origin is None or upper_limit >= self.upper_limit:
+            return self.upper_limit <= upper_limit
+        if upper_limit < self.lower_limit * belt_origin.MIN_BELT_RATIO:
+            return False
+        star = self._frame[0]
+        metal = bulk_draw.metal_ratio_to_solar(star)
+        solids = lambda upper: belt_mass.primordial_mass_earth(self.lower_limit, upper, star.mass, star.snow_line_au, metal)
+        share = solids(upper_limit) / solids(self.upper_limit)
+        self.primordial_mass_earth *= share
+        self.cleared_mass_earth *= share
+        self.scattered_mass_earth *= share
+        self.upper_limit = upper_limit
+        left_earth = self.primordial_mass_earth - self.cleared_mass_earth - self.scattered_mass_earth
+        _, self.mass_kg, self.density = present_state(star, self.distance, self.lower_limit, upper_limit, left_earth)
+        return True
 
     def to_dict(self):
         """

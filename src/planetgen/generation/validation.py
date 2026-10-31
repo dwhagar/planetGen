@@ -295,7 +295,7 @@ def space_orbits(planets):
 def trim_to_orbit_ceiling(planets, ceiling_au):
     """
     Removes trailing planets/belts from `planets` that `space_orbits`'
-    own overlap correction pushed past `ceiling_au`.
+    own overlap correction pushed past `ceiling_au` (a belt of the planets' chain is cut back to it instead, GEN.1068).
 
     Generation already keeps every body it places within the ceiling,
     but `space_orbits` (called afterward, to resolve spacing collisions
@@ -318,6 +318,10 @@ def trim_to_orbit_ceiling(planets, ceiling_au):
     """
     removed = []
     while planets and exceeds_orbit_ceiling(planets[-1], ceiling_au):
+        # A belt made from the planets' chain (GEN.1068) is cut back to the ceiling the star's final age leaves, rather than lost, where a belt is still left
+        last = planets[-1]
+        if getattr(last, "body_type", None) == 'a' and getattr(last, "origin", None) is not None and last.shorten_to(ceiling_au):
+            break
         removed.append(planets.pop())
         draw.redrawn("planet.orbit_ceiling_trim")
     return removed

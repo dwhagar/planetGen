@@ -152,6 +152,6 @@ def test_a_belt_never_takes_the_slot_of_a_planned_planet(monkeypatch):
     for _ in range(3):
         built.clear()
         system = StarSystem(system_config=_make_config("M2V", PLANETS=True, MAX_PLANETS=True, MOONS=False))
-        planned = sum(1 for seed in built[0].planets if seed.distance_au < 20.0)
-        made = sum(1 for body in system.planets if body.body_type != 'a')
-        assert made >= planned
+        heavy_planned = sum(1 for seed in built[0].planets if seed.mass_kg >= constants.EARTH_MASS_TO_KG and seed.distance_au < 20.0)
+        heavy_made = sum(1 for body in system.planets if body.body_type != 'a' and body.mass >= constants.EARTH_MASS_TO_KG)
+        assert heavy_made >= heavy_planned

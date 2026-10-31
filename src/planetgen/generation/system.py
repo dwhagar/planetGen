@@ -398,6 +398,7 @@ class StarSystem:
                     # makes it a real possibility, so re-trim afterward using each
                     # body's own final position.
                     self._trim_to_orbit_ceiling(self.planets, primary_ceiling_au)
+                    self._add_belts(self.planets, self.star, primary_ceiling_au)
                     self._apply_star_history(self.planets, self.star)
                     # GEN.318: a white dwarf's survivors move out; the Hill spacing is over the lighter star now
                     if remnant_orbits.widen_for_mass_loss(self.planets, self.star, self._explicit_request()):
@@ -413,6 +414,7 @@ class StarSystem:
                         )
                         self.validate_system(self.secondary_planets)
                         self._trim_to_orbit_ceiling(self.secondary_planets, secondary_ceiling_au)
+                        self._add_belts(self.secondary_planets, self.secondary_star, secondary_ceiling_au, apply_guarantees=False)
                         self._apply_star_history(self.secondary_planets, self.secondary_star)
                         if remnant_orbits.widen_for_mass_loss(self.secondary_planets, self.secondary_star,
                                                               self._explicit_request()):
@@ -1366,18 +1368,50 @@ class StarSystem:
                     planets.pop()
                     break
 
-        # The belts are the stretches the finished chain leaves unfinished (GEN.1068), not slots rolled for: a `SLOTS` list names its belts itself, `NUM_ORBITS` is the
-        # whole count of bodies, `MAX_PLANETS` False is the fewest (both give way to `ASTEROID_BELT` True: a belt asked for is added), and `ASTEROID_BELT` False has none.
+        return planets
+
+    def _add_belts(self, bodies, star, orbit_ceiling_au, apply_guarantees=True):
+        """
+        Adds the belts of `star`'s finished, spaced planets to `bodies` in place (GEN.1068, `belt_birth`): the stretches the chain leaves unfinished, not slots rolled for. It runs once
+        `validate_system` has settled the planets, so a belt stands in the gap the planets really leave, and the spacing is checked again with the belts in. A `SLOTS` list names its belts
+        itself, `NUM_ORBITS` is the whole count of bodies and `MAX_PLANETS` False the fewest (both give way to `ASTEROID_BELT` True: a belt asked for is added), `ASTEROID_BELT` False has
+        none, `PLANETS` False has no bodies, and a pulsar's disc or a planetary nebula's pair holds none.
+        """
         config = self.system_config
         counted = (apply_guarantees and bool(config.SLOTS)) or ((config.NUM_ORBITS is not None or config.MAX_PLANETS is False) and config.ASTEROID_BELT is not True)
-        if config.PLANETS is not False and not counted and config.ASTEROID_BELT is not False:
-            belts = belt_birth.build(self.system_config, star, planets, self._orbit_floor_au(star), orbit_ceiling_au,
-                                     disk_edge_au)
-            for belt in belts:
-                log.choice("Asteroid belt", belt.origin, f"{belt.lower_limit:.3g} to {belt.upper_limit:.3g} AU, {belt.origin_sentence}")
-            planets = sorted([*planets, *belts], key=lambda body: body.distance)
+        if (config.PLANETS is False or counted or config.ASTEROID_BELT is False or pulsar_planets.applies(star) or remnant_orbits.is_post_agb_pair(star)):
+            return
+        belts = belt_birth.build(config, star, bodies, self._orbit_floor_au(star), orbit_ceiling_au, self._disk_outer_edge_au(star))
+        if not belts and config.ASTEROID_BELT is True and not any(body.body_type == 'a' for body in bodies):
+            belts = self._requested_belt(bodies, star, orbit_ceiling_au)
+        if not belts:
+            return
+        for belt in belts:
+            log.choice("Asteroid belt", belt.origin, f"{belt.lower_limit:.3g} to {belt.upper_limit:.3g} AU, {belt.origin_sentence}")
+        bodies[:] = sorted([*bodies, *belts], key=lambda body: body.distance)
+        self.validate_system(bodies)
+        self._trim_to_orbit_ceiling(bodies, orbit_ceiling_au)
 
-        return planets
+    def _requested_belt(self, bodies, star, orbit_ceiling_au):
+        """
+        The belt a request for one (`ASTEROID_BELT` True) is owed where the planets' chain leaves no stretch for one (a star whose disc, between its orbit floor and its edge, is too
+        narrow to hold any): one belt just outside the outermost body (innermost, where the planets fill the room), `ASTEROID_BELT_MAX_DISTANCE_FACTOR_MIN` to `_MAX` times as far out as its inner edge, as the
+        old slot did. It has no origin, as a belt a `SLOTS` entry names has none. An empty list where the star holds no room for any belt (the request is then unmet).
+        """
+        if bodies:
+            last = bodies[-1]
+            lower = last.upper_limit + tuning.MIN_ASTEROID_BELT_SEPARATION if last.body_type == 'a' else validation.apoapsis_au(last) + last.min_orbit_distance
+        else:
+            lower = 0.0
+        lower = max(lower, self._orbit_floor_au(star))
+        factor = draw.uniform(tuning.ASTEROID_BELT_MAX_DISTANCE_FACTOR_MIN, tuning.ASTEROID_BELT_MAX_DISTANCE_FACTOR_MAX)
+        if lower * tuning.ASTEROID_BELT_MAX_DISTANCE_FACTOR_MIN > orbit_ceiling_au:
+            lower = self._orbit_floor_au(star)       # the planets fill the star's room: the belt takes the innermost orbit and the spacing pass moves them out (the outermost are trimmed)
+        upper = min(lower * factor, orbit_ceiling_au)
+        if upper < lower * tuning.ASTEROID_BELT_MAX_DISTANCE_FACTOR_MIN:
+            return []
+        log.choice("Asteroid belt", "requested", f"{lower:.3g} to {upper:.3g} AU: ASTEROID_BELT is True and the chain leaves no stretch for one")
+        return [AsteroidBelt(self.system_config, star, lower, lower, upper)]
 
     def _generate_member_planets(self, star):
         """
@@ -1388,6 +1422,7 @@ class StarSystem:
         bodies = self._generate_planets(star, star.habitable_zone, ceiling_au, apply_guarantees=False)
         self.validate_system(bodies)
         self._trim_to_orbit_ceiling(bodies, ceiling_au)
+        self._add_belts(bodies, star, ceiling_au, apply_guarantees=False)
         self._apply_star_history(bodies, star)
         if remnant_orbits.widen_for_mass_loss(bodies, star, self._explicit_request()):
             self.validate_system(bodies)

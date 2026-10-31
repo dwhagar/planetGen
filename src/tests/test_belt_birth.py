@@ -129,3 +129,37 @@ def test_a_belt_asked_for_is_found_by_the_retries():
             draw.set_run_seed(seed)
             system = StarSystem(system_config=_config(ASTEROID_BELT=True))
             assert _belts(system) or "an asteroid belt" in system.unmet_requirements
+
+
+def test_a_belt_past_the_final_ceiling_is_cut_back_not_lost():
+    from planetgen.generation import validation
+    with deterministic_entropy(1068):
+        for seed in range(1, 40):
+            draw.set_run_seed(seed)
+            system = StarSystem(system_config=_config())
+            belt = next((b for b in _belts(system) if b.origin is not None and b.upper_limit > 2.0 * b.lower_limit), None)
+            if belt is None:
+                continue
+            before = (belt.primordial_mass_earth, belt.mass_kg, belt.upper_limit)
+            ceiling = (belt.lower_limit * belt.upper_limit) ** 0.5
+            bodies = [body for body in system.planets if body.distance <= belt.distance] + [belt]
+            assert validation.trim_to_orbit_ceiling(bodies, ceiling) == []
+            assert bodies[-1] is belt and belt.upper_limit == pytest.approx(ceiling)
+            assert belt.primordial_mass_earth < before[0] and belt.mass_kg <= before[1]
+            assert belt.primordial_mass_earth - belt.cleared_mass_earth - belt.scattered_mass_earth >= 0.0
+            tight = [belt]
+            assert validation.trim_to_orbit_ceiling(tight, belt.lower_limit * 1.01) == [belt] and not tight
+            return
+    pytest.skip("no wide belt in the sample")
+
+
+def test_a_belt_asked_for_is_still_placed_where_the_chain_leaves_no_stretch(monkeypatch):
+    monkeypatch.setattr(belt_birth, "build", lambda *args, **kwargs: [])
+    with deterministic_entropy(1068):
+        for seed in range(1, 4):
+            draw.set_run_seed(seed)
+            system = StarSystem(system_config=_config(ASTEROID_BELT=True))
+            belts = _belts(system)
+            assert belts or "an asteroid belt" in system.unmet_requirements
+            for belt in belts:
+                assert belt.origin is None and belt.upper_limit >= belt.lower_limit * 1.1
