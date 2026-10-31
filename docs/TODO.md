@@ -14495,6 +14495,24 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   giant_event name this item. Owner: Star 2.
   Prerequisites: none. Related: GEN.1072, GEN.1068.
 
+- [ ] **GEN.1233 Dust rings fed by small moons (Jupiter, Uranus, Neptune): a steady-state supply so giants with faint rings are not left ringless by the ring lifetime law**
+  From Tides 1 (relayed 5:06 PM EDT 2026-10-31 as the lane reported),
+  the follow-up of GEN.1171: the ring lifetime law (viscous spreading
+  plus meteoroid erosion) correctly kills a ring that has no supply, but
+  dust rings that small moons and impacts keep feeding (Jupiter's,
+  Uranus's and Neptune's rings, steady-state) are not modelled, so
+  giants with 4 of 4 rings in the Solar System now come out ringed about
+  9 percent of the time. Do: a supply term for rings near small moons
+  (impact ejecta from meteoroid flux on the moons' surfaces, with a
+  yield and a loss time from the same erosion and drag laws), so a faint
+  dust ring persists where a moon feeds it; the Solar System rings are
+  tests, not anchors; every stand-in goes in GEN.725 with tier and tweak
+  level. Done: the ringed share of giants moves toward the observed
+  share of giants with rings (all four in the Solar System, with the
+  sample caveat) by the physics, the census is printed before and after.
+  Changes stored ring columns, so it rides a train. Owner: Tides 1.
+  Prerequisites: none. Related: GEN.1171, GEN.725.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
