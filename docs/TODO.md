@@ -20891,8 +20891,8 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   citation. Done: tests that every citation on every References page is
   a link, that every link resolves, that the build fails on an unknown
   or ambiguous citation, and a crawl of the section. Lock-free, display
-  only. Owner: the new References thread (name to follow; it works with
-  Sources 1 and Core 1). Version 8.1.
+  only. Owner: the Citations thread (it works with Sources 1 and
+  Core 1). Version 8.1.
   Prerequisites: DOC.89, DOC.100. Related: DOC.87, DOC.88, DOC.89, DOC.90.
 
 - [ ] **DOC.98 Citations live only in the central registry and references.md: move them out of every other page, design document and code comment**
@@ -20922,7 +20922,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   and the References pages (the DOC.94 crawl and the new lock of the
   next item hold it), and every citation that was moved still resolves
   to a registry entry. Lock-free, no generator output change. Owner: the
-  new References thread, with Core 5 for the user pages (DOC.93) and
+  Citations thread, with Core 5 for the user pages (DOC.93) and
   Sources 1 for the registry. Version 8.1.
   Prerequisites: DOC.93, DOC.100. Related: DOC.93, DOC.94, DOC.96.
 
