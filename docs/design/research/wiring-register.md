@@ -38,7 +38,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | module | planetgen.physics.radius_valley | by design | the simulated Kepler survey of the radius valley, a check run by the tuning tests; the valley itself comes from the envelope-loss rows of the generator (GEN.722 retired) |
 | module | planetgen.physics.iron_branch_tuning | by design | the simulated sample the iron branch table is tuned to; run by the tuning tests, not by generation |
 | module | planetgen.generation.redraw_kinds | by design | the names and one-line meanings of the redraw counters (TEST.476); `draw.redrawn` is called by name from the generator and the census reads this registry, so no generation code imports it |
-| module | planetgen.galaxy.designations | GEN.1138 | the pure rules of designation history (retired IDs reserved, cascade, resolution), read by the writers and the lookup when the table lands |
 | module | planetgen.generation.class_sample | by design | a sample that holds every class, a helper of the sheet audit tests |
 | module | planetgen.generation.plausibility | by design | the anomaly finder engine; run by the plausibility tests and their command line wrapper in `src/tests` |
 | module | planetgen.generation.phenomena_plausibility | by design | the exotic-phenomena counterpart of the anomaly finder, run by its tests |
@@ -424,3 +423,8 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | function | planetgen.physics.radiation_belts.equatorial_field_t | TEST.520 | only tests call it; wire it into the code that needs it or delete it (TEST.520 first sweep) |
 | function | planetgen.physics.photometry.bolometric_correction_v | VIEW.11 | the VIEW.11 photometry library is the reader: apparent magnitude on a star page reads it when VIEW.11 is built |
 | function | planetgen.physics.species_thermo.log10_k | by design | the reference the equilibrium tests check the gas-equilibrium code against; only tests run it (TEST.524) |
+| function | planetgen.galaxy.designations.cascade | GEN.1141 | the new IDs of a system's bodies when its ID changes; the cascade of GEN.1141 calls it |
+| function | planetgen.galaxy.designations.former_lines | GEN.1140 | the "Formerly" list of an object page and its `former_designations` field; GEN.1140 calls it |
+| function | planetgen.galaxy.designations.resolve_member | GEN.1141 | a belt member's or captured body's old designation follows its parent's new ID; GEN.1141 calls it |
+| function | planetgen.galaxy.designations.resolve_name | GEN.1140 | the search by a past name; GEN.1140 calls it |
+| function | planetgen.galaxy.designations.resolve_uid | GEN.1139 | the redirect, 409 and 410 lookup of a retired ID; GEN.1139 calls it |

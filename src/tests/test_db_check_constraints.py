@@ -96,6 +96,10 @@ _EMPTY_TABLE_ROWS = {
     "dark_members": (
         "INSERT INTO dark_members (star_system_id, member_no, parent_node_no, slot, kind, mass_solar)"
         " VALUES (1, 1, 0, 1, 'brown-dwarf', 0.05)"),
+    # GEN.1138: a designation an object stopped having.
+    "designations": (
+        "INSERT INTO designations (designation_kind, designation_name, object_kind, object_row_id, retired_epoch, reason)"
+        " VALUES ('name', 'Old Name', 'star_systems', 1, 1, 'rename')"),
     # DB.56: GEN.197's `record_event` writes these; the migration only makes the tables.
     "orbital_events": (
         "INSERT INTO orbital_events (kind, event_time_unix, detected_time_unix, seed_string)"
@@ -155,6 +159,9 @@ def _breaking_value(conn, table, clause, row):
         column = match[1]
         assert column in row, f"{table}: {column} from ({clause}) not in {sorted(row)}"
         return column, (None if row[column] is not None else 0.0)
+    if table == "designations" and "designation_uid" in clause and "designation_name" in clause:
+        # GEN.1138: a retired ID carries an ID and no name, a retired name the other way; flipping the kind breaks it either way.
+        return "designation_kind", ("uid" if row["designation_kind"] == "name" else "name")
     raise AssertionError(f"no way to break {table}'s CHECK ({clause}) -- teach _breaking_value its shape")
 
 

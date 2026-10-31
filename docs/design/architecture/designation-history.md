@@ -96,3 +96,11 @@ Testing mode: new epoch, Alembic revision, wiped database allowed. The table is 
 - The number of bodies in a full galaxy and so the real size of Option B.
 - Whether `object_index` is rewritten in the same transaction by every existing rename path (read, not run).
 - Whether any admin tool deletes rows outside `store.delete_*`, which would skip the tombstone (GEN.1123's audit lists the delete paths).
+
+## 9. Built (GEN.1138)
+
+The table is migration 0197 (number allocated at merge). It differs from section 4 in one way: the retired text is two nullable columns instead of one, `designation_uid` (`BINARY(12)`, unique, the reservation) for an ID and `designation_name` (`VARCHAR(255)`, plain index with `retired_epoch`) for a name, and a CHECK keeps exactly the one that matches `designation_kind`. `retired_at` is the wall-clock time of the change. The reasons are a CHECK of the closed list. `valid_from_epoch` is filled from the epoch the object's previous designation of the same kind was retired in, and is NULL for the birth designation.
+
+Writers are in `db/designation_rows.py`, which `store.py` calls from every place that changes a `name` of a named table: `set_name` keeps the old name and then changes the row (a rename by a person is `rename`; the Greek and Roman decoration, the collision bump of a numbered name and the healing of a system name are `collision bump`; the bodies and comets that follow a system or star are kept under the same reason as the change that moved them; the placeholder names of a system built again keep nothing). `renumber` gives one object a new ID, refusing any ID that is live or retired, keeping the old one and moving the object's `object_index` row and the constellation and lock pointers at it. The pointers with no index (`object_index.parent_uid`, `orbital_events.containing_uid`, `sectors.max_mass_id`) and the bodies of a renumbered system are the cascade of GEN.1141.
+
+Read in the code for section 8: no existing rename path rewrites `object_index`; the index follows the rename on its next refresh (`modified_at`), so the name in the index can lag a rename until then. The old name is searchable only after GEN.1140.
