@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2957] - 2026-10-31
+
+**Headline:** The scrolling key on the galaxy map can now be reached and scrolled with the keyboard.
+
+### Changed
+- **Galaxy map key.** The list of map layers in the key takes keyboard focus and has a name, so a visitor without a mouse can scroll it.
+
 ## [8.0.2956] - 2026-10-31
 
 **Headline:** The admin Stats page now shows how long one object of each kind took to generate, which the generator has been recording without showing.
