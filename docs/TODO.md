@@ -11936,6 +11936,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   plan,scatter,fill,population and a census re-baseline; rides the
   star-side train after GEN.932 (Bug 1 owns star_formation.py). Owner:
   Sources 2 with Bug 1. Version 8.1.
+  Owner change (2026-10-31 1:25 PM EDT): Core 3 measured (as the lane
+  reported, 1:22 PM EDT 2026-10-31) that GEN.1200 (ring inflow 0.50 a
+  year against 0.8 measured, plus or minus 0.6) and GEN.1202 (8 kpc gas
+  4.3 against 13 per pc2) are the same factor of 3 this item fixes. Core
+  3 takes GEN.999 (lock work, a branch off main, no merge); GEN.1202
+  then closes with it if the re-measured 8 kpc gas reads about 13, and
+  GEN.1200 follows with the inflow-time step (CORE_GAS_INFLOW_TIME_GY, a
+  stand-in, registered in GEN.725).
   Prerequisites: GEN.932. Related: GEN.998, GEN.476, GEN.469.
 
 - [ ] **GEN.1000 Draw the largest body of every belt from the small body size law (replaces the stand-in largest-body size in the GEN.477 belt mass)**
