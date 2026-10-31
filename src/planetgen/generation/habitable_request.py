@@ -29,11 +29,6 @@ def meets(body):
             and getattr(body, "hydrosphere", None) in tuning.REQUEST_HYDROSPHERES)
 
 
-def meets_with_moons(planet):
-    """Whether `planet` or one of its moons meets the request (`meets`)."""
-    return meets(planet) or any(meets(moon) for moon in getattr(planet, "moons", ()))
-
-
 def count(planets):
     """The planets and moons of `planets` (belts skipped) that meet the request (`meets`)."""
     return sum(1 for planet in planets if planet.body_type != "a" for body in (planet, *planet.moons) if meets(body))

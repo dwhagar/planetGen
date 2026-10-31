@@ -45,7 +45,7 @@ def test_a_moon_counts_and_a_belt_is_skipped():
     moon = _body()
     planet = _body(temperature=200.0, moons=[moon])
     belt = types.SimpleNamespace(body_type="a", moons=[])
-    assert hr.meets_with_moons(planet) and not hr.meets(planet)
+    assert not hr.meets(planet)
     assert hr.count([planet, belt, _body()]) == 2
 
 
