@@ -397,3 +397,53 @@ def test_an_asymptotic_giant_that_has_dredged_carbon_up_has_a_carbon_star_row(cl
     finally:
         conn.close()
     assert sheet.CARBON_KEY not in _rows(client.get(f"/api/objects/{ref}/sheet").get_json())
+
+
+def _peculiar_star_values(kind):
+    from planetgen.physics import chemically_peculiar
+    radius_km = 1.8 * chemically_peculiar.SOLAR_RADIUS_KM
+    for step in range(2000):
+        mass_kg, age_gy = 3.0e30 * (1.0 + step * 1.0e-3), 0.4
+        found = chemically_peculiar.of_star("V", mass_kg, radius_km, 8500.0, age_gy)
+        if (found.kind if found else None) == kind:
+            return mass_kg, radius_km, age_gy, found
+    raise AssertionError(f"no {kind} star in 2000 steps")
+
+
+def _make_a_dwarf(mysql_config, mass_kg, radius_km, age_gy):
+    system_id = _save_wide_binary_with_moons(mysql_config)
+    conn = store.get_connection(mysql_config)
+    try:
+        star = conn.execute("SELECT id FROM stars WHERE star_system_id = ? ORDER BY id", (system_id,)).fetchone()
+        conn.execute("UPDATE stars SET state = 'main-sequence', yerkes_class = 'V', mass_kg = ?, radius_km = ?, temperature_k = 8500.0, age_gy = ? WHERE id = ?",
+                     (mass_kg, radius_km, age_gy, star["id"]))
+        conn.commit()
+    finally:
+        conn.close()
+    return f"star:{pid('star', star['id'])}"
+
+
+def test_an_ap_dwarf_has_a_kind_row_and_a_polar_field_row(client, mysql_config):
+    """GEN.1027: the Ap or Am kind and the Ap star's polar field are worked out from the stored class, mass, radius, temperature and age when the sheet is made."""
+    mass_kg, radius_km, age_gy, found = _peculiar_star_values("Ap")
+    ref = _make_a_dwarf(mysql_config, mass_kg, radius_km, age_gy)
+    rows = _rows(client.get(f"/api/objects/{ref}/sheet").get_json())
+    assert rows[sheet.PECULIAR_KEY]["text"] == "Ap" and rows[sheet.PECULIAR_KEY]["label"] == "Chemically peculiar star"
+    assert rows[sheet.PECULIAR_FIELD_KEY]["raw"] == pytest.approx(found.field_gauss) and 300.0 <= found.field_gauss <= 3.0e4
+
+
+def test_an_am_dwarf_has_a_kind_row_and_no_field_row(client, mysql_config):
+    mass_kg, radius_km, age_gy, found = _peculiar_star_values("Am")
+    ref = _make_a_dwarf(mysql_config, mass_kg, radius_km, age_gy)
+    rows = _rows(client.get(f"/api/objects/{ref}/sheet").get_json())
+    assert rows[sheet.PECULIAR_KEY]["text"] == "Am" and sheet.PECULIAR_FIELD_KEY not in rows
+
+
+def test_a_star_that_is_not_a_peculiar_dwarf_has_no_peculiar_row(client, mysql_config):
+    from planetgen.physics import chemically_peculiar
+    radius_km = 1.8 * chemically_peculiar.SOLAR_RADIUS_KM
+    mass_kg = next(3.0e30 * (1.0 + k * 1.0e-3) for k in range(2000)
+                   if chemically_peculiar.of_star("V", 3.0e30 * (1.0 + k * 1.0e-3), radius_km, 8500.0, 0.4) is None)
+    ref = _make_a_dwarf(mysql_config, mass_kg, radius_km, 0.4)
+    rows = _rows(client.get(f"/api/objects/{ref}/sheet").get_json())
+    assert sheet.PECULIAR_KEY not in rows and sheet.PECULIAR_FIELD_KEY not in rows
