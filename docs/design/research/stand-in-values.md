@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 953 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 954 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -36,7 +36,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 140 | 13 | 8 | 1 | 0 | 162 |
+| T1 | 141 | 13 | 8 | 1 | 0 | 163 |
 | T2 | 112 | 36 | 0 | 1 | 0 | 149 |
 | T3 | 84 | 38 | 5 | 10 | 0 | 137 |
 | T4 | 37 | 5 | 0 | 14 | 10 | 66 |
@@ -45,7 +45,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T7 | 27 | 8 | 8 | 8 | 0 | 51 |
 | T8 | 0 | 1 | 1 | 5 | 1 | 8 |
 | T9 | 17 | 14 | 4 | 42 | 19 | 96 |
-| All | 552 | 203 | 44 | 124 | 30 | 953 |
+| All | 553 | 203 | 44 | 124 | 30 | 954 |
 
 ## How the labels were given
 
@@ -944,6 +944,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | LM2 | D | T1 | L0 | main_sequence.SETTLED_RADIUS_SHARE 1.02: a star under 0.1 solar masses has arrived on the main sequence when its Baraffe radius is within 2% of the least it reaches (0.6 to 3 Gy) | 1.01 to 1.05 | stars of 0.07 to 0.1 solar masses | the contraction time of the pre-main-sequence model against this arrival by more than a factor 2.5 | the pre-main-sequence tracks of the table | READ (the BHAC15 radii; 2% is the share the pre-main-sequence energy factor was fitted to, GEN.529) | - | - |
 | LM3 | P | T5 | L0 | mass_boundaries.STAR_BROWN_DWARF_SPLIT_SOL 0.08: the mass function of the stars ends and that of the brown dwarfs begins; the class of an object is by its place's hydrogen-burning limit, 0.074 at solar Z to 0.092 at none (`hydrogen_burning_limit_for_fe_h`) | the split 0.074 to 0.092 | all objects of 0.07 to 0.092 solar masses | the share of objects of 0.074 to 0.092 solar masses that burn hydrogen at a place against Baraffe's and Chabrier and Baraffe's limits | a limit by [Fe/H] from a grid of models at other metallicities | a decision of the item (Boss, 2026-10-21, the limit by Z); the dependence on Z is a parametrisation, Burrows et al. 2001 | - | - |
 | LM4 | P | T7 | L0 | brown_dwarf: the radius of a mass the table loses while it is young is held at its last (young) value, the temperature continues at t^-0.32 (Burrows et al. 2001) | none | brown dwarfs of 13 to 50 Jupiter masses past the age the table loses them (0.01 to 0.6 Gy) | a radius of a 13 Jupiter mass object at 10 Gy over 1.2 Jupiter radii | a track that reaches the old ages (ATMO 2020, Phillips et al. 2020) | an inference, kept from the eleven-row table it replaces; the radius is 1.7 Jupiter radii for 13 Jupiter masses | - | - |
+| LM6 | D | T1 | L0 | pre_main_sequence.RADIUS_SETTLED_MYR: the age at which the radius of a star falls within 5 percent of its value at 5 Gyr, from the BHAC15 tracks (0.07 to 0.8 solar masses, 15 points, log-log between); above 0.8 the model's own Kelvin-Helmholtz time scaled to the 0.8 value | the 2 or 10 percent criterion (402 Myr at 0.1 solar masses against 554 at 2 percent); the luminosity criterion (0.05 dex) gives nearly the same times | pre-main-sequence stars of every mass; solar metallicity only | a measured age of the main sequence for stars of 0.1 to 0.5 solar masses | tracks for other metallicities | READ (Sources 2, gen1169 report, BHAC15_tracks+structure): GEN.1174 (Boss, 5:25 AM EDT 2026-10-31: both times, class by radius): a star is pre-main-sequence until its radius has settled; MIST's nuclear arrival (GEN.947) is kept as `nuclear_arrival_yr` and is 3 to 4 times longer for 0.1 to 0.3 solar masses; above 0.8 solar masses the radius of the track passes through a minimum and the criterion stops meaning the same thing | - | - |
 
 ## 6.67 Stand-ins of the stellar wind and flares at a world
 
