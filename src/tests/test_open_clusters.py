@@ -241,7 +241,7 @@ def test_a_galaxy_that_would_form_millions_draws_the_cap_and_keeps_the_heavier_o
 
 def test_no_disc_cluster_is_heavier_than_the_most_massive_its_rings_can_form(drawn):
     shape, found = drawn
-    table = open_clusters._formation_table(shape)
+    table = open_clusters._formation_table(shape, potential.for_galaxy(shape, b"gen244-test-seed"))
     maximum, efficiency = table[6], table[5]
     assert maximum.shape == efficiency.shape and np.all(maximum >= 0.0)
     assert np.all(maximum <= tuning.CLUSTER_MAX_MASS_CEILING_SOL)

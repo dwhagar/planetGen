@@ -11,7 +11,7 @@ import numpy as np
 import pytest
 
 from planetgen import tuning
-from planetgen.galaxy import components, core_gas, nebula_field, profile
+from planetgen.galaxy import components, core_gas, nebula_field, potential, profile
 from planetgen.galaxy import density as galaxyDensity
 from planetgen.generation import open_clusters
 
@@ -181,9 +181,11 @@ def test_the_milky_way_shapes_disc_rings_change_from_shear_to_feedback_limited_a
     from planetgen.physics import cluster_maximum_mass as cmm
 
     shape = _shape()
-    _ages, _step, radii, _width, _formed, efficiency, maximum = open_clusters._formation_table(shape)
+    _ages, _step, radii, _width, _formed, efficiency, maximum = open_clusters._formation_table(shape, potential.for_galaxy(shape, None))
     gas = disk_history.history_of(shape).gas_now
-    kappa = np.array([cmm.epicyclic_frequency_per_myr(tuning.CLUSTER_HALO_CIRCULAR_KMS, r) for r in radii])
+    pot = potential.for_galaxy(shape, None)
+    kappa = np.array([cmm.epicyclic_frequency_per_myr(potential.circular_speed_kms(pot, r), r, potential.circular_speed_slope_kms_per_pc(pot, r))
+                      for r in radii])
     fraction = np.array([cmm.collapsed_fraction(g, k, tuning.DISC_GAS_DISPERSION_KMS) for g, k in zip(gas, kappa)])
     assert np.all(fraction[(radii > 1000.0) & (radii < 3500.0)] == 1.0)
     far = (radii > 6300.0) & (radii < 15000.0)

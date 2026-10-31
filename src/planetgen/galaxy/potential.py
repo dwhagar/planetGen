@@ -170,6 +170,14 @@ def circular_speed_kms(pot, radius_pc):
     return float(speed) if speed.ndim == 0 else speed
 
 
+def circular_speed_slope_kms_per_pc(pot, radius_pc):
+    """`dV/dR` of the circular speed at cylindrical `radius_pc`, (km/s) per pc, by a central difference over 1/1000 of the radius, which the epicyclic frequency needs."""
+    radius = np.asarray(radius_pc, dtype=float)
+    step = 1.0e-3 * radius
+    slope = (circular_speed_kms(pot, radius + step) - circular_speed_kms(pot, radius - step)) / (2.0 * step)
+    return float(slope) if np.ndim(slope) == 0 else slope
+
+
 def vertical_force(pot, radius_pc, height_pc):
     """`K_z`, the vertical pull on a star at `(R, z)` in (km/s)^2 per pc (positive towards the plane), for the vertical force of the disk near the Sun."""
     _, _, pull_z = acceleration(pot, radius_pc, 0.0, height_pc)

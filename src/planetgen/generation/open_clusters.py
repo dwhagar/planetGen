@@ -63,15 +63,15 @@ def _disk_population(age_gy):
     return np.where(np.asarray(age_gy) < tuning.OPEN_CLUSTER_DISK_POPULATION_EDGE_GY, 0, 1)
 
 
-def _disk_maximum_masses(found, radii, efficiency):
+def _disk_maximum_masses(found, radii, efficiency, pot):
     """
     The most massive cluster each cell of the formation table can form, solar masses (`physics.cluster_maximum_mass`, GEN.1196):
-    from the ring's gas (`found.gas_now`, the gas of the last Gy), the epicyclic frequency of the flat rotation curve at its
-    radius (`tuning.CLUSTER_HALO_CIRCULAR_KMS`), the cell's bound share (its cluster formation efficiency) and the disc's gas
+    from the ring's gas (`found.gas_now`, the gas of the last Gy), the epicyclic frequency of the galaxy's own rotation curve at its
+    radius (`pot`, GEN.339), the cell's bound share (its cluster formation efficiency) and the disc's gas
     dispersion (`tuning.DISC_GAS_DISPERSION_KMS`). A ring with no gas forms none above the least the mass function holds.
     """
-    kappa = np.array([cluster_maximum_mass.epicyclic_frequency_per_myr(tuning.CLUSTER_HALO_CIRCULAR_KMS, float(r))
-                      for r in radii])
+    kappa = np.array([cluster_maximum_mass.epicyclic_frequency_per_myr(
+        potential.circular_speed_kms(pot, float(r)), float(r), potential.circular_speed_slope_kms_per_pc(pot, float(r))) for r in radii])
     gas = np.asarray(found.gas_now, dtype=float)
 
     def cap(ring, bound):
@@ -83,9 +83,9 @@ def _disk_maximum_masses(found, radii, efficiency):
     return np.vectorize(cap, otypes=[float])(rings, efficiency)
 
 
-def _formation_table(shape):
+def _formation_table(shape, pot):
     """
-    `(ages_gy, step_gy, radii_pc, ring_width_pc, mass_formed, efficiency, maximum_mass)` for the steps of the last Gy and every
+    `(ages_gy, step_gy, radii_pc, ring_width_pc, mass_formed, efficiency, maximum_mass)` (in the galaxy's potential `pot`) for the steps of the last Gy and every
     ring of the disk's history: the mass formed in each cell of the table (solar masses), the cluster formation efficiency of
     its rate density and the most massive cluster its gas can form (`_disk_maximum_masses`).
     """
@@ -101,7 +101,7 @@ def _formation_table(shape):
     mass_formed = rate * area_pc2[:, None] * step_gy
     efficiency = evolution.cluster_formation_efficiency(rate * 1.0e-3)     # per year per kpc2 from per Gy per pc2
     return (found.age_gy[steps], step_gy, radii, ring_width, mass_formed, efficiency,
-            _disk_maximum_masses(found, radii, efficiency))
+            _disk_maximum_masses(found, radii, efficiency, pot))
 
 
 def _arm_phase(radius_pc, shape):
@@ -191,7 +191,7 @@ def _ring_maximum_mass_sol(pot, core):
     if core.rate_msun_yr <= 0.0 or core.gas_surface_density_msun_pc2 <= 0.0:
         return tuning.OPEN_CLUSTER_MASS_RANGE_SOL[1]
     speed = float(potential.circular_speed_kms(pot, core.radius_pc))
-    kappa = cluster_maximum_mass.epicyclic_frequency_per_myr(speed, core.radius_pc)
+    kappa = cluster_maximum_mass.epicyclic_frequency_per_myr(speed, core.radius_pc, potential.circular_speed_slope_kms_per_pc(pot, core.radius_pc))
     return cluster_maximum_mass.maximum_cluster_mass_sol(core.gas_surface_density_msun_pc2, kappa, core.bound_share,
                                                          tuning.CORE_RING_GAS_DISPERSION_KMS)
 
@@ -224,7 +224,7 @@ def _disk_formed(stream, shape, pot):
     forms (see the module docstring, steps 1 and 2): empty arrays for a disk that formed none.
     """
     empty = (np.zeros(0), np.zeros(0), (np.zeros(0), np.zeros(0), np.zeros(0)), np.zeros(0), np.zeros(0), np.zeros(0))
-    ages_gy, step_gy, radii, ring_width, mass_formed, efficiency, maximum = _formation_table(shape)
+    ages_gy, step_gy, radii, ring_width, mass_formed, efficiency, maximum = _formation_table(shape, pot)
     weight = mass_formed * efficiency / evolution.mean_initial_mass_sol(maximum)       # clusters formed per cell
     total = float(weight.sum())
     if total <= 0.0:
