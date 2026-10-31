@@ -1053,6 +1053,23 @@ with `clamp()`.
   template global; use it for links into References.
   Prerequisites: none. Related: UX.237, GEN.1208.
 
+- [ ] **UX.255 Remove the light-theme branches in the map scripts that black map backgrounds left unused**
+  Follow-up to #4633 (maps are drawn on black in either theme; Boss,
+  2026-10-31, as the coordinator relayed, low priority). That change
+  made `mapcore.isLightBackground()` always false and left the
+  light-background branches in the map scripts dead. Do: delete
+  `isLightBackground` and every caller (for example `galaxymap3d.js`
+  `nebulaLooks(isLightBackground())` and its `FILLED_TINT` light shade),
+  the light looks in `nebulalook.js`, the glow layer's `light` option,
+  and `sectorscene.js`'s `lightBackground` uniform, with the shader and
+  test code that only they used, and keep the dark paths exactly as they
+  are. Done: no reference to a light map background is left in
+  `src/html/static`, a search shows it, and the map browser tests pass
+  unchanged. Display only: no schema, API, generator output or epoch
+  change, so lock-free. Owner: none for now (pool; any web lane that is
+  waiting). Version 8.1.
+  Prerequisites: none. Related: MAP.210.
+
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
@@ -14953,6 +14970,119 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Star 2, train 9.
   Prerequisites: none. Related: GEN.1024, PERF.218.
 
+- [ ] **PERF.225 The galaxy shape's cluster field is built by a queued job in small saved chunks and kept between requests, so no web request rebuilds it (about 56 seconds)**
+  Boss (2026-10-31, 5:47 PM EDT, the memory and request-timeout thread
+  on hal; PR #4626 added the refuse-while-rebuilding guard and left this
+  open): `GET /api/galaxy/shape` took 56 to 65 s on a cold web daemon,
+  because `_component_field` in `src/planetgen/db/store.py` builds the
+  `ComponentField` from the stored clusters and satellites again in
+  every process (the cache `_FIELD_BY_SIGNATURE` lives in one process).
+  The daemon's request limit is 60 s, so a fresh daemon sits just under
+  it, and past it every request in flight is cut off. #4626 only refuses
+  the build while a rebuild is flagged. Boss decision (2026-10-31, 5:56
+  PM EDT, as the coordinator relayed; replaces the earlier plan, and
+  reverses the earlier advice against chunking): "The site isn't yet in
+  production so, I don't mind waiting for the fix, so here's what I want
+  to do... Both the warmup job goes into the queue under 1 line (i.e.
+  not fully parallelized) and it's broken into chunks so that each one
+  writes a part of the data and each can finish in under the limit no
+  matter how slow the system is or how bogged down it is with other
+  tasks. And save the data between API requests so it doesn't have to
+  rebuild it." Correctness over speed. Do: (1) the warm-up job that
+  builds the field is one job on the one waiting line
+  (`planetgen.queue.runline`, PERF.154), run one at a time and never in
+  parallel with other work. (2) The build is cut into small chunks (for
+  example the per-component profile tables in batches, then the index
+  and grouping steps of `ComponentField`), and each chunk computes its
+  part and writes it to the saved store before it ends, so each finishes
+  far under the 60 s limit however slow or busy the machine is. Chunks
+  are resumable: a rerun or the next chunk picks up after the last
+  finished one, and a part that was not finished is never read as
+  complete (write to a temporary name, rename when whole, and mark the
+  set complete only when the last chunk and the assembly are done). (3)
+  The assembled field is saved in the state folder
+  (`settings.state_dir()`, as the preview-card cache does), named by the
+  signature the in-process cache already uses (database, row count,
+  first and last id, mass sum, edge and expected count), and an API
+  request only reads it: a request that finds no complete field for the
+  current signature never builds it, it answers the same fast 503 as the
+  guard of #4626 and asks for the warm-up job. A file of another
+  signature is ignored and replaced, and old files are removed. The
+  `planetgen warm` run and the end of a generation run queue the job.
+  Files in the state folder need no migration; if the chunk store needs
+  a table, say so on this item first, because a migration rides a train.
+  From the cache-refusal thread (relayed 5:56 PM EDT 2026-10-31). First
+  step: time which lines dominate on hal's data before choosing slice
+  sizes, and also time `db/query.galaxy_density_shape`,
+  `with_system_richness` and `shell_specs`, which `/api/galaxy/shape`
+  runs too. Split: in `galaxy/component_field.py` the per-row work
+  (family and population shares, scale radius, central density over mean
+  system mass, the density table from `component_profiles.table_for`) is
+  independent per row, so slice the rows, one chunk per slice, each
+  writing its own part file; the reach grouping and spatial index
+  (`_qualifying_reach`, `_group_by_reach`, `_build_index`) run once in a
+  final chunk. Publishing: the assembled file is published by atomic
+  rename only after the last chunk, with the signature inside it. The
+  503 rule, changed in #4626's `cachebuild.refuse_expensive_build`: the
+  daemon's `_component_field` miss path loads the saved file when its
+  signature matches, and otherwise always raises the same
+  CacheRebuilding 503; it never builds and never serves a partial field,
+  and only the warm chunks may build. Done: a test that each chunk ends
+  within a stated small budget on a populated database, that a job
+  stopped between chunks resumes and gives the same field as an
+  uninterrupted build, that a half-written part is never read as
+  complete, that a changed `galaxy_components` table gets a new file and
+  drops the old one, and that a second process (a fresh interpreter)
+  reads the saved field without building it; a measured cold `GET
+  /api/galaxy/shape` under 5 s after the job. Lock-free and no epoch
+  (generation output unchanged), unless the chunk store needs a
+  migration. Owner: Core 1 (waiting lane; knows the store). Version 8.1.
+  Prerequisites: none. Related: PERF.219, PERF.220.
+
+- [ ] **PERF.226 Every generation stage has a measured worker memory, and the worker cap uses it, so no stage past the scatter can run the host out of memory**
+  Boss (2026-10-31, 6:01 PM EDT, as the coordinator relayed): the
+  generation run on hal that began about 2:34 PM EDT failed after 11104
+  s with an out-of-memory error (Boss confirmed). PERF.220 (#4560,
+  #4565) caps only the four scatter kinds (`MEMORY_HEAVY_KINDS` in
+  `src/planetgen/queue/workers.py`: scatter-mass, scatter-luminosity,
+  scatter-backfill, scatter-band) at 900 MB per worker and half the
+  host; every other stage uses the ordinary 300 MB per worker guess
+  (`WORKER_MEMORY_MB`) and 60 percent of the host (`HOST_MEMORY_SHARE`),
+  which nobody has measured. A run that dies three hours in is more
+  likely a later stage (bright-star units, system fill, planets,
+  phenomena) than a scatter. Do: (1) read the failed run's log for the
+  last stage line and the host's kernel log for the process the killer
+  chose and its resident size, and say which stage it was; (2) measure
+  the peak resident memory of one worker of every stage kind on a
+  populated database (a run with a memory sampler, or
+  `resource.getrusage` at the end of each task, written to the stage's
+  progress line); (3) put each stage's measured peak in
+  `MEMORY_HEAVY_KINDS` (renamed for what it is) with a margin, and have
+  `stage_worker_cap` apply to every stage, so a stage that grows past
+  its guess is slowed, not killed; (4) print the measured peak per
+  worker in the run report so the next growth shows before it kills.
+  Done: a test that every command kind has a memory figure or says it is
+  ordinary on purpose, and a measured run on a populated database whose
+  report lists the peak per stage and finishes under the cap. Lock-free,
+  generation output unchanged (the work seed does not depend on the
+  worker count). Owner: Star 2 (proposed by the Train Manager, 6:03 PM EDT
+  2026-10-31; it holds PERF.224 and the scatter worker sizing). Version 8.1.
+  Boss (2026-10-09): Boss, 6:07 PM and 6:09 PM EDT 2026-10-31 (as the
+  coordinator relayed): "stop telling me to modify the service drop in,
+  I'm not doing that, period, we MUST solve the memory problem another
+  way" and "stop telling me to run this inside apache's memory pool as
+  well, again we're going to solve this by fixing the memory usage
+  intelligently, not by just adding bandaids." So this item solves it in
+  the program: no systemd drop-ins, no Apache memory limit, no redo log
+  or buffer pool prompts from update.sh (PERF.222 and PERF.223 prompts
+  are removed, #4632). Total memory stays under the host through
+  measured per-stage worker caps and anything else that actually lowers
+  the use (smaller tables per worker, streaming rows, releasing a
+  stage's data before the next, fewer workers when the free memory is
+  low at start). Nothing in the fix may ask the user to change an
+  operating system setting.
+  Prerequisites: none. Related: PERF.220, PERF.222, PERF.223.
+
 ## DB: Database and schema
 
 DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
@@ -20340,22 +20470,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   in its rewrite).
   Prerequisites: none.
 
-- [ ] **DOC.88 References R2: the References shell and generator (Help menu entry, /references with the Out of universe banner, scripts/build_reference_pages.py with --check, built by update.sh)**
-  Boss (2026-10-31, as the coordinator relayed): a Help > References
-  menu, out of universe, for sources, the GEN.725 stand-in registry with
-  how each was decided, fitted values, speculative chemistry and gaps;
-  the rest of the site stays in universe. Design:
-  /mnt/project-files/design-drafts/references-help-menu-2026-10-31.md
-  (section 6, R1 to R8). Wording and pages only: no epoch, no lock, no
-  computed change, lock-free. Ship the shell before DOC.57 and let
-  DOC.57 absorb it. The generator is built by update.sh and `--check` is
-  held by a test. Related: DOC.57, DOC.58. Owner: Core 1.
-  Banner contract (DOC.87 merged as #4602) (2026-10-31 4:16 PM EDT):
-  DOC.87 merged as #4602: put id="out-of-universe-banner" on every
-  /references page; web/lib/reference_urls.py has reference_path, anchor
-  and AREAS, and reference_link(kind, id, label) is a template global.
-  Prerequisites: DOC.87.
-
 - [ ] **DOC.89 References R3: Sources pages (papers, datasets, archives, licenses, credits), each paper linking to where it is used**
   Boss (2026-10-31, as the coordinator relayed): a Help > References
   menu, out of universe, for sources, the GEN.725 stand-in registry with
@@ -20386,6 +20500,13 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   identifiers unresolved in
   /mnt/project-files/reports/doc95-unresolved-citations-2026-10-31.md).
   A test fails if a citation has none of the three outcomes.
+  Reference pages contract (Core 1, DOC.88 #4624) (2026-10-31 5:40 PM
+  EDT): Help > References is live at /references. To add a page: add a
+  file to BUILDERS in scripts/build_reference_pages.py and a route in
+  web/references_pages.py, and check every sentence with
+  plainwords.check_sentence(s, references=True). Editing
+  gap-filling-plan.md stand-in rows now also needs python
+  scripts/build_reference_pages.py.
   Prerequisites: DOC.88.
 
 - [ ] **DOC.90 References R4: stand-in registry pages (every GEN.725 row, one page per stand-in with how it was made and decided, tier and level legends, filters, and the fitted-to-a-result page for L2 to L4 with tuning targets)**
@@ -20397,6 +20518,13 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   (section 6, R1 to R8). Wording and pages only: no epoch, no lock, no
   computed change, lock-free. Stand-ins already have rows, so no GEN.725
   change. Related: GEN.725. Owner: Sources 1.
+  Reference pages contract (Core 1, DOC.88 #4624) (2026-10-31 5:40 PM
+  EDT): Help > References is live at /references. To add a page: add a
+  file to BUILDERS in scripts/build_reference_pages.py and a route in
+  web/references_pages.py, and check every sentence with
+  plainwords.check_sentence(s, references=True). Editing
+  gap-filling-plan.md stand-in rows now also needs python
+  scripts/build_reference_pages.py.
   Prerequisites: DOC.88.
 
 - [ ] **DOC.91 References R5: method pages by area, what we have and lack, and the computed scorecard; /help/properties moves here with no redirect**
@@ -20414,7 +20542,14 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   properties page: generator, model. Delete those entries in the same PR
   that removes the words: an entry that no longer happens fails the
   test.
-  Prerequisites: DOC.88, DOC.90.
+  Reference pages contract (Core 1, DOC.88 #4624) (2026-10-31 5:40 PM
+  EDT): Help > References is live at /references. To add a page: add a
+  file to BUILDERS in scripts/build_reference_pages.py and a route in
+  web/references_pages.py, and check every sentence with
+  plainwords.check_sentence(s, references=True). Editing
+  gap-filling-plan.md stand-in rows now also needs python
+  scripts/build_reference_pages.py.
+  Prerequisites: DOC.90.
 
 - [ ] **DOC.92 References R6: move the speculative chemistry out of the life help and the air chart into /references/speculative, with per-class links (including the multi-class section for GEN.1209 and GEN.1213)**
   Boss (2026-10-31, as the coordinator relayed): a Help > References
@@ -20433,6 +20568,13 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   help: speculative, fitted, tier, tuned, generated, educated guess.
   Delete those entries in the same PR that removes the words: an entry
   that no longer happens fails the test.
+  Reference pages contract (Core 1, DOC.88 #4624) (2026-10-31 5:40 PM
+  EDT): Help > References is live at /references. To add a page: add a
+  file to BUILDERS in scripts/build_reference_pages.py and a route in
+  web/references_pages.py, and check every sentence with
+  plainwords.check_sentence(s, references=True). Editing
+  gap-filling-plan.md stand-in rows now also needs python
+  scripts/build_reference_pages.py.
   Prerequisites: DOC.88.
 
 - [ ] **DOC.93 References R7: strip model hints from the leftover pages (maps, sector estimates text, API docs strings) and add links at the important places**
@@ -20454,7 +20596,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   source line for the Urey ratio: model. Delete those entries in the
   same PR that removes the words: an entry that no longer happens fails
   the test.
-  Prerequisites: DOC.88, DOC.89, DOC.90, DOC.91.
+  Prerequisites: DOC.89, DOC.90, DOC.91.
 
 - [ ] **DOC.94 References R8: test lock: the page crawl proves no out-of-universe word outside References and every link resolves, in the gate for changed pages**
   Boss (2026-10-31, as the coordinator relayed): a Help > References

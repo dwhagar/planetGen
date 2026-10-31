@@ -2,6 +2,57 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3022] - 2026-10-31
+
+**Headline:** The "On this page" bar now sits under a page's tab bar.
+
+### Changed
+
+On the Generate screens the contents row used to appear above the Start, History and Work queue tabs. It now appears directly below them.
+
+## [8.0.3021] - 2026-10-31
+
+**Headline:** Every map is drawn on black in either theme: the Galaxy Map, the sector and System Maps (diagram and 3D), the Phenomena and navigation maps, the rendered picture of a world, and the nebula and phenomenon views.
+
+### Changed
+- **Black map backgrounds (Boss, 2026-10-31).** A new `--map-bg` token (black) is the background of every map viewport (`static/style.css`), where the maps used the page's themed panel colour, and two near-black navy fills (the 3D system view, the phenomenon picture) and two scene backgrounds (`nebulaview.js`, `phenomenonrender.js`) are black too. The rendered picture of a world on its page sits on black.
+- **Readable on black.** The map viewports always take the dark theme's colours (text, controls, accent), so labels and controls are light on black in the light theme as well. Ring, axis, compass and orbit lines use a new `--map-line` token that is 3:1 or more against black. The scripts no longer treat a map as light (`mapcore.isLightBackground()` is always false) and read the map's colours from a viewport (`mapcore.mapVar`).
+
+Display only: no generator output, schema or API change.
+
+generation-output: unchanged
+
+TODO items resolved: none. Follow-up for TODO to file: remove the light-theme branches in the map scripts that this leaves unused (`isLightBackground` and its callers, `nebulalook.js` light looks, the glow layer's `light` option, `sectorscene.js`'s `lightBackground` uniform).
+
+## [8.0.3020] - 2026-10-31
+
+**Headline:** The installer and updater no longer print advice about systemd memory settings or the MySQL redo log; the memory problem is solved in the program, not in the operating system.
+
+### Changed
+
+- `install.sh` and `update.sh` no longer run the redo log check (`scripts/redo_log_advice.py`, PERF.222) or the out-of-memory protection check (`scripts/oom_advice.py`, PERF.223), and both scripts, their tests and the INSTALL.md text that told you to add the `OOMScoreAdjust` drop-ins, the `MemoryHigh`/`MemoryMax` limit on `apache2.service` and the redo log capacity are removed (Boss, 2026-10-31, 6:07 PM and 6:09 PM EDT: no systemd drop-ins and no Apache memory limit, fix the memory use in code). Memory is held down by the worker caps (PERF.220, and PERF.226 for every stage). generation-output: unchanged
+
+## [8.0.3019] - 2026-10-31
+
+**Headline:** Help now ends with a References page, the one place that says where the numbers come from and how sure each part is, built from the registries and marked as out of the story.
+
+### Added
+- **Help > References, `/references` (DOC.88, References R2).** The last entry of the Help menu, after a divider. The start page opens with the Out of universe banner (`id="out-of-universe-banner"`), and the site header takes another tint (`body.references-mode`, new `--references-bg` and `--references-border` tokens in light and dark), so a reader always knows they have left the story. It shows what the section is, the headline shares computed from the stand-in registry (read from a source, unverified, educated guess from physics, chosen for the output, fitted to a result), how many papers, books and data sets are on the reference list and how many have a DOI page or an arXiv copy, and the nine source tiers and five tweak levels with their counts. It is a static page: no database and no script. It is in the sitemap lists (`seo.TOP`).
+- **`scripts/build_reference_pages.py`.** Writes `docs/references/overview.json` from `docs/reference/references-data.json` and the stand-in registry of the gap-filling plan (read with `build_stand_in_values.py`'s parser). `--check` fails when the committed file differs; later pages add their files to `BUILDERS`. The same bytes every build.
+- **`update.sh` step 3 builds the pages** (`build_reference_pages` in `deploy-common.sh`): on a current checkout it changes nothing; a failure only warns, now and in the closing warnings, and `/references` then says its pages are not built.
+- **`web/references_pages.py`, `web/lib/references_site.py`, `templates/references.html`, `docs/design/interface/references.md`** (the design, the page tree, the rules; indexed in `docs/design/README.md`), rows in `architecture.md`.
+
+### Changed
+- **`plainwords.check_sentence(sentence, references=True)`** reads a sentence of a References page: the process words (stand-in, tweak, epoch, placeholder) are allowed there and every other rule holds.
+- **`HELP_MENU` and `HELP_SECTIONS`** gain References; `base.html` gains a `body_class` block.
+- **`tests/test_references_crawl.py`:** the banner test no longer skips (a page exists), and the crawl reads `/references` too.
+
+`tests/test_references_pages.py` (18 tests) holds the build (same bytes, `--check`, counts equal the registry counted a second way), the page (banner, tint, menu order, guide), and the setup step. No generator output changes.
+
+generation-output: unchanged
+
+TODO items resolved: none (DOC.88 closes when this merges; the TODO thread owns the file).
+
 ## [8.0.3018] - 2026-10-31
 
 **Headline:** The stand-in row for the ice rheology now states the 40 to 90 kJ/mol activation range the Durham 1997 data support.

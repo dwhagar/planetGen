@@ -276,6 +276,7 @@ from . import facility_type_pages  # noqa: E402,F401 -- /admin/facility-types
 from . import system_page  # noqa: E402,F401 -- /admin/generate/system
 from . import population_pages  # noqa: E402,F401 -- /species, /polities
 from . import class_pages  # noqa: E402,F401 -- /classes, /classes/<type>, /classes/<type>/<code>
+from . import references_pages  # noqa: E402,F401 -- /references (DOC.88), the one section that speaks out of universe
 from . import maintenance_page  # noqa: E402,F401 -- /maintenance (UX.112)
 from . import galaxy_status_page  # noqa: E402,F401 -- /galaxy-status (UX.3)
 from . import object_lists  # noqa: E402,F401 -- /lists, /lists/<kind> (UX.141)

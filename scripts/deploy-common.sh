@@ -183,18 +183,6 @@ check_redis_settings() {
     "$PYTHON" "$SCRIPT_DIR/scripts/check_redis_settings.py" "$url" || true
 }
 
-# Prints how big MySQL's InnoDB redo log should be for the writes the server has seen (PERF.222): a log that is too
-# small makes the checkpointer lag (MY-014084) while a galaxy generates. Advice only: never changes MySQL, never fails.
-show_redo_log_advice() {
-    "$PYTHON" "$SCRIPT_DIR/scripts/redo_log_advice.py" || true
-}
-
-# Prints how to keep the kernel's out-of-memory killer off MySQL and Redis, and an optional memory limit for Apache's
-# unit, where the generation workers run (PERF.223). Advice only: never changes a unit, never fails.
-show_oom_advice() {
-    "$PYTHON" "$SCRIPT_DIR/scripts/oom_advice.py" || true
-}
-
 # Whether a Redis server answers PING at the URL in $1, using the redis
 # library install-python-deps.sh installed.
 redis_answers() {
@@ -864,6 +852,21 @@ check_math() {
         MATH_CHECK_FAILED=1
         echo "warning: the math check failed (above). Charted data may be wrong until it is fixed;" >&2
         echo "         run 'planetgen check-math -v' for every check." >&2
+    fi
+}
+
+# Builds the data of the References pages (DOC.88): `scripts/build_reference_pages.py` writes docs/references/*.json from the
+# reference list and the stand-in registry. The files are committed, so on a current checkout this changes nothing; it makes sure
+# a server never shows numbers older than its own registries. A failure only warns: /references then says its pages are not built.
+REFERENCE_PAGES_FAILED=0
+build_reference_pages() {
+    echo "Building the References pages:"
+    if "$PYTHON" "$SCRIPT_DIR/scripts/build_reference_pages.py"; then
+        REFERENCE_PAGES_FAILED=0
+    else
+        REFERENCE_PAGES_FAILED=1
+        echo "warning: the References pages could not be built (above); /references may show old numbers." >&2
+        echo "         run 'python3 scripts/build_reference_pages.py' to see why." >&2
     fi
 }
 

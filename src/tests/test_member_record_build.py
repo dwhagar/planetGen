@@ -35,7 +35,8 @@ def test_the_built_star_of_every_member_has_the_radius_the_tree_drew(count):
             multistar.draw_member_tree(placed, primary.age * GY, draw.Stream(seed), n_stars=count, pair_placed=True))
         for member in plan.lit_members[1:]:
             record = member_record.make(member.seed, member.initial_mass_solar, member.age_yr or primary.age * GY,
-                                        primary.metallicity_fe_h)
+                                        primary.metallicity_fe_h,
+                                        white_dwarf_mass_sol=stored_trees.helium_core_mass_sol(member))
             built = Star.from_record(record, SystemConfig(), name="Member")
             assert stored_trees.matches(built, member)
             assert _radius_au(built) == pytest.approx(member.radius_au, rel=1.0e-9)

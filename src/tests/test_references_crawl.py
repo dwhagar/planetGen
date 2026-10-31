@@ -16,7 +16,7 @@ Three things are held here.
   none carry its code. DOC.94 locks the crawl once DOC.93 lands.
 
 Every link into `/references` found by the crawl must resolve, and every page under `/references` must carry the Out of universe banner
-(`id="out-of-universe-banner"`); both are checked from the day the first References page (DOC.88) exists.
+(`id="out-of-universe-banner"`; the section is DOC.88, `tests/test_references_pages.py` holds its pages).
 """
 
 import re
@@ -161,12 +161,13 @@ def test_no_template_or_module_writes_a_references_address_by_hand():
     ("A stand-in was used.", ["stand-in"]),
     ("The values are fitted to a result; the model is a tweak of the last.", ["fitted", "model", "tweak"]),
     ("Speculative chemistry, tier T5, tweak L3.", ["speculative", "tier", "tweak"]),
-    ("An educated guess from the seed of the generator.", ["educated guess", "seed", "generator"]),
+    ("An educated guess from the random seed of the generator.", ["educated guess", "random seed", "generator"]),
+    ("A seeded run keeps its seed value and its seed number.", ["seeded", "seed value", "seed number"]),
     ("This version was generated and simulated.", ["version", "generated", "simulated"]),
     ("The Model atmosphere and the modeled and modelled models.", ["model", "modeled", "modelled", "models"]),
     ("Sea level and ground level are in universe.", []),
     ("The seed-based and tier-less words stay, as do the modelling-free ones and a frontier.", []),
-    ("Seeds fall; the seedling grows; a tiered garden, a tierce.", ["seeds"]),
+    ("A seed vault, the seeds of a plant, the seedling and a tierce are in universe.", []),
     ("The star is 5 pc away and the planet is about 1 AU out.", []),
 ])
 def test_the_checker_flags_the_out_of_universe_words_and_only_them(text, words):
@@ -225,7 +226,7 @@ def _read(html):
 
 def _paths():
     """The in-universe pages this suite can render without a database."""
-    paths = ["/help/habitability", "/help/properties", "/help/life", "/classes"]
+    paths = ["/help/habitability", "/help/properties", "/help/life", "/classes", "/references"]
     paths += [f"/help/life/{slug}" for slug, _title, _summary in life_help.TOPICS if slug != "kinds"]
     paths += [f"/help/life/classes/{number}" for number in range(1, 10)]
     if classref.preload():
@@ -314,8 +315,7 @@ def test_every_link_into_references_on_the_crawled_pages_resolves(app, crawl):
 
 def test_every_references_page_carries_the_out_of_universe_banner(app):
     routes = _references_routes(app)
-    if not routes:
-        pytest.skip("the References pages arrive with DOC.88; the banner is held from the day the first one exists")
+    assert "/references" in routes, "the start page of the section is gone"
     client = app.test_client()
     missing = [route for route in routes if BANNER not in client.get(route).get_data(as_text=True)]
     assert not missing, f"References pages without the Out of universe banner ({BANNER}): {missing}"
