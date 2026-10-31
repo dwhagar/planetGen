@@ -14374,6 +14374,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   row). From Aux 4
   (reports/gen535-magellanic-gas-remnants-2026-10-31.md). Output
   changing, a lock item built on a separate branch. Owner Aux 4.
+  Wording owed (2026-10-31 2:50 AM EDT): The GEN.1197 research of Aux 4
+  (reports/gen1197-faint-gas-dwarfs-2026-10-31.md) found Leo T holds
+  4.1e5 solar masses of HI but forms no stars now (Adams and Oosterloo
+  2018), so the generator already makes Leo T-like dwarfs as
+  non-forming. The GEN.1193 change note, design paragraph and section
+  6.134 say such dwarfs are not made; correct the wording in a docs-only
+  change after GEN.1193 merges.
   Prerequisites: none. Related: GEN.535.
 
 - [ ] **GEN.1194 Runaway greenhouse: the radiative-convective model has no plateau in outgoing flux, so water window opacity, continuum temperature dependence and wings must be reworked until it plateaus**
@@ -14435,26 +14442,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   clusters change), same epoch as the central ring item. Owner: Core 3
   (proposed).
   Prerequisites: GEN.1195.
-
-- [ ] **GEN.1197 Faint gas-bearing dwarfs far from the host: the star formation threshold stops anything under 1e7 solar masses, so Leo T-like dwarfs are never made**
-  Finding from Aux 4's GEN.1193 build (as the lane reported, 1:52 AM EDT
-  2026-10-31), filed by the TODO thread. Kind: generation result against
-  observation. Object: faint satellites (1e5 to 1e7 solar masses) of a
-  Milky Way mass halo beyond the stripping radius of about 270 kpc
-  scaled by the host's virial radius. Result: the star formation
-  threshold of 3 solar masses per pc2 stops any satellite under 1e7
-  solar masses forming stars at any age, so gas-bearing faint dwarfs
-  like Leo T (1e5 to 1e7 solar masses of HI, still forming stars) are
-  never made. Do: read the threshold's source for low-mass dwarfs (the
-  threshold is a surface density law that a faint dwarf's gas can sit
-  under while still forming stars in clumps), say what the sources give
-  for the lowest mass that forms stars with gas, and change the
-  threshold or its mass floor with a registered stand-in (GEN.725, tier
-  and tweak level); the Leo T case and the Grcevich and Putman 2009
-  detection fractions are the plausibility targets, never fixed content.
-  Lock work (satellite star formation changes). Prerequisites: GEN.1193
-  (its gas test). Owner: Aux 4 (proposed).
-  Prerequisites: GEN.1193.
 
 - [ ] **GEN.1198 The sector profile's remnant factor in a Magellanic Cloud cell uses the gas factor, so scatter and fill disagree with the satellite remnant count**
   Finding from Aux 4's GEN.1191 build (as the lane reported, 12:34 AM
