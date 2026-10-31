@@ -14683,6 +14683,21 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   migration. Low priority. Owner Aux 7, after GEN.1163 merges.
   Prerequisites: GEN.1163. Related: GEN.1163, GEN.725.
 
+- [ ] **GEN.1171 Ring lifetime by ring mass and planet instead of one fixed decay, because fallen-moon rings now persist on 13 percent of rocky planets**
+  From Tides 1 (GEN.1057 sweep, 60 systems): with rings tied to fallen
+  moons and comet passages, giants are ringed 15 of 47 and rocky planets
+  53 of 412 (13 percent, high). 26 percent of rocky planets lose a moon
+  to the star's tide (GEN.959), and a big early-fallen moon leaves a 1e7
+  to 1e13 kg ring even after 10 Gyr of 1/e decay (median ring age 10
+  Gyr). The 1/e per 0.5 Gyr decay is registered stand-in RO2 (L3).
+  Replace it with a ring lifetime that depends on ring mass and the
+  planet (viscous spreading, Poynting-Robertson drag, meteoroid
+  bombardment; Crida and Charnoz 2012 for the spreading and re-accretion
+  side), register the new rows in GEN.725 with tier and tweak level, and
+  re-run the 60-system sweep. Output changes, so train-bound after
+  GEN.1057 merges. Owner Tides 1.
+  Prerequisites: GEN.1057. Related: GEN.1057, GEN.959, GEN.725.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
