@@ -11,7 +11,7 @@ import pytest
 from planetgen import tuning
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
-from planetgen.physics import constants, interior_heat as ih, planets, radiogenic
+from planetgen.physics import constants, giant_heat, interior_heat as ih, planets, radiogenic
 from planetgen.util import draw
 
 from tests.fuzz_support import deterministic_entropy
@@ -202,7 +202,10 @@ def test_every_generated_rocky_body_stores_its_draws_and_an_urey_ratio_that_is_a
                 if body.body_type == "a":
                     continue
                 if body.body_type == "g":
-                    assert all(getattr(body, name) is None for name in (*ih.BODY_FIELDS, *ih.OUTPUT_FIELDS))
+                    # a giant has no rock to draw and no Urey ratio or tide; its own heat is what it radiates (GEN.810)
+                    assert all(getattr(body, name) is None for name in (*ih.BODY_FIELDS, "urey_ratio", "tidal_flux_w_m2"))
+                    planets.internal_heat_flux_w_m2(body)         # runs `update_heat` again, at the star's age now
+                    assert body.internal_heat_flux_w_m2 == giant_heat.of(body).flux_w_m2 > 0.0
                     continue
                 seen += 1
                 assert ih.interior_of(body) is not None
@@ -295,7 +298,7 @@ def test_the_stored_heat_is_the_heat_at_the_stars_final_age_not_the_provisional_
     """GEN.763: the star's age only rises after its planets are made, so a heat stored at the provisional age is wrong for the finished
     system (many bodies sat at the ceiling with a Urey ratio of 1.0, and a small moon showed 4.8). The life pass runs the model again."""
     seen = 0
-    for seed in (17, 3):
+    for seed in (17, 12):
         with deterministic_entropy(seed):
             draw.set_run_seed(seed)
             system = StarSystem(SystemConfig(), galactic_center_dist_ly=26000.0)
@@ -341,7 +344,7 @@ def test_a_generated_body_has_a_urey_ratio_above_one_only_while_its_mantle_is_st
     """A mantle that is warming loses less than it makes, so the ratio passes 1 only then (a moon of 0.0008 Earth masses at 3 Gy gives
     1.25), and a body past 8 Gy has settled. Over the sampled systems every body over 5e22 kg of a host past 2 Gy lies between 0.2 and 10 (a small moon whose drawn
     viscosity is near the top of the range, 3e13 Pa s and 299 kJ/mol, is still heating up at 4.7 Gy and gives 7.8, with or without its tide). A small body
-    (GEN.476: most stars are born with little aluminium-26, so a small body never had the early heat) can still be warming at any age: its ratio is only positive and finite."""
+    (GEN.476: most stars are born with little aluminium-26, so a small body never had the early heat) can still be warming at any age: its ratio is only positive and finite; so is a body whose surface is so cold (a moon of 570 km at 36 K) that its mantle only starts to convect late."""
     seen = 0
     for seed in range(12):
         with deterministic_entropy(seed):
@@ -356,7 +359,7 @@ def test_a_generated_body_has_a_urey_ratio_above_one_only_while_its_mantle_is_st
                     continue
                 seen += 1
                 assert 0.2 <= body.urey_ratio <= 10.0
-                if body.star.age >= 8.0:
+                if body.star.age >= 8.0 and ih.surface_of(body) > 100.0:
                     assert body.urey_ratio <= 1.0 + 1e-6
     assert seen > 10
 
