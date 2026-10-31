@@ -2212,3 +2212,9 @@ Baseline: PR #1817.
 | DOC.84 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | VIEW.9 | 8.9 | Sky data |
 | UX.158 | 9.0 | The headline |
+| MAP.277 | 9.0 | The headline |
+| TEST.523 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.528 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| UX.226 | 8.2 | Search by physical values |
+| PERF.196 | 8.2 | Generation records |
+| GEN.338 | 8.3 | Galactic gravity |

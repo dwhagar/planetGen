@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 967 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 970 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -39,13 +39,13 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T1 | 140 | 13 | 8 | 1 | 0 | 162 |
 | T2 | 112 | 36 | 0 | 1 | 0 | 149 |
 | T3 | 84 | 38 | 5 | 10 | 0 | 137 |
-| T4 | 37 | 5 | 0 | 15 | 10 | 67 |
+| T4 | 38 | 5 | 0 | 15 | 10 | 68 |
 | T5 | 44 | 17 | 0 | 1 | 0 | 62 |
-| T6 | 92 | 72 | 18 | 51 | 0 | 233 |
+| T6 | 92 | 72 | 20 | 51 | 0 | 235 |
 | T7 | 27 | 8 | 8 | 8 | 0 | 51 |
 | T8 | 0 | 1 | 1 | 5 | 1 | 8 |
 | T9 | 19 | 14 | 4 | 42 | 19 | 98 |
-| All | 555 | 204 | 44 | 134 | 30 | 967 |
+| All | 556 | 204 | 46 | 134 | 30 | 970 |
 
 ## How the labels were given
 
@@ -1396,6 +1396,14 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | PT1 | P | T9 | L0 | planet_type.TERRESTRIAL_MAX_ENVELOPE 0.005: an envelope under 0.5 percent of the mass is a terrestrial body (about the 1.6 Earth radii where rocky planets end) | 0.002 to 0.02 | planets and moons | a measured planet of 1.6 to 2 Earth radii that is rocky with no envelope, or a rocky world of 1.3 radii with a thick hydrogen envelope | the radius valley limit of GEN.722 read from the envelope the planet holds | Rogers 2015 and Fulton and Petigura 2018 (rocky limit near 1.6 Earth radii); Lopez and Fortney 2014 (envelope share against radius) | GEN.1219 | - |
 | PT2 | P | T9 | L0 | planet_type.GAS_MIN_ENVELOPE 0.5: an envelope of half the mass or more is a gas body (the line of bulk_structure.GIANT_ENVELOPE_FRACTION) | 0.3 to 0.7 | planets | a giant of Neptune's mass that is more than half envelope, or a Jupiter whose core outweighs its envelope | the envelope share the giant interior model gives (GEN.428) | Boss's choice of the pure rule; Neptune 10 to 15 percent envelope (Helled 2011) and Jupiter 90 percent or more | - | - |
+
+## 6.157 Stand-ins of the galactic potential
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| GP1 | P | T6 | L2 | potential.DISK_COMPONENTS: the thin disk, the thick disk and the nuclear disc are each one Miyamoto-Nagai disk of the component's mass with `a` its scale length and `b` its scale height | `a` 1 to 1.5 times the scale length, `b` 1 to 2 times the scale height | a galaxy whose disks are exponential in radius and height | a numerical potential of the exponential disk that differs from the Miyamoto-Nagai one by over 10 percent in the circular speed between 0.3 and 4 scale lengths | the potential of the exponential disk solved numerically (Poisson solver or the Bessel-function form of Freeman 1970) | Miyamoto and Nagai 1975 for the profile; the pairing with the exponential disk is the habit of Bovy 2015 (MWPotential2014 fits `a` = 3 kpc, `b` = 280 pc to a disk of 2.6 kpc scale length), recalled | GEN.342 | - |
+| GP2 | P | T6 | L2 | potential.HERNQUIST_COMPONENTS: the bulge (with its bar's long axis as the scale radius), the stellar halo (its break radius) and the nuclear cluster (its Hernquist scale) are each one Hernquist sphere of the component's mass | the bulge's scale 0.5 to 2 times the density model's long axis | a bar or spheroid whose mass within a few scale radii is spherical enough | a bar's own potential (the three axes) that differs from a sphere's in the plane by over 10 percent between 0.3 and 3 scale lengths | the triaxial bar potential of the density model (a Poisson solve on the grid of `enclosed_mass`) | Hernquist 1990 for the profile; the bulge density model's long axis as scale is this lane's choice | GEN.342 | - |
+| GP3 | P | T4 | L0 | potential.BLACK_HOLE_SOFTENING_PC 1.0: the central black hole is a Plummer point of 1 pc softening, the only softened part of the potential | 0.1 to 3 pc | a hole of 1e5 to 1e10 solar masses | an orbit within 1 pc of the hole whose pericentre matters | the post-Newtonian orbit of a star near the hole | Boss's rule in GEN.338: Plummer softening of 1 pc for the central black hole only | GEN.342 | - |
 
 ## 6.155 Stand-ins of the life readings
 

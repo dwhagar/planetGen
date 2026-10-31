@@ -2,6 +2,70 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2955] - 2026-10-31
+
+**Headline:** The galaxy now has one pure module for its pull and its rotation curve, built from the galaxy's own masses.
+
+### Changed
+- **The galactic potential (GEN.338).** `planetgen/galaxy/potential.py` gives the potential, the pull (finite at the centre) and the circular speed of a generated galaxy from Hernquist spheres (the bulge, the stellar halo, the nuclear cluster), Miyamoto-Nagai disks (thin, thick and nuclear) and an NFW dark halo, with the central black hole softened at 1 pc. Every mass and scale comes from the galaxy's density components and its mass chain, so the rotation curve is a result, not a constant; a component of mass zero is legal. The matching of the density model to those three profiles is registered as stand-in rows GP1 to GP3. Nothing reads it yet: the acceleration kernel (GEN.342), the star stepper (GEN.340) and the velocity seeding (GEN.339) do, so generation output does not change. The dark halo's parameters moved into `enclosed_mass.dark_halo` so the enclosed mass and the potential use the same halo.
+
+generation-output: unchanged
+
+## [8.0.2954] - 2026-10-31
+
+**Headline:** The search can now keep and order planets, moons and stars by their stored physical values, with the bounds given in the unit you choose.
+
+### Added
+- **Range filters on physical values.** `GET /api/search` takes `planet_min_gravity=0.8&planet_max_gravity=1.2&planet_max_surface_dose=2` (and the same with `moon_` or `star_` in front) to keep the bodies whose gravity is 0.8 to 1.2 g and whose surface dose is under 2 mSv a year. The keys are gravity, surface temperature, surface pressure, surface dose, magnetic moment, ocean depth, orbit distance, day length, rotation period, year length, mass, the number of moons, the partial pressure of each atmosphere gas, and for stars luminosity, age and temperature. A bound may be given in any unit of its kind with `<entity>_<key>_unit` (pressure in kPa instead of bar).
+- **Sorts on the same values.** `planet_sort=gravity` orders a panel smallest first, `-gravity` largest first; a body with no value comes last.
+- **The answer says what it used.** Each row carries the values of the keys the request used, with their units, and the answer lists every key (`values`) and the ranges applied (`active_ranges`).
+
+### Changed
+- **Search parameters are checked.** A bound that is not a number, a minimum above the maximum or a unit of the wrong kind answers `400` with the reason.
+
+## [8.0.2953] - 2026-10-31
+
+**Headline:** A System Map test that compared a planet's glow under two stars now compares the right thing, so main is green again.
+
+### Changed
+- **Glow test (TEST.528).** `test_a_planet_and_its_moon_glow_in_the_colour_of_their_air_under_their_own_star` compared the blue channel of the limb glow under a Sun-like star and under a red dwarf. The glow colour is scaled so its brightest channel is 255, so the blue channel was 255 under both stars and the test could not tell them apart. It now compares how much bluer than red each glow is (the Sun's air is clearly blue, a red dwarf's is whiter). No code changes.
+
+No generator output changes.
+
+generation-output: unchanged
+
+TODO items resolved: TEST.528.
+
+## [8.0.2952] - 2026-10-31
+
+**Headline:** The orbital event writer exists: a collision found between two bodies can now be turned into a stored event, with the object-ID rules.
+
+### Changed
+- **The orbital event writer (GEN.197).** `planetgen/db/orbital_events.py` asks the pair closest-approach library whether two bodies' stored paths come within the sum of their radii in the update's window (`find_contact`), resolves the hit with the collision outcome table (`resolve_contact`) and writes it as one `orbital_events` row with its `orbital_event_bodies` rows (`record_event`): the event kind, the numbers it was decided from, a mass and momentum check worked out from the outcome, the participants and the products, and one line in the activity log. The ID rules are in it: a merger keeps the heavier body's ID and retires the other, an ejected planet keeps its ID, the field a collision makes takes a new run-time ID, and a destroyed body's ID is never handed out again. No migration; nothing calls it yet, because the orbital update that finds the pairs is a later item, so generation output does not change.
+
+generation-output: unchanged
+
+## [8.0.2951] - 2026-10-31
+
+**Headline:** Star 2's eighteen functions that only tests called now each have an owner: three deleted, two named to the photometry library, one to a star page item, twelve marked as test readers.
+
+### Changed
+- **Deleted three functions only tests called (TEST.523).** `stellar_evolution.main_sequence_end_luminosity_sol` (its tests read `main_sequence.end_state(mass, fe_h).luminosity_sol`, the one line it returned), `stellar_abundances.solar_metal_fraction` (the value stays as the private Z0 the metal ratio divides by; its test reads `composition(0.0, {}).z`) and `stellar_composition.cluster_key` (the cluster test spells the key `"cluster:33"`).
+- **`docs/design/research/wiring-register.md`: eighteen lines no longer name TEST.520.** `photometry.blackbody_colour` and `photometry.bolometric_correction_v` name VIEW.11 (the photometry library reads them); `stellar_composition.star_makeup` names UX.254 (a star's chemistry on its page); twelve are `by design` with the reader named: the sampler, expected-share and published-table checks of their tests, the plausibility gate, and the neutron star table build script.
+
+No generator output changes.
+
+generation-output: unchanged
+
+TODO items resolved: none (TEST.523 closes when this merges; the TODO thread owns the file).
+
+## [8.0.2950] - 2026-10-31
+
+**Headline:** A world's atmosphere now shows in its picture: no air has no glow and a hard day and night line, thin air almost none, thick air a wide glow and a soft dusk.
+
+### Changed
+- **The glow of an atmosphere follows its air (MAP.277).** The look record carries `glowStrength`, `glowWidth` and `twilight` worked from the stored pressure, gravity and gases (`bodylook.air_glow`). The body view draws the halo at that strength and width and softens the terminator by the twilight; the System Map and the 3D system view draw the glow shell at that strength and width and light the night side by the twilight (a world with no air has a dark night side). Before, every body with air had the same glow and every body the same terminator. A rogue planet has none of these (no star lights its air).
+
 ## [8.0.2949] - 2026-10-31
 
 **Headline:** The wiring guard now also finds a stored column nothing reads and a public function only tests call, and today's findings are named in the register.

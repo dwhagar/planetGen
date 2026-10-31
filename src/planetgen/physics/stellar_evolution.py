@@ -114,13 +114,6 @@ def _piecewise_luminosity_sol(pieces, mass_sol):
             return piece["coeff"] * mass_sol ** piece["exponent"]
 
 
-def main_sequence_end_luminosity_sol(mass_sol, fe_h=0.0):
-    """The luminosity (Lsun) a star of initial mass `mass_sol` and birth [Fe/H] `fe_h` has as it leaves the main
-    sequence, its brightest on it: the MIST row (`main_sequence.end_state`, GEN.652). A subgiant starts from it and a
-    supergiant brightens from it."""
-    return main_sequence.end_state(mass_sol, fe_h).luminosity_sol
-
-
 @functools.lru_cache(maxsize=1 << 19)
 def main_sequence_bright_from_gy(mass_sol, min_luminosity_sol, t_ms_gy, fe_h=0.0):
     """
