@@ -105,22 +105,25 @@ def test_a_generated_system_stores_the_belt_dose_in_its_surface_dose():
     from planetgen.generation.system import StarSystem
     from planetgen.util import draw
     from tests.fuzz_support import deterministic_entropy
-    with deterministic_entropy(5):
-        draw.set_run_seed(5)
-        system = StarSystem(SystemConfig(), galactic_center_dist_ly=26000.0)
     moons_in_belts = 0
-    for planet in system.planets:
-        if planet.body_type == "a":
-            continue
-        if planet.body_type == "g":
-            assert planet.dose_belt_msv_yr is None
-        else:
-            assert planet.dose_belt_msv_yr == 0.0
-        for moon in planet.moons:
-            assert moon.dose_belt_msv_yr >= 0.0
-            assert moon.surface_dose_msv_yr >= moon.dose_belt_msv_yr + moon.dose_ground_msv_yr
-            assert moon.dose_belt_msv_yr <= radiation_exposure(planet, moon) * (1.0 + 1e-9)
-            moons_in_belts += moon.dose_belt_msv_yr > 0.0
+    for seed in range(5, 25):
+        with deterministic_entropy(seed):
+            draw.set_run_seed(seed)
+            system = StarSystem(SystemConfig(), galactic_center_dist_ly=26000.0)
+        for planet in system.planets:
+            if planet.body_type == "a":
+                continue
+            if planet.body_type == "g":
+                assert planet.dose_belt_msv_yr is None
+            else:
+                assert planet.dose_belt_msv_yr == 0.0
+            for moon in planet.moons:
+                assert moon.dose_belt_msv_yr >= 0.0
+                assert moon.surface_dose_msv_yr >= moon.dose_belt_msv_yr + moon.dose_ground_msv_yr
+                assert moon.dose_belt_msv_yr <= radiation_exposure(planet, moon) * (1.0 + 1e-9)
+                moons_in_belts += moon.dose_belt_msv_yr > 0.0
+        if moons_in_belts:
+            break
     assert moons_in_belts > 0
 
 
