@@ -764,7 +764,7 @@ Parents marked "new parent" had no old number of their own.
 | DOC.93 | References R7: strip model hints from the leftover pages (maps, sector estimates text, API docs strings) and add links at the important places | none | open |
 | DOC.94 | References R8: test lock: the page crawl proves no out-of-universe word outside References and every link resolves, in the gate for changed pages | none | open |
 | DOC.95 | References R3b (very important, first, ahead of the page build): tie every unmatched citation to its real paper, or label it not a paper, in batches by heaviest first | none | done, PR #4603 |
-| DOC.96 | Remove every reference to a paper that did not resolve, and rewrite the text so it reads naturally without it | none | open |
+| DOC.96 | Remove every reference to a paper that did not resolve, and rewrite the text so it reads naturally without it | none | done, PR #4638 |
 | GEN.1 | Real-world rates for interstellar objects | 5 (2026-09-30 18:14Z to 23:21Z) | done in 7.18.0, PR #136 |
 | GEN.2 | Rogue planet mass bins | 6 (2026-09-30 18:14Z to 23:21Z) | done in 7.18.0, PR #136 |
 | GEN.3 | A supermassive black hole in every galaxy | 7 (2026-09-30 18:14Z to 22:54Z) | done in 7.15.0, PR #132 |

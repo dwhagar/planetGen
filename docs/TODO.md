@@ -20920,30 +20920,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   EDT): code built for a pending feature stays.
   Prerequisites: none. Related: VIEW.1, MAP.167, GEN.421.
 
-- [ ] **DOC.96 Remove every reference to a paper that did not resolve, and rewrite the text so it reads naturally without it**
-  Boss (standing decision, relayed by the coordinator 4:19 PM EDT
-  2026-10-31): "remove any and all references to papers that did not
-  resolve, assume unresolved papers do not exist and rewrite all text to
-  remove them." After DOC.95 (#4603) the REFERENCES pages list 3,190
-  citations tied to a paper, 227 labelled not a paper and 1,354 for
-  review (what was tried is recorded on each). Do: first let the
-  OpenAlex and Semantic Scholar pass run if Boss supplies the free keys
-  (not yet supplied); then, for every citation still unresolved, remove
-  it from all project text (docs, design notes, help pages, code
-  comments and strings, TODO items, reports) and rewrite the sentence so
-  it reads naturally without it, treating the paper as nonexistent: a
-  value that rested only on that paper becomes a registered stand-in in
-  GEN.725 with the tier and tweak level it deserves without a source,
-  never an invented citation. Do not touch citations that are tied or
-  labelled not a paper. Done: no unresolved author-year citation remains
-  in the text, the DOC.95 test passes with the for-review group empty,
-  and the report lists the counts removed and the doc links. Lock-free
-  for text; a code string that is shown in the app is checked against
-  the plain-words rules (Oxford comma, no out-of-universe words outside
-  References). Owner: Sources 1 (it holds the lists; the earlier removal
-  thread could not be found).
-  Prerequisites: none. Related: DOC.95, DOC.89, GEN.725.
-
 ## POP: Population and politics
 
 Population, species and polities (POP.1 to POP.6) shipped in PRs #169 to
