@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 980 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 982 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -41,11 +41,11 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T3 | 84 | 38 | 5 | 10 | 0 | 137 |
 | T4 | 40 | 5 | 0 | 15 | 10 | 70 |
 | T5 | 44 | 17 | 0 | 1 | 0 | 62 |
-| T6 | 94 | 72 | 20 | 51 | 0 | 237 |
-| T7 | 27 | 8 | 8 | 8 | 0 | 51 |
+| T6 | 94 | 73 | 20 | 51 | 0 | 238 |
+| T7 | 28 | 8 | 8 | 8 | 0 | 52 |
 | T8 | 0 | 1 | 1 | 5 | 1 | 8 |
 | T9 | 21 | 14 | 4 | 44 | 21 | 104 |
-| All | 562 | 204 | 46 | 136 | 32 | 980 |
+| All | 563 | 205 | 46 | 136 | 32 | 982 |
 
 ## How the labels were given
 
@@ -1396,6 +1396,13 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | PT1 | P | T9 | L0 | planet_type.TERRESTRIAL_MAX_ENVELOPE 0.005: an envelope under 0.5 percent of the mass is a terrestrial body (about the 1.6 Earth radii where rocky planets end) | 0.002 to 0.02 | planets and moons | a measured planet of 1.6 to 2 Earth radii that is rocky with no envelope, or a rocky world of 1.3 radii with a thick hydrogen envelope | the radius valley limit of GEN.722 read from the envelope the planet holds | Rogers 2015 and Fulton and Petigura 2018 (rocky limit near 1.6 Earth radii); Lopez and Fortney 2014 (envelope share against radius) | GEN.1219 | - |
 | PT2 | P | T9 | L0 | planet_type.GAS_MIN_ENVELOPE 0.5: an envelope of half the mass or more is a gas body (the line of bulk_structure.GIANT_ENVELOPE_FRACTION) | 0.3 to 0.7 | planets | a giant of Neptune's mass that is more than half envelope, or a Jupiter whose core outweighs its envelope | the envelope share the giant interior model gives (GEN.428) | Boss's choice of the pure rule; Neptune 10 to 15 percent envelope (Helled 2011) and Jupiter 90 percent or more | - | - |
+
+## 6.162 Stand-ins of the temperature a body took its shape at
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| SHT1 | D | T7 | L0 | shape_temperature.ICE_SPECIFIC_HEAT 1700 J/(kg K): the heat capacity of the ice of a body (ice Ih is about 1500 at 160 K and 2100 at 273 K) | 1500 to 2100 | icy bodies between 150 and 273 K | a measured heat capacity of the ice of a body outside 1500 to 2100 | a temperature-dependent ice heat capacity read from a table | recalled from the known range of ice Ih; not read | GEN.1201 | - |
+| SHT2 | P | T6 | L1 | shape_temperature.WINDOW_SHAPE_FACTOR pi^2: the heat a body keeps is the heat its rock makes in `R^2 / (pi^2 kappa)`, the decay time of the first conduction mode of a sphere; the heat is spread over the whole body, so the temperature is the centre's, an upper bound for the mean | factor 3 to 20 | any solid body | a thermal-history run (`interior_heat`) of a 10 to 100 km body whose peak mean temperature differs from this by more than 300 K | the peak temperature of the thermal history of `interior_heat`, once it follows planetesimals | a model choice of the item: the steady-state balance `h R^2 / (6 kappa)` gives 1.6 times the heat of this window, so the window is the smaller | GEN.1201 | - |
 
 ## 6.161 Stand-ins of the mass of an asteroid field
 
