@@ -18526,31 +18526,6 @@ clears each one.
   (proposed), after TEST.417.
   Prerequisites: none. Related: TEST.463, TEST.468, GEN.842.
 
-- [ ] **TEST.472 Four migration tests are red on clean main: aerosols same-seed draws, albedo_greenhouse saved-system temperature, and two gas_tables tests (AsteroidBelt has no attribute moons) (bug)**
-  Reported by Bug 2 (as the lane reported, 7:36 AM EDT 2026-10-30),
-  checked on a worktree of origin/main after train 3 with ozone_uv
-  fetched:
-  test_migration_aerosols::test_the_same_seed_draws_the_same_aerosols_and_they_move_no_other_draw
-  (list comparison fails),
-  test_migration_albedo_greenhouse::test_a_saved_system_keeps_its_draws_and_the_temperature_follows_them
-  (assert 2000.0 == 2346.97),
-  test_migration_gas_tables::test_a_saved_system_keeps_every_bodys_air
-  and ::test_a_v154_galaxy_gets_its_air_in_the_child_tables
-  ('AsteroidBelt' object has no attribute 'moons' at
-  test_migration_gas_tables.py:30). Do: for each, find whether a
-  generator change since the test was written (the star epoch, GEN.846
-  rotation, GEN.849 delivered water, GEN.916 temperate aim) moved the
-  draw and the expectation must follow, or the product is wrong; for the
-  AsteroidBelt case the test fixture reads a field belts no longer have;
-  fix the right side with the reason recorded and never loosen a check
-  past what the change explains. Done: all four pass on main. Related:
-  TEST.463, TEST.468, TEST.469, TEST.470. Owner: Bug 2 (proposed), after
-  TEST.417.
-  Seen again (3:52 PM EDT 2026-10-30): test_migration_albedo_greenhouse
-  is still red after train 4 (Bug 2, relayed 3:52 PM EDT 2026-10-30 as
-  the lane reported).
-  Prerequisites: none. Related: TEST.463, TEST.468, TEST.469, TEST.470.
-
 - [ ] **TEST.479 test_radiative_convective_real::test_earth_sends_out_what_it_absorbs fails on the train 4 branch: the Earth tropopause temperature is 168.33 K against the test bound of 170 to 230 K (bug)**
   Found by Bug 2's train 4 gate (relayed 2:08 PM EDT 2026-10-30 as the
   lane reported): earth.tropopause_temperature_k is 168.33 K, outside
