@@ -10,9 +10,10 @@ condensable gases and the carbonate-silicate cycle, and the pressure depends on 
 GEN.422 fixes, repeating until the pressure and the temperature stop moving:
 
 1. *Mixture.* The mixture draw (`mixture_draw.draw_mixture`) at the temperature and pressure of the step, over the element budget the
-   interior has degassed (`surface_pressure.degassed_share` of each element's inventory) less what the sinks take: the sulfate and sulfide sinks of the crust take sulfur (`sulfur_balance`, which the ocean then dissolves
-   some of, `mixture_sinks`), and the carbonate cycle takes the carbon that weathering locks up at the temperature
-   (`surface_pressure.carbonate_pco2_bar`).
+   interior has degassed (`surface_pressure.degassed_share` of each element's inventory) and the late accretion left (`surface_pressure.impact_inventory`, GEN.819: the carbon
+   and nitrogen the leftover planetesimals brought and did not erode) less what the sinks take: the sulfate and sulfide sinks of the crust take sulfur
+   (`sulfur_balance`, which the ocean then dissolves some of, `mixture_sinks`), and the carbonate cycle takes the carbon that weathering locks up at the
+   temperature (`surface_pressure.carbonate_pco2_bar`), the carbon of the impacts as well as the degassed.
 2. *Pressure.* The moles of gas are an air mass, `P = g M_air / (4 pi R^2)`, and the gas that stays is what the light-gas escape
    (`mixture_escape`) leaves. The escape stays out until the fixed point has settled without it; it then compares its loss to
    that settled pressure and the fixed point goes on with the loss in it (a loss compared to the pressure of the step before is
@@ -30,7 +31,7 @@ solution back and forth. A giant, a brown dwarf and an envelope have no surface:
 and the mixture there is drawn from the layer temperature of the body, not from the temperature the step solves, so one step is the
 solution. The vapour over a melt or an ice sets its own pressure.
 
-What it does not do: the magma-ocean epoch, impacts, non-thermal escape of the heavy gases (the retention rows stand in), the seafloor
+What it does not do: the magma-ocean epoch, the water the impacts brought (the hydrosphere's draw holds the body's water once, GEN.819), non-thermal escape of the heavy gases (the retention rows stand in), the seafloor
 weathering of an ocean world, a tectonic switch of the heat loss, the helium-rain share of a giant's own heat (GEN.810: its temperature at the reference
 level radiates the absorbed starlight and the cooling-law heat of `giant_draw.own_flux_w_m2`, GEN.816).
 """
@@ -39,7 +40,7 @@ import math
 from dataclasses import dataclass, field
 
 from planetgen.physics import (
-    aerosols, atmosphere, atmosphere_state, clathrate_brine, constants, gas_equilibrium, gases, giant_draw, greenhouse, hydrosphere, interior_heat, mixture_draw,
+    aerosols, atmosphere, atmosphere_state, clathrate_brine, constants, gas_equilibrium, gases, giant_draw, greenhouse, hydrosphere, impact_history, interior_heat, mixture_draw,
     mixture_escape, mixture_rocky,
     mixture_sinks, mixture_subject, radiogenic, saturation, sulfur_balance, surface_pressure, waterworld_carbon,
 )
@@ -116,6 +117,11 @@ FREEZE_PASSES = 100
 
 # --- the design constants -----------------------------------------------------------------------------------------------------
 
+IMPACT_CO2_CAP_BAR = 1.0
+"""float: The most CO2 the air of a body with a water reservoir keeps through the late accretion, bar: the rest is held in the ground, the ocean or an ice
+cap and is not eroded (Sakuraba et al. 2019 section 2.3 take 1 bar for the Earth and 3 for Mars). It sets only how much the later impacts erode, not
+how much carbon the surface holds. Stand-in, tier 6, tweak level 1; registry row AM85."""
+
 REFERENCE_PRESSURE_BAR = 1.0
 """float: The pressure of the reference level of a body with no surface: the 1 bar level that the radius and the temperature of a giant
 refer to (Jupiter's equatorial radius is the 1 bar one). A convention, not a stand-in."""
@@ -174,6 +180,8 @@ class Setting:
         haze_draws (HazeDraws or None): The body's haze draws (`aerosols.draw_haze_draws` of `aerosols.haze_stream_of`), `None` for a setting
             whose air makes no haze (the haze takes sunlight aloft, GEN.851).
         star_temperature_k (float or None): The star's effective temperature, whose blackbody the haze's share of the sunlight is weighted by.
+        orbital_speed_ms (float or None): The speed of the body round its star, m/s, which sets how hard the leftover planetesimals hit
+            (`impact_history.impact_speed_ms`); `None` for a body with no star, which takes no late accretion (GEN.819).
     """
 
     gravity_m_s2: float
@@ -193,6 +201,7 @@ class Setting:
     internal_flux_w_m2: float = 0.0
     haze_draws: object = None
     star_temperature_k: object = None
+    orbital_speed_ms: object = None
 
     @property
     def area_m2(self):
@@ -446,9 +455,10 @@ def water_world_of(setting, design):
     return WaterWorld(sealed=sealed, draws=draws, law=law)
 
 
-def _shares(setting, efficiencies, cycle, sulfur, ocean, weathers, temperature_k, water_world):
+def _shares(setting, efficiencies, cycle, sulfur, ocean, weathers, temperature_k, water_world, late):
     """The `supply` callable of one step: the share of each delivered element that the surface holds at `temperature_k`. `sulfur` is
-    `(lifetimes, age_s, oxidised_share)` for the sulfate and sulfide balance (`sulfur_balance`)."""
+    `(lifetimes, age_s, oxidised_share)` for the sulfate and sulfide balance (`sulfur_balance`); `late` is the carbon and nitrogen the late accretion
+    left (`_late_accretion`), atoms per 100 g of mantle, that the share of an element adds to its degassed share (the gas is at the surface already)."""
     released = setting.released_at_seal_j if water_world.sealed else setting.released_j
     base = surface_pressure.degassed_share(released, setting.mantle_kg)
     moles_per_100_g = setting.mantle_kg / 0.1
@@ -466,6 +476,9 @@ def _shares(setting, efficiencies, cycle, sulfur, ocean, weathers, temperature_k
         degassed_hydrogen = inventory.get("H", 0.0) * shares_.get("H", 0.0) * moles_per_100_g
         if degassed_hydrogen > mantle_hydrogen_mol:  # GEN.837: volcanoes bring up no more hydrogen than MANTLE_OUTGAS_SHARE of the mantle's water holds
             shares_["H"] *= mantle_hydrogen_mol / degassed_hydrogen
+        for element, atoms in late.items():
+            if inventory.get(element, 0.0) > 0.0:
+                shares_[element] = shares_.get(element, 0.0) + atoms / inventory[element]
         carbon = inventory.get("C", 0.0) * shares_.get("C", 0.0) * moles_per_100_g
         if weathers and carbon > 0.0:
             supply_bar = carbon * gases.gas("CO2").molar_mass * setting.gravity_m_s2 / setting.area_m2 / 1.0e5
@@ -484,6 +497,34 @@ def _shares(setting, efficiencies, cycle, sulfur, ocean, weathers, temperature_k
         return shares_
 
     return shares
+
+
+def _late_accretion(setting, design):
+    """
+    The carbon and nitrogen the late accretion left at the surface of a body, atoms per 100 g of its mantle (GEN.819): the leftover planetesimals
+    that hit after the giant impacts brought them and eroded the air that was there (`impact_history.veneer_balance`, the air and the part held in
+    the ground, the ocean or an ice cap, `surface_pressure.impact_inventory`). Empty for a giant, a body with no mantle or one with no star, whose
+    leftover planetesimals this does not know.
+
+    The water is left out: the body's water is the hydrosphere's one draw (`Setting.water_kg`, `mantle_water_kg`), the delivered bulk water that the
+    impactors are part of, and adding the veneer's would count it twice; the impacts still erode the air, the water of it as well. The temperature of
+    the accretion is the body's equilibrium temperature, which sets the scale height only.
+
+    Draws from the ambient stream (the accreted mass and the veneer scale, recorded in `design`).
+    """
+    if setting.giant or setting.orbital_speed_ms is None or setting.mantle_kg <= 0.0:
+        return {}
+    mass_kg = setting.gravity_m_s2 * setting.radius_m ** 2 / constants.G
+    fraction = impact_history.late_accreted_fraction(mass_kg / constants.EARTH_MASS_TO_KG, design)
+    volatiles = impact_history.veneer_volatiles(design)
+    temperature_k = setting.effective_temperature_k
+    caps = {}
+    if setting.water_kg > 0.0:    # a reservoir holds the excess: an ocean or an ice cap, and the carbonate cycle for the CO2
+        caps = {"H2O": saturation_limit_pa("H2O", temperature_k), "CO2": IMPACT_CO2_CAP_BAR * 1.0e5}
+        caps = {species: cap for species, cap in caps.items() if cap != math.inf}
+    balance = impact_history.veneer_balance(mass_kg, setting.radius_m, temperature_k, fraction, volatiles, setting.orbital_speed_ms, caps_pa=caps)
+    held = surface_pressure.impact_inventory(balance, setting.mantle_kg)
+    return {element: held[element] for element in ("C", "N")}
 
 
 def _draw_stream(seed):
@@ -522,6 +563,7 @@ def solve(setting, start_temperature_k):
     skin_m = bracket(design, "hydrate_skin_m", (*clathrate_brine.HYDRATE_SKIN_RANGE_M, "log"))
     seed = draw.getrandbits(64)
     geology = long_lived_geology(setting.heat_flux_w_m2)
+    late = _late_accretion(setting, design)
 
     temperature = max(constants.COSMIC_BACKGROUND_TEMPERATURE_K, start_temperature_k)
     ln_pressure = math.log(REFERENCE_PRESSURE_BAR * 1.0e5 if setting.giant else FIRST_PRESSURE_PA)
@@ -549,7 +591,7 @@ def solve(setting, start_temperature_k):
         weathers = _weathers(setting, reservoir_left, temperature)
         subject = setting.subject_of(temperature, pressure / 1.0e5, ocean, geology)
         shares = _shares(setting, efficiencies, cycle, (lifetimes, setting.age_gy * GY_S, oxidised_share), ocean, weathers, temperature,
-                         water_world)
+                         water_world, late)
         try:
             with _draw_stream(seed):
                 mixture = mixture_draw.draw_mixture(subject, recipe_subject=recipe_subject, supply=shares, escape=escape_bar is not None,
@@ -681,7 +723,11 @@ def setting_of(body, *, albedo, starlight_w_m2, star_distance_au, heat, surface_
     gravity = body.gravity * constants.EARTH_GRAVITY
     rock = radiogenic.rock_of(body)
     flux = 0.0 if heat is None else heat.flux_w_m2
-    age_gy = getattr(getattr(body, "star", None), "age", None) or tuning.ROGUE_EARTH_REFERENCE_AGE_GY
+    star = getattr(body, "star", None)
+    age_gy = getattr(star, "age", None) or tuning.ROGUE_EARTH_REFERENCE_AGE_GY
+    star_mass_kg = getattr(star, "mass", None)
+    orbital_speed = (math.sqrt(constants.G * star_mass_kg / (star_distance_au * constants.AU_M))
+                     if star_mass_kg and star_distance_au and star_distance_au > 0.0 else None)
 
     def subject_of(ts_k, pressure_bar, ocean_present, long_lived_geology):
         return mixture_subject.subject_of_body(body, ts_k=ts_k, pressure_bar=pressure_bar, ocean_present=ocean_present,
@@ -699,4 +745,4 @@ def setting_of(body, *, albedo, starlight_w_m2, star_distance_au, heat, surface_
         bulk_water_fraction=0.0 if giant else (body.water_mass_fraction or 0.0), giant=giant,
         internal_flux_w_m2=giant_draw.own_flux_w_m2(body) if giant else 0.0,
         haze_draws=aerosols.draw_haze_draws(aerosols.haze_stream_of(body)),
-        star_temperature_k=getattr(getattr(body, "star", None), "temperature", None))
+        star_temperature_k=getattr(star, "temperature", None), orbital_speed_ms=orbital_speed)
