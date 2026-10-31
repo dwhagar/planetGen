@@ -963,3 +963,12 @@ WARM_OPENING_WAIT_SECONDS=5 wait_for_warm_opening
     result = subprocess.run(["bash", "-c", script], capture_output=True, text=True, timeout=60)
     assert "The opening phase is built" in result.stdout
     assert "ended before its opening phase" in result.stderr
+
+
+def test_every_wait_in_the_update_says_what_it_waits_for_and_for_how_long():
+    """Boss, 10-30 EDT: a long step or a wait that prints nothing looks like a hang."""
+    common = (pathlib.Path(REPO_DIR) / "scripts" / "deploy-common.sh").read_text()
+    for words in ("Working out the cluster system masses", "Running the math check", "Importing the web app as",
+                  "at most $(( ${WARM_OPENING_WAIT_SECONDS:-1200} / 60 )) minutes", "Giving the workers",
+                  "asking again,", "Testing Apache's configuration, then"):
+        assert words in common, words

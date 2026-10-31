@@ -70,8 +70,8 @@
 # the site's caches in the background (`planetgen warm`, MAP.134, PERF.104 and PERF.127):
 # the Galaxy Map's opening view, the lists, the sector, system and phenomenon pages and
 # the search, so the first visit after the update is fast. Before it reloads it waits
-# (at most 20 minutes) until the first phase, the opening views, is built, then reloads,
-# waits 10 seconds and checks /api/health; the other phases go on after the update ends.
+# (at most 20 minutes) until the first phase, the opening views, is built, waits 5 seconds (UPDATE_SETTLE_SECONDS), reloads,
+# waits 10 seconds (HEALTH_SETTLE_SECONDS) and checks /api/health; the other phases go on after the update ends.
 #
 # Steps 2, 3 and 6 share their code with install.sh (scripts/), so the
 # two can't disagree about what a working server needs. `sudo
@@ -299,6 +299,8 @@ if [[ "$before" == "$after" ]] && (( ! APACHE_NEEDS_RESTART )); then
 else
     UPDATE_STEP="waiting for the cache warm-up's opening phase"
     wait_for_warm_opening
+    echo "The update steps are finished: waiting ${UPDATE_SETTLE_SECONDS:-5} seconds before reloading the site."
+    sleep "${UPDATE_SETTLE_SECONDS:-5}"
     UPDATE_STEP="reloading what serves the site and checking that it answers /api/health"
     reload_status=0
     reload_web_if_running || reload_status=$?

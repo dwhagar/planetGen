@@ -267,6 +267,7 @@ reload_web_if_running() {
         if [[ -n "$unit" ]]; then
             (( APACHE_NEEDS_RESTART )) && verb=restart
             acted=1
+            echo "Testing Apache's configuration, then ${verb}ing it (a request still running is cut off):"
             if ! apache_configtest; then
                 echo "warning: Apache's configuration test failed, so Apache was not ${verb}ed (the running one keeps serving)." >&2
                 failed=1
@@ -365,6 +366,7 @@ curl_failure_words() {
 wait_for_health() {
     command -v curl >/dev/null 2>&1 || return 0
     # The reload has just restarted the workers: they get HEALTH_SETTLE_SECONDS (default 10) to start before the first probe.
+    echo "Giving the workers ${HEALTH_SETTLE_SECONDS:-10} seconds to start, then asking $1 for /api/health (up to ${HEALTH_WAIT_SECONDS:-20} seconds):"
     sleep "${HEALTH_SETTLE_SECONDS:-10}"
     local end=$(( SECONDS + ${HEALTH_WAIT_SECONDS:-20} )) reply code body rc site_url="" resolve_http="" resolve_https="" site_code="" site_rc=0 site_note=""
     if [[ -n "${3:-}" ]]; then read -r site_url resolve_http resolve_https <<<"$3"; fi
@@ -397,6 +399,7 @@ wait_for_health() {
             echo "warning: the health check of $2 failed: $1 answered HTTP ${code:-000}${bare_note} for ${HEALTH_WAIT_SECONDS:-20} seconds after the reload.${site_note}$(health_maintenance_note "$body" brief)" >&2
             return 1
         fi
+        (( SECONDS % 5 == 0 )) && echo "  no good answer yet (HTTP ${code:-000}); asking again, $(( end - SECONDS )) s left"
         sleep 1
     done
 }
@@ -706,8 +709,8 @@ warm_galaxy_map() {
 # Says what happened and never fails the update.
 wait_for_warm_opening() {
     [[ -n "${WARM_PID:-}" ]] || return 0
-    local end=$(( SECONDS + ${WARM_OPENING_WAIT_SECONDS:-1200} )) next=$(( SECONDS + 30 ))
-    echo "Waiting for the cache warm-up's opening phase before reloading the site:"
+    local end=$(( SECONDS + ${WARM_OPENING_WAIT_SECONDS:-1200} )) next=$(( SECONDS + 30 )) last
+    echo "Waiting for the cache warm-up's opening phase (the opening views and the first page of each list) before reloading the site, at most $(( ${WARM_OPENING_WAIT_SECONDS:-1200} / 60 )) minutes:"
     while [[ ! -e "$WARM_OPENING_FILE" ]]; do
         if ! kill -0 "$WARM_PID" 2>/dev/null; then
             [[ -e "$WARM_OPENING_FILE" ]] || echo "warning: the cache warm-up ended before its opening phase was reported (see $WARM_MAP_LOG); the site is reloaded anyway." >&2
@@ -718,7 +721,8 @@ wait_for_warm_opening() {
             return 0
         fi
         if (( SECONDS >= next )); then
-            echo "  still building (log: $WARM_MAP_LOG)"
+            last="$(tail -n 1 "$WARM_MAP_LOG" 2>/dev/null | cut -c1-110)"
+            echo "  still building, $(( end - SECONDS )) s left at most${last:+; last line of the warm-up log: $last}"
             next=$(( SECONDS + 30 ))
         fi
         sleep 1
@@ -765,6 +769,7 @@ check_app_imports() {
     else
         user=root
     fi
+    echo "Importing the web app as $user (a few seconds):"
     if (cd / && ${runner[@]+"${runner[@]}"} "$PYTHON" - <<'EOF'
 import planetgen.generation.system  # noqa: F401
 from planetgen.web.app import create_app  # noqa: F401
@@ -826,6 +831,7 @@ record_version_key() {
 # which building the galaxy's density shape needs and no web request may spend the time on; the web app reads the results
 # from the data cache folder. A failure only warns: the web app then works them out when it is asked.
 warm_shape_means() {
+    echo "Working out the cluster system masses the galaxy shape needs (a few minutes on a big galaxy, once per release):"
     run_cli warm_shape || echo "warning: could not work out the cluster system masses (see above); the update carries on." >&2
     chmod -R a+rX "${PLANETGEN_DATA_DIR:-/var/cache/planetgen/datasets}" 2>/dev/null || true
 }
@@ -839,6 +845,7 @@ warm_shape_means() {
 # runs it on request.
 MATH_CHECK_FAILED=0
 check_math() {
+    echo "Running the math check (a few seconds):"
     if run_cli generate check-math; then
         MATH_CHECK_FAILED=0
     else
