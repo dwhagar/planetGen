@@ -243,7 +243,7 @@ SECTIONS = (
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.129", "6.129 Stand-ins of the strengths of the ice types",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
-    ("6.133", "6.133 Stand-ins of the gas disc of a satellite galaxy",
+    ("6.140", "6.140 Stand-ins of the gas disc of a satellite galaxy",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.134", "6.134 Stand-ins of the gas of a satellite galaxy by its distance from the host",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
