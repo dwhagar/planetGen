@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 892 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 895 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -36,16 +36,16 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 135 | 11 | 7 | 1 | 0 | 154 |
+| T1 | 136 | 11 | 7 | 1 | 0 | 155 |
 | T2 | 111 | 35 | 0 | 1 | 0 | 147 |
 | T3 | 76 | 34 | 5 | 10 | 0 | 125 |
 | T4 | 37 | 4 | 0 | 14 | 10 | 65 |
 | T5 | 43 | 16 | 0 | 1 | 0 | 60 |
-| T6 | 82 | 62 | 16 | 41 | 0 | 201 |
+| T6 | 82 | 64 | 16 | 41 | 0 | 203 |
 | T7 | 27 | 8 | 8 | 8 | 0 | 51 |
 | T8 | 0 | 1 | 1 | 5 | 1 | 8 |
 | T9 | 13 | 6 | 4 | 39 | 19 | 81 |
-| All | 524 | 177 | 41 | 120 | 30 | 892 |
+| All | 525 | 179 | 41 | 120 | 30 | 895 |
 
 ## How the labels were given
 
@@ -1378,6 +1378,14 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | SG1 | P | T6 | L1 | tuning.SATELLITE_GAS_TO_STELLAR_SCALE_LENGTH_RATIO 1.8: the scale length of a satellite's gas disc over its stars' | 1.0 to 2.6 (Swaters et al. 2002: 1.8 +/- 0.8) | satellite galaxies that form stars, 3e8 to 2e9 solar masses of stars | a measured HI scale length of a Cloud-sized dwarf outside 1.0 to 2.6 times its stellar scale length, or a generated Cloud gas mass off the observed by more than a factor of 3 | the HI and stellar scale lengths of the Clouds and the dwarfs of LITTLE THINGS or the Westerbork survey | Swaters, van Albada, van der Hulst and Sancisi 2002 (A&A 390, 829, arXiv astro-ph/0204525, abstract READ): the ratio of HI extent to optical diameter, the extent 6.4 disc scale lengths, is 1.8 +/- 0.8; the extent ratio is read as the scale length ratio (an inference). Large Cloud gas test_satellite_history::test_the_large_cloud_forms_stars_at_about_the_rate_and_with_about_the_gas_observed | - | - |
+
+## 6.131 Stand-ins of the gas of a satellite galaxy by its distance from the host
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| ST1 | P | T6 | L1 | satellites.STRIPPING_RADIUS_MILKY_WAY_KPC 270, scaled with the host's virial radius | 250 to 280 kpc for the Milky Way (Grcevich and Putman 2009) | dwarfs of a host of any halo mass; the scaling with the virial radius is an inference | a survey of another host's dwarfs with the HI cutoff off the scaled radius by more than a factor of 2 | the ram-pressure stripping radius of the host's halo gas and a satellite's orbit (GEN.339) | Grcevich and Putman 2009 (ApJ 696, 385, arXiv:0901.4975, abstract and section 3.4 READ): the majority of dwarfs within about 270 kpc are undetected in HI (under 1e5 solar masses), those beyond predominantly detected, the cutoff between 250 and 280 kpc; ram pressure the likely cause. test_satellite_law::test_the_stripping_radius_is_270_kpc_for_the_milky_ways_halo_and_scales_with_the_virial_radius | - | - |
+| ST2 | P | T6 | L1 | satellites.STRIPPING_RETAINED_MIN_STELLAR_MASS_SOLAR 4.0e8: the lightest satellite that keeps its gas inside the stripping radius | 2e8 to 4.6e8 | satellites inside the stripping radius | a gas-rich satellite lighter than 2e8 inside 270 kpc of its host (or a Cloud-mass one found stripped there) | the ram pressure against the anchoring pressure of the satellite's gas and stars on its orbit | the Small Magellanic Cloud (4.6e8 solar masses of stars, 64 kpc, HI about 4e8 recalled) keeps its gas; Grcevich and Putman 2009 footnote 3 (READ) leave both Clouds out for their large mass. test_satellite_law::test_a_satellite_as_heavy_as_the_small_cloud_keeps_its_gas_inside_the_stripping_radius | - | - |
+| ST3 | B | T1 | L0 | satellites.GAS_DETECTED_BEYOND_STRIPPING 0.875: the share of satellites beyond the stripping radius that hold gas | 0.7 to 0.95 (14 of 16, small number) | dwarfs beyond 280 kpc | a larger sample beyond 280 kpc with a detection share outside 0.7 to 0.95 | a larger survey of far dwarfs (the HI mass of Tucana and Cetus, the two non-detections, is under the limit) | Grcevich and Putman 2009 (section 3.4 READ): beyond 280 kpc, 14 galaxies detected at over 1e5 solar masses and two (Tucana and Cetus) not. test_satellite_law::test_a_satellite_beyond_the_stripping_radius_keeps_its_gas_for_the_share_that_does | - | - |
 
 ## 6.94 Stand-ins of the irregular zone
 
