@@ -20895,6 +20895,16 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   of the section. Lock-free, display only. Owner: the Citations thread
   (it works with Sources 1 and Core 1). Version 8.1. Prerequisites:
   DOC.89, DOC.100. Related: DOC.87, DOC.88, DOC.89, DOC.90.
+  Citation IDs and style (2026-10-31 7:33 PM EDT): DOC.100 merged as
+  #4648 (Citations thread): every source has a fixed ID R0123 (anchor
+  #paper-r0123 on /references/papers and in docs/REFERENCES.md;
+  /references addresses by ID, no longer by DOI). The in-line style,
+  decided with Boss's NASA-style answer, is a bracketed ID after the
+  words it supports: [R0123], several as [R0123, R0456] in ascending
+  order, a place inside the source as [R0123: Table 2]; rule 17 of the
+  plain-words guide and docs/design/interface/references.md. No author,
+  year, journal, DOI or arXiv number outside the registry, REFERENCES.md
+  and the References pages.
 
 - [ ] **DOC.98 Citations live only in the central registry and references.md: move them out of every other page, design document and code comment**
   Boss (2026-10-31, 7:22 PM EDT, as the coordinator relayed): "move all
@@ -20933,6 +20943,16 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   change. Owner: the Citations thread, with Core 5 for the user pages
   (DOC.93) and Sources 1 for the registry. Version 8.1. Prerequisites:
   DOC.93, DOC.100. Related: DOC.93, DOC.94, DOC.96.
+  Citation IDs and style (2026-10-31 7:33 PM EDT): DOC.100 merged as
+  #4648 (Citations thread): every source has a fixed ID R0123 (anchor
+  #paper-r0123 on /references/papers and in docs/REFERENCES.md;
+  /references addresses by ID, no longer by DOI). The in-line style,
+  decided with Boss's NASA-style answer, is a bracketed ID after the
+  words it supports: [R0123], several as [R0123, R0456] in ascending
+  order, a place inside the source as [R0123: Table 2]; rule 17 of the
+  plain-words guide and docs/design/interface/references.md. No author,
+  year, journal, DOI or arXiv number outside the registry, REFERENCES.md
+  and the References pages.
 
 - [ ] **DOC.99 Test lock: a citation written outside the registry and references.md fails the gate**
   Boss (2026-10-31, 7:22 PM EDT, as the coordinator relayed): "move all
@@ -20955,22 +20975,16 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   after the previous item, fails on a planted citation, and runs in the
   gate for changed files. Lock-free. Owner: the Citations thread.
   Version 8.1. Prerequisites: DOC.98. Related: DOC.94.
-
-- [ ] **DOC.100 A stable citation ID for every paper in the registry, shown in the registry, docs/REFERENCES.md and the Papers page**
-  Boss (2026-10-31, 7:22 PM EDT, as the coordinator relayed): all
-  citations and references go in the central registry and references.md,
-  with click-through citations in Help > References only. Proposed by
-  the Citations thread (7:23 PM EDT). Do: every paper, book and dataset
-  in `docs/reference/references-data.json` gets one stable ID (short,
-  readable, never reused, kept when a record is merged or renamed),
-  written to the registry, shown in `docs/REFERENCES.md` and as the
-  anchor on /references/papers (`#paper-<id>`), with a test that no two
-  records share an ID, that IDs never change between builds, and that
-  every ID in text resolves. This is the key the next items use. Done:
-  the IDs exist and are tested; a helper turns an ID into the Papers
-  page link. Lock-free, display only. Owner: Citations thread. Version
-  8.1.
-  Prerequisites: DOC.89. Related: DOC.97, DOC.98, DOC.99.
+  Citation IDs and style (2026-10-31 7:33 PM EDT): DOC.100 merged as
+  #4648 (Citations thread): every source has a fixed ID R0123 (anchor
+  #paper-r0123 on /references/papers and in docs/REFERENCES.md;
+  /references addresses by ID, no longer by DOI). The in-line style,
+  decided with Boss's NASA-style answer, is a bracketed ID after the
+  words it supports: [R0123], several as [R0123, R0456] in ascending
+  order, a place inside the source as [R0123: Table 2]; rule 17 of the
+  plain-words guide and docs/design/interface/references.md. No author,
+  year, journal, DOI or arXiv number outside the registry, REFERENCES.md
+  and the References pages.
 
 ## POP: Population and politics
 
