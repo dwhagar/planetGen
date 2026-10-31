@@ -236,7 +236,7 @@ The ring draw is independent of the planet's history, so every giant has a ring 
 - Ring plane is the equator, so oddities that move the spin (G1, W1, W2) move the ring.
 - Invariants for the harness: ring mass under 1e-4 of the planet, ring inside the Roche limit unless R4 names its resonance, optical depth from the formula (an output), no ring inside 0.1 AU.
 
-**Built (GEN.1057, wiring).** R1, R2, R4 and R9 are wired in `rings.apply` (a ring from `moon_history`'s fallen moons and `ring_origin`'s comet passages; a dwarf planet's resonance ring; no ring inside 0.1 AU); a ring stores its age (`ring_age_yr`, schema v187). BC20 and BC22 are replaced (kind from mass, `rings.KIND_MASS_LIMITS_KG`). R6 and R8 (GEN.1055) are not built.
+**Built (GEN.1057, wiring).** R1, R2, R4 and R9 are wired in `rings.apply` (a ring from `moon_history`'s fallen moons and `ring_origin`'s comet passages; a dwarf planet's resonance ring; no ring inside 0.1 AU); a ring stores its age (`ring_age_yr`, schema v187). BC20 and BC22 are replaced (kind from mass, `rings.KIND_MASS_LIMITS_KG`). R6 and R8 (GEN.1055) are built as a pure module, `physics/ring_darkening.py`, and not yet wired: `ring_brightness` gives the ice share and the albedo a ring has at its age from the dust that falls on it (stand-ins RGD1 to RGD4, section 6.148 of the gap-filling plan), and `shadow_transmission` gives the share of sunlight that reaches a latitude through the rings at a solar declination, for the climate to use.
 
 ### 9.4 Added TODO items
 
