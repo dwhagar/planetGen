@@ -9887,6 +9887,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (web/lib/classref.py). Steps C1, C2 and C4 are done; C5 is
   unconfirmed; C3 merged as #2833; C6 to C16 are filed as GEN.681 to
   GEN.690, TEST.314 and TEST.315 below.
+  Changed by best-fit classes GEN.1205 to GEN.1208 (2026-10-31 9:46 AM
+  EDT): Boss told us (9:44 AM EDT 2026-10-31) to build best-fit scoring:
+  the class is still assigned after the body is complete and from the
+  same stored conditions, but classify(body) no longer walks rows in
+  file order; it scores every class by percent match and the best match
+  wins (GEN.1207). The rule that the class is derived from the finished
+  body stands.
 
 - [ ] **GEN.648 The generation request for a habitable world (+habitable_world) runs an ordered ladder of nine adaptations before it gives up: redraw the surface, restrict the planet, more starting water, aquifers, regenerate the planet, adapt the system, add a brighter primary, regenerate the star, then the best result**
   Decided (Boss, 6:09 PM EDT 2026-10-23, card option 3 of GEN.644, 'A
@@ -10124,6 +10131,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   classes lane with the TODO thread for the epoch.
   Prerequisites: GEN.681, GEN.682, GEN.684, GEN.685, GEN.686,
   GEN.687, DB.67, DB.69, DB.70.
+  Changed by best-fit classes GEN.1205 to GEN.1208 (2026-10-31 9:46 AM
+  EDT): The cut-over rule stays (classify at the end of generation,
+  total and derived). GEN.1207 changes what classify does inside:
+  best-fit instead of first-match, with class_match and runner-up
+  columns in the same kind of migration. If this item is still unbuilt
+  when GEN.1207 is, build the best-fit classifier, not the first-match
+  tree.
 
 - [ ] **GEN.690 Delete PLANET_CLASSES generation fields, PLANET_CLASS_PROBABILITIES, LIFE_PLANET_CLASSES, PLANET_CLASS_MAX_LIFE_STAGE and MOON_BLACKLIST; update the golden outputs**
   Step C15 of the condition-based classes build (design draft
@@ -13324,6 +13338,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   inside the train 6 epoch (GEN.1142). This re-sweep now checks that H,
   L, O and K reach bodies with their new lines, and reports the
   temperate-ocean count per class.
+  Changed by best-fit classes GEN.1205 to GEN.1208 (2026-10-31 9:46 AM
+  EDT): The re-sweep question of which classes reach zero bodies (H, L,
+  E against F, T against N) is answered much better by the best-fit
+  shadow scorer (GEN.1206): its low-match list shows the bodies no class
+  fits and its confusion table shows where each old letter goes. Run the
+  re-sweep with that tool once it exists, and make the E and F, T and N
+  and H and L decisions from its report. The row-order reasons for those
+  decisions go away under GEN.1207.
   Prerequisites: none. Related: GEN.1142.
 
 - [ ] **GEN.1147 Ocean-fraction law: replace the sqrt cover law with a two-level hypsometry plus the mantle water cap by mass (2 to 8 oceans), in one epoch**
@@ -13354,6 +13376,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the Bern water prior alone. The BOSS DECIDES hold is lifted. Owner Aux
   2 with Aux 3, a later train window. Lock work: epoch, golden, census
   re-tag.
+  Changed by best-fit classes GEN.1205 to GEN.1208 (2026-10-31 9:46 AM
+  EDT): GEN.1147 is the biggest lever on how many bodies are class M,
+  because M needs 20 to 80 percent water cover (best-fit design,
+  GEN.1205). Boss chose option 1 earlier, so it is not blocked. After it
+  lands, GEN.1206 prints the temperate-ocean count per class (M against
+  O, V, F, G); read that count before GEN.1207 is built, and if both
+  want an epoch they may share one.
   Prerequisites: none. Related: GEN.1146, GEN.1142, GEN.909.
 
 - [ ] **GEN.1150 Lagrange trojans T2: the generator draws a trojan swarm at the L4 and L5 of each giant planet or brown dwarf from the scatter trojan share; new columns co_orbital_host_id, lagrange_point, libration amplitude and phase (db/column_units.py); orbit updater libration overlay; the object and sector pages and the designation rule "<host> L4 trojan region"**
@@ -13472,6 +13501,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   work, same window as GEN.1068, folds into it. Done: classes derived
   from the ratio, the Asteroid type in the data and pages, tests, census
   re-tag.
+  Changed by best-fit classes GEN.1205 to GEN.1208 (2026-10-31 9:46 AM
+  EDT): Class D and C rules here are the first-match rules; under
+  best-fit (GEN.1205 to GEN.1207) D and C each get a positive condition
+  set (airless, round, below 0.1 Earth masses versus at or above) with a
+  shoulder on the 0.1 line, and the Asteroid type stays outside the
+  class letters. Build the rules so GEN.1205 can read the same edges: no
+  second copy of the 0.1 line.
   Prerequisites: GEN.1159. Related: GEN.1068, GEN.725.
 
 - [ ] **GEN.1161 Asteroid field mass rule and a member ledger like the belts' (individual bodies above 1e19 kg stored, the rest drawn on demand)**
@@ -13935,6 +13971,110 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   through the same code. Output change (stored values), rides a train.
   Owner: unowned until GEN.1162 merges (Aux 5 proposed).
   Prerequisites: GEN.1162.
+
+- [ ] **GEN.1205 Best-fit classes, step 1: every class gets its own full positive conditions (temperature, pressure, gravity, water, air chemistry) as new data, with shoulder widths registered in GEN.725**
+  Boss, 9:44 AM EDT 2026-10-31: build and ship the best-fit class
+  scoring (a percent match per class, best match wins, replacing the
+  first-match tree) and send it to TODO. Design:
+  /mnt/project-files/reports/class-m-and-trek-classes-2026-10-31.md
+  sections 4 to 6 (Class M research thread). Filed by the TODO thread.
+  Do: in src/planetgen/physics/data (a new file beside
+  planet_classes.json, read by nothing yet, so the first-match tree and
+  every stored letter are unchanged), describe every class by its own
+  positive conditions so that no row relies on an earlier row having
+  said no. M gets its air window (oxygen 16 percent or more, carbon
+  dioxide under 1 percent, 30 kPa to 3 bar, 273 to 320 K, 0.5 to 2 g,
+  water 20 to 80 percent); F and G get a temperature, pressure and
+  gravity band and physical limits with GEN.725 basis rows; L keeps its
+  3 to 16 percent oxygen. Hard gates stay kinds, not degrees: giant
+  versus terrestrial, and has-air versus airless (10 Pa). Every other
+  condition is graded: membership 1 inside today's edge and a linear
+  shoulder to 0 beyond it, the shoulder width per quantity (a share of
+  the edge value, or kelvin for temperatures); `equals` conditions
+  (hydrosphere) stay 0 or 1. The numbers already in planet_classes.json
+  become the core edges. Every shoulder width is a new stand-in:
+  register each in GEN.725 (docs/design/research/stand-in-values.md via
+  scripts/build_stand_in_values.py) as tier Confident educated guess
+  from physics, L1 where it follows a source uncertainty, L3 where
+  hand-picked; a wiring-register line names the follow-on item so the
+  guard stays green. Giants use the same method on mass (the T, I and J
+  overlap from 30 to 60 Earth masses is a shoulder, not a hard cut at
+  35). The Class M thread (and the report) is the design source. Data
+  and tests only, lock-free. Done: the table covers every class letter A
+  to V, a test shows every class has at least one complete positive
+  condition set, and the registry rows exist. Where we think it belongs
+  (best guess, can move): Aux 2 or the Class M research thread.
+  Prerequisites: none.
+
+- [ ] **GEN.1206 Best-fit classes, step 2: a read-only shadow scorer prints the confusion table (stored letter against best-fit letter), the share at 100 percent and the low-match list**
+  Boss, 9:44 AM EDT 2026-10-31: build and ship the best-fit class
+  scoring (a percent match per class, best match wins, replacing the
+  first-match tree) and send it to TODO. Design:
+  /mnt/project-files/reports/class-m-and-trek-classes-2026-10-31.md
+  sections 4 to 6 (Class M research thread). Filed by the TODO thread.
+  Do: score a few hundred generated systems both ways with the step 1
+  table, in a read-only tool in src/tests (extend class_shadow_cli.py
+  where it exists, otherwise a new one beside the other class sweep
+  scripts), and write a short report in /mnt/project-files/reports: the
+  confusion table of old letter against best-fit letter, the share of
+  bodies that score 100 percent for their class, the bodies whose best
+  match is under 50 percent (each one is a hole in the class set, which
+  is how to decide what the reserve letters R U W X Y Z are for), the
+  runner-up pairs that are close, and the temperate-ocean count per
+  class (M against O, V, F, G). Boss reads the report before step 3 is
+  built. Nothing stored changes. Read-only, lock-free. Done: the report
+  is merged and Boss has seen it. Where we think it belongs (best guess,
+  can move): same lane as step 1.
+  Prerequisites: GEN.1205.
+
+- [ ] **GEN.1207 Best-fit classes, step 3: the classifier replaces the first-match tree, stores class_match and the runner-up letter and match, and the class pages show the percent match**
+  Boss, 9:44 AM EDT 2026-10-31: build and ship the best-fit class
+  scoring (a percent match per class, best match wins, replacing the
+  first-match tree) and send it to TODO. Design:
+  /mnt/project-files/reports/class-m-and-trek-classes-2026-10-31.md
+  sections 4 to 6 (Class M research thread). Filed by the TODO thread.
+  Waits for Boss to read the step 2 report. Do: in
+  src/planetgen/physics/planet_classes.py replace the first-match walk
+  with the best-fit classifier: the hard gates (giant or terrestrial,
+  air or airless) first, then each class's match is the geometric mean
+  of its condition memberships, the highest match wins, a tie goes to
+  the class with the narrower box, then to letter order. The classifier
+  still writes one letter, so the roughly 40 files that read
+  planet_class keep working. Add the columns class_match,
+  runner_up_class and runner_up_match to planets and moons (one
+  migration, declared in db/column_units.py and the schema document, a
+  rebuild step for existing rows, DB.90 reclassification keeps them true
+  after an edit). The class pages show the match, for example 'M 92
+  percent, O 41 percent', and say once on every page: 'A class is the
+  world's state now; a world can change class as its air, water or heat
+  change.' test_planet_classes changes from 'the last row always
+  matches' to 'a best class always exists and a body inside a core box
+  keeps its old letter', plus a tie test for the narrower-box rule. One
+  generator epoch with --affects, golden, census re-baseline and a
+  census re-tag, on a train. Lock work. Supersedes the first-match row
+  order everywhere (see the notes on GEN.647, GEN.689, GEN.1144,
+  GEN.1147, GEN.1160, DB.90, TEST.443 and DOC.76). Done: every body has
+  the best-fit letter and its match stored, the sweep lists no body
+  under 50 percent that Boss has not accepted, and the temperate-ocean
+  count per class is printed. Where we think it belongs (best guess, can
+  move): same lane as step 1.
+  Prerequisites: GEN.1205, GEN.1206.
+
+- [ ] **GEN.1208 Best-fit classes, wording: drop the age and stage words from the class tier labels and the "Checked after" and "leftover" wording from the class pages**
+  Boss, 9:44 AM EDT 2026-10-31: build and ship the best-fit class
+  scoring (a percent match per class, best match wins, replacing the
+  first-match tree) and send it to TODO. Design:
+  /mnt/project-files/reports/class-m-and-trek-classes-2026-10-31.md
+  sections 4 to 6 (Class M research thread). Filed by the TODO thread.
+  Do: reword the age_needs reducing-air tier label ('young, hot or
+  still-outgassing') and any 'cools' or 'young' phrasing in the
+  generated class pages, and remove 'Checked after' and 'leftover'
+  wording that makes M the endpoint of an order. A class is the world's
+  state now, not a stage. Docs and page text, but the class pages are
+  generated from the rules: if the generated pages are part of the
+  golden, fold this into step 3's epoch, else it is lock-free. Where we
+  think it belongs (best guess, can move): same lane as step 1.
+  Prerequisites: none.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -14645,6 +14785,10 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   notes /mnt/project-files/reports/class-lane-notes-2026-10-23.md);
   Habitability lane D keeps GEN.645 and GEN.643. This replaces
   'Habitability lane D' above for the build.
+  Changed by best-fit classes GEN.1205 to GEN.1208 (2026-10-31 9:46 AM
+  EDT): GEN.1207 adds class_match, runner_up_class and runner_up_match
+  beside the stored letter. The reclassification step here must keep all
+  of them true after an edit or a rebuild, not just the letter.
 
 - [ ] **DB.99 Store the ground colour and the ice fraction on planets and moons**
   One migration, one generator epoch and the column_units.py entries.
@@ -18379,6 +18523,11 @@ clears each one.
   finds the new class and PHI-6 colour after approval, and one that
   edits a field not used by the rules and finds the class unchanged;
   undo restores the class. Version 8.6. Owner: unowned until 8.6.
+  Changed by best-fit classes GEN.1205 to GEN.1208 (2026-10-31 9:46 AM
+  EDT): Under best-fit (GEN.1207) a reclassification after an edit
+  changes the letter when another class scores a higher match, and keeps
+  it when the same class stays best; the test should assert on the best
+  match, and also that class_match and the runner-up are recomputed.
   Prerequisites: DB.90, ADM.80. Related: TEST.301, DB.90, TEST.176.
 
 - [ ] **TEST.455 A completeness gate: every numeric constant in the generation and physics modules has a stand-in registry row or is read from a table; the list of unregistered constants may only shrink**
@@ -19618,6 +19767,11 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   notes /mnt/project-files/reports/class-lane-notes-2026-10-23.md);
   Habitability lane D keeps GEN.645 and GEN.643. This replaces
   'Habitability lane D' above for the build.
+  Changed by best-fit classes GEN.1205 to GEN.1208 (2026-10-31 9:46 AM
+  EDT): Class pages show the percent match from GEN.1207 (for example M
+  92 percent, O 41 percent) and the line about a world changing class as
+  its conditions change; the rule table text must describe positive
+  conditions and shoulders, not row order (GEN.1205, GEN.1208).
 
 - [ ] **DOC.81 Help page: resource locations, what the scores mean and how to find them on the map**
   Boss, 10:29 PM EDT 2026-10-24 (relayed by the coordinator): "For 8.2,
