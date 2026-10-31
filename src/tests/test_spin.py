@@ -113,7 +113,13 @@ def test_the_hot_star_median_runs_from_the_break_speed_to_the_full_speed_over_ma
     assert spin.hot_star_median_speed_kms(1.0) == pytest.approx(spin.HOT_STAR_BREAK_SPEED_KMS)
     assert spin.hot_star_median_speed_kms(spin.KRAFT_BREAK_TOP_MASS_SOL) == pytest.approx(spin.HOT_STAR_BREAK_SPEED_KMS)
     assert spin.hot_star_median_speed_kms(spin.HOT_STAR_FULL_SPEED_MASS_SOL) == pytest.approx(spin.HOT_STAR_SPEED_KMS)
-    assert spin.hot_star_median_speed_kms(8.0) == pytest.approx(spin.HOT_STAR_SPEED_KMS)
+    assert spin.hot_star_median_speed_kms(spin.HOT_STAR_PEAK_MASS_SOL) == pytest.approx(spin.HOT_STAR_PEAK_SPEED_KMS)
+    assert spin.hot_star_median_speed_kms(spin.HOT_STAR_FALL_MASS_SOL) == pytest.approx(spin.HOT_STAR_SPEED_KMS)
+    assert spin.hot_star_median_speed_kms(20.0) == pytest.approx(spin.HOT_STAR_SPEED_KMS)
+    rising = [spin.hot_star_median_speed_kms(m) for m in (1.8, 2.5, 3.0, 3.5)]      # GEN.1170: Zorec and Royer's rise to the 3.15 to 3.85 solar mass bin
+    assert all(b > a for a, b in zip(rising, rising[1:]))
+    falling = [spin.hot_star_median_speed_kms(m) for m in (3.5, 5.0, 6.5, 8.0)]
+    assert all(b < a for a, b in zip(falling, falling[1:]))
     masses = [1.41, 1.5, 1.6, 1.7, 1.8]
     values = [spin.hot_star_median_speed_kms(m) for m in masses]
     assert all(b > a for a, b in zip(values, values[1:]))

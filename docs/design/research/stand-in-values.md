@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 854 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 855 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -41,11 +41,11 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T3 | 77 | 32 | 5 | 11 | 0 | 125 |
 | T4 | 36 | 4 | 0 | 14 | 10 | 64 |
 | T5 | 42 | 13 | 0 | 1 | 0 | 56 |
-| T6 | 71 | 55 | 13 | 41 | 1 | 181 |
+| T6 | 72 | 55 | 13 | 41 | 1 | 182 |
 | T7 | 26 | 8 | 8 | 8 | 0 | 50 |
 | T8 | 0 | 1 | 1 | 5 | 2 | 9 |
 | T9 | 13 | 6 | 4 | 38 | 19 | 80 |
-| All | 509 | 155 | 38 | 120 | 32 | 854 |
+| All | 510 | 155 | 38 | 120 | 32 | 855 |
 
 ## How the labels were given
 
@@ -347,8 +347,9 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | SP12 | P | T6 | L3 | spin.SMALL_PLANET_MASS_EARTH, SMALL_PLANET_FACTOR_FLOOR | 0.2 to 0.5 Earth masses; floor 0.02 to 0.1 | a rocky planet under 0.3 Earth masses | the chance of a giant impact by planet mass (`impact_spin.giant_impact_probability`, GEN.978, wired by GEN.979) | INTERIM (GEN.953): a planet under 0.3 Earth masses may never have had a giant impact, so its spin width is cut in proportion to its mass (floor 0.05); chosen so that a Mars (0.107 Earth masses) is slower than its 24.6 hours in about a third of the draws; falsifier: a measured rotation of a rocky exoplanet or a sample of terrestrial planets (none exists) | - | replace (GEN.979) |
 | SP13 | P | T1 | L0 | spin.KRAFT_BREAK_LOW_K, KRAFT_BREAK_HIGH_K | 6400 to 6700 K | a main-sequence dwarf of solar metallicity | a break by mass and metallicity (GEN.1163) | READ in full, Beyer and White 2024 (arXiv:2408.02638): the Kraft break is centred at 6550 K with a width of about 200 K, from 6450 to 6650 K (uncertainty about 50 K on the limits), 1.32 to 1.41 solar masses; the 217 stars cooler than it have a mean v sin i of 6.7 km/s (standard deviation 3.6), the 40 hotter ones 63 km/s (standard deviation 35) | - | - |
 | SP14 | P | T1 | L0 | spin.HOT_STAR_BREAK_SPEED_KMS | 60 to 100 km/s | a dwarf of 1.41 solar masses or less above the break | a speed by mass from stars between the break and 1.6 solar masses | the mean v sin i of the stars just hotter than the break, 63 km/s (SP13), deprojected by 4 / pi for random orientation (the mean of sin i): about 80 km/s, kept as the median equatorial speed at the top of the break | - | - |
-| SP15 | P | T1 | L0 | spin.HOT_STAR_SPEED_KMS, HOT_STAR_SPEED_SIGMA, HOT_STAR_FULL_SPEED_MASS_SOL | 160 to 200 km/s; width 0.3 to 0.45 | a dwarf of 1.8 solar masses or more | a speed rising with mass above 1.8 solar masses (the paper's Table 4 trend, about 46 km/s per solar mass in the mode) | READ, Zorec and Royer 2012 (A&A 537:A120, arXiv:1201.2052, Table 4, read from the paper's text): the 1.60 to 2.00 solar mass bin (191 stars) has a Maxwellian mode of the fast rotators of 160 km/s and a dispersion of 54 km/s, a mean of 2 / sqrt(pi) times the mode, 180 km/s; the mode rises to 238 km/s at 3.15 to 3.85 solar masses, which the model does not follow (hot stars of every mass above 1.8 keep 180 km/s with a log-normal width of 0.45, a planetGen choice wider than the paper's 54 / 160); their lowest bin starts at 1.6 solar masses | - | - |
+| SP15 | P | T1 | L0 | spin.HOT_STAR_SPEED_KMS, HOT_STAR_SPEED_SIGMA, HOT_STAR_FULL_SPEED_MASS_SOL | 160 to 200 km/s; width 0.3 to 0.45 | a dwarf of 1.8 solar masses or more | the same width by mass from a larger sample | READ, Zorec and Royer 2012 (A&A 537:A120, arXiv:1201.2052, Table 4, read from the paper's text): the 1.60 to 2.00 solar mass bin (191 stars) has a Maxwellian mode of the fast rotators of 160 km/s and a dispersion of 54 km/s, a mean of 2 / sqrt(pi) times the mode, 180 km/s; the mode rises to 238 km/s at 3.15 to 3.85 solar masses, which SP17 follows up to its last bin's centre (3.5 solar masses); the log-normal width of 0.45 is a planetGen choice, wider than the paper's 54 / 160; their lowest bin starts at 1.6 solar masses | - | - |
 | SP16 | P | T6 | L0 | spin.KRAFT_BREAK_TOP_MASS_SOL, HOT_STAR_FULL_SPEED_MASS_SOL, spin.hot_star_median_speed_kms | a straight line in v or in ln v | a dwarf of 1.41 to 1.8 solar masses | the same speed by mass from a sample of F and early A stars with masses | between the top of the break (1.41 solar masses, SP14's 80 km/s) and the first mass the paper covers (SP15) the median speed is interpolated, linear in ln v over mass; no source covers the stars of 1.41 to 1.6 solar masses (the break paper gives one mean for all hotter stars); the interpolation is a bridge between two read anchors, not fitted | - | - |
+| SP17 | P | T6 | L0 | spin.HOT_STAR_PEAK_MASS_SOL, HOT_STAR_PEAK_SPEED_KMS, HOT_STAR_FALL_MASS_SOL | peak 240 to 290 km/s; fall mass 6 to 10 solar masses | a dwarf of 1.8 solar masses or more | a speed by mass from a table of mean equatorial speeds of B stars with their masses | GEN.1170: above 1.8 solar masses the median runs up to 268 km/s at 3.5 solar masses (Zorec and Royer 2012, Table 4: the last bin, 3.15 to 3.85 solar masses, has a mode of 238 km/s, a mean 1.128 times it; the mode rises about 46 km/s per solar mass from 1.8), then falls back to 180 km/s at 8 solar masses and stays there (READ, Huang, Gies and McSwain 2010, ApJ 722:605, arXiv:1008.1761, Section 5: the share of newborn B stars under half the critical speed is 37%, 53% and 84% for 2 to 4, 4 to 8 and 8 solar masses and more, the whole sample's mode 0.49 of the critical speed; the paper gives shares, not speeds, so the fall to 180 km/s is a stand-in: 84% under half of a critical speed of about 580 km/s puts the median near 175 km/s, with the critical speed read from a summary of the paper's tables, not verified); the line between the anchors is straight in ln v | - | - |
 
 ## 6.15 Stand-ins of the trapped radiation belts
 
