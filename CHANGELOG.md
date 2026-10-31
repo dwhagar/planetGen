@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2882] - 2026-10-31
+
+**Headline:** A test now shows that the water vapour feedback is already in the surface-air fixed point.
+
+### Added
+- **GEN.973: the vapour of the ocean is a feedback in the fixed point, and a test says so.** Holding the air of the climate-sweep twin and asking the greenhouse table for each flux gives a smaller response than the fixed point does, with the vapour 1.5 times thicker at the warm end. No behaviour changes.
+- generation-output: unchanged
+
 ## [8.0.2881] - 2026-10-31
 
 **Headline:** The birth-gas dispersion of 6.5 km/s now has its sources, and the young disc's height is pinned to the Milky Way's young stars.
