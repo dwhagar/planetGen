@@ -9,7 +9,7 @@ from planetgen.generation import run_galaxy, run_sector
 from planetgen.queue import api_jobs, commands, redisqueue, runrecord
 from tests import first_fill
 from tests.test_galaxy_gen import _all_sectors, _seed_skeleton, _shells
-from tests.sector_support import make_sector
+from tests.sector_support import make_sector, queue_settle
 
 pytestmark = [pytest.mark.db, pytest.mark.usefixtures("unit_density_plans")]
 
@@ -116,4 +116,4 @@ def test_a_settle_that_can_be_neither_queued_nor_run_says_so_and_does_not_fail_t
 
     monkeypatch.setattr(api_jobs, "submit", no_queue)
     monkeypatch.setattr(api_jobs, "settle_sectors", no_redis)
-    assert run_galaxy.queue_settle(None, [3, 1]) is None
+    assert queue_settle(None, [3, 1]) is None

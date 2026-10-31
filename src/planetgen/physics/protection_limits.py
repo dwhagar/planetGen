@@ -192,22 +192,6 @@ def limit(name):
     return LIMITS[name].value
 
 
-def chosen_pairs():
-    """
-    The limits where the built table and the research notes gave two different values, as
-    `(name, built, notes, value in use)`. The value in use is always the more permissive of the two
-    (`Limit.looser`); the merge note lists these.
-    """
-    out = []
-    for row in LIMIT_ROWS:
-        if row.built is None or row.notes is None or row.built == row.notes:
-            continue
-        pick = min if row.looser == "lower" else max
-        assert row.value == pick(row.built, row.notes), row.name
-        out.append((row.name, row.built, row.notes, row.value))
-    return out
-
-
 SUPPLY_SHIFT_SHARE = {1: 1.0, 2: 0.5, 3: 0.75, 4: 1.0}
 """dict: The share of a work shift (`shift_hours`) one charge of the breathing gear of Air Supply level 1 (gas-mix mask), 2 (own
 gas), 3 (mixed-gas rig) and 4 (isolated air) lasts; level 0 (ambient) has no gas to run out. A person works one shift

@@ -184,8 +184,7 @@ def influence_set(center_pc, radius_pc, edge_pc, read_sector, exclude_keys=(),
         raise ValueError(f"max_exact_members must be >= 1, got {max_exact_members}")
     excluded = frozenset(exclude_keys)
     center = np.asarray(center_pc, dtype=float)
-    cells = sorted(spherical.enumerate_sectors_within_radius(tuple(center), radius_pc + reach_edges * edge_pc, edge_pc),
-                   key=lambda cell: cell[:3])
+    cells = sorted(spherical.cells_touching_sphere(tuple(center), radius_pc, edge_pc, reach_edges), key=lambda cell: cell[:3])
     keys, positions, masses, sectors, distances = [], [], [], [], []
     for cell in cells:
         sector = read_sector(cell[:3])

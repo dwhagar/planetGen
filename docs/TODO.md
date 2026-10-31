@@ -795,6 +795,15 @@ with `clamp()`.
   for columns on main, then the rows for columns not on main yet
   (GEN.738 to 740, GEN.741 to 745, GEN.762, GEN.730, the brown dwarf
   label), after train 1. The X-ray luminosity is GEN.952.
+  Boss approved first list slice (2026-10-31 1:48 PM EDT): Boss said yes
+  at 1:47 PM EDT 2026-10-31 to Core 3's first slice: the object index
+  and the star, planet and moon lists gain three stored, sortable
+  columns each (stars: temperature, luminosity, age; planets and moons:
+  orbit axis, eccentricity, surface temperature). It adds object-index
+  columns, so it is lock work: a migration, the API field list and a
+  backfill, on a train slot. Core 3 builds it on a branch off main, no
+  merge, and reports the head to TODO for the Train Manager. Later
+  slices add the rest.
 
 - [ ] **UX.206 Link-preview (SEO and social) images for pages with a rendered image or map view are a cached snapshot of that view**
   Boss, 8:19 PM EDT 2026-10-24 (message
@@ -1971,20 +1980,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   switchable glow design). Owner: Bug Hunt (fixing now in starpoint.js,
   galaxymap3d.js and sectorscene.js).
   Prerequisites: none. Related: MAP.208, MAP.266, MAP.267.
-
-- [ ] **MAP.274 Land colour from the bulk composition: oxidation and rock type**
-  Land colour follows the bulk fractions instead of the temperature and
-  class estimate. Design draft
-  design-drafts/body-rendering-from-composition-2026-10-24.md (section
-  4), filed by the body-rendering design thread, 10:18 PM EDT 2026-10-23
-  as the thread reported. Placement follows Boss's plan of 10:26 PM EDT 2026-10-23 (section 11 of the draft).
-  Research (2026-10-09, Owner 6:36 PM EDT): Owner (TODO, 6:36 PM EDT
-  2026-10-24, coordinator request): Aux 10 (Map nodes) after MAP.287
-  (#3130), after GEN.411 (4c, Aux 1).
-  Owner (housekeeping) (2026-10-30 2:55 PM EDT): released to the pool:
-  the owner named above (Aux 1) is a retired lane. A waiting lane takes
-  it, confirmed with TODO, one lock-free item at a time.
-  Prerequisites: GEN.411.
 
 - [ ] **MAP.275 Gas and ice giant painter: bands, storms and thermal glow from rotation, temperature and the atmosphere colour, rings with resonance gaps from the moons**
   Bands, storms, a chemistry tint, thermal glow, and rings with
@@ -14829,10 +14824,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   650 nm than at 450 nm. Fix: a sourced hematite spectrum, or finer
   bands in the table (written in docs/design/interface/body-rendering.md
   section 4.1). Changes the colour of oxidised worlds on the map and
-  body pages only; no stored generator value moves. Lock-free once the
-  land colour (MAP.274) has merged.
-    Prerequisites: MAP.274.
-  Prerequisites: MAP.274.
+  body pages only; no stored generator value moves. Lock-free (the
+  land colour, MAP.274, has merged).
+  Prerequisites: none.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -15570,7 +15564,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Design draft
   design-drafts/body-rendering-from-composition-2026-10-24.md (section
   11), Boss's plan of 10:26 PM EDT 2026-10-23.
-  Prerequisites: MAP.274.
+  Prerequisites: none.
 
 - [ ] **DB.101 Storage and units for every physics rectification output: a column, a column_units entry and a migration shipped with its item**
   Boss asked (5:47 PM EDT 2026-10-24) whether the wiring reaches the
@@ -19470,39 +19464,6 @@ clears each one.
   change, like a module.
   Prerequisites: none.
 
-- [ ] **TEST.521 Wire, register or delete the 27 pure functions nothing calls in 13 modules (Core 1's share of the TEST.520 shadow functions)**
-  Boss, 12:03 PM EDT 2026-10-31: nothing built and left unused. Core 1's
-  wiring guard (TEST.520, PR #4513) found 157 public functions in
-  physics, generation and galaxy that only tests call or nothing calls;
-  its register lines name TEST.520 because no owner was guessed. Report:
-  /mnt/project-files/reports/wiring-guard-test520-2026-10-31.md. Filed
-  by the TODO thread. Your share (27 functions): galaxy.cellkey
-  (cell_keys, sql_cell_key); galaxy.object_uid (captured_member,
-  is_on_demand, outside_reservoir_member, parse_captured);
-  galaxy.region_run (next_units); galaxy.spherical
-  (cells_touching_sphere, shell_cells); generation.run_galaxy
-  (backfill_bright_stars, ball_extent, queue_settle); generation.stats
-  (job_shells_per_second); generation.object_timing (run_totals);
-  generation.phenomena.hosts (host_of, reweighted); physics.sector_path
-  (ball_cell, box_cell, relevant_masses); physics.unit_registry
-  (constant_in, from_base, parts_dimension, parts_factor, units_of);
-  generation.tuning_harness (check_target); generation.possibility_table
-  (concentration_from_spread); physics.protection_limits (chosen_pairs).
-  Do, for each function: (1) wire it, naming the open item that will
-  call it (or filing one) in its register line of
-  docs/design/research/wiring-register.md; (2) mark it `by design` with
-  the reason when it is a tuning or test harness reader (an observed
-  sampler, an expected count) and say who runs it; or (3) delete it and
-  its tests (no dead code, no shim). Done: none of your functions names
-  TEST.520 in the register, and test_wiring_guard passes. Lock-free
-  (register, tests and deletions of unreferenced code change no stored
-  value; if a wiring step changes output it rides a train under its own
-  item). Owner Core 1 (proposed by the TODO thread, one lock-free item
-  at a time; the lane says if it clashes). Rule for every lane: a public
-  function that only tests call needs a register line in the same
-  change, like a module.
-  Prerequisites: none.
-
 - [ ] **TEST.526 Wire, register or delete the 8 pure functions nothing calls in 4 modules (Tides 1's share of the TEST.520 shadow functions)**
   Boss, 12:03 PM EDT 2026-10-31: nothing built and left unused. Core 1's
   wiring guard (TEST.520, PR #4513) found 157 public functions in
@@ -19528,33 +19489,6 @@ clears each one.
   line in the same change, like a module.
   Prerequisites: none.
 
-- [ ] **TEST.527 Wire, register or delete the 12 pure functions nothing calls in 5 modules (Bug 1's share of the TEST.520 shadow functions)**
-  Boss, 12:03 PM EDT 2026-10-31: nothing built and left unused. Core 1's
-  wiring guard (TEST.520, PR #4513) found 157 public functions in
-  physics, generation and galaxy that only tests call or nothing calls;
-  its register lines name TEST.520 because no owner was guessed. Report:
-  /mnt/project-files/reports/wiring-guard-test520-2026-10-31.md. Filed
-  by the TODO thread. Your share (12 functions): physics.comet_admission
-  (expected_measured, observed_sampler); physics.jwst_selection
-  (expected_observed, observed_sampler); physics.kepler_recovery
-  (expected_found, observed_sampler); physics.mass_radius_sample
-  (observed_sampler, pass_probability, population_pass_fraction);
-  physics.wd_pollution (class_probabilities, expected_sample,
-  observed_sampler). Do, for each function: (1) wire it, naming the open
-  item that will call it (or filing one) in its register line of
-  docs/design/research/wiring-register.md; (2) mark it `by design` with
-  the reason when it is a tuning or test harness reader (an observed
-  sampler, an expected count) and say who runs it; or (3) delete it and
-  its tests (no dead code, no shim). Done: none of your functions names
-  TEST.520 in the register, and test_wiring_guard passes. Lock-free
-  (register, tests and deletions of unreferenced code change no stored
-  value; if a wiring step changes output it rides a train under its own
-  item). Owner Bug 1 (proposed by the TODO thread, one lock-free item at
-  a time; the lane says if it clashes). Rule for every lane: a public
-  function that only tests call needs a register line in the same
-  change, like a module.
-  Prerequisites: none.
-
 - [ ] **TEST.529 test_the_job_strip_shows_the_running_job_on_every_admin_page fails on clean main (bug)**
   Found by Sources 2 (as the lane reported, 12:45 PM EDT 2026-10-31; red
   on main without its change), filed by the TODO thread. Kind: red test
@@ -19563,6 +19497,31 @@ clears each one.
   fixture or an order dependency) and fix the code or the test with a
   reason, never by skipping or loosening it without one. Web only,
   lock-free. Owner Core 5 (proposed; it owns the admin and queue pages).
+  Prerequisites: none.
+
+- [ ] **TEST.531 Delete the sector-settle queue chain that no route reaches any more (api_jobs.settle_sectors and the test helper queue_settle)**
+    Finding from Core 1's TEST.521 (as the lane reported, 1:37 PM EDT
+  2026-10-31).
+    api_jobs.settle_sectors is now reached only by the test helper
+  queue_settle: no route generates a sector on a visit since PERF.149.
+  The queue chain behind it is a delete candidate: remove the chain and
+  the tests that exist only for it, keeping any test of behavior a route
+  still has. Lock-free. Owner: Core 1 when its designations work waits.
+    Prerequisites: none.
+  Prerequisites: none.
+
+- [ ] **TEST.532 Give the bright-star backfill unit path (backfill_bright_stars_unit) its own direct tests, since the serial form the tests cover is no longer the path a run takes**
+    Finding from Core 1's TEST.521 (as the lane reported, 1:37 PM EDT
+  2026-10-31).
+    run_galaxy.backfill_bright_stars_around and its bar tests cover a
+  path a run no longer takes (a run does the same draw in
+  scatter-backfill units), so the unit path, backfill_bright_stars_unit,
+  has less direct test cover than it looks. Add tests that run the unit
+  path itself and show it draws the same stars as the serial form for
+  the same sector, then decide whether the serial form stays as a test
+  reference (registered by design) or goes. Lock-free, tests only.
+  Owner: Core 1 when its designations work waits.
+    Prerequisites: none.
   Prerequisites: none.
 
 ## USR: User accounts

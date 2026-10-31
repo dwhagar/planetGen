@@ -2,6 +2,56 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2967] - 2026-10-31
+
+**Headline:** The wiring register says why the simulated survey samplers are only run by the tuning tests.
+
+### Changed
+- **Twelve test-only functions are named by design (TEST.527).** The observed samplers and expected counts of the five selection models (comet admission, JWST target selection, Kepler recovery, mass and radius sample, polluted white dwarf detection) are the simulated side of the tuning harness's checks, reached through `tuning_harness.SELECTION_MODEL_MODULES`. Each register line now names who runs it and why the generator never does. No code or generated output changes.
+
+generation-output: unchanged
+
+TODO items resolved: TEST.527.
+
+## [8.0.2966] - 2026-10-31
+
+**Headline:** Core 1's twenty-seven functions that only tests called now each have an owner: six moved out of the library into the tests (one deleted), seven named to an open item, thirteen marked as test readers.
+
+### Changed
+- **Six functions that only tests called left the library (TEST.521).** `hosts.host_of` and `hosts.reweighted` (a test helper by its own docstring) now live in `tests/test_host_tables.py`; `run_galaxy.backfill_bright_stars` (the one-centre form of the backfill) and `run_galaxy.queue_settle` (no route generates a sector on a visit any more, PERF.149) now live in `tests/sector_support.py`, with the no-op `monkeypatch.setattr(run_galaxy, "backfill_bright_stars", ...)` stubs in two tests removed because nothing in the app called that name; `protection_limits.chosen_pairs` is a helper in `tests/test_protection.py`; `run_galaxy.ball_extent` (the Generate page's old "sectors" to radius rule, which nothing calls since the region run) is deleted, and its two tests read `region_run.reach_pc`, which holds the same allowance.
+- **`spherical.cells_touching_sphere` is read by the influence set.** `influence.influence_set` called `enumerate_sectors_within_radius` with the same margin spelled out; it now calls `cells_touching_sphere(center, radius, edge, reach_edges)`, which takes the margin as an argument (default `CELL_REACH_EDGES`). Its register line names GEN.105, because `galaxy/influence.py` is itself not in the app yet.
+- **`docs/design/research/wiring-register.md`: the twenty-seven lines no longer name TEST.520.** Seven name the open item that wires them: `object_uid.is_on_demand` (GEN.1161), `captured_member`, `outside_reservoir_member` and `parse_captured` (GEN.1083), `region_run.next_units` (GEN.1128), `stats.job_shells_per_second` (PERF.147) and `cells_touching_sphere` (GEN.105). `object_timing.run_totals` was already gone from main (PERF.197 a). Thirteen are `by design` with the reader named: the numpy and SQL twins of the cell key, the whole-shell cell walk, the Dirichlet spread helper, the tuning harness entry, the box and ball path domains, the path integrator's selection step, and the unit registry's constant, listing, compound-unit and inverse-conversion functions. One new line, `run_galaxy.backfill_bright_stars_around`, is `by design`: with the one-centre wrapper gone it is the serial form of the backfill that the tests call, while a run does the same draw in `scatter-backfill` units.
+- **`docs/design/architecture/architecture.md`** no longer lists `backfill_bright_stars` among the library functions other code calls.
+
+No generator output changes.
+
+generation-output: unchanged
+
+TODO items resolved: none (TEST.521 closes when this merges; the TODO thread owns the file).
+
+## [8.0.2965] - 2026-10-31
+
+**Headline:** The land on a planet or moon picture now takes its colour from the rock it is made of, not from its temperature.
+
+### Changed
+- **MAP.274.** The land colour of a solid world on the System Map and the object page was a single stand-in from its mean temperature. It is now the lab colour of the stored ground types: the 450, 550 and 650 nm reflectance (`surface_composition.band_albedo`, the same sourced spectra the albedo uses) of the areal mix of the land types, read as blue, green and red under white light and converted to sRGB. The ocean and the ice are not land (the painter draws them on their own). A land type with no measured visible spectrum (the metal and the intermediate mixes) is left out, and the record says how much of the land that was (`landKnown`). A body with no stored ground, no land, or under half of its land with a measured colour keeps the temperature estimate, and the info panel line says which one it is. The look record has the new `landKnown` field and `quality` can be `composition`; no new stored value, no new constants.
+generation-output: unchanged
+
+## [8.0.2964] - 2026-10-31
+
+**Headline:** A star's page and sheet now show its chemistry: thin or thick disc, alpha enhancement, the metal mass fraction it formed with, and the helium a red giant's first dredge-up added.
+
+### Added
+- **Four derived rows in the Composition group of a star's sheet (UX.254).** `Disc population`, `Alpha enhancement [alpha/Fe]` (dex), `Metal mass fraction` and, for a red giant, `Helium added by the first dredge-up`, each with its source line. They are worked out when the sheet is made from the stored class, state, mass, [Fe/H] and age by `stellar_composition.star_makeup`; no column, no stored value. The draws are keyed as the planets' host ratios are (mass and the sector's distance from the centre), so the page and the planets agree. A star with no [Fe/H], or one whose downloaded data are missing, shows none.
+- **`stellar_abundances.alpha_enhancement`**: the mean [X/Fe] of O, Mg, Si and Ca.
+- **`src/tests/test_property_sheet.py`**: a sample of stars across both sequences and a red giant check the rows against `star_makeup` with their units and sources; a star with no [Fe/H] has none. `docs/design/composition/stellar-composition.md` section 14.2; the properties help page lists the four rows.
+
+No generator output changes (the rows are derived at view time).
+
+generation-output: unchanged
+
+TODO items resolved: UX.254.
+
 ## [8.0.2963] - 2026-10-31
 
 **Headline:** Thirty-one functions that nothing in the generator called, with their tests, are removed, and the seven that stay each name the item that will use them.
