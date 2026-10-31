@@ -14699,6 +14699,39 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   forced types only, so train-bound. Owner Aux 7 after GEN.1163.
   Prerequisites: none. Related: GEN.753, GEN.365.
 
+- [ ] **GEN.1167 The stellar-to-halo relation (Moster 2013) has 0.3 to 0.4 dex more stars than Behroozi 2019 in halos of 1e10.75 to 1e11.5 and 0.06 to 0.26 dex fewer in halos of 1e12.5 to 1e14.5: compare the published fits and pick the best-supported relation**
+  Found by the GEN.753 stars and galaxy validation sweep (Sources 2,
+  reports/gen753-stars-galaxy-validation-2026-10-31.md; PR #4329 added
+  the agreeing statistics as tests). The first range matches Leauthaud
+  2012 to 0.1 dex, and the automatic galaxy range draws from there.
+  Sources 2 compares the published fits (Moster 2013, Behroozi 2019,
+  Leauthaud 2012, Girelli 2020), says which one the source rules pick
+  (verified wins; two in doubt newest; two in question widest range),
+  and either keeps the relation with a stated tier or replaces it. A
+  replacement changes galaxy output and rides a train with GEN.1154,
+  whose halo draw reads this relation. Owner Sources 2.
+  Prerequisites: none. Related: GEN.753, GEN.1154, GEN.368.
+
+- [ ] **GEN.1168 No white dwarf is lighter than 0.56 solar masses in the generated population while field samples go down to 0.45: check whether the low-mass white dwarf channel is missing**
+  Found by the GEN.753 stars and galaxy validation sweep (Sources 2,
+  reports/gen753-stars-galaxy-validation-2026-10-31.md; PR #4329 added
+  the agreeing statistics as tests). Check item, not yet sized:
+  binary-made helium-core white dwarfs (GEN.996 covers part of this) and
+  the single-star lower limit. Compare with a published low-mass white
+  dwarf fraction (for example the 20 pc sample and the SDSS sample) and
+  report whether GEN.996 already closes it. Owner Sources 2.
+  Prerequisites: none. Related: GEN.753, GEN.996.
+
+- [ ] **GEN.1169 Pre-main-sequence stars are 2.5 percent of living stars at the Sun's position (late M dwarfs, median age 0.45 Gy): check the share against the contraction times of the tracks and a published fraction**
+  Found by the GEN.753 stars and galaxy validation sweep (Sources 2,
+  reports/gen753-stars-galaxy-validation-2026-10-31.md; PR #4329 added
+  the agreeing statistics as tests). Check item: likely consistent with
+  the pre-main-sequence contraction time of late M dwarfs (up to a Gy),
+  but not checked against a paper. Read the tracks' contraction times,
+  compute the expected fraction for the star formation history, and
+  report agree or disagree. Owner Sources 2.
+  Prerequisites: none. Related: GEN.753.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -19442,6 +19475,15 @@ clears each one.
   expectation, or a bug in the runaway history. Fix lock-free if no
   generated value changes; else list it train-bound.
   Prerequisites: none.
+
+- [ ] **TEST.506 test_no_todo_codes_shown fails on main: GEN.1128 shows in the --help text of planetgen/cli/generate.py (line 696) and of the sectors and galaxy commands (bug)**
+  Found by the GEN.753 stars and galaxy validation sweep (Sources 2,
+  reports/gen753-stars-galaxy-validation-2026-10-31.md; PR #4329 added
+  the agreeing statistics as tests). A todo code must never appear in
+  user-facing help text. Replace the code in those help strings with a
+  plain description of the feature (no item ids), and run
+  test_no_todo_codes_shown to confirm. Lock-free, test and text only.
+  Prerequisites: none. Related: GEN.1128.
 
 ## USR: User accounts
 
