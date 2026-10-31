@@ -23,7 +23,7 @@ import math
 import re
 
 from planetgen.physics import moon_history, body_state, bulk_draw, constants, giant_draw, giant_interior, kepler, metallicity, moon_composition, orbit_elements, planet_classes, planet_kind, planet_mass, rings
-from planetgen.physics import aerosols, atmosphere, body_colour, body_spin, daylight, climate_draws, habitability_world, hosting_gate, hydrosphere, interior_heat, magnetism, radiation, radiogenic, relations, spin, surface_air, surface_composition
+from planetgen.physics import aerosols, atmosphere, body_colour, body_spin, daylight, climate_draws, habitability_world, hosting_gate, hydrosphere, interior_heat, magnetism, ocean_tides, radiation, radiogenic, relations, spin, surface_air, surface_composition
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.util import log
@@ -343,6 +343,11 @@ def refinish_rocky(planet):
     if made:  # GEN.767: the spin and period changed, the moons' day and night shares follow (no draws)
         for moon in planet.moons:
             daylight.generate(moon, planet)
+    if made:
+        # GEN.1034: the sea and the spin are new, and the tide worked out from the old ones follows them (no draws)
+        ocean_tides.generate(planet)
+        for moon in planet.moons:
+            ocean_tides.generate(moon, planet)
     return made
 
 
