@@ -37,6 +37,7 @@ import math
 from dataclasses import dataclass
 
 from planetgen.physics import constants
+from planetgen.util import detmath
 from planetgen.util.checks import finite_domain
 
 PRESSURE_FADE_PA = 1000.0
@@ -136,7 +137,7 @@ def _smooth_minimum(a, b):
         return b
     if math.isinf(b):
         return a
-    return a * b / math.hypot(a, b) if a > 0.0 and b > 0.0 else 0.0
+    return a * b / detmath.hypot(a, b) if a > 0.0 and b > 0.0 else 0.0
 
 
 def hadley_edge_deg(thermal_rossby_number):
@@ -191,8 +192,8 @@ def band_winds(bands, pressure_pa, mean_molar_mass_kg_mol, radius_m, rotation_ra
         aloft = _smooth_minimum(u0_ep, thermal_wind_m_s(latitude, delta_ep, gas, radius_m, rotation_rate_rad_s))
         inertial = 1.0 / math.sqrt(1.0 + (2.0 * math.sin(math.radians(latitude))) ** 2)
         tide = heat_engine_speed_m_s(band.day_k - band.night_k, t_mean, gas) * inertial
-        day = math.hypot(SURFACE_COUPLING * aloft, SURFACE_COUPLING * tide) * fade
-        night = math.hypot(SURFACE_COUPLING * NIGHT_COUPLING * aloft, SURFACE_COUPLING * tide) * fade
+        day = detmath.hypot(SURFACE_COUPLING * aloft, SURFACE_COUPLING * tide) * fade
+        night = detmath.hypot(SURFACE_COUPLING * NIGHT_COUPLING * aloft, SURFACE_COUPLING * tide) * fade
         if ro >= 1.0:
             regime = OVERTURNING
         elif latitude < edge:

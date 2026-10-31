@@ -42,6 +42,7 @@ import dataclasses
 import math
 
 from planetgen.physics import constants
+from planetgen.util import detmath
 
 Q_STAR_SCALE = 0.6
 """float: The factor on the Stewart and Leinhardt threshold for planet-sized bodies (MT4)."""
@@ -221,7 +222,7 @@ def escape_speed_ms(mass_kg, projectile_kg, radius_m, projectile_radius_m):
 
 def contact_speed_ms(mass_kg, projectile_kg, radius_m, projectile_radius_m, speed_at_infinity_ms):
     """The speed at contact: the speed at infinity and the escape speed in quadrature."""
-    return math.hypot(speed_at_infinity_ms, escape_speed_ms(mass_kg, projectile_kg, radius_m, projectile_radius_m))
+    return detmath.hypot(speed_at_infinity_ms, escape_speed_ms(mass_kg, projectile_kg, radius_m, projectile_radius_m))
 
 
 def strip_probability(angle_deg=None):

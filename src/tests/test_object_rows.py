@@ -125,6 +125,10 @@ def _system(seed):
     return StarSystem(system_config=SystemConfig())
 
 
+_STAR_ROW_ONLY = {"state", "decay_age_yr"}
+"""set: Columns the star row holds that `Star.to_dict()` does not carry: they are derived from the star by `stellar_state.set_state` (GEN.785, GEN.786), not serialised with it."""
+
+
 @_pytest.mark.parametrize("seed", [1, 2, 3])
 def test_a_star_is_read_back_as_the_dict_it_was_written_from(seed):
     star = _system(seed).primary_star       # a binary pair is saved as its two stars, not as the proxy that stands for both
@@ -132,9 +136,9 @@ def test_a_star_is_read_back_as_the_dict_it_was_written_from(seed):
     loaded = store._star_row_to_dict(row, 12.5)
     assert loaded["galactic_orbital_speed_kms"] == 12.5
     original = star.to_dict()
-    assert set(loaded) == set(original), set(loaded) ^ set(original)
+    assert set(loaded) - _STAR_ROW_ONLY == set(original), set(loaded) ^ set(original)
     for key, value in loaded.items():
-        if key != "galactic_orbital_speed_kms":
+        if key != "galactic_orbital_speed_kms" and key not in _STAR_ROW_ONLY:
             _same(original[key], value)
 
 
@@ -183,10 +187,12 @@ class _SpectrumConnection:
 
 
 def test_planets_moons_belts_and_comets_are_read_back_as_the_dicts_they_were_written_from():
-    checked = set()
-    for seed in range(1, 9):
+    checked, wanted = set(), {"planet", "moon", "belt", "comet"}
+    for seed in range(1, 61):                       # the first seeds that hold a belt move with the generator: read until every kind was seen
         _check_bodies(_system(seed), checked)
-    assert checked == {"planet", "moon", "belt", "comet"}
+        if checked == wanted:
+            break
+    assert checked == wanted
 
 
 def _check_bodies(system, checked):
