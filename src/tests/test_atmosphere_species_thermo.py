@@ -12,8 +12,8 @@ from planetgen.physics.elements import DataError
 
 
 def test_the_file_holds_the_gases_and_the_condensed_phases_the_chemistry_needs():
-    assert len(st.SPECIES) == 99
-    assert len(st.GASES) == 79 and len(st.CONDENSED) == 20
+    assert len(st.SPECIES) == 104
+    assert len(st.GASES) == 84 and len(st.CONDENSED) == 20
     for name in ("H2", "H2O", "CO", "CO2", "CH4", "NH3", "N2", "H2S", "SO2", "Na", "K", "SiO", "TiO", "VO", "Fe", "Mg"):
         assert name in st.GASES
     for name in ("H2O(cr)", "H2O(L)", "C(gr)", "Fe(L)", "SiO2(L)"):
@@ -124,3 +124,19 @@ def test_the_build_script_reproduces_the_committed_file(tmp_path):
     assert read["H2"]["elements"] == {"H": 2.0}
     assert read["H2"]["intervals"][0]["a"] == pytest.approx(list(fit.a), rel=1e-8)
     assert read["H2"]["intervals"][0]["b"] == pytest.approx(list(fit.b), rel=1e-8)
+
+
+HALOGEN_NAMES = {"F": "F", "F2": "F2", "CL": "Cl", "CL2": "Cl2", "HCL": "HCl", "HF": "HF"}
+"""dict: The halogen gases of the outgassed air (GEN.524 part 2) by their name in the NASA file (which spells chlorine CL) and in the gas table."""
+
+
+def test_the_halogen_species_are_in_the_table_and_hydrogen_chloride_leads_the_chlorine_of_a_wet_air():
+    from planetgen.physics import gas_equilibrium
+    for name, formula in HALOGEN_NAMES.items():
+        assert name in st.GASES and st.SPECIES[name].formula == formula
+    for formula in ("HCl", "HF"):
+        assert gases.has(formula)
+    for temperature in (500.0, 1000.0, 1500.0):
+        result = gas_equilibrium.solve({"H": 2.0, "O": 1.0, "C": 0.3, "Cl": 0.002, "F": 0.001}, temperature, 100.0)
+        assert result.moles["HCL"] > 0.99 * 0.002          # the dominant chlorine gas below 1500 K (Schaefer, Lodders and Fegley 2012)
+        assert result.moles["HF"] > 0.99 * 0.001
