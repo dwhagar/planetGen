@@ -13,7 +13,7 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.254 |
+| UX | UX.255 |
 | MAP | MAP.363 |
 | NAV | NAV.65 |
 | GEN | GEN.1228 |
@@ -22,7 +22,7 @@ release is stamped.
 | API | API.38 |
 | ADM | ADM.135 |
 | SEC | SEC.37 |
-| TEST | TEST.528 |
+| TEST | TEST.529 |
 | USR | USR.32 |
 | OPS | OPS.85 |
 | DOC | DOC.86 |
@@ -2257,7 +2257,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.274 | Land colour from the bulk composition: oxidation and rock type | none | open |
 | MAP.275 | Gas and ice giant painter: bands, storms and thermal glow from rotation, temperature and the atmosphere colour, rings with resonance gaps from the moons | none | open |
 | MAP.276 | Star painter: blackbody colour shared with star_spectrum, class texture, spots and glow | none | done, PR #2793 |
-| MAP.277 | Atmosphere glow from pressure and composition, and the day and night terminator | none | open |
+| MAP.277 | Atmosphere glow from pressure and composition, and the day and night terminator | none | done, PR #4515 |
 | MAP.278 | Phenomena painted from classes: nebula tints, remnant shells by age, asteroid field grains, black hole and pulsar geometry, rogue planet and comet with today's data | none | done, PR #2798 |
 | MAP.279 | Small bodies: lumpy meshes for moons and asteroids under about 400 km, from the stored shape | none | open |
 | MAP.280 | Cloud layer, terminator and cover on solid worlds; cloud-deck worlds paint the deck as the surface | none | open |
@@ -3076,6 +3076,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.251 | Planet and moon pages: a Life summary paragraph in At a glance, from the life readings | none | done, PR #4488 |
 | UX.252 | Readability rewrite of ALL planet, moon and belt text: summary sentences, descriptions, notes, labels, class pages | none | open |
 | UX.253 | Readability rewrite of ALL star, system and star-class text: summary sentences, descriptions, notes, labels, spectral class pages | none | done, PR #4496 |
+| UX.254 | Show a star's chemistry on its page: thin or thick disc branch, alpha enhancement, metal fraction and the dredge-up shift, from stored values with stellar_composition.star_makeup | none | open |
 | VIEW.1 | View from a planet | none | open |
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG, with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |
@@ -3708,6 +3709,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.525 | Wire, register or delete the 26 pure functions nothing calls in 14 modules (Aux 3's share of the TEST.520 shadow functions) | none | open |
 | TEST.526 | Wire, register or delete the 8 pure functions nothing calls in 4 modules (Tides 1's share of the TEST.520 shadow functions) | none | open |
 | TEST.527 | Wire, register or delete the 12 pure functions nothing calls in 5 modules (Bug 1's share of the TEST.520 shadow functions) | none | open |
+| TEST.528 | tests/test_systemmap.py::test_a_planet_and_its_moon_glow_in_the_colour_of_their_air_under_their_own_star is red on main (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

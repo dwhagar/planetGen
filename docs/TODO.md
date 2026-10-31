@@ -1099,6 +1099,22 @@ with `clamp()`.
   checker change are made by Core 5 with the next guide edit.
   Prerequisites: none. Related: UX.237, GEN.1208.
 
+- [ ] **UX.254 Show a star's chemistry on its page: thin or thick disc branch, alpha enhancement, metal fraction and the dredge-up shift, from stored values with stellar_composition.star_makeup**
+  Found by Star 2 while settling TEST.523 (as the lane reported, 12:35
+  PM EDT 2026-10-31); a wiring gap filed by the TODO thread (Boss, 12:03
+  PM EDT: nothing built and left unused).
+  stellar_composition.star_makeup (GEN.440) gives the composition of any
+  star from its stored [Fe/H], age, mass and key; it is built and tested
+  and never called by the generator or any page. Do: show a star's
+  chemistry on its sheet and page and in the API, derived at view time
+  from stored values (no column, no stored value), like the variability
+  and carbon-star rows: thin or thick disc branch, alpha enhancement,
+  metal fraction, and the phase's dredge-up shift, each with its unit
+  and source line. Done: a test walks a sample of stars and checks the
+  rows appear with units; the register line for star_makeup is gone.
+  Lock-free. Owner Star 2 (proposed). Related: GEN.440, TEST.523.
+  Prerequisites: none.
+
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
@@ -2020,20 +2036,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the owner named above (Aux 10) is a retired lane. A waiting lane takes
   it, confirmed with TODO, one lock-free item at a time.
   Prerequisites: GEN.670, GEN.419.
-
-- [ ] **MAP.277 Atmosphere glow from pressure and composition, and the day and night terminator**
-  Thin air, none and thick air each draw their own glow. Design draft
-  design-drafts/body-rendering-from-composition-2026-10-24.md (section
-  4), filed by the body-rendering design thread, 10:18 PM EDT 2026-10-23
-  as the thread reported. Placement follows Boss's plan of 10:26 PM EDT 2026-10-23 (section 11 of the draft).
-  Research (2026-10-09, Owner 6:36 PM EDT): Owner (TODO, 6:36 PM EDT
-  2026-10-24, coordinator request): Aux 10 (Map nodes) after MAP.287
-  (#3130), when DB.96 merges (DB.96 is with Aux 12 after DB.100 and
-  GEN.701); nobody has started it.
-  Owner (housekeeping) (2026-10-30 2:55 PM EDT): released to the pool:
-  the owner named above (Aux 12) is a retired lane. A waiting lane takes
-  it, confirmed with TODO, one lock-free item at a time.
-  Prerequisites: DB.96.
 
 - [ ] **MAP.279 Small bodies: lumpy meshes for moons and asteroids under about 400 km, from the stored shape**
   Spheres above the threshold. Design draft
@@ -19798,6 +19800,17 @@ clears each one.
   a time; the lane says if it clashes). Rule for every lane: a public
   function that only tests call needs a register line in the same
   change, like a module.
+  Prerequisites: none.
+
+- [ ] **TEST.528 tests/test_systemmap.py::test_a_planet_and_its_moon_glow_in_the_colour_of_their_air_under_their_own_star is red on main (bug)**
+  Found by Core 4 (as the lane reported, 12:30 PM EDT 2026-10-31; red on
+  clean main, not from MAP.277), filed by the TODO thread. Kind: red
+  test on main. Object: the System Map test that a planet and its moon
+  glow in the colour of their air under their own star. Do: find why it
+  fails (the look record glow colour, or MAP.277's new glow strength and
+  width read by the test) and fix the code or the test's expectation
+  with a reason, never by skipping it. Lock-free. Owner Core 2
+  (proposed; it owns the System Map painters).
   Prerequisites: none.
 
 ## USR: User accounts
