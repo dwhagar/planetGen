@@ -101,14 +101,14 @@ def test_sector_min_habitable_above_a_drawn_count_warns_and_raises_the_count(mys
 
 
 def test_a_sector_run_that_drawing_cannot_satisfy_takes_the_forced_fill(mysql_config, capsys, monkeypatch):
-    """GEN.180: six habitable worlds in a sector drawn with three systems (about 1 in 10,000 naturally) is met by the
-    forced fill after the one allowed draw: the sector gets six systems, each with a habitable world, and the console
-    says it was forced."""
+    """GEN.180: six habitable worlds in a sector drawn with three systems (about 1 in 10,000 naturally) is followed by the
+    fill after the one allowed draw: the sector gets six systems, each asking for a habitable world (the odds raised and
+    nothing forced, GEN.1130), and the console says so."""
     monkeypatch.setenv("PLANETGEN_WORKERS", "1")
     run_cli("sector", ["--num-systems", "3", "--directive", "habitable>=6", "--directive-attempts", "1"]
             + mysql_argv(mysql_config))
     out = capsys.readouterr().out
-    assert "forced fill" in out and "met_forced" in out
+    assert "a fill asked for a habitable world" in out and "met_forced" in out
     conn = store.get_connection(mysql_config)
     try:
         assert conn.execute("SELECT COUNT(*) AS n FROM star_systems").fetchone()["n"] >= 6

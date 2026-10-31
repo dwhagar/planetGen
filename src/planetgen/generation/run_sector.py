@@ -84,7 +84,7 @@ def iter_sector_configs(args):
     system; sector runs take no forcing options, GEN.51). A huge count
     (`--num-systems 1000000000`, or a huge `--density` draw) never builds them
     all up front -- `generate_sector` stops pulling once the sector is full.
-    If `--min-habitable` was given, `HABITABLE_WORLD = True` is set on that
+    If `--min-habitable` was given, `HABITABLE_WORLD = True` (a request that raises the odds, GEN.1130) is set on that
     many randomly-chosen configs; the indices are chosen (and any conflict
     reported) before the first config is yielded.
 
@@ -1167,7 +1167,7 @@ def unplaced_sectors_unit(unit_args, report):
 
 
 def _forced_args(args, count):
-    """`args` for the forced fill (GEN.180): `--min-habitable COUNT`, which forces a habitable world into that many of the
+    """`args` for the fill (GEN.180): `--min-habitable COUNT`, which asks for a habitable world (the odds raised, none forced, GEN.1130) in that many of the
     sector's systems (and gives the sector that many systems at least, with a warning rather than a refusal even under
     `--strict`, as the draws have already failed)."""
     forced = copy.copy(args)

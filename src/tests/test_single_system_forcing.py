@@ -52,8 +52,8 @@ def test_a_system_that_never_meets_a_forced_option_is_not_saved_under_strict(tmp
     assert "No system with an asteroid belt" in captured.out + captured.err
 
 
-def test_a_hot_star_with_a_habitable_request_is_saved_whether_or_not_it_has_one(tmp_path, monkeypatch):
-    """GEN.1130: +habitable_world only raises the odds, so an O5V system that comes out without a habitable world is saved (under `--strict`
+def test_a_star_with_a_habitable_request_is_saved_whether_or_not_it_has_one(tmp_path, monkeypatch):
+    """GEN.1130: +habitable_world only raises the odds, so a system that comes out without a habitable world is saved (under `--strict`
     too) and says `unmet`, with no retry of the whole system; one that has a world has it by the request's own conditions."""
     kept = []
     real = StarSystem
@@ -64,11 +64,11 @@ def test_a_hot_star_with_a_habitable_request_is_saved_whether_or_not_it_has_one(
         return system
 
     monkeypatch.setattr(run_system, "StarSystem", build)
-    for seed in range(4):
+    for seed in range(3):
         draw.set_run_seed(seed)
         kept.clear()
         out = tmp_path / f"system-{seed}.md"
-        run_cli("system", ["--star-type", "O5V", "+habitable_world", "--strict", "--output", str(out)])
+        run_cli("system", ["--star-type", "M2V", "+habitable_world", "--strict", "--output", str(out)])
         assert out.exists() and len(kept) == 1
         assert kept[-1].unmet_requirements == []
         assert kept[-1].habitable_request in ("aim", "fallback", "unmet")

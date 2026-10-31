@@ -12,7 +12,7 @@ carbon dioxide one, so the letter is no test of them.
 
 The request only raises the odds (GEN.1130, `util.request_odds`): the star, the planet in the ecosphere and the system's planets are
 drawn as they would be, and a draw without the conditions is kept one time in `tuning.REQUEST_ODDS` (the host star, `physics.stellar_evolution`;
-the planet, `StarSystem._planet_in_ecosphere`; the system, `StarSystem._habitable_request_stands`). Nothing is placed, aimed or adapted, and
+the planet, `StarSystem._planet_in_ecosphere`; a system with no rocky planet in the ecosphere, `StarSystem._habitable_request_stands`). Nothing is placed, aimed or adapted, and
 a system the request did not reach says `"unmet"` (`StarSystem.habitable_request_status`).
 """
 
