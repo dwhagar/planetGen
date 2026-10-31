@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.254 |
 | MAP | MAP.363 |
 | NAV | NAV.65 |
-| GEN | GEN.1227 |
+| GEN | GEN.1228 |
 | PERF | PERF.220 |
 | DB | DB.110 |
 | API | API.38 |
@@ -752,7 +752,7 @@ Parents marked "new parent" had no old number of their own.
 | DOC.81 | Help page: resource locations, what the scores mean and how to find them on the map | none | open |
 | DOC.82 | Region names docs and the audit check "region names stay unique among neighbours" (regions chain, step 7) | none | done, PR #3400 |
 | DOC.83 | Plain-words style guide for every sentence the site writes about a planet or a star, with a test that enforces it | none | done, PR #4478 |
-| DOC.84 | Help page suite for life: the four kinds of life, every life class, and the scales we use (abundance, trend, security, suitability) | none | open |
+| DOC.84 | Help page suite for life: the four kinds of life, every life class, and the scales we use (abundance, trend, security, suitability) | none | done, PR #4506 |
 | DOC.85 | Refresh the class table in docs/reference/system-file-format.md: the F, G, B and N meanings and the zone and habitable columns are from the old zone-drawn classes | none | done, PR #4499 |
 | GEN.1 | Real-world rates for interstellar objects | 5 (2026-09-30 18:14Z to 23:21Z) | done in 7.18.0, PR #136 |
 | GEN.2 | Rogue planet mass bins | 6 (2026-09-30 18:14Z to 23:21Z) | done in 7.18.0, PR #136 |
@@ -1980,6 +1980,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1224 | Research: envelope share against mass and metallicity (Thorngren 2016 mass-metallicity relation) to replace the envelope-share guesses of the giant and transitional class rows | none | done, research report written (reports/gen1224-giant-heavy-element-and-envelope-share-2026-10-31.md) |
 | GEN.1225 | Research: tune the ammonia life gate and the nitrogen ice amount from physics and chemistry (instead of guesses) | none | done, research report written (reports/gen1225-ammonia-gate-and-nitrogen-ice-2026-10-31.md) |
 | GEN.1226 | Store the envelope share for EVERY body, so hydrogen-air dwarfs (about 400 class T bodies) are typed and classed correctly | none | open |
+| GEN.1227 | Store the coma class and the dominant volatiles of an interstellar comet, so the map can colour its coma | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
