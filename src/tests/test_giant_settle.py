@@ -98,7 +98,8 @@ def test_every_table_giant_of_a_finished_system_has_the_radius_of_its_final_age_
     assert checked, "the sweep made no giant sized from the tables"
 
 
-def test_a_moon_the_smaller_giant_cannot_hold_is_dropped(host_star):
+def test_a_moon_the_smaller_giant_cannot_hold_is_dropped(host_star, monkeypatch):
+    monkeypatch.setattr(planets, "generate_spin", lambda *args, **kwargs: None)   # the moons' history (GEN.959) would also move these made-up moons; this test is the size limit
     planet = _table_giant(host_star)
     limit_km, _ = planets.moon_size_limits(planet)
     kept = SimpleNamespace(radius=0.1 * limit_km, mass=1e-6 * planet.mass, distance=planet.hill_radius * 0.1 / constants.AU_TO_KM,
@@ -168,3 +169,12 @@ def test_the_moons_of_a_settled_planet_are_told_its_new_eccentricity(host_star):
     host_star.age = 13.8
     assert planets.settle_orbit(planet) is True
     assert all(moon.host_eccentricity == planet.eccentricity for moon in planet.moons)
+
+
+def test_a_settled_giant_keeps_the_birth_spin_it_was_born_with(host_star):
+    # GEN.961: the spin at the final age is the birth spin worn by the tide again, not a new draw
+    planet = _table_giant(host_star)
+    born = planet._birth_spin
+    host_star.age = 7.0
+    assert planets.settle_giant(planet) is True
+    assert planet._birth_spin == born

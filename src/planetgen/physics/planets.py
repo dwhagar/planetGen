@@ -310,7 +310,7 @@ def age_moved(body):
 def refinish_rocky(planet):
     """
     Makes a rocky planet's end stages again at the star's final age, and its moons' (GEN.992, found by GEN.986): the air, the water and the
-    surface (`calculate_atmospheric_conditions`), the class, the spin at that age and what ends it (the field, the dose, the colour and the
+    surface (`calculate_atmospheric_conditions`), the class, the spin at that age (its own birth spin worn by the tide again, `generate_spin` with `birth`, GEN.961) and what ends it (the field, the dose, the colour and the
     habitability score; `generate_spin`), the same sequence a moved planet gets (`validation.reconcile_moved_planet`), but from a stream of
     the body's own (mass, distance, star and the age it settles to), so the run's stream does not move. A body keeps its mass, radius,
     composition and orbit. The forced requests are judged on the classes this makes (`StarSystem`), and the moons' induced fields, rings and
@@ -324,7 +324,13 @@ def refinish_rocky(planet):
     """
     made = 0
     with_planet = planet.body_type == "t" and not planet.is_moon and age_moved(planet)
-    for body in ((planet, *planet.moons) if with_planet else planet.moons):
+
+    def bodies():
+        if with_planet:
+            yield planet
+        yield from list(planet.moons)      # read after the planet is made again: its moons' history (GEN.959) can replace a moon with a new body
+
+    for body in bodies():
         if not age_moved(body):
             continue
         stream = draw.Stream(f"refinish-rocky:{float(body.mass)!r}:{float(body.distance)!r}:{float(planet.distance)!r}:"
@@ -333,11 +339,11 @@ def refinish_rocky(planet):
             if body.is_moon:
                 calculate_atmospheric_conditions(body, planet.distance, planet.eccentricity)
                 apply_class(body)
-                generate_spin(body, planet.mass)
+                generate_spin(body, planet.mass, birth=getattr(body, "_birth_spin", None))
             else:
                 calculate_atmospheric_conditions(body)
                 apply_class(body)
-                generate_spin(body, body.primary_mass_kg)
+                generate_spin(body, body.primary_mass_kg, birth=getattr(body, "_birth_spin", None))
         body._age_drawn = body.star.age
         made += 1
     if made:  # GEN.767: the spin and period changed, the moons' day and night shares follow (no draws)
@@ -369,7 +375,7 @@ def settle_giant(planet):
     with draw.bound(stream):
         calculate_atmospheric_conditions(planet)
         apply_class(planet)
-        generate_spin(planet, planet.primary_mass_kg)  # the spin at the final age, then the field, the dose, the colour and the score
+        generate_spin(planet, planet.primary_mass_kg, birth=getattr(planet, "_birth_spin", None))  # the birth spin again worn to the final age, then the field, the dose, the colour and the score
     if drop_unstable_moons(planet):  # a smaller giant holds a smaller moon and a smaller range of orbits
         planet.reflex_offset_x, planet.reflex_offset_y, planet.reflex_offset_z = calculate_reflex_offset(
             planet.mass, [(m.mass, m.position_x, m.position_y, m.position_z) for m in planet.moons])

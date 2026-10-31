@@ -211,10 +211,13 @@ def test_generate_spin_stores_the_state_the_tide_leaves(monkeypatch):
 
 def test_every_generated_planet_is_in_a_state_the_tide_allows():
     seen = {"locked": 0, "resonant": 0, "free": 0}
-    for seed in range(12):
+    for seed in range(7100, 7112):    # the seeds of the sheet audit: with planets on, a mix of dwarf and Sun-like stars
         with deterministic_entropy(seed):
             draw.set_run_seed(seed)
-            system = StarSystem(SystemConfig(), galactic_center_dist_ly=26000.0)
+            config = SystemConfig()
+            config.PLANETS = True
+            config.MAX_PLANETS = True
+            system = StarSystem(system_config=config, galactic_center_dist_ly=26000.0)
         for planet in system.planets + system.secondary_planets:
             if not hasattr(planet, "moons") or planet.body_type == "a":
                 continue

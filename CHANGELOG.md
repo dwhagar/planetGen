@@ -2,6 +2,183 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2880] - 2026-10-31
+
+**Headline:** The stand-in registry rows for the roundness engine now cite all the papers read, and the porosity range is widened to 4 to 9.
+
+### Changed
+- **GEN.1186.** Registry rows RN2 (rock and ice strengths), RN5 (porosity, range 4 to 9, tier Marginal educated guess) and RN8 (rubble cohesion and friction) list the further evidence from `reports/papers-vs-standins-2026-10-31.md`. Documentation only; no code or generated output changes.
+generation-output: unchanged
+
+## [8.0.2879] - 2026-10-31
+
+**Headline:** The roundness engine now knows that rock that took its shape hot is much weaker than cold rock, using the olivine creep laws, and the hot rubble-pile strength has a physical basis.
+
+### Changed
+- **GEN.1184.** `physics/roundness.py` gains an `olivine-creep-law` temperature rule for rock: with a shape-set temperature, rock follows dry olivine dislocation creep between the Hirth and Kohlstedt 2003 and Korenaga and Karato 2008 columns (by the body's strength draw), never above the 16.5 MPa cold rock strength, so rock stays 16.5 MPa up to about 1100 to 1150 K and falls to 2 to 5 MPa at 1300 K. The temperature rules are now per material in `physics/data/roundness_strengths.json` (`ice`, `rock`). The hot rubble strength (RN9, 2.5 MPa) is re-tiered to L1 as olivine creep near 1330 K. Nothing reads the engine yet, so generated worlds do not change.
+generation-output: unchanged
+
+## [8.0.2878] - 2026-10-31
+
+**Headline:** The Milky Way satellite table the plausibility tests use is now checked against McConnachie (2012).
+
+### Changed
+- **GEN.366.** The 11 rows of the reference table (`tests/reference_satellites.py`, test data only; the generator reads none of it) are checked against the published tables 2, 3, 4 and 5: the distances of the Large and Small Magellanic Clouds, Sagittarius and Fornax (51, 64, 26 and 147 kpc), the stellar masses of the Large Magellanic Cloud (1.5e9, was 2.5e9), the Small Magellanic Cloud (4.6e8) and Sagittarius (2.1e7, was 1.0e8), the half-light radius of Ursa Minor (181 pc, was 405) and the mean [Fe/H] of every row are corrected, and a new test pins every value to the paper. Generated worlds do not change.
+generation-output: unchanged
+
+## [8.0.2877] - 2026-10-31
+
+**Headline:** The test that checks every generated planet is in a state the tide allows now samples systems with planets switched on, so it meets planets that are still turning freely.
+
+### Changed
+- `test_every_generated_planet_is_in_a_state_the_tide_allows` took the first 12 default systems; since the star changes they are all dwarf stars with planets inside the tidal-locking distance (25 planets, every one locked), so its "some planets are still free" assertion failed on main. It now uses the 12 seeds of the sheet audit with planets switched on, as that audit does. Nothing a generator draws or stores changes.
+generation-output: unchanged
+
+## [8.0.2876] - 2026-10-31
+
+**Headline:** The orbits of the stars in a system are now drawn once from the room each pair has, instead of drawn and thrown away until one fits.
+
+### Changed
+- **Truncated period and eccentricity (GEN.1011).** A pair's period is drawn from its law cut to the range between the keep-out floor and the least of the stability limit, the wide-pair cap and the room the pair above it leaves; its eccentricity is drawn from the thermal law cut to what the pericentre, that room and the stability of the triple above allow. No orbit is redrawn for overlapping a partner or breaking stability any more; each pair above a sub-pair passes it the extent it may have. What is still redrawn is counted by kind (no room, the Kozai-Lidov screen, accretion, gravitational waves, the brown dwarf desert).
+- generation-output: changed
+
+## [8.0.2875] - 2026-10-31
+
+**Headline:** A rocky world's tide now follows the temperature of its mantle: cold bodies barely flex, warm ones dissipate strongly, Io-like bodies melt and hold a heat pipe, and locking and circularisation times follow.
+
+### Changed
+- **The Love number and quality factor of rock come from the mantle (GEN.955, stage 1 of the tides chain).** `interior_heat.tidal_response` gives a rocky body the Andrade `k2` and `Q` of its mass and radius at its mantle's temperature, the viscosity it drew and the melt that temperature makes (the solidus is now a curve of the pressure in the mantle, 1,750 K at 3 GPa). The Moon comes out at `k2` 0.024 (observed 0.0242) and `Q` of 18 to 29 (observed 37.5); the fixed rock `Q` of 100 is gone. Despinning (`tidal_spin`) and the circularisation of the orbit (`orbit_elements.circularisation_time_yr`) read it, so a warm planet locks faster (Mercury reaches 3:2 in 0.3 to 0.5 Gy) and a cold small one is stiffer than before.
+- **The tide heats the box with the temperature it has.** The tide is integrated with the cooling of the mantle instead of added as a constant, so heat and temperature feed back. A tide that is at least the body's own heat can melt the mantle to the critical melt fraction, where the melt erupts and carries the heat out: the mantle holds that temperature and radiates the radiogenic heat plus the tide there (Io: 1,880 K, 9e12 to 5e13 W over the drawn viscosities, observed 0.9 to 1.5e14). The fitted molten `k2/Q` of Io, the chosen melt share and the chosen melt state are removed (stand-in rows TH5, TH7 retired; TH6, TH9 reworded; TH11, TH12, TH13 added).
+- **Tidal heat flow is filled for every rocky and icy body (GEN.778).** `tidal_flux_w_m2` is 0.0 on a circular orbit instead of empty; the sheet's open-gap entry is removed.
+
+generation-output: changed
+
+## [8.0.2874] - 2026-10-31
+
+**Headline:** A world's life class is always listed among the classes the world supports.
+
+### Fixed
+- **TEST.486: a cold world whose life used up its fuel kept its class but stored no supported classes.** When the air built by a class's own life (the hydrogen or donor it drew down) left the class scoring 0, the world kept the class and its stage while `life_class_scores` was empty and the page's "Supports" lines were missing. The class that lives on a world is now stored among the supported classes at the score it was chosen at, and counts for the best-supported class. Only those worlds change.
+
+generation-output: changed
+
+## [8.0.2873] - 2026-10-31
+
+**Headline:** Every rocky or icy world now says what liquid lies on its surface and how much of the surface it covers: water oceans, methane seas like Titan's, condensed seas, or the lava of a molten surface.
+
+### Added
+- **The surface liquid of a world (GEN.1035).** A new module (`physics/surface_liquid_world`) gives each planet and moon a stored `surface_liquid` (water, a hydrocarbon, a lava, and the other 50 liquids of the table), the share of the surface it covers and its mean depth. A water ocean keeps the cover and depth the hydrosphere found. A surface at or over the melting point of its ground's rock is a lava world (a magma ocean over the peridotite liquidus). Otherwise a cold body with an air gets the sea its ice supplies (a Titan-like body with 1 percent methane ice covers 1.7 percent of its surface, against Titan's 1.6) or the one its air condenses. Migration 0188 adds the three columns; the object page lists them under Water.
+
+### Changed
+- The stand-in registry has four new rows (LQ11 to LQ14), the share of an ice that lies on the surface, the lava rule, its pressure floor and the condensed sea mass.
+
+generation-output: changed
+
+## [8.0.2872] - 2026-10-31
+
+**Headline:** A planet's spin now follows the tide of its star and the thermal tide of its air, with the rock's own response at each frequency, so it can lock, be caught in a resonance, or be held away from synchronism.
+
+### Changed
+- **Despinning is the torque sum (GEN.957, stage 2 of the tides chain).** `planets.generate_spin` runs `body_spin.evolve`: the star's tide with the `k2/Q` of the planet's mantle at the frequency of the tide (hot mantles dissipate strongly, cold ones barely), the thermal tide of the air of a rocky planet with a surface pressure (Leconte et al. 2015), the resonance windows of Makarov 2012 and the age of the star. The constant-Q despinning of `tidal_spin` is gone.
+- **New spin states.** A planet whose air tide balances the star's tide away from synchronous rotation keeps a spin of its own, prograde or retrograde (Venus-like), reported as asynchronous with a tilt of 0 or 180 degrees.
+- **Stand-ins.** SP7 and SP10 reworded, SP13, SP14 and TQ7 added (plan sections 6.14 and 6.24).
+
+generation-output: changed
+
+## [8.0.2871] - 2026-10-31
+
+**Headline:** Moons now drift, fall into rings or are lost under the tide of their planet over the age of the system, and the tides they raise heat the planet.
+
+### Changed
+- **The moons' history (GEN.959, stage 3 of the tides chain).** Each moon's distance from `generate_moons` is where it is born; the tide it and the star raise on the planet then moves it for the age of the star (`moon_history`). A planet that turns faster than its moons go round pushes them outward and slows (the Earth and the Moon); one the star has locked, or a slow one, pulls its moons in. A moon that crosses its Roche limit is removed and its mass becomes a ring of disrupted moon on the planet; one pushed past the stable part of the Hill sphere is lost. About two thirds of the moons of planets under 0.3 Earth masses and a quarter of the moons of larger planets are gone over 40 default systems.
+- **The planet's day follows the exchange.** A planet with moons ends at the spin the tides leave, or locked to its star when it ends within a thousandth of the star's orbital rate; the thermal tide of its air (GEN.957) is in the same sum.
+- **The moons heat the planet.** A rocky planet's tidal heat now includes the power the tides of its moons dissipate in it, at the mantle's `k2/Q` for each tide's frequency (an Earth under the Moon: 2 TW), in the heat flow, the melt and the heat pipe.
+- **Stand-ins.** TM5 to TM9 (plan section 6.25).
+
+generation-output: changed
+
+## [8.0.2870] - 2026-10-31
+
+**Headline:** The companion stars of a system are now the same stars its orbits were drawn for, so a star can no longer end up wider than its own orbit after the build.
+
+### Changed
+- **One evolution per star (GEN.1009).** The tree that draws a system's orbits and the build that makes its stars used to evolve each companion separately, with different random draws and a different metallicity, so the built star could differ by several per cent in radius from the one the orbit was drawn around. Each companion is now evolved once from its own seed, and the build makes the star from that record. The primary's real radius is what the tree clears.
+- **Stripped helium companions are left out of a built system (GEN.1009).** A stripped helium star was built as an ordinary star of its birth mass, a different star from the one drawn; it now stays in the stored tree like a neutron star or brown dwarf and is not built.
+- **Largest radius and mass of a stored member (GEN.1009).** `scatter_members` gains `radius_max_au` and `mass_max_solar` (schema v189), the red-giant tip and the birth mass, for the history rule to come.
+- generation-output: changed
+
+## [8.0.2869] - 2026-10-31
+
+**Headline:** Every star now shows how often galactic events would strip a nearby world's ozone.
+
+### Changed
+- **Lethal events per billion years, filled for every star (GEN.785).** The star sheet's "Lethal events per billion years" row was empty for a star the generator had placed nowhere in the galaxy; such a star is now rated where a system with no place is taken to be, the same distance its metallicity and orbit already use. Stars with a place in the galaxy are unchanged.
+- generation-output: changed
+
+## [8.0.2868] - 2026-10-31
+
+**Headline:** Every pair of stars in a system, at any depth of its tree, now keeps out of its partner by one rule, and each level of a tree keeps a margin of stability.
+
+### Changed
+- **One keep-out rule (GEN.1010).** Two single stars are held apart by their Roche lobes; any other pair by the extent of what hangs below each side, measured from the barycentre the way the independent verifier measures it. The tree as drawn, the build's check and the verifier use the same definition instead of three.
+- **A stability margin at every level (GEN.1010).** An inner orbit's partner must be 15 percent wider than the stability criterion asks (a registered stand-in, GM15), because the criterion is only good to about 20 percent and nested triples overestimate stable systems.
+- generation-output: changed
+
+## [8.0.2867] - 2026-10-31
+
+**Headline:** An icy world's tide now heats its ice shell by the shell's own rheology, so the shell thickness, the ocean under it and the heat that body makes agree, with nothing fitted to Europa.
+
+### Changed
+- **The tide in the ice shell (GEN.960).** The one `k2/Q` of 3e-4 tuned to Europa's 1.4e11 W is gone. An icy body's shell conducts its own radiogenic heat plus its tide's; the ice loses the tide's strain energy where it is warm enough to flow at the tide's period (Andrade rigidity of ice, viscosity pinned at its melting point), so a thin hot shell dissipates little and a thick one a lot, and the shell settles at the one thickness its own tide holds. Europa comes out at 5e11 W in a 31 km shell (observed 1e11 to 1e12 W and 10 to 30 km), Callisto at 3e10 W, Enceladus at 1e11 W (observed 1.6e10 W).
+- **The ocean under the shell follows the tide.** The heat the hydrosphere builds the shell from is the stored own plus tidal flux, so a moon on an eccentric orbit has a thinner shell and a deeper ocean than the cold law gave.
+- **Despinning and circularisation of icy bodies** read the same shell (`k2/Q` from its thickness and temperature) instead of a fixed pair.
+- **Stand-ins.** TH3 and TH4 retired; IC1 to IC5 added (plan section 6.23).
+
+generation-output: changed
+
+## [8.0.2866] - 2026-10-31
+
+**Headline:** The life paces a star supports now come from its own lifespan, not from a table by spectral letter.
+
+### Changed
+- **GEN.942: a planet is no longer asked to wait past its star's death.** The table that gave each spectral letter a lifespan and the paces of evolution it supports (`tuning.STAR_EVOLUTION`, from the old `10 Gy x M^-2.5` law) is removed. The paces a star supports are the ones whose technological civilization comes within the star's own modelled lifespan (`stellar_object.supported_evolutionary_scales`; a white dwarf uses the time it has had). A G star that lives 10 Gy supports the fast and normal paces, not the slow pace that ends at 35 Gy; A stars (model lifespan 0.65 to 2.2 Gy) support only the fast pace; M dwarfs support all three. A star's minimum age for the worlds it hosts follows, so some stars' ages and so their planets change (generation-output: changed). The star's page says what its lifespan allows in one sentence of its own in place of the per-letter note. Stand-in registry row LF3 is retired with the table.
+
+generation-output: changed
+
+## [8.0.2865] - 2026-10-31
+
+**Headline:** A world's page now says how many hours of a day a person can be outside, and what limits them.
+
+### Added
+- **GEN.768: the hours a person can be outside in one local day are stored for every rocky planet and moon.** The number is the smallest of the day's daylight, the day's share of the radiation allowance, how long the garment the survival rules list keeps the body between heat and cold injury, how long the breathing gear lasts against an 8-hour shift, and the ultraviolet the garment is rated for (a body that needs a vehicle has 0 hours); `outside_hours_day` holds the hours and `outside_hours_limit` the one that binds (`daylight`, `dose`, `heat`, `cold`, `air`, `uv` or `vehicle`). A tidally locked world is judged in its terminator belt over a 24-hour shift. The planet and moon pages show "Hours a person can be outside in a day" in the glance and with what limits it in the rotation group, the details tab adds the same two lines to the survival equipment, and the API's `equipment` object carries both fields. Two new columns on planets and moons (migration, schema v187); a world whose daylight is not stored has none. The yearly row stays, labelled "Hours a person can work outside per year (dose limit)".
+
+generation-output: changed
+
+## [8.0.2864] - 2026-10-31
+
+**Headline:** A giant planet of a heavy, metal-rich star can no longer come out heavier than the brown dwarf edge of 13 Jupiter masses.
+
+### Changed
+- **The solid core is held under the brown dwarf edge (GEN.1096).** A planet's assembled core was held at 0.01 of the star's mass, which is 15 to 21 Jupiter masses for a star of 1.5 to 2 solar masses, and a gas giant took the larger of its runaway mass and its core as its mass, so about 4 draws in 3,000 on such a star made a giant above the edge. The core is now held under the brown dwarf edge as well; Sun-like stars (ceiling 10.5 Jupiter masses) are unchanged. The strict expected failure in the giant oddity audit is removed because the test now passes.
+- Generator epoch bump (numbered at merge, `--affects plan`): the masses of the rare giants of stars above about 1.24 solar masses change.
+generation-output: changed
+
+## [8.0.2863] - 2026-10-31
+
+**Headline:** A rocky planet's birth spin now follows the mass ratio of the last impacts that built it: Mars-sized worlds can turn in a day, large ones in hours.
+
+### Changed
+- **The birth spin is derived (GEN.979).** The three Gaussian components of a rocky planet's birth spin take the width that Kokubo and Genda 2010 equation 4 gives for the mass ratio of its last impacts (`impact_spin`), drawn from a stand-in distribution by planet mass: a giant impact of embryos for a planet well above 0.1 Earth masses, planetesimals alone for a smaller one. The interim scale and small-planet factor of GEN.953 and the single width of the paper are removed (rows SP1, SP11, SP12). The median free day of 0.1 to 5 Earth masses stays near 7 hours, half of the planets of Mars's mass turn in 24 hours or slower and under a fifth of Earth-mass planets do. A planet built by planetesimals alone spins prograde (its tilt stays under 90 degrees); after a giant impact the axis is isotropic. Two more draws per rocky planet, so the random stream moves.
+
+generation-output: changed
+
+## [8.0.2862] - 2026-10-31
+
+**Headline:** A disc star's age now goes with its metal content: poorer stars of the old disc are older.
+
+### Changed
+- **Age and metals of disc stars (GEN.744, GEN.944).** Inside the young, intermediate and old disc, a star's age now follows its [Fe/H] by the relation of Haywood et al. 2013: the thin disc gains metals slowly, the thick disc (past 8 Gyr) fast. A metal-poor star of the old disc is older than a metal-rich one, where before the two were independent. Halo, bulge, cluster and satellite stars are unchanged.
+
 ## [8.0.2861] - 2026-10-31
 
 **Headline:** The roundness engine now has strengths for the other ices of an icy body (high-pressure water ices, methane hydrate, dry ice, ammonia dihydrate) and a way to name a body's ice type from its composition.
