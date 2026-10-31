@@ -2686,7 +2686,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.193 | The nebula block totals pass keeps the level-3 cover as Python dicts, about 2 GB on a 12 pc galaxy: hold it as numpy arrays (bug) | none | done, PR #3449 |
 | PERF.194 | The phenomena stage progress line still says "186M to place": the weight is printed as a number of phenomena instead of work (bug) | none | done, PR #3726 |
 | PERF.195 | Generation timing records are shown or no longer recorded: object_timing_stats and object_timing_samples (G5) | none | open |
-| PERF.196 | Decide: show the object timing records or stop recording them (G5, step 1) | none | open |
+| PERF.196 | Decide: show the object timing records or stop recording them (G5, step 1) | none | done, decided in reports/perf196-object-timing-decision-2026-10-31.md |
 | PERF.197 | Carry out the object timing decision: show the records with a test, or delete the recording, the tables, the migration and the fingerprint entry (G5, step 2) | none | open |
 | PERF.198 | Speed up util/detmath.matmul and cache equal gas_equilibrium.solve calls (finding 6) | none | open |
 | PERF.199 | The words "rough guess" are removed from every ETA, time left and time estimate display (bug) | none | done, PR #3271 |
@@ -3048,7 +3048,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.223 | Resource pages: belts, fields, giants and icy bodies show their resources, and lists, search and the API filter and sort by resource and score | none | open |
 | UX.224 | A planet's chips and description never show Habitable, Inhabited and Habitable class together: only the most specific one (bug) | none | done, PR #4452 |
 | UX.225 | Search, object lists, Nearby and /api/search filter and sort on every stored physical number: gravity, temperature, pressure, orbit, day, star mass, dose, field, ocean depth, moon count and gases (G4) | none | open |
-| UX.226 | Numeric range filters and sort keys for the stored physical values: one engine in db/query.py and the /api/search parameters (G4, step 1) | none | open |
+| UX.226 | Numeric range filters and sort keys for the stored physical values: one engine in db/query.py and the /api/search parameters (G4, step 1) | none | done, PR #4523 |
 | UX.227 | The search page shows range controls for the physical values, with units, and the active filters as chips (G4, step 2) | none | open |
 | UX.228 | The object lists and Nearby filter and sort by the same physical values (G4, step 3) | none | open |
 | UX.229 | Colour contrast of the habitability life scores and tree-leaf stats passes 4.5 to 1 in both themes (bug) | none | done, PR #3280 |
