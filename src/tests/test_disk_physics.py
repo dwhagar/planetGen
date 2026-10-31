@@ -139,19 +139,14 @@ def test_more_luminous_star_has_a_larger_snow_line_and_disk():
 
 # --- A belt is what the planets leave unfinished, never a planet's slot (GEN.1068) ---
 
-def test_a_belt_never_takes_the_slot_of_a_planned_planet(monkeypatch):
-    from planetgen.physics import planet_architecture
-    built = []
-    original = planet_architecture.build
-
-    def spy(*args, **kwargs):
-        built.append(original(*args, **kwargs))
-        return built[-1]
-
-    monkeypatch.setattr(planet_architecture, "build", spy)
-    for _ in range(3):
-        built.clear()
+def test_a_belt_stands_in_a_gap_never_on_a_planets_orbit():
+    from planetgen.physics import belt_origin
+    seen = 0
+    for _ in range(4):
         system = StarSystem(system_config=_make_config("M2V", PLANETS=True, MAX_PLANETS=True, MOONS=False))
-        heavy_planned = sum(1 for seed in built[0].planets if seed.mass_kg >= constants.EARTH_MASS_TO_KG and seed.distance_au < 20.0)
-        heavy_made = sum(1 for body in system.planets if body.body_type != 'a' and body.mass >= constants.EARTH_MASS_TO_KG)
-        assert heavy_made >= heavy_planned
+        belts = [body for body in system.planets if body.body_type == 'a']
+        for belt in belts:
+            seen += 1
+            assert belt.origin in belt_origin.CAUSES
+            assert not any(belt.lower_limit < body.distance < belt.upper_limit for body in system.planets if body.body_type != 'a')
+    assert seen

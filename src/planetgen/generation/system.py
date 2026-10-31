@@ -463,6 +463,9 @@ class StarSystem:
                 self._trim_to_orbit_ceiling(self.secondary_planets, self._orbit_ceiling_au(self.secondary_star))
             for member, bodies in self.member_hosts():
                 self._trim_to_orbit_ceiling(bodies, self._orbit_ceiling_au(member))
+            if self.system_config.ASTEROID_BELT is True and not self.count_objects(self.planets)[1]:
+                # The star's final age lowered its orbit ceiling past the belts the attempts built: a belt asked for is made again under the final ceiling (GEN.1068)
+                self._add_belts(self.planets, self.star, self._orbit_ceiling_au(self.star))
             self._settle_to_final_age()
             habitable_satisfied = self.system_config.HABITABLE_WORLD is not True or habitable_request.count(self.planets) > 0
             belt_satisfied = self.system_config.ASTEROID_BELT is not True or self.count_objects(self.planets)[1] > 0
@@ -1404,9 +1407,11 @@ class StarSystem:
         else:
             lower = 0.0
         lower = max(lower, self._orbit_floor_au(star))
+        if lower <= 0.0:
+            lower = star.snow_line_au                  # nothing orbits it and nothing bounds it: where the disc's ice begins
         factor = draw.uniform(tuning.ASTEROID_BELT_MAX_DISTANCE_FACTOR_MIN, tuning.ASTEROID_BELT_MAX_DISTANCE_FACTOR_MAX)
         if lower * tuning.ASTEROID_BELT_MAX_DISTANCE_FACTOR_MIN > orbit_ceiling_au:
-            lower = self._orbit_floor_au(star)       # the planets fill the star's room: the belt takes the innermost orbit and the spacing pass moves them out (the outermost are trimmed)
+            lower = self._orbit_floor_au(star) or star.snow_line_au       # the planets fill the star's room: the belt takes the innermost orbit and the spacing pass moves them out (the outermost are trimmed)
         upper = min(lower * factor, orbit_ceiling_au)
         if upper < lower * tuning.ASTEROID_BELT_MAX_DISTANCE_FACTOR_MIN:
             return []
