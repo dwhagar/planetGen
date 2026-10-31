@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3003] - 2026-10-31
+
+**Headline:** The ocean tide of a world follows its final water.
+
+### Changed
+
+- **Ocean tide after the final water (GEN.1034).** The final-age pass can make a body's water again (a brine seep that ends as an ice-covered ocean), so the tide columns (`tide_range_spring_m`, `tide_range_neap_m`, `ocean_liquid`) are made after it. A body whose sea changed in that pass no longer keeps an empty or stale tide.
+
 ## [8.0.3002] - 2026-10-31
 
 **Headline:** A moon's iron core and a rocky planet's core and ocean now answer the changing field around them with an induced magnetic moment, so a planet with no dynamo of its own still carries a small one from its star's field.
