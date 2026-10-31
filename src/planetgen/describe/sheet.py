@@ -194,6 +194,8 @@ _BODY_GROUPS = (
            ("outside_hours", "Hours a person can work outside per year (dose limit)"),
            ("outside_hours_day", "Hours a person can be outside in a day"), ("outside_hours_limit", "What limits those hours", LIMIT),
            ("solar_day_hours", "Length of the solar day"),
+           ("day_night_state", "State of its day and night", TEXT), ("days_per_year", "Solar days in one year"),
+           ("night_hours", "Hours of night in a solar day, equator"),
            ("daylight_hours", "Hours of daylight at the equator"), ("day_share_equator", "Share of the time the star is up, equator"),
            ("day_share_mean", "Share of the time the star is up, whole surface"),
            ("parent_shadow_share", "Share of the time in the planet's shadow"),
@@ -780,7 +782,7 @@ _LIFE_AFTER_OXYGEN = ("life_age_complex_cells_gyr", "life_age_multicellularity_g
 _STAGES_AFTER_OXYGEN = tuple(tuning.LIFE_MILESTONES[tuning.LIFE_MILESTONES.index("complex_cells"):])
 _BANDS = ("temp_polar_k", "temp_north_k", "temp_equator_k", "temp_south_k", "temp_swing_k")
 _ZONES = ("temp_day_side_k", "temp_terminator_k", "temp_night_side_k")
-_DAYLIGHT = ("day_share_equator", "solar_day_hours", "daylight_hours")
+_DAYLIGHT = ("day_share_equator", "solar_day_hours", "daylight_hours", "night_hours", "days_per_year")
 _RING_COLUMNS = ("ring_kind", "ring_origin", "ring_inner_km", "ring_outer_km", "ring_mass_kg", "ring_optical_depth", "ring_ice_fraction")
 _AQUIFER_COLUMNS = ("aquifer_depth_km", "aquifer_thickness_km")
 _SURFACE_LIQUID_COLUMNS = ("surface_liquid", "surface_liquid_fraction", "surface_liquid_depth_km")

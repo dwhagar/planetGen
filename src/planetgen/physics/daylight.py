@@ -38,16 +38,18 @@ taken at the parent's distance for a moon (the moon's own distance from its plan
 
 import math
 
-from planetgen.physics import constants, spin
+from planetgen.physics import constants, day_night, spin
 from planetgen.physics import unit_registry as units
 
 _yr_to_h = units.converter("yr", "h")
 
-FIELDS = ("day_share_equator", "day_share_mean", "parent_shadow_share", "solar_day_hours", "daylight_hours", "polar_circle_deg")
+FIELDS = ("day_share_equator", "day_share_mean", "parent_shadow_share", "solar_day_hours", "daylight_hours", "polar_circle_deg",
+          "day_night_state", "night_hours", "days_per_year")
 """tuple: The stored columns on `planets` and `moons`. `day_share_equator`, `day_share_mean` and `parent_shadow_share` are shares
 of the time (0 to 1); `solar_day_hours` and `daylight_hours` are hours; `polar_circle_deg` is a latitude in degrees. A
 world that turns once an orbit has no `day_share_equator`, `solar_day_hours` or `daylight_hours` (`None`); only a moon has a
-`parent_shadow_share` (`None` for a planet)."""
+`parent_shadow_share` (`None` for a planet). `day_night_state` is the word of `day_night.state`, `night_hours` the solar day less the daylight and `days_per_year` the
+solar days in one orbit (GEN.1097); the last two are `None` where the solar day is."""
 
 YEAR_SAMPLES = 720
 """int: The points of the circular year the declination and the shadow are averaged over."""
@@ -184,9 +186,12 @@ def compute(body, parent=None):
     out = dict.fromkeys(FIELDS)
     rotation = getattr(body, "rotation_period_hours", None)
     star = getattr(body, "star", None)
+    host = parent if parent is not None else body
+    solid = getattr(body, "body_type", "t") != "g"
+    if not solid:
+        out["day_night_state"] = day_night.NO_SURFACE
     if not rotation or rotation <= 0.0 or star is None:
         return out
-    host = parent if parent is not None else body
     distance_au = getattr(host, "distance", None)
     orbital_hours = _yr_to_h(getattr(host, "period", None) or 0.0)
     alpha = angular_radius(getattr(star, "radius", None), distance_au)
@@ -213,6 +218,9 @@ def compute(body, parent=None):
             out["day_share_equator"] *= 1.0 - shadow
     if out["day_share_equator"] is not None:
         out["daylight_hours"] = out["solar_day_hours"] * out["day_share_equator"]
+    out["day_night_state"] = day_night.state(rotation, getattr(host, "period", None), out["polar_circle_deg"], solid)
+    out["night_hours"] = day_night.night_hours(out["solar_day_hours"], out["daylight_hours"])
+    out["days_per_year"] = day_night.days_per_year(orbital_hours, out["solar_day_hours"])
     return out
 
 
