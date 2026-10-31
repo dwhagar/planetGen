@@ -1136,7 +1136,7 @@ with `clamp()`.
   shows the day and night hours of each latitude band beside its
   temperature (from GEN.1108), and the spin-speed fix for slow and
   locked bodies is UX.244.
-  Prerequisites: GEN.1097. Related: MAP.277, VIEW.14.
+  Prerequisites: none. Related: MAP.277, VIEW.14.
 
 ## MAP: Galaxy Map, Sector Map, System Map
 
@@ -5303,28 +5303,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   with the Python solver for a few bodies.
   Prerequisites: GEN.362. Related: GEN.112, GEN.139.
   Design: [docs/design/systems/nebula-and-asteroid-field-classes.md](design/systems/nebula-and-asteroid-field-classes.md)
-
-- [ ] **GEN.365 Hot white dwarf and planetary-nebula central star radius disagrees with the radius that its luminosity and temperature imply (bug)**
-  Found by a lane (2026-10-16), filed by the TODO thread. The radius
-  stored for a hot white dwarf or the central star of a planetary nebula
-  does not match the radius that L and T give (L = 4 pi R^2 sigma T^4).
-  It was carried over from GEN.149. Done: the generator derives the
-  radius from L and T for these stars or the luminosity from the radius,
-  whichever is the model input, and a test checks the relation within 1%
-  on a sample. Fails on main: yes. Frequency: every such star.
-  Reproducer: draw 100 hot white dwarfs and compare R with the radius
-  from L and T.
-  Owner: Core 1 (Boss's lanes to 8.1, 2026-10-17, 10:06 AM EDT; lane
-  assignment
-  /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
-  Owner change (2026-10-09): Update 5:18 PM EDT 2026-10-24 (Boss, 5:16
-  PM EDT via the coordinator: add the 14 code-contradicts-physics items
-  to the Math lane; assessment
-  reports/physics-grounding-assessment-2026-10-24.md contradiction 6):
-  Owner: Math lane. This replaces any earlier owner line on this item.
-  Taken from Core 1, which has not started it; the Math lane confirms
-  with TODO before starting.
-  Prerequisites: none. Related: GEN.149.
 
 - [ ] **GEN.367 The Magellanic Clouds' gas is not in `kind_factors` and `nebula_field`: the Clouds hold stars but no nebulae**
   Found by a lane (2026-10-16), filed by the TODO thread. The Large and
@@ -10287,42 +10265,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   names is left. Owner: Condition-based classes lane.
   Prerequisites: GEN.689.
 
-- [ ] **GEN.705 The metallicity ([Fe/H]) factor on close companions no longer reaches the fill since the tree draw replaced the old companion draw (bug)**
-  Found by Core 3 while merging GEN.631 (#2915, epoch 72), as the lane
-  reported at 5:30 AM EDT 2026-10-24; report
-  /mnt/project-files/reports/gen631-findings-2026-10-24.md. The
-  close-companion factor from [Fe/H] (GEN.103, GEN.448) was applied by
-  the old one-companion draw. The tree draw (draw_member_tree) does not
-  take it, so metal-poor and metal-rich stars have the same
-  close-companion odds at fill. The TEST.196 audit of that factor was
-  removed with the draw it checked. Do: pass the star's [Fe/H] into the
-  tree draw so the close-companion share follows it as GEN.103 and
-  GEN.448 say, and restore a test of the dependence (a metal-poor sample
-  has a higher close share than a metal-rich one, at the observed
-  slope). Changes generated values, so it takes the next free generator
-  epoch. Owner: Core 3 (proposed).
-  Prerequisites: none. Related: GEN.631, GEN.103, GEN.448, TEST.196.
-
-- [ ] **GEN.706 Low-mass M dwarfs get fewer companions than the star-count table, forced pairs around M8 primaries come back unmet, and compact companions of living stars are cut from fill trees (bug)**
-  Found by Core 3 while merging GEN.631 (#2915), as the lane reported at
-  5:30 AM EDT 2026-10-24; report
-  /mnt/project-files/reports/gen631-findings-2026-10-24.md. Brown dwarfs
-  are no host class, so the tree draw drops companions it cannot place:
-  the single share of M dwarfs measures 0.846 against 0.73 in the table,
-  forced pairs around M8 primaries return 'a companion star' unmet, and
-  compact companions of living stars are cut because no pair class holds
-  them. Measured after the merge: mean stars per system about 1.31 (the
-  table implies about 1.38), 23.9 percent of systems have a pair, 81
-  percent of the pairs are wide. Do: either add brown dwarfs (and the
-  compact pair classes) as companion classes so the census returns to
-  the table, or state in the table that the cut is intended and update
-  its shares; make a forced pair around an M8 primary succeed or refuse
-  with a stated reason. Done: the census of stars per system matches the
-  table within a stated tolerance for every spectral class. Owner: Core
-  3 (proposed); the base prevalence shares were remeasured in the same
-  report.
-  Prerequisites: none. Related: GEN.631, GEN.267, GEN.332.
-
 - [ ] **GEN.707 Register the white dwarf binary stand-ins in the gap plan registry: kind, evidence label, knobs, validity range and falsifier test for each**
   Found by Core 4 while merging GEN.271 (#2928, epoch 73), report
   /mnt/project-files/reports/core4-gen271-report-2026-10-24.md, relayed
@@ -11447,28 +11389,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   sections 3 and 4.
   Prerequisites: none.
 
-- [ ] **GEN.912 The planet albedo draw does not follow the star's colour, so planets of cool stars come out a little too cold (stand-in)**
-  Found by Core 4 (about 5:07 AM EDT 2026-10-29 as the lane reported) in
-  the GEN.910 diagnosis, report
-  /mnt/project-files/reports/gen910-k5v-cold-share-2026-10-29.md. Real
-  planets around cool (red) stars absorb more of the star's light (water
-  ice and clouds are darker in the near infrared), so their Bond albedo
-  is lower than around a Sun-like star. The generator draws albedo
-  without regard to the star's colour, which makes K and M dwarf planets
-  somewhat too cold; the size is unknown. Do: derive the albedo shift
-  from the star's spectrum and the surface and cloud reflectance spectra
-  (Joshi and Haberle 2012 and Shields 2013 give the published size for
-  ice and snow), measure how many K5V and M2V bodies change class of
-  temperature, and record the stand-in tier and tweak level. A
-  generation change: lock turn, version 8.4 (physics). Owner: Core 4.
-  Data we hold (2026-10-29 8:55 PM EDT): proton_range.json,
-  ozone_chappuis.json, gases.json and materials.json are in the repo;
-  MPI-Mainz ozone cross sections are downloaded; the class census
-  expectations are in src/tests/data/prevalence_expectations.json.
-  Catalog sections 2 and 4.
-  Prerequisites: none. Related: GEN.909, GEN.910, GEN.911.
-  Prerequisites: none. Related: GEN.909, GEN.910, GEN.911.
-
 - [ ] **GEN.915 Life depends only on the conditions, never on the planet class letter: every combination of conditions that can host life can evolve it on any class**
   Boss requirement (2:46 PM EDT 2026-10-29): "I want to make sure every
   possible combination of effects, whatever planet class it is, that can
@@ -12245,48 +12165,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   research GEN.1029 Sources 1. Trains: 8 = P0 + P3, 9 = P4 to P7, 10 =
   P8 + P9, 11 = P10; each lock part rides its train, the lock-free
   pieces merge freely first.
-  Prerequisites: GEN.1017, GEN.1012, GEN.1013, GEN.1014, GEN.1015, GEN.1016.
-
-- [ ] **GEN.1012 Overlap-free stars P6: a general history rule replacing the white-dwarf-only engulfment test in classify_pair**
-  A history rule for pairs that interact as a member evolves (common
-  envelope, mass transfer, mergers, stripping), taking the built objects
-  of a node and returning replacement objects, with the engulfment
-  factor as a registered stand-in (checked against Mustill and Villaver
-  2012 when a lane can open it). Done: a post-common-envelope pair keeps
-  a consistent class and radius after the rule. Design:
-  /mnt/project-files/design-drafts/overlap-free-systems-gen1006-2026-10-30.md
-  (section 4 and 10; sources recalled, not opened, so registry rows stay
-  below Verified until a lane checks them). Changes generated output:
-  --affects star and planet suites, epoch, golden and census re-tag on a
-  merge train. No shim.
-  Revised design (11:14 AM EDT) (2026-10-30 11:15 AM EDT): The repo
-  white-dwarf engulfment constants sit below Mustill and Villaver 2012;
-  register the corrected values as a GEN.725 row with tier and tweak
-  level.
-  Owner (full build) (2026-10-30 2:48 PM EDT): Boss, 2:47 PM EDT
-  2026-10-30: build all of GEN.1006. Tides 1 (engulfment and tides are
-  its area), after GEN.1009: the history rule replacing the
-  white-dwarf-only engulfment test; registers the engulfment constants
-  below Mustill and Villaver 2012. Train 6. Merge authorization: all
-  merges without human review. Times to Boss in EDT only.
-  Prerequisites: GEN.1009. Related: GEN.1006, GEN.1004, TEST.476.
-
-- [ ] **GEN.1013 Overlap-free stars P7: keep compact members and brown dwarfs in the tree for the orbit draw**
-  Neutron stars, black holes and brown dwarfs as nodes in the tree for
-  the orbit draw (design 4.4), pending the code check of whether a
-  system build can carry a non-Star member. Done: no orbit is drawn
-  without regard to a compact member of the same system. Design:
-  /mnt/project-files/design-drafts/overlap-free-systems-gen1006-2026-10-30.md
-  (section 4 and 10; sources recalled, not opened, so registry rows stay
-  below Verified until a lane checks them). Changes generated output:
-  --affects star and planet suites, epoch, golden and census re-tag on a
-  merge train. No shim.
-  Owner (full build) (2026-10-30 2:48 PM EDT): Boss, 2:47 PM EDT
-  2026-10-30: build all of GEN.1006. Aux 3 (waiting lane), after
-  GEN.1009: compact members and brown dwarfs kept in the tree for the
-  orbit draw. Train 6. Merge authorization: all merges without human
-  review. Times to Boss in EDT only.
-  Prerequisites: GEN.1009. Related: GEN.1006, GEN.1004, TEST.476.
+  Prerequisites: GEN.1017, GEN.1014, GEN.1015, GEN.1016.
 
 - [ ] **GEN.1014 Overlap-free stars P8: a clearance ledger and planet, moon and belt sampling from it**
   A derived clearance ledger (not stored) of every star's keep-out and
@@ -12630,78 +12509,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   chain after train 6). Version 8.1.
   Prerequisites: GEN.1030. Related: GEN.1030, GEN.810.
 
-- [ ] **GEN.1034 Ocean tide data: the open-ocean equilibrium tide height and range at a world's surface from each moon and the star, for worlds with a surface ocean**
-  Asked for by Boss (4:00 PM EDT 2026-10-30, curiosity turned into a
-  build request; relayed by the coordinator). Do: a lock-free module
-  (physics/ocean_tides.py) giving the equilibrium tide of each
-  tide-raising body, h = (3/2) (m / M) (R / d)^3 R times the Love-number
-  factor (1 + k2 - h2) for the solid body (Pugh and Woodworth 2014,
-  Sea-Level Science, chapter 3; Cartwright 1999, Tides: A Scientific
-  History), summed over the moons and the star for the spring-tide range
-  (all bodies in line) and the neap range (the Moon-Sun style difference
-  for the two largest), with the eccentric-orbit perihelion and
-  apohelion extremes (the tidal force goes as 1/d^3). A tidally locked
-  body to a tide-raiser has a fixed bulge and no oscillating tide from
-  it: the module states which bodies raise a changing tide given the
-  spin (GEN.957). The result is the open-ocean equilibrium value only;
-  real coastal range depends on basin shape and resonance, which is not
-  modelled (say so in the design note and the column description).
-  Wiring: new columns on planets with surface ocean
-  (tide_range_spring_m, tide_range_neap_m), registered in
-  db/column_units.py with units, filled in the fill pass, rides a train
-  after train 5 (it needs the moons and the spin) with an epoch
-  --affects fill; registry rows in GEN.725 with tier and tweak level
-  (the Love-number factor is Verified from Earth; a world without a
-  measured k2 uses the interior model's). Done: Earth's Moon-and-Sun
-  equilibrium tide (before the Love-number factor) comes out near the published 0.54 m lunar and 0.25 m
-  solar peak-to-peak and about 0.8 m spring range, an ocean world with
-  no moon shows only the star's tide, a locked-to-the-star ocean world
-  shows none from it, and the property sheet carries the columns. Owner:
-  Tides 1 (lock-free module now; wiring rides train 6 after train 5
-  merges). Version 8.1.
-  Boss widened the scope (4:07 PM EDT 2026-10-30): Boss, 4:07 PM EDT
-  2026-10-30: gather all the data we can for ocean tides, and check
-  whether the model can handle liquids other than water: methane or
-  ethane oceans (Titan-like), a mercury ocean or other metals, molten
-  rock lava oceans, ammonia-water, sulfuric acid, and so on. Secondary
-  and tertiary sources and stand-ins are accepted when each is
-  registered in GEN.725 (docs/design/research/stand-in-values.md) with
-  tier and tweak level and documented as the best available fit. The
-  equilibrium height does not depend on the fluid density; what does is
-  dissipation and the depth response (the basin and resonance, the
-  fluid's viscosity and density in the shallow-water speed sqrt(g d)),
-  the Love-number factor for the solid or liquid-over-solid body, which
-  liquids are stable at the surface temperature and pressure (freezing,
-  boiling, which liquids exist as oceans on which worlds, the registry
-  of ocean liquids), and ice-covered oceans. A research thread (not the
-  Tides lane) does the sweep across every lane's data, writes the
-  findings in a design draft
-  (/mnt/project-files/reports/design-drafts/), and this item is
-  rewritten from the result: the stored column names, the liquid list,
-  the stand-ins.
-  Research result (4:09 PM EDT 2026-10-30): TODO research (Boss 4:07 PM
-  EDT), draft
-  /mnt/project-files/reports/design-drafts/ocean-tides-and-liquids-2026-10-30.md:
-  the equilibrium tide height does not depend on the liquid, so the
-  module takes a liquid parameter (density, name) and stores
-  ocean_liquid beside the tide columns (water for now). Depth,
-  resonance, loading, Love factor and dissipation do depend on it (draft
-  section 3). A global liquid layer that is heavy against the body
-  (mercury on a rocky planet) breaks the thin-layer loading factor 1/(1
-  - 3 rho_l / 5 rho_mean): the module refuses above 0.9 and says so.
-  Mercury is left out (no generated composition carries it). Other
-  liquids need the surface liquid inventory, GEN.1035. Stand-in rows OT1
-  to OT5 go in GEN.725 when built, as the draft lists.
-  Boss decision (4:13 PM EDT) (4:13 PM EDT 2026-10-30): Mercury is left
-  out of the tide module and moves to the weird-conditions research
-  thread ("Research plausible weird planet conditions"). The tide module
-  for non-water liquids waits for GEN.1035 (surface liquid inventory,
-  Aux 4), planned train 6 or later; the water columns stay on train 6.
-  The weird-conditions thread inherits: mercury and other liquid metals,
-  deep global heavy-liquid layers (fluid Love-number path), and exotic
-  liquids not in GEN.1035's first table.
-  Prerequisites: none. Related: GEN.957, GEN.959, GEN.842.
-
 - [ ] **GEN.1047 Wire the oddity table and the weirdness dial: epoch, stored oddities text column and numeric columns (db/column_units.py), the "Odd: ..." line with its cause sentence on the object page, the API field, an admin force-oddity like FORCE_CLASS, the dial in settings (default 1, 0 turns all off)**
   Weird worlds build (Boss, 4:15 PM EDT 2026-10-30, goal issue #4117;
   design docs/design/systems/weird-worlds.md). Secondary and tertiary
@@ -12790,19 +12597,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Lock-free module. Owner: Core 2 (map lane that owns the ring painter,
   MAP.275; separate branch). Version 8.1.
   Prerequisites: GEN.1036. Related: GEN.732, MAP.275.
-  Design: [docs/design/systems/weird-worlds.md](design/systems/weird-worlds.md)
-
-- [ ] **GEN.1057 Wire conditional rings: a ring follows from moon decay or comet passage and a giant with neither has none, so Saturn-like broad rings are the tail (epoch, replaces the BC20 draw), plus ring age, R4 and R9**
-  Weird worlds build (Boss, 4:17 PM EDT 2026-10-30, goal issue #4117;
-  design docs/design/systems/weird-worlds.md sections 8 and 9).
-  Secondary and tertiary sources and stand-ins are accepted when each is
-  registered in GEN.725 with tier and tweak level; [R] rates are
-  confirmed by the lane that builds it. Lock work, train 9 (with the
-  W14 and W9 wiring). Done: tests, harness, the census ring shares.
-  Owner: Tides 1 (ring origin), with Core 2 (age and painter). Version
-  8.1.
-  Prerequisites: GEN.1055, GEN.1047. Related:
-  GEN.732, GEN.959.
   Design: [docs/design/systems/weird-worlds.md](design/systems/weird-worlds.md)
 
 - [ ] **GEN.1058 Wire the G1 giant-impact tilt and the ring plane following the equator**
@@ -13141,25 +12935,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.1070, GEN.1071.
   Design: [docs/design/systems/belt-origins.md](design/systems/belt-origins.md)
 
-- [ ] **GEN.1097 Every object has a day-and-night state and counter: solar day length, day and night hours, and an explicit state for tidally locked, non-rotating, polar-day and no-solid-surface bodies, stored for planets, moons, belt bodies and (where meaningful) stars (bug)**
-  Boss, 4:47 PM EDT 2026-10-30: spins run in effectively real time on
-  screen but not all objects have a night and day, and ALL objects
-  should have a night-and-day counter. Today daylight_hours and the day
-  and night shares are stored for planets (migration 0170, GEN.767) and
-  GEN.768 builds the hours outside; moons, belt bodies and stars carry
-  no day state, and a locked body has no stated state. Do: a pure
-  function of spin period, orbital period, eccentricity, tilt and the
-  host giving the solar (synodic) day, the day and night hours by
-  latitude band, and the state word (cycle, tidally locked with a
-  permanent day side, non-rotating, polar day or night, no surface);
-  stars show the rotation period and the word "no night". Done: tests on
-  Earth, Mars, Venus, Mercury (3:2), a locked M-dwarf planet, Io, a belt
-  body, the Sun; the values stored for every object kind (columns in
-  db/column_units.py, migration, API bump). Lock work (epoch if a value
-  draws, migration). Where we think it belongs (best guess, can move):
-  Aux 2 (owns GEN.768 hours outside), train 6.
-  Prerequisites: none. Related: GEN.768, GEN.957.
-
 - [ ] **GEN.1103 AsteroidField columns, radius derived from age, the field density leaving 0, registry text changed**
   Interstellar asteroid fields from rogue-planet collisions and the
   other sources (Boss, 4:40 PM EDT 2026-10-30; design
@@ -13273,7 +13048,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   readers in protection.py, the sheet and the API) with the seven. Owner
   Aux 2, stacked on claude/gen768-outside-hours and claude/gen1097 for
   train 6.
-  Prerequisites: GEN.1097. Related: GEN.768, GEN.1048.
+  Prerequisites: none. Related: GEN.768, GEN.1048.
 
 - [ ] **GEN.1110 Average wind speeds by day and by night in each of the seven latitude bands: the day-to-night thermal wind from the pressure difference, zonal jets and trade winds from the equator-to-pole temperature difference and the Rossby number, faded out below about 1 kPa**
   Boss asked, 4:53 PM EDT 2026-10-30, whether wind speed by day and
@@ -13571,97 +13346,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Aux 2 (life), after the life class build, a later train.
   Prerequisites: none. Related: GEN.648, GEN.688, GEN.644.
 
-- [ ] **GEN.1133 Rocky rogue planets of 10 to 16 Earth masses come out up to 17,600 km, past class S's 11,468 km top: apply Core 4's recommendation so the size range and the class agree**
-  Class sweep (GEN.29, report reports/core4-class-sweep-2026-10-30.md,
-  1,788 bodies; Boss answered 5:51 PM EDT 2026-10-30). Boss: yes, apply
-  what Core 4 recommended. The earlier research
-  (atmospheres-retention-and-classes.md, 2026-10-09) offered a new class
-  R at 10 to 16 Earth masses or a cap of S at 13,500 km; new class
-  letters are revoked (Boss, 8:16 PM EDT 10-29), so the recommendation
-  to apply is Core 4's in the sweep report and this note. Do: read the
-  sweep report and the GEN.29 history, state in the item which of the
-  two (or the nearest conditions-based fit) is applied, change the class
-  range or the size draw so no body is classed outside its size range,
-  and keep one body chain for rogues and bound planets (a rogue is
-  identical to a bound planet, Boss 10-30). Done: tests that every rogue
-  and planet of 10 to 16 Earth masses sits inside its class range,
-  census re-baseline. Lock work if the draw or the range changes output
-  (epoch with --affects, golden). Where we think it belongs (best guess,
-  can move): Core 4, a later train.
-  Prerequisites: none. Related: GEN.29, GEN.1111.
-
-- [ ] **GEN.1135 Retire Class Q: remove the row from planet_classes.json, tuning.PLANET_CLASSES and HABITABLE_PLANET_CLASSES, and show the orbit swing as the stored flux_variation plus an "At a glance" flag when it is very high**
-  Boss, 6:07 PM EDT 2026-10-30: retire Class Q entirely; eccentricity
-  stays in the orbit data with an at-a-glance flag when very high.
-  Assessment: reports/core4-class-q-assessment-2026-10-30.md (GEN.1132).
-  What depends on Q: the Q row of planet_classes.json (name, sentence,
-  basis, flux_variation minimum 0.25, the quantity and the reserve list;
-  the order of rows decides ties, Q sits between N and V);
-  tuning.PLANET_CLASSES['Q'] (read by generation/life.py into
-  planet.description) and tuning.HABITABLE_PLANET_CLASSES (Q is listed);
-  a map colour; the forced-class request; and the tests
-  test_planet_classes (the Q case of the quantity table),
-  test_class_sample (its letter list) and audit/sweep_classes. The 128 Q
-  bodies of the 1,788-body sample go to V 59, K 34, P 22, B 6, F 3, O 3,
-  M 1, so the stored class letter changes for about 7 percent of bodies,
-  plus the description text and habitable_class for B; positions,
-  masses, climates and life do not change. The letter Q stays reserved
-  (the 20-letter rule is changed by Boss: 19 classes in use). Default
-  taken until Boss gives the line: the flag shows a row "Seasonal swing
-  of starlight: very high" in the glance panel of planets and moons only
-  at flux_variation 0.75 or more (4 percent of bodies; 0.5 would flag 12
-  percent, 0.25 would flag 36 percent), with the number on the full
-  sheet as now. Done: row and description removed, flag in the glance
-  panel, tests, golden update, census re-baseline. Lock work (epoch with
-  --affects for the class column and description, golden). Where we
-  think it belongs (best guess, can move): Core 4, train 6, the first
-  window after train 5 (Boss, 6:12 PM EDT 2026-10-30: as soon as possible
-  so he can test it as a lever for Class M; train 5 had its golden
-  started at 6:13 PM EDT as the runner reported, so it cannot join).
-  Build it now so it is ready when the train 6 list freezes; the Class M
-  fix rides the same window if its research reports in time, else a
-  later one.
-  Class M (6:08 PM EDT) (2026-10-30 6:08 PM EDT): Boss, 6:07 PM EDT:
-  investigate how to fix the Class M problem (Class M never appears: 0
-  of 3,164 bodies in Aux 2's sweep, 1 of 1,788 in Core 4's) since no one
-  knows how rare Earth-type planets are in the actual universe. A
-  research thread is being started by the coordinator; its items are
-  filed when it reports and ride the same window as this item.
-  Boss, 6:26 PM EDT (2026-10-30 6:27 PM EDT): redo ALL classes when the
-  epoch updates: the epoch for this item and GEN.1136 re-derives the
-  stored class of every body from the finished body (--affects for the
-  class column, description and habitable_class), golden update, census
-  re-baseline. Both items ride train 6 as one epoch; GEN.1136 moves the
-  Class V line to 2 g.
-  Prerequisites: none. Related: GEN.1132, GEN.1131, GEN.854.
-
-- [ ] **GEN.1136 Move the Class V gravity line from 1.25 g to 2 g so Earth-sized and super-Earth temperate worlds can land in Class M, and register the line in GEN.725**
-  Boss, 6:26 PM EDT 2026-10-30, confirmed: "that is an excellent change,
-  do that in Train 6 with the Class Q retire. Make sure TODO knows to
-  redo all classes when updating epoch." Class M never appears because
-  the class V line (1.25 g, about 1.14 Earth radii) catches most of the
-  planets the literature calls Earth-sized in the habitable zone (Bryson
-  2021, arXiv:2010.14812, radius 0.5 to 1.5 Earth radii, about 2 g at
-  1.5). Report reports/class-m-investigation-2026-10-30.md. Boss did not
-  pick between 1.5 g and 2 g: take 2 g from the report (stand-in,
-  GEN.725, Confident Unverified, tweak L1, source Bryson 2021 limit of
-  1.5 Earth radii); keep V as the class above it. Do: change min in the
-  V row of planet_classes.json and its sentence and basis; add the
-  registry row (and a burn-down line only if it ends at L3 or L4, which
-  it should not); add a text note on the M class page that gravity runs
-  to 2 g; keep M's other conditions; no forced class and no game rate.
-  Re-derive EVERY class (Boss: redo all classes when the epoch updates):
-  the epoch carries --affects for the class column, the description and
-  habitable_class, and the stored class of every body is recomputed from
-  the finished body, not only the V and Q bodies. Done: tests for the
-  new line, golden update and census re-baseline, and after the epoch a
-  printed count per class of temperate (250 to 330 K) bodies with an
-  ocean, so Boss can see what M yields; change nothing else until that
-  is read. Lock work, same epoch as GEN.1135. Where we think it belongs
-  (best guess, can move): Core 4, train 6, first in the window together
-  with GEN.1135.
-  Prerequisites: none. Related: GEN.1135, GEN.1132, GEN.909, GEN.911.
-
 - [ ] **GEN.1137 cooling_track (GEN.948) jumps for a mass just under the lowest mass the table holds: 0.0699 solar masses at 5 Gy gives 1220 K, 0.07 gives 1627 K, so the temperature cap never binds below the limit mass (bug)**
   Sources 2, 6:35 PM EDT 2026-10-30 (as the lane reported), found while
   wiring GEN.494: the track extrapolates at t^-0.32 from the age at
@@ -13752,92 +13436,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.1138. Related: GEN.1121, GEN.1070.
   Design: [docs/design/architecture/designation-history.md](design/architecture/designation-history.md)
 
-- [ ] **GEN.1142 Class lines patch for the train 6 epoch: T hydrogen-envelope test ahead of N, N Venus-like sentence and hot, not-hydrogen-dominated rule, K without the under 273 K condition and ordered after P**
-  Class index patch
-  (reports/class-index-rebuild-assessment-2026-10-30.md; Boss said yes
-  at 6:48 PM EDT 2026-10-30 to patching the class lines in the same
-  train 6 epoch as the Class Q retirement GEN.1135 and the Class V line
-  GEN.1136). Do: (1) class T: a hydrogen-envelope test ahead of N so
-  hydrogen-rich terrestrial-kind bodies under about 10 Earth masses
-  become T (today 35 of 105 N bodies are hydrogen-rich, median 5.7 Earth
-  masses, and T gets none); (2) class N: 10 bar or more, hot, and not
-  hydrogen dominated, sentence back to Venus-like dense carbon dioxide
-  and sulfur air; (3) class K: drop the under 273 K condition, order it
-  after P, sentence back to an adaptable world with a thin atmosphere
-  (43 of 44 K bodies are frozen ocean); (4) GEN.725 rows for the V line
-  at 2 g, the flux flag at 0.75 and the N temperature line. If the
-  counts of GEN.1143 are not back before the train 6 cut, ship GEN.1135
-  and GEN.1136 alone and hold this item for the next window. Done: tests
-  naming the letters, class page and condition-based-planet-classes.md
-  text updated, covered by the same epoch re-derivation of every class.
-  Lock work, same epoch as GEN.1135. Where we think it belongs (best
-  guess, can move): Core 4, train 6.
-  Boss, 6:57 PM EDT 2026-10-30, SUPERSEDES the K rule above and widens
-  the patch (2026-10-30 7:00 PM EDT): class decisions: (1) E and F are
-  near duplicates whose lore purpose (stages on the chain to an
-  Earth-like world) Boss dislikes: retire one and keep one, or make each
-  more distinct, our choice. (2) Class K: above freezing, thin
-  atmosphere and LOW atmospheric pressure, near-Earth temperature,
-  pretty close to Earth-like but not quite; below freezing goes to Class
-  P (glaciated) at the top end of what P accepts. (3) Class L:
-  Earth-like except high CO2 and low oxygen, difficult to breathe
-  without a mask but not toxic (the original description fits),
-  near-Earth temperature. (4) Class H: desert world, less than about 20
-  percent available surface water (Boss: if I recall correctly, check
-  the source). (5) Class O: ocean world, about 80 percent of the surface
-  ocean. (6) CONDITIONS ONLY, no zone (hot, eco, cold) in any class
-  rule: a K or L world may sit closer to or farther from its star if
-  that is what the temperature needs. H and L are unreached today (zero
-  bodies) and must be fixed in this epoch; O (1 to 3 bodies) must be
-  checked against the 80 percent rule. The class index thread's result
-  sets the exact lines; this item and the train 6 epoch scope follow it.
-  Still one epoch for every class re-derivation.
-  Class index thread result, 7:05 PM EDT 2026-10-30 (Boss decisions of
-  6:57 PM EDT turned into lines; SUPERSEDES the T, N, K lines above
-  where they differ) (2026-10-30 7:08 PM EDT): E retired (letter
-  reserved); F kept as the reducing-air world (no free oxygen, methane
-  or hydrogen 5 percent or more), sentence loses the stage idea; K =
-  thin air under 3 kPa, mean surface 273.15 K to about 320 K, little
-  oxygen (the cold part goes away); P = every mean surface below 273.15
-  K (line moves from 210 K, a large change, P takes the cold Q and K
-  bodies, census moves); L = Earth-like pressure (about 30 kPa to 3
-  bar), 273.15 K to about 320 K, CO2 about 1 percent or more (ahead of G
-  at 20 percent) and O2 3 to about 16 percent, sentence hard to breathe
-  without a mask, not toxic; O = ocean fraction 80 percent or more; H =
-  under 20 percent; M = the rest (20 to 80 percent); T and N lines as
-  above. Result: 18 live classes (Q and E retired, letters reserved).
-  Temperature and pressure make K, L, M, P disjoint; G stays after L.
-  Register every new line in GEN.725 (L1 or L2). Classification already
-  reads conditions only, never zone. H got zero bodies at 15 percent and
-  widening alone may not fill it (bodies with air nearly always keep
-  their water): see GEN.1145 and GEN.1146.
-  Boss, 7:05 PM EDT 2026-10-30, two more changes (2026-10-30 7:08 PM
-  EDT): (1) E is NOT reserved: retire it fully (the letter is free, not
-  held); this changes the 18 live classes count only if the new cold
-  class takes a letter (see 2). (2) Class P is too cold at the bottom: P
-  only goes down to -40 C (233.15 K); bodies colder than that need a NEW
-  class designator (letter proposed by the class index thread, may reuse
-  E). P then spans 233.15 K to 273.15 K. Register the new line in
-  GEN.725 and add the class to the sentence, colour, glance panel and
-  tests. Same epoch, same full re-derivation. The exact letter and
-  sentence follow the class index result.
-  Class index thread, 7:12 PM EDT 2026-10-30 (update to the Boss 7:05 PM
-  EDT note) (2026-10-30 7:12 PM EDT): old E is retired outright (reserve
-  list stays R U W X Y Z); P covers air-bearing bodies 233.15 K (-40 C)
-  to 273.15 K; the new class for air-bearing bodies under 233.15 K is
-  recommended to reuse the letter E as "Deep-frozen world" (option 2:
-  take R); Boss still to confirm the letter (build with E as the
-  default); live classes 19 (A to P, S, T, V). Update docs, tests and
-  the sweep script that name old E, the system map legend colour, the
-  class pages, and GEN.725 rows for the 233.15 K line. Detail: Update
-  7:12 PM section of
-  reports/class-index-rebuild-assessment-2026-10-30.md.
-  Boss, 7:06 PM EDT 2026-10-30 (2026-10-30 7:10 PM EDT): letter
-  confirmed: the new Deep-frozen class (air-bearing bodies under 233.15
-  K) takes Class E; P is 233.15 K to freezing. The letter is no longer
-  open.
-  Prerequisites: none. Related: GEN.1135, GEN.1136, GEN.1143.
-
 - [ ] **GEN.1144 Post-train-6 class re-sweep on the new main, then decide the E and F merge, the T versus N boundary and the H and L reach**
   Class index patch
   (reports/class-index-rebuild-assessment-2026-10-30.md; Boss said yes
@@ -13856,7 +13454,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   inside the train 6 epoch (GEN.1142). This re-sweep now checks that H,
   L, O and K reach bodies with their new lines, and reports the
   temperate-ocean count per class.
-  Prerequisites: GEN.1135, GEN.1136. Related: GEN.1142.
+  Prerequisites: none. Related: GEN.1142.
 
 - [ ] **GEN.1147 Ocean-fraction law: replace the sqrt cover law with a two-level hypsometry plus the mantle water cap by mass (2 to 8 oceans), in one epoch (BOSS DECIDES before any code)**
   Aux 2, GEN.1146 report
@@ -13919,15 +13517,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   sheet. Stars and rogue planets store nothing yet. Belt bodies get
   theirs with GEN.1069. Needs a migration for any stored column, so it
   rides a train after GEN.1097.
-  Prerequisites: GEN.1097.
-
-- [ ] **GEN.1154 Halo mass of galaxies above 3e10 solar masses of stars is drawn too heavy by GEN.368 (0.17 dex at 6e10, 0.27 at 1e11, 0.34 at 2e11 against a Tinker 2008 halo function): replace median_halo_mass plus the Gaussian with a precomputed Tinker-based conditional drawn by inverse CDF**
-  Found by GEN.399 (reports/gen399-halo-mass-function-2026-10-31.md,
-  script in reports/gen399/): below about 3e10 the current law is within
-  0.01 to 0.03 dex and the automatic 3e9 to 6e9 range is untouched at
-  0.013 dex; above it the halo shape is fine and only the centre moves.
-  Needs an epoch and a train slot; only galaxies above 3e10 change.
-  Stand-ins registered in GEN.725. Owner Sources 2 (build-only branch).
   Prerequisites: none.
 
 - [ ] **GEN.1156 Raise the belt share after the GEN.728 disc architecture (3 to 12 percent of systems) toward the documented 4 to 14 percent with a physics-driven change**
@@ -14039,33 +13628,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   window.
   Prerequisites: GEN.1158. Related: GEN.1158, GEN.1159, GEN.1068.
 
-- [ ] **GEN.1163 Stars hotter than about 6300 K all take the hot-star spin branch (a median 180 km/s whatever the mass), so F stars rotate in under a day where the real Kraft break rises gradually (about 20 to 70 km/s) (bug)**
-  Found by the GEN.753 tides and spin validation sweep (Aux 7,
-  reports/gen753-tides-spin-sweep-2026-10-30.md; 17 statistics, 14
-  agree, 3 do not; sources quoted from memory, tier T2, to be re-read by
-  the lane). In spin.star_rotation_period_hours every dwarf hotter than
-  about 6300 K (1.2 solar masses and up) takes the hot-star branch:
-  stars of 6000 to 6600 K older than 1 Gy have 95 percent under 3 days,
-  and F5V has 179 of 181 under 2 days. Fix: a smooth speed law across
-  the Kraft break with a stand-in row in GEN.725 (tier and tweak level),
-  re-read the sources. Output-changing (star rotation and everything
-  reading it: activity, XUV, tides), so lock work, train-bound. Done:
-  sweep statistic agrees, tests, registry row. Owner Aux 7.
-  Prerequisites: none. Related: GEN.753, GEN.807, GEN.725.
-
-- [ ] **GEN.1165 Giant planet obliquity never exceeds 60 degrees (312 giants) and locked planets have exactly 0 degrees tilt: draw a wider, physically derived obliquity and a small non-zero tilt for locked bodies**
-  Found by the GEN.753 tides and spin validation sweep (Aux 7,
-  reports/gen753-tides-spin-sweep-2026-10-30.md; 17 statistics, 14
-  agree, 3 do not; sources quoted from memory, tier T2, to be re-read by
-  the lane). Weak agreement only. Giants never tilt past 60 degrees and
-  every locked planet has exactly zero tilt; the real distribution has
-  giants out to 98 degrees and locked bodies keep a small tilt from the
-  orbit's own inclination and perturbations. Derive from impacts,
-  spin-orbit resonance capture and perturbation physics, with stand-ins
-  registered in GEN.725. Output-changing, lock work, train-bound.
-  Unowned.
-  Prerequisites: none. Related: GEN.753, GEN.842, GEN.725.
-
 - [ ] **GEN.1167 The stellar-to-halo relation (Moster 2013) has 0.3 to 0.4 dex more stars than Behroozi 2019 in halos of 1e10.75 to 1e11.5 and 0.06 to 0.26 dex fewer in halos of 1e12.5 to 1e14.5: compare the published fits and pick the best-supported relation**
   Found by the GEN.753 stars and galaxy validation sweep (Sources 2,
   reports/gen753-stars-galaxy-validation-2026-10-31.md; PR #4329 added
@@ -14078,17 +13640,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   replacement changes galaxy output and rides a train with GEN.1154,
   whose halo draw reads this relation. Owner Sources 2.
   Prerequisites: none. Related: GEN.753, GEN.1154, GEN.368.
-
-- [ ] **GEN.1170 Spin of A and B stars follows mass: the fast-rotator mode rises from 160 km/s at 1.6 to 2 solar masses to 238 km/s at 3.15 to 3.85 (about 46 km/s per solar mass), where the generator keeps one 180 km/s median for every hot star from 1.8 solar masses up**
-  From Aux 7 (GEN.1163, registry SP15): Zorec and Royer 2012 Table 4
-  gives the mode of the fast rotators rising with mass, mean 1.128 times
-  the mode; beyond 3.85 solar masses the paper does not reach, so a
-  stand-in is needed (register in GEN.725 with tier and tweak level).
-  Changing it shortens the rotation period of A stars by roughly 10 to
-  30 percent and of early B stars more, and moves only star rotation and
-  the activity that reads it. Output-changing, train-bound, no
-  migration. Low priority. Owner Aux 7, after GEN.1163 merges.
-  Prerequisites: GEN.1163. Related: GEN.1163, GEN.725.
 
 - [ ] **GEN.1171 Ring lifetime by ring mass and planet instead of one fixed decay, because fallen-moon rings now persist on 13 percent of rocky planets**
   From Tides 1 (GEN.1057 sweep, 60 systems): with rings tied to fallen
@@ -14103,28 +13654,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   side), register the new rows in GEN.725 with tier and tweak level, and
   re-run the 60-system sweep. Output changes, so train-bound after
   GEN.1057 merges. Owner Tides 1.
-  Prerequisites: GEN.1057. Related: GEN.1057, GEN.959, GEN.725.
-
-- [ ] **GEN.1172 Spin-orbit resonance capture is a draw, not a certainty: 3:2 and 2:1 capture inside the window with a probability inside the published 0.07 to 0.55 bracket**
-  From Tides 1 (answer on GEN.1164, nothing changed in code): the order
-  is not the cause. generate_orbit_shape damps a captured moon's
-  eccentricity first and generate_spin then runs spin_torques.evolve
-  with the final eccentricity; in nature the spin settles first, so the
-  final-e test is conservative. The cause is that capture inside a
-  window is certain (RESONANCE_CAPTURE_PROBABILITY 1.0, Makarov 2012: 40
-  of 40) while the file's own bracket is 0.07 (Goldreich and Peale,
-  Mercury's eccentricity) to 0.55 (Correia and Laskar 2004), and 2:1
-  should be lower than 3:2. Replace the certainty with a seeded capture
-  draw in spin_torques: P about 0.3 for 3:2 and 0.1 for 2:1 as stand-ins
-  inside the bracket (tier Confident educated guess from physics, tweak
-  L1), registered in GEN.725. Expected effect: 3 percent of moons in a
-  resonance falls to roughly 0.5 to 1 percent. Also note the windows
-  (3:2 at e 0.20 to 0.41, 2:1 at 0.34 to 0.49) are Makarov's for a
-  Mercury-like rocky rheology and are applied to icy and small captured
-  moons; a rheology-dependent window is a later refinement. Lock item
-  (adds a draw, changes output), rides the next train window. Owner
-  Tides 1.
-  Prerequisites: none. Related: GEN.1164, GEN.725.
+  Prerequisites: none. Related: GEN.1057, GEN.959, GEN.725.
 
 - [ ] **GEN.1173 Time to the main sequence for 0.1 to 0.3 solar-mass stars has an unphysical step between 0.105 and 0.11 solar masses (718 to 1358 Myr) from the isochrone arrival grid**
   From Sources 2 (GEN.1169,
@@ -19070,51 +18600,6 @@ clears each one.
   guess, can move): Core 1 (reproducible galaxies), after the region run
   command.
   Prerequisites: none. Related: GEN.1118.
-
-- [ ] **TEST.502 test_orbital_motion::test_moon_having_planet_reflex_offset_matches_manual_formula fails on a clean main: settle_orbit moves captured moons without refreshing the planet offset (bug)**
-  Tides 1, 6:19 PM EDT 2026-10-30 (as the lane reported): the test fails
-  on main, not from the train 5 branch; settle_orbit moves captured
-  moons without refreshing the planet's reflex offset, so the stored
-  offset no longer matches the manual formula. Do: reproduce with the
-  datasets fetched, find which merge broke it, and fix the code or the
-  test, whichever is wrong; if the generated offset is wrong, say so and
-  it becomes a GEN bug. Lock-free unless the code changes output. Where
-  we think it belongs (best guess, can move): Core 1 (test owner),
-  separate branch, after TEST.500.
-  Aux 5, 6:35 PM EDT (as the lane reported) (2026-10-30 6:38 PM EDT):
-  the cause is real: a planet wobble from its moons is made when the
-  moons are, then the moons move (orbits settle, GEN.992 remake), so 24
-  of 117 planets had a stale reflex_offset_*. Fix is 4 lines in
-  StarSystem.__init__ (refresh each planet offset together with the
-  stars), 0 of 104 off after, test_orbital_motion 40/40; branch
-  claude/aux5-test489-reflex, written by Aux 5, NOT merged because it
-  changes generated output (planets with moons). Lock work for train 6,
-  --affects fill,population (stored reflex columns), golden. Owner Aux
-  5; Bug 2 takes it into train 6.
-  Prerequisites: none.
-
-- [ ] **TEST.503 Four tests are red on a clean main: test_db_column_round_trip::test_every_column_is_written (moons.magnetopause_rp is NULL in every row), the test_object_rows star read-back (columns state and decay_age_yr), test_gen_hosting_wiring directed moon count, and test_reproducible_draws hypot/BLAS (bug)**
-  Aux 5 found these red on clean main, none from its own branches. Find
-  each cause. A column never written (moons.magnetopause_rp) or never
-  read back (state, decay_age_yr) is a wiring gap; fix it lock-free if
-  it changes no generated value, else say so and list it for the next
-  train window. The hypot/BLAS draw test may depend on the machine
-  library; say which, and make the test robust only if the draw itself
-  is not what differs. Report each as fixed, train-bound or
-  machine-bound.
-  Bug 2 (2026-10-09): Bug 2 (10-30 gate pass) also reports red on main:
-  the climate sweep (2 tests), aquifers, and the deploy_scripts path
-  test. Include them in the diagnosis.
-  Sources 1 progress (2026-10-30 9:09 PM EDT): mostly merged as #4292,
-  lock-free: object_rows, db_column_round_trip, work_units x2, aquifers,
-  climate sweep x2, deploy_scripts path, gen_hosting_wiring (passes
-  alone, was order or seed luck), 7 unread modules moved to detmath.
-  Open: the 3 modules the app reads (primary_mass_function,
-  greenhouse_table, magma_ocean_redox) still trip the maths scan;
-  swapping them changes last bits, so train-bound (swap ready on
-  claude/test503-detmath-read, golden check in progress). The Venus and
-  5 bar CO2 greenhouse table cases are filed as TEST.505.
-  Prerequisites: none.
 
 ## USR: User accounts
 
