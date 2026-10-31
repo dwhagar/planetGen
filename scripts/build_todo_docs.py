@@ -52,13 +52,18 @@ Usage
     python scripts/build_todo_docs.py          # rewrite all four pages
     python scripts/build_todo_docs.py --check  # fail if a page is stale
 
-The output carries no dates, so rebuilding unchanged sources gives
-byte-identical pages. Templates live in `scripts/todo_docs/`.
+Each page carries a "Last updated" banner at the top (Boss, 3:50 PM EDT
+2026-10-31). The stamp is the Eastern time of the last rebuild that changed
+the page, kept in the page itself: a rebuild of unchanged sources keeps the
+stamp and gives byte-identical pages (so `--check` stays exact), and a
+rebuild that changes the page writes the new time. Templates live in
+`scripts/todo_docs/`.
 """
 
 from __future__ import annotations
 
 import argparse
+import datetime
 import html
 import json
 import re
@@ -745,6 +750,37 @@ def render(template: str, data: dict) -> str:
     return template.replace("__HEADLINES__", snippet).replace("__DATA__", payload)
 
 
+BANNER_RE = re.compile(r'\n<div class="updated-banner"[^>]*>Last updated: (.*?)</div>')
+
+
+def banner(stamp: str) -> str:
+    style = ("font:600 13px/1.4 system-ui,-apple-system,'Segoe UI',sans-serif;padding:6px 14px;text-align:center;"
+             "background:#F6E7D6;color:#152030;border-bottom:1px solid #D8DEE7")
+    return f'\n<div class="updated-banner" style="{style}">Last updated: {stamp}</div>'
+
+
+def stamp_of(text: str) -> str:
+    """The stamp a page carries, `""` if it has none."""
+    found = BANNER_RE.search(text)
+    return found.group(1) if found else ""
+
+
+def with_stamp(page: str, stamp: str) -> str:
+    """`page` with its banner set to `stamp`: just after `<body>`, or after the last `</style>` in a fragment."""
+    page = BANNER_RE.sub("", page)
+    mark = "<body>" if "<body>" in page else "</style>"
+    at = page.index(mark) if mark == "<body>" else page.rindex(mark)
+    at += len(mark)
+    return page[:at] + banner(stamp) + page[at:]
+
+
+def now_stamp() -> str:
+    """The Eastern time now, for example `2026-10-31 4:05 PM EDT`."""
+    from zoneinfo import ZoneInfo
+    moment = datetime.datetime.now(ZoneInfo("America/New_York"))
+    return f"{moment:%Y-%m-%d} {moment.hour % 12 or 12}:{moment:%M %p} {moment:%Z}"
+
+
 def build(root: Path = ROOT) -> dict[Path, str]:
     data = build_data(root)
     out = {}
@@ -754,7 +790,9 @@ def build(root: Path = ROOT) -> dict[Path, str]:
                "roadmap" if name.startswith("release-roadmap") else "plan")
         out[target] = render(template, data[key])
     out[EXECUTION_OUTPUT] = build_execution_plan(root, data)
-    return out
+    # each page keeps the stamp it already carries, so an unchanged page compares equal; `main` writes a new one
+    return {target: with_stamp(page, stamp_of(target.read_text(encoding="utf-8")) if target.exists() else "")
+            for target, page in out.items()}
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -767,9 +805,12 @@ def main(argv: list[str] | None = None) -> int:
         for p in stale:
             print(f"{p.relative_to(ROOT)} is out of date: run python scripts/build_todo_docs.py")
         return 1 if stale else 0
+    now = now_stamp()
     for p, page_html in pages.items():
+        if p in stale:
+            page_html = with_stamp(page_html, now)
         p.write_text(page_html, encoding="utf-8")
-        print(f"wrote {p.relative_to(ROOT)}")
+        print(f"wrote {p.relative_to(ROOT)}" + (f" (updated {now})" if p in stale else ""))
     return 0
 
 

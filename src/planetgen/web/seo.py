@@ -33,7 +33,7 @@ from planetgen.util import settings as settingsModule
 from planetgen.web import assets
 
 TOP = frozenset({
-    "web.index", "web.classes", "web.class_type_page", "web.class_page", "web.habitability_levels", "web.property_help_page", "web.galaxy",
+    "web.index", "web.classes", "web.class_type_page", "web.class_page", "web.habitability_levels", "web.property_help_page", "web.life_help_page", "web.life_help_topic", "web.life_help_class", "web.galaxy",
     "web.species", "web.species_page", "web.polities", "web.polity_page",
 })
 LISTS = frozenset({"web.sectors", "web.systems", "web.phenomena", "web.lists", "web.object_list"})
@@ -48,7 +48,7 @@ OTHER_PUBLIC_UTILITY = frozenset({
     "web.sector_scene", "web.system_on_galaxy_map", "web.system_scene", "web.old_page", "web.object_tree",
 })
 PRIVATE_PREFIXES = ("web.admin", "web.generate", "web.download_galaxy_settings")
-PRIVATE = frozenset({"web.login", "web.logout", "web.account", "web.maintenance_page"})
+PRIVATE = frozenset({"web.login", "web.logout", "web.account", "web.maintenance_page", "web.preferences"})
 GENERATED_FILES = frozenset({
     "web.robots_txt", "web.sitemap_index", "web.sitemap_pages", "web.sitemap_detail", "web.security_txt",
     "web.humans_txt", "web.site_webmanifest", "web.site_asset", "web.og_card",

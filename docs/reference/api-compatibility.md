@@ -8,6 +8,7 @@ The API has a version of its own, one integer that is not the release number (`s
 
 | API version | First release | Items | Change | Routes and payload formats changed |
 |---|---|---|---|---|
+| **12** | next release | GEN.1108 | A planet or moon gives its climate in seven bands of latitude, not in a few named places. | GET /api/systems/<id>: the regions of a planet or moon's equipment is {bands, mean_swing_k}: bands is the seven bands from the north pole to the south pole (the day centre to the night centre for a world that turns once an orbit), each {name, mean_k, swing_k, day_hours, night_hours, longest_day_days, longest_night_days, state}; polar, north, equator, south, day_side, terminator, night_side and the swings by those names are gone<br>GET /api/objects/<ref>/sheet: a planet or moon has bands, the table of its seven bands, and no temp_polar_k, temp_north_k, temp_equator_k, temp_south_k, temp_swing_k, temp_day_side_k, temp_terminator_k or temp_night_side_k rows |
 | **11** | 8.0.2617 | API.33 | The sizes of a backup archive and of its parts say they are in bytes. | GET /api/admin/backups and GET /api/admin/backups/<name>: an archive and each of its parts have size_bytes where they had size |
 | **10** | 8.0.2608 | API.37 | A planet or moon names its life by class, not by chemistry. | GET /api/systems/<id>: planets and moons have no life_chemical; they have life_class (the class number), life_class_variant, life_class_best, life_class_best_score, life_animal_grade and life_complexity (the columns), and life_class_id (such as 1a) and life_class_scores (the score of every class the body supports)<br>the species of GET /api/planets/<id>/species and GET /api/planets/<id>/habitable-species have life_class (the class id) in place of life_chemical |
 | **9** | 8.0.2271 | MAP.287 | A star, planet or moon of a system scene carries a look record, not a colour. | GET /api/systems/<id>/scene: stars, planets and moons have look (the body look record, which holds the color and what the painters need) and no color; a comet keeps color |
@@ -34,7 +35,8 @@ Every client that exists today ships with the server, so the release a page or a
 
 | API version | Releases that speak it |
 |---|---|
-| **11** | 8.0.2617 and later |
+| **12** | next release and later |
+| **11** | 8.0.2617 up to the current release |
 | **10** | 8.0.2608 up to the release before 8.0.2617 |
 | **9** | 8.0.2271 up to the release before 8.0.2608 |
 | **8** | 8.0.2236 up to the release before 8.0.2271 |

@@ -24,7 +24,7 @@ What the spans are made of, each rule one read:
   `validation.mutual_min_distance_au` solves, now in both directions, so the new body may go inside an existing one too).
 - **Each belt** excludes its annulus, widened on the planet's side by the planet's own five Hill radii and `MIN_ASTEROID_BELT_SEPARATION`
   (`belt_exclusion`). A belt adds no spacing between the planets either side of it: both of those exclusions stay.
-- **A moon's window** is the same idea one level down (`moon_window_km`): outside the planet and the largest moon it could hold, inside the
+- **A moon's window** is the same idea one level down (`moon_bounds_km`): outside the planet and the largest moon it could hold, inside the
   fraction of the planet's Hill radius that Domingos, Winter and Yokoyama (2006, MNRAS 373, 1227, read in the paper) fit to the restricted
   elliptic three-body problem, with the planet's and the moon's eccentricity terms and the retrograde limit.
 
@@ -279,14 +279,6 @@ def moon_bounds_km(planet_radius_km, hill_radius_km, planet_eccentricity, moon_e
     """
     fraction, extrapolated = moon_hill_fraction(planet_eccentricity, moon_eccentricity, retrograde)
     return planet_radius_km + largest_moon_radius_km + margin_km, hill_radius_km * fraction, extrapolated
-
-
-def moon_window_km(planet_radius_km, hill_radius_km, planet_eccentricity, moon_eccentricity=0.0, retrograde=False, margin_km=0.0,
-                   largest_moon_radius_km=0.0):
-    """`moon_bounds_km` as a `SpanSet` (empty when there is no room), with the `extrapolated` flag: `(SpanSet, extrapolated)`."""
-    low, high, extrapolated = moon_bounds_km(planet_radius_km, hill_radius_km, planet_eccentricity, moon_eccentricity, retrograde,
-                                             margin_km, largest_moon_radius_km)
-    return SpanSet([(low, high)]), extrapolated
 
 
 # --- the ledger of one system ----------------------------------------------------------------------------------------------------------

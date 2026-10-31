@@ -273,6 +273,7 @@ WRITERS = {
     ("db/edits.py", "delete_sector_with_contents"): GONE,
     ("db/fingerprint_tree.py", "store_leaf"): DERIVED,
     ("db/orbit_trees.py", "write_nodes"): MARKS,
+    ("db/orbit_trees.py", "write_dark_members"): MARKS,
     ("db/storage_checksum.py", "seal"): DERIVED,
     ("db/storage_checksum.py", "_mark"): MARKS,
     ("db/store.py", "_rename_comets"): PARENT,

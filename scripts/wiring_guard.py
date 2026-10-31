@@ -5,7 +5,7 @@ The wiring guard (GEN.754): what the app builds and downloads but nothing reads.
     python scripts/wiring_guard.py            # print every unread thing and whether the register names it
     python scripts/wiring_guard.py --check    # exit 1 when the register and the code disagree
 
-Four kinds of thing can be built and left unread, and the guard finds each from the source alone (no import of the app, so it
+Six kinds of thing can be built and left unread, and the guard finds each from the source alone (no import of the app, so it
 runs without the datasets or a database):
 
 - a `module`: a module of `physics`, `generation`, `galaxy`, `datasets` or `tuning` that no module outside those packages
@@ -16,7 +16,16 @@ runs without the datasets or a database):
   calls;
 - a `data` file: a `physics/data/*.json` whose file name no reachable module mentions;
 - a `row`: a registry row (GEN.725, `gap-filling-plan.md` section 6) whose `module.CONSTANT` names are all unread, so a stand-in
-  that nothing in the generator uses.
+  that nothing in the generator uses;
+- a `column` (TEST.520): a column of a table that holds objects (the tables of the `uid` group of `planetgen/db/kind_tables.py`) that no file
+  outside `PLUMBING` (the schema, models, column units, store, storage checksum, checks and the other code that handles every
+  column alike, and the generic Details sheet) reads, by name, as an attribute, a name, a dictionary key or a word of a SQL string.
+  A module of physics or generation that loads the value counts as a reader, so a column read downstream is not listed; one that
+  only the sheet shows is. The test is by name: a name that two tables share is read when either is;
+- a `function` (TEST.520): a public function of a module of `physics`, `generation` or `galaxy` that the app reaches, that nothing
+  but tests calls (the guard looks at the package, not the tests): no other module loads its name, no function of its own module
+  does, no string names it (`"module:function"`), and it carries no decorator that could register it. A shadow function is a piece
+  built and not used, one step short of an unread module.
 
 `docs/design/research/wiring-register.md` names every unread thing with the open item that will wire it (or deletes it), or says
 why it is read by design (a tuning harness loaded by name). `src/tests/test_wiring_guard.py` fails when something is unread and
@@ -43,11 +52,33 @@ DATA_FOLDER = os.path.join(PACKAGE, "physics", "data")
 LIBRARY = ("planetgen.physics", "planetgen.generation", "planetgen.galaxy", "planetgen.datasets", "planetgen.tuning")
 """tuple: The packages and modules whose pieces must be reached from the rest of the app."""
 
-KINDS = ("module", "dataset", "reader", "data", "row")
+KINDS = ("module", "dataset", "reader", "data", "row", "column", "function")
+PLUMBING = (
+    "planetgen.db.models", "planetgen.db.column_units", "planetgen.db.store", "planetgen.db.storage_checksum", "planetgen.db.check",
+    "planetgen.db.object_rows", "planetgen.db.fingerprint", "planetgen.db.fingerprint_tree", "planetgen.db.parity",
+    "planetgen.db.parity_file", "planetgen.db.sector_export", "planetgen.db.table_rebuild", "planetgen.db.repair",
+    "planetgen.describe.sheet", "planetgen.describe.sheet_sources",
+)
+"""tuple: The modules that name a column only because they handle every column alike (the schema, the store, the checksums, the checks,
+the repair and export code, the generic Details sheet): a mention there is not a reader of the value (TEST.520)."""
+
+OBJECT_GROUP = "uid"
+"""str: The `planetgen/db/kind_tables.py` group whose tables hold the objects the sheet describes; their columns are the ones the guard follows."""
+
+SHADOW_PACKAGES = ("planetgen.physics.", "planetgen.generation.", "planetgen.galaxy.")
+"""tuple: The packages whose public functions must be called by something other than a test (TEST.520)."""
+
+QUIET_DECORATORS = ("cache", "lru_cache", "staticmethod", "classmethod", "property", "functools.cache", "functools.lru_cache")
+"""tuple: The decorators that do not register a function elsewhere; any other decorator hides the function from the `function` kind."""
+
 BY_DESIGN = "by design"
 """str: The item cell of a thing that is read by name or only by the tuning harness: the reason says which."""
 
 _CONSTANT = re.compile(r"\b([a-z_][a-z_0-9]*)\.([A-Z][A-Z0-9_]{2,})\b")
+_WORD = re.compile(r"[A-Za-z_][A-Za-z_0-9]*")
+_WORDS = re.compile(r"[a-z_][a-z_0-9]*")
+_REFERENCE = re.compile(r"[A-Za-z_][A-Za-z_0-9.]*:[A-Za-z_][A-Za-z_0-9]*|[A-Za-z_][A-Za-z_0-9]*(?:\.[A-Za-z_][A-Za-z_0-9]*)+")
+_SQL = re.compile(r"\b(?:SELECT|FROM|WHERE|INSERT|UPDATE|ORDER BY|JOIN|SET|COALESCE|GREATEST|LEAST)\b|\b[a-z]{1,3}\.[a-z_]+\b")
 
 
 def _tree(path):
@@ -112,6 +143,48 @@ class Code:
                         self.loaded[alias.name].add(name)
                 elif isinstance(node, ast.Constant) and isinstance(node.value, str):
                     self.strings[node.value].add(name)
+        self.reads, self.tokens = self._scan_names()
+
+    def _scan_names(self):
+        """`(reads, tokens)`, each `{name: {module}}` over the reachable modules. `reads` is where a name is loaded: an attribute or a name
+        in a load position, an imported name, a string that is exactly the name (a dictionary key, `getattr`) or a word of a SQL string;
+        an f-string that builds a name (`f"life_age_{key}_gyr"`) is kept as a pattern in `name_patterns`, which a column it matches is read by.
+        `tokens` is every place a name could be called from: those and the last words of dotted or colon strings (`"module:function"`)."""
+        reads, tokens = collections.defaultdict(set), collections.defaultdict(set)
+        self.name_patterns = collections.defaultdict(list)
+        for name in self.reachable:
+            tree = self.trees[name]
+            docstrings = {id(node.body[0].value) for node in ast.walk(tree)
+                          if isinstance(node, (ast.Module, ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)) and node.body
+                          and isinstance(node.body[0], ast.Expr) and isinstance(node.body[0].value, ast.Constant)}
+            for node in ast.walk(tree):
+                if isinstance(node, ast.Attribute):
+                    tokens[node.attr].add(name)
+                    if isinstance(node.ctx, ast.Load):
+                        reads[node.attr].add(name)
+                elif isinstance(node, ast.Name):
+                    tokens[node.id].add(name)
+                    if isinstance(node.ctx, ast.Load):
+                        reads[node.id].add(name)
+                elif isinstance(node, ast.ImportFrom):
+                    for alias in node.names:
+                        tokens[alias.name].add(name)
+                        reads[alias.name].add(name)
+                elif isinstance(node, ast.JoinedStr):
+                    pattern = "".join(re.escape(part.value) if isinstance(part, ast.Constant) else "[a-z_0-9]+" for part in node.values)
+                    if sum(len(part.value) for part in node.values if isinstance(part, ast.Constant)) >= 4 and "[a-z_0-9]+" in pattern:
+                        self.name_patterns[name].append(re.compile(pattern))
+                elif isinstance(node, ast.Constant) and isinstance(node.value, str) and id(node) not in docstrings:
+                    text = node.value
+                    if _WORD.fullmatch(text):
+                        reads[text].add(name)
+                        tokens[text].add(name)
+                    elif _REFERENCE.fullmatch(text):
+                        tokens[re.split(r"[.:]", text)[-1]].add(name)
+                    elif _SQL.search(text):
+                        for word in set(_WORDS.findall(text)):
+                            reads[word].add(name)
+        return reads, tokens
 
     def _named_modules(self, tree):
         """The modules of the package that a string of `tree` names (`importlib.import_module("planetgen.x")`, or the
@@ -179,6 +252,92 @@ class Code:
                 found.append(name)
         return found
 
+    def object_columns(self):
+        """`{column: [tables]}` of the tables that hold objects (the `uid` group of `planetgen/db/kind_tables.py`), read from the source of
+        `planetgen/db/kind_tables.py` and `planetgen/db/models.py`."""
+        tables = []
+        for node in ast.walk(self.trees["planetgen.db.kind_tables"]):
+            if isinstance(node, ast.Call) and isinstance(node.func, ast.Name) and node.func.id == "_row" and node.args:
+                groups = [arg.value for arg in node.args[3:] if isinstance(arg, ast.Constant)]
+                if OBJECT_GROUP in groups and isinstance(node.args[0], ast.Constant):
+                    tables.append(node.args[0].value)
+        found = collections.defaultdict(list)
+        for node in ast.walk(self.trees["planetgen.db.models"]):
+            if isinstance(node, ast.Call) and getattr(node.func, "attr", None) == "Table" and node.args \
+                    and isinstance(node.args[0], ast.Constant) and node.args[0].value in tables:
+                for column in ast.walk(node):
+                    if isinstance(column, ast.Call) and getattr(column.func, "attr", None) == "Column" and column.args \
+                            and isinstance(column.args[0], ast.Constant):
+                        found[column.args[0].value].append(node.args[0].value)
+        return dict(found)
+
+    def column_aliases(self):
+        """`{column: {attribute}}`: the names the store gives a column when it loads the row, so a module that reads the attribute reads
+        the column. Found in `planetgen/db/store.py`: `object_rows.attr/optional/scaled("column", "attribute", ...)` and a dictionary or keyword
+        whose value subscripts a row with the column (`{"age": row["binary_age_gy"]}`), or an attribute assigned from one
+        (`system.binary_planetary_wobble_x = row["binary_planetary_wobble_x_km"]`)."""
+        columns = set(self.object_columns())
+        found = collections.defaultdict(set)
+        for node in ast.walk(self.trees["planetgen.db.store"]):
+            if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute) and node.func.attr in ("attr", "optional", "scaled") \
+                    and len(node.args) >= 2 and all(isinstance(arg, ast.Constant) and isinstance(arg.value, str) for arg in node.args[:2]):
+                found[node.args[0].value].add(node.args[1].value)
+            pairs = []
+            if isinstance(node, ast.Dict):
+                pairs = [(key.value, value) for key, value in zip(node.keys, node.values)
+                         if isinstance(key, ast.Constant) and isinstance(key.value, str)]
+            elif isinstance(node, ast.Call):
+                pairs = [(keyword.arg, keyword.value) for keyword in node.keywords if keyword.arg]
+            elif isinstance(node, ast.Assign):
+                pairs = [(target.attr, node.value) for target in node.targets if isinstance(target, ast.Attribute)]
+            for alias, value in pairs:
+                for part in ast.walk(value):
+                    if isinstance(part, ast.Subscript) and isinstance(part.slice, ast.Constant) and part.slice.value in columns:
+                        found[part.slice.value].add(alias)
+        return {column: names - {column} for column, names in found.items()}
+
+    def unread_columns(self):
+        """The columns of `object_columns` that no module outside `PLUMBING` reads, by its own name or by the name the store gives it
+        (`column_aliases`) (TEST.520), sorted."""
+        aliases = self.column_aliases()
+        plumbing = set(PLUMBING)
+        built = [pattern for module, patterns in self.name_patterns.items() if module not in plumbing for pattern in patterns]
+        return sorted(column for column in self.object_columns()
+                      if not any(self.reads.get(name, set()) - plumbing for name in {column, *aliases.get(column, ())})
+                      and not any(pattern.fullmatch(column) for pattern in built))
+
+    def shadow_functions(self):
+        """The public module-level functions of the reachable modules of `SHADOW_PACKAGES` that no code of the package calls (TEST.520), as
+        sorted `module.function` names. A name counts as called when another module mentions it, when a function of its own module other
+        than itself does, or when a string of the package names it; a function with a decorator outside `QUIET_DECORATORS` is skipped."""
+        found = []
+        for name in sorted(self.reachable):
+            if not name.startswith(SHADOW_PACKAGES) or name.endswith(".__init__"):
+                continue
+            tree = self.trees[name]
+            for node in tree.body:
+                if not isinstance(node, ast.FunctionDef) or node.name.startswith("_") or self._registers(node):
+                    continue
+                if self.tokens.get(node.name, set()) - {name}:
+                    continue
+                inside = {id(child) for child in ast.walk(node)}
+                if any(id(other) not in inside and ((isinstance(other, ast.Name) and other.id == node.name)
+                                                    or (isinstance(other, ast.Attribute) and other.attr == node.name))
+                       for other in ast.walk(tree)):
+                    continue
+                found.append(f"{name}.{node.name}")
+        return sorted(found)
+
+    @staticmethod
+    def _registers(function):
+        """Whether `function` is decorated with something that could register it for a caller the source does not show."""
+        for decorator in function.decorator_list:
+            target = decorator.func if isinstance(decorator, ast.Call) else decorator
+            text = ast.unparse(target)
+            if text not in QUIET_DECORATORS and text.rpartition(".")[2] not in QUIET_DECORATORS:
+                return True
+        return False
+
     def unread_rows(self, tables):
         """The registry rows `{section}:{fill_id}` whose `module.CONSTANT` names all lack a reader in the reachable code."""
         by_base = collections.defaultdict(list)
@@ -210,6 +369,8 @@ def unread(code=None, tables=None):
     found |= {("dataset", name) for name in datasets} | {("reader", name) for name in readers}
     found |= {("data", name) for name in code.unread_data_files()}
     found |= {("row", name) for name in code.unread_rows(tables)}
+    found |= {("column", name) for name in code.unread_columns()}
+    found |= {("function", name) for name in code.shadow_functions()}
     return found
 
 

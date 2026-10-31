@@ -52,6 +52,10 @@ def rows():
                 "group": sheet.GROUPS[spec.group], "label": spec.label, "unit": unit_text(kind, spec), "applies": [], "source": line,
                 "order": len(found)})
             entry["applies"].append(name)
+    for key, (label, unit) in sheet.CHEMISTRY_ROWS.items():    # UX.254: the star's rows worked out from its stored values
+        found[("composition", label, source_of("star", key))] = {
+            "group": sheet.GROUPS["composition"], "label": label, "unit": unit, "applies": ["Stars"], "source": source_of("star", key),
+            "order": len(found)}
     return [{**entry, "applies": ", ".join(entry["applies"])} for entry in sorted(found.values(), key=lambda e: e["order"])]
 
 

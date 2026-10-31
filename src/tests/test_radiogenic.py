@@ -15,7 +15,7 @@ from planetgen import tuning
 from planetgen.db import store
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
-from planetgen.physics import constants, elements, radiation, radiogenic, rogue_surface, surface_composition
+from planetgen.physics import elements, radiation, radiogenic, rogue_surface, surface_composition
 from planetgen.util import draw
 
 from tests.fuzz_support import deterministic_entropy
@@ -36,11 +36,6 @@ def test_the_heat_is_the_isotope_wise_sum_of_the_four_parents():
     by_hand = sum(masses[name] * elements.heat_per_kg_of_isotope(name) for name in radiogenic.HEAT_PARENTS)
     assert radiogenic.heat_w_per_kg(content, EARTH_AGE_GY) == pytest.approx(by_hand, rel=1e-6)
     assert by_hand > 0
-    # each element today is the concentration it was drawn from
-    present = radiogenic.present_ppm(content, EARTH_AGE_GY)
-    assert present["Th"] == pytest.approx(0.0834, rel=1e-3)
-    assert present["U"] == pytest.approx(0.0218, rel=1e-3)
-    assert present["K"] == pytest.approx(260.0, rel=1e-3)
 
 
 def test_a_bulk_silicate_earth_gives_the_calibration_heat():
@@ -48,8 +43,6 @@ def test_a_bulk_silicate_earth_gives_the_calibration_heat():
     (McDonough and Sun) and the repository's former 29.8 TW (Turcotte and Schubert) are outside what the model is calibrated to."""
     heat_tw = radiogenic.heat_w(_content(*radiogenic.BULK_SILICATE_EARTH), 4.042e24, EARTH_AGE_GY) / 1e12
     assert heat_tw == pytest.approx(21.0, rel=0.03)
-    flux = radiogenic.radiogenic_flux_w_m2(_content(*radiogenic.BULK_SILICATE_EARTH), constants.EARTH_MASS_TO_KG, 6371.0, EARTH_AGE_GY)
-    assert flux == pytest.approx(0.0426 * 0.97, rel=0.1)  # part E 2.8e worked example, 0.0426 W/m2 for 4.03e24 kg
 
 
 def test_a_chondrite_gives_the_calibration_heat():

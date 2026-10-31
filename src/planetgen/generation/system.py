@@ -30,7 +30,7 @@ from planetgen.generation import (
     cloud as cloudContext, life as planetLife, member_record, multistar, place_terms, prevalence, stored_trees, validation,
 )
 from planetgen.physics import stellar_evolution as evolution
-from planetgen.physics import habitability, insolation, interior_heat, magnetism, mass_loss, pre_main_sequence, rings, wolf_rayet
+from planetgen.physics import habitability, insolation, interior_heat, magnetism, mass_loss, ocean_tides, pre_main_sequence, radiation, rings, wolf_rayet
 from planetgen.physics import planets as planetPhysics
 from planetgen import tuning
 from planetgen.util import draw
@@ -574,16 +574,26 @@ class StarSystem:
                 if obj.body_type == 'a': # Skip asteroid belts; they carry no life data.
                     continue
                 interior_heat.update_heat(obj)  # GEN.763: the thermal history to the star's final age (no draws)
+                planetPhysics.refresh_at_final_age(obj)  # GEN.839: the ice shell and the volcanism gate follow it (the body's own stream)
                 planetPhysics.apply_class(obj)  # GEN.689: the light each body gets is final only now
+                magnetism.generate_stellar_induction(obj)  # GEN.981: the star's field at the orbit, from the final water and core
                 for moon in obj.moons:
                     planetPhysics.apply_class(moon)
                 planetLife.apply_life_data(obj)
                 planetLife.decide_flavor_text(obj)
                 for moon in obj.moons:
                     interior_heat.update_heat(moon)
+                    planetPhysics.refresh_at_final_age(moon)
                     magnetism.generate_induced_field(moon, obj)  # GEN.178: from the final water and orbit
+                    radiation.apply_parent_belts(moon, obj)  # GEN.983: the parent's belts at the moon's orbit; the life pass rebuilds the dose from it
                     planetLife.apply_life_data(moon)
                     planetLife.decide_flavor_text(moon)
+            for obj in self.all_planets:  # GEN.1034: the final pass made the water again (a brine seep can end as an ice-covered ocean), and the tides follow it
+                if obj.body_type == 'a':
+                    continue
+                ocean_tides.generate(obj)
+                for moon in obj.moons:
+                    ocean_tides.generate(moon, obj)
             # The final pass can change a class, so a forced class is judged again on the final classes: one the final pass took away is
             # unmet, one it gave is met.
             wanted = f"a planet of class {self.system_config.FORCE_CLASS}"

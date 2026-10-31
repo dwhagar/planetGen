@@ -284,8 +284,10 @@ def unit_failed(job, connection, exc_type, exc_value, _traceback):
         log.debug(f"Unit {unit} of stage {stage} of run {run_id} was done when RQ failed it ({exc_type.__name__}: "
                   f"{exc_value}); the run goes on.")
         return
+    from planetgen.queue import wrapper             # the wrapper queues units, so it imports this file
     runrecord.finish_run(connection, run_id, "failed",
-                         error=f"unit {unit} of stage {stage} failed: {exc_type.__name__}: {exc_value}")
+                         error=f"unit {unit} of stage {wrapper.stage_name(connection, run_id, stage)} failed: "
+                               f"{exc_type.__name__}: {exc_value}")
 
 
 def horse_killed(job, retpid, ret_val, _rusage):
@@ -297,8 +299,10 @@ def horse_killed(job, retpid, ret_val, _rusage):
     if job.func_name != UNIT_FUNCTION:
         return
     run_id, stage, unit = job.args[:3]
+    from planetgen.queue import wrapper             # the wrapper queues units, so it imports this file
     runrecord.finish_run(job.connection, run_id, "failed",
-                         error=f"unit {unit} of stage {stage} was killed: its worker process {retpid} ended with "
+                         error=f"unit {unit} of stage {wrapper.stage_name(job.connection, run_id, stage)} was killed: "
+                               f"its worker process {retpid} ended with "
                                f"status {ret_val} (the machine may be out of memory)")
 
 
