@@ -1,8 +1,8 @@
 # tests/test_migration_nuclear_arrival.py
 
 """
-GEN.1174: migration 0197 adds `nuclear_arrival_age_gy` to `stars` and `bright_stars`, the age MIST's tracks put a pre-main-sequence star on the
-main sequence, kept beside the earlier age its radius settles. A row from before v197 keeps NULL there; a star the scatter placed writes it and the
+GEN.1174: migration 0198 adds `nuclear_arrival_age_gy` to `stars` and `bright_stars`, the age MIST's tracks put a pre-main-sequence star on the
+main sequence, kept beside the earlier age its radius settles. A row from before v198 keeps NULL there; a star the scatter placed writes it and the
 star built from the row keeps it.
 """
 

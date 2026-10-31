@@ -1523,8 +1523,8 @@
 -- v185 (GEN.846): `bright_stars.rotation_period_hours` (DOUBLE, NULL), the spin period in hours of a star the scatter placed, drawn from the star's own seed; NULL on a row made before v184, nothing is backfilled.
 -- v187 (GEN.768): `planets` and `moons` keep the hours of one local day a person can be outside (`outside_hours_day`, DOUBLE) and the limit that sets them (`outside_hours_limit`, VARCHAR(16): daylight, dose,
 --   heat, cold, air, uv or vehicle; `physics/outside_hours.py`). NULL for a gas giant, an unscored body, a world whose daylight is not stored and a row made before v187, which gets them when the galaxy is regenerated.
--- v197 (GEN.1159): `planets` and `moons` keep the roundness ratio (`roundness_ratio`, DOUBLE: mean radius over round radius, 1 or more is round), the yield strength (`yield_strength_pa`, DOUBLE, Pa) and the binding energy
---   (`binding_energy_j`, DOUBLE, J) of the body (`physics/body_strength.py`), and `comets` keep those three with `density_g_cm3` and `ice_mass_fraction`, which `asteroid_belts` and `asteroid_fields` keep as the mean of their members. A gas giant keeps only the binding energy. NULL for a row made before v197, which gets them when the galaxy is regenerated.
+-- v199 (GEN.1159): `planets` and `moons` keep the roundness ratio (`roundness_ratio`, DOUBLE: mean radius over round radius, 1 or more is round), the yield strength (`yield_strength_pa`, DOUBLE, Pa) and the binding energy
+--   (`binding_energy_j`, DOUBLE, J) of the body (`physics/body_strength.py`), and `comets` keep those three with `density_g_cm3` and `ice_mass_fraction`, which `asteroid_belts` and `asteroid_fields` keep as the mean of their members. A gas giant keeps only the binding energy. NULL for a row made before v199, which gets them when the galaxy is regenerated.
 -- v189 (GEN.1009): `scatter_members.radius_max_au` and `mass_max_solar` (DOUBLE, NULL), the largest radius and mass a member has had (a white dwarf's red-giant tip and birth mass), so the history rule and the build read what the tree drew from; NULL on a row made before v187, nothing is backfilled.
 -- v190 (GEN.474): `planets` and `moons` gain `ground_intermediate_fraction`, the areal share of intermediate (andesitic) ground, a ground type the volcanic crust of a body takes when the melt of its mantle
 --   is 52 to 63 percent silica; NULL on a row made before v190 (the regenerated galaxy replaces it; see `migrations/versions/0190_ground_intermediate.py`). (v190, GEN.475) `asteroid_belts` and `asteroid_fields`
@@ -1540,7 +1540,7 @@
 --   permanent day side, terminator band or permanent night side). `temp_mean_swing_k` stays (the swing of the whole surface). The columns `temp_polar_k`, `temp_north_k`, `temp_equator_k`, `temp_south_k`,
 --   `temp_swing_k`, `temp_day_side_k`, `temp_terminator_k`, `temp_night_side_k` and the swings `temp_polar_swing_k`, `temp_north_swing_k`, `temp_south_swing_k`, `temp_day_side_swing_k`,
 --   `temp_terminator_swing_k` and `temp_night_side_swing_k` are gone. NULL for a body with no temperature or rotation period and a row made before v194, which gets them when the galaxy is regenerated.
--- v197 (GEN.1174): `stars` and `bright_stars` gain `nuclear_arrival_age_gy` (Gyr, NULL), the age at which MIST's tracks put a pre-main-sequence star on the main sequence (hydrogen burning settled), kept beside `phase_end_age_gy` of `bright_stars`, which for such a star is the earlier age its radius settles (BHAC15). NULL for every star that is not pre-main-sequence and for a row made before v195; nothing is backfilled.
+-- v198 (GEN.1174): `stars` and `bright_stars` gain `nuclear_arrival_age_gy` (Gyr, NULL), the age at which MIST's tracks put a pre-main-sequence star on the main sequence (hydrogen burning settled), kept beside `phase_end_age_gy` of `bright_stars`, which for such a star is the earlier age its radius settles (BHAC15). NULL for every star that is not pre-main-sequence and for a row made before v195; nothing is backfilled.
 --
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
@@ -2222,7 +2222,7 @@ CREATE TABLE IF NOT EXISTS stars (
     velocity_y_kms              DOUBLE NULL,  -- v104 (DB.53)
     velocity_z_kms              DOUBLE NULL,  -- v104 (DB.53)
     decay_age_yr                DOUBLE NULL,  -- v104 (DB.53)
-    nuclear_arrival_age_gy      DOUBLE NULL,  -- v197 (GEN.1174): the age MIST's tracks reach the main sequence, see the header comment
+    nuclear_arrival_age_gy      DOUBLE NULL,  -- v198 (GEN.1174): the age MIST's tracks reach the main sequence, see the header comment
     epoch_unix                  DOUBLE NULL,  -- v104 (DB.53)
     disk_kind                   VARCHAR(16) NULL,  -- v104 (DB.53)
     disk_mass_solar             DOUBLE NULL,  -- v104 (DB.53)
@@ -2465,9 +2465,9 @@ CREATE TABLE IF NOT EXISTS planets (
     day_night_state             VARCHAR(24),  -- v188 (GEN.1097): the state of its day and night: day and night, tidally locked, spin-orbit resonance, non-rotating, polar day and night or no solid surface
     night_hours                 DOUBLE,  -- v188 (GEN.1097): hours of night in one solar day at the equator, NULL for a world that turns once an orbit
     days_per_year               DOUBLE,  -- v188 (GEN.1097): solar days in one orbit round the star, NULL for a world that turns once an orbit
-    roundness_ratio             DOUBLE,  -- v197 (GEN.1159): the mean radius over the round radius, 1 or more is round and less is not
-    yield_strength_pa           DOUBLE,  -- v197 (GEN.1159): the whole-body strength of the material mix of the body, Pa, drawn from the range of each material (GEN.1178)
-    binding_energy_j            DOUBLE,  -- v197 (GEN.1159): the energy that assembling the body releases, J
+    roundness_ratio             DOUBLE,  -- v199 (GEN.1159): the mean radius over the round radius, 1 or more is round and less is not
+    yield_strength_pa           DOUBLE,  -- v199 (GEN.1159): the whole-body strength of the material mix of the body, Pa, drawn from the range of each material (GEN.1178)
+    binding_energy_j            DOUBLE,  -- v199 (GEN.1159): the energy that assembling the body releases, J
     energy_flux_w_m2            DOUBLE,
     flux_variation              DOUBLE,
     -- v20 (see header comment): this planet's own reflex-offset "wobble"
@@ -2873,9 +2873,9 @@ CREATE TABLE IF NOT EXISTS moons (
     day_night_state             VARCHAR(24),  -- v188 (GEN.1097): the state of its day and night: day and night, tidally locked, spin-orbit resonance, non-rotating, polar day and night or no solid surface
     night_hours                 DOUBLE,  -- v188 (GEN.1097): hours of night in one solar day at the equator, NULL for a world that turns once an orbit
     days_per_year               DOUBLE,  -- v188 (GEN.1097): solar days in one orbit round the star, NULL for a world that turns once an orbit
-    roundness_ratio             DOUBLE,  -- v197 (GEN.1159): the mean radius over the round radius, 1 or more is round and less is not
-    yield_strength_pa           DOUBLE,  -- v197 (GEN.1159): the whole-body strength of the material mix of the body, Pa, drawn from the range of each material (GEN.1178)
-    binding_energy_j            DOUBLE,  -- v197 (GEN.1159): the energy that assembling the body releases, J
+    roundness_ratio             DOUBLE,  -- v199 (GEN.1159): the mean radius over the round radius, 1 or more is round and less is not
+    yield_strength_pa           DOUBLE,  -- v199 (GEN.1159): the whole-body strength of the material mix of the body, Pa, drawn from the range of each material (GEN.1178)
+    binding_energy_j            DOUBLE,  -- v199 (GEN.1159): the energy that assembling the body releases, J
     energy_flux_w_m2            DOUBLE,
     flux_variation              DOUBLE,
     -- v58: this object's unique ID, see the header comment's "v58" note. NULL for a row saved before v58.
@@ -3111,8 +3111,8 @@ CREATE TABLE IF NOT EXISTS asteroid_belts (
     velocity_y_kms              DOUBLE NULL,  -- v102 (DB.55): galactic-axes velocity, km/s
     velocity_z_kms              DOUBLE NULL,  -- v102 (DB.55): galactic-axes velocity, km/s
     mass_kg                     DOUBLE NULL,  -- v102 (DB.55): point mass, a stated zero where the mass is not known
-    density_g_cm3               DOUBLE,  -- v197 (GEN.1159): the mean bulk density of the members, g/cm3
-    ice_mass_fraction           DOUBLE,  -- v197 (GEN.1159): the mean share of the mass of a member that is ice of any kind
+    density_g_cm3               DOUBLE,  -- v199 (GEN.1159): the mean bulk density of the members, g/cm3
+    ice_mass_fraction           DOUBLE,  -- v199 (GEN.1159): the mean share of the mass of a member that is ice of any kind
     epoch_unix                  DOUBLE NULL,  -- v102 (DB.55): when the position and velocity hold
     next_update_due             DOUBLE NULL,  -- v102 (DB.55): when the object next moves
 
@@ -3216,11 +3216,11 @@ CREATE TABLE IF NOT EXISTS comets (
     -- v58: this object's unique ID, see the header comment's "v58" note. NULL for a row saved before v58.
     uid                   BINARY(12),
     mass_kg                     DOUBLE NULL,  -- v102 (DB.55): point mass, a stated zero where the mass is not known
-    density_g_cm3               DOUBLE,  -- v197 (GEN.1159): the bulk density of the nucleus, g/cm3
-    ice_mass_fraction           DOUBLE,  -- v197 (GEN.1159): the share of the nucleus mass that is ice of any kind
-    roundness_ratio             DOUBLE,  -- v197 (GEN.1159): the mean radius over the round radius, 1 or more is round and less is not
-    yield_strength_pa           DOUBLE,  -- v197 (GEN.1159): the strength of the material mix of the nucleus, Pa, drawn from the range of each material (GEN.1178)
-    binding_energy_j            DOUBLE,  -- v197 (GEN.1159): the energy that assembling the nucleus releases, J
+    density_g_cm3               DOUBLE,  -- v199 (GEN.1159): the bulk density of the nucleus, g/cm3
+    ice_mass_fraction           DOUBLE,  -- v199 (GEN.1159): the share of the nucleus mass that is ice of any kind
+    roundness_ratio             DOUBLE,  -- v199 (GEN.1159): the mean radius over the round radius, 1 or more is round and less is not
+    yield_strength_pa           DOUBLE,  -- v199 (GEN.1159): the strength of the material mix of the nucleus, Pa, drawn from the range of each material (GEN.1178)
+    binding_energy_j            DOUBLE,  -- v199 (GEN.1159): the energy that assembling the nucleus releases, J
 
     parent_type                 VARCHAR(16) NOT NULL DEFAULT 'system',  -- v140 (DB.73): what it orbits, see the v140 note
     parent_id                   BIGINT UNSIGNED NULL,  -- v140 (DB.73)
@@ -4020,8 +4020,8 @@ CREATE TABLE IF NOT EXISTS asteroid_fields (
     velocity_y_kms              DOUBLE NULL,  -- v102 (DB.55): galactic-axes velocity, km/s
     velocity_z_kms              DOUBLE NULL,  -- v102 (DB.55): galactic-axes velocity, km/s
     mass_kg                     DOUBLE NULL,  -- v102 (DB.55): point mass, a stated zero where the mass is not known
-    density_g_cm3               DOUBLE,  -- v197 (GEN.1159): the mean bulk density of the members, g/cm3
-    ice_mass_fraction           DOUBLE,  -- v197 (GEN.1159): the mean share of the mass of a member that is ice of any kind
+    density_g_cm3               DOUBLE,  -- v199 (GEN.1159): the mean bulk density of the members, g/cm3
+    ice_mass_fraction           DOUBLE,  -- v199 (GEN.1159): the mean share of the mass of a member that is ice of any kind
     formed_at                   DOUBLE NULL,  -- v102 (DB.55)
     origin_event_id             BIGINT UNSIGNED NULL,  -- v102 (DB.55)
     KEY idx_asteroid_fields_cell (cell_key, center_x_pc, center_y_pc, center_z_pc),
@@ -4215,7 +4215,7 @@ CREATE TABLE IF NOT EXISTS bright_stars (
     metallicity_fe_h     DOUBLE,  -- v95 (GEN.158): [Fe/H] in dex, NULL for a cluster star until GEN.159 and for older rows
     cluster_id           BIGINT UNSIGNED,  -- v127 (DB.61): the cluster this star belongs to, NULL for a field star
     rotation_period_hours DOUBLE,  -- v185 (GEN.846): the spin period in hours, NULL on a row made before v185
-    nuclear_arrival_age_gy DOUBLE,  -- v197 (GEN.1174): the age MIST's tracks reach the main sequence, see the header comment
+    nuclear_arrival_age_gy DOUBLE,  -- v198 (GEN.1174): the age MIST's tracks reach the main sequence, see the header comment
 
     KEY idx_bright_stars_address (shell_index, band_index, wedge_index),
     KEY idx_bright_stars_luminosity (luminosity_w),

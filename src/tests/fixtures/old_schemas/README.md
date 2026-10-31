@@ -80,3 +80,5 @@ Commit each file came from:
 - v194: train 7 (before GEN.983 belt dose)
 - v195: train 7 (GEN.983 belt dose, before GEN.1108 latitude bands)
 - v196: train 7 (GEN.1108 latitude bands, before GEN.1215 surface liquid solutes; built by Tides 1, the Train Manager may replace it)
+- v197: train 8 (GEN.1215 surface liquid solutes, before GEN.1174 nuclear arrival age; schema of Tides 1's branch)
+- v198: train 8 (GEN.1174 nuclear arrival age, before GEN.1159 body strength; the train schema without the GEN.1159 columns)
