@@ -237,6 +237,10 @@ one) is still reached inside `REQUEST_MAX_PLANET_ATTEMPTS`. A planetGen stand-in
 REQUEST_TEMPERATURE_K = (273.15, 323.15)
 REQUEST_MIN_PRESSURE_PA = 10000.0
 REQUEST_HYDROSPHERES = ("surface ocean",)
+REQUEST_PLANET_DRAW_BUDGET = 60
+"""int: How many planets a request for a habitable world may draw again in all, over every try of one system (`StarSystem._planet_in_ecosphere`):
+a star that rarely or never gives a world with a surface ocean (a hot one's ecosphere) would draw ten for each planet it places. A planetGen
+stand-in, a time limit and not physics (tier "from needed output", tweak L3; registry row CC10)."""
 REQUEST_MAX_TIMELINE_TRIES = 200
 """int: How many timelines a request for a technological civilization draws before the last stands (`life_timeline.raised_waits`)."""
 REQUEST_ODDS = 10.0

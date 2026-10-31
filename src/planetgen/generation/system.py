@@ -380,6 +380,7 @@ class StarSystem:
         # once, placing under the settled age, before the request is given up as unmet.
         self.set_stability_limits()
         self._request_unreachable = False
+        self._request_draws_left = tuning.REQUEST_PLANET_DRAW_BUDGET
         for _round in range(2):
             for _attempt in range(tuning.MAX_SYSTEM_GENERATION_ATTEMPTS):
                 with log.timed_phase(f"planet generation attempt {_attempt + 1}"):
@@ -425,7 +426,7 @@ class StarSystem:
                     habitable_satisfied = self.system_config.HABITABLE_WORLD is not True or habitable_request.count(self.planets) > 0
                     belt_satisfied = self.system_config.ASTEROID_BELT is not True or self.count_objects(self.planets)[1] > 0
                     class_satisfied = self._forced_class_present()
-                    habitable_stands = self._habitable_request_stands(habitable_satisfied)
+                    habitable_stands = self._habitable_request_stands()
                 if habitable_stands and belt_satisfied and class_satisfied:
                     log.debug(f"Planet generation attempt {_attempt + 1}: kept ({len(self.planets)} primary + "
                               f"{len(self.secondary_planets)} secondary bodies; HABITABLE_WORLD="
@@ -463,8 +464,9 @@ class StarSystem:
             habitable_satisfied = self.system_config.HABITABLE_WORLD is not True or habitable_request.count(self.planets) > 0
             belt_satisfied = self.system_config.ASTEROID_BELT is not True or self.count_objects(self.planets)[1] > 0
             class_satisfied = self._forced_class_present()
-            habitable_stands = self._habitable_request_stands(habitable_satisfied)
-            if (habitable_stands and belt_satisfied and class_satisfied) or _round or self._request_unreachable:
+            # A request for a habitable world is not drawn a second time under the settled age: it only raises odds, and a system that did
+            # not stand has had its tries.
+            if (belt_satisfied and class_satisfied) or _round or self._request_unreachable:
                 break
             draw.redrawn("system.planets_regenerated_after_age")
         self.unmet_requirements = []
@@ -1410,14 +1412,18 @@ class StarSystem:
         """Whether the config asks for a class, or lists its slots."""
         return bool(self.system_config.SLOTS) or bool(self.system_config.FORCE_CLASS)
 
-    def _habitable_request_stands(self, satisfied):
+    def _habitable_request_stands(self):
         """
-        Whether the planets just drawn stand under the system's request for a habitable world (GEN.1130): always without a request or when a
-        planet or moon meets it, else one time in `tuning.REQUEST_ODDS` (`util.request_odds.keeps`; one draw under a request, none without).
-        A system whose planets do not stand is drawn again; the one that is left when the draws are spent stands whatever it holds, and
-        `habitable_request_status` says `"unmet"` when it holds no habitable world.
+        Whether the planets just drawn stand under the system's request for a habitable world (GEN.1130): always without a request or when
+        a rocky planet is in the ecosphere (where `_planet_in_ecosphere` has already kept the draws that meet the request's conditions
+        and raised their odds), else one time in `tuning.REQUEST_ODDS` (`util.request_odds.keeps`; one draw under a request, none without). A
+        system with no rocky planet in the ecosphere is drawn again; the one that is left when the draws are spent stands whatever it holds,
+        and `habitable_request_status` says `"unmet"` when it holds no habitable world.
         """
-        return self.system_config.HABITABLE_WORLD is not True or request_odds.keeps(satisfied)
+        if self.system_config.HABITABLE_WORLD is not True:
+            return True
+        in_ecosphere = any(planet.body_type == "t" and getattr(planet, "zone", None) == "e" for planet in self.planets)
+        return request_odds.keeps(in_ecosphere or habitable_request.count(self.planets) > 0)
 
     def _forced_class_present(self):
         """Whether the system holds a planet of `system_config.FORCE_CLASS` (True when none is forced)."""
@@ -1882,13 +1888,16 @@ class StarSystem:
         A planet drawn at `distance` in the star's ecosphere under a request for a habitable world (GEN.1130): the draw as it would be
         without the request, kept when it has the conditions the request asks for (`habitable_request.meets`) and otherwise one time in
         `tuning.REQUEST_ODDS` (`util.request_odds.keeps`), else drawn again (the mass the architecture gave the slot stays), up to
-        `REQUEST_MAX_PLANET_ATTEMPTS` draws; the last stands. A giant, which can have no surface, is kept as drawn. The moons are added to
+        `REQUEST_MAX_PLANET_ATTEMPTS` draws for one place and `REQUEST_PLANET_DRAW_BUDGET` for the whole system (a star that never gives such a world, as a hot one, would otherwise draw planets for ever); the last stands. A giant, which can have no surface, is kept as drawn. The moons are added to
         the planet that is kept.
         """
         for _ in range(tuning.REQUEST_MAX_PLANET_ATTEMPTS):
             planet = Planet(self.system_config, star, habitable_zone, distance, moon_count=DEFER_MOONS, **given)
             if planet.body_type != "t" or request_odds.keeps(habitable_request.meets(planet)):
                 break
+            if self._request_draws_left <= 0:
+                break
+            self._request_draws_left -= 1
             draw.redrawn("planet.request_missed")
         planet.add_moons(None)
         return planet

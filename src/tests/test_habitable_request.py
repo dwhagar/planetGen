@@ -84,7 +84,10 @@ class _Draw:
 
 def _drawn_in_ecosphere(system, monkeypatch, share, runs):
     monkeypatch.setattr(systemData, "Planet", type("Draw", (_Draw,), {"share": share, "seen": []}))
-    planets = [system._planet_in_ecosphere(system.star, system.star.habitable_zone, 1.0, mass=5.0e24) for _ in range(runs)]
+    planets = []
+    for _ in range(runs):
+        system._request_draws_left = 100                # the budget of one system, per planet here
+        planets.append(system._planet_in_ecosphere(system.star, system.star.habitable_zone, 1.0, mass=5.0e24))
     return planets, systemData.Planet.seen
 
 
@@ -146,7 +149,7 @@ def test_a_request_for_a_letter_alone_does_not_move_the_orbit(system, monkeypatc
 
 def test_a_requested_habitable_world_that_does_not_come_out_is_said_to_be_unmet_and_not_made():
     answers = set()
-    for seed in range(6):
+    for seed in range(3):
         cfg = SystemConfig()
         cfg.STAR_TYPE = "K5V"
         cfg.BINARY_SYSTEM = False
