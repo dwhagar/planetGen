@@ -5391,27 +5391,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   with TODO before starting.
   Prerequisites: none. Related: GEN.149.
 
-- [ ] **GEN.366 Check the reference satellite table against McConnachie 2012: it only tests that the derived population looks plausible**
-  Found by a lane (2026-10-16), filed by the TODO thread. The table of
-  Milky Way satellites (11 rows) was written from memory of McConnachie
-  (2012) and is unverified. Done: every row (position, distance,
-  luminosity, size) is checked against the published table, corrected
-  where it differs, with the source named in a comment and a test that
-  pins the checked values. GEN.237 (merged as #1851, 2026-10-16, 3:15 PM
-  EDT) created the table; Core 1 reports that the Large and Small
-  Magellanic Cloud, Sagittarius and eight dwarf galaxies (sizes, masses
-  and distances) were recalled from memory and could not be checked.
-  A galaxy planned before #1851 has no satellites until `planetgen plan`
-  runs again on it.
-  Folded into GEN.369 (Boss, 2026-10-16, 4:01 PM EDT, "Draw them"): the
-  real rows are kept only as reference data for the plausibility test of
-  GEN.369, with no Milky Way option (Boss, 2026-10-16, 4:11 PM EDT), so
-  this check matters only for that test and waits on GEN.369.
-  Decided (Boss, 2026-10-16, 9:16 PM EDT, card "Both next"; relayed by
-  the coordinator): Core 1 does it last of its four (order: GEN.368,
-  GEN.369, GEN.371, GEN.366). Owner: Core 1.
-  Prerequisites: none.
-
 - [ ] **GEN.367 The Magellanic Clouds' gas is not in `kind_factors` and `nebula_field`: the Clouds hold stars but no nebulae**
   Found by a lane (2026-10-16), filed by the TODO thread. The Large and
   Small Magellanic Cloud components make stars but their gas is not in
@@ -19185,6 +19164,17 @@ clears each one.
   claude/test503-detmath-read, golden check in progress). The Venus and
   5 bar CO2 greenhouse table cases are filed as TEST.505.
   Prerequisites: none.
+
+- [ ] **TEST.507 Add Canes Venatici I (and decide on Canis Major) to the reference satellite table so it holds all 12 Milky Way satellites above 1e5 solar masses**
+  From Core 4 (GEN.366 check against McConnachie 2012, arXiv:1204.1562):
+  the paper lists 27 Milky Way satellites, all within 300 kpc, 12 above
+  1e5 solar masses; the reference table has 11 and misses Canes Venatici
+  I (2.3e5 solar masses). Canis Major (4.9e7, disputed) is a separate
+  decision. A test pins 11 rows (the plausibility test compares the
+  derived population with 11 within a factor of 3), so add the row and
+  update that test with it. Test data only, no generated value changes.
+  Owner Core 4.
+  Prerequisites: none. Related: GEN.366.
 
 ## USR: User accounts
 

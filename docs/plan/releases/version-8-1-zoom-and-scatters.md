@@ -307,7 +307,6 @@ Boss, 5:42 PM EDT 2026-10-23: build the entire GEN.445 chain in 8.1; testing mod
 | GEN.330 | Cluster-hosted compact binaries: the cluster rates replace the field fractions | GEN.163 | Split from GEN.274. |
 | GEN.274 | Cluster-hosted compact binaries and runaway bookkeeping: `runaway_origin` and the compact companion left by a supernova | GEN.330 | Multi-star catalogue, Boss 2026-10-15 6:08 PM EDT. Step 18. Core. |
 | GEN.297 | Calibrate the cluster generator against the Harris file: its distributions guide the laws, and no real cluster is placed in any galaxy |  | The file arrived (Boss, 3:04 PM EDT); Core 3, cluster line. |
-| GEN.366 | Check the reference satellite table against McConnachie 2012: it only tests that the derived population looks plausible |  | Finding from Core 3. |
 
 ### Galaxy types groundwork
 
@@ -647,6 +646,7 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.1130 | The +intelligent_life and +habitable_world request options become probability tweaks only: they raise the odds of such a world in the generated system and never force a placement, a ladder of adaptations or a civilization |  |  |
 | GEN.1129 | Fingerprint split: a sector's digest (GEN.58) becomes "made here" and "arrived here" so rogues landing from other sectors do not change the sector's own digest |  |  |
 | TEST.501 | Order-independence test: chart region A then B and B then A and compare the union of real-donor objects and each sector's made-here digest; chart a region twice and nothing changes; the top-up checked as "same stored state in, same objects out" |  |  |
+| TEST.507 | Add Canes Venatici I (and decide on Canis Major) to the reference satellite table so it holds all 12 Milky Way satellites above 1e5 solar masses |  |  |
 | GEN.1128 | Region run command: a sphere of a given radius from a start point becomes whole sectors, cut into units of a block of sectors by the galaxy's own (shell, band) arcs, nearest bands first, with `--grow-shells K`, all writing the chart ledger |  |  |
 | GEN.1127 | chart_ledger table (tile, run, epoch, time, topped_up_at) with the charted state of a sector derived from it, written by the sector fill units and backfilled from sector_stats.filled_at; the ON DELETE CASCADE removed from position-owned objects (rogue_planets first) so deleting or regenerating a sector removes only objects whose birth tile it is |  |  |
 | GEN.1120 | Rogue planet abundance option: a None, Few, Normal, Many dropdown in the galaxy and the sector generation options, with Normal the target and the physics-based spread tweaked to the low side of the observed range |  |  |
