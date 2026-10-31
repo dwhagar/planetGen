@@ -13498,27 +13498,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.1014. Related: GEN.291, GEN.557, GEN.728.
   Design: [docs/design/systems/interstellar-asteroid-fields.md](design/systems/interstellar-asteroid-fields.md)
 
-- [ ] **GEN.1119 RP1: classify every architecture loss as ejected, collided or bound by the Safronov number and return an ejection record (mass, composition, kept moons, orbit at ejection, time), counting the small bodies the chain deletes today**
-  Rogue planet physics (goal #4130, review report
-  docs/design/research/rogue-planet-review.md, GEN.1109 merged).
-  Measured on 1500 stars: the architecture ejects only about 0.3 bodies
-  (about 9 Earth masses, almost all giants) per star while the flat rate
-  gives about 2.7 per star over the range microlensing probes (Sumi 2023
-  central value 21, lower 1 sigma 8; Mroz 2017 Jupiter limit holds);
-  about 125 sub-minimum bodies per star are deleted and merges lose 10
-  percent of mass; Barclay 2017's 2.5 terrestrial bodies per star is the
-  target scale. Do: a pure extension of the scatter module (GEN.1089,
-  merged) so no body is simply deleted: each loss is classed ejected,
-  collided (merge, with the lost mass kept) or bound by its Safronov
-  number and the ejected ones return a record; the ejection record is
-  what GEN.1111 consumes. Done: tests with giant-free and giant-rich
-  systems, mass conserved, the per-star ejected counts reported (target
-  scale 2.5 terrestrial bodies per star, Barclay 2017). Lock-free. Where
-  we think it belongs (best guess, can move): Planets 1 (now; GEN.1066
-  waits for the GEN.1014 wiring), separate branch.
-  Prerequisites: none. Related: GEN.1111, GEN.1112.
-  Design: [docs/design/research/rogue-planet-review.md](design/research/rogue-planet-review.md)
-
 - [ ] **GEN.1120 Rogue planet abundance option: a None, Few, Normal, Many dropdown in the galaxy and the sector generation options, with Normal the target and the physics-based spread tweaked to the low side of the observed range**
   Boss, 5:28 PM EDT 2026-10-30: add a tweak to bring our physics-based
   spread into the expected range, leaning toward the low side of the
