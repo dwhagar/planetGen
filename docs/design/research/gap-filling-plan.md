@@ -2463,10 +2463,6 @@ The two thresholds `physics/day_night.py` names a state by. The state of Earth, 
 |---|---|---|---|---|---|---|---|---|---|
 | DN1 | P | T9 | L0 | day_night.NON_ROTATING_TURNS 0.01 and day_night.POLAR_CIRCLE_MAX_DEG 30: a body that turns less than a hundredth of a turn in an orbit is non-rotating (the star goes round once a year), and a body whose polar circle is within 30 degrees of the equator has half its surface or more in the polar zone (the area beyond latitude L is 1 - sin L) | turns 0.001 to 0.1; circle 15 to 45 degrees | planets and moons with a stored spin | a body the generator makes with a turn count under 0.01 that has a day the page calls a year, or a body at 60 degrees tilt shown as an ordinary cycle | a word chosen from the length of the solar day and the polar zone's area on the page | needed output (words for the day and night state) |
 
-### 6.130 Stand-ins of the gas disc of a satellite galaxy (GEN.1192)
-
-### 6.133 Stand-ins of the gas disc of a satellite galaxy (GEN.1192)
-
 ### 6.140 Stand-ins of the gas disc of a satellite galaxy (GEN.1192)
 
 A satellite's gas is an exponential disc longer than its stars, forming stars by the Schmidt-Kennicutt law that steepens where the gas thins (`galaxy/satellite_history.py`; the same law as the main disc's, `galaxy/star_formation.py`). The present rate comes from the satellite's history, the central gas density is what makes the disc's integrated rate that, and the gas at the half-mass radius is tested against the star formation threshold. Checked against the Large Cloud's HI (4.8e8 solar masses, Staveley-Smith et al. 2003, abstract read: generated 1.05e9, a factor 2.2 high) and the Small Cloud's (about 4e8 recalled: generated 1.95e8, a factor 2 low).

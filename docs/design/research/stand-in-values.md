@@ -41,11 +41,11 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T3 | 84 | 38 | 5 | 10 | 0 | 137 |
 | T4 | 37 | 5 | 0 | 14 | 10 | 66 |
 | T5 | 43 | 17 | 0 | 1 | 0 | 61 |
-| T6 | 92 | 71 | 18 | 42 | 0 | 223 |
+| T6 | 92 | 72 | 18 | 42 | 0 | 224 |
 | T7 | 27 | 8 | 8 | 8 | 0 | 51 |
 | T8 | 0 | 1 | 1 | 5 | 1 | 8 |
-| T9 | 17 | 14 | 4 | 43 | 19 | 97 |
-| All | 552 | 203 | 44 | 125 | 30 | 954 |
+| T9 | 17 | 14 | 4 | 42 | 19 | 96 |
+| All | 552 | 204 | 44 | 124 | 30 | 954 |
 
 ## How the labels were given
 
@@ -1396,7 +1396,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| AB1 | P | T9 | L3 | activity.DECAY_EXPONENTS: the exponent b of `L_X/L_bol` after saturation by mass (1.0 up to 0.3 solar masses, 1.35 at 0.45, 1.8 at 0.6, 1.45 at 0.8 and 1.0), tuned so each mass keeps its `L_X/L_bol` at 5 Gyr from the earlier table | each value within 0.3 of the one that reproduces the earlier level; the solar-mass 1.45 inside the Skumanich band | 0.45 to 1.2 solar masses and ages past the saturation age | a measured `L_X/L_bol` of field stars at 1 to 10 Gyr by mass differing from the model's by more than 0.5 dex, or a decay slope of the Johnstone et al. 2021 model for the same masses outside 1.0 to 2.0 | the decay of the rotation and X-ray model of Johnstone, Bartel and Guedel 2021 (the spin-down torque of Johnstone 2015, not read) | test_activity::test_the_decay_exponents_hold_the_old_table_level_at_the_reference_age | - | replace (GEN.804) |
+| SG1 | P | T6 | L1 | tuning.SATELLITE_GAS_TO_STELLAR_SCALE_LENGTH_RATIO 1.8: the scale length of a satellite's gas disc over its stars' | 1.0 to 2.6 (Swaters et al. 2002: 1.8 +/- 0.8) | satellite galaxies that form stars, 3e8 to 2e9 solar masses of stars | a measured HI scale length of a Cloud-sized dwarf outside 1.0 to 2.6 times its stellar scale length, or a generated Cloud gas mass off the observed by more than a factor of 3 | the HI and stellar scale lengths of the Clouds and the dwarfs of LITTLE THINGS or the Westerbork survey | Swaters, van Albada, van der Hulst and Sancisi 2002 (A&A 390, 829, arXiv astro-ph/0204525, abstract READ): the ratio of HI extent to optical diameter, the extent 6.4 disc scale lengths, is 1.8 +/- 0.8; the extent ratio is read as the scale length ratio (an inference). Large Cloud gas test_satellite_history::test_the_large_cloud_forms_stars_at_about_the_rate_and_with_about_the_gas_observed | - | - |
 
 ## 6.94 Stand-ins of the irregular zone
 
