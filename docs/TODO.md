@@ -14325,6 +14325,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   The sentient kind score of the body becomes the highest across
   classes; the civilization code (GEN.864) must say which class built a
   civilization.
+  Air coupling split out (Boss, 10:54 AM EDT 2026-10-31) (2026-10-31
+  10:56 AM EDT): Step 3 (the air sum over living classes) is now its own
+  item, GEN.1213, built as a separate PR in the same epoch and train as
+  this item; the air of multi-life worlds changes, the air of one-class
+  worlds does not.
   Prerequisites: GEN.862. Related: GEN.863, UX.237, TEST.435.
 
 - [ ] **GEN.1211 A new class for hot thin-air rocks (about 1.6 percent of bodies: 1.4 to 2 g, 340 to 1100 K, 1 to 10 kPa, no ocean) from the reserve letters (BOSS NAMES THE LETTER AND NAME)**
@@ -14365,6 +14370,40 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (flavour lines) with Core 5 (the planet description copy). Where we
   think it belongs (best guess, can move): Core 2.
   Prerequisites: none. Related: UX.252, UX.253.
+
+- [ ] **GEN.1213 Atmospheric composition accounts for the whole mix of living classes on a planet: each class changes the air in its own way, summed in timeline order**
+  Boss, 10:54 AM EDT 2026-10-31: in atmospheric composition we need to
+  account for our new mix of life on a planet, as each life type
+  modifies the atmosphere in its own way. Filed by the TODO thread.
+  Overlap checked: the air ledger work (GEN.857 to 859, GEN.891,
+  physics/life_air.py, biogenic_oxygen.py) is done and takes ONE living
+  class; GEN.862 (the design, life-classes.md section 4 and
+  life_ledger.json) is still open; GEN.1209 (several living classes per
+  planet, Aux 2) lists the air sum as step 3 and Aux 4 was told. This
+  item owns the air physics of that step so it is built and tested on
+  its own. Do: (1) the final stored air (gases, partial pressures, the
+  oxygen rise, the methane, carbon dioxide and sulfur, hydrogen and
+  reduced gases) is the result of EVERY living class that took hold, not
+  only the dominant one: each class contributes its own fluxes
+  (produces, consumes, gives off, as in life_ledger.json) over its own
+  timeline from its first producers, and the classes are summed in
+  timeline order, so an earlier class's methane is burned by a later
+  oxygen rise as the single-class code already does; (2) classes can
+  poison each other through the air: the toxin test of each class reads
+  the air the other classes left, so a class takes hold only if the air
+  the earlier classes made does not poison it (the existing toxin test,
+  GEN.1209 step 2); (3) the Life and air through the ages chart (UX.237
+  part 2) and the life-air API route draw the summed history and can
+  show each class's share of every gas; (4) the life readings (GEN.1210)
+  trend and security read the summed air; (5) a world with one living
+  class gives exactly today's air, tested against the golden; (6)
+  stand-ins for new coupling rules go in GEN.725 with tier and tweak
+  level. Nothing forced; physics decides. Output change: the air of
+  multi-life worlds, so it rides GEN.1209's epoch and train, as a
+  separate PR. Where we think it belongs (best guess, can move): Aux 2
+  (class timelines) with Aux 4 (air) and Core 1 (ledger owner)
+  reviewing.
+  Prerequisites: GEN.862. Related: GEN.1209, GEN.1210, UX.237.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
