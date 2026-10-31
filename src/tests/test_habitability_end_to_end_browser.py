@@ -252,7 +252,7 @@ def test_the_habitable_world_marker_finds_the_system_with_the_stored_count_and_g
     system = tuple(c + o for c, o in zip(HABITABLE_CENTER_PC, SYSTEM_OFFSET_PC))
     spot = _screen_of(page, system)
     assert spot
-    count = habitable_galaxy.habitable_worlds
+    count = habitable_galaxy.marker_worlds                                    # the map's marker counts Yellow and better, the sector's stored count Blue and Green
     words = f"{habitable_galaxy.habitable_system_name}, {count} habitable world{'' if count == 1 else 's'}"
     # The pointer is moved about the point until the symbol under it is named: the charted region's outline is named where it is not, and
     # how far the symbol is drawn from the point depends on the view.
