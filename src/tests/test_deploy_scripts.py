@@ -935,11 +935,40 @@ def test_the_update_works_out_the_cluster_system_masses_after_the_migration():
     assert "run_cli warm_shape" in (pathlib.Path(REPO_DIR) / "scripts" / "deploy-common.sh").read_text()
 
 
-def test_the_update_warms_the_caches_before_it_reloads_and_checks_health():
-    """The warm-up runs in the update (not in the background after it) so the first visitor and the health probe meet a
-    warm site; the probe then waits for the workers to start."""
+def test_the_update_starts_the_warm_up_early_and_reloads_after_its_opening_phase():
+    """The warm-up starts in the background once everything it needs is in place; the reload and the health check wait
+    for its opening phase, then the probe waits for the workers to start."""
     update = (pathlib.Path(REPO_DIR) / "update.sh").read_text()
     common = (pathlib.Path(REPO_DIR) / "scripts" / "deploy-common.sh").read_text()
-    assert update.index("\nwarm_galaxy_map\n") < update.index("reload_web_if_running")
-    assert "nohup" not in common[common.index("warm_galaxy_map() {"):common.index("note_changed_example_configs() {")]
+    assert update.index("\nwarm_galaxy_map\n") < update.index("\n    wait_for_warm_opening\n") < update.index("reload_web_if_running ||")
+    assert update.index("check_app_imports") < update.index("\nwarm_galaxy_map\n")
+    assert "--opening-done" in common
     assert 'sleep "${HEALTH_SETTLE_SECONDS:-10}"' in common
+
+
+def test_wait_for_warm_opening_returns_when_the_file_appears_or_the_warm_up_ends(tmp_path):
+    common = pathlib.Path(REPO_DIR) / "scripts" / "deploy-common.sh"
+    script = f"""
+source {common}
+WARM_OPENING_FILE={tmp_path}/opening
+sleep 30 & WARM_PID=$!
+( sleep 1; touch "$WARM_OPENING_FILE" ) &
+wait_for_warm_opening
+kill $WARM_PID
+rm -f "$WARM_OPENING_FILE"
+sleep 0.2 & WARM_PID=$!
+wait $WARM_PID
+WARM_OPENING_WAIT_SECONDS=5 wait_for_warm_opening
+"""
+    result = subprocess.run(["bash", "-c", script], capture_output=True, text=True, timeout=60)
+    assert "The opening phase is built" in result.stdout
+    assert "ended before its opening phase" in result.stderr
+
+
+def test_every_wait_in_the_update_says_what_it_waits_for_and_for_how_long():
+    """Boss, 10-30 EDT: a long step or a wait that prints nothing looks like a hang."""
+    common = (pathlib.Path(REPO_DIR) / "scripts" / "deploy-common.sh").read_text()
+    for words in ("Working out the cluster system masses", "Running the math check", "Importing the web app as",
+                  "at most $(( ${WARM_OPENING_WAIT_SECONDS:-1200} / 60 )) minutes", "Giving the workers",
+                  "asking again,", "Testing Apache's configuration, then"):
+        assert words in common, words

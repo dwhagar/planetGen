@@ -2362,6 +2362,28 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   at 1280 and 390 px.
   Prerequisites: none.
 
+- [ ] **MAP.360 Sector view highlights only the sector being viewed and zooms in as close as the window allows (bug)**
+  Boss live observation 9:20 PM EDT 10-30 (bug). Owner: Core 2 (map
+  area), no epoch or migration. In the sector view, highlight only the
+  sector being viewed (no neighbouring sectors outlined or lit) and set
+  the zoom as close as the window allows so that sector fills the stage.
+  Related to MAP.355 (sector map limited to its sector, link to the
+  galaxy map) and MAP.359 (stage size). Done: browser test at 1280 and
+  390 px that exactly one sector is highlighted and the sector fills the
+  stage.
+  Prerequisites: none. Related: MAP.355, MAP.359.
+
+- [ ] **MAP.361 Sector view shows every star system that fits when there is room, so it shows more of the sector than the galaxy view would**
+  Boss, 9:20 PM EDT 10-30. Owner: Core 2 (map area), no epoch or
+  migration. The idea of the sector view is to see as much of the sector
+  as possible, more than you would typically see in the galaxy view.
+  Show every star system of the sector that fits in the stage without
+  overlap or clutter, thinning only when the window cannot hold them
+  (keep the brightest or most notable), and show more as the stage grows
+  or the view zooms. Done: browser test with a dense sector shows every
+  system that fits at 1280 px and fewer, without overlap, at 390 px.
+  Prerequisites: MAP.360. Related: MAP.355, MAP.359.
+
 ## NAV: Navigation and courses
 
 - [ ] **NAV.4 Save a course**
@@ -13376,22 +13398,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Star 2 (after GEN.1024).
   Prerequisites: GEN.944. Related: GEN.944, GEN.725.
 
-- [ ] **GEN.1028 The Mardling and Aarseth 2001 stability criterion holds only for an outer mass ratio q_out of 5 or less and the code does not enforce it (bug)**
-  Found by the GEN.1006 research thread reading Mardling and Aarseth
-  2001 (Equation 90) from the ADS scan (relayed 2:35 PM EDT 2026-10-30):
-  the formula matches the repo, but the paper says it holds only for
-  q_out <= 5, and the stability test in the star tree does not check
-  that bound. Do: find where the MA01 criterion is applied (the
-  stability check in the tree and the GEN.1004 quick fix), enforce or
-  handle q_out above 5 (use the published validity limit and a stated
-  fallback, record it as a stand-in in GEN.725 if the fallback is not
-  from a source), and add a test with q_out above 5. Done: no
-  hierarchical triple is judged by MA01 outside its stated range. May
-  fold into GEN.1010 (P4) or GEN.1016 (P10); if so, close this with it.
-  Changes generated output only if a system is judged differently, so
-  check the census. Owner: Bug 1 (star lane). Version 8.1.
-  Prerequisites: none. Related: GEN.1006, GEN.1010, GEN.1016, GEN.1004.
-
 - [ ] **GEN.1030 Methane pseudo-adiabat in the giant planet column, so Uranus-like and Neptune-like one-bar temperatures match Voyager (GEN.852 tropopause and condensables family)**
   Found by Air 1 (relayed 3:16 PM EDT 2026-10-30 as the lane reported).
   test_giant_one_bar_temperature: Uranus-like 95 K and Neptune-like 84 K
@@ -13421,6 +13427,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.1030, same refit pass if the lane sees fit). Version 8.1.
   Owner (3:43 PM EDT 2026-10-30): Air 1 (assigned by TODO; rides a later
   train, after GEN.1030 or in the same refit pass).
+  Sources 1 finding (2026-10-30 9:12 PM EDT): test_greenhouse_table
+  fails because the table was fitted before GEN.1019/1020 (#4063). On
+  main the model gives Venus 539.5 K and the 5 bar CO2 air 385.5 K, the
+  table still gives 705.9 K and 469.0 K (21 and 31 percent apart against
+  5 percent allowed); the first paragraph above has the two numbers the
+  wrong way round. The only fix is this refit, which moves stored
+  temperatures (train-bound). The Venus doc line 67 says the cloud
+  brings the model back to 735 K, so the refit must put the cloud in its
+  airs or the test must include it. TEST.505 was a duplicate of this
+  item and is dropped.
   Prerequisites: none. Related: GEN.852, GEN.1019, GEN.1020, GEN.1030.
 
 - [ ] **GEN.1033 Ice-giant internal heat: the law goes through Jupiter and Neptune, so a Uranus-mass giant gets Neptune's 0.33 W/m2 instead of Uranus's 0.04 (the Uranus anomaly), and giants draw their Bond albedo from the rock range 0.12 to 0.35**
@@ -13746,6 +13762,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Scatter placement (Boss confirmed 4:37 PM EDT) (2026-10-30 4:40 PM
   EDT): The scatter sweep (GEN.1089) runs after the giants are placed
   and before the belts are finalised; this item calls it at that point.
+  Aux 5 (2026-10-30 9:21 PM EDT) (2026-10-30 9:21 PM EDT): takes this
+  item as the build of GEN.1156 (raise the belt share toward 4 to 14
+  percent with the physics route); stacks on the GEN.1014 wiring head.
+  Check with Planets 1 before starting, in case it has begun.
   Design: [docs/design/systems/belt-evolution.md](design/systems/belt-evolution.md)
 
 - [ ] **GEN.1069 Store the belt mass, Dc, age history text and formation snow line (DB.70 column, migration) and wire belt_mass into AsteroidBelt, replacing the three density words**
@@ -14758,19 +14778,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   train window.
   Prerequisites: none. Related: GEN.1146, GEN.1142, GEN.909.
 
-- [ ] **GEN.1148 Asteroid belt share fell from 55 percent of systems to 3 percent and binary share rose from 24 percent to 31.5 percent between the census before trains 3 and 4 and current main (Bug 2 census); find out whether each is the intended change or a bug (bug)**
-  Bug 2 measured these in the prevalence suite (PREVALENCE_BASE_SHARES,
-  #4251). A belt cut was decided (belt mass cut is the rule) but 55 to 3
-  percent is far larger than a mass cut should do unless the cut removes
-  small belts the old rule counted. For each shift name the change that
-  caused it (bisect by merge), say whether the new value is what the
-  physics and the belt rule give, and if not file the fix. Binary share:
-  the star mass function epoch changed the draw, so say whether 31.5
-  percent matches the multiplicity sources. Report numbers per version
-  of main, no fix without the cause. Source: prevalence census
-  (TEST.430).
-  Prerequisites: none.
-
 - [ ] **GEN.1150 Lagrange trojans T2: the generator draws a trojan swarm at the L4 and L5 of each giant planet or brown dwarf from the scatter trojan share; new columns co_orbital_host_id, lagrange_point, libration amplitude and phase (db/column_units.py); orbit updater libration overlay; the object and sector pages and the designation rule "<host> L4 trojan region"**
   Epoch lock, migration, --affects on the generator and orbit-tree
   tests. Train 8 with belts, clearance and the region store. Report
@@ -14811,7 +14818,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   rides a train after GEN.1097.
   Prerequisites: GEN.1097.
 
-- [ ] **GEN.1154 Halo mass of galaxies above 3e10 solar masses of stars is drawn too heavy by GEN.368 (0.17 dex at 6e10, 0.27 at 1e11, 0.34 at 2e11 against a Tinker 2008 halo function): replace median_halo_mass plus the Gaussian with a precomputed Tinker-based conditional drawn by inverse CDF; read the Moster 2013 halo masses as virial, not M200c (0.05 to 0.08 dex)**
+- [ ] **GEN.1154 Halo mass of galaxies above 3e10 solar masses of stars is drawn too heavy by GEN.368 (0.17 dex at 6e10, 0.27 at 1e11, 0.34 at 2e11 against a Tinker 2008 halo function): replace median_halo_mass plus the Gaussian with a precomputed Tinker-based conditional drawn by inverse CDF**
   Found by GEN.399 (reports/gen399-halo-mass-function-2026-10-31.md,
   script in reports/gen399/): below about 3e10 the current law is within
   0.01 to 0.03 dex and the automatic 3e9 to 6e9 range is untouched at
@@ -14819,6 +14826,48 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Needs an epoch and a train slot; only galaxies above 3e10 change.
   Stand-ins registered in GEN.725. Owner Sources 2 (build-only branch).
   Prerequisites: none.
+
+- [ ] **GEN.1155 A REBOUND N-body sample of 2+2 quadruple systems to replace the 2+2 stability margin GM14 that has no N-body sample behind it (the 3+1 margin GM13 was tuned on the 331 systems of GEN.1029)**
+  From Core 3 (GEN.1016 part 1): GM14 carries the 3+1 margin over to the
+  2+2 network of GEN.1031 with no 2+2 sample. Build a REBOUND sample of
+  2+2 systems across mass ratios and separations, fit the margin,
+  register it in GEN.725 with the new tier and tweak level, and replace
+  GM14. Lock-free until the wiring (GEN.1016 wiring, train 11) uses it.
+  Source: reports/gen1016-quadruple-need-2026-10-30.md.
+  Prerequisites: none.
+
+- [ ] **GEN.1156 Raise the belt share after the GEN.728 disc architecture (3 to 12 percent of systems) toward the documented 4 to 14 percent with a physics-driven change**
+  From Aux 5 (GEN.1148,
+  reports/gen1148-belt-binary-shift-2026-10-31.md): belts per system
+  fell from 53 to 3 percent (11.8 percent in the fixed-type census) at
+  train 4 (GEN.728/729/730, epoch 126) because orbital slots fell from
+  10.4 to 4.2 per system and only 18 percent of slots now hold a body
+  under 1 Earth mass (eligible slots 8.5 to 0.62). That matches the 4 to
+  14 percent the GEN.728 note and
+  tests/data/prevalence_systems_expectations.json expect, but it sits at
+  the low end on the default mix. Boss approved raising the share
+  (9:13 PM EDT 2026-10-30), physics-driven. Aux 5 picks the way from
+  these, all train-bound because they change output: (1) raise
+  ASTEROID_BELT_PROBABILITY (0.1) to a stated target, a stand-in at tier
+  L3 in GEN.725; (2) make the belt its own component of the disc
+  architecture, reserved when the disc leaves leftover mass, instead of
+  a slot swap (larger, physics-driven; recommended). Owner Aux 5,
+  train-bound (changes output: epoch, golden, generation-output:
+  changed). Any stand-in goes in GEN.725 with tier and tweak level.
+  Prerequisites: none. Related: GEN.728, GEN.729, GEN.730, GEN.1061,
+  GEN.725.
+  Aux 5 finding (2026-10-30 9:21 PM EDT): the physics route is GEN.1068
+  (belt birth from the architecture, belt_origin.py written). Measured
+  on main (400 default-mix systems), 99.5 percent of systems have
+  leftover solids that could form a belt (tail 80, snow-line bump 42,
+  outer disc 16, gap 12.5 percent), so the share is set by the line
+  where a leftover counts as a belt; after Wyatt grinding the share with
+  a belt of at least 0.01 Earth masses is 9, 37 and 87 percent for a
+  largest body of 100, 500 and 1000 km. Raising
+  ASTEROID_BELT_PROBABILITY to about 0.25 gives about 8 percent but is a
+  game rate. Aux 5 asks Boss where the line sits. GEN.1156 is built as
+  part of GEN.1068 (same lane, same train 7 lock window), not
+  separately.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -19608,6 +19657,15 @@ clears each one.
   Bug 2 (2026-10-09): Bug 2 (10-30 gate pass) also reports red on main:
   the climate sweep (2 tests), aquifers, and the deploy_scripts path
   test. Include them in the diagnosis.
+  Sources 1 progress (2026-10-30 9:09 PM EDT): mostly merged as #4292,
+  lock-free: object_rows, db_column_round_trip, work_units x2, aquifers,
+  climate sweep x2, deploy_scripts path, gen_hosting_wiring (passes
+  alone, was order or seed luck), 7 unread modules moved to detmath.
+  Open: the 3 modules the app reads (primary_mass_function,
+  greenhouse_table, magma_ocean_redox) still trip the maths scan;
+  swapping them changes last bits, so train-bound (swap ready on
+  claude/test503-detmath-read, golden check in progress). The Venus and
+  5 bar CO2 greenhouse table cases are filed as TEST.505.
   Prerequisites: none.
 
 - [ ] **TEST.504 test_runaway_history::test_the_surface_water_a_planet_keeps_is_what_its_class_gave_less_what_it_lost fails on main (the M3V case sees no loss) (bug)**
