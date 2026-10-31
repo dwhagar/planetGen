@@ -15313,6 +15313,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   says when a stage runs fewer workers than it could, and why; the run
   finishes on a 16 GB host. Related: PERF.106 (killed unit handling),
   PERF.149. Owner: Sources 2 (queue and performance; proposed).
+  MySQL was the visible casualty (2026-10-31 2:32 PM EDT): Evidence
+  (Boss's server logs, via the coordinator, 2:28 PM EDT): mysqld
+  restarted at 3:22 AM EDT (07:22 UTC) with crash recovery, the same
+  minute the run died, so MySQL was killed (probably the out of memory
+  killer) and every worker lost its connection (error 2013). The host
+  has 16 GB and an 8 GB swapfile (486.9 MB used afterwards). The kernel
+  and journal lines for the kill were not captured (the command Boss ran
+  had a typo), so the killer is not yet confirmed. The worker cap must
+  leave headroom for MySQL (its buffer pool and connections) and Redis,
+  not only for the workers. See PERF.222 (small redo log).
     Prerequisites: none.
   Prerequisites: none.
 
@@ -15329,6 +15339,29 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   whose internal index differs from its page number and the message
   names the page's stage. Web and queue only, lock-free. Owner: Sources
   2 (proposed).
+    Prerequisites: none.
+  Prerequisites: none.
+
+- [ ] **PERF.222 Generation hosts: MySQL redo log is too small (InnoDB warns the checkpointer lags behind); setup recommends and checks innodb_redo_log_capacity (bug)**
+    Boss's MySQL error log on his server (reported by the coordinator,
+  2:28 PM EDT 2026-10-31): repeated InnoDB warnings MY-014084, "Threads
+  are unable to reserve space in redo log which can't be reclaimed due
+  to the 'log_checkpointer' consumer still lagging behind ... Consider
+  increasing innodb_redo_log_capacity", at 3:25 AM EDT during the run
+  and in bursts at 12:21 PM EDT (every 11 seconds). Writers stall while
+  the redo log is full, which slows generation and raises the memory
+  held by waiting workers. Do: measure the redo write rate of a
+  generation run, choose a capacity that holds a few minutes of it
+  (MySQL 8.0.30 and later set it with innodb_redo_log_capacity, which
+  can be changed with SET GLOBAL without a restart), have update.sh read
+  the setting and print what to set (and the lines for the MySQL config
+  file) when it is below that, and put the recommendation in the setup
+  document (docs, the install page). Do not change the server's
+  configuration without Boss running it. Done: update.sh prints the
+  check; the setup doc states the value and why; the run log no longer
+  shows MY-014084 on a full run. Related: PERF.220 (workers by memory),
+  the lane note that MySQL binlogs fill disk. Owner: Sources 2
+  (proposed, with PERF.220).
     Prerequisites: none.
   Prerequisites: none.
 
