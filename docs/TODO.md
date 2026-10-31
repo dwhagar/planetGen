@@ -20888,12 +20888,13 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   it is used, how it was verified). A citation that matches no key, or
   two keys, fails the build and `--check`, never a dead link. Links
   exist only inside the References section; no other page links a
-  citation. Done: tests that every citation on every References page is
-  a link, that every link resolves, that the build fails on an unknown
-  or ambiguous citation, and a crawl of the section. Lock-free, display
-  only. Owner: the Citations thread (it works with Sources 1 and
-  Core 1). Version 8.1.
-  Prerequisites: DOC.89, DOC.100. Related: DOC.87, DOC.88, DOC.89, DOC.90.
+  citation. The visible form of a citation is the NASA-style in-line
+  form decided on DOC.98, the same everywhere. Done: tests that every
+  citation on every References page is a link, that every link resolves,
+  that the build fails on an unknown or ambiguous citation, and a crawl
+  of the section. Lock-free, display only. Owner: the Citations thread
+  (it works with Sources 1 and Core 1). Version 8.1. Prerequisites:
+  DOC.89, DOC.100. Related: DOC.87, DOC.88, DOC.89, DOC.90.
 
 - [ ] **DOC.98 Citations live only in the central registry and references.md: move them out of every other page, design document and code comment**
   Boss (2026-10-31, 7:22 PM EDT, as the coordinator relayed): "move all
@@ -20913,18 +20914,25 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   into the registry entry; (3) code comments, docstrings, tuning notes
   and data-file headers under src: the same, with the key. The registry
   and docs/REFERENCES.md are the only place that spell out author, year
-  and journal. Scope to confirm with Boss before step 3: whether code
-  comments and the TODO text should lose their author-year names too, or
-  only the user-facing pages and design documents; steps 1 and 2 go
-  ahead now. Sources 1 already removed the citations that did not
-  resolve (DOC.96), so what remains are the real ones. Done: a search
-  shows no author-year citation outside the registry, docs/REFERENCES.md
-  and the References pages (the DOC.94 crawl and the new lock of the
-  next item hold it), and every citation that was moved still resolves
-  to a registry entry. Lock-free, no generator output change. Owner: the
-  Citations thread, with Core 5 for the user pages (DOC.93) and
-  Sources 1 for the registry. Version 8.1.
-  Prerequisites: DOC.93, DOC.100. Related: DOC.93, DOC.94, DOC.96.
+  and journal. Step 3 (code comments, docstrings, tuning notes,
+  data-file headers, TODO text) is confirmed in scope. Decided (Boss,
+  2026-10-31, 7:27 PM EDT, as the coordinator relayed): "Yes lets be
+  consistent use whatever in line citation style is standard for NASA
+  documentation" - code comments and the TODO text also lose author-year
+  names, and the in-line style is the one NASA documentation uses, the
+  same everywhere (numbered bracket references such as [12] that resolve
+  to the registry ID, as the coordinator understood it); the Citations
+  thread confirms the exact style it picks (NASA STI style guidance) and
+  writes it into docs/design/interface/references.md and the text-style
+  guide before the sweep starts. Sources 1 already removed the citations
+  that did not resolve (DOC.96), so what remains are the real ones.
+  Done: a search shows no author-year citation outside the registry,
+  docs/REFERENCES.md and the References pages (the DOC.94 crawl and the
+  new lock of the next item hold it), and every citation that was moved
+  still resolves to a registry entry. Lock-free, no generator output
+  change. Owner: the Citations thread, with Core 5 for the user pages
+  (DOC.93) and Sources 1 for the registry. Version 8.1. Prerequisites:
+  DOC.93, DOC.100. Related: DOC.93, DOC.94, DOC.96.
 
 - [ ] **DOC.99 Test lock: a citation written outside the registry and references.md fails the gate**
   Boss (2026-10-31, 7:22 PM EDT, as the coordinator relayed): "move all
@@ -20934,17 +20942,19 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   under help) to go to the references list and the document information.
   I don't want references anywhere else, all citations and references go
   in our central registry and references.md file." Design:
-  docs/design/interface/references.md. Do: a test (and a line in
-  `scripts/test.py changed`) that scans the files a change touches and
-  fails on an author-year citation, a DOI or an arXiv number written
-  anywhere except the registry, docs/REFERENCES.md and the References
-  pages, naming the file, the line and the registry key it should use.
-  The words list is the registry's own; a short allow-list names the
-  files that must keep one (changelog history, data-license, downloaded
-  source texts). Done: the test passes on main after the previous item,
-  fails on a planted citation, and runs in the gate for changed files.
-  Lock-free. Owner: the Citations thread. Version 8.1.
-  Prerequisites: DOC.98. Related: DOC.94.
+  docs/design/interface/references.md. Do: a test that also checks every
+  in-line citation is in the one NASA-style form decided on DOC.98
+  (bracket number or the style the Citations thread confirms), and a
+  test (and a line in `scripts/test.py changed`) that scans the files a
+  change touches and fails on an author-year citation, a DOI or an arXiv
+  number written anywhere except the registry, docs/REFERENCES.md and
+  the References pages, naming the file, the line and the registry key
+  it should use. The words list is the registry's own; a short
+  allow-list names the files that must keep one (changelog history,
+  data-license, downloaded source texts). Done: the test passes on main
+  after the previous item, fails on a planted citation, and runs in the
+  gate for changed files. Lock-free. Owner: the Citations thread.
+  Version 8.1. Prerequisites: DOC.98. Related: DOC.94.
 
 - [ ] **DOC.100 A stable citation ID for every paper in the registry, shown in the registry, docs/REFERENCES.md and the Papers page**
   Boss (2026-10-31, 7:22 PM EDT, as the coordinator relayed): all
