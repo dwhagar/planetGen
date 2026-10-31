@@ -1078,22 +1078,6 @@ with `clamp()`.
   checker change are made by Core 5 with the next guide edit.
   Prerequisites: none. Related: UX.237, GEN.1208.
 
-- [ ] **UX.254 Show a star's chemistry on its page: thin or thick disc branch, alpha enhancement, metal fraction and the dredge-up shift, from stored values with stellar_composition.star_makeup**
-  Found by Star 2 while settling TEST.523 (as the lane reported, 12:35
-  PM EDT 2026-10-31); a wiring gap filed by the TODO thread (Boss, 12:03
-  PM EDT: nothing built and left unused).
-  stellar_composition.star_makeup (GEN.440) gives the composition of any
-  star from its stored [Fe/H], age, mass and key; it is built and tested
-  and never called by the generator or any page. Do: show a star's
-  chemistry on its sheet and page and in the API, derived at view time
-  from stored values (no column, no stored value), like the variability
-  and carbon-star rows: thin or thick disc branch, alpha enhancement,
-  metal fraction, and the phase's dredge-up shift, each with its unit
-  and source line. Done: a test walks a sample of stars and checks the
-  rows appear with units; the register line for star_makeup is gone.
-  Lock-free. Owner Star 2 (proposed). Related: GEN.440.
-  Prerequisites: none.
-
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
