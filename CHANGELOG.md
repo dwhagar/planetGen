@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3009] - 2026-10-31
+
+**Headline:** A satellite galaxy's gas is now a disc longer than its stars, so the Small Cloud holds about 2e8 solar masses of gas instead of 6e7.
+
+### Changed
+- **GEN.1192.** A satellite's gas was the Schmidt-Kennicutt density its present star formation needed, taken over the circle of its half-mass radius, which left the Small Cloud row with 6e7 solar masses of gas (the real cloud holds about 4e8, recalled). The gas is now an exponential disc whose scale length is 1.8 times the stars' (`tuning.SATELLITE_GAS_TO_STELLAR_SCALE_LENGTH_RATIO`; Swaters et al. 2002 find the HI of late-type dwarfs 1.8 +/- 0.8 times the optical size), the star formation law steepens where the gas thins as the main disc's does (a thin disc lasts longer: depletion time 6 Gy at 3e8 solar masses of stars, 2 Gy at 4e9), and the central density is the one whose disc forms stars at the history's present rate. `SatelliteHistory.gas_mass_solar` is the whole disc and `gas_surface_density` the gas at the half-mass radius, which the star formation threshold now tests. The Large Cloud row gives 1.05e9 solar masses (observed 4.8e8, Staveley-Smith et al. 2003) and the Small Cloud 1.95e8; the threshold now reads the gas at the half-mass radius where it read the mean inside it, so a satellite near 3 solar masses per pc2 can change sides (the eleven reference rows do not), and a satellite that changes sides changes its young and intermediate shares and its remnants. Stand-in SG1 in GEN.725 (6.140). `history` is cached.
+- Generator epoch bump (numbered at merge): a borderline satellite that gains or loses star formation changes its young and intermediate stars, planetary nebulae and remnants; every other satellite and class is unchanged.
+generation-output: changed
+
 ## [8.0.3008] - 2026-10-31
 
 **Headline:** A satellite galaxy close to its host now loses its gas, and most far from it keep theirs, as the Local Group's dwarfs do.
