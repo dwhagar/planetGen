@@ -1113,6 +1113,14 @@ with `clamp()`.
   (DOC.84) first, then this rewrite does the linking and the
   decluttering in the same pass as the readability rewrite, so each
   sentence is rewritten once.
+  Stored text found (10:24 AM EDT 2026-10-31) (2026-10-31 10:24 AM EDT):
+  planets.description is a stored copy of the class description
+  (generation/life.py line 156), so editing the class descriptions alone
+  changes stored output. In the lock-free rewrite read the class
+  description at view time and leave the column alone; GEN.1212 decides
+  removing the stored copy (lock). Everything built at view time
+  (describe/build.py, describe/sheet.py, classref.py, the templates) is
+  yours to rewrite now.
   Prerequisites: DOC.83, DOC.84. Related: UX.237, GEN.1208.
 
 - [ ] **UX.253 Readability rewrite of ALL star, system and star-class text: summary sentences, descriptions, notes, labels, spectral class pages**
@@ -1135,6 +1143,13 @@ with `clamp()`.
   of the text is stored at generation and keep a stored change as its
   own lock item. Where we think it belongs (best guess, can move): Core
   2 (the UX and render lane), after the style guide.
+  Scan result from Core 2 (10:13 AM EDT 2026-10-31) (2026-10-31 10:24 AM
+  EDT): The only stored star text is star_systems.system_flavor_text
+  drawn from tuning.SYSTEM_FLAVOR; rewriting those lines is lock work
+  and is GEN.1212, left out of this item. Everything else
+  (describe/build.py summaries and notes, describe/sheet.py labels, the
+  spectral and luminosity class pages in web/lib/classref.py, the system
+  page text) is built at view time and belongs here.
   Prerequisites: DOC.83. Related: UX.150.
 
 ## MAP: Galaxy Map, Sector Map, System Map
@@ -14331,6 +14346,27 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   best-fit switch); the same epoch. Where we think it belongs (best
   guess, can move): the Class M research thread.
   Prerequisites: none. Related: GEN.1207, GEN.1208.
+
+- [ ] **GEN.1212 Rewrite the stored system flavour lines (tuning.SYSTEM_FLAVOR, about 40 story lines) to the plain-words style guide, and stop storing text the pages can build**
+  Found by Core 2 while scanning UX.253 (as the lane reported, 10:13 AM
+  EDT 2026-10-31); part of the readability rewrite Boss ordered (10:07
+  AM EDT). Filed by the TODO thread. star_systems.system_flavor_text is
+  a stored sentence drawn once from tuning.SYSTEM_FLAVOR, so rewriting
+  those lines changes stored generator output: LOCK work (epoch with
+  --affects, golden, census re-tag), on a train. Do: after the style
+  guide (DOC.83) is merged, rewrite the list in plain words, short
+  sentences, one idea each; keep the number and order of the lines so
+  the draw does not move; no in-universe line may state a computed fact
+  that can disagree with the data. Core 5 found the same for planets:
+  planets.description is a stored copy of
+  tuning.PLANET_CLASSES[class]['description'] (generation/life.py), so
+  rewriting class descriptions would change stored output too. Prefer to
+  remove the copy: read the class description at view time and stop
+  writing the column (a later migration drops it), which makes the
+  planet rewrite lock-free; decide that in this item. Owner Core 2
+  (flavour lines) with Core 5 (the planet description copy). Where we
+  think it belongs (best guess, can move): Core 2.
+  Prerequisites: none. Related: UX.252, UX.253, DOC.83.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
