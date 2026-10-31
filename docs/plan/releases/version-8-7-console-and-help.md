@@ -22,18 +22,17 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| DOC.7 | The Galaxy Map help page: layers, zoom, fly-through, Color by, select modes, bookmarks and the locate box | DOC.57 | Boss 23:53Z; Phase 2. |
-| DOC.8 | The sector help pages: the sector list, a sector page, the sector map and the sector scene | DOC.57 | Boss 23:53Z; Phase 2. |
-| DOC.9 | The star system help pages: the system list, a system page, the system map and the planets, moons and belts shown | DOC.57 | Boss 23:53Z; Phase 2. |
-| DOC.10 | The search and navigation help pages: search, nearby, the nav page and routes | DOC.57 | Boss 23:53Z; Phase 2. |
-| DOC.11 | The reference browser help pages: species, polities, object classes and phenomena | DOC.57 | Boss 23:53Z; Phase 2. |
-| DOC.12 | The account help pages: signing in, two-factor, the account page, API keys and bookmarks | DOC.57 | Boss 23:53Z; Phase 2. |
-| DOC.13 | The Generate page help pages: layer specs, spans, radial fills, directives, one-off systems and jobs | DOC.57 | Boss 23:53Z; Phase 2. |
-| DOC.14 | The admin help pages: the queue, the stats page, settings, lockouts and the naming key | DOC.57 | Boss 23:53Z; Phase 2. |
-| DOC.15 | A glossary and units help page: coordinates, scales, sector paths, object IDs, time and the in-universe wording | DOC.57 | Boss 23:53Z; Phase 2. |
-| DOC.16 | The API help page for visitors: what the API is, how to get a key, and where the reference lives | DOC.57 | Boss 23:53Z; Phase 2. |
-| DOC.58 | Help coverage test: every user-facing route has a help page and every help page has a route | DOC.57, DOC.7, DOC.8, DOC.9, DOC.10, DOC.11, DOC.12, DOC.13, DOC.14, DOC.15, DOC.16, DOC.54 | Split from DOC.6. |
-| DOC.6 | A static help section in the web interface: page template, index, per-page help links and a coverage test | DOC.57, DOC.58 | Boss 23:53Z; the framework the per-feature help pages use. |
+| DOC.7 | The Galaxy Map help page: layers, zoom, fly-through, Color by, select modes, bookmarks and the locate box |  | Boss 23:53Z; Phase 2. |
+| DOC.8 | The sector help pages: the sector list, a sector page, the sector map and the sector scene |  | Boss 23:53Z; Phase 2. |
+| DOC.9 | The star system help pages: the system list, a system page, the system map and the planets, moons and belts shown |  | Boss 23:53Z; Phase 2. |
+| DOC.10 | The search and navigation help pages: search, nearby, the nav page and routes |  | Boss 23:53Z; Phase 2. |
+| DOC.11 | The reference browser help pages: species, polities, object classes and phenomena |  | Boss 23:53Z; Phase 2. |
+| DOC.12 | The account help pages: signing in, two-factor, the account page, API keys and bookmarks |  | Boss 23:53Z; Phase 2. |
+| DOC.13 | The Generate page help pages: layer specs, spans, radial fills, directives, one-off systems and jobs |  | Boss 23:53Z; Phase 2. |
+| DOC.14 | The admin help pages: the queue, the stats page, settings, lockouts and the naming key |  | Boss 23:53Z; Phase 2. |
+| DOC.15 | A glossary and units help page: coordinates, scales, sector paths, object IDs, time and the in-universe wording |  | Boss 23:53Z; Phase 2. |
+| DOC.16 | The API help page for visitors: what the API is, how to get a key, and where the reference lives |  | Boss 23:53Z; Phase 2. |
+| DOC.58 | Help coverage test: every user-facing route has a help page and every help page has a route | DOC.7, DOC.8, DOC.9, DOC.10, DOC.11, DOC.12, DOC.13, DOC.14, DOC.15, DOC.16, DOC.54 | Split from DOC.6. |
 
 ### Console look
 

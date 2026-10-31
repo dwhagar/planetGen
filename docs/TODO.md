@@ -19949,34 +19949,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
 
 ## DOC: Documentation
 
-- [ ] **DOC.6 A static help section in the web interface: page template, index, per-page help links and a coverage test**
-  Boss (2026-10-09 23:53Z): "Add to-do items to build static
-  documentation pages for all features accessible through the web
-  interface." Done: the web interface serves a Help section of static
-  pages (no database, no JavaScript needed to read them), with one
-  shared template that matches the site shell, an index page that groups
-  the pages below by feature, a "?" link in the header of every
-  interface page that opens the matching help page, a search box over
-  the help text, and a plain page of the current version. The pages are
-  written as Markdown files in the repository (docs/help/) and built
-  into HTML by the update script, so they can be edited without touching
-  code. A test lists every user-facing route and fails when a route has
-  no help page or a help page has no route, and a second test checks
-  that every link inside the help section resolves. Decided (Boss,
-  2026-10-10 18:44Z, defaults approved; default: Phase 2, after the
-  features they describe have settled;
-  Markdown source in docs/help/, built at update time, served at /help):
-  other?
-  Prerequisites: DOC.57, DOC.58. Related: DOC.7, DOC.8, DOC.9, DOC.10,
-  DOC.11,
-  DOC.12, DOC.13, DOC.14, DOC.15, DOC.16.
-  Split (2026-10-16, Boss 1:07 PM EDT: look at each item for smaller
-  chunks and shared work): this item is now the umbrella and is done
-  when its subitems are: DOC.57, DOC.58. DOC.6 bundles the framework
-  (template, index, '?' link, help search, version page, link test) with
-  a coverage test that fails when any user-facing route lacks a help
-  page.
-
 - [ ] **DOC.7 The Galaxy Map help page: layers, zoom, fly-through, Color by, select modes, bookmarks and the locate box**
   Boss (2026-10-09 23:53Z): "Add to-do items to build static
   documentation pages for all features accessible through the web
@@ -20203,7 +20175,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   and regen screen.
   Needs the help framework (first child of DOC.6, built in 8.6 phase 2),
   so the headline can close (2026-10-16 review).
-  Prerequisites: TEST.175, ADM.68, DOC.57. Related: ADM.57, DOC.6.
+  Prerequisites: TEST.175, ADM.68. Related: ADM.57, DOC.6.
   Design: [docs/design/interface/edit-everything.md](design/interface/edit-everything.md)
 
 - [ ] **DOC.55 Help: roles, edit requests and how an approval works**
@@ -20235,38 +20207,13 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   the help page, linked from the settings page and the repair page.
   Prerequisites: TEST.180. Related: ADM.91, DOC.6.
 
-- [ ] **DOC.57 Help section framework: page template, index, '?' links, help search and the link check**
-  Split from DOC.6 (2026-10-16, Boss 1:07 PM EDT: look at each item for
-  smaller chunks and shared work). The web interface serves a Help
-  section of static pages (no database, no JavaScript needed to read
-  them): one shared template that matches the site shell, an index page
-  that groups pages by feature, a '?' link in the header of every
-  interface page that opens the matching help page (a route-to-page map
-  in docs/help), a search box over the help text, a plain page of the
-  current version, and the pages written as Markdown in docs/help/ and
-  built into HTML by the update script (served at /help, as decided by
-  Boss on 2026-10-10). Ship it with one placeholder page. Done: /help
-  renders the index and a page in both themes, the '?' link works on
-  every page, the update script builds docs/help, and a test checks
-  every link inside the help section resolves.
-  Template, index, the "?" link, search, the version page, the link
-  check and the route-to-help coverage test with an allowlist of routes
-  still without a page (DOC.7 to DOC.16 burn it down); a feature item is
-  not done until its help text is, which needs the framework before 8.7
-  (2026-10-16 review).
-  Decided (Boss, contradiction sweep card, tapped 7:31 AM EDT 2026-10-21
-  "Apply all 29", as the coordinator reported it): this item ships the
-  route-to-help coverage test together with the burn-down allowlist of
-  routes still without a page; DOC.58 removes that allowlist.
-  Prerequisites: none. Related: DOC.6.
-
 - [ ] **DOC.58 Help coverage test: every user-facing route has a help page and every help page has a route**
   Split from DOC.6 (2026-10-16, Boss 1:07 PM EDT: look at each item for
   smaller chunks and shared work). A test lists every user-facing route
   (the route map the app already has) and fails when a route has no help
   page or a help page has no route; admin routes are covered by the
   admin pages. It runs in the gate. Done: the burn-down allowlist that DOC.57 ships is removed once DOC.7 to DOC.16 and DOC.54 exist, leaving only the allow-list file for routes that are deliberately undocumented (each entry needs a reason); the test itself is DOC.57's.
-  Prerequisites: DOC.57, DOC.7, DOC.8, DOC.9, DOC.10, DOC.11, DOC.12,
+  Prerequisites: DOC.7, DOC.8, DOC.9, DOC.10, DOC.11, DOC.12,
   DOC.13, DOC.14, DOC.15, DOC.16, DOC.54. Related: DOC.6.
   The coverage test runs without the allowlist once every page exists
   (2026-10-16 review).

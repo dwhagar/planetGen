@@ -674,7 +674,7 @@ Parents marked "new parent" had no old number of their own.
 | DOC.3 | Design documents current, with reasons | 82 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
 | DOC.4 | Correct the stale statements the research found in docs, docstrings and comments | none | done, PR #1849 |
 | DOC.5 | Rewrite the object ID docs: object-ids.md, database-schema.md and api.md | none | done, PR #1075 |
-| DOC.6 | A static help section in the web interface: page template, index, per-page help links and a coverage test | none | open |
+| DOC.6 | A static help section in the web interface: page template, index, per-page help links and a coverage test | none | done, PR #4651 |
 | DOC.7 | The Galaxy Map help page: layers, zoom, fly-through, Color by, select modes, bookmarks and the locate box | none | open |
 | DOC.8 | The sector help pages: the sector list, a sector page, the sector map and the sector scene | none | open |
 | DOC.9 | The star system help pages: the system list, a system page, the system map and the planets, moons and belts shown | none | open |
@@ -725,7 +725,7 @@ Parents marked "new parent" had no old number of their own.
 | DOC.54 | Admin help: how to edit, regenerate, lock, approve and undo | none | open |
 | DOC.55 | Help: roles, edit requests and how an approval works | none | open |
 | DOC.56 | Backups, restore and repair: the deployment guide and the help page | none | open |
-| DOC.57 | Help section framework: page template, index, '?' links, help search and the link check | none | open |
+| DOC.57 | Help section framework: page template, index, '?' links, help search and the link check | none | done, PR #4651 |
 | DOC.58 | Help coverage test: every user-facing route has a help page and every help page has a route | none | open |
 | DOC.59 | Docs: the galaxy types note moves to built and the density, potential, schema, API and Generate page notes say the shape holds a family and components | none | open |
 | DOC.60 | Settings note: read sections A2 and A6 of the settings and accounts design against the built one-file settings and fix what is stale | none | done, PR #2070 |
