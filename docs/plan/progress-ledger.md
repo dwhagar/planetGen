@@ -2185,3 +2185,62 @@ Baseline: PR #1817.
 | TEST.468 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | TEST.469 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | TEST.459 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.514 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.515 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.496 | 8.2 | The continuous zoom (headline, Boss 6:28 PM EDT 2026-10-28) |
+| MAP.338 | 8.2 | The continuous zoom (headline, Boss 6:28 PM EDT 2026-10-28) |
+| UX.236 | 8.2 | The continuous zoom (headline, Boss 6:28 PM EDT 2026-10-28) |
+| TEST.183 | 8.1 | Admin and API housekeeping |
+| UX.102 | 8.1 | Admin and API housekeeping |
+| UX.224 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| DOC.19 | 8.1 | Docs |
+| TEST.516 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.517 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| UX.250 | 8.2 | Search by physical values |
+| TEST.518 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.1205 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.1206 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| DOC.83 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.1210 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.1216 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| UX.251 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.1223 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.1224 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| UX.253 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| DOC.85 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.1225 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| DOC.84 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| VIEW.9 | 8.9 | Sky data |
+| UX.158 | 9.0 | The headline |
+| MAP.277 | 9.0 | The headline |
+| TEST.523 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.528 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| UX.226 | 8.2 | Search by physical values |
+| PERF.196 | 8.2 | Generation records |
+| GEN.338 | 8.3 | Galactic gravity |
+| TEST.519 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.342 | 8.3 | Orbital update core |
+| TEST.522 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.525 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.530 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.524 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| UX.254 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| MAP.274 | 8.4 | Asteroid fields |
+| TEST.521 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.527 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| UX.227 | 8.2 | Search by physical values |
+| TEST.529 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| PERF.220 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.531 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.532 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| UX.239 | 8.2 | Search by physical values |
+| MAP.279 | 8.4 | Asteroid fields |
+| PERF.222 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| PERF.223 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| PERF.221 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.533 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.536 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.534 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.535 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.537 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| MAP.363 | 8.4 | Asteroid fields |

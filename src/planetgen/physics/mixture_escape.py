@@ -61,7 +61,36 @@ def body_inputs(subject):
     return mass, radius_m, pressure_pa, age
 
 
-def apply(subject, result):
+def kept_in_column(subject, fractions, pressure_pa=None):
+    """
+    `(kept, exobase_k)`: the share each species of an air of these mole `fractions` keeps (`thermosphere.kept_shares`) on `subject`'s body. The column the
+    loss is compared to is `pressure_pa`, else the subject's `pressure_bar` (1 bar without one).
+    """
+    mass, radius, pressure, age = body_inputs(subject)
+    if pressure_pa:
+        pressure = pressure_pa
+    teq = subject.get("teq_k") or subject.get("ts_k")
+    if not teq:
+        raise MixtureError("the escape filter needs the equilibrium temperature (teq_k) or the surface temperature")
+    flux = thermosphere.xuv_flux_earth(subject)
+    mass_sol, luminosity = subject.get("host_mass_solar"), subject.get("luminosity_solar")
+    return thermosphere.kept_shares(fractions, mass, radius, teq, pressure, age, flux, mass_sol,
+                                    luminosity * constants.SOLAR_LUMINOSITY if luminosity else None,
+                                    magnetopause_rp=subject.get("magnetopause_rp"), log_lx_lbol=subject.get("log_lx_lbol"))
+
+
+def survivors(fractions, kept):
+    """
+    `(left, total)`: the mole `fractions` times the share each species `kept`, without the species of which less than `LOST_BELOW` stays or that falls under
+    `MIN_FRACTION`, and `total` the share of the air that stays (0 when it is under `LOST_TOTAL`: no air).
+    """
+    left = {formula: fraction * kept[formula] for formula, fraction in fractions.items() if kept[formula] >= LOST_BELOW}
+    left = {formula: value for formula, value in left.items() if value > MIN_FRACTION}
+    total = sum(left.values())
+    return left, (0.0 if total < LOST_TOTAL else total)
+
+
+def apply(subject, result, column_bar=None):
     """
     `result` (a `MixtureDraw`) without the gases the body loses.
 
@@ -70,6 +99,7 @@ def apply(subject, result):
             column the loss is compared to; `xuv_flux_earth` or the host's mass, luminosity and the insolation give the XUV (see
             `thermosphere.xuv_flux_earth`; a body with no star gets none, and its thermosphere stays at the mesopause temperature).
         result (MixtureDraw): The family's mixture.
+        column_bar (float, optional): The pressure the loss is compared to when it is not the subject's (`kept_in_column`).
 
     Returns:
         MixtureDraw: The mixture renormalised, with the share each species kept in `constants["escape_kept"]`, the exobase temperature
@@ -78,20 +108,8 @@ def apply(subject, result):
     """
     if result.family not in FAMILIES or not result.mole_fractions:
         return result
-    mass, radius, pressure, age = body_inputs(subject)
-    teq = subject.get("teq_k") or subject.get("ts_k")
-    if not teq:
-        raise MixtureError("the escape filter needs the equilibrium temperature (teq_k) or the surface temperature")
-    flux = thermosphere.xuv_flux_earth(subject)
-    mass_sol, luminosity = subject.get("host_mass_solar"), subject.get("luminosity_solar")
-    kept, exobase = thermosphere.kept_shares(result.mole_fractions, mass, radius, teq, pressure, age, flux, mass_sol,
-                                             luminosity * constants.SOLAR_LUMINOSITY if luminosity else None,
-                                             magnetopause_rp=subject.get("magnetopause_rp"), log_lx_lbol=subject.get("log_lx_lbol"))
-    left = {formula: fraction * kept[formula] for formula, fraction in result.mole_fractions.items() if kept[formula] >= LOST_BELOW}
-    left = {formula: value for formula, value in left.items() if value > MIN_FRACTION}
-    total = sum(left.values())
-    if total < LOST_TOTAL:
-        total = 0.0
+    kept, exobase = kept_in_column(subject, result.mole_fractions, column_bar * 1e5 if column_bar else None)
+    left, total = survivors(result.mole_fractions, kept)
     moles = None if result.moles is None else result.moles * total
     constants_out = {**result.constants, "exobase_k": exobase, "escape_kept": {f: round(k, 6) for f, k in kept.items() if k < 0.999999}}
     if total <= 0.0:

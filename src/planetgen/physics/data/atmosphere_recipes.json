@@ -229,21 +229,19 @@
    "option": "Magma-ocean-stage fO2 (PARAM)",
    "gate_text": "ROCKY, MOON, ROGUE rocky; any M (the clamp holds -2 below 0.01)",
    "weight_text": "dIW ~ N(mu, sigma); mu = clamp(-2+1.25(log10 M+2), -2, 0.5) + clamp(log10 M, 0, 0.7324); sigma = 0.5 + 0.4 clamp(log10 M+1, 0, 1) (GEN.482b); floor on sigma 0.22 = 4 log10(1+0.005/0.037)",
-   "source": "Hirschmann 2022 (GCA 328, section 6.3 and Table 1): magma-ocean surface delta IW Earth -1.2 to +1.8, Mars -1.4 to +0.2, core-forming Moon -2.2 to -1.5; Deng 2020 Fig. 2 (Moon about -2); Sossi 2020 0.037 Fe3+/sumFe; the mean is within 0.3 of the middle of each range (READ, COMPUTED); the floor on sigma 0.22 is COMPUTED; the slope between and above the anchors, the width 0.5 and the rise above 1 Earth mass are DESIGN; the width 0.5 + 0.4 clamp(log10 M + 1, 0, 1) is tuned to the published Moon, Mars and Earth ranges (docs/design/composition/magma-ocean-redox-against-mass.md)",
+   "source": "Hirschmann 2022 (GCA 328, section 6.3 and Table 1): Fe3+/FeT of the ocean surface 0.034 to 0.103 and the dIW it gives; Deng 2020: the ferric share of the melt against the pressure at the base of the ocean (factor of two from 55 to 25 GPa) and the base pressures; Sossi 2020 0.037 Fe3+/sumFe (READ, COMPUTED); the form, the pressure scaling and the width are DESIGN brackets of docs/design/composition/magma-ocean-redox-model.md",
    "status": "DERIVED",
    "research": [],
-   "notes": "sets the first atmosphere; Fe3+/sumFe 0.037+-0.005; GEN.482 (docs/design/composition/magma-ocean-redox-against-mass.md): the mean is inside the first-hand ranges at the Moon, Mars and Earth, the width and the clamp above 1 Me are not sourced Corrected 2026-10-23 (GEN.479): the gate M >= 0.01 left a body under 0.01 Earth masses (a class A to Q world of 500 to 1500 km radius) with no redox row at all, and the mean's own clamp already holds -2 below 0.01.",
-   "replacement": "GEN.1005",
+   "notes": "sets the first atmosphere; Fe3+/sumFe 0.037+-0.005; GEN.482 (docs/design/composition/magma-ocean-redox-against-mass.md): the mean is inside the first-hand ranges at the Moon, Mars and Earth, the width and the clamp above 1 Me are not sourced Corrected 2026-10-23 (GEN.479): the gate M >= 0.01 left a body under 0.01 Earth masses with no redox row at all. GEN.1005 (2026-10-30): the mean and width are the model of physics.magma_ocean_redox in place of the line through three Solar System bodies, which are now tests of the model.",
    "labels": [
     "READ",
     "COMPUTED",
     "DESIGN"
    ],
-   "state": "stand-in",
-   "limit": "the mean is inside the first-hand ranges at three Solar System anchors (Moon, Mars, Earth) and the width follows their published half-ranges (0.5 at 0.1 Earth masses to 0.9 at 1); above 1 Earth mass the rise of 1.0 per dex up to 5.4 Earth masses (where the base pressure passes the 140 GPa of the calculations, assuming the base pressure scales as M^0.55) is a stand-in with the bracket 0 to 2 per dex; the graphite-flotation alternative of Gaillard 2022 is not drawn (GEN.482, GEN.482b)",
-   "items": [
-    "GEN.1005"
-   ],
+   "state": "partly verified",
+   "limit": "the surface redox of the magma ocean from physics.magma_ocean_redox (stand-in rows MR1 to MR7): the base pressure is a power of the mass, held at the 140 GPa where the first-principles calculations end (5.4 Earth masses; no source above), the ferric-share power (0.5 to 1.0) and the offset are read from two papers whose equations were not available when it was built, there is no temperature or composition term, and the graphite-flotation alternative of Gaillard 2022 is not drawn (GEN.482, GEN.1005)",
+   "replacement": "",
+   "items": [],
    "classes": [
     "terrestrial"
    ],
@@ -251,8 +249,8 @@
    "sets": "redox_diw",
    "dist": {
     "kind": "normal",
-    "mu": "clamp(-2 + 1.25*(log10(mass_earth) + 2), -2, 0.5) + clamp(log10(mass_earth), 0, 0.7324)",
-    "sigma": "0.5 + 0.4*clamp(log10(mass_earth) + 1, 0, 1)"
+    "mu": "magma_ocean_diw(mass_earth)",
+    "sigma": "magma_ocean_diw_sigma(mass_earth)"
    }
   },
   {
@@ -262,21 +260,19 @@
    "option": "Later upper mantle (PARAM)",
    "gate_text": "ROCKY with air; tectonic or long-lived",
    "weight_text": "dIW ~ N(3.5+2 clamp(log10 M, -3, 0), 1.0), clip [-6,6]; the draw takes max(a2, a1) (GEN.482b)",
-   "source": "Earth IW+3.5 (Deng 2020 with its refs 37, 6, 7; Hirschmann 2022 section 4: above IW+3), Mars most reduced basalts IW and primitive mantle IW to IW+1 (Hirschmann 2022 introduction and section 4), Moon basalts IW to IW-2 (Deng 2020 refs 8 to 10); the law 3.5 + 2 log10 M, the width 1.0 and the clip are DESIGN (READ, COMPUTED; docs/design/composition/magma-ocean-redox-against-mass.md)",
+   "source": "the later upper mantle of the rocky bodies measured: dIW +3.5 for the one with plate tectonics (Deng 2020 with its refs 37, 6, 7; Hirschmann 2022 section 4: above IW+3), IW to IW+1 for the primitive mantle of the next lighter one and IW to IW-2 for the lightest (Hirschmann 2022 introduction and section 4; Deng 2020 refs 8 to 10); the increment, its growth with mass and the width 1.0 are DESIGN (READ, COMPUTED; docs/design/composition/magma-ocean-redox-model.md)",
    "status": "DERIVED",
    "research": [],
-   "notes": "far above meteoritic building blocks (part 05 s3.2); GEN.482 (docs/design/composition/magma-ocean-redox-against-mass.md): inside one standard deviation of the three first-hand anchors, no source above 1 Me A law fitted to the Moon, Mars and Earth (tunable-gaps 3.2); checked against first-hand anchors by GEN.482; GEN.482b holds the mean at the Earth value above 1 Earth mass and takes the larger of a2 and a1 in `draw_redox`.",
-   "replacement": "GEN.1005",
+   "notes": "far above meteoritic building blocks (part 05 s3.2); GEN.482 (docs/design/composition/magma-ocean-redox-against-mass.md): inside one standard deviation of the three first-hand anchors, no source above 1 Me GEN.1005 (2026-10-30): the mean is the magma-ocean model's surface value plus the increment, in place of the straight line through three Solar System bodies; GEN.482b takes the larger of a2 and a1 in `draw_redox`.",
    "labels": [
     "READ",
     "COMPUTED",
     "DESIGN"
    ],
-   "state": "stand-in",
-   "limit": "a straight-line fit to three Solar System anchors (Earth IW+3.5, Mars IW to IW+1, Moon IW to IW-2), each inside one standard deviation; no source above 1 Earth mass, so the mean is held at the Earth value there; the later mantle is never below the magma-ocean surface of the same body (the sources give a gap of 0 to 3 that grows with mass) (GEN.482, GEN.482b)",
-   "items": [
-    "GEN.1005"
-   ],
+   "state": "partly verified",
+   "limit": "the magma-ocean surface of the body (physics.magma_ocean_redox, at most that of one Earth mass) plus an oxidation increment of 1.2 to 2.4 that grows with the mass: a line between two numbers (stand-in row MR7), not a model of the oxidation (hydrogen loss, lower-mantle disproportionation, recycling); the sources give a gap of 0 to 3 that grows with mass; the later mantle is never below the magma-ocean surface of the same body (GEN.482, GEN.482b, GEN.1005)",
+   "replacement": "",
+   "items": [],
    "classes": [
     "terrestrial"
    ],
@@ -289,7 +285,7 @@
    "sets": "redox_diw_later",
    "dist": {
     "kind": "normal",
-    "mu": "3.5 + 2*clamp(log10(mass_earth), -3, 0)",
+    "mu": "later_mantle_diw(mass_earth)",
     "sigma": 1.0,
     "range": [
      -6,
@@ -458,17 +454,15 @@
    "status": "DERIVED",
    "research": [],
    "notes": "a_snow ranges 1.8 to 3.4 AU over the bracket Replaced 2026-10-25 (GEN.802): the weights (1-s)^2, 2s(1-s), s^2 with s = 1/(1 + exp(-ln x/0.4)) and the water-rich mass logistic of GEN.510 (centre 6.1 Earth masses) with the gate x >= 1 are one law now: the planets of the population that formed inside the snow line are 26 to 60 percent water-rich at x = 0.55 to 0.75, and the mass dependence at fixed x is weak (the mass law was a migration effect, counted once here).",
-   "replacement": "GEN.1005",
    "labels": [
     "READ",
     "COMPUTED",
     "DESIGN"
    ],
-   "state": "stand-in",
+   "state": "partly verified",
    "limit": "a MODEL label: the shares are the Bern population synthesis against the distance the planet formed at (a_form / a_snow, with the orbit standing for it because the generator does not migrate planets) and its mass, not an observation; the class thresholds mapping to Ortenzi's cases are an assumption; the plateau c_b4 (1 is the law as fitted; the water-rich planets it removes become 'high') is bracketed 0 to 1 because published water-rich shares run from at most 3 percent (Rogers 2025) to 87 percent; the law is not tuned to the Luque and Palle densities (GEN.510)",
-   "items": [
-    "GEN.1005"
-   ],
+   "replacement": "",
+   "items": [],
    "classes": [
     "terrestrial",
     "giant"
@@ -2546,16 +2540,16 @@
    "research": [
     "R9"
    ],
-   "notes": "O2 presence probability unsourced N2, O2, OCS, SO2, Ar, Kr and Xe are built from one measured comet (67P, Rubin 2019) and stay flagged stand-in values; O2 presence cannot be set from one comet. Ne is only an upper limit (below 5e-8) and is not drawn.",
-   "replacement": "GEN.1005",
+   "notes": "O2 presence probability unsourced GEN.1005 (2026-10-30): N2, Ar, OCS and SO2 follow the host's ratios to carbon and the width is 0.4 dex (Bar-Nun's 5 K in the formation temperature) in place of the design 0.6; O2 presence cannot be set from one comet. Ne is only an upper limit (below 5e-8) and is not drawn.",
+   "replacement": "GEN.1021",
    "labels": [
     "READ",
     "DESIGN"
    ],
    "state": "stand-in",
-   "limit": "CH4, C2H6, H2CO and H2S take the geometric mean and spread of 9 to 18 comets at r_h up to 2.5 AU (Robinson database); N2, O2, OCS, SO2, Ar, Kr and Xe are from one comet (67P, Rubin 2019) with a design width of 0.6 dex and stay stand-in values (GEN.520)",
+   "limit": "CH4, C2H6, H2CO and H2S take the geometric mean and spread of 9 to 18 comets at r_h up to 2.5 AU (Robinson database); N2, Ar, OCS and SO2 are the host's own nitrogen, argon and sulfur per carbon over the nebula's carbon in CO, times a trapping share and the median CO/H2O, and O2, Kr and Xe keep one value (physics.comet_species, stand-in rows CK1 to CK6): the trapping shares and the three values are tuned to one measured comet (tier T7, tweak L3), so one comet still fixes the seven (GEN.520, GEN.1005)",
    "items": [
-    "GEN.1005"
+    "GEN.1021"
    ],
    "classes": [
     "comet",
@@ -2591,44 +2585,44 @@
     "N2": {
      "kind": "normal",
      "log10": true,
-     "mu": "log10(0.00089)",
-     "sigma": 0.6
+     "mu": "log10(comet_species_median('N2', n_over_c, ar_over_c, s_over_c))",
+     "sigma": "comet_species_sigma()"
     },
     "O2": {
      "kind": "normal",
      "log10": true,
-     "mu": "log10(0.031)",
-     "sigma": 0.6
+     "mu": "log10(comet_species_median('O2', n_over_c, ar_over_c, s_over_c))",
+     "sigma": "comet_species_sigma()"
     },
     "OCS": {
      "kind": "normal",
      "log10": true,
-     "mu": "log10(0.00041)",
-     "sigma": 0.6
+     "mu": "log10(comet_species_median('OCS', n_over_c, ar_over_c, s_over_c))",
+     "sigma": "comet_species_sigma()"
     },
     "SO2": {
      "kind": "normal",
      "log10": true,
-     "mu": "log10(0.0013)",
-     "sigma": 0.6
+     "mu": "log10(comet_species_median('SO2', n_over_c, ar_over_c, s_over_c))",
+     "sigma": "comet_species_sigma()"
     },
     "Ar": {
      "kind": "normal",
      "log10": true,
-     "mu": "log10(5.8e-06)",
-     "sigma": 0.6
+     "mu": "log10(comet_species_median('Ar', n_over_c, ar_over_c, s_over_c))",
+     "sigma": "comet_species_sigma()"
     },
     "Kr": {
      "kind": "normal",
      "log10": true,
-     "mu": "log10(4.9e-07)",
-     "sigma": 0.6
+     "mu": "log10(comet_species_median('Kr', n_over_c, ar_over_c, s_over_c))",
+     "sigma": "comet_species_sigma()"
     },
     "Xe": {
      "kind": "normal",
      "log10": true,
-     "mu": "log10(2.4e-07)",
-     "sigma": 0.6
+     "mu": "log10(comet_species_median('Xe', n_over_c, ar_over_c, s_over_c))",
+     "sigma": "comet_species_sigma()"
     }
    }
   },

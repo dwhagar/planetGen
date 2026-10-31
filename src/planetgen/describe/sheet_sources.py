@@ -29,8 +29,8 @@ _BODY = {
                              "(Gladman et al. 1996).",
     "axial_tilt_deg": "Isotropic for a rocky planet, Rayleigh about 15 degrees for a gas giant or an untidied moon, and on the orbit "
                       "normal for a locked body.",
-    "magnetic_moment_a_m2": "A dynamo needs at least 0.05 Earth masses and a core share of 0.15; the moment scales with mass and core "
-                            "share and fades with age.",
+    "magnetic_moment_a_m2": "The dipole of the dynamo that runs in the body: a rocky body's liquid core (its thermal history) or a giant's metallic or "
+                            "ionic layer (the heat it radiates), by the buoyancy-flux scaling and the spin.",
     "ring_outer_km": "Ends at the Roche limit, 2.456 R (planet density over particle density)^(1/3), and inside the innermost large moon.",
     "ring_age_yr": "The years since the moon that fell inside the Roche limit, or the comet that passed inside it, made the ring; the ring thins by 1/e every half billion years.",
     "ring_optical_depth": "An output of the drawn mass, the extent and the particle size, 3 M / (4 density r area).",
@@ -59,8 +59,15 @@ _STAR = {
                      "blackbody radius of its drawn dust temperature times 1.74 (Sibthorpe et al. 2018).",
     "disk_outer_au": "A young star's disk ends log-uniform between 10 and 300 AU; a debris belt ends at 1.5 of its radius, the "
                      "blackbody radius of its drawn dust temperature times 1.74 (Sibthorpe et al. 2018).",
+    "chemistry_branch": "A star older than the thick disc's start is alpha-rich with Bensby, Feltzing and Oey 2014's logistic probability of its "
+                        "[Fe/H] (age gate, Haywood et al. 2013); one draw of the star's own decides it.",
+    "chemistry_alpha_fe": "The mean [X/Fe] of O, Mg, Si and Ca: the branch's hinge fit at the star's [Fe/H] (Bensby et al. 2014; Nissen 2014) "
+                          "plus the star's residuals (Brewer and Fischer 2016).",
+    "chemistry_metal_fraction": "The mass fraction of everything heavier than helium, from [Fe/H] and the star's [X/Fe] on the proto-solar "
+                                "mix of Asplund, Amarsi and Grevesse 2021; the composition the star formed with.",
+    "chemistry_dredge_up_helium": "Boothroyd and Sackmann 1999: the rise in helium at the surface of a red giant of this mass and metal fraction.",
 }
-"""dict: A star's column key -> its source line."""
+"""dict: A star's column key (or the key of a row worked out from the stored values, UX.254) -> its source line."""
 
 _MOON = {key: line for key, line in _BODY.items() if not key.startswith("ring_")}
 """dict: A moon's column key -> its source line (a moon holds no ring system of its own, GEN.732, and its inclination has no line)."""

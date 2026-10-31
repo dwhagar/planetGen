@@ -29,7 +29,7 @@ takes over with the same grains.
 
 Use:
 
-    small_body_density_kg_m3({"water ice": 0.3, "forsterite": 0.7}, porosity=0.3)
+    grain_density_kg_m3({"water ice": 0.3, "forsterite": 0.7})          # kg/m3 of the grains; times (1 - porosity) for the heap
     compacted_density_kg_m3(radius_km=400.0, rock_fraction=0.7)        # kg/m3, the tapered brittle law
     compacted_radius_km(mass_kg=6.3e20, rock_fraction=0.7)
 """
@@ -61,14 +61,8 @@ class OutOfRange(ValueError):
     """A body outside the table: heavier than `TAPER_END_KG`, where the structure solver (GEN.429) decides."""
 
 
-def ice_porosity(pressure_pa):
-    """The brittle porosity of ice grains at `pressure_pa` (Bierson and Nimmo Table 1 and Eq. 1): max(0.60 exp(-0.1 P), 0.20), P in MPa."""
-    return max(0.60 * math.exp(-0.1 * pressure_pa / 1e6), 0.20)
 
 
-def silicate_porosity(pressure_pa):
-    """The brittle porosity of silicate grains at `pressure_pa` (Bierson and Nimmo Table 1 and Eq. 2): min(0.6 P^-0.11, 0.6), P in MPa."""
-    return min(0.6 * (max(pressure_pa, 1.0) / 1e6) ** -0.11, 0.6)
 
 
 def taper_weight(mass_kg):
@@ -115,11 +109,6 @@ def grain_density_kg_m3(fractions, densities=None):
     return 1.0 / volume
 
 
-def small_body_density_kg_m3(fractions, porosity, densities=None):
-    """The bulk density of a heap of these grains with this void share: `grain_density_kg_m3 (1 - porosity)`."""
-    if not 0.0 <= porosity < 1.0:
-        raise ValueError(f"the porosity {porosity!r} is not in [0, 1)")
-    return grain_density_kg_m3(fractions, densities) * (1.0 - porosity)
 
 
 def _load():

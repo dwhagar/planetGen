@@ -151,9 +151,12 @@ def test_the_share_of_stars_with_an_s_type_window_falls_as_the_design_table_says
 
 # GEN.543: "usable" is a width above 0.3 AU, as for the S-type row; the design table's own row (34% falling to 18%) was
 # an earlier estimate that neither of two candidate definitions reproduced (docs/design/systems/multistar-and-compact-systems.md 5.6).
-MEASURED_P_TYPE = {2: 0.49, 3: 0.48, 4: 0.43, 5: 0.40, 6: 0.35, 7: 0.33}
+MEASURED_P_TYPE = {2: 0.45, 3: 0.48, 4: 0.43, 5: 0.40, 6: 0.35, 7: 0.28}
 """dict: Pair nodes with a P-type window above 0.3 AU, by number of stars, on the same seeded draw (5 and 7 were re-measured
-after GEN.270 weighted the tight tail of the period law, and 2 after GEN.272 moved the star draws)."""
+after GEN.270 weighted the tight tail of the period law, and 2 after GEN.272 moved the star draws; 2 again after GEN.1009 part 2 (the tree and the
+build read one member record) moved the seeded draw, 0.49 to 0.45 on 300 pairs, which is inside the 0.03 the 300 draws allow, and 7 after GEN.1011 drew each
+pair's period and eccentricity once, cut to the room it has, 0.33 to 0.28 on 1800 pairs, a draw change of 3.7 standard errors. Neither is
+the dark members of GEN.1013, which leave the tree draw as it was)."""
 
 
 @pytest.mark.parametrize("stars", sorted(MEASURED_P_TYPE))

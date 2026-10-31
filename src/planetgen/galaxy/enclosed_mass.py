@@ -26,6 +26,7 @@ The gas is left out (a stand-in: GEN.338's potential gives the circular speed an
 components and replaces this module's total). The grid is built once per galaxy and cached.
 """
 
+import collections
 import functools
 import math
 
@@ -77,24 +78,33 @@ def _stellar_table(shape):
     return grid, enclosed
 
 
+DarkHalo = collections.namedtuple("DarkHalo", ("dark_solar", "concentration", "virial_radius_pc"))
+"""The dark NFW halo of a galaxy: its mass (the halo's less its stars), concentration and virial radius in parsecs."""
+
+
+def dark_halo(shape, galaxy_seed):
+    """
+    The `DarkHalo` of the galaxy of `shape`: the halo mass of the mass chain less the galaxy's stars, with the chain's own virial radius
+    and the concentration the seed's scatter gives at the stored (possibly dial-pinned) masses, or the median one for `galaxy_seed` `None`.
+    A galaxy too light for a halo has none (`dark_solar` 0, `concentration` and `virial_radius_pc` 1).
+    """
+    stellar_mass, halo_mass = disk_history.stellar_and_halo_masses(shape)
+    if halo_mass is None:
+        return DarkHalo(0.0, 1.0, 1.0)
+    if galaxy_seed is None:
+        concentration = mass_chain.median_concentration(halo_mass)
+    else:
+        concentration = mass_chain.draw_mass_chain(galaxy_seed, stellar_mass, halo_mass).concentration
+    return DarkHalo(max(halo_mass - stellar_mass, 0.0), concentration, mass_chain.virial_radius_kpc(halo_mass) * 1000.0)
+
+
 class MassModel:
     """The mass a galaxy holds inside a radius: its stars, its central black hole and its dark halo (module doc)."""
 
     def __init__(self, shape, galaxy_seed):
         self.log_radius, self.stellar_solar = _stellar_table(shape)
         self.black_hole_solar = density.central_black_hole_mass_solar(shape)
-        stellar_mass, halo_mass = disk_history.stellar_and_halo_masses(shape)
-        if halo_mass is None:
-            self.concentration = self.virial_radius_pc = 1.0
-            self.dark_solar = 0.0
-            return
-        if galaxy_seed is None:
-            self.concentration = mass_chain.median_concentration(halo_mass)
-        else:
-            # The seed's own scatter at the stored (possibly dial-pinned) masses.
-            self.concentration = mass_chain.draw_mass_chain(galaxy_seed, stellar_mass, halo_mass).concentration
-        self.virial_radius_pc = mass_chain.virial_radius_kpc(halo_mass) * 1000.0
-        self.dark_solar = max(halo_mass - stellar_mass, 0.0)
+        self.dark_solar, self.concentration, self.virial_radius_pc = dark_halo(shape, galaxy_seed)
 
     def stars_solar(self, radius_pc):
         """The solar masses of stars inside `radius_pc`, from the cached table; below its first radius the mass falls as

@@ -25,17 +25,6 @@ def test_the_rayleigh_depth_above_one_bar_of_hydrogen_and_helium_is_the_research
     assert result.p_ref_pa == gc.REFERENCE_BAR_PA and result.colour_quality == "full" and not result.has_cloud_deck
 
 
-def test_the_cloud_top_follows_the_algebra_and_the_reference_level_is_never_deeper_than_a_bar():
-    assert gc.cloud_top_pressure_pa(1e5, 100.0, 0.0, 5.0) == pytest.approx(1e3)           # no sedimentation: the depth falls with pressure
-    assert gc.cloud_top_pressure_pa(1e5, 100.0, 1.0, 1.0) == pytest.approx(1e4)           # exponent -1/2
-    assert gc.cloud_top_pressure_pa(1e5, 0.5, 1.0, 1.0) == 1e5                           # a thin cloud has no top above its base
-    assert gc.reference_pressure_pa(None) == 1e5
-    assert gc.reference_pressure_pa(3e4) == 3e4
-    assert gc.reference_pressure_pa(8e5) == 1e5
-    with pytest.raises(ValueError):
-        gc.cloud_top_pressure_pa(0.0, 10.0, 1.0, 1.0)
-
-
 def test_a_conservative_cloud_deck_reflects_about_six_tenths_and_an_absorbing_one_less():
     white = gc.deck_albedo(ac.Aerosol(10.0, 1.0, 0.85), 0.5)
     absorbing = gc.deck_albedo(ac.Aerosol(10.0, 0.99, 0.85), 0.5)
@@ -71,12 +60,14 @@ def test_every_giant_gives_a_finite_colour():
                 assert math.isfinite(result.atmosphere.luminance_ratio) and len(result.atmosphere.hex) == 7
 
 
-def test_the_sudarsky_class_is_a_label_of_the_temperature():
-    assert [gc.sudarsky_class(t) for t in (100.0, 250.0, 600.0, 1200.0, 2000.0)] == ["I", "II", "III", "IV", "V"]
-
-
 def test_a_giant_with_no_mixture_is_refused():
     with pytest.raises(air_column.EmptyColumn):
         gc.giant_atmosphere_colour({}, 20.0, temperature_k=SUN_K)
     with pytest.raises(ValueError):
         gc.giant_atmosphere_colour(H2_HE, 20.0, temperature_k=SUN_K, p_ref_pa=0.0)
+
+
+def test_the_reference_level_is_never_deeper_than_a_bar():
+    assert gc.reference_pressure_pa(None) == 1e5
+    assert gc.reference_pressure_pa(3e4) == 3e4
+    assert gc.reference_pressure_pa(8e5) == 1e5

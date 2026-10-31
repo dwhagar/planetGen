@@ -4796,7 +4796,7 @@ def _refresh_cloud_doses(conn, system_changes):
                 column = radiation.column_g_cm2(row["atmospheric_pressure_pa"], row["gravity_g"])
                 multiplier = radiation.helio_multiplier(column, compression)
                 total = radiation.total_dose_msv_yr(
-                    row["dose_gcr_msv_yr"], multiplier, row["dose_sep_msv_yr"], row["dose_ground_msv_yr"])
+                    row["dose_gcr_msv_yr"], multiplier, row["dose_sep_msv_yr"], row["dose_ground_msv_yr"], row["dose_belt_msv_yr"])
                 scored = ()
                 if not compact and row["energy_flux_w_m2"] is not None:
                     # GEN.89: the dose is one of the score's inputs. (A compact host's planet is

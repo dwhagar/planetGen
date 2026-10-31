@@ -1523,8 +1523,8 @@
 -- v185 (GEN.846): `bright_stars.rotation_period_hours` (DOUBLE, NULL), the spin period in hours of a star the scatter placed, drawn from the star's own seed; NULL on a row made before v184, nothing is backfilled.
 -- v187 (GEN.768): `planets` and `moons` keep the hours of one local day a person can be outside (`outside_hours_day`, DOUBLE) and the limit that sets them (`outside_hours_limit`, VARCHAR(16): daylight, dose,
 --   heat, cold, air, uv or vehicle; `physics/outside_hours.py`). NULL for a gas giant, an unscored body, a world whose daylight is not stored and a row made before v187, which gets them when the galaxy is regenerated.
--- v195 (GEN.1159): `planets` and `moons` keep the roundness ratio (`roundness_ratio`, DOUBLE: mean radius over round radius, 1 or more is round), the yield strength (`yield_strength_pa`, DOUBLE, Pa) and the binding energy
---   (`binding_energy_j`, DOUBLE, J) of the body (`physics/body_strength.py`), and `comets` keep those three with `density_g_cm3` and `ice_mass_fraction`, which `asteroid_belts` and `asteroid_fields` keep as the mean of their members. A gas giant keeps only the binding energy. NULL for a row made before v195, which gets them when the galaxy is regenerated.
+-- v197 (GEN.1159): `planets` and `moons` keep the roundness ratio (`roundness_ratio`, DOUBLE: mean radius over round radius, 1 or more is round), the yield strength (`yield_strength_pa`, DOUBLE, Pa) and the binding energy
+--   (`binding_energy_j`, DOUBLE, J) of the body (`physics/body_strength.py`), and `comets` keep those three with `density_g_cm3` and `ice_mass_fraction`, which `asteroid_belts` and `asteroid_fields` keep as the mean of their members. A gas giant keeps only the binding energy. NULL for a row made before v197, which gets them when the galaxy is regenerated.
 -- v189 (GEN.1009): `scatter_members.radius_max_au` and `mass_max_solar` (DOUBLE, NULL), the largest radius and mass a member has had (a white dwarf's red-giant tip and birth mass), so the history rule and the build read what the tree drew from; NULL on a row made before v187, nothing is backfilled.
 -- v190 (GEN.474): `planets` and `moons` gain `ground_intermediate_fraction`, the areal share of intermediate (andesitic) ground, a ground type the volcanic crust of a body takes when the melt of its mantle
 --   is 52 to 63 percent silica; NULL on a row made before v190 (the regenerated galaxy replaces it; see `migrations/versions/0190_ground_intermediate.py`). (v190, GEN.475) `asteroid_belts` and `asteroid_fields`
@@ -1533,6 +1533,13 @@
 --   `physics/day_night.py`), the hours of night in a solar day at the equator (`night_hours`, DOUBLE) and the solar days in one orbit (`days_per_year`, DOUBLE). NULL for a body whose spin is not stored, `night_hours` and
 --   `days_per_year` NULL for a world that turns once an orbit, and all NULL on a row made before v193, which gets them when the galaxy is regenerated.
 -- v194 (GEN.1013): `dark_members`, one row for each member of a built system's tree that is not one of its stars (a brown dwarf, neutron star, black hole or stripped helium star): `parent_node_no`, `slot`, `kind`, `mass_solar`, `radius_au`. A system stored before has none; nothing is backfilled.
+-- v196 (GEN.1108): `planets` and `moons` keep the climate of the body in seven bands of latitude (`physics/latitude_bands.py`, `physics/regional_temperature.py`), `band1` (the north pole) to `band7`
+--   (the south pole), each with `bandN_mean_k` (the annual-mean temperature), `bandN_swing_k` (the day and night swing, peak to peak, kelvin of difference), `bandN_day_hours` and `bandN_night_hours`
+--   (hours of day and of night in a solar day), `bandN_longest_day_days` and `bandN_longest_night_days` (the longest polar day and night of the year at the poleward edge) and `bandN_state`
+--   (VARCHAR(24): day and night, polar day and night, non-rotating; for a world locked to its star the seven are rings from the day centre to the night centre, with no hours, and the state is
+--   permanent day side, terminator band or permanent night side). `temp_mean_swing_k` stays (the swing of the whole surface). The columns `temp_polar_k`, `temp_north_k`, `temp_equator_k`, `temp_south_k`,
+--   `temp_swing_k`, `temp_day_side_k`, `temp_terminator_k`, `temp_night_side_k` and the swings `temp_polar_swing_k`, `temp_north_swing_k`, `temp_south_swing_k`, `temp_day_side_swing_k`,
+--   `temp_terminator_swing_k` and `temp_night_side_swing_k` are gone. NULL for a body with no temperature or rotation period and a row made before v194, which gets them when the galaxy is regenerated.
 --
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
@@ -2357,6 +2364,7 @@ CREATE TABLE IF NOT EXISTS planets (
     dose_gcr_msv_yr             DOUBLE,
     dose_sep_msv_yr             DOUBLE,
     dose_ground_msv_yr          DOUBLE,
+    dose_belt_msv_yr            DOUBLE,  -- v187 (GEN.983): the dose a moon takes from its parent's trapped-particle belts, mSv/yr (0 for a planet)
     dose_helio_mult             DOUBLE,
     uv_surface_index            DOUBLE,
     ozone_loss_flag             BOOLEAN,
@@ -2398,29 +2406,64 @@ CREATE TABLE IF NOT EXISTS planets (
     eq_shelter_rec              TINYINT,
     shelter_column_g_cm2        DOUBLE,
     outside_hours               DOUBLE,
-    temp_polar_k                DOUBLE,
-    temp_north_k                DOUBLE,
-    temp_equator_k              DOUBLE,
-    temp_south_k                DOUBLE,
-    temp_swing_k                DOUBLE,
-    temp_day_side_k             DOUBLE,
-    temp_terminator_k           DOUBLE,
-    temp_night_side_k           DOUBLE,
-    temp_polar_swing_k          DOUBLE,  -- v182 (GEN.848): the day and night swing of that place, peak to peak, kelvin of difference
-    temp_north_swing_k          DOUBLE,  -- v182 (GEN.848): the day and night swing of that place, peak to peak, kelvin of difference
-    temp_south_swing_k          DOUBLE,  -- v182 (GEN.848): the day and night swing of that place, peak to peak, kelvin of difference
-    temp_mean_swing_k           DOUBLE,  -- v182 (GEN.848): the day and night swing of that place, peak to peak, kelvin of difference
-    temp_day_side_swing_k       DOUBLE,  -- v182 (GEN.848): the day and night swing of that place, peak to peak, kelvin of difference
-    temp_terminator_swing_k     DOUBLE,  -- v182 (GEN.848): the day and night swing of that place, peak to peak, kelvin of difference
-    temp_night_side_swing_k     DOUBLE,  -- v182 (GEN.848): the day and night swing of that place, peak to peak, kelvin of difference
+    band1_mean_k                DOUBLE,  -- v196 (GEN.1108): the climate of the body in seven bands of latitude (`physics/latitude_bands.py`): `band1` is the north pole, `band7` the south pole (a world locked to its star: the day centre to the night centre)
+    band1_swing_k               DOUBLE,
+    band1_day_hours             DOUBLE,
+    band1_night_hours           DOUBLE,
+    band1_longest_day_days      DOUBLE,
+    band1_longest_night_days    DOUBLE,
+    band1_state                 VARCHAR(24),
+    band2_mean_k                DOUBLE,
+    band2_swing_k               DOUBLE,
+    band2_day_hours             DOUBLE,
+    band2_night_hours           DOUBLE,
+    band2_longest_day_days      DOUBLE,
+    band2_longest_night_days    DOUBLE,
+    band2_state                 VARCHAR(24),
+    band3_mean_k                DOUBLE,
+    band3_swing_k               DOUBLE,
+    band3_day_hours             DOUBLE,
+    band3_night_hours           DOUBLE,
+    band3_longest_day_days      DOUBLE,
+    band3_longest_night_days    DOUBLE,
+    band3_state                 VARCHAR(24),
+    band4_mean_k                DOUBLE,
+    band4_swing_k               DOUBLE,
+    band4_day_hours             DOUBLE,
+    band4_night_hours           DOUBLE,
+    band4_longest_day_days      DOUBLE,
+    band4_longest_night_days    DOUBLE,
+    band4_state                 VARCHAR(24),
+    band5_mean_k                DOUBLE,
+    band5_swing_k               DOUBLE,
+    band5_day_hours             DOUBLE,
+    band5_night_hours           DOUBLE,
+    band5_longest_day_days      DOUBLE,
+    band5_longest_night_days    DOUBLE,
+    band5_state                 VARCHAR(24),
+    band6_mean_k                DOUBLE,
+    band6_swing_k               DOUBLE,
+    band6_day_hours             DOUBLE,
+    band6_night_hours           DOUBLE,
+    band6_longest_day_days      DOUBLE,
+    band6_longest_night_days    DOUBLE,
+    band6_state                 VARCHAR(24),
+    band7_mean_k                DOUBLE,
+    band7_swing_k               DOUBLE,
+    band7_day_hours             DOUBLE,
+    band7_night_hours           DOUBLE,
+    band7_longest_day_days      DOUBLE,
+    band7_longest_night_days    DOUBLE,
+    band7_state                 VARCHAR(24),
+    temp_mean_swing_k           DOUBLE,  -- v182 (GEN.848): the day and night swing of the whole surface, peak to peak, kelvin of difference
     outside_hours_day           DOUBLE,  -- v187 (GEN.768): the hours of one local day a person can be outside in the listed equipment
     outside_hours_limit         VARCHAR(16),  -- v187 (GEN.768): what sets them: daylight, dose, heat, cold, air, uv or vehicle
     day_night_state             VARCHAR(24),  -- v188 (GEN.1097): the state of its day and night: day and night, tidally locked, spin-orbit resonance, non-rotating, polar day and night or no solid surface
     night_hours                 DOUBLE,  -- v188 (GEN.1097): hours of night in one solar day at the equator, NULL for a world that turns once an orbit
     days_per_year               DOUBLE,  -- v188 (GEN.1097): solar days in one orbit round the star, NULL for a world that turns once an orbit
-    roundness_ratio             DOUBLE,  -- v195 (GEN.1159): the mean radius over the round radius, 1 or more is round and less is not
-    yield_strength_pa           DOUBLE,  -- v195 (GEN.1159): the whole-body strength of the material mix of the body, Pa, drawn from the range of each material (GEN.1178)
-    binding_energy_j            DOUBLE,  -- v195 (GEN.1159): the energy that assembling the body releases, J
+    roundness_ratio             DOUBLE,  -- v197 (GEN.1159): the mean radius over the round radius, 1 or more is round and less is not
+    yield_strength_pa           DOUBLE,  -- v197 (GEN.1159): the whole-body strength of the material mix of the body, Pa, drawn from the range of each material (GEN.1178)
+    binding_energy_j            DOUBLE,  -- v197 (GEN.1159): the energy that assembling the body releases, J
     energy_flux_w_m2            DOUBLE,
     flux_variation              DOUBLE,
     -- v20 (see header comment): this planet's own reflex-offset "wobble"
@@ -2726,6 +2769,7 @@ CREATE TABLE IF NOT EXISTS moons (
     dose_gcr_msv_yr             DOUBLE,
     dose_sep_msv_yr             DOUBLE,
     dose_ground_msv_yr          DOUBLE,
+    dose_belt_msv_yr            DOUBLE,  -- v187 (GEN.983): the dose a moon takes from its parent's trapped-particle belts, mSv/yr (0 for a planet)
     dose_helio_mult             DOUBLE,
     uv_surface_index            DOUBLE,
     ozone_loss_flag             BOOLEAN,
@@ -2767,29 +2811,64 @@ CREATE TABLE IF NOT EXISTS moons (
     eq_shelter_rec              TINYINT,
     shelter_column_g_cm2        DOUBLE,
     outside_hours               DOUBLE,
-    temp_polar_k                DOUBLE,
-    temp_north_k                DOUBLE,
-    temp_equator_k              DOUBLE,
-    temp_south_k                DOUBLE,
-    temp_swing_k                DOUBLE,
-    temp_day_side_k             DOUBLE,
-    temp_terminator_k           DOUBLE,
-    temp_night_side_k           DOUBLE,
-    temp_polar_swing_k          DOUBLE,  -- v182 (GEN.848): the day and night swing of that place, peak to peak, kelvin of difference
-    temp_north_swing_k          DOUBLE,  -- v182 (GEN.848): the day and night swing of that place, peak to peak, kelvin of difference
-    temp_south_swing_k          DOUBLE,  -- v182 (GEN.848): the day and night swing of that place, peak to peak, kelvin of difference
-    temp_mean_swing_k           DOUBLE,  -- v182 (GEN.848): the day and night swing of that place, peak to peak, kelvin of difference
-    temp_day_side_swing_k       DOUBLE,  -- v182 (GEN.848): the day and night swing of that place, peak to peak, kelvin of difference
-    temp_terminator_swing_k     DOUBLE,  -- v182 (GEN.848): the day and night swing of that place, peak to peak, kelvin of difference
-    temp_night_side_swing_k     DOUBLE,  -- v182 (GEN.848): the day and night swing of that place, peak to peak, kelvin of difference
+    band1_mean_k                DOUBLE,  -- v196 (GEN.1108): the climate of the body in seven bands of latitude (`physics/latitude_bands.py`): `band1` is the north pole, `band7` the south pole (a world locked to its star: the day centre to the night centre)
+    band1_swing_k               DOUBLE,
+    band1_day_hours             DOUBLE,
+    band1_night_hours           DOUBLE,
+    band1_longest_day_days      DOUBLE,
+    band1_longest_night_days    DOUBLE,
+    band1_state                 VARCHAR(24),
+    band2_mean_k                DOUBLE,
+    band2_swing_k               DOUBLE,
+    band2_day_hours             DOUBLE,
+    band2_night_hours           DOUBLE,
+    band2_longest_day_days      DOUBLE,
+    band2_longest_night_days    DOUBLE,
+    band2_state                 VARCHAR(24),
+    band3_mean_k                DOUBLE,
+    band3_swing_k               DOUBLE,
+    band3_day_hours             DOUBLE,
+    band3_night_hours           DOUBLE,
+    band3_longest_day_days      DOUBLE,
+    band3_longest_night_days    DOUBLE,
+    band3_state                 VARCHAR(24),
+    band4_mean_k                DOUBLE,
+    band4_swing_k               DOUBLE,
+    band4_day_hours             DOUBLE,
+    band4_night_hours           DOUBLE,
+    band4_longest_day_days      DOUBLE,
+    band4_longest_night_days    DOUBLE,
+    band4_state                 VARCHAR(24),
+    band5_mean_k                DOUBLE,
+    band5_swing_k               DOUBLE,
+    band5_day_hours             DOUBLE,
+    band5_night_hours           DOUBLE,
+    band5_longest_day_days      DOUBLE,
+    band5_longest_night_days    DOUBLE,
+    band5_state                 VARCHAR(24),
+    band6_mean_k                DOUBLE,
+    band6_swing_k               DOUBLE,
+    band6_day_hours             DOUBLE,
+    band6_night_hours           DOUBLE,
+    band6_longest_day_days      DOUBLE,
+    band6_longest_night_days    DOUBLE,
+    band6_state                 VARCHAR(24),
+    band7_mean_k                DOUBLE,
+    band7_swing_k               DOUBLE,
+    band7_day_hours             DOUBLE,
+    band7_night_hours           DOUBLE,
+    band7_longest_day_days      DOUBLE,
+    band7_longest_night_days    DOUBLE,
+    band7_state                 VARCHAR(24),
+    temp_mean_swing_k           DOUBLE,  -- v182 (GEN.848): the day and night swing of the whole surface, peak to peak, kelvin of difference
     outside_hours_day           DOUBLE,  -- v187 (GEN.768): the hours of one local day a person can be outside in the listed equipment
     outside_hours_limit         VARCHAR(16),  -- v187 (GEN.768): what sets them: daylight, dose, heat, cold, air, uv or vehicle
     day_night_state             VARCHAR(24),  -- v188 (GEN.1097): the state of its day and night: day and night, tidally locked, spin-orbit resonance, non-rotating, polar day and night or no solid surface
     night_hours                 DOUBLE,  -- v188 (GEN.1097): hours of night in one solar day at the equator, NULL for a world that turns once an orbit
     days_per_year               DOUBLE,  -- v188 (GEN.1097): solar days in one orbit round the star, NULL for a world that turns once an orbit
-    roundness_ratio             DOUBLE,  -- v195 (GEN.1159): the mean radius over the round radius, 1 or more is round and less is not
-    yield_strength_pa           DOUBLE,  -- v195 (GEN.1159): the whole-body strength of the material mix of the body, Pa, drawn from the range of each material (GEN.1178)
-    binding_energy_j            DOUBLE,  -- v195 (GEN.1159): the energy that assembling the body releases, J
+    roundness_ratio             DOUBLE,  -- v197 (GEN.1159): the mean radius over the round radius, 1 or more is round and less is not
+    yield_strength_pa           DOUBLE,  -- v197 (GEN.1159): the whole-body strength of the material mix of the body, Pa, drawn from the range of each material (GEN.1178)
+    binding_energy_j            DOUBLE,  -- v197 (GEN.1159): the energy that assembling the body releases, J
     energy_flux_w_m2            DOUBLE,
     flux_variation              DOUBLE,
     -- v58: this object's unique ID, see the header comment's "v58" note. NULL for a row saved before v58.
@@ -3022,8 +3101,8 @@ CREATE TABLE IF NOT EXISTS asteroid_belts (
     velocity_y_kms              DOUBLE NULL,  -- v102 (DB.55): galactic-axes velocity, km/s
     velocity_z_kms              DOUBLE NULL,  -- v102 (DB.55): galactic-axes velocity, km/s
     mass_kg                     DOUBLE NULL,  -- v102 (DB.55): point mass, a stated zero where the mass is not known
-    density_g_cm3               DOUBLE,  -- v195 (GEN.1159): the mean bulk density of the members, g/cm3
-    ice_mass_fraction           DOUBLE,  -- v195 (GEN.1159): the mean share of the mass of a member that is ice of any kind
+    density_g_cm3               DOUBLE,  -- v197 (GEN.1159): the mean bulk density of the members, g/cm3
+    ice_mass_fraction           DOUBLE,  -- v197 (GEN.1159): the mean share of the mass of a member that is ice of any kind
     epoch_unix                  DOUBLE NULL,  -- v102 (DB.55): when the position and velocity hold
     next_update_due             DOUBLE NULL,  -- v102 (DB.55): when the object next moves
 
@@ -3127,11 +3206,11 @@ CREATE TABLE IF NOT EXISTS comets (
     -- v58: this object's unique ID, see the header comment's "v58" note. NULL for a row saved before v58.
     uid                   BINARY(12),
     mass_kg                     DOUBLE NULL,  -- v102 (DB.55): point mass, a stated zero where the mass is not known
-    density_g_cm3               DOUBLE,  -- v195 (GEN.1159): the bulk density of the nucleus, g/cm3
-    ice_mass_fraction           DOUBLE,  -- v195 (GEN.1159): the share of the nucleus mass that is ice of any kind
-    roundness_ratio             DOUBLE,  -- v195 (GEN.1159): the mean radius over the round radius, 1 or more is round and less is not
-    yield_strength_pa           DOUBLE,  -- v195 (GEN.1159): the strength of the material mix of the nucleus, Pa, drawn from the range of each material (GEN.1178)
-    binding_energy_j            DOUBLE,  -- v195 (GEN.1159): the energy that assembling the nucleus releases, J
+    density_g_cm3               DOUBLE,  -- v197 (GEN.1159): the bulk density of the nucleus, g/cm3
+    ice_mass_fraction           DOUBLE,  -- v197 (GEN.1159): the share of the nucleus mass that is ice of any kind
+    roundness_ratio             DOUBLE,  -- v197 (GEN.1159): the mean radius over the round radius, 1 or more is round and less is not
+    yield_strength_pa           DOUBLE,  -- v197 (GEN.1159): the strength of the material mix of the nucleus, Pa, drawn from the range of each material (GEN.1178)
+    binding_energy_j            DOUBLE,  -- v197 (GEN.1159): the energy that assembling the nucleus releases, J
 
     parent_type                 VARCHAR(16) NOT NULL DEFAULT 'system',  -- v140 (DB.73): what it orbits, see the v140 note
     parent_id                   BIGINT UNSIGNED NULL,  -- v140 (DB.73)
@@ -3931,8 +4010,8 @@ CREATE TABLE IF NOT EXISTS asteroid_fields (
     velocity_y_kms              DOUBLE NULL,  -- v102 (DB.55): galactic-axes velocity, km/s
     velocity_z_kms              DOUBLE NULL,  -- v102 (DB.55): galactic-axes velocity, km/s
     mass_kg                     DOUBLE NULL,  -- v102 (DB.55): point mass, a stated zero where the mass is not known
-    density_g_cm3               DOUBLE,  -- v195 (GEN.1159): the mean bulk density of the members, g/cm3
-    ice_mass_fraction           DOUBLE,  -- v195 (GEN.1159): the mean share of the mass of a member that is ice of any kind
+    density_g_cm3               DOUBLE,  -- v197 (GEN.1159): the mean bulk density of the members, g/cm3
+    ice_mass_fraction           DOUBLE,  -- v197 (GEN.1159): the mean share of the mass of a member that is ice of any kind
     formed_at                   DOUBLE NULL,  -- v102 (DB.55)
     origin_event_id             BIGINT UNSIGNED NULL,  -- v102 (DB.55)
     KEY idx_asteroid_fields_cell (cell_key, center_x_pc, center_y_pc, center_z_pc),
