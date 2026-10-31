@@ -1,0 +1,17 @@
+{#- The Preferences page (/preferences, web/preferences_page.py, UX.236): the list is drawn by static/preferencespage.js from
+    static/mappreferences.js, so this holds the frame, the status line and the Reset button. -#}
+{% extends "base.html" %}
+{% block head %}
+<script type="module" src="{{ static_url('preferencespage.js') }}"></script>
+{% endblock %}
+{% block content %}
+<section class="panel" id="preferences" data-preferences aria-labelledby="preferences-heading">
+  <div class="panel-header"><h2 id="preferences-heading">Preferences</h2></div>
+  <p>These settings are kept in this browser only. A change is saved as you make it and the Galaxy Map uses it the next time it reads it.</p>
+  <noscript><p>This page needs JavaScript to show and change the settings.</p></noscript>
+  <p data-preferences-note hidden></p>
+  <div data-preferences-list></div>
+  <p><button type="button" data-preferences-reset hidden>Reset to defaults</button></p>
+  <p class="preferences-status" data-preferences-status role="status" aria-live="polite"></p>
+</section>
+{% endblock %}

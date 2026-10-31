@@ -6138,3 +6138,13 @@ p.hint a {
 .map-region-poi-count:empty {
   display: none;
 }
+
+/* The Preferences page (UX.236): one block per setting, its words, its control, its default. */
+.preference { margin: 0 0 1.25rem; }
+.preference h4 { margin: 0 0 0.25rem; }
+.preference-about, .preference-default { margin: 0.25rem 0; }
+.preference-default { color: var(--muted, inherit); }
+.preference-choice { border: 0; padding: 0; margin: 0.25rem 0; }
+.preference-option { display: block; margin: 0.25rem 0; }
+.preference-controls input[type="number"] { margin-left: 0.5rem; max-width: 8rem; }
+.preferences-status { min-height: 1.5em; }

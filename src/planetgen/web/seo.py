@@ -48,7 +48,7 @@ OTHER_PUBLIC_UTILITY = frozenset({
     "web.sector_scene", "web.system_on_galaxy_map", "web.system_scene", "web.old_page", "web.object_tree",
 })
 PRIVATE_PREFIXES = ("web.admin", "web.generate", "web.download_galaxy_settings")
-PRIVATE = frozenset({"web.login", "web.logout", "web.account", "web.maintenance_page"})
+PRIVATE = frozenset({"web.login", "web.logout", "web.account", "web.maintenance_page", "web.preferences"})
 GENERATED_FILES = frozenset({
     "web.robots_txt", "web.sitemap_index", "web.sitemap_pages", "web.sitemap_detail", "web.security_txt",
     "web.humans_txt", "web.site_webmanifest", "web.site_asset", "web.og_card",
