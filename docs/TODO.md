@@ -18574,15 +18574,6 @@ clears each one.
   with the property it checks kept. Owner: Planets 1. Version 8.1.
   Prerequisites: none. Related: GEN.728.
 
-- [ ] **TEST.483 test_disregard_missing_data (6 tests) and test_rq_time_limits::test_the_generate_pages_job_gets_a_limit_from_the_time_its_steps_are_recorded_to_take (3 params) are red on clean main (bug)**
-  Found by Aux 2 on PERF.203 step 4 (relayed 3:06 PM EDT 2026-10-30 as
-  the lane reported), red with the change stashed, so on clean main. Do:
-  triage each (stale expectation, a real regression, or a moved seed)
-  and fix the right side without skipping or loosening beyond the
-  property. Done: all of them pass on main. Owner: Bug 2 (after
-  TEST.481) or any free lane. Version 8.1.
-  Prerequisites: none. Related: PERF.203.
-
 - [ ] **TEST.492 Census re-baseline for every oddity share and the prevalence suite rows (one pass after train 9)**
   Weird worlds build (Boss, 4:15 PM EDT 2026-10-30, goal issue #4117;
   design docs/design/systems/weird-worlds.md). Secondary and tertiary
