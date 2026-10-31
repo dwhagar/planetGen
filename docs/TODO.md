@@ -18660,22 +18660,6 @@ clears each one.
   parametrised cases green on main. Owner: Core 5 (proposed).
   Prerequisites: none.
 
-- [ ] **TEST.512 test_rogue_planet_parity::test_the_gap_between_a_rogue_and_a_bound_planet_never_grows is red on main**
-  Found by Aux 5 (as the lane reported, 4:46 AM EDT 2026-10-31), filed
-  by the TODO thread. Kind: red test on main. Object:
-  tests/test_rogue_planet_parity.py::test_the_gap_between_a_rogue_and_a_bound_planet_never_grows.
-  Result: red on clean main, cause not yet read (the rogue and bound
-  planet generators have moved apart since the parity test was written,
-  probably by GEN.1133 and GEN.1119 or the GEN.1135 class epoch). Do:
-  find the change that opened the gap, say whether the gap is physics (a
-  rogue has no star, so a difference is expected and the test's allowed
-  gap must be restated) or a bug in the rogue path (a rogue must use the
-  same generator as an in-system planet and moon, only with a rogue note
-  and no star: Boss rule), and fix the code or restate the test with the
-  reason; never loosen it without the reason. Lock-free unless output
-  changes. Owner: Planets 1 (proposed).
-  Prerequisites: none.
-
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
