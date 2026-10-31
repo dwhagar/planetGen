@@ -52,7 +52,7 @@ A gas giant has no surface and no score (every field `None`).
 import math
 
 from planetgen import tuning
-from planetgen.physics import aerosols, aquifers, atmosphere, constants, equipment, habitability, life_scores, magnetism, protection_limits, radiation, regional_temperature
+from planetgen.physics import aerosols, aquifers, atmosphere, constants, equipment, habitability, life_scores, magnetism, outside_hours, protection_limits, radiation, regional_temperature
 from planetgen.physics import unit_registry as units
 
 _pa_to_kpa = units.converter("Pa", "kPa")
@@ -74,7 +74,7 @@ CORE_DOMAINS = tuple(name.lower() for name in habitability.CORE_DOMAINS)
 BODY_FIELDS = (
     "phi4", *(f"phi4_{domain}" for domain in DOMAINS), *(f"tier_{domain}" for domain in DOMAINS),
     *life_scores.FIELDS, "l_solv", "l_chem", "l_ener", "l_rad",
-    *equipment.FIELDS, *regional_temperature.FIELDS, "energy_flux_w_m2", "flux_variation",
+    *equipment.FIELDS, *regional_temperature.FIELDS, *outside_hours.FIELDS, "energy_flux_w_m2", "flux_variation",
 )
 """tuple: What `generate` sets on a planet or moon, as stored in `planets` and
 `moons` (`energy_flux_w_m2` and `flux_variation` are the inputs the score keeps: the
@@ -171,6 +171,7 @@ def values_from_body(body):
         "scale_height_km": getattr(body, "scale_height", None),
         "magnetic_moment_a_m2": getattr(body, "magnetic_moment_a_m2", None),
         "rotation_period_hours": getattr(body, "rotation_period_hours", None),
+        "daylight_hours": getattr(body, "daylight_hours", None),
         "axial_tilt_deg": getattr(body, "axial_tilt_deg", None),
         "period_years": getattr(body, "period", None),
         "is_moon": bool(getattr(body, "is_moon", False)),
@@ -400,6 +401,7 @@ def compute(values, compact_host=None):
         out[f"tier_{domain}"] = TIER_INDEX[colour]
     out.update(equipment.compute(world))
     out.update(regional_temperature.compute(values))
+    out.update(outside_hours.fields(world, out, {**values, **out}))
     return out
 
 

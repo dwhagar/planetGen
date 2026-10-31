@@ -11,7 +11,7 @@ import pytest
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.phenomena.compact_remnant import BlackHole, NeutronStar
 from planetgen.generation.system import StarSystem
-from planetgen.physics import activity, constants, magnetism, orbit_elements
+from planetgen.physics import activity, constants, magnetism, orbit_elements, spin
 from planetgen.util import draw
 
 from tests.fuzz_support import deterministic_entropy
@@ -63,6 +63,58 @@ def test_m_dwarfs_stay_saturated_longer():
     assert sum(star.xuv_saturated for star in young_m) > 150
     assert sum(star.xuv_saturated for star in old_g) < 20
     assert all(1.8 <= star.flare_alpha <= 2.2 for star in young_m)
+
+
+def _spinning(mass_sol, age_gy, temperature, period_over_nominal):
+    star = _star(mass_sol, age_gy, "V", temperature)
+    nominal = spin.nominal_rotation_period_hours(star.mass, temperature, age_gy)
+    star.rotation_period_hours = nominal * period_over_nominal
+    return star
+
+
+def test_a_fast_rotator_is_more_active_and_flares_more_than_a_slow_one_of_the_same_mass_and_age():
+    """GEN.807: the same draws, a sun-like star at 3 Gyr that spins in half its nominal period and one that spins in twice it."""
+    made = {}
+    for name, ratio in (("fast", 0.5), ("nominal", 1.0), ("slow", 2.0)):
+        draw.set_run_seed(807)
+        star = _spinning(1.0, 3.0, 5772.0, ratio)
+        activity.generate_activity(star)
+        made[name] = star
+    assert made["fast"].l_xuv_w > made["nominal"].l_xuv_w > made["slow"].l_xuv_w
+    assert made["fast"].flare_n33_per_yr > made["nominal"].flare_n33_per_yr > made["slow"].flare_n33_per_yr
+    assert made["fast"].xuv_fluence_j > made["slow"].xuv_fluence_j
+    # the unsaturated law: L_X/L_bol goes as the spin's -2.7 power (at b = 2 a half-period star is 2^2.7 times as active as it would be at the
+    # same saturation age, but the decay is (t / t_sat)^-b, so the ratio between stars is (nominal period / period)^2.7 while both are unsaturated)
+    ratio = 10 ** (made["fast"].log_lx_lbol - made["nominal"].log_lx_lbol)
+    assert ratio == pytest.approx(2.0 ** activity.ROTATION_SLOPE, rel=0.02)
+    # the flare rate follows the activity
+    assert made["fast"].flare_n33_per_yr / made["nominal"].flare_n33_per_yr == pytest.approx(ratio, rel=0.02)
+
+
+def test_a_fast_rotator_stays_saturated_longer_and_a_slow_one_leaves_saturation_sooner():
+    saturated = {"fast": 0, "slow": 0}
+    for seed in range(60):
+        for name, ratio in (("fast", 0.3), ("slow", 3.0)):
+            draw.set_run_seed(900 + seed)
+            star = _spinning(1.0, 0.3, 5772.0, ratio)
+            activity.generate_activity(star)
+            saturated[name] += bool(star.xuv_saturated)
+    assert saturated["fast"] > 30 > saturated["slow"] + 10, saturated
+
+
+def test_a_star_without_a_spin_or_with_a_law_that_does_not_cover_it_keeps_the_table():
+    plain, hot = _star(1.0, 3.0, "V", 5772.0), _star(1.6, 1.0, "V", 8000.0)
+    hot.rotation_period_hours = 20.0
+    draw.set_run_seed(810)
+    activity.generate_activity(plain)
+    draw.set_run_seed(810)
+    spun = _spinning(1.0, 3.0, 5772.0, 1.0)
+    activity.generate_activity(spun)
+    assert spun.log_lx_lbol == pytest.approx(plain.log_lx_lbol) and spun.flare_n33_per_yr == pytest.approx(plain.flare_n33_per_yr)
+    draw.set_run_seed(811)
+    activity.generate_activity(hot)
+    assert hot.log_lx_lbol < -5.0
+    assert activity.rotation_saturation_scale(None, 10.0, 2.0) == 1.0 and activity.rotation_saturation_scale(100.0, 0.0, 2.0) == 1.0
 
 
 def test_white_dwarfs_and_giants_do_not_flare():
@@ -267,13 +319,14 @@ def test_generated_bodies_store_their_field_and_exposure():
 
 
 def test_a_generated_moon_has_an_induced_field_figure_and_a_planet_has_none():
-    """GEN.178: `generate_moons` sets the induced moment (0 without an ocean) on each moon; a planet keeps None."""
+    """GEN.178: `generate_moons` sets the induced moment (0 without an ocean) on each moon; a planet keeps None. GEN.959: the tide pulls the moons
+    of a planet locked to its star in, so the seeds that give moons are the ones with a planet that turns freely (seeds 6, 10 and 11 of the first twelve)."""
     from planetgen.generation.config import SystemConfig
     from planetgen.generation.system import StarSystem
     from tests.fuzz_support import deterministic_entropy
 
     moons = 0
-    for seed in range(6):
+    for seed in range(16):
         with deterministic_entropy(seed):
             draw.set_run_seed(seed)
             system = StarSystem(SystemConfig(), galactic_center_dist_ly=26000.0)

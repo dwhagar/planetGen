@@ -201,6 +201,19 @@ def stage_list(parts):
     return listed
 
 
+def stage_estimates(conn, entries):
+    """
+    The expected seconds of each stage of the job `entries` (`parse_entries`) make, in the order of `stage_list`: each command's own
+    (`stages.stage_estimates`, at the settings that command was given), the stage every scatter ends with only at its last place.
+    """
+    rows = []
+    for command, args in entries:
+        rows += [(stage.key, seconds)
+                 for stage, seconds in zip(stages.for_command(command, args), stages.stage_estimates(conn, command, args))]
+    last = max((place for place, (key, _seconds) in enumerate(rows) if key == stages.BLOCK_LIGHTS_STAGE.key), default=None)
+    return [seconds for place, (key, seconds) in enumerate(rows) if key != stages.BLOCK_LIGHTS_STAGE.key or place == last]
+
+
 def run_job(args):
     """
     `planetgen run-job SPEC`: every command of the spec as the stages of one run (`followed.run_followed`), numbered as one

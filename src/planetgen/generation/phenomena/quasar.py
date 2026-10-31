@@ -28,7 +28,7 @@ its Eddington ratio:
 
 from planetgen.galaxy import shape_draw as shapeDraw
 from planetgen.generation.config import SystemConfig
-from planetgen.physics import constants as physical_constants, relations
+from planetgen.physics import constants as physical_constants, relations, unit_registry as units
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.util import log
@@ -86,7 +86,7 @@ class Quasar(LazySaladName):
         self.name_given = bool(name)  # a given name is kept over an object ID (GEN.64)
 
         self.black_hole_mass_solar = black_hole_mass_solar or shapeDraw.random_nucleus_mass_solar()
-        mass_kg = self.black_hole_mass_solar * physical_constants.SOLAR_MASS_TO_KG
+        mass_kg = _msun_to_kg(self.black_hole_mass_solar)
         self.event_horizon_radius_km = relations.schwarzschild_radius(mass_kg) / 1000
 
         self.eddington_ratio = log_uniform(*tuning.QUASAR_EDDINGTON_RATIO_RANGE)
@@ -99,7 +99,7 @@ class Quasar(LazySaladName):
             tuning.QUASAR_RADIATIVE_EFFICIENCY * physical_constants.SPEED_OF_LIGHT_M_S ** 2
         )
         self.accretion_rate_solar_per_year = (
-            accretion_kg_s * physical_constants.SECONDS_PER_YEAR / physical_constants.SOLAR_MASS_TO_KG
+            _kg_to_msun(accretion_kg_s * physical_constants.SECONDS_PER_YEAR)
         )
 
         # lambda L_5100 in erg/s (1 W = 1e7 erg/s) for the Bentz et al.
@@ -155,4 +155,7 @@ class Quasar(LazySaladName):
         return self.luminosity_w / tuning.MILKY_WAY_STELLAR_LUMINOSITY_W
 
 from planetgen.generation import object_timing  # noqa: E402 -- registers the generators below (PERF.92)
+
+_kg_to_msun = units.converter("kg", "Msun")
+_msun_to_kg = units.converter("Msun", "kg")
 object_timing.track(Quasar, "quasar")

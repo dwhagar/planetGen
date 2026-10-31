@@ -25,6 +25,8 @@ from planetgen import tuning
 from planetgen.physics import constants
 from planetgen.physics import unit_registry as units
 
+_msun_to_kg = units.converter("Msun", "kg")
+
 _YEAR_S = units.converter("yr", "s")(1.0)
 
 PROTON_MASS_KG = 1.67262192369e-27  # CODATA 2018
@@ -64,7 +66,7 @@ def wind_mdot_kg_s(mass_solar):
     """The mass-loss rate of a hot massive star of `mass_solar`, kg/s."""
     rate_msun_yr = tuning.WIND_MASS_LOSS_MSUN_YR_AT_1E5_LSUN * (
         donor_luminosity_lsun(mass_solar) / 1.0e5) ** tuning.WIND_MASS_LOSS_LUMINOSITY_EXPONENT
-    return rate_msun_yr * constants.SOLAR_MASS_TO_KG / _YEAR_S
+    return _msun_to_kg(rate_msun_yr) / _YEAR_S
 
 
 def wind_speed_m_s(mass_solar, radius_au):
@@ -87,7 +89,7 @@ def overflow_mdot_kg_s(donor_mass_solar, donor_kind):
     """The rate a lobe-filling donor gives up mass, kg/s: its mass over `tuning.OVERFLOW_TIMESCALE_YR` of its kind (a
     main-sequence donor, else a giant's)."""
     timescale = tuning.OVERFLOW_TIMESCALE_YR["main-sequence" if donor_kind == "main-sequence" else "giant"]
-    return donor_mass_solar * constants.SOLAR_MASS_TO_KG / (timescale * _YEAR_S)
+    return _msun_to_kg(donor_mass_solar) / (timescale * _YEAR_S)
 
 
 def x_ray_luminosity_w(mode, accretor_kind, accretor_mass_solar, accretor_radius_au, donor_kind, donor_mass_solar,
@@ -105,7 +107,7 @@ def x_ray_luminosity_w(mode, accretor_kind, accretor_mass_solar, accretor_radius
                                   wind_speed_m_s(donor_mass_solar, donor_radius_au), total)
     elif mode == "disc":
         mdot = captured_mdot_kg_s(accretor_mass_solar, axis_au * (1.0 - eccentricity),
-                                  tuning.BE_DISC_MASS_LOSS_MSUN_YR * constants.SOLAR_MASS_TO_KG / _YEAR_S,
+                                  _msun_to_kg(tuning.BE_DISC_MASS_LOSS_MSUN_YR) / _YEAR_S,
                                   tuning.BE_DISC_OUTFLOW_KMS * 1000.0, total)
     else:
         mdot = overflow_mdot_kg_s(donor_mass_solar, donor_kind)

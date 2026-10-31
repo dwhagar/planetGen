@@ -634,7 +634,7 @@ def _run_reload(tmp_path, active=("apache2",), restart=0, fail=(), configtest=Tr
         fake_python.chmod(0o755)
     script = (f'source "{REPO_DIR}/scripts/deploy-common.sh"; APACHE_NEEDS_RESTART={restart}; '
               'reload_web_if_running')
-    env = dict(os.environ, PATH=f"{bin_dir}:{os.environ['PATH']}", HEALTH_WAIT_SECONDS="1")
+    env = dict(os.environ, PATH=f"{bin_dir}:{os.environ['PATH']}", HEALTH_WAIT_SECONDS="1", HEALTH_SETTLE_SECONDS="0")
     if site is not None:
         env["PYTHON"] = str(bin_dir / "fakepython")
     proc = subprocess.run(["bash", "-c", script], env=env, capture_output=True, text=True)
@@ -681,9 +681,11 @@ def test_a_gunicorn_host_with_no_apache_reloads_the_unit(tmp_path):
     assert any(c.startswith("curl") and ":8000/api/health" in c for c in calls)
 
 
-def test_a_reload_that_the_site_does_not_answer_after_is_a_failure(tmp_path):
+def test_a_reload_that_the_site_does_not_answer_after_is_a_warning_not_a_failed_reload(tmp_path):
+    """Every reload step worked and only the probe got no good answer: status 3, which update.sh turns into a warning
+    and an open site (the migration is done by then), not status 1 (a step failed, the site stays closed)."""
     proc, _calls = _run_reload(tmp_path, health=False)
-    assert proc.returncode == 1 and "health check of Apache failed" in proc.stderr
+    assert proc.returncode == 3 and "health check of Apache failed" in proc.stderr
 
 
 MAINTENANCE_REPLY = '{"status":"ok","maintenance":{"cause":"update","enabled":true,"reason":"Updating planetGen"}}'
@@ -697,7 +699,7 @@ def test_a_reload_check_that_finds_the_site_closed_for_the_update_still_passes_a
 
 def test_a_failed_health_check_names_the_check_the_answer_and_the_maintenance_state(tmp_path):
     proc, _calls = _run_reload(tmp_path, health=False, reply='{"maintenance":true,"error":"closed"}')
-    assert proc.returncode == 1
+    assert proc.returncode == 3
     assert "health check of Apache failed" in proc.stderr and "HTTP 503" in proc.stderr
     assert "http://127.0.0.1/api/health" in proc.stderr and "The site is in maintenance mode" in proc.stderr
 
@@ -728,7 +730,7 @@ def test_a_failed_check_names_both_addresses_when_neither_answers(tmp_path):
         proc, _calls = _run_reload(tmp_path, curl=OTHER_VHOST, site=SITE)
     finally:
         del os.environ["SITE_CODE"]
-    assert proc.returncode == 1
+    assert proc.returncode == 3
     assert "http://127.0.0.1/api/health answered HTTP 403" in proc.stderr
     assert "own address https://starmap.example/api/health answered HTTP 503" in proc.stderr
 
@@ -739,7 +741,36 @@ def test_the_sites_own_name_is_not_taken_for_an_answer_unless_it_is_a_2xx(tmp_pa
         proc, _calls = _run_reload(tmp_path, curl=OTHER_VHOST, site=SITE)
     finally:
         del os.environ["SITE_CODE"]
-    assert proc.returncode == 1 and "answered HTTP 301" in proc.stderr
+    assert proc.returncode == 3 and "answered HTTP 301" in proc.stderr
+
+
+NO_ANSWER = ("for last; do :; done\ncase \"$last\" in\n"
+             "  http://127.0.0.1/*) printf '<html>403</html>\\n403';;\n"
+             "  https://starmap.example/*) printf '\\n000'; exit 7;;\nesac\n")
+
+
+def test_an_https_probe_with_no_http_answer_says_why_and_the_reload_still_counts_as_done(tmp_path):
+    """A live update ended with "answered HTTP 000" and the site closed. 000 is no status code: curl got no
+    answer. The warning now names the reason, and the update opens the migrated site."""
+    proc, _calls = _run_reload(tmp_path, curl=NO_ANSWER, site=SITE)
+    assert proc.returncode == 3
+    assert "answered HTTP 000 (no HTTP answer at all: the connection was refused" in proc.stderr
+    assert "reloaded Apache" in proc.stdout
+
+
+def test_the_site_probe_does_not_fail_on_a_certificate_the_loopback_check_cannot_judge(tmp_path):
+    os.environ["SITE_CODE"] = "200"
+    try:
+        _proc, calls = _run_reload(tmp_path, curl=OTHER_VHOST, site=SITE)
+    finally:
+        del os.environ["SITE_CODE"]
+    assert any(c.startswith("curl -skL") and "starmap.example/api/health" in c for c in calls)
+
+
+def test_update_sh_opens_the_site_when_only_the_health_probe_failed():
+    update = (pathlib.Path(REPO_DIR) / "update.sh").read_text()
+    branch = update.split("elif (( reload_status == 3 ))", 1)[1].split("else", 1)[0]
+    assert "log_warning" in branch and "exit" not in branch
 
 
 def test_the_dirty_tree_warning_leaves_out_the_state_folder_the_update_owns():
@@ -894,3 +925,50 @@ def test_the_updates_dirty_check_ignores_mode_changes():
     """set-permissions.sh makes every script executable; that is not a local edit to warn about."""
     with open(os.path.join(REPO_DIR, "update.sh"), encoding="utf-8") as f:
         assert 'git -c core.fileMode=false status --porcelain' in f.read()
+
+
+def test_the_update_works_out_the_cluster_system_masses_after_the_migration():
+    """The web daemon is stopped at 60 seconds and building the galaxy shape needs a mean system mass for every stored
+    cluster age, which takes longer on a big galaxy: the update does it once and the web app reads the result."""
+    update = (pathlib.Path(REPO_DIR) / "update.sh").read_text()
+    assert update.index("migrate_or_reset_db\nrecord_version_key\nwarm_shape_means") < update.index("log_stage 6 9")
+    assert "run_cli warm_shape" in (pathlib.Path(REPO_DIR) / "scripts" / "deploy-common.sh").read_text()
+
+
+def test_the_update_starts_the_warm_up_early_and_reloads_after_its_opening_phase():
+    """The warm-up starts in the background once everything it needs is in place; the reload and the health check wait
+    for its opening phase, then the probe waits for the workers to start."""
+    update = (pathlib.Path(REPO_DIR) / "update.sh").read_text()
+    common = (pathlib.Path(REPO_DIR) / "scripts" / "deploy-common.sh").read_text()
+    assert update.index("\nwarm_galaxy_map\n") < update.index("\n    wait_for_warm_opening\n") < update.index("reload_web_if_running ||")
+    assert update.index("check_app_imports") < update.index("\nwarm_galaxy_map\n")
+    assert "--opening-done" in common
+    assert 'sleep "${HEALTH_SETTLE_SECONDS:-10}"' in common
+
+
+def test_wait_for_warm_opening_returns_when_the_file_appears_or_the_warm_up_ends(tmp_path):
+    common = pathlib.Path(REPO_DIR) / "scripts" / "deploy-common.sh"
+    script = f"""
+source {common}
+WARM_OPENING_FILE={tmp_path}/opening
+sleep 30 & WARM_PID=$!
+( sleep 1; touch "$WARM_OPENING_FILE" ) &
+wait_for_warm_opening
+kill $WARM_PID
+rm -f "$WARM_OPENING_FILE"
+sleep 0.2 & WARM_PID=$!
+wait $WARM_PID
+WARM_OPENING_WAIT_SECONDS=5 wait_for_warm_opening
+"""
+    result = subprocess.run(["bash", "-c", script], capture_output=True, text=True, timeout=60)
+    assert "The opening phase is built" in result.stdout
+    assert "ended before its opening phase" in result.stderr
+
+
+def test_every_wait_in_the_update_says_what_it_waits_for_and_for_how_long():
+    """Boss, 10-30 EDT: a long step or a wait that prints nothing looks like a hang."""
+    common = (pathlib.Path(REPO_DIR) / "scripts" / "deploy-common.sh").read_text()
+    for words in ("Working out the cluster system masses", "Running the math check", "Importing the web app as",
+                  "at most $(( ${WARM_OPENING_WAIT_SECONDS:-1200} / 60 )) minutes", "Giving the workers",
+                  "asking again,", "Testing Apache's configuration, then"):
+        assert words in common, words

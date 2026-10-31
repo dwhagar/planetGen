@@ -39,6 +39,8 @@ from planetgen.physics import constants
 from planetgen.util import draw
 from planetgen.physics import unit_registry as units
 
+_msun_to_kg = units.converter("Msun", "kg")
+
 _kpc_to_m = units.converter("kpc", "m")
 
 FALLBACK_SEED = bytes(16)
@@ -191,7 +193,7 @@ def effective_halo_scatter_dex(halo_mass_solar):
 
 def virial_radius_kpc(halo_mass_solar):
     """The radius, kpc, inside which the mean density is `OVERDENSITY` times the critical density."""
-    mass_kg = halo_mass_solar * constants.SOLAR_MASS_TO_KG
+    mass_kg = _msun_to_kg(halo_mass_solar)
     radius_m = (3.0 * mass_kg / (4.0 * math.pi * OVERDENSITY * CRITICAL_DENSITY_KG_M3)) ** (1.0 / 3.0)
     return radius_m / _KPC_M
 

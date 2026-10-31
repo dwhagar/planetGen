@@ -105,6 +105,8 @@ const KEY_TURN = (5 * Math.PI) / 180;
 export const MIN_ZOOM = 1 / 8;
 export const MAX_ZOOM = 2.5;
 export const GALAXY_MIN_ZOOM = 0.5;
+// A sector page's map (pinned) zooms out no further than this times the sector's own fit: the sector, not its surroundings.
+export const PINNED_MAX_ZOOM = 1.1;
 // An opened system zooms from its fit down to a moon, nine orders closer.
 export const SYSTEM_MIN_ZOOM = 1e-9;
 // MAP.333: the nearest the camera may be asked to come to its target by any move, about a moon framed (Boss, 6:19 PM EDT 2026-10-28), and
@@ -119,9 +121,7 @@ const WHEEL_ZOOM_PER_PX = 0.0025;
 const ZOOM_CLEARANCE = 0.02;
 // A star counts as the one zoomed on when it is within this share of the view's distance from its middle.
 const NEAREST_STAR_REACH = 0.35;
-// MAP.263: the wheel carries on from one stage to the next with no stop and no flight: the next window's data is
-// asked for once the zoom is within this many times its range's end, and its blocks cross-fade in over this long.
-const PREFETCH_ZOOM = 3;
+// MAP.263: the next window's blocks cross-fade in over this long (CROSS_FADE_MS) as the display follows the camera (MAP.337).
 // MAP.292: how far past the end of its range (a share of the nearest zoom) the wheel carries the view while the next window arrives.
 const ARRIVING_OVERSHOOT = 0.25;
 const CROSS_FADE_MS = 350;
@@ -357,6 +357,7 @@ export function createStageView(host) {
   function zoomPolicyFor(r, at) {
     if (enteredSystem) return SYSTEM_ZOOM;
     if (r && r.view && isWholeGalaxy(r)) return GALAXY_ZOOM;
+    if (pinned) return MC.zoomPolicy(MC.ZOOM_RANGE, MIN_ZOOM, PINNED_MAX_ZOOM);
     if (entered && !pinned && view && view.fit && host.fetchSystemScene) {
       // MAP.152: in an opened sector the camera may come right up to a star near the middle of the view, to
       // where its system's disc is whole, but no closer to the middle than keeps that star in reach.
@@ -2536,7 +2537,12 @@ export function createStageView(host) {
     } else {
       followBody = null;
       const perPx = worldUnitsPerPixel(camera, view.dist, canvasEl.clientHeight);
+      const before = view.target.slice();
       MC.panInScreenPlane(THREE, camera, view.target, dx, dy, perPx);
+      // A sector page's map keeps its target inside the sector: a move that would leave it is not taken.
+      if (pinned && !NF.blockContains(sectorCell(pinned).bounds, view.target[0], view.target[1], view.target[2])) {
+        view.target[0] = before[0]; view.target[1] = before[1]; view.target[2] = before[2];
+      }
     }
     applyView();
   }
@@ -2723,6 +2729,7 @@ export function createStageView(host) {
     // The nearest is the floor, except that outside a system it is never short of the stage's own hand-over (a floor above where a star's
     // system opens would be a wall); a system has nothing nearer to hand over to.
     const nearest = enteredSystem ? GLOBAL_FLOOR_PC / fit : Math.min(handover.nearest, FIELD_FLOOR_PC / fit);
+    if (pinned) return MC.zoomPolicy(MC.ZOOM_RANGE, nearest, PINNED_MAX_ZOOM);
     return MC.zoomPolicy(MC.ZOOM_RANGE, nearest, Math.max(handover.farthest, globalFarPc() / fit));
   }
 
@@ -2749,6 +2756,7 @@ export function createStageView(host) {
   // MAP.333: the farthest the camera goes, the whole galaxy in view: the whole-galaxy stage's own camera distance.
   let galaxyFarPc = 0;
   function globalFarPc() {
+    if (pinned) return (fitNow() || cameraFor(resolved).dist) * PINNED_MAX_ZOOM;   // a sector page's map ends at its sector
     if (!galaxyFarPc) {
       const whole = S.resolveStage(S.galaxyStage(), getOutline(), edgePc);
       galaxyFarPc = whole && !whole.problem && whole.view && whole.view.blocks.length ? cameraFor(whole).dist : host.galaxyRadius * GALAXY_FAR_RADII;
@@ -2811,6 +2819,14 @@ export function createStageView(host) {
       reframe();
       applyView();
       zoomGoal = 0;
+      return;
+    }
+    if (!entered && !enteredSystem && !isSectorView(resolved)) {
+      // A window above the sectors, or the whole galaxy, has no range's end to stop at: the zoom is the camera's alone.
+      view.zoom = MC.clampDistance(zoomLimits(), want, 1);
+      reframe();
+      applyView();
+      if (Math.abs(Math.log(zoomGoal / view.dist)) < 1e-3) zoomGoal = 0;
       return;
     }
     const end = inward ? policy.nearest : policy.farthest;
@@ -2915,36 +2931,20 @@ export function createStageView(host) {
     return true;
   }
 
-  // MAP.125, MAP.152, MAP.263: the wheel carries the zoom from one stage to the next, in
-  // and out, so one scroll runs from the whole galaxy down to a system and back, with no stop (no gesture
-  // gate: every tick at the end of a stage's range goes on), no flight and no reset of the turn or the zoom:
-  // the camera stays where it is and the next stage takes over round it (`go` with keepCamera, `crossTo`).
-  // Zoomed right in on a stage (the galaxy, a window), the block under the pointer
-  // (else the one at the middle of the view) is taken as a click would
-  // take it: the window one size down, or the sector opened. Zoomed right in on
-  // a sector, in goes the star picked, else the one nearest the middle of the
-  // view (its system opens). Zoomed right out of a system, a sector or a window,
-  // out comes the sector, the stage or the parent window. The next window's data is asked for
-  // before the zoom gets to the end of its range (`prefetchAcross`), so the tick that crosses finds it here.
-  // True when this tick moved across.
+  // MAP.125, MAP.152: the wheel at the end of an opened sector's or system's own range carries the zoom on, with no stop and no flight: right
+  // up to a sector whose scene is whole it opens where the camera is, zoomed right in on an opened sector the star picked (else the one
+  // nearest the middle of the view, its system opens), and zoomed right out of a system or a sector the sector or the window comes back.
+  // The windows are not crossed here (MAP.337): the camera's zoom is global and the display window stays as it is. True when this tick moved across.
   function zoomAcross(deltaPx, event) {
     if (animation || pinned || arriving) return false;
     // MAP.326: in an opened sector the range and the star to go in to are those of the point under the pointer.
     const under = event && entered && !enteredSystem && isFree(resolved) && view.fit ? anchorUnder(event.clientX, event.clientY) : null;
     const policy = zoomPolicyFor(resolved, under);
-    if (deltaPx > 0 && view.zoom >= policy.farthest * 0.999 && (enteredSystem || entered || !isWholeGalaxy(resolved))) {
-      // MAP.333: out of a window it is the parent stage that is gone to, not `up` (which first lets go of a sector picked on the window,
-      // a step that changes nothing the wheel can see and left it stopped at the end of the range).
-      const parent = !enteredSystem && !entered ? S.parentStage(stage, getOutline(), edgePc) : null;
-      if (parent) go(parent, { keepCamera: true });
-      else up({ keepCamera: true });
+    if (deltaPx > 0 && view.zoom >= policy.farthest * 0.999 && (enteredSystem || entered)) {
+      up({ keepCamera: true });
       return true;
     }
-    if (deltaPx >= 0) return false;
-    if (view.zoom > policy.nearest * 1.001) {
-      if (view.zoom <= policy.nearest * PREFETCH_ZOOM) prefetchAcross(event);
-      return false;
-    }
+    if (deltaPx >= 0 || view.zoom > policy.nearest * 1.001) return false;
     if (entered && !enteredSystem) {
       if (!host.fetchSystemScene) return false;
       const picked = sectorStage.selectedEntry();
@@ -2961,85 +2961,7 @@ export function createStageView(host) {
       enterSector(ambient.block, ambient.record, { push: true, fly: false });
       return true;
     }
-    const found = blockUnderWheel(event);
-    const into = windowAcrossFrom(event, found);
-    if (into) {
-      showTooltip("", 0, 0);
-      go(into, { keepCamera: true });
-      return true;
-    }
-    if (!found || found.entry < 0 || !pickable(found.entry)) {
-      // MAP.333: no block under the pointer or the middle to go in to: the one holding the view's own middle, so the wheel never
-      // dead-ends at the end of a stage's range.
-      const middle = acrossAtMiddle();
-      if (!middle) return false;
-      showTooltip("", 0, 0);
-      go(middle, { keepCamera: true });
-      return true;
-    }
-    touchPending = -1;
-    showTooltip("", 0, 0);
-    act(found.entry, found.hit ? { x: found.hit.point.x, y: found.hit.point.y, z: found.hit.point.z } : null, { keepCamera: true });
-    return true;
-  }
-
-  // MAP.333: the window one size down round the cell that holds the view's middle (a point the camera turns about), or null when that is
-  // outside what the galaxy holds.
-  function acrossAtMiddle() {
-    if (!view || !resolved) return null;
-    const point = view.target;
-    const block = P.cellAt(stage.win ? stage.win.centre.m : P.STAGE_TOP, point[0], point[1], point[2], edgePc);
-    return P.drillBlockHolds(block, P.REACH_OUTLINE) ? S.windowInto(stage, block, { x: point[0], y: point[1], z: point[2] }, edgePc) : null;
-  }
-
-  // The block of the stage the wheel is zooming toward: the one under the pointer, else the one at the middle.
-  function blockUnderWheel(event) {
-    const rect = canvasEl.getBoundingClientRect();
-    const onMap = event && event.clientX >= rect.left && event.clientX <= rect.right && event.clientY >= rect.top && event.clientY <= rect.bottom;
-    const x = onMap ? event.clientX : rect.left + rect.width / 2;
-    const y = onMap ? event.clientY : rect.top + rect.height / 2;
-    let found = picker.pick(x, y, function (layer) { return layer === choiceLayer; });
-    if (!found && onMap) found = picker.pick(rect.left + rect.width / 2, rect.top + rect.height / 2, function (layer) { return layer === choiceLayer; });
-    return found;
-  }
-
-  // The window stage the wheel opens from the whole galaxy round a point beyond the outline (MAP.243): there is no
-  // block under the pointer, or only the disc's behind what is pointed at, so it opens round the cell holding the
-  // star or phenomenon in front, else the point the wheel has been zooming toward. In a window with no block under
-  // the pointer or the middle of the view either (the view has come to the edge of what the window holds, MAP.292) the
-  // next window opens round that point too, so the scroll goes on instead of stopping. Null otherwise.
-  function windowAcrossFrom(event, found) {
-    const rect = canvasEl.getBoundingClientRect();
-    const onMap = event && event.clientX >= rect.left && event.clientX <= rect.right && event.clientY >= rect.top && event.clientY <= rect.bottom;
-    const x = onMap ? event.clientX : rect.left + rect.width / 2;
-    const y = onMap ? event.clientY : rect.top + rect.height / 2;
-    const front = picker.pick(x, y, notMapStars);
-    const halo = !stage.win && front && front.layer !== choiceLayer ? front : null;
-    const point = halo ? [halo.entry.x, halo.entry.y, halo.entry.z] : found ? null : anchorUnder(x, y);
-    if (!point) return null;
-    const block = P.cellAt(stage.win ? stage.win.centre.m : P.STAGE_TOP, point[0], point[1], point[2], edgePc);
-    return P.drillBlockHolds(block, P.REACH_OUTLINE) ? S.windowInto(stage, block, { x: point[0], y: point[1], z: point[2] }, edgePc) : null;
-  }
-
-  // The next window's data, asked for while the zoom is still near the end of its range (the lower half of the
-  // hand-over band): what the wheel is about to open, found as the crossing tick will find it.
-  let prefetched = "";
-  function prefetchAcross(event) {
-    if (entered || enteredSystem || !display || !resolved) return;
-    const found = blockUnderWheel(event);
-    let into = windowAcrossFrom(event, found);
-    if (!into && found && found.entry >= 0 && pickable(found.entry)) {
-      const block = display.options[found.entry].blocks[0];
-      if (block.m !== 1) {
-        const at = found.hit ? { x: found.hit.point.x, y: found.hit.point.y, z: found.hit.point.z } : null;
-        into = S.windowInto(display.resolved ? display.resolved.stage : stage, block, at, edgePc);
-      }
-    }
-    if (!into) return;
-    const key = containerKey(S.holder(into));
-    if (key === prefetched) return;
-    prefetched = key;
-    loadData(S.holder(into));
+    return false;
   }
 
   // The star of the open sector nearest `point` (parsecs): {entry, distance}, or null.

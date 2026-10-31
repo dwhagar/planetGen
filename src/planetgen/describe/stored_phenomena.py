@@ -12,7 +12,9 @@ import math
 
 from planetgen import tuning
 from planetgen.describe import build, model, phenomena
-from planetgen.physics import brown_dwarf as brownDwarf, constants
+from planetgen.physics import brown_dwarf as brownDwarf, unit_registry
+
+_msun_to_kg = unit_registry.converter("Msun", "kg")
 
 
 TYPES = ("nebula", "quasar", "rogue_planet", "interstellar_comet", "asteroid_field", "supernova_remnant", "black_hole",
@@ -74,12 +76,12 @@ def _fields(phenomenon_type, detail):
         extra["composition"] = [(part["component"], part["concentration"]) for part in detail.get("composition") or []]
     elif phenomenon_type == "black_hole":
         extra.update(type=f"{(detail.get('mass_class') or 'stellar').replace('-', ' ').title()} Black Hole",
-                     mass=(detail.get("mass_solar") or 0.0) * constants.SOLAR_MASS_TO_KG, radius=detail.get("event_horizon_radius_km"),
+                     mass=_msun_to_kg(detail.get("mass_solar") or 0.0), radius=detail.get("event_horizon_radius_km"),
                      age=detail.get("age_gy"), temperature=detail.get("temperature_k"), name=detail["name"])
     elif phenomenon_type == "neutron_star":
         magnetar = detail.get("pulsar_type") == "magnetar"
         extra.update(type="Neutron Star (Magnetar)" if magnetar else "Neutron Star",
-                     mass=(detail.get("mass_solar") or 0.0) * constants.SOLAR_MASS_TO_KG, radius=detail.get("radius_km"),
+                     mass=_msun_to_kg(detail.get("mass_solar") or 0.0), radius=detail.get("radius_km"),
                      age=detail.get("age_gy"), name=detail["name"])
     elif phenomenon_type == "supernova_remnant":
         extra["compact_remnant"] = None    # the remnant's centre is its own page; its name is `compact_remnant_name`

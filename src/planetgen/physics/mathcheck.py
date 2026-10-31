@@ -57,8 +57,10 @@ from planetgen.galaxy import density as galaxyDensity, sector as spaceSector, sp
 from planetgen.physics import constants as pc, kepler, main_sequence, stellar_evolution
 from planetgen import tuning
 from planetgen.util import log
-from planetgen.physics import interior_heat, planet_kind, planets, radiogenic
+from planetgen.physics import interior_heat, planet_kind, planets, radiogenic, unit_registry
 from planetgen.util import detmath
+
+_msun_to_kg = unit_registry.converter("Msun", "kg")
 
 SEED = 20261001
 """int: The seed every distribution check starts from (each check adds its
@@ -381,8 +383,8 @@ def _reference_checks():
               "71.5 nGy/h in air over the upper continental crust (Rudnick and Gao 2014 Table 11: U 2.7, Th 10.5 ppm, K2O 2.80 weight "
               "percent; UNSCEAR coefficients)", unit="nGy/h"),
         Check("snow_line_1_lsun", "reference", "formation.snow_line_au(L_sun)",
-              lambda: formation.snow_line_au(pc.SOLAR_LUMINOSITY), 2.68, 0.005,
-              "blackbody snow line at 170 K, 2.68 AU for 1 L_sun (Kennedy and Kenyon 2008)", unit="AU"),
+              lambda: formation.snow_line_au(pc.SOLAR_LUMINOSITY), 2.339, 0.005,
+              "blackbody snow line at 182 K, 2.34 AU for 1 L_sun (Lodders 2003 Table 10: water ice condenses at 182 K)", unit="AU"),
         Check("white_dwarf_0_6_msun_radius", "reference", "stellar_evolution.white_dwarf_radius_km(0.6)",
               lambda: stellar_evolution.white_dwarf_radius_km(0.6), pc.EARTH_RADIUS_KM, 0.15,
               "a typical 0.6 M_sun white dwarf is about Earth-sized (Shapiro & Teukolsky 1983)", unit="km"),
@@ -504,7 +506,7 @@ def _speed_of_light_consistency():
 
 def _kepler_units_vs_si():
     """keplerMotion's mu = 4 pi^2 AU^3/yr^2 per M_sun against G * M_sun in SI."""
-    gm_au3_yr2 = pc.G * pc.SOLAR_MASS_TO_KG * pc.SECONDS_PER_YEAR ** 2 / pc.AU_M ** 3
+    gm_au3_yr2 = _msun_to_kg(pc.G) * pc.SECONDS_PER_YEAR ** 2 / pc.AU_M ** 3
     return _rel_err(gm_au3_yr2, kepler.gravitational_parameter_au3_yr2(1.0))
 
 

@@ -155,11 +155,11 @@ def test_no_page_shows_two_contents_lists(browser, base_url, page_targets, admin
     finally:
         context.close()
 
-def test_the_contents_bar_of_an_object_page_stays_under_the_tab_bar_and_marks_the_section_in_view(browser, base_url, page_targets, admin_token):
-    """UX.238 (replacing UX.215's column at the left): on a wide window and on a phone the contents list is a row of links under
-    the tab bar that stays there as the page scrolls, marks the link of the section in view, and the page does not scroll sideways."""
+def test_the_contents_menu_of_an_object_page_is_grouped_and_never_scrolls_sideways(browser, base_url, page_targets, admin_token):
+    """The contents menu of an object page lists sections with their subsections nested under them: a column down the left on a
+    wide window, a list under the title on a phone; neither scrolls sideways."""
     path, _needs_admin = page_targets["web.object_page"]
-    for width in (1280, 390):
+    for width, column in ((1280, True), (390, False)):
         context = browser.new_context(viewport={"width": width, "height": 900}, reduced_motion="reduce")
         context.add_cookies([{"name": SESSION_COOKIE_NAME, "value": admin_token, "url": base_url}])
         page = context.new_page()
@@ -167,28 +167,29 @@ def test_the_contents_bar_of_an_object_page_stays_under_the_tab_bar_and_marks_th
             page.goto(base_url + path, wait_until="load")
             toc = page.locator("nav.page-toc[aria-label='On this page']")
             toc.wait_for(state="attached")
+            assert toc.locator("li ul li a").count() > 0, (width, "no subsections nested under their sections")
+            menu = toc.bounding_box()
             first = page.locator("main .panel").first.bounding_box()
-            menu = toc.bounding_box()
-            assert menu["y"] + menu["height"] <= first["y"] + 1, (width, menu, first)
-            assert menu["x"] < first["x"] + first["width"] and menu["width"] >= first["width"] - 40, (width, menu, first)
-            page.mouse.wheel(0, 1500)
-            _wait_until(page, lambda: toc.locator("a[aria-current='location']").count() == 1 and page.evaluate("window.scrollY") > 400)
-            page.wait_for_timeout(300)
-            menu = toc.bounding_box()
-            header = page.locator(".site-header").bounding_box()
-            assert abs(menu["y"] - (header["y"] + header["height"])) <= 2, (width, "the bar is not under the tab bar", menu, header)
-            current = toc.locator("a[aria-current='location']")
-            assert current.count() == 1, width
-            heading_id = current.get_attribute("href")[1:]
-            assert page.evaluate("id => document.getElementById(id).getBoundingClientRect().top", heading_id) < 400
-            last = toc.locator("a").last
-            last.scroll_into_view_if_needed()
-            last.click()
-            _wait_until(page, lambda: toc.locator("a[aria-current='location']").get_attribute("href") == last.get_attribute("href"))
-            page.wait_for_timeout(500)
-            target = page.evaluate("id => document.getElementById(id).getBoundingClientRect().top",
-                                   last.get_attribute("href")[1:])
-            assert target >= header["height"] + menu["height"] - 2, (width, "the heading is under the bars", target)
+            if column:
+                assert menu["x"] + menu["width"] <= first["x"] + 1, (width, menu, first)
+            else:
+                assert menu["y"] + menu["height"] <= first["y"] + 1, (width, menu, first)
             assert page.evaluate("document.documentElement.scrollWidth <= window.innerWidth + 1"), "the page scrolls sideways"
+            assert page.evaluate("n => n.scrollWidth <= n.clientWidth + 1", toc.element_handle()), "the menu scrolls sideways"
         finally:
             context.close()
+
+
+def test_the_contents_menu_is_one_row_when_it_fits_and_the_grouped_list_when_it_does_not(browser):
+    """The links go in one row across the top only if all of them fit without scrolling; otherwise the grouped list is used."""
+    few = "<h2>One</h2><h3>Sub</h3><h2>Two</h2>"
+    many = "".join(f"<h2>Section number {i}</h2><h3>Subsection {i}</h3>" for i in range(30))
+    for body, strip in ((few, True), (many, False)):
+        page = browser.new_page(viewport={"width": 1280, "height": 800})
+        try:
+            page.set_content("<main id='main' class='app-main'><h1>Title</h1>" + body + "</main>")
+            page.add_script_tag(path=str(PAGETOC_SOURCE))
+            assert page.evaluate("document.getElementById('main').classList.contains('toc-strip')") is strip
+            assert page.evaluate("n => n.scrollWidth <= n.clientWidth + 1", page.locator("nav.page-toc").element_handle())
+        finally:
+            page.close()

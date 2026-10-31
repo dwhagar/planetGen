@@ -14,10 +14,11 @@ from planetgen.generation import validation
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.planet import Planet
 from planetgen.generation.system import StarSystem
-from planetgen.physics import tidal_heating
+from planetgen.physics import icy_tide, interior_heat, tidal_heating
 from planetgen.physics import constants, insolation, kepler, orbit_elements as oe
 from planetgen.physics import planets as planet_physics
 from planetgen.util import draw
+from tests.tide_support import rocky
 
 SAMPLES = 4000
 
@@ -97,8 +98,9 @@ def test_a_moon_at_the_edge_of_the_stable_sphere_has_no_room_for_an_eccentricity
     assert oe.max_moon_eccentricity(stable, None) == oe.MAX_ECCENTRICITY
     # the planet's own eccentricity takes room from the moon's
     assert oe.max_moon_eccentricity(stable / 1.5, hill, 0.2) < oe.max_moon_eccentricity(stable / 1.5, hill, 0.0)
-    assert oe.max_moon_eccentricity(stable / 1.2, hill, 0.2) == pytest.approx(
-        (1.0 - 1.0305 * 0.2 - 1.0 / 1.2) / 0.2738)
+    assert oe.max_moon_eccentricity(stable / 1.5, hill, 0.2) == pytest.approx(
+        (1.0 - 1.0305 * 0.2 - 1.0 / 1.5) / 0.2738)
+    assert oe.max_moon_eccentricity(stable / 1.2, hill, 0.2) == 0.0   # the planet's eccentricity leaves no room at all
     assert oe.max_moon_eccentricity(stable * 0.9, hill, 0.5) == 0.0
 
 
@@ -201,7 +203,9 @@ def test_the_orbits_swing_is_the_seasons_of_a_lone_star_and_adds_to_a_companions
 
 
 def _body(mass_kg, radius_km, body_type="t"):
-    return types.SimpleNamespace(mass=mass_kg, radius=radius_km, body_type=body_type)
+    if body_type == "g" or mass_kg is None:
+        return types.SimpleNamespace(mass=mass_kg, radius=radius_km, body_type=body_type)
+    return rocky(mass_kg, radius_km)
 
 
 def test_a_hot_earth_is_circularised_in_a_billion_years_and_a_far_one_keeps_its_orbit():
@@ -212,20 +216,23 @@ def test_a_hot_earth_is_circularised_in_a_billion_years_and_a_far_one_keeps_its_
     assert 1e5 < near < 1e8
     assert far > 1e15
     assert oe.circularised(0.3, 5e9, near) < 1e-6
-    assert oe.circularised(0.3, 5e9, far) == pytest.approx(0.3, rel=1e-6)
-    # tau goes as a^(13/2): the fifth power of a/R and the 1/n of the period
-    assert oe.circularisation_time_yr(earth, sun, 0.04) / near == pytest.approx(2.0 ** 6.5, rel=1e-9)
+    assert oe.circularised(0.3, 5e9, far) == pytest.approx(0.3, rel=1e-5)
+    # tau goes as a^(13/2) at a fixed Q (the fifth power of a/R and the 1/n of the period); the mantle's Q rises with the tide's frequency, so a closer
+    # orbit is damped a little more slowly than that law says
+    assert 2.0 ** 5.0 < oe.circularisation_time_yr(earth, sun, 0.04) / near < 2.0 ** 6.5
     assert oe.circularised(0.3, 1e9, 0.0) == 0.0
     assert oe.circularisation_time_yr(_body(None, 1.0), sun, 1.0) == math.inf
 
 
 def test_a_gas_giant_dissipates_less_than_a_rock_of_its_size():
     giant = _body(1.9e27, 70_000.0, "g")
-    assert tidal_heating.response(giant) == (tidal_heating.GIANT_K2, tidal_heating.GIANT_TIDAL_Q)
-    k2, q = tidal_heating.response(_body(5.972e24, 6371.0))
-    assert q == tidal_heating.ROCK_TIDAL_Q and k2 == pytest.approx(tidal_heating.rigid_k2(5.972e24, 6.371e6))
+    n = 1.0e-7
+    assert interior_heat.tidal_response(giant, n) == (tidal_heating.GIANT_K2, tidal_heating.GIANT_TIDAL_Q)
+    k2, q = interior_heat.tidal_response(_body(5.972e24, 6371.0), n)
+    assert q < tidal_heating.GIANT_TIDAL_Q and 0.1 < k2 < 1.5
     icy = types.SimpleNamespace(mass=1.0e22, radius=1000.0, body_type="t", water_mass_fraction=0.4)
-    assert tidal_heating.response(icy) == (tidal_heating.ICY_K2, tidal_heating.ROCK_TIDAL_Q)
+    k2, q = interior_heat.tidal_response(icy, n)      # the ice shell's (GEN.960)
+    assert k2 == pytest.approx(icy_tide.love_k2(1.0e22, 1.0e6, n)) and 1.0 < q < math.inf
 
 
 # --- Generated systems -------------------------------------------------------------------------------------------------

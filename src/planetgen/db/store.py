@@ -2885,6 +2885,7 @@ STAR_FIELDS = (
     object_rows.scaled("reflex_offset_z_km", "reflex_offset_z", _AU_KM, null=0.0, nullable=True),
     object_rows.optional("rotation_period_hours"), _SPIN_FIELD,
     object_rows.each(activity.STAR_ACTIVITY_FIELDS), object_rows.optional("metallicity_fe_h"),
+    object_rows.optional("state"), object_rows.optional("decay_age_yr"),
     object_rows.scaled("snow_line_km", "snow_line_au", _AU_KM),
     object_rows.each(pre_main_sequence.DISK_FIELDS),
     object_rows.context("parent_node_id"), object_rows.context("slot"),

@@ -32,6 +32,8 @@ from planetgen.datasets import isochrones
 from planetgen.physics import constants, main_sequence, unit_registry as units
 from planetgen.util import draw
 
+_msun_to_kg = units.converter("Msun", "kg")
+
 PROTOSTAR = "protostar"
 PRE_MAIN_SEQUENCE = "PMS"
 """str: The `yerkes_class` of a protostar and of a pre-main-sequence star (Class II and III)."""
@@ -60,7 +62,7 @@ def birthline_radius_m(mass_sol):
 
 def _binding(mass_sol):
     """`G M^2`, stretched by `PRE_MAIN_SEQUENCE_ENERGY_SOURCE_FACTOR` (contraction pays for only part of the light)."""
-    return tuning.PRE_MAIN_SEQUENCE_ENERGY_SOURCE_FACTOR * constants.G * (mass_sol * constants.SOLAR_MASS_TO_KG) ** 2
+    return tuning.PRE_MAIN_SEQUENCE_ENERGY_SOURCE_FACTOR * constants.G * (_msun_to_kg(mass_sol)) ** 2
 
 
 @functools.lru_cache(maxsize=4096)

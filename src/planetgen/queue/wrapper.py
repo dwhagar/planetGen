@@ -258,11 +258,18 @@ def _resolver(name):
     return found
 
 
+def scatter_settings_name(marker):
+    """The name a `scatter-settings` marker's value is kept under in the run record (`cached`): its scatter's scope and tag, so the
+    scatters of one run (a job holds several, PERF.203) keep theirs apart."""
+    return marker["scope"] + marker.get("tag", "")
+
+
 def resolve_params(conn, run_id, params, strict=True):
     """
     `params` with each deferred parameter (`opened_by`) replaced by its value as the run record has it now. With `strict` false a
     parameter that cannot be resolved yet stays as it is (`generation.finish_run` copies the steps of a run that stopped before
-    some stage opened).
+    some stage opened), and so does a `scatter-settings` parameter no stage has worked out yet: reading the database for a stage that
+    has not opened would keep a value the stages before it may still change (a clear, a mass pass that stores the limit).
 
     Raises:
         Unresolved: A deferred parameter has no value and `strict` is true.
@@ -271,6 +278,10 @@ def resolve_params(conn, run_id, params, strict=True):
     out = {}
     for name, value in params.items():
         if is_deferred(value):
+            if (not strict and value[DEFERRED] == "scatter-settings"
+                    and conn.hget(runrecord.run_key(run_id), f"deferred:{scatter_settings_name(value)}") is None):
+                out[name] = value
+                continue
             try:
                 found = _resolver(value[DEFERRED])(conn, run_id, value)
             except (Unresolved, RuntimeError):      # a RuntimeError is a resolver's refusal (the galaxy has no skeleton, say)

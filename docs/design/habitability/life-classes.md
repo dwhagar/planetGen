@@ -149,6 +149,8 @@ Flora is macroscopic photosynthesis or a surface mat route (Classes 1 and 2); Fa
 
 ### 5.2 Prevalence targets (Boss 9:13 PM EDT)
 
+**A civilization is never forced (Boss, 5:08 PM EDT 2026-10-30).** Adjusting the prevalence, or asking for intelligent life, only tweaks the probabilities: nothing places a civilization, redraws a system until one appears, or squeezes a timeline to make one fit. A request that no draw meets says so plainly.
+
 Sentient is the rarest outcome and most life ends at microbes, plants or animals. The anchor is Core 1's timing review, which Boss chose at 9:03 PM EDT (complex cells 2.5, animals 3, civilization 60 Gyr, scale 1.0): for worlds with oxygenic life, G stars give about 21 in 100 animals and 0.6 civilizations, K about 33 and 1.5, M about 23 and 0.7. Animals to civilizations is therefore about 20 to 40 to 1. These are the bands the census (TEST.435, moved into 8.1) should hold. They are stand-ins, T9 and L3, set from Boss's rule and Core 1's model, not from observation.
 
 | Population | Target band | Why |
@@ -232,7 +234,7 @@ Complex-life score per class: `S_cpx_c = S_c * T_c(index C)`, the generalised `t
 
 ### 8.2 Dominant class (the "has" side)
 
-Every class that scores at least `HABITABILITY_LIFE_SCORE_MIN` (0.005) develops (Boss: if it is possible, it will develop). The one reported as "has Class N life" is the class with the largest **net primary production** among the supported classes. Net primary production is the energy supply times the class efficiency. Where oxygenic and anoxygenic life both fit a lit ocean, Class 1 wins by orders of magnitude, as on Earth; Class 3 wins under ice because nothing else fits; Class 5 wins on a dry acid world. The other supported classes are listed as "also supports" and keep their scores. A tie within a factor of 2 is broken by a weighted draw (one of the few draws in this design; the pigment letter within Class 1 uses the same rule).
+Every class that scores at least `HABITABILITY_LIFE_SCORE_MIN` (0.005) develops (Boss: if it is possible, it will develop). The one reported as "has Class N life" is the class with the largest **net primary production** among the supported classes. Net primary production is the energy supply times the class efficiency. Where oxygenic and anoxygenic life both fit a lit ocean, Class 1 wins by orders of magnitude, as on Earth; Class 3 wins under ice because nothing else fits; Class 5 wins on a dry acid world. The other supported classes are listed as "also supports" and keep their scores. The class that lives on a world is always among the classes stored as supported: when its own life has used up what it lived on (the donor or hydrogen it drew down, the air it changed) and the conditions after the air build score it 0, it is stored at the score it was chosen at (TEST.486). A tie within a factor of 2 is broken by a weighted draw (one of the few draws in this design; the pigment letter within Class 1 uses the same rule).
 
 This replaces the star-letter weights in `LIFE_CHEMICALS` and `STAR_EVOLUTION` (the 15 dead weights of GEN.867). The old weights were T4, L3 guesses; the physics rule is stronger, and it makes the M-dwarf far-red route (1c) automatic.
 

@@ -430,7 +430,9 @@ class Planet(PlanetaryObject):
             planetPhysics.apply_class(self)
             if not (system_config.HABITABLE_WORLD is False and self.zone == 'e' and habitable_request.meets(self)):
                 break
+            draw.redrawn("planet.barred_world")
         planetPhysics.generate_orbital_motion_properties(self, primary_mass_kg)
+        self._age_drawn = star.age  # the age this body was made at; the star's rises once the planets are in (`planets.refinish_rocky`, GEN.992)
 
         if moon_count != DEFER_MOONS:
             self.add_moons(moon_count)
@@ -449,6 +451,9 @@ class Planet(PlanetaryObject):
                 self.system_config.MOONS is True
                 or self._draw_moons()):
             planetPhysics.generate_moons(self)
+        # GEN.959: the moons' history with the planet's spin (outward drift, the fall of a moon into a ring, the planet's day), from its birth spin
+        if self.moons and getattr(self, "_birth_spin", None) is not None:
+            planetPhysics.generate_spin(self, self.star.mass, birth=self._birth_spin)
         # GEN.767: the day and night shares, the moons' with their parent's shadow (no draws)
         daylight.generate(self)
         for moon in self.moons:
