@@ -1092,7 +1092,7 @@
    "variant": "",
    "name": "Silicon-bearing life in acid",
    "drinks": "concentrated sulfuric acid",
-   "eats": "as Class 5, with organosilicon chemistry",
+   "eats": "as Class 5a and 5b, with organosilicon chemistry",
    "breathes": "the acid itself",
    "gives_off": "SO2, silica (solid SiO2)",
    "reaches": "Microbial",

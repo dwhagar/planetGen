@@ -4495,7 +4495,11 @@ def test_galaxy_map_opens_zoomed_in_on_the_charted_space(page, map_site):
     assert page.evaluate(CAMERA)["zoom"] == pytest.approx(1)
     # A view the address names is not moved.
     _open_window(page, map_site, 3, 250, 0, 0)
-    assert page.evaluate(CAMERA)["zoom"] == pytest.approx(1)
+    # MAP.337: the window is a camera move, so its fit is the distance the camera rests at (it is a ratio of the whole galaxy's fit now).
+    rest = page.evaluate(CAMERA)["dist"]
+    assert rest < 1e4, rest
+    page.wait_for_timeout(1000)
+    assert page.evaluate(CAMERA)["dist"] == pytest.approx(rest)
 
 
 def test_galaxy_map_star_classes_and_the_luminosity_floor_hide_stars_and_ride_in_the_url(page, map_site):
@@ -5238,7 +5242,7 @@ def _slider_to(page, share, seconds=7.0):
     return page.evaluate(CAMERA_NOW)
 
 
-def _slider_distance(share, far=37202.0, floor=1e-10):
+def _slider_distance(share, far=37202.0, floor=1e-12):
     """The camera distance (parsecs) the slider's `share` stands for: one log scale from the whole galaxy to the floor."""
     return math.exp(math.log(far) - share * (math.log(far) - math.log(floor)))
 
@@ -5312,7 +5316,7 @@ def test_the_zoom_slider_is_one_log_scale_and_takes_the_view_through_every_level
 
 def test_the_zoom_range_is_one_absolute_range_in_every_stage_and_the_nearest_thing_sets_the_step(page, map_site):
     """MAP.334: what the camera may do does not depend on the stage: the farthest is the whole galaxy in view in a window, a sector and a
-    system alike, the nearest 1e-3 pc outside a system (until the scene has the precision for finer) and 1e-10 pc in one; and the wheel
+    system alike, the nearest 1e-3 pc outside a system (until the scene has the precision for finer) and 1e-12 pc in one; and the wheel
     reads the nearest thing along the pointer's ray, with the distance to it."""
     page.set_viewport_size(VIEWPORT)
     limits_js = "() => document.querySelector('#galaxymap3d-canvas').galaxyZoomLimits()"
@@ -5342,7 +5346,33 @@ def test_the_zoom_range_is_one_absolute_range_in_every_stage_and_the_nearest_thi
     _slider_to(page, 0.6)
     assert (_galaxy_system(page) or {}).get("id"), "the slider carried the view into the system"
     limits = page.evaluate(limits_js)
-    assert abs(limits["nearestPc"] / 1e-10 - 1) < 0.01 and abs(limits["farthestPc"] / 37202.0 - 1) < 0.01, limits
+    assert abs(limits["nearestPc"] / 1e-12 - 1) < 0.01 and abs(limits["farthestPc"] / 37202.0 - 1) < 0.01, limits
+
+
+def test_a_system_is_drawn_from_the_eyes_own_frame_at_the_nearest_view(page, map_site):
+    """MAP.338: at the nearest view (1e-12 pc, 30 km) the camera is held as its target plus an exact offset, not as one galactic position (whose
+    step is 1.8e-12 pc at 8 kpc), and the open system is drawn in a second pass from the eye's own frame: the offset is the distance asked for
+    to a part in a million, the pass runs, and the canvas has the system's picture in it (it is not blank)."""
+    page.set_viewport_size(VIEWPORT)
+    _open_galaxy(page, map_site, OPEN_PRIME)
+    page.wait_for_selector(".starmap-sr-list button", state="attached")
+    page.locator(".starmap-sr-list button", has_text="Middling Sun").first.evaluate("b => b.click()")
+    _settle(page)
+    _slider_to(page, 0.6)
+    _wait_system(page)
+    assert page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyDeepFrame().active") is False
+    camera = _slider_to(page, 1.0, seconds=9.0)
+    assert abs(camera["dist"] / 1e-12 - 1) < 0.01, camera["dist"]
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').galaxyDeepFrame().passes > 0", timeout=20000)
+    deep = page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyDeepFrame()")
+    assert deep["active"] is True and abs(deep["dist"] / camera["dist"] - 1) < 1e-6, (deep, camera)
+    assert 0.1 <= deep["dist"] * deep["scale"] <= 10, deep
+    shot = Image.open(io.BytesIO(page.locator(GALAXY_CANVAS).screenshot())).convert("L")
+    low, high = shot.getextrema()
+    lit = high - low
+    assert lit > 20, "the nearest view drew nothing"
+    _slider_to(page, 0.6)
+    assert page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyDeepFrame().active") is False
 
 
 def test_the_wheel_does_not_stop_at_the_end_of_a_window_whose_sector_was_picked(page, map_site):

@@ -112,6 +112,7 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.60:GM12 | replace | GEN.1016 | the criterion holds only for q_out up to 5; GEN.1028 enforces the range (built), and GEN.1016 replaces it with the quadruple fit and the 3+1 criterion beyond it |
 | 6.60:GM13 | replace | GEN.1006 | the 3+1 axis margin of 1.3 is hand-tuned on 331 N-body systems; a larger own N-body sample (GEN.1006 section 9) or a retrained network replaces it |
 | 6.60:GM14 | replaced | - | GEN.1155: the 2+2 axis margin is now 1.5, tuned (L2) to the paper's 0.94 precision on 302 + 185 own REBOUND 2+2 systems; it was the 3+1 margin of 1.3 with no 2+2 sample |
+| 6.148:RGD1 | no data | - | the clean-ice reflectance and the half-darkening share of an ice and dark mixture are recalled (Clark and Lucey 1984 was not read); the share is tuned to Saturn's ring reflectances, and a measured mixture curve replaces both |
 | 6.71:RR1 | no data | - | the rate of a resonance ring on a small body has no survey behind it: the three known rings are of bodies chosen for occultation campaigns, and the count of bodies searched is not published as a rate |
 | 6.71:RR4 | no data | - | the mass and width range of a thin resonance ring is bracketed by the optical depth it must give; the measured optical depth and width of Quaoar's ring were not read |
 | 6.69:LQ3 | no data | - | the brine and ammonia-water eutectic densities, viscosities and boiling points are recalled values; laboratory brine tables (Pitzer-model compilations) can replace them when read |
@@ -161,7 +162,27 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.45:MF1 | no data | - | no measurement gives the melt share of a mantle outside the Earth (and Io's lavas); a mantle potential temperature and solidus model is the replacement and nothing we hold supplies it |
 | 6.125:TB3 | no data | - | no source read gives the share of co-orbital solids that grow into a trojan; a disc formation map replaces it |
 | 6.125:TB4 | no data | - | no source read gives the shortest disc life for a trojan to grow; a formation map replaces it |
+| 6.150:CF2 | no data | - | the 0.5 g and 2 g lines of the habitable classes have no measured soft edge; the width is hand-picked until the GEN.1207 sweep shows how far the class scatter reaches |
+| 6.150:CF3 | no data | - | the temperature shoulder is hand-picked; a measured scatter of one class at fixed insolation would replace it |
+| 6.150:CF4 | no data | - | the pressure shoulder is hand-picked on a log scale; no source gives a soft edge for the survival pressure limits |
+| 6.150:CF5 | no data | - | the ocean-fraction shoulder is hand-picked; the law of GEN.1147 fixes how bimodal the cover is and the GEN.1207 sweep then sets the width |
+| 6.150:CF6 | no data | - | the airless icy line shoulder is hand-picked; no source gives a soft edge for dry against icy airless bodies |
+| 6.150:CF7 | no data | - | the gas-share shoulders are hand-picked; no source gives a soft edge for the oxygen, carbon dioxide and reducing-gas limits |
+| 6.155:LR1 | no data | - | the abundance word edges on the 0 to 9 kind score are a hand-picked reading of a standard ecology scale (DAFOR style); no source ties the words to our score |
+| 6.155:LR2 | no data | - | the trend look-ahead, band and spread are hand-picked; no source gives a rate of change that counts as a trend for a living class |
+| 6.155:LR3 | no data | - | the time-left limits for Dying out, Precarious and Marginal are hand-picked; no source gives them for a living class |
+| 6.155:LR5 | no data | - | the milestone each kind spreads after is a hand-picked reading of the life timeline; the stored schedule of the world replaces it where there is one |
 | 6.126:RN3 | no data | - | no measured strength of ice with rock grains above 56 percent solids by volume; a measured curve replaces the extrapolated leg from 0.56 to the rock strength at 1 |
 | 6.126:RN5 | no data | - | no source gives a porosity law for body-scale strength; the rubble-pile branch (friction plus a little cohesion) replaces it |
 | 6.129:IT6 | no data | - | the 1993 ammonia-water constants of Durham, Kirby and Stern are not in hand; they replace the three interpolated points |
 | 6.129:IT9 | no data | - | no measurement of the ammonia share at which a water ice mix takes the dihydrate's strength |
+| 6.59:CK1 | replace | GEN.1021 | the N2 and Ar trapping shares are tuned to the one comet measured (67P); a second comet's N2 or Ar per water replaces them |
+| 6.59:CK2 | replace | GEN.1021 | the OCS and SO2 trapping shares are tuned to the one comet measured (67P); a second comet's sulfur species replace them |
+| 6.59:CK5 | replace | GEN.1021 | O2, krypton and xenon per water are the 67P values with no host ratio; a second comet's values replace them |
+| 6.136:CC7 | no data | - | no measured viscosity of the lowest mantle at the core-mantle boundary; the Earth's core temperature and inner core size are the only constraint it is tuned to |
+| 6.136:CC9 | no data | - | no measurement of the shell thickness at which a core dynamo dies; Mars and the Earth are the only two points |
+| 6.142:DY7 | no data | - | the core model has the pure-iron liquidus only; no sulfur-bearing melting curve is held, and the first one replaces the stand-in moment of a small iron-rich body |
+| 6.160:LUM2 | no data | - | the roundness a lump is drawn with when none is stored is a picture choice; the stored ratio of every system made after GEN.1159 replaces it, and nothing measures the shape of a body that was never stored |
+| 6.160:LUM4 | no data | - | the bump height is tuned by eye; a stored relief or a fitted power spectrum of small-body topography (no source in hand) would replace it |
+| 6.161:FM1 | no data | - | the line is the belts' (BG14): no survey measures the dust of a field; it goes where BG14 goes |
+| 6.161:FM2 | no data | - | no model or measurement of the size distribution of the rubble of a planet-planet collision is in hand; the rocky main-belt law stands in until the largest-fragment reading (LS12) |

@@ -1,6 +1,6 @@
 # planetGen
 
-**Version:** 8.0.2929 &middot; [Changelog](CHANGELOG.md) &middot; [Repository](https://github.com/dwhagar/planetGen) &middot; License: [CC0 1.0 Universal](LICENSE.md)
+**Version:** 8.0.3012 &middot; [Changelog](CHANGELOG.md) &middot; [Repository](https://github.com/dwhagar/planetGen) &middot; License: [CC0 1.0 Universal](LICENSE.md)
 
 planetGen generates a galaxy: stars, star systems, planets, moons,
 asteroid belts and exotic phenomena, placed in a physically modeled
@@ -197,7 +197,7 @@ The list below is written from the catalogue by `scripts/readme_external_files.p
 - Source: Chubb et al. 2021 (A&A 646, A21), ExoMolOP R1000 ARCiS k-tables from exomol.com.
 - Download: 3 files, 1257.8 MB. Kept after setup: `ir_ktables.npz` (the download is deleted once it is reduced).
 - Fetch: `python3 -m planetgen.cli.datasets fetch ir_ktables`.
-- Replaces: the band-strength and wing stand-ins of the grey infrared opacity (removed in GEN.850): plateau opacities per band centre of the gas table.
+- Replaces: the band-strength and wing stand-ins of the grey infrared opacity: plateau opacities per band centre of the gas table.
 - With `--disregard-missing-data`: None at generation: the fitted greenhouse table (physics/greenhouse_table.py) carries the answer; the tables are read to fit and check it.
 - Files (URL, then the file name it is kept under in the dataset's folder):
   - <https://exomol.com/db/H2O/1H2-16O/POKAZATEL/1H2-16O__POKAZATEL__R1000_0.3-50mu.ktable.ARCiS.fits.gz> as `ir_ktable_h2o.fits.gz`
@@ -209,7 +209,7 @@ The list below is written from the catalogue by `scripts/readme_external_files.p
 - Source: Karman et al. 2019 (Icarus 328, 160), HITRAN collision-induced absorption files from hitran.org.
 - Download: 11 files, 195.4 MB. Kept after setup: `ir_cia.npz` (the download is deleted once it is reduced).
 - Fetch: `python3 -m planetgen.cli.datasets fetch ir_cia`.
-- Replaces: the coarse pair coefficients of the grey infrared opacity (removed in GEN.850), read at six temperatures from a part-03 table.
+- Replaces: the coarse pair coefficients of the grey infrared opacity, read at six temperatures from a part-03 table.
 - With `--disregard-missing-data`: None at generation: the fitted greenhouse table (physics/greenhouse_table.py) carries the answer; the pairs are read to fit and check it.
 - Files (URL, then the file name it is kept under in the dataset's folder):
   - <https://hitran.org/data/CIA/main/N2-N2_2021.cia> as `N2-N2_2021.cia`
@@ -249,8 +249,8 @@ The list below is written from the catalogue by `scripts/readme_external_files.p
 - Source: Baraffe, Homeier, Allard and Chabrier 2015, A&A 577, A42.
 - Download: 1 file, 65 kB. All kept as downloaded.
 - Fetch: `python3 -m planetgen.cli.datasets fetch baraffe_isochrones`.
-- Replaces: the three pre-main-sequence constants fitted to Baraffe 2015 and the nine brown dwarf radius points of tuning.py.
-- With `--disregard-missing-data`: The nine hard-coded brown dwarf points and the fitted pre-main-sequence constants of tuning.py.
+- Replaces: the nine brown dwarf radius points and the power-law extension of the main sequence under 0.1 solar masses (the three pre-main-sequence constants of tuning.py stay as fitted to it).
+- With `--disregard-missing-data`: The fitted pre-main-sequence constants of tuning.py; a brown dwarf's radius and the main sequence under 0.1 solar masses are left out.
 - Files (URL, then the file name it is kept under in the dataset's folder):
   - <https://perso.ens-lyon.fr/isabelle.baraffe/BHAC15dir/BHAC15_iso.2mass> as `BHAC15_iso.2mass`
 
@@ -437,6 +437,7 @@ its options:
 | [docs/generated/version-plan.html](docs/generated/version-plan.html) | Every open item by version, phase, thread and dependency, as one page to open in a browser |
 | [docs/generated/todo-tree.html](docs/generated/todo-tree.html) | Every open item as a tree, each under the prerequisite that finishes last, with search and phase and bug filters |
 | [docs/generated/todo-reference.html](docs/generated/todo-reference.html) | Every TODO ID ever issued, explained in full, with search and filters (all three pages are rebuilt by `python scripts/build_todo_docs.py`) |
+| [docs/reference/logging.md](docs/reference/logging.md) | The form of every log line (time, severity, component, stage markers) and where each log is found |
 | [docs/reference/testing.md](docs/reference/testing.md) | Running the tests |
 | [docs/reference/ci-runners.md](docs/reference/ci-runners.md) | Running the scheduled CI on your own computers (optional) |
 | [CHANGELOG.md](CHANGELOG.md) | What changed in each release |

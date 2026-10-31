@@ -18,8 +18,8 @@ radius and its distance. For a moon it adds the extra night when its planet stan
   too (a point star gives one half). It holds for a locked world as well.
 * **The solar day** (`solar_day_hours`): the star returns to the same place in `1 / |1/P_rot -/+ 1/P_orb|` (the sign for a
   prograde or a retrograde spin), `P_orb` the period round the star (a moon's star orbit is its parent's). It is `None` for a world
-  that turns once an orbit: it has no day, only the day side, the terminator and the night side (`locked_zone_shares`: 100,
-  50 and 0 percent). `daylight_hours` is the solar day times the equatorial share.
+  that turns once an orbit: it has no day, only the day side, the terminator and the night side (the day side is lit all the time, the terminator
+  half of it, the night side never). `daylight_hours` is the solar day times the equatorial share.
 * **The polar circle** (`polar_circle_deg`): the latitude beyond which the star does not set for at least a day,
   `90 - e - alpha` degrees (zero or less becomes 0: the whole world has polar days and nights; a tilt past 90 degrees
   counts as `180 - tilt`).
@@ -102,12 +102,6 @@ def equator_day_share(tilt_deg, alpha):
 def mean_day_share(alpha):
     """The share of the time the star is up, averaged over the whole surface: the lit part of a sphere, `(1 + sin alpha) / 2`."""
     return 0.5 * (1.0 + math.sin(alpha))
-
-
-def locked_zone_shares():
-    """The shares of a world that turns once an orbit: the day side is always lit, the terminator ring is on the line, the night
-    side never is."""
-    return {"day_side": 1.0, "terminator": 0.5, "night_side": 0.0}
 
 
 def polar_circle_deg(tilt_deg, alpha):

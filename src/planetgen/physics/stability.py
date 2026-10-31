@@ -207,7 +207,7 @@ def kozai_verdict(m1, m2, m3, a_in, a_out, e_in, e_out, i, age_yr, extent_sum_au
     octupole = eps > 0.01 and math.radians(25.0) < mutual < math.radians(90.0)
     if x >= 1.0 and not octupole:
         return "safe"
-    e_max = math.sqrt(1.0 - x) if x < 1.0 else e_in
+    e_max = kozai_max_eccentricity(e_in, i)
     if octupole:
         e_max = max(e_max, 0.98)
     p_in = orbital_period_yr(a_in, m_in)

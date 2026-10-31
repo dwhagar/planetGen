@@ -10,7 +10,7 @@ A row that would say none or 0 is left out unless its absence is the answer (a s
 """
 
 from planetgen.describe import model
-from planetgen.describe.hierarchy import hierarchy_text
+from planetgen.describe.hierarchy import hierarchy_sentences
 from planetgen.describe.html import inline_html
 from planetgen.web import item_pages
 from planetgen.web.helpers import trusted_html
@@ -48,12 +48,12 @@ def system_rows(detail, facilities, symbols):
     stars = detail.get("stars") or []
     if stars:
         primary = next((s for s in stars if s.get("role") in ("single", "primary")), stars[0])
-        make_up = hierarchy_text(
+        make_up = hierarchy_sentences(
             [{"name": s.get("name") or "", "type": s.get("star_type"), "node_no": s.get("parent_node_no"), "slot": s.get("slot") or 0}
              for s in stars],
             [{"node_no": n["node_no"], "parent_node_no": n["parent_node_no"], "slot": n["slot"], "kind": n["kind"]}
              for n in detail.get("orbits") or []])
-        rows.append({"label": "Stars", "html": esc(make_up or f"{_count('star', 'stars', len(stars))}, the main one {primary.get('star_type') or 'unclassified'}")})
+        rows.append({"label": "Stars", "html": esc(" ".join(make_up) if make_up else f"{_count('star', 'stars', len(stars))}, the main one {primary.get('star_type') or 'unclassified'}")})
     planets = detail.get("planets") or []
     rows.append({"label": "Planets", "html": esc(_count("planet", "planets", len(planets)) if planets else "none")})
     moons = sum(len(planet.get("moons") or []) for planet in planets)

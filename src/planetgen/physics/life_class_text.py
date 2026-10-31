@@ -8,7 +8,7 @@ What a class drinks, eats, breathes and gives off, and what each rung of the sta
 planet page, the search results and the API. The lines of the first kind are the rule file's own (`physics/data/life_classes.json`);
 the stage words are `physics/data/life_class_text.json`:
 
-* `rungs`: a name and a sentence for every rung of the ladder, for any class (`{n}` is the class number);
+* `rungs`: a name and a sentence for every rung of the ladder, for any class (`{n}` is the class's whole id when one is given, "3a", else its number);
 * `grades`: the three animal grades A1 to A3 of rung 5;
 * `classes`: a name and a sentence for the rungs where a class has words of its own. A class has words for the rungs the design says
   it may reach; any other rung falls back to the generic words, so a strange-solvent class that does reach complex cells in some
@@ -100,6 +100,7 @@ def stage(class_id, rung, grade=None):
         tuple: `(name, description)`.
     """
     number = number_of(class_id)
+    name = str(class_id) if str(class_id) in life_classes.BY_ID else str(number)
     if rung not in RUNGS:
         raise LifeClassTextError(f"{rung!r} is not a rung (0 to 6)")
     if grade is not None:
@@ -109,9 +110,9 @@ def stage(class_id, rung, grade=None):
             raise LifeClassTextError(f"{grade!r} is not an animal grade (A1 to A3)")
         entry = DOCUMENT["grades"][grade]
         own = DOCUMENT["classes"][str(number)].get("5") or DOCUMENT["rungs"]["5"]
-        return entry["name"], own["description"].replace("{n}", str(number)) + " " + entry["description"]
+        return entry["name"], own["description"].replace("{n}", name) + " " + entry["description"]
     entry = DOCUMENT["classes"][str(number)].get(str(rung)) or DOCUMENT["rungs"][str(rung)]
-    return entry["name"], entry["description"].replace("{n}", str(number))
+    return entry["name"], entry["description"].replace("{n}", name)
 
 
 def stage_name(class_id, rung, grade=None):

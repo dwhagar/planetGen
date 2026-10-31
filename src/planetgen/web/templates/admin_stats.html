@@ -138,6 +138,18 @@
     {{ csrf_field() }}<button type="submit">Reset stats</button>
   </form>
   {%- endif %}
+  {%- if generation.objects %}
+  <h3 id="object-times-heading">Seconds per object</h3>
+  <p class="hint">How long one object of each kind took to generate, over every saved run, not counting the objects built inside it (a planet's moons, a system's stars). The share is of all the object time. Kinds that took the most time come first.</p>
+  <div class="table-scroll" tabindex="0"><table aria-labelledby="object-times-heading">
+    <thead><tr><th scope="col">Kind</th><th scope="col" class="num">Objects timed</th><th scope="col" class="num">Mean</th><th scope="col" class="num">Fastest</th><th scope="col" class="num">Slowest</th><th scope="col" class="num">Share of time</th></tr></thead>
+    <tbody>
+      {%- for row in generation.objects %}
+      <tr><td>{{ row.kind }}</td><td class="num">{{ row.objects }}</td><td class="num">{{ row.mean }}</td><td class="num">{{ row.fastest }}</td><td class="num">{{ row.slowest }}</td><td class="num">{{ row.share }}</td></tr>
+      {%- endfor %}
+    </tbody>
+  </table></div>
+  {%- endif %}
   {%- if generation.stages %}
   <h3 id="stage-times-heading">Stage times</h3>
   <p class="hint">How long each stage of the latest runs took, with the settings it ran with and what it did. Skipped stages are listed with their reason.</p>
