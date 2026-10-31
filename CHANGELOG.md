@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2996] - 2026-10-31
+
+**Headline:** A small cold body no longer keeps a hydrogen air: the escape filter now sees its star, so a moon of Titan's size at 5 AU loses its hydrogen instead of being called a gas dwarf.
+
+### Fixed
+- **The escape filter of the drawn air never ran (GEN.1199).** `mixture_escape` finds the star's XUV from the star's mass, but the subject built from a body (`mixture_subject.subject_of_body`) carried only the quantities the recipe rows read and left the mass out, so the filter saw no XUV, its energy budget was nothing and no gas left any body. A 0.02 to 0.14 Earth-mass moon of a giant at 5 AU kept up to 34 kPa of hydrogen and was called class T. The subject now carries `host_mass_solar`. Over 60 systems the bodies with class T fall from 37 to 9 (in 310 bodies), and bodies of this size and distance that were given a hydrogen air are now airless or keep what the model lets stay. The mass that keeps half of a hydrogen air over 4.5 Gy (icy rock, 10 kPa) is 23 Earth masses at 1 AU, 14 at 5 AU, 8 at 10, 2.2 at 20, 0.8 at 30, 0.2 at 50 and 0.04 at 100 (`tests/test_small_body_hydrogen.py`).
+- Generator epoch bump (numbered at merge): the stored air, pressure, temperature, class and everything that reads them change for small bodies that had kept hydrogen or helium.
+generation-output: changed
+
 ## [8.0.2995] - 2026-10-31
 
 **Headline:** A galaxy's disc now holds its clusters to the most massive its gas can form at each radius, instead of one flat 1e6 solar masses everywhere.
