@@ -33,6 +33,8 @@ GAS_CONSTANT = 8.314462618
 """float: J/(mol K)."""
 GY_S = 1.0e9 * constants.SECONDS_PER_YEAR
 """float: Seconds in a gigayear."""
+MAX_EXPONENT = 600.0
+"""float: The largest exponent of the viscosity law (`exp` overflows at 709): a box this cold has a viscosity no heat crosses (a numerical bound)."""
 
 PRESSURE_FACTOR = 1.16
 """float: STAND-IN CC1: the compression a uniform shell leaves out, as one factor on the shells' pressures."""
@@ -194,8 +196,8 @@ class Stepper:
         boundary_k = self.boundary_k(mantle_k)
         drop = temperature_k - boundary_k
         mean_k = max(0.5 * (temperature_k + boundary_k), 1.0)
-        viscosity = self.eta0_pa_s * math.exp((self.activation_j_mol + self.pressure_enthalpy_j_mol)
-                                              / (GAS_CONSTANT * mean_k))
+        viscosity = self.eta0_pa_s * math.exp(min((self.activation_j_mol + self.pressure_enthalpy_j_mol)
+                                                  / (GAS_CONSTANT * mean_k), MAX_EXPONENT))      # a very cold box is a solid one: no heat crosses, not an overflow
         gap = abs(drop)
         if gap < 1.0e-6:
             return 0.0

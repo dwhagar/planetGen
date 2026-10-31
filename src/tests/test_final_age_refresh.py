@@ -39,8 +39,9 @@ def shell_km(body):
 
 
 def icy(seeds):
+    # a body with little water has a brine whose eutectic (drawn again at the refresh) is where its shell melts, not the 273.15 K `shell_km` takes
     return [body for body in bodies(seeds) if body.hydrosphere == "ice-covered ocean" and body.ocean_class != "chloride brine"
-            and body.ice_shell_km and body.internal_heat_flux_w_m2]
+            and body._surface_w >= hydrosphere.BRINE_MAX_WATER_FRACTION and body.ice_shell_km and body.internal_heat_flux_w_m2]
 
 
 def test_the_stored_ice_shell_is_the_one_the_stored_final_age_heat_gives():
@@ -53,7 +54,9 @@ def test_the_stored_ice_shell_is_the_one_the_stored_final_age_heat_gives():
 
 
 def test_a_body_made_again_at_an_older_age_has_the_shell_of_its_cooler_interior():
-    body = next(body for body in icy(ICY_SEEDS) if body.ice_shell_km < 15.0)     # a thick shell on a heavy body makes `pressure_melted_shell_km`'s three passes alternate
+    # a thick shell on a heavy body makes `pressure_melted_shell_km`'s three passes alternate, and one that grows past the body's water (shell and ocean
+    # together) freezes it through: the body keeps its ocean well below the thicker shell the cooler interior gives
+    body = next(body for body in icy(ICY_SEEDS) if body.ice_shell_km < 15.0 and body.ocean_depth_km > 40.0)
     before_flux, before_shell = body.internal_heat_flux_w_m2, body.ice_shell_km
     body.star.age = body.star.age * 3.0
     planets.refresh_at_final_age(body)

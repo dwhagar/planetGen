@@ -78,6 +78,8 @@ NULL_IN_THIS_GALAXY = {
     # GEN.1057: a rogue planet has no moon that fell and no comet that passed, so it has no ring (the columns are stored for a ring set by hand).
     **{("rogue_planets", column): "a rogue planet has no ring (GEN.1057)" for column in rings.BODY_FIELDS},
     **{(table, "hp_ice_km"): CHANCE for table in ("planets", "moons", "rogue_planets")},
+    # Only a heap of grains lighter than SMALL_BODY_MASS_KG has a porosity, and a planet that small is a rare draw (a moon's is set by its origin).
+    ("planets", "porosity"): CHANCE,
     # Whether any moon of this small galaxy holds an ocean is chance.
     **{("moons", column): CHANCE for column in
        ("ocean_class", "ocean_depth_km", "ocean_ph", "phosphorus", "water_activity", "tidal_flux_w_m2")},
