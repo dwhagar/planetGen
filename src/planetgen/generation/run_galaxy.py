@@ -2040,7 +2040,7 @@ def generate_sector_neighborhood(center_sector_id, radius_ly=None, config=None, 
     The default radius is `program_constants.DEFAULT_GENERATE_RADIUS_PC`
     (12 pc, about 100 candidate addresses; GEN.23). Once they are all
     generated, the 100 ly around the center sector gets its bright stars
-    (`backfill_bright_stars`, GEN.30).
+    (the `scatter-backfill` stage, GEN.30).
     A larger `radius_ly` (100 ly holds roughly 1,500-2,000 addresses) can
     take minutes to hours.
 

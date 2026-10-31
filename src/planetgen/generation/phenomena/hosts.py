@@ -38,7 +38,7 @@ A row that draws an orbiter's mass states it as a ratio to the host's mass where
 planet, a planet to its star), so a draw cannot make an orbiter heavier than its host except through the pair builder,
 where the primary-first step lives (GEN.581). No row has a mass yet; the convention is for the rows U7 adds.
 
-`SATELLITES` and `COMPANIONS` are looked up by name at call time, so a test can swap a table (`reweighted`).
+`SATELLITES` and `COMPANIONS` are looked up by name at call time, so a test can swap a table (`reweighted` in `tests/test_host_tables.py`).
 """
 
 import functools
@@ -186,7 +186,7 @@ MOON_SATELLITES = pt.REGISTRY.register(pt.Table(
     description="Whether a moon holds anything: empty until the tidal-survival row is added."))
 
 REGISTRY_TABLES = {table.name: table for table in (STAR_COUNT, REMNANT_SATELLITES, PLANET_SATELLITES, MOON_SATELLITES)}
-"""dict: The host tables by name; a test swaps one with `monkeypatch.setitem` (`reweighted`)."""
+"""dict: The host tables by name; a test swaps one with `monkeypatch.setitem` (`reweighted` in `tests/test_host_tables.py`)."""
 
 HOSTS = (
     HostClass("group-node", "the stars of a multi-star group", "star-count", None,
