@@ -105,7 +105,7 @@ def reference_link(kind, entry=None, label="Where this comes from"):
     The link from an in-universe page to the References entry that answers "where does this come from" (DOC.87), as Markup:
     `<a class="reference-link" href="...">Where this comes from</a>`. `kind` and `entry` are those of
     `reference_urls.reference_path` (`reference_link("method", "atmospheres/surface_pressure")`, `reference_link("papers",
-    doi)`); a kind or id that does not exist raises `ValueError`, so a typo in a template fails the page and the crawl test.
+    "R0123")`); a kind or id that does not exist raises `ValueError`, so a typo in a template fails the page and the crawl test.
     The link adds no sentence to the page: the label is a small phrase or an icon (`label` may be changed for a short form).
     """
     return Markup('<a class="reference-link" href="{}">{}</a>').format(reference_path(kind, entry), label)
