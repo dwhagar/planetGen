@@ -805,6 +805,8 @@ _BODY_RULES = [
      "the tide's heat is worked out for the interior of a rocky or icy body; a giant's own heat is the heat it radiates, which has its own row"),
     (("tidal_flux_w_m2",), lambda klass, row: row is None or (row.get("eccentricity") or 0.0) >= NEGLIGIBLE_TIDE_ECCENTRICITY,
      "a body on a circular orbit is not flexed, so the tide gives it no heat: the flow is stored only for an orbit with an eccentricity"),
+    (("induced_moment_a_m2",), lambda klass, row: klass not in GIANT_CLASSES,
+     "a giant has no induced moment: the model answers for a metal core and an ocean, not for a metallic envelope"),
     (_DAYLIGHT, lambda klass, row: _locked(row) is not True,
      "a tidally locked world keeps one face to its star, so it has no solar day, equatorial daylight or day share to give"),
     (("shelter_column_g_cm2",), lambda klass, row: row is None or (row.get("eq_shelter") or 0) > 0 or (row.get("eq_shelter_rec") or 0) > 0,
@@ -846,8 +848,8 @@ _BODY_RULES = [
 _PLANET_RULES = [
     (("moon_origin",), lambda klass, row: False,
      "only a moon has an origin (disk, impact, captured, ring or binary); a planet orbits its star alone"),
-    (("parent_shadow_share", "induced_moment_a_m2"), lambda klass, row: False,
-     "only a moon sits in the shadow of its planet or in the planet's magnetic field; a planet orbits its star alone"),
+    (("parent_shadow_share",), lambda klass, row: False,
+     "only a moon sits in the shadow of its planet; a planet orbits its star alone"),
 ]
 
 _STAR_RULES = [

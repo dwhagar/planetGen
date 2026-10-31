@@ -36,15 +36,15 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 137 | 11 | 7 | 1 | 0 | 156 |
-| T2 | 112 | 38 | 0 | 1 | 0 | 151 |
-| T3 | 77 | 34 | 6 | 10 | 0 | 127 |
+| T1 | 136 | 11 | 7 | 1 | 0 | 155 |
+| T2 | 111 | 36 | 0 | 1 | 0 | 148 |
+| T3 | 80 | 34 | 6 | 10 | 0 | 130 |
 | T4 | 39 | 4 | 0 | 14 | 10 | 67 |
 | T5 | 47 | 18 | 1 | 1 | 0 | 67 |
-| T6 | 86 | 64 | 17 | 41 | 0 | 208 |
-| T7 | 28 | 8 | 9 | 9 | 0 | 54 |
+| T6 | 86 | 62 | 17 | 41 | 0 | 206 |
+| T7 | 28 | 12 | 9 | 9 | 0 | 58 |
 | T8 | 0 | 1 | 1 | 5 | 1 | 8 |
-| T9 | 15 | 6 | 5 | 41 | 19 | 86 |
+| T9 | 14 | 6 | 5 | 41 | 19 | 85 |
 | All | 541 | 184 | 46 | 123 | 30 | 924 |
 
 ## How the labels were given
@@ -559,17 +559,22 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | DY6 | P | T9 | L2 | magnetism.CORE_POWER_SCALE 0.479: the core model's Earth drives its dynamo with 2.4 TW (CC10) and the scaling's Earth with 1.15 TW (DY3), so the model's power is multiplied by the ratio to put the model's Earth on the scaling's (moment 0.84 of Earth's, dipole share 0.65) | 0.3 to 1 | rocky and icy cores of the thermal model | an Earth-mass planet of the model whose moment is outside 0.5 to 2 times Earth's | one Earth calibration for both the thermal model and the scaling | tuned so the model's Earth reproduces the scaling's Earth | - | - |
 | DY7 | P | T9 | L3 | magnetism.MERCURY_MOMENT_A_M2 3e19, MERCURY_SCATTER_DEX 0.5: a body of 0.05 to 0.1 Earth masses whose bulk density says its core fraction is over 0.4 keeps this moment whatever the core model says, because its iron-sulfide core melts at lower temperatures than the pure iron the model has | moment 1e19 to 1e20 | small iron-rich planets | a small iron-rich body whose core model says dead and whose field is alive | a core model with a sulfur-bearing liquidus | the design default of GEN.86, a Solar System value (Mercury) kept until the sulfur liquidus replaces it | - | no data |
 
-## 6.116 Stand-ins of the belt dose a moon takes
+## 6.136 Stand-ins of the belt dose a moon takes
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| RGP1 | P | T1 | L0 | resonance_gaps.CHAOTIC_ZONE_COEFFICIENT 1.3, resonance_gaps.EXTENDED_ZONE_COEFFICIENT 1.8, resonance_gaps.CRITICAL_ECCENTRICITY_COEFFICIENT 0.21, resonance_gaps.MAX_ECCENTRICITY_COEFFICIENT 2.1, resonance_gaps.LOW_ECCENTRICITY_WIDTH 3.2 and resonance_gaps.HIGH_ECCENTRICITY_WIDTH 7.78: the chaotic zone half-width over a giant's distance 1.3 mu^(2/7) (1.8 (e mu)^(1/5) above e_crit = 0.21 mu^(3/7), crossing above 2.1 mu^(1/4)) and a first-order resonance's width 3.2 mu^(2/3) j^(1/3) (7.78 (e mu j)^(1/2) above) | coefficient 1.3 to 1.4 (numerically 1.35 mu^0.278); 0.86 mu^0.208 numerically for the extended zone | planets of mu 1e-6 to 1e-2, particles of low to moderate eccentricity | a numerical zone differing from the law by more than 20 percent | the eccentricity-dependent zone from the system's own N-body maps | Mustill and Wyatt 2012 (arXiv:1110.1282, READ), after Wisdom 1980 (not reached) | GEN.1069 | - |
-| RGP2 | P | T6 | L1 | resonance_gaps.ORDER_WIDTH_EXPONENT 0.5: a resonance of order k is narrower than a first-order one by e^(0.5 (k - 1)) | exponent 0.3 to 0.7; a factor 0.3 to 3 on the width | resonances of order 2 to 4 | a measured Kirkwood gap width ratio far from the scaling (3:1 against 2:1) | the order-dependent libration widths from Murray and Dermott's resonance Hamiltonians, read | the libration width of a resonance of order k goes as e^(k/2) (recalled); no coefficient taken | GEN.1069 | - |
-| RGP3 | P | T2 | L1 | resonance_gaps.RESONANCE_CLEARING_MYR 10: a belt older than this has emptied its resonance zones | 1 to 100 Myr | belts under a giant | a belt a few Myr old with its zones already empty, or a Gyr belt with them full | the logarithmic loss history of Minton and Malhotra 2010 applied to each zone | the design note's "1 to 10 Myr" (Wisdom 1982 and Moons and Morbidelli 1995, not reached); Minton and Malhotra 2010 (arXiv:0909.3875, READ) for the tail | GEN.1069 | - |
-| RGP4 | P | T9 | L0 | resonance_gaps.MAX_ORDER 4 and resonance_gaps.MAX_P 12: the highest order and ratio listed | order 3 to 6; p 8 to 20 | every belt | not applicable (a list bound) | a strength cut instead of an order cut | needed output (the Kirkwood list is order 4 and below) | GEN.1069 | - |
-| RGP5 | P | T2 | L0 | resonance_gaps.FORCED_ECCENTRICITY_COEFFICIENT 1.25: the eccentricity a giant forces on a belt, 5/4 (a / a_giant) e_giant / (1 - e_giant^2) | 1.0 to 1.5 | belts on either side of an eccentric giant, a / a_giant not near 1 | a belt whose measured forced eccentricity differs from the law by more than a factor 2 | the Laplace-Lagrange solution of the system's own planets | Wyatt et al. 1999 (recalled, not opened); the leading secular term | GEN.1069 | - |
-| RGP6 | P | T2 | L1 | resonance_gaps.YARKOVSKY_COEFFICIENT_AU_KM_PER_MYR 9.3e-4 and resonance_gaps.YARKOVSKY_REFERENCE_AU 1.1: da/dt times D at 1.1 au, scaled with 1/a^2 | coefficient 0.5 to 2 times; flux exponent 1 to 3 | bodies of 0.1 to 40 km | the same as BR1 of 6.95 | the thermal-parameter model of Vokrouhlicky 2015 | Vokrouhlicky et al. 2015 (arXiv:1502.01249, READ); Bennu's measured drift | GEN.1069 | - |
-| RGP7 | P | T6 | L1 | resonance_gaps.ZONE_ECCENTRICITY_FLOOR 0.005: the least free eccentricity the zones and widths are worked out for | 0.001 to 0.02 | cold belts | a measured free eccentricity of a cold belt far from it | the belt's own self-stirred eccentricity from its size law (Kenyon and Bromley 2008) | educated guess from physics (a cold disc, the cold classical belt's e under 0.05) | GEN.1069 | - |
+| RB9 | T | T3 | L0 | radiation_belts.BELT_WEIGHT: the effective dose per absorbed dose of the belts' particles, 1 Sv per Gy for electrons and 2 for protons (ICRP 103's radiation weighting factors; second-hand, the standard cannot be read) | protons 2 to 5 | the belts of a dipole | a dose measurement of the belts' mixed field in Sv | a belt model with a spectrum and a fluence-to-dose table | ICRP 103 (second-hand) | - | - |
+| RB10 | P | T7 | L1 | radiation_belts.SURFACE_VIEW_FRACTION 0.5: the ground takes the belt dose from the half of the sky the body does not block | 0.35 to 0.6 | an airless or thin-aired moon | a dose map of a moon in a belt against the open-orbit rate | an angular flux through the body's shadow and the field's pitch-angle distribution | geometry, the dose behind the standard shield taken as the dose in open space | - | - |
+| RB11 | P | T7 | L1 | radiation_belts.STOP_COLUMN_G_CM2 2.0: the air column that cuts the belts' dose by a factor of e (MeV electrons go about 1 g/cm2, tens of MeV protons 1 to 3) | 1 to 4 | a moon with air | a dose through a thick air or a depth-dose curve of the belt spectrum that is not e-folding | a depth-dose curve of the belt spectrum through air (the PSTAR and ESTAR ranges the proton cutoff already reads, `proton_range`) | ranges of electrons and protons recalled from NIST | - | - |
+
+## 6.137 Stand-ins of the induced field of cores and planets
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| IN1 | P | T3 | L0 | magnetism.CORE_CONDUCTIVITY_S_M 1.0e6: the electrical conductivity of an iron-alloy core, S/m, the same for a solid one (Earth's outer core at its pressure and temperature, 1.0 to 1.5 million; second-hand) | 0.5e6 to 1.5e6 | metal cores | a core whose induced answer differs (the response is 1 for any core many skin depths across, so the knob matters only for a small or a slowly excited core) | a conductivity from the core's own alloy and temperature (the core model's light elements) | Pozzo et al. 2012 and Gomi et al. 2013 (second-hand) | - | - |
+| IN2 | P | T3 | L0 | magnetism.IMF_EARTH_T 5e-9: the field a star's wind carries at 1 AU, T (the Sun's interplanetary field, Parker spiral), scaled to another star and distance by the square root of the wind's pressure over Earth's (the field's energy a fixed share of the wind's) | 3e-9 to 8e-9 | a star with a wind of the activity model (`wind_pressure_pa`) | a measured interplanetary field of another star (none) | a field from the star's own surface field and the wind's speed | recalled (Parker 1958; the Sun's field at 1 AU is 3 to 6 nT) | - | - |
+| IN3 | P | T7 | L1 | magnetism.STELLAR_EXCITATION_SHARE 0.5: the share of the wind's field that a planet sees as a changing field (the part perpendicular to its spin axis, averaged over the tilt) | 0.3 to 0.8 | a rocky planet | a measured induced response of a planet to the interplanetary field | the planet's axial tilt and the field's direction (the orientation draws) | geometry: the mean sine of an angle on a sphere is 0.785, the spiral takes it lower | - | - |
+| IN4 | P | T7 | L1 | the share of a surface ocean's covering that counts as a shell (the conductance times the ocean fraction) and the field a moon's or planet's core takes past an ocean (the square root of one less the ocean's answer squared), both in `magnetism._ocean_and_core_moment` | none | a body with an ocean and a metal core | an induction sounding of a body with both | a layered induction model with the mantle | design: a one-layer approximation of a layered Earth-like response | - | - |
 
 ## 6.31 Stand-ins of the accreting compact binaries
 
