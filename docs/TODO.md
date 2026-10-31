@@ -19552,6 +19552,252 @@ clears each one.
   Lock-free (scripts, tests, docs); the drops and the wiring that
   changes stored output ride trains. Owner Core 1 (proposed; it asked
   for a lock-free item while GEN.1138 waits for a window).
+  Merged as #4513 (Core 1); owners assigned by the TODO thread
+  (2026-10-31 1:55 PM EDT): columns: 207 candidates, 7 unread
+  (binary_epoch_unix and binary_next_update_due by design; cluster_id
+  GEN.359; dynamical_state GEN.291; formed_at and origin_event_id
+  GEN.346; host_node_id GEN.332), none dropped. Functions: 157 shadow
+  functions in 90 modules, split among seven lanes as TEST.521 for Core
+  1, TEST.522 for Core 3, TEST.523 for Star 2, TEST.524 for Aux 4,
+  TEST.525 for Aux 3, TEST.526 for Tides 1, TEST.527 for Bug 1. This
+  item stays open until none of its register lines names TEST.520 (the
+  guard fails on a line whose item is closed). Rule for every lane: a
+  public function that only tests call needs a register line in the same
+  change, like a module.
+  Prerequisites: none.
+
+- [ ] **TEST.521 Wire, register or delete the 27 pure functions nothing calls in 13 modules (Core 1's share of the TEST.520 shadow functions)**
+  Boss, 12:03 PM EDT 2026-10-31: nothing built and left unused. Core 1's
+  wiring guard (TEST.520, PR #4513) found 157 public functions in
+  physics, generation and galaxy that only tests call or nothing calls;
+  its register lines name TEST.520 because no owner was guessed. Report:
+  /mnt/project-files/reports/wiring-guard-test520-2026-10-31.md. Filed
+  by the TODO thread. Your share (27 functions): galaxy.cellkey
+  (cell_keys, sql_cell_key); galaxy.object_uid (captured_member,
+  is_on_demand, outside_reservoir_member, parse_captured);
+  galaxy.region_run (next_units); galaxy.spherical
+  (cells_touching_sphere, shell_cells); generation.run_galaxy
+  (backfill_bright_stars, ball_extent, queue_settle); generation.stats
+  (job_shells_per_second); generation.object_timing (run_totals);
+  generation.phenomena.hosts (host_of, reweighted); physics.sector_path
+  (ball_cell, box_cell, relevant_masses); physics.unit_registry
+  (constant_in, from_base, parts_dimension, parts_factor, units_of);
+  generation.tuning_harness (check_target); generation.possibility_table
+  (concentration_from_spread); physics.protection_limits (chosen_pairs).
+  Do, for each function: (1) wire it, naming the open item that will
+  call it (or filing one) in its register line of
+  docs/design/research/wiring-register.md; (2) mark it `by design` with
+  the reason when it is a tuning or test harness reader (an observed
+  sampler, an expected count) and say who runs it; or (3) delete it and
+  its tests (no dead code, no shim). Done: none of your functions names
+  TEST.520 in the register, and test_wiring_guard passes. Lock-free
+  (register, tests and deletions of unreferenced code change no stored
+  value; if a wiring step changes output it rides a train under its own
+  item). Owner Core 1 (proposed by the TODO thread, one lock-free item
+  at a time; the lane says if it clashes). Rule for every lane: a public
+  function that only tests call needs a register line in the same
+  change, like a module.
+  Prerequisites: none.
+
+- [ ] **TEST.522 Wire, register or delete the 29 pure functions nothing calls in 21 modules (Core 3's share of the TEST.520 shadow functions)**
+  Boss, 12:03 PM EDT 2026-10-31: nothing built and left unused. Core 1's
+  wiring guard (TEST.520, PR #4513) found 157 public functions in
+  physics, generation and galaxy that only tests call or nothing calls;
+  its register lines name TEST.520 because no owner was guessed. Report:
+  /mnt/project-files/reports/wiring-guard-test520-2026-10-31.md. Filed
+  by the TODO thread. Your share (29 functions): galaxy.density
+  (component_masses, predicted_star_count); galaxy.profile
+  (expected_systems_in); galaxy.frame (cylindrical_radius_pc);
+  galaxy.galactic_orbit (format_galactic_orbit); galaxy.star_formation
+  (star_formation_rate_profile); galaxy.structure_draw
+  (draw_neutron_star_unbound_share, hot_component_bound);
+  generation.bright_stars (cell_band_rate); generation.multistar
+  (mark_merger_product); generation.primary_mass_function
+  (systems_per_star); generation.star_population (sample_dim_star);
+  generation.stellar_object (get_star_spectral_class); physics.king
+  (density_per_pc3, mass_within_pc); physics.pair_history
+  (widest_forced_axis_au); physics.stability (kozai_max_eccentricity);
+  physics.planet_zones (ancestor_limits_au, flux_at, pair_sides_solar);
+  physics.planet_architecture (ejection_yield, survival_probability);
+  physics.planet_survival (expected_passes); physics.state_vectors
+  (equinoctial_from_state, mean_anomaly_from_true,
+  state_from_equinoctial); physics.field_kernel (accelerations);
+  physics.collision_outcome (conservation_error); physics.orbits
+  (classify_encounter). Do, for each function: (1) wire it, naming the
+  open item that will call it (or filing one) in its register line of
+  docs/design/research/wiring-register.md; (2) mark it `by design` with
+  the reason when it is a tuning or test harness reader (an observed
+  sampler, an expected count) and say who runs it; or (3) delete it and
+  its tests (no dead code, no shim). Done: none of your functions names
+  TEST.520 in the register, and test_wiring_guard passes. Lock-free
+  (register, tests and deletions of unreferenced code change no stored
+  value; if a wiring step changes output it rides a train under its own
+  item). Owner Core 3 (proposed by the TODO thread, one lock-free item
+  at a time; the lane says if it clashes). Rule for every lane: a public
+  function that only tests call needs a register line in the same
+  change, like a module.
+  Prerequisites: none.
+
+- [ ] **TEST.523 Wire, register or delete the 17 pure functions nothing calls in 12 modules (Star 2's share of the TEST.520 shadow functions)**
+  Boss, 12:03 PM EDT 2026-10-31: nothing built and left unused. Core 1's
+  wiring guard (TEST.520, PR #4513) found 157 public functions in
+  physics, generation and galaxy that only tests call or nothing calls;
+  its register lines name TEST.520 because no owner was guessed. Report:
+  /mnt/project-files/reports/wiring-guard-test520-2026-10-31.md. Filed
+  by the TODO thread. Your share (17 functions):
+  physics.stellar_abundances (branch_probabilities,
+  solar_metal_fraction); physics.stellar_composition (cluster_key,
+  star_makeup); physics.stellar_evolution
+  (main_sequence_end_luminosity_sol); physics.stellar_spectrum
+  (band_flux_w_m2); physics.neutron_star (radius_limits_km);
+  physics.neutron_star_structure (curve_with_crust, integrated_curve,
+  integrated_maximum_mass_solar); physics.rprocess_enrichment
+  (effective_duration_gy); physics.birth_radioisotopes (fraction_above);
+  physics.brown_dwarf_types (type_probabilities); physics.photometry
+  (blackbody_colour); physics.solar_particles (events_per_year_above);
+  physics.elements (isotopic_mass_fraction, series). Do, for each
+  function: (1) wire it, naming the open item that will call it (or
+  filing one) in its register line of
+  docs/design/research/wiring-register.md; (2) mark it `by design` with
+  the reason when it is a tuning or test harness reader (an observed
+  sampler, an expected count) and say who runs it; or (3) delete it and
+  its tests (no dead code, no shim). Done: none of your functions names
+  TEST.520 in the register, and test_wiring_guard passes. Lock-free
+  (register, tests and deletions of unreferenced code change no stored
+  value; if a wiring step changes output it rides a train under its own
+  item). Owner Star 2 (proposed by the TODO thread, one lock-free item
+  at a time; the lane says if it clashes). Rule for every lane: a public
+  function that only tests call needs a register line in the same
+  change, like a module.
+  Prerequisites: none.
+
+- [ ] **TEST.524 Wire, register or delete the 38 pure functions nothing calls in 21 modules (Aux 4's share of the TEST.520 shadow functions)**
+  Boss, 12:03 PM EDT 2026-10-31: nothing built and left unused. Core 1's
+  wiring guard (TEST.520, PR #4513) found 157 public functions in
+  physics, generation and galaxy that only tests call or nothing calls;
+  its register lines name TEST.520 because no owner was guessed. Report:
+  /mnt/project-files/reports/wiring-guard-test520-2026-10-31.md. Filed
+  by the TODO thread. Your share (38 functions): physics.aerosols
+  (haze_fall_integral_s_m); physics.atmosphere (hydrogen_kpa,
+  other_kpa); physics.atmosphere_state (gas_column_mass_kg_m2);
+  physics.ozone (column_mean_partial_pressure_pa); physics.rayleigh
+  (band_optical_depth, optical_depth_by_gas, uncovered_fraction);
+  physics.thermosphere (hydro_based_in_grid); physics.two_stream
+  (vacuum); physics.mixture_giant (carbon_monoxide_time_s);
+  physics.mixture_sinks (apply_ocean_sinks); physics.surface_pressure
+  (can_weather, degassed_inventory, gas_mass_kg, impact_inventory);
+  physics.surface_composition (crust_reservoir);
+  physics.waterworld_carbon (sealed_state); physics.oxygen_fugacity
+  (buffer_offset, co2_to_co, convert_delta_iw,
+  delta_iw_from_fe3_fraction, delta_iw_where_equal, h2o_to_h2);
+  physics.radiation (apply_air_loss); physics.radiogenic
+  (aluminium_26_mass_fraction, present_ppm, radiogenic_flux_w_m2);
+  physics.surface_dose (effective_air_column_g_cm2, neutron_weight,
+  share_past_cutoffs); physics.proton_range (csda_range_g_cm2);
+  physics.body_colour (rgb8_of); physics.giant_colour
+  (cloud_top_pressure_pa, sudarsky_class); physics.daylight
+  (locked_zone_shares); physics.scatter (history_line, scatter_shares).
+  Do, for each function: (1) wire it, naming the open item that will
+  call it (or filing one) in its register line of
+  docs/design/research/wiring-register.md; (2) mark it `by design` with
+  the reason when it is a tuning or test harness reader (an observed
+  sampler, an expected count) and say who runs it; or (3) delete it and
+  its tests (no dead code, no shim). Done: none of your functions names
+  TEST.520 in the register, and test_wiring_guard passes. Lock-free
+  (register, tests and deletions of unreferenced code change no stored
+  value; if a wiring step changes output it rides a train under its own
+  item). Owner Aux 4 (proposed by the TODO thread, one lock-free item at
+  a time; the lane says if it clashes). Rule for every lane: a public
+  function that only tests call needs a register line in the same
+  change, like a module.
+  Prerequisites: none.
+
+- [ ] **TEST.525 Wire, register or delete the 26 pure functions nothing calls in 14 modules (Aux 3's share of the TEST.520 shadow functions)**
+  Boss, 12:03 PM EDT 2026-10-31: nothing built and left unused. Core 1's
+  wiring guard (TEST.520, PR #4513) found 157 public functions in
+  physics, generation and galaxy that only tests call or nothing calls;
+  its register lines name TEST.520 because no owner was guessed. Report:
+  /mnt/project-files/reports/wiring-guard-test520-2026-10-31.md. Filed
+  by the TODO thread. Your share (26 functions): physics.dynamo
+  (giant_power_w); physics.giant_interior (thin_shell_base_pressure_pa);
+  physics.giant_tilt (final_period_h, large_tilt_chance,
+  ring_plane_tilt_deg); physics.impact_history (late_accreted_fraction,
+  veneer_balance, veneer_volatiles); physics.impact_spin
+  (mean_rms_breakup_fraction); physics.compaction (ice_porosity,
+  silicate_porosity, small_body_density_kg_m3, taper_weight);
+  physics.materials (class_composition); physics.rock_types
+  (mafic_share); physics.bulk_structure
+  (water_fraction_from_mass_radius); physics.small_body_composition
+  (draw_ring, makeup_from_components); physics.moon_composition
+  (origin_probabilities); physics.condensate_shares
+  (water_share_at_distance); physics.clathrate_brine
+  (dissociation_temperature_k, eutectic_wt_percent, freezing_point_k,
+  hydrate_stable, liquid_range_k); physics.hosting_gate
+  (moon_survives_tides). Do, for each function: (1) wire it, naming the
+  open item that will call it (or filing one) in its register line of
+  docs/design/research/wiring-register.md; (2) mark it `by design` with
+  the reason when it is a tuning or test harness reader (an observed
+  sampler, an expected count) and say who runs it; or (3) delete it and
+  its tests (no dead code, no shim). Done: none of your functions names
+  TEST.520 in the register, and test_wiring_guard passes. Lock-free
+  (register, tests and deletions of unreferenced code change no stored
+  value; if a wiring step changes output it rides a train under its own
+  item). Owner Aux 3 (proposed by the TODO thread, one lock-free item at
+  a time; the lane says if it clashes). Rule for every lane: a public
+  function that only tests call needs a register line in the same
+  change, like a module.
+  Prerequisites: none.
+
+- [ ] **TEST.526 Wire, register or delete the 8 pure functions nothing calls in 4 modules (Tides 1's share of the TEST.520 shadow functions)**
+  Boss, 12:03 PM EDT 2026-10-31: nothing built and left unused. Core 1's
+  wiring guard (TEST.520, PR #4513) found 157 public functions in
+  physics, generation and galaxy that only tests call or nothing calls;
+  its register lines name TEST.520 because no owner was guessed. Report:
+  /mnt/project-files/reports/wiring-guard-test520-2026-10-31.md. Filed
+  by the TODO thread. Your share (8 functions): physics.moon_orbits
+  (drift_rate_m_s, tidal_power_w); physics.tidal_rheology
+  (tidal_frequency_rad_s); physics.surface_liquids (ideal_sea,
+  liquid_ids, sea_density_kg_m3, stable_liquids);
+  physics.habitability_world (harshness). Do, for each function: (1)
+  wire it, naming the open item that will call it (or filing one) in its
+  register line of docs/design/research/wiring-register.md; (2) mark it
+  `by design` with the reason when it is a tuning or test harness reader
+  (an observed sampler, an expected count) and say who runs it; or (3)
+  delete it and its tests (no dead code, no shim). Done: none of your
+  functions names TEST.520 in the register, and test_wiring_guard
+  passes. Lock-free (register, tests and deletions of unreferenced code
+  change no stored value; if a wiring step changes output it rides a
+  train under its own item). Owner Tides 1 (proposed by the TODO thread,
+  one lock-free item at a time; the lane says if it clashes). Rule for
+  every lane: a public function that only tests call needs a register
+  line in the same change, like a module.
+  Prerequisites: none.
+
+- [ ] **TEST.527 Wire, register or delete the 12 pure functions nothing calls in 5 modules (Bug 1's share of the TEST.520 shadow functions)**
+  Boss, 12:03 PM EDT 2026-10-31: nothing built and left unused. Core 1's
+  wiring guard (TEST.520, PR #4513) found 157 public functions in
+  physics, generation and galaxy that only tests call or nothing calls;
+  its register lines name TEST.520 because no owner was guessed. Report:
+  /mnt/project-files/reports/wiring-guard-test520-2026-10-31.md. Filed
+  by the TODO thread. Your share (12 functions): physics.comet_admission
+  (expected_measured, observed_sampler); physics.jwst_selection
+  (expected_observed, observed_sampler); physics.kepler_recovery
+  (expected_found, observed_sampler); physics.mass_radius_sample
+  (observed_sampler, pass_probability, population_pass_fraction);
+  physics.wd_pollution (class_probabilities, expected_sample,
+  observed_sampler). Do, for each function: (1) wire it, naming the open
+  item that will call it (or filing one) in its register line of
+  docs/design/research/wiring-register.md; (2) mark it `by design` with
+  the reason when it is a tuning or test harness reader (an observed
+  sampler, an expected count) and say who runs it; or (3) delete it and
+  its tests (no dead code, no shim). Done: none of your functions names
+  TEST.520 in the register, and test_wiring_guard passes. Lock-free
+  (register, tests and deletions of unreferenced code change no stored
+  value; if a wiring step changes output it rides a train under its own
+  item). Owner Bug 1 (proposed by the TODO thread, one lock-free item at
+  a time; the lane says if it clashes). Rule for every lane: a public
+  function that only tests call needs a register line in the same
+  change, like a module.
   Prerequisites: none.
 
 ## USR: User accounts
