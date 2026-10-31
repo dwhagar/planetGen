@@ -20340,22 +20340,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   in its rewrite).
   Prerequisites: none.
 
-- [ ] **DOC.88 References R2: the References shell and generator (Help menu entry, /references with the Out of universe banner, scripts/build_reference_pages.py with --check, built by update.sh)**
-  Boss (2026-10-31, as the coordinator relayed): a Help > References
-  menu, out of universe, for sources, the GEN.725 stand-in registry with
-  how each was decided, fitted values, speculative chemistry and gaps;
-  the rest of the site stays in universe. Design:
-  /mnt/project-files/design-drafts/references-help-menu-2026-10-31.md
-  (section 6, R1 to R8). Wording and pages only: no epoch, no lock, no
-  computed change, lock-free. Ship the shell before DOC.57 and let
-  DOC.57 absorb it. The generator is built by update.sh and `--check` is
-  held by a test. Related: DOC.57, DOC.58. Owner: Core 1.
-  Banner contract (DOC.87 merged as #4602) (2026-10-31 4:16 PM EDT):
-  DOC.87 merged as #4602: put id="out-of-universe-banner" on every
-  /references page; web/lib/reference_urls.py has reference_path, anchor
-  and AREAS, and reference_link(kind, id, label) is a template global.
-  Prerequisites: DOC.87.
-
 - [ ] **DOC.89 References R3: Sources pages (papers, datasets, archives, licenses, credits), each paper linking to where it is used**
   Boss (2026-10-31, as the coordinator relayed): a Help > References
   menu, out of universe, for sources, the GEN.725 stand-in registry with
@@ -20386,6 +20370,13 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   identifiers unresolved in
   /mnt/project-files/reports/doc95-unresolved-citations-2026-10-31.md).
   A test fails if a citation has none of the three outcomes.
+  Reference pages contract (Core 1, DOC.88 #4624) (2026-10-31 5:40 PM
+  EDT): Help > References is live at /references. To add a page: add a
+  file to BUILDERS in scripts/build_reference_pages.py and a route in
+  web/references_pages.py, and check every sentence with
+  plainwords.check_sentence(s, references=True). Editing
+  gap-filling-plan.md stand-in rows now also needs python
+  scripts/build_reference_pages.py.
   Prerequisites: DOC.88.
 
 - [ ] **DOC.90 References R4: stand-in registry pages (every GEN.725 row, one page per stand-in with how it was made and decided, tier and level legends, filters, and the fitted-to-a-result page for L2 to L4 with tuning targets)**
@@ -20397,6 +20388,13 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   (section 6, R1 to R8). Wording and pages only: no epoch, no lock, no
   computed change, lock-free. Stand-ins already have rows, so no GEN.725
   change. Related: GEN.725. Owner: Sources 1.
+  Reference pages contract (Core 1, DOC.88 #4624) (2026-10-31 5:40 PM
+  EDT): Help > References is live at /references. To add a page: add a
+  file to BUILDERS in scripts/build_reference_pages.py and a route in
+  web/references_pages.py, and check every sentence with
+  plainwords.check_sentence(s, references=True). Editing
+  gap-filling-plan.md stand-in rows now also needs python
+  scripts/build_reference_pages.py.
   Prerequisites: DOC.88.
 
 - [ ] **DOC.91 References R5: method pages by area, what we have and lack, and the computed scorecard; /help/properties moves here with no redirect**
@@ -20414,7 +20412,14 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   properties page: generator, model. Delete those entries in the same PR
   that removes the words: an entry that no longer happens fails the
   test.
-  Prerequisites: DOC.88, DOC.90.
+  Reference pages contract (Core 1, DOC.88 #4624) (2026-10-31 5:40 PM
+  EDT): Help > References is live at /references. To add a page: add a
+  file to BUILDERS in scripts/build_reference_pages.py and a route in
+  web/references_pages.py, and check every sentence with
+  plainwords.check_sentence(s, references=True). Editing
+  gap-filling-plan.md stand-in rows now also needs python
+  scripts/build_reference_pages.py.
+  Prerequisites: DOC.90.
 
 - [ ] **DOC.92 References R6: move the speculative chemistry out of the life help and the air chart into /references/speculative, with per-class links (including the multi-class section for GEN.1209 and GEN.1213)**
   Boss (2026-10-31, as the coordinator relayed): a Help > References
@@ -20433,6 +20438,13 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   help: speculative, fitted, tier, tuned, generated, educated guess.
   Delete those entries in the same PR that removes the words: an entry
   that no longer happens fails the test.
+  Reference pages contract (Core 1, DOC.88 #4624) (2026-10-31 5:40 PM
+  EDT): Help > References is live at /references. To add a page: add a
+  file to BUILDERS in scripts/build_reference_pages.py and a route in
+  web/references_pages.py, and check every sentence with
+  plainwords.check_sentence(s, references=True). Editing
+  gap-filling-plan.md stand-in rows now also needs python
+  scripts/build_reference_pages.py.
   Prerequisites: DOC.88.
 
 - [ ] **DOC.93 References R7: strip model hints from the leftover pages (maps, sector estimates text, API docs strings) and add links at the important places**
@@ -20454,7 +20466,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   source line for the Urey ratio: model. Delete those entries in the
   same PR that removes the words: an entry that no longer happens fails
   the test.
-  Prerequisites: DOC.88, DOC.89, DOC.90, DOC.91.
+  Prerequisites: DOC.89, DOC.90, DOC.91.
 
 - [ ] **DOC.94 References R8: test lock: the page crawl proves no out-of-universe word outside References and every link resolves, in the gate for changed pages**
   Boss (2026-10-31, as the coordinator relayed): a Help > References
