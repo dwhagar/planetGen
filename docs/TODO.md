@@ -19232,6 +19232,24 @@ clears each one.
   change, like a module.
   Prerequisites: none.
 
+- [ ] **TEST.541 Four star tests fail on clean main: the population model, the hot white dwarf classes O5VII and B0VII, and the forced subdwarf (bug)**
+  Found by Bug 1 while building GEN.996 (6:09 PM EDT 2026-10-31, as the
+  lane reported): in the core subset, 4 failures are not from its branch
+  and fail the same on plain main. `tests/test_gen_star_helpers.py` (the
+  population-model test and the hot-white-dwarf cases O5VII and B0VII)
+  and `tests/test_forced_star.py` (the subdwarf case). This TODO machine
+  lacks the datasets, so it cannot tell these from missing-data
+  failures; the first step is to run both files on a machine with the
+  downloads and name the real failures. Do: find the cause of each (a
+  stale expectation after the star mass function and remnant work, or a
+  real defect), fix at the cause with a sourced range when the test was
+  wrong, and never skip or loosen a test without saying why. Done: both
+  files pass on main with the downloads present. Lock-free unless the
+  cause is a generator defect, which then rides an epoch. Owner: none
+  for now (pool; the Train Manager proposes a star lane once train 8
+  clears). Version 8.1.
+  Prerequisites: none. Related: GEN.996.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
