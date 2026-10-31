@@ -842,8 +842,9 @@ _STAR_RULES = [
      "to one in four) and the pair inside a planetary nebula do"),
     (("disk_mass_solar",), lambda klass, row: row is None or row.get("disk_kind") not in (None, "debris"),
      "the mass of a debris disk is not measured, only the light of its dust, so a star with a debris belt has no mass for it"),
-    (("wide_binary_a_crit_km",), lambda klass, row: row is None or row.get("role") != "single",
-     "the critical orbit radius is set by a companion star, so a single star has none"),
+    (("wide_binary_a_crit_km",), lambda klass, row: row is None or row.get("role") == "member" or row.get("binary_configuration") == "wide",
+     "the widest stable orbit around a star is set by a companion that orbits beyond it: the two stars of a wide pair and every further member of a "
+     "system have one, but a single star has no companion, and the stars of a close pair are orbited as one body with nothing outside them to set a limit"),
 ]
 
 _COMET_RULES = [
@@ -862,7 +863,6 @@ OPEN_GAPS = {
     **{(kind, key): item for kind in ("planet", "moon") for key, item in (
         ("porosity", "GEN.780"), ("hp_ice_km", "GEN.781"),
         ("energy_flux_w_m2", "GEN.784"), ("flux_variation", "GEN.784"))},
-    ("star", "wide_binary_a_crit_km"): "GEN.789",
 }
 """dict: The columns known to be empty where they apply (UX.208), `{(kind, key): item id}`: each is a gap in the generation
 pathway, filed as the item named, and excused until that item is done. The fill audit (`tests/test_sheet_fill.py`) fails

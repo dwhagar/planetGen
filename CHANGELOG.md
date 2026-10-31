@@ -2,6 +2,30 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2848] - 2026-10-31
+
+**Headline:** The rate of the biggest solar particle events now comes from the isotope record in tree rings and ice instead of a number recalled from memory.
+
+### Changed
+- **Solar particle event tail from the isotope record (GEN.946, batch 1).** `solar_particles.events_per_year_above` read a slope of 1.9 fitted to one Carrington-class event in 500 years. It now reads the rate of events of 1e10 protons per square centimetre above 30 MeV from Usoskin and Kovaltsov 2012 (four in 600 years of annual beryllium-10 data, 0.0077 a year, 90 percent interval 0.0032 to 0.015) with their power law of -4 for larger ones, so the Carrington event itself, which those data do not support, no longer sets the rate. Nothing in the generator reads this function yet, so no generated value changes. Two more rows of the stand-in registry now cite the papers they were recalled from (accretion spread of planetesimals, Lichtenberg et al. 2021; the lightest planet beyond the snow line, Suzuki et al. 2016) and take a lower tier.
+
+## [8.0.2847] - 2026-10-31
+
+**Headline:** The star property sheet now says which stars have a widest stable orbit (the stars of a wide pair and the further members of a system, not a single star or a close pair), and the comet rule is confirmed.
+
+### Changed
+- **GEN.789.** The sheet rule for `wide_binary_a_crit_km` now matches what the generator stores: a wide pair's two stars and every member beyond the pair have the limit; a single star has no companion and the stars of a close pair are orbited as one body, so they have none. The open gap that excused the column is gone, and the fill audit reads the system's pairing when it checks a star.
+- **GEN.790.** No change needed: the comet rule (`mean_anomaly_deg`, `orbital_period_years`, `period_class` apply to elliptical comets only) already matches the generator, which fills all three for every elliptical comet and none for a parabolic one (checked on 300 comets).
+generation-output: unchanged
+
+## [8.0.2846] - 2026-10-31
+
+**Headline:** The density of a comet's refractory organics is settled at 1.5 g/cm3 now that the Choukroun et al. 2020 paper has been read.
+
+### Changed
+- **GEN.660.** Choukroun et al. 2020 was read (it had only been reported): it gives a rough "some organics (permittivity about 2, density about 2)" in its section 3.3 and no organics density of its own. Blum and Bischoff's 1.0 to 2.0 g/cm3 covers it, so under the source rules (two sources in question: the widest range) the table keeps 1.5 and the note on the row says what the paper says. The comet draw already reads the row. Nothing a generator draws changes.
+generation-output: unchanged
+
 ## [8.0.2845] - 2026-10-31
 
 **Headline:** `update.sh` says what it is doing and what it waits for, shows progress bars on the long steps, and pauses 5 seconds before the reload and 10 seconds after it.
