@@ -2,6 +2,30 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2886] - 2026-10-31
+
+**Headline:** The cloud feedback on a world's albedo now has a design: a thinning term sized to the published Earth feedback and a thick substellar deck for locked ocean worlds.
+
+### Added
+- **GEN.974 design note, `docs/design/composition/cloud-albedo.md`.** The albedo of a wet body moves with the temperature through cloud thinning (1.2e-3 per K, the AR6 cloud feedback of +0.42 W/m2 per K at 288 K) and, for a body locked 1:1 to its star, a substellar deck that brightens it with the flux (0.42 at 1,000 W/m2 to 0.53 at 2,200, Yang and others 2013). With the ice-albedo gain of GEN.972 the Earth twin's sweep response comes to 0.58 K per W/m2, over the 0.54 bound. Stand-in rows CL1 to CL4 are proposed for the registry when the build lands. Docs only, no world changes.
+- generation-output: unchanged
+
+## [8.0.2885] - 2026-10-31
+
+**Headline:** The climate sensitivity test now measures the real Earth, not a random hot planet.
+
+### Changed
+- **TEST.509: the climate sweep twin is the Earth.** `test_climate_sweep` used a drawn body at 313 K with a hydrogen and carbon dioxide air, whose response said nothing about the Earth's. The twin now holds the Earth's dry air (nitrogen, oxygen, argon, 420 ppm carbon dioxide at 1 bar), gravity, radius and ocean through a stand-in for the mixture draw, with the absorbed flux set so the fixed point stands at the measured 288 K (the model is 6.5 K cold at the Earth's own flux, having no cloud). The response there is 0.40 K per W/m2, under the published lower bound of 0.54; the strict expected failure now names the budget (Planck with water vapour and lapse rate 0.52 by IPCC AR6 table 7.10, 0.58 with the surface albedo and cloud feedbacks of GEN.972 and GEN.974). Test only, no world changes.
+- generation-output: unchanged
+
+## [8.0.2884] - 2026-10-31
+
+**Headline:** The ice-albedo law now gives the Earth's measured surface albedo feedback instead of none.
+
+### Changed
+- **GEN.1046 follow-up: the ice-albedo ramp is recalibrated before GEN.972 wires it.** The ice now grows as the cube of the way down a 305 K to 240 K ramp, which gives 0.34 W/m2 per K of surface albedo feedback at 288 K (IPCC AR6 2021 table 7.10: 0.35, very likely 0.10 to 0.60) where the first ramp, 283 K to 263 K and straight, gave none at the Earth's temperature. A toy Earth twin is now bistable over 10 percent of its flux (W20 asks 10 to 20 percent), lying under the present flux. Registry row CC16 now carries the exponent and tweak level L2. Nothing in the generator reads the module yet, so no world changes.
+- generation-output: unchanged
+
 ## [8.0.2883] - 2026-10-31
 
 **Headline:** The test table of the Milky Way's satellites no longer gives Leo I a rising star-formation history and so gas it does not have.

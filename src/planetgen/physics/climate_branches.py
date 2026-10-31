@@ -8,7 +8,7 @@ A world with an ocean cools, freezes, and so reflects more of the light, which c
 numbers: it holds the albedo law of the ice and finds the fixed points of any `response`, which is the surface temperature the rest of the physics gives for a
 held Bond albedo (the surface-air fixed point, or a toy in the tests). It reads no body and draws nothing; choosing a branch is the caller's draw.
 
-Stand-ins (registry rows CC15 and CC16 of `gap-filling-plan.md`): the ends of the ramp and the two albedos.
+Stand-ins (registry rows CC15 and CC16 of `gap-filling-plan.md`): the two albedos (CC15) and the ramp: its ends and its exponent (CC16).
 """
 
 from dataclasses import dataclass
@@ -19,10 +19,14 @@ ICE_FREE_ALBEDO = 0.30
 """float: The Bond albedo of a world with no ice (Earth's, 0.30, a test target and a stand-in for ocean and cloud together; row CC15)."""
 ICE_COVERED_ALBEDO = 0.62
 """float: The Bond albedo of a world covered in ice and snow, a ramp's cold end (sea ice and snow 0.5 to 0.8, clouds thinner than on a warm world; row CC15)."""
-ICE_FREE_ABOVE_K = 283.0
+ICE_FREE_ABOVE_K = 305.0
 """float: The mean surface temperature above which no ice is left (a global mean carries the whole spread from the equator to the poles; row CC16)."""
-ICE_COVERED_BELOW_K = 263.0
+ICE_COVERED_BELOW_K = 240.0
 """float: The mean surface temperature below which the ice reaches the equator (row CC16)."""
+ICE_FRACTION_EXPONENT = 3.0
+"""float: The ice cover grows as this power of the way down the ramp: slowly while the ice is at the poles, faster as the ice line comes to the tropics, which is what a
+one-dimensional ice-line balance does (North 1975). Cubic puts the surface albedo feedback of the Earth at 288 K at 0.34 W/m2 per K, inside the very likely range of
+0.10 to 0.60 of IPCC AR6 (2021) table 7.10 (central 0.35). Row CC16."""
 
 SCAN_RANGE_K = (150.0, 700.0)
 """tuple: The temperatures `fixed_points` looks between."""
@@ -34,23 +38,27 @@ SLOPE_STEP_K = 0.05
 
 @dataclass(frozen=True)
 class IceAlbedoLaw:
-    """The Bond albedo as a function of the mean surface temperature: the ice-free value above `free_above_k`, the covered one below `covered_below_k`, and a straight line between."""
+    """The Bond albedo as a function of the mean surface temperature: the ice-free value above `free_above_k`, the covered one below `covered_below_k`, and between them
+    the ice cover grows as `exponent` power of the way down (1 is a straight line)."""
 
     ice_free: float = ICE_FREE_ALBEDO
     ice_covered: float = ICE_COVERED_ALBEDO
     free_above_k: float = ICE_FREE_ABOVE_K
     covered_below_k: float = ICE_COVERED_BELOW_K
+    exponent: float = ICE_FRACTION_EXPONENT
 
     def __post_init__(self):
         if not 0.0 <= self.ice_free <= self.ice_covered < 1.0:
             raise ValueError("the albedos must satisfy 0 <= ice-free <= ice-covered < 1")
         if not self.covered_below_k < self.free_above_k:
             raise ValueError("the ice must be covered below a temperature under the one it is free above")
+        if not self.exponent > 0.0:
+            raise ValueError("the exponent of the ice cover must be positive")
 
     def ice_fraction(self, temperature_k):
-        """The share of the ramp the ice has covered, 0 (ice-free) to 1 (covered)."""
+        """The share of the world the ice has covered, 0 (ice-free) to 1 (covered)."""
         share = (self.free_above_k - temperature_k) / (self.free_above_k - self.covered_below_k)
-        return min(max(share, 0.0), 1.0)
+        return min(max(share, 0.0), 1.0) ** self.exponent
 
     def albedo(self, temperature_k):
         return self.ice_free + (self.ice_covered - self.ice_free) * self.ice_fraction(temperature_k)

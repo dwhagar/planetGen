@@ -12027,42 +12027,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the run, and this item removes the mark.
   Prerequisites: none. Related: GEN.752, GEN.462.
 
-- [ ] **GEN.973 Climate feedback 2: water vapour on the fixed point (a warmer ocean world holds more vapour and warms further, up to the runaway limit of GEN.639)**
-  Boss, 8:16 PM EDT 2026-10-29 (full build in 8.1: build all of it;
-  secondary sources accepted by default; registered stand-ins allowed).
-  Split of GEN.752. Do: the water vapour feedback in the fixed point
-  with the runaway threshold of GEN.639; tests on a warming sweep that
-  converge below the limit and run away above it. Changes generated
-  output: epoch --affects fill, rides a train. Every stand-in it adds
-  gets a GEN.725 registry row with tier and tweak level (L0 to L4).
-  Owner: Air 1. Version 8.1.
-  Data we hold (2026-10-29 8:55 PM EDT): ExoMol correlated-k tables
-  (H2O, CO2, CH4) and HITRAN collision-induced absorption are downloaded
-  at setup and read by nothing (ir_ktables.npz, ir_cia.npz); gases.json,
-  nasa_glenn_species.json and saturation_pressure.json are in the repo.
-  Catalog sections 1 and 2.
-  GEN.975 note (Air 1, #3895, as the lane reported) (2026-10-30 12:34 AM
-  EDT): the climate sweep test src/tests/test_climate_sweep.py holds the
-  lower bound (0.54 K per W/m2) as a strict xfail naming GEN.972,
-  GEN.973 and GEN.974; the response today is about 0.4 K per W/m2. When
-  the last of the three lands the test passes, the strict xfail fails
-  the run, and this item removes the mark.
-  Air 1 finding (GEN.972 design, 2026-10-31) (2026-10-31 12:09 AM EDT):
-  The water vapour feedback is already in the surface-air loop twice:
-  the ocean sets the surface vapour at 0.77 of saturation at the step's
-  own temperature (4.2 to 7.4 kPa across the 0.9 to 1.1 flux sweep), and
-  the radiative-convective column follows Manabe and Wetherald humidity
-  (CO2 doubling warms 1.72 K with the vapour free against 1.04 K held).
-  With the refitted table the sweep responses are 0.54, 0.51, 0.48, 0.45
-  K per W/m2 against the 0.54 lower bound, and the twin sits at 313 K,
-  far above the ice ramp (263 to 283 K), so GEN.972 does not close the
-  strict xfail alone. Re-scoped: this item becomes a held-vapour test
-  (hold the vapour fixed and show the response drops; lock-free, Air 1
-  writes it) plus the runaway-threshold test against GEN.639; no new
-  feedback code unless the held-vapour test shows the loop lacks it. The
-  remaining gap in the sweep goes to GEN.974 and to TEST.509.
-  Prerequisites: GEN.972. Related: GEN.752, GEN.639.
-
 - [ ] **GEN.974 Climate feedback 3: cloud albedo on the fixed point (cloud cover changes the reflected share)**
   Boss, 8:16 PM EDT 2026-10-29 (full build in 8.1: build all of it;
   secondary sources accepted by default; registered stand-ins allowed).
@@ -12083,7 +12047,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.973 and GEN.974; the response today is about 0.4 K per W/m2. When
   the last of the three lands the test passes, the strict xfail fails
   the run, and this item removes the mark.
-  Prerequisites: GEN.973. Related: GEN.752, GEN.684.
+  Design done (2026-10-31 12:25 AM EDT): Air 1 merged the design note
+  docs/design/composition/cloud-albedo.md (#4378): cloud thinning with
+  warming sized to the AR6 cloud feedback (+0.42 W/m2 per K at 288 K,
+  beta 1.2e-3 per K) and a substellar deck for a body locked 1:1 to its
+  star (Yang 2013 table 1). With the ice law of GEN.972 the Earth twin
+  sweep response is 0.58 against the 0.54 bound. Stand-in rows CL1 to
+  CL4 are proposed (none L3 or L4) and enter GEN.725 with the build. The
+  build is lock work, waits for GEN.972, and may share an epoch with
+  GEN.972 and GEN.1194.
+  Prerequisites: GEN.972. Related: GEN.752, GEN.684.
 
 - [ ] **GEN.981 Induced magnetic moment part (b): conducting cores and planets in the star's field (the part of GEN.779 that remains)**
   Left by Aux 4 with GEN.779 (part (a) merged as #3796: the moons'
@@ -14451,6 +14424,25 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (reports/gen535-magellanic-gas-remnants-2026-10-31.md). Output
   changing, a lock item built on a separate branch. Owner Aux 4.
   Prerequisites: none. Related: GEN.535.
+
+- [ ] **GEN.1194 Runaway greenhouse: the radiative-convective model has no plateau in outgoing flux, so water window opacity, continuum temperature dependence and wings must be reworked until it plateaus**
+  From Air 1 (GEN.973 finding): outgoing flux rises monotonically with
+  temperature in the radiative-convective model (343 W/m2 at 330 K
+  saturated against Simpson and Nakajima's plateau near 280), and the
+  fixed point stays near 320 K at 320 W/m2 absorbed with no step through
+  350 K, so a runaway-threshold test against GEN.639 cannot pass as a
+  model-behaviour test. The fix is not new feedback code but different
+  opacity: the water window opacity, the continuum's temperature
+  dependence and the line wings, so the outgoing flux plateaus near 280
+  W/m2. The same too-steep slope explains the sweep's low sensitivity
+  (model Earth twin about 0.43 K per W/m2 against the 0.54 bound; the
+  missing ice-albedo +0.4 and cloud +0.4 W/m2 per K feedbacks close the
+  gap by the AR6 budget). Register changed stand-ins in GEN.725, then
+  add the runaway-threshold test (converges below the limit, runs away
+  above it). Output changes, an epoch with GEN.972 if the train allows.
+  Owner Air 1.
+  Prerequisites: none. Related: GEN.973, GEN.639, GEN.972, GEN.974,
+  GEN.725.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -19186,18 +19178,6 @@ clears each one.
   update that test with it. Test data only, no generated value changes.
   Owner Core 4.
   Prerequisites: none. Related: GEN.366.
-
-- [ ] **TEST.509 The climate sweep twin sits at 313 K, far above the 288 K of the Earth it stands for: make it a real Earth twin so the sweep tests the feedbacks where they act**
-  From Air 1 (GEN.972 design): the climate sweep twin in
-  src/tests/test_climate_sweep.py is at 313 K at its reference flux, far
-  above the ice ramp (263 to 283 K) and Earth's 288 K, so GEN.972 cannot
-  close the strict xfail and the response (0.45 to 0.54 K per W/m2) is
-  measured on a hot world. Make the twin an Earth twin (about 288 K at
-  its flux, Earth composition) and re-measure the response and the 0.54
-  lower bound against it; the bound's source needs rechecking with the
-  new twin. Test and fixture work, no generated value changes. Owner Air
-  1.
-  Prerequisites: none. Related: GEN.972, GEN.973, GEN.974.
 
 ## USR: User accounts
 
