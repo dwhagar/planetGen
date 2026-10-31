@@ -28,10 +28,10 @@ function background(block) {
 }
 
 const rootBlock = css.slice(css.indexOf(":root {"), css.indexOf("}", css.indexOf(":root {")));
-const darkStart = css.indexOf(':root[data-theme="dark"] {');
-const darkBlock = css.slice(darkStart, css.indexOf("}", darkStart));
+// Every map is drawn on black in either theme (`--map-bg`, Boss 2026-10-31), so the dark looks are the ones a map shows; the light looks are kept, against the
+// light theme's pale panel colour, until the scripts drop the light branch (UX.255).
 const LIGHT = background(rootBlock);
-const DARK = background(darkBlock);
+const DARK = N.parseHex("#" + /--map-bg:\s*#([0-9a-fA-F]{6})\s*;/.exec(rootBlock)[1]);
 
 test("the contrast arithmetic is WCAG's", () => {
   assert.ok(Math.abs(N.contrastRatio([0, 0, 0], [255, 255, 255]) - 21) < 1e-9);
@@ -40,9 +40,9 @@ test("the contrast arithmetic is WCAG's", () => {
   assert.deepEqual(N.parseHex("#1c1c24"), [28, 28, 36]);
 });
 
-test("the two themes' backgrounds are the light and dark ones the map sits on", () => {
+test("the light looks sit on the light theme's pale colour and the map itself is black", () => {
   assert.ok(N.luminance(LIGHT) > 0.7, String(LIGHT));
-  assert.ok(N.luminance(DARK) < 0.03, String(DARK));
+  assert.deepEqual(DARK, [0, 0, 0]);
 });
 
 test("every nebula family reaches 3:1 against the map's background on both themes", () => {
