@@ -82,13 +82,19 @@ law's steep fall to zero, up to the Kraft break."""
 HOT_STAR_SPEED_KMS = 180.0
 HOT_STAR_SPEED_SIGMA = 0.45
 HOT_STAR_FULL_SPEED_MASS_SOL = 1.8
+HOT_STAR_PEAK_MASS_SOL = 3.5
+HOT_STAR_PEAK_SPEED_KMS = 268.0
+HOT_STAR_FALL_MASS_SOL = 8.0
 HOT_STAR_BREAK_SPEED_KMS = 80.0
 KRAFT_BREAK_TOP_MASS_SOL = 1.41
 BREAKUP_FRACTION = 0.85
 """Hot stars: `ln v ~ N(ln 180 km/s, 0.45)`, at most 85% of breakup. The 180 km/s is the mean equatorial speed of the 1.6 to 2.0 solar mass bin
 (Zorec and Royer 2012, Table 4: the Maxwellian mode 160 km/s, mean 2 / sqrt(pi) times it), so it holds from `HOT_STAR_FULL_SPEED_MASS_SOL`
 up; just above the Kraft break the stars' mean v sin i is 63 km/s (Beyer and White 2024), a mean equatorial speed of 63 * 4 / pi, about
-`HOT_STAR_BREAK_SPEED_KMS`, and between `KRAFT_BREAK_TOP_MASS_SOL` and the full-speed mass the median runs between the two, linear in ln v over mass. A rocky planet's birth spin is held at the same share
+`HOT_STAR_BREAK_SPEED_KMS`, and between `KRAFT_BREAK_TOP_MASS_SOL` and the full-speed mass the median runs between the two, linear in ln v over mass.
+Above it the median keeps rising with mass to `HOT_STAR_PEAK_SPEED_KMS` at `HOT_STAR_PEAK_MASS_SOL` (Zorec and Royer 2012: mode 238 km/s in their 3.15 to 3.85 solar mass
+bin, mean 1.128 times it), then falls back to `HOT_STAR_SPEED_KMS` at `HOT_STAR_FALL_MASS_SOL` and stays there (GEN.1170: the B stars of 8 solar masses and more are mostly
+slow, 84% under half the critical speed, Huang, Gies and McSwain 2010). A rocky planet's birth spin is held at the same share
 (`accretion_spin`; about 14 percent of the Gaussian vectors lie above it; planetGen's choice)."""
 
 GIANT_SPEED_RANGE_KMS = (1.0, 10.0)
@@ -222,11 +228,18 @@ def kraft_weight(temperature_k):
 
 
 def hot_star_median_speed_kms(mass_sol):
-    """The median equatorial speed, km/s, of a dwarf above the Kraft break: `HOT_STAR_BREAK_SPEED_KMS` at `KRAFT_BREAK_TOP_MASS_SOL` and below,
-    `HOT_STAR_SPEED_KMS` from `HOT_STAR_FULL_SPEED_MASS_SOL` up, linear in ln v over mass between."""
-    share = (mass_sol - KRAFT_BREAK_TOP_MASS_SOL) / (HOT_STAR_FULL_SPEED_MASS_SOL - KRAFT_BREAK_TOP_MASS_SOL)
-    share = min(max(share, 0.0), 1.0)
-    return math.exp(math.log(HOT_STAR_BREAK_SPEED_KMS) + share * (math.log(HOT_STAR_SPEED_KMS) - math.log(HOT_STAR_BREAK_SPEED_KMS)))
+    """The median equatorial speed, km/s, of a dwarf above the Kraft break by mass: `HOT_STAR_BREAK_SPEED_KMS` at `KRAFT_BREAK_TOP_MASS_SOL` and below, `HOT_STAR_SPEED_KMS`
+    at `HOT_STAR_FULL_SPEED_MASS_SOL`, `HOT_STAR_PEAK_SPEED_KMS` at `HOT_STAR_PEAK_MASS_SOL`, `HOT_STAR_SPEED_KMS` again from `HOT_STAR_FALL_MASS_SOL` up, linear in ln v over
+    mass between (GEN.1163, GEN.1170)."""
+    knots = ((KRAFT_BREAK_TOP_MASS_SOL, HOT_STAR_BREAK_SPEED_KMS), (HOT_STAR_FULL_SPEED_MASS_SOL, HOT_STAR_SPEED_KMS),
+             (HOT_STAR_PEAK_MASS_SOL, HOT_STAR_PEAK_SPEED_KMS), (HOT_STAR_FALL_MASS_SOL, HOT_STAR_SPEED_KMS))
+    if mass_sol <= knots[0][0]:
+        return knots[0][1]
+    for (low_mass, low_speed), (high_mass, high_speed) in zip(knots, knots[1:]):
+        if mass_sol <= high_mass:
+            share = (mass_sol - low_mass) / (high_mass - low_mass)
+            return math.exp(math.log(low_speed) + share * (math.log(high_speed) - math.log(low_speed)))
+    return knots[-1][1]
 
 
 def nominal_rotation_period_hours(mass_kg, temperature_k, age_gy):

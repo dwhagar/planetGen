@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 910 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 911 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -41,11 +41,11 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T3 | 77 | 34 | 5 | 10 | 0 | 126 |
 | T4 | 37 | 4 | 0 | 14 | 10 | 65 |
 | T5 | 43 | 15 | 0 | 1 | 0 | 59 |
-| T6 | 83 | 62 | 15 | 45 | 0 | 205 |
+| T6 | 84 | 62 | 15 | 45 | 0 | 206 |
 | T7 | 27 | 8 | 8 | 8 | 0 | 51 |
 | T8 | 0 | 1 | 1 | 5 | 1 | 8 |
 | T9 | 15 | 12 | 4 | 39 | 19 | 89 |
-| All | 533 | 183 | 40 | 124 | 30 | 910 |
+| All | 534 | 183 | 40 | 124 | 30 | 911 |
 
 ## How the labels were given
 
@@ -347,6 +347,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | SP18 | P | T1 | L0 | spin.HOT_STAR_BREAK_SPEED_KMS | 60 to 100 km/s | a dwarf of 1.41 solar masses or less above the break | a speed by mass from stars between the break and 1.6 solar masses | the mean v sin i of the stars just hotter than the break, 63 km/s (SP17), deprojected by 4 / pi for random orientation (the mean of sin i): about 80 km/s, kept as the median equatorial speed at the top of the break | - | - |
 | SP19 | P | T1 | L0 | spin.HOT_STAR_SPEED_KMS, HOT_STAR_SPEED_SIGMA, HOT_STAR_FULL_SPEED_MASS_SOL | 160 to 200 km/s; width 0.3 to 0.45 | a dwarf of 1.8 solar masses or more | a speed rising with mass above 1.8 solar masses (the paper's Table 4 trend, about 46 km/s per solar mass in the mode) | READ, Zorec and Royer 2012 (A&A 537:A120, arXiv:1201.2052, Table 4, read from the paper's text): the 1.60 to 2.00 solar mass bin (191 stars) has a Maxwellian mode of the fast rotators of 160 km/s and a dispersion of 54 km/s, a mean of 2 / sqrt(pi) times the mode, 180 km/s; the mode rises to 238 km/s at 3.15 to 3.85 solar masses, which the model does not follow (hot stars of every mass above 1.8 keep 180 km/s with a log-normal width of 0.45, a planetGen choice wider than the paper's 54 / 160); their lowest bin starts at 1.6 solar masses | - | - |
 | SP20 | P | T6 | L0 | spin.KRAFT_BREAK_TOP_MASS_SOL, HOT_STAR_FULL_SPEED_MASS_SOL, spin.hot_star_median_speed_kms | a straight line in v or in ln v | a dwarf of 1.41 to 1.8 solar masses | the same speed by mass from a sample of F and early A stars with masses | between the top of the break (1.41 solar masses, SP18's 80 km/s) and the first mass the paper covers (SP19) the median speed is interpolated, linear in ln v over mass; no source covers the stars of 1.41 to 1.6 solar masses (the break paper gives one mean for all hotter stars); the interpolation is a bridge between two read anchors, not fitted | - | - |
+| SP21 | P | T6 | L0 | spin.HOT_STAR_PEAK_MASS_SOL, HOT_STAR_PEAK_SPEED_KMS, HOT_STAR_FALL_MASS_SOL | peak 240 to 290 km/s; fall mass 6 to 10 solar masses | a dwarf of 1.8 solar masses or more | a speed by mass from a table of mean equatorial speeds of B stars with their masses | GEN.1170: above 1.8 solar masses the median runs up to 268 km/s at 3.5 solar masses (Zorec and Royer 2012, Table 4: the last bin, 3.15 to 3.85 solar masses, has a mode of 238 km/s, a mean 1.128 times it; the mode rises about 46 km/s per solar mass from 1.8), then falls back to 180 km/s at 8 solar masses and stays there (READ, Huang, Gies and McSwain 2010, ApJ 722:605, arXiv:1008.1761, Section 5: the share of newborn B stars under half the critical speed is 37%, 53% and 84% for 2 to 4, 4 to 8 and 8 solar masses and more, the whole sample's mode 0.49 of the critical speed; the paper gives shares, not speeds, so the fall to 180 km/s is a stand-in: 84% under half of a critical speed of about 580 km/s puts the median near 175 km/s, with the critical speed read from a summary of the paper's tables, not verified); the line between the anchors is straight in ln v | - | - |
 
 ## 6.15 Stand-ins of the trapped radiation belts
 
