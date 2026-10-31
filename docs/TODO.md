@@ -14359,32 +14359,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   it, so lock-free until then.
   Prerequisites: none. Related: GEN.1158, GEN.725.
 
-- [ ] **GEN.1181 Set the molecular gas velocity dispersion to 7.0 km/s (range 5 to 9) from four read sources and record it in GEN.725 and the structure.py comment**
-  From Sources 1 (reports/gen536-co-velocity-dispersion-2026-10-31.md):
-  the generator's 6.5 +/- 1 km/s stand-in had no source. Read in full:
-  Caldu-Primo 2013 (CO 12.0 +/- 3.9 stacked, inclined galaxies, an upper
-  bound), Mogotsi 2016 (CO 7.3 +/- 1.7 per pixel, HI/CO 1.4), Sun 2020
-  PHANGS (disk CO 7.5 mass-weighted, 4.9 area-weighted at 150 pc),
-  Malhotra 1994 Milky Way (7.1 to 7.8 near the Sun). Set 7.0 km/s (range
-  5 to 9), tier Confident Unverified from the four sources, tweak L1,
-  registered in GEN.725 and in the structure.py comment. The young
-  stars' scale height at 7.0 is 0.245 of the old disc's (73 pc for a 300
-  pc disc) against 0.219 (66 pc) at 6.5. A small stored-output change,
-  so it rides a train window. Owner Core 1 or the lane that owns
-  structure.py.
-  Prerequisites: none. Related: GEN.536, GEN.725.
-
-- [ ] **GEN.1182 Sourced scale height of young stars: the 'observed about 50 pc' figure has no source in anything read and no CO velocity dispersion reaches it**
-  From Sources 1 (reports/gen536-co-velocity-dispersion-2026-10-31.md):
-  the generator's expectation of about 50 pc for the young stars' scale
-  height has no source, and no CO value reaches it (it needs 5.4 km/s);
-  the Milky Way molecular layer is 57 pc (Malhotra 1994), which supports
-  about 50. Find a sourced young-star (OB, Cepheid, young cluster) scale
-  height for the Milky Way and nearby spirals and set the test
-  expectation and the stand-in to it. Research item, no code until the
-  number is chosen. Owner Sources 1.
-  Prerequisites: none. Related: GEN.536, GEN.725.
-
 - [ ] **GEN.1183 Ice-type strength ratios (IT1 to IT3) become a ratio-by-temperature table from Durham 1997 Table 2 instead of constants**
   Replace the constant ratios in physics/ice_types.py (GEN.1177) with a
   table by temperature: ice III about 0.5 in its 240 to 256 K wedge (now
@@ -14429,6 +14403,24 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   papers review of all 14 uploaded and 35 downloaded papers, Boss's
   request).
   Prerequisites: none. Related: GEN.1175, GEN.725.
+
+- [ ] **GEN.1188 Record the sources of the 6.5 km/s molecular gas dispersion and pin the Milky Way young-star scale height test to the sourced band of 35 to 70 pc**
+  From Sources 1 (reports/gen536-co-velocity-dispersion-2026-10-31.md,
+  reports/gen1182-young-star-scale-height-2026-10-31.md): keep the 6.5
+  km/s stand-in (it sits inside the sourced 7.0 +/- 1.7 and inside the
+  CO range 5 to 9); record its four sources (Caldu-Primo 2013, Mogotsi
+  2016, Sun 2020, Malhotra 1994) in GEN.725 and the structure.py comment
+  as tier Confident Unverified, tweak L1. Young objects of the Milky Way
+  (under about 100 Myr) have an exponential scale height of about 50 pc,
+  36 to 66 pc by tracer (Bobylev and Bajkova 2015 and 2016, Urquhart
+  2011, Bonatto 2006, Joshi 2016, Hao 2021, Moreira 2025, all read); pin
+  the test for a Milky Way twin with a 300 pc old disc to 35 to 70 pc
+  (young over old 0.12 to 0.23). 6.5 km/s gives 66 pc inside it; 7.0
+  gives 73 pc just outside, so the value stays. The band is a Milky Way
+  check, not a law for every galaxy (six low-mass edge-on spirals show
+  young over old of 0.40 to 0.59, Seth 2005). No stored output changes,
+  lock-free. Owner Sources 1.
+  Prerequisites: none. Related: GEN.536, GEN.725.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
