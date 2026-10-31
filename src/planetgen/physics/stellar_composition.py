@@ -291,6 +291,22 @@ def _neutron_star_crust(draws):
             "radius_band_km": tuning.STELLAR_NS_RADIUS_BAND_KM}
 
 
+def _grid_radius_solar(mass_sol, teff_k, envelope):
+    """
+    A white dwarf's radius from the cooling sequences, solar radii. The initial-final mass relation reaches 1.33 solar masses and the
+    sequences stop at `white_dwarf_models.CRYSTAL_MASS_SOL` (1.30): a heavier star reads the 1.30 sequence at its temperature, scaled by the
+    zero-temperature mass-radius relation's ratio of the two masses (the shrinking toward the Chandrasekhar mass).
+    """
+    top = white_dwarf_models.CRYSTAL_MASS_SOL
+    if mass_sol <= top:
+        return white_dwarf_models.radius_solar(mass_sol, teff_k, envelope)
+    try:
+        return (white_dwarf_models.radius_solar(top, teff_k, envelope)
+                * sa.white_dwarf_radius_solar(mass_sol) / sa.white_dwarf_radius_solar(top))
+    except sa.StellarAbundanceError:
+        return None  # heavier than any white dwarf the relation makes
+
+
 def star_makeup(kind, fe_h, age_gy, mass_sol, key, wolf_rayet_subtype=None, spin=0.0, teff_k=None):
     """
     The composition of a star or remnant.
@@ -385,7 +401,7 @@ def star_makeup(kind, fe_h, age_gy, mass_sol, key, wolf_rayet_subtype=None, spin
             detail["layers"] = None
             open_items = (f"the white-dwarf sequences are missing: {white_dwarf_models.DATASET.fallback}",)
         else:
-            detail["radius_solar"] = white_dwarf_models.radius_solar(mass_sol, teff_k, envelope)
+            detail["radius_solar"] = _grid_radius_solar(mass_sol, teff_k, envelope)
             detail["layers"] = (white_dwarf_models.layer_mass_fractions(mass_sol, envelope)
                                 if detail["core"] == "carbon-oxygen" else None)
             open_items = ("the carbon-to-oxygen split of the core (the sequences assume an even one)",

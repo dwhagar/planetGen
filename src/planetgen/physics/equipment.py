@@ -615,7 +615,7 @@ def code(levels):
 
 def summary(levels):
     """The `equipment` object the API serves (`None` for an unscored body): `required` and `recommended` names, the
-    `code`, the `items` (slot, item, severity, domain), the `line` and the shelter's depth and the hours outside."""
+    `code`, the `items` (slot, item, severity, domain), the `line` and the shelter's depth and the hours outside (a year under the dose limit, and a day with what limits it, GEN.768)."""
     if not scored(levels):
         return None
     return {
@@ -625,7 +625,8 @@ def summary(levels):
                   for item in items(levels)],
         "line": line(levels), "required_line": lines(levels)[0], "recommended_line": lines(levels)[1],
         "shelter_column_g_cm2": levels.get("shelter_column_g_cm2"),
-        "outside_hours": levels.get("outside_hours"), "regions": regional_temperature.summary(levels),
+        "outside_hours": levels.get("outside_hours"), "outside_hours_day": levels.get("outside_hours_day"),
+        "outside_hours_limit": levels.get("outside_hours_limit"), "regions": regional_temperature.summary(levels),
     }
 
 

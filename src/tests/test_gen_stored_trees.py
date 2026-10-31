@@ -29,7 +29,7 @@ def _stored(tree, epoch=EPOCH):
     """A drawn tree as the rows `read_stored_trees` returns for it."""
     members = tuple(scatter_systems.StoredMember(
         m.member_no, m.parent_node_no, m.slot, m.kind, m.state, m.flags, m.mass_solar, m.initial_mass_solar, m.seed,
-        epoch) for m in tree.members)
+        epoch, m.radius_au) for m in tree.members)
     return scatter_systems.StoredTree(members, orbit_trees.nodes_from_member_tree(tree, epoch))
 
 
@@ -235,7 +235,7 @@ def test_a_tree_with_a_remnant_builds_the_placed_star_alone_and_keeps_its_rows()
 
 def test_a_companion_that_is_not_its_stored_member_leaves_the_primary_alone(monkeypatch):
     seed, tree, age_yr = _pair("close")
-    monkeypatch.setattr(stored_trees, "MASS_TOLERANCE", -1.0)    # nothing built is the stored mass
+    monkeypatch.setattr(stored_trees, "RECORD_TOLERANCE", -1.0)    # nothing built is the stored member
     system = _build(seed, tree, age_yr)
     assert not system.tree_built and system.binary_type is None and system.orbit_nodes == ()
 

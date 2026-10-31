@@ -42,6 +42,16 @@ from planetgen.physics.protection_limits import GARMENTS, limit, supply_hours
 LIMITS = ("daylight", "dose", "heat", "cold", "air", "uv", "vehicle")
 """tuple: The binding limits by the order of the ties (the first of equal hours wins) and by stored number."""
 
+FIELDS = ("outside_hours_day", "outside_hours_limit")
+"""tuple: What a body stores of this module (GEN.768): `outside_hours_day`, the hours of one local day a person can be outside, and
+`outside_hours_limit`, the name in `LIMITS` of the limit that sets them. Both are `None` where the stored columns do not say."""
+
+LIMIT_WORDS = {
+    "daylight": "the hours of daylight", "dose": "the radiation dose allowance", "heat": "heat", "cold": "cold",
+    "air": "the breathing gas it carries", "uv": "ultraviolet light", "vehicle": "a body that needs a vehicle outside",
+}
+"""dict: A limit and the plain words a page says it in."""
+
 Temperatures = namedtuple("Temperatures", "cold_k hot_k")
 """The coldest and the hottest ambient temperature of the day outside, kelvin."""
 
@@ -227,3 +237,9 @@ def for_body(world, levels, values):
     half_swing = (values.get("temp_swing_k") or 0.0) / 2.0
     temperatures = Temperatures(cold_c + constants.CELSIUS_ZERO_K - half_swing, hot_c + constants.CELSIUS_ZERO_K + half_swing)
     return outside_hours_day(world, levels, daylight, work_days_per_year(rotation, period), temperatures)
+
+
+def fields(world, levels, values):
+    """`{FIELDS name: value}` of a body: `for_body`'s hours and limit, both `None` when its columns do not say enough."""
+    hours, limit_name = for_body(world, levels, values)
+    return {"outside_hours_day": hours, "outside_hours_limit": limit_name}
