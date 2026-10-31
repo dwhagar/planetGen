@@ -3084,7 +3084,7 @@ Parents marked "new parent" had no old number of their own.
 | VIEW.6 | Settle the handedness of the generated galaxy before mapping real sky coordinates | none | open |
 | VIEW.7 | Sky tiers and the backfill cost measurement | none | open |
 | VIEW.8 | A dust model for the sky: the galactic extinction law and `nebulae.extinction_av` | none | open |
-| VIEW.9 | Replace the BC_V table with a published relation (Flower 1996 or Torres 2010) | none | open |
+| VIEW.9 | Replace the BC_V table with a published relation (Flower 1996 or Torres 2010) | none | done, PR #4508 |
 | VIEW.10 | A HYG calibration test: a generated sky has about 9,000 stars at V <= 6.5 | none | merged into VIEW.12 (Boss, 2026-10-16, 11:58 PM EDT: consolidation sweep) |
 | VIEW.11 | Photometry library: apparent magnitude, bolometric correction, blackbody colour and the extinction law | none | open |
 | VIEW.12 | Sky catalogue: the stars an observer sees, with direction, brightness and light-time | none | open |

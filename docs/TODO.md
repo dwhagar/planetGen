@@ -20885,11 +20885,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Prerequisite: VIEW.1.
   Design: [docs/design/orbits/sky-view.md](design/orbits/sky-view.md)
 
-- [ ] **VIEW.9 Replace the BC_V table with a published relation (Flower 1996 or Torres 2010)**
-  Before any star count depends on the bolometric correction.
-  Prerequisites: none.
-  Design: [docs/design/orbits/sky-view.md](design/orbits/sky-view.md)
-
 - [ ] **VIEW.11 Photometry library: apparent magnitude, bolometric correction, blackbody colour and the extinction law**
   Split from VIEW.2 (2026-10-16, Boss 1:07 PM EDT: look at each item for
   smaller chunks and shared work). Pure array functions in
@@ -20909,7 +20904,14 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   newer note wins, report todo-contradictions-2026-10-18.md): the HYG
   calibration test is VIEW.12's (VIEW.10 was folded into VIEW.12, Boss,
   2026-10-16, 11:58 PM EDT), not VIEW.10's.
-  Prerequisites: VIEW.1, VIEW.9. Related: VIEW.2.
+  VIEW.9 merged as #4508 (Star 2, as the lane reported) (2026-10-31 1:30
+  PM EDT): physics/photometry.bolometric_correction_v (Flower 1996 with
+  Torres 2010 coefficients, read from the paper) answers 3,500 to 50,000
+  K and raises outside; M_bol of the Sun 4.74 goes with it. Nothing
+  reads it yet: this item wires it, and decides what a star cooler than
+  3,500 K gets (no value is invented in the library). The wiring guard
+  function check (TEST.520) will list it until this item reads it.
+  Prerequisites: VIEW.1. Related: VIEW.2.
 
 - [ ] **VIEW.12 Sky catalogue: the stars an observer sees, with direction, brightness and light-time**
   Split from VIEW.2 (2026-10-16, Boss 1:07 PM EDT: look at each item for
