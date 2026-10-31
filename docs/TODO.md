@@ -14392,36 +14392,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   request).
   Prerequisites: none. Related: GEN.725.
 
-- [ ] **GEN.1187 Strength constants still without a source: ammonia dihydrate 1993 constants, the melt factor, Andrade creep, ice grain-boundary-sliding laws and the ice phase boundary table**
-  Find sources or report which papers Boss would need to upload for: the
-  ammonia dihydrate 1993 creep constants, the partial-melt strength
-  factor, Andrade creep parameters for the tidal response, ice
-  grain-boundary-sliding flow laws and the ice phase boundary table
-  (pressure-temperature lines for II, III, V, VI). Research item, no
-  code. Owner Sources 1. Source:
-  reports/papers-vs-standins-2026-10-31.md section 7 (the strength
-  papers review of all 14 uploaded and 35 downloaded papers, Boss's
-  request).
-  Prerequisites: none. Related: GEN.1175, GEN.725.
-
-- [ ] **GEN.1188 Record the sources of the 6.5 km/s molecular gas dispersion and pin the Milky Way young-star scale height test to the sourced band of 35 to 70 pc**
-  From Sources 1 (reports/gen536-co-velocity-dispersion-2026-10-31.md,
-  reports/gen1182-young-star-scale-height-2026-10-31.md): keep the 6.5
-  km/s stand-in (it sits inside the sourced 7.0 +/- 1.7 and inside the
-  CO range 5 to 9); record its four sources (Caldu-Primo 2013, Mogotsi
-  2016, Sun 2020, Malhotra 1994) in GEN.725 and the structure.py comment
-  as tier Confident Unverified, tweak L1. Young objects of the Milky Way
-  (under about 100 Myr) have an exponential scale height of about 50 pc,
-  36 to 66 pc by tracer (Bobylev and Bajkova 2015 and 2016, Urquhart
-  2011, Bonatto 2006, Joshi 2016, Hao 2021, Moreira 2025, all read); pin
-  the test for a Milky Way twin with a 300 pc old disc to 35 to 70 pc
-  (young over old 0.12 to 0.23). 6.5 km/s gives 66 pc inside it; 7.0
-  gives 73 pc just outside, so the value stays. The band is a Milky Way
-  check, not a law for every galaxy (six low-mass edge-on spirals show
-  young over old of 0.40 to 0.59, Seth 2005). No stored output changes,
-  lock-free. Owner Sources 1.
-  Prerequisites: none. Related: GEN.536, GEN.725.
-
 - [ ] **GEN.1189 Greenhouse refit method: the refit table is blind to the methane share of a hydrogen air and a dense carbon dioxide air is 2 to 8 percent warm, so find a better fit than one L-BFGS network**
   From Air 1 (GEN.1030/GEN.1032 ready for train 7): a drawn ice giant
   with a few percent methane reads about 5 percent warm because the
@@ -14435,6 +14405,27 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   so it rides a lock window after GEN.1030/GEN.1032 merge. Owner Air 1.
   Prerequisites: GEN.1032. Related: GEN.1030, GEN.1032, GEN.1033,
   GEN.725.
+
+- [ ] **GEN.1190 Replace unsourced rheology constants with the sourced ones: partial-melt factor, Andrade exponent and ratio, ice grain-boundary sliding and the ice melting curves**
+  From Sources 1
+  (reports/gen1187-strength-constant-sources-2026-10-31.md): sourced
+  values exist for the partial-melt factor exp(-alpha x melt) (alpha 30
+  for diffusion creep, 30 to 45 for dislocation creep, Hirth and
+  Kohlstedt 2003; ice melt law B 22), the Andrade exponent 0.2 to 0.4
+  and the Andrade over Maxwell ratio near 1 at low stress (the repo's
+  0.3 and 1.0 stay; the rock ratio has a source conflict, record it),
+  ice grain-boundary sliding n 1.8, grain exponent 1.4, Q 49 kJ/mol (two
+  sources agree, prefactors from one secondary table), and the ice
+  melting curves for Ih, III, V, VI and VII with all coefficients (IAPWS
+  2011). Not found and still open: the ammonia dihydrate 1993 constants
+  and the solid-solid ice boundaries (Boss uploads, in order of value:
+  Durham, Kirby and Stern 1993 JGR 98:17667, Goldsby and Kohlstedt 2001
+  JGR 106:11017, Choukroun and Grasset 2007 J. Chem. Phys. 127:124506).
+  Replace the matching stand-ins in the tidal rheology and the ice-type
+  strength table (GEN.1183) with these values and update their registry
+  rows (tier and tweak level) in GEN.725. Changes tidal heating inputs,
+  so it rides a Tides 1 lock window. Owner Tides 1.
+  Prerequisites: none. Related: GEN.1183, GEN.1185, GEN.725.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
