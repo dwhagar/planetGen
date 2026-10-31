@@ -80,8 +80,9 @@ def test_a_clouds_young_stars_give_it_gas_and_a_dwarf_without_young_stars_has_no
 
 def test_a_cell_inside_a_cloud_shows_every_class_the_profile_allows_and_a_dwarfs_shows_none_of_the_gas_ones():
     cloud = profile.profile_at(LMC.center_pc, WITH_SATELLITES, EDGE, E1)
-    for kind in ("supernova-remnant", "molecular-cloud", "nebula"):
+    for kind in ("molecular-cloud", "nebula"):
         assert 0.0 < cloud.kind_factors[kind] <= 1.0, kind
+    assert cloud.kind_factors["supernova-remnant"] > 0.0           # GEN.1198: not capped at 1, it follows the Cloud's star formation
     assert 0.0 < cloud.kind_factors[KIND] <= 1.0
     assert cloud.gas.cold_fraction > 0.0
     dwarf = profile.profile_at(FORNAX.center_pc, WITH_SATELLITES, EDGE, E1)
@@ -133,21 +134,26 @@ def _remnants(component, shape, seeds, monkeypatch):
     return found
 
 
-def test_a_satellites_remnants_are_kept_where_its_gas_is(monkeypatch):
+def test_a_satellites_remnants_scale_with_its_star_formation(monkeypatch):
+    """GEN.1191: the remnant count is the systems times the rate per system times the factor of the satellite's young and old share against the solar
+    circle's (`supernova_remnant_factor`), not cut by a gas profile: the Large Cloud's row gets the order of the 59 remnants listed in it (Maggi et al. 2016,
+    arXiv:1509.09223, read), the Small Cloud fewer in proportion to its star formation."""
     rate = dict(((k, s), r) for k, s, r in component_pass.satellite_rates(tuning.PHENOMENON_MIN_MASS_SOLAR))[
         ("supernova-remnant", None)]
-    full = component_pass.systems_of(SMC) * rate
     seeds = range(40)
-    rows = _remnants(SMC, WITH_SATELLITES, seeds, monkeypatch)
-    radii, gas = component_pass.gas_by_radius(SMC, WITH_SATELLITES)
-    assert 0.0 < gas[0] <= 1.0 and gas[-1] < gas[0]
-    assert rows, "the Small Cloud holds some remnants"
-    centre = np.asarray(SMC.center_pc)
-    distance = [float(np.linalg.norm(np.asarray(row[5:8]) / 1000.0 - centre)) for row in rows]
-    # Kept ones crowd the centre, where the gas is: the median kept radius is under the median of all the satellite's.
-    assert np.median(distance) < SMC.half_mass_radius_pc * 1.3
-    # The kept count is the candidates (full * seeds) times the mean gas fraction over the profile, well under the whole.
-    assert len(rows) < 0.75 * full * len(seeds)
+    means = {}
+    for satellite in (SMC, LMC):
+        factor = component_pass.supernova_remnant_factor(satellite, WITH_SATELLITES)
+        expected = component_pass.systems_of(satellite) * rate * factor
+        means[satellite.name] = len(_remnants(satellite, WITH_SATELLITES, seeds, monkeypatch)) / len(seeds)
+        assert means[satellite.name] == pytest.approx(expected, rel=0.25)
+    assert 20.0 < means["Large Magellanic Cloud"] < 120.0
+    assert means["Small Magellanic Cloud"] < means["Large Magellanic Cloud"]
+
+
+def test_the_remnant_factor_is_one_for_the_solar_circles_mix_and_zero_without_young_stars():
+    assert component_pass.supernova_remnant_factor(FORNAX, WITH_SATELLITES) == 0.0
+    assert component_pass.supernova_remnant_factor(LMC, WITH_SATELLITES) > component_pass.supernova_remnant_factor(SMC, WITH_SATELLITES) > 0.0
 
 
 def test_a_satellite_without_gas_has_no_remnants_or_magnetars(monkeypatch):
@@ -168,3 +174,26 @@ def test_the_classes_every_component_has_keep_their_draws(monkeypatch):
     monkeypatch.setattr(component_pass, "satellite_rates", lambda _cut: [])
     only = list(component_pass.scatter_phenomena([SMC], EDGE, 9, min_mass_solar=cut, shape=WITH_SATELLITES))
     assert generic == only
+
+
+def test_the_supernova_remnants_of_a_clouds_cell_follow_its_star_formation_as_its_component_pass_does():
+    """GEN.1198: a Cloud's cell is nearly all the Cloud's own stars, so its factor is the component pass's (GEN.1191), above 1 for the Large Cloud,
+    and a cell of a satellite that forms no stars holds none."""
+    for cloud in (LMC, SMC):
+        cell = profile.profile_at(cloud.center_pc, WITH_SATELLITES, EDGE, E1).kind_factors["supernova-remnant"]
+        assert cell == pytest.approx(component_pass.supernova_remnant_factor(cloud, WITH_SATELLITES), rel=1e-3)
+    assert profile.profile_at(LMC.center_pc, WITH_SATELLITES, EDGE, E1).kind_factors["supernova-remnant"] > 1.0
+    assert profile.profile_at(FORNAX.center_pc, WITH_SATELLITES, EDGE, E1).kind_factors["supernova-remnant"] == 0.0
+
+
+def test_the_progenitor_factor_is_one_at_the_solar_circle_s_mix_and_zero_without_young_stars():
+    reference = profile._reference_young_share(SHAPE)
+    assert profile.supernova_progenitor_factor(reference, SHAPE) == pytest.approx(1.0)
+    assert profile.supernova_progenitor_factor(0.0, SHAPE) == 0.0
+    assert profile.supernova_progenitor_factor(2.0 * reference, SHAPE) > 1.0
+
+
+def test_a_disc_cell_keeps_its_gas_factor_for_the_supernova_remnants():
+    here = profile.profile_at(SUN, WITH_SATELLITES, EDGE, E1)
+    assert here.kind_factors["supernova-remnant"] == pytest.approx(
+        min(1.0, nebula_field.gas_factor(SUN, WITH_SATELLITES)) * (1.0 - here.populations["cluster"].share), rel=1e-6)

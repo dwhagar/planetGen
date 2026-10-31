@@ -65,6 +65,22 @@ def _binding(mass_sol):
     return tuning.PRE_MAIN_SEQUENCE_ENERGY_SOURCE_FACTOR * constants.G * (_msun_to_kg(mass_sol)) ** 2
 
 
+MIST_FADE_TOP_SOL = 0.15
+"""float: The mass, solar masses, from which MIST's stretch of the clock is whole (GEN.1173). Between the lightest mass MIST's rows hold a contracting star for (about 0.107)
+and this, the stretch passes smoothly from none to MIST's, so the time runs on the model's own curve below the rows and on MIST's from here, with no step at the rows' edge
+(718 Myr at 0.105 solar masses against 1358 Myr at 0.11 before). A stand-in, registry row LM5 of 6.66."""
+
+
+def _fade_in(mass_sol, fe_h):
+    """How much of MIST's stretch a star of this mass takes: 0 at the lightest mass the rows hold a contracting star for, 1 from `MIST_FADE_TOP_SOL` up, a smoothstep of the mass
+    between."""
+    edge = isochrones.lowest_arrival_mass_sol(fe_h)
+    if edge is None or edge >= MIST_FADE_TOP_SOL:
+        return 1.0
+    x = min(max((mass_sol - edge) / (MIST_FADE_TOP_SOL - edge), 0.0), 1.0)
+    return x * x * (3.0 - 2.0 * x)
+
+
 @functools.lru_cache(maxsize=4096)
 def _track(mass_sol, fe_h=0.0):
     """
@@ -89,6 +105,8 @@ def _track(mass_sol, fe_h=0.0):
     t2 = max(t2, 0.0)
     mist_yr = isochrones.pre_main_sequence_arrival_yr(mass_sol, fe_h)
     scale = _yr_to_s(mist_yr) / (t1 + t2) if mist_yr is not None and t1 + t2 > 0.0 else 1.0
+    if scale != 1.0 and mass_sol < MIST_FADE_TOP_SOL:
+        scale = 1.0 + (scale - 1.0) * _fade_in(mass_sol, fe_h)
     return {"r0": r0, "r_h": r_h, "r_ms": r_ms, "t_h": t_h, "l_ms": l_ms, "t1": t1, "t2": t2, "k4": k4,
             "start": start, "scale": scale}
 

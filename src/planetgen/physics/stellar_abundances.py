@@ -49,6 +49,7 @@ from planetgen.datasets import baraffe_isochrones
 from planetgen.generation import possibility_table as pt
 from planetgen.physics import constants
 from planetgen.physics import elements, unit_registry as units
+from planetgen.util import draw
 
 _kg_to_msun = units.converter("kg", "Msun")
 _msun_to_kg = units.converter("Msun", "kg")
@@ -221,6 +222,21 @@ def branch_from_uniform(fe_h, age_gy, u):
     """The branch of a star given the fixed uniform number `u` (0 to 1) of its key: high-alpha when `u` is below
     `branch_probability`, thin otherwise. The same result as the table's probabilities with the high-alpha row first."""
     return BRANCH_HIGH_ALPHA if u < branch_probability(fe_h, age_gy) else BRANCH_THIN
+
+
+@functools.lru_cache(maxsize=1 << 16)
+def _branch_uniform(fe_h):
+    return draw.Stream(f"branch:{fe_h!r}").random()
+
+
+def branch_of(fe_h, age_gy):
+    """
+    The branch of a star of this birth [Fe/H] and age (GEN.1024): high-alpha when the star's own uniform number, a stream named for its
+    [Fe/H] (a float no other star shares), is under `branch_probability`. The star's track (`alpha_tracks.track_fe_h`), its composition
+    and its radiogenic offsets all read it, from the two numbers a stored star keeps, so they agree and a star read back from the database
+    has the branch it was made with.
+    """
+    return branch_from_uniform(fe_h, age_gy, _branch_uniform(fe_h))
 
 
 def branch_probabilities(fe_h, age_gy):
