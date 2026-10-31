@@ -805,7 +805,7 @@ _DISK_COLUMNS = ("moon_disk_lifetime_myr", "moon_disk_alpha_over_f", "moon_disk_
 _BODY_RULES = [
     (_GIANT_ONLY, lambda klass, row: klass in GIANT_CLASSES and (row is None or row.get("body_type") != "t"),
      "only a giant has a deep envelope over a core, so these describe nothing on a rocky or icy world, nor on a gas dwarf that is a rocky body "
-     "under a hydrogen air (class T, GEN.1142)"),
+     "under a hydrogen air (class T)"),
     (_SURFACE, lambda klass, row: klass not in GIANT_CLASSES,
      "a giant has no surface: no ocean, rock chemistry, ground dose, habitability score, life or surface temperature"),
     (_AIR, lambda klass, row: klass not in AIRLESS_CLASSES and (row is None or (row.get("atmospheric_pressure_pa") or 0) > 0),
