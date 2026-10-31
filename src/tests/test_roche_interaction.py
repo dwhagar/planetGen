@@ -111,10 +111,9 @@ def test_an_ultra_wide_system_is_flagged_fragile_and_only_that_one():
 
 def test_a_merger_product_has_a_rejuvenated_age_and_the_system_age_stays():
     tree = multistar.draw_member_tree(multistar.Placed("star", 1.0, 1.0), 4.6e9, draw.Stream(2), n_stars=2)
-    product = multistar.mark_merger_product(tree.members[0], tree.age_yr, draw.Stream(5))
     low, high = multistar.REJUVENATION_FRACTION_RANGE
-    assert product.flags & multistar.MEMBER_MERGER_PRODUCT
-    assert low * 4.6e9 <= product.effective_age_yr <= high * 4.6e9
+    for seed in range(200):
+        assert low * 4.6e9 <= multistar.rejuvenated_age_yr(tree.age_yr, draw.Stream(seed)) <= high * 4.6e9
     assert tree.age_yr == 4.6e9 and tree.members[0].effective_age_yr is None
 
 

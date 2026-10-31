@@ -1841,12 +1841,6 @@ def rejuvenated_age_yr(age_yr, rng=draw):
     return age_yr * rng.uniform(*REJUVENATION_FRACTION_RANGE)
 
 
-def mark_merger_product(member, age_yr, rng=draw):
-    """The member as a merger product: flagged `merger_product`, with a rejuvenated `effective_age_yr`."""
-    return dataclasses.replace(member, flags=member.flags | MEMBER_MERGER_PRODUCT,
-                               effective_age_yr=rejuvenated_age_yr(age_yr, rng))
-
-
 def _in_sphere(radius, rng):
     """A point drawn uniformly inside a sphere of this radius, as a 3-tuple."""
     while True:

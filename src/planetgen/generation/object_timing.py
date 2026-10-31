@@ -221,12 +221,6 @@ def _histogram_text(histogram):
     return ",".join(str(count) for count in histogram)
 
 
-def histogram_from_text(text):
-    """A histogram saved by `save` back as a list of counts."""
-    counts = [int(part) for part in text.split(",")] if text else []
-    return counts + [0] * (HISTOGRAM_BUCKETS - len(counts))
-
-
 def save(conn, run_id, collector, sector_id=None):
     """Writes a finished unit's aggregates and samples (the caller commits,
     so they land with the sector). Does nothing without a run id or when the
@@ -250,29 +244,17 @@ def save(conn, run_id, collector, sector_id=None):
     return rows
 
 
-def run_totals(conn, run_id):
-    """A run's aggregates by kind, summed over its sectors: `{kind:
-    Aggregate}` (times in seconds)."""
-    totals = {}
+def kind_summaries(conn):
+    """
+    What each kind of object cost over every saved run (PERF.196): one `{"kind", "objects", "total_seconds", "mean_seconds",
+    "fastest_seconds", "slowest_seconds"}` per kind, the kind that took the most time first. The admin Stats page shows it (the Seconds per
+    object table) through `GET /api/admin/generation-stats`.
+    """
     cursor = conn.execute(
-        "SELECT kind, object_count, total_us, min_us, max_us, histogram FROM object_timing_stats WHERE run_id = ?",
-        (run_id,))
-    for row in cursor.fetchall():
-        aggregate = totals.setdefault(row["kind"], Aggregate())
-        aggregate.count += row["object_count"]
-        aggregate.total += row["total_us"] / 1e6
-        aggregate.minimum = min(aggregate.minimum, row["min_us"] / 1e6)
-        aggregate.maximum = max(aggregate.maximum, row["max_us"] / 1e6)
-        for index, count in enumerate(histogram_from_text(row["histogram"])):
-            aggregate.histogram[index] += count
-    return totals
-
-
-def type_means(conn):
-    """The mean seconds one object of each kind took over every saved run:
-    `{kind: seconds}`; what the admin Stats page and the ETA estimates read."""
-    cursor = conn.execute(
-        "SELECT kind, SUM(object_count) AS objects, SUM(total_us) AS micros FROM object_timing_stats"
-        " GROUP BY kind")
-    return {row["kind"]: float(row["micros"]) / 1e6 / float(row["objects"])
-            for row in cursor.fetchall() if row["objects"]}
+        "SELECT kind, SUM(object_count) AS objects, SUM(total_us) AS micros, MIN(min_us) AS fastest, MAX(max_us) AS slowest"
+        " FROM object_timing_stats GROUP BY kind")
+    rows = [{"kind": row["kind"], "objects": int(row["objects"]), "total_seconds": float(row["micros"]) / 1e6,
+             "mean_seconds": float(row["micros"]) / 1e6 / float(row["objects"]),
+             "fastest_seconds": float(row["fastest"]) / 1e6, "slowest_seconds": float(row["slowest"]) / 1e6}
+            for row in cursor.fetchall() if row["objects"]]
+    return sorted(rows, key=lambda row: -row["total_seconds"])

@@ -42,7 +42,7 @@ from planetgen.db.store import (
     STATEMENT_TIMEOUT_ERRORS, body_class_scores, compact_host_of_star, escape_like, get_connection, get_galaxy_bounds, get_galaxy_shape, sector_deletions, surrounding_cloud,
     with_gases,
 )
-from planetgen.db import compact_pairs, countcache, hostednebula, interests, nebula_blocks, point_columns
+from planetgen.db import compact_pairs, countcache, hostednebula, interests, nebula_blocks, point_columns, search_values
 from planetgen.db.scatter_systems import SOURCES as SCATTER_SOURCES
 from planetgen.physics import constants, relations
 from planetgen.physics.stellar_evolution import phenomenon_map_luminosity_sol
@@ -7060,7 +7060,7 @@ def _search_result_systems(conn, term, limit, offset, stars=None):
     }
 
 
-def _search_result_stars(conn, spectral_tags, luminosity_tags, term, limit, offset, size_range=None):
+def _search_result_stars(conn, spectral_tags, luminosity_tags, term, limit, offset, size_range=None, ranges=None, sort=None):
     clauses, params = [], []
     if spectral_tags:
         clauses.append(f"SUBSTR(s.star_type, 1, 1) IN ({','.join('?' * len(spectral_tags))})")
@@ -7069,19 +7069,22 @@ def _search_result_stars(conn, spectral_tags, luminosity_tags, term, limit, offs
         clauses.append(f"s.yerkes_class IN ({','.join('?' * len(luminosity_tags))})")
         params.extend(sorted(luminosity_tags))
     _append_size_clause(clauses, params, "s.radius_km", size_range)
+    search_values.clauses("star", "s", ranges, clauses, params)
     if term:
         match, match_params = _search_match(conn, "s.name", term)
         clauses.append(match)
         params.extend(match_params)
     where = (" AND " + " AND ".join(clauses)) if clauses else ""
+    keys = search_values.used("star", ranges, sort)
     rows, page = _search_page(
         conn,
-        "SELECT s.id, s.name, s.role, s.star_type, s.radius_km, s.star_system_id, ss.name AS system_name, ss.sector_id",
+        "SELECT s.id, s.name, s.role, s.star_type, s.radius_km, s.star_system_id, ss.name AS system_name, ss.sector_id"
+        + search_values.select_columns("star", "s", keys),
         f"FROM stars s JOIN star_systems ss ON ss.id = s.star_system_id WHERE 1=1{where}",
-        "ss.name, s.name, s.id",
+        search_values.order_by("star", "s", sort, "ss.name, s.name, s.id"),
         params, limit, offset,
     )
-    return {"rows": _with_refs(conn, [dict(r) for r in rows], "star"), **page}
+    return {"rows": _with_refs(conn, _with_values("star", rows, keys), "star"), **page}
 
 
 def _tier_columns():
@@ -7113,8 +7116,19 @@ def _with_equipment(row):
     return row
 
 
+def _with_values(entity, rows, keys):
+    """The rows of a numeric-key panel as dicts, each with the `values` of the keys in use (`search_values.row_values`)."""
+    out = []
+    for row in rows:
+        row = dict(row)
+        if keys:
+            row["values"] = search_values.row_values(entity, row, keys)
+        out.append(row)
+    return out
+
+
 def _search_result_planets(conn, class_tags, body_tags, life_tags, term, limit, offset, size_range=None,
-                           equipment_tags=(), tags=None, sort=None):
+                           equipment_tags=(), tags=None, sort=None, ranges=None):
     clauses, params = [], []
     _equipment_clause("p", equipment_tags, clauses, params)
     _score_clauses("p", tags or {}, "", clauses)
@@ -7126,26 +7140,28 @@ def _search_result_planets(conn, class_tags, body_tags, life_tags, term, limit, 
         params.extend(sorted(body_tags))
     _life_class_clause("p", life_tags, clauses, params)
     _append_size_clause(clauses, params, "p.radius_km", size_range)
+    search_values.clauses("planet", "p", ranges, clauses, params)
     if term:
         match, match_params = _search_match(conn, "p.name", term)
         clauses.append(match)
         params.extend(match_params)
     where = (" AND " + " AND ".join(clauses)) if clauses else ""
+    keys = search_values.used("planet", ranges, sort)
     rows, page = _search_page(
         conn,
         f"""
         SELECT p.id, p.name, p.planet_class, p.body_type, CASE WHEN p.life_stage IS NULL THEN NULL ELSE CONCAT(p.life_class, COALESCE(p.life_class_variant, '')) END AS life_class_id, {_equipment_columns('p')}, {_tiers("p")}, p.radius_km,
-               p.star_system_id, ss.name AS system_name, ss.sector_id
+               p.star_system_id, ss.name AS system_name, ss.sector_id{search_values.select_columns("planet", "p", keys)}
         """,
         f"FROM planets p JOIN star_systems ss ON ss.id = p.star_system_id WHERE 1=1{where}",
-        _score_order("p", sort, "ss.name, ss.id, p.orbital_index, p.id"),
+        search_values.order_by("planet", "p", sort, _score_order("p", sort, "ss.name, ss.id, p.orbital_index, p.id")),
         params, limit, offset,
     )
-    return {"rows": _with_refs(conn, [_with_equipment(dict(r)) for r in rows], "planet"), **page}
+    return {"rows": _with_refs(conn, [_with_equipment(r) for r in _with_values("planet", rows, keys)], "planet"), **page}
 
 
 def _search_result_moons(conn, class_tags, body_tags, life_tags, term, limit, offset, size_range=None,
-                         equipment_tags=(), tags=None, sort=None):
+                         equipment_tags=(), tags=None, sort=None, ranges=None):
     clauses, params = [], []
     _equipment_clause("m", equipment_tags, clauses, params)
     _score_clauses("m", tags or {}, "moon_", clauses)
@@ -7157,17 +7173,19 @@ def _search_result_moons(conn, class_tags, body_tags, life_tags, term, limit, of
         params.extend(sorted(body_tags))
     _life_class_clause("m", life_tags, clauses, params)
     _append_size_clause(clauses, params, "m.radius_km", size_range)
+    search_values.clauses("moon", "m", ranges, clauses, params)
     if term:
         match, match_params = _search_match(conn, "m.name", term)
         clauses.append(match)
         params.extend(match_params)
     where = (" AND " + " AND ".join(clauses)) if clauses else ""
+    keys = search_values.used("moon", ranges, sort)
     rows, page = _search_page(
         conn,
         f"""
         SELECT m.id, m.name, m.planet_class, m.body_type, CASE WHEN m.life_stage IS NULL THEN NULL ELSE CONCAT(m.life_class, COALESCE(m.life_class_variant, '')) END AS life_class_id, {_equipment_columns('m')}, {_tiers("m")}, m.radius_km,
                m.planet_id, m.rogue_planet_id, COALESCE(p.name, rp.name) AS planet_name, m.star_system_id,
-               ss.name AS system_name, COALESCE(ss.sector_id, rp.sector_id) AS sector_id
+               ss.name AS system_name, COALESCE(ss.sector_id, rp.sector_id) AS sector_id{search_values.select_columns("moon", "m", keys)}
         """,
         f"""
         FROM moons m
@@ -7176,10 +7194,10 @@ def _search_result_moons(conn, class_tags, body_tags, life_tags, term, limit, of
         LEFT JOIN star_systems ss ON ss.id = m.star_system_id
         WHERE 1=1{where}
         """,
-        _score_order("m", sort, "ss.name, ss.id, rp.name, rp.id, p.orbital_index, m.orbital_index, m.id"),
+        search_values.order_by("moon", "m", sort, _score_order("m", sort, "ss.name, ss.id, rp.name, rp.id, p.orbital_index, m.orbital_index, m.id")),
         params, limit, offset,
     )
-    return {"rows": _with_refs(conn, [_with_equipment(dict(r)) for r in rows], "moon"), **page}
+    return {"rows": _with_refs(conn, [_with_equipment(r) for r in _with_values("moon", rows, keys)], "moon"), **page}
 
 
 def _search_result_belts(conn, density_tags, limit, offset):
@@ -7269,7 +7287,7 @@ def _search_facets_cached(conn):
     return value
 
 
-def search(conn, texts, tags, sizes=None, limit=SEARCH_RESULT_LIMIT, offsets=None, only=None, sorts=None, stars=None):
+def search(conn, texts, tags, sizes=None, limit=SEARCH_RESULT_LIMIT, offsets=None, only=None, sorts=None, stars=None, ranges=None):
     """
     Runs the faceted search behind `GET /api/search`/`html/search.py`:
     the same click-to-filter attribute tags (object type; star spectral/
@@ -7302,6 +7320,10 @@ def search(conn, texts, tags, sizes=None, limit=SEARCH_RESULT_LIMIT, offsets=Non
             one panel asks for that panel alone); the others come back `None`.
         stars (tuple, optional): The stars filter `(least, most)` of `parse_star_count` (UX.239): the Systems panel runs for it (with or without a
             name) and holds only the systems with that many stars in the `stars` table.
+        ranges (dict, optional): `{"star"/"planet"/"moon": {key: (least, most, unit)}}` of `search_values.ranges_from_args` (UX.226): each
+            bound `None` for "unbounded", `unit` the unit key both are in. A panel with a range runs for it, and its rows carry the `values`
+            of the keys in use. `sorts` also takes a key of `search_values.KEYS` (`gravity` smallest first, `-gravity` largest first; no
+            value last) for `star`, `planet` and `moon`.
 
     Returns:
         dict: `facets` (`{facet: [{"value","label","count","tooltip"}, ...]}`,
@@ -7309,7 +7331,8 @@ def search(conn, texts, tags, sizes=None, limit=SEARCH_RESULT_LIMIT, offsets=Non
             (`sectors`/`systems`/`stars`/`planets`/`moons` -> list of
             distinct names), `facet_labels` (`{"facet:value": label}`,
             for rendering an active-filter chip without a second lookup),
-            and `results` (`sectors`/`systems`/`stars`/`planets`/`moons`/
+            `values` (the numeric keys of `search_values.KEYS` with their units, UX.226), `active_ranges` (the ranges of
+            this request, one `{entity, key, label, least, most, unit, symbol}` each), and `results` (`sectors`/`systems`/`stars`/`planets`/`moons`/
             `belts` -> `{"rows": [...], "total", "limit", "offset",
             "truncated"}`, one page of that panel's matches -- `truncated`
             meaning `rows` isn't every match -- or `None` for a panel
@@ -7317,6 +7340,7 @@ def search(conn, texts, tags, sizes=None, limit=SEARCH_RESULT_LIMIT, offsets=Non
     """
     sizes = sizes or {}
     star_size, planet_size, moon_size = sizes.get("star"), sizes.get("planet"), sizes.get("moon")
+    ranges = ranges or {}
 
     spectral_tags, luminosity_tags = tags.get("spectral", set()), tags.get("luminosity", set())
     class_tags, body_tags, life_tags = tags.get("class", set()), tags.get("body", set()), tags.get("life", set())
@@ -7333,11 +7357,11 @@ def search(conn, texts, tags, sizes=None, limit=SEARCH_RESULT_LIMIT, offsets=Non
         for name, options in facet_defs for opt in options
     }
 
-    star_has_reason = bool(spectral_tags or luminosity_tags or texts.get("star_q") or star_size)
+    star_has_reason = bool(spectral_tags or luminosity_tags or texts.get("star_q") or star_size or ranges.get("star"))
     planet_score = any(tags.get(name) for name in score_filters.FACETS)
     moon_score = any(tags.get(f"moon_{name}") for name in score_filters.FACETS)
-    planet_has_reason = bool(class_tags or body_tags or life_tags or equipment_tags or planet_score or texts.get("planet_q") or planet_size)
-    moon_has_reason = bool(moon_class_tags or moon_body_tags or moon_life_tags or moon_equipment_tags or moon_score or texts.get("moon_q") or moon_size)
+    planet_has_reason = bool(class_tags or body_tags or life_tags or equipment_tags or planet_score or texts.get("planet_q") or planet_size or ranges.get("planet"))
+    moon_has_reason = bool(moon_class_tags or moon_body_tags or moon_life_tags or moon_equipment_tags or moon_score or texts.get("moon_q") or moon_size or ranges.get("moon"))
     belt_has_reason = bool(density_tags)
 
     if type_tags:
@@ -7364,19 +7388,20 @@ def search(conn, texts, tags, sizes=None, limit=SEARCH_RESULT_LIMIT, offsets=Non
         results["systems"] = _search_result_systems(conn, texts.get("system_q", ""), *_page("systems"), stars=stars)
     if stars_included and "stars" in wanted:
         results["stars"] = _search_result_stars(
-            conn, spectral_tags, luminosity_tags, texts.get("star_q", ""), *_page("stars"), size_range=star_size
+            conn, spectral_tags, luminosity_tags, texts.get("star_q", ""), *_page("stars"), size_range=star_size,
+            ranges=ranges.get("star"), sort=(sorts or {}).get("star"),
         )
     if planets_included and "planets" in wanted:
         results["planets"] = _search_result_planets(
             conn, class_tags, body_tags, life_tags, texts.get("planet_q", ""), *_page("planets"),
             size_range=planet_size, equipment_tags=equipment_tags,
-            tags=tags, sort=(sorts or {}).get("planet"),
+            tags=tags, sort=(sorts or {}).get("planet"), ranges=ranges.get("planet"),
         )
     if moons_included and "moons" in wanted:
         results["moons"] = _search_result_moons(
             conn, moon_class_tags, moon_body_tags, moon_life_tags, texts.get("moon_q", ""), *_page("moons"),
             size_range=moon_size, equipment_tags=moon_equipment_tags,
-            tags=tags, sort=(sorts or {}).get("moon"),
+            tags=tags, sort=(sorts or {}).get("moon"), ranges=ranges.get("moon"),
         )
     if belts_included and "belts" in wanted:
         results["belts"] = _search_result_belts(conn, density_tags, *_page("belts"))
@@ -7385,4 +7410,5 @@ def search(conn, texts, tags, sizes=None, limit=SEARCH_RESULT_LIMIT, offsets=Non
         results["phenomena"] = _search_result_phenomena(
             conn, phenomenon_tags, phenomenon_class_tags, *_page("phenomena"))
 
-    return {"facets": facets, "autocomplete": autocomplete, "facet_labels": facet_labels, "results": results}
+    return {"facets": facets, "autocomplete": autocomplete, "facet_labels": facet_labels, "results": results,
+            "values": search_values.describe(), "active_ranges": search_values.active(ranges)}

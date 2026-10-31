@@ -2,6 +2,58 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2959] - 2026-10-31
+
+**Headline:** Nothing built is left unused in Core 3's share of the wiring guard: six dead helpers are gone and every other function that only tests call names the item that will read it, or why it stays.
+
+### Changed
+- **TEST.522, 29 functions of 21 modules that only tests call.** Deleted with their tests: `cylindrical_radius_pc`, `format_galactic_orbit` (the pages show the speed and period as separate rows), `expected_systems_in`, `get_star_spectral_class`, `sample_dim_star` and `mark_merger_product` (the tree build sets the same flag and age inline; its test now checks `rejuvenated_age_yr` directly). `kozai_verdict` now reads `kozai_max_eccentricity` instead of repeating its formula, with the same result. The other 22 have a register line naming the open item that will call them (GEN.359, GEN.1014, GEN.129, GEN.105) or `by design` with who runs them. No stored value changes.
+
+## [8.0.2958] - 2026-10-31
+
+**Headline:** The pull on an object from the masses around it and from the galaxy is now one function, with the velocity kick that uses it.
+
+### Changed
+- **The acceleration kernel (GEN.342).** `planetgen/galaxy/acceleration.py` returns the acceleration at a point as the pull of the object's influence set (the exact nearest masses and the folded monopoles, unsoftened but for 0.001 pc that keeps two masses at one point finite, with no minimum-acceleration cut) plus the galactic gradient of the potential, and turns it into a new velocity (`kick`, `velocity_update`). A star takes the whole pull; a planet or moon takes the pull at itself less the pull at its host (`host_frame_pull`), so only the perturbation is left. It is a pure function, so the same masses always give the same pull. Nothing calls it yet: the star stepper (GEN.340) and the orbital update run (GEN.105) do, so generation output does not change. Also corrected the time unit in the potential's orbit test: a Myr is 1.0227 pc per (km/s), so the five-gigayear orbit it checks now is five gigayears.
+
+generation-output: unchanged
+
+## [8.0.2957] - 2026-10-31
+
+**Headline:** The scrolling key on the galaxy map can now be reached and scrolled with the keyboard.
+
+### Changed
+- **Galaxy map key.** The list of map layers in the key takes keyboard focus and has a name, so a visitor without a mouse can scroll it.
+
+## [8.0.2956] - 2026-10-31
+
+**Headline:** The admin Stats page now shows how long one object of each kind took to generate, which the generator has been recording without showing.
+
+### Changed
+
+- The Generation speed panel of the Stats page gains a "Seconds per object" table: for each kind of generated object (system, star, planet, moon, belt ...) the objects timed, the mean, fastest and slowest time and its share of all the object time, over every saved run, longest-running kinds first. `GET /api/admin/generation-stats` returns it as `object_types`, now a list of rows instead of a kind-to-mean map. `object_timing.kind_summaries` replaces `type_means` and the unused `run_totals`. generation-output: unchanged
+
+## [8.0.2955] - 2026-10-31
+
+**Headline:** The galaxy now has one pure module for its pull and its rotation curve, built from the galaxy's own masses.
+
+### Changed
+- **The galactic potential (GEN.338).** `planetgen/galaxy/potential.py` gives the potential, the pull (finite at the centre) and the circular speed of a generated galaxy from Hernquist spheres (the bulge, the stellar halo, the nuclear cluster), Miyamoto-Nagai disks (thin, thick and nuclear) and an NFW dark halo, with the central black hole softened at 1 pc. Every mass and scale comes from the galaxy's density components and its mass chain, so the rotation curve is a result, not a constant; a component of mass zero is legal. The matching of the density model to those three profiles is registered as stand-in rows GP1 to GP3. Nothing reads it yet: the acceleration kernel (GEN.342), the star stepper (GEN.340) and the velocity seeding (GEN.339) do, so generation output does not change. The dark halo's parameters moved into `enclosed_mass.dark_halo` so the enclosed mass and the potential use the same halo.
+
+generation-output: unchanged
+
+## [8.0.2954] - 2026-10-31
+
+**Headline:** The search can now keep and order planets, moons and stars by their stored physical values, with the bounds given in the unit you choose.
+
+### Added
+- **Range filters on physical values.** `GET /api/search` takes `planet_min_gravity=0.8&planet_max_gravity=1.2&planet_max_surface_dose=2` (and the same with `moon_` or `star_` in front) to keep the bodies whose gravity is 0.8 to 1.2 g and whose surface dose is under 2 mSv a year. The keys are gravity, surface temperature, surface pressure, surface dose, magnetic moment, ocean depth, orbit distance, day length, rotation period, year length, mass, the number of moons, the partial pressure of each atmosphere gas, and for stars luminosity, age and temperature. A bound may be given in any unit of its kind with `<entity>_<key>_unit` (pressure in kPa instead of bar).
+- **Sorts on the same values.** `planet_sort=gravity` orders a panel smallest first, `-gravity` largest first; a body with no value comes last.
+- **The answer says what it used.** Each row carries the values of the keys the request used, with their units, and the answer lists every key (`values`) and the ranges applied (`active_ranges`).
+
+### Changed
+- **Search parameters are checked.** A bound that is not a number, a minimum above the maximum or a unit of the wrong kind answers `400` with the reason.
+
 ## [8.0.2953] - 2026-10-31
 
 **Headline:** A System Map test that compared a planet's glow under two stars now compares the right thing, so main is green again.
