@@ -2467,6 +2467,8 @@ The two thresholds `physics/day_night.py` names a state by. The state of Earth, 
 
 ### 6.133 Stand-ins of the gas disc of a satellite galaxy (GEN.1192)
 
+### 6.140 Stand-ins of the gas disc of a satellite galaxy (GEN.1192)
+
 A satellite's gas is an exponential disc longer than its stars, forming stars by the Schmidt-Kennicutt law that steepens where the gas thins (`galaxy/satellite_history.py`; the same law as the main disc's, `galaxy/star_formation.py`). The present rate comes from the satellite's history, the central gas density is what makes the disc's integrated rate that, and the gas at the half-mass radius is tested against the star formation threshold. Checked against the Large Cloud's HI (4.8e8 solar masses, Staveley-Smith et al. 2003, abstract read: generated 1.05e9, a factor 2.2 high) and the Small Cloud's (about 4e8 recalled: generated 1.95e8, a factor 2 low).
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
