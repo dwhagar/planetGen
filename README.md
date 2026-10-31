@@ -437,6 +437,7 @@ its options:
 | [docs/generated/version-plan.html](docs/generated/version-plan.html) | Every open item by version, phase, thread and dependency, as one page to open in a browser |
 | [docs/generated/todo-tree.html](docs/generated/todo-tree.html) | Every open item as a tree, each under the prerequisite that finishes last, with search and phase and bug filters |
 | [docs/generated/todo-reference.html](docs/generated/todo-reference.html) | Every TODO ID ever issued, explained in full, with search and filters (all three pages are rebuilt by `python scripts/build_todo_docs.py`) |
+| [docs/reference/logging.md](docs/reference/logging.md) | The form of every log line (time, severity, component, stage markers) and where each log is found |
 | [docs/reference/testing.md](docs/reference/testing.md) | Running the tests |
 | [docs/reference/ci-runners.md](docs/reference/ci-runners.md) | Running the scheduled CI on your own computers (optional) |
 | [CHANGELOG.md](CHANGELOG.md) | What changed in each release |
