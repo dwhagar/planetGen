@@ -1035,6 +1035,23 @@ with `clamp()`.
   locked bodies is UX.244.
   Prerequisites: none. Related: MAP.277, VIEW.14.
 
+- [ ] **UX.250 Planet render: the terminator between night and day should be more of a crescent, showing more of the day side, and the "to star" arrow overlaps the render (bug)**
+  Boss, 9:32 AM EDT 2026-10-31 (live observation, relayed by the
+  coordinator): "ok let's make the terminator between night and day on
+  planet renders more of a crescent, favoring more day side shown, and
+  the 'to star' arrow overlaps". Two parts. (1) The night and day
+  boundary drawn on planet renders (object pages and any other planet
+  render) should read as a crescent-style terminator that shows more of
+  the day side than now (the lit part larger, the night shading
+  smaller), still computed from the real phase geometry, not a fixed
+  look. (2) The "to star" arrow overlaps something (the planet, its
+  label or another mark): move or size it so it never overlaps. Do: find
+  the render code, state in the PR which parts of the picture changed
+  and the phase the render assumes, and keep the sunward direction
+  correct. Page and render code only, no stored value, lock-free. Owner:
+  Core 2 (assigned by the coordinator).
+  Prerequisites: none.
+
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
