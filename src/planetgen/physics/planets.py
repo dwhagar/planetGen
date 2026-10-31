@@ -533,7 +533,13 @@ def calculate_atmospheric_conditions(planet, distance_override=None, host_eccent
         planet.atm_molar_density = air.state.mean_molar_mass_kg_mol
         planet.atm_density = air.state.density_kg_m3
         planet.scale_height = _m_to_km(air.state.scale_height_m)
-        climate_draws.record(planet, albedo, air.greenhouse_factor)     # GEN.412: the two numbers the temperature is made of
+        factor = air.greenhouse_factor
+        if giant:
+            # GEN.412 reads the temperature as starlight alone times (1 + G)^(1/4); a giant also radiates its own heat, which the air's factor
+            # leaves out of T_e, so the stored G is taken against the starlight alone (GEN.1030) and the pair reproduces the temperature
+            factor = climate_draws.greenhouse_from_temperature(air.temperature_k, albedo, solar_output_at_orbit)
+            factor = air.greenhouse_factor if factor is None else max(factor, 0.0)
+        climate_draws.record(planet, albedo, factor)     # GEN.412: the two numbers the temperature is made of
         atmosphere.store_air(planet, air.partials_pa, None if giant else _mantle_redox(planet, air, distance, water_lost))
 
     # GEN.88: water, land, ice and the ocean's chemistry.
