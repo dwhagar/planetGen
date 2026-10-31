@@ -54,4 +54,8 @@ def test_a_registry_row_names_a_replacement_item_and_the_registered_row_agrees_o
         assert key in rows, f"{fill_id}: {key} is not a registered row"
         assert re.fullmatch(r"(GEN|MAP|TEST|PERF)\.\d+", replaced_by), f"{fill_id}: replaced_by {replaced_by!r} is not one item"
         if rows[key].state == "stand-in":
-            assert rows[key].replacement == replaced_by, f"{fill_id}: the table row names {rows[key].replacement!r}, the registry {replaced_by!r}"
+            shown = rows[key].replacement
+            if re.fullmatch(r"(GEN|MAP|TEST|PERF)\.\d+", shown):      # TEST.487: a row shown on a page says what replaces it in words, not by item code
+                assert shown == replaced_by, f"{fill_id}: the table row names {shown!r}, the registry {replaced_by!r}"
+            else:
+                assert shown and not re.search(r"\b(GEN|MAP|TEST|PERF)\.\d+", shown), f"{fill_id}: the shown replacement {shown!r} is not plain words"
