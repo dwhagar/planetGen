@@ -160,8 +160,5 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.125:TB4 | no data | - | no source read gives the shortest disc life for a trojan to grow; a formation map replaces it |
 | 6.126:RN3 | no data | - | no measured strength of ice with rock grains above 56 percent solids by volume; a measured curve replaces the extrapolated leg from 0.56 to the rock strength at 1 |
 | 6.126:RN5 | no data | - | no source gives a porosity law for body-scale strength; the rubble-pile branch (friction plus a little cohesion) replaces it |
-| 6.129:IT1 | no data | - | no measured strength of ice II or ice VI at a body's shape-set temperature; the creep laws of Durham 1997 Table 2 per phase replace the one value |
-| 6.129:IT2 | no data | - | no body-scale strength of ice III; the creep law of Durham and others 1988 replaces near zero |
-| 6.129:IT3 | no data | - | no measured strength of ice V (the 1997 paper's own ice V is three orders softer than Poirier and Sotin's); the creep law of Durham and others 1996 replaces half of ice II |
 | 6.129:IT6 | no data | - | the 1993 ammonia-water constants of Durham, Kirby and Stern are not in hand; they replace the three interpolated points |
 | 6.129:IT9 | no data | - | no measurement of the ammonia share at which a water ice mix takes the dihydrate's strength |
