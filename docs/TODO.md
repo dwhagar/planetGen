@@ -14555,6 +14555,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   one liquid per body (28 of 37 CO2-window bodies show water only). The
   gaps go to the composition chain (GEN.1217, GEN.1218) and GEN.1215;
   GEN.1215 can share an epoch with this item and GEN.1222.
+  Build ready (2026-10-31 1:45 PM EDT): Tides 1 built GEN.1214, GEN.1215
+  and GEN.1222 as one lock branch (as the lane reported):
+  claude/gen1215-liquid-fractions head 69faa0bb3 on train 7 (175e199f8);
+  replaces the earlier GEN.1222 head e6af56ae1. One epoch, migration
+  0197_surface_liquid_solutes (renumber at merge). GEN.1222:
+  melting-point fall under an ice lid stops at 251.2 K (124 of 370 water
+  seas in its sample were wrong), and warm water under crushing air (4.5
+  GPa) is ice. GEN.1215: new columns surface_liquid_acid_wt,
+  surface_liquid_acid_layer, surface_liquid_ammonia_wt; sheet rows; life
+  classes read them, classes unchanged on 404 bodies. Goes after train 7
+  merges.
   Prerequisites: none. Related: GEN.1035, GEN.888, GEN.821.
 
 - [ ] **GEN.1215 Store the acid and ammonia fractions of the surface liquid, and let habitability read them (an acid or ammonia sea can make a world uninhabitable)**
@@ -14617,6 +14628,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.1217 (report gen1225-ammonia-gate-and-nitrogen-ice-2026-10-31.md):
   the ammonia gate follows the liquidus share, and nitrogen ice uses the
   trapping factor and the partial-pressure condensation temperature.
+  Build ready (2026-10-31 1:45 PM EDT): Tides 1 built GEN.1214, GEN.1215
+  and GEN.1222 as one lock branch (as the lane reported):
+  claude/gen1215-liquid-fractions head 69faa0bb3 on train 7 (175e199f8);
+  replaces the earlier GEN.1222 head e6af56ae1. One epoch, migration
+  0197_surface_liquid_solutes (renumber at merge). GEN.1222:
+  melting-point fall under an ice lid stops at 251.2 K (124 of 370 water
+  seas in its sample were wrong), and warm water under crushing air (4.5
+  GPa) is ice. GEN.1215: new columns surface_liquid_acid_wt,
+  surface_liquid_acid_layer, surface_liquid_ammonia_wt; sheet rows; life
+  classes read them, classes unchanged on 404 bodies. Goes after train 7
+  merges.
   Prerequisites: none. Related: GEN.1035, GEN.888, GEN.862.
 
 - [ ] **GEN.1217 Design: the surface liquid composition model: what is stored (fractions of water, salts, acid, ammonia, CO2, hydrocarbons), how it is derived, and how life changes it**
@@ -14869,6 +14891,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   claude/gen1214-volatile-seas head e6af56ae1 off train 7, a lock item
   (changes stored output), change note included. Stays open until it
   merges on a train.
+  Build ready (2026-10-31 1:45 PM EDT): Tides 1 built GEN.1214, GEN.1215
+  and GEN.1222 as one lock branch (as the lane reported):
+  claude/gen1215-liquid-fractions head 69faa0bb3 on train 7 (175e199f8);
+  replaces the earlier GEN.1222 head e6af56ae1. One epoch, migration
+  0197_surface_liquid_solutes (renumber at merge). GEN.1222:
+  melting-point fall under an ice lid stops at 251.2 K (124 of 370 water
+  seas in its sample were wrong), and warm water under crushing air (4.5
+  GPa) is ice. GEN.1215: new columns surface_liquid_acid_wt,
+  surface_liquid_acid_layer, surface_liquid_ammonia_wt; sheet rows; life
+  classes read them, classes unchanged on 404 bodies. Goes after train 7
+  merges.
   Prerequisites: none. Related: GEN.1035, GEN.1214.
 
 - [ ] **GEN.1226 Store the envelope share for EVERY body, so hydrogen-air dwarfs (about 400 class T bodies) are typed and classed correctly**
