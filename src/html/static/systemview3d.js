@@ -30,6 +30,7 @@ const { paintSolid } = await import(`./solidpaint.js${VERSION_QUERY}`);
 const { paintStar } = await import(`./starpaint.js${VERSION_QUERY}`);
 const { createPointerControl, orbitByDrag, orbitByKey, panInScreenPlane, wheelPixels } = await import(`./mapcontrol.js${VERSION_QUERY}`);
 const { fitRendererToCanvas, watchResize } = await import(`./mapcore.js${VERSION_QUERY}`);
+const { watchWindowFit } = await import(`./mapfit.js${VERSION_QUERY}`);
 const { createPicker, createTooltip, infoPanelOf } = await import(`./mappick.js${VERSION_QUERY}`);
 const { navActions, nearbyLinks, viewLink } = await import(`./systemnav.js${VERSION_QUERY}`);
 const { fitDistance: framingDistance } = await import(`./flytofit.js${VERSION_QUERY}`);
@@ -705,6 +706,9 @@ export function createSystemView(options) {
   }
 
   const stopWatching = watchResize(canvasEl, function () { fitRendererToCanvas(renderer, camera, canvasEl); });
+  // MAP.359: the 3D system view is as wide as its column and as tall as the Galaxy Map is for the browser window (95% of it).
+  const viewportEl = canvasEl.closest(".sysview-viewport");
+  const stopFitting = viewportEl ? watchWindowFit(viewportEl, null, { fill: true }) : null;
 
   rebuild();
   reset();
@@ -748,6 +752,7 @@ export function createSystemView(options) {
       disposed = true;
       cancelAnimationFrame(frame);
       if (stopWatching) stopWatching();
+      if (stopFitting) stopFitting.stop();
       built.dispose();
       renderer.dispose();
     },
