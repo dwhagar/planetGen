@@ -35,7 +35,7 @@ item (GEN.481 volatile delivery, GEN.482 redox, GEN.492 radioisotopes) that repl
 
 import math
 
-from planetgen.physics import gas_equilibrium
+from planetgen.physics import dry_carbon, gas_equilibrium
 from planetgen.physics import oxygen_fugacity as fo2
 from planetgen.physics.atmosphere_recipes import RECIPES
 from planetgen.physics.mixture_base import MixtureError, NotApplicable, atoms_of, bracket, finish, require
@@ -62,9 +62,11 @@ INVENTORY = {
     # top of it). The dry carbon is the bracket from the stored 0.018 to the wet High case's 0.1 wt%, not the delivered 0.6: an Earth twin
     # draws the dry class nine times in ten, and 0.6 wt% CO2 is sixteen times the carbon of the bulk silicate Earth (100 ppm C, Bergin
     # et al. 2015 Table S1), where this bracket's log-middle (0.042 wt% CO2, 115 ppm C) is within a sixth of it (GEN.813).
+    # GEN.1005: the dry carbon is now `dry_carbon.co2_wt_percent_bracket()`, 0.029 to 0.108 wt% CO2 from the carbon of non-carbonaceous building blocks,
+    # the share already differentiated and the core's share (Blanchard et al. 2022); the bulk silicate Earth is a test of it.
     "co2_over_h2o_wet": (0.2, 0.2, "uniform"),
     "h2o_dry_wt_percent": (1e-4, 5e-3, "log"),
-    "co2_dry_wt_percent": (0.018, 0.1, "log"),
+    "co2_dry_wt_percent": (*dry_carbon.co2_wt_percent_bracket(), "log"),
     # The water-rich class (b4: at least 10 weight percent water): the carbon share is open.
     "h2o_rich_wt_percent": (10.0, 50.0, "log"),
     "co2_over_h2o_rich": (5e-3, 0.2, "log"),
@@ -90,7 +92,7 @@ QUENCH_TEMPERATURE_K = (400.0, 900.0, "log")
 
 OXIDATION_TIME_GY = (0.1, 1.5, "log")
 """tuple: The time a body with long-lived geology takes to move its mantle from the magma-ocean redox to the later upper mantle's:
-the e-folding time of the oxidation (Aulbach and Stagno 2016 put the Earth's upper mantle at its present redox by about 3.5 Ga;
+the e-folding time of the oxidation (studies put the Earth's upper mantle at its present redox by about 3.5 Ga;
 bracket, GEN.482)."""
 
 MIN_EQUILIBRIUM_K = 300.0

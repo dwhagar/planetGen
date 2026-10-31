@@ -17,7 +17,7 @@ Status: module and tuning, written on 2026-10-25 (as the lane reported) by the C
 | Petigura et al. 2022 (arXiv:2201.10020), through the tuning target table (GEN.509) | the two numbers, -0.11 plus or minus 0.02 and 1.84 plus or minus 0.03 Earth radii at 10 d | the targets `e1-valley-slope` and `e1-valley-radius` |
 | Lopez and Fortney 2014 | the radius law, through `bulk_structure` | the radius of the planet as its envelope thins |
 | Rogers and Owen 2021 (arXiv:2007.11006), through GEN.509 | the peak of the core mass, 3.72 Earth masses | the median of the survey's core masses (kept) |
-| Alexander et al. 2014 (Protostars and Planets VI), as recalled (tier 3) | gas discs last a few to ten Myr | the 10 Myr of the first try |
+| Recalled (tier 3) | gas discs last a few to ten Myr | the 10 Myr of the first try |
 
 ## 3. The model
 

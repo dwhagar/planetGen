@@ -31,19 +31,19 @@ from planetgen.physics.protection_limits import limit
 # --- Physiology (human visitor) ----------------------------------------------------------
 
 ARMSTRONG_KPA = limit("armstrong_kpa")
-"""float: Water boils at body temperature below this (Armstrong, 1939), and
+"""float: Water boils at body temperature below this, and
 the saturated water vapour in the lungs takes this much of any breath."""
 
 INSPIRED_O2_MIN_KPA = limit("inspired_o2_min_kpa")
-"""float: Least inspired O2 for consciousness (SaO2 above 75%; West, 2012)."""
+"""float: Least inspired O2 for consciousness (SaO2 above 75%)."""
 
 INSPIRED_O2_CHRONIC_KPA = limit("inspired_o2_chronic_kpa")
 """float: Most inspired O2 for months without lung damage (Lorrain Smith
-effect, 40 to 53 kPa, Lambertsen 1971; 50 as in the Xenobiology doc's
+effect, 40 to 53 kPa; 50 as in the Xenobiology doc's
 f(pO2))."""
 
 INSPIRED_O2_ACUTE_KPA = limit("inspired_o2_acute_kpa")
-"""float: Acute CNS oxygen toxicity (1.6 bar; Lambertsen, 1971)."""
+"""float: Acute CNS oxygen toxicity (1.6 bar)."""
 
 MASK_MIN_KPA = ARMSTRONG_KPA + INSPIRED_O2_MIN_KPA
 """float: 14.3 kPa, the least ambient pressure at which a pure-oxygen mask
@@ -145,7 +145,7 @@ HUMAN = bands()
 """Bands: The human visitor's limits."""
 
 # Gas limits, kPa partial pressure: (chronic, acute), from the Atmospheric
-# Toxicity table (Lambertsen 1971; Schwieterman et al. 2019).
+# Toxicity table (Schwieterman et al. 2019).
 GAS_LIMITS_KPA = {
     "CO2": (0.93, 5.0),
     "CO": (0.005, 0.1),
@@ -272,6 +272,7 @@ class World:
     dose_gcr_sv_yr: float = None
     dose_sep_sv_yr: float = None
     dose_ground_sv_yr: float = None
+    dose_belt_sv_yr: float = None
     cutoff_gv: float = 0.0
     uv_index: float = 0.0
     dust_mg_m3: float = None

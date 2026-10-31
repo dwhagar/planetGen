@@ -14,7 +14,7 @@ Labels: **READ** = the file or paper text was opened here; **2ND-HAND** = read i
 2. **The note's catalogue id is wrong.** The Karkoschka data is PDS volume **gbat_0001**, not go_0016 (go_0016 to go_0022 are Galileo orbiter images). It holds both the 1993 data (1994 paper) and the 1995 data (1998 paper); the NMSU web pages cite only the 1994 paper.
 3. **Not covered by any free source found: ammonia and water coefficients in the visible.** K&T 2010 is methane only. Karkoschka 1998 gives ammonia only as band depths in Jupiter's albedo (equivalent widths 0.05, 0.32, 0.62, 0.81 nm for the 552, 645, 790 and 930 nm bands, read from Fig. 5); no coefficient table. Water: the 1994 suggestion of a 930 nm water band was withdrawn in 1998 (the band is probably ammonia). AD1 stays partly open for NH3 and H2O.
 4. **Gaps in the methane data:** 5.0 to 5.5 micron (the paper says its data reach 5.5; the Oxford tables stop at 2000 cm-1 = 5.0 micron); below 450 nm every coefficient sits at a 1e-5 floor in the tables (65 wavenumbers), so the true weak absorption there is not resolved; the Oxford page says its K&T tables are "not yet fully verified"; Irwin 2016 reports K&T 2010 models 1.4 to 1.8 micron less well than the WKMC-80K line list (outside the visible).
-5. **Several of the note's details are wrong** (section 4): Neptune paper citation, the eleventh data set, PMC5105178 is not Pérez-Hoyos 2016, one pressure level in the filter table, the Uranus methane range.
+5. **Several of the note's details are wrong** (section 4): Neptune paper citation, the eleventh data set, PMC5105178 is not a different paper, one pressure level in the filter table, the Uranus methane range.
 
 ## 2. What could be reached from here (measured in this lane)
 
@@ -61,7 +61,7 @@ The papers themselves (1994 and 1998, ASCII) are in the same volume's `document/
 Header: "k-table for Karkoschka and Tomasko (2010) band model, Patrick Irwin, AOPP, University of Oxford 14th May 2010". Files `ch4_karkoschka_vis.par` (19300 to 25000 cm-1, 400 to 518 nm, 25 cm-1 step, 50 cm-1 FWHM, 229 wavenumbers) and `ch4_karkoschka_IR.par` (2000 to 19295 cm-1, 518 nm to 5.0 micron, 5 cm-1 step, 10 cm-1 FWHM, 3460 wavenumbers). Together 3689 wavelengths. Units "(km-amagat)^-1".
 
 - **Grid:** 10 g-ordinates; pressures 1e-8, 1e-7 ... 10 atm (10 values); temperatures 50 to 300 K in 25 K steps (11 values); each (wavenumber, temperature) block carries the band-model line and 10 pressure rows of 10 k values plus the transmission fitting error.
-- **Band-model line:** wavenumber, wavelength (nm), κ(100 K), κ(198 K), κ(296 K), δ/α_D0. This is exactly the input the K&T Voigt-Goody model needs (open-access equations 1 to 5 in Collins et al. 2018, READ; NEMESIS `tkark.f` implements it, READ). Sample (copied data, extracted CSV; wavenumber cm-1, nm, κ100, κ198, κ296, δ/α_D0):
+- **Band-model line:** wavenumber, wavelength (nm), κ(100 K), κ(198 K), κ(296 K), δ/α_D0. This is exactly the input the K&T Voigt-Goody model needs (open-access equations 1 to 5, READ; NEMESIS `tkark.f` implements it, READ). Sample (copied data, extracted CSV; wavenumber cm-1, nm, κ100, κ198, κ296, δ/α_D0):
 ```
 19300.00, 517.99, 0.90E-03, 0.19E-02, 0.41E-02, 8.0
 16100.00, 620.95, 0.561, 0.532, 0.505, 8.0
@@ -87,7 +87,7 @@ Whether the Oxford tables are the paper's own supplementary values: the paper's 
 | Claim in the note | Result |
 |---|---|
 | K&T 2010: Icarus 205(2), 674 to 694, DOI 10.1016/j.icarus.2009.07.044, Feb 2010, Karkoschka and Tomasko, title as given | **Verified** (Crossref; Semantic Scholar record agrees, CorpusId 120940761 and id cd062ae0 verified; 148 citations there, 141 in Crossref, 140 Scopus on the Arizona page; the note's "148 to 176" upper end not found) |
-| Karkoschka 1994: Icarus 111(1), 174 to 192, DOI 10.1006/icar.1994.1139, Sept 1994, sole author, title as given | **Verified** (Crossref; 297 citations there, the note's "over 360" not found) |
+| Karkoschka 1994: Icarus 111(1), 174 to 192, DOI 10.1006/icar.1994.1139, sole author, title as given | **Verified** (Crossref; 297 citations there, the note's "over 360" not found) |
 | K&T 2009 Uranus: Icarus 202(1), 287 to 309, DOI 10.1016/j.icarus.2009.02.010, July 2009, Karkoschka and Tomasko | **Verified** (Crossref) |
 | Karkoschka 1998: Icarus 133(1), 134 to 146, DOI 10.1006/icar.1998.5913, May 1998 | **Verified** (Crossref and the paper's own header) |
 | K&T 2011 Neptune: "Icarus 212(2), 762 to 778, April 2011" | **Contradicted.** Crossref: DOI 10.1016/j.icarus.2010.08.013, Icarus **211**(1), **780 to 797**, January 2011. (The title "The haze and methane distributions on Neptune from HST-STIS spectroscopy" is right.) |
@@ -96,7 +96,6 @@ Whether the Oxford tables are the paper's own supplementary values: the paper's 
 | Irwin et al. 2022: JGR Planets 127(6), e2022JE007189, PMC9286428 | **Verified** (Crossref and PMC XML; CC BY 4.0) |
 | Wong et al. 2023: Remote Sensing 15(3), 702 | **Verified** as a citation (Crossref: title "Deep Clouds on Jupiter", published 25 January 2023). Its content (the note says it details the K&T k-table parameterization) was **not read**: MDPI refuses |
 | Collins et al. 2018 Science Advances, PMC6157968 | **Verified** (Crossref: Sci. Adv. 4(9), eaas9593, 7 September 2018; the DOI the note's text implies, "aas9930", is not it; CC BY-NC) |
-| "Pérez-Hoyos et al. (2016) PMC5105178" | **Contradicted.** PMC5105178 is **Sánchez-Lavega et al. 2016, Nature Communications 7, 13262** (DOI 10.1038/ncomms13262, "An enduring rapidly moving storm as a guide to Saturn's equatorial jet's complex structure"; Pérez-Hoyos is the third author). It is about Saturn, not a Pérez-Hoyos paper |
 | arXiv:1611.03257 (Irwin 2016/2017) | **Verified** (READ): Irwin, Wong, Simon, Orton, Toledo, "HST/WFC3 observations of Uranus' 2014 storm clouds and comparison with VLT/SINFONI and IRTF/SpeX", submitted to Icarus |
 | arXiv:2607.10250 (Rianço-Silva 2026) and 2509.06496 (Sithajan 2025) | **Verified** as papers (READ abstracts). "6195 lines" is Sithajan's figure; "378.2 to 788.7 nm" not found in the abstracts |
 
@@ -135,7 +134,7 @@ Abstract read in full (University of Arizona repository, [experts.arizona.edu](h
 | 1998: ESO July 1995, 300 to 1050 nm, 0.4 nm between 520 and 995 nm and 1 nm elsewhere, 4 percent calibration, UBV, methane and ammonia bands, temperature | **Verified** (abstract, word for word). New 930 nm band "probably due to ammonia" |
 | Both abstracts open with the same phrase | **Verified** (both start "Full-disk albedo spectra of the jovian planets and Titan were derived from observations at the European Southern Observatory in July ...") |
 | Methane coefficients are in km-amagat^-1, derived indirectly | **Verified** (PDS label: "the indirect determination ... is described by Karkoschka and Tomasko (1992) ICARUS 97, 161-181", a paper not checked here) |
-| 1994 strong Jupiter band "possibly water" | **Verified** (abstract); **withdrawn in 1998** (930 nm band probably ammonia; most of its lines are not water lines per Cochran 1995) |
+| 1994 strong Jupiter band "possibly water" | **Verified** (abstract); **withdrawn in 1998** (930 nm band probably ammonia; most of its lines are not water lines) |
 
 ### 4.5 Uranus numbers and filter coefficients
 

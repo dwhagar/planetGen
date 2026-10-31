@@ -65,7 +65,7 @@ KZZ_CM2_S = {"giant": (1.0e6, 1.0e11, "log"), "envelope": (1.0e6, 1.0e11, "log")
              "brown-dwarf": (1.0e2, 1.0e5, "log")}
 """dict: The vertical mixing coefficient by object, cm^2/s. The hot Jupiter's is the bracket of row h4 (Spiegel et al. 2009); the
 other planets' is that widened down to 1e6 and a brown dwarf's, whose gravity is 30 times higher, is the lowest decades of the
-literature's 1e2 to 1e6 (Hubeny and Burrows 2007); design, to be replaced by the research item that tabulates Kzz by object."""
+literature's 1e2 to 1e6; design, to be replaced by the research item that tabulates Kzz by object."""
 
 PHOTOSPHERE_LOG_EPS = {"He": 10.914, "P": 5.41, "Ti": 4.97, "Kr": 3.12, "Xe": 2.22, "V": 3.90, "Cr": 5.62}
 """dict: Asplund, Amarsi and Grevesse 2021 photospheric log eps (H = 12) of the elements `tuning.STELLAR_SOLAR_LOG_EPS` lacks. He, P,

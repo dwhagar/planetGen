@@ -49,6 +49,7 @@ from planetgen.datasets import baraffe_isochrones
 from planetgen.generation import possibility_table as pt
 from planetgen.physics import constants
 from planetgen.physics import elements, unit_registry as units
+from planetgen.util import draw
 
 _kg_to_msun = units.converter("kg", "Msun")
 _msun_to_kg = units.converter("Msun", "kg")
@@ -95,7 +96,7 @@ RELATIONS = (
     Relation("reference scale: proto-solar X, Y, Z and per-element mass fractions", "Asplund, Amarsi and Grevesse 2021 Table 2 "
              "and section 5 (diffusion offsets +0.064 dex metals, +0.070 dex helium)", VERIFIED),
     Relation("primordial helium", "Planck 2018 VI eq. 72a, arXiv:1807.06209", VERIFIED),
-    Relation("helium-to-metal ratio dY/dZ", "derived from the proto-solar and primordial values; Casagrande et al. 2007 observe "
+    Relation("helium-to-metal ratio dY/dZ", "derived from the proto-solar and primordial values; observed "
              "2.1 +- 0.9", VERIFIED),
     Relation("thin-disc age gate", "Haywood et al. 2013: the thick disc formed from about 13 to about 8 Gy ago", PARTLY_VERIFIED,
              "the age scale is uncertain by 1 to 1.5 Gy; range 6.5 to 9.5 Gy"),
@@ -221,6 +222,21 @@ def branch_from_uniform(fe_h, age_gy, u):
     """The branch of a star given the fixed uniform number `u` (0 to 1) of its key: high-alpha when `u` is below
     `branch_probability`, thin otherwise. The same result as the table's probabilities with the high-alpha row first."""
     return BRANCH_HIGH_ALPHA if u < branch_probability(fe_h, age_gy) else BRANCH_THIN
+
+
+@functools.lru_cache(maxsize=1 << 16)
+def _branch_uniform(fe_h):
+    return draw.Stream(f"branch:{fe_h!r}").random()
+
+
+def branch_of(fe_h, age_gy):
+    """
+    The branch of a star of this birth [Fe/H] and age (GEN.1024): high-alpha when the star's own uniform number, a stream named for its
+    [Fe/H] (a float no other star shares), is under `branch_probability`. The star's track (`alpha_tracks.track_fe_h`), its composition
+    and its radiogenic offsets all read it, from the two numbers a stored star keeps, so they agree and a star read back from the database
+    has the branch it was made with.
+    """
+    return branch_from_uniform(fe_h, age_gy, _branch_uniform(fe_h))
 
 
 def branch_probabilities(fe_h, age_gy):
@@ -435,8 +451,8 @@ def _interpolate(xs, ys, x):
 
 def first_dredge_up(mass_sol, z):
     """
-    The surface change of the first dredge-up for a star of `mass_sol` solar masses and metal fraction `z` (Boothroyd and
-    Sackmann 1999): the rise in helium, the factors on C/Z and N/Z, linear in mass between the table's rows (1, 1.5, 2, 2.5)
+    The surface change of the first dredge-up for a star of `mass_sol` solar masses and metal fraction `z` 
+    (Boothroyd and Sackmann 1999): the rise in helium, the factors on C/Z and N/Z, linear in mass between the table's rows (1, 1.5, 2, 2.5)
     and in log Z between its two metallicities (0.001 and 0.02). Outside either range the table's edge is held (`mass_held`,
     `z_held`). Nitrogen at low Z is not tabulated, so its factor is the Z = 0.02 one at every Z (partly verified).
     """

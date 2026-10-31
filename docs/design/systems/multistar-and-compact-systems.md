@@ -170,7 +170,7 @@ low-mass stars: a refinement, not a blocker.
 | HD 98800 | 4 | 2+2, each a spectroscopic binary (262 d and 315 d) | [S] |
 | Castor | 6 | three binaries, the outer one eclipsing | [S] |
 | Mizar / Alcor | 6 | Mizar a quadruple, Alcor a binary; whether Alcor is bound has been debated | [S], [R] on the debate |
-| TIC 168789840 | 6 | three eclipsing binaries, outer period about 2 kyr | [S] Powell et al. 2021 |
+| TIC 168789840 | 6 | three eclipsing binaries, outer period about 2 kyr | [S] |
 | Nu Scorpii | 7 (probably) | groups AB and CD 41 arcsec apart; AB a triple, CD a binary within a wider pair | [S] "most likely a septuple" |
 | AR Cassiopeiae, 65 UMa | 7 (candidates) | structure not confirmed; 65 UMa has four hierarchy levels | [S] |
 
@@ -291,8 +291,7 @@ coplanar retrograde).
   fraction); P-type `a_c / a_b = 1.60 + 5.10 e - 2.22 e^2 + 4.12 mu - 4.27 e mu -
   5.09 mu^2 + 4.61 e^2 mu^2` (mu = the lighter star's fraction). Quoted accuracy:
   S-type about 4% typical and 11% worst for 0.1 <= mu <= 0.9, 0 <= e <= 0.8; P-type
-  about 3% and 6%, with resonance "islands" of instability. Quarles et al. 2018
-  refit a wider grid with different coefficients; do not mix the sets.
+  about 3% and 6%, with resonance "islands" of instability. 
 - **Mardling and Aarseth, verified; updated criterion read from the paper.** The formula above was checked by Boss's engine on 2026-10-09 (18:45Z): P-type coplanar circular gives 2.80; S-type with `m1 = m3 = 1`, `e_out = 0.5` gives `R_p/a_in = 4.99` and `a_out/a_in = 9.98` (use as unit tests). Vynatheya et al. 2022 (MNRAS 516, 4146) refine it (Equations 3 and 4 of the paper: an effective inner eccentricity `e~_in` and a new inclination bracket; 93% accuracy against 90%). Their equations were read from the paper Boss supplied at 18:51Z and are written out, with unit tests and the decided use (Boss, 18:56Z: Equation 4 for star-only triples inside the fitted mass-ratio range, this formula for planets), in [exotic-environments-planets-and-compact-binaries.md](exotic-environments-planets-and-compact-binaries.md) 2.3.
 
 ### 5.2 The criteria alone are not enough
@@ -605,7 +604,7 @@ GEN.100's densities.
 **Research supplied (Boss, 2026-10-16, 5:55 PM EDT, for GEN.103).** Two constants Core 4 could not look up
 arrived as research, and they are written here as rules the type draw derives, not as values it stores. The
 sources Boss named are Badenes et al. 2018, Moe, Kratter and Badenes 2019, El-Badry and Rix 2018, El-Badry, Rix
-and Heintz 2021, Kratter and Lodato 2016, Bate 2018, Heggie 1975, Bahcall, Hut and Tremaine 1985, Jiang and
+and Kratter and Lodato 2016, Bate 2018, Heggie 1975, Bahcall, Hut and Tremaine 1985, Jiang and
 Tremaine 2010 and Stegmann et al. 2024. **The reference list is unverified; Core 4 checks each source and each
 number before any of it is coded.**
 
@@ -809,10 +808,9 @@ still [R], to verify when paper access is allowed:
 - Log-normal period law for solar-type stars (mean 5.03, sigma 2.28 in log10 days);
   every period share in section 4 depends on it.
 - Close-binary fraction against metallicity (Moe, Kratter and Badenes 2019).
-- Per-mass-bin companion, triple and quadruple fractions (Moe and Di Stefano table,
-  Offner 2023): the table in 3.3 is a design blend, and its A, B and O rows and every
+- Per-mass-bin companion, triple and quadruple fractions (Moe and Di Stefano table,): the table in 3.3 is a design blend, and its A, B and O rows and every
   N >= 4 split are the least certain.
-- Harrington 1977; Tokovinin's "ratio above 5" rule; the WDS/WMC/MSC notation (6.3).
+- Tokovinin's "ratio above 5" rule; the WDS/WMC/MSC notation (6.3).
 - Gaia BH1 period and eccentricity, BH2 mass and orbit, BH3 beyond the periods;
   PSR B1257+12 masses and orbits; PSR J0337+1715.
 - Moment of inertia 1e38 kg m^2, Kerr ISCO factor, Eddington 1.26e31 W per Msun,

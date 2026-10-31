@@ -222,8 +222,8 @@ class Lever:
 
 HALO_MIN_HALO_MASS_SOLAR = 1.0e10
 """float: The lowest halo mass, solar masses (M200), our halo functions are used at (Boss, 7:33 PM EDT 10-21: a galaxy
-below the lowest size they work for reliably runs none of them). Each law in the chain was fitted from here up: Dutton
-and Maccio 2014's concentration is quoted for M200 of 1e10 and over (Wang et al. 2020 say the same of formulas derived
+below the lowest size they work for reliably runs none of them). Each law in the chain was fitted from here up:
+the Dutton and Maccio 2014 concentration is quoted for M200 of 1e10 and over (Wang et al. 2020 say the same of formulas derived
 there, arXiv:1911.09720), Behroozi et al. 2019's stellar-to-halo fit holds from 10^10.5 and Read et al. 2017 agree with
 abundance matching down to 5e9 (arXiv:1607.03127, read by the galaxy size research thread). The stellar mass it
 corresponds to is `galaxy.mass_chain.HALO_MIN_STELLAR_MASS_SOLAR`, about 4.6e6 solar masses. Status: bracket, since

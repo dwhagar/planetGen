@@ -1,5 +1,5 @@
 {
- "source": "Brion-team (1992-1998) 295 K, 1 nm, MPI-Mainz UV/VIS Spectral Atlas snapshot 2013-06-24, Zenodo record 6951, CC BY 4.0 (Keller-Rudek et al. 2013, Earth Syst. Sci. Data 5, 365); cell means on 5 nm cells",
+ "source": "the Brion team's 1992 to 1998 measurements, 295 K, 1 nm, MPI-Mainz UV/VIS Spectral Atlas snapshot 2013-06-24, Zenodo record 6951, CC BY 4.0 (Keller-Rudek et al. 2013, Earth Syst. Sci. Data 5, 365); cell means on 5 nm cells",
  "temperature_k": 295.0,
  "wavelength_nm": [
   380.0,

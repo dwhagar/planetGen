@@ -70,7 +70,7 @@ def liquidus_k(pressure_gpa):
 
 def heat_pipe_temperature_k(pressure_gpa):
     """The mantle temperature a melt-limited body holds, K: that of the melt fraction `tidal_rheology.CRITICAL_MELT_FRACTION` at which the crystals stop
-    touching and the melt segregates and erupts (Arzi 1978; the heat pipe of Moore 2001). Derived from TR2, which replaces the chosen melt share of
+    touching and the melt segregates and erupts (the heat pipe of Moore 2001). Derived from TR2, which replaces the chosen melt share of
     0.3 (TH7)."""
     return solidus_k(pressure_gpa) + tidal_rheology.CRITICAL_MELT_FRACTION * MELT_RANGE_K
 

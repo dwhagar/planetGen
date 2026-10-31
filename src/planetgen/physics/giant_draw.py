@@ -68,8 +68,7 @@ AMMONIA_OVER_WATER = 0.10
 METHANE_OVER_WATER = 0.15
 
 BOND_ALBEDO = 0.503
-"""float: Jupiter's Bond albedo (Li et al. 2018, Nature Communications 9:3709, the newer of two measurements; Hanel et al. 1981 had
-0.343), taken for every giant's effective temperature."""
+"""float: Jupiter's Bond albedo (Li et al. 2018, Nature Communications 9:3709, the newer of two measurements), taken for every giant's effective temperature."""
 
 ONE_BAR_OVER_EFFECTIVE = 1.33
 """float: The temperature at one bar over the effective temperature (Jupiter: 166 K over 125 K; Saturn: 134 K over 98.8 K, which

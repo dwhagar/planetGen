@@ -6,14 +6,14 @@ and draws nothing. The power comes from the core's own thermal history (the heat
 GEN.838) or, for a giant, from its luminosity (`giant_power_w`); the spin is the body's (`spin`, GEN.731). The values stored on a body are set by
 GEN.967, which replaces the design defaults of `magnetism` with these.
 
-1. **Strength.** The buoyancy-flux scaling of Olson and Christensen (2006), which Christensen and Aubert (2006) and Christensen (2010) extend: the
+1. **Strength.** The buoyancy-flux scaling of Olson and Christensen (2006), which Christensen and Aubert (2006) extend: the
    dipole's equatorial field at the top of a dipolar dynamo's region does not depend on the spin or the conductivity, only on the buoyancy flux
    `F = P / (rho V)` (W/kg, the power per mass of the region), its thickness `D` and the density `rho`:
    `B = gamma sqrt(rho mu0 / 2) (F D)^(1/3)` with `gamma` about 0.2, and the moment is `4 pi r_o^3 B / mu0` (the design note section 3.1). The same
    as `B = c sqrt(mu0) rho^(1/6) (P D / V)^(1/3)`.
 2. **Dipole share.** A dynamo turning slowly for its power is multipolar: the local Rossby number
    `Ro_l = 0.09 (Ra* / Ra*_Earth)^0.41`, with `Ra* = F / (Omega^3 D^2)` the modified flux Rayleigh number of the region, is the dipole's gate,
-   and the share of the dipole is `f_dip = 0.15 + 0.85 / (1 + (Ro_l / 0.12)^4)`, the rule `magnetism.dipole_share` already used. The scaling above
+   and the share of the dipole is `f_dip = 0.15 + 0.85 / (1 + (Ro_l / 0.12)^4)`, the rule GEN.86 used before this module (`magnetism` now stores the moment with it applied). The scaling above
    holds for Earth and every dynamo that is dipolar as Earth is; a slower one has its moment times `f_dip` over Earth's. With the power held at its
    Earth value `Ro_l` is `0.09 (P_rot / 24 h)^1.23`: the exponent `1.23` is `3 * 0.41`.
 3. **Lifetime.** The dynamo runs while the power is above zero (`lifetime`): the core's own history says when it started and when it stopped.

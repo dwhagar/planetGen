@@ -268,7 +268,7 @@ Boss's research documents in this folder carry no formatting rules, but they fix
 - IAU 2012 Resolution B2 (au = 149,597,870,700 m, symbol "au"): https://syrte.obspm.fr/IAU_resolutions/IAUResol_2012_0.html , https://syrte.obspm.fr/~capitaine/AU.html
 - NIST SP 811 chapter 7 and checklist (space between number and unit, plane-angle exception, comma not for grouping): https://nist.gov/pml/special-publication-811/nist-guide-si-chapter-7-rules-and-style-conventions-expressing-values , https://www.nist.gov/document/sp-811-2008-checklist-reviewing-manuscriptspdf (snippets via search)
 - SI brochure digit-grouping excerpt (8th edition, via mailing-list quote in search results): https://febo.com/pipermail/time-nuts/2009-October/041350.html
-- IAU Style Manual (Wilkins 1989) reprint: https://iauarchive.eso.org/publications/proceedings_rules/units/ ; Myr/Gyr usage: https://rock.geosociety.org/gsatoday/archive/22/2/pdf/i1052-5173-22-2-28.pdf , https://www.micropress.org/microaccess/stratigraphy/issue-260/article-1641
+- IAU Style Manual reprint: https://iauarchive.eso.org/publications/proceedings_rules/units/ ; Myr/Gyr usage: https://rock.geosociety.org/gsatoday/archive/22/2/pdf/i1052-5173-22-2-28.pdf , https://www.micropress.org/microaccess/stratigraphy/issue-260/article-1641
 - Intl.NumberFormat: https://github.com/tc39/proposal-unified-intl-numberformat/blob/master/README.md , https://v8.dev/features/intl-numberformat (plus Node 22 / ICU 77 tests)
 - PyPI JSON: https://pypi.org/pypi/astropy/json , https://pypi.org/pypi/pint/json , https://pypi.org/pypi/hypothesis/json ; npm registry for js-quantities, convert-units, unitmath, mathjs
 

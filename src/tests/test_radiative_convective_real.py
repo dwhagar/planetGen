@@ -100,6 +100,18 @@ def test_titan_with_its_haze_takes_its_measured_surface_and_without_it_is_too_wa
     assert clear.surface_temperature_k - hazy.surface_temperature_k > 8.0
 
 
+@pytest.mark.parametrize("name, partials, gravity, effective_k, measured_k, tolerance", [
+    ("Jupiter", {"H2": 0.864e5, "He": 0.136e5, "CH4": 0.002e5}, 24.79, 125.0, 166.0, 0.03),
+    ("Uranus", {"H2": 0.825e5, "He": 0.152e5, "CH4": 0.023e5}, 8.69, 59.1, 76.0, 0.06),
+    ("Neptune", {"H2": 0.80e5, "He": 0.19e5, "CH4": 0.015e5}, 11.15, 59.3, 72.0, 0.10),
+])
+def test_the_giants_sit_near_their_measured_temperature_at_one_bar(name, partials, gravity, effective_k, measured_k, tolerance):
+    """GEN.1030: the methane pseudo-adiabat and the ortho-para equilibrium of cold hydrogen bring the ice giants' 1 bar temperature down from 20 percent
+    too warm (the effective temperatures are the measured ones)."""
+    giant = rc.warming(partials, gravity, SIGMA * effective_k ** 4)
+    assert giant.converged and giant.surface_temperature_k == pytest.approx(measured_k, rel=tolerance), name
+
+
 def test_the_warming_factor_is_the_model_in_the_repos_variable(earth):
     warm = rc.warming(_co2(280.0), 9.81, EARTH_FLUX)
     assert warm.surface_temperature_k == pytest.approx(earth.surface_temperature_k)
@@ -111,10 +123,10 @@ def test_the_warming_factor_is_the_model_in_the_repos_variable(earth):
 
 def test_the_surface_temperature_does_not_jump_when_the_tropopause_moves_to_another_level():
     air = {"N2": 0.78e5, "O2": 0.21e5, "CO2": 40.0, "H2O": 1500.0}
-    fluxes = (237.0, 238.0, 239.0, 240.0, 241.0)
+    fluxes = (244.0, 245.0, 246.0, 247.0, 248.0)
     solutions = [rc.solve(air, 9.81, f) for f in fluxes]
     pressures = [s.tropopause_pressure_pa for s in solutions]
-    assert len(set(pressures)) > 1                    # the sweep crosses a change of level (the sweep of 237 to 241 W/m2 moves it between 12.7 and 20 kPa)
+    assert len(set(pressures)) > 1                    # the sweep crosses a change of level (the sweep of 244 to 248 W/m2 moves it from 10.1 to 12.7 kPa; GEN.1032 moved the sweep when the far wing and the acid cloud changed the model)
     steps = np.diff([s.surface_temperature_k for s in solutions])
     assert (steps > 0).all()
-    assert steps.max() - steps.min() < 0.15           # about 0.4 K per W/m2 throughout; the move of a level costs under a tenth of a kelvin
+    assert steps.max() - steps.min() < 0.15           # about 0.19 K per W/m2 throughout; the move of a level costs under a tenth of a kelvin

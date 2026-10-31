@@ -10,6 +10,7 @@ that sets each one, from the body's stored record, so a reader can see why a wor
 * cosmic rays (`dose_gcr_msv_yr`, times the heliosphere's multiplier): the shielding column `P / g` of the air and the
   magnetic cutoff of the dipole (`radiation.cutoff_rigidity_gv`);
 * stellar particles (`dose_sep_msv_yr`): the star's flares, cut by the same column and field;
+* trapped particles (`dose_belt_msv_yr`): a moon in the radiation belts of its parent planet's field (GEN.983);
 * the ground (`dose_ground_msv_yr`): the gamma rays of the potassium, thorium and uranium the body stores (`radiogenic`) and the
   radon of its uranium;
 * the ultraviolet (`uv_surface_index`, a multiple of Earth's DNA-damaging dose): the ozone column of its oxygen (`ozone_column_du`)
@@ -48,6 +49,7 @@ class RadiationTerms:
         gcr_msv_yr (float): Cosmic rays with the heliosphere's multiplier.
         sep_msv_yr (float): Stellar particles.
         ground_msv_yr (float): The ground's gamma and radon.
+        belt_msv_yr (float): The trapped particles of the parent planet's belts (a moon only; 0 for the rest).
         helio_mult (float): The compressed-heliosphere multiplier on the cosmic rays (1 in open space).
         column_g_cm2 (float): The air above the ground, `P / g`, g/cm2 (0 for an airless body).
         air (tuple): `(name, share)` of the gases of at least `AIR_SHARE_MIN` of the pressure, largest first, named as the
@@ -65,6 +67,7 @@ class RadiationTerms:
     gcr_msv_yr: float
     sep_msv_yr: float
     ground_msv_yr: float
+    belt_msv_yr: float
     helio_mult: float
     column_g_cm2: float
     air: tuple
@@ -106,7 +109,8 @@ def radiation_terms(body):
     content = radiogenic.content_of(body)
     return RadiationTerms(
         total_msv_yr=values["surface_dose_msv_yr"], gcr_msv_yr=(values.get("dose_gcr_msv_yr") or 0.0) * helio,
-        sep_msv_yr=values.get("dose_sep_msv_yr") or 0.0, ground_msv_yr=values.get("dose_ground_msv_yr") or 0.0, helio_mult=helio,
+        sep_msv_yr=values.get("dose_sep_msv_yr") or 0.0, ground_msv_yr=values.get("dose_ground_msv_yr") or 0.0,
+        belt_msv_yr=values.get("dose_belt_msv_yr") or 0.0, helio_mult=helio,
         column_g_cm2=radiation.column_g_cm2(values.get("atmospheric_pressure_pa") or 0.0, values.get("gravity_g")),
         air=air_shares(body), cutoff_gv=habitability_world.cutoff_gv(values),
         potassium_ppm=None if content is None else content.k0_ppm, thorium_ppm=None if content is None else content.th0_ppm,

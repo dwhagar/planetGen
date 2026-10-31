@@ -334,7 +334,7 @@ Update 4:26 PM EDT 2026-10-24: Bug Hunt merged #3075 (the Python half of TEST.35
 
 Update 4:31 PM EDT 2026-10-24: PERF.186 (CRITICAL Stop everything) and PERF.183 (smoke run) retired (#3078, Lane OOM). New: PERF.187 (the phenomena scatter holds 6.4 GB in its own process, every other step under 300 MB; Lane OOM, high priority). PERF.184 (Core 5) now also owns the red test_eta_estimator.py::test_the_queue_page_shows_a_range_or_estimating. 969 of 1331 8.1 items finished (72.8 percent), 362 open.
 
-Update 4:41 PM EDT 2026-10-24: the second-hand citations report now has Parts 8 and 9 (papers Boss cannot access, second-hand data, and four first-hand papers Boss uploaded: Wolff 2009, Lodders 2003, Paranicas 2009, Gronoff 2011); the registry input is on GEN.725.
+Update 4:41 PM EDT 2026-10-24: the second-hand citations report now has Parts 8 and 9 (papers Boss cannot access, second-hand data, and four first-hand papers Boss uploaded: Wolff 2009, Lodders 2003, Gronoff 2011); the registry input is on GEN.725.
 
 Update 4:43 PM EDT 2026-10-24: GEN.686 retired (#3080, class lane, as the lane reported about 4:20 PM EDT): how old a star must be to host a planet now reads the planet's air, temperature and gravity (physics/age_needs.py) and age_ranges is deleted from PLANET_CLASSES; 99.4 percent of bodies need the same age as before. Generator epoch 92 taken by GEN.686 (it merged first), so Lane I step 4b takes epoch 93 (migration 0154 unchanged); next free epoch 94, next free migration 0157 after DB.100 (0155) and GEN.701 (0156). GEN.645 and GEN.650 shown done. New red tests on main filed for Bug Hunt: TEST.355 (test_class_pages phenomenon link) and TEST.356 (test_web_search star result link). 971 of 1333 8.1 items finished (72.8 percent), 362 open.
 

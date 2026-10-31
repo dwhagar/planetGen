@@ -25,22 +25,22 @@ export function readSceneData(dataEl) {
   }
 }
 
-// A CSS custom property on the page root (the theme's colors), or
-// `fallback` when it isn't set.
-export function cssVar(name, fallback) {
-  var value = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+// A CSS custom property as a map sees it, or `fallback` when it isn't set. Maps take the dark theme's colors in either theme (style.css gives the map viewports the dark
+// tokens), so this reads the value from an unseen element with the viewport's class, not from the page root.
+export function mapVar(name, fallback) {
+  var probe = document.createElement("div");
+  probe.className = "starmap-viewport";
+  probe.style.cssText = "position:absolute;visibility:hidden;width:0;height:0";
+  document.body.appendChild(probe);
+  var value = getComputedStyle(probe).getPropertyValue(name).trim();
+  probe.remove();
   return value || fallback;
 }
 
-// Whether the maps' background (--bg-subtle, the light or dark theme) is
-// light, from its computed color.
+// Whether the maps' background is light. It never is: every map is drawn on black in either theme (`--map-bg` in style.css; Boss, 2026-10-31), and the
+// map viewports take the dark theme's colors. The light-background branches that remain in the map scripts are dead until they are removed (UX.255).
 export function isLightBackground() {
-  var probe = document.createElement("span");
-  probe.style.color = cssVar("--bg-subtle", "#000");
-  document.body.appendChild(probe);
-  var rgb = (getComputedStyle(probe).color.match(/[\d.]+/g) || [0, 0, 0]).map(Number);
-  probe.remove();
-  return 0.2126 * rgb[0] + 0.7152 * rgb[1] + 0.0722 * rgb[2] > 140;
+  return false;
 }
 
 // One "label: value" row of an info panel's <dl>, left out when there's

@@ -37,7 +37,7 @@ Aux 16's distribution check (`reports/planet-class-distribution-check-2026-10-25
 | Per star | First version | Tuned | Observed (recalled, rounded) |
 |---|---|---|---|
 | Giants (100 Earth masses or more) 0.3 to 10 AU, Sun-like | 0.51 | 0.16 | 0.10 to 0.15 (Fulton et al. 2021) |
-| Giants, any orbit, M dwarf | 0.19 | 0.04 | 0.03 to 0.06 (Johnson et al. 2010; Bonfils et al. 2013) |
+| Giants, any orbit, M dwarf | 0.19 | 0.04 | 0.03 to 0.06 (Johnson et al. 2010) |
 | 1 to 20 Earth masses inside 0.45 AU, Sun-like | 0.52 | 0.88 | 0.5 to 0.9 (Petigura et al. 2018; Zhu et al. 2018) |
 | 1 to 20 Earth masses inside 0.45 AU, M dwarf | 0.24 | 1.30 | 1 to 2.5 (Dressing & Charbonneau 2015) |
 | Earth-size (0.5 to 2 Earth masses) at 0.7 to 1.5 AU, Sun-like | 0.15 | 0.15 | 0.2 to 0.6 (Bryson et al. 2021) |

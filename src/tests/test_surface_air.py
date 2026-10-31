@@ -9,7 +9,7 @@ import pytest
 
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
-from planetgen.physics import aerosols, atmosphere, atmosphere_state, clathrate_brine, constants, gases, greenhouse_table, saturation, sulfur_balance, surface_air as sa, surface_pressure
+from planetgen.physics import aerosols, atmosphere, atmosphere_state, clathrate_brine, constants, gases, giant_draw, greenhouse_table, saturation, sulfur_balance, surface_air as sa, surface_pressure
 from planetgen import tuning
 from planetgen.util import draw
 
@@ -162,6 +162,27 @@ def test_the_sulfur_the_air_keeps_is_what_the_sulfate_and_sulfide_sinks_leave():
     assert wet["N"] == dry["N"]                         # nitrogen has no sink here
 
 
+def test_the_shares_the_surface_holds_start_from_the_heat_released_times_each_elements_degassing_efficiency():
+    """TEST.538 (the falsifier of stand-ins AM28 and AM29): hydrogen is degassed at a drawn share of the mantle's inside the registered
+    bracket, carbon, nitrogen and argon in full, sulfur at a half, and the air sees the heat released times each of them."""
+    draw.set_run_seed(28)
+    design = {}
+    efficiencies = surface_pressure.draw_efficiencies(design)
+    assert surface_pressure.DEGAS_EFFICIENCY_H[0] <= efficiencies["H"] <= surface_pressure.DEGAS_EFFICIENCY_H[1]
+    assert design["degas_efficiency_h"] == efficiencies["H"]
+    assert {element: efficiencies[element] for element in ("C", "N", "Ar", "S")} == {"C": 1.0, "N": 1.0, "Ar": 1.0, "S": 0.5}
+    cycle = surface_pressure.draw_cycle(design)
+    lifetimes = sulfur_balance.draw_lifetimes(design)
+    for released_j in (1.0e30, 0.0):
+        setting = sa.Setting(gravity_m_s2=9.81, radius_m=EARTH_R_M, mantle_kg=4.0e24, released_j=released_j, heat_flux_w_m2=0.0614,
+                             ocean_cover=0.7, water_kg=1.4e21, absorbed_flux_w_m2=240.0, released_at_seal_j=2.0e29, subject_of=None)
+        shares = sa._shares(setting, efficiencies, cycle, (lifetimes, 4.5 * sa.GY_S, 0.9), False, False, 288.0, LAND)({})
+        base = surface_pressure.degassed_share(released_j, setting.mantle_kg)
+        assert (base > 0.0) == (released_j > 0.0)
+        for element, efficiency in efficiencies.items():
+            assert shares[element] == pytest.approx(base * efficiency)
+
+
 def test_a_crust_too_small_for_the_sulfur_leaves_the_excess_in_the_air():
     setting = sa.Setting(gravity_m_s2=9.81, radius_m=EARTH_R_M, mantle_kg=4.0e24, released_j=1.0e24, heat_flux_w_m2=0.0614, ocean_cover=0.7,
                          water_kg=1.4e21, absorbed_flux_w_m2=240.0, released_at_seal_j=2.0e29, subject_of=None)
@@ -288,6 +309,13 @@ def test_every_generated_body_stores_the_density_scale_height_and_greenhouse_its
             continue            # life changes the air after the temperature is solved (its methane and oxygen, GEN.855), and with it the haze the temperature was solved under
         haze = aerosols.haze_of(air, gravity, body.surface_temperature, aerosols.draw_haze_draws(aerosols.haze_stream_of(body)),
                                 body.star.temperature)
+        if body.body_type == "g":
+            # GEN.1030: a giant's stored G is against its starlight alone, so `T_e (1 + G)^(1/4)` with the albedo reproduces the temperature (GEN.412);
+            # the air it has is warmed under the starlight and its own heat together
+            radiated = absorbed + giant_draw.own_flux_w_m2(body)
+            warming = atmosphere_state.greenhouse_warming(air, gravity, radiated, haze.absorbed_share * absorbed / radiated, haze.pressure_pa)
+            assert body.surface_temperature == pytest.approx(warming.surface_temperature_k, rel=5e-3)
+            continue
         warming = atmosphere_state.greenhouse_warming(air, gravity, absorbed, haze.absorbed_share, haze.pressure_pa)
         assert body.greenhouse_factor == pytest.approx(warming.factor, rel=1.5e-2, abs=1e-6)
     assert bodies > 5
@@ -359,3 +387,23 @@ def test_a_stalled_equilibrium_is_tried_again_from_the_middle_of_the_way_back(mo
     monkeypatch.setattr(sa.mixture_draw, "draw_mixture", fails_once)
     planet = _earth_like_planet()
     assert len(calls) > 2 and planet.atmospheric_pressure > 0.0
+
+
+def test_the_escape_is_compared_to_the_pressure_the_air_settled_at_without_it(monkeypatch):
+    """The loss acts on the air that stands. Compared to the pressure of the step before it (already what stays) it took its share again at every step,
+    and the reducing mixtures of the first steps, which a settled air does not keep, took the whole air: an Earth-mass world in the habitable zone of a Sun-like
+    star fell to a vacuum in most seeds."""
+    real = sa.mixture_escape.apply
+    columns = []
+
+    def recording(subject, result, column_bar=None):
+        columns.append(column_bar)
+        return real(subject, result, column_bar)
+
+    monkeypatch.setattr(sa.mixture_escape, "apply", recording)
+    for seed in (3, 5, 6):
+        columns.clear()
+        planet = _earth_like_planet(seed)
+        assert planet.atmospheric_pressure > 0.0, seed
+        assert columns and None not in columns, seed                 # no step before the air settled lost anything
+        assert len(set(columns)) == 1, seed                          # and every step after it compares to the one settled pressure

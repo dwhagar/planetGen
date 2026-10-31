@@ -20,6 +20,8 @@
   --tier-green: #1f7a3d;
   --tier-yellow: #8a6500;
   --tier-red: #c22b3a;
+  --references-bg: #e9f1f6;
+  --references-border: #9bbad0;
   /* MAP.320: the point-of-interest tokens that no habitability score colours. Brown and grey are chosen to differ in
      lightness (CIE L*) from all four tiers, so they never read as one of them to a viewer who cannot tell the hues
      apart, and each clears 3:1 against the page (WCAG 1.4.11; src/tests/test_poi_icons.py holds both). */
@@ -33,6 +35,11 @@
   /* The space between neighboring buttons (UX.16; the rule that uses it
      is under .btn-small). */
   --btn-gap: 0.5rem;
+  /* Every map is drawn on black, in either theme (Boss, 2026-10-31): the viewports below use this and also take the dark tokens, so a label, a grid line or a control on a map is
+     always light on black. */
+  --map-bg: #000000;
+  /* The line of a map's ring, axis, compass or orbit on that black: 3:1 or more against it (WCAG 1.4.11), in either theme. */
+  --map-line: #5c6180;
 }
 
 /* Touch screens: more room between buttons, so 44-48 px targets never
@@ -64,6 +71,8 @@
     --tier-green: #5fcf86;
     --tier-yellow: #e8c24a;
     --tier-red: #ff6b7a;
+    --references-bg: #1b2733;
+    --references-border: #3d5873;
   --poi-brown: #9c6b3f;
   --poi-grey: #6f7486;
   --poi-gas: #4fc3cc;
@@ -89,6 +98,37 @@
   --tier-green: #5fcf86;
   --tier-yellow: #e8c24a;
   --tier-red: #ff6b7a;
+  --references-bg: #1b2733;
+  --references-border: #3d5873;
+  --poi-brown: #9c6b3f;
+  --poi-grey: #6f7486;
+  --poi-gas: #4fc3cc;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+/* The map viewports always take the dark tokens, in either theme (the maps are black; Boss, 2026-10-31). Keep this block identical to the two above (test_map_black.py). */
+.starmap-viewport,
+.galaxymap-viewport,
+.phenomenonmap-viewport,
+.phenomrender-viewport,
+.navmap-viewport {
+  color-scheme: dark;
+  --bg: #14151e;
+  --bg-elevated: #1c1e2b;
+  --bg-subtle: #23253470;
+  --text: #e7e9f3;
+  --text-muted: #9a9fb5;
+  --border: #333650;
+  --line: #6a6f8c;
+  --accent: #8891f5;
+  --accent-contrast: #12132b;
+  --link: #9aa3ff;
+  --link-visited: #c39bff;
+  --error: #ff6b7a;
+  --tier-blue: #7fb0ff;
+  --tier-green: #5fcf86;
+  --tier-yellow: #e8c24a;
+  --tier-red: #ff6b7a;
   --poi-brown: #9c6b3f;
   --poi-grey: #6f7486;
   --poi-gas: #4fc3cc;
@@ -97,6 +137,15 @@
 
 :root[data-theme="light"] {
   color-scheme: light;
+}
+
+/* The map viewports take the dark tokens above, so their text color is re-resolved from them (a color is inherited as a computed value, not as the variable). */
+.starmap-viewport,
+.galaxymap-viewport,
+.phenomenonmap-viewport,
+.phenomrender-viewport,
+.navmap-viewport {
+  color: var(--text);
 }
 
 * {
@@ -796,7 +845,7 @@ tbody tr:last-child td {
   width: min(100%, 22rem);
   aspect-ratio: 1 / 1;
   border-radius: var(--radius);
-  background: var(--bg-subtle);
+  background: var(--map-bg);
 }
 
 /* MAP.199: the center the view turns and zooms about -- always the middle
@@ -1260,7 +1309,7 @@ tbody tr:last-child td {
   width: min(100%, 26rem);
   aspect-ratio: 1 / 1;
   border-radius: var(--radius);
-  background: var(--bg-subtle);
+  background: var(--map-bg);
   overflow: hidden;
 }
 
@@ -1282,7 +1331,7 @@ tbody tr:last-child td {
 
 .galaxymap-ring {
   fill: none;
-  stroke: var(--border);
+  stroke: var(--map-line);
   stroke-width: 1;
 }
 
@@ -1293,7 +1342,7 @@ tbody tr:last-child td {
 }
 
 .galaxymap-axis {
-  stroke: var(--border);
+  stroke: var(--map-line);
   stroke-width: 1;
   stroke-dasharray: 2 4;
 }
@@ -1349,7 +1398,7 @@ a:focus-visible .galaxymap-star-core {
   width: min(100%, 26rem);
   aspect-ratio: 1 / 1;
   border-radius: var(--radius);
-  background: var(--bg-subtle);
+  background: var(--map-bg);
   overflow: hidden;
 }
 
@@ -1404,14 +1453,14 @@ a:focus-visible .galaxymap-star-core {
 
 /* Phenomenon view: a rendered picture of the object
    (planetgen/web/maps/phenomenonrender.py, static/phenomenonrender.js). The SVG
-   still shows until the script swaps in the canvas. Always dark: it is
+   still shows until the script swaps in the canvas. Always black: it is
    a picture of space, in either theme. */
 .phenomrender-viewport {
   position: relative;
   width: min(100%, 36rem);
   aspect-ratio: 4 / 3;
   border-radius: var(--radius);
-  background: #05070c;
+  background: var(--map-bg);
   overflow: hidden;
 }
 
@@ -1477,7 +1526,7 @@ a:focus-visible .galaxymap-star-core {
   width: 100%;
   aspect-ratio: 600 / 360;
   border-radius: var(--radius);
-  background: var(--bg-subtle);
+  background: var(--map-bg);
   overflow: hidden;
 }
 
@@ -1591,7 +1640,7 @@ a:focus-visible .navmap-point circle {
 
 .navmap-compass-ring {
   fill: none;
-  stroke: var(--border);
+  stroke: var(--map-line);
   stroke-width: 1;
 }
 
@@ -2477,7 +2526,7 @@ code {
 
 .sysmap-orbit {
   fill: none;
-  stroke: var(--border);
+  stroke: var(--map-line);
   stroke-width: 1.5px;
   pointer-events: none;
 }
@@ -4923,7 +4972,7 @@ body.app {
   /* MAP.359: its height is the window's (mapfit.js fills it as the Galaxy Map's); this is the height before the script runs. */
   height: 70vh;
   min-height: 20rem;
-  background: #05070d;
+  background: var(--map-bg);
   color-scheme: dark;
 }
 
@@ -5832,6 +5881,22 @@ p.hint a {
   text-align: left;
 }
 
+/* The References pages (DOC.88) are out of universe: a banner opens each page and the header takes another tint, so a reader always
+   knows they have left the story. */
+.out-of-universe-banner {
+  margin: 0 0 1rem;
+  padding: 0.6rem 0.9rem;
+  background: var(--references-bg);
+  border: 1px solid var(--references-border);
+  border-left-width: 0.4rem;
+  border-radius: var(--radius);
+}
+
+.app.references-mode .site-header {
+  background: var(--references-bg);
+  border-bottom-color: var(--references-border);
+}
+
 .life-facts,
 .life-help-facts {
   margin: 0.5rem 0;
@@ -5988,6 +6053,8 @@ a.help-mark {
   width: min(320px, 100%);
   height: auto;
   aspect-ratio: 1;
+  background: var(--map-bg);      /* the picture of a world is on black like every map */
+  border-radius: var(--radius);
 }
 .body-view-spin[hidden] { display: none; }
 .body-view figcaption {

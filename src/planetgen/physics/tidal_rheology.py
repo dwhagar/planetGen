@@ -22,7 +22,7 @@ with `mu~` the *complex* rigidity, the inverse of the complex compliance `J` at 
 * Maxwell (Henning, O'Connell and Sasselov 2009, ApJ 707:1000, arXiv:0912.1907, whose rheology it is): `J = 1/mu - i / (eta chi)`. A spring
   and a dashpot: dissipation peaks where `eta chi / mu` is 1 and falls off at both ends, but a cold mantle's `Q` runs to 1e5 or more,
   which no measurement of rock shows.
-* Andrade (the default; Efroimsky 2012, ApJ 746:150 and Castillo-Rogez et al. 2011, Icarus 211:728, after Andrade 1910):
+* Andrade (the default; Efroimsky 2012, ApJ 746:150 and Castillo-Rogez et al. 2011, Icarus 211:728,):
   `J = (1/mu) [1 + Gamma(1 + a) (i chi tau_A)^(-a)] - i / (eta chi)`, `tau_A = zeta eta / mu`. The extra term is the transient creep of
   grain boundaries; with `a = 0.3` it holds `Q` of a cold mantle near 100 to 1,000 and puts the Moon at the Q of 38 to 60 that the lunar
   laser ranging measures, which the Maxwell form cannot.
@@ -45,7 +45,7 @@ fraction of Io (0.3) this gives `k2/Q` of a few hundredths, the 0.015 that Io's 
 number fitted to Io: the fit is gone, `interior_heat` balances this heating against the loss of the heat pipe.
 
 **Ice** is the same equations with ice's rigidity (3.3 GPa), a lower activation energy (49 kJ/mol) and a viscosity pinned at the melting
-point (`ICE`; Ojakangas and Stevenson 1989, Icarus 81:220 and McCarthy and Castillo-Rogez 2013 for the figures, read second-hand). A
+point (`ICE`, read second-hand). A
 homogeneous ice sphere is not Europa (its shell floats on an ocean and dissipates in a warm convecting layer): GEN.960 gives the shell its
 own treatment on top of this form.
 
@@ -73,15 +73,13 @@ MELT_VISCOSITY_FACTOR = 26.0
 """float: `B` of `exp(-B phi)`, the viscosity of a partly molten mantle against its solid one (Hirth and Kohlstedt 2003, diffusion creep,
 26; Mei et al. 2002, 26 to 31; recalled). Source tier T2, tweak level L0."""
 CRITICAL_MELT_FRACTION = 0.4
-"""float: The melt share at which the crystals stop touching and the mush becomes a suspension (the rheological transition, 0.2 to 0.4 in
-Arzi 1978, 0.4 in Henning et al. 2009; recalled). Source tier T3, tweak level L1 (the top of the range)."""
+"""float: The melt share at which the crystals stop touching and the mush becomes a suspension (the rheological transition, 0.4 in Henning et al. 2009; recalled). Source tier T3, tweak level L1 (the top of the range)."""
 MELT_RIGIDITY_FLOOR = 1.0e-3
 """float: The share of its rigidity a mush keeps once the crystal matrix is gone. Source tier T6 (physics fixes the form: a suspension has no
 static rigidity; the size is argued), tweak level L3 (chosen so the Io state's `k2` stays under 1.5)."""
 COLD_Q_CEILING = 1000.0
 """float: The largest `Q` the Andrade form is allowed to give. A mantle far below its solidus is infinitely stiff in this model and its `Q` runs to 1e14, and a mantle that is all melt dissipates nothing; real cold rock
-keeps a loss of its own (frictional and extrinsic, Q of 500 to a few thousand in the Earth's lithosphere and the Moon's cold interior; Dziewonski and Anderson 1981,
-Nakamura 1982, recalled). Source tier T6, tweak level L3 (chosen so that a cold small planet is not frictionless)."""
+keeps a loss of its own (frictional and extrinsic, Q of 500 to a few thousand in the Earth's lithosphere and the Moon's cold interior; Dziewonski and Anderson 1981, recalled). Source tier T6, tweak level L3 (chosen so that a cold small planet is not frictionless)."""
 ANDRADE_EXPONENT = 0.3
 """float: The Andrade exponent `a` (laboratory olivine 0.2 to 0.4; 0.3 in Jackson and Faul 2010 and Castillo-Rogez et al. 2011; recalled).
 Source tier T2, tweak level L0."""
@@ -111,10 +109,9 @@ ROCK = Material(7.0e10)
 ICE = Material(3.3e9)
 """Material: Ice I (shear modulus 3.3 to 3.5 GPa near its melting point; Gammon et al. 1983, recalled). Source tier T2, tweak level L0."""
 ICE_ACTIVATION_J_MOL = 4.9e4
-"""float: The activation energy of ice I's creep (49 kJ/mol; Goldsby and Kohlstedt 2001 for diffusion and grain-boundary sliding, McCarthy and
-Castillo-Rogez 2013). Source tier T2, tweak level L0."""
+"""float: The activation energy of ice I's creep (49 kJ/mol; Goldsby and Kohlstedt 2001 for diffusion and grain-boundary sliding).  Source tier T2, tweak level L0."""
 ICE_MELTING_VISCOSITY_PA_S = 1.0e14
-"""float: The viscosity of ice at its melting point, Pa s (1e13 to 1e15 across grain sizes; Ojakangas and Stevenson 1989 use 1e14). Source tier
+"""float: The viscosity of ice at its melting point, Pa s (1e13 to 1e15 across grain sizes; use 1e14). Source tier
 T3, tweak level L0."""
 ICE_MELTING_K = 273.0
 """float: The temperature that pins it, K."""

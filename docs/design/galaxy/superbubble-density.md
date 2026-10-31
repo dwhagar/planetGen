@@ -19,7 +19,7 @@ A bubble is a gas structure, so it acts on young populations and leaves old ones
 
 | Population | Effect | Source named from memory |
 |---|---|---|
-| Young (under the bubble's age) | Inside: new star formation is suppressed once the gas is swept out. On the shell: swept-up gas collapses, so a share of new stars forms in a thin shell (collect and collapse). | Elmegreen and Lada 1977; Deharveng et al. 2010; Kendrew et al. 2012; Thompson et al. 2012; Zucker et al. 2022 for the Local Bubble |
+| Young (under the bubble's age) | Inside: new star formation is suppressed once the gas is swept out. On the shell: swept-up gas collapses, so a share of new stars forms in a thin shell (collect and collapse). | Zucker et al. 2022 for the Local Bubble |
 | Intermediate | Half-way between young and old, by age range | same |
 | Old, bulge, halo, clusters, satellites | none | none |
 

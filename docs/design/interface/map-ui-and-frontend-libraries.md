@@ -813,7 +813,7 @@ the Web Awesome migration guide.
 - Web Awesome Pro pricing and the exact `sl-` to `wa-` renames.
 - Licences of the packages inside the Shoelace bundle (Lit, floating-ui,
   tinycolor).
-- Okabe and Ito (2008) as the palette origin, and "below delta E 10 is hard to
+- The accessible palette as the palette origin, and "below delta E 10 is hard to
   tell apart".
 - Autofill behaviour inside shadow roots; Playwright piercing of open shadow
   roots.

@@ -402,6 +402,7 @@ def finish_stage(conn, run_id, index, concluded_seconds=0.0):
         record = {runrecord._s(name): runrecord._s(value)
                   for name, value in conn.hgetall(runrecord.stage_key(run_id, index)).items()}
         _log_long_unit(conn, run_id, index, step, declared, float(record.get("longest_unit") or 0.0))
+        _log_peak_memory(conn, run_id, index, step, declared, float(record.get("peak_mb") or 0.0))
         seconds = max(float(record["ended"]) - float(record["started"]), 0.0) + concluded_seconds
         hook = commands.finish_function(step.kind)
         plan = runrecord.read_plan(conn, run_id, index)
@@ -433,6 +434,26 @@ def _log_long_unit(conn, run_id, index, step, declared, longest):
     runrecord.log(conn, run_id, f"stage {declared['label']}: its longest unit ran {longest:,.0f} s, over the "
                   f"{ceiling:,.0f} s unit ceiling; the stage was cut into {declared.get('units', 1):,} units",
                   level="warning", kind="unit.long", stage=index)
+
+
+def _log_peak_memory(conn, run_id, index, step, declared, peak_mb):
+    """
+    PERF.226: writes the most memory one worker of the stage that just ended held to the run's log, beside the figure the stage's
+    workers are sized by (`workers.STAGE_WORKER_MEMORY_MB`), so the next growth shows before it kills a run; a warning when it is
+    over the figure (then the cap lets too many workers run). A stage that is one worker by nature says so.
+    """
+    if not peak_mb:
+        return
+    figure = workers.stage_worker_mb(step.kind)
+    text = f"stage {declared['label']}: the largest worker held {peak_mb:,.0f} MB"
+    if figure is None:
+        text += " (one worker by nature, so there is nothing to size)"
+    elif peak_mb > figure:
+        text += f", over the {figure:,} MB its workers are sized by (workers.STAGE_WORKER_MEMORY_MB); raise the figure"
+    else:
+        text += f" of the {figure:,} MB its workers are sized by"
+    runrecord.log(conn, run_id, text, level="warning" if figure is not None and peak_mb > figure else "info", kind="stage.memory",
+                  stage=index, peak_mb=round(peak_mb))
 
 
 def _mysql_config(named):

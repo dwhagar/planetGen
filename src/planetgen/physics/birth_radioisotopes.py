@@ -22,7 +22,7 @@ taken from the Solar System's own value and range). Here the ratio is built from
 3. **Granularity.** The sources are discrete: Lugaro et al. 2018 (section 3.4, Eq. 12, READ) show that when the recurrence time delta
    between additions is longer than the mean life tau the abundance at a random moment is dominated by the last addition and its decay,
    not by the steady-state mean. `sample_ratio` draws the events backward from the star's birth (Poisson in time with recurrence
-   `delta`, Meyer and Clayton's 5 to 10 Myr for core-collapse events, as Lugaro et al. cite them), gives each a yield that keeps the
+   `delta`, 5 to 10 Myr for core-collapse events, from Lugaro et al.), gives each a yield that keeps the
    mean (`mean * delta / tau`) times a log-normal factor for the richness of the cluster that made it, and sums the decays. 26Al has
    tau 1.035 Myr, so it is spiky (the relative scatter is about 1.6 to 2.2 before the cluster factor); 60Fe has 3.78 Myr and
    averages over more events.
@@ -58,8 +58,7 @@ GALAXY_STAR_FORMATION_SOLAR_MASSES_PER_YR = 1.65
 """float: The Galaxy's star formation rate, solar masses a year (Licquia and Newman 2015: 1.65 +- 0.19). [Stand-in BR3, tier T1, tweak L0.]"""
 
 RECURRENCE_RANGE_YR = (5.0e6, 1.0e7)
-"""tuple: The recurrence time between core-collapse additions to a region's gas, years (Meyer and Clayton 2000 as Lugaro et al. 2018 cite
-them, section 3.4: 5 to 10 Myr; 2ND-HAND). A star draws one value log-uniformly. [Stand-in BR4, tier T2, tweak L0.]"""
+"""tuple: The recurrence time between core-collapse additions to a region's gas, years (Lugaro et al. 2018, section 3.4: 5 to 10 Myr; 2ND-HAND). A star draws one value log-uniformly. [Stand-in BR4, tier T2, tweak L0.]"""
 
 EVENT_YIELD_SIGMA_LN = 1.0
 """float: The log-normal spread of the yield of one addition about the mean yield, the richness of the cluster that made it (tuned so the

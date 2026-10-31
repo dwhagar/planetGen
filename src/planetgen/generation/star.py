@@ -124,7 +124,7 @@ class Star(StellarObject):
         This function employs a tiered approach to model the stellar wind's
         mass-loss rate and velocity, which are highly dependent on the star's
         evolutionary stage (Yerkes luminosity class) and spectral type. Three
-        physical models are applied: the Nieuwenhuijzen & de Jager (1990)
+        physical models are applied: an
         empirical mass-loss fit for every evolved star (giants through
         hypergiants), a radiation-driven-wind power law for hot O/B dwarfs,
         and an empirical coronal-wind scaling for cool main-sequence dwarfs
@@ -167,8 +167,8 @@ class Star(StellarObject):
         # plus Reimers' Law with two different eta values for "giants" vs
         # "supergiants") stitched together at Yerkes-class boundaries -- the
         # exact structure that let the old hypergiant constant drift ~9
-        # orders of magnitude out of calibration unnoticed. Nieuwenhuijzen &
-        # de Jager (1990) is a single empirical mass-loss fit spanning this
+        # orders of magnitude out of calibration unnoticed. An
+        # empirical mass-loss fit spanning this
         # whole regime, so one formula and one continuous curve now covers
         # all of it (see constants.py for the correction applied
         # above its known high-luminosity overestimation threshold).

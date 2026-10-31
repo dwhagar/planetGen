@@ -4,7 +4,7 @@
 The tilt of an ice giant from a giant impact, and the planes that follow it (GEN.1053, G1 of docs/design/systems/weird-worlds.md, registry 6.78)
 ===================================================================================================================================================
 
-Uranus lies on its side (98 degrees) with its rings and its five large moons in the equator. The explanation of Safronov 1966, Slattery et al. 1992,
+Uranus lies on its side (98 degrees) with its rings and its five large moons in the equator. The explanation of Slattery et al. 1992,
 Morbidelli et al. 2012 and Kegerreis et al. 2018 is a giant impact: the impactor adds its orbital angular momentum to the spin of the planet, and the
 planet's axis turns to the sum. This module is that sum and the tail of the draw it makes.
 

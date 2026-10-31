@@ -4,7 +4,7 @@ Part 01 of the v9.0 atmosphere and composition notes (research worker output; th
 
 ## 0. Provenance and which domains worked
 
-Worked: export.arxiv.org PDFs (2009.02277 Lisse et al. 2021, 2309.05078 Grundy et al. 2024, astro-ph/0511136 Visscher et al. 2006, 2410.11138 Lodders and Fegley 2024, 1312.3750 Gao et al. 2014; 1104.2131, 2103.15978 and 2209.03513 were fetched but supply no number here); pypi.org and files.pythonhosted.org wheels (chemicals 1.5.2, thermo 0.6.1, periodictable 2.1.0, cantera data files nasa_gas.yaml and nasa_condensed.yaml); webbook.nist.gov (species pages and the fluid server: saturation tables, 1e-4 MPa isotherms, Z points); exomol.com partition-function files (*.pf); ntrs.nasa.gov (Blakley et al. 2024 (PSS 244, 105863, arXiv:2403.09917; NASA NTRS record dated 2025), equilibrium vapour pressures of NH3 and O2 ices). Refused or not reached: ScienceDirect (Fray and Schmitt 2009), NIST SRD 156, journals. Downloaded files were read as data only; Python reading them ran under -I.
+Worked: export.arxiv.org PDFs (arXiv 2009.02277 Lisse et al. 2021, 2309.05078 Grundy et al. 2024, astro-ph/0511136 Visscher et al. 2006, 2410.11138 Lodders and Fegley 2024, 1312.3750 Gao et al. 2014; 1104.2131, 2103.15978 and 2209.03513 were fetched but supply no number here); pypi.org and files.pythonhosted.org wheels (chemicals 1.5.2, thermo 0.6.1, periodictable 2.1.0, cantera data files nasa_gas.yaml and nasa_condensed.yaml); webbook.nist.gov (species pages and the fluid server: saturation tables, 1e-4 MPa isotherms, Z points); exomol.com partition-function files (*.pf); ntrs.nasa.gov (Blakley et al. 2024 (PSS 244, 105863, arXiv:2403.09917; NASA NTRS record dated 2025), equilibrium vapour pressures of NH3 and O2 ices). Refused or not reached: ScienceDirect (Fray and Schmitt 2009), NIST SRD 156, journals. Downloaded files were read as data only; Python reading them ran under -I.
 
 Cp tags: J JANAF 1998 (chemicals), N NASA-7 (cantera), S Shomate, f NIST fluid at 1e-4 MPa, x NASA-7 extrapolated below its 200 K range (unreliable), C computed 5R/2, P Poling polynomial. Phase-point tags: h heos_constants (EOS values), e NIST EOS table, n NIST WebBook median, y Yaws, c CRC; "sub" marks a sublimation point at 101325 Pa. Row counts by label are in section 15.
 
@@ -325,12 +325,12 @@ All candidates in chemicals (NIST Antoine, Poling Antoine, Landolt-Bornstein Ant
 | H2O | A | 5.0835, 1663.1, -45.622 | 344.0-373.0 | -0.09 (+0.02 K) | - | NIST Bridgeman and Aldrich, | DATA |
 | H2O2 | L | 23.242, 4344.4, -52.550 | 330.0-446.0 | +0.00 (-0.00 K) | - | Landolt | DATA |
 | CO | P | 45.698, -1076.6, -4.8814, 7.5673e-5, 2.0000 | 68.15-132.9 | -0.06 (+0.01 K) | -0.52 | Perry | DATA |
-| CO2 | A | 6.8123, 1301.7, -3.4940 | 154.3-195.9 | -0.51 (+0.06 K) | - | NIST Giauque and Egan, 1937 | DATA |
+| CO2 | A | 6.8123, 1301.7, -3.4940 | 154.3-195.9 | -0.51 (+0.06 K) | - | NIST | DATA |
 | CH4 | P | 39.205, -1324.4, -3.4366, 3.1019e-5, 2.0000 | 90.69-190.6 | +0.01 (-0.00 K) | -0.02 | Perry | DATA |
 | C2H2 | LS | 25.522, 2645.6, -0.31000 | 148.0-190.0 | -0.26 (+0.03 K) | -2.13 | Landolt sub | DATA |
 | C2H4 | A | 3.8726, 584.15, -18.307 | 149.4-188.6 | +0.05 (-0.01 K) | - | NIST Michels and Wassenaar, | DATA |
 | C2H6 | a | 8.9541, 663.72, -16.469 | 133.8-198.2 | -0.01 (+0.00 K) | - | Poling | DATA |
-| C3H8 | A | 4.0116, 834.26, -22.763 | 166.0-231.4 | +0.06 (-0.01 K) | - | NIST Kemp and Egan, 1938 | DATA |
+| C3H8 | A | 4.0116, 834.26, -22.763 | 166.0-231.4 | +0.06 (-0.01 K) | - | NIST | DATA |
 | C4H10 | L | 20.568, 2154.7, -34.361 | 196.0-298.0 | +0.01 (-0.00 K) | - | Landolt | DATA |
 | C6H6 | L | 20.689, 2726.8, -55.623 | 280.0-374.0 | +0.04 (-0.01 K) | -0.89 | Landolt | DATA |
 | HCN | L | 21.886, 2886.9, -20.307 | 261.0-300.0 | +0.17 (-0.05 K) | - | Landolt | DATA |
@@ -422,7 +422,7 @@ P = exp(-dG/RT) x 1 bar for the condensed phase and gas from NASA-7 polynomials 
 
 ### 7.1 Recipe
 
-Psat(T) is composite: Wagner liquid (T5) for Tt <= T <= Tc; below Tt the solid curve (T9). The pieces join within the "Err at Tt" column of T9 (O2, CO, Ar, H2O, H2 within 0.15%; CO2 +0.5%; CH4 +1.6%; H2S +1.7%; NH3 +1.8%; N2 -2.8%; SO2 +3.8%, accepted as the published spread). Condensation temperature at pressure p is the root of Psat(T) = p (bisection; Psat is monotonic); for a gas of mole fraction x use p = x P. H2 solid: Clausius-Clapeyron from the triple point (13.957 K, 7358 Pa) with dHsub = dHvap(Tt) + dHfus (CRC via chemicals), COMPUTED and unchecked against Woolley 1948 (NOT REACHED).
+Psat(T) is composite: Wagner liquid (T5) for Tt <= T <= Tc; below Tt the solid curve (T9). The pieces join within the "Err at Tt" column of T9 (O2, CO, Ar, H2O, H2 within 0.15%; CO2 +0.5%; CH4 +1.6%; H2S +1.7%; NH3 +1.8%; N2 -2.8%; SO2 +3.8%, accepted as the published spread). Condensation temperature at pressure p is the root of Psat(T) = p (bisection; Psat is monotonic); for a gas of mole fraction x use p = x P. H2 solid: Clausius-Clapeyron from the triple point (13.957 K, 7358 Pa) with dHsub = dHvap(Tt) + dHfus (CRC via chemicals), COMPUTED and not checked against a measurement.
 
 ### 7.2 T9: Fray and Schmitt 2009 sublimation polynomials
 
@@ -479,9 +479,9 @@ ln(p/bar) = A - B/T + C ln T + D2 T + D3 T^2 + D4 T^3 from Grundy et al. 2024 (a
 
 NH3, H2S, C2H6: composite recipe (T5, T9). HCN: Perry DIPPR101 liquid ln P = 36.75 - 3927.1/T - 2.1245 ln T + 3.8948e-17 T^6 (259.83 to 456.65 K; DATA chemicals) above Tt = 259.86 K, F and S HCN-1 below (3.3% step at Tt); Tb from the fit 298.81 K against NIST 298.79 K and Landolt 298.95 K (COMPUTED). H2SO4: T6 NASA fit.
 
-NH4SH condenses from NH3 + H2S; the condition needs both partial pressures. READ in Lodders and Fegley 2024 (2410.11138): Kelley 1937 log10 Kvap = 14.89 - 4732/T, Kvap = p(NH3) p(H2S) over the solid; Lewis 1969 14.82 - 4705/T (condensation temperatures within 0.5 K). Cloud forms when log Kvap(T) <= log(x_NH3 x_H2S) + 2 log P_T (bar). Closed forms, valid for solar N/S only (about 5): Visscher et al. 2006 (astro-ph/0511136 eq. 32) 10^4/Tcond = 48.91 - 4.15 (log P_T + 0.5 [N/H] + 0.5 [S/H]); Lodders and Fegley 2024 10^4/Tcond = 49.18 - 4.225 (same bracket). COMPUTED with Kelley and the combined log(x_NH3 x_H2S) = -8.378 of that paper: Tcond = 151.3, 161.7, 173.5, 187.3, 203.4, 222.5, 245.6 K at log P_T = -4 to 2 (printed table 151, 162, 174, 187, 203, 222, 246). The 2006 fit is up to 1.3 K higher. At [M/H] = +0.5 and 1 bar the 2006 fit gives 213.5 K; each +1 in [M/H] adds about 17 K at 1 bar. Pure-solid dissociation pressure 2 sqrt(Kvap): 0.121 bar at 273.15 K, 0.646 bar at 298.15 K (COMPUTED; Kelley's pressure unit not stated, effect below 1%).
+NH4SH condenses from NH3 + H2S; the condition needs both partial pressures. READ in Lodders and Fegley 2024 (2410.11138): log10 Kvap = 14.89 - 4732/T, Kvap = p(NH3) p(H2S) over the solid; 14.82 - 4705/T (condensation temperatures within 0.5 K). Cloud forms when log Kvap(T) <= log(x_NH3 x_H2S) + 2 log P_T (bar). Closed forms, valid for solar N/S only (about 5): Visscher et al. 2006 (astro-ph/0511136 eq. 32) 10^4/Tcond = 48.91 - 4.15 (log P_T + 0.5 [N/H] + 0.5 [S/H]); Lodders and Fegley 2024 10^4/Tcond = 49.18 - 4.225 (same bracket). COMPUTED with Kelley and the combined log(x_NH3 x_H2S) = -8.378 of that paper: Tcond = 151.3, 161.7, 173.5, 187.3, 203.4, 222.5, 245.6 K at log P_T = -4 to 2 (printed table 151, 162, 174, 187, 203, 222, 246). The 2006 fit is up to 1.3 K higher. At [M/H] = +0.5 and 1 bar the 2006 fit gives 213.5 K; each +1 in [M/H] adds about 17 K at 1 bar. Pure-solid dissociation pressure 2 sqrt(Kvap): 0.121 bar at 273.15 K, 0.646 bar at 298.15 K (COMPUTED; Kelley's pressure unit not stated, effect below 1%).
 
-H2SO4 (2ND-HAND, Gao et al. 2014, arXiv:1312.3750 eqs. 4a to 4c, read from the page image): ln p(atm) = ln p0 + 10156 [-1/T + 1/T0 + 0.38/(Tc - T0) (1 + ln(T0/T) - T0/T)] - H/(R T), T0 = 340 K, Tc = 905 K, ln p0 = -10156/T0 + 16.259 (Ayers 1980 as modified by Kulmala and Laaksonen 1990); H = 4.184e7 [23624.8 - 1.14208e8/(4798.69 + (W - 105.315)^2)] erg/mol (Giauque 1959), W the acid weight percent from Tabazadeh 1997 (not reached). With H = 0 (pure acid) at 300, 340, 400, 500, 600 K this gives 0.0022, 0.124, 10.1, 1124, 20716 Pa (COMPUTED); Ayers alone gives 0.0023, 0.124, 11, 1760, 52000 Pa; the NASA H2SO4(L) route gives 0.048, 1.87, 99.6, 6750, 84800 Pa (20 times higher at 300 K). Solution factor exp(-H/RT) at 340 K for W = 98, 90, 80, 70, 60 %: 0.88, 0.25, 0.020, 9.1e-4, 3.4e-5 (COMPUTED from the READ formula). A droplet of 75 to 85 percent acid holds the acid at about 2e-3 to 8e-2 of the pure-acid pressure at 300 to 340 K; W(T, pH2O) is a Boss item.
+H2SO4 (2ND-HAND, Gao et al. 2014, arXiv:1312.3750 eqs. 4a to 4c, read from the page image): ln p(atm) = ln p0 + 10156 [-1/T + 1/T0 + 0.38/(Tc - T0) (1 + ln(T0/T) - T0/T)] - H/(R T), T0 = 340 K, Tc = 905 K, ln p0 = -10156/T0 + 16.259 (Ayers 1980 as modified by Kulmala and Laaksonen 1990); H = 4.184e7 [23624.8 - 1.14208e8/(4798.69 + (W - 105.315)^2)] erg/mol, W the acid weight percent from Tabazadeh 1997 (not reached). With H = 0 (pure acid) at 300, 340, 400, 500, 600 K this gives 0.0022, 0.124, 10.1, 1124, 20716 Pa (COMPUTED); Ayers alone gives 0.0023, 0.124, 11, 1760, 52000 Pa; the NASA H2SO4(L) route gives 0.048, 1.87, 99.6, 6750, 84800 Pa (20 times higher at 300 K). Solution factor exp(-H/RT) at 340 K for W = 98, 90, 80, 70, 60 %: 0.88, 0.25, 0.020, 9.1e-4, 3.4e-5 (COMPUTED from the READ formula). A droplet of 75 to 85 percent acid holds the acid at about 2e-3 to 8e-2 of the pure-acid pressure at 300 to 340 K; W(T, pH2O) is a Boss item.
 
 | Entry | T 100 kPa | 10 kPa | 1 kPa | 100 Pa | 10 Pa | 1 Pa | 1 mPa | Max dev two-point K | Recipe | Status |
 |---|---|---|---|---|---|---|---|---|---|---|
@@ -655,14 +655,14 @@ All rows are TEST POINTS (known outcome). Planet inputs are calibration, not pre
 ## 13. Boss must research
 
 1. Fray and Schmitt 2009 (Planet. Space Sci. 57, 2053): validity per polynomial, enthalpies, data. ScienceDirect refused; T9 rests on it.
-2. Solid H2 vapour pressure (Woolley, Scott and Brickwedde 1948; Souers 1986); HD, HDO, D2O, 3He, 4He vapour pressures.
+2. Solid H2 vapour pressure (Woolley); HD, HDO, D2O, 3He, 4He vapour pressures.
 3. Jager and Span 2012 and Span and Wagner 1996 (CO2 sublimation and EOS; 0.5% spread at Tt).
-4. H2SO4-H2O: Tabazadeh 1997 W(T, pH2O), Giauque 1959, Zeleznik 1991, Carslaw 1995, Marti 1997, and the Ayers 1980 original. Venus cloud acid pressure depends on W by orders of magnitude.
-5. Lewis 1969 NH4SH constant, units and range; Lodders 2003 abundances.
+4. H2SO4-H2O: Tabazadeh 1997 W(T, pH2O), Zeleznik 1991, Marti 1997, and the Ayers 1980 original. Venus cloud acid pressure depends on W by orders of magnitude.
+5. NH4SH constant, units and range; Lodders 2003 abundances.
 6. Clathrate hydrate dissociation curves (NIST SRD 156 subscription only; Sloan and Koh; Choukroun et al. 2010).
 7. Perchlorates and carbonates: HClO4 has no NIST data or Cp; the salts need decomposition and vapour data.
 8. Ortho-para equilibrium H2 Cp, 20 to 300 K (JANAF H2); Lobo-Ferreira data ranges (openknowledge.nau.edu/id/eprint/6246).
-9. Gibbs formation data for FeH, CrH, CaOH, VO, AlH (Stock et al. 2018 FastChem fits).
+9. Gibbs formation data for FeH, CrH, CaOH, VO, AlH (FastChem fits).
 10. Ideal-gas Cp for HC3N, HClO4, NH4Cl.
 11. Rn triple point and a better vapour curve (Poling Antoine is +9.5% at Tb).
 12. Vapour pressure for SiO, SiH4, SO, HNCO, C3O2, CN, S2 (total sulfur vapour), SO3 above 332 K; real critical constants for metals.

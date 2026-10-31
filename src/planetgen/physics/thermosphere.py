@@ -57,7 +57,7 @@ CO2_COOLING_EXPONENT = 0.70
 
 XUV_EXPONENT = 0.96
 """float: The rise goes as the XUV flux to this power: the Earth of Johnstone et al. 2018 at 4.9 times the present XUV (their text: their
-model 3 Gyr ago corresponds to the 4.9 times of Tian et al. 2008) has a neutral exobase temperature of 4600 K against 1155 K now, which is
+model 3 Gyr ago corresponds to the 4.9 times) has a neutral exobase temperature of 4600 K against 1155 K now, which is
 `((4600 - 200) / (1155 - 200))^(1 / ln 4.9) = 0.96`. Tier 3, tweak level 3."""
 
 XUV_FLUX_MAX_EARTH = 4.9
@@ -89,7 +89,7 @@ this bound never acts on a real air; it stops a search that cannot end, and the 
 KINETIC_DIAMETER_PM = {
     "H2": 289.0, "He": 260.0, "Ne": 275.0, "H2O": 265.0, "CH4": 380.0, "CO": 376.0, "N2": 364.0, "O2": 346.0, "Ar": 340.0, "CO2": 330.0,
 }
-"""dict: Kinetic diameter of a molecule, picometres (Breck 1974, recalled, tier 3): the hard-sphere size of the diffusion coefficient."""
+"""dict: Kinetic diameter of a molecule, picometres: the hard-sphere size of the diffusion coefficient."""
 
 DEFAULT_KINETIC_DIAMETER_PM = 360.0
 """float: The diameter of a gas that is not in `KINETIC_DIAMETER_PM` (about the mean of the heavier molecules; tier 6, level 0)."""
@@ -97,7 +97,7 @@ DEFAULT_KINETIC_DIAMETER_PM = 360.0
 # --- the energy-limited and hydrodynamic rates -----------------------------------------------------------------------------
 
 ENERGY_LIMITED_EFFICIENCY = 0.15
-"""float: The share of the absorbed XUV that drives the escape (the grid of Kubyshkina et al. 2018 takes 0.15; Shematovich et al. 2014: 0.10 to
+"""float: The share of the absorbed XUV that drives the escape (the grid of Kubyshkina et al. 2018 takes 0.15: 0.10 to
 0.20). The water-loss history of GEN.639 keeps its own, lower DESIGN value (`tuning.ENERGY_LIMITED_EFFICIENCY`). Tier 2, tweak level 0."""
 
 HYDRO_BASED_LOW = {"beta": 32.0199, "alpha1": 0.4222, "alpha2": -1.7489, "alpha3": 3.7679, "zeta": -6.8618, "theta": 0.0095}
@@ -158,7 +158,7 @@ def mean_mass_kg(fractions):
 def exobase(radius_m, gravity_ms2, mean_mass, temperature_k, mesopause_k):
     """
     The exobase of the thermosphere: where `n sigma H = 1`, for the air rising from `MESOPAUSE_PRESSURE_PA` at the mesopause temperature
-    to the exobase temperature on the profile of Bates (1959), `T(z) = T_exo - (T_exo - T_meso) exp(-z / L)` with `L` `BATES_LENGTH_SCALE_HEIGHTS`
+    to the exobase temperature on the profile, `T(z) = T_exo - (T_exo - T_meso) exp(-z / L)` with `L` `BATES_LENGTH_SCALE_HEIGHTS`
     scale heights of the mesopause, in hydrostatic balance under the gravity that falls off as the inverse square of the radius.
 
     Returns:

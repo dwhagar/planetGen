@@ -18,7 +18,7 @@ import pytest
 
 from markupsafe import escape
 
-from planetgen.physics import life_classes, regional_temperature
+from planetgen.physics import latitude_bands, life_classes
 from planetgen.physics.protection_limits import limit
 from planetgen.web import helpers
 from planetgen.web.lib import classref, habitability_ref, help_registry, life_help, property_help
@@ -48,7 +48,7 @@ def test_every_topic_has_a_registered_category_and_a_summary():
 
 def test_each_part_of_the_program_registers_its_own_page():
     """The pages come from the modules that own them, not from a list kept here."""
-    assert {t.endpoint for t in help_registry.topics()} >= {"classes", "habitability_levels", "property_help_page", "life_help_page"}
+    assert {t.endpoint for t in help_registry.topics()} >= {"classes", "habitability_levels", "property_help_page", "life_help_page", "references_page"}
     owner = {"classes": classref, "habitability_levels": habitability_ref, "property_help_page": property_help, "life_help_page": life_help}
     for endpoint, module in owner.items():
         source = open(module.__file__, encoding="utf-8").read()
@@ -65,7 +65,8 @@ def test_a_page_registered_by_a_new_part_reaches_the_menu_the_index_and_the_term
                                  children=lambda: [help_registry.Child("classes", {}, "Child page", "")])
     help_registry.register_terms("tides", lambda: [help_registry.Term("tidal lock", "classes", {})])
     assert help_registry.menu()[0] == ("property_help_page", "Tide test")
-    assert [c["slug"] for c in help_registry.categories()][-1] == "tides"
+    slugs = [c["slug"] for c in help_registry.categories()]
+    assert "tides" in slugs and slugs.index("tides") < slugs.index("references")
     assert help_registry.Term("tidal lock", "classes", {}) in help_registry.terms()
     html = _html(client, "/help")
     assert "Tides and spin" in html and "Tide summary." in html and "Child page" in html
@@ -143,9 +144,10 @@ def test_the_map_row_counts_the_life_classes_of_the_rule_file():
     assert life_classes.CLASSES[0].id in row
 
 
-def test_the_temperature_text_states_the_bands_of_regional_temperature():
+def test_the_temperature_text_states_the_bands_of_latitude_bands():
     text = habitability_ref.temperature_text()
-    for name, low, high in regional_temperature.BANDS:
-        share = (math.sin(math.radians(high)) - math.sin(math.radians(low))) / 2.0 * (2.0 if name == "polar" else 1.0)
-        assert f"{share * 100:.0f} percent" in text, name
-    assert {4: "four"}[len(regional_temperature.BANDS)] in text
+    shares = [latitude_bands._area_share(high, low) for high, low in latitude_bands._bounds()]
+    assert {7: "seven"}[latitude_bands.BAND_COUNT] in text
+    assert f"{latitude_bands.BAND_WIDTH_DEG:.1f} degrees wide" in text
+    assert f"{shares[latitude_bands.BAND_COUNT // 2] * 100:.0f} percent of the surface" in text
+    assert f"{shares[0] * 100:.0f} percent" in text

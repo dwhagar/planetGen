@@ -25,15 +25,18 @@
    "p3": "the Sun's O3 lifetime is the comparison for the stellar-flux fit"
   },
   "comet-carbon-chain": {
-   "carbon-chain-depleted-halley_type": "the fractions are class statistics of observed comets (Cochran 2012, 2015), not one body; Halley and Jupiter are class names here",
-   "carbon-chain-depleted-jupiter_family": "the fractions are class statistics of observed comets (Cochran 2012, 2015), not one body; Halley and Jupiter are class names here",
-   "carbon-chain-depleted-long_period": "the fractions are class statistics of observed comets (Cochran 2012, 2015), not one body; Halley and Jupiter are class names here",
-   "carbon-chain-normal-halley_type": "the fractions are class statistics of observed comets (Cochran 2012, 2015), not one body; Halley and Jupiter are class names here",
-   "carbon-chain-normal-jupiter_family": "the fractions are class statistics of observed comets (Cochran 2012, 2015), not one body; Halley and Jupiter are class names here",
-   "carbon-chain-normal-long_period": "the fractions are class statistics of observed comets (Cochran 2012, 2015), not one body; Halley and Jupiter are class names here"
+   "carbon-chain-depleted-halley_type": "the fractions are class statistics of observed comets, not one body; Halley and Jupiter are class names here",
+   "carbon-chain-depleted-jupiter_family": "the fractions are class statistics of observed comets, not one body; Halley and Jupiter are class names here",
+   "carbon-chain-depleted-long_period": "the fractions are class statistics of observed comets, not one body; Halley and Jupiter are class names here",
+   "carbon-chain-normal-halley_type": "the fractions are class statistics of observed comets, not one body; Halley and Jupiter are class names here",
+   "carbon-chain-normal-jupiter_family": "the fractions are class statistics of observed comets, not one body; Halley and Jupiter are class names here",
+   "carbon-chain-normal-long_period": "the fractions are class statistics of observed comets, not one body; Halley and Jupiter are class names here"
   },
   "satellite-share": {
    "inner rubble pile with a satellite": "near-Earth is the name of the asteroid population the binary fraction is measured in (Pravec 2006), a survey class, and the gate's cut is the survey's own"
+  },
+  "atmosphere-b": {
+   "b1": "the dry carbon bracket is derived from the carbon of non-carbonaceous building blocks, the share already differentiated and the core's share (dry_carbon, GEN.1005); the bulk silicate Earth in the row's text is a test value the bracket is compared with, no longer its anchor (GEN.813)"
   }
  },
  "stand_ins": {
@@ -62,15 +65,8 @@
    "taxon-S": "the Solar System's belt zone kernel (DeMeo and Carry 2013 Table 6); GEN.473 derives it from the star's own disk",
    "taxon-V": "the Solar System's belt zone kernel (DeMeo and Carry 2013 Table 6); GEN.473 derives it from the star's own disk"
   },
-  "atmosphere-a": {
-   "a1": "the mean is held inside the published Moon, Mars and Earth ranges and the width tuned to them (GEN.482)",
-   "a2": "a straight-line law fitted to three Solar System anchors, Earth IW+3.5, Mars IW to IW+1 and Moon IW to IW-2 (GEN.482)"
-  },
-  "atmosphere-b": {
-   "b1": "the dry carbon bracket is tuned to the bulk silicate Earth's 100 ppm carbon (GEN.813)"
-  },
   "atmosphere-k": {
-   "k7": "N2, O2, OCS, SO2, Ar, Kr and Xe come from one measured comet (67P, Rubin 2019) with a design width; the row is partly verified, not flagged stand-in (GEN.520 keeps them as stand-in values)"
+   "k7": "N2, Ar, OCS and SO2 follow the host's ratios to carbon with a trapping share tuned to one measured comet (67P, Rubin 2019), and O2, Kr and Xe keep that comet's values; flagged stand-in, replaced by GEN.1021 (GEN.1005)"
   },
   "surface-ground-types": {
    "anorthositic": "the assemblage is one of Hu, Ehlmann and Seager 2012 Table 2, a library of the Earth's and the Moon's crusts; GEN.474 (rock_types) replaces the fixed assemblages once wired",

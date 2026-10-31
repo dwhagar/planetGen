@@ -4,7 +4,7 @@
 The time to each stage of life on a world: five hard steps (GEN.750, docs/design/habitability/life-timeline-and-oxygen.md)
 ==========================================================================================================================
 
-Nothing predicts when life takes each step, so the generator does what the statistics of rare events allow (Carter 1983; Watson 2008): each
+Nothing predicts when life takes each step, so the generator does what the statistics of rare events allow (Watson 2008): each
 stage, in the order of `tuning.LIFE_MILESTONES`, is a step with an exponential waiting time whose mean (`tuning.LIFE_STEP_MEANS_GYR` times the
 overall `tuning.LIFE_STEP_SCALE`) is set by hand and is often longer than the world is old. The waiting for a step starts when the one before
 it is done, and for the first step at `tuning.LIFE_START_AGE_GYR`, after the surface has settled. So a world has its own schedule, one age for

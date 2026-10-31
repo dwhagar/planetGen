@@ -197,12 +197,12 @@ All fetched with `curl` from `export.arxiv.org/pdf/<id>`, text via `pdftotext`; 
 | NASA Exoplanet Archive Kepler "Simulated Data" page | URL `exoplanetarchive.ipac.caltech.edu/docs/KeplerSimulated.html` returned 200 | page read; no licence text on it | DATA |
 | VizieR J/AJ/163/179 (CKS DR2) | front page returned 200; README download returned 500 | table sizes not read | DATA (front page) |
 | CKS-Cool README | 404 on raw GitHub | NOT REACHED | NOT REACHED |
-| Gao 2023 (GJ 1214 b), Wakeford 2017, Parviainen 2024 (SPRIGHT), Thorngren 2016 | not fetched | | NOT REACHED |
+| Wakeford 2017, Parviainen 2024 (SPRIGHT), Thorngren 2016 | not fetched | | NOT REACHED |
 
 ## 4. Boss must supply
 
 1. A decision on the mechanism for e1/e2 (XUV energy-limited, as in the repo, versus core-powered) and a radius law for retained envelopes (Lopez and Fortney 2014 is the usual choice; I did not fetch it). Without a radius law no valley statistic can be computed.
-2. For b4/e3/e4: the formation model (snow line plus migration rule) that sets the water-rich share; the public record gives only the model-dependent spread above. The Genesis library (Mulders 2020) or the Burn/Venturini pipelines are the nearest public candidates; their licences and data tables were not checked.
+2. For b4/e3/e4: the formation model (snow line plus migration rule) that sets the water-rich share; the public record gives only the model-dependent spread above. The Genesis library or the Burn/Venturini pipelines are the nearest public candidates; their licences and data tables were not checked.
 3. The CKS DR2 and CKS-Gaia planet tables (VizieR J/AJ/163/179; Fulton and Petigura Table 4) and the DR25 injection efficiency tables, downloaded and checked in: the proxy here did not return the table files.
 4. The XUV history (E_cum versus stellar mass and age) used by the repo, with its source; this lane did not read the activity document behind E_cum = 3.1e16 J/m2.
 5. TEPCat or PlanetS tables of precise masses and radii for the mass-radius test (Parc catalogue; TEPCat), with a licence check.
@@ -213,7 +213,7 @@ All fetched with `curl` from `export.arxiv.org/pdf/<id>`, text via `pdftotext`; 
 - Z_sun = 0.0139 is READ in part 05 (Asplund 2021), taken second-hand here.
 - E_cum = 3.1e16 J/m2 and the core radius law R = M^0.27 are from the repo doc (project XUV model [C]); not verified by me.
 - Lopez and Fortney 2014 radius law; Lopez and Fortney 2013 eps range (2ND-HAND via part 04).
-- Wakeford 2017 (HAT-P-26 b) and Gao 2023 (GJ 1214 b) details: RECALLED, not fetched.
+- Wakeford 2017 (HAT-P-26 b) details: RECALLED, not fetched.
 - Otegi 2020 sample size N: not extracted.
 - Chakrabarty 2026 TEPCat N and its peer-review status; Gillis 2026 review status.
 - Cloutier and Menou sample counts (275 + 53): 2ND-HAND from Petigura 2022; verify in the paper's body.

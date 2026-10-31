@@ -8,7 +8,7 @@
   "sources": {
    "RECONS": "RECONS census of objects nearer than 10 parsecs, Henry et al., data of 2018-04-12 (read 2026-10-28): 378 stars of which 21 white dwarfs (A 4, F 7, G 19, K 44, M 283), 50 brown dwarfs, 317 systems (232 single, 66 double, 14 triple, 3 quadruple, 2 quintuple), multiplicity rate 27%",
    "Mamajek": "Mamajek, Number Densities of Stars of Different Types in the Solar Vicinity (read 2026-10-28): fraction of stars O 5e-7, B 3.9e-4, A 6.0e-3, F 0.031, G 0.041, K 0.129, M 0.725 (0.687 from the RECONS 10 pc density), white dwarfs 0.059",
-   "multiplicity": "Duchene and Kraus 2013 (ARA&A 51:269): M dwarfs 26 +/- 3%; Raghavan et al. 2010 (ApJS 190:1): solar-type 46% with 56% single, 33% double, 8% triple, 3% higher (44 +/- 2% in Duchene and Kraus); De Rosa et al. 2014: A stars; Moe and Di Stefano 2017 (ApJS 230:15) Table 13: A and late B 0.59 +/- 0.11. Recalled, not reopened (tier T2/T3); the same figures tuning.py quotes"
+   "multiplicity": "Duchene and Kraus 2013 (ARA&A 51:269): M dwarfs 26 +/- 3%; Raghavan et al. 2010 (ApJS 190:1): solar-type 46% with 56% single, 33% double, 8% triple, 3% higher (44 +/- 2% in Duchene and Kraus); Moe and Di Stefano 2017 (ApJS 230:15) Table 13: A and late B 0.59 +/- 0.11. Recalled, not reopened (tier T2/T3); the same figures tuning.py quotes"
   }
  },
  "anomalies": {
@@ -59,7 +59,7 @@
   },
   "A0V": {
    "companion": {"norm_min": 0.44, "norm_max": 0.70, "kind": "norm",
-                 "source": "De Rosa et al. 2014 about 0.44 from companions found; Duchene and Kraus 2013 at least 0.5; Moe and Di Stefano 2017 A and late B 0.59 +/- 0.11", "anomaly": "TEST.473"}
+                 "source": "About 0.44 from companions found; Duchene and Kraus 2013 at least 0.5; Moe and Di Stefano 2017 A and late B 0.59 +/- 0.11", "anomaly": "TEST.473"}
   }
  }
 }

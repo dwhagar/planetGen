@@ -358,7 +358,7 @@ URLs actually used (via search results or raw GitHub fetches):
 - HYG database: https://astronexus.com/hyg ; `hyg/CURRENT/hygdata_v41.csv` from https://raw.githubusercontent.com/astronexus/HYG-Database/master/
 - Yale Bright Star Catalogue count: https://skyandtelescope.org/astronomy-resources/how-many-stars-night-sky-09172014/ ; https://earthsky.org/astronomy-essentials/how-many-stars-could-you-see-on-a-clear-moonless-night/
 - Extinction rates: https://en.wikipedia.org/wiki/Extinction_(astronomy) (as reproduced at https://www.encyclopedia.pub/entry/29910)
-- Wyman, Sloan, Shirley 2013: https://research.nvidia.com/labs/rtr/publication/wyman2013simple/ ; https://www.haralick.org/DV/XYZJCGT.pdf
+- Wyman, Sloan: https://research.nvidia.com/labs/rtr/publication/wyman2013simple/ ; https://www.haralick.org/DV/XYZJCGT.pdf
 - Ballesteros formula implementations: https://pyastronomy.readthedocs.io/en/latest/pyaslDoc/aslDoc/aslExt_1Doc/ramirez2005.html ; https://en.wikipedia.org/wiki/Color_index
 - Star colour perception: https://www.atnf.csiro.au/?p=17326 ; https://www.gresham.ac.uk/node/11799 ; https://www.astronomy.com/observing/observe-the-skys-colorful-stars/
 - Bayer and Flamsteed designations: https://www.wikipedia.com/wiki/Bayer_letter ; https://spider.seds.org/spider/Misc/naming.html

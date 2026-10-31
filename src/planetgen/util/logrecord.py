@@ -274,9 +274,11 @@ def stage_start(first, total, label, count=1):
     return f"{stagemark.marker(first, total, count)}: {label}"
 
 
-def stage_finish(first, total, seconds, count=1):
-    """The message of a stage's finish record: `"Stage 4 of 12 finished after 31 s"`."""
-    return f"{stagemark.marker(first, total, count)} finished after {seconds:.0f} s"
+def stage_finish(first, total, seconds, count=1, peak_mb=0.0):
+    """The message of a stage's finish record: `"Stage 4 of 12 finished after 31 s"`, and, when a unit reported its memory (PERF.226),
+    `"Stage 4 of 12 finished after 31 s (largest worker 640 MB)"`."""
+    memory = f" (largest worker {peak_mb:.0f} MB)" if peak_mb else ""
+    return f"{stagemark.marker(first, total, count)} finished after {seconds:.0f} s{memory}"
 
 
 def stage_skipped(first, total, label, reason, count=1):

@@ -5,17 +5,17 @@ Observational Kinematics, Mathematical Physics, and Procedural Generation of Ast
 
 ## Observational Kinematics Across Astronomical Populations
 
-The rotational dynamics of celestial objects encompass a broad spectrum of physical regimes, ranging from non-rotating stellar interiors to extreme near-breakup rotators, tidally synchronized exoplanets, and dynamically spun-up compact remnants. Quantifying actual rotational velocities requires distinguishing between the true equatorial velocity ($v_{\text{eq}}$), the projected stellar rotational velocity ($v \sin i$), the rotational period ($P_{\text{rot}}$), and the dimensionless spin parameter ($a^*$). High-resolution spectroscopic surveys and wide-field photometric missions have compiled extensive empirical catalogs that constrain these quantities across stellar, planetary, and compact-object populations (Glebocki & Gnaciński, 2005; Li et al., 2024; Warner et al., 2009; Abbott et al., 2023).
+The rotational dynamics of celestial objects encompass a broad spectrum of physical regimes, ranging from non-rotating stellar interiors to extreme near-breakup rotators, tidally synchronized exoplanets, and dynamically spun-up compact remnants. Quantifying actual rotational velocities requires distinguishing between the true equatorial velocity ($v_{\text{eq}}$), the projected stellar rotational velocity ($v \sin i$), the rotational period ($P_{\text{rot}}$), and the dimensionless spin parameter ($a^*$). High-resolution spectroscopic surveys and wide-field photometric missions have compiled extensive empirical catalogs that constrain these quantities across stellar, planetary, and compact-object populations (Li et al., 2024; Warner et al., 2009).
 
 ### Stellar Rotational Velocities and Evolutionary Regimes
 
-Spectroscopic catalogues derived from large-scale astronomical surveys—such as the Gaia Data Release 3 (Gaia DR3), the Apache Point Observatory Galactic Evolution Experiment (APOGEE), and the Large Sky Area Multi-Object Fiber Spectroscopic Telescope (LAMOST)—measure stellar rotation via the line-broadening parameter $v \sin i$, where $i$ represents the inclination of the stellar rotational axis relative to the line of sight (Glebocki & Gnaciński, 2005; Gosset et al., 2025; Li et al., 2024). Observed projected rotational velocities span several orders of magnitude, ranging from $v \sin i \approx 0\text{ km/s}$ (observed in stars viewed directly pole-on or in fully despun systems) to values exceeding 300 to 400 km/s in early-type stars (Glebocki & Gnaciński, 2005; Riello et al., 2021).
+Spectroscopic catalogues derived from large-scale astronomical surveys—such as the Gaia Data Release 3 (Gaia DR3), the Apache Point Observatory Galactic Evolution Experiment (APOGEE), and the Large Sky Area Multi-Object Fiber Spectroscopic Telescope (LAMOST)—measure stellar rotation via the line-broadening parameter $v \sin i$, where $i$ represents the inclination of the stellar rotational axis relative to the line of sight (Li et al., 2024). Observed projected rotational velocities span several orders of magnitude, ranging from $v \sin i \approx 0\text{ km/s}$ (observed in stars viewed directly pole-on or in fully despun systems) to values exceeding 300 to 400 km/s in early-type stars.
 
-Massive, hot main-sequence stars (spectral types O, B, and early A) retain a significant fraction of their primordial angular momentum due to the absence of deep outer convective envelopes (Barnes, 2007). Equatorial velocities in these early-type stars typically range from 100 to 350 km/s. Extreme sub-classes, such as Be stars, exhibit projected velocities exceeding 300 km/s, rotating at 30% to over 80% of their critical breakup limit ($v_{\text{crit}}$) (Riello et al., 2021; Roche, 1873). At these near-critical speeds, centrifugal forces cause severe equatorial oblateness and gravity darkening, triggering circumstellar decretion disk formation (Riello et al., 2021; Roche, 1873).
+Massive, hot main-sequence stars (spectral types O, B, and early A) retain a significant fraction of their primordial angular momentum due to the absence of deep outer convective envelopes (Barnes, 2007). Equatorial velocities in these early-type stars typically range from 100 to 350 km/s. Extreme sub-classes, such as Be stars, exhibit projected velocities exceeding 300 km/s, rotating at 30% to over 80% of their critical breakup limit ($v_{\text{crit}}$) (Roche, 1873). At these near-critical speeds, centrifugal forces cause severe equatorial oblateness and gravity darkening, triggering circumstellar decretion disk formation (Roche, 1873).
 
 In contrast, low-mass, cool main-sequence stars (late F, G, K, and M dwarfs) possess deep convective envelopes that power magnetic dynamos (Barnes, 2007; Vidotto et al., 2014). Magnetic fields anchor into escaping stellar winds, establishing an efficient magnetic torque that sheds rotational angular momentum over time (Vidotto et al., 2014). Consequently, adult solar-type stars are slow rotators, exhibiting equatorial speeds of $v_{\text{eq}} \approx 1.0\text{--}5.0\text{ km/s}$ (the Sun rotates at $v_{\text{eq}} \approx 2.0\text{ km/s}$, corresponding to $P_{\text{rot}} \approx 25\text{--}35\text{ days}$) (Vidotto et al., 2014; Kim et al., 2025). The kinematics of these stars within the Galactocentric reference frame are evaluated assuming a local circular velocity $V_{\text{LSR}} \approx 229.0\text{--}232.0\text{ km/s}$ at a galactocentric distance $R_0 \approx 8.2\text{ kpc}$, with a peculiar solar motion $(U_0, V_0, W_0) = (5.0, 17.5, 6.46)\text{ km/s}$ (Li et al., 2024; Kim et al., 2025).
 
-As low-mass stars evolve off the main sequence onto the Red Giant Branch (RGB), conservation of angular momentum during massive core collapse and envelope expansion causes surface rotational speeds to decline to $v \sin i < 2.0\text{ km/s}$ (Glebocki & Gnaciński, 2005; Li et al., 2024). However, high-resolution spectroscopic surveys have identified anomalous populations of rapidly rotating giant stars (Li et al., 2024). Medium-resolution spectra from LAMOST DR9 reveal that among metal-poor giant stars ($[\text{Fe/H}] \in [-4.0, -1.0]$), a critical rotational velocity plateau emerges between 40 and 90 km/s (Li et al., 2024). Stars in this plateau frequently exhibit strong lithium enrichment (abundances ranging from 1.02 to 1.82 dex), indicating that a critical threshold near 40 km/s triggers internal mass transport and activates chromospheric activity as interior material migrates outward (Li et al., 2024).
+As low-mass stars evolve off the main sequence onto the Red Giant Branch (RGB), conservation of angular momentum during massive core collapse and envelope expansion causes surface rotational speeds to decline to $v \sin i < 2.0\text{ km/s}$ (Li et al., 2024). However, high-resolution spectroscopic surveys have identified anomalous populations of rapidly rotating giant stars (Li et al., 2024). Medium-resolution spectra from LAMOST DR9 reveal that among metal-poor giant stars ($[\text{Fe/H}] \in [-4.0, -1.0]$), a critical rotational velocity plateau emerges between 40 and 90 km/s (Li et al., 2024). Stars in this plateau frequently exhibit strong lithium enrichment (abundances ranging from 1.02 to 1.82 dex), indicating that a critical threshold near 40 km/s triggers internal mass transport and activates chromospheric activity as interior material migrates outward (Li et al., 2024).
 
 | **Stellar Class / Population** | **Mass Range (M_sun)** | **Typical v sin i or v_eq (km/s)** | **Typical Rotation Period** | **Angular Momentum Transport Mechanism**                    |
 | ------------------------------ | ---------------------- | ---------------------------------- | --------------------------- | ----------------------------------------------------------- |
@@ -34,7 +34,7 @@ For asteroids larger than $D \approx 200\text{ meters}$, the rotation frequency 
 
 Long-term vector evolution in small bodies is governed by the Yarkovsky-O'Keefe-Radzievskii-Paddack (YORP) effect, a thermal torque resulting from the anisotropic absorption and re-radiation of solar photon momentum (Vokrouhlický et al., 2015; Warner et al., 2009). The YORP torque alters both the spin period and the pole orientation $(\lambda, \beta)$, systematically driving orbital obliquities toward asymptotic values near $\beta \approx \pm 90^\circ$ relative to the orbital plane, creating a bi-modal distribution of rotational pole axes (Li et al., 2024; Vokrouhlický et al., 2015).
 
-For close-in planets and natural satellites, rotational velocities are governed by tidal dissipation (Gilbert et al., 2020; Gladman et al., 1996). Differential gravitational forces exert a torque on tidal bulges, transferring spin angular momentum into orbital angular momentum until the rotational period synchronizes with the orbital period ($P_{\text{rot}} = P_{\text{orb}}$) (Gilbert et al., 2020; Gladman et al., 1996). In compact multi-planet systems such as TOI-700, planets TOI-700 b, c, d, and e operate in tidally locked states with zero obliquity relative to their orbital planes (Gilbert et al., 2020).
+For close-in planets and natural satellites, rotational velocities are governed by tidal dissipation (Gladman et al., 1996). Differential gravitational forces exert a torque on tidal bulges, transferring spin angular momentum into orbital angular momentum until the rotational period synchronizes with the orbital period ($P_{\text{rot}} = P_{\text{orb}}$) (Gladman et al., 1996). In compact multi-planet systems such as TOI-700, planets TOI-700 b, c, d, and e operate in tidally locked states with zero obliquity relative to their orbital planes.
 
 ### Compact Remnant Dynamics and Black Hole Spin Distributions
 
@@ -42,11 +42,11 @@ The rotational state of a black hole is characterized by its dimensionless spin 
 
 $$a^* = \chi = \frac{c J}{G M^2} \quad \text{where} \quad 0 \le a^* \le 1$$
 
-Gravitational-wave observations by the LIGO-Virgo-KAGRA (LVK) collaboration demonstrate that stellar-mass black hole spins fall into distinct statistical distributions based on their evolutionary assembly channels (Abbott et al., 2023; Banerjee, 2021):
+Gravitational-wave observations by the LIGO-Virgo-KAGRA (LVK) collaboration demonstrate that stellar-mass black hole spins fall into distinct statistical distributions based on their evolutionary assembly channels (Banerjee, 2021):
 
-First-generation (1G) black holes formed via the direct core collapse of isolated massive stars typically possess low birth spins centered around $a^* \approx 0.1\text{--}0.2$, well-modeled by a Beta distribution $\text{Beta}(\alpha = 1.4, \beta = 3.6)$ (Abbott et al., 2023). High initial spins ($a^* > 0.8$) in isolated 1G black holes occur rarely and require tight binary systems undergoing chemically homogeneous evolution (Lloyd-Ronning, 2022).
+First-generation (1G) black holes formed via the direct core collapse of isolated massive stars typically possess low birth spins centered around $a^* \approx 0.1\text{--}0.2$, well-modeled by a Beta distribution $\text{Beta}(\alpha = 1.4, \beta = 3.6)$. High initial spins ($a^* > 0.8$) in isolated 1G black holes occur rarely and require tight binary systems undergoing chemically homogeneous evolution.
 
-Hierarchical merger remnants (2G+) assembled through successive binary coalescences in dense environments (such as globular clusters or AGN accretion disks) display a universal spin distribution (Banerjee, 2021; Lousto & Zlochower, 2012). Because the orbital angular momentum of a merging binary converts into the spin of the final remnant, equal-mass non-precessing mergers produce remnants with a characteristic dimensionless spin $a^* \approx 0.69\text{--}0.70$ (Gilbert et al., 2020; Lloyd-Ronning, 2022; Gladman et al., 1996). Subsequent 2G+2G mergers maintain high spin magnitudes spanning $a^* \in [0.6, 0.9]$, subject to retention conditions dictated by gravitational recoil kicks that can reach velocities up to 5000 km/s (Banerjee, 2021).
+Hierarchical merger remnants (2G+) assembled through successive binary coalescences in dense environments (such as globular clusters or AGN accretion disks) display a universal spin distribution (Banerjee, 2021; Lousto & Zlochower, 2012). Because the orbital angular momentum of a merging binary converts into the spin of the final remnant, equal-mass non-precessing mergers produce remnants with a characteristic dimensionless spin $a^* \approx 0.69\text{--}0.70$ (Gladman et al., 1996). Subsequent 2G+2G mergers maintain high spin magnitudes spanning $a^* \in [0.6, 0.9]$, subject to retention conditions dictated by gravitational recoil kicks that can reach velocities up to 5000 km/s (Banerjee, 2021).
 
 | **Black Hole Generation** | **Primary Assembly Channel**                  | **Typical Spin Parameter (a*) Distribution** | **Dominant Alignment Characteristics**                         |
 | ------------------------- | --------------------------------------------- | -------------------------------------------- | -------------------------------------------------------------- |
@@ -83,7 +83,7 @@ $$\mathbf{R} = \begin{bmatrix} -\sin\alpha_0 \sin W + \cos\alpha_0 \sin\delta_0 
 
 ### Roche Equilibrium Models and Rotational Breakup Limits
 
-For fluid self-gravitating bodies, rapid rotation induces equatorial expansion (Riello et al., 2021; Roche, 1873). Under the Roche equilibrium model—which assumes that the internal mass distribution is strongly centrally condensed—the effective gravitational-centrifugal potential $\Phi_{\text{eff}}$ at an equatorial surface distance $r_{\text{eq}}$ is formulated as (Roche, 1873):
+For fluid self-gravitating bodies, rapid rotation induces equatorial expansion (Roche, 1873). Under the Roche equilibrium model—which assumes that the internal mass distribution is strongly centrally condensed—the effective gravitational-centrifugal potential $\Phi_{\text{eff}}$ at an equatorial surface distance $r_{\text{eq}}$ is formulated as (Roche, 1873):
 
 $$\Phi_{\text{eff}}(r_{\text{eq}}, \theta = \pi/2) = -\frac{GM}{r_{\text{eq}}} - \frac{1}{2} \omega^2 r_{\text{eq}}^2$$
 
@@ -127,13 +127,13 @@ where $\tau_{\text{cz}}$ represents the convective turnover timescale (Barnes, 2
 
 ### Tidal Dissipation and Synchronization Timescales
 
-Gravitational interactions in close binary systems induce tidal bulges that exchange angular momentum between spin and orbital states (Gilbert et al., 2020; Gladman et al., 1996). The rotational synchronization timescale ($\tau_{\text{lock}}$) for a planet or satellite despinning under tidal forces is derived from equilibrium tide theory (Gilbert et al., 2020; Lloyd-Ronning, 2022):
+Gravitational interactions in close binary systems induce tidal bulges that exchange angular momentum between spin and orbital states (Gladman et al., 1996). The rotational synchronization timescale ($\tau_{\text{lock}}$) for a planet or satellite despinning under tidal forces is derived from equilibrium tide theory:
 
 $$\tau_{\text{lock}} = \frac{4}{9} \frac{\omega_0 C Q a^6}{k_2 G M_*^2 R_p^5}$$
 
-where $\omega_0$ is initial spin frequency, $C$ is moment of inertia, $Q$ is the tidal quality factor, $k_2$ is the Love number of degree 2, $a$ is the semi-major axis, $M_*$ is stellar mass, and $R_p$ is planetary radius (Gilbert et al., 2020).
+where $\omega_0$ is initial spin frequency, $C$ is moment of inertia, $Q$ is the tidal quality factor, $k_2$ is the Love number of degree 2, $a$ is the semi-major axis, $M_*$ is stellar mass, and $R_p$ is planetary radius.
 
-Because $\tau_{\text{lock}}$ scales with semi-major axis to the sixth power ($a^6$), tidal despinning drops precipitously with distance (Gilbert et al., 2020). Bodies within a critical distance despin into synchronized states ($P_{\text{rot}} = P_{\text{orb}}$) on megayear timescales, whereas outer objects retain their primordial rotations over multi-gigayear lifetimes (Gilbert et al., 2020; Gladman et al., 1996).
+Because $\tau_{\text{lock}}$ scales with semi-major axis to the sixth power ($a^6$), tidal despinning drops precipitously with distance. Bodies within a critical distance despin into synchronized states ($P_{\text{rot}} = P_{\text{orb}}$) on megayear timescales, whereas outer objects retain their primordial rotations over multi-gigayear lifetimes (Gladman et al., 1996).
 
 | **Physical Mechanism** | **Governing Master Equation**                                          | **Primary Sensitivity**                       | **Astrophysical Application**                             |
 | ---------------------- | ---------------------------------------------------------------------- | --------------------------------------------- | --------------------------------------------------------- |
@@ -148,7 +148,7 @@ Because $\tau_{\text{lock}}$ scales with semi-major axis to the sixth power ($a^
 
 The rotational speed generator evaluates object properties using a conditional physical cascade:
 
-First, the algorithm evaluates tidal synchronization for any orbiting body by calculating $\tau_{\text{lock}}$ (Gilbert et al., 2020). If system age $t_{\text{sys}} > \tau_{\text{lock}}$, the object is tidally locked:
+First, the algorithm evaluates tidal synchronization for any orbiting body by calculating $\tau_{\text{lock}}$. If system age $t_{\text{sys}} > \tau_{\text{lock}}$, the object is tidally locked:
 
 $$P_{\text{rot}} = P_{\text{orb}}$$
 
@@ -172,7 +172,7 @@ Fourth, for small solar system bodies, if diameter $D > 0.2\text{ km}$, $P_{\tex
 
 $$P_{\text{rot}} = \max\left(2.2\text{ hours}, \; \text{LogNormal}(\mu = 2.1, \sigma = 0.65)\text{ hours}\right)$$
 
-Fifth, for stellar-mass black holes, 1G black holes draw spins from $a^* \sim \text{Beta}(\alpha = 1.4, \beta = 3.6)$ (Lloyd-Ronning, 2022), while hierarchical merger remnants draw spins from $a^* \sim \mathcal{N}(\mu = 0.69, \sigma = 0.04)$ (Gilbert et al., 2020; Lloyd-Ronning, 2022).
+Fifth, for stellar-mass black holes, 1G black holes draw spins from $a^* \sim \text{Beta}(\alpha = 1.4, \beta = 3.6)$, while hierarchical merger remnants draw spins from $a^* \sim \mathcal{N}(\mu = 0.69, \sigma = 0.04)$.
 
 ### Vector Orientations and Axial Tilt Modeling
 
@@ -226,9 +226,9 @@ $$\hat{\mathbf{n}}_{\text{gal}} = \begin{bmatrix} 0 \\ 0 \\ 1 \end{bmatrix}$$
 
 3. **Close-In Terrestrial Exoplanet Initialization ($a = 0.03\text{ AU}$)**:
    
-   * Parameters: $M_p = 1.0 M_\oplus$, $R_p = 1.0 R_\oplus$, $Q = 100$, $k_2 = 0.3$ (Gilbert et al., 2020).
+   * Parameters: $M_p = 1.0 M_\oplus$, $R_p = 1.0 R_\oplus$, $Q = 100$, $k_2 = 0.3$.
    
-   * Synchronization timescale: $\tau_{\text{lock}} \approx 1.2\text{ Myr} < 4.6\text{ Gyr} \implies$ **Tidally Locked** (Gilbert et al., 2020).
+   * Synchronization timescale: $\tau_{\text{lock}} \approx 1.2\text{ Myr} < 4.6\text{ Gyr} \implies$ **Tidally Locked**.
    
    * Rotational state: $P_{\text{rot}} = P_{\text{orb}} = 2.1\text{ days}$, $\varepsilon = 0.0^\circ$, $\hat{\mathbf{\omega}}_p = \hat{\mathbf{L}}_{\text{orbit}}$.
 
@@ -240,7 +240,7 @@ $$\hat{\mathbf{n}}_{\text{gal}} = \begin{bmatrix} 0 \\ 0 \\ 1 \end{bmatrix}$$
 
 5. Analytical Conclusions and Implementation Guidelines
 
-Celestial rotational velocities are fundamentally constrained by mechanical breakup limits or despun by magnetic and tidal torques (Riello et al., 2021; Vidotto et al., 2014; Warner et al., 2009; Gilbert et al., 2020). High-mass stars and monolithic asteroids rotate near physical breakup thresholds ($v_{\text{crit}}vcritv_{\text{crit}}vcrit​$ and $P_{\text{crit}} \approx 2.2\text{ h}Pcrit≈2.2 hP_{\text{crit}} \approx 2.2\text{ h}Pcrit​≈2.2 h$) (Roche, 1873; Warner et al., 2009), whereas cool dwarfs despin following Skumanich spin-down laws ($P_{\text{rot}} \propto t^{0.55}Prot∝t0.55P_{\text{rot}} \propto t^{0.55}Prot​∝t0.55$) (Skumanich, 1972; Barnes, 2007). Rotational vectors reflect persistent directional torques: close-in exoplanets align into zero-obliquity synchronized states (Gilbert et al., 2020), while thermal YORP torques align asteroid poles perpendicular to orbital planes (Vokrouhlický et al., 2015). Procedural engines incorporating these physical relationships generate maps that remain grounded in empirical astrophysics.
+Celestial rotational velocities are fundamentally constrained by mechanical breakup limits or despun by magnetic and tidal torques (Vidotto et al., 2014; Warner et al., 2009). High-mass stars and monolithic asteroids rotate near physical breakup thresholds ($v_{\text{crit}}vcritv_{\text{crit}}vcrit​$ and $P_{\text{crit}} \approx 2.2\text{ h}Pcrit≈2.2 hP_{\text{crit}} \approx 2.2\text{ h}Pcrit​≈2.2 h$) (Roche, 1873; Warner et al., 2009), whereas cool dwarfs despin following Skumanich spin-down laws ($P_{\text{rot}} \propto t^{0.55}Prot∝t0.55P_{\text{rot}} \propto t^{0.55}Prot​∝t0.55$) (Skumanich, 1972; Barnes, 2007). Rotational vectors reflect persistent directional torques: close-in exoplanets align into zero-obliquity synchronized states, while thermal YORP torques align asteroid poles perpendicular to orbital planes (Vokrouhlický et al., 2015). Procedural engines incorporating these physical relationships generate maps that remain grounded in empirical astrophysics.
 
 ## References
 

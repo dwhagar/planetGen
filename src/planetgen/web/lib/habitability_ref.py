@@ -10,7 +10,7 @@ their sources (`domains`), so the tables cannot disagree with the score.
 """
 
 from planetgen import tuning
-from planetgen.physics import atmosphere, constants, habitability, life_classes, orbits, regional_temperature
+from planetgen.physics import atmosphere, constants, habitability, latitude_bands, life_classes, orbits
 from planetgen.physics.habitability_world import LETHAL_DOSE_SV_YR
 from planetgen.physics.protection_limits import limit
 from planetgen.web.lib import habitability_symbols, help_registry
@@ -268,17 +268,6 @@ def _class_ids():
     return ", ".join(row.id for row in life_classes.CLASSES[:5])
 
 
-def _band_text():
-    """The temperature bands `regional_temperature.BANDS` stores, with each one's share of the surface (the area between its two
-    latitudes: the sine of the latitude is spread evenly over a sphere) and its edges."""
-    import math
-    parts = {}
-    for name, low, high in regional_temperature.BANDS:
-        share = (math.sin(math.radians(high)) - math.sin(math.radians(low))) / 2.0
-        parts[name] = (low, high, share * (2.0 if name == "polar" else 1.0))
-    return parts
-
-
 MAP_INTRO = (
     "The Galaxy Map shows where habitable worlds are, in two ways that you choose. A habitable world here means a "
     "planet or moon whose overall PHI-6 colour is Blue or Green; Yellow and Red worlds are not counted."
@@ -308,23 +297,25 @@ MAP_ROWS = (
 )
 """tuple: `(control, what it does)` for the habitable-world views of the Galaxy Map (MAP.143, MAP.220)."""
 
-_NUMBER_WORDS = {3: "three", 4: "four", 5: "five", 6: "six", 7: "seven"}
+_NUMBER_WORDS = {3: "three", 4: "four", 5: "five", 6: "six", 7: "seven", 8: "eight"}
 
 
 def temperature_text():
-    """The temperature paragraph, with the bands and their shares of the surface read from `regional_temperature.BANDS`."""
-    bands = _band_text()
-    pl, ns, eq = bands["polar"], bands["north"], bands["equator"]
+    """The temperature paragraph, with the bands read from `physics/latitude_bands.py` (their number, their width and each one's share of the surface)."""
+    count = latitude_bands.BAND_COUNT
+    shares = [latitude_bands._area_share(high, low) for high, low in latitude_bands._bounds()]
+    middle = count // 2
     return (
         "The surface temperature of a world is its mean, and the ratings use the mean. The Temperature row of a planet's "
-        f"page also says how the mean is spread: a world that turns on its own has an annual mean for each of {_NUMBER_WORDS.get(len(bands), len(bands))} bands "
-        f"(Polar from {pl[0]:g} degrees to the pole, {pl[2] * 100:.0f} percent of the surface; Northern and Southern, "
-        f"{ns[0]:g} to {ns[1]:g} degrees, {ns[2] * 100:.0f} percent each; Equatorial, {-eq[0]:g} south to {eq[1]:g} north, "
-        f"{eq[2] * 100:.0f} percent), found from the sunlight each band gets over a year at the "
+        f"page also says how the mean is spread: a world that turns on its own has an annual mean for each of {_NUMBER_WORDS.get(count, count)} bands "
+        f"of latitude, each {latitude_bands.BAND_WIDTH_DEG:.1f} degrees wide. The equator band reaches {latitude_bands.BAND_WIDTH_DEG / 2:.1f} degrees "
+        f"each side of the equator and holds {shares[middle] * 100:.0f} percent of the surface; the bands on each side of it hold "
+        f"{', '.join(f'{share * 100:.0f}' for share in shares[:middle][::-1][:-1])} and, for the one that takes the pole, "
+        f"{shares[0] * 100:.0f} percent. Each is found from the sunlight it gets over a year at the "
         "world's axial tilt, with a thick atmosphere carrying heat toward the poles. It also gives the day and night swing "
-        "at the equator, which a slow turn on bare ground makes as large as the mean itself and a thick atmosphere shrinks "
-        "to a few degrees. A world that is tidally locked has no day and night; its page gives the day side, the "
-        "terminator ring and the night side. Where a band or the night needs heavier gear than the mean does, the row names "
+        "of each band, which a slow turn on bare ground makes as large as the mean itself and a thick atmosphere shrinks "
+        "to a few degrees. A world that is tidally locked has no day and night; its page gives rings from the day side, through the "
+        "terminator ring, to the night side. Where a band or the night needs heavier gear than the mean does, the row names "
         "the place and the gear as recommended."
     )
 

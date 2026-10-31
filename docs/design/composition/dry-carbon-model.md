@@ -1,12 +1,12 @@
 # The dry-body carbon model (GEN.1005, part 1 of row b1)
 
-Status: module and registry rows, written 2026-10-30 (as the lane reported) by the Aux 3 lane. `src/planetgen/physics/dry_carbon.py`; tests in `src/tests/test_dry_carbon.py`; registry rows DC1 to DC3 (section 6.58 of the gap-filling plan). Nothing the generator draws changes in this part: row b1 still draws 0.018 to 0.1 weight percent CO2 (SSR3, section 6.56); the flip has `mixture_rocky.INVENTORY['co2_dry_wt_percent']` read `co2_wt_percent_bracket()` and retires SSR3.
+Status: module and registry rows, written 2026-10-30 (as the lane reported) by the Aux 3 lane. `src/planetgen/physics/dry_carbon.py`; tests in `src/tests/test_dry_carbon.py`; registry rows DC1 to DC3 (section 6.58 of the gap-filling plan). Part 1 changed nothing the generator draws. Part 2 (the digest flip, 2026-10-30) has `mixture_rocky.INVENTORY['co2_dry_wt_percent']` read `co2_wt_percent_bracket()`; SSR3 is retired and row b1 is `partly verified`.
 
 ## 1. What replaces what
 
 Row b1 (a body that formed inside the snow line and took in little water) carried a log bracket of 0.018 to 0.1 weight percent CO2: the stored dry value of Ortenzi 2020 to its high case, chosen so that an Earth-distance draw's median sat at the bulk silicate Earth's 100 ppm of carbon (`volatile-inventory-against-planet-totals.md`, GEN.813). The Earth was the anchor. This model derives the bracket from the carbon of the building blocks and what core formation leaves, and uses the Earth as a test.
 
-## 2. The three steps (all from Blanchard, Siebert, Badro, Ghiorso and Hirschmann 2022, EPSL, arXiv:2202.06809; read in full text)
+## 2. The three steps (all from Blanchard, Siebert, Badro, EPSL, arXiv:2202.06809; read in full text)
 
 | Step | Number | Where | Registry |
 |---|---|---|---|

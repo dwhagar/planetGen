@@ -7,16 +7,16 @@ here holds its dataset and the functions that read it: the MIST main sequence (`
 sequences with their layers (`white_dwarf_models`) and the neutron-star equations of state with the outer-crust
 compositions (`neutron_star_matter`), the ozone absorption cross sections of the radiation model (`ozone_uv`) and the infrared opacities
 of the greenhouse model: the ExoMol correlated-k tables of water, carbon dioxide and methane (`ir_ktables`) and the HITRAN collision-induced absorption (`hitran_cia`), the Harris globular cluster catalog (`harris_clusters`), the NOAA solar proton events
-(`noaa_proton_events`), the mean dwarf spectral-type sequence of Pecaut and Mamajek (`mamajek_sequence`) the Baraffe 2015 isochrones of low-mass stars and brown dwarfs (`baraffe_isochrones`) and the model-atmosphere spectra of stars (`stellar_spectra`). The data of the atmosphere group (AD1 to AD8) is added the same way, each by the
+(`noaa_proton_events`), the hydrogen-helium equation of state of giant planets (`hhe_eos`), the mean dwarf spectral-type sequence of Pecaut and Mamajek (`mamajek_sequence`) the Baraffe 2015 isochrones of low-mass stars and brown dwarfs (`baraffe_isochrones`) and the model-atmosphere spectra of stars (`stellar_spectra`). The data of the atmosphere group (AD1 to AD8) is added the same way, each by the
 item that reads it; every entry needs its verified source (docs/design/research/gap-filling-plan.md 6.5) and a stand-in row
 (section 6.6). The generator requires every dataset here (GEN.590): `missing` is the check bulk generation starts with.
 """
 
-from planetgen.datasets import (baraffe_isochrones, fetch, harris_clusters, hitran_cia, ir_ktables, isochrones, mamajek_sequence,
+from planetgen.datasets import (baraffe_isochrones, fetch, harris_clusters, hhe_eos, hitran_cia, ir_ktables, isochrones, mamajek_sequence,
                                 neutron_star_matter, noaa_proton_events, ozone_uv, stellar_spectra, white_dwarf_models)
 
 ALL = (isochrones.DATASET, white_dwarf_models.DATASET, neutron_star_matter.DATASET, ozone_uv.DATASET, ir_ktables.DATASET, hitran_cia.DATASET,
-       harris_clusters.DATASET, noaa_proton_events.DATASET, baraffe_isochrones.DATASET, stellar_spectra.DATASET, mamajek_sequence.DATASET)
+       harris_clusters.DATASET, noaa_proton_events.DATASET, baraffe_isochrones.DATASET, stellar_spectra.DATASET, mamajek_sequence.DATASET, hhe_eos.DATASET)
 """tuple: Every `fetch.Dataset` the setup step downloads, in the order it downloads them."""
 
 

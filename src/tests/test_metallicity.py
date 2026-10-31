@@ -39,7 +39,7 @@ def test_each_population_has_its_own_mean_and_scatter():
     halo = _sample("halo", 10 * KPC)
     assert statistics.mean(young) == pytest.approx(0.0, abs=0.01)
     assert statistics.pstdev(young) == pytest.approx(0.10, abs=0.01)
-    assert statistics.mean(old) == pytest.approx(-0.2, abs=0.02)
+    assert statistics.mean(old) == pytest.approx(-0.325, abs=0.02)
     assert statistics.pstdev(bulge) > statistics.pstdev(old) > statistics.pstdev(young)
     assert statistics.mean(halo) == pytest.approx(-1.6, abs=0.05)
 

@@ -6,8 +6,7 @@ The active-Sun factor of the NH3 photodissociation rate (GEN.794), from a measur
 
 The folder holds four files (downloaded by hand, never committed; `h5py` is needed to read them):
 
-* `NH3_partial_cross_sections.h5`: the photodissociation cross section of NH3 (Heays 2016, from Samson 1987, Wu 2007, Liang 2007, Xia 1991,
-  Slanger and Black 1982, Leach 2005), https://home.strw.leidenuniv.nl/~ewine/photo/data/photo_data/NH3_partial_cross_sections.h5
+* `NH3_partial_cross_sections.h5`: the photodissociation cross section of NH3 (from Samson 1987, Wu 2007,), https://home.strw.leidenuniv.nl/~ewine/photo/data/photo_data/NH3_partial_cross_sections.h5
 * `sorcesols_v16_1nm.h5`, `susim_v22_1nm.h5`, `uarssols_v18_1nm.h5`: the daily 1 nm solar irradiance of SORCE SOLSTICE (2003 to 2018), UARS SUSIM
   (1991 to 2005) and UARS SOLSTICE (1991 to 2001), M. DeLand, https://sbuv.gsfc.nasa.gov/solar/compositev2/
 

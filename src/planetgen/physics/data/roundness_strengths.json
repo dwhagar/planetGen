@@ -122,7 +122,7 @@
       1000000.0,
       4000000.0
     ],
-    "source": "friction angle 35 degrees (30 to 40 for geological material, Lambe and Whitman 1969, a soil mechanics textbook) with cohesion 44 to 210 Pa: Hirabayashi and Scheeres (arXiv 1411.5926, READ), Rozitis, MacLennan and Emery 2014 (Nature 512:174, READ) for 1950 DA 64 (+12, -20) Pa, Sanchez and Scheeres 2014 and Walsh 2018 (READ); hot_strength_pa is a rubble pile that took its shape hot, 2.5 MPa, the creep strength of dry olivine (the two columns of 'temperature.rock') at about 1330 K, range 1 to 4 MPa for 1250 to 1400 K (papers-vs-standins-2026-10-31.md section 2)",
+    "source": "friction angle 35 degrees (30 to 40 for geological material, a soil mechanics textbook) with cohesion 44 to 210 Pa: Hirabayashi and Scheeres (arXiv 1411.5926, READ), Rozitis, MacLennan and Emery 2014 (Nature 512:174, READ) for 1950 DA 64 (+12, -20) Pa, Sanchez and Scheeres 2014 and Walsh 2018 (READ); hot_strength_pa is a rubble pile that took its shape hot, 2.5 MPa, the creep strength of dry olivine (the two columns of 'temperature.rock') at about 1330 K, range 1 to 4 MPa for 1250 to 1400 K (papers-vs-standins-2026-10-31.md section 2)",
     "tier": "T2",
     "tweak": "L1",
     "hot_tier": "T5",

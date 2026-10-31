@@ -1,0 +1,131 @@
+{
+  "data": {
+    "archives": 36,
+    "downloaded_at_setup": 12
+  },
+  "papers": {
+    "books": 30,
+    "datasets": 24,
+    "entries": 4924,
+    "with_arxiv": 1434,
+    "with_doi": 4716,
+    "without_doi": 208
+  },
+  "stand_ins": {
+    "by_tier": {
+      "T1": 168,
+      "T2": 149,
+      "T3": 134,
+      "T4": 86,
+      "T5": 70,
+      "T6": 249,
+      "T7": 61,
+      "T8": 8,
+      "T9": 107
+    },
+    "by_tweak": {
+      "L0": 585,
+      "L1": 223,
+      "L2": 50,
+      "L3": 142,
+      "L4": 32
+    },
+    "rows": 1032
+  },
+  "tiers": [
+    [
+      "T1",
+      "Verified",
+      "read in the source and the value is the source's"
+    ],
+    [
+      "T2",
+      "Confident unverified",
+      "from a source we trust but have not opened or cannot check"
+    ],
+    [
+      "T3",
+      "Marginal unverified",
+      "from a source we doubt, or a bracket from sources that disagree"
+    ],
+    [
+      "T4",
+      "Unverified",
+      "no source at all for the value, only a reason for its range"
+    ],
+    [
+      "T5",
+      "Confident educated guess based on physics",
+      "a law of physics fixes the form and the size to within a factor of a few"
+    ],
+    [
+      "T6",
+      "Marginal educated guess based on physics",
+      "physics fixes the form, but the size is argued, not derived"
+    ],
+    [
+      "T7",
+      "Educated guess based on inferred physics",
+      "the physics is itself inferred from other bodies or other regimes"
+    ],
+    [
+      "T8",
+      "Educated guess based on reputable fringe or new physics",
+      "a published but not yet accepted mechanism"
+    ],
+    [
+      "T9",
+      "Educated guess based on needed output (full tweak)",
+      "chosen so that the generated sky matches what has to come out"
+    ]
+  ],
+  "tweaks": [
+    [
+      "L0",
+      "As envisioned",
+      "the value is used as its source gives it"
+    ],
+    [
+      "L1",
+      "Nudged inside the source's uncertainty",
+      "moved within the error bar the source prints"
+    ],
+    [
+      "L2",
+      "Tuned to a published statistic",
+      "moved until a published count or distribution is reproduced (a tuning target)"
+    ],
+    [
+      "L3",
+      "Hand-tuned against a sweep",
+      "chosen by running the generator over many draws and looking at the outcome"
+    ],
+    [
+      "L4",
+      "Fitted to the outcome with no independent source",
+      "the number is whatever makes the output right"
+    ]
+  ],
+  "verdict": {
+    "chosen_for_the_output": {
+      "percent": 10,
+      "rows": 107
+    },
+    "educated_guess_from_physics": {
+      "percent": 38,
+      "rows": 388
+    },
+    "fitted_to_a_result": {
+      "percent": 22,
+      "rows": 224
+    },
+    "read_from_a_source": {
+      "percent": 31,
+      "rows": 317
+    },
+    "unverified": {
+      "percent": 21,
+      "rows": 220
+    }
+  }
+}

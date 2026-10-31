@@ -17,7 +17,7 @@ One-box parameterised convection for a stagnant lid: Thiriet et al. 2019 as used
 | Quantity | Value | Source | Label |
 |---|---|---|---|
 | rho, cm, cc, km, alpha, kappa | 3500 kg/m3, 1142 and 840 J/kg/K, 4 W/m/K, 2.5e-5 /K, 1e-6 m2/s | Guimond 2022 Table 2 (from Thiriet 2019) | READ |
-| Ra_crit, a_rh, beta | 450, 2.44, 1/3 | Table 2 (Thiriet 2019; Solomatov 1995) | READ |
+| Ra_crit, a_rh, beta | 450, 2.44, 1/3 | Table 2 (Thiriet 2019) | READ |
 | surface temperature | 273 K in the paper; here the body's own when its climate is known, else 273 K | Table 2 | READ, body's own: GEN.735 |
 | eta0 | uniform 2.6e10 to 5.3e13 Pa s | Section 2.2.3 (wet olivine less a decade to dry enstatite) | READ |
 | Ea | uniform 200 to 300 kJ/mol | Section 2.2.3 (Karato and Wu 1993; Zhang et al. 2017) | READ |
@@ -38,7 +38,7 @@ Differences from the paper, all labelled here: one temperature instead of two; t
 | Earth twin at 0.1 Gy | 3 to 30 times the heat of 4.5 Gy, Urey ratio 0.1 to 0.25 (1.0 for the stiffest rheology, which stays near the ceiling) |
 | Differentiation energy of the Earth | 1.9e31 J on top of 2.2e32 J of accretion |
 
-The Earth's own measured heat flow is 42 to 47 TW with a Urey ratio of 0.47 to 0.52 (Nimmo et al. 2020; READ via part E 2.8e). This one box reaches neither with either lid (it holds the 21 TW of radiogenic heat and the cooling of one temperature); the totals are inside the geoneutrino range, 38.2 +13.6 -12.7 TW (Agostini et al. 2019).
+The Earth's own measured heat flow is 42 to 47 TW with a Urey ratio of 0.47 to 0.52 (Nimmo et al. 2020; READ via part E 2.8e). This one box reaches neither with either lid (it holds the 21 TW of radiogenic heat and the cooling of one temperature); the totals are inside the geoneutrino range, 38.2 +13.6 -12.7 TW.
 
 ### 3.1 The lid (GEN.721)
 
@@ -58,7 +58,7 @@ The hydrosphere is made before the regime exists (the regime needs the hydrosphe
 
 ### 3.2 Small and large bodies, and a Urey ratio above 1 (GEN.763)
 
-The Urey ratio is the radiogenic heat over the heat that leaves the surface (Stamenkovic et al. 2012, arXiv:1210.3838 section 3.1: "the ratio of internal heat production to surface heat flux"; they cite about 0.3 from geochemistry and close to one from the geophysical view for the Earth). Here it is an output, `radiogenic_w / total_w`. It passes 1 only while the mantle is warming (it makes more than it loses), and it is exactly 1 while the mantle sits at its ceiling.
+The Urey ratio is the radiogenic heat over the heat that leaves the surface (arXiv:1210.3838 section 3.1: "the ratio of internal heat production to surface heat flux"; they cite about 0.3 from geochemistry and close to one from the geophysical view for the Earth). Here it is an output, `radiogenic_w / total_w`. It passes 1 only while the mantle is warming (it makes more than it loses), and it is exactly 1 while the mantle sits at its ceiling.
 
 Bulk silicate Earth composition, the middle rheology, a stagnant lid:
 
@@ -72,7 +72,22 @@ Bulk silicate Earth composition, the middle rheology, a stagnant lid:
 
 A small body made little heat to start with and has little left to give, so its radiogenic share is the larger; a large body keeps the heat of its assembly for longer, so it is the smaller. At 4.5 Gy, over both lids and the four rheology corners plus the middle, the ratio runs 0.49 (10 Earth masses, stagnant) to 1.0 (a stiff mantle held at its ceiling); at the middle rheology a mobile lid gives the larger ratio. The generated bodies of 24 sampled systems give medians of 0.78 (under 1e-4 Earth masses), 0.78, 0.76, 0.71, 0.67, 0.59 and 0.49 (2 to 5 Earth masses) in the mass bands 1e-4, 1e-3, 1e-2, 0.1, 0.5 and 2, from 0.28 to 1.0 in all but one case. The one above 1.0 is a physical warming: a moon of 0.0008 Earth masses around a 3.0 Gy star gives 1.25 with its mantle at 1,839 K and still warming, the radiogenic 24.6 GW against 19.7 GW out. A tidal body held at the heat-pipe temperature or the mantle ceiling sits at exactly 1.0.
 
-The 3.0 and 4.8 that were seen for 0.0004 to 0.0007 Earth-mass moons were not the physics. The heat was stored when the body was made, at the star's provisional age; the star's age is raised afterwards (`Star.adjust_age_for_planets`), and the same body at its final age gives 0.71 to 0.76. The life pass in `StarSystem.__init__` now runs `interior_heat.update_heat` on every planet and moon once the age is final (no draws). What the other readers of the heat took before that (the hydrosphere's ice shell, the surface composition's volcanism gate) still reads the provisional age; they draw, so they cannot be redone without moving the stream.
+The 3.0 and 4.8 that were seen for 0.0004 to 0.0007 Earth-mass moons were not the physics. The heat was stored when the body was made, at the star's provisional age; the star's age is raised afterwards (`Star.adjust_age_for_planets`), and the same body at its final age gives 0.71 to 0.76. The life pass in `StarSystem.__init__` now runs `interior_heat.update_heat` on every planet and moon once the age is final (no draws). What the other readers of the heat took before that (the hydrosphere's ice shell, the surface composition's volcanism gate) read the provisional age; they draw, so they cannot be redone on the run's stream. GEN.839 makes them again after the final-age heat (`planets.refresh_at_final_age`, called in the same pass): the hydrosphere with its ice shell, the ground with its volcanism gate, the ground dose when the ground changed and the habitability score, with their draws taken from the body's own stream (`draw.Stream`, seeded from what is final about the body), so no draw of the run's stream moves. The air is not made again: its degassing still reads the provisional age's heat (a deeper change, not part of this item).
+
+### 3.3 The core's own temperature (GEN.838)
+
+The mantle box above keeps one temperature for mantle and core, so the heat that crosses the core-mantle boundary, the inner core and the dynamo have no curve of their own. `physics/core_heat.py` adds a second state beside it, a core temperature at the top of the core, driven by the box's temperature history. The box is not changed by it: a body's stored heat flow and Urey ratio, and the mantle temperature, are what they were, and a body with no metal keeps no core (`Heat.core` is `None`).
+
+What it says (a Stand-in throughout, the registry rows CC1 to CC11 in the gap plan section 6.136):
+
+* The core is a uniform shell of the body's metal mass inside the core radius the box already uses, the mantle a uniform shell outside it. The pressures of the shells times 1.16 give the Earth's 136 GPa at the boundary and 337 GPa at the centre (364).
+* The base of the mantle is the box's temperature plus 8 K per GPa of the pressure at the boundary. The core's heat crosses a boundary layer whose thickness comes from its critical Rayleigh number at the viscosity of the layer's mean temperature (the box's viscosity law plus a pressure term, the activation volume), so the heat is the drop over the layer. The core starts 1,000 K above the base of the mantle and cools as `C dT/dt = -Q`.
+* The core's adiabat (6.74 K per GPa) meets the iron liquidus (anchored on the Earth's inner core boundary, 5,400 K at 329 GPa) where the inner core stops. The freezing iron adds its latent heat and gravitational energy per kelvin of cooling to the core's heat capacity, so the cooling slows.
+* The dynamo runs while `(1 - T_b / T_c)(Q - Q_ad) + E_G dM/dt` is above zero, `Q_ad` the heat the core conducts down its own adiabat, and the liquid shell is at least a quarter of the core's radius.
+
+For the Earth at 4.568 Gy (middle rheology) the core is at 4,080 K with an inner core of 0.40 of its radius (0.35 measured) and 5.7 TW crossing the boundary (5 to 15 TW), a dynamo of 2.4 TW. Venus keeps one, Mars has none (its dynamo stopped at 4.4 Gy in this model, the real one stopped within a Gy of formation: the model's weakest case), and a Mercury-like core freezes through (no light elements in the liquidus). A heavier planet's core stays liquid: at 2 to 10 Earth masses there is no inner core and the dynamo runs. `Core.dipole_scale` is the buoyancy-flux scaling of the moment over the Earth's, `(R / R_e)^2 (P / P_e)^(1/3) (rho / rho_e)^(1/6)`; `magnetism.generate_field` reads it, so the field comes from the core and the mantle's lid reaches it through the box's temperature (the lifetime draw of GEN.86 and the stagnant-lid factor of GEN.177 are gone).
+
+The core is read where it is wanted (`interior_heat.core_of`), not stored: no column holds it. The field is drawn when the planet's spin is set, at the star's age then; a planet whose star is aged later (`adjust_age_for_planets`) keeps the field of that age.
 
 ## 4. Where it is used
 
@@ -80,7 +95,7 @@ The 3.0 and 4.8 that were seen for 0.0004 to 0.0007 Earth-mass moons were not th
 
 ## 5. Stand-ins for the gap plan registry
 
-* The separate core temperature, the two-box model of Thiriet et al. 2019 (a core cooling through a lower boundary layer, the core heat flow a dynamo needs, GEN.736): not built, the paper behind it (Physics of the Earth and Planetary Interiors 286) was not readable; Guimond et al. 2022 let the core follow the mantle, as here.
+* The separate core temperature (GEN.838, section 3.3): built as a second state driven by the box, not as the two-way coupled model of Thiriet et al. 2019 (the paper behind it, Physics of the Earth and Planetary Interiors 286, was not readable); the core's heat is not taken from the mantle's budget, so the mantle's history is Guimond et al. 2022's, with the core following it.
 * The mantle's ceiling is the liquidus at the middle of the mantle (a uniform density and gravity); the solidus and a melt fraction are not modelled.
 * The surface is the body's own surface temperature when its climate is known (`update_heat`), 273 K for a body without one (a mild effect, read only by a mobile lid's drop and by the birth temperature); a mantle colder than `Ea / R T` = 600 does not convect and loses no heat (no conduction), so a cold small body warms with its radiogenic heat until convection starts.
 * The mobile lid's exponent (1/3) and critical Rayleigh number (450, the stagnant lid's) are unsourced for this model; replace them with a calibrated mobile-lid law (Korenaga, Driscoll and Bercovici) when one is read.

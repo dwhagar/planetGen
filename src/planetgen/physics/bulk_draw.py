@@ -50,7 +50,7 @@ _mearth_to_kg = units.converter("Mearth", "kg")
 
 SOURCES = {
     "bond2010": "Bond, O'Brien and Lauretta 2010, ApJ 715, 1050 (planets of stars with C/O above 0.8 are carbon-rich)",
-    "unterborn2014": "Unterborn, Dismukes and Panero 2014, ApJ 793, 124 (carbon-rich interiors: silicon carbide, graphite)",
+    "unterborn2014": "Unterborn, ApJ 793, 124 (carbon-rich interiors: silicon carbide, graphite)",
 }
 
 RANGES = {
@@ -66,7 +66,7 @@ RANGES = {
 - `enriched_cmf`: the core mass fraction of the dry part of an iron-enriched planet (`IRON_BRANCH_TABLE`), uniform, floored at
   the star-matched value; its top is the cap of the observed iron-rich rocky planets (about 0.8, Plotnykov and Valencia 2020).
 - `rock_feo`: FeO as a mass fraction of the rock, uniform. Earth's bulk silicate has 0.081, the Moon about 0.10, Mars 0.18
-  (Khan and Connolly 2008); Mercury, under 0.01 (Nittler et al. 2011), is outside it: the Mercury-like range belonged to class B,
+  (Khan and Connolly 2008); Mercury, under 0.01, is outside it: the Mercury-like range belonged to class B,
   a class the generator no longer draws, and no condition of the body says it is reduced (a stand-in, tier "from needed output").
 - `core_light_elements`: light elements (S, Si, O, C, H) as a mass fraction of the metal, uniform; Earth's core has 0.05 to
   0.10 (Hirose et al. 2021).
@@ -128,7 +128,7 @@ class HostRatios:
 @functools.lru_cache(maxsize=4096)
 def _star_composition(fe_h, age_gy, key):
     draws = stellar_composition.key_draws(key)
-    branch = stellar_abundances.branch_from_uniform(fe_h, age_gy, draws.u_branch)
+    branch = stellar_abundances.branch_of(fe_h, age_gy)
     offsets = stellar_abundances.abundance_offsets(fe_h, branch, draws.normals, draws.u_enhanced, draws.u_carbon)
     return stellar_abundances.composition(fe_h, offsets)
 
