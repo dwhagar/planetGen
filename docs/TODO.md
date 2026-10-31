@@ -18549,6 +18549,18 @@ clears each one.
   lane reported). Core 2 leaves it for MAP.337 steps 2 and 3, which
   remove the stage URLs; it closes when they merge and the test passes.
   Owner: Core 2. Version 8.1.
+  Update (Core 5) (7:21 AM EDT 2026-10-31, as Core 5 reported): Still
+  red on main. The cause is a real fault in the address rule MAP.337
+  meant to make camera-only, not a stale test: the wheel-out leg ends
+  with the camera at 16,499 pc (whole galaxy) and the address still
+  ?sector=1000000000&cam=..., because leaving the sector pushes
+  sectorQuery(selectedSector, false) (up(), about line 1371 of
+  galaxystageview.js) and writeCameraAddress only rewrites cam. The
+  wheel-in leg also failed once (camera within 0.03 pc of the star,
+  system not opened), so the test may also be flaky (its fixture takes 2
+  to 5 minutes to generate a sector). The fix is in galaxystageview.js,
+  which Core 2 is editing for MAP.338, so TEST.496 goes back to Core 2
+  inside MAP.338 or right after it.
   Prerequisites: none.
 
 - [ ] **TEST.498 A rogue planet is functionally and programmatically identical to a bound planet: the same columns, the same moon and composition generation, the same classes, differing only in the rogue note and having no host star**
