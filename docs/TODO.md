@@ -13551,6 +13551,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   much mass a field holds by origin) and Boss agrees it, then the member
   ledger reuses the belt rule of GEN.1068. Lock work, same window as
   GEN.1068 or later.
+  Mass rule part merged (#4586), Aux 5 (2026-10-31 3:23 PM EDT): The
+  mass rule is done and merged lock-free (physics/field_mass.py, 11
+  tests, stand-ins FM1 and FM2 in section 6.161); the module is not
+  wired yet: the field columns and member rows (GEN.1103, GEN.1104,
+  GEN.1105) call it. Boss approved option 1 at 3:14 PM EDT. This item
+  stays open for the member ledger
+  (planetgen.galaxy.object_uid.is_on_demand is named by the wiring
+  register) until that wiring is built. Aux 5 is the owner.
   Prerequisites: GEN.1160. Related: GEN.1068, GEN.1160.
 
 - [ ] **GEN.1162 Store bulk density and binding energy (and roundness ratio, yield strength and ice fraction where they apply) on stars, brown dwarfs, giant planets, white dwarfs, neutron stars and black holes; a black hole's binding energy is stored as -1, meaning infinite (Boss, 8:45 PM EDT 2026-10-30)**
