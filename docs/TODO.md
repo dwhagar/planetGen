@@ -2182,18 +2182,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (proposed by the TODO thread; the lane says if it cannot take it).
   Prerequisites: GEN.1150. Related: MAP.169.
 
-- [ ] **MAP.363 Object page: draw the lumpy silhouette of an unrounded small body, as the System Map and the 3D system view do (bodyview.js)**
-  Follow-up of MAP.279 (merged #4572 at about 2:50 PM EDT 10-31): the
-  System Map and the 3D system view draw a moon or asteroid that its own
-  weight has not pulled round as an elongated, bumpy lump
-  (src/html/static/lumpymesh.js, the look record field roundness), but
-  the object page (bodyview.js) still draws a round disc. Make it use
-  the same lump from the same look record, so the three views agree.
-  Display only, no generation change. Owner: Aux 5 (Core 2 owns the
-  painter files and agreed to MAP.279; tell Core 2 before touching
-  them).
-  Prerequisites: none.
-
 ## NAV: Navigation and courses
 
 - [ ] **NAV.4 Save a course**
