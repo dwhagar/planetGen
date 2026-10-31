@@ -13405,6 +13405,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.1030, same refit pass if the lane sees fit). Version 8.1.
   Owner (3:43 PM EDT 2026-10-30): Air 1 (assigned by TODO; rides a later
   train, after GEN.1030 or in the same refit pass).
+  Sources 1 finding (2026-10-30 9:12 PM EDT): test_greenhouse_table
+  fails because the table was fitted before GEN.1019/1020 (#4063). On
+  main the model gives Venus 539.5 K and the 5 bar CO2 air 385.5 K, the
+  table still gives 705.9 K and 469.0 K (21 and 31 percent apart against
+  5 percent allowed); the first paragraph above has the two numbers the
+  wrong way round. The only fix is this refit, which moves stored
+  temperatures (train-bound). The Venus doc line 67 says the cloud
+  brings the model back to 735 K, so the refit must put the cloud in its
+  airs or the test must include it. TEST.505 was a duplicate of this
+  item and is dropped.
   Prerequisites: none. Related: GEN.852, GEN.1019, GEN.1020, GEN.1030.
 
 - [ ] **GEN.1033 Ice-giant internal heat: the law goes through Jupiter and Neptune, so a Uranus-mass giant gets Neptune's 0.33 W/m2 instead of Uranus's 0.04 (the Uranus anomaly), and giants draw their Bond albedo from the rock range 0.12 to 0.35**
@@ -14742,19 +14752,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   train window.
   Prerequisites: none. Related: GEN.1146, GEN.1142, GEN.909.
 
-- [ ] **GEN.1148 Asteroid belt share fell from 55 percent of systems to 3 percent and binary share rose from 24 percent to 31.5 percent between the census before trains 3 and 4 and current main (Bug 2 census); find out whether each is the intended change or a bug (bug)**
-  Bug 2 measured these in the prevalence suite (PREVALENCE_BASE_SHARES,
-  #4251). A belt cut was decided (belt mass cut is the rule) but 55 to 3
-  percent is far larger than a mass cut should do unless the cut removes
-  small belts the old rule counted. For each shift name the change that
-  caused it (bisect by merge), say whether the new value is what the
-  physics and the belt rule give, and if not file the fix. Binary share:
-  the star mass function epoch changed the draw, so say whether 31.5
-  percent matches the multiplicity sources. Report numbers per version
-  of main, no fix without the cause. Source: prevalence census
-  (TEST.430).
-  Prerequisites: none.
-
 - [ ] **GEN.1150 Lagrange trojans T2: the generator draws a trojan swarm at the L4 and L5 of each giant planet or brown dwarf from the scatter trojan share; new columns co_orbital_host_id, lagrange_point, libration amplitude and phase (db/column_units.py); orbit updater libration overlay; the object and sector pages and the designation rule "<host> L4 trojan region"**
   Epoch lock, migration, --affects on the generator and orbit-tree
   tests. Train 8 with belts, clearance and the region store. Report
@@ -14812,6 +14809,27 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GM14. Lock-free until the wiring (GEN.1016 wiring, train 11) uses it.
   Source: reports/gen1016-quadruple-need-2026-10-30.md.
   Prerequisites: none.
+
+- [ ] **GEN.1156 Raise the belt share after the GEN.728 disc architecture (3 to 12 percent of systems) toward the documented 4 to 14 percent with a physics-driven change**
+  From Aux 5 (GEN.1148,
+  reports/gen1148-belt-binary-shift-2026-10-31.md): belts per system
+  fell from 53 to 3 percent (11.8 percent in the fixed-type census) at
+  train 4 (GEN.728/729/730, epoch 126) because orbital slots fell from
+  10.4 to 4.2 per system and only 18 percent of slots now hold a body
+  under 1 Earth mass (eligible slots 8.5 to 0.62). That matches the 4 to
+  14 percent the GEN.728 note and
+  tests/data/prevalence_systems_expectations.json expect, but it sits at
+  the low end on the default mix. Boss approved raising the share
+  (9:13 PM EDT 2026-10-30), physics-driven. Aux 5 picks the way from
+  these, all train-bound because they change output: (1) raise
+  ASTEROID_BELT_PROBABILITY (0.1) to a stated target, a stand-in at tier
+  L3 in GEN.725; (2) make the belt its own component of the disc
+  architecture, reserved when the disc leaves leftover mass, instead of
+  a slot swap (larger, physics-driven; recommended). Owner Aux 5,
+  train-bound (changes output: epoch, golden, generation-output:
+  changed). Any stand-in goes in GEN.725 with tier and tweak level.
+  Prerequisites: none. Related: GEN.728, GEN.729, GEN.730, GEN.1061,
+  GEN.725.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -19617,12 +19635,6 @@ clears each one.
   cause: a loss that is no longer drawn for the M3V case, a changed
   expectation, or a bug in the runaway history. Fix lock-free if no
   generated value changes; else list it train-bound.
-  Prerequisites: none.
-
-- [ ] **TEST.505 test_greenhouse_table agreement with the model fails for the Venus and 5 bar CO2 airs (2 cases) on main, with and without the detmath swap (bug)**
-  Found by Sources 1 while fixing TEST.503. Find the cause (a table
-  edge, a changed model constant or a stale expectation); fix lock-free
-  if no stored value changes, else list it train-bound.
   Prerequisites: none.
 
 ## USR: User accounts
