@@ -113,9 +113,10 @@ export const GALAXY_MIN_ZOOM = 0.5;
 export const PINNED_MAX_ZOOM = 1.1;
 // An opened system zooms from its fit down to a moon, nine orders closer.
 export const SYSTEM_MIN_ZOOM = 1e-9;
-// MAP.333: the nearest the camera may be asked to come to its target by any move, about a moon framed (Boss, 6:19 PM EDT 2026-10-28), and
-// the farthest, the whole galaxy in view (the same 2.4 galaxy radii the whole-galaxy fit uses).
-export const GLOBAL_FLOOR_PC = 1e-10;
+// MAP.333: the nearest the camera may be asked to come to its target by any move, and the farthest, the whole galaxy in view (the same
+// 2.4 galaxy radii the whole-galaxy fit uses). MAP.338: 30 km, the camera held as the target plus an exact offset (galaxymap3d.js draws an
+// opened system from the eye's own frame once the camera is that close), where it was 3,000 km, about a moon framed (Boss, 6:19 PM EDT 2026-10-28).
+export const GLOBAL_FLOOR_PC = 1e-12;
 export const GALAXY_FAR_RADII = 2.4;
 // MAP.334: the nearest the camera comes outside an opened system, until the scene has the precision for finer (MAP.338): the single-precision
 // positions of the sector and the windows are good to about a thousandth of a parsec a few thousand parsecs out.
@@ -3999,12 +4000,16 @@ export function createStageView(host) {
     return { id: systemStage.systemId(), centre: systemStage.centre(), radiusPc: systemStage.radiusPc(), entries: systemStage.markerBodies() };
   }
 
+  // MAP.338: the open system's group and place (parsecs), or null when none is open in place.
+  function systemFrame() { return enteredSystem ? systemStage.frame() : null; }
+
   function selectBodyRef(ref) { systemStage.select(ref); }
 
   return {
     selectBody: selectBody,
     selectBodyRef: selectBodyRef,
     systemMarkerSource: systemMarkerSource,
+    systemFrame: systemFrame,
     bodyLabels: bodyLabels,
     sectorLabels: sectorLabels,
     systemLabels: systemLabels,
