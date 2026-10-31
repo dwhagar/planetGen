@@ -198,6 +198,10 @@ echo
 echo "Checking the size of MySQL's redo log:"
 show_redo_log_advice
 
+echo
+echo "Checking the out-of-memory protection of MySQL and Redis:"
+show_oom_advice
+
 if is_macos; then
     cat <<EOF
 
