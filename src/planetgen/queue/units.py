@@ -30,6 +30,7 @@ the next (`wrapper.advance`).
 
 import json
 import os
+import resource
 import time
 
 import rq
@@ -190,6 +191,12 @@ def run_unit(run_id, stage, unit, kind, args, cost=None):
         return _do_unit(conn, run_id, stage, unit, kind, args, cost)
 
 
+def peak_resident_mb():
+    """The most resident memory this process has held, MB (PERF.226): a unit's horse is a fork of its worker, so it counts the worker's
+    pages too, which is what one worker of the stage takes of the host."""
+    return resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024.0     # kilobytes on Linux
+
+
 def _do_unit(conn, run_id, stage, unit, kind, args, cost):
     started = time.monotonic()
     log.trace(f"unit {unit} of stage {stage} of run {run_id} starts in worker {os.getpid()}: {kind}, cost {cost}, "
@@ -199,7 +206,7 @@ def _do_unit(conn, run_id, stage, unit, kind, args, cost):
     log.trace(f"unit {unit} of stage {stage} of run {run_id} finished its work in {seconds:.3f} s", area="queue")
     log.flush_relayed()         # before the unit counts as done, so the starter has every line when it sees it
     conn.hset(runrecord.results_key(run_id, stage), unit, json.dumps(result))
-    outcome = runrecord.unit_done(conn, run_id, stage, unit, cost=cost, seconds=seconds)
+    outcome = runrecord.unit_done(conn, run_id, stage, unit, cost=cost, seconds=seconds, peak_mb=peak_resident_mb())
     conn.hdel(runrecord.progress_key(run_id, stage), unit)
     log.trace(f"unit {unit} of stage {stage} of run {run_id} recorded; "
               f"{'it completes the stage: the next is queued' if outcome.advance else f'{outcome.done} unit(s) done'}",
