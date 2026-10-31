@@ -45,13 +45,20 @@ is 0 to 200 cm-1, below the tables) by 10 g points:
 from a ten-thousandth of the surface pressure, and finds the surface temperature at which
 
 * the profile follows the adiabat of the mixture (heat capacity from `species_thermo` at each temperature; the water pseudo-adiabat once the vapour
-  saturates) up to the tropopause, and is in radiative equilibrium above it, and
+  saturates, or in an air with no water the methane pseudo-adiabat, IR14; cold hydrogen at its ortho and para equilibrium, IR15) up to the tropopause,
+  and is in radiative equilibrium above it, and
 * the infrared flux to space equals the absorbed flux.
 
 The flux is the two-stream form with a diffusivity factor of 1.66 and a source linear in optical depth between level temperatures, solved band by band and
 g point by g point. The water vapour has Manabe and Wetherald's (1967) relative humidity, `RH = RH_s (p/p_s - 0.02) / 0.98`, with the surface humidity the
 mixture's own vapour over the saturation pressure, and none above the coldest level below (the cold trap). `aloft_share` puts that share of the absorbed flux
 at `aloft_pressure_pa` as a Gaussian in ln P instead of at the ground: the sunlight a haze takes (the anti-greenhouse).
+
+GEN.1030: with the dry adiabat alone the ice giants came out 20 percent too warm at 1 bar. Methane condenses near 80 K and 1.3 bar there and the
+condensation shallows the lapse rate, and the heat capacity of hydrogen below 200 K is the equilibrium one (4.4 R at 60 K against the 3.5 R the fit of
+`species_thermo` holds from 200 K up), which shallows it again. At the measured effective temperatures the column gives Uranus 79 K (76 measured), Neptune 78 K
+(72) and Jupiter 167 K (166); Saturn comes out 149 K against 134 K measured, a miss this change does not close. The check is
+`test_the_giants_sit_near_their_measured_temperature_at_one_bar` (Jupiter, Uranus, Neptune).
 
 A step of the adiabat that began unsaturated and crossed the saturation corner used to take the saturated slope for its whole length; the branch is now
 fixed for a step and the step is cut at the crossing (`test_the_adiabat_is_continuous_and_rises_with_the_surface_temperature_across_the_saturation_corner`).

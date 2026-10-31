@@ -9,7 +9,7 @@ import pytest
 
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
-from planetgen.physics import aerosols, atmosphere, atmosphere_state, clathrate_brine, constants, gases, greenhouse_table, saturation, sulfur_balance, surface_air as sa, surface_pressure
+from planetgen.physics import aerosols, atmosphere, atmosphere_state, clathrate_brine, constants, gases, giant_draw, greenhouse_table, saturation, sulfur_balance, surface_air as sa, surface_pressure
 from planetgen import tuning
 from planetgen.util import draw
 
@@ -288,6 +288,13 @@ def test_every_generated_body_stores_the_density_scale_height_and_greenhouse_its
             continue            # life changes the air after the temperature is solved (its methane and oxygen, GEN.855), and with it the haze the temperature was solved under
         haze = aerosols.haze_of(air, gravity, body.surface_temperature, aerosols.draw_haze_draws(aerosols.haze_stream_of(body)),
                                 body.star.temperature)
+        if body.body_type == "g":
+            # GEN.1030: a giant's stored G is against its starlight alone, so `T_e (1 + G)^(1/4)` with the albedo reproduces the temperature (GEN.412);
+            # the air it has is warmed under the starlight and its own heat together
+            radiated = absorbed + giant_draw.own_flux_w_m2(body)
+            warming = atmosphere_state.greenhouse_warming(air, gravity, radiated, haze.absorbed_share * absorbed / radiated, haze.pressure_pa)
+            assert body.surface_temperature == pytest.approx(warming.surface_temperature_k, rel=5e-3)
+            continue
         warming = atmosphere_state.greenhouse_warming(air, gravity, absorbed, haze.absorbed_share, haze.pressure_pa)
         assert body.greenhouse_factor == pytest.approx(warming.factor, rel=1.5e-2, abs=1e-6)
     assert bodies > 5

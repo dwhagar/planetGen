@@ -75,6 +75,9 @@ WATER_TABLE_TOP_K = min(640.0, saturation.species("H2O").liquid.t_max_k)
 """float: Where the water table ends and above which the vapour is taken as unable to condense: 640 K, just under water's critical temperature (the
 `saturation` module's, 647.1 K), so the latent heat, which diverges at the critical point, stays finite on the grid. A numerical limit of this
 table, not a saturation constant: the curve itself is `saturation`'s."""
+METHANE_TABLE_TOP_K = 188.0
+"""float: Where the methane curve ends and above which methane is taken as unable to condense: 188 K, just under its critical temperature (190.56 K), so the latent
+heat, which diverges at the critical point, stays finite (GEN.1030)."""
 
 SUNLIGHT_WIDTH_LN_P = 1.0
 """float: STAND-IN (IR8, tier T7, L0): the width of the layer of sunlight deposited aloft, in ln P (a Gaussian: a haze or an upper methane band is a few
@@ -176,7 +179,52 @@ def latent_heat_j_mol(temperature_k):
     return np.interp(temperature_k, grid, latent)
 
 
-_CP_GRID = np.arange(100.0, 4001.0, 20.0)
+@functools.lru_cache(maxsize=1)
+def _methane_curve():
+    """`(temperature grid, ln of the saturation pressure, latent heat J/mol)` of methane from 30 K to `METHANE_TABLE_TOP_K` (GEN.1030)."""
+    grid = np.arange(30.0, METHANE_TABLE_TOP_K + 0.25, 0.5)
+    log_pressure = np.log([saturation.pressure_pa("CH4", float(t)) for t in grid])
+    latent = R * grid ** 2 * np.gradient(log_pressure, grid)
+    return grid, log_pressure, latent
+
+
+def methane_saturation_pressure_pa(temperature_k):
+    """Methane's saturation pressure at `temperature_k` (scalar or array), Pa; infinite above `METHANE_TABLE_TOP_K`."""
+    grid, log_pressure, _latent = _methane_curve()
+    temperature = np.asarray(temperature_k, dtype=float)
+    value = np.exp(np.interp(np.maximum(temperature, grid[0]), grid, log_pressure))
+    return np.where(temperature > grid[-1], np.inf, value)
+
+
+def methane_latent_heat_j_mol(temperature_k):
+    """Methane's latent heat at `temperature_k`, J/mol, from the slope of its saturation curve (Clausius and Clapeyron)."""
+    grid, _log, latent = _methane_curve()
+    return np.interp(temperature_k, grid, latent)
+
+
+_CP_GRID = np.arange(40.0, 4001.0, 20.0)
+
+H2_ROTATION_TEMPERATURE_K = 87.55
+"""float: The rotational temperature of molecular hydrogen, hc B / k with B = 60.853 cm-1 (Herzberg 1950; NIST Chemistry WebBook) and hc/k = 1.43878 cm K."""
+EQUILIBRIUM_HYDROGEN_BELOW_K = 200.0
+"""float: Below this temperature the heat capacity of hydrogen is that of equilibrium ortho and para forms (GEN.1030); the NASA fit of `species_thermo` starts here, where the two agree to 1 percent."""
+
+
+def equilibrium_hydrogen_cp_over_r(temperature_k):
+    """
+    The heat capacity at constant pressure over R of molecular hydrogen whose ortho and para forms stay in equilibrium (translation 5/2 plus the rotational
+    fluctuation, levels of weight (2J + 1) with a nuclear spin factor of 3 for odd J and 1 for even J). Cold hydrogen is far from the 7/2 of a hot one: it
+    reaches 4.4 at 60 K, which makes the lapse rate of a giant's troposphere there about a fifth shallower (Gierasch 1985).
+    """
+    temperature = np.asarray(temperature_k, dtype=float)[..., None]
+    level = np.arange(40)
+    energy = level * (level + 1) * H2_ROTATION_TEMPERATURE_K
+    weight = (2 * level + 1) * np.where(level % 2 == 1, 3.0, 1.0)
+    boltzmann = weight * np.exp(-energy / temperature)
+    total = boltzmann.sum(axis=-1)
+    mean = (boltzmann * energy).sum(axis=-1) / total
+    spread = (boltzmann * energy ** 2).sum(axis=-1) / total - mean ** 2
+    return 2.5 + spread / temperature[..., 0] ** 2
 
 
 def _atoms(formula):
@@ -189,7 +237,8 @@ def _cp_over_r(formula):
     """
     The heat capacity at constant pressure over R of a gas on `_CP_GRID`, from the first source the gas has (GEN.852, row IR9):
 
-    1. its NASA Glenn fit (`species_thermo.gas`; the cold end of the fit stands in below it, the hot end above it);
+    1. its NASA Glenn fit (`species_thermo.gas`; the cold end of the fit stands in below it, the hot end above it; for hydrogen, below
+       `EQUILIBRIUM_HYDROGEN_BELOW_K` the heat capacity of ortho and para forms in equilibrium instead, GEN.1030, row IR15);
     2. the heat capacities the gas table gives at 100, 300 and 1000 K (`gases.Gas.cp_j_mol_k`), interpolated linearly in temperature and
        held at the end values beyond them (a polyatomic gas gains heat capacity above 1000 K, so this is low there);
     3. a rigid-rotor count of the atoms: 5/2 for one, 7/2 for two, and 4 + (3N - 6) / 2 for a molecule of N atoms, half its vibrations awake.
@@ -200,7 +249,12 @@ def _cp_over_r(formula):
         pass
     else:
         low, high = thermo.range_k
-        return np.array([thermo.cp_over_r(min(max(t, low), high)) for t in _CP_GRID])
+        values = np.array([thermo.cp_over_r(min(max(t, low), high)) for t in _CP_GRID])
+        if formula == "H2":
+            join = float(equilibrium_hydrogen_cp_over_r(EQUILIBRIUM_HYDROGEN_BELOW_K))
+            cold = _CP_GRID < EQUILIBRIUM_HYDROGEN_BELOW_K
+            values[cold] = equilibrium_hydrogen_cp_over_r(_CP_GRID[cold]) + (thermo.cp_over_r(max(low, EQUILIBRIUM_HYDROGEN_BELOW_K)) - join)
+        return values
     known = sorted((float(t), v / R) for t, v in gases.gas(formula).cp_j_mol_k.items() if v is not None)
     if known:
         return np.interp(_CP_GRID, [t for t, _ in known], [v for _, v in known])
@@ -230,23 +284,41 @@ class Column:
         self.dry_molar_mass = sum(fraction * gases.gas(formula).molar_mass for formula, fraction in self.dry.items())
         self.cp_dry = R * sum(fraction * _cp_over_r(formula) for formula, fraction in self.dry.items()) if self.dry else np.zeros_like(_CP_GRID)
         self.cp_water = R * _cp_over_r("H2O")
+        # the condensable of the adiabat (GEN.1030): water when the air holds any; else methane, whose condensation makes the lapse rate of the cold
+        # hydrogen giants about half the dry one (Uranus and Neptune near 1.3 bar). Every other gas is the background it rides in.
+        methane = fractions.get("CH4", 0.0) if self.water_surface <= 0.0 else 0.0
+        if self.water_surface > 0.0:
+            self.condensable_surface, self.background_molar_mass, self.cp_background = self.water_surface, self.dry_molar_mass, self.cp_dry
+            self.cp_condensable = self.cp_water
+            self._saturation, self._latent = saturation_pressure_pa, latent_heat_j_mol
+        elif 0.0 < methane < 1.0:
+            others = {formula: fraction / (1.0 - methane) for formula, fraction in fractions.items() if formula != "CH4"}
+            self.condensable_surface = methane
+            self.background_molar_mass = sum(fraction * gases.gas(formula).molar_mass for formula, fraction in others.items())
+            self.cp_background = R * sum(fraction * _cp_over_r(formula) for formula, fraction in others.items())
+            self.cp_condensable = R * _cp_over_r("CH4")
+            self._saturation, self._latent = methane_saturation_pressure_pa, methane_latent_heat_j_mol
+        else:
+            self.condensable_surface, self.background_molar_mass, self.cp_background = 0.0, 0.0, self.cp_dry
+            self.cp_condensable = self.cp_water
+            self._saturation, self._latent = saturation_pressure_pa, latent_heat_j_mol
         self.prepared = line_opacity.prepare(partial_pressures_pa)
 
     # -- the adiabat --
 
     def _dlnT_dlnP(self, temperature, pressure, condensing=None):
-        """d ln T / d ln P along the adiabat: dry or unsaturated, or the water pseudo-adiabat once the vapour saturates (`condensing`: take that
-        branch whatever the state, so a step that starts on one branch uses it at its midpoint too; None decides from the state)."""
-        cp_dry = np.interp(temperature, _CP_GRID, self.cp_dry)
-        x = self.water_surface
+        """d ln T / d ln P along the adiabat: dry or unsaturated, or the pseudo-adiabat of the condensable (water, else methane) once its vapour saturates
+        (`condensing`: take that branch whatever the state, so a step that starts on one branch uses it at its midpoint too; None decides from the state)."""
+        x = self.condensable_surface
         if x <= 0.0:
-            return R / cp_dry
-        cp_water = np.interp(temperature, _CP_GRID, self.cp_water)
-        saturated = float(saturation_pressure_pa(temperature))
+            return R / np.interp(temperature, _CP_GRID, self.cp_dry)
+        cp_dry = np.interp(temperature, _CP_GRID, self.cp_background)
+        cp_water = np.interp(temperature, _CP_GRID, self.cp_condensable)
+        saturated = float(self._saturation(temperature))
         if not (x * pressure >= saturated if condensing is None else condensing):
             return R / ((1.0 - x) * cp_dry + x * cp_water)
-        latent = float(latent_heat_j_mol(temperature))
-        if self.dry_molar_mass <= 0.0 or pressure <= saturated * (1.0 + 1.0e-9):
+        latent = float(self._latent(temperature))
+        if self.background_molar_mass <= 0.0 or pressure <= saturated * (1.0 + 1.0e-9):
             return min(R * temperature / latent, R / cp_water)
         r = saturated / (pressure - saturated)
         numerator = (1.0 + r) * (R + r * latent / temperature)
@@ -255,8 +327,8 @@ class Column:
         return numerator / denominator
 
     def _saturated(self, temperature, pressure):
-        """Whether the surface's vapour mixing ratio saturates at this temperature and pressure."""
-        return self.water_surface > 0.0 and self.water_surface * pressure >= float(saturation_pressure_pa(temperature))
+        """Whether the surface's vapour mixing ratio of the condensable saturates at this temperature and pressure."""
+        return self.condensable_surface > 0.0 and self.condensable_surface * pressure >= float(self._saturation(temperature))
 
     def _advance(self, temperature, log_pressure, step):
         """One second-order (midpoint) step of ln T along the adiabat, with the branch (dry or saturated) taken at the start."""
