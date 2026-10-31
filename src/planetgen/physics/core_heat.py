@@ -21,7 +21,7 @@ what they were, a body with no core keeps no core state).
    plus the gravitational energy of the freezing iron, drives the dynamo (`Core.dynamo_w`). The dynamo runs while that power is above zero and the
    core still has a liquid shell. `Core.dynamo_ended_gy` is the age it last stopped (`None` while it runs).
 
-Every number that is not a published value is a stand-in in the gap registry (docs/design/research/gap-filling-plan.md section 6.59).
+Every number that is not a published value is a stand-in in the gap registry (docs/design/research/gap-filling-plan.md section 6.132).
 """
 
 import math
