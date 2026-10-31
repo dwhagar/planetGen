@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2977] - 2026-10-31
+
+**Headline:** The installer and updater now check that MySQL and Redis are protected from the kernel's out-of-memory killer, and offer a memory limit for the generation workers.
+
+### Changed
+
+- `scripts/oom_advice.py` (run by `install.sh` and `update.sh` after the redo log check, advice only) prints the `OOMScoreAdjust=-900` drop-in for the MySQL and Redis units that are loaded and not at -900 or lower (INSTALL.md said -800), and an optional `MemoryHigh`/`MemoryMax` drop-in for `apache2.service`, where the workers run, sized at 55 and 65 percent of the host's memory. INSTALL.md says so. Nothing on the server is changed. generation-output: unchanged
+
 ## [8.0.2976] - 2026-10-31
 
 **Headline:** The stars filter now also works in Nearby, the Systems list and its API, and the command line, and a system can be sorted by how many stars it holds.
