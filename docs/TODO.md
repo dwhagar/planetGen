@@ -14397,6 +14397,36 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Related: GEN.999, GEN.1154, GEN.1200, GEN.1202. Owner: Core 3.
   Prerequisites: none.
 
+- [ ] **GEN.1231 White dwarf pollution flag reads the belt's scattered rate (is_polluted, pollution_rate_g_s) and the census band 25 to 50 percent**
+  From Star 2 (relayed 4:03 PM EDT 2026-10-31 as the lane reported), the
+  follow-up of GEN.1072 (#4430): remnant_orbits.pollution_rate_g_s and
+  belt_history.is_polluted are built and read only by tests. Do: a white
+  dwarf with a belt carries a polluted flag when the belt's scattered
+  rate, read from the belt the generator drew, gives a pollution rate
+  above the detection limit, and the share of white dwarfs flagged falls
+  in the observed 25 to 50 percent band (Koester 2014 and Zuckerman 2010
+  give the share; a census test checks it); the flag shows on the star's
+  page. Needs the belt birth chain, so a belt exists to scatter. Changes
+  generated output (stored flag), so it rides a train after GEN.1068.
+  Stand-ins go in GEN.725 with tier and tweak level; the wiring-register
+  lines for is_polluted and pollution_rate_g_s name this item. Owner:
+  Star 2.
+  Prerequisites: GEN.1068. Related: GEN.1072, GEN.1068, GEN.725.
+
+- [ ] **GEN.1232 Belt history shown on the belt page: history_text and the giant event / companion limit (giant_event)**
+  From Star 2 (relayed 4:03 PM EDT 2026-10-31 as the lane reported), the
+  follow-up of GEN.1072 (#4430): belt_history.history_text and the
+  giant_event function (the giant event and companion limit for a belt)
+  are built and read only by tests. Do: the belt's page shows its
+  history in plain words (what the star's evolution did to it: survived,
+  scattered by a giant event, engulfed, or limited by a companion) from
+  history_text, with giant_event deciding the event from the stored
+  giants and companions; no generated output changes, so this is
+  lock-free and plain-words rules apply (Oxford comma, no
+  out-of-universe words). The wiring-register lines for history_text and
+  giant_event name this item. Owner: Star 2.
+  Prerequisites: none. Related: GEN.1072, GEN.1068.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
