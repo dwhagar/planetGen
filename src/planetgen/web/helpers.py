@@ -35,6 +35,11 @@ these:
 - `pager(...)`: `lib/pagination.render_pagination`, as Markup.
 - `bookmark(kind, value, name, url, sector_id=None)`: what a page's
   ☆ Bookmark button saves (`templates/partials/bookmark.html`).
+- `reference_link(kind, entry=None, label="Where this comes from")`: the
+  quiet link from an in-universe page to the References entry that says
+  where a number came from (DOC.87). The only way a page points at
+  References; the addresses live in `lib/reference_urls.py`. Templates
+  call it as a global.
 """
 
 from flask import current_app, g, render_template, request, url_for
@@ -43,6 +48,7 @@ from markupsafe import Markup
 from planetgen.web.lib import apiclient
 from planetgen.api.authz import session_cookie_name
 from planetgen.web.lib.pagination import render_pagination
+from planetgen.web.lib.reference_urls import reference_path
 
 from . import csrf
 
@@ -92,6 +98,17 @@ def crumb(label, name=None, _anchor=None, **params):
     """One breadcrumb: `{"label", "url"}`. Leave `name` out for the
     current page (the last crumb), which is shown as text."""
     return {"label": label, "url": page_url(name, _anchor=_anchor, **params) if name else None}
+
+
+def reference_link(kind, entry=None, label="Where this comes from"):
+    """
+    The link from an in-universe page to the References entry that answers "where does this come from" (DOC.87), as Markup:
+    `<a class="reference-link" href="...">Where this comes from</a>`. `kind` and `entry` are those of
+    `reference_urls.reference_path` (`reference_link("method", "atmospheres/surface_pressure")`, `reference_link("papers",
+    doi)`); a kind or id that does not exist raises `ValueError`, so a typo in a template fails the page and the crawl test.
+    The link adds no sentence to the page: the label is a small phrase or an icon (`label` may be changed for a short form).
+    """
+    return Markup('<a class="reference-link" href="{}">{}</a>').format(reference_path(kind, entry), label)
 
 
 def trusted_html(html):
