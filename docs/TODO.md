@@ -14799,6 +14799,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   census shows the effect.
   Prerequisites: none.
 
+- [ ] **GEN.1153 Day and night state for stars and rogue planets (follow-up to GEN.1097, which covers planets and moons): a star stores the constant "no night"; a rogue planet gets the same state, night hours and solar days as an in-system planet from its own spin, with no star the answer is no solar day**
+  GEN.1097 stores a day and night state, hours of night and solar days
+  per year for every planet and moon and shows them on the property
+  sheet. Stars and rogue planets store nothing yet. Belt bodies get
+  theirs with GEN.1069. Needs a migration for any stored column, so it
+  rides a train after GEN.1097.
+  Prerequisites: GEN.1097.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
