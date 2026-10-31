@@ -277,11 +277,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.126:RN10 | GEN.1178 | `roundness.RANGES_PA`, not read until the strength draw is wired into `draw.py` with GEN.1159 |
 | module | planetgen.physics.ice_types | GEN.1159 | the strength of the other ices next to ice Ih and the ice type of a body from its components (lock-free); `roundness.py` takes the ratio as a factor on its ice strength when the types are wired |
 | row | 6.126:RN11 | GEN.1201 | `roundness.ROCK_CREEP_COLUMNS`, not read until GEN.1201 gives each body a shape-set temperature to pass to the engine |
-| module | planetgen.physics.ring_darkening | GEN.1055 | how bright a ring is for its age and the dust that falls on it (R6) and how much sunlight a ring shades from a latitude over the lit half of the day (R8); `rings.apply` and the climate read it when GEN.1055 wires it |
-| row | 6.148:RGD1 | GEN.1055 | `ring_darkening.CLEAN_ICE_ALBEDO` and `HALF_DARKENING_SHARE`, not read until GEN.1055 wires the module |
-| row | 6.148:RGD2 | GEN.1055 | `ring_darkening.DARK_ALBEDO`, not read until GEN.1055 wires the module |
-| row | 6.148:RGD3 | GEN.1055 | `ring_darkening.SATURN_POLLUTION_FLUX_KG_M2_S`, not read until GEN.1055 wires the module |
-| row | 6.148:RGD4 | GEN.1055 | `ring_darkening.FLUX_DISTANCE_EXPONENT` and `DUST_SPEED_AT_INFINITY_KMS`, not read until GEN.1055 wires the module |
 | data | planet_class_fit.json | GEN.1207 | the percent-match table of every class; the shadow scorer reads it (GEN.1206) and the best-fit classifier makes it the way a stored letter is decided |
 | module | planetgen.physics.class_fit | GEN.1207 | the percent-match scorer; the shadow scorer in src/tests reads it, the classifier replaces the first-match tree with it |
 | module | planetgen.physics.planet_type | GEN.1219 | the terrestrial, transitional or gas type from the envelope share of the mass; the shadow report in src/tests reads it, GEN.1219 stores the type with GEN.1207's epoch |
