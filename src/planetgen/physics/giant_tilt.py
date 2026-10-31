@@ -34,7 +34,6 @@ Use:
     ratio = angular_momentum_ratio(mass_earth, radius_earth, impactor_earth, spin_period_h, u_parameter)
     tilt = tilt_deg(ratio, cos_alpha)
     period_h = final_period_h(mass_earth, radius_earth, ratio, cos_alpha)
-    ring_plane_tilt_deg(tilt)             # = tilt
 """
 
 import math
@@ -157,9 +156,6 @@ def final_period_h(mass_earth, radius_earth, ratio, cos_alpha, spin_fraction=PRE
     return 2.0 * math.pi / omega / 3600.0
 
 
-def ring_plane_tilt_deg(tilt_deg_):
-    """The tilt to the orbit of the ring and the moon plane: the equator's, the planet's own, by construction (R3, G1)."""
-    return tilt_deg_
 
 
 def combined_tilt_deg(initial_tilt_deg, turn_deg, cos_azimuth):

@@ -5,7 +5,7 @@ Galactic Orbit
 ==============
 
 A star system's circular orbit around the galactic center: its speed,
-period and phase, and the text every "Galactic Orbit" row shows.
+period and phase.
 """
 
 import math
@@ -16,7 +16,6 @@ from planetgen.physics.orbits import minimum_update_interval_years
 from planetgen.physics.units import ly_to_pc
 from planetgen.util import draw
 from planetgen.util.checks import finite_domain
-from planetgen.util.format import format_period_years, format_speed_kms
 from planetgen.physics import unit_registry as units
 
 _ly_to_m = units.converter("ly", "m")
@@ -109,22 +108,3 @@ def generate_galactic_orbit_fields(galactic_center_dist_ly=None, galactic_orbita
     min_update_interval_years = minimum_update_interval_years(period_gy * 1e9)
     return speed_kms, period_gy, phase_deg, min_update_interval_years
 
-
-def format_galactic_orbit(speed_kms, period_gy):
-    """
-    Formats a `(galactic_orbital_speed_kms, galactic_orbital_period_gy)`
-    pair as the display string every "Galactic Orbit" table row uses (e.g.
-    `Star.get_table_properties`, `binary.BinaryStarProxy.
-    get_table_properties`, `phenomena.compact_remnant.BlackHole`/`NeutronStar`, and
-    every standalone exotic phenomenon) -- extracted so all of them render
-    it identically instead of re-deriving the same f-string.
-
-    Args:
-        speed_kms (float): Circular orbital speed, km/s.
-        period_gy (float): Orbital period, billions of years.
-
-    Returns:
-        str: e.g. `"206 km/s (236 Myr per orbit)"`, both on the shared
-             ladders (`format_speed_kms`, `format_period_years`).
-    """
-    return f"{format_speed_kms(speed_kms)} ({format_period_years(period_gy * 1e9)} per orbit)"

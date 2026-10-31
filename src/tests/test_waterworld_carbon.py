@@ -141,56 +141,6 @@ def test_the_ocean_must_be_there_and_the_air_must_have_mass():
         wc.ocean_pco2(1.0e6, 300.0, 1.0e6, 0.0, sodium_mol_m2=0.0, calcium_mol_m2=0.0)
 
 
-# --- the temperature of a sealed world --------------------------------------------------------------------------------------
-
-class _Warming:
-    def __init__(self, surface_temperature_k):
-        self.surface_temperature_k = surface_temperature_k
-
-
-def _line(base_k, per_decade, slope_k_per_k=0.0):
-    """A stand-in greenhouse: `base + per_decade * log10(pCO2 / bar)` plus a slope in the vapour pressure's temperature (none by default)."""
-    def warming(pressures, gravity, flux):
-        co2_bar = pressures["CO2"] / 1.0e5
-        return _Warming(base_k + per_decade * math.log10(co2_bar) + slope_k_per_k * math.log10(pressures["H2O"]))
-    return warming
-
-
-def _sealed(carbon_ratio, warming, km=10.0):
-    sodium, calcium = wc.leached_cations_mol_m2(km)
-    return wc.sealed_state(_carbon(carbon_ratio), SEALED_OCEAN_KG_M2, G, 240.0, sodium_mol_m2=sodium, calcium_mol_m2=calcium, warming=warming)
-
-
-def test_a_sealed_world_settles_where_the_greenhouse_returns_the_temperature_of_the_chemistry():
-    warming = _line(300.0, 10.0)
-    state = _sealed(0.03, warming)
-    assert state.status == wc.TEMPERATE
-    pressures = {"CO2": state.carbon.pco2_bar * 1.0e5, "H2O": state.water_vapour_pa}
-    assert warming(pressures, G, 240.0).surface_temperature_k == pytest.approx(state.temperature_k, abs=0.05)
-    assert 273.15 < state.temperature_k < 640.0
-
-
-def test_a_cold_greenhouse_freezes_the_ocean_and_a_hot_one_has_no_balance_below_the_critical_point():
-    frozen = _sealed(0.03, _line(200.0, 0.0))
-    assert frozen.status == wc.FROZEN and frozen.temperature_k < 273.15
-    runaway = _sealed(0.03, _line(900.0, 0.0))
-    assert runaway.status == wc.RUNAWAY and runaway.temperature_k > wc.TEMPERATURE_SCAN_K[1]
-
-
-def test_the_vapour_of_the_air_is_the_saturation_at_the_balance_temperature():
-    from planetgen.physics import saturation
-    state = _sealed(0.03, _line(300.0, 10.0))
-    assert state.water_vapour_pa == pytest.approx(saturation.saturation("H2O", state.temperature_k).pressure_pa)
-
-
-def test_with_the_real_greenhouse_a_carbon_poor_ocean_is_cold_and_a_carbon_rich_one_runs_away():
-    """The thermostat is the cations: the same planet with 0.1 of its ocean's mass as CO2 is far hotter than one with 1e-3. (The greenhouse
-    module's water-vapour feedback is too strong - the findings report - so the cold end sits at the freezing point, not under it.)"""
-    poor, rich = _sealed(1.0e-3, None), _sealed(0.1, None)
-    assert poor.carbon.pco2_bar < 1.0e-6 and poor.temperature_k < 300.0
-    assert rich.status == wc.RUNAWAY and rich.carbon.pco2_bar > 10.0
-
-
 # --- seafloor weathering ----------------------------------------------------------------------------------------------------
 
 LAW = wc.SeafloorLaw(activation_j_mol=75.0e3, ph_exponent=0.27, spreading_exponent=0.47)

@@ -129,8 +129,3 @@ def ice_line_au(luminosity_w, ice="H2O"):
         raise ValueError(f"not an ice of the table: {ice!r}")
     distance_m = math.sqrt(luminosity_w / (16.0 * math.pi * physical_constants.STEFAN_BOLTZMANN_CONSTANT)) / ICE_CONDENSATION_K[ice] ** 2
     return _m_to_au(distance_m)
-
-
-def water_share_at_distance(distance_au, luminosity_w, oxygen=1.0, carbon=1.0, nitrogen=1.0):
-    """The water share of the solids at `distance_au` from a star of `luminosity_w`, at the blackbody temperature there."""
-    return water_share_of_solids(disk_temperature_k(distance_au, luminosity_w), oxygen, carbon, nitrogen)

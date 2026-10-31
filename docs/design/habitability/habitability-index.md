@@ -305,8 +305,8 @@ CO2, SO2 and H2O to CO and CH4, H2S and H2 (15 percent for intermediate). No
 gas exceeds its vapour pressure at the surface temperature (the
 `pN2_cap` of the retention document's 3.3, applied to every gas), and the
 surface pressure drops by what freezes out. Helium, ammonia and sodium are a
-class's unstored balance. `atmosphere.hydrogen_kpa` gives the H inventory for
-the water-loss clock. An H2-dominated mix (`x_H2` over 0.5) is never called
+class's unstored balance. The H inventory for
+the water-loss clock is read from the stored partial pressures (H2, H2O, 2 CH4, H2S) where that clock is built. An H2-dominated mix (`x_H2` over 0.5) is never called
 "reducing" in the text, so the sub-Neptune and Hycean classes can reuse it
 once GEN.90 adds them.
 

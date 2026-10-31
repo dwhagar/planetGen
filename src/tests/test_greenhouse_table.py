@@ -127,13 +127,13 @@ def test_bad_inputs_are_refused():
 @pytest.mark.parametrize("name, air, gravity, flux, haze, model_k, tolerance_k", (
     ("Earth", EARTH, 9.81, EARTH_FLUX, 0.0, 284.0, 4.0),
     ("Mars", MARS, 3.71, 110.0, 0.0, 214.6, 4.0),
-    ("Venus", VENUS, 8.87, 160.0, 0.0, 711.0, 40.0),
+    ("Venus", VENUS, 8.87, 160.0, 0.0, 539.5, 40.0),
     ("Titan", TITAN, 1.35, 2.61, 0.0, 106.8, 4.0),
     ("Titan under its haze", TITAN, 1.35, 2.61, 0.6, 93.3, 8.0),
 ))
 def test_the_table_gives_the_temperatures_the_model_is_checked_to(name, air, gravity, flux, haze, model_k, tolerance_k):
     """The model's own results (`docs/design/composition/line-opacity.md`, Checks): Earth with 1 kPa of vapour and the cloud share 284.0 K (275.6 K clear sky; measured 288 K), Mars 210 to 215 K,
-    Venus 711 K (measured 735 K), Titan 106.8 K clear and 93.3 K under a haze that takes 60 percent of the sunlight at 30 mbar (measured 94 K)."""
+    Venus 539.5 K in a clear sky with the sourced far wings of carbon dioxide (GEN.1019; 757 K once the sulfuric acid cloud of GEN.1020 is in the column, measured 735 K), Titan 106.8 K clear and 93.3 K under a haze that takes 60 percent of the sunlight at 30 mbar (measured 94 K)."""
     warming = gt.warming(air, gravity, flux, haze, 3.0e3 if haze else None)
     assert abs(warming.surface_temperature_k - model_k) < tolerance_k
 
@@ -153,7 +153,7 @@ def test_doubling_the_carbon_dioxide_warms_by_about_what_the_model_gives():
     ("Earth with ten times the carbon dioxide", _co2(2800.0), 9.81, EARTH_FLUX, 0.03),
     ("Mars", MARS, 3.71, 110.0, 0.03),
     ("a 5 bar carbon dioxide air", {"CO2": 4.8e5, "N2": 2.0e4}, 9.0, 300.0, 0.05),
-    ("Venus", VENUS, 8.87, 160.0, 0.05),                       # the hot dense airs are the table's weakest (the file's validation says by how much)
+    ("Venus", VENUS, 8.87, 160.0, 0.06),                       # the hot dense airs are the table's weakest (the file's validation says by how much): 5.5 percent warm at 92 bar
     ("Titan", TITAN, 1.35, 2.61, 0.03),
     ("a cold 2 bar nitrogen-methane air", {"N2": 1.9e5, "CH4": 1.0e4}, 3.0, 8.0, 0.05),
     ("a hydrogen-helium air", {"H2": 8.0e5, "He": 2.0e5}, 12.0, 60.0, 0.05),

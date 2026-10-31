@@ -37,6 +37,7 @@ const THREE = await import(`./vendor/three.module.min.js${VERSION_QUERY}`);
 const { glowInnerRatio, makeBandTexture, makeGasRingTexture, makeGlowMaterial, paintedTexture } = await import(`./bodyRendering.js${VERSION_QUERY}`);
 const { makeCache, makeQueue, parseLook, tierForDiameter, TIER_SIZES } = await import(`./bodytexture.js${VERSION_QUERY}`);
 const { paintSolid } = await import(`./solidpaint.js${VERSION_QUERY}`);
+const { isLumpy, lumpyGeometry } = await import(`./lumpymesh.js${VERSION_QUERY}`);
 const { glowFor, paintStar } = await import(`./starpaint.js${VERSION_QUERY}`);
 const { formatDistanceKm: formatLadderKm } = await import(`./unitladder.js${VERSION_QUERY}`);
 const { addField } = await import(`./mapcore.js${VERSION_QUERY}`);
@@ -146,7 +147,8 @@ function initSphereField(canvasEl) {
   // time regardless.
   var planetMaterial = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.9, metalness: 0.05 });
   var starMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff });
-  var sphere = new THREE.Mesh(new THREE.SphereGeometry(SPHERE_R, 48, 32), planetMaterial);
+  var roundGeometry = new THREE.SphereGeometry(SPHERE_R, 48, 32);
+  var sphere = new THREE.Mesh(roundGeometry, planetMaterial);
   bodyGroup.add(sphere);
 
   var ring = new THREE.Mesh(
@@ -203,6 +205,9 @@ function initSphereField(canvasEl) {
   }
 
   function disposeMarker(marker) {
+    if (marker.lumpy) {
+      marker.lumpy.geometry.dispose();
+    }
     if (marker.bandTexture) {
       marker.bandTexture.dispose();
     }
@@ -234,7 +239,7 @@ function initSphereField(canvasEl) {
         ? RING_OUTER_R * 1.15
         : marker.isStar
           ? GLOW_R * marker.glowScale * 1.15
-          : GLOW_R * 1.15;
+          : Math.max(GLOW_R, marker.lumpy ? marker.lumpy.extent : 0) * 1.15;
       return { cx: cx, cy: cy, side: 2 * halfExtent * r, halfExtent: halfExtent };
     });
   }
@@ -260,6 +265,7 @@ function initSphereField(canvasEl) {
   function configureBody(marker) {
     if (marker.isStar) {
       sphere.material = starMaterial;
+      sphere.geometry = roundGeometry;
       // the painted star texture (starpaint.js) already bakes the
       // star's own color into its granulation pattern -- tinting
       // starMaterial.color on top of that too would double-multiply it
@@ -293,6 +299,7 @@ function initSphereField(canvasEl) {
       return;
     }
     sphere.material = planetMaterial;
+    sphere.geometry = marker.lumpy ? marker.lumpy.geometry : roundGeometry;     // MAP.279: a body its weight has not made round is a lump
     var painted = marker.isGasGiant ? null : textureFor(marker, tierForDiameter(marker.diameterPx));
     planetMaterial.map = marker.isGasGiant ? marker.bandTexture : painted;
     planetMaterial.color.set(marker.isGasGiant || painted ? "#ffffff" : marker.color);
@@ -455,6 +462,9 @@ function gatherSphereMarkers(sceneEl) {
       glowColor: look.glow || "#bcdfff",
       axis: Spin.pictureAxisOf(look),
     };
+    if (isLumpy(look)) {
+      marker.lumpy = lumpyGeometry(THREE, look);
+    }
     if (isGasGiant) {
       marker.bandTexture = makeBandTexture(THREE, marker.color);
       marker.ringTexture = makeGasRingTexture(THREE, marker.color);

@@ -27,7 +27,7 @@ The night share is one minus the day share.
   retrograde spin and gives the same seasons.
 * The surface mean is exact: a sphere is lit over `(1 + sin alpha) / 2` of its area at every instant, whatever the tilt.
 * The solar day is `1 / |1/P_rot -/+ 1/P_orb|`. A world with `P_rot = P_orb` has no day; its day side is lit all the time, the
-  terminator half of it, the night side never (`locked_zone_shares`).
+  terminator half of it, the night side never.
 * The polar circle is `90 - e - alpha` degrees.
 * A moon is in its planet's shadow while the centre of the star is behind the planet's disc as the moon sees it
   (`theta = asin(R_planet / a)`). With `beta` the angle between the star and the moon's orbit plane that is a share

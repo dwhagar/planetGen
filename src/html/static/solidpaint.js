@@ -10,8 +10,8 @@
 //     really covers) equals the stored `ocean` fraction, so the page's numbers and the picture agree;
 //   * ice sits where the mean temperature, lowered toward the poles, is below the freezing point of water, with a
 //     ragged edge from the same seeded noise;
-//   * land is one stand-in colour from temperature (look.quality "estimate"), two tones by height; the composition
-//     colour replaces it later (MAP.274);
+//   * land is one colour, two tones by height: the lab colour of the stored ground types (look.quality "composition",
+//     MAP.274), or a stand-in from temperature (look.quality "estimate") where no ground is stored;
 //   * a world with no air shows seeded craters.
 //
 // Same look, same size: same pixels. Do not change the noise without a changelog note.

@@ -284,11 +284,6 @@ def haze_fall(column, temperature_k, radius_m, density_kg_m3, top_pressure_pa, k
     return total, level_pa
 
 
-def haze_fall_integral_s_m(column, temperature_k, radius_m, density_kg_m3, top_pressure_pa, kzz_m2_s):
-    """`haze_fall`'s integral alone: the time, seconds per metre, a grain takes to fall through the air column."""
-    return haze_fall(column, temperature_k, radius_m, density_kg_m3, top_pressure_pa, kzz_m2_s)[0]
-
-
 def haze_supply_kg_m2_s(column, temperature_k, kzz_m2_s):
     """The diffusion-limited methane supply as a carbon-bearing mass flux, `N K_zz f_CH4 / H_a`, kg per m2 per s, at the level where the
     methane column is one Lyman-alpha optical depth."""

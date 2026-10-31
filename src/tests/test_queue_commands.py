@@ -184,7 +184,7 @@ def test_a_unit_that_fails_in_a_later_stage_fails_the_run(monkeypatch, conn):
         return {}
 
     monkeypatch.setattr(commands, "unit_function", lambda kind: (lambda args, report: {}) if kind == "first" else explode)
-    with pytest.raises(units.RunStopped, match="unit 1 of stage 1 failed: ValueError: no stars here"):
+    with pytest.raises(units.RunStopped, match="unit 1 of stage B failed: ValueError: no stars here"):
         wrapper.run("Fails", [commands.Step("a", "first", "A"), commands.Step("b", "second", "B")],
                     lambda index, plan: None, lambda index, unit, result: None)
     assert runrecord.read_run(conn, runrecord.recent_runs(conn)[0])["state"] == "failed"

@@ -83,22 +83,6 @@ def test_cross_sections_fall_with_the_fourth_power_of_the_wavelength_and_a_gas_w
         rayleigh.cross_section_cm2(missing, 550.0)
 
 
-def test_a_mixture_with_a_trace_of_an_uncovered_gas_still_has_a_depth_and_reports_the_gap():
-    uncovered = next(gas.formula for gas in gases.GASES if gas.rayleigh is None and gas.molar_mass < 0.1)
-    air = air_column.from_partials({**EARTH_DRY_AIR_PA, uncovered: 0.01 * 101325.0}, EARTH_G)
-    assert rayleigh.uncovered_fraction(air) == pytest.approx(0.01, rel=0.01)
-    with pytest.raises(rayleigh.NoRayleigh):
-        rayleigh.optical_depth(air, 550.0)
-
-
-def test_the_band_depth_lies_between_its_edges():
-    column = _earth_air()
-    band = rayleigh.band_optical_depth(column, 280.0, 315.0)
-    assert rayleigh.optical_depth(column, 315.0) < band < rayleigh.optical_depth(column, 280.0)
-    with pytest.raises(ValueError):
-        rayleigh.band_optical_depth(column, 315.0, 280.0)
-
-
 def _body(**fields):
     base = {"planet_class": "M", "gravity": 1.0, "atmospheric_pressure": 101325.0}
     base.update(fields)
@@ -129,3 +113,10 @@ def test_sodium_is_left_out_of_the_column_for_want_of_a_cross_section():
 def test_a_body_without_air_or_gravity_has_no_column():
     assert air_column.column_of(_body(atmospheric_pressure=0.0)) is None
     assert air_column.column_of(_body(gravity=0.0, p_n2_kpa=80.0)) is None
+
+
+def test_a_mixture_with_a_trace_of_an_uncovered_gas_has_no_depth():
+    uncovered = next(gas.formula for gas in gases.GASES if gas.rayleigh is None and gas.molar_mass < 0.1)
+    air = air_column.from_partials({**EARTH_DRY_AIR_PA, uncovered: 0.01 * 101325.0}, EARTH_G)
+    with pytest.raises(rayleigh.NoRayleigh):
+        rayleigh.optical_depth(air, 550.0)

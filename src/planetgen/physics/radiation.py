@@ -45,12 +45,15 @@ section 4 (design defaults). A rocky body's yearly dose, mSv/yr, is
    above: the design note section 2.3). A world that loses its ozone keeps `OZONE_LOSS_REMAINING` of it (Segura et al. 2010: 94 percent
    removed by one large flare; Howard et al. 2018: 90 percent by repeated flaring): the stored `ozone_column_du` is the column that is left, the
    UV index, the habitability score and the colour of the sky and ground are worked out from it. A loss event that removes air (stripping,
-   impact, escape) scales the stored column by the share of the air kept and the UV index follows (`apply_air_loss`, GEN.668).
+   impact, escape) is not applied to the stored ozone column here: the final-age refresh (GEN.839) works the dose and the ozone again from the air that is left.
 7. **Galactic hazard (`lethal_event_rate_per_gyr`, on the star).** A
    supernova within 8 pc, 1.5 per Gyr at 8 kpc from the centre, times
    `exp((8 kpc - R) / 1.45 kpc)` (250x at the centre), plus gamma-ray bursts
    (2 per Gyr at the Sun, falling outward) and nuclear-activity episodes (10
    per Gyr inside 2.9 kpc), GEN.189.
+8. **Trapped particles (`dose_belt_msv_yr`, GEN.983).** A moon in the belts of its parent's field takes their dose at its orbit, from the half of the sky
+   the body does not block, cut by its own air (`radiation_belts.moon_exposure_msv_yr`, `apply_parent_belts`). A planet's own belts lie above its air
+   and give its ground 0; a giant has no surface.
 
 A planet of a pulsar or a black hole is rated by GEN.89, not here.
 """
@@ -58,13 +61,13 @@ A planet of a pulsar or a black hole is rated by GEN.89, not here.
 import math
 
 from planetgen import tuning
-from planetgen.physics import body_colour, body_radiation, constants, magnetism, mixture, ozone, proton_range, radiogenic, solar_particles, surface_composition
+from planetgen.physics import body_radiation, constants, magnetism, mixture, ozone, proton_range, radiation_belts, radiogenic, solar_particles, surface_composition
 from planetgen.util import draw
 from planetgen.util.random import log_uniform
 
 BODY_FIELDS = (
     "surface_dose_msv_yr", "dose_gcr_msv_yr", "dose_sep_msv_yr", "dose_ground_msv_yr", "dose_helio_mult",
-    "uv_surface_index", "ozone_loss_flag", "ozone_column_du",
+    "uv_surface_index", "ozone_loss_flag", "ozone_column_du", "dose_belt_msv_yr",
 )
 """tuple: What `generate_dose` sets on a planet or moon, as stored in
 `planets` and `moons`."""
@@ -469,7 +472,7 @@ def generate_dose(body):
     distance = getattr(body, "_star_distance_au", None)
     pressure_pa = getattr(body, "atmospheric_pressure", None) or 0.0
     column = column_g_cm2(pressure_pa, getattr(body, "gravity", None))
-    moment = (getattr(body, "magnetic_moment_a_m2", None) or 0.0) * magnetism.body_dipole_share(body)
+    moment = getattr(body, "magnetic_moment_a_m2", None) or 0.0
     cutoff = cutoff_rigidity_gv(moment, body.radius)
     modulation = log_uniform(*tuning.GCR_SOLAR_MODULATION_RANGE)
     gcr = gcr_dose_msv_yr(column, cutoff, modulation)
@@ -482,26 +485,47 @@ def generate_dose(body):
     body.dose_sep_msv_yr = sep
     body.dose_ground_msv_yr = ground
     body.dose_helio_mult = 1.0
-    body.surface_dose_msv_yr = gcr + sep + ground
+    body.dose_belt_msv_yr = belt_dose_msv_yr(body, column)
+    body.surface_dose_msv_yr = gcr + sep + ground + body.dose_belt_msv_yr
     body.ozone_loss_flag = ozone_lost(body)
     if body.ozone_loss_flag:     # GEN.808: the ozone the flares leave is what filters the ultraviolet and tints the sky
         body.ozone_column_du *= OZONE_LOSS_REMAINING
     body.uv_surface_index = body_radiation.dna_dose_index(body)
 
 
-def apply_air_loss(body, retained_fraction):
+def belt_dose_msv_yr(body, column):
+    """The dose, mSv/yr, a moon takes from its parent's belts through an air of `column` g/cm2: the exposure `apply_parent_belts` stored, cut by the air
+    (GEN.983). 0 for a planet, and for a moon until it has the exposure."""
+    return (getattr(body, "_belt_exposure_msv_yr", None) or 0.0) * radiation_belts.air_cut(column)
+
+
+def apply_parent_belts(moon, parent):
     """
-    Takes a loss event that kept `retained_fraction` of a rocky body's air into its stored ozone and ultraviolet (GEN.668): the
-    ozone column scales by the share kept (`ozone.column_after_air_loss`) and the UV index is worked out again from it. The
-    caller applies the loss to the air itself (its pressure and gases) first; the UV index reads the air as it stands.
-    A body with no stored ozone column (a giant, or a row saved before it) is left as it is.
+    GEN.983: stores on a moon the dose it takes, bare, from the belts of its parent's field (`radiation_belts.moon_exposure_msv_yr`, no draws), and
+    makes its stored belt dose and surface dose from it. Call once the parent's field and the moon's orbit and dose are set; `generate_dose` keeps the
+    exposure and cuts it by the air as it then is. A moon with no stored dose (a body saved without one) is left as it is.
     """
-    column = getattr(body, "ozone_column_du", None)
-    if column is None:
+    moon._belt_exposure_msv_yr = radiation_belts.moon_exposure_msv_yr(parent, moon.distance)
+    old = getattr(moon, "dose_belt_msv_yr", None)
+    if old is None:
         return
-    body.ozone_column_du = ozone.column_after_air_loss(column, retained_fraction)
-    body.uv_surface_index = body_radiation.dna_dose_index(body)
-    body_colour.generate(body)
+    new = belt_dose_msv_yr(moon, column_g_cm2(getattr(moon, "atmospheric_pressure", None) or 0.0, getattr(moon, "gravity", None)))
+    moon.surface_dose_msv_yr += new - old
+    moon.dose_belt_msv_yr = new
+
+
+def update_ground_dose(body):
+    """
+    GEN.839: the ground dose and the surface dose that holds it, made again from the ground the body now stores (the volcanism gate follows
+    the heat at the star's final age); the rest of the dose is kept. Draws the radon diffusion factor again. A body with no stored dose (a
+    giant, or one saved before it) is left as it is.
+    """
+    old = getattr(body, "dose_ground_msv_yr", None)
+    if body.body_type == "g" or old is None:
+        return
+    ground = _ground_dose(body, getattr(body, "atmospheric_pressure", None) or 0.0)
+    body.surface_dose_msv_yr += ground - old
+    body.dose_ground_msv_yr = ground
 
 
 def column_g_cm2(pressure_pa, gravity_g):
@@ -511,6 +535,6 @@ def column_g_cm2(pressure_pa, gravity_g):
     return pressure_pa / gravity * 0.1 if gravity > 0 and pressure_pa else 0.0
 
 
-def total_dose_msv_yr(gcr, helio_mult, sep, ground):
+def total_dose_msv_yr(gcr, helio_mult, sep, ground, belt=0.0):
     """`surface_dose_msv_yr` from its parts."""
-    return gcr * helio_mult + sep + ground
+    return gcr * helio_mult + sep + ground + (belt or 0.0)
