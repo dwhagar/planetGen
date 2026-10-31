@@ -25,6 +25,8 @@ SENSITIVITY_K_PER_W_M2 = (2.0 / 3.7, 5.0 / 3.7)
 """tuple: The very likely range of the equilibrium climate sensitivity (2 to 5 K per doubling of CO2, AR6) over the forcing of a doubling (3.7 W/m2)."""
 EARTH_WATER_KG, EARTH_OCEAN_COVER = 1.4e21, 0.71
 """float: Earth's ocean (a test target): the twin's own water is a dry planet's, and a sweep through it crosses the freezing of its small sea."""
+TEMPERATE_K = (260.0, 340.0)
+"""tuple: The surface temperatures, K, between which a twin counts as Earth-like (Earth 288 K) for the sweep."""
 FACTORS = (0.90, 0.95, 1.0, 1.05, 1.10)
 """tuple: The sweep, as a share of the absorbed flux of the twin: a cooling half and a warming half."""
 
@@ -46,10 +48,17 @@ def _earth_twin_setting(monkeypatch):
     with draw.bound("climate-sweep-star"):
         star = Star(config)
     inner, outer = star.habitable_zone
-    with draw.bound(3):
-        Planet(config, star, star.habitable_zone, 0.5 * (inner + outer), mass=constants.EARTH_MASS_TO_KG, moon_count=0)
+    for seed in range(3, 60):       # the first draw whose air with Earth's ocean stands at a temperate temperature: the planet a seed makes moves with the generator
+        with draw.bound(seed):
+            Planet(config, star, star.habitable_zone, 0.5 * (inner + outer), mass=constants.EARTH_MASS_TO_KG, moon_count=0)
+        setting = dataclasses.replace(captured["setting"], water_kg=EARTH_WATER_KG, ocean_cover=EARTH_OCEAN_COVER)
+        with draw.bound("climate-sweep"):
+            air = real(setting, captured["start"])
+        if air.converged and TEMPERATE_K[0] < air.temperature_k < TEMPERATE_K[1]:
+            monkeypatch.undo()
+            return setting, captured["start"]
     monkeypatch.undo()
-    return (dataclasses.replace(captured["setting"], water_kg=EARTH_WATER_KG, ocean_cover=EARTH_OCEAN_COVER), captured["start"])
+    pytest.fail("no Earth-mass planet of 57 seeds stands at a temperate temperature with Earth's ocean")
 
 
 @pytest.fixture(scope="module")
