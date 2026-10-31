@@ -3714,7 +3714,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.512 | test_rogue_planet_parity::test_the_gap_between_a_rogue_and_a_bound_planet_never_grows is red on main | none | done, PR #4405 |
 | TEST.513 | test_strings_the_code_shows_have_no_todo_code is red on main: TODO codes in shown strings (sheet.py GEN.1142, small_body_composition.py GEN.475/GEN.473, surface_composition.py GEN.474 twice) | none | done, PR #4412 |
 | TEST.514 | test_habitability_world::test_the_score_round_trips_and_a_cloud_rescores_the_dose is red on main: phi4_temperature 0.75 against 0.8075 after the cloud refresh (bug) | none | done, PR #4437 |
-| TEST.515 | test_planet_zones::test_the_share_of_pair_nodes_with_a_p_type_window_is_the_measured_one is red on main for 2 and 7 stars after the dark members (GEN.1013) changed the tree draw (bug) | none | done, PR #4442 |
+| TEST.515 | test_planet_zones::test_the_share_of_pair_nodes_with_a_p_type_window_is_the_measured_one is red on main for 2 and 7 stars after the dark members (GEN.1013) changed the tree draw (bug) | none | done, already fixed by PR #4442 (TEST.515 re-measure); not reproduced on main |
 | TEST.516 | tests/test_readme_external_files.py has 3 failures on main: the README external-files section differs from the dataset catalogue (bug) | none | done, PR #4457 |
 | TEST.517 | test_class_pages_show_the_constants is red on main: the brown dwarf mass range text on the class page differs from the test (bug) | none | done, PR #4458 |
 | TEST.518 | test_a_body_with_a_stored_day_turns_at_the_shared_rate_and_a_tilted_one_turns_backwards fails in a whole-file run of test_web_browser_bodyview.py but passes alone (timing sensitive) (bug) | none | done, PR #4465 |
@@ -3734,7 +3734,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.532 | Give the bright-star backfill unit path (backfill_bright_stars_unit) its own direct tests, since the serial form the tests cover is no longer the path a run takes | none | done, PR #4566 |
 | TEST.533 | test_disk_history::test_the_present_rate_over_the_mean_is_within_a_factor_of_two_of_the_milky_ways is red on main (0.505 against a bound of 0.393, 0.554 after GEN.999): the model's recent star formation rate over its mean is about 2.5 times the Milky Way's (bug) | none | done, PR #4575 |
 | TEST.534 | test_near::test_the_search_counts_what_is_not_generated_yet_and_never_reads_the_sectors_to_search is red on clean main: its _scatter_rows insert fails with column count does not match value count (bug) | none | done, PR #4580 |
-| TEST.535 | The two test_planet_zones P-type share tests are red on clean main (dark members) (bug) | none | open |
+| TEST.535 | The two test_planet_zones P-type share tests are red on clean main (dark members) (bug) | none | done, already fixed by PR #4442 (TEST.515 re-measure); not reproduced on main |
 | TEST.536 | test_deploy_scripts::test_scripts_only_name_repo_paths_that_exist is red on main (bug) | none | done, PR #4578 |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |

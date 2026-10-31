@@ -19546,16 +19546,6 @@ clears each one.
   line in the same change, like a module.
   Prerequisites: none.
 
-- [ ] **TEST.535 The two test_planet_zones P-type share tests are red on clean main (dark members) (bug)**
-  Reported by Planets 1 earlier and again at 2:44 PM EDT 10-31 (as the
-  lane reported). The P-type share tests in
-  src/tests/test_planet_zones.py fail since the dark-member change
-  (GEN.1013, train 6): the share of P-type systems now counts dark
-  members. Decide whether the code or the expected share is right
-  (physics decides; no game rates), fix it, and say which. Tests only
-  unless the code is wrong. Owner: Aux 3 (built GEN.1013).
-  Prerequisites: none.
-
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
