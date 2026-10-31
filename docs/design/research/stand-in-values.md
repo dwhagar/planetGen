@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 850 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 854 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -36,7 +36,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 132 | 11 | 7 | 1 | 0 | 151 |
+| T1 | 133 | 13 | 7 | 1 | 0 | 154 |
 | T2 | 109 | 25 | 0 | 1 | 0 | 135 |
 | T3 | 77 | 31 | 5 | 10 | 0 | 123 |
 | T4 | 36 | 4 | 0 | 15 | 10 | 65 |
@@ -44,8 +44,8 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T6 | 70 | 55 | 13 | 42 | 1 | 181 |
 | T7 | 26 | 8 | 8 | 8 | 0 | 50 |
 | T8 | 0 | 1 | 1 | 5 | 2 | 9 |
-| T9 | 13 | 6 | 4 | 39 | 19 | 81 |
-| All | 505 | 154 | 38 | 121 | 32 | 850 |
+| T9 | 14 | 6 | 4 | 39 | 19 | 82 |
+| All | 507 | 156 | 38 | 121 | 32 | 854 |
 
 ## How the labels were given
 
@@ -1401,6 +1401,15 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | BHS3 | P | T9 | L3 | belt_history.MASS_LOSS_SCATTER_SHARE 0.5: the share of a belt thrown inward per unit fraction of the star's mass lost, if giants remain | 0.1 to 1 | belts beyond a few au of a star that becomes a white dwarf, with giants left | an N-body run of a giant system losing 80 percent of its mass whose belt scatters a share far from the law | an N-body population synthesis of belts round mass-losing stars (Debes and Sigurdsson 2002 for planets only) | educated guess from needed output (the observed 27 to 50 percent of white dwarfs accreting) | GEN.1069 | no data |
 | BHS4 | P | T6 | L1 | belt_history.DELIVERY_MYR 100: how long the scattered rock takes to fall on the white dwarf | 20 to 200 Myr (the cooling ages surveyed) | white dwarfs of 20 to 200 Myr cooling age | polluted white dwarfs showing accretion that stops as the delivery time runs out | a delivery time from the scattering rate of the system's own giants | the cooling-age range of Koester et al. 2014 (READ), the middle in the log | GEN.1069 | - |
 | BHS5 | P | T2 | L0 | belt_history.MIN_POLLUTION_RATE_G_S 1e5: the lowest accretion rate seen on a polluted white dwarf | none (measured) | DA white dwarfs of 17 000 to 27 000 K | a white dwarf polluted at a rate well below | a larger survey with a lower detection limit | Koester, Gaensicke and Farihi 2014 (arXiv:1404.2617, READ): a few 1e5 to a few 1e8 g/s | GEN.1069 | - |
+
+## 6.127 Stand-ins of the halo mass function and the conditional halo
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| HF1 | D | T1 | L0 | halo_function.OMEGA_BARYON_H2 0.022068, SPECTRAL_INDEX 0.9624, SIGMA_8 0.8344: the Planck 2013 best fit beside the h 0.671 and Omega_m 0.3175 the chain already held | the Planck+WP best fit (0.022032, 0.9619, 0.8347) or a WMAP-era set | z = 0 galaxies | a later release of the cosmology that moves sigma_8 by more than 3 percent | none (the cosmology the chain states) | Planck Collaboration XVI 2014 (arXiv 1303.5076) Table 2, Planck column, READ | - | - |
+| HF2 | P | T1 | L1 | halo_function._transfer_function: the no-wiggle fit of Eisenstein and Hu 1998 Eqs. 26, 28 to 31 stands for a Boltzmann-code transfer function | a Boltzmann code (CAMB, CLASS) | halo masses of 1e8 to 1e17 solar masses | a Boltzmann transfer function that moves sigma(M) by more than a few percent over the range | a tabulated transfer function | Eisenstein and Hu 1998 (arXiv astro-ph/9709112), READ; the paper quotes the fit as good to a few percent without the wiggles | - | - |
+| HF3 | P | T1 | L1 | mass_chain.median_stellar_mass: Moster et al. 2013's relation, fitted to the Millennium haloes in a WMAP7 cosmology (h 0.704), is read against the Planck halo mass function, halo masses as printed | none | the conditional at every stellar mass | an abundance matching of the relation in the Planck cosmology that moves the median halo by more than 0.05 dex | a relation fitted in the chain's own cosmology | Moster, Naab and White 2013 (arXiv 1205.5807) section 2, READ | - | - |
+| HF4 | P | T9 | L0 | halo_function._COARSE_STEP 0.05 dex, GRID_STEP 0.01 dex, _LN_K_STEP 0.02, k from 1e-4 to 2e3 per Mpc: the numerical grids of sigma(M) and of the conditional | halving each step | every conditional | a median that moves by more than 0.003 dex when a step is halved | none (numerical) | the GEN.399 script (numpy, 6000 wave numbers, the slope of sigma by a 0.01 dex difference) gives the same medians to 0.001 dex | - | - |
 
 ## 6.95 Stand-ins of the belt sources
 
