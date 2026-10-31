@@ -166,3 +166,8 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.126:RN5 | no data | - | no source gives a porosity law for body-scale strength; the rubble-pile branch (friction plus a little cohesion) replaces it |
 | 6.126:RN9 | no data | - | no source gives the strength of a rubble pile that took its shape hot; a thermal history of the body that sets its strength at shape-setting replaces it |
 | 6.22:CC16 | no data | - | no source gives the temperatures between which the ice grows from none to the equator in a model this simple; a latitude-resolved energy balance of the generated world replaces the straight ramp |
+| 6.129:IT1 | no data | - | no measured strength of ice II or ice VI at a body's shape-set temperature; the creep laws of Durham 1997 Table 2 per phase replace the one value |
+| 6.129:IT2 | no data | - | no body-scale strength of ice III; the creep law of Durham and others 1988 replaces near zero |
+| 6.129:IT3 | no data | - | no measured strength of ice V (the 1997 paper's own ice V is three orders softer than Poirier and Sotin's); the creep law of Durham and others 1996 replaces half of ice II |
+| 6.129:IT6 | no data | - | the 1993 ammonia-water constants of Durham, Kirby and Stern are not in hand; they replace the three interpolated points |
+| 6.129:IT9 | no data | - | no measurement of the ammonia share at which a water ice mix takes the dihydrate's strength |
