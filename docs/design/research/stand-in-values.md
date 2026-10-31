@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 958 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 957 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -36,16 +36,16 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 141 | 15 | 8 | 1 | 0 | 165 |
+| T1 | 141 | 13 | 8 | 1 | 0 | 163 |
 | T2 | 112 | 36 | 0 | 1 | 0 | 149 |
 | T3 | 84 | 38 | 5 | 10 | 0 | 137 |
 | T4 | 37 | 5 | 0 | 14 | 10 | 66 |
 | T5 | 43 | 17 | 0 | 1 | 0 | 61 |
-| T6 | 92 | 72 | 18 | 42 | 0 | 224 |
+| T6 | 92 | 74 | 18 | 42 | 0 | 226 |
 | T7 | 27 | 8 | 8 | 8 | 0 | 51 |
 | T8 | 0 | 1 | 1 | 5 | 1 | 8 |
-| T9 | 18 | 14 | 4 | 42 | 19 | 97 |
-| All | 554 | 206 | 44 | 124 | 30 | 958 |
+| T9 | 17 | 14 | 4 | 42 | 19 | 96 |
+| All | 553 | 206 | 44 | 124 | 30 | 957 |
 
 ## How the labels were given
 
@@ -1402,10 +1402,9 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| HF1 | D | T1 | L0 | halo_function.OMEGA_BARYON_H2 0.022068, SPECTRAL_INDEX 0.9624, SIGMA_8 0.8344: the Planck 2013 best fit beside the h 0.671 and Omega_m 0.3175 the chain already held | the Planck+WP best fit (0.022032, 0.9619, 0.8347) or a WMAP-era set | z = 0 galaxies | a later release of the cosmology that moves sigma_8 by more than 3 percent | none (the cosmology the chain states) | Planck Collaboration XVI 2014 (arXiv 1303.5076) Table 2, Planck column, READ | - | - |
-| HF2 | P | T1 | L1 | halo_function._transfer_function: the no-wiggle fit of Eisenstein and Hu 1998 Eqs. 26, 28 to 31 stands for a Boltzmann-code transfer function | a Boltzmann code (CAMB, CLASS) | halo masses of 1e8 to 1e17 solar masses | a Boltzmann transfer function that moves sigma(M) by more than a few percent over the range | a tabulated transfer function | Eisenstein and Hu 1998 (arXiv astro-ph/9709112), READ; the paper quotes the fit as good to a few percent without the wiggles | - | - |
-| HF3 | P | T1 | L1 | mass_chain.median_stellar_mass: Moster et al. 2013's relation, fitted to the Millennium haloes in a WMAP7 cosmology (h 0.704), is read against the Planck halo mass function, halo masses as printed | none | the conditional at every stellar mass | an abundance matching of the relation in the Planck cosmology that moves the median halo by more than 0.05 dex | a relation fitted in the chain's own cosmology | Moster, Naab and White 2013 (arXiv 1205.5807) section 2, READ | - | - |
-| HF4 | P | T9 | L0 | halo_function._COARSE_STEP 0.05 dex, GRID_STEP 0.01 dex, _LN_K_STEP 0.02, k from 1e-4 to 2e3 per Mpc: the numerical grids of sigma(M) and of the conditional | halving each step | every conditional | a median that moves by more than 0.003 dex when a step is halved | none (numerical) | the GEN.399 script (numpy, 6000 wave numbers, the slope of sigma by a 0.01 dex difference) gives the same medians to 0.001 dex | - | - |
+| ST1 | P | T6 | L1 | satellites.STRIPPING_RADIUS_MILKY_WAY_KPC 270, scaled with the host's virial radius | 250 to 280 kpc for the Milky Way (Grcevich and Putman 2009) | dwarfs of a host of any halo mass; the scaling with the virial radius is an inference | a survey of another host's dwarfs with the HI cutoff off the scaled radius by more than a factor of 2 | the ram-pressure stripping radius of the host's halo gas and a satellite's orbit (GEN.339) | Grcevich and Putman 2009 (ApJ 696, 385, arXiv:0901.4975, abstract and section 3.4 READ): the majority of dwarfs within about 270 kpc are undetected in HI (under 1e5 solar masses), those beyond predominantly detected, the cutoff between 250 and 280 kpc; ram pressure the likely cause. test_satellite_law::test_the_stripping_radius_is_270_kpc_for_the_milky_ways_halo_and_scales_with_the_virial_radius | - | - |
+| ST2 | P | T6 | L1 | satellites.STRIPPING_RETAINED_MIN_STELLAR_MASS_SOLAR 4.0e8: the lightest satellite that keeps its gas inside the stripping radius | 2e8 to 4.6e8 | satellites inside the stripping radius | a gas-rich satellite lighter than 2e8 inside 270 kpc of its host (or a Cloud-mass one found stripped there) | the ram pressure against the anchoring pressure of the satellite's gas and stars on its orbit | the Small Magellanic Cloud (4.6e8 solar masses of stars, 64 kpc, HI about 4e8 recalled) keeps its gas; Grcevich and Putman 2009 footnote 3 (READ) leave both Clouds out for their large mass. test_satellite_law::test_a_satellite_as_heavy_as_the_small_cloud_keeps_its_gas_inside_the_stripping_radius | - | - |
+| ST3 | B | T1 | L0 | satellites.GAS_DETECTED_BEYOND_STRIPPING 0.875: the share of satellites beyond the stripping radius that hold gas | 0.7 to 0.95 (14 of 16, small number) | dwarfs beyond 280 kpc | a larger sample beyond 280 kpc with a detection share outside 0.7 to 0.95 | a larger survey of far dwarfs (the HI mass of Tucana and Cetus, the two non-detections, is under the limit) | Grcevich and Putman 2009 (section 3.4 READ): beyond 280 kpc, 14 galaxies detected at over 1e5 solar masses and two (Tucana and Cetus) not. test_satellite_law::test_a_satellite_beyond_the_stripping_radius_keeps_its_gas_for_the_share_that_does | - | - |
 
 ## 6.94 Stand-ins of the irregular zone
 
