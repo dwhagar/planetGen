@@ -1,0 +1,5 @@
+**Headline:** A body's weight now has a temperature to shape it at: the roundness strength can fall with the heat the body made, instead of always being the cold strength.
+
+### Changed
+- **GEN.1201.** New `physics/shape_temperature.py` (not yet called by the generator): the temperature a body took its shape at is its surface temperature plus its accretion heat (the stored binding energy over its heat capacity) plus the heat its rock and the tides make in the time heat takes to leave a body of its size (`R^2 / (pi^2 kappa)`, from the stored radioactive content with 26Al included), capped at the rock's liquidus at the middle of the body. A kilometre-sized body keeps its cold; a body of 10 km radius with a solar-system share of 26Al melts; a Moon-sized body is hot from its assembly. The roundness engine already weakens ice and rock with a shape-set temperature, so the next step (the wiring, once GEN.1159's stored columns are on main) passes this number in and stores it. New stand-ins SHT1 and SHT2 (section 6.162). The surface is the body's temperature now, not the young star's; the heat is the centre's, an upper bound for the mean.
+generation-output: unchanged
