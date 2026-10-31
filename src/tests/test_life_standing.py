@@ -211,6 +211,7 @@ def solvent_problems(body):
     medium = row.solvent["medium"]
     values = habitability_world.values_from_body(body)
     found = life_classes.quantities(values)
+    found.update(life_classes.derived_quantities(values))
     if medium in ("water", "hydrocarbon"):
         have = habitability_world.solvent(values)
         return [] if have == medium else [f"class {class_id} needs {medium} and the body's liquid is {have!r}"]
