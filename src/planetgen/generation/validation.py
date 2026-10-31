@@ -26,7 +26,8 @@ import math
 from collections import namedtuple
 
 from planetgen.generation import life as planetLife
-from planetgen.physics import constants, daylight, ocean_tides, orbit_elements, planet_classes, planets as planetPhysics, rings
+from planetgen.physics import (
+    clearance_ledger, constants, daylight, ocean_tides, orbit_elements, planet_classes, planets as planetPhysics, rings)
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.physics.orbits import calculate_reflex_offset, mutual_hill_radius_au
@@ -117,102 +118,30 @@ def orbit_ceiling_au(star):
 # Spacing distances
 # ---------------------------------------------------------------------
 
-def min_distance_past_belt_au(planet, belt):
+def min_distance_after_au(body, inner_bodies):
     """
-    The closest `planet` can sit outside `belt`: its own Hill sphere
-    must clear the belt's outer edge by the same 5 Hill radii
-    (`min_orbit_distance`) a belt placed after a planet must keep, plus
-    `MIN_ASTEROID_BELT_SEPARATION`.
-
-    The Hill radius scales linearly with distance (`r_H = x * c`, with
-    `c = (m / 3M)^(1/3)`), and the planet's periapsis `x (1 - e)` is what
-    must clear the belt (GEN.727), so this solves `x (1 - e) - 5*c*x >=
-    edge + gap` in closed form: `x >= (edge + gap) / (1 - e - 5c)`. `5c`
-    is clamped to 0.9, and the divisor to 0.1, so a body heavy or
-    eccentric enough to make that unsolvable still gets a large but
-    finite distance.
-    """
-    c = _km_to_au(planet.hill_radius) / planet.distance
-    k = min(5 * c, 0.9)
-    return (belt.upper_limit + tuning.MIN_ASTEROID_BELT_SEPARATION) / max(1 - k - (planet.eccentricity or 0.0), 0.1)
-
-
-def mutual_min_distance_au(planet, last_planet):
-    """
-    The closest `planet` (the later/farther of the pair) can stably
-    sit to `last_planet` (fixed -- it's already been placed and
-    won't move again this pass), via their *mutual* Hill radius
-    (`orbits.mutual_hill_radius_m`) rather than either one's own
-    individual Hill radius alone -- see
-    `tuning.MUTUAL_HILL_RADII_SEPARATION`'s docstring for
-    the stability-literature basis.
-
-    Solved in closed form for `planet`'s own distance rather than
-    evaluated once at the current (pre-correction) positions and
-    added on top: the mutual Hill radius depends on the *average* of
-    the two distances, so a naive "compute now, then push `planet`
-    out by that much" approximation understates the requirement --
-    moving `planet` out raises the average, which raises the
-    requirement further, and `MUTUAL_HILL_RADII_SEPARATION`'s margin
-    (10x) is large enough that this understatement is measurable, not
-    just a rounding-level slip (confirmed by a real
-    `assert_no_orbital_overlap` failure before this closed form
-    replaced the naive version).
-
-    Derivation: let d = `last_planet.distance` (fixed this pass), x =
-    `planet`'s target distance, and kappa =
-    `MUTUAL_HILL_RADII_SEPARATION * ((m_planet + m_last) / (3 *
-    M_star)) ** (1/3)`. The stability requirement `x - d >= kappa *
-    (x + d) / 2` rearranges to `x >= d * (1 + kappa/2) / (1 -
-    kappa/2)`. With eccentric orbits (GEN.727) the gap that must hold the
-    separation is the one between the inner planet's apoapsis and the
-    outer one's periapsis, `x (1 - e2) - d (1 + e1) >= kappa (x + d) / 2`,
-    which gives `x >= d * (1 + e1 + kappa/2) / (1 - e2 - kappa/2)` (the
-    same at e = 0; the divisor is held at 0.1 or more).
-
-    `M_star` is `planet.star.mass` rather than the system's `star` --
-    for a single star or a P-type (close) binary's merged proxy both
-    planets' own `.star` already *is* the system's star, but for an
-    S-type (wide) binary's secondary list the system's `star` is still
-    the *primary* -- using it here would derive the secondary's own
-    planet spacing against the wrong star's mass entirely.
-
-    Args:
-        planet (Planet): The planet whose distance may need raising.
-        last_planet (Planet): The fixed reference planet, closer to
-                              the star.
-
-    Returns:
-        float: The minimum distance (AU) `planet` can sit at,
-              measured from the star -- not a gap.
-    """
-    kappa = tuning.MUTUAL_HILL_RADII_SEPARATION * (
-        (planet.mass + last_planet.mass) / (3 * planet.star.mass)
-    ) ** (1 / 3)
-    # A pair whose combined mass is a large enough fraction of the
-    # star's own that kappa approaches/exceeds 2 has no finite stable
-    # separation under this linear model at all -- clamp well short
-    # of that so the formula below always returns a large-but-finite,
-    # rather than negative or infinite, distance.
-    kappa = min(kappa, 1.8)
-    inner_e = last_planet.eccentricity or 0.0
-    outer_e = planet.eccentricity or 0.0
-    return last_planet.distance * (1 + inner_e + kappa / 2) / max(1 - outer_e - kappa / 2, 0.1)
-
-
-def min_distance_after_au(body, last):
-    """
-    The closest `body` can sit outside `last` (its inner neighbor), in AU,
-    by the same rules `space_orbits` enforces: for a belt, the inner edge
-    (`lower_limit`) against `last`'s outer edge; for a planet, its orbit.
+    The closest `body` can sit outside the bodies inside it (`inner_bodies`, a star's planets and belts in orbital order), in AU,
+    by the same rules `space_orbits` enforces. The clearance ledger (`physics/clearance_ledger.py`) holds the rules for a planet: it
+    stands `MUTUAL_HILL_RADII_SEPARATION` mutual Hill radii from every planet inside it and clears every belt inside it by five of its
+    own Hill radii and `MIN_ASTEROID_BELT_SEPARATION`, so a belt between two planets does not release them from each other (GEN.1023).
+    A belt keeps clear of the body just inside it only: a belt's outer edge plus `MIN_ASTEROID_BELT_SEPARATION`, or a planet's
+    apoapsis plus its own five Hill radii (`min_orbit_distance`); what is returned for a belt is its inner edge.
     """
     if body.body_type == 'a':
+        last = inner_bodies[-1]
         if last.body_type == 'a':
             return last.upper_limit + tuning.MIN_ASTEROID_BELT_SEPARATION
         return apoapsis_au(last) + last.min_orbit_distance
-    if last.body_type == 'a':
-        return min_distance_past_belt_au(body, last)
-    return mutual_min_distance_au(body, last)
+    needed = 0.0
+    eccentricity = body.eccentricity or 0.0
+    for inner in inner_bodies:
+        if inner.body_type == 'a':
+            edge = clearance_ledger.belt_exclusion(inner.lower_limit, inner.upper_limit, body.mass, body.star.mass, eccentricity)[1]
+        else:
+            edge = clearance_ledger.planet_exclusion(inner.distance, inner.eccentricity or 0.0, inner.mass, body.star.mass, body.mass,
+                                                     eccentricity)[1]
+        needed = max(needed, edge)
+    return needed
 
 
 # ---------------------------------------------------------------------
@@ -294,13 +223,13 @@ def space_orbits(planets):
     generation's spacing pass (`StarSystem.validate_system` calls it).
 
     Two adjacent planets' minimum separation is enforced via their
-    *mutual* Hill radius (`mutual_min_distance_au`), not either one's own
+    *mutual* Hill radius (`min_distance_after_au`, from the clearance ledger), not either one's own
     individual Hill radius alone -- see
     `tuning.MUTUAL_HILL_RADII_SEPARATION`'s docstring for why.
     A belt has no mass/Hill-radius concept of its own, so any correction
     involving one uses the single real planet's own `min_orbit_distance`
     (5 Hill radii) on whichever side of the belt the planet is
-    (`min_distance_past_belt_au` for a planet after a belt), or the fixed
+    (`min_distance_after_au` for a planet after a belt, which also holds it to the planets before the belt), or the fixed
     `MIN_ASTEROID_BELT_SEPARATION` between two belts.
 
     A moved planet is reconciled to its new distance
@@ -353,10 +282,7 @@ def space_orbits(planets):
                 _shift_belt(planet, last_planet.min_orbit_distance + additional_correction)
                 draw.redrawn("belt.spacing_push")
         else:
-            if last_planet.body_type == 'a':
-                min_distance = min_distance_past_belt_au(planet, last_planet)
-            else:
-                min_distance = mutual_min_distance_au(planet, last_planet)
+            min_distance = min_distance_after_au(planet, planets[:i])
             if _below(planet.distance, min_distance):
                 planet.distance = min_distance
                 reconcile_moved_planet(planet)
@@ -540,7 +466,7 @@ def check_lunar_system(planet):
     problems = check_planet(planet)
     if not planet.moons:
         return problems
-    low_km, high_km = planetPhysics.moon_orbit_bounds_km(planet)
+    low_km, _high_km = planetPhysics.moon_orbit_bounds_km(planet)
     largest_km = max_moon_radius_km(planet)
     last = None
     for moon in sorted(planet.moons, key=lambda m: m.distance):
@@ -550,9 +476,10 @@ def check_lunar_system(planet):
             problems.append(Problem(name, f"it is too large for {_label(planet)} to hold "
                                           f"({moon.radius:.4g} km, at most {largest_km:.4g} km)"))
         distance_km = _au_to_km(moon.distance)
-        if _below(distance_km, low_km) or _au_to_km(apoapsis_au(moon)) > high_km * (1 + RELATIVE_TOLERANCE):
+        limit_km = planetPhysics.moon_stable_limit_km(planet, moon.eccentricity)
+        if _below(distance_km, low_km) or distance_km > limit_km * (1 + RELATIVE_TOLERANCE):
             problems.append(Problem(name, f"its orbit ({distance_km:.4g} km) is outside {_label(planet)}'s stable "
-                                          f"range for moons ({low_km:.4g}-{high_km:.4g} km)"))
+                                          f"range for moons ({low_km:.4g}-{limit_km:.4g} km)"))
         if last is not None and _below(moon.distance, last.distance + last.min_orbit_distance):
             problems.append(Problem(name, f"its orbit is too close to {_label(last)}'s"))
         last = moon
@@ -569,11 +496,11 @@ def check_orbit_spacing(planets):
         list: `Problem`s, empty when it validates.
     """
     problems = []
-    for last, body in zip(planets, planets[1:]):
+    for index, (last, body) in enumerate(zip(planets, planets[1:])):
         if _below(inner_edge_au(body), inner_edge_au(last)):
             problems.append(Problem(_label(body), f"it is listed after {_label(last)} but orbits inside it"))
             continue
-        needed = min_distance_after_au(body, last)
+        needed = min_distance_after_au(body, planets[:index + 1])
         if _below(inner_edge_au(body), needed):
             problems.append(Problem(_label(body), f"its orbit is too close to {_label(last)}'s "
                                                   f"(at {inner_edge_au(body):.4g} AU, needs at least {needed:.4g} AU)"))

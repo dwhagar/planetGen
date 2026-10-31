@@ -49,13 +49,6 @@ DIRECTIVE_IMPOSSIBLE_BELOW = 1e-9
 either, is refused before any drawing (`generation.directives.impossible`)."""
 
 # --- Planet Generation Parameters ---
-# Domingos, Winter & Yokoyama (2006), MNRAS 373:1227, "Stable satellites
-# around extrasolar giant planets" -- a prograde moon on a circular orbit
-# stays bound out to about 0.4895 of its planet's Hill radius; beyond that
-# the star strips it (physics.planets.generate_moons' outer limit).
-MOON_PROGRADE_STABLE_HILL_FRACTION = 0.4895
-
-
 # Giant masses are drawn from dN/dlogM ~ M^-GIANT_MASS_FUNCTION_SLOPE inside
 # their class's range: Cumming et al. (2008, PASP 120:531) measured about
 # 0.31 for radial-velocity giants, so lighter giants are commoner but a

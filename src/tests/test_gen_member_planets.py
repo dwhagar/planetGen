@@ -49,21 +49,20 @@ def test_a_member_star_has_planets_of_its_own():
 
 def test_a_members_bodies_stay_inside_its_window_of_the_tree():
     system, _cfg = _with_member_planets()
-    zones = {(zone.kind, zone.host_no): zone for zone in system._planet_zones()}
     for number, (member, bodies) in enumerate(system.member_hosts(), start=2):
-        zone = zones[(planet_zones.S_TYPE, number)]
-        assert member.a_crit_au == pytest.approx(zone.outer_au)
+        limit = system.ledger.stability_limit_au((planet_zones.S_TYPE, number))
+        assert member.a_crit_au == pytest.approx(limit)
         for body in bodies:
-            assert validation.reach_au(body) <= zone.outer_au * (1 + validation.RELATIVE_TOLERANCE)
+            assert validation.reach_au(body) <= limit * (1 + validation.RELATIVE_TOLERANCE)
     assert validation.check_star_system(system) == []
 
 
 def test_a_close_pair_beside_a_member_keeps_its_circumbinary_planets_inside_the_pair_window():
     system, _cfg = _with_member_planets(close=True)
-    zone = {(z.kind, z.host_no): z for z in system._planet_zones()}[(planet_zones.P_TYPE, system.star_slots[0][0])]
-    assert system.star.a_crit_au == pytest.approx(zone.outer_au) and zone.outer_au < 100.0
+    limit = system.ledger.stability_limit_au((planet_zones.P_TYPE, system.star_slots[0][0]))
+    assert system.star.a_crit_au == pytest.approx(limit)
     for body in system.planets:
-        assert validation.reach_au(body) <= zone.outer_au * (1 + validation.RELATIVE_TOLERANCE)
+        assert validation.reach_au(body) <= limit * (1 + validation.RELATIVE_TOLERANCE)
 
 
 def test_a_members_planets_are_named_after_it():

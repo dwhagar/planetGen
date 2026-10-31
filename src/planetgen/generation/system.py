@@ -38,9 +38,9 @@ from planetgen.util import log
 from planetgen.generation import habitable_request, pulsar_planets, remnant_orbits
 from planetgen.generation.planet import DEFER_MOONS, Planet
 from planetgen.generation.star import Star, adjust_pair_age_for_planets
-from planetgen.physics import bulk_draw, planet_architecture, planet_zones
+from planetgen.physics import bulk_draw, clearance_ledger, planet_architecture, planet_zones
 from planetgen.physics.system_tree import OrbitNode, TreeMember
-from planetgen.physics.orbits import calculate_reflex_offset, holman_wiegert_circumbinary_a_crit_au
+from planetgen.physics.orbits import calculate_reflex_offset
 from planetgen.generation.wide_binary import WideBinaryPair
 from planetgen.physics import unit_registry as units
 
@@ -165,6 +165,9 @@ class StarSystem:
     saved (a generated binary's one node is made from its pair then, `db.orbit_trees.binary_nodes`) or for a single star;
     a loaded system has the tree that was stored. A system built from a tree (drawn, GEN.631, or a stored row's,
     `member_tree`) has its nodes from the start, a drawn tree's at `stored_trees.GENERATED_EPOCH_UNIX` until the save."""
+
+    _ledger = None
+    """Ledger or None: The clearance ledger of the stars as they are now (`ledger`); reset whenever the companions change."""
 
     placed_star = None
     """Star: The star the system was built around, the one a pre-placed row or a sector's draw made first (the tree's member 0).
@@ -378,7 +381,7 @@ class StarSystem:
         # TEST.313: the age settled below only rises, and the survival limit falls with age (GEN.325), so the final
         # trim can take the forced belt or habitable world that the attempts above kept. The attempts then run again
         # once, placing under the settled age, before the request is given up as unmet.
-        self.set_stability_limits()
+        self.build_ledger()
         self._request_unreachable = False
         for _round in range(2):
             for _attempt in range(tuning.MAX_SYSTEM_GENERATION_ATTEMPTS):
@@ -676,6 +679,8 @@ class StarSystem:
     def _tree_members(self):
         """The `TreeMember`s of the system's tree: each star of `stars` (the member number is its index there), then each of
         `dark_members` (numbered on from the stars), which weigh in the tree and give no light."""
+        if not self.orbit_nodes:
+            return [TreeMember(0, None, 0, _kg_to_msun(self.star.mass))]
         slots = self.star_slots or ((0, 0), (0, 1))
         members = [TreeMember(number, node_no, slot, _kg_to_msun(star.mass))
                    for number, (star, (node_no, slot)) in enumerate(zip(self.stars, slots))]
@@ -683,13 +688,31 @@ class StarSystem:
                     for index, dark in enumerate(self.dark_members)]
         return members
 
+    @property
+    def ledger(self):
+        """
+        The clearance ledger of the stars as they are now (`clearance_ledger.Ledger`, GEN.1014): the window of every host (each star
+        of a wide pair or a further member, and a close pair's merged proxy), from the engulfment floor and the Holman and Wiegert
+        limits of the tree to the tightest S-type limit above it. It is the one place the floor and the ceiling of a star's planets
+        come from; derived from the tree and the stars, never stored. Built when first read after the companions change.
+        """
+        if self._ledger is None:
+            explicit = self._explicit_request()
+            self._ledger = clearance_ledger.Ledger(
+                self.orbit_nodes, self._tree_members(),
+                {number: self._engulfment_radius_au(star, explicit) for number, star in enumerate(self.stars)})
+        return self._ledger
+
+    def _ledger_host(self, star):
+        """The `(kind, number)` of the ledger host that is `star`: a close pair's proxy is its pair node, any other star its number."""
+        if self.binary_type == "close" and star is self.star:
+            return planet_zones.P_TYPE, self.pair_node_no()
+        return planet_zones.S_TYPE, next((number for number, other in enumerate(self.stars) if other is star), 0)
+
     def _planet_zones(self):
-        """`planet_zones.planet_zones` of the system's tree: the S-type window of every star in `stars` order (the member
-        number is the index in `stars`) and the P-type window of every node, each a `Zone`. A dark member has a window
-        too (`Zone.host_no` from `len(stars)` on), which holds no planets."""
-        members = self._tree_members()
-        return planet_zones.planet_zones(self.orbit_nodes, members,
-                                         {number: self._engulfment_radius_au(star) for number, star in enumerate(self.stars)})
+        """The windows of the ledger: the S-type window of every star in `stars` order and the P-type window of every node, each a
+        `planet_zones.Zone`. A dark member has a window too (`Zone.host_no` from `len(stars)` on), which holds no planets."""
+        return self.ledger.zones()
 
     def sibling_stars(self, number):
         """`(node, star numbers)`: the node star `number` of `stars` hangs from and the stars of the subtree beside it (a
@@ -697,23 +720,26 @@ class StarSystem:
         node, beside = planet_zones.sibling_of(self.orbit_nodes, self._tree_members(), number)
         return node, sorted(index for index in beside if index < len(self.stars))
 
-    def set_stability_limits(self):
+    def build_ledger(self):
         """
-        Gives each member star and a close pair's proxy the outer limit of its window in the tree (GEN.332): a member's
-        S-type window against its sibling, and a close pair's P-type window up to the S-type limit of the pair against
-        the stars beside it. Both are `a_crit_au`, which `validation.orbit_ceiling_au` reads like a wide pair's. A
-        system of one or two stars has nothing to set (a wide pair's stars were given theirs by `WideBinaryPair`).
+        Builds the clearance ledger again and gives each star that has a companion above it, and a close pair's proxy, the outer limit
+        of its window (GEN.332, GEN.1014): a member's S-type window against what hangs beside it, and a close pair's P-type window up
+        to the S-type limit of the pair against the stars beside it, each held by every level above. Both are `a_crit_au`, which
+        `validation.orbit_ceiling_au` reads for a wide pair's stars as well; the ledger is the only place that works it out. A lone
+        star has none.
         """
-        if not self.member_stars and not self.dark_members:
+        self._ledger = None
+        if not self.orbit_nodes or (len(self.stars) < 2 and not self.dark_members):
             return
-        zones = self._planet_zones()
-        by_host = {(zone.kind, zone.host_no): zone for zone in zones}
-        if self.dark_members and self.binary_type is None:
-            self.star.a_crit_au = by_host[(planet_zones.S_TYPE, 0)].outer_au
-        for number, star in enumerate(self.member_stars, start=2):
-            star.a_crit_au = by_host[(planet_zones.S_TYPE, number)].outer_au
+        ledger = self.ledger
+        hosts = [(planet_zones.S_TYPE, number, star) for number, star in enumerate(self.stars)
+                 if self.binary_type != "close" or number >= 2]
         if self.binary_type == "close":
-            self.star.a_crit_au = by_host[(planet_zones.P_TYPE, self.pair_node_no())].outer_au
+            hosts.append((planet_zones.P_TYPE, self.pair_node_no(), self.star))
+        for kind, number, star in hosts:
+            limit = ledger.stability_limit_au((kind, number))
+            if limit is not None:
+                star.a_crit_au = limit
 
     def pair_node_no(self):
         """The node of the pair (`primary_star` and `secondary_star`): the root of a plain pair, else the lowest node above both
@@ -1007,6 +1033,7 @@ class StarSystem:
         self.__dict__.pop("secondary_star", None)
         self.binary_type = None
         self.wide_binary = None
+        self._ledger = None
         self.member_stars = ()
         self.dark_members = ()
         self.star_slots = None
@@ -1093,6 +1120,7 @@ class StarSystem:
         self.member_stars = tuple(built[member.member_no] for member in others)
         self.stars = [primary, secondary, *self.member_stars]
         self.orbit_nodes = tuple(nodes)
+        self._ledger = None
         if others or self.dark_members or not direct:
             self.star_slots = tuple(slots[member_no] for member_no in (first, second, *(m.member_no for m in others)))
         # Which of the two real binary configurations the pair is was drawn with its node.
@@ -1128,20 +1156,12 @@ class StarSystem:
 
     def _orbit_floor_au(self, star):
         """
-        The innermost stable orbit around `star`, in AU: for a P-type
-        (close) binary's merged proxy, Holman & Wiegert's circumbinary
-        critical semi-major axis (`orbits.holman_wiegert_circumbinary_a_crit_au`,
-        about 2-2.4 times the pair's separation), since anything closer is
-        inside, or torn apart by, the two stars' own orbit. At least
-        `_engulfment_radius_au` for any star, since a giant (or a white
+        The innermost stable orbit around `star`, in AU, from the ledger's window of it: for a P-type (close) binary's merged proxy,
+        Holman & Wiegert's circumbinary critical semi-major axis (about 2-2.4 times the pair's separation), since anything closer is
+        inside, or torn apart by, the two stars' own orbit; at least `_engulfment_radius_au` for any star, since a giant (or a white
         dwarf's progenitor) has removed everything inside that.
         """
-        floor_au = self._engulfment_radius_au(star, self._explicit_request())
-        separation_au = getattr(star, "binary_separation_au", None)
-        if separation_au is not None:
-            masses = [s.mass for s in star.stars]
-            floor_au = max(floor_au, holman_wiegert_circumbinary_a_crit_au(separation_au, min(masses) / sum(masses)))
-        return floor_au
+        return self.ledger.zone(self._ledger_host(star)).inner_au
 
     def _clear_circumbinary_floor(self, planets):
         """
@@ -1409,7 +1429,7 @@ class StarSystem:
     def _generate_member_planets(self, star):
         """
         The planets and belts of a member star (GEN.332): the same draw as a wide pair's secondary's, inside the S-type
-        window of the tree (`set_stability_limits`), never under a `SLOTS` list or a forced habitable world.
+        window of the tree (`build_ledger`), never under a `SLOTS` list or a forced habitable world.
         """
         ceiling_au = self._orbit_ceiling_au(star)
         bodies = self._generate_planets(star, star.habitable_zone, ceiling_au, apply_guarantees=False)
@@ -1805,7 +1825,7 @@ class StarSystem:
         system.dark_members = tuple(stored_trees.DarkMember(**member) for member in data.get("dark_members", ()))
         system.member_planets = [_load_objects(bodies, member) for member, bodies in zip(
             system.member_stars, data.get("member_planets") or [[] for _ in system.member_stars])]
-        system.set_stability_limits()
+        system.build_ledger()
         system.system_flavor_text = data.get("system_flavor_text")
         system.runaway_class = data.get("runaway_class")
         system.runaway_speed_kms = data.get("runaway_speed_kms")
@@ -2292,13 +2312,13 @@ class StarSystem:
         and asteroid belts, and applies appropriate corrections to ensure that
         their orbits are not just non-overlapping, but also realistically spaced.
         Two adjacent planets' minimum separation is enforced via their
-        *mutual* Hill radius (`_mutual_min_separation_au`), not either
+        *mutual* Hill radius (`validation.min_distance_after_au`), not either
         one's own individual Hill radius alone -- see
         `tuning.MUTUAL_HILL_RADII_SEPARATION`'s docstring for
         why. A belt has no mass/Hill-radius concept of its own, so any
         correction involving one uses the single real planet's own
         `min_orbit_distance` (5 Hill radii) on whichever side of the belt
-        the planet is (`_min_distance_past_belt_au` for a planet after a
+        the planet is (`validation.min_distance_after_au` for a planet after a
         belt), or the fixed `MIN_ASTEROID_BELT_SEPARATION` between two
         belts.
         If an adjustment is made to a planet (as opposed to an asteroid belt,
@@ -2318,71 +2338,6 @@ class StarSystem:
         if planets is None:
             planets = self.planets
         validation.space_orbits(planets)
-
-    @staticmethod
-    def _min_distance_past_belt_au(planet, belt):
-        """
-        The closest `planet` can sit outside `belt`: its own Hill sphere
-        must clear the belt's outer edge by the same 5 Hill radii
-        (`min_orbit_distance`) a belt placed after a planet must keep, plus
-        `MIN_ASTEROID_BELT_SEPARATION`.
-
-        The Hill radius scales linearly with distance (`r_H = x * c`, with
-        `c = (m / 3M)^(1/3)`), so this solves `x - 5*c*x >= edge + gap` in
-        closed form: `x >= (edge + gap) / (1 - 5c)`. `5c` is clamped to 0.9
-        so a body heavy enough to make that unsolvable still gets a large
-        but finite distance.
-        """
-        return validation.min_distance_past_belt_au(planet, belt)
-
-    def _mutual_min_distance_au(self, planet, last_planet):
-        """
-        The closest `planet` (the later/farther of the pair) can stably
-        sit to `last_planet` (fixed -- it's already been placed and
-        won't move again this pass), via their *mutual* Hill radius
-        (`orbits.mutual_hill_radius_m`) rather than either one's own
-        individual Hill radius alone -- see
-        `tuning.MUTUAL_HILL_RADII_SEPARATION`'s docstring for
-        the stability-literature basis.
-
-        Solved in closed form for `planet`'s own distance rather than
-        evaluated once at the current (pre-correction) positions and
-        added on top: the mutual Hill radius depends on the *average* of
-        the two distances, so a naive "compute now, then push `planet`
-        out by that much" approximation understates the requirement --
-        moving `planet` out raises the average, which raises the
-        requirement further, and `MUTUAL_HILL_RADII_SEPARATION`'s margin
-        (10x) is large enough that this understatement is measurable, not
-        just a rounding-level slip (confirmed by a real
-        `assert_no_orbital_overlap` failure before this closed form
-        replaced the naive version).
-
-        Derivation: let d = `last_planet.distance` (fixed this pass), x =
-        `planet`'s target distance, and kappa =
-        `MUTUAL_HILL_RADII_SEPARATION * ((m_planet + m_last) / (3 *
-        M_star)) ** (1/3)`. The stability requirement `x - d >= kappa *
-        (x + d) / 2` rearranges to `x >= d * (1 + kappa/2) / (1 -
-        kappa/2)`.
-
-        `M_star` is `planet.star.mass` rather than `self.star.mass` --
-        for a single star or a P-type (close) binary's merged proxy both
-        planets' own `.star` already *is* `self.star`, so this is a no-op
-        change there, but for an S-type (wide) binary's secondary list
-        `self.star` is still the *primary* (see `StarSystem.__init__`'s
-        "an S-type pair never merges" branch) -- using it here would
-        derive the secondary's own planet spacing against the wrong
-        star's mass entirely.
-
-        Args:
-            planet (Planet): The planet whose distance may need raising.
-            last_planet (Planet): The fixed reference planet, closer to
-                                  the star.
-
-        Returns:
-            float: The minimum distance (AU) `planet` can sit at,
-                  measured from the star -- not a gap.
-        """
-        return validation.mutual_min_distance_au(planet, last_planet)
 
     def _reconcile_moved_planet(self, planet):
         """

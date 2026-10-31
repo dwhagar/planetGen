@@ -61,7 +61,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | module | planetgen.physics.cloud_infrared | by design | the acid cloud's infrared depth in the layers of a column; called by the column solver once the cloud is wired (read by the radiative-convective model, which the generator reads through its stored table, like line_opacity; GEN.850 built) |
 | module | planetgen.physics.mie | by design | Mie spheres, used by the optics builder script only; the generator reads the table it makes, so this stays unread by the app (delete when the builder moves out of the repo) |
 | row | 6.63:CF3 | by design | `cloud_infrared.TOP_OVER_BASE_PRESSURE`, read when the column solver calls the cloud (read by the radiative-convective model, which the generator reads through its stored table, like line_opacity; GEN.850 built) |
-| module | planetgen.physics.clearance_ledger | GEN.1014 | the spans where a planet, moon or belt may sit; replaces `_orbit_floor_au`, the per-star `a_crit_au` reads and the spacing and `min_orbit_distance` pushes of `space_orbits` once the system build draws from it (train 10, after GEN.1009 and GEN.1011) |
 | data | quadruple_stability_3p1.json | GEN.1016 | the 3+1 quadruple stability rules (validity ranges, the stability definition); `multistar` limits will read them through `quadruple_stability` in the wiring step |
 | data | quadruple_stability_3p1_weights.json | GEN.1016 | the 8,301 numbers of the authors' network (made by `scripts/build_quadruple_stability.py`); read by `quadruple_stability` |
 | data | quadruple_stability_2p2.json | GEN.1016 | the 2+2 quadruple stability rules (validity ranges, the stability definition); read by `quadruple_stability` |
@@ -383,8 +382,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | function | planetgen.physics.planet_architecture.survival_probability | by design | Pu and Wu's survival law, whose inverse (`survival_decades`) is what the build draws; `test_planet_architecture` pins the inversion against it |
 | function | planetgen.physics.planet_architecture.ejection_yield | by design | the expected number and mass of ejected bodies per star, the yield set against microlensing; `test_architecture_losses` runs it, the generator never needs it |
 | function | planetgen.physics.planet_survival.expected_passes | by design | the ionising passes N(a) whose root `planet_survival_limit_au` solves in closed form; `test_planet_survival` pins the root against it |
-| function | planetgen.physics.planet_zones.ancestor_limits_au | GEN.1014 | read by `clearance_ledger` (every S-type limit above a zone's host), which GEN.1014 wires |
-| function | planetgen.physics.planet_zones.pair_sides_solar | GEN.1014 | read by `clearance_ledger` (the masses of a pair node's two sides), which GEN.1014 wires |
 | function | planetgen.physics.planet_zones.flux_at | GEN.129 | the light on a planet of a window's host from every star of the tree; the multi-star planet climate reads it (design 5.6, 6.5) |
 | function | planetgen.physics.proton_range.csda_range_g_cm2 | GEN.444 | the proton range table of the shielding of GEN.444 (the data file is read through this function) |
 | function | planetgen.physics.rprocess_enrichment.effective_duration_gy | by design | the inverse of constant_input_factor by bisection, read by test_rprocess_enrichment to state a history as a duration |
@@ -421,3 +418,4 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | function | planetgen.physics.radiation_belts.equatorial_field_t | TEST.520 | only tests call it; wire it into the code that needs it or delete it (TEST.520 first sweep) |
 | function | planetgen.physics.photometry.bolometric_correction_v | VIEW.11 | the VIEW.11 photometry library is the reader: apparent magnitude on a star page reads it when VIEW.11 is built |
 | function | planetgen.physics.species_thermo.log10_k | by design | the reference the equilibrium tests check the gas-equilibrium code against; only tests run it (TEST.524) |
+| function | planetgen.physics.clearance_ledger.log_uniform_quantile | GEN.1068 | the belt placer draws a belt's distance log-uniformly over the spans the ledger leaves open; read when belt birth (GEN.1068) samples from the ledger |

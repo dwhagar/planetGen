@@ -9339,7 +9339,7 @@ def load_star_system(conn, star_system_id) -> StarSystem:
         _build_object_list([r for r in planet_rows if r["star_id"] == member.db_id],
                            [r for r in belt_rows if r["star_id"] == member.db_id], member)
         for member in system.member_stars]
-    system.set_stability_limits()
+    system.build_ledger()
 
     system.system_flavor_text = row["system_flavor_text"]
     system.runaway_class = row["runaway_class"]
