@@ -46,16 +46,17 @@ def _qualifying_bands(shape, shell, threshold):
     return [b for b in range(0, spherical.band_range(shell)[1] + 1) if _band_qualifies(shape, EDGE_PC, shell, b, threshold)]
 
 
-def test_the_default_galaxy_reaches_shell_3441_with_the_core_first(milky_way):
+def test_the_default_galaxy_reaches_shell_3438_with_the_core_first(milky_way):
     """GEN.404: the galaxy holds the systems its stellar mass makes (it reached shell 3147 against 3762 for the density
     tuned to the real count at the Sun); GEN.544 gave the disk its exponential height, whose midplane is twice as dense
     for the same mass, so the edge sat at shell 3596; GEN.545 derived the mean system mass (0.483 solar masses a system
     where 0.4 had been recalled), so the galaxy holds a sixth fewer systems and the edge sat at shell 3473; the primary mass
     function of GEN.928 makes the mean system mass 0.508 (the Chabrier function and the companions it leaves out of the
-    primaries, GEN.927), 5% fewer systems again, and the edge sits at shell 3441."""
+    primaries, GEN.927), 5% fewer systems again, and the edge sat at shell 3441; the companions' mass ratios of GEN.951 (Moe and Di Stefano 2017,
+    lighter companions for massive primaries and twins for close pairs) move the systems per solar mass by 0.3 percent, and the edge sits at shell 3438."""
     extents, outer, confirmed = milky_way
-    assert outer == 3441 and confirmed
-    assert [shell for shell, _high in extents] == list(range(3442))
+    assert outer == 3438 and confirmed
+    assert [shell for shell, _high in extents] == list(range(3439))
     assert extents[0] == (0, 0)
     assert extents[1:4] == [(1, 1), (2, 3), (3, 4)]      # shells 1 to 3 are the table: whole shells in the bulge
 
@@ -63,10 +64,10 @@ def test_the_default_galaxy_reaches_shell_3441_with_the_core_first(milky_way):
 def test_the_outline_reaches_the_axis_in_the_bulge_and_only_there(milky_way):
     extents, _outer, _confirmed = milky_way
     polar = [shell for shell, high in extents if shell and high == spherical.band_range(shell)[1]]
-    assert polar[:3] == [1, 2, 3] and max(polar) == 613
-    assert len(polar) == 613          # every shell out to 613 has its caps
+    assert polar[:3] == [1, 2, 3] and max(polar) == 612
+    assert len(polar) == 612          # every shell out to 612 has its caps
     for shell, high in extents:
-        if shell > 613:
+        if shell > 612:
             assert high < spherical.band_range(shell)[1]
 
 
@@ -74,7 +75,7 @@ def test_the_outline_narrows_with_distance_and_is_a_run_about_the_plane(milky_wa
     extents, _outer, _confirmed = milky_way
     highs = dict(extents)
     assert highs[3000] < highs[2000] < highs[1500]
-    assert highs[3441] <= 5
+    assert highs[3438] <= 5
 
 
 def test_the_default_galaxy_holds_fewer_cells_than_the_study_counted(milky_way):
@@ -86,10 +87,11 @@ def test_the_default_galaxy_holds_fewer_cells_than_the_study_counted(milky_way):
     shells = shell_candidate_sector_count(extents)
     assert shells < 23_930_000_000
     # GEN.927: the single-star mass function moves the derived mean system mass, so the pinned count moved 0.005 percent (from 11,271,314,727).
-    assert shells == 11_270_804_751
+    # GEN.951: the mass ratios of the companions move the systems per solar mass by 0.3 percent, so the pinned count moved 0.26 percent (from 11,270,804,751).
+    assert shells == 11_241_821_617
 
 
-@pytest.mark.parametrize("shell", [1, 2, 3, 4, 5, 6, 7, 9, 13, 21, 55, 144, 377, 610, 799, 800, 801, 900, 1000, 1500, 2500, 3000, 3441])
+@pytest.mark.parametrize("shell", [1, 2, 3, 4, 5, 6, 7, 9, 13, 21, 55, 144, 377, 610, 799, 800, 801, 900, 1000, 1500, 2500, 3000, 3438])
 def test_the_outline_is_tight_and_no_qualifying_band_lies_outside(milky_way, shell):
     extents, _outer, _confirmed = milky_way
     high = dict(extents)[shell]
@@ -198,7 +200,7 @@ def test_random_address_can_be_limited_to_inner_shells():
 def test_the_default_galaxy_fits_the_object_id_and_its_reach(milky_way):
     extents, _outer, _confirmed = milky_way
     bounds = GalaxyBounds(extents, EDGE_PC)
-    assert max(high for _shell, high in extents) == 962
+    assert max(high for _shell, high in extents) == 961
     assert bounds.reach_shell_index == 65535
     assert spherical.wedge_count(3764, 0) < 1 << 19
 

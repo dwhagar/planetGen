@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 496 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 500 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -36,16 +36,16 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 60 | 0 | 5 | 0 | 0 | 65 |
+| T1 | 61 | 0 | 5 | 0 | 0 | 66 |
 | T2 | 79 | 8 | 0 | 1 | 0 | 88 |
-| T3 | 59 | 14 | 3 | 10 | 0 | 86 |
+| T3 | 59 | 15 | 3 | 10 | 0 | 87 |
 | T4 | 25 | 0 | 0 | 4 | 4 | 33 |
 | T5 | 28 | 7 | 1 | 0 | 0 | 36 |
-| T6 | 40 | 18 | 10 | 30 | 0 | 98 |
+| T6 | 41 | 18 | 10 | 30 | 0 | 99 |
 | T7 | 24 | 6 | 3 | 7 | 0 | 40 |
 | T8 | 0 | 0 | 0 | 1 | 2 | 3 |
-| T9 | 1 | 0 | 2 | 25 | 19 | 47 |
-| All | 316 | 53 | 24 | 78 | 25 | 496 |
+| T9 | 2 | 0 | 2 | 25 | 19 | 48 |
+| All | 319 | 54 | 24 | 78 | 25 | 500 |
 
 ## How the labels were given
 
@@ -745,7 +745,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | MF1 | P | T2 | L0 | tuning.IMF_BELL_CENTRE_SOL 0.079, IMF_BELL_WIDTH_DEX 0.69, IMF_BELL_TOP_SOL 1.0: the log-normal of the single-star function below one solar mass | centre 0.079 to 0.08, width 0.69 | stars of the Galactic disk, individual stars (not systems) | the counts of M dwarfs in the solar neighbourhood (RECONS) against the census of the generated stars | the table read in the paper | RECALLED (Chabrier 2003, PASP 115:763, Table 2, disk, individual stars; the four numbers are not opened in the paper) | - | - |
 | MF2 | P | T2 | L0 | tuning.IMF_HIGH_SLOPE 2.3: the power law of the single-star function above one solar mass, a birth function | 2.3 to 2.35 | birth masses, 1 to 150 solar masses | the generated count of stars still alive at 1 to 2 solar masses against the field's 2.7 (Kroupa, Tout and Gilmore 1993) | a slope read from the paper | RECALLED (Chabrier 2003 x = 1.3 per logarithm; Kroupa 2001 2.3 above 0.5; the field's steeper slope comes from the ages) | - | - |
-| MF3 | D | T5 | L0 | generation.primary_mass_function: companions as `multistar` draws them (uniform mass ratio from the larger of 0.1 and 0.08 over the primary's mass to 1, counts from the star-count table), no twin excess, no brown dwarf companion, no mergers | none | systems of up to seven stars | the generated systems' own mass function against the systems' function of Chabrier (centre 0.22) | a twin excess in the mass ratio (Moe and Di Stefano 2017) | COMPUTED (the equation of the primary function, solved from the top mass; test_mass_function_curve) | - | - |
+| MF3 | D | T5 | L0 | generation.primary_mass_function: companions as `multistar` draws them (the mass ratio of the law of `mass_ratio.py`, GEN.951, from the larger of 0.1 and 0.08 over the primary's mass to 1, counts from the star-count table), no brown dwarf companion, no mergers | none | systems of up to seven stars | the generated systems' own mass function against the systems' function of Chabrier (centre 0.22) | the companions the derivation leaves out (brown dwarfs, mergers) | COMPUTED (the equation of the primary function, solved from the top mass; test_mass_function_curve) | - | - |
 
 ## 6.51 Stand-ins of the stars after the main sequence
 
@@ -798,3 +798,12 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | SSR7 | P | T7 | L0 | surface-ground-types:basaltic: plagioclase 0.76, diopside 0.08, enstatite 0.06, basalt powder 0.05, olivine 0.01, the crust of decompression melting | the five proportions | a rocky body that still resurfaces by melting | a ground type worked out from the body's bulk oxides (GEN.474) that differs in its minerals | GEN.474 | the assemblage of Hu, Ehlmann and Seager 2012 Table 2, a library of the Earth's and the Moon's crusts | - | - |
 | SSR8 | P | T7 | L0 | surface-ground-types:felsic: orthoclase 0.40, quartz 0.35, plagioclase 0.20, biotite 0.05, the granitoid crust | the four proportions | a rocky body with a differentiated crust | a ground type worked out from the body's bulk oxides (GEN.474) that differs in its minerals | GEN.474 | the assemblage of Hu, Ehlmann and Seager 2012 Table 2, a library of the Earth's and the Moon's crusts | - | - |
 | SSR9 | P | T7 | L0 | surface-ground-types:oxidised: nanophase hematite 0.50, plagioclase 0.38, diopside 0.04, enstatite 0.03, basalt powder 0.03, olivine 0.02 | the six proportions | a rocky body with an oxidised surface | a ground type worked out from the body's bulk oxides (GEN.474) that differs in its minerals | GEN.474 | the assemblage of Hu, Ehlmann and Seager 2012 Table 2, a library of the Earth's and the Moon's crusts | - | - |
+
+## 6.57 Stand-ins of the mass ratio of a companion
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| MR1 | D | T1 | L0 | tuning.MASS_RATIO_TWIN_EXCESS, MASS_RATIO_LARGE_Q_SLOPE, MASS_RATIO_SMALL_Q_SLOPE at log P 1, 3, 5, 7 for the five primary masses of `COMPANIONS_PER_DECADE_BY_PRIMARY_MASS`, with the break at q = 0.3 and the twins over 0.95 to 1 | the table's 1 sigma: slopes 0.3 to 0.6, twin fractions 0.03 to 0.09 | primaries of 0.8 to 40 solar masses, the zero-age main sequence | the generated companions' mass ratios at one period against the table's slopes and twin fraction | a later survey of mass ratios by period and primary mass | READ (Moe and Di Stefano 2017, ApJS 230:15, Table 13, opened in arXiv:1606.05347v2; Eqn. 2 and Table 1 for the form) | - | - |
+| MR2 | P | T3 | L1 | tuning.MASS_RATIO_TWIN_EXCESS: the table's upper limits "F_twin < 0.03" (1 sigma) are read as no twin excess | 0 to 0.03 | log P of 3 and over for early-type primaries, 5 and over for A and late-B ones, 7 for solar-type ones | a survey that finds twins at wide separations of massive stars | a measured twin fraction there | an upper limit read as zero, inside the limit | - | - |
+| MR3 | P | T9 | L0 | generation.mass_ratio: the law of the companion is the mix of the four periods' laws, each in the share of the primary's companions at that period (`COMPANIONS_PER_DECADE_BY_PRIMARY_MASS`), because the draw puts the masses before the periods; the link between one companion's mass ratio and its period is lost | none | the average over the companions of a primary mass | the generated mass ratio of the companions inside a period range against Table 13's row for that period | drawing the period before the mass | the order of the draw in `multistar`; the average over periods is the table's | - | - |
+| MR4 | P | T6 | L0 | generation.mass_ratio: below the 1 solar mass row (the table's solar-type bin is 0.8 to 1.2) the solar-type row is held, and the O-type row is held above its 25 solar mass node | none | primaries under 0.8 solar masses, over 40 | the mass ratios of M dwarf companions (Winters et al. 2019; Janson et al. 2012) against the solar-type row | a table of M dwarfs by period | an inference: M dwarf companions are near flat in q, as the solar-type row is | - | - |
