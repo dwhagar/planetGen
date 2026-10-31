@@ -260,7 +260,7 @@ def test_galactic_orbit(distance):
     if distance <= 0:
         assert (speed, period) == (0.0, 0.0)
         return
-    assert 0 < speed <= physical_constants.GALACTIC_ROTATION_FLAT_VELOCITY_KMS
+    assert 0 < speed < 1.0e4 and math.isfinite(speed)
     assert period > 0 and math.isfinite(period)
 
 

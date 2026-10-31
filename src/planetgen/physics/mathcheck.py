@@ -45,7 +45,7 @@ from contextlib import contextmanager
 from dataclasses import dataclass, field
 from typing import Callable
 
-from planetgen.galaxy import core_gas as coreGas, galactic_orbit
+from planetgen.galaxy import core_gas as coreGas, galactic_orbit, mass_chain, seed as galaxySeed
 from planetgen.physics import formation, imf
 from planetgen.physics import orbits
 from planetgen.physics import relations
@@ -395,12 +395,13 @@ def _reference_checks():
               lambda: _schwarzschild_radius_km(1.0), 2.953, 0.002,
               "Schwarzschild radius of 1 M_sun, 2.953 km (2GM/c^2 with GM_sun = 1.3271e20 m^3/s^2)",
               unit="km"),
-        Check("sun_galactic_orbital_speed", "reference", "galactic_orbit.calculate_galactic_orbit(Sun)[0]",
-              lambda: galactic_orbit.calculate_galactic_orbit(gc_ly)[0], 225.0, 0.1,
-              "the Sun's circular speed around the galaxy, about 220-230 km/s (IAU 1985; Reid et al. 2014)",
+        Check("sun_galactic_orbital_speed", "reference", "galactic_orbit.calculate_galactic_orbit(Sun)[0] in the Milky Way's measured shape",
+              lambda: _reference_galactic_orbit(gc_ly)[0], 225.0, 0.15,
+              "the Sun's circular speed around the galaxy, about 220-230 km/s (IAU 1985; Reid et al. 2014); the Milky Way's measured shape's potential "
+              "(the Hernquist and Miyamoto-Nagai matches of GP1 to GP3 are stand-ins) gives about 208 km/s",
               unit="km/s"),
-        Check("sun_galactic_year", "reference", "galactic_orbit.calculate_galactic_orbit(Sun)[1]",
-              lambda: galactic_orbit.calculate_galactic_orbit(gc_ly)[1] * 1000, 230.0, 0.1,
+        Check("sun_galactic_year", "reference", "galactic_orbit.calculate_galactic_orbit(Sun)[1] in the Milky Way's measured shape",
+              lambda: _reference_galactic_orbit(gc_ly)[1] * 1000, 230.0, 0.15,
               "the galactic year, about 230 million years", unit="Myr"),
         Check("galaxy_bulge_to_total", "reference", "galaxyDensity.integrated_masses(reference shape)",
               lambda: _galaxy_mass_ratio("bulge", ("bulge", "thin_disk", "thick_disk")), 0.31, 0.1,
@@ -730,6 +731,13 @@ def _reference_galaxy_shape():
         disk_scale_length_pc=2600.0, disk_scale_height_pc=300.0, bulge_scale_radius_pc=1580.0,
         bulge_amplitude=REFERENCE_BULGE_AMPLITUDE, arm_count=2, pitch_angle_rad=math.radians(15.0), arm_amplitude=0.4,
         nuclear_amplitude=1.0)
+
+
+def _reference_galactic_orbit(distance_ly):
+    """`galactic_orbit.calculate_galactic_orbit` in the reference galaxy (the Milky Way's measured shape), which no generation reads: a drawn galaxy has
+    its own circular speed (GEN.339), so the Sun's values can only be checked against the galaxy they were measured in."""
+    with galaxySeed.seeded(mass_chain.FALLBACK_SEED, "mathcheck", "reference", shape=_reference_galaxy_shape()):
+        return galactic_orbit.calculate_galactic_orbit(distance_ly)
 
 
 def _nuclear_structure():

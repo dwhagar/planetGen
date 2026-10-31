@@ -1382,8 +1382,8 @@ STELLAR_BROWN_DWARF = {
 # stars: its profile is a King (1966) model of one of ten concentrations `KING_W0_RANGE` (inclusive), solved once
 # (`physics/king.py`) on `KING_TABLE_POINTS` log-spaced radii and scaled by length. A cluster's systems number its
 # mass over the mean mass of its systems, worked out from its age (`generation/system_mass.py`, GEN.598). The tidal
-# radius a cluster may not exceed is the Jacobi radius in an isothermal halo of circular speed
-# `CLUSTER_HALO_CIRCULAR_KMS`.
+# radius a cluster may not exceed is the Jacobi radius in the galaxy's own mass inside its distance from the centre
+# (`galaxy/enclosed_mass.py`, GEN.339: it used to be an isothermal halo of the Milky Way's 220 km/s).
 KING_W0_RANGE = (3, 12)
 KING_TABLE_POINTS = 2000
 # Satellite galaxies (GEN.237, docs/design/galaxy/intergalactic-and-halo-contents.md 5.5) are stored the same way: the Clouds
@@ -1393,7 +1393,6 @@ KING_TABLE_POINTS = 2000
 # 7.8 scale lengths 98%; the density is normalised so the cut profile holds the whole mass). The rows are real
 # objects, but their sizes are recalled from McConnachie (2012) and not checked (the sources were out of reach).
 SATELLITE_TIDAL_OVER_HALF_MASS = 6.0
-CLUSTER_HALO_CIRCULAR_KMS = 220.0
 
 # A generated galaxy's globular cluster system (`generation/clusters.py`, docs/design/galaxy/globular-clusters.md section 8):
 # the count from the halo mass (`CLUSTER_SYSTEM_FRACTION_RANGE`); masses lognormal about `CLUSTER_MASS_PEAK_SOL` with `CLUSTER_MASS_SIGMA_DEX`, truncated to
@@ -1405,7 +1404,7 @@ CLUSTER_HALO_CIRCULAR_KMS = 220.0
 # Hilker 2018, good to the shape of the distribution). [Fe/H] has two groups, `(fraction, mean, sigma)`: the
 # metal-poor halo clusters and the metal-rich ones of the bulge and disk (the two peaks near -1.5 and -0.5), the
 # metal-rich group sitting on flattened orbits about the centre (median `CLUSTER_BULGE_MEDIAN_PC`, rotating at
-# `CLUSTER_HALO_CIRCULAR_KMS`) and the halo group on a density falling as r**-3.5 between `CLUSTER_HALO_RADIUS_RANGE_PC`.
+# the circular speed of the galaxy's potential, `galaxy/potential.py`) and the halo group on a density falling as r**-3.5 between `CLUSTER_HALO_RADIUS_RANGE_PC`.
 CLUSTER_SYSTEM_FRACTION_RANGE = (2.9e-5, 6.0e-5)
 """float: The globular cluster system's mass over its halo's mass, `eta` (GEN.403): Harris, Blakeslee and Harris 2017
 (2.9e-5) to Harris, Harris and Alessi 2013 (6e-5), Hudson 2014 (4e-5) between them. The three disagree by a factor of two,

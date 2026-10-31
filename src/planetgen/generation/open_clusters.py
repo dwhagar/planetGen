@@ -31,7 +31,7 @@ import math
 import numpy as np
 
 from planetgen import tuning
-from planetgen.galaxy import components, core_gas, disk_history
+from planetgen.galaxy import components, core_gas, disk_history, enclosed_mass, potential
 from planetgen.galaxy import structure as galaxy_structure
 from planetgen.galaxy import density as galaxy_density
 from planetgen.physics import cluster_maximum_mass, component_profiles, constants, metallicity
@@ -39,9 +39,7 @@ from planetgen.physics import open_cluster_evolution as evolution
 from planetgen.physics.units import pc_to_ly
 from planetgen.util import draw
 from planetgen.util.poisson import poisson_count
-from planetgen.physics import unit_registry as units
 
-_pc_to_m = units.converter("pc", "m")
 
 _ARM_ROUNDS = 24
 _MAX_AGE_GY = tuning.OPEN_CLUSTER_AGE_RANGE_MYR[1] / 1000.0
@@ -65,15 +63,15 @@ def _disk_population(age_gy):
     return np.where(np.asarray(age_gy) < tuning.OPEN_CLUSTER_DISK_POPULATION_EDGE_GY, 0, 1)
 
 
-def _disk_maximum_masses(found, radii, efficiency):
+def _disk_maximum_masses(found, radii, efficiency, pot):
     """
     The most massive cluster each cell of the formation table can form, solar masses (`physics.cluster_maximum_mass`, GEN.1196):
-    from the ring's gas (`found.gas_now`, the gas of the last Gy), the epicyclic frequency of the flat rotation curve at its
-    radius (`tuning.CLUSTER_HALO_CIRCULAR_KMS`), the cell's bound share (its cluster formation efficiency) and the disc's gas
+    from the ring's gas (`found.gas_now`, the gas of the last Gy), the epicyclic frequency of the galaxy's own rotation curve at its
+    radius (`pot`, GEN.339), the cell's bound share (its cluster formation efficiency) and the disc's gas
     dispersion (`tuning.DISC_GAS_DISPERSION_KMS`). A ring with no gas forms none above the least the mass function holds.
     """
-    kappa = np.array([cluster_maximum_mass.epicyclic_frequency_per_myr(tuning.CLUSTER_HALO_CIRCULAR_KMS, float(r))
-                      for r in radii])
+    kappa = np.array([cluster_maximum_mass.epicyclic_frequency_per_myr(
+        potential.circular_speed_kms(pot, float(r)), float(r), potential.circular_speed_slope_kms_per_pc(pot, float(r))) for r in radii])
     gas = np.asarray(found.gas_now, dtype=float)
 
     def cap(ring, bound):
@@ -85,9 +83,9 @@ def _disk_maximum_masses(found, radii, efficiency):
     return np.vectorize(cap, otypes=[float])(rings, efficiency)
 
 
-def _formation_table(shape):
+def _formation_table(shape, pot):
     """
-    `(ages_gy, step_gy, radii_pc, ring_width_pc, mass_formed, efficiency, maximum_mass)` for the steps of the last Gy and every
+    `(ages_gy, step_gy, radii_pc, ring_width_pc, mass_formed, efficiency, maximum_mass)` (in the galaxy's potential `pot`) for the steps of the last Gy and every
     ring of the disk's history: the mass formed in each cell of the table (solar masses), the cluster formation efficiency of
     its rate density and the most massive cluster its gas can form (`_disk_maximum_masses`).
     """
@@ -103,7 +101,7 @@ def _formation_table(shape):
     mass_formed = rate * area_pc2[:, None] * step_gy
     efficiency = evolution.cluster_formation_efficiency(rate * 1.0e-3)     # per year per kpc2 from per Gy per pc2
     return (found.age_gy[steps], step_gy, radii, ring_width, mass_formed, efficiency,
-            _disk_maximum_masses(found, radii, efficiency))
+            _disk_maximum_masses(found, radii, efficiency, pot))
 
 
 def _arm_phase(radius_pc, shape):
@@ -184,23 +182,7 @@ def ambient_density_msun_pc3(x, y, z, shape, expected_at_density_1, edge_pc):
     return relative * expected_at_density_1 / edge_pc ** 3 * galaxy_density.mean_system_mass_solar(shape)
 
 
-def _circular_speed_kms(radius_pc, shape):
-    """
-    The circular speed in the galaxy's centre at cylindrical `radius_pc`, km/s, from the nuclear cluster and the
-    nuclear disc inside it (`GM(<r)/r`; the exponential disc's mass inside `r` is `M (1 - (1 + x) exp(-x))`, `x` its
-    radius over the scale length). The bulge's mass is left out, so the speed is a floor [stand-in].
-    """
-    terms = galaxy_density.model_terms(shape)
-    stellar_mass, _halo = disk_history.stellar_and_halo_masses(shape)
-    solar_per_model = stellar_mass / sum(galaxy_density.integrated_masses(shape).values())
-    x = radius_pc / terms["nuclear_disc_length_pc"]
-    enclosed = solar_per_model * (terms["nuclear_cluster_mass"]
-                                  + terms["nuclear_disc_mass"] * (1.0 - (1.0 + x) * np.exp(-x)))
-    radius_m = _pc_to_m(np.maximum(radius_pc, 1.0))
-    return np.sqrt(constants.G * enclosed * constants.SOLAR_MASS_TO_KG / radius_m) / 1.0e3
-
-
-def _ring_maximum_mass_sol(shape, core):
+def _ring_maximum_mass_sol(pot, core):
     """
     The most massive cluster the central ring forms, solar masses (`physics.cluster_maximum_mass`, GEN.1195): from the
     ring's gas surface density and the epicyclic frequency of the nucleus's circular speed at the ring's radius, and the
@@ -208,18 +190,18 @@ def _ring_maximum_mass_sol(shape, core):
     """
     if core.rate_msun_yr <= 0.0 or core.gas_surface_density_msun_pc2 <= 0.0:
         return tuning.OPEN_CLUSTER_MASS_RANGE_SOL[1]
-    speed = float(_circular_speed_kms(np.array([core.radius_pc]), shape)[0])
-    kappa = cluster_maximum_mass.epicyclic_frequency_per_myr(speed, core.radius_pc)
+    speed = float(potential.circular_speed_kms(pot, core.radius_pc))
+    kappa = cluster_maximum_mass.epicyclic_frequency_per_myr(speed, core.radius_pc, potential.circular_speed_slope_kms_per_pc(pot, core.radius_pc))
     return cluster_maximum_mass.maximum_cluster_mass_sol(core.gas_surface_density_msun_pc2, kappa, core.bound_share,
                                                          tuning.CORE_RING_GAS_DISPERSION_KMS)
 
 
-def _core_ring(stream, shape, core, max_mass_sol=None):
+def _core_ring(stream, shape, core, pot, max_mass_sol=None):
     """
     The clusters the central ring forms (`galaxy.core_gas`): `(age_gy, x, y, z, fe_h, speed_kms, dispersion_kms)` arrays
     of those formed over `tuning.CORE_STAR_FORMATION_SPAN_GY` at the ring's rate (the share of it that goes into bound
     clusters, the mass function's mean mass for the count), at the ring's radius, width and height, with the nuclear
-    disc's [Fe/H] and dispersion, on the circular orbit of the nucleus. Their initial masses are drawn with the others,
+    disc's [Fe/H] and dispersion, on the circular orbit of the nucleus (the galaxy's potential `pot`, GEN.338, bulge and black hole included). Their initial masses are drawn with the others,
     under `max_mass_sol`, the most massive cluster the ring can form (the count is of the mass function held to it).
     """
     span_gy = min(tuning.CORE_STAR_FORMATION_SPAN_GY, _MAX_AGE_GY)
@@ -231,18 +213,18 @@ def _core_ring(stream, shape, core, max_mass_sol=None):
     z = 2.0 * core.height_pc * np.arctanh(np.clip(2.0 * stream.random_array(count) - 1.0, -1.0 + 1.0e-12, 1.0 - 1.0e-12))
     row = tuning.METALLICITY_BY_POPULATION["nuclear_disc"]
     fe_h = np.clip(row["offset"] + row["sigma"] * _normal(stream, count), *tuning.METALLICITY_RANGE_FE_H)
-    speed = _circular_speed_kms(radius, shape)
+    speed = potential.circular_speed_kms(pot, radius)
     dispersion = np.full(count, tuning.STELLAR_POPULATION_DISPERSION_KMS["nuclear_disc"])
     return age, radius * np.cos(phi), radius * np.sin(phi), z, fe_h, speed, dispersion
 
 
-def _disk_formed(stream, shape):
+def _disk_formed(stream, shape, pot):
     """
     `(age_gy, initial_mass, (x, y, z), fe_h, speed_kms, dispersion_kms)` of the clusters the disk's star formation history
     forms (see the module docstring, steps 1 and 2): empty arrays for a disk that formed none.
     """
     empty = (np.zeros(0), np.zeros(0), (np.zeros(0), np.zeros(0), np.zeros(0)), np.zeros(0), np.zeros(0), np.zeros(0))
-    ages_gy, step_gy, radii, ring_width, mass_formed, efficiency, maximum = _formation_table(shape)
+    ages_gy, step_gy, radii, ring_width, mass_formed, efficiency, maximum = _formation_table(shape, pot)
     weight = mass_formed * efficiency / evolution.mean_initial_mass_sol(maximum)       # clusters formed per cell
     total = float(weight.sum())
     if total <= 0.0:
@@ -266,7 +248,7 @@ def _disk_formed(stream, shape):
     initial = evolution.initial_masses(stream.random_array(count), floor, maximum[ring, step])
     place = _place(stream, radius, age, shape)
     fe_h = _fe_h(stream, radius, age)
-    return (age, initial, place, fe_h, np.full(count, tuning.CLUSTER_HALO_CIRCULAR_KMS), _dispersion_kms(shape, age))
+    return (age, initial, place, fe_h, potential.circular_speed_kms(pot, radius), _dispersion_kms(shape, age))
 
 
 def generate_open_clusters(galaxy_seed, shape, edge_pc, expected_at_density_1, epoch_unix=0.0):
@@ -285,10 +267,12 @@ def generate_open_clusters(galaxy_seed, shape, edge_pc, expected_at_density_1, e
     """
     stream = _stream(galaxy_seed)
     c_env_myr = stream.uniform(*tuning.OPEN_CLUSTER_DISRUPTION_CENV_MYR)
-    disk = _disk_formed(stream, shape)
+    seed_bytes = potential.seed_bytes(galaxy_seed)
+    pot = potential.for_galaxy(shape, seed_bytes)
+    disk = _disk_formed(stream, shape, pot)
     core = core_gas.core_gas(shape)
-    ring_cap = _ring_maximum_mass_sol(shape, core)
-    ring = _core_ring(stream, shape, core, ring_cap)
+    ring_cap = _ring_maximum_mass_sol(pot, core)
+    ring = _core_ring(stream, shape, core, pot, ring_cap)
     ring_initial = evolution.initial_masses(stream.random_array(len(ring[0])), high_mass_sol=ring_cap)
     age = np.concatenate((disk[0], ring[0]))
     initial = np.concatenate((disk[1], ring_initial))
@@ -311,7 +295,7 @@ def generate_open_clusters(galaxy_seed, shape, edge_pc, expected_at_density_1, e
         tuning.CORE_RING_CLOUD_SURFACE_DENSITY_MSUN_PC2, tuning.CORE_RING_CLOUD_DENSITY_MSUN_PC3), 0.0), mass)
     galactocentric = np.sqrt(x * x + y * y + z * z)
     size = evolution.half_mass_radii_pc(initial, age, density_z, expansion)
-    size = np.minimum(size, evolution.jacobi_radii_pc(mass, galactocentric) / tuning.SATELLITE_TIDAL_OVER_HALF_MASS)
+    size = np.minimum(size, evolution.jacobi_radii_pc(mass, galactocentric, enclosed_mass.enclosed_mass_solar(shape, seed_bytes, np.maximum(galactocentric, 1.0))) / tuning.SATELLITE_TIDAL_OVER_HALF_MASS)
     kept = np.nonzero((mass >= tuning.OPEN_CLUSTER_MASS_RANGE_SOL[0]) & (size > 0.0) & (age >= _MIN_AGE_GY))[0]
     kicks = np.stack([_normal(stream, count), _normal(stream, count), _normal(stream, count)]) * dispersion
     cylindrical = np.maximum(np.hypot(x, y), 1.0)
