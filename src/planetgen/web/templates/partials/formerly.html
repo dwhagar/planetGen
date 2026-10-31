@@ -1,0 +1,9 @@
+{#- planetgen/web/templates/partials/formerly.html -- the "Formerly" line of an object page (GEN.1140): the names and IDs the object has
+stopped having, newest first, each with why and the generator epoch it stopped in. `lines` is the answer's `former_designations`. -#}
+{%- macro formerly(lines) -%}
+{%- if lines %}
+<p class="formerly">Formerly:
+  {%- for line in lines %} <span class="formerly-item"><span class="formerly-{{ line.kind }}">{{ line.designation }}</span> ({{ line.reason }}, epoch {{ line.retired_epoch }}){% if not loop.last %};{% endif %}</span>{% endfor -%}
+</p>
+{%- endif %}
+{%- endmacro -%}

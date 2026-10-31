@@ -33,6 +33,7 @@ import pymysql
 from flask import Blueprint, current_app, g, jsonify, request, url_for
 
 from planetgen.db import children as children_db
+from planetgen.db import designation_history
 from planetgen.describe.sheet import sheet as object_sheet
 from planetgen.web.maps.systemscene import build_scene
 from planetgen.generation import run_galaxy
@@ -41,6 +42,7 @@ from planetgen.util import draw, generator_epoch
 
 from planetgen.db.shell_specs import galaxy_shell_specs
 from planetgen.db.query import (
+    _PHENOMENON_TYPE_TO_TABLE,
     facilities_for_system,
     facilities_in_sector,
     facility_detail,
@@ -526,6 +528,7 @@ def sector_detail(sector_id):
                                  if detail.get("placed") else None)
     detail["unresolved"] = unresolved_of(conn, detail)
     detail["scatter_tier"] = scatter_tier_of(conn, detail)
+    designation_history.attach_former(conn, "sectors", [detail])
     return jsonify(detail)
 
 
@@ -615,7 +618,18 @@ def system_detail(system_id):
         detail["region"] = region_of(conn, resolve_object(conn, "system", system_id)["positions"]["galaxy_pc"])
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 404
+    _attach_former_designations(conn, detail)
     return jsonify(detail)
+
+
+def _attach_former_designations(conn, detail):
+    """Adds `former_designations` (GEN.1140) to a system's answer and to each star, planet, moon, belt and comet in it."""
+    designation_history.attach_former(conn, "star_systems", [detail])
+    designation_history.attach_former(conn, "stars", detail["stars"])
+    designation_history.attach_former(conn, "planets", detail["planets"])
+    designation_history.attach_former(conn, "moons", [moon for planet in detail["planets"] for moon in planet["moons"]])
+    designation_history.attach_former(conn, "asteroid_belts", detail["belts"])
+    designation_history.attach_former(conn, "comets", detail["comets"])
 
 
 @bp.route("/systems/<uid:system_id>/scene")
@@ -1541,6 +1555,7 @@ def phenomenon(phenomenon_type, phenomenon_id):
         detail = query_phenomenon_detail(get_db(), phenomenon_type, phenomenon_id)
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 404
+    designation_history.attach_former(get_db(), _PHENOMENON_TYPE_TO_TABLE[phenomenon_type], [detail])
     return jsonify(detail)
 
 

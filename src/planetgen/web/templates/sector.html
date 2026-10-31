@@ -2,6 +2,7 @@
 {% extends "base.html" %}
 {% from "partials/admin_menu.html" import admin_menu_button, admin_dialogs, add_edit_actions with context %}
 {% from "partials/action_bar.html" import action_bar %}
+{% from "partials/formerly.html" import formerly %}
 {% from "partials/datatable.html" import datatable with context %}
 {% from "partials/profile.html" import profile_panel with context %}
 {%- set groups = [] %}
@@ -50,6 +51,7 @@
 </div>
 {% endblock %}
 {% block content %}
+{{ formerly(sector.former_designations) }}
 {%- if pick %}
 <p class="pick-banner" role="status"><strong>{{ pick.banner }}:</strong> pick a system or phenomenon on the
   Sector Map, then &ldquo;{{ pick.label }}&rdquo;, or use a bookmark. <a href="{{ pick.cancel }}">Cancel</a></p>

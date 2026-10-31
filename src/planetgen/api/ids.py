@@ -258,6 +258,9 @@ def resolve_ref(conn, text):
     if kind in ACTIVE_KINDS:
         parse(kind, written)  # IdError for text that cannot be this kind's ID
         found = row_id(conn, kind, written)
+        if found is None:      # an ID the object has left names it still (GEN.1140)
+            left = retired(conn, kind, written)
+            found = None if left is None or left.gone else row_id(conn, kind, left.current)
     elif written.isdigit():
         found = int(written)
     else:

@@ -101,3 +101,32 @@ def history(conn, table, row_id):
         row["designation_kind"], object_uid.from_bytes(row["uid"]) if row["designation_kind"] == designations.KIND_UID else row["name"],
         row["object_kind"], row["object_row_id"], row["valid_from_epoch"], row["retired_epoch"], row["reason"], row["gone_epoch"])
         for row in rows]
+
+
+def former_designations(conn, table, row_ids):
+    """
+    `{row id: [{"designation", "kind", "reason", "retired_epoch"}, ...]}` for the objects `row_ids` of `table`, newest first, for the "Formerly" lines
+    and the `former_designations` field of an answer (an object with none is not in the dict). A retired ID is printed (GEN.1140).
+    """
+    row_ids = list(dict.fromkeys(row_ids))
+    found = {}
+    for start in range(0, len(row_ids), 1000):
+        chunk = row_ids[start:start + 1000]
+        for row in conn.execute(
+                "SELECT designation_kind, uid, name, object_row_id, valid_from_epoch, retired_epoch, reason, gone_epoch FROM designations"
+                f" WHERE object_kind = ? AND object_row_id IN ({', '.join('?' * len(chunk))})", (table, *chunk)).fetchall():
+            found.setdefault(row["object_row_id"], []).append(designations.Retired(
+                row["designation_kind"], object_uid.from_bytes(row["uid"]) if row["designation_kind"] == designations.KIND_UID else row["name"],
+                table, row["object_row_id"], row["valid_from_epoch"], row["retired_epoch"], row["reason"], row["gone_epoch"]))
+    return {row_id: [{"designation": text, "kind": kind, "reason": reason, "retired_epoch": epoch}
+                     for kind, text, reason, epoch in designations.former_lines(rows)]
+            for row_id, rows in found.items()}
+
+
+def attach_former(conn, table, rows):
+    """Sets `former_designations` (a list, empty for none) on each dict of `rows`, the objects of `table` that carry their row number as `id`."""
+    rows = [row for row in rows if isinstance(row, dict)]
+    found = former_designations(conn, table, [row["id"] for row in rows if row.get("id") is not None])
+    for row in rows:
+        row["former_designations"] = found.get(row.get("id"), [])
+    return rows

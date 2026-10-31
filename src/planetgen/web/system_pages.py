@@ -893,6 +893,7 @@ def phenomenon(phenomenon_type, phenomenon_id):
         breadcrumbs=[crumb("Phenomena", "phenomena"), crumb(detail["name"])],
         description=f"{detail['name']}, a {type_label.lower()} in this charted galaxy.",
         type_label=type_label,
+        former=detail.get("former_designations"),
         distance=distance,
         sector=sector,
         octant=detail.get("quadrant"),

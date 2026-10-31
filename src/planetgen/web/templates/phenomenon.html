@@ -4,6 +4,7 @@
 {% extends "base.html" %}
 {% from "partials/admin_menu.html" import admin_menu_button, admin_dialogs, add_edit_actions with context %}
 {% from "partials/action_bar.html" import action_bar %}
+{% from "partials/formerly.html" import formerly %}
 {% from "partials/pick_banner.html" import pick_banner %}
 {#- UX.75: the Admin menu is the last button of the action bar; its dialogs follow in the content. -#}
 {%- set groups = [] %}
@@ -45,6 +46,7 @@
 {% endblock %}
 {% block content %}
 {{ pick_banner(pick, bookmark, 'phenomenon') }}
+{{ formerly(former) }}
 {{ admin_dialogs(groups, here) }}
 {#- A 3D view sits beside the data panel when there's room (UX.15). -#}
 {%- if view_kind in ("render", "nebula") %}

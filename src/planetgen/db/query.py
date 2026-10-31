@@ -6591,16 +6591,35 @@ def _name_match(conn, column, term, prefix_last=False):
     return " AND ".join(clauses), params
 
 
-def _search_match(conn, column, term):
+def _search_match(conn, column, term, former=None):
     """
     The name test of a search result panel (UX.97): `_name_match`, except that a lone word too short for the
     FULLTEXT index matches the start of the name through the ordinary name index, instead of a REGEXP over every
     row (a 2-letter word took 8.4 s on 2,000,000 systems). "ar" therefore finds "Arcturus", not "Alpha Ar".
+
+    `former` is `(table, id column)` of the panel's objects (GEN.1140): the test then also holds for an object that used to have the name (a
+    retired name in `designations`, matched from its start), so a link or a memory of an old name still finds it.
     """
     words = re.findall(r"\w+", term or "")
     if len(words) == 1 and len(words[0]) < _fulltext_min_word(conn):
-        return f"{column} LIKE ? ESCAPE '\\\\'", [_search_like_pattern(words[0])[1:]]
-    return _name_match(conn, column, term)
+        match, params = f"{column} LIKE ? ESCAPE '\\\\'", [_search_like_pattern(words[0])[1:]]
+    else:
+        match, params = _name_match(conn, column, term)
+    if former is None or not words:
+        return match, params
+    table, id_column = former
+    # Looked up first, through the name index of `designations`, so a galaxy that never renamed anything keeps the plain test (an OR with a
+    # FULLTEXT match cannot use the FULLTEXT index).
+    past = [row["object_row_id"] for row in conn.execute(
+        "SELECT DISTINCT object_row_id FROM designations WHERE object_kind = ? AND designation_kind = 'name' AND name LIKE ? ESCAPE '\\\\' LIMIT ?",
+        (table, _search_like_pattern(term.strip())[1:], FORMER_MATCH_LIMIT)).fetchall()]
+    if not past:
+        return match, params
+    return f"(({match}) OR {id_column} IN ({', '.join('?' * len(past))}))", [*params, *past]
+
+
+FORMER_MATCH_LIMIT = 200
+"""int: The most objects a search takes in because they used to have the name searched for (GEN.1140)."""
 
 
 def _search_like_pattern(term):
@@ -6993,7 +7012,7 @@ def _with_refs(conn, rows, kind):
 
 
 def _search_result_sectors(conn, term, limit, offset):
-    match, params = _search_match(conn, "name", term)
+    match, params = _search_match(conn, "name", term, former=("sectors", "id"))
     rows, page = _search_page(
         conn, "SELECT id, name, edge_mpc", f"FROM sectors WHERE {match}", "name, id", params, limit, offset,
     )
@@ -7003,7 +7022,7 @@ def _search_result_sectors(conn, term, limit, offset):
 def _search_result_systems(conn, term, limit, offset, stars=None):
     clauses, params = [], []
     if term:
-        match, params = _search_match(conn, "ss.name", term)
+        match, params = _search_match(conn, "ss.name", term, former=("star_systems", "ss.id"))
         clauses.append(match)
     if stars is not None:
         least, most = stars
@@ -7044,7 +7063,7 @@ def _search_result_stars(conn, spectral_tags, luminosity_tags, term, limit, offs
         params.extend(sorted(luminosity_tags))
     _append_size_clause(clauses, params, "s.radius_km", size_range)
     if term:
-        match, match_params = _search_match(conn, "s.name", term)
+        match, match_params = _search_match(conn, "s.name", term, former=("stars", "s.id"))
         clauses.append(match)
         params.extend(match_params)
     where = (" AND " + " AND ".join(clauses)) if clauses else ""
@@ -7101,7 +7120,7 @@ def _search_result_planets(conn, class_tags, body_tags, life_tags, term, limit, 
     _life_class_clause("p", life_tags, clauses, params)
     _append_size_clause(clauses, params, "p.radius_km", size_range)
     if term:
-        match, match_params = _search_match(conn, "p.name", term)
+        match, match_params = _search_match(conn, "p.name", term, former=("planets", "p.id"))
         clauses.append(match)
         params.extend(match_params)
     where = (" AND " + " AND ".join(clauses)) if clauses else ""
@@ -7132,7 +7151,7 @@ def _search_result_moons(conn, class_tags, body_tags, life_tags, term, limit, of
     _life_class_clause("m", life_tags, clauses, params)
     _append_size_clause(clauses, params, "m.radius_km", size_range)
     if term:
-        match, match_params = _search_match(conn, "m.name", term)
+        match, match_params = _search_match(conn, "m.name", term, former=("moons", "m.id"))
         clauses.append(match)
         params.extend(match_params)
     where = (" AND " + " AND ".join(clauses)) if clauses else ""
