@@ -254,6 +254,7 @@ SECTIONS = (
     ("6.135", "6.135 Stand-ins of a giant's internal heat",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "replaced_by", "evidence")),
     ("6.136", "6.136 Stand-ins of the core's thermal history",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.150", "6.150 Stand-ins of the shoulders of the best-fit classes",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.155", "6.155 Stand-ins of the life readings",

@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1002 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1014 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -39,13 +39,13 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T1 | 145 | 14 | 8 | 1 | 0 | 168 |
 | T2 | 113 | 39 | 0 | 1 | 0 | 153 |
 | T3 | 88 | 38 | 8 | 10 | 0 | 144 |
-| T4 | 39 | 5 | 0 | 14 | 10 | 68 |
-| T5 | 47 | 19 | 1 | 1 | 0 | 68 |
-| T6 | 96 | 78 | 18 | 42 | 0 | 234 |
+| T4 | 39 | 5 | 0 | 15 | 10 | 69 |
+| T5 | 48 | 19 | 1 | 1 | 0 | 69 |
+| T6 | 96 | 79 | 18 | 51 | 0 | 244 |
 | T7 | 28 | 13 | 7 | 12 | 0 | 60 |
 | T8 | 0 | 1 | 1 | 5 | 1 | 8 |
 | T9 | 17 | 14 | 5 | 44 | 19 | 99 |
-| All | 573 | 221 | 48 | 130 | 30 | 1002 |
+| All | 574 | 222 | 48 | 140 | 30 | 1014 |
 
 ## How the labels were given
 
@@ -1438,6 +1438,28 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | CC9 | P | T9 | L3 | core_heat.MIN_LIQUID_SHELL 0.25: a liquid shell thinner than this share of the core's radius runs no dynamo | 0.15 to 0.35 | all cores | a thin-shell dynamo model | a dynamo criterion from the shell's geometry | needed output: Mars (shell 0.23) has no field at 4.5 Gy and the Earth (0.6) has one | - | no data |
 | CC10 | P | T7 | L2 | core_heat.EARTH_CORE_RADIUS_M, EARTH_CORE_DENSITY_KG_M3 and EARTH_DYNAMO_W: the unit of the dipole moment's buoyancy-flux scaling `(R / R_e)^2 (P / P_e)^(1/3) (rho / rho_e)^(1/6)` | the exponents | cores with a running dynamo | a measured field of a body with another core | the full scaling of Christensen 2010 | the Earth's moment 7.8e22 A m2 (the scaling is read second-hand; the unit is the model's own Earth) | - | - |
 | CC11 | P | T6 | L0 | The mantle box is not changed by the core (the core's heat is already its heat capacity); the core is driven by the box's temperature history | none | all bodies | a two-way coupled model whose mantle cools differently | a coupled core and mantle box | design (the stored heat flow and Urey ratio stay as they were) | - | - |
+
+## 6.150 Stand-ins of the shoulders of the best-fit classes
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| CF1 | P | T6 | L1 | planet_class_fit.json shoulders.mass_earth: 0.4 of the edge (35 Earth masses gives 14: ice giant to gas giant fades from 21 to 49) | 0.2 to 0.6 of the edge | giants | measured ice-giant and gas-giant masses that overlap over a different range | the envelope share of GEN.428 deciding ice giant against gas giant | planet_classes.json basis of class I: the drawn ice and gas giant mass ranges overlap from 30 to 60 Earth masses | - | - |
+| CF2 | P | T6 | L3 | planet_class_fit.json shoulders.gravity_g: 0.1 of the edge (the 0.5 g and 2 g lines fade over 0.05 and 0.2 g) | 0.05 to 0.2 of the edge | terrestrial bodies with air | a habitability model whose gravity limits are sharper or softer than 10 percent | the gravity lines of the habitability index | hand-picked; 2 g is the Bryson 2021 upper edge of Earth-sized, which is itself a range (GV1) | - | no data |
+| CF3 | P | T6 | L3 | planet_class_fit.json shoulders.temperature_k: 10 K (freezing, 233.15 K, 320 K and 400 K lines fade over 10 K) | 5 to 20 K | terrestrial bodies with air | the climate scatter of one planet class at fixed insolation (Lehmer 2020 scatter in pCO2 is wider than 10 K of surface temperature) | the spread of the surface-temperature solve (GEN.972 ice-albedo feedback) | hand-picked; the mean surface of a drawn body is uncertain by about this much from the greenhouse table | - | no data |
+| CF4 | P | T6 | L3 | planet_class_fit.json shoulders.pressure_pa: 0.3 of the edge | 0.15 to 0.5 | terrestrial bodies with air | none known | the survival equipment fields of thin and thick air | hand-picked; pressure draws are log-spread, so a share of the edge is the natural width | - | no data |
+| CF5 | P | T6 | L3 | planet_class_fit.json shoulders.ocean_fraction: 0.05 absolute (the 0.2 and 0.8 water lines fade over 5 percent of the surface) | 0.02 to 0.1 | terrestrial bodies with air | the ocean-fraction law of GEN.1147 once Boss decides it (a bimodal law makes the shoulder rarely used) | the water cover law of GEN.1147 | hand-picked; the cover law saturates, so values near the lines are rare | - | no data |
+| CF6 | P | T6 | L3 | planet_class_fit.json shoulders.water_mass_fraction: 0.5 of the edge (the airless icy line at 1 percent) | 0.25 to 1.0 | airless bodies | none known | the small-body composition draw | hand-picked; the dry and icy airless bodies are decades apart, so the line is seldom crossed | - | no data |
+| CF7 | P | T6 | L3 | planet_class_fit.json shoulders for gas shares (oxygen, carbon dioxide, hydrogen, sulfur dioxide, reducing gases): 0.25 of the edge with a floor of 0.002 to 0.005 | 0.1 to 0.5 of the edge | terrestrial bodies with air | none known | the toxicity and equipment lines of the habitability index | hand-picked; gas shares of a drawn air spread over decades, so the shoulder is a share of the edge | - | no data |
+
+## 6.155 Stand-ins of the life readings
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| LR1 | P | T4 | L3 | life_readings.ABUNDANCE_BANDS: the 0 to 9 kind score as Absent (0), Rare (1 to 2), Occasional (3 to 4), Frequent (5 to 6), Abundant (7 to 8), Dominant (9) | each edge one score either way | a planet or moon with kind scores | an abundance scale tied to a measured cover or biomass share | a calibration of the kind scores to cover and biomass | the DAFOR scale is the field ecologist's standard abundance scale; the wording is recalled and not opened, and the edges are even steps of the 0 to 9 score | UX.251 | no data |
+| LR2 | P | T6 | L3 | life_readings.TREND_SPAN_GYR 0.5, TREND_BAND 0.10 and SPREAD_GYR 0.3: the conditions are read half a billion years ahead, a gain or loss of a tenth of the class likelihood is a trend, and a kind is still spreading for 0.3 Gyr after its milestone | span 0.25 to 1; band 0.05 to 0.2; spread 0.1 to 1 | a world with a living class and a main-sequence star | none known | the spread of a kind over its world after the milestone, once the stage model carries one | hand-picked against the brightening of the Sun, about 7 percent a Gyr in `main_sequence`; no source gives how long a kind takes to fill its world | UX.251 | no data |
+| LR3 | P | T6 | L3 | life_readings.DYING_GYR 0.1, PRECARIOUS_GYR 0.5, MARGINAL_GYR 2.0 and MARGINAL_SCORE 2: the time left, Gyr, within which a class is Dying out, Precarious and Marginal, and the score at or under which it is Marginal now | each time a factor of 2; score 1 to 3 | a world with a living class | a habitability record that says how long a biosphere survives the loss of its conditions | the lifetimes of biospheres under a brightening star (Caldeira and Kasting 1992 give about 1 Gyr for Earth's, not opened) | hand-picked; the step of the search is 0.1 Gyr | UX.251 | no data |
+| LR4 | P | T5 | L0 | life_readings.TEMPERATURE_EXPONENT 0.25: a surface warms as the fourth root of the star's luminosity, with the greenhouse, the albedo and the ice held where they are, and an open sea is lost where the light passes the runaway-greenhouse limit (`orbits.runaway_greenhouse_flux`, Kopparapu et al. 2014) | none | a world that radiates what it absorbs | a feedback that moves the surface by more than the bare fourth root over half a billion years | the climate solve run at the later luminosity | the Stefan-Boltzmann law | UX.251 | - |
+| LR5 | P | T6 | L3 | life_readings.KIND_MILESTONES: microbes spread after abiogenesis, flora and fauna after multicellularity, sentient life after the technological civilization | none | a world with a stored schedule | a kind that appears at another step of the schedule | the kind scores carrying their own ages | reasoned from `physics/life_complexity.py`: the rung at which each kind becomes possible | UX.251 | no data |
 
 ## 6.129 Stand-ins of the strengths of the ice types
 
