@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 960 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 965 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -39,13 +39,13 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T1 | 140 | 13 | 8 | 1 | 0 | 162 |
 | T2 | 112 | 36 | 0 | 1 | 0 | 149 |
 | T3 | 84 | 38 | 5 | 10 | 0 | 137 |
-| T4 | 37 | 5 | 0 | 14 | 10 | 66 |
-| T5 | 43 | 17 | 0 | 1 | 0 | 61 |
-| T6 | 92 | 72 | 18 | 48 | 0 | 230 |
+| T4 | 37 | 5 | 0 | 15 | 10 | 67 |
+| T5 | 44 | 17 | 0 | 1 | 0 | 62 |
+| T6 | 92 | 72 | 18 | 51 | 0 | 233 |
 | T7 | 27 | 8 | 8 | 8 | 0 | 51 |
 | T8 | 0 | 1 | 1 | 5 | 1 | 8 |
 | T9 | 17 | 14 | 4 | 42 | 19 | 96 |
-| All | 552 | 204 | 44 | 130 | 30 | 960 |
+| All | 553 | 204 | 44 | 134 | 30 | 965 |
 
 ## How the labels were given
 
@@ -1389,6 +1389,16 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | CF5 | P | T6 | L3 | planet_class_fit.json shoulders.ocean_fraction: 0.05 absolute (the 0.2 and 0.8 water lines fade over 5 percent of the surface) | 0.02 to 0.1 | terrestrial bodies with air | the ocean-fraction law of GEN.1147 once Boss decides it (a bimodal law makes the shoulder rarely used) | the water cover law of GEN.1147 | hand-picked; the cover law saturates, so values near the lines are rare | - | no data |
 | CF6 | P | T6 | L3 | planet_class_fit.json shoulders.water_mass_fraction: 0.5 of the edge (the airless icy line at 1 percent) | 0.25 to 1.0 | airless bodies | none known | the small-body composition draw | hand-picked; the dry and icy airless bodies are decades apart, so the line is seldom crossed | - | no data |
 | CF7 | P | T6 | L3 | planet_class_fit.json shoulders for gas shares (oxygen, carbon dioxide, hydrogen, sulfur dioxide, reducing gases): 0.25 of the edge with a floor of 0.002 to 0.005 | 0.1 to 0.5 of the edge | terrestrial bodies with air | none known | the toxicity and equipment lines of the habitability index | hand-picked; gas shares of a drawn air spread over decades, so the shoulder is a share of the edge | - | no data |
+
+## 6.155 Stand-ins of the life readings
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| LR1 | P | T4 | L3 | life_readings.ABUNDANCE_BANDS: the 0 to 9 kind score as Absent (0), Rare (1 to 2), Occasional (3 to 4), Frequent (5 to 6), Abundant (7 to 8), Dominant (9) | each edge one score either way | a planet or moon with kind scores | an abundance scale tied to a measured cover or biomass share | a calibration of the kind scores to cover and biomass | the DAFOR scale is the field ecologist's standard abundance scale; the wording is recalled and not opened, and the edges are even steps of the 0 to 9 score | UX.251 | - |
+| LR2 | P | T6 | L3 | life_readings.TREND_SPAN_GYR 0.5, TREND_BAND 0.10 and SPREAD_GYR 0.3: the conditions are read half a billion years ahead, a gain or loss of a tenth of the class likelihood is a trend, and a kind is still spreading for 0.3 Gyr after its milestone | span 0.25 to 1; band 0.05 to 0.2; spread 0.1 to 1 | a world with a living class and a main-sequence star | none known | the spread of a kind over its world after the milestone, once the stage model carries one | hand-picked against the brightening of the Sun, about 7 percent a Gyr in `main_sequence`; no source gives how long a kind takes to fill its world | UX.251 | - |
+| LR3 | P | T6 | L3 | life_readings.DYING_GYR 0.1, PRECARIOUS_GYR 0.5, MARGINAL_GYR 2.0 and MARGINAL_SCORE 2: the time left, Gyr, within which a class is Dying out, Precarious and Marginal, and the score at or under which it is Marginal now | each time a factor of 2; score 1 to 3 | a world with a living class | a habitability record that says how long a biosphere survives the loss of its conditions | the lifetimes of biospheres under a brightening star (Caldeira and Kasting 1992 give about 1 Gyr for Earth's, not opened) | hand-picked; the step of the search is 0.1 Gyr | UX.251 | - |
+| LR4 | P | T5 | L0 | life_readings.TEMPERATURE_EXPONENT 0.25: a surface warms as the fourth root of the star's luminosity, with the greenhouse, the albedo and the ice held where they are, and an open sea is lost where the light passes the runaway-greenhouse limit (`orbits.runaway_greenhouse_flux`, Kopparapu et al. 2014) | none | a world that radiates what it absorbs | a feedback that moves the surface by more than the bare fourth root over half a billion years | the climate solve run at the later luminosity | the Stefan-Boltzmann law | UX.251 | - |
+| LR5 | P | T6 | L3 | life_readings.KIND_MILESTONES: microbes spread after abiogenesis, flora and fauna after multicellularity, sentient life after the technological civilization | none | a world with a stored schedule | a kind that appears at another step of the schedule | the kind scores carrying their own ages | reasoned from `physics/life_complexity.py`: the rung at which each kind becomes possible | UX.251 | - |
 
 ## 6.129 Stand-ins of the strengths of the ice types
 
