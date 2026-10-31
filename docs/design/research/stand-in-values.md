@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 810 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 811 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -38,14 +38,14 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 |---|---|---|---|---|---|---|
 | T1 | 127 | 10 | 7 | 1 | 0 | 145 |
 | T2 | 106 | 23 | 0 | 1 | 0 | 130 |
-| T3 | 77 | 31 | 5 | 10 | 0 | 123 |
+| T3 | 77 | 32 | 5 | 10 | 0 | 124 |
 | T4 | 36 | 3 | 0 | 15 | 6 | 60 |
 | T5 | 41 | 13 | 0 | 0 | 0 | 54 |
 | T6 | 69 | 49 | 13 | 36 | 0 | 167 |
 | T7 | 26 | 8 | 8 | 8 | 0 | 50 |
 | T8 | 0 | 1 | 1 | 5 | 2 | 9 |
 | T9 | 8 | 3 | 4 | 38 | 19 | 72 |
-| All | 490 | 141 | 38 | 114 | 27 | 810 |
+| All | 490 | 142 | 38 | 114 | 27 | 811 |
 
 ## How the labels were given
 
@@ -250,6 +250,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | AM82 | P | T7 | L0 | envelope_escape.BARE_BELOW | 0.002 of the planet's mass, fixed | the rows e1 and e2 | test_envelope_escape::test_a_planet_under_strong_irradiation_is_stripped_to_its_bare_core | a numerical cutoff stays | design (an envelope under 0.2 percent of the planet's mass counts as gone: a numerical cutoff of the integration) | - | - |
 | AM83 | B | T3 | L0 | envelope_escape.MAX_ENVELOPE | 0.5 of the planet's mass, fixed | the starting envelope | test_envelope_escape::test_the_starting_envelope_is_held_to_the_range_of_the_radius_law | the mass-radius law of a giant | READ from memory, not re-checked (the radius law of Lopez and Fortney 2014 covers envelopes of a few percent to tens of percent of the mass) | - | - |
 | AM84 | D | T5 | L0 | envelope_escape.TEQ_OVER_INSOLATION_FOURTH | 255 K, fixed | the survey of the valley (the rows pass the stored equilibrium temperature) | test_envelope_escape::test_the_equilibrium_temperature_is_255_kelvin_at_one_earth_insolation | the stored albedo | COMPUTED (the equilibrium temperature of a body of Bond albedo 0.3 at one Earth insolation is 255 K) | - | - |
+| AM85 | B | T3 | L1 | surface_air.IMPACT_CO2_CAP_BAR | 1 bar | bodies with a water reservoir in the late accretion (GEN.819) | test_surface_air::test_the_earth_twin_late_accretion_leaves_the_nitrogen_the_earth_has_and_venus_within_a_factor_of_five | a carbonate-cycle limit solved at the accretion's own temperature | design (the 1 bar of CO2 that the carbonate cycle lets the Earth's air keep through the late accretion, Sakuraba et al. 2019 section 2.3, read, with the 3 bar they give Mars; one value for every body with a water reservoir; it sets how much CO2 the later impacts erode, not how much carbon the surface holds, because the air and the part held in the ground, the ocean or an ice cap are both counted; source tier 3, tweak level 1) | - | - |
 
 ## 6.8 Stand-ins of the hours outside in a day
 

@@ -91,7 +91,7 @@ def test_a_reachable_aquifer_is_a_yellow_water_rung_and_lets_microbes_score_but_
     assert habitability_world.solvent(values) == "water"
     assert habitability_world.water_source(values) in ("aquifer", "ice")
     assert body.tier_water == 2  # Yellow
-    assert body.life_flora == body.life_fauna == body.life_sentient == 0
+    assert body.life_flora == body.life_sentient == 0   # animals only by the anoxic route (GEN.884), a draw: the world may or may not have them
     without = habitability_world.compute({**values, "aquifer_depth_km": None, "aquifer_thickness_km": None})
     assert without["l_solv"] == 0.0 and without["tier_water"] == 3  # Red: no liquid at all
     with_layer = habitability_world.compute(values)
