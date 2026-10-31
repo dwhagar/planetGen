@@ -313,6 +313,16 @@ Europa), 0.5 ice-sealed, 5 chloride brine, 3 soda and 10 acid sulfate. No draw
 is made. A moon whose parent turns with it (tidally locked) sees no change and
 gets 0.
 
+**Induced fields of cores and of a planet in its star's field, as built (GEN.981).** Part (b) of the induction: a metal core answers a changing field as a
+homogeneous conducting sphere (`magnetism.sphere_response`: `F = 1 - 3/z^2 + 3 cot(z)/z`, `z = (1 - i) a / delta`), which is 1 for any core many skin
+depths across (Earth's core at a day's period is 20 000 of them, Europa's at the 11 h synodic period 6 000) and `omega mu0 sigma a^2 / 15` for a thin one; the
+moment is `2 pi a^3 |F| B / mu0` for the core's radius `a` (`core_heat.Core.radius_m`) with a conductivity of 1e6 S/m, solid or liquid. A moon's core feels the
+field its ocean lets through and adds to the ocean's moment. A rocky planet, which has no parent, is excited by its star's field at its orbit: 5 nT at 1 AU
+for the Sun, scaled by the square root of the wind's pressure over Earth's (`wind_pressure_pa`, so a flaring dwarf star's planets feel a stronger field),
+half of it perpendicular to the spin, turning at the planet's synodic rotation; its ocean (a surface ocean counted by the share of the surface it covers) and its
+core answer, and the moment is stored as `induced_moment_a_m2`, 5e17 A m2 for a dry Earth-mass planet at 1 AU against the dynamo's 8e22. A giant has none.
+The numbers it adds are small beside a dynamo, and matter for a body whose dynamo has stopped (a Mars, a Venus, a Moon) and for a moon of a giant.
+
 
 ## 4. Surface radiation dose (GEN.87)
 

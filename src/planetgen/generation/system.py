@@ -573,6 +573,7 @@ class StarSystem:
                 interior_heat.update_heat(obj)  # GEN.763: the thermal history to the star's final age (no draws)
                 planetPhysics.refresh_at_final_age(obj)  # GEN.839: the ice shell and the volcanism gate follow it (the body's own stream)
                 planetPhysics.apply_class(obj)  # GEN.689: the light each body gets is final only now
+                magnetism.generate_stellar_induction(obj)  # GEN.981: the star's field at the orbit, from the final water and core
                 for moon in obj.moons:
                     planetPhysics.apply_class(moon)
                 planetLife.apply_life_data(obj)
