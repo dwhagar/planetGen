@@ -20,6 +20,7 @@ from planetgen.generation.phenomena.compact_remnant import BlackHole, NeutronSta
 from planetgen.generation.phenomena.rogue import InterstellarComet, RoguePlanet
 from planetgen.physics.units import ly_to_pc
 from planetgen.util import draw
+from tests.test_host_tables import reweighted
 from tests.toy_shape import toy_shape
 
 
@@ -165,7 +166,7 @@ def recycled(monkeypatch):
 
 def _reweigh(monkeypatch, table, row, weight):
     """Gives the row of a host table another weight for one test."""
-    monkeypatch.setitem(hosts.REGISTRY_TABLES, table, hosts.reweighted(hosts.REGISTRY_TABLES[table], row, weight))
+    monkeypatch.setitem(hosts.REGISTRY_TABLES, table, reweighted(hosts.REGISTRY_TABLES[table], row, weight))
 
 
 @pytest.fixture

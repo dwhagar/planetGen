@@ -20,6 +20,7 @@ from planetgen.generation import run_galaxy
 from planetgen.queue import api_jobs
 from tests import test_sector_paths_db as helper
 from tests.bughunt_support import mysql_argv, run_cli
+from tests.sector_support import queue_settle
 
 pytestmark = pytest.mark.db
 
@@ -146,7 +147,7 @@ def test_a_sector_generated_on_the_spot_queues_a_settle_job(mysql_config, monkey
     a_id, b_id = _two_sectors(mysql_config, monkeypatch)
     submitted = []
     monkeypatch.setattr(api_jobs, "submit", lambda function, *args, **options: submitted.append((function, args)) or "job1")
-    assert run_galaxy.queue_settle(mysql_config, [b_id, a_id]) == "job1"
+    assert queue_settle(mysql_config, [b_id, a_id]) == "job1"
     assert submitted == [(api_jobs.settle_sectors, ([a_id, b_id], mysql_config))]
     assert _marked(mysql_config, a_id) and _marked(mysql_config, b_id)  # nothing ran yet
 
@@ -167,5 +168,5 @@ def test_the_settle_job_saves_the_paths_and_without_a_queue_it_runs_inline(mysql
         raise api_jobs.NoQueue("no Redis")
 
     monkeypatch.setattr(api_jobs, "submit", no_queue)
-    assert run_galaxy.queue_settle(mysql_config, [a_id]) is None
+    assert queue_settle(mysql_config, [a_id]) is None
     assert _marked(mysql_config, a_id) == 0 and _marked(mysql_config, b_id) == 0

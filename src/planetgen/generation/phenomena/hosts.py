@@ -42,10 +42,9 @@ where the primary-first step lives (GEN.581). No row has a mass yet; the convent
 """
 
 import functools
-from dataclasses import dataclass, replace
+from dataclasses import dataclass
 
 from planetgen.generation import possibility_table as pt
-from planetgen.generation.phenomena import registry
 from planetgen.util import draw
 
 NO_SATELLITES = "no satellites"
@@ -210,12 +209,6 @@ BY_NAME = {host.name: host for host in HOSTS}
 """dict: `name` -> its `HostClass`."""
 
 
-def host_of(kind):
-    """The `HostClass` of the registry kind `kind`, or `None` for a kind that hosts nothing (a nebula, a comet)."""
-    name = registry.BY_KIND[kind].host
-    return None if name is None else BY_NAME[name]
-
-
 def _table(name):
     return REGISTRY_TABLES[name]
 
@@ -263,9 +256,3 @@ def holds_something(table_name, object_key, rng=draw):
     rows_and_chances = table.probabilities(pt.Subject(object_key))
     chosen = rng.choices([row for row, _p in rows_and_chances], weights=[p for _row, p in rows_and_chances])[0]
     return chosen.name != NO_SATELLITES
-
-
-def reweighted(table, row_name, weight):
-    """A copy of `table` with the row `row_name` given `weight` (a test helper)."""
-    rows = [replace(row, weight=weight) if row.name == row_name else row for row in table.rows]
-    return pt.Table(table.name, table.version, rows, table.components, table.description)
