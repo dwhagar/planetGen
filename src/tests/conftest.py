@@ -401,7 +401,7 @@ def unit_density_plans(monkeypatch):
 @pytest.fixture(autouse=True)
 def _settle_jobs_run_inline(monkeypatch):
     """A sector generated on the spot queues a settle job (GEN.126:
-    `run_galaxy.queue_settle`), which starts a detached worker process. A
+    `tests/sector_support.queue_settle`), which starts a detached worker process. A
     test would leave one behind per sector, working against a database
     that is about to be dropped, so the queue refuses that one job and
     `queue_settle` runs it inline instead -- the same code, in the test's
