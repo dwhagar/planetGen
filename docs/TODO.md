@@ -10449,6 +10449,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   The alpha-track module and its register row are unread until the track
   lookup is wired, and the item was in the pool. Owner now: Star 2
   (proposed by the TODO thread; the lane says if it cannot take it).
+  Star 2 (as the lane reported) (2026-10-31 12:50 PM EDT): the
+  alpha-track wiring itself merged as #4397 (GEN.1024). What remains
+  here is the age-metallicity relation and the thick-disc and halo alpha
+  tracks from the galaxy model; it changes stored output, so it rides a
+  train.
   Prerequisites: none. Related: GEN.405, GEN.652.
 
 - [ ] **GEN.745 Stellar spectra by temperature, gravity and activity (model atmospheres) instead of a blackbody with a seeded UV share**
@@ -15157,6 +15162,19 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   track evaluations); making that faster is this item, by one-pass
   bright pieces per mass and [Fe/H], or by turning the kept folder on in
   production (Boss call: it trades a disk folder for time).
+  Star 2 profile (as the lane reported) (2026-10-31 12:50 PM EDT): one
+  solar-bin table (threshold 100 Lsun, 718 cells) takes 20.4 s under the
+  profiler and the work is distinct, not repeats: about 28 percent
+  main-sequence edge rows that miss the memo (isochrones.edge_point,
+  main_sequence._low_mass), 29 percent post_main_sequence.bright_pieces,
+  12 percent timeline. A five-fold gain needs the edge, low-mass,
+  timeline and bright-piece functions vectorised across a cell grid, and
+  numpy log10 and pow need not match math to the last bit, so
+  bit-identical output cannot be promised: treat the vectorised version
+  as lock work (epoch) or take the Boss call already noted in the item
+  (turn on the kept-table folder in production). A bit-identical cache
+  of the low-mass edge pieces (about 10 percent) is available as a small
+  lock-free step.
   Prerequisites: none. Related: TEST.344, GEN.394.
 
 - [ ] **PERF.195 Generation timing records are shown or no longer recorded: object_timing_stats and object_timing_samples (G5)**
