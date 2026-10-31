@@ -50,8 +50,8 @@
   "porosity": {
     "rule": "none",
     "coefficient": 5.0,
-    "source": "off: Pohl and Britt 2020 find no clear strength trend with porosity in meteorites. 'exponential' (strength x exp(-b x porosity), b 4 to 7, a ceramics-based recalled placeholder, 'coefficient' here) is built and not used; it would make Proteus round",
-    "tier": "T3",
+    "source": "off: Pohl and Britt 2020 find no clear strength trend with porosity in meteorites. 'exponential' (strength x exp(-b x porosity), b 4 to 7, a ceramics-based recalled placeholder, 'coefficient' here) is built and not used; it would make Proteus round; the b range is widened to 4 to 9 by meteorite-to-boulder comparisons (papers-vs-standins-2026-10-31.md section 5)",
+    "tier": "T6",
     "tweak": "L3"
   },
   "temperature": {
