@@ -29,6 +29,7 @@ from dataclasses import dataclass
 
 from planetgen.physics import elements
 from planetgen.physics.elements import DataError
+from planetgen.util import detmath
 
 DATA_FILE = os.path.join(elements.DATA_DIRECTORY, "planet_occurrence.json")
 """str: The data file."""
@@ -162,7 +163,7 @@ def compare(simulated, band, sampling_sigma=0.0):
     simulated figure) and `sampling_sigma`, the sampling error of the simulation.
     """
     published = band.minus if simulated < band.value else band.plus
-    sigma = math.hypot(published, sampling_sigma)
+    sigma = detmath.hypot(published, sampling_sigma)
     z = (simulated - band.value) / sigma if sigma > 0.0 else (0.0 if simulated == band.value else math.copysign(math.inf, simulated - band.value))
     return Comparison(band, simulated, z, abs(z) <= SIGMAS)
 

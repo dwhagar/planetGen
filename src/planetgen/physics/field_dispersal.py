@@ -27,7 +27,7 @@ GEN.1104, GEN.1107) wire it.
 import math
 
 from planetgen.physics import constants
-from planetgen.util import draw
+from planetgen.util import detmath, draw
 
 RETIREMENT_RADIUS_M = constants.LIGHTYEAR_M
 """float: A field whose rms radius passes this is retired: one light year (Boss, 4:54 PM EDT 2026-10-30; the top of the old radius range, `tuning.ASTEROID_FIELD_RADIUS_RANGE_LY`). IF15, tier T9, L1."""
@@ -67,7 +67,7 @@ def rms_radius_m(age_yr, rms_speed_ms, initial_radius_m=0.0):
     _positive(rms_speed_ms=rms_speed_ms)
     if initial_radius_m < 0.0:
         raise FieldDispersalError("the initial radius is negative")
-    return math.hypot(initial_radius_m, rms_speed_ms * _years_to_s(age_yr))
+    return detmath.hypot(initial_radius_m, rms_speed_ms * _years_to_s(age_yr))
 
 
 def age_yr_at_radius(radius_m, rms_speed_ms, initial_radius_m=0.0):
