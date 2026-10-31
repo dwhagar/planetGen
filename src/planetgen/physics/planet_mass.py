@@ -25,8 +25,10 @@ import collections
 import math
 
 from planetgen import tuning
-from planetgen.physics import constants, formation, mass_boundaries, metallicity
+from planetgen.physics import constants, formation, mass_boundaries, metallicity, unit_registry as units
 from planetgen.util import draw
+
+_kg_to_msun = units.converter("kg", "Msun")
 
 PlanetMass = collections.namedtuple("PlanetMass", ("mass_kg", "core_kg", "runaway"))
 """`mass_kg` the planet's mass; `core_kg` the assembled solid mass it grew from (the whole mass unless `runaway`);
@@ -43,7 +45,7 @@ def solids_surface_density_gcm2(distance_au, star_mass_kg, snow_line_au, metal_r
     the snow line and steeper inside 1 AU (`PLANET_INNER_DISC_STEEPENING`); `scatter` multiplies it (a disc heavier or lighter than
     the median of its star's mass, 1 for the median).
     """
-    solar_masses = star_mass_kg / constants.SOLAR_MASS_TO_KG
+    solar_masses = _kg_to_msun(star_mass_kg)
     scale = solar_masses ** tuning.PLANET_SOLIDS_STELLAR_MASS_EXPONENT * metal_ratio * tuning.PLANET_DISC_SOLIDS_ENHANCEMENT * scatter
     density = formation.mmsn_surface_density_gcm2(distance_au, snow_line_au, scale)
     if distance_au < 1.0:

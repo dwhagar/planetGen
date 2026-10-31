@@ -18,11 +18,13 @@ returned `EditResult` says what moved and what is still wrong.
 from collections import namedtuple
 
 from planetgen.generation import validation
-from planetgen.physics import constants, daylight, magnetism, planet_kind, planets as planetPhysics
+from planetgen.physics import daylight, magnetism, planet_kind, planets as planetPhysics
 from planetgen.generation.belt import AsteroidBelt
 from planetgen.names.bodies import moon_letters
 from planetgen.generation.planet import Planet
 from planetgen.physics import unit_registry as units
+
+_kg_to_msun = units.converter("kg", "Msun")
 
 _au_to_km = units.converter("au", "km")
 
@@ -286,7 +288,7 @@ def change_star(system, star_type):
             validation.reapply_life(item)
 
     for comet in system.comets:
-        _rescale_comet(comet, factor, mass_ratio, new.mass / constants.SOLAR_MASS_TO_KG)
+        _rescale_comet(comet, factor, mass_ratio, _kg_to_msun(new.mass))
 
     report = validation.stabilize_star_system(system, allow_removal=True)
     warnings = [f"{p.body}: {p.message}." for p in report.problems]

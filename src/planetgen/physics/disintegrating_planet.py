@@ -33,7 +33,10 @@ Use:
 
 import math
 
-from planetgen.physics import bulk_structure, constants
+from planetgen.physics import bulk_structure, constants, unit_registry as units
+
+_kg_to_mearth = units.converter("kg", "Mearth")
+_mearth_to_kg = units.converter("Mearth", "kg")
 
 OLIVINE_MOLECULAR_MASS_H = 169.0
 """float: The mass of a molecule of olivine vapour in hydrogen masses, `m` of eq. 7 (row DP1)."""
@@ -99,7 +102,7 @@ def radius_m(mass_earth):
 def mass_loss_rate_kg_s(mass_earth, temperature_k, factor=NON_ISOTHERMAL_FACTOR):
     """The mass the wind carries away while it blows, kg/s: the isothermal Parker wind of the vapour times `factor` (the full model's, or 1 for the
     isothermal wind of the paper's first estimate)."""
-    mass_kg = mass_earth * constants.EARTH_MASS_TO_KG
+    mass_kg = _mearth_to_kg(mass_earth)
     mu = VAPOUR_MEAN_MASS_H * _H
     sound_squared = ADIABATIC_INDEX * _K * temperature_k / mu
     surface_density = mu * vapour_pressure_pa(temperature_k) / (_K * temperature_k)
@@ -111,7 +114,7 @@ def mass_loss_rate_kg_s(mass_earth, temperature_k, factor=NON_ISOTHERMAL_FACTOR)
 
 def mass_loss_earth_per_gy(mass_earth, temperature_k, factor=NON_ISOTHERMAL_FACTOR):
     """`mass_loss_rate_kg_s` in Earth masses per billion years."""
-    return mass_loss_rate_kg_s(mass_earth, temperature_k, factor) * _GY_S / constants.EARTH_MASS_TO_KG
+    return _kg_to_mearth(mass_loss_rate_kg_s(mass_earth, temperature_k, factor) * _GY_S)
 
 
 def lifetime_gy(mass_earth, temperature_k, duty_cycle=DUTY_CYCLE, steps=400, factor=NON_ISOTHERMAL_FACTOR):

@@ -33,8 +33,10 @@ Use:
 import math
 from dataclasses import dataclass
 
-from planetgen.physics import belt_ledger, constants, moon_composition, planet_classes
+from planetgen.physics import belt_ledger, moon_composition, planet_classes, unit_registry as units
 from planetgen.util.checks import finite_domain
+
+_kg_to_mearth = units.converter("kg", "Mearth")
 
 ROUND_MASS_ICE_KG = 3.2e20
 """float: The mass above which an ice body is in hydrostatic equilibrium: the geometric centre of the band 1e20 to 1e21 kg. [Stand-in DWP1, tier T4, tweak L1.]"""
@@ -112,7 +114,7 @@ def margot_clearing_mass_earth(distance_au, star_mass_solar):
 @finite_domain()
 def margot_pi(mass_kg, distance_au, star_mass_solar):
     """Margot's discriminant `Pi = M / M_clear`; a planet has `Pi >= 1`."""
-    return mass_kg / constants.EARTH_MASS_TO_KG / margot_clearing_mass_earth(distance_au, star_mass_solar)
+    return _kg_to_mearth(mass_kg) / margot_clearing_mass_earth(distance_au, star_mass_solar)
 
 
 @finite_domain()
