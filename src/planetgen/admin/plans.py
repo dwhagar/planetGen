@@ -566,6 +566,7 @@ def _add_planet(sim, op, system):
         radiation.apply_parent_belts(moon, planet)  # GEN.983
     for body in [planet] + planet.moons:
         validation.reapply_life(body)
+    magnetism.generate_stellar_induction(planet)  # GEN.981
     for moon in planet.moons:
         moon.db_id = f"{op.new_id}-{moon.name}"
         magnetism.generate_induced_field(moon, planet)
