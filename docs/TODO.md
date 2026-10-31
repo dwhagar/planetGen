@@ -2362,6 +2362,28 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   at 1280 and 390 px.
   Prerequisites: none.
 
+- [ ] **MAP.360 Sector view highlights only the sector being viewed and zooms in as close as the window allows (bug)**
+  Boss live observation 9:20 PM EDT 10-30 (bug). Owner: Core 2 (map
+  area), no epoch or migration. In the sector view, highlight only the
+  sector being viewed (no neighbouring sectors outlined or lit) and set
+  the zoom as close as the window allows so that sector fills the stage.
+  Related to MAP.355 (sector map limited to its sector, link to the
+  galaxy map) and MAP.359 (stage size). Done: browser test at 1280 and
+  390 px that exactly one sector is highlighted and the sector fills the
+  stage.
+  Prerequisites: none. Related: MAP.355, MAP.359.
+
+- [ ] **MAP.361 Sector view shows every star system that fits when there is room, so it shows more of the sector than the galaxy view would**
+  Boss, 9:20 PM EDT 10-30. Owner: Core 2 (map area), no epoch or
+  migration. The idea of the sector view is to see as much of the sector
+  as possible, more than you would typically see in the galaxy view.
+  Show every star system of the sector that fits in the stage without
+  overlap or clutter, thinning only when the window cannot hold them
+  (keep the brightest or most notable), and show more as the stage grows
+  or the view zooms. Done: browser test with a dense sector shows every
+  system that fits at 1280 px and fewer, without overlap, at 390 px.
+  Prerequisites: MAP.360. Related: MAP.355, MAP.359.
+
 ## NAV: Navigation and courses
 
 - [ ] **NAV.4 Save a course**
