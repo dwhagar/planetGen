@@ -525,6 +525,10 @@ def calculate_atmospheric_conditions(planet, distance_override=None, host_eccent
                                      heat=heat, surface_w=surface_w, water_lost=water_lost)
     air = surface_air.solve(setting, surface_temperature_no_atmosphere)
     if air is None or not air.partials_pa:
+        if setting.albedo_law is not None:
+            # GEN.972: with no air the ice the cold leaves is the only feedback; the temperature and the albedo that keep each other
+            planet.surface_temperature, albedo = surface_air.airless_state(setting.albedo_law, solar_output_at_orbit, surface_temperature_no_atmosphere)
+            climate_draws.record(planet, albedo, 0.0)
         planet.atm_density = planet.atm_molar_density = planet.scale_height = None
         atmosphere.store_air(planet, {}, None if giant else _mantle_redox(planet, air, distance, water_lost))
     else:
@@ -533,7 +537,8 @@ def calculate_atmospheric_conditions(planet, distance_override=None, host_eccent
         planet.atm_molar_density = air.state.mean_molar_mass_kg_mol
         planet.atm_density = air.state.density_kg_m3
         planet.scale_height = _m_to_km(air.state.scale_height_m)
-        climate_draws.record(planet, albedo, air.greenhouse_factor)     # GEN.412: the two numbers the temperature is made of
+        # GEN.412: the two numbers the temperature is made of; a body with ice has the albedo of its last step (GEN.972)
+        climate_draws.record(planet, albedo if air.albedo is None else air.albedo, air.greenhouse_factor)
         atmosphere.store_air(planet, air.partials_pa, None if giant else _mantle_redox(planet, air, distance, water_lost))
 
     # GEN.88: water, land, ice and the ocean's chemistry.

@@ -3,13 +3,15 @@ The fixed point of the air of a body (GEN.411, GEN.422, `planetgen.physics.surfa
 acceleration of a creep, the cages of the ice, and the stored air of generated systems.
 """
 
+import dataclasses
 import math
+import types
 
 import pytest
 
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
-from planetgen.physics import aerosols, atmosphere, atmosphere_state, clathrate_brine, constants, gases, greenhouse_table, saturation, sulfur_balance, surface_air as sa, surface_pressure
+from planetgen.physics import aerosols, atmosphere, atmosphere_state, clathrate_brine, climate_draws, constants, gases, greenhouse_table, orbit_elements, saturation, sulfur_balance, surface_air as sa, surface_pressure
 from planetgen import tuning
 from planetgen.util import draw
 
@@ -359,3 +361,70 @@ def test_a_stalled_equilibrium_is_tried_again_from_the_middle_of_the_way_back(mo
     monkeypatch.setattr(sa.mixture_draw, "draw_mixture", fails_once)
     planet = _earth_like_planet()
     assert len(calls) > 2 and planet.atmospheric_pressure > 0.0
+
+
+# --- GEN.972: the ice-albedo law in the fixed point -------------------------------------------------------------------------------
+
+def _iced_body(water_mass_fraction=0.2, body_type="t"):
+    return types.SimpleNamespace(body_type=body_type, mass=6.0e24, star=types.SimpleNamespace(temperature=5770.0))
+
+
+def test_a_body_with_surface_water_gets_an_ice_law_that_starts_at_its_drawn_albedo_and_reaches_the_bright_ice():
+    law = sa.ice_albedo_law(_iced_body(), 0.31, surface_w=0.1)
+    assert law.ice_free == 0.31 and law.ice_covered == pytest.approx(0.62)
+    assert law.albedo(320.0) == 0.31 and law.albedo(200.0) == pytest.approx(0.62)
+
+
+def test_a_bright_ice_never_covers_under_the_albedo_of_the_ice_free_body():
+    law = sa.ice_albedo_law(_iced_body(), 0.8, surface_w=0.1)
+    assert law.ice_covered == 0.8 and law.albedo(150.0) == 0.8
+
+
+def test_a_giant_and_a_dry_body_keep_the_albedo_they_drew():
+    assert sa.ice_albedo_law(_iced_body(body_type="g"), 0.3, surface_w=0.1) is None
+    assert sa.ice_albedo_law(_iced_body(), 0.3, surface_w=0.0) is None
+    assert sa.ice_albedo_law(_iced_body(), 0.3, surface_w=None) is None
+
+
+def test_the_flux_of_a_setting_follows_the_law_at_the_temperature_and_is_held_without_one():
+    held = _setting()
+    assert held.absorbed_flux_at(100.0) == held.absorbed_flux_at(400.0) == held.absorbed_flux_w_m2
+    law = sa.climate_branches.IceAlbedoLaw(ice_free=0.3, ice_covered=0.6)
+    follows = dataclasses.replace(held, starlight_w_m2=1000.0, albedo_law=law)
+    assert follows.absorbed_flux_at(320.0) == pytest.approx(0.7 * 250.0)
+    assert follows.absorbed_flux_at(200.0) == pytest.approx(0.4 * 250.0)
+
+
+def test_a_cold_world_with_the_law_is_brighter_and_colder_than_the_same_world_with_the_ice_free_albedo(monkeypatch):
+    from tests.test_climate_sweep import _earth_twin, _hold_the_air_of_the_earth
+
+    with monkeypatch.context() as held_air:
+        _hold_the_air_of_the_earth(held_air)
+        law_free = _earth_twin(150.0)
+        held = dataclasses.replace(law_free, albedo_law=None, starlight_w_m2=0.0)
+        with draw.bound("ice-law"):
+            with_ice = sa.solve(law_free, 255.0)
+        with draw.bound("ice-law"):
+            without = sa.solve(held, 255.0)
+    assert with_ice.albedo is not None and without.albedo is None
+    assert with_ice.albedo > sa.climate_branches.ICE_FREE_ALBEDO
+    assert with_ice.temperature_k < without.temperature_k
+
+
+def test_the_albedo_and_greenhouse_a_generated_body_stores_give_back_its_temperature_with_the_ice_law():
+    checked = 0
+    for planet in _generated(range(8)):
+        if planet.body_type != "t" or planet.is_moon or (planet.water_mass_fraction or 0) <= 1.0e-4:
+            continue
+        flux = climate_draws.starlight_w_m2(planet.star.luminosity, orbit_elements.flux_distance_au(float(planet.distance), planet.eccentricity) * constants.AU_TO_KM)
+        assert planet.surface_temperature == pytest.approx(climate_draws.surface_temperature_k(planet.bond_albedo, planet.greenhouse_factor, flux), rel=1e-6)
+        checked += 1
+    assert checked > 0
+
+
+def test_an_airless_wet_body_settles_on_the_albedo_its_temperature_keeps():
+    law = sa.climate_branches.IceAlbedoLaw(ice_free=0.3, ice_covered=0.62)
+    cold, albedo_cold = sa.airless_state(law, 30.0, climate_draws.equilibrium_temperature_k(0.3, 30.0))
+    assert albedo_cold == pytest.approx(0.62) and cold == pytest.approx(climate_draws.equilibrium_temperature_k(0.62, 30.0), rel=1e-12)
+    warm, albedo_warm = sa.airless_state(law, 1361.0, climate_draws.equilibrium_temperature_k(0.3, 1361.0))
+    assert albedo_warm == 0.3 and warm == pytest.approx(climate_draws.equilibrium_temperature_k(0.3, 1361.0), rel=1e-12)

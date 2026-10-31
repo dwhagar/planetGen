@@ -110,3 +110,24 @@ def test_a_snowball_that_reflects_less_has_a_narrower_window():
     bright = cb.bistable_window(_response_at, fluxes)
     dull = cb.bistable_window(_response_at, fluxes, cb.IceAlbedoLaw(ice_covered=0.50))
     assert dull is None or dull[1] - dull[0] < bright[1] - bright[0]
+
+
+def test_settle_falls_to_the_warm_branch_from_an_ice_free_start_and_to_the_snowball_from_a_frozen_one():
+    law = cb.IceAlbedoLaw()
+    response = _response(0.93 * EARTH_FLUX)
+    branches = cb.stable_branches(response, law)
+    assert len(branches) == 2
+    warm = cb.settle(response, law, 300.0)
+    snowball = cb.settle(response, law, 200.0)
+    assert warm.temperature_k == pytest.approx(branches[-1].temperature_k, abs=1.0e-3) and warm.stable
+    assert snowball.temperature_k == pytest.approx(branches[0].temperature_k, abs=1.0e-3) and snowball.stable
+
+
+def test_settle_reaches_a_fixed_point_where_the_scan_of_fixed_points_does_not_look():
+    """GEN.972: the no-air temperature of an icy moon far out is under the 150 K the scan starts at."""
+    law = cb.IceAlbedoLaw(ice_free=0.3, ice_covered=0.7)
+    response = _response(30.0, greenhouse=0.0)
+    branch = cb.settle(response, law, response(0.3))
+    assert branch.temperature_k < cb.SCAN_RANGE_K[0]
+    assert branch.temperature_k == pytest.approx(response(branch.albedo), abs=1.0e-6)
+    assert branch.albedo == pytest.approx(0.7) and branch.ice_fraction == 1.0

@@ -283,16 +283,12 @@ ICY_WATER_MASS_FRACTION_FLOOR = 0.05
 
 # A terrestrial body's Bond albedo, drawn before its air is solved so it can only read what the body is made of and the starlight
 # it gets (GEN.684; `physics/climate_draws.albedo_range`): dry rock keeps the generator's own range (`climate_draws.DEFAULT_ALBEDO_RANGE`); a body with surface water
-# (a water mass fraction of at least `ALBEDO_WET_MIN_WATER_FRACTION`) and an equilibrium temperature under
-# `ALBEDO_FROZEN_BELOW_K` (at the middle albedo) is ice-covered and bright; one above it is ocean and cloud. A Venus-like
+# (a water mass fraction of at least `ALBEDO_WET_MIN_WATER_FRACTION`) draws the albedo of its ice-free state, ocean and cloud. The ice is not drawn: the
+# temperature raises the albedo along the ice law of `physics/climate_branches` (GEN.972; rows CC15 and CC16). A Venus-like
 # cloud deck (albedo 0.75 to 0.9) is not reached until the clouds are drawn before the temperature (GEN.414 is drawn after).
-# Stand-ins, tier "educated guess from physics", level L3 (hand-tuned against the old class albedo ranges; the Earth, at 255 K with
-# no air, and the outer edge of the habitable zone, at 223 K, must stay on the ocean side of 230 K or an Earth twin freezes).
+# Stand-ins, tier "educated guess from physics", level L3 (hand-tuned against the old class albedo ranges).
 ALBEDO_WET_RANGE = (0.25, 0.40)
-ALBEDO_FROZEN_RANGE = (0.45, 0.70)
 ALBEDO_WET_MIN_WATER_FRACTION = 1.0e-4
-ALBEDO_FROZEN_BELOW_K = 230.0
-ALBEDO_REGIME_REFERENCE = 0.30
 
 # --- Star System Generation Parameters ---
 ASTEROID_BELT_PROBABILITY = 0.1

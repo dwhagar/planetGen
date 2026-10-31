@@ -15,7 +15,7 @@ from planetgen.generation import plausibility
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.planet import Planet
 from planetgen.generation.star import Star
-from planetgen.physics import climate_draws, constants, giant_draw, greenhouse, orbit_elements, surface_air
+from planetgen.physics import albedo_color, climate_branches, climate_draws, constants, giant_draw, greenhouse, orbit_elements, surface_air
 from planetgen.util import draw
 
 TOLERANCE = 1e-9
@@ -91,7 +91,9 @@ def test_every_body_stores_the_draws_its_temperature_is_made_of(host_star, zone)
             assert planet.greenhouse_factor == 0.0
         if planet.body_type == "t":
             low, high = climate_draws.albedo_range(planet.body_type, planet.water_mass_fraction, flux, getattr(planet.star, "temperature", None))
-            assert low <= planet.bond_albedo <= high
+            # GEN.972: the draw is the ice-free albedo; the ice raises it, to the covered value at most
+            covered = albedo_color.shifted_range((climate_branches.ICE_COVERED_ALBEDO,) * 2, "frozen", getattr(planet.star, "temperature", None))[0]
+            assert low <= planet.bond_albedo <= max(high, covered)
 
 
 def _old_convention_row(albedo, factor, flux, gravity_g, molar_kg_mol=0.029):
@@ -161,7 +163,7 @@ def test_the_albedo_range_follows_the_water_and_the_cold():
     assert climate_draws.albedo_range("t", 1e-6, sun) == climate_draws.DEFAULT_ALBEDO_RANGE
     assert climate_draws.albedo_range("t", 1e-3, 0.0) == climate_draws.DEFAULT_ALBEDO_RANGE
     assert climate_draws.albedo_range("t", 1e-3, sun) == tuning.ALBEDO_WET_RANGE
-    assert climate_draws.albedo_range("t", 1e-3, 0.3 * 1361.0) == tuning.ALBEDO_FROZEN_RANGE
+    assert climate_draws.albedo_range("t", 1e-3, 0.3 * 1361.0) == tuning.ALBEDO_WET_RANGE      # GEN.972: the ice is the temperature's, not the draw's
 
 
 def test_a_giant_backfill_takes_the_open_bracket():
