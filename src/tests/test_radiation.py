@@ -271,7 +271,9 @@ def _bodies(system):
 
 def test_every_generated_body_has_a_consistent_dose():
     seen = {"rocky": 0, "giant": 0, "ozone": 0}
-    for seed in range(24):    # the planet architecture (GEN.728) makes a giant in about 1 system of 10, so 12 seeds held none
+    for seed in range(60):    # the planet architecture (GEN.728) makes a giant in about 1 system of 10, so 12 seeds held none, and a change of the draws can move the first giant past 24
+        if seen["rocky"] > 30 and seen["giant"] > 2:
+            break
         with deterministic_entropy(seed):
             draw.set_run_seed(seed)
             system = StarSystem(SystemConfig(), galactic_center_dist_ly=26000.0)
