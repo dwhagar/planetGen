@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2924] - 2026-10-31
+
+**Headline:** The property sheet of an asteroid belt and an asteroid field now lists the nearest meteorite group.
+
+### Changed
+- **Belt and asteroid field property sheets** gain a "Nearest meteorite group" row in their Composition group (CI, CM, H, L and so on, or "None" when the mean composition is far from every group). The page already named it; the sheet and the API's property list now carry it too.
+
 ## [8.0.2923] - 2026-10-31
 
 **Headline:** The code that gives the old stars of a galaxy a share of ages from 10 to 13 billion years is written; it does not take effect until it is wired into the galaxy.
