@@ -70,7 +70,9 @@ EXPECTED_SHARES = [
     ("white dwarf", 4.0, 7.0),
     ("subgiant", 0.08, 0.3),  # GEN.502: a light star's subgiant phase is 5% of its main sequence, not 10%
     ("giant", 0.12, 0.5),
-    ("pre-main-sequence", 2.0, 6.0),  # GEN.529: a red dwarf is still contracting for 0.1 to 0.7 Gy
+    # GEN.1174: a star is pre-main-sequence until its radius has settled (BHAC15, Baraffe et al. 2015): 0.19 Gy at 0.2 solar masses, 0.40 at 0.1, 0.05 at 0.8, no longer
+    # the 0.1 to 0.7 Gy of MIST's nuclear arrival (GEN.529, kept as `nuclear_arrival_yr`). The share is the part of the stars younger than that, 1.8 to 1.9% of this sample.
+    ("pre-main-sequence", 1.2, 6.0),
 ]
 
 
