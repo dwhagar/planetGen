@@ -14593,6 +14593,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   earlier note that cloud storage waited for an answer; all six surface
   liquid questions are now answered (1.1, 2.1, 3.1, 4.1, 5.1, 6.1, with
   4 and 5 to be tuned from physics by GEN.1225).
+  Boss asked for the ammonia gate and nitrogen ice amount to be tuned
+  from physics (2026-10-31 12:40 PM EDT): See the GEN.1225 findings in
+  GEN.1217 (report gen1225-ammonia-gate-and-nitrogen-ice-2026-10-31.md):
+  the ammonia gate follows the liquidus share, and nitrogen ice uses the
+  trapping factor and the partial-pressure condensation temperature.
   Prerequisites: none. Related: GEN.1035, GEN.888, GEN.862.
 
 - [ ] **GEN.1217 Design: the surface liquid composition model: what is stored (fractions of water, salts, acid, ammonia, CO2, hydrocarbons), how it is derived, and how life changes it**
@@ -14652,6 +14657,29 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   earlier note that cloud storage waited for an answer; all six surface
   liquid questions are now answered (1.1, 2.1, 3.1, 4.1, 5.1, 6.1, with
   4 and 5 to be tuned from physics by GEN.1225).
+  Boss asked for the ammonia gate and nitrogen ice amount to be tuned
+  from physics (2026-10-31 12:40 PM EDT): GEN.1225 research done by
+  Sources 1 (as the lane reported), report
+  /mnt/project-files/reports/gen1225-ammonia-gate-and-nitrogen-ice-2026-10-31.md
+  (stand-in table in section 4). Ammonia gate: the earlier 1 to 1.6
+  percent figure was an arithmetic error; 1500 to 7000 mg N/L is 0.18 to
+  0.85 wt percent NH3; the highest reported growth in solution is about
+  0.7 to 0.9 wt percent and nothing near 10 percent exists, so class 8
+  is pure inference. The 10 percent only has meaning as antifreeze
+  (liquidus 259.6 K, 13 K below water). Proposed gate: ammonia share at
+  least the liquidus share for the body's temperature (5 percent at 267
+  K, 14 at 251, 20 at 235), upper bound the 33 percent peritectic, with
+  a note that no measurement exists above 0.9 wt percent; replaces LF44
+  (T9 L4) with T3 L1 for the gate, the life statement stays T9 L4.
+  Nitrogen ice: N2 condenses only below the partial-pressure temperature
+  (22 to 30 K, 28 K at 1e-4 bar; add to CS1 ICE_CONDENSATION_K); the
+  solar ceiling N2/H2O is 0.107 by mass but observed cold bodies hold
+  1e-4 to 1.4e-3 (67P, Pluto) through trapping in amorphous ice; the 2
+  percent used in the retention papers is 15 to 170 times too high.
+  Proposed GN1 trapping 0.001 to 0.013 of the ceiling (T3 L2), GN2
+  retention stays T8 L4. Touches LF62 (NH3 share 0.1, top of range), IS1
+  and CS1. Build these as registered stand-ins (GEN.725, with burn-down
+  lines for any L3/L4 row).
   Prerequisites: none. Related: GEN.1215, GEN.1207, GEN.862.
 
 - [ ] **GEN.1218 Build the surface liquid composition model: the composition columns, the derivation, the effect of life on it and of it on life, pages and API**
@@ -14689,6 +14717,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   earlier note that cloud storage waited for an answer; all six surface
   liquid questions are now answered (1.1, 2.1, 3.1, 4.1, 5.1, 6.1, with
   4 and 5 to be tuned from physics by GEN.1225).
+  Boss asked for the ammonia gate and nitrogen ice amount to be tuned
+  from physics (2026-10-31 12:40 PM EDT): See the GEN.1225 findings in
+  GEN.1217 (report gen1225-ammonia-gate-and-nitrogen-ice-2026-10-31.md):
+  the ammonia gate follows the liquidus share, and nitrogen ice uses the
+  trapping factor and the partial-pressure condensation temperature.
   Prerequisites: GEN.1217. Related: GEN.1213, GEN.1214, GEN.1215.
 
 - [ ] **GEN.1219 Body types: planet_type (terrestrial, transitional, gas) from the envelope share of the mass, with a shadow report first**
@@ -14818,30 +14851,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (changes stored output), change note included. Stays open until it
   merges on a train.
   Prerequisites: none. Related: GEN.1035, GEN.1214.
-
-- [ ] **GEN.1225 Research: tune the ammonia life gate and the nitrogen ice amount from physics and chemistry (instead of guesses)**
-  Boss, 11:56 AM EDT 2026-10-31, on the surface liquid design questions
-  (GEN.1217): take option 1 for the ammonia life gate (about 5 percent
-  of the liquid's mass) and for inventing nitrogen ice from where
-  nitrogen freezes, BUT find a way to tune both from real physics and
-  chemistry, searching basic chemistry if needed. Filed by the TODO
-  thread. Do (research, no code, report in /mnt/project-files/reports):
-  (1) the ammonia gate: what limits life in an ammonia-water solvent at
-  what fraction (ammonia's effect on proteins and membranes, pH of
-  ammonia-water solutions, the ammonia tolerance of known organisms, the
-  1.6 percent figure from the GEN.1216 report, the biochemistry
-  literature on ammonia as a solvent, Hoehler/Benner-style arguments,
-  ammonia-water phase behavior), and give a gate with a source and a
-  tier or the best physical estimate with its range; (2) the nitrogen
-  ice amount: from where nitrogen freezes (the N2 vapour pressure and
-  triple point 63.15 K), the solar and disc nitrogen abundance, the
-  N2/CO ratio in comets and Pluto and Triton, the fraction of nitrogen
-  that is N2 against NH3 and the temperature at which it condenses in
-  the disc, so the amount follows from the disc model rather than a
-  number; (3) say which stand-ins (GEN.725) the findings replace and at
-  what tier and tweak level. Papers Boss must upload listed in order of
-  value. Where we think it belongs (best guess, can move): Sources 1.
-  Prerequisites: none. Related: GEN.1215, GEN.1217, GEN.1218, GEN.1216.
 
 - [ ] **GEN.1226 Store the envelope share for EVERY body, so hydrogen-air dwarfs (about 400 class T bodies) are typed and classed correctly**
   Boss, 11:57 AM EDT 2026-10-31 (via the Class M thread): store the
