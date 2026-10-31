@@ -12,7 +12,7 @@ from planetgen import tuning
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.planet import Planet
 from planetgen.generation.star import Star
-from planetgen.physics import activity, constants, mixture_draw, mixture_subject as ms
+from planetgen.physics import activity, constants, mixture_draw, mixture_subject as ms, thermosphere
 from planetgen.physics.mixture_base import MixtureError
 from planetgen.util import draw
 
@@ -60,7 +60,8 @@ def test_the_xuv_index_is_the_one_stored_for_the_distance_the_body_sits_at():
 def test_the_subject_holds_exactly_what_the_class_reads():
     subject = ms.subject_of_body(_earth(), ts_k=288.0, pressure_bar=1.0, ocean_present=True, long_lived_geology=True)
     assert subject.body_class == "terrestrial"
-    assert set(subject.quantities) == set(mixture_draw.required_inputs("terrestrial"))
+    required = set(mixture_draw.required_inputs("terrestrial"))
+    assert set(subject.quantities) == required | {"host_mass_solar"}       # GEN.1199: the escape filter finds the XUV from the star's mass
 
 
 def test_the_zone_follows_the_habitable_zone():
@@ -154,6 +155,8 @@ def test_a_generated_body_gives_a_subject_the_draw_accepts(host, mass_earth, zon
     required = set(mixture_draw.required_inputs(subject.body_class))
     assert required <= set(subject.quantities) <= required | set(ms.OPTIONAL_INPUTS)       # GEN.804: the star's own activity rides along
     assert subject.quantities["log_lx_lbol"] == host.log_lx_lbol
+    assert subject.quantities["host_mass_solar"] == pytest.approx(host.mass / constants.SOLAR_MASS_TO_KG)      # GEN.1199: the escape filter needs the star to find the XUV
+    assert thermosphere.xuv_flux_earth(subject) > 0.0
     assert "magnetopause_rp" not in subject.quantities
     with draw.bound(draw.Stream("mixture-subject")):
         result = mixture_draw.draw_mixture(subject)
