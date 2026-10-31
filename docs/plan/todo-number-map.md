@@ -3741,7 +3741,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.536 | test_deploy_scripts::test_scripts_only_name_repo_paths_that_exist is red on main (bug) | none | done, PR #4578 |
 | TEST.537 | The stored-trees fill test counted dark members as star rows (red on main since GEN.1013) (bug) | none | done, PR #4592 |
 | TEST.538 | test_atmosphere_standin_registry fails on main: stand-in rows AM28 and AM29 name a test that no longer exists (bug) | none | done, PR #4609 |
-| TEST.539 | test_accreting_compact_binaries: the black-widow and redback spider cases fail on main (post-common-envelope against detached) (bug) | none | open |
+| TEST.539 | test_accreting_compact_binaries: the black-widow and redback spider cases fail on main (post-common-envelope against detached) (bug) | none | done, PR #4616 |
 | TEST.540 | test_orbit_elements: an eccentric planet is as warm as a circular one, and a moon gets the light of its parent's orbit, both fail on main (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
