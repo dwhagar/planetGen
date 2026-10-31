@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2939] - 2026-10-31
+
+**Headline:** The Life section of a planet page now opens with one paragraph: what lives there, how common each kind of life is, then which life classes the conditions suit.
+
+### Changed
+- **One Life paragraph.** It leads with the life that lives there (class and stage), then microbes, flora, fauna and sentient life each with a prevalence word and its score out of 9, then the classes the conditions suit, best first, with suitability. The old separate "Supports", "Also supports" and "Has" lines are folded into it. Wording and layout only; no stored value changes.
+
 ## [8.0.2938] - 2026-10-31
 
 **Headline:** A read-only report now compares today's class letters with the best-fit percent match for every generated world.
