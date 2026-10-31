@@ -19609,21 +19609,6 @@ clears each one.
   line in the same change, like a module.
   Prerequisites: none.
 
-- [ ] **TEST.532 Give the bright-star backfill unit path (backfill_bright_stars_unit) its own direct tests, since the serial form the tests cover is no longer the path a run takes**
-    Finding from Core 1's TEST.521 (as the lane reported, 1:37 PM EDT
-  2026-10-31).
-    run_galaxy.backfill_bright_stars_around and its bar tests cover a
-  path a run no longer takes (a run does the same draw in
-  scatter-backfill units), so the unit path, backfill_bright_stars_unit,
-  has less direct test cover than it looks. Add tests that run the unit
-  path itself and show it draws the same stars as the serial form for
-  the same sector, then decide whether the serial form stays as a test
-  reference (registered by design) or goes. Lock-free, tests only.
-  Owner: Core 1 when its designations work waits.
-  Owner (2026-10-31 2:00 PM EDT): Owner is Bug 1, after TEST.531.
-    Prerequisites: none.
-  Prerequisites: none.
-
 - [ ] **TEST.533 test_disk_history::test_the_present_rate_over_the_mean_is_within_a_factor_of_two_of_the_milky_ways is red on main (0.505 against a bound of 0.393, 0.554 after GEN.999): the model's recent star formation rate over its mean is about 2.5 times the Milky Way's (bug)**
     Finding from Core 3's GEN.999 build (as the lane reported, 1:54 PM
   EDT 2026-10-31). The test was red on main before GEN.999 and is not
