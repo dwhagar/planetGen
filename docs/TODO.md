@@ -879,28 +879,7 @@ with `clamp()`.
   Owner (housekeeping) (2026-10-30 2:55 PM EDT): released to the pool:
   the owner named above (Aux 12) is a retired lane. A waiting lane takes
   it, confirmed with TODO, one lock-free item at a time.
-  Prerequisites: UX.226, UX.227, UX.228. Related: UX.214, UX.150, GEN.568, UX.226, UX.227, UX.228.
-
-- [ ] **UX.226 Numeric range filters and sort keys for the stored physical values: one engine in db/query.py and the /api/search parameters (G4, step 1)**
-  Unused stored values audit chain
-  (reports/unused-stored-values-audit-2026-10-24.md, Boss 10:16 PM EDT
-  and 10:35 PM EDT 2026-10-24: make each a chain, with a GitHub goal
-  issue). SEARCH_TAG_FACETS is tag facets only and the sorts are name,
-  class, mass and radius. Add a registry of numeric keys (gravity,
-  surface temperature, pressure, orbit distance, day length, year
-  length, star mass, luminosity, age, surface dose, magnetic field,
-  ocean depth, moon count and each atmosphere gas) with unit, range
-  filter and sort, read from the stored columns and the unit registry
-  (GEN.568). Done: a query for 0.8 to 1.2 g and a dose under 2 mSv a
-  year works through the API, documented. Version 8.2, phase 2. Owner:
-  Aux 12 with Aux 11. Rules: no backward-compat shims; every number has
-  a unit or scale (GEN.772); a changed generated value carries
-  `tests.golden_update --reason ... --affects <stage>` and the next
-  epoch; tests are `scripts/test.py changed --resume`.
-  Owner (housekeeping) (2026-10-30 2:55 PM EDT): released to the pool:
-  the owner named above (Aux 11) is a retired lane. A waiting lane takes
-  it, confirmed with TODO, one lock-free item at a time.
-  Prerequisites: none. Related: UX.225, UX.214, GEN.568.
+  Prerequisites: UX.227, UX.228. Related: UX.214, UX.150, GEN.568, UX.226, UX.227, UX.228.
 
 - [ ] **UX.227 The search page shows range controls for the physical values, with units, and the active filters as chips (G4, step 2)**
   Unused stored values audit chain
@@ -15274,31 +15253,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner (housekeeping) (2026-10-30 2:55 PM EDT): released to the pool:
   the owner named above (Aux 16) is a retired lane. A waiting lane takes
   it, confirmed with TODO, one lock-free item at a time.
-  Prerequisites: PERF.196, PERF.197. Related: PERF.125, PERF.196, PERF.197.
-
-- [ ] **PERF.196 Decide: show the object timing records or stop recording them (G5, step 1)**
-  Unused stored values audit chain
-  (reports/unused-stored-values-audit-2026-10-24.md, Boss 10:16 PM EDT
-  and 10:35 PM EDT 2026-10-24: make each a chain, with a GitHub goal
-  issue). generation/object_timing.py writes object_timing_stats and
-  object_timing_samples every run; nothing reads them. Decide, with a
-  number from a run (cost of recording against the use), whether to show
-  them on the run page and `planetgen stats` or stop recording, and
-  write the decision in the item. Done: the decision with its reason.
-  Version 8.2, phase 2. Owner: Aux 16. Rules: no backward-compat shims;
-  every number has a unit or scale (GEN.772); a changed generated value
-  carries `tests.golden_update --reason ... --affects <stage>` and the
-  next epoch; tests are `scripts/test.py changed --resume`.
-  Owner (housekeeping) (2026-10-30 2:55 PM EDT): released to the pool:
-  the owner named above (Aux 16) is a retired lane. A waiting lane takes
-  it, confirmed with TODO, one lock-free item at a time.
-  Wiring sweep (Boss, 12:03 PM EDT) (2026-10-31 1:40 PM EDT): this is
-  one of the stored-but-unread records Boss does not want. Owner now
-  Sources 2 (released to the pool; Sources 2 had no lock-free item
-  left): measure the cost of recording on a run, decide show or stop,
-  write the decision here. PERF.197 carries out the decision (a
-  migration if the tables go, so that step is lock work).
-  Prerequisites: none. Related: PERF.195.
+  Prerequisites: PERF.197. Related: PERF.125, PERF.196, PERF.197.
 
 - [ ] **PERF.197 Carry out the object timing decision: show the records with a test, or delete the recording, the tables, the migration and the fingerprint entry (G5, step 2)**
   Unused stored values audit chain
@@ -15312,7 +15267,21 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (GEN.772); a changed generated value carries `tests.golden_update
   --reason ... --affects <stage>` and the next epoch; tests are
   `scripts/test.py changed --resume`.
-  Prerequisites: PERF.196. Related: PERF.195.
+  PERF.196 decided by Sources 2 (report
+  reports/perf196-object-timing-decision-2026-10-31.md) (2026-10-31 2:05
+  PM EDT): SHOW the stats table, STOP the samples table. Recording costs
+  1.9 microseconds an object, about 42 microseconds a system (0.004
+  percent of the 1.1 s mean), so cost is no reason to stop. Correction
+  to the audit: object_timing_stats is read (type_means, served as
+  object_types in the admin generation-stats API) but the Stats page
+  drops it; run_totals has no caller outside tests;
+  object_timing_samples has no reader. Part (a), lock-free: a "Seconds
+  per object" table by kind on the Stats page and the same for one run
+  on the run page, with a test (this is what Boss asked for on 10-14).
+  Part (b), lock work: delete the sample recording, its table, the
+  column_units and fingerprint entries and add a migration dropping it;
+  rides a train. Owner Sources 2.
+  Prerequisites: none. Related: PERF.195.
 
 - [ ] **PERF.198 Speed up util/detmath.matmul and cache equal gas_equilibrium.solve calls (finding 6)**
   Found by the air fixed point (GEN.411, GEN.422, Aux 1 lane I),
