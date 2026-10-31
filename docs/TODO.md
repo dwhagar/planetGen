@@ -1104,7 +1104,7 @@ with `clamp()`.
   rewrite changes its own text to American spelling, and the number of
   "colour" uses (333 on the site) goes to zero. The word list and the
   checker change are made by Core 5 with the next guide edit.
-  Prerequisites: DOC.84. Related: UX.237, GEN.1208.
+  Prerequisites: none. Related: UX.237, GEN.1208.
 
 ## MAP: Galaxy Map, Sector Map, System Map
 
@@ -3653,6 +3653,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   The closest-approach library is unread until the orbital event writer
   lands, and the item had no owner. Owner now: Aux 7 (orbital update)
   (proposed by the TODO thread; the lane says if it cannot take it).
+  Aux 7 built the lock-free part (as the lane reported) (2026-10-31 1:10
+  PM EDT): branch claude/gen197 head 641b504a6 off main 0f63ebf22: new
+  planetgen/db/orbital_events.py (find_contact reads closest_approach,
+  resolve_contact uses collision_outcome, record_event writes
+  orbital_events and orbital_event_bodies from an Outcome with a mass
+  and momentum check and one activity-log line) and the ID rules (a
+  merger keeps the heavier body's ID, an ejected planet keeps its ID,
+  field and split fragments take new run-time IDs, counters never
+  reuse). No migration, no epoch, generation output unchanged; 9 tests
+  including a DB read-back. Two remainders stay open: the orbital update
+  that calls find_contact for every pair (broad phase), and turning an
+  ejected planet into a rogue_planets row (GEN.291 unbind).
   Prerequisites: none. Related: GEN.105, GEN.143, GEN.170.
 
 - [ ] **GEN.198 The gravity field evaluator: pull, potential and tidal gradient at any point from the point masses and the galaxy potential**
@@ -16286,6 +16298,12 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Owner (housekeeping) (2026-10-30 2:55 PM EDT): released to the pool:
   the owner named above (Core 5) is a retired lane. A waiting lane takes
   it, confirmed with TODO, one lock-free item at a time.
+  Bug 1 check (as the lane reported, 12:35 PM EDT) (2026-10-31 1:15 PM
+  EDT): Core 5's #3902 and #3958 and Aux 12's #3418 and #3423 already
+  did the API answers, the CLI help and printed lines, the stats and
+  settings pages and the orbit infobox eccentricity (UX.210 says what
+  the number is). What is left is only the in-site help pages and
+  glossary, which wait for DOC.15; nothing to build until then.
   Prerequisites: none. Related: GEN.771, DOC.15.
 
 - [ ] **API.34 API and remote uploads carry resource locations: the resource fields are in the API, and an uploaded galaxy is checked for them**
@@ -20532,6 +20550,12 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   coverage test with the burn-down allowlist, and this item removes the
   allowlist and keeps only the allow-list file of deliberately
   undocumented routes, each with a reason.
+  Core 5 (as the lane reported, 12:19 PM EDT) (2026-10-31 1:10 PM EDT):
+  DOC.84 added the Help > Life pages (/help/life,
+  /help/life/abundance|trend|security|suitability|stages|classes and
+  /help/life/classes/1 to 9) as menu pages, not "?" header links; the
+  route-to-help test of this item must know these routes. DOC.57 (the
+  help framework) does not exist yet.
 
 - [ ] **DOC.59 Docs: the galaxy types note moves to built and the density, potential, schema, API and Generate page notes say the shape holds a family and components**
   Boss (2026-10-16, 8:48 PM EDT, for 9.4): different galactic models for
@@ -20677,38 +20701,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   the owner named above (Aux 6) is a retired lane. A waiting lane takes
   it, confirmed with TODO, one lock-free item at a time.
   Prerequisites: UX.223, NAV.64. Related: DOC.6, DOC.9.
-
-- [ ] **DOC.84 Help page suite for life: the four kinds of life, every life class, and the scales we use (abundance, trend, security, suitability)**
-  Boss, 10:07 AM EDT 2026-10-31 (and 10:08 AM EDT for the help pages):
-  build and ship all the life recommendations, a full readability
-  rewrite of ALL planet and star text, a life summary paragraph in At a
-  glance, a Life section in the details with the nitty-gritty, and a
-  full help page suite on all life types and the categories we use.
-  Brief:
-  /mnt/project-files/reports/life-and-text-readability-brief-2026-10-31.md;
-  coexistence write-up:
-  reports/multi-life-types-per-planet-2026-10-31.md. PR 4471 (branch
-  claude/project-thread-5xwcu1, wording and layout of the first Life
-  paragraph) merges first and these build on it. Filed by the TODO
-  thread. Do: build the help pages in the pattern of the existing 'What
-  the colours and symbols mean' help page: one page for the kinds of
-  life (microbes, flora, fauna, sentient) with what each word means; one
-  page for each scale we use, with every word and what it is judged
-  from: abundance (Absent, Rare, Occasional, Frequent, Abundant,
-  Dominant), trend (growing, stable, declining), security (Secure,
-  Marginal, Precarious, Dying out) and suitability; one page per life
-  class from docs/design/habitability/life-classes.md (the nine classes:
-  chemistry, temperature and pressure window, what it eats, drinks,
-  breathes and gives off, which are speculative chemistry and at what
-  tier); and a short page on the life stages and the animal grade. Each
-  page is linked from the matching word on the object pages (the '?'
-  link of DOC.57), the class letter and the Life section, and the help
-  coverage test (DOC.58) passes. Wording follows the style guide and no
-  number is stated that the generator does not use. Docs and templates
-  only, lock-free. Where we think it belongs (best guess, can move):
-  Core 5 or a docs lane, after the life readings exist.
-  Prerequisites: none. Related: DOC.57, DOC.58, DOC.76,
-  DOC.15.
 
 ## VIEW: The view from a planet
 
