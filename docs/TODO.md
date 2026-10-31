@@ -14795,7 +14795,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   rides a train after GEN.1097.
   Prerequisites: GEN.1097.
 
-- [ ] **GEN.1154 Halo mass of galaxies above 3e10 solar masses of stars is drawn too heavy by GEN.368 (0.17 dex at 6e10, 0.27 at 1e11, 0.34 at 2e11 against a Tinker 2008 halo function): replace median_halo_mass plus the Gaussian with a precomputed Tinker-based conditional drawn by inverse CDF; read the Moster 2013 halo masses as virial, not M200c (0.05 to 0.08 dex)**
+- [ ] **GEN.1154 Halo mass of galaxies above 3e10 solar masses of stars is drawn too heavy by GEN.368 (0.17 dex at 6e10, 0.27 at 1e11, 0.34 at 2e11 against a Tinker 2008 halo function): replace median_halo_mass plus the Gaussian with a precomputed Tinker-based conditional drawn by inverse CDF**
   Found by GEN.399 (reports/gen399-halo-mass-function-2026-10-31.md,
   script in reports/gen399/): below about 3e10 the current law is within
   0.01 to 0.03 dex and the automatic 3e9 to 6e9 range is untouched at
