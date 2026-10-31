@@ -17,18 +17,19 @@ a body with a bump on it (the longest axis `f` times the mean radius) is made le
    ratio says how far from round (0.5 is a body half the round size). The ratio is a smooth number, not a yes or no, and it rises with size and with density.
 2. **The yield strength** (`yield_strength_pa`) of a body is not measured for any body but a few: Lineweaver and Norman find that icy moons turn round at a mean radius of about 200 km and
    rocky asteroids at about 300 km (their Fig. 2: Mimas 198 km round, Hyperion 140 km not; Ceres 475, Pallas 275 and Vesta 265 round, Juno 115 not), at bulk densities near 1 and 2.5 g/cm3. The
-   strength of ice and of rock is fixed so that the round radius is exactly that at those densities (1.2 MPa and 16.5 MPa). That is a strength during the warm period when the shape was set,
-   not today's (they find 14 times more for rock than ice then, against 2 times now).
+   strength of rock is fixed so that the round radius is exactly 300 km at 2500 kg/m3 (16.5 MPa). That is a strength during the warm period when the shape was set, not today's.
 
-   **Where real data drops in.** The strengths are not in this module but in `data/roundness_strengths.json` (`TABLE`): one entry per material (ice, rock, metal), either a measured
-   `strength_pa` or the round radius and density it was seen at, plus the name of a mixing rule (`MIXING_RULES`: how the ice, rock and metal shares of a body combine) and of a porosity rule
-   (`POROSITY_RULES`: what voids do to the strength). The engine's interface is the body's ice fraction, metal fraction and porosity in, and the strength, the round radius and the roundness
-   ratio out; the strength research gives new numbers in the file, a new rule in one of the three dicts, and nothing else changes. The numbers in the file now are the strength research's
-   (/mnt/project-files/reports/planetary-material-strength-2026-10-31.md, section 7): rock 16 MPa (confirmed three ways, range 4 to 30), warm ice 1.2 MPa and colder ice stronger by a power law
-   of its temperature when the shape was set (`temperature_k`, left out for ice that was warm), metal 100 MPa (weak source, range 30 to 300), and a mix that follows the *volume* shares: ice
-   strength while rock is under 40 percent of the volume, rock strength over 70 percent, geometric between. Porosity is `none` by default: the research proposes an exponential weakening, but
-   with it Proteus (a porous ice-rich moon, 210 km, not round) would come out round, because the weaker strength outweighs the lower density; the rule is in `POROSITY_RULES` as `exponential`
-   and is off until the rubble-pile branch (friction plus a little cohesion, no size threshold) is built.
+   **Where real data drops in.** The strengths are not in this module but in `data/roundness_strengths.json` (`TABLE`): one entry per material (ice, rock, metal), either a `strength_pa` or the
+   round radius and density it was seen at, plus the name of a mixing rule (`MIXING_RULES`: how the ice, rock and metal shares of a body combine), of a porosity rule (`POROSITY_RULES`: what
+   voids do to the strength) and of a temperature rule (`TEMPERATURE_RULES`: the strength of ice by the temperature at which the shape was set). The engine's interface is the body's ice fraction,
+   metal fraction, porosity and shape-set temperature in, and the strength, the round radius and the roundness ratio out; research gives new numbers in the file, a new rule in one of the three
+   dicts, and nothing else changes. The numbers in the file now are the strength research's (/mnt/project-files/reports/planetary-material-strength-2026-10-31.md, sections 7 and 11):
+   rock 16.5 MPa (confirmed three ways, range 4 to 30); ice 1 MPa by default (the creep strength of pure ice near 158 K, range 0.4 to 3), and when a shape-set `temperature_k` is given the
+   Durham, Kirby and Stern 1997 creep law of ice at 1e-15 per second (0.1 MPa at 200 K, 3.6 at 140 K, 34 at 100 K); metal 100 MPa (range 50 to 250, Pohl and Britt 2020); and a mix that follows
+   the *volume* shares, ice strength times `exp(2 f)` for the solids' volume fraction `f` (measured to 0.56), continued to 0.65 and then geometric to the solids' strength at 1.
+   Porosity is `none`: meteorites show no clear strength trend with porosity (Pohl and Britt 2020). An `exponential` rule (ceramics-based, a recalled placeholder) is built and off; with it
+   Proteus (a porous ice-rich moon, 210 km, not round) would come out round. Not yet in the table: methane clathrate (20 to 30 times the strength of ice), solid CO2, ammonia ices and the
+   other ice phases, and the rubble-pile branch (friction plus a little cohesion, a shape-set temperature and no size threshold).
 3. **Binding energy** is in `binding_energy.py`.
 
 The ice fraction is the share of the body's mass that is water or ice (`makeup.water + makeup.ice` of a small body). Only solid bodies have a roundness or a strength: a gas giant or a star
@@ -124,48 +125,68 @@ def load_table(document):
         raise RoundnessError(f"the porosity rule must be one of {sorted(POROSITY_RULES)}")
     if temperature.get("rule") not in TEMPERATURE_RULES:
         raise RoundnessError(f"the temperature rule must be one of {sorted(TEMPERATURE_RULES)}")
-    if mixing["rule"] == "volume-threshold":
-        low, high = _positive(mixing.get("skeleton_below"), "skeleton_below"), _positive(mixing.get("skeleton_above"), "skeleton_above")
-        if not low < high <= 1.0:
-            raise RoundnessError("the volume thresholds need 0 < skeleton_below < skeleton_above <= 1")
+    if mixing["rule"] == "exp-volume":
+        _positive(mixing.get("exponent"), "exponent")
+        tested, packing = _positive(mixing.get("tested_to"), "tested_to"), _positive(mixing.get("close_packing"), "close_packing")
+        if not tested <= packing < 1.0:
+            raise RoundnessError("the mixing law needs 0 < tested_to <= close_packing < 1")
+    if temperature["rule"] == "creep-law":
+        _positive(temperature.get("rate_per_s"), "rate_per_s")
+        _positive(temperature.get("max_temperature_k"), "max_temperature_k")
+        regimes = temperature.get("regimes")
+        if not isinstance(regimes, list) or not regimes:
+            raise RoundnessError("the creep law needs a list of 'regimes'")
+        for regime in regimes:
+            if not isinstance(regime.get("log10_a"), (int, float)):
+                raise RoundnessError("each creep regime needs 'log10_a'")
+            _positive(regime.get("n"), "n")
+            _positive(regime.get("e_kj_mol"), "e_kj_mol")
     return StrengthTable(strengths, factor, mixing, porosity, temperature)
 
 
-def _ice_power_law(table, ice_strength_pa, temperature_k):
-    """Ice that took its shape cold is stronger: `coefficient (|T in C| / 10)^exponent`, capped at `cap_pa`, and never under the warm value (Schulson and Renshaw 2022, two points of the
-    lab strength scaled to a body by 0.1; frozen soil follows the same exponent, Wan et al. 2024)."""
-    if temperature_k is None or temperature_k >= constants.CELSIUS_ZERO_K:
+def _ice_creep_law(table, ice_strength_pa, temperature_k):
+    """The creep strength of pure ice that took its shape at `temperature_k`, Pa: from `rate = A sigma^n exp(-E / R T)` the stress `(rate / A)^(1/n) exp(E / (n R T))` of each regime, the weakest
+    governing (Durham, Kirby and Stern 1997 Table 2, the pressure term dropped). None is the default ice, `ice_strength_pa` (1 MPa, the law near 158 K); a temperature above the melting point is
+    held at it. Dislocation creep of fine-grained lab ice, so an upper bound at the lowest stresses."""
+    if temperature_k is None:
         return ice_strength_pa
     rule = table.temperature
-    cold = _positive(rule["coefficient_pa"], "coefficient_pa") * ((constants.CELSIUS_ZERO_K - temperature_k) / 10.0) ** _positive(rule["exponent"], "exponent")
-    return min(max(ice_strength_pa, cold), _positive(rule["cap_pa"], "cap_pa"))
+    kelvin = min(temperature_k, _positive(rule["max_temperature_k"], "max_temperature_k"))
+    rate = _positive(rule["rate_per_s"], "rate_per_s")
+    stresses = [(rate / 10.0 ** regime["log10_a"]) ** (1.0 / regime["n"]) * math.exp(regime["e_kj_mol"] / (regime["n"] * _GAS_KJ_MOL_K * kelvin)) for regime in rule["regimes"]]
+    return min(stresses) * 1.0e6
 
+
+_GAS_KJ_MOL_K = 8.314462618e-3
 
 TEMPERATURE_RULES = {
     "none": lambda table, ice_strength_pa, temperature_k: ice_strength_pa,
-    "ice-power-law": _ice_power_law,
+    "creep-law": _ice_creep_law,
 }
-"""dict: Rules for the strength of ice that took its shape at a temperature, each `(table, warm_ice_strength_pa, temperature_k)` -> Pa. `temperature_k` of None is ice that was warm. [Stand-in RN7, tier T5, tweak L2.]"""
+"""dict: Rules for the strength of ice that took its shape at a temperature, each `(table, default_ice_strength_pa, temperature_k)` -> Pa. `temperature_k` of None is the default ice. [Stand-in RN7, tier T5, tweak L1.]"""
 
 
-def _volume_threshold(table, ice_fraction, metal_fraction, temperature_k):
-    """The strength of a mix by the volume shares of its materials (the strength research, section 7): the solids' own strength (rock and metal, geometric mean weighted by the metal share of
-    their volume) once the solids are `skeleton_above` of the volume or more, ice strength while they are `skeleton_below` or less, geometric between. Ice is the load-bearing matrix until the
-    solid grains touch (hard grains only strengthen ice at high volume fractions: Durham 1997, abstract)."""
+def _exp_volume(table, ice_fraction, metal_fraction, temperature_k):
+    """The strength of a mix by the volume shares of its materials (strength research section 7): ice strength times `exp(b f)` for the solids' volume fraction `f` up to `tested_to` (0.56, measured:
+    Durham and others 1992), the same law continued to `close_packing` (0.65), then geometric to the solids' own strength (rock and metal, geometric mean weighted by the metal share of their
+    volume) at `f` of 1. Grains of 1 to 150 microns in ice; the leg beyond 0.56 is an extrapolation."""
     ice_strength = TEMPERATURE_RULES[table.temperature["rule"]](table, table.strengths_pa["ice"], temperature_k)
     rock_fraction = 1.0 - ice_fraction - metal_fraction
     volumes = {name: share / GRAIN_DENSITIES_KG_M3[name] for name, share in (("ice", ice_fraction), ("rock", max(rock_fraction, 0.0)), ("metal", metal_fraction))}
     solid_volume = volumes["rock"] + volumes["metal"]
-    total = solid_volume + volumes["ice"]
-    skeleton = solid_volume / total
+    skeleton = solid_volume / (solid_volume + volumes["ice"])
     metal_share = volumes["metal"] / solid_volume if solid_volume > 0.0 else 0.0
     solid_strength = table.strengths_pa["rock"] ** (1.0 - metal_share) * table.strengths_pa["metal"] ** metal_share
-    low, high = table.mixing["skeleton_below"], table.mixing["skeleton_above"]
-    weight = min(max((skeleton - low) / (high - low), 0.0), 1.0)
-    return ice_strength ** (1.0 - weight) * solid_strength ** weight
+    rule = table.mixing
+    packing = rule["close_packing"]
+    if skeleton <= packing:
+        return ice_strength * math.exp(rule["exponent"] * skeleton)
+    jammed = ice_strength * math.exp(rule["exponent"] * packing)
+    weight = (skeleton - packing) / (1.0 - packing)
+    return jammed ** (1.0 - weight) * solid_strength ** weight
 
 
-MIXING_RULES = {"volume-threshold": _volume_threshold}
+MIXING_RULES = {"exp-volume": _exp_volume}
 """dict: Rules for the strength of a mix of materials, each `(table, ice_fraction, metal_fraction, temperature_k)` -> Pa. The strength research adds a rule here and names it in the file. [Stand-in RN3, tier T6, tweak L3.]"""
 
 POROSITY_RULES = {
@@ -187,13 +208,13 @@ SPHERICITY_FACTOR = TABLE.sphericity_factor
 """float: The longest axis of a body counted round is at most this times its mean radius (Lineweaver and Norman 2010, a 10 percent bump; their Eq. 9). [Stand-in RN1, tier T1, tweak L0.]"""
 
 ICE_STRENGTH_PA = TABLE.strengths_pa["ice"]
-"""float: The yield strength of ice that was warm when the shape was set, Pa (1.2 MPa), from a round radius of 200 km at 1000 kg/m3. [Stand-in RN2, tier T1, tweak L0.]"""
+"""float: The default yield strength of ice at the scale of a body, Pa (1 MPa, the creep strength of pure ice near 158 K; the Lineweaver and Norman fit is 0.4 to 3 MPa). [Stand-in RN2, tier T2, tweak L1.]"""
 
 ROCK_STRENGTH_PA = TABLE.strengths_pa["rock"]
 """float: The yield strength of rock when the shape was set, Pa (16.5 MPa), from a round radius of 300 km at 2500 kg/m3. [Stand-in RN2, tier T1, tweak L0.]"""
 
 METAL_STRENGTH_PA = TABLE.strengths_pa["metal"]
-"""float: The yield strength of iron and nickel metal, Pa (100 MPa; the research's range is 30 to 300 MPa). [Stand-in RN4, tier T4, tweak L3.]"""
+"""float: The yield strength of iron and nickel metal at the scale of a body, Pa (100 MPa; range 50 to 250). [Stand-in RN4, tier T2, tweak L1.]"""
 
 
 def _share(value, name):
@@ -204,8 +225,7 @@ def _share(value, name):
 
 @finite_domain()
 def yield_strength_pa(ice_fraction, metal_fraction=0.0, porosity=0.0, temperature_k=None):
-    """The yield strength of a body, Pa: the mixing rule of the table over its ice and metal mass fractions (ice at the strength of `temperature_k` when its shape was set; None for ice that
-    was warm), then the porosity rule over its void share."""
+    """The yield strength of a body, Pa: the mixing rule of the table over its ice and metal mass fractions (ice at the creep strength of `temperature_k` when its shape was set; None for the default ice), then the porosity rule over its void share."""
     ice, metal, voids = _share(ice_fraction, "ice fraction"), _share(metal_fraction, "metal fraction"), _share(porosity, "porosity")
     if ice + metal > 1.0 + 1e-9:
         raise ValueError("the ice and metal fractions add up to more than the whole body")

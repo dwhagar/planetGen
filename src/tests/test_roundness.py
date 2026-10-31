@@ -22,14 +22,14 @@ C = constants.SPEED_OF_LIGHT_M_S
 
 def test_the_round_radius_is_exactly_the_calibration_at_the_reference_densities():
     materials = _document()["materials"]
-    assert rn.round_radius_m(materials["ice"]["reference_density_kg_m3"], 1.0) == pytest.approx(materials["ice"]["round_radius_km"] * 1e3)
+    assert 150e3 < rn.round_radius_m(1000.0, 1.0) < 260e3          # ice rounds near Lineweaver and Norman's 200 km
     assert rn.round_radius_m(materials["rock"]["reference_density_kg_m3"], 0.0) == pytest.approx(materials["rock"]["round_radius_km"] * 1e3)
 
 
 def test_the_strengths_are_a_few_megapascals_and_rock_is_stronger_than_ice():
-    assert 1.0e6 < rn.ICE_STRENGTH_PA < 1.5e6
+    assert 0.4e6 < rn.ICE_STRENGTH_PA < 3.0e6             # Lineweaver and Norman's range for ice
     assert 1.5e7 < rn.ROCK_STRENGTH_PA < 1.8e7
-    assert rn.ROCK_STRENGTH_PA / rn.ICE_STRENGTH_PA == pytest.approx(14.0, rel=0.05)      # Lineweaver and Norman Eq. 13
+    assert 5.0e7 <= rn.METAL_STRENGTH_PA <= 2.5e8
 
 
 def test_lineweaver_and_normans_ten_megapascal_example_rounds_near_their_240_km():
@@ -49,35 +49,51 @@ def _ice_fraction_with_solid_volume_share(share):
     return (1.0 - share) * ice / ((1.0 - share) * ice + solid_mass)
 
 
-def test_strength_runs_from_rock_to_ice_by_the_volume_share_of_the_solids():
-    low, high = rn.TABLE.mixing["skeleton_below"], rn.TABLE.mixing["skeleton_above"]
+def test_strength_runs_from_ice_to_rock_by_the_volume_share_of_the_solids():
+    rule = rn.TABLE.mixing
     assert rn.yield_strength_pa(0.0) == pytest.approx(rn.ROCK_STRENGTH_PA)
     assert rn.yield_strength_pa(1.0) == pytest.approx(rn.ICE_STRENGTH_PA)
-    assert rn.yield_strength_pa(_ice_fraction_with_solid_volume_share(low)) == pytest.approx(rn.ICE_STRENGTH_PA)
-    assert rn.yield_strength_pa(_ice_fraction_with_solid_volume_share(high)) == pytest.approx(rn.ROCK_STRENGTH_PA)
-    middle = rn.yield_strength_pa(_ice_fraction_with_solid_volume_share((low + high) / 2.0))
-    assert middle == pytest.approx(math.sqrt(rn.ICE_STRENGTH_PA * rn.ROCK_STRENGTH_PA))
+    for share in (0.1, 0.3, rule["tested_to"]):          # the measured law: ice strength x exp(2 f)
+        assert rn.yield_strength_pa(_ice_fraction_with_solid_volume_share(share)) == pytest.approx(rn.ICE_STRENGTH_PA * math.exp(rule["exponent"] * share))
+    assert rn.yield_strength_pa(_ice_fraction_with_solid_volume_share(rule["close_packing"])) == pytest.approx(rn.ICE_STRENGTH_PA * math.exp(rule["exponent"] * rule["close_packing"]))
     values = [rn.yield_strength_pa(x / 20.0) for x in range(21)]
     assert values == sorted(values, reverse=True)
 
 
-def test_ice_that_took_its_shape_cold_is_stronger_up_to_the_cap():
-    warm = rn.yield_strength_pa(1.0)
-    cold = rn.yield_strength_pa(1.0, temperature_k=100.0)
-    colder = rn.yield_strength_pa(1.0, temperature_k=40.0)
-    rule = rn.TABLE.temperature
-    assert rn.yield_strength_pa(1.0, temperature_k=constants.CELSIUS_ZERO_K + 5.0) == warm
-    assert warm < cold < colder <= rule["cap_pa"]
-    assert rn.yield_strength_pa(1.0, temperature_k=1.0) == pytest.approx(rule["cap_pa"], rel=0.02)
+def test_half_the_volume_in_rock_is_about_2_7_times_ice_not_the_8_5_of_a_straight_blend():
+    assert rn.yield_strength_pa(_ice_fraction_with_solid_volume_share(0.5)) / rn.ICE_STRENGTH_PA == pytest.approx(2.72, rel=0.01)
+
+
+def test_the_mixing_rule_uses_volume_not_mass():
+    # 50 percent rock by mass is about 25 percent by volume: a factor exp(0.5) of 1.6 over ice
+    ratio = rn.yield_strength_pa(0.5) / rn.ICE_STRENGTH_PA
+    assert 1.5 < ratio < 1.8
+
+
+def test_the_creep_law_of_ice_follows_the_research_table():
+    # strength research section 11a, rate 1e-15 per second (MPa)
+    for kelvin, mpa in ((100.0, 34.0), (120.0, 9.2), (140.0, 3.6), (160.0, 0.90), (200.0, 0.091), (250.0, 0.011)):
+        assert rn.yield_strength_pa(1.0, temperature_k=kelvin) / 1e6 == pytest.approx(mpa, rel=0.05)
+
+
+def test_the_default_ice_is_the_creep_law_near_158_kelvin():
+    assert rn.yield_strength_pa(1.0, temperature_k=158.0) == pytest.approx(rn.ICE_STRENGTH_PA, rel=0.1)
+    assert rn.ICE_STRENGTH_PA == pytest.approx(1.0e6)
+
+
+def test_colder_ice_is_stronger_and_warmer_ice_weaker():
+    values = [rn.yield_strength_pa(1.0, temperature_k=kelvin) for kelvin in (80.0, 100.0, 130.0, 160.0, 200.0, 240.0)]
+    assert values == sorted(values, reverse=True)
+    assert rn.round_radius_m(1000.0, 1.0, temperature_k=100.0) > rn.round_radius_m(1000.0, 1.0) > rn.round_radius_m(1000.0, 1.0, temperature_k=220.0)
     assert rn.yield_strength_pa(0.0, temperature_k=100.0) == rn.yield_strength_pa(0.0)        # rock's strength does not follow the ice law
-    assert rn.round_radius_m(1000.0, 1.0, temperature_k=100.0) > rn.round_radius_m(1000.0, 1.0)
 
 
-def test_the_cap_holds_the_cold_ice_strength(monkeypatch):
-    document = copy.deepcopy(_document())
-    document["temperature"]["cap_pa"] = 3.0e6
-    monkeypatch.setattr(rn, "TABLE", rn.load_table(document))
-    assert rn.yield_strength_pa(1.0, temperature_k=60.0) == pytest.approx(3.0e6)
+def test_ice_above_the_melting_point_is_held_at_it():
+    assert rn.yield_strength_pa(1.0, temperature_k=400.0) == rn.yield_strength_pa(1.0, temperature_k=constants.CELSIUS_ZERO_K)
+
+
+def test_cold_ice_in_a_mix_is_stronger_than_cold_ice_alone_until_the_solids_jam():
+    assert rn.yield_strength_pa(0.5, temperature_k=140.0) > rn.yield_strength_pa(1.0, temperature_k=140.0)
 
 
 def test_a_temperature_at_or_below_zero_kelvin_is_refused():
@@ -126,7 +142,7 @@ def test_the_round_mass_is_a_sphere_of_the_round_radius():
 def test_ice_turns_round_at_a_smaller_mass_than_rock_and_the_bands_agree_with_the_report():
     ice = rn.round_mass_kg(1000.0, 1.0)
     rock = rn.round_mass_kg(2500.0, 0.0)
-    assert 3e19 < ice < 4.5e19         # about Mimas (3.7e19 kg)
+    assert 2e19 < ice < 4.5e19         # about Mimas (3.7e19 kg), which is round
     assert 2e20 < rock < 5e20
 
 
@@ -283,7 +299,9 @@ def test_the_stand_in_porosity_rule_leaves_the_strength_alone():
     lambda d: d["mixing"].__setitem__("rule", "voigt"),
     lambda d: d["porosity"].__setitem__("rule", "sponge"),
     lambda d: d["temperature"].__setitem__("rule", "balmy"),
-    lambda d: d["mixing"].__setitem__("skeleton_above", 0.2),
+    lambda d: d["mixing"].__setitem__("close_packing", 0.3),
+    lambda d: d["temperature"].__setitem__("regimes", []),
+    lambda d: d["temperature"]["regimes"][0].pop("n"),
 ])
 def test_a_table_that_is_wrong_is_refused(change):
     document = copy.deepcopy(_document())

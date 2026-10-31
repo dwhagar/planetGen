@@ -162,7 +162,6 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.121:TJ5 | no data | - | no source read gives the eccentricity and inclination limits; an N-body map of the trojan region by mass ratio replaces them |
 | 6.125:TB3 | no data | - | no source read gives the share of co-orbital solids that grow into a trojan; a disc formation map replaces it |
 | 6.125:TB4 | no data | - | no source read gives the shortest disc life for a trojan to grow; a formation map replaces it |
-| 6.126:RN3 | no data | - | no measured strength against ice-to-rock volume share at body scale; a measured strength curve replaces the volume-threshold rule |
-| 6.126:RN4 | no data | - | only a weak source gives iron body strength; a measured value at meteorite and body scale replaces it |
+| 6.126:RN3 | no data | - | no measured strength of ice with rock grains above 56 percent solids by volume; a measured curve replaces the extrapolated leg from 0.56 to the rock strength at 1 |
 | 6.126:RN5 | no data | - | no source gives a porosity law for body-scale strength; the rubble-pile branch (friction plus a little cohesion) replaces it |
 | 6.22:CC16 | no data | - | no source gives the temperatures between which the ice grows from none to the equator in a model this simple; a latitude-resolved energy balance of the generated world replaces the straight ramp |
