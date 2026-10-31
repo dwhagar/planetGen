@@ -2,6 +2,19 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2945] - 2026-10-31
+
+**Headline:** The planet class table in the system file guide now matches the live class rules, and says which classes are planned.
+
+### Changed
+- **System file guide, planet classes (DOC.85).** `docs/reference/system-file-format.md` lists the classes as they are derived today (the rule each finished body must meet, the check order, and which classes can carry life), instead of the old zone and description table. It says that a slot asking for a class that can carry life is moved into the habitable zone, that other classes keep the orbit's distance and are drawn again until they come out right, and that moons use the same rules. The planned letters Y, U, X, Z and R are listed only as planned, class code system GEN.1220.
+
+No generator output changes.
+
+generation-output: unchanged
+
+TODO items resolved: DOC.85.
+
 ## [8.0.2944] - 2026-10-31
 
 **Headline:** A star's page, a system's overview and the star class pages are written in plain words: the star orbit sentences read one pair at a time, the heliosphere and edge lines drop "approximately", and the table labels are in sentence case.
