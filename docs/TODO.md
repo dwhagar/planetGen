@@ -14397,17 +14397,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   papers, Boss's request).
   Prerequisites: none. Related: GEN.1177, GEN.725.
 
-- [ ] **GEN.1184 Rock strength follows olivine creep in the roundness temperature rules, and the hot rubble strength RN9 is re-tiered to olivine creep at about 1300 K**
-  Add a rock olivine creep-law rule to roundness TEMPERATURE_RULES
-  (Hirth and Kohlstedt 2003 and Korenaga and Karato constants, Byerlee
-  friction below 900 K), the rock counterpart of the ice creep law. RN9
-  (hot rubble strength 2.5 MPa) is re-tiered to L1 as olivine creep at
-  about 1300 K. Additive to the engine, lock-free until GEN.1159 wires
-  it. Owner Aux 5. Source: reports/papers-vs-standins-2026-10-31.md
-  section 7 (the strength papers review of all 14 uploaded and 35
-  downloaded papers, Boss's request).
-  Prerequisites: none. Related: GEN.1158, GEN.1176, GEN.725.
-
 - [ ] **GEN.1185 Interior activation energy range 260 to 390 kJ/mol instead of 200 to 300, with the reference viscosity retuned**
   Change INTERIOR_ACTIVATION_RANGE_KJ_MOL from 200 to 300 to 260 to 390
   kJ/mol and retune eta0 so the reference viscosity holds (medium
