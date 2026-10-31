@@ -364,6 +364,8 @@ curl_failure_words() {
 # Returns 0 when it answers, 1 when it never did.
 wait_for_health() {
     command -v curl >/dev/null 2>&1 || return 0
+    # The reload has just restarted the workers: they get HEALTH_SETTLE_SECONDS (default 10) to start before the first probe.
+    sleep "${HEALTH_SETTLE_SECONDS:-10}"
     local end=$(( SECONDS + ${HEALTH_WAIT_SECONDS:-20} )) reply code body rc site_url="" resolve_http="" resolve_https="" site_code="" site_rc=0 site_note=""
     if [[ -n "${3:-}" ]]; then read -r site_url resolve_http resolve_https <<<"$3"; fi
     while :; do
@@ -664,14 +666,15 @@ finish_update_guard() {
 
 # Builds the site's caches (MAP.134, PERF.104, PERF.127): the Galaxy Map's opening view,
 # the lists, every sector, system and phenomenon page (up to the warm-up cap)
-# and the search, in the background as Apache's user (the caches belong to it),
-# so the update doesn't wait for it and the first visitor after it doesn't
-# either. `planetgen warm` builds the list of the warm-* commands (one per
-# family) and hands it to the wrapper, which runs them in order on the Redis
-# queue; it waits for the update to finish, then for them, and prints one line
-# per family. At most 30 minutes; the output goes to $WARM_MAP_LOG, and its exit
-# status is non-zero if any family failed. Never fails the update: the first
-# visit builds what the warm-up did not.
+# and the search, as Apache's user (the caches belong to it). It runs inside the
+# update, before the reload and the /api/health check (Boss, 10-30 EDT), so the
+# first visitor after the update finds them built and the probe does not meet a
+# site that is still being warmed. `planetgen warm` builds the list of the warm-*
+# commands (one per family) and hands it to the wrapper, which runs them in order
+# on the Redis queue and prints one line per family; the update's own commands
+# pass the update guard. At most 30 minutes; the output goes to the terminal and
+# to $WARM_MAP_LOG. Never fails the update: the first visit builds what the
+# warm-up did not.
 warm_galaxy_map() {
     local user="" runner=()
     WARM_MAP_LOG="${WARM_MAP_LOG:-/tmp/planetgen-warm-map.log}"
@@ -689,9 +692,11 @@ warm_galaxy_map() {
     if command -v timeout >/dev/null 2>&1; then
         limit=(timeout 1800)
     fi
-    (cd / && nohup ${runner[@]+"${runner[@]}"} ${limit[@]+"${limit[@]}"} "$PYTHON" -m planetgen.cli.generate warm \
-        >"$WARM_MAP_LOG" 2>&1 </dev/null &) || true
-    echo "Building the site's caches in the background (log: $WARM_MAP_LOG)."
+    echo "Building the site's caches before the site is reloaded (log: $WARM_MAP_LOG):"
+    if ! (cd / && ${runner[@]+"${runner[@]}"} ${limit[@]+"${limit[@]}"} "$PYTHON" -m planetgen.cli.generate warm \
+            </dev/null 2>&1 | tee "$WARM_MAP_LOG"; exit "${PIPESTATUS[0]}"); then
+        echo "warning: the cache warm-up did not finish (see above); the update carries on, and the first visits build what is missing." >&2
+    fi
 }
 
 # Tells the admin when an update changed an example config they copied
