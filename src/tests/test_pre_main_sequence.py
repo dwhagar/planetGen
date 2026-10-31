@@ -227,3 +227,23 @@ def test_a_population_draw_is_rarely_young():
     assert 0.015 < statistics.mean(young) < 0.06
     masses = [draw_[2]["mass_sol"] for draw_, is_young in zip(draws, young) if is_young]
     assert statistics.median(masses) < 0.5
+
+
+def test_the_contraction_time_has_no_step_at_the_edge_of_the_isochrone_rows():
+    """GEN.1173: MIST's rows end at about 0.107 solar masses; the time was 718 Myr at 0.105 and 1358 at 0.11 (the stretch of GEN.947 stopped with the rows). It is now continuous
+    there, at every metallicity, and whole from MIST_FADE_TOP_SOL up."""
+    for fe_h in (-1.0, 0.0, 0.3):
+        edge = pms.isochrones.lowest_arrival_mass_sol(fe_h)
+        assert edge is not None and 0.1 < edge < 0.12
+        masses = [0.095 + 0.0005 * i for i in range(120)]
+        times = [pms.contraction_time_yr(m, fe_h) for m in masses]
+        assert max(abs(math.log(b / a)) for a, b in zip(times, times[1:])) < 0.02
+        assert pms.contraction_time_yr(pms.MIST_FADE_TOP_SOL, fe_h) == pytest.approx(
+            pms.isochrones.pre_main_sequence_arrival_yr(pms.MIST_FADE_TOP_SOL, fe_h), rel=1e-6)
+        assert pms._track(edge * 0.999, fe_h)["scale"] == 1.0
+
+
+def test_the_contraction_time_below_the_rows_is_still_the_models_own():
+    assert pms._track(0.1)["scale"] == 1.0
+    assert pms._track(0.11)["scale"] > 1.0
+    assert pms._track(0.11)["scale"] < pms._track(0.13)["scale"] < pms._track(0.15)["scale"]
