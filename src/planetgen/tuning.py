@@ -32,6 +32,8 @@ from planetgen.physics import mass_boundaries as _boundaries
 from planetgen.physics import unit_registry as units
 
 _myr_to_gyr = units.converter("Myr", "Gyr")
+_mearth_to_kg = units.converter("Mearth", "kg")
+_kg_to_mjup = units.converter("kg", "Mjup")
 
 # --- Generation directives (GEN.96, GEN.180) ---
 DIRECTIVE_ATTEMPTS = 200
@@ -1276,6 +1278,12 @@ STELLAR_THICK_START_GY = 8.0
 thick disc formed from about 13 to about 8 Gy ago, the age scale uncertain by 1 to 1.5 Gy; Boss's papers); range 6.5 to
 9.5. The first draft's 3.0 was the project's intermediate/old boundary and the paper contradicts it (Boss approved
 8.0, 2026-10-17)."""
+
+THICK_DISC_AGE_RANGE_GY = (STELLAR_THICK_START_GY, 13.0)
+"""tuple: The ages, Gy, over which the thick disc formed its stars: from where its branch starts (`STELLAR_THICK_START_GY`) to the oldest the old
+population holds (GEN.1025, `galaxy.thick_ages`). [Stand-in TD1, tier T3, tweak L0: Haywood et al. 2013 (the thick disc formed from about 13 to
+about 8 Gy ago).]"""
+
 STELLAR_HIGH_ALPHA_LOGISTIC = (-0.350, 0.132)
 """tuple: `(f0, w)`: P(high-alpha) = 1 / (1 + exp(([Fe/H] - f0) / w)) for a star old enough to be thick-disc (Bensby, Feltzing
 and Oey 2014, fit to the chemically high-alpha fraction; their paper is not in the repository's papers, so partly verified)."""
@@ -2939,7 +2947,7 @@ ROGUE_TOPUP_PLACEMENT = 1.0
 # `GIANT_RUNAWAY_MIN_MASS_EARTH` it is an ice giant (class I by its conditions); the rogue's old line of 0.05 (about 16 Earth masses,
 # "where the Solar System's ice giants sit") let 10 to 16 Earth-mass rock come out at up to 17,600 km, past class S.
 ROGUE_PLANET_GAS_GIANT_MASS_THRESHOLD_JUPITER = (
-    GIANT_CORE_CRITICAL_MASS_EARTH * _physical_constants.EARTH_MASS_TO_KG / _physical_constants.JUPITER_MASS_TO_KG)
+    _kg_to_mjup(_mearth_to_kg(GIANT_CORE_CRITICAL_MASS_EARTH)))
 
 # --- Rogue planet surface conditions (rogueSurface; Boss's research,
 # 2026-10-01: Stevenson 1999, Burrows et al. 2001, Guillot 2005, Abbot &

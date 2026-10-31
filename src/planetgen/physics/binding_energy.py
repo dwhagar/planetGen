@@ -37,6 +37,9 @@ Use:
 """
 
 from planetgen.physics import constants, interior_heat
+from planetgen.physics import unit_registry as units
+
+_kg_to_msun = units.converter("kg", "Msun")
 from planetgen.util.checks import finite_domain
 
 INFINITE = -1.0
@@ -131,5 +134,5 @@ def binding_energy_j(kind, mass_kg, radius_m=None, core_mass_kg=0.0, core_radius
     if kind == "brown-dwarf" or kind == "white-dwarf":
         return polytrope_j(mass_kg, radius_m, POLYTROPE_INDEX_CONVECTIVE)
     if kind == "star":
-        return polytrope_j(mass_kg, radius_m, star_index(mass_kg / constants.SOLAR_MASS_TO_KG))
+        return polytrope_j(mass_kg, radius_m, star_index(_kg_to_msun(mass_kg)))
     return neutron_star_j(mass_kg, radius_m)

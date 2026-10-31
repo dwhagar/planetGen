@@ -72,8 +72,7 @@ Boss: the zoom chain is a seminal feature of 8.2. Z0 (MAP.333, the quick fixes) 
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| MAP.337 | Zoom redesign Z4: delete the stage code and stage URLs and rewrite the stage browser tests |  |  |
-| TEST.496 | test_the_wheel_carries_the_map_from_the_whole_galaxy_into_a_system fails on main in its wheel-out leg (the URL keeps sector= after wheeling out) (bug) | MAP.337 |  |
+| TEST.496 | test_the_wheel_carries_the_map_from_the_whole_galaxy_into_a_system fails on main in its wheel-out leg (the URL keeps sector= after wheeling out) (bug) |  |  |
 | MAP.338 | Zoom redesign Z5: planet and moon frames, the camera as frame plus offset, automatic near and far planes, and the MAP.240 leftovers |  |  |
 | UX.236 | User preferences: a screen and storage for per-user settings, starting with the Galaxy Map region landing (frame or densest) |  |  |
 
@@ -102,7 +101,7 @@ Boss (6:10 and 6:12 PM EDT, 2026-10-21): the viewing windows fit the browser win
 | UX.227 | The search page shows range controls for the physical values, with units, and the active filters as chips (G4, step 2) | UX.226 | Unused stored values audit (report of 10:33 PM EDT 2026-10-24), Boss 10:16 PM EDT: file each; chain UX.225, Boss 10:35 PM EDT. |
 | UX.228 | The object lists and Nearby filter and sort by the same physical values (G4, step 3) | UX.226 | Unused stored values audit (report of 10:33 PM EDT 2026-10-24), Boss 10:16 PM EDT: file each; chain UX.225, Boss 10:35 PM EDT. |
 | UX.225 | Search, object lists, Nearby and /api/search filter and sort on every stored physical number: gravity, temperature, pressure, orbit, day, star mass, dose, field, ocean depth, moon count and gases (G4) | UX.226, UX.227, UX.228 | Unused stored values audit (report of 10:33 PM EDT 2026-10-24), Boss 10:16 PM EDT: file each. |
-| UX.243 | Day-and-night counter on every object page: a clock counting the object's own day at its real rate, with the state word, shown separately from the spin animation speed (spin.js compresses periods onto 20 s to 10 min per turn, stand-in SP1, L4) | GEN.1097 |  |
+| UX.243 | Day-and-night counter on every object page: a clock counting the object's own day at its real rate, with the state word, shown separately from the spin animation speed (spin.js compresses periods onto 20 s to 10 min per turn, stand-in SP1, L4) |  |  |
 
 ### Generation records
 

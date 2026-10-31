@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 924 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 949 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -38,14 +38,14 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 |---|---|---|---|---|---|---|
 | T1 | 140 | 13 | 8 | 1 | 0 | 162 |
 | T2 | 111 | 36 | 0 | 1 | 0 | 148 |
-| T3 | 76 | 35 | 5 | 10 | 0 | 126 |
+| T3 | 83 | 38 | 5 | 10 | 0 | 136 |
 | T4 | 37 | 5 | 0 | 14 | 10 | 66 |
 | T5 | 43 | 17 | 0 | 1 | 0 | 61 |
-| T6 | 87 | 62 | 16 | 41 | 0 | 206 |
+| T6 | 91 | 71 | 18 | 41 | 0 | 221 |
 | T7 | 27 | 8 | 8 | 8 | 0 | 51 |
 | T8 | 0 | 1 | 1 | 5 | 1 | 8 |
 | T9 | 17 | 14 | 4 | 42 | 19 | 96 |
-| All | 538 | 191 | 42 | 123 | 30 | 924 |
+| All | 549 | 203 | 44 | 123 | 30 | 949 |
 
 ## How the labels were given
 
@@ -1376,7 +1376,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | RN8 | D | T2 | L1 | roundness.RUBBLE_RULES mohr-coulomb, friction angle 35 degrees and cohesion 100 Pa: the failure stress of a pile of rubble, `(2 c cos(phi) + 2 P sin(phi)) / (1 - sin(phi))` with the centre pressure P | friction 30 to 40 degrees; cohesion 44 to 210 Pa | rubble piles, kilometre to hundreds of km | a cold pile of rubble over 100 km that is observed round | measured cohesion and friction of an asteroid regolith (Hayabusa2, OSIRIS-REx samples) | Hirabayashi and Scheeres (arXiv 1411.5926, READ), Rozitis, MacLennan and Emery 2014 (READ), Sanchez and Scheeres 2014 (lunar regolith 0.1 to 3 kPa; Van der Waals 300 Pa at 1 micron), Walsh 2018 (READ); Polishook and others 2016, DEEP VII 2024 (100 Pa to about 10 kPa), the Bennu paper (300 Pa at 50 percent porosity, friction about 37 degrees); friction angle from Lambe and Whitman 1969 (quoted) | GEN.1159 | - |
 | RN9 | D | T5 | L1 | roundness.RUBBLE_RULES hot strength 2.5 MPa (`hot_strength_pa` in roundness_strengths.json): the strength of a pile that took its shape hot, the creep strength of dry olivine at about 1330 K | 1 to 4 MPa, which is 1250 to 1400 K | rubble piles that were heated at formation | a heated rubble pile whose measured shape needs another strength | a thermal history of the body that sets its strength at shape-setting (the `olivine-creep-law` already takes a shape-set temperature) | Korenaga and Karato 2008 Table 3 (READ), Hirth and Kohlstedt 2003 as printed there; `reports/papers-vs-standins-2026-10-31.md` section 2 (re-tiered from L3) | GEN.1159 | - |
 | RN10 | P | T4 | L0 | roundness.RANGES_PA: ice 0.4 to 3 MPa, rock 4 to 30 MPa, metal 50 to 250 MPa, and the rubble ranges (friction 30 to 40 degrees, cohesion 44 to 210 Pa, hot strength 1 to 4 MPa), and, for hot rock, the quantile between the two olivine creep columns (RN11); a body's strength is the log-linear quantile `draw` of its range with the stand-in at 0.5 | the ranges; the shape of the quantile (log-linear through the median) | every solid body | a body whose measured strength is outside its range, or a population whose round boundary is wider or narrower than the draw gives | a population statistic of the round boundary (the sizes of the largest non-round and smallest round bodies of a class) | Lineweaver and Norman 2010 (rock 4 to 30 MPa, ice 0.4 to 3 MPa), strength research section 7 ranges; the quantile shape is a design choice (`reports/planetary-material-strength-2026-10-31.md` section 13 recommends sampling from the range) | GEN.1178 | - |
-| RN11 | D | T2 | L0 | roundness.ROCK_CREEP_COLUMNS: dry olivine dislocation creep, strain rate = A sigma^n exp(-E / R T), Hirth and Kohlstedt 2003 (log10 A 5.04, n 3.5, E 530 kJ/mol) and Korenaga and Karato 2008 (6.09, 4.94, 610) at 1e-15 per second, never above the cold rock strength; between the columns by the body's quantile | E +/- 4 to 30 kJ/mol, n +/- 0.3; rate 1e-16 to 1e-14 per second | silicate rock that took its shape at 1100 K or more; below that cold rock (RN2) governs | a hot rock body whose shape and temperature need a strength outside the two columns | a measured body-scale strength of hot rock; wet olivine (about 1.3 to 2 times weaker) and a pressure term | Korenaga and Karato 2008 Table 3 (READ, both columns); Chu and Korenaga 2012 (READ) test the laws at geologic rates; `reports/planetary-material-strength-2026-10-31.md` section 15 | GEN.1159 | - |
+| RN11 | D | T2 | L0 | roundness.ROCK_CREEP_COLUMNS: dry olivine dislocation creep, strain rate = A sigma^n exp(-E / R T), Hirth and Kohlstedt 2003 (log10 A 5.04, n 3.5, E 530 kJ/mol) and Korenaga and Karato 2008 (6.09, 4.94, 610) at 1e-15 per second, never above the cold rock strength; between the columns by the body's quantile | E +/- 4 to 30 kJ/mol, n +/- 0.3; rate 1e-16 to 1e-14 per second | silicate rock that took its shape at 1100 K or more; below that cold rock (RN2) governs | a hot rock body whose shape and temperature need a strength outside the two columns | a measured body-scale strength of hot rock; wet olivine (about 1.3 to 2 times weaker) and a pressure term | Korenaga and Karato 2008 Table 3 (READ, both columns); Chu and Korenaga 2012 (READ) test the laws at geologic rates; `reports/planetary-material-strength-2026-10-31.md` section 15 | GEN.1201 | - |
 
 ## 6.129 Stand-ins of the strengths of the ice types
 
@@ -1523,6 +1523,51 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | DN1 | P | T9 | L0 | day_night.NON_ROTATING_TURNS 0.01 and day_night.POLAR_CIRCLE_MAX_DEG 30: a body that turns less than a hundredth of a turn in an orbit is non-rotating (the star goes round once a year), and a body whose polar circle is within 30 degrees of the equator has half its surface or more in the polar zone (the area beyond latitude L is 1 - sin L) | turns 0.001 to 0.1; circle 15 to 45 degrees | planets and moons with a stored spin | a body the generator makes with a turn count under 0.01 that has a day the page calls a year, or a body at 60 degrees tilt shown as an ordinary cycle | a word chosen from the length of the solar day and the polar zone's area on the page | needed output (words for the day and night state) | - | - |
+
+## 6.146 Stand-ins of the thick disc's ages
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| TD1 | P | T3 | L0 | tuning.THICK_DISC_AGE_RANGE_GY (8, 13) Gy, the ages over which the thick disc formed its stars | 8 to 9.5 for the start; 12 to 13.5 for the end | the thick disc of a Milky Way-like galaxy | an age-metallicity or age-alpha relation of thick-disc stars with a population older than 13 or younger than 7 Gy | the star formation history of the thick disc fitted to its own relation | Haywood et al. 2013: the thick disc formed from about 13 to about 8 Gy ago | GEN.1025 | - |
+| TD2 | P | T6 | L1 | thick_ages.mixed_old_law: the thick disc's star formation is flat over its window | a rate falling by up to a factor of 3 over the window | the thick disc | a thick-disc age distribution that is not within a third of flat | the thick disc's own history from the gas model (GEN.469 for the thin disc is the template) | the neutral shape: Haywood et al. 2013 Fig. 9 has the rate falling over the window, so the oldest ages are under-weighted here | - | - |
+
+## 6.147 Stand-ins of the chemically peculiar stars
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| PEC1 | P | T3 | L0 | chemically_peculiar.AP_TEMPERATURE_RANGE_K (7500, 13000) K | none | main-sequence late-B to early-F stars | magnetic peculiar stars found outside 7000 to 14000 K | the spectral-type range of the Ap/Bp catalogues | Kochukhov and Bagnulo 2006; Auriere et al. 2007: Ap and Bp stars run B8 to F0 | GEN.1027 | - |
+| PEC2 | P | T3 | L0 | chemically_peculiar.AM_TEMPERATURE_RANGE_K (7000, 9500) K | none | main-sequence A stars | Am stars outside 6800 to 10000 K | the spectral-type range of the Am catalogues | Abt 2009; Smith 1996: Am stars are the A1 to F2 dwarfs | GEN.1027 | - |
+| PEC3 | P | T3 | L1 | chemically_peculiar.AP_SHARE 0.10 (the share of stars in the Ap range that are Ap or Bp) | 0.05 to 0.15 | stars in PEC1 | a volume-limited magnetic survey with a share outside 0.04 to 0.15 | the share of a complete survey | Wolff 1968 (about 10 percent of A stars); Auriere et al. 2007 (8 percent) | GEN.1027 | - |
+| PEC4 | P | T3 | L1 | chemically_peculiar.AM_SHARE 0.33 (the share of stars in the Am range that are Am) | 0.25 to 0.4 | stars in PEC2 | an Am share of a complete sample outside 0.2 to 0.45 | the share of a complete survey | Smith 1996 (about a third of A4 to F1); Abt 2009 (30 to 40 percent) | GEN.1027 | - |
+| PEC5 | P | T6 | L1 | chemically_peculiar.AP_PERIOD_MEDIAN_DAYS 4.5 (median Ap rotation period) | 3 to 8 d | Ap stars | a median period of the Ap catalogue outside 2 to 10 d | the period distribution of the Ap catalogue | periods run from half a day to decades with the bulk at days (Mathys 2017); read second-hand | GEN.1027 | - |
+| PEC6 | P | T6 | L1 | chemically_peculiar.AP_PERIOD_SIGMA_LN 1.3 (ln-width of the Ap periods) | 1.0 to 1.8 | Ap stars | a width of the period distribution outside 0.8 to 2 | as PEC5 | spans the half-day to 30-day bulk within about two widths | GEN.1027 | - |
+| PEC7 | P | T6 | L0 | chemically_peculiar.AP_PERIOD_RANGE_DAYS (0.5, 30) d | none | Ap stars | a share of Ap stars above 30 d over 10 percent of the draw | as PEC5 | the decades-long tail is left out of the draw | GEN.1027 | - |
+| PEC8 | P | T6 | L1 | chemically_peculiar.AM_SPEED_RANGE_KMS (10, 90) km/s, uniform | mean 40 to 60 | Am stars | a mean Am equatorial speed outside 30 to 70 km/s | the v sin i distribution of Am stars | Am stars rotate slowly, v sin i under about 100 km/s with a mean near 50 (Abt and Morrell 1995) | GEN.1027 | - |
+| PEC9 | P | T3 | L0 | chemically_peculiar.AP_POLAR_FIELD_GAUSS (300, 30000) G, log-uniform | none | Ap stars | a strong Ap field distribution whose median is outside 1 to 6 kG | the field distribution of the magnetic survey | dipole fields of 300 G to 34 kG (Auriere et al. 2007); the lower edge is their detection floor | GEN.1027 | - |
+
+## 6.138 Stand-ins of the variable-star kinds
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| VR1 | P | T6 | L1 | variability.MIRA_MAX_TEMPERATURE_K 3500 (an asymptotic-giant star cooler than this is a Mira or semiregular variable; Miras run from about 2,500 to 3,500 K) | 3200 to 3800 | asymptotic-giant stars | a measured asymptotic-giant population whose cool stars are mostly not variable, or whose variables reach 4,000 K | a pulsation model of the asymptotic-giant branch (period-luminosity-temperature) | test_variability::test_only_a_cool_asymptotic_giant_is_a_mira | - | - |
+| VR2 | P | T6 | L0 | variability.HERBIG_MIN_MASS_SOL 2 (a pre-main-sequence star of this mass or more is a Herbig Ae/Be star, under it a T Tauri star) | 1.5 to 2.5 | pre-main-sequence stars | a catalogue split of the two classes by spectral type that puts the boundary more than 0.5 solar masses away | the spectral-type definition of the classes | test_variability::test_a_pre_main_sequence_star_is_a_t_tauri_or_a_herbig_star_by_mass | - | - |
+| VR3 | P | T6 | L0 | variability.HERBIG_MAX_MASS_SOL 8 (a pre-main-sequence star of this mass or more is neither: it reaches the main sequence still accreting) | 6 to 10 | pre-main-sequence stars | a Herbig Be star of more than 10 solar masses on a pre-main-sequence track | a massive-star accretion model | test_variability::test_a_pre_main_sequence_star_is_a_t_tauri_or_a_herbig_star_by_mass | - | - |
+
+## 6.139 Stand-ins of the carbon and S stars
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| CS1 | P | T3 | L0 | agb_carbon.PULSES_BY_MASS_SOL (17, 19, 25, 22, 22.5 thermal pulses at 1.5, 1.75, 2.75, 3.25, 3.75 solar masses) | none | stars of 1.5 to 3.75 solar masses on the asymptotic branch | a TP-AGB grid whose pulse counts differ from the table by more than a third | a pulse count from the star's own track (a thermally pulsing track set) | Karakas and Lugaro 2016 Table 1 (arXiv:1604.02178), the Z 0.007 and 0.014 rows | - | - |
+| CS2 | P | T3 | L0 | agb_carbon.LAMBDA_MAX_BY_MASS_SOL (0.41, 0.50, 0.80, 0.92, 0.96 at the same masses) | none | as CS1 | a dredge-up efficiency from another grid differing by more than 0.2 | the lambda of a thermally pulsing track set | Karakas and Lugaro 2016 Table 1 lambda_max column (mean of the two metallicities at 1.5 and 3.75) | - | - |
+| CS3 | P | T6 | L1 | agb_carbon.DREDGE_RISE_PULSES 4 (pulses over which lambda rises to 63 percent of its largest) | 3 to 6 | as CS1 | a lambda-against-pulse curve rising over more than 8 pulses | the fit of Karakas et al. 2002 | the form lambda_max (1 - exp(-N/Nr)) of the population-synthesis papers; the coefficient is a handful of pulses as the published curves show; Karakas et al. 2002 not at hand | - | - |
+| CS4 | P | T6 | L2 | agb_carbon.CORE_GROWTH_PER_PULSE_SOL 0.004 (core growth of one pulse cycle) | 0.003 to 0.006 | as CS1 | a core-mass growth per pulse outside 0.002 to 0.008 | the core-mass interpulse relation of the track set | the core grows by about 0.1 solar masses over the 20 to 25 pulses of CS1 | - | - |
+| CS5 | P | T6 | L1 | agb_carbon.INTERSHELL_CARBON_FRACTION 0.22 (carbon mass fraction of the dredged material) | 0.15 to 0.3 | as CS1 | an intershell carbon fraction outside 0.15 to 0.3 | the intershell abundances of the track set | about a fifth to a quarter in the published AGB models; read second-hand | - | - |
+| CS6 | P | T6 | L0 | agb_carbon.CORE_MASS_SOL 0.6 (core mass subtracted from the envelope) | 0.55 to 0.7 | as CS1 | a core outside 0.55 to 0.7 | the core mass of the track set | the helium core of a thermally pulsing star | - | - |
+| CS7 | P | T3 | L1 | agb_carbon.TDU_MIN_MASS_AT_SOLAR_SOL 1.5 (lightest star at solar [Fe/H] that dredges carbon up) | 1.4 to 2.0 | stars near solar [Fe/H] | a lightest carbon star at solar metals under 1.3 or over 2.2 | the minimum of a TP-AGB grid at the star's own [Fe/H] | Karakas and Lugaro 2016 (1.5 solar masses is carbon-rich at Z 0.007 and 0.014 with overshoot); Cristallo et al. 2011 (1.5 at Z 0.02, 1.4 at 0.01); models without overshoot give 2 | - | - |
+| CS8 | P | T6 | L2 | agb_carbon.TDU_MIN_MASS_SLOPE_PER_DEX 0.2 (fall of the lightest dredging mass per dex of [Fe/H] below solar) | 0.1 to 0.35 | metal-poor stars | a metal-poor dwarf-galaxy carbon star population whose lightest progenitor differs by more than 0.3 solar masses | carbon-star progenitor masses in the Magellanic Clouds and dwarf spheroidals | Cristallo et al. step of 0.33 per dex (1.5 at Z 0.02, 1.4 at 0.01); carbon stars of metal-poor dwarf galaxies reach below 1.2 | - | - |
+| CS9 | P | T6 | L1 | agb_carbon.TDU_MIN_MASS_FLOOR_SOL 1.0 (lightest dredging star at any [Fe/H]) | 0.9 to 1.3 | very metal-poor stars | a carbon star from a progenitor under 0.9 solar masses | as CS8 | an educated guess; the helium flash closes the thermal-pulse phase below about a solar mass | - | - |
+| CS10 | P | T3 | L0 | agb_carbon.HBB_MIN_MASS_SOL 4.0 (initial mass from which hot bottom burning keeps a star oxygen-rich) | 3.5 to 4.5 | stars of 3.5 to 4.5 solar masses | a carbon star of initial mass above 4.5 or an oxygen-rich AGB star of 3.5 | a TP-AGB grid at the star's [Fe/H] | Karakas and Lugaro 2016 (hot bottom burning from about 4); the population-synthesis paper arXiv:0808.2112 takes 4.0 as the upper edge of carbon stars | - | - |
+| CS11 | P | T6 | L1 | agb_carbon.S_STAR_MIN_C_TO_O 0.9 (surface C/O from which, to 1, an AGB star with dredge-up is an S star) | 0.75 to 0.95 | S stars | a measured S-star C/O range that does not reach 0.9 | the C/O of observed S stars | S stars run from about 0.5 to 0.99 in C/O but those with the dredged s-process come up with the carbon, so near 1 | - | - |
 
 ## 6.95 Stand-ins of the belt sources
 

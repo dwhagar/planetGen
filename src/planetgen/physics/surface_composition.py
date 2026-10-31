@@ -53,7 +53,7 @@ SOURCES = {
              "shielding.md) section 3.2, the ground-type decision rules",
     "palme2014": "Palme and O'Neill 2014 via pyrolite; Workman and Hart 2005; Gale et al. 2013; Rudnick and Gao 2014 "
                  "(part E table 2.8b, second-hand)",
-    "rock_types": "physics/rock_types.py (GEN.474): the CIPW norm and the total alkali-silica bands (Le Bas et al. 1986) applied to a melt of the stored mantle",
+    "rock_types": "physics/rock_types.py: the CIPW norm and the total alkali-silica bands (Le Bas et al. 1986) applied to a melt of the stored mantle",
     "millero": "mean ocean salinity 35 g/kg (Millero et al. 2008, Deep-Sea Research I 55, 50)",
 }
 
@@ -133,7 +133,7 @@ GROUND_TYPES = pt.REGISTRY.register(pt.Table(
         pt.Row("intermediate", (pt.ANY_CLASS,), 1.0, SOURCES["rock_types"], state=pt.PARTLY_VERIFIED,
                limit="the assemblage is the norm of an average andesite rounded onto the rows of the materials table (registry RT4)",
                fractions={"plagioclase": 0.52, "orthoclase": 0.10, "quartz": 0.12, "diopside": 0.08, "enstatite": 0.15, "biotite": 0.03},
-               notes="a melt of 52 to 63 percent silica (andesitic), made from the stored mantle (GEN.474)"),
+               notes="a melt of 52 to 63 percent silica (andesitic), made from the stored mantle"),
         pt.Row("clay", (pt.ANY_CLASS,), 1.0, SOURCES["hu2012"], state=pt.PARTLY_VERIFIED,
                limit="Hu's Mg-smectite has no row; kaolinite stands in",
                fractions={"kaolinite": 0.50, "serpentine": 0.50}, notes="aqueous alteration of basalt"),

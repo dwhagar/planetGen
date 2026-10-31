@@ -78,7 +78,7 @@ def test_an_unmeasured_server_estimates_from_the_defaults():
     assert not result.measured
     assert math.isclose(result.seconds, 30 * generationStats.DEFAULT_SECONDS_PER_SYSTEM)
     assert result.bytes == math.ceil(round(30 * generationStats.DEFAULT_BYTES_PER_SYSTEM * 1.1, 6))
-    assert "not yet measured" in result.summary()
+    assert "not timed yet on this server" in result.summary()
 
 
 def test_measured_buckets_drive_the_time_and_workers_divide_it():

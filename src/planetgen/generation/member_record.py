@@ -24,6 +24,7 @@ from planetgen.util import draw
 
 _km_to_m = units.converter("km", "m")
 _m_to_au = units.converter("m", "au")
+_kg_to_msun = units.converter("kg", "Msun")
 
 LIGHTEN_FACTOR = 0.8
 """float: A birth mass that has already collapsed at the system's age is cut by this factor until it is alive (the same cut
@@ -156,7 +157,7 @@ def of_star(star, seed=0):
     birth mass as the star holds it, and the largest radius its birth mass and age give. Its `params` are None, as the star is
     built and nothing is built from this record.
     """
-    mass = star.mass / constants.SOLAR_MASS_TO_KG
+    mass = _kg_to_msun(star.mass)
     initial = getattr(star, "initial_mass_sol", None) or mass
     kind = _kind_of(star.yerkes_class)
     radius = _radius_au_of_km(star.radius)
