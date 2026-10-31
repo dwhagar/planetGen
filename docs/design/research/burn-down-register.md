@@ -83,7 +83,7 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.22:CC6 | no data | - | the lightest planet is a naming boundary and the habitable-request steering is a user-interface choice; neither is a measured quantity |
 | 6.22:CC10 | no data | - | the lightest planet is a naming boundary and the habitable-request steering is a user-interface choice; neither is a measured quantity |
 | 6.23:TR3 | no data | - | the form follows from physics (a suspension has no static rigidity); the floor is the lowest value that keeps the Io state's k2 under the fluid limit, and no measurement of the rigidity of a partial melt at planetary scale exists |
-| 6.23:TR10 | no data | - | the quality factor of cold rock is measured only for the Earth and the Moon (Dziewonski and Anderson 1981, Nakamura 1982, recalled); the ceiling keeps the planets' Q inside that |
+| 6.23:TR10 | no data | - | measured tidal Q of cold rock (Moon 38 to 41, Mars 86) lies far under the ceiling, so it constrains the ceiling only from below; the seismic Q the row cited is another frequency; no tidal Q above 100 is measured; tier T6, tweak L3 stay |
 | 6.26:GS4 | replace | GEN.979 | the distribution of the last impactor by planet mass from Kokubo and Ida 2007 or Agnor et al. 1999 replaces the isolation mass and steepness; the planet-formation train can give the isolation mass of the disc (formation.isolation_mass_kg) |
 | 6.26:GS5 | replace | GEN.979 | the same N-body distribution replaces the log-uniform range of the last giant impact |
 | 6.26:GS6 | replace | GEN.979 | the same N-body distribution (the planetesimal-built embryos) replaces the log-uniform range |
@@ -94,7 +94,7 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.36:PA5 | no data | - | Weiss et al. 2018 measure the pair ratio, not the spread of masses a system starts with; tuned to the 65 percent outer-larger share |
 | 6.36:PA6 | no data | - | the starting spacing is tuned to the Pu and Wu 2015 and Weiss et al. 2018 spacings after the instability build (GEN.730); the spacing before the instability is not observed |
 | 6.36:PA7 | no data | - | the inner edge of the chain is measured as a fall of occurrence inside 10 days (Mulders et al. 2015); the median period and width are tuned to the Kepler rise with period |
-| 6.36:PA9 | no data | - | the hot Jupiter share of giants is tuned to 0.6 to 1.2 percent of Sun-like stars and 0.27 percent of early M dwarfs; no survey measures the migration channel |
+| 6.36:PA9 | no data | - | the share 0.0092 now sits between two read statistics (Zhu and Dong 2021: 0.62 percent Kepler, 0.9 to 1.2 percent radial velocity), but the row also holds the metallicity exponent 2.2 and the period range, which no survey constrains separately; the row stays L3 until they are split |
 | 6.36:PA10 | no data | - | the inward move of other giants is tuned to the 1 to 3 AU peak of Fulton et al. 2021 and Cumming et al. 2008; no survey measures the migration |
 | 6.36:PA11 | no data | - | Suzuki et al. 2016 (read) give the planet counts per log mass ratio beyond the snow line down to their sensitivity edge but no floor below it; the lightest oligarch that counts stays tuned to those counts; tier T5, tweak L3 stay |
 | 6.36:PA14 | no data | - | a requested planet class takes its mass log-uniform over 0.05 to 1000 Earth masses after 8 free draws; no survey measures the mass of a planet picked by class, so the range is a design choice kept wide |
