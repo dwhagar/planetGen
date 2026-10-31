@@ -1238,7 +1238,10 @@ METALLICITY_DISC_FALL_DEX_PER_KPC = 0.06
 METALLICITY_BY_POPULATION = {
     "young": {"offset": 0.0, "sigma": 0.10, "gradient": True},
     "intermediate": {"offset": 0.0, "sigma": 0.15, "gradient": True},
-    "old": {"offset": -0.2, "sigma": 0.25, "gradient": True},
+    # GEN.1025: the old population's ages run 3 to 13 Gyr now (the thick disc's 8 to 13 Gy added), and the relation's mix over that window averages 0.125 dex
+    # lower than over 3 to 10 Gy (-0.255 against -0.130, `age_metallicity`); the offset was -0.2 and is -0.325 so the population's [Fe/H] is still the
+    # relation's mix over its window and the age tilt does not crowd it toward the young. [Stand-in, tier T6, tweak L2: tuned to the relation.]
+    "old": {"offset": -0.325, "sigma": 0.25, "gradient": True},
     "bulge": {"offset": -0.05, "sigma": 0.40, "gradient": False},
     # The nuclear cluster and disc are metal rich, +0.1 to +0.3 [recalled, GEN.280], and the cluster's spread is broad.
     "nuclear_cluster": {"offset": 0.20, "sigma": 0.40, "gradient": False},

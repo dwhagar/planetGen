@@ -51,9 +51,10 @@ def test_the_thick_disc_ends_at_its_anchor_and_is_held_outside_its_window():
 
 
 def test_the_relation_matches_the_populations_the_generator_has_today():
-    """The young and intermediate disc average 0 and the old (3 to 10 Gyr, mean 6.5) -0.2 in `tuning.METALLICITY_BY_POPULATION`."""
+    """The young and intermediate disc average 0 in `tuning.METALLICITY_BY_POPULATION`, and the old (3 to 13 Gyr, the thick disc's 8 to 13 among them) its offset."""
     assert age_metallicity.mean_fe_h(1.5, THIN) == pytest.approx(0.0, abs=0.06)
     assert age_metallicity.mean_fe_h(6.5, THIN) == pytest.approx(-0.2, abs=0.1)
+    assert tuning.METALLICITY_BY_POPULATION["old"]["offset"] == pytest.approx(-0.325)
 
 
 def test_only_the_discs_populations_follow_the_relation():

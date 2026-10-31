@@ -13,7 +13,7 @@ Fig. 9):
 
 The relation is the mean `mean_fe_h(age, branch)`: a line through the branch's anchor, at the slope the paper gives. The anchors (the thin
 disc's at birth, the thick disc's at 8 Gyr), the scatters and the thick disc's share of the old stars are stand-ins (AR1 to AR4) chosen to
-match the populations the generator has today (`tuning.METALLICITY_BY_POPULATION`: 0 for the young and intermediate disc, -0.2 for the old)
+match the populations the generator has today (`tuning.METALLICITY_BY_POPULATION`: 0 for the young and intermediate disc, -0.325 for the old, whose ages reach the thick disc's 13 Gyr)
 and the thin disc's lower limit near -0.7 (Bensby et al. 2014).
 
 **How a star takes it.** The [Fe/H] is still drawn first, from the place and the population (the scatter's tables, the places' own
