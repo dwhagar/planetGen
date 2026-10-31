@@ -366,3 +366,23 @@ def test_a_stalled_equilibrium_is_tried_again_from_the_middle_of_the_way_back(mo
     monkeypatch.setattr(sa.mixture_draw, "draw_mixture", fails_once)
     planet = _earth_like_planet()
     assert len(calls) > 2 and planet.atmospheric_pressure > 0.0
+
+
+def test_the_escape_is_compared_to_the_pressure_the_air_settled_at_without_it(monkeypatch):
+    """The loss acts on the air that stands. Compared to the pressure of the step before it (already what stays) it took its share again at every step,
+    and the reducing mixtures of the first steps, which a settled air does not keep, took the whole air: an Earth-mass world in the habitable zone of a Sun-like
+    star fell to a vacuum in most seeds."""
+    real = sa.mixture_escape.apply
+    columns = []
+
+    def recording(subject, result, column_bar=None):
+        columns.append(column_bar)
+        return real(subject, result, column_bar)
+
+    monkeypatch.setattr(sa.mixture_escape, "apply", recording)
+    for seed in (3, 5, 6):
+        columns.clear()
+        planet = _earth_like_planet(seed)
+        assert planet.atmospheric_pressure > 0.0, seed
+        assert columns and None not in columns, seed                 # no step before the air settled lost anything
+        assert len(set(columns)) == 1, seed                          # and every step after it compares to the one settled pressure
