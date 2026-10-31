@@ -1524,7 +1524,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | DN1 | P | T9 | L0 | day_night.NON_ROTATING_TURNS 0.01 and day_night.POLAR_CIRCLE_MAX_DEG 30: a body that turns less than a hundredth of a turn in an orbit is non-rotating (the star goes round once a year), and a body whose polar circle is within 30 degrees of the equator has half its surface or more in the polar zone (the area beyond latitude L is 1 - sin L) | turns 0.001 to 0.1; circle 15 to 45 degrees | planets and moons with a stored spin | a body the generator makes with a turn count under 0.01 that has a day the page calls a year, or a body at 60 degrees tilt shown as an ordinary cycle | a word chosen from the length of the solar day and the polar zone's area on the page | needed output (words for the day and night state) | - | - |
 
-## 6.140 Stand-ins of the thick disc's ages
+## 6.146 Stand-ins of the thick disc's ages
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
