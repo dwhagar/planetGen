@@ -15013,6 +15013,36 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   operating system setting.
   Prerequisites: none. Related: PERF.220, PERF.222, PERF.223.
 
+- [ ] **PERF.227 Starting a single scatter part from the Generate console on a fresh download kills the web daemon: five 'Truncated or oversized response headers' errors, an error 500, and the job reads 'stopped without finishing' (bug)**
+  Boss (2026-10-31, 7:38 PM EDT, as the coordinator relayed): "On a
+  fresh download, I tried to create a new scatter on a plan, testing the
+  individual parts... But it's not working...." The Apache error log on
+  hal shows, at 6:23:48 PM EDT and again at 7:35:49 PM EDT, five lines
+  each of `Truncated or oversized response headers received from daemon
+  process 'planetgen-api': /var/lib/planetGen/src/html/wsgi.py` (five
+  requests cut off at the same second, so the daemon died or was killed,
+  not one slow request). The browser showed a generic error 500; after a
+  refresh the console had no log and said "The job stopped without
+  finishing (the server may have restarted)." Do: (1) reproduce: a fresh
+  checkout, plan a galaxy, start one scatter part (a single stage) from
+  the Generate console, and watch the daemon, the web request and the
+  worker; (2) find why the daemon dies: the request limit (the same 60 s
+  ending as PERF.225, which now builds the cluster field ahead and
+  refuses a visitor's build), memory (PERF.226 caps the stage workers;
+  check whether the start request itself builds a big table in the
+  daemon), or a crash in the start path; Apache's own error log lines
+  before the first Truncated line and the kernel log say which; (3) fix
+  at the cause so the start request answers in a second and the work
+  runs in the queue, not in the daemon; (4) make a stopped job say why
+  in one plain line (killed by memory, restarted, daemon limit), not
+  only "may have restarted". Done: starting each single scatter part
+  from the console on a fresh plan answers at once, the job runs and
+  finishes or fails with a plain reason, and a test holds the start path
+  to a small fixed time. Owner: the investigating thread (named by the
+  coordinator); it checks the overlap with PERF.225 and PERF.226 first.
+  Lock-free unless the cause needs a migration. Version 8.1.
+  Prerequisites: none. Related: PERF.220, PERF.225, PERF.226.
+
 ## DB: Database and schema
 
 DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
