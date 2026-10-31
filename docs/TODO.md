@@ -14539,28 +14539,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Related GEN.962 (moons) and GEN.1068.
   Prerequisites: none. Related: GEN.962, GEN.1068, GEN.725.
 
-- [ ] **GEN.1158 Roundness engine: a pure module physics/roundness.py with yield strength from ice fraction, the round radius from density and strength by the Lineweaver and Norman law, the roundness ratio, the 10 percent sphericity rule and the binding energy of a sphere**
-  Research: reports/round-shape-minimum-mass-2026-10-31.md (in
-  /mnt/project-files/reports/). Boss decision (8:41 PM EDT 2026-10-30,
-  relayed by Aux 5): Class D's primary qualifier is a roundness ratio of
-  1; airless is kept; Class D below 0.1 Earth masses, Class C at or
-  above; build the engine; store ice fraction, bulk density, roundness
-  ratio, yield strength (from composition) and gravitational binding
-  energy for every planet, moon, asteroid and belt or field member.
-  Owner Aux 5. Build physics/roundness.py with tests on ten known bodies
-  (the Solar System bodies are test targets, never inputs), stand-in
-  rows in GEN.725 with tier and tweak level. Lock-free (nothing reads it
-  yet), branch claude/aux5-roundness-engine, merges first. Done: module,
-  tests, registry rows, wiring-register line naming the wiring items.
-  Aux 5 (relayed) (2026-10-30 10:45 PM EDT): three roundness definitions
-  already sit unwired in the repo: body_status.roundness with registry
-  row BR24, dwarf_population.round_mass_kg, and the new engine. This
-  item replaces body_status.roundness with the engine; dwarf_population
-  is listed for GEN.1160, where the member ledger replaces its mass cut.
-  The engine also holds the pure binding-energy formulas for every
-  structure, so it stays lock-free.
-  Prerequisites: none. Related: GEN.1068, GEN.725.
-
 - [ ] **GEN.1159 Store ice fraction, bulk density, roundness ratio, yield strength and binding energy on planets, moons, asteroids and belt or field members (columns, migration, API version)**
   Research: reports/round-shape-minimum-mass-2026-10-31.md (in
   /mnt/project-files/reports/). Boss decision (8:41 PM EDT 2026-10-30,
@@ -14590,7 +14568,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   work, same window as GEN.1068, folds into it. Done: classes derived
   from the ratio, the Asteroid type in the data and pages, tests, census
   re-tag.
-  Prerequisites: GEN.1158, GEN.1159. Related: GEN.1068, GEN.725.
+  Prerequisites: GEN.1159. Related: GEN.1068, GEN.725.
 
 - [ ] **GEN.1161 Asteroid field mass rule and a member ledger like the belts' (individual bodies above 1e19 kg stored, the rest drawn on demand)**
   Research: reports/round-shape-minimum-mass-2026-10-31.md (in
