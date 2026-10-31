@@ -13762,12 +13762,22 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Durham, Kirby and Stern 1996 preprint Rheology of Planetary Ices
   (UCRL-JC-123734); its Table 1 has the 1993 ammonia dihydrate law (log
   A 21.55, n 5.81, E* 107.5 kJ/mol, tested 130 to 176 K). The dihydrate
-  to ice I strength ratio from it is 2.1 at 135 K, 1.2 at 143 K, 0.81 at
-  150 K, 0.29 at 170 K and 0.22 at 176 K (1e-15 per s); our IT6 point at
-  170 K (0.3) agrees, 135 K (1.0) is half the law, and 110 K (2.0) is
-  outside the tested range. This is the 1996 preprint table, not checked
-  against the 1997 JGR table; ice II, III, V and VI ratios were not
-  computed because they need the pressure term.
+  to ice I strength ratio is 1.7 at 135 K, 0.91 at 143 K, 0.57 at 150 K,
+  0.18 at 170 K and 0.14 at 176 K (1e-15 per s; Sources 1 corrected the
+  first figures, which used the preprint's ice I row below 195 K; the
+  1997 row, log A -3.8, n 6.0, E* 39, is the right one). Our IT6 point at
+  170 K (0.3) is above the law, 135 K (1.0) is below it, and 110 K (2.0)
+  is outside the tested range. Ice II, III, V and VI constants are
+  already held in Durham, Kirby and Stern 1997 Table 2 (same as the 1996
+  preprint; Durham, Stern and Kirby 1996 JGR 101:2989 confirms V and VI);
+  Echelmeyer and Kamb 1986 (GRL 13:693) gives ice II about 10 times ice
+  I viscosity and ice III about 0.01 times near 240 K. The high-pressure
+  ratios depend strongly on depth: at lab rate ice II, V and VI come out
+  1 to 2 times ice I and ice III 0.4 to 0.6, at 1e-15 per s ice II, V and
+  VI 3 to 7. The ice VI row above 250 K jumps 50 times across 250 K, so
+  do not use it as it stands. Not found: Choukroun and Grasset 2007 and
+  the solid-solid boundary equations. Melting curves are covered by
+  Wagner 2011. Report: reports/ice-high-pressure-sources-held-2026-10-31.md.
   Prerequisites: none. Related: GEN.1183, GEN.1185, GEN.725.
 
 - [ ] **GEN.1191 Satellite supernova remnants scale with the satellite's own star formation instead of the Milky Way's per-system rate**
