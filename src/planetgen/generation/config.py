@@ -65,8 +65,10 @@ class SystemConfig:
 
         self.HABITABLE_WORLD = None
         """
-        bool or None: If True, the system generation will attempt to force the
-        creation of at least one habitable world. If False, ensures no
+        bool or None: If True, the system generation raises the odds of at
+        least one habitable world (`util.request_odds`) and never forces
+        one; the system may come out without and says so
+        (`StarSystem.habitable_request`). If False, ensures no
         habitable world is generated. If None, left to random chance.
         Defaults to None.
         """
@@ -139,11 +141,11 @@ class SystemConfig:
 
         self.INTELLIGENT_LIFE = None
         """
-        bool or None: If True, the system generation will attempt to force the
-        creation of at least one planet with intelligent life (implies
-        HABITABLE_WORLD). If False, ensures no planet with intelligent life is
-        generated (also implies HABITABLE_WORLD). If None, left to random
-        chance. Defaults to None.
+        bool or None: If True, the system generation raises the odds of at
+        least one planet with intelligent life (implies HABITABLE_WORLD) and
+        never forces a world, a timeline or a civilization. If False, ensures no
+        planet with intelligent life is generated (also implies
+        HABITABLE_WORLD). If None, left to random chance. Defaults to None.
         """
 
         self.BINARY_SYSTEM = None

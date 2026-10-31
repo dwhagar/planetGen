@@ -286,10 +286,13 @@ def add_system_arguments(parser):
                                           tri-state options.
     """
     for name, _attr, description in run_system.TRISTATE_OPTIONS:
+        if name in run_system.ODDS_OPTIONS:
+            help_text = (f"+{name} raises the odds that the system has {description} and never forces it (the system may come out "
+                         f"without, and says so); -{name} forces the system to not have {description}.")
+        else:
+            help_text = f"+{name} forces the system to have {description}; -{name} forces the system to not have {description}."
         parser.add_argument(f'-{name}', f'+{name}', dest=name, action=TristateAction,
-                            nargs=0, default=None,
-                            help=f"+{name} forces the system to have {description}; "
-                                 f"-{name} forces the system to not have {description}.")
+                            nargs=0, default=None, help=help_text)
 
     # Load system options from a JSON file
     parser.add_argument('--system-file', '-f', type=str,
@@ -467,14 +470,15 @@ def add_shared_generation_options(parser):
                              "meaningfully denser or sparser than another. Cannot be combined with "
                              "--num-systems.")
     parser.add_argument('--min-habitable', type=int, default=0,
-                        help="Guarantee at least this many systems in the sector have a habitable world, "
-                             "chosen randomly among them, without requiring every system to have one.")
+                        help="Ask for a habitable world in this many of the sector's systems, chosen randomly among them, "
+                             "without asking every system. Each asked system has its odds raised (+habitable_world) "
+                             "and none is forced, so a sector may hold fewer.")
     parser.add_argument('--directive', action='append', default=None, metavar='MINIMUM',
                         help="Redraw each sector until it holds at least this much: systems>=N, "
                              "habitable>=N or type:X>=N (X: O B A F G K M wd bh ns). Repeat for more. "
                              "After --directive-attempts draws a habitable>=N minimum still missed is "
-                             "met by a forced fill (a habitable world forced into N systems, reported as "
-                             "met_forced); any other minimum the closest draw misses is reported. A minimum no "
+                             "followed by a fill that asks for a habitable world in N systems (odds "
+                             "raised, nothing forced; reported as met_forced); any other minimum the closest draw misses is reported. A minimum no "
                              "sector can reach is refused before drawing.")
     parser.add_argument('--directive-attempts', type=int, default=directives.DEFAULT_ATTEMPTS,
                         help="Draws to make at most per sector for --directive (default %(default)s).")

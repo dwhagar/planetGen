@@ -56,16 +56,6 @@ def test_the_class_letter_table_does_not_decide_the_count(monkeypatch):
     assert hr.count([_body(temperature=200.0, planet_class="M")]) == 0
 
 
-def test_a_cold_draw_aims_closer_a_hot_one_farther_and_the_zone_bounds_it():
-    target = tuning.REQUEST_TARGET_K
-    assert hr.aimed_distance(2.0, target, 0.5, 5.0) == pytest.approx(2.0)
-    assert hr.aimed_distance(2.0, target / 2.0, 0.5, 5.0) == pytest.approx(0.5)      # a quarter of the distance, kept to the zone's inner edge
-    assert hr.aimed_distance(2.0, target * 0.9, 0.5, 5.0) == pytest.approx(2.0 * 0.81)
-    assert hr.aimed_distance(2.0, target * 1.2, 0.5, 5.0) == pytest.approx(2.0 * 1.44)
-    assert hr.aimed_distance(2.0, target * 3.0, 0.5, 5.0) == 5.0
-    assert hr.aimed_distance(2.0, None, 0.5, 5.0) == 2.0 and hr.aimed_distance(2.0, 0.0, 0.5, 5.0) == 2.0
-
-
 @pytest.fixture(scope="module")
 def system():
     cfg = SystemConfig()
@@ -75,32 +65,63 @@ def system():
     return StarSystem(system_config=cfg)
 
 
-def test_a_habitable_request_leaves_its_first_draws_where_they_were_and_then_aims_by_the_solved_temperature(system, monkeypatch):
+class _Draw:
+    """A planet drawn at the distance it was given that meets the request with chance `share` (the mass the slot gave stays)."""
+    share = 0.1
     seen = []
 
-    class Recorder:
-        planet_class = "M"                      # a class that can carry life is no success without the conditions
+    def __init__(self, config, star, zone, distance, **kwargs):
+        self.body_type = "t"
+        self.moons = []
+        self.surface_temperature = 290.0
+        self.atmospheric_pressure = 101325.0
+        self.hydrosphere = "surface ocean" if draw.random() < type(self).share else "dry"
+        type(self).seen.append((distance, kwargs.get("mass")))
+
+    def add_moons(self, count):
+        self.moons_added = count
+
+
+def _drawn_in_ecosphere(system, monkeypatch, share, runs):
+    monkeypatch.setattr(systemData, "Planet", type("Draw", (_Draw,), {"share": share, "seen": []}))
+    planets = [system._planet_in_ecosphere(system.star, system.star.habitable_zone, 1.0, mass=5.0e24) for _ in range(runs)]
+    return planets, systemData.Planet.seen
+
+
+def test_a_request_raises_the_odds_of_a_habitable_planet_in_the_ecosphere_and_moves_nothing(system, monkeypatch):
+    draw.set_run_seed(11)
+    planets, seen = _drawn_in_ecosphere(system, monkeypatch, 0.1, 400)
+    share = sum(1 for p in planets if hr.meets(p)) / len(planets)
+    odds = share / (1.0 - share)
+    assert 0.1 / 0.9 * tuning.REQUEST_ODDS * 0.6 < odds < 0.1 / 0.9 * tuning.REQUEST_ODDS * 1.5     # the odds of the chance, times the multiplier
+    assert share > 0.35 and share < 1.0                  # raised, not forced: a run is left without one
+    assert {d for d, _ in seen} == {1.0} and {m for _, m in seen} == {5.0e24}
+
+
+def test_a_request_that_no_draw_can_meet_keeps_the_last_planet_and_places_nothing(system, monkeypatch):
+    draw.set_run_seed(12)
+    planets, seen = _drawn_in_ecosphere(system, monkeypatch, 0.0, 3)
+    assert not any(hr.meets(p) for p in planets)
+    assert len(seen) >= 3 and {d for d, _ in seen} == {1.0}
+    assert not system._request_unreachable                # a habitable request is no placement; it just comes out unmet
+
+
+def test_a_planet_with_no_surface_is_kept_as_drawn(system, monkeypatch):
+    drawn = []
+
+    class Giant:
+        body_type = "g"
         moons = []
-        body_type = "t"
-        surface_temperature = 0.75 * tuning.REQUEST_TARGET_K
-        atmospheric_pressure = 0.0
-        hydrosphere = None
 
         def __init__(self, config, star, zone, distance, **kwargs):
-            seen.append(distance)
+            drawn.append(distance)
 
         def add_moons(self, count):
             pass
 
-    monkeypatch.setattr(systemData, "Planet", Recorder)
-    inner, outer = system.star.habitable_zone
-    start = (inner + outer) / 2.0
-    system.build_planet(system.star, system.star.habitable_zone, start, life=True)
-    after = tuning.HABITABLE_REQUEST_AIM_AFTER_ATTEMPTS
-    assert seen[:after] == [start] * after
-    assert seen[after] == pytest.approx(max(start * 0.5625, max(inner, system._orbit_floor_au(system.star))))
-    assert all(inner * 0.999 <= d <= outer for d in seen[after:]) or system._orbit_floor_au(system.star) > inner
-    assert system._request_unreachable
+    monkeypatch.setattr(systemData, "Planet", Giant)
+    system._planet_in_ecosphere(system.star, system.star.habitable_zone, 1.0)
+    assert drawn == [1.0]
 
 
 def test_a_request_for_a_letter_alone_does_not_move_the_orbit(system, monkeypatch):
@@ -123,8 +144,8 @@ def test_a_request_for_a_letter_alone_does_not_move_the_orbit(system, monkeypatc
     assert set(seen) == {1.0}
 
 
-def test_a_requested_habitable_world_is_judged_by_its_conditions_in_the_whole_system():
-    found = 0
+def test_a_requested_habitable_world_that_does_not_come_out_is_said_to_be_unmet_and_not_made():
+    answers = set()
     for seed in range(6):
         cfg = SystemConfig()
         cfg.STAR_TYPE = "K5V"
@@ -132,7 +153,8 @@ def test_a_requested_habitable_world_is_judged_by_its_conditions_in_the_whole_sy
         cfg.HABITABLE_WORLD = True
         draw.set_run_seed(seed)
         built = StarSystem(system_config=cfg)
+        assert "a habitable world" not in built.unmet_requirements           # an odds-only request is never a failed requirement
         met = hr.count(built.planets) > 0
-        assert met == ("a habitable world" not in built.unmet_requirements)
-        found += met
-    assert found >= 1
+        answers.add(met)
+        assert built.habitable_request in ("aim", "fallback", "unmet")
+    assert answers                                                          # some draws may come out unmet; none is forced

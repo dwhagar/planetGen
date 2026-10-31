@@ -55,9 +55,8 @@ recommendation. Informs: GEN.83 to GEN.92.
   flag, the system page chips, the per-system count `hab_count` and the
   description text all call). The API serves the class flag
   separately as `habitable_class` (the "Habitable class" chip). A request for a
-  habitable world (`+habitable_world`) still steers by the class list until the
-  classes are derived from conditions, so its guaranteed world may not score Blue
-  or Green; `StarSystem.habitable_class_count` is the number it steers by, and
+  habitable world (`+habitable_world`) raises the odds of a body that meets its conditions (`generation/habitable_request.py`, GEN.1130) and steers by no class list or score, so the world it gives may not score Blue
+  or Green; `StarSystem.habitable_class_count` is a report column only, and
   `habitability.habitable_request_result` says whether the finished world met the
   request ("aim"), settled for a Yellow with Suitability at least Yellow
   ("fallback"), or missed.

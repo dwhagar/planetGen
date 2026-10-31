@@ -9,13 +9,13 @@ import sys
 
 import pytest
 
-from tests.population_support import populate
+from tests.population_support import every_window_has_a_civilization, populate
 from planetgen.web.app import create_app
 from planetgen.api.config import Config
 from planetgen.db import store
 from planetgen.population import model as population
 from planetgen.population import tech
-from planetgen.util import draw
+from planetgen.util import draw, request_odds
 from planetgen import tuning
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
@@ -65,14 +65,17 @@ def test_timeline_of_reads_real_generated_planets():
     pytest.fail("no generated timeline reached a civilization")
 
 
-def test_civilizations_are_rare_unless_forced():
+def test_civilizations_are_rare_and_a_request_raises_their_odds_without_forcing_one():
     tech = population.Timeline("technological_civilization", 4.6e9, 4.5e9)
     multicellular = population.Timeline("multicellularity", 4.6e9, 1e9)
     rng = random.Random(3)
-    assert population.has_civilization(tech, True, rng)
     assert not population.has_civilization(multicellular, True, rng)
     draws = sum(population.has_civilization(tech, None, rng) for _ in range(20000))
     assert draws == pytest.approx(20000 * tuning.CIVILIZATION_CHANCE, abs=20)
+    chance = request_odds.raised_chance(tuning.CIVILIZATION_CHANCE)
+    asked = sum(population.has_civilization(tech, True, rng) for _ in range(20000))
+    assert asked == pytest.approx(20000 * chance, rel=0.25)
+    assert 3 < asked / max(draws, 1) <= tuning.REQUEST_ODDS * 1.5 and asked < 20000      # raised, never forced
 
 
 def test_civilization_age_stays_inside_the_window():
@@ -343,7 +346,8 @@ def _with_a_spacefaring_species(mysql_config, galaxy):
     """The species scanned and one of them old enough to be spacefaring, so the next population pass founds a polity."""
     conn = store.get_connection(mysql_config)
     try:
-        population.run_population(conn)
+        with every_window_has_a_civilization():
+            population.run_population(conn)
         with conn:
             _set_age(conn, galaxy["a"], 1e6)
             _set_age(conn, galaxy["b"], 4000)
