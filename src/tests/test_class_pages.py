@@ -495,7 +495,7 @@ def test_the_help_menu_holds_classes_and_habitability_and_the_old_links_are_gone
     assert 'href="/classes"' not in bar.split("site-help-menu")[0]
     help_menu = re.search(r'<sl-dropdown class="site-help-menu".*?</sl-dropdown>', bar, re.S).group(0)
     assert re.findall(r'data-href="([^"]*)"[^>]*>([^<]*)<', help_menu) == [
-        ("/classes", "Classes"), ("/help/habitability", "Habitability"), ("/help/properties", "Properties"), ("/help/life", "Life"),
+        ("/help", "All help"), ("/classes", "Classes"), ("/help/habitability", "Habitability"), ("/help/properties", "Properties"), ("/help/life", "Life"),
         ("/references", "References")]
     assert bar.index("site-help-menu") < bar.index("site-search-link") < bar.index("site-gear")
     assert "Habitability levels" not in html

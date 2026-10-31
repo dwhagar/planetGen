@@ -11,6 +11,7 @@ from planetgen.db import column_units
 from planetgen.describe import sheet
 from planetgen.describe.sheet_sources import source_of
 from planetgen.physics import unit_registry
+from planetgen.web.lib import help_registry
 
 KINDS = (("planet", "Planets"), ("moon", "Moons"), ("star", "Stars"))
 """tuple: The kinds with source lines, in the order the page lists them, and what the page calls them."""
@@ -69,3 +70,8 @@ def page():
         if members:
             groups.append({"label": label, "rows": members})
     return {"groups": groups}
+
+
+help_registry.register_category("objects", "Objects and classes", "What the objects of the galaxy are, how they are sorted, and where their values come from.", order=10)
+help_registry.register_topic("property_help_page", "Properties", "objects",
+                             "Where the orbit, heat, spin, field, ring and life values on a star, planet or moon page come from.", order=30)
