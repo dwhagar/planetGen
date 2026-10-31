@@ -204,6 +204,9 @@ def _send(method, target, json_body=None, cookie_header=None, timeout=_TIMEOUT_S
         ApiError: On any other error status (with `.status_code` set), or
             if the API can't be reached.
     """
+    if method == "GET":
+        from planetgen.web import rebuild_gate
+        rebuild_gate.check(target)    # a visitor's heavy read while the caches are rebuilt: CacheRebuilding, a 503
     data = None
     headers = {}
     if json_body is not None:

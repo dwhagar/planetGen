@@ -8194,6 +8194,8 @@ def _component_field(conn, edge_pc, expected_at_density_1):
             _FIELD_BY_SIGNATURE.move_to_end(key)
         log.trace(f"component field: cache hit for {row['n']} stored components (database {row['db']})", area="cache")
         return field
+    from planetgen.admin import cachebuild
+    cachebuild.refuse_expensive_build("the galaxy's cluster field")    # a minute of work: never in a visitor's request mid-rebuild
     log.trace(f"component field: cache miss, reading {row['n']} stored components (database {row['db']})", area="cache")
     found = tuple(c for c in get_galaxy_components(conn) if c.kind in componentField.KINDS_IN_THE_GATE)
     if not found:
@@ -8206,12 +8208,17 @@ def _component_field(conn, edge_pc, expected_at_density_1):
     return field
 
 
-def get_galaxy_shape(conn):
+def get_galaxy_shape(conn, light=False):
     """
     Reads back the galaxy's stored skeleton parameters.
 
     Args:
         conn (Connection): An open, schema-initialized connection.
+        light (bool): For a caller that reads only the sector grid and the stored numbers (`edge_pc`, the shell and
+            cell limits, the seed, the disk scale length) and never the density: the cluster field (`components`) is
+            not built. Building it takes a minute on a galaxy of many clusters and is redone whenever a run changes
+            the cluster rows, so a request that does not need it must not pay it (the daemon's request limit is 60 s).
+            Do not read `shape.components` of a light skeleton.
 
     Returns:
         GalaxySkeletonInfo or None: `None` if `galaxyPlan.py` has never
@@ -8243,7 +8250,8 @@ def get_galaxy_shape(conn):
     pins = get_galaxy_shape_pins(conn)
     # The thick disk, bar, stellar halo and motions are not columns: the seed draws them again (GEN.532, GEN.533), at
     # the mass and halo the plan pinned when it did (DB.81, GEN.606).
-    shape = shape._replace(components=_component_field(conn, row["edge_pc"], row["expected_system_count_at_density_1"]),
+    shape = shape._replace(components=None if light else _component_field(
+                               conn, row["edge_pc"], row["expected_system_count_at_density_1"]),
                            structure=shape_draw.structure_for(seed, pinned_mass, pins.get("stellar_halo_share")))
     if "family" in row:      # DB.66 (GEN.379): the family and component numbers; a NULL bar or thick disk number is the draw's
         shape = with_family_columns(shape, row)
