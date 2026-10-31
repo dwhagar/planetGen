@@ -139,11 +139,6 @@ def liquid(liquid_id):
         raise SurfaceLiquidError(f"no liquid {liquid_id!r} in physics/data/surface_liquids.json") from None
 
 
-def liquid_ids():
-    """The ids of the table, in file order."""
-    return tuple(_BY_ID)
-
-
 def by_kind(kind):
     """The rows of one kind, in file order."""
     return tuple(row for row in LIQUIDS if row.kind == kind)
