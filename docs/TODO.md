@@ -14227,6 +14227,25 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   starts near 1000 K; the deuterium limit is 13 Jupiter masses, fuzzy 11
   to 16.3. An optional water-world row needs a free letter (Boss's call;
   check overlap with O).
+  GEN.1224 research done: corrects the GEN.1223 note (Sources 1)
+  (2026-10-31 11:48 AM EDT): report
+  /mnt/project-files/reports/gen1224-giant-heavy-element-and-envelope-share-2026-10-31.md.
+  A newer paper supersedes Thorngren 2016: Chachan, Fortney, Ohno,
+  Thorngren, Murray-Clay, arXiv 2509.20428 (Sep 2025, preprint), 147
+  planets; law M_Z = 14.7 + 0.09 (M_p - 14.7) Earth masses, H/He share =
+  1 - M_Z/M_p, half H/He at 32.6 Earth masses. So the ice giant to gas
+  giant cut near 35 Earth masses is sourced after all (the earlier idea
+  of about 100 was the radius-plateau onset, a radius rule, not a class
+  edge). The overlap is large: the chance a planet is metal-majority is
+  0.70 at 20, 0.49 at 33, 0.27 at 50 and 0.03 at 100 Earth masses, so
+  the envelope share must decide the letter, expressed by the best-fit
+  shoulders. Registry changes: GC2 becomes 33 Earth masses (shoulder 25
+  to 60) T1 L0; GC5 J H/He at least 0.5 upgraded from T9 L4 to T1 L0;
+  GC4 I envelope 0.05 to 0.50; GC1 T/I stays 10; new GC13 (the law) and
+  GC14 (validity: 20 Earth masses to 20 Jupiter masses, equilibrium
+  temperature under 1000 K only; below 20 the Lopez and Fortney relation
+  governs). The J radius floor drops to 4.5 radii (sub-Saturns). Census
+  targets are in section 6 of the report.
   Prerequisites: GEN.1219, GEN.1220, GEN.1221, GEN.1222, GEN.1214.
   Related: GEN.1215, GEN.1211.
 
@@ -14682,22 +14701,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (changes stored output), change note included. Stays open until it
   merges on a train.
   Prerequisites: none. Related: GEN.1035, GEN.1214.
-
-- [ ] **GEN.1224 Research: envelope share against mass and metallicity (Thorngren 2016 mass-metallicity relation) to replace the envelope-share guesses of the giant and transitional class rows**
-  Follow-up of the GEN.1223 research (Sources 1, 11:37 AM EDT as the
-  lane reported); report
-  /mnt/project-files/reports/gen1223-giant-and-transitional-classes-2026-10-31.md.
-  Filed by the TODO thread. Gaps left: envelope share below 10 Earth
-  masses is not sourced, there is no probability of class from mass,
-  radius and equilibrium temperature, and no exoplanet ice giant against
-  sub-Neptune rule. Do: read Thorngren et al. 2016 (mass-metallicity,
-  open arXiv) and the other open sources it points to, give the
-  heavy-element mass and the envelope share against mass for the
-  transitional range, say which of the proposed GC1 to GC12 stand-ins
-  (GEN.725) they replace and with what tier, and update the proposed
-  class rows. Research only, no code, lock-free. Where we think it
-  belongs (best guess, can move): Sources 1.
-  Prerequisites: none. Related: GEN.1207, GEN.1219, GEN.1160.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
