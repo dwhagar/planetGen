@@ -175,3 +175,24 @@ def history(mass_solar, half_mass_radius_pc, mean_age):
         young_share=young, intermediate_share=intermediate, old_share=1.0 - young - intermediate, rate_per_gy=rate,
         present_rate_msun_yr=present_rate, gas_surface_density=surface,
         gas_mass_solar=2.0 * math.pi * central * gas_scale_length ** 2, forming=forming)
+
+
+def oldest_forming_age_gy(mass_solar, half_mass_radius_pc, youngest_gy, oldest_gy):
+    """
+    The greatest mean stellar age, Gy, in `[youngest_gy, oldest_gy]` at which a satellite of this stellar mass and
+    half-mass radius still forms stars (the gas at its half-mass radius at or above the threshold; the gas falls as the
+    mean age rises, so the forming ages are the young end of the range), found by bisection. `None` if it forms none in
+    the range, `oldest_gy` if it forms through all of it.
+    """
+    if not history(mass_solar, half_mass_radius_pc, youngest_gy).forming:
+        return None
+    if history(mass_solar, half_mass_radius_pc, oldest_gy).forming:
+        return oldest_gy
+    low, high = youngest_gy, oldest_gy
+    for _ in range(40):
+        middle = 0.5 * (low + high)
+        if history(mass_solar, half_mass_radius_pc, middle).forming:
+            low = middle
+        else:
+            high = middle
+    return low

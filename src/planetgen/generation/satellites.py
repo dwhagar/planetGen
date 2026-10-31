@@ -26,7 +26,16 @@ The chain, each link from the one before it and each scatter drawn through `unit
    dwarf spheroidal; the mean age falls with mass along `AGE_AT_1E5_GY` and `AGE_SLOPE_GY_PER_DEX`, STAND-INS anchored on
    the quenching times of Weisz et al. 2015 (arXiv:1503.05195: the faintest quenched 10 Gyr ago, a few-1e8 galaxy still
    forming).
-7. **Place**: the distance from the host's centre from an Einasto profile far less concentrated than the dark matter
+7. **Gas by distance (GEN.1193)**: dwarfs of the Local Group within about 270 kpc of the Milky Way or Andromeda mostly hold no
+   HI (under 1e5 solar masses) and those beyond mostly do, 1e5 to 1e8 (Grcevich and Putman 2009, arXiv:0901.4975, abstract and
+   section 3.4 read: the cutoff lies between 250 and 280 kpc, 14 of the 16 dwarfs beyond 280 kpc are detected, and the ram
+   pressure of the host's halo gas is the likely cause). The cutoff scales with the host's virial radius
+   (`STRIPPING_RADIUS_MILKY_WAY_KPC`). Inside it a satellite lighter than `STRIPPING_RETAINED_MIN_STELLAR_MASS_SOLAR` (the
+   Magellanic Clouds, left out of that survey for their mass, are the lightest that kept theirs) has lost its gas: its
+   mean age is raised to the oldest at which it forms no stars. Beyond it, a share `GAS_DETECTED_BEYOND_STRIPPING` of the
+   satellites keeps its gas: its mean age is lowered to the oldest at which it still forms stars, if it forms at any.
+   The age is drawn first from the mass law (6), so this moves only those near the star formation threshold.
+8. **Place**: the distance from the host's centre from an Einasto profile far less concentrated than the dark matter
    (`EINASTO_ALPHA`, `EINASTO_R_MINUS2_OVER_R200`: Nadler 2020, a calibration on one halo), between `INNER_OVER_R200` of
    the virial radius (STAND-IN: the host's disc destroys what comes closer) and the virial radius, in an isotropic
    direction. Nothing lies beyond the virial radius, and the radius is the halo's, not the disc's.
@@ -40,7 +49,7 @@ import math
 import numpy as np
 
 from planetgen import tuning
-from planetgen.galaxy import components, mass_chain, seed as galaxySeed, shape_draw
+from planetgen.galaxy import components, mass_chain, satellite_history, seed as galaxySeed, shape_draw
 from planetgen.physics import component_profiles
 from planetgen.util import draw
 from planetgen.util.poisson import poisson_count
@@ -89,6 +98,22 @@ AGE_SLOPE_GY_PER_DEX = -1.2
 AGE_SCATTER_GY = 1.5
 AGE_RANGE_GY = (2.0, 13.0)
 """float: STAND-INS for the mean stellar age of a satellite against its stellar mass (see the module docstring)."""
+
+MILKY_WAY_STELLAR_MASS_SOLAR = 5.0e10
+"""float: The Milky Way's stellar mass (as `galaxy.structure` takes it), whose median halo sets the stripping radius's scale."""
+STRIPPING_RADIUS_MILKY_WAY_KPC = 270.0
+"""float: The distance from a host inside which its dwarfs have lost their gas, for the Milky Way's halo: Grcevich and Putman
+2009 (arXiv:0901.4975, abstract and section 3.4 read) put the cutoff between 250 and 280 kpc. Scaled with the host's virial
+radius [I]: the ram pressure that strips them is the halo gas's."""
+STRIPPING_RETAINED_MIN_STELLAR_MASS_SOLAR = 4.0e8
+"""float: STAND-IN: the lightest satellite that keeps its gas inside the stripping radius. The Small Magellanic Cloud (4.6e8
+solar masses of stars, 64 kpc) holds its HI, and the survey leaves both Clouds out for their large mass; nothing lighter is
+known to. Between 2e8 and 4.6e8."""
+STRIPPING_AGE_MARGIN_GY = 0.01
+"""float: How far past the oldest age that forms stars a stripped satellite's age is put, Gy."""
+GAS_DETECTED_BEYOND_STRIPPING = 0.875
+"""float: The share of satellites beyond the stripping radius that hold gas: 14 of the 16 dwarfs beyond 280 kpc are detected
+(Tucana and Cetus are not; Grcevich and Putman 2009, section 3.4 read)."""
 
 EINASTO_ALPHA = 0.678
 EINASTO_R_MINUS2_OVER_R200 = 0.81
@@ -188,6 +213,31 @@ def mean_age_gy(stellar_mass_solar):
     return AGE_AT_1E5_GY + AGE_SLOPE_GY_PER_DEX * (math.log10(stellar_mass_solar) - 5.0)
 
 
+def stripping_radius_kpc(virial_radius_kpc):
+    """The distance from the host inside which its dwarfs have lost their gas: the Milky Way's, scaled with the virial radius."""
+    return (STRIPPING_RADIUS_MILKY_WAY_KPC * virial_radius_kpc
+            / mass_chain.virial_radius_kpc(mass_chain.median_halo_mass(MILKY_WAY_STELLAR_MASS_SOLAR)))
+
+
+def age_with_gas_by_distance(mass, half_mass_radius_pc, age_gy, distance_pc, stripping_radius_pc, keeps_gas_draw):
+    """
+    A satellite's mean age with its gas decided by its distance from the host (see the module docstring, link 7): inside
+    `stripping_radius_pc` a satellite lighter than `STRIPPING_RETAINED_MIN_STELLAR_MASS_SOLAR` that would form stars has
+    its age raised to just past the oldest at which it forms them; beyond it a satellite whose `keeps_gas_draw` (uniform
+    in [0, 1)) is under `GAS_DETECTED_BEYOND_STRIPPING` that forms none has its age lowered to the oldest at which it forms
+    them, if there is one.
+    """
+    youngest, oldest = AGE_RANGE_GY
+    limit = satellite_history.oldest_forming_age_gy(mass, half_mass_radius_pc, youngest, oldest)
+    if distance_pc < stripping_radius_pc:
+        if mass < STRIPPING_RETAINED_MIN_STELLAR_MASS_SOLAR and limit is not None and age_gy <= limit:
+            return min(limit + STRIPPING_AGE_MARGIN_GY, oldest)
+        return age_gy
+    if keeps_gas_draw < GAS_DETECTED_BEYOND_STRIPPING and limit is not None and age_gy > limit:
+        return limit
+    return age_gy
+
+
 def _seed(galaxy_seed, name):
     text = galaxy_seed.hex() if isinstance(galaxy_seed, (bytes, bytearray)) else str(galaxy_seed)
     return draw.Stream(f"satellite:{text}:{name}").getrandbits(63)
@@ -217,6 +267,7 @@ def draw_satellites(galaxy_seed, chain, epoch_unix=0.0):
     mass_stream, occupation = _stream(galaxy_seed, "mass"), _stream(galaxy_seed, "occupation")
     stellar, size = _stream(galaxy_seed, "stellar-mass"), _stream(galaxy_seed, "size")
     metals, ages = _stream(galaxy_seed, "metallicity"), _stream(galaxy_seed, "age")
+    retention = _stream(galaxy_seed, "gas-retention")
     places, directions = _stream(galaxy_seed, "radius"), _stream(galaxy_seed, "direction")
     radii, shares = _radius_table(r200_pc)
     drawn = []
@@ -229,10 +280,12 @@ def draw_satellites(galaxy_seed, chain, epoch_unix=0.0):
         direction = _direction(directions)
         deviation = _scatter(size, 1.0)
         fe_deviation, age_deviation = _scatter(metals, 1.0), _scatter(ages, 1.0)
+        keeps_gas_draw = retention.random()
         if hosts_galaxy and mass >= MIN_STELLAR_MASS_SOLAR:
-            drawn.append((mass, distance, direction, deviation, fe_deviation, age_deviation))
+            drawn.append((mass, distance, direction, deviation, fe_deviation, age_deviation, keeps_gas_draw))
+    stripping_radius_pc = stripping_radius_kpc(chain.virial_radius_kpc) * 1000.0
     found = []
-    for index, (mass, distance, direction, deviation, fe_deviation, age_deviation) in enumerate(
+    for index, (mass, distance, direction, deviation, fe_deviation, age_deviation, keeps_gas_draw) in enumerate(
             sorted(drawn, key=lambda row: -row[0])):
         name = f"Generated satellite {index + 1:03d}"
         gas_rich = mass >= EXPONENTIAL_MIN_STELLAR_MASS_SOLAR
@@ -242,6 +295,7 @@ def draw_satellites(galaxy_seed, chain, epoch_unix=0.0):
         scatter = KIRBY_IRREGULAR_SCATTER_DEX if gas_rich else KIRBY_SCATTER_DEX
         fe_h = min(max(mean_fe_h(mass) + fe_deviation * scatter, low), high)
         age = min(max(mean_age_gy(mass) + age_deviation * AGE_SCATTER_GY, AGE_RANGE_GY[0]), AGE_RANGE_GY[1])
+        age = age_with_gas_by_distance(mass, radius, age, distance, stripping_radius_pc, keeps_gas_draw)
         found.append(components.Component(
             kind="satellite", name=name, source="generated",
             center_pc=tuple(distance * c for c in direction), velocity_kms=(0.0, 0.0, 0.0), epoch_unix=epoch_unix,
