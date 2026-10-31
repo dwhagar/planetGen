@@ -1,54 +1,81 @@
 {
   "title": "The yield strength of a body when its shape was set, by material, and how the materials mix (GEN.1158, physics/roundness.py)",
-  "note": "This file is where measured strengths drop in. Every number here is a stand-in (registry rows RN1 to RN7, section 6.126 of the gap filling plan); a material gives either 'strength_pa' (a measured strength at the scale of a body, Pa) or 'round_radius_km' with 'reference_density_kg_m3' (the mean radius at which bodies of that material and density were seen to turn round; the strength that rounds a body at that size is worked out from it). 'same_as' gives a material the strength of another until it has its own. 'mixing' names a rule of physics/roundness.py (MIXING_RULES) and its numbers; 'porosity' names a rule of POROSITY_RULES. A new rule is one function and one name; the engine's interface (ice fraction, metal fraction, porosity in; strength, round radius, roundness ratio out) does not change.",
+  "note": "This file is where measured strengths drop in. Every number here is a stand-in (registry rows RN1 to RN7, section 6.126 of the gap filling plan); a material gives either 'strength_pa' (a strength at the scale of a body, Pa) or 'round_radius_km' with 'reference_density_kg_m3' (the mean radius at which bodies of that material and density were seen to turn round; the strength that rounds a body at that size is worked out from it). 'same_as' gives a material the strength of another until it has its own. 'mixing', 'porosity' and 'temperature' each name a rule of physics/roundness.py (MIXING_RULES, POROSITY_RULES, TEMPERATURE_RULES) and its numbers. A new rule is one function and one name; the engine's interface (ice fraction, metal fraction, porosity and a shape-set temperature in; strength, round radius, roundness ratio out) does not change. Values follow /mnt/project-files/reports/planetary-material-strength-2026-10-31.md, section 7 and section 11.",
   "sphericity_factor": 1.1,
   "materials": {
     "ice": {
-      "label": "water ice and the other ices of an icy moon, warm when the shape was set",
-      "round_radius_km": 200.0,
-      "reference_density_kg_m3": 1000.0,
-      "source": "Lineweaver and Norman 2010 (arXiv:1004.1091) Fig. 2: Mimas 198 km round, Hyperion 140 km not",
-      "tier": "T1",
-      "tweak": "L0"
+      "label": "water ice and the other ices of an icy moon, at the strength of ice near 160 K (the default when no shape-set temperature is given)",
+      "strength_pa": 1000000.0,
+      "range_pa": [
+        400000.0,
+        3000000.0
+      ],
+      "source": "Lineweaver and Norman 2010 (arXiv:1004.1091) fit of 0.4 to 3 MPa; equals the Durham, Kirby and Stern 1997 creep strength of pure ice near 158 K at 1e-15 per second (strength research section 11a)",
+      "tier": "T2",
+      "tweak": "L1"
     },
     "rock": {
       "label": "silicate rock of an asteroid or rocky moon",
       "round_radius_km": 300.0,
       "reference_density_kg_m3": 2500.0,
-      "source": "Lineweaver and Norman 2010 (arXiv:1004.1091) Fig. 2: Pallas 275 km and Vesta 265 km round, Juno 115 km not",
+      "source": "Lineweaver and Norman 2010 (arXiv:1004.1091) Fig. 2: Pallas 275 km and Vesta 265 km round, Juno 115 km not; confirmed three ways in strength research section 6 (range 4 to 30 MPa)",
       "tier": "T1",
       "tweak": "L0"
     },
     "metal": {
       "label": "iron and nickel metal",
       "strength_pa": 100000000.0,
-      "source": "planetary-material-strength-2026-10-31.md section 7: weak source, range 30 to 300 MPa",
-      "tier": "T4",
-      "tweak": "L3"
+      "range_pa": [
+        50000000.0,
+        250000000.0
+      ],
+      "source": "Pohl and Britt 2020 iron meteorite lab yield 320 to 450 MPa and kamacite single crystal 134 MPa at 300 K, divided by 2 to 6 for inclusions and cracks (strength research section 5)",
+      "tier": "T2",
+      "tweak": "L1"
     }
   },
   "mixing": {
-    "rule": "volume-threshold",
-    "skeleton_below": 0.4,
-    "skeleton_above": 0.7,
-    "source": "planetary-material-strength-2026-10-31.md section 7: ice is the matrix while solids are under 40 percent of the volume, solids carry the load over 70 percent, geometric between (Durham 1997 for hard grains in ice)",
+    "rule": "exp-volume",
+    "exponent": 2.0,
+    "tested_to": 0.56,
+    "close_packing": 0.65,
+    "source": "strength of ice with hard grains = ice strength x exp(2 x grain volume fraction), measured to 0.56 (Durham et al. 1992 as printed in Durham, Kirby and Stern 1997 eq. 3); continued to 0.65 (random close packing, recalled) then geometric to the solids' strength at 1 (an extrapolation of the strength research)",
     "tier": "T6",
     "tweak": "L3"
   },
   "porosity": {
     "rule": "none",
     "coefficient": 5.0,
-    "source": "research proposes sigma exp(-b phi), b 4 to 7; off here because it makes Proteus (porous, ice-rich, 210 km, not round) round. 'coefficient' is used by the 'exponential' rule only",
+    "source": "off: Pohl and Britt 2020 find no clear strength trend with porosity in meteorites. 'exponential' (strength x exp(-b x porosity), b 4 to 7, a ceramics-based recalled placeholder, 'coefficient' here) is built and not used; it would make Proteus round",
     "tier": "T3",
     "tweak": "L3"
   },
   "temperature": {
-    "rule": "ice-power-law",
-    "coefficient_pa": 700000.0,
-    "exponent": 0.8,
-    "cap_pa": 10000000.0,
-    "source": "planetary-material-strength-2026-10-31.md section 7 (Schulson and Renshaw 2022 scaled 0.1; frozen soil exponent Wan et al. 2024)",
+    "rule": "creep-law",
+    "rate_per_s": 1e-15,
+    "max_temperature_k": 273.15,
+    "regimes": [
+      {
+        "label": "ice I, 240 to 258 K",
+        "log10_a": 11.8,
+        "n": 4.0,
+        "e_kj_mol": 91.0
+      },
+      {
+        "label": "ice I, 195 to 240 K",
+        "log10_a": 5.1,
+        "n": 4.0,
+        "e_kj_mol": 61.0
+      },
+      {
+        "label": "ice I, below 195 K",
+        "log10_a": -3.8,
+        "n": 6.0,
+        "e_kj_mol": 39.0
+      }
+    ],
+    "source": "Durham, Kirby and Stern 1997 (JGR 102:16293) Table 2, dislocation creep of pure ice I (grain size 0.6 to 1 mm); strain rate = A sigma^n exp(-E / RT); the weakest regime governs; the pressure term is dropped (small bodies); an upper bound at the lowest stresses. Rate 1e-15 per second is a tunable stand-in (strength research section 11a)",
     "tier": "T5",
-    "tweak": "L2"
+    "tweak": "L1"
   }
 }
