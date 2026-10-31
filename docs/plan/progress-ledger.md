@@ -2231,3 +2231,4 @@ Baseline: PR #1817.
 | UX.227 | 8.2 | Search by physical values |
 | TEST.529 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | PERF.220 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.531 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
