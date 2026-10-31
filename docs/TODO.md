@@ -19133,31 +19133,6 @@ clears each one.
   change, like a module.
   Prerequisites: none.
 
-- [ ] **TEST.526 Wire, register or delete the 8 pure functions nothing calls in 4 modules (Tides 1's share of the TEST.520 shadow functions)**
-  Boss, 12:03 PM EDT 2026-10-31: nothing built and left unused. Core 1's
-  wiring guard (TEST.520, PR #4513) found 157 public functions in
-  physics, generation and galaxy that only tests call or nothing calls;
-  its register lines name TEST.520 because no owner was guessed. Report:
-  /mnt/project-files/reports/wiring-guard-test520-2026-10-31.md. Filed
-  by the TODO thread. Your share (8 functions): physics.moon_orbits
-  (drift_rate_m_s, tidal_power_w); physics.tidal_rheology
-  (tidal_frequency_rad_s); physics.surface_liquids (ideal_sea,
-  liquid_ids, sea_density_kg_m3, stable_liquids);
-  physics.habitability_world (harshness). Do, for each function: (1)
-  wire it, naming the open item that will call it (or filing one) in its
-  register line of docs/design/research/wiring-register.md; (2) mark it
-  `by design` with the reason when it is a tuning or test harness reader
-  (an observed sampler, an expected count) and say who runs it; or (3)
-  delete it and its tests (no dead code, no shim). Done: none of your
-  functions names TEST.520 in the register, and test_wiring_guard
-  passes. Lock-free (register, tests and deletions of unreferenced code
-  change no stored value; if a wiring step changes output it rides a
-  train under its own item). Owner Tides 1 (proposed by the TODO thread,
-  one lock-free item at a time; the lane says if it clashes). Rule for
-  every lane: a public function that only tests call needs a register
-  line in the same change, like a module.
-  Prerequisites: none.
-
 - [ ] **TEST.539 test_accreting_compact_binaries: the black-widow and redback spider cases fail on main (post-common-envelope against detached) (bug)**
   Found by Core 5 (relayed 4:44 PM EDT 2026-10-31 as the lane reported),
   clean main: tests/test_accreting_compact_binaries.py fails for the
@@ -19170,6 +19145,19 @@ clears each one.
   not skipped. Done: the file passes. Lock-free if the test is wrong, a
   lock item if the generated history changes. Owner: Star 2.
   Prerequisites: none. Related: GEN.1027.
+
+- [ ] **TEST.540 test_orbit_elements: an eccentric planet is as warm as a circular one, and a moon gets the light of its parent's orbit, both fail on main (bug)**
+  Found by Tides 1 (relayed 4:49 PM EDT 2026-10-31 as the lane
+  reported), reproduced on main without its change: two tests in
+  src/tests/test_orbit_elements.py fail, the one that expects an
+  eccentric planet to receive the same mean heat as a circular one (the
+  orbit-averaged flux grows as 1 over the square root of 1 minus e
+  squared) and the one that expects a moon to get the light of its
+  parent's orbit. Do: find whether the model in orbit_elements or the
+  test is wrong against the physics, fix that side and say which; the
+  tests are not skipped. Done: the file passes. Lock-free if only a test
+  changes, a lock item if a generated temperature changes. Owner: Aux 7.
+  Prerequisites: none. Related: TEST.526.
 
 ## USR: User accounts
 
