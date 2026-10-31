@@ -125,10 +125,8 @@ const WHEEL_ZOOM_PER_PX = 0.0025;
 const ZOOM_CLEARANCE = 0.02;
 // A star counts as the one zoomed on when it is within this share of the view's distance from its middle.
 const NEAREST_STAR_REACH = 0.35;
-// MAP.263: the next window's blocks cross-fade in over this long (CROSS_FADE_MS) as the display follows the camera (MAP.337).
 // MAP.292: how far past the end of its range (a share of the nearest zoom) the wheel carries the view while the next window arrives.
 const ARRIVING_OVERSHOOT = 0.25;
-const CROSS_FADE_MS = 350;
 
 // MAP.245: how near a star is to the pointer, in pixels, for the wheel to zoom toward it.
 const STAR_ANCHOR_PX = 14;
@@ -1124,29 +1122,24 @@ export function createStageView(host) {
     history.pushState({ galaxyStage: true, mapIndex: mapIndex, maxIndex: maxIndex, stage: nextStage }, "", location.pathname + query + location.hash);
   }
 
-  // Goes to stage `next` (carried on through any choice of one). push:
-  // record it in the browser history (default yes). keepCamera (MAP.263, the wheel carrying on from one stage to
-  // the next): the camera stays where it is, with its turn and its distance, and the next window's blocks cross-fade
-  // in once its data is here, with no flight; the stage is taken up then.
-  let keepNext = false;
+  // MAP.337: goes to stage `next` by moving the camera: it flies to the stage's own camera (or `options.camera`) and the
+  // stage the crumbs, Up and the steps work from becomes `next`; the display drawn stays as it is, and the scenes come up from
+  // where the camera is. push: record it in the browser history (default yes).
   // MAP.336: the "densest" landing a region's window is to go on to once it has arrived (goToRegion).
   let landingAfter = null;
   let landingToken = 0;
-  function go(next, options) {
+  function flyToStage(next, options) {
     options = options || {};
-    if (pinned) return;
+    if (pinned || !view) return;
     landingAfter = null;
     landingToken += 1;
     if (animation) finishAnimation();
-    if (crossFade) finishCross();
     const r = resolve(next);
     if (r.problem) {
       notice(r.problem);
       return;
     }
     notice("");
-    const keep = !!((options.keepCamera || keepNext) && view && display);
-    keepNext = false;
     if (entered) closeSector();
     else {
       // MAP.352: a sector or system still loading for the view being left is not wanted in the one taken up now.
@@ -1154,37 +1147,67 @@ export function createStageView(host) {
       enterSystemToken += 1;
       entering = false;
     }
-    // MAP.268: the selection is not a stage's: a crossing the wheel makes from one window to the next (the camera
-    // kept) keeps the selected and the picked sector, so what is selected at one scale is still selected at the next.
-    if (!options.keepSector && !keep) selectedSector = null;
-    if (!options.keepPicked && !keep) pickedSector = null;
+    if (!options.keepSector) selectedSector = null;
+    if (!options.keepPicked) pickedSector = null;
     const token = ++goToken;
     arriving = true;
-    const query = withKept(options.query || cameraQueryFor(r, options.camera || (keep ? currentCamera() : cameraFor(r))));
+    const to = options.camera ? asCamera(options.camera) : cameraFor(r);
+    const query = withKept(options.query || cameraQueryFor(r, to));
     if (options.push !== false && (!S.sameStage(stage, r.stage) || withoutCam(query) !== withoutCam(location.search))) {
       pushEntry(query, r.stage);
     }
-    function takeUp() {
-      stage = r.stage;
-      resolved = r;
-      renderCrumbs();
-      renderTravel();
-      hover = null;
-      showTooltip("", 0, 0);
-    }
-    if (!keep) takeUp();
+    stage = r.stage;
+    renderCrumbs();
+    renderTravel();
+    hover = null;
+    showTooltip("", 0, 0);
+    // The windows' data the info panels and a sector's opening read, asked for with the move.
     loadData(S.holder(r.stage)).then(function () {
       if (!active || token !== goToken) return;
       if (animation) finishAnimation();
-      if (keep) {
-        takeUp();
-        crossTo(r);
-      } else {
-        flyTo(r);
-      }
+      const kept = view;
+      flyCamera(viewNow(), to, null, function () {
+        if (token !== goToken) return;
+        landCamera(kept, to);
+        afterFlight();
+      });
     }).finally(function () {
       if (token === goToken) arriving = false;
     });
+  }
+
+  // The view lands at camera `to`: the fit it flew from (`kept`, the display's) stays, the zoom is what keeps the distance.
+  function landCamera(kept, to) {
+    view = Object.assign({}, kept, { target: to.target.slice(), dist: to.dist, quat: to.quat.clone() });
+    viewAtCamera(resolved, { target: to.target, dist: to.dist, quat: to.quat.toArray() });
+    applyView();
+  }
+
+  // A camera {target, dist, quat} (the quaternion as an array or as a THREE one) with a THREE quaternion.
+  function asCamera(camera) {
+    return { target: camera.target.slice(), dist: camera.dist, quat: camera.quat.toArray ? camera.quat.clone() : new THREE.Quaternion().fromArray(camera.quat) };
+  }
+
+  // The camera has landed at a stage's frame: the sector selected or picked on the way is described, a sector asked to open opens
+  // in place, and a region's densest landing goes on.
+  function afterFlight() {
+    hover = null;
+    if (selectedSector) {
+      showSectorInfo(sectorCell(selectedSector));
+    } else if (pickedSector && !pinned && !pendingOpen) {
+      describePickedSector();
+    } else {
+      showStageInfo();
+    }
+    if (pendingOpen) {
+      const asked = pendingOpen;
+      pendingOpen = null;
+      const block = sectorCell(asked);
+      const record = sectorRecord(block);
+      if (record) enterSector(block, record, { push: false });
+      else if (host.fetchUnchartedScene) enterSector(block, null, { push: false });
+    }
+    if (landingAfter) landDensest();
   }
 
   // MAP.124: the whole galaxy opens as close as its zoom range allows
@@ -1239,42 +1262,6 @@ export function createStageView(host) {
     });
   }
 
-  // MAP.263: stage `r` takes over where the camera is: the camera (its middle, turn and distance) is not moved
-  // or reset, only its fit is the new window's, so the zoom is what keeps the distance; the old window's blocks
-  // fade out as the new one's fade in.
-  let crossFade = null;
-  function crossTo(r) {
-    closeAmbient();
-    const old = display;
-    const incoming = buildDisplay(r);
-    setDisplayFade(incoming, 0);
-    display = incoming;
-    if (old) leaving.push(old);
-    const to = cameraFor(r);
-    const full = fitDistance(fitPointsOf(r), to.target, view.quat);
-    view.fit = to;
-    if (full > 0) view.zoom = view.dist / full;
-    applyView();
-    crossFade = { startedAt: performance.now(), duration: host.reducedMotion ? 0 : CROSS_FADE_MS, incoming: incoming, old: old };
-    if (!crossFade.duration) finishCross();
-  }
-
-  function stepCross(now) {
-    const c = crossFade;
-    const f = Math.min(1, (now - c.startedAt) / c.duration);
-    setDisplayFade(c.incoming, f);
-    if (c.old) setDisplayFade(c.old, 1 - f);
-    if (f >= 1) finishCross();
-  }
-
-  function finishCross() {
-    const c = crossFade;
-    crossFade = null;
-    if (!c) return;
-    setDisplayFade(c.incoming, 1);
-    afterArrival();
-  }
-
   function afterArrival() {
     leaving.forEach(function (d) { if (d && d !== display) disposeDisplay(d); });
     leaving = [];
@@ -1325,7 +1312,6 @@ export function createStageView(host) {
         applyView();
       }
     }
-    if (crossFade) stepCross(now);
     if (zoomGoal) chaseZoomGoal();
     if (!animation) return;
     const a = animation;
@@ -1354,7 +1340,7 @@ export function createStageView(host) {
     },
   });
   selection.onChange(function (change) {
-    if (change.ref.kind === "stage") go(change.ref.stage);
+    if (change.ref.kind === "stage") flyToStage(change.ref.stage);
   });
 
   // Whether the selected sector is the one the window is centred on (the
@@ -1395,22 +1381,17 @@ export function createStageView(host) {
       // Out of the sector, to the stage it sits in with it still selected.
       closeSector();
       pushEntry(withKept(sectorQuery(selectedSector, false)));
-      const back = cameraFor(resolved);
-      if (keep) keepFit(back, fitPointsOf(resolved));
-      else {
-        flyCamera(viewNow(), back, null, function () {
-          view = settledView(back);
-          applyView();
-        });
+      const back = cameraFor(resolve(stage));
+      if (!keep) {
+        const kept = view;
+        flyCamera(viewNow(), back, null, function () { landCamera(kept, back); });
       }
       applyHover();
       renderCrumbs();
       renderTravel();
       return;
     }
-    keepNext = keep;
     selection.up();
-    keepNext = false;
   }
 
   // MAP.263: the camera stays as it is and `fit` (a stage's own camera, round `points`) becomes its fit: the zoom is
@@ -1426,7 +1407,7 @@ export function createStageView(host) {
     if (pinned) return;
     const top = S.galaxyStage();
     // Already there: go again, so the camera returns to the whole galaxy.
-    if (S.sameStage(stage, top) && !selectedSector) go(top);
+    if (S.sameStage(stage, top) && !selectedSector) flyToStage(top);
     else selection.select({ kind: "stage", stage: top });
   }
 
@@ -1489,7 +1470,7 @@ export function createStageView(host) {
       enterSystem(next.system, { push: true, mode: mode });
       return true;
     }
-    go(next);
+    flyToStage(next);
     return true;
   }
 
@@ -1500,7 +1481,7 @@ export function createStageView(host) {
     if (!view || animation || !P.isBlock(block)) return false;
     const next = S.windowStage(block, stage.win ? stage.win.g : P.DEFAULT_WINDOW);
     if (resolve(next).problem) return false;
-    go(next);
+    flyToStage(next);
     return true;
   }
 
@@ -1515,8 +1496,7 @@ export function createStageView(host) {
       target: target.center.slice(), quat: view.quat.toArray(),
       dist: FIT.fitDistance(target.radius, camera.fov, aspectNow(), { minRadius: FIT.MIN_VIEW_RADIUS_PC }),
     };
-    pendingCamera = want;
-    go(next, { camera: want });
+    flyToStage(next, { camera: want });
     return true;
   }
 
@@ -1924,7 +1904,7 @@ export function createStageView(host) {
     // (A crossing the wheel makes only carries what is picked on.)
     const clicked = !(how && how.keepCamera);
     if (clicked) pickedSector = chosen;
-    go(into, Object.assign({ keepPicked: clicked && !!chosen }, how));
+    flyToStage(into, Object.assign({ keepPicked: clicked && !!chosen }, how));
   }
 
   // A sector cell {shell, band, wedge} as the info panels and outlines take it.
@@ -2840,8 +2820,8 @@ export function createStageView(host) {
       zoomGoal = 0;
       return;
     }
-    if (!entered && !enteredSystem && !isSectorView(resolved)) {
-      // A window above the sectors, or the whole galaxy, has no range's end to stop at: the zoom is the camera's alone.
+    if (!entered && !enteredSystem) {
+      // Out of an opened sector or system the stage has no range's end to stop at: the zoom is the camera's alone.
       view.zoom = MC.clampDistance(zoomLimits(), want, 1);
       reframe();
       applyView();
@@ -3014,10 +2994,14 @@ export function createStageView(host) {
     if (!resolved || animation || !display) return;
     dropZoomGoal();
     const from = viewNow();
-    const to = enteredSystem ? cameraForSystem(enteredSystem) : entered ? cameraForSector(entered) : cameraFor(resolved);
+    const own = enteredSystem || entered;
+    const to = enteredSystem ? cameraForSystem(enteredSystem) : entered ? cameraForSector(entered) : cameraFor(resolve(stage));
+    const kept = view;
     flyCamera(from, to, null, function () {
-      view = settledView(to);
-      applyView();
+      if (own) {
+        view = settledView(to);
+        applyView();
+      } else landCamera(kept, to);
     });
   }
 
@@ -3200,6 +3184,13 @@ export function createStageView(host) {
 
   // For the browser tests: the stage on screen.
   canvasEl.galaxyStage = function () { return stage; };
+  // For the browser tests (MAP.337): the zoom level the camera is at, the window stage whose fit the camera's distance reaches (the one it would load
+  // on from its address), `win.centre.m` being its block size; the whole-galaxy stage when it is out past them all.
+  canvasEl.galaxyZoomLevel = function () {
+    if (!view) return stage;
+    const now = currentCamera();
+    return stageForCamera({ target: now.target, dist: now.dist, quat: now.quat.toArray ? now.quat.toArray() : now.quat });
+  };
 
   // For the browser tests: goTo (MAP.336) with a target as the stage view takes it; true when the move began.
   canvasEl.galaxyGoTo = function (target) { return goTo(target); };
@@ -3212,7 +3203,7 @@ export function createStageView(host) {
   // For the browser tests: opens the window of `g` cells round the cell {m, shell, band, wedge}, as the
   // breadcrumb's crumbs and a click on a block do.
   canvasEl.galaxyOpenWindow = function (cell, g) {
-    if (view && !animation) go(S.windowStage(cell, g || P.DEFAULT_WINDOW));
+    if (view && !animation) flyToStage(S.windowStage(cell, g || P.DEFAULT_WINDOW));
   };
 
   // For the browser tests: moves the view's middle to a point of the map (parsecs).
@@ -3571,7 +3562,7 @@ export function createStageView(host) {
 
   function writeCameraAddress() {
     camChangedAt = 0;
-    if (!active || pinned || !view || animation || entered || enteredSystem || !resolved || !resolved.view) return;
+    if (!active || pinned || !view || animation || arriving || entered || enteredSystem || !resolved || !resolved.view) return;
     const params = new URLSearchParams(location.search);
     const query = cameraQueryFor(resolved, currentCamera());
     if (query) params.set("cam", query.slice(5));
@@ -3745,7 +3736,7 @@ export function createStageView(host) {
       return false;
     }
     selectedSector = { shell: sector.shell, band: sector.band, wedge: sector.wedge };
-    go(next, { keepSector: true, query: "?sector=" + S.sectorDesignation(sector.shell, sector.band, sector.wedge) });
+    flyToStage(next, { keepSector: true, query: "?sector=" + S.sectorDesignation(sector.shell, sector.band, sector.wedge) });
     return true;
   }
 
@@ -3759,7 +3750,7 @@ export function createStageView(host) {
     }
     selectedSector = { shell: sector.shell, band: sector.band, wedge: sector.wedge };
     pendingOpen = selectedSector;
-    go(next, { keepSector: true, query: sectorQuery(selectedSector, true) });
+    flyToStage(next, { keepSector: true, query: sectorQuery(selectedSector, true) });
     return true;
   }
 
@@ -3890,7 +3881,6 @@ export function createStageView(host) {
     // MAP.352: a move a quick press before this one began is finished first, with what it was asked to open, so what this entry asks
     // to open is not handed to the display that move was arriving at.
     if (animation) finishAnimation();
-    if (crossFade) finishCross();
     const state = event.state && event.state.galaxyStage ? event.state : null;
     mapIndex = state && state.mapIndex != null ? state.mapIndex : 0;
     maxIndex = Math.max(maxIndex, mapIndex);
@@ -3905,7 +3895,7 @@ export function createStageView(host) {
     const asked = stageFromLocation(false);
     if (asked.problem) {
       selectedSector = null;
-      go(S.galaxyStage(), { push: false });
+      flyToStage(S.galaxyStage(), { push: false });
       notice(asked.problem);
       return;
     }
@@ -3913,8 +3903,7 @@ export function createStageView(host) {
     pendingOpen = asked.open ? asked.sector : null;
     pendingSystem = asked.open && asked.system ? asked.system : null;
     pendingObject = pendingSystem ? asked.object : null;
-    pendingCamera = asked.camera || null;
-    go(asked.stage, { push: false, keepSector: true });
+    flyToStage(asked.stage, { push: false, keepSector: true, camera: asked.camera || null });
   }
   window.addEventListener("popstate", onPopState);
 
@@ -4118,6 +4107,6 @@ export function createStageView(host) {
     // pointer before the blocks.
     inContainer: function () { return !!stage.win; },
     outsideOutline: outsideOutline,
-    go: go,
+    flyToStage: flyToStage,
   };
 }
