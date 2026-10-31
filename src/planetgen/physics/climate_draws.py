@@ -40,8 +40,7 @@ DEFAULT_ALBEDO_RANGE = (0.12, 0.35)
 """tuple: The Bond albedo range of a class that declares none (the generator's own default)."""
 
 GIANT_BOND_ALBEDO_RANGE = (0.29, 0.503)
-"""tuple: The Bond albedo a generated giant draws from (GEN.1030): the lowest and the highest of the four measured in the Solar System, Neptune 0.29 (Pearl and
-Conrath 1991), Uranus 0.30 (Pearl et al. 1990), Saturn 0.342 and Jupiter 0.503 (Li et al. 2018). Registry row CC9."""
+"""tuple: The Bond albedo a generated giant draws from (GEN.1030): the lowest and the highest of the four measured in the Solar System, Neptune 0.29 (Pearl and Conrath 1991), Uranus 0.30 (Pearl et al. 1990), Saturn 0.342 and Jupiter 0.503 (Li et al. 2018). Registry row CC9."""
 
 GIANT_ALBEDO_RANGE = (0.02, 0.91)
 """tuple: The open bracket for a giant with no class range (Sudarsky 2000: about 0.02 to 0.8; Cahoy 2010: Bond up to

@@ -220,7 +220,7 @@ def kozai_verdict(m1, m2, m3, a_in, a_out, e_in, e_out, i, age_yr, extent_sum_au
 
 def peters_merger_time_yr(m1, m2, a_au, e=0.0):
     """
-    The gravitational-wave merger time of a pair, in years (Peters 1964):
+    The gravitational-wave merger time of a pair, in years:
     `(5/256) c^5 a^4 / (G^3 m1 m2 (m1 + m2))` for a circular orbit, times
     `(1 - e^2)^3.5` for an eccentric one (the approximate form, good to a
     factor of a few at high eccentricity).

@@ -68,6 +68,16 @@ def busy_page():
     return html, status, {"Retry-After": str(RETRY_AFTER_SECONDS)}
 
 
+def rebuilding_page():
+    """The 503 page of a request that needs a cache being rebuilt (`admin/cachebuild.py`); it reloads itself."""
+    from flask import g
+    from planetgen.admin import cachebuild
+    g.retry_after_fixed = True
+    html, status = render_page("error.html", title="Rebuilding", message=cachebuild.MESSAGE, status=503,
+                               retry_after=cachebuild.RETRY_AFTER_SECONDS)
+    return html, status, {"Retry-After": str(cachebuild.RETRY_AFTER_SECONDS), "Cache-Control": "no-store"}
+
+
 def render_error(status, message):
     """
     Renders `error.html` with `status`. `message` is plain text (escaped

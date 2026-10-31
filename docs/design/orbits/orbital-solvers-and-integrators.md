@@ -107,7 +107,7 @@ listed here.
 | 17 | Kinetics, small-body period | text `LogNormal(mu = 2.1, sigma = 0.65)` hours; table `LogNormal(13 h, 0.65)` | Median e^2.1 = 8.2 h against 13 h [C]. Pick one and make it a setting |
 | 18 | Kinetics, gyrochronology | constants `n = 0.55, b = 0.31, c = 0.495, a = 0.40` credited to Barnes (2007) | They look like the Mamajek and Hillenbrand (2008) fit (0.407, 0.325, 0.495, 0.566) [R]. With those, a Sun-age star (4,600 Myr, B-V 0.65) has P = 26.3 d, not the document's 25.4 d [C] |
 | 19 | Kinetics, tidal lock | worked example `tau_lock ~ 1.2 Myr`, `P_orb = 2.1 d` at 0.03 AU | With the document's formula, Q = 100, k2 = 0.3, a one-day initial spin and I = 0.33 M R^2, tau is about 80 yr, and P_orb at 0.03 AU round 1 Msun is 1.90 d [C]; "locked" holds, the numbers do not reproduce. Gladman et al. (1996) have `omega a^6 I Q / (3 G m_p^2 k2 R^5)`, so 4/9 differs by a convention-dependent factor [R] |
-| 20 | Kinetics, citations | merger-remnant spin 0.69 cited to Gilbert et al. 2020 and Gladman et al. 1996 | A planet-tides paper and a tidal-synchronisation paper cannot support a black hole spin; Lousto and Zlochower (2012), also listed, is the fitting source. The list was not checked against the papers |
+| 20 | Kinetics, citations | merger-remnant spin 0.69 cited to Gladman et al. 1996 | A planet-tides paper and a tidal-synchronisation paper cannot support a black hole spin; Lousto and Zlochower (2012), also listed, is the fitting source. The list was not checked against the papers |
 | 21 | Foundations, Wilkinson matrix | "well-conditioned ... `kappa_inf(W_n) ~ n 2^(n-1)` is modest" | Self-contradictory: `kappa_inf(W_n) = n` [C]. Growth 2^63 and the 1.31e5 backward error figure are right |
 | 22 | Foundations, summary table | "Reliability Bound Threshold" cells for Lanczos, tridiagonal QR and bidiagonal SVD end mid-sentence | Truncated in the source; nothing to carry |
 
@@ -159,8 +159,7 @@ relative error is 1.9e-12 at e = 1.0001, 1.6e-13 at 1.001 and under 2e-15 from
 e <= 1.5 and misses 5 of 240 cases at 1.0001. The cubic or log start (the real
 root of `(e/6) H^3 + (e - 1) H = M`, or `sign(M) ln(2 |M| / e + 1.8)` when smaller)
 with Halley needs 3 to 4. Newton on the universal equation failed for some very
-large dt at e = 1.0001; use Laguerre. Gooding and Odell (1988) is the classic
-reference [R]; not reimplemented.
+large dt at e = 1.0001; use Laguerre. 
 
 **Switch points.**
 
@@ -618,9 +617,8 @@ reruns named in the evidence paragraph at the top.
 formula (Binney and Tremaine 2008); satellite stability limits (Hamilton and Burns
 1991; Domingos, Winter and Yokoyama 2006); YORP obliquity behaviour (Asteroids IV);
 the tidal-locking coefficient (Gladman et al. 1996); Hermite not symplectic
-(Makino and Aarseth 1992); Gooding and Odell (1988); that poliastro was archived;
-the REBOUND integrator papers (Rein and Liu 2012; Rein and Tamayo 2015; Rein and
-Spiegel 2015; Rein et al. 2019); Markley (1995) and Mikkola (1987), implemented
+(Makino and Aarseth 1992); that poliastro was archived;
+the REBOUND integrator papers (Rein and Liu 2012; Rein and Tamayo 2015; Rein and), implemented
 from memory and validated against mpmath, so the numbers stand even if a
 coefficient differs; the gyrochronology constants' origin; the Kinetics reference
 list; the FSF position on GPL and linking; the MariaDB write rate; the stellar

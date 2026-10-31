@@ -11,14 +11,14 @@ Genda 2019 (arXiv:1805.07094, Eq. 1 and 2), in the cumulative impactor mass `S`:
     d m_i / dS = (1 - zeta) x_i - eta m_i / m_air
 
 where `x_i` is the mass fraction of the species in the impactor, `zeta` the share of the impactor's vapour that escapes (Shuvalov 2009),
-and `eta` the air mass an impactor removes per unit of its own mass (Svetsov 2000, 2007).
+and `eta` the air mass an impactor removes per unit of its own mass.
 
 * *How much accretes.* `late_accreted_fraction`: 0.7 weight percent of an Earth mass times `(M / M_earth)^(-1/3)` (the geometric cross
   section over the mass), log-normal with the width of the N-body scatter. Walker 2009 (0.5 to 0.8 weight percent for the Earth from the
   highly siderophile elements) and Table 1 of Brasser et al. 2016 (arXiv:1609.01785: Mercury 2.7, Venus 0.8, Earth 0.7, Mars 1.4) give the
   scale and the law.
 * *What it brings.* `VENEER_VOLATILES`, the carbonaceous reference of Sakuraba et al. times a drawn scale (0.01 to 1; 0.1 is the
-  enstatite-chondrite-like veneer that Fischer-Goedde and Kleine 2017 and Dauphas 2017 find for the Earth).
+  enstatite-chondrite-like veneer that studies find for the Earth).
 * *How hard it hits.* `impact_speed_ms`: `sqrt(v_esc^2 + v_inf^2)` with `v_inf = 0.6 v_orbit` (Table 1 of Brasser et al. gives 0.51 to 0.71).
 * *What it removes.* `erosion_per_impactor_mass` (Svetsov's Eq. 5 and 6 as written by Sakuraba et al., averaged over a size distribution
   whose mass is flat in the diameter between 10^-1.5 and 10^3 km, Bottke et al. 2005, as they use it).
@@ -68,12 +68,11 @@ LATE_ACCRETED_PERCENT_MAX = 3.0
 """float: The cap of a draw, weight percent (about the largest total of Brasser et al.'s runs for a terrestrial planet)."""
 
 VENEER_VOLATILES = {"H2O": 0.10, "CO2": 0.02, "N2": 0.002}
-"""dict: Mass fraction of a carbonaceous-chondrite-like impactor: 10 percent water (Raymond et al. 2004), 2 percent CO2 (de Niem et al. 2012) and
+"""dict: Mass fraction of a carbonaceous-chondrite-like impactor: 10 percent water, 2 percent CO2 and
 0.2 percent N2 (Grady and Wright 2003), as used by Sakuraba et al. 2019 section 2.4 (read second-hand: tier 2, Confident Unverified)."""
 
 VENEER_VOLATILE_SCALE = (0.01, 1.0, "log")
-"""tuple: The scale of `VENEER_VOLATILES`, drawn: 1 is carbonaceous, 0.1 enstatite-chondrite-like (the nominal value of Sakuraba et al., after
-Fischer-Goedde and Kleine 2017 and Dauphas 2017), 0.01 their lower value. Stand-in, tier 6, tweak level 1."""
+"""tuple: The scale of `VENEER_VOLATILES`, drawn: 1 is carbonaceous, 0.1 enstatite-chondrite-like (the nominal value of Sakuraba et al.), 0.01 their lower value. Stand-in, tier 6, tweak level 1."""
 
 V_INF_OVER_V_ORBIT = 0.6
 """float: The approach speed of the leftover planetesimals over the orbital speed. Brasser et al. 2016 Table 1 give impact speeds of 34.2, 24.3,
@@ -159,7 +158,7 @@ def _plume_fraction(x_lower):
 
 def erosion_efficiency(density_kg_m3, scale_height_m, diameter_m, speed_ms, escape_ms):
     """
-    The air mass one impactor removes over its own mass (Svetsov 2000, 2007; Eq. 5 and 6 of Sakuraba et al. 2019).
+    The air mass one impactor removes over its own mass (Eq. 5 and 6 of Sakuraba et al. 2019).
 
     Args:
         density_kg_m3 (float): The air's density at the ground.

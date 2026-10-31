@@ -34,8 +34,8 @@ The idea is half right, and the half that is wrong changes the design.
 | **Three-body capture in planetary encounters** | an instability: two or more planets meeting while a planetesimal disc is present; the closest pass, the geometry | (1.3 to 3.6) x 10^-8 per disc particle at Jupiter | every giant; ice giants need it (gas drag and pull-down cannot reach them) | NVM07 [R], NDD14 [S] |
 | **Exchange / binary dissociation** | a planetesimal binary flying past; one component keeps the energy | far too low for small irregulars, but the only route found for **Triton** (a binary of two to five Triton masses, early, with the gas still present) | one massive capture per ice giant at most | Agnor and Hamilton 2006 [R]; VNL08 [S] |
 | **Collision with a regular moon** or tidal friction | an existing large moon, a pass through its orbit | low | sets the inner edge, destroys more than it makes | Colombo and Franklin 1971 [R]; JH07 [S] |
-| **Collisional fragmentation after capture** | a captured body, time | not a capture, a multiplier: one body becomes a family | all | Nesvorny 2003 [R]; Bottke 2010 [R]; JH07 sec. 5 [S] |
-| **Temporary capture** | a body passes through the Hill sphere at low speed (Earth always holds a metre-size mini-moon) | the body leaves again after months to years | every planet, continuous | Granvik 2012 [R]; Astakhov 2003 [R] |
+| **Collisional fragmentation after capture** | a captured body, time | not a capture, a multiplier: one body becomes a family | all | Bottke 2010 [R]; JH07 sec. 5 [S] |
+| **Temporary capture** | a body passes through the Hill sphere at low speed (Earth always holds a metre-size mini-moon) | the body leaves again after months to years | every planet, continuous | Granvik 2012 [R] |
 
 Jewitt and Haghighipour's observation that the four giants hold nearly the same irregular populations despite masses of 17 to 310 Earth masses (JH07 sec. 3) points at the mechanism whose efficiency does not depend on the planet's accretion history: three-body capture, helped by the larger Hill spheres of the distant planets [S].
 
@@ -114,7 +114,7 @@ Temporary captures (flag only); capture at Trojan points (the belt doc's Trojan 
 |---|---|---|---|
 | Capture probability per reservoir particle | 1.3e-8 to 3.6e-8 (NDD14, Jupiter), scaled by Hill volume to other planets | Verified for Jupiter; educated guess from physics for scaling | L0 / L1 |
 | Gas-window strength | 0.1 to 0.3 of the encounter channel | Marginal educated guess from physics | L3 |
-| Retrograde stable limit | 0.5 to 0.6 `r_H`, 0.55 default | Verified range (VNL08 quoting Nesvorny 2003) | L0 |
+| Retrograde stable limit | 0.5 to 0.6 `r_H`, 0.55 default | Verified range (VNL08) | L0 |
 | Median `a/r_H` versus planet distance | 0.44 at 5 AU falling to 0.17 to 0.19 at 20 to 30 AU | from needed output (Table of medians) | L2 |
 | Collisional timescale of the irregular zone | from Hill volume, orbit speed, grinding law | Marginal educated guess from physics | L3 |
 | Disruption probability and family velocity spread | tens to hundreds of m/s | Unverified [R] | L3 |
@@ -141,7 +141,7 @@ The moon table gains a few columns (DB.70 style, `db/column_units.py`): `capture
 Lock means it touches a lock (epoch, migration, golden, API version or a shared generator path).
 
 **Non-lock (separate branch, one lane in sequence; none waits for a belt-ledger merge, they take simple inputs and later read the ledger):**
-1. Read list and register: Nesvorny et al. 2003 and NVM07 (capture and stability), Hamilton and Burns 1991, Agnor and Hamilton 2006 and VNL08 (exchange, partly read), Bottke et al. 2010 (collisional history), Sheppard and Jewitt 2003 / Jewitt and Sheppard 2005 / Sheppard et al. 2005, 2006 (size laws, head counts), Nicholson et al. 2008 (review), Granvik 2012 (temporary capture), Rosenblatt 2016 (Phobos, Deimos). Output: a short report with the head counts per giant read from tables and the register rows of section 5. Boss cannot access some papers; use second-hand citations if a source is closed.
+1. Read list and register: Nesvorny et al. 2003 and NVM07 (capture and stability), Hamilton and Burns 1991, Agnor and Hamilton 2006 and VNL08 (exchange, partly read), Bottke et al. 2010 (collisional history), Sheppard and Jewitt 2003 / Sheppard et al. 2005, 2006 (size laws, head counts), Granvik 2012 (temporary capture), Rosenblatt 2016 (Phobos, Deimos). Output: a short report with the head counts per giant read from tables and the register rows of section 5. Boss cannot access some papers; use second-hand citations if a source is closed.
 2. `physics/irregular_zone.py`: `r_H`, stable limits (pro/retro), the inner edge from the outermost regular moon, Kozai exclusion (reuses the `KOZAI_FORBIDDEN_DEG`). Tests: Jupiter, Saturn, Uranus, Neptune values of section 2.1.
 3. `physics/irregular_population.py`: windows, `N0(>R)`, grinding, order-statistic draw into L1/L2/L3 tiers. Tests: Jupiter-like gives about one body above 40 km, ten to twenty above 5 km; the four giants come out the same order; terrestrial planets get zero.
 4. `physics/irregular_orbits.py`: a/r_H, e, i, survival, family drawing (parent breakup with a velocity spread). Tests: retrograde to prograde near 4.5:1 from stability alone, no body in the Kozai band, no q inside the outermost regular moon.

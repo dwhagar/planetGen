@@ -6,7 +6,7 @@ Verification labels: READ (original paper text), 2ND-HAND (read in a paper or co
 
 ## 0. Sources reached and refused (for the next worker)
 
-Reached and used: export.arxiv.org (PDF text), raw.githubusercontent.com (LX-MIE data), pypi.org and files.pythonhosted.org (virga-exo 2.0.2, miepython, chemicals 1.5.2, thermo 0.6.1), zenodo.org (virga optical data, record 15886530, CC-BY-4.0), webbook.nist.gov (phase-change pages), webmineral.com, the HITRAN refractive-index mirror (HITRAN-RI ascii files; per-file references exist, overall licence not read), refractiveindex.info (YAML, abbreviated RII), atmos.washington.edu (Warren 1986), NTRS (abstract records only), WebSearch. Refused or unusable: doi.org, science.org, sciencedirect, agupubs/wiley, aanda, oup, cambridge, acs, researchgate, github.com web pages, usgs, mindat, lpi.usra.edu; the arXiv API rate-limited. NIST WebBook pages for SiO, TiO, H2SO4, Fe, CaCO3, Cr2O3, S8, N2O4 and HNO3 gave no phase-change table.
+Reached and used: export.arxiv.org (PDF text), raw.githubusercontent.com (LX-MIE data), pypi.org and files.pythonhosted.org (virga-exo 2.0.2, miepython, chemicals 1.5.2, thermo 0.6.1), zenodo.org (virga optical data, record 15886530, CC-BY-4.0), webbook.nist.gov (phase-change pages), webmineral.com, the HITRAN refractive-index mirror (HITRAN-RI ascii files; per-file references exist, overall licence not read), refractiveindex.info (YAML, abbreviated RII), atmos.washington.edu, NTRS (abstract records only), WebSearch. Refused or unusable: doi.org, science.org, sciencedirect, agupubs/wiley, aanda, oup, cambridge, acs, researchgate, github.com web pages, usgs, mindat, lpi.usra.edu; the arXiv API rate-limited. NIST WebBook pages for SiO, TiO, H2SO4, Fe, CaCO3, Cr2O3, S8, N2O4 and HNO3 gave no phase-change table.
 
 ## 1. Scope and how the numbers feed the generator
 
@@ -99,11 +99,11 @@ Gao 2020 (arXiv:2005.11939, supplementary tables 2, 3, 4) and virga-exo 2.0.2 (`
 | Cr | 7.490 - 20592/T | 1642 - 0.2 (T - 2133.15) | 7.15 | 7.582 | 74.8 | READ |
 | Mg2SiO4 | 4.88 (printed) or 14.88 (virga) - 32488/T - 1.4 [Fe/H] - 0.2 log P | 436 | 3.21 | 25.59 | 0.1 (imposed minimum) | READ and DATA, discrepancy below |
 | Fe | 7.23 - 20995/T (Gao); 7.09 - 20995/T (virga) | 1862 - 0.39 (T - 1803.15) | 7.87 | 7.197 | 77.2 | READ and DATA |
-| TiO2 | 9.5489 - 32457/T (Gao); 13.95 - 38266/T - [Fe/H] (virga, Marley 2021) | 535.124 - 0.04396 T | 4.25 | 7.78 | none (homogeneous nucleus, about 2000 K) | READ and DATA |
+| TiO2 | 9.5489 - 32457/T (Gao); 13.95 - 38266/T - [Fe/H] (virga) | 535.124 - 0.04396 T | 4.25 | 7.78 | none (homogeneous nucleus, about 2000 K) | READ and DATA |
 | Al2O3 | 17.7 - 45893/T - 1.66 [Fe/H] (Gao); 15.24 - 41481/T - 1.66 [Fe/H] (virga, diamondback) | 690 | 3.99 | 32.56 | 43.6 | READ and DATA |
 
 The Mg2SiO4 constant: with a Mg gas partial pressure of 3.55e-5 P (Mg/H from A(Mg) = 7.55, RECALLED; see section 5) the 14.88 form gives T_cond = 1681 K at 1 bar against 1698 K from the Visscher fit (COMPUTED), while 4.88 gives 3482 K, so the Gao Table 2 constant is a misprint of 14.88 (COMPUTED consistency check; confirm with the authors if used).
-Other virga constants (DATA): MgSiO3 13.43 - 28665/T - [Fe/H]; CaTiO3 30.24 - 72160/T - log10 P - 2 [Fe/H]; CaAl12O19 16.46 - 44021/T - 0.083 log10 P - 1.67 [Fe/H]; SiO2 13.168 - 28265/T (the code comment says "MADE UP", do not use); NH3 6.900 - 1588/T below 195.4 K and 5.201 - 1248/T above (Lodders and Fegley 1998 via virga, check: 0.0594 bar at 195.4 K against NIST triple point 0.0606 bar, COMPUTED); H2O from Buck 1981; CH4 by Clausius-Clapeyron from its triple point (90.68 K, 0.11719 bar).
+Other virga constants (DATA): MgSiO3 13.43 - 28665/T - [Fe/H]; CaTiO3 30.24 - 72160/T - log10 P - 2 [Fe/H]; CaAl12O19 16.46 - 44021/T - 0.083 log10 P - 1.67 [Fe/H]; SiO2 13.168 - 28265/T (the code comment says "MADE UP", do not use); NH3 6.900 - 1588/T below 195.4 K and 5.201 - 1248/T above (check: 0.0594 bar at 195.4 K against NIST triple point 0.0606 bar, COMPUTED); H2O; CH4 by Clausius-Clapeyron from its triple point (90.68 K, 0.11719 bar).
 Lower boundary mixing ratios used by Gao 2020 (ppm as printed, mass or mole basis not stated in the extracted text; solar, multiplied by 10 for 10x solar): ZnS 0.076, Na2S 3.34, MnS 0.541, Cr 0.887, Mg2SiO4 59.36, Fe 57.8, Al2O3 4.937 (READ). Morley 2012 Table 3 gas partial pressures below the cloud, per unit P_T x metallicity: Cr 8.87e-7, Mn 6.32e-7, Na 3.97e-6, Zn 8.45e-8, KCl 2.55e-7, Fe 5.78e-5 (READ).
 
 ### 2.4 Ice sublimation temperatures versus partial pressure (K)
@@ -163,20 +163,20 @@ NIST WebBook phase-change anchors and Antoine sets for trace and volcanic specie
 
 | Species | Normal boiling / triple / critical | Antoine set(s): T range K; A; B; C; reference | Status |
 |---|---|---|---|
-| NaCl | melting point not in the parsed page | 860 to 1240; 3.56682; 5200.904; -317.409 (Ewing and Stern 1974); 1138 to 1738; 5.07184; 8388.497; -82.638 (Stull 1947) | DATA |
-| KCl | boils about 1680 K (from the fit: 1 bar at 1679 K) | 1170 to 1466; 4.61668; 6910.833; -176.083 (Barchuk and Dubovoi 1973); 1094 to 1680; 4.78236; 7440.691; -122.709 (Stull 1947) | DATA |
-| Na | T_boil 1156 K, T_fus 370.96 K | 924 to 1118; 2.46077; 1873.728; -416.372 (Rodebush and Walters 1930) | DATA |
-| K | T_boil 1037 K, T_triple 336.35 K | 679.4 to 1033; 4.45718; 4691.58; 24.195 (Fiock and Rodebush 1926) | DATA |
+| NaCl | melting point not in the parsed page | 860 to 1240; 3.56682; 5200.904; -317.409; 1138 to 1738; 5.07184; 8388.497; -82.638 (Stull 1947) | DATA |
+| KCl | boils about 1680 K (from the fit: 1 bar at 1679 K) | 1170 to 1466; 4.61668; 6910.833; -176.083; 1094 to 1680; 4.78236; 7440.691; -122.709 (Stull 1947) | DATA |
+| Na | T_boil 1156 K, T_fus 370.96 K | 924 to 1118; 2.46077; 1873.728; -416.372 | DATA |
+| K | T_boil 1037 K, T_triple 336.35 K | 679.4 to 1033; 4.45718; 4691.58; 24.195 | DATA |
 | Rn | NOT in the page text (no T_boil parsed) | 129 to 211.8; 3.1908; 558.293; -36.803 (Stull 1947); gives 1 bar at 212 K | DATA |
 | O3 | T_boil 161.3 K, T_fus 80.7 K, T_c 261.15 K | 92.8 to 162; 4.23637; 712.487; 6.982 (Stull 1947) | DATA |
 | HCl | T_fus 161.15 K; P_tr 0.138 bar; T_c 324.68 K | 122.3 to 188.3; 3.60765; 535.172; -39.847; 188.3 to 309.4; 4.57389; 868.358; 1.754 (Stull 1947) | DATA |
 | HF | T_boil 292.7 K, T_fus 190 K | 198.5 to 292.9; 4.16129; 1142.985; -17.993 (Stull 1947) | DATA |
-| CH3Cl | T_boil 247 K, T_triple 175.43 K, P_tr 0.0087 bar, T_c 416 K | 183 to 249.4; 4.15454; 916.223; -28.466 (Beersmans and Jungers 1947) | DATA |
-| H2CO | T_boil 253.85 K, T_triple 155.1 K | 163.76 to 250.86; 4.28176; 959.43; -29.758 (Spence and Wild 1935) | DATA |
-| OCS | T_triple 134.3 K, T_c 378.8 K | 161.8 to 223.84; 4.0436; 808.49; -22.72 (Kemp and Giauque 1937) | DATA |
+| CH3Cl | T_boil 247 K, T_triple 175.43 K, P_tr 0.0087 bar, T_c 416 K | 183 to 249.4; 4.15454; 916.223; -28.466 | DATA |
+| H2CO | T_boil 253.85 K, T_triple 155.1 K | 163.76 to 250.86; 4.28176; 959.43; -29.758 | DATA |
+| OCS | T_triple 134.3 K, T_c 378.8 K | 161.8 to 223.84; 4.0436; 808.49; -22.72 | DATA |
 | NO2 | T_boil 295.08 K | 217.6 to 294; 3.35248; 540.635; -131.93 (Stull 1947) | DATA |
 | NH4Cl | sublimation enthalpy 177 kJ/mol (no Antoine set) | none | DATA (anchor only) |
-| H2, He | H2 T_tr 13.95 K, P_tr 0.0721 bar, T_c 33.18 K; He T_c 5.2 K | H2: 21.01 to 32.27; 3.54314; 99.395; 7.726 (van Itterbeek 1964) | DATA |
+| H2, He | H2 T_tr 13.95 K, P_tr 0.0721 bar, T_c 33.18 K; He T_c 5.2 K | H2: 21.01 to 32.27; 3.54314; 99.395; 7.726 | DATA |
 
 NIST pages for SiO, TiO, VO, H2SO4, Fe, CaCO3, Cr2O3, S8, N2O4 and HNO3 gave no usable phase table (NOT REACHED for these through the WebBook; JANAF condensed-phase tables were not fetched).
 
@@ -222,7 +222,7 @@ Sudarsky class sequence, Cahoy colour table and Venus and Earth cloud optical de
 | Observed cloudiness trends with T_eq (transmission) | cloudiness rises for T_eq above 2300 K and for 1100 to 1600 K, falls for 1600 to 2300 K and below 1100 K | Gao 2020 | READ |
 | Silicate versus haze crossover | silicates dominate aerosol opacity for T_eq above about 950 K | Gao 2020 | READ |
 
-Nightside brightness temperature of hot Jupiters stays near 1100 K while dayside rises with T_eq, tied by one interpretation to the condensation temperature of a cloud (Beatty et al. 2019, quoted in Gao, Wakeford, Moran and Parmentier 2021, arXiv:2102.03480): 2ND-HAND, interpretive, not a generator input.
+Nightside brightness temperature of hot Jupiters stays near 1100 K while dayside rises with T_eq, tied by one interpretation to the condensation temperature of a cloud (Gao, Wakeford, Moran and Parmentier 2021, arXiv:2102.03480): 2ND-HAND, interpretive, not a generator input.
 
 ### 2.8 Optical constants, density and Mie scattering of condensates, hazes and dust
 
@@ -232,40 +232,40 @@ Method (COMPUTED): m = n - ik interpolated at 450, 550 and 650 nm (k floor 1e-9)
 |---|---|---|---|---|---|---|
 | water, liquid | 0.997 R | 1.333, 2.0e-9 | 1/1/1 | 3.22/0.15/-0.04 | Hale and Querry 1973, RII | DATA |
 | water ice Ih | 0.93 V | 1.311, 2.3e-9 | 1/1/1 | 3.25/-0.55/-0.05 | Warren and Brandt 2008, HITRAN-RI | DATA |
-| NH3 ice | 0.84 V | 1.436, 2.9e-5 | 1/0.999/0.996 | 3.41/0.53/-0.03 | Martonchik 1984, virga file | DATA |
-| CH4 ice (90 K) | 0.49 V | 1.323, 1.0e-9 | 1/1/1 | 3.19/-0.19/-0.00 | Martonchik 1994, RII | DATA |
-| CO2 ice | 1.56 R | 1.413, 8.2e-7 | 1/1/1 | 3.27/0.90/-0.07 | Warren 1986 Table I | READ |
+| NH3 ice | 0.84 V | 1.436, 2.9e-5 | 1/0.999/0.996 | 3.41/0.53/-0.03 | virga file | DATA |
+| CH4 ice (90 K) | 0.49 V | 1.323, 1.0e-9 | 1/1/1 | 3.19/-0.19/-0.00 | RII | DATA |
+| CO2 ice | 1.56 R | 1.413, 8.2e-7 | 1/1/1 | 3.27/0.90/-0.07 | no source | READ |
 | H2SO4 75 wt% | 1.67 T | 1.431, 1.0e-9 | 1/1/1 | 3.17/0.65/-0.02 | Palmer and Williams 1975, HITRAN-RI | DATA |
 | KCl | 1.99 G | 1.493, 1.0e-9 | 1/1/1 | 3.32/-0.54/-0.05 | Palik/Querry, LX-MIE | DATA |
 | ZnS | 4.04 G | 2.389, 3.9e-6 | 1/1/0.999 | 3.49/-0.06/-0.05 | Palik/Addamiano, LX-MIE | DATA |
-| Na2S | 1.86 G | 1.827, 0.0146 | 0.938/0.748/0.576 | 4.29/-0.05/-0.04 | Khachai 2009, Montaner 1979, LX-MIE | DATA |
-| MnS | 4 G | 2.869, 1.0e-3 | 0.998/0.968/0.899 | 0.02/-0.12/-0.04 | Huffman and Wild 1967, LX-MIE | DATA |
-| FeS (troilite) | 4.6 W | 1.415, 1.42 | 0.399/0.610/0.653 | -0.10/-0.14/-0.06 | Pollack 1994, Henning 1997, LX-MIE | DATA |
+| Na2S | 1.86 G | 1.827, 0.0146 | 0.938/0.748/0.576 | 4.29/-0.05/-0.04 | LX-MIE | DATA |
+| MnS | 4 G | 2.869, 1.0e-3 | 0.998/0.968/0.899 | 0.02/-0.12/-0.04 | LX-MIE | DATA |
+| FeS (troilite) | 4.6 W | 1.415, 1.42 | 0.399/0.610/0.653 | -0.10/-0.14/-0.06 | Pollack 1994, LX-MIE | DATA |
 | Cr | 7.15 G | 3.116, 4.42 | 0.711/0.780/0.799 | -0.02/0.04/0.02 | Lynch and Hunter, LX-MIE | DATA |
 | Fe | 7.87 G | 2.081, 2.69 | 0.595/0.700/0.733 | -0.13/-0.06/-0.06 | Lynch and Hunter, LX-MIE | DATA |
-| forsterite (amorph.) | 3.21 G | 1.618, 1.5e-4 | 0.999/0.995/0.983 | 3.29/-0.11/-0.03 | Jaeger 2003 sol-gel, LX-MIE | DATA |
-| enstatite (amorph.) | 3.2 W | 1.553, 1.4e-4 | 0.999/0.996/0.984 | 3.26/-0.59/-0.05 | Jaeger 2003 sol-gel, LX-MIE | DATA |
-| enstatite glass | 3.2 W | 1.576, 2.2e-5 | 1/0.999/0.997 | 3.34/-0.43/-0.02 | Dorschner 1995, LX-MIE | DATA |
-| fayalite | 4.39 W | 1.851, 9.7e-4 | 0.996/0.971/0.904 | 3.77/-0.22/-0.04 | Fabian 2001, LX-MIE | DATA |
-| Al2O3 amorphous | 3.99 G | 1.580, 0.0373 | 0.773/0.582/0.541 | 2.80/-0.29/-0.04 | Begemann 1997, Koike 1995, LX-MIE | DATA |
-| Al2O3 sapphire | 3.99 G | 1.770, 1.0e-9 | 1/1/1 | 3.66/0.11/-0.05 | Malitson and Dodge 1972, RII (k set 1e-9) | DATA |
-| TiO2 anatase | 4.25 G | 2.406, 1.3e-3 | 0.996/0.963/0.881 | 3.30/0.01/-0.04 | Zeidler 2011, Posch 2003, LX-MIE | DATA |
-| CaTiO3 | 4 W | 2.332, 1.8e-3 | 0.994/0.950/0.843 | 3.74/-0.03/-0.04 | Posch 2003, Ueda 1998, LX-MIE | DATA |
-| spinel | 3.6 W | 1.719, 1.0e-9 | 1/1/1 | 3.55/0.11/-0.03 | Zeidler 2011, LX-MIE | DATA |
+| forsterite (amorph.) | 3.21 G | 1.618, 1.5e-4 | 0.999/0.995/0.983 | 3.29/-0.11/-0.03 | sol-gel, LX-MIE | DATA |
+| enstatite (amorph.) | 3.2 W | 1.553, 1.4e-4 | 0.999/0.996/0.984 | 3.26/-0.59/-0.05 | sol-gel, LX-MIE | DATA |
+| enstatite glass | 3.2 W | 1.576, 2.2e-5 | 1/0.999/0.997 | 3.34/-0.43/-0.02 | LX-MIE | DATA |
+| fayalite | 4.39 W | 1.851, 9.7e-4 | 0.996/0.971/0.904 | 3.77/-0.22/-0.04 | LX-MIE | DATA |
+| Al2O3 amorphous | 3.99 G | 1.580, 0.0373 | 0.773/0.582/0.541 | 2.80/-0.29/-0.04 | LX-MIE | DATA |
+| Al2O3 sapphire | 3.99 G | 1.770, 1.0e-9 | 1/1/1 | 3.66/0.11/-0.05 | RII (k set 1e-9) | DATA |
+| TiO2 anatase | 4.25 G | 2.406, 1.3e-3 | 0.996/0.963/0.881 | 3.30/0.01/-0.04 | LX-MIE | DATA |
+| CaTiO3 | 4 W | 2.332, 1.8e-3 | 0.994/0.950/0.843 | 3.74/-0.03/-0.04 | LX-MIE | DATA |
+| spinel | 3.6 W | 1.719, 1.0e-9 | 1/1/1 | 3.55/0.11/-0.03 | LX-MIE | DATA |
 | periclase | 3.8 W | 1.740, 6.6e-8 | 1/1/1 | 3.62/0.16/-0.04 | Roessler and Huffman, LX-MIE | DATA |
-| SiO2 | 2.65 W | 1.546, 6.4e-6 | 1/1/0.999 | 3.29/-0.60/-0.07 | Zeidler 2013, Philipp 1985, LX-MIE | DATA |
+| SiO2 | 2.65 W | 1.546, 6.4e-6 | 1/1/0.999 | 3.29/-0.60/-0.07 | LX-MIE | DATA |
 | SiC | 3.2 R | 2.524, 9.1e-4 | 0.997/0.971/0.908 | 2.66/-0.13/-0.04 | Laor and Draine 1993, LX-MIE | DATA |
 | NaCl | 2.17 W | 1.547, 1.0e-9 | 1/1/1 | 3.36/-0.57/-0.07 | Eldridge and Palik, LX-MIE | DATA |
 | hematite (Triaud) | 5.3 W | 3.025, 0.441 | 0.603/0.594/0.630 | -0.50/-0.06/-0.02 | Triaud (Jena), LX-MIE | DATA |
-| hematite (Querry) | 5.3 W | 3.318, 0.498 | 0.563/0.610/0.644 | -1.59/-0.06/-0.02 | Querry 1985, RII | DATA |
-| magnetite | 5.15 W | 2.343, 0.105 | 0.760/0.555/0.591 | 2.68/-0.08/-0.04 | Querry 1985, RII | DATA |
-| calcite | 2.71 W | 1.661, 1.0e-9 | 1/1/1 | 3.47/-0.05/-0.05 | Ghosh 1999, RII (n only, k set 1e-9) | DATA |
+| hematite (Querry) | 5.3 W | 3.318, 0.498 | 0.563/0.610/0.644 | -1.59/-0.06/-0.02 | RII | DATA |
+| magnetite | 5.15 W | 2.343, 0.105 | 0.760/0.555/0.591 | 2.68/-0.08/-0.04 | RII | DATA |
+| calcite | 2.71 W | 1.661, 1.0e-9 | 1/1/1 | 3.47/-0.05/-0.05 | RII (n only, k set 1e-9) | DATA |
 | Titan tholin (Khare) | 1 A | 1.702, 0.0256 | 0.873/0.668/0.552 | 3.80/0.07/-0.04 | Khare 1984, HITRAN-RI | DATA |
-| Titan analogue (Ramirez) | 1 A | 1.568, 0.002 | 0.984/0.944/0.830 | 3.50/-0.44/-0.04 | Ramirez 2002, HITRAN-RI | DATA |
-| Pluto tholin | 1 A | 1.694, 0.00907 | 0.950/0.827/0.611 | 4.05/-0.03/-0.04 | Jovanovic 2021, HITRAN-RI | DATA |
+| Titan analogue (Ramirez) | 1 A | 1.568, 0.002 | 0.984/0.944/0.830 | 3.50/-0.44/-0.04 | HITRAN-RI | DATA |
+| Pluto tholin | 1 A | 1.694, 0.00907 | 0.950/0.827/0.611 | 4.05/-0.03/-0.04 | HITRAN-RI | DATA |
 | flame soot | 1.8 R | 1.773, 0.626 | 0.353/0.535/0.578 | 0.89/-0.09/-0.04 | Chang 1990, HITRAN-RI | DATA |
 | amorphous carbon | 1.8 R | 2.334, 0.979 | 0.451/0.580/0.619 | 0.27/-0.09/-0.04 | Stagg 1993, HITRAN-RI | DATA |
-| graphite | 2.2 W | 2.567, 1.19 | 0.476/0.599/0.637 | 0.03/-0.09/-0.04 | Draine 2003, LX-MIE | DATA |
+| graphite | 2.2 W | 2.567, 1.19 | 0.476/0.599/0.637 | 0.03/-0.09/-0.04 | LX-MIE | DATA |
 | Saharan dust, Burkina Faso | 2.6 R | 1.530, 0.00673 | 0.942/0.864/0.646 | 3.31/-0.65/-0.06 | Wagner 2012, HITRAN-RI | DATA |
 | Saharan dust, Cairo | 2.6 R | 1.530, 0.00351 | 0.969/0.920/0.749 | 3.20/-0.69/-0.05 | Wagner 2012, HITRAN-RI | DATA |
 | sea salt (Shettle) | 2.2 R | 1.500, 1.0e-8 | 1/1/1 | 3.27/-0.57/-0.04 | Shettle, AFCRL 1987, HITRAN-RI | DATA |
@@ -282,8 +282,7 @@ Key: rho in g/cm3 with code G = Gao 2020 supplementary table 3, W = webmineral, 
 
 Colour effect from the k values at 450, 550 and 650 nm (COMPUTED from the same files): hematite absorbs blue strongly, k falling from 450 to 650 nm from 0.99 to 0.24 (Triaud), 1.0 to 0.057 (Querry), 0.31 to 0.0052 (Shettle), so hematite-bearing dust is reddish whatever the dataset; tholins also absorb blue, k from 0.057 to 0.012 (Khare), 0.034 to 0.0024 (Pluto), 0.006 to 0.0009 (Ramirez), giving yellow to brown haze; Saharan dust k falls from 0.016 to 0.0032 (Burkina Faso) and 0.0065 to 0.0024 (Cairo); MnS k falls from 0.039 to 0.00028; Na2S is nearly flat (0.02 to 0.013); magnetite k rises toward the red (0.032 to 0.14); Fe, Cr, graphite, amorphous carbon and soot are dark and grey (SSA 0.35 to 0.8, Angstrom near 0 at 1 micron). Non-absorbing white or grey condensates (SSA above 0.999 at 1 micron): water, ice, CH4, CO2, H2SO4, KCl, NaCl, ZnS, sapphire, spinel, periclase, quartz, calcite, sea salt, ammonium sulfate.
 
-Dropped: Reed 2018 volcanic ash (its visible k is an infrared extrapolation of about 1e-6, unreliable).
-CO2 ice, Warren 1986 Table I (READ from an OCR of the PDF at atmos.washington.edu; the visible k values come from Egan and Spagnolo, which Warren flags as uncertain, possibly impurity-limited): lambda (um): n, k = 0.363: 1.432, 6.78e-7; 0.40: 1.426, 6.83e-7; 0.452: 1.420, 7.04e-7; 0.490: 1.417, 7.37e-7; 0.553: 1.413, 8.27e-7; 0.616: 1.411, 9.92e-7; 0.679: 1.409, 1.17e-6; 0.742: 1.407, 1.36e-6. Density 1.56 g/cm3 is RECALLED (section 5).
+CO2 ice, (READ from an OCR of the PDF at atmos.washington.edu; the visible k values come from Egan and Spagnolo, which Warren flags as uncertain, possibly impurity-limited): lambda (um): n, k = 0.363: 1.432, 6.78e-7; 0.40: 1.426, 6.83e-7; 0.452: 1.420, 7.04e-7; 0.490: 1.417, 7.37e-7; 0.553: 1.413, 8.27e-7; 0.616: 1.411, 9.92e-7; 0.679: 1.409, 1.17e-6; 0.742: 1.407, 1.36e-6. Density 1.56 g/cm3 is RECALLED (section 5).
 
 Where sources disagree (generator should draw within these spreads):
 - Hematite k(550 nm): Triaud via LX-MIE 0.44, Querry ordinary ray 0.50, Shettle 0.0925. Hematite Angstrom exponent for 0.1 micron grains: -0.50, -1.59, -1.06 respectively (reddish extinction in all three; magnitude is uncertain).
@@ -310,10 +309,10 @@ Model-side production and size rules:
 
 | Quantity | Value or rule | Source | Status |
 |---|---|---|---|
-| Titan reference monomer mass production | 1e-14 g cm-2 s-1 (0.5e-14 to 2e-14, McKay et al. 2001) | Kawashima and Ikoma 2018, arXiv:1712.02808 | 2ND-HAND |
+| Titan reference monomer mass production | 1e-14 g cm-2 s-1 (0.5e-14 to 2e-14) | Kawashima and Ikoma 2018, arXiv:1712.02808 | 2ND-HAND |
 | Scaling with stellar Lyman-alpha | Mdot = beta (I_Lya / I_Lya,Titan) Mdot_Titan; I_Lya,Titan = 6.2e9 photons cm-2 s-1 (Trainer 2006); beta a free efficiency | K and I 2018 eqs. 33, 35 | 2ND-HAND |
 | Vertical distribution | proportional to (f_HCN + f_C2H2) N(z); paper II uses photodissociation rates of CH4, HCN, C2H2 | K and I 2018 eq. 34; arXiv:1904.09986 | READ |
-| Monomer radius; density | 1 nm; 1.0 g/cm3 (K and I II, Adams 2019, Gao 2020); 1.38 (He 2018b); 1.4 quoted for Imanaka 2012 and He 2017 | as named | READ, 2ND-HAND |
+| Monomer radius; density | 1 nm; 1.0 g/cm3 (K and I II, Adams 2019, Gao 2020); 1.38 (He 2018b); 1.4 quoted for He 2017 | as named | READ, 2ND-HAND |
 | Diffusion-limited CH4 supply | P(z) = N K_zz d f_CH4 / dz with d f / dz about f_CH4 / H_a, formed at 1 microbar; always below the Lyman-alpha-limited rate | Adams et al. 2019, arXiv:1902.05231 eq. 7; Gao 2020 | READ |
 | Adams 2019 grid | 1e8 to 1e11 CH4 molecules cm-2 s-1 (2.55e-15 to 2.55e-12 g cm-2 s-1); K_zz 1e8 to 1e10 cm2/s; monomers 1 and 10 nm; CH4 at 1 microbar 30 ppm in equilibrium, diffusion-limited 1.3e11 molecules cm-2 s-1 (3.5e-12 g cm-2 s-1, COMPUTED conversion) | Adams et al. 2019 | READ |
 | Aggregates | fractal dimension 1.5 (dimers) rising to 2.4 above about 2000 monomers; opacity flatter (grey) than spheres | Adams et al. 2019 | READ |
@@ -337,7 +336,7 @@ Threshold friction velocity (formulas in 3.8). COMPUTED values for the four refe
 
 The computed minima agree with the Kok values to within a factor of about 1.6 (the Venus-like and Titan-like cases are the loosest); the two formulas differ from each other by 15 percent (Earth-like) to 60 percent (Titan-like), so the generator should draw the threshold inside the span of the two formulas and the surface-energy range, and the cohesion term matters most for small grains and weak gravity.
 
-Settling and residence time of spherical particles (COMPUTED). Stokes fall speed v = (2/9)(rho_p - rho_a) g r^2 C / eta with the Cunningham factor of 3.6 (Kawashima and Ikoma 2018 eq. 21, READ; Ackerman and Marley and Gao 2018 use C = 1 + 1.26 Kn, which differs by 0.03 percent at Kn = 0.1, 5 percent at Kn = 1 and 21 percent at Kn = 10, COMPUTED); gas viscosity from the `chemicals`/`thermo` Lucas correlation (within 3 percent of DIPPR for N2, CO2 and H2 at the test temperatures). Particle density 2000 kg/m3 (scales linearly). Cells show v (m/s) / tau, the time to fall one scale height H = R T / (M g) without mixing. Particle Reynolds number stayed below 0.2 in every cell.
+Settling and residence time of spherical particles (COMPUTED). Stokes fall speed v = (2/9)(rho_p - rho_a) g r^2 C / eta with the Cunningham factor of 3.6 (Kawashima and Ikoma 2018 eq. 21, READ; others use C = 1 + 1.26 Kn, which differs by 0.03 percent at Kn = 0.1, 5 percent at Kn = 1 and 21 percent at Kn = 10, COMPUTED); gas viscosity from the `chemicals`/`thermo` Lucas correlation (within 3 percent of DIPPR for N2, CO2 and H2 at the test temperatures). Particle density 2000 kg/m3 (scales linearly). Cells show v (m/s) / tau, the time to fall one scale height H = R T / (M g) without mixing. Particle Reynolds number stayed below 0.2 in every cell.
 
 | Conditions (illustrative, not presets) | eta (uPa s) | lambda (um) | H (km) | r = 0.1 um | r = 1 um | r = 10 um |
 |---|---|---|---|---|---|---|
@@ -360,7 +359,7 @@ Mars-type airborne dust (optical properties):
 | Solar-band single scattering albedo | 0.86 to 0.88 (Pollack-type) against 0.93 to 0.94 (TES-type); the CRISM retrieval depends on the assumed size | Wolff abstract 9125.pdf (NTRS) | READ (abstract only) |
 | Single scattering albedo, 443 and 671 nm | 0.84 and 0.92 | Tomasko 1999 | SNIPPET, do not rely |
 | Mars analogue refractive indices | palagonite 1.52 + 0.0005i, basalt 1.52 + 0.001i, JSC-1A 1.65 + 0.003i; laboratory sample single scattering albedos 0.960, 0.892, 0.708 are for samples with effective radius 4.5, 6.9, 15.85 micron (not airborne sizes) | arXiv:1905.01074 | READ |
-| Retrieved imaginary index, Mars simulants (20 to 40 micron fractions) | about 7e-4 (450 nm) and 6e-4 (550 nm) for JSC Mars-1; about 3e-4 for MGS-1 | Martikainen et al. 2023 | READ |
+| Retrieved imaginary index, Mars simulants (20 to 40 micron fractions) | about 7e-4 (450 nm) and 6e-4 (550 nm) for JSC Mars-1; about 3e-4 for MGS-1 | no source | READ |
 | k needed for omega0 = 0.975 at 650 nm, n = 1.5 | 8.9e-4 (r_eff 1.5 micron, variance 0.4); 7.4e-4 (1.85 micron, 0.5); 8.9e-4 (1.52 micron, 0.5); 1.1e-3 (1.2 micron, 0.4); 5.5e-4 (2.5 micron, 0.4); asymmetry parameter 0.71 to 0.76 | COMPUTED with miepython 3.3.0 and a gamma size distribution (Hansen and Travis form) | COMPUTED |
 | Check of the same code on analogue indices at 650 nm, r_eff 1.5 micron, variance 0.4 | omega0 0.986 (palagonite), 0.972 (basalt), 0.922 (JSC-1A) | COMPUTED | COMPUTED |
 
@@ -423,7 +422,7 @@ All entries DATA; no stability or decomposition data were extracted.
 3.5 Particle size (A and M eqs. 9, 11, 13, 14, READ): log-normal dn/dr = N / (r sqrt(2 pi) ln sigma_g) exp(-ln^2(r / r_g) / (2 ln^2 sigma_g)); fall speed v_f = w* (r / r_w)^alpha with v_f(r_w) = w*; r_g = r_w f_sed^(1/alpha) exp(-((alpha + 6) / 2) ln^2 sigma_g); N = (3 epsilon rho_a q_c / (4 pi rho_p r_g^3)) exp(-(9/2) ln^2 sigma_g), epsilon the condensate-to-air molecular-weight ratio. Area-weighted radius r_eff = r_g exp((5/2) ln^2 sigma_g) (COMPUTED algebra; eq. 17 was garbled in the extraction). alpha = 2 in Stokes flow without slip and about 1 in slip flow (COMPUTED from 3.6); the drag-law fits for Reynolds numbers 1 to 1000 (A and M appendix B) were not transcribed. Layer optical depth for condensate column mass m_c (kg/m2): tau = 3 Q_ext m_c / (4 rho_p r_eff) (geometric optics; Q_ext about 2 for r above about 1 micron; small particles from 2.8).
 3.6 Settling (2.10): v = (2/9)(rho_p - rho_a) g r^2 C / eta, C = 1 + 1.257 Kn + 0.400 Kn exp(-1.10 / Kn) (READ), Kn = lambda / r, lambda = eta / (0.499 rho_a sqrt(8 R T / (pi M))) (kinetic theory, RECALLED coefficient; gives 0.064 micron for N2 at 1 bar and 288 K). A particle stays aloft where the mixing time H^2 / K_zz is shorter than the fall time H / v.
 3.7 Haze: Mdot = beta (I_Lya / I_Lya,Titan) Mdot_Titan, or the diffusion-limited supply N K_zz f_CH4 / H_a as an upper bound (2.9). Steady-state haze mass column = Mdot / v_f, hence tau about 3 Q_ext Mdot / (4 rho_p r_eff v_f) (flux balance, COMPUTED/engineering, not validated against a microphysical model). Optical constants: Khare, Ramirez or Pluto tholin for cold organic haze, soot for carbon-rich hot haze (2.8).
-3.8 Dust lifting threshold (Kok 2012, READ): Shao and Lu u*_ft = A_N sqrt((rho_p - rho_a) g D / rho_a + gamma / (rho_a D)), A_N = 0.111, gamma = 1.65e-4 to 5.0e-4 N/m (2.9e-4 from Kok and Renno 2006). Minimum at D_opt = sqrt(gamma / (rho_p g)): u*_min = A_N sqrt(2 sqrt(gamma rho_p g) / rho_a) for rho_p much larger than rho_a (COMPUTED, reproduces the numerical minima in 2.10). Bagnold: u*_ft = A_ft sqrt((rho_p - rho_a) g D / rho_a), A_ft about 0.10 (fluid) and 0.082 (impact). Iversen and White 1982 (Kok eq. 2.6): with R*_t = rho_a u*_ft D / mu and K = (1 + 0.006 / (rho_p g D^2.5))^(1/2): A_ft = 0.2 K / (1 + 2.5 R*_t)^(1/2) for 0.03 <= R*_t <= 0.3; 0.129 K / (1.928 R*_t^0.092 - 1)^(1/2) for 0.3 < R*_t < 10; 0.12 K [1 - 0.0858 exp(-0.0671 (R*_t - 10))] for R*_t >= 10; solve implicitly (constant 0.006 taken in cgs units, units not stated in the extracted text). Friction velocity from wind: u* = kappa U / ln(z / z0), kappa = 0.4, z0 about D/30 to 1e-3 m (both RECALLED). Impact-to-fluid threshold ratio (Kok table 2.3): about 0.8 for thick-ish air, about 0.1 for thin air, above 1 for dense air.
+3.8 Dust lifting threshold (Kok 2012, READ): Shao and Lu u*_ft = A_N sqrt((rho_p - rho_a) g D / rho_a + gamma / (rho_a D)), A_N = 0.111, gamma = 1.65e-4 to 5.0e-4 N/m (2.9e-4 from Kok and Renno 2006). Minimum at D_opt = sqrt(gamma / (rho_p g)): u*_min = A_N sqrt(2 sqrt(gamma rho_p g) / rho_a) for rho_p much larger than rho_a (COMPUTED, reproduces the numerical minima in 2.10). Bagnold: u*_ft = A_ft sqrt((rho_p - rho_a) g D / rho_a), A_ft about 0.10 (fluid) and 0.082 (impact). (Kok eq. 2.6): with R*_t = rho_a u*_ft D / mu and K = (1 + 0.006 / (rho_p g D^2.5))^(1/2): A_ft = 0.2 K / (1 + 2.5 R*_t)^(1/2) for 0.03 <= R*_t <= 0.3; 0.129 K / (1.928 R*_t^0.092 - 1)^(1/2) for 0.3 < R*_t < 10; 0.12 K [1 - 0.0858 exp(-0.0671 (R*_t - 10))] for R*_t >= 10; solve implicitly (constant 0.006 taken in cgs units, units not stated in the extracted text). Friction velocity from wind: u* = kappa U / ln(z / z0), kappa = 0.4, z0 about D/30 to 1e-3 m (both RECALLED). Impact-to-fluid threshold ratio (Kok table 2.3): about 0.8 for thick-ish air, about 0.1 for thin air, above 1 for dense air.
 3.9 Dust emission (2.10): F_d = epsilon Q or the Kawamura or Gillette-Passi power laws; emitted dust has three size modes with median diameters 1.5, 6.7 and 14.2 micron; below about 20 micron grains stay aloft long term. Airborne column optical depth is a drawn parameter between clear and storm values; effective radii 1.5 to 1.85 micron; single scattering albedo from the inversion in 2.10.
 3.10 Cloud albedo versus optical depth (Monte Carlo, COMPUTED): plane-parallel slab, Henyey-Greenstein phase function, single scattering albedo omega, black lower boundary, 20000 to 60000 photons per entry (noise about 0.002 to 0.004); checked against first-order single scattering (isotropic R = tau / (2 mu0) at tau = 0.01: 0.0100 and 0.0051 against 0.0100 and 0.0050) and R + T = 1 for omega = 1. Plane albedo R at solar-zenith cosine mu0, g = 0.85:
 
@@ -439,7 +438,7 @@ All entries DATA; no stability or decomposition data were extracted.
 | 0.85 | 0.99 | 0.5 | 0.084 | 0.159 | 0.263 | 0.416 | 0.512 | 0.583 | 0.604 | 0.593 |
 | 0.85 | 0.99 | 1.0 | 0.019 | 0.041 | 0.085 | 0.211 | 0.347 | 0.438 | 0.474 | 0.471 |
 
-For omega = 1, mu0 = 0.5: g = 0 gives R = 0.501, 0.656, 0.820, 0.900, 0.943 at tau 1, 2, 5, 10, 20; g = 0.7 gives 0.271, 0.411, 0.605, 0.741, 0.842, 0.929 at tau 1, 2, 5, 10, 20, 50. Fit for the conservative case when (1 - g) tau is at least about 1: R(mu0) = 1 - (mu0 + 0.71) / ((1 - g) tau + 1.42), with errors against the table for tau of 5 or more of at most 0.02 (mu0 = 0.5), 0.05 (mu0 = 0.2), 0.03 (mu0 = 1); it fails below that (R = 0 at small tau for mu0 = 1). Absorbing clouds saturate (omega = 0.99 near 0.60 at mu0 = 0.5); use the table. Kitzmann et al. 2013 (arXiv:1306.3940, READ abstract) find that two-stream schemes overestimate reflected and transmitted radiation for CO2 ice clouds relative to a discrete-ordinate solver, so prefer this table to a two-stream formula. The Lacis and Hansen 1974 formula was not reached.
+For omega = 1, mu0 = 0.5: g = 0 gives R = 0.501, 0.656, 0.820, 0.900, 0.943 at tau 1, 2, 5, 10, 20; g = 0.7 gives 0.271, 0.411, 0.605, 0.741, 0.842, 0.929 at tau 1, 2, 5, 10, 20, 50. Fit for the conservative case when (1 - g) tau is at least about 1: R(mu0) = 1 - (mu0 + 0.71) / ((1 - g) tau + 1.42), with errors against the table for tau of 5 or more of at most 0.02 (mu0 = 0.5), 0.05 (mu0 = 0.2), 0.03 (mu0 = 1); it fails below that (R = 0 at small tau for mu0 = 1). Absorbing clouds saturate (omega = 0.99 near 0.60 at mu0 = 0.5); use the table. Kitzmann et al. 2013 (arXiv:1306.3940, READ abstract) find that two-stream schemes overestimate reflected and transmitted radiation for CO2 ice clouds relative to a discrete-ordinate solver, so prefer this table to a two-stream formula. 
 
 ## 4. Boss must research (not reached, or reached only second-hand)
 
@@ -447,11 +446,11 @@ For omega = 1, mu0 = 0.5: g = 0 gives R = 0.501, 0.656, 0.820, 0.900, 0.943 at t
 2. Saturation or solubility data not found: H2SO4-H2O vapour pressure for 60 to 98 wt percent (Ayers 1980, Zeleznik 1991, Tabazadeh 1997; only the statement that vapour is below 1e-6 Pa at stratospheric temperatures was read, in Loftus 2019 citing Kulmala and Laaksonen 1990); NH4Cl and NH4HSO4; HNO3 and HCl hydrates; solid NaCl and KCl vapour (JANAF); Cr2O3, Fe2O3, Fe3O4 against the metal; carbonate and sulfate decomposition (CaCO3, MgCO3, CaSO4; NIST-JANAF); the radon sublimation branch.
 3. Perchlorate brines: Ca(ClO4)2 and Mg(ClO4)2 eutectic temperatures, deliquescence humidity, water activity (Chevrier, Hanley, Gough and related papers). Needed for cold dry rocky surfaces.
 4. Optical constants: numeric Mars dust spectrum and imaginary index (Wolff 2009, Ockert-Bell 1997, Lemmon 2004, Tomasko 1999); Titan haze absolute spectrum (Tomasko 2008, Doose 2016); visible k of CH4 and NH3 ice; H2SO4 at Venus temperatures; hydrated sea salt; perchlorates; carbonate k; the FeS row; the HITRAN-RI H2SO4, HNO3 and organic-acid files (unread).
-5. Haze yield: lab mg/h to planetary mass flux (Hörst 2018 says impossible), Lavvas and Koskinen 2017 production rates, K_zz(P) per class, coagulation outcome tables.
-6. Cloud microphysics: A and M appendix B drag law; Powell 2018 and 2019 (silicate and titanium clouds) and Mbarek and Kempton 2016 (species by regime) were downloaded but their tables not extracted; Morley 2013 haze grid.
+5. Haze yield: lab mg/h to planetary mass flux (Hörst 2018 says impossible), production rates, K_zz(P) per class, coagulation outcome tables.
+6. Cloud microphysics: A and M appendix B drag law; Powell 2018 and 2019 (silicate and titanium clouds) and Mbarek and Kempton 2016 (species by regime) were downloaded but their tables not extracted; haze grid.
 7. Dust: Kok 2011 fragmentation size distribution (cited only), coefficients C_K and C_GP, wet or crusted soil thresholds, cohesion and electrostatics at low gravity, dust-devil lofting.
 8. Lava worlds: partial pressures of Na, K, SiO, Mg, Fe, TiO, VO against temperature and composition (Schaefer, Lodders and Fegley 2012; LavAtmos arXiv:2210.10463), sodium and potassium escape.
-9. Validated cloud radiative transfer with polarisation and non-spherical particles (the Monte Carlo here is scalar and spherical); Lacis and Hansen 1974.
+9. Validated cloud radiative transfer with polarisation and non-spherical particles (the Monte Carlo here is scalar and spherical).
 10. Equilibrium condensation for non-solar C/O, Mg/Si, Fe/Mg (FastChem or GGchem); the fits in 2.1 scale metallicity only.
 11. Widening the proxy for doi.org, science.org, agupubs, aanda, sciencedirect, usgs and mindat would give the journal versions of the above.
 
@@ -465,17 +464,17 @@ Each item here is RECALLED or an assumption of this note; none is presented as v
 | Liquid water density | 0.997 g/cm3 | 2.8 | any water property table (CRC) |
 | Soot and amorphous carbon density | 1.8 g/cm3 | 2.8 | Maricq 2004, Rissler 2013 (cited in Adams 2019) |
 | SiC density | about 3.2 g/cm3 | 2.8 | webmineral moissanite page |
-| Saharan dust, volcanic, dust-like, sand densities | 2.6, 2.6, 2.6, 2.8 g/cm3; sea salt 2.2; ammonium sulfate 1.77; carbonaceous 1.8; meteoric 3.0; water-soluble 1.7 | 2.8 | Shettle and Fenn 1979 / AFCRL 1987 |
+| Saharan dust, volcanic, dust-like, sand densities | 2.6, 2.6, 2.6, 2.8 g/cm3; sea salt 2.2; ammonium sulfate 1.77; carbonaceous 1.8; meteoric 3.0; water-soluble 1.7 | 2.8 | no source |
 | A(Mg) solar abundance | 7.55 (Mg/H 3.55e-5) | check of the Mg2SiO4 constant in 2.3 | Lodders 2010 (arXiv:1010.2746, downloaded, not extracted) |
 | Clausius-Clapeyron fallback | ln P = ln P_tr - (L/R)(1/T - 1/T_tr) | 3.2 | standard thermodynamics text |
 | Kinetic mean free path | lambda = eta / (0.499 rho_a v_mean) | 2.10, 3.6 | Jennings 1988 or Seinfeld and Pandis |
 | Gamma size distribution | n(r) proportional to r^((1 - 3 b) / b) exp(-r / (a b)) with a = r_eff, b = v_eff | Mars inversion in 2.10 | Hansen and Travis 1974 |
 | von Karman constant and roughness length | kappa = 0.4; z0 about D/30 | 3.8 | any boundary-layer text |
-| Iversen-White cgs units | the constant 0.006 in cgs | 3.8, 2.10 | Iversen and White 1982 |
-| FeS optical row | n 1.415, k 1.4 at 550 nm from LX-MIE (data, but physically doubtful) | 2.8 | Pollack 1994; Henning and Mutschke 1997 |
+| Iversen-White cgs units | the constant 0.006 in cgs | 3.8, 2.10 | no source |
+| FeS optical row | n 1.415, k 1.4 at 550 nm from LX-MIE (data, but physically doubtful) | 2.8 | Pollack 1994 |
 | Mg2SiO4 constant in the Gao 2020 saturation expression | 14.88 is inferred (printed as 4.88; 14.88 matches the Visscher fit within 17 K at 1 bar) | 2.3 | Gao 2020 authors |
-| Warren 1986 CO2 ice table | n and k values read from OCR text of the PDF | 2.8 | the scanned table |
-| Hematite colour direction | negative Angstrom exponent in all three hematite sets | 2.8 | spectra in Querry 1985; Triaud |
+| CO2 ice table | n and k values read from OCR text of the PDF | 2.8 | the scanned table |
+| Hematite colour direction | negative Angstrom exponent in all three hematite sets | 2.8 | spectra; Triaud |
 
 ## 6. Cross-links to neighbouring parts
 

@@ -3495,7 +3495,7 @@ def nebula_surroundings(conn, nebula_id):
     if row["center_x_pc"] is None:
         return result
     center = (row["center_x_pc"], row["center_y_pc"], row["center_z_pc"])
-    skeleton = get_galaxy_shape(conn)
+    skeleton = get_galaxy_shape(conn, light=True)
     edge_pc = skeleton.edge_pc if skeleton is not None else ly_to_pc(DEFAULT_SECTOR_EDGE_LY)
     stars = galaxy_bright_stars_in_box(
         conn, tuple(c - half for c in center), tuple(c + half for c in center), edge_pc,
@@ -3588,7 +3588,7 @@ def phenomenon_detail(conn, phenomenon_type, phenomenon_id):
                 detail["compact_remnant_name"] = found["name"] if found else None
     if phenomenon_type in ("black_hole", "neutron_star", "rogue_planet"):
         # The Einstein radius (GEN.154) is seen from the galaxy's reference radius: no home position is stored (GEN.404).
-        skeleton = get_galaxy_shape(conn)
+        skeleton = get_galaxy_shape(conn, light=True)
         if skeleton is not None:
             detail["reference_radius_pc"] = tuning.REFERENCE_RADIUS_SCALE_LENGTHS * skeleton.shape.disk_scale_length_pc
     # DB.2: the composition rows saved beside an asteroid field or an
@@ -4975,7 +4975,7 @@ def list_uncharted_systems(conn, limit=None, offset=None, sort="luminosity", des
     if limit is not None:
         query += " LIMIT ? OFFSET ?"
         params = params + [int(limit), int(offset or 0)]
-    skeleton = get_galaxy_shape(conn)
+    skeleton = get_galaxy_shape(conn, light=True)
     edge_pc = skeleton.edge_pc if skeleton else float(tuning.DEFAULT_SECTOR_EDGE_PC)
     return [_uncharted_item(row, edge_pc) for row in conn.execute(query, params).fetchall()]
 
@@ -5014,7 +5014,7 @@ def uncharted_system_detail(conn, bright_star_id):
         (int(bright_star_id),)).fetchone()
     if row is None:
         raise ValueError(f"no bright_stars row with id {bright_star_id}")
-    skeleton = get_galaxy_shape(conn)
+    skeleton = get_galaxy_shape(conn, light=True)
     detail = _uncharted_item(row, skeleton.edge_pc if skeleton else float(tuning.DEFAULT_SECTOR_EDGE_PC))
     detail["system_id"] = row["star_system_id"]
     detail["rotation_period_hours"] = row["rotation_period_hours"]
@@ -5739,7 +5739,7 @@ def _tile_piece(conn, incomplete, name, compute, default):
 
 def galaxy_edge_pc(conn):
     """The galaxy's sector edge in parsecs: the stored skeleton's, else the default."""
-    skeleton = get_galaxy_shape(conn)
+    skeleton = get_galaxy_shape(conn, light=True)
     return skeleton.edge_pc if skeleton else float(tuning.DEFAULT_SECTOR_EDGE_PC)
 
 

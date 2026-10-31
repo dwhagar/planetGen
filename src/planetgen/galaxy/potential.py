@@ -6,7 +6,7 @@ The galactic potential as one pure module (GEN.338; docs/design/orbits/orbital-s
 
 One function of position returns the potential and the pull of a galaxy, and one the circular speed in its plane, from three kinds of mass:
 
-- **Hernquist spheres** (Hernquist 1990), `Phi = -G M / (r + a)`: the bulge (the bar's three axes are not kept: a sphere of the bar's long
+- **Hernquist spheres**, `Phi = -G M / (r + a)`: the bulge (the bar's three axes are not kept: a sphere of the bar's long
   axis), the stellar halo, the nuclear star cluster;
 - **Miyamoto-Nagai disks** (Miyamoto and Nagai 1975), `Phi = -G M / sqrt(R^2 + (a + sqrt(z^2 + b^2))^2)`: the thin and thick disks and the nuclear
   disc, with `a` the disk's scale length and `b` its scale height;

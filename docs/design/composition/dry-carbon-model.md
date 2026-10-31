@@ -6,7 +6,7 @@ Status: module and registry rows, written 2026-10-30 (as the lane reported) by t
 
 Row b1 (a body that formed inside the snow line and took in little water) carried a log bracket of 0.018 to 0.1 weight percent CO2: the stored dry value of Ortenzi 2020 to its high case, chosen so that an Earth-distance draw's median sat at the bulk silicate Earth's 100 ppm of carbon (`volatile-inventory-against-planet-totals.md`, GEN.813). The Earth was the anchor. This model derives the bracket from the carbon of the building blocks and what core formation leaves, and uses the Earth as a test.
 
-## 2. The three steps (all from Blanchard, Siebert, Badro, Ghiorso and Hirschmann 2022, EPSL, arXiv:2202.06809; read in full text)
+## 2. The three steps (all from Blanchard, Siebert, Badro, EPSL, arXiv:2202.06809; read in full text)
 
 | Step | Number | Where | Registry |
 |---|---|---|---|

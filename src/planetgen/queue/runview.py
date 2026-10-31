@@ -27,7 +27,8 @@ def stage_view(stage, run_over, now):
         seconds = max(end - stage["started"], 0.0)
     return {"key": stage["key"], "label": stage["label"], "state": state, "units": stage["units"], "done": stage["done"],
             "cost": stage["cost_total"], "cost_done": stage["cost_done"], "started": stage["started"],
-            "ended": stage["ended"], "seconds": seconds, "longest_unit": stage.get("longest_unit")}
+            "ended": stage["ended"], "seconds": seconds, "longest_unit": stage.get("longest_unit"),
+            "peak_mb": stage.get("peak_mb")}
 
 
 def eta_view(run, now):

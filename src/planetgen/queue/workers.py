@@ -65,15 +65,36 @@ SCATTER_WORKER_MEMORY_MB = 900
 workers at 16,285 MB on a 15,992 MB host and the kernel killed it (MySQL first, at 3:22 AM EDT, then the workers, 450 to
 900 MB resident each, by Boss's kernel log). The cap is sized for the 900 MB end, not the mean."""
 
-STAGE_MEMORY_SHARE = 0.5
-"""float: The share of the host's memory a memory-heavy stage's workers may take (less than `HOST_MEMORY_SHARE`): MySQL's
-buffer pool, Redis, the web server and the kernel keep the rest, so a stage that grows past its guess is slowed, not
-killed. 50 percent of a 16 GB host in 900 MB workers is 8."""
+SECTOR_WORKER_MEMORY_MB = 1600
+"""int: What one worker takes at most while it generates sectors (PERF.226). Measured on a populated database, a galaxy of two
+shells at the default density (the starting sector and the first 12 of its 107 neighbours, 4 workers): 1,472 MB in the starting
+sector's worker and 1,487 MB in the neighbourhood's, resident, the worker's tables and its horse's sector together. The run that
+died on 2026-10-31 (36 workers, 5:39 PM EDT) had a host of 16 GB; 36 of these are 54 GB, 10 are 16."""
 
-MEMORY_HEAVY_KINDS = {"scatter-mass": SCATTER_WORKER_MEMORY_MB, "scatter-luminosity": SCATTER_WORKER_MEMORY_MB,
-                      "scatter-backfill": SCATTER_WORKER_MEMORY_MB, "scatter-band": SCATTER_WORKER_MEMORY_MB}
-"""dict: The command kinds of the stages whose workers take more than an ordinary one, and what one takes in MB
-(`stage_worker_cap`)."""
+UNMEASURED_WORKER_MEMORY_MB = 900
+"""int: What one worker of a stage that has units and no measured figure yet is sized by (the scatters' figure, the largest
+measured outside the sectors'): the stage is slowed to the workers the host's memory holds in that, not left at the ordinary
+300 MB guess (PERF.226). A stage leaves `UNMEASURED_KINDS` when its peak (the run report's "largest worker") is in
+`STAGE_WORKER_MEMORY_MB`."""
+
+STAGE_MEMORY_SHARE = 0.5
+"""float: The share of the host's memory a stage's workers may take (less than `HOST_MEMORY_SHARE`): MySQL's buffer pool, Redis,
+the web server and the kernel keep the rest, so a stage that grows past its figure is slowed, not killed. 50 percent of a 16 GB
+host in 900 MB workers is 8, in 1,600 MB ones 5."""
+
+STAGE_WORKER_MEMORY_MB = {
+    "scatter-mass": SCATTER_WORKER_MEMORY_MB, "scatter-luminosity": SCATTER_WORKER_MEMORY_MB,
+    "scatter-backfill": SCATTER_WORKER_MEMORY_MB, "scatter-band": SCATTER_WORKER_MEMORY_MB,
+    "generate-start-sector": SECTOR_WORKER_MEMORY_MB, "generate-neighborhood": SECTOR_WORKER_MEMORY_MB,
+    "generate-sectors": SECTOR_WORKER_MEMORY_MB, "generate-unplaced-sector": SECTOR_WORKER_MEMORY_MB,
+}
+"""dict: The command kinds of the stages whose workers were measured, and what one takes at most in MB (`stage_worker_cap`)."""
+
+UNMEASURED_KINDS = ("scatter-phenomena", "fill-map-luminosity", "rescore-habitability", "draw-nebula-field", "link-neighbours",
+                    "settle-sector-paths", "warm-galaxy-nodes", "warm-galaxy-deep-nodes", "warm-sectors", "warm-systems",
+                    "warm-phenomena")
+"""tuple: The command kinds with units and no measured figure yet (PERF.226 goes on measuring them); each is sized by
+`UNMEASURED_WORKER_MEMORY_MB`. Every other command is one unit by nature (`CommandSpec.whole`) or inline, so one worker."""
 
 REFUSED_KEY = "planetgen:workers:refused"
 REFUSED_NOTE_KEY = "planetgen:workers:refused-note"
@@ -283,14 +304,23 @@ def host_worker_cap():
     return max(floor, min(by_memory, 4 * cores))
 
 
+def stage_worker_mb(kind):
+    """What one worker of a stage of command `kind` takes at most, MB (PERF.226): its measured figure (`STAGE_WORKER_MEMORY_MB`),
+    `UNMEASURED_WORKER_MEMORY_MB` for a stage with units and no figure yet (`UNMEASURED_KINDS`), or `None` for a command that is one
+    unit or inline (one worker, nothing to limit)."""
+    if kind in STAGE_WORKER_MEMORY_MB:
+        return STAGE_WORKER_MEMORY_MB[kind]
+    return UNMEASURED_WORKER_MEMORY_MB if kind in UNMEASURED_KINDS else None
+
+
 def stage_worker_cap(kind):
     """
-    The most workers a stage of command `kind` may use at once (PERF.220): `STAGE_MEMORY_SHARE` of the host's memory in
-    workers of what that stage's worker takes (`MEMORY_HEAVY_KINDS`), at least 1. `None` for a stage whose workers are
-    ordinary (the host cap and the run's count rule it) or where the OS does not say how much memory there is. What a
-    stage generates does not depend on how many workers share it (`work.task_seed`), so the cap only changes the time.
+    The most workers a stage of command `kind` may use at once (PERF.220, PERF.226): `STAGE_MEMORY_SHARE` of the host's memory in
+    workers of what that stage's worker takes (`stage_worker_mb`), at least 1. `None` for a command that is one unit or inline or
+    where the OS does not say how much memory there is. What a stage generates does not depend on how many workers share it
+    (`work.task_seed`), so the cap only changes the time.
     """
-    per_worker_mb = MEMORY_HEAVY_KINDS.get(kind)
+    per_worker_mb = stage_worker_mb(kind)
     total = _physical_memory_bytes()
     if per_worker_mb is None or total is None:
         return None

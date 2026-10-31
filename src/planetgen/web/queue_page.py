@@ -348,6 +348,7 @@ def _stage_rows(run):
         "started": _iso(stage["started"]),
         "duration": _duration(stage["seconds"]),
         "longest": _duration(stage["longest_unit"]) if stage.get("longest_unit") else "",
+        "peak": f"{stage['peak_mb']:.0f} MB" if stage.get("peak_mb") else "",
     } for number, stage in enumerate(run["stages"], 1)]
 
 

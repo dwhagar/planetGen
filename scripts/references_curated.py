@@ -7,6 +7,29 @@ author, year and title agree with that statement.
 
 # Words that look like "Name 2026" but are not citations at all: dates, file or item names, sentence words.
 NOISE = {
+    "Extended": "the word 'Extended' followed by a date in a note (a status line), not an author",
+    "Folded": "the word 'Folded' followed by a date in a note (a status line), not an author",
+    "Detail": "the word 'Detail' followed by a date in a note (a status line), not an author",
+    "Blocked": "the word 'Blocked' followed by a date in a note (a status line), not an author",
+    "Trimmed": "the word 'Trimmed' followed by a date in a note (a status line), not an author",
+    "Verified": "the word 'Verified' followed by a date in a note (a status line), not an author",
+    "Widened": "the word 'Widened' followed by a date in a note (a status line), not an author",
+    "Owner": "the word 'Owner' followed by a date in a note (a status line), not an author",
+    "Handoff": "the word 'Handoff' followed by a date in a note (a status line), not an author",
+    "Relaxed": "the word 'Relaxed' followed by a date in a note (a status line), not an author",
+    "Superseded": "the word 'Superseded' followed by a date in a note (a status line), not an author",
+    "Finding": "the word 'Finding' followed by a date in a note (a status line), not an author",
+    "PlanetGen": "the site's own name inside a test password string, not an author",
+    "Prefer": "the word 'Prefer' followed by a year (an edition to prefer), not an author",
+    "And": "the word 'And' followed by a year (the second of two years in a title list), not an author",
+    "SGR": "the magnetar name SGR 1935+2154, not an author and year",
+    "Publishing": "the publisher Mineral Data Publishing, followed by a year range, not an author",
+    "Review": "the end of a title (Statistical Review of World Energy) followed by a year, not an author",
+    "Schema": "JSON Schema, a dialect named by year (2020-12), not an author",
+    "Paper": "the SAE Technical Paper series number (year-number), not an author",
+    "Transfer": "the end of a journal name (Radiative Transfer) followed by a year, not an author",
+    "Optics": "the end of a journal name (Applied Optics) followed by a year, not an author",
+    "Astrochemistry": "part of the title of the UMIST database paper, not an author and year",
     "EDT": "a time stamp (a clock time in EDT followed by the year)",
     "Copyright": "a copyright line on a source page, not a citation",
     "Feb": "a month and year, not a citation", "Aug": "a month and year, not a citation", "Oct": "a month and year, not a citation",
@@ -45,6 +68,7 @@ NOISE = {
 
 # Organisations, standards, web pages, software and data products: not a paper. (what it is, link)
 NOT_PAPERS = {
+    "Chandrasekhar": ("textbooks and monographs by S. Chandrasekhar (Radiative Transfer, 1960 Dover reprint; Ellipsoidal Figures of Equilibrium, 1969)", "https://archive.org/search?query=chandrasekhar+radiative+transfer"),
     "JANAF": ("NIST-JANAF Thermochemical Tables (a data table set, listed under archives)", "https://janaf.nist.gov/"),
     "UNSCEAR": ("United Nations Scientific Committee on the Effects of Atomic Radiation, reports to the General Assembly", "https://www.unscear.org/unscear/en/publications.html"),
     "IPCC": ("Intergovernmental Panel on Climate Change assessment reports", "https://www.ipcc.ch/reports/"),
@@ -128,6 +152,14 @@ ALIASES = {
 # Hand decisions, applied by `settle_references.py curated` after the automatic search.
 # PICKS: "Name|Second|kind|year" -> DOI (or "arXiv:ID"). The record is fetched and refused unless its authors and year agree with the key.
 PICKS = {
+    "CODATA||one|2022": "10.1103/revmodphys.97.025002",
+    "Collins||one|2018": "10.1126/sciadv.aas9593", "Collins||etal|2018": "10.1126/sciadv.aas9593",
+    "Savvidou||one|2020": "10.1051/0004-6361/201936576", "Savvidou||etal|2020": "10.1051/0004-6361/201936576",
+    "Stoporev||etal|2023": "10.3390/ijms24119321",
+    "Ackerman||one|2018": "10.3847/1538-4357/aab0a1", "Marley|Gao|pair|2018": "10.3847/1538-4357/aab0a1",
+    "Marley||etal|1999": "arXiv:astro-ph/9810073", "Marley||one|1999": "arXiv:astro-ph/9810073",
+    "Hesselbrock|Minton|pair|2020": "arXiv:2006.00645",
+    "XVI||one|2014": "arXiv:1303.5076",
     "Frost||one|1991": "10.1515/9781501508684-004",
     "Stefano||one|2017": "10.3847/1538-4365/aa6fb6",
     "Hakim||one|2018": "10.1016/j.icarus.2018.05.005",
@@ -183,7 +215,7 @@ PICKS = {
 }
 
 # ORG_PICKS: names that stand for a paper by other authors (the author check is skipped for these).
-ORG_PICKS = {"CODATA", "Planck"}
+ORG_PICKS = {"CODATA", "Planck", "XVI"}
 
 # RECORDS: a pre-DOI paper, book or report written out in full from what the citing sentences say; its link is an ADS search.
 RECORDS = {

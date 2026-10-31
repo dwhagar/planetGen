@@ -543,6 +543,110 @@ def cmd_search(c, limit, min_places, workers):
         br.log("searched", done, "tied", found)
 
 
+# ------------------------------------------------------------------------------------------------------------ OpenAlex pass
+def oa_items(params):
+    """One OpenAlex query, with the key read from the environment variable OPENALEX_API_KEY (never from a file). Returns Crossref-shaped
+    items, so `score` and `accept` judge them by the same rule as a Crossref search."""
+    import time
+    import urllib.error
+    import urllib.request
+    key = os.environ.get("OPENALEX_API_KEY", "")
+    q = dict(params, per_page="50", mailto=br.MAILTO)
+    if key:
+        q["api_key"] = key
+    url = "https://api.openalex.org/works?" + urllib.parse.urlencode(q)
+    for i in range(6):
+        try:
+            req = urllib.request.Request(url, headers={"User-Agent": br.UA})
+            with urllib.request.urlopen(req, timeout=60) as r:
+                res = json.loads(r.read()).get("results", [])
+            break
+        except urllib.error.HTTPError as e:
+            if e.code in (400, 404):
+                return []
+            time.sleep(min(60, 3 * 2 ** i))
+        except (OSError, ValueError):
+            time.sleep(min(60, 3 * 2 ** i))
+    else:
+        raise SearchFailed(url.split("api_key")[0][:200])
+    out = []
+    for w in res:
+        doi = (w.get("doi") or "").replace("https://doi.org/", "").lower()
+        if not doi or not w.get("publication_year"):
+            continue
+        au = []
+        for a in w.get("authorships", []):
+            name = (a.get("author") or {}).get("display_name") or ""
+            parts = name.split()
+            if parts:
+                au.append({"family": parts[-1], "given": " ".join(parts[:-1])})
+        loc = (w.get("primary_location") or {}).get("source") or {}
+        bib = w.get("biblio") or {}
+        out.append({"DOI": doi, "title": [w.get("title") or ""], "author": au, "issued": {"date-parts": [[w["publication_year"]]]},
+                    "container-title": [loc.get("display_name") or ""], "volume": bib.get("volume") or "",
+                    "page": bib.get("first_page") or "", "type": w.get("type") or "", "is-referenced-by-count": w.get("cited_by_count", 0)})
+    return out
+
+
+def openalex_key(c, key):
+    a, b, kind, y = split_key(key)
+    sn = snippets(c, key)
+    words = content_words(sn)
+    nums = nums_after(sn)
+    text_fold = " ".join(sn).lower()
+    yrs = "|".join(str(v) for v in (y - 1, y, y + 1))
+    queries = [{"filter": "raw_author_name.search:%s,publication_year:%s" % (a, yrs), "search": " ".join(sorted(words))[:200]},
+               {"filter": "raw_author_name.search:%s,publication_year:%s" % (a, yrs), "sort": "cited_by_count:desc"}]
+    cands = {}
+    for q in queries:
+        for it in oa_items(q):
+            if it["DOI"] not in cands:
+                sc = score(c, it, a, b, kind, y, words, nums, text_fold)
+                if sc:
+                    cands[it["DOI"]] = sc
+    ranked = sorted(cands.values(), key=lambda r: -r["s"])
+    got, why, probable = accept(ranked, kind)
+    return {"accepted": got, "why": why, "probable": probable["entry"]["doi"] if probable else None}
+
+
+def cmd_openalex(c, limit, workers):
+    if not os.environ.get("OPENALEX_API_KEY"):
+        br.log("OPENALEX_API_KEY is not set; the pass runs without a key and is rate limited")
+    todo = [k for k, v in c.get("authoryear_status", {}).items() if not settled(v) and "openalex" not in v.get("tried", []) and split_key(k)[3] >= 1900]
+    todo.sort(key=lambda k: -status_of(c, k)["n"])
+    if limit:
+        todo = todo[:limit]
+    br.log("keys to search in OpenAlex:", len(todo))
+    vocab(c), domain_journals(c)
+
+    def one(key):
+        try:
+            return key, openalex_key(c, key)
+        except SearchFailed as ex:
+            return key, {"accepted": None, "why": "search failed: %s" % ex}
+    done = found = 0
+    for i in range(0, len(todo), 200):
+        for key, res in br.parallel(one, todo[i:i + 200], workers):
+            if res["why"].startswith("search failed"):
+                continue
+            v = status_of(c, key)
+            v.setdefault("tried", []).append("openalex")
+            if res["accepted"]:
+                e = res["accepted"]["entry"]
+                e["via"] = "openalex search on author, year and the citing sentences"
+                e["src"] = "openalex-search"
+                c["entries"].setdefault(e["doi"], e)
+                v["matched"] = [e["doi"]]
+                v["evidence"] = res["why"]
+                v.pop("review", None)
+                found += 1
+            elif res.get("probable") and v.get("review"):
+                v["review"]["probable"] = v["review"].get("probable") or res["probable"]
+            done += 1
+        br.save_cache(c)
+        br.log("searched", done, "tied", found)
+
+
 # ---------------------------------------------------------------------------------------------------------------- report
 def counts(c):
     out = {"tied": [0, 0], "not": [0, 0], "review": [0, 0]}
@@ -732,7 +836,7 @@ def cmd_report(c):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("cmd", choices=["triage", "local", "search", "report", "reset", "review", "curated", "lookup", "probables", "accept", "bare", "fulltext", "hints"])
+    ap.add_argument("cmd", choices=["triage", "local", "search", "report", "reset", "review", "curated", "lookup", "probables", "accept", "bare", "fulltext", "hints", "openalex"])
     ap.add_argument("--limit", type=int, default=0)
     ap.add_argument("--min-places", type=int, default=1)
     ap.add_argument("--workers", type=int, default=8)
@@ -749,6 +853,8 @@ def main():
         cmd_local(c)
     elif a.cmd == "search":
         cmd_search(c, a.limit, a.min_places, a.workers)
+    elif a.cmd == "openalex":
+        cmd_openalex(c, a.limit, a.workers)
     elif a.cmd == "reset":
         cmd_reset(c)
     elif a.cmd == "review":
@@ -770,7 +876,7 @@ def main():
         return
     elif a.cmd == "curated":
         apply_curated(c)
-    if a.cmd in ("triage", "local", "reset", "curated", "accept", "bare", "fulltext", "hints"):
+    if a.cmd in ("triage", "local", "reset", "curated", "accept", "bare", "fulltext", "hints", "openalex"):
         br.save_cache(c)
     cmd_report(c)
 

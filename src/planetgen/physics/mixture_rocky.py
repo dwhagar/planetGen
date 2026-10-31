@@ -94,7 +94,7 @@ QUENCH_TEMPERATURE_K = (400.0, 900.0, "log")
 
 OXIDATION_TIME_GY = (0.1, 1.5, "log")
 """tuple: The time a body with long-lived geology takes to move its mantle from the magma-ocean redox to the later upper mantle's:
-the e-folding time of the oxidation (Aulbach and Stagno 2016 put the Earth's upper mantle at its present redox by about 3.5 Ga;
+the e-folding time of the oxidation (studies put the Earth's upper mantle at its present redox by about 3.5 Ga;
 bracket, GEN.482)."""
 
 MIN_EQUILIBRIUM_K = 300.0

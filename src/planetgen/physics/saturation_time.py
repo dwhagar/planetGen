@@ -6,7 +6,7 @@ How long a star stays saturated in X-rays, by mass and by initial rotation (GEN.
 Row p6 of the atmosphere recipes draws a star's initial-rotation percentile and takes the saturation time from three solar-mass points of
 Tu et al. 2015 (5.7, 23 and 226 Myr at the 10th, 50th and 90th percentile); the mass dependence was missing (every mass used the solar one, GEN.523).
 Johnstone, Bartel and Guedel 2021 (A&A 649, A96, arXiv:2009.07695) model the rotation and X-ray evolution of 0.1 to 1.25 solar mass stars with
-the spin-down of Johnstone 2015 and give, in their Fig. 10, the age at which a star falls below the saturation threshold against mass for the slow,
+the spin-down of a model and give, in their Fig. 10, the age at which a star falls below the saturation threshold against mass for the slow,
 medium and fast rotators, the observed 5th, 50th and 95th percentiles of the rotation distribution at 150 Myr (READ). `ANCHORS_MYR` is that figure
 read off: the pixel positions of the three curves on the published page, converted with the axes (a logarithmic axis up to 1000 Myr and a linear
 one above), taken at thirteen masses. At one solar mass the curves give 5, 23 and 297 Myr, against Tu et al.'s 5.7, 23 and 226 Myr at the 10th,

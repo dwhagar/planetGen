@@ -13,7 +13,7 @@
    "value": 500.0,
    "tier": "T3",
    "tweak": "L0",
-   "basis": "How far from a line the wing is carried: Simonetti and others 2021 (arXiv 2110.11702, appendix step 1, read) use the Perrin and Hartmann chi factors truncated at 500 cm-1 for carbon dioxide dominated air and say proposed truncations run from 120 cm-1 to none; their other option is 350 cm-1 with the Tonkov 1996 chi. The widest range of the two in question is 120 cm-1 to the whole grid, which the tests sweep"
+   "basis": "How far from a line the wing is carried: Simonetti and others 2021 (arXiv 2110.11702, appendix step 1, read) use the Perrin and Hartmann chi factors truncated at 500 cm-1 for carbon dioxide dominated air and say proposed truncations run from 120 cm-1 to none; their other option is 350 cm-1 with the chi. The widest range of the two in question is 120 cm-1 to the whole grid, which the tests sweep"
   },
   "temperature_low_k": {
    "value": 190.0,

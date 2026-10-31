@@ -20,7 +20,7 @@ Status: model and module, written on the night of 2026-10-24 (as the lane report
 | Kubyshkina, Fossati, Erkaev et al. 2018, Frontiers in Astronomy and Space Sciences 5, 19, "Overcoming the limitations of the energy-limited approximation for planet atmospheric escape" (arXiv:1810.06920) | Eq. 9 and 10, Table 1, Table 2 | the hydro-based mass loss of a hydrogen envelope and its nine test planets |
 | Zhang 2024, "Atmospheres of Solar System Moons and Pluto" (arXiv:2410.04595) | the Titan section | Titan's hydrogen escape (limited by the maximum diffusion rate, about 9.2e27 per second), the exobase at 1,500 to 1,600 km |
 | Erkaev et al. 2020 (arXiv:2010.12342), already read for GEN.813 | the Titan parts | Titan's surface pressure 1.467 bar |
-| Hunten 1973 (J. Atmos. Sci. 30, 1481); Chapman and Cowling's hard-sphere diffusion; Watson, Donahue and Walker 1981; Erkaev et al. 2007; Chamberlain 1963; Breck 1974; Bates 1959; Marrero and Mason 1972 | not opened | the diffusion-limited flux, the diffusion coefficient, the energy-limited rate, the exobase condition and cross section, the kinetic diameters, the temperature profile and the H2 in N2 diffusion coefficient of the test, as recalled (source tier 3; the registry rows say so) |
+| Hunten 1973 (J. Atmos. Sci. 30, 1481); Chapman and Cowling's hard-sphere diffusion; Watson, Donahue and Walker 1981; Erkaev et al. 2007; Chamberlain 1963; Marrero and Mason 1972 | not opened | the diffusion-limited flux, the diffusion coefficient, the energy-limited rate, the exobase condition and cross section, the kinetic diameters, the temperature profile and the H2 in N2 diffusion coefficient of the test, as recalled (source tier 3; the registry rows say so) |
 
 ## 3. The model
 

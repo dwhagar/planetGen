@@ -99,10 +99,10 @@ Not found in reachable sources (gap list, section 5): komatiite oxide table (REC
 | Scale depth H | 0 to above 0.2, average 0.06 | m | same | READ |
 | Phonon conductivity, surface and deep | 7.4e-4 and 3.4e-3 | W/m/K | same | READ |
 | Conductivity law | `K = Kc [1 + chi (T/350)^3]`, chi = 2.7; Kc linear in density between the two layers | n/a | same | READ |
-| Heat capacity polynomial | `cp = -3.6125 + 2.7431 T + 2.3616e-3 T^2 - 1.2340e-5 T^3 + 8.9093e-9 T^4` | J/kg/K | same (cites Hemingway et al. 1981) | READ |
+| Heat capacity polynomial | `cp = -3.6125 + 2.7431 T + 2.3616e-3 T^2 - 1.2340e-5 T^3 + 8.9093e-9 T^4` | J/kg/K | same) | READ |
 | cp from that polynomial | 138 (50 K), 254 (90 K), 424 (150 K), 555 (200 K), 720 (273 K), 771 (300 K), 850 (350 K), 910 (400 K) | J/kg/K | evaluated from the polynomial | COMPUTED |
 | Thermal inertia at 273 K, surface / deep | 36.6 / 100 | J/m2/K/s^1/2 | evaluated from the Hayne laws, `I = sqrt(K rho cp)` | COMPUTED |
-| Granular conductivity model | `lambda = lambda_solid H(r,T,phi) + 8 sigma eps T^3 Lambda`; `Lambda = e1 (1-phi)/phi r`, e1 = 1.34; `H = [(9 pi/4)(1-mu^2) gamma(T)/(E r)]^(1/3) f1 exp(f2 phi) chi`; f1 = 5.18e-2, f2 = 5.26, chi = 0.41; basalt grain values mu = 0.25, E = 7.8e10 Pa, gamma = 6.67e-5 T J/m2; lambda_solid 1.5 to 4 W/m/K | n/a | Gundlach and Blum 2013 as quoted in arXiv:2502.13222 Eq. 6 to 8 | 2ND-HAND |
+| Granular conductivity model | `lambda = lambda_solid H(r,T,phi) + 8 sigma eps T^3 Lambda`; `Lambda = e1 (1-phi)/phi r`, e1 = 1.34; `H = [(9 pi/4)(1-mu^2) gamma(T)/(E r)]^(1/3) f1 exp(f2 phi) chi`; f1 = 5.18e-2, f2 = 5.26, chi = 0.41; basalt grain values mu = 0.25, E = 7.8e10 Pa, gamma = 6.67e-5 T J/m2; lambda_solid 1.5 to 4 W/m/K | n/a | arXiv:2502.13222 Eq. 6 to 8 | 2ND-HAND |
 | Example from that model, filling factor 0.3 / 0.5, T = 250 K, lambda_solid = 3 | r = 10 um: 1.8e-3 / 4.7e-3; 100 um: 2.7e-3 / 3.0e-3; 1 mm: 2.0e-2 / 9.5e-3; 1 cm: 0.20 / 0.086 | W/m/K | my evaluation; implementation not yet checked against the original paper | COMPUTED |
 | Asteroid thermal inertia range used for grain-size inversion | 150 to 300 | J/m2/K/s^1/2 | Wada et al. 2018, arXiv:1804.03734, section on thermal inertia and albedo | READ |
 | Water ice conductivity | `k = 567/T` (crystalline) | W/m/K | Klinger 1980 as quoted in de Kleer et al. 2021, arXiv:2101.04211 | 2ND-HAND |
@@ -279,7 +279,7 @@ Formula (a derivation from the pieces above; all terms COMPUTED or READ):
 
 `f_i(t) = exp(lambda_i * (T_ref - t))` where `T_ref` is the age at which the concentrations `C` are quoted; `w_238 = 0.9928, w_235 = 0.0072` at present, so at age t the stored uranium splits by `exp` factors. `M_sil` is the mass of the part that carries the heat (bulk silicate: planet mass times (1 - core mass fraction) from part B). Mean surface flux from radiogenic heat: `q_rad = H / (4 pi R^2)`. Total flux: `q = q_rad / Ur`, with Ur the Urey ratio, so the remainder `q - q_rad` is secular cooling.
 
-Urey ratio targets (COMPUTED from Nimmo et al. 2020, READ): total surface heat flow 42 to 47 TW, bulk silicate radiogenic heat 22 TW, so the present Urey ratio is 0.47 to 0.52; they quote 35 to 40 TW when the crustal contribution is removed. Borexino geoneutrinos give a total of 38.2 (+13.6, -12.7) TW with a mantle part 24.6 (+11.1, -10.4) TW (same paper, citing Agostini et al. 2019, READ). The repo's 0.67 is above all of these. Ur varies with age: young bodies have Ur well below 1 because secular cooling is large; the generator should draw it, not fix it (section 3).
+Urey ratio targets (COMPUTED from Nimmo et al. 2020, READ): total surface heat flow 42 to 47 TW, bulk silicate radiogenic heat 22 TW, so the present Urey ratio is 0.47 to 0.52; they quote 35 to 40 TW when the crustal contribution is removed. Borexino geoneutrinos give a total of 38.2 (+13.6, -12.7) TW with a mantle part 24.6 (+11.1, -10.4) TW (same paper, READ). The repo's 0.67 is above all of these. Ur varies with age: young bodies have Ur well below 1 because secular cooling is large; the generator should draw it, not fix it (section 3).
 
 Worked example, an Earth-mass body with core mass fraction 0.325 (a worked example only, not a default): `M_sil = 0.675 * 5.97e24 kg`, Palme and O'Neill concentrations, `H = 21.7 TW`, `q_rad = 0.0426 W/m2` over `R = 6371 km`, `q = 0.091 W/m2` at Ur 0.47 (COMPUTED). The measured total of 42 to 47 TW over 5.1e14 m2 is 0.082 to 0.092 W/m2 (COMPUTED).
 
@@ -308,7 +308,7 @@ Consequences: the 26Al energy per kg is 600 times the 60Fe energy at the recomme
 
 #### 2.9a Ground gamma and radon
 
-Dose-rate conversion (air kerma per unit specific activity, infinite flat source, 1 m height, nGy/h per Bq/kg): K-40 0.042; U series 0.463; Th series 0.604 (Saito and Jacob 1995), 0.042 / 0.444 / 0.592 (Malins and Machida 2015, arXiv:1501.04426 text, which also quotes Gasser's 0.036 / 0.357 / 0.482). Source: arXiv:1501.04426, READ.
+Dose-rate conversion (air kerma per unit specific activity, infinite flat source, 1 m height, nGy/h per Bq/kg): K-40 0.042; U series 0.463; Th series 0.604, 0.042 / 0.444 / 0.592 (Malins and Machida 2015, arXiv:1501.04426 text, which also quotes Gasser's 0.036 / 0.357 / 0.482). Source: arXiv:1501.04426, READ.
 
 Specific activity per ppm of the element (COMPUTED with `radioactivedecay` half-lives, N_A and isotope abundances): U 12.35 Bq/kg per ppm (U-238 only; the series is assumed in equilibrium), Th 4.06 Bq/kg per ppm, K 316 Bq/kg per weight percent K (K-40 abundance 1.17e-4). Dose per ppm and per percent (Saito and Jacob factors, COMPUTED): U 5.72 nGy/h per ppm, Th 2.45 nGy/h per ppm, K 13.3 nGy/h per weight percent. With the Malins factors: U 5.48, Th 2.40.
 
@@ -407,7 +407,7 @@ Column rule (a derivation from the table above; the structure is Dartnell's find
 | Fact | Value | Source | Label |
 |---|---|---|---|
 | Mars surface dose under 16 g/cm2 atmosphere, solar minimum, 3 g/cm3 dry dust | 6.2 cGy/yr; peak 6.6 cGy/yr at 40 g/cm2 ground depth (1.06 times) | Dartnell et al. 2007 | READ |
-| Other models | 20 cGy/yr peak at 25 g/cm2 (Pavlov 2002); 19.4 surface and 24.9 peak at 30 g/cm2 (Mileikowsky 2000); factor 3 between them | same | READ |
+| Other models | 20 cGy/yr peak at 25 g/cm2; 19.4 surface and 24.9 peak at 30 g/cm2; factor 3 between them | same | READ |
 | Peak depth for dry dust at 1 g/cm3 and regolith at 3 g/cm3 | both 40 g/cm2 | same | READ |
 | Peak depth for ice at 1 g/cm3 | 30 g/cm2 | same | READ |
 | Protons below 1 GeV | simple exponential decay with depth, no build-up; higher energy bands peak deeper (100 GeV to 1 TeV band peaks at 1.3 m) | same | READ |
@@ -558,7 +558,7 @@ Measured bodies, used only to check the laws, never as presets.
 | Bulk silicate Earth heat at 4.567 Gyr | 21.7 TW (Palme and O'Neill), 19.8 TW (McDonough and Sun); tolerance +/- 5 percent of the chosen model | table 2.8b | heat formula check | COMPUTED |
 | Earth radiogenic heat | about 22 TW total, about 15 TW in the mantle (Nimmo 2020 via O'Neill 2020b) | arXiv:2011.04791 | order of magnitude | READ |
 | Earth total heat flow | 42 to 47 TW | arXiv:2011.04791 | Urey ratio check 0.47 to 0.52 | READ |
-| Geoneutrino total | 38.2 (+13.6, -12.7) TW | arXiv:2011.04791, citing Agostini 2019 | broad check | READ |
+| Geoneutrino total | 38.2 (+13.6, -12.7) TW | arXiv:2011.04791 | broad check | READ |
 | Heat production 4 Gyr ago against present | 3.5 times | arXiv:2011.04791 | time evolution; mine 3.67 | READ |
 | Lunar interior heat flow | 0.018 W/m2 | arXiv:1711.00977 | low-Th smaller body | READ |
 | Lunar regolith density, conductivity, inertia | 1100 and 1800 kg/m3; 7.4e-4 and 3.4e-3 W/m/K; I = 36.6 to 100 (at 273 K) | arXiv:1711.00977 and table 2.4 | regolith law | READ |
@@ -577,9 +577,9 @@ Measured bodies, used only to check the laws, never as presets.
 
 Ranked by effect on the design.
 
-1. A K depletion survey for rocky bodies: McCubbin et al. 2012 (K variation across Solar System bodies, cited by Nimmo et al. 2020) and Lodders 2003, ApJ 591, 1220 (the IOP page opened but only the abstract; the K condensation temperature of 1006 K is RECALLED). Gives the distribution of `d_K`.
+1. A K depletion survey for rocky bodies: Lodders 2003, ApJ 591, 1220 (the IOP page opened but only the abstract; the K condensation temperature of 1006 K is RECALLED). Gives the distribution of `d_K`.
 2. Original geochemical references behind publisher walls, to turn the pyrolite-package numbers (2ND-HAND) into READ: Palme and O'Neill 2014 (Treatise on Geochemistry 3.1, Elsevier), Rudnick and Gao 2014 (Treatise 4.1), McDonough and Sun 1995 (Chem. Geol. 120, 223), Gale et al. 2013 (Geochem. Geophys. Geosyst. 14, 489, AGU), Workman and Hart 2005 (EPSL 231, 53). Elsevier and AGU pages were refused.
-3. Komatiite, Mars, Venus and lunar crust oxide tables: Taylor and McLennan (Planetary Crusts, 2009), Wanke and Dreibus on Martian soil, Arndt on komatiite; each would give a calibration row.
+3. Komatiite, Mars, Venus and lunar crust oxide tables: Taylor and McLennan), Wanke and Dreibus on Martian soil, Arndt on komatiite; each would give a calibration row.
 4. Radon: UNSCEAR 2008 Annex B (Ra-226 to radon emanation, indoor and outdoor dose, soil Ra-226 activities) to replace the flat 0.5 mSv/yr and the 33 / 45 / 420 Bq/kg world soil means. Done in part of GEN.465 (part H section 3.3): the soil means are READ, indoor radon is log-normal with geometric mean 45 Bq/m3 and GSD 2.1; the radon emanation fraction from soil Ra-226 is still not found.
 5. Ground-depth dose profile for non-Mars cases: Geant4 or published dose-depth curves for the Moon and thick atmospheres (Dartnell's Fig. 6 data digitised; Schwadron, Wilson or Dartnell follow-ups). Gives the build-up amplitude and Lambda in the ground.
 6. Space weathering darkening amplitude (the `d` in 2.7) per mineral type: Hapke-type models and lunar sample reflectance (Pieters et al.; Lucey), and the fresh-to-weathered ratio for anorthositic, basaltic and ultramafic regolith.

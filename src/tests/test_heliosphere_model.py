@@ -7,7 +7,7 @@ separate hypergiant power-law, plus Reimers' Law with two different eta
 values) stitched together at Yerkes-class boundaries -- exactly the
 structure that let the hypergiant constant drift ~9 orders of magnitude out
 of calibration unnoticed earlier this session. They're now one formula:
-Nieuwenhuijzen & de Jager (1990), Mdot = 9.63e-15 * L^1.42 * M^0.16 * R^0.81
+the empirical fit, Mdot = 9.63e-15 * L^1.42 * M^0.16 * R^0.81
 (L, M, R in solar units), with a literature-cited 10x correction above
 log(L/Lsun) > 5 (Mauron & Josselin 2011).
 

@@ -116,7 +116,7 @@ Sulfur, nitrogen and other rows from the same file:
 | N + O2, N + NO | present | n/a | DATA |
 | H2O2 + OH | present | n/a | DATA |
 
-The file holds 95 photolysis entries and 4 Mie-type entries, plus 3 three-body and 103 falloff entries. Cross sections and quantum yields come from the per-species HDF5 files. Table 4 of Wogan 2025 lists the cross-section sources (Heays 2017, Huebner and Mukherjee 2015, Burkholder 2020, Lavvas 2008, Keller-Rudek 2013, Matsumi 2002 and others) (READ).
+The file holds 95 photolysis entries and 4 Mie-type entries, plus 3 three-body and 103 falloff entries. Cross sections and quantum yields come from the per-species HDF5 files. Table 4 of Wogan 2025 lists the cross-section sources (Heays 2017, Huebner and Mukherjee 2015, Keller-Rudek 2013 and others) (READ).
 
 ### 2.2 What the reachable mechanism cannot give
 
@@ -290,10 +290,10 @@ From Meadows et al. 2018 (arXiv:1705.07560, READ):
 | Channel | Magnitude | Notes | Source cited there | Status |
 |---|---|---|---|---|
 | Low non-condensable inventory (water vapour photolysis, Wordsworth and Pierrehumbert 2014) | about 0.15 bar O2 | needs little N2 and little Ar | Wordsworth and Pierrehumbert 2014 | 2ND-HAND |
-| Pre-main-sequence ocean loss around M dwarfs | hundreds to thousands of bar O2 | one Earth ocean gives about 240 bar O2 (Kasting 1997); Proxima b gives 1 to 3 ocean masses (below 250 up to 750 to 2500 bar O2) | Luger and Barnes 2015 | 2ND-HAND (numbers read in Meadows 2018; the original arXiv:1411.7412 was downloaded but not extracted) |
+| Pre-main-sequence ocean loss around M dwarfs | hundreds to thousands of bar O2 | one Earth ocean gives about 240 bar O2; Proxima b gives 1 to 3 ocean masses (below 250 up to 750 to 2500 bar O2) | Luger and Barnes 2015 | 2ND-HAND (numbers read in Meadows 2018; the original arXiv:1411.7412 was downloaded but not extracted) |
 | CO2 photolysis without sinks | O2 from 0.2% to 6%, reduced by orders of magnitude with sinks; Gao 2015 about 15% | | Tian 2014, Harman 2015, Gao 2015 | 2ND-HAND; Gao READ |
 | O3 without O2 buildup | O3 at about 10% of the Earth column | | Domagal-Goldman 2014 | 2ND-HAND |
-| TiO photocatalysis | | | Narita 2015 | 2ND-HAND |
+| TiO photocatalysis | | | no source | 2ND-HAND |
 
 The numbers differ between sources by orders of magnitude because they depend on sinks (volcanic reductants, ocean oxidation), so the generator must treat them as scenario flags (set by M-dwarf pre-main-sequence phase length, ocean inventory and N2 inventory) and not as fixed levels.
 
@@ -433,9 +433,9 @@ All rows below are READ from Wurz et al. 2022 (Space Sci. Rev. 218, 10), Oza et 
 | Process | Parameters | Source | Status |
 |---|---|---|---|
 | Thermal release | Phi_th = n_i sqrt(kT / (2 pi m)); subsolar temperature formula Tmax in the paper | Wurz 2022 | READ |
-| Micrometeoroid impact vaporisation (MIV) | impact speeds about 20 km s-1 (Mercury) and 14 km s-1 (Moon); plume temperature 2500 to 5000 K (use 3000 to 4000 K); vapour volume follows Cintala 1992; micrometeoroid flux Mercury (1.66 to 3.56)e-16 up to 2.4e-14 g cm-2 s-1, Moon 5.1e-17 to 8.4e-17 g cm-2 s-1 | Wurz 2022 Table 2 | READ |
+| Micrometeoroid impact vaporisation (MIV) | impact speeds about 20 km s-1 (Mercury) and 14 km s-1 (Moon); plume temperature 2500 to 5000 K (use 3000 to 4000 K); vapour volume follows; micrometeoroid flux Mercury (1.66 to 3.56)e-16 up to 2.4e-14 g cm-2 s-1, Moon 5.1e-17 to 8.4e-17 g cm-2 s-1 | Wurz 2022 Table 2 | READ |
 | Photon-stimulated desorption (PSD) | cross section Q = 3 +/- 1 e-20 cm2 (Na, 250 to 400 nm) and 2e-20 cm2 (K); surface density N_S = 7.5e14 cm-2; photon flux 2e15 cm-2 s-1; Weibull velocity distribution kappa = 1.7, v0 = 575 m s-1; escape fraction below 1e-3 (Mercury) and below 1e-2 (Moon); photoionisation dominates the loss | Wurz 2022 | READ |
-| Ion sputtering | yield 0.01 to 0.1 atoms per ion for H+ and 0.1 to 1.0 for He+ at solar-wind energies; Sigmund analytic yield (Wurz eqs. 29 to 32); Na mineral binding energy 2.6 to 8.4 eV; escaping fraction of sputtered atoms 31% (Fe) to 65% (O) at Mercury and 90% to about 100% at the Moon; CME enhancement up to about 50 times (Killen 2012) | Wurz 2022 | READ |
+| Ion sputtering | yield 0.01 to 0.1 atoms per ion for H+ and 0.1 to 1.0 for He+ at solar-wind energies; Sigmund analytic yield (Wurz eqs. 29 to 32); Na mineral binding energy 2.6 to 8.4 eV; escaping fraction of sputtered atoms 31% (Fe) to 65% (O) at Mercury and 90% to about 100% at the Moon; CME enhancement up to about 50 times | Wurz 2022 | READ |
 | Thermal escape of MIV species at T = 3500 K | for the Moon all MIV species (Na, K, Ca, Mg, Fe and others) escape promptly; for Mercury only species up to O escape immediately | Wurz 2022 Table 3 | READ |
 | Thermal escape of volatiles from Mercury and the Moon | Table 1 of the paper lists n_i, v0, X, f_esc and flux for H, H2, He, OH, H2O, Ne, N2, O2, Ar, CO2 (not transcribed here) | Wurz 2022 Table 1 | READ (table not transcribed) |
 
@@ -445,9 +445,9 @@ All rows below are READ from Wurz et al. 2022 (Space Sci. Rev. 218, 10), Oza et 
 |---|---|---|---|
 | Na photoionisation rate at 1 au (symbol k_NaD2 in my notes of Oza Table 1; symbol to be rechecked) | 5.92e-6 s-1 for G stars, 1.3e-5 for F, 9.5e-7 for K (Huebner and Mukherjee 2015) | Oza 2019 | READ |
 | Lifetime 1/rate (G, F, K) | 1.7e5 s (1.95 d), 7.7e4 s (0.89 d), 1.05e6 s (12.2 d), scaling with 1/d^2 | derived | COMPUTED |
-| Io Na lifetime | about 4 h | Wilson 2002 via Oza 2019 | 2ND-HAND |
+| Io Na lifetime | about 4 h | Oza 2019 | 2ND-HAND |
 | Na column and Na/K | comets about 8e11 cm-2, Na/K 54; Mercury about 8e11, 80 to 190; Io 5e9 to 1e12, 10; Europa about 2e10, 25; Moon about 5e10, 6; Enceladus at most 1e9, about 100; Earth mesosphere about 8e11, about 100; Jupiter about 7e9; solar Na/K about 16 | Oza 2019 Table 1 | READ (TEST points) |
-| Silicate vapour pressure | P_vap = exp(-A/T + B): enstatite A = 68908 +/- 8773 K, B = 38.1 +/- 5.0; fayalite A = 60377 +/- 1082 K, B = 37.7 +/- 0.7 (van Lieshout 2014) | Oza 2019 | 2ND-HAND |
+| Silicate vapour pressure | P_vap = exp(-A/T + B): enstatite A = 68908 +/- 8773 K, B = 38.1 +/- 5.0; fayalite A = 60377 +/- 1082 K, B = 37.7 +/- 0.7 | Oza 2019 | 2ND-HAND |
 | Evaporation source rate | Mdot_evap = x_i 4 pi R^2 P_vap sqrt(m_i / (2 pi kB T)); exo-Io Na mass fraction 0.05; T0 of 2000 K or more implies disintegration (Perez-Becker and Chiang 2013) | Oza 2019 | READ, 2ND-HAND (disintegration limit) |
 | Mercury Na effective temperatures | about 1100 to 1400 K; Ca exosphere about 12000 to 20000 K; Na e-folding scale height about 200 km at the poles (about 1500 K) | Lierle and Schmidt 2025 | READ |
 
@@ -476,7 +476,7 @@ The generator rule for an airless body: release flux from the dominant source (t
 |---|---|---|---|
 | AD Leo flare proton flux (above 10 MeV) | 5.9e8 cm-2 sr-1 s-1 | Segura et al. 2010 (arXiv:1006.0022) | READ |
 | Ozone depletion by flare protons for an unmagnetised planet | maximum 94% two years after the flare; the UV flare alone does little | Segura 2010 | READ |
-| NOx yield | 1.27 N atoms per ion pair (Porter 1976); 1.3 to 1.6 NOx per pair (Rusch 1981) | Segura 2010 | 2ND-HAND |
+| NOx yield | 1.27 N atoms per ion pair; 1.3 to 1.6 NOx per pair (Rusch 1981) | Segura 2010 | 2ND-HAND |
 | Flare energy range of the Kepler GJ 1243 sample used | 10^30.5 to 10^34 erg | Segura 2010 / Tilley | READ |
 | Repeated flares | 94% ozone loss within 10 years of repeated proton events, leaving UV-C of about 0.1 to 1 W m-2 at the surface | Tilley et al. 2019 (arXiv:1711.08484) | READ |
 | Particle-driven chemistry | N2O and HCN production by solar energetic particles in a weakly reducing atmosphere (formation reactions in 2.6) | Airapetian 2020 | READ |
@@ -520,7 +520,7 @@ Use the lifetimes in section 2.4 divided by an attenuation factor and multiplied
 | Hunten 1973 and Hunten 1987 originals | the diffusion-limit form was read through Gronoff 2020 | original papers |
 | Boil-off and hydro escape rates for non-hydrogen envelopes | the Kubyshkina fit is hydrogen-only | Owen and Wu 2016; later hydrodynamic grids |
 | Owen and Jackson 2012 efficiencies; Lopez and Fortney tables | eta spread is 2ND-HAND | arXiv:1206.2367; 1305.0269 tables |
-| Wurz 2022 Tables 1 and 3 values; Mercury and Moon Ca, Mg, K column densities | only formulas transcribed | Space Sci. Rev. 218, 10; Killen 2007; Mura 2011 |
+| Wurz 2022 Tables 1 and 3 values; Mercury and Moon Ca, Mg, K column densities | only formulas transcribed | Space Sci. Rev. 218, 10; Mura 2011 |
 | Io and Europa original exosphere data; Schaefer and Fegley 2009 table values | silicate-vapour exospheres not quantified | original papers; arXiv:0906.1204 |
 | Composition-dependent lightning NOx yield and N2O yield from SEPs | lightning scaling for non-Earth air | Hodosan 2016 style models; Airapetian 2016 |
 | Troe or ion chemistry for N2/CH4 haze and ion escape rate formulas | nonthermal escape and haze at Titan-like conditions | Lammer and Gronoff reviews, individual papers |

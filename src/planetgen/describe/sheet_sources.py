@@ -11,7 +11,7 @@ _LID = ("a stagnant lid (one rigid plate) or a mobile one (plate tectonics, whic
         "the interior")
 
 _STEPS = ("Five hard steps, each an exponential waiting time that starts when the one before is done, faster on a warm world "
-          "(Carter 1983; Watson 2008)")
+          "(Watson 2008)")
 _AGES = _STEPS + "."
 
 _BODY = {

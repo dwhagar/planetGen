@@ -376,7 +376,7 @@ def main():
     rows["amorphous_carbon"] = ac
     co_ = new_row("complex_organics", "complex organic compounds", "organic", None, ["complex organic compounds"],
                   composition="refractory organics of comets and primitive bodies",
-                  note="Choukroun et al. 2020 (read, section 3.3, the CONSERT permittivity review, citing Fulle et al. 2019) gives only a rough "
+                  note="Choukroun et al. 2020 (read, section 3.3, the CONSERT permittivity review) gives only a rough "
                        "'some organics (permittivity about 2, rho about 2)' with no unit written (g/cm3 by the ice value beside it) and no "
                        "organics density of its own elsewhere; Blum and Bischoff's 1.0 to 2.0 covers it, so the row keeps the middle, 1.5, "
                        "inside the widest range (two sources in question: GEN.660). The comet draw reads this row and holds no density of its "

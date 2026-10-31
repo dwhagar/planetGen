@@ -46,7 +46,7 @@ from planetgen.physics import unit_registry as units
 from planetgen.physics.quantity import Quantity
 
 ROCHE_FLUID_COEFFICIENT = 2.44
-"""float: The fluid-body Roche limit, d = 2.44 R (rho_M / rho_m)^(1/3) (Chandrasekhar 1969): a self-gravitating satellite
+"""float: The fluid-body Roche limit, d = 2.44 R (rho_M / rho_m)^(1/3): a self-gravitating satellite
 with no strength comes apart inside it. A rigid body survives closer (1.26), so the fluid limit is the cautious one."""
 
 

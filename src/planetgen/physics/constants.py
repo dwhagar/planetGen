@@ -147,8 +147,8 @@ GIANT_RADIUS_SCATTER = {"neptunian": 0.10, "jovian": 0.07}
 # (P_c = 3*G*M^2/(8*pi*R^4)), because a real self-gravitating body's density
 # rises toward the center rather than staying uniform. n=1 is the classic,
 # simplest polytrope with an exact analytic solution, and is a standard
-# textbook approximation for cold, dense hydrogen/helium (Zapolsky &
-# Salpeter 1969 used the closely related n=3/2 for fully degenerate
+# textbook approximation for cold, dense hydrogen/helium (Zapolsky & Salpeter 1969
+# used the closely related n=3/2 for fully degenerate
 # matter). Checked against Jupiter's real numbers (M=1.898e27 kg,
 # R=71,492 km): this formula alone gives ~3,620 GPa, within ~10% of the
 # ~4,000 GPa commonly cited for Jupiter's actual core pressure, with no
@@ -223,7 +223,7 @@ HYPERGIANT_WIND_VELOCITY_FACTOR = 2.6
 GIANT_WIND_VELOCITY_FACTOR = 0.3
 SUN_MASS_LOSS_RATE_SOLAR_MASS_PER_YEAR = 2e-14
 # Evolved-star mass loss (giants, subgiants, bright giants, supergiants,
-# hypergiants): Nieuwenhuijzen & de Jager (1990), Mdot = C * L^a * M^b * R^c
+# hypergiants): the empirical fit, Mdot = C * L^a * M^b * R^c
 # (L, M, R in solar units, Mdot in Msun/yr) -- a single empirical fit to 247
 # stars spanning the whole HR diagram. This one formula replaces what used
 # to be three independently hand-fit tiers stitched together at Yerkes-class
@@ -246,7 +246,7 @@ NDJ_HIGH_LUMINOSITY_CORRECTION_FACTOR = 0.1
 # 2000/2001 radiation-driven-wind models, the standard for hot dwarfs) show
 # N&dJ overestimates main-sequence O-star mass loss by up to ~20x, since it
 # was fit mostly to evolved/luminous stars. Calibrated instead against
-# measured O/B dwarf rates (e.g. Krticka 2014; Vink et al. 2000), which put
+# measured O/B dwarf rates (e.g. Vink et al. 2000), which put
 # late-O dwarfs (~1e5 Lsun) around 3-7e-8 Msun/yr. The previous value
 # (3.2e-20) was ~3-4 orders of magnitude too low, making hot dwarf winds
 # weaker than a cool M dwarf's and understating their heliosphere size.

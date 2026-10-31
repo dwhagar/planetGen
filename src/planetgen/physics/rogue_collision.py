@@ -169,7 +169,7 @@ def critical_impact_parameter(target_radius_m, projectile_radius_m):
 
 
 def impact_angle_cdf(impact_parameter):
-    """The share of impacts with an impact parameter `b = sin theta` or less, `b^2` (the angle follows `sin theta cos theta d theta`, Shoemaker 1962); half have `b` under 0.707."""
+    """The share of impacts with an impact parameter `b = sin theta` or less, `b^2` (the angle follows `sin theta cos theta d theta`); half have `b` under 0.707."""
     if not 0.0 <= impact_parameter <= 1.0:
         raise RogueCollisionError(f"the impact parameter {impact_parameter!r} is outside 0 to 1")
     return impact_parameter ** 2

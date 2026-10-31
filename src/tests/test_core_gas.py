@@ -34,7 +34,7 @@ def _without_ring(monkeypatch):
 
 def test_the_milky_ways_ring_matches_the_measured_inflow_and_star_formation_rate():
     ring = core_gas.core_gas(_shape())
-    assert ring.inflow_msun_yr == pytest.approx(0.8, rel=0.3)          # 0.8 +- 0.6 (Hatchfield et al. 2021)
+    assert ring.inflow_msun_yr == pytest.approx(0.8, rel=0.3)          # 0.8 +- 0.6
     assert ring.rate_msun_yr == pytest.approx(0.07, rel=0.3)           # 0.07 (Henshaw et al. 2023, Table 1)
     assert ring.rate_msun_yr == pytest.approx(tuning.CORE_STAR_FORMATION_PER_INFLOW * ring.inflow_msun_yr)
     assert 0.0 < ring.bound_share < 1.0

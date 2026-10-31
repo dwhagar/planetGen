@@ -132,8 +132,7 @@ venv [C]. Irrgang and McMillan are what galpy ships, read from its source.
 | gala `MilkyWayPotential` | 231.5 at 8.122 | 0.099 | 72.4 | 192 / 235 / 220 / 214 |
 | gala `MilkyWayPotential2022` | 229.4 at 8.122 | 0.131 | 71.2 | 180 / 229 / 218 / 212 |
 | McMillan 2017 | 233.1 at 8.21 | 0.114 | 74.1 | 196 / 230 / 227 / 223 |
-| Irrgang et al. 2013 Model I | 242 at 8.4 | 0.102 | 75.4 | 217 / 243 / 231 / 225 |
-| Cautun et al. 2020 | 229 at 8.122 | 0.113 | 73.5 | 206 / 230 / 217 / 208 |
+| no source | 229 at 8.122 | 0.113 | 73.5 | 206 / 230 / 217 / 208 |
 
 The project's curve sits inside the spread of published models. Gaia-based
 measurements give about 229 km/s at 8.1 kpc and a slope near -1.7 km/s per
@@ -148,7 +147,7 @@ GRAVITY 2018) [C]; GRAVITY 2019 and 2021 give 8.178 and 8.275 kpc [R]. Astropy's
 v4.0 defaults also give the Sun's velocity (12.9, 245.6, 7.78) km/s and z_sun =
 20.8 pc [C]; 245.6 / 8.122 = 30.24 km/s/kpc, matching the Sgr A* proper motion
 (about 6.4 mas/yr [R]). Solar peculiar motion is (11.1, 12.24, 7.25) km/s
-(Schonrich, Binney, Dehnen 2010) [R]. McMillan 2017 fits R0 = 8.21 kpc and
+(Schonrich, Binney) [R]. McMillan 2017 fits R0 = 8.21 kpc and
 v0 = 233.1 km/s [S]. Oort constants: A = 15.3, B = -11.9 km/s/kpc (Bovy 2017)
 [R], against the project's 14.8 and -13.4 [C].
 
@@ -488,8 +487,7 @@ km/s, the radial dispersion there rises from 21 to 37 km/s and the outer disk
 fills up. With it the profile changes by under about 10%. Either way the
 vertical rms thickness grows by 10 to 20% because the local velocity
 distribution is not a function of the actions; that is the limit of a
-position-space seed (a quasi-isothermal distribution function in actions,
-Binney 2010, galpy's `quasiisothermaldf`, would remove it [R]). Accept the
+position-space seed (a quasi-isothermal distribution function in actions, galpy's `quasiisothermaldf`, would remove it [R]). Accept the
 transient or generate the scale height 15% lower. Do not pre-evolve: it costs
 the whole catch-up and is deterministic only with eta frozen.
 
@@ -657,15 +655,14 @@ allowed:
 - Schonrich, Binney and Dehnen 2010 solar motion (11.1, 12.24, 7.25).
 - Eilers et al. 2019 (229.0 km/s, slope -1.7 km/s/kpc) and the steeper Gaia DR3
   decline beyond 20 kpc.
-- Kz(1.1 kpc) of 71 and 74 Msun/pc2 (Kuijken and Gilmore 1991; Holmberg and
-  Flynn 2004), local density 0.08 to 0.10 Msun/pc3 (Boss's range), Oort
+- Kz(1.1 kpc) of 71 and 74 Msun/pc2 (Kuijken and Gilmore 1991; Holmberg and), local density 0.08 to 0.10 Msun/pc3 (Boss's range), Oort
   constants (Bovy 2017), escape speed 500 to 600 km/s.
-- Allen and Santillan 1991 parameters (coded from memory; they reproduce the
+- Model parameters (coded from memory; they reproduce the
   design 220 km/s at 8.5 kpc, which is the only check); left out of the
   comparison table for that reason.
 - Observed age-velocity relations, thick-disk kinematics and the Stromberg
   relation (section 8).
-- Irrgang 2013 and McMillan 2017 values are what galpy ships, not a re-reading
+- McMillan 2017 values are what galpy ships, not a re-reading
   of the papers.
 - The Tully-Fisher and Freeman's-law reasoning in section 6 is from memory.
 - That astropy's latest defaults equal the v4.0 set was read from astropy 8.0.1;

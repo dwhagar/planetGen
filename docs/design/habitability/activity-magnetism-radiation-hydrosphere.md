@@ -76,7 +76,7 @@ the [R] items are listed under Evidence notes.
   and 2.1e-5 at 0.6 Gyr (Hyades about 1e-5 [R]); fully convective stars decline
   slowly (Wright 2018 [R]), so use 1.0 below 0.3 Msun.
 - **XUV from X-ray.** `log L_EUV(100 to 920 A) = 4.80 + 0.860 log L_X` (erg/s)
-  [R: Sanz-Forcada 2011 as used by Chadney 2015]. It gives `L_XUV(Sun now)` =
+  [R: as used by Chadney 2015]. It gives `L_XUV(Sun now)` =
   1.5e28 erg/s, 5.3 erg/cm2/s at 1 AU against Ribas's 4.6 [R], and
   `L_XUV ~ t^-1.29`, matching the -1.2 to -1.3 band exponents of Ribas et al.
   2005 [S].
@@ -154,8 +154,7 @@ The shoreline research multiplies this index by S in place of bolometric S.
 
 - **Sun-like stars.** Maehara et al. 2012: one flare above 1e34 erg per 800
   years on solar types, mostly faster rotators than the Sun [S]. Notsu 2019:
-  slow rotators once per 2,000 to 3,000 years [S]. Okamoto 2021: 1e34 every
-  6,000 years for the Sun [S].
+  slow rotators once per 2,000 to 3,000 years [S]. 
 - **Proxima.** 1e33 erg about 8 per year (MOST, extrapolated), at least 5.2
   (Evryscope), 3 (TESS) [S]; use 3 to 8.
 - **Slope** of the frequency distribution 1.4 to 2.4, 1.99 +/- 0.07 for
@@ -348,7 +347,7 @@ equivalent with human limits; the `L_rad` term uses absorbed dose in Gy.
    232 mSv/yr, Hassler 2014) until a shower run replaces it, and above 1036 the larger of the last slope and the Crouch muon
    floor. The sea-level point is 0.34 mSv/yr (UNSCEAR 0.32) and the 10 km point 46 (aviation 47.9); the earlier curve was 1.5 to
    2.7 times low from 100 to 1036 g/cm2.
-2. **Magnetic effect on GCR (GEN.453):** `f_B` is the ratio of the runs of Atri 2013 and Griessmeier 2016 with a dipole of M Earth
+2. **Magnetic effect on GCR (GEN.453):** `f_B` is the ratio of the runs of Atri 2013 with a dipole of M Earth
    moments to those with none, at 100, 200, 500, 700 and 1036 g/cm2 (0.31, 0.37, 0.51, 0.61 and 0.52 for M = 1), log-linear in
    M between the runs and in ln X between the columns; the flat 0.6 was right only near sea level. The field enters as the
    equivalent moment `Rc0 / 14.34 GV`, with the Stormer cutoff `Rc0 = 14.34 GV (M_dip f_dip / 7.768e22) (R_E / R_p)^2` (moment
@@ -412,7 +411,7 @@ atmosphere around an active M dwarf with no dipole receives Sv per year.
   fluence >= 30 to 100 kJ/m2. **Built (GEN.189):** Melott et al. 2004 put a
   beamed burst within about 2 kpc at one per 0.5 Gyr at the Sun [S], so
   `activity.GRB_LETHAL_RATE_AT_SUN_PER_GYR` = 2 per Gyr; long bursts need
-  low-metal massive stars (Stanek et al. 2006 [S]), so the rate falls off
+  low-metal massive stars ([S]), so the rate falls off
   outward with the supernova scale length (1.45 kpc) but is not raised toward
   the metal-rich centre.
 - **AGN and quasars.** No source found. A 1e44 erg/s X-ray source on for 1 Myr
@@ -608,8 +607,7 @@ table); PHI-4's Red band for hyperacidic oceans (pH 0 to 1) is the extreme tail.
 
 Carbonate-silicate buffering (Walker, Hays and Kasting 1981): weathering rises
 about as `pCO2^0.3` and about 15 percent per degree [S]. On a stagnant lid it
-is supply-limited and can fail, though burial and decarbonation (Foley and
-Smye 2018) may restore a feedback with windows of roughly 1 to 5 Gyr [S]. Rule:
+is supply-limited and can fail, though burial and decarbonation may restore a feedback with windows of roughly 1 to 5 Gyr [S]. Rule:
 a stagnant lid shortens the habitable window to 1 to 5 Gyr and pushes the ocean
 to soda or acid sulfate.
 

@@ -41,9 +41,9 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.18:LF18 | replace | GEN.878 | a curve per metabolism and the energy source per class (pigment band times the star's spectrum) replace the one log scale and the shares |
 | 6.18:LF23 | no data | - | the animal oxygen floor by grade is a literature number (Mills 2014, recalled) for one grade; GEN.877 is closed and kept the band; the widths are chosen |
 | 6.18:LF25 | no data | - | one score per rung of Table 2 of the Exoplanetary Habitability doc; design numbers with no data |
-| 6.18:LF49 | no data | - | the hard-step means follow Carter 1983 and Watson 2008 in form; the only calibration is one planet's history, and the rule against fixed Solar System content keeps it a check |
-| 6.18:LF50 | no data | - | the hard-step means follow Carter 1983 and Watson 2008 in form; the only calibration is one planet's history, and the rule against fixed Solar System content keeps it a check |
-| 6.18:LF51 | no data | - | the hard-step means follow Carter 1983 and Watson 2008 in form; the only calibration is one planet's history, and the rule against fixed Solar System content keeps it a check |
+| 6.18:LF49 | no data | - | the hard-step means follow Watson 2008 in form; the only calibration is one planet's history, and the rule against fixed Solar System content keeps it a check |
+| 6.18:LF50 | no data | - | the hard-step means follow Watson 2008 in form; the only calibration is one planet's history, and the rule against fixed Solar System content keeps it a check |
+| 6.18:LF51 | no data | - | the hard-step means follow Watson 2008 in form; the only calibration is one planet's history, and the rule against fixed Solar System content keeps it a check |
 | 6.18:LF57 | no data | - | fitted to the first census (TEST.430) by design: the prevalence targets are the only calibration, so the rows stay L3 until a measured fraction of worlds with each rung exists |
 | 6.18:LF58 | no data | - | fitted to the first census (TEST.430) by design: the prevalence targets are the only calibration, so the rows stay L3 until a measured fraction of worlds with each rung exists |
 | 6.19:LF46 | no data | - | fitted to the first census (TEST.430) by design: the prevalence targets are the only calibration, so the rows stay L3 until a measured fraction of worlds with each rung exists |

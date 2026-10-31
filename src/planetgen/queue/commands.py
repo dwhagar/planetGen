@@ -218,6 +218,10 @@ REGISTRY = _commands(
                 unit=("planetgen.generation.run_galaxy", "save_sector_paths_unit"),
                 expand=("planetgen.generation.run_galaxy", "expand_save_sector_paths"),
                 unit_seconds=20),
+    CommandSpec("warm-cluster-field", "Make the galaxy's cluster field: the mean system mass of each age in small parts, "
+                "then the field as a file",
+                unit=("planetgen.galaxy.field_job", "field_unit"), expand=("planetgen.galaxy.field_job", "expand_field"),
+                conclude=("planetgen.galaxy.field_job", "conclude_field"), unit_seconds=5),
     CommandSpec("warm-object-index", "Build or refresh the object index: one row per object of every kind the site lists",
                 unit=("planetgen.web.warmup", "warm_object_index_unit"),
                 expand=("planetgen.web.warmup", "expand_warm_object_index"), whole=True),
@@ -310,7 +314,7 @@ KIND_OF_STAGE = {
 
 
 KIND_OF_WARM_FAMILY = {family: f"warm-{family}" for family in
-                       ("object-index", "galaxy-map", "lists", "galaxy-nodes", "galaxy-deep-nodes", "sectors", "systems",
+                       ("cluster-field", "object-index", "galaxy-map", "lists", "galaxy-nodes", "galaxy-deep-nodes", "sectors", "systems",
                         "phenomena", "search")}
 """dict: The command that warms each cache family (`web/warmup.FAMILIES`), the steps of `planetgen warm`."""
 

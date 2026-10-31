@@ -20,7 +20,7 @@ Status: research note and module, written on the night of 2026-10-24 (as the lan
 | Schlichting, Sari and Yalinewich 2015, Icarus 247, 81 (arXiv:1406.6435) | full text | the stronger erosion by the largest impactors in the cap regime: used only as the upper bracket on the erosion (section 5) |
 | Raymond, Schlichting, Hersant and Selsis 2013, Icarus 226, 671 (arXiv:1306.4325) | full text | the stochastic nature of the late veneer (the planet-to-planet scatter that the log-normal width stands for) |
 
-Svetsov 2000 and 2007 and Shuvalov 2009 were not opened; their formulas are used as printed in Sakuraba et al. 2019 (second-hand). The registry rows AM43 and AM44 say so.
+Shuvalov 2009 were not opened; their formulas are used as printed in Sakuraba et al. 2019 (second-hand). The registry rows AM43 and AM44 say so.
 
 ## 3. The model
 

@@ -65,7 +65,7 @@ LAYERS = 40
 TOP_FRACTION = 1.0e-4
 """float: The model top as a share of the surface pressure."""
 DIFFUSIVITY = 1.66
-"""float: The diffusivity factor of the two-stream flux (Elsasser 1942): the slant path that stands in for the angular integral of the radiance."""
+"""float: The diffusivity factor of the two-stream flux: the slant path that stands in for the angular integral of the radiance."""
 HUMIDITY_TOP = 0.02
 """float: STAND-IN (IR7, tier T1 on Earth, T6 on any other world, L0): Manabe and Wetherald's (1967) `p/p_s` below which the relative humidity is zero; their profile
 (relative humidity linear in pressure from the surface value to zero here) is Earth's, applied to every world with water vapour in its air."""
@@ -214,7 +214,7 @@ def equilibrium_hydrogen_cp_over_r(temperature_k):
     """
     The heat capacity at constant pressure over R of molecular hydrogen whose ortho and para forms stay in equilibrium (translation 5/2 plus the rotational
     fluctuation, levels of weight (2J + 1) with a nuclear spin factor of 3 for odd J and 1 for even J). Cold hydrogen is far from the 7/2 of a hot one: it
-    reaches 4.4 at 60 K, which makes the lapse rate of a giant's troposphere there about a fifth shallower (Gierasch 1985).
+    reaches 4.4 at 60 K, which makes the lapse rate of a giant's troposphere there about a fifth shallower.
     """
     temperature = np.asarray(temperature_k, dtype=float)[..., None]
     level = np.arange(40)

@@ -2,6 +2,44 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3025] - 2026-10-31
+
+**Headline:** The galaxy's cluster field is now built ahead by the warm-up, in small saved parts, and the web only reads it.
+
+### Changed
+- The galaxy's cluster field (its globular clusters, satellites and young open clusters as one field the density model reads) took 20 to 60 seconds to build in whatever process first needed it, nearly all of it working out the mean system mass of each distinct age. It is now the first family of the warm-up's opening phase (`warm-cluster-field`, `galaxy/field_job.py`): one queued unit for every 1,000 ages works out its part and writes it as a file in the state folder, so every unit is a fraction of a second to a few seconds however busy the machine is; when the last part is in, the field is made from the rows and the parts and written as `galaxy-field/<signature>.field` by a rename. A warm-up that stopped carries on from the parts that are there. The signature names the stored rows and the source of the code that decides the numbers, so a changed row or formula is a new file, and the file is read through an unpickler that allows only the field's own classes.
+- The web daemon only reads that file (`store._component_field`). A visitor's request for a galaxy of more than 1,500 components that has no file is refused at once with the 503 and `Retry-After` of the cache guard (cause `missing`) instead of building for a minute against the daemon's request limit; a worker, a command or the warm-up still builds it in its own process when no file is there, and a small galaxy is still built in the request (about a second).
+- `ComponentField` takes the mean system masses by age as an optional argument, so the parts can hand them in; the numbers it gives are the same as before.
+
+### Fixed
+- A page that needed the cluster field after every generation run no longer waits a minute for it inside a web request.
+
+generation-output: unchanged
+TODO items resolved: PERF.225
+
+## [8.0.3024] - 2026-10-31
+
+**Headline:** While the caches are rebuilt, requests that would build one are answered 503 instead of killing the API daemon.
+
+### Changed
+- A request that needs a cache that takes minutes to rebuild (the Galaxy Map's nodes, the shape, the lists, the search, and the galaxy's cluster field wherever a route reaches it) is now refused with a 503, `Retry-After` and a plain message (HTML page or JSON) while an update, a generation run, a hand-started cache warm-up or maintenance mode is on (`admin/cachebuild.py`, `web/rebuild_gate.py`). Cheap requests and anything the cache already holds still work. Before, such a request built the cache in the web daemon, ran past mod_wsgi's 60-second `request-timeout`, and the daemon was killed with every other request in flight ("Truncated or oversized response headers"; the shape took 56 to 65 s to rebuild on the test server because a running generation keeps changing the rows it is made from).
+- Routes that read only the stored grid numbers (the sector edge, the shell limits, the disk scale length) no longer build the cluster field: `store.get_galaxy_shape(conn, light=True)`.
+- A stale marker is ignored: a dead process, or one older than 12 hours.
+
+## [8.0.3023] - 2026-10-31
+
+**Headline:** Every stage with units now has the workers its memory allows, sector generation is capped at what a sector worker really takes, and a run's report names the largest worker of each stage.
+
+### Changed
+- **Sector stages are limited by memory (PERF.226).** Measured on a populated database (a two-shell galaxy, the starting sector and 12 of its 107 neighbours, 4 workers): one worker of the sector stages holds up to 1,487 MB resident. `workers.SECTOR_WORKER_MEMORY_MB` (1,600) sizes `generate-start-sector`, `generate-neighborhood`, `generate-sectors` and `generate-unplaced-sector`; they had the ordinary 300 MB guess, so 36 workers could take 54 GB of a 16 GB host. `stage_worker_cap` now covers every command with units: the measured table (`STAGE_WORKER_MEMORY_MB`, renamed from `MEMORY_HEAVY_KINDS`), the unmeasured list (`UNMEASURED_KINDS`, 900 MB each until measured), and nothing for a command that is one unit or inline. A test holds every command to one of the three.
+- **The run report names the memory.** Each unit records the most resident memory its process held; the stage keeps the largest. The run's log says it beside the stage's figure (a warning when it is over the figure), the stage's finish line carries "(largest worker N MB)", and the admin queue page has a "Largest worker" column.
+
+No generator output changes (the work seed does not depend on the worker count).
+
+generation-output: unchanged
+
+TODO items resolved: none (PERF.226 stays open: the unmeasured stages and the worker footprint itself).
+
 ## [8.0.3022] - 2026-10-31
 
 **Headline:** The "On this page" bar now sits under a page's tab bar.
@@ -4946,7 +4984,7 @@ generation-output: unchanged
 **Headline:** The prevalence suite now checks the stars the generator makes against the local star census and the multiplicity surveys.
 
 ### Added
-- **The star census (TEST.432).** `src/tests/audit/prevalence_stars.py` draws 40,000 stars at the default galaxy's reference solar position and 2,500 planetless systems around each of M2V, K5V, G2V, F5V and A0V. It checks the share of M, K, G, F, A, B and O stars, white dwarfs and evolved stars against the RECONS 10 parsec census and Mamajek's number densities, and the share of systems with a companion star (G2V also with three or more) against Duchene and Kraus 2013, Raghavan 2010, De Rosa 2014 and Moe and Di Stefano 2017, in `src/tests/data/prevalence_stars_expectations.json`. The ranges are the researched norms, widest where two sources differ; each run adds four binomial sigma of its own sampling. The first draw found three faults (GEN.897 too many K dwarfs, GEN.898 too few A and B stars, GEN.899 too few companions of M dwarfs). A range the generator breaks carries the item that will fix it and prints in `star-census-latest.md` instead of failing.
+- **The star census (TEST.432).** `src/tests/audit/prevalence_stars.py` draws 40,000 stars at the default galaxy's reference solar position and 2,500 planetless systems around each of M2V, K5V, G2V, F5V and A0V. It checks the share of M, K, G, F, A, B and O stars, white dwarfs and evolved stars against the RECONS 10 parsec census and Mamajek's number densities, and the share of systems with a companion star (G2V also with three or more) against Duchene and Kraus 2013, Raghavan 2010, and Moe and Di Stefano 2017, in `src/tests/data/prevalence_stars_expectations.json`. The ranges are the researched norms, widest where two sources differ; each run adds four binomial sigma of its own sampling. The first draw found three faults (GEN.897 too many K dwarfs, GEN.898 too few A and B stars, GEN.899 too few companions of M dwarfs). A range the generator breaks carries the item that will fix it and prints in `star-census-latest.md` instead of failing.
 
 TODO items resolved: TEST.432. Added: none.
 
@@ -11675,7 +11713,7 @@ TODO items resolved: MAP.243 (and MAP.246 folded in) / Added: none
 ### Changed
 - **The thick disk, the bar and the stellar halo are drawn from the galaxy seed, not copied from the Milky Way** (`galaxy/structure.py`, `galaxy/structure_draw.py`). The structure is rebuilt from the seed on every load and stored nowhere (`galaxy_shape` gains no column; DB.66 keeps storing the drawn values in 8.3). A shape built without a seed uses `REFERENCE_STRUCTURE`, the published Milky Way values, as a check target and not as a generator default.
   - Circular speed comes from the baryonic Tully-Fisher relation (McGaugh 2012, 0.0375 dex) until the potential gives it.
-  - Thick disk: the mass ratio sits between Yoachim and Dalcanton and Comeron 2018 with 0.268 dex of scatter, the length ratio follows Comeron 2018, the height ratio is 2.5 to 4.2, and the amplitude is worked out from the three, replacing the fixed 0.04.
+  - Thick disk: the mass ratio sits between the fits with 0.268 dex of scatter, the length ratio follows Comeron 2018, the height ratio is 2.5 to 4.2, and the amplitude is worked out from the three, replacing the fixed 0.04.
   - Stellar halo: the share of the stars is `0.05 (M*/5e10)^0.79` with 1.01 dex of scatter (a stand-in until the halo research lands), cut to 0.1% to 30%.
   - Bar (GEN.533, sources in `docs/design/gen533-bar-sources.md`): presence from Erwin 2018 by stellar mass, the in-plane axis ratio from Diaz-Garcia 2016, a boxy or thin vertical ratio, an angle uniform on 0 to 180 degrees, and the unbarred bulge's axis ratios from Costantin 2018. A galaxy without a bar has no bar gap in its star formation.
 - **One law sets the scale heights and the velocity dispersions of the disc populations** (the dispersion of the gas the stars are born from, 6.5 +/- 1 km/s as a molecular stand-in until GEN.536 reads the CO values, a central disc dispersion of 0.248 Vc, an age exponent of 0.44), replacing the fixed height ratios and dispersions of the young, intermediate and old discs, the halo and the bulge. The reference check puts the old disc 32% under Sharma and Hayden's 21.1 km/s at the Sun (inside the plan's 35%) and the young disc at 0.22 of the old disc's height (65 pc for 300 pc; observed about 50 pc). The atomic gas's 10 km/s (Tamburro 2009) gave 0.40 and twice the molecular clouds the catalogues hold, so it is not used.
@@ -12509,7 +12547,7 @@ TODO items resolved: GEN.400. Added: none.
 ### Changed
 
 - GEN.242 (#2009, generator epoch 9) is retired: stars under 8 solar masses and under 10 Myr are protostars or pre-main-sequence stars with a disk descriptor, and the protostar's companion chance uses the Perseus fractions; GEN.320 no longer waits.
-- GEN.529 is filed for what it left: the Hayashi temperature, the birthline radius and the energy factor are inferred, not sourced, and the state stops at 10 Myr; it needs a Baraffe 2015 or Siess 2000 table and gates GEN.301.
+- GEN.529 is filed for what it left: the Hayashi temperature, the birthline radius and the energy factor are inferred, not sourced, and the state stops at 10 Myr; it needs a Baraffe 2015 table and gates GEN.301.
 - TEST.174 gets another sighting (the sector accessibility flake in a second gate).
 
 TODO items resolved: GEN.242 / Added: GEN.529
@@ -12836,7 +12874,7 @@ TODO items resolved: none / Added: GEN.501
 ### Changed
 
 - `docs/design/atmosphere-composition.md` has findings 21 to 30, section 3c (148 sub-claims: 39 confirmed, 57 partly, 30 contradicted, 15 unsupported, 7 not reached), the second-note check as section 10 and the updated list of what Boss must research; the four detail parts 10A to 10D are in `docs/design/atmosphere-composition-parts/` and listed in `docs/design/README.md`.
-- 18 items (GEN.410, 412, 413, 414, 417, 422, 423, 443, 453, 455, 456, 459, 460, 470, 471, 496, 500) carry the corrections: cold-ice lab fits only inside their windows, no Rayleigh coefficient from the note, the published Band form with Atwell 2015 parameters, Mars and Titan figures, neutron share 2 to 7 percent, the Troe form, Venus K/U, the Thorngren fit and the licence corrections. The earlier "awaiting verification" wording on the notes of the second note is replaced.
+- 18 items (GEN.410, 412, 413, 414, 417, 422, 423, 443, 453, 455, 456, 459, 460, 470, 471, 496, 500) carry the corrections: cold-ice lab fits only inside their windows, no Rayleigh coefficient from the note, the published Band form with parameters, Mars and Titan figures, neutron share 2 to 7 percent, the Troe form, Venus K/U, the Thorngren fit and the licence corrections. The earlier "awaiting verification" wording on the notes of the second note is replaced.
 
 TODO items resolved: none / Added: none
 
@@ -26167,7 +26205,7 @@ The Galaxy Map draws the pre-placed bright stars (every star of 500 L☉ or more
   star system (new `program_constants.PHENOMENON_RATE_PER_STAR_SYSTEM`:
   Lamberts et al. 2018 for black holes, Sartore et al. 2010 for neutron
   stars, Frew & Parker 2010 for nebulae, Diehl et al. 2006 for supernova
-  remnants, Sumi et al. 2011/Mroz et al. 2017 for rogue planets), scaled
+  remnants, Mroz et al. 2017 for rogue planets), scaled
   by however many star systems the sector actually ended up with -- a
   denser sector (`--density`) gets proportionally more, and most sectors,
   realistically, get none at all, exactly as real space this size usually
@@ -26667,7 +26705,7 @@ The Galaxy Map draws the pre-placed bright stars (every star of 500 L☉ or more
   reasonable approximation, but the real orbital-dynamics stability
   literature (the analytically rigorous two-planet minimum of `2*sqrt(3)`
   mutual Hill radii, Gladman 1993; a recommended ~8-10x margin for
-  longer-term N-body stability, Chambers, Wetherill & Boslough 1996 and
+  longer-term N-body stability, 
   Smith & Lissauer 2009) expresses this in terms of the *pair's* combined
   mass and average distance instead. New `utils.mutual_hill_radius_m`
   (`((a1+a2)/2) * ((m1+m2)/(3*M_star))^(1/3)`) and

@@ -6,7 +6,7 @@ The open-ocean equilibrium tide at a world's surface (GEN.1034)
 
 The height a liquid surface would reach if it could follow the tidal potential of each body that raises one, summed over the moons and the star into the
 spring range (every raiser in line) and the neap range (the largest against the rest). It is the *equilibrium* value only (Pugh and Woodworth 2014, *Sea-Level
-Science*, chapter 3; Cartwright 1999, *Tides: A Scientific History*, recalled): the range on a coast depends on the shape and depth of the basin and on its
+Science*, chapter 3, *Tides: A Scientific History*, recalled): the range on a coast depends on the shape and depth of the basin and on its
 resonance, which this does not model, so it is an upper bound for an ocean that does not resonate and can be exceeded many times over in one that does.
 
 * **The raiser.** A body of mass `m` at distance `d` raises on a body of mass `M` and radius `R` a bulge of `(m / M) (R / d)^3 R` above the mean surface on the
@@ -20,8 +20,7 @@ resonance, which this does not model, so it is an upper bound for an ocean that 
 * **The floor.** The sea floor rises with the tide, so the sea measures `1 + k2 - h2` of it (Love 1909; 0.69 for the Earth with `k2` 0.30 and `h2` 0.61), with `h2` from
   `k2` of the interior model (`H2_OVER_K2`) unless it is given.
 * **The liquid.** The equilibrium height does not depend on the liquid's density: the liquid and the potential both scale with it. What the density sets here is the
-  loading of the floor by the sea's own weight and its self-attraction, which for a thin layer multiplies the tide by `1 / (1 - 3 rho_liquid / (5 rho_mean))` (Farrell 1972,
-  recalled): 1.12 for water on the Earth. The factor goes singular as the liquid approaches 5/3 of the body's mean density, so a liquid heavier than
+  loading of the floor by the sea's own weight and its self-attraction, which for a thin layer multiplies the tide by `1 / (1 - 3 rho_liquid / (5 rho_mean))` (recalled): 1.12 for water on the Earth. The factor goes singular as the liquid approaches 5/3 of the body's mean density, so a liquid heavier than
   `LOADING_REFUSE` of that is refused (`OceanTideError`): a global layer of a heavy liquid is not thin, and needs the fluid Love numbers, not this.
 * **An ice-covered ocean** has no free surface: the lid flexes, and the free-surface tide is not defined (zero, with the reason).
 

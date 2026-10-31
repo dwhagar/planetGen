@@ -50,7 +50,7 @@ def test_the_moon_comes_out_with_the_lunar_laser_ranging_k2_and_q():
 
 
 def test_the_solid_earth_has_the_semidiurnal_tide_of_a_q_of_a_few_hundred():
-    """The solid Earth's body tide has Q near 280 at the semi-diurnal frequency (Ray et al. 2001, recalled); the homogeneous sphere's k2 of 0.5
+    """The solid Earth's body tide has Q near 280 at the semi-diurnal frequency; the homogeneous sphere's k2 of 0.5
     is above the real 0.30 (the core and the layers are not here), which is why the module keeps to the form of `rigid_k2`."""
     earth = _rock(EARTH, SEMIDIURNAL_RATE, 1500.0)
     assert 100.0 < earth.q < 800.0

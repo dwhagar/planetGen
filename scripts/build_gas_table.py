@@ -351,8 +351,8 @@ def _band(label, cm1=None, low=None, high=None, about=False):
 
 
 # The rows of table 2.1: the row label of the research table, then the band centres typed from its "Fundamentals" cell (the check in
-# `build_infrared` fails when a number is not in that cell), and the rank of the gas in the saturated-absorption ordering of Byrne and
-# Goldblatt 2014b where the strength cell gives one. A gas with no band has an empty list and the research's reason in the row.
+# `build_infrared` fails when a number is not in that cell), and the rank of the gas in the saturated-absorption ordering of Byrne and Goldblatt 2014b
+# where the strength cell gives one. A gas with no band has an empty list and the research's reason in the row.
 INFRARED = {
     "H2O": ("H2O", [_band("nu2 bend", 1594.59), _band("nu1", 3656.65), _band("nu3", 3755.79),
                     _band("pure rotation edge", low=0.0, high=600.0, about=True)], 11),
@@ -584,7 +584,7 @@ def build():
             "He et al. 2021, ACP 21, 14927 (N2O, CH4, CO2, O2 refractivity); Peck and Huang 1977; Mansfield and Peck; "
             "Bideau-Mehu et al.; Cuthbertson; Allen/Cox; NIST CCCBDB polarizabilities as read in part 02",
             "Shimanouchi 1972 gas-phase fundamentals at NIST and Byrne and Goldblatt 2014b (arXiv:1409.1880) as read in part 03 table 2.1; "
-            "photochem_clima_data 0.3.4 (Heays 2017, Huebner 2015, Burkholder 2020, Schmidt 2013, Karkoschka 1994, Keller-Rudek 2013) "
+            "photochem_clima_data 0.3.4 (Heays 2017, Huebner 2015, Schmidt 2013, Karkoschka 1994, Keller-Rudek 2013) "
             "binned to 35 bins in part 02 section 2.3",
         ],
         "notes": ("Each block of a row has its own status word from the research part (DATA, COMPUTED, READ, 2ND-HAND, "
