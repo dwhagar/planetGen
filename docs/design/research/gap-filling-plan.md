@@ -2221,3 +2221,11 @@ The events that act on a belt and the dust that falls on a white dwarf (`physics
 | TJ3 | D | T2 | L0 | trojans.libration_period, trojans.TADPOLE_LIMIT_DEG 23.9: the slow libration period of the linearised problem and the tadpole to horseshoe limit | limit 23 to 25 | small-mass trojans | a librating body whose period differs from the law by over 10 percent | none | Murray and Dermott 1999 ch. 3 (recalled, not opened) |
 | TJ4 | P | T4 | L4 | trojans.LEADING_SHARE_RANGE (0.5, 0.62): the share of a swarm in L4 | 0.5 to 0.7 | swarms of giants | a swarm whose leading share is outside the range | the capture history of the generated giant | none read; Jupiter's L4 outnumbers its L5 by about 1.6 to 1 (recalled) |
 | TJ5 | P | T4 | L4 | trojans.ECC_MAX 0.2 and INCLINATION_MAX_DEG 35: the largest eccentricity and inclination of a trojan's orbit | e 0.1 to 0.3; i 30 to 40 | every trojan | an N-body run of a trojan inside the limits that leaves in 1 Gyr | an N-body map of the trojan region by mass ratio | none read for a limit; Earth Trojans (arXiv 1812.01244, abstract READ) are stable under 15 degrees and between 24 and 37 degrees |
+
+### 6.123 Stand-ins of the seven latitude bands (GEN.1108)
+
+The width of the bands `physics/latitude_bands.py` divides a body into. The Earth, Uranus, Venus and a locked planet in the tests are targets, never inputs.
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
+|---|---|---|---|---|---|---|---|---|---|
+| LB1 | P | T9 | L0 | latitude_bands.BAND_WIDTH_DEG 90 over 3.5 (25.7 degrees): the equator band is this wide centred on the equator and each of the three bands on a side is this wide, the last taking its pole | 20 to 35 degrees (seven bands must still tile 180 degrees) | every rocky body with a temperature and a spin | not applicable (a way of cutting the sphere into seven; Boss asked for the equator, three above, three below, the poles inside the outermost band) | a width that follows the circulation cells of the body (a Hadley cell edge from the rotation rate) | needed output (Boss, 4:52 PM EDT 2026-10-30) |
