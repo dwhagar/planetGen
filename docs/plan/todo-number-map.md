@@ -22,7 +22,7 @@ release is stamped.
 | API | API.38 |
 | ADM | ADM.135 |
 | SEC | SEC.37 |
-| TEST | TEST.514 |
+| TEST | TEST.515 |
 | USR | USR.32 |
 | OPS | OPS.85 |
 | DOC | DOC.83 |
@@ -2289,7 +2289,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.334 | Zoom redesign Z1: one global zoom policy, with pace and clearance taken from the distance to the nearest thing; zoom floor 1e-10 pc (1e-12 pc after Z5) | none | done, PR #3569 |
 | MAP.335 | Zoom redesign Z2: sector and system scenes are chosen from the camera position, with one new server read (generated sectors near a point); the window fetch stops being a display source | none | done, PR #3647 |
 | MAP.336 | Zoom redesign Z3: one goTo(target) for every fly with the verb Go to, a find-a-place box, a vertical log ruler with named clickable stops, crumbs as Go to, and Up one level | none | done, PR #3778 |
-| MAP.337 | Zoom redesign Z4: delete the stage code and stage URLs and rewrite the stage browser tests | none | open |
+| MAP.337 | Zoom redesign Z4: delete the stage code and stage URLs and rewrite the stage browser tests | none | done, PR #4423 |
 | MAP.338 | Zoom redesign Z5: planet and moon frames, the camera as frame plus offset, automatic near and far planes, and the MAP.240 leftovers | none | open |
 | MAP.339 | Black holes: 237 of 240 drawn at a 10 pc zoom are far from the view; show them by a near-field rule (bug) | none | done, PR #3636 |
 | MAP.340 | Black hole crowd badges: crowded black hole marks merge into one mark with a count badge and a click list (bug) | none | done, PR #3640 |
@@ -3607,7 +3607,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.456 | A test that the generated [X/Fe] abundances match the Brewer and Fischer 2016 table, not only its trend and scatter (low priority) | none | done, PR #3817 |
 | TEST.457 | test_no_todo_codes_shown fails on main: util/settings.py shows the item code PERF.154 to users (bug) | none | done, PR #3761 |
 | TEST.458 | test_sector_map_scale_line_follows_the_zoom fails on main (bug) | none | done, PR #3771 |
-| TEST.459 | The point_phenomena links browser test is red on clean main (bug) | none | open |
+| TEST.459 | The point_phenomena links browser test is red on clean main (bug) | none | done, already green on main (repaired by MAP.349 and MAP.337 step 2) |
 | TEST.460 | test_sweep_life has 5 setup errors on main: KeyError 'h' because tuning.PLANET_CLASSES has no class h since the class cut-over (bug) | none | dropped (Bug 2: the KeyError was fixed in PR 3747 at 6:00 PM EDT as the lane reported; a gate on an older base shows it, a rebase clears it) |
 | TEST.461 | test_db_column_round_trip fails on planets.porosity: the column is never written (bug) | none | open |
 | TEST.462 | test_planets_respect_their_stars_age_and_history fails in a batch run: a class E planet in the habitable list around a star under 0.1 Gy (bug) | none | done, PR #3794 |
@@ -3616,11 +3616,11 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.465 | test_admin_script_cli: query_db exits 1 instead of 2 for an incomplete command line when the database is not reachable (bug) | none | done, PR #3932 |
 | TEST.466 | test_generate_py_system_output_writes_a_file_and_no_database: the plain system output starts with a newline (bug) | none | done, PR #3932 |
 | TEST.467 | Two tests red on the base branch seen by Star 1: the wide-binary planet-class check and the planet serialization allowlist (formation_distance_au, host_eccentricity) (bug) | none | dropped (Bug 2 rechecked on main c4b6bd167: the serialization fuzz and generation fuzz files pass and every wide-binary test passes; Star 1 named no failing test. Refile with the test name if it recurs after rebasing) |
-| TEST.468 | test_work_units::test_the_batch_fills_are_units_of_id_ranges_recorded_as_their_commands and test_generation_stats::test_an_unmeasured_server_estimates_from_the_defaults are red on a clean main (bug) | none | open |
-| TEST.469 | test_interior_heat::test_a_generated_body_has_a_urey_ratio_above_one_only_while_its_mantle_is_still_warming fails on main: a generated body has urey_ratio 1.85 with a mantle that is no longer warming (bug) | none | open |
+| TEST.468 | test_work_units::test_the_batch_fills_are_units_of_id_ranges_recorded_as_their_commands and test_generation_stats::test_an_unmeasured_server_estimates_from_the_defaults are red on a clean main (bug) | none | done, PR #4425 |
+| TEST.469 | test_interior_heat::test_a_generated_body_has_a_urey_ratio_above_one_only_while_its_mantle_is_still_warming fails on main: a generated body has urey_ratio 1.85 with a mantle that is no longer warming (bug) | none | done, already green on main |
 | TEST.470 | test_orbit_elements fails on main: the moon-light test (relative error 6e-6) and the ellipse tests (a lunar-range problem) (bug) | none | done, already fixed on main (58714c8de, 80543090d) |
 | TEST.471 | tests/test_near.py::test_the_command_line_asks_for_the_nearest_few fails: argparse exits with code 2 so the pytest.raises(SystemExit, match="--distance") never sees the text (bug) | none | done, PR #4019 |
-| TEST.472 | Four migration tests are red on clean main: aerosols same-seed draws, albedo_greenhouse saved-system temperature, and two gas_tables tests (AsteroidBelt has no attribute moons) (bug) | none | open |
+| TEST.472 | Four migration tests are red on clean main: aerosols same-seed draws, albedo_greenhouse saved-system temperature, and two gas_tables tests (AsteroidBelt has no attribute moons) (bug) | none | done, PR #4421 |
 | TEST.473 | test_star_census_raises_no_new_flag is red on main: G stars 2.90 percent against the 3.13 to 6.99 percent range, and the A0V companion rate 0.7456 against up to 0.7367 (bug) | none | done, PR #4031 |
 | TEST.474 | tests/test_web_a11y.py::_add_bright_stars fails with pymysql 1136 "Column count doesn't match value count" and errors every site_app browser test in setup (bug) | none | done, PR #4023 |
 | TEST.475 | tests/test_web_nearby.py: four of eight tests error in fixture setup at 900 s because the client fixture generates two sectors per test (bug) | none | done, PR #4049 |
@@ -3628,7 +3628,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.477 | The overlap verifier: audit() of a generated system and a seed-sweep test over forced triples, quadruples and ordinary systems (GEN.1006 P2) | none | done, PR #4071 |
 | TEST.478 | tests/test_api.py _bright_row (and its row near line 1491) is one value short since GEN.846 added bright_stars.rotation_period_hours (bug) | none | done, PR #4056 |
 | TEST.479 | test_radiative_convective_real::test_earth_sends_out_what_it_absorbs fails on the train 4 branch: the Earth tropopause temperature is 168.33 K against the test bound of 170 to 230 K (bug) | none | open |
-| TEST.480 | test_gen_builder_internals::test_slot_planet_honours_class_and_moon_count gets class J where it forced class I at a cold slot (bug) | none | open |
+| TEST.480 | test_gen_builder_internals::test_slot_planet_honours_class_and_moon_count gets class J where it forced class I at a cold slot (bug) | none | done, already green on main (fixed by the class epochs) |
 | TEST.481 | Three tests red on clean main: the Hill sphere moon drop, the halo evolutionary flux counts and the large component phenomena unit (bug) | none | done, PR #4096 |
 | TEST.482 | test_stages::test_plan_is_the_skeleton_and_each_scatter_and_fill_is_one_stage_of_its_own is red on main: fill-map-luminosity lists the block-lights stage (bug) | none | done, PR #4093 |
 | TEST.483 | test_disregard_missing_data (6 tests) and test_rq_time_limits::test_the_generate_pages_job_gets_a_limit_from_the_time_its_steps_are_recorded_to_take (3 params) are red on clean main (bug) | none | done, PR #4415 |
@@ -3662,6 +3662,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.511 | test_every_column_is_on_the_sheet_or_says_why_it_is_not is red on main for belt and asteroid_field: chondrite_group (GEN.475) is neither on the sheet nor excused | none | done, PR #4410 |
 | TEST.512 | test_rogue_planet_parity::test_the_gap_between_a_rogue_and_a_bound_planet_never_grows is red on main | none | done, PR #4405 |
 | TEST.513 | test_strings_the_code_shows_have_no_todo_code is red on main: TODO codes in shown strings (sheet.py GEN.1142, small_body_composition.py GEN.475/GEN.473, surface_composition.py GEN.474 twice) | none | done, PR #4412 |
+| TEST.514 | test_habitability_world::test_the_score_round_trips_and_a_cloud_rescores_the_dose is red on main: phi4_temperature 0.75 against 0.8075 after the cloud refresh (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

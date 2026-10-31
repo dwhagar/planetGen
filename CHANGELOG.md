@@ -2,6 +2,29 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2929] - 2026-10-31
+
+**Headline:** The Galaxy Map's history entries keep only the camera's address; Back, Forward and a reload work the stage out from where the camera is.
+
+### Changed
+- **History entries no longer carry a stage (MAP.337, steps 3 and 4).** `galaxystageview.js` stores `{galaxyStage, mapIndex, maxIndex}` in each entry and derives the stage the page loads on from the `cam` address (`stageForCamera`), where an entry used to hold the stage it was made at. Dead code is removed (`fovHalf`, `optionAt`, `matchAddress`).
+
+No generator output changes.
+
+generation-output: unchanged
+
+TODO items resolved: MAP.337 (steps 1 to 4 merged; `parentStage` stays as the container trail the crumbs and Up read, MAP.227).
+
+## [8.0.2928] - 2026-10-31
+
+**Headline:** Two migration tests that were red on main now say what they check: the aerosols test lists the scores worked from the radiation score, and the albedo test knows the air solve caps a surface at 2000 K.
+
+### Changed
+- TEST.472: `tests/test_migration_aerosols.py::test_the_same_seed_draws_the_same_aerosols_and_they_move_no_other_draw` compared two runs of one seed with the aerosols switched off, and five stored fields differed on two bodies (`phi4`, `phi4_suitability`, `tier_radiation`, `eq_body`, `eq_body_kind`). No draw moved: the Radiation score is the lower of the dose's and the ground UV's (GEN.445), the aerosols cut the ground UV, and the Suitability score, the overall score, the radiation tier and the body-protection equipment level are worked from the Radiation score. `READ_FROM_AEROSOLS` names them, so the test still fails if any other field moves.
+- TEST.472: `tests/test_migration_albedo_greenhouse.py::test_a_saved_system_keeps_its_draws_and_the_temperature_follows_them` expected the stored temperature to equal the uncapped albedo and greenhouse formula, and a hot planet stores 2000 K against 2763 K: the air solve stops a runaway greenhouse at `surface_air.MAX_SURFACE_TEMPERATURE_K`. The expectation is now the formula capped at that limit, nothing looser. The two `test_migration_gas_tables` tests on the item pass on current main with the test unchanged (the cause of the earlier red was not found, so they are left alone). Test-only.
+
+generation-output: unchanged
+
 ## [8.0.2927] - 2026-10-31
 
 **Headline:** The code that makes some A stars magnetic Ap stars and some metallic-line Am stars is written; it does not take effect until it is wired into the star build.

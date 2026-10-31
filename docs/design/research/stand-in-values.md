@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 949 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 953 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -37,15 +37,15 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
 | T1 | 140 | 13 | 8 | 1 | 0 | 162 |
-| T2 | 111 | 36 | 0 | 1 | 0 | 148 |
-| T3 | 83 | 38 | 5 | 10 | 0 | 136 |
+| T2 | 112 | 36 | 0 | 1 | 0 | 149 |
+| T3 | 84 | 38 | 5 | 10 | 0 | 137 |
 | T4 | 37 | 5 | 0 | 14 | 10 | 66 |
 | T5 | 43 | 17 | 0 | 1 | 0 | 61 |
-| T6 | 91 | 71 | 18 | 41 | 0 | 221 |
+| T6 | 92 | 71 | 18 | 42 | 0 | 223 |
 | T7 | 27 | 8 | 8 | 8 | 0 | 51 |
 | T8 | 0 | 1 | 1 | 5 | 1 | 8 |
 | T9 | 17 | 14 | 4 | 42 | 19 | 96 |
-| All | 549 | 203 | 44 | 123 | 30 | 949 |
+| All | 552 | 203 | 44 | 124 | 30 | 953 |
 
 ## How the labels were given
 
@@ -1544,6 +1544,15 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | PEC7 | P | T6 | L0 | chemically_peculiar.AP_PERIOD_RANGE_DAYS (0.5, 30) d | none | Ap stars | a share of Ap stars above 30 d over 10 percent of the draw | as PEC5 | the decades-long tail is left out of the draw | GEN.1027 | - |
 | PEC8 | P | T6 | L1 | chemically_peculiar.AM_SPEED_RANGE_KMS (10, 90) km/s, uniform | mean 40 to 60 | Am stars | a mean Am equatorial speed outside 30 to 70 km/s | the v sin i distribution of Am stars | Am stars rotate slowly, v sin i under about 100 km/s with a mean near 50 (Abt and Morrell 1995) | GEN.1027 | - |
 | PEC9 | P | T3 | L0 | chemically_peculiar.AP_POLAR_FIELD_GAUSS (300, 30000) G, log-uniform | none | Ap stars | a strong Ap field distribution whose median is outside 1 to 6 kG | the field distribution of the magnetic survey | dipole fields of 300 G to 34 kG (Auriere et al. 2007); the lower edge is their detection floor | GEN.1027 | - |
+
+## 6.148 Stand-ins of the brightness of a ring and the dust that darkens it
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| RGD1 | P | T6 | L3 | ring_darkening.CLEAN_ICE_ALBEDO 0.9 and HALF_DARKENING_SHARE 0.04: the reflectance of clean ice grains and the dark share at which a ring is half way to dark | albedo 0.8 to 1; share 0.02 to 0.1 | rings of ice and dark grains | a measured reflectance of Saturn's A, B and C rings (about 0.3 to 0.8 and 0.1) that the law misses by over a factor of 1.5, or a laboratory mixture curve with another half share | the intimate-mixture curve of ice and dark grains (Clark and Lucey 1984) | Clark and Lucey 1984 (recalled): a few percent of dark material halves the reflectance of ice; the share is tuned so the A and B rings come out at 0.3 to 0.8 | - | no data |
+| RGD2 | P | T2 | L0 | ring_darkening.DARK_ALBEDO 0.04: the reflectance of a ring of dark material only | 0.03 to 0.06 | dark rings | a Uranian or Neptunian ring measured above 0.08 or under 0.02 | the measured ring albedos | Karkoschka 2001 (recalled, second-hand): 0.03 to 0.05 for the Uranian rings | - | - |
+| RGD3 | P | T3 | L0 | ring_darkening.SATURN_POLLUTION_FLUX_KG_M2_S 4.5e-17 kg per m2 per s, at 9.58 AU and 100 000 km | 1e-17 to 2e-16 | the dust that falls on a ring | an infall flux measured by the Cassini dust analyser or a ring mass that makes Saturn's rings polluted over 2 percent or under 0.05 in 4 Gyr | the Cassini flux and the ring mass (Kempf et al. 2018; Iess et al. 2019) | Kempf et al. 2018 (recalled, second-hand): a flux of order 1e-17 to 1e-16 gives the non-icy 0.1 to 2 percent in a few hundred million years | - | - |
+| RGD4 | P | T6 | L0 | ring_darkening.FLUX_DISTANCE_EXPONENT -1.3 and DUST_SPEED_AT_INFINITY_KMS 5: how the dust falls with distance from the star, and the speed it has before the planet's pull | exponent -1.0 to -2.0; speed 3 to 8 km/s | rings from 5 AU to 40 AU | a dust measurement beyond Saturn (New Horizons dust counter) that falls off by another power | the measured outer-Solar-System dust flux | Grun et al. 1985 (recalled): the dust density falls as r^-1.3; beyond Saturn it is poorly measured | - | - |
 
 ## 6.138 Stand-ins of the variable-star kinds
 
