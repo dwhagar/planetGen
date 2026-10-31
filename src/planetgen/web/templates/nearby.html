@@ -60,6 +60,15 @@
       {{ ui_input("distance", "Distance in parsecs (up to " ~ max_distance|int ~ ")", distance_text, type="number", required=True,
                   error=error if error_field == "distance" else none, min="0.01", max=max_distance, step="any") }}
     </div>
+    <label class="search-field search-field-stars">Stars
+      <select name="stars" id="nearby-star-count">
+        <option value="">Any number</option>
+        {%- for value, label in star_choices %}
+        <option value="{{ value }}"{% if stars_text == value %} selected{% endif %}>{{ label }}</option>
+        {%- endfor %}
+      </select>
+    </label>
+    <p class="hint">Stars is how many stars a system holds. With one chosen, only those systems and what is in them are listed.</p>
     <fieldset class="search-field">
       <legend>Only these kinds (none ticked: everything)</legend>
       {%- for option in kind_options %}
@@ -88,12 +97,13 @@
   {%- endif %}
   {%- if rows %}
   <div class="table-scroll"><table>
-    <thead><tr><th scope="col">Kind</th><th scope="col">Name</th><th scope="col">In</th><th scope="col">Distance</th></tr></thead>
+    <thead><tr><th scope="col">Kind</th><th scope="col">Name</th><th scope="col">Stars</th><th scope="col">In</th><th scope="col">Distance</th></tr></thead>
     <tbody>
       {%- for row in rows %}
       <tr>
         <td>{{ row.label }}</td>
         <td>{% if row.url %}<a href="{{ row.url }}">{{ row.name }}</a>{% else %}{{ row.name }}{% endif %}</td>
+        <td>{% if row.star_count is defined %}{{ num(row.star_count) }}{% endif %}</td>
         <td>{% if row.parent_link %}<a href="{{ row.parent_link.url }}">{{ row.parent_link.name }}</a>{% endif %}</td>
         <td>{{ row.distance_text }}</td>
       </tr>

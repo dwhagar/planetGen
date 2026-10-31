@@ -178,6 +178,24 @@ def _system_labels(conn, system_ids):
     return labels
 
 
+def _star_counts(conn, system_ids):
+    """`{id: stars}` of the systems given, the rows of the `stars` table each holds (a system with none is absent)."""
+    counts = {}
+    for chunk in _chunks(sorted(system_ids)):
+        for row in conn.execute(f"SELECT star_system_id AS sid, COUNT(*) AS n FROM stars WHERE star_system_id IN ({_marks(len(chunk))}) "
+                                "GROUP BY star_system_id", tuple(chunk)).fetchall():
+            counts[row["sid"]] = row["n"]
+    return counts
+
+
+def _systems_with_stars(conn, systems, stars):
+    """`systems` cut to those that hold `stars` (`(least, most)` of `util.star_count.parse_star_count`, `most` `None` for "or more")."""
+    least, most = stars
+    counts = _star_counts(conn, systems)
+    return {system_id: system for system_id, system in systems.items()
+            if counts.get(system_id, 0) >= least and (most is None or counts[system_id] <= most)}
+
+
 def _sector_names(conn, sector_ids):
     """`{id: name}` of the sectors that label the rows of one page (a read of the sectors by id, never a search)."""
     names = {}
@@ -266,7 +284,7 @@ def _bodies_of(conn, system_id, system_name, wanted):
     return rows
 
 
-def _facilities(conn, center, distance, systems):
+def _facilities(conn, center, distance, systems, standalone=True):
     """Facilities within reach: `(distance, id, name, parent, point)`; a standalone one's `parent` carries its
     `sector_id` until the page names it, and one in a system has the system's name left `None` until the page is made
     (`_system_labels`)."""
@@ -280,6 +298,8 @@ def _facilities(conn, center, distance, systems):
             found.append((system["distance"], row["id"], row["name"],
                           {"ref": _ref("system", row["star_system_id"]), "kind": "system", "name": None},
                           system["point"]))
+    if not standalone:
+        return found
     position = ("p.center_x_pc", "p.center_y_pc", "p.center_z_pc")
     for row in region.region_rows(conn, "facilities", "p.id, p.name, p.sector_id, p.center_x_pc, p.center_y_pc, p.center_z_pc",
                                   position, center, distance, where="p.star_system_id IS NULL"):
@@ -311,7 +331,7 @@ def _phenomena(conn, center, distance, kinds):
     return found
 
 
-def objects_within(conn, place, distance_pc, kinds=None, limit=DEFAULT_LIMIT, offset=0):
+def objects_within(conn, place, distance_pc, kinds=None, limit=DEFAULT_LIMIT, offset=0, stars=None):
     """
     Everything generated within `distance_pc` of a place, nearest first.
 
@@ -322,6 +342,8 @@ def objects_within(conn, place, distance_pc, kinds=None, limit=DEFAULT_LIMIT, of
         kinds (iterable, optional): Only these `SEARCH_KINDS`; all by default.
         limit (int): Rows per page, at most `MAX_LIMIT`.
         offset (int): Rows to skip.
+        stars (tuple, optional): The stars filter `(least, most)` of `util.star_count.parse_star_count` (UX.239): only the systems that hold that
+            many stars, and what lives in them. A phenomenon and a facility outside a system are not in one, so they are left out.
 
     Returns:
         dict: `place` (`ref`, `kind`, `name`, `point_pc`), `distance_pc`,
@@ -330,7 +352,7 @@ def objects_within(conn, place, distance_pc, kinds=None, limit=DEFAULT_LIMIT, of
             bright stars, `bright_star`, and scatter objects in the sphere that are not
             built yet; counted, never listed), `not_generated_total`, and `rows`: each `ref`, `kind`, `id`, `name`,
             `parent` (`ref`, `kind`, `name`, or `None`), `system_id` (the system
-            it is in or is, else `None`) and `distance_pc`.
+            it is in or is, else `None`), `distance_pc` and, on a `system` row, `star_count`.
             The place itself is left out when it is a system or a phenomenon (a
             planet or moon is not removed from its own system's bodies).
 
@@ -351,6 +373,8 @@ def objects_within(conn, place, distance_pc, kinds=None, limit=DEFAULT_LIMIT, of
             f"shrink the distance (a smaller sphere is much cheaper) or ask for the nearest few with nearest")
 
     systems = _systems_in_reach(conn, center, distance)
+    if stars is not None:
+        systems = _systems_with_stars(conn, systems, stars)
     self_system = place["id"] if place["kind"] == "system" else None
     body_wanted = wanted & set(BODY_KINDS)
     counts = _body_counts(conn, list(systems), body_wanted) if body_wanted else {}
@@ -365,9 +389,9 @@ def objects_within(conn, place, distance_pc, kinds=None, limit=DEFAULT_LIMIT, of
     for system_id in counts:
         entries.append((systems[system_id]["distance"], 1, system_id, "bodies", system_id))
     if FACILITY_KIND in wanted:
-        for away, facility_id, name, parent, point in _facilities(conn, center, distance, systems):
+        for away, facility_id, name, parent, point in _facilities(conn, center, distance, systems, standalone=stars is None):
             entries.append((away, 2, facility_id, FACILITY_KIND, (name, parent)))
-    phenomena = _phenomena(conn, center, distance, wanted)
+    phenomena = _phenomena(conn, center, distance, wanted) if stars is None else []
     for away, kind, object_id, name, _parent, _point in phenomena:
         if place["kind"] == kind and place["id"] == object_id:
             continue
@@ -400,6 +424,7 @@ def objects_within(conn, place, distance_pc, kinds=None, limit=DEFAULT_LIMIT, of
                 on_page.add(object_ref.parse(entry[4][1]["ref"])[1])
         position += size
     labels = _system_labels(conn, on_page)
+    star_counts = _star_counts(conn, on_page)
 
     rows = []
     position = 0
@@ -429,8 +454,11 @@ def objects_within(conn, place, distance_pc, kinds=None, limit=DEFAULT_LIMIT, of
             home = None
         for kind, row_id, name, parent in made:
             if offset <= position < offset + limit:
-                rows.append({"ref": _ref(kind, row_id), "kind": kind, "id": row_id, "name": name,
-                             "parent": parent, "system_id": home, "distance_pc": away})
+                row = {"ref": _ref(kind, row_id), "kind": kind, "id": row_id, "name": name,
+                       "parent": parent, "system_id": home, "distance_pc": away}
+                if kind == "system":
+                    row["star_count"] = star_counts.get(row_id, 0)
+                rows.append(row)
             position += 1
     in_sector = [row for row in rows if row["parent"] and row["parent"]["kind"] == "sector"]
     names = _sector_names(conn, [object_ref.parse(row["parent"]["ref"])[1] for row in in_sector])
@@ -446,7 +474,7 @@ def objects_within(conn, place, distance_pc, kinds=None, limit=DEFAULT_LIMIT, of
     }
 
 
-def nearest(conn, place, count, kinds=None, max_distance_pc=MAX_DISTANCE_PC):
+def nearest(conn, place, count, kinds=None, max_distance_pc=MAX_DISTANCE_PC, stars=None):
     """
     The nearest `count` rows to a place, found through a ladder of radii (NAV.61).
 
@@ -461,6 +489,7 @@ def nearest(conn, place, count, kinds=None, max_distance_pc=MAX_DISTANCE_PC):
         count (int): How many rows, 1 up to `MAX_LIMIT`.
         kinds (iterable, optional): Only these `SEARCH_KINDS`; all by default.
         max_distance_pc (float): Do not look farther than this, up to `MAX_DISTANCE_PC`.
+        stars (tuple, optional): The stars filter of `objects_within`.
 
     Returns:
         dict: The result of `objects_within` for the sphere that answered, with at most `count` rows; its `distance_pc`
@@ -475,7 +504,7 @@ def nearest(conn, place, count, kinds=None, max_distance_pc=MAX_DISTANCE_PC):
     farthest = _check_distance(max_distance_pc)
     rungs = [rung for rung in LADDER_PC if rung < farthest] + [farthest]
     for rung in rungs:
-        result = objects_within(conn, place, rung, kinds=kinds, limit=count)
+        result = objects_within(conn, place, rung, kinds=kinds, limit=count, stars=stars)
         if result["total"] >= count:
             break
     return result

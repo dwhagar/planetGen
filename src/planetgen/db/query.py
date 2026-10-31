@@ -498,9 +498,27 @@ distinct from the default `None`, which means "don't filter by sector at
 all." The API's `/api/systems?sector_id=none` maps onto this."""
 
 
-SYSTEM_SORTS = {"name": "ss.name", "sector": "sec.name", "octant": "ss.quadrant"}
+STAR_COUNT_SQL = "(SELECT COUNT(*) FROM stars st WHERE st.star_system_id = ss.id)"
+"""str: How many stars a system holds, as SQL on a `star_systems ss` row: the rows of `stars` it owns (UX.239)."""
+
+SYSTEM_SORTS = {"name": "ss.name", "sector": "sec.name", "octant": "ss.quadrant", "stars": STAR_COUNT_SQL}
 """dict: The sort keys `list_systems` accepts (the Systems tables' column
-keys) -> the SQL they order by. Ties fall back to name, then id."""
+keys) -> the SQL they order by. Ties fall back to name, then id. `stars` orders by the number of stars (UX.239)."""
+
+
+def _star_count_conditions(stars):
+    """
+    The `WHERE` conditions and their parameters for the stars filter `stars` (`(least, most)` of `parse_star_count`, `most` `None` for "or more") on a
+    `star_systems ss` row: `([], [])` for no filter. One definition for the search, the Systems list and its count (UX.239).
+    """
+    if stars is None:
+        return [], []
+    least, most = stars
+    conditions, params = [f"{STAR_COUNT_SQL} >= ?"], [least]
+    if most is not None:
+        conditions.append(f"{STAR_COUNT_SQL} <= ?")
+        params.append(most)
+    return conditions, params
 
 
 def _after_prefix(text):
@@ -544,7 +562,7 @@ def _start_condition(sort, descending, start):
 
 
 def _systems_filter_clause(star_type_prefix, sector_id, binary=None, octants=(), in_sector=None, start=None,
-                           sort="name", descending=False):
+                           sort="name", descending=False, stars=None):
     """
     Builds the shared `JOIN`/`WHERE`/params fragment `list_systems` and
     `count_systems` both need -- factored out so the count query can't
@@ -578,6 +596,9 @@ def _systems_filter_clause(star_type_prefix, sector_id, binary=None, octants=(),
         params.extend(octants)
     if in_sector is not None:
         conditions.append("ss.sector_id IS NOT NULL" if in_sector else "ss.sector_id IS NULL")
+    star_conditions, star_params = _star_count_conditions(stars)
+    conditions.extend(star_conditions)
+    params.extend(star_params)
     begun = _start_condition(sort, descending, start)
     if begun:
         conditions.append(begun[0])
@@ -588,7 +609,7 @@ def _systems_filter_clause(star_type_prefix, sector_id, binary=None, octants=(),
 
 
 def list_systems(conn, star_type_prefix=None, sector_id=None, limit=None, offset=None, sort="name",
-                 descending=False, binary=None, octants=(), in_sector=None, after=None, start=None):
+                 descending=False, binary=None, octants=(), in_sector=None, after=None, start=None, stars=None):
     """
     Returns systems, optionally filtered by star type and/or sector.
 
@@ -614,6 +635,7 @@ def list_systems(conn, star_type_prefix=None, sector_id=None, limit=None, offset
         octants (iterable[str]): Keep only systems in these sector octants.
         in_sector (bool, optional): Keep only systems in a sector (True) or
             standalone ones (False).
+        stars (tuple, optional): Keep only systems with that many stars, `(least, most)` of `parse_star_count` (UX.239).
         after (int, optional): A system's row ID: with `sort="name"`, `"sector"` or `"octant"` the page starts
             after that system (a keyset page, PERF.75, PERF.206: the rows before it are not read and `offset` is
             ignored). Other sorts, a system that is gone and a list filtered by star type or sector use `offset`.
@@ -638,7 +660,7 @@ def list_systems(conn, star_type_prefix=None, sector_id=None, limit=None, offset
               and sort in _GROUP_WALK_SORTS)
     join_sql, where_sql, params = _systems_filter_clause(
         star_type_prefix, sector_id, binary, octants, in_sector,
-        start=None if walked and sort == "sector" else start, sort=sort, descending=descending)
+        start=None if walked and sort == "sector" else start, sort=sort, descending=descending, stars=stars)
     column = SYSTEM_SORTS[sort]
     direction = "DESC" if descending else "ASC"
     if after is not None and limit is not None and sort == "name":
@@ -949,7 +971,7 @@ def _start_key(sort, descending, start):
 
 
 def count_systems(conn, star_type_prefix=None, sector_id=None, binary=None, octants=(), in_sector=None, start=None,
-                  sort="name", descending=False):
+                  sort="name", descending=False, stars=None):
     """
     Returns the total number of systems matching the same filters
     `list_systems` accepts, ignoring any pagination -- the denominator
@@ -962,12 +984,13 @@ def count_systems(conn, star_type_prefix=None, sector_id=None, binary=None, octa
         sector_id (int or NO_SECTOR, optional): Same meaning as `list_systems`.
         start, sort, descending: The jump-by-value box's start (PERF.75), as in `list_systems`: only the systems from
             it on are counted.
+        stars (tuple, optional): The stars filter of `list_systems`.
 
     Returns:
         int: Total matching system count.
     """
     join_sql, where_sql, params = _systems_filter_clause(star_type_prefix, sector_id, binary, octants, in_sector,
-                                                         start, sort, descending)
+                                                         start, sort, descending, stars)
     # A system matches a star type once however many of its stars do; with no star join every row is its own.
     counted = "COUNT(DISTINCT ss.id)" if join_sql else "COUNT(*)"
 
@@ -981,15 +1004,15 @@ def count_systems(conn, star_type_prefix=None, sector_id=None, binary=None, octa
                                  f"LIMIT ?) c", list(params) + [COUNT_FALLBACK_CAP]).fetchone()["n"])
 
     return _counted(conn, ["count_systems", star_type_prefix, sector_id, binary, list(octants), in_sector,
-                           _start_key(sort, descending, start)], exact, estimate)
+                           _start_key(sort, descending, start), None if stars is None else list(stars)], exact, estimate)
 
 
-def systems_facets(conn, sector_id=None, binary=None, octants=(), in_sector=None):
+def systems_facets(conn, sector_id=None, binary=None, octants=(), in_sector=None, stars=None):
     """
     The option counts for the Systems tables' filter menus: where a system is
     (`placement`: `"sector"` or `"standalone"`), whether it is `binary`
     (`"yes"`/`"no"`) and its sector `octant`. Each menu's counts apply every
-    filter except its own, so the menus narrow one another.
+    filter except its own, so the menus narrow one another. `stars` (UX.239) is a filter of its own with no menu here.
 
     Returns:
         dict: `{"placement"|"binary"|"octant": [{"value", "count"}]}`,
@@ -997,7 +1020,7 @@ def systems_facets(conn, sector_id=None, binary=None, octants=(), in_sector=None
     """
     def exact(c):
         def counts(select, **filters):
-            base = {"binary": binary, "octants": octants, "in_sector": in_sector, **filters}
+            base = {"binary": binary, "octants": octants, "in_sector": in_sector, "stars": stars, **filters}
             _join, where, params = _systems_filter_clause(None, sector_id, **base)
             return {row["value"]: row["n"] for row in c.execute(
                 f"SELECT {select} AS value, COUNT(*) AS n FROM star_systems ss{where} GROUP BY value",
@@ -1012,7 +1035,7 @@ def systems_facets(conn, sector_id=None, binary=None, octants=(), in_sector=None
             "octant": [{"value": v, "count": found[v]} for v in sorted(x for x in found if x is not None)],
         }
 
-    return _counted(conn, ["systems_facets", sector_id, binary, list(octants), in_sector], exact,
+    return _counted(conn, ["systems_facets", sector_id, binary, list(octants), in_sector, None if stars is None else list(stars)], exact,
                     lambda c: {"placement": [], "binary": [], "octant": []})
 
 
@@ -7031,14 +7054,9 @@ def _search_result_systems(conn, term, limit, offset, stars=None):
     if term:
         match, params = _search_match(conn, "ss.name", term)
         clauses.append(match)
-    if stars is not None:
-        least, most = stars
-        count = "(SELECT COUNT(*) FROM stars st WHERE st.star_system_id = ss.id)"
-        clauses.append(f"{count} >= ?")
-        params = [*params, least]
-        if most is not None:
-            clauses.append(f"{count} <= ?")
-            params.append(most)
+    star_clauses, star_params = _star_count_conditions(stars)
+    clauses.extend(star_clauses)
+    params = [*params, *star_params]
     rows, page = _search_page(
         conn,
         "SELECT ss.id, ss.name, ss.sector_id, ss.is_binary, ss.binary_configuration, ss.binary_type",

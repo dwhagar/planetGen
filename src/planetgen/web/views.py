@@ -113,7 +113,7 @@ def _all_systems_load(state, limit, offset, want_facets, after=None):
 ALL_SYSTEMS_TABLE = tables.register(Table(
     "systems", "All systems",
     [Column("name", "Name"), Column("sector", "Sector"), Column("octant", "Octant"),
-     Column("stars", "Stars", sortable=False), Column("objects", "Objects", sortable=False),
+     Column("stars", "Stars"), Column("objects", "Objects", sortable=False),
      Column("habitable", "Habitable world", sortable=False), Column("star_type", "Star type", sortable=False)],
     _all_systems_load,
     facets=[Facet("placement", "Where"), Facet("binary", "Stars"), Facet("octant", "Octant")],

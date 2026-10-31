@@ -13,6 +13,7 @@ URL scheme (all GET, so every step is bookmarkable):
     /nearby?place=system:12&distance=10      the list
     /nearby?place=1.5,-2,0.25&distance=10    a point in the galaxy frame (pc)
     ...&kinds=planet&kinds=moon&page=2       a kind filter, a page
+    ...&stars=3                              only systems with that many stars (3+, binary, ...; UX.239)
 
 A place is an object reference (`planetgen.galaxy.objectref`; a bare number
 is a system) or `x,y,z` in galaxy-frame parsecs.
@@ -25,6 +26,7 @@ from markupsafe import Markup
 
 from planetgen.db import near as near_search
 from planetgen.physics.units import pc_to_ly
+from planetgen.util import star_count
 from planetgen.web.lib import apiclient
 from planetgen.web.lib.fmt import format_distance_ly
 from planetgen.web.lib.pagination import PAGE_SIZE, parse_page, render_pagination
@@ -107,6 +109,16 @@ def _kinds(args):
     return list(dict.fromkeys(wanted))
 
 
+def _stars(args):
+    """The stars filter as typed when it is one (a count, a count and a plus, or a name), else empty: a hand-edited URL is ignored, not an error (UX.239)."""
+    text = (args.get("stars") or "").strip()
+    try:
+        star_count.parse_star_count(text)
+    except ValueError:
+        return ""
+    return text
+
+
 def _error_field(message):
     """The form field a `/near` refusal is about (UX.124): "distance", else None (the page's own alert)."""
     return "distance" if "distance" in message else None
@@ -134,8 +146,10 @@ def nearby():
         question = {"from": place_param}
 
     kinds = _kinds(args)
+    stars = _stars(args)
     distance_raw = (args.get("distance") or "").strip()
     context = {"place_param": place_param, "distance_text": distance_raw or str(DEFAULT_DISTANCE_PC),
+               "stars_text": stars, "star_choices": star_count.STAR_COUNT_CHOICES,
                "max_distance": near_search.MAX_DISTANCE_PC,
                "kind_options": [{"value": kind, "label": KIND_LABELS[kind], "checked": kind in kinds}
                                 for kind in near_search.SEARCH_KINDS]}
@@ -147,6 +161,8 @@ def nearby():
     params = {**question, "distance": distance_raw, "limit": PAGE_SIZE, "offset": (page_number - 1) * PAGE_SIZE}
     if kinds:
         params["kinds"] = ",".join(kinds)
+    if stars:
+        params["stars"] = stars
     try:
         result = apiclient.get_near(db_name(), params)
     except apiclient.NotFoundError:
@@ -161,7 +177,7 @@ def nearby():
     place = result["place"]
     rows = [{**row, "label": KIND_NAMES[row["kind"]], "url": _row_url(row), "parent_link": _parent_link(row),
              "distance_text": format_distance_ly(pc_to_ly(row["distance_pc"]))} for row in result["rows"]]
-    keep = [("place", place_param), ("distance", distance_raw)] + [("kinds", kind) for kind in kinds]
+    keep = [("place", place_param), ("distance", distance_raw)] + [("kinds", kind) for kind in kinds] + ([("stars", stars)] if stars else [])
     pages = Markup(render_pagination(request.path, keep, "page", page_number, result["total"],
                                      anchor="nearby-results", label="Nearby pages"))
     not_generated = [{"label": UNBUILT_LABELS.get(kind) or KIND_LABELS.get(kind, kind.replace("-", " ").replace("_", " ")).lower(), "count": count}

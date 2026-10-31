@@ -15,12 +15,25 @@ from planetgen.api import ids
 from planetgen.db.query import list_moons, list_planets, list_sectors, list_systems, open_readonly
 from planetgen.db import near
 from planetgen.util import log
+from planetgen.util.star_count import STAR_COUNT_NAMES, parse_star_count, star_count_label
 from planetgen.util.format import format_distance_km, format_distance_ly, format_distance_pc
 from planetgen.db.store import add_mysql_connection_args, mysql_config_from_args
 
 
+STARS_HELP = ("Only systems with this many stars: a count (3 is exactly three), a count and a plus (3+ is three or more) or a name "
+              f"({', '.join(name for name, _ in STAR_COUNT_NAMES)}; quintenary is five or more).")
+"""str: The help of the `--stars` option of `systems` and `near` (UX.239): it names every choice."""
+
 DEFAULT_PAGE = 100
 """int: How many sectors, systems, planets or moons a listing shows unless `--limit` says otherwise (PERF.207, PERF.211)."""
+
+
+def _stars_argument(text):
+    """The `--stars` value as `(least, most)` (`parse_star_count`); text it refuses is an argparse error."""
+    try:
+        return parse_star_count(text)
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError(str(exc))
 
 
 def _add_paging(parser, kind):
@@ -70,6 +83,7 @@ def process_args():
                                 help="Only systems with a star whose type starts with this "
                                      "(e.g. 'G' for every G-type system, 'G2V' for an exact match).")
     systems_parser.add_argument('--sector-id', help="Only systems in this sector.")
+    systems_parser.add_argument('--stars', type=_stars_argument, help=STARS_HELP)
     _add_paging(systems_parser, "system")
 
     near_parser = subparsers.add_parser(
@@ -83,6 +97,8 @@ def process_args():
     near_parser.add_argument('--nearest', type=int,
                              help=f"The nearest N rows (up to {near.MAX_LIMIT}), found by trying {', '.join(f'{r:g}' for r in near.LADDER_PC)} "
                                   "pc in turn; quick even at the dense core.")
+    near_parser.add_argument('--stars', type=_stars_argument,
+                             help=STARS_HELP + " Phenomena and facilities outside a system are left out.")
     near_parser.add_argument('--kinds', help="Only these kinds, comma-separated: " + ", ".join(near.SEARCH_KINDS) + ".")
     near_parser.add_argument('--limit', type=int, default=near.DEFAULT_LIMIT, help="Rows to show (default 50).")
     near_parser.add_argument('--offset', type=int, default=0, help="Rows to skip.")
@@ -155,13 +171,14 @@ def main():
         elif args.command == 'systems':
             ask, shown = _page(args)
             systems = list_systems(conn, star_type_prefix=args.star_type, sector_id=_row(conn, "sector", args.sector_id),
-                                   limit=ask, after=_row(conn, "system", args.after))
+                                   limit=ask, after=_row(conn, "system", args.after), stars=args.stars)
             if not systems:
                 print("No matching systems." if args.after is None else "No more systems.")
                 return
             systems, carry_on = _show(conn, "system", systems, shown)
             for system in systems:
-                kind = "binary" if system["is_binary"] else "single"
+                stars = system.get("star_count") or (2 if system["is_binary"] else 1)
+                kind = star_count_label((stars, stars)).lower()
                 sector_note = (f"sector {_printed(conn, 'sector', system['sector_id'])}"
                                if system["sector_id"] is not None else "standalone")
                 print(f"[{_printed(conn, 'system', system['id'])}] {system['name']} ({kind}, {sector_note})")
@@ -180,10 +197,10 @@ def main():
                 kinds = [kind for kind in args.kinds.split(",") if kind] if args.kinds else None
                 if args.nearest is not None:
                     result = near.nearest(conn, place, args.nearest, kinds=kinds,
-                                          max_distance_pc=args.distance or near.MAX_DISTANCE_PC)
+                                          max_distance_pc=args.distance or near.MAX_DISTANCE_PC, stars=args.stars)
                 else:
                     result = near.objects_within(conn, place, args.distance, kinds=kinds,
-                                                 limit=args.limit, offset=args.offset)
+                                                 limit=args.limit, offset=args.offset, stars=args.stars)
             except (near.NearError, ids.IdError) as exc:
                 raise SystemExit(f"Error: {exc}")
             result = ids.translate(result, {"rows[].id": "by-kind"}, conn)
@@ -191,7 +208,8 @@ def main():
                 print(f"Nothing within {result['distance_pc']:g} pc of {place['name']}.")
             for row in result["rows"]:
                 parent = f" -- {row['parent']['name']}" if row["parent"] else ""
-                print(f"[{row['ref']}] {row['name']}{parent} -- {format_distance_pc(row['distance_pc'])}")
+                count = f" ({star_count_label((row['star_count'], row['star_count'])).lower()})" if "star_count" in row else ""
+                print(f"[{row['ref']}] {row['name']}{count}{parent} -- {format_distance_pc(row['distance_pc'])}")
             capped = f" ({result['systems_in_range']:,}+ systems in range)" if result["systems_in_range_capped"] else ""
             print(f"{result['total']:,} objects found within {result['distance_pc']:g} pc{capped}; "
                   f"{result['not_generated_total']:,} more objects in range are not generated yet.")
