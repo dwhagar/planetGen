@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 927 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 929 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -38,14 +38,14 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 |---|---|---|---|---|---|---|
 | T1 | 140 | 13 | 8 | 1 | 0 | 162 |
 | T2 | 111 | 36 | 0 | 1 | 0 | 148 |
-| T3 | 76 | 35 | 5 | 10 | 0 | 126 |
+| T3 | 77 | 35 | 5 | 10 | 0 | 127 |
 | T4 | 37 | 5 | 0 | 14 | 10 | 66 |
 | T5 | 43 | 17 | 0 | 1 | 0 | 61 |
-| T6 | 89 | 63 | 16 | 41 | 0 | 209 |
+| T6 | 89 | 64 | 16 | 41 | 0 | 210 |
 | T7 | 27 | 8 | 8 | 8 | 0 | 51 |
 | T8 | 0 | 1 | 1 | 5 | 1 | 8 |
 | T9 | 17 | 14 | 4 | 42 | 19 | 96 |
-| All | 540 | 192 | 42 | 123 | 30 | 927 |
+| All | 541 | 193 | 42 | 123 | 30 | 929 |
 
 ## How the labels were given
 
@@ -1523,6 +1523,13 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | DN1 | P | T9 | L0 | day_night.NON_ROTATING_TURNS 0.01 and day_night.POLAR_CIRCLE_MAX_DEG 30: a body that turns less than a hundredth of a turn in an orbit is non-rotating (the star goes round once a year), and a body whose polar circle is within 30 degrees of the equator has half its surface or more in the polar zone (the area beyond latitude L is 1 - sin L) | turns 0.001 to 0.1; circle 15 to 45 degrees | planets and moons with a stored spin | a body the generator makes with a turn count under 0.01 that has a day the page calls a year, or a body at 60 degrees tilt shown as an ordinary cycle | a word chosen from the length of the solar day and the polar zone's area on the page | needed output (words for the day and night state) | - | - |
+
+## 6.140 Stand-ins of the thick disc's ages
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| TD1 | P | T3 | L0 | tuning.THICK_DISC_AGE_RANGE_GY (8, 13) Gy, the ages over which the thick disc formed its stars | 8 to 9.5 for the start; 12 to 13.5 for the end | the thick disc of a Milky Way-like galaxy | an age-metallicity or age-alpha relation of thick-disc stars with a population older than 13 or younger than 7 Gy | the star formation history of the thick disc fitted to its own relation | Haywood et al. 2013: the thick disc formed from about 13 to about 8 Gy ago | GEN.1025 | - |
+| TD2 | P | T6 | L1 | thick_ages.mixed_old_law: the thick disc's star formation is flat over its window | a rate falling by up to a factor of 3 over the window | the thick disc | a thick-disc age distribution that is not within a third of flat | the thick disc's own history from the gas model (GEN.469 for the thin disc is the template) | the neutral shape: Haywood et al. 2013 Fig. 9 has the rate falling over the window, so the oldest ages are under-weighted here | - | - |
 
 ## 6.138 Stand-ins of the variable-star kinds
 

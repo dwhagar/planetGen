@@ -1923,6 +1923,15 @@ The recalled [R] rates of the weird-worlds design (docs/design/systems/weird-wor
 | AB1 | P | T9 | L3 | activity.DECAY_EXPONENTS: the exponent b of `L_X/L_bol` after saturation by mass (1.0 up to 0.3 solar masses, 1.35 at 0.45, 1.8 at 0.6, 1.45 at 0.8 and 1.0), tuned so each mass keeps its `L_X/L_bol` at 5 Gyr from the earlier table | each value within 0.3 of the one that reproduces the earlier level; the solar-mass 1.45 inside the Skumanich band | 0.45 to 1.2 solar masses and ages past the saturation age | a measured `L_X/L_bol` of field stars at 1 to 10 Gyr by mass differing from the model's by more than 0.5 dex, or a decay slope of the Johnstone et al. 2021 model for the same masses outside 1.0 to 2.0 | the decay of the rotation and X-ray model of Johnstone, Bartel and Guedel 2021 (the spin-down torque of Johnstone 2015, not read) | test_activity::test_the_decay_exponents_hold_the_old_table_level_at_the_reference_age |
 <!-- decay-exponent-standins:end -->
 
+### 6.140 Stand-ins of the thick disc's ages (GEN.1025)
+
+`galaxy/thick_ages.py` mixes the thin disc's age law with the thick disc's over 8 to 13 Gy, so the old population holds stars of 10 to 13 Gy (design note `docs/design/galaxy/disk-star-formation-history.md`, section on the thick disc). Not wired into the galaxy's age laws yet (GEN.1025 part 2).
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
+|---|---|---|---|---|---|---|---|---|---|
+| TD1 | P | T3 | L0 | tuning.THICK_DISC_AGE_RANGE_GY (8, 13) Gy, the ages over which the thick disc formed its stars | 8 to 9.5 for the start; 12 to 13.5 for the end | the thick disc of a Milky Way-like galaxy | an age-metallicity or age-alpha relation of thick-disc stars with a population older than 13 or younger than 7 Gy | the star formation history of the thick disc fitted to its own relation | Haywood et al. 2013: the thick disc formed from about 13 to about 8 Gy ago |
+| TD2 | P | T6 | L1 | thick_ages.mixed_old_law: the thick disc's star formation is flat over its window | a rate falling by up to a factor of 3 over the window | the thick disc | a thick-disc age distribution that is not within a third of flat | the thick disc's own history from the gas model (GEN.469 for the thin disc is the template) | the neutral shape: Haywood et al. 2013 Fig. 9 has the rate falling over the window, so the oldest ages are under-weighted here |
+
 ### 6.131 Stand-ins of the halo mass function and the conditional halo (GEN.1154)
 
 `galaxy/halo_function.py` builds the halo mass function of Tinker et al. 2008 on the Eisenstein and Hu 1998 no-wiggle power spectrum, and `mass_chain.conditional_halo_mass` draws the halo of a galaxy from it (report `reports/gen399-halo-mass-function-2026-10-31.md`).
