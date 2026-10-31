@@ -99,3 +99,12 @@ def test_the_wheel_over_the_key_zooms_the_map(page, map_site):
     page.mouse.wheel(0, -400)
     page.wait_for_timeout(600)
     assert page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyCamera().zoom") != before
+
+
+def test_the_scrolling_key_lines_can_be_reached_from_the_keyboard_and_have_a_name(page, map_site):
+    """TEST.519: the lines scroll inside their box, so the box is a tab stop and a named group (axe: scrollable-region-focusable)."""
+    _open_galaxy(page, map_site)
+    page.wait_for_function(f"() => document.querySelector('{KEY} .map-key-lines')", timeout=20000)
+    box = page.locator(f"{KEY} .map-key-lines")
+    assert box.get_attribute("tabindex") == "0"
+    assert box.get_attribute("role") == "group" and box.get_attribute("aria-label")

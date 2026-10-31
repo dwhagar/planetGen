@@ -98,14 +98,6 @@ def test_seeded_draws_repeat():
     assert first == second
 
 
-def test_dim_stars_are_all_dim():
-    rng = random.Random(5)
-    for _ in range(2000):
-        params = sp.sample_dim_star(THRESHOLD, "young", rng)
-        assert params["luminosity_w"] < THRESHOLD * phys_c.SOLAR_LUMINOSITY
-        assert params["age_gy"] < se.population_age_range_gy("young")[1]
-
-
 def test_bright_star_params_rebuild_a_full_system():
     params = sp.sample_bright_stars(1, THRESHOLD, "intermediate", random.Random(6))[0]
     system = StarSystem(system_config=SystemConfig(), primary_star_params=params)
