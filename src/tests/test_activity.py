@@ -389,7 +389,7 @@ def test_the_stored_magnetopause_is_in_radii_of_the_body_itself():
 
 def test_generated_bodies_store_their_field_and_exposure():
     seen = set()
-    for seed in range(10):
+    for seed in range(30):         # GEN.967: a giant's field is the dynamo's, so a strong one needs a giant that turns fast; seed 25 has one
         with deterministic_entropy(seed):
             system = StarSystem(system_config=SystemConfig())
         star = system.star
