@@ -48,8 +48,12 @@ SURFACE_SHARE_OF_ICE = 1.3e-3
 mass as methane ice (a guess, the ices are drawn) covers 1.7 percent of its surface, against the 1.6 percent the lakes and seas of Titan cover [R1857]. Retuned from 3e-4 when GEN.1147's two-level hypsometry replaced the cover law: it covers less of the surface for the same layer."""
 
 ICE_LIQUID = {"CH4": "methane", "N2": "nitrogen", "CO2": "carbon_dioxide", "CO": "carbon_monoxide", "HCN": "hydrogen_cyanide",
-              "SO2": "sulfur_dioxide", "NH3": "ammonia"}
-"""dict: The liquid each stored ice species supplies when it melts."""
+              "SO2": "sulfur_dioxide"}
+"""dict: The liquid each stored ice species supplies when it melts. Ammonia is not here: ice with water makes the ammonia-water solution (`AMMONIA_WATER_LIQUID`)."""
+AMMONIA_WATER_LIQUID = "ammonia_water"
+"""str: The liquid the ammonia ice makes with the water ice of a cold body (GEN.1218a): the eutectic of the table, liquid from 176 K."""
+AMMONIA_WATER_MASS_PERCENT = 32.0
+"""float: The ammonia in `AMMONIA_WATER_LIQUID`, percent of its mass (Kargel 1991 eutectic, the table's 32 percent). Source tier T2, tweak level L0 (registry LQ15)."""
 
 LAVA_OF_GROUND = (("ultramafic", "komatiite_melt"), ("felsic", "rhyolite_melt"), ("basaltic", "basalt_melt"))
 """tuple: The lava a ground type of the surface melts to; every other ground (and a ground not drawn) melts to basalt. STAND-IN LQ12."""
@@ -84,6 +88,10 @@ def _reservoir(body):
         amount = getattr(body, ice_species.FIELD_OF[formula], None) if formula in ice_species.FIELD_OF else None
         if amount and amount > 0.0:
             out[liquid] = amount
+    ammonia = getattr(body, ice_species.FIELD_OF["NH3"], None) or 0.0
+    water_ice = getattr(body, "water_mass_fraction", None) or 0.0
+    if ammonia > 0.0 and water_ice > 0.0:         # a solution needs both: the ammonia fills the eutectic's 32 percent, the water the rest
+        out[AMMONIA_WATER_LIQUID] = min(ammonia / (AMMONIA_WATER_MASS_PERCENT / 100.0), water_ice)
     return out
 
 
@@ -147,7 +155,9 @@ def _solutes(body):
     if found.level != acid_medium.NONE:
         body.surface_liquid_acid_wt = found.weight_percent
         body.surface_liquid_acid_layer = POOL_LAYER if found.level == acid_medium.POOL else CLOUD_LAYER
-    if getattr(body, "hydrosphere", None) in AMMONIA_OCEAN_STATES:
+    if getattr(body, "surface_liquid", None) == AMMONIA_WATER_LIQUID:
+        body.surface_liquid_ammonia_wt = AMMONIA_WATER_MASS_PERCENT
+    elif getattr(body, "hydrosphere", None) in AMMONIA_OCEAN_STATES:
         share = strange_solvents.ammonia_water_mass_fraction({"ice_mass_fraction": getattr(body, "ice_mass_fraction", None),
                                                               "water_mass_fraction": getattr(body, "water_mass_fraction", None)})
         if share:
