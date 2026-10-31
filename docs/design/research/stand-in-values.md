@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 938 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 946 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -36,16 +36,16 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 140 | 13 | 8 | 1 | 0 | 162 |
-| T2 | 111 | 36 | 0 | 1 | 0 | 148 |
-| T3 | 79 | 36 | 5 | 10 | 0 | 130 |
+| T1 | 143 | 14 | 8 | 1 | 0 | 166 |
+| T2 | 111 | 38 | 0 | 1 | 0 | 150 |
+| T3 | 79 | 36 | 6 | 10 | 0 | 131 |
 | T4 | 37 | 5 | 0 | 14 | 10 | 66 |
 | T5 | 43 | 17 | 0 | 1 | 0 | 61 |
-| T6 | 90 | 67 | 18 | 41 | 0 | 216 |
+| T6 | 90 | 68 | 18 | 41 | 0 | 217 |
 | T7 | 27 | 8 | 8 | 8 | 0 | 51 |
 | T8 | 0 | 1 | 1 | 5 | 1 | 8 |
 | T9 | 17 | 14 | 4 | 42 | 19 | 96 |
-| All | 544 | 197 | 44 | 123 | 30 | 938 |
+| All | 547 | 201 | 45 | 123 | 30 | 946 |
 
 ## How the labels were given
 
@@ -1547,6 +1547,19 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | CS9 | P | T6 | L1 | agb_carbon.TDU_MIN_MASS_FLOOR_SOL 1.0 (lightest dredging star at any [Fe/H]) | 0.9 to 1.3 | very metal-poor stars | a carbon star from a progenitor under 0.9 solar masses | as CS8 | an educated guess; the helium flash closes the thermal-pulse phase below about a solar mass | - | - |
 | CS10 | P | T3 | L0 | agb_carbon.HBB_MIN_MASS_SOL 4.0 (initial mass from which hot bottom burning keeps a star oxygen-rich) | 3.5 to 4.5 | stars of 3.5 to 4.5 solar masses | a carbon star of initial mass above 4.5 or an oxygen-rich AGB star of 3.5 | a TP-AGB grid at the star's [Fe/H] | Karakas and Lugaro 2016 (hot bottom burning from about 4); the population-synthesis paper arXiv:0808.2112 takes 4.0 as the upper edge of carbon stars | - | - |
 | CS11 | P | T6 | L1 | agb_carbon.S_STAR_MIN_C_TO_O 0.9 (surface C/O from which, to 1, an AGB star with dredge-up is an S star) | 0.75 to 0.95 | S stars | a measured S-star C/O range that does not reach 0.9 | the C/O of observed S stars | S stars run from about 0.5 to 0.99 in C/O but those with the dredged s-process come up with the carbon, so near 1 | - | - |
+
+## 6.145 Stand-ins of the cluster maximum mass and cloud-shock disruption of the central ring
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| CMX1 | D | T1 | L0 | cluster_maximum_mass: M_cl,max = eps Gamma M_T min(1, t_fb / t_ff,2D)^4 with M_T = 4 pi^5 G^2 Sigma_g^3 / kappa^4, t_ff,2D = sqrt(2 pi) / kappa, and the feedback time of Eqs 4 to 7 (Q = kappa sigma / (pi G Sigma_g) from the gas dispersion of CMX7, tuning.CLUSTER_FEEDBACK_FIRST_SUPERNOVA_MYR 3.0, CLUSTER_FEEDBACK_ENERGY_RATE_CM2_S3 0.16, CLUSTER_STAR_FORMATION_PER_FREE_FALL 0.012, CLUSTER_MIDPLANE_GRAVITY_FACTOR 3.0) | the paper's uncertainty about 0.4 dex; Q 0.5 to 3 | rings and discs with a flat rotation curve | a ring whose most massive cluster is outside 0.4 dex of the relation at its measured gas and rotation | the same relation with the full rotation curve's kappa | Reina-Campos and Kruijssen 2017 (READ) | - | - |
+| CMX2 | P | T1 | L1 | tuning.CLUSTER_MAX_MASS_EFFICIENCY 0.1: the share of a collapsing cloud that forms stars | 0.03 to 0.3 (the paper: a factor of three either way) | clouds of the central ring | a measured star formation efficiency of the ring's clouds outside the range | a star formation efficiency from the cloud's own free-fall time | Reina-Campos and Kruijssen 2017 Eq 10 (READ); Lada and Lada 2003 | - | - |
+| CMX3 | P | T1 | L0 | tuning.CLUSTER_MAX_MASS_CEILING_SOL 1e5: a hard ceiling on a ring's maximum cluster mass, a guard against the cube of the gas | 5e4 to 2e5 | central rings | a ring cluster observed above 1e5 | none (the relation itself, once the gas is sourced) | Reina-Campos and Kruijssen 2017 footnote 9 (READ): the most massive clusters seen imply a maximum of a few 1e4 and certainly under 1e5 | - | - |
+| CMX4 | P | T3 | L2 | tuning.CORE_RING_GAS_RESIDENCE_MYR 50: the ring's gas is the inflow times this, over the ring's area (its gas surface density, 8e2 for the generator's Milky Way shape) | 30 to 80 Myr, so Sigma_g 5e2 to 1.3e3 and the maximum a factor 18 in mass | barred galaxies with a ring | a measured gas mass of a generated-sized ring far from the product | the ring's gas from a continuity equation with the outflow and the star formation depletion time, read | the Milky Way's central molecular zone gas of 2e7 to 6e7 solar masses over the inflow of 0.8 a year (recalled; Henshaw et al. 2023 for the inflow) | - | - |
+| CMX5 | D | T1 | L0 | tuning.CLUSTER_SHOCK_GIELES_COEFFICIENT_GYR 2.0, CLUSTER_SHOCK_GIELES_NUMERATOR 5.1, CLUSTER_SHOCK_REFERENCE_MASS_SOL 1e4, CLUSTER_SHOCK_REFERENCE_RADIUS_PC 3.75: disruption by cloud encounters t_dis = 2.0 S (M / 1e4) (3.75 pc / r_h)^3 Gyr with S = 5.1 / (Sigma_n rho_n); the loss rate M / t_dis is the same for every mass | the coefficient from the paper's simulations | clusters among clouds, mass loss integrated along the cluster's growing half-mass radius | an N-body cluster among a cloud field whose disruption time is outside a factor of 2 | the encounter rate and energy gain of the ring's own cloud field | Gieles et al. 2006 Eq 24 (READ) | - | - |
+| CMX6 | P | T2 | L1 | tuning.CORE_RING_CLOUD_SURFACE_DENSITY_MSUN_PC2 5e3 and CORE_RING_CLOUD_DENSITY_MSUN_PC3 150: the clouds of the central ring, the Brick as the template cloud and the ring's mean molecular density (5.7 Myr for a cluster of 1e4 solar masses and r_h 0.5 pc), the same for every galaxy | density 17 (the ring's own, a factor of nine lower: 1 to 3 young clusters over 5e3 either way); strength 0.03 to 1 | central rings | a measured disruption time of ring clusters outside 3 to 20 Myr for 1e4 solar masses | the ring's cloud surface density and density from the generated gas | Kruijssen et al. 2014 (READ); they call it an upper limit of the disruptive potential | - | - |
+| CMX7 | P | T2 | L1 | tuning.CORE_RING_GAS_DISPERSION_KMS 5.0 and DISC_GAS_DISPERSION_KMS 10.0: the one-dimensional velocity dispersion of the gas, which sets Q = kappa sigma / (pi G Sigma_g) and so the feedback time | ring 3 to 10 km/s; disc 7 to 15 km/s | rings and discs of every galaxy (one galaxy's values) | a measured gas dispersion of a ring or disc far from them | the dispersion from the gas's own turbulence and feedback balance | Henshaw et al. 2016 for the CMZ and Heiles and Troland 2003 for the disc, as Reina-Campos and Kruijssen 2017 take them (section 4.1, READ) | - | - |
+| CMX8 | D | T6 | L1 | open_clusters._disk_maximum_masses: each disc ring reads its gas from the last Gy of the one-zone history (disk_history.gas_now, 4.3 solar masses per pc2 at 8 kpc for the Milky Way shape against the measured 13), the flat rotation curve (tuning.CLUSTER_HALO_CIRCULAR_KMS 220) for kappa, the cell's cluster formation efficiency as the bound share and the gas dispersion of CMX7; the cap holds each cell's initial masses and sets its count | gas a factor of 3 (the cloud maximum a factor 5 to 30, the cluster maximum a factor of 3 to 30); the flat curve | spiral discs with a Kennicutt-Schmidt history | the heaviest generated cluster at 4 to 10 kpc far from the observed 1e4 to 4e4 (it is 1e3 to 4e3 for the Milky Way shape, a third of a dex to a dex under) | the disc's gas from a measured radial profile or a better history; kappa from the mass model's rotation curve | Reina-Campos and Kruijssen 2017 section 4.1 (READ): the Milky Way shear-limited inside 4.3 (3.5 to 6.3) kpc, feedback-limited beyond with a cloud maximum near 1e6 | - | - |
 
 ## 6.95 Stand-ins of the belt sources
 

@@ -1556,6 +1556,48 @@ review gives the ring at 100 to 200 pc, so these are placeholders tied to the nu
 CORE_STAR_FORMATION_SPAN_GY = 1.0
 """float: How long the ring is taken to have formed stars at its present rate (open clusters of the ring are drawn over
 this span; the review has the rate constant for at least 5 Myr and 0.09 over 100 Myr) [placeholder]."""
+CORE_RING_GAS_RESIDENCE_MYR = 50.0
+"""float: How long the gas the bar brings stays in the central ring, Myr: the ring's gas is the inflow times this, over the ring's
+area its gas surface density (`galaxy.core_gas`, GEN.1195). The Milky Way's ring holds about 4e7 solar masses of gas (recalled,
+2e7 to 6e7) against the inflow of 0.8 a year [stand-in, one galaxy; the mass of gas of the ring is the sourced quantity]."""
+
+# The most massive cluster a ring can form and the clouds that disrupt it (GEN.1195, `physics/cluster_maximum_mass.py`,
+# `physics/open_cluster_evolution.cloud_shock_mass_lost_sol`). The maximum is Reina-Campos and Kruijssen 2017 (MNRAS 469,
+# 1282, arXiv:1704.00732, read Eqs 1 to 11, section 5 and footnote 9): `M_cl,max = eps Gamma M_T f_coll`, with the Toomre
+# mass `M_T = 4 pi^5 G^2 Sigma_g^3 / kappa^4` and the collapsed fraction `min(1, t_fb / t_ff,2D) ** 4`.
+CLUSTER_MAX_MASS_EFFICIENCY = 0.1
+"""float: The star formation efficiency of a collapsing cloud (`eps`, Eq 10; Lada and Lada 2003 give 0.1 to 0.3 for embedded
+clusters, 0.03 to 0.06 for nearby clouds; the paper takes 0.1 and a factor of three either way)."""
+CLUSTER_MAX_MASS_CEILING_SOL = 1.0e5
+"""float: A hard ceiling on the maximum cluster mass of a ring: the most massive cluster seen in the Milky Way's central ring
+implies a maximum of a few 1e4 and "certainly under 1e5" (Reina-Campos and Kruijssen 2017, footnote 9, by the size-of-sample
+argument of Gieles 2009) [guard: the relation goes as Sigma_g cubed, so a factor of two in the gas is a factor of eight]."""
+CORE_RING_GAS_DISPERSION_KMS = 5.0
+DISC_GAS_DISPERSION_KMS = 10.0
+"""float: The one-dimensional velocity dispersion of the gas of the central ring (5 km/s, Henshaw et al. 2016) and of a disc
+(10 km/s, Heiles and Troland 2003), the values Reina-Campos and Kruijssen 2017 take for the Milky Way (Section 4.1); it sets
+the Toomre parameter `Q = kappa sigma / (pi G Sigma_g)` (Eq 5) [stand-in: one galaxy's values for every galaxy]."""
+CLUSTER_FEEDBACK_FIRST_SUPERNOVA_MYR = 3.0
+CLUSTER_FEEDBACK_ENERGY_RATE_CM2_S3 = 0.16
+CLUSTER_STAR_FORMATION_PER_FREE_FALL = 0.012
+CLUSTER_MIDPLANE_GRAVITY_FACTOR = 3.0
+"""The feedback time of Eq 4 to 7: the time of the first supernova (3 Myr), the energy injection rate per unit stellar mass
+(0.16 cm2 s-3), the star formation per free-fall time of the gas (0.012; Elmegreen 2002, Krumholz et al. 2012) and the factor
+for the gravity of the stars in the mid-plane density (`phi_P` = 3)."""
+CLUSTER_SHOCK_GIELES_COEFFICIENT_GYR = 2.0
+CLUSTER_SHOCK_GIELES_NUMERATOR = 5.1
+CLUSTER_SHOCK_REFERENCE_MASS_SOL = 1.0e4
+CLUSTER_SHOCK_REFERENCE_RADIUS_PC = 3.75
+"""Disruption by passing molecular clouds (Gieles et al. 2006, MNRAS 371, 793, arXiv:astro-ph/0606451, Eq 24):
+`t_dis = 2.0 S (M / 1e4) (3.75 pc / r_h) ** 3` Gyr with `S = 5.1 / (Sigma_n rho_n)`, `Sigma_n` the surface density of the
+clouds and `rho_n` their density (5.1 is the solar neighbourhood's 170 times 0.03 as the paper writes it)."""
+CORE_RING_CLOUD_SURFACE_DENSITY_MSUN_PC2 = 5.0e3
+CORE_RING_CLOUD_DENSITY_MSUN_PC3 = 150.0
+"""float: The clouds of the central ring that disrupt its clusters: the Brick, the template cloud, at 5e3 solar masses per pc2,
+and the mean molecular density of the ring at 150 solar masses per pc3 (Kruijssen et al. 2014, MNRAS 440, 3370, arXiv:1303.6286,
+sections 3.1.2.6 and 3.1.3: 5.7 Myr for a cluster of 1e4 solar masses and half-mass radius 0.5 pc; they call it an upper
+limit of the disruptive potential, and the ring's own density from the generated ring is 17, a factor of nine lower)
+[stand-in: one template cloud for every galaxy]."""
 # The bar's long axis leads the Sun-center line by an angle drawn from the seed (`galaxy.structure_draw.draw_bar`);
 # the Milky Way's is 27 degrees (its near end at positive galactic longitude; Wegg & Gerhard 2013, BHG16: 28-33).
 
