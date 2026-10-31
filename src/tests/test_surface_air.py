@@ -177,7 +177,7 @@ def test_the_shares_the_surface_holds_start_from_the_heat_released_times_each_el
     for released_j in (1.0e30, 0.0):
         setting = sa.Setting(gravity_m_s2=9.81, radius_m=EARTH_R_M, mantle_kg=4.0e24, released_j=released_j, heat_flux_w_m2=0.0614,
                              ocean_cover=0.7, water_kg=1.4e21, absorbed_flux_w_m2=240.0, released_at_seal_j=2.0e29, subject_of=None)
-        shares = sa._shares(setting, efficiencies, cycle, (lifetimes, 4.5 * sa.GY_S, 0.9), False, False, 288.0, LAND)({})
+        shares = sa._shares(setting, efficiencies, cycle, (lifetimes, 4.5 * sa.GY_S, 0.9), False, False, 288.0, LAND, {})({})
         base = surface_pressure.degassed_share(released_j, setting.mantle_kg)
         assert (base > 0.0) == (released_j > 0.0)
         for element, efficiency in efficiencies.items():
