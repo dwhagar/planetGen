@@ -3,6 +3,7 @@ The fixed point of the air of a body (GEN.411, GEN.422, `planetgen.physics.surfa
 acceleration of a creep, the cages of the ice, and the stored air of generated systems.
 """
 
+import dataclasses
 import math
 
 import pytest
@@ -153,8 +154,8 @@ def test_the_sulfur_the_air_keeps_is_what_the_sulfate_and_sulfide_sinks_leave():
     lifetimes = sulfur_balance.draw_lifetimes(design)
     inventory = {"C": 0.0, "S": 1.0e-3, "N": 1.0e-4}
     age_s = 4.5 * sa.GY_S
-    wet = sa._shares(setting, efficiencies, cycle, (lifetimes, age_s, 0.9), True, True, 288.0, LAND)(inventory)
-    dry = sa._shares(setting, efficiencies, cycle, (lifetimes, age_s, 0.9), False, False, 288.0, LAND)(inventory)
+    wet = sa._shares(setting, efficiencies, cycle, (lifetimes, age_s, 0.9), True, True, 288.0, LAND, {})(inventory)
+    dry = sa._shares(setting, efficiencies, cycle, (lifetimes, age_s, 0.9), False, False, 288.0, LAND, {})(inventory)
     base = surface_pressure.degassed_share(setting.released_j, setting.mantle_kg) * efficiencies["S"]
     assert 0.0 < wet["S"] < base                        # the sinks take most of it
     assert wet["S"] == pytest.approx(base * lifetimes.wet_s / age_s, rel=1e-6)   # the steady-state burden of a day or so
@@ -192,7 +193,7 @@ def test_a_crust_too_small_for_the_sulfur_leaves_the_excess_in_the_air():
     cycle = surface_pressure.draw_cycle(design)
     lifetimes = sulfur_balance.draw_lifetimes(design)
     inventory = {"C": 0.0, "S": 1.0, "N": 0.0}         # an inventory far larger than the crust this heat built
-    shares = sa._shares(setting, efficiencies, cycle, (lifetimes, 4.5 * sa.GY_S, 0.9), True, True, 288.0, LAND)(inventory)
+    shares = sa._shares(setting, efficiencies, cycle, (lifetimes, 4.5 * sa.GY_S, 0.9), True, True, 288.0, LAND, {})(inventory)
     base = surface_pressure.degassed_share(setting.released_j, setting.mantle_kg) * efficiencies["S"]
     assert shares["S"] > 0.5 * base
 
@@ -209,7 +210,7 @@ def _carbon_share(setting, water_world, temperature_k=288.0):
     efficiencies = surface_pressure.draw_efficiencies(design)
     cycle = surface_pressure.draw_cycle(design)
     lifetimes = sulfur_balance.draw_lifetimes(design)
-    return sa._shares(setting, efficiencies, cycle, (lifetimes, 4.5 * sa.GY_S, 0.9), True, True, temperature_k, water_world)({"C": 1.0e-2})["C"]
+    return sa._shares(setting, efficiencies, cycle, (lifetimes, 4.5 * sa.GY_S, 0.9), True, True, temperature_k, water_world, {})({"C": 1.0e-2})["C"]
 
 
 def test_the_water_world_is_sealed_only_when_its_ocean_floor_reaches_the_seal_pressure():
@@ -246,7 +247,7 @@ def test_volcanoes_bring_up_no_more_hydrogen_than_the_mantle_holds_as_water():
     inventory = {"H": 5.0, "C": 0.0, "S": 0.0, "N": 0.0}       # moles per 100 g of the mantle: 0.9 percent of the mantle's mass as water
     def share(mantle_water_kg):
         setting = _ocean_setting(0.7, 1.4e21, mantle_water_kg=mantle_water_kg)
-        return sa._shares(setting, efficiencies, cycle, (lifetimes, 4.5 * sa.GY_S, 0.9), True, True, 288.0, LAND)(inventory)["H"]
+        return sa._shares(setting, efficiencies, cycle, (lifetimes, 4.5 * sa.GY_S, 0.9), True, True, 288.0, LAND, {})(inventory)["H"]
     base = surface_pressure.degassed_share(1.0e30, 4.0e24) * efficiencies["H"]
     assert share(math.inf) == pytest.approx(base)                # no limit stated: the supply is as before
     assert share(0.0) == 0.0                                      # a dry mantle gives none
@@ -407,3 +408,63 @@ def test_the_escape_is_compared_to_the_pressure_the_air_settled_at_without_it(mo
         assert planet.atmospheric_pressure > 0.0, seed
         assert columns and None not in columns, seed                 # no step before the air settled lost anything
         assert len(set(columns)) == 1, seed                          # and every step after it compares to the one settled pressure
+
+
+# --- the late accretion in the supply (GEN.819) -------------------------------------------------------------------------------
+
+EARTH_ORBITAL_SPEED_MS = 29780.0
+VENUS_ORBITAL_SPEED_MS = 35020.0
+
+
+def _late(setting, seed):
+    draw.set_run_seed(seed)
+    design = {}
+    return sa._late_accretion(setting, design), design
+
+
+def _n2_kg(late, setting):
+    return late["N"] * setting.mantle_kg / 0.1 * 0.0140067      # moles of N atoms at 14.0067 g/mol, kg
+
+
+def test_the_late_accretion_leaves_carbon_and_nitrogen_and_leaves_the_water_to_the_hydrosphere():
+    setting = _ocean_setting(0.7, 1.4e21, orbital_speed_ms=EARTH_ORBITAL_SPEED_MS)
+    late, design = _late(setting, 26)
+    assert set(late) == {"C", "N"} and all(atoms > 0.0 for atoms in late.values())
+    assert design["late_accreted_percent"] > 0.0 and 0.01 <= design["veneer_volatile_scale"] <= 1.0   # drawn and recorded for the replay
+    assert _late(setting, 26)[0] == late                                                              # the same seed gives the same delivery
+
+
+def test_a_giant_a_body_with_no_star_or_no_mantle_takes_no_late_accretion():
+    setting = _ocean_setting(0.7, 1.4e21, orbital_speed_ms=EARTH_ORBITAL_SPEED_MS)
+    assert sa._late_accretion(dataclasses.replace(setting, orbital_speed_ms=None), {}) == {}
+    assert sa._late_accretion(dataclasses.replace(setting, mantle_kg=0.0), {}) == {}
+    assert sa._late_accretion(dataclasses.replace(setting, giant=True), {}) == {}
+
+
+def test_the_supply_adds_the_late_nitrogen_to_the_degassed_and_the_carbonate_cycle_acts_on_the_carbon_of_both():
+    draw.set_run_seed(26)
+    design = {}
+    efficiencies = surface_pressure.draw_efficiencies(design)
+    cycle = surface_pressure.draw_cycle(design)
+    lifetimes = sulfur_balance.draw_lifetimes(design)
+    setting = _ocean_setting(0.7, 1.4e21)
+    inventory = {"C": 1.0e-2, "N": 1.0e-3}
+
+    def shares(late):
+        return sa._shares(setting, efficiencies, cycle, (lifetimes, 4.5 * sa.GY_S, 0.9), True, True, 288.0, LAND, late)(inventory)
+    before, after = shares({}), shares({"C": 2.0e-3, "N": 5.0e-4})
+    assert after["N"] == pytest.approx(before["N"] + 5.0e-4 / 1.0e-3)
+    assert after["C"] * inventory["C"] > before["C"] * inventory["C"]                                  # more carbon reaches the air...
+    assert after["C"] * inventory["C"] < before["C"] * inventory["C"] + 2.0e-3                         # ...but the cycle takes a share of the added
+
+
+def test_the_earth_twin_late_accretion_leaves_the_nitrogen_the_earth_has_and_venus_within_a_factor_of_five():
+    """The bracket of the design note (docs/design/composition/impact-erosion-and-late-delivery.md section 4): the Earth's 3.9e18 kg of N2
+    lies inside the scatter of the delivery (the middle within a factor of four, the degassed nitrogen adds the rest), Venus's 1.1e19 kg within a factor of five of its middle."""
+    earth = _ocean_setting(0.7, 1.4e21, orbital_speed_ms=EARTH_ORBITAL_SPEED_MS)
+    venus = dataclasses.replace(_ocean_setting(0.0, 0.0, orbital_speed_ms=VENUS_ORBITAL_SPEED_MS), mantle_kg=3.3e24, radius_m=6.052e6,
+                                gravity_m_s2=8.87, absorbed_flux_w_m2=150.0)
+    for setting, observed, factor in ((earth, 3.9e18, 4.0), (venus, 1.08e19, 5.0)):
+        n2_kg = sorted(_n2_kg(_late(setting, seed)[0], setting) for seed in range(40))
+        assert n2_kg[0] < observed < n2_kg[-1]                                                         # inside the spread
+        assert observed / factor < n2_kg[len(n2_kg) // 2] < observed * factor

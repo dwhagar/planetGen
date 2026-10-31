@@ -46,13 +46,16 @@ section 8):
   the heaviest survival equipment and a note naming the host. No X-ray binaries
   are generated yet; the rule is by the host's class.
 
-A gas giant has no surface and no score (every field `None`).
+A gas giant has no surface and no score (every field `None`), except the two energy inputs the sheet shows for every body (GEN.784):
+`energy_flux_w_m2` is the energy a giant radiates through its 1 bar level, the starlight it absorbs (its Bond albedo, `giant_draw.BOND_ALBEDO`)
+plus the heat of its own interior (`giant_draw.own_flux_w_m2`), which is `sigma T_eff^4`; `flux_variation` is the swing of its starlight that
+`insolation` gives every planet.
 """
 
 import math
 
 from planetgen import tuning
-from planetgen.physics import aerosols, aquifers, atmosphere, constants, equipment, habitability, life_scores, magnetism, outside_hours, protection_limits, radiation, regional_temperature
+from planetgen.physics import aerosols, aquifers, atmosphere, constants, equipment, giant_draw, habitability, life_scores, magnetism, outside_hours, protection_limits, radiation, regional_temperature
 from planetgen.physics import unit_registry as units
 
 _pa_to_kpa = units.converter("Pa", "kPa")
@@ -297,6 +300,14 @@ def inventories(values):
             "N": max(hydrogen, nitrogen / EARTH_NITROGEN_KG)}
 
 
+def giant_energy_flux_w_m2(body):
+    """The energy a giant radiates through its 1 bar level, W/m2 (GEN.784): `sigma T_eff^4` of the starlight it absorbs and the heat of its own
+    interior (`giant_draw.effective_temperature_k`). A giant that is a moon has no starlight of its own here (`giant_draw.starlight_w_m2`) and
+    radiates its own heat."""
+    starlight = giant_draw.starlight_w_m2(body) or 0.0
+    return constants.STEFAN_BOLTZMANN_CONSTANT * giant_draw.effective_temperature_k(starlight, giant_draw.own_flux_w_m2(body)) ** 4
+
+
 def energy_flux_w_m2(values, luminosity_w, distance_au, internal_flux_w_m2):
     """The light or chemical power available to life, W/m2 (see the module
     docstring). `luminosity_w` and `distance_au` describe the star (either
@@ -480,6 +491,8 @@ def generate(body, internal_flux_w_m2):
     swing = getattr(body, "flux_variation", None)
     _clear(body)
     if body.body_type == "g":
+        body.flux_variation = swing
+        body.energy_flux_w_m2 = giant_energy_flux_w_m2(body)
         return
     body.flux_variation = swing
     values = values_from_body(body)
