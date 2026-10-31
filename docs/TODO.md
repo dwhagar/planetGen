@@ -3660,6 +3660,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   including a DB read-back. Two remainders stay open: the orbital update
   that calls find_contact for every pair (broad phase), and turning an
   ejected planet into a rogue_planets row (GEN.291 unbind).
+  Lock-free part merged as #4514 (Aux 7, as the lane reported)
+  (2026-10-31 1:55 PM EDT): planetgen/db/orbital_events.py
+  (find_contact, resolve_contact, record_event, the ID rules) on main,
+  no migration, no epoch. The item stays open for the two remainders:
+  the orbital update that calls find_contact for every pair (broad
+  phase) and the unbind of an ejected planet into a rogue_planets row
+  (GEN.291). The register line for closest_approach is gone because it
+  is read now.
   Prerequisites: none. Related: GEN.105, GEN.143, GEN.170.
 
 - [ ] **GEN.198 The gravity field evaluator: pull, potential and tidal gradient at any point from the point masses and the galaxy potential**
@@ -13746,6 +13754,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   radius-settled time (BHAC15) and a nuclear-arrival time, store both,
   and let classification use the radius-settled one. Owner changed from
   Sources 2 to Aux 7, who builds it (output change, rides a train).
+  Aux 7 head update (as the lane reported) (2026-10-31 1:55 PM EDT):
+  part 2 branch claude/gen1174-store is now 07d8b4a (the train takes
+  this head, not 5470a095e); part 1 claude/gen1174 stays 45a9296b7.
   Prerequisites: none. Related: GEN.1169, GEN.947.
 
 - [ ] **GEN.1175 Porosity weakening of body strength from a sourced law instead of the placeholder exponential**
