@@ -169,3 +169,6 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.59:CK1 | replace | GEN.1021 | the N2 and Ar trapping shares are tuned to the one comet measured (67P); a second comet's N2 or Ar per water replaces them |
 | 6.59:CK2 | replace | GEN.1021 | the OCS and SO2 trapping shares are tuned to the one comet measured (67P); a second comet's sulfur species replace them |
 | 6.59:CK5 | replace | GEN.1021 | O2, krypton and xenon per water are the 67P values with no host ratio; a second comet's values replace them |
+| 6.136:CC7 | no data | - | no measured viscosity of the lowest mantle at the core-mantle boundary; the Earth's core temperature and inner core size are the only constraint it is tuned to |
+| 6.136:CC9 | no data | - | no measurement of the shell thickness at which a core dynamo dies; Mars and the Earth are the only two points |
+| 6.142:DY7 | no data | - | the core model has the pure-iron liquidus only; no sulfur-bearing melting curve is held, and the first one replaces the stand-in moment of a small iron-rich body |

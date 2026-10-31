@@ -271,7 +271,9 @@ def _bodies(system):
 
 def test_every_generated_body_has_a_consistent_dose():
     seen = {"rocky": 0, "giant": 0, "ozone": 0}
-    for seed in range(24):    # the planet architecture (GEN.728) makes a giant in about 1 system of 10, so 12 seeds held none
+    for seed in range(60):    # the planet architecture (GEN.728) makes a giant in about 1 system of 10, so 12 seeds held none, and a change of the draws can move the first giant past 24
+        if seen["rocky"] > 30 and seen["giant"] > 2:
+            break
         with deterministic_entropy(seed):
             draw.set_run_seed(seed)
             system = StarSystem(SystemConfig(), galactic_center_dist_ly=26000.0)
@@ -283,12 +285,14 @@ def test_every_generated_body_has_a_consistent_dose():
             seen["rocky"] += 1
             assert body.dose_helio_mult == 1.0
             assert body.surface_dose_msv_yr == pytest.approx(
-                body.dose_gcr_msv_yr + body.dose_sep_msv_yr + body.dose_ground_msv_yr)
+                body.dose_gcr_msv_yr + body.dose_sep_msv_yr + body.dose_ground_msv_yr + body.dose_belt_msv_yr)
+            assert body.dose_belt_msv_yr >= 0 and (body.dose_belt_msv_yr == 0 or body.is_moon)
             assert body.dose_gcr_msv_yr > 0 and body.dose_ground_msv_yr > 0
             assert isinstance(body.ozone_loss_flag, bool)
             assert (body.ozone_column_du > 0.0) == (atmosphere.partial_kpa(body, "o2") > 0.0 and bool(body.star.temperature))
             seen["ozone"] += body.ozone_loss_flag
-            assert body.uv_surface_index is None or body.uv_surface_index > 0
+            assert body.uv_surface_index is None or body.uv_surface_index >= 0.0
+            assert body.uv_surface_index != 0.0 or body.atmospheric_pressure > 0.0     # a dose of exactly 0 is an opaque air (a dense vapour air passes no UV), never a bare body
     assert seen["rocky"] > 10 and seen["giant"] > 0
 
 

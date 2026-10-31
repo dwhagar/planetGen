@@ -238,6 +238,7 @@ _BODY_GROUPS = (
            ("induced_moment_a_m2", "Induced magnetic moment"), ("magnetopause_rp", "Magnetopause distance")),
     *_rows("radiation", ("surface_dose_msv_yr", "Surface dose"), ("dose_gcr_msv_yr", "Dose from cosmic rays"),
            ("dose_sep_msv_yr", "Dose from stellar particles"), ("dose_ground_msv_yr", "Dose from the ground"),
+           ("dose_belt_msv_yr", "Dose from the parent planet's radiation belts"),
            ("dose_helio_mult", "Cosmic-ray boost from a squeezed heliosphere"), ("xuv_flux_earth", "X-ray and ultraviolet flux"),
            ("xuv_exposure_index", "X-ray and ultraviolet exposure index"),
            ("flare_irradiation_index", "Flare irradiation index"), ("uv_surface_index", "Surface ultraviolet index"),
@@ -755,7 +756,7 @@ _SURFACE = (
     "water_base_pressure_pa", "ice_shell_km", "hp_ice_km", "surface_liquid", "surface_liquid_fraction", "surface_liquid_depth_km", "ocean_liquid", "tide_range_spring_m", "tide_range_neap_m",
     "mantle_redox", "mantle_delta_iw", "rock_feo_fraction", "rock_al2o3_fraction", "rock_mg_si_ratio",
     "ozone_column_du", "ozone_loss_flag", "surface_dose_msv_yr", "dose_gcr_msv_yr", "dose_sep_msv_yr",
-    "dose_ground_msv_yr", "dose_helio_mult", "uv_surface_index", "shelter_column_g_cm2", "outside_hours", "outside_hours_day", "outside_hours_limit",
+    "dose_ground_msv_yr", "dose_belt_msv_yr", "dose_helio_mult", "uv_surface_index", "shelter_column_g_cm2", "outside_hours", "outside_hours_day", "outside_hours_limit",
     "phi4", "phi4_pressure", "phi4_temperature", "phi4_air", "phi4_water", "phi4_suitability", "phi4_radiation",
     "tier_pressure", "tier_temperature", "tier_air", "tier_water", "tier_suitability", "tier_radiation",
     "life_microbial", "life_flora", "life_fauna", "life_sentient", "l_solv", "l_chem", "l_ener", "l_rad",
@@ -809,6 +810,8 @@ _BODY_RULES = [
      "the tide's heat is worked out for the interior of a rocky or icy body; a giant's own heat is the heat it radiates, which has its own row"),
     (("tidal_flux_w_m2",), lambda klass, row: row is None or (row.get("eccentricity") or 0.0) >= NEGLIGIBLE_TIDE_ECCENTRICITY,
      "a body on a circular orbit is not flexed, so the tide gives it no heat: the flow is stored only for an orbit with an eccentricity"),
+    (("induced_moment_a_m2",), lambda klass, row: klass not in GIANT_CLASSES,
+     "a giant has no induced moment: the model answers for a metal core and an ocean, not for a metallic envelope"),
     (_DAYLIGHT, lambda klass, row: _locked(row) is not True,
      "a tidally locked world keeps one face to its star, so it has no solar day, equatorial daylight or day share to give"),
     (("shelter_column_g_cm2",), lambda klass, row: row is None or (row.get("eq_shelter") or 0) > 0 or (row.get("eq_shelter_rec") or 0) > 0,
@@ -850,8 +853,8 @@ _BODY_RULES = [
 _PLANET_RULES = [
     (("moon_origin",), lambda klass, row: False,
      "only a moon has an origin (disk, impact, captured, ring or binary); a planet orbits its star alone"),
-    (("parent_shadow_share", "induced_moment_a_m2"), lambda klass, row: False,
-     "only a moon sits in the shadow of its planet or in the planet's magnetic field; a planet orbits its star alone"),
+    (("parent_shadow_share",), lambda klass, row: False,
+     "only a moon sits in the shadow of its planet; a planet orbits its star alone"),
 ]
 
 _STAR_RULES = [
