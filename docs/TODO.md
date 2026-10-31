@@ -14447,6 +14447,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and after in the report. Physics drives; no forced seas. Owner: Tides
   1 (built GEN.1035). Where we think it belongs (best guess, can move):
   Tides 1.
+  Part of the surface liquid composition chain (Boss, 11:05 AM EDT
+  2026-10-31) (2026-10-31 11:12 AM EDT): the research GEN.1216 will say
+  what composition the seas this item creates should have; fix the
+  creation first (this item), the composition follows in GEN.1218.
   Prerequisites: none. Related: GEN.1035, GEN.888, GEN.821.
 
 - [ ] **GEN.1215 Store the acid and ammonia fractions of the surface liquid, and let habitability read them (an acid or ammonia sea can make a world uninhabitable)**
@@ -14472,7 +14476,80 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   epoch on a train, can share the epoch of the seas bug. Owner: Tides 1
   with Aux 2 (habitability and life classes). Where we think it belongs
   (best guess, can move): Tides 1.
+  Part of the surface liquid composition chain (Boss, 11:05 AM EDT
+  2026-10-31) (2026-10-31 11:12 AM EDT): this item is the first part of
+  the full composition model; the research is GEN.1216, the design
+  GEN.1217 and the build GEN.1218. Keep the columns of this item
+  compatible with the design (fractions of each component), and do not
+  build a second storage scheme.
   Prerequisites: none. Related: GEN.1035, GEN.888, GEN.862.
+
+- [ ] **GEN.1216 Research: the composition of surface liquids from physics and from life: salts and brines, acids, ammonia-water, liquid CO2, methane-ethane-nitrogen mixes, sulfur and what life and chemistry do to each**
+  Boss, 11:05 AM EDT 2026-10-31: start working out, as best we can from
+  life and physics, the composition of surface liquids. Filed by the
+  TODO thread as a research-then-build chain with GEN.1214 (CO2 and
+  hydrocarbon seas not created) and GEN.1215 (acid and ammonia fractions
+  stored). Research step. Report in /mnt/project-files/reports, sources
+  read with the source rules (physics found wins, secondary sources
+  accepted, stand-ins registered). Cover: (1) water seas: salinity and
+  ion mix by what the crust and the rain supply (chloride, sulfate,
+  carbonate, bicarbonate; Earth ocean, Mars brines, Europa and Enceladus
+  oceans), pH and how carbon dioxide, volcanic acid gases and weathering
+  set it; (2) acid seas and pools: sulfuric acid and water at Venus-like
+  clouds and surface pools, hydrochloric and nitric acid, how strong an
+  acid a pool holds at a temperature and pressure (GEN.888); (3)
+  ammonia-water mixes: the eutectic and the freezing curve, ammonia
+  fraction by the ammonia ice a body holds; (4) liquid carbon dioxide,
+  which needs more than 5.2 bar and 216.6 K or more; (5)
+  methane-ethane-nitrogen mixes at Titan and colder: the ratios by
+  temperature and pressure and what dissolves; (6) sulfur, hydrocarbon
+  and other seas of hot and cold worlds; (7) how life changes each:
+  biogenic oxygen and carbon dioxide drawdown on pH and carbonate,
+  methane and hydrocarbon production, sulfur cycling, and which
+  compositions each life class tolerates (the nine life classes of
+  life-classes.md; the tolerance limits become stand-ins for GEN.725).
+  Say what each source gives as a number or a law and what is missing;
+  list papers Boss must upload, in order of value. Where we think it
+  belongs (best guess, can move): Sources 1 (research).
+  Prerequisites: none. Related: GEN.1214, GEN.1215, GEN.888, GEN.1035.
+
+- [ ] **GEN.1217 Design: the surface liquid composition model: what is stored (fractions of water, salts, acid, ammonia, CO2, hydrocarbons), how it is derived, and how life changes it**
+  Boss, 11:05 AM EDT 2026-10-31: start working out, as best we can from
+  life and physics, the composition of surface liquids. Filed by the
+  TODO thread as a research-then-build chain with GEN.1214 (CO2 and
+  hydrocarbon seas not created) and GEN.1215 (acid and ammonia fractions
+  stored). Design step, after the research. Write
+  docs/design/habitability/surface-liquid-composition.md: the stored
+  columns (the fractions of each component of the liquid, with acid
+  strength and pH where it applies, extending GEN.1215's ammonia and
+  acid fractions into one set of columns), the derivation from the
+  finished body (ices, air, rain, the crust, temperature and pressure;
+  no new random draws where avoidable), the effect of each living class
+  on the composition and the effect of the composition on each life
+  class (tolerances, with stand-ins), the habitability test, how the
+  ocean family classes (the best-fit class conditions, GEN.1207) read
+  the composition, the page and API wording, and the migration and epoch
+  plan. Boss reads the design before the build. Done: the design is
+  merged and Boss has answered its questions. Where we think it belongs
+  (best guess, can move): Tides 1 with Aux 2.
+  Prerequisites: GEN.1216. Related: GEN.1215, GEN.1207, GEN.862.
+
+- [ ] **GEN.1218 Build the surface liquid composition model: the composition columns, the derivation, the effect of life on it and of it on life, pages and API**
+  Boss, 11:05 AM EDT 2026-10-31: start working out, as best we can from
+  life and physics, the composition of surface liquids. Filed by the
+  TODO thread as a research-then-build chain with GEN.1214 (CO2 and
+  hydrocarbon seas not created) and GEN.1215 (acid and ammonia fractions
+  stored). Build step, after the design is merged. Implements the
+  design: composition columns with their migration, the pure derivation
+  module and its wiring after the surface liquid step, the life coupling
+  (the air and the liquid change each other: GEN.1213 summed air and
+  this composition), the habitability tolerances, the pages, the API,
+  the property sheet and the census suite. GEN.1215 (acid and ammonia
+  fractions) is its first part and may be built first, with its columns
+  taken into this set. Output change: one epoch with --affects,
+  migration, golden, census re-baseline, on a train. Where we think it
+  belongs (best guess, can move): Tides 1 with Aux 2.
+  Prerequisites: GEN.1217. Related: GEN.1213, GEN.1214, GEN.1215.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
