@@ -21,3 +21,8 @@ Boss, 10-30: trojan swarms in the scatter, whole bodies at Lagrange points where
 ## Limits
 
 Eccentricity and inclination limits (TJ5) and the leading share (TJ4) are stand-ins at L4 with no source read; an N-body run replaces them. The finite-trojan rule (TJ2) is the 4 percent figure TROY III uses; its own text is not read.
+
+## Pure parts built ahead of the wiring (GEN.1151, MAP.354)
+
+- `physics/trojan_bodies.py` (rows 6.125 TB1 to TB4): `case`, `room_earth`, `classes_allowed`, `fits`, `can_form`. A Sun and a Jupiter admit Class J and Class M; a 0.1 solar-mass dwarf admits a Class J trojan only if its giant is under about 4 Jupiter masses; two stars admit nothing; a Jupiter-mass planet holds about 11.7 Earth masses of trojan beside a 1 Earth-mass moon. The formation gate names its inputs for the oligarch chain of `planet_architecture.py`: `solids_in_zone_earth` (the solids it leaves in the secondary's co-orbital zone) and `disc_lifetime_myr`.
+- `physics/lagrange_geometry.py` (no stand-ins): `points` gives L1 to L5 for a pair in the system frame (L1 to L3 by bisection of the force balance, L4 and L5 equilateral, L4 ahead along the motion), `occupied` keeps those with objects and labels them `Jupiter-L4`. Shared with the gravity layer MAP.169.

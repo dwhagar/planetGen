@@ -2231,3 +2231,14 @@ The width of the bands `physics/latitude_bands.py` divides a body into. The Eart
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
 |---|---|---|---|---|---|---|---|---|---|
 | LB1 | P | T9 | L0 | latitude_bands.BAND_WIDTH_DEG 90 over 3.5 (25.7 degrees): the equator band is this wide centred on the equator and each of the three bands on a side is this wide, the last taking its pole | 20 to 35 degrees (seven bands must still tile 180 degrees) | every rocky body with a temperature and a spin | not applicable (a way of cutting the sphere into seven; Boss asked for the equator, three above, three below, the poles inside the outermost band) | a width that follows the circulation cells of the body (a Hadley cell edge from the rotation rate) | needed output (Boss, 4:52 PM EDT 2026-10-30) |
+
+### 6.125 Stand-ins of the whole bodies at Lagrange points (GEN.1151)
+
+`physics/trojan_bodies.py` says which classes of world the mass rule admits at L4 and L5 of a host and a secondary, and the formation gate a draw must pass. It sets no rate. `physics/lagrange_geometry.py` (MAP.354) is geometry and holds no stand-in.
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
+|---|---|---|---|---|---|---|---|---|---|
+| TB1 | D | T1 | L0 | trojan_bodies.CLASS_J_MIN_EARTH 35: a Class J world is 35 Earth masses or more | none | every giant | a change of the class row | the class row itself | planet_classes.json, the class J sentence |
+| TB2 | P | T6 | L1 | trojan_bodies.CLASS_M_MASS_EARTH (0.1, 10): the masses a Class M world is drawn from | 0.05 to 0.3 low; 5 to 10 high | terrestrial worlds | a generated Class M world outside the range | the generated planet's own mass | planet_classes.json giants from 10 Earth masses; no source for a floor |
+| TB3 | P | T4 | L4 | trojan_bodies.FORMATION_EFFICIENCY 0.1: the share of the solids in the secondary's co-orbital zone that grow into the trojan | 0.02 to 0.5 | whole bodies at L4 and L5 | a disc run in which trojans of planet mass grow from a far smaller share | a hydrodynamic or N-body formation map | none read; Cresswell and Nelson 2009 (arXiv 0811.4611, abstract READ) grow trojans in the disc |
+| TB4 | P | T4 | L4 | trojan_bodies.MIN_DISC_LIFETIME_MYR 1: the shortest gas-disc life in which a trojan of planet mass grows | 0.3 to 3 | whole bodies at L4 and L5 | a trojan growing in a disc shorter than that | a formation map | none read |
