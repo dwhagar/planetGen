@@ -1932,6 +1932,28 @@ a:focus-visible .navmap-point circle {
   flex: 1 0 100%;
 }
 
+.search-values-heading {
+  font-size: 0.95rem;
+  margin: 1rem 0 0.5rem;
+}
+
+.search-field-value select,
+.search-field-value-sort select {
+  font: inherit;
+  font-weight: 400;
+  color: var(--text);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.4rem 0.5rem;
+  min-width: 0;
+}
+
+.search-field-value .search-unit {
+  font-weight: 400;
+  color: var(--text-muted);
+}
+
 .search-more .hint {
   font-size: 0.85rem;
   margin: 0;

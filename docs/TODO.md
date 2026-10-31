@@ -795,6 +795,15 @@ with `clamp()`.
   for columns on main, then the rows for columns not on main yet
   (GEN.738 to 740, GEN.741 to 745, GEN.762, GEN.730, the brown dwarf
   label), after train 1. The X-ray luminosity is GEN.952.
+  Boss approved first list slice (2026-10-31 1:48 PM EDT): Boss said yes
+  at 1:47 PM EDT 2026-10-31 to Core 3's first slice: the object index
+  and the star, planet and moon lists gain three stored, sortable
+  columns each (stars: temperature, luminosity, age; planets and moons:
+  orbit axis, eccentricity, surface temperature). It adds object-index
+  columns, so it is lock work: a migration, the API field list and a
+  backfill, on a train slot. Core 3 builds it on a branch off main, no
+  merge, and reports the head to TODO for the Train Manager. Later
+  slices add the rest.
 
 - [ ] **UX.206 Link-preview (SEO and social) images for pages with a rendered image or map view are a cached snapshot of that view**
   Boss, 8:19 PM EDT 2026-10-24 (message
@@ -879,24 +888,7 @@ with `clamp()`.
   Owner (housekeeping) (2026-10-30 2:55 PM EDT): released to the pool:
   the owner named above (Aux 12) is a retired lane. A waiting lane takes
   it, confirmed with TODO, one lock-free item at a time.
-  Prerequisites: UX.227, UX.228. Related: UX.214, UX.150, GEN.568, UX.226, UX.227, UX.228.
-
-- [ ] **UX.227 The search page shows range controls for the physical values, with units, and the active filters as chips (G4, step 2)**
-  Unused stored values audit chain
-  (reports/unused-stored-values-audit-2026-10-24.md, Boss 10:16 PM EDT
-  and 10:35 PM EDT 2026-10-24: make each a chain, with a GitHub goal
-  issue). Range inputs and sort options on the search page for the keys
-  of UX.226, with the unit beside each, shown as filter chips
-  (active_filters). Done: a browser test sets a gravity and a dose range
-  and gets the right planets. Version 8.2, phase 2. Owner: Aux 6.
-  Rules: no backward-compat shims; every number has a unit or scale
-  (GEN.772); a changed generated value carries `tests.golden_update
-  --reason ... --affects <stage>` and the next epoch; tests are
-  `scripts/test.py changed --resume`.
-  Owner (housekeeping) (2026-10-30 2:55 PM EDT): released to the pool:
-  the owner named above (Aux 6) is a retired lane. A waiting lane takes
-  it, confirmed with TODO, one lock-free item at a time.
-  Prerequisites: UX.226. Related: UX.225.
+  Prerequisites: UX.228. Related: UX.214, UX.150, GEN.568, UX.226, UX.227, UX.228.
 
 - [ ] **UX.228 The object lists and Nearby filter and sort by the same physical values (G4, step 3)**
   Unused stored values audit chain
@@ -1077,22 +1069,6 @@ with `clamp()`.
   "colour" uses (333 on the site) goes to zero. The word list and the
   checker change are made by Core 5 with the next guide edit.
   Prerequisites: none. Related: UX.237, GEN.1208.
-
-- [ ] **UX.254 Show a star's chemistry on its page: thin or thick disc branch, alpha enhancement, metal fraction and the dredge-up shift, from stored values with stellar_composition.star_makeup**
-  Found by Star 2 while settling TEST.523 (as the lane reported, 12:35
-  PM EDT 2026-10-31); a wiring gap filed by the TODO thread (Boss, 12:03
-  PM EDT: nothing built and left unused).
-  stellar_composition.star_makeup (GEN.440) gives the composition of any
-  star from its stored [Fe/H], age, mass and key; it is built and tested
-  and never called by the generator or any page. Do: show a star's
-  chemistry on its sheet and page and in the API, derived at view time
-  from stored values (no column, no stored value), like the variability
-  and carbon-star rows: thin or thick disc branch, alpha enhancement,
-  metal fraction, and the phase's dredge-up shift, each with its unit
-  and source line. Done: a test walks a sample of stars and checks the
-  rows appear with units; the register line for star_makeup is gone.
-  Lock-free. Owner Star 2 (proposed). Related: GEN.440.
-  Prerequisites: none.
 
 ## MAP: Galaxy Map, Sector Map, System Map
 
@@ -1987,20 +1963,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   switchable glow design). Owner: Bug Hunt (fixing now in starpoint.js,
   galaxymap3d.js and sectorscene.js).
   Prerequisites: none. Related: MAP.208, MAP.266, MAP.267.
-
-- [ ] **MAP.274 Land colour from the bulk composition: oxidation and rock type**
-  Land colour follows the bulk fractions instead of the temperature and
-  class estimate. Design draft
-  design-drafts/body-rendering-from-composition-2026-10-24.md (section
-  4), filed by the body-rendering design thread, 10:18 PM EDT 2026-10-23
-  as the thread reported. Placement follows Boss's plan of 10:26 PM EDT 2026-10-23 (section 11 of the draft).
-  Research (2026-10-09, Owner 6:36 PM EDT): Owner (TODO, 6:36 PM EDT
-  2026-10-24, coordinator request): Aux 10 (Map nodes) after MAP.287
-  (#3130), after GEN.411 (4c, Aux 1).
-  Owner (housekeeping) (2026-10-30 2:55 PM EDT): released to the pool:
-  the owner named above (Aux 1) is a retired lane. A waiting lane takes
-  it, confirmed with TODO, one lock-free item at a time.
-  Prerequisites: GEN.411.
 
 - [ ] **MAP.275 Gas and ice giant painter: bands, storms and thermal glow from rotation, temperature and the atmosphere colour, rings with resonance gaps from the moons**
   Bands, storms, a chemistry tint, thermal glow, and rings with
@@ -11936,6 +11898,28 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   plan,scatter,fill,population and a census re-baseline; rides the
   star-side train after GEN.932 (Bug 1 owns star_formation.py). Owner:
   Sources 2 with Bug 1. Version 8.1.
+  Owner change (2026-10-31 1:25 PM EDT): Core 3 measured (as the lane
+  reported, 1:22 PM EDT 2026-10-31) that GEN.1200 (ring inflow 0.50 a
+  year against 0.8 measured, plus or minus 0.6) and GEN.1202 (8 kpc gas
+  4.3 against 13 per pc2) are the same factor of 3 this item fixes. Core
+  3 takes GEN.999 (lock work, a branch off main, no merge); GEN.1202
+  then closes with it if the re-measured 8 kpc gas reads about 13, and
+  GEN.1200 follows with the inflow-time step (CORE_GAS_INFLOW_TIME_GY, a
+  stand-in, registered in GEN.725).
+  Ready for train 8 (2026-10-31 1:58 PM EDT): Core 3 (as the lane
+  reported, 1:54 PM EDT): draft PR #4549, branch gen999, head 8b9448957,
+  lock work (epoch, --affects plan,scatter,fill,population; no
+  migration; census re-baseline). The disc gas law steepens where the
+  gas thins, using the saturation 9 per pc2 and index 2.1 of GEN.450 (no
+  new constant). Milky Way shape: depletion 2.2 to 3.7 Gy, star
+  formation now 1.50 to 1.70 solar masses a year, ring inflow 0.50 to
+  0.62 a year. The thin disc population shares move (young 0.54 to 0.60
+  percent, intermediate 25.0 to 26.8 percent). Train 8 candidate.
+  GEN.1200 closes with it (the ring inflow test now passes, no
+  inflow-time step needed). GEN.1202 stays open: 8 kpc gas is 7.2
+  against 13.7 measured (all-phase total), the residual is registered
+  (AL1) and the disc cluster maximum is re-measured after GEN.1196
+  merges.
   Prerequisites: GEN.932. Related: GEN.998, GEN.476, GEN.469.
 
 - [ ] **GEN.1000 Draw the largest body of every belt from the small body size law (replaces the stand-in largest-body size in the GEN.477 belt mass)**
@@ -14807,6 +14791,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   API show it. Output change: epoch with --affects, golden, census
   re-tag, on a train, with GEN.1219 and GEN.1220 (one epoch). Where we
   think it belongs (best guess, can move): the Class M research thread.
+  Boss approved option 1 (2026-10-31 1:58 PM EDT): Boss answered Yes at
+  1:56 PM EDT 2026-10-31 to the Class T envelope question (option 1):
+  store the true air share (the hydrogen-rich air's mass over the body's
+  mass) as the envelope share of every body, not a class-based stand-in.
+  GEN.1219, GEN.1220, GEN.1221 and GEN.1207 read that stored value; they
+  may now be built on it.
   Prerequisites: none. Related: GEN.1219, GEN.1220, GEN.1207.
 
 - [ ] **GEN.1227 Store the coma class and the dominant volatiles of an interstellar comet, so the map can colour its coma**
@@ -14826,6 +14816,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   re-tag): ride a train. Owner Sources 2 (proposed, it knows the comet
   species work).
   Prerequisites: GEN.1021.
+
+- [ ] **GEN.1228 Hematite (the oxidised ground type) reflects the same in all three bands, so a rusty world renders dark grey instead of red; give it a sourced spectrum or finer bands (bug)**
+    Finding from Aux 4's MAP.274 build (as the lane reported, 12:52 PM
+  EDT 2026-10-31).
+    The materials table's hematite_fine reflectance is flat across the
+  three bands the land colour reads (0.092 at 450 nm, 0.086 at 550 nm,
+  0.085 at 650 nm), so ground that is mostly oxidised iron renders dark
+  grey, where real hematite dust is red because it reflects far more at
+  650 nm than at 450 nm. Fix: a sourced hematite spectrum, or finer
+  bands in the table (written in docs/design/interface/body-rendering.md
+  section 4.1). Changes the colour of oxidised worlds on the map and
+  body pages only; no stored generator value moves. Lock-free (the
+  land colour, MAP.274, has merged).
+  Prerequisites: none.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -15563,7 +15567,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Design draft
   design-drafts/body-rendering-from-composition-2026-10-24.md (section
   11), Boss's plan of 10:26 PM EDT 2026-10-23.
-  Prerequisites: MAP.274.
+  Prerequisites: none.
 
 - [ ] **DB.101 Storage and units for every physics rectification output: a column, a column_units entry and a migration shipped with its item**
   Boss asked (5:47 PM EDT 2026-10-24) whether the wiring reaches the
@@ -19463,39 +19467,6 @@ clears each one.
   change, like a module.
   Prerequisites: none.
 
-- [ ] **TEST.521 Wire, register or delete the 27 pure functions nothing calls in 13 modules (Core 1's share of the TEST.520 shadow functions)**
-  Boss, 12:03 PM EDT 2026-10-31: nothing built and left unused. Core 1's
-  wiring guard (TEST.520, PR #4513) found 157 public functions in
-  physics, generation and galaxy that only tests call or nothing calls;
-  its register lines name TEST.520 because no owner was guessed. Report:
-  /mnt/project-files/reports/wiring-guard-test520-2026-10-31.md. Filed
-  by the TODO thread. Your share (27 functions): galaxy.cellkey
-  (cell_keys, sql_cell_key); galaxy.object_uid (captured_member,
-  is_on_demand, outside_reservoir_member, parse_captured);
-  galaxy.region_run (next_units); galaxy.spherical
-  (cells_touching_sphere, shell_cells); generation.run_galaxy
-  (backfill_bright_stars, ball_extent, queue_settle); generation.stats
-  (job_shells_per_second); generation.object_timing (run_totals);
-  generation.phenomena.hosts (host_of, reweighted); physics.sector_path
-  (ball_cell, box_cell, relevant_masses); physics.unit_registry
-  (constant_in, from_base, parts_dimension, parts_factor, units_of);
-  generation.tuning_harness (check_target); generation.possibility_table
-  (concentration_from_spread); physics.protection_limits (chosen_pairs).
-  Do, for each function: (1) wire it, naming the open item that will
-  call it (or filing one) in its register line of
-  docs/design/research/wiring-register.md; (2) mark it `by design` with
-  the reason when it is a tuning or test harness reader (an observed
-  sampler, an expected count) and say who runs it; or (3) delete it and
-  its tests (no dead code, no shim). Done: none of your functions names
-  TEST.520 in the register, and test_wiring_guard passes. Lock-free
-  (register, tests and deletions of unreferenced code change no stored
-  value; if a wiring step changes output it rides a train under its own
-  item). Owner Core 1 (proposed by the TODO thread, one lock-free item
-  at a time; the lane says if it clashes). Rule for every lane: a public
-  function that only tests call needs a register line in the same
-  change, like a module.
-  Prerequisites: none.
-
 - [ ] **TEST.526 Wire, register or delete the 8 pure functions nothing calls in 4 modules (Tides 1's share of the TEST.520 shadow functions)**
   Boss, 12:03 PM EDT 2026-10-31: nothing built and left unused. Core 1's
   wiring guard (TEST.520, PR #4513) found 157 public functions in
@@ -19521,33 +19492,6 @@ clears each one.
   line in the same change, like a module.
   Prerequisites: none.
 
-- [ ] **TEST.527 Wire, register or delete the 12 pure functions nothing calls in 5 modules (Bug 1's share of the TEST.520 shadow functions)**
-  Boss, 12:03 PM EDT 2026-10-31: nothing built and left unused. Core 1's
-  wiring guard (TEST.520, PR #4513) found 157 public functions in
-  physics, generation and galaxy that only tests call or nothing calls;
-  its register lines name TEST.520 because no owner was guessed. Report:
-  /mnt/project-files/reports/wiring-guard-test520-2026-10-31.md. Filed
-  by the TODO thread. Your share (12 functions): physics.comet_admission
-  (expected_measured, observed_sampler); physics.jwst_selection
-  (expected_observed, observed_sampler); physics.kepler_recovery
-  (expected_found, observed_sampler); physics.mass_radius_sample
-  (observed_sampler, pass_probability, population_pass_fraction);
-  physics.wd_pollution (class_probabilities, expected_sample,
-  observed_sampler). Do, for each function: (1) wire it, naming the open
-  item that will call it (or filing one) in its register line of
-  docs/design/research/wiring-register.md; (2) mark it `by design` with
-  the reason when it is a tuning or test harness reader (an observed
-  sampler, an expected count) and say who runs it; or (3) delete it and
-  its tests (no dead code, no shim). Done: none of your functions names
-  TEST.520 in the register, and test_wiring_guard passes. Lock-free
-  (register, tests and deletions of unreferenced code change no stored
-  value; if a wiring step changes output it rides a train under its own
-  item). Owner Bug 1 (proposed by the TODO thread, one lock-free item at
-  a time; the lane says if it clashes). Rule for every lane: a public
-  function that only tests call needs a register line in the same
-  change, like a module.
-  Prerequisites: none.
-
 - [ ] **TEST.529 test_the_job_strip_shows_the_running_job_on_every_admin_page fails on clean main (bug)**
   Found by Sources 2 (as the lane reported, 12:45 PM EDT 2026-10-31; red
   on main without its change), filed by the TODO thread. Kind: red test
@@ -19556,6 +19500,47 @@ clears each one.
   fixture or an order dependency) and fix the code or the test with a
   reason, never by skipping or loosening it without one. Web only,
   lock-free. Owner Core 5 (proposed; it owns the admin and queue pages).
+  Owner change (2026-10-31 2:00 PM EDT): Owner is now Aux 3 (it ran out
+  of lock-free work after UX.227; Core 5 is on UX.252). Web only,
+  lock-free.
+  Prerequisites: none.
+
+- [ ] **TEST.531 Delete the sector-settle queue chain that no route reaches any more (api_jobs.settle_sectors and the test helper queue_settle)**
+    Finding from Core 1's TEST.521 (as the lane reported, 1:37 PM EDT
+  2026-10-31).
+    api_jobs.settle_sectors is now reached only by the test helper
+  queue_settle: no route generates a sector on a visit since PERF.149.
+  The queue chain behind it is a delete candidate: remove the chain and
+  the tests that exist only for it, keeping any test of behavior a route
+  still has. Lock-free. Owner: Core 1 when its designations work waits.
+  Owner (2026-10-31 2:00 PM EDT): Owner is Bug 1 (given 1:40 PM EDT),
+  not Core 1.
+    Prerequisites: none.
+  Prerequisites: none.
+
+- [ ] **TEST.532 Give the bright-star backfill unit path (backfill_bright_stars_unit) its own direct tests, since the serial form the tests cover is no longer the path a run takes**
+    Finding from Core 1's TEST.521 (as the lane reported, 1:37 PM EDT
+  2026-10-31).
+    run_galaxy.backfill_bright_stars_around and its bar tests cover a
+  path a run no longer takes (a run does the same draw in
+  scatter-backfill units), so the unit path, backfill_bright_stars_unit,
+  has less direct test cover than it looks. Add tests that run the unit
+  path itself and show it draws the same stars as the serial form for
+  the same sector, then decide whether the serial form stays as a test
+  reference (registered by design) or goes. Lock-free, tests only.
+  Owner: Core 1 when its designations work waits.
+  Owner (2026-10-31 2:00 PM EDT): Owner is Bug 1, after TEST.531.
+    Prerequisites: none.
+  Prerequisites: none.
+
+- [ ] **TEST.533 test_disk_history::test_the_present_rate_over_the_mean_is_within_a_factor_of_two_of_the_milky_ways is red on main (0.505 against a bound of 0.393, 0.554 after GEN.999): the model's recent star formation rate over its mean is about 2.5 times the Milky Way's (bug)**
+    Finding from Core 3's GEN.999 build (as the lane reported, 1:54 PM
+  EDT 2026-10-31). The test was red on main before GEN.999 and is not
+  caused by it. Either the model's recent-over-mean rate is wrong (find
+  which input and fix it, with a source) or the bound is (then change
+  the test and say why). Lock-free if only the test changes; lock work
+  if the model changes. Owner: Core 3 after UX.187.
+    Prerequisites: none.
   Prerequisites: none.
 
 ## USR: User accounts
