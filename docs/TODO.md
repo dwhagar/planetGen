@@ -2339,6 +2339,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   largest region with filled-in sectors appears as a point of interest
   with a link that zooms in as close as possible (the frame that holds
   the whole region).
+  Boss, 9:01 PM EDT (2026-10-30 9:02 PM EDT): this widens the point of
+  interest: every filled region far enough from the others to be a
+  separate POI at that galactic view is shown with its own zoom-in link,
+  not only the largest; two or more far-apart filled regions all appear.
+  Two regions closer than a POI marker merge into one.
   Prerequisites: none.
 
 - [ ] **MAP.358 The View system and Expand buttons of the sector info display cannot be seen or reached (bug)**
