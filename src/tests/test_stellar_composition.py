@@ -429,3 +429,4 @@ def test_the_cool_white_dwarfs_are_those_below_the_floor_of_the_hot_ones():
     assert constants.COOL_WHITE_DWARF_BELOW_K == 10000
     assert sc.white_dwarf_polluted(9999.0, 0.0) is True and sc.white_dwarf_polluted(10000.0, 0.0) is False
     assert sc.white_dwarf_polluted(5000.0, 0.375) is False and sc.white_dwarf_polluted(5000.0, 0.374) is True
+

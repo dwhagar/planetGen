@@ -67,8 +67,8 @@ def test_age_never_exceeds_lifespan(star_type):
 def test_long_lived_main_sequence_age_never_exceeds_universe_age(star_type):
     """
     K and M main-sequence dwarfs can have theoretical lifespans of tens to
-    thousands of billions of years (STAR_EVOLUTION["M"]["lifespan_gy"] runs
-    up to 5500 Gy) -- real astrophysics, since no red dwarf has ever
+    thousands of billions of years (the model's M dwarfs run
+    to thousands of Gy) -- real astrophysics, since no red dwarf has ever
     actually died of old age. Before UNIVERSE_AGE_GY was introduced, age was
     drawn as up to 90% of that lifespan with no cosmological ceiling,
     producing stars "918 billion years old" -- older than the ~13.8 Gy
@@ -273,11 +273,7 @@ def test_sun_like_star_galactic_orbit_matches_real_measurements():
     assert 0.15 <= period_gy <= 0.30
 
 
-_MAIN_SEQUENCE_ONLY_NOTE_FRAGMENTS = [
-    note["evolutionary_constraint_notes"]
-    for note in prog_c.STAR_EVOLUTION.values()
-    if "evolutionary_constraint_notes" in note
-]
+_MAIN_SEQUENCE_ONLY_NOTE_FRAGMENTS = list(describe_build.LIFESPAN_SENTENCES.values())
 
 
 @pytest.mark.parametrize("yerkes_class", ["VII", "III", "IB", "0"])

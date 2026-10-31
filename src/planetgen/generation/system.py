@@ -18,7 +18,6 @@ number of celestial objects, and generating a detailed string representation of
 the system.
 """
 
-import collections
 import dataclasses
 import math
 
@@ -28,10 +27,10 @@ from planetgen.generation.comet import Comet
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.binary import BinaryStarProxy
 from planetgen.generation import (
-    cloud as cloudContext, life as planetLife, multistar, place_terms, prevalence, stored_trees, validation,
+    cloud as cloudContext, life as planetLife, member_record, multistar, place_terms, prevalence, stored_trees, validation,
 )
 from planetgen.physics import stellar_evolution as evolution
-from planetgen.physics import habitability, insolation, interior_heat, magnetism, mass_loss, metallicity, pre_main_sequence, rings, wolf_rayet
+from planetgen.physics import habitability, insolation, interior_heat, magnetism, mass_loss, pre_main_sequence, rings, wolf_rayet
 from planetgen.physics import planets as planetPhysics
 from planetgen import tuning
 from planetgen.util import draw
@@ -863,7 +862,8 @@ class StarSystem:
         at_least_two = False
         special = self._special_companion_chance()
         percent = prevalence.percent(config, "binary_system")
-        placed = multistar.Placed("star", _kg_to_msun(primary.mass), place_terms.born_mass_solar(primary))
+        placed = multistar.Placed("star", _kg_to_msun(primary.mass), place_terms.born_mass_solar(primary),
+                                  fe_h=primary.metallicity_fe_h, record=member_record.of_star(primary))
         if count is not None:
             pass
         elif special is not None:
@@ -968,36 +968,30 @@ class StarSystem:
         the two stars of the plan's pair node (`StoredPlan.pair_node_no`), the heavier the primary; every other star is one of
         `member_stars`. Sets `orbit_nodes` and, for a system of more than two stars, `star_slots`.
 
-        A stored plan whose built star is not the stored member (its mass differs: the tree records a change a birth mass and
-        an age do not give) leaves the primary alone and the plan unspent (`tree_built` false); a plan that is not `exact`
-        corrects its nodes to the masses the stars came out with. A plan with no members builds nothing. `kind` forces
-        the kind of the pair (`close` or `wide`) whatever its axis.
+        Each star is made from its member record (`member_record.make`, GEN.1009) without evolving it again: the tree drew the
+        orbits from the same record, so the star is the member the orbits were drawn for. A plan whose built star is not the
+        member (its mass or radius differs: the tree records a change a birth mass and an age do not give) leaves the primary
+        alone and the plan unspent (`tree_built` false). A plan with no members builds nothing. `kind` forces the kind of the
+        pair (`close` or `wide`) whatever its axis.
         """
         if not plan.members:
             return
         config = self.system_config
         placed = self.primary_star
         built = {0: placed}
-        original_large_star = config.LARGE_STAR
-        config.LARGE_STAR = False  # the others are not biased toward a large star (see above)
-        try:
-            for member in plan.members[1:]:
-                with log.timed_phase("companion star generation"), draw.bound(member.seed):
-                    built[member.member_no] = Star(
-                        config, name=placed.name, galactic_center_dist_ly=galactic_center_dist_ly,
-                        galactic_orbital_phase_deg=galactic_orbital_phase_deg,
-                        initial_mass_sol=member.initial_mass_solar, age_gy=placed.age,
-                        metallicity_fe_h=getattr(placed, "metallicity_fe_h", None))
-                if plan.exact and not stored_trees.matches(built[member.member_no], member):
-                    log.choice("Stored companion", "left out", f"a star of its birth mass {member.initial_mass_solar:.4g}"
-                               f" Msun at {placed.age:.4g} Gy is not the stored {member.mass_solar:.4g} Msun")
-                    self.tree_built = False
-                    return
-        finally:
-            config.LARGE_STAR = original_large_star
+        for member in plan.members[1:]:
+            record = member_record.make(member.seed, member.initial_mass_solar,
+                                        member.age_yr or placed.age * 1.0e9, placed.metallicity_fe_h)
+            with log.timed_phase("companion star generation"), draw.bound(member.seed):
+                built[member.member_no] = Star.from_record(
+                    record, config, name=placed.name, galactic_center_dist_ly=galactic_center_dist_ly,
+                    galactic_orbital_phase_deg=galactic_orbital_phase_deg)
+            if not stored_trees.matches(built[member.member_no], member):
+                log.choice("Stored companion", "left out", f"a star of its birth mass {member.initial_mass_solar:.4g}"
+                           f" Msun at {placed.age:.4g} Gy is not the stored {member.mass_solar:.4g} Msun")
+                self.tree_built = False
+                return
         nodes = list(plan.nodes)
-        if not plan.exact:
-            nodes = self._fit_nodes(plan, built)
         pair_no = plan.pair_node_no()
         slots = {member.member_no: (member.parent_node_no, member.slot) for member in plan.members}
         low, high = sorted((member.member_no for member in plan.members if member.parent_node_no == pair_no),
@@ -1050,21 +1044,6 @@ class StarSystem:
             # WideBinaryPair.__init__ sets primary_star.a_crit_au / secondary_star.a_crit_au directly on the two Star
             # instances (see Star.a_crit_au's own docstring).
             self.wide_binary = WideBinaryPair(config, primary, secondary, orbit=pair_node)
-
-    @staticmethod
-    def _fit_nodes(plan, built):
-        """`plan`'s nodes with the mass of each the built stars below it make, and the period of its own axis about it."""
-        mass = {member.member_no: _kg_to_msun(built[member.member_no].mass) for member in plan.members}
-        children = collections.defaultdict(list)
-        for member in plan.members:
-            children[member.parent_node_no].append(mass[member.member_no])
-        total = {}
-        for node in reversed(plan.nodes):    # children are numbered after their parents
-            total[node.node_no] = sum(children[node.node_no]) + sum(
-                total[child.node_no] for child in plan.nodes if child.parent_node_no == node.node_no)
-        return [dataclasses.replace(node, mass_solar=total[node.node_no],
-                                    period_years=math.sqrt(_km_to_au(node.separation_km) ** 3
-                                                           / total[node.node_no])) for node in plan.nodes]
 
     def _disk_outer_edge_au(self, star):
         """

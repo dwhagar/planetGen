@@ -2085,3 +2085,35 @@ Baseline: PR #1817.
 | GEN.934 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | OPS.80 | 8.2 | Robust tile caching |
 | OPS.81 | 8.2 | Robust tile caching |
+| GEN.1046 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| PERF.137 | later | Paging audit |
+| OPS.82 | 8.2 | Robust tile caching |
+| GEN.399 | 8.2 | Halo mass research |
+| GEN.1028 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| OPS.83 | 8.2 | Robust tile caching |
+| GEN.1148 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| OPS.84 | 8.2 | Robust tile caching |
+| TEST.463 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.542 | 8.1 | Bugs and flaky tests |
+| GEN.1004 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.660 | 8.1 | Surface and small bodies |
+| GEN.720 | 8.1 | Radiation chain for habitability (GEN.445) |
+| GEN.839 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.716 | 8.1 | Nebula and young stars |
+| GEN.790 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.789 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.946 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.778 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.781 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.780 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.784 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.506 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.1158 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.1169 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.1168 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.1164 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.1155 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.1176 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.504 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.1180 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.1177 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |

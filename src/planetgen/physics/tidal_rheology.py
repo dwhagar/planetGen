@@ -4,12 +4,12 @@
 The tidal Love number and quality factor from temperature, melt and tide frequency (GEN.954)
 =============================================================================================
 
-`tidal_heating.response` gives a body one `k2` and one `Q` whatever its temperature (rock Q 100, ice `k2/Q` 3e-4), and `MOLTEN_K2_OVER_Q`
-is a number fitted to the one body that shows it (Io). A real mantle's response depends on how fast it is flexed against how fast it
+Before GEN.955 a body had one `k2` and one `Q` whatever its temperature (rock Q 100, ice `k2/Q` 3e-4) and a `k2/Q` fitted to the one body that
+shows a molten state (Io). A real mantle's response depends on how fast it is flexed against how fast it
 relaxes: its `Q` is hundreds when it is cold and stiff, tens when it is warm, and falls to a minimum near the temperature where the
 relaxation time equals the period of the tide; partly molten it is far weaker and its `k2` rises toward the fluid 3/2. This module is that
-response, as a pure function of the body's size, its mantle's temperature and melt, and the tide's frequency. Nothing calls it yet (GEN.955
-wires it into `tidal_heating`, `interior_heat` and `orbit_elements`, and GEN.960 gives ice its own shell).
+response, as a pure function of the body's size, its mantle's temperature and melt, and the tide's frequency. `interior_heat` reads it for
+rock (GEN.955: `tidal_response` for the spin and the circularisation, the tide in the heat box); GEN.960 gives ice its own shell.
 
 **The response.** A homogeneous sphere of mean density and radius `R` under its own gravity has the tidal Love number
 
@@ -42,7 +42,7 @@ Guimond et al. 2022), so the heat flow of the one-box mantle and the tide read t
 
 So a body between the solidus and `phi_c` is flexed at a frequency close to its relaxation time and dissipates most; at the heat-pipe melt
 fraction of Io (0.3) this gives `k2/Q` of a few hundredths, the 0.015 that Io's orbital acceleration needs (Lainey et al. 2009), with no
-number fitted to Io: the fit `MOLTEN_K2_OVER_Q` goes when the wiring step balances this heating against the loss of the heat pipe.
+number fitted to Io: the fit is gone, `interior_heat` balances this heating against the loss of the heat pipe.
 
 **Ice** is the same equations with ice's rigidity (3.3 GPa), a lower activation energy (49 kJ/mol) and a viscosity pinned at the melting
 point (`ICE`; Ojakangas and Stevenson 1989, Icarus 81:220 and McCarthy and Castillo-Rogez 2013 for the figures, read second-hand). A
@@ -63,6 +63,10 @@ from planetgen.physics import constants
 
 GAS_CONSTANT = 8.314462618
 """float: J/(mol K)."""
+MAX_VISCOSITY_EXPONENT = 200.0
+"""float: The largest `Ea / R T` the viscosity law is evaluated at (a viscosity of 1e87 times the prefactor): a mantle colder than that does not relax in any
+tide, its response is the elastic one with the cold ceiling on `Q`, and the exponential would overflow at about 700 (a body at 50 K with a mantle drawn at
+300 kJ/mol). Source tier T7 (a numerical cutoff), tweak level L0."""
 LIQUID_VISCOSITY_PA_S = 1.0
 """float: A silicate liquid's viscosity, Pa s (komatiite to basalt melt, 0.1 to 10). Source tier T2, tweak level L0."""
 MELT_VISCOSITY_FACTOR = 26.0
@@ -153,7 +157,7 @@ def viscosity_pa_s(temperature_k, eta0_pa_s, activation_j_mol, melt=0.0):
     then a straight line in `log10 eta` from there to `LIQUID_VISCOSITY_PA_S` at a melt share of 1. The solid's value is taken at the
     temperature given, so a body above its solidus must be asked about with the temperature it has.
     """
-    solid = eta0_pa_s * math.exp(activation_j_mol / (GAS_CONSTANT * temperature_k))
+    solid = eta0_pa_s * math.exp(min(activation_j_mol / (GAS_CONSTANT * temperature_k), MAX_VISCOSITY_EXPONENT))
     if melt <= 0.0:
         return solid
     if melt <= CRITICAL_MELT_FRACTION:

@@ -84,7 +84,9 @@ def test_means_the_update_stored_are_read_back_without_any_stellar_evolution(tmp
     system_mass._stored_means.cache_clear()
     ages = (0.123457, 4.567891)
     worked_out = {age: system_mass.mean_system_mass_at_age_solar(age) for age in ages}
-    assert system_mass.save_means(ages) == 2
+    seen = []
+    assert system_mass.save_means(ages, progress=lambda done, total: seen.append((done, total))) == 2
+    assert seen == [(1, 2), (2, 2)]
     assert (tmp_path / system_mass.STORE_FILE).stat().st_mode & 0o044 == 0o044           # the web app only reads it
     system_mass.mean_system_mass_at_age_solar.cache_clear()
     monkeypatch.setattr(stellar_evolution, "youngest_progenitor_sol", lambda *args, **kwargs: pytest.fail("worked out again"))
