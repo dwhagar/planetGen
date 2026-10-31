@@ -195,6 +195,7 @@ HELP_MENU = (
     ("classes", "Classes"),
     ("habitability_levels", "Habitability"),
     ("property_help_page", "Properties"),
+    ("life_help_page", "Life"),
 )
 """tuple: What the Help menu beside the search button opens (UX.180), in order. The menu is current on these pages and
 on the class pages under Classes (a page names `section="classes"` or `section="help"`)."""

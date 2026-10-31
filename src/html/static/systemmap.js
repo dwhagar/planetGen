@@ -120,7 +120,13 @@ function initSphereField(canvasEl) {
     camera.lookAt(0, 0, 0);
   }
 
-  scene.add(new THREE.AmbientLight(0xffffff, 0.35));
+  // MAP.277: the light on the night side is what the air scatters round the terminator: 0.35 for the Earth's air, less for a thin one, none for a world with no air
+  // (a star keeps 0.35).
+  var AMBIENT_STAR = 0.35;
+  var AMBIENT_NO_AIR = 0.15;
+  var AMBIENT_PER_TWILIGHT = 1.25;
+  var ambient = new THREE.AmbientLight(0xffffff, AMBIENT_STAR);
+  scene.add(ambient);
   var sun = new THREE.DirectionalLight(0xffffff, 1.15);
   sun.position.set(-3, 2, 4);
   scene.add(sun);
@@ -151,14 +157,13 @@ function initSphereField(canvasEl) {
   bodyGroup.add(ring);
 
   var PLANET_GLOW_POWER = 1.4;
-  var PLANET_GLOW_STRENGTH = 0.7;
+  var DEFAULT_GLOW_WIDTH = 0.14;   // how far a glow reaches past the limb, in radii, when the look record does not say (its air's composition is not stored)
   var STAR_GLOW_POWER = 1.8;
   // The glow shell's radius relative to the body sphere's own, planet
   // (unscaled) and star (scaled up by the star's own glow scale, from its luminosity) -- the shader
   // starts its fade at the body's limb (see bodyRendering.js).
-  var PLANET_GLOW_INNER = glowInnerRatio(GLOW_R / SPHERE_R);
 
-  var glowMaterial = makeGlowMaterial(THREE, 0xbcdfff, PLANET_GLOW_POWER, PLANET_GLOW_STRENGTH, GLOW_R / SPHERE_R);
+  var glowMaterial = makeGlowMaterial(THREE, 0xbcdfff, PLANET_GLOW_POWER, 1.0, GLOW_R / SPHERE_R);
   var glow = new THREE.Mesh(new THREE.SphereGeometry(GLOW_R, 48, 32), glowMaterial);
   bodyGroup.add(glow);
 
@@ -278,6 +283,7 @@ function initSphereField(canvasEl) {
       // than a planet's own subtle atmosphere rim (the marker's glowScale/
       // glowStrength, from luminosity, vs. PLANET_*) -- it needs to read unmistakably
       // as "this is the light source", not just a faint haze.
+      ambient.intensity = AMBIENT_STAR;
       glow.visible = true;
       glow.scale.setScalar(marker.glowScale);
       glowMaterial.uniforms.glowColor.value.set(marker.color);
@@ -298,13 +304,16 @@ function initSphereField(canvasEl) {
       ring.material.needsUpdate = true;
     }
 
-    glow.visible = marker.hasAtmosphere;
-    if (marker.hasAtmosphere) {
-      glow.scale.setScalar(1);
+    ambient.intensity = AMBIENT_NO_AIR + AMBIENT_PER_TWILIGHT * marker.twilight;
+    // MAP.277: an air thin enough not to show has no glow (its look has none), and a thick one's reaches farther and stronger
+    glow.visible = marker.hasGlow;
+    if (marker.hasGlow) {
+      var reach = 1 + (marker.glowWidth || DEFAULT_GLOW_WIDTH);
+      glow.scale.setScalar(reach / GLOW_R);
       glowMaterial.uniforms.glowColor.value.set(marker.glowColor);
       glowMaterial.uniforms.glowPower.value = PLANET_GLOW_POWER;
-      glowMaterial.uniforms.glowStrength.value = PLANET_GLOW_STRENGTH;
-      glowMaterial.uniforms.innerRatio.value = PLANET_GLOW_INNER;
+      glowMaterial.uniforms.glowStrength.value = marker.airGlowStrength;
+      glowMaterial.uniforms.innerRatio.value = glowInnerRatio(reach / SPHERE_R);
     }
   }
 
@@ -439,7 +448,10 @@ function gatherSphereMarkers(sceneEl) {
       glowStrength: glowFor(look.lumSolar).strength,
       diameterPx: 0,
       color: look.color,
-      hasAtmosphere: !!look.atm,
+      hasGlow: !!look.glowStrength,
+      airGlowStrength: look.glowStrength || 0,
+      glowWidth: look.glowWidth,
+      twilight: look.twilight || 0,
       glowColor: look.glow || "#bcdfff",
       axis: Spin.pictureAxisOf(look),
     };

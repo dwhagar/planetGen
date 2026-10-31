@@ -33,7 +33,7 @@ A visitor reads a planet's page to learn what it is like, not to decode it. Ever
 
 `tests/test_plain_words.py` builds the Document of ten seeded systems and reads every prose sentence and table label of it, then the class pages (`web/lib/classref.py`) and the label of every row of the property sheet (`describe/sheet.py`). Each break of rules 1 to 6 must be in `KNOWN`, which maps the rule and the start of the sentence (or the label) to the item that owns the fix. A break that is not listed fails the test, so new text keeps the guide while old text is rewritten. `KNOWN` is the list of sentences and labels the two rewrite items must fix: UX.252 for planets, moons, belts, comets and their class pages, UX.253 for stars, systems and star-class pages. Each item removes its entries as it rewrites, and is done when none carry its code.
 
-The rules themselves are tested on made-up sentences (`test_the_checker_flags_each_rule`), so a rule cannot go quiet without a test failing.
+The life help pages (`web/lib/life_help.py`, DOC.84) are held to the same rules by `tests/test_life_help.py`, with no `KNOWN` list: they were written to the guide. The rules themselves are tested on made-up sentences (`test_the_checker_flags_each_rule`), so a rule cannot go quiet without a test failing.
 
 ## Adding a rule
 

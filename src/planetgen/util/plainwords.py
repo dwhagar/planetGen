@@ -54,8 +54,8 @@ _BANNED = [(re.compile(r"(?<![\w-])" + re.escape(phrase) + r"(?![\w-])", re.IGNO
 _ABBREVIATIONS = ("e.g.", "i.e.", "etc.", "vs.", "approx.", "Dr.", "St.", "No.")
 """tuple: Where a full stop does not end a sentence."""
 
-_CLASS_NAME = re.compile(r"(?<!uminosity )\bClass (\d+)([a-c]?)\b")
-"""re.Pattern: A life class named in text ("Class 3a"); a star's luminosity class ("Luminosity class 0") is not one."""
+_CLASS_NAME = re.compile(r"(?<!uminosity )\bClass (\d+)([a-c]?)\b(?! family)")
+"""re.Pattern: A life class named in text ("Class 3a"); a star's luminosity class ("Luminosity class 0") is not one, and "the Class 3 family" names the whole family."""
 
 SMALL_WORDS = {"a", "an", "and", "as", "at", "by", "for", "from", "in", "into", "of", "on", "or", "per", "the", "to", "with"}
 """set: Words a label keeps in lower case wherever they stand."""
