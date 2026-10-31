@@ -12148,44 +12148,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Catalog sections 1 and 4.
   Prerequisites: none. Related: GEN.725, GEN.754, GEN.922.
 
-- [ ] **GEN.946 Burn down the hand-tuned constants: replace each L3 or L4 registry row and each unregistered constant the audit ranks high with the data we hold, or record why no data exists**
-  Follows GEN.945 (Boss, 5:44 PM EDT 2026-10-29): the registry shows 74
-  rows at tweak level L3 or L4. For each one, and for each high-ranked
-  unregistered constant from the audit, replace the number with a value
-  read from the downloaded or table data (MIST, Baraffe, Harris, HITRAN
-  and the rest) where the data exists, lowering the tier and tweak level
-  to L0 or L1, or record in the registry why no data exists and which
-  tier it keeps. Findings that change generated values are one epoch;
-  Boss decides which ride the long-term epoch GEN.932 and which wait.
-  Split into per-area items from the audit report as they are filed
-  (stars are GEN.935 to GEN.940 already). Owner: per area, assigned from
-  the audit. Version 8.1.
-  Relaxed (2026-10-29 8:30 PM EDT): Boss, 8:16 PM EDT 2026-10-29 (full
-  build in 8.1): replace a hand-tuned constant with a value from a
-  secondary source (a paper that cites a paper) when one exists,
-  otherwise register it as a stand-in with tier and tweak level; neither
-  is a reason to stall a build. The completeness gate of TEST.455 stands
-  (the list of unregistered constants may only shrink).
-  Owner (full build) (2026-10-29 8:30 PM EDT): Sources 1 (new lane,
-  proposed by TODO). This replaces any earlier owner line (pool,
-  unowned, retired lane or 'after 8.1'). If it is already started
-  elsewhere, the lane tells TODO before taking it. Lock-free parts
-  first; the part that changes generated output rides a train.
-  Data we hold (2026-10-29 8:55 PM EDT): The stand-in registry
-  (docs/design/research/stand-in-values.md) lists 316 rows with source,
-  tier and tweak level; the data-use audit ranks which L3 and L4 rows a
-  held dataset could replace (planet formation PM1, PM2, PM6, PM7,
-  radius valley RV2, RV3, SEP rows, neutron star anchors, cluster laws).
-  Catalog sections 1 and 4.
-  Step 1 done (2026-10-29 9:20 PM EDT): Sources 1 merged step 1 (#3808,
-  as the lane reported 9:18 PM EDT):
-  docs/design/research/burn-down-register.md has a disposition for each
-  of the 73 L3 and L4 registry rows and test_burn_down_register.py; the
-  per-area replace items it names are GEN.804, GEN.722, GEN.842,
-  GEN.728, GEN.684, GEN.878, GEN.894 and GEN.962 (for CC1 and CC2). The
-  replace steps stay open.
-  Prerequisites: GEN.945. Related: GEN.725, GEN.945.
-
 - [ ] **GEN.949 Wire the held methane absorption tables (AD1 Karkoschka k-tables, PDS, NMSU) into the visible colour of giant planets**
   Found by the data-use audit (rank 8, 10-29): giant visible colour
   comes from coarse bins; the better tables are held and not read, and
