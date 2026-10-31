@@ -298,10 +298,14 @@ def test_the_stand_in_porosity_rule_leaves_the_strength_alone():
     lambda d: d["materials"].__setitem__("metal", {"same_as": "plasma"}),
     lambda d: d["mixing"].__setitem__("rule", "voigt"),
     lambda d: d["porosity"].__setitem__("rule", "sponge"),
-    lambda d: d["temperature"].__setitem__("rule", "balmy"),
+    lambda d: d["temperature"]["ice"].__setitem__("rule", "balmy"),
+    lambda d: d["temperature"].__setitem__("plasma", {"rule": "none"}),
+    lambda d: d["temperature"]["rock"]["columns"].pop(),
+    lambda d: d["temperature"]["rock"].pop("rate_per_s"),
+    lambda d: d["temperature"]["rock"]["columns"][0].pop("e_kj_mol"),
     lambda d: d["mixing"].__setitem__("close_packing", 0.3),
-    lambda d: d["temperature"].__setitem__("regimes", []),
-    lambda d: d["temperature"]["regimes"][0].pop("n"),
+    lambda d: d["temperature"]["ice"].__setitem__("regimes", []),
+    lambda d: d["temperature"]["ice"]["regimes"][0].pop("n"),
 ])
 def test_a_table_that_is_wrong_is_refused(change):
     document = copy.deepcopy(_document())
@@ -493,3 +497,76 @@ def test_a_wrong_range_is_refused(change):
     change(document)
     with pytest.raises(rn.RoundnessError):
         rn.load_table(document)
+
+
+# --- the rock creep law (GEN.1184) -------------------------------------------------------------------------------------------------------
+
+def _rock(kelvin, draw=None):
+    return rn.yield_strength_pa(0.0, temperature_k=kelvin, draw=draw) / 1e6
+
+
+def test_cold_rock_keeps_its_whole_body_strength_up_to_the_creep_line():
+    for kelvin in (100.0, 300.0, 900.0, 1000.0, 1100.0):
+        assert _rock(kelvin) == pytest.approx(rn.ROCK_STRENGTH_PA / 1e6)
+    assert _rock(None) == pytest.approx(rn.ROCK_STRENGTH_PA / 1e6)
+
+
+def test_hot_rock_weakens_by_the_olivine_creep_law():
+    # strength research section 15 (MPa at 1e-15 per second): Hirth and Kohlstedt / Korenaga and Karato columns
+    rule = rn.TABLE.temperature["rock"]
+    for kelvin, hk, kk in ((1200.0, 7.3, 12.8), (1300.0, 2.3, 4.9), (1400.0, 0.84, 2.2)):
+        low, high = (rn._creep_stress_mpa(column, rule["rate_per_s"], kelvin) for column in rule["columns"])
+        assert low == pytest.approx(hk, rel=0.05) and high == pytest.approx(kk, rel=0.05)
+        assert _rock(kelvin) == pytest.approx(math.sqrt(hk * kk), rel=0.07)        # the median is between the columns
+
+
+def test_a_drawn_body_is_capped_by_its_own_cold_strength_and_otherwise_follows_its_column():
+    assert _rock(1200.0, 0.0) == pytest.approx(4.0)                  # weak rock (4 MPa cold) is already under the 7.3 MPa creep stress at 1200 K
+    assert _rock(1400.0, 0.0) == pytest.approx(0.84, rel=0.05)
+    assert _rock(1300.0, 1.0) == pytest.approx(4.9, rel=0.05)
+    assert [_rock(1300.0, d) for d in (0.0, 0.5, 1.0)] == sorted(_rock(1300.0, d) for d in (0.0, 0.5, 1.0))
+
+
+def test_the_rock_creep_columns_match_at_1000_kelvin():
+    rule = rn.TABLE.temperature["rock"]
+    low, high = (rn._creep_stress_mpa(column, rule["rate_per_s"], 1000.0) for column in rule["columns"])
+    assert low == pytest.approx(153.0, rel=0.03) and high == pytest.approx(152.0, rel=0.03)
+
+
+def test_rock_strength_never_rises_as_it_warms_and_a_hotter_body_rounds_smaller():
+    values = [_rock(kelvin) for kelvin in range(300, 1600, 50)]
+    assert values == sorted(values, reverse=True)
+    assert rn.round_radius_m(2500.0, 0.0, temperature_k=1300.0) < rn.round_radius_m(2500.0, 0.0) / 2.0
+
+
+def test_the_hot_rubble_strength_is_olivine_creep_near_1330_kelvin():
+    hot = rn.TABLE.rubble["hot_strength_pa"] / 1e6
+    assert _rock(1330.0) == pytest.approx(hot, rel=0.45)
+    assert _rock(1250.0) > 4.0 * 0.7 and _rock(1400.0) < 2.5          # the 1 to 4 MPa range is about 1250 to 1400 K
+
+
+def test_a_hot_rubble_pile_with_a_shape_set_temperature_rounds_at_the_creep_strength():
+    radius = rn.rubble_round_radius_m(2500.0, temperature_k=1300.0)
+    assert radius == pytest.approx(rn.round_radius_m(2500.0, 0.0, temperature_k=1300.0))
+    assert rn.is_round(rn.roundness_ratio(radius * 1.02, 2500.0, 0.0, temperature_k=1300.0, structure="rubble"))
+    with pytest.raises(ValueError):
+        rn.rubble_round_radius_m(2500.0, temperature_k=300.0)        # a cold rock pile has nothing to creep: friction only
+
+
+def test_rock_in_an_icy_mix_is_unaffected_at_ice_temperatures():
+    assert rn.yield_strength_pa(0.5, temperature_k=150.0) == pytest.approx(rn.yield_strength_pa(0.5, temperature_k=150.0, draw=0.5))
+    assert rn.yield_strength_pa(0.2, temperature_k=100.0) > rn.yield_strength_pa(0.2)       # the cold-ice side of the mix is still stronger
+
+
+def test_the_creep_rule_follows_the_table_rate(monkeypatch):
+    document = copy.deepcopy(_document())
+    document["temperature"]["rock"]["rate_per_s"] = 1.0e-14
+    monkeypatch.setattr(rn, "TABLE", rn.load_table(document))
+    assert _rock(1300.0) > 1.5 * 3.35            # a faster rate takes more stress (rate^(1/n)): 3.35 MPa at the stand-in rate
+
+
+def test_a_table_may_leave_rock_without_a_temperature_rule(monkeypatch):
+    document = copy.deepcopy(_document())
+    del document["temperature"]["rock"]
+    monkeypatch.setattr(rn, "TABLE", rn.load_table(document))
+    assert _rock(1300.0) == pytest.approx(rn.ROCK_STRENGTH_PA / 1e6)
