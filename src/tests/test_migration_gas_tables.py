@@ -27,7 +27,7 @@ def _system():
     for seed in range(60):
         with draw.bound(seed):
             system = StarSystem(system_config=cfg)
-        if any(p.moons for p in system.planets) and any(p.body_type == "g" for p in system.planets):
+        if any(getattr(p, "moons", None) for p in system.planets) and any(p.body_type == "g" for p in system.planets):
             return system, cfg
     pytest.fail("no system with a giant and a moon in 60 seeds")
 
