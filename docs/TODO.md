@@ -14188,6 +14188,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   gap that needs a new class or a lifted 400 K ceiling on F, G and H.
   This item stays blocked until Boss has read the report. It must also
   handle a body with no class match (best_class returns letter None).
+  Boss, via the Class M thread (10:13 AM EDT 2026-10-31) (2026-10-31
+  10:20 AM EDT): Boss approved a new reserve-letter class for the hot
+  thin-air gap (GEN.1211, he has not named the letter yet). He has NOT
+  chosen on Class M and the oxygen window; he first asked for a full
+  inventory of every class's criteria:
+  /mnt/project-files/reports/planet-class-criteria-inventory-2026-10-31.md.
+  This item stays blocked until he has chosen.
   Prerequisites: GEN.1206.
 
 - [ ] **GEN.1208 Best-fit classes, wording: drop the age and stage words from the class tier labels and the "Checked after" and "leftover" wording from the class pages**
@@ -14306,6 +14313,24 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   belongs (best guess, can move): Core 5, with Aux 2 reviewing the trend
   and security rules.
   Prerequisites: none. Related: GEN.1209, UX.237.
+
+- [ ] **GEN.1211 A new class for hot thin-air rocks (about 1.6 percent of bodies: 1.4 to 2 g, 340 to 1100 K, 1 to 10 kPa, no ocean) from the reserve letters (BOSS NAMES THE LETTER AND NAME)**
+  Boss approved the class option for the hot thin-air gap (Class M
+  thread, relayed 10:13 AM EDT 2026-10-31); he has not yet named the
+  letter or the class name. Source: the best-fit shadow report
+  /mnt/project-files/reports/class-fit-shadow-2026-10-31.md (GEN.1206):
+  about 1.6 percent of sampled bodies fit no class. Filed by the TODO
+  thread. Waits on Boss for the letter (from the reserve letters R U W X
+  Y Z) and the name. Do, once named: give the class its own full
+  positive conditions in planet_class_fit.json (gravity 1.4 to 2 g or
+  the swept edges, 340 to 1100 K, 1 to 10 kPa, no hydrosphere, with
+  shoulders registered in GEN.725), the page text in the style guide
+  (DOC.83), the class page and its help page, and the rule row for the
+  first-match tree if GEN.1207 has not replaced it yet; the sweep must
+  then list no body under 50 percent in this gap. Feeds GEN.1207 (the
+  best-fit switch); the same epoch. Where we think it belongs (best
+  guess, can move): the Class M research thread.
+  Prerequisites: none. Related: GEN.1207, GEN.1208.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -20079,6 +20104,20 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Core 5 or a docs lane, after the life readings exist.
   Prerequisites: GEN.1210, DOC.83. Related: DOC.57, DOC.58, DOC.76,
   DOC.15.
+
+- [ ] **DOC.85 Refresh the class table in docs/reference/system-file-format.md: the F, G, B and N meanings and the zone and habitable columns are from the old zone-drawn classes**
+  Suggested by the Class M research thread (10:13 AM EDT 2026-10-31).
+  Filed by the TODO thread. Do: rewrite the class table in
+  docs/reference/system-file-format.md from the current rules
+  (planet_classes.json now, planet_class_fit.json after GEN.1207): the
+  meaning of every class letter A to V, with the conditions that decide
+  it, and remove the zone and habitable columns that come from the old
+  zone-drawn classes (a class is the world's state, derived from the
+  finished body, GEN.647). Do it alongside GEN.1208 (wording) and
+  re-check after GEN.1207 and the new hot-class letter land. Docs only,
+  lock-free. Where we think it belongs (best guess, can move): the Class
+  M research thread or Core 5.
+  Prerequisites: none. Related: GEN.1208, DOC.76.
 
 ## VIEW: The view from a planet
 
