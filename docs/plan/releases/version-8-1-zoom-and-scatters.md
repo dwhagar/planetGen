@@ -577,6 +577,7 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.1032 | Refit the greenhouse table on the far-wing and acid-cloud model that GEN.1019 and GEN.1020 landed, and move the tropopause-jump sweep (GEN.852 family) |  |  |
 | GEN.1019 | Venus clouds and the CO2 far-wing line shape in the infrared model (the IR3 far wing is a labelled stand-in) | GEN.852 |  |
 | GEN.982 | Wire the photolysis lifetimes (physics/photolysis.py and photolysis_lifetimes.json) into the atmosphere chemistry |  |  |
+| GEN.1230 | The disc star formation history should decline to the present for a Milky Way mass galaxy: the model gives 0.49 to 0.55 of the ten Gy mean, measured is 0.20 to 0.3 (bug) |  |  |
 | GEN.1229 | Methane haze depth per unit of mass flux: the fall term in aerosols.haze_fall (eddy speed replacing fall speed) and the aggregate cross section give Titan its depth only through an oversized mass flux (bug) |  |  |
 | GEN.842 | Follow-ups to elliptical orbits, tidal heating and planet spin: the approximations GEN.727, GEN.737 and GEN.731 left |  | Math 2 follow-up |
 | TEST.499 | RP9: rogue yield calibration against microlensing and the terrestrial scale: rogues per star against Sumi 2023 (central 21, lower 1 sigma 8 over the probed range), the Mroz 2017 Jupiter limit and Barclay 2017's 2.5 terrestrial bodies per star | GEN.1111 |  |
@@ -626,12 +627,9 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.1127 | chart_ledger table (tile, run, epoch, time, topped_up_at) with the charted state of a sector derived from it, written by the sector fill units and backfilled from sector_stats.filled_at; the ON DELETE CASCADE removed from position-owned objects (rogue_planets first) so deleting or regenerating a sector removes only objects whose birth tile it is |  |  |
 | GEN.1120 | Rogue planet abundance option: a None, Few, Normal, Many dropdown in the galaxy and the sector generation options, with Normal the target and the physics-based spread tweaked to the low side of the observed range |  |  |
 | TEST.498 | A rogue planet is functionally and programmatically identical to a bound planet: the same columns, the same moon and composition generation, the same classes, differing only in the rogue note and having no host star | GEN.1111 |  |
-| PERF.223 | Protect MySQL (and Redis) from the kernel out of memory killer on a generation host: setup docs and update.sh recommend OOMScoreAdjust=-900 for mysql.service and a memory limit on the workers (bug) |  |  |
-| PERF.222 | Generation hosts: MySQL redo log is too small (InnoDB warns the checkpointer lags behind); setup recommends and checks innodb_redo_log_capacity (bug) |  |  |
-| PERF.221 | A failed or killed unit names the wrong stage: the message says "unit 101 of stage 5" for a unit of stage 8 of 14 (bug) |  |  |
-| TEST.533 | test_disk_history::test_the_present_rate_over_the_mean_is_within_a_factor_of_two_of_the_milky_ways is red on main (0.505 against a bound of 0.393, 0.554 after GEN.999): the model's recent star formation rate over its mean is about 2.5 times the Milky Way's (bug) |  |  |
 | TEST.535 | The two test_planet_zones P-type share tests are red on clean main (dark members) (bug) |  |  |
 | TEST.534 | test_near::test_the_search_counts_what_is_not_generated_yet_and_never_reads_the_sectors_to_search is red on clean main: its _scatter_rows insert fails with column count does not match value count (bug) |  |  |
+| TEST.536 | test_deploy_scripts::test_scripts_only_name_repo_paths_that_exist is red on main (bug) |  | Sources 2, 2:55 PM EDT 10-31. |
 | TEST.526 | Wire, register or delete the 8 pure functions nothing calls in 4 modules (Tides 1's share of the TEST.520 shadow functions) |  |  |
 | TEST.520 | Extend the wiring guard to stored columns and shadow functions, and wire, show or drop every column only the Details sheet reads |  |  |
 | GEN.1226 | Store the envelope share for EVERY body, so hydrogen-air dwarfs (about 400 class T bodies) are typed and classed correctly |  |  |

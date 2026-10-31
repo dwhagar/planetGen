@@ -14866,6 +14866,25 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     Prerequisites: GEN.982. Related: GEN.972.
   Prerequisites: none.
 
+- [ ] **GEN.1230 The disc star formation history should decline to the present for a Milky Way mass galaxy: the model gives 0.49 to 0.55 of the ten Gy mean, measured is 0.20 to 0.3 (bug)**
+  Found by Core 3 while closing TEST.533 (#4575, 2:55 PM EDT 10-31 as
+  the lane reported). Present star formation over its ten-Gy mean for
+  the model disc is 0.49 (0.55 after GEN.999) against 0.20 to 0.3
+  measured for the Milky Way (Licquia and Newman 2015). Cause is not the
+  gas law: the inflow in disk_history follows the halo's stellar growth,
+  and for a light halo that rises to the present, while the Milky Way's
+  own history declines. Measured for the test's disc by halo mass:
+  1.0e12 gives 0.89, 1.6e12 0.49, 2.0e12 0.39, 3.1e12 0.29. GEN.1154
+  lowered the median halo of a 5e10 galaxy from 2.0e12 to 1.57e12 solar
+  masses. Candidate causes: the inflow shape (halo growth rate against
+  the stellar-to-halo relation) and the thin disc's age. Physics
+  decides, no game rate; any stand-in goes in GEN.725 with tier and
+  level. TEST.533 widened the bound to a factor of three with the reason
+  in the test; tighten it back when this lands. Interacts with GEN.999
+  (adds 10 percent), so look at it after train 8. Lock work (epoch).
+  Related: GEN.999, GEN.1154, GEN.1200, GEN.1202. Owner: Core 3.
+  Prerequisites: none.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -15283,77 +15302,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   class or radius filter and no cursor (CLI only), and a hand-typed deep
   offset on the Phenomena list. Measure on a real MySQL at a full galaxy
   before and after.
-  Prerequisites: none.
-
-- [ ] **PERF.221 A failed or killed unit names the wrong stage: the message says "unit 101 of stage 5" for a unit of stage 8 of 14 (bug)**
-    Boss's last run (reported by the coordinator, 2:20 PM EDT
-  2026-10-31): the failure message for the killed unit said "unit 101 of
-  stage 5" when the unit belonged to stage 8 of 14 on the run page.
-  queue/units.py unit_failed and horse_killed put the stage's internal
-  index in the message, while the page counts and labels stages
-  differently. Do: say the stage the page shows (its number of the total
-  and its label, `wrapper.stage_label`) in both messages and in the run
-  log lines that print a stage index, and keep the internal index only
-  where the code reads it. Done: a test makes a unit fail in a stage
-  whose internal index differs from its page number and the message
-  names the page's stage. Web and queue only, lock-free. Owner: Sources
-  2 (proposed).
-  Still open (2026-10-31 2:36 PM EDT): Confirmed run failure: the stage
-  in the message was wrong in Boss's run (unit 101 of stage 5 for a
-  stage 8 unit). Still to do.
-    Prerequisites: none.
-  Prerequisites: none.
-
-- [ ] **PERF.222 Generation hosts: MySQL redo log is too small (InnoDB warns the checkpointer lags behind); setup recommends and checks innodb_redo_log_capacity (bug)**
-    Boss's MySQL error log on his server (reported by the coordinator,
-  2:28 PM EDT 2026-10-31): repeated InnoDB warnings MY-014084, "Threads
-  are unable to reserve space in redo log which can't be reclaimed due
-  to the 'log_checkpointer' consumer still lagging behind ... Consider
-  increasing innodb_redo_log_capacity", at 3:25 AM EDT during the run
-  and in bursts at 12:21 PM EDT (every 11 seconds). Writers stall while
-  the redo log is full, which slows generation and raises the memory
-  held by waiting workers. Do: measure the redo write rate of a
-  generation run, choose a capacity that holds a few minutes of it
-  (MySQL 8.0.30 and later set it with innodb_redo_log_capacity, which
-  can be changed with SET GLOBAL without a restart), have update.sh read
-  the setting and print what to set (and the lines for the MySQL config
-  file) when it is below that, and put the recommendation in the setup
-  document (docs, the install page). Do not change the server's
-  configuration without Boss running it. Done: update.sh prints the
-  check; the setup doc states the value and why; the run log no longer
-  shows MY-014084 on a full run. Related: PERF.220 (workers by memory),
-  the lane note that MySQL binlogs fill disk. Owner: Sources 2
-  (proposed, with PERF.220).
-    Prerequisites: none.
-  Prerequisites: none.
-
-- [ ] **PERF.223 Protect MySQL (and Redis) from the kernel out of memory killer on a generation host: setup docs and update.sh recommend OOMScoreAdjust=-900 for mysql.service and a memory limit on the workers (bug)**
-    Confirmed by Boss's kernel log on host hal (via the coordinator,
-  2:30 PM EDT 2026-10-31): the kernel out of memory killer ran from 3:21
-  AM to 3:30 AM EDT (07:21 to 07:30 UTC) with no systemd-oomd involved,
-  and killed mysqld at 3:22:02 AM EDT (it was mostly swapped out, 280 MB
-  resident), then systemd, then several python worker processes of
-  www-data in the apache2.service cgroup (450 to 900 MB resident each).
-  The cap on scatter workers (PERF.220, merged) keeps the next run under
-  the host's memory; this item makes a miss survivable. Do: (1) setup
-  docs and update.sh print the recommended systemd override for the
-  database and Redis (`systemctl edit mysql` with `[Service]
-  OOMScoreAdjust=-900`, the same for redis-server), which makes the
-  kernel kill a worker before the database; (2) update.sh checks the
-  setting and says what to run when it is missing (it never changes
-  Boss's server itself); (3) the workers: they are started by whichever
-  web request queues work (workers.ensure_workers, PERF.95: no service
-  has to be installed), so they are children of Apache and sit in the
-  apache2.service cgroup, which counts their memory against Apache and
-  gives them Apache's OOM score. That is by design of PERF.95 but an
-  accident of accounting: decide whether to offer an optional
-  planetgen-workers systemd slice or unit with MemoryHigh and MemoryMax
-  (so the workers are limited as a group and the kernel kills inside the
-  group first) and document it; do not require it. Done: the docs and
-  update.sh output; a note on whether the slice is worth offering.
-  Related: PERF.222 (redo log), PERF.181 (host worker cap), PERF.220.
-  Owner: Sources 2 (proposed). Boss runs any change on the server.
-    Prerequisites: none.
   Prerequisites: none.
 
 ## DB: Database and schema
@@ -19598,16 +19546,6 @@ clears each one.
   line in the same change, like a module.
   Prerequisites: none.
 
-- [ ] **TEST.533 test_disk_history::test_the_present_rate_over_the_mean_is_within_a_factor_of_two_of_the_milky_ways is red on main (0.505 against a bound of 0.393, 0.554 after GEN.999): the model's recent star formation rate over its mean is about 2.5 times the Milky Way's (bug)**
-    Finding from Core 3's GEN.999 build (as the lane reported, 1:54 PM
-  EDT 2026-10-31). The test was red on main before GEN.999 and is not
-  caused by it. Either the model's recent-over-mean rate is wrong (find
-  which input and fix it, with a source) or the bound is (then change
-  the test and say why). Lock-free if only the test changes; lock work
-  if the model changes. Owner: Core 3 after UX.187.
-    Prerequisites: none.
-  Prerequisites: none.
-
 - [ ] **TEST.534 test_near::test_the_search_counts_what_is_not_generated_yet_and_never_reads_the_sectors_to_search is red on clean main: its _scatter_rows insert fails with column count does not match value count (bug)**
   Reported by Planets 1 at 2:44 PM EDT 10-31 (as the lane reported), not
   from the stars filter. The test helper `_scatter_rows` in src/tests/test_near.py
@@ -19628,6 +19566,15 @@ clears each one.
   members. Decide whether the code or the expected share is right
   (physics decides; no game rates), fix it, and say which. Tests only
   unless the code is wrong. Owner: Aux 3 (built GEN.1013).
+  Prerequisites: none.
+
+- [ ] **TEST.536 test_deploy_scripts::test_scripts_only_name_repo_paths_that_exist is red on main (bug)**
+  Reported by Sources 2 at 2:55 PM EDT 10-31 (as the lane reported): red
+  on main and not from PERF.221, 222 or 223. Find which script names a
+  repo path that no longer exists (or which new script,
+  scripts/redo_log_advice.py or scripts/oom_advice.py, is not found by
+  the test), fix the script or the path, and say which. Tests and
+  scripts only, lock-free. Owner: Sources 2.
   Prerequisites: none.
 
 ## USR: User accounts

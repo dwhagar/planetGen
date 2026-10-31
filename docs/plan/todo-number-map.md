@@ -16,13 +16,13 @@ release is stamped.
 | UX | UX.255 |
 | MAP | MAP.364 |
 | NAV | NAV.65 |
-| GEN | GEN.1230 |
+| GEN | GEN.1231 |
 | PERF | PERF.224 |
 | DB | DB.110 |
 | API | API.38 |
 | ADM | ADM.135 |
 | SEC | SEC.37 |
-| TEST | TEST.536 |
+| TEST | TEST.537 |
 | USR | USR.32 |
 | OPS | OPS.85 |
 | DOC | DOC.96 |
@@ -1993,6 +1993,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1227 | Store the coma class and the dominant volatiles of an interstellar comet, so the map can colour its coma | none | open |
 | GEN.1228 | Hematite (the oxidised ground type) reflects the same in all three bands, so a rusty world renders dark grey instead of red; give it a sourced spectrum or finer bands (bug) | none | open |
 | GEN.1229 | Methane haze depth per unit of mass flux: the fall term in aerosols.haze_fall (eddy speed replacing fall speed) and the aggregate cross section give Titan its depth only through an oversized mass flux (bug) | none | open |
+| GEN.1230 | The disc star formation history should decline to the present for a Milky Way mass galaxy: the model gives 0.49 to 0.55 of the ten Gy mean, measured is 0.20 to 0.3 (bug) | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -2724,9 +2725,9 @@ Parents marked "new parent" had no old number of their own.
 | PERF.218 | run_plan._draw_sector_bands recomputes the bright-star band table for every capped cell: memoise it per (shell, luminosity floor) | none | done, PR #4075 |
 | PERF.219 | The Systems list with a star type filter and the sector or octant sort pages with OFFSET only (a G filter matches about a tenth of the galaxy); move it to keyset paging, with a MySQL measurement at a full galaxy against the 50 ms target | none | open |
 | PERF.220 | Cap the workers of the bright-star and massive-star scatter stages by the memory available, so a run is not killed for running out of memory (bug) | none | done, PR #4560 (scatter workers capped at 60 percent of host memory at 600 MB each; Boss's kernel log confirmed the out of memory kill, 450 to 900 MB seen) |
-| PERF.221 | A failed or killed unit names the wrong stage: the message says "unit 101 of stage 5" for a unit of stage 8 of 14 (bug) | none | open |
-| PERF.222 | Generation hosts: MySQL redo log is too small (InnoDB warns the checkpointer lags behind); setup recommends and checks innodb_redo_log_capacity (bug) | none | open |
-| PERF.223 | Protect MySQL (and Redis) from the kernel out of memory killer on a generation host: setup docs and update.sh recommend OOMScoreAdjust=-900 for mysql.service and a memory limit on the workers (bug) | none | open |
+| PERF.221 | A failed or killed unit names the wrong stage: the message says "unit 101 of stage 5" for a unit of stage 8 of 14 (bug) | none | done, PR #4576 |
+| PERF.222 | Generation hosts: MySQL redo log is too small (InnoDB warns the checkpointer lags behind); setup recommends and checks innodb_redo_log_capacity (bug) | none | done, PR #4568 |
+| PERF.223 | Protect MySQL (and Redis) from the kernel out of memory killer on a generation host: setup docs and update.sh recommend OOMScoreAdjust=-900 for mysql.service and a memory limit on the workers (bug) | none | done, PR #4570 |
 | POP.1 | Government ownership of systems | 12 (2026-09-24 01:32Z to 02:18Z); 9 (2026-09-24 01:57Z to 02:02Z); 7 (2026-09-24 02:25Z to 05:38Z); 6 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 15 (2026-09-30 16:44Z); 16 (2026-09-30 16:49Z); 17 (2026-09-30 16:51Z to 18:09Z); 34 (2026-09-30 18:14Z); 39 (2026-09-30 18:39Z to 18:41Z); 59 (2026-09-30 19:02Z to 19:17Z); 63 (2026-09-30 20:01Z to 20:27Z); 46 (2026-09-30 20:07Z); 50 (2026-09-30 20:08Z to 20:48Z); 51 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 (optional since 7.58.2, PR #180) |
 | POP.2 | Names for dominant species on living worlds | 13 (2026-09-24 01:32Z to 02:18Z); 10 (2026-09-24 01:57Z to 02:02Z); 8 (2026-09-24 02:25Z to 05:38Z); 7 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 16 (2026-09-30 16:44Z); 17 (2026-09-30 16:49Z); 18 (2026-09-30 16:51Z to 18:09Z); 35 (2026-09-30 18:14Z); 40 (2026-09-30 18:39Z to 18:41Z); 60 (2026-09-30 19:02Z to 19:17Z); 64 (2026-09-30 20:01Z to 20:27Z); 47 (2026-09-30 20:07Z); 51 (2026-09-30 20:08Z to 20:48Z); 52 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 |
 | POP.3 | Database of spacefaring species | 14 (2026-09-24 01:32Z to 02:18Z); 11 (2026-09-24 01:57Z to 02:02Z); 9 (2026-09-24 02:25Z to 05:38Z); 8 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 17 (2026-09-30 16:44Z); 18 (2026-09-30 16:49Z); 19 (2026-09-30 16:51Z to 18:09Z); 36 (2026-09-30 18:14Z); 41 (2026-09-30 18:39Z to 18:41Z); 61 (2026-09-30 19:02Z to 19:17Z); 65 (2026-09-30 20:01Z to 20:27Z); 48 (2026-09-30 20:07Z); 52 (2026-09-30 20:08Z to 20:48Z); 53 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 |
@@ -3731,9 +3732,10 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.530 | Three tests are red on clean main: two in test_roche_interaction (post-common-envelope classifier) and the tuning pair-order check (REFERENCE_BLACK_HOLE_DRAWS 0.55 against 0.5) (bug) | none | done, PR #4535 |
 | TEST.531 | Delete the sector-settle queue chain that no route reaches any more (api_jobs.settle_sectors and the test helper queue_settle) | none | done, PR #4563 |
 | TEST.532 | Give the bright-star backfill unit path (backfill_bright_stars_unit) its own direct tests, since the serial form the tests cover is no longer the path a run takes | none | done, PR #4566 |
-| TEST.533 | test_disk_history::test_the_present_rate_over_the_mean_is_within_a_factor_of_two_of_the_milky_ways is red on main (0.505 against a bound of 0.393, 0.554 after GEN.999): the model's recent star formation rate over its mean is about 2.5 times the Milky Way's (bug) | none | open |
+| TEST.533 | test_disk_history::test_the_present_rate_over_the_mean_is_within_a_factor_of_two_of_the_milky_ways is red on main (0.505 against a bound of 0.393, 0.554 after GEN.999): the model's recent star formation rate over its mean is about 2.5 times the Milky Way's (bug) | none | done, PR #4575 |
 | TEST.534 | test_near::test_the_search_counts_what_is_not_generated_yet_and_never_reads_the_sectors_to_search is red on clean main: its _scatter_rows insert fails with column count does not match value count (bug) | none | open |
 | TEST.535 | The two test_planet_zones P-type share tests are red on clean main (dark members) (bug) | none | open |
+| TEST.536 | test_deploy_scripts::test_scripts_only_name_repo_paths_that_exist is red on main (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
