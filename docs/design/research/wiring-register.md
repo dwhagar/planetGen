@@ -24,6 +24,7 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | module | planetgen.physics.equilibrium_edges | GEN.994 | the edges of the hot-Jupiter chemistry regimes, sourced and wired with the hot-giant thermochemistry |
 | module | planetgen.physics.ground_albedo | GEN.684 | the colour of the ground by band, wired by the ground albedo item |
 | module | planetgen.physics.giant_dynamo | GEN.809 | the dynamo region and field of a giant from its interior layers (lock-free); the wiring step has `magnetism.generate_field` take a giant's moment from it in place of the three anchors, once the structure of GEN.733 has placed an ice giant's layers (GEN.967 wires `dynamo` for the rest) |
+| module | planetgen.physics.latitude_bands | GEN.1108 | the climate of a body in seven latitude bands (hours of day and night, polar day and night, day and night temperatures, state), a pure function; the storage part replaces the four stored bands of `regional_temperature` with it |
 | module | planetgen.physics.radiation_belts | GEN.983 | trapped radiation belts of a magnetised body, read when the stored magnetosphere reaches dose |
 | module | planetgen.galaxy.influence | GEN.342 | the influence set of an object, read by the acceleration kernel of the orbital update |
 | module | planetgen.physics.closest_approach | GEN.197 | the pair closest-approach library, read by the orbital event writer |
@@ -107,6 +108,7 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | data | quadruple_stability_2p2.json | GEN.1016 | the 2+2 quadruple stability rules (validity ranges, the stability definition); read by `quadruple_stability` |
 | data | quadruple_stability_2p2_weights.json | GEN.1016 | the 8,301 numbers of the authors' 2+2 network (made by `scripts/build_quadruple_stability.py`); read by `quadruple_stability` |
 | module | planetgen.physics.quadruple_stability | GEN.1016 | the stability verdict of a 3+1 quadruple and (GEN.1031) of a 2+2 quadruple; the stability margin and quadruple fit (P10) will call it |
+| module | planetgen.physics.hierarchy_stability | GEN.1016 | the stability of a tree of stars level by level (triple levels, the 3+1 quadruple with its margin, 2+2 by nested triples); read by tests/test_hierarchy_stability.py now and by the `multistar` limits once the wiring merges on its train |
 | module | planetgen.physics.ocean_tides | GEN.1034 | the open-ocean equilibrium tide and its spring and neap ranges; the fill pass will call it with the stored spin and moons and write `tide_range_spring_m` and `tide_range_neap_m` (train 7)|
 | row | 6.68:OT1 | GEN.1034 | a constant of the ocean tide module, read when its wiring step lands |
 | row | 6.68:OT2 | GEN.1034 | a constant of the ocean tide module, read when its wiring step lands |
@@ -346,3 +348,12 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.121:TJ3 | GEN.1150 | `trojans.libration_period, TADPOLE_LIMIT_DEG`, read when the orbit overlay lands |
 | row | 6.121:TJ4 | GEN.1150 | `trojans.LEADING_SHARE_RANGE`, read when the swarm draw lands |
 | row | 6.121:TJ5 | GEN.1150 | `trojans.ECC_MAX, INCLINATION_MAX_DEG`, read when the swarm draw lands |
+| module | planetgen.physics.trojan_bodies | GEN.1151 | which classes of world the mass rule admits at L4 and L5, and the formation gate (lock-free); the generator draw calls it |
+| row | 6.125:TB1 | GEN.1151 | `trojan_bodies.CLASS_J_MIN_EARTH`, read when the whole-body draw lands |
+| row | 6.125:TB2 | GEN.1151 | `trojan_bodies.CLASS_M_MASS_EARTH`, read when the whole-body draw lands |
+| row | 6.125:TB3 | GEN.1151 | `trojan_bodies.FORMATION_EFFICIENCY`, read when the whole-body draw lands |
+| row | 6.125:TB4 | GEN.1151 | `trojan_bodies.MIN_DISC_LIFETIME_MYR`, read when the whole-body draw lands |
+| module | planetgen.physics.lagrange_geometry | MAP.354 | the five Lagrange points of a pair in the system frame and the label of each occupied one (lock-free); the System Map and the gravity layer (MAP.169) call it |
+| module | planetgen.physics.climate_branches | GEN.972 | the ice-albedo law and every fixed point of the surface temperature with its stability, a pure function; GEN.972 puts the law into the fixed point and GEN.1051 hands both branches to pick_branch |
+| row | 6.22:CC15 | GEN.972 | `climate_branches.ICE_FREE_ALBEDO, ICE_COVERED_ALBEDO`, read when GEN.972 wires the module |
+| row | 6.22:CC16 | GEN.972 | `climate_branches.ICE_FREE_ABOVE_K, ICE_COVERED_BELOW_K`, read when GEN.972 wires the module |

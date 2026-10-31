@@ -43,6 +43,8 @@ from planetgen.galaxy import scales
 from planetgen.physics import constants, spin, stellar_library, stellar_spectrum, unit_registry as units
 from planetgen.util import draw
 
+_kg_to_msun = units.converter("kg", "Msun")
+
 _au_to_m = units.converter("au", "m")
 _ly_to_m = units.converter("ly", "m")
 _m_to_pc = units.converter("m", "pc")
@@ -333,7 +335,7 @@ def generate_activity(star):
     """Sets `STAR_ACTIVITY_FIELDS` on an ordinary star (main sequence,
     subgiant, subdwarf, giant or white dwarf)."""
     set_galactic_hazard(star)
-    mass_sol = star.mass / constants.SOLAR_MASS_TO_KG
+    mass_sol = _kg_to_msun(star.mass)
     luminosity = star.luminosity or 0.0
     age = max(star.age or 0.0, 1e-4)
     photosphere = luminosity * blackbody_fraction_above(XUV_EDGE_EV, star.temperature)

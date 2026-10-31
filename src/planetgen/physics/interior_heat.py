@@ -55,8 +55,11 @@ import math
 from dataclasses import dataclass
 
 from planetgen import tuning
-from planetgen.physics import atmosphere, bulk_structure, constants, icy_tide, magnetism, moon_orbits, radiogenic, spin_torques, tidal_heating, tidal_rheology
+from planetgen.physics import (bulk_structure, constants, icy_tide, magnetism, moon_orbits, radiogenic, spin_torques, tidal_heating,
+                               tidal_rheology, unit_registry as units)
 from planetgen.util import draw
+
+_kg_to_mearth = units.converter("kg", "Mearth")
 
 BODY_FIELDS = ("mantle_eta0_pa_s", "mantle_activation_kj_mol")
 """tuple: What a body stores of its interior's draws, in `planets` and `moons`."""
@@ -217,7 +220,7 @@ def dry_radius_km(mass_kg, radius_km, rock):
     if rock.wet <= 0.0:
         return radius_km
     dry = rock.silicate + rock.metal
-    mass_earth = mass_kg * dry / constants.EARTH_MASS_TO_KG
+    mass_earth = _kg_to_mearth(mass_kg * dry)
     cmf = rock.metal / dry
     if 0.1 <= mass_earth <= 20.0 and cmf <= 0.8:
         return bulk_structure.radius_fit_earth(mass_earth, cmf) * constants.EARTH_RADIUS_KM
@@ -587,7 +590,7 @@ def generate_lid(body):
     if radiogenic.content_of(body) is None:
         body.lid_regime = None
         return
-    mass_earth = body.mass / constants.EARTH_MASS_TO_KG
+    mass_earth = _kg_to_mearth(body.mass)
     mobile = draw.random() < magnetism.mobile_lid_chance(body, mass_earth)
     body.lid_regime = MOBILE if mobile else STAGNANT
 

@@ -48,7 +48,10 @@ from planetgen import tuning
 from planetgen.datasets import baraffe_isochrones
 from planetgen.generation import possibility_table as pt
 from planetgen.physics import constants
-from planetgen.physics import elements
+from planetgen.physics import elements, unit_registry as units
+
+_kg_to_msun = units.converter("kg", "Msun")
+_msun_to_kg = units.converter("Msun", "kg")
 
 BRANCH_THIN = "thin"
 BRANCH_HIGH_ALPHA = "high-alpha"
@@ -603,7 +606,7 @@ def black_hole(mass_sol, spin=0.0):
     """The quantities of a black hole of `mass_sol` solar masses and dimensionless `spin` (0 to 1; charge is 0)."""
     if not 0.0 <= spin < 1.0:
         raise StellarAbundanceError("the spin is from 0 up to, not including, 1")
-    mass = mass_sol * constants.SOLAR_MASS_TO_KG
+    mass = _msun_to_kg(mass_sol)
     gravitational_radius = constants.G * mass / constants.SPEED_OF_LIGHT_M_S ** 2
     z1 = 1.0 + (1.0 - spin * spin) ** (1.0 / 3.0) * ((1.0 + spin) ** (1.0 / 3.0) + (1.0 - spin) ** (1.0 / 3.0))
     z2 = math.sqrt(3.0 * spin * spin + z1 * z1)
@@ -617,7 +620,7 @@ def black_hole(mass_sol, spin=0.0):
 
 # --- Brown dwarfs ------------------------------------------------------------------------------------------------------
 
-JUPITER_MASS_SOL = 1.89813e27 / constants.SOLAR_MASS_TO_KG
+JUPITER_MASS_SOL = _kg_to_msun(1.89813e27)
 """float: One Jupiter mass in solar masses (IAU nominal values)."""
 
 def deuterium_burning_limit_mj(z, y=None):

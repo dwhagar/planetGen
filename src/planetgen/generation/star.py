@@ -151,7 +151,7 @@ class Star(StellarObject):
         # --- 1. Get Fundamental Stellar Properties (from arguments) ---
         radius_m = _km_to_m(radius_km)
         lum_sol = luminosity / constants.SOLAR_LUMINOSITY
-        mass_sol = mass / constants.SOLAR_MASS_TO_KG
+        mass_sol = _kg_to_msun(mass)
         radius_sol = radius_m / constants.SOLAR_RADIUS_M
         spectral_class = star_type[0].upper() if star_type else None
 
@@ -218,7 +218,7 @@ class Star(StellarObject):
         # --- 3. Convert and Calculate Final Radius ---
 
         # Convert M-dot from (solar masses/year) to (kg/s)
-        mass_loss_rate_kgs = mass_loss_rate_smyr * constants.SOLAR_MASS_TO_KG / constants.SECONDS_PER_YEAR
+        mass_loss_rate_kgs = _msun_to_kg(mass_loss_rate_smyr) / constants.SECONDS_PER_YEAR
 
         # The heliopause radius is where the stellar wind's momentum flux balances the ISM pressure.
         # R = sqrt( (M-dot * v_inf) / (4 * pi * P_ism) )
@@ -350,13 +350,13 @@ class Star(StellarObject):
         # GEN.242: the disk of a young star, from its own stream like the [Fe/H] above.
         if self.yerkes_class in pre_main_sequence.STAGE_CLASSES:
             disk = pre_main_sequence.draw_disk(
-                self.mass / constants.SOLAR_MASS_TO_KG, self.age * 1.0e9, self.luminosity / constants.SOLAR_LUMINOSITY,
+                _kg_to_msun(self.mass), self.age * 1.0e9, self.luminosity / constants.SOLAR_LUMINOSITY,
                 draw.Stream(f"disk:{self.mass!r}:{self.age!r}"))
             for name, value in (disk or {}).items():
                 setattr(self, name, value)
         elif self.yerkes_class in debris_disk.DEBRIS_CLASSES:
             # GEN.787: the cold belt of a main-sequence star, from a stream of its own like the disk above.
-            disk = debris_disk.draw_disk(self.mass / constants.SOLAR_MASS_TO_KG, self.luminosity / constants.SOLAR_LUMINOSITY,
+            disk = debris_disk.draw_disk(_kg_to_msun(self.mass), self.luminosity / constants.SOLAR_LUMINOSITY,
                                          draw.Stream(f"debris:{self.mass!r}:{self.age!r}"))
             for name, value in (disk or {}).items():
                 setattr(self, name, value)
@@ -565,4 +565,7 @@ def adjust_pair_age_for_planets(primary, secondary, primary_planets, secondary_p
 
 
 from planetgen.generation import object_timing  # noqa: E402 -- registers the generators below (PERF.92)
+
+_kg_to_msun = units.converter("kg", "Msun")
+_msun_to_kg = units.converter("Msun", "kg")
 object_timing.track(Star, "star")

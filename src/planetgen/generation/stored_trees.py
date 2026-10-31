@@ -24,10 +24,12 @@ orbits at, so the nodes the system stores are the same orbits at that instant. A
 import collections
 import dataclasses
 
-from planetgen.physics import constants
 from planetgen.physics.kepler import wrapped_turn_deg
 from planetgen.physics.system_tree import OrbitNode
 from planetgen.physics import unit_registry as units
+
+_kg_to_msun = units.converter("kg", "Msun")
+_km_to_au = units.converter("km", "au")
 
 _yr_to_s = units.converter("yr", "s")
 
@@ -158,6 +160,6 @@ def matches(star, member):
     when it was made from the member's record. A member with no stored radius (a row made before v184) is not."""
     if member.radius_au is None:
         return False
-    radius_au = star.radius / constants.AU_TO_KM
-    return (abs(star.mass / constants.SOLAR_MASS_TO_KG - member.mass_solar) <= RECORD_TOLERANCE * member.mass_solar
+    radius_au = _km_to_au(star.radius)
+    return (abs(_kg_to_msun(star.mass) - member.mass_solar) <= RECORD_TOLERANCE * member.mass_solar
             and abs(radius_au - member.radius_au) <= RECORD_TOLERANCE * member.radius_au)

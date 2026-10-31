@@ -31,6 +31,7 @@ import dataclasses
 from planetgen import tuning
 from planetgen.physics import constants, unit_registry
 
+_msun_to_kg = unit_registry.converter("Msun", "kg")
 _yr_to_s = unit_registry.converter("yr", "s")
 
 
@@ -60,7 +61,7 @@ LOCAL_UNITS = {
     "pc3": LocalUnit("volume", constants.PARSEC_M ** 3),
     "Lsun*pc": LocalUnit("power times length", constants.SOLAR_LUMINOSITY * constants.PARSEC_M),
     "Lsun*K": LocalUnit("power times temperature", constants.SOLAR_LUMINOSITY),
-    "Msun/yr": LocalUnit("mass rate", constants.SOLAR_MASS_TO_KG / _YEAR_S),
+    "Msun/yr": LocalUnit("mass rate", _msun_to_kg(1.0) / _YEAR_S),
     "J/kg": LocalUnit("specific energy", 1.0), "kg/mol": LocalUnit("molar mass", 1.0),
     "mSv/yr": LocalUnit("dose rate", 1e-3 / _YEAR_S), "A*m2": LocalUnit("magnetic moment", 1.0),
     "DU": LocalUnit("column density", 2.687e20),

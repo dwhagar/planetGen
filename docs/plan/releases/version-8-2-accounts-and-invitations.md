@@ -81,7 +81,6 @@ Boss: the zoom chain is a seminal feature of 8.2. Z0 (MAP.333, the quick fixes) 
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.399 | Research the halo mass function and compare it with the halo mass approximation GEN.368 uses |  | Boss 10:11 PM EDT; research and comparison; Core 1 proposed (it writes GEN.368). |
 
 ### Viewers and object pages
 

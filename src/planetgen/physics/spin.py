@@ -40,8 +40,11 @@ import math
 
 from scipy import special
 
-from planetgen.physics import constants, impact_spin
+from planetgen.physics import constants, impact_spin, unit_registry as units
 from planetgen.util import draw
+
+_kg_to_mearth = units.converter("kg", "Mearth")
+_kg_to_msun = units.converter("kg", "Msun")
 
 GALACTIC_POLE = (0.0, 0.0, 1.0)
 """tuple: The galaxy's rotation axis, the reference normal of stars and
@@ -202,7 +205,7 @@ def nominal_rotation_period_hours(mass_kg, temperature_k, age_gy):
     """The period, hours, a star of this mass and temperature at `age_gy` has by gyrochronology before its scatter, or `None` for a star the law
     does not cover (a hot star, whose spin is a speed it keeps)."""
     colour = b_minus_v(temperature_k) - GYRO_C
-    if mass_kg / constants.SOLAR_MASS_TO_KG <= COOL_STAR_MAX_MASS_SOL and colour > GYRO_MIN_COLOUR_EXCESS:
+    if _kg_to_msun(mass_kg) <= COOL_STAR_MAX_MASS_SOL and colour > GYRO_MIN_COLOUR_EXCESS:
         return gyro_median_days(colour, age_gy) * 24.0
     return None
 
@@ -215,7 +218,7 @@ def star_rotation_period_hours(mass_kg, radius_km, temperature_k, age_gy, yerkes
     the rest a hot star's log-normal speed under breakup. Never faster
     than 85% of breakup.
     """
-    mass_sol = mass_kg / constants.SOLAR_MASS_TO_KG
+    mass_sol = _kg_to_msun(mass_kg)
     cls = (yerkes_class or "").strip()
     cap = BREAKUP_FRACTION * breakup_speed_kms(mass_kg, radius_km)
     if cls.startswith("D"):
@@ -259,7 +262,7 @@ def accretion_spin(mass_kg, radius_km):
     the sense of the shear that feeds it: Schlichting and Sari 2007, recalled). Three draws beyond the components: the branch and the place in its range.
     """
     critical = critical_spin_rad_s(mass_kg, radius_km)
-    mass_earth = mass_kg / constants.EARTH_MASS_TO_KG
+    mass_earth = _kg_to_mearth(mass_kg)
     branch_u, within_u = draw.random(), draw.random()
     sigma = impact_spin.component_sigma_rad_s(critical, impact_spin.sample_gamma(mass_earth, branch_u, within_u))
     x, y, z = (draw.gauss(0.0, sigma) for _ in range(3))

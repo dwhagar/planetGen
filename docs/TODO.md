@@ -2319,6 +2319,49 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   MAP.169 and does not wait for the heat map.
   Prerequisites: GEN.1150. Related: MAP.169.
 
+- [ ] **MAP.356 The map legend covers too much of the map; make it a small corner of the map (bug)**
+  Boss live observation 8:57 PM EDT 10-30 (bug). Owner: Core 2 (map
+  area), no epoch or migration. Shrink the legend to a small corner box
+  (collapsed by default or a compact list) on the Galaxy Map, Sector Map
+  and System Map, with a toggle to open it; browser test at 1280 and 390
+  px that it covers at most a small corner.
+  Prerequisites: none.
+
+- [ ] **MAP.357 Boss cannot reliably find and navigate from the galaxy down to filled and charted sectors and regions (bug)**
+  Boss live observation 8:57 PM EDT 10-30 (bug). Owner: Core 2 (map
+  area), no epoch or migration. Make charted and filled sectors and
+  regions findable and reachable from the Galaxy Map: a visible marker
+  or outline for charted regions, a list or jump control for them, and a
+  path from galaxy to region to sector that always works at every zoom.
+  Reproduce first on the live data, then fix; a browser test walks
+  galaxy to a charted sector.
+  Boss, 9:00 PM EDT: from the galactic view the
+  largest region with filled-in sectors appears as a point of interest
+  with a link that zooms in as close as possible (the frame that holds
+  the whole region).
+  Boss, 9:01 PM EDT (2026-10-30 9:02 PM EDT): this widens the point of
+  interest: every filled region far enough from the others to be a
+  separate POI at that galactic view is shown with its own zoom-in link,
+  not only the largest; two or more far-apart filled regions all appear.
+  Two regions closer than a POI marker merge into one.
+  Prerequisites: none.
+
+- [ ] **MAP.358 The View system and Expand buttons of the sector info display cannot be seen or reached (bug)**
+  Boss live observation 8:57 PM EDT 10-30 (bug). Owner: Core 2 (map
+  area), no epoch or migration. Find why the sector info panel hides its
+  View system and Expand buttons (clipped, covered by the legend or the
+  map, or off screen at the browser size) and make them always visible
+  and clickable; browser test clicks both at 1280 and 390 px.
+  Prerequisites: none.
+
+- [ ] **MAP.359 The sector map and system map should match the size of the galaxy map for the browser window (bug)**
+  Boss live observation 8:57 PM EDT 10-30 (bug). Owner: Core 2 (map
+  area), no epoch or migration. The sector and system map stages fill
+  the same area per window size as the Galaxy Map (same height rule,
+  same width); browser test compares the stage boxes of the three maps
+  at 1280 and 390 px.
+  Prerequisites: none.
+
 ## NAV: Navigation and courses
 
 - [ ] **NAV.4 Save a course**
@@ -5978,41 +6021,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   assignment
   /mnt/project-files/reports/core1-5-lanes-to-8-1-2026-10-17.md). This replaces any earlier owner line on this item.
   Prerequisites: none. Related: GEN.286, GEN.287, GEN.259.
-
-- [ ] **GEN.399 Research the halo mass function and compare it with the halo mass approximation GEN.368 uses**
-  Boss (2026-10-16, 10:11 PM EDT, in the Core 1 thread): on the GEN.368
-  halo mass card he picked "Approximate" for now, and wants an item in
-  8.2 to research and find the halo mass function and compare it with
-  the approximation. Done: a research note in docs/design (named in
-  GEN.368's table once built) that names the halo mass function the
-  literature gives for the galaxy's stellar mass (the stellar-to-halo
-  relation with its scatter, and the halo mass function behind it, with
-  every source checked against the paper), states the approximation
-  GEN.368 actually built (Core 1 reports which), and compares them over
-  the stellar mass range of the first family (3e9 to 2e11 solar): a
-  table of halo mass against stellar mass for both, the largest
-  difference, and whether the approximation stays inside the scatter. If
-  the difference is larger than the scatter, a follow-up item replaces
-  the approximation with the researched function; if not, the note says
-  the approximation stands. A comparison test keeps the two within the
-  stated bound. No fixed content (Boss, 4:11 and 4:14 PM EDT): no named
-  galaxy sets any number. Method (Core 1's suggestion, 2026-10-16, 10:12
-  PM EDT): read a halo mass function source in the paper (for example
-  Tinker et al. 2008 or Sheth and Tormen 1999), build the exact
-  conditional P(Mh | M*) as the halo mass function times the log-normal
-  in M* about the Moster median with 0.15 dex scatter, and compare it
-  with GEN.368's approximation (the median inverse with an effective Mh
-  scatter of 0.15 dex divided by the slope). Done adds: a test and a
-  note showing the typical halo mass and the scatter difference per
-  stellar mass, and a switch to the exact conditional if the difference
-  matters. Needs GEN.368's build (GEN.400).
-  Data we hold (2026-10-29 8:55 PM EDT): VizieR galaxy tables (Courteau
-  and Comeron c18, Pizzella 2005, digitised occupation, size and cluster
-  figures) and the Harris file are held under
-  reports/vizier-courteau-comeron-2026-10-17-files and data/harris; the
-  galaxy-laws research is in docs/design/galaxy/galaxy-laws-research.md.
-  Catalog section 3.
-  Prerequisites: none. Related: GEN.368, GEN.380.
 
 - [ ] **GEN.405 Metallicity and rates by position from the galaxy's own model: the mass-metallicity relation and the local rates replace the fixed gradient and the quoted-at-the-Sun values**
   GEN.368's table (Boss approved it 2026-10-16, 10:11 PM EDT: size
@@ -12182,16 +12190,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   are in the project files; Bedard white dwarf sequences and the neutron
   star tables are also held. Catalog sections 1 to 3.
 
-- [ ] **GEN.934 Replace the hand-written mass conversions in about 47 modules with the unit registry helper (do not rename _sol/_solar)**
-  Hygiene item from Bug 1's unified mass assessment (5:27 PM EDT
-  2026-10-29 as the lane reported): about 47 modules convert between
-  solar masses, Jupiter masses and Earth masses by hand. Do: use the
-  registry helper everywhere and add a test that finds a hand-written
-  mass constant; do NOT rename the _sol/_solar suffixed names. Lock-free
-  (no output change), off the critical path of the GEN.922 chain. Owner:
-  Bug 1. Version 8.1.
-  Prerequisites: none. Related: GEN.922, GEN.568.
-
 - [ ] **GEN.942 Supported life paces come from the star's actual lifespan; the per-letter lifespan table (tuning.STAR_EVOLUTION) is removed**
   Audit finding M6. The per-letter lifespan table (from the old 10 Gy x
   M^-2.5 law) still decides which life paces a planet may use: it says G
@@ -13567,19 +13565,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   No output change. Wiring turn (train 5) is next, Aux 4.
   Prerequisites: GEN.1034. Related: GEN.1034, GEN.461, GEN.894.
 
-- [ ] **GEN.1046 W20 design: the two-branch climate output (snowball or warm, runaway or temperate) from the ice-albedo feedback and the CO2 exit rule, as a history draw between branches**
-  Weird worlds build (Boss, 4:15 PM EDT 2026-10-30, goal issue #4117;
-  design docs/design/systems/weird-worlds.md). Secondary and tertiary
-  sources and stand-ins are accepted when each is registered in GEN.725
-  with tier and tweak level; every rate marked [R] in the design must be
-  confirmed by the lane that builds it. Do: a design note and a pure
-  function returning both branches in the bistable flux window (about 10
-  to 20 percent in flux for an Earth twin [R]; Budyko 1969, Sellers
-  1969, Pierrehumbert 2011, Kasting 1993). Waits for GEN.972 (ice-albedo
-  feedback). Lock-free. Owner: Air 1 (after GEN.972). Version 8.1.
-  Prerequisites: GEN.972.
-  Design: [docs/design/systems/weird-worlds.md](design/systems/weird-worlds.md)
-
 - [ ] **GEN.1047 Wire the oddity table and the weirdness dial: epoch, stored oddities text column and numeric columns (db/column_units.py), the "Odd: ..." line with its cause sentence on the object page, the API field, an admin force-oddity like FORCE_CLASS, the dial in settings (default 1, 0 turns all off)**
   Weird worlds build (Boss, 4:15 PM EDT 2026-10-30, goal issue #4117;
   design docs/design/systems/weird-worlds.md). Secondary and tertiary
@@ -13635,7 +13620,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   confirmed by the lane that builds it. Lock work, train 9. Done:
   tests, harness, census; W20 only after GEN.972. Owner: Aux 3 (W19),
   Air 1 (W20). Version 8.1.
-  Prerequisites: GEN.1046, GEN.1047.
+  Prerequisites: GEN.1047.
   Design: [docs/design/systems/weird-worlds.md](design/systems/weird-worlds.md)
 
 - [ ] **GEN.1052 Heavy-liquid layers and mercury (from GEN.1034): the deep global heavy-liquid path with the fluid Love number, the thin-layer refusal, and mercury and other liquid metals as rows of the surface liquid table**
@@ -14108,7 +14093,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.1103, GEN.1006.
   Design: [docs/design/systems/interstellar-asteroid-fields.md](design/systems/interstellar-asteroid-fields.md)
 
-- [ ] **GEN.1108 Climate by latitude band for every body in seven bands (the equator, three above, three below, the poles inside the outermost band each side), the temperature categories of regional_temperature.py extended to seven: day and night length and the temperature range by day and by night (bug)**
+- [ ] **GEN.1108 Part B (storage, page and move of regional_temperature): climate by latitude band for every body in seven bands (the equator, three above, three below, the poles inside the outermost band each side), the temperature categories of regional_temperature.py extended to seven: day and night length and the temperature range by day and by night (bug)**
   Boss, 4:52 and 4:53 PM EDT 2026-10-30: every body says how much day
   and night it has at various places from the equator, in the same
   categories as the temperatures. He means lines of latitude: the
@@ -14135,6 +14120,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   work (migration, API version, regional temperatures move). Where we
   think it belongs (best guess, can move): Aux 2 with the day-and-night
   state item, train 6.
+  Part A done (2026-10-30 8:42 PM EDT): part A (the pure function
+  physics/latitude_bands.py, registry row LB1, tests on Earth, Uranus,
+  Venus and a locked planet) merged as PR #4286, lock-free. What remains
+  is part B, the lock part: columns in db/column_units.py, migration,
+  API bump, the page showing the seven bands beside each other, and
+  replacing the four stored bands of regional_temperature (and the
+  readers in protection.py, the sheet and the API) with the seven. Owner
+  Aux 2, stacked on claude/gen768-outside-hours and claude/gen1097 for
+  train 6.
   Prerequisites: GEN.1097. Related: GEN.768, GEN.1048.
 
 - [ ] **GEN.1110 Average wind speeds by day and by night in each of the seven latitude bands: the day-to-night thermal wind from the pressure difference, zonal jets and trade winds from the equator-to-pole temperature difference and the Rossby number, faded out below about 1 kPa**
@@ -14801,6 +14795,31 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   are allowed when the secondary is under 4 percent of the primary.
   Prerequisites: GEN.1150.
 
+- [ ] **GEN.1152 Mass literals that differ from constants.py (changing them changes output): moon_composition JUPITER_MASS_KG 1.89813e27, ring_origin star_mass_kg 1.989e30, giant_interior 317.8 and EARTH_MASS_JUPITER 317.83, stellar_abundances JUPITER_MASS_SOL, tuning 317.8; use the constants.py values with an epoch**
+  Found by GEN.934 (test_mass_conversions.py lists the 16 sites that
+  stay by hand because a converter call would regroup the product).
+  Swapping these literals for the one value in constants.py changes
+  generated output, so it rides a train with an epoch and --affects; the
+  census shows the effect.
+  Prerequisites: none.
+
+- [ ] **GEN.1153 Day and night state for stars and rogue planets (follow-up to GEN.1097, which covers planets and moons): a star stores the constant "no night"; a rogue planet gets the same state, night hours and solar days as an in-system planet from its own spin, with no star the answer is no solar day**
+  GEN.1097 stores a day and night state, hours of night and solar days
+  per year for every planet and moon and shows them on the property
+  sheet. Stars and rogue planets store nothing yet. Belt bodies get
+  theirs with GEN.1069. Needs a migration for any stored column, so it
+  rides a train after GEN.1097.
+  Prerequisites: GEN.1097.
+
+- [ ] **GEN.1154 Halo mass of galaxies above 3e10 solar masses of stars is drawn too heavy by GEN.368 (0.17 dex at 6e10, 0.27 at 1e11, 0.34 at 2e11 against a Tinker 2008 halo function): replace median_halo_mass plus the Gaussian with a precomputed Tinker-based conditional drawn by inverse CDF; read the Moster 2013 halo masses as virial, not M200c (0.05 to 0.08 dex)**
+  Found by GEN.399 (reports/gen399-halo-mass-function-2026-10-31.md,
+  script in reports/gen399/): below about 3e10 the current law is within
+  0.01 to 0.03 dex and the automatic 3e9 to 6e9 range is untouched at
+  0.013 dex; above it the halo shape is fine and only the centre moves.
+  Needs an epoch and a train slot; only galaxies above 3e10 change.
+  Stand-ins registered in GEN.725. Owner Sources 2 (build-only branch).
+  Prerequisites: none.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -14983,54 +15002,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the owner named above (Core 5) is a retired lane. A waiting lane takes
   it, confirmed with TODO, one lock-free item at a time.
   Prerequisites: GEN.558, GEN.559. Related: GEN.550.
-
-- [ ] **PERF.137 Audit the remaining `LIMIT ? OFFSET ?` queries: say which serve a big table and move those to keyset paging**
-  Found by Core 5 (3:15 AM EDT 2026-10-18 as the lane reported), filed
-  by the TODO thread. Keyset paging is done for the Systems, Uncharted
-  stars and Phenomena tables (PERF.20 umbrella and PERF.75, #2154);
-  `grep 'LIMIT ? OFFSET ?' src/planetgen` on main at 8.0.1795 still
-  finds 16 sites, as candidates only (Core 5 did not trace which serve
-  big tables): `db/query.py` lines 214, 501, 576, 618, 857, 898, 1781,
-  2270, 2365, 4234 and 6045 (11 queries), `population/model.py` 695, 778
-  and 830 (list queries), `db/stats.py` 310 (base names) and
-  `queue/work.py` 907 (task listing). The API list routes take `offset`
-  (api/routes.py MAX_PAGE_OFFSET) and `web/lib/pagination.py` clamps a
-  page past the end. Why it matters: `OFFSET` makes page n cost n times
-  as much (measured for the Systems table: rows 0, 20,000, 500,000 and
-  1,500,000 take 0.004, 0.13, 5.8 and 12.1 s idle, where a keyset page
-  costs 2 ms). Do: for each site, read the caller and the table it pages
-  (row count at a full galaxy, from the schema or a measured count) and
-  write one line per site: big or small, and the deepest page a user or
-  the API can ask for. Move the big ones to the keyset form the three
-  finished tables use (`after=<sort key, id>` next to `offset=`) and
-  leave the small ones with a one-line comment saying the table stays
-  under a few thousand rows. Done: a table of the 16 sites on this item
-  with the verdict for each, every big site on keyset paging with a test
-  that pages to the end, and the deepest-page time under 50 ms at a full
-  galaxy. Owner: Core 5 (proposed, it found the list and wrote the
-  PERF.126 and PERF.127 commands); low priority, no version blocker.
-  Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
-  2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 5
-  held it before; this replaces any earlier owner line).
-  Research (2026-10-09): Audit done (Core 5, 4:40 PM EDT 2026-10-29 as
-  the lane reported), report
-  /mnt/project-files/reports/limit-offset-audit-2026-10-29.md: 15 OFFSET
-  sites; measured at 1,000,000 sectors the Sectors list takes 0.9 to 2.6
-  s on page 1 and 5 to 8 s deep on every sort (full filesort), while the
-  keyset form takes 1 to 26 ms. The 'deepest page under 50 ms at a full
-  galaxy' check cannot be measured without a full-galaxy database (only
-  1,000,000 sectors were measured). Slice 1 (Sectors list default and
-  name sorts: placed-then-unplaced reads plus keyset) is Core 5's, in
-  progress as PERF.137's first slice. The other slices are separate
-  items filed 2026-10-29 (PERF.205 species list and built phenomena,
-  PERF.206 octant and binary system group walk, PERF.207 planetgen
-  planets and moons --limit and --after, PERF.208 a stored indexed
-  sector system count, density and quadrant). PERF.137 closes when
-  the slices are done.
-  Owner (housekeeping) (2026-10-30 2:55 PM EDT): released to the pool:
-  the owner named above (Core 5) is a retired lane. A waiting lane takes
-  it, confirmed with TODO, one lock-free item at a time.
-  Prerequisites: none. Related: PERF.75, PERF.135, PERF.205, PERF.206, PERF.207, PERF.208.
 
 - [ ] **PERF.147 A per-task progress bar with an ETA for any task expected to take, or taking, longer than 15 seconds**
   Boss (2026-10-21, as the coordinator relayed at 8:46 PM EDT): every
@@ -15240,6 +15211,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the owner named above (Core 5) is a retired lane. A waiting lane takes
   it, confirmed with TODO, one lock-free item at a time.
   Prerequisites: none. Related: PERF.149.
+
+- [ ] **PERF.219 The Systems list with a star type filter and the sector or octant sort pages with OFFSET only (a G filter matches about a tenth of the galaxy); move it to keyset paging, with a MySQL measurement at a full galaxy against the 50 ms target**
+  Left over from the PERF.137 audit
+  (reports/limit-offset-final-audit-perf137-2026-10-31.md): the name
+  sort is already keyset, the filter plus the sector or octant sort is
+  not. Also residual and smaller: planetgen planets and moons with a
+  class or radius filter and no cursor (CLI only), and a hand-typed deep
+  offset on the Phenomena list. Measure on a real MySQL at a full galaxy
+  before and after.
+  Prerequisites: none.
 
 ## DB: Database and schema
 
@@ -19627,6 +19608,13 @@ clears each one.
   Bug 2 (2026-10-09): Bug 2 (10-30 gate pass) also reports red on main:
   the climate sweep (2 tests), aquifers, and the deploy_scripts path
   test. Include them in the diagnosis.
+  Prerequisites: none.
+
+- [ ] **TEST.504 test_runaway_history::test_the_surface_water_a_planet_keeps_is_what_its_class_gave_less_what_it_lost fails on main (the M3V case sees no loss) (bug)**
+  Sources 1 found it red on origin/main, not from GEN.934. Find the
+  cause: a loss that is no longer drawn for the M3V case, a changed
+  expectation, or a bug in the runaway history. Fix lock-free if no
+  generated value changes; else list it train-bound.
   Prerequisites: none.
 
 ## USR: User accounts

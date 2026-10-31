@@ -106,7 +106,7 @@ MAX_FILL_FACTOR = 1.2
 both past 1 is contact). Pairs of two single members use this in place of `EXTENT_AXIS_FACTOR`."""
 
 STABILITY_MARGIN = 1.15
-"""float: How much wider than the bare criterion an inner orbit's outer partner must be, at every level of a tree (GEN.1010, GM8): the
+"""float: How much wider than the bare criterion an inner orbit's outer partner must be, at every level of a tree (GEN.1010, GM15): the
 Eggleton and Kiseleva criterion is reliable to about 20 percent, and the nested-triple test over-predicts stable trees
 (Vynatheya, Mardling and Hamers 2023), so each triple of the tree has to clear the criterion by this factor. A stand-in."""
 

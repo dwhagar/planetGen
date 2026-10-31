@@ -2,6 +2,93 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2842] - 2026-10-31
+
+**Headline:** `update.sh` builds the site's caches before it reloads the site and checks `/api/health`.
+
+### Changed
+- The cache warm-up runs inside the update (it no longer starts in the background after it), so the first visitor finds the pages built and the health probe does not meet a site that is still warming.
+- The health probe waits 10 seconds after the reload (`HEALTH_SETTLE_SECONDS`).
+
+## [8.0.2841] - 2026-10-31
+
+**Headline:** Two more pure pieces of the Lagrange trojan work exist: which whole worlds a host and secondary can hold at L4 and L5, and where all five points are for the map.
+
+### Added
+- **Whole bodies at L4 and L5 (GEN.1151, pure part).** `physics/trojan_bodies.py` says whether a Class M or Class J world fits at the L4/L5 of a host and secondary (star and giant, star and brown dwarf, planet and moon), the room in Earth masses, and a formation gate with named inputs for the planet architecture oligarch chain. Stand-in rows TB1 to TB4 (registry 6.125).
+- **Lagrange point geometry (MAP.354, pure part).** `physics/lagrange_geometry.py` gives L1 to L5 for a pair in the system frame and the label `Jupiter-L4` of each occupied point, for the System Map and the gravity layer (MAP.169).
+
+No generator output changes.
+
+generation-output: unchanged
+
+TODO items resolved: none (GEN.1151 and MAP.354 stay open for the wiring).
+
+## [8.0.2840] - 2026-10-31
+
+**Headline:** Twelve tests that were red on main are green again, and seven library modules no longer use maths whose last bit depends on the Python or BLAS version.
+
+### Changed
+- **Test expectations brought up to the generator (TEST.503).** `test_object_rows` (the star row holds `state` and `decay_age_yr`, which `Star.to_dict` does not carry; it reads seeds until every kind of body has been seen), `test_db_column_round_trip` (`moons.magnetopause_rp` is NULL where no moon has a field; `planets.porosity` is written now), `test_work_units` (the phenomena plan carries `outline_shells` and `min_mass_solar`; a luminosity fill ends with `refresh-block-lights`), `test_aquifers` (the life classes let an aquifer world hold animal grade A1), `test_climate_sweep` (the Earth twin is the first Earth-mass planet that stands at a temperate temperature, not a fixed seed), `test_gen_hosting_wiring` (a directed moon count keeps one moon where the orbits take no second).
+- **Seven unread modules use `planetgen.util.detmath`** instead of `math.hypot`, `@` and `numpy.dot` (`rogue_density`, `band_winds`, `co2_far_wing`, `field_dispersal`, `mantle_stripping`, `planet_occurrence`, `quadruple_stability`); nothing reads them yet, so no stored number changes.
+- A docstring in `scripts/bench_region_queries.py` names `src/planetgen/db/near.py` in full, which `test_deploy_scripts` needs.
+
+generation-output: unchanged
+
+## [8.0.2839] - 2026-10-31
+
+**Headline:** The ice-albedo feedback now has a tested module that finds the snowball, warm and unstable climates of one flux.
+
+### Added
+- **GEN.1046: the branches of a climate with an ice-albedo feedback.** `physics/climate_branches.py` holds the albedo law of the ice (ice-free 0.30 above 283 K, covered 0.62 below 263 K) and finds every fixed point of `T = response(albedo(T))`, with its stability and the flux window in which two climates exist. Design in `docs/design/composition/climate-branches.md`; stand-in rows CC15 and CC16. Nothing in the generator reads it yet (GEN.972 and GEN.1051 wire it), so no world changes.
+- generation-output: unchanged
+
+## [8.0.2838] - 2026-10-31
+
+**Headline:** The update works out every cluster's mean system mass once, so no web request ever has to, and the Galaxy Map's first load after a restart is not slow.
+
+### Changed
+- `update.sh` runs the new `planetgen.cli.warm_shape` after the migration (step 5). It reads the distinct ages of the stored clusters and satellites of every galaxy database, works out `system_mass.mean_system_mass_at_age_solar` for each (a minute or so for tens of thousands, nothing to stop it) and writes them to `system_mass_means.json` in the data cache folder, world-readable, for the release that wrote it. A web process looks the ages up there. A missing, unreadable or other-release file is ignored and the means are worked out as asked, as before; a failure of the step only warns.
+
+## [8.0.2837] - 2026-10-31
+
+**Headline:** A body's climate can now be worked out in seven bands of latitude (the equator, three bands on each side, the poles in the outermost): hours of day and night, the longest polar day and night, the day and night temperatures and the state of each; nothing stores or shows it yet.
+
+### Added
+- **Seven latitude bands (GEN.1108, part A).** A new `physics/latitude_bands` module is a pure function of the stored columns that gives, for each of seven equal-width bands, its share of the surface, mean temperature, day and night temperature, hours of day and night in a solar day, the longest polar day and night of the year, and a state word. Earth comes out at 12 hours of day at the equator, a polar day of 184 days at the pole (186 with refraction, which the model leaves out) and 179 days of night; Uranus has polar days and nights of years in every band; a world locked to its star gets seven rings from the day side to the night side. The registry has a new row (LB1). The storage part (columns, migration, the page) replaces the four bands `regional_temperature` stores and rides a later train.
+
+generation-output: unchanged
+
+## [8.0.2836] - 2026-10-31
+
+**Headline:** Every page is fast again on a galaxy with many clusters: the page freshness check no longer builds the whole galaxy shape.
+
+### Changed
+- A page view's freshness check (`galaxy_content_state`, read through `/api/galaxy/changes`) built the galaxy density shape each time a web process had not built it yet. The shape's component field works out a mean system mass for every stored cluster (one stellar turn-off search each, 1.8 ms on the isochrone model), minutes for a galaxy of tens of thousands of clusters, longer than the web daemon's 60-second request limit. The daemon was killed and restarted over and over, so every page, even a 404, ended in Apache's "Truncated or oversized response headers" 500 (live `./update.sh` on hal, 2026-10-30). The check now hashes what the shape is made from (the `galaxy_shape` row, its pins and a signature of the `galaxy_components` rows), so it moves exactly when the shape does and builds nothing. The cache stamps change once.
+- `mean_system_mass_at_age_solar` reads a sorted table of the placed and further stars with running sums, and its turn-off search stops as soon as no star's mass lies between its bounds (`youngest_progenitor_sol(..., settled=)`). The numbers are the long way's to 1e-10 (a test holds it); a distinct age now costs about a third of what it did, and the second ask for an age costs nothing.
+
+## [8.0.2835] - 2026-10-31
+
+**Headline:** The test that checks a young red dwarf's escape strips surface water from its planets now looks at the surface water itself, so it passes again on worlds that hold many oceans.
+
+### Changed
+- **`test_runaway_history` (TEST.504).** The M3V case read the ocean cover, which is 1.0 on the water-rich planets the delivery law now draws, so a loss of a few thousandths of the planet's mass could not show. It now compares `hydrosphere.draw_surface_water` with and without the loss, under the same bound draw. No generator code changed.
+
+generation-output: unchanged
+
+## [8.0.2834] - 2026-10-31
+
+**Headline:** Mass conversions between kilograms, solar masses, Earth masses and Jupiter masses now go through the unit registry in 71 modules instead of being written by hand, with no change to any generated number.
+
+### Changed
+- **Hand-written mass conversions replaced (GEN.934).** A multiply or divide by `SOLAR_MASS_TO_KG`, `EARTH_MASS_TO_KG` or `JUPITER_MASS_TO_KG` is now a `unit_registry.converter` call (`_kg_to_msun`, `_mearth_to_kg` and the like) wherever the swap gives the same last bit. The pinned galaxy is identical.
+- **Sites kept by hand.** 16 products such as `G * m * C` and `C / m` stay as written, because a converter call would regroup the multiplication; they are listed in `tests/test_mass_conversions.py`.
+
+### Added
+- **`tests/test_mass_conversions.py`**: fails on a new hand-written mass conversion or a stale entry in the kept list, and checks the six converters equal the hand multiply and divide to the last bit.
+
+generation-output: unchanged
+
 ## [8.0.2833] - 2026-10-31
 
 **Headline:** A sector page's map now stays inside its sector.

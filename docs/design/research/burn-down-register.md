@@ -110,7 +110,9 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.60:GM2 | replace | GEN.1006 | Mustill and Villaver 2012 (read) print three Jovian points and a terrestrial bracket; the multi-star build replaces the linear lookup with an interpolation through them |
 | 6.60:GM3 | no data | - | a design default of the multi-star build; no measured limit for a close pair's separation in summed radii is held, and an N-body audit (GEN.1006 section 9) is optional; tier T6 stays |
 | 6.60:GM7 | replace | GEN.1006 | the 3+1 network of Vynatheya, Mardling and Hamers 2023 replaces the margin inside its training range; outside it the margin stays, flagged lower confidence |
-| 6.60:GM12 | replace | GEN.1028 | the criterion holds only for q_out up to 5; GEN.1028 enforces the range and GEN.1016 replaces it with the quadruple fit and the 3+1 criterion beyond it |
+| 6.60:GM12 | replace | GEN.1016 | the criterion holds only for q_out up to 5; GEN.1028 enforces the range (built), and GEN.1016 replaces it with the quadruple fit and the 3+1 criterion beyond it |
+| 6.60:GM13 | replace | GEN.1006 | the 3+1 axis margin of 1.3 is hand-tuned on 331 N-body systems; a larger own N-body sample (GEN.1006 section 9) or a retrained network replaces it |
+| 6.60:GM14 | replace | GEN.1006 | the 2+2 axis margin of 1.3 is the 3+1 margin with no 2+2 N-body sample; an own REBOUND sample of 2+2 systems replaces it |
 | 6.71:RR1 | no data | - | the rate of a resonance ring on a small body has no survey behind it: the three known rings are of bodies chosen for occultation campaigns, and the count of bodies searched is not published as a rate |
 | 6.71:RR4 | no data | - | the mass and width range of a thin resonance ring is bracketed by the optical depth it must give; the measured optical depth and width of Quaoar's ring were not read |
 | 6.69:LQ3 | no data | - | the brine and ammonia-water eutectic densities, viscosities and boiling points are recalled values; laboratory brine tables (Pitzer-model compilations) can replace them when read |
@@ -154,3 +156,9 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.119:CP3 | no data | - | no source gives how many pieces a captured parent was made of; the Himalia group's four known members are the only guide, and a parent built from the disc's own bodies (belt design) replaces it |
 | 6.121:TJ4 | no data | - | no source read gives the leading share of a swarm; the capture history of the generated giant replaces it |
 | 6.121:TJ5 | no data | - | no source read gives the eccentricity and inclination limits; an N-body map of the trojan region by mass ratio replaces them |
+<<<<<<< HEAD
+| 6.125:TB3 | no data | - | no source read gives the share of co-orbital solids that grow into a trojan; a disc formation map replaces it |
+| 6.125:TB4 | no data | - | no source read gives the shortest disc life for a trojan to grow; a formation map replaces it |
+=======
+| 6.22:CC16 | no data | - | no source gives the temperatures between which the ice grows from none to the equator in a model this simple; a latitude-resolved energy balance of the generated world replaces the straight ramp |
+>>>>>>> origin/main

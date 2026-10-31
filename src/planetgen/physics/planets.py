@@ -33,6 +33,10 @@ from planetgen.util.checks import finite_domain
 from planetgen.util.random import sample_bounded_bell, sample_power_law
 from planetgen.physics import unit_registry as units
 
+_kg_to_mearth = units.converter("kg", "Mearth")
+_kg_to_msun = units.converter("kg", "Msun")
+_mearth_to_kg = units.converter("Mearth", "kg")
+
 _km_to_m = units.converter("km", "m")
 _m_to_km = units.converter("m", "km")
 _au_to_m = units.converter("au", "m")
@@ -68,14 +72,14 @@ GIANT_TRANSITION_MASS_EARTH, GIANT_TRANSITION_RADIUS_EARTH = _giant_transition_e
 
 def giant_regime(mass_kg):
     """`"neptunian"` below the relation's transition mass, else `"jovian"`."""
-    mass_earth = mass_kg / constants.EARTH_MASS_TO_KG
+    mass_earth = _kg_to_mearth(mass_kg)
     return "neptunian" if mass_earth < GIANT_TRANSITION_MASS_EARTH else "jovian"
 
 
 def giant_radius_km(mass_kg):
     """The giant mass-radius relation's median radius (km) for `mass_kg`
     (`constants.GIANT_NEPTUNIAN_MASS_RADIUS`), with no scatter."""
-    mass_earth = mass_kg / constants.EARTH_MASS_TO_KG
+    mass_earth = _kg_to_mearth(mass_kg)
     if giant_regime(mass_kg) == "neptunian":
         m0, r0, slope = constants.GIANT_NEPTUNIAN_MASS_RADIUS
     else:
@@ -105,12 +109,12 @@ def _giant_mass_for_radius_kg(radius_km, star_mass_kg):
     radius, never under the core-critical mass, else a draw from the runaway mass function (the Jovian branch is nearly flat, so
     radius barely constrains mass there), never under the transition mass.
     """
-    transition_kg = GIANT_TRANSITION_MASS_EARTH * constants.EARTH_MASS_TO_KG
+    transition_kg = _mearth_to_kg(GIANT_TRANSITION_MASS_EARTH)
     radius_earth = radius_km / constants.EARTH_RADIUS_KM
     if radius_earth < GIANT_TRANSITION_RADIUS_EARTH:
         m0, r0, slope = constants.GIANT_NEPTUNIAN_MASS_RADIUS
         mass_kg = m0 * (radius_earth / r0) ** (1 / slope) * constants.EARTH_MASS_TO_KG
-        return max(mass_kg, tuning.GIANT_CORE_CRITICAL_MASS_EARTH * constants.EARTH_MASS_TO_KG)
+        return max(mass_kg, _mearth_to_kg(tuning.GIANT_CORE_CRITICAL_MASS_EARTH))
     return max(transition_kg, planet_mass.runaway_mass_kg(star_mass_kg))
 
 
@@ -164,7 +168,7 @@ def calculate_orbital_period_years(distance_au, primary_mass_kg):
             f"calculate_orbital_period_years: distance_au ({distance_au}) and primary_mass_kg "
             f"({primary_mass_kg}) must both be positive."
         )
-    primary_mass_sol = primary_mass_kg / constants.SOLAR_MASS_TO_KG
+    primary_mass_sol = _kg_to_msun(primary_mass_kg)
     return math.sqrt(distance_au ** 3 / primary_mass_sol)
 
 

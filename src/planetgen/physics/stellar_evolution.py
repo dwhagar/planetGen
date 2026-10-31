@@ -300,16 +300,23 @@ _LONGEST_POST_MAIN_SEQUENCE = 1.5
 stars' is 1.2 to 1.3), which brackets the search of `youngest_progenitor_sol`."""
 
 
-def youngest_progenitor_sol(age_yr, fe_h=0.0):
+def youngest_progenitor_sol(age_yr, fe_h=0.0, settled=None):
     """The lightest star of birth [Fe/H] `fe_h` whose giant phases have ended by this age (a star lighter than
     `HELIUM_FLASH_MASS_SOL` also burns helium on the horizontal branch and climbs the asymptotic giant branch, and its
-    giant branch has the length of `giant_branch`, GEN.502)."""
+    giant branch has the length of `giant_branch`, GEN.502).
+
+    `settled(low, high)`, when given, is asked before each halving of the search whether the answer is already as good as
+    it needs to be, and the search then ends with `high`: a reader that only sorts the answer among a fixed list of masses
+    stops as soon as no mass of the list lies between the bounds (the answer is somewhere in them), after a few steps
+    instead of fifty. Without it the search runs on to the end."""
     age_gy = age_yr / 1.0e9
     low = max(ms_lifetime.mass_for_lifetime_gy(age_gy, fe_h), ms_lifetime.MIN_MASS_SOL)
     high = max(ms_lifetime.mass_for_lifetime_gy(age_gy / _LONGEST_POST_MAIN_SEQUENCE, fe_h), low)
     if remnant_formation_time_gy(low, fe_h) <= age_gy:
         return low
     for _ in range(50):
+        if settled is not None and settled(low, high):
+            return high
         middle = math.sqrt(low * high)
         if remnant_formation_time_gy(middle, fe_h) > age_gy:
             low = middle
@@ -630,7 +637,7 @@ def star_params(initial_mass_sol, age_gy, state):
     return {
         "type": star_type,
         "yerkes_class": yerkes,
-        "mass_kg": state["mass_sol"] * constants.SOLAR_MASS_TO_KG,
+        "mass_kg": _msun_to_kg(state["mass_sol"]),
         "radius_km": radius_km,
         "temperature_k": temperature,
         "luminosity_w": luminosity_w,
@@ -644,3 +651,5 @@ def star_params(initial_mass_sol, age_gy, state):
 
 # Last, because `pre_main_sequence` reads the main-sequence relations above.
 from planetgen.physics import pre_main_sequence  # noqa: E402
+
+_msun_to_kg = units.converter("Msun", "kg")

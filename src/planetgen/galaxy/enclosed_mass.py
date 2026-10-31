@@ -32,7 +32,9 @@ import math
 import numpy as np
 
 from planetgen.galaxy import density, disk_history, mass_chain, seed as galaxySeed, shape_draw
-from planetgen.physics import constants
+from planetgen.physics import unit_registry as units
+
+_msun_to_kg = units.converter("Msun", "kg")
 
 INNER_RADIUS_PC = 0.05
 """float: The radius the grid starts at, parsecs; inside it the stars' mass falls as the cube of the radius."""
@@ -141,7 +143,7 @@ def enclosed_mass_solar(shape, galaxy_seed, radius_pc):
 
 def enclosed_mass_kg(shape, galaxy_seed, radius_pc):
     """`enclosed_mass_solar` in kilograms."""
-    return enclosed_mass_solar(shape, galaxy_seed, radius_pc) * constants.SOLAR_MASS_TO_KG
+    return _msun_to_kg(enclosed_mass_solar(shape, galaxy_seed, radius_pc))
 
 
 def current_enclosed_mass_kg(radius_pc):
