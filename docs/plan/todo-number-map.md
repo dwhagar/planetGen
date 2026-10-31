@@ -22,7 +22,7 @@ release is stamped.
 | API | API.38 |
 | ADM | ADM.135 |
 | SEC | SEC.37 |
-| TEST | TEST.538 |
+| TEST | TEST.539 |
 | USR | USR.32 |
 | OPS | OPS.85 |
 | DOC | DOC.97 |
@@ -3740,6 +3740,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.535 | The two test_planet_zones P-type share tests are red on clean main (dark members) (bug) | none | done, already fixed by PR #4442 (TEST.515 re-measure); not reproduced on main |
 | TEST.536 | test_deploy_scripts::test_scripts_only_name_repo_paths_that_exist is red on main (bug) | none | done, PR #4578 |
 | TEST.537 | The stored-trees fill test counted dark members as star rows (red on main since GEN.1013) (bug) | none | done, PR #4592 |
+| TEST.538 | test_atmosphere_standin_registry fails on main: stand-in rows AM28 and AM29 name a test that no longer exists (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
