@@ -2494,6 +2494,15 @@ How the Bond albedo range of an ice-covered or ocean world follows the colour of
 | SAB2 | P | T6 | L1 | albedo_color.WET_SHARE 0.5: the share of the ocean row's shift the wet range (ocean under cloud) takes | 0.5 to 1 (clouds are grey, the sea is not) | ocean worlds | a cloud-resolving model of an M dwarf ocean planet's Bond albedo | the cloud albedo drawn before the temperature (GEN.414) | the ocean row of Shields et al. Table 2 is the surface under an Earth-like cloud deck; snow is the surface that loses most |
 | SAB3 | D | T3 | L0 | albedo_color.SPECTRAL_TEMPERATURES_K 3410, 5040, 5770, 6900: the effective temperatures of the M3V, K2V, G2V and F2V stars | the types' range (about 100 K) | any star | the temperatures of HD128167, HD22049 and AD Leo | the stars' own catalogue temperatures | main-sequence values of the types, recalled; the paper gives none |
 
+### 6.134 Stand-ins of the ocean cover law and the mantle's water store (GEN.1147)
+
+The two-level surface that turns a water layer into a cover, and the most water a mantle stores. Earth's 0.71 cover is a test target for HY2, never an input beyond the one number it is tuned to.
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
+|---|---|---|---|---|---|---|---|---|---|
+| HY1 | T | T2 | L1 | hydrosphere.MANTLE_CAP_OCEANS ((0.5, 2.0), (5.0, 8.0)) (the most water a mantle stores, in Earth oceans, at 0.5 and 5 Earth masses, joined as a power law of the mass and held at the ends; Guimond et al. 2023 give 2 to 8 oceans for 0.5 to 5 Earth masses) | the ends 1 to 4 and 4 to 16 oceans | rocky bodies with a mantle | a measured mantle capacity under 2 oceans at 0.5 Earth masses or far over 8 at 5 | a mantle storage law from the mantle's melt and its pressure | the GEN.1146 report (the paper read to Section 3); the power-law join between the ends is the lane's |
+| HY2 | P | T5 | L2 | hydrosphere.HYPSOMETRY ((0.6, -4.5, 1.0), (0.4, 0.45, 0.9)) (ocean crust 60 percent of the surface at -4.5 km with a spread of 1.0 km, continental crust 40 percent at +0.45 km with 0.9 km, relief scaled as 1 / g) and COVER_SNAP 0.999 | shares 0.5 to 0.7; heights and spreads half to double | rocky bodies with a surface | an Earth-like world whose measured hypsometric curve is far from two humps, or Earth's 2.7 km layer not covering 0.71 | a hypsometry measured on Earth and the Moon, Venus and Mars, with the continental share tied to the tectonic regime and age (Hoening and Spohn 2022) | Earth's 0.71 ocean cover; Cowan and Abbot 2014 (two levels, relief as 1 / g) and Guimond et al. (continental crust about 40 percent) as the form |
+
 ### 6.133 Stand-ins of the day-and-night state (GEN.1097)
 
 The two thresholds `physics/day_night.py` names a state by. The state of Earth, Mars, Venus, Mercury, Io, Uranus and the Sun is a test target, never an input.

@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1031 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1029 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -37,15 +37,15 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
 | T1 | 145 | 14 | 8 | 1 | 0 | 168 |
-| T2 | 113 | 39 | 0 | 1 | 0 | 153 |
-| T3 | 88 | 38 | 8 | 10 | 0 | 144 |
+| T2 | 113 | 41 | 0 | 1 | 0 | 155 |
+| T3 | 87 | 38 | 8 | 10 | 0 | 143 |
 | T4 | 42 | 5 | 0 | 15 | 10 | 72 |
-| T5 | 48 | 19 | 1 | 1 | 0 | 69 |
-| T6 | 98 | 80 | 20 | 51 | 0 | 249 |
+| T5 | 45 | 18 | 3 | 1 | 0 | 67 |
+| T6 | 97 | 80 | 20 | 51 | 0 | 248 |
 | T7 | 29 | 13 | 7 | 12 | 0 | 61 |
 | T8 | 0 | 1 | 1 | 5 | 1 | 8 |
 | T9 | 21 | 14 | 5 | 46 | 21 | 107 |
-| All | 584 | 223 | 50 | 142 | 32 | 1031 |
+| All | 579 | 224 | 52 | 142 | 32 | 1029 |
 
 ## How the labels were given
 
@@ -1408,12 +1408,8 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|
-| GS2 | T | T5 | L0 | giant_structure.StructureSubject.resolved | the layers of the subject | any gas giant, ice giant or brown dwarf | a structure with the dilute core and the gradient the layers of `giant_interior.py` carry | the heavy elements sit in a core and a mixed envelope of the envelope metallicity Z of GEN.460, with a core of what is left (no dilute core, no gradient, no helium rain inside the structure); giant-interiors.md section 2 (Helled and Stevenson 2024; Mankovich and Fortney 2020) say a real giant is more mixed, which moves the central pressure more than the boundary pressures | - | - |
-| GS3 | T | T5 | L1 | hhe_eos.IVL_SLOPE_RANGE | -1.2 to 3.0, fixed | helium shares near 0.275 (0.2 to 0.35) | the tables of Chabrier and Debras 2021 at other Y, or a helium-rain structure | hydrogen and helium mix by the ideal volume law, the specific volume of the Y = 0.275 mixture of the table moved by the volume difference of the two pure tables over the mixture's (`ivl_slope`), the way Chabrier et al. 2019 mix them; the table's own interaction term is kept at 0.275 and the slope is held to the range a physical fluid can have; the helium share is the natal one for the whole body (rain is not in the structure) | - | - |
-| GS4 | T | T5 | L0 | giant_structure.HEAVY_NODES_PA | 1e5 to 1e17 Pa, 220 nodes | the core, the mantle and the heavy elements mixed into the envelope | equations of state of ammonia and methane and of mixtures at the temperature of the adiabat | the density of the heavy elements is a volume sum (the ideal volume law) of the repository's iron (Vinet), silicate and water curves, each at its own fixed temperature, tabulated on 220 nodes in ln P from 1 bar to 1e17 Pa; ammonia and methane ice take the water curve | - | - |
-| GS5 | T | T5 | L0 | hhe_eos.DIATOMIC_ADIABATIC_GRADIENT | 2/7, fixed | the one-bar temperature of an ice giant or a cold gas giant (under 100 K) | a hydrogen-helium table to 30 K, or a molecular-hydrogen equation of state with the ortho-para states | the tables start at 100 K, so an adiabat colder than that is carried up the molecular gas's own adiabat, d ln T / d ln P of a diatomic ideal gas (2/7), to where it reaches 100 K and the entropy there is read; the one-bar temperature the model reports is the inverse of that, good to a few percent | - | - |
-| GS6 | D | T3 | L0 | giant_structure.RADIUS_TOLERANCE | 2e-4 of the radius, fixed | a body whose adiabat stays out of the solid and low-density regions (all giants) | the tables' own newer release | the values of the tables in the solid phase, beyond the first-order quantum correction of the ions and at very low density are unphysical (the archive's README); they are read as they stand and the volume slope is bounded (GS3), and the adiabat is a line of the table's entropy because the table's adiabatic gradient carries numerical noise; the fit stops where the radius is met to 2e-4 | - | - |
-| GS7 | T | T6 | L0 | giant_structure.CENTRE_MASS_FRACTION, CENTRE_RADIUS_FRACTION | 2e-3 and 0.02, fixed | the centre of every giant | an integration to the centre with the core's own equation of state | the integration stops where 0.2 percent of the mass is left inside (or at 2 percent of the radius) and closes the rest as a sphere of the density there; the central pressure is the sphere's, which is within the step of the model's accuracy for the boundary pressures and good to some tens of percent for the centre of a body with a dense core | - | - |
+| HY1 | T | T2 | L1 | hydrosphere.MANTLE_CAP_OCEANS ((0.5, 2.0), (5.0, 8.0)) (the most water a mantle stores, in Earth oceans, at 0.5 and 5 Earth masses, joined as a power law of the mass and held at the ends; Guimond et al. 2023 give 2 to 8 oceans for 0.5 to 5 Earth masses) | the ends 1 to 4 and 4 to 16 oceans | rocky bodies with a mantle | a mantle storage law from the mantle's melt and its pressure | the GEN.1146 report (the paper read to Section 3); the power-law join between the ends is the lane's | - | - |
+| HY2 | P | T5 | L2 | hydrosphere.HYPSOMETRY ((0.6, -4.5, 1.0), (0.4, 0.45, 0.9)) (ocean crust 60 percent of the surface at -4.5 km with a spread of 1.0 km, continental crust 40 percent at +0.45 km with 0.9 km, relief scaled as 1 / g) and COVER_SNAP 0.999 | shares 0.5 to 0.7; heights and spreads half to double | rocky bodies with a surface | a hypsometry measured on Earth and the Moon, Venus and Mars, with the continental share tied to the tectonic regime and age (Hoening and Spohn 2022) | Earth's 0.71 ocean cover; Cowan and Abbot 2014 (two levels, relief as 1 / g) and Guimond et al. (continental crust about 40 percent) as the form | - | - |
 
 ## 6.135 Stand-ins of a giant's internal heat
 
@@ -1672,6 +1668,13 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | DN1 | P | T9 | L0 | day_night.NON_ROTATING_TURNS 0.01 and day_night.POLAR_CIRCLE_MAX_DEG 30: a body that turns less than a hundredth of a turn in an orbit is non-rotating (the star goes round once a year), and a body whose polar circle is within 30 degrees of the equator has half its surface or more in the polar zone (the area beyond latitude L is 1 - sin L) | turns 0.001 to 0.1; circle 15 to 45 degrees | planets and moons with a stored spin | a body the generator makes with a turn count under 0.01 that has a day the page calls a year, or a body at 60 degrees tilt shown as an ordinary cycle | a word chosen from the length of the solar day and the polar zone's area on the page | needed output (words for the day and night state) | - | - |
+
+## 6.134 Stand-ins of the ocean cover law and the mantle's water store
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| HY1 | T | T2 | L1 | hydrosphere.MANTLE_CAP_OCEANS ((0.5, 2.0), (5.0, 8.0)) (the most water a mantle stores, in Earth oceans, at 0.5 and 5 Earth masses, joined as a power law of the mass and held at the ends; Guimond et al. 2023 give 2 to 8 oceans for 0.5 to 5 Earth masses) | the ends 1 to 4 and 4 to 16 oceans | rocky bodies with a mantle | a measured mantle capacity under 2 oceans at 0.5 Earth masses or far over 8 at 5 | a mantle storage law from the mantle's melt and its pressure | the GEN.1146 report (the paper read to Section 3); the power-law join between the ends is the lane's | - | - |
+| HY2 | P | T5 | L2 | hydrosphere.HYPSOMETRY ((0.6, -4.5, 1.0), (0.4, 0.45, 0.9)) (ocean crust 60 percent of the surface at -4.5 km with a spread of 1.0 km, continental crust 40 percent at +0.45 km with 0.9 km, relief scaled as 1 / g) and COVER_SNAP 0.999 | shares 0.5 to 0.7; heights and spreads half to double | rocky bodies with a surface | an Earth-like world whose measured hypsometric curve is far from two humps, or Earth's 2.7 km layer not covering 0.71 | a hypsometry measured on Earth and the Moon, Venus and Mars, with the continental share tied to the tectonic regime and age (Hoening and Spohn 2022) | Earth's 0.71 ocean cover; Cowan and Abbot 2014 (two levels, relief as 1 / g) and Guimond et al. (continental crust about 40 percent) as the form | - | - |
 
 ## 6.146 Stand-ins of the thick disc's ages
 
