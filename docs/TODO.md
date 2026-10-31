@@ -12478,6 +12478,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   accepted range. Changes generated output: epoch, --affects fill, rides
   the star-side train after GEN.932. Owner: Bug 1 (reassignable to Star
   1). Version 8.1.
+  Sources 2 finding (GEN.1168) (2026-10-30 11:14 PM EDT): The 20 pc
+  sample (Giammichele 2012 Table 4, 136 rows; Tremblay 2016 counts 8 of
+  105 under 0.45) has 7.4 percent of white dwarfs under 0.45 solar
+  masses and 10 percent from 0.45 to 0.56; the generator has 0.3 percent
+  under 0.57 and its floor is the Cummings 2018 relation (0.555 at the
+  lightest progenitor 0.83). Target the shares, not only the mean: about
+  7 percent helium-core white dwarfs near 0.4 (a cap, since some are
+  unresolved double degenerates with underestimated mass) and a thinner
+  0.45 to 0.56 band (Giammichele say 0.50 to 0.55 is thin, so under 5
+  percent). Report reports/gen1168-low-mass-white-dwarfs-2026-10-31.md.
   Prerequisites: none. Related: GEN.932, GEN.995.
 
 - [ ] **GEN.998 The default galaxy disc gas depletion time is 0.85 Gy against the 4.2 Gy the Galaxy measures: check the value and its source (bug)**
@@ -14483,15 +14493,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Stand-ins registered in GEN.725. Owner Sources 2 (build-only branch).
   Prerequisites: none.
 
-- [ ] **GEN.1155 A REBOUND N-body sample of 2+2 quadruple systems to replace the 2+2 stability margin GM14 that has no N-body sample behind it (the 3+1 margin GM13 was tuned on the 331 systems of GEN.1029)**
-  From Core 3 (GEN.1016 part 1): GM14 carries the 3+1 margin over to the
-  2+2 network of GEN.1031 with no 2+2 sample. Build a REBOUND sample of
-  2+2 systems across mass ratios and separations, fit the margin,
-  register it in GEN.725 with the new tier and tweak level, and replace
-  GM14. Lock-free until the wiring (GEN.1016 wiring, train 11) uses it.
-  Source: reports/gen1016-quadruple-need-2026-10-30.md.
-  Prerequisites: none.
-
 - [ ] **GEN.1156 Raise the belt share after the GEN.728 disc architecture (3 to 12 percent of systems) toward the documented 4 to 14 percent with a physics-driven change**
   From Aux 5 (GEN.1148,
   reports/gen1148-belt-binary-shift-2026-10-31.md): belts per system
@@ -14539,28 +14540,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Related GEN.962 (moons) and GEN.1068.
   Prerequisites: none. Related: GEN.962, GEN.1068, GEN.725.
 
-- [ ] **GEN.1158 Roundness engine: a pure module physics/roundness.py with yield strength from ice fraction, the round radius from density and strength by the Lineweaver and Norman law, the roundness ratio, the 10 percent sphericity rule and the binding energy of a sphere**
-  Research: reports/round-shape-minimum-mass-2026-10-31.md (in
-  /mnt/project-files/reports/). Boss decision (8:41 PM EDT 2026-10-30,
-  relayed by Aux 5): Class D's primary qualifier is a roundness ratio of
-  1; airless is kept; Class D below 0.1 Earth masses, Class C at or
-  above; build the engine; store ice fraction, bulk density, roundness
-  ratio, yield strength (from composition) and gravitational binding
-  energy for every planet, moon, asteroid and belt or field member.
-  Owner Aux 5. Build physics/roundness.py with tests on ten known bodies
-  (the Solar System bodies are test targets, never inputs), stand-in
-  rows in GEN.725 with tier and tweak level. Lock-free (nothing reads it
-  yet), branch claude/aux5-roundness-engine, merges first. Done: module,
-  tests, registry rows, wiring-register line naming the wiring items.
-  Aux 5 (relayed) (2026-10-30 10:45 PM EDT): three roundness definitions
-  already sit unwired in the repo: body_status.roundness with registry
-  row BR24, dwarf_population.round_mass_kg, and the new engine. This
-  item replaces body_status.roundness with the engine; dwarf_population
-  is listed for GEN.1160, where the member ledger replaces its mass cut.
-  The engine also holds the pure binding-energy formulas for every
-  structure, so it stays lock-free.
-  Prerequisites: none. Related: GEN.1068, GEN.725.
-
 - [ ] **GEN.1159 Store ice fraction, bulk density, roundness ratio, yield strength and binding energy on planets, moons, asteroids and belt or field members (columns, migration, API version)**
   Research: reports/round-shape-minimum-mass-2026-10-31.md (in
   /mnt/project-files/reports/). Boss decision (8:41 PM EDT 2026-10-30,
@@ -14590,7 +14569,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   work, same window as GEN.1068, folds into it. Done: classes derived
   from the ratio, the Asteroid type in the data and pages, tests, census
   re-tag.
-  Prerequisites: GEN.1158, GEN.1159. Related: GEN.1068, GEN.725.
+  Prerequisites: GEN.1159. Related: GEN.1068, GEN.725.
 
 - [ ] **GEN.1161 Asteroid field mass rule and a member ledger like the belts' (individual bodies above 1e19 kg stored, the rest drawn on demand)**
   Research: reports/round-shape-minimum-mass-2026-10-31.md (in
@@ -14637,17 +14616,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   sweep statistic agrees, tests, registry row. Owner Aux 7.
   Prerequisites: none. Related: GEN.753, GEN.807, GEN.725.
 
-- [ ] **GEN.1164 About 3 percent of moons (70 of 2,273) sit in a 3:2 or 2:1 spin-orbit state, all captured moons with eccentricity 0.2 to 0.5, where real moons have none apart from chaotic Hyperion: find out whether the tide damps the eccentricity before the spin settles**
-  Found by the GEN.753 tides and spin validation sweep (Aux 7,
-  reports/gen753-tides-spin-sweep-2026-10-30.md; 17 statistics, 14
-  agree, 3 do not; sources quoted from memory, tier T2, to be re-read by
-  the lane). This is a question for Tides 1, not a clear defect: does
-  the tide damp e before the spin settles in the spin-down order, and
-  should captured moons reach a resonant state at all? Answer from
-  physics (Maxwell rheology, GEN.955 wiring) and report; if it is a
-  defect, file the fix. Owner Tides 1.
-  Prerequisites: none. Related: GEN.753, GEN.842, GEN.955.
-
 - [ ] **GEN.1165 Giant planet obliquity never exceeds 60 degrees (312 giants) and locked planets have exactly 0 degrees tilt: draw a wider, physically derived obliquity and a small non-zero tilt for locked bodies**
   Found by the GEN.753 tides and spin validation sweep (Aux 7,
   reports/gen753-tides-spin-sweep-2026-10-30.md; 17 statistics, 14
@@ -14660,18 +14628,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   registered in GEN.725. Output-changing, lock work, train-bound.
   Unowned.
   Prerequisites: none. Related: GEN.753, GEN.842, GEN.725.
-
-- [ ] **GEN.1166 A forced F5V star gets 1.24 to 1.69 solar masses at a fixed 6500 K: the forced-type temperature override overrules the mass, as GEN.365 found for hot types (bug)**
-  Found by the GEN.753 tides and spin validation sweep (Aux 7,
-  reports/gen753-tides-spin-sweep-2026-10-30.md; 17 statistics, 14
-  agree, 3 do not; sources quoted from memory, tier T2, to be re-read by
-  the lane). A forced F5V gets 1.24 to 1.69 solar masses with its
-  temperature fixed at 6500 K, so the type's override sets temperature
-  and the mass wanders. Make the forced type draw the mass first and
-  take the temperature from the track (or draw within the type's own
-  band), check every forced type, and add a test. Output-changing for
-  forced types only, so train-bound. Owner Aux 7 after GEN.1163.
-  Prerequisites: none. Related: GEN.753, GEN.365.
 
 - [ ] **GEN.1167 The stellar-to-halo relation (Moster 2013) has 0.3 to 0.4 dex more stars than Behroozi 2019 in halos of 1e10.75 to 1e11.5 and 0.06 to 0.26 dex fewer in halos of 1e12.5 to 1e14.5: compare the published fits and pick the best-supported relation**
   Found by the GEN.753 stars and galaxy validation sweep (Sources 2,
@@ -14686,25 +14642,129 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   whose halo draw reads this relation. Owner Sources 2.
   Prerequisites: none. Related: GEN.753, GEN.1154, GEN.368.
 
-- [ ] **GEN.1168 No white dwarf is lighter than 0.56 solar masses in the generated population while field samples go down to 0.45: check whether the low-mass white dwarf channel is missing**
-  Found by the GEN.753 stars and galaxy validation sweep (Sources 2,
-  reports/gen753-stars-galaxy-validation-2026-10-31.md; PR #4329 added
-  the agreeing statistics as tests). Check item, not yet sized:
-  binary-made helium-core white dwarfs (GEN.996 covers part of this) and
-  the single-star lower limit. Compare with a published low-mass white
-  dwarf fraction (for example the 20 pc sample and the SDSS sample) and
-  report whether GEN.996 already closes it. Owner Sources 2.
-  Prerequisites: none. Related: GEN.753, GEN.996.
+- [ ] **GEN.1170 Spin of A and B stars follows mass: the fast-rotator mode rises from 160 km/s at 1.6 to 2 solar masses to 238 km/s at 3.15 to 3.85 (about 46 km/s per solar mass), where the generator keeps one 180 km/s median for every hot star from 1.8 solar masses up**
+  From Aux 7 (GEN.1163, registry SP15): Zorec and Royer 2012 Table 4
+  gives the mode of the fast rotators rising with mass, mean 1.128 times
+  the mode; beyond 3.85 solar masses the paper does not reach, so a
+  stand-in is needed (register in GEN.725 with tier and tweak level).
+  Changing it shortens the rotation period of A stars by roughly 10 to
+  30 percent and of early B stars more, and moves only star rotation and
+  the activity that reads it. Output-changing, train-bound, no
+  migration. Low priority. Owner Aux 7, after GEN.1163 merges.
+  Prerequisites: GEN.1163. Related: GEN.1163, GEN.725.
 
-- [ ] **GEN.1169 Pre-main-sequence stars are 2.5 percent of living stars at the Sun's position (late M dwarfs, median age 0.45 Gy): check the share against the contraction times of the tracks and a published fraction**
-  Found by the GEN.753 stars and galaxy validation sweep (Sources 2,
-  reports/gen753-stars-galaxy-validation-2026-10-31.md; PR #4329 added
-  the agreeing statistics as tests). Check item: likely consistent with
-  the pre-main-sequence contraction time of late M dwarfs (up to a Gy),
-  but not checked against a paper. Read the tracks' contraction times,
-  compute the expected fraction for the star formation history, and
-  report agree or disagree. Owner Sources 2.
-  Prerequisites: none. Related: GEN.753.
+- [ ] **GEN.1171 Ring lifetime by ring mass and planet instead of one fixed decay, because fallen-moon rings now persist on 13 percent of rocky planets**
+  From Tides 1 (GEN.1057 sweep, 60 systems): with rings tied to fallen
+  moons and comet passages, giants are ringed 15 of 47 and rocky planets
+  53 of 412 (13 percent, high). 26 percent of rocky planets lose a moon
+  to the star's tide (GEN.959), and a big early-fallen moon leaves a 1e7
+  to 1e13 kg ring even after 10 Gyr of 1/e decay (median ring age 10
+  Gyr). The 1/e per 0.5 Gyr decay is registered stand-in RO2 (L3).
+  Replace it with a ring lifetime that depends on ring mass and the
+  planet (viscous spreading, Poynting-Robertson drag, meteoroid
+  bombardment; Crida and Charnoz 2012 for the spreading and re-accretion
+  side), register the new rows in GEN.725 with tier and tweak level, and
+  re-run the 60-system sweep. Output changes, so train-bound after
+  GEN.1057 merges. Owner Tides 1.
+  Prerequisites: GEN.1057. Related: GEN.1057, GEN.959, GEN.725.
+
+- [ ] **GEN.1172 Spin-orbit resonance capture is a draw, not a certainty: 3:2 and 2:1 capture inside the window with a probability inside the published 0.07 to 0.55 bracket**
+  From Tides 1 (answer on GEN.1164, nothing changed in code): the order
+  is not the cause. generate_orbit_shape damps a captured moon's
+  eccentricity first and generate_spin then runs spin_torques.evolve
+  with the final eccentricity; in nature the spin settles first, so the
+  final-e test is conservative. The cause is that capture inside a
+  window is certain (RESONANCE_CAPTURE_PROBABILITY 1.0, Makarov 2012: 40
+  of 40) while the file's own bracket is 0.07 (Goldreich and Peale,
+  Mercury's eccentricity) to 0.55 (Correia and Laskar 2004), and 2:1
+  should be lower than 3:2. Replace the certainty with a seeded capture
+  draw in spin_torques: P about 0.3 for 3:2 and 0.1 for 2:1 as stand-ins
+  inside the bracket (tier Confident educated guess from physics, tweak
+  L1), registered in GEN.725. Expected effect: 3 percent of moons in a
+  resonance falls to roughly 0.5 to 1 percent. Also note the windows
+  (3:2 at e 0.20 to 0.41, 2:1 at 0.34 to 0.49) are Makarov's for a
+  Mercury-like rocky rheology and are applied to icy and small captured
+  moons; a rheology-dependent window is a later refinement. Lock item
+  (adds a draw, changes output), rides the next train window. Owner
+  Tides 1.
+  Prerequisites: none. Related: GEN.1164, GEN.725.
+
+- [ ] **GEN.1173 Time to the main sequence for 0.1 to 0.3 solar-mass stars has an unphysical step between 0.105 and 0.11 solar masses (718 to 1358 Myr) from the isochrone arrival grid**
+  From Sources 2 (GEN.1169,
+  reports/gen1169-pre-main-sequence-share-2026-10-31.md): the
+  generator's time for the radius to settle jumps from 718 Myr at 0.105
+  solar masses to 1358 Myr at 0.11, an artefact of the isochrone arrival
+  grid; the BHAC15 tracks (Baraffe 2015, read) are smooth there. Smooth
+  the arrival time across the step (interpolate in mass rather than
+  snapping to the grid). Changes the pre-main-sequence share and star
+  ages near 0.1 solar masses, so a lock item for the next train window.
+  Owner Sources 2.
+  Prerequisites: none. Related: GEN.1169, GEN.947.
+
+- [ ] **GEN.1174 Decide the pre-main-sequence time definition: the generator's time to the main sequence is 3 to 4 times BHAC15 for 0.1 to 0.3 solar masses and 1.5 to 2 times from 0.4 up**
+  From Sources 2 (GEN.1169): against BHAC15 the generator's time for the
+  radius to settle is 3 to 4 times longer for 0.1 to 0.3 solar masses
+  (0.2 solar masses: 727 Myr against 188 Myr) and 1.5 to 2 times from
+  0.4 up, partly by definition because the clock is stretched to MIST's
+  nuclear arrival (GEN.947). The pre-main-sequence share is 2.5 percent
+  of living stars at the Sun's position; the BHAC15 criterion would give
+  about 0.7 percent. Options: (1) keep the nuclear-arrival definition
+  and say so in the design note; (2) report both a radius-settled time
+  (BHAC15) and a nuclear-arrival time and let classification use the
+  radius-settled one (recommended, physics-driven); (3) replace the
+  clock with BHAC15. Boss decides; not started until he picks. Owner
+  Sources 2.
+  Prerequisites: none. Related: GEN.1169, GEN.947.
+
+- [ ] **GEN.1175 Porosity weakening of body strength from a sourced law instead of the placeholder exponential**
+  The engine's porosity rule is 'none' (RN5, L3) and an 'exponential'
+  rule (strength times exp(-b x porosity), b 4 to 7) is built and off,
+  resting on recalled ceramics coefficients (Pabst 2015); Pohl and Britt
+  2020 find no usable porosity trend in meteorites and with the
+  exponential on Proteus (porous, ice-rich, 210 km, not round) comes out
+  round. Find a rock-mechanics or ceramics source (Grott 2019 Ryugu
+  boulders at 200 to 280 kPa are a whole-body data point), choose the
+  law, and register it in GEN.725 with tier and tweak level. Owner Aux
+  5. Source: reports/planetary-material-strength-2026-10-31.md section
+  9. Additive to the roundness engine (physics/roundness.py, GEN.1158,
+  merged); no generation output changes until GEN.1159 to GEN.1162 wire
+  it, so lock-free until then.
+  Sources 1 finding
+  (reports/strength-followup-gen1180-gen1175-2026-10-31.md) (2026-10-30
+  11:33 PM EDT): One fitted law found, strength times (1 - phi/0.5)^1.67
+  from Alomari, Ng and Khatri 2025, from a summary only, so the paper
+  must be read; it sits inside the placeholder's b 4 to 7 band for
+  porosity 0.1 to 0.4. It is a carbonate rock law: ice-rich bodies have
+  no sourced porosity law. Boss uploads that matter: Alomari 2025 (open
+  access, mdpi.com/1996-1944/18/6/1211) and Yamashita, Kato and Arakawa
+  2010 (Icarus 207:972). Keep open until the Alomari paper is read.
+  Prerequisites: none. Related: GEN.1158, GEN.725.
+
+- [ ] **GEN.1178 Strength of a body sampled from its range so the round boundary is fuzzy, as in the real Solar System**
+  Whole-body strength is never measured directly: each value is a lab
+  figure scaled by a factor and checked against real bodies, good to a
+  factor of 2 to 3 in strength and about 1.5 in round radius (section
+  13). The research recommends drawing each body's strength from the
+  stated range (ice 0.4 to 3 MPa, rock 4 to 30, metal 50 to 250) with a
+  seeded draw instead of one fixed value. Needs a seeded draw per body
+  (draw.py), so it changes output and rides a lock window once GEN.1159
+  wires the engine. Owner Aux 5. Source:
+  reports/planetary-material-strength-2026-10-31.md section 9. Additive
+  to the roundness engine (physics/roundness.py, GEN.1158, merged); no
+  generation output changes until GEN.1159 to GEN.1162 wire it, so
+  lock-free until then.
+  Prerequisites: GEN.1159. Related: GEN.1158, GEN.725.
+
+- [ ] **GEN.1179 Optional: Hoek-Brown geological strength index as a body parameter for rock**
+  A fractured versus intact rock dial (Hoek-Brown GSI) gives the 4 to 30
+  MPa whole-body rock range from one number instead of a flat 16.5 MPa.
+  Only worth building if the sampling item (strength drawn from its
+  range) shows the fixed range is too coarse. Optional. Owner Aux 5.
+  Source: reports/planetary-material-strength-2026-10-31.md section 9.
+  Additive to the roundness engine (physics/roundness.py, GEN.1158,
+  merged); no generation output changes until GEN.1159 to GEN.1162 wire
+  it, so lock-free until then.
+  Prerequisites: none. Related: GEN.1158, GEN.725.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -19441,13 +19501,6 @@ clears each one.
   swapping them changes last bits, so train-bound (swap ready on
   claude/test503-detmath-read, golden check in progress). The Venus and
   5 bar CO2 greenhouse table cases are filed as TEST.505.
-  Prerequisites: none.
-
-- [ ] **TEST.504 test_runaway_history::test_the_surface_water_a_planet_keeps_is_what_its_class_gave_less_what_it_lost fails on main (the M3V case sees no loss) (bug)**
-  Sources 1 found it red on origin/main, not from GEN.934. Find the
-  cause: a loss that is no longer drawn for the M3V case, a changed
-  expectation, or a bug in the runaway history. Fix lock-free if no
-  generated value changes; else list it train-bound.
   Prerequisites: none.
 
 ## USR: User accounts

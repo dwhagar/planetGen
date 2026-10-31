@@ -112,7 +112,7 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.60:GM7 | replace | GEN.1006 | the 3+1 network of Vynatheya, Mardling and Hamers 2023 replaces the margin inside its training range; outside it the margin stays, flagged lower confidence |
 | 6.60:GM12 | replace | GEN.1016 | the criterion holds only for q_out up to 5; GEN.1028 enforces the range (built), and GEN.1016 replaces it with the quadruple fit and the 3+1 criterion beyond it |
 | 6.60:GM13 | replace | GEN.1006 | the 3+1 axis margin of 1.3 is hand-tuned on 331 N-body systems; a larger own N-body sample (GEN.1006 section 9) or a retrained network replaces it |
-| 6.60:GM14 | replace | GEN.1006 | the 2+2 axis margin of 1.3 is the 3+1 margin with no 2+2 N-body sample; an own REBOUND sample of 2+2 systems replaces it |
+| 6.60:GM14 | replaced | - | GEN.1155: the 2+2 axis margin is now 1.5, tuned (L2) to the paper's 0.94 precision on 302 + 185 own REBOUND 2+2 systems; it was the 3+1 margin of 1.3 with no 2+2 sample |
 | 6.71:RR1 | no data | - | the rate of a resonance ring on a small body has no survey behind it: the three known rings are of bodies chosen for occultation campaigns, and the count of bodies searched is not published as a rate |
 | 6.71:RR4 | no data | - | the mass and width range of a thin resonance ring is bracketed by the optical depth it must give; the measured optical depth and width of Quaoar's ring were not read |
 | 6.69:LQ3 | no data | - | the brine and ammonia-water eutectic densities, viscosities and boiling points are recalled values; laboratory brine tables (Pitzer-model compilations) can replace them when read |
@@ -158,4 +158,12 @@ The test fails when a row at L3 or L4 has no line (so a new hand-tuned constant 
 | 6.121:TJ5 | no data | - | no source read gives the eccentricity and inclination limits; an N-body map of the trojan region by mass ratio replaces them |
 | 6.125:TB3 | no data | - | no source read gives the share of co-orbital solids that grow into a trojan; a disc formation map replaces it |
 | 6.125:TB4 | no data | - | no source read gives the shortest disc life for a trojan to grow; a formation map replaces it |
+| 6.126:RN3 | no data | - | no measured strength of ice with rock grains above 56 percent solids by volume; a measured curve replaces the extrapolated leg from 0.56 to the rock strength at 1 |
+| 6.126:RN5 | no data | - | no source gives a porosity law for body-scale strength; the rubble-pile branch (friction plus a little cohesion) replaces it |
+| 6.126:RN9 | no data | - | no source gives the strength of a rubble pile that took its shape hot; a thermal history of the body that sets its strength at shape-setting replaces it |
 | 6.22:CC16 | no data | - | no source gives the temperatures between which the ice grows from none to the equator in a model this simple; a latitude-resolved energy balance of the generated world replaces the straight ramp |
+| 6.129:IT1 | no data | - | no measured strength of ice II or ice VI at a body's shape-set temperature; the creep laws of Durham 1997 Table 2 per phase replace the one value |
+| 6.129:IT2 | no data | - | no body-scale strength of ice III; the creep law of Durham and others 1988 replaces near zero |
+| 6.129:IT3 | no data | - | no measured strength of ice V (the 1997 paper's own ice V is three orders softer than Poirier and Sotin's); the creep law of Durham and others 1996 replaces half of ice II |
+| 6.129:IT6 | no data | - | the 1993 ammonia-water constants of Durham, Kirby and Stern are not in hand; they replace the three interpolated points |
+| 6.129:IT9 | no data | - | no measurement of the ammonia share at which a water ice mix takes the dihydrate's strength |

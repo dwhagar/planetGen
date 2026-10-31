@@ -2,6 +2,71 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2861] - 2026-10-31
+
+**Headline:** The roundness engine now has strengths for the other ices of an icy body (high-pressure water ices, methane hydrate, dry ice, ammonia dihydrate) and a way to name a body's ice type from its composition.
+
+### Changed
+- **GEN.1177.** `physics/data/roundness_strengths.json` gains an `ice_types` section: ice II and VI as strong as ice Ih, V a bit lower (0.5), III near zero, methane clathrate hydrate 25 times ice (20 to 30), solid CO2 0.3 MPa (0.1 to 0.5), ammonia dihydrate 2 times ice at 110 K, 1 at 135 K and 0.3 at 170 K. The new `physics/ice_types.py` reads it: `strength_ratio`, `strength_pa`, `water_phase` (the phase of ice at a central pressure) and `ice_type_of` (names the ice type of a body from the components of `small_body_composition`). Nine registry rows (6.129, IT1 to IT9). Nothing reads the types yet, so generated worlds do not change.
+generation-output: unchanged
+
+## [8.0.2860] - 2026-10-31
+
+**Headline:** The roundness engine can now take a per-body strength drawn from its range, so the line between a round body and a potato is a band instead of a single size.
+
+### Changed
+- **GEN.1178.** Every function of `physics/roundness.py` takes an optional `draw` (0 to 1): the quantile of a body in the range of each strength (ice 0.4 to 3 MPa, rock 4 to 30, metal 50 to 250, and the friction angle, cohesion and hot strength of rubble), with the stand-in at the median. `drawn_strengths_pa` gives the strengths at a draw. The round radius moves about 1.5 times either way. The draw itself is not made yet: the call from `draw.py` rides GEN.1159. Nothing reads the engine yet, so generated worlds do not change.
+generation-output: unchanged
+
+## [8.0.2859] - 2026-10-31
+
+**Headline:** The roundness engine now knows that a pile of rubble does not turn round just by being big: it rounds only if it took its shape hot, or for an icy pile at the strength of its ice at that temperature.
+
+### Changed
+- **GEN.1176.** `physics/roundness.py` gains a `rubble` structure: a Mohr-Coulomb failure stress from a friction angle of 35 degrees and a cohesion of about 100 Pa (the studies of 1950 DA and other fast rotators), a hot strength of 2.5 MPa for a pile that took its shape hot or partly molten, `rubble_strength_pa`, `rubble_round_radius_m`, and `structure` and `heated` options on `roundness_ratio`. A cold pile stays near a roundness ratio of 0.28 at any size. The numbers live in `physics/data/roundness_strengths.json`. Nothing reads the engine yet, so generated worlds do not change.
+generation-output: unchanged
+
+## [8.0.2858] - 2026-10-31
+
+**Headline:** The 2+2 quadruple-star stability margin is now fitted on our own N-body runs (1.5, was 1.3 carried over from the 3+1 case).
+
+### Changed
+- **2+2 axis margin (GEN.1155, GM14).** 302 new REBOUND 2+2 systems (masses log-uniform over a decade, axis ratios 0.02 to 0.5, importance-sampled around the network's boundary) and the 972 of GEN.1031 show 1.3 lets too many unstable systems through (precision of the stable calls 0.81 on the paper-like sample against the paper's 0.94). 1.5 reaches 0.94 there and 0.99 on the wider sample. `quadruple_stability_2p2.json` `axis_margin` goes from 1.3 (T6, L4) to 1.5 (T6, L2); the GM14 row, the burn-down line (now `replaced`) and `quadruple-stability-2p2.md` section 5 carry the numbers. The sampler is `nbody2p2_margin.py`. Nothing calls the 2+2 verdict from the generator yet, so no stored number changes.
+
+generation-output: unchanged
+
+## [8.0.2857] - 2026-10-31
+
+**Headline:** The strengths used to decide whether a body is round now follow the newest strength research: ice depends on temperature, ice and rock mix by a measured law, and metal has read data behind it.
+
+### Changed
+- **GEN.1158.** The stand-in strengths in `physics/data/roundness_strengths.json` are updated from `reports/planetary-material-strength-2026-10-31.md`: ice is 1 MPa by default and, when a shape-set temperature is given, follows the creep law of ice (about 34 MPa at 100 K, 3.6 at 140 K, 0.9 at 160 K, 0.09 at 200 K); a mix of ice and rock has the strength of its ice times exp(2 x the solids' volume fraction), replacing the threshold rule; metal is 100 MPa (range 50 to 250); porosity stays off. Nothing reads the engine yet, so generated worlds do not change.
+generation-output: unchanged
+
+## [8.0.2856] - 2026-10-31
+
+**Headline:** The engine that works out whether a body is round, how strong it is and how tightly gravity binds it is built, ready to be wired into the planets, moons and asteroids.
+
+### Changed
+- **GEN.1158.** New `physics/roundness.py` gives the yield strength of a body from its ice, metal and porosity shares (and, for ice, the temperature when its shape was set), the radius at which it turns round, and the roundness ratio (mean radius over round radius; 1 or more is round). The strengths and mixing rules are stand-ins from the strength research, kept in `physics/data/roundness_strengths.json` so measured values and new rules replace them without changing the interface. New `physics/binding_energy.py` gives the gravitational binding energy of rocky bodies, gas giants, stars, brown dwarfs, white dwarfs and neutron stars, and stores -1 (infinite) for a black hole. Nothing reads them yet: GEN.1159 to GEN.1162 store the values and make Class D, Class C and the Asteroid type read the ratio.
+generation-output: unchanged
+
+## [8.0.2855] - 2026-10-31
+
+**Headline:** The burn-down register no longer carries the leftover merge-conflict markers of a merge race.
+
+### Changed
+- `docs/design/research/burn-down-register.md` held a `<<<<<<<`, `=======` and `>>>>>>>` triple after the rows of 6.125 and 6.22 from two branches; both sides' rows are kept and the three marker lines are removed. No register row changes.
+generation-output: unchanged
+
+## [8.0.2854] - 2026-10-31
+
+**Headline:** The `--around` help text of `planetgen generate`, `sectors` and `galaxy` no longer shows an internal item code.
+
+### Changed
+- **TEST.506.** The help of `--around` began "Region mode (GEN.1128):"; it now begins "Region mode:", so `tests/test_no_todo_codes_shown.py` passes again. No behaviour changes.
+generation-output: unchanged
+
 ## [8.0.2853] - 2026-10-31
 
 **Headline:** The property sheet now says why a giant planet shows no starlight row, and the fill audit places its sample systems in the galaxy so a star's lethal-event rate is checked.

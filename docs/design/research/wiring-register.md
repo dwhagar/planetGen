@@ -357,3 +357,21 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | module | planetgen.physics.climate_branches | GEN.972 | the ice-albedo law and every fixed point of the surface temperature with its stability, a pure function; GEN.972 puts the law into the fixed point and GEN.1051 hands both branches to pick_branch |
 | row | 6.22:CC15 | GEN.972 | `climate_branches.ICE_FREE_ALBEDO, ICE_COVERED_ALBEDO`, read when GEN.972 wires the module |
 | row | 6.22:CC16 | GEN.972 | `climate_branches.ICE_FREE_ABOVE_K, ICE_COVERED_BELOW_K`, read when GEN.972 wires the module |
+| module | planetgen.physics.roundness | GEN.1159 | the yield strength, round radius and roundness ratio of a body; Class D and C, the Asteroid type and the stored columns read it once GEN.1159 and GEN.1160 wire it (lock) |
+| module | planetgen.physics.binding_energy | GEN.1159 | the gravitational binding energy of every kind of mass object, a black hole stored as -1; the stored columns read it once GEN.1159 and GEN.1162 wire it (lock) |
+| data | roundness_strengths.json | GEN.1159 | read by `physics/roundness.py` only |
+| row | 6.126:RN1 | GEN.1159 | `roundness.SPHERICITY_FACTOR`, not read until GEN.1159 wires the module |
+| row | 6.126:RN2 | GEN.1159 | `roundness.ICE_STRENGTH_PA, ROCK_STRENGTH_PA`, not read until GEN.1159 wires the module |
+| row | 6.126:RN3 | GEN.1159 | the volume-threshold mixing rule, not read until GEN.1159 wires the module |
+| row | 6.126:RN4 | GEN.1159 | `roundness.METAL_STRENGTH_PA`, not read until GEN.1159 wires the module |
+| row | 6.126:RN5 | GEN.1159 | the porosity rules, not read until GEN.1159 wires the module |
+| row | 6.126:RN6 | GEN.1159 | `roundness.GRAIN_DENSITIES_KG_M3`, not read until GEN.1159 wires the module |
+| row | 6.126:RN7 | GEN.1159 | `roundness.TEMPERATURE_RULES`, not read until GEN.1159 wires the module |
+| row | 6.126:BE1 | GEN.1159 | `binding_energy.FULLY_CONVECTIVE_MASS_SOLAR`, not read until GEN.1162 wires the stars |
+| row | 6.126:BE2 | GEN.1159 | `binding_energy.POLYTROPE_INDEX_GAS_GIANT`, not read until GEN.1159 wires the module |
+| row | 6.126:BE3 | GEN.1159 | `binding_energy.POLYTROPE_INDEX_CONVECTIVE`, not read until GEN.1162 wires the stars |
+| row | 6.126:BE4 | GEN.1159 | `binding_energy.POLYTROPE_INDEX_RADIATIVE`, not read until GEN.1162 wires the stars |
+| row | 6.126:RN8 | GEN.1159 | `roundness.RUBBLE_RULES` (friction angle and cohesion), not read until GEN.1159 wires the module |
+| row | 6.126:RN9 | GEN.1159 | `roundness.RUBBLE_RULES` (hot strength), not read until GEN.1159 wires the module |
+| row | 6.126:RN10 | GEN.1178 | `roundness.RANGES_PA`, not read until the strength draw is wired into `draw.py` with GEN.1159 |
+| module | planetgen.physics.ice_types | GEN.1159 | the strength of the other ices next to ice Ih and the ice type of a body from its components (lock-free); `roundness.py` takes the ratio as a factor on its ice strength when the types are wired |
