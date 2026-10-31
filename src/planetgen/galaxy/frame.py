@@ -19,11 +19,6 @@ from planetgen.physics import unit_registry as units
 _km_to_pc = units.converter("km", "pc")
 
 
-def cylindrical_radius_pc(position):
-    """`sqrt(x^2 + y^2)` -- distance from the galactic axis."""
-    return detmath.hypot(position[0], position[1])
-
-
 def galactic_radius_pc(position):
     """
     `sqrt(x^2 + y^2 + z^2)` -- straight-line distance from the galactic

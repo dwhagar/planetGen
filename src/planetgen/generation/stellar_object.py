@@ -350,25 +350,6 @@ class StellarObject(LazySaladName, MassObject):
         return calculate_galactic_orbit(galactic_center_dist_ly)
 
 
-def get_star_spectral_class(star):
-    """
-    Returns the uppercase spectral class character (e.g. 'G') for a star.
-
-    Works for both a plain `Star` and a `BinaryStarProxy`, without importing
-    `BinaryStarProxy` here (which would create a circular import) — a proxy
-    is detected by duck-typing on its `_primary` attribute, and its primary
-    star's type is used as the representative spectral class.
-
-    Args:
-        star: A `Star` or `BinaryStarProxy` instance.
-
-    Returns:
-        str: The uppercase spectral class character.
-    """
-    reference_star = star._primary if hasattr(star, '_primary') else star
-    return reference_star.type[0].upper()
-
-
 SPECTRAL_LETTERS = "OBAFGKM"
 """str: The spectral letters of a star whose life the paces are judged for; a remnant or a substellar object (any other letter) has none."""
 
