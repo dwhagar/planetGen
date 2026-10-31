@@ -22,6 +22,8 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.147:PEC7 | GEN.1027 | `chemically_peculiar` constant, not read until part 2 |
 | row | 6.147:PEC8 | GEN.1027 | `chemically_peculiar` constant, not read until part 2 |
 | row | 6.147:PEC9 | GEN.1027 | `chemically_peculiar` constant, not read until part 2 |
+| module | planetgen.physics.alpha_tracks | GEN.744 | the equivalent [Fe/H] of an alpha-enhanced star; the track lookup of a high-alpha star will read it |
+| row | 6.34:AL1 | GEN.744 | `alpha_tracks.ALPHA_SHARE`, not read until the track lookup is wired |
 | module | planetgen.physics.line_opacity | by design | the band opacities of the radiative-convective model, which the greenhouse table is fitted to and the checks hold it to; the generator reads the table, never the model |
 | module | planetgen.physics.radiative_convective | by design | the model the greenhouse table (`greenhouse_table.py`) is fitted to by `scripts/fit_greenhouse_table.py`, too slow for the fixed point; run by the fit and the tests, not by generation |
 | module | planetgen.physics.radiative_kernel | by design | the numba sweep of `radiative_convective`; the web app must not load numba, so only the fit and the tests reach it |

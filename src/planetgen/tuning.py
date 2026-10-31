@@ -1100,8 +1100,11 @@ PROTOSTAR_MULTIPLICITY_BY_CLASS = {"0": 0.57, "I": 0.23}
 # history's last 3 Gy), and `satellite` is the rest, 3 Gy to the age of the Universe. The nuclear
 # populations (GEN.280) are windows with the mean ages of the observed mixes (the cluster 80% 5 to 12 Gyr and 20%
 # 0.1 to 5, a mean of 7.3 Gyr; the disc 70% 8 to 12 and 30% 0 to 8, a mean of 8.2) [recalled, to verify].
+THIN_DISC_OLD_WINDOW_GY = (3.0, 10.0)
+"""tuple: The thin disc's share of the `old` population's ages (GEN.1025): the thin disc's own history ends at 10 Gy, so its law, its
+share of the disc, its heating and its arm contrast keep this window while `old` itself reaches the thick disc's 13."""
 STELLAR_POPULATION_AGE_RANGES_GY = {
-    "young": (0.0, 0.1), "intermediate": (0.1, 3.0), "old": (3.0, 10.0), "bulge": (8.0, 12.0),
+    "young": (0.0, 0.1), "intermediate": (0.1, 3.0), "old": (3.0, 13.0), "bulge": (8.0, 12.0),
     "halo": (10.0, 13.0), "cluster": (10.0, 13.0), "satellite": (3.0, 13.0),
     "nuclear_cluster": (3.0, 12.0), "nuclear_disc": (4.0, 12.0),
     "satellite_young": (0.0, 0.1), "satellite_intermediate": (0.1, 3.0),
@@ -1153,8 +1156,8 @@ def _stellar_population_arm_amplitudes():
     contrasts of A and F stars, between the two, are not published as a number)."""
     young = _arm_amplitude(ARM_GAS_TO_INTERARM_RATIO ** STAR_FORMATION_LAW_EXPONENT)
     old = ARM_CONTRAST_OLD_DISK
-    ages = {name: _math.sqrt(STELLAR_POPULATION_AGE_RANGES_GY[name][0] * STELLAR_POPULATION_AGE_RANGES_GY[name][1])
-            for name in ("intermediate", "old")}
+    windows = {"intermediate": STELLAR_POPULATION_AGE_RANGES_GY["intermediate"], "old": THIN_DISC_OLD_WINDOW_GY}
+    ages = {name: _math.sqrt(window[0] * window[1]) for name, window in windows.items()}
     span = _math.log(ages["old"] / ARM_CONTRAST_AGE_YOUNG_GY)
     fraction = _math.log(ages["intermediate"] / ARM_CONTRAST_AGE_YOUNG_GY) / span
     return {"young": young, "intermediate": young + (old - young) * fraction, "old": old}
