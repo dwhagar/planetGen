@@ -692,6 +692,11 @@ def _walk(value, path):
         yield path, value
 
 
+_PAIRS_THAT_ARE_NOT_RANGES = {
+    "REFERENCE_BLACK_HOLE_DRAWS": "two independent uniform draws (solar share, then metal-free), not a low-high range; the solar one is 0.55 (GEN.1154, row BR1)",
+}
+"""dict: The two-number constants that are not (low, high) ranges, so the ordered-pair check leaves them alone, each with why."""
+
 _EXPONENT_OR_SIGNED = re.compile(r"EXPONENT|ROUND_|DEFAULT_M$|_OFFSET|_DELTA|_SLOPE|_INTERCEPT")
 
 
@@ -700,6 +705,8 @@ def test_every_numeric_constant_is_finite_and_every_pair_ordered(module):
     for name, value in _public_constants(module).items():
         for path, leaf in _walk(value, name):
             if isinstance(leaf, tuple):
+                if name in _PAIRS_THAT_ARE_NOT_RANGES:
+                    continue
                 assert leaf[0] <= leaf[1], (path, leaf)
             elif isinstance(leaf, float):
                 assert math.isfinite(leaf), (path, leaf)
