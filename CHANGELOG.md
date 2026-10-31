@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2854] - 2026-10-31
+
+**Headline:** The `--around` help text of `planetgen generate`, `sectors` and `galaxy` no longer shows an internal item code.
+
+### Changed
+- **TEST.506.** The help of `--around` began "Region mode (GEN.1128):"; it now begins "Region mode:", so `tests/test_no_todo_codes_shown.py` passes again. No behaviour changes.
+generation-output: unchanged
+
 ## [8.0.2853] - 2026-10-31
 
 **Headline:** The property sheet now says why a giant planet shows no starlight row, and the fill audit places its sample systems in the galaxy so a star's lethal-event rate is checked.
