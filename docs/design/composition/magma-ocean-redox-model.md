@@ -1,6 +1,6 @@
 # The magma-ocean redox model (GEN.1005, part 1)
 
-Status: module and registry rows, written 2026-10-30 (as the lane reported) by the Aux 3 lane. `src/planetgen/physics/magma_ocean_redox.py`; tests in `src/tests/test_magma_ocean_redox.py`; registry rows MR1 to MR7 (section 6.57 of the gap-filling plan). Nothing the generator draws changes in this part: rows a1 and a2 of the atmosphere table still carry the line through three Solar System bodies (SSR1 and SSR2, section 6.56). Part 2 (the digest flip) has the two rows call the model's functions and retires SSR1 and SSR2.
+Status: module and registry rows, written 2026-10-30 (as the lane reported) by the Aux 3 lane. `src/planetgen/physics/magma_ocean_redox.py`; tests in `src/tests/test_magma_ocean_redox.py`; registry rows MR1 to MR7 (section 6.57 of the gap-filling plan). Part 1 changed nothing the generator draws. Part 2 (the digest flip, 2026-10-30, with the dry-carbon and comet-species rows) has rows a1 and a2 call `magma_ocean_diw`, `magma_ocean_diw_sigma` and `later_mantle_diw`; SSR1 and SSR2 are retired and the two rows are `partly verified`.
 
 ## 1. What replaces what
 

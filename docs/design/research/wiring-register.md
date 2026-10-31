@@ -62,10 +62,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | module | planetgen.physics.planet_occurrence | by design | the reader of the observed occurrence bands; the architecture and the census read it (read by the tuning tests and the census harness; the architecture was fitted to it, GEN.728 built) |
 | module | planetgen.physics.kepler_multiplicity | by design | the Kepler transit multiplicity harness, read by the tuning tests until the wiring (read by the tuning tests and the census harness; the architecture was fitted to it, GEN.728 built) |
 | data | planet_occurrence.json | by design | read by `physics/planet_occurrence.py` only (read by the tuning tests and the census harness; the architecture was fitted to it, GEN.728 built) |
-| module | planetgen.physics.dry_carbon | GEN.1005 | the carbon a dry body keeps in its mantle from its building blocks and the core's share; the flip step has `mixture_rocky.INVENTORY['co2_dry_wt_percent']` read its bracket |
-| row | 6.58:DC1 | GEN.1005 | `dry_carbon.NC_UNDIFFERENTIATED_C_PPM, NC_DIFFERENTIATED_C_PPM`, read when the flip step lands |
-| row | 6.58:DC2 | GEN.1005 | `dry_carbon.DIFFERENTIATED_SHARE`, read when the flip step lands |
-| row | 6.58:DC3 | GEN.1005 | `dry_carbon.MANTLE_SHARE, CO2_PER_C`, read when the flip step lands |
 | data | potassium_depletion.json | GEN.492 | the K/U of six bodies (Dauphas et al. 2022 Table 1) with CI chondrites; `radiogenic.draw_content` will take the potassium depletion and CI K/U from it |
 | module | planetgen.physics.potassium_depletion | GEN.492 | the potassium depletion drawn by body class; replaces the log-uniform `tuning.RADIOGENIC_K_DEPLETION_RANGE` once `radiogenic` calls it with the body's mass |
 | row | 6.61:KD3 | GEN.492 | `potassium_depletion.CLASS_MASS_EARTH`, not read until `radiogenic` calls the module |
