@@ -387,6 +387,17 @@ def number_ratio(composition_or_offsets, a, b, fe_h=None):
     return 10.0 ** (tuning.STELLAR_SOLAR_LOG_EPS[a] - tuning.STELLAR_SOLAR_LOG_EPS[b] + offsets.get(a, 0.0) - offsets.get(b, 0.0))
 
 
+ALPHA_ELEMENTS = ("O", "Mg", "Si", "Ca")
+"""tuple: The elements whose mean [X/Fe] is a star's alpha enhancement (S and Ar follow Ca, so they add nothing)."""
+
+
+def alpha_enhancement(composition_or_offsets):
+    """[alpha/Fe] (dex): the mean [X/Fe] of `ALPHA_ELEMENTS`, for a `StellarComposition` or an offsets dict. A thin-disc star at [Fe/H] 0 is near 0, a
+    high-alpha one near +0.2 to +0.3 (the branches' fits, `tuning.STELLAR_XFE_FITS`)."""
+    offsets = composition_or_offsets.offsets if isinstance(composition_or_offsets, StellarComposition) else composition_or_offsets
+    return sum(offsets[symbol] for symbol in ALPHA_ELEMENTS) / len(ALPHA_ELEMENTS)
+
+
 def mass_ratio(composition_or_offsets, a, b):
     """The mass ratio of element `a` to element `b`: the number ratio times their atomic weights."""
     return number_ratio(composition_or_offsets, a, b) * elements.element(a).atomic_weight / elements.element(b).atomic_weight

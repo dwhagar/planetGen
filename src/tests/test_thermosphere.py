@@ -171,11 +171,6 @@ def test_the_hydro_based_rate_grows_with_the_flux_and_falls_as_the_planet_grows_
     assert ts.hydro_based_mass_loss_g_s(20.0, 2.0, 800.0, 0.05, 1000.0) < base
 
 
-def test_the_grid_of_the_fit_is_one_to_forty_earth_masses_and_three_hundred_to_two_thousand_kelvin():
-    assert ts.hydro_based_in_grid(5.0, 800.0)
-    assert not ts.hydro_based_in_grid(0.5, 800.0) and not ts.hydro_based_in_grid(100.0, 800.0) and not ts.hydro_based_in_grid(5.0, 100.0)
-
-
 def test_the_xuv_flux_comes_from_the_stored_value_else_from_the_star_and_is_zero_without_one():
     class Subject:
         def __init__(self, quantities):

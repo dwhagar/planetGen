@@ -73,7 +73,7 @@ water_world_radius_earth(mass_earth, cmf, water) -> float                       
 small_body_radius_earth(mass_earth, cmf, water) -> float                                  # fit over 1.5e-4 to 0.3 Earth masses
 envelope_radius_earth(mass_earth, envelope, flux_earth, age_gy, ...) -> float             # Lopez and Fortney 2014, 1 to 20
 mixing_density_kg_m3(metal, rock, water, ice, porosity) -> float                          # below 1e21 kg
-cmf_from_mass_radius(mass_earth, radius_earth, ...) / water_fraction_from_mass_radius(...) # route 1 inverses
+cmf_from_mass_radius(mass_earth, radius_earth, ...)                                  # route 1 inverse (the water fraction's inverse was deleted unused, TEST.525)
 x_fe_from_feo_mass_fraction(feo) -> float                                                 # the mantle's Fe/(Fe+Mg) from FeO
 ```
 
@@ -161,4 +161,4 @@ Agreed as lane L proposed (/mnt/project-files/reports/lane-l-boundary-2026-10-23
 
 ### K boundary (lane K, 2026-10-23): the small-body density
 
-Agreed. Lane K writes `physics/compaction.py` (`small_body_density_kg_m3(mass_fractions_by_component, porosity)`, `compacted_density_kg_m3(radius_km, rock_fraction)`, the 1e19 to 1e21 kg taper). `bulk_structure.structure` keeps the rocky, water and envelope branches and the solver above 1e21 kg; its `mixing` branch (below 1e21 kg) is the zero-pressure mixing rule with porosity (`mixing_density_kg_m3`) until `compaction.py` is on main, and the first PR after that replaces the branch with a call to lane K's functions and deletes `mixing_density_kg_m3`. Lane K's comet, belt and icy-body draws return `BulkFractions` with `porosity` set.
+Agreed. Lane K writes `physics/compaction.py` (`grain_density_kg_m3(mass_fractions_by_component)` (times one minus the porosity; `small_body_density_kg_m3` was deleted unused, TEST.525), `compacted_density_kg_m3(radius_km, rock_fraction)`, the 1e19 to 1e21 kg taper). `bulk_structure.structure` keeps the rocky, water and envelope branches and the solver above 1e21 kg; its `mixing` branch (below 1e21 kg) is the zero-pressure mixing rule with porosity (`mixing_density_kg_m3`) until `compaction.py` is on main, and the first PR after that replaces the branch with a call to lane K's functions and deletes `mixing_density_kg_m3`. Lane K's comet, belt and icy-body draws return `BulkFractions` with `porosity` set.

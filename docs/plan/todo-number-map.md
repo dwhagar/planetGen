@@ -16,13 +16,13 @@ release is stamped.
 | UX | UX.255 |
 | MAP | MAP.363 |
 | NAV | NAV.65 |
-| GEN | GEN.1228 |
+| GEN | GEN.1229 |
 | PERF | PERF.220 |
 | DB | DB.110 |
 | API | API.38 |
 | ADM | ADM.135 |
 | SEC | SEC.37 |
-| TEST | TEST.529 |
+| TEST | TEST.531 |
 | USR | USR.32 |
 | OPS | OPS.85 |
 | DOC | DOC.86 |
@@ -1091,11 +1091,11 @@ Parents marked "new parent" had no old number of their own.
 | GEN.335 | One definition of the stored point columns, and a test that lists every object table | none | done, PR #1883 |
 | GEN.336 | Compact and free objects hold a velocity vector and a mass: stars, black holes, neutron stars, rogue planets, interstellar comets, asteroid fields, nebulae, remnants | none | done, PR #1952 |
 | GEN.337 | Epoch, vector and mass for the rest: belts, quasars, comets, facilities, scatter points and members | none | done, PR #1952 |
-| GEN.338 | The galactic potential as one pure module: Hernquist bulge, Miyamoto-Nagai disk and NFW halo, with settings and the rotation-curve tests | none | open |
+| GEN.338 | The galactic potential as one pure module: Hernquist bulge, Miyamoto-Nagai disk and NFW halo, with settings and the rotation-curve tests | none | done, PR #4526 |
 | GEN.339 | Generated and stored galactic velocities follow the potential: the old curve is replaced, dispersions are seeded, stored velocities are reseeded | none | open |
 | GEN.340 | One star stepper: kick-drift-kick in the potential, a step per object, on arrays | none | open |
 | GEN.341 | Influence-set search: every object inside the largest nearby Hill sphere, found by sector bounds, with cover lists and a brute-force check | none | done, PR #2473 |
-| GEN.342 | The acceleration kernel: the pull of the influence set plus the galactic gradient, as one function, and the velocity update from it | none | open |
+| GEN.342 | The acceleration kernel: the pull of the influence set plus the galactic gradient, as one function, and the velocity update from it | none | done, PR #4530 |
 | GEN.343 | The perturbed pass for a system: host, siblings, moons and outside perturbers integrated through an encounter | none | open |
 | GEN.344 | Hill-radius warnings by the gravitational criterion, to the debug and activity logs | none | open |
 | GEN.345 | Collision outcomes as a pure function: regime table, giant merger, fusion check, conservation | none | done, PR #2473 |
@@ -1981,6 +1981,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1225 | Research: tune the ammonia life gate and the nitrogen ice amount from physics and chemistry (instead of guesses) | none | done, research report written (reports/gen1225-ammonia-gate-and-nitrogen-ice-2026-10-31.md) |
 | GEN.1226 | Store the envelope share for EVERY body, so hydrogen-air dwarfs (about 400 class T bodies) are typed and classed correctly | none | open |
 | GEN.1227 | Store the coma class and the dominant volatiles of an interstellar comet, so the map can colour its coma | none | open |
+| GEN.1228 | Hematite (the oxidised ground type) reflects the same in all three bands, so a rusty world renders dark grey instead of red; give it a sourced spectrum or finer bands (bug) | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -2254,7 +2255,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.271 | The bodylook record: the server builds one data-look record per body from stored columns | none | done, PR #2789 |
 | MAP.272 | Shared body painter module: seeded noise, texture cache, paint queue and size tiers | none | done, PR #2789 |
 | MAP.273 | Ocean, land and ice painter on stored data: sea level from the ocean fraction, caps from temperature, land hues from temperature and class family, with an estimate line in the info panel | none | done, PR #2789 |
-| MAP.274 | Land colour from the bulk composition: oxidation and rock type | none | open |
+| MAP.274 | Land colour from the bulk composition: oxidation and rock type | none | done, PR #4543 |
 | MAP.275 | Gas and ice giant painter: bands, storms and thermal glow from rotation, temperature and the atmosphere colour, rings with resonance gaps from the moons | none | open |
 | MAP.276 | Star painter: blackbody colour shared with star_spectrum, class texture, spots and glow | none | done, PR #2793 |
 | MAP.277 | Atmosphere glow from pressure and composition, and the day and night terminator | none | done, PR #4515 |
@@ -2686,7 +2687,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.193 | The nebula block totals pass keeps the level-3 cover as Python dicts, about 2 GB on a 12 pc galaxy: hold it as numpy arrays (bug) | none | done, PR #3449 |
 | PERF.194 | The phenomena stage progress line still says "186M to place": the weight is printed as a number of phenomena instead of work (bug) | none | done, PR #3726 |
 | PERF.195 | Generation timing records are shown or no longer recorded: object_timing_stats and object_timing_samples (G5) | none | open |
-| PERF.196 | Decide: show the object timing records or stop recording them (G5, step 1) | none | open |
+| PERF.196 | Decide: show the object timing records or stop recording them (G5, step 1) | none | done, decided in reports/perf196-object-timing-decision-2026-10-31.md |
 | PERF.197 | Carry out the object timing decision: show the records with a test, or delete the recording, the tables, the migration and the fingerprint entry (G5, step 2) | none | open |
 | PERF.198 | Speed up util/detmath.matmul and cache equal gas_equilibrium.solve calls (finding 6) | none | open |
 | PERF.199 | The words "rough guess" are removed from every ETA, time left and time estimate display (bug) | none | done, PR #3271 |
@@ -3048,7 +3049,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.223 | Resource pages: belts, fields, giants and icy bodies show their resources, and lists, search and the API filter and sort by resource and score | none | open |
 | UX.224 | A planet's chips and description never show Habitable, Inhabited and Habitable class together: only the most specific one (bug) | none | done, PR #4452 |
 | UX.225 | Search, object lists, Nearby and /api/search filter and sort on every stored physical number: gravity, temperature, pressure, orbit, day, star mass, dose, field, ocean depth, moon count and gases (G4) | none | open |
-| UX.226 | Numeric range filters and sort keys for the stored physical values: one engine in db/query.py and the /api/search parameters (G4, step 1) | none | open |
+| UX.226 | Numeric range filters and sort keys for the stored physical values: one engine in db/query.py and the /api/search parameters (G4, step 1) | none | done, PR #4523 |
 | UX.227 | The search page shows range controls for the physical values, with units, and the active filters as chips (G4, step 2) | none | open |
 | UX.228 | The object lists and Nearby filter and sort by the same physical values (G4, step 3) | none | open |
 | UX.229 | Colour contrast of the habitability life scores and tree-leaf stats passes 4.5 to 1 in both themes (bug) | none | done, PR #3280 |
@@ -3076,7 +3077,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.251 | Planet and moon pages: a Life summary paragraph in At a glance, from the life readings | none | done, PR #4488 |
 | UX.252 | Readability rewrite of ALL planet, moon and belt text: summary sentences, descriptions, notes, labels, class pages | none | open |
 | UX.253 | Readability rewrite of ALL star, system and star-class text: summary sentences, descriptions, notes, labels, spectral class pages | none | done, PR #4496 |
-| UX.254 | Show a star's chemistry on its page: thin or thick disc branch, alpha enhancement, metal fraction and the dredge-up shift, from stored values with stellar_composition.star_makeup | none | open |
+| UX.254 | Show a star's chemistry on its page: thin or thick disc branch, alpha enhancement, metal fraction and the dredge-up shift, from stored values with stellar_composition.star_makeup | none | done, PR #4540 |
 | VIEW.1 | View from a planet | none | open |
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG, with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |
@@ -3700,16 +3701,18 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.516 | tests/test_readme_external_files.py has 3 failures on main: the README external-files section differs from the dataset catalogue (bug) | none | done, PR #4457 |
 | TEST.517 | test_class_pages_show_the_constants is red on main: the brown dwarf mass range text on the class page differs from the test (bug) | none | done, PR #4458 |
 | TEST.518 | test_a_body_with_a_stored_day_turns_at_the_shared_rate_and_a_tilted_one_turns_backwards fails in a whole-file run of test_web_browser_bodyview.py but passes alone (timing sensitive) (bug) | none | done, PR #4465 |
-| TEST.519 | tests/test_web_a11y.py::test_page_is_accessible_and_fits[web.galaxy-*] fails the axe rule scrollable-region-focusable on .map-key-lines (all four size and theme runs) on clean main (bug) | none | open |
+| TEST.519 | tests/test_web_a11y.py::test_page_is_accessible_and_fits[web.galaxy-*] fails the axe rule scrollable-region-focusable on .map-key-lines (all four size and theme runs) on clean main (bug) | none | done, PR #4531 |
 | TEST.520 | Extend the wiring guard to stored columns and shadow functions, and wire, show or drop every column only the Details sheet reads | none | open |
 | TEST.521 | Wire, register or delete the 27 pure functions nothing calls in 13 modules (Core 1's share of the TEST.520 shadow functions) | none | open |
-| TEST.522 | Wire, register or delete the 29 pure functions nothing calls in 21 modules (Core 3's share of the TEST.520 shadow functions) | none | open |
+| TEST.522 | Wire, register or delete the 29 pure functions nothing calls in 21 modules (Core 3's share of the TEST.520 shadow functions) | none | done, PR #4528 |
 | TEST.523 | Wire, register or delete the 17 pure functions nothing calls in 12 modules (Star 2's share of the TEST.520 shadow functions) | none | done, PR #4519 |
-| TEST.524 | Wire, register or delete the 38 pure functions nothing calls in 21 modules (Aux 4's share of the TEST.520 shadow functions) | none | open |
-| TEST.525 | Wire, register or delete the 26 pure functions nothing calls in 14 modules (Aux 3's share of the TEST.520 shadow functions) | none | open |
+| TEST.524 | Wire, register or delete the 38 pure functions nothing calls in 21 modules (Aux 4's share of the TEST.520 shadow functions) | none | done, PR #4537 |
+| TEST.525 | Wire, register or delete the 26 pure functions nothing calls in 14 modules (Aux 3's share of the TEST.520 shadow functions) | none | done, PR #4533 |
 | TEST.526 | Wire, register or delete the 8 pure functions nothing calls in 4 modules (Tides 1's share of the TEST.520 shadow functions) | none | open |
 | TEST.527 | Wire, register or delete the 12 pure functions nothing calls in 5 modules (Bug 1's share of the TEST.520 shadow functions) | none | open |
-| TEST.528 | tests/test_systemmap.py::test_a_planet_and_its_moon_glow_in_the_colour_of_their_air_under_their_own_star is red on main (bug) | none | open |
+| TEST.528 | tests/test_systemmap.py::test_a_planet_and_its_moon_glow_in_the_colour_of_their_air_under_their_own_star is red on main (bug) | none | done, PR #4520 |
+| TEST.529 | test_the_job_strip_shows_the_running_job_on_every_admin_page fails on clean main (bug) | none | open |
+| TEST.530 | Three tests are red on clean main: two in test_roche_interaction (post-common-envelope classifier) and the tuning pair-order check (REFERENCE_BLACK_HOLE_DRAWS 0.55 against 0.5) (bug) | none | done, PR #4535 |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

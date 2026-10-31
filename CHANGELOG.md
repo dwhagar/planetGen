@@ -2,6 +2,114 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2965] - 2026-10-31
+
+**Headline:** The land on a planet or moon picture now takes its colour from the rock it is made of, not from its temperature.
+
+### Changed
+- **MAP.274.** The land colour of a solid world on the System Map and the object page was a single stand-in from its mean temperature. It is now the lab colour of the stored ground types: the 450, 550 and 650 nm reflectance (`surface_composition.band_albedo`, the same sourced spectra the albedo uses) of the areal mix of the land types, read as blue, green and red under white light and converted to sRGB. The ocean and the ice are not land (the painter draws them on their own). A land type with no measured visible spectrum (the metal and the intermediate mixes) is left out, and the record says how much of the land that was (`landKnown`). A body with no stored ground, no land, or under half of its land with a measured colour keeps the temperature estimate, and the info panel line says which one it is. The look record has the new `landKnown` field and `quality` can be `composition`; no new stored value, no new constants.
+generation-output: unchanged
+
+## [8.0.2964] - 2026-10-31
+
+**Headline:** A star's page and sheet now show its chemistry: thin or thick disc, alpha enhancement, the metal mass fraction it formed with, and the helium a red giant's first dredge-up added.
+
+### Added
+- **Four derived rows in the Composition group of a star's sheet (UX.254).** `Disc population`, `Alpha enhancement [alpha/Fe]` (dex), `Metal mass fraction` and, for a red giant, `Helium added by the first dredge-up`, each with its source line. They are worked out when the sheet is made from the stored class, state, mass, [Fe/H] and age by `stellar_composition.star_makeup`; no column, no stored value. The draws are keyed as the planets' host ratios are (mass and the sector's distance from the centre), so the page and the planets agree. A star with no [Fe/H], or one whose downloaded data are missing, shows none.
+- **`stellar_abundances.alpha_enhancement`**: the mean [X/Fe] of O, Mg, Si and Ca.
+- **`src/tests/test_property_sheet.py`**: a sample of stars across both sequences and a red giant check the rows against `star_makeup` with their units and sources; a star with no [Fe/H] has none. `docs/design/composition/stellar-composition.md` section 14.2; the properties help page lists the four rows.
+
+No generator output changes (the rows are derived at view time).
+
+generation-output: unchanged
+
+TODO items resolved: UX.254.
+
+## [8.0.2963] - 2026-10-31
+
+**Headline:** Thirty-one functions that nothing in the generator called, with their tests, are removed, and the seven that stay each name the item that will use them.
+
+### Changed
+- **TEST.524.** The wiring guard (TEST.520) found 38 public functions in 21 physics modules that only tests called. Thirty-one are deleted with their tests and the notes that named them, because the generator builds its values another way: `atmosphere.hydrogen_kpa` and `other_kpa`, `atmosphere_state.gas_column_mass_kg_m2`, `aerosols.haze_fall_integral_s_m`, `ozone.column_mean_partial_pressure_pa` and `column_after_air_loss`, the three Rayleigh band and gas helpers, `thermosphere.hydro_based_in_grid`, `body_colour.rgb8_of`, the cloud-top algebra and the Sudarsky label of `giant_colour`, `mixture_giant.carbon_monoxide_time_s`, `mixture_sinks.apply_ocean_sinks` and its water cap, `waterworld_carbon.sealed_state` (the air solve takes the ocean carbon at its own climate-loop temperature), `radiation.apply_air_loss`, `radiogenic.present_ppm`, `radiogenic_flux_w_m2` and `aluminium_26_mass_fraction`, `daylight.locked_zone_shares`, `surface_composition.crust_reservoir`, `surface_pressure.degassed_inventory`, `gas_mass_kg` and `can_weather`, the six scale-conversion and gas-ratio functions of `oxygen_fugacity` with the Frost buffer constants, and the empty `two_stream.vacuum` (now a helper in its own test). Seven stay and name their owner in the wiring register: `surface_dose` (three) and `proton_range` to GEN.444, `impact_inventory` to GEN.819, `scatter.scatter_shares` to GEN.1071, `scatter.history_line` to GEN.1070. `species_thermo.log10_k`, which the deleted `oxygen_fugacity.log_k` wrapped, is registered by design (the reference the equilibrium tests check against). No stored or generated value changes.
+generation-output: unchanged
+
+## [8.0.2962] - 2026-10-31
+
+**Headline:** Three tests that failed on main were out of date with two decisions already made; they now state those decisions. Nothing the generator makes changes.
+
+### Changed
+- **TEST.530.** The pair-order check of the tuning constants read `REFERENCE_BLACK_HOLE_DRAWS` (0.55, 0.5) as a low-high range; it is two independent draws (GEN.1154 moved the solar one to 0.55), so the check now names the two-number constants that are not ranges, with why. Two roche-interaction tests still held the pre-GEN.1012 expectations: a white dwarf with no larger past than its present is never forced into a post-common-envelope pair, and only a white dwarf could be. The test dwarf now has a past (a 2 solar mass star that swelled to 1.5 AU), and a post-common-envelope pair may hold any member that shrank (a neutron star, a black hole, a contracted young star).
+
+## [8.0.2961] - 2026-10-31
+
+**Headline:** Eight functions nothing used are deleted, and the other 18 that only tests called are now named in the wiring register with the item that will use them or the test that reads them.
+
+### Changed
+- **Deleted, with their tests:** the thin-shell base pressure of a giant's envelope, the identity ring-plane tilt of a tilted giant, the mafic share of a rock norm, the ice and silicate porosity laws and the small-body density of the compaction module (the table builder holds its own copies of the laws), the water share by distance of the condensate module (callers compose the temperature and the share) and the water fraction from mass and radius of the bulk structure module.
+- **Registered:** 14 functions name the open item that will call them (GEN.471, GEN.473, GEN.550, GEN.809, GEN.819, GEN.1055, GEN.1069, GEN.1083) and four are marked `by design` as checks that only tests read.
+- No generated value changes.
+
+## [8.0.2960] - 2026-10-31
+
+**Headline:** Stars now have a proper integrator for their path through the galaxy, ready for the orbital update to use.
+
+### Changed
+- **The star stepper (GEN.340).** `planetgen/galaxy/stepper.py` moves stars through the galactic potential with second-order kick-drift-kick steps, on arrays so a whole sector's stars are one call. Each star's step is a twentieth of its own crossing time (no more than 5 Myr), cut into equal power-of-two blocks so stars of one level step together; a star that would need more than 4096 steps in a span is stepped at that cap and flagged. A callable adds an extra pull to the same kick (the influence set of GEN.109 goes in this way). A star at the Sun's kind of radius keeps its radius to 1 pc and its angular momentum to 1e-10 over 5 Gyr, and a century in one step agrees with a hundred one-year steps. Nothing calls it yet: the orbital update run (GEN.105) will replace the turn about the galactic pole with it, which changes where stars are, so that rides a train; generation output does not change now. Stand-in rows ST1 and ST2.
+
+generation-output: unchanged
+
+## [8.0.2959] - 2026-10-31
+
+**Headline:** Nothing built is left unused in Core 3's share of the wiring guard: six dead helpers are gone and every other function that only tests call names the item that will read it, or why it stays.
+
+### Changed
+- **TEST.522, 29 functions of 21 modules that only tests call.** Deleted with their tests: `cylindrical_radius_pc`, `format_galactic_orbit` (the pages show the speed and period as separate rows), `expected_systems_in`, `get_star_spectral_class`, `sample_dim_star` and `mark_merger_product` (the tree build sets the same flag and age inline; its test now checks `rejuvenated_age_yr` directly). `kozai_verdict` now reads `kozai_max_eccentricity` instead of repeating its formula, with the same result. The other 22 have a register line naming the open item that will call them (GEN.359, GEN.1014, GEN.129, GEN.105) or `by design` with who runs them. No stored value changes.
+
+## [8.0.2958] - 2026-10-31
+
+**Headline:** The pull on an object from the masses around it and from the galaxy is now one function, with the velocity kick that uses it.
+
+### Changed
+- **The acceleration kernel (GEN.342).** `planetgen/galaxy/acceleration.py` returns the acceleration at a point as the pull of the object's influence set (the exact nearest masses and the folded monopoles, unsoftened but for 0.001 pc that keeps two masses at one point finite, with no minimum-acceleration cut) plus the galactic gradient of the potential, and turns it into a new velocity (`kick`, `velocity_update`). A star takes the whole pull; a planet or moon takes the pull at itself less the pull at its host (`host_frame_pull`), so only the perturbation is left. It is a pure function, so the same masses always give the same pull. Nothing calls it yet: the star stepper (GEN.340) and the orbital update run (GEN.105) do, so generation output does not change. Also corrected the time unit in the potential's orbit test: a Myr is 1.0227 pc per (km/s), so the five-gigayear orbit it checks now is five gigayears.
+
+generation-output: unchanged
+
+## [8.0.2957] - 2026-10-31
+
+**Headline:** The scrolling key on the galaxy map can now be reached and scrolled with the keyboard.
+
+### Changed
+- **Galaxy map key.** The list of map layers in the key takes keyboard focus and has a name, so a visitor without a mouse can scroll it.
+
+## [8.0.2956] - 2026-10-31
+
+**Headline:** The admin Stats page now shows how long one object of each kind took to generate, which the generator has been recording without showing.
+
+### Changed
+
+- The Generation speed panel of the Stats page gains a "Seconds per object" table: for each kind of generated object (system, star, planet, moon, belt ...) the objects timed, the mean, fastest and slowest time and its share of all the object time, over every saved run, longest-running kinds first. `GET /api/admin/generation-stats` returns it as `object_types`, now a list of rows instead of a kind-to-mean map. `object_timing.kind_summaries` replaces `type_means` and the unused `run_totals`. generation-output: unchanged
+
+## [8.0.2955] - 2026-10-31
+
+**Headline:** The galaxy now has one pure module for its pull and its rotation curve, built from the galaxy's own masses.
+
+### Changed
+- **The galactic potential (GEN.338).** `planetgen/galaxy/potential.py` gives the potential, the pull (finite at the centre) and the circular speed of a generated galaxy from Hernquist spheres (the bulge, the stellar halo, the nuclear cluster), Miyamoto-Nagai disks (thin, thick and nuclear) and an NFW dark halo, with the central black hole softened at 1 pc. Every mass and scale comes from the galaxy's density components and its mass chain, so the rotation curve is a result, not a constant; a component of mass zero is legal. The matching of the density model to those three profiles is registered as stand-in rows GP1 to GP3. Nothing reads it yet: the acceleration kernel (GEN.342), the star stepper (GEN.340) and the velocity seeding (GEN.339) do, so generation output does not change. The dark halo's parameters moved into `enclosed_mass.dark_halo` so the enclosed mass and the potential use the same halo.
+
+generation-output: unchanged
+
+## [8.0.2954] - 2026-10-31
+
+**Headline:** The search can now keep and order planets, moons and stars by their stored physical values, with the bounds given in the unit you choose.
+
+### Added
+- **Range filters on physical values.** `GET /api/search` takes `planet_min_gravity=0.8&planet_max_gravity=1.2&planet_max_surface_dose=2` (and the same with `moon_` or `star_` in front) to keep the bodies whose gravity is 0.8 to 1.2 g and whose surface dose is under 2 mSv a year. The keys are gravity, surface temperature, surface pressure, surface dose, magnetic moment, ocean depth, orbit distance, day length, rotation period, year length, mass, the number of moons, the partial pressure of each atmosphere gas, and for stars luminosity, age and temperature. A bound may be given in any unit of its kind with `<entity>_<key>_unit` (pressure in kPa instead of bar).
+- **Sorts on the same values.** `planet_sort=gravity` orders a panel smallest first, `-gravity` largest first; a body with no value comes last.
+- **The answer says what it used.** Each row carries the values of the keys the request used, with their units, and the answer lists every key (`values`) and the ranges applied (`active_ranges`).
+
+### Changed
+- **Search parameters are checked.** A bound that is not a number, a minimum above the maximum or a unit of the wrong kind answers `400` with the reason.
+
 ## [8.0.2953] - 2026-10-31
 
 **Headline:** A System Map test that compared a planet's glow under two stars now compares the right thing, so main is green again.

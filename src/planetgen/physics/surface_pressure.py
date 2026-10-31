@@ -31,7 +31,7 @@ Every number that is not read from a source is a design constant with its source
 
 import math
 
-from planetgen.physics import elements, impact_history
+from planetgen.physics import impact_history
 from planetgen.physics.mixture_base import bracket
 
 # --- degassing --------------------------------------------------------------------------------------------------------------
@@ -99,27 +99,10 @@ def draw_efficiencies(constants):
     return {**DEGAS_EFFICIENCY, "H": bracket(constants, "degas_efficiency_h", DEGAS_EFFICIENCY_H)}
 
 
-def degassed_inventory(inventory, released_j, mantle_kg, efficiencies):
-    """
-    The element budget of the gas that has reached the surface.
-
-    Args:
-        inventory (dict): Element -> atoms per 100 g of mantle (`mixture_rocky.rocky_inventory`).
-        released_j (float): The heat the interior has carried out (`interior_heat.Heat.released_j`).
-        mantle_kg (float): The mantle's mass.
-        efficiencies (dict): Element -> `eps` (`draw_efficiencies`); an element not in it is taken as 1.
-
-    Returns:
-        dict: The same keys, each times its degassed share.
-    """
-    share = degassed_share(released_j, mantle_kg)
-    return {element: atoms * share * efficiencies.get(element, 1.0) for element, atoms in inventory.items()}
-
-
 def impact_inventory(balance, mantle_kg):
     """
     The element budget the late accretion left at the surface (GEN.739): the air and the part held in the ground, ocean or ice of
-    `impact_history.veneer_balance`, in moles of atoms per 100 g of mantle like `degassed_inventory`, to be added to it. Gas the impactors
+    `impact_history.veneer_balance`, in moles of atoms per 100 g of mantle like the budget the degassed share of `degassed_share` of the mantle's inventory gives, to be added to it. Gas the impactors
     brought is already at the surface, so no degassed share applies; the sinks that follow do.
 
     Args:
@@ -137,12 +120,6 @@ def impact_inventory(balance, mantle_kg):
     return {"H": 2.0 * moles["H2O"] * per_100_g, "C": moles["CO2"] * per_100_g, "N": 2.0 * moles["N2"] * per_100_g}
 
 
-def gas_mass_kg(atoms, mantle_kg):
-    """The mass of a closed gas system of `atoms` (element -> moles per 100 g of mantle, oxygen included) from `mantle_kg` of mantle."""
-    per_100_g = math.fsum(moles * elements.molar_mass(symbol) for symbol, moles in atoms.items())
-    return per_100_g * mantle_kg / 0.1
-
-
 def pressure_pa(air_mass_kg, gravity_m_s2, radius_m):
     """The surface pressure of an air of `air_mass_kg`: `g M / (4 pi R^2)`."""
     return gravity_m_s2 * air_mass_kg / (4.0 * math.pi * radius_m ** 2)
@@ -151,11 +128,6 @@ def pressure_pa(air_mass_kg, gravity_m_s2, radius_m):
 def air_mass_kg(pressure_pa_, gravity_m_s2, radius_m):
     """The mass of the air that makes `pressure_pa_` (the inverse of `pressure_pa`)."""
     return pressure_pa_ * 4.0 * math.pi * radius_m ** 2 / gravity_m_s2
-
-
-def can_weather(surface_temperature_k, ocean_fraction):
-    """Whether a surface has the liquid water the carbonate-silicate cycle needs."""
-    return ocean_fraction > 0.0 and LIQUID_WATER_K[0] <= surface_temperature_k < LIQUID_WATER_K[1]
 
 
 def draw_cycle(constants):

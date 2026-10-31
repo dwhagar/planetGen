@@ -879,28 +879,7 @@ with `clamp()`.
   Owner (housekeeping) (2026-10-30 2:55 PM EDT): released to the pool:
   the owner named above (Aux 12) is a retired lane. A waiting lane takes
   it, confirmed with TODO, one lock-free item at a time.
-  Prerequisites: UX.226, UX.227, UX.228. Related: UX.214, UX.150, GEN.568, UX.226, UX.227, UX.228.
-
-- [ ] **UX.226 Numeric range filters and sort keys for the stored physical values: one engine in db/query.py and the /api/search parameters (G4, step 1)**
-  Unused stored values audit chain
-  (reports/unused-stored-values-audit-2026-10-24.md, Boss 10:16 PM EDT
-  and 10:35 PM EDT 2026-10-24: make each a chain, with a GitHub goal
-  issue). SEARCH_TAG_FACETS is tag facets only and the sorts are name,
-  class, mass and radius. Add a registry of numeric keys (gravity,
-  surface temperature, pressure, orbit distance, day length, year
-  length, star mass, luminosity, age, surface dose, magnetic field,
-  ocean depth, moon count and each atmosphere gas) with unit, range
-  filter and sort, read from the stored columns and the unit registry
-  (GEN.568). Done: a query for 0.8 to 1.2 g and a dose under 2 mSv a
-  year works through the API, documented. Version 8.2, phase 2. Owner:
-  Aux 12 with Aux 11. Rules: no backward-compat shims; every number has
-  a unit or scale (GEN.772); a changed generated value carries
-  `tests.golden_update --reason ... --affects <stage>` and the next
-  epoch; tests are `scripts/test.py changed --resume`.
-  Owner (housekeeping) (2026-10-30 2:55 PM EDT): released to the pool:
-  the owner named above (Aux 11) is a retired lane. A waiting lane takes
-  it, confirmed with TODO, one lock-free item at a time.
-  Prerequisites: none. Related: UX.225, UX.214, GEN.568.
+  Prerequisites: UX.227, UX.228. Related: UX.214, UX.150, GEN.568, UX.226, UX.227, UX.228.
 
 - [ ] **UX.227 The search page shows range controls for the physical values, with units, and the active filters as chips (G4, step 2)**
   Unused stored values audit chain
@@ -1098,22 +1077,6 @@ with `clamp()`.
   "colour" uses (333 on the site) goes to zero. The word list and the
   checker change are made by Core 5 with the next guide edit.
   Prerequisites: none. Related: UX.237, GEN.1208.
-
-- [ ] **UX.254 Show a star's chemistry on its page: thin or thick disc branch, alpha enhancement, metal fraction and the dredge-up shift, from stored values with stellar_composition.star_makeup**
-  Found by Star 2 while settling TEST.523 (as the lane reported, 12:35
-  PM EDT 2026-10-31); a wiring gap filed by the TODO thread (Boss, 12:03
-  PM EDT: nothing built and left unused).
-  stellar_composition.star_makeup (GEN.440) gives the composition of any
-  star from its stored [Fe/H], age, mass and key; it is built and tested
-  and never called by the generator or any page. Do: show a star's
-  chemistry on its sheet and page and in the API, derived at view time
-  from stored values (no column, no stored value), like the variability
-  and carbon-star rows: thin or thick disc branch, alpha enhancement,
-  metal fraction, and the phase's dredge-up shift, each with its unit
-  and source line. Done: a test walks a sample of stars and checks the
-  rows appear with units; the register line for star_makeup is gone.
-  Lock-free. Owner Star 2 (proposed). Related: GEN.440.
-  Prerequisites: none.
 
 ## MAP: Galaxy Map, Sector Map, System Map
 
@@ -2008,20 +1971,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   switchable glow design). Owner: Bug Hunt (fixing now in starpoint.js,
   galaxymap3d.js and sectorscene.js).
   Prerequisites: none. Related: MAP.208, MAP.266, MAP.267.
-
-- [ ] **MAP.274 Land colour from the bulk composition: oxidation and rock type**
-  Land colour follows the bulk fractions instead of the temperature and
-  class estimate. Design draft
-  design-drafts/body-rendering-from-composition-2026-10-24.md (section
-  4), filed by the body-rendering design thread, 10:18 PM EDT 2026-10-23
-  as the thread reported. Placement follows Boss's plan of 10:26 PM EDT 2026-10-23 (section 11 of the draft).
-  Research (2026-10-09, Owner 6:36 PM EDT): Owner (TODO, 6:36 PM EDT
-  2026-10-24, coordinator request): Aux 10 (Map nodes) after MAP.287
-  (#3130), after GEN.411 (4c, Aux 1).
-  Owner (housekeeping) (2026-10-30 2:55 PM EDT): released to the pool:
-  the owner named above (Aux 1) is a retired lane. A waiting lane takes
-  it, confirmed with TODO, one lock-free item at a time.
-  Prerequisites: GEN.411.
 
 - [ ] **MAP.275 Gas and ice giant painter: bands, storms and thermal glow from rotation, temperature and the atmosphere colour, rings with resonance gaps from the moons**
   Bands, storms, a chemistry tint, thermal glow, and rings with
@@ -3048,7 +2997,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   potential's masses and scale lengths are derived from the generated
   galaxy; 2,600 pc and 1,580 pc (and 229.3 km/s) stay test references
   only, never defaults (GEN.338 carries the rewrite).
-    Prerequisites: GEN.338, GEN.339, GEN.340.
+    Prerequisites: GEN.339, GEN.340.
     Design: [docs/design/orbits/orbital-updates.md](design/orbits/orbital-updates.md)
 
   - [ ] **GEN.109 N-body influence from every object inside the largest nearby Hill sphere plus the galactic gradient, with a Hill-radius warning**
@@ -3151,7 +3100,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the one core function, sectors are shells, bands and wedges (not
   rings, layers and slots), and the visit order is tier, then mass, in
   chunks that each read the state at their start.
-    Prerequisites: GEN.342, GEN.343, GEN.344.
+    Prerequisites: GEN.343, GEN.344.
     Design: [docs/design/orbits/orbital-updates.md](design/orbits/orbital-updates.md)
 
   - [ ] **GEN.110 Rogue planet collisions: asteroid fields, merged giants and new stars**
@@ -3660,6 +3609,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   including a DB read-back. Two remainders stay open: the orbital update
   that calls find_contact for every pair (broad phase), and turning an
   ejected planet into a rogue_planets row (GEN.291 unbind).
+  Lock-free part merged as #4514 (Aux 7, as the lane reported)
+  (2026-10-31 1:55 PM EDT): planetgen/db/orbital_events.py
+  (find_contact, resolve_contact, record_event, the ID rules) on main,
+  no migration, no epoch. The item stays open for the two remainders:
+  the orbital update that calls find_contact for every pair (broad
+  phase) and the unbind of an ejected planet into a rogue_planets row
+  (GEN.291). The register line for closest_approach is gone because it
+  is read now.
   Prerequisites: none. Related: GEN.105, GEN.143, GEN.170.
 
 - [ ] **GEN.198 The gravity field evaluator: pull, potential and tidal gradient at any point from the point masses and the galaxy potential**
@@ -3682,7 +3639,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   drawn (galactic for a sector, system for the System Map, planetary for
   a moon neighbourhood), read from the same constants, not a copy. See
   the new section in docs/design/orbits/gravity-map.md.
-  Prerequisites: GEN.338, GEN.342. Related: GEN.105, NAV.6, PERF.72,
+  Prerequisites: GEN.342. Related: GEN.105, NAV.6, PERF.72,
   MAP.167.
   Scope after the review (2026-10-16 review): the tidal tensor and its
   eigenvalue, the galaxy potential term (GEN.115, GEN.285), the near and
@@ -4912,69 +4869,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   wait; Blocker 4 after GEN.315 (slice 1 merged earlier by Core 3).
   Prerequisites: GEN.315. Related: GEN.275, GEN.316.
 
-- [ ] **GEN.338 The galactic potential as one pure module: Hernquist bulge, Miyamoto-Nagai disk and NFW halo, with settings and the rotation-curve tests**
-  Split from GEN.115 (2026-10-16, Boss 1:07 PM EDT: look at each item
-  for smaller chunks and shared work). One function of position returns
-  acceleration, potential and circular speed from a Hernquist bulge, a
-  Miyamoto-Nagai disk and an NFW halo (the flattened log halo only if
-  its v0 and R_c are corrected and tested). Masses and scales are
-  settings with the document's values at the default galaxy shape
-  (lengths follow the disk scale length of 2,600 pc, bulge 1,580 pc,
-  radius about 15.3 kpc; masses scale by s^p with p = 1); Plummer
-  softening of 1 pc applies to the central black hole only; the
-  acceleration is finite at (0, 0, 0). Why: GEN.109, GEN.198 and the
-  stepper read it and no generator or table has to change for it. Done:
-  the module and its settings with tests for a circular speed of 229.3
-  +- 0.1 km/s at 8.128 kpc, 213 to 231 km/s on a 2 kpc grid from 4 to 20
-  kpc, Kz(1.1 kpc) about 75 Msun/pc2 and local density about 0.10
-  Msun/pc3 at 5 percent, a circular orbit keeping its radius to 1 pc
-  over 5 Gyr at dt <= 1 Myr, Lz conserved to 1e-10, energy drift under
-  1e-3 per Gyr, and a finite pull at the origin. No database or
-  generator change.
-  Drops the duplicate change of the Sun distance: GEN.144 (first in the
-  Galactic gravity thread) names the 8.128 kpc test radius and the 8.2
-  kpc placement value, and this module only reads them (2026-10-16
-  review).
-  Rewrite for NO FIXED CONTENT (finding from the read-only "galactic
-  potential realism" thread, 2026-10-16, 8:43 PM EDT; Boss, 4:11 and 4:14
-  PM EDT): the values above (a circular speed of 229.3 km/s, a bulge of
-  1.0e10, a disk of 6.8e10 with a 3.5 kpc scale, a halo of 5.4e11 with r_h
-  16 kpc, the 8.128 and 8.2 kpc radii, the 213 to 231 km/s band) are the
-  Milky Way's and are reference values for a plausibility test, never
-  defaults. The module's masses and scales are derived from the generated
-  galaxy: the bulge, disk and halo masses from the density model of this
-  galaxy's shape, the halo mass and scale from GEN.369's halo derivation,
-  and the circular speed follows from them; it is not a constant. The
-  tests check the shape and internal consistency of the curve (a rising
-  then flat or gently falling curve, v_c squared equal to r times the
-  radial pull, Kz and local density from the same masses, an orbit
-  keeping its radius, Lz conserved, energy drift, a finite pull at the
-  origin), and compare the Milky Way's numbers only as a reference for a
-  galaxy built with the Milky Way's shape. The module is also the one
-  source for the other rotation numbers in the code today: the flat
-  velocity of 220 km/s with a 3,000 pc core in `physics/constants.py`
-  (every star's orbit, about 206 km/s at 7.91 kpc), `tuning.CLUSTER_HALO_CIRCULAR_KMS`
-  (220, the cluster Jacobi radius and cluster rotation) and
-  `constants.MILKY_WAY_MASS` (1.15e12, the Hill spheres in
-  `generation/binary.py`; GEN.370), so the cluster generator and the Hill
-  spheres read it too, not only GEN.339 and GEN.340.
-  Galaxy types (2026-10-16, 8:50 PM EDT, Boss for 9.4): the bulge, disk
-  and halo masses come from GEN.379's `component_masses`, and a
-  component of zero mass is legal and tested (a galaxy without a disk,
-  an elliptical, needs no change in the potential); GEN.379 and DB.66
-  sit just before this item in the thread.
-  GEN.368's approved table (Boss, 10:11 PM EDT), row 12: the rotation
-  curve and the enclosed mass are calculated from this potential (v
-  squared = G M(<r) / r), not set, and `MILKY_WAY_MASS` goes as the
-  central mass of every Hill sphere (GEN.400); the baryonic Tully-Fisher
-  relation is a cross-check only.
-  Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
-  newer note wins, report todo-contradictions-2026-10-18.md): where the
-  text names an 8.2 kpc "placement value", GEN.378 (Boss, 2026-10-16,
-  9:43 PM EDT) wins: no home or Sun position is stored; 8.128 and 8.2
-  kpc are reference radii for tests only.
-  Prerequisites: none. Related: GEN.115.
-
 - [ ] **GEN.339 Generated and stored galactic velocities follow the potential: the old curve is replaced, dispersions are seeded, stored velocities are reseeded**
   Split from GEN.115 (2026-10-16, Boss 1:07 PM EDT: look at each item
   for smaller chunks and shared work). Replace
@@ -5029,55 +4923,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: none for now, returned to the pool (Boss, 7:44 PM EDT
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 3
   held it before; this replaces any earlier owner line).
-  Prerequisites: GEN.338, GEN.139. Related: GEN.115.
-
-- [ ] **GEN.342 The acceleration kernel: the pull of the influence set plus the galactic gradient, as one function, and the velocity update from it**
-  Split from GEN.109 (2026-10-16, Boss 1:07 PM EDT: look at each item
-  for smaller chunks and shared work). One function returns the
-  acceleration at a point from child a's set (pairwise point masses,
-  Plummer 1 pc on the central black hole only, other masses unsoftened
-  or 1e-3 to 1e-2 pc, no a_min filter) plus the galactic gradient of
-  GEN.115's module, leaving out the object itself. For a star it is the
-  extra term in GEN.115's stepper; for a planet or moon it works in the
-  host's frame with the host's own pull subtracted. Trajectories change
-  only when an update runs. GEN.198 later wraps this same kernel instead
-  of summing masses a second time. Done: tests against a direct sum for
-  random sets, momentum conserved for an isolated pair, a star's orbit
-  unchanged to the stepper's tolerance when the set is empty, and finite
-  everywhere.
-  The force on a body comes from the shared field kernel (PERF.88); this
-  item adds the influence-set term, the galactic gradient hook and the
-  velocity update (2026-10-16 review).
-  Decided (Boss, 2026-10-18, F2 and F3, approved to build; card taps as
-  the coordinator reported them, 5:31 and 5:32 PM EDT): the kernel runs
-  for every object, evaluated at the object's own location right after
-  its position change, in per object order; later objects see a mix of
-  old and new positions. Full wording on GEN.105.
-  Decided (Boss, 2026-10-18, 5:38 PM EDT words, tap 5:41 PM EDT as the
-  coordinator reported it): due objects are visited in the order of
-  GEN.105's tier-then-mass sort (a stable sort on tier, heaviest first,
-  ties by id); tier names are labels only. Sort cost on millions of due
-  rows is an open measurement.
-  Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
-  2026-10-18, as the coordinator reported them): fork 3, "Chunk start
-  state": every object in one chunk (tier, then mass band) reads the
-  state at the chunk start, and a chunk sees the results of the earlier
-  chunks, so the row order inside a chunk does not matter; this replaces
-  the earlier "later objects see a mix of old and new positions"
-  sentence (F3).
-  Reworded to match GEN.105 (contradiction sweep, 2026-10-21, 7:45 AM
-  EDT; GEN.105's Decided notes win where this item's older text
-  differs): the run applies the chunk order (tier, then mass band,
-  stable sort on tier, mass heaviest first, ties by id) with each chunk
-  reading the state at its start; new records are always visited and
-  advance only from their own epoch (F5).
-  Wiring sweep (Boss, 12:03 PM EDT: nothing built and left unused;
-  report reports/wiring-sweep-2026-10-31.md) (2026-10-31 12:25 PM EDT):
-  The influence set is unread until the acceleration kernel lands, and
-  the item had no owner. Owner now: Aux 7 (orbital update, after
-  GEN.338) (proposed by the TODO thread; the lane says if it cannot take
-  it).
-  Prerequisites: GEN.338, GEN.340. Related: GEN.109.
+  Prerequisites: GEN.139. Related: GEN.115.
 
 - [ ] **GEN.343 The perturbed pass for a system: host, siblings, moons and outside perturbers integrated through an encounter**
   Split from GEN.109 (2026-10-16, Boss 1:07 PM EDT: look at each item
@@ -12060,6 +11906,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   plan,scatter,fill,population and a census re-baseline; rides the
   star-side train after GEN.932 (Bug 1 owns star_formation.py). Owner:
   Sources 2 with Bug 1. Version 8.1.
+  Owner change (2026-10-31 1:25 PM EDT): Core 3 measured (as the lane
+  reported, 1:22 PM EDT 2026-10-31) that GEN.1200 (ring inflow 0.50 a
+  year against 0.8 measured, plus or minus 0.6) and GEN.1202 (8 kpc gas
+  4.3 against 13 per pc2) are the same factor of 3 this item fixes. Core
+  3 takes GEN.999 (lock work, a branch off main, no merge); GEN.1202
+  then closes with it if the re-measured 8 kpc gas reads about 13, and
+  GEN.1200 follows with the inflow-time step (CORE_GAS_INFLOW_TIME_GY, a
+  stand-in, registered in GEN.725).
   Prerequisites: GEN.932. Related: GEN.998, GEN.476, GEN.469.
 
 - [ ] **GEN.1000 Draw the largest body of every belt from the small body size law (replaces the stand-in largest-body size in the GEN.477 belt mass)**
@@ -13746,6 +13600,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   radius-settled time (BHAC15) and a nuclear-arrival time, store both,
   and let classification use the radius-settled one. Owner changed from
   Sources 2 to Aux 7, who builds it (output change, rides a train).
+  Aux 7 head update (as the lane reported) (2026-10-31 1:55 PM EDT):
+  part 2 branch claude/gen1174-store is now 4538e59b9 (the train takes
+  this head, not 5470a095e); part 1 claude/gen1174 stays 45a9296b7.
   Prerequisites: none. Related: GEN.1169, GEN.947.
 
 - [ ] **GEN.1175 Porosity weakening of body strength from a sourced law instead of the placeholder exponential**
@@ -14948,6 +14805,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   species work).
   Prerequisites: GEN.1021.
 
+- [ ] **GEN.1228 Hematite (the oxidised ground type) reflects the same in all three bands, so a rusty world renders dark grey instead of red; give it a sourced spectrum or finer bands (bug)**
+    Finding from Aux 4's MAP.274 build (as the lane reported, 12:52 PM
+  EDT 2026-10-31).
+    The materials table's hematite_fine reflectance is flat across the
+  three bands the land colour reads (0.092 at 450 nm, 0.086 at 550 nm,
+  0.085 at 650 nm), so ground that is mostly oxidised iron renders dark
+  grey, where real hematite dust is red because it reflects far more at
+  650 nm than at 450 nm. Fix: a sourced hematite spectrum, or finer
+  bands in the table (written in docs/design/interface/body-rendering.md
+  section 4.1). Changes the colour of oxidised worlds on the map and
+  body pages only; no stored generator value moves. Lock-free (the
+  land colour, MAP.274, has merged).
+  Prerequisites: none.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -15263,31 +15134,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner (housekeeping) (2026-10-30 2:55 PM EDT): released to the pool:
   the owner named above (Aux 16) is a retired lane. A waiting lane takes
   it, confirmed with TODO, one lock-free item at a time.
-  Prerequisites: PERF.196, PERF.197. Related: PERF.125, PERF.196, PERF.197.
-
-- [ ] **PERF.196 Decide: show the object timing records or stop recording them (G5, step 1)**
-  Unused stored values audit chain
-  (reports/unused-stored-values-audit-2026-10-24.md, Boss 10:16 PM EDT
-  and 10:35 PM EDT 2026-10-24: make each a chain, with a GitHub goal
-  issue). generation/object_timing.py writes object_timing_stats and
-  object_timing_samples every run; nothing reads them. Decide, with a
-  number from a run (cost of recording against the use), whether to show
-  them on the run page and `planetgen stats` or stop recording, and
-  write the decision in the item. Done: the decision with its reason.
-  Version 8.2, phase 2. Owner: Aux 16. Rules: no backward-compat shims;
-  every number has a unit or scale (GEN.772); a changed generated value
-  carries `tests.golden_update --reason ... --affects <stage>` and the
-  next epoch; tests are `scripts/test.py changed --resume`.
-  Owner (housekeeping) (2026-10-30 2:55 PM EDT): released to the pool:
-  the owner named above (Aux 16) is a retired lane. A waiting lane takes
-  it, confirmed with TODO, one lock-free item at a time.
-  Wiring sweep (Boss, 12:03 PM EDT) (2026-10-31 1:40 PM EDT): this is
-  one of the stored-but-unread records Boss does not want. Owner now
-  Sources 2 (released to the pool; Sources 2 had no lock-free item
-  left): measure the cost of recording on a run, decide show or stop,
-  write the decision here. PERF.197 carries out the decision (a
-  migration if the tables go, so that step is lock work).
-  Prerequisites: none. Related: PERF.195.
+  Prerequisites: PERF.197. Related: PERF.125, PERF.196, PERF.197.
 
 - [ ] **PERF.197 Carry out the object timing decision: show the records with a test, or delete the recording, the tables, the migration and the fingerprint entry (G5, step 2)**
   Unused stored values audit chain
@@ -15301,7 +15148,29 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (GEN.772); a changed generated value carries `tests.golden_update
   --reason ... --affects <stage>` and the next epoch; tests are
   `scripts/test.py changed --resume`.
-  Prerequisites: PERF.196. Related: PERF.195.
+  PERF.196 decided by Sources 2 (report
+  reports/perf196-object-timing-decision-2026-10-31.md) (2026-10-31 2:05
+  PM EDT): SHOW the stats table, STOP the samples table. Recording costs
+  1.9 microseconds an object, about 42 microseconds a system (0.004
+  percent of the 1.1 s mean), so cost is no reason to stop. Correction
+  to the audit: object_timing_stats is read (type_means, served as
+  object_types in the admin generation-stats API) but the Stats page
+  drops it; run_totals has no caller outside tests;
+  object_timing_samples has no reader. Part (a), lock-free: a "Seconds
+  per object" table by kind on the Stats page and the same for one run
+  on the run page, with a test (this is what Boss asked for on 10-14).
+  Part (b), lock work: delete the sample recording, its table, the
+  column_units and fingerprint entries and add a migration dropping it;
+  rides a train. Owner Sources 2.
+  Part (a) merged as #4529 (Sources 2, as the lane reported) (2026-10-31
+  2:15 PM EDT): the admin Stats page has a "Seconds per object" table
+  (objects timed, mean, fastest, slowest, share of all object time per
+  kind) over every saved run; the generation-stats API field
+  object_types is now a list of rows; the run_totals register line is
+  gone. No migration, output unchanged. The item stays open for part
+  (b), the lock work (drop the sample recording, its table, column_units
+  and fingerprint entries, migration), which Sources 2 is building.
+  Prerequisites: none. Related: PERF.195.
 
 - [ ] **PERF.198 Speed up util/detmath.matmul and cache equal gas_equilibrium.solve calls (finding 6)**
   Found by the air fixed point (GEN.411, GEN.422, Aux 1 lane I),
@@ -15686,7 +15555,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Design draft
   design-drafts/body-rendering-from-composition-2026-10-24.md (section
   11), Boss's plan of 10:26 PM EDT 2026-10-23.
-  Prerequisites: MAP.274.
+  Prerequisites: none.
 
 - [ ] **DB.101 Storage and units for every physics rectification output: a column, a column_units entry and a migration shipped with its item**
   Boss asked (5:47 PM EDT 2026-10-24) whether the wiring reaches the
@@ -19546,21 +19415,6 @@ clears each one.
   command.
   Prerequisites: none. Related: GEN.1118.
 
-- [ ] **TEST.519 tests/test_web_a11y.py::test_page_is_accessible_and_fits[web.galaxy-*] fails the axe rule scrollable-region-focusable on .map-key-lines (all four size and theme runs) on clean main (bug)**
-  Found by Core 5 (as the lane reported, 11:25 AM EDT 2026-10-31;
-  checked with its changes stashed), filed by the TODO thread. Kind: red
-  test on main. Object:
-  tests/test_web_a11y.py::test_page_is_accessible_and_fits for the
-  galaxy map page, all four size and theme runs; the axe rule
-  scrollable-region-focusable flags the scrollable .map-key-lines region
-  of the map key because it cannot be reached by keyboard. Do: make the
-  region keyboard reachable (tabindex 0 and a label) or stop it
-  scrolling, in the template and CSS, never by turning the rule off.
-  Also seen once and probably a flake: system-desktop-dark skip link not
-  visible; if it recurs, file it separately. Web only, lock-free. Owner:
-  Core 5 (proposed).
-  Prerequisites: none.
-
 - [ ] **TEST.520 Extend the wiring guard to stored columns and shadow functions, and wire, show or drop every column only the Details sheet reads**
   Boss, 12:03 PM EDT 2026-10-31: make sure everything built is wired in
   and read; no more building something and not using it. Filed by the
@@ -19634,122 +19488,6 @@ clears each one.
   change, like a module.
   Prerequisites: none.
 
-- [ ] **TEST.522 Wire, register or delete the 29 pure functions nothing calls in 21 modules (Core 3's share of the TEST.520 shadow functions)**
-  Boss, 12:03 PM EDT 2026-10-31: nothing built and left unused. Core 1's
-  wiring guard (TEST.520, PR #4513) found 157 public functions in
-  physics, generation and galaxy that only tests call or nothing calls;
-  its register lines name TEST.520 because no owner was guessed. Report:
-  /mnt/project-files/reports/wiring-guard-test520-2026-10-31.md. Filed
-  by the TODO thread. Your share (29 functions): galaxy.density
-  (component_masses, predicted_star_count); galaxy.profile
-  (expected_systems_in); galaxy.frame (cylindrical_radius_pc);
-  galaxy.galactic_orbit (format_galactic_orbit); galaxy.star_formation
-  (star_formation_rate_profile); galaxy.structure_draw
-  (draw_neutron_star_unbound_share, hot_component_bound);
-  generation.bright_stars (cell_band_rate); generation.multistar
-  (mark_merger_product); generation.primary_mass_function
-  (systems_per_star); generation.star_population (sample_dim_star);
-  generation.stellar_object (get_star_spectral_class); physics.king
-  (density_per_pc3, mass_within_pc); physics.pair_history
-  (widest_forced_axis_au); physics.stability (kozai_max_eccentricity);
-  physics.planet_zones (ancestor_limits_au, flux_at, pair_sides_solar);
-  physics.planet_architecture (ejection_yield, survival_probability);
-  physics.planet_survival (expected_passes); physics.state_vectors
-  (equinoctial_from_state, mean_anomaly_from_true,
-  state_from_equinoctial); physics.field_kernel (accelerations);
-  physics.collision_outcome (conservation_error); physics.orbits
-  (classify_encounter). Do, for each function: (1) wire it, naming the
-  open item that will call it (or filing one) in its register line of
-  docs/design/research/wiring-register.md; (2) mark it `by design` with
-  the reason when it is a tuning or test harness reader (an observed
-  sampler, an expected count) and say who runs it; or (3) delete it and
-  its tests (no dead code, no shim). Done: none of your functions names
-  TEST.520 in the register, and test_wiring_guard passes. Lock-free
-  (register, tests and deletions of unreferenced code change no stored
-  value; if a wiring step changes output it rides a train under its own
-  item). Owner Core 3 (proposed by the TODO thread, one lock-free item
-  at a time; the lane says if it clashes). Rule for every lane: a public
-  function that only tests call needs a register line in the same
-  change, like a module.
-  Prerequisites: none.
-
-- [ ] **TEST.524 Wire, register or delete the 38 pure functions nothing calls in 21 modules (Aux 4's share of the TEST.520 shadow functions)**
-  Boss, 12:03 PM EDT 2026-10-31: nothing built and left unused. Core 1's
-  wiring guard (TEST.520, PR #4513) found 157 public functions in
-  physics, generation and galaxy that only tests call or nothing calls;
-  its register lines name TEST.520 because no owner was guessed. Report:
-  /mnt/project-files/reports/wiring-guard-test520-2026-10-31.md. Filed
-  by the TODO thread. Your share (38 functions): physics.aerosols
-  (haze_fall_integral_s_m); physics.atmosphere (hydrogen_kpa,
-  other_kpa); physics.atmosphere_state (gas_column_mass_kg_m2);
-  physics.ozone (column_mean_partial_pressure_pa); physics.rayleigh
-  (band_optical_depth, optical_depth_by_gas, uncovered_fraction);
-  physics.thermosphere (hydro_based_in_grid); physics.two_stream
-  (vacuum); physics.mixture_giant (carbon_monoxide_time_s);
-  physics.mixture_sinks (apply_ocean_sinks); physics.surface_pressure
-  (can_weather, degassed_inventory, gas_mass_kg, impact_inventory);
-  physics.surface_composition (crust_reservoir);
-  physics.waterworld_carbon (sealed_state); physics.oxygen_fugacity
-  (buffer_offset, co2_to_co, convert_delta_iw,
-  delta_iw_from_fe3_fraction, delta_iw_where_equal, h2o_to_h2);
-  physics.radiation (apply_air_loss); physics.radiogenic
-  (aluminium_26_mass_fraction, present_ppm, radiogenic_flux_w_m2);
-  physics.surface_dose (effective_air_column_g_cm2, neutron_weight,
-  share_past_cutoffs); physics.proton_range (csda_range_g_cm2);
-  physics.body_colour (rgb8_of); physics.giant_colour
-  (cloud_top_pressure_pa, sudarsky_class); physics.daylight
-  (locked_zone_shares); physics.scatter (history_line, scatter_shares).
-  Do, for each function: (1) wire it, naming the open item that will
-  call it (or filing one) in its register line of
-  docs/design/research/wiring-register.md; (2) mark it `by design` with
-  the reason when it is a tuning or test harness reader (an observed
-  sampler, an expected count) and say who runs it; or (3) delete it and
-  its tests (no dead code, no shim). Done: none of your functions names
-  TEST.520 in the register, and test_wiring_guard passes. Lock-free
-  (register, tests and deletions of unreferenced code change no stored
-  value; if a wiring step changes output it rides a train under its own
-  item). Owner Aux 4 (proposed by the TODO thread, one lock-free item at
-  a time; the lane says if it clashes). Rule for every lane: a public
-  function that only tests call needs a register line in the same
-  change, like a module.
-  Prerequisites: none.
-
-- [ ] **TEST.525 Wire, register or delete the 26 pure functions nothing calls in 14 modules (Aux 3's share of the TEST.520 shadow functions)**
-  Boss, 12:03 PM EDT 2026-10-31: nothing built and left unused. Core 1's
-  wiring guard (TEST.520, PR #4513) found 157 public functions in
-  physics, generation and galaxy that only tests call or nothing calls;
-  its register lines name TEST.520 because no owner was guessed. Report:
-  /mnt/project-files/reports/wiring-guard-test520-2026-10-31.md. Filed
-  by the TODO thread. Your share (26 functions): physics.dynamo
-  (giant_power_w); physics.giant_interior (thin_shell_base_pressure_pa);
-  physics.giant_tilt (final_period_h, large_tilt_chance,
-  ring_plane_tilt_deg); physics.impact_history (late_accreted_fraction,
-  veneer_balance, veneer_volatiles); physics.impact_spin
-  (mean_rms_breakup_fraction); physics.compaction (ice_porosity,
-  silicate_porosity, small_body_density_kg_m3, taper_weight);
-  physics.materials (class_composition); physics.rock_types
-  (mafic_share); physics.bulk_structure
-  (water_fraction_from_mass_radius); physics.small_body_composition
-  (draw_ring, makeup_from_components); physics.moon_composition
-  (origin_probabilities); physics.condensate_shares
-  (water_share_at_distance); physics.clathrate_brine
-  (dissociation_temperature_k, eutectic_wt_percent, freezing_point_k,
-  hydrate_stable, liquid_range_k); physics.hosting_gate
-  (moon_survives_tides). Do, for each function: (1) wire it, naming the
-  open item that will call it (or filing one) in its register line of
-  docs/design/research/wiring-register.md; (2) mark it `by design` with
-  the reason when it is a tuning or test harness reader (an observed
-  sampler, an expected count) and say who runs it; or (3) delete it and
-  its tests (no dead code, no shim). Done: none of your functions names
-  TEST.520 in the register, and test_wiring_guard passes. Lock-free
-  (register, tests and deletions of unreferenced code change no stored
-  value; if a wiring step changes output it rides a train under its own
-  item). Owner Aux 3 (proposed by the TODO thread, one lock-free item at
-  a time; the lane says if it clashes). Rule for every lane: a public
-  function that only tests call needs a register line in the same
-  change, like a module.
-  Prerequisites: none.
-
 - [ ] **TEST.526 Wire, register or delete the 8 pure functions nothing calls in 4 modules (Tides 1's share of the TEST.520 shadow functions)**
   Boss, 12:03 PM EDT 2026-10-31: nothing built and left unused. Core 1's
   wiring guard (TEST.520, PR #4513) found 157 public functions in
@@ -19802,15 +19540,14 @@ clears each one.
   change, like a module.
   Prerequisites: none.
 
-- [ ] **TEST.528 tests/test_systemmap.py::test_a_planet_and_its_moon_glow_in_the_colour_of_their_air_under_their_own_star is red on main (bug)**
-  Found by Core 4 (as the lane reported, 12:30 PM EDT 2026-10-31; red on
-  clean main, not from MAP.277), filed by the TODO thread. Kind: red
-  test on main. Object: the System Map test that a planet and its moon
-  glow in the colour of their air under their own star. Do: find why it
-  fails (the look record glow colour, or MAP.277's new glow strength and
-  width read by the test) and fix the code or the test's expectation
-  with a reason, never by skipping it. Lock-free. Owner Core 2
-  (proposed; it owns the System Map painters).
+- [ ] **TEST.529 test_the_job_strip_shows_the_running_job_on_every_admin_page fails on clean main (bug)**
+  Found by Sources 2 (as the lane reported, 12:45 PM EDT 2026-10-31; red
+  on main without its change), filed by the TODO thread. Kind: red test
+  on main. Object: the admin page test that the job strip shows the
+  running job on every admin page. Do: find the cause (the strip, the
+  fixture or an order dependency) and fix the code or the test with a
+  reason, never by skipping or loosening it without one. Web only,
+  lock-free. Owner Core 5 (proposed; it owns the admin and queue pages).
   Prerequisites: none.
 
 ## USR: User accounts

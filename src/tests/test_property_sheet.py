@@ -232,11 +232,11 @@ def test_the_sheet_of_a_star_a_planet_and_a_moon_returns_every_property_with_uni
         rows = _rows(body)
         assert body["kind"] == kind
         ordered = [spec.key for key in sheet.GROUPS for spec in sheet.SPECS[kind] if spec.group == key]
-        shown = [key for key in rows if not (kind != "star" and key.startswith("p_")) and key != sheet.ECLIPSE_KEY]   # UX.205: derived, not a spec
+        shown = [key for key in rows if not (kind != "star" and key.startswith("p_")) and key != sheet.ECLIPSE_KEY and key not in sheet.CHEMISTRY_KEYS]   # UX.205, UX.254: derived, not a spec
         assert ordered == shown, "every spec is a row, grouped in the order of GROUPS"
         assert all(rows[key]["value"][0]["qty"]["kind"] == "pressure" for key in rows if kind != "star" and key.startswith("p_"))
         assert [group["key"] for group in body["groups"]] == [key for key in sheet.GROUPS
-                                                              if any(s.group == key for s in sheet.SPECS[kind])]
+                                                              if any(s.group == key for s in sheet.SPECS[kind]) or (kind, key) == ("star", "composition")]    # UX.254: the star's derived chemistry
         mass = rows["mass_kg"]
         assert mass["stored"] and mass["value"][0]["qty"]["kind"] == "mass" and mass["value"][0]["qty"]["value"] > 0
         assert mass["text"] and mass["text"] != sheet.NOT_STORED
@@ -397,3 +397,58 @@ def test_an_asymptotic_giant_that_has_dredged_carbon_up_has_a_carbon_star_row(cl
     finally:
         conn.close()
     assert sheet.CARBON_KEY not in _rows(client.get(f"/api/objects/{ref}/sheet").get_json())
+
+
+def _set_star(mysql_config, star_id, **columns):
+    conn = store.get_connection(mysql_config)
+    try:
+        conn.execute("UPDATE stars SET " + ", ".join(f"{name} = ?" for name in columns) + " WHERE id = ?", (*columns.values(), star_id))
+        conn.commit()
+    finally:
+        conn.close()
+
+
+def test_a_star_shows_its_chemistry_from_the_stored_values_with_units_and_sources(client, mysql_config):
+    """UX.254: the disc population, [alpha/Fe] and the metal mass fraction come from `stellar_composition.star_makeup` on the stored class, mass, [Fe/H]
+    and age (no column), and read the same on every request; a red giant adds the helium its first dredge-up added."""
+    from planetgen.physics import constants, stellar_abundances, stellar_composition
+    system_id = _save_wide_binary_with_moons(mysql_config)
+    conn = store.get_connection(mysql_config)
+    try:
+        star = conn.execute("SELECT id, star_system_id FROM stars WHERE star_system_id = ? ORDER BY id", (system_id,)).fetchone()
+        distance_ly = sheet._star_distance_ly(conn, star["star_system_id"])
+    finally:
+        conn.close()
+    ref = f"star:{pid('star', star['id'])}"
+    seen = set()
+    for fe_h, age_gy, mass_sol in ((0.0, 4.6, 1.0), (-0.8, 9.0, 0.8), (-1.4, 11.0, 0.7), (0.3, 1.0, 1.4)):
+        mass_kg = mass_sol * constants.SOLAR_MASS_TO_KG
+        _set_star(mysql_config, star["id"], state="main-sequence", yerkes_class="V", mass_kg=mass_kg, metallicity_fe_h=fe_h, age_gy=age_gy)
+        rows = _rows(client.get(f"/api/objects/{ref}/sheet").get_json())
+        key = stellar_composition.abundance_key(mass=mass_kg, distance_ly=distance_ly)
+        makeup = stellar_composition.star_makeup(stellar_composition.MAIN_SEQUENCE, fe_h, age_gy, mass_sol, key)
+        assert rows["chemistry_branch"]["text"] == sheet._BRANCH_WORDS[makeup.branch]
+        assert rows["chemistry_alpha_fe"]["raw"] == pytest.approx(stellar_abundances.alpha_enhancement(makeup.birth))
+        assert rows["chemistry_alpha_fe"]["text"].endswith(" dex")
+        assert rows["chemistry_metal_fraction"]["raw"] == pytest.approx(makeup.birth.z)
+        assert rows["chemistry_metal_fraction"]["value"][0]["qty"]["unit"] == "frac"
+        assert all(rows[name]["source"] for name in ("chemistry_branch", "chemistry_alpha_fe", "chemistry_metal_fraction"))
+        assert "chemistry_dredge_up_helium" not in rows
+        seen.add(makeup.branch)
+    assert seen == {stellar_abundances.BRANCH_THIN, stellar_abundances.BRANCH_HIGH_ALPHA}    # the sample reaches both sequences
+    _set_star(mysql_config, star["id"], state="red-giant", yerkes_class="III", mass_kg=1.5 * constants.SOLAR_MASS_TO_KG, metallicity_fe_h=0.0, age_gy=2.5)
+    rows = _rows(client.get(f"/api/objects/{ref}/sheet").get_json())
+    assert rows["chemistry_dredge_up_helium"]["raw"] == pytest.approx(stellar_abundances.first_dredge_up(1.5, rows["chemistry_metal_fraction"]["raw"]).delta_y)
+    assert rows["chemistry_dredge_up_helium"]["source"]
+
+
+def test_a_star_with_no_metallicity_shows_no_chemistry(client, mysql_config):
+    system_id = _save_wide_binary_with_moons(mysql_config)
+    conn = store.get_connection(mysql_config)
+    try:
+        star = conn.execute("SELECT id FROM stars WHERE star_system_id = ? ORDER BY id", (system_id,)).fetchone()
+    finally:
+        conn.close()
+    _set_star(mysql_config, star["id"], metallicity_fe_h=None)
+    rows = _rows(client.get(f"/api/objects/star:{pid('star', star['id'])}/sheet").get_json())
+    assert not set(sheet.CHEMISTRY_KEYS) & set(rows)
