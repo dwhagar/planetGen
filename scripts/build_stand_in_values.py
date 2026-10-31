@@ -260,6 +260,7 @@ SECTIONS = (
     ("6.156", "6.156 Stand-ins of the two cuts of the body type",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.164", "6.164 Stand-ins of the mass ratio of a companion",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.163", "6.163 Stand-ins of the helium-core white dwarf",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.162", "6.162 Stand-ins of the temperature a body took its shape at",
