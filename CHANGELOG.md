@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2909] - 2026-10-31
+
+**Headline:** The spin of A and early B stars now rises with mass as measured, instead of one speed for all of them.
+
+### Changed
+- **Every star hotter than the Kraft break of 1.8 solar masses or more was given the same median speed of 180 km/s (GEN.1170).** Zorec and Royer 2012 put the fast rotators' mode at 160 km/s for 1.6 to 2.0 solar masses and 238 km/s for 3.15 to 3.85, so the median now rises to 268 km/s at 3.5 solar masses, then falls back to 180 km/s at 8 solar masses, where most B stars are slow (Huang, Gies and McSwain 2010: 84% under half the critical speed). The fall is a stand-in (registry row SP21). Star rotation periods of A and B stars change; nothing else does apart from the activity that reads them.
+- generation-output: changed
+
 ## [8.0.2908] - 2026-10-31
 
 **Headline:** A giant planet can now lie on its side after a giant impact, and a locked planet or moon keeps a small tilt instead of exactly none.
