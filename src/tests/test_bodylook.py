@@ -346,3 +346,9 @@ def test_a_rogue_planet_has_no_glow_or_twilight():
     look = bl.rogue_planet_look({"id": 1, "planet_type": "t", "surface_temperature_k": 300.0, "radius_km": 6000.0, "atmospheric_pressure_pa": 1e5,
                                  "gravity_g": 1.0, "atmosphere": "Nitrogen-Oxygen"})
     assert not {"glow", "glowStrength", "glowWidth", "twilight"} & set(look)
+
+
+def test_a_solid_body_carries_its_stored_roundness_and_a_giant_does_not():
+    assert bl.planet_look(_planet(roundness_ratio=0.31234567))["roundness"] == 0.3123
+    assert "roundness" not in bl.planet_look(_planet())
+    assert "roundness" not in bl.planet_look(_planet(body_type="g", roundness_ratio=None))
