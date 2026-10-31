@@ -474,8 +474,13 @@ class StarSystem:
             self.unmet_requirements.append(f"a planet of class {self.system_config.FORCE_CLASS}")
         forced = self._forced_star_count()
         if forced is not None and len(self.stars) != forced and forced > 1:
-            # A star at the hydrogen-burning limit has no lighter star to be its companion (GEN.631).
-            self.unmet_requirements.append("a companion star" if forced == 2 else f"{forced} stars")
+            # A star under the hydrogen-burning limit has no lighter star to be its companion (GEN.631); a brown dwarf is no
+            # star of the count (GEN.899), so the refusal says so (GEN.706).
+            wanted = "a companion star" if forced == 2 else f"{forced} stars"
+            if place_terms.born_mass_solar(self.primary_star) < multistar.companion_floor_solar(
+                    getattr(self.primary_star, "metallicity_fe_h", None)):
+                wanted += " (a primary under the hydrogen-burning limit has no lighter star, and a brown dwarf is no star of the count)"
+            self.unmet_requirements.append(wanted)
         if self.unmet_requirements:
             log.debug(f"Planet generation gave up after {tuning.MAX_SYSTEM_GENERATION_ATTEMPTS} attempts "
                       f"without {' or '.join(self.unmet_requirements)}")
