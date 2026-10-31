@@ -1,15 +1,15 @@
 {
   "data": {
-    "archives": 38,
-    "downloaded_at_setup": 11
+    "archives": 36,
+    "downloaded_at_setup": 12
   },
   "papers": {
-    "books": 17,
+    "books": 25,
     "datasets": 6,
-    "entries": 2444,
-    "with_arxiv": 1332,
-    "with_doi": 2257,
-    "without_doi": 187
+    "entries": 3221,
+    "with_arxiv": 1426,
+    "with_doi": 3016,
+    "without_doi": 205
   },
   "stand_ins": {
     "by_tier": {
