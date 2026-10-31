@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 850 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 854 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -36,16 +36,16 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 132 | 11 | 7 | 1 | 0 | 151 |
+| T1 | 135 | 11 | 7 | 1 | 0 | 154 |
 | T2 | 109 | 25 | 0 | 1 | 0 | 135 |
 | T3 | 77 | 32 | 5 | 11 | 0 | 125 |
 | T4 | 36 | 4 | 0 | 14 | 10 | 64 |
 | T5 | 42 | 13 | 0 | 1 | 0 | 56 |
-| T6 | 70 | 55 | 13 | 41 | 1 | 180 |
+| T6 | 71 | 55 | 13 | 41 | 1 | 181 |
 | T7 | 26 | 8 | 8 | 8 | 0 | 50 |
 | T8 | 0 | 1 | 1 | 5 | 2 | 9 |
 | T9 | 13 | 6 | 4 | 38 | 19 | 80 |
-| All | 505 | 155 | 38 | 120 | 32 | 850 |
+| All | 509 | 155 | 38 | 120 | 32 | 854 |
 
 ## How the labels were given
 
@@ -345,6 +345,10 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | SP10 | T | T6 | L0 | planets.generate_spin | none | every planet and moon | a coupled spin, obliquity and eccentricity history | approximations of the spin state: a locked body turns exactly once an orbit (not 1 + 6 e^2 of a constant-time-lag tide); the eccentricity is the stored one, not the larger past one; the obliquity stays as drawn until the spin has come all the way down, then is zero; no atmospheric tide, core-mantle coupling or the tide of the body's own moons | - | - |
 | SP11 | P | T6 | L3 | spin.ACCRETION_SPIN_SCALE | 0.25 to 0.6 | a rocky planet above 0.3 Earth masses | Kokubo and Genda 2010 equation 4 with the distribution of the last impacts' mass ratio (`impact_spin`, GEN.978, wired by GEN.979) | INTERIM (GEN.953): the width of the three Gaussian components of a rocky planet's birth spin is scaled by 0.4; the paper's width is the average over planets built by protoplanet-on-protoplanet impacts, and Vesta (5.3 h), Ceres (9.1 h), the Earth after the Moon-forming impact (about 5 h) and Mars (24.6 h) turn at a quarter to a third of breakup or less; 0.4 gives the median free day of 0.1 to 5 Earth masses about 7 hours; falsifier: a measured rotation of a rocky exoplanet or a sample of terrestrial planets (none exists) | - | replace (GEN.979) |
 | SP12 | P | T6 | L3 | spin.SMALL_PLANET_MASS_EARTH, SMALL_PLANET_FACTOR_FLOOR | 0.2 to 0.5 Earth masses; floor 0.02 to 0.1 | a rocky planet under 0.3 Earth masses | the chance of a giant impact by planet mass (`impact_spin.giant_impact_probability`, GEN.978, wired by GEN.979) | INTERIM (GEN.953): a planet under 0.3 Earth masses may never have had a giant impact, so its spin width is cut in proportion to its mass (floor 0.05); chosen so that a Mars (0.107 Earth masses) is slower than its 24.6 hours in about a third of the draws; falsifier: a measured rotation of a rocky exoplanet or a sample of terrestrial planets (none exists) | - | replace (GEN.979) |
+| SP13 | P | T1 | L0 | spin.KRAFT_BREAK_LOW_K, KRAFT_BREAK_HIGH_K | 6400 to 6700 K | a main-sequence dwarf of solar metallicity | a break by mass and metallicity (GEN.1163) | READ in full, Beyer and White 2024 (arXiv:2408.02638): the Kraft break is centred at 6550 K with a width of about 200 K, from 6450 to 6650 K (uncertainty about 50 K on the limits), 1.32 to 1.41 solar masses; the 217 stars cooler than it have a mean v sin i of 6.7 km/s (standard deviation 3.6), the 40 hotter ones 63 km/s (standard deviation 35) | - | - |
+| SP14 | P | T1 | L0 | spin.HOT_STAR_BREAK_SPEED_KMS | 60 to 100 km/s | a dwarf of 1.41 solar masses or less above the break | a speed by mass from stars between the break and 1.6 solar masses | the mean v sin i of the stars just hotter than the break, 63 km/s (SP13), deprojected by 4 / pi for random orientation (the mean of sin i): about 80 km/s, kept as the median equatorial speed at the top of the break | - | - |
+| SP15 | P | T1 | L0 | spin.HOT_STAR_SPEED_KMS, HOT_STAR_SPEED_SIGMA, HOT_STAR_FULL_SPEED_MASS_SOL | 160 to 200 km/s; width 0.3 to 0.45 | a dwarf of 1.8 solar masses or more | a speed rising with mass above 1.8 solar masses (the paper's Table 4 trend, about 46 km/s per solar mass in the mode) | READ, Zorec and Royer 2012 (A&A 537:A120, arXiv:1201.2052, Table 4, read from the paper's text): the 1.60 to 2.00 solar mass bin (191 stars) has a Maxwellian mode of the fast rotators of 160 km/s and a dispersion of 54 km/s, a mean of 2 / sqrt(pi) times the mode, 180 km/s; the mode rises to 238 km/s at 3.15 to 3.85 solar masses, which the model does not follow (hot stars of every mass above 1.8 keep 180 km/s with a log-normal width of 0.45, a planetGen choice wider than the paper's 54 / 160); their lowest bin starts at 1.6 solar masses | - | - |
+| SP16 | P | T6 | L0 | spin.KRAFT_BREAK_TOP_MASS_SOL, HOT_STAR_FULL_SPEED_MASS_SOL, spin.hot_star_median_speed_kms | a straight line in v or in ln v | a dwarf of 1.41 to 1.8 solar masses | the same speed by mass from a sample of F and early A stars with masses | between the top of the break (1.41 solar masses, SP14's 80 km/s) and the first mass the paper covers (SP15) the median speed is interpolated, linear in ln v over mass; no source covers the stars of 1.41 to 1.6 solar masses (the break paper gives one mean for all hotter stars); the interpolation is a bridge between two read anchors, not fitted | - | - |
 
 ## 6.15 Stand-ins of the trapped radiation belts
 
