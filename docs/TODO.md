@@ -18667,22 +18667,6 @@ clears each one.
   command.
   Prerequisites: none. Related: GEN.1118.
 
-- [ ] **TEST.513 test_strings_the_code_shows_have_no_todo_code is red on main: TODO codes in shown strings (sheet.py GEN.1142, small_body_composition.py GEN.475/GEN.473, surface_composition.py GEN.474 twice)**
-  Found by Core 5 (as the lane reported, 4:58 AM EDT 2026-10-31), filed
-  by the TODO thread. Kind: red test on main. Object:
-  tests/test_no_todo_codes_shown.py::test_strings_the_code_shows_have_no_todo_code.
-  Result, five strings the code shows carry a TODO code:
-  planetgen/describe/sheet.py:807 (GEN.1142),
-  planetgen/physics/small_body_composition.py:256 (GEN.475) and :264
-  (GEN.473), planetgen/physics/surface_composition.py:56 and :136
-  (GEN.474). Do: reword each shown string in plain words without the
-  code (or, where the string is documentation and not shown, move the
-  text to a comment or docstring), and do not loosen the test or add to
-  its NOT_SHOWN list unless the string is truly never shown. Lock-free
-  (wording only, no stored value). Done: the test green on main. Owner:
-  Core 5 (proposed).
-  Prerequisites: none.
-
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
