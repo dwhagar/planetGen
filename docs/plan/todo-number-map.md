@@ -3032,7 +3032,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.233 | The Map symbols key on the object pages | none | done, PR #3611 |
 | UX.234 | Searching for all M class planets with the search button says it is preparing the results, loops and never shows data (bug) | none | done, PR #3498 |
 | UX.235 | Pages that already have a table of contents also show the automatic contents bar, so the contents appear twice (bug) | none | done, PR #3515 |
-| UX.236 | User preferences: a screen and storage for per-user settings, starting with the Galaxy Map region landing (frame or densest) | none | open |
+| UX.236 | User preferences: a screen and storage for per-user settings, starting with the Galaxy Map region landing (frame or densest) | none | done, PR #4448 |
 | UX.237 | Planet page Life section: Supports Class N, also supports, Has Class N at the X stage with its animal grade, the eats-drinks-breathes-gives-off block, the Life and air chart and the adaptation traits; the class number on lists | none | open |
 | UX.238 | The "On this page" table of contents on object pages goes under the tab bar, not off to the left (bug) | none | done, PR #3900 |
 | UX.239 | Search for star systems by how many stars they hold: single, binary, trinary, quaternary and more | none | open |
