@@ -99,3 +99,17 @@ def test_the_formerly_lines_are_newest_first_with_ids_printed_and_names_as_text(
     rows = [retired(SYSTEM, epoch=2, reason="regeneration"), retired("Old Name", d.KIND_NAME, epoch=4, reason="collision bump")]
     assert d.former_lines(rows) == [(d.KIND_NAME, "Old Name", "collision bump", 4), (d.KIND_UID, ou.format_id(SYSTEM), "regeneration", 2)]
     assert d.former_lines([]) == []
+
+
+@pytest.mark.parametrize("found,method,status", [
+    (d.Resolution(d.REDIRECT, "star_systems", 7), "GET", 301),
+    (d.Resolution(d.REDIRECT, "star_systems", 7), "head", 301),
+    (d.Resolution(d.REDIRECT, "star_systems", 7), "PATCH", 409),
+    (d.Resolution(d.REDIRECT, "star_systems", 7), "DELETE", 409),
+    (d.Resolution(d.GONE, "star_systems", 7), "GET", 410),
+    (d.Resolution(d.GONE, "star_systems", 7), "PATCH", 410),
+    (d.Resolution(d.CURRENT, "star_systems", 7), "PATCH", None),
+    (d.Resolution(d.UNKNOWN), "GET", None),
+])
+def test_a_read_of_a_retired_designation_redirects_a_write_is_refused_and_a_deleted_one_is_gone(found, method, status):
+    assert d.status_of(method, found) == status
