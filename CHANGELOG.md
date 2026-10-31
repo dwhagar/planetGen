@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3010] - 2026-10-31
+
+**Headline:** The supernova remnants of a satellite galaxy now follow its star formation, so the Large Cloud holds dozens of them instead of a handful.
+
+### Changed
+- **GEN.1191.** A satellite's supernova remnants were the rate per system at the solar circle, every candidate then kept with a gas factor (the young stars' density against the solar circle's to the power 1.4, capped at 1, falling to 0.06 at one half-mass radius). The Large Cloud row came out with about 5 remnants, against the 59 listed in the real one (Maggi et al. 2016). The count is now the systems times that rate times a factor of the satellite's star formation (`component_pass.supernova_remnant_factor`): the solar circle's odds of core-collapse to Type Ia (3 to 1) times the satellite's young share and old share against the solar circle's, none where it forms no stars, not capped, and no cut by a gas profile (a satellite's young stars share its stars' profile, so the remnants are placed with them). The Large Cloud row gives about 39 per run and the Small Cloud about 8 (the Small Cloud's real count, about 23, is a recalled figure; its low value follows from its generated gas and star formation, GEN.1192). `gas_by_radius` is removed. The sector profile's own supernova-remnant factor in a Cloud's cells is not changed here.
+- Generator epoch bump (numbered at merge): the supernova remnants of every satellite galaxy that forms stars change in number and position (each class has a stream of its own, so no other class moves).
+generation-output: changed
+
 ## [8.0.3009] - 2026-10-31
 
 **Headline:** A satellite galaxy's gas is now a disc longer than its stars, so the Small Cloud holds about 2e8 solar masses of gas instead of 6e7.
