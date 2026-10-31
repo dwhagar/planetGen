@@ -354,6 +354,7 @@ def search():
         breadcrumbs=[crumb("Search")],
         description="Search this charted galaxy by name, size and type.",
         state=state,
+        lookup=searchpage.lookup_notice(state.q),
         name_fields=searchpage.NAME_FIELDS,
         size_entities=searchpage.SIZE_ENTITIES,
         value_groups=searchpage.value_form(state),

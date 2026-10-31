@@ -123,6 +123,7 @@ from planetgen.physics.units import ly_to_milliparsecs, pc_to_ly
 from planetgen.util import detmath
 
 from . import ids
+from . import lookup as lookup_module
 from .authz import audit, require_admin
 from .common import ApiError, request_json, require_json_body
 from .version import API_VERSION
@@ -535,6 +536,7 @@ def sector_detail(sector_id):
                                  if detail.get("placed") else None)
     detail["unresolved"] = unresolved_of(conn, detail)
     detail["scatter_tier"] = scatter_tier_of(conn, detail)
+    detail["former_designations"] = ids.former_designations(conn, ids.SECTOR, sector_id)
     return jsonify(detail)
 
 
@@ -627,6 +629,7 @@ def system_detail(system_id):
         detail["region"] = region_of(conn, resolve_object(conn, "system", system_id)["positions"]["galaxy_pc"])
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 404
+    detail["former_designations"] = ids.former_designations(conn, "system", system_id)
     return jsonify(detail)
 
 
@@ -1599,6 +1602,7 @@ def phenomenon(phenomenon_type, phenomenon_id):
         detail = query_phenomenon_detail(get_db(), phenomenon_type, phenomenon_id)
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 404
+    detail["former_designations"] = ids.former_designations(get_db(), phenomenon_type, phenomenon_id)
     return jsonify(detail)
 
 
@@ -1692,6 +1696,21 @@ def uncharted_phenomenon(scatter_id):
         return jsonify({"error": str(exc)}), 404
 
 
+@bp.route("/lookup")
+def lookup_route():
+    """
+    `GET /api/lookup?text=<Object ID or name>` (GEN.1140) -- what an Object ID or a name is now, including one the object used to have. 200 with
+    `status` `current` (it has it now) or `redirect` (it had it once; the body is the object that has it now, `retired` is what was asked
+    for) and `kind`, `ref`, `id`, `name`, `former_designations` and, for a name that other objects once had too, `also`; 410 `gone` for a
+    designation of a deleted object; 404 `unknown` for one nobody had; 400 for no text.
+    """
+    try:
+        status, body = lookup_module.lookup(get_db(), request.args.get("text"))
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
+    return jsonify(body), status
+
+
 @bp.route("/objects/<ref>")
 def object_ref_route(ref):
     """
@@ -1706,6 +1725,7 @@ def object_ref_route(ref):
         kind, object_id = object_ref.parse(resolved)
         found = resolve_object(get_db(), kind, object_id)
         found["region"] = region_of(get_db(), found["positions"]["galaxy_pc"])
+        found["former_designations"] = ids.former_designations(get_db(), kind, object_id)
         return jsonify(found)
     except ValueError as exc:  # includes ids.IdError
         return jsonify({"error": str(exc)}), 404

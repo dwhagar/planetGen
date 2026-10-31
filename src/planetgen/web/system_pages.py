@@ -34,7 +34,7 @@ from planetgen.web.lib.fmt import (
 )
 from planetgen.web.lib.datatable import Column, Facet, Result, Table, read_from_start
 from planetgen.web.maps.starmap import HYPERVELOCITY_EXPECTED_STAR
-from planetgen.web import system_orbits_view
+from planetgen.web import formerly, system_orbits_view
 from planetgen.web.scatter_members_view import members_view
 from planetgen.web.maps.phenomenonmap import render_phenomenon_map_panel
 from planetgen.web.maps.phenomenonrender import render_nebula_view_panel, render_phenomenon_view_panel, view_kind
@@ -316,6 +316,7 @@ def system(system_id):
         breadcrumbs=breadcrumbs,
         description=f"The {detail['name']} star system: its stars, planets, moons, belts and comets.",
         system=detail,
+        former=formerly.view(detail.get("former_designations")),
         badges=_badges(detail),
         inside=_inside_link(inside["type"], inside["id"], inside["name"]) if inside else None,
         location=item_pages.sector_location(detail.get("sector_id"), detail.get("sector_name"), inside),
@@ -893,6 +894,7 @@ def phenomenon(phenomenon_type, phenomenon_id):
         breadcrumbs=[crumb("Phenomena", "phenomena"), crumb(detail["name"])],
         description=f"{detail['name']}, a {type_label.lower()} in this charted galaxy.",
         type_label=type_label,
+        former=formerly.view(detail.get("former_designations")),
         distance=distance,
         sector=sector,
         octant=detail.get("quadrant"),

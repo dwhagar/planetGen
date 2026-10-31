@@ -38,6 +38,7 @@ from urllib.parse import urlencode
 from flask import abort, current_app, flash, g, get_flashed_messages, jsonify, redirect, request, url_for
 
 from planetgen.queue import runline
+from planetgen.web import formerly
 from planetgen.web.lib import apiclient
 from planetgen.web.lib.fmt import (
     esc, format_number, format_distance_ly, inside_text, linkify_nearest, nearest_systems_html,
@@ -693,6 +694,7 @@ def sector(sector_id):
                     f"{'' if system_count == 1 else 's'}, its 3D sector map and nearby phenomena.",
         sector=detail,
         sector_id=sector_id,
+        former=formerly.view(detail.get("former_designations")),
         nearby_url=nearby_url(f"sector:{sector_id}"),
         edge_text=format_distance_ly(detail['edge_ly']),
         system_count=system_count,

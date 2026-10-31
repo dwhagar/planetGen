@@ -111,6 +111,9 @@
   {%- endif %}
 </section>
 
+{%- if lookup %}
+<p class="search-lookup" role="status">{{ lookup.text }}{% if lookup.url %} <a href="{{ lookup.url }}">{{ lookup.link }}</a>{% endif %}.</p>
+{%- endif %}
 {%- if panels is none %}
 <p class="hint">Enter a name above, or pick a tag below, to see matching results.</p>
 {%- elif not panels %}

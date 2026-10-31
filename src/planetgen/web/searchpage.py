@@ -556,6 +556,14 @@ def _link(text, href):
     return {"text": text, "href": href} if href else {"text": text or "—"}
 
 
+def _name_link(row):
+    """The Name cell of a result row (GEN.1140): the link, and a note "formerly X" when the word searched is a name the object used to have."""
+    cell = _link(row["name"], row["url"])
+    if row.get("formerly"):
+        cell["note"] = "(formerly " + ", ".join(row["formerly"]) + ")"
+    return cell
+
+
 def _sector_link(row):
     return _link("View", row["sector_url"]) if row["sector_url"] else {"text": "Standalone"}
 
@@ -616,17 +624,17 @@ def _values_cell(row):
 def _cells(panel, row):
     """One search result row as the data table's cells (the columns of `_PANEL_COLUMNS`)."""
     if panel == "sectors":
-        return [_link(row["name"], row["url"]), {"text": f"{format_number(row['edge_mpc'], ',.2f')} mpc"},
+        return [_name_link(row), {"text": f"{format_number(row['edge_mpc'], ',.2f')} mpc"},
                 _show_on_map(row)]
     if panel == "systems":
-        return [_link(row["name"], row["url"]), _sector_link(row), {"text": str(row["star_count"])},
+        return [_name_link(row), _sector_link(row), {"text": str(row["star_count"])},
                 {"text": str(row["object_count"])}, {"text": "Yes" if row["has_habitable_world"] else "No"},
                 {"text": row["star_summary"]}, _show_on_map(row)]
     if panel == "stars":
-        return [_link(row["name"], row["url"]), {"text": row["role"]}, {"text": row["star_type"]}, _radius(row), _values_cell(row),
+        return [_name_link(row), {"text": row["role"]}, {"text": row["star_type"]}, _radius(row), _values_cell(row),
                 _link(row["system_name"], row["system_url"]), _sector_link(row)]
     if panel in ("planets", "moons"):
-        cells = [_link(row["name"], row["url"]), {"text": row["planet_class"] or "—"}, {"text": row["body"]}, _radius(row),
+        cells = [_name_link(row), {"text": row["planet_class"] or "—"}, {"text": row["body"]}, _radius(row),
                  {"text": row["life_class_id"] or "—"},
                  equipment_cell(row),
                  habitability_cell(row, row["url"]), *_score_cells(row), _values_cell(row)]
@@ -660,6 +668,36 @@ def api_sorts(args, state=None):
     for entity, sort in (state or SearchState.from_args(args)).value_sorts().items():
         sorts.setdefault(entity, sort)
     return sorts
+
+
+def lookup_notice(text):
+    """
+    The note above the results when the search box holds an Object ID, or a name an object used to have (GEN.1140): where it is now, or that its
+    object was deleted. `None` for anything else, a name an object has now (the results below show it) and a lookup that fails (the search
+    must not depend on it).
+
+    Returns:
+        dict or None: `{"text", "url", "link"}`; `url` is `None` for a deleted object.
+    """
+    from planetgen.web import item_pages
+    text = (text or "").strip()
+    if not text:
+        return None
+    try:
+        found = apiclient.get_lookup(db_name(), text)
+    except apiclient.ApiError:
+        return None
+    if not found:
+        return None
+    if found["status"] == "gone":
+        return {"text": f"{text} belonged to an object that has been deleted.", "url": None, "link": None}
+    is_id = found.get("id") is not None and found["id"].upper() == text.upper()
+    if found["status"] == "current" and not is_id:
+        return None
+    url = item_pages.item_url(found["ref"])
+    if found["status"] == "redirect":
+        return {"text": f"{text} is now", "url": url, "link": found["name"] if not is_id else f"{found['name']} ({found['id']})"}
+    return {"text": f"{text} is", "url": url, "link": found["name"]}
 
 
 def fetch(state):

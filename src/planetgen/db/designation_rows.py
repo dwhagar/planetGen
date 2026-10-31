@@ -22,8 +22,9 @@ from planetgen.util import generator_epoch
 UID_TABLES = kind_tables.tables("uid")
 """tuple: The tables whose objects have an ID (`uid`)."""
 
-NAMED_TABLES = ("sectors",) + UID_TABLES
-"""tuple: The tables whose objects have a name that is kept when it changes. A sector has a name and no stored ID (its ID is its address)."""
+NAMED_TABLES = ("sectors",) + tuple(table for table in UID_TABLES if table != "asteroid_belts")
+"""tuple: The tables whose objects have a name that is kept when it changes. A sector has a name and no stored ID (its ID is its address); a
+belt has an ID and no name (it prints as its ID, and its members as `<ID>.<rank>`)."""
 
 _LIVE_POINTERS = (("constellations", "system_uid"), ("constellations", "name_id"), ("object_locks", "object_uid"))
 """tuple: `(table, column)` of the live pointers at an ID that have an index, moved with the object. Not the journals, which keep the ID they were
@@ -100,11 +101,12 @@ def _retired(row):
     return designations.Retired(
         row["designation_kind"],
         object_uid.from_bytes(row["designation_uid"]) if row["designation_kind"] == designations.KIND_UID else row["designation_name"],
-        row["object_kind"], row["object_row_id"], row["valid_from_epoch"], row["retired_epoch"], row["reason"], row["gone_epoch"])
+        row["object_kind"], row["object_row_id"], row["valid_from_epoch"], row["retired_epoch"], row["reason"], row["gone_epoch"],
+        row["retired_at"])
 
 
 _COLUMNS = ("designation_kind, designation_uid, designation_name, object_kind, object_row_id, valid_from_epoch, retired_epoch, reason,"
-            " gone_epoch")
+            " gone_epoch, retired_at")
 
 
 def history(conn, table, row_id):
@@ -113,6 +115,11 @@ def history(conn, table, row_id):
         f"SELECT {_COLUMNS} FROM designations WHERE object_kind = ? AND object_row_id = ? ORDER BY retired_epoch DESC, id DESC",
         (table, row_id)).fetchall()
     return [_retired(row) for row in rows]
+
+
+def former_designations(conn, table, row_id):
+    """The `former_designations` field of object `row_id` of `table`: `designations.former_json` of its history, newest first, `[]` for an object that never changed."""
+    return designations.former_json(history(conn, table, row_id))
 
 
 def retired_uid(conn, uid):

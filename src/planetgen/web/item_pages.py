@@ -24,6 +24,7 @@ from planetgen.describe import sheet as sheet_registry
 from planetgen.describe.html import blocks_html, inline_html
 from planetgen.describe.model import sections
 from planetgen.galaxy import objectref
+from planetgen.web import formerly
 from planetgen.web.lib import apiclient
 from planetgen.web.lib import bodyview, facility_display, life_air_chart, planet_layout, planet_summary
 from planetgen.web.lib.habitability_chips import chips_html
@@ -505,6 +506,7 @@ def _free_moon_page(db, kind, printed_id, found, free_planet):
         kind_label=KIND_LABELS[kind],
         habitability=found if kind in ("planet", "moon") else None,
         object_id=printed_id,
+        former=formerly.view(found.get("former_designations")),
         facts=trusted_html(""),
         **with_region(sheet_context(apiclient.get_object_sheet(db, ref)), found),
         tree=tree_panel(ref, name, apiclient.get_object_children(db, ref, limit=TREE_PAGE)),
@@ -554,6 +556,7 @@ def _facility_page(db, printed_id, found):
         kind="facility",
         kind_label=KIND_LABELS["facility"],
         object_id=printed_id,
+        former=formerly.view(found.get("former_designations")),
         facts=trusted_html(_facility_facts(facility, found)),
         **with_region(sheet_context(apiclient.get_object_sheet(db, ref)), found),
         tree="",
@@ -629,6 +632,7 @@ def _container_page(db, kind, printed_id, found):
         kind=kind,
         kind_label=KIND_LABELS[kind],
         object_id=printed_id,
+        former=formerly.view(found.get("former_designations")),
         facts=trusted_html(_container_facts(container, found, listing)),
         **with_region(sheet_context(apiclient.get_object_sheet(db, ref)), found),
         tree="",
@@ -701,6 +705,7 @@ def render_item(kind, printed_id):
         facilities=hosted_facilities(db, system_id, kind, row) if row is not None else "",
         species=species,
         object_id=printed_id,
+        former=formerly.view(found.get("former_designations")),
         facts=trusted_html(blocks_html(piece["blocks"], _ref_link) if piece else ""),
         example=bodyview.view(kind, row, detail["stars"]) if row is not None else None,
         life_air=life_air_view(db, kind, printed_id, row),

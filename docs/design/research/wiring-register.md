@@ -425,4 +425,3 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | function | planetgen.physics.species_thermo.log10_k | by design | the reference the equilibrium tests check the gas-equilibrium code against; only tests run it (TEST.524) |
 | function | planetgen.galaxy.designations.cascade | GEN.1141 | the new IDs of a system's bodies when its ID changes; the cascade of GEN.1141 calls it |
 | function | planetgen.galaxy.designations.resolve_member | GEN.1141 | a belt member's or captured body's old designation follows its parent's new ID; GEN.1141 calls it |
-| function | planetgen.galaxy.designations.resolve_name | GEN.1140 | the search by a past name; GEN.1140 calls it |

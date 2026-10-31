@@ -42,6 +42,7 @@ class Retired(NamedTuple):
     retired_epoch: int
     reason: str
     gone_epoch: object = None
+    retired_at: object = None
 
 
 class Resolution(NamedTuple):
@@ -181,13 +182,17 @@ def resolve_member(text, resolve_parent, current_uid_of):
     return found, None
 
 
-def former_lines(rows):
+def former_json(rows):
     """
-    The designations an object used to have, newest first, as `(kind, designation, reason, retired_epoch)` for the "Formerly" lines of its
-    page and the `former_designations` field of its JSON. An ID is printed (`object_uid.format_id`); a name is kept as text.
+    The designations an object used to have, newest first, as the `former_designations` field of its JSON and the lines of the "Formerly" line
+    of its page: one `{designation, kind, reason, retired_epoch, retired_on}` each. An ID is printed (`object_uid.format_id`), a name is kept as
+    text; `retired_epoch` is the generator epoch of the change and `retired_on` its date (`YYYY-MM-DD`, `None` for a record that carries no time).
     """
     out = []
     for row in sorted(rows, key=lambda r: r.retired_epoch, reverse=True):
-        text = object_uid.format_id(row.designation) if row.kind == KIND_UID else row.designation
-        out.append((row.kind, text, row.reason, row.retired_epoch))
+        moment = row.retired_at
+        out.append({
+            "designation": object_uid.format_id(row.designation) if row.kind == KIND_UID else row.designation,
+            "kind": row.kind, "reason": row.reason, "retired_epoch": row.retired_epoch,
+            "retired_on": moment.date().isoformat() if hasattr(moment, "date") else (str(moment)[:10] if moment else None)})
     return out

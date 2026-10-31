@@ -3,6 +3,7 @@
 {% extends "base.html" %}
 {% from "partials/admin_menu.html" import admin_menu_button, admin_dialogs, add_edit_actions with context %}
 {% from "partials/action_bar.html" import action_bar %}
+{% from "partials/formerly.html" import formerly %}
 {% from "partials/poi_key.html" import poi_key_panel with context %}
 {#- The Admin menu of this one body (Regenerate, Delete), as the system page's per-body menu was (ADM.8, ADM.6). -#}
 {%- set groups = [] %}
@@ -28,6 +29,7 @@
     {%- if system_name %}<span class="badge">{{ system_name }} system</span>
     {%- elif owner_name %}<span class="badge">Orbits the free planet {{ owner_name }}</span>{% endif %}
   </p>
+  {{ formerly(former) }}
   {%- if chips %}
   <p class="item-chips">{{ chips }}</p>
   {%- endif %}

@@ -331,6 +331,13 @@ connectivity to that specific schema rather than the default one.
   answer carries `systems_in_range` (the systems in the sphere, counted no
   further than 10,000) and `systems_in_range_capped` (`true` above that),
   which the What's nearby page shows as "10,000+".
+- `GET /api/lookup?text=<Object ID or name>` (GEN.1140) — what an Object ID or a name is now, including one the object used to have
+  (`designations`, GEN.1138). `200` with `status` `current` (the object has it now) or `redirect` (it had it once: the body is the object that has it
+  now, and `retired` is the text asked for) and `kind`, `ref`, `id`, `name`, `former_designations`; a name that other objects once had too
+  also lists them in `also` (`{kind, ref, name, retired_epoch}`, newest first). `410` with `status` `gone` for a designation of a deleted object,
+  `404` with `status` `unknown` for one nobody had, `400` for no text. An ID is 24 hex digits written `XXXXXXXXXXXXXX-XXXXXXX-XXX`; any other text
+  is a name (an exact match on the name now, else on a name an object gave up; a name is not unique, so the first holder wins, sectors and
+  systems first). The Search page uses it to say where a typed ID or past name went.
 - `GET /api/objects/<ref>` — one object by its reference (NAV.7), the one
   form every kind shares: `<kind>:<id>` with kind `sector`, `system`, `star`,
   `planet`, `moon`, `belt`, `comet`, `facility` (UX.183: its parents run down to the body it is built on, or to its
@@ -345,7 +352,9 @@ connectivity to that specific schema rather than the default one.
   (kilometers from the system's origin), each `[x, y, z]` or `null` where
   the object has none (a body inside a system takes the system's galaxy and
   sector positions; a belt is a ring with no `system_km`; a moon of a free planet (DB.94) has `rogue_planet` as its parent after the galaxy, the rogue planet's galaxy point, no `system_km`, and the planet's other moons as siblings). A bad reference
-  or a missing row is a `404`. A planet or moon also carries `phi4` and the six `tier_<domain>` ratings (UX.100) and its four life scores `life_microbial`, `life_flora`, `life_fauna` and `life_sentient`, whole numbers 0 (none) to 9 (abundant), `null` for a body that was not scored (UX.152). `keep_out` (NAV.24) is the object's keep-out
+  or a missing row is a `404`. The answer carries `former_designations` (GEN.1140): the names and IDs the object used to have, newest first, each
+  `{designation, kind, reason, retired_epoch, retired_on}` (`kind` is `name` or `uid`; `retired_on` is the date of the change), `[]` for an object that
+  never changed; so do the details of a sector, a system and a phenomenon. A planet or moon also carries `phi4` and the six `tier_<domain>` ratings (UX.100) and its four life scores `life_microbial`, `life_flora`, `life_fauna` and `life_sentient`, whole numbers 0 (none) to 9 (abundant), `null` for a body that was not scored (UX.152). `keep_out` (NAV.24) is the object's keep-out
   radius for course planning: `{radius_km, basis, note}`, `basis` one of
   `hill` (a planet or moon), `perimeter` (a star or system: the widest
   stored `system_perimeter_km`), `galactic_hill` (a black hole, neutron
@@ -652,7 +661,8 @@ connectivity to that specific schema rather than the default one.
   and phenomenon class, the class tag written `<type>:<class>` such as
   `phenomenon_class=nebula:D` — repeat a facet
   name for multiple active values, e.g. `class=M&class=K`), a per-entity
-  name search, and a min/max size range per entity (UX.214 also adds the score filters below) —
+  name search (GEN.1140: it also matches a name the object used to have, and such a row carries `formerly`, the past names that matched, newest first),
+  and a min/max size range per entity (UX.214 also adds the score filters below) —
   `star_min_radius_km`/`star_max_radius_km` (likewise `planet_`/`moon_`),
   in km, either bound optional (a size range is a continuous quantity,
   not a discrete facet value, so it's its own pair of query parameters
@@ -1246,7 +1256,7 @@ An ID an object gave up (GEN.1138, `designations`; docs/design/architecture/desi
 the ID asked for; a write against it (`PATCH`, `POST`, `DELETE`) is a `409` that does nothing, so a write never acts on a guess; the retired ID of
 an object that was deleted is a `410` for both. The JSON body of all three is `{"error", "retired_id", "former_designations"}` with the current
 `id` in the first two and `gone_epoch` in the third; `former_designations` is the object's earlier IDs and names newest first, each
-`{designation, kind, reason, retired_epoch}`. An ID nobody ever had, or one retired from an object of another kind, is a `404` as before. Additive:
+`{designation, kind, reason, retired_epoch, retired_on}`. An ID nobody ever had, or one retired from an object of another kind, is a `404` as before. Additive:
 the API version does not change.
 
 Every response also carries `X-Content-Type-Options: nosniff`,
