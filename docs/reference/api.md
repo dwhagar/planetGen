@@ -40,6 +40,7 @@ this API instead.
 
 Every `/api` answer carries the API version in the `X-PlanetGen-API-Version` header, and `/api/health` reports it as `api_version` (`src/planetgen/api/version.py`, API.22). A breaking change bumps it, the route snapshot `src/tests/fixtures/api_routes.json` moves with it, and it gets a line here and a row in [api-compatibility.md](api-compatibility.md) (API.4: each version, the release that first carried it, the routes and payload formats it changed, and which clients speak it), which is built from `docs/reference/api-versions.json`.
 
+- **12** (GEN.1108): `GET /api/systems/<id>`: the `regions` of a planet's or moon's `equipment` is `{bands, mean_swing_k}`: `bands` is the seven bands of latitude from the north pole to the south pole (the day centre to the night centre for a world that turns once an orbit), each `{name, mean_k, swing_k, day_hours, night_hours, longest_day_days, longest_night_days, state}`; `polar`, `north`, `equator`, `south`, `swing`, `day_side`, `terminator`, `night_side` and the swings by those names are gone. `GET /api/objects/<ref>/sheet` of a planet or moon has `bands`, the table of its seven bands, and no `temp_polar_k`, `temp_north_k`, `temp_equator_k`, `temp_south_k`, `temp_swing_k`, `temp_day_side_k`, `temp_terminator_k` or `temp_night_side_k` rows.
 - **11** (API.33): `GET /api/admin/backups` and `GET /api/admin/backups/<name>`: an archive and each of its parts have `size_bytes` where they had `size`.
 - **10** (API.37): `GET /api/systems/<id>`: a planet and a moon no longer have `life_chemical`. They have `life_class` (the number of the class that lives on them), `life_class_variant` (its letter), `life_class_best` and `life_class_best_score` (the class they support best and its score, 0 to 9), `life_animal_grade` (0 none to 3 large and active) and `life_complexity`, and `life_class_id` (the class and variant as one id such as `1a`, or `null`) and `life_class_scores` (`{class id: score 1 to 9}` for every class the body supports, empty for none). A species has `life_class` where it had `life_chemical`.
 - **9** (MAP.287): `GET /api/systems/<id>/scene`: a star, planet and moon no longer has `color`; it has `look`, the body look record (`bodylook.py`), which holds its `color` and everything the painters need. A comet keeps `color`.
@@ -169,9 +170,11 @@ connectivity to that specific schema rather than the default one.
   themselves). `sector_id=none` matches only standalone systems
   (`sector_id IS NULL`, the `/systems` page's Standalone Systems table) — distinct
   from omitting `sector_id` entirely (no sector filter at all). The Systems
-  tables (UX.41) also take `sort` (`name`, `sector`, `octant`, `binary`) with
+  tables (UX.41) also take `sort` (`name`, `sector`, `octant`, `binary`, `stars`) with
   `order=asc|desc` (systems with no sector or octant sort last), the filters
   `binary=yes|no`, `placement=sector|standalone` and `octant` (repeatable),
+  and `stars` (UX.239: how many stars a system holds, as in `/api/search`: a count `3`, `3+` for three or more, or `single`, `binary`, `trinary`,
+  `quaternary`, `quintenary`; anything else is a 400; the `stars` sort orders by the same count and pages by `offset`),
   and `facets=1`, which adds `facets: {"placement", "binary", "octant"}`
   (each `[{"value", "count"}]`; every menu's counts apply the other filters
   but not its own). `total` counts the systems that pass the filters; where
@@ -212,7 +215,7 @@ connectivity to that specific schema rather than the default one.
   `sort=name` list at the first name from it on; `past_end` is true when none lies at or past it and the last page is
   answered). Answers `items`
   (`kind`, `id` the printed object ID, `source_id`, `name`, `sector_id`, `system_id`, `parent_id`, `object_class`,
-  `mass_kg`, `radius_km`, `placed`; a planet's or moon's also `phi4` and the six `tier_<domain>` PHI-6 ratings, 0 Blue to 3 Red, `null` for a body that was not scored, UX.100), `next` (null at the last page), `total` and `total_capped`, `limit`. The index is
+  `mass_kg`, `radius_km`, `placed`; a planet's or moon's also `phi4` and the six `tier_<domain>` PHI-6 ratings, 0 Blue to 3 Red, `null` for a body that was not scored, UX.100; a star's also `temperature_k`, `luminosity_w` and `age_gy`, a planet's or moon's `distance_km` (its orbit size), `eccentricity` and `surface_temperature_k`, as stored, `null` where the row holds none, UX.187), `next` (null at the last page), `total` and `total_capped`, `limit`. The index is
   what `planetgen warm object-index` last wrote, so a kind it has not been built for lists nothing. 400 for an unknown
   kind, sort or order, a `limit` or `sector_id` that is not a number, a `from` under another sort, or an `after` that is not an object ID
   (`objectlist.list_objects`).
@@ -235,7 +238,7 @@ connectivity to that specific schema rather than the default one.
   system's tree of orbits, one entry per node with `node_no`, `parent_node_no`, `slot`, `kind`, `mass_solar`, `separation_km`, `eccentricity`, `inclination_deg`, `period_years`, `interaction` and `flags`; empty for a single star), `planets` (each with
   its own nested `moons`; every planet and moon also carries `habitable` (its overall PHI-6 colour is Blue or Green, GEN.643),
   `habitable_class` (its class can carry life), `life_class_id` and `life_class_scores` (API.37: the life class that lives on it, such as `1a`, and `{class id: score}` for each class it supports; `life_class_id` is `null` for a world that suits a class but whose life has not started, a star younger than the first step of its schedule, GEN.1001, where the stored `life_class` stays), `life_stage` — the furthest evolutionary milestone its timeline reached,
-  or `null` — and `inhabited`; a scored rocky one carries `equipment` too — the survival equipment a human needs, GEN.655: `required` and `recommended` item names, a short `code` such as `B4p F100 S2 H3 [R2]`, `required_line` and `recommended_line` (UX.163; a line with nothing in it is empty), the `items` (`slot`, `item`, `severity`, `domain`), the `line` as text, `shelter_column_g_cm2`, `outside_hours` (the hours a year the dose allows), `outside_hours_day` (the hours of one local day a person can be outside, GEN.768) with `outside_hours_limit` (what sets them: `daylight`, `dose`, `heat`, `cold`, `air`, `uv` or `vehicle`) and `regions` (GEN.656: the regional temperatures in kelvin by short name — `polar`, `north`, `equator`, `south` and the day and night `swing` for a world that turns on its own, `day_side`, `terminator` and `night_side` for a tidally locked one; GEN.848 adds the swing of every other place by the same short name with `_swing`: `polar_swing`, `north_swing`, `south_swing`, `mean_swing` and, for a locked world, `day_side_swing`, `terminator_swing`, `night_side_swing` (0, it has no day); `null` when it has none) — and the raw `eq_*` levels; the old `equipment_tier` is gone; `null` for a gas giant, an unscored body and a row not yet re-scored), `belts` (each with its `composition`,
+  or `null` — and `inhabited`; a scored rocky one carries `equipment` too — the survival equipment a human needs, GEN.655: `required` and `recommended` item names, a short `code` such as `B4p F100 S2 H3 [R2]`, `required_line` and `recommended_line` (UX.163; a line with nothing in it is empty), the `items` (`slot`, `item`, `severity`, `domain`), the `line` as text, `shelter_column_g_cm2`, `outside_hours` (the hours a year the dose allows), `outside_hours_day` (the hours of one local day a person can be outside, GEN.768) with `outside_hours_limit` (what sets them: `daylight`, `dose`, `heat`, `cold`, `air`, `uv` or `vehicle`) and `regions` (GEN.656, GEN.1108: the climate of the body in seven bands of latitude, `bands`, from the north pole to the south pole, or from the day centre to the night centre for a world that turns once an orbit; each band is `{name, mean_k, swing_k, day_hours, night_hours, longest_day_days, longest_night_days, state}` (the annual mean in kelvin, the day and night swing in kelvin of difference, the hours of day and of night in a solar day, the longest polar day and night of the year in days, and the state word), a locked world's rings having no hours; `mean_swing_k` is the swing of the whole surface; `null` when it has none) — and the raw `eq_*` levels; the old `equipment_tier` is gone; `null` for a gas giant, an unscored body and a row not yet re-scored), `belts` (each with its `composition`,
   `{component, concentration}` largest share first), `comets`, `sector_siblings`
   (`{id, name}` for every system in the same sector), and
   `nearest_neighbors` (`{id, name, distance_ly}` for the up-to-3 closest
@@ -313,8 +316,9 @@ connectivity to that specific schema rather than the default one.
   a place (NAV.43, `planetgen.db.near.objects_within`): systems, stars,
   planets, moons, belts, comets, facilities and the standalone phenomena,
   nearest first, each with `ref`, `kind`, `id`, `name`, `parent` and
-  `distance_pc`. Optional `kinds` (comma-separated), `limit` (50, at most
-  200) and `offset`. The answer also carries `total`, `by_kind`, and
+  `distance_pc`; a `system` row also has `star_count`. Optional `kinds` (comma-separated), `limit` (50, at most
+  200), `offset` and `stars` (UX.239, as in `/api/search`: only the systems with that many stars and what is in them; phenomena and facilities
+  outside a system are left out). The answer also carries `total`, `by_kind`, and
   `not_generated` (`{kind: count}`, with `not_generated_total`): the
   pre-placed bright stars (`bright_star`) and scatter objects in the sphere
   that are not built yet, counted and never listed; the search never
@@ -361,7 +365,7 @@ connectivity to that specific schema rather than the default one.
   `text` the same as plain text, and `stored` false, with the text "not
   stored", for a property the row holds no value for. Every stored column of
   the kind's table is either a row or on the registry's `NOT_SHOWN` list with
-  its reason. A reference that names nothing, or a kind with no sheet (a
+  its reason. A planet's or moon's sheet also has `bands` (GEN.1108), the seven bands of latitude side by side: `locked`, `bands` (`[{key, label}]`, from the north pole to the south pole, or the day centre to the night centre of a world that turns once an orbit) and `rows` (`[{key, label, cells}]`: the annual mean, the day and night swing, the hours of day and of night, the longest day and night of the year and the state; a cell is an inline list, empty where the band has none); `null` for a body with no bands. A reference that names nothing, or a kind with no sheet (a
   sector, a system, a phenomenon), is a `404`.
 - `GET /api/objects/<ref>/children[?limit=&after=]` — what belongs to an
   object, one keyset page at a time (UX.169, `db/children.py`). A sector holds

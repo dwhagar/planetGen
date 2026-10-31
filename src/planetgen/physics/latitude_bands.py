@@ -6,7 +6,7 @@ The climate of a body in seven bands (GEN.1108; Boss, 4:52 and 4:53 PM EDT 2026-
 
 Every body says how much day and night it has, and how hot and cold, at various places from the equator. The places are seven bands of latitude of equal width
 (`BAND_WIDTH_DEG`, 90 over 3.5): the equator band (12.9 degrees each side of the equator), and three bands on each side of it, the last of them taking its pole. This
-module is a pure function of the stored columns (no draws, no epoch); `regional_temperature` still stores four bands until the storage item moves them to these.
+module is a pure function of the stored columns (no draws, no epoch); `regional_temperature` stores them (GEN.1108).
 
 For a body that turns on its own, each band holds, from a circular orbit round a star of angular radius `alpha`:
 
@@ -51,6 +51,9 @@ CYCLE = "day and night"
 POLAR = "polar day and night"
 NON_ROTATING = "non-rotating"
 DAY_SIDE, TERMINATOR, NIGHT_SIDE = "permanent day side", "terminator band", "permanent night side"
+
+RING_STATES = (DAY_SIDE, TERMINATOR, NIGHT_SIDE)
+"""tuple: The states of a world's rings, which tell a ring from a latitude band."""
 
 _STEPS = 12
 """int: The latitudes sampled across a band."""
@@ -103,7 +106,7 @@ def _weights(latitudes):
 
 
 def _mean_cosine(high, low):
-    """The area-weighted mean cosine of the latitude over a band: the day and night swing of a band over the equator band's goes as this (see `regional_temperature._band_swing_ratios`)."""
+    """The area-weighted mean cosine of the latitude over a band: the day and night swing of a band over the equator band's goes as this (see `regional_temperature`)."""
     weight = _weights(_latitudes(high, low))
     return float(np.sum(weight * weight) / np.sum(weight))
 
@@ -175,6 +178,14 @@ def _temperatures(radiative, areas, mean, share, floor=False):
         temperature = mean + (r / scale * mean - mean) * (1.0 - share)
         out.append(max(temperature, rt.NIGHT_FLOOR_K) if floor else temperature)
     return out
+
+
+def alpha_deg_of(values):
+    """The angular radius of the star as the body sees it, degrees, from the stored mean share of the time the star is up (`daylight.mean_day_share`: `(1 + sin alpha) / 2`); 0 for none."""
+    share = values.get("day_share_mean")
+    if share is None:
+        return 0.0
+    return math.degrees(math.asin(min(max(2.0 * share - 1.0, 0.0), 1.0)))
 
 
 def compute(values, alpha_deg=0.0):

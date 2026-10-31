@@ -40,6 +40,17 @@ COLUMNS = [Column("name", "Name"), Column("class", "Class"), Column("mass", "Mas
 HABITABILITY_KINDS = ("planet", "moon")
 """tuple: The kinds whose list has a Habitability column of the PHI-6 symbols (UX.100), before the Sector column."""
 
+PHYSICS_COLUMNS = {
+    "star": (Column("temperature", "Temperature", sortable=False), Column("luminosity", "Luminosity", sortable=False),
+             Column("age", "Age", sortable=False)),
+    "planet": (Column("orbit", "Orbit", sortable=False), Column("eccentricity", "Eccentricity", sortable=False),
+               Column("surface_temperature", "Surface temperature", sortable=False)),
+    "moon": (Column("orbit", "Orbit", sortable=False), Column("eccentricity", "Eccentricity", sortable=False),
+             Column("surface_temperature", "Surface temperature", sortable=False)),
+}
+"""dict: The stored physics values a kind's list shows after the radius (UX.187), in the order of `db.objectlist.PHYSICS_COLUMNS`.
+The object index holds no column to order them by, so none sorts."""
+
 _SORT_KEYS = {"name": "name", "class": "class", "mass": "mass", "radius": "radius"}
 
 
@@ -48,9 +59,32 @@ def _title(value):
 
 
 def _columns(kind):
+    physics = list(PHYSICS_COLUMNS.get(kind, ()))
     if kind not in HABITABILITY_KINDS:
-        return COLUMNS
-    return [*COLUMNS[:-1], Column("habitability", HABITABILITY_COLUMN, sortable=False), COLUMNS[-1]]
+        return [*COLUMNS[:-1], *physics, COLUMNS[-1]]
+    return [*COLUMNS[:-1], *physics, Column("habitability", HABITABILITY_COLUMN, sortable=False), COLUMNS[-1]]
+
+
+def _plain(value, formatter):
+    """A physics cell: the value in the reader's units, or a muted dash for one the row does not hold."""
+    return {"text": formatter(value)} if value is not None else {"text": "\u2013", "muted": True}
+
+
+def _eccentricity(value):
+    return f"{value:.3f}"
+
+
+def _physics_cells(item, kind):
+    """The cells of `PHYSICS_COLUMNS[kind]` for one item (UX.187)."""
+    if kind == "star":
+        return [_plain(item.get("temperature_k"), lambda v: measured_html("K", v, companions=False)),
+                _plain(item.get("luminosity_w"), lambda v: measured_html("W", v)),
+                _plain(item.get("age_gy"), lambda v: measured_html("Gyr", v))]
+    if kind in ("planet", "moon"):
+        return [_plain(item.get("distance_km"), distance_km_html),
+                {"text": _eccentricity(item["eccentricity"])} if item.get("eccentricity") is not None else {"text": "\u2013", "muted": True},
+                _plain(item.get("surface_temperature_k"), lambda v: measured_html("K", v, companions=False))]
+    return []
 
 
 def _row(item, kind):
@@ -61,6 +95,7 @@ def _row(item, kind):
              {"text": _title(item["object_class"])} if item["object_class"] else {"text": "None", "muted": True},
              {"text": measured_html("kg", item["mass_kg"])},
              {"text": distance_km_html(item["radius_km"])}]
+    cells += _physics_cells(item, kind)
     if kind in HABITABILITY_KINDS:
         cells.append(habitability_cell(item, name["href"]))
     return cells + [sector]

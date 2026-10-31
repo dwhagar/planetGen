@@ -14,7 +14,7 @@ from planetgen.generation.config import SystemConfig
 from planetgen.generation.phenomena.compact_remnant import BlackHole, NeutronStar
 from planetgen.generation.phenomena.rogue import InterstellarComet, RoguePlanet
 from planetgen.generation.system import StarSystem
-from planetgen.physics import constants, spin
+from planetgen.physics import chemically_peculiar, constants, spin
 from planetgen.util import draw
 
 from tests.fuzz_support import deterministic_entropy
@@ -86,9 +86,12 @@ def test_hot_stars_stay_under_breakup():
 
 
 def _median_speed_kms(temperature_k, mass_sol, age_gy=3.0, radius_sol=1.4, draws=300):
+    # each draw is a star of its own (GEN.1027 keys an Ap or Am dwarf's spin to its mass, temperature and age); the peculiar ones, whose slow
+    # spin is `chemically_peculiar`'s and not the cascade's speed law, are left out
     radius = radius_sol * SUN_RADIUS_KM
-    mass = mass_sol * constants.SOLAR_MASS_TO_KG
-    speeds = [2 * math.pi * radius / (spin.star_rotation_period_hours(mass, radius, temperature_k, age_gy, "V") * 3600) for _ in range(draws)]
+    masses = [mass_sol * constants.SOLAR_MASS_TO_KG * (1.0 + 1.0e-7 * k) for k in range(draws)]
+    speeds = [2 * math.pi * radius / (spin.star_rotation_period_hours(mass, radius, temperature_k, age_gy, "V") * 3600)
+              for mass in masses if chemically_peculiar.of_star("V", mass, radius, temperature_k, age_gy) is None]
     return statistics.median(speeds)
 
 

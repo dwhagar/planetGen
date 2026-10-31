@@ -11,8 +11,11 @@ import math
 
 import pytest
 
+from planetgen.datasets import fetch, hhe_eos
 from planetgen.physics import giant_interior as gi
+from planetgen.physics import giant_structure
 from planetgen.util import draw
+from tests import datasets_support as support
 
 ICES = {"water_liquid": 0.25, "nh3_ice": 0.02, "ch4_ice": 0.03}
 GIANT_ICES = {"water_liquid": 0.6, "nh3_ice": 0.1, "ch4_ice": 0.1}
@@ -123,7 +126,9 @@ def test_an_ice_giant_has_a_superionic_or_ionic_mantle_over_a_rock_core():
     mantle = body.layer("ice_mantle")
     assert mantle.state in ("ionic_fluid", "superionic")
     assert body.layer("rock_core").state == "molten"
-    assert body.layer("metallic_envelope") is None
+    metallic = body.layer("metallic_envelope")                 # only where the molecular envelope runs past P_MM
+    assert metallic is None or (metallic.top_pressure_gpa == pytest.approx(body.metallization_pressure_gpa)
+                                and metallic.bottom_pressure_gpa == pytest.approx(mantle.top_pressure_gpa))
     shares = body.whole_body_shares()
     assert shares["water"] > 0.0 and shares["rock"] > 0.0
     assert body.layer("rock_core").components.keys() <= {"iron", "rock"}
@@ -210,3 +215,71 @@ def test_three_giants_read_differently_and_each_names_its_layers():
         text = gi.summarize_interior(body)
         assert ("helium the rain left" in text) == body.has_helium_shell
         assert ("dilute core" in text) == (body.dilute_core_mass_earth > 0)
+
+
+# --- The profile the pressures are read from (GEN.733) ---------------------------------------------------------------
+
+def _subject(spec):
+    return gi.GiantSubject(**spec)
+
+
+@pytest.mark.parametrize("spec", [JUPITER, SATURN, BROWN_DWARF], ids=["jupiter", "saturn", "brown dwarf"])
+def test_the_pressures_are_the_structures_of_the_downloaded_tables(spec):
+    body = interior(spec)
+    profile = gi._structure(_subject(spec), 1.0)
+    assert isinstance(profile, giant_structure.Profile) and profile.closed
+    assert fetch.stand_ins_used() == []
+    mass = spec["mass_earth"]
+    above = 0.0
+    for layer in body.layers[:-1]:
+        above += layer.mass_earth
+        if layer.kind == "helium_shell":
+            continue
+        assert layer.bottom_pressure_gpa * 1e9 == pytest.approx(profile.at_mass_inside(1.0 - above / mass)[1], rel=0.02, abs=1e5)
+    assert body.layers[0].top_pressure_gpa == pytest.approx(1e-4)
+
+
+def test_an_ice_giants_layers_are_stacked_on_the_structure_of_its_own_layers():
+    body = interior(NEPTUNE)
+    assert fetch.stand_ins_used() == []
+    mantle, core = body.layer("ice_mantle"), body.layer("rock_core")
+    kg = gi.constants.EARTH_MASS_TO_KG
+    profile = giant_structure.fit_adiabat(giant_structure.StructureSubject(
+        NEPTUNE["mass_earth"] * kg, NEPTUNE["radius_km"] * 1e3, NEPTUNE["helium_share"], envelope_z=NEPTUNE["envelope_z"],
+        layers=(giant_structure.Layer("core", core.mass_earth * kg), giant_structure.Layer("mantle", mantle.mass_earth * kg),
+                giant_structure.Layer("envelope")),
+        envelope_ice_fraction=0.9, iron_share=0.3, temperature_1bar_k=NEPTUNE["temperature_1bar_k"]))
+    assert profile.closed
+    assert core.bottom_pressure_gpa * 1e9 == pytest.approx(profile.central_pressure_pa, rel=0.25)       # the ice share of the envelope differs
+    assert mantle.bottom_pressure_gpa == pytest.approx(core.top_pressure_gpa) and core.bottom_pressure_gpa > mantle.bottom_pressure_gpa
+
+
+def test_the_structure_of_jupiter_is_near_the_n_one_polytropes_with_a_stiffer_centre():
+    """The two profiles are the same body: the pressure at half the mass inside is within half of the polytrope's."""
+    jupiter = gi._structure(_subject(JUPITER), 1.0)
+    polytrope = gi.Polytrope(1.0, JUPITER["mass_earth"] * gi.constants.EARTH_MASS_TO_KG, JUPITER["radius_km"] * 1e3)
+    assert jupiter.at_mass_inside(0.5)[1] == pytest.approx(polytrope.at_mass_inside(0.5)[1], rel=0.5)
+    assert jupiter.central_pressure_pa > polytrope.central_pressure_pa      # a heavy core and a stiffer centre
+
+
+def test_without_the_tables_a_run_that_disregards_it_takes_the_polytrope_and_any_other_is_refused(tmp_path, monkeypatch):
+    support.reset_caches(tmp_path / "empty", monkeypatch)
+    with pytest.raises(fetch.DataMissing, match="GS1"):
+        interior(JUPITER)
+    with fetch.disregard_missing_data():
+        for spec in (JUPITER, NEPTUNE, BROWN_DWARF):
+            body = interior(spec)
+            body.validate(spec["heavy_mass_earth"], spec["helium_share"])
+        assert ("hhe_eos", gi.STAND_IN_POLYTROPE) in fetch.stand_ins_used()
+        assert isinstance(gi._structure(_subject(JUPITER), 1.0), gi.Polytrope)
+
+
+def test_an_ice_giants_layers_carry_nested_radii_from_the_structure():
+    """GEN.967: the layers of an ice giant are placed by the structure (they no longer keep the radii they are born with), outside in without a gap."""
+    for seed in range(1, 8):
+        body = interior(NEPTUNE, seed)
+        assert body.layers[0].top_radius_fraction == pytest.approx(1.0) and body.layers[-1].bottom_radius_fraction == 0.0
+        for upper, lower in zip(body.layers, body.layers[1:]):
+            assert upper.bottom_radius_fraction == pytest.approx(lower.top_radius_fraction, abs=1e-9)
+        for layer in body.layers:
+            assert 0.0 <= layer.bottom_radius_fraction < layer.top_radius_fraction <= 1.0
