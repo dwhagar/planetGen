@@ -2221,3 +2221,5 @@ Baseline: PR #1817.
 | TEST.519 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | GEN.342 | 8.3 | Orbital update core |
 | TEST.522 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.525 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.530 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |

@@ -41,6 +41,9 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | module | planetgen.galaxy.influence | GEN.105 | the influence set of an object, read by the orbital update run through the acceleration kernel |
 | module | planetgen.galaxy.potential | GEN.340 | the galactic potential (Hernquist, Miyamoto-Nagai, NFW), read by the star stepper (GEN.340), the velocity seeding (GEN.339) and, through the acceleration kernel, the orbital update run (GEN.105) |
 | module | planetgen.galaxy.acceleration | GEN.105 | the acceleration kernel (influence set plus galactic gradient) and the velocity kick, read by the orbital update run |
+| module | planetgen.galaxy.stepper | GEN.105 | the kick-drift-kick star stepper on arrays, read by the orbital update run in place of the turn about the pole |
+| row | 6.159:ST1 | GEN.105 | `stepper.STEP_ETA` and `STEP_CAP_MYR`, read when the orbital update run steps stars |
+| row | 6.159:ST2 | GEN.105 | `stepper.MAX_LEVEL`, read when the orbital update run steps stars |
 | row | 6.158:AK1 | GEN.105 | `acceleration.MEMBER_SOFTENING_PC`, read when the orbital update run calls the kernel |
 | row | 6.157:GP1 | GEN.340 | `potential.DISK_COMPONENTS`, read when the star stepper reads the potential |
 | row | 6.157:GP2 | GEN.340 | `potential.HERNQUIST_COMPONENTS`, read when the star stepper reads the potential |
@@ -362,34 +365,27 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | function | planetgen.generation.tuning_harness.check_target | TEST.520 | only tests call it; wire it into the code that needs it or delete it (TEST.520 first sweep) |
 | function | planetgen.physics.birth_radioisotopes.fraction_above | by design | the observed share of a fixed-stream sampler, read by test_birth_radioisotopes and the research note, never by the generator |
 | function | planetgen.physics.brown_dwarf_types.type_probabilities | by design | the expected share of each class, read by test_brown_dwarf_types against the sampler it describes |
-| function | planetgen.physics.bulk_structure.water_fraction_from_mass_radius | TEST.520 | only tests call it; wire it into the code that needs it or delete it (TEST.520 first sweep) |
-| function | planetgen.physics.clathrate_brine.hydrate_stable | TEST.520 | only tests call it; wire it into the code that needs it or delete it (TEST.520 first sweep) |
-| function | planetgen.physics.clathrate_brine.dissociation_temperature_k | TEST.520 | only tests call it; wire it into the code that needs it or delete it (TEST.520 first sweep) |
-| function | planetgen.physics.clathrate_brine.eutectic_wt_percent | TEST.520 | only tests call it; wire it into the code that needs it or delete it (TEST.520 first sweep) |
-| function | planetgen.physics.clathrate_brine.freezing_point_k | TEST.520 | only tests call it; wire it into the code that needs it or delete it (TEST.520 first sweep) |
-| function | planetgen.physics.clathrate_brine.liquid_range_k | TEST.520 | only tests call it; wire it into the code that needs it or delete it (TEST.520 first sweep) |
+| function | planetgen.physics.clathrate_brine.hydrate_stable | GEN.471 | whether a clathrate hydrate is stable at a temperature and guest pressure; the surface, the moons and the methane supply read it when GEN.471 lands |
+| function | planetgen.physics.clathrate_brine.dissociation_temperature_k | GEN.471 | the temperature above which a hydrate dissociates at a guest pressure; read by the surface, the moons and the methane supply when GEN.471 lands |
+| function | planetgen.physics.clathrate_brine.eutectic_wt_percent | GEN.471 | the eutectic composition of a brine salt; read with the liquid range when GEN.471 lands |
+| function | planetgen.physics.clathrate_brine.freezing_point_k | GEN.471 | the freezing point of a brine of a given strength; read by the surface and the moons when GEN.471 lands |
+| function | planetgen.physics.clathrate_brine.liquid_range_k | GEN.471 | the temperatures at which some solution of a salt is liquid; read by the surface and the moons when GEN.471 lands |
 | function | planetgen.physics.collision_outcome.conservation_error | by design | the mass and momentum check of a collision outcome; the tests and the census run it, the generator never needs it |
 | function | planetgen.physics.comet_admission.observed_sampler | TEST.520 | only tests call it; wire it into the code that needs it or delete it (TEST.520 first sweep) |
 | function | planetgen.physics.comet_admission.expected_measured | TEST.520 | only tests call it; wire it into the code that needs it or delete it (TEST.520 first sweep) |
-| function | planetgen.physics.compaction.ice_porosity | TEST.520 | only tests call it; wire it into the code that needs it or delete it (TEST.520 first sweep) |
-| function | planetgen.physics.compaction.silicate_porosity | TEST.520 | only tests call it; wire it into the code that needs it or delete it (TEST.520 first sweep) |
-| function | planetgen.physics.compaction.taper_weight | TEST.520 | only tests call it; wire it into the code that needs it or delete it (TEST.520 first sweep) |
-| function | planetgen.physics.compaction.small_body_density_kg_m3 | TEST.520 | only tests call it; wire it into the code that needs it or delete it (TEST.520 first sweep) |
-| function | planetgen.physics.condensate_shares.water_share_at_distance | TEST.520 | only tests call it; wire it into the code that needs it or delete it (TEST.520 first sweep) |
-| function | planetgen.physics.dynamo.giant_power_w | TEST.520 | only tests call it; wire it into the code that needs it or delete it (TEST.520 first sweep) |
+| function | planetgen.physics.compaction.taper_weight | GEN.1069 | the taper of the compaction law in log mass; `body_status.roundness` calls it, and that module is registered under GEN.1069 |
+| function | planetgen.physics.dynamo.giant_power_w | GEN.809 | the power that drives a giant's dynamo from the heat it radiates; `giant_dynamo` calls it, and the wiring step of GEN.809 takes a giant's moment from the interior layers through it |
 | function | planetgen.physics.elements.series | by design | a decay-chain lookup by parent, read by test_elements to check the table against the published chains |
 | function | planetgen.physics.elements.isotopic_mass_fraction | by design | the isotope mass fraction the published specific activities are checked against, read by test_elements |
 | function | planetgen.physics.field_kernel.accelerations | GEN.105 | the pull at an object's exact place; the update's motion vector reads the gravitational field there (the numba kernel `sector_path` loads) |
-| function | planetgen.physics.giant_interior.thin_shell_base_pressure_pa | TEST.520 | only tests call it; wire it into the code that needs it or delete it (TEST.520 first sweep) |
-| function | planetgen.physics.giant_tilt.large_tilt_chance | TEST.520 | only tests call it; wire it into the code that needs it or delete it (TEST.520 first sweep) |
-| function | planetgen.physics.giant_tilt.final_period_h | TEST.520 | only tests call it; wire it into the code that needs it or delete it (TEST.520 first sweep) |
-| function | planetgen.physics.giant_tilt.ring_plane_tilt_deg | TEST.520 | only tests call it; wire it into the code that needs it or delete it (TEST.520 first sweep) |
+| function | planetgen.physics.giant_tilt.large_tilt_chance | by design | the expected share of ice giants tilted over 60 degrees that `MERGER_SHARE` gives, the check of the tilt draw; read by test_giant_tilt, never by the generator |
+| function | planetgen.physics.giant_tilt.final_period_h | by design | the spin after the impact that tilts an ice giant, the check that the impacts that turn a Uranus also spin it as fast as Uranus; read by test_giant_tilt, the draw keeps the giant's own spin |
 | function | planetgen.physics.habitability_world.harshness | TEST.520 | only tests call it; wire it into the code that needs it or delete it (TEST.520 first sweep) |
-| function | planetgen.physics.hosting_gate.moon_survives_tides | TEST.520 | only tests call it; wire it into the code that needs it or delete it (TEST.520 first sweep) |
-| function | planetgen.physics.impact_history.late_accreted_fraction | TEST.520 | only tests call it; wire it into the code that needs it or delete it (TEST.520 first sweep) |
-| function | planetgen.physics.impact_history.veneer_volatiles | TEST.520 | only tests call it; wire it into the code that needs it or delete it (TEST.520 first sweep) |
-| function | planetgen.physics.impact_history.veneer_balance | TEST.520 | only tests call it; wire it into the code that needs it or delete it (TEST.520 first sweep) |
-| function | planetgen.physics.impact_spin.mean_rms_breakup_fraction | TEST.520 | only tests call it; wire it into the code that needs it or delete it (TEST.520 first sweep) |
+| function | planetgen.physics.hosting_gate.moon_survives_tides | GEN.550 | the tidal-survival gate of a moon that would host a submoon; a moon hosts only through this gate and a sourced satellite-share row, which the recursive generation of GEN.550 adds |
+| function | planetgen.physics.impact_history.late_accreted_fraction | GEN.819 | the mass a rocky planet accretes after its last giant impact; the pressure supply law reads it when GEN.819 wires late delivery |
+| function | planetgen.physics.impact_history.veneer_volatiles | GEN.819 | the volatiles of the impactors of the late veneer; the pressure supply law reads it when GEN.819 wires late delivery |
+| function | planetgen.physics.impact_history.veneer_balance | GEN.819 | what the late veneer leaves in the air, at the surface and lost; `surface_pressure.impact_inventory` takes its result when GEN.819 wires late delivery |
+| function | planetgen.physics.impact_spin.mean_rms_breakup_fraction | by design | the rms birth spin of a mass averaged over the distribution of the mass ratio, the expected value the draws are checked against; read by test_impact_spin and test_tidal_spin, never by the generator |
 | function | planetgen.physics.jwst_selection.observed_sampler | TEST.520 | only tests call it; wire it into the code that needs it or delete it (TEST.520 first sweep) |
 | function | planetgen.physics.jwst_selection.expected_observed | TEST.520 | only tests call it; wire it into the code that needs it or delete it (TEST.520 first sweep) |
 | function | planetgen.physics.kepler_recovery.observed_sampler | TEST.520 | only tests call it; wire it into the code that needs it or delete it (TEST.520 first sweep) |
@@ -399,8 +395,8 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | function | planetgen.physics.mass_radius_sample.pass_probability | TEST.520 | only tests call it; wire it into the code that needs it or delete it (TEST.520 first sweep) |
 | function | planetgen.physics.mass_radius_sample.observed_sampler | TEST.520 | only tests call it; wire it into the code that needs it or delete it (TEST.520 first sweep) |
 | function | planetgen.physics.mass_radius_sample.population_pass_fraction | TEST.520 | only tests call it; wire it into the code that needs it or delete it (TEST.520 first sweep) |
-| function | planetgen.physics.materials.class_composition | TEST.520 | only tests call it; wire it into the code that needs it or delete it (TEST.520 first sweep) |
-| function | planetgen.physics.moon_composition.origin_probabilities | TEST.520 | only tests call it; wire it into the code that needs it or delete it (TEST.520 first sweep) |
+| function | planetgen.physics.materials.class_composition | by design | the rows a planet class text names; read by test_materials_table, which fails when a class text of `tuning.PLANET_CLASSES` resolves to no row |
+| function | planetgen.physics.moon_composition.origin_probabilities | GEN.1083 | the probabilities of a moon's origin with the captured row weighted by its mass (`captured_weight`, GEN.1081); the captured-moon wiring weights the origin draw with them |
 | function | planetgen.physics.moon_orbits.drift_rate_m_s | TEST.520 | only tests call it; wire it into the code that needs it or delete it (TEST.520 first sweep) |
 | function | planetgen.physics.moon_orbits.tidal_power_w | TEST.520 | only tests call it; wire it into the code that needs it or delete it (TEST.520 first sweep) |
 | function | planetgen.physics.neutron_star.radius_limits_km | by design | the radius bounds of the equation-of-state spread, read by the plausibility gate (phenomena_plausibility, test_phenomena_plausibility, its batch CLI) and test_neutron_star_radius |
@@ -418,15 +414,14 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | function | planetgen.physics.planet_zones.flux_at | GEN.129 | the light on a planet of a window's host from every star of the tree; the multi-star planet climate reads it (design 5.6, 6.5) |
 | function | planetgen.physics.protection_limits.chosen_pairs | TEST.520 | only tests call it; wire it into the code that needs it or delete it (TEST.520 first sweep) |
 | function | planetgen.physics.proton_range.csda_range_g_cm2 | GEN.444 | the proton range table of the shielding of GEN.444 (the data file is read through this function) |
-| function | planetgen.physics.rock_types.mafic_share | TEST.520 | only tests call it; wire it into the code that needs it or delete it (TEST.520 first sweep) |
 | function | planetgen.physics.rprocess_enrichment.effective_duration_gy | by design | the inverse of constant_input_factor by bisection, read by test_rprocess_enrichment to state a history as a duration |
 | function | planetgen.physics.scatter.scatter_shares | GEN.1071 | the outer disc's populations when the disc is built as a belt |
 | function | planetgen.physics.scatter.history_line | GEN.1070 | the belt page's history sentence, with the members and the designation display |
 | function | planetgen.physics.sector_path.box_cell | TEST.520 | only tests call it; wire it into the code that needs it or delete it (TEST.520 first sweep) |
 | function | planetgen.physics.sector_path.ball_cell | TEST.520 | only tests call it; wire it into the code that needs it or delete it (TEST.520 first sweep) |
 | function | planetgen.physics.sector_path.relevant_masses | TEST.520 | only tests call it; wire it into the code that needs it or delete it (TEST.520 first sweep) |
-| function | planetgen.physics.small_body_composition.makeup_from_components | TEST.520 | only tests call it; wire it into the code that needs it or delete it (TEST.520 first sweep) |
-| function | planetgen.physics.small_body_composition.draw_ring | TEST.520 | only tests call it; wire it into the code that needs it or delete it (TEST.520 first sweep) |
+| function | planetgen.physics.small_body_composition.makeup_from_components | GEN.473 | the makeup of a body from rows of the materials table; `belt_member`, `field_composition` and `captured_composition` call it, and their wiring lands under GEN.473, GEN.1103 and GEN.1083 |
+| function | planetgen.physics.small_body_composition.draw_ring | GEN.1055 | the composition of ring material from where it formed in its parent's disk (ice fraction by distance); the stored ring ice share and its darkening by pollution read it when GEN.1055 lands |
 | function | planetgen.physics.solar_particles.events_per_year_above | by design | the expected event rate of the NOAA list, read by test_solar_particles against the sampled record |
 | function | planetgen.physics.state_vectors.equinoctial_from_state | GEN.105 | the modified equinoctial elements (Walker, Ireland and Owens 1985) of the orbital update for circular and equatorial orbits |
 | function | planetgen.physics.state_vectors.state_from_equinoctial | GEN.105 | the inverse of `equinoctial_from_state`, the update's propagated state |

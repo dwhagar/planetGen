@@ -2,6 +2,31 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2962] - 2026-10-31
+
+**Headline:** Three tests that failed on main were out of date with two decisions already made; they now state those decisions. Nothing the generator makes changes.
+
+### Changed
+- **TEST.530.** The pair-order check of the tuning constants read `REFERENCE_BLACK_HOLE_DRAWS` (0.55, 0.5) as a low-high range; it is two independent draws (GEN.1154 moved the solar one to 0.55), so the check now names the two-number constants that are not ranges, with why. Two roche-interaction tests still held the pre-GEN.1012 expectations: a white dwarf with no larger past than its present is never forced into a post-common-envelope pair, and only a white dwarf could be. The test dwarf now has a past (a 2 solar mass star that swelled to 1.5 AU), and a post-common-envelope pair may hold any member that shrank (a neutron star, a black hole, a contracted young star).
+
+## [8.0.2961] - 2026-10-31
+
+**Headline:** Eight functions nothing used are deleted, and the other 18 that only tests called are now named in the wiring register with the item that will use them or the test that reads them.
+
+### Changed
+- **Deleted, with their tests:** the thin-shell base pressure of a giant's envelope, the identity ring-plane tilt of a tilted giant, the mafic share of a rock norm, the ice and silicate porosity laws and the small-body density of the compaction module (the table builder holds its own copies of the laws), the water share by distance of the condensate module (callers compose the temperature and the share) and the water fraction from mass and radius of the bulk structure module.
+- **Registered:** 14 functions name the open item that will call them (GEN.471, GEN.473, GEN.550, GEN.809, GEN.819, GEN.1055, GEN.1069, GEN.1083) and four are marked `by design` as checks that only tests read.
+- No generated value changes.
+
+## [8.0.2960] - 2026-10-31
+
+**Headline:** Stars now have a proper integrator for their path through the galaxy, ready for the orbital update to use.
+
+### Changed
+- **The star stepper (GEN.340).** `planetgen/galaxy/stepper.py` moves stars through the galactic potential with second-order kick-drift-kick steps, on arrays so a whole sector's stars are one call. Each star's step is a twentieth of its own crossing time (no more than 5 Myr), cut into equal power-of-two blocks so stars of one level step together; a star that would need more than 4096 steps in a span is stepped at that cap and flagged. A callable adds an extra pull to the same kick (the influence set of GEN.109 goes in this way). A star at the Sun's kind of radius keeps its radius to 1 pc and its angular momentum to 1e-10 over 5 Gyr, and a century in one step agrees with a hundred one-year steps. Nothing calls it yet: the orbital update run (GEN.105) will replace the turn about the galactic pole with it, which changes where stars are, so that rides a train; generation output does not change now. Stand-in rows ST1 and ST2.
+
+generation-output: unchanged
+
 ## [8.0.2959] - 2026-10-31
 
 **Headline:** Nothing built is left unused in Core 3's share of the wiring guard: six dead helpers are gone and every other function that only tests call names the item that will read it, or why it stays.

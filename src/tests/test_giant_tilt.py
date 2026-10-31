@@ -73,10 +73,6 @@ def test_the_draw_maps_unit_numbers_to_a_tilt():
     assert math.isclose(gt.impactor_mass_earth(URANUS_M, 1.0), 0.25 * URANUS_M)
 
 
-def test_the_rings_and_moons_lie_in_the_equator():
-    assert gt.ring_plane_tilt_deg(97.8) == 97.8
-
-
 def test_a_turn_adds_to_the_tilt_before_it_by_the_spherical_triangle():
     """GEN.1165: from an upright planet the obliquity is the turn; with a tilt before, the azimuth of the turn sets where the axis ends."""
     assert math.isclose(gt.combined_tilt_deg(0.0, 98.0, 0.3), 98.0)
