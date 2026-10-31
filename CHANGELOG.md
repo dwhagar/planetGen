@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2846] - 2026-10-31
+
+**Headline:** The density of a comet's refractory organics is settled at 1.5 g/cm3 now that the Choukroun et al. 2020 paper has been read.
+
+### Changed
+- **GEN.660.** Choukroun et al. 2020 was read (it had only been reported): it gives a rough "some organics (permittivity about 2, density about 2)" in its section 3.3 and no organics density of its own. Blum and Bischoff's 1.0 to 2.0 g/cm3 covers it, so under the source rules (two sources in question: the widest range) the table keeps 1.5 and the note on the row says what the paper says. The comet draw already reads the row. Nothing a generator draws changes.
+generation-output: unchanged
+
 ## [8.0.2845] - 2026-10-31
 
 **Headline:** `update.sh` says what it is doing and what it waits for, shows progress bars on the long steps, and pauses 5 seconds before the reload and 10 seconds after it.
