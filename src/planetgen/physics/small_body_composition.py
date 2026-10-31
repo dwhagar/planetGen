@@ -253,15 +253,15 @@ TAXON_DATA = {
 TAXON_DATA = {name: TAXON_DATA[name] for name in TAXA}
 
 
-REPLACEMENT = "the meteorite-group map of GEN.475 (each taxon's mix of materials is still a meteorite analogue; the weights are derived, `taxon_kernel`)"
-"""str: What replaces the stand-in taxon rows' mixes of materials (the research item GEN.475 of the to-do list)."""
+REPLACEMENT = "the meteorite-group map (each taxon's mix of materials is still a meteorite analogue; the weights are derived, `taxon_kernel`)"
+"""str: What replaces the stand-in taxon rows' mixes of materials (the meteorite-group map of GEN.475)."""
 
 
 def _taxon_row(taxon):
     data = TAXON_DATA[taxon]
     return pt.Row(
         name=f"taxon-{taxon}", classes=(BELT, FIELD), weight=lambda subject, taxon=taxon: taxon_kernel.kernel(subject["temperature_k"], subject["al26_ratio"])[taxon],
-        source="the belt's taxa from the disk's ice lines and the early heating by aluminium-26 (taxon_kernel, GEN.473); the mix of each taxon is a meteorite analogue (DeMeo and Carry 2013, arXiv:1307.2424)",
+        source="the belt's taxa from the disk's ice lines and the early heating by aluminium-26 (taxon_kernel); the mix of each taxon is a meteorite analogue (DeMeo and Carry 2013, arXiv:1307.2424)",
         state=pt.STAND_IN, replacement=REPLACEMENT, fractions=data.fractions, concentration=None,
         notes=f"{data.analogue}; {data.family} family; albedo {data.albedo}")
 
