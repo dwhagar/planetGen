@@ -14493,15 +14493,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Stand-ins registered in GEN.725. Owner Sources 2 (build-only branch).
   Prerequisites: none.
 
-- [ ] **GEN.1155 A REBOUND N-body sample of 2+2 quadruple systems to replace the 2+2 stability margin GM14 that has no N-body sample behind it (the 3+1 margin GM13 was tuned on the 331 systems of GEN.1029)**
-  From Core 3 (GEN.1016 part 1): GM14 carries the 3+1 margin over to the
-  2+2 network of GEN.1031 with no 2+2 sample. Build a REBOUND sample of
-  2+2 systems across mass ratios and separations, fit the margin,
-  register it in GEN.725 with the new tier and tweak level, and replace
-  GM14. Lock-free until the wiring (GEN.1016 wiring, train 11) uses it.
-  Source: reports/gen1016-quadruple-need-2026-10-30.md.
-  Prerequisites: none.
-
 - [ ] **GEN.1156 Raise the belt share after the GEN.728 disc architecture (3 to 12 percent of systems) toward the documented 4 to 14 percent with a physics-driven change**
   From Aux 5 (GEN.1148,
   reports/gen1148-belt-binary-shift-2026-10-31.md): belts per system
