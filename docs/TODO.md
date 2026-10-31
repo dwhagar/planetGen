@@ -15050,6 +15050,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generation output unchanged (the work seed does not depend on the
   worker count). Owner: Star 2 (proposed by the Train Manager, 6:03 PM EDT
   2026-10-31; it holds PERF.224 and the scatter worker sizing). Version 8.1.
+  Boss (2026-10-09): Boss, 6:07 PM and 6:09 PM EDT 2026-10-31 (as the
+  coordinator relayed): "stop telling me to modify the service drop in,
+  I'm not doing that, period, we MUST solve the memory problem another
+  way" and "stop telling me to run this inside apache's memory pool as
+  well, again we're going to solve this by fixing the memory usage
+  intelligently, not by just adding bandaids." So this item solves it in
+  the program: no systemd drop-ins, no Apache memory limit, no redo log
+  or buffer pool prompts from update.sh (PERF.222 and PERF.223 prompts
+  are removed, #4632). Total memory stays under the host through
+  measured per-stage worker caps and anything else that actually lowers
+  the use (smaller tables per worker, streaming rows, releasing a
+  stage's data before the next, fewer workers when the free memory is
+  low at start). Nothing in the fix may ask the user to change an
+  operating system setting.
   Prerequisites: none. Related: PERF.220, PERF.222, PERF.223.
 
 ## DB: Database and schema
