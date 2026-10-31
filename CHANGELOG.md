@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2937] - 2026-10-31
+
+**Headline:** Every planet class now has its own full list of conditions, ready for a percent-match classifier.
+
+### Added
+- **The best-fit class table (GEN.1205).** `physics/data/planet_class_fit.json` gives every class letter its own positive conditions (F and G a warm, 0.5 to 2 g band; M an Earth-like air window; O and H ordinary air), with a shoulder width per quantity, and `physics/class_fit.py` scores a body against them. Nothing stored changes: the first-match rules still decide every letter. Shoulder widths are stand-ins CF1 to CF7 in GEN.725.
+
 ## [8.0.2936] - 2026-10-31
 
 **Headline:** A planet's rendered example is lit from the left and a little from the front, so its day and night line is a clear curve with most of the disc lit, and a tidally locked world's arrow to the star no longer sits on the planet.
