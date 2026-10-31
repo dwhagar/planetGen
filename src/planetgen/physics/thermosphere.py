@@ -111,7 +111,7 @@ HYDRO_BASED_SIGMA = (15.611, -0.578, 1.537, 1.018, 5.564, 0.894)
 
 HYDRO_BASED_MASS_RANGE_EARTH = (1.0, 40.0)
 HYDRO_BASED_TEQ_RANGE_K = (300.0, 2000.0)
-"""tuple: The grid the fit covers; outside it the rate is an extrapolation (`hydro_based_in_grid`)."""
+"""tuple: The grid the fit covers; outside it the rate is an extrapolation."""
 
 _G = constants.G
 _K = constants.BOLTZMANN
@@ -356,12 +356,6 @@ def kept_shares(fractions, mass_kg, radius_m, teq_k, pressure_pa, age_gy, xuv_fl
 
 
 # --- the hydrodynamic rate of a hydrogen envelope -------------------------------------------------------------------------
-
-def hydro_based_in_grid(mass_earth, teq_k):
-    """Whether a planet is inside the grid of Kubyshkina et al. 2018 (1 to 40 Earth masses, 300 to 2000 K)."""
-    return (HYDRO_BASED_MASS_RANGE_EARTH[0] <= mass_earth <= HYDRO_BASED_MASS_RANGE_EARTH[1]
-            and HYDRO_BASED_TEQ_RANGE_K[0] <= teq_k <= HYDRO_BASED_TEQ_RANGE_K[1])
-
 
 def hydro_based_mass_loss_g_s(mass_earth, radius_earth, teq_k, distance_au, xuv_flux_erg_cm2_s):
     """

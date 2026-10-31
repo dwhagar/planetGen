@@ -32,6 +32,7 @@ import math
 import pymysql
 from flask import Blueprint, current_app, g, jsonify, request, url_for
 
+from planetgen.db import search_values
 from planetgen.db import children as children_db
 from planetgen.describe.sheet import sheet as object_sheet
 from planetgen.web.maps.systemscene import build_scene
@@ -1833,6 +1834,18 @@ def search():
     panels, the rest answering `null`; the Search page fetches each panel on its own so one slow panel
     times out alone (UX.97).
 
+    UX.226: numeric range filters and sorts on the stored physical values (`db.search_values.KEYS`, listed with their units in the
+    response's `values`). `<entity>_min_<key>` and `<entity>_max_<key>` (`planet_min_gravity=0.8&planet_max_gravity=1.2`,
+    `planet_max_surface_dose=2`, `star_min_luminosity=0.5`) keep the bodies whose stored value is in the range, bounds in the key's
+    default unit or in the unit `<entity>_<key>_unit` names (`planet_surface_pressure_unit=kPa`; it must measure the same kind of
+    thing); a body with no value for the key is out of the range. The keys: gravity (g0), surface_temperature (K), surface_pressure
+    (bar), orbit_distance (au for a planet, km for a moon), day_length and rotation_period (h), year_length (yr), mass (Earth masses
+    for a planet or a moon, solar masses for a star), surface_dose (mSv/yr), magnetic_moment (A*m2), ocean_depth (km), moon_count
+    (a planet), gas_<formula> (the partial pressure of a gas, bar; no row is 0), and for a star luminosity (Lsun), age (Gyr) and
+    temperature (K). `star_sort`, `planet_sort` and `moon_sort` also take a key: smallest first, or `-` in front for largest first, a
+    body with no value last. Rows then carry `values` (`{key: {value, unit, symbol}}`) for the keys in use, and `active_ranges`
+    lists the filters for chips. A bound that is not a number, a minimum over a maximum or a unit of another kind is a 400.
+
     UX.239: `stars` keeps the systems with that many stars: a count (`stars=3`, exactly three), a count and a plus (`stars=3+`, three or more)
     or a name (`single`, `binary`, `trinary`, `quaternary`: exactly that many; `quintenary`: five or more). The Systems panel runs for it with
     or without a name; each row carries `star_count`. Anything else is a 400.
@@ -1863,9 +1876,14 @@ def search():
     only = None
     if args.get("panels"):
         only = {panel for panel in args["panels"].split(",") if panel in SEARCH_RESULT_PANELS}  # "none": no panel
-    sorts = {entity: args.get(f"{entity}_sort") for entity in ("planet", "moon") if args.get(f"{entity}_sort")}
+    sorts = {entity: args.get(f"{entity}_sort") for entity in ("star", "planet", "moon") if args.get(f"{entity}_sort")}
     stars = _parse_stars(args)
-    return jsonify(run_search(get_db(), texts, tags, sizes=sizes, limit=limit, offsets=offsets, only=only, sorts=sorts, stars=stars))
+    try:
+        ranges = search_values.ranges_from_args(args)
+    except ValueError as exc:
+        raise ApiError(str(exc))
+    return jsonify(run_search(get_db(), texts, tags, sizes=sizes, limit=limit, offsets=offsets, only=only, sorts=sorts, stars=stars,
+                              ranges=ranges))
 
 
 # ---------------------------------------------------------------------

@@ -1032,12 +1032,18 @@ def test_the_palette_list_is_json_for_an_admin_only(client, fake):
     assert all(item["url"].startswith("/") for item in body["items"])
 
 
-def test_the_job_strip_shows_the_running_job_on_every_admin_page(client, fake, monkeypatch):
+def test_the_job_strip_shows_the_running_job_on_every_admin_page(client, fake, monkeypatch, tmp_path):
     """ADM.119: a running job, its link and Cancel (posting to the Generate form) above any admin page."""
     from planetgen.web import generate_page
 
     job = {"id": "j1", "title": "Add sectors", "status": "running", "kind": "scatter", "finished": False,
            "created_at": 1.0, "elapsed_s": 65, "steps": ["a", "b"], "progress": {"completed": 1, "total": 4}}
+    # TEST.529: the strip reads the running job, the waiting list and the jobs folder of the machine, and shows nothing when Redis or
+    # the folder cannot be read (the job pages hide it then). The test sets up its own job state, so it passes whatever the machine is doing.
+    monkeypatch.setattr(generate_page.jobs, "jobs_dir", lambda: str(tmp_path))
+    monkeypatch.setattr(generate_page.jobs, "promote_queued", lambda root=None, force=False: None)
+    monkeypatch.setattr(generate_page.jobs, "line_view", lambda root=None: [])
+    monkeypatch.setattr(generate_page.jobs, "active_job", lambda root=None: None)
     _logged_in(client, fake)
     html = client.get("/admin/stats").get_data(as_text=True)
     assert "data-job-strip" in html and re.search(r'data-job-strip[^>]* hidden', html)
@@ -1076,3 +1082,20 @@ def test_every_numeric_setting_names_its_unit():
     bare = [path for path, _info, meta in settings.iter_fields()
             if kind_of(meta["annotation"]) in ("int", "float") and not meta.get("x-unit")]
     assert bare == []
+
+
+def test_admin_stats_shows_the_seconds_per_object(client, fake):
+    """PERF.196: the time one object of each kind took, the kinds that took the most time first, each with its share of the object time."""
+    _logged_in(client, fake)
+    fake.generation = {"available": True, "sizes": {}, "buckets": [], "object_types": [
+        {"kind": "system", "objects": 1200, "total_seconds": 90.0, "mean_seconds": 0.075, "fastest_seconds": 0.0009,
+         "slowest_seconds": 2.5},
+        {"kind": "binary-star", "objects": 300, "total_seconds": 10.0, "mean_seconds": 3.3e-2, "fastest_seconds": 4e-5,
+         "slowest_seconds": 0.4}]}
+    html = client.get("/admin/stats").get_data(as_text=True)
+    assert "Seconds per object" in html
+    assert ('<tr><td>system</td><td class="num">1,200</td><td class="num">75.0 ms</td><td class="num">900 \u00b5s</td>'
+            '<td class="num">2.50 s</td><td class="num">90.0%</td></tr>') in html
+    assert "<td>binary star</td>" in html and "10.0%" in html and "40 \u00b5s" in html
+    fake.generation = {"available": True, "sizes": {}, "buckets": [], "object_types": []}
+    assert "Seconds per object" not in client.get("/admin/stats").get_data(as_text=True)

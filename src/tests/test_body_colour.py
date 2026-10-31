@@ -11,6 +11,10 @@ import pytest
 from planetgen.physics import aerosols, atmosphere, body_colour
 
 
+def _rgb8_of(integer):
+    return ((integer >> 16) & 0xFF, (integer >> 8) & 0xFF, integer & 0xFF)
+
+
 def _body(**kwargs):
     base = dict(body_type="t", gravity=1.0, atmospheric_pressure=101325.0, planet_class="M", ozone_column_du=300.0,
                 star=SimpleNamespace(temperature=5772.0),
@@ -23,14 +27,14 @@ def _body(**kwargs):
 
 def test_the_integer_is_the_three_bytes_in_red_green_blue_order():
     assert body_colour.rgb_integer((1, 2, 3)) == 0x010203
-    assert body_colour.rgb8_of(0xABCDEF) == (0xAB, 0xCD, 0xEF)
-    assert body_colour.rgb8_of(body_colour.rgb_integer((0, 255, 7))) == (0, 255, 7)
+    assert _rgb8_of(0xABCDEF) == (0xAB, 0xCD, 0xEF)
+    assert _rgb8_of(body_colour.rgb_integer((0, 255, 7))) == (0, 255, 7)
 
 
 def test_an_earth_like_sky_is_blue_and_is_stored_as_the_integer():
     body = _body()
     body_colour.generate(body)
-    red, green, blue = body_colour.rgb8_of(body.atmosphere_colour)
+    red, green, blue = _rgb8_of(body.atmosphere_colour)
     assert blue > green > red
 
 
@@ -46,7 +50,7 @@ def test_a_thick_cloud_deck_whitens_the_sky():
     cloudy = _body(tau_haze=0.0, tau_dust=0.0, tau_cloud=40.0, cloud_cover=1.0, aerosol_draw=0.5)
     body_colour.generate(clear)
     body_colour.generate(cloudy)
-    saturation = [max(c) - min(c) for c in (body_colour.rgb8_of(clear.atmosphere_colour), body_colour.rgb8_of(cloudy.atmosphere_colour))]
+    saturation = [max(c) - min(c) for c in (_rgb8_of(clear.atmosphere_colour), _rgb8_of(cloudy.atmosphere_colour))]
     assert saturation[1] < saturation[0]
 
 
@@ -111,7 +115,7 @@ def test_a_bright_ground_lightens_the_sky_of_a_thick_air_and_the_colour_is_repea
         body.atmospheric_pressure = 101325.0
         body.ozone_column_du = 0.0
         body_colour.generate(body)
-    assert sum(body_colour.rgb8_of(bright.atmosphere_colour)) > sum(body_colour.rgb8_of(dark.atmosphere_colour))
+    assert sum(_rgb8_of(bright.atmosphere_colour)) > sum(_rgb8_of(dark.atmosphere_colour))
     again = _ground(ice=1.0)
     setattr(again, atmosphere.GAS_FIELD, {"CO2": 101325.0})
     again.atmospheric_pressure, again.ozone_column_du = 101325.0, 0.0

@@ -688,6 +688,24 @@ connectivity to that specific schema rather than the default one.
   (`food` is flora, fauna or a civilization); `supports=<class id>:<1|5>` (MAP.345: the body supports that life class, `1a`, `2`, `6`, with a class score of 1 or more or 5 or more of 9, read from the class score table's index; the class that actually lives on the body is the `life=<class id>` facet). Unscored bodies (gas giants, bodies saved before the scores) match none of them.
   `planet_sort`/`moon_sort` order a panel by `phi4`, `suitability`, a domain name, `microbial`, `flora`, `fauna` or `sentient`:
   worst first, `-` in front for best first (`-phi4`); an unscored body comes last either way. The facets answer their options with counts.
+  UX.226, range filters and sorts on stored physical values (`src/planetgen/db/search_values.py`): for the star, planet and moon panels
+  (`star_`, `planet_`, `moon_` in front), `<entity>_min_<key>` and `<entity>_max_<key>` keep the bodies whose value lies in the range
+  (either bound optional, both inclusive; a body with no stored value is out of any range on that key), `<entity>_<key>_unit` names the
+  unit the bounds are given in (any unit of the same kind in the unit registry, GEN.568; without it the key's own unit below), and
+  `<entity>_sort=<key>` or `-<key>` orders the panel smallest first or largest first, a body with no value last. Several ranges all
+  have to hold, and a range alone is reason enough to run its panel. The keys: `gravity` (g0, surface gravity, planets and moons),
+  `surface_temperature` (K), `surface_pressure` (bar), `surface_dose` (mSv/yr, the surface radiation dose), `magnetic_moment` (A*m2),
+  `ocean_depth` (km), `orbit_distance` (au for a planet, km for a moon), `day_length` (h, the solar day), `rotation_period` (h),
+  `year_length` (yr), `mass` (Mearth for a planet or moon, Msun for a star), `moon_count` (a planet's number of moons), and for stars
+  `luminosity` (Lsun), `age` (Gyr) and `temperature` (K); and `gas_<formula>` (such as `gas_N2`, `gas_CO2`, `gas_O2`, one per gas the
+  generator knows) for the partial pressure of that gas in the surface air (bar; a body without the gas has 0). Every key reads the
+  stored column, so a stored value moves the answer and nothing is computed from other columns. A row carries `values`,
+  `{<key>: {"value", "unit", "symbol"}}` for each key the request used, in the unit the bounds were given in. The answer also gives
+  `values` (the whole key table: label, the panels it applies to, the unit and symbol of each) and `active_ranges` (the ranges that were applied,
+  with their units). A bound that is not a finite number, a minimum above the maximum or a unit that is not of the key's kind is a `400`.
+  Example, planets of 0.8 to 1.2 g where the surface dose is under 2 mSv a year:
+  `GET /api/search?planet_min_gravity=0.8&planet_max_gravity=1.2&planet_max_surface_dose=2`; the same pressure floor in kilopascals:
+  `planet_min_surface_pressure=50&planet_surface_pressure_unit=kPa`.
 - `GET /api/facilities/<id>` — one facility (see "Facilities" below).
 - `GET /api/systems/<id>/facilities` — `{"items": [...]}`, every facility
   on a star, planet, moon or asteroid belt in that system.

@@ -91,13 +91,19 @@ def test_the_absorbing_layer_takes_the_beam_by_beer_lambert_and_diffuse_light_ex
     assert layer.transmission_diffuse[1] == pytest.approx(0.2194, abs=1e-3)
 
 
+def _vacuum(wavelengths, mu0):
+    """A stack of no layers: everything passes."""
+    one, zero = np.ones(len(wavelengths)), np.zeros(len(wavelengths))
+    return ts.Stack(zero, one, zero, zero, zero, one, mu0)
+
+
 def test_nothing_changes_when_a_vacuum_is_added():
     layer = ts.scattering_layer(TAU, np.full(5, 0.9), np.full(5, 0.3), 0.8)
-    both = ts.add(ts.vacuum(TAU, 0.8), layer)
+    both = ts.add(_vacuum(TAU, 0.8), layer)
     assert both.beam_reflectance == pytest.approx(layer.beam_reflectance)
     assert both.beam_diffuse == pytest.approx(layer.beam_diffuse)
     assert both.transmission_diffuse == pytest.approx(layer.transmission_diffuse)
-    other = ts.add(layer, ts.vacuum(TAU, 0.8))
+    other = ts.add(layer, _vacuum(TAU, 0.8))
     assert other.beam_reflectance == pytest.approx(layer.beam_reflectance)
 
 
@@ -133,7 +139,7 @@ def test_a_bright_ground_under_a_conservative_layer_follows_the_research_formula
 
 
 def test_the_ground_flux_of_a_clear_sky_is_the_beam_and_the_albedo_does_not_matter():
-    arriving, outgoing = ts.ground_flux(ts.vacuum(TAU, 0.5), np.full(5, 0.4))
+    arriving, outgoing = ts.ground_flux(_vacuum(TAU, 0.5), np.full(5, 0.4))
     assert arriving == pytest.approx(np.ones(5))
     assert outgoing == pytest.approx(np.full(5, 0.4))
 

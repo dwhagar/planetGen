@@ -25,8 +25,6 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 | TEST.212 | A radiation sweep over every class: transmission, greenhouse, shielding and dose agree with the composition | GEN.444, GEN.446 | Boss 11:58 PM EDT; the radiation proof. |
 | DOC.66 | Docs: the composition model of stars, bodies and atmospheres, the radiation it derives and the sources of every number | TEST.212 | Boss 11:58 PM EDT; docs only. |
 | GEN.421 | Headline of 9.0: what every body and atmosphere is made of, and the atmosphere colour that follows from it | GEN.446, TEST.212, DOC.66 | Headline of 9.0 (Boss, 11:25 PM EDT). |
-| MAP.277 | Atmosphere glow from pressure and composition, and the day and night terminator |  | Body rendering R8; Boss's plan of 10:26 PM EDT 2026-10-23. |
-| UX.158 | Info panel line: how this colour was worked out, which inputs and whether partial or full quality |  | Body rendering R12; Boss's plan of 10:26 PM EDT 2026-10-23. |
 | MAP.284 | Night-side thermal glow on hot worlds, with no city lights until 9.2 | MAP.280 | Body rendering R15; Boss's plan of 10:26 PM EDT 2026-10-23. |
 | MAP.283 | Comet colour from the coma species |  | Body rendering R9b; Boss's plan of 10:26 PM EDT 2026-10-23. |
 | MAP.282 | Life tint: the pigment colour of the life chemistry, faint, on worlds rated Yellow or better; life that is not green mixes in the colour of its own evolutionary chemistry | GEN.670, MAP.280 | Body rendering R14; Boss's plan of 10:26 PM EDT 2026-10-23. |

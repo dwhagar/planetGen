@@ -607,7 +607,7 @@ def test_planet_attrs_carries_one_look_record_not_loose_colour_attrs():
     assert look["body"] == "gas" and look["cls"] == "J" and look["tempK"] == 165.0
     assert look["color"].startswith("#")
     assert "color" not in attrs and "hasatmosphere" not in attrs
-    assert attrs["looknote"].startswith("Estimate")
+    assert attrs["looknote"].startswith("Partial estimate: Cloud-top colour from its mean cloud-top temperature (165 K) alone")
 
 
 def test_planet_attrs_flags_a_real_atmosphere_but_not_a_missing_one():
@@ -946,5 +946,8 @@ def test_a_planet_and_its_moon_glow_in_the_colour_of_their_air_under_their_own_s
     stars = [_star(10), _star(11, temperature_k=3300.0, star_type="M3V", luminosity_w=1e24)]
     html = sm.render_system_map_panel({"name": "Pair", "binary_configuration": "wide"}, stars, [first, second], [])
     sun, dwarf = _look_of(html, "planet", 1)["glow"], _look_of(html, "planet", 2)["glow"]
-    assert sun != dwarf and int(sun[5:7], 16) > int(dwarf[5:7], 16)
+    # The limb colour is scaled so its brightest channel is 255 (test_bodylook: b == 255 for the Sun's air), so the blue channel alone cannot
+    # tell the stars apart; how much bluer than red it is can: the Sun's air is blue, a red dwarf's whiter (GEN.971).
+    blue_over_red = lambda hex_colour: int(hex_colour[5:7], 16) - int(hex_colour[1:3], 16)
+    assert sun != dwarf and blue_over_red(sun) > blue_over_red(dwarf)
     assert _look_of(html, "moon", 7)["glow"].startswith("#")

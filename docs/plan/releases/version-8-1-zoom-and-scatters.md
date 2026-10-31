@@ -482,6 +482,7 @@ Moved into 8.1 from 9.0 phase 3 by Boss, 5:48 PM EDT 2026-10-23: build the entir
 | GEN.1005 | Replace the Solar System-anchored redox, dry carbon and comet species rows with models that carry the physics (replaces the Solar System-resting rows of GEN.1002 that GEN.474 does not cover) | GEN.474 |  |
 | GEN.1021 | Replace the 67P calibration of the comet species factors with a second comet or a laboratory trapping table | GEN.1005 |  |
 | GEN.1022 | One latent ice formation temperature per comet drives its CO/H2O, N2 and Ar together (option B of the comet species model) | GEN.1021 |  |
+| GEN.1227 | Store the coma class and the dominant volatiles of an interstellar comet, so the map can colour its coma | GEN.1021 |  |
 | GEN.475 | Meteorite groups become outputs and not inputs: regions of composition space reachable from the drawn bulk, with the measured groups kept as calibration | GEN.473, GEN.474 | Boss 1:43 AM EDT, Stand-in only: R3, meteorite groups as outputs of the drawn chemistry. |
 | GEN.476 | Aluminium-26 and iron-60 follow from the star's formation environment, not from the Solar System's own value and range |  | Boss 1:43 AM EDT, Stand-in only: R4, Al-26 and Fe-60 from the formation environment. |
 
@@ -576,6 +577,7 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.1032 | Refit the greenhouse table on the far-wing and acid-cloud model that GEN.1019 and GEN.1020 landed, and move the tropopause-jump sweep (GEN.852 family) |  |  |
 | GEN.1019 | Venus clouds and the CO2 far-wing line shape in the infrared model (the IR3 far wing is a labelled stand-in) | GEN.852 |  |
 | GEN.982 | Wire the photolysis lifetimes (physics/photolysis.py and photolysis_lifetimes.json) into the atmosphere chemistry |  |  |
+| GEN.1229 | Methane haze depth per unit of mass flux: the fall term in aerosols.haze_fall (eddy speed replacing fall speed) and the aggregate cross section give Titan its depth only through an oversized mass flux (bug) |  |  |
 | GEN.842 | Follow-ups to elliptical orbits, tidal heating and planet spin: the approximations GEN.727, GEN.737 and GEN.731 left |  | Math 2 follow-up |
 | TEST.499 | RP9: rogue yield calibration against microlensing and the terrestrial scale: rogues per star against Sumi 2023 (central 21, lower 1 sigma 8 over the probed range), the Mroz 2017 Jupiter limit and Barclay 2017's 2.5 terrestrial bodies per star | GEN.1111 |  |
 | GEN.1147 | Ocean-fraction law: replace the sqrt cover law with a two-level hypsometry plus the mantle water cap by mass (2 to 8 oceans), in one epoch |  |  |
@@ -624,10 +626,15 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.1127 | chart_ledger table (tile, run, epoch, time, topped_up_at) with the charted state of a sector derived from it, written by the sector fill units and backfilled from sector_stats.filled_at; the ON DELETE CASCADE removed from position-owned objects (rogue_planets first) so deleting or regenerating a sector removes only objects whose birth tile it is |  |  |
 | GEN.1120 | Rogue planet abundance option: a None, Few, Normal, Many dropdown in the galaxy and the sector generation options, with Normal the target and the physics-based spread tweaked to the low side of the observed range |  |  |
 | TEST.498 | A rogue planet is functionally and programmatically identical to a bound planet: the same columns, the same moon and composition generation, the same classes, differing only in the rogue note and having no host star | GEN.1111 |  |
+| PERF.223 | Protect MySQL (and Redis) from the kernel out of memory killer on a generation host: setup docs and update.sh recommend OOMScoreAdjust=-900 for mysql.service and a memory limit on the workers (bug) |  |  |
+| PERF.222 | Generation hosts: MySQL redo log is too small (InnoDB warns the checkpointer lags behind); setup recommends and checks innodb_redo_log_capacity (bug) |  |  |
+| PERF.221 | A failed or killed unit names the wrong stage: the message says "unit 101 of stage 5" for a unit of stage 8 of 14 (bug) |  |  |
+| TEST.533 | test_disk_history::test_the_present_rate_over_the_mean_is_within_a_factor_of_two_of_the_milky_ways is red on main (0.505 against a bound of 0.393, 0.554 after GEN.999): the model's recent star formation rate over its mean is about 2.5 times the Milky Way's (bug) |  |  |
+| TEST.532 | Give the bright-star backfill unit path (backfill_bright_stars_unit) its own direct tests, since the serial form the tests cover is no longer the path a run takes |  |  |
+| TEST.531 | Delete the sector-settle queue chain that no route reaches any more (api_jobs.settle_sectors and the test helper queue_settle) |  |  |
+| TEST.526 | Wire, register or delete the 8 pure functions nothing calls in 4 modules (Tides 1's share of the TEST.520 shadow functions) |  |  |
 | TEST.520 | Extend the wiring guard to stored columns and shadow functions, and wire, show or drop every column only the Details sheet reads |  |  |
 | GEN.1226 | Store the envelope share for EVERY body, so hydrogen-air dwarfs (about 400 class T bodies) are typed and classed correctly |  |  |
-| GEN.1225 | Research: tune the ammonia life gate and the nitrogen ice amount from physics and chemistry (instead of guesses) |  |  |
-| TEST.519 | tests/test_web_a11y.py::test_page_is_accessible_and_fits[web.galaxy-*] fails the axe rule scrollable-region-focusable on .map-key-lines (all four size and theme runs) on clean main (bug) |  |  |
 | GEN.1222 | Tiny airless moons hold a water surface ocean at 20 to 33 K: 60 of 2,071 bodies in one sample (39 class D, 20 class C, 1 class T), all moons (bug) |  |  |
 | GEN.1221 | Class-by-domain matrix as data: six domains plus regional, day and night temperature and wet bulb, stored relative humidity and a groundwater flag, and a phase gate per solvent | GEN.1219, GEN.1220 |  |
 | GEN.1220 | Class code system: a letter plus a digit (class_variant column, 0 not written), the digit meanings and the letters of the oxygen-water, anoxic-water, CO2, acid, methane-ethane, ammonia-water and hot thin-air families |  |  |
@@ -639,7 +646,6 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.1213 | Atmospheric composition accounts for the whole mix of living classes on a planet: each class changes the air in its own way, summed in timeline order | GEN.862 |  |
 | GEN.1212 | Rewrite the stored system flavour lines (tuning.SYSTEM_FLAVOR, about 40 story lines) to the plain-words style guide, and stop storing text the pages can build |  |  |
 | GEN.1211 | A new class for hot thin-air rocks (about 1.6 percent of bodies: 1.4 to 2 g, 340 to 1100 K, 1 to 10 kPa, no ocean) is Class Z of the class code system (Boss confirmed) |  |  |
-| DOC.84 | Help page suite for life: the four kinds of life, every life class, and the scales we use (abundance, trend, security, suitability) |  |  |
 | UX.252 | Readability rewrite of ALL planet, moon and belt text: summary sentences, descriptions, notes, labels, class pages |  |  |
 | GEN.1209 | Several life types coexist on one planet: a per-body list of living classes, each with its stage, animal grade, kinds (microbes, flora, fauna) and prevalence | GEN.862 |  |
 | GEN.1208 | Best-fit classes, wording: drop the age and stage words from the class tier labels and the "Checked after" and "leftover" wording from the class pages |  |  |

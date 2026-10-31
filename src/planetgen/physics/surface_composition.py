@@ -35,7 +35,7 @@ Use:
     composition.components                      # {materials row: mass share}, adds up to 1
     composition.mix                             # {ground type: areal share}, adds up to 1
     band_albedo(composition)                    # the albedo by band, area-weighted over the rows that have one
-    crust_reservoir(composition)                # K, Th, U of the crust, for the radiogenic heat of GEN.459
+    land_rock_ppm(body)                         # K, Th, U of the rock of the land, for the ground dose
 """
 
 import math
@@ -494,17 +494,6 @@ def band_albedo(composition):
     return result, covered
 
 
-def crust_reservoir(composition):
-    """
-    The K, Th and U (ppm by mass) of the crust, area-weighted over the land types that have a reservoir (`RESERVOIR_OF`), and the
-    share of the land they cover.
-
-    Returns:
-        tuple: `({k_ppm, th_ppm, u_ppm} or None, covered share of the land)`.
-    """
-    return _reservoir_of_mix(composition.mix)
-
-
 def _reservoir_of_mix(mix):
     land = {name: share for name, share in mix.items() if name not in (OCEAN, ICE) and share}
     total_land = math.fsum(land.values())
@@ -524,7 +513,7 @@ def _reservoir_of_mix(mix):
 def land_rock_ppm(body):
     """
     `(K, Th, U)` ppm of the rock a body's land is made of, for the ground dose: the area-weighted reservoirs of its stored ground
-    (`crust_reservoir`), with the land that has no reservoir of its own taking basalt's (the secondary crust of any body that was
+    (`_reservoir_of_mix`), with the land that has no reservoir of its own taking basalt's (the secondary crust of any body that was
     still melting, part E 3.2 rule 4). A body with no stored ground, or no land, is basalt.
     """
     basalt = RESERVOIRS["basaltic"]

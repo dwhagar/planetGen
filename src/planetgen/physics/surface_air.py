@@ -10,7 +10,7 @@ condensable gases and the carbonate-silicate cycle, and the pressure depends on 
 GEN.422 fixes, repeating until the pressure and the temperature stop moving:
 
 1. *Mixture.* The mixture draw (`mixture_draw.draw_mixture`) at the temperature and pressure of the step, over the element budget the
-   interior has degassed (`surface_pressure.degassed_inventory`) less what the sinks take: the sulfate and sulfide sinks of the crust take sulfur (`sulfur_balance`, which the ocean then dissolves
+   interior has degassed (`surface_pressure.degassed_share` of each element's inventory) less what the sinks take: the sulfate and sulfide sinks of the crust take sulfur (`sulfur_balance`, which the ocean then dissolves
    some of, `mixture_sinks`), and the carbonate cycle takes the carbon that weathering locks up at the temperature
    (`surface_pressure.carbonate_pco2_bar`).
 2. *Pressure.* The moles of gas are an air mass, `P = g M_air / (4 pi R^2)`, and the gas that stays is what the light-gas escape
