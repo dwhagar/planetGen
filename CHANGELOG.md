@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2900] - 2026-10-31
+
+**Headline:** A star's aluminium-26 at birth, which heats young rocky worlds, now comes from its galaxy's gas and the lumpiness of supernova additions instead of a range copied from the Solar System.
+
+### Changed
+
+- The aluminium-26 a rocky body is born with is a sum of decayed supernova additions about its galaxy's mean (yield, gas depletion time and the host's aluminium): the median body has far less than before and a few have far more, where the old draw was 0.1 to 10 times the Solar System's. Small bodies mostly lose the early heat. `tuning.RADIOGENIC_AL26_FACTOR_RANGE` is removed. generation-output: changed
+
 ## [8.0.2899] - 2026-10-31
 
 **Headline:** Every asteroid belt and field now says which meteorite group its rock is nearest to (CI, CM, H, L and so on, or none for an icy mix).
