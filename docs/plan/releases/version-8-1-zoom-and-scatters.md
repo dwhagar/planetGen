@@ -536,6 +536,7 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.1082 | The architecture records its capture windows (the instability event, the number of giant-giant close encounters, the gas-disc lifetime already kept in DiskSystem) as a field on the system |  |  |
 | GEN.1073 | Bring-to-epoch for belts: grinding recomputed from the stored age, members above the grinding scale kept | GEN.1069, GEN.1006 |  |
 | GEN.1072 | White dwarf and giant-branch belt events wired into remnant_orbits and the engulfment step, replacing the uniform expansion factor of belts | GEN.1068 |  |
+| GEN.1203 | Polluted white dwarf census: 25 to 50 percent of white dwarf systems polluted once belt birth sees the giants | GEN.1068, GEN.1072 |  |
 | GEN.1071 | Outer (Kuiper-type) disc built as a belt from the same chain, linked to the debris descriptor so the descriptor and the belt are one thing | GEN.1068, GEN.1069 |  |
 | GEN.1070 | Store the individual belt members (rows with parent link and rank), the designation display, the system map drawing them as dots at true orbits, and a body page per member; API version bump | GEN.1069 |  |
 | GEN.1069 | Store the belt mass, Dc, age history text and formation snow line (DB.70 column, migration) and wire belt_mass into AsteroidBelt, replacing the three density words | GEN.477, GEN.1068 |  |
@@ -551,14 +552,7 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | TEST.417 | Whole-sector and whole-galaxy tests take 20 to 45 minutes: make them smaller or cached so a gate run finishes (bug) |  | found by Aux 8 |
 | TEST.455 | A completeness gate: every numeric constant in the generation and physics modules has a stand-in registry row or is read from a table; the list of unregistered constants may only shrink | GEN.945 |  |
 | TEST.461 | test_db_column_round_trip fails on planets.porosity: the column is never written (bug) |  |  |
-| TEST.483 | test_disregard_missing_data (6 tests) and test_rq_time_limits::test_the_generate_pages_job_gets_a_limit_from_the_time_its_steps_are_recorded_to_take (3 params) are red on clean main (bug) |  |  |
-| TEST.480 | test_gen_builder_internals::test_slot_planet_honours_class_and_moon_count gets class J where it forced class I at a cold slot (bug) |  |  |
 | TEST.479 | test_radiative_convective_real::test_earth_sends_out_what_it_absorbs fails on the train 4 branch: the Earth tropopause temperature is 168.33 K against the test bound of 170 to 230 K (bug) |  |  |
-| TEST.472 | Four migration tests are red on clean main: aerosols same-seed draws, albedo_greenhouse saved-system temperature, and two gas_tables tests (AsteroidBelt has no attribute moons) (bug) |  |  |
-| TEST.470 | test_orbit_elements fails on main: the moon-light test (relative error 6e-6) and the ellipse tests (a lunar-range problem) (bug) |  |  |
-| TEST.469 | test_interior_heat::test_a_generated_body_has_a_urey_ratio_above_one_only_while_its_mantle_is_still_warming fails on main: a generated body has urey_ratio 1.85 with a mantle that is no longer warming (bug) |  |  |
-| TEST.468 | test_work_units::test_the_batch_fills_are_units_of_id_ranges_recorded_as_their_commands and test_generation_stats::test_an_unmeasured_server_estimates_from_the_defaults are red on a clean main (bug) |  |  |
-| TEST.459 | The point_phenomena links browser test is red on clean main (bug) |  |  |
 | GEN.945 | Audit every numeric constant the generator uses against the data we already download or hold: which are registered stand-ins, which come from a table, and which are unregistered hand-tuned numbers; ranked findings with a data source named for each |  |  |
 | GEN.951 | Companion mass ratio depends on the primary mass and the orbital period, with the twin excess (Moe and Di Stefano 2017 Table 13) instead of a flat 0.1 to 1 (low priority) |  |  |
 | GEN.932 | The star mass function epoch: golden, design docs, census targets and tags, retire the old tags; items 3 to 7 land as one merge in one lock turn |  |  |
@@ -607,6 +601,7 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.1161 | Asteroid field mass rule and a member ledger like the belts' (individual bodies above 1e19 kg stored, the rest drawn on demand) | GEN.1160 |  |
 | GEN.1160 | Class D and C rules read the roundness ratio and the 0.1 Earth mass line, and the Asteroid object type (no class letter, moon-capable) for bodies under roundness ratio 1 | GEN.1159 |  |
 | GEN.1159 | Store ice fraction, bulk density, roundness ratio, yield strength and binding energy on planets, moons, asteroids and belt or field members (columns, migration, API version) |  |  |
+| GEN.1201 | A per-body shape-setting temperature: the roundness engine uses the temperature a body took its shape at, but no body stores one, so strength is the cold strength today | GEN.1159 |  |
 | GEN.1157 | Earth-type moons around gas giants: how often a giant has a moon the size of a planet, and how big, from the physics of moon formation and capture |  |  |
 | GEN.1156 | Raise the belt share after the GEN.728 disc architecture (3 to 12 percent of systems) toward the documented 4 to 14 percent with a physics-driven change |  |  |
 | GEN.1153 | Day and night state for stars and rogue planets (follow-up to GEN.1097, which covers planets and moons): a star stores the constant "no night"; a rogue planet gets the same state, night hours and solar days as an in-system planet from its own spin, with no star the answer is no solar day |  | Aux 2 report 10-30 |
@@ -617,10 +612,10 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.1130 | The +intelligent_life and +habitable_world request options become probability tweaks only: they raise the odds of such a world in the generated system and never force a placement, a ladder of adaptations or a civilization |  |  |
 | GEN.1129 | Fingerprint split: a sector's digest (GEN.58) becomes "made here" and "arrived here" so rogues landing from other sectors do not change the sector's own digest |  |  |
 | TEST.501 | Order-independence test: chart region A then B and B then A and compare the union of real-donor objects and each sector's made-here digest; chart a region twice and nothing changes; the top-up checked as "same stored state in, same objects out" |  |  |
-| TEST.510 | test_no_new_hand_written_mass_conversion is red on main: new hand-written multiplies or divides by a mass constant in sheet.py, member_record, rogue, belt_mass, binding_energy, planet_architecture and tuning |  |  |
 | GEN.1194 | Runaway greenhouse: the radiative-convective model has no plateau in outgoing flux, so water window opacity, continuum temperature dependence and wings must be reworked until it plateaus |  |  |
 | GEN.1193 | Stripping rule on a satellite's distance to its host so gas follows Grcevich and Putman |  |  |
 | GEN.1198 | The sector profile's remnant factor in a Magellanic Cloud cell uses the gas factor, so scatter and fill disagree with the satellite remnant count | GEN.1191 |  |
+| GEN.1202 | The generator's disc gas surface density at 8 kpc is 4.3 solar masses per pc2 against 13 measured, which holds the disc cluster maximum mass too low | GEN.1196 |  |
 | GEN.1200 | The galactic-centre ring inflow of the generator is 0.044 solar masses per year against the measured 0.07 | GEN.1195 |  |
 | GEN.1199 | A small moon of a giant carries a hydrogen air and is called class T: can a 0.1 Earth-mass moon keep a hydrogen air at all? |  |  |
 | GEN.1192 | Satellite gas: a gas disc longer than the stars and a longer depletion time at low density |  |  |
@@ -631,6 +626,7 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.1127 | chart_ledger table (tile, run, epoch, time, topped_up_at) with the charted state of a sector derived from it, written by the sector fill units and backfilled from sector_stats.filled_at; the ON DELETE CASCADE removed from position-owned objects (rogue_planets first) so deleting or regenerating a sector removes only objects whose birth tile it is |  |  |
 | GEN.1120 | Rogue planet abundance option: a None, Few, Normal, Many dropdown in the galaxy and the sector generation options, with Normal the target and the physics-based spread tweaked to the low side of the observed range |  |  |
 | TEST.498 | A rogue planet is functionally and programmatically identical to a bound planet: the same columns, the same moon and composition generation, the same classes, differing only in the rogue note and having no host star | GEN.1111 |  |
+| TEST.514 | test_habitability_world::test_the_score_round_trips_and_a_cloud_rescores_the_dose is red on main: phi4_temperature 0.75 against 0.8075 after the cloud refresh (bug) |  |  |
 | GEN.1110 | Average wind speeds by day and by night in each of the seven latitude bands: the day-to-night thermal wind from the pressure difference, zonal jets and trade winds from the equator-to-pole temperature difference and the Rossby number, faded out below about 1 kPa | GEN.1108 |  |
 | GEN.1108 | Climate by latitude band for every body in seven bands (the equator, three above, three below, the poles inside the outermost band each side), the temperature categories of regional_temperature.py extended to seven: day and night length and the temperature range by day and by night (bug) |  |  |
 | GEN.1058 | Wire the G1 giant-impact tilt and the ring plane following the equator | GEN.1047 |  |

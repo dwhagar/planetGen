@@ -2286,18 +2286,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   nothing in 8.1.
   Prerequisites: MAP.312, DB.106. Related: MAP.312, MAP.309, MAP.170.
 
-- [ ] **MAP.337 Zoom redesign Z4: delete the stage code and stage URLs and rewrite the stage browser tests**
-  Size M. Boss answered the research cards at 6:19 PM EDT 2026-10-28
-  (1.1 quick fixes then the full rebuild, 2.1 one verb Go to, 3.1
-  vertical log ruler with named stops, 4.1 a region lands framed on the
-  charted part, 5.1 moon in view first). Design:
-  /mnt/project-files/design-drafts/galaxy-map-continuous-zoom-redesign-2026-10-28.md
-  (section 6 plan, section 9 decisions). Owner: Core 2. Remove the stage
-  machinery and the stage URLs once the camera-driven scenes (Z2) and
-  goTo (Z3) carry everything; no compatibility shim. Done: no stage code
-  or URL remains, and the rewritten browser tests pass.
-  Prerequisites: none. Related: MAP.257.
-
 - [ ] **MAP.338 Zoom redesign Z5: planet and moon frames, the camera as frame plus offset, automatic near and far planes, and the MAP.240 leftovers**
   Size M. Boss answered the research cards at 6:19 PM EDT 2026-10-28
   (1.1 quick fixes then the full rebuild, 2.1 one verb Go to, 3.1
@@ -2310,6 +2298,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   to 1e-12 pc. A moon comes into view first (Boss 5.1). Done: a browser
   test zooms from a system to a moon and to the surface scale without
   precision loss.
+  Update (Core 2) (6:10 AM EDT 2026-10-31, as Core 2 reported): Read of
+  the code: the near plane already follows the camera distance (1e-3 of
+  it) and the depth buffer is logarithmic, so near and far need nothing
+  more, and bodies already hang from their parents in small local
+  coordinates. What is left is the camera as frame plus offset. A camera
+  position stored as one number is only exact to 1.8e-12 pc at 8 kpc
+  from the core, 6.7e-12 pc at 30 kpc and 5.6e-11 pc at 250 kpc, so the
+  current 1e-10 pc floor already wobbles by about 2 percent of the view
+  at 8 kpc and 7 percent at the edge, and a 1e-12 pc floor needs the
+  frame (camera target held as a frame origin plus a small offset,
+  through the stage view, picker, labels and rings). Size L, not M;
+  cannot be proven on a real GPU from the lane. Plan: Core 2 builds the
+  frame plus offset with the 1e-12 floor after GEN.1055; near and far
+  count as done.
   Prerequisites: MAP.335. Related: MAP.257, MAP.240.
 
 - [ ] **MAP.354 Lagrange trojans T4: System Map icon at the centre of each Lagrange point that has objects, labelled with the host and point (for example Jupiter-L4); shares the geometry of the MAP.169 gravity layer**
@@ -12847,6 +12849,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   tests, census share of giants with irregulars and the head counts per
   giant. Where we think it belongs (best guess, can move): Core 3 (owns
   the moon draw lock), train 7.
+  Note (Star 2, GEN.1072 #4430) (6:14 AM EDT 2026-10-31, as Star 2
+  reported): belt_history.SURFACE_DENSITY_SLOPE (registry row 6.119:CP2)
+  is still not read by the captured composition. The wiring register
+  line for it was removed because the wiring guard judges a row by
+  whether its module is reached, and GEN.1072 now imports belt_history
+  in generation code. The reminder lives here: wire
+  SURFACE_DENSITY_SLOPE into the captured composition when this lands.
   Prerequisites: GEN.1082.
   Design: [docs/design/systems/captured-asteroid-moons.md](design/systems/captured-asteroid-moons.md)
 
@@ -13949,6 +13958,61 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   never fixed content. Lock work (stored gas and clusters change); rides
   after GEN.1195. Prerequisites: GEN.1195. Owner: Core 3 (proposed).
   Prerequisites: GEN.1195.
+
+- [ ] **GEN.1201 A per-body shape-setting temperature: the roundness engine uses the temperature a body took its shape at, but no body stores one, so strength is the cold strength today**
+  Finding from Aux 5's GEN.1159 build (as the lane reported, 4:46 AM EDT
+  2026-10-31), filed by the TODO thread. Kind: missing input. Object:
+  the roundness and binding-energy engine (physics/roundness.py, wired
+  by GEN.1159). Result: the engine's strength depends on the temperature
+  at which a body took its shape (ice and rock creep strength fall with
+  temperature, RN11 ROCK_CREEP_COLUMNS), but no body stores such a
+  temperature, so the strength used today is the cold strength. Do:
+  define the shape-setting temperature per body kind from the body's own
+  thermal history (accretion heat, tidal heat, radiogenic heat, the
+  star's light at the time it solidified), compute it with a pure module
+  from stored values where possible, wire it into the engine, and
+  register any stand-in in GEN.725 with tier and tweak level; the census
+  must show the round boundary against the measured Solar System one
+  only as a plausibility target, never fixed content. Lock work (stored
+  roundness and strength change); rides the GEN.1159 window.
+  Prerequisites: GEN.1159.
+
+- [ ] **GEN.1202 The generator's disc gas surface density at 8 kpc is 4.3 solar masses per pc2 against 13 measured, which holds the disc cluster maximum mass too low**
+  Finding from Core 3's GEN.1196 build (as the lane reported, 4:52 AM
+  EDT 2026-10-31), filed by the TODO thread. Kind: generation result
+  against observation. Object: the disc gas profile of a drawn spiral
+  galaxy (Milky Way shape) used for the cluster maximum mass. Result:
+  the generator's disc gas at 8 kpc is 4.3 solar masses per pc2 against
+  about 13 measured (neutral plus molecular gas near the solar circle);
+  the cluster maximum goes steeply with gas surface density, so with the
+  sourced relation of Reina-Campos and Kruijssen 2017 the heaviest Milky
+  Way shape disc cluster comes out at 4.1e3 solar masses, below the 1e4
+  to 4e4 observed. Do: find the source of the 13 figure and the gas
+  profile it belongs to (atomic plus molecular gas by radius), say why
+  the generator's disc gas is low (law, star formation history
+  consumption or radius mapping), fix the profile or register the
+  stand-in in GEN.725 with tier and tweak level; the measured profile is
+  the plausibility target, never fixed Milky Way content. Lock work
+  (stored gas and clusters change). Prerequisites: GEN.1196. Owner: Core
+  3 (proposed).
+  Prerequisites: GEN.1196.
+
+- [ ] **GEN.1203 Polluted white dwarf census: 25 to 50 percent of white dwarf systems polluted once belt birth sees the giants**
+  Found by Star 2 on GEN.1072 (as the lane reported, 6:12 AM EDT
+  2026-10-31), filed by the TODO thread. GEN.1072 (partial engulfment,
+  mass-loss scatter, pollution rate in remnant_orbits.py, PR #4430,
+  train 16) is built on today's belts and does not meet the census band:
+  of 300 built white dwarf systems 20 had a belt and 24 a giant, none
+  both, so belts scatter nothing yet. Do: once GEN.1068 gives belts that
+  see the giants, add a prevalence census row for the polluted fraction
+  of white dwarf systems (band 25 to 50 percent, the published fraction
+  of polluted white dwarfs) and tune nothing by hand: if the band is
+  still missed, report which input is the cause (belt occurrence next to
+  giants, scatter efficiency, the pollution rate) with a stand-in row in
+  GEN.725 per the source rules. Epoch-bound: rides the train that
+  carries GEN.1068. Owner: unowned until GEN.1068 merges (Star 2
+  proposed as the author of GEN.1072).
+  Prerequisites: GEN.1068, GEN.1072.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -18437,15 +18501,6 @@ clears each one.
   Catalog sections 1 and 4.
   Prerequisites: GEN.945. Related: GEN.725, GEN.754, GEN.945.
 
-- [ ] **TEST.459 The point_phenomena links browser test is red on clean main (bug)**
-  Found by Core 2 while merging MAP.336 (as the lane reported 7:11 PM
-  EDT 2026-10-29): the browser test for the point phenomena links fails
-  on bare main and is not from MAP.336. Do: find the cause (a real fault
-  in the links or a stale test after the Z2 and Z3 map changes), fix it
-  at the cause, never skip it. Owner: Aux 4 (its next lock-free item
-  after the train 1 rebase). Version 8.1.
-  Prerequisites: none. Related: MAP.336.
-
 - [ ] **TEST.461 test_db_column_round_trip fails on planets.porosity: the column is never written (bug)**
   Found by Core 1's gate for epoch 122 (as the lane reported 7:23 PM EDT
   2026-10-29), red on clean main: the round-trip test finds
@@ -18461,76 +18516,6 @@ clears each one.
   and the excusal is removed.
   Prerequisites: none. Related: DB.70.
 
-- [ ] **TEST.468 test_work_units::test_the_batch_fills_are_units_of_id_ranges_recorded_as_their_commands and test_generation_stats::test_an_unmeasured_server_estimates_from_the_defaults are red on a clean main (bug)**
-  Reported by Core 3 (as the lane reported, 6:04 AM EDT 2026-10-30) on a
-  clean main after train 2: both tests fail and neither is from Core 3's
-  work. Do: recheck both on current main first (it may be train 2's
-  migrations 0182/0183 or the fixture schema, or machine setup such as
-  the ozone_uv dataset); find whether the product or the test is wrong
-  and fix the right one with the reason recorded. Done: both pass on
-  main. Related: TEST.463, TEST.290. Owner: Bug 2 (proposed), after
-  TEST.417.
-  Prerequisites: none. Related: TEST.463, TEST.290.
-
-- [ ] **TEST.469 test_interior_heat::test_a_generated_body_has_a_urey_ratio_above_one_only_while_its_mantle_is_still_warming fails on main: a generated body has urey_ratio 1.85 with a mantle that is no longer warming (bug)**
-  Reported by Sources 1 (as the lane reported, 6:18 AM EDT 2026-10-30)
-  on a worktree at origin/main: the assertion 1.8538154881179374 <= 1.0
-  + 1e-06 fails on a generated planet's urey_ratio, a body with a ratio
-  above one although its mantle is no longer warming. It may come from a
-  recent change to the bulk water, radiogenic heating or ages (train 2,
-  epoch 124), or it may be an older latent case the random stream now
-  reaches. Do: capture the failing body (seed, star, age, composition,
-  mantle state) from the test; find whether the ratio is computed
-  wrongly (heat production against loss) or the test's 'still warming'
-  condition is wrong for that body; fix the right one with the reason
-  recorded, no change to results that were already right. Done: the test
-  passes on main. Related: TEST.463, TEST.468, GEN.842. Owner: Bug 2
-  (proposed), after TEST.417.
-  Prerequisites: none. Related: TEST.463, TEST.468, GEN.842.
-
-- [ ] **TEST.470 test_orbit_elements fails on main: the moon-light test (relative error 6e-6) and the ellipse tests (a lunar-range problem) (bug)**
-  Reported by Aux 7 (as the lane reported, 6:22 AM EDT 2026-10-30) on
-  main d60b9df15 after train 2: tests/test_orbit_elements.py moon-light
-  test misses its tolerance by a relative 6e-6, and the ellipse tests
-  fail on what Aux 7 read as a lunar-range problem. Not from Aux 7's
-  branches. Tides 1 saw the same file's
-  test_every_generated_orbit_is_the_ellipse_it_was_drawn_on stop on a
-  gas-solver stall (GEN.1003), so one of the ellipse failures may be
-  that. Do: run the file on current main with the datasets fetched
-  (ozone_uv needed to generate a system); separate the failures into
-  solver stall (GEN.1003), a tolerance that is tighter than the float
-  error of the lunar-range case, and a real orbit error; for the
-  tolerance cases, set the tolerance from the float error with the
-  reason recorded, never by loosening past it; for a real orbit error,
-  fix the orbit. Done: the file passes on main. Related: TEST.463,
-  GEN.1003, GEN.957. Owner: Bug 2 (proposed), after TEST.417.
-  Prerequisites: none. Related: TEST.463, GEN.1003, GEN.957.
-
-- [ ] **TEST.472 Four migration tests are red on clean main: aerosols same-seed draws, albedo_greenhouse saved-system temperature, and two gas_tables tests (AsteroidBelt has no attribute moons) (bug)**
-  Reported by Bug 2 (as the lane reported, 7:36 AM EDT 2026-10-30),
-  checked on a worktree of origin/main after train 3 with ozone_uv
-  fetched:
-  test_migration_aerosols::test_the_same_seed_draws_the_same_aerosols_and_they_move_no_other_draw
-  (list comparison fails),
-  test_migration_albedo_greenhouse::test_a_saved_system_keeps_its_draws_and_the_temperature_follows_them
-  (assert 2000.0 == 2346.97),
-  test_migration_gas_tables::test_a_saved_system_keeps_every_bodys_air
-  and ::test_a_v154_galaxy_gets_its_air_in_the_child_tables
-  ('AsteroidBelt' object has no attribute 'moons' at
-  test_migration_gas_tables.py:30). Do: for each, find whether a
-  generator change since the test was written (the star epoch, GEN.846
-  rotation, GEN.849 delivered water, GEN.916 temperate aim) moved the
-  draw and the expectation must follow, or the product is wrong; for the
-  AsteroidBelt case the test fixture reads a field belts no longer have;
-  fix the right side with the reason recorded and never loosen a check
-  past what the change explains. Done: all four pass on main. Related:
-  TEST.463, TEST.468, TEST.469, TEST.470. Owner: Bug 2 (proposed), after
-  TEST.417.
-  Seen again (3:52 PM EDT 2026-10-30): test_migration_albedo_greenhouse
-  is still red after train 4 (Bug 2, relayed 3:52 PM EDT 2026-10-30 as
-  the lane reported).
-  Prerequisites: none. Related: TEST.463, TEST.468, TEST.469, TEST.470.
-
 - [ ] **TEST.479 test_radiative_convective_real::test_earth_sends_out_what_it_absorbs fails on the train 4 branch: the Earth tropopause temperature is 168.33 K against the test bound of 170 to 230 K (bug)**
   Found by Bug 2's train 4 gate (relayed 2:08 PM EDT 2026-10-30 as the
   lane reported): earth.tropopause_temperature_k is 168.33 K, outside
@@ -18543,25 +18528,6 @@ clears each one.
   test passes on the train branch with a stated source for the bound.
   Owner: Air 1. Version 8.1.
   Prerequisites: none. Related: GEN.850, GEN.851.
-
-- [ ] **TEST.480 test_gen_builder_internals::test_slot_planet_honours_class_and_moon_count gets class J where it forced class I at a cold slot (bug)**
-  Found by Bug 2's train 4 gate (relayed 2:08 PM EDT 2026-10-30 as the
-  lane reported, sent to Planets 1 directly): the test forces class I at
-  a cold slot and the build returns class J. Do: find out whether the
-  test's expectation is stale after the class rules or the wiring of
-  GEN.728 changed the slot's class, or the build ignores the forced
-  class; fix the right one. Done: the test passes on the train branch
-  with the property it checks kept. Owner: Planets 1. Version 8.1.
-  Prerequisites: none. Related: GEN.728.
-
-- [ ] **TEST.483 test_disregard_missing_data (6 tests) and test_rq_time_limits::test_the_generate_pages_job_gets_a_limit_from_the_time_its_steps_are_recorded_to_take (3 params) are red on clean main (bug)**
-  Found by Aux 2 on PERF.203 step 4 (relayed 3:06 PM EDT 2026-10-30 as
-  the lane reported), red with the change stashed, so on clean main. Do:
-  triage each (stale expectation, a real regression, or a moved seed)
-  and fix the right side without skipping or loosening beyond the
-  property. Done: all of them pass on main. Owner: Bug 2 (after
-  TEST.481) or any free lane. Version 8.1.
-  Prerequisites: none. Related: PERF.203.
 
 - [ ] **TEST.492 Census re-baseline for every oddity share and the prevalence suite rows (one pass after train 9)**
   Weird worlds build (Boss, 4:15 PM EDT 2026-10-30, goal issue #4117;
@@ -18583,7 +18549,7 @@ clears each one.
   lane reported). Core 2 leaves it for MAP.337 steps 2 and 3, which
   remove the stage URLs; it closes when they merge and the test passes.
   Owner: Core 2. Version 8.1.
-  Prerequisites: MAP.337.
+  Prerequisites: none.
 
 - [ ] **TEST.498 A rogue planet is functionally and programmatically identical to a bound planet: the same columns, the same moon and composition generation, the same classes, differing only in the rogue note and having no host star**
   Boss, 4:57 PM EDT 2026-10-30. Test: draw matched planets with and
@@ -18629,21 +18595,18 @@ clears each one.
   command.
   Prerequisites: none. Related: GEN.1118.
 
-- [ ] **TEST.510 test_no_new_hand_written_mass_conversion is red on main: new hand-written multiplies or divides by a mass constant in sheet.py, member_record, rogue, belt_mass, binding_energy, planet_architecture and tuning**
-  Found by Core 3 (as the lane reported, 4:34 AM EDT 2026-10-31), filed
+- [ ] **TEST.514 test_habitability_world::test_the_score_round_trips_and_a_cloud_rescores_the_dose is red on main: phi4_temperature 0.75 against 0.8075 after the cloud refresh (bug)**
+  Found by Aux 2 (as the lane reported, 5:56 AM EDT 2026-10-31), filed
   by the TODO thread. Kind: red test on main. Object:
-  tests/test_mass_conversions.py::test_no_new_hand_written_mass_conversion.
-  Result: it finds new sites that multiply or divide by a mass constant
-  instead of using unit_registry.converter: describe/sheet.py 2 (the
-  star's variability and carbon-star rows), generation/member_record.py
-  1, generation/phenomena/rogue.py 3, physics/belt_mass.py 3,
-  physics/binding_energy.py 1, physics/planet_architecture.py 1, tuning.
-  Do: replace each by a unit_registry.converter call (the test's own
-  instruction); where a converter would regroup a product and change
-  output, leave that site on the list with the reason as GEN.934 did,
-  and say which. Done: the test is green on main without loosening it.
-  Lock-free where output is unchanged. Owner: Aux 5 (proposed, it built
-  the unit registry work).
+  tests/test_habitability_world.py::test_the_score_round_trips_and_a_cloud_rescores_the_dose.
+  Result: after the cloud refresh the stored phi4_temperature is 0.75
+  where the test expects 0.8075. Do: confirm it is red on current main
+  with the datasets fetched, find the cause (the refresh path not
+  rescoring temperature the same way the build does, or a stale
+  expectation after the class and climate epochs), fix at the cause,
+  never loosen the bound without stating why. If the fix changes a
+  stored value it rides a train; say so and stop. Owner: Core 5
+  (proposed, lock-free if wording or test only).
   Prerequisites: none.
 
 ## USR: User accounts

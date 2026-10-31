@@ -12,6 +12,18 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | dataset | noaa_proton_events | GEN.805 | the 265 NOAA solar proton events; the solar particle event model fits its rate and slope to them |
 | module | planetgen.physics.alpha_tracks | GEN.744 | the equivalent [Fe/H] of an alpha-enhanced star; the track lookup of a high-alpha star will read it |
 | row | 6.34:AL1 | GEN.744 | `alpha_tracks.ALPHA_SHARE`, not read until the track lookup is wired |
+| module | planetgen.galaxy.thick_ages | GEN.1025 | the old population's age law with the thick disc's 8 to 13 Gy; part 2 wires it into the galaxy's age laws |
+| row | 6.146:TD1 | GEN.1025 | `tuning.THICK_DISC_AGE_RANGE_GY`, read by `thick_ages` only until part 2 |
+| module | planetgen.physics.chemically_peculiar | GEN.1027 | the Ap and Am kinds, slow rotation and field; part 2 draws them in the star build |
+| row | 6.147:PEC1 | GEN.1027 | `chemically_peculiar` constant, not read until part 2 |
+| row | 6.147:PEC2 | GEN.1027 | `chemically_peculiar` constant, not read until part 2 |
+| row | 6.147:PEC3 | GEN.1027 | `chemically_peculiar` constant, not read until part 2 |
+| row | 6.147:PEC4 | GEN.1027 | `chemically_peculiar` constant, not read until part 2 |
+| row | 6.147:PEC5 | GEN.1027 | `chemically_peculiar` constant, not read until part 2 |
+| row | 6.147:PEC6 | GEN.1027 | `chemically_peculiar` constant, not read until part 2 |
+| row | 6.147:PEC7 | GEN.1027 | `chemically_peculiar` constant, not read until part 2 |
+| row | 6.147:PEC8 | GEN.1027 | `chemically_peculiar` constant, not read until part 2 |
+| row | 6.147:PEC9 | GEN.1027 | `chemically_peculiar` constant, not read until part 2 |
 | module | planetgen.physics.line_opacity | by design | the band opacities of the radiative-convective model, which the greenhouse table is fitted to and the checks hold it to; the generator reads the table, never the model |
 | module | planetgen.physics.radiative_convective | by design | the model the greenhouse table (`greenhouse_table.py`) is fitted to by `scripts/fit_greenhouse_table.py`, too slow for the fixed point; run by the fit and the tests, not by generation |
 | module | planetgen.physics.radiative_kernel | by design | the numba sweep of `radiative_convective`; the web app must not load numba, so only the fit and the tests reach it |
@@ -285,4 +297,9 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.126:RN2 | GEN.1159 | `roundness.ICE_STRENGTH_PA, ROCK_STRENGTH_PA`, not read until GEN.1159 wires the module |
 | row | 6.126:RN4 | GEN.1159 | `roundness.METAL_STRENGTH_PA`, not read until GEN.1159 wires the module |
 | module | planetgen.physics.ice_types | GEN.1159 | the strength of the other ices next to ice Ih and the ice type of a body from its components (lock-free); `roundness.py` takes the ratio as a factor on its ice strength when the types are wired |
-| row | 6.126:RN11 | GEN.1159 | `roundness.ROCK_CREEP_COLUMNS`, not read until GEN.1159 passes a shape-set temperature to the engine |
+| row | 6.126:RN11 | GEN.1201 | `roundness.ROCK_CREEP_COLUMNS`, not read until GEN.1201 gives each body a shape-set temperature to pass to the engine |
+| module | planetgen.physics.ring_darkening | GEN.1055 | how bright a ring is for its age and the dust that falls on it (R6) and how much sunlight a ring shades from a latitude over the lit half of the day (R8); `rings.apply` and the climate read it when GEN.1055 wires it |
+| row | 6.148:RGD1 | GEN.1055 | `ring_darkening.CLEAN_ICE_ALBEDO` and `HALF_DARKENING_SHARE`, not read until GEN.1055 wires the module |
+| row | 6.148:RGD2 | GEN.1055 | `ring_darkening.DARK_ALBEDO`, not read until GEN.1055 wires the module |
+| row | 6.148:RGD3 | GEN.1055 | `ring_darkening.SATURN_POLLUTION_FLUX_KG_M2_S`, not read until GEN.1055 wires the module |
+| row | 6.148:RGD4 | GEN.1055 | `ring_darkening.FLUX_DISTANCE_EXPONENT` and `DUST_SPEED_AT_INFINITY_KMS`, not read until GEN.1055 wires the module |

@@ -1941,6 +1941,42 @@ The recalled [R] rates of the weird-worlds design (docs/design/systems/weird-wor
 | AB1 | P | T9 | L3 | activity.DECAY_EXPONENTS: the exponent b of `L_X/L_bol` after saturation by mass (1.0 up to 0.3 solar masses, 1.35 at 0.45, 1.8 at 0.6, 1.45 at 0.8 and 1.0), tuned so each mass keeps its `L_X/L_bol` at 5 Gyr from the earlier table | each value within 0.3 of the one that reproduces the earlier level; the solar-mass 1.45 inside the Skumanich band | 0.45 to 1.2 solar masses and ages past the saturation age | a measured `L_X/L_bol` of field stars at 1 to 10 Gyr by mass differing from the model's by more than 0.5 dex, or a decay slope of the Johnstone et al. 2021 model for the same masses outside 1.0 to 2.0 | the decay of the rotation and X-ray model of Johnstone, Bartel and Guedel 2021 (the spin-down torque of Johnstone 2015, not read) | test_activity::test_the_decay_exponents_hold_the_old_table_level_at_the_reference_age |
 <!-- decay-exponent-standins:end -->
 
+### 6.146 Stand-ins of the thick disc's ages (GEN.1025)
+
+`galaxy/thick_ages.py` mixes the thin disc's age law with the thick disc's over 8 to 13 Gy, so the old population holds stars of 10 to 13 Gy (design note `docs/design/galaxy/disk-star-formation-history.md`, section on the thick disc). Not wired into the galaxy's age laws yet (GEN.1025 part 2).
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
+|---|---|---|---|---|---|---|---|---|---|
+| TD1 | P | T3 | L0 | tuning.THICK_DISC_AGE_RANGE_GY (8, 13) Gy, the ages over which the thick disc formed its stars | 8 to 9.5 for the start; 12 to 13.5 for the end | the thick disc of a Milky Way-like galaxy | an age-metallicity or age-alpha relation of thick-disc stars with a population older than 13 or younger than 7 Gy | the star formation history of the thick disc fitted to its own relation | Haywood et al. 2013: the thick disc formed from about 13 to about 8 Gy ago |
+| TD2 | P | T6 | L1 | thick_ages.mixed_old_law: the thick disc's star formation is flat over its window | a rate falling by up to a factor of 3 over the window | the thick disc | a thick-disc age distribution that is not within a third of flat | the thick disc's own history from the gas model (GEN.469 for the thin disc is the template) | the neutral shape: Haywood et al. 2013 Fig. 9 has the rate falling over the window, so the oldest ages are under-weighted here |
+
+### 6.147 Stand-ins of the chemically peculiar stars (GEN.1027)
+
+`physics/chemically_peculiar.py` names an Ap or Am star from a main-sequence star's temperature and a uniform number, and draws its slow rotation and its field (design note `docs/design/systems/chemically-peculiar.md`). Not wired yet (GEN.1027 part 2).
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
+|---|---|---|---|---|---|---|---|---|---|
+| PEC1 | P | T3 | L0 | chemically_peculiar.AP_TEMPERATURE_RANGE_K (7500, 13000) K | none | main-sequence late-B to early-F stars | magnetic peculiar stars found outside 7000 to 14000 K | the spectral-type range of the Ap/Bp catalogues | Kochukhov and Bagnulo 2006; Auriere et al. 2007: Ap and Bp stars run B8 to F0 |
+| PEC2 | P | T3 | L0 | chemically_peculiar.AM_TEMPERATURE_RANGE_K (7000, 9500) K | none | main-sequence A stars | Am stars outside 6800 to 10000 K | the spectral-type range of the Am catalogues | Abt 2009; Smith 1996: Am stars are the A1 to F2 dwarfs |
+| PEC3 | P | T3 | L1 | chemically_peculiar.AP_SHARE 0.10 (the share of stars in the Ap range that are Ap or Bp) | 0.05 to 0.15 | stars in PEC1 | a volume-limited magnetic survey with a share outside 0.04 to 0.15 | the share of a complete survey | Wolff 1968 (about 10 percent of A stars); Auriere et al. 2007 (8 percent) |
+| PEC4 | P | T3 | L1 | chemically_peculiar.AM_SHARE 0.33 (the share of stars in the Am range that are Am) | 0.25 to 0.4 | stars in PEC2 | an Am share of a complete sample outside 0.2 to 0.45 | the share of a complete survey | Smith 1996 (about a third of A4 to F1); Abt 2009 (30 to 40 percent) |
+| PEC5 | P | T6 | L1 | chemically_peculiar.AP_PERIOD_MEDIAN_DAYS 4.5 (median Ap rotation period) | 3 to 8 d | Ap stars | a median period of the Ap catalogue outside 2 to 10 d | the period distribution of the Ap catalogue | periods run from half a day to decades with the bulk at days (Mathys 2017); read second-hand |
+| PEC6 | P | T6 | L1 | chemically_peculiar.AP_PERIOD_SIGMA_LN 1.3 (ln-width of the Ap periods) | 1.0 to 1.8 | Ap stars | a width of the period distribution outside 0.8 to 2 | as PEC5 | spans the half-day to 30-day bulk within about two widths |
+| PEC7 | P | T6 | L0 | chemically_peculiar.AP_PERIOD_RANGE_DAYS (0.5, 30) d | none | Ap stars | a share of Ap stars above 30 d over 10 percent of the draw | as PEC5 | the decades-long tail is left out of the draw |
+| PEC8 | P | T6 | L1 | chemically_peculiar.AM_SPEED_RANGE_KMS (10, 90) km/s, uniform | mean 40 to 60 | Am stars | a mean Am equatorial speed outside 30 to 70 km/s | the v sin i distribution of Am stars | Am stars rotate slowly, v sin i under about 100 km/s with a mean near 50 (Abt and Morrell 1995) |
+| PEC9 | P | T3 | L0 | chemically_peculiar.AP_POLAR_FIELD_GAUSS (300, 30000) G, log-uniform | none | Ap stars | a strong Ap field distribution whose median is outside 1 to 6 kG | the field distribution of the magnetic survey | dipole fields of 300 G to 34 kG (Auriere et al. 2007); the lower edge is their detection floor |
+
+### 6.148 Stand-ins of the brightness of a ring and the dust that darkens it (GEN.1055)
+
+`physics/ring_darkening.py` (rows R6 and R8 of `docs/design/systems/weird-worlds.md` section 9.2) gives the ice share and the reflectance a ring has now, from its first ice share, its age, its mass per area and the flux of dark dust, and the share of sunlight that comes through a ring to a latitude of its planet. Saturn, Uranus and Neptune are test targets, never inputs. Not wired yet (the painter MAP.275 and the W1 climate term read it later).
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
+|---|---|---|---|---|---|---|---|---|---|
+| RGD1 | P | T6 | L3 | ring_darkening.CLEAN_ICE_ALBEDO 0.9 and HALF_DARKENING_SHARE 0.04: the reflectance of clean ice grains and the dark share at which a ring is half way to dark | albedo 0.8 to 1; share 0.02 to 0.1 | rings of ice and dark grains | a measured reflectance of Saturn's A, B and C rings (about 0.3 to 0.8 and 0.1) that the law misses by over a factor of 1.5, or a laboratory mixture curve with another half share | the intimate-mixture curve of ice and dark grains (Clark and Lucey 1984) | Clark and Lucey 1984 (recalled): a few percent of dark material halves the reflectance of ice; the share is tuned so the A and B rings come out at 0.3 to 0.8 |
+| RGD2 | P | T2 | L0 | ring_darkening.DARK_ALBEDO 0.04: the reflectance of a ring of dark material only | 0.03 to 0.06 | dark rings | a Uranian or Neptunian ring measured above 0.08 or under 0.02 | the measured ring albedos | Karkoschka 2001 (recalled, second-hand): 0.03 to 0.05 for the Uranian rings |
+| RGD3 | P | T3 | L0 | ring_darkening.SATURN_POLLUTION_FLUX_KG_M2_S 4.5e-17 kg per m2 per s, at 9.58 AU and 100 000 km | 1e-17 to 2e-16 | the dust that falls on a ring | an infall flux measured by the Cassini dust analyser or a ring mass that makes Saturn's rings polluted over 2 percent or under 0.05 in 4 Gyr | the Cassini flux and the ring mass (Kempf et al. 2018; Iess et al. 2019) | Kempf et al. 2018 (recalled, second-hand): a flux of order 1e-17 to 1e-16 gives the non-icy 0.1 to 2 percent in a few hundred million years |
+| RGD4 | P | T6 | L0 | ring_darkening.FLUX_DISTANCE_EXPONENT -1.3 and DUST_SPEED_AT_INFINITY_KMS 5: how the dust falls with distance from the star, and the speed it has before the planet's pull | exponent -1.0 to -2.0; speed 3 to 8 km/s | rings from 5 AU to 40 AU | a dust measurement beyond Saturn (New Horizons dust counter) that falls off by another power | the measured outer-Solar-System dust flux | Grun et al. 1985 (recalled): the dust density falls as r^-1.3; beyond Saturn it is poorly measured |
+
 ### 6.131 Stand-ins of the halo mass function and the conditional halo (GEN.1154)
 
 `galaxy/halo_function.py` builds the halo mass function of Tinker et al. 2008 on the Eisenstein and Hu 1998 no-wiggle power spectrum, and `mass_chain.conditional_halo_mass` draws the halo of a galaxy from it (report `reports/gen399-halo-mass-function-2026-10-31.md`).

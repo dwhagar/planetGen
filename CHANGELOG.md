@@ -2,6 +2,109 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2931] - 2026-10-31
+
+**Headline:** The prevalence census ranges that train 6 moved are tagged with the train, so the census checks stay quiet until the last 8.1 re-baseline.
+
+### Changed
+- **Census tags only:** the class, system and occurrence census expectation files tag the shares that the class epoch (Class Q retired, Class V line at 2 g, new Class E) and the other train 6 changes moved. No generator code changes.
+
+## [8.0.2930] - 2026-10-31
+
+**Headline:** A pure module now gives how bright a ring is for its age and dust, and how much sunlight a ring shades from a latitude; nothing uses it yet.
+
+### Added
+- **Ring brightness and ring shadow (GEN.1055, rows R6 and R8).** `physics/ring_darkening.py` has `pollution_flux`, `surface_density_kg_m2`, `pollution_gain`, `albedo`, `ring_brightness` and `shadow_transmission`, with four registry stand-ins (RGD1 to RGD4, section 6.148 of the gap-filling plan) and a burn-down line for the one hand-tuned row. It is not wired into `rings.apply` or the climate yet.
+
+No generator output changes.
+
+generation-output: unchanged
+
+TODO items resolved: GEN.1055 pure part (the wiring into rings and the climate stays open).
+
+## [8.0.2929] - 2026-10-31
+
+**Headline:** The Galaxy Map's history entries keep only the camera's address; Back, Forward and a reload work the stage out from where the camera is.
+
+### Changed
+- **History entries no longer carry a stage (MAP.337, steps 3 and 4).** `galaxystageview.js` stores `{galaxyStage, mapIndex, maxIndex}` in each entry and derives the stage the page loads on from the `cam` address (`stageForCamera`), where an entry used to hold the stage it was made at. Dead code is removed (`fovHalf`, `optionAt`, `matchAddress`).
+
+No generator output changes.
+
+generation-output: unchanged
+
+TODO items resolved: MAP.337 (steps 1 to 4 merged; `parentStage` stays as the container trail the crumbs and Up read, MAP.227).
+
+## [8.0.2928] - 2026-10-31
+
+**Headline:** Two migration tests that were red on main now say what they check: the aerosols test lists the scores worked from the radiation score, and the albedo test knows the air solve caps a surface at 2000 K.
+
+### Changed
+- TEST.472: `tests/test_migration_aerosols.py::test_the_same_seed_draws_the_same_aerosols_and_they_move_no_other_draw` compared two runs of one seed with the aerosols switched off, and five stored fields differed on two bodies (`phi4`, `phi4_suitability`, `tier_radiation`, `eq_body`, `eq_body_kind`). No draw moved: the Radiation score is the lower of the dose's and the ground UV's (GEN.445), the aerosols cut the ground UV, and the Suitability score, the overall score, the radiation tier and the body-protection equipment level are worked from the Radiation score. `READ_FROM_AEROSOLS` names them, so the test still fails if any other field moves.
+- TEST.472: `tests/test_migration_albedo_greenhouse.py::test_a_saved_system_keeps_its_draws_and_the_temperature_follows_them` expected the stored temperature to equal the uncapped albedo and greenhouse formula, and a hot planet stores 2000 K against 2763 K: the air solve stops a runaway greenhouse at `surface_air.MAX_SURFACE_TEMPERATURE_K`. The expectation is now the formula capped at that limit, nothing looser. The two `test_migration_gas_tables` tests on the item pass on current main with the test unchanged (the cause of the earlier red was not found, so they are left alone). Test-only.
+
+generation-output: unchanged
+
+## [8.0.2927] - 2026-10-31
+
+**Headline:** The code that makes some A stars magnetic Ap stars and some metallic-line Am stars is written; it does not take effect until it is wired into the star build.
+
+### Added
+- **Ap and Am stars (GEN.1027, part 1).** A module names a late-B to early-F main-sequence star as Ap (10 percent, a strong magnetic field, slow rotation of days) or Am (a third in its range, no field, slow rotation under 100 km/s) from its temperature and a uniform number. Nothing is wired yet: no generated star changes.
+
+## [8.0.2926] - 2026-10-31
+
+**Headline:** Every way of going somewhere on the Galaxy Map (Go to, Up, Home, steps, locate, Back and Forward) is now a camera flight, and the camera's distance alone sets the zoom.
+
+### Changed
+- **Navigation runs on the camera (MAP.337, step 2).** `galaxystageview.js` no longer switches the stage the map draws when you go somewhere: `go` is gone, replaced by `flyToStage`, which flies the camera to the place (and loads its data, opens its sector or system) and lands there with the same picture a stage hop gave. The cross-fade between stages (`crossTo`, `stepCross`, `finishCross`) is deleted. The zoom slider, plus and minus and the pinch carry the camera in or out across the whole range with no stage hop, and out of an opened sector or system they go on to the whole galaxy.
+- The browser hook `galaxyZoomLevel` names the zoom level the camera's distance reaches, for tests.
+
+No generator output changes.
+
+generation-output: unchanged
+
+TODO items resolved: none (MAP.337 stays open for steps 3 and 4).
+
+## [8.0.2925] - 2026-10-31
+
+**Headline:** Five texts that pages and the Methods list show no longer carry internal item codes.
+
+### Changed
+- **Wording only:** the reason a giant-only property is empty on a gas dwarf, the stand-in notes and sources of the small-body taxa, and the source line for the volcanic crust rows no longer print internal item codes (GEN.1142, GEN.473, GEN.474, GEN.475). No generated value changes.
+
+## [8.0.2924] - 2026-10-31
+
+**Headline:** The property sheet of an asteroid belt and an asteroid field now lists the nearest meteorite group.
+
+### Changed
+- **Belt and asteroid field property sheets** gain a "Nearest meteorite group" row in their Composition group (CI, CM, H, L and so on, or "None" when the mean composition is far from every group). The page already named it; the sheet and the API's property list now carry it too.
+
+## [8.0.2923] - 2026-10-31
+
+**Headline:** The code that gives the old stars of a galaxy a share of ages from 10 to 13 billion years is written; it does not take effect until it is wired into the galaxy.
+
+### Added
+- **Thick-disc ages (GEN.1025, part 1).** A module mixes the thin disc's age law with the thick disc's (8 to 13 billion years, flat) by the thick disc's share of the old stars, so the old population can hold stars older than 10 billion years. Nothing is wired yet: no generated star changes.
+
+## [8.0.2922] - 2026-10-31
+
+**Headline:** The rogue planet parity test is green again: the gap to a bound planet grew by twelve columns the planet gained, and the ceiling now says which.
+
+### Changed
+- TEST.512: `tests/test_rogue_planet_parity.py` was red on main (160 planet columns missing from a rogue, ceiling 148). No change to the rogue path opened the gap: GEN.474, GEN.768, GEN.1034, GEN.1035 and GEN.1097 each added planet columns (12 in all) while the rogue is still a generator of its own, and the rogue's own columns are what they were. `MISSING_CEILING` is 160 and `PLANET_COLUMNS_ADDED` names the twelve by item; a new test checks the ceiling rises by exactly those names and that each is still missing from the rogue, so the number cannot drift again without a name. The gap still falls to zero when the rogue is built through the planet code (GEN.1111 and the rogue train). Test-only.
+
+generation-output: unchanged
+
+## [8.0.2921] - 2026-10-31
+
+**Headline:** The last hand-written mass conversions that went in since the mass-conversion test was written now use the unit registry's converters, and the output is unchanged.
+
+### Changed
+- TEST.510: `describe/sheet.py` (2), `generation/member_record.py`, `generation/phenomena/rogue.py` (3), `physics/belt_mass.py` (3), `physics/binding_energy.py`, `physics/planet_architecture.py` and `tuning.py` (the giant core's Jupiter-mass threshold) call `unit_registry.converter` instead of multiplying or dividing by a mass constant. Each converter does the same one multiply or divide, so every number is the same bit for bit (the constant on the left of a divide in `rogue.py` is `_mearth_to_kg(1.0)`, which is `1.0 * C`; the `tuning.py` product is `(x * E) / J` as it was). `physics/belt_mass.py` comes off the kept-sites list in `tests/test_mass_conversions.py`; nothing was added to it and the test is not loosened.
+
+generation-output: unchanged
+
 ## [8.0.2920] - 2026-10-31
 
 **Headline:** The star sheet now says when a star on the asymptotic giant branch has become a carbon star or an S star.

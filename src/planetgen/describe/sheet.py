@@ -282,7 +282,8 @@ _BELT = (
     *_rows("orbit", ("distance_km", "Distance from its star"), ("lower_limit_km", "Inner edge"),
            ("upper_limit_km", "Outer edge")),
     *_rows("physical", ("density", "Density", TEXT), ("mass_kg", "Mass"), ("density_g_cm3", "Mean bulk density of its members")),
-    *_rows("composition", ("composition_summary", "Composition", TEXT), ("ice_mass_fraction", "Mean ice share of the mass of its members")),
+    *_rows("composition", ("composition_summary", "Composition", TEXT), ("ice_mass_fraction", "Mean ice share of the mass of its members"),
+           ("chondrite_group", "Nearest meteorite group", TEXT)),
 )
 
 _COMET = (
@@ -318,7 +319,8 @@ _ASTEROID_FIELD = (
     *_rows("identity", ("field_class", "Class", TEXT), ("density", "Density", TEXT)),
     *_rows("physical", ("radius_ly", "Radius"), ("mass_kg", "Mass"), ("density_g_cm3", "Mean bulk density of its members")),
     *_rows("composition", ("composition_family", "Composition family", TEXT),
-           ("composition_summary", "Composition", TEXT), ("ice_mass_fraction", "Mean ice share of the mass of its members")),
+           ("composition_summary", "Composition", TEXT), ("ice_mass_fraction", "Mean ice share of the mass of its members"),
+           ("chondrite_group", "Nearest meteorite group", TEXT)),
     *_GALACTIC_ORBIT, *_DISTANCE,
 )
 
@@ -809,7 +811,7 @@ _DISK_COLUMNS = ("moon_disk_lifetime_myr", "moon_disk_alpha_over_f", "moon_disk_
 _BODY_RULES = [
     (_GIANT_ONLY, lambda klass, row: klass in GIANT_CLASSES and (row is None or row.get("body_type") != "t"),
      "only a giant has a deep envelope over a core, so these describe nothing on a rocky or icy world, nor on a gas dwarf that is a rocky body "
-     "under a hydrogen air (class T, GEN.1142)"),
+     "under a hydrogen air (class T)"),
     (_SURFACE, lambda klass, row: klass not in GIANT_CLASSES,
      "a giant has no surface: no ocean, rock chemistry, ground dose, habitability score, life or surface temperature"),
     (_AIR, lambda klass, row: klass not in AIRLESS_CLASSES and (row is None or (row.get("atmospheric_pressure_pa") or 0) > 0),
@@ -957,6 +959,7 @@ def _zone_value(letter, by_key, specs, table):
 
 
 _yr_to_h = unit_registry.converter("yr", "h")
+_kg_to_msun = unit_registry.converter("kg", "Msun")
 
 VARIABILITY_KEY = "variability"
 """str: The key of the star's derived row for the kind of variable it is (GEN.944, `physics.variability`); it is worked out from the stored
@@ -1034,14 +1037,14 @@ def sheet(conn, kind, object_id):
         by_group["rotation"].append({"key": ECLIPSE_KEY, "label": "Longest eclipse in the planet's shadow", "value": value,
                                      "text": inline_text(value), "raw": eclipse, "stored": True, "absent": False, "source": None, "show_absent": False})
     variable = variability.kind_of(row["state"], row["yerkes_class"], row["temperature_k"],
-                                   None if row["mass_kg"] is None else row["mass_kg"] / constants.SOLAR_MASS_TO_KG) if kind == "star" else None
+                                   None if row["mass_kg"] is None else _kg_to_msun(row["mass_kg"])) if kind == "star" else None
     if variable:
         by_group["identity"].append({"key": VARIABILITY_KEY, "label": "Variability", "value": [variable], "text": variable, "raw": None,
                                      "stored": True, "absent": False, "source": None, "show_absent": False})
     carbon = None
     if kind == "star" and row["state"] == "asymptotic-giant" and row["metallicity_fe_h"] is not None:
         initial = agb_carbon.initial_mass_from_lifespan_sol(row["lifespan_gy"], row["metallicity_fe_h"])
-        carbon = agb_carbon.kind_of(row["state"], initial, row["mass_kg"] / constants.SOLAR_MASS_TO_KG, row["metallicity_fe_h"], row["age_gy"])
+        carbon = agb_carbon.kind_of(row["state"], initial, _kg_to_msun(row["mass_kg"]), row["metallicity_fe_h"], row["age_gy"])
     if carbon:
         by_group["identity"].append({"key": CARBON_KEY, "label": "Carbon or S star", "value": [carbon], "text": carbon, "raw": None,
                                      "stored": True, "absent": False, "source": None, "show_absent": False})
