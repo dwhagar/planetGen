@@ -13990,6 +13990,23 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   3 (proposed).
   Prerequisites: GEN.1196.
 
+- [ ] **GEN.1203 Polluted white dwarf census: 25 to 50 percent of white dwarf systems polluted once belt birth sees the giants**
+  Found by Star 2 on GEN.1072 (as the lane reported, 6:12 AM EDT
+  2026-10-31), filed by the TODO thread. GEN.1072 (partial engulfment,
+  mass-loss scatter, pollution rate in remnant_orbits.py, PR #4430,
+  train 16) is built on today's belts and does not meet the census band:
+  of 300 built white dwarf systems 20 had a belt and 24 a giant, none
+  both, so belts scatter nothing yet. Do: once GEN.1068 gives belts that
+  see the giants, add a prevalence census row for the polluted fraction
+  of white dwarf systems (band 25 to 50 percent, the published fraction
+  of polluted white dwarfs) and tune nothing by hand: if the band is
+  still missed, report which input is the cause (belt occurrence next to
+  giants, scatter efficiency, the pollution rate) with a stand-in row in
+  GEN.725 per the source rules. Epoch-bound: rides the train that
+  carries GEN.1068. Owner: unowned until GEN.1068 merges (Star 2
+  proposed as the author of GEN.1072).
+  Prerequisites: GEN.1068, GEN.1072.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
