@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 975 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 974 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -44,8 +44,8 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T6 | 94 | 73 | 20 | 51 | 0 | 238 |
 | T7 | 27 | 8 | 8 | 8 | 0 | 51 |
 | T8 | 0 | 1 | 1 | 5 | 1 | 8 |
-| T9 | 19 | 14 | 4 | 43 | 19 | 99 |
-| All | 560 | 204 | 46 | 135 | 30 | 975 |
+| T9 | 19 | 14 | 4 | 42 | 19 | 98 |
+| All | 560 | 204 | 46 | 134 | 30 | 974 |
 
 ## How the labels were given
 
@@ -691,7 +691,6 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | BM1 | P | T1 | L0 | belt_mass.GRAIN_DENSITY_KG_M3 2700 and STRENGTH_FLOOR_J_PER_KG 200 (the nominal planetesimal density and the strength of km-size planetesimals in Wyatt et al. 2007; the strength of bodies above about 100 km is the generator's gravity-bound Leinhardt and Stewart threshold) | density 2000 to 3500; strength 100 to 500 | belts of rock-rich planetesimals in collisional equilibrium | a measured belt mass more than a factor of 10 from the law at its age | a size-dependent strength law with the strength regime of Benz and Asphaug (1999, not read) | test_belt_mass::test_wyatts_equation_17_is_reproduced_at_its_stated_assumptions; test_belt_mass::test_the_solar_systems_belt_comes_out_within_a_few_times_the_inferred_mass | - | - |
 | BM2 | P | T9 | L4 | belt_mass.DENSE_FACTOR 3 (a belt with three times the reference mass per area is dense, a third sparse) | 2 to 10 | all belts | the dense and sparse shares of the generated belts outside what the words are meant to cover | an observed spread of belt masses at one age | test_belt_mass::test_the_density_word_follows_the_mass_per_area_against_its_reference | - | no data |
-| LB1 | P | T9 | L3 | belt_mass.LARGEST_BODY_RANGE_KM (100, 1000): a belt's largest planetesimal `Dc`, drawn log-uniformly from its own stream until the size law gives it | 30 to 3000 km at the ends; `M_max` goes as `Dc` to about the 2.3, so a factor of 10 in `Dc` is a factor of 200 in the mass | belts of rock-rich planetesimals in collisional equilibrium | the dense, sparse and typical shares of generated belts far from a third each, or a measured largest body of a belt outside the range | GEN.1000: each belt's largest body drawn from the size law of GEN.566 | test_belt_mass::test_a_belts_largest_body_is_drawn_inside_its_range_from_its_own_stream | - | replace (GEN.1000) |
 
 ## 6.44 Stand-ins of the chondrite-group map
 
