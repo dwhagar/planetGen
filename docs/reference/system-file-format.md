@@ -84,7 +84,7 @@ entry is either:
   | Field | Required | Description |
   |---|---|---|
   | `type` | yes | `"planet"` or `"asteroid_belt"`. |
-  | `planet_class` | no (`type: "planet"` only) | A specific planet class letter (see [Planet classes](#planet-classes)). If omitted, a class is chosen normally for whatever zone the orbit lands in. |
+  | `planet_class` | no (`type: "planet"` only) | A specific planet class letter (see [Planet classes](#planet-classes)). If omitted, the planet is drawn normally and gets whatever class it comes out as. |
   | `moons` | no (`type: "planet"` only) | An exact number of moons to generate, `0` for none. If omitted, moon generation falls back to the `moons` option / random 50-50 chance. |
 
 The array doesn't need to cover every orbit — it can be shorter than
@@ -96,60 +96,73 @@ Notes on how slots interact with the rest of generation:
 
 - **Orbital distance isn't something you set directly.** Distances are
   computed sequentially, each orbit building outward from the last based on
-  the star's mass and the previous object's size. If you request a
-  `planet_class` that isn't valid at the distance an orbit would naturally
-  land at (e.g. asking for `"M"`, an ecosphere-only class, in what would
-  otherwise be a hot inner orbit), the generator nudges that orbit's distance
-  into a zone that *does* support the requested class — the same way a
-  forced habitable world snaps into the habitable zone. You don't need to
-  pre-compute which index will land in which zone.
+  the star's mass and the previous object's size. The one request that moves
+  an orbit is a class that can carry life (see [Planet classes](#planet-classes)):
+  if the orbit would land outside the habitable zone, the generator snaps it
+  into the zone, the same way a forced habitable world is placed. Any other
+  class keeps the orbit's own distance, and the planet is drawn again there
+  until it comes out as that class.
 - **`moons` is best-effort.** A planet only has so much stable orbital room
   for satellites (governed by its Hill sphere). If you ask for more moons
   than fit, you'll get as many as fit and no more — no error.
 - A slot with `planet_class` set to one of the habitable classes (see below)
   still counts toward satisfying a top-level `habitable_world: true`
   requirement.
-- An invalid `planet_class` for *every* zone (a typo, or a class that exists
-  in none of `h`/`e`/`c`) will raise a clear error at generation time rather
-  than silently substituting something else.
+- An unknown `planet_class` (a typo, or a letter no class uses) raises a clear
+  error at generation time rather than silently substituting something else.
+  A real class that the draws cannot reach at that place is listed as an
+  unmet requirement in the generated system.
 
 ## Planet classes
 
-These are the class letters valid for `slots[].planet_class`. "Zone" says
-where each class can naturally occur: **h**ot (inside the habitable zone's
-inner edge), **e**cosphere (the habitable zone itself), **c**old (beyond the
-habitable zone's outer edge). Classes marked "habitable" can host life and
-count toward a `habitable_world: true` requirement; only `"M"` is
-Earth-equivalent enough to be called out separately in the summary output as
-a "class M world".
+These are the class letters valid for `slots[].planet_class`. A class is not drawn first. It is read off the finished
+body: the generator builds the whole planet (mass, make, air, temperature, water), then gives it the first class in the
+check order below whose rule it meets. A slot that names a class is generated again, up to 40 times, until the finished
+planet has that class.
 
-| Class | Description | Type | Zones | Habitable? |
+Only a class that can carry life has a place. Those classes (the "Life?" column) need a world in the habitable zone, so
+a slot that asks for one is moved into the habitable zone if its orbit would land outside it. Every other class keeps the
+orbit's own distance, and the draws are made there. A class that cannot come out at that place (a white dwarf's habitable
+zone holds no air) is listed in the system's unmet requirements instead of being forced. An unknown letter raises an
+error at once, and a class that can carry life raises one when `habitable_world` is `false`. Only `"M"` is called out
+separately in the summary output, as a "class M world".
+
+The giants are checked first (T, then I, then J). Rocky bodies are checked in this order: D, S, C, A, T, N, V, L, K, E, P,
+B, F, G, O, H, M. The last class in each list takes every body that no earlier rule caught.
+
+| Class | Name | Type | Rule: what the finished body must be | Life? |
 |---|---|---|---|---|
-| `A` | Small, barren, volcanic world | terrestrial | h | no |
-| `B` | Small, molten world with a thin atmosphere | terrestrial | h | no |
-| `C` | Dead world, no atmosphere | terrestrial | h, e, c | no |
-| `D` | Small icy body | terrestrial | h, e, c | no |
-| `E` | Deep-frozen world, air and a mean surface under -40 C | terrestrial | h, e, c | yes |
-| `F` | Volcanic world with shallow seas | terrestrial | e | yes |
-| `G` | Rocky, barren world | terrestrial | e | yes |
-| `H` | Desert world, little liquid water | terrestrial | e | yes |
-| `I` | Ice giant with a tilted magnetic field | gas giant | e, c | no |
-| `J` | Gas giant with a turbulent atmosphere and rings | gas giant | h, e, c | no |
-| `K` | Adaptable world with a thin atmosphere | terrestrial | e | yes |
-| `L` | Marginally habitable world | terrestrial | e | yes |
-| `M` | Temperate terrestrial world | terrestrial | e | yes |
-| `N` | Hot world with a dense, reducing atmosphere | terrestrial | e | no |
-| `O` | Ocean world, most of the surface liquid water | terrestrial | e | yes |
-| `P` | Cold, glaciated world, -40 C to freezing | terrestrial | h, e, c | yes |
-| `S` | Barren, rocky Super-Earth | terrestrial | h, e, c | no |
-| `T` | Gas dwarf with a thick atmosphere | gas giant | c | no |
-| `V` | Super-Earth with high gravity | terrestrial | e | yes |
+| `T` | Gas dwarf | gas giant | Mass below 10 Earth masses. | no |
+| `I` | Ice giant | gas giant | Mass below 35 Earth masses. | no |
+| `J` | Gas giant | gas giant | Every giant no earlier class took. | no |
+| `D` | Small icy body | terrestrial | No air (under 10 Pa) and at least 1 percent of its mass is water or ice. | no |
+| `S` | Airless super-Earth | terrestrial | No air (under 10 Pa) and at least 1.5 Earth masses. | no |
+| `C` | Dead world | terrestrial | No air (under 10 Pa). | no |
+| `A` | Volcanic world | terrestrial | At least 3 percent sulfur dioxide in the air. | no |
+| `T` | Gas dwarf | terrestrial | At least 30 percent hydrogen in the air and under 10 Earth masses. | no |
+| `N` | Hot dense world | terrestrial | Air of at least 10 bar, a mean surface at 400 K or more, and under 30 percent hydrogen. | no |
+| `V` | High-gravity world | terrestrial | Surface gravity of at least 2 g. | yes |
+| `L` | Marginal thin-air world | terrestrial | Air of 30 kPa to 3 bar, a mean surface of 273.15 K to 320 K, 1 percent or more carbon dioxide, 3 to 16 percent oxygen, and at least 0.5 g. | yes |
+| `K` | Thin-air world | terrestrial | Air under 3 kPa, a mean surface of 273.15 K to 320 K, and under 10 percent oxygen. | yes |
+| `E` | Deep-frozen world | terrestrial | A mean surface under 233.15 K (-40 C). | yes |
+| `P` | Glaciated world | terrestrial | A mean surface of 233.15 K to 273.15 K. | yes |
+| `B` | Small hot world | terrestrial | Surface gravity under 0.5 g. | no |
+| `F` | Reducing world | terrestrial | Under 3 percent oxygen and at least 5 percent methane and hydrogen in the air. | yes |
+| `G` | Carbon dioxide world | terrestrial | At least 20 percent carbon dioxide in the air. | yes |
+| `O` | Ocean world | terrestrial | At least 80 percent of the surface covered by water. | yes |
+| `H` | Desert world | terrestrial | Under 20 percent of the surface covered by water. | yes |
+| `M` | Temperate world | terrestrial | Every rocky body no earlier class took. | yes |
 
-Classes `S` and `V` can't be generated as **moons**
-(they're too large or physically implausible as satellites,
-`tuning.MOON_BLACKLIST`) — this only matters for random moon
-generation, since a slot's own `planet_class` always describes the planet
-itself, never its moons.
+The letters Q, R, U, W, X, Y and Z are not used. The rules above are the live ones, and the thresholds are tuned by the
+class sweep (`src/tests/class_shadow_cli.py`), so check `src/planetgen/physics/data/planet_classes.json` for the exact
+numbers.
+
+**Planned, class code system GEN.1220 (not live yet).** A class will be a letter plus a digit, and new letters are
+confirmed for new families of world: `Y` (sulfuric acid), `U` (methane and ethane), `X` (ammonia and water), `Z` (hot
+thin-air world) and `R` (Hothouse). None of these can be named in a slot until GEN.1220 is merged.
+
+Moons are given a class by the same rules, so no letter is barred from a moon, and a slot's own `planet_class` always
+describes the planet itself, never its moons.
 
 ## Full example
 

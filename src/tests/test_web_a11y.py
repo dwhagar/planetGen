@@ -448,6 +448,8 @@ def sample_params(site_app, sample_job, sample_run):
         "job_id": sample_job,
         "name": "index",  # web.old_page: /index.py, an old CGI URL
         "type_slug": "nebula",  # web.class_type_page / web.class_page
+        "topic": "abundance",  # web.life_help_topic (DOC.84)
+        "number": 3,  # web.life_help_class: the Class 3 family
         "kind": "planet",  # web.object_list: /lists/planet
         "code": "D",
         "species_id": items("/api/species")[0]["id"],

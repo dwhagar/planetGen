@@ -2443,6 +2443,15 @@ The shoulder beyond each edge of `physics/data/planet_class_fit.json`, where a c
 | CF6 | P | T6 | L3 | planet_class_fit.json shoulders.water_mass_fraction: 0.5 of the edge (the airless icy line at 1 percent) | 0.25 to 1.0 | airless bodies | none known | the small-body composition draw | hand-picked; the dry and icy airless bodies are decades apart, so the line is seldom crossed |
 | CF7 | P | T6 | L3 | planet_class_fit.json shoulders for gas shares (oxygen, carbon dioxide, hydrogen, sulfur dioxide, reducing gases): 0.25 of the edge with a floor of 0.002 to 0.005 | 0.1 to 0.5 of the edge | terrestrial bodies with air | none known | the toxicity and equipment lines of the habitability index | hand-picked; gas shares of a drawn air spread over decades, so the shoulder is a share of the edge |
 
+### 6.156 Stand-ins of the two cuts of the body type (GEN.1219)
+
+The two lines of `physics/planet_type.py` that sort a body into terrestrial, transitional or gas by the share of its mass held in a hydrogen-helium envelope. Both are Boss's choice of 10:31 AM EDT 2026-10-31 (clean cuts, ice giants transitional). Nothing stored reads them yet; the shadow report `tests/planet_type_cli.py` prints how a generated sample splits and GEN.1219 stores the type with GEN.1207's epoch.
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence |
+|---|---|---|---|---|---|---|---|---|---|
+| PT1 | P | T9 | L0 | planet_type.TERRESTRIAL_MAX_ENVELOPE 0.005: an envelope under 0.5 percent of the mass is a terrestrial body (about the 1.6 Earth radii where rocky planets end) | 0.002 to 0.02 | planets and moons | a measured planet of 1.6 to 2 Earth radii that is rocky with no envelope, or a rocky world of 1.3 radii with a thick hydrogen envelope | the radius valley limit of GEN.722 read from the envelope the planet holds | Rogers 2015 and Fulton and Petigura 2018 (rocky limit near 1.6 Earth radii); Lopez and Fortney 2014 (envelope share against radius) |
+| PT2 | P | T9 | L0 | planet_type.GAS_MIN_ENVELOPE 0.5: an envelope of half the mass or more is a gas body (the line of bulk_structure.GIANT_ENVELOPE_FRACTION) | 0.3 to 0.7 | planets | a giant of Neptune's mass that is more than half envelope, or a Jupiter whose core outweighs its envelope | the envelope share the giant interior model gives (GEN.428) | Boss's choice of the pure rule; Neptune 10 to 15 percent envelope (Helled 2011) and Jupiter 90 percent or more |
+
 ### 6.129 Stand-ins of the strengths of the ice types (GEN.1177)
 
 The strength of the other ices of an icy body next to ice Ih (`physics/ice_types.py`, `physics/data/roundness_strengths.json` under `ice_types`): the high-pressure phases of water, methane clathrate hydrate, solid carbon dioxide and ammonia dihydrate, and the thresholds that name a body's ice type from its components. Nothing in `roundness.py` reads them yet; the engine takes `ice_types.strength_ratio` as a factor on its ice strength when the types are wired (`reports/planetary-material-strength-2026-10-31.md` sections 2b, 9, 11c, 14).

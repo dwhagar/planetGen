@@ -215,3 +215,78 @@ def test_a_body_whose_day_is_its_orbit_is_marked_locked_and_the_caption_says_so(
     assert "its planet" in bl.look_note(dict(locked, kind="moon"))
     assert "turning much faster" in bl.look_note(free)
     assert bl.look_note({"quality": "x"}) is None
+
+
+def test_the_colour_account_names_the_inputs_the_picture_used_and_calls_the_estimate_partial():
+    """UX.158: the info panel line says which stored values gave the colour and that it is partial while the composition is not used."""
+    earth = bl.look_note(bl.planet_look(_planet()))
+    assert earth.startswith("Partial estimate: Ground colour from its mean surface temperature (288 K) alone; "
+                            "sea colour from its ocean class (neutral); limb glow") or "no limb glow" in earth
+    assert "sea colour from its ocean class (neutral)" in earth
+    assert "Not used yet: surface composition, clouds and haze (not stored)" in earth
+    bare = bl.colour_account(bl.planet_look(_planet(surface_temperature_k=None, ocean_class=None, atmosphere="None")))
+    assert "Ground colour is a default: no temperature is stored" in bare
+    assert "sea colour is a default: no ocean class is stored" in bare and "limb" not in bare
+    giant = bl.colour_account(bl.planet_look(_planet(body_type="g", surface_temperature_k=165.0)))
+    assert giant.startswith("Partial estimate: Cloud-top colour from its mean cloud-top temperature (165 K) alone")
+    assert "chemistry bands and haze" in giant and "sea colour" not in giant
+    rogue = bl.colour_account(bl.planet_look(_planet(), "rogue_planet"))
+    assert "limb" not in rogue
+
+
+def test_the_colour_account_of_a_star_is_full_with_a_temperature_and_partial_without():
+    star = {"id": 3, "star_type": "G2V", "temperature_k": 5772.0, "luminosity_w": 3.828e26, "radius_km": 695_700.0}
+    assert bl.colour_account(bl.star_look(star)) == "Full: colour of a model atmosphere at its effective temperature (5,772 K) and gravity"
+    assert bl.colour_account(bl.star_look(dict(star, temperature_k=None))).startswith("Partial: colour from its spectral class alone")
+    assert bl.colour_account({"body": "nebula"}) is None
+    assert bl.colour_account(dict(bl.planet_look(_planet()), quality="composition")).startswith("Full: ")
+
+def _air_look(pressure_kpa, gravity_g=1.0, **over):
+    return bl.planet_look(_earth_air(atmospheric_pressure_pa=pressure_kpa * 1000.0, gravity_g=gravity_g, **over))
+
+
+def test_the_glow_grows_with_the_column_of_the_air_from_none_to_thick():
+    """MAP.277: the Earth's air glows clearly, Mars's (0.6 kPa at 0.38 g) hardly at all, Venus's and Titan's most; no air has no glow fields."""
+    earth = _air_look(101.325)
+    mars = _air_look(0.6, 0.38)
+    venus = _air_look(9200.0, 0.9)
+    titan = _air_look(146.7, 0.138)
+    assert 0.5 < earth["glowStrength"] < bl.GLOW_STRENGTH_MAX
+    assert bl.GLOW_STRENGTH_MIN <= mars["glowStrength"] < 0.05
+    assert venus["glowStrength"] > earth["glowStrength"] and titan["glowStrength"] > earth["glowStrength"]
+    assert venus["glowStrength"] <= bl.GLOW_STRENGTH_MAX
+    airless = bl.planet_look(_planet(atmosphere="None", atmospheric_pressure_pa=0.0))
+    assert not {"glow", "glowStrength", "glowWidth", "twilight"} & set(airless)
+
+
+def test_an_air_too_thin_to_show_has_no_glow_at_all():
+    look = _air_look(0.01, 0.38)
+    assert look["atm"] is True and not {"glow", "glowStrength", "glowWidth", "twilight"} & set(look)
+
+
+def test_the_twilight_grows_with_the_glow_and_a_row_with_no_star_keeps_it_and_its_strength():
+    assert _air_look(0.6, 0.38)["twilight"] < _air_look(101.325)["twilight"] < _air_look(9200.0, 0.9)["twilight"] <= bl.TWILIGHT_MAX
+    unknown = bl.planet_look(_earth_air(_star_temperature_k=None))
+    assert "glow" not in unknown and unknown["twilight"] > 0.0 and unknown["glowStrength"] > 0.0      # the air still glows and wraps the light; no star colour to glow in
+
+
+def test_the_glow_reaches_farther_past_the_limb_for_a_light_hot_air_on_a_small_body():
+    earth = _air_look(101.325)["glowWidth"]
+    titan = _air_look(146.7, 0.138, radius_km=2575.0, surface_temperature_k=94.0)["glowWidth"]
+    assert bl.GLOW_WIDTH_RANGE[0] <= earth <= bl.GLOW_WIDTH_RANGE[1]
+    assert titan > earth                                       # a scale height that is a larger part of the radius
+    assert _air_look(101.325, surface_temperature_k=400.0)["glowWidth"] > earth      # hotter air is thicker
+    # with no gases stored the strength comes from the column, and there is no width to work out
+    assert "glowWidth" not in bl.planet_look(_planet(gravity_g=1.0, _star_temperature_k=5772.0))
+
+
+def test_a_giants_glow_is_the_fixed_strong_one():
+    giant = bl.planet_look(fold_air(_planet(body_type="g", planet_class="j", gravity_g=2.5, atmosphere="Hydrogen-Helium", atmospheric_pressure_pa=1e5,
+                                            surface_temperature_k=130.0, _star_temperature_k=5772.0, p_h2_kpa=86.0)))
+    assert giant["glowStrength"] == bl.GIANT_GLOW_STRENGTH
+
+
+def test_a_rogue_planet_has_no_glow_or_twilight():
+    look = bl.rogue_planet_look({"id": 1, "planet_type": "t", "surface_temperature_k": 300.0, "radius_km": 6000.0, "atmospheric_pressure_pa": 1e5,
+                                 "gravity_g": 1.0, "atmosphere": "Nitrogen-Oxygen"})
+    assert not {"glow", "glowStrength", "glowWidth", "twilight"} & set(look)

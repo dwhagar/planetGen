@@ -607,7 +607,7 @@ def test_planet_attrs_carries_one_look_record_not_loose_colour_attrs():
     assert look["body"] == "gas" and look["cls"] == "J" and look["tempK"] == 165.0
     assert look["color"].startswith("#")
     assert "color" not in attrs and "hasatmosphere" not in attrs
-    assert attrs["looknote"].startswith("Estimate")
+    assert attrs["looknote"].startswith("Partial estimate: Cloud-top colour from its mean cloud-top temperature (165 K) alone")
 
 
 def test_planet_attrs_flags_a_real_atmosphere_but_not_a_missing_one():

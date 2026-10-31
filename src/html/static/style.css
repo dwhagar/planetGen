@@ -5793,6 +5793,58 @@ p.hint a {
   margin: 0 0 0.4rem;
 }
 
+/* UX.251: the Life paragraph of At a glance and the table of the three words for each kind of life. */
+.life-glance {
+  margin: 0.5rem 0;
+}
+
+.life-readings {
+  border-collapse: collapse;
+  margin: 0.5rem 0;
+}
+
+.life-readings th,
+.life-readings td {
+  border-bottom: 1px solid var(--border);
+  padding: 0.2rem 0.75rem 0.2rem 0;
+  text-align: left;
+}
+
+.life-facts,
+.life-help-facts {
+  margin: 0.5rem 0;
+}
+
+.life-help-facts dt {
+  font-weight: 600;
+}
+
+.life-help-facts dd {
+  margin: 0 0 0.4rem;
+}
+
+.life-help-nav ul {
+  list-style: none;
+  margin: 0 0 0.75rem;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1rem;
+}
+
+a.help-mark {
+  font-weight: 600;
+  margin-left: 0.15rem;
+}
+
+.life-facts dt {
+  font-weight: 600;
+}
+
+.life-facts dd {
+  margin: 0 0 0.4rem;
+}
+
 /* UX.237: the Life and air chart. */
 .life-air-chart {
   width: 100%;
