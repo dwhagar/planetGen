@@ -16,7 +16,7 @@ from planetgen.util import draw
 from tests.fuzz_support import deterministic_entropy
 
 
-ICY_SEEDS = (17, 22, 24, 27, 30)
+ICY_SEEDS = (5, 15, 19, 25, 39)
 """The seeds whose systems hold ice-covered oceans (the life pass moves many moons in, so a short range of seeds holds few)."""
 
 
