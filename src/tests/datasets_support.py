@@ -1,7 +1,8 @@
 # tests/datasets_support.py
 
-"""Fixtures for the downloaded datasets of GEN.548, GEN.443 and GEN.715, built offline: a small MIST archive, a white-dwarf sequence
-archive, an equation-of-state and outer-crust set, an ozone cross-section archive and the infrared tables of `ir_datasets_support`, each served to the real download step by a fake opener (the sha256 of
+"""Fixtures for the downloaded datasets of GEN.548, GEN.443, GEN.715 and GEN.733, built offline: a small MIST archive, a white-dwarf sequence
+archive, an equation-of-state and outer-crust set, an ozone cross-section archive, the infrared tables of `ir_datasets_support` and a
+hydrogen-helium table archive, each served to the real download step by a fake opener (the sha256 of
 the fixture bytes replaces the catalogue's), so no test reaches the network and no downloaded data is committed. Shared by
 `test_datasets_readers.py` (the readers), `test_datasets_gate.py` (the refusal) and `test_stellar_composition.py` (GEN.590)."""
 
@@ -14,7 +15,7 @@ import zipfile
 
 import numpy as np
 
-from planetgen.datasets import (baraffe_isochrones, catalogue, fetch, harris_clusters, hitran_cia, ir_ktables, isochrones, mamajek_sequence,
+from planetgen.datasets import (baraffe_isochrones, catalogue, fetch, harris_clusters, hhe_eos, hitran_cia, ir_ktables, isochrones, mamajek_sequence,
                                 neutron_star_matter,
                                 noaa_proton_events, ozone_uv, white_dwarf_models)
 from tests import ir_datasets_support
@@ -40,7 +41,7 @@ def reset_caches(cache_folder, monkeypatch):
     for loader in (isochrones._load, white_dwarf_models._load, neutron_star_matter._load_compositions,
                    neutron_star_matter._load_eos, ozone_uv._load, ir_ktables.load, hitran_cia.load, harris_clusters._load,
                    noaa_proton_events._load, baraffe_isochrones._load, mamajek_sequence._load, mamajek_sequence._edges,
-                   mamajek_sequence._luminosity_curve):
+                   mamajek_sequence._luminosity_curve, hhe_eos._load):
         loader.cache_clear()
 
 
@@ -197,6 +198,58 @@ def _ozone_archive():
     return buffer.getvalue()
 
 
+# ---- hydrogen-helium equation of state ----
+
+HHE_LOG_T = np.arange(2.0, 8.0 + 1e-9, 0.25)
+HHE_LOG_P = np.arange(-9.0, 13.0 + 1e-9, 0.25)
+"""ndarray: The fixture tables' axes: log10 T in K and log10 P in GPa, a quarter of a dex apart (the real ones are 0.05)."""
+HHE_HYDROGEN_MU = 2.3
+HHE_HELIUM_MU = 4.0
+HHE_STIFFNESS_G_CM3 = 150.0
+
+
+def hhe_fixture_density_g_cm3(log_t, log_p, mean_molecular_weight):
+    """The fixture fluid's density: an ideal gas of that mean molecular weight, held below `HHE_STIFFNESS_G_CM3` by a harmonic
+    cap that makes it incompressible at depth, so a body built from it has a finite size."""
+    ideal = 1e9 * 10.0 ** log_p * mean_molecular_weight * 1.66054e-27 / (1.380649e-23 * 10.0 ** log_t) / 1000.0
+    return 1.0 / (1.0 / ideal + 1.0 / HHE_STIFFNESS_G_CM3)
+
+
+def hhe_fixture_log_entropy(log_t, log_p):
+    """The fixture's log10 entropy (MJ/kg/K): rising with temperature and falling with pressure, so its adiabats run T ~ P^0.4."""
+    return -0.5 + 0.2 * (log_t - 4.0) - 0.08 * log_p
+
+
+def _hhe_text(mean_molecular_weight):
+    rows = []
+    for log_t in HHE_LOG_T:
+        rows.append(f"#iT= log T= {log_t:.3f}")
+        for log_p in HHE_LOG_P:
+            log_rho = np.log10(hhe_fixture_density_g_cm3(log_t, log_p, mean_molecular_weight))
+            values = [log_t, log_p, log_rho, -0.5, hhe_fixture_log_entropy(log_t, log_p), -1.0, 0.5, 5.0, -0.2, 0.4]
+            rows.append(" ".join(f"{value:.6E}" for value in values))
+    return ("\n".join(rows) + "\n").encode()
+
+
+def _hhe_archive():
+    buffer = io.BytesIO()
+    with tarfile.open(fileobj=buffer, mode="w:gz") as archive:
+        for member, mu in ((hhe_eos.MIXTURE_MEMBER, 0.725 * HHE_HYDROGEN_MU + 0.275 * HHE_HELIUM_MU), (hhe_eos.HYDROGEN_MEMBER, HHE_HYDROGEN_MU),
+                           (hhe_eos.HELIUM_MEMBER, HHE_HELIUM_MU)):
+            data = _hhe_text(mu)
+            info = tarfile.TarInfo(f"DirEOS2021/{member}")
+            info.size = len(data)
+            archive.addfile(info, io.BytesIO(data))
+        note = tarfile.TarInfo("DirEOS2021/README")
+        note.size = 3
+        archive.addfile(note, io.BytesIO(b"hi\n"))
+    return buffer.getvalue()
+
+
+def install_hhe_eos(monkeypatch):
+    return install(monkeypatch, hhe_eos, hhe_eos.DATASET, {hhe_eos.ARCHIVE: _hhe_archive()})
+
+
 def install_ozone(monkeypatch):
     return install(monkeypatch, ozone_uv, ozone_uv.DATASET, {ozone_uv.ARCHIVE: _ozone_archive()})
 
@@ -333,6 +386,6 @@ def install_all(monkeypatch):
     """All the datasets, on the fixtures, in the cache folder `reset_caches` set; the catalogue lists the fixtures' copies."""
     installed = [install_isochrones(monkeypatch), install_white_dwarfs(monkeypatch), install_neutron_stars(monkeypatch),
                  install_ozone(monkeypatch), *ir_datasets_support.install(monkeypatch, os.environ[fetch.CACHE_DIR_ENV]),
-                 install_harris(monkeypatch), install_noaa(monkeypatch), install_baraffe(monkeypatch), install_mamajek(monkeypatch)]
+                 install_harris(monkeypatch), install_noaa(monkeypatch), install_baraffe(monkeypatch), install_mamajek(monkeypatch), install_hhe_eos(monkeypatch)]
     monkeypatch.setattr(catalogue, "ALL", tuple(installed))
     return installed
