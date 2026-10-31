@@ -1076,7 +1076,7 @@ with `clamp()`.
   the summary, and 'Class 3 life has grown' says 3a. Presentation only;
   no stored value changes, no epoch. Where we think it belongs (best
   guess, can move): Core 5.
-  Prerequisites: GEN.1210. Related: UX.237.
+  Prerequisites: none. Related: UX.237.
 
 - [ ] **UX.252 Readability rewrite of ALL planet, moon and belt text: summary sentences, descriptions, notes, labels, class pages**
   Boss, 10:07 AM EDT 2026-10-31 (and 10:08 AM EDT for the help pages):
@@ -14327,40 +14327,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   civilization.
   Prerequisites: GEN.862. Related: GEN.863, UX.237, TEST.435.
 
-- [ ] **GEN.1210 Life readings: abundance, trend and security for each kind of life (microbes, flora, fauna, sentient), as one pure function over stored values with no new column**
-  Boss, 10:07 AM EDT 2026-10-31 (and 10:08 AM EDT for the help pages):
-  build and ship all the life recommendations, a full readability
-  rewrite of ALL planet and star text, a life summary paragraph in At a
-  glance, a Life section in the details with the nitty-gritty, and a
-  full help page suite on all life types and the categories we use.
-  Brief:
-  /mnt/project-files/reports/life-and-text-readability-brief-2026-10-31.md;
-  coexistence write-up:
-  reports/multi-life-types-per-planet-2026-10-31.md. PR 4471 (branch
-  claude/project-thread-5xwcu1, wording and layout of the first Life
-  paragraph) merges first and these build on it. Filed by the TODO
-  thread. Do: a pure module (no database, no random) that gives each
-  kind three words. Abundance from the stored 0 to 9 kind score by
-  DAFOR-style words: Absent, Rare, Occasional, Frequent, Abundant,
-  Dominant (the band edges are stand-ins for GEN.725, source: the
-  standard ecology abundance scales, wording unverified, so tier
-  Unverified, L3). Trend: growing, stable or declining, from the
-  suitability now against earlier (the stored life milestone ages and
-  the life and air history that UX.237 part 2 already works backwards),
-  the star's brightening and the stage timeline (GEN.750). Security:
-  Secure, Marginal, Precarious or Dying out, from the distance to the
-  class's limits (temperature, pressure, oxygen, radiation) and the time
-  left before the star pushes conditions past them. Example output:
-  'Microbes: abundant, stable, secure.' Computed on the page and in the
-  API from stored values, so no migration, no epoch and no golden;
-  physics decides, nothing forced, a civilization is never forced.
-  Several living classes (GEN.1209) later give one reading per class.
-  Tests: each word band, a dying-out case from a brightening star, and a
-  world with no life reads Absent for every kind. Where we think it
-  belongs (best guess, can move): Core 5, with Aux 2 reviewing the trend
-  and security rules.
-  Prerequisites: none. Related: GEN.1209, UX.237.
-
 - [ ] **GEN.1211 A new class for hot thin-air rocks (about 1.6 percent of bodies: 1.4 to 2 g, 340 to 1100 K, 1 to 10 kPa, no ocean) from the reserve letters (BOSS NAMES THE LETTER AND NAME)**
   Boss approved the class option for the hot thin-air gap (Class M
   thread, relayed 10:13 AM EDT 2026-10-31); he has not yet named the
@@ -20143,7 +20109,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   number is stated that the generator does not use. Docs and templates
   only, lock-free. Where we think it belongs (best guess, can move):
   Core 5 or a docs lane, after the life readings exist.
-  Prerequisites: GEN.1210. Related: DOC.57, DOC.58, DOC.76,
+  Prerequisites: none. Related: DOC.57, DOC.58, DOC.76,
   DOC.15.
 
 - [ ] **DOC.85 Refresh the class table in docs/reference/system-file-format.md: the F, G, B and N meanings and the zone and habitable columns are from the old zone-drawn classes**
