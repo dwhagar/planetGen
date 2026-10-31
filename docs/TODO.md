@@ -19133,19 +19133,6 @@ clears each one.
   change, like a module.
   Prerequisites: none.
 
-- [ ] **TEST.540 test_orbit_elements: an eccentric planet is as warm as a circular one, and a moon gets the light of its parent's orbit, both fail on main (bug)**
-  Found by Tides 1 (relayed 4:49 PM EDT 2026-10-31 as the lane
-  reported), reproduced on main without its change: two tests in
-  src/tests/test_orbit_elements.py fail, the one that expects an
-  eccentric planet to receive the same mean heat as a circular one (the
-  orbit-averaged flux grows as 1 over the square root of 1 minus e
-  squared) and the one that expects a moon to get the light of its
-  parent's orbit. Do: find whether the model in orbit_elements or the
-  test is wrong against the physics, fix that side and say which; the
-  tests are not skipped. Done: the file passes. Lock-free if only a test
-  changes, a lock item if a generated temperature changes. Owner: Aux 7.
-  Prerequisites: none. Related: TEST.526.
-
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
