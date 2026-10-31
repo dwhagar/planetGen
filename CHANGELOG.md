@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2897] - 2026-10-31
+
+**Headline:** The kinds of asteroid in a belt now follow the star's own disk temperature and the radioactive heat it was born with, not the Solar System's belt scaled to its snow line.
+
+### Changed
+
+- An asteroid belt's taxa (dry and igneous, hydrated carbonaceous, primitive, ice-rich) come from the disk temperature at the belt's distance for the star's luminosity and the aluminium-26 the star was born with (every body of a star shares it). The zone table in units of the snow line is no longer used by the draw. generation-output: changed
+
 ## [8.0.2896] - 2026-10-31
 
 **Headline:** A galaxy of more than 30 billion solar masses of stars now gets a lighter, more realistic dark matter halo, drawn from the halo mass function instead of from the inverse of the median relation.
