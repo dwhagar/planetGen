@@ -19471,21 +19471,6 @@ clears each one.
   command.
   Prerequisites: none. Related: GEN.1118.
 
-- [ ] **TEST.519 tests/test_web_a11y.py::test_page_is_accessible_and_fits[web.galaxy-*] fails the axe rule scrollable-region-focusable on .map-key-lines (all four size and theme runs) on clean main (bug)**
-  Found by Core 5 (as the lane reported, 11:25 AM EDT 2026-10-31;
-  checked with its changes stashed), filed by the TODO thread. Kind: red
-  test on main. Object:
-  tests/test_web_a11y.py::test_page_is_accessible_and_fits for the
-  galaxy map page, all four size and theme runs; the axe rule
-  scrollable-region-focusable flags the scrollable .map-key-lines region
-  of the map key because it cannot be reached by keyboard. Do: make the
-  region keyboard reachable (tabindex 0 and a label) or stop it
-  scrolling, in the template and CSS, never by turning the rule off.
-  Also seen once and probably a flake: system-desktop-dark skip link not
-  visible; if it recurs, file it separately. Web only, lock-free. Owner:
-  Core 5 (proposed).
-  Prerequisites: none.
-
 - [ ] **TEST.520 Extend the wiring guard to stored columns and shadow functions, and wire, show or drop every column only the Details sheet reads**
   Boss, 12:03 PM EDT 2026-10-31: make sure everything built is wired in
   and read; no more building something and not using it. Filed by the
