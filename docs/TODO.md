@@ -19187,15 +19187,6 @@ clears each one.
   Owner Core 4.
   Prerequisites: none. Related: GEN.366.
 
-- [ ] **TEST.508 Leo I fixture row in test_satellites has an age of 5 Gy so it forms gas; change the age or label it a stand-in**
-  From Aux 4 (reports/gen535-magellanic-gas-remnants-2026-10-31.md): the
-  Leo I test fixture row has an age of 5 Gy, which forms gas, while the
-  generated laws leave a Leo I-mass satellite gas-free and Leo I is
-  gas-free in the observations. Change the age so it does not form gas,
-  or leave it labelled as a stand-in. Test data only, no generated value
-  changes. Owner Aux 4.
-  Prerequisites: none. Related: GEN.535.
-
 - [ ] **TEST.509 The climate sweep twin sits at 313 K, far above the 288 K of the Earth it stands for: make it a real Earth twin so the sweep tests the feedbacks where they act**
   From Air 1 (GEN.972 design): the climate sweep twin in
   src/tests/test_climate_sweep.py is at 313 K at its reference flux, far
