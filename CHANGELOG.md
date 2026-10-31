@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2855] - 2026-10-31
+
+**Headline:** The burn-down register no longer carries the leftover merge-conflict markers of a merge race.
+
+### Changed
+- `docs/design/research/burn-down-register.md` held a `<<<<<<<`, `=======` and `>>>>>>>` triple after the rows of 6.125 and 6.22 from two branches; both sides' rows are kept and the three marker lines are removed. No register row changes.
+generation-output: unchanged
+
 ## [8.0.2854] - 2026-10-31
 
 **Headline:** The `--around` help text of `planetgen generate`, `sectors` and `galaxy` no longer shows an internal item code.
