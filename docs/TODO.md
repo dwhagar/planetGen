@@ -1048,6 +1048,9 @@ with `clamp()`.
   the serial comma in the rewrite (rule 15 of the plain-words guide;
   DOC.86 adds the check). Links to References pages wait for DOC.87 (R1)
   and are done in this same pass.
+  reference_link available (DOC.87 merged as #4602) (2026-10-31 4:16 PM
+  EDT): reference_link(kind, id, label) is in web/helpers.py and a
+  template global; use it for links into References.
   Prerequisites: none. Related: UX.237, GEN.1208.
 
 ## MAP: Galaxy Map, Sector Map, System Map
@@ -12223,6 +12226,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   It had no owner; the belt page and the scatter wiring read what it
   stores. Owner now: Sources 2 (with GEN.1092) (proposed by the TODO
   thread; the lane says if it cannot take it).
+  Owner changed (2026-10-31 4:48 PM EDT): Owner (2026-10-31 4:48 PM
+  EDT): Boss asked 4:44 PM EDT about the asteroid chain (individual
+  objects above a mass threshold, a scatter step in the system before
+  planet ejection, three kinds: inner belt, outer belt, Kuiper belt).
+  The pure modules are merged (ledger GEN.1061, scatter GEN.1089, cause
+  table GEN.1088, dwarf population GEN.1090, composition GEN.1067,
+  density GEN.1093, resonance map GEN.1062, history GEN.1064); the
+  wiring is open. Sources 2 was retired, so the wiring chain GEN.1068 (b
+  built, train 8), GEN.1069, GEN.1070 (pages with Core 2), GEN.1071
+  (outer disc and Kuiper), GEN.1092 (scatter wired), GEN.1085 now has
+  Aux 5 as owner, in that order, after GEN.1014 (train 8).
   Prerequisites: GEN.477, GEN.1068. Related: GEN.477.
   Design: [docs/design/systems/belt-evolution.md](design/systems/belt-evolution.md)
 
@@ -12280,6 +12294,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   detached) are generated from the cold outer disc and swept by the
   scatter step, with dwarf planets drawn from the size law (GEN.1090),
   the outer disc being the belt of GEN.1071.
+  Owner changed (2026-10-31 4:48 PM EDT): Owner (2026-10-31 4:48 PM
+  EDT): Boss asked 4:44 PM EDT about the asteroid chain (individual
+  objects above a mass threshold, a scatter step in the system before
+  planet ejection, three kinds: inner belt, outer belt, Kuiper belt).
+  The pure modules are merged (ledger GEN.1061, scatter GEN.1089, cause
+  table GEN.1088, dwarf population GEN.1090, composition GEN.1067,
+  density GEN.1093, resonance map GEN.1062, history GEN.1064); the
+  wiring is open. Sources 2 was retired, so the wiring chain GEN.1068 (b
+  built, train 8), GEN.1069, GEN.1070 (pages with Core 2), GEN.1071
+  (outer disc and Kuiper), GEN.1092 (scatter wired), GEN.1085 now has
+  Aux 5 as owner, in that order, after GEN.1014 (train 8).
   Prerequisites: GEN.1068, GEN.1069.
   Design: [docs/design/systems/belt-evolution.md](design/systems/belt-evolution.md)
 
@@ -12399,6 +12424,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   with the belt storage. Done: tests show belt mass minus captured mass
   is conserved. Where we think it belongs (best guess, can move):
   Sources 2, train 7.
+  Owner changed (2026-10-31 4:48 PM EDT): Owner (2026-10-31 4:48 PM
+  EDT): Boss asked 4:44 PM EDT about the asteroid chain (individual
+  objects above a mass threshold, a scatter step in the system before
+  planet ejection, three kinds: inner belt, outer belt, Kuiper belt).
+  The pure modules are merged (ledger GEN.1061, scatter GEN.1089, cause
+  table GEN.1088, dwarf population GEN.1090, composition GEN.1067,
+  density GEN.1093, resonance map GEN.1062, history GEN.1064); the
+  wiring is open. Sources 2 was retired, so the wiring chain GEN.1068 (b
+  built, train 8), GEN.1069, GEN.1070 (pages with Core 2), GEN.1071
+  (outer disc and Kuiper), GEN.1092 (scatter wired), GEN.1085 now has
+  Aux 5 as owner, in that order, after GEN.1014 (train 8).
   Prerequisites: GEN.1084, GEN.1069.
   Design: [docs/design/systems/captured-asteroid-moons.md](design/systems/captured-asteroid-moons.md)
 
@@ -12444,6 +12480,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   detached) are generated from the cold outer disc and swept by the
   scatter step, with dwarf planets drawn from the size law (GEN.1090),
   the outer disc being the belt of GEN.1071.
+  Owner changed (2026-10-31 4:48 PM EDT): Owner (2026-10-31 4:48 PM
+  EDT): Boss asked 4:44 PM EDT about the asteroid chain (individual
+  objects above a mass threshold, a scatter step in the system before
+  planet ejection, three kinds: inner belt, outer belt, Kuiper belt).
+  The pure modules are merged (ledger GEN.1061, scatter GEN.1089, cause
+  table GEN.1088, dwarf population GEN.1090, composition GEN.1067,
+  density GEN.1093, resonance map GEN.1062, history GEN.1064); the
+  wiring is open. Sources 2 was retired, so the wiring chain GEN.1068 (b
+  built, train 8), GEN.1069, GEN.1070 (pages with Core 2), GEN.1071
+  (outer disc and Kuiper), GEN.1092 (scatter wired), GEN.1085 now has
+  Aux 5 as owner, in that order, after GEN.1014 (train 8).
   Prerequisites: GEN.1070, GEN.1071.
   Design: [docs/design/systems/belt-origins.md](design/systems/belt-origins.md)
 
@@ -12463,6 +12510,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   physical sources), a retired field past 1 ly is marked retired, and
   the leftover planet of a collision is its own rogue planet. The field
   density no longer comes from a flat table at all.
+  Owner changed (belt chain) (2026-10-31 4:52 PM EDT): Boss, 4:49 PM EDT
+  2026-10-31: put the interstellar asteroid fields (GEN.1103 to
+  GEN.1107) in the same chain and with the same owner as the belt chain
+  (GEN.1068 to GEN.1073, GEN.1085, GEN.1092), because it is much of the
+  same code. Owner is now Aux 5 for the whole chain; Aux 5 may hand the
+  page and render parts (GEN.1070, GEN.1105, GEN.1106) to Core 2 and
+  says so. Train: after GEN.1068 b (train 8) and the member storage
+  GEN.1070, so train 9 at the earliest; this replaces the train 8 and
+  lane guesses above.
   Prerequisites: GEN.1102.
   Design: [docs/design/systems/interstellar-asteroid-fields.md](design/systems/interstellar-asteroid-fields.md)
 
@@ -12476,6 +12532,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.725. Lock work, train 8. Design L2. Done: tests, census share of
   remnants with a field. Where we think it belongs (best guess, can
   move): Aux 4, train 8 (same train as the columns).
+  Owner changed (belt chain) (2026-10-31 4:52 PM EDT): Boss, 4:49 PM EDT
+  2026-10-31: put the interstellar asteroid fields (GEN.1103 to
+  GEN.1107) in the same chain and with the same owner as the belt chain
+  (GEN.1068 to GEN.1073, GEN.1085, GEN.1092), because it is much of the
+  same code. Owner is now Aux 5 for the whole chain; Aux 5 may hand the
+  page and render parts (GEN.1070, GEN.1105, GEN.1106) to Core 2 and
+  says so. Train: after GEN.1068 b (train 8) and the member storage
+  GEN.1070, so train 9 at the earliest; this replaces the train 8 and
+  lane guesses above.
   Prerequisites: GEN.1103.
   Design: [docs/design/systems/interstellar-asteroid-fields.md](design/systems/interstellar-asteroid-fields.md)
 
@@ -12490,6 +12555,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (belt member storage and designation). API version bump. Done: tests,
   pages. Where we think it belongs (best guess, can move): Core 2 with
   Aux 4, train 8.
+  Owner changed (belt chain) (2026-10-31 4:52 PM EDT): Boss, 4:49 PM EDT
+  2026-10-31: put the interstellar asteroid fields (GEN.1103 to
+  GEN.1107) in the same chain and with the same owner as the belt chain
+  (GEN.1068 to GEN.1073, GEN.1085, GEN.1092), because it is much of the
+  same code. Owner is now Aux 5 for the whole chain; Aux 5 may hand the
+  page and render parts (GEN.1070, GEN.1105, GEN.1106) to Core 2 and
+  says so. Train: after GEN.1068 b (train 8) and the member storage
+  GEN.1070, so train 9 at the earliest; this replaces the train 8 and
+  lane guesses above.
   Prerequisites: GEN.1103, GEN.1070.
   Design: [docs/design/systems/interstellar-asteroid-fields.md](design/systems/interstellar-asteroid-fields.md)
 
@@ -12502,6 +12576,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   with the rate as a labelled dial and registers every stand-in in
   GEN.725. Lock work, train 8. Design L4. Done: map and page checks.
   Where we think it belongs (best guess, can move): Core 2, train 8.
+  Owner changed (belt chain) (2026-10-31 4:52 PM EDT): Boss, 4:49 PM EDT
+  2026-10-31: put the interstellar asteroid fields (GEN.1103 to
+  GEN.1107) in the same chain and with the same owner as the belt chain
+  (GEN.1068 to GEN.1073, GEN.1085, GEN.1092), because it is much of the
+  same code. Owner is now Aux 5 for the whole chain; Aux 5 may hand the
+  page and render parts (GEN.1070, GEN.1105, GEN.1106) to Core 2 and
+  says so. Train: after GEN.1068 b (train 8) and the member storage
+  GEN.1070, so train 9 at the earliest; this replaces the train 8 and
+  lane guesses above.
   Prerequisites: GEN.1105.
   Design: [docs/design/systems/interstellar-asteroid-fields.md](design/systems/interstellar-asteroid-fields.md)
 
@@ -12521,6 +12604,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   physical sources), a retired field past 1 ly is marked retired, and
   the leftover planet of a collision is its own rogue planet. Default
   retire is confirmed.
+  Owner changed (belt chain) (2026-10-31 4:52 PM EDT): Boss, 4:49 PM EDT
+  2026-10-31: put the interstellar asteroid fields (GEN.1103 to
+  GEN.1107) in the same chain and with the same owner as the belt chain
+  (GEN.1068 to GEN.1073, GEN.1085, GEN.1092), because it is much of the
+  same code. Owner is now Aux 5 for the whole chain; Aux 5 may hand the
+  page and render parts (GEN.1070, GEN.1105, GEN.1106) to Core 2 and
+  says so. Train: after GEN.1068 b (train 8) and the member storage
+  GEN.1070, so train 9 at the earliest; this replaces the train 8 and
+  lane guesses above.
   Prerequisites: GEN.1103, GEN.1006.
   Design: [docs/design/systems/interstellar-asteroid-fields.md](design/systems/interstellar-asteroid-fields.md)
 
@@ -12666,6 +12758,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   wires GEN.1134 (radiogenic inputs), and removes the ROGUE_* tuning
   defaults that rogue.py and rogue_surface.py still read, with no
   compatibility shim.
+  Rogue build order (Boss asked 4:41 PM EDT whether it is merged)
+  (2026-10-31 4:44 PM EDT): Not built and not started (Planets 1, as the
+  lane reported 4:43 PM EDT): it cannot ride train 8 because it saves
+  each rogue in the sector where it lands and deletes a donor's rogues
+  when the donor is saved again, which needs the chart_ledger table of
+  GEN.1127 (not on main) and GEN.1014 (in train 8). Earliest lock branch
+  is train 9. Planets 1 builds the lock-free part now: a rogue as the
+  same Planet chain with its moons from a GEN.1119 ejection record (RP
+  modules, rogue note, no star), on a branch off main, with the lock
+  wiring on top once GEN.1127 lands.
   Prerequisites: GEN.1014. Related: GEN.291, GEN.557, GEN.728.
   Design: [docs/design/systems/interstellar-asteroid-fields.md](design/systems/interstellar-asteroid-fields.md)
 
@@ -12759,6 +12861,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   until Boss says otherwise). Needs a MySQL test of regenerating sector
   A when one of its systems drifted into C (second copy refused or
   renumbered?) before building. GEN.1123 retired.
+  Owner and train (2026-10-31) (2026-10-31 4:44 PM EDT): Owner Core 5
+  (assigned by TODO 4:44 PM EDT), moved up because GEN.1111 (rogue rows)
+  waits for the chart_ledger table: a lock branch with its migration for
+  train 9 (or train 8 if built before the freeze), ahead of the rogue
+  rows.
   Prerequisites: none. Related: GEN.1118, GEN.1111.
 
 - [ ] **GEN.1128 Region run command: a sphere of a given radius from a start point becomes whole sectors, cut into units of a block of sectors by the galaxy's own (shell, band) arcs, nearest bands first, with `--grow-shells K`, all writing the chart ledger**
@@ -14388,6 +14495,24 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   giant_event name this item. Owner: Star 2.
   Prerequisites: none. Related: GEN.1072, GEN.1068.
 
+- [ ] **GEN.1233 Dust rings fed by small moons (Jupiter, Uranus, Neptune): a steady-state supply so giants with faint rings are not left ringless by the ring lifetime law**
+  From Tides 1 (relayed 5:06 PM EDT 2026-10-31 as the lane reported),
+  the follow-up of GEN.1171: the ring lifetime law (viscous spreading
+  plus meteoroid erosion) correctly kills a ring that has no supply, but
+  dust rings that small moons and impacts keep feeding (Jupiter's,
+  Uranus's and Neptune's rings, steady-state) are not modelled, so
+  giants with 4 of 4 rings in the Solar System now come out ringed about
+  9 percent of the time. Do: a supply term for rings near small moons
+  (impact ejecta from meteoroid flux on the moons' surfaces, with a
+  yield and a loss time from the same erosion and drag laws), so a faint
+  dust ring persists where a moon feeds it; the Solar System rings are
+  tests, not anchors; every stand-in goes in GEN.725 with tier and tweak
+  level. Done: the ringed share of giants moves toward the observed
+  share of giants with rings (all four in the Solar System, with the
+  sample caveat) by the physics, the census is printed before and after.
+  Changes stored ring columns, so it rides a train. Owner: Tides 1.
+  Prerequisites: none. Related: GEN.1171, GEN.725.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -14806,6 +14931,27 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   offset on the Phenomena list. Measure on a real MySQL at a full galaxy
   before and after.
   Prerequisites: none.
+
+- [ ] **PERF.224 Cheaper bright-table bound: fewer compositions per bin, so the star tables build about 1.7 times faster**
+  From Star 2 (relayed 5:05 PM EDT 2026-10-31 as the lane reported):
+  since GEN.1024 (train 7) a table's per-cell bound reads five
+  compositions of the bin (was three), each on both branches' tracks
+  (thin and alpha-rich) wherever the age window reaches the thick disc,
+  so about ten distinct tracks per cell against three. One table build
+  (old population, solar bin) takes 7.0 s against 2.3 s before at 100
+  solar luminosities, and 3.3 s against 0.9 s at 2500;
+  test_backfilled_cells_get_band_stars_in_their_own_cell takes about 12
+  minutes. The cost is spread over MIST lookups
+  (main_sequence_bright_from_gy 54 percent), nothing hot to cache, and
+  memoising was tried for PERF.218 (3 to 28 percent). Do: bound each bin
+  with three compositions per branch, or the minimum and maximum of the
+  bin, about 1.7 times faster; this changes which draws are rejected, so
+  it is a lock item (epoch, golden, --affects scatter,fill,population),
+  and the bound must stay certified (never below the true maximum).
+  Done: the table build time is back near its old value, the
+  certified-bound test passes, and the census is unchanged within noise.
+  Owner: Star 2, train 9.
+  Prerequisites: none. Related: GEN.1024, PERF.218.
 
 ## DB: Database and schema
 
@@ -19026,31 +19172,6 @@ clears each one.
   change, like a module.
   Prerequisites: none.
 
-- [ ] **TEST.526 Wire, register or delete the 8 pure functions nothing calls in 4 modules (Tides 1's share of the TEST.520 shadow functions)**
-  Boss, 12:03 PM EDT 2026-10-31: nothing built and left unused. Core 1's
-  wiring guard (TEST.520, PR #4513) found 157 public functions in
-  physics, generation and galaxy that only tests call or nothing calls;
-  its register lines name TEST.520 because no owner was guessed. Report:
-  /mnt/project-files/reports/wiring-guard-test520-2026-10-31.md. Filed
-  by the TODO thread. Your share (8 functions): physics.moon_orbits
-  (drift_rate_m_s, tidal_power_w); physics.tidal_rheology
-  (tidal_frequency_rad_s); physics.surface_liquids (ideal_sea,
-  liquid_ids, sea_density_kg_m3, stable_liquids);
-  physics.habitability_world (harshness). Do, for each function: (1)
-  wire it, naming the open item that will call it (or filing one) in its
-  register line of docs/design/research/wiring-register.md; (2) mark it
-  `by design` with the reason when it is a tuning or test harness reader
-  (an observed sampler, an expected count) and say who runs it; or (3)
-  delete it and its tests (no dead code, no shim). Done: none of your
-  functions names TEST.520 in the register, and test_wiring_guard
-  passes. Lock-free (register, tests and deletions of unreferenced code
-  change no stored value; if a wiring step changes output it rides a
-  train under its own item). Owner Tides 1 (proposed by the TODO thread,
-  one lock-free item at a time; the lane says if it clashes). Rule for
-  every lane: a public function that only tests call needs a register
-  line in the same change, like a module.
-  Prerequisites: none.
-
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
@@ -20219,21 +20340,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   in its rewrite).
   Prerequisites: none.
 
-- [ ] **DOC.87 References R1: link helper (reference_link(kind, id)), the anchor and URL scheme, the banned-words rule for out-of-universe words, and the crawl test**
-  Boss (2026-10-31, as the coordinator relayed): a Help > References
-  menu, out of universe, for sources, the GEN.725 stand-in registry with
-  how each was decided, fitted values, speculative chemistry and gaps;
-  the rest of the site stays in universe. Design:
-  /mnt/project-files/design-drafts/references-help-menu-2026-10-31.md
-  (section 6, R1 to R8). Wording and pages only: no epoch, no lock, no
-  computed change, lock-free. Add `reference_link(kind, id)`, the URL
-  layout, the list of banned out-of-universe words and the exemption for
-  the References pages (a new rule 16 of the plain-words guide, after
-  the Oxford comma rule 15 of DOC.86), and
-  the page crawl test. Related: DOC.83, DOC.57, DOC.86. Owner: Core 1,
-  after TEST.534.
-  Prerequisites: none.
-
 - [ ] **DOC.88 References R2: the References shell and generator (Help menu entry, /references with the Out of universe banner, scripts/build_reference_pages.py with --check, built by update.sh)**
   Boss (2026-10-31, as the coordinator relayed): a Help > References
   menu, out of universe, for sources, the GEN.725 stand-in registry with
@@ -20244,6 +20350,10 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   computed change, lock-free. Ship the shell before DOC.57 and let
   DOC.57 absorb it. The generator is built by update.sh and `--check` is
   held by a test. Related: DOC.57, DOC.58. Owner: Core 1.
+  Banner contract (DOC.87 merged as #4602) (2026-10-31 4:16 PM EDT):
+  DOC.87 merged as #4602: put id="out-of-universe-banner" on every
+  /references page; web/lib/reference_urls.py has reference_path, anchor
+  and AREAS, and reference_link(kind, id, label) is a template global.
   Prerequisites: DOC.87.
 
 - [ ] **DOC.89 References R3: Sources pages (papers, datasets, archives, licenses, credits), each paper linking to where it is used**
@@ -20270,6 +20380,12 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   citations not yet matched to a paper get their own page with a search
   link each. Details: section 8 of
   /mnt/project-files/design-drafts/references-help-menu-2026-10-31.md.
+  DOC.95 merged as #4603 (2026-10-31 4:19 PM EDT): DOC.95 merged as
+  #4603: 3,190 citations tied to a paper, 227 labelled not a paper,
+  1,354 for review (list and what was tried on the REFERENCES pages; 10
+  identifiers unresolved in
+  /mnt/project-files/reports/doc95-unresolved-citations-2026-10-31.md).
+  A test fails if a citation has none of the three outcomes.
   Prerequisites: DOC.88.
 
 - [ ] **DOC.90 References R4: stand-in registry pages (every GEN.725 row, one page per stand-in with how it was made and decided, tier and level legends, filters, and the fitted-to-a-result page for L2 to L4 with tuning targets)**
@@ -20292,6 +20408,12 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   (section 6, R1 to R8). Wording and pages only: no epoch, no lock, no
   computed change, lock-free. Method pages come from the sheet sources
   and data files. Related: GEN.725, DOC.57. Owner: Core 5.
+  Crawl entry (DOC.87 merged as #4602) (2026-10-31 4:16 PM EDT): The
+  References crawl test (tests/test_references_crawl.py) lists today's
+  out-of-universe hits in its KNOWN table; this item's are the
+  properties page: generator, model. Delete those entries in the same PR
+  that removes the words: an entry that no longer happens fails the
+  test.
   Prerequisites: DOC.88, DOC.90.
 
 - [ ] **DOC.92 References R6: move the speculative chemistry out of the life help and the air chart into /references/speculative, with per-class links (including the multi-class section for GEN.1209 and GEN.1213)**
@@ -20305,6 +20427,12 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   `life_air_chart.py`. GEN.1209 itself does not cover the help rewrite;
   this item does. The API field `speculative` stays. Related: GEN.1209,
   GEN.1210, GEN.1213, UX.237, DOC.84. Owner: Core 5.
+  Crawl entry (DOC.87 merged as #4602) (2026-10-31 4:16 PM EDT): The
+  References crawl test (tests/test_references_crawl.py) lists today's
+  out-of-universe hits in its KNOWN table; this item's are the life
+  help: speculative, fitted, tier, tuned, generated, educated guess.
+  Delete those entries in the same PR that removes the words: an entry
+  that no longer happens fails the test.
   Prerequisites: DOC.88.
 
 - [ ] **DOC.93 References R7: strip model hints from the leftover pages (maps, sector estimates text, API docs strings) and add links at the important places**
@@ -20320,7 +20448,13 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   life class reaches, sheet source lines to links, class page basis.
   Split by page kind if large. Related: UX.252, UX.253, DOC.83. Owner:
   Core 5.
-  Prerequisites: DOC.87, DOC.88, DOC.89, DOC.90, DOC.91.
+  Crawl entry (DOC.87 merged as #4602) (2026-10-31 4:16 PM EDT): The
+  References crawl test (tests/test_references_crawl.py) lists today's
+  out-of-universe hits in its KNOWN table; this item's are the sheet
+  source line for the Urey ratio: model. Delete those entries in the
+  same PR that removes the words: an entry that no longer happens fails
+  the test.
+  Prerequisites: DOC.88, DOC.89, DOC.90, DOC.91.
 
 - [ ] **DOC.94 References R8: test lock: the page crawl proves no out-of-universe word outside References and every link resolves, in the gate for changed pages**
   Boss (2026-10-31, as the coordinator relayed): a Help > References
@@ -20332,8 +20466,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   computed change, lock-free.  Related: DOC.83. Owner: Core 1.
   Prerequisites: DOC.93.
 
-- [ ] **DOC.95 References R3b (very important, first, ahead of the page build): tie every unmatched citation to its real paper, or label it not a paper, in batches by heaviest first**
-  Boss (2026-10-31, 2:55 PM EDT, as the lane relayed): finding the real citation for every unmatched citation is "very very important"; high priority, ahead of the References page build, no wait for the shell. Facts: 2,562 of 4,595 author-year mentions in docs/reference/references-data.json are not tied to a paper (about 16,900 places); only about 35 are noise or organizations; 997 appear three or more times; decades 1970s 112, 1980s 164, 1990s 256, 2000s 568, 2010s 912, 2020s 439. The lane reports in /mnt/project-files/reports (294 files) were never harvested and hold many full citations. Crossref works from a build machine; OpenAlex and Semantic Scholar answered 429 until a free key is set. Plan, in order: (1) triage noise ("EDT 2026" read as a citation, Copyright, months) and non-papers (organizations, web pages, software, standards) into a labeled list "Not a paper: what it is, link"; (2) harvest the reports, design drafts and handoffs with `build_references.py harvest --extra`, so a full citation there settles a mention by identifier; (3) search the rest by author, year and the citing sentence's title words on Crossref, then OpenAlex and Semantic Scholar, then arXiv, then ADS, and accept a hit only when first author, year and title or journal agree (near misses go to a review list; none is guessed); (4) work heaviest first (the 997 with three or more places), in batches by decade or by weight; (5) old papers, books and reports get a record by journal, volume, page and publisher with an ADS or library link. Done: every mention is tied to a paper (DOI link, else arXiv, else ADS, else a search link), or sits in the Not a paper list, or in a review list with the citing sentences and what was tried; the overview shows the three counts; a test fails if a new unmatched mention appears without a reason; a missing-DOI report is part of the build. Wording and data only (references-data.json and the REFERENCES pages): no epoch, no lock, lock-free. Boss may supply free OpenAlex and Semantic Scholar keys; ask through TODO. Dataset licensing stays Boss's. Design: section 9 of /mnt/project-files/design-drafts/references-help-menu-2026-10-31.md. Prerequisites: none. Related: DOC.89. Owner: Sources 1.
 - [ ] **VIEW.1 View from a planet**
   **Research first.** Boss: "view-from-planet will have to do
   calculations on colors and A LOT Of stuff, so make special note of
@@ -20646,6 +20778,30 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   tested but no production Python imports it yet; this item is one of its planned callers. Boss (8:04 PM
   EDT): code built for a pending feature stays.
   Prerequisites: none. Related: VIEW.1, MAP.167, GEN.421.
+
+- [ ] **DOC.96 Remove every reference to a paper that did not resolve, and rewrite the text so it reads naturally without it**
+  Boss (standing decision, relayed by the coordinator 4:19 PM EDT
+  2026-10-31): "remove any and all references to papers that did not
+  resolve, assume unresolved papers do not exist and rewrite all text to
+  remove them." After DOC.95 (#4603) the REFERENCES pages list 3,190
+  citations tied to a paper, 227 labelled not a paper and 1,354 for
+  review (what was tried is recorded on each). Do: first let the
+  OpenAlex and Semantic Scholar pass run if Boss supplies the free keys
+  (not yet supplied); then, for every citation still unresolved, remove
+  it from all project text (docs, design notes, help pages, code
+  comments and strings, TODO items, reports) and rewrite the sentence so
+  it reads naturally without it, treating the paper as nonexistent: a
+  value that rested only on that paper becomes a registered stand-in in
+  GEN.725 with the tier and tweak level it deserves without a source,
+  never an invented citation. Do not touch citations that are tied or
+  labelled not a paper. Done: no unresolved author-year citation remains
+  in the text, the DOC.95 test passes with the for-review group empty,
+  and the report lists the counts removed and the doc links. Lock-free
+  for text; a code string that is shown in the app is checked against
+  the plain-words rules (Oxford comma, no out-of-universe words outside
+  References). Owner: Sources 1 (it holds the lists; the earlier removal
+  thread could not be found).
+  Prerequisites: none. Related: DOC.95, DOC.89, GEN.725.
 
 ## POP: Population and politics
 
