@@ -2319,84 +2319,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   MAP.169 and does not wait for the heat map.
   Prerequisites: GEN.1150. Related: MAP.169.
 
-- [ ] **MAP.356 The map legend covers too much of the map; make it a small corner of the map (bug)**
-  Boss live observation 8:57 PM EDT 10-30 (bug). Owner: Core 2 (map
-  area), no epoch or migration. Shrink the legend to a small corner box
-  (collapsed by default or a compact list) on the Galaxy Map, Sector Map
-  and System Map, with a toggle to open it; browser test at 1280 and 390
-  px that it covers at most a small corner.
-  Prerequisites: none.
-
-- [ ] **MAP.357 Boss cannot reliably find and navigate from the galaxy down to filled and charted sectors and regions (bug)**
-  Boss live observation 8:57 PM EDT 10-30 (bug). Owner: Core 2 (map
-  area), no epoch or migration. Make charted and filled sectors and
-  regions findable and reachable from the Galaxy Map: a visible marker
-  or outline for charted regions, a list or jump control for them, and a
-  path from galaxy to region to sector that always works at every zoom.
-  Reproduce first on the live data, then fix; a browser test walks
-  galaxy to a charted sector.
-  Boss, 9:00 PM EDT: from the galactic view the
-  largest region with filled-in sectors appears as a point of interest
-  with a link that zooms in as close as possible (the frame that holds
-  the whole region).
-  Boss, 9:01 PM EDT (2026-10-30 9:02 PM EDT): this widens the point of
-  interest: every filled region far enough from the others to be a
-  separate POI at that galactic view is shown with its own zoom-in link,
-  not only the largest; two or more far-apart filled regions all appear.
-  Two regions closer than a POI marker merge into one.
-  Prerequisites: none.
-
-- [ ] **MAP.358 The View system and Expand buttons of the sector info display cannot be seen or reached (bug)**
-  Boss live observation 8:57 PM EDT 10-30 (bug). Owner: Core 2 (map
-  area), no epoch or migration. Find why the sector info panel hides its
-  View system and Expand buttons (clipped, covered by the legend or the
-  map, or off screen at the browser size) and make them always visible
-  and clickable; browser test clicks both at 1280 and 390 px.
-  Prerequisites: none.
-
-- [ ] **MAP.359 The sector map and system map should match the size of the galaxy map for the browser window (bug)**
-  Boss live observation 8:57 PM EDT 10-30 (bug). Owner: Core 2 (map
-  area), no epoch or migration. The sector and system map stages fill
-  the same area per window size as the Galaxy Map (same height rule,
-  same width); browser test compares the stage boxes of the three maps
-  at 1280 and 390 px.
-  Prerequisites: none.
-
-- [ ] **MAP.360 Sector view highlights only the sector being viewed and zooms in as close as the window allows (bug)**
-  Boss live observation 9:20 PM EDT 10-30 (bug). Owner: Core 2 (map
-  area), no epoch or migration. In the sector view, highlight only the
-  sector being viewed (no neighbouring sectors outlined or lit) and set
-  the zoom as close as the window allows so that sector fills the stage.
-  Related to MAP.355 (sector map limited to its sector, link to the
-  galaxy map) and MAP.359 (stage size). Done: browser test at 1280 and
-  390 px that exactly one sector is highlighted and the sector fills the
-  stage.
-  Prerequisites: none. Related: MAP.355, MAP.359.
-
-- [ ] **MAP.361 Sector view shows every star system that fits when there is room, so it shows more of the sector than the galaxy view would**
-  Boss, 9:20 PM EDT 10-30. Owner: Core 2 (map area), no epoch or
-  migration. The idea of the sector view is to see as much of the sector
-  as possible, more than you would typically see in the galaxy view.
-  Show every star system of the sector that fits in the stage without
-  overlap or clutter, thinning only when the window cannot hold them
-  (keep the brightest or most notable), and show more as the stage grows
-  or the view zooms. Done: browser test with a dense sector shows every
-  system that fits at 1280 px and fewer, without overlap, at 390 px.
-  Prerequisites: MAP.360. Related: MAP.355, MAP.359.
-
-- [ ] **MAP.362 Superbubbles are hidden on the map at load, with a Menu button to show them (bug)**
-  Boss observation (relayed by the coordinator to Core 2, 12:27 AM EDT
-  2026-10-31), filed by the TODO thread. Kind: map behaviour. Object:
-  the superbubbles layer of the galaxy map. Result: superbubbles show by
-  default and crowd the map. Wanted: they are off at load; the Menu gets
-  a Superbubbles button that turns them on and off; the address
-  ?show=superbubbles turns them on at load; the Key line for
-  superbubbles shows only while they are shown. Done: browser test that
-  a fresh load shows no superbubble and no Key line, the button shows
-  both, ?show=superbubbles shows both at load. Owner: Core 2, built in
-  the same PR as MAP.356 to MAP.361 (already coded).
-  Prerequisites: none.
-
 ## NAV: Navigation and courses
 
 - [ ] **NAV.4 Save a course**
@@ -13498,27 +13420,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.1014. Related: GEN.291, GEN.557, GEN.728.
   Design: [docs/design/systems/interstellar-asteroid-fields.md](design/systems/interstellar-asteroid-fields.md)
 
-- [ ] **GEN.1119 RP1: classify every architecture loss as ejected, collided or bound by the Safronov number and return an ejection record (mass, composition, kept moons, orbit at ejection, time), counting the small bodies the chain deletes today**
-  Rogue planet physics (goal #4130, review report
-  docs/design/research/rogue-planet-review.md, GEN.1109 merged).
-  Measured on 1500 stars: the architecture ejects only about 0.3 bodies
-  (about 9 Earth masses, almost all giants) per star while the flat rate
-  gives about 2.7 per star over the range microlensing probes (Sumi 2023
-  central value 21, lower 1 sigma 8; Mroz 2017 Jupiter limit holds);
-  about 125 sub-minimum bodies per star are deleted and merges lose 10
-  percent of mass; Barclay 2017's 2.5 terrestrial bodies per star is the
-  target scale. Do: a pure extension of the scatter module (GEN.1089,
-  merged) so no body is simply deleted: each loss is classed ejected,
-  collided (merge, with the lost mass kept) or bound by its Safronov
-  number and the ejected ones return a record; the ejection record is
-  what GEN.1111 consumes. Done: tests with giant-free and giant-rich
-  systems, mass conserved, the per-star ejected counts reported (target
-  scale 2.5 terrestrial bodies per star, Barclay 2017). Lock-free. Where
-  we think it belongs (best guess, can move): Planets 1 (now; GEN.1066
-  waits for the GEN.1014 wiring), separate branch.
-  Prerequisites: none. Related: GEN.1111, GEN.1112.
-  Design: [docs/design/research/rogue-planet-review.md](design/research/rogue-planet-review.md)
-
 - [ ] **GEN.1120 Rogue planet abundance option: a None, Few, Normal, Many dropdown in the galaxy and the sector generation options, with Normal the target and the physics-based spread tweaked to the low side of the observed range**
   Boss, 5:28 PM EDT 2026-10-30: add a tweak to bring our physics-based
   spread into the expected range, leaning toward the low side of the
@@ -14395,6 +14296,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   row). From Aux 4
   (reports/gen535-magellanic-gas-remnants-2026-10-31.md). Output
   changing, a lock item built on a separate branch. Owner Aux 4.
+  Wording owed (2026-10-31 2:50 AM EDT): The GEN.1197 research of Aux 4
+  (reports/gen1197-faint-gas-dwarfs-2026-10-31.md) found Leo T holds
+  4.1e5 solar masses of HI but forms no stars now (Adams and Oosterloo
+  2018), so the generator already makes Leo T-like dwarfs as
+  non-forming. The GEN.1193 change note, design paragraph and section
+  6.134 say such dwarfs are not made; correct the wording in a docs-only
+  change after GEN.1193 merges.
   Prerequisites: none. Related: GEN.535.
 
 - [ ] **GEN.1194 Runaway greenhouse: the radiative-convective model has no plateau in outgoing flux, so water window opacity, continuum temperature dependence and wings must be reworked until it plateaus**
@@ -14456,6 +14364,22 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   clusters change), same epoch as the central ring item. Owner: Core 3
   (proposed).
   Prerequisites: GEN.1195.
+
+- [ ] **GEN.1198 The sector profile's remnant factor in a Magellanic Cloud cell uses the gas factor, so scatter and fill disagree with the satellite remnant count**
+  Finding from Aux 4's GEN.1191 build (as the lane reported, 12:34 AM
+  EDT 2026-10-31), filed by the TODO thread. Kind: consistency. Object:
+  the supernova remnant factor of the sector profile in a Cloud's cells.
+  Result: GEN.1191 gives a satellite's remnants as systems times the
+  rate per system times a star-formation factor (3 to 1 core-collapse to
+  Type Ia odds times the satellite's young and old share against the
+  solar circle's), but the sector profile's own remnant factor in a
+  Cloud's cells still uses the gas factor, so the scatter of a cell and
+  the fill of the satellite give different remnant counts. Do: make the
+  sector profile read the same star-formation factor so the cells sum to
+  the satellite's count, with a test that the cells of a Cloud sum to
+  the satellite row. Lock work (stored remnants change). Prerequisites:
+  GEN.1191. Owner: Aux 4 (proposed).
+  Prerequisites: GEN.1191.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -19180,17 +19104,6 @@ clears each one.
   claude/test503-detmath-read, golden check in progress). The Venus and
   5 bar CO2 greenhouse table cases are filed as TEST.505.
   Prerequisites: none.
-
-- [ ] **TEST.507 Add Canes Venatici I (and decide on Canis Major) to the reference satellite table so it holds all 12 Milky Way satellites above 1e5 solar masses**
-  From Core 4 (GEN.366 check against McConnachie 2012, arXiv:1204.1562):
-  the paper lists 27 Milky Way satellites, all within 300 kpc, 12 above
-  1e5 solar masses; the reference table has 11 and misses Canes Venatici
-  I (2.3e5 solar masses). Canis Major (4.9e7, disputed) is a separate
-  decision. A test pins 11 rows (the plausibility test compares the
-  derived population with 11 within a factor of 3), so add the row and
-  update that test with it. Test data only, no generated value changes.
-  Owner Core 4.
-  Prerequisites: none. Related: GEN.366.
 
 ## USR: User accounts
 

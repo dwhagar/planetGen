@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.250 |
 | MAP | MAP.363 |
 | NAV | NAV.65 |
-| GEN | GEN.1197 |
+| GEN | GEN.1199 |
 | PERF | PERF.220 |
 | DB | DB.110 |
 | API | API.38 |
@@ -1869,7 +1869,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1116 | Regenerate a rogue's donor on demand from its seed (D5): the history sentence and the parent record shown on the object page | none | dropped (replaced by the real donor link of GEN.1111) |
 | GEN.1117 | Register the rogue drift and kick stand-ins in GEN.725 (D7): the rows of design section 8, each with tier and tweak level and a burn-down line where L3 or L4 | none | done, PR #4218 |
 | GEN.1118 | Design study: one galaxy-wide object store generated in region work units (bands within the sphere), with sectors as a navigation table that flags whether each is charted and where its uncharted part lies | none | dropped (study done) |
-| GEN.1119 | RP1: classify every architecture loss as ejected, collided or bound by the Safronov number and return an ejection record (mass, composition, kept moons, orbit at ejection, time), counting the small bodies the chain deletes today | none | open |
+| GEN.1119 | RP1: classify every architecture loss as ejected, collided or bound by the Safronov number and return an ejection record (mass, composition, kept moons, orbit at ejection, time), counting the small bodies the chain deletes today | none | done, PR #4389 |
 | GEN.1120 | Rogue planet abundance option: a None, Few, Normal, Many dropdown in the galaxy and the sector generation options, with Normal the target and the physics-based spread tweaked to the low side of the observed range | none | open |
 | GEN.1121 | Designation history: an object may change its name and ID, keeps a stored history of its previous designations, and its current ID is always completely unique across the whole galaxy | none | done (split into GEN.1138 to GEN.1141 after the design note (#4234) and Boss answers) |
 | GEN.1122 | Read Pollack 1979 and Cuk and Burns 2004 for the gas-drag capture window strength and register the number (CM14) | none | done, PR #4192 |
@@ -1947,6 +1947,8 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1194 | Runaway greenhouse: the radiative-convective model has no plateau in outgoing flux, so water window opacity, continuum temperature dependence and wings must be reworked until it plateaus | none | open |
 | GEN.1195 | Cluster maximum mass of the central ring from the gas, and cloud-shock disruption of its clusters | none | open |
 | GEN.1196 | Disc cluster maximum mass per ring, replacing the flat 1e6 cap | none | open |
+| GEN.1197 | Faint gas-bearing dwarfs far from the host: the star formation threshold stops anything under 1e7 solar masses, so Leo T-like dwarfs are never made | none | done, research only, no change (gen1197-faint-gas-dwarfs-2026-10-31.md) |
+| GEN.1198 | The sector profile's remnant factor in a Magellanic Cloud cell uses the gas factor, so scatter and fill disagree with the satellite remnant count | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -2302,13 +2304,13 @@ Parents marked "new parent" had no old number of their own.
 | MAP.353 | Galaxy Map is always 95 percent of the window height, recomputed on every resize (follow-up to MAP.350) | none | done, PR #4139 |
 | MAP.354 | Lagrange trojans T4: System Map icon at the centre of each Lagrange point that has objects, labelled with the host and point (for example Jupiter-L4); shares the geometry of the MAP.169 gravity layer | none | open |
 | MAP.355 | The map on a sector page zooms out to the whole galaxy and pans into neighbouring sectors; limit it to the sector (zoom-out capped at 1.1 times the sector fit, pan kept inside the sector block) with the Show on Galaxy Map link at the top (bug) | none | done, PR #4279 |
-| MAP.356 | The map legend covers too much of the map; make it a small corner of the map (bug) | none | open |
-| MAP.357 | Boss cannot reliably find and navigate from the galaxy down to filled and charted sectors and regions (bug) | none | open |
-| MAP.358 | The View system and Expand buttons of the sector info display cannot be seen or reached (bug) | none | open |
-| MAP.359 | The sector map and system map should match the size of the galaxy map for the browser window (bug) | none | open |
-| MAP.360 | Sector view highlights only the sector being viewed and zooms in as close as the window allows (bug) | none | open |
-| MAP.361 | Sector view shows every star system that fits when there is room, so it shows more of the sector than the galaxy view would | MAP.360 | open |
-| MAP.362 | Superbubbles are hidden on the map at load, with a Menu button to show them (bug) | none | open |
+| MAP.356 | The map legend covers too much of the map; make it a small corner of the map (bug) | none | done, PR #4393 |
+| MAP.357 | Boss cannot reliably find and navigate from the galaxy down to filled and charted sectors and regions (bug) | none | done, PR #4393 |
+| MAP.358 | The View system and Expand buttons of the sector info display cannot be seen or reached (bug) | none | done, PR #4393 |
+| MAP.359 | The sector map and system map should match the size of the galaxy map for the browser window (bug) | none | done, PR #4393 |
+| MAP.360 | Sector view highlights only the sector being viewed and zooms in as close as the window allows (bug) | none | done, PR #4393 |
+| MAP.361 | Sector view shows every star system that fits when there is room, so it shows more of the sector than the galaxy view would | MAP.360 | done, PR #4393 |
+| MAP.362 | Superbubbles are hidden on the map at load, with a Menu button to show them (bug) | none | done, PR #4393 |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
 | NAV.3 | One shared picker for the Galaxy, Sector and System displays | none | done, PR #724 |
@@ -3649,7 +3651,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.504 | test_runaway_history::test_the_surface_water_a_planet_keeps_is_what_its_class_gave_less_what_it_lost fails on main (the M3V case sees no loss) (bug) | none | done, PR #4283 |
 | TEST.505 | test_greenhouse_table agreement with the model fails for the Venus and 5 bar CO2 airs (2 cases) on main, with and without the detmath swap (bug) | none | dropped (duplicate of GEN.1032) |
 | TEST.506 | test_no_todo_codes_shown fails on main: GEN.1128 shows in the --help text of planetgen/cli/generate.py (line 696) and of the sectors and galaxy commands (bug) | none | done, PR #4333 |
-| TEST.507 | Add Canes Venatici I (and decide on Canis Major) to the reference satellite table so it holds all 12 Milky Way satellites above 1e5 solar masses | none | open |
+| TEST.507 | Add Canes Venatici I (and decide on Canis Major) to the reference satellite table so it holds all 12 Milky Way satellites above 1e5 solar masses | none | done, PR #4387 |
 | TEST.508 | Leo I fixture row in test_satellites has an age of 5 Gy so it forms gas; change the age or label it a stand-in | none | done, PR #4371 |
 | TEST.509 | The climate sweep twin sits at 313 K, far above the 288 K of the Earth it stands for: make it a real Earth twin so the sweep tests the feedbacks where they act | none | done, PR #4376 |
 | USR.1.1 | USR.2 |

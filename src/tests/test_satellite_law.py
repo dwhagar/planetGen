@@ -78,7 +78,7 @@ def test_no_satellite_lies_beyond_the_virial_radius_and_the_radius_is_the_halos(
 
 
 def test_the_milky_way_mass_population_is_plausible_against_the_milky_ways_own_rows():
-    """The Milky Way has 11 classical satellites above 2e5 solar masses; the drawn median of those above 1e5 is of that order."""
+    """The Milky Way has 12 satellites above 1e5 solar masses (McConnachie 2012); the drawn median of those above 1e5 is of that order."""
     reference = sum(1 for row in reference_satellites.MILKY_WAY_SATELLITES if row.stellar_mass_sol > 1.0e5)
     drawn = [sum(1 for c in found if c.mass_solar > 1.0e5) for _chain, found in _population(5.0e10, count=60)]
     assert reference / 3.0 <= statistics.median(drawn) <= reference * 3.0

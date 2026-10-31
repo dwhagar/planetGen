@@ -2,6 +2,43 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2890] - 2026-10-31
+
+**Headline:** Superbubbles are off until the Menu's button shows them, the Key is a small corner box, every charted region is a point on the galaxy view with a link that zooms to it, the sector card's buttons stay in view, the sector page and 3D system view fill the window like the Galaxy Map, and an opened sector stands alone, close and full of systems.
+
+### Fixed
+- **The Key covered too much of the map (MAP.356).** The Key is one column of short lines in a box no wider than two fifths of the map (13 rem at most), in the map's lower left corner.
+- **Charted sectors and regions could not be found from the galaxy (MAP.357).** From the galactic view every filled region far enough from the others on the screen to be told apart gets its own point of interest with a zoom-in link that frames the whole region; regions close together share one point. A blank Go to box lists the five regions with the most generated sectors (`Charted places`), each a link.
+- **The sector card's View system and Expand buttons could be out of view (MAP.358).** The card keeps at least 13 rem of height inside the Galaxy Map, so its buttons stay in the card and the map on a small window.
+- **The sector page's map and the 3D system view were smaller than the Galaxy Map (MAP.359).** Both now fill 95 percent of the browser window height less a held header, the same fit the Galaxy Map uses.
+- **An opened sector shared the picture with every other sector (MAP.360).** While a sector is opened the other sectors' blocks fade to a faint level so only the sector being viewed stands out, and the camera fits it with a 2 percent margin instead of 10.
+
+### Changed
+- **Superbubbles are off by default (MAP.362).** The map opens without them; the Menu has a Superbubbles button (and the address `?show=superbubbles`) that draws them, and the Key names them only while they are shown.
+- **An opened sector shows more systems (MAP.361).** The marker budget in an opened sector is 1500 instead of 240 and marks merge only within 12 px instead of 22 px, so the view holds every system that fits and thins only when the window cannot.
+
+No generator output changes.
+
+generation-output: unchanged
+
+TODO items resolved: none (TODO retires MAP.356 to MAP.362 on merge).
+
+## [8.0.2889] - 2026-10-31
+
+**Headline:** The planet architecture now keeps a record of every body it loses and says which ones end thrown out of the system, which collide and which stay bound.
+
+### Added
+- `planet_architecture.losses` and `ejection_yield` (GEN.1119, RP1): each body the architecture loses (planets a moved giant sweeps or a crowded giant throws out, chain bodies below the planet minimum, the mass a merge or the core cap does not keep) is shared among ejected, collided and bound by the Safronov number of the encounter (`scatter.loss_fates`). The ejected ones carry an ejection record (mass, core, orbit, perturber, Hill radius for the moons that could stay, time, formed beyond the snow line) for the rogue builder (GEN.1111). A star's planets are exactly what they were; `Architecture` gains a `lost` field. Registry rows EJ1 and EJ2 (section 6.127). On 3,000 sun-like seeded stars with a giant, about 2.5 planets per giant-hosting star are expected to end ejected, the scale Barclay et al. 2017 find; over all stars it is about 0.15 per star.
+
+generation-output: unchanged
+
+## [8.0.2888] - 2026-10-31
+
+**Headline:** The reference table of the Milky Way's satellites now holds all 12 satellites above 100,000 solar masses, with Canes Venatici I added from McConnachie 2012.
+
+### Changed
+- **The reference satellite table gains Canes Venatici I (TEST.507).** Position, distance, half-light radius, stellar mass and [Fe/H] are Tables 2 to 5 of McConnachie (2012), checked by `test_reference_satellites.py`; its age (11 Gy) is a choice. Canis Major is left out, because the paper itself says it may be an unrelated disk substructure. Test data only: no generator reads the table and no generated value changes.
+
 ## [8.0.2887] - 2026-10-31
 
 **Headline:** The strength of ice II, III, V and VI next to ice Ih is now a table by temperature from the creep laws of Durham, Kirby and Stern 1997, not one guessed number for each.

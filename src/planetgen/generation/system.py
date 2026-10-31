@@ -2255,7 +2255,7 @@ class StarSystem:
             return planet_architecture.build(star.mass, star.snow_line_au, metal_ratio, fe_h, outer_au, maximum=maximum, floor_au=sublimation_au)
 
         if config.PLANETS is False:
-            return plan_of(planet_architecture.Architecture((), 1.0, tuning.OLIGARCH_SEPARATION_MEDIAN, 0), 0), 0
+            return plan_of(planet_architecture.Architecture((), 1.0, tuning.OLIGARCH_SEPARATION_MEDIAN, 0, planet_architecture.Lost(0.0, 0.0, 0, 0.0, 0, (), (), (), 0.0, 0.0)), 0), 0
         minimum = 1 if config.PLANETS is True else 0
         if config.NUM_ORBITS is not None:
             return plan_of(built(), config.NUM_ORBITS), config.NUM_ORBITS
