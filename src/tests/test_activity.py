@@ -380,7 +380,7 @@ def test_a_generated_moon_has_an_induced_field_figure_and_a_planet_has_none():
     from tests.fuzz_support import deterministic_entropy
 
     moons = 0
-    for seed in range(16):
+    for seed in range(24):
         with deterministic_entropy(seed):
             draw.set_run_seed(seed)
             system = StarSystem(SystemConfig(), galactic_center_dist_ly=26000.0)
