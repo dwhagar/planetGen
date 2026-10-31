@@ -44,7 +44,7 @@ def _orbit(obj):
 
 
 def _orbit_fact(obj):
-    return fact("orbit", "Galactic Orbit", build._galactic_orbit(obj.galactic_orbital_speed_kms,
+    return fact("orbit", "Galactic orbit", build._galactic_orbit(obj.galactic_orbital_speed_kms,
                                                                 obj.galactic_orbital_period_gy))
 
 

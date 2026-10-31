@@ -2,6 +2,99 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2949] - 2026-10-31
+
+**Headline:** The wiring guard now also finds a stored column nothing reads and a public function only tests call, and today's findings are named in the register.
+
+### Added
+- **Two new kinds in `scripts/wiring_guard.py` (TEST.520).** `column`: a column of the tables that hold objects that no module outside the plumbing (schema, models, column units, store, storage checksum, checks, export and repair code, the generic Details sheet) reads, by its own name, by the name the store gives it (`object_rows.attr`, a dictionary or an attribute assigned from the row) or by an f-string that builds it. A physics or generation module that loads the value is a reader, so a column read downstream is not listed. `function`: a public module-level function of a reachable module of `physics`, `generation` or `galaxy` that no other module, no other function of its module and no `"module:function"` string names.
+- **`src/tests/test_wiring_guard.py` fails on a new one**, on a register line for something that is read now, and on a named item that is not open, as for the other kinds; seven new tests run the two kinds on a small package.
+- **Today's findings in `docs/design/research/wiring-register.md`.** Seven columns (`binary_epoch_unix` and `binary_next_update_due` are by design, the orbit update's own clock; `cluster_id` waits for GEN.359, `dynamical_state` for GEN.291, `formed_at` and `origin_event_id` for GEN.346, `host_node_id` for GEN.332) and 157 functions in 90 modules, each named to TEST.520 until it has an owner or is deleted. Report: `reports/wiring-guard-test520-2026-10-31.md`.
+
+No generator output changes.
+
+generation-output: unchanged
+
+TODO items resolved: none (TEST.520 stays open until each of the 157 function lines has an owner item or is deleted).
+
+## [8.0.2948] - 2026-10-31
+
+**Headline:** The info panel's Colour line now says which stored values gave a body's colour and whether it is a partial estimate or the full account.
+
+### Changed
+
+- `bodylook.colour_account` builds the line for a star (full when its colour is a model atmosphere at its temperature, partial from its spectral class alone), a solid world (ground colour from its mean surface temperature, sea colour from its ocean class, limb glow from its air under its star) and a giant (cloud-top colour from its temperature), each naming a default where an input is not stored and what is not used yet (surface composition, clouds and haze). `look_note` puts it ahead of the spin and lock notes. generation-output: unchanged
+
+## [8.0.2947] - 2026-10-31
+
+**Headline:** The photometry library now has a published bolometric correction (Flower 1996 with Torres 2010's coefficients) in place of the blackbody table the sky-view design carried, ready for the apparent-magnitude step.
+
+### Changed
+- VIEW.9: `physics/photometry.bolometric_correction_v(temperature_k)` is Flower's (1996) polynomial fit of BC_V against log Teff in three ranges, with the coefficients read from Torres (2010, AJ 140, 1158), Table 1; it answers from 3,500 to 50,000 K and refuses a temperature outside (the fit breaks down for M dwarfs, and no value is invented there). `SUN_ABSOLUTE_BOLOMETRIC_MAG` 4.74 is the zero point it goes with (BC_V of the Sun -0.08). The design table of docs/design/orbits/sky-view.md section 2.4 is replaced (the hot end was 0.3 to 0.6 mag off). Nothing in the generator reads it yet (VIEW.11 will), so no stored value changes.
+
+generation-output: unchanged
+
+## [8.0.2946] - 2026-10-31
+
+**Headline:** New help pages explain every word in the Life section of a planet page: the kinds of life, how much, trend, security, suitability, the stages and each of the nine life classes.
+
+### Added
+- **Life help pages under Help > Life.** One page for the four kinds of life, one for each scale (how much, trend, security, suitability), one for the stages of life and the animal grades, and one for each life class (what it drinks, eats, breathes and gives off, where it can live, how sure we are it can exist, and whether its air chemistry is speculative). The numbers on them come from the same code that works out the scores.
+- **Links from the planet page.** Life class names link to their page, the Kind, How much, Trend and Security headings have a "?" link, and the Life paragraph in At a glance has "What these words mean".
+
+### Changed
+- **Class 9 text.** Its "eats" line now says "as Class 5a and 5b" instead of "as Class 5".
+
+## [8.0.2945] - 2026-10-31
+
+**Headline:** The planet class table in the system file guide now matches the live class rules, and says which classes are planned.
+
+### Changed
+- **System file guide, planet classes (DOC.85).** `docs/reference/system-file-format.md` lists the classes as they are derived today (the rule each finished body must meet, the check order, and which classes can carry life), instead of the old zone and description table. It says that a slot asking for a class that can carry life is moved into the habitable zone, that other classes keep the orbit's distance and are drawn again until they come out right, and that moons use the same rules. The planned letters Y, U, X, Z and R are listed only as planned, class code system GEN.1220.
+
+No generator output changes.
+
+generation-output: unchanged
+
+TODO items resolved: DOC.85.
+
+## [8.0.2944] - 2026-10-31
+
+**Headline:** A star's page, a system's overview and the star class pages are written in plain words: the star orbit sentences read one pair at a time, the heliosphere and edge lines drop "approximately", and the table labels are in sentence case.
+
+### Changed
+- **System and star sentences (UX.253).** The multiple-star line ("Quadruple star system.") is followed by one short sentence per pair or orbit ("A and B are a close pair." "C orbits A and B in a wide orbit."), where it was one long sentence; the first mention of a star gives its type. The glance page's Stars row uses the same sentences. The heliosphere and system edge lines now read "The star's wind blows a bubble called the heliosphere, which reaches about 153 AU" and "the star's gravity still holds on out to ..., the outer edge of the system".
+- **Star table labels (UX.253).** "Habitable zone", "Galactic orbit", "Planetary wobble", "Stellar separation", "Mutual orbit", "Barycenter offset", "Orbital eccentricity", "Planetary limit of the primary" and "Planetary limit of the secondary", and the black hole and neutron star rows ("Event horizon radius", "Spin period" and the rest), are in sentence case.
+- **Spectral and luminosity class pages (UX.253).** The notes about the type (G2V) and the roman numeral are split into short sentences.
+- The stored flavour lines (`system_flavor_text`) are not changed here; they are stored at generation and go with GEN.1212.
+
+No generator output changes.
+
+generation-output: unchanged
+
+TODO items resolved: UX.253.
+
+## [8.0.2943] - 2026-10-31
+
+**Headline:** A read-only report now sorts every generated planet and moon into terrestrial, transitional or gas by the share of its mass in an envelope.
+
+### Added
+- **The body type function and its shadow report (GEN.1219).** `planetgen.physics.planet_type` gives the type from `envelope_mass_fraction` (terrestrial under 0.5 percent, transitional to 50 percent, gas above), and `src/tests/planet_type_cli.py` prints how a generated sample splits, the bodies near each cut and the bodies whose radius disagrees with their type. Nothing stored changes; the stored column comes with the next epoch.
+
+## [8.0.2942] - 2026-10-31
+
+**Headline:** A planet or moon page now has a short Life paragraph in At a glance, and the Life section gives three words for each kind of life: how much, which way it is going and how secure it is.
+
+### Added
+- **Life paragraph in At a glance.** It gives the words for each kind of life that is there, for example "Microbes: abundant, stable, secure. Flora: occasional, declining, precarious.", then the life classes the conditions suit, best first. A world that suits a class but has no life yet says "Nothing lives here yet."; a world that could not have life shows none.
+- **Table of the kinds of life in the Life section.** Microbes, flora, fauna and sentient life each get how much (with the score out of 9), the trend (growing, stable or declining as the star brightens), the security (secure, marginal, precarious or dying out) and, when it is known, how long the conditions last. Under it: the stage, animal grade, pace of evolution, age of the system and the age the stage was reached.
+- **New API route.** `GET /api/planets/<id>/life-readings` and `GET /api/moons/<id>/life-readings` give the same words; they are worked out on request and stored nowhere.
+
+### Changed
+- **The summary no longer lists life scores.** The sentence "Its life scores are ..." is gone; the At a glance paragraph says it in words.
+- **The lines that repeated the Life paragraph are off the page.** "Class 1a life lives on this planet, evolving at a standard pace" and "Its latest milestone is ..." are now in the table under the Life paragraph. The written description of a system (the text and Markdown forms) still has them, now as their own paragraphs.
+- **Stage sentences name the whole class.** "Class 3a life has grown into colonies ..." instead of "Class 3 life ...".
+
 ## [8.0.2941] - 2026-10-31
 
 **Headline:** The Search page's Name box, Stars selector and Search button now sit together on one row.

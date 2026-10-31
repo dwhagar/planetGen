@@ -272,6 +272,17 @@ connectivity to that specific schema rather than the default one.
   description written out on request, `{"id", "format", "content"}`
   (`planetgen/db/render.py`; no page text is stored since schema v29).
   `format` defaults to `markdown`; any other value is a `400`.
+- `GET /api/planets/<id>/life-readings` and `GET /api/moons/<id>/life-readings` — the three
+  words for each kind of life on a world (UX.251, `physics.life_readings`), worked out on
+  request from the stored body and its star and stored nowhere. `{"id", "life_class_id",
+  "readings"}`. `readings` is empty for a gas giant and for a body whose kind scores are not
+  stored; otherwise it has one entry for each of microbes, flora, fauna and sentient life, in
+  that order: `kind` (`microbial`, `flora`, `fauna` or `sentient`), `label`, `score` (the stored
+  0 to 9), `abundance` (Absent, Rare, Occasional, Frequent, Abundant or Dominant), `trend`
+  (Growing, Stable or Declining), `security` (Secure, Marginal, Precarious or Dying out),
+  `years_left_gyr` (Gyr until the living class stops scoring on the world as its star
+  brightens; `null` when it lasts or is not known) and `text` ("Microbes: abundant, stable,
+  secure."). The trend and security of a kind that is Absent are `null`. An unknown id is a `404`.
 - `GET /api/planets/<id>/life-air` and `GET /api/moons/<id>/life-air` — the data of
   the Life and air chart on a planet's or moon's page (UX.237,
   `physics.life_air.air_history`): the air through the age of its star as far as the
