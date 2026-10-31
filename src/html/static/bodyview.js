@@ -39,6 +39,39 @@ function drawHalo(context, centre, radius, outer, color, strength) {
   context.fill();
 }
 
+// UX.245: a tidally locked world says so on the picture itself: an arrow on the left, the side the star (or, for a moon, its planet)
+// is on, and "Tidally locked" under the disc.
+function drawLockLabel(context, size, look) {
+  const what = look.kind === "moon" ? "planet" : "star";
+  context.save();
+  context.font = "600 13px sans-serif";
+  context.textBaseline = "middle";
+  const text = "Tidally locked";
+  const width = context.measureText(text).width + 16;
+  context.fillStyle = "rgba(10, 14, 26, 0.78)";
+  context.fillRect((size - width) / 2, size - 26, width, 20);
+  context.fillStyle = "#f2f5ff";
+  context.textAlign = "center";
+  context.fillText(text, size / 2, size - 16);
+  const y = size / 2;
+  context.strokeStyle = "rgba(242, 245, 255, 0.9)";
+  context.fillStyle = "rgba(242, 245, 255, 0.9)";
+  context.lineWidth = 2;
+  context.beginPath();
+  context.moveTo(30, y);
+  context.lineTo(8, y);
+  context.stroke();
+  context.beginPath();
+  context.moveTo(4, y);
+  context.lineTo(14, y - 5);
+  context.lineTo(14, y + 5);
+  context.closePath();
+  context.fill();
+  context.textAlign = "left";
+  context.fillText(what, 4, y - 14);
+  context.restore();
+}
+
 // Everything about a picture that does not change as the body turns, worked out once: for each pixel of the disc where
 // it is in the canvas, its longitude in the body's own frame, the texture row it samples, its shade (a world is lit from
 // the left whatever it does, so the terminator stays put while the surface turns) and how much of the soft edge it
@@ -50,6 +83,7 @@ function prepare(canvas, look) {
   const halfWidth = star ? glowFor(look.lumSolar).scale : look.glow ? 1.12 : 1.04;
   const radius = size / 2 / halfWidth;
   const pixels = texture(look);
+  const locked = Spin.isLocked(look) && !star;
   const base = parseHex(look.color);
   const light = Math.hypot(LIGHT[0], LIGHT[1], LIGHT[2]);
   const places = [];
@@ -116,6 +150,7 @@ function prepare(canvas, look) {
     context.clearRect(0, 0, size, size);
     context.drawImage(halo, 0, 0);
     context.drawImage(scratch, 0, 0);
+    if (locked) drawLockLabel(context, size, look);
   };
 }
 

@@ -178,3 +178,18 @@ def test_the_contents_menu_of_an_object_page_is_grouped_and_never_scrolls_sidewa
             assert page.evaluate("n => n.scrollWidth <= n.clientWidth + 1", toc.element_handle()), "the menu scrolls sideways"
         finally:
             context.close()
+
+
+def test_the_contents_menu_is_one_row_when_it_fits_and_the_grouped_list_when_it_does_not(browser):
+    """The links go in one row across the top only if all of them fit without scrolling; otherwise the grouped list is used."""
+    few = "<h2>One</h2><h3>Sub</h3><h2>Two</h2>"
+    many = "".join(f"<h2>Section number {i}</h2><h3>Subsection {i}</h3>" for i in range(30))
+    for body, strip in ((few, True), (many, False)):
+        page = browser.new_page(viewport={"width": 1280, "height": 800})
+        try:
+            page.set_content("<main id='main' class='app-main'><h1>Title</h1>" + body + "</main>")
+            page.add_script_tag(path=str(PAGETOC_SOURCE))
+            assert page.evaluate("document.getElementById('main').classList.contains('toc-strip')") is strip
+            assert page.evaluate("n => n.scrollWidth <= n.clientWidth + 1", page.locator("nav.page-toc").element_handle())
+        finally:
+            page.close()

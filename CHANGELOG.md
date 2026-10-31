@@ -2,6 +2,87 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2833] - 2026-10-31
+
+**Headline:** A sector page's map now stays inside its sector.
+
+### Fixed
+- **The Sector Map could be zoomed out to the whole galaxy and panned off into neighbouring sectors.** On a sector page the map now zooms out no further than a little past the sector filling the view, and panning keeps the view's centre inside the sector. The "Show on Galaxy Map" link in the page's action bar is the way out to the galaxy.
+
+## [8.0.2832] - 2026-10-30
+
+**Headline:** The "On this page" menu goes across the top when everything fits without scrolling
+
+### Changed
+
+If all the section and subsection links fit in one row at the current window width, the menu is a single row under the title. If they would need scrolling, it stays the grouped list of sections and subsections. It never scrolls sideways.
+
+## [8.0.2831] - 2026-10-30
+
+**Headline:** The rules for bodies at the Lagrange points L4 and L5 exist as a pure module, so trojan swarms and whole bodies can be wired later.
+
+### Added
+- **Lagrange trojans (GEN.1149).** `physics/trojans.py` holds the Gascheau-Routh mass rule (a trojan needs the secondary plus itself under 0.0385 of the three masses), the libration period and tadpole against horseshoe, the split of the scatter's trojan share into the leading (L4) and trailing (L5) regions, and the map label `Jupiter-L4`. Its numbers are in `physics/data/trojans.json` and stand-in rows TJ1 to TJ5 (registry 6.121). `docs/design/systems/lagrange-trojans.md` describes it and what GEN.1150, GEN.1151 and MAP.354 wire.
+
+No generator output changes.
+
+generation-output: unchanged
+
+TODO items resolved: none (GEN.1149 is this module; GEN.1150, GEN.1151 and MAP.354 wire it).
+
+## [8.0.2830] - 2026-10-30
+
+**Headline:** The rules of designation history are written and tested as pure code: a retired ID is never reused, an old ID resolves to the current object, and a system's ID change moves every body.
+
+### Added
+- **Designation rules (GEN.1138, pure part).** `planetgen/galaxy/designations.py`: the closed list of reasons a designation is retired, `check_new_uid` (an ID that is live or was ever an ID is refused), `cascade` (the new IDs of a system's bodies when its ID changes), `resolve_uid` (current, redirect, gone or unknown), `resolve_name` (the live holder first, then the latest past holder that still exists), `resolve_member` (a belt member's or captured body's old designation follows its parent) and `former_lines` (the "Formerly" list, newest first). Nothing calls it yet; the `designations` table, its migration and the writers follow in the same item.
+
+No generator output changes.
+
+generation-output: unchanged
+
+TODO items resolved: none (GEN.1138 stays open for the table, the migration and the writers).
+
+## [8.0.2829] - 2026-10-30
+
+**Headline:** `planetgen sectors --around X Y Z --radius-pc R` generates a sphere of space around any point, nearest sectors first, and a rerun after a stop builds only what is missing.
+
+### Added
+- **The region run command (GEN.1128, second slice).** A new mode of `planetgen sectors` and `planetgen galaxy`: `--around X Y Z --radius-pc R` with `--grow-shells K` (whole sector-edge shells added to the sphere) and `--unit-sectors N` (the most sectors in a unit of work, default 27). The sector stage cuts the plan of `galaxy/region_run.py` into one unit of work per region unit, nearest first, and cuts it again each time the stage opens less the sectors already saved, so a stopped run resumes where it was. The same seed gives the same sectors whatever the point, the radius, the unit size or the order regions are run in. `docs/reference/cli.md` describes it. The chart ledger write (GEN.1127) and the top-up stage (GEN.1120) are not part of this slice.
+
+No generator output changes.
+
+generation-output: unchanged
+
+TODO items resolved: none (GEN.1128 stays open for the chart ledger write, which needs GEN.1127).
+
+## [8.0.2828] - 2026-10-30
+
+**Headline:** A planet of a close pair inside a triple now orbits the pair's centre, and a multiple system says what it is made of
+
+### Changed
+
+- The 3D system view drew a planet that goes round a close pair (such as Abralinar I, round Abralinar A / B) about the centre of the whole system, so its orbit ellipse circled nothing. It is now drawn about the pair's own centre of mass, in the true and the compressed scale, and the position maths does the same.
+- The system's overview and "At a glance" say what a multiple system is ("Triple star system: a close pair of A and B, orbited by C in a wide orbit").
+- In the Stars and bodies list, the bodies that go round the A / B pair and the further stars say "Orbits Abralinar A / B".
+
+## [8.0.2827] - 2026-10-30
+
+**Headline:** A tidally locked moon in the System Map now keeps its face toward its planet, and the object page's picture of a locked world says so on the picture itself.
+
+### Changed
+- **Locked moons and the label on the picture (UX.245).** In a planet's moon scene on the System Map, a moon whose rotation period is its orbital period is turned to face the planet wherever it stands in the picture, instead of turning slowly on its own. On an object page, the sensor view of a tidally locked planet or moon now draws "Tidally locked" under the disc and an arrow on the left marking the side of its star (or planet, for a moon), as well as saying so in the caption.
+
+generation-output: unchanged
+
+## [8.0.2826] - 2026-10-30
+
+**Headline:** The "On this page" menu is a grouped list of sections and subsections again
+
+### Changed
+
+On the pages of one object (system, star, planet, sector, phenomenon, polity) the menu is back to a column down the left on a wide window and a list under the title on a narrow one, with subsections under their sections. The single row of links that scrolled sideways is gone.
+
 ## [8.0.2825] - 2026-10-30
 
 **Headline:** The Search page's star spectral and luminosity tags now list every star type the generator can produce.
