@@ -33,7 +33,7 @@ ROGUE_ONLY_PREFIXES = ("rogue_", "galactic_", "ejection_", "parent_system")
 """tuple: The columns only a rogue planet has: its note (`rogue_note`), its motion round the galaxy in place of an orbit, and the system it was
 ejected from (GEN.1111)."""
 
-MISSING_CEILING = 160
+MISSING_CEILING = 196
 """int: Planet columns (net of `HOST_ONLY`) the rogue planet does not carry under the same name: 148 when the test was written (TEST.498), plus the
 columns the planet gained while the rogue is still a generator of its own (below). It falls to zero when the rogue is built through the planet code
 (GEN.1111 and the rogue train, where every one of them comes with the planet); until then it rises only by the planet columns a lane adds, named in
@@ -41,12 +41,18 @@ columns the planet gained while the rogue is still a generator of its own (below
 
 TEST.512 (found red on main at 8:48 AM EDT 2026-10-31): the gap was 160, not 148, and no change to the rogue path had opened it. Twelve planet
 columns were added by the planet items listed in `PLANET_COLUMNS_ADDED`; the rogue's own columns are the same as when the test was written."""
+ORIGINAL_GAP = 134
+"""int: The 148 columns of TEST.498, less the 14 old latitude temperature columns (`temp_polar_k` to `temp_terminator_swing_k`) that GEN.1108 part B dropped from
+the planet: the gap of the columns that were there when the test was written and still are."""
 PLANET_COLUMNS_ADDED = {
     "GEN.474 (intermediate ground)": ("ground_intermediate_fraction",),
     "GEN.768 (hours outside)": ("outside_hours_day", "outside_hours_limit"),
     "GEN.1034 (open-ocean tide)": ("ocean_liquid", "tide_range_neap_m", "tide_range_spring_m"),
     "GEN.1035 (stored surface liquid)": ("surface_liquid", "surface_liquid_depth_km", "surface_liquid_fraction"),
     "GEN.1097 (day and night state)": ("day_night_state", "days_per_year", "night_hours"),
+    "GEN.983 (belt dose of a moon)": ("dose_belt_msv_yr",),
+    "GEN.1108 (seven latitude bands)": tuple(f"band{n}_{name}" for n in range(1, 8) for name in (
+        "mean_k", "swing_k", "day_hours", "night_hours", "longest_day_days", "longest_night_days", "state")),
 }
 """dict: The planet columns added since TEST.498 was written, by the item that added them. A lane that adds a planet column raises
 `MISSING_CEILING` by its count and lists the names here; `test_the_columns_added_since_the_test_was_written_are_all_missing_from_the_rogue` checks
@@ -88,7 +94,7 @@ def test_the_gap_between_a_rogue_and_a_bound_planet_never_grows():
 
 def test_the_columns_added_since_the_test_was_written_are_all_missing_from_the_rogue():
     added = {name for names in PLANET_COLUMNS_ADDED.values() for name in names}
-    assert len(added) == MISSING_CEILING - 148, "the ceiling rises by exactly the columns named"
+    assert len(added) == MISSING_CEILING - ORIGINAL_GAP, "the ceiling rises by exactly the columns named"
     assert added <= set(missing_columns()), sorted(added - set(missing_columns()))
 
 
