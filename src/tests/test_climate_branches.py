@@ -114,7 +114,7 @@ def test_a_snowball_that_reflects_less_has_a_narrower_window():
 
 def test_settle_falls_to_the_warm_branch_from_an_ice_free_start_and_to_the_snowball_from_a_frozen_one():
     law = cb.IceAlbedoLaw()
-    response = _response(0.93 * EARTH_FLUX)
+    response = _response(FAINT_SUN_FLUX)
     branches = cb.stable_branches(response, law)
     assert len(branches) == 2
     warm = cb.settle(response, law, 300.0)
