@@ -19054,22 +19054,6 @@ clears each one.
   line in the same change, like a module.
   Prerequisites: none.
 
-- [ ] **TEST.538 test_atmosphere_standin_registry fails on main: stand-in rows AM28 and AM29 name a test that no longer exists (bug)**
-  Found by Core 4 (relayed 4:35 PM EDT 2026-10-31 as the lane reported),
-  reproduced on main 7574be84b:
-  tests/test_atmosphere_standin_registry.py::test_a_row_names_a_constant_and_a_test_that_exist
-  fails for AM28 (surface_pressure.DEGAS_EFFICIENCY_H) and AM29
-  (surface_pressure.DEGAS_EFFICIENCY), because the falsifier they name,
-  test_surface_pressure::test_the_inventory_degassed_is_each_element_times_its_share_and_its_efficiency,
-  is not in src/tests/test_surface_pressure.py (the deletion sweep
-  TEST.524, #4537, or a rename removed it). Do: find the test that now
-  checks the degassing efficiency (or restore it if it was deleted by
-  mistake) and change the falsifier in the AM28 and AM29 rows of
-  docs/design/research/stand-in-values.md and gap-filling-plan.md to
-  name it; the test is not skipped and the rows are not dropped. Done:
-  the registry test passes with all rows. Lock-free. Owner: Bug 1.
-  Prerequisites: none. Related: TEST.524, GEN.725.
-
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
