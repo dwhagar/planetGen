@@ -10,11 +10,13 @@ export const RECENT_LIMIT = 8;
 export const RECENT_KEY = "planetgen.recentPlaces";
 const REGION_LIMIT = 6;
 const RECENT_SHOWN = 5;
+const CHARTED_SHOWN = 5;
 
 // A result group's order on the list and its heading.
 export const GROUP_TITLES = {
   here: "Go to this place",
   recent: "Recent",
+  charted: "Charted places",
   region: "Regions",
   name: "Names",
   home: "Places",
@@ -64,6 +66,19 @@ export function regionResults(blobs, text) {
     return {
       kind: "region", label: label, detail: f.blob.parent ? "region in " + f.blob.parent : "region",
       target: { region: { block: f.blob.block, center: [f.blob.x, f.blob.y, f.blob.z], radius: f.blob.radiusPc }, label: label },
+    };
+  });
+}
+
+// MAP.357: the charted regions with the most sectors generated, biggest first, for a blank line: the places worth going to.
+export function chartedResults(blobs) {
+  const list = (blobs || []).filter(function (blob) { return blob.sectorCount > 0; }).slice();
+  list.sort(function (a, b) { return (b.sectorCount - a.sectorCount) || (a.key < b.key ? -1 : a.key > b.key ? 1 : 0); });
+  return list.slice(0, CHARTED_SHOWN).map(function (blob) {
+    const label = blob.name || "Region " + blob.key;
+    return {
+      kind: "region", label: label, detail: blob.sectorCount + " sectors generated",
+      target: { region: { block: blob.block, center: [blob.x, blob.y, blob.z], radius: blob.radiusPc }, label: label },
     };
   });
 }
@@ -160,6 +175,7 @@ export function buildGroups(options) {
   add("here", here);
   add("recent", recentResults(options.recents, text));
   if (text) add("region", regionResults(options.regions, text));
+  else add("charted", chartedResults(options.regions));
   if (text && options.names) add("name", options.names.map(nameResult));
   const homeLabel = options.home ? options.home.label : "";
   if (options.home && (!text || lower(homeLabel).indexOf(lower(text)) >= 0 || /^(home|galaxy|whole galaxy)$/i.test(text))) {

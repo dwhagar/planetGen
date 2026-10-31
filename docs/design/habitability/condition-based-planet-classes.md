@@ -14,7 +14,7 @@ Status: built (the class cut-over, GEN.646, 2026-10-28, the class lane). A body 
 
 ## The rule file
 
-`src/planetgen/physics/data/planet_classes.json`, read by `physics/planet_classes.py`. `classify(body)` is a pure function of stored values: the first row of the body's kind (terrestrial or giant) whose conditions all hold names the class. The last row of each kind has no conditions, so a body always gets one letter. All 20 letters stay; none is retired. Size and gravity are rule inputs, so there is no size suffix on the stored letter.
+`src/planetgen/physics/data/planet_classes.json`, read by `physics/planet_classes.py`. `classify(body)` is a pure function of stored values: the first row of the body's kind (terrestrial or giant) whose conditions all hold names the class. The last row of each kind has no conditions, so a body always gets one letter. 19 letters are in use (Q was retired by Boss, GEN.1135); the rest are reserved. Size and gravity are rule inputs, so there is no size suffix on the stored letter.
 
 | Letter | Class | Rule (design thresholds, refitted by the sweep) |
 |---|---|---|
@@ -25,25 +25,27 @@ Status: built (the class cut-over, GEN.646, 2026-10-28, the class lane). A body 
 | S | Airless super-Earth | pressure under 10 Pa and 1.5 Earth masses or more |
 | C | Dead world | pressure under 10 Pa |
 | A | Volcanic world | sulfur dioxide 3 percent of the air or more |
-| N | Hot dense world | pressure of 1,000,000 Pa (10 bar) or more |
-| Q | Variable-climate world | starlight varies 25 percent or more over the orbit |
-| V | High-gravity world | gravity of 1.25 g or more |
-| L | Marginal thin-air world | pressure under 3 kPa, oxygen 10 percent of the air or more, gravity 0.5 g or more |
-| K | Thin-air cold world | pressure under 3 kPa and below 273.15 K |
-| P | Glaciated world | mean surface under 210 K |
+| T | Gas dwarf (terrestrial kind) | hydrogen 30 percent of the air or more and under 10 Earth masses (GEN.1142; the same T as the giant row) |
+| N | Hot dense world | pressure of 10 bar or more, 400 K or more, hydrogen under 30 percent of the air (GEN.1142) |
+| V | High-gravity world | gravity of 2 g or more (GEN.1136; 1.25 g before) |
+| L | Marginal thick-air world | pressure 30 kPa to 3 bar, 273.15 to 320 K, carbon dioxide 1 percent or more, oxygen 3 to 16 percent, gravity 0.5 g or more (GEN.1142) |
+| K | Thin-air world | pressure under 3 kPa, 273.15 to 320 K, oxygen under 10 percent (GEN.1142) |
+| E | Deep-frozen world | air, mean surface under 233.15 K (-40 C) (GEN.1142; the letter of the old wet reducing world) |
+| P | Glaciated world | mean surface 233.15 K to freezing (273.15 K) (GEN.1142) |
 | B | Small hot world | gravity under 0.5 g |
-| E | Wet reducing world | oxygen under 3 percent, methane and hydrogen 5 percent or more, water vapour 15 percent or more |
 | F | Reducing world | oxygen under 3 percent, methane and hydrogen 5 percent or more |
 | G | Carbon dioxide world | carbon dioxide 20 percent of the air or more |
-| O | Ocean world | water covers 90 percent or more of the surface |
-| H | Desert world | water covers under 15 percent |
-| M | Temperate world | the rest (air, water over 15 to 90 percent) |
+| O | Ocean world | water covers 80 percent or more of the surface (GEN.1142) |
+| H | Desert world | water covers under 20 percent (GEN.1142) |
+| M | Temperate world | the rest (air, water 20 to 80 percent) |
 
-The rows are in the order of the file (giants, then D S C A N Q V L K P B E F G O H M); the order decides when two rows hold. Each row carries a one-sentence reading and its `basis` ("design: ..."). A number the file marks design is a planetGen default, refitted when the compositions land; none is a measured constant and none is read from the Solar System.
+The rows are in the order of the file (giants, then D S C A T N V L K E P B F G O H M); the order decides when two rows hold. Each row carries a one-sentence reading and its `basis` ("design: ..."). A number the file marks design is a planetGen default, refitted when the compositions land; none is a measured constant and none is read from the Solar System.
 
-**K, L, Q, S and V** looked like letters to retire (zone-drawn guesses that PHI-6 now measures). Each instead became a condition that keeps its old meaning: K the cold thin-air world (below freezing, usually under ice), L the thin oxygen-bearing marginal world, Q the world whose starlight swings by a quarter or more (an eccentric orbit, about 0.06 or more), S the airless super-Earth (size), V the high-gravity world. Free letters (the reserve): R, U, W, X, Y, Z.
+**K, L, S and V** looked like letters to retire (zone-drawn guesses that PHI-6 now measures). Each instead became a condition that keeps its old meaning: K the cold thin-air world (below freezing, usually under ice), L the thin oxygen-bearing marginal world, S the airless super-Earth (size), V the high-gravity world (2 g or more since GEN.1136; at 1.25 g it took most temperate super-Earths and left M almost empty). **Q is retired** (Boss, 6:07 PM EDT 2026-10-30, GEN.1135): a class that was only an orbit. The swing of the starlight is the stored `flux_variation` (about 4 times the eccentricity) and the "At a glance" panel of a planet or moon flags it as very high from 0.75 (`describe.sheet.SWING_FLAG_MIN`, 4 percent of bodies). 19 classes are in use. Free letters (the reserve): Q, R, U, W, X, Y, Z.
 
-**Known weak spots.** The mass of an ice giant (10 to 60 Earth masses) overlaps a gas giant's (30 and up), so the mass cut at 35 misplaces some ice giants until the envelope share of GEN.428 is stored (Aux 17, GEN.822); the gas dwarf T stays rare and mostly merges into I until then; class Q follows from the orbit's eccentricity alone; and a dense steam air (the solver of GEN.411 puts the water of an ice-rich world into the air; GEN.830 and GEN.837 of Aux 8 address it) makes class N a large share of the warm planets until they land. The class sweep (below) measures them.
+**GEN.1142 (Boss, 6:57 to 7:12 PM EDT 2026-10-30): the lines move, conditions only, no zone.** The old wet reducing E (F with steam, no body in a sample of 1,788) is retired and its letter goes to a new class, the deep-frozen world: air-bearing bodies under 233.15 K (-40 C). P takes 233.15 K to freezing. K is the thin air (under 3 kPa) of 273.15 to about 320 K with little oxygen, L the 30 kPa to 3 bar air of 273.15 to about 320 K with carbon dioxide and 3 to 16 percent oxygen, O is 80 percent ocean or more, H under 20 percent, M the rest. A terrestrial-kind body under 10 Earth masses with 30 percent hydrogen or more in its air is a T (the gas dwarf, one letter in both kinds) and is tested ahead of N, which is a 10 bar air at 400 K or more that is not hydrogen-dominated. The 10 Earth-mass line is the bound chain's critical core mass (`GIANT_CORE_CRITICAL_MASS_EARTH`). Registry rows CL1 to CL7 (GEN.725) hold the lines and their tiers.
+
+**Known weak spots.** The mass of an ice giant (10 to 60 Earth masses) overlaps a gas giant's (30 and up), so the mass cut at 35 misplaces some ice giants until the envelope share of GEN.428 is stored (Aux 17, GEN.822); the gas dwarf T stays rare and mostly merges into I until then; and a dense steam air (the solver of GEN.411 puts the water of an ice-rich world into the air; GEN.830 and GEN.837 of Aux 8 address it) makes class N a large share of the warm planets until they land. The class sweep (below) measures them.
 
 ## The class sweep
 

@@ -249,8 +249,18 @@ def glance_view(sheet):
     """The rows of a page's "At a glance" panel (UX.188): the kind's `describe.sheet.GLANCE` rows in that order, each
     `{"label", "html"}`, and only those the page lists. Empty for a kind with no panel yet."""
     rows = {row["key"]: row for group in sheet["groups"] for row in group["rows"]}
-    return [{"label": rows[key]["label"], "html": _value_html(rows[key])}
-            for key in sheet_registry.GLANCE.get(sheet["kind"], ()) if key in rows and _listed(rows[key])]
+    view = []
+    for key in sheet_registry.GLANCE.get(sheet["kind"], ()):
+        if key not in rows or not _listed(rows[key]):
+            continue
+        if key == "flux_variation":     # GEN.1135: a flag, only when the swing is very high; the number is on the full sheet
+            swing = rows[key].get("raw")
+            if swing is None or swing < sheet_registry.SWING_FLAG_MIN:
+                continue
+            view.append({"label": sheet_registry.SWING_FLAG_LABEL, "html": trusted_html(f"Very high, {_value_html(rows[key])} peak to peak")})
+            continue
+        view.append({"label": rows[key]["label"], "html": _value_html(rows[key])})
+    return view
 
 
 def life_air_view(db, kind, printed_id, row):

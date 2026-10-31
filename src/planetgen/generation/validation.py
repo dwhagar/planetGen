@@ -27,7 +27,7 @@ from collections import namedtuple
 
 from planetgen.generation import life as planetLife
 from planetgen.physics import (
-    clearance_ledger, constants, daylight, orbit_elements, planet_classes, planets as planetPhysics, rings)
+    clearance_ledger, constants, daylight, ocean_tides, orbit_elements, planet_classes, planets as planetPhysics, rings)
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.physics.orbits import calculate_reflex_offset, mutual_hill_radius_au
@@ -191,6 +191,10 @@ def reconcile_moved_planet(planet):
     daylight.generate(planet)
     for moon in planet.moons:
         daylight.generate(moon, planet)
+    # GEN.1034: and the tide its sea raises, from the orbits and spins as they are now
+    ocean_tides.generate(planet)
+    for moon in planet.moons:
+        ocean_tides.generate(moon, planet)
 
 
 def refresh_planet_reflex(planet, force=False):

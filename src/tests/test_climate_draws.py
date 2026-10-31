@@ -90,7 +90,7 @@ def test_every_body_stores_the_draws_its_temperature_is_made_of(host_star, zone)
         if planet.atmosphere == "None":
             assert planet.greenhouse_factor == 0.0
         if planet.body_type == "t":
-            low, high = climate_draws.albedo_range(planet.body_type, planet.water_mass_fraction, flux)
+            low, high = climate_draws.albedo_range(planet.body_type, planet.water_mass_fraction, flux, getattr(planet.star, "temperature", None))
             assert low <= planet.bond_albedo <= high
 
 

@@ -64,13 +64,13 @@ def _saturation_age_gy(star, mass_sol):
     saturation has not ended), else the age `activity.effective_saturation_age_gy` finds from its stored `log_lx_lbol`."""
     age_gy = star.age or 0.0
     if getattr(star, "xuv_saturated", None):
-        return max(age_gy, activity._interp(activity.ACTIVITY_TABLE, mass_sol)[0])
+        return max(age_gy, activity.saturation_age_gy(mass_sol))
     return activity.effective_saturation_age_gy(mass_sol, age_gy, getattr(star, "log_lx_lbol", None))
 
 
 def _xuv_w(mass_sol, age_yr, luminosity_w, temperature_k, t_sat_gy):
     """The star's `L_XUV` at this age: coronal (saturated until its own saturation age, then decaying) plus the photosphere above 13.6 eV."""
-    _, decay = activity._interp(activity.ACTIVITY_TABLE, mass_sol)
+    decay = activity.decay_exponent(mass_sol)
     ratio = activity.lx_lbol_at(age_yr / 1e9, activity.saturated_lx_lbol(mass_sol), t_sat_gy, decay)
     photosphere = luminosity_w * activity.blackbody_fraction_above(activity.XUV_EDGE_EV, temperature_k)
     return activity.coronal_xuv_w(ratio * luminosity_w) + photosphere

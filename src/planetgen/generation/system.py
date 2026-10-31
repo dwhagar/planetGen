@@ -93,7 +93,10 @@ it leaves the heliosphere below this share of its open-space size."""
 #
 # Bumped 6 -> 7 to add `member_planets` (GEN.332): the planets and belts of each of `member_stars`, a list of lists in the
 # members' order. A pre-v7 save has no key and reads as no planets of the members.
-SERIALIZATION_SCHEMA_VERSION = 7
+#
+# Bumped 7 -> 8 to add `dark_members` (GEN.1013): the brown dwarfs, neutron stars and black holes that hang in the tree but
+# are not stars of `stars`, a list of dicts (`stored_trees.DarkMember`). A pre-v8 save has no key and reads as none.
+SERIALIZATION_SCHEMA_VERSION = 8
 
 
 def _exceeds_orbit_ceiling(obj, orbit_ceiling_au):
@@ -185,7 +188,13 @@ class StarSystem:
     star_slots = None
     """tuple or None: Where each star of `stars` hangs in `orbit_nodes`, as `(node_no, slot)` in `stars` order (slot 0 or
     1: the child of that node); `None` for a single star and for a pair on the one root node (the primary in slot 0, the
-    secondary in slot 1). A system with `member_stars` says it."""
+    secondary in slot 1). A system with `member_stars` or `dark_members` says it."""
+
+    dark_members = ()
+    """tuple of `stored_trees.DarkMember`: The members of the tree that are not stars of `stars` (GEN.1013): a brown dwarf, a
+    neutron star, a black hole, hung in `orbit_nodes` with the mass and radius the tree drew, so the orbits, the node masses
+    and the gravity are the drawn tree's. They have no planets and give no light here. Their `member_no` is the number in the
+    plan, which `star_slots` does not use; the tree places them by `(parent_node_no, slot)`."""
 
     tree_built = False
     """bool: The system was built from the tree its scatter row stored and holds every member of it (GEN.315): the
@@ -288,8 +297,9 @@ class StarSystem:
             member_tree (stored_trees.StoredPlan, optional): The tree a scattered row stored (GEN.315), with
                 `primary_star_params`: the system takes its other stars and the orbits between them from the tree and
                 draws none of its own (`BINARY_SYSTEM` and `WIDE_BINARY` are not read). Each star is built from its
-                stored seed, birth mass and the primary's age. A plan that is not `complete` (a tree with a member that
-                cannot be built as a star) builds the primary alone. `None`: the system draws its own tree of stars
+                stored seed, birth mass and the primary's age; a member that is not a star (a brown dwarf, a neutron star, a black
+                hole) hangs in the tree as a `dark_members` entry (GEN.1013). A plan that is not `complete` (a tree with a
+                member of a kind nothing builds) builds the primary alone. `None`: the system draws its own tree of stars
                 (`_drawn_plan`, GEN.631).
         """
         self.system_config = system_config # Assign the passed SystemConfig instance
@@ -467,8 +477,13 @@ class StarSystem:
             self.unmet_requirements.append(f"a planet of class {self.system_config.FORCE_CLASS}")
         forced = self._forced_star_count()
         if forced is not None and len(self.stars) != forced and forced > 1:
-            # A star at the hydrogen-burning limit has no lighter star to be its companion (GEN.631).
-            self.unmet_requirements.append("a companion star" if forced == 2 else f"{forced} stars")
+            # A star under the hydrogen-burning limit has no lighter star to be its companion (GEN.631); a brown dwarf is no
+            # star of the count (GEN.899), so the refusal says so (GEN.706).
+            wanted = "a companion star" if forced == 2 else f"{forced} stars"
+            if place_terms.born_mass_solar(self.primary_star) < multistar.companion_floor_solar(
+                    getattr(self.primary_star, "metallicity_fe_h", None)):
+                wanted += " (a primary under the hydrogen-burning limit has no lighter star, and a brown dwarf is no star of the count)"
+            self.unmet_requirements.append(wanted)
         if self.unmet_requirements:
             log.debug(f"Planet generation gave up after {tuning.MAX_SYSTEM_GENERATION_ATTEMPTS} attempts "
                       f"without {' or '.join(self.unmet_requirements)}")
@@ -494,6 +509,11 @@ class StarSystem:
         # placement/validation above is done), so this is computed once,
         # here, same as everything else in this pass.
         self.binary_planetary_wobble_x = self.binary_planetary_wobble_y = self.binary_planetary_wobble_z = 0.0
+        # A planet's own wobble from its moons was made when the moons were; their positions have moved since (the orbits were
+        # settled and the bodies made again at the star's final age), so it is made again from the final ones.
+        for planet in self.all_planets:
+            if planet.body_type != "a":
+                validation.refresh_planet_reflex(planet)
         if self.binary_type == "close":
             # Circumbinary planets orbit the merged proxy, not either
             # individual star (star_id IS NULL -- see schema.sql), so their
@@ -544,9 +564,9 @@ class StarSystem:
 
         with log.timed_phase("ring pass"):
             for obj in self.all_planets:
-                rings.apply(obj)  # GEN.732: after the moons and the snow line are final
+                rings.apply(obj)  # GEN.732, GEN.1057: after the moons and the snow line are final
                 for moon in getattr(obj, "moons", ()):  # a belt has none
-                    rings.apply(moon)  # GEN.836
+                    rings.apply(moon, obj)  # GEN.836
 
         with log.timed_phase("life data pass"):
             insolation.refresh_system(self)  # GEN.148: the light each planet sums over the stars, from their final orbits
@@ -554,7 +574,7 @@ class StarSystem:
                 if obj.body_type == 'a': # Skip asteroid belts; they carry no life data.
                     continue
                 interior_heat.update_heat(obj)  # GEN.763: the thermal history to the star's final age (no draws)
-                planetPhysics.apply_class(obj)  # GEN.689: the seasonal swing of the light (P, Q) is known only now
+                planetPhysics.apply_class(obj)  # GEN.689: the light each body gets is final only now
                 for moon in obj.moons:
                     planetPhysics.apply_class(moon)
                 planetLife.apply_life_data(obj)
@@ -564,8 +584,8 @@ class StarSystem:
                     magnetism.generate_induced_field(moon, obj)  # GEN.178: from the final water and orbit
                     planetLife.apply_life_data(moon)
                     planetLife.decide_flavor_text(moon)
-            # The swing of the light (class Q) is known only now, so a forced class is judged again on the final classes: one the final
-            # pass took away is unmet, one it gave (Q) is met.
+            # The final pass can change a class, so a forced class is judged again on the final classes: one the final pass took away is
+            # unmet, one it gave is met.
             wanted = f"a planet of class {self.system_config.FORCE_CLASS}"
             present = self._forced_class_present()
             if not present and wanted not in self.unmet_requirements:
@@ -646,18 +666,17 @@ class StarSystem:
         """`[(star, planets)]` for each of `member_stars`."""
         return list(zip(self.member_stars, self.member_planets or [[] for _ in self.member_stars]))
 
-    def _pair_node_no(self):
-        """The number of the tree's node that holds the pair of `primary_star` and `secondary_star`."""
-        return self.star_slots[0][0] if self.star_slots else self.orbit_nodes[0].node_no
-
     def _tree_members(self):
-        """The stars as the members of the tree of orbits (`stars` order, the member number the index), for `planet_zones`."""
+        """The `TreeMember`s of the system's tree: each star of `stars` (the member number is its index there), then each of
+        `dark_members` (numbered on from the stars), which weigh in the tree and give no light."""
         if not self.orbit_nodes:
             return [TreeMember(0, None, 0, _kg_to_msun(self.star.mass))]
-        pair_no = self._pair_node_no()
-        slots = self.star_slots or ((pair_no, 0), (pair_no, 1))
-        return [TreeMember(number, node_no, slot, _kg_to_msun(star.mass))
-                for number, (star, (node_no, slot)) in enumerate(zip(self.stars, slots))]
+        slots = self.star_slots or ((0, 0), (0, 1))
+        members = [TreeMember(number, node_no, slot, _kg_to_msun(star.mass))
+                   for number, (star, (node_no, slot)) in enumerate(zip(self.stars, slots))]
+        members += [TreeMember(len(self.stars) + index, dark.parent_node_no, dark.slot, dark.mass_solar)
+                    for index, dark in enumerate(self.dark_members)]
+        return members
 
     @property
     def ledger(self):
@@ -677,18 +696,19 @@ class StarSystem:
     def _ledger_host(self, star):
         """The `(kind, number)` of the ledger host that is `star`: a close pair's proxy is its pair node, any other star its number."""
         if self.binary_type == "close" and star is self.star:
-            return planet_zones.P_TYPE, self._pair_node_no()
+            return planet_zones.P_TYPE, self.pair_node_no()
         return planet_zones.S_TYPE, next((number for number, other in enumerate(self.stars) if other is star), 0)
 
     def _planet_zones(self):
         """The windows of the ledger: the S-type window of every star in `stars` order and the P-type window of every node, each a
-        `planet_zones.Zone`."""
+        `planet_zones.Zone`. A dark member has a window too (`Zone.host_no` from `len(stars)` on), which holds no planets."""
         return self.ledger.zones()
 
     def sibling_stars(self, number):
-        """`(node, star numbers)`: the node star `number` of `stars` hangs from and the stars of the subtree beside it."""
+        """`(node, star numbers)`: the node star `number` of `stars` hangs from and the stars of the subtree beside it (a
+        dark member beside it gives no light and is not listed)."""
         node, beside = planet_zones.sibling_of(self.orbit_nodes, self._tree_members(), number)
-        return node, sorted(beside)
+        return node, sorted(index for index in beside if index < len(self.stars))
 
     def build_ledger(self):
         """
@@ -699,17 +719,35 @@ class StarSystem:
         star has none.
         """
         self._ledger = None
-        if len(self.stars) < 2 or not self.orbit_nodes:
+        if not self.orbit_nodes or (len(self.stars) < 2 and not self.dark_members):
             return
         ledger = self.ledger
         hosts = [(planet_zones.S_TYPE, number, star) for number, star in enumerate(self.stars)
                  if self.binary_type != "close" or number >= 2]
         if self.binary_type == "close":
-            hosts.append((planet_zones.P_TYPE, self._pair_node_no(), self.star))
+            hosts.append((planet_zones.P_TYPE, self.pair_node_no(), self.star))
         for kind, number, star in hosts:
             limit = ledger.stability_limit_au((kind, number))
             if limit is not None:
                 star.a_crit_au = limit
+
+    def pair_node_no(self):
+        """The node of the pair (`primary_star` and `secondary_star`): the root of a plain pair, else the lowest node above both
+        (the node they hang from, unless a dark member or a sub-pair is between them), `None` for a single star."""
+        if self.binary_type is None:
+            return None
+        if self.star_slots is None:
+            return self.orbit_nodes[0].node_no
+        parent = {node.node_no: node.parent_node_no for node in self.orbit_nodes}
+        above = set()
+        node_no = self.star_slots[0][0]
+        while node_no is not None:
+            above.add(node_no)
+            node_no = parent[node_no]
+        node_no = self.star_slots[1][0]
+        while node_no not in above:
+            node_no = parent[node_no]
+        return node_no
 
     @staticmethod
     def _draw_star_words(first_word):
@@ -815,11 +853,11 @@ class StarSystem:
         if ceiling_au is None:
             # A closed orbit stays inside the star's own Hill sphere (GEN.591); a parabolic comet leaves it by design.
             hill_au = validation.orbit_ceiling_au(star)
-            return [Comet(self.system_config, primary_mass_solar, ceiling_au=hill_au) for _ in range(count)]
+            return [Comet(self.system_config, primary_mass_solar, ceiling_au=hill_au, star=star) for _ in range(count)]
         comets = []
         for _ in range(count):
             for _attempt in range(tuning.COMET_CEILING_ATTEMPTS):
-                comet = Comet(self.system_config, primary_mass_solar, orbit_type="elliptical", ceiling_au=ceiling_au)
+                comet = Comet(self.system_config, primary_mass_solar, orbit_type="elliptical", ceiling_au=ceiling_au, star=star)
                 if validation.comet_fits_ceiling(comet, ceiling_au):
                     comets.append(comet)
                     break
@@ -878,8 +916,8 @@ class StarSystem:
     def _drawn_plan(self):
         """
         The tree of stars around the primary this system draws for itself (`multistar.draw_member_tree`, at the odds of the
-        `star-count` table), as a `stored_trees.StoredPlan`: the members a build cannot make from a birth mass and an age
-        (a brown dwarf, a neutron star, a black hole) are taken out of it first. `BINARY_SYSTEM` forces no companion
+        `star-count` table), as a `stored_trees.StoredPlan`, every member in it: the ones a build cannot make from a birth mass
+        and an age (a brown dwarf, a neutron star, a black hole) stay as dark members (GEN.1013). `BINARY_SYSTEM` forces no companion
         (`False`) or a pair (`True`); a protostar's or Wolf-Rayet star's own chance of a companion (`_special_companion_chance`)
         and a `binary_system` prevalence move how many systems have one.
         """
@@ -892,7 +930,7 @@ class StarSystem:
         special = self._special_companion_chance()
         percent = prevalence.percent(config, "binary_system")
         placed = multistar.Placed("star", _kg_to_msun(primary.mass), place_terms.born_mass_solar(primary),
-                                  fe_h=primary.metallicity_fe_h, record=member_record.of_star(primary))
+                                  fe_h=getattr(primary, "metallicity_fe_h", None), record=member_record.of_star(primary))
         if count is not None:
             pass
         elif special is not None:
@@ -921,21 +959,19 @@ class StarSystem:
         def tree(n_stars):
             for tree_age_yr in (age_yr, draw_age_yr):
                 try:
-                    return multistar.without_members(
-                        multistar.draw_member_tree(placed, tree_age_yr, max_stars=config.MAX_STARS, n_stars=n_stars,
-                                               prevalence=prevalence.multi_star_scale(config), max_axis_au=limit_au,
-                                               pair_placed=True),
-                        stored_trees.UNBUILT_KINDS)
+                    return multistar.draw_member_tree(
+                        placed, tree_age_yr, max_stars=config.MAX_STARS, n_stars=n_stars,
+                        prevalence=prevalence.multi_star_scale(config), max_axis_au=limit_au, pair_placed=True)
                 except ValueError:    # the placed star has collapsed by this age
                     draw.redrawn("tree.drawn_at_earlier_age")
                     continue
             return multistar.draw_member_tree(placed, 0.0, n_stars=1)
 
-        drawn = tree(count)
-        if at_least_two and drawn.member_count < 2:
+        drawn = stored_trees.drawn(tree(count))
+        if at_least_two and len(drawn.lit_members) < 2:
             draw.redrawn("tree.second_star_forced")
-            drawn = tree(2)
-        return stored_trees.drawn(drawn)
+            drawn = stored_trees.drawn(tree(2))
+        return drawn
 
     def _forced_star_count(self):
         """The number of stars the directives force (`STARS`, else two for `BINARY_SYSTEM`), `None` to leave it to the table."""
@@ -951,7 +987,7 @@ class StarSystem:
         if forced is not None and len(self.stars) != forced:
             draw.redrawn("companions.star_count")
             return False
-        if self.binary_type is None:
+        if self.binary_type is None and not self.dark_members:
             return True
         if wanted_kind is not None and self.binary_type != wanted_kind:
             draw.redrawn("companions.pair_kind")
@@ -977,6 +1013,7 @@ class StarSystem:
         slots = self.star_slots or tuple((self.orbit_nodes[0].node_no, slot) for slot in (0, 1))
         stars = [(parent, _km_to_au(star.radius), _kg_to_msun(star.mass))
                  for star, (parent, _slot) in zip(self.stars, slots)]
+        stars += [(dark.parent_node_no, dark.radius_au or 0.0, dark.mass_solar) for dark in self.dark_members]
         return multistar.built_tree_clears(self.orbit_nodes, stars)
 
     def _remove_companions(self, placed_star):
@@ -988,6 +1025,7 @@ class StarSystem:
         self.wide_binary = None
         self._ledger = None
         self.member_stars = ()
+        self.dark_members = ()
         self.star_slots = None
         self.orbit_nodes = ()
 
@@ -995,8 +1033,10 @@ class StarSystem:
         """
         Builds the other stars of `plan` around the primary (member 0 of the tree, already built) and hangs them all in the
         plan's nodes (GEN.315, GEN.631): each from its own seed, birth mass and the primary's age and [Fe/H]. The pair is
-        the two stars of the plan's pair node (`StoredPlan.pair_node_no`), the heavier the primary; every other star is one of
-        `member_stars`. Sets `orbit_nodes` and, for a system of more than two stars, `star_slots`.
+        the two built stars of the plan's pair node (`StoredPlan.pair_members`), the heavier the primary; every other built
+        star is one of `member_stars`. A member that is not a star (a brown dwarf, a neutron star, a black hole) hangs in
+        the nodes as one of `dark_members` (GEN.1013), so the orbits and the mass of every node are the tree's. Sets
+        `orbit_nodes` and, for a tree of more than two members or fewer than two stars, `star_slots`.
 
         Each star is made from its member record (`member_record.make`, GEN.1009) without evolving it again: the tree drew the
         orbits from the same record, so the star is the member the orbits were drawn for. A plan whose built star is not the
@@ -1009,7 +1049,7 @@ class StarSystem:
         config = self.system_config
         placed = self.primary_star
         built = {0: placed}
-        for member in plan.members[1:]:
+        for member in plan.lit_members[1:]:
             record = member_record.make(member.seed, member.initial_mass_solar,
                                         member.age_yr or placed.age * 1.0e9, placed.metallicity_fe_h)
             with log.timed_phase("companion star generation"), draw.bound(member.seed):
@@ -1022,10 +1062,17 @@ class StarSystem:
                 self.tree_built = False
                 return
         nodes = list(plan.nodes)
-        pair_no = plan.pair_node_no()
         slots = {member.member_no: (member.parent_node_no, member.slot) for member in plan.members}
-        low, high = sorted((member.member_no for member in plan.members if member.parent_node_no == pair_no),
-                           key=lambda member_no: slots[member_no][1])
+        self.dark_members = plan.dark_members
+        pair = plan.pair_members()
+        if pair is None:
+            # Fewer than two built stars: the star hangs in the tree with the dark members about it, and is a single star.
+            self.orbit_nodes = tuple(nodes)
+            self.star_slots = (slots[0],)
+            log.choice("Binary type", "none", f"a single star with {len(plan.dark_members)} dark members in its tree")
+            return
+        pair_no = plan.pair_node_no()
+        low, high = pair
         first, second = low, high
         if built[second].mass > built[first].mass:
             # The primary is by definition the heavier star, so the pair's roles swap: the heavier takes slot 0, and the
@@ -1034,10 +1081,10 @@ class StarSystem:
                        f"secondary {_kg_to_msun(built[second].mass):.3g} Msun "
                        f"outweighs primary {_kg_to_msun(built[first].mass):.3g} Msun")
             first, second = second, first
-            slots[low], slots[high] = slots[high], slots[low]
-            nodes[pair_no] = dataclasses.replace(
-                nodes[pair_no], arg_periapsis_deg=(nodes[pair_no].arg_periapsis_deg + 180.0) % 360.0)
-        primary, secondary = built[first], built[second]
+            if slots[low][0] == slots[high][0] == pair_no:
+                slots[low], slots[high] = slots[high], slots[low]
+                nodes[pair_no] = dataclasses.replace(
+                    nodes[pair_no], arg_periapsis_deg=(nodes[pair_no].arg_periapsis_deg + 180.0) % 360.0)
         # The pair is a P-type pair (`close`) where its axis is under the least a wide pair has, else an S-type one (`wide`);
         # its node says which, the other nodes of the tree keep the kind the tree drew them with.
         # A P-type pair is tracked on a circle (`BinaryStarProxy`).
@@ -1055,18 +1102,24 @@ class StarSystem:
             pair_node = dataclasses.replace(pair_node, kind="wide", eccentricity=min(
                 pair_node.eccentricity, tuning.WIDE_BINARY_ECCENTRICITY_MAX * (1.0 - 1.0e-9)))
         nodes[pair_no] = pair_node
-        others = [member for member in plan.members if member.parent_node_no != pair_no]
+        others = [member for member in plan.lit_members if member.member_no not in (first, second)]
+        direct = slots[first][0] == slots[second][0] == pair_no
+        primary, secondary = built[first], built[second]
         self.primary_star, self.secondary_star = primary, secondary
         self.star = primary
         self.member_stars = tuple(built[member.member_no] for member in others)
         self.stars = [primary, secondary, *self.member_stars]
         self.orbit_nodes = tuple(nodes)
         self._ledger = None
-        if others:
+        if others or self.dark_members or not direct:
             self.star_slots = tuple(slots[member_no] for member_no in (first, second, *(m.member_no for m in others)))
         # Which of the two real binary configurations the pair is was drawn with its node.
         self.binary_type = pair_node.kind
         log.choice("Binary type", self.binary_type, f"the {pair_node.kind} node of a tree of {len(plan.members)} stars")
+        # (the pair classes take the orbit of the second about the first: a pair that is not the two children of its node, with
+        # the first under the node's slot 1, has it turned half way round)
+        if not direct and plan.slot_under(next(m for m in plan.members if m.member_no == first), pair_no) == 1:
+            pair_node = dataclasses.replace(pair_node, arg_periapsis_deg=(pair_node.arg_periapsis_deg + 180.0) % 360.0)
         if self.binary_type == "close":
             self.star = BinaryStarProxy(config, primary, secondary, galactic_center_dist_ly=galactic_center_dist_ly,
                                         galactic_orbital_phase_deg=galactic_orbital_phase_deg, orbit=pair_node)
@@ -1644,6 +1697,7 @@ class StarSystem:
             "member_stars": [star.to_dict() for star in self.member_stars],
             "member_planets": [[obj.to_dict() for obj in bodies] for bodies in self.member_planets],
             "star_slots": [list(place) for place in self.star_slots] if self.star_slots is not None else None,
+            "dark_members": [dataclasses.asdict(member) for member in self.dark_members],
         }
 
     @classmethod
@@ -1758,6 +1812,7 @@ class StarSystem:
         system.stars = system.stars + list(system.member_stars)
         slots = data.get("star_slots")
         system.star_slots = tuple(tuple(place) for place in slots) if slots is not None else None
+        system.dark_members = tuple(stored_trees.DarkMember(**member) for member in data.get("dark_members", ()))
         system.member_planets = [_load_objects(bodies, member) for member, bodies in zip(
             system.member_stars, data.get("member_planets") or [[] for _ in system.member_stars])]
         system.build_ledger()

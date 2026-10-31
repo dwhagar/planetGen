@@ -12,6 +12,8 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | dataset | noaa_proton_events | GEN.805 | the 265 NOAA solar proton events; the solar particle event model fits its rate and slope to them |
 | module | planetgen.physics.alpha_tracks | GEN.744 | the equivalent [Fe/H] of an alpha-enhanced star; the track lookup of a high-alpha star will read it |
 | row | 6.34:AL1 | GEN.744 | `alpha_tracks.ALPHA_SHARE`, not read until the track lookup is wired |
+| module | planetgen.galaxy.thick_ages | GEN.1025 | the old population's age law with the thick disc's 8 to 13 Gy; part 2 wires it into the galaxy's age laws |
+| row | 6.146:TD1 | GEN.1025 | `tuning.THICK_DISC_AGE_RANGE_GY`, read by `thick_ages` only until part 2 |
 | module | planetgen.physics.line_opacity | by design | the band opacities of the radiative-convective model, which the greenhouse table is fitted to and the checks hold it to; the generator reads the table, never the model |
 | module | planetgen.physics.radiative_convective | by design | the model the greenhouse table (`greenhouse_table.py`) is fitted to by `scripts/fit_greenhouse_table.py`, too slow for the fixed point; run by the fit and the tests, not by generation |
 | module | planetgen.physics.radiative_kernel | by design | the numba sweep of `radiative_convective`; the web app must not load numba, so only the fit and the tests reach it |
@@ -28,7 +30,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | module | planetgen.physics.radiation_belts | GEN.983 | trapped radiation belts of a magnetised body, read when the stored magnetosphere reaches dose |
 | module | planetgen.galaxy.influence | GEN.342 | the influence set of an object, read by the acceleration kernel of the orbital update |
 | module | planetgen.physics.closest_approach | GEN.197 | the pair closest-approach library, read by the orbital event writer |
-| module | planetgen.physics.collision_outcome | GEN.197 | what a collision does, read by the orbital event writer |
 | module | planetgen.physics.body_positions | MAP.253 | where every body of a system is at a time, read by the scene and the maps once they read the parent chain |
 | module | planetgen.physics.light_travel | VIEW.1 | light-travel positions for the view from a planet |
 | module | planetgen.physics.radius_valley | by design | the simulated Kepler survey of the radius valley, a check run by the tuning tests; the valley itself comes from the envelope-loss rows of the generator (GEN.722 retired) |
@@ -51,39 +52,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | module | planetgen.physics.planet_occurrence | by design | the reader of the observed occurrence bands; the architecture and the census read it (read by the tuning tests and the census harness; the architecture was fitted to it, GEN.728 built) |
 | module | planetgen.physics.kepler_multiplicity | by design | the Kepler transit multiplicity harness, read by the tuning tests until the wiring (read by the tuning tests and the census harness; the architecture was fitted to it, GEN.728 built) |
 | data | planet_occurrence.json | by design | read by `physics/planet_occurrence.py` only (read by the tuning tests and the census harness; the architecture was fitted to it, GEN.728 built) |
-| module | planetgen.physics.substellar_ceiling | GEN.494 | the Baraffe 2015 hydrogen-burning limit temperature by age (lock-free); the wiring step replaces the 2800 K clip of `brown_dwarf` and the hot edge of the atmosphere row g1 with it, riding the Baraffe brown dwarf tracks of GEN.948 |
-| row | 6.37:SB1 | GEN.494 | `substellar_ceiling.LIMIT_MASS_SOLAR`, read when the wiring step lands |
-| row | 6.37:SB2 | GEN.494 | `substellar_ceiling.HOTTEST_K`, read when the wiring step lands |
-| module | planetgen.physics.birth_radioisotopes | GEN.476 | aluminium-26 and iron-60 at a star's birth from the gamma-ray masses, the region's depletion time and the granularity of the sources (lock-free); the wiring step has `radiogenic.draw_content` take the 26Al ratio from it, and row o6 its enriched share |
-| row | 6.38:BR1 | GEN.476 | `birth_radioisotopes.MEAN_LIFE_YR`, read when the wiring step lands |
-| row | 6.38:BR2 | GEN.476 | `birth_radioisotopes.GALAXY_AL26_MASS_SOLAR, FE60_AL26_FLUX_RATIO`, read when the wiring step lands |
-| row | 6.38:BR3 | GEN.476 | `birth_radioisotopes.GALAXY_STAR_FORMATION_SOLAR_MASSES_PER_YR`, read when the wiring step lands |
-| row | 6.38:BR4 | GEN.476 | `birth_radioisotopes.RECURRENCE_RANGE_YR`, read when the wiring step lands |
-| row | 6.38:BR5 | GEN.476 | `birth_radioisotopes.EVENT_YIELD_SIGMA_LN`, read when the wiring step lands |
-| module | planetgen.physics.saturation_time | GEN.493 | the X-ray saturation time by stellar mass and initial rotation percentile from Johnstone et al. 2021 (lock-free); the wiring step has row p6 and the activity table's `t_sat` read it with the star's own mass |
-| row | 6.39:RS1 | GEN.493 | `saturation_time.ANCHORS_MYR`, read when the wiring step lands |
-| module | planetgen.physics.taxon_kernel | GEN.473 | the taxa of a belt from the disk's ice lines and the early heating by aluminium-26 (lock-free); the wiring step replaces `small_body_composition.kernel` with it and hands it the belt's temperature and the star's 26Al ratio |
-| row | 6.41:TK1 | GEN.473 | `taxon_kernel.WATER_LINE_K, AMMONIA_LINE_K`, read when the wiring step lands |
-| row | 6.41:TK2 | GEN.473 | `taxon_kernel.PRIMITIVE_BELOW_K, WIDTH_LN_T`, read when the wiring step lands |
-| row | 6.41:TK3 | GEN.473 | `taxon_kernel.IMPLANT_FRACTION`, read when the wiring step lands |
-| row | 6.41:TK4 | GEN.473 | `taxon_kernel.MELT_ENERGY_J_PER_KG, ALUMINIUM_MASS_FRACTION`, read when the wiring step lands |
-| row | 6.41:TK5 | GEN.473 | `taxon_kernel.ACCRETION_SPREAD_MYR`, read when the wiring step lands |
-| row | 6.41:TK6 | GEN.473 | `taxon_kernel.DRY_SPLIT, IGNEOUS_SPLIT, HYDRATED_SPLIT`, read when the wiring step lands |
-| module | planetgen.physics.belt_mass | GEN.477 | the mass left in a planetesimal belt after collisional grinding (Wyatt et al. 2007; lock-free); the wiring step gives `AsteroidBelt` its mass and its density word from it |
-| row | 6.43:BM1 | GEN.477 | `belt_mass.GRAIN_DENSITY_KG_M3, STRENGTH_FLOOR_J_PER_KG`, read when the wiring step lands |
-| row | 6.43:BM2 | GEN.477 | `belt_mass.DENSE_FACTOR`, read when the wiring step lands |
-| module | planetgen.physics.meteorite_groups | GEN.475 | the chondrite groups as regions of a composition space with a nearest-group label (lock-free); the wiring step labels belts and fields from the derived bulk and replaces `taxon_kernel` TK6's fixed within-family splits |
-| row | 6.44:MG1 | GEN.475 | `meteorite_groups.CHONDRITE_GROUPS`, read when the wiring step lands |
-| row | 6.44:MG2 | GEN.475 | `meteorite_groups.AXIS_SCALES, NEAREST_LIMIT`, read when the wiring step lands |
-| module | planetgen.physics.rock_types | GEN.474 | the CIPW norm, the staged melt of a rock and the ground type of its oxides (lock-free); the wiring step has the surface draw take the crust from the stored mantle through it, replacing the fixed assemblages of `surface_composition.GROUND_TYPES` |
-| row | 6.45:RT1 | GEN.474 | `rock_types.MELT_STAGES`, read when the wiring step lands |
-| row | 6.45:RT2 | GEN.474 | `rock_types.ANORTHOSITE_PLAGIOCLASE, ULTRABASIC_SILICA, KOMATIITE_MAGNESIA, BASIC_SILICA, ACID_SILICA`, read when the wiring step lands |
-| row | 6.45:RT3 | GEN.474 | `rock_types.INCOMPATIBLE_D`, read when the wiring step lands |
-| module | planetgen.physics.comet_ice_budget | GEN.595 | the CO2/H2O and CO/H2O of a comet's ice from the disc zone it formed in (lock-free); the wiring step has `comet_population.draw_volatiles` take its CO and CO2 medians from the zone and the interstellar bracket from the disc's carbon and oxygen |
-| row | 6.46:CI1 | GEN.595 | `comet_ice_budget.ICE_LINES_K, DISK_T0_K, DISK_INDEX`, read when the wiring step lands |
-| row | 6.46:CI2 | GEN.595 | `comet_ice_budget.LUMINOSITY_EXPONENT`, read when the wiring step lands |
-| row | 6.46:CI3 | GEN.595 | `comet_ice_budget.NEBULA_PER_1E4_H`, read when the wiring step lands |
-| row | 6.46:CI4 | GEN.595 | `comet_ice_budget.TRAPPED_FRACTION`, read when the wiring step lands |
 | module | planetgen.physics.dry_carbon | GEN.1005 | the carbon a dry body keeps in its mantle from its building blocks and the core's share; the flip step has `mixture_rocky.INVENTORY['co2_dry_wt_percent']` read its bracket |
 | row | 6.58:DC1 | GEN.1005 | `dry_carbon.NC_UNDIFFERENTIATED_C_PPM, NC_DIFFERENTIATED_C_PPM`, read when the flip step lands |
 | row | 6.58:DC2 | GEN.1005 | `dry_carbon.DIFFERENTIATED_SHARE`, read when the flip step lands |
@@ -100,7 +68,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | data | acid_cloud_optics.json | by design | the acid droplets' infrared optics per band (made by `scripts/build_acid_cloud_optics.py`); `radiative_convective` will read it through `cloud_infrared` in the wiring step (read by the radiative-convective model, which the generator reads through its stored table, like line_opacity; GEN.850 built) |
 | module | planetgen.physics.cloud_infrared | by design | the acid cloud's infrared depth in the layers of a column; called by the column solver once the cloud is wired (read by the radiative-convective model, which the generator reads through its stored table, like line_opacity; GEN.850 built) |
 | module | planetgen.physics.mie | by design | Mie spheres, used by the optics builder script only; the generator reads the table it makes, so this stays unread by the app (delete when the builder moves out of the repo) |
-| module | planetgen.physics.pair_history | GEN.1012 | the history rule of a pair of members; `multistar.classify_pair` will read it once the member record (GEN.1009) provides each member's largest mass and radius |
 | row | 6.63:CF3 | by design | `cloud_infrared.TOP_OVER_BASE_PRESSURE`, read when the column solver calls the cloud (read by the radiative-convective model, which the generator reads through its stored table, like line_opacity; GEN.850 built) |
 | data | quadruple_stability_3p1.json | GEN.1016 | the 3+1 quadruple stability rules (validity ranges, the stability definition); `multistar` limits will read them through `quadruple_stability` in the wiring step |
 | data | quadruple_stability_3p1_weights.json | GEN.1016 | the 8,301 numbers of the authors' network (made by `scripts/build_quadruple_stability.py`); read by `quadruple_stability` |
@@ -108,24 +75,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | data | quadruple_stability_2p2_weights.json | GEN.1016 | the 8,301 numbers of the authors' 2+2 network (made by `scripts/build_quadruple_stability.py`); read by `quadruple_stability` |
 | module | planetgen.physics.quadruple_stability | GEN.1016 | the stability verdict of a 3+1 quadruple and (GEN.1031) of a 2+2 quadruple; the stability margin and quadruple fit (P10) will call it |
 | module | planetgen.physics.hierarchy_stability | GEN.1016 | the stability of a tree of stars level by level (triple levels, the 3+1 quadruple with its margin, 2+2 by nested triples); read by tests/test_hierarchy_stability.py now and by the `multistar` limits once the wiring merges on its train |
-| module | planetgen.physics.ocean_tides | GEN.1034 | the open-ocean equilibrium tide and its spring and neap ranges; the fill pass will call it with the stored spin and moons and write `tide_range_spring_m` and `tide_range_neap_m` (train 7)|
-| row | 6.68:OT1 | GEN.1034 | a constant of the ocean tide module, read when its wiring step lands |
-| row | 6.68:OT2 | GEN.1034 | a constant of the ocean tide module, read when its wiring step lands |
-| row | 6.68:OT6 | GEN.1034 | a constant of the ocean tide module, read when its wiring step lands |
-| module | planetgen.physics.small_body_rings | GEN.1057 | the resonance ring of a small body (R4) and the gate against rings inside 0.1 AU (R9), pure functions (lock-free); the wiring step calls them from the ring pass |
-| row | 6.71:RR1 | GEN.1057 | `small_body_rings.RESONANCE_RING_RATE, RESONANCE_ORDER`, read when the wiring step lands |
-| row | 6.71:RR2 | GEN.1057 | `small_body_rings.INNER_RING_LIMIT_AU`, read when the wiring step lands |
-| row | 6.71:RR3 | GEN.1057 | `small_body_rings.HILL_FRACTION_MAX`, read when the wiring step lands |
-| row | 6.71:RR4 | GEN.1057 | `small_body_rings.RESONANCE_RING_MASS_KG, RESONANCE_WIDTH_FRACTION`, read when the wiring step lands |
-| module | planetgen.physics.ring_origin | GEN.1057 | the ring as a result of a fallen moon or a comet inside the Roche limit; the conditional ring draw (GEN.1057) will call it and replace the `rings.draw_ring` chances |
-| row | 6.70:RO1 | GEN.1057 | a constant of the ring origin module, read when its wiring step lands |
-| row | 6.70:RO2 | GEN.1057 | a constant of the ring origin module, read when its wiring step lands |
-| row | 6.70:RO3 | GEN.1057 | a constant of the ring origin module, read when its wiring step lands |
-| row | 6.70:RO4 | GEN.1057 | a constant of the ring origin module, read when its wiring step lands |
-| row | 6.70:RO5 | GEN.1057 | a constant of the ring origin module, read when its wiring step lands |
-| row | 6.70:RO6 | GEN.1057 | a constant of the ring origin module, read when its wiring step lands |
-| row | 6.70:RO7 | GEN.1057 | a constant of the ring origin module, read when its wiring step lands |
-| row | 6.70:RO8 | GEN.1057 | a constant of the ring origin module, read when its wiring step lands |
 | module | planetgen.physics.oddities | GEN.1047 | the oddity table and its rolls (candidates, probability, roll, limit_failures); the planet and moon builds call it once GEN.1047 wires the table, with the effects the modules of GEN.1040 and its siblings define |
 | data | oddities.json | GEN.1047 | the oddity table (empty until the modules add their rows); read by physics/oddities.py, which nothing calls yet |
 | row | 6.72:OD1 | GEN.1047 | `tuning.WEIRDNESS_DIAL`, read by `oddities.probability` once the table is wired; the dial also goes in the settings page |
@@ -145,8 +94,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.75:NC1 | GEN.1051 | a constant of the nightside collapse module, read when its wiring step lands |
 | row | 6.75:NC3 | GEN.1051 | a constant of the nightside collapse module, read when its wiring step lands |
 | row | 6.75:NC6 | GEN.1051 | a constant of the nightside collapse module, read when its wiring step lands |
-| module | planetgen.physics.ring_origin | GEN.1057 | the ring as a result of a fallen moon or a comet inside the Roche limit; the conditional ring draw (GEN.1057) will call it and replace the `rings.draw_ring` chances |
-| row | 6.70:RO1 | GEN.1057 | a constant of the ring origin module, read when its wiring step lands |
 | module | planetgen.physics.venus_spin | GEN.1048 | the spin equilibria of a thick-air planet (thermal tide against the solid tide, Cunha, Correia and Laskar 2015); the weird-worlds wiring (W2) will give a not-locked thick-air planet its slow or retrograde spin |
 | row | 6.90:VS1 | GEN.1048 | a constant of the Venus-type spin module, read when its wiring step lands |
 | row | 6.90:VS2 | GEN.1048 | a constant of the Venus-type spin module, read when its wiring step lands |
@@ -206,13 +153,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | module | planetgen.physics.cluster_unbinding | GEN.1111 | the share of planets a birth cluster has unbound; the rogue rows add it to the ejections |
 | module | planetgen.physics.rogue_radiogenic | GEN.1111 | the radiogenic content and heat of a rogue from the star it left; the rogue rows read them in place of the host-less draw |
 | row | 6.114:RY1 | GEN.1111 | a constant of the rogue radiogenic module, read when its wiring step lands |
-| row | 6.70:RO2 | GEN.1057 | a constant of the ring origin module, read when its wiring step lands |
-| row | 6.70:RO3 | GEN.1057 | a constant of the ring origin module, read when its wiring step lands |
-| row | 6.70:RO4 | GEN.1057 | a constant of the ring origin module, read when its wiring step lands |
-| row | 6.70:RO5 | GEN.1057 | a constant of the ring origin module, read when its wiring step lands |
-| row | 6.70:RO6 | GEN.1057 | a constant of the ring origin module, read when its wiring step lands |
-| row | 6.70:RO7 | GEN.1057 | a constant of the ring origin module, read when its wiring step lands |
-| row | 6.70:RO8 | GEN.1057 | a constant of the ring origin module, read when its wiring step lands |
 | module | planetgen.physics.super_puff | GEN.1048 | the super-puff radius, fade and gate (W15); the bulk step reads it when the wiring step lands |
 | row | 6.76:PF1 | GEN.1048 | a constant of the super-puff module, read when its wiring step lands |
 | row | 6.76:PF2 | GEN.1048 | a constant of the super-puff module, read when its wiring step lands |
@@ -222,10 +162,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.77:HF1 | GEN.1047 | a constant of the helium fractionation module, read when its wiring step lands |
 | row | 6.77:HF2 | GEN.1047 | a constant of the helium fractionation module, read when its wiring step lands |
 | row | 6.77:HF3 | GEN.1047 | a constant of the helium fractionation module, read when its wiring step lands |
-| module | planetgen.physics.giant_tilt | GEN.1058 | the tilt a giant merger gives an ice giant and the ring and moon plane that follow the equator (G1); the spin draw reads it when the wiring lands |
-| row | 6.78:GT1 | GEN.1058 | a constant of the giant tilt module, read when its wiring step lands |
-| row | 6.78:GT2 | GEN.1058 | a constant of the giant tilt module, read when its wiring step lands |
-| row | 6.78:GT3 | GEN.1058 | a constant of the giant tilt module, read when its wiring step lands |
 | module | planetgen.physics.mantle_stripping | GEN.1048 | the iron-rich core of a giant impact (Marcus and others 2010 scaling); the weirdness wiring (W10) gives a rocky planet that had a recorded merger a core fraction from the impacts the architecture recorded |
 | row | 6.93:MT4 | GEN.1048 | `mantle_stripping.Q_STAR_SCALE` of the mantle stripping module, read when its wiring step lands |
 | row | 6.93:MT6 | GEN.1048 | `mantle_stripping.MAX_CORE_MASS_FRACTION` of the mantle stripping module, read when its wiring step lands |
@@ -296,7 +232,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.107:IF23 | GEN.1103 | `field_composition.CORE_LEAK_SHARE`, read when the field generation lands |
 | row | 6.107:IF24 | GEN.1103 | `field_composition.MANTLE_ROWS, CORE_ROW`, read when the field generation lands |
 | module | planetgen.physics.topup_field | GEN.1120 | the light top-up asteroid fields of the remainder the Rogues level leaves unmatched (lock-free, GEN.1126); the region run's stage 3 calls `plan` with `rogue_topup.TopUp.remainder_kg`, and the field items (GEN.1103 to GEN.1107) store and retire what it returns |
-| row | 6.108:TF1 | GEN.1120 | `topup_field.ORIGIN`, read when the region run wires stage 3 |
 | row | 6.108:TF2 | GEN.1120 | `topup_field.LARGEST_BODY_MASS_KG, BULK_DENSITY_KG_M3`, read when the region run wires stage 3 |
 | row | 6.108:TF3 | GEN.1120 | `topup_field.SPEED_KM_S_RANGE, MIN_RADIUS_LY`, read when the region run wires stage 3 |
 | row | 6.108:TF4 | GEN.1120 | `topup_field.MIN_FIELD_MASS_KG, MAX_FIELD_MASS_KG, MAX_FIELDS`, read when the region run wires stage 3 |
@@ -368,4 +303,4 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.126:RN9 | GEN.1159 | `roundness.RUBBLE_RULES` (hot strength), not read until GEN.1159 wires the module |
 | row | 6.126:RN10 | GEN.1178 | `roundness.RANGES_PA`, not read until the strength draw is wired into `draw.py` with GEN.1159 |
 | module | planetgen.physics.ice_types | GEN.1159 | the strength of the other ices next to ice Ih and the ice type of a body from its components (lock-free); `roundness.py` takes the ratio as a factor on its ice strength when the types are wired |
-| row | 6.126:RN11 | GEN.1159 | `roundness.ROCK_CREEP_COLUMNS`, not read until GEN.1159 passes a shape-set temperature to the engine |
+| row | 6.126:RN11 | GEN.1201 | `roundness.ROCK_CREEP_COLUMNS`, not read until GEN.1201 gives each body a shape-set temperature to pass to the engine |

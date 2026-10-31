@@ -23,7 +23,7 @@ stored temperature never moves (`BASIS_BACKFILL_DRAW`).
 import math
 
 from planetgen import tuning
-from planetgen.physics import constants
+from planetgen.physics import albedo_color, constants
 from planetgen.util import draw
 
 CLIMATE_FIELDS = ("bond_albedo", "greenhouse_factor", "albedo_basis")
@@ -136,19 +136,20 @@ def from_stored(row, flux_w_m2):
     return albedo, max(0.0, greenhouse), None
 
 
-def albedo_range(body_type, water_mass_fraction, flux_w_m2):
+def albedo_range(body_type, water_mass_fraction, flux_w_m2, star_temperature_k=None):
     """
     The Bond albedo range a body draws from before its air is solved (GEN.684): `DEFAULT_ALBEDO_RANGE` for a giant, a dry body
     and a body with no starlight; a body with surface water (`tuning.ALBEDO_WET_MIN_WATER_FRACTION` or more) is ice-covered and
     bright (`tuning.ALBEDO_FROZEN_RANGE`) where its no-air equilibrium temperature at `tuning.ALBEDO_REGIME_REFERENCE` is under
-    `tuning.ALBEDO_FROZEN_BELOW_K`, else ocean and cloud (`tuning.ALBEDO_WET_RANGE`).
+    `tuning.ALBEDO_FROZEN_BELOW_K`, else ocean and cloud (`tuning.ALBEDO_WET_RANGE`). The two bright ranges are scaled to the colour of the
+    star of `star_temperature_k` (`albedo_color.shifted_range`, GEN.912); with no star temperature they are the Sun's.
     """
     if (body_type == "g" or not water_mass_fraction or water_mass_fraction < tuning.ALBEDO_WET_MIN_WATER_FRACTION
             or not flux_w_m2 or flux_w_m2 <= 0.0):
         return DEFAULT_ALBEDO_RANGE
     if equilibrium_temperature_k(tuning.ALBEDO_REGIME_REFERENCE, flux_w_m2) < tuning.ALBEDO_FROZEN_BELOW_K:
-        return tuning.ALBEDO_FROZEN_RANGE
-    return tuning.ALBEDO_WET_RANGE
+        return albedo_color.shifted_range(tuning.ALBEDO_FROZEN_RANGE, "frozen", star_temperature_k)
+    return albedo_color.shifted_range(tuning.ALBEDO_WET_RANGE, "wet", star_temperature_k)
 
 
 def backfill_albedo_range(row, flux_w_m2):

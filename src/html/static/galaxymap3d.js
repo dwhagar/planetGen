@@ -1985,7 +1985,118 @@ function initGalaxyMap3d(canvasEl, data) {
     markersDirty = true;    // the inhabited tokens of the regions (MAP.321 c)
     regionLayer.setBlobs(list, [0, 0, 0]);
     if (regionList) regionList.set(list);
+    refreshRegionPois();
   }
+  // MAP.357: from a galactic view every region with filled-in sectors stands as a point of interest (the region symbol) with a link that goes
+  // to it, the camera framing the whole region. Regions closer together on the screen than REGION_POI_MERGE_PX are one point (the biggest
+  // region's place, a count beside it) whose link frames all of them, so a point stands for what the zoom can tell apart. A region the camera
+  // is in (within REGION_POI_REACH of its radii of its middle) gets none: its sectors and stars are the points there.
+  var REGION_POI_REACH = 2.5;
+  var REGION_POI_MERGE_PX = 48;
+  var regionPoiLayer = null;
+  var regionPoiEls = new Map();
+  var regionPoiGroups = [];
+  var lastPoiSignature = "";
+  var poiSpot = new THREE.Vector3();
+  function regionPoiGroupsNow() {
+    var width = canvasEl.clientWidth || 1;
+    var height = canvasEl.clientHeight || 1;
+    var items = [];
+    regionBlobList.forEach(function (blob) {
+      if (!(blob.sectorCount > 0)) return;
+      var away = Math.hypot(camera.position.x - blob.x, camera.position.y - blob.y, camera.position.z - blob.z) > REGION_POI_REACH * blob.radiusPc;
+      if (!away) return;
+      poiSpot.set(blob.x, blob.y, blob.z).project(camera);
+      if (poiSpot.z < -1 || poiSpot.z > 1 || Math.abs(poiSpot.x) > 1 || Math.abs(poiSpot.y) > 1) return;
+      items.push({ blob: blob, x: (poiSpot.x + 1) / 2 * width, y: (1 - poiSpot.y) / 2 * height });
+    });
+    items.sort(function (a, b) { return (b.blob.sectorCount - a.blob.sectorCount) || (a.blob.key < b.blob.key ? -1 : 1); });
+    var groups = [];
+    items.forEach(function (item) {
+      var home = groups.find(function (group) { return Math.hypot(group.x - item.x, group.y - item.y) <= REGION_POI_MERGE_PX; });
+      if (home) home.members.push(item.blob);
+      else groups.push({ x: item.x, y: item.y, head: item.blob, members: [item.blob] });
+    });
+    return groups;
+  }
+  // The sphere that holds every region of a group: its middle is the members' mean, its radius reaches the farthest member's far side.
+  function regionGroupExtent(group) {
+    var n = group.members.length;
+    var centre = [0, 0, 0];
+    group.members.forEach(function (blob) { centre[0] += blob.x / n; centre[1] += blob.y / n; centre[2] += blob.z / n; });
+    var radius = 0;
+    group.members.forEach(function (blob) { radius = Math.max(radius, Math.hypot(blob.x - centre[0], blob.y - centre[1], blob.z - centre[2]) + blob.radiusPc); });
+    return { centre: centre, radius: radius };
+  }
+  function openRegionGroup(group) {
+    if (group.members.length === 1) {
+      openRegionBlob(group.head);
+      return;
+    }
+    if (!regionOpener) return;
+    regionOpener.region({ block: group.head.block, name: group.head.name, extent: regionGroupExtent(group) });
+  }
+  function refreshRegionPois() {
+    if (!viewport || data.pinned) return;
+    var show = regionsOn && !hiddenCell && regionBlobList.length > 0;
+    regionPoiGroups = show ? regionPoiGroupsNow() : [];
+    if (!regionPoiLayer) {
+      if (!regionPoiGroups.length) return;
+      regionPoiLayer = document.createElement("div");
+      regionPoiLayer.className = "map-region-pois";
+      viewport.appendChild(regionPoiLayer);
+    }
+    var seen = new Set();
+    regionPoiGroups.forEach(function (group) {
+      var key = group.head.key;
+      seen.add(key);
+      var el = regionPoiEls.get(key);
+      if (!el) {
+        el = document.createElement("button");
+        el.type = "button";
+        el.className = "map-region-poi";
+        el.dataset.region = key;
+        var symbol = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        symbol.setAttribute("class", "poi-icon poi-region");
+        symbol.setAttribute("aria-hidden", "true");
+        symbol.setAttribute("focusable", "false");
+        symbol.dataset.poi = "region";
+        var use = document.createElementNS("http://www.w3.org/2000/svg", "use");
+        use.setAttribute("href", new URL("poi/region.svg" + VERSION_QUERY + "#poi", import.meta.url).href);
+        symbol.appendChild(use);
+        var count = document.createElement("span");
+        count.className = "map-region-poi-count";
+        el.append(symbol, count);
+        el.addEventListener("click", function () {
+          var mine = regionPoiGroups.find(function (g) { return g.head.key === key; });
+          if (mine) openRegionGroup(mine);
+        });
+        regionPoiLayer.appendChild(el);
+        regionPoiEls.set(key, el);
+      }
+      var many = group.members.length > 1;
+      var name = group.head.name || "Charted region";
+      var text = many
+        ? group.members.length + " charted regions, the biggest " + name + " (" + group.head.sectorCount + " sectors): go to all of them"
+        : name + " (" + group.head.sectorCount + " sectors): go to the region";
+      el.title = text;
+      el.setAttribute("aria-label", text);
+      el.querySelector(".map-region-poi-count").textContent = many ? String(group.members.length) : "";
+      el.hidden = false;
+      el.style.left = group.x.toFixed(1) + "px";
+      el.style.top = group.y.toFixed(1) + "px";
+    });
+    regionPoiEls.forEach(function (el, key) {
+      if (seen.has(key)) return;
+      el.remove();
+      regionPoiEls.delete(key);
+    });
+  }
+  canvasEl.galaxyRegionPois = function () {
+    return regionPoiGroups.map(function (group) {
+      return { key: group.head.key, name: group.head.name, count: group.members.length, x: group.x, y: group.y, keys: group.members.map(function (blob) { return blob.key; }) };
+    });
+  };
   function loadRegions() {
     if (!regionLayer) return;
     fetch(data.regionsPath).then(function (response) {
@@ -3198,6 +3309,7 @@ function initGalaxyMap3d(canvasEl, data) {
   var bubbles = data.superbubbles || [];
   var bubbleLook = superbubble.bubbleLook(isLightBackground());
   var bubbleMaterial = null;
+  var bubbleMeshes = [];
   if (bubbles.length) {
     // MAP.240: one object for each bubble, at its centre, so no vertex is more than the radius from its origin.
     bubbleMaterial = new THREE.ShaderMaterial({
@@ -3218,6 +3330,8 @@ function initGalaxyMap3d(canvasEl, data) {
       bubbleMesh.frustumCulled = false;
       bubbleMesh.name = "superbubbles";
       bubbleMesh.userData.relativeLayer = "superbubbles";
+      bubbleMesh.visible = false;    // off until the Menu's Superbubbles button turns them on (registered with the other layers)
+      bubbleMeshes.push(bubbleMesh);
       scene.add(bubbleMesh);
     });
     renderer.domElement.dataset.superbubbles = String(bubbles.length);
@@ -3226,7 +3340,7 @@ function initGalaxyMap3d(canvasEl, data) {
   // For the browser tests (MAP.236): the look the bubbles are drawn with.
   canvasEl.galaxyBubbleLook = function () {
     return bubbleMaterial ? {
-      count: bubbles.length, color: bubbleLook.color, fillAlpha: bubbleMaterial.uniforms.fillAlpha.value,
+      count: bubbles.length, shown: bubbleMeshes.some(function (mesh) { return mesh.visible; }), color: bubbleLook.color, fillAlpha: bubbleMaterial.uniforms.fillAlpha.value,
       rimAlpha: bubbleMaterial.uniforms.rimAlpha.value, rimPx: bubbleMaterial.uniforms.rimPx.value,
     } : null;
   };
@@ -3876,6 +3990,20 @@ function initGalaxyMap3d(canvasEl, data) {
   stageView.layers.onChange(function (id, on) {
     if (id === "spin") stageView.spinSwitch.set(on);
   });
+  // The superbubbles are a layer of the Menu, off unless the visitor shows them.
+  if (bubbleMeshes.length) {
+    stageView.layers.register({
+      id: "superbubbles", label: "Superbubbles", modes: ["galaxy"], group: "Show on the map", data: { superbubbles: "all" },
+      defaultOn: false, urlKey: "hide", urlKeyOn: "show", fadedWithSectors: false,
+      title: "Show or hide the faint spheres that mark superbubbles, the cavities the supernovae of young star groups blew in the gas",
+    });
+    stageView.readLayersFromLocation();
+    stageView.layers.refresh();
+    bubbleMeshes.forEach(function (mesh) { mesh.visible = stageView.layers.isOn("superbubbles"); });
+    stageView.layers.onChange(function (id, on) {
+      if (id === "superbubbles") bubbleMeshes.forEach(function (mesh) { mesh.visible = on; });
+    });
+  }
   // MAP.316: the charted regions are a layer of the Menu too, on unless the visitor hides them.
   if (regionLayer) {
     stageView.layers.register({
@@ -4092,7 +4220,7 @@ function initGalaxyMap3d(canvasEl, data) {
     });
     layers.registerKey({
       id: "key-bubbles", text: "Faint blue spheres with a rim: superbubbles, cavities the supernovae of young star groups blew in the gas",
-      swatchClass: "map-key-sphere", drawn: function () { return bubbles.length > 0; },
+      swatchClass: "map-key-sphere", drawn: function () { return bubbles.length > 0 && stageView.layers.isOn("superbubbles"); },
     });
     if (regionLayer) {
       layers.registerKey({
@@ -4182,6 +4310,8 @@ function initGalaxyMap3d(canvasEl, data) {
     regionFrame.set(key ? drillBlockBounds(regionByKey.get(key).block, edgePc) : null);
     stageView.layers.refresh();    // the legend names the outline while it is drawn (MAP.331)
   }
+  var SECTOR_MARKER_BUDGET = 1500;
+  var SECTOR_MERGE_PX = 12;
   var markerFrustum = new THREE.Frustum();
   var markerMatrix = new THREE.Matrix4();
   var markerPoint = new THREE.Vector3();
@@ -4197,7 +4327,10 @@ function initGalaxyMap3d(canvasEl, data) {
     // MAP.339: the black holes are the ones near what the camera looks at, as many as the density preference lets the screen hold.
     var densityStorage = null;
     try { densityStorage = window.localStorage; } catch (error) { densityStorage = null; }
+    // In an opened sector there is room to show every system that fits: the budget is raised and the marks are merged only when they touch.
+    var sectorOpen = !!(canvasEl.galaxyOpenSector && canvasEl.galaxyOpenSector());
     var chosen = selectMarkers({
+      budget: sectorOpen ? SECTOR_MARKER_BUDGET : undefined,
       near: nearFieldRule({
         centre: [target.x, target.y, target.z], distance: camera.position.distanceTo(target),
         width: canvasEl.clientWidth || 1, height: canvasEl.clientHeight || 1, densityPx: blackHoleDensityPx(densityStorage),
@@ -4243,7 +4376,7 @@ function initGalaxyMap3d(canvasEl, data) {
       markerPoint.set(item.x, item.y, item.z).project(camera);
       return { x: (markerPoint.x + 1) / 2 * viewW, y: (1 - markerPoint.y) / 2 * viewH,
         depth: Math.hypot(item.x - camera.position.x, item.y - camera.position.y, item.z - camera.position.z) };
-    });
+    }, sectorOpen ? SECTOR_MERGE_PX : undefined);
     markerLayer.set(chosen);
   }
   // MAP.321: the open system while the camera is close enough for the bodies to carry the symbols (bodymarkers.createHandoff's
@@ -4722,10 +4855,9 @@ function initGalaxyMap3d(canvasEl, data) {
   // --- Resize/render loop ----------------------------------------------
 
   // MAP.291: the window is as wide as its column and as tall as the browser window leaves room for.
-  // MAP.350: the Galaxy Map is as tall as the browser window less 20 pixels above and below, and the page rests with it there; a sector page's
-  // map (pinned) is one thing among the page's others and keeps the room the page leaves it.
-  if (data.pinned) watchWindowFit(viewport, viewport.closest(".starmap-layout").querySelector(".starmap-side"));
-  else watchWindowFit(viewport, null, { fill: true });
+  // MAP.350: the Galaxy Map is as tall as the browser window less 20 pixels above and below, and the page rests with it there.
+  // MAP.359: a sector page's map (pinned) is the same size, so the sector's map matches the Galaxy Map for the window.
+  watchWindowFit(viewport, null, { fill: true });
 
   watchResize(viewport, function () {
     fitRendererToCanvas(renderer, camera, canvasEl);
@@ -4847,6 +4979,12 @@ function initGalaxyMap3d(canvasEl, data) {
     if (regionLayer) {
       regionLayer.update(null, focalPixels(), regionsVersion);
       updateRegionFrame();
+      // MAP.357: the region points follow the camera every frame it moves (a few projections), and the layers' switches.
+      var poiSignature = viewSignature + "|" + regionsVersion + "|" + regionsOn + "|" + hiddenCell;
+      if (poiSignature !== lastPoiSignature) {
+        lastPoiSignature = poiSignature;
+        refreshRegionPois();
+      }
     }
     if (glow) {
       glow.update(drawnSettled ? function () {

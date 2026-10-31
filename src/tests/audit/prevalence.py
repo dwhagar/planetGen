@@ -116,7 +116,7 @@ def finish_bodies(system, planets):
     for planet in planets:
         rings.apply(planet)
         for moon in planet.moons:
-            rings.apply(moon)
+            rings.apply(moon, planet)
     insolation.refresh_system(system)
     for planet in planets:
         interior_heat.update_heat(planet)

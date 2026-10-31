@@ -20,7 +20,7 @@ SUN = constants.SOLAR_LUMINOSITY
 
 
 def test_the_sun_today_matches_the_design_validation():
-    t_sat, decay = activity._interp(activity.ACTIVITY_TABLE, 1.0)
+    t_sat, decay = activity.saturation_age_gy(1.0), activity.decay_exponent(1.0)
     l_x = activity.lx_lbol_at(4.57, activity.saturated_lx_lbol(1.0), t_sat, decay) * SUN
     assert 1e27 <= l_x * activity.ERG_PER_J <= 2e27
     flux = activity.coronal_xuv_w(l_x) / (4 * math.pi * constants.AU_TO_M ** 2) / constants.EARTH_XUV_FLUX_W_M2
@@ -33,8 +33,8 @@ def test_saturation_falls_through_the_f_stars():
     assert activity.saturated_lx_lbol(0.5) == 7.4e-4
     assert activity.saturated_lx_lbol(1.4) == pytest.approx(5e-5)
     assert activity.saturated_lx_lbol(5.0) == pytest.approx(1e-7)
-    assert activity._interp(activity.ACTIVITY_TABLE, 0.1) == (4.0, 1.0)
-    assert activity._interp(activity.ACTIVITY_TABLE, 2.0) == (0.1, 2.0)
+    assert activity.decay_exponent(0.1) == 1.0 and activity.decay_exponent(2.0) == 1.45
+    assert activity.decay_exponent(0.7) == pytest.approx((1.8 + 1.45) / 2)
 
 
 def test_a_hot_photosphere_emits_its_own_xuv():
@@ -63,6 +63,42 @@ def test_m_dwarfs_stay_saturated_longer():
     assert sum(star.xuv_saturated for star in young_m) > 150
     assert sum(star.xuv_saturated for star in old_g) < 20
     assert all(1.8 <= star.flare_alpha <= 2.2 for star in young_m)
+
+
+def test_a_stars_saturation_age_is_the_one_its_rotation_percentile_gives():
+    """GEN.493: the age a star leaves saturation is `saturation_time` at the star's mass and its own uniformly drawn percentile."""
+    from planetgen.physics import saturation_time
+
+    assert activity.saturation_age_gy(0.3) == pytest.approx(saturation_time.saturation_time_myr(0.3, 50.0) / 1000.0)
+    assert activity.saturation_age_gy(0.3, 5.0) < activity.saturation_age_gy(0.3) < activity.saturation_age_gy(0.3, 95.0)
+    ages = []
+    for seed in range(400):
+        star = _star(1.0, 0.1)  # 100 Myr old: past the median saturation (23 Myr), inside the fast tail (297 Myr at the 95th percentile)
+        draw.set_run_seed(seed)
+        activity.generate_activity(star)
+        ages.append(star.xuv_saturated)
+    share = sum(ages) / len(ages)
+    # saturated at 100 Myr when the percentile is above where the curve crosses 100 Myr (about the 75th of the 2 to 98 draw)
+    assert 0.15 < share < 0.40
+
+
+def test_the_stream_after_a_stars_activity_draws_does_not_depend_on_its_mass():
+    """The percentile draw is made for every star, so a star's mass moves no later draw of the run."""
+    after = []
+    for mass in (0.15, 1.0, 3.0):
+        draw.set_run_seed(17)
+        activity.generate_activity(_star(mass, 2.0))
+        after.append(draw.uniform(0.0, 1.0))
+    assert after[0] == after[1] == after[2]
+
+
+def test_the_decay_exponents_hold_the_old_table_level_at_the_reference_age():
+    """AB1: with the median saturation age of Johnstone et al. 2021 the exponents give the `L_X/L_bol` at 5 Gyr the earlier table gave."""
+    earlier = {0.45: 4.43e-5, 0.6: 4.74e-6, 0.8: 6.66e-7, 1.0: 2.96e-7}
+    for mass, ratio in earlier.items():
+        now = activity.lx_lbol_at(5.0, activity.saturated_lx_lbol(mass), activity.saturation_age_gy(mass), activity.decay_exponent(mass))
+        assert now == pytest.approx(ratio, rel=0.08), mass
+    assert 1.35 <= activity.decay_exponent(1.0) <= 1.5  # the Skumanich band
 
 
 def _spinning(mass_sol, age_gy, temperature, period_over_nominal):
@@ -99,7 +135,8 @@ def test_a_fast_rotator_stays_saturated_longer_and_a_slow_one_leaves_saturation_
             star = _spinning(1.0, 0.3, 5772.0, ratio)
             activity.generate_activity(star)
             saturated[name] += bool(star.xuv_saturated)
-    assert saturated["fast"] > 30 > saturated["slow"] + 10, saturated
+    # the saturation age is also drawn from the initial-rotation percentile (GEN.493), so the fast rotator is saturated at 0.3 Gyr in a share of the draws, not in all of them
+    assert saturated["fast"] > 15 > saturated["slow"] + 10, saturated
 
 
 def test_a_star_without_a_spin_or_with_a_law_that_does_not_cover_it_keeps_the_table():

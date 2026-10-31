@@ -27,9 +27,8 @@ warm zone, 0.5 dex under the CO2 zone's 33 percent in CO2 and 0.7 dex under its 
 
 Limits. The temperature profile is the average of a sample of discs, one for all stars (Oberg et al. 2011 also use it); the lines do not move as the disc cools or the
 snow line walks out; transport (drift and diffusion of icy grains) and processing by cosmic rays and radiation are not in it; the trapped fraction is a bound, not a measurement
-of comets; the H2O line here (135 K) is the disc-density value and `condensate_shares` has Lodders's 182 K at 10^-4 bar, which the wiring step reconciles. Nothing in generation
-calls this yet: the wiring step has `comet_population.draw_volatiles` take its median CO and CO2 from the zone a comet forms in, and the interstellar bracket from the disc's carbon
-and oxygen range.
+of comets; the H2O line here (135 K) is the disc-density value and `condensate_shares` has Lodders's 182 K at 10^-4 bar, which the wiring leaves be (comets form beyond the star's own snow line, `formation_ratios`). Wired (train 7): a comet of a star's system forms at a distance drawn between the star's snow line and the edge of its disc (`formation_ratios`), and
+`comet_population.draw_volatiles` takes its median CO and CO2 from the zone (the scatter stays the population's). The interstellar bracket stays a registered stand-in.
 """
 
 import math
@@ -129,6 +128,27 @@ def ice_ratios(distance_au, luminosity_w=SOLAR_LUMINOSITY_W, carbon=1.0, oxygen=
     if zone == "carbon dioxide":
         return co2, trapped * co
     return trapped * co2, trapped * co
+
+
+@finite_domain()
+def formation_ratios(luminosity_w, snow_line_au, outer_au, carbon, oxygen, u):
+    """
+    The CO2/H2O and CO/H2O of the ice of one comet, as `(co2, co)`: formed at a distance drawn log-uniformly (the equal masses in equal intervals of ln r of
+    `zone_shares`, by the uniform `u` in [0, 1)) between the star's snow line, or the water line of the disc model past it, and `outer_au`, the edge of the disc.
+
+    Args:
+        luminosity_w (float): The star's luminosity.
+        snow_line_au (float): The star's own snow line (`Star.snow_line_au`): comets form beyond it.
+        outer_au (float): The outer edge of the disc.
+        carbon, oxygen (float): As `nebular_ratios`.
+        u (float): The uniform draw that places the comet.
+    """
+    if not 0.0 <= u < 1.0:
+        raise ValueError("u must be in [0, 1)")
+    inner = max(snow_line_au, ice_line_au("H2O", luminosity_w) * (1.0 + 1e-9))
+    if not outer_au > inner:
+        return ice_ratios(inner, luminosity_w, carbon, oxygen)
+    return ice_ratios(inner * (outer_au / inner) ** u, luminosity_w, carbon, oxygen)
 
 
 @finite_domain()
