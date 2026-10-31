@@ -25,8 +25,8 @@ from planetgen.db import column_units, models
 from planetgen.describe import model
 from planetgen.describe.quantity import inline_text
 from planetgen.describe.sheet_sources import source_of
-from planetgen.physics import (compaction, constants, daylight, gases, habitability_world, outside_hours, regional_temperature,
-                               surface_liquid_world, unit_registry)
+from planetgen.physics import (agb_carbon, compaction, constants, daylight, gases, habitability_world, outside_hours, regional_temperature,
+                               surface_liquid_world, unit_registry, variability)
 from planetgen.population import facility_ratings
 from planetgen.util.format import format_number, scientific_text
 
@@ -952,6 +952,14 @@ def _zone_value(letter, by_key, specs, table):
 
 _yr_to_h = unit_registry.converter("yr", "h")
 
+VARIABILITY_KEY = "variability"
+"""str: The key of the star's derived row for the kind of variable it is (GEN.944, `physics.variability`); it is worked out from the stored
+state, class, temperature and mass when the sheet is made and is not a column."""
+
+CARBON_KEY = "carbon_star_kind"
+"""str: The key of the star's derived row for a carbon star or an S star (GEN.1026, `physics.agb_carbon`); it is worked out from the stored state,
+lifespan (which gives the initial mass), mass, [Fe/H] and age when the sheet is made and is not a column."""
+
 ECLIPSE_KEY = "longest_eclipse_hours"
 """str: The key of the moon's derived row for the longest eclipse in its planet's shadow (UX.205); it is worked out from the stored
 orbit and the planet's radius when the sheet is made and is not a column."""
@@ -993,6 +1001,8 @@ def sheet(conn, kind, object_id):
     wanted = {spec.stored_column() for spec in specs}
     if table in ("planets", "moons"):
         wanted.update(regional_temperature.SWING_OF.values())    # GEN.848: each temperature row shows the swing of its own place
+    if table == "stars":
+        wanted.update(("lifespan_gy", "metallicity_fe_h", "age_gy"))    # GEN.1026: the carbon or S star row is worked out from them
     columns = ", ".join(sorted(wanted))
     row = conn.execute(f"SELECT {columns} FROM {table} WHERE id = ?", (object_id,)).fetchone()
     if row is None:
@@ -1017,6 +1027,18 @@ def sheet(conn, kind, object_id):
         value = [model.qty("time", eclipse, "h")]
         by_group["rotation"].append({"key": ECLIPSE_KEY, "label": "Longest eclipse in the planet's shadow", "value": value,
                                      "text": inline_text(value), "raw": eclipse, "stored": True, "absent": False, "source": None, "show_absent": False})
+    variable = variability.kind_of(row["state"], row["yerkes_class"], row["temperature_k"],
+                                   None if row["mass_kg"] is None else row["mass_kg"] / constants.SOLAR_MASS_TO_KG) if kind == "star" else None
+    if variable:
+        by_group["identity"].append({"key": VARIABILITY_KEY, "label": "Variability", "value": [variable], "text": variable, "raw": None,
+                                     "stored": True, "absent": False, "source": None, "show_absent": False})
+    carbon = None
+    if kind == "star" and row["state"] == "asymptotic-giant" and row["metallicity_fe_h"] is not None:
+        initial = agb_carbon.initial_mass_from_lifespan_sol(row["lifespan_gy"], row["metallicity_fe_h"])
+        carbon = agb_carbon.kind_of(row["state"], initial, row["mass_kg"] / constants.SOLAR_MASS_TO_KG, row["metallicity_fe_h"], row["age_gy"])
+    if carbon:
+        by_group["identity"].append({"key": CARBON_KEY, "label": "Carbon or S star", "value": [carbon], "text": carbon, "raw": None,
+                                     "stored": True, "absent": False, "source": None, "show_absent": False})
     groups = [{"key": key, "label": GROUPS[key], "rows": rows} for key, rows in by_group.items() if rows]
     stored = {spec.key: row[spec.stored_column()] for spec in specs}
     return {"kind": kind, "groups": groups, "missing": missing(kind, stored)}
