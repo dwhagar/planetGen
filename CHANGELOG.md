@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2963] - 2026-10-31
+
+**Headline:** Thirty-one functions that nothing in the generator called, with their tests, are removed, and the seven that stay each name the item that will use them.
+
+### Changed
+- **TEST.524.** The wiring guard (TEST.520) found 38 public functions in 21 physics modules that only tests called. Thirty-one are deleted with their tests and the notes that named them, because the generator builds its values another way: `atmosphere.hydrogen_kpa` and `other_kpa`, `atmosphere_state.gas_column_mass_kg_m2`, `aerosols.haze_fall_integral_s_m`, `ozone.column_mean_partial_pressure_pa` and `column_after_air_loss`, the three Rayleigh band and gas helpers, `thermosphere.hydro_based_in_grid`, `body_colour.rgb8_of`, the cloud-top algebra and the Sudarsky label of `giant_colour`, `mixture_giant.carbon_monoxide_time_s`, `mixture_sinks.apply_ocean_sinks` and its water cap, `waterworld_carbon.sealed_state` (the air solve takes the ocean carbon at its own climate-loop temperature), `radiation.apply_air_loss`, `radiogenic.present_ppm`, `radiogenic_flux_w_m2` and `aluminium_26_mass_fraction`, `daylight.locked_zone_shares`, `surface_composition.crust_reservoir`, `surface_pressure.degassed_inventory`, `gas_mass_kg` and `can_weather`, the six scale-conversion and gas-ratio functions of `oxygen_fugacity` with the Frost buffer constants, and the empty `two_stream.vacuum` (now a helper in its own test). Seven stay and name their owner in the wiring register: `surface_dose` (three) and `proton_range` to GEN.444, `impact_inventory` to GEN.819, `scatter.scatter_shares` to GEN.1071, `scatter.history_line` to GEN.1070. `species_thermo.log10_k`, which the deleted `oxygen_fugacity.log_k` wrapped, is registered by design (the reference the equilibrium tests check against). No stored or generated value changes.
+generation-output: unchanged
+
 ## [8.0.2962] - 2026-10-31
 
 **Headline:** Three tests that failed on main were out of date with two decisions already made; they now state those decisions. Nothing the generator makes changes.
