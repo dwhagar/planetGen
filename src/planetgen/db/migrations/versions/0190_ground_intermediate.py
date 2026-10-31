@@ -9,6 +9,7 @@ NULL here: a row made before v190 has no such share, and its ground needs the dr
 skipped when it is already there, so a stopped run can be started again.
 """
 
+import sqlalchemy as sa
 from alembic import op
 
 from planetgen.db.migrations import helpers
@@ -30,4 +31,5 @@ _COLUMNS = (
 def upgrade():
     connection = op.get_bind()
     for table, column, definition in _COLUMNS:
-        helpers.add_column_instant(connection, table, column, definition)
+        if not helpers.exists_column(connection, table, column):    # a plain ALTER: `planets` and `moons` carry a FULLTEXT key, which refuses INSTANT
+            connection.execute(sa.text(f"ALTER TABLE {table} ADD COLUMN {column} {definition}"))
