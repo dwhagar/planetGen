@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 890 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 891 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -37,7 +37,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
 | T1 | 135 | 11 | 7 | 1 | 0 | 154 |
-| T2 | 111 | 31 | 0 | 1 | 0 | 143 |
+| T2 | 111 | 32 | 0 | 1 | 0 | 144 |
 | T3 | 76 | 34 | 5 | 10 | 0 | 125 |
 | T4 | 37 | 4 | 0 | 14 | 10 | 65 |
 | T5 | 43 | 16 | 0 | 1 | 0 | 60 |
@@ -45,7 +45,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T7 | 27 | 8 | 8 | 8 | 0 | 51 |
 | T8 | 0 | 1 | 1 | 5 | 1 | 8 |
 | T9 | 13 | 6 | 4 | 39 | 19 | 81 |
-| All | 524 | 172 | 40 | 124 | 30 | 890 |
+| All | 524 | 173 | 40 | 124 | 30 | 891 |
 
 ## How the labels were given
 
@@ -74,6 +74,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | GR13 | B | T3 | L0 | Continue the verified dwarf size law downward to M_V near -2, floor at the cluster size 2.7 pc. | measured r_h sit outside the continuation by more than 0.3 dex | the paper's relation replaces; Gemini's mean 80 pc, 20 to 300 pc, 0.35 dex (LEAD) is a first comparison | - | - |
 | GR14 | B | T3 | L0 | Logistic rise of the ex situ fraction in log M* from the verified 0.1 at 5e10 to a ceiling of 1 at the top, centre fixed by the digitised Illustris curve (GR2). | the digitised curve crosses 0.5 outside the bracket | digitised curve replaces; Gemini's crossover 1.5e11 ± 0.2e11 (LEAD) tests the result | - | - |
 | GR15 | D | T2 | L0 | Width from the verified edges: 3e8 to 5e9 is 1.22 dex, so 0.20 to 0.25 dex (4.5). | a fit to the Benitez-Llambay and Frenk simulations gives a width outside 0.15 to 0.35 | the fitted width replaces; Gemini's 0.25 ± 0.04 agrees (claim not counted: its centre is contradicted) | - | - |
+| GR16 | D | T2 | L1 | The molecular birth-gas vertical dispersion of the thin disc, 6.5 ± 1 km/s (`structure_draw.GAS_DISPERSION_KMS`, GEN.536): the CO line widths of Mogotsi 2016 (7.3 ± 1.7, 9 galaxies), Sun 2020 (disc medians 6.3 to 7.5 mass-weighted, 4.4 to 4.9 area-weighted) and Malhotra 1994 (7.1 to 7.8 near the Sun), with Caldu-Primo 2013 (12.0 ± 3.9, stacked inclined discs) as an upper bound. | the young disc's scale height for a Milky Way twin falls outside 35 to 70 pc (young over old 0.12 to 0.23): Bobylev and Bajkova 2015 and 2016, Urquhart 2011, Bonatto 2006, Joshi 2016, Hao 2021 and Moreira 2025 give about 50 pc; a Milky Way check, not a law for every galaxy (six low-mass edge-on discs show 0.40 to 0.59, Seth 2005) | a face-on vertical CO dispersion replaces the line-of-sight widths; reports/gen536-co-velocity-dispersion-2026-10-31.md and reports/gen1182-young-star-scale-height-2026-10-31.md | - | - |
 | GX1 | D | T1 | L0 | Bayes: the probability of a halo mass given the stellar mass is proportional to the probability of the stellar mass given the halo mass times the halo mass function, with the scatter of the Moster relation. | the sampled halo masses at fixed M* have a median shifted from the inverse of the median relation by something other than the Eddington-bias term | a published conditional replaces | - | - |
 | GX2 | B | T1 | L0 | Mixture of the two published signs (Hart 2017, Yu and Ho 2019) with equal weights; neither wins because both are verified. | a third survey fixes the sign | the surviving sign replaces the mixture | - | - |
 | GX3 | B | T2 | L0 | Slope uniform on 0.48 to 1.36 (Neumayer against Georgiev). Gemini's 0.65 ± 0.10 sits inside and changes nothing. | the review shows one fit to be a selection artefact | a reconciling paper replaces | - | - |

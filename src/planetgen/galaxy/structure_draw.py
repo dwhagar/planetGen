@@ -31,7 +31,7 @@ each other nor on the order they run in.
    D'Souza 2014's disc-dominated galaxies; below it the Dragonfly galaxies with no detected halo). A galaxy under
    `dials.FULL_STRUCTURE_MIN_STELLAR_MASS_SOLAR` (3e8, Boss 7:58 PM EDT 10-21) runs none of this: it has no stellar halo, no thick
    disc, no bar and no nuclear structures.
-4. **Motions** (fills GR4, GR5): the birth-gas dispersion 6.5 +/- 1 km/s (a molecular stand-in, GEN.536; the atomic value is 10 +/- 2, Tamburro 2009), the disc's central vertical
+4. **Motions** (fills GR4, GR5): the birth-gas dispersion 6.5 +/- 1 km/s (the molecular CO widths of Mogotsi 2016, Sun 2020, Malhotra 1994, GEN.536; the atomic value is 10 +/- 2, Tamburro 2009), the disc's central vertical
    dispersion `0.248 V` with 15 percent (Martinsson 2013), the age exponent 0.441 +/- 0.03 (Sharma and Hayden 2020),
    and the bulge's scatter 0.097 dex about `Vc / sigma_0 = 2 (1 - B/T)` (Courteau 2007).
 5. **Black holes** (GEN.563; `draw_black_hole_shares`): the shares of the massive stars that fail to explode at solar and at
@@ -80,11 +80,15 @@ HALO_RATIO_SCATTER_DEX = 1.01
 HALO_RATIO_RANGE = (0.001 / 0.999, 0.30 / 0.70)
 
 GAS_DISPERSION_KMS = (6.5, 1.0)
-"""tuple: `(centre, scatter)` km/s of the cold gas the stars are born from. A STAND-IN until GEN.536 reads the measured
-CO (molecular) dispersions of nearby spirals: stars form in molecular clouds, whose dispersion is lower than the atomic
-gas's 10 +/- 2 km/s (Tamburro et al. 2009, HI at r25 in 11 THINGS discs) that this value replaced. At 6.5 km/s the
-young disc is 0.22 of the old disc's height (65 pc for 300 pc; observed about 50 pc), where 10 km/s gave 0.40 and put
-twice the molecular clouds in the Galaxy that the catalogues hold. Not read from a paper; tunable."""
+"""tuple: `(centre, scatter)` km/s of the cold gas the stars are born from. Stars form in molecular clouds, whose line-of-sight
+CO width in nearby spirals is 7.3 +/- 1.7 km/s per pixel (Mogotsi et al. 2016, 9 THINGS and HERACLES galaxies), 6.3 to 7.5
+km/s mass-weighted and 4.4 to 4.9 km/s area-weighted in galaxy discs at 90 and 150 pc (Sun et al. 2020, PHANGS-ALMA, 70
+galaxies), 7.1 to 7.8 km/s near the Sun (Malhotra 1994), and at most 12.0 +/- 3.9 km/s from spectra stacked over inclined
+discs (Caldu-Primo et al. 2013), against the atomic gas's 10 +/- 2 km/s (Tamburro et al. 2009, HI at r25 in 11 THINGS
+discs). The centre 6.5 km/s sits inside 7.0 +/- 1.7 and gives a young disc 0.22 of the old disc's height (66 pc for 300 pc),
+inside the 35 to 70 pc that Milky Way OB stars, HII regions, Cepheids and young open clusters show (GEN.1182; 7.0 gives
+73 pc, 10 km/s 119 pc and twice the molecular clouds the catalogues hold). Confident unverified (the CO widths are read, the
+step to the stars' birth dispersion is physics), tweak L1 (the weighting); reports/gen536-co-velocity-dispersion-2026-10-31.md."""
 DISC_CENTRAL_DISPERSION_OVER_V = (0.248, 0.15)
 """tuple: `(centre, relative scatter)`: Martinsson et al. 2013, `0.248 +/- 0.038`, 15 percent."""
 DISC_AGE_EXPONENT = (0.441, 0.03)
