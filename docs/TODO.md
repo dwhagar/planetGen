@@ -13986,6 +13986,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   proposed as the author of GEN.1072).
   Prerequisites: GEN.1068, GEN.1072.
 
+- [ ] **GEN.1204 Dark members of an orbit tree (brown dwarf, neutron star, black hole in dark_members) store density, binding energy and the shape values the stars, rogues and comets store**
+  Found by Aux 5 on GEN.1162 (as the lane reported, 8:04 AM EDT
+  2026-10-31), filed by the TODO thread. GEN.1162 stores density and
+  binding energy on stars, black holes and neutron stars, roundness and
+  strength on rogue planets, and the comet values on interstellar
+  comets, but not on the dark members of an orbit tree (a brown dwarf,
+  neutron star or black hole carried in dark_members), because a dark
+  member has no radius of its own yet. Do: give a dark member the radius
+  its kind implies from the same mass-radius laws the single-body
+  versions use (no fixed values), then store the same bulk values
+  through the same code. Output change (stored values), rides a train.
+  Owner: unowned until GEN.1162 merges (Aux 5 proposed).
+  Prerequisites: GEN.1162.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
