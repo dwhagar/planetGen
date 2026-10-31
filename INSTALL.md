@@ -71,10 +71,16 @@ database cannot be asked politely to resume):
 ```bash
 for unit in mysql redis-server; do
   sudo mkdir -p /etc/systemd/system/$unit.service.d
-  printf '[Service]\nOOMScoreAdjust=-800\n' | sudo tee /etc/systemd/system/$unit.service.d/oom.conf >/dev/null
+  printf '[Service]\nOOMScoreAdjust=-900\n' | sudo tee /etc/systemd/system/$unit.service.d/oom.conf >/dev/null
 done
 sudo systemctl daemon-reload && sudo systemctl restart mysql redis-server
 ```
+
+`install.sh` and `update.sh` check this for you (`scripts/oom_advice.py`) and print the same drop-in for any of
+`mysql`, `redis-server` that is not at -900 or lower; they change nothing. The generation workers are children of the web
+app, so they live in `apache2.service`'s cgroup; the same check offers a `MemoryHigh`/`MemoryMax` drop-in for that
+unit (55 and 65 percent of the host's memory) so that a memory spike ends a worker inside that group, never mysqld.
+It is optional: the scatter stages already hold their workers to half the host's memory.
 
 On a 16 GB host that also generates, `innodb_buffer_pool_size = 4G` in `/etc/mysql/mysql.conf.d/mysqld.cnf` keeps
 MySQL near 5 GB at most and leaves the rest to the workers (about 250 MB each, up to the worker count on the

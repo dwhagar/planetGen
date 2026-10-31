@@ -189,6 +189,12 @@ show_redo_log_advice() {
     "$PYTHON" "$SCRIPT_DIR/scripts/redo_log_advice.py" || true
 }
 
+# Prints how to keep the kernel's out-of-memory killer off MySQL and Redis, and an optional memory limit for Apache's
+# unit, where the generation workers run (PERF.223). Advice only: never changes a unit, never fails.
+show_oom_advice() {
+    "$PYTHON" "$SCRIPT_DIR/scripts/oom_advice.py" || true
+}
+
 # Whether a Redis server answers PING at the URL in $1, using the redis
 # library install-python-deps.sh installed.
 redis_answers() {
