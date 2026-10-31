@@ -247,6 +247,8 @@ SECTIONS = (
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.140", "6.140 Stand-ins of the gas disc of a satellite galaxy",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.131", "6.131 Stand-ins of the gas of a satellite galaxy by its distance from the host",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.94", "6.94 Stand-ins of the irregular zone",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.102", "6.102 Stand-ins of the smoothed rogue density",
