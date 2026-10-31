@@ -1527,6 +1527,9 @@
 -- v190 (GEN.474): `planets` and `moons` gain `ground_intermediate_fraction`, the areal share of intermediate (andesitic) ground, a ground type the volcanic crust of a body takes when the melt of its mantle
 --   is 52 to 63 percent silica; NULL on a row made before v190 (the regenerated galaxy replaces it; see `migrations/versions/0190_ground_intermediate.py`). (v190, GEN.475) `asteroid_belts` and `asteroid_fields`
 --   also gain `chondrite_group`, the nearest meteorite group of the body's mean composition (`none` far from every group), NULL before v190.
+-- v193 (GEN.1097): `planets` and `moons` keep the state of their day and night (`day_night_state`, VARCHAR(24): day and night, tidally locked, spin-orbit resonance, non-rotating, polar day and night, no solid surface;
+--   `physics/day_night.py`), the hours of night in a solar day at the equator (`night_hours`, DOUBLE) and the solar days in one orbit (`days_per_year`, DOUBLE). NULL for a body whose spin is not stored, `night_hours` and
+--   `days_per_year` NULL for a world that turns once an orbit, and all NULL on a row made before v193, which gets them when the galaxy is regenerated.
 --
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
@@ -2409,6 +2412,9 @@ CREATE TABLE IF NOT EXISTS planets (
     temp_night_side_swing_k     DOUBLE,  -- v182 (GEN.848): the day and night swing of that place, peak to peak, kelvin of difference
     outside_hours_day           DOUBLE,  -- v187 (GEN.768): the hours of one local day a person can be outside in the listed equipment
     outside_hours_limit         VARCHAR(16),  -- v187 (GEN.768): what sets them: daylight, dose, heat, cold, air, uv or vehicle
+    day_night_state             VARCHAR(24),  -- v188 (GEN.1097): the state of its day and night: day and night, tidally locked, spin-orbit resonance, non-rotating, polar day and night or no solid surface
+    night_hours                 DOUBLE,  -- v188 (GEN.1097): hours of night in one solar day at the equator, NULL for a world that turns once an orbit
+    days_per_year               DOUBLE,  -- v188 (GEN.1097): solar days in one orbit round the star, NULL for a world that turns once an orbit
     energy_flux_w_m2            DOUBLE,
     flux_variation              DOUBLE,
     -- v20 (see header comment): this planet's own reflex-offset "wobble"
@@ -2772,6 +2778,9 @@ CREATE TABLE IF NOT EXISTS moons (
     temp_night_side_swing_k     DOUBLE,  -- v182 (GEN.848): the day and night swing of that place, peak to peak, kelvin of difference
     outside_hours_day           DOUBLE,  -- v187 (GEN.768): the hours of one local day a person can be outside in the listed equipment
     outside_hours_limit         VARCHAR(16),  -- v187 (GEN.768): what sets them: daylight, dose, heat, cold, air, uv or vehicle
+    day_night_state             VARCHAR(24),  -- v188 (GEN.1097): the state of its day and night: day and night, tidally locked, spin-orbit resonance, non-rotating, polar day and night or no solid surface
+    night_hours                 DOUBLE,  -- v188 (GEN.1097): hours of night in one solar day at the equator, NULL for a world that turns once an orbit
+    days_per_year               DOUBLE,  -- v188 (GEN.1097): solar days in one orbit round the star, NULL for a world that turns once an orbit
     energy_flux_w_m2            DOUBLE,
     flux_variation              DOUBLE,
     -- v58: this object's unique ID, see the header comment's "v58" note. NULL for a row saved before v58.
