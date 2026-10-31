@@ -57,7 +57,7 @@ from planetgen.generation import system as system_module, validation
 from planetgen.generation.belt import AsteroidBelt
 from planetgen.generation.planet import Planet
 from planetgen.names.bodies import moon_letters
-from planetgen.physics import magnetism, planets as planetPhysics, unit_registry as units
+from planetgen.physics import magnetism, planets as planetPhysics, radiation, unit_registry as units
 from planetgen.util import detmath, draw
 
 PLAN_VERSION = 1
@@ -562,6 +562,8 @@ def _add_planet(sim, op, system):
     system.planets.append(planet)
     system.planets.sort(key=lambda item: item.distance)
     _letter_moons(planet)
+    for moon in planet.moons:
+        radiation.apply_parent_belts(moon, planet)  # GEN.983
     for body in [planet] + planet.moons:
         validation.reapply_life(body)
     for moon in planet.moons:
