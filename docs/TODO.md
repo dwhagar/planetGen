@@ -15267,6 +15267,42 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   before and after.
   Prerequisites: none.
 
+- [ ] **PERF.220 Cap the workers of the bright-star and massive-star scatter stages by the memory available, so a run is not killed for running out of memory (bug)**
+    Boss's last run (reported by the coordinator, 2:20 PM EDT
+  2026-10-31): the generation run died at 3:22 AM EDT in stage 8 of 14
+  ("Scatter the bright stars"), about 21 percent in, when MySQL dropped
+  the connection (error 2013). The log shows 36 workers using 16,285 MB
+  on a 15,992 MB host, so it looks like an out-of-memory kill; earlier
+  stages used 3 to 5 workers. Do: find how many workers a stage starts
+  and how much memory one unit of the bright-star and massive-star
+  scatter stages holds at its peak; cap the number of workers a stage
+  runs at once by the memory available (read at the start of the stage,
+  with a margin), so a stage waits for a free worker instead of
+  exceeding the host. Output must not change with the worker count
+  (draws are deterministic across worker counts, so this is lock-free).
+  Done: a test with a fake memory reading shows the cap; the run page
+  says when a stage runs fewer workers than it could, and why; the run
+  finishes on a 16 GB host. Related: PERF.106 (killed unit handling),
+  PERF.149. Owner: Sources 2 (queue and performance; proposed).
+    Prerequisites: none.
+  Prerequisites: none.
+
+- [ ] **PERF.221 A failed or killed unit names the wrong stage: the message says "unit 101 of stage 5" for a unit of stage 8 of 14 (bug)**
+    Boss's last run (reported by the coordinator, 2:20 PM EDT
+  2026-10-31): the failure message for the killed unit said "unit 101 of
+  stage 5" when the unit belonged to stage 8 of 14 on the run page.
+  queue/units.py unit_failed and horse_killed put the stage's internal
+  index in the message, while the page counts and labels stages
+  differently. Do: say the stage the page shows (its number of the total
+  and its label, `wrapper.stage_label`) in both messages and in the run
+  log lines that print a stage index, and keep the internal index only
+  where the code reads it. Done: a test makes a unit fail in a stage
+  whose internal index differs from its page number and the message
+  names the page's stage. Web and queue only, lock-free. Owner: Sources
+  2 (proposed).
+    Prerequisites: none.
+  Prerequisites: none.
+
 ## DB: Database and schema
 
 DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
