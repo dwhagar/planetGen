@@ -25,7 +25,7 @@ from planetgen.db import column_units, models
 from planetgen.describe import model
 from planetgen.describe.quantity import inline_text
 from planetgen.describe.sheet_sources import source_of
-from planetgen.physics import constants, daylight, gases, habitability_world, regional_temperature, unit_registry
+from planetgen.physics import compaction, constants, daylight, gases, habitability_world, regional_temperature, unit_registry
 from planetgen.population import facility_ratings
 from planetgen.util.format import format_number, scientific_text
 
@@ -721,6 +721,15 @@ def missing(kind, stored):
 GIANT_CLASSES = frozenset("IJT")
 """frozenset: The planet classes that are giants (ice giant, gas giant, gas dwarf): no surface, a deep envelope."""
 
+NEGLIGIBLE_TIDE_ECCENTRICITY = 1e-12
+"""float: The eccentricity below which a body's tide heat is taken as nil and is not stored (`interior_heat.update_heat`): the heat goes as the
+square of it, so at 1e-12 it is 1e-24 of the heat at an eccentricity of 1, and the circularised orbits the generator draws are far smaller still (1e-170)."""
+HP_ICE_MIN_BASE_PA = 6.2e8
+"""float: The pressure at the base of a body's water, Pa, from which ice VI (the first high-pressure ice that `water_layer.column` counts in `hp_ice_km`)
+forms: 620 MPa, where ice VI melts at 272 K (`water_layer.LIQUIDUS_K_MPA`)."""
+POROSITY_MAX_MASS_KG = compaction.TAPER_END_KG
+"""float: The mass, kg, below which a body keeps voids (1e21, the end of the compaction taper): `bulk_draw` stores a porosity for every body lighter than this and
+none for a heavier one."""
 AIRLESS_CLASSES = frozenset("CDS")
 """frozenset: The classes with no air (dead world, small icy body, airless super-Earth): no air column to describe."""
 
@@ -777,8 +786,15 @@ _BODY_RULES = [
      "a giant has no surface: no ocean, rock chemistry, ground dose, habitability score, life or surface temperature"),
     (_AIR, lambda klass, row: klass not in AIRLESS_CLASSES and (row is None or (row.get("atmospheric_pressure_pa") or 0) > 0),
      "a dead world, a small icy body and an airless super-Earth, and any body whose air has gone to nothing, have no air column to give a density, scale height or haze"),
+    (("energy_flux_w_m2", "flux_variation"), lambda klass, row: klass not in GIANT_CLASSES,
+     "a giant is not scored for habitability, so it keeps no starlight or seasonal swing of its own (`insolation` and `habitability_world` leave them none); "
+     "its moons, which are scored in its light, store the flux they receive and the swing"),
     (("lid_regime",), lambda klass, row: klass not in GIANT_CLASSES,
      "a giant has no lid: only a rocky or icy body has a crust over a mantle"),
+    (("tidal_flux_w_m2",), lambda klass, row: klass not in GIANT_CLASSES,
+     "the tide's heat is worked out for the interior of a rocky or icy body; a giant's own heat is the heat it radiates, which has its own row"),
+    (("tidal_flux_w_m2",), lambda klass, row: row is None or (row.get("eccentricity") or 0.0) >= NEGLIGIBLE_TIDE_ECCENTRICITY,
+     "a body on a circular orbit is not flexed, so the tide gives it no heat: the flow is stored only for an orbit with an eccentricity"),
     (_DAYLIGHT, lambda klass, row: _locked(row) is not True,
      "a tidally locked world keeps one face to its star, so it has no solar day, equatorial daylight or day share to give"),
     (("shelter_column_g_cm2",), lambda klass, row: row is None or (row.get("eq_shelter") or 0) > 0 or (row.get("eq_shelter_rec") or 0) > 0,
@@ -791,8 +807,12 @@ _BODY_RULES = [
      "only a body with a ring system has ring columns; a body without rings stores none"),
     (_AQUIFER_COLUMNS, lambda klass, row: row is None or any(row.get(key) is not None for key in _AQUIFER_COLUMNS),
      "underground water needs a layer between the freezing and the boiling line of water under the crust, which a body either has or lacks; a body without one stores none"),
-    (("hp_ice_km",), lambda klass, row: row is None or row.get("hydrosphere") in ICE_SHELL_STATES,
-     "high-pressure ice lies under the water of a body whose water is ice or a frozen-over ocean; a dry body, an open ocean and a vapour world have none"),
+    (("hp_ice_km",), lambda klass, row: row is None or (row.get("hydrosphere") in ICE_SHELL_STATES
+                                                         and (row.get("water_base_pressure_pa") or 0.0) >= HP_ICE_MIN_BASE_PA),
+     "high-pressure ice (ice VI and VII) forms only where the water's weight reaches 620 MPa: a dry body, an open ocean, a vapour world and a "
+     "body whose ice or ocean is too shallow for that pressure have none"),
+    (("porosity",), lambda klass, row: row is None or (row.get("mass_kg") or 0.0) < POROSITY_MAX_MASS_KG,
+     "only a body lighter than 1e21 kg is a heap with voids; above it gravity has closed them, so a planet or a large moon stores no porosity"),
     (_OCEAN, lambda klass, row: row is None or row.get("hydrosphere") in OCEAN_STATES,
      "an ocean's depth, chemistry, pH and water activity exist only where there is a liquid ocean"),
     (_LIFE_DETAIL, lambda klass, row: row is None or any((row.get(key) or 0) > 0 for key in LIFE_SCORES),
@@ -828,8 +848,9 @@ _STAR_RULES = [
      "to one in four) and the pair inside a planetary nebula do"),
     (("disk_mass_solar",), lambda klass, row: row is None or row.get("disk_kind") not in (None, "debris"),
      "the mass of a debris disk is not measured, only the light of its dust, so a star with a debris belt has no mass for it"),
-    (("wide_binary_a_crit_km",), lambda klass, row: row is None or row.get("role") != "single",
-     "the critical orbit radius is set by a companion star, so a single star has none"),
+    (("wide_binary_a_crit_km",), lambda klass, row: row is None or row.get("role") == "member" or row.get("binary_configuration") == "wide",
+     "the widest stable orbit around a star is set by a companion that orbits beyond it: the two stars of a wide pair and every further member of a "
+     "system have one, but a single star has no companion, and the stars of a close pair are orbited as one body with nothing outside them to set a limit"),
 ]
 
 _COMET_RULES = [
@@ -846,10 +867,7 @@ generation pathway, not a rule."""
 
 OPEN_GAPS = {
     **{(kind, key): item for kind in ("planet", "moon") for key, item in (
-        ("tidal_flux_w_m2", "GEN.778"), ("porosity", "GEN.780"), ("hp_ice_km", "GEN.781"), ("outside_hours", "GEN.768"),
-        ("energy_flux_w_m2", "GEN.784"), ("flux_variation", "GEN.784"))},
-    **{("star", key): item for key, item in (
-        ("lethal_event_rate_per_gyr", "GEN.785"), ("wide_binary_a_crit_km", "GEN.789"))},
+        ("outside_hours", "GEN.768"),)},
 }
 """dict: The columns known to be empty where they apply (UX.208), `{(kind, key): item id}`: each is a gap in the generation
 pathway, filed as the item named, and excused until that item is done. The fill audit (`tests/test_sheet_fill.py`) fails

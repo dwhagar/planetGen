@@ -1,0 +1,5 @@
+**Headline:** The engine that works out whether a body is round, how strong it is and how tightly gravity binds it is built, ready to be wired into the planets, moons and asteroids.
+
+### Changed
+- **GEN.1158.** New `physics/roundness.py` gives the yield strength of a body from its ice, metal and porosity shares (and, for ice, the temperature when its shape was set), the radius at which it turns round, and the roundness ratio (mean radius over round radius; 1 or more is round). The strengths and mixing rules are stand-ins from the strength research, kept in `physics/data/roundness_strengths.json` so measured values and new rules replace them without changing the interface. New `physics/binding_energy.py` gives the gravitational binding energy of rocky bodies, gas giants, stars, brown dwarfs, white dwarfs and neutron stars, and stores -1 (infinite) for a black hole. Nothing reads them yet: GEN.1159 to GEN.1162 store the values and make Class D, Class C and the Asteroid type read the ratio.
+generation-output: unchanged

@@ -36,6 +36,7 @@ that opens the site after the sector-grid switch closed it (`maintenance.SECTOR_
 only while the maps are being rebuilt.
 """
 
+import os
 import signal
 import sys
 import time
@@ -59,6 +60,9 @@ def add_warm_arguments(parser):
                              "its families; see 'planetgen commands' for the warm-* commands)")
     parser.add_argument("--cap", type=int, default=None,
                         help="most sector, system and phenomenon pages to warm (default page_cache.warm_max_objects)")
+    parser.add_argument("--opening-done", metavar="FILE", default=None,
+                        help="create FILE when the opening phase has finished (update.sh waits for it before it "
+                             "reloads Apache; the other phases go on)")
     parser.add_argument("--on-change", metavar="DATABASE", default=None,
                         help="what a change starts (warmstart.request): wait cache.warm_settle_seconds, then warm once "
                              "for each time DATABASE was changed meanwhile; does nothing when DATABASE is not the one "
@@ -92,6 +96,19 @@ def _stop_on_sigterm():
     signal.signal(signal.SIGTERM, on_term)
 
 
+def _mark_opening_done(path):
+    """Creates the file `--opening-done` names (the update waits for it); a file that can't be made only means the
+    update waits for the whole run or its time limit."""
+    if not path:
+        return
+    try:
+        with open(path, "w", encoding="utf-8"):
+            pass
+        os.chmod(path, 0o644)
+    except OSError as exc:
+        log.normal(f"Could not create {path}: {exc}")
+
+
 def _warm_once(args, reason=None):
     """
     Builds the list of cache-warming commands the arguments ask for and runs it through the wrapper, printing each
@@ -117,6 +134,8 @@ def _warm_once(args, reason=None):
             def report_ended():
                 for name in tally.ended:
                     warmphases.finish_phase(args.database, name, tally.result(name))
+                    if name == "opening":
+                        _mark_opening_done(getattr(args, "opening_done", None))
 
             def on_plan(index, _plan):
                 for line in tally.start(steps[index].key):

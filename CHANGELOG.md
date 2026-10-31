@@ -2,6 +2,119 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2855] - 2026-10-31
+
+**Headline:** The burn-down register no longer carries the leftover merge-conflict markers of a merge race.
+
+### Changed
+- `docs/design/research/burn-down-register.md` held a `<<<<<<<`, `=======` and `>>>>>>>` triple after the rows of 6.125 and 6.22 from two branches; both sides' rows are kept and the three marker lines are removed. No register row changes.
+generation-output: unchanged
+
+## [8.0.2854] - 2026-10-31
+
+**Headline:** The `--around` help text of `planetgen generate`, `sectors` and `galaxy` no longer shows an internal item code.
+
+### Changed
+- **TEST.506.** The help of `--around` began "Region mode (GEN.1128):"; it now begins "Region mode:", so `tests/test_no_todo_codes_shown.py` passes again. No behaviour changes.
+generation-output: unchanged
+
+## [8.0.2853] - 2026-10-31
+
+**Headline:** The property sheet now says why a giant planet shows no starlight row, and the fill audit places its sample systems in the galaxy so a star's lethal-event rate is checked.
+
+### Changed
+- **GEN.784.** `energy_flux_w_m2` and `flux_variation` are stored for every rocky or icy planet and every moon (12 sample systems: no exception), and left none for a giant by design (`insolation` and `habitability_world` score a giant's moons in its light but never the giant). The sheet now carries that rule with its reason and the open gap is removed.
+- **GEN.785.** `lethal_event_rate_per_gyr` is set for every star from its place in the galaxy (`activity.set_galactic_hazard`) and stored with it; it was empty in the audit only because the sample systems were built with no galactic distance. The audit now places each sample 26,000 ly from the centre, as the galaxy does for every system it builds, and the open gap is removed. A test checks a placed star stores a positive rate.
+
+Nothing a generator draws or stores changes.
+generation-output: unchanged
+
+## [8.0.2852] - 2026-10-31
+
+**Headline:** A sweep of the star function and the galaxy's halo relation against published figures, with four checks that fail if a later change leaves their sources' range.
+
+### Changed
+- **GEN.753.** Stars and the galaxy were swept against their sources (report `gen753-stars-galaxy-validation-2026-10-31.md`): the initial mass function against Chabrier 2003, the Galactic Wolf-Rayet count against Rosslowe and Crowther 2015, the core-collapse supernova rate against Diehl et al. 2006, and the stellar-to-halo relation against Leauthaud et al. 2012 and Behroozi et al. 2019. All four agree (the halo relation to within 0.3 dex for halos of 1e12 solar masses and heavier). Four new analytic tests pin them (no dataset, no draws).
+
+Nothing a generator draws or stores changes.
+generation-output: unchanged
+
+## [8.0.2851] - 2026-10-31
+
+**Headline:** The property sheet now says why a heavy body shows no porosity and why a shallow ice shell shows no high-pressure ice.
+
+### Changed
+- **GEN.780.** `porosity` has been stored for every non-giant body lighter than 1e21 kg and for none above it (checked on 60 generated systems: no exceptions), because above that mass gravity has closed the voids. The sheet now carries a rule with its sentence of reason (the compaction taper end), and the open gap that excused the column is removed.
+- **GEN.781.** `hp_ice_km` has been stored exactly when a body has an ice shell state and the water's base pressure reaches 620 MPa, where ice VI begins (60 generated systems: 47 with, 120 without, 0 exceptions). The sheet now carries that rule with its reason, and the open gap is removed.
+
+Nothing a generator draws or stores changes.
+generation-output: unchanged
+
+## [8.0.2850] - 2026-10-31
+
+**Headline:** The property sheet now says why a giant planet or a body on a circular orbit shows no tidal heat flow.
+
+### Changed
+- **GEN.778.** `tidal_flux_w_m2` has been stored since GEN.737 for every rocky or icy planet and moon whose orbit has an eccentricity (checked on 12 generated systems: the empty ones are the giants and bodies on orbits of eccentricity 0 to 1e-170, where the heat is nil). The sheet now carries two rules with their sentences of reason (a giant has no tide heat model of its own; a circular orbit does not flex the body), and the open gap that excused the column is removed. Nothing a generator draws or stores changes.
+generation-output: unchanged
+
+## [8.0.2849] - 2026-10-31
+
+**Headline:** Two more hand-tuned constants now name the measurements they should be held to.
+
+### Changed
+- **Cold-rock tidal quality factor and hot Jupiter share cite what was measured (GEN.946, batch 2).** The registry rows for the cold ceiling of the tidal quality factor (TR10) and for the hot Jupiter share (PA9) now cite the papers they were recalled from: the Moon's tidal Q is 38 to 41 and Mars's is 86 (Williams and Boggs 2015; Lainey et al. 2007), far under the ceiling of 1,000, and the hot Jupiter share of 0.92 percent lies between the Kepler 0.62 percent and the radial-velocity 0.9 to 1.2 percent (Zhu and Dong 2021). No value changes.
+
+## [8.0.2848] - 2026-10-31
+
+**Headline:** The rate of the biggest solar particle events now comes from the isotope record in tree rings and ice instead of a number recalled from memory.
+
+### Changed
+- **Solar particle event tail from the isotope record (GEN.946, batch 1).** `solar_particles.events_per_year_above` read a slope of 1.9 fitted to one Carrington-class event in 500 years. It now reads the rate of events of 1e10 protons per square centimetre above 30 MeV from Usoskin and Kovaltsov 2012 (four in 600 years of annual beryllium-10 data, 0.0077 a year, 90 percent interval 0.0032 to 0.015) with their power law of -4 for larger ones, so the Carrington event itself, which those data do not support, no longer sets the rate. Nothing in the generator reads this function yet, so no generated value changes. Two more rows of the stand-in registry now cite the papers they were recalled from (accretion spread of planetesimals, Lichtenberg et al. 2021; the lightest planet beyond the snow line, Suzuki et al. 2016) and take a lower tier.
+
+## [8.0.2847] - 2026-10-31
+
+**Headline:** The star property sheet now says which stars have a widest stable orbit (the stars of a wide pair and the further members of a system, not a single star or a close pair), and the comet rule is confirmed.
+
+### Changed
+- **GEN.789.** The sheet rule for `wide_binary_a_crit_km` now matches what the generator stores: a wide pair's two stars and every member beyond the pair have the limit; a single star has no companion and the stars of a close pair are orbited as one body, so they have none. The open gap that excused the column is gone, and the fill audit reads the system's pairing when it checks a star.
+- **GEN.790.** No change needed: the comet rule (`mean_anomaly_deg`, `orbital_period_years`, `period_class` apply to elliptical comets only) already matches the generator, which fills all three for every elliptical comet and none for a parabolic one (checked on 300 comets).
+generation-output: unchanged
+
+## [8.0.2846] - 2026-10-31
+
+**Headline:** The density of a comet's refractory organics is settled at 1.5 g/cm3 now that the Choukroun et al. 2020 paper has been read.
+
+### Changed
+- **GEN.660.** Choukroun et al. 2020 was read (it had only been reported): it gives a rough "some organics (permittivity about 2, density about 2)" in its section 3.3 and no organics density of its own. Blum and Bischoff's 1.0 to 2.0 g/cm3 covers it, so under the source rules (two sources in question: the widest range) the table keeps 1.5 and the note on the row says what the paper says. The comet draw already reads the row. Nothing a generator draws changes.
+generation-output: unchanged
+
+## [8.0.2845] - 2026-10-31
+
+**Headline:** `update.sh` says what it is doing and what it waits for, shows progress bars on the long steps, and pauses 5 seconds before the reload and 10 seconds after it.
+
+### Changed
+- Every wait names what it waits for and for how long at most: the warm-up's opening phase (with the last line of its log every 30 seconds), the pause before the reload (5 s, `UPDATE_SETTLE_SECONDS`), the pause after it (10 s, `HEALTH_SETTLE_SECONDS`) and each health probe retry. The math check, the app import, the Apache configuration test and the cluster-mass step say what they are about to do.
+- The cluster-mass step (`planetgen.cli.warm_shape`) shows a progress bar on a terminal and a line a minute otherwise.
+
+## [8.0.2844] - 2026-10-31
+
+**Headline:** `update.sh` starts building the site's caches early and reloads the site only once the opening views are built.
+
+### Changed
+- The cache warm-up starts in the background as soon as the code, database, permissions and Redis are ready, and the update waits (at most 20 minutes) for its opening phase before it reloads Apache. The other phases go on after the update ends.
+- The health probe waits 10 seconds after the reload (`HEALTH_SETTLE_SECONDS`).
+
+## [8.0.2843] - 2026-10-31
+
+**Headline:** The stability test for a Mardling and Aarseth triple now stays inside its range, and the code to judge four-star systems level by level is in place.
+
+### Changed
+- **Mardling and Aarseth only where they hold (GEN.1028).** The stability test for a triple of stars now uses the Mardling and Aarseth 2001 criterion only for an outer-to-inner mass ratio of 5 or less, as the paper gives it; beyond that and beyond Equation 4's range it uses Eggleton and Kiseleva, and asking for Mardling and Aarseth by name past 5 is refused. The case it changes is a pair of comparable satellites about a star in the hosting gate (the Earth and the Moon were failed by the old fallback).
+
+### Added
+- **Level-by-level stability of a tree of stars (GEN.1016, first part).** `physics/hierarchy_stability.py` judges every node of a stored tree as a triple, a 3+1 quadruple by the network of Vynatheya, Mardling and Hamers 2023 with a 1.3 axis margin kept on the systems it calls stable (hand-tuned on the 331 N-body systems of GEN.1029, precision 0.89), and a 2+2 quadruple by its network with the same margin (carried over, no 2+2 sample of our own). The generator does not call it yet. On 300 seeds of four-star systems, 41 percent of the generator's 3+1 trees are unstable by the network (55 percent with the margin) and 4 percent of its 2+2 trees (12 percent with the margin) though every nested triple passes, so the wiring has to enforce it while the system is drawn (report: `reports/gen1016-quadruple-need-2026-10-30.md`).
+
 ## [8.0.2842] - 2026-10-31
 
 **Headline:** `update.sh` builds the site's caches before it reloads the site and checks `/api/health`.
