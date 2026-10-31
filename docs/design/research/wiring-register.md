@@ -356,7 +356,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | function | planetgen.physics.compaction.small_body_density_kg_m3 | TEST.520 | only tests call it; wire it into the code that needs it or delete it (TEST.520 first sweep) |
 | function | planetgen.physics.condensate_shares.water_share_at_distance | TEST.520 | only tests call it; wire it into the code that needs it or delete it (TEST.520 first sweep) |
 | function | planetgen.physics.daylight.locked_zone_shares | TEST.520 | only tests call it; wire it into the code that needs it or delete it (TEST.520 first sweep) |
-| function | planetgen.physics.dynamo.giant_power_w | TEST.520 | only tests call it; wire it into the code that needs it or delete it (TEST.520 first sweep) |
 | function | planetgen.physics.elements.series | TEST.520 | only tests call it; wire it into the code that needs it or delete it (TEST.520 first sweep) |
 | function | planetgen.physics.elements.isotopic_mass_fraction | TEST.520 | only tests call it; wire it into the code that needs it or delete it (TEST.520 first sweep) |
 | function | planetgen.physics.field_kernel.accelerations | TEST.520 | only tests call it; wire it into the code that needs it or delete it (TEST.520 first sweep) |
@@ -461,3 +460,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | function | planetgen.physics.wd_pollution.class_probabilities | TEST.520 | only tests call it; wire it into the code that needs it or delete it (TEST.520 first sweep) |
 | function | planetgen.physics.wd_pollution.expected_sample | TEST.520 | only tests call it; wire it into the code that needs it or delete it (TEST.520 first sweep) |
 | function | planetgen.physics.photometry.bolometric_correction_v | TEST.520 | only tests call it; wire it into the code that needs it or delete it (TEST.520 first sweep) |
+| function | planetgen.physics.magnetism.induced_moment | TEST.520 | only tests call it; wire it into the code that needs it or delete it (TEST.520 first sweep) |
+| function | planetgen.physics.radiation_belts.dose_at_orbit_gy_yr | TEST.520 | only tests call it; wire it into the code that needs it or delete it (TEST.520 first sweep) |
+| function | planetgen.physics.radiation_belts.equatorial_field_t | TEST.520 | only tests call it; wire it into the code that needs it or delete it (TEST.520 first sweep) |
