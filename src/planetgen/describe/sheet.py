@@ -247,7 +247,7 @@ _BODY_GROUPS = (
            ("helium_depletion", "Helium left in the molecular envelope, against its natal share"), ("has_helium_shell", "Helium-rich shell", FLAG)),
     *_rows("composition", ("ring_kind", "Kind of ring system", TEXT), ("ring_origin", "Where the ring came from", TEXT),
            ("ring_inner_km", "Ring inner edge"), ("ring_outer_km", "Ring outer edge"), ("ring_mass_kg", "Ring mass"),
-           ("ring_optical_depth", "Ring optical depth"), ("ring_ice_fraction", "Ring ice share")),
+           ("ring_optical_depth", "Ring optical depth"), ("ring_ice_fraction", "Ring ice share"), ("ring_age_yr", "Ring age")),
 )
 
 _PLANET = _MOON = _BODY_GROUPS
@@ -346,7 +346,7 @@ _ROGUE_PLANET = (
     *_rows("radiation", ("shelter_column_g_cm2", "Shelter column")),
     *_rows("composition", ("ring_kind", "Kind of ring system", TEXT), ("ring_origin", "Where the ring came from", TEXT),
            ("ring_inner_km", "Ring inner edge"), ("ring_outer_km", "Ring outer edge"), ("ring_mass_kg", "Ring mass"),
-           ("ring_optical_depth", "Ring optical depth"), ("ring_ice_fraction", "Ring ice share")),
+           ("ring_optical_depth", "Ring optical depth"), ("ring_ice_fraction", "Ring ice share"), ("ring_age_yr", "Ring age")),
     *_rows("rotation", ("rotation_period_hours", "Rotation period"), ("axial_tilt_deg", "Axial tilt")),
     *_GALACTIC_ORBIT, *_DISTANCE,
 )
@@ -785,6 +785,8 @@ _BODY_RULES = [
      "an ice shell covers a body whose water is ice or an ocean frozen over; a dry body, an open ocean and a vapour world have none"),
     (_RING_COLUMNS, lambda klass, row: row is None or any(row.get(key) is not None for key in _RING_COLUMNS),
      "only a body with a ring system has ring columns; a body without rings stores none"),
+    (("ring_age_yr",), lambda klass, row: row is None or row.get("ring_age_yr") is not None,
+     "a ring has an age only when a moon that fell or a comet that passed made it; the narrow ring of a small body's spin-orbit resonance has none"),
     (_AQUIFER_COLUMNS, lambda klass, row: row is None or any(row.get(key) is not None for key in _AQUIFER_COLUMNS),
      "underground water needs a layer between the freezing and the boiling line of water under the crust, which a body either has or lacks; a body without one stores none"),
     (("hp_ice_km",), lambda klass, row: row is None or row.get("hydrosphere") in ICE_SHELL_STATES,

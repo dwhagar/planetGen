@@ -122,20 +122,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.68:OT1 | GEN.1034 | a constant of the ocean tide module, read when its wiring step lands |
 | row | 6.68:OT2 | GEN.1034 | a constant of the ocean tide module, read when its wiring step lands |
 | row | 6.68:OT6 | GEN.1034 | a constant of the ocean tide module, read when its wiring step lands |
-| module | planetgen.physics.small_body_rings | GEN.1057 | the resonance ring of a small body (R4) and the gate against rings inside 0.1 AU (R9), pure functions (lock-free); the wiring step calls them from the ring pass |
-| row | 6.71:RR1 | GEN.1057 | `small_body_rings.RESONANCE_RING_RATE, RESONANCE_ORDER`, read when the wiring step lands |
-| row | 6.71:RR2 | GEN.1057 | `small_body_rings.INNER_RING_LIMIT_AU`, read when the wiring step lands |
-| row | 6.71:RR3 | GEN.1057 | `small_body_rings.HILL_FRACTION_MAX`, read when the wiring step lands |
-| row | 6.71:RR4 | GEN.1057 | `small_body_rings.RESONANCE_RING_MASS_KG, RESONANCE_WIDTH_FRACTION`, read when the wiring step lands |
-| module | planetgen.physics.ring_origin | GEN.1057 | the ring as a result of a fallen moon or a comet inside the Roche limit; the conditional ring draw (GEN.1057) will call it and replace the `rings.draw_ring` chances |
-| row | 6.70:RO1 | GEN.1057 | a constant of the ring origin module, read when its wiring step lands |
-| row | 6.70:RO2 | GEN.1057 | a constant of the ring origin module, read when its wiring step lands |
-| row | 6.70:RO3 | GEN.1057 | a constant of the ring origin module, read when its wiring step lands |
-| row | 6.70:RO4 | GEN.1057 | a constant of the ring origin module, read when its wiring step lands |
-| row | 6.70:RO5 | GEN.1057 | a constant of the ring origin module, read when its wiring step lands |
-| row | 6.70:RO6 | GEN.1057 | a constant of the ring origin module, read when its wiring step lands |
-| row | 6.70:RO7 | GEN.1057 | a constant of the ring origin module, read when its wiring step lands |
-| row | 6.70:RO8 | GEN.1057 | a constant of the ring origin module, read when its wiring step lands |
 | module | planetgen.physics.oddities | GEN.1047 | the oddity table and its rolls (candidates, probability, roll, limit_failures); the planet and moon builds call it once GEN.1047 wires the table, with the effects the modules of GEN.1040 and its siblings define |
 | data | oddities.json | GEN.1047 | the oddity table (empty until the modules add their rows); read by physics/oddities.py, which nothing calls yet |
 | row | 6.72:OD1 | GEN.1047 | `tuning.WEIRDNESS_DIAL`, read by `oddities.probability` once the table is wired; the dial also goes in the settings page |
@@ -155,8 +141,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.75:NC1 | GEN.1051 | a constant of the nightside collapse module, read when its wiring step lands |
 | row | 6.75:NC3 | GEN.1051 | a constant of the nightside collapse module, read when its wiring step lands |
 | row | 6.75:NC6 | GEN.1051 | a constant of the nightside collapse module, read when its wiring step lands |
-| module | planetgen.physics.ring_origin | GEN.1057 | the ring as a result of a fallen moon or a comet inside the Roche limit; the conditional ring draw (GEN.1057) will call it and replace the `rings.draw_ring` chances |
-| row | 6.70:RO1 | GEN.1057 | a constant of the ring origin module, read when its wiring step lands |
 | module | planetgen.physics.venus_spin | GEN.1048 | the spin equilibria of a thick-air planet (thermal tide against the solid tide, Cunha, Correia and Laskar 2015); the weird-worlds wiring (W2) will give a not-locked thick-air planet its slow or retrograde spin |
 | row | 6.90:VS1 | GEN.1048 | a constant of the Venus-type spin module, read when its wiring step lands |
 | row | 6.90:VS2 | GEN.1048 | a constant of the Venus-type spin module, read when its wiring step lands |
@@ -216,13 +200,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | module | planetgen.physics.cluster_unbinding | GEN.1111 | the share of planets a birth cluster has unbound; the rogue rows add it to the ejections |
 | module | planetgen.physics.rogue_radiogenic | GEN.1111 | the radiogenic content and heat of a rogue from the star it left; the rogue rows read them in place of the host-less draw |
 | row | 6.114:RY1 | GEN.1111 | a constant of the rogue radiogenic module, read when its wiring step lands |
-| row | 6.70:RO2 | GEN.1057 | a constant of the ring origin module, read when its wiring step lands |
-| row | 6.70:RO3 | GEN.1057 | a constant of the ring origin module, read when its wiring step lands |
-| row | 6.70:RO4 | GEN.1057 | a constant of the ring origin module, read when its wiring step lands |
-| row | 6.70:RO5 | GEN.1057 | a constant of the ring origin module, read when its wiring step lands |
-| row | 6.70:RO6 | GEN.1057 | a constant of the ring origin module, read when its wiring step lands |
-| row | 6.70:RO7 | GEN.1057 | a constant of the ring origin module, read when its wiring step lands |
-| row | 6.70:RO8 | GEN.1057 | a constant of the ring origin module, read when its wiring step lands |
 | module | planetgen.physics.super_puff | GEN.1048 | the super-puff radius, fade and gate (W15); the bulk step reads it when the wiring step lands |
 | row | 6.76:PF1 | GEN.1048 | a constant of the super-puff module, read when its wiring step lands |
 | row | 6.76:PF2 | GEN.1048 | a constant of the super-puff module, read when its wiring step lands |

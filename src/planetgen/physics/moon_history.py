@@ -15,8 +15,9 @@ the thermal tide of the air on the planet's spin in the same sum (`body_spin`, G
 * **Each moon** that stays is moved to the distance it reached (`planets.move_orbit`: period, Hill sphere, position and speed follow, the plane, the
   shape and where it is on its orbit do not), and its own spin is run again at that distance when it moved by `RESPIN_FRACTION` (a ten-thousandth) or more.
 * **The lunar system stays one a generated one could be:** `_settle` pushes a moon out to clear the one inside it, and loses one below the innermost orbit (ring material) or whose apoapsis passes the stable range.
-* **A moon that falls** inside its Roche limit is removed and its mass is ring material (`fallen_moon_mass_kg`, which `rings.apply` reads: the planet
-  has a ring, of up to `rings.MAX_MASS_OVER_PLANET` of its mass, of disrupted moon); one pushed out of the stable part of the Hill sphere is lost.
+* **A moon that falls** inside its Roche limit is removed and its mass and the time it fell are kept (`fallen_moons`, `ring_origin.FallenMoon`s, which `rings.apply` reads
+  through `ring_origin.ring_origin`: the share of it that stays in orbit is a ring, spread for the time since, GEN.1057); a moon dragged below the innermost orbit is kept the same way
+  at the age of the planet (the history does not say when); one pushed out of the stable part of the Hill sphere is lost.
 * **The planet's heat** reads the moons that stay: the power their tides dissipate in a rocky planet is part of `tidal_heating.Forcing` (`moons`), found
   from the stored distances, masses and spin by `interior_heat`, at the temperature of the mantle.
 
@@ -27,7 +28,7 @@ and is left as it is. A history no integrator can finish (`moon_orbits.Integrati
 
 import math
 
-from planetgen.physics import body_spin, constants, moon_orbits, spin, spin_torques
+from planetgen.physics import body_spin, constants, moon_orbits, ring_origin, spin, spin_torques
 from planetgen.physics.orbits import calculate_reflex_offset
 
 RESPIN_FRACTION = 1.0e-4
@@ -65,14 +66,14 @@ def _settle(planet, survivors):
     The moons that stay, in order of distance, held to the rules a generated lunar system keeps (`validation.check_lunar_system`): a moon below the
     innermost orbit (inside the planet's air and the room the largest moon needs) is lost to drag and its mass is ring material, a moon is pushed out
     (never in) to clear the one inside it by that one's `min_orbit_distance`, and one whose apoapsis then lies beyond the stable range is lost (TM4: moons
-    do not meet, so the tide's drift is the only thing that moves them, and this keeps them apart). Returns `(moons, ring_mass_kg)`.
+    do not meet, so the tide's drift is the only thing that moves them, and this keeps them apart). Returns `(moons, masses)`, the masses (kg) of the moons lost to drag.
     """
     from planetgen.physics import planets
     low_km, high_km = planets.moon_orbit_bounds_km(planet)
-    kept, ring_mass_kg, last = [], 0.0, None
+    kept, dragged, last = [], [], None
     for moon in survivors:
         if moon.distance * constants.AU_TO_M / 1000.0 < low_km:
-            ring_mass_kg += moon.mass
+            dragged.append(moon.mass)
             continue
         if last is not None and moon.distance < last.distance + last.min_orbit_distance:
             planets.move_orbit(moon, last.distance + last.min_orbit_distance, planet.mass)
@@ -80,7 +81,7 @@ def _settle(planet, survivors):
             continue
         kept.append(moon)
         last = moon
-    return kept, ring_mass_kg
+    return kept, dragged
 
 
 def apply(planet, primary_mass_kg):
@@ -103,7 +104,7 @@ def apply(planet, primary_mass_kg):
                                     density_kg_m3(planet), (planet.hill_radius or 0.0) * 1000.0 or None)
     except moon_orbits.IntegrationFailed:
         # TM8: no integrator finished (a very stiff planet): the moons stay as they were born and the planet's spin is the one it would have without them
-        planet.fallen_moon_mass_kg = 0.0
+        planet.fallen_moons = ()
         for moon in born:
             if abs(moon.distance / moon._birth_distance_au - 1.0) > 1.0e-12:
                 planets.move_orbit(moon, moon._birth_distance_au, planet.mass)
@@ -120,12 +121,15 @@ def apply(planet, primary_mass_kg):
                 planets.move_orbit(moon, target_au, planet.mass)
             survivors.append(moon)
     survivors.sort(key=lambda m: m.distance)      # a moon that drifted past another keeps its place by distance
-    survivors, dragged_kg = _settle(planet, survivors)
+    survivors, dragged = _settle(planet, survivors)
     for moon in survivors:
         if abs(moon.distance / entry[id(moon)] - 1.0) >= RESPIN_FRACTION:
             planets.generate_spin(moon, planet.mass, birth=getattr(moon, "_birth_spin", None))
     planet.moons[:] = survivors
-    planet.fallen_moon_mass_kg = result.ring_mass_kg + dragged_kg
+    age_yr = planet.star.age * 1.0e9
+    planet.fallen_moons = tuple(
+        [ring_origin.FallenMoon(fate.moon.mass_kg, fate.time_s / constants.SECONDS_PER_YEAR) for fate in result.moons if fate.fate == "fell"]
+        + [ring_origin.FallenMoon(mass, age_yr) for mass in dragged])
     if survivors:
         planet.reflex_offset_x, planet.reflex_offset_y, planet.reflex_offset_z = calculate_reflex_offset(
             planet.mass, [(m.mass, m.position_x, m.position_y, m.position_z) for m in survivors])
