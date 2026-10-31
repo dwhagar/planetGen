@@ -10556,45 +10556,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   train.
   Prerequisites: GEN.805. Related: GEN.800, GEN.748.
 
-- [ ] **GEN.809 A giant's dipole moment and class come from the metallic-hydrogen shell and the dilute core (G3, step 1)**
-  Unused stored values audit chain
-  (reports/unused-stored-values-audit-2026-10-24.md, Boss 10:16 PM EDT
-  and 10:35 PM EDT 2026-10-24: make each a chain, with a GitHub goal
-  issue). physics/giant_interior.py stores interior_kind,
-  dilute_core_mass_earth, metallization_pressure_gpa, helium_depletion,
-  has_helium_shell and interior_layers; only core_mass_earth is read.
-  magnetism.py takes the giant's dipole from the outer radius of
-  metallization and the dilute core. Done: Jupiter-like, Saturn-like and
-  hot-giant samples differ in field with their interior. Version 8.4,
-  phase 1. Owner: Aux 3, after GEN.733. Rules: no backward-compat shims;
-  every number has a unit or scale (GEN.772); a changed generated value
-  carries `tests.golden_update --reason ... --affects <stage>` and the
-  next epoch; tests are `scripts/test.py changed --resume`.
-  Owner (full build) (2026-10-29 8:30 PM EDT): Aux 3. This replaces any
-  earlier owner line (pool, unowned, retired lane or 'after 8.1'). If it
-  is already started elsewhere, the lane tells TODO before taking it.
-  Lock-free parts first; the part that changes generated output rides a
-  train.
-  Data we hold (2026-10-29 8:55 PM EDT): Fortney 2007 giant radii are
-  transcribed in full (physics/giant_radius_tables.py); Lopez and
-  Fortney 2014 and Zeng and Sasselov 2013 enter as laws; Core 4's parked
-  branch holds the H-He table reader. Hydrogen-helium EOS tables are not
-  held otherwise. Catalog sections 3 and 4.
-  Lock-free half merged (Aux 3, #3948, as the lane reported) (2026-10-30
-  5:00 AM EDT): new pure module physics/giant_dynamo.py: from a giant
-  interior layers, radius, radiated heat and spin it gives the shell
-  that makes the dynamo (metallic layer of a gas giant or brown dwarf,
-  ionic or superionic water mantle of an ice giant) and the field via
-  dynamo.field; Jupiter-like draws land within 4x of Jupiter moment,
-  Saturn-like about 7x high and Neptune-like about 10x high and as a
-  dipole (stable layer and thin-shell effects not modelled);
-  wiring-register line added. The wiring step (magnetism.generate_field
-  taking a giant moment from it) rides a train after Core 4 GEN.733
-  structure is on a train; an ice giant has no region until then.
-  GEN.967 (Aux 4) calls giant_dynamo.giant_field instead of rebuilding
-  the region
-  Prerequisites: GEN.733. Related: GEN.801, GEN.733, GEN.736.
-
 - [ ] **GEN.819 Wire impact_inventory (GEN.739) into the pressure supply law: late delivery and impact erosion enter the air of a rocky planet**
   GEN.739 (#3246) added physics/impact_history.py and
   surface_pressure.impact_inventory (H, C and N atoms per 100 g of
