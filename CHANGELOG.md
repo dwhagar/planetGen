@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3007] - 2026-10-31
+
+**Headline:** A cell inside a Magellanic Cloud now expects supernova remnants at the rate the Cloud's own star formation gives, not at the disk's gas-based rate capped at one.
+
+### Changed
+- **GEN.1198.** The sector profile's `supernova-remnant` factor was the disk's gas fraction capped at 1, which a Cloud's cell reached through its young stars as a gas tracer, so a cell of the Large Cloud expected the solar circle's rate per star at most, while the component pass (GEN.1191) gave the Cloud 1.3 times that. The share of a place's stars that is a satellite's now takes the satellite's own factor (`profile.supernova_progenitor_factor`, the one `component_pass.supernova_remnant_factor` uses: the solar circle's odds of core-collapse to Type Ia times the young and old shares against the solar circle's, uncapped, 0 for a satellite that forms no stars), and the rest keeps the gas fraction. A Large Cloud cell comes out at 1.30 and a Small Cloud cell at 0.95, the component factors, and a cell of a dwarf that forms no stars at 0 as before; a disk or halo cell is unchanged. The sector profile's kind factors of the remnant kind are no longer all in 0 to 1.
+- Generator epoch bump (numbered at merge): the supernova remnants a sector pass puts in a Cloud's cells in a galaxy that was not scattered (a scattered galaxy takes its remnants from the scatter and the component pass, which GEN.1191 changes).
+generation-output: changed
+
 ## [8.0.3006] - 2026-10-31
 
 **Headline:** A moon that orbits inside the radiation belts of its parent planet's magnetic field now takes their dose at its surface, and the habitability radiation score and the survival gear read it.
