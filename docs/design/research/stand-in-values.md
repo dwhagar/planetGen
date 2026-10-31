@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 520 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 523 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -38,14 +38,14 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 |---|---|---|---|---|---|---|
 | T1 | 61 | 0 | 5 | 0 | 0 | 66 |
 | T2 | 79 | 9 | 0 | 1 | 0 | 89 |
-| T3 | 60 | 14 | 4 | 10 | 0 | 88 |
+| T3 | 61 | 14 | 4 | 10 | 0 | 89 |
 | T4 | 27 | 0 | 0 | 4 | 4 | 35 |
 | T5 | 32 | 9 | 2 | 0 | 0 | 43 |
 | T6 | 43 | 19 | 11 | 30 | 0 | 103 |
-| T7 | 25 | 6 | 4 | 8 | 0 | 43 |
+| T7 | 25 | 8 | 4 | 8 | 0 | 45 |
 | T8 | 0 | 0 | 0 | 1 | 2 | 3 |
 | T9 | 1 | 0 | 3 | 27 | 19 | 50 |
-| All | 328 | 57 | 29 | 81 | 25 | 520 |
+| All | 329 | 59 | 29 | 81 | 25 | 523 |
 
 ## How the labels were given
 
@@ -350,13 +350,13 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | fill_id | kind | tier | tweak | constant | knobs | validity | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|
-| RB1 | T | T3 | L0 | radiation_belts.WIND_EDGE_FRACTION | 0.6 to 0.9 | a body with a dipole in a stellar wind | a drift-shell model of where the magnetopause shadows the belts | the outer edge of a wind-limited body is 0.75 of the magnetopause standoff, which puts Earth's at 7.3 (the outer belt ends at about 40 000 km; recalled); the standoff is the Chapman-Ferraro scaling of `magnetism.magnetopause_rp` | GEN.983 | - |
-| RB2 | T | T4 | L0 | radiation_belts.ROTATION_EDGE_FACTOR | 7 to 12 | a fast rotator with a strong field | a centrifugal-balance model of the plasma sheet | the outer edge of a spin-limited body is 9 times the synchronous distance, beyond which the plasma no longer turns with the body: Jupiter's synchronous distance is 2.24 radii and its belts reach about 20 (recalled; Saturn would be 16) | GEN.983 | - |
-| RB3 | P | T3 | L1 | radiation_belts.WIND_PEAK_FRACTION, ROTATION_PEAK_FRACTION | 0.5 to 0.7 and 0.2 to 0.35 | the two limits | AE-9 and Divine-Garrett peak positions as functions of the field | the electron belt peaks at 0.62 of the outer edge for a wind-limited body (Earth's peak at 4 to 5 against 7.3) and at 0.25 of it for a spin-limited one (Jupiter's peak inside Io's orbit, 5.9, against 20); recalled, two bodies fit | GEN.983 | - |
-| RB4 | P | T3 | L1 | radiation_belts.INNER_PEAK_FRACTION | 0.3 to 0.45 | a body with air or a surface to make the albedo neutrons | a cosmic-ray albedo neutron decay (CRAND) source model | the inner proton belt peaks at 0.35 of the electron peak (Earth's at 1.5 to 2 against 4.5); recalled, one body fits | GEN.983 | - |
-| RB5 | D | T4 | L0 | radiation_belts.ATMOSPHERE_EDGE_SCALE_HEIGHTS | 35 to 60 | a body with air | a bounce-loss lifetime against the density profile | the inner edge of a body with air is 45 scale heights above the surface, where the air stops a bouncing particle (Earth's belts begin near 400 km, 1.06 radii); the scale height is `R T / (M g)` at the surface temperature | GEN.983 | - |
-| RB6 | P | T6 | L3 | radiation_belts.EARTH_OUTER_PEAK_GY_YR, EARTH_INNER_PEAK_GY_YR, INTENSITY_EXPONENT | 2000 to 6000 Gy; 0.5 to 1.2 | a dipole body in a quiet wind | AP-9 and AE-9, Divine-Garrett and the Juno and Galileo dose measurements | the intensity of each belt at its peak is Earth's 3000 Gy per year behind 100 mil of aluminium (about 300 krad; recalled from the orders of AP-8 and AE-8 in the shielded orbit literature) times the dipole moment to the 0.8, which puts Jupiter's belt some 2700 times Earth's, inside the 1e2 to 1e5 the Galileo and Juno dose records span; the exponent was fitted to that range, not derived | GEN.983 | no data |
-| RB7 | T | T6 | L3 | radiation_belts.OUTER_RISE_EXPONENT, INNER_RISE_EXPONENT, FALL_EXPONENT, EDGE_EXPONENT | 2 to 6 | the main belts of a dipole | tabulated flux maps in `B` and `L` | the profile of a belt rises as the fourth power (electrons) or the second (protons) of the distance past the inner edge, falls as the sixth power of `L` past the peak and is cut to nothing at the outer edge; shapes chosen so Earth has a slot (a tenth of the peak at L 2.5) and Io to Europa is about a factor 10 (Galileo: 6.7; recalled) | GEN.983 | no data |
+| RB1 | T | T3 | L0 | radiation_belts.WIND_EDGE_FRACTION | 0.6 to 0.9 | a body with a dipole in a stellar wind | a drift-shell model of where the magnetopause shadows the belts | the outer edge of a wind-limited body is 0.75 of the magnetopause standoff, which puts Earth's at 7.3 (the outer belt ends at about 40 000 km; recalled); the standoff is the Chapman-Ferraro scaling of `magnetism.magnetopause_rp` | - | - |
+| RB2 | T | T4 | L0 | radiation_belts.ROTATION_EDGE_FACTOR | 7 to 12 | a fast rotator with a strong field | a centrifugal-balance model of the plasma sheet | the outer edge of a spin-limited body is 9 times the synchronous distance, beyond which the plasma no longer turns with the body: Jupiter's synchronous distance is 2.24 radii and its belts reach about 20 (recalled; Saturn would be 16) | - | - |
+| RB3 | P | T3 | L1 | radiation_belts.WIND_PEAK_FRACTION, ROTATION_PEAK_FRACTION | 0.5 to 0.7 and 0.2 to 0.35 | the two limits | AE-9 and Divine-Garrett peak positions as functions of the field | the electron belt peaks at 0.62 of the outer edge for a wind-limited body (Earth's peak at 4 to 5 against 7.3) and at 0.25 of it for a spin-limited one (Jupiter's peak inside Io's orbit, 5.9, against 20); recalled, two bodies fit | - | - |
+| RB4 | P | T3 | L1 | radiation_belts.INNER_PEAK_FRACTION | 0.3 to 0.45 | a body with air or a surface to make the albedo neutrons | a cosmic-ray albedo neutron decay (CRAND) source model | the inner proton belt peaks at 0.35 of the electron peak (Earth's at 1.5 to 2 against 4.5); recalled, one body fits | - | - |
+| RB5 | D | T4 | L0 | radiation_belts.ATMOSPHERE_EDGE_SCALE_HEIGHTS | 35 to 60 | a body with air | a bounce-loss lifetime against the density profile | the inner edge of a body with air is 45 scale heights above the surface, where the air stops a bouncing particle (Earth's belts begin near 400 km, 1.06 radii); the scale height is `R T / (M g)` at the surface temperature | - | - |
+| RB6 | P | T6 | L3 | radiation_belts.EARTH_OUTER_PEAK_GY_YR, EARTH_INNER_PEAK_GY_YR, INTENSITY_EXPONENT | 2000 to 6000 Gy; 0.5 to 1.2 | a dipole body in a quiet wind | AP-9 and AE-9, Divine-Garrett and the Juno and Galileo dose measurements | the intensity of each belt at its peak is Earth's 3000 Gy per year behind 100 mil of aluminium (about 300 krad; recalled from the orders of AP-8 and AE-8 in the shielded orbit literature) times the dipole moment to the 0.8, which puts Jupiter's belt some 2700 times Earth's, inside the 1e2 to 1e5 the Galileo and Juno dose records span; the exponent was fitted to that range, not derived | - | no data |
+| RB7 | T | T6 | L3 | radiation_belts.OUTER_RISE_EXPONENT, INNER_RISE_EXPONENT, FALL_EXPONENT, EDGE_EXPONENT | 2 to 6 | the main belts of a dipole | tabulated flux maps in `B` and `L` | the profile of a belt rises as the fourth power (electrons) or the second (protons) of the distance past the inner edge, falls as the sixth power of `L` past the peak and is cut to nothing at the outer edge; shapes chosen so Earth has a slot (a tenth of the peak at L 2.5) and Io to Europa is about a factor 10 (Galileo: 6.7; recalled) | - | no data |
 | RB8 | T | T6 | L0 | radiation_belts.belts_for | none | every body with a field | a coupled field, plasma and belt model | approximations: a dipole aligned with the spin; dose behind one aluminium thickness only; no solar-cycle, storm or longitude dependence; moons, rings and plasma tori are not in it | - | - |
 
 ## 6.16 Stand-ins of the interior heat and the r-process uranium
@@ -558,6 +558,14 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | DY5 | D | T2 | L1 | magnetism.FIELD_SCATTER_DEX 0.07: the log-normal scatter of a dynamo's moment about the buoyancy-flux law, dex (the law fits the 145 numerical dynamos within about 15 percent) | 0.05 to 0.15 | every dynamo of the scaling | a spread of observed moments at equal power outside 0.15 dex | none: the scatter is the fit's | Olson and Christensen 2006 (second-hand, see DY1) | - | - |
 | DY6 | P | T9 | L2 | magnetism.CORE_POWER_SCALE 0.479: the core model's Earth drives its dynamo with 2.4 TW (CC10) and the scaling's Earth with 1.15 TW (DY3), so the model's power is multiplied by the ratio to put the model's Earth on the scaling's (moment 0.84 of Earth's, dipole share 0.65) | 0.3 to 1 | rocky and icy cores of the thermal model | an Earth-mass planet of the model whose moment is outside 0.5 to 2 times Earth's | one Earth calibration for both the thermal model and the scaling | tuned so the model's Earth reproduces the scaling's Earth | - | - |
 | DY7 | P | T9 | L3 | magnetism.MERCURY_MOMENT_A_M2 3e19, MERCURY_SCATTER_DEX 0.5: a body of 0.05 to 0.1 Earth masses whose bulk density says its core fraction is over 0.4 keeps this moment whatever the core model says, because its iron-sulfide core melts at lower temperatures than the pure iron the model has | moment 1e19 to 1e20 | small iron-rich planets | a small iron-rich body whose core model says dead and whose field is alive | a core model with a sulfur-bearing liquidus | the design default of GEN.86, a Solar System value (Mercury) kept until the sulfur liquidus replaces it | - | no data |
+
+## 6.116 Stand-ins of the belt dose a moon takes
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| RB9 | T | T3 | L0 | radiation_belts.BELT_WEIGHT: the effective dose per absorbed dose of the belts' particles, 1 Sv per Gy for electrons and 2 for protons (ICRP 103's radiation weighting factors; second-hand, the standard cannot be read) | protons 2 to 5 | the belts of a dipole | a dose measurement of the belts' mixed field in Sv | a belt model with a spectrum and a fluence-to-dose table | ICRP 103 (second-hand) | - | - |
+| RB10 | P | T7 | L1 | radiation_belts.SURFACE_VIEW_FRACTION 0.5: the ground takes the belt dose from the half of the sky the body does not block | 0.35 to 0.6 | an airless or thin-aired moon | a dose map of a moon in a belt against the open-orbit rate | an angular flux through the body's shadow and the field's pitch-angle distribution | geometry, the dose behind the standard shield taken as the dose in open space | - | - |
+| RB11 | P | T7 | L1 | radiation_belts.STOP_COLUMN_G_CM2 2.0: the air column that cuts the belts' dose by a factor of e (MeV electrons go about 1 g/cm2, tens of MeV protons 1 to 3) | 1 to 4 | a moon with air | a dose through a thick air or a depth-dose curve of the belt spectrum that is not e-folding | a depth-dose curve of the belt spectrum through air (the PSTAR and ESTAR ranges the proton cutoff already reads, `proton_range`) | ranges of electrons and protons recalled from NIST | - | - |
 
 ## 6.31 Stand-ins of the accreting compact binaries
 

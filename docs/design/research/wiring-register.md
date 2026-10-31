@@ -34,7 +34,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | module | planetgen.physics.equilibrium_edges | GEN.994 | the edges of the hot-Jupiter chemistry regimes, sourced and wired with the hot-giant thermochemistry |
 | module | planetgen.physics.ground_albedo | GEN.684 | the colour of the ground by band, wired by the ground albedo item |
 | module | planetgen.physics.outside_hours | GEN.768 | the hours a person can be outside in a day, stored per planet by the item |
-| module | planetgen.physics.radiation_belts | GEN.983 | trapped radiation belts of a magnetised body, read when the stored magnetosphere reaches dose |
 | module | planetgen.galaxy.influence | GEN.342 | the influence set of an object, read by the acceleration kernel of the orbital update |
 | module | planetgen.physics.closest_approach | GEN.197 | the pair closest-approach library, read by the orbital event writer |
 | module | planetgen.physics.collision_outcome | GEN.197 | what a collision does, read by the orbital event writer |
@@ -51,13 +50,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.8:OH11 | GEN.768 | `outside_hours.LOCKED_BELT_LIGHT_HOURS`, read by `outside_hours.for_body`, which nothing calls until the stored columns are wired |
 | row | 6.10:RV2 | by design | `radius_valley.CORE_MASS_SIGMA`, a width of the simulated survey, read by the tuning tests |
 | row | 6.10:RV3 | by design | `radius_valley.ENVELOPE_SIGMA`, a width of the simulated survey, read by the tuning tests |
-| row | 6.15:RB1 | GEN.983 | `radiation_belts.WIND_EDGE_FRACTION`, read when the belts are |
-| row | 6.15:RB2 | GEN.983 | `radiation_belts.ROTATION_EDGE_FACTOR`, read when the belts are |
-| row | 6.15:RB3 | GEN.983 | `radiation_belts.WIND_PEAK_FRACTION`, read when the belts are |
-| row | 6.15:RB4 | GEN.983 | `radiation_belts.INNER_PEAK_FRACTION`, read when the belts are |
-| row | 6.15:RB5 | GEN.983 | `radiation_belts.ATMOSPHERE_EDGE_SCALE_HEIGHTS`, read when the belts are |
-| row | 6.15:RB6 | GEN.983 | `radiation_belts.EARTH_OUTER_PEAK_GY_YR`, read when the belts are |
-| row | 6.15:RB7 | GEN.983 | `radiation_belts.OUTER_RISE_EXPONENT`, read when the belts are |
 | module | planetgen.physics.tidal_rheology | GEN.955 | the rheology of a rocky or icy body under a tide (stage 1a, lock-free); stage 1b wires it into tidal heating, interior heat and circularisation |
 | module | planetgen.physics.spin_torques | GEN.957 | the star, moon and thermal-tide torques on a planet's spin (stage 2a, lock-free); stage 2b wires the sum into planet spin |
 | module | planetgen.physics.moon_orbits | GEN.959 | moon orbit drift, spiral-in and the Roche fall (stage 3a, lock-free); stage 3b wires the history into the planet |
