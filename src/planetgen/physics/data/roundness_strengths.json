@@ -1,0 +1,54 @@
+{
+  "title": "The yield strength of a body when its shape was set, by material, and how the materials mix (GEN.1158, physics/roundness.py)",
+  "note": "This file is where measured strengths drop in. Every number here is a stand-in (registry rows RN1 to RN7, section 6.126 of the gap filling plan); a material gives either 'strength_pa' (a measured strength at the scale of a body, Pa) or 'round_radius_km' with 'reference_density_kg_m3' (the mean radius at which bodies of that material and density were seen to turn round; the strength that rounds a body at that size is worked out from it). 'same_as' gives a material the strength of another until it has its own. 'mixing' names a rule of physics/roundness.py (MIXING_RULES) and its numbers; 'porosity' names a rule of POROSITY_RULES. A new rule is one function and one name; the engine's interface (ice fraction, metal fraction, porosity in; strength, round radius, roundness ratio out) does not change.",
+  "sphericity_factor": 1.1,
+  "materials": {
+    "ice": {
+      "label": "water ice and the other ices of an icy moon, warm when the shape was set",
+      "round_radius_km": 200.0,
+      "reference_density_kg_m3": 1000.0,
+      "source": "Lineweaver and Norman 2010 (arXiv:1004.1091) Fig. 2: Mimas 198 km round, Hyperion 140 km not",
+      "tier": "T1",
+      "tweak": "L0"
+    },
+    "rock": {
+      "label": "silicate rock of an asteroid or rocky moon",
+      "round_radius_km": 300.0,
+      "reference_density_kg_m3": 2500.0,
+      "source": "Lineweaver and Norman 2010 (arXiv:1004.1091) Fig. 2: Pallas 275 km and Vesta 265 km round, Juno 115 km not",
+      "tier": "T1",
+      "tweak": "L0"
+    },
+    "metal": {
+      "label": "iron and nickel metal",
+      "strength_pa": 100000000.0,
+      "source": "planetary-material-strength-2026-10-31.md section 7: weak source, range 30 to 300 MPa",
+      "tier": "T4",
+      "tweak": "L3"
+    }
+  },
+  "mixing": {
+    "rule": "volume-threshold",
+    "skeleton_below": 0.4,
+    "skeleton_above": 0.7,
+    "source": "planetary-material-strength-2026-10-31.md section 7: ice is the matrix while solids are under 40 percent of the volume, solids carry the load over 70 percent, geometric between (Durham 1997 for hard grains in ice)",
+    "tier": "T6",
+    "tweak": "L3"
+  },
+  "porosity": {
+    "rule": "none",
+    "coefficient": 5.0,
+    "source": "research proposes sigma exp(-b phi), b 4 to 7; off here because it makes Proteus (porous, ice-rich, 210 km, not round) round. 'coefficient' is used by the 'exponential' rule only",
+    "tier": "T3",
+    "tweak": "L3"
+  },
+  "temperature": {
+    "rule": "ice-power-law",
+    "coefficient_pa": 700000.0,
+    "exponent": 0.8,
+    "cap_pa": 10000000.0,
+    "source": "planetary-material-strength-2026-10-31.md section 7 (Schulson and Renshaw 2022 scaled 0.1; frozen soil exponent Wan et al. 2024)",
+    "tier": "T5",
+    "tweak": "L2"
+  }
+}

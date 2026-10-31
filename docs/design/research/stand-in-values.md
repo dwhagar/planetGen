@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 850 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 861 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -36,16 +36,16 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 132 | 11 | 7 | 1 | 0 | 151 |
-| T2 | 109 | 25 | 0 | 1 | 0 | 135 |
-| T3 | 77 | 32 | 5 | 11 | 0 | 125 |
-| T4 | 36 | 4 | 0 | 14 | 10 | 64 |
-| T5 | 42 | 13 | 0 | 1 | 0 | 56 |
-| T6 | 70 | 55 | 13 | 41 | 1 | 180 |
+| T1 | 136 | 11 | 7 | 1 | 0 | 155 |
+| T2 | 111 | 26 | 0 | 1 | 0 | 138 |
+| T3 | 77 | 32 | 5 | 12 | 0 | 126 |
+| T4 | 36 | 4 | 0 | 15 | 10 | 65 |
+| T5 | 42 | 13 | 1 | 1 | 0 | 57 |
+| T6 | 70 | 55 | 13 | 42 | 1 | 181 |
 | T7 | 26 | 8 | 8 | 8 | 0 | 50 |
 | T8 | 0 | 1 | 1 | 5 | 2 | 9 |
 | T9 | 13 | 6 | 4 | 38 | 19 | 80 |
-| All | 505 | 155 | 38 | 120 | 32 | 850 |
+| All | 511 | 156 | 39 | 123 | 32 | 861 |
 
 ## How the labels were given
 
@@ -1321,6 +1321,22 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | TB2 | P | T6 | L1 | trojan_bodies.CLASS_M_MASS_EARTH (0.1, 10): the masses a Class M world is drawn from | 0.05 to 0.3 low; 5 to 10 high | terrestrial worlds | a generated Class M world outside the range | the generated planet's own mass | planet_classes.json giants from 10 Earth masses; no source for a floor | GEN.1151 | - |
 | TB3 | P | T4 | L4 | trojan_bodies.FORMATION_EFFICIENCY 0.1: the share of the solids in the secondary's co-orbital zone that grow into the trojan | 0.02 to 0.5 | whole bodies at L4 and L5 | a disc run in which trojans of planet mass grow from a far smaller share | a hydrodynamic or N-body formation map | none read; Cresswell and Nelson 2009 (arXiv 0811.4611, abstract READ) grow trojans in the disc | GEN.1151 | no data |
 | TB4 | P | T4 | L4 | trojan_bodies.MIN_DISC_LIFETIME_MYR 1: the shortest gas-disc life in which a trojan of planet mass grows | 0.3 to 3 | whole bodies at L4 and L5 | a trojan growing in a disc shorter than that | a formation map | none read | GEN.1151 | no data |
+
+## 6.126 Stand-ins of the roundness engine and the binding energy
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| RN1 | D | T1 | L0 | roundness.SPHERICITY_FACTOR 1.1: the longest axis of a body counted round is at most this times its mean radius | 1.05 to 1.2 | every solid body | a body counted round whose axis ratio is far over 1.1 | the same law with a measured shape tolerance | Lineweaver and Norman 2010 (arXiv 1004.1091, READ in full), Eq. 9 | GEN.1159 | - |
+| RN2 | D | T1 | L0 | roundness.ICE_STRENGTH_PA and roundness.ROCK_STRENGTH_PA (from roundness_strengths.json): the strength that rounds a body at 200 km for ice (1000 kg/m3) and 300 km for rock (2500 kg/m3), 1.17 and 16.5 MPa | rock 4 to 30 MPa | ice and rock bodies that took their shape warm | a measured strength at body scale far from either | measured body-scale strengths of ice and rock | Lineweaver and Norman 2010 Fig. 2 (Mimas, Hyperion, Pallas, Vesta, Juno), checked against `reports/planetary-material-strength-2026-10-31.md` section 7 | GEN.1159 | - |
+| RN3 | P | T6 | L3 | roundness.MIXING_RULES volume-threshold, skeleton_below 0.4 and skeleton_above 0.7: ice strength while the solids are under 40 percent of the volume, solid strength over 70 percent, geometric between | 0.3 to 0.5; 0.6 to 0.8 | mixed rock and ice bodies | a rock and ice body whose measured strength follows another curve | a measured strength against volume fraction | `reports/planetary-material-strength-2026-10-31.md` section 7; Durham 1997 for hard grains in ice (abstract) | GEN.1159 | - |
+| RN4 | P | T4 | L3 | roundness.METAL_STRENGTH_PA 100 MPa | 30 to 300 MPa | iron and nickel bodies | a measured strength of a cold iron body | a measured value for iron meteorite scale | `reports/planetary-material-strength-2026-10-31.md` section 7 (weak source) | GEN.1159 | - |
+| RN5 | P | T3 | L3 | roundness.POROSITY_RULES: `none` in use (a void only lowers the density); `exponential` strength * exp(-b phi), b 5, is built and off | b 4 to 7 | porous bodies | a porous ice-rich body whose roundness the rule gets wrong (Proteus comes out round with `exponential` on) | the rubble-pile branch (friction plus a little cohesion, no size threshold) | `reports/planetary-material-strength-2026-10-31.md` section 7 | GEN.1159 | - |
+| RN6 | D | T2 | L0 | roundness.GRAIN_DENSITIES_KG_M3: ice 920, rock 3000, metal 7800 kg/m3, the density of each material without voids, used to turn mass shares into volume shares | rock 2700 to 3500 | every mix | a grain density far from the body's own composition | the composition's own grain density (`small_body_composition`) | water ice 917 (textbook), a typical silicate grain, iron (textbook) | GEN.1159 | - |
+| RN7 | D | T5 | L2 | roundness.TEMPERATURE_RULES ice-power-law: 0.7 MPa * (T in C / 10)^0.8, capped at 10 MPa, never under the warm value | exponent 0.6 to 1.0; cap 5 to 20 MPa | ice that took its shape cold | a cold icy body whose measured strength is far from the law | a measured strength of ice against temperature at body scale | `reports/planetary-material-strength-2026-10-31.md` section 7 (Schulson and Renshaw 2022 scaled by 0.1; the same exponent in frozen soil, Wan et al. 2024) | GEN.1159 | - |
+| BE1 | P | T2 | L0 | binding_energy.FULLY_CONVECTIVE_MASS_SOLAR 0.35: a star lighter than this is convective throughout | 0.3 to 0.4 | main-sequence stars | a model star at 0.35 solar masses with a radiative core | the stellar structure table | Chabrier and Baraffe 2000 (recalled) | GEN.1159 | - |
+| BE2 | D | T1 | L0 | binding_energy.POLYTROPE_INDEX_GAS_GIANT 1: a gas giant is an n = 1 polytrope | none | gas giants | a giant whose interior solution differs from n = 1 | `giant_interior` layers | the central pressure formula and `giant_interior` already use n = 1 | GEN.1159 | - |
+| BE3 | D | T1 | L0 | binding_energy.POLYTROPE_INDEX_CONVECTIVE 1.5: a fully convective star, a brown dwarf and a white dwarf are n = 3/2 | none | convective stars, brown dwarfs, white dwarfs below the relativistic limit | a heavy white dwarf (under by up to 43 percent near the Chandrasekhar mass) | a relativistic white dwarf structure factor | Lane-Emden; Chandrasekhar 1939 | GEN.1159 | - |
+| BE4 | D | T2 | L1 | binding_energy.POLYTROPE_INDEX_RADIATIVE 3: a star with a radiative core is the Eddington standard model; the Sun's own effective index is near 3.2 | 3 to 3.3 | stars over 0.35 solar masses | a stellar model whose binding energy differs by over 10 percent | a stellar structure table by mass | Eddington standard model (textbook) | GEN.1159 | - |
 
 ## 6.94 Stand-ins of the irregular zone
 
