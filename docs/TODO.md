@@ -13326,7 +13326,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   temperate-ocean count per class.
   Prerequisites: none. Related: GEN.1142.
 
-- [ ] **GEN.1147 Ocean-fraction law: replace the sqrt cover law with a two-level hypsometry plus the mantle water cap by mass (2 to 8 oceans), in one epoch (BOSS DECIDES before any code)**
+- [ ] **GEN.1147 Ocean-fraction law: replace the sqrt cover law with a two-level hypsometry plus the mantle water cap by mass (2 to 8 oceans), in one epoch**
   Aux 2, GEN.1146 report
   reports/ocean-fraction-physics-gen1146-2026-10-30.md (as the lane
   reported, 1,000 systems): 16 percent of temperate air-bearing bodies
@@ -13347,6 +13347,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   until Boss picks. Lock work if built (epoch, golden, census). Where we
   think it belongs (best guess, can move): Aux 2 with Aux 3, a later
   train window.
+  Decided (Boss, 9:28 AM EDT 2026-10-31) (9:28 AM EDT 2026-10-31):
+  option 1, the recommended one: replace the square-root cover law with
+  a two-level hypsometry plus the mantle water cap by mass (2 to 8
+  oceans), in one epoch, report the share as a physics result, and leave
+  the Bern water prior alone. The BOSS DECIDES hold is lifted. Owner Aux
+  2 with Aux 3, a later train window. Lock work: epoch, golden, census
+  re-tag.
   Prerequisites: none. Related: GEN.1146, GEN.1142, GEN.909.
 
 - [ ] **GEN.1150 Lagrange trojans T2: the generator draws a trojan swarm at the L4 and L5 of each giant planet or brown dwarf from the scatter trojan share; new columns co_orbital_host_id, lagrange_point, libration amplitude and phase (db/column_units.py); orbit updater libration overlay; the object and sector pages and the designation rule "<host> L4 trojan region"**
