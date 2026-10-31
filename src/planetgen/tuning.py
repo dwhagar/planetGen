@@ -2932,12 +2932,13 @@ ROGUE_TOPUP_PLACEMENT = 1.0
 """float: The share of the sector's edge, centred on the sector, inside which the top-up places a rogue uniformly (1 is the whole sector). Boss wants to play with it
 (`region-object-store.md` 8.5). Source tier T9, tweak level L3 (GEN.725 row 6.86:RT2)."""
 
-# Above this mass (in Jupiter masses, ~16 Earth masses), a generated rogue
-# planet is treated as a gas giant rather than terrestrial -- roughly
-# where the solar system's own ice giants (Uranus ~14.5, Neptune ~17
-# Earth masses) sit, a common rough dividing line between rocky/icy
-# terrestrial-scale bodies and volatile-dominated giants.
-ROGUE_PLANET_GAS_GIANT_MASS_THRESHOLD_JUPITER = 0.05
+# Above this mass (in Jupiter masses, 10 Earth masses), a generated rogue planet is a giant rather than terrestrial: the mass
+# a core must reach to hold a hydrogen and helium envelope (`GIANT_CORE_CRITICAL_MASS_EARTH`), so a rogue is a giant exactly where
+# a bound planet is (GEN.1133; a bound rocky planet never passes it, and a rogue's rock does not either). Between this and
+# `GIANT_RUNAWAY_MIN_MASS_EARTH` it is an ice giant (class I by its conditions); the rogue's old line of 0.05 (about 16 Earth masses,
+# "where the Solar System's ice giants sit") let 10 to 16 Earth-mass rock come out at up to 17,600 km, past class S.
+ROGUE_PLANET_GAS_GIANT_MASS_THRESHOLD_JUPITER = (
+    GIANT_CORE_CRITICAL_MASS_EARTH * _physical_constants.EARTH_MASS_TO_KG / _physical_constants.JUPITER_MASS_TO_KG)
 
 # --- Rogue planet surface conditions (rogueSurface; Boss's research,
 # 2026-10-01: Stevenson 1999, Burrows et al. 2001, Guillot 2005, Abbot &
