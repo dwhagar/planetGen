@@ -434,7 +434,7 @@ def check_planet(body, parent=None):
     """
     problems = []
     name = _label(body)
-    if body.planet_class not in planet_classes.LETTERS:
+    if body.planet_class is not None and body.planet_class not in planet_classes.LETTERS:    # None is an Asteroid, a body under a roundness ratio of 1 (GEN.1160)
         return [Problem(name, f"class {body.planet_class!r} is not a known planet class")]
     derived = planet_classes.classify(body)
     if derived != body.planet_class:

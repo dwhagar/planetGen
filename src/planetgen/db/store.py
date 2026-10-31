@@ -75,7 +75,7 @@ from planetgen.names import object_id as objectId
 from planetgen import tuning
 from planetgen.galaxy import component_field as componentField, components as galaxyComponents, containment, mass_chain as massChain, nebula_field as nebulaField, object_uid as objectUid, scales, scatter_limits as scatterLimits, seed as galaxySeed, shape_draw, uid as galaxyUid, version_key as versionKey
 from planetgen.physics import activity, atmosphere, bulk_mass, constants as physical_constants, climate_draws, habitability, habitability_world, hydrosphere, insolation, interior_heat, kepler, magnetism, pre_main_sequence, radiation, radiogenic, spin
-from planetgen.physics import aerosols, body_colour, bulk_composition, daylight, giant_interior, life_classes, moon_composition, ocean_tides, orbit_elements, rings, surface_composition
+from planetgen.physics import aerosols, body_colour, body_strength, bulk_composition, daylight, giant_interior, life_classes, moon_composition, ocean_tides, orbit_elements, rings, surface_composition
 from planetgen.generation import generator_battery as generatorBattery
 from planetgen.util import fingerprint_encoding as fingerprintEncoding, generator_epoch as generatorEpoch, log
 from planetgen.util.settings import env_name, get_settings
@@ -2992,6 +2992,7 @@ BODY_FIELDS = (
     object_rows.computed(radiation.BODY_FIELDS, lambda body, context: _radiation_values(body), _radiation_load),
     object_rows.each(habitability_world.BODY_FIELDS),
     object_rows.each(aerosols.BODY_FIELDS),
+    object_rows.each(body_strength.FIELDS),
     object_rows.computed("born_beyond_snow_line", lambda body, context: _tristate(body.born_beyond_snow_line),
                          lambda row: {"born_beyond_snow_line": _tristate_from_db(row["born_beyond_snow_line"])}),
 )
@@ -3287,6 +3288,7 @@ BELT_FIELDS = (
     # of its own.
     object_rows.computed(("position_x_km", "position_y_km", "position_z_km", "velocity_x_kms", "velocity_y_kms",
                           "velocity_z_kms"), lambda belt, context: (0.0,) * 6),
+    object_rows.computed(body_strength.POPULATION_FIELDS, lambda belt, context: body_strength.population_values(belt)),
 )
 """tuple: The `Field`s of an `asteroid_belts` row."""
 
@@ -3349,6 +3351,7 @@ COMET_FIELDS = (
     object_rows.attr("velocity_x_kms"), object_rows.attr("velocity_y_kms"), object_rows.attr("velocity_z_kms"),
     object_rows.optional("rotation_period_hours"), _SPIN_FIELD,
     object_rows.attr("mass_kg"),
+    object_rows.each(body_strength.COMET_FIELDS),
 )
 """tuple: The `Field`s of a `comets` row."""
 
@@ -3829,6 +3832,7 @@ ASTEROID_FIELD_FIELDS = (
     object_rows.computed("composition_summary", lambda field, context: field.get_composition_summary()),
     _FREE_VECTOR_FIELD, object_rows.computed("mass_kg", lambda field, context: 0.0), _GALACTIC_ORBIT_FIELD,
     _PLACEMENT_FIELD,
+    object_rows.computed(body_strength.POPULATION_FIELDS, lambda field, context: body_strength.population_values(field)),
 )
 """tuple: The `Field`s of an `asteroid_fields` row."""
 

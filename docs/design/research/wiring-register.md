@@ -178,6 +178,20 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.95:BR22 | GEN.1069 | `body_status.ZONE_HILL_RADII`, read when the wiring step lands |
 | row | 6.95:BR23 | GEN.1069 | `body_status.LAMBDA_K`, read when the wiring step lands |
 | row | 6.95:BR24 | GEN.1069 | `body_status.ROUND_ROCK_SHIFT_DECADES, ROUND_THRESHOLD`, read when the wiring step lands |
+| module | planetgen.physics.belt_origin | GEN.1092 | the cause of each belt (gap, tail, snow line, outer disc, destroyed planet, rubble), what the giants cleared and a moving giant swept, and the sentence for the belt page; GEN.1068 gives it the final chain and GEN.1092 stores its result |
+| data | belt_origins.json | GEN.1092 | the causes of a belt and the sentence each prints; read by physics/belt_origin.py, which nothing calls yet |
+| row | 6.97:BG1 | GEN.1092 | `belt_origin.GAP_SPACING_K`, read when the belt origin wiring lands |
+| row | 6.97:BG2 | GEN.1092 | `belt_origin.MIN_BELT_RATIO`, read when the belt origin wiring lands |
+| row | 6.97:BG3 | GEN.1092 | `belt_origin.MIN_BELT_MASS_EARTH`, read when the belt origin wiring lands |
+| row | 6.97:BG4 | GEN.1092 | `belt_origin.SNOW_BUMP_WIDTH`, read when the belt origin wiring lands |
+| row | 6.97:BG5 | GEN.1092 | `belt_origin.CHAOTIC_ZONE_COEFFICIENT`, read when the belt origin wiring lands |
+| row | 6.97:BG7 | GEN.1092 | `belt_origin.RESONANCE_HALF_WIDTH`, read when the belt origin wiring lands |
+| row | 6.97:BG8 | GEN.1092 | `belt_origin.STIR_ZONE_WIDTHS`, read when the belt origin wiring lands |
+| row | 6.97:BG9 | GEN.1092 | `belt_origin.INSTABILITY_SURVIVAL_RANGE`, read when the belt origin wiring lands |
+| row | 6.97:BG10 | GEN.1092 | `belt_origin.DESTROYED_RETAINED_SHARE`, read when the belt origin wiring lands |
+| row | 6.97:BG11 | GEN.1092 | `belt_origin.DEBRIS_MIN_WIDTH`, read when the belt origin wiring lands |
+| row | 6.97:BG12 | GEN.1092 | `belt_origin.COLLISIONAL_DEBRIS_PER_GYR`, read when the belt origin wiring lands |
+| row | 6.97:BG13 | GEN.1092 | `belt_origin.COLLISIONAL_DEBRIS_MASS_EARTH`, read when the belt origin wiring lands |
 | module | planetgen.galaxy.rogue_density | GEN.1111 | the smoothed star density a rogue is drawn from (lock-free, GEN.1115); the virtual-donor sector draw takes its Poisson mean from it and the low-zoom map reads `old_density` |
 | row | 6.102:RSM1 | GEN.1111 | `rogue_density.RADIAL_SMOOTH_PC`, read when the wiring step lands |
 | row | 6.102:RSM2 | GEN.1111 | `rogue_density.VERTICAL_SMOOTH_PC`, read when the wiring step lands |
@@ -186,8 +200,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | module | planetgen.physics.dwarf_population | GEN.1092 | the count, round mass, orbit-clearing status and Class D of a belt's stored bodies (lock-free, GEN.1090); the wiring step lists the dwarf planets as members of their belt |
 | row | 6.95:BR6 | GEN.1092 | `dwarf_population.SOTER_MU_PLANET`, read when the wiring step lands |
 | row | 6.95:BR7 | GEN.1092 | `dwarf_population.MARGOT_COEFFICIENT_EARTH, MARGOT_C`, read when the wiring step lands |
-| row | 6.95:BR9 | GEN.1092 | `dwarf_population.ROUND_MASS_ICE_KG, ROUND_MASS_ROCK_KG`, read when the wiring step lands |
-| row | 6.104:DPM1 | GEN.1092 | `dwarf_population.ICE_BODY_FRACTION`, read when the wiring step lands |
 | module | planetgen.physics.field_dispersal | GEN.1103 | the radius, age, retirement, freeze-out, shear and bodies of an interstellar asteroid field (lock-free, GEN.1100); the AsteroidField columns (GEN.1103) read the radius and the retirement, the bring-to-epoch step (GEN.1107) retires fields |
 | module | planetgen.physics.field_mass | GEN.1103 | the mass of an interstellar field by its origin (a supernova-unbound belt by the belts' own collisional step, two colliding rogue planets by their unbound share) and its stored bodies by the belt ledger (lock-free pure part of GEN.1161); the field columns (GEN.1103) store the mass, the supernova host rule (GEN.1104) calls `unbound_belt_field` and the member rows and designations (GEN.1105) call `stored_bodies` |
 | row | 6.161:FM1 | GEN.1103 | `field_mass.MIN_FIELD_MASS_EARTH`, read when the field columns land |
@@ -258,24 +270,13 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | module | planetgen.physics.climate_branches | GEN.972 | the ice-albedo law and every fixed point of the surface temperature with its stability, a pure function; GEN.972 puts the law into the fixed point and GEN.1051 hands both branches to pick_branch |
 | row | 6.22:CC15 | GEN.972 | `climate_branches.ICE_FREE_ALBEDO, ICE_COVERED_ALBEDO`, read when GEN.972 wires the module |
 | row | 6.22:CC16 | GEN.972 | `climate_branches.ICE_FREE_ABOVE_K, ICE_COVERED_BELOW_K, ICE_FRACTION_EXPONENT`, read when GEN.972 wires the module |
-| module | planetgen.physics.roundness | GEN.1159 | the yield strength, round radius and roundness ratio of a body; Class D and C, the Asteroid type and the stored columns read it once GEN.1159 and GEN.1160 wire it (lock) |
-| module | planetgen.physics.binding_energy | GEN.1159 | the gravitational binding energy of every kind of mass object, a black hole stored as -1; the stored columns read it once GEN.1159 and GEN.1162 wire it (lock) |
-| data | roundness_strengths.json | GEN.1159 | read by `physics/roundness.py` only |
 | row | 6.126:RN1 | GEN.1159 | `roundness.SPHERICITY_FACTOR`, not read until GEN.1159 wires the module |
 | row | 6.126:RN2 | GEN.1159 | `roundness.ICE_STRENGTH_PA, ROCK_STRENGTH_PA`, not read until GEN.1159 wires the module |
-| row | 6.126:RN3 | GEN.1159 | the volume-threshold mixing rule, not read until GEN.1159 wires the module |
 | row | 6.126:RN4 | GEN.1159 | `roundness.METAL_STRENGTH_PA`, not read until GEN.1159 wires the module |
-| row | 6.126:RN5 | GEN.1159 | the porosity rules, not read until GEN.1159 wires the module |
-| row | 6.126:RN6 | GEN.1159 | `roundness.GRAIN_DENSITIES_KG_M3`, not read until GEN.1159 wires the module |
-| row | 6.126:RN7 | GEN.1159 | `roundness.TEMPERATURE_RULES`, not read until GEN.1159 wires the module |
-| row | 6.126:BE1 | GEN.1159 | `binding_energy.FULLY_CONVECTIVE_MASS_SOLAR`, not read until GEN.1162 wires the stars |
-| row | 6.126:BE2 | GEN.1159 | `binding_energy.POLYTROPE_INDEX_GAS_GIANT`, not read until GEN.1159 wires the module |
-| row | 6.126:BE3 | GEN.1159 | `binding_energy.POLYTROPE_INDEX_CONVECTIVE`, not read until GEN.1162 wires the stars |
-| row | 6.126:BE4 | GEN.1159 | `binding_energy.POLYTROPE_INDEX_RADIATIVE`, not read until GEN.1162 wires the stars |
-| row | 6.126:RN8 | GEN.1159 | `roundness.RUBBLE_RULES` (friction angle and cohesion), not read until GEN.1159 wires the module |
-| row | 6.126:RN9 | GEN.1159 | `roundness.RUBBLE_RULES` (hot strength), not read until GEN.1159 wires the module |
-| row | 6.126:RN10 | GEN.1178 | `roundness.RANGES_PA`, not read until the strength draw is wired into `draw.py` with GEN.1159 |
 | module | planetgen.physics.ice_types | GEN.1159 | the strength of the other ices next to ice Ih and the ice type of a body from its components (lock-free); `roundness.py` takes the ratio as a factor on its ice strength when the types are wired |
+| function | planetgen.physics.body_strength.ratio_for | GEN.1069 | the roundness ratio of a body from its mass and ice fraction; `body_status.roundness_ratio` and `dwarf_population` call it, and those modules are registered under GEN.1069 and GEN.1092 |
+| function | planetgen.physics.body_strength.round_mass_for | GEN.1069 | the mass at which a body of this ice fraction turns round; `body_status.round_mass_kg` and `dwarf_population.round_mass_kg` call it, and those modules are registered under GEN.1069 and GEN.1092 |
+| function | planetgen.physics.roundness.is_round | GEN.1159 | whether a stored roundness ratio is round (1 or more); the wiring step that stores the ratio and the pages that read it call it |
 | row | 6.126:RN11 | GEN.1201 | `roundness.ROCK_CREEP_COLUMNS`, not read until GEN.1201 gives each body a shape-set temperature to pass to the engine |
 | data | planet_class_fit.json | GEN.1207 | the percent-match table of every class; the shadow scorer reads it (GEN.1206) and the best-fit classifier makes it the way a stored letter is decided |
 | module | planetgen.physics.class_fit | GEN.1207 | the percent-match scorer; the shadow scorer in src/tests reads it, the classifier replaces the first-match tree with it |

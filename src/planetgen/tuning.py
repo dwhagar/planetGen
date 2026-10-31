@@ -2085,12 +2085,11 @@ PLANET_CLASSES = {
         "composition": 'anthracite, basalt, and hydrocarbons',
         "type": 't',
     },
-    # GEN.1091: the class is a rule over the finished body's conditions (`physics/data/planet_classes.json`): surface pressure under 10 Pa and at
-    # least 1 percent of the mass water or ice. Size is not in the rule; the intended scale is a dwarf planet or a moon (radius 50 to 500 km), and
-    # the class covers belt members and dwarf planets as well as moons (docs/design/systems/belt-origins.md).
+    # GEN.1160: Class D is a rule over the finished body's conditions (`physics/data/planet_classes.json`): no air, round (a roundness ratio of 1 or more) and under 0.1 Earth masses.
+    # Rock or ice, a dwarf planet or a moon; a body under a roundness ratio of 1 is an Asteroid and has no letter. At 0.1 Earth masses and over, an airless body is Class C.
     'D': {
-        "description": 'a small icy body',
-        "composition": 'frozen hydrocarbons and ice',
+        "description": 'a small airless world',
+        "composition": 'rock, ice, and frozen hydrocarbons',
         "type": 't',
     },
     'E': {

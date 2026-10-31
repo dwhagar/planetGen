@@ -291,8 +291,6 @@ SECTIONS = (
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.128", "6.128 Stand-ins of the class lines of the train 6 epoch",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
-    ("6.104", "6.104 Stand-ins of the dwarf planet population",
-     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.105", "6.105 Stand-ins of the field dispersal",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.106", "6.106 Stand-ins of the field rates",

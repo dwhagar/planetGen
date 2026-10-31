@@ -43,14 +43,17 @@ def sample_bodies(systems, seed, habitable_share=0.0):
     return bodies
 
 
+ASTEROID_LABEL = "Asteroid"
+
+
 def changed_letters(bodies):
     """The bodies whose stored letter is not the one `classify` gives their stored conditions."""
     return [body for body, _ in bodies if planet_classes.classify(body) != body.planet_class]
 
 
 def shares(bodies):
-    """`Counter` of the letters of `bodies`."""
-    return collections.Counter(body.planet_class for body, _ in bodies)
+    """`Counter` of the letters of `bodies`; a body under a roundness ratio of 1 has no letter and is counted as `ASTEROID_LABEL` (GEN.1160)."""
+    return collections.Counter(body.planet_class or ASTEROID_LABEL for body, _ in bodies)
 
 
 def mass_bins(bodies):

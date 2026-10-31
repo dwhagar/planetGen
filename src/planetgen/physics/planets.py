@@ -23,7 +23,7 @@ import math
 import re
 
 from planetgen.physics import moon_history, body_state, bulk_draw, clearance_ledger, constants, giant_draw, giant_interior, giant_tilt, kepler, metallicity, moon_composition, orbit_elements, planet_classes, planet_kind, planet_mass, rings
-from planetgen.physics import aerosols, atmosphere, body_colour, body_spin, daylight, spin_torques, climate_draws, habitability_world, hosting_gate, hydrosphere, interior_heat, magnetism, ocean_tides, radiation, radiogenic, relations, spin, surface_air, surface_composition, tidal_spin
+from planetgen.physics import aerosols, atmosphere, body_colour, body_spin, body_strength, daylight, spin_torques, climate_draws, habitability_world, hosting_gate, hydrosphere, interior_heat, magnetism, ocean_tides, radiation, radiogenic, relations, spin, surface_air, surface_composition, tidal_spin
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.util import log
@@ -124,7 +124,14 @@ def apply_class(planet):
     text of that class (the composition text is written from the stored fractions, GEN.430). Called when the body is built (so a
     request can test it) and again once the system is final (the seasonal swing of its starlight, `flux_variation`, is known only then).
     """
+    planet.planet_class = None
+    body_strength.generate(planet)      # GEN.1159: the roundness ratio the class reads (a giant body type has none)
     planet.planet_class = planet_classes.classify(planet)
+    if planet.planet_class is None:
+        # GEN.1160: a body whose roundness ratio is under 1 is an Asteroid, which is an object type and has no class letter
+        planet.description = planet_classes.ASTEROID.sentence
+        return
+    body_strength.generate(planet)      # again with the class: a terrestrial body of a giant class (an ice giant of rock and water) has no strength to measure
     data = tuning.PLANET_CLASSES[planet.planet_class]
     planet.description = data["description"]
     if planet.is_moon:
