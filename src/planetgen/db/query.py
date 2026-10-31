@@ -6251,6 +6251,28 @@ def _timestamp_literal(digits):
     return f"{d[0:4]}-{d[4:6]}-{d[6:8]} {d[8:10]}:{d[10:12]}:{d[12:14]}.{d[14:17]}"
 
 
+def galaxy_shape_inputs(conn):
+    """
+    What the stored galaxy shape is made from, as plain values: the `galaxy_shape` row, the levers it was told
+    (`galaxy_shape_pins`) and a signature of the `galaxy_components` rows (their count, first and last id and sums). The
+    shape itself (`galaxy_density_shape`) is a function of these and of the code, and building it works out a mean system
+    mass for every stored cluster, which took minutes on a galaxy of ten thousands of clusters: `galaxy_content_state` runs
+    on a page view's freshness check, so it reads these instead. `None` when the galaxy was never planned.
+    """
+    row = conn.execute("SELECT * FROM galaxy_shape WHERE id = 1").fetchone()
+    if row is None:
+        return None
+    components = None
+    if conn.execute("SELECT 1 FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() "
+                    "AND TABLE_NAME = 'galaxy_components'").fetchone():
+        components = dict(conn.execute(
+            "SELECT COUNT(*) AS n, MIN(id) AS first_id, MAX(id) AS last_id, SUM(mass_solar) AS mass, SUM(age_gy) AS age, "
+            "SUM(metallicity_fe_h) AS fe_h FROM galaxy_components").fetchone())
+    return {"row": {key: (value.hex() if isinstance(value, (bytes, bytearray)) else value) for key, value in dict(row).items()},
+            "pins": {pin["name"]: pin["value"] for pin in conn.execute("SELECT name, value FROM galaxy_shape_pins").fetchall()},
+            "components": components}
+
+
 def galaxy_content_state(conn):
     """
     Everything `db.nodes.galaxy_nodes`' output depends on, summarized as a handful
@@ -6296,14 +6318,15 @@ def galaxy_content_state(conn):
         "SELECT (SELECT COALESCE(MAX(id), 0) FROM bright_stars) AS max_id, "
         "(SELECT bright_star_seed FROM galaxy_shape WHERE id = 1) AS seed"
     ).fetchone()
+    shape_inputs = galaxy_shape_inputs(conn)
     base = hashlib.sha256(json.dumps(
-        {"shape": galaxy_density_shape(conn), "version": __version__,
+        {"shape": shape_inputs, "version": __version__,
          "bright_stars": bright["seed"],
          # GEN.70: the naming key renames the codec-named objects in every node and page.
          "naming_key": naming_key.active_key()}, sort_keys=True, default=str,
     ).encode("utf-8")).hexdigest()[:16]
     tile_base = hashlib.sha256(json.dumps(
-        {"shape": galaxy_density_shape(conn), "tile_format": TILE_FORMAT, "epoch": generator_epoch.generator_epoch(),
+        {"shape": shape_inputs, "tile_format": TILE_FORMAT, "epoch": generator_epoch.generator_epoch(),
          "bright_stars": bright["seed"], "naming_key": naming_key.active_key()}, sort_keys=True, default=str,
     ).encode("utf-8")).hexdigest()[:16]
     return {
