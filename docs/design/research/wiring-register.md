@@ -406,3 +406,4 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.126:BE4 | GEN.1159 | `binding_energy.POLYTROPE_INDEX_RADIATIVE`, not read until GEN.1162 wires the stars |
 | row | 6.126:RN8 | GEN.1159 | `roundness.RUBBLE_RULES` (friction angle and cohesion), not read until GEN.1159 wires the module |
 | row | 6.126:RN9 | GEN.1159 | `roundness.RUBBLE_RULES` (hot strength), not read until GEN.1159 wires the module |
+| row | 6.126:RN10 | GEN.1178 | `roundness.RANGES_PA`, not read until the strength draw is wired into `draw.py` with GEN.1159 |

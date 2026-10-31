@@ -410,3 +410,86 @@ def test_a_wrong_rubble_table_is_refused(change):
     change(document)
     with pytest.raises(rn.RoundnessError):
         rn.load_table(document)
+
+
+# --- the strength draw (GEN.1178) -------------------------------------------------------------------------------------------------------
+
+def test_the_median_draw_is_the_stand_in_and_none_is_the_same():
+    assert rn.drawn_strengths_pa(0.5) == pytest.approx(rn.TABLE.strengths_pa)
+    for call in (lambda draw: rn.yield_strength_pa(0.4, draw=draw), lambda draw: rn.round_radius_m(2000.0, 0.4, draw=draw),
+                 lambda draw: rn.roundness_ratio(2.0e5, 2000.0, 0.4, draw=draw), lambda draw: rn.rubble_strength_pa(2.0e5, 2000.0, heated=True, draw=draw)):
+        assert call(0.5) == pytest.approx(call(None))
+
+
+def test_the_ends_of_the_draw_are_the_ends_of_each_range():
+    low, high = rn.drawn_strengths_pa(0.0), rn.drawn_strengths_pa(1.0)
+    for name, (lo, hi) in rn.RANGES_PA.items():
+        assert low[name] == pytest.approx(lo) and high[name] == pytest.approx(hi)
+    assert (low["ice"], low["rock"], low["metal"]) == pytest.approx((0.4e6, 4.0e6, 50.0e6))
+    assert (high["ice"], high["rock"], high["metal"]) == pytest.approx((3.0e6, 30.0e6, 250.0e6))
+
+
+def test_a_higher_draw_is_a_stronger_body_and_a_bigger_round_radius():
+    draws = [x / 10.0 for x in range(11)]
+    for values in ([rn.yield_strength_pa(0.0, draw=d) for d in draws], [rn.yield_strength_pa(1.0, draw=d) for d in draws],
+                   [rn.round_radius_m(2500.0, 0.0, draw=d) for d in draws], [rn.rubble_round_radius_m(2500.0, heated=True, draw=d) for d in draws]):
+        assert values == sorted(values) and values[0] < values[-1]
+
+
+def test_the_round_radius_moves_about_one_and_a_half_either_way():
+    low, mid, high = (rn.round_radius_m(2500.0, 0.0, draw=d) for d in (0.0, 0.5, 1.0))
+    assert 1.3 < mid / low < 2.2 and 1.0 < high / mid < 1.8
+
+
+def test_a_drawn_body_is_round_on_one_side_of_its_own_boundary():
+    boundary = rn.round_radius_m(2500.0, 0.0, draw=0.2)
+    assert rn.is_round(rn.roundness_ratio(boundary * 1.01, 2500.0, 0.0, draw=0.2))
+    assert not rn.is_round(rn.roundness_ratio(boundary * 0.99, 2500.0, 0.0, draw=0.2))
+    assert not rn.is_round(rn.roundness_ratio(boundary * 1.01, 2500.0, 0.0, draw=0.9))      # a tougher body of that size is still a potato
+
+
+def test_the_draw_scales_the_ice_creep_law_and_the_rubble_numbers():
+    assert rn.yield_strength_pa(1.0, temperature_k=140.0, draw=1.0) / rn.yield_strength_pa(1.0, temperature_k=140.0) == pytest.approx(3.0)
+    assert rn.yield_strength_pa(1.0, temperature_k=140.0, draw=0.0) / rn.yield_strength_pa(1.0, temperature_k=140.0) == pytest.approx(0.4)
+    assert rn.rubble_strength_pa(1.0e4, 2500.0, draw=1.0) > rn.rubble_strength_pa(1.0e4, 2500.0, draw=0.0)
+    hot = rn.TABLE.rubble
+    assert rn.rubble_strength_pa(1.0e6, 2500.0, heated=True, draw=1.0) == pytest.approx(hot["hot_range_pa"][1])
+
+
+def test_a_cold_rubble_pile_stays_unround_at_every_draw():
+    for draw in (0.0, 0.5, 1.0):
+        assert rn.roundness_ratio(1.0e6, 2500.0, 0.0, structure="rubble", draw=draw) < 0.5
+
+
+def test_the_draw_does_not_change_the_table_in_use():
+    before = dict(rn.TABLE.strengths_pa), dict(rn.TABLE.rubble)
+    rn.drawn_strengths_pa(0.9)
+    rn.rubble_strength_pa(1.0e5, 2500.0, draw=0.9)
+    assert (dict(rn.TABLE.strengths_pa), dict(rn.TABLE.rubble)) == before
+
+
+@pytest.mark.parametrize("bad", [-0.1, 1.1, float("nan"), float("inf"), "high", True])
+def test_a_draw_outside_zero_to_one_is_refused(bad):
+    with pytest.raises(ValueError):
+        rn.drawn_strengths_pa(bad)
+    with pytest.raises(ValueError):
+        rn.yield_strength_pa(0.5, draw=bad)
+
+
+def test_a_material_with_no_range_does_not_move(monkeypatch):
+    document = copy.deepcopy(_document())
+    del document["materials"]["metal"]["range_pa"]
+    monkeypatch.setattr(rn, "TABLE", rn.load_table(document))
+    assert rn.drawn_strengths_pa(0.0)["metal"] == rn.drawn_strengths_pa(1.0)["metal"] == rn.TABLE.strengths_pa["metal"]
+
+
+@pytest.mark.parametrize("change", [
+    lambda d: d["materials"]["rock"].__setitem__("range_pa", [20.0e6, 30.0e6]),         # the strength is outside its range
+    lambda d: d["materials"]["rock"].__setitem__("range_pa", [4.0e6]),
+    lambda d: d["rubble"].__setitem__("hot_range_pa", [4.0e6, 1.0e6]),
+])
+def test_a_wrong_range_is_refused(change):
+    document = copy.deepcopy(_document())
+    change(document)
+    with pytest.raises(rn.RoundnessError):
+        rn.load_table(document)

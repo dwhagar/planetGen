@@ -20,7 +20,11 @@
       "reference_density_kg_m3": 2500.0,
       "source": "Lineweaver and Norman 2010 (arXiv:1004.1091) Fig. 2: Pallas 275 km and Vesta 265 km round, Juno 115 km not; confirmed three ways in strength research section 6 (range 4 to 30 MPa)",
       "tier": "T1",
-      "tweak": "L0"
+      "tweak": "L0",
+      "range_pa": [
+        4000000.0,
+        30000000.0
+      ]
     },
     "metal": {
       "label": "iron and nickel metal",
