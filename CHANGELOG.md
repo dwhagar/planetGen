@@ -2,6 +2,117 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2987] - 2026-10-31
+
+**Headline:** A test of the stored-tree fill now expects a brown dwarf or remnant in a tree to be a dark member, not a star row.
+
+### Changed
+- The stored-trees fill test (`test_gen_stored_trees.py`) counted every member of a stored tree as a star row of the built system, so it failed on any tree holding a brown dwarf, a neutron star or a black hole since GEN.1013 keeps those as dark members. It now expects the star rows to be the lit members and the `dark_members` rows to be the dark ones. Test only: no code, stored value or page changes.
+generation-output: unchanged
+
+## [8.0.2986] - 2026-10-31
+
+**Headline:** A body's weight now has a temperature to shape it at: the roundness strength can fall with the heat the body made, instead of always being the cold strength.
+
+### Changed
+- **GEN.1201.** New `physics/shape_temperature.py` (not yet called by the generator): the temperature a body took its shape at is its surface temperature plus its accretion heat (the stored binding energy over its heat capacity) plus the heat its rock and the tides make in the time heat takes to leave a body of its size (`R^2 / (pi^2 kappa)`, from the stored radioactive content with 26Al included), capped at the rock's liquidus at the middle of the body. A kilometre-sized body keeps its cold; a body of 10 km radius with a solar-system share of 26Al melts; a Moon-sized body is hot from its assembly. The roundness engine already weakens ice and rock with a shape-set temperature, so the next step (the wiring, once GEN.1159's stored columns are on main) passes this number in and stores it. New stand-ins SHT1 and SHT2 (section 6.162). The surface is the body's temperature now, not the young star's; the heat is the centre's, an upper bound for the mean.
+generation-output: unchanged
+
+## [8.0.2985] - 2026-10-31
+
+**Headline:** An interstellar asteroid field now has a mass by the same rule as a belt, and a list of its largest bodies.
+
+### Changed
+- **GEN.1161.** New `physics/field_mass.py` (not yet called by the generator): a field holds what the disc stretch it came from has left, by the belts' own rule, and its stored bodies add up to that mass. A belt unbound by a supernova is the progenitor's belt ground by collisions for the progenitor's life (the belts' `solve_belt`) and then kept, because nothing grinds a free field. A field made by two colliding rogue planets is the unbound share of their mass (the Leinhardt and Stewart law of `rogue_collision`), with the remnant planet apart. Both draw the stored bodies from the belt ledger (every body above 1e19 kg, up to 300), so ranks are stable and `<field ID>.<rank hex>` names one body. A mass under 1e-9 Earth masses, the belts' line, is no field. New stand-ins FM1 and FM2 (section 6.161). The field columns, the supernova host rule and the member rows (GEN.1103, GEN.1104, GEN.1105) call it.
+generation-output: unchanged
+
+## [8.0.2984] - 2026-10-31
+
+**Headline:** An interstellar asteroid field now has a mass by the same rule as a belt, and a list of its largest bodies.
+
+### Changed
+- **GEN.1161.** New `physics/field_mass.py` (not yet called by the generator): a field holds what the disc stretch it came from has left, by the belts' own rule, and its stored bodies add up to that mass. A belt unbound by a supernova is the progenitor's belt ground by collisions for the progenitor's life (the belts' `solve_belt`) and then kept, because nothing grinds a free field. A field made by two colliding rogue planets is the unbound share of their mass (the Leinhardt and Stewart law of `rogue_collision`), with the remnant planet apart. Both draw the stored bodies from the belt ledger (every body above 1e19 kg, up to 300), so ranks are stable and `<field ID>.<rank hex>` names one body. A mass under 1e-9 Earth masses, the belts' line, is no field. New stand-ins FM1 and FM2 (section 6.161). The field columns, the supernova host rule and the member rows (GEN.1103, GEN.1104, GEN.1105) call it.
+generation-output: unchanged
+
+## [8.0.2983] - 2026-10-31
+
+**Headline:** The near-search test builds its scattered-star and black-hole rows by column name, so a new column no longer breaks it.
+
+### Fixed
+- **`test_near.py::_scatter_rows` built its `bright_stars` row as a 19-value tuple.** GEN.846 (schema v176, commit 04ed93b4d) added `rotation_period_hours` as the twentieth column of `store.BRIGHT_STAR_COLUMNS`, so the insert failed with "Column count doesn't match value count" and `test_the_search_counts_what_is_not_generated_yet` was red on main. The `phenomenon_scatter` tuple was still the right length (14) by luck.
+- **Both rows are now built by name** from `store.BRIGHT_STAR_COLUMNS` and `store.PHENOMENON_SCATTER_COLUMNS` through a small `_row_of` helper: a column the test does not set is `None`, and a name that is not a column fails the test with its name. A column added to either table later cannot shift the values after it again.
+
+Tests only. No generator output changes.
+
+generation-output: unchanged
+
+TODO items resolved: none (TEST.534 closes when this merges; the TODO thread owns the file).
+
+## [8.0.2982] - 2026-10-31
+
+**Headline:** A test that checks the deploy scripts name only files that exist no longer fails on a comment in the wiring guard.
+
+### Changed
+
+- `scripts/wiring_guard.py` names `planetgen/db/kind_tables.py`, `planetgen/db/models.py` and `planetgen/db/store.py` in full in its text; it wrote `db/kind_tables.py` and so on, which the deploy-script path test read as repo paths that do not exist (the files live under `src/planetgen/`). Behaviour is unchanged. generation-output: unchanged
+
+## [8.0.2981] - 2026-10-31
+
+**Headline:** A failed or killed unit's message now names the stage as the page shows it, not an internal number.
+
+### Changed
+
+- The messages "unit 101 of stage 5 failed" and "unit 101 of stage 5 was killed" in the run's error (the Generate page, the queue page and the log) now read, for example, "unit 101 of stage Scatter the bright stars was killed", using the stage's label (`wrapper.stage_name`); the number is only used when the run record cannot say. generation-output: unchanged
+
+## [8.0.2980] - 2026-10-31
+
+**Headline:** The test that holds the disc's present star formation against the Milky Way's was red since the lighter halo of GEN.1154; its bound now says why, and nothing the generator makes changes.
+
+### Changed
+- **TEST.533.** `test_the_present_rate_over_the_mean_...` compared the disc's present star formation rate over its ten-Gy mean (0.49 for a 5e10 galaxy) with the Milky Way's 0.20 within a factor of two. GEN.1154 lowered the median halo of a 5e10 galaxy from 2.0e12 to 1.57e12 solar masses, which moved the ratio from 0.39 to 0.49, past the bound. A halo of 3.1e12 gives 0.29 and 1.0e12 gives 0.89, so the mismatch is the shape of the inflow (it follows the halo's growth, which for a light halo rises to the present), not the gas law. The bound is now a factor of three, with the reason in the test, until the inflow shape is reworked.
+
+## [8.0.2979] - 2026-10-31
+
+**Headline:** The lists of stars, planets and moons now show the physics values of each object: temperature, luminosity and age for a star, orbit size, eccentricity and surface temperature for a planet or moon.
+
+### Changed
+- **Physics values in the lists (UX.187, lists slice).** `/lists/star` has Temperature, Luminosity and Age columns, and `/lists/planet` and `/lists/moon` have Orbit, Eccentricity and Surface temperature columns, in the reader's chosen units, with a dash where a row holds none. The values are the stored ones, read from the kind's table with the page (as the habitability symbols are), and `GET /api/object-lists/<kind>` items carry them (`temperature_k`, `luminosity_w`, `age_gy`; `distance_km`, `eccentricity`, `surface_temperature_k`). They do not sort, because the object index holds no column to order them by. No stored value and no migration.
+
+## [8.0.2978] - 2026-10-31
+
+**Headline:** A moon or an asteroid that its own weight has not pulled round is now drawn as an elongated, bumpy lump instead of a perfect sphere.
+
+### Changed
+- **MAP.279.** The System Map and the 3D system view drew every body as a sphere. A solid body whose stored roundness ratio is under 1 (`roundness_ratio`, GEN.1158 and GEN.1159: the body's radius over the radius at which its weight beats its strength) is now a lump: a three.js mesh stretched along three axes and bumped by seven smooth waves, from the body's look seed, so the same body is the same lump on every page. The farther from round the ratio is, the longer the long axis (up to 1.8 times the short) and the taller the bumps. The look record carries the new `roundness` field for solid bodies (a giant has none); a body stored before GEN.1159 has no ratio and is a lump when its radius is under 400 km (Boss, 10:26 PM EDT 2026-10-23). The painted surface lies on the lump as on a sphere. Display only: no stored value changes. The object page (`bodyview.js`) still draws a round disc; its lumpy silhouette is a follow-up. New stand-ins LUM1 to LUM5 (section 6.160).
+generation-output: unchanged
+
+## [8.0.2977] - 2026-10-31
+
+**Headline:** The installer and updater now check that MySQL and Redis are protected from the kernel's out-of-memory killer, and offer a memory limit for the generation workers.
+
+### Changed
+
+- `scripts/oom_advice.py` (run by `install.sh` and `update.sh` after the redo log check, advice only) prints the `OOMScoreAdjust=-900` drop-in for the MySQL and Redis units that are loaded and not at -900 or lower (INSTALL.md said -800), and an optional `MemoryHigh`/`MemoryMax` drop-in for `apache2.service`, where the workers run, sized at 55 and 65 percent of the host's memory. INSTALL.md says so. Nothing on the server is changed. generation-output: unchanged
+
+## [8.0.2976] - 2026-10-31
+
+**Headline:** The stars filter now also works in Nearby, the Systems list and its API, and the command line, and a system can be sorted by how many stars it holds.
+
+### Added
+- **The stars filter everywhere a system is listed (UX.239, the later slices).** What's nearby has a Stars menu (Single, Binary, Trinary, Quaternary, Quintenary and beyond) that keeps the systems with that many stars and what is in them, and a Stars column on its rows; `GET /api/near` takes `stars=` (a count, a count and a plus, or a name, as in `/api/search`) and a `system` row carries `star_count`. `GET /api/systems` takes `stars=` too and a `sort=stars` that orders by the number of stars, and the Stars column of the Systems tables sorts by it. The command line takes `--stars` on `query systems` and `query near` (the help names every choice) and says how many stars each system holds (single, binary, trinary, quaternary, or the count). A value that is none of these is a 400 from the API and an argument error on the command line; a hand-edited Nearby address with a bad value is ignored. Phenomena and facilities outside a system are left out of a Nearby list with the filter on, since they have no stars.
+
+No generator output changes.
+
+generation-output: unchanged
+
+## [8.0.2975] - 2026-10-31
+
+**Headline:** The installer and updater now tell you how big MySQL's redo log should be, from the writes the server has actually seen.
+
+### Changed
+
+- `scripts/redo_log_advice.py` reads how much redo MySQL has written and its redo log capacity, and prints the capacity that holds 30 minutes of those writes (1 to 16 GB) with the config line and the `SET GLOBAL innodb_redo_log_capacity` that changes it without a restart on MySQL 8.0.30 and later. `install.sh` and `update.sh` run it after the Redis check and only print; with `--seconds N` it measures a live window, and it counts the checkpointer warnings (MY-014084) in the error log. INSTALL.md says how to read it. Nothing on the server is changed. generation-output: unchanged
+
 ## [8.0.2974] - 2026-10-31
 
 **Headline:** The bright-star backfill path a run really takes now has a test that runs it directly.
