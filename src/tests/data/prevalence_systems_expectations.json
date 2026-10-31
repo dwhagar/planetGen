@@ -1,5 +1,6 @@
 {
  "anomalies": {
+  "GEN.1135": "Train 6 (epoch 128, about 4:10 AM EDT 10-31) moved this share. The class epoch (GEN.1135 retires Class Q, GEN.1136 raises the Class V line from 1.25 g to 2 g, GEN.1142 adds the class lines and Class E) re-derives every planet class, and the same train changed the halo mass function (GEN.1154), ocean tides (GEN.1034), ring ages (GEN.1057), day and night state (GEN.1097), the resonance capture draw (GEN.1172), giant tilts (GEN.1165), star spin (GEN.1163, GEN.1170) and the close-binary period trend (GEN.705). The ranges stay until the planet and star chains settle; re-baseline after the last 8.1 train (TEST.430).",
   "GEN.646": "the class cut-over (GEN.646) derives every class from the finished body and builds a moon from its mass: more bodies end in the classes that can carry life (Q, P, V, K), moons per planet rise, and the life shares follow the new air; the ranges are the pre-cut-over measurement and wait for Bug 2's re-baseline",
   "GEN.728": "Train 4 (epoch 126, 3:40 PM EDT 10-30) moved this share. The planet architecture (GEN.728, GEN.729, GEN.730, GEN.828, GEN.829, GEN.920) now sets the planet count, spacing, belts and giants of every system, with the snow line and ice from Lodders (GEN.950), the greenhouse table (GEN.850) and rocky bodies made again at the star's final age (GEN.992). The ranges are the post-cut-over (GEN.646) ones and stay until the planet and star chains settle; re-baseline after the last 8.1 train (TEST.430).",
   "GEN.750": "an intended change, not a fault: the life timeline is five hard steps with the means Boss chose (epoch 119: 0.5, 1.5, 2.5, 3 and 60 Gyr), so photosynthesis comes later than the old pace tables gave and a civilization needs more time than an F star lives; the ranges wait for the re-baseline",
@@ -71,6 +72,7 @@
      "source": "pre-cut-over 0.300 over 150 systems at 0b4d0ccef"
     },
     "life_abiogenesis": {
+     "anomaly": "GEN.1135",
      "kind": "stand-in",
      "max": 0.8474,
      "min": 0.2326,
@@ -115,6 +117,7 @@
      "source": "pre-cut-over 5.680 over 150 systems at 0b4d0ccef"
     },
     "zero_planets": {
+     "anomaly": "GEN.1135",
      "kind": "stand-in",
      "max": 0.4473,
      "min": 0.01,
@@ -235,6 +238,7 @@
      "source": "pre-cut-over 0.500 over 150 systems at 0b4d0ccef"
     },
     "belts_count": {
+     "anomaly": "GEN.1135",
      "kind": "stand-in",
      "max": 1.2654,
      "min": 0.1613,
