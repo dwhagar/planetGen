@@ -63,6 +63,11 @@ KNOWN = {
     ('label-case', 'Stellar Separation'): 'UX.253',
     ('label-case', 'Surface Pressure'): 'UX.252',
     ('label-case', 'Surface Temperature'): 'UX.252',
+    ('spelling', 'Aluminium-26 at formation'): 'UX.252',
+    ('spelling', 'Atmosphere Colour'): 'UX.252',
+    ('spelling', 'It is the overall'): 'UX.252',
+    ('spelling', "Offset from the system's centre, x"): 'UX.253',
+    ('spelling', 'Soundings read a gas'): 'UX.252',
     ('length', 'A class is never'): 'UX.252',  # A class is never drawn first: once a planet or moon is complete, its class is the first class in the check ord
     ('length', 'A marginal world, Earth-like'): 'UX.252',  # A marginal world, Earth-like but hard to breathe without a mask and not toxic: air of 30 kPa to 3 bar at 273 t
     ('length', 'Quadruple star system: a'): 'UX.253',  # Quadruple star system: a close pair of Agyokwuoju A (F4V) and Agyokwuoju B (G0VII), orbited by Agyokwuoju C (F
@@ -156,7 +161,7 @@ def test_the_property_sheet_labels_are_in_sentence_case():
 def test_every_listed_exception_names_its_owner_and_a_rule():
     for (rule, start), owner in KNOWN.items():
         assert owner in OWNERS, (rule, start, owner)
-        assert rule in {"length", "ideas", "banned", "class-name", "label-case"}, rule
+        assert rule in {"length", "ideas", "banned", "class-name", "label-case", "spelling"}, rule
 
 
 def test_new_text_that_breaks_a_rule_and_is_not_listed_fails():
@@ -175,18 +180,34 @@ def test_new_text_that_breaks_a_rule_and_is_not_listed_fails():
     ("Class 3 life has grown into mats.", "class-name"),
     ("Class 3a life has grown into mats.", None),
     ("Class 2 life lives in the oceans.", None),
+    ("The colour of the sky is grey.", "spelling"),
+    ("The color of the sky is gray.", None),
+    ("It is 5 kilometres across.", "spelling"),
+    ("The company is organised in the centre of the town.", "spelling"),
+    ("We analyse the data and the analyses agree.", "spelling"),
+    ("The rise is precise, so exercise the promise.", None),
+    ('The book "The Colour Purple" is quoted.', None),
+    ("The Centre for Planetary Science wrote it.", None),
     ("Luminosity class 0 stars are hypergiants.", None),
     ("It is a hot world; the sea is dry.", None),
     ("The planet is about 5 pc away.", None),
 ])
 def test_the_checker_flags_each_rule(sentence, rule):
-    found = [name for name, _detail in plainwords.check_sentence(sentence)]
-    assert found == ([rule] if rule else [])
+    found = {name for name, _detail in plainwords.check_sentence(sentence)}
+    assert found == ({rule} if rule else set())
+
+
+def test_a_british_spelling_says_the_american_one():
+    said = dict((detail.split("'")[1], detail.split("'")[3]) for _rule, detail in plainwords.british_spellings(
+        "Colourful kilometres, centred neighbours, organisation, analysed, sulphur, labelled."))
+    assert said == {"Colourful": "colorful", "kilometres": "kilometers", "centred": "centered", "neighbours": "neighbors",
+                    "organisation": "organization", "analysed": "analyzed", "sulphur": "sulfur", "labelled": "labeled"}
 
 
 @pytest.mark.parametrize("label, bad", [
     ("Surface temperature", False), ("Distance from the star", False), ("Urey ratio", False), ("Radius (Earth radii)", False),
     ("Surface Temperature", True), ("Distance from the Star", True), ("Primary's Planetary Limit", True),
+    ("Atmosphere color", False), ("Atmosphere colour", True),
 ])
 def test_the_checker_reads_a_label_in_sentence_case(label, bad):
     assert bool(plainwords.check_label(label)) == bad
@@ -199,5 +220,5 @@ def test_sentences_split_at_a_full_stop_but_not_in_a_number_or_an_abbreviation()
 
 def test_the_guide_names_every_rule_and_the_two_rewrite_items():
     text = GUIDE.read_text(encoding="utf-8")
-    for needle in ("`MAX_WORDS`", "`MAX_SEMICOLONS`", "`BANNED`", "Class 3a", "sentence case", "UX.252", "UX.253", "KNOWN"):
+    for needle in ("`MAX_WORDS`", "`MAX_SEMICOLONS`", "`BANNED`", "Class 3a", "sentence case", "American", "UX.252", "UX.253", "KNOWN"):
         assert needle in text, needle
