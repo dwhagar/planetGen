@@ -40,3 +40,38 @@ def test_the_systems_are_the_mass_over_the_mean_and_a_younger_component_holds_fe
     assert old.expected_systems == pytest.approx(old.mass_solar / old.mean_system_mass_solar)
     assert young.mean_system_mass_solar > old.mean_system_mass_solar
     assert young.expected_systems < old.expected_systems
+
+
+def _by_turn_off(age_gy):
+    """The mean system mass the long way: the turn-off by the full search, then the sums over every star."""
+    import numpy as np
+
+    number, others, placed_states, companion_states = system_mass._placed_states()
+    turn_off = system_mass._turn_off_sol(age_gy)
+    placed = float(np.sum(number * system_mass._present_mass(placed_states, turn_off)) / np.sum(number))
+    further = system_mass._present_mass(companion_states, turn_off).mean(axis=1)
+    return placed + float(np.sum(number * others * further) / np.sum(number))
+
+
+@pytest.mark.parametrize("age_gy", [0.0036, 0.05, 1.03, 2.0, 5.2, 12.0, 20.0])
+def test_the_mean_by_the_age_table_is_the_mean_by_the_full_turn_off_search(age_gy):
+    """The sorted table with running sums gives what the pass over every star gave, to rounding (a live galaxy's
+    page view waited minutes for the long way once per open cluster)."""
+    assert system_mass.mean_system_mass_at_age_solar(age_gy) == pytest.approx(_by_turn_off(age_gy), rel=1e-10)
+
+
+def test_a_second_mean_for_the_same_age_does_no_stellar_evolution(monkeypatch):
+    system_mass.mean_system_mass_at_age_solar(7.123456)
+    calls = []
+    monkeypatch.setattr(stellar_evolution, "remnant_formation_time_gy", lambda *args: calls.append(args) or 1.0)
+    system_mass.mean_system_mass_at_age_solar(7.123456)
+    assert calls == []
+
+
+def test_the_turn_off_search_that_stops_early_lands_among_the_same_masses_as_the_full_one():
+    births = system_mass._age_table()[0]
+    for age_gy in (0.004, 0.3, 1.03, 2.2, 9.0):
+        early = stellar_evolution.youngest_progenitor_sol(
+            age_gy * 1.0e9, settled=lambda low, high: births.searchsorted(low, side="right") == births.searchsorted(high, side="right"))
+        full = stellar_evolution.youngest_progenitor_sol(age_gy * 1.0e9)
+        assert births.searchsorted(early, side="right") == births.searchsorted(full, side="right")

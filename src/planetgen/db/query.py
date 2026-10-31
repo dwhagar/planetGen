@@ -92,6 +92,9 @@ from planetgen.physics.units import ly_to_pc, milliparsecs_to_ly, mpc_to_pc, pc_
 from planetgen.util import detmath
 from planetgen.physics import unit_registry as units
 
+_kg_to_msun = units.converter("kg", "Msun")
+_msun_to_kg = units.converter("Msun", "kg")
+
 _au_to_km = units.converter("au", "km")
 _m_to_ly = units.converter("m", "ly")
 _km_to_m = units.converter("km", "m")
@@ -3163,7 +3166,7 @@ def keep_out_radius(conn, kind, object_id):
         if body["galactic_radius_pc"] is None:
             return keepout.NO_KEEP_OUT  # never placed in the galaxy: nowhere to measure from
         return keepout.compact_keep_out(
-            body["mass_solar"] * constants.SOLAR_MASS_TO_KG, body["galactic_radius_pc"], body["radius_km"],
+            _msun_to_kg(body["mass_solar"]), body["galactic_radius_pc"], body["radius_km"],
             _enclosed_mass_kg(conn, body["galactic_radius_pc"]))
     if kind in ("quasar", "rogue_planet"):
         table = _PHENOMENON_TYPE_TO_TABLE[kind]
@@ -4961,7 +4964,7 @@ def _uncharted_item(row, edge_pc):
     local = galaxy_to_local_pc(sector_position_pc(*address, edge_pc), (x, y, z))
     return {
         "id": row["id"], "star_type": row["star_type"], "yerkes_class": row["yerkes_class"],
-        "population": row["population"], "mass_solar": row["mass_kg"] / constants.SOLAR_MASS_TO_KG,
+        "population": row["population"], "mass_solar": _kg_to_msun(row["mass_kg"]),
         "radius_solar": _radius_sol(row["radius_km"]), "temperature_k": row["temperature_k"],
         "luminosity_sol": row["luminosity_w"] / constants.SOLAR_LUMINOSITY, "age_gy": row["age_gy"],
         "shell_index": address[0], "band_index": address[1], "wedge_index": address[2],
@@ -6248,6 +6251,28 @@ def _timestamp_literal(digits):
     return f"{d[0:4]}-{d[4:6]}-{d[6:8]} {d[8:10]}:{d[10:12]}:{d[12:14]}.{d[14:17]}"
 
 
+def galaxy_shape_inputs(conn):
+    """
+    What the stored galaxy shape is made from, as plain values: the `galaxy_shape` row, the levers it was told
+    (`galaxy_shape_pins`) and a signature of the `galaxy_components` rows (their count, first and last id and sums). The
+    shape itself (`galaxy_density_shape`) is a function of these and of the code, and building it works out a mean system
+    mass for every stored cluster, which took minutes on a galaxy of ten thousands of clusters: `galaxy_content_state` runs
+    on a page view's freshness check, so it reads these instead. `None` when the galaxy was never planned.
+    """
+    row = conn.execute("SELECT * FROM galaxy_shape WHERE id = 1").fetchone()
+    if row is None:
+        return None
+    components = None
+    if conn.execute("SELECT 1 FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() "
+                    "AND TABLE_NAME = 'galaxy_components'").fetchone():
+        components = dict(conn.execute(
+            "SELECT COUNT(*) AS n, MIN(id) AS first_id, MAX(id) AS last_id, SUM(mass_solar) AS mass, SUM(age_gy) AS age, "
+            "SUM(metallicity_fe_h) AS fe_h FROM galaxy_components").fetchone())
+    return {"row": {key: (value.hex() if isinstance(value, (bytes, bytearray)) else value) for key, value in dict(row).items()},
+            "pins": {pin["name"]: pin["value"] for pin in conn.execute("SELECT name, value FROM galaxy_shape_pins").fetchall()},
+            "components": components}
+
+
 def galaxy_content_state(conn):
     """
     Everything `db.nodes.galaxy_nodes`' output depends on, summarized as a handful
@@ -6293,14 +6318,15 @@ def galaxy_content_state(conn):
         "SELECT (SELECT COALESCE(MAX(id), 0) FROM bright_stars) AS max_id, "
         "(SELECT bright_star_seed FROM galaxy_shape WHERE id = 1) AS seed"
     ).fetchone()
+    shape_inputs = galaxy_shape_inputs(conn)
     base = hashlib.sha256(json.dumps(
-        {"shape": galaxy_density_shape(conn), "version": __version__,
+        {"shape": shape_inputs, "version": __version__,
          "bright_stars": bright["seed"],
          # GEN.70: the naming key renames the codec-named objects in every node and page.
          "naming_key": naming_key.active_key()}, sort_keys=True, default=str,
     ).encode("utf-8")).hexdigest()[:16]
     tile_base = hashlib.sha256(json.dumps(
-        {"shape": galaxy_density_shape(conn), "tile_format": TILE_FORMAT, "epoch": generator_epoch.generator_epoch(),
+        {"shape": shape_inputs, "tile_format": TILE_FORMAT, "epoch": generator_epoch.generator_epoch(),
          "bright_stars": bright["seed"], "naming_key": naming_key.active_key()}, sort_keys=True, default=str,
     ).encode("utf-8")).hexdigest()[:16]
     return {
@@ -6665,29 +6691,29 @@ def _search_facet_type(conn):
 
 
 def _search_facet_spectral(conn):
-    rows = conn.execute(
-        "SELECT SUBSTR(star_type, 1, 1) AS v, COUNT(*) AS c FROM stars GROUP BY v ORDER BY v"
-    ).fetchall()
+    """Every spectral class the generator produces (`SPECTRAL_CLASS_COLORS`), with its star count (0 when none yet),
+    then any other letter the stars hold."""
+    counts = {row["v"]: row["c"] for row in conn.execute(
+        "SELECT SUBSTR(star_type, 1, 1) AS v, COUNT(*) AS c FROM stars GROUP BY v ORDER BY v").fetchall()}
+    letters = [*SPECTRAL_CLASS_COLORS, *sorted(letter for letter in counts if letter not in SPECTRAL_CLASS_COLORS)]
     opts = []
-    for row in rows:
-        letter = row["v"]
+    for letter in letters:
         color = SPECTRAL_CLASS_COLORS.get(letter)
         tip = f"{color} star" if color else None
-        opts.append({"value": letter, "label": f"{letter}-Type Star", "count": row["c"], "tooltip": tip})
+        opts.append({"value": letter, "label": f"{letter}-Type Star", "count": counts.get(letter, 0), "tooltip": tip})
     return opts
 
 
 def _search_facet_luminosity(conn):
-    rows = conn.execute(
-        "SELECT yerkes_class AS v, COUNT(*) AS c FROM stars WHERE yerkes_class IS NOT NULL GROUP BY v"
-    ).fetchall()
-    rows = sorted(
-        rows, key=lambda r: _SEARCH_YERKES_ORDER.index(r["v"]) if r["v"] in _SEARCH_YERKES_ORDER else len(_SEARCH_YERKES_ORDER)
-    )
+    """Every Yerkes class (`_SEARCH_YERKES_ORDER`) with its star count (0 when none yet), then any other class the
+    stars hold."""
+    counts = {row["v"]: row["c"] for row in conn.execute(
+        "SELECT yerkes_class AS v, COUNT(*) AS c FROM stars WHERE yerkes_class IS NOT NULL GROUP BY v").fetchall()}
+    classes = [*_SEARCH_YERKES_ORDER, *sorted(value for value in counts if value not in _SEARCH_YERKES_ORDER)]
     return [
-        {"value": row["v"], "label": _SEARCH_YERKES_LABELS.get(row["v"], row["v"]), "count": row["c"],
-         "tooltip": f"Yerkes class {row['v']}"}
-        for row in rows
+        {"value": value, "label": _SEARCH_YERKES_LABELS.get(value, value), "count": counts.get(value, 0),
+         "tooltip": f"Yerkes class {value}"}
+        for value in classes
     ]
 
 

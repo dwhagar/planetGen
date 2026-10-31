@@ -32,7 +32,9 @@ Use:
 
 import math
 
-from planetgen.physics import bulk_structure, constants, envelope_escape, giant_radius
+from planetgen.physics import bulk_structure, constants, envelope_escape, giant_radius, unit_registry as units
+
+_mearth_to_kg = units.converter("Mearth", "kg")
 
 MAX_MASS_EARTH = 10.0
 """float: A super-puff weighs under this (the design table; Lee and Chiang's class is 2 to 6 Earth masses, row PF1)."""
@@ -82,7 +84,7 @@ def covers(mass_earth, envelope):
 def density_g_cm3(mass_earth, radius_earth_):
     """The bulk density, g/cc."""
     volume = 4.0 / 3.0 * math.pi * (radius_earth_ * _R_EARTH_M) ** 3
-    return mass_earth * constants.EARTH_MASS_TO_KG / volume / 1000.0
+    return _mearth_to_kg(mass_earth) / volume / 1000.0
 
 
 def tidal_luminosity_w(host_mass_kg, radius_m, distance_m, q_term):

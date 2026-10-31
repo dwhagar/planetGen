@@ -20,7 +20,9 @@ Use:
 
 import math
 
-from planetgen.physics import constants
+from planetgen.physics import constants, unit_registry as units
+
+_mearth_to_kg = units.converter("Mearth", "kg")
 
 HYCEAN_MASS_EARTH = (1.0, 10.0)
 """tuple: The mass of a Hycean candidate, Earth masses (the item, after Madhusudhan et al. 2021; row HC1)."""
@@ -41,7 +43,7 @@ HYCEAN_CLASS_LETTERS = ("T", "I", "V")
 def density_g_cm3(mass_earth, radius_earth):
     """The bulk density, g/cc."""
     volume = 4.0 / 3.0 * math.pi * (radius_earth * constants.EARTH_RADIUS_KM * 1.0e5) ** 3
-    return mass_earth * constants.EARTH_MASS_TO_KG * 1000.0 / volume
+    return _mearth_to_kg(mass_earth) * 1000.0 / volume
 
 
 def _inside(value, bounds):

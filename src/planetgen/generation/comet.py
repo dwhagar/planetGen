@@ -38,7 +38,7 @@ why that's out of scope for this pass).
 import math
 
 from planetgen.generation.config import SystemConfig
-from planetgen.physics import constants as physical_constants, kepler, small_body_composition, spin
+from planetgen.physics import kepler, small_body_composition, spin
 from planetgen.physics.position import axis_property, velocity_axis_property
 from planetgen import tuning
 from planetgen.util import draw
@@ -263,7 +263,7 @@ class Comet(SmallBody):
             self.inclination_deg = draw.uniform(0, class_data["inclination_max_deg"])
 
             semi_major_axis_au = self.perihelion_distance_au / (1 - self.eccentricity)
-            primary_mass_kg = primary_mass_solar * physical_constants.SOLAR_MASS_TO_KG
+            primary_mass_kg = _msun_to_kg(primary_mass_solar)
             self.orbital_period_years = calculate_orbital_period_years(semi_major_axis_au, primary_mass_kg)
 
             self.mean_anomaly_deg = draw.uniform(0, 360)
@@ -347,4 +347,6 @@ class Comet(SmallBody):
         return format_comet_composition_summary(self.composition)
 
 from planetgen.generation import object_timing  # noqa: E402 -- registers the generators below (PERF.92)
+
+_msun_to_kg = units.converter("Msun", "kg")
 object_timing.track(Comet, "comet")

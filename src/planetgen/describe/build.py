@@ -15,6 +15,7 @@ import math
 
 from planetgen import tuning
 from planetgen.describe import life_facts, model
+from planetgen.describe.hierarchy import hierarchy_text
 from planetgen.describe.model import (
     fact,
     facts,
@@ -584,8 +585,24 @@ def _habitable_count(system):
     return count
 
 
+def _hierarchy_sentence(system):
+    """What the system's stars are to one another (a triple's close pair and the star that orbits it), or `None` for a single
+    star or a system stored without its tree of orbits."""
+    slots = system.star_slots
+    if not system.orbit_nodes or not slots or len(slots) != len(system.stars):
+        return None
+    text = hierarchy_text(
+        [{"name": star.name, "type": star.type, "node_no": node_no, "slot": slot} for star, (node_no, slot) in zip(system.stars, slots)],
+        [{"node_no": node.node_no, "parent_node_no": node.parent_node_no, "slot": node.slot, "kind": node.kind}
+         for node in system.orbit_nodes])
+    return f"{text}." if text else None
+
+
 def _overview_sentences(system):
     sentences = []
+    hierarchy = _hierarchy_sentence(system)
+    if hierarchy:
+        sentences.append(hierarchy)
     segments = []
     if system.planet_count > 0:
         segments.append(f"{system.planet_count} planet{'s' if system.planet_count > 1 else ''}")
