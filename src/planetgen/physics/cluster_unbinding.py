@@ -29,12 +29,14 @@ Pure functions; nothing calls them yet (GEN.1111 creates the rogue rows). Stand-
 
 import math
 
-from planetgen.physics import constants
+from planetgen.physics import constants, unit_registry as units
 from planetgen.util.checks import finite_domain
+
+_msun_to_kg = units.converter("Msun", "kg")
 
 _KM = 1.0e3
 _MYR_S = 1.0e6 * constants.SECONDS_PER_YEAR
-_G_PC_KM2_S2_PER_MSUN = constants.G * constants.SOLAR_MASS_TO_KG / constants.PARSEC_M / _KM ** 2
+_G_PC_KM2_S2_PER_MSUN = _msun_to_kg(constants.G) / constants.PARSEC_M / _KM ** 2
 """float: G in pc (km/s)^2 per solar mass, 4.30e-3."""
 _AU_PC = constants.AU_M / constants.PARSEC_M
 _PC_PER_KM_S_MYR = constants.PARSEC_M / _KM / _MYR_S

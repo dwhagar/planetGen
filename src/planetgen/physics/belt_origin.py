@@ -52,8 +52,10 @@ import math
 import os
 
 from planetgen import tuning
-from planetgen.physics import belt_mass, clearance_ledger, constants, elements, planet_architecture
+from planetgen.physics import belt_mass, clearance_ledger, elements, planet_architecture, unit_registry as units
 from planetgen.physics.elements import DataError
+
+_kg_to_mearth = units.converter("kg", "Mearth")
 
 DATA_FILE = os.path.join(elements.DATA_DIRECTORY, "belt_origins.json")
 """str: The data file: the causes and the sentence of each."""
@@ -268,7 +270,7 @@ def snow_line_bump(chain, star_mass_kg, formation_snow_line_au, taken):
 
 def destroyed_planet(mass_kg, distance_au, eccentricity=0.0):
     """The `Debris` of a planet of `mass_kg` the system's history destroyed at `distance_au`: `DESTROYED_RETAINED_SHARE` of its mass stays."""
-    return Debris("destroyed-planet", DESTROYED_RETAINED_SHARE * mass_kg / constants.EARTH_MASS_TO_KG, distance_au, eccentricity)
+    return Debris("destroyed-planet", _kg_to_mearth(DESTROYED_RETAINED_SHARE * mass_kg), distance_au, eccentricity)
 
 
 def collisional_debris_chance(age_yr):

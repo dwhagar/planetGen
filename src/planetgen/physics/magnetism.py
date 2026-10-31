@@ -57,6 +57,9 @@ from planetgen.physics import activity, constants, dynamo
 from planetgen.util import draw
 from planetgen.physics import unit_registry as units
 
+_kg_to_mearth = units.converter("kg", "Mearth")
+_kg_to_msun = units.converter("kg", "Msun")
+
 _h_to_s = units.converter("h", "s")
 _yr_to_s = units.converter("yr", "s")
 _km_to_m = units.converter("km", "m")
@@ -197,7 +200,7 @@ def generate_field(body):
     """Draws `magnetic_moment_a_m2` and `dipole_class` for a planet or moon
     (call once its rotation period is known), and its magnetopause when
     `update_exposure` has given its distance from the star."""
-    mass_earth = body.mass / constants.EARTH_MASS_TO_KG
+    mass_earth = _kg_to_mearth(body.mass)
     age_gy = getattr(body.star, "age", None) or 0.0
     if body.body_type == "g":
         moment = _giant_moment(mass_earth) * _log_normal(0.4)
@@ -295,7 +298,7 @@ def wind_pressure_pa(star, distance_au):
     l_x = 10 ** star.log_lx_lbol * star.luminosity
     radius_ratio = constants.SOLAR_RADIUS_M / _km_to_m(star.radius)
     surface_flux = (l_x / SOLAR_LX_W) * radius_ratio ** 2
-    mass_sol = star.mass / constants.SOLAR_MASS_TO_KG
+    mass_sol = _kg_to_msun(star.mass)
     cap = M_DWARF_WIND_CAP if mass_sol < M_DWARF_WIND_MASS else WIND_CAP_SOLAR
     return EARTH_WIND_PA * min(surface_flux ** 1.3, cap) / distance_au ** 2
 

@@ -628,7 +628,7 @@ def star_params(initial_mass_sol, age_gy, state):
     return {
         "type": star_type,
         "yerkes_class": yerkes,
-        "mass_kg": state["mass_sol"] * constants.SOLAR_MASS_TO_KG,
+        "mass_kg": _msun_to_kg(state["mass_sol"]),
         "radius_km": radius_km,
         "temperature_k": temperature,
         "luminosity_w": luminosity_w,
@@ -642,3 +642,5 @@ def star_params(initial_mass_sol, age_gy, state):
 
 # Last, because `pre_main_sequence` reads the main-sequence relations above.
 from planetgen.physics import pre_main_sequence  # noqa: E402
+
+_msun_to_kg = units.converter("Msun", "kg")

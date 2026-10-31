@@ -27,9 +27,11 @@ Everything is a pure function of the ejection record's numbers; the random numbe
 import math
 
 from planetgen import tuning
-from planetgen.physics import atmosphere_retention, bulk_structure, constants, delivered_water, envelope_escape, hydrosphere
+from planetgen.physics import atmosphere_retention, bulk_structure, constants, delivered_water, envelope_escape, hydrosphere, unit_registry as units
 from planetgen.util import draw
 from planetgen.util.checks import finite_domain
+
+_mearth_to_kg = units.converter("Mearth", "kg")
 
 HELD_AIR_VERDICTS = ("dense", "moderate", "tenuous")
 """tuple: The shoreline verdicts (`atmosphere_retention.verdict_of`) that count as a body having held an air of its own; `trace` and `none` are bare rock. Source tier T6, tweak level L0."""
@@ -66,7 +68,7 @@ def envelope_base_pressure_bar(mass_earth, radius_earth, envelope_earth):
     """The pressure at the bottom of a hydrogen envelope, bar: its weight on the surface, `G M M_env / (4 pi R^4)`."""
     if not mass_earth > 0.0 or not radius_earth > 0.0 or not envelope_earth >= 0.0:
         raise RogueVolatilesError("the mass and radius must be positive and the envelope not negative")
-    mass = mass_earth * constants.EARTH_MASS_TO_KG
+    mass = _mearth_to_kg(mass_earth)
     radius = radius_earth * constants.EARTH_RADIUS_KM * 1.0e3
     return constants.G * mass * envelope_earth * constants.EARTH_MASS_TO_KG / (4.0 * math.pi * radius ** 4) / _BAR_PA
 

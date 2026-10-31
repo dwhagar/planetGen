@@ -43,10 +43,12 @@ import math
 from datetime import datetime, timezone
 
 from planetgen.db import orbit_trees, query
-from planetgen.physics import body_state, constants, habitability, state_vectors
+from planetgen.physics import body_state, habitability, state_vectors
 from planetgen.web.maps.bodylook import comet_nucleus_color, planet_look, star_look
 from planetgen.web.maps.systemmap import finite_row, put_star_temperatures
 from planetgen.physics import unit_registry as units
+
+_kg_to_msun = units.converter("kg", "Msun")
 
 _au_to_km = units.converter("au", "km")
 
@@ -149,7 +151,7 @@ def _tree(conn, system_id, stars, row):
     for number, star in enumerate(sorted(stars, key=lambda s: s["id"])):
         parent, slot = places[star["id"]]["parent_node_id"], places[star["id"]]["slot"] or 0
         members.append({"ref": f"star:{star['id']}", "member_no": number, "parent_node_no": parent, "slot": slot,
-                        "mass_solar": star["mass_kg"] / constants.SOLAR_MASS_TO_KG})
+                        "mass_solar": _kg_to_msun(star["mass_kg"])})
     origin = members[0]["ref"] if row["binary_configuration"] == "wide" else None
     return {"nodes": [dataclasses.asdict(node) for node in nodes], "members": members, "origin": origin}
 

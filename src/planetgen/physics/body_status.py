@@ -32,7 +32,9 @@ Use:
 import math
 from dataclasses import dataclass
 
-from planetgen.physics import compaction, constants
+from planetgen.physics import compaction, constants, unit_registry as units
+
+_kg_to_mearth = units.converter("kg", "Mearth")
 
 PLANET = "planet"
 DWARF_PLANET = "dwarf planet"
@@ -130,13 +132,13 @@ def margot_clearing_mass_earth(a_au, star_mass_solar):
 
 def margot_pi(mass_kg, a_au, star_mass_solar):
     """Margot's Pi: the body's mass over `margot_clearing_mass_earth`; at least 1 is a planet."""
-    return mass_kg / constants.EARTH_MASS_TO_KG / margot_clearing_mass_earth(a_au, star_mass_solar)
+    return _kg_to_mearth(mass_kg) / margot_clearing_mass_earth(a_au, star_mass_solar)
 
 
 def stern_levison_lambda(mass_kg, a_au, star_mass_solar):
     """Stern and Levison's Lambda, `k (m / M*)^2 / P` with the mass in Earth masses, the star's in solar masses and the period in years; above 1 the body clears its orbit."""
     period_years = a_au ** 1.5 / math.sqrt(star_mass_solar)
-    return LAMBDA_K * (mass_kg / constants.EARTH_MASS_TO_KG / star_mass_solar) ** 2 / period_years
+    return LAMBDA_K * (_kg_to_mearth(mass_kg) / star_mass_solar) ** 2 / period_years
 
 
 def status(mass_kg, ice_fraction, a_au, star_mass_solar, others_kg, parent_is_planet=False):

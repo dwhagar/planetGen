@@ -92,6 +92,9 @@ from planetgen.physics.units import ly_to_pc, milliparsecs_to_ly, mpc_to_pc, pc_
 from planetgen.util import detmath
 from planetgen.physics import unit_registry as units
 
+_kg_to_msun = units.converter("kg", "Msun")
+_msun_to_kg = units.converter("Msun", "kg")
+
 _au_to_km = units.converter("au", "km")
 _m_to_ly = units.converter("m", "ly")
 _km_to_m = units.converter("km", "m")
@@ -3163,7 +3166,7 @@ def keep_out_radius(conn, kind, object_id):
         if body["galactic_radius_pc"] is None:
             return keepout.NO_KEEP_OUT  # never placed in the galaxy: nowhere to measure from
         return keepout.compact_keep_out(
-            body["mass_solar"] * constants.SOLAR_MASS_TO_KG, body["galactic_radius_pc"], body["radius_km"],
+            _msun_to_kg(body["mass_solar"]), body["galactic_radius_pc"], body["radius_km"],
             _enclosed_mass_kg(conn, body["galactic_radius_pc"]))
     if kind in ("quasar", "rogue_planet"):
         table = _PHENOMENON_TYPE_TO_TABLE[kind]
@@ -4961,7 +4964,7 @@ def _uncharted_item(row, edge_pc):
     local = galaxy_to_local_pc(sector_position_pc(*address, edge_pc), (x, y, z))
     return {
         "id": row["id"], "star_type": row["star_type"], "yerkes_class": row["yerkes_class"],
-        "population": row["population"], "mass_solar": row["mass_kg"] / constants.SOLAR_MASS_TO_KG,
+        "population": row["population"], "mass_solar": _kg_to_msun(row["mass_kg"]),
         "radius_solar": _radius_sol(row["radius_km"]), "temperature_k": row["temperature_k"],
         "luminosity_sol": row["luminosity_w"] / constants.SOLAR_LUMINOSITY, "age_gy": row["age_gy"],
         "shell_index": address[0], "band_index": address[1], "wedge_index": address[2],
