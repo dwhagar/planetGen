@@ -2382,7 +2382,7 @@ How the Bond albedo range of an ice-covered or ocean world follows the colour of
 | SAB2 | P | T6 | L1 | albedo_color.WET_SHARE 0.5: the share of the ocean row's shift the wet range (ocean under cloud) takes | 0.5 to 1 (clouds are grey, the sea is not) | ocean worlds | a cloud-resolving model of an M dwarf ocean planet's Bond albedo | the cloud albedo drawn before the temperature (GEN.414) | the ocean row of Shields et al. Table 2 is the surface under an Earth-like cloud deck; snow is the surface that loses most |
 | SAB3 | D | T3 | L0 | albedo_color.SPECTRAL_TEMPERATURES_K 3410, 5040, 5770, 6900: the effective temperatures of the M3V, K2V, G2V and F2V stars | the types' range (about 100 K) | any star | the temperatures of HD128167, HD22049 and AD Leo | the stars' own catalogue temperatures | main-sequence values of the types, recalled; the paper gives none |
 
-### 6.130 Stand-ins of the day-and-night state (GEN.1097)
+### 6.133 Stand-ins of the day-and-night state (GEN.1097)
 
 The two thresholds `physics/day_night.py` names a state by. The state of Earth, Mars, Venus, Mercury, Io, Uranus and the Sun is a test target, never an input.
 

@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 920 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 921 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -44,8 +44,8 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | T6 | 85 | 62 | 15 | 45 | 0 | 207 |
 | T7 | 27 | 8 | 8 | 8 | 0 | 51 |
 | T8 | 0 | 1 | 1 | 5 | 1 | 8 |
-| T9 | 14 | 14 | 4 | 42 | 19 | 93 |
-| All | 533 | 189 | 41 | 127 | 30 | 920 |
+| T9 | 15 | 14 | 4 | 42 | 19 | 94 |
+| All | 534 | 189 | 41 | 127 | 30 | 921 |
 
 ## How the labels were given
 
@@ -1516,6 +1516,12 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | BR1 | P | T1 | L2 | tuning.REFERENCE_BLACK_HOLE_DRAWS (0.55, 0.5): the uniform draws of the reference structure's solar and metal-free failed shares; 0.55 gives a solar share of 0.177 (0.175 before the lighter halo) and 1.02e8 black holes in 5e10 solar masses of stars, the low edge of the 1e8 to 1e9 older estimates | 0.50 to 0.70 (9.3e7 to 1.3e8 holes; 0.70 is Olejak et al. 2020's own 1.3e8 and moves the second moment of the perturbers by 13 percent) | the reference structure only; a galaxy with a seed draws its own | a published count of black holes in the Milky Way outside 1e8 to 1e9, or a failed share of the Milky Way's massive stars measured outside 0.15 to 0.30 | a failed-supernova share measured for the Milky Way's population (a gravitational-wave merger rate fitted to the Galaxy) in place of the draw | Olejak et al. 2020 (the count 1.3e8 and the older range 1e8 to 1e9 they list), as recorded in test_place_terms::test_the_black_hole_inputs_lie_inside_the_published_ranges; the halo and neutron star shares are GEN.1154's chain | - | - |
+
+## 6.133 Stand-ins of the day-and-night state
+
+| fill_id | kind | tier | tweak | constant | knobs | validity | falsifier | replaced_by | evidence | Not read yet (item) | Burn-down (GEN.946) |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| DN1 | P | T9 | L0 | day_night.NON_ROTATING_TURNS 0.01 and day_night.POLAR_CIRCLE_MAX_DEG 30: a body that turns less than a hundredth of a turn in an orbit is non-rotating (the star goes round once a year), and a body whose polar circle is within 30 degrees of the equator has half its surface or more in the polar zone (the area beyond latitude L is 1 - sin L) | turns 0.001 to 0.1; circle 15 to 45 degrees | planets and moons with a stored spin | a body the generator makes with a turn count under 0.01 that has a day the page calls a year, or a body at 60 degrees tilt shown as an ordinary cycle | a word chosen from the length of the solar day and the polar zone's area on the page | needed output (words for the day and night state) | - | - |
 
 ## 6.95 Stand-ins of the belt sources
 
