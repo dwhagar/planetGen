@@ -212,7 +212,7 @@ connectivity to that specific schema rather than the default one.
   `sort=name` list at the first name from it on; `past_end` is true when none lies at or past it and the last page is
   answered). Answers `items`
   (`kind`, `id` the printed object ID, `source_id`, `name`, `sector_id`, `system_id`, `parent_id`, `object_class`,
-  `mass_kg`, `radius_km`, `placed`; a planet's or moon's also `phi4` and the six `tier_<domain>` PHI-6 ratings, 0 Blue to 3 Red, `null` for a body that was not scored, UX.100), `next` (null at the last page), `total` and `total_capped`, `limit`. The index is
+  `mass_kg`, `radius_km`, `placed`; a planet's or moon's also `phi4` and the six `tier_<domain>` PHI-6 ratings, 0 Blue to 3 Red, `null` for a body that was not scored, UX.100; a star's also `temperature_k`, `luminosity_w` and `age_gy`, a planet's or moon's `distance_km` (its orbit size), `eccentricity` and `surface_temperature_k`, as stored, `null` where the row holds none, UX.187), `next` (null at the last page), `total` and `total_capped`, `limit`. The index is
   what `planetgen warm object-index` last wrote, so a kind it has not been built for lists nothing. 400 for an unknown
   kind, sort or order, a `limit` or `sector_id` that is not a number, a `from` under another sort, or an `after` that is not an object ID
   (`objectlist.list_objects`).
