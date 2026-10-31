@@ -132,13 +132,13 @@ def life_class_view(row):
     living = row.get("life_class_id")
     view = {"supports": None, "also": [], "has": None, "words": None}
     if best and best_score:
-        view["supports"] = f"Supports Class {best} life ({_short_name(best)}), score {best_score} of {LIFE_SCORE_MAX}."
+        view["supports"] = f"Best suited to Class {best} life ({_short_name(best)}), suitability {best_score} of {LIFE_SCORE_MAX}."
     others = sorted(((class_id, score) for class_id, score in scores.items() if class_id != best), key=lambda pair: (-pair[1], pair[0]))
-    view["also"] = [f"Class {class_id} ({_short_name(class_id)}, {score} of {LIFE_SCORE_MAX})" for class_id, score in others]
+    view["also"] = [f"Class {class_id} ({_short_name(class_id)}, suitability {score} of {LIFE_SCORE_MAX})" for class_id, score in others]
     stage = row.get("life_stage")
     if living and stage:
         grade = int(row.get("life_animal_grade") or 0) if stage == "multicellularity" else 0
-        text = f"Has Class {living} life, at the stage of {evolution.stage_name(stage, living, grade).lower()}"
+        text = f"Life here is Class {living}, at the stage of {evolution.stage_name(stage, living, grade).lower()}"
         view["has"] = text + (f" (animal grade {life_class_text.GRADES[min(grade, 3) - 1]})." if grade else ".")
     shown = living or best
     if shown and shown in life_classes.BY_ID:

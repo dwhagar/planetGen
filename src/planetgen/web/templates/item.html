@@ -110,7 +110,7 @@
   <h3 id="life-paragraph-heading">Life</h3>
   {%- if planet.life_class %}
   {%- if planet.life_class.supports %}<p class="life-supports">{{ planet.life_class.supports }}</p>{% endif %}
-  {%- if planet.life_class.also %}<p class="life-also">Also supports {{ planet.life_class.also|join(", ") }}.</p>{% endif %}
+  {%- if planet.life_class.also %}<p class="life-also">Also suited to {{ planet.life_class.also|join(", ") }}.</p>{% endif %}
   {%- if planet.life_class.has %}<p class="life-has">{{ planet.life_class.has }}</p>{% endif %}
   {%- endif %}
   {%- if planet.life %}<div class="prose">{{ planet.life }}</div>{% endif %}
