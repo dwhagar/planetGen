@@ -191,6 +191,17 @@ The gas ledger of section 4 is `physics/data/life_ledger.json`, read by `physics
 - **Redone from the new air.** The haze (`aerosols`), the ultraviolet shield and dose (`radiation`), the colour and the habitability score are generated again from the air the life left. The stored surface temperature follows the new greenhouse (`biogenic_oxygen.store_air`).
 - **Not modelled.** The cooling of the ground by the haze, the hydrosphere of a world the new air moves across the freezing point (its stored state of water stays, as after the oxygen), the sulfate, sulfur and silica the sulfur and acid classes leave in the water and rock, and the acetylene of Class 7.
 
+### 6.5 As built: the air of the whole mix of living classes (GEN.1213)
+
+The air is the sum of the classes that live on a body, not the work of one class. `physics/life_air.Living` is a class with its share of the body's food production (the shares add up to 1; a body with one class gives it all of it) and the age its producers began. `generation/life._living_of` lists them (one today; GEN.1209 adds the rest), and `apply_gases`, `oxygen_state` and `air_history` read the list:
+
+- **Oxygen.** The source `S` of `biogenic_oxygen` goes with the summed share of the oxygenic classes begun. Each class's producers start at their own age, so the surplus `S - R` that fills the store `B` is piecewise (`biogenic_oxygen.rise_age_gyr`): the oxygen rises when the area under the surplus reaches `B`. One class gives its start plus `B / (S - R)`, the old delay. After the rise the air holds the balance of the summed source and the sinks.
+- **The store holds the methane.** The first oxygen goes to the reduced things in the world, and that includes the methane the classes before the rise hold in the oxygen-free air (`standing_methane_mol`, their summed flux over the life of methane, two moles of oxygen to a mole of methane). This was missing for a single oxygenic class too: its own methane before the rise did not count. At a 30,000 year methane life it is a few parts in 1e4 of the store, so the rise moves by that much for one class; it matters more for several.
+- **Methane.** The flux of each class times its share, summed before the air is read, so the carbon they all draw on is counted once and the cap (3.5 percent of the molecules, 10 percent of the carbon left) holds for the sum. A class whose producers have not begun at the star's age adds none.
+- **Hydrogen and hydrogen sulfide.** The classes draw them down in turn, each meeting the air the ones before it left; the cap is the same.
+- **The chart.** `air_history` steps at the age each class begins and at the rise, and the API's `life_air` has a `classes` list (`life_class`, `variant`, `share`, `producers_gyr`).
+- **Not yet.** Several classes on one body (GEN.1209, PR B); the produced gases of a class that comes after the rise meet an air that already burns reduced gases (nothing reduced stays).
+
 ---
 
 ## 7. How life is limited without a ban

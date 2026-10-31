@@ -18,7 +18,7 @@ from tests.test_api import client  # noqa: F401
 def _living_planet_system(mysql_config, monkeypatch):
     """Saves a system whose first airy rocky planet has Class 1a life that made methane, then oxygen; returns `(system_id, planet row id)`."""
     monkeypatch.setattr(life_air, "methane_flux_mol_yr", lambda body, life_class, supplies=None: 1.0e12)
-    monkeypatch.setattr(bo, "profile_of", lambda body: bo.Profile(1.0, 0.0, 1.0, 1.0, 1.0, 0.3))
+    monkeypatch.setattr(bo, "profile_of", lambda body, *args: bo.Profile(1.0, 0.0, 0.3e9, 1.0, 1.0, 0.3))
     for _ in range(40):
         config = SystemConfig()
         config.PLANETS = True
