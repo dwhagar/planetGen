@@ -427,7 +427,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | function | planetgen.physics.state_vectors.state_from_equinoctial | GEN.105 | the inverse of `equinoctial_from_state`, the update's propagated state |
 | function | planetgen.physics.state_vectors.mean_anomaly_from_true | GEN.105 | the mean anomaly of an orbit the update reads from a state vector |
 | function | planetgen.physics.stellar_abundances.branch_probabilities | by design | the branch table probabilities for a test or a report, read by test_stellar_abundances |
-| function | planetgen.physics.stellar_composition.star_makeup | UX.254 | the star page shows the chemistry from stored values (UX.254); until then the composition tests read it |
 | function | planetgen.physics.stellar_spectrum.band_flux_w_m2 | by design | the band sum of a spectrum, read by test_stellar_spectrum and test_uv_shares_wiring to check the UV shares |
 | function | planetgen.physics.surface_dose.share_past_cutoffs | GEN.444 | the shielding of the surface dose from the column and its composition (the spectrum past the cutoffs); radiation.py still uses the single attenuation length |
 | function | planetgen.physics.surface_dose.effective_air_column_g_cm2 | GEN.444 | the effective stopping column of a mixed air, for the shielding of GEN.444 |
