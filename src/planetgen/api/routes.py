@@ -695,7 +695,7 @@ def _life_air(table, body_id):
         body = next((b for b in bodies if getattr(b, "db_id", None) == body_id and (b.is_moon == (table == "moons"))), None)
         if body is not None:
             ages = dict(zip(evolution.MILESTONE_KEYS, (getattr(body, field, None) for field in evolution.SCHEDULE_FIELDS)))
-            history = life_air.air_history(body, life_classes.BY_ID[class_id], ages)
+            history = life_air.air_history(body, [life_air.Living(life_classes.BY_ID[class_id], 1.0, ages.get("photosynthesis"))], ages)
     return jsonify({"id": ids.printed(conn, table[:-1], body_id), "life_class_id": class_id, "life_air": history})
 
 
@@ -705,8 +705,9 @@ def planet_life_air(planet_id):
     `GET /api/planets/<id>/life-air` -- the Life and air chart's data (UX.237, `physics.life_air.air_history`): the planet's air through the
     age of its star as far as the life class that lives on it changed it, worked out from the stored air on request and stored nowhere. `{"id",
     "life_class_id", "life_air"}`; `life_air` is `null` for a world with no living class, a giant, or an air the life did not change.
-    Otherwise it has `age_gyr` (the star's age, Gyr), `producers_gyr` and `rose_gyr` (the ages the producers began and the oxygen rose,
-    Gyr, the latter `null` for a class that makes none), `gases` (`{"formula", "name", "steps": [[age_gyr, partial_pressure_kpa], ...]}`, each
+    Otherwise it has `age_gyr` (the star's age, Gyr), `producers_gyr` and `rose_gyr` (the ages the first producers began and the oxygen rose,
+    Gyr, the latter `null` when no class makes any), `classes` (`{"life_class", "variant", "share", "producers_gyr"}` for each class whose life
+    the air sums, with its share of the food production), `gases` (`{"formula", "name", "steps": [[age_gyr, partial_pressure_kpa], ...]}`, each
     value holding until the next age), `stages` (`{"key", "age_gyr"}` for each milestone the schedule reaches) and `speculative` (the
     ledger's `{"tier", "tweak"}` for a class whose numbers are tuned, else `null`).
     """

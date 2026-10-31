@@ -81,10 +81,10 @@ def test_the_fire_limit_is_the_share_of_the_molecules_the_mixture_allows():
     assert limit / (limit + 100.0) == pytest.approx(mixture_oxygen.BIOTIC_O2_MAX)
 
 
-def test_the_oxygen_comes_after_the_delay_and_not_before():
-    profile = bo.Profile(2.0, 1.0, 5.0, 3.0, 2.0e4, 4.0)
-    assert bo.oxygen_mol(profile, 3.99) == 0.0 and bo.oxygen_mol(profile, 4.0) == 3.0
-    assert bo.oxygen_mol(bo.NONE, 100.0) == 0.0
+def test_the_oxygen_rises_after_the_delay_and_not_before(monkeypatch):
+    monkeypatch.setattr(bo, "profile_of", lambda body, share=1.0, extra_store_mol=0.0: bo.Profile(2.0 * share, 1.0, 4.0e9 + extra_store_mol, 3.0, 2.0e4, 4.0))
+    assert bo.rise_age_gyr(None, [(0.5, 1.0)]) == pytest.approx(4.5)
+    assert bo.rise_age_gyr(None, []) is None
 
 
 def test_a_world_without_a_sunlit_sea_makes_no_oxygen(worlds):

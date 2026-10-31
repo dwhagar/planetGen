@@ -229,16 +229,20 @@ def partials_pa(body, moles):
     return {formula: amount / column * total for formula, amount in moles.items() if amount > 0.0}
 
 
-def profile_of(body):
-    """The `Profile` of a rocky body (`NONE` for a giant, or a body missing the radius, gravity or air to read)."""
+def profile_of(body, share=1.0, extra_store_mol=0.0):
+    """
+    The `Profile` of a rocky body (`NONE` for a giant, or a body missing the radius, gravity or air to read). `share` is the part of the body's food
+    production that oxygenic life carries (GEN.1213: the classes of a body share its production, so the source `S` goes with their summed share);
+    `extra_store_mol` is the oxygen, mol, that other reduced things the life made (the methane of the classes before the rise) take first, which adds to the store.
+    """
     radius_km, gravity = getattr(body, "radius", None), getattr(body, "gravity", None)
     if getattr(body, "body_type", "t") == "g" or not radius_km or not gravity:
         return NONE
     area = area_m2(body)
     moles = air_moles(body)
     burnt, taken = burn(moles)
-    source, reductant = productivity(body, area), reductant_flux(body, area)
-    store = EARTH_STORE_MOL * (area / EARTH_AREA_M2) * redox_factor(getattr(body, "mantle_delta_iw", None)) + taken
+    source, reductant = productivity(body, area) * share, reductant_flux(body, area)
+    store = EARTH_STORE_MOL * (area / EARTH_AREA_M2) * redox_factor(getattr(body, "mantle_delta_iw", None)) + taken + extra_store_mol
     surplus = source - reductant
     if surplus <= 0.0 or not burnt:
         return Profile(source, reductant, store, 0.0, 0.0, None)
@@ -249,11 +253,32 @@ def profile_of(body):
     return Profile(source, reductant, store, steady, pascal, store / surplus / 1e9)
 
 
-def oxygen_mol(profile, gyr_since_photosynthesis):
-    """The oxygen, mol, that photosynthesis `gyr_since_photosynthesis` old has built: the steady amount once the store is spent, 0 before."""
-    if profile.delay_gyr is None or gyr_since_photosynthesis < profile.delay_gyr:
-        return 0.0
-    return profile.steady_mol
+def rise_age_gyr(body, starts, extra_store_mol=0.0):
+    """
+    The age, Gyr, at which the oxygen of several oxygenic classes first rises on `body` (GEN.1213), or `None` when it never does. `starts` is a list of
+    `(age_gyr, share)`: each class's producers begin at its age and carry its share of the food production. The surplus `S - R` of the producers there
+    are fills the store `B` (the first oxygen goes to the reduced things there), `S` going with the summed share of the classes begun; the oxygen rises
+    when it is full. One class gives `age + profile_of(body).delay_gyr`, the single-class result.
+    """
+    starts = sorted((age, share) for age, share in starts if age is not None and share > 0.0)
+    if not starts:
+        return None
+    full = profile_of(body, 1.0, extra_store_mol)
+    if full.source_mol_yr <= 0.0:
+        return None
+    filled = 0.0
+    carried = 0.0
+    for index, (age, share) in enumerate(starts):
+        carried += share
+        surplus = full.source_mol_yr * carried - full.reductant_mol_yr
+        end = starts[index + 1][0] if index + 1 < len(starts) else None
+        if surplus <= 0.0:
+            continue
+        need = full.store_mol - filled
+        if end is None or surplus * (end - age) * 1e9 >= need:
+            return age + need / surplus / 1e9
+        filled += surplus * (end - age) * 1e9
+    return None
 
 
 def apply(body, target_mol):

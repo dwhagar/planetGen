@@ -182,16 +182,23 @@ def _draw_schedule(planet, row):
     _set_schedule(planet, ages, life_timeline.pace_of(factor))
 
 
+def _living_of(planet, row):
+    """The classes that live on `planet` as the air reads them (GEN.1213): `life_air.Living` for each, with its share of the food production. One class
+    has the whole of it."""
+    return [life_air.Living(row, 1.0)]
+
+
 def _build_air(planet, row):
     """
-    Gives the air what the life of `planet` has put into it by its star's age: the oxygen of a class that splits water (GEN.855) and the
-    rest of the class's ledger, the methane and the hydrogen drawdown (`physics.life_air`, GEN.857, GEN.858, GEN.859). When either changes the air,
-    everything that reads it is made again once (`_rebuild`).
+    Gives the air what the life of `planet` has put into it by its star's age, summed over the classes that live there (GEN.1213): the oxygen of the
+    classes that split water (GEN.855) and the rest of their ledgers, the methane and the hydrogen drawdown (`physics.life_air`, GEN.857, GEN.858,
+    GEN.859). When either changes the air, everything that reads it is made again once (`_rebuild`).
     """
     if planet.body_type == "g":
         return
-    rose = _build_oxygen(planet, row)
-    changed = life_air.apply_gases(planet, row, rose)
+    living = _living_of(planet, row)
+    rose = _build_oxygen(planet, living)
+    changed = life_air.apply_gases(planet, living, rose)
     if rose or changed:
         _rebuild(planet)
     if changed:
@@ -199,24 +206,17 @@ def _build_air(planet, row):
                    f"class {row.id}: methane and hydrogen of the ledger at the star's age")
 
 
-def _build_oxygen(planet, row):
+def _build_oxygen(planet, living):
     """
-    Gives the air the oxygen the life of `planet` has made by its star's age (GEN.855), when its class splits water, its photosynthesis
-    is old enough for the delay (`biogenic_oxygen.Profile.delay_gyr`) and the air holds less than the world's balance of source and
-    sinks: the air takes that. An air that already holds the oxygen is left as it is. Returns whether the air took oxygen (the rise
-    has happened: it burned the reduced gases, the methane among them).
+    Gives the air the oxygen the life of `planet` has made by its star's age (GEN.855, GEN.1213), when a class that splits water has
+    producers old enough for the rise (`life_air.oxygen_state`: the delay the summed source of the oxygenic classes takes to fill the store, which holds
+    the methane the earlier classes made) and the air holds less than the world's balance of source and sinks: the air takes that. An air that already
+    holds the oxygen is left as it is. Returns whether the air took oxygen (the rise has happened: it burned the reduced gases, the methane among them).
     """
-    if not row.releases_oxygen:
+    rise, target = life_air.oxygen_state(planet, living)
+    if rise is None or not biogenic_oxygen.apply(planet, target):
         return False
-    photosynthesis_age = getattr(planet, evolution.SCHEDULE_FIELDS[1], None)
-    if photosynthesis_age is None:
-        return False
-    profile = biogenic_oxygen.profile_of(planet)
-    target = biogenic_oxygen.oxygen_mol(profile, planet.star.age - photosynthesis_age)
-    if not biogenic_oxygen.apply(planet, target):
-        return False
-    log.choice("Biogenic oxygen", f"{atmosphere.partial_kpa(planet, 'o2'):.2f} kPa", f"oxygenic photosynthesis {planet.star.age - photosynthesis_age:.2f} Gyr old, "
-               f"delay {profile.delay_gyr:.2f} Gyr")
+    log.choice("Biogenic oxygen", f"{atmosphere.partial_kpa(planet, 'o2'):.2f} kPa", f"oxygenic photosynthesis from the first producers; the oxygen rose at {rise:.2f} Gyr")
     return True
 
 
