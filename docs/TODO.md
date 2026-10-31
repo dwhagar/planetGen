@@ -10293,27 +10293,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.1130); the forcing ladder is removed by GEN.1130. Do not build
   further steps of the ladder.
 
-- [ ] **GEN.660 The complex_organics row of the materials table has a density of 1.5 g/cm3 while Choukroun 2020, used by the comet draw, has about 2 g/cm3 (bug)**
-  Found by Habitability lane K (relayed 8:21 PM EDT 2026-10-23 as the
-  lane reported, reports/lane-k-contracts-2026-10-23.md); filed by the
-  TODO thread. Reproducer: compare the complex_organics row of the
-  materials table with the Choukroun 2020 value the comet draw reads.
-  Kind: bug (two sources disagree). Do: reconcile the two under the
-  standing source rules (verified wins; two verified in doubt = newest;
-  two in question = widest range), by the data owner of GEN.427, with
-  the chosen value and its source recorded in the materials table and
-  DATA-LICENSE.md only if a licence applies. Done: one density for
-  complex organics in the table and the comet draw reading it. Owner:
-  Blocker 3 data owner of GEN.427 (finished lane; the TODO thread
-  proposes lane K, which found it, takes it).
-  Owner (2026-10-09): Boss 1:45 AM EDT 2026-10-25: idle or blocked lanes
-  take one-off 8.1 items. Owner: Aux 1 (class lane) takes it while
-  GEN.646 waits on 4c; a small table fix.
-  Owner (housekeeping) (2026-10-30 2:55 PM EDT): released to the pool:
-  the owner named above (Aux 1) is a retired lane. A waiting lane takes
-  it, confirmed with TODO, one lock-free item at a time.
-  Prerequisites: none. Related: GEN.427, GEN.442.
-
 - [ ] **GEN.669 Residuals of the generator laws after GEN.450 and GEN.270: the star-formation profile shares and the Algol rate against their observed windows**
   Finding of Core 4 (10:20 PM EDT 2026-10-23 as the lane reported), left
   open on purpose. (1) GEN.450 (merged as #2776, epoch 64): the radial
