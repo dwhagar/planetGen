@@ -241,7 +241,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | row | 6.107:IF23 | GEN.1103 | `field_composition.CORE_LEAK_SHARE`, read when the field generation lands |
 | row | 6.107:IF24 | GEN.1103 | `field_composition.MANTLE_ROWS, CORE_ROW`, read when the field generation lands |
 | module | planetgen.physics.topup_field | GEN.1120 | the light top-up asteroid fields of the remainder the Rogues level leaves unmatched (lock-free, GEN.1126); the region run's stage 3 calls `plan` with `rogue_topup.TopUp.remainder_kg`, and the field items (GEN.1103 to GEN.1107) store and retire what it returns |
-| row | 6.108:TF1 | GEN.1120 | `topup_field.ORIGIN`, read when the region run wires stage 3 |
 | row | 6.108:TF2 | GEN.1120 | `topup_field.LARGEST_BODY_MASS_KG, BULK_DENSITY_KG_M3`, read when the region run wires stage 3 |
 | row | 6.108:TF3 | GEN.1120 | `topup_field.SPEED_KM_S_RANGE, MIN_RADIUS_LY`, read when the region run wires stage 3 |
 | row | 6.108:TF4 | GEN.1120 | `topup_field.MIN_FIELD_MASS_KG, MAX_FIELD_MASS_KG, MAX_FIELDS`, read when the region run wires stage 3 |
