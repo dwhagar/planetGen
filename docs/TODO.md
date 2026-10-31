@@ -14953,7 +14953,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Star 2, train 9.
   Prerequisites: none. Related: GEN.1024, PERF.218.
 
-- [ ] **PERF.225 The galaxy shape's cluster field is kept across processes, so a fresh web daemon reads it instead of rebuilding it in about 56 seconds**
+- [ ] **PERF.225 The galaxy shape's cluster field is kept in a file across processes, so a fresh web daemon reads it instead of rebuilding it in about 56 seconds**
   Boss (2026-10-31, 5:47 PM EDT, the memory and request-timeout thread
   on hal; PR #4626 added the refuse-while-rebuilding guard and left this
   open): `GET /api/galaxy/shape` took 56 to 65 s on a cold web daemon,
@@ -14965,19 +14965,24 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the build while a rebuild is flagged. Do: keep the built field across
   processes under the same signature the in-process cache already uses
   (database, row count, first and last id, mass sum, edge and expected
-  count), read first from Redis (recommended: no migration, so it is
-  lock-free; the entry is rebuilt on a miss and replaced when the
-  signature changes, and a Redis that is down falls back to building in
-  process), or from a table only if Redis cannot hold it (a table needs
-  a migration and rides a train). Also warm it at the end of a
-  generation run and in `planetgen warm`, so the first visitor never
-  builds it. Done: a test that a second process (a fresh interpreter)
-  reads the field without building it, that a changed
-  `galaxy_components` table gets a new entry, and that a Redis outage
+  count), read first from a file in the state folder
+  (`settings.state_dir()`, as the preview-card cache does), named by
+  that signature and written atomically. A file survives a Redis flush
+  or restart, takes none of Redis's memory (a run already ran out of it
+  under noeviction), and needs no migration, so it is lock-free. The
+  `planetgen warm` process builds and writes it, and a generation run
+  rebuilds it once at its end, so a fresh daemon only reads it (the
+  cache-refusal thread's recommendation, 5:52 PM EDT 2026-10-31). A file
+  of another signature is ignored and replaced, a file that is missing
+  or cannot be read falls back to building in process, and old files are
+  removed. Redis is not the store; a table only if a file cannot hold it
+  (a table needs a migration and rides a train). Done: a test that a
+  second process (a fresh interpreter) reads the field from the file
+  without building it, that a changed `galaxy_components` table gets a
+  new file and drops the old one, and that a missing or damaged file
   still returns the field; a measured cold `GET /api/galaxy/shape` under
   5 s on a populated database. Lock-free, no epoch, generation output
-  unchanged (the Redis route). Owner: Core 1 (waiting lane; knows the
-  store). Version 8.1.
+  unchanged. Owner: Core 1 (waiting lane; knows the store). Version 8.1.
   Prerequisites: none. Related: PERF.219, PERF.220.
 
 ## DB: Database and schema
