@@ -12430,22 +12430,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   train. Owner: Star 2 (after GEN.744 part A merges).
   Prerequisites: GEN.944. Related: GEN.944, GEN.744, GEN.405.
 
-- [ ] **GEN.1026 Carbon star and S star flags on the star sheet from the thermal-pulse and dredge-up count of the post-main-sequence track**
-  Split from GEN.944 by Star 2 (relayed 2:33 PM EDT 2026-10-30 as the
-  lane reported). The variability flags (Cepheid, Mira and semiregular,
-  T Tauri, Herbig Ae/Be) are in draft PR #4082; carbon stars and S stars
-  need the thermal-pulse count and the third dredge-up from the
-  post-main-sequence track (the carbon-star abundances already exist in
-  the composition code). Do: count the thermal pulses and dredge-up on
-  the asymptotic giant branch track, derive the carbon-to-oxygen ratio
-  from it, and flag a star with C/O above 1 as a carbon star and one
-  near 1 with s-process enhancement as an S star, as a derived row on
-  the star sheet. Done: the flags follow from the track and the
-  composition, with a test over a mass and metallicity sweep, and the
-  stand-ins are registered in GEN.725 with tier and tweak level. Owner:
-  Star 2 (after GEN.944 flags merge).
-  Prerequisites: GEN.944. Related: GEN.944, GEN.725.
-
 - [ ] **GEN.1027 Ap and Am stars: a chemically peculiar branch of the A-star draw with rotation and magnetic field**
   Split from GEN.944 by Star 2 (relayed 2:33 PM EDT 2026-10-30 as the
   lane reported). Ap and Am stars need a chemically peculiar branch with
@@ -13929,6 +13913,60 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the satellite row. Lock work (stored remnants change). Prerequisites:
   GEN.1191. Owner: Aux 4 (proposed).
   Prerequisites: GEN.1191.
+
+- [ ] **GEN.1199 A small moon of a giant carries a hydrogen air and is called class T: can a 0.1 Earth-mass moon keep a hydrogen air at all?**
+  Finding from Core 4's train 6 class check (as the lane reported, 4:31
+  AM EDT 2026-10-31), filed by the TODO thread (its pointer to GEN.822
+  was a different, finished item). Kind: generation result against
+  physics. Object: the moon of a giant planet. Result: a 0.1 Earth-mass
+  moon of a 300 Earth-mass giant is drawn with a hydrogen air and class
+  T. Question: whether a body that small can keep a hydrogen air at all.
+  Mass loss should decide (escape of hydrogen from a small warm body
+  over its age, with the giant's tidal heating and the star's light),
+  not the class line. Do: check the air a small moon is given against
+  the escape-loss model (GEN.738 hydro_based_mass_loss, already wired to
+  sub-Neptune envelopes by GEN.822), say what mass and temperature a
+  moon needs to hold a hydrogen air over its age, and either remove the
+  air (and so the class) or keep it with the physics that holds it; a
+  stand-in goes in GEN.725 with tier and tweak level. Lock work if the
+  stored air changes. Owner: Core 4 (proposed).
+  Prerequisites: none.
+
+- [ ] **GEN.1200 The galactic-centre ring inflow of the generator is 0.044 solar masses per year against the measured 0.07**
+  Finding from Core 3's GEN.1195 build (as the lane reported, 4:34 AM
+  EDT 2026-10-31), filed by the TODO thread. Kind: generation result
+  against observation. Object: the Milky Way shaped barred galaxy's
+  central molecular zone ring inflow (core gas module). Result:
+  test_core_gas Milky Way ring inflow reads 0.50 of the 0.8 target; the
+  generator's ring rate is 0.044 solar masses per year against the
+  measured 0.07. The ring's gas surface density (stand-in CMX4 of
+  GEN.1195) is the inflow times 50 Myr over the ring area and the
+  maximum cluster mass goes as its cube, so this rate matters for the
+  cluster maximum mass. Do: find the source of the 0.07 figure and the
+  inflow law, say why the generator's rate is low (law, bar torque or
+  ring area), and fix the law or document the stand-in in GEN.725 with
+  tier and tweak level; the Milky Way figure is the plausibility target,
+  never fixed content. Lock work (stored gas and clusters change); rides
+  after GEN.1195. Prerequisites: GEN.1195. Owner: Core 3 (proposed).
+  Prerequisites: GEN.1195.
+
+- [ ] **GEN.1201 A per-body shape-setting temperature: the roundness engine uses the temperature a body took its shape at, but no body stores one, so strength is the cold strength today**
+  Finding from Aux 5's GEN.1159 build (as the lane reported, 4:46 AM EDT
+  2026-10-31), filed by the TODO thread. Kind: missing input. Object:
+  the roundness and binding-energy engine (physics/roundness.py, wired
+  by GEN.1159). Result: the engine's strength depends on the temperature
+  at which a body took its shape (ice and rock creep strength fall with
+  temperature, RN11 ROCK_CREEP_COLUMNS), but no body stores such a
+  temperature, so the strength used today is the cold strength. Do:
+  define the shape-setting temperature per body kind from the body's own
+  thermal history (accretion heat, tidal heat, radiogenic heat, the
+  star's light at the time it solidified), compute it with a pure module
+  from stored values where possible, wire it into the engine, and
+  register any stand-in in GEN.725 with tier and tweak level; the census
+  must show the round boundary against the measured Solar System one
+  only as a plausibility target, never fixed content. Lock work (stored
+  roundness and strength change); rides the GEN.1159 window.
+  Prerequisites: GEN.1159.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -18608,6 +18646,35 @@ clears each one.
   guess, can move): Core 1 (reproducible galaxies), after the region run
   command.
   Prerequisites: none. Related: GEN.1118.
+
+- [ ] **TEST.511 test_every_column_is_on_the_sheet_or_says_why_it_is_not is red on main for belt and asteroid_field: chondrite_group (GEN.475) is neither on the sheet nor excused**
+  Found by Aux 5 and Star 2 (as the lanes reported, 4:46 AM EDT
+  2026-10-31), filed by the TODO thread. Kind: red test on main. Object:
+  tests/test_property_sheet.py::test_every_column_is_on_the_sheet_or_says_why_it_is_not[belt]
+  and [asteroid_field]. Result: the column chondrite_group (GEN.475,
+  meteorite groups as outputs) is stored but not on the property sheet
+  and has no stated reason for being absent. Do: put the column on the
+  sheet (a Meteorite group row for belts and fields) or add its reason
+  to the sheet's own not-shown list, as the other columns do, and do not
+  loosen the test. Lock-free (a sheet row, nothing stored). Done: both
+  parametrised cases green on main. Owner: Core 5 (proposed).
+  Prerequisites: none.
+
+- [ ] **TEST.512 test_rogue_planet_parity::test_the_gap_between_a_rogue_and_a_bound_planet_never_grows is red on main**
+  Found by Aux 5 (as the lane reported, 4:46 AM EDT 2026-10-31), filed
+  by the TODO thread. Kind: red test on main. Object:
+  tests/test_rogue_planet_parity.py::test_the_gap_between_a_rogue_and_a_bound_planet_never_grows.
+  Result: red on clean main, cause not yet read (the rogue and bound
+  planet generators have moved apart since the parity test was written,
+  probably by GEN.1133 and GEN.1119 or the GEN.1135 class epoch). Do:
+  find the change that opened the gap, say whether the gap is physics (a
+  rogue has no star, so a difference is expected and the test's allowed
+  gap must be restated) or a bug in the rogue path (a rogue must use the
+  same generator as an in-system planet and moon, only with a rogue note
+  and no star: Boss rule), and fix the code or restate the test with the
+  reason; never loosen it without the reason. Lock-free unless output
+  changes. Owner: Planets 1 (proposed).
+  Prerequisites: none.
 
 ## USR: User accounts
 
