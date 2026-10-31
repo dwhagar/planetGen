@@ -228,6 +228,8 @@ _BODY_GROUPS = (
            ("ocean_depth_km", "Ocean depth"), ("ice_shell_km", "Ice shell thickness"),
            ("surface_liquid", "Surface liquid", TEXT), ("surface_liquid_fraction", "Surface under that liquid"),
            ("surface_liquid_depth_km", "Depth of that liquid"),
+           ("surface_liquid_acid_wt", "Sulfuric acid strength (liquid acid)"), ("surface_liquid_acid_layer", "Where the liquid acid is", TEXT),
+           ("surface_liquid_ammonia_wt", "Ammonia in the ocean (share of the liquid)"),
            ("hp_ice_km", "High-pressure ice thickness"), ("ocean_class", "Ocean chemistry", TEXT),
            ("ocean_ph", "Ocean pH"), ("water_activity", "Water activity"),
            ("water_base_pressure_pa", "Pressure at the bottom of the water layer"),
@@ -755,7 +757,7 @@ _GIANT_ONLY = ("interior_kind", "core_mass_earth", "dilute_core_mass_earth", "me
 _MEAN_SWING = ("temp_mean_swing_k",)
 _SURFACE = (
     "hydrosphere", "ocean_fraction", "land_fraction", "ocean_depth_km", "ocean_class", "ocean_ph", "water_activity",
-    "water_base_pressure_pa", "ice_shell_km", "hp_ice_km", "surface_liquid", "surface_liquid_fraction", "surface_liquid_depth_km", "ocean_liquid", "tide_range_spring_m", "tide_range_neap_m",
+    "water_base_pressure_pa", "ice_shell_km", "hp_ice_km", "surface_liquid", "surface_liquid_fraction", "surface_liquid_depth_km", *surface_liquid_world.SOLUTE_FIELDS, "ocean_liquid", "tide_range_spring_m", "tide_range_neap_m",
     "mantle_redox", "mantle_delta_iw", "rock_feo_fraction", "rock_al2o3_fraction", "rock_mg_si_ratio",
     "ozone_column_du", "ozone_loss_flag", "surface_dose_msv_yr", "dose_gcr_msv_yr", "dose_sep_msv_yr",
     "dose_ground_msv_yr", "dose_belt_msv_yr", "dose_helio_mult", "uv_surface_index", "shelter_column_g_cm2", "outside_hours", "outside_hours_day", "outside_hours_limit",
@@ -828,6 +830,10 @@ _BODY_RULES = [
      "a ring has an age only when a moon that fell or a comet that passed made it; the narrow ring of a small body's spin-orbit resonance has none"),
     (_SURFACE_LIQUID_COLUMNS, lambda klass, row: row is None or any(row.get(key) is not None for key in _SURFACE_LIQUID_COLUMNS),
      "only a body with a liquid at its surface (an ocean, a lava sea, a sea of a volatile) stores one; a dry, frozen or airless body has none"),
+    (("surface_liquid_acid_wt", "surface_liquid_acid_layer"), lambda klass, row: row is None or row.get("surface_liquid_acid_wt") is not None,
+     "only a body whose air holds sulfur dioxide, an oxidiser and some water makes liquid sulfuric acid, as a cloud layer or a pool; a body without that air has none"),
+    (("surface_liquid_ammonia_wt",), lambda klass, row: row is None or row.get("surface_liquid_ammonia_wt") is not None,
+     "only a body with a liquid water ocean and ice besides water holds ammonia in it; a dry or frozen body, or one with no other ice, has none"),
     (("surface_liquid_depth_km",), lambda klass, row: row is None or row.get("surface_liquid") not in surface_liquid_world.LAVA_IDS,
      "the depth of a lava sea is not known: the rules that give a molten surface say nothing of how deep it goes"),
     (_AQUIFER_COLUMNS, lambda klass, row: row is None or any(row.get(key) is not None for key in _AQUIFER_COLUMNS),

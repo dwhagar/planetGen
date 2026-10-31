@@ -1585,6 +1585,8 @@
 --     and `utf8mb4`/`utf8mb4_unicode_ci` (full Unicode, including
 --     generated names/flavor text outside the Basic Multilingual Plane,
 --     rather than MySQL's legacy 3-byte `utf8`).
+-- v197 (GEN.1215): `planets` and `moons` also keep what their surface liquids hold: `surface_liquid_acid_wt` and `surface_liquid_acid_layer` (the strength of the liquid sulfuric acid the air makes,
+--   percent of its mass, and where it is, pool or cloud (`physics/acid_medium.py`)) and `surface_liquid_ammonia_wt` (the ammonia of a liquid water ocean, percent of the liquid's mass). NULL for a body without such a liquid and a row made before v197.
 
 
 -- v39: star_systems and several phenomenon tables point at nebulae and
@@ -2525,6 +2527,9 @@ CREATE TABLE IF NOT EXISTS planets (
     surface_liquid                VARCHAR(32),  -- v188 (GEN.1035): the liquid the surface holds (an id of physics/surface_liquids.py, NULL: none)
     surface_liquid_fraction       DOUBLE,  -- v188: the share of the surface that liquid covers
     surface_liquid_depth_km       DOUBLE,  -- v188: its mean depth over that share, km (NULL: not known)
+    surface_liquid_acid_wt        DOUBLE,  -- v197 (GEN.1215): the strength of the liquid sulfuric acid the air makes, percent of its mass (NULL: none)
+    surface_liquid_acid_layer     VARCHAR(8),  -- v197: where that acid is, pool (at the ground) or cloud
+    surface_liquid_ammonia_wt     DOUBLE,  -- v197: the ammonia of a liquid water ocean, percent of the liquid's mass (NULL: no ocean or no ammonia)
     moon_origin                   VARCHAR(8),  -- v180 (DB.70): how a moon came to orbit its parent (NULL for a planet and for a moon saved before)
     moon_disk_lifetime_myr        DOUBLE,  -- v180: a giant planet's circumplanetary disk: its lifetime, Myr (NULL for a body with no disk)
     moon_disk_alpha_over_f        DOUBLE,  -- v180: the disk's alpha over f (the viscosity over the supply ratio of Canup and Ward)
@@ -2922,6 +2927,9 @@ CREATE TABLE IF NOT EXISTS moons (
     surface_liquid                VARCHAR(32),  -- v188 (GEN.1035): the liquid the surface holds (an id of physics/surface_liquids.py, NULL: none)
     surface_liquid_fraction       DOUBLE,  -- v188: the share of the surface that liquid covers
     surface_liquid_depth_km       DOUBLE,  -- v188: its mean depth over that share, km (NULL: not known)
+    surface_liquid_acid_wt        DOUBLE,  -- v197 (GEN.1215): the strength of the liquid sulfuric acid the air makes, percent of its mass (NULL: none)
+    surface_liquid_acid_layer     VARCHAR(8),  -- v197: where that acid is, pool (at the ground) or cloud
+    surface_liquid_ammonia_wt     DOUBLE,  -- v197: the ammonia of a liquid water ocean, percent of the liquid's mass (NULL: no ocean or no ammonia)
     moon_origin                   VARCHAR(8),  -- v180 (DB.70): how a moon came to orbit its parent (NULL for a planet and for a moon saved before)
     moon_disk_lifetime_myr        DOUBLE,  -- v180: a giant planet's circumplanetary disk: its lifetime, Myr (NULL for a body with no disk)
     moon_disk_alpha_over_f        DOUBLE,  -- v180: the disk's alpha over f (the viscosity over the supply ratio of Canup and Ward)

@@ -46,7 +46,7 @@ import os
 from collections.abc import Mapping
 
 from planetgen import tuning
-from planetgen.physics import acid_medium, atmosphere, constants, elements, habitability, habitability_world, life_supply, strange_solvents
+from planetgen.physics import atmosphere, constants, elements, habitability, habitability_world, life_supply, strange_solvents, surface_liquid_world
 
 DATA_FILE = os.path.join(elements.DATA_DIRECTORY, "life_classes.json")
 
@@ -497,10 +497,10 @@ def net_primary_production(row, found, world, values):
 
 def derived_quantities(values):
     """`{name: value}` for each `OPTIONAL_QUANTITIES` that a body's `values` give no number of, worked out from its air and bulk composition
-    (`acid_medium.level`, `strange_solvents`); a quantity with nothing to work it out from (`None`) is left out."""
+    (the stored acid layer and ammonia percent of the surface liquid, `surface_liquid_world`, GEN.1215; else `acid_medium.level` and `strange_solvents`); a quantity with nothing to work it out from (`None`) is left out."""
     found = {
-        "acid_medium": acid_medium.level(values),
-        "ammonia_water_mass_fraction": strange_solvents.ammonia_water_mass_fraction(values),
+        "acid_medium": surface_liquid_world.acid_level(values),
+        "ammonia_water_mass_fraction": surface_liquid_world.ammonia_water_mass_fraction(values),
         "silicon_rich_crust": strange_solvents.silicon_rich_crust(values),
     }
     return {name: value for name, value in found.items() if value is not None and values.get(name) is None}

@@ -89,6 +89,8 @@ NULL_IN_THIS_GALAXY = {
     **{(table, column): CHANCE for table in ("planets", "moons") for column in ("aquifer_depth_km", "aquifer_thickness_km")},
     # GEN.1035: only a world with a liquid at its surface stores one, and the depth of a lava surface is not known.
     **{(table, column): CHANCE for table in ("planets", "moons") for column in ("surface_liquid", "surface_liquid_fraction", "surface_liquid_depth_km")},
+    # GEN.1215: only a body whose air makes liquid sulfuric acid stores its strength and place, and whether any of this small galaxy's does is chance.
+    **{(table, column): CHANCE for table in ("planets", "moons") for column in ("surface_liquid_acid_wt", "surface_liquid_acid_layer", "surface_liquid_ammonia_wt")},
     ("planets", "moon_origin"): "a planet has no origin as a moon (DB.70)",
     **{("moons", column): "a moon has no circumplanetary disk of its own (DB.70)" for column in (
         "moon_disk_lifetime_myr", "moon_disk_alpha_over_f", "moon_disk_f_inf", "moon_disk_ice_line_km")},

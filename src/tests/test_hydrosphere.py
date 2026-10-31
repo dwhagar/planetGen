@@ -265,3 +265,13 @@ def test_gen1222_a_thick_cold_lid_does_not_melt_its_own_base_under_the_surface_t
         assert shell >= hy.ice_shell_thickness_km(flux, 25.0, 251.2)
     # the Earth-like case stays where it was: a warm top under a thin lid is untouched by the floor
     assert hy.pressure_melted_shell_km(0.06, 273.0 - 1.0, 9.8) == pytest.approx(hy.ice_shell_thickness_km(0.06, 272.0, hy.WATER_MELTING_K), rel=0.2)
+
+
+def test_gen1222_a_warm_world_under_a_crushing_air_has_no_surface_ocean():
+    """GEN.1222: at 278 K under 4.5 GPa the water is high-pressure ice all the way down, so the state is `ice` and no ocean column is stored (it was
+    `surface ocean` with no ocean depth, chemistry or pH)."""
+    draw.set_run_seed(1222)
+    crushed = _body("O", 278.0, 4.5e9, mass_earth=3.6, radius_km=9000.0)
+    _generate_hydrosphere(crushed, 0.087)
+    assert crushed.hydrosphere == "ice" and crushed.ocean_depth_km is None and crushed.ocean_class is None
+    assert crushed.ice_shell_km and crushed.ice_shell_km == crushed.hp_ice_km
