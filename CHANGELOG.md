@@ -2,6 +2,17 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.2967] - 2026-10-31
+
+**Headline:** The wiring register says why the simulated survey samplers are only run by the tuning tests.
+
+### Changed
+- **Twelve test-only functions are named by design (TEST.527).** The observed samplers and expected counts of the five selection models (comet admission, JWST target selection, Kepler recovery, mass and radius sample, polluted white dwarf detection) are the simulated side of the tuning harness's checks, reached through `tuning_harness.SELECTION_MODEL_MODULES`. Each register line now names who runs it and why the generator never does. No code or generated output changes.
+
+generation-output: unchanged
+
+TODO items resolved: TEST.527.
+
 ## [8.0.2966] - 2026-10-31
 
 **Headline:** Core 1's twenty-seven functions that only tests called now each have an owner: six moved out of the library into the tests (one deleted), seven named to an open item, thirteen marked as test readers.
