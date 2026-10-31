@@ -22,12 +22,12 @@ A kind prefix (`planet:FE81...`) is only a hint: the IDs of the object tables ar
 """
 
 import re
-from collections import defaultdict
+from collections import defaultdict, namedtuple
 
 from werkzeug.routing import BaseConverter, ValidationError
 
-from planetgen.db import kind_tables
-from planetgen.galaxy import object_uid, uid as sector_uid
+from planetgen.db import designation_rows, kind_tables
+from planetgen.galaxy import designations, object_uid, uid as sector_uid
 
 SECTOR = "sector"
 """str: The kind of a sector, whose ID is a plain integer (its designation)."""
@@ -219,6 +219,53 @@ def resolve_ref(conn, text):
     return None if found is None else objectref.format(kind, found)
 
 
+class RetiredAnswer(namedtuple("RetiredAnswer", ["status", "message", "extra", "headers"])):
+    """What a request for a retired ID gets (GEN.1139): the status (301, 409 or 410), the words, the keys for the error body and the headers."""
+
+
+def redirect_location(path, query, retired_text, current_text):
+    """`path` with the segment that is the retired ID (whatever its case) replaced by the current one, and the query string kept."""
+    segments = [current_text if segment.upper() == retired_text.upper() else segment for segment in path.split("/")]
+    return "/".join(segments) + (f"?{query}" if query else "")
+
+
+def retired_answer(conn, kind, text, method):
+    """
+    What a printed ID that names no object now says if an object once had it: `None` when nobody did (or `kind` is a sector or a container,
+    whose IDs do not change); otherwise a `RetiredAnswer` by `designations.status_of`: a read is a 301 to the object's current ID, a write a
+    409 that does nothing, the ID of a deleted object a 410. The body names the current ID (`id`), the one asked for (`retired_id`) and the
+    `former_designations` of the object, newest first. One indexed read, made only when the live lookup missed.
+    """
+    if kind not in ACTIVE_KINDS or kind == SECTOR or kind in CONTAINER_KINDS:
+        return None
+    table = _table(kind)
+    try:
+        uid = object_uid.parse_id(str(text).strip().upper())
+    except ValueError:
+        return None
+    row = designation_rows.retired_uid(conn, uid)
+    if row is None or row.object_kind != table:
+        return None
+    current = conn.execute(f"SELECT uid FROM {table} WHERE id = ?", (row.object_row_id,)).fetchone()
+    resolution = designations.resolve_uid(uid, lambda _uid: None, [row])
+    exists = current is not None and resolution.status == designations.REDIRECT
+    if resolution.status == designations.REDIRECT and not exists:
+        resolution = designations.Resolution(designations.GONE, table, row.object_row_id, (row,))  # the row went without its tombstone
+    status = designations.status_of(method, resolution)
+    asked = object_uid.format_id(uid)
+    formerly = [{"designation": text_, "kind": kind_, "reason": reason, "retired_epoch": epoch}
+                for kind_, text_, reason, epoch in designations.former_lines(designation_rows.history(conn, table, row.object_row_id))]
+    extra = {"retired_id": asked, "former_designations": formerly}
+    if not exists:
+        extra["gone_epoch"] = row.gone_epoch
+        return RetiredAnswer(status, f"the {kind} that had ID {asked} was deleted", extra, None)
+    now = format_stored(kind, current["uid"])
+    extra["id"] = now
+    if status == designations.STATUS_REDIRECT:
+        return RetiredAnswer(status, f"{asked} is now {now}", extra, {"X-Designation-Formerly": asked})
+    return RetiredAnswer(status, f"{asked} is a retired ID of the {kind} that is now {now}; nothing was changed", extra, None)
+
+
 class UidConverter(BaseConverter):
     """The `uid` URL converter: a printed ID of any kind, upper-cased. It checks the shape only, so a page route
     needs no database; the API resolves it with `resolve_view_args`."""
@@ -254,11 +301,13 @@ BODY_URL_KINDS = {"planets": "planet", "moons": "moon", "belts": "belt", "comets
 """dict: The first path segment after `/api/` of a body route -> the kind its `body_id` names."""
 
 
-def resolve_view_args(conn_factory, view_args, abort_not_found, fallback=None, body_kind=None):
+def resolve_view_args(conn_factory, view_args, abort_not_found, fallback=None, body_kind=None, retired=None):
     """
     Replaces the printed IDs in `view_args` (in place) with row ids. `conn_factory()` opens the request's
     read-only connection when an ID has to be looked up; `abort_not_found(message)` is called, and must
-    raise, for an ID that names nothing; when it returns, `fallback` stands in.
+    raise, for an ID that names nothing; when it returns, `fallback` stands in. `retired(kind, text)`,
+    when given, is asked first about an ID that names nothing now (GEN.1139): it raises for an ID an
+    object once had.
     """
     for name, kind in VIEW_ARG_KINDS.items():
         if name not in view_args:
@@ -270,6 +319,8 @@ def resolve_view_args(conn_factory, view_args, abort_not_found, fallback=None, b
         text = view_args[name]
         found = row_id(conn_factory(), kind, text) if kind in ACTIVE_KINDS else None
         if found is None:
+            if retired is not None and kind in ACTIVE_KINDS:
+                retired(kind, text)
             abort_not_found(f"no {kind or 'object'} with ID {text}")
             found = fallback
         view_args[name] = found
@@ -470,9 +521,18 @@ def _resolve(view_args, strict):
 
     from flask import request
 
+    def retired(kind, text):
+        answer = retired_answer(get_db(), kind, text, request.method)
+        if answer is None:
+            return
+        headers = answer.headers
+        if answer.status == designations.STATUS_REDIRECT:
+            headers = {**headers, "Location": redirect_location(request.path, request.query_string.decode("utf-8"), text, answer.extra["id"])}
+        raise ApiError(answer.message, answer.status, extra=answer.extra, headers=headers)
+
     segments = request.path.split("/")
     body_kind = BODY_URL_KINDS.get(segments[2]) if len(segments) > 2 else None
-    resolve_view_args(get_db, view_args, missing, fallback=0, body_kind=body_kind)
+    resolve_view_args(get_db, view_args, missing, fallback=0, body_kind=body_kind, retired=retired)
 
 
 def _resolve_request_ids():

@@ -53,6 +53,28 @@ class Resolution(NamedTuple):
     formerly: tuple = ()
 
 
+READ_METHODS = ("GET", "HEAD")
+"""tuple: The HTTP methods that only read: they follow a retired ID to the object, where a write refuses it."""
+
+STATUS_REDIRECT = 301
+STATUS_CONFLICT = 409
+STATUS_GONE = 410
+
+
+def status_of(method, resolution):
+    """
+    The HTTP status a request for a designation gets (invariant 6 and the redirect rule): a read of a retired designation of an object that
+    exists is a redirect to the object's current one (301); a write against it is refused (409) and does nothing, because a write never acts on a
+    guess; the retired designation of a deleted object answers 410 to both. `None` for a current or unknown designation, which the caller's own
+    rules (the object, or a 404) answer.
+    """
+    if resolution.status == REDIRECT:
+        return STATUS_REDIRECT if str(method).upper() in READ_METHODS else STATUS_CONFLICT
+    if resolution.status == GONE:
+        return STATUS_GONE
+    return None
+
+
 def check_reason(reason):
     if reason not in REASONS:
         raise DesignationError(f"a designation is retired for one of {REASONS}, not {reason!r}")

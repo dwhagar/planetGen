@@ -277,7 +277,11 @@ def _register_error_handlers(app):
             body["errors"] = exc.errors
         if exc.extra:
             body.update(exc.extra)
-        return jsonify(body), exc.status_code
+        response = jsonify(body)
+        response.status_code = exc.status_code
+        if exc.headers:
+            response.headers.update(exc.headers)
+        return response
 
     from planetgen.web.errors import RETRY_AFTER_SECONDS, busy_page, render_error, timeout_page, unexpected_error_message
 

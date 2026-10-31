@@ -1240,6 +1240,15 @@ answers its own HTML page), and an unexpected server-side failure is a
 leaks a stack trace, a connection error or the database's user/host to
 the client (the real detail still reaches Flask's own logger).
 
+An ID an object gave up (GEN.1138, `designations`; docs/design/architecture/designation-history.md) still answers, for the kinds whose IDs can change
+(systems, stars, planets, moons, belts, comets, facilities and the phenomena; not sectors or containers): a read (`GET`, `HEAD`) is a `301` whose
+`Location` is the same URL with the object's current ID (the rest of the path and the query string kept) and which carries `X-Designation-Formerly`,
+the ID asked for; a write against it (`PATCH`, `POST`, `DELETE`) is a `409` that does nothing, so a write never acts on a guess; the retired ID of
+an object that was deleted is a `410` for both. The JSON body of all three is `{"error", "retired_id", "former_designations"}` with the current
+`id` in the first two and `gone_epoch` in the third; `former_designations` is the object's earlier IDs and names newest first, each
+`{designation, kind, reason, retired_epoch}`. An ID nobody ever had, or one retired from an object of another kind, is a `404` as before. Additive:
+the API version does not change.
+
 Every response also carries `X-Content-Type-Options: nosniff`,
 `X-Frame-Options: DENY`, `Referrer-Policy: no-referrer` and
 `Content-Security-Policy: default-src 'none'`, and, when the request came

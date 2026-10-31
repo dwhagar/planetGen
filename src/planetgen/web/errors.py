@@ -3,7 +3,8 @@
 """
 HTML error pages for the Flask-served pages, with these safety rules:
 
-- an `apiclient.NotFoundError` (a bad id, no such database) is a 404,
+- an `apiclient.NotFoundError` (a bad id, no such database) is a 404; an ID an object gave up is a 301 to the page under its current ID
+  (`MovedError`) and the ID of a deleted object a 410 (`GoneError`, GEN.1139),
 - an `apiclient.ApiError` (the API failed) is a 502,
 - anything else is a 500 whose page says only "An unexpected error
   occurred." The traceback goes to the log (and the debug log, when
@@ -30,6 +31,7 @@ _TITLES = {
     403: "Forbidden",
     404: "Not found",
     405: "Method not allowed",
+    410: "Gone",
     413: "Too large",
     429: "Too many requests",
     500: "Something went wrong",
@@ -86,6 +88,23 @@ def unexpected_error_message():
 
 def register(bp):
     """Error handlers for exceptions raised inside `web` views."""
+
+    @bp.app_errorhandler(apiclient.MovedError)
+    def _moved(exc):
+        """A page asked for under an ID the object gave up (GEN.1139): 301 to the same page under its current ID."""
+        from flask import redirect
+
+        from planetgen.api import ids
+
+        location = ids.redirect_location(request.path, request.query_string.decode("utf-8"), exc.retired_id or "", exc.current_id or "")
+        if not exc.retired_id or not exc.current_id or location == request.full_path.rstrip("?"):
+            return _not_found(exc)
+        return redirect(location, 301)
+
+    @bp.app_errorhandler(apiclient.GoneError)
+    def _gone(exc):
+        log.debug(f"Gone: {exc}")
+        return render_error(410, str(exc) or "This object was deleted.")
 
     @bp.app_errorhandler(apiclient.NotFoundError)
     def _not_found(exc):

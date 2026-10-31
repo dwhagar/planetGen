@@ -65,6 +65,21 @@ class NotFoundError(Exception):
     -- callers turn this into a 404 page (`web/errors.py`)."""
 
 
+class MovedError(NotFoundError):
+    """Raised for a 301 response (GEN.1139): the ID asked for is one an object gave up. `retired_id` is the ID asked for and `current_id` the
+    object's ID now; the page routes turn it into a 301 to the same page under the current ID (`web/errors.py`). It is a `NotFoundError`, so
+    code that only handles an object that is not there treats it as one."""
+
+    def __init__(self, message, retired_id=None, current_id=None):
+        super().__init__(message)
+        self.retired_id = retired_id
+        self.current_id = current_id
+
+
+class GoneError(NotFoundError):
+    """Raised for a 410 response (GEN.1139): the object that had the ID asked for was deleted. A page answers 410. A `NotFoundError` too."""
+
+
 class ApiError(Exception):
     """
     Raised for any other failure talking to the API: an unreachable
@@ -170,12 +185,22 @@ def _cache_db(params):
     return None
 
 
+class _NoRedirect(urllib.request.HTTPRedirectHandler):
+    """Hands a 301 to `_send` instead of following it: a retired ID is the page's to redirect (GEN.1139), the same under either transport."""
+
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        return None
+
+
+_opener = urllib.request.build_opener(_NoRedirect)
+
+
 def _http_transport(method, target, data, headers, timeout):
     """The default transport: a real HTTP request to `API_BASE_URL`."""
     request = urllib.request.Request(f"{API_BASE_URL}{target}", data=data, headers={"User-Agent": user_agent(), **headers},
                                      method=method)
     try:
-        with urllib.request.urlopen(request, timeout=timeout) as response:
+        with _opener.open(request, timeout=timeout) as response:
             return TransportResponse(
                 response.status, response.read().decode("utf-8"),
                 response.headers.get_all("Set-Cookie") or [], response.reason,
@@ -226,11 +251,22 @@ def _send(method, target, json_body=None, cookie_header=None, timeout=_TIMEOUT_S
             _log_call(method, where, start, f"unreachable: {exc}")
             raise ApiError(f"Could not reach the planetGen API at {API_BASE_URL}: {exc}")
 
+    if response.status == 301:
+        # An ID the object gave up (GEN.1139): the API says where it went; a page follows it (web/errors.py).
+        detail = _error_detail(response)
+        _log_call(method, where, start, f"HTTP 301: {detail}")
+        try:
+            moved = json.loads(response.body)
+        except ValueError:
+            moved = {}
+        raise MovedError(detail, moved.get("retired_id"), moved.get("id"))
     if response.status >= 400:
         detail = _error_detail(response)
         _log_call(method, where, start, f"HTTP {response.status}: {detail}")
         if response.status == 404:
             raise NotFoundError(detail)
+        if response.status == 410:
+            raise GoneError(detail)
         raise ApiError(f"planetGen API error ({response.status}): {detail}", status_code=response.status)
     # Request bodies aren't logged: login and credential changes carry passwords.
     _log_call(method, where, start, f"HTTP {response.status}, {len(response.body)} bytes, "
