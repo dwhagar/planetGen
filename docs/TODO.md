@@ -14332,7 +14332,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   worlds does not.
   Prerequisites: GEN.862. Related: GEN.863, UX.237, TEST.435.
 
-- [ ] **GEN.1211 A new class for hot thin-air rocks (about 1.6 percent of bodies: 1.4 to 2 g, 340 to 1100 K, 1 to 10 kPa, no ocean) from the reserve letters (BOSS NAMES THE LETTER AND NAME)**
+- [ ] **GEN.1211 A new class for hot thin-air rocks (about 1.6 percent of bodies: 1.4 to 2 g, 340 to 1100 K, 1 to 10 kPa, no ocean) is Class R, Hothouse (Boss named it)**
   Boss approved the class option for the hot thin-air gap (Class M
   thread, relayed 10:13 AM EDT 2026-10-31); he has not yet named the
   letter or the class name. Source: the best-fit shadow report
@@ -14348,6 +14348,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   then list no body under 50 percent in this gap. Feeds GEN.1207 (the
   best-fit switch); the same epoch. Where we think it belongs (best
   guess, can move): the Class M research thread.
+  Boss named it (11:04 AM EDT 2026-10-31, via the class thread)
+  (2026-10-31 11:08 AM EDT): the hot thin-air class is Class R,
+  Hothouse. Boss is also moving the class names to a letter plus a
+  number from 1 to 9 for variants (0 is not written), 26 letters with 0
+  to 9 giving 260 possible classes for the 44 needed (30 now plus 14
+  new); the class thread is writing the system that says when a number
+  applies, what it means and how it differs, and will send the items.
+  Build Class R as a letter under that system, not as a separate
+  sub-letter scheme.
   Prerequisites: none. Related: GEN.1207, GEN.1208.
 
 - [ ] **GEN.1212 Rewrite the stored system flavour lines (tuning.SYSTEM_FLAVOR, about 40 story lines) to the plain-words style guide, and stop storing text the pages can build**
@@ -14413,6 +14422,57 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   one-class list equals today's air becomes a test that any difference
   from today is one the audit explains and Boss has seen.
   Prerequisites: GEN.862. Related: GEN.1209, GEN.1210, UX.237.
+
+- [ ] **GEN.1214 Carbon dioxide and hydrocarbon (methane-ethane) seas are not being created: find out why on a census of the surface liquid and fix it (bug)**
+  Boss, 11:04 AM EDT 2026-10-31 (via the class thread): investigate and
+  fix why CO2 and hydrocarbon (methane-ethane) seas are not being
+  created. Filed by the TODO thread. Overlap checked: the surface liquid
+  inventory GEN.1035 is done and wired (surface_liquids.py,
+  surface_liquid_world.py, migration 0188: surface_liquid,
+  surface_liquid_fraction, surface_liquid_depth_km); it should give a
+  Titan-like body a methane sea and a cold CO2 world a liquid CO2 sea,
+  but Boss sees none. Do: (1) a census over a few hundred generated
+  systems of surface_liquid by value (water, lava,
+  methane-ethane-nitrogen, liquid nitrogen, liquid CO2, ammonia-water,
+  sulfur, none) split by class and by temperature and pressure band,
+  printing the cold bodies (below 120 K) that hold a volatile ice or air
+  but get none, with the reason each time (ice mass fraction, saturation
+  pressure, the SURFACE_SHARE_OF_ICE share, the triple point window of
+  CO2 which needs more than 5.2 bar, the generator never reaching the
+  cold band, or a code path not called for moons or planets); (2) find
+  the cause and fix it at the cause; if a stand-in (LQ11 to LQ14) is the
+  cause, change it with tier and tweak level in GEN.725; (3) the fix
+  changes stored output (new liquids on worlds that had none), so it is
+  an epoch with --affects on a train, and the census is printed before
+  and after in the report. Physics drives; no forced seas. Owner: Tides
+  1 (built GEN.1035). Where we think it belongs (best guess, can move):
+  Tides 1.
+  Prerequisites: none. Related: GEN.1035, GEN.888, GEN.821.
+
+- [ ] **GEN.1215 Store the acid and ammonia fractions of the surface liquid, and let habitability read them (an acid or ammonia sea can make a world uninhabitable)**
+  Boss, 11:04 AM EDT 2026-10-31 (via the class thread): store the acid
+  and ammonia fractions of the surface liquid, because they can make a
+  planet uninhabitable. Filed by the TODO thread. Overlap checked:
+  GEN.1035 stores only which liquid (surface_liquid), its cover fraction
+  and its depth; the ammonia-water row and the sulfuric branch of the
+  acid medium (GEN.888, still open) are not stored as numbers. Do: (1)
+  new numeric columns on planets and moons, for example
+  surface_liquid_ammonia_fraction and surface_liquid_acid_fraction (mass
+  fraction of the liquid; and the acid kind or strength where the model
+  has it, sulfuric from GEN.888), declared in db/column_units.py with a
+  migration, the schema document, the API and the property sheet; (2)
+  the surface liquid world step fills them from the same inputs it
+  already uses (the ammonia ice, the SO2 and water shares for sulfuric
+  acid, the temperature) with no new random draws; (3) habitability and
+  the life class tests read them: an ammonia fraction or an acid
+  strength past the tolerance of a life class makes the world unsuitable
+  for that class (the stand-ins for the tolerances go in GEN.725 with
+  tier and tweak level, L3 until a source is read); (4) the Life section
+  says why a sea is not livable. Output change with a migration: one
+  epoch on a train, can share the epoch of the seas bug. Owner: Tides 1
+  with Aux 2 (habitability and life classes). Where we think it belongs
+  (best guess, can move): Tides 1.
+  Prerequisites: none. Related: GEN.1035, GEN.888, GEN.862.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
