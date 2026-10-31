@@ -280,7 +280,7 @@ _BELT = (
     *_rows("orbit", ("distance_km", "Distance from its star"), ("lower_limit_km", "Inner edge"),
            ("upper_limit_km", "Outer edge")),
     *_rows("physical", ("density", "Density", TEXT), ("mass_kg", "Mass")),
-    *_rows("composition", ("composition_summary", "Composition", TEXT)),
+    *_rows("composition", ("composition_summary", "Composition", TEXT), ("chondrite_group", "Nearest meteorite group", TEXT)),
 )
 
 _COMET = (
@@ -314,7 +314,7 @@ _ASTEROID_FIELD = (
     *_rows("identity", ("field_class", "Class", TEXT), ("density", "Density", TEXT)),
     *_rows("physical", ("radius_ly", "Radius"), ("mass_kg", "Mass")),
     *_rows("composition", ("composition_family", "Composition family", TEXT),
-           ("composition_summary", "Composition", TEXT)),
+           ("composition_summary", "Composition", TEXT), ("chondrite_group", "Nearest meteorite group", TEXT)),
     *_GALACTIC_ORBIT, *_DISTANCE,
 )
 
