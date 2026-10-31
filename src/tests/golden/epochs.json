@@ -762,8 +762,7 @@
     },
     {
       "epoch": 128,
-      "first_release": null,
-      "pending": true,
+      "first_release": "8.0.2893",
       "reason": "Train 6: class epoch (Q retired, V at 2 g, new class lines), halo mass function, star spin and white dwarf luminosity, ocean tides, ring ages, day and night state, resonance capture draw, Cassini tilts, birth spin adaptation, close-binary period trend",
       "affects": ["plan", "population", "fill", "scatter"]
     }
