@@ -23,6 +23,7 @@ PAPER = {
     "Sextans dwarf": (243.5, 42.3, 86.0, 4.4e5, 695.0, -1.93),
     "Leo I": (226.0, 49.1, 254.0, 5.5e6, 251.0, -1.43),
     "Leo II": (220.2, 67.2, 233.0, 7.4e5, 176.0, -1.62),
+    "Canes Venatici I": (74.3, 79.8, 218.0, 2.3e5, 564.0, -1.98),
 }
 
 
@@ -40,3 +41,10 @@ def test_the_row_matches_the_paper(row):
     if radius is not None:                       # the paper gives no half-light radius for the Magellanic Clouds
         assert row.half_light_radius_pc == pytest.approx(radius, abs=0.5)
     assert row.fe_h == pytest.approx(fe_h, abs=0.005)
+
+
+def test_the_table_holds_the_twelve_satellites_above_a_hundred_thousand_solar_masses_and_not_canis_major():
+    """TEST.507: McConnachie 2012 lists 27 satellites within 300 kpc, 12 above 1e5 solar masses (Canis Major, 4.9e7, a disputed disk substructure, is not one of the table's rows)."""
+    assert len(MILKY_WAY_SATELLITES) == 12
+    assert all(row.stellar_mass_sol > 1.0e5 for row in MILKY_WAY_SATELLITES)
+    assert "Canis Major" not in {row.name for row in MILKY_WAY_SATELLITES}
