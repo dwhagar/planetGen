@@ -24,7 +24,7 @@ release is stamped.
 | SEC | SEC.37 |
 | TEST | TEST.505 |
 | USR | USR.32 |
-| OPS | OPS.82 |
+| OPS | OPS.83 |
 | DOC | DOC.83 |
 | VIEW | VIEW.19 |
 | POP | POP.46 |
@@ -2408,6 +2408,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.79 | Web app stops booting when a downloaded dataset is missing: update.sh took 52 minutes in stage 3 with the new code already serving and every page returned 500 (DataMissing mamajek_dwarf_sequence) (bug) | none | done, PR #4258 |
 | OPS.80 | Every page of the live site hung (even a 404): the page freshness check built the whole galaxy shape, which takes minutes per web process and passes the 60 second daemon limit, so the daemon was killed in a loop (same hal incident as OPS.78 and OPS.79) (bug) | none | done, PR #4284 |
 | OPS.81 | The Galaxy Map first load after a restart is slow: the web process works out the mean system mass of every stored cluster age on its first request (follow-up to OPS.80); update.sh should work it out once and store it for the web app (bug) | none | done, PR #4287 |
+| OPS.82 | update.sh reloads the site and probes /api/health before the caches are warm, so the first requests after an update are slow or fail; run the cache warm-up in the foreground before the reload and let the probe wait after it (bug) | none | done, PR #4297 |
 | PERF.1 | Generation at scale | none | done, PR #425 |
 | PERF.2 | Cache so pages don't hit the database every request | 6 (2026-09-24 01:32Z to 02:18Z); 3 (2026-09-24 01:57Z to 02:02Z); 1 (2026-09-24 02:25Z to 2026-09-30 18:09Z); 8 (2026-09-30 18:14Z to 2026-10-01 05:05Z) | done in 7.56.0, PR #178 |
 | PERF.3 | Estimate size and time before bulk generation | 86 (2026-10-01 03:15Z to 05:29Z) | done, PR #238 (stats in control schema v6) |
