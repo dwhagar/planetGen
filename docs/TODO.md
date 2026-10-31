@@ -11798,6 +11798,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   approved the reading. GEN.972 (ice-albedo feedback) is ready as lock
   work: branch claude/project-thread-nfytfi-gen972, head 3dc7948e8,
   epoch --affects fill, passed to the Train Manager.
+  Parts 1 and 2 merged (2026-10-31 2:25 PM EDT): Parts 1 and 2 merged
+  lock-free (cross sections, shielded_column_mol_m2,
+  photon_limited_flux_mol_m2_s, far_uv_power_w, far_uv_flux_ratio;
+  register lines name part 3). Part 3 (haze supply) is built on branch
+  claude/project-thread-nfytfi-gen982-haze, head ef2b42ecc, stacked on
+  GEN.972, held back until GEN.1229 (haze depth per unit of mass flux)
+  is built; the two ride one lock window.
   Prerequisites: none. Related: GEN.754, GEN.794, GEN.748.
 
 - [ ] **GEN.983 Wire the radiation belts (physics/radiation_belts.py) into the surface dose and the habitability radiation score**
@@ -14846,6 +14853,28 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   section 4.1). Changes the colour of oxidised worlds on the map and
   body pages only; no stored generator value moves. Lock-free (the
   land colour, MAP.274, has merged).
+  Prerequisites: none.
+
+- [ ] **GEN.1229 Methane haze depth per unit of mass flux: the fall term in aerosols.haze_fall (eddy speed replacing fall speed) and the aggregate cross section give Titan its depth only through an oversized mass flux (bug)**
+    Finding from Aux 4's GEN.982 build (as the lane reported, 2:22 PM
+  EDT 2026-10-31). The photon-limited methane loss at Titan's distance
+  is about 6e9 molecules per cm2 per second, which is Titan's own
+  methane loss, and it is 100 to 100000 times under the diffusion supply
+  the haze depth was tuned with. With the physical supply, Titan-like
+  hazes drop from optical depth 0.007 to 3 down to 3e-7 to 0.2 and
+  Titan's 9.6 is not reachable: the old model got its Titan order from
+  an oversized mass flux, so the depth per unit of mass flux is what is
+  off (the fall term in aerosols.haze_fall, where the eddy speed
+  replaces the fall speed, and the aggregate cross section). Do: derive
+  the depth per unit of mass flux from the physics (sourced), fix the
+  fall term and the cross section, then let GEN.982 part 3 (haze supply
+  is the smaller of diffusion and photon-limited, branch
+  claude/project-thread-nfytfi-gen982-haze, head ef2b42ecc, stacked on
+  GEN.972) ride the same lock window. Done: Titan's depth reached from
+  the physical flux; the strict expected failure of the Titan test
+  removed; census of methane hazes before and after. Lock work (epoch,
+  --affects fill). Owner: Aux 4.
+    Prerequisites: GEN.982. Related: GEN.972.
   Prerequisites: none.
 
 ## PERF: Speed, caching, bulk generation and parallel work
