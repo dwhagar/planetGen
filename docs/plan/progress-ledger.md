@@ -2219,3 +2219,4 @@ Baseline: PR #1817.
 | PERF.196 | 8.2 | Generation records |
 | GEN.338 | 8.3 | Galactic gravity |
 | TEST.519 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.342 | 8.3 | Orbital update core |

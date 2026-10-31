@@ -3130,7 +3130,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the one core function, sectors are shells, bands and wedges (not
   rings, layers and slots), and the visit order is tier, then mass, in
   chunks that each read the state at their start.
-    Prerequisites: GEN.342, GEN.343, GEN.344.
+    Prerequisites: GEN.343, GEN.344.
     Design: [docs/design/orbits/orbital-updates.md](design/orbits/orbital-updates.md)
 
   - [ ] **GEN.110 Rogue planet collisions: asteroid fields, merged giants and new stars**
@@ -4954,54 +4954,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   2026-10-22: work outside 8.1 is paused until 8.1 is complete; Core 3
   held it before; this replaces any earlier owner line).
   Prerequisites: GEN.139. Related: GEN.115.
-
-- [ ] **GEN.342 The acceleration kernel: the pull of the influence set plus the galactic gradient, as one function, and the velocity update from it**
-  Split from GEN.109 (2026-10-16, Boss 1:07 PM EDT: look at each item
-  for smaller chunks and shared work). One function returns the
-  acceleration at a point from child a's set (pairwise point masses,
-  Plummer 1 pc on the central black hole only, other masses unsoftened
-  or 1e-3 to 1e-2 pc, no a_min filter) plus the galactic gradient of
-  GEN.115's module, leaving out the object itself. For a star it is the
-  extra term in GEN.115's stepper; for a planet or moon it works in the
-  host's frame with the host's own pull subtracted. Trajectories change
-  only when an update runs. GEN.198 later wraps this same kernel instead
-  of summing masses a second time. Done: tests against a direct sum for
-  random sets, momentum conserved for an isolated pair, a star's orbit
-  unchanged to the stepper's tolerance when the set is empty, and finite
-  everywhere.
-  The force on a body comes from the shared field kernel (PERF.88); this
-  item adds the influence-set term, the galactic gradient hook and the
-  velocity update (2026-10-16 review).
-  Decided (Boss, 2026-10-18, F2 and F3, approved to build; card taps as
-  the coordinator reported them, 5:31 and 5:32 PM EDT): the kernel runs
-  for every object, evaluated at the object's own location right after
-  its position change, in per object order; later objects see a mix of
-  old and new positions. Full wording on GEN.105.
-  Decided (Boss, 2026-10-18, 5:38 PM EDT words, tap 5:41 PM EDT as the
-  coordinator reported it): due objects are visited in the order of
-  GEN.105's tier-then-mass sort (a stable sort on tier, heaviest first,
-  ties by id); tier names are labels only. Sort cost on millions of due
-  rows is an open measurement.
-  Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
-  2026-10-18, as the coordinator reported them): fork 3, "Chunk start
-  state": every object in one chunk (tier, then mass band) reads the
-  state at the chunk start, and a chunk sees the results of the earlier
-  chunks, so the row order inside a chunk does not matter; this replaces
-  the earlier "later objects see a mix of old and new positions"
-  sentence (F3).
-  Reworded to match GEN.105 (contradiction sweep, 2026-10-21, 7:45 AM
-  EDT; GEN.105's Decided notes win where this item's older text
-  differs): the run applies the chunk order (tier, then mass band,
-  stable sort on tier, mass heaviest first, ties by id) with each chunk
-  reading the state at its start; new records are always visited and
-  advance only from their own epoch (F5).
-  Wiring sweep (Boss, 12:03 PM EDT: nothing built and left unused;
-  report reports/wiring-sweep-2026-10-31.md) (2026-10-31 12:25 PM EDT):
-  The influence set is unread until the acceleration kernel lands, and
-  the item had no owner. Owner now: Aux 7 (orbital update, after
-  GEN.338) (proposed by the TODO thread; the lane says if it cannot take
-  it).
-  Prerequisites: GEN.340. Related: GEN.109.
 
 - [ ] **GEN.343 The perturbed pass for a system: host, siblings, moons and outside perturbers integrated through an encounter**
   Split from GEN.109 (2026-10-16, Boss 1:07 PM EDT: look at each item
