@@ -45,7 +45,7 @@ section 4 (design defaults). A rocky body's yearly dose, mSv/yr, is
    above: the design note section 2.3). A world that loses its ozone keeps `OZONE_LOSS_REMAINING` of it (Segura et al. 2010: 94 percent
    removed by one large flare; Howard et al. 2018: 90 percent by repeated flaring): the stored `ozone_column_du` is the column that is left, the
    UV index, the habitability score and the colour of the sky and ground are worked out from it. A loss event that removes air (stripping,
-   impact, escape) scales the stored column by the share of the air kept and the UV index follows (`apply_air_loss`, GEN.668).
+   impact, escape) is not applied to the stored ozone column here: the final-age refresh (GEN.839) works the dose and the ozone again from the air that is left.
 7. **Galactic hazard (`lethal_event_rate_per_gyr`, on the star).** A
    supernova within 8 pc, 1.5 per Gyr at 8 kpc from the centre, times
    `exp((8 kpc - R) / 1.45 kpc)` (250x at the centre), plus gamma-ray bursts
@@ -58,7 +58,7 @@ A planet of a pulsar or a black hole is rated by GEN.89, not here.
 import math
 
 from planetgen import tuning
-from planetgen.physics import body_colour, body_radiation, constants, magnetism, mixture, ozone, proton_range, radiogenic, solar_particles, surface_composition
+from planetgen.physics import body_radiation, constants, magnetism, mixture, ozone, proton_range, radiogenic, solar_particles, surface_composition
 from planetgen.util import draw
 from planetgen.util.random import log_uniform
 
@@ -487,21 +487,6 @@ def generate_dose(body):
     if body.ozone_loss_flag:     # GEN.808: the ozone the flares leave is what filters the ultraviolet and tints the sky
         body.ozone_column_du *= OZONE_LOSS_REMAINING
     body.uv_surface_index = body_radiation.dna_dose_index(body)
-
-
-def apply_air_loss(body, retained_fraction):
-    """
-    Takes a loss event that kept `retained_fraction` of a rocky body's air into its stored ozone and ultraviolet (GEN.668): the
-    ozone column scales by the share kept (`ozone.column_after_air_loss`) and the UV index is worked out again from it. The
-    caller applies the loss to the air itself (its pressure and gases) first; the UV index reads the air as it stands.
-    A body with no stored ozone column (a giant, or a row saved before it) is left as it is.
-    """
-    column = getattr(body, "ozone_column_du", None)
-    if column is None:
-        return
-    body.ozone_column_du = ozone.column_after_air_loss(column, retained_fraction)
-    body.uv_surface_index = body_radiation.dna_dose_index(body)
-    body_colour.generate(body)
 
 
 def column_g_cm2(pressure_pa, gravity_g):
