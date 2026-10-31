@@ -201,7 +201,7 @@ local added = redis.call('SADD', KEYS[1], ARGV[1])
 if added == 0 then return {0, 0, redis.call('SCARD', KEYS[1])} end
 local cost, secs, now, workers = tonumber(ARGV[2]), tonumber(ARGV[3]), tonumber(ARGV[4]), tonumber(ARGV[5])
 local d = redis.call('HMGET', KEYS[2], 'units', 'done', 'cost_done', 'seconds', 'last', 'u', 't', 'share',
-                     'pending', 'longest_gap', 'longest_unit')
+                     'pending', 'longest_gap', 'longest_unit', 'peak_mb')
 local units = tonumber(d[1])
 local done = tonumber(d[2] or 0) + 1
 local seconds = tonumber(d[4] or 0) + secs
@@ -209,6 +209,7 @@ local last = tonumber(d[5] or now)
 local u, t = tonumber(d[6] or 0), tonumber(d[7] or 0)
 local share, pending, gap = tonumber(d[8] or 0), tonumber(d[9] or 0), tonumber(d[10] or 0)
 local longest = math.max(tonumber(d[11] or 0), secs)
+local peak = math.max(tonumber(d[12] or 0), tonumber(ARGV[6] or 0))
 local tau = math.max(60, 20 * (seconds / done) / math.max(workers, 1))
 if now > last then
   local interval = now - last
@@ -227,7 +228,7 @@ else
 end
 redis.call('HSET', KEYS[2], 'done', done, 'cost_done', tonumber(d[3] or 0) + cost, 'seconds', seconds,
            'last', last, 'last_end', now, 'u', u, 't', t, 'share', share, 'pending', pending, 'longest_gap', gap,
-           'longest_unit', longest)
+           'longest_unit', longest, 'peak_mb', peak)
 redis.call('HSETNX', KEYS[2], 'first_end', now)
 redis.call('HSET', KEYS[4], 'updated', now)
 local advance = 0
@@ -456,10 +457,11 @@ def end_stage(conn, run_id, index, now=None):
     conn.hset(stage_key(run_id, index), mapping={"ended": _now(now)})
 
 
-def unit_done(conn, run_id, index, unit, cost=None, seconds=0.0, now=None):
+def unit_done(conn, run_id, index, unit, cost=None, seconds=0.0, now=None, peak_mb=0.0):
     """
     Records that unit `unit` of stage `index` finished (after `seconds` of work, at cost `cost`: default the
-    stage's mean unit cost). One atomic script; see the module docstring.
+    stage's mean unit cost, and `peak_mb` the most resident memory the process that did it took, PERF.226: the stage keeps the
+    largest). One atomic script; see the module docstring.
 
     Returns:
         UnitDone: `advance` is true for the one unit that completed the stage.
@@ -471,15 +473,17 @@ def unit_done(conn, run_id, index, unit, cost=None, seconds=0.0, now=None):
     script = conn.register_script(_UNIT_DONE)
     counted, advance, done = script(
         keys=[done_key(run_id, index), stage_key(run_id, index), advanced_key(run_id, index), run_key(run_id)],
-        args=[unit, cost, seconds, now, max(int(stage.get("workers") or 1), 1)])
+        args=[unit, cost, seconds, now, max(int(stage.get("workers") or 1), 1), peak_mb])
     if counted:
         log(conn, run_id, f"unit {unit} done", kind="unit.done", now=now, stage=index, unit=unit)
     if advance:
         started = conn.hget(stage_key(run_id, index), "started")
         seconds_taken = max(now - float(_s(started)), 0.0) if started else 0.0
         declared = json.loads(conn.hget(run_key(run_id), "stages"))
-        log(conn, run_id, logrecord.stage_finish(index + 1, len(declared), seconds_taken),
-            kind=logrecord.STAGE_FINISH, now=now, stage=index, stages=len(declared), seconds=round(seconds_taken, 1))
+        peak = float(_s(conn.hget(stage_key(run_id, index), "peak_mb")) or 0.0)
+        log(conn, run_id, logrecord.stage_finish(index + 1, len(declared), seconds_taken, peak_mb=peak),
+            kind=logrecord.STAGE_FINISH, now=now, stage=index, stages=len(declared), seconds=round(seconds_taken, 1),
+            **({"peak_mb": round(peak)} if peak else {}))
         _record_stage_time(conn, run_id, index, stage["key"])
     return UnitDone(bool(counted), bool(advance), int(done))
 
@@ -641,7 +645,7 @@ def write_log_file(conn, run_id, directory, keep=20):
 
 
 _STAGE_NUMBERS = ("units", "done", "cost_total", "cost_done", "seconds", "started", "ended", "last", "last_end",
-                  "first_end", "u", "t", "longest_gap", "longest_unit")
+                  "first_end", "u", "t", "longest_gap", "longest_unit", "peak_mb")
 
 
 def read_run(conn, run_id):

@@ -44,7 +44,7 @@ def create_app(config_object=Config):
     # The HTML pages (planetgen/web/), imported here rather than at the top so
     # `import planetgen.web.app` stays cheap for callers that never build an app.
     from planetgen import web
-    from planetgen.web import maintenance_gate
+    from planetgen.web import maintenance_gate, rebuild_gate
 
     # /static/ is src/html/static/ -- Apache serves it directly in
     # production (examples/apache/); this only matters for the dev server
@@ -59,6 +59,7 @@ def create_app(config_object=Config):
     naming.install(app)
     if not app.config.get("WARMUP"):   # the cache warm-up (PERF.104) visits the pages while the site is closed
         maintenance_gate.install(app)  # UX.112: first, so a refused visitor reaches nothing behind it
+        rebuild_gate.install(app)      # a direct heavy /api call while the caches are rebuilt: 503, not the daemon's death
     app.before_request(_reject_undecodable_query_string)
     app.before_request(_reject_oversized_body)
     ids.install(app)
@@ -133,6 +134,8 @@ def _drop_retry_after_unless_limited(response):
     """Flask-Limiter 4 puts `Retry-After` on every response it counts; it
     belongs only where it tells the caller when to retry: a 429 (API.21), the 504 of a database too busy to
     answer in time (PERF.64) and the 503 of one that held a row locked too long (ADM.53)."""
+    if g.get("retry_after_fixed"):    # the cache-rebuild 503 (admin/cachebuild.py) states its own wait
+        return response
     if response.status_code in (503, 504):
         from planetgen.web.errors import RETRY_AFTER_SECONDS
         response.headers["Retry-After"] = str(RETRY_AFTER_SECONDS)
@@ -268,6 +271,16 @@ def _register_error_handlers(app):
     for a JSON-only API and leaks a stack trace to the client in
     production if `DEBUG` is ever left off by omission rather than intent.
     """
+
+    from planetgen.admin.cachebuild import CacheRebuilding
+
+    @app.errorhandler(CacheRebuilding)
+    def _handle_rebuilding(exc):
+        from planetgen.web import rebuild_gate
+        if _is_api_request():
+            return rebuild_gate.api_response(exc)
+        from planetgen.web.errors import rebuilding_page
+        return rebuilding_page()
 
     @app.errorhandler(ApiError)
     def _handle_api_error(exc):

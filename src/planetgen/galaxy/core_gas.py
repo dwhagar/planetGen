@@ -8,7 +8,7 @@ stars at a small share of what comes in. Nothing here is typed in for a galaxy:
 
 1. **The inflow.** The disk's gas inside the bar's gap (`galaxy.disk_history`, GEN.469: each ring's gas at the end of
    its history, inside `galaxy.star_formation.gap_radius_pc`) leaves on `tuning.CORE_GAS_INFLOW_TIME_GY`. The Milky
-   Way's model gives 0.7 solar masses a year against the 0.8 measured (Hatchfield et al. 2021, in Henshaw et al. 2023).
+   Way's model gives 0.7 solar masses a year against the 0.8 measured (in Henshaw et al. 2023).
    A galaxy without a bar has no inflow, so no ring.
 2. **The rate.** The ring forms stars at `tuning.CORE_STAR_FORMATION_PER_INFLOW` of the inflow (0.07 over 0.8 in the Milky
    Way: the review's continuity equation, inflow = star formation + outflow + growth).

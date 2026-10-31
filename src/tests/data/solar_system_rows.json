@@ -25,12 +25,12 @@
    "p3": "the Sun's O3 lifetime is the comparison for the stellar-flux fit"
   },
   "comet-carbon-chain": {
-   "carbon-chain-depleted-halley_type": "the fractions are class statistics of observed comets (Cochran 2012, 2015), not one body; Halley and Jupiter are class names here",
-   "carbon-chain-depleted-jupiter_family": "the fractions are class statistics of observed comets (Cochran 2012, 2015), not one body; Halley and Jupiter are class names here",
-   "carbon-chain-depleted-long_period": "the fractions are class statistics of observed comets (Cochran 2012, 2015), not one body; Halley and Jupiter are class names here",
-   "carbon-chain-normal-halley_type": "the fractions are class statistics of observed comets (Cochran 2012, 2015), not one body; Halley and Jupiter are class names here",
-   "carbon-chain-normal-jupiter_family": "the fractions are class statistics of observed comets (Cochran 2012, 2015), not one body; Halley and Jupiter are class names here",
-   "carbon-chain-normal-long_period": "the fractions are class statistics of observed comets (Cochran 2012, 2015), not one body; Halley and Jupiter are class names here"
+   "carbon-chain-depleted-halley_type": "the fractions are class statistics of observed comets, not one body; Halley and Jupiter are class names here",
+   "carbon-chain-depleted-jupiter_family": "the fractions are class statistics of observed comets, not one body; Halley and Jupiter are class names here",
+   "carbon-chain-depleted-long_period": "the fractions are class statistics of observed comets, not one body; Halley and Jupiter are class names here",
+   "carbon-chain-normal-halley_type": "the fractions are class statistics of observed comets, not one body; Halley and Jupiter are class names here",
+   "carbon-chain-normal-jupiter_family": "the fractions are class statistics of observed comets, not one body; Halley and Jupiter are class names here",
+   "carbon-chain-normal-long_period": "the fractions are class statistics of observed comets, not one body; Halley and Jupiter are class names here"
   },
   "satellite-share": {
    "inner rubble pile with a satellite": "near-Earth is the name of the asteroid population the binary fraction is measured in (Pravec 2006), a survey class, and the gate's cut is the survey's own"

@@ -77,7 +77,7 @@ how they apply here:
 | --- | --- |
 | Discrete scale tiers instead of continuous scroll zoom | Yes: the drill-down stages are the tiers, picked by clicking instead of by the wheel |
 | Breadcrumb with clickable levels; an address bar for direct entry | Yes (sections 5.4, 9.3) |
-| Animated scale-space flight (van Wijk and Nuij, 2003) | Yes, for every move into a block (section 5.3) |
+| Animated scale-space flight | Yes, for every move into a block (section 5.3) |
 | Top-down polar plan view; elevation (r, z) slice | Yes: every slab is shown top-down, and the slab strip picks the height (section 5.2) |
 | Bookmarks and history | Yes (sections 5.4, 8) |
 | A 2D canvas replacing 3D | No. The 3D solid of blocks stays for the slab-picking stages. |

@@ -108,8 +108,7 @@ def test_a_slowly_turning_hot_giant_has_a_multipolar_field():
 def test_an_ice_giant_lands_within_a_factor_of_ten_of_neptunes_moment():
     found = gd.giant_field(_neptune(), 24764e3, 3.3e15, gd.spin_rad_s(16.1))
     assert NEPTUNE_MOMENT_A_M2 / 10.0 < found.field.moment_a_m2 < NEPTUNE_MOMENT_A_M2 * 10.0 * 2.0
-    # Neptune's field is not a dipole; the Rossby gate does not say so here (a thin conducting shell over a stable interior does, Stanley and
-    # Bloxham 2004), and DY2's share is Jupiter's: the moment is the order of Neptune's, not its value.
+    # Neptune's field is not a dipole; the Rossby gate does not say so here (a thin conducting shell over a stable interior does), and DY2's share is Jupiter's: the moment is the order of Neptune's, not its value.
     assert found.field.dipole_fraction > 0.5
 
 

@@ -18,7 +18,7 @@ hot hosts peak at a quarter of the present level, cooler hosts rise to the highe
   100 percent columns of F7V (8.62e18 cm-2, 321 DU, 6240 K) and F0V (1.15e19, 428 DU, 7000 K) of Rugheimer et al. 2015
   (Table 1, read; the 6240 K of F7V is the spectral-type temperature, recalled), a stand-in labelled in the gap plan.
 - **Spread (GEN.748).** The models differ, and the fit is the lowest of them (the Sun at Earth oxygen: 192 DU here, 279 DU Cooke 2022, 296
-  to 327 Grenfell 2007, 313 Segura 2005; at a tenth of the oxygen the models run from 0.85 (Cooke) to 1.34 (Segura 2003) of the fit). The draw
+  to 327 Grenfell 2007, 313 Segura 2005; at a tenth of the oxygen the models run from 0.85 (Cooke) to 1.34 of the fit). The draw
   multiplies the median by a structure factor, log-uniform between the lowest and highest ratio the models give at that oxygen level
   (`structure_range`): 1.45 to 1.70 at the present level and above (Earth air: 278 to 326 DU, the models' own range), 0.85 to 1.34 at a tenth, and
   the whole of the earlier 0.85 to 1.71 at a hundredth and below, where no model narrows it; between those levels the two ends are straight
@@ -65,7 +65,7 @@ F_HOST_K = 6240.0
 STRUCTURE_KNOTS = ((0.01, 0.85, 1.71), (0.1, 0.85, 1.34), (1.0, 1.45, 1.70))
 """tuple: `(oxygen level PAL, lowest ratio, highest ratio)` of the published models to the fit (the Sun host): at 100 percent the 3-D model of
 Cooke 2022 (279 DU, 1.45) and the 1-D models of Grenfell 2007 (296 to 327 DU) and Segura 2005 (313 DU), highest 1.70; at 10 percent Cooke (0.85) to
-Segura 2003 (1.34); at 1 percent and below the earlier range of the atmosphere colour design (decision 19), kept as no model narrows it. Held
+another model (1.34); at 1 percent and below the earlier range of the atmosphere colour design (decision 19), kept as no model narrows it. Held
 outside the first and last level. Source tier T3 (the models are read second-hand through the sources check), tweak level L1 (the ends between the
 levels are straight lines in log PAL)."""
 ABIOTIC_SHARE_RANGE = (1e-4, 1e-3)

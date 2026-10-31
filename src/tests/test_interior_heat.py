@@ -42,7 +42,7 @@ def test_the_assembly_energy_of_an_earth_is_the_accretion_plus_the_iron_sinking(
     uniform = ih.binding_energy_j(mass, radius, 0.0, 0.0)
     assert uniform == pytest.approx(0.6 * constants.G * mass ** 2 / radius, rel=1e-12)
     differentiated = ih.binding_energy_j(mass, radius, 0.325 * mass, 0.55 * radius)
-    # the iron sinking releases 1 to 3e31 J on the Earth, a tenth of its accretion (Flasar and Birch 1973; Solomatov 2000)
+    # the iron sinking releases 1 to 3e31 J on the Earth, a tenth of its accretion (Flasar and Birch 1973)
     assert 1.0e31 < differentiated - uniform < 3.0e31
     assert differentiated > uniform
 
@@ -67,8 +67,7 @@ def test_the_radiogenic_part_is_the_stored_contents_heat():
 
 
 def test_an_earth_twin_gives_a_heat_and_a_urey_ratio_in_the_published_ranges_without_drawing_the_ratio():
-    """Whatever the rheology within the paper's ranges: the geoneutrino total 38.2 +13.6 -12.7 TW (Agostini et al. 2019 via Nimmo et al.
-    2020) and a Urey ratio between 0.1 and 0.9; the stagnant lid is under the Earth's measured 42 to 47 TW (a mobile lid, not modelled)."""
+    """Whatever the rheology within the paper's ranges: the geoneutrino total 38.2 +13.6 -12.7 TW and a Urey ratio between 0.1 and 0.9; the stagnant lid is under the Earth's measured 42 to 47 TW (a mobile lid, not modelled)."""
     for interior in CORNERS + [MID]:
         found = _earth(interior)
         assert 25.5 <= found.total_w / 1e12 <= 51.8
@@ -320,8 +319,7 @@ def test_the_urey_ratio_of_a_bulk_silicate_earth_body_of_any_size_sits_between_t
     """GEN.763: a table of small and large bodies (design note, section 3.2). The bounds of the sweep over 0.0004 to 10 Earth masses, 1, 4.5
     and 10 Gy, both lids and the four rheology corners: a Urey ratio from 0.3 (a large stagnant lid, whose heat is mostly the
     cooling) to 1.0 (the mantle held at its ceiling, losing exactly what is made). Guimond et al. 2022 have about 0.65 for 0.1 to 5
-    Earth masses; for the Earth the geochemical estimate is about 0.3 and the geophysical view close to one (Stamenkovic et al. 2012,
-    arXiv:1210.3838 section 3.1)."""
+    Earth masses; for the Earth the geochemical estimate is about 0.3 and the geophysical view close to one."""
     found = []
     for mass_earth in SWEEP_MASSES_EARTH:
         for lid in (ih.STAGNANT, ih.MOBILE):

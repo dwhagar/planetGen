@@ -107,7 +107,7 @@ def test_titan_with_its_haze_takes_its_measured_surface_and_without_it_is_too_wa
 ])
 def test_the_giants_sit_near_their_measured_temperature_at_one_bar(name, partials, gravity, effective_k, measured_k, tolerance):
     """GEN.1030: the methane pseudo-adiabat and the ortho-para equilibrium of cold hydrogen bring the ice giants' 1 bar temperature down from 20 percent
-    too warm (Lindal 1981, 1987, 1992 for the measured values; the effective temperatures are the measured ones)."""
+    too warm (the effective temperatures are the measured ones)."""
     giant = rc.warming(partials, gravity, SIGMA * effective_k ** 4)
     assert giant.converged and giant.surface_temperature_k == pytest.approx(measured_k, rel=tolerance), name
 

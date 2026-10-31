@@ -62,7 +62,7 @@ SUBMOON_HILL_FRACTION = clearance_ledger.moon_hill_fraction(0.0)[0]
 Raymond 2019); the circular-orbit value of `clearance_ledger.moon_hill_fraction`, 0.4895."""
 
 SUBMOON_LOVE_NUMBER = 0.25
-"""float: The moon's tidal Love number k2 (Moore and Schubert 2000, via Kollmeier and Raymond 2019, their default)."""
+"""float: The moon's tidal Love number k2 (via Kollmeier and Raymond 2019, their default)."""
 
 SUBMOON_TIDAL_Q = 100.0
 """float: The moon's tidal quality factor (Lainey 2016, via Kollmeier and Raymond 2019, their default)."""
@@ -194,7 +194,7 @@ def tidal_survival_radius_m(moon_density_kg_m3, planet_mass_kg, moon_orbit_radiu
                             age_yr=SUBMOON_AGE_YR):
     """
     The smallest moon radius that can hold a submoon of `submoon_mass_kg` for `age_yr`, metres (Kollmeier and Raymond 2019,
-    equation 1, adapted from Barnes and O'Brien 2002):
+    equation 1, adapted):
 
         R_moon >= [ 39 M_sub k2 T sqrt(G) / (2 (4 pi rho_moon)^(8/3) Q) * (3 M_p / (f a_moon)^3)^(13/6) ]^(1/3)
 

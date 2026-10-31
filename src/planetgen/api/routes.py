@@ -2603,7 +2603,7 @@ def galaxy_uncharted_sector():
     if shell < 0:
         raise ApiError("shell must be >= 0")
     conn = get_db()
-    skeleton = get_galaxy_shape(conn)
+    skeleton = get_galaxy_shape(conn, light=True)
     edge_pc = skeleton.edge_pc if skeleton else float(tuning.DEFAULT_SECTOR_EDGE_PC)
     try:
         cell = describe_sector_cell(shell, band, wedge, edge_pc)

@@ -8172,11 +8172,10 @@ table unchanged does not load it again (GEN.244: a galaxy holds up to `tuning.OP
 _FIELD_BY_SIGNATURE_LIMIT = 8
 
 
-def _component_field(conn, edge_pc, expected_at_density_1):
-    """The galaxy's `ComponentField` (GEN.160, GEN.237) from its stored clusters and satellites, or `None` when it has
-    none (or the table is not there yet: a migration reads the skeleton before v97). Fields made from equal rows are one
-    object, so the density model's caches by shape keep hitting. The rows are read only when the table's signature (the
-    database, the row count, the first and last id and the mass sum) is not the one of a field already made."""
+def _component_key(conn, edge_pc, expected_at_density_1):
+    """The signature of the stored components and the sector numbers they are made into a field with (the database, the row
+    count, the first and last id, the mass sum, the edge and the expected count at density 1), or `None` when there are no
+    components (or the table is not there yet: a migration reads the skeleton before v97)."""
     if not conn.execute(
             "SELECT 1 FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'galaxy_components'"
     ).fetchone():
@@ -8186,32 +8185,69 @@ def _component_field(conn, edge_pc, expected_at_density_1):
         " FROM galaxy_components").fetchone()
     if not row["n"]:
         return None
-    key = (row["db"], row["n"], row["first_id"], row["last_id"], row["mass"], float(edge_pc),
-           float(expected_at_density_1))
+    return (row["db"], row["n"], row["first_id"], row["last_id"], row["mass"], float(edge_pc),
+            float(expected_at_density_1))
+
+
+def component_field_key(conn):
+    """The signature the stored galaxy's cluster field is named by (`_component_key` for the stored plan's numbers), or `None`
+    when it has no plan or no components; `galaxy.field_job` makes the field's file under it."""
+    shape = conn.execute("SELECT edge_pc, expected_system_count_at_density_1 FROM galaxy_shape WHERE id = 1").fetchone()
+    if shape is None:
+        return None
+    return _component_key(conn, shape["edge_pc"], shape["expected_system_count_at_density_1"])
+
+
+def _component_field(conn, edge_pc, expected_at_density_1):
+    """The galaxy's `ComponentField` (GEN.160, GEN.237) from its stored clusters and satellites, or `None` when it has
+    none. Fields made from equal rows are one object, so the density model's caches by shape keep hitting. The rows are
+    read only when the table's signature (`_component_key`) is not the one of a field already made.
+
+    A field not made yet in this process is read from the file the warm-up kept (`galaxy.field_job`, PERF.225; a second
+    at most). Without one, a galaxy of up to `field_job.INLINE_COMPONENTS` components is built here (about a second); a
+    bigger one is built here by a command, a worker or the warm-up, and a visitor's request is refused
+    (`admin.cachebuild.CacheRebuilding`) until the warm-up has made the file, since the build takes a minute and the daemon's
+    request limit is 60 s."""
+    key = _component_key(conn, edge_pc, expected_at_density_1)
+    if key is None:
+        return None
     field = _FIELD_BY_SIGNATURE.get(key)
     if field is not None:
         with contextlib.suppress(KeyError):       # another thread dropped it meanwhile
             _FIELD_BY_SIGNATURE.move_to_end(key)
-        log.trace(f"component field: cache hit for {row['n']} stored components (database {row['db']})", area="cache")
+        log.trace(f"component field: cache hit for {key[1]} stored components (database {key[0]})", area="cache")
         return field
-    log.trace(f"component field: cache miss, reading {row['n']} stored components (database {row['db']})", area="cache")
-    found = tuple(c for c in get_galaxy_components(conn) if c.kind in componentField.KINDS_IN_THE_GATE)
-    if not found:
-        return None
-    field = _field_of(tuple(dataclasses.replace(c, id=None) for c in found), float(edge_pc),
-                      float(expected_at_density_1))
+    from planetgen.galaxy import field_job
+    field = field_job.read(field_job.signature(key))
+    if field is not None:
+        log.trace(f"component field: read from its file, {key[1]} stored components (database {key[0]})", area="cache")
+    else:
+        if key[1] > field_job.INLINE_COMPONENTS:
+            from planetgen.admin import cachebuild
+            cachebuild.refuse_expensive_build("the galaxy's cluster field")    # a minute of work: never in a visitor's request
+        log.trace(f"component field: no file, reading {key[1]} stored components (database {key[0]})", area="cache")
+        found = tuple(c for c in get_galaxy_components(conn) if c.kind in componentField.KINDS_IN_THE_GATE)
+        if not found:
+            return None
+        field = _field_of(tuple(dataclasses.replace(c, id=None) for c in found), float(edge_pc),
+                          float(expected_at_density_1))
     _FIELD_BY_SIGNATURE[key] = field
     while len(_FIELD_BY_SIGNATURE) > _FIELD_BY_SIGNATURE_LIMIT:
         _FIELD_BY_SIGNATURE.popitem(last=False)
     return field
 
 
-def get_galaxy_shape(conn):
+def get_galaxy_shape(conn, light=False):
     """
     Reads back the galaxy's stored skeleton parameters.
 
     Args:
         conn (Connection): An open, schema-initialized connection.
+        light (bool): For a caller that reads only the sector grid and the stored numbers (`edge_pc`, the shell and
+            cell limits, the seed, the disk scale length) and never the density: the cluster field (`components`) is
+            not built. Building it takes a minute on a galaxy of many clusters and is redone whenever a run changes
+            the cluster rows, so a request that does not need it must not pay it (the daemon's request limit is 60 s).
+            Do not read `shape.components` of a light skeleton.
 
     Returns:
         GalaxySkeletonInfo or None: `None` if `galaxyPlan.py` has never
@@ -8243,7 +8279,8 @@ def get_galaxy_shape(conn):
     pins = get_galaxy_shape_pins(conn)
     # The thick disk, bar, stellar halo and motions are not columns: the seed draws them again (GEN.532, GEN.533), at
     # the mass and halo the plan pinned when it did (DB.81, GEN.606).
-    shape = shape._replace(components=_component_field(conn, row["edge_pc"], row["expected_system_count_at_density_1"]),
+    shape = shape._replace(components=None if light else _component_field(
+                               conn, row["edge_pc"], row["expected_system_count_at_density_1"]),
                            structure=shape_draw.structure_for(seed, pinned_mass, pins.get("stellar_halo_share")))
     if "family" in row:      # DB.66 (GEN.379): the family and component numbers; a NULL bar or thick disk number is the draw's
         shape = with_family_columns(shape, row)

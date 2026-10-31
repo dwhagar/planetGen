@@ -13,10 +13,10 @@ Wolff et al. 2009 (JGR 114, E00D04, doi 10.1029/2009JE003350) full text is paywa
 | Item | Value | Source | Status |
 |---|---|---|---|
 | Wolff 2009 abstract | literature "dark" solar-band omega0 0.89 to 0.90, "bright" 0.92 to 0.94; new solar-band omega0 0.94 | Crossref abstract | READ (abstract) |
-| Solar-weighted omega0 | Ockert-Bell 1997: 0.89; Wolff 2006/2009: 0.94 (also Clancy and Lee 1991, Clancy 2003, Vincendon 2007, Maattanen 2009 "nearly equal to 0.94"); Toon 1977 dust 0.86 (g 0.79); GFDL 0.92 (g 0.75) | Madeleine et al. 2011, JGR 116, E11010 (HAL hal-01120102), sections 2 and 3 | 2ND-HAND |
+| Solar-weighted omega0 | Ockert-Bell 1997: 0.89; Dust value 0.94 (also Clancy and Lee 1991, Clancy 2003 "nearly equal to 0.94"); dust 0.86 (g 0.79); GFDL 0.92 (g 0.75) | Madeleine et al. 2011, JGR 116, E11010 (HAL hal-01120102), sections 2 and 3 | 2ND-HAND |
 | Channel means 0.1-0.5 um / 0.5-5 um | Ockert-Bell 0.665 / 0.928; Wolff (gamma dist., reff 1.5 um, neff 0.3, cylinders) 0.738 / 0.955 | Madeleine 2011 Table 2 | 2ND-HAND |
 | Wolff 2009 near 650 nm | 0.975 ("average of results ... surface-orbit observations"); alternatives tested 0.940 (Tomasko 1999), 0.930 (Pollack 1995) | Chen-Chen et al., arXiv:1905.01074 and arXiv:2008.01968 | 2ND-HAND |
-| Near-IR 1.0 to 2.6 um | 0.97 (Vincendon 2007; confirmed by Wolff 2007, Maattanen 2009) | Vincendon et al., arXiv:1103.3426 | 2ND-HAND |
+| Near-IR 1.0 to 2.6 um | 0.97 (confirmed) | Vincendon et al., arXiv:1103.3426 | 2ND-HAND |
 
 0.92 to 0.95 is the solar-band mean of the "bright" literature, not the 670 nm value (second-hand about 0.975), and it hides the UV drop (0.1 to 0.5 um band mean 0.67 to 0.74). Supported generator ranges: red/NIR 0.93 to 0.975, solar mean 0.89 to 0.94, UV band 0.67 to 0.74. The spectral omega0 table of Wolff 2009 is NOT REACHED.
 
@@ -28,7 +28,7 @@ Khuller et al. 2021 (JGR Planets, doi 10.1029/2021JE006910; open copy atmos.wash
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | k | 0.0129 | 0.0114 | 0.0093 | 0.0074 | 0.0054 | 0.0036 | 0.0017 | 0.00095 | 0.0011 | 0.0018 | 0.0027 | 0.0040 | 0.0051 |
 
-k crosses 0.01 near 0.38 um; the curve starts near 0.27 um. Minimum about 1e-3 at 0.7 to 0.8 um. The "Fe3+" cause appears in no text read: Ockert-Bell 1997 (abstract, READ) "does not assume a particular mineralogical composition" and adopts the index of bright surface units. Tomasko 1999 abstract (READ): imaginary index rises steeply from 670 nm to shorter wavelengths. Lab contrast (DATA, Martikainen et al. 2023, ApJS 268:47, Table 3): analog k is only 0.0001 to 0.0013 over 200 to 2000 nm (JSC Mars-1: 0.00130 at 300 nm, 0.00047 at 650 nm); they state it is "much smaller" than airborne-dust literature values. Airborne k therefore spans about one decade depending on grain-shape assumptions.
+k crosses 0.01 near 0.38 um; the curve starts near 0.27 um. Minimum about 1e-3 at 0.7 to 0.8 um. The "Fe3+" cause appears in no text read: Ockert-Bell 1997 (abstract, READ) "does not assume a particular mineralogical composition" and adopts the index of bright surface units. Tomasko 1999 abstract (READ): imaginary index rises steeply from 670 nm to shorter wavelengths. Lab contrast (DATA, ApJS 268:47, Table 3): analog k is only 0.0001 to 0.0013 over 200 to 2000 nm (JSC Mars-1: 0.00130 at 300 nm, 0.00047 at 650 nm); they state it is "much smaller" than airborne-dust literature values. Airborne k therefore spans about one decade depending on grain-shape assumptions.
 
 ### 1.3 Row "Volcanic SO2 aerosol: Lemmon 2004; Tomasko 1999, 0.2-0.4 um". Verdict: CONTRADICTED (mis-citation)
 
@@ -109,7 +109,7 @@ Otto 2025 (Radiat. Environ. Biophys. 64, 637, PMC12701026, Table 1) and Wikipedi
 | Zhang et al. 2020, Sci. Adv. 6, eaaz1334 (Chang'E-4 LND, PMC7518862) | Moon surface: neutral particles 3.1 +/- 0.5 of 13.2 +/- 1 uGy/h in Si (23 +/- 8%, includes gamma); charged dose equivalent 57.1 uSv/h; neutron contribution "expected to increase" under regolith; Apollo 17 neutron flux rises to about 150 g/cm2 | READ |
 | Dartnell et al. 2007, Biogeosciences Discuss. 4, 455 | with depth "muons and pions, and the electrons ... become increasingly dominant"; neutrons ionise only via recoil protons | READ |
 | Gakis and Atri, arXiv:2205.13786 | water-rich regolith attenuates neutrons below 10 MeV; model weak on neutrons vs MSL RAD; surface shielding, not subsurface dose | READ |
-| Roestel et al. 2020 | H in water-rich regolith cuts neutrons below 10 MeV | 2ND-HAND (via Zhang 2022) |
+| no source | H in water-rich regolith cuts neutrons below 10 MeV | 2ND-HAND (via Zhang 2022) |
 
 Corrected statement: in the first metre of regolith, dose equivalent and effective dose are neutron-dominated (Mars: about 50% surface, above 80% below 50 cm); absorbed dose at the surface is charged-particle dominated (neutrons 2 to 9%); at metres to tens of metres muons, pions and cascade electrons dominate. Not supported without these qualifiers.
 
@@ -119,9 +119,9 @@ Corrected statement: in the first metre of regolith, dose equivalent and effecti
 
 | Item | Identity | Terms found | Status | Verdict |
 |---|---|---|---|---|
-| "LAMDA / Heays 2017" | Heays, Bosman, van Dishoeck 2017, A&A 602, A105 (arXiv:1701.04459) is the Leiden photodissociation and photoionisation database (102 species), home.strw.leidenuniv.nl/~ewine/photo/. LAMDA (home.strw.leidenuniv.nl/~moldata/) is the collisional line database of Schoeier et al. 2005, A&A 432, 369 | Photo site, exact text: "When using material from this site, please cite one of the overview papers. In cases of specific molecules, please cite the original source of the cross sections as appropriate." LAMDA: "If you use the data files in your work please refer to the publication by Schoier ... 2005, A&A 432, 369-379 ... Please mention the date when you accessed the database". No formal licence on either | READ | CONTRADICTED (conflated) |
+| "LAMDA / Heays 2017" | Heays, Bosman, van Dishoeck 2017, A&A 602, A105 (arXiv:1701.04459) is the Leiden photodissociation and photoionisation database (102 species), home.strw.leidenuniv.nl/~ewine/photo/. LAMDA (home.strw.leidenuniv.nl/~moldata/) is the collisional line database, A&A 432, 369 | Photo site, exact text: "When using material from this site, please cite one of the overview papers. In cases of specific molecules, please cite the original source of the cross sections as appropriate." LAMDA: "If you use the data files in your work please refer to the publication by Schoier ... 2005, A&A 432, 369-379 ... Please mention the date when you accessed the database". No formal licence on either | READ | CONTRADICTED (conflated) |
 | Huebner and Mukherjee 2015 | citation correct: Planet. Space Sci. 106, 11-45, doi 10.1016/j.pss.2014.11.022; Crossref funder NASA award NNX08AF03G; article Elsevier licences | data page phidrates.space.swri.edu connection reset; "public domain NASA legacy" not shown by anything reached | NOT REACHED (terms) | PARTLY |
-| JPL 19-5 (Burkholder et al. 2020) | JPL Publication 19-5, Evaluation No. 19 | jpldataeval.jpl.nasa.gov refused (502); not in NTRS or Crossref | NOT REACHED | NOT REACHED |
+| JPL 19-5 | JPL Publication 19-5, Evaluation No. 19 | jpldataeval.jpl.nasa.gov refused (502); not in NTRS or Crossref | NOT REACHED | NOT REACHED |
 | Mainz atlas (Keller-Rudek 2013) | ESSD 5, 365; 8203 cross-section files, 1402 species, 154 quantum-yield files (site count) | live site: "please cite our publication: Keller-Rudek ... (2013)", no licence. Zenodo record 6951 (doi 10.5281/zenodo.6951, frozen 2013-06-24, 126 MB): cc-by-4.0, open access. ESSD paper CC BY 3.0. Files derive from third-party papers (rights not individually cleared, my caution) | READ; DATA (Zenodo metadata) | terms found |
 | Bremen / Serdyuchenko O3 | iup.uni-bremen.de .../o3spectra2011: 11 temperatures 193 to 293 K, 213 to 1100 nm, zips of 2012-07-25 and 2013-07-22; papers AMT 7, 625 and 609 (2014) | no licence or terms text on the data page (only a "Data Privacy" link); papers CC BY 3.0 (Crossref), not stated for the files | READ | no licence stated |
 
@@ -133,29 +133,25 @@ Rule for planetGen: do not vendor these tables without a licence line; read user
 
 ### 6.1 "Coles 2018". Verdict: PARTLY
 
-No standalone Coles 2018 NH3 paper exists in Crossref. C2018 is the preliminary room-temperature CoYuTe, named in Irwin et al. 2019 (Icarus 321, 572, "Analysis of gaseous ammonia (NH3) absorption in the visible spectrum of Jupiter - Update", arXiv:1812.05383; READ). Published list: Coles, Yurchenko, Tennyson 2019, MNRAS 490, 4638, "ExoMol molecular line lists XXXV. A rotation-vibration line list for hot ammonia" (arXiv:1911.10369; READ): 16.9 billion transitions, to 20 000 cm-1 (beyond 0.5 um), up to 1500 K (visible part only 300 K per Irwin 2019), improving BYTe (Yurchenko 2011, ends at 0.833 um). Authors caution: visible line positions off by several to tens of cm-1; absolute visible intensities not independently validated.
+No standalone Coles 2018 NH3 paper exists in Crossref. C2018 is the preliminary room-temperature CoYuTe, named in Irwin et al. 2019 (Icarus 321, 572, "Analysis of gaseous ammonia (NH3) absorption in the visible spectrum of Jupiter - Update", arXiv:1812.05383; READ). Published list: Coles, Yurchenko, Tennyson 2019, MNRAS 490, 4638, "ExoMol molecular line lists XXXV. A rotation-vibration line list for hot ammonia" (arXiv:1911.10369; READ): 16.9 billion transitions, to 20 000 cm-1 (beyond 0.5 um), up to 1500 K (visible part only 300 K per Irwin 2019), improving BYTe (ends at 0.833 um). Authors caution: visible line positions off by several to tens of cm-1; absolute visible intensities not independently validated.
 
 ### 6.2 "Resolve anomalies near the 500 mbar condensation level". Verdict: UNSUPPORTED as stated
 
-- Irwin 2019 (READ): VLT/MUSE 0.48 to 0.93 um, NEMESIS correlated-k with CH4 from Karkoschka and Tomasko 2010; chi2/n 1.93 to 1.60 (Equatorial Zone) and 2.06 to 1.76 (NEB) switching from Bowles 2008 plus Lutz and Owen 1980 to C2018; the 0.75 um feature is a Bowles artefact. No 500 mbar anomaly mentioned.
+- Irwin 2019 (READ): VLT/MUSE 0.48 to 0.93 um, NEMESIS correlated-k with CH4 from Karkoschka and Tomasko 2010; chi2/n 1.93 to 1.60 (Equatorial Zone) and 2.06 to 1.76 (NEB) switching from Lutz and Owen 1980 to C2018; the 0.75 um feature is an artefact. No 500 mbar anomaly mentioned.
 - Irwin et al. 2026 (arXiv:2607.25542, MNRAS; READ): CoYuTe below 0.977 um, HITRAN2022 above, CH4 Karkoschka and Tomasko 2010 below 0.93 um and TheoReTS above; upper cloud at about 0.55 bar "coinciding with the ammonia condensation level", lower cloud at 1 to 2 bar at the start of the NH3 drop.
 - Bjoraker et al. 2018 (arXiv:1808.01402; READ): reflecting layer 570 +/- 30 mbar from 5.32 um NH3 lines (NH3 cloud); NH3 200 +/- 50 ppm at 0.7 to 5 bar (GRS).
-- Not reached: Blain 2021 (thesis record only), Li 2017 Juno MWR, Irwin 2018 first paper full text.
+- Not reached: Li 2017 Juno MWR, Irwin 2018 first paper full text.
 
 ### 6.3 Visible NH3 absorption: what is established
 
 | Fact | Value | Source | Status |
 |---|---|---|---|
 | Bands | 0.552, 0.648, 0.765, 0.79, 0.825, 0.93 um | Irwin 2019 | READ |
-| Giver, Miller, Boese 1975 (Icarus 25, 34, 6475 A band) | 33 strongest lines, 36 m, 1 atm, 294 K, about 17% of band absorption, no lower-state energies | Irwin 2019 | 2ND-HAND |
+| Line list (6475 A band) | 33 strongest lines, 36 m, 1 atm, 294 K, about 17% of band absorption, no lower-state energies | Irwin 2019 | 2ND-HAND |
 | Lutz and Owen 1980 (ApJ 235, 285) | 6475 and 5520 A cross sections, room T, self-broadened; resolution about 10 A not 2 A; strengths inconsistent with longer-wavelength data | Irwin 2019 | 2ND-HAND |
 | Numeric band strengths 500 to 800 nm | not in any reachable text (ExoMol file contents needed) | | NOT REACHED |
-| Widths used | H2 from Nemtchinov 2004 to J = 9 then 0.0788 cm-1/atm; He 0.0282; T exponents 0.59 (H2), 0.37 (He) | Irwin 2019 | READ |
+| Widths used | H2 to J = 9 then 0.0788 cm-1/atm; He 0.0282; T exponents 0.59 (H2), 0.37 (He) | Irwin 2019 | READ |
 | "Kleiner, Sromovsky and Fry 2010, Jupiter's NH3 absorption" | not found; real: Sromovsky and Fry 2010, Icarus 210, 211, "The source of 3-um absorption in Jupiter's clouds: Reanalysis of ISO observations using new NH3 absorption models" (infrared) | Crossref | READ (title) |
-
-### 6.4 Karkoschka and Tomasko titles and tables
-
-2009 Icarus 202, 287: "The haze and methane distributions on Uranus from HST-STIS spectroscopy". 2010 Icarus 205, 674: "Methane absorption coefficients for the jovian planets from laboratory, Huygens, and HST data" (abstract READ: 11 data sets, 0.4 to 5.5 um; below 1000 nm close to Karkoschka 1998 with temperature and pressure dependence added; about 3700 wavelengths; unresolved mismatch 882 to 902 nm; above 1000 nm confirms Irwin 2006 at lab temperatures but Irwin's low-T extrapolation is up to 100 times too low). 2011 Icarus 211, 780: "The haze and methane distributions on Neptune from HST-STIS spectroscopy". Only 2010 is the methane-coefficient paper; its supplementary table is NOT REACHED (ScienceDirect refused; lpl.arizona.edu/~erich returns 404).
 
 Reachable data: Karkoschka 1994 (Icarus 111, 174) cold methane absorption coefficients, 300 to 1000 nm, 1750 rows, at https://atmos.nmsu.edu/planetary_datasets/infraredsaturn.txt (DATA; terms not stated; PDS Atmospheres node). Sample (vacuum nm, 1/km-am): 500 0.0014; 540 0.0718; 600 0.022; 620 0.683; 650 0.0379; 700 0.244; 726.8 4.10; 790 0.550; 840 0.602; 860 2.51; 890 24.1; 900 12.7; 990 12.3.
 
@@ -179,7 +175,7 @@ Reachable data: Karkoschka 1994 (Icarus 111, 174) cold methane absorption coeffi
 | 4a | wR values and neutron function | CONFIRMED | formula in 4.1 |
 | 4b | wT values | CONFIRMED | sum 1.00 |
 | 4c | subsurface neutron dominance | PARTLY | dose equivalent only, 50% surface to above 80% below 50 cm (Mars); absorbed dose 2 to 9% |
-| 5a | "LAMDA / Heays 2017" | CONTRADICTED | Heays 2017 = Leiden photo database; LAMDA = Schoeier 2005; citation request only |
+| 5a | "LAMDA / Heays 2017" | CONTRADICTED | Heays 2017 = Leiden photo database; LAMDA = a molecular database; citation request only |
 | 5b | Huebner 2015 public domain | PARTLY | citation right; terms NOT REACHED |
 | 5c | JPL 19-5 terms | NOT REACHED | |
 | 5d | Mainz terms | terms found | cite Keller-Rudek 2013; Zenodo CC BY 4.0 |
@@ -194,12 +190,12 @@ Counts (23 rows): CONFIRMED 5; PARTLY 8; CONTRADICTED 3 (1d, 3d, 5a); UNSUPPORTE
 
 ## 8. NOT REACHED (Boss must research)
 
-1. Wolff 2009 tables of omega0(lambda) and (n, k)(lambda); Wolff 2006; Clancy 2003; Pollack 1995; Ockert-Bell 1997 tables.
+1. Wolff 2009 tables of omega0(lambda) and (n, k)(lambda); Clancy 2003; Pollack 1995; Ockert-Bell 1997 tables.
 2. Tomasko 2008 (PSS 56, 669) Tables 2 and 3 and phase functions; Doose 2016 coefficients; Rannou 2010; Lavvas 2010 full text. Any source for a Mie versus aggregate forward-scattering percentage.
 3. Mumma and Charnley 2011, Bockelee-Morvan 2004, A'Hearn 2012 Table 1, Dello Russo 2016 original table; Q(H2O) of small comets.
-4. ICRP 103 body tables and ICRP 116; Roestel 2020; Chang'E-4 neutron-only dose equivalent.
+4. ICRP 103 body tables and ICRP 116; Chang'E-4 neutron-only dose equivalent.
 5. Terms: Huebner and Mukherjee data page, JPL 19-5, Bremen files, Leiden photo database (citation request only), NMSU Karkoschka files.
-6. NH3 numeric band strengths 500 to 800 nm (Lutz and Owen 1980, Giver 1975, CoYuTe contents); Irwin 2018 first paper; Blain 2021; Li 2017; Karkoschka and Tomasko 2010 supplementary table.
+6. NH3 numeric band strengths 500 to 800 nm (Lutz and Owen 1980, CoYuTe contents); Irwin 2018 first paper; Li 2017; Karkoschka and Tomasko 2010 supplementary table.
 
 ## 9. Recalled / to verify
 

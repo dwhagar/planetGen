@@ -41,7 +41,7 @@
    "definition": "planets of 8 to 20 Earth radii with periods under 10 days, Kepler field",
    "source": "Zhu and Dong 2021, arXiv:2103.02127", "label": "READ", "where": "full text", "tier": "T1"},
   {"id": "hot_jupiter_rate.G.rv", "host": "G", "measure": "hot_jupiter_rate", "unit": "fraction of stars", "value": 0.012, "minus": 0.0038, "plus": 0.0038,
-   "definition": "hot Jupiters of F, G and K dwarfs of the solar neighbourhood, radial velocity (the larger of the two measured rates; Zhu and Dong 2021 give 0.9 to 1.2 percent from Mayor et al. 2011 and Wright et al. 2012)",
+   "definition": "hot Jupiters of F, G and K dwarfs of the solar neighbourhood, radial velocity (the larger of the two measured rates; Zhu and Dong 2021 give 0.9 to 1.2 percent from Wright et al. 2012)",
    "source": "Wright et al. 2012, arXiv:1205.2273", "label": "READ", "where": "abstract", "tier": "T1"},
   {"id": "hot_jupiter_rate.M", "host": "M", "measure": "hot_jupiter_rate", "unit": "fraction of stars", "value": 0.0027, "minus": 0.0009, "plus": 0.0009,
    "definition": "planets of 7 Earth radii to 2 Jupiter radii with periods of 0.8 to 10 days around M dwarfs of 0.45 to 0.65 solar masses",

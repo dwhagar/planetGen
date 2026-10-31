@@ -13,7 +13,7 @@ Two draws, both large because a researched norm binds only when the sample is:
 - Multiplicity by primary type. Whole systems with no planets (`SystemConfig.PLANETS = False`; planets are the system
   census's, TEST.431) around M2V, K5V, G2V, F5V and A0V, counted into the stars each holds: the share with a companion
   star, and for a solar-type primary the share with three or more. Compared with Duchene and Kraus 2013, Raghavan et al.
-  2010, De Rosa et al. 2014 and Moe and Di Stefano 2017, whose figures `tuning.py` already quotes.
+  2010, and Moe and Di Stefano 2017, whose figures `tuning.py` already quotes.
 
 `tests/data/prevalence_stars_expectations.json` holds the norm ranges (a range, not a point, wherever two sources differ:
 the widest range stands) and the item that explains each range the generator is known to break. The sampling slack of a

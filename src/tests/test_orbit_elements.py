@@ -168,17 +168,24 @@ def _airless_seed(planet, first, *runs):
     pytest.fail("no draw leaves the body airless")
 
 
+def _absorbed_light_ratio(planet, base_temperature, base_albedo):
+    """How much more light the body absorbs than the base run, from its temperatures: an airless body is at the fourth root of the light it absorbs, `T^4 ~ L (1 - A)`.
+    The albedo is the body's own and moves with the temperature (warmer ground loses its ice and frost), so it is read after each run and the law is held to the light, not to the temperature."""
+    return (planet.surface_temperature / base_temperature) ** 4 * (1.0 - base_albedo) / (1.0 - planet.bond_albedo)
+
+
 def test_an_eccentric_planet_is_as_warm_as_a_circle_with_the_same_mean_light():
     planet = _airless_planet()
     planet.eccentricity = 0.0
     draw.set_run_seed(77)
     planet_physics.calculate_atmospheric_conditions(planet)
-    circle = planet.surface_temperature
+    circle, circle_albedo = planet.surface_temperature, planet.bond_albedo
     planet.eccentricity = 0.6
     draw.set_run_seed(77)
     planet_physics.calculate_atmospheric_conditions(planet)
-    # equilibrium temperature goes as the fourth root of the light: (1 - e^2)^(-1/8)
-    assert planet.surface_temperature / circle == pytest.approx((1.0 - 0.36) ** -0.125, rel=1e-6)
+    # the light an orbit gives, averaged over it, is that of a circle of radius a (1 - e^2)^(1/4): 1 / sqrt(1 - e^2) times a circle's (GEN.727). The albedo is not the same
+    # (the warmer eccentric planet has less ice), so the light is found from the temperature and the body's own albedo.
+    assert _absorbed_light_ratio(planet, circle, circle_albedo) == pytest.approx((1.0 - 0.36) ** -0.5, rel=1e-6)
 
 
 def test_a_moon_gets_the_light_of_its_parents_orbit():
@@ -189,11 +196,11 @@ def test_a_moon_gets_the_light_of_its_parents_orbit():
     seed = _airless_seed(planet, 78, (planet.distance,), (planet.distance, 0.5))
     draw.set_run_seed(seed)
     planet_physics.calculate_atmospheric_conditions(planet, planet.distance, 0.0)
-    base = planet.surface_temperature
+    base, base_albedo = planet.surface_temperature, planet.bond_albedo
     draw.set_run_seed(seed)
     planet_physics.calculate_atmospheric_conditions(planet, planet.distance, 0.5)
     assert planet.host_eccentricity == 0.5
-    assert planet.surface_temperature / base == pytest.approx((1.0 - 0.25) ** -0.125, rel=1e-6)
+    assert _absorbed_light_ratio(planet, base, base_albedo) == pytest.approx((1.0 - 0.25) ** -0.5, rel=1e-6)
 
 
 def test_the_orbits_swing_is_the_seasons_of_a_lone_star_and_adds_to_a_companions():

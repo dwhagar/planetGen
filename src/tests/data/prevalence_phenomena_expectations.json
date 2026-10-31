@@ -11,7 +11,7 @@
    "Johnson2020": "Johnson et al. 2020 (AJ 160:123) and Mróz et al. 2020 (ApJL 903:L11): 2 to 10 terrestrial free-floating planets per star, 0.5 to 1.4 per pc^3 (as docs/design/systems/interstellar-object-rates.md quotes them, recalled and unverified)",
    "Kirkpatrick2021": "Kirkpatrick et al. 2021, ApJS 253:7: 0.025 to 0.035 brown dwarfs per pc^3 (as the interstellar-object-rates note quotes it, recalled)",
    "Tauris2015": "Tauris 2015, MNRAS 448:L6: stars moving faster than 30 km/s are 1 to 2 percent of stars",
-   "DoEngelhardt": "Do et al. 2018 and Engelhardt et al. 2017 as the interstellar-object-rates note quotes them: 0.1 to 0.2 interstellar objects of about 100 m and up per au^3, 7e14 to 1.8e15 per pc^3",
+   "DoEngelhardt": "Do et al. 2018 as the interstellar-object-rates note quotes them: 0.1 to 0.2 interstellar objects of about 100 m and up per au^3, 7e14 to 1.8e15 per pc^3",
    "CantatGaudin2020": "Cantat-Gaudin et al. 2020 (arXiv:2004.07274, read 2026-10-29): reliable parameters for 1867 clusters from Gaia DR2, complete only to about 2 kpc",
    "HuntReffert2023": "Hunt and Reffert 2023 (arXiv:2303.13424, read 2026-10-29): 7167 clusters in Gaia DR3, as many as a few thousand of them unbound moving groups"
   }
@@ -24,7 +24,7 @@
    "min": 10000000.0,
    "max": 1000000000.0,
    "kind": "norm",
-   "source": "about 1e8 (Olejak et al. 2020, A&A 638:A94; Sahu et al. 2022, ApJ 933:83; the figures tuning.py quotes), recalled and unverified (tier T3); the range is a decade either side"
+   "source": "about 1e8 (Olejak et al. 2020, A&A 638:A94, ApJ 933:83; the figures tuning.py quotes), recalled and unverified (tier T3); the range is a decade either side"
   },
   "neutron_stars": {
    "min": 100000000.0,
@@ -97,7 +97,7 @@
    "min": 700000000000000.0,
    "max": 1800000000000000.0,
    "kind": "norm",
-   "source": "7e14 to 1.8e15 per pc^3, 0.1 to 0.2 per au^3 for objects of about 100 m and up (Do et al. 2018; Engelhardt et al. 2017), as the interstellar-object-rates note quotes them, recalled"
+   "source": "7e14 to 1.8e15 per pc^3, 0.1 to 0.2 per au^3 for objects of about 100 m and up (Do et al. 2018), as the interstellar-object-rates note quotes them, recalled"
   },
   "open_clusters": {
    "min": 1867,

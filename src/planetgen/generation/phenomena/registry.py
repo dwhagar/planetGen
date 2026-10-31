@@ -144,7 +144,7 @@ KINDS = (
          "Notable interstellar comets kept as rows, a design rate."),
     Kind("asteroid-field", "small-body", "built", "asteroid-field", "none", "fill", None, True,
          _P + "build_asteroid_field", "small-body", (), 8, "asteroid-field", None, "asteroid-field",
-         "Rate 0: free fields disperse in 1e6 to 1e7 years (Raymond et al. 2020); hand-made only."),
+         "Rate 0: free fields disperse in 1e6 to 1e7 years; hand-made only."),
     Kind("quasar", "nucleus", "built", None, "none", "scatter", "nucleus", False,
          _P + "build_quasar", None, (), 6, None, None, "quasar",
          "One per galaxy, at the nucleus, with QUASAR_ACTIVE_NUCLEUS_CHANCE."),

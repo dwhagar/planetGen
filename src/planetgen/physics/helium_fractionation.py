@@ -12,10 +12,10 @@ step as a pure function of the loss history. It changes nothing in `envelope_esc
 Hydrogen drags helium out only while the escape flux is large enough; a smaller flux lets hydrogen leave and helium stay. With the homopause
 (where molecular diffusion takes over from mixing) at `HOMOPAUSE_RADIUS_OVER_TRANSIT` times the transit radius and at a temperature T:
 
-    b = 1.04e18 T^0.732 cm^-1 s^-1          binary diffusion of H in He (Mason and Marrero 1970)      Hu 2015 eq. 9, Malsky 2023 A3
+    b = 1.04e18 T^0.732 cm^-1 s^-1          binary diffusion of H in He      Hu 2015 eq. 9
     b' = b / (1 + x)                        with the ionised share x (row HF2)
-    phi_DL = G M (m_He - m_H) b' / (R^2 k T)     the diffusion-limited number flux of hydrogen          Hu 2015 eq. 12, Malsky 2023 A5
-    phi_He / X_He = phi_H / X_H - phi_DL         the fluxes of the two gases                            Hu 2015 eq. 13, Malsky 2023 A4
+    phi_DL = G M (m_He - m_H) b' / (R^2 k T)     the diffusion-limited number flux of hydrogen          Hu 2015 eq. 12
+    phi_He / X_He = phi_H / X_H - phi_DL         the fluxes of the two gases                            Hu 2015 eq. 13
 
 A total mass flux Phi = 4 pi R^2 (phi_H m_H + phi_He m_He) at or under `4 pi R^2 X_H m_H phi_DL` is all hydrogen (eq. 14); over it the two
 leave in the proportions of eq. 15. The mixing ratios X are by number. `evolve` takes the envelope a step at a time at a given total loss, so the
@@ -56,7 +56,7 @@ HOMOPAUSE_RADIUS_OVER_TRANSIT = 1.1
 """float: The homopause radius over the transit radius ("approximately 10 percent larger", Malsky et al. 2023 A.1), row HF2."""
 
 DIFFUSION_A_CM = 1.04e18
-"""float: `b = A T^0.732` in cm^-1 s^-1 (Mason and Marrero 1970 as used by Hu et al. 2015 and Malsky et al. 2023), row HF1."""
+"""float: `b = A T^0.732` in cm^-1 s^-1 (as used by Hu et al. 2015 and Malsky et al. 2023), row HF1."""
 
 DIFFUSION_EXPONENT = 0.732
 """float: The temperature exponent of `b`, row HF1."""

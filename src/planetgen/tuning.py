@@ -103,7 +103,7 @@ PLANET_SOLIDS_STELLAR_MASS_EXPONENT = 1.2
 # 2018; Dressing & Charbonneau 2015: about 2.5 planets of 0.5 to 4 Earth radii within 50 days; recalled).
 PLANET_INNER_DISC_STEEPENING = 0.75
 # Beyond this distance the cores of the outer disc have not had time to assemble before the gas and the planetesimals are gone:
-# orbits are slow and the disc is thin (Levison et al. 2010 grow Uranus and Neptune in a few Myr only by pebble accretion,
+# orbits are slow and the disc is thin (Uranus and Neptune grow in a few Myr only by pebble accretion,
 # recalled), so the assembled solids fall as (this distance / the distance) to `PLANET_OUTER_GROWTH_EXPONENT`. A planetGen
 # stand-in (tier T6, tweak L3) tuned with the giants' occurrence (`GIANT_GAS_SURVIVAL_SHARE`) and the count of the Neptune-mass planets beyond the
 # snow line (Suzuki et al. 2016: about 0.5 per star, recalled).
@@ -301,9 +301,8 @@ MIN_ASTEROID_BELT_SEPARATION = 0.05
 # two-planet Hill stability in the circular, coplanar case is 2*sqrt(3)
 # ~= 3.46 mutual Hill radii (Gladman 1993); long-term (10^8-10^9 orbit)
 # N-body integrations of systems with more than two planets recommend a
-# larger safety margin, commonly cited around 8-10 mutual Hill radii
-# (Chambers, Wetherill & Boslough 1996; Smith & Lissauer 1999/2009). This
-# generator uses the upper/safer end of that range -- see
+# larger safety margin, commonly cited around 8-10 mutual Hill radii.
+# This generator uses the upper/safer end of that range -- see
 # `StarSystem.validate_system`'s planet-planet spacing check, which is
 # the only place this applies (a moon's own orbital limit around its
 # parent is a single-body Hill-sphere question, not a mutual one -- see
@@ -764,13 +763,13 @@ BRIGHT_GIANT_MIN_MASS_SOL = 4.0
 # edge near 5,000 K and a blue edge near 7,000 K), at least this luminous (the shortest-period classical Cepheids,
 # about one day, are M_V near -2, a few hundred to a thousand Lsun) and born with at most this mass (classical Cepheids
 # are 3 to 13 solar masses; the yellow stars of 20 to 45 are supergiants and hypergiants, not pulsators of that kind)
-# [R, recalled, unconfirmed: the instability strip of Bono et al. 2000 and Turner 2010; the star class audit of
+# [R, recalled, unconfirmed: the instability strip; the star class audit of
 # 2026-10-29 section 1, H1]. The horizontal branch's own RR Lyrae stars have their colour
 # (HORIZONTAL_BRANCH_COLOUR_TEMPERATURE_RANGE_K).
 CEPHEID_TEMPERATURE_RANGE_K = (5000.0, 7000.0)
 CEPHEID_MIN_LUMINOSITY_SOL = 500.0
 CEPHEID_MAX_INITIAL_MASS_SOL = 13.0
-# The mass a star has lost by a point on its track (GEN.940). MIST (Choi et al. 2016, section 3.7.1) takes Reimers (1975)
+# The mass a star has lost by a point on its track (GEN.940). MIST (Choi et al. 2016, section 3.7.1) takes Reimers
 # mass loss on the red giant branch with eta_R = 0.1, tuned to the white dwarf initial-final mass relation, and a star
 # that loses that little is 0.954 solar masses at the tip from 1; globular clusters want a horizontal branch of 0.55 to
 # 0.7. McDonald and Zijlstra 2015 (MNRAS 446, 2226) fit eta_R = 0.477 +- 0.070 to the horizontal-branch morphology of 22
@@ -785,8 +784,7 @@ MIST_REIMERS_ETA = 0.1
 # metal-poor and extreme horizontal-branch (hot subdwarfs) a few percent of
 # old stars (docs/design/galaxy/realistic-galactic-core.md 5.3) [R, recalled, unconfirmed:
 # Lee, Demarque and Zinn 1994; Catelan 2009]. The luminosity is the RR Lyrae
-# level, 36 to 47 Lsun (M_V 0.56 to 0.80 at [Fe/H] -1.6, Catelan 2009; Gould and
-# Popowski 1998) and the red clump's 30 to 40 [P, stellar tables check]; a hot
+# level, 36 to 47 Lsun (M_V 0.56 to 0.80 at [Fe/H] -1.6, Catelan 2009) and the red clump's 30 to 40 [P, stellar tables check]; a hot
 # subdwarf is dimmer, 10 to 40 Lsun, and skips the AGB, which is not modelled
 # (a few percent of old stars). The strip is 6,100 to 7,500 K (blue edge 7,400
 # to 7,600 K, red edge 6,100 to 6,250 K); red horizontal-branch stars fill the
@@ -895,7 +893,7 @@ WD_IFMR_PIECES = (
 and 6, the fit to the MIST tracks; the pieces join at 2.85 and 3.60). The first piece is carried down to the lightest
 progenitor (`WHITE_DWARF_PROGENITOR_SOL`) and the last up to the core collapse limit. Verified (read in the paper); one
 relation, read by the star model, the member draw, the disk history and `mass_loss`. The relation of Kalirai et al. (2008)
-the generator used before runs 0.04 to 0.06 under it, and Weidemann (2000), the disk history's, 0.1 to 0.16 under at 5 to 7
+the generator used before runs 0.04 to 0.06 under it, and the disk history's, 0.1 to 0.16 under at 5 to 7
 solar masses (the audit of the star classes, M2)."""
 WD_MASS_RANGE_SOL = (0.5, 1.35)
 WD_COOLING_L0_SOL = 1.0e-3
@@ -996,7 +994,7 @@ PRE_MAIN_SEQUENCE_ENERGY_SOURCE_FACTOR = 2.0
 DISK_CLASS_AGES_YR = (("0", 0.15e6), ("I", 0.5e6), ("II", 3.0e6))
 RUNAWAY_HISTORY_START_YR = 30.0e6
 """float: The age the water-loss history starts at (GEN.639): 30 Myr, when the last giant impacts of the rocky planets are
-done (Earth's Moon-forming impact, 30 to 100 Myr after the disk; Kleine et al. 2009, Jacobson et al. 2014) and a surface
+done (Earth's Moon-forming impact, 30 to 100 Myr after the disk; Jacobson et al. 2014) and a surface
 with its water is bare to the star. A planet that was still growing earlier had no oceans to lose; the choice keeps the
 Sun's own habitable zone dry-proof (the young Sun was past the runaway limit at 1 AU only until about 15 Myr). DESIGN."""
 
@@ -1053,7 +1051,7 @@ DISK_DUST_SUBLIMATION_K = 1500.0
 # detected cold disk is F 23.9, G 14.3 and K 13.0 percent (47 discs round 275), M 2.2 percent (89 stars) and, raw, 24 percent for
 # A stars. `DEBRIS_DISK_INCIDENCE` is the share for each mass band, the bands ending at the masses of
 # `DEBRIS_DISK_INCIDENCE_MASS_LIMITS_SOL` (the last band has no upper mass). The masses are the spectral types'
-# (M under 0.45, K to 0.8, G to 1.04, F to 1.4, A and hotter above); Matthews et al. 2014 find the dust shows no clear dependence on
+# (M under 0.45, K to 0.8, G to 1.04, F to 1.4, A and hotter above); the dust shows no clear dependence on
 # type from late B to M, so a hotter star takes the A figure.
 DEBRIS_DISK_INCIDENCE_MASS_LIMITS_SOL = (0.45, 0.8, 1.04, 1.4)
 DEBRIS_DISK_INCIDENCE = (0.022, 0.130, 0.143, 0.239, 0.24)
@@ -1252,7 +1250,7 @@ GIANT_PLANET_METALLICITY_EXPONENT = 2.0
 # `10^(PLANET_OCCURRENCE_METALLICITY_EXPONENT ([Fe/H] - floor))` (small planets keep a weak dependence, so a gentler
 # slope than the giants'), giants as the Fischer and Valenti form above, taken from the floor too. So a metal-poor
 # halo or cluster star hosts a system of one or two small planets at most and almost never a giant (the floor of -0.5
-# is recalled as where Kepler's small-planet occurrence starts to fall, Buchhave 2012; not looked up this session).
+# is recalled as where Kepler's small-planet occurrence starts to fall; not looked up this session).
 PLANET_OCCURRENCE_FLOOR_DEX_BELOW_SOLAR = 0.5
 """float: Dex below the Sun's [Fe/H] where planet occurrence starts to fall (the floor is [Fe/H] -0.5), kept as a
 positive depth."""
@@ -1290,8 +1288,8 @@ STELLAR_FE_H_FIT_RANGE = {"thin": (-0.9, 0.5), "high-alpha": (-1.6, 0.1)}
 """dict: The [Fe/H] each branch's [X/Fe] fits were made over; outside it the fit is held at its edge (flagged)."""
 # [X/Fe] means by branch, as ("linear", a, b): a + b F; ("min", c, b, k): c + b min(F - k, 0), the thin disc's plateau above k
 # and rise below; ("max", p, s, k): p + s max(F - k, 0), the high-alpha plateau below k. Fitted to Bensby 2014 (Mg, Si, Ca,
-# Al), Nissen 2014 NLTE (C, O) and Battistini and Bensby 2016 (Eu), part A 2.7. The thin-disc Mg and Si are refitted to Brewer and
-# Fischer 2016 (GEN.989, and the thin-disc O of GEN.991; `scripts/fit_stellar_xfe_refit.py`): their stars sit 0.06 dex under the Sun in
+# Al), Nissen 2014 NLTE (C, O) and Battistini and Bensby 2016 (Eu), part A 2.7. The thin-disc Mg and Si are refitted to a
+# catalogue of stars (GEN.989, and the thin-disc O of GEN.991; `scripts/fit_stellar_xfe_refit.py`): their stars sit 0.06 dex under the Sun in
 # Mg, 0.03 in Si and 0.03 in O at [Fe/H] above solar, where Bensby's plateau is at the Sun and Nissen's O line goes on falling.
 STELLAR_XFE_FITS = {
     "thin": {
@@ -1406,8 +1404,7 @@ CLUSTER_HALO_CIRCULAR_KMS = 220.0
 # distance from the centre as `(R / reference) ** CLUSTER_RADIUS_GROWTH` (the reference radius in the galaxy's own
 # scale lengths, `CLUSTER_RADIUS_REFERENCE_SCALE_LENGTHS`), limited to `CLUSTER_HALF_MASS_RADIUS_RANGE_PC`);
 # a fraction `CLUSTER_CORE_COLLAPSED_FRACTION` is core-collapsed (W0 at the top of the range) and the rest draw their
-# concentration c from a normal about `CLUSTER_CONCENTRATION_MEAN` (all recalled from Harris 1996 and Baumgardt and
-# Hilker 2018, good to the shape of the distribution). [Fe/H] has two groups, `(fraction, mean, sigma)`: the
+# concentration c from a normal about `CLUSTER_CONCENTRATION_MEAN` (all recalled from Harris 1996, good to the shape of the distribution). [Fe/H] has two groups, `(fraction, mean, sigma)`: the
 # metal-poor halo clusters and the metal-rich ones of the bulge and disk (the two peaks near -1.5 and -0.5), the
 # metal-rich group sitting on flattened orbits about the centre (median `CLUSTER_BULGE_MEDIAN_PC`, rotating at
 # `CLUSTER_HALO_CIRCULAR_KMS`) and the halo group on a density falling as r**-3.5 between `CLUSTER_HALO_RADIUS_RANGE_PC`.
@@ -1544,7 +1541,7 @@ the radius at which its density equals the ball's mean, so the ball's cell holds
 # A bar carries the gas of its gap inward (`BAR_GAP_RADIUS_RATIO`) and piles it into a ring at the centre, the central
 # molecular zone; the ring forms stars at a small share of what comes in. All three are from the review of Henshaw et al.
 # 2023 (PPVII, arXiv:2203.11223, read): the bar's gap gas leaves on a Gy (the simulations behind `BAR_GAP_STAR_FORMATION_FLOOR`),
-# the inflow to the ring is 0.8 solar masses a year for the Milky Way (Hatchfield et al. 2021, 30% efficiency of the
+# the inflow to the ring is 0.8 solar masses a year for the Milky Way (30% efficiency of the
 # dust lanes' flow) against a star formation rate of 0.07 (Table 1: source counts 0.07, integrated light 0.07 to 0.09, more
 # or less constant over the last 5 Myr to 100 Myr), by continuity `inflow = star formation + outflow + growth` (their eq. 1).
 CORE_GAS_INFLOW_TIME_GY = 1.0
@@ -1576,18 +1573,18 @@ clusters, 0.03 to 0.06 for nearby clouds; the paper takes 0.1 and a factor of th
 CLUSTER_MAX_MASS_CEILING_SOL = 1.0e5
 """float: A hard ceiling on the maximum cluster mass of a ring: the most massive cluster seen in the Milky Way's central ring
 implies a maximum of a few 1e4 and "certainly under 1e5" (Reina-Campos and Kruijssen 2017, footnote 9, by the size-of-sample
-argument of Gieles 2009) [guard: the relation goes as Sigma_g cubed, so a factor of two in the gas is a factor of eight]."""
+argument) [guard: the relation goes as Sigma_g cubed, so a factor of two in the gas is a factor of eight]."""
 CORE_RING_GAS_DISPERSION_KMS = 5.0
 DISC_GAS_DISPERSION_KMS = 10.0
 """float: The one-dimensional velocity dispersion of the gas of the central ring (5 km/s, Henshaw et al. 2016) and of a disc
-(10 km/s, Heiles and Troland 2003), the values Reina-Campos and Kruijssen 2017 take for the Milky Way (Section 4.1); it sets
+(10 km/s), the values Reina-Campos and Kruijssen 2017 take for the Milky Way (Section 4.1); it sets
 the Toomre parameter `Q = kappa sigma / (pi G Sigma_g)` (Eq 5) [stand-in: one galaxy's values for every galaxy]."""
 CLUSTER_FEEDBACK_FIRST_SUPERNOVA_MYR = 3.0
 CLUSTER_FEEDBACK_ENERGY_RATE_CM2_S3 = 0.16
 CLUSTER_STAR_FORMATION_PER_FREE_FALL = 0.012
 CLUSTER_MIDPLANE_GRAVITY_FACTOR = 3.0
 """The feedback time of Eq 4 to 7: the time of the first supernova (3 Myr), the energy injection rate per unit stellar mass
-(0.16 cm2 s-3), the star formation per free-fall time of the gas (0.012; Elmegreen 2002, Krumholz et al. 2012) and the factor
+(0.16 cm2 s-3), the star formation per free-fall time of the gas (0.012; Krumholz et al. 2012) and the factor
 for the gravity of the stars in the mid-plane density (`phi_P` = 3)."""
 CLUSTER_SHOCK_GIELES_COEFFICIENT_GYR = 2.0
 CLUSTER_SHOCK_GIELES_NUMERATOR = 5.1
@@ -1898,7 +1895,7 @@ AM_CVN_DONOR_MASS_RANGE_SOL = (0.009, 0.13)
 
 AM_CVN_DONOR_RADIUS_SOL_AT_0_05 = 0.03
 """float: The radius of a 0.05 solar mass degenerate helium donor, solar radii; other masses scale as the mass to the power
--1/3 (a stand-in for the semi-degenerate donors of AM CVn systems, Nelemans et al. 2001)."""
+-1/3 (a stand-in for the semi-degenerate donors of AM CVn systems)."""
 
 ACCRETING_FILL_FACTOR = 1.05
 """float: How far a cataclysmic variable's or AM CVn's donor fills its Roche lobe (1 is exactly full); a pair at this
@@ -1919,7 +1916,7 @@ BARIUM_PERIOD_DAYS = (80.0, 1.0e4)
 days to tens of years)."""
 
 SYMBIOTIC_PERIOD_DAYS = (200.0, 2000.0)
-"""tuple: The period of a symbiotic star's white dwarf, log-uniform, days (Mikolajewska 2012: 200 to 1,500 days)."""
+"""tuple: The period of a symbiotic star's white dwarf, log-uniform, days (200 to 1,500 days)."""
 
 # Accreting compact binaries (GEN.272, docs/design/systems/multi-star-systems.md 13.4). Every figure below is a stand-in
 # unless it names a source; the shares of the registry rows (`high-mass-xray-binary`, `low-mass-xray-binary`,
@@ -1930,7 +1927,7 @@ GX 301-2 41 d: 1 to 100 d). A star whose lobe the span would put inside takes th
 closest the pair may be."""
 
 BE_XRAY_PERIOD_DAYS = (10.0, 300.0)
-"""tuple: The period of a Be/X-ray binary, log-uniform, days (Corbet 1986 and Reig 2011: 10 to 300 d; the orbit is eccentric)."""
+"""tuple: The period of a Be/X-ray binary, log-uniform, days (10 to 300 d; the orbit is eccentric)."""
 
 LOW_MASS_XRAY_PERIOD_DAYS = (0.17, 1.0)
 """tuple: The period of a low-mass X-ray binary with a main-sequence donor, days (4 to 24 hours, most of the 349 known)."""
@@ -2189,8 +2186,7 @@ LIFE_STEP_MEANS_GYR = (0.5, 1.5, 2.5, 3.0, 60.0)
 """
 tuple[float]: The mean waiting time of each hard step of `LIFE_MILESTONES`, Gyr (GEN.750; docs/design/habitability/life-timeline-and-oxygen.md,
 reports/best-guess-standins-2026-10-24.md section 14): abiogenesis, oxygenic-type photosynthesis, complex cells, multicellular animals,
-civilisation. Each step takes an exponential waiting time with this mean once the one before it is done (the hard-step model of Carter 1983 and
-Watson 2008; the early means are shorter than the later because the first steps came early on the one world we know, which is a test point and
+civilisation. Each step takes an exponential waiting time with this mean once the one before it is done (the hard-step model of Watson 2008; the early means are shorter than the later because the first steps came early on the one world we know, which is a test point and
 not a preset). Boss chose these on 10-28 (9:03 PM EDT) from a Monte Carlo of the timeline: complex cells 2.5, animals 3 and a civilization 60
 Gyr make animals common and a civilization rare. Stand-in T7, L3.
 """
@@ -2210,7 +2206,7 @@ T6, L0; Earth's oceans were there by about 4.4 Ga, 0.15 Gyr after it formed)."""
 
 LIFE_ACTIVATION_ENERGY_EV = 0.30
 """float: The activation energy, eV, of the rate of every hard step: a step goes faster on a warm world by a Boltzmann factor. Metabolic theory
-gives 0.65 eV for the rate of a cell's chemistry (Gillooly et al. 2001; Allen and Gillooly 2006 for the rate of evolution itself; from memory);
+gives 0.65 eV for the rate of a cell's chemistry (Gillooly et al. 2001 for the rate of evolution itself; from memory);
 a hard step is a rare event of mutation and selection, whose temperature dependence the geological record cannot pin, and 0.65 eV makes a world at
 26 C three times faster than the reference, so that nearly half of the warm worlds of a Sun-like star would have a civilization by 8 Gyr. Half of it
 gives 1.6. Stand-in T7, L3: lowered to keep the stages rare on a warm world, inside the range of 0.2 to 0.8 eV of the same papers."""
@@ -2457,8 +2453,7 @@ PULSAR_RADIAL_B = 5.0
 # Neutron star mass range in solar masses -- real measured masses cluster
 # tightly around ~1.4 Msun with a hard floor near the Chandrasekhar-like
 # collapse threshold and a soft ceiling near the maximum mass general
-# relativity allows before further collapse to a black hole (Ozel &
-# Freire 2016, ARA&A 54:401, compiling radio pulsar timing masses).
+# relativity allows before further collapse to a black hole (compiling radio pulsar timing masses).
 NEUTRON_STAR_MASS_RANGE_SOLAR = (1.1, 2.2)
 
 # The initial mass of the stars that end as a white dwarf. A star of 8 solar masses or more ends as a neutron star or a
@@ -2472,7 +2467,7 @@ hole, when little of the massive stars fail: O'Connor and Ott 2011 (ApJ 730, 70)
 "islands of 'explodability' in a sea of black hole formation" (GEN.560, docs/design/systems/black-hole-formation-sources.md).
 Only these two windows are sourced. A galaxy that fails a smaller share shrinks them about their centres; one that fails a
 larger share keeps them and adds the top of the mass range down to the mass that makes up the share (the widest verified
-share, 45%, reaches down to about 14.5 solar masses, where Ertl et al. 2016, quoting Ugliano et al. 2012, put the lowest
+share, 45%, reaches down to about 14.5 solar masses, where Ertl et al. 2016 put the lowest
 island) [S, stand-in: the nesting of the windows is not sourced]."""
 
 # Pulsar spin period, in milliseconds, split into the two real observed
@@ -2577,8 +2572,7 @@ SCATTER_PHASE_ORIGIN_UNIX = 946684800.0
 # --- Nebulae and supernova remnants (nebulaData.Nebula,
 # supernovaRemnantData.SupernovaRemnant) ---
 #
-# Nebulae fall into five families (Osterbrock & Ferland 2006, "Astrophysics
-# of Gaseous Nebulae and Active Galactic Nuclei", 2nd ed.): diffuse
+# Nebulae fall into five families (a textbook division): diffuse
 # interstellar gas, emission (H II) regions ionized by hot young stars,
 # reflection nebulae scattering a nearby star's light off dust, planetary
 # nebulae expelled by a dying low/intermediate-mass star, and dark
@@ -2814,7 +2808,7 @@ NEBULA_HOST_RULES = (
 """tuple: Nebulae a sector grows around its own stars (GEN.10), as
 `(spectral letter, lowest subclass, highest subclass, classes, chance)`
 for a main-sequence primary. Only O and early-B stars put out enough
-ultraviolet below 91.2 nm to ionize hydrogen (Osterbrock & Ferland 2006),
+ultraviolet below 91.2 nm to ionize hydrogen,
 and a catalogued H II region is about one per four O stars: about 8,000
 are known against some 270,000 O stars (GEN.204; the nebula density study,
 docs/design/systems/nebula-density-vs-reality.md). The `chance` is that the star
@@ -2878,7 +2872,7 @@ held at the end rows beyond them (the design note's four values, [C]); the FUV f
 
 CLOUD_G0_TIER_EDGES = (1.0e2, 1.0e3, 1.0e4)
 """tuple: The G0 at which the radiation tier rises by one (design note, "Rule table": under 1e2 adds nothing; 1e3 is
-where mass loss is significant and 1e4 is where outer discs are destroyed in about 1 Myr [R, Johnstone 1998; Haworth 2018])."""
+where mass loss is significant and 1e4 is where outer discs are destroyed in about 1 Myr [R, Haworth 2018])."""
 
 CLOUD_HOST_MIN_DISTANCE_PC = 0.01
 """float: A host star is never taken closer than this to a system, parsecs, so the sum over a cluster placed at the
@@ -2919,7 +2913,7 @@ up, already a white dwarf in the Yerkes scheme (class VII)."""
 # --- Rogue Planets & Interstellar Comets (roguePlanetData) ---
 #
 # Free-floating ("rogue"/nomad) planet mass range, in Jupiter masses --
-# microlensing surveys (Sumi et al. 2011, Nature 473:349) found
+# microlensing surveys found
 # Jupiter-mass free-floating objects roughly twice as common as main-
 # sequence stars in the galaxy, with subsequent analysis (Mroz et al.
 # 2017, Nature 548:183) revising the abundance down but still finding a
@@ -2997,7 +2991,7 @@ ROGUE_PLANET_GAS_GIANT_MASS_THRESHOLD_JUPITER = (
 
 # --- Rogue planet surface conditions (rogueSurface; Boss's research,
 # 2026-10-01: Stevenson 1999, Burrows et al. 2001, Guillot 2005, Abbot &
-# Switzer 2011, Turcotte & Schubert 2014, Pierrehumbert 2010) ---
+# Turcotte & Schubert 2014, Pierrehumbert 2010) ---
 #
 # With no star, a rogue planet's only heat is its own: radioactive decay
 # and leftover formation heat in a rocky body, slow Kelvin-Helmholtz
@@ -3061,7 +3055,7 @@ W/m^2; a captured moon on an eccentric orbit can add more)."""
 
 ROGUE_GIANT_COOLING_TIME_EXPONENT = -1.3
 """float: Giant planets and brown dwarfs fade as L ~ t^-1.3 (Burrows &
-Liebert 1993; Burrows et al. 2001, Rev. Mod. Phys. 73:719)."""
+Burrows et al. 2001, Rev. Mod. Phys. 73:719)."""
 
 ROGUE_JUPITER_INTERNAL_FLUX_W_M2 = 5.4
 """float: Jupiter's internal heat flux at 4.5 Gyr (T_int ~ 99 K), the
@@ -3360,7 +3354,7 @@ ASTEROID_FIELD_RADIUS_RANGE_LY = (0.001, 1.0)
 # Asteroid field classes (GEN.14, Boss 2026-09-30: "a digit and part
 # of the class"). The letter comes from composition and density, following
 # asteroid taxonomy (C carbonaceous, S stony, M metallic, D/P icy primitive,
-# V basaltic; Bus & Binzel 2002, Icarus 158:146; DeMeo et al. 2009, Icarus
+# V basaltic, Icarus 158:146; DeMeo et al. 2009, Icarus
 # 202:160); the digit is the field's size, floor(log10(radius in AU)), so a
 # 0.001-1 ly field is 1-4. A full class reads like "C3". V-Z are reserved.
 #
@@ -3423,8 +3417,7 @@ COLLISION_MERGE_SPEED_RATIO = 1.2
 """float: Two terrestrial bodies that meet slower than this many mutual escape speeds merge (a design value, section 5.1)."""
 
 COLLISION_HIT_AND_RUN_SPEED_RATIO = 1.5
-"""float: A grazing pass faster than this many escape speeds is a hit-and-run, slower a graze-and-merge (Genda, Kokubo
-and Ida 2012; a design value)."""
+"""float: A grazing pass faster than this many escape speeds is a hit-and-run, slower a graze-and-merge (a design value)."""
 
 COLLISION_EROSION_X = 0.1
 """float: Below this share of the catastrophic energy a head-on pass of two terrestrial bodies is a clean merger; above it
@@ -3461,8 +3454,7 @@ QUASAR_ACTIVE_NUCLEUS_CHANCE = 0.1
 float: The chance a generated galaxy's nucleus is active -- i.e. that the
 one sector that hosts the galactic center gets a quasar at all. Real
 quasar activity is rarer still in today's universe (quasars peaked around
-redshift ~2, some 10 billion years ago -- Richards et al. 2006, AJ
-131:2766 -- and the Milky Way's own Sagittarius A* is quiescent), so this
+redshift ~2, some 10 billion years ago -- and the Milky Way's own Sagittarius A* is quiescent), so this
 is a deliberately generous "rare but possible" setting rather than a
 derived rate.
 """
@@ -3484,8 +3476,7 @@ solar mass).
 QUASAR_RADIATIVE_EFFICIENCY = 0.1
 """
 float: Fraction of accreted rest-mass energy radiated away, `L = eta *
-Mdot * c^2` -- the standard ~10% thin-disk value (Soltan 1982, MNRAS
-200:115; Yu & Tremaine 2002, MNRAS 335:965).
+Mdot * c^2` -- the standard ~10% thin-disk value.
 """
 
 QUASAR_RADIO_LOUD_CHANCE = 0.1
@@ -3507,15 +3498,13 @@ QUASAR_ACTIVE_AGE_RANGE_YEARS = (1e6, 1e8)
 """
 tuple: How long this episode of quasar activity has been running, in
 years, sampled log-uniformly -- quasar lifetimes are constrained to
-~1e6-1e8 years (Martini 2004, "QSO Lifetimes", Carnegie Obs. Astrophys.
-Ser. 1).
+~1e6-1e8 years.
 """
 
 QUASAR_BOLOMETRIC_CORRECTION_5100 = 9.26
 """
 float: Bolometric luminosity divided by the 5100-angstrom monochromatic
-luminosity (`L_bol / lambda L_5100`) for a typical quasar spectrum
-(Richards et al. 2006, ApJS 166:470).
+luminosity (`L_bol / lambda L_5100`) for a typical quasar spectrum.
 """
 
 QUASAR_BLR_RADIUS_LIGHT_DAYS_AT_1E44 = 33.65
@@ -3585,8 +3574,7 @@ PHENOMENON_DENSITY_PC3 = {
     # stated 1e3-1e4 total; 1e-10 matches the total. Also a system flag.
     "hypervelocity-star": 1e-10,
     # ~1e9 isolated neutron stars and ~1e8 black holes galaxy-wide
-    # (Sartore et al. 2010, A&A 510:A23; Olejak et al. 2020, A&A 638:A94;
-    # Sahu et al. 2022, ApJ 933:83). Tuned to the star model's own remnant
+    # (Sartore et al. 2010, A&A 510:A23; Olejak et al. 2020, A&A 638:A94). Tuned to the star model's own remnant
     # shares (docs: galaxy-studies star-fix spec, 2026-09-30): a Kroupa IMF
     # with a 10 Gy thin disk leaves ~0.5% of stars as neutron stars and
     # ~0.1% as black holes, i.e. 0.005 and 0.001 per star at n*0 = 0.14.
@@ -3607,7 +3595,7 @@ PHENOMENON_DENSITY_PC3 = {
     # About 3,000 supernova remnants galaxy-wide (GEN.203): the supernova
     # rate gives 400 to 3,000 that are still visible (Green 2019, 310
     # catalogued; Ranasinghe & Leahy 2022), 1.5e-9 per pc^3 is the top of
-    # that range. It was 1e-8, 20,000 remnants (n_* * rho_gas, Draine 2011),
+    # that range. It was 1e-8, 20,000 remnants (n_* * rho_gas),
     # which counted every faint one.
     "supernova-remnant": 1.5e-9,
     # Notable interstellar comets kept as rows, a design rate (today's
@@ -3678,12 +3666,11 @@ read 20 cells in each direction (8,000 columns); at 250 it reads 5."""
 
 SUPERBUBBLE_RADIUS_RANGE_PC = (50.0, 500.0)
 """tuple: The radius of a superbubble, parsecs, drawn log-uniform: 100 to 1,000 pc across, the Local Bubble's 100 to
-200 pc (Zucker et al. 2022, Nature 601:334) at the small end, the large superbubbles of other galaxies (Chu 2008,
-IAU 255) at the other."""
+200 pc (Zucker et al. 2022, Nature 601:334) at the small end, the large superbubbles of other galaxies at the other."""
 
 SUPERBUBBLE_FILL_FRACTION = 0.12
 """float: The share of the plane at the solar circle inside a superbubble. Superbubbles fill about 10 to 15% of the
-disk (Heiles 1979; McKee & Ostriker 1977 put the hot phase at 10 to 30%); the arms and inner disk hold more, as the
+disk (McKee & Ostriker 1977 put the hot phase at 10 to 30%); the arms and inner disk hold more, as the
 molecular gas does (`nebulaField.gas_factor`)."""
 
 SUPERBUBBLE_CENTRE_HEIGHT_SIGMA_PC = 60.0

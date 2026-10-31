@@ -21,17 +21,17 @@ albedo).
 | Main belt, medium | q = 3.0 (differential index 4.00 +- 0.05) | 5 to 40 km | Ivezic et al. 2001; corrected in GEN.1061, see 1.4 | READ |
 | Main belt, exponents (GEN.1093) | checked verbatim in GEN.1061 (section 6.6 and Fig. 25 of the PDF): the 2.3 and 4 are indices of `dN/dD`, so the cumulative `q` is 1.3 and 3.0; the cumulative reading leaves 3 asteroids above 40 km against some hundreds in the belt | | Ivezic et al. 2001 | READ, section 6.6 |
 | Main belt, count | about 530,000 objects with D > 1 km | belt | Ivezic et al. 2001 (four times fewer than earlier estimates) | READ |
-| Main belt, small | q = 2.5, kink between 15 and 25 km | small side of the kink | Masiero et al. 2011 (arXiv:1109.4096) quoting Gladman et al. 2009; raw, not debiased (the paper says debiasing is needed) | READ (Gladman 2009 itself 2ND-HAND) |
-| Jupiter-family comet nuclei | q = 1.92 +- 0.20 | r_N >= 1.25 km | Snodgrass et al. 2011 (arXiv:1101.4228); earlier values 1.45 to 2.7 depend on the size range chosen (Meech 2004: 1.45 over 1 to 10 km, 1.91 over 2 to 5 km; Tancredi 2006: 2.7 for r >= 1.5 km) | READ |
+| Main belt, small | q = 2.5, kink between 15 and 25 km | small side of the kink | Masiero et al. 2011 (arXiv:1109.4096); raw, not debiased (the paper says debiasing is needed) | READ |
+| Jupiter-family comet nuclei | q = 1.92 +- 0.20 | r_N >= 1.25 km | Snodgrass et al. 2011 (arXiv:1101.4228); earlier values 1.45 to 2.7 depend on the size range chosen (Meech 2004: 1.45 over 1 to 10 km, 1.91 over 2 to 5 km: 2.7 for r >= 1.5 km) | READ |
 | Cold classical KBOs | alpha1 = 1.5 (+0.4 -0.2), faint alpha2 about 0.2, break H_B = 6.9 (+0.1 -0.2) (r' band) | bright and faint sides | Fraser et al. 2014 (arXiv:1401.2157) | READ |
 | Hot KBOs | alpha1 = 0.87 (+0.07 -0.2), faint alpha2 about 0.2, H_B = 7.7 (+1.0 -0.5) | | Fraser et al. 2014 | READ |
 | Cold classical KBOs, newer | exponentially tapered or rolling power law fit equally well, single power law ruled out; M_CC(H_r < 12) = 0.0017 (+0.0010 -0.0004) Earth masses (p = 0.15, 1 g/cm3) | | DEEP survey paper V (arXiv:2309.09478) | READ |
 | KBOs below about 2 km | crater differential slope q = -3 above 15 km craters, about -1.7 below; impactor magnitude slope alpha about 0.4 (+-0.04) above the elbow and about 0.15 (+-0.04) below, i.e. cumulative exponent about 2.0 above and about 0.75 below an elbow at D of 1 to 2 km | | Singer et al. 2019 (Science 363, 955; arXiv:1902.10795), New Horizons craters on Pluto and Charon | READ |
-| Interstellar objects, 100 m scale | n = 0.1 per au3 (range 0.08 to 0.2) | about 100 m radius | Jewitt and Seligman 2023 (arXiv:2209.08182) quoting Jewitt 2017, Trilling 2017 (0.1) and Do et al. 2018 (0.2) | READ |
+| Interstellar objects, 100 m scale | n = 0.1 per au3 (range 0.08 to 0.2) | about 100 m radius | Jewitt and Seligman 2023 (arXiv:2209.08182) quoting Jewitt 2017 (0.1) and Do et al. 2018 (0.2) | READ |
 | Interstellar objects, 100 m scale | n = 0.2 per au3, mass density about 4 Earth masses per pc3 | | Do, Tucker and Tonry 2018 (arXiv:1801.02821) | READ |
-| Interstellar dust to metres | flux compatible with r^-3 radius distribution | 0.1 micrometre up to metres | Jewitt and Seligman 2023 fig. 19 (data from Musci 2012 and earlier) | READ |
+| Interstellar dust to metres | flux compatible with r^-3 radius distribution | 0.1 micrometre up to metres | Jewitt and Seligman 2023 fig. 19 | READ |
 | Interstellar objects, bodies | slope q constrained by detections only: q > 4 for asteroid-like, q > 4.5 for cometary at 0.1 per au3; TESS about 1 object for q < 2.5; LSST 0.2 to 100 per year over q 1 to 3 | | Albornoz-Montenegro and Fuentes 2026 (arXiv:2609.25488, 21 Sep 2026) | READ |
-| Free-floating planets, mass | differential index p = 0.92 +- 0.06, size index 3.8 +- 0.2 | | Gould et al. 2022 via Jewitt and Seligman 2023 | 2ND-HAND |
+| Free-floating planets, mass | differential index p = 0.92 +- 0.06, size index 3.8 +- 0.2 | | Jewitt and Seligman 2023 | 2ND-HAND |
 
 ### 1.1 Computed from the table (checked, not read)
 
@@ -92,7 +92,7 @@ measurement does not reach (stand-in BR20).
 | Satellite mass ratios, large main belt | 1e-6 to 1e-2 (Antiope excepted) | Margot et al. 2015 | 2ND-HAND |
 | Cold classical KBOs with detectable binaries | 22 +10 -5 percent (inclination under 5 degrees, separations over 60 mas) | Noll et al. 2008 chapter (astro-ph/0703134) quoting Stephens and Noll 2006 | READ (primary 2ND-HAND) |
 | Other dynamical classes combined | 5.5 +4 -2 percent (same limits) | same | READ |
-| Known TNO binaries | 14 by adaptive optics, 64 by HST (2014) | Margot 2015 quoting Johnston 2014 | 2ND-HAND |
+| Known TNO binaries | 14 by adaptive optics, 64 by HST (2014) | Margot 2015 | 2ND-HAND |
 | Origin of small binaries | near-critical angular momentum, rubble-pile primaries, rotational fission by YORP spin-up; separation lower limit a/D_p about 1.5 | Margot 2015; Jacobson et al. 2016 | READ |
 | Fission mass ratio | high mass ratio (over 0.2) components four to eight times as frequent as low | Jacobson et al. 2016 | READ |
 
@@ -102,7 +102,7 @@ Kollmeier and Raymond 2019 (MNRAS, arXiv:1810.03304, READ):
 
 - A submoon's orbit is stable out to a fraction f of its moon's Hill sphere; f = 0.4895 for prograde low-eccentricity orbits
   (Domingos et al. 2006, 2ND-HAND), about 0.4 when the planet's perturbation is included (Payne et al. 2013, 2ND-HAND).
-- Tidal survival over T = 4.6 Gyr (their equation 1, adapted from Barnes and O'Brien 2002, read from the typeset page):
+- Tidal survival over T = 4.6 Gyr (their equation 1, adapted, read from the typeset page):
   `R_moon >= [ 39 M_sub k2 T sqrt(G) / (2 (4 pi rho_moon)^(8/3) Q) * (3 M_p / (f a_moon)^3)^(13/6) ]^(1/3)`, with the
   moon's Love number k2 (0.25), tidal quality factor Q (100), density rho_moon (2500 kg/m3), orbital radius a_moon, the
   planet mass M_p, the submoon mass M_sub (10 km radius, 2000 kg/m3 by default) and f the Hill fraction above. The
@@ -111,7 +111,7 @@ Kollmeier and Raymond 2019 (MNRAS, arXiv:1810.03304, READ):
   something this note does not capture), Europa 3096 km, Io 8470 km, Rhea 2187 km and Triton 1489 km (all fail).
 - Their result: 10 km submoons survive only around large (1000 km scale) moons on wide orbits. Among the Solar System's
   moons only Titan, Iapetus, Callisto and the Moon pass; none has a submoon, so formation or other effects (mass
-  concentrations) also remove them. A mass ratio of about 1e-5 is a rough guide to long-lived submoons (Reid 1973).
+  concentrations) also remove them. A mass ratio of about 1e-5 is a rough guide to long-lived submoons.
 
 Missing: the tidal-stripping timescale by the planet for ordinary moons is only what that paper's equation gives; no
 measured submoon exists to calibrate against.
@@ -144,5 +144,5 @@ READ this session (arXiv): astro-ph/0105511 (Ivezic 2001), 1109.4096 (Masiero 20
 
 Not read (recalled, not usable): Bottke et al. 2005, Harris and D'Abramo 2015, Francis 2005, Fernandez and Sosa 2012,
 Pravec et al. 2006 and Margot et al. 2002 (cited only through the Asteroids IV review), Stephens and Noll 2006 (through the
-chapter), Domingos et al. 2006 and Payne et al. 2013 (through Kollmeier and Raymond), Gladman et al. 2009 (through
+chapter), Domingos et al. 2006 and Payne et al. 2013 (through Kollmeier and Raymond).
 Masiero). None of these needs Boss; the first four are not on arXiv and were not fetched.

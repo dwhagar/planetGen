@@ -17,7 +17,7 @@ One-box parameterised convection for a stagnant lid: Thiriet et al. 2019 as used
 | Quantity | Value | Source | Label |
 |---|---|---|---|
 | rho, cm, cc, km, alpha, kappa | 3500 kg/m3, 1142 and 840 J/kg/K, 4 W/m/K, 2.5e-5 /K, 1e-6 m2/s | Guimond 2022 Table 2 (from Thiriet 2019) | READ |
-| Ra_crit, a_rh, beta | 450, 2.44, 1/3 | Table 2 (Thiriet 2019; Solomatov 1995) | READ |
+| Ra_crit, a_rh, beta | 450, 2.44, 1/3 | Table 2 (Thiriet 2019) | READ |
 | surface temperature | 273 K in the paper; here the body's own when its climate is known, else 273 K | Table 2 | READ, body's own: GEN.735 |
 | eta0 | uniform 2.6e10 to 5.3e13 Pa s | Section 2.2.3 (wet olivine less a decade to dry enstatite) | READ |
 | Ea | uniform 200 to 300 kJ/mol | Section 2.2.3 (Karato and Wu 1993; Zhang et al. 2017) | READ |
@@ -38,7 +38,7 @@ Differences from the paper, all labelled here: one temperature instead of two; t
 | Earth twin at 0.1 Gy | 3 to 30 times the heat of 4.5 Gy, Urey ratio 0.1 to 0.25 (1.0 for the stiffest rheology, which stays near the ceiling) |
 | Differentiation energy of the Earth | 1.9e31 J on top of 2.2e32 J of accretion |
 
-The Earth's own measured heat flow is 42 to 47 TW with a Urey ratio of 0.47 to 0.52 (Nimmo et al. 2020; READ via part E 2.8e). This one box reaches neither with either lid (it holds the 21 TW of radiogenic heat and the cooling of one temperature); the totals are inside the geoneutrino range, 38.2 +13.6 -12.7 TW (Agostini et al. 2019).
+The Earth's own measured heat flow is 42 to 47 TW with a Urey ratio of 0.47 to 0.52 (Nimmo et al. 2020; READ via part E 2.8e). This one box reaches neither with either lid (it holds the 21 TW of radiogenic heat and the cooling of one temperature); the totals are inside the geoneutrino range, 38.2 +13.6 -12.7 TW.
 
 ### 3.1 The lid (GEN.721)
 
@@ -58,7 +58,7 @@ The hydrosphere is made before the regime exists (the regime needs the hydrosphe
 
 ### 3.2 Small and large bodies, and a Urey ratio above 1 (GEN.763)
 
-The Urey ratio is the radiogenic heat over the heat that leaves the surface (Stamenkovic et al. 2012, arXiv:1210.3838 section 3.1: "the ratio of internal heat production to surface heat flux"; they cite about 0.3 from geochemistry and close to one from the geophysical view for the Earth). Here it is an output, `radiogenic_w / total_w`. It passes 1 only while the mantle is warming (it makes more than it loses), and it is exactly 1 while the mantle sits at its ceiling.
+The Urey ratio is the radiogenic heat over the heat that leaves the surface (arXiv:1210.3838 section 3.1: "the ratio of internal heat production to surface heat flux"; they cite about 0.3 from geochemistry and close to one from the geophysical view for the Earth). Here it is an output, `radiogenic_w / total_w`. It passes 1 only while the mantle is warming (it makes more than it loses), and it is exactly 1 while the mantle sits at its ceiling.
 
 Bulk silicate Earth composition, the middle rheology, a stagnant lid:
 

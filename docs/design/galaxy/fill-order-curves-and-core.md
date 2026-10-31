@@ -108,8 +108,7 @@ on the degree-1 tips). So walkable pruned balls are the exception, and for
 the integer radius in sectors that an admin would type, essentially never.
 
 Theory, all [R]: Hamiltonian path in general grid graphs is NP-complete
-(Itai, Papadimitriou, Szwarcfiter, SIAM J. Comput. 1982; Papadimitriou and
-Vazirani 1984), solid grid graphs have a polynomial cycle algorithm (Umans
+solid grid graphs have a polynomial cycle algorithm (Umans
 and Lenhart, FOCS 1997), and the 3D case is believed no easier. This does
 not matter for the fix: parity already decides it.
 
@@ -159,7 +158,7 @@ Reading the table:
   54 at r = 40) where a whole sub-cube is cut away. Shifting the ball by a
   few voxels inside the cube changes the jump fraction by under 10% (0.009 at
   r = 60 in all six offsets tried), so alignment is not a lever.
-- Morton and Gray-code-style curves (Faloutsos 1986 [R]) are never unit-step
+- Morton and Gray-code-style curves are never unit-step
   (half of all steps jump) and no better at nearest-first. Use them only as
   fast sort keys.
 - The Moore curve (a closed Hilbert variant, 3D forms in Haverkort's work
@@ -495,7 +494,7 @@ Superseded by GEN.280 (Boss's item GEN.285, 2026-10-16, 12:43 AM EDT): the nucle
 | Structure | Size | Mass | Notes |
 |---|---|---|---|
 | Sgr A* | point | 4.3e6 Msun | distance 8.2 to 8.3 kpc |
-| Nuclear star cluster | half-light radius about 4 pc (Schodel et al. 2014, A&A 566, A47; Feldmeier-Oelkers et al. 2014) | 2.0 to 2.5e7 Msun | mean density inside 4 pc about 4.5e4 Msun/pc^3 (derived: 1.2e7 Msun in 268 pc^3) |
+| Nuclear star cluster | half-light radius about 4 pc (Schodel et al. 2014, A&A 566, A47) | 2.0 to 2.5e7 Msun | mean density inside 4 pc about 4.5e4 Msun/pc^3 (derived: 1.2e7 Msun in 268 pc^3) |
 | Nuclear stellar disc | radius about 100 to 230 pc, scale height about 30 to 45 pc (Launhardt et al. 2002; Sormani et al. 2022) | about 1e9 Msun | mean density inside 200 pc about 50 to 150 Msun/pc^3 (derived, assuming 0.7e9 in pi x 200^2 x 90 pc^3) |
 | Central molecular zone | about 200 pc radius (about 1.5 degrees of longitude) | gas 3 to 5e7 Msun | gas, not stars; a ring or twisted ring near 100 pc plus clouds |
 | Bar and bulge (boxy) | half-length about 2 kpc; long bar to about 4 to 5 kpc | about 1.5e10 Msun | the model's 31% bulge share |
@@ -508,7 +507,7 @@ PERF.3 default `_stars_per_system` = 1.3, so 1,100 to 1,400 stars) is 5 to
 15 times lower. In the nuclear cluster the density rises further: about
 1e5 Msun/pc^3 near 1 pc and 1e6 to 1e7 Msun/pc^3 within 0.1 pc (derived
 from an r^-1.4 slope normalised to the mean above; low confidence, check
-Genzel et al. 2010 and Schodel et al. 2018 [R]). The sector holding Sgr A*
+Genzel et al. 2010 [R]). The sector holding Sgr A*
 (a 4 pc cube, r of about 2 to 2.5 pc) contains of order 1e6 to 1e7 stars, a
 thousand times anything generated here, and cannot be filled star by star
 with planetary systems (a star every 0.005 pc, a few hundred AU, with Hill
@@ -610,8 +609,7 @@ only search-result text, not papers, and web search was unavailable for this
 topic. Verify when paper access is allowed:
 
 - All astronomy figures in 4.2: nuclear star cluster mass (2.0 to 2.5e7
-  Msun) and half-light radius (about 4 pc), Schodel et al. 2014 and
-  Feldmeier-Oelkers et al. 2014 (medium confidence); nuclear stellar disc
+  Msun) and half-light radius (about 4 pc), Schodel et al. 2014 (medium confidence); nuclear stellar disc
   mass (about 1e9 Msun), radius and scale height, Launhardt et al. 2002 and
   Sormani et al. 2022 (medium); CMZ gas mass and radius (medium); Sgr A* mass
   4.3e6 Msun (high); bulge mass 1.5e10 Msun (matches the repository's BHG16
@@ -620,14 +618,7 @@ topic. Verify when paper access is allowed:
 - Stars per solar mass in the dense core (about 2) and the 0.1 systems per
   cubic parsec solar-neighbourhood figure are common but unchecked. The
   enclosed mass inside 200 pc (about 1e9 Msun) is recalled.
-- Papers: Skilling 2004 (AIP Conf. Proc. 707); Butz 1971 (IEEE Trans.
-  Computers C-20); Hamilton and Rau-Chaplin 2008 (Inf. Process. Lett. 105);
-  Moon et al. 2001 (IEEE TKDE 13); Niedermeier, Reinhardt, Sanders 2002;
-  Haverkort and van Walderveen 2010; Haverkort 2017 (J. Comput. Geom.); Xu,
-  Nguyen, Tirthapura, ICDE 2018 (onion curve); Faloutsos 1986; Itai,
-  Papadimitriou, Szwarcfiter 1982 (SIAM J. Comput.); Papadimitriou and
-  Vazirani 1984; Umans and Lenhart 1997; Hjaltason and Samet. These are
-  believed to exist; titles and years need checking. That 3D grid-graph
+- That 3D grid-graph
   Hamiltonian path is NP-complete is believed, not confirmed. It does not
   affect any conclusion: the parity proof is self-contained.
 - The 1.5 to 2 times slowdown of Python 3.9 against the 3.13 timed here is a

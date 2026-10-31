@@ -1,7 +1,7 @@
 # planetgen/physics/mie.py
 
 """
-Mie scattering of a homogeneous sphere (GEN.1020; Bohren and Huffman 1983, chapter 4), vectorised over spheres and size distributions
+Mie scattering of a homogeneous sphere (GEN.1020, chapter 4), vectorised over spheres and size distributions
 =======================================================================================================================================
 
 `efficiencies(x, m)` is the extinction and scattering efficiencies and the asymmetry factor of spheres of size parameter `x = 2 pi r / lambda`

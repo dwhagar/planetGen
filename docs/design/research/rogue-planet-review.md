@@ -31,7 +31,7 @@ Reading: the architecture does have the right mechanism (giants scatter and swee
 | Sumi et al. 2023, arXiv 2303.08280 [read] | dN/dlogM = 2.18 (+1.0 / -1.4) per dex per star at M/8 Earth masses, slope -0.96; total 21 (+23 / -13) per star for 0.33 to 6,660 Earth masses | flat bins give about 2.7 per star over the same range (about 8 times below central, near the lower 1 sigma of 8); slope 0.65 against 0.96 |
 | Mroz et al. 2017, arXiv 1707.07634 [read] | upper limit 0.25 Jupiter-mass free-floating planets per main-sequence star | Jupiter bin 0.025 per star, under the limit |
 | Mroz et al. 2020, arXiv 2009.12377 [read] | an Earth-to-Neptune population needs core-accretion ejection of 0.3 to 1 Earth mass bodies | our terrestrial bin is 4.98 per star over 0.1 to 2 Earth masses |
-| Johnson et al. 2020, arXiv 2006.10760 [read] | Roman rates are forecast assuming the Cassan et al. 2012 function | the 5.8 and its bins are Boss's 10-01 research; the code comment says 6.5 (see section 4) |
+| Johnson et al. 2020, arXiv 2006.10760 [read] | Roman rates are forecast assuming the function | the 5.8 and its bins are Boss's 10-01 research; the code comment says 6.5 (see section 4) |
 | Veras and Raymond 2012, arXiv 1201.2175 [read] | planet-planet scattering alone cannot supply the giant free-floating planets | agrees with a small Jupiter bin |
 | Barclay et al. 2017, arXiv 1704.08749 [read] | about 2.5 terrestrial-mass planets ejected per star when Jupiter and Saturn analogs scatter; about one third of a 5 Earth-mass disc | the scale the scatter step must reproduce |
 | Ma et al. 2016, arXiv 1605.08556 [read] | core accretion gives a free-floating event rate about 1.8e-3 of stellar, about 13 times below Sumi 2011 | agrees that ejection alone is short |

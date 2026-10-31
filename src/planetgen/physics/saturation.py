@@ -20,8 +20,8 @@ vapour-pressure curve lives; the callers (GEN.452) read it.
   (docs/design/composition/atmosphere-composition.md, finding 11).
 * **The laboratory-corrected cold end (GEN.497)** replaces the polynomial for nitrogen (alpha, 20 to 35 K), carbon
   monoxide (25 to 54 K), methane (30 to 51 K), oxygen (beta, 30 to 43 K) and ammonia (80 to 162 K) with the quartz crystal
-  microbalance fits of Grundy et al. 2024 and Blakley et al. 2024, `ln P[bar] = A - B/T + C ln T + D2 T + D3 T^2 + D4 T^3`
-  (Lobo and Ferreira 2001), up to the temperature at which they meet the Fray and Schmitt polynomial (nitrogen: the top of
+  microbalance fits of Grundy et al. 2024 and Blakley et al. 2024, `ln P[bar] = A - B/T + C ln T + D2 T + D3 T^2 + D4 T^3`,
+  up to the temperature at which they meet the Fray and Schmitt polynomial (nitrogen: the top of
   its window, where the Fray and Schmitt alpha fit is about 2.1 times higher, a step left as published). Inside its window
   the answer is `ok`. Below the window the curve is carried on by Clausius-Clapeyron with the latent heat the fit has at its
   edge (`below-fit`); that stand-in is what Boss's BC12 decision asks to be flagged. The Fray and Schmitt cold end is up to
@@ -47,7 +47,7 @@ vapour-pressure curve lives; the callers (GEN.452) read it.
 * **Known departures at the triple point** from the gas table's pressure: SO2 3.8 percent over, benzene 7 percent over,
   acetylene 3.6 percent under; the other species are within 3 percent (src/tests/test_saturation.py).
 * **Hydrogen's solid** is Clausius-Clapeyron from its triple point with a latent heat of sublimation of 1.02 kJ/mol (the
-  gas table's 0.90 of vapourisation plus 0.12 of fusion, a stand-in, unchecked against Woolley 1948). Helium and the species
+  gas table's 0.90 of vapourisation plus 0.12 of fusion, a stand-in, unchecked against any measurement). Helium and the species
   without a curve raise `UnknownSpecies`.
 
 The functions are pure.

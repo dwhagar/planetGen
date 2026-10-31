@@ -79,7 +79,7 @@ GIANT_ENVELOPE_FRACTION = 0.5
 # ---------------------------------------------------------------------------------------------------------------------
 
 CORE = (8264.2, 157.07e9, 5.6167)
-"""tuple: The core's Vinet fit to hcp iron, (rho0 kg/m3, K0 Pa, K0'), Dewaele 2006 below 234.4 GPa and Hakim 2018 above,
+"""tuple: The core's Vinet fit to hcp iron, (rho0 kg/m3, K0 Pa, K0'), Dewaele 2006 below 234.4 GPa, Hakim 2018 above,
 0.3 percent in density from 1 to 1000 GPa (part B 3.8)."""
 
 _MANTLE_LOG_P = (5.5, 8.0, 9.0, 9.4, 9.7, 9.95, 10.1, 10.25, 10.35, 10.45, 10.6, 10.8, 11.0, 11.15, 11.3,

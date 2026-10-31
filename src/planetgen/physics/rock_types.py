@@ -7,7 +7,7 @@ docs/design/composition/surface-composition.md, "Rock types from the oxides").
 `surface_composition.GROUND_TYPES` is a library of the Earth's and the Moon's crusts (Hu, Ehlmann and Seager 2012 Table 2): each ground type is a
 fixed mineral list. Here the ground type is worked out from the oxides of the body's own mantle:
 
-1. **The norm** (`cipw_norm`). The CIPW norm (Cross, Iddings, Pirsson and Washington 1902) allocates the oxides of a rock to an ideal set of minerals by mass
+1. **The norm** (`cipw_norm`). The CIPW norm (Cross, Iddings) allocates the oxides of a rock to an ideal set of minerals by mass
    balance, in the fixed order of the method: apatite and ilmenite, then orthoclase, albite and anorthite from the alumina, magnetite, then diopside and
    hypersthene from the lime, magnesia and iron; the silica left over is quartz, and a shortage converts hypersthene to olivine, albite to nepheline and
    orthoclase to leucite (and olivine to periclase). Every oxide goes to a mineral: the norm adds up to the oxides given (tested), so a composition that cannot

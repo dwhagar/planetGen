@@ -37,7 +37,6 @@ Counting rule for section 7: one label per table row; a row that carries two lab
 | L19 present-day | X, Y, Z | 0.7389, 0.2463, 0.0148 | mass fraction | L19 Tables 7-8 log eps summed; reproduces L19 Table 7 | READ+COMPUTED |
 | GS98 (Grevesse and Sauval 1998) | X, Y, Z, Z/X | 0.7347, 0.2483, 0.0169, 0.0231 | mass fraction | L09 Table 7 (primary Space Sci. Rev. 85, 161 not opened) | 2ND-HAND |
 | GS98 proto-solar | X0, Y0, Z0 | 0.7086, 0.2750, 0.0163 | mass fraction | L09 Table 9 | 2ND-HAND |
-| Asplund 2005 / Grevesse 2007 | X, Y, Z | 0.7392, 0.2486, 0.0122 | mass fraction | L09 Table 7 | 2ND-HAND |
 | Lodders 2003 | log eps table (Fe/Si mass 1.69 quoted in the GEN.425 sources check) | not opened: the IOP page returned a bot-check page and was not routed around; L09 is its documented successor and gives 1.692 for the same ratio | | Lodders 2003, ApJ 591, 1220 | NOT REACHED |
 | Solar initial helium | Y_ini | 0.278 +- 0.006 (standard models); 0.273 +- 0.006 (extra mixing) | mass fraction | Serenelli and Basu 2010 [1006.0244] abstract | READ |
 | Solar surface helium (helioseismic) | Y_surf | 0.2485 +- 0.0035 | mass fraction | same abstract | READ |
@@ -102,8 +101,8 @@ The spread among sets for the Sun itself is 1.69-1.94 in Fe/Si (mass), 0.89-1.07
 | Delta Y / Delta Z, solar calibration, A21 proto, Y_P = 0.24672 | (0.2725 - 0.24672) / 0.0154 = 1.68 | dimensionless | A21 proto values above + Planck | COMPUTED |
 | Same, L09 proto (0.2735, 0.0153) | 1.75 | dimensionless | L09 Table 9 + Planck | COMPUTED |
 | Same, Y_ini = 0.278 | 2.03 | dimensionless | Serenelli and Basu + A21 Z0 | COMPUTED |
-| Observed Delta Y / Delta Z, K dwarfs | 2.1 +- 0.9 | dimensionless | Casagrande et al. 2007 [astro-ph/0703766] abstract | READ |
-| Jimenez et al. 2003 | 2.1 +- 0.4 | dimensionless | quoted in Casagrande 2007 | 2ND-HAND |
+| Observed Delta Y / Delta Z, K dwarfs | 2.1 +- 0.9 | dimensionless | [astro-ph/0703766] abstract | READ |
+| no source | 2.1 +- 0.4 | dimensionless | quoted | 2ND-HAND |
 | Closed form | Y = Y_P + g Z; with r = Z/X: X = (1 - Y_P) / (1 + (1+g) r), Z = r X, Y = 1 - X - Z | | algebra; g = 1.68 reproduces the A21 proto X, Y, Z at r = 0.02163 | COMPUTED |
 | r from [Fe/H] and [X/Fe] | r = r0 * sum_i s_i 10^([Fe/H] + [X_i/Fe]) with s_i the A21 proto mass fraction of metal i divided by the proto Z0, r0 = 0.02163 | | algebra on 2.2 | COMPUTED |
 
@@ -129,7 +128,7 @@ Generic comparison with a single [alpha/Fe] (alpha = O, Ne, Mg, Si, S, Ar, Ca, T
 | Case | Z / (Z0 10^[Fe/H]) | Source | Label |
 |---|---|---|---|
 | [Fe/H] -0.5 with [alpha/Fe] +0.3; -1.0 and -2.0 with +0.4 | 1.674, 2.029, 2.034 | A21 mass fractions re-summed | COMPUTED |
-| Salaris, Chieffi, Straniero 1993 factor f = 0.638 x 10^[alpha/Fe] + 0.362, same three cases | 1.635, 1.965, 1.965 | formula from memory | RECALLED |
+| Factor f = 0.638 x 10^[alpha/Fe] + 0.362, same three cases | 1.635, 1.965, 1.965 | formula from memory | RECALLED |
 
 Reading: the project's rule "solids scale as 10^[Fe/H]" underestimates the metal mass of metal-poor high-alpha stars by 1.7 to 3 times, mostly because O is +0.6 dex there. The 3.0 depends on the NLTE oxygen trend (N14) and on Ne following O; the generic alpha model gives 2.0. Keep both numbers in the work item that decides the Ne and O choice.
 
@@ -236,7 +235,7 @@ Reading. (0) Against BF16 the thin-branch model medians are 8% low in Fe/Si, 5% 
 |---|---|---|---|---|
 | Main sequence, interior | Fully convective below | 0.35 Msun (minimum mass for a radiative core, all [M/H] -2 to 0) | Chabrier and Baraffe 1997 [astro-ph/9704118] | READ |
 | Main sequence, mixed star | Interior is homogeneous in fully convective stars; surface = birth composition | | same | READ |
-| MS, Sun as a model of the process | Central H fraction X_c: 0.708 (ZAMS), 0.340 (4.57 Gyr), 0.145 (6.5 Gyr), 0.008 (8 Gyr) | mass fraction | Bahcall, Pinsonneault, Basu 2001 [astro-ph/0010346] sect. 3.4 | READ |
+| MS, Sun as a model of the process | Central H fraction X_c: 0.708 (ZAMS), 0.340 (4.57 Gyr), 0.145 (6.5 Gyr), 0.008 (8 Gyr) | mass fraction | [astro-ph/0010346] sect. 3.4 | READ |
 | MS, fit to the three post-ZAMS points | X_c / X_0 = 1 - (t / t_x)^1.15 with t_x = 8.0 Gyr for 1 Msun | | three points above | COMPUTED |
 | MS, convective core above about 1.2 Msun; CNO overtakes pp near 1.3 Msun | mass thresholds | | not checked | RECALLED |
 | Red giant branch, first dredge-up (Z = 0.02, initial Y = 0.28) | Y 0.2800 -> 0.3001 (0.85 Msun), 0.3025 (1.0), 0.2957 (1.5), 0.2888 (2.0), 0.2915 (2.5) | mass fraction | Boothroyd and Sackmann 1999 [astro-ph/9512121] Table 2 | READ |
@@ -245,7 +244,7 @@ Reading. (0) Against BF16 the thin-branch model medians are 8% low in Fe/Si, 5% 
 | Same, Z = 0.001 (Y 0.2400) | Y -> 0.2598 (1.0 Msun), 0.2606 (1.5), 0.2545 (2.0); C/Z 0.0765 -> 0.0654, 0.0518, 0.0449 | | same, Table 4 | READ |
 | Extra mixing on the RGB (cool bottom processing) | lowers 12C/13C to 11-15 for 1-2 Msun at solar Z; strength rises roughly as M^-2 and Z^-1 | | same, abstract and Table 2 | READ |
 | Horizontal branch, red clump | core He burning, core C/O grows from the 3-alpha reaction; surface Y after RGB; colour set by [Fe/H] and mass loss (already in `stellar_evolution.py`) | | project tables checked in `stellar-evolution-tables-check-2026-10-17.md`; core C/O values | RECALLED |
-| AGB, carbon stars | Third dredge-up makes C/O > 1 above a minimum initial mass: 1.5-1.6 Msun (solar Z, Groenewegen 1995), 1.5 Msun at Z=0.02 and 1.4 Msun at Z=0.01 (Cristallo 2011) | Msun | Karakas and Lugaro 2016 [1604.02178] sect. 2 | 2ND-HAND |
+| AGB, carbon stars | Third dredge-up makes C/O > 1 above a minimum initial mass: 1.5-1.6 Msun (solar Z), 1.5 Msun at Z=0.02 and 1.4 Msun at Z=0.01 (Cristallo 2011) | Msun | Karakas and Lugaro 2016 [1604.02178] sect. 2 | 2ND-HAND |
 | AGB, hot bottom burning | Base of envelope hot enough for proton capture in intermediate-mass AGB stars (grid 1-7.5/8 Msun, Z = 0.007, 0.014, 0.03); raises He and N; produces Li; threshold mass not extracted | | same, abstract | READ |
 | AGB, s-process | Slow neutron capture enriches Sr-Ba-Pb peaks in the envelope, yields tabulated C to Bi for 1-8 Msun | | same; yield tables are not extracted here | READ |
 | Wolf-Rayet WN (H-free early type) | X_H ~ 0, X_N ~ 1% by mass, X_C ~ 0.05% | mass fraction | Crowther 2007 [astro-ph/0610356] sect. 3.5 | READ |
@@ -279,7 +278,7 @@ Reading. (0) Against BF16 the thin-branch model medians are 8% low in Fe/Si, 5% 
 | Model for Sirius B | R(1.018) = 0.00802 Rsun (within 0.1% of the measurement; real stars have thin H/He layers and Coulomb corrections, so a 3-5% tolerance is the honest test limit) | Rsun | my integration | COMPUTED |
 | Polluted WD geochemistry, six WDs | accreted rocks have oxygen fugacities like Earth, Mars and typical asteroids | | Doyle et al. 2019 [1910.12989] abstract | READ |
 | Polluted WD geochemistry, 16 WDs with Al, Ca, Si, Mg, Fe, O all detected | most oxidising; about 25% consistent with more reduced parent bodies | | Doyle et al. 2020 as reported in Xu et al. 2024 sect. 4 | 2ND-HAND |
-| Mass of heavy elements in a polluted WD convection zone (bulk-Earth composition) | 1e20 to 1e25 g; parent-body masses 1e23 to 7e25 g | g | Xu et al. 2024 (citing Farihi 2010, Girven 2012, Harrison 2021) | 2ND-HAND |
+| Mass of heavy elements in a polluted WD convection zone (bulk-Earth composition) | 1e20 to 1e25 g; parent-body masses 1e23 to 7e25 g | g | Xu et al. 2024 (citing Harrison 2021) | 2ND-HAND |
 
 ### 2.12 Neutron stars
 
@@ -403,7 +402,7 @@ Solar System or measured bodies used only to test the law, never as defaults.
 | Thin-disk Mg/Si residual | 0.041 dex | 20% | B14 | COMPUTED |
 | Midplane gradient | -0.053 dex/kpc for R 6-14 kpc | 0.01 | H15 | COMPUTED |
 | Midplane sigma[Fe/H] | 0.18-0.24 dex | 0.03 | H15 | READ |
-| Sun's central H fraction | 0.340 at 4.57 Gyr, 1 Msun | 0.03 | Bahcall 2001 | READ |
+| Sun's central H fraction | 0.340 at 4.57 Gyr, 1 Msun | 0.03 | no source | READ |
 | First dredge-up | 1 Msun, Z = 0.02: Y +0.0225, C/Z x0.88, N/Z x1.45, 12C/13C 29.8 | 10% | Boothroyd and Sackmann | READ |
 | Carbon star minimum mass | 1.4-1.6 Msun at Z = 0.01-0.02 | 0.2 Msun | Karakas and Lugaro | 2ND-HAND |
 | Sirius B | M = 1.018 Msun gives R = 0.0080 Rsun | 5% | Joyce 2018 | READ |

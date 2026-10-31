@@ -331,3 +331,22 @@ def test_a_stage_that_ended_at_once_is_not_remembered(conn):
     runrecord.begin_stage(conn, run_id, 0, now=100.0)
     runrecord.unit_done(conn, run_id, 0, 0, seconds=0.01, now=100.1)
     assert stagetimes.lookup(conn, ["quick"]) == {}
+
+
+def test_a_stage_keeps_the_largest_worker_memory_and_its_finish_line_says_it(conn):
+    """PERF.226: each unit reports the most resident memory its process held; the stage keeps the largest, the finish line names it, a stage
+    whose units reported none says nothing of it."""
+    run_id = runrecord.start_run(conn, "Fill", _stages(), who="boss", now=100)
+    runrecord.begin_stage(conn, run_id, 0, now=101)
+    for unit, peak in enumerate((812.5, 1487.0, 640.0, 900.0)):
+        runrecord.unit_done(conn, run_id, 0, unit, seconds=1.0, now=float(110 + unit), peak_mb=peak)
+    run = runrecord.read_run(conn, run_id)
+    assert run["stages"][0]["peak_mb"] == 1487.0
+    finish = [message for _id, fields in runrecord.read_events(conn, run_id) if fields.get("kind") == logrecord.STAGE_FINISH
+              for message in [fields["message"]]]
+    assert finish and finish[0].endswith("(largest worker 1487 MB)")
+    runrecord.begin_stage(conn, run_id, 1, now=200)
+    runrecord.unit_done(conn, run_id, 1, 0, now=201.0)
+    runrecord.unit_done(conn, run_id, 1, 1, now=202.0)
+    last = [fields["message"] for _id, fields in runrecord.read_events(conn, run_id) if fields.get("kind") == logrecord.STAGE_FINISH][-1]
+    assert "largest worker" not in last

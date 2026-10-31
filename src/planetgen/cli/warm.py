@@ -124,7 +124,7 @@ def _warm_once(args, reason=None):
     except ValueError as exc:
         raise SystemExit(f"warm: {exc}")
     # Registered for the update guard (OPS.53), which lists it and stops it, the caches being safe to build again.
-    with updateguard.running("warm-map", "Site cache warm-up"):
+    with updateguard.running("warm-map", "Site cache warm-up", refuse=reason is None):
         try:
             _wait_for_update()
             tally = warmup.PhaseTally([step.key for step in steps])

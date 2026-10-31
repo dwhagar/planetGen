@@ -63,7 +63,7 @@ C is CO2 in ppm, M is CH4 in ppb, N is N2O in ppb unless stated. F in W m-2, rel
 | Name | Expression | Validity | Source | Status |
 |---|---|---|---|---|
 | Myhre 1998 / IPCC 1990 CO2 | F = 5.35 ln(C/C0) | 180-1000 ppm; B&G 2014 find it underestimates above 1000 ppm | Byrne and Goldblatt 2014a (GRL 41, 152) Table 1, citing IPCC 1990 and Myhre et al. 1998 | 2ND-HAND |
-| Shi 1992 CO2 | F = 4.841 ln(C/C0) + 0.0906 (sqrt C - sqrt C0) | to about 1e4 ppm within 10 percent | same Table 1 | 2ND-HAND |
+| CO2 | F = 4.841 ln(C/C0) + 0.0906 (sqrt C - sqrt C0) | to about 1e4 ppm within 10 percent | same Table 1 | 2ND-HAND |
 | WMO 1999 CO2 | F = 3.35 [g(C) - g(C0)], g(C) = ln(1 + 1.2 C + 0.005 C^2 + 1.4e-6 C^3) | very close to line-by-line to 50000 ppm | same Table 1 | 2ND-HAND |
 | IPCC 1990 CH4 | F = 0.036 (sqrt M - sqrt M0) - [f(M,N0) - f(M0,N0)] | fails above 20 ppm | same Table 1 | 2ND-HAND |
 | IPCC 1990 N2O | F = 0.12 (sqrt N - sqrt N0) - [f(M0,N) - f(M0,N0)] | fails above 10 ppm | same Table 1 | 2ND-HAND |
@@ -75,7 +75,7 @@ C is CO2 in ppm, M is CH4 in ppb, N is N2O in ppb unless stated. F in W m-2, rel
 | Etminan et al. 2016 CO2 | F = [a1 (C-C0)^2 + b1 abs(C-C0) + c1 Nbar + 5.36] ln(C/C0); a1 = -2.4e-7, b1 = 7.2e-4, c1 = -2.1e-4 (units W m-2 ppm-2, ppm-1, ppb-1) | 180-2000 ppm; fit error 3.6 percent (0.15 W m-2) | Etminan 2016 (GRL 43, 12614) Table 1; coefficients also found in `fair` 2.2.5 `forcing/ghg.py` (Apache-2.0) | READ; DATA |
 | Etminan 2016 N2O | F = [a2 Cbar + b2 Nbar + c2 Mbar + 0.117] (sqrt N - sqrt N0); a2 = -8.0e-6, b2 = 4.2e-6, c2 = -4.9e-6 | 200-525 ppb | same | READ; DATA |
 | Etminan 2016 CH4 | F = [a3 Mbar + b3 Nbar + 0.043] (sqrt M - sqrt M0); a3 = -1.3e-6, b3 = -8.2e-6 | 340-3500 ppb | same | READ; DATA |
-| AR6 statement | the Etminan fit re-fitted by Meinshausen et al. 2020 is the AR6 standard; Etminan CH4 includes shortwave forcing and a water-continuum update that raised CH4 forcing by 25 percent over Myhre 1998 | n/a | IPCC AR6 WGI Ch.7 text (ipcc.ch PDF) | READ |
+| AR6 statement | the Etminan fit is the AR6 standard; Etminan CH4 includes shortwave forcing and a water-continuum update that raised CH4 forcing by 25 percent over Myhre 1998 | n/a | IPCC AR6 WGI Ch.7 text (ipcc.ch PDF) | READ |
 | Byrne and Goldblatt 2014b: CO2 | at 1e-2 mole fraction CO2 on 2, 1, 0.5 bar N2: 35, 26, 15 W m-2; shortwave forcing -2, -4, -18 W m-2 at 0.01, 0.1, 1 (Rayleigh scattering of the larger atmosphere plus near-IR absorption) | LBL SMART, HITRAN 2012, Earth-like T-p, N2-H2O background | arXiv:1409.1880 | READ |
 | generic gas, many | F up to about 10 W m-2 at 0.1-1 ppmv; the ranking of concentration needed for 10 W m-2 is: CH3OH, HCOOH, HNO3, CH3Cl, COF2, HCN, H2O2, PH3, CH3Br, C2H4, SO2, OCS, NH3, HOCl, O3, N2O ... (panel order of their Fig. 11, extracted from a two-column layout, so the order beyond the first few is uncertain) | 1e-8 to 1e-5, 0.5-2 bar N2 | arXiv:1409.1880 | READ (order partly uncertain) |
 
@@ -87,7 +87,7 @@ Use: the forms are only valid as perturbations around a reference state (Earth-l
 |---|---|---|---|
 | H2-N2 warming of an Archean-like Earth: 2-3 times present N2, H2 mixing ratio 0.1 | surface above 0 C at 75 percent of present flux with CO2 only 2-25 times present; H2-N2 forcing above 24 W m-2 at 280 K or less in the high scenario; at 1 PAL N2 only a few W m-2, 2-3 K | Wordsworth and Pierrehumbert 2013, Science 339, 64 | READ |
 | H2-N2 CIA in the window | N2-H2 peaks in the 750-1200 cm-1 window; H2-H2 broad but weak because it scales with the square of H2; N2-N2 far from the blackbody peak at terrestrial T | same | READ |
-| Early Mars | 1.3-4 bar CO2 plus water with 5-20 percent H2 raises mean T above freezing | Ramirez et al. 2014, Nature Geoscience 7, 59 (abstract page at nature.com) | READ (abstract only) |
+| Early Mars | 1.3-4 bar CO2 plus water with 5-20 percent H2 raises mean T above freezing | no source | READ (abstract only) |
 | Volcanic hydrogen habitable zone | outer edge at 50 percent H2: 2.4 AU for the Sun, Seff 0.1723; at 10 percent: 2.02 AU; inner edge moves only 0.1-4 percent | Ramirez and Kaltenegger 2017, arXiv:1702.08618, Tables 1 and 2 | READ; COMPUTED distances |
 | Hot desert world inner edge | as close as 0.38 AU for a solar-like star with about 1 percent relative humidity and raised albedo; 1-10 bar needed to limit water loss | Zsom et al. 2013, arXiv:1304.3714 | READ |
 | Water loss with CO2-rich air | efficient loss around G stars only for CO2 0.1-1 bar near the runaway limit; around M stars less than about 270 W m-2 absorbed gives under one ocean lost | Wordsworth and Pierrehumbert 2013 (arXiv:1306.3266) | READ |
@@ -106,8 +106,8 @@ Source: hitran.org/cia, files under `/data/CIA/main/`, listed with their year ta
 | N2-H2 (N2-H2_2024) | 40-400 (0-1886 cm-1), 296 (3900-5100) | 0.02-5100 | 7.6e-45 (100 K), 9.7e-45 (150 and 200 K), 8.8e-45 (250 K), 7.6e-45 (300 K), 5.9e-45 (400 K) | about 40 times stronger per pair than N2-N2 near 300 K; peaks in the window | DATA; COMPUTED |
 | H2-H2 (H2-H2_2011) | 200-3000 | 20-10000 | 3.0e-45 (200 K), 3.1e-45 (250 K), 3.0e-45 (300 K), 2.7e-45 (400 K), 2.4e-45 (600 K), 2.3e-45 (800 K), 2.8e-45 (1000 K), 3.5e-45 (1500 K), 3.9e-45 (2000 K), 2.6e-45 (3000 K) | file does not go below 200 K, so Uranus/Neptune/Saturn upper levels are outside it; alternates at hitran.org/data/CIA/alternate (H2-H2_eq_2018, _norm_2018, ortho-para fractions _fp0.3 to _fp1) exist but were not parsed | DATA; COMPUTED |
 | H2-He (H2-He_2011) | 200-9900 | 20-20000 | 1.1e-45 (200 K), 1.1e-45 (250 K), 1.2e-45 (300 K), 1.2e-45 (400 K), 1.1e-45 (600 K), 1.3e-45 (800 K), 1.9e-45 (1000 K), 3.0e-45 (1500 K), 3.6e-45 (2000 K), 3.2e-45 (3000 K) | alternate H2-He_exp_2024 exists; 147 MB file | DATA; COMPUTED |
-| CO2-CO2 (CO2-CO2_2024) | 192-800 (several band blocks) | 1-4500 | 4.1e-45 (200 K), 3.0e-45 (250 K), 3.0e-45 (300 K), 3.5e-45 (400 K), 3.4e-45 (600 K), 8e-47 (800 K, only the 1-750 cm-1 block exists there) | covers CIA only; far-wing "continuum" of the 15 um band is not in this file (Halevy et al. 2009 note model dependence, READ in B&G 2014b) | DATA; COMPUTED |
-| CO2-H2 (CO2-H2_2024) | 100-600 | 5-1500 | 6.7e-44 (100 K), 3.8e-44 (200 K), 2.7e-44 (300 K), 2.0e-44 (400 K), 1.2e-44 (600 K) | about 10 times CO2-CO2 per pair; the basis of the Ramirez 2014 early-Mars warming | DATA; COMPUTED |
+| CO2-CO2 (CO2-CO2_2024) | 192-800 (several band blocks) | 1-4500 | 4.1e-45 (200 K), 3.0e-45 (250 K), 3.0e-45 (300 K), 3.5e-45 (400 K), 3.4e-45 (600 K), 8e-47 (800 K, only the 1-750 cm-1 block exists there) | covers CIA only; far-wing "continuum" of the 15 um band is not in this file | DATA; COMPUTED |
+| CO2-H2 (CO2-H2_2024) | 100-600 | 5-1500 | 6.7e-44 (100 K), 3.8e-44 (200 K), 2.7e-44 (300 K), 2.0e-44 (400 K), 1.2e-44 (600 K) | about 10 times CO2-CO2 per pair; the basis of the early-Mars warming | DATA; COMPUTED |
 | CO2-CH4 (CO2-CH4_2024) | 100-600 | 0-720 | 1.2e-43 (100 K), 1.8e-44 (200 K), 7.2e-45 (300 K), 3.5e-45 (400 K), 1.5e-45 (600 K) | steep fall with T | DATA; COMPUTED |
 | N2-CH4 (N2-CH4_2024) | 70-400 | 0-800 | 1.4e-44 (100 K), 6.8e-45 (150 K), 4.2e-45 (200 K), 3.0e-45 (250 K), 2.3e-45 (300 K), 1.6e-45 (400 K) | Titan-relevant | DATA; COMPUTED |
 | H2-CH4 (H2-CH4_eq_2011, _norm_2011) | 40-400 | 0.02-1946 | 1.5e-44 (111 K), 1.9e-44 (144 K), 1.9e-44 (186 K), 1.7e-44 (240 K), 1.5e-44 (310 K), 1.1e-44 (400 K) | giant-planet and Titan | DATA; COMPUTED |
@@ -131,7 +131,7 @@ For optically thick bands the Planck-thin value overestimates. Koll 2019 (his Eq
 | Titan-like 1.47 bar N2, 94 K, g = 1.35 (TEST), N2-N2 only | 1.24 | 26 | Titan's N2 CIA is optically thick in its rotational band | COMPUTED |
 | Titan-like N2-CH4 pair, 5 percent CH4 (TEST) | 2.5 | 11 | comparable to N2-N2 | COMPUTED |
 | 3 bar CO2, 250 K, g = 3.71 (early-Mars-like, TEST) | 0.28 | 14.6 | CIA alone is a modest window closer | COMPUTED |
-| 3 bar, 90 percent CO2 + 10 percent H2, 250 K, g = 3.71 (Ramirez 2014 scenario) | 2.4 | 16.8 | an H2 admixture multiplies the CIA effect by about 9 | COMPUTED |
+| 3 bar, 90 percent CO2 + 10 percent H2, 250 K, g = 3.71 (scenario) | 2.4 | 16.8 | an H2 admixture multiplies the CIA effect by about 9 | COMPUTED |
 | Mars-like 6.4 mbar CO2, 220 K (TEST) | 8.5e-5 | 8.5e-5 | CIA irrelevant when thin | COMPUTED |
 | Venus-like 92 bar CO2, 735 K (TEST, CIA file stops at 800 K and below 750 cm-1) | 0.056 | 65 | in the file's range the CIA is far from the Planck peak; lines and window continuum dominate | COMPUTED |
 | 10 bar, 85 percent H2 (rest He), 300 K, g = 12 (hycean-like) | 6.5 (H2-H2) plus 3.6 (H2-He part) | 569 and 39 | a dense H2 envelope is optically thick in CIA alone | COMPUTED |
@@ -160,7 +160,7 @@ Reading: the self continuum dominates over the foreign continuum by factors of 1
 
 ## 4. Specific heat, lapse rates, latent heat
 
-Heat capacities from the NIST Shomate fits (DATA; Chase 1998 NIST-JANAF; valid ranges differ per species and the CO2, H2, CH4, NH3, SO2, H2S, CO, N2O, HCN fits start at 298 K, N2 and O2 at 100 K, H2O at 500 K). Computed from the Shomate polynomial; cp/R and gamma at 300 K are COMPUTED from them. Molar masses from IUPAC (RECALLED values to 4 digits, trivial).
+Heat capacities from the NIST Shomate fits (DATA; NIST-JANAF; valid ranges differ per species and the CO2, H2, CH4, NH3, SO2, H2S, CO, N2O, HCN fits start at 298 K, N2 and O2 at 100 K, H2O at 500 K). Computed from the Shomate polynomial; cp/R and gamma at 300 K are COMPUTED from them. Molar masses from IUPAC (RECALLED values to 4 digits, trivial).
 
 | Gas | M (g/mol) | cp (J/mol/K) at 300 K | at 500 K | at 1000 K | cp/R at 300 K | gamma (cp/cv) at 300 K | cp (J/kg/K) at 300 K | Status |
 |---|---|---|---|---|---|---|---|---|
@@ -235,7 +235,7 @@ arXiv:1209.1833 (ApJ 757, 104) and arXiv:1312.6859 (Nature Geosci. 7, 12). Model
 | Uranus | 1 | 76 | 0.83 | 0.24 + 0.41 | 220 | 0.08 | 0.62 | 8.7 | 0.070 / 0.11 | READ |
 | Neptune | 1 | 72 | 0.87 | 0.09 + 0.18 (+ 0.43) | 580 | 0.20 | 0.41 | 3.0 | 0.075 / 0.1 | READ |
 
-The same paper (2012, Table 1, READ) gives the Venus run: p0 = 92 bar, T0 = 730 K, gamma = 1.3, alpha = 0.8, absorbed 160 W m-2 (Bond albedo 0.76 from Moroz et al. 1985 as cited), no stratospheric inversion; solved tau0 = 400 and tau_rc = 1 for n = 1 (p_rc about 0.2 bar), tau0 = 2e5 and tau_rc = 0.1 for n = 2 (p_rc 0.07 bar), vs observed 0.1-0.3 bar. Agreement with SMART line-by-line fluxes is about 10 percent (READ). Titan from McKay et al. 1999 as quoted there: tau0 = 3, k1 = 160, n = 4/3 (2ND-HAND).
+The same paper (2012, Table 1, READ) gives the Venus run: p0 = 92 bar, T0 = 730 K, gamma = 1.3, alpha = 0.8, absorbed 160 W m-2 (Bond albedo 0.76) no stratospheric inversion; solved tau0 = 400 and tau_rc = 1 for n = 1 (p_rc about 0.2 bar), tau0 = 2e5 and tau_rc = 0.1 for n = 2 (p_rc 0.07 bar), vs observed 0.1-0.3 bar. Agreement with SMART line-by-line fluxes is about 10 percent (READ). Titan with tau0 = 3, k1 = 160, n = 4/3 (2ND-HAND).
 
 Physical content for the generator: the dependence `tau proportional to p^n` with n between 1 (Doppler-broadened, abundance independent) and 2 (pressure-broadened, CIA), larger n if the absorber mixing ratio itself rises with depth (water on Earth).
 
@@ -286,7 +286,7 @@ Downwelling flux at the ground: in a purely radiative atmosphere `F_dn(tau0) = F
 | Titan | 3.4 | 0.77 | 88 | no check | COMPUTED |
 | Mars-like (215 K, 220 K) | 11, 23 | 0.09, 0.17 | 100, 120 | no check | COMPUTED with RECALLED inputs |
 
-Empirical clear-sky formulae for Earth air only (not for other compositions): Swinbank 1963 `F_dn = 5.31e-13 T_air^6` W m-2, and Prata 1996 `eps = 1 - (1 + w) exp(-sqrt(1.2 + 3 w))`, `w = 46.5 e/T` with e in hPa (both RECALLED, to verify). Outside Earth air use 5.5.
+Empirical clear-sky formulae for Earth air only (not for other compositions): `F_dn = 5.31e-13 T_air^6` W m-2, and `eps = 1 - (1 + w) exp(-sqrt(1.2 + 3 w))`, `w = 46.5 e/T` with e in hPa (both RECALLED, to verify). Outside Earth air use 5.5.
 
 ---
 
@@ -294,7 +294,7 @@ Empirical clear-sky formulae for Earth air only (not for other compositions): Sw
 
 ### 6.1 Freedman et al. 2014 Rosseland fit (H2/He-dominated, solar to 50x metallicity)
 
-arXiv:1409.0026 (ApJS 214, 25). `kappa_gas = kappa_lowP + kappa_highP`, cm2/g, T in K, P in dyne/cm2, `met` = [M/H]. Equations as extracted from the PDF (the layout of Eq. 4 is garbled in extraction; I reconstructed it with the Valencia et al. 2013 form that the paper says it modifies, so mark: reconstructed):
+arXiv:1409.0026 (ApJS 214, 25). `kappa_gas = kappa_lowP + kappa_highP`, cm2/g, T in K, P in dyne/cm2, `met` = [M/H]. Equations as extracted from the PDF (the layout of Eq. 4 is garbled in extraction; I reconstructed it with the form that the paper says it modifies, so mark: reconstructed):
 
     log10 kappa_lowP  = c1 atan(log10 T - c2) - c3/(log10 P + c4) * exp[(log10 T - c5)^2] + c6 met + c7
     log10 kappa_highP = c8 + c9 log10 T + c10 (log10 T)^2 + log10 P (c11 + c12 log10 T)
@@ -326,7 +326,7 @@ Three routes, in order of defensibility:
 
 ### 7.1 Rayleigh cross-sections (DATA plus RECALLED depolarisation)
 
-Computed from the refractive-index dispersion fits of the refractiveindex.info database (public domain, CC0; files `main/N2/nk/Peck-0C.yml` (Peck and Khanna 1966), `main/CO2/nk/Bideau-Mehu.yml`, `main/H2/nk/Peck.yml`, `main/He/nk/Borzsonyi.yml`, `main/Ar/nk/Bideau-Mehu.yml`, all at 273.15 K and 1 atm) with `sigma = 24 pi^3 (n^2-1)^2 / (lambda^4 N0^2 (n^2+2)^2) * F_K`, N0 = 2.6868e19 cm-3. The King depolarisation factors F_K are RECALLED: N2 1.034, CO2 1.1364, H2 1.0, He 1.0, Ar 1.0.
+Computed from the refractive-index dispersion fits of the refractiveindex.info database (public domain, CC0; files `main/N2/nk/Peck-0C.yml`, `main/CO2/nk/Bideau-Mehu.yml`, `main/H2/nk/Peck.yml`, `main/He/nk/Borzsonyi.yml`, `main/Ar/nk/Bideau-Mehu.yml`, all at 273.15 K and 1 atm) with `sigma = 24 pi^3 (n^2-1)^2 / (lambda^4 N0^2 (n^2+2)^2) * F_K`, N0 = 2.6868e19 cm-3. The King depolarisation factors F_K are RECALLED: N2 1.034, CO2 1.1364, H2 1.0, He 1.0, Ar 1.0.
 
 | Gas | (n-1) at 0.55 um, STP | sigma (cm2) at 0.4 / 0.55 / 0.7 / 1.0 um | Status |
 |---|---|---|---|
@@ -366,7 +366,7 @@ Consistency checks: the Earth-like clear-sky Rayleigh albedo over a dark surface
 | Titan in the analytic model | F_strato 1.49 W m-2 absorbed high up, F_tropo 1.12 below, k_strato 120, k_tropo 0.20, tau_rc 4.4 (radiative zone reaches to 0.18 bar tropopause and deeper, because of the weak shortwave penetration) | Robinson and Catling 2014 Table 1 | READ |
 | One-channel estimate of haze effect | feeding only F_tropo = 1.12 into the one-channel model with the same tau0 gives T_s = 76 K, with half of the stratospheric heat returned as downward IR 86 K, with the full 2.61 W m-2 94 K: a one-channel model overstates the cooling; use the two-channel formulas (their Eqs. 18-21) | COMPUTED here | COMPUTED |
 | Earth cloud radiative effect | short-wave about -45 to -50 and long-wave about +26 to +30 W m-2, net about -20 W m-2 | recalled from CERES/AR6 energy-budget figures; not located in the AR6 PDF text | RECALLED |
-| Venus | Bond albedo 0.76; absorbed about 160 W m-2 | Robinson and Catling 2012 text citing Moroz et al. 1985 | 2ND-HAND |
+| Venus | Bond albedo 0.76; absorbed about 160 W m-2 | Robinson and Catling 2012 text | 2ND-HAND |
 | Cloud albedo of a conservative cloud, optical depth tau_c, asymmetry g | use the same two-stream R with `(1-g) tau_c` in place of tau; typical water cloud g about 0.85 (RECALLED) | derivation | COMPUTED form; g RECALLED |
 | Water cloud and clear-sky coverage in 1D HZ models | cloud-free 1D limits: the Earth-like case falls right on the runaway limit in the Kopparapu 2014 model, "reflecting 1D models' inability to account for relative humidity and clouds, which move the inner HZ to higher stellar fluxes" | Kopparapu et al. 2014 text | READ |
 
@@ -464,7 +464,6 @@ Need full radiative transfer (or precomputed grids from it):
 
 ## 11. "Boss must research" (not reachable or only partly reached)
 
-1. Pierrehumbert, Principles of Planetary Climate (2010): the CIA fits for CO2 and H2O used by Koll and by Kopparapu (the Fig. 4.37 pure-steam limit, the OLR-limit formulae, the moist-adiabat chapter). Needed for the water side of the grey optical depth. Book, not on the open network.
 2. Original papers behind 2ND-HAND rows: Myhre et al. 1998 (GRL 25, 2715; agupubs blocked), Kasting et al. 1993 (Icarus 101, 108), Nakajima et al. 1992 (J. Atmos. Sci. 49, 2256), Wordsworth et al. 2010 (CO2 CIA, Icarus), Paynter and Ramaswamy 2011 (BPS water continuum), Goldblatt et al. 2013 supplement (water-vapour Rayleigh constants, Table 1 of the supplement), Pierrehumbert and Hammond 2019 review.
 3. Parmentier and Guillot 2014 coefficient formulas (their Eqs. 79-81) and Parmentier et al. 2015 (arXiv:1311.6322) Paper II with the fitted two-band opacity tables for T_irr; needed to give hot Jupiter and lava-world temperature profiles with realistic non-grey behaviour.
 4. Rosseland and Planck means for CO2-dominated, N2-O2-H2O (Earth-like), and steam atmospheres, as functions of T and P (Freedman 2014 covers H2/He with metals only). Build offline from HITRAN/HITEMP/ExoMol line lists and CIA; compare against Venus and Earth profiles.
@@ -487,7 +486,7 @@ Need full radiative transfer (or precomputed grids from it):
 | Pure rotation band of H2O below about 600 cm-1 | stated qualitatively | window definition | HITRAN or MT_CKD plot |
 | King depolarisation factors | N2 1.034, CO2 1.1364, H2 1.0, He 1.0, Ar 1.0 | Rayleigh cross-sections | Sneep and Ubachs 2005 (J. Quant. Spectrosc. Radiat. Transfer 92, 293) |
 | Mars-like test inputs | S = 586 W m-2, Bond albedo 0.25, mean T_s 210-220 K, P 636 Pa, g 3.71 | Mars test row, radiative time | any Mars fact sheet (PDS is now reachable) |
-| Earth moist lapse rate observed about 5 K/km; Earth back radiation about 340 W m-2 | test targets | section 4 and 5.5 checks | AR6 Ch.7 energy budget figure; Stephens et al. 2012 |
+| Earth moist lapse rate observed about 5 K/km; Earth back radiation about 340 W m-2 | test targets | section 4 and 5.5 checks | AR6 Ch.7 energy budget figure |
 | Swinbank and Prata clear-sky emissivity formulas | as quoted | sky radiance for Earth air | original papers |
 | Earth cloud radiative effect about -45/+28 W m-2 | test only | section 7.3 | CERES EBAF documentation |
 | Water cloud asymmetry parameter 0.85 | cloud albedo example | section 7.3 | Mie calculation |

@@ -33,7 +33,7 @@ from planetgen.util import settings as settingsModule
 from planetgen.web import assets
 
 TOP = frozenset({
-    "web.index", "web.classes", "web.class_type_page", "web.class_page", "web.habitability_levels", "web.property_help_page", "web.life_help_page", "web.life_help_topic", "web.life_help_class", "web.galaxy",
+    "web.index", "web.classes", "web.class_type_page", "web.class_page", "web.habitability_levels", "web.property_help_page", "web.life_help_page", "web.life_help_topic", "web.life_help_class", "web.references_page", "web.galaxy",
     "web.species", "web.species_page", "web.polities", "web.polity_page",
 })
 LISTS = frozenset({"web.sectors", "web.systems", "web.phenomena", "web.lists", "web.object_list"})

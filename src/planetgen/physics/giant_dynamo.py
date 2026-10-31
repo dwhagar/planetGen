@@ -9,7 +9,7 @@ A pure module: a `giant_interior.GiantInterior`, the body's radius, the heat it 
    conducting), from the radius of metallization down to the helium gradient below it. The layers under that, the helium gradient and shell the
    rain leaves and the dilute core (Saturn's stable region, Mankovich and Fuller 2021; Jupiter's, Juno), are stably stratified and carry no
    convection, so they are not part of the region. An ice giant's field is made in the conducting water of its mantle (`ice_mantle`, ionic or
-   superionic), a shell over the rock core and under the molecular envelope (Stanley and Bloxham 2004, 2006 for the shell). A brown dwarf is a gas
+   superionic), a shell over the rock core and under the molecular envelope. A brown dwarf is a gas
    giant here.
 2. **The region.** Its outer radius is the top of that layer, its inner radius the bottom, its mass the layer's, its density the mass over the shell's
    volume. They are the numbers `dynamo.field` takes (the buoyancy-flux scaling of Olson and Christensen 2006 and the Rossby number that gates the
