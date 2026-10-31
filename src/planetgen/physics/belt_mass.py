@@ -118,14 +118,15 @@ def draw_largest_km(stream):
     return math.exp(stream.uniform(math.log(low), math.log(high)))
 
 
-def belt_state(lower_au, upper_au, star_mass_kg, snow_line_au, metal_ratio, age_gy, largest_km):
+def belt_state(lower_au, upper_au, star_mass_kg, snow_line_au, metal_ratio, age_gy, largest_km, primordial_earth=None):
     """
     `(mass_kg, density word)` of a belt: what its disc's solids leave after `age_gy` of collisions (`belt_mass_earth`), and the word that mass per area earns against the same belt of the
-    median largest body (the geometric mean of `LARGEST_BODY_RANGE_KM`) around a star of the Sun's metals.
+    median largest body (the geometric mean of `LARGEST_BODY_RANGE_KM`) around a star of the Sun's metals. `primordial_earth` is the mass the belt began with once the giants had acted on it
+    (`belt_origin`, GEN.1068); left out, the disc's solids over the whole stretch.
     """
     star_solar = _kg_to_msun(star_mass_kg)
     age_myr = age_gy * 1000.0
-    primordial = primordial_mass_earth(lower_au, upper_au, star_mass_kg, snow_line_au, metal_ratio)
+    primordial = primordial_mass_earth(lower_au, upper_au, star_mass_kg, snow_line_au, metal_ratio) if primordial_earth is None else primordial_earth
     mass = belt_mass_earth(primordial, lower_au, upper_au, star_solar, age_myr, largest_km)
     median_km = math.sqrt(LARGEST_BODY_RANGE_KM[0] * LARGEST_BODY_RANGE_KM[1])
     reference = belt_mass_earth(primordial_mass_earth(lower_au, upper_au, star_mass_kg, snow_line_au), lower_au, upper_au, star_solar, age_myr, median_km)

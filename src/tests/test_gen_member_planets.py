@@ -30,7 +30,7 @@ def _system(seed, stars=3):
 def _with_member_planets(close=None):
     for seed in range(400):
         system, cfg = _system(seed)
-        if any(bodies for bodies in system.member_planets) and (close is None or (system.binary_type == "close") == close):
+        if any(body.body_type != 'a' for bodies in system.member_planets for body in bodies) and (close is None or (system.binary_type == "close") == close):
             return system, cfg
     pytest.fail("no three-star system with planets round a member in 400 draws")
 

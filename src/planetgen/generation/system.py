@@ -35,7 +35,7 @@ from planetgen.physics import planets as planetPhysics
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.util import log
-from planetgen.generation import habitable_request, pulsar_planets, remnant_orbits
+from planetgen.generation import belt_birth, habitable_request, pulsar_planets, remnant_orbits
 from planetgen.generation.planet import DEFER_MOONS, Planet
 from planetgen.generation.star import Star, adjust_pair_age_for_planets
 from planetgen.physics import bulk_draw, clearance_ledger, planet_architecture, planet_zones
@@ -398,6 +398,7 @@ class StarSystem:
                     # makes it a real possibility, so re-trim afterward using each
                     # body's own final position.
                     self._trim_to_orbit_ceiling(self.planets, primary_ceiling_au)
+                    self._add_belts(self.planets, self.star, primary_ceiling_au)
                     self._apply_star_history(self.planets, self.star)
                     # GEN.318: a white dwarf's survivors move out; the Hill spacing is over the lighter star now
                     if remnant_orbits.widen_for_mass_loss(self.planets, self.star, self._explicit_request()):
@@ -413,6 +414,7 @@ class StarSystem:
                         )
                         self.validate_system(self.secondary_planets)
                         self._trim_to_orbit_ceiling(self.secondary_planets, secondary_ceiling_au)
+                        self._add_belts(self.secondary_planets, self.secondary_star, secondary_ceiling_au, apply_guarantees=False)
                         self._apply_star_history(self.secondary_planets, self.secondary_star)
                         if remnant_orbits.widen_for_mass_loss(self.secondary_planets, self.secondary_star,
                                                               self._explicit_request()):
@@ -461,6 +463,9 @@ class StarSystem:
                 self._trim_to_orbit_ceiling(self.secondary_planets, self._orbit_ceiling_au(self.secondary_star))
             for member, bodies in self.member_hosts():
                 self._trim_to_orbit_ceiling(bodies, self._orbit_ceiling_au(member))
+            if self.system_config.ASTEROID_BELT is True and not self.count_objects(self.planets)[1]:
+                # The star's final age lowered its orbit ceiling past the belts the attempts built: a belt asked for is made again under the final ceiling (GEN.1068)
+                self._add_belts(self.planets, self.star, self._orbit_ceiling_au(self.star))
             self._settle_to_final_age()
             habitable_satisfied = self.system_config.HABITABLE_WORLD is not True or habitable_request.count(self.planets) > 0
             belt_satisfied = self.system_config.ASTEROID_BELT is not True or self.count_objects(self.planets)[1] > 0
@@ -1244,8 +1249,6 @@ class StarSystem:
         required_objects = 0
         if apply_guarantees and self.system_config.HABITABLE_WORLD is True:
             required_objects += 1
-        if apply_guarantees and self.system_config.ASTEROID_BELT is True:
-            required_objects += 1
 
         if system_objects < required_objects:
             system_objects = required_objects
@@ -1263,12 +1266,7 @@ class StarSystem:
         disk_edge_au = self._disk_outer_edge_au(star)
 
         if system_objects > 0:
-            belt_index = draw.randint(0, system_objects - 1) if self.system_config.ASTEROID_BELT is True else -1
-            if belt_index != -1:
-                log.choice("Guaranteed asteroid belt slot", belt_index,
-                           f"random slot in [0, {system_objects - 1}] (ASTEROID_BELT is forced True)")
             found_hab = False
-            found_belt = False
             i = -1
 
             while i < system_objects - 1:
@@ -1312,9 +1310,7 @@ class StarSystem:
                         break
                     # Nothing forms past the disk's outer edge (GEN.37), but a
                     # slot a guarantee or SLOTS still needs is placed anyway.
-                    pending = (slot_spec is not None or (apply_guarantees and (
-                        (self.system_config.HABITABLE_WORLD is True and not found_hab)
-                        or (self.system_config.ASTEROID_BELT is True and not found_belt))))
+                    pending = (slot_spec is not None or (apply_guarantees and self.system_config.HABITABLE_WORLD is True and not found_hab))
                     if estimated_distance > disk_edge_au and not pending:
                         break
                 else:
@@ -1330,8 +1326,6 @@ class StarSystem:
                     obj = self.generate_slot_object(star, slot_spec, estimated_distance, planets=planets)
                     if getattr(obj, 'body_type', None) != 'a' and habitable_request.meets_with_moons(obj):
                         found_hab = True
-                    if getattr(obj, 'body_type', None) == 'a':
-                        found_belt = True
                     planets.append(obj)
                     if _exceeds_orbit_ceiling(planets[-1], orbit_ceiling_au):
                         planets.pop()
@@ -1350,14 +1344,7 @@ class StarSystem:
                                     last_planet.body_type != 'a' and (last_planet.distance + last_planet.min_orbit_distance >
                                                                  habitable_zone[1])
 
-                        # Never retroactively overwrite a belt if ASTEROID_BELT is
-                        # required: this could be the belt satisfying that guarantee
-                        # (found_belt is set the moment it's placed, not re-checked
-                        # here), and this mechanism has no way to know whether another
-                        # one exists elsewhere to fall back on.
-                        belt_is_protected = last_planet.body_type == 'a' and self.system_config.ASTEROID_BELT is True
-
-                        if beyond_hz and not prev_slot_explicit and not belt_is_protected:
+                        if beyond_hz and not prev_slot_explicit:
                             # planets[i - 1] itself is about to be discarded and
                             # replaced below -- exclude it from belt-avoidance so
                             # a belt being overwritten here doesn't spuriously
@@ -1384,47 +1371,62 @@ class StarSystem:
                             break
                         continue
 
-                # Guaranteed last-resort fallback, mirroring HABITABLE_WORLD's own
-                # end-of-loop guarantee: if a belt is still required and hasn't
-                # happened yet by the trailing slot(s), force it there regardless of
-                # the soft hz/last_asteroid avoidance below (validate_system corrects
-                # any resulting spacing/overlap afterward). When HABITABLE_WORLD is
-                # ALSO still pending, that claims the very last slot for itself (its
-                # own unconditional `continue` above would otherwise steal this one
-                # out from under the belt), so the belt's fallback claims the slot
-                # just before it instead, guaranteeing each requirement its own slot.
-                hab_still_pending = apply_guarantees and self.system_config.HABITABLE_WORLD is True and not found_hab
-                belt_fallback_index = (system_objects - 2) if hab_still_pending else (system_objects - 1)
-                force_belt = apply_guarantees and self.system_config.ASTEROID_BELT is True and not found_belt and i >= belt_fallback_index
-
-                belt_fits_slot = not seed.runaway and seed.mass_kg < _mearth_to_kg(tuning.BELT_REPLACES_BELOW_EARTH)
-                if self.system_config.ASTEROID_BELT is not False and (
-                    force_belt or i == belt_index
-                    or (belt_fits_slot and not last_asteroid and not hz and draw.random() < tuning.ASTEROID_BELT_PROBABILITY)
-                ):
-                    if force_belt:
-                        belt_reason = "forced (last-resort fallback: ASTEROID_BELT required but not yet placed)"
-                    elif i == belt_index:
-                        belt_reason = "matched the pre-selected guaranteed belt slot"
-                    else:
-                        belt_reason = f"random roll passed ASTEROID_BELT_PROBABILITY ({tuning.ASTEROID_BELT_PROBABILITY})"
-                    log.choice("Orbital slot object", "asteroid belt", f"slot {i}: {belt_reason}")
-                    min_distance = estimated_distance
-                    max_distance = estimated_distance * draw.uniform(tuning.ASTEROID_BELT_MAX_DISTANCE_FACTOR_MIN, tuning.ASTEROID_BELT_MAX_DISTANCE_FACTOR_MAX)
-                    planets.append(AsteroidBelt(self.system_config, star, estimated_distance, min_distance, max_distance)) # Pass system_config
-                    found_belt = True
-                else:
-                    planet = Planet(self.system_config, star, habitable_zone, estimated_distance, # Pass system_config
-                                    planned_objects=system_objects, mass=seed.mass_kg, formation_distance_au=seed.formation_au)
-                    if habitable_request.meets_with_moons(planet):
-                        found_hab = True
-                    planets.append(planet)
+                planet = Planet(self.system_config, star, habitable_zone, estimated_distance, # Pass system_config
+                                planned_objects=system_objects, mass=seed.mass_kg, formation_distance_au=seed.formation_au)
+                if habitable_request.meets_with_moons(planet):
+                    found_hab = True
+                planets.append(planet)
 
                 if _exceeds_orbit_ceiling(planets[-1], orbit_ceiling_au):
                     planets.pop()
                     break
 
         return planets
+
+    def _add_belts(self, bodies, star, orbit_ceiling_au, apply_guarantees=True):
+        """
+        Adds the belts of `star`'s finished, spaced planets to `bodies` in place (GEN.1068, `belt_birth`): the stretches the chain leaves unfinished, not slots rolled for. It runs once
+        `validate_system` has settled the planets, so a belt stands in the gap the planets really leave, and the spacing is checked again with the belts in. A `SLOTS` list names its belts
+        itself, `NUM_ORBITS` is the whole count of bodies and `MAX_PLANETS` False the fewest (both give way to `ASTEROID_BELT` True: a belt asked for is added), `ASTEROID_BELT` False has
+        none, `PLANETS` False has no bodies, and a pulsar's disc or a planetary nebula's pair holds none.
+        """
+        config = self.system_config
+        counted = (apply_guarantees and bool(config.SLOTS)) or ((config.NUM_ORBITS is not None or config.MAX_PLANETS is False) and config.ASTEROID_BELT is not True)
+        if (config.PLANETS is False or counted or config.ASTEROID_BELT is False or pulsar_planets.applies(star) or remnant_orbits.is_post_agb_pair(star)):
+            return
+        belts = belt_birth.build(config, star, bodies, self._orbit_floor_au(star), orbit_ceiling_au, self._disk_outer_edge_au(star))
+        if not belts and config.ASTEROID_BELT is True and not any(body.body_type == 'a' for body in bodies):
+            belts = self._requested_belt(bodies, star, orbit_ceiling_au)
+        if not belts:
+            return
+        for belt in belts:
+            log.choice("Asteroid belt", belt.origin, f"{belt.lower_limit:.3g} to {belt.upper_limit:.3g} AU, {belt.origin_sentence}")
+        bodies[:] = sorted([*bodies, *belts], key=lambda body: body.distance)
+        self.validate_system(bodies)
+        self._trim_to_orbit_ceiling(bodies, orbit_ceiling_au)
+
+    def _requested_belt(self, bodies, star, orbit_ceiling_au):
+        """
+        The belt a request for one (`ASTEROID_BELT` True) is owed where the planets' chain leaves no stretch for one (a star whose disc, between its orbit floor and its edge, is too
+        narrow to hold any): one belt just outside the outermost body (innermost, where the planets fill the room), `ASTEROID_BELT_MAX_DISTANCE_FACTOR_MIN` to `_MAX` times as far out as its inner edge, as the
+        old slot did. It has no origin, as a belt a `SLOTS` entry names has none. An empty list where the star holds no room for any belt (the request is then unmet).
+        """
+        if bodies:
+            last = bodies[-1]
+            lower = last.upper_limit + tuning.MIN_ASTEROID_BELT_SEPARATION if last.body_type == 'a' else validation.apoapsis_au(last) + last.min_orbit_distance
+        else:
+            lower = 0.0
+        lower = max(lower, self._orbit_floor_au(star))
+        if lower <= 0.0:
+            lower = star.snow_line_au                  # nothing orbits it and nothing bounds it: where the disc's ice begins
+        factor = draw.uniform(tuning.ASTEROID_BELT_MAX_DISTANCE_FACTOR_MIN, tuning.ASTEROID_BELT_MAX_DISTANCE_FACTOR_MAX)
+        if lower * tuning.ASTEROID_BELT_MAX_DISTANCE_FACTOR_MIN > orbit_ceiling_au:
+            lower = self._orbit_floor_au(star) or star.snow_line_au       # the planets fill the star's room: the belt takes the innermost orbit and the spacing pass moves them out (the outermost are trimmed)
+        upper = min(lower * factor, orbit_ceiling_au)
+        if upper < lower * tuning.ASTEROID_BELT_MAX_DISTANCE_FACTOR_MIN:
+            return []
+        log.choice("Asteroid belt", "requested", f"{lower:.3g} to {upper:.3g} AU: ASTEROID_BELT is True and the chain leaves no stretch for one")
+        return [AsteroidBelt(self.system_config, star, lower, lower, upper)]
 
     def _generate_member_planets(self, star):
         """
@@ -1435,6 +1437,7 @@ class StarSystem:
         bodies = self._generate_planets(star, star.habitable_zone, ceiling_au, apply_guarantees=False)
         self.validate_system(bodies)
         self._trim_to_orbit_ceiling(bodies, ceiling_au)
+        self._add_belts(bodies, star, ceiling_au, apply_guarantees=False)
         self._apply_star_history(bodies, star)
         if remnant_orbits.widen_for_mass_loss(bodies, star, self._explicit_request()):
             self.validate_system(bodies)
