@@ -105,7 +105,7 @@ def test_one_worker_serves_one_kind_of_queue():
 
 
 def test_a_job_names_its_function_and_carries_its_connection_settings_as_data():
-    assert api_jobs.function_reference(api_jobs.settle_sectors) == "planetgen.queue.api_jobs:settle_sectors"
+    assert api_jobs.function_reference(api_jobs.regenerate_sector) == "planetgen.queue.api_jobs:regenerate_sector"
     for bad in (lambda: None, api_jobs.NoQueue.__init__):
         with pytest.raises(ValueError):
             api_jobs.function_reference(bad)

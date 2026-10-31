@@ -1235,7 +1235,7 @@ def _settle_named(args):
 def settle_named_sectors(sector_ids, config, expand=True):
     """
     Saves the sector paths of `sector_ids` (and, with `expand`, of the sectors around them) as a run of
-    `settle-sector-paths` (GEN.126; PERF.119: the body of the API's settle job and of a regenerate).
+    `settle-sector-paths` (GEN.126; PERF.119: the settle of a regenerate or a filled sector, and of `planetgen settle`).
 
     Returns:
         int: How many paths were saved.
