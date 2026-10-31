@@ -38,11 +38,13 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | module | planetgen.physics.giant_dynamo | GEN.809 | the dynamo region and field of a giant from its interior layers (lock-free); the wiring step has `magnetism.generate_field` take a giant's moment from it in place of the three anchors, once the structure of GEN.733 has placed an ice giant's layers (GEN.967 wires `dynamo` for the rest) |
 | module | planetgen.physics.latitude_bands | GEN.1108 | the climate of a body in seven latitude bands (hours of day and night, polar day and night, day and night temperatures, state), a pure function; the storage part replaces the four stored bands of `regional_temperature` with it |
 | module | planetgen.physics.radiation_belts | GEN.983 | trapped radiation belts of a magnetised body, read when the stored magnetosphere reaches dose |
-| module | planetgen.galaxy.influence | GEN.342 | the influence set of an object, read by the acceleration kernel of the orbital update |
-| module | planetgen.galaxy.potential | GEN.342 | the galactic potential (Hernquist, Miyamoto-Nagai, NFW), read by the acceleration kernel (GEN.342), the star stepper (GEN.340) and the velocity seeding (GEN.339) |
-| row | 6.157:GP1 | GEN.342 | `potential.DISK_COMPONENTS`, read when the acceleration kernel reads the potential |
-| row | 6.157:GP2 | GEN.342 | `potential.HERNQUIST_COMPONENTS`, read when the acceleration kernel reads the potential |
-| row | 6.157:GP3 | GEN.342 | `potential.BLACK_HOLE_SOFTENING_PC`, read when the acceleration kernel reads the potential |
+| module | planetgen.galaxy.influence | GEN.105 | the influence set of an object, read by the orbital update run through the acceleration kernel |
+| module | planetgen.galaxy.potential | GEN.340 | the galactic potential (Hernquist, Miyamoto-Nagai, NFW), read by the star stepper (GEN.340), the velocity seeding (GEN.339) and, through the acceleration kernel, the orbital update run (GEN.105) |
+| module | planetgen.galaxy.acceleration | GEN.105 | the acceleration kernel (influence set plus galactic gradient) and the velocity kick, read by the orbital update run |
+| row | 6.158:AK1 | GEN.105 | `acceleration.MEMBER_SOFTENING_PC`, read when the orbital update run calls the kernel |
+| row | 6.157:GP1 | GEN.340 | `potential.DISK_COMPONENTS`, read when the star stepper reads the potential |
+| row | 6.157:GP2 | GEN.340 | `potential.HERNQUIST_COMPONENTS`, read when the star stepper reads the potential |
+| row | 6.157:GP3 | GEN.340 | `potential.BLACK_HOLE_SOFTENING_PC`, read when the star stepper reads the potential |
 | module | planetgen.physics.body_positions | MAP.253 | where every body of a system is at a time, read by the scene and the maps once they read the parent chain |
 | module | planetgen.physics.light_travel | VIEW.1 | light-travel positions for the view from a planet |
 | module | planetgen.physics.radius_valley | by design | the simulated Kepler survey of the radius valley, a check run by the tuning tests; the valley itself comes from the envelope-loss rows of the generator (GEN.722 retired) |
