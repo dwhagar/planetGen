@@ -133,12 +133,10 @@
       "changes": [
         "GET /api/admin/backups and GET /api/admin/backups/<name>: an archive and each of its parts have size_bytes where they had size"
       ]
-    }
-,
+    },
     {
       "version": 12,
-      "first_release": null,
-      "pending": true,
+      "first_release": "8.0.2993",
       "items": [
         "GEN.1108"
       ],
