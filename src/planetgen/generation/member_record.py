@@ -17,7 +17,7 @@ and for a star the full `star_params` the build makes its star from.
 
 import dataclasses
 
-from planetgen.physics import brown_dwarf, constants, post_main_sequence, pre_main_sequence, stellar_abundances
+from planetgen.physics import brown_dwarf, constants, helium_core_white_dwarf, post_main_sequence, pre_main_sequence, stellar_abundances
 from planetgen.physics import stellar_evolution as evolution
 from planetgen.physics import unit_registry as units
 from planetgen.util import draw
@@ -113,21 +113,22 @@ def progenitor_tip_au(initial_mass_solar, fe_h=0.0):
     return _largest_radius_au(initial_mass_solar, REMNANT_AGE_YR, fe_h, 0.0)
 
 
-def make(seed, initial_mass_solar, age_yr, fe_h, lighten=True, substellar=False):
+def make(seed, initial_mass_solar, age_yr, fe_h, lighten=True, substellar=False, white_dwarf_mass_sol=None):
     """
     The record of the member born at `initial_mass_solar` and seen at `age_yr` with birth [Fe/H] `fe_h`, evolved under the stream of
     `seed`. A brown dwarf is below the hydrogen-burning limit. A star is `evolution.evolve_star`'s state (a contracting one's too);
     its radius is the one `star_params` gives, so the star made from the record has exactly the record's radius. A birth mass that has
     collapsed by the age is cut by `LIGHTEN_FACTOR` until it is alive when `lighten`, and raises `ValueError` when not. A `substellar`
     member was drawn from the brown dwarf mass function and stays one at any mass (the objects of 0.074 to 0.08 solar masses among them
-    are the stable late-M and L dwarfs of the census); the limit is the one of the member's [Fe/H] (GEN.936).
+    are the stable late-M and L dwarfs of the census); the limit is the one of the member's [Fe/H] (GEN.936). A star that is a white
+    dwarf by the age is one of `white_dwarf_mass_sol` solar masses when given (a helium core, GEN.996); any other star ignores it.
     """
     if substellar or initial_mass_solar < stellar_abundances.hydrogen_burning_limit_for_fe_h(fe_h):
         return _brown_dwarf(initial_mass_solar, age_yr, fe_h, seed)
     rng = stream(seed)
     mass = initial_mass_solar
     while True:
-        state = evolution.evolve_star(mass, age_yr / 1.0e9, rng, fe_h=fe_h)
+        state = evolution.evolve_star(mass, age_yr / 1.0e9, rng, fe_h=fe_h, white_dwarf_mass_sol=white_dwarf_mass_sol)
         if state is not None or not lighten:
             break
         draw.redrawn("star.mass_lightened")
@@ -139,6 +140,10 @@ def make(seed, initial_mass_solar, age_yr, fe_h, lighten=True, substellar=False)
     kind = _kind_of(yerkes)
     radius = _radius_au_of_km(params["radius_km"])
     largest = radius if kind in YOUNG_KINDS else _largest_radius_au(mass, age_yr, fe_h, radius)
+    if white_dwarf_mass_sol is not None and kind == "white-dwarf":
+        # A helium core: the giant gave up its envelope at the lobe it filled, on the red giant branch, and never grew past it.
+        largest = max(radius, _m_to_au(helium_core_white_dwarf.giant_radius_rsun(white_dwarf_mass_sol, fe_h)
+                                       * constants.SOLAR_RADIUS_M))
     return MemberRecord(kind, yerkes, state["mass_sol"], mass, radius, largest, mass, params["temperature_k"],
                         state["luminosity_sol"], age_yr, fe_h, seed, tuple(sorted(params.items())))
 

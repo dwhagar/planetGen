@@ -413,7 +413,7 @@ def _evolved_state(line, age_gy, mass_sol, fe_h, rng):
 
 
 def evolve_star(mass_sol, age_gy, rng=draw, min_luminosity_sol=None, fe_h=None, population=None, fe_h_peaks=None,
-                galactic_center_dist_ly=None):
+                galactic_center_dist_ly=None, white_dwarf_mass_sol=None):
     """
     The present state of a star of initial mass `mass_sol` at `age_gy`.
 
@@ -445,6 +445,10 @@ def evolve_star(mass_sol, age_gy, rng=draw, min_luminosity_sol=None, fe_h=None, 
         Myr) or a `"PMS"` (pre-main-sequence) class, with `disk_class` ("0",
         "I", "II" or "III") in place of a Yerkes numeral, and `phase_end_gy`
         the age it reaches the main sequence.
+
+    `white_dwarf_mass_sol` is the mass of the white dwarf the star leaves when a close companion stripped its giant of its envelope
+    on the red giant branch (a helium core, GEN.996, `helium_core_white_dwarf`), in place of the initial-final relation's; it
+    applies only to a star that has become a white dwarf.
     """
     pc = tuning
     if fe_h is None:
@@ -473,7 +477,7 @@ def evolve_star(mass_sol, age_gy, rng=draw, min_luminosity_sol=None, fe_h=None, 
     elif massive:
         return None
     else:
-        final_mass = remnant_mass.white_dwarf_mass_sol(mass_sol)
+        final_mass = remnant_mass.white_dwarf_mass_sol(mass_sol) if white_dwarf_mass_sol is None else white_dwarf_mass_sol
         cooling_age = cooling_age_gy(mass_sol, age_gy, fe_h)
         state.update(_white_dwarf_state(final_mass, cooling_age, rng))
     return state

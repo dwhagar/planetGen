@@ -26,6 +26,7 @@ orbits at, so the nodes the system stores are the same orbits at that instant. A
 import collections
 import dataclasses
 
+from planetgen import tuning
 from planetgen.physics.kepler import wrapped_turn_deg
 from planetgen.physics.system_tree import OrbitNode
 from planetgen.physics import unit_registry as units
@@ -226,6 +227,15 @@ def drawn(tree):
         mean_anomaly_deg=node.mean_anomaly_deg, epoch_unix=GENERATED_EPOCH_UNIX, period_years=node.period_years,
         kind=node.kind, interaction=node.interaction, flags=node.flags),
         lambda member: member.effective_age_yr or tree.age_yr)
+
+
+def helium_core_mass_sol(member):
+    """The mass, solar masses, of a white dwarf member that is a helium core (GEN.996), else None: a white dwarf lighter than
+    `tuning.HELIUM_FLASH_CORE_MASS_SOL` can only be one, as the initial-final relation gives none under `tuning.WD_MASS_RANGE_SOL`'s
+    0.5, so the stored mass is the core's and the record is made with it (`member_record.make`)."""
+    if member.kind == "white-dwarf" and member.mass_solar < tuning.HELIUM_FLASH_CORE_MASS_SOL:
+        return member.mass_solar
+    return None
 
 
 def matches(star, member):

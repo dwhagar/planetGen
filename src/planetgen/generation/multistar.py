@@ -56,7 +56,7 @@ from planetgen.generation import member_record
 from planetgen.generation import close_binary_trend
 from planetgen.generation.phenomena import hosts, system_types
 from planetgen.physics import (
-    accretion, brown_dwarf, constants, imf, mass_boundaries, ms_lifetime, neutron_star, pair_history, remnant_mass, remnant_progenitors, roche,
+    accretion, brown_dwarf, constants, helium_core_white_dwarf, imf, mass_boundaries, ms_lifetime, neutron_star, pair_history, remnant_mass, remnant_progenitors, roche,
     stability, stellar_abundances, stellar_composition)
 from planetgen.physics import stellar_evolution as evolution
 from planetgen.util import draw
@@ -875,11 +875,16 @@ def classify_pair(a, b, axis_au, e):
 class _Builder:
     """Draws the orbits of one tree shape, top down."""
 
-    def __init__(self, leaves, age_yr, rng, fixed=None, max_axis_au=math.inf, inside_weight=1.0):
+    def __init__(self, leaves, age_yr, rng, fixed=None, max_axis_au=math.inf, inside_weight=1.0, fe_h=0.0):
         self.max_axis_au = max_axis_au
+        self.fe_h = fe_h
+        """float: The birth [Fe/H] of the tree's members (the placed star's), which sets how large a giant of a given core is
+        (`helium_core_white_dwarf`)."""
         self.inside_weight = inside_weight
         """float: The weight on the odds that the root pair is inside `CLOSE_COMPANION_AXIS_AU` (`close_trend`)."""
-        self.leaves = leaves
+        self.leaves = [dataclasses.replace(leaf) for leaf in leaves]
+        """list: This draw's own copies of the roster's leaves: a white dwarf that proves to be a helium core (`helium_core`) is
+        replaced in them, and a draw that restarts leaves the roster as it was."""
         self.age_yr = age_yr
         self.rng = rng
         self.nodes = []
@@ -1059,6 +1064,8 @@ class _Builder:
             left, right = right, left
         m_left, m_right = self.mass(left), self.mass(right)
         total = m_left + m_right
+        drawn = left, right, m_left, m_right, total
+        core = None
         law = self.law(left, right)
         extent = self.extent(left) + self.extent(right)
         sides = self.side(left), self.side(right)
@@ -1072,6 +1079,8 @@ class _Builder:
         span = self.orbit_span(left, right)
         double_dwarf = self.double_white_dwarf(left, right)
         for _ in range(PAIR_RETRIES):
+            left, right, m_left, m_right, total = drawn
+            core = None
             rng = self.rng
             inclination = math.acos(1.0 - 2.0 * rng.random())
             node = 2.0 * math.pi * rng.random()
@@ -1118,6 +1127,17 @@ class _Builder:
                 draw.redrawn("pair.overlap")         # cannot happen from a cut draw; counted so TEST.476 can hold it at zero
                 continue
             interaction, member_flags = self.interaction(left, right, axis, e)
+            core = self.helium_core(left, right, axis, e, interaction)
+            if core is not None:
+                # The giant that left this white dwarf filled its lobe on the red giant branch (GEN.996): the white dwarf is the
+                # lighter helium core, so the pair is lighter, may swap its heavier member, and has a longer period.
+                index, replaced = core
+                m_left, m_right = (m_left - self.leaves[index].mass + replaced.mass if left == index else m_left,
+                                   m_right - self.leaves[index].mass + replaced.mass if right == index else m_right)
+                total = m_left + m_right
+                period_d = 365.25 * math.sqrt(axis ** 3 / total)
+                if m_left < m_right:
+                    left, right, m_left, m_right = right, left, m_right, m_left
             pair = self.pair_leaves(left, right)
             accretes = None if pair is None else next((leaf.accretes for leaf in pair if leaf.accretes), None)
             if accretes is not None:
@@ -1157,6 +1177,8 @@ class _Builder:
             raise _Failed
         for leaf_index, flag in member_flags.items():
             self.extra_flags[leaf_index] = self.extra_flags.get(leaf_index, 0) | flag
+        if core is not None:
+            self._replace_helium_core(*core, parent_no)
         node_no = len(self.nodes) + 1
         kind = "compact" if law in ("compact-pair", "interacted") else "close" if axis < 50.0 else "wide"
         record = {"node_no": node_no, "parent_node_no": parent_no, "slot": slot, "mass_solar": total,
@@ -1180,6 +1202,48 @@ class _Builder:
                 room = min(room, budget - apocentre * self.mass(sibling) / total)
             self.place(child, (axis, e, inclination, node, self.mass(sibling)), child_slot, node_no, room)
         return node_no
+
+    def helium_core(self, left, right, axis, e, interaction):
+        """
+        `(index, replacement)` when the pair is a post-common-envelope pair whose white dwarf is a helium core (GEN.996), else None:
+        the white dwarf's giant filled its Roche lobe at the pair's axis before it reached the helium flash, so the white dwarf is
+        the core it had then (`helium_core_white_dwarf.overflow_core_mass_sol`), and `replacement` is the leaf made from the member's
+        own record with that mass. Only a white dwarf the roster drew from a record (it has a seed), not the placed object, which is
+        built before the tree. The companion's mass is the one it had when the giant overflowed: its birth mass when it evolves
+        later, its present one when it is a remnant already. Of a pair of two such white dwarfs the one that evolved first.
+        """
+        pair = self.pair_leaves(left, right)
+        if pair is None or interaction != "post-common-envelope":
+            return None
+        candidates = [(index, other) for index, other in ((left, right), (right, left))
+                      if index != 0 and self.leaves[index].kind == "white-dwarf" and self.leaves[index].seed is not None
+                      and self.leaves[index].orbit_au is None
+                      and self.leaves[index].mass >= tuning.HELIUM_FLASH_CORE_MASS_SOL]
+        if not candidates:
+            return None
+        index, other = max(candidates, key=lambda c: self.leaves[c[0]].initial)
+        leaf, partner = self.leaves[index], self.leaves[other]
+        partner_mass = partner.initial if partner.initial <= leaf.initial else partner.mass
+        mass = helium_core_white_dwarf.overflow_core_mass_sol(leaf.initial, partner_mass, axis, e, self.fe_h)
+        if mass is None:
+            return None
+        record = member_record.make(leaf.seed, leaf.initial, self.age_yr, self.fe_h, lighten=False, white_dwarf_mass_sol=mass)
+        if record.kind != "white-dwarf":
+            return None
+        replacement = _leaf_of(record)
+        replacement.flags, replacement.effective_age_yr = leaf.flags, leaf.effective_age_yr
+        return index, replacement
+
+    def _replace_helium_core(self, index, replacement, parent_no):
+        """Puts the helium core white dwarf `replacement` in place of leaf `index` and takes its mass off the nodes above it, whose
+        periods follow (an orbit keeps its axis when the mass in it changes)."""
+        lost = self.leaves[index].mass - replacement.mass
+        self.leaves[index] = replacement
+        while parent_no is not None:
+            node = self.nodes[parent_no - 1]
+            node["mass_solar"] -= lost
+            node["period_years"] = math.sqrt(node["separation_au"] ** 3 / node["mass_solar"])
+            parent_no = node["parent_node_no"]
 
     def _in_desert(self, left, right, axis):
         if axis >= BROWN_DWARF_DESERT_AU or not (isinstance(left, int) and isinstance(right, int)):
@@ -1989,10 +2053,10 @@ def draw_member_tree(placed, age_yr, rng=draw, max_stars=MAX_MEMBERS, n_stars=No
             return group
     weights, inside_weight = close_trend(placed.birth_mass_solar, placed.fe_h, prevalence) if placed.kind == "star" else (None, 1.0)
     leaves, units = _roster(placed, age_yr, rng, max_stars, n_stars, prevalence, companion, bound_runaway, weights)
-    return _grow_tree(leaves, units, age_yr, rng, n_stars, max_axis_au, pair_placed, inside_weight)
+    return _grow_tree(leaves, units, age_yr, rng, n_stars, max_axis_au, pair_placed, inside_weight, placed.tree_fe_h)
 
 
-def _grow_tree(leaves, units, age_yr, rng, n_stars, max_axis_au, pair_placed, inside_weight=1.0):
+def _grow_tree(leaves, units, age_yr, rng, n_stars, max_axis_au, pair_placed, inside_weight=1.0, fe_h=0.0):
     """The `MemberTree` of the `leaves` in the shape `units` names (the placed leaf first): hierarchies are drawn until one
     clears the stability and extent screens, and when none does the lightest loose member is dropped and the draw tries again."""
     dropped = 0
@@ -2005,7 +2069,7 @@ def _grow_tree(leaves, units, age_yr, rng, n_stars, max_axis_au, pair_placed, in
         if len(units) == 1 and isinstance(units[0], int):
             return _single(leaves[units[0]], age_yr, dropped, rng)
         for _ in range(TREE_RESTARTS):
-            builder = _Builder(leaves, age_yr, rng, max_axis_au=max_axis_au, inside_weight=inside_weight)
+            builder = _Builder(leaves, age_yr, rng, max_axis_au=max_axis_au, inside_weight=inside_weight, fe_h=fe_h)
             try:
                 builder.place(shape_of(units, rng), None, 0, None)
             except _Failed:
@@ -2015,10 +2079,10 @@ def _grow_tree(leaves, units, age_yr, rng, n_stars, max_axis_au, pair_placed, in
                 draw.redrawn("tree.restart_overlap")
                 continue
             builder.finish()
-            alone = _contact_pair_alone(leaves, builder, n_stars, rng)
+            alone = _contact_pair_alone(builder.leaves, builder, n_stars, rng)
             if alone is not None:
-                leaves, builder = alone
-            return _assemble(leaves, builder, age_yr, dropped, rng)
+                builder = alone[1]
+            return _assemble(builder.leaves, builder, age_yr, dropped, rng)
         loose = [u for u in units[1:] if isinstance(u, int)]
         if loose:
             drop = min(loose, key=lambda i: leaves[i].mass)
