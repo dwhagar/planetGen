@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1031 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1035 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -36,16 +36,16 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 145 | 14 | 8 | 1 | 0 | 168 |
-| T2 | 113 | 39 | 0 | 1 | 0 | 153 |
-| T3 | 88 | 38 | 8 | 10 | 0 | 144 |
+| T1 | 146 | 14 | 8 | 1 | 0 | 169 |
+| T2 | 114 | 39 | 0 | 1 | 0 | 154 |
+| T3 | 88 | 39 | 8 | 10 | 0 | 145 |
 | T4 | 42 | 5 | 0 | 15 | 10 | 72 |
 | T5 | 48 | 19 | 1 | 1 | 0 | 69 |
-| T6 | 98 | 80 | 20 | 51 | 0 | 249 |
+| T6 | 98 | 81 | 20 | 51 | 0 | 250 |
 | T7 | 29 | 13 | 7 | 12 | 0 | 61 |
 | T8 | 0 | 1 | 1 | 5 | 1 | 8 |
 | T9 | 21 | 14 | 5 | 46 | 21 | 107 |
-| All | 584 | 223 | 50 | 142 | 32 | 1031 |
+| All | 586 | 225 | 50 | 142 | 32 | 1035 |
 
 ## How the labels were given
 
