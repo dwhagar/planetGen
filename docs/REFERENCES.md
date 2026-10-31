@@ -8,7 +8,7 @@ References follow the AAS journal and NASA Astrophysics Data System (ADS) style:
 
 This page is written by `scripts/build_references.py` from `docs/reference/references-data.json`; the HTML twin [REFERENCES.html](REFERENCES.html) is built from the same data. Do not edit either by hand.
 
-**4900 papers and books, 24 datasets with their own DOI, and 46 archives, catalogs and tools. Of the 4,354 author-year citations in the notes, reports and code (31,075 places), 3,865 are tied to a paper above, 250 are labelled as not a paper, and 239 are listed for review.**
+**4900 papers and books, 24 datasets with their own DOI, and 46 archives, catalogs and tools. Of the 4,348 author-year citations in the notes, reports and code (31,098 places), 3,862 are tied to a paper above, 250 are labelled as not a paper, and 236 are listed for review.**
 
 ## Contents
 
@@ -5080,7 +5080,7 @@ Archives and catalogs the project reads, with the page each is served from. A da
 
 ## Author-year citations: where each one stands
 
-The design notes, reports and code cite many sources only as 'Author year'. Each of those citations is in exactly one of three groups. **Tied to a paper:** 3,865 citations (23,517 places) are matched to a paper in the list above, by an identifier beside the mention, by the volume and page, or by the first author, year and words of the citing sentence; nothing is tied on a guess. **Not a paper:** 250 are time stamps, organisations, standards, web pages, programs or sentence words, listed below with what each is and a link. **For review:** 239 (323 places) could not be tied with confidence; each is listed with what was tried and a link that searches ADS for it.
+The design notes, reports and code cite many sources only as 'Author year'. Each of those citations is in exactly one of three groups. **Tied to a paper:** 3,862 citations (23,512 places) are matched to a paper in the list above, by an identifier beside the mention, by the volume and page, or by the first author, year and words of the citing sentence; nothing is tied on a guess. **Not a paper:** 250 are time stamps, organisations, standards, web pages, programs or sentence words, listed below with what each is and a link. **For review:** 236 (318 places) could not be tied with confidence; each is listed with what was tried and a link that searches ADS for it.
 
 ### Not a paper
 
@@ -5098,7 +5098,7 @@ The design notes, reports and code cite many sources only as 'Author year'. Each
 - DOTS 2023 (1 place): a sentence word before a year, not a citation
 - Earth 2010, 2026 (4 places): a sentence word before a year, not a citation
 - Economy 2025, 2026 (7 places): a sentence word before a year, not a citation
-- EDT 2026 (5,960 places): a time stamp (a clock time in EDT followed by the year)
+- EDT 2026 (5,977 places): a time stamp (a clock time in EDT followed by the year)
 - Extended 2026 (1 place): the word 'Extended' followed by a date in a note (a status line), not an author
 - Feb 1956, 2010, 2016, 2022, 2026 (16 places): a month and year, not a citation
 - Finding 2026 (1 place): the word 'Finding' followed by a date in a note (a status line), not an author
@@ -5129,7 +5129,7 @@ The design notes, reports and code cite many sources only as 'Author year'. Each
 - Optics 2014 (2 places): the end of a journal name (Applied Optics) followed by a year, not an author
 - Orbit 2025 (11 places): a sentence word before a year, not a citation
 - ORDER 2026 (1 place): a sentence word before a year, not a citation
-- Owner 2026 (2 places): the word 'Owner' followed by a date in a note (a status line), not an author
+- Owner 2026 (18 places): the word 'Owner' followed by a date in a note (a status line), not an author
 - PlanetGen 2026 (1 place): the site's own name inside a test password string, not an author
 - Prefer 2014 (2 places): the word 'Prefer' followed by a year (an edition to prefer), not an author
 - Press 1972, 1992, 1994 (4 places): a publisher word before a year, not a citation
@@ -5262,7 +5262,6 @@ The design notes, reports and code cite many sources only as 'Author year'. Each
 - Bovy 2012 (2 places). Tried: crossref. two records in the project's journals fit equally (scores 17.3 and 17.2). Nearest: A DIRECT DYNAMICAL MEASUREMENT OF THE MILKY WAY'S DISK SURFACE DENSITY PROFILE, DISK SCALE LENGTH, AND DARK MATTER PROFILE AT 4 kpc ≲ R ≲ 9 kpc (ApJ 779 115, 2013; doi:10.1088/0004-637x/779/2/115); THE MILKY WAY HAS NO DISTINCT THICK DISK (ApJ 751 131, 2012; doi:10.1088/0004-637x/751/2/131). ADS: <https://ui.adsabs.harvard.edu/search/q=author%3A%22%5EBovy%22%20year%3A2012>
 - Broeils and Rhee 1997 (2 places). Tried: crossref. no record with this first author and year. ADS: <https://ui.adsabs.harvard.edu/search/q=author%3A%22%5EBroeils%22%20year%3A1997>
 - Carroll and Ostlie 2006 (2 places). Tried: crossref. no record with this first author and year. ADS: <https://ui.adsabs.harvard.edu/search/q=author%3A%22%5ECarroll%22%20year%3A2006>
-- Cooper and Garrett 2009 (2 places). Tried: crossref, openalex. no record with this first author and year. ADS: <https://ui.adsabs.harvard.edu/search/q=author%3A%22%5ECooper%22%20year%3A2009>
 - Crovisier and Encrenaz 1983 (2 places). Tried: crossref. no record with this first author and year. ADS: <https://ui.adsabs.harvard.edu/search/q=author%3A%22%5ECrovisier%22%20year%3A1983>
 - Dorogokupets 2017 (2 places). Tried: crossref. no record with this first author and year. ADS: <https://ui.adsabs.harvard.edu/search/q=author%3A%22%5EDorogokupets%22%20year%3A2017>
 - Engel and Wyckoff 1991 (2 places). Tried: crossref. no record with this first author and year. ADS: <https://ui.adsabs.harvard.edu/search/q=author%3A%22%5EEngel%22%20year%3A1991>
@@ -5273,7 +5272,6 @@ The design notes, reports and code cite many sources only as 'Author year'. Each
 - Kleinman 2013 (2 places). Tried: crossref. two records in the project's journals fit equally (scores 10.9 and 10.3). Nearest: Aerosol concentration and size distribution measured below, in, and above cloud from the DOE G-1 during VOCALS-REx (Atmos. Chem. Phys. 12 207, 2012; doi:10.5194/acp-12-207-2012); SDSS DR7 WHITE DWARF CATALOG (ApJS 204 5, 2012; doi:10.1088/0067-0049/204/1/5). ADS: <https://ui.adsabs.harvard.edu/search/q=author%3A%22%5EKleinman%22%20year%3A2013>
 - Lama and Vutukuri 1978 (2 places). Tried: crossref. no record with this first author and year. ADS: <https://ui.adsabs.harvard.edu/search/q=author%3A%22%5ELama%22%20year%3A1978>
 - Maattanen 2009 (2 places). Tried: crossref. no record with this first author and year. ADS: <https://ui.adsabs.harvard.edu/search/q=author%3A%22%5EMaattanen%22%20year%3A2009>
-- Merg et al. 2025 (2 places). Tried: crossref. no record with this first author and year. ADS: <https://ui.adsabs.harvard.edu/search/q=author%3A%22%5EMerg%22%20year%3A2025>
 - Mordasini 2014 (2 places). Tried: crossref. two records in the project's journals fit equally (scores 19.0 and 18.0). Nearest: Grain opacity and the bulk composition of extrasolar planets (A&A 572 A118, 2014; doi:10.1051/0004-6361/201423702); Grain opacity and the bulk composition of extrasolar planets (A&A 566 A141, 2014; doi:10.1051/0004-6361/201321479). ADS: <https://ui.adsabs.harvard.edu/search/q=author%3A%22%5EMordasini%22%20year%3A2014>
 - Nauenberg 2002 (2 places). Tried: crossref. one record in the project's journals fits the author and year, but nothing in the citing sentences confirms it. Nearest: Stability and Eccentricity for Two Planets in a 1\[rcolon\]1 Resonance, and Their Possible Occurrence in Extrasolar Planetary Systems (AJ 124 2332, 2002; doi:10.1086/342934); Determination of Masses and Other Properties of Extrasolar Planetary Systems with More than One Planet (ApJ 568 369, 2002; doi:10.1086/338808). ADS: <https://ui.adsabs.harvard.edu/search/q=author%3A%22%5ENauenberg%22%20year%3A2002>
 - Newer 2026 (2 places). Tried: crossref. no record with this first author and year. ADS: <https://ui.adsabs.harvard.edu/search/q=author%3A%22%5ENewer%22%20year%3A2026>
@@ -5294,7 +5292,6 @@ The design notes, reports and code cite many sources only as 'Author year'. Each
 - Accepted 2010 (1 place). Tried: crossref. no record with this first author and year. ADS: <https://ui.adsabs.harvard.edu/search/q=author%3A%22%5EAccepted%22%20year%3A2010>
 - Adibekyan 2012 (1 place). Tried: crossref. two records in the project's journals fit equally (scores 14.4 and 14.0). Nearest: Chemical abundances of 1111 FGK stars from the HARPS GTO planet search program (A&A 545 A32, 2012; doi:10.1051/0004-6361/201219401); Exploring theα-enhancement of metal-poor planet-hosting stars. TheKeplerand HARPS samples (A&A 547 A36, 2012; doi:10.1051/0004-6361/201220167). ADS: <https://ui.adsabs.harvard.edu/search/q=author%3A%22%5EAdibekyan%22%20year%3A2012>
 - Agostini 2019 (1 place). Tried: crossref. two records in the project's journals fit equally (scores 10.3 and 10.2). Nearest: Final Results of GERDA on the Search for Neutrinoless Double-   β   Decay (PhRvL 125 252502, 2020; doi:10.1103/physrevlett.125.252502); Improved Limit on Neutrinoless Double- β Decay of Ge76 from GERDA Phase II (PhRvL 120 132503, 2018; doi:10.1103/physrevlett.120.132503). ADS: <https://ui.adsabs.harvard.edu/search/q=author%3A%22%5EAgostini%22%20year%3A2019>
-- America 2001 (1 place). Tried: crossref. no record in the project's journals (best: Lecture Notes in Computer Science). Nearest: Requirements Modeling for Families of Complex Systems (Lecture Notes in Computer Science 199, 2000; doi:10.1007/978-3-540-44542-5\_22). ADS: <https://ui.adsabs.harvard.edu/search/q=author%3A%22%5EAmerica%22%20year%3A2001>
 - ApJ 2023 (1 place). Tried: crossref. no record with this first author and year. ADS: <https://ui.adsabs.harvard.edu/search/q=author%3A%22%5EApJ%22%20year%3A2023>
 - Apr 1998 (1 place). Tried: crossref. no record with this first author and year. ADS: <https://ui.adsabs.harvard.edu/search/q=author%3A%22%5EApr%22%20year%3A1998>
 - Arakawa 2010 (1 place). Tried: crossref. two records in the project's journals fit equally (scores 11.1 and 10.8). Nearest: Toward unification of the multiscale modeling of the atmosphere (Atmos. Chem. Phys. 11 3731, 2011; doi:10.5194/acp-11-3731-2011); LABORATORY MEASUREMENTS OF INFRARED ABSORPTION SPECTRA OF HYDROGEN-ORDERED ICE: A STEP TO THE EXPLORATION OF ICE XI IN SPACE (ApJS 184 361, 2009; doi:10.1088/0067-0049/184/2/361). ADS: <https://ui.adsabs.harvard.edu/search/q=author%3A%22%5EArakawa%22%20year%3A2010>
@@ -5327,6 +5324,7 @@ The design notes, reports and code cite many sources only as 'Author year'. Each
 - Climate 2010 (1 place). Tried: crossref. no record with this first author and year. ADS: <https://ui.adsabs.harvard.edu/search/q=author%3A%22%5EClimate%22%20year%3A2010>
 - Clusius and Weigand 1940 (1 place). Tried: crossref. no record with this first author and year. ADS: <https://ui.adsabs.harvard.edu/search/q=author%3A%22%5EClusius%22%20year%3A1940>
 - Comeron 2015 (1 place). Tried: crossref. two records in the project's journals fit equally (scores 14.8 and 14.7). Nearest: Galactic archaeology of a thick disc: Excavating ESO 533-4 with VIMOS (A&A 584 A34, 2015; doi:10.1051/0004-6361/201526815); A monolithic collapse origin for the thin and thick disc structure of the S0 galaxy ESO 243-49 (A&A 593 L6, 2016; doi:10.1051/0004-6361/201629292). ADS: <https://ui.adsabs.harvard.edu/search/q=author%3A%22%5EComeron%22%20year%3A2015>
+- Cooper and Garrett 2009 (1 place). Tried: crossref. no record with this first author and year. ADS: <https://ui.adsabs.harvard.edu/search/q=author%3A%22%5ECooper%22%20year%3A2009>
 - CORRECTED 2026 (1 place). Tried: crossref. no record with this first author and year. ADS: <https://ui.adsabs.harvard.edu/search/q=author%3A%22%5ECORRECTED%22%20year%3A2026>
 - Crusts 2009 (1 place). Tried: crossref. no record with this first author and year. ADS: <https://ui.adsabs.harvard.edu/search/q=author%3A%22%5ECrusts%22%20year%3A2009>
 - Cushing 2011 (1 place). Tried: crossref. one record in the project's journals fits the author and year, but nothing in the citing sentences confirms it. Nearest: THE DISCOVERY OF Y DWARFS USING DATA FROM THE WIDE-FIELD INFRARED SURVEY EXPLORER ( WISE ) (ApJ 743 50, 2011; doi:10.1088/0004-637x/743/1/50); SDSS J141624.08+134826.7: BLUE L DWARFS AND NON-EQUILIBRIUM CHEMISTRY (AJ 140 1428, 2010; doi:10.1088/0004-6256/140/5/1428). ADS: <https://ui.adsabs.harvard.edu/search/q=author%3A%22%5ECushing%22%20year%3A2011>
@@ -5401,12 +5399,12 @@ The design notes, reports and code cite many sources only as 'Author year'. Each
 - McKinlay and Diffey 1987 (1 place). Tried: crossref. no record with this first author and year. ADS: <https://ui.adsabs.harvard.edu/search/q=author%3A%22%5EMcKinlay%22%20year%3A1987>
 - Meinshausen et al. 2020 (1 place). Tried: crossref. no record with this first author and year. ADS: <https://ui.adsabs.harvard.edu/search/q=author%3A%22%5EMeinshausen%22%20year%3A2020>
 - Melbinger 1971 (1 place). Tried: crossref. no record with this first author and year. ADS: <https://ui.adsabs.harvard.edu/search/q=author%3A%22%5EMelbinger%22%20year%3A1971>
+- Merg et al. 2025 (1 place). Tried: crossref. no record with this first author and year. ADS: <https://ui.adsabs.harvard.edu/search/q=author%3A%22%5EMerg%22%20year%3A2025>
 - Moons-Morbidelli 1995 (1 place). Tried: crossref. no record with this first author and year. ADS: <https://ui.adsabs.harvard.edu/search/q=author%3A%22%5EMoons-Morbidelli%22%20year%3A1995>
 - Musci 2012 (1 place). Tried: crossref. one record in the project's journals fits the author and year, but nothing in the citing sentences confirms it. Nearest: AN OPTICAL SURVEY FOR MILLIMETER-SIZED INTERSTELLAR METEOROIDS (ApJ 745 161, 2012; doi:10.1088/0004-637x/745/2/161); Repair for active infective atrioventricular valve endocarditis: 23-year single center experience (Clin Res Cardiol 100 993, 2011; doi:10.1007/s00392-011-0331-2). ADS: <https://ui.adsabs.harvard.edu/search/q=author%3A%22%5EMusci%22%20year%3A2012>
 - Narita 2015 (1 place). Tried: crossref. one record in the project's journals fits the author and year, but nothing in the citing sentences confirms it. Nearest: KINETIC SLOW MODE IN THE SOLAR WIND AND ITS POSSIBLE ROLE IN TURBULENCE DISSIPATION AND ION HEATING (ApJ 805 24, 2015; doi:10.1088/0004-637x/805/1/24); ON ELECTRON-SCALE WHISTLER TURBULENCE IN THE SOLAR WIND (ApJL 827 L8, 2016; doi:10.3847/2041-8205/827/1/l8). ADS: <https://ui.adsabs.harvard.edu/search/q=author%3A%22%5ENarita%22%20year%3A2015>
 - Neil and Rogers 1911 (1 place). Tried: crossref. no record with this first author and year. ADS: <https://ui.adsabs.harvard.edu/search/q=author%3A%22%5ENeil%22%20year%3A1911>
 - Nemtchinov 2004 (1 place). Tried: crossref. one record in the project's journals fits the author and year, but nothing in the citing sentences confirms it. Nearest: Thermal infrared absorption cross-sections of CCl4 needed for atmospheric remote sensing (JQSRT 82 473, 2003; doi:10.1016/s0022-4073(03)00171-7). ADS: <https://ui.adsabs.harvard.edu/search/q=author%3A%22%5ENemtchinov%22%20year%3A2004>
-- Newville and O'Neill 2020 (1 place). Tried: crossref. no record with this first author and year. ADS: <https://ui.adsabs.harvard.edu/search/q=author%3A%22%5ENewville%22%20year%3A2020>
 - NGPPS and Zeng 2019 (1 place). Tried: crossref. no record with this first author and year. ADS: <https://ui.adsabs.harvard.edu/search/q=author%3A%22%5ENGPPS%22%20year%3A2019>
 - NGTP 2015 (1 place). Tried: crossref. no record with this first author and year. ADS: <https://ui.adsabs.harvard.edu/search/q=author%3A%22%5ENGTP%22%20year%3A2015>
 - Nidever 2014 (1 place). Tried: crossref. one record in the project's journals fits the author and year, but nothing in the citing sentences confirms it. Nearest: TRACING CHEMICAL EVOLUTION OVER THE EXTENT OF THE MILKY WAY'S DISK WITH APOGEE RED CLUMP STARS (ApJ 796 38, 2014; doi:10.1088/0004-637x/796/1/38); THE DATA REDUCTION PIPELINE FOR THE APACHE POINT OBSERVATORY GALACTIC EVOLUTION EXPERIMENT (AJ 150 173, 2015; doi:10.1088/0004-6256/150/6/173). ADS: <https://ui.adsabs.harvard.edu/search/q=author%3A%22%5ENidever%22%20year%3A2014>
@@ -5476,7 +5474,6 @@ The design notes, reports and code cite many sources only as 'Author year'. Each
 - XXXIV 2003 (1 place). Tried: crossref. no record with this first author and year. ADS: <https://ui.adsabs.harvard.edu/search/q=author%3A%22%5EXXXIV%22%20year%3A2003>
 - Yashiro 2006 (1 place). Tried: crossref. one record in the project's journals fits the author and year, but nothing in the citing sentences confirms it. Nearest: Different Power-Law Indices in the Frequency Distributions of Flares with and without Coronal Mass Ejections (ApJ 650 L143, 2006; doi:10.1086/508876); Visibility of coronal mass ejections as a function of flare location and intensity (JGRA 110 2005JA011151, 2005; doi:10.1029/2005ja011151). ADS: <https://ui.adsabs.harvard.edu/search/q=author%3A%22%5EYashiro%22%20year%3A2006>
 - Yavnel 1963 (1 place). Tried: crossref. no record with this first author and year. ADS: <https://ui.adsabs.harvard.edu/search/q=author%3A%22%5EYavnel%22%20year%3A1963>
-- Yoshizaki and McDonough 1909 (1 place). Tried: crossref. no record with this first author and year. ADS: <https://ui.adsabs.harvard.edu/search/q=author%3A%22%5EYoshizaki%22%20year%3A1909>
 - Zeidler 2013 (1 place). Tried: crossref. two records in the project's journals fit equally (scores 12.0 and 11.1). Nearest: Optical constants of refractory oxides at high temperatures (A&A 553 A81, 2013; doi:10.1051/0004-6361/201220459); High-Pressure Transformation ofSiO2Glass from a Tetrahedral to an Octahedral Network: A Joint Approach Using Neutron Diffraction and Molecular Dynamics (PhRvL 113 135501, 2014; doi:10.1103/physrevlett.113.135501). ADS: <https://ui.adsabs.harvard.edu/search/q=author%3A%22%5EZeidler%22%20year%3A2013>
 
 ### Identifiers that did not resolve
