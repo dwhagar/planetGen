@@ -17,8 +17,8 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | module | planetgen.physics.photolysis | GEN.982 | the photolysis lifetime table, now with the mean UV cross sections (Hu 2012 table 6) and the photon-limited loss; part 3 of GEN.982 (the methane haze supply in `aerosols.haze_in`) reads it |
 | function | planetgen.generation.remnant_orbits.pollution_rate_g_s | GEN.1231 | the white dwarf pollution flag reads the rate of its belt (the scattered mass over the delivery time) when belt birth sees the giants (GEN.1068); the census band of 25 to 50 percent reads it too |
 | function | planetgen.physics.activity.far_uv_flux_ratio | GEN.982 | the star's 91.2 to 200 nm flux at the body relative to the quiet Sun at 1 AU, the `flux_ratio` of the photolysis rates; part 3 of GEN.982 hands it to the haze supply through `surface_air.Setting` |
+| function | planetgen.physics.mixture_trace.draw_trace_gases | GEN.524 | the mixture-level draw of the trace gases; `physics.trace_air` reads `draw_trace_amounts` instead, so a later part of GEN.524 deletes this or wires it |
 | data | photolysis_lifetimes.json | GEN.982 | read by `physics/photolysis.py` only |
-| module | planetgen.physics.mixture_trace | GEN.524 | the trace gases of an air drawn after the life stage; no caller yet |
 | module | planetgen.physics.design_flags | GEN.524 | gates the trace rows `mixture_trace` draws |
 | data | design_flags.json | GEN.524 | read by `physics/design_flags.py` only |
 | module | planetgen.physics.equilibrium_edges | GEN.994 | the edges of the hot-Jupiter chemistry regimes, sourced and wired with the hot-giant thermochemistry |
@@ -39,7 +39,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | module | planetgen.generation.class_sample | by design | a sample that holds every class, a helper of the sheet audit tests |
 | module | planetgen.generation.plausibility | by design | the anomaly finder engine; run by the plausibility tests and their command line wrapper in `src/tests` |
 | module | planetgen.generation.phenomena_plausibility | by design | the exotic-phenomena counterpart of the anomaly finder, run by its tests |
-| row | 6.7:AM18 | GEN.524 | `mixture_trace.ABUNDANCES`, rows m3, m4 and m11 wired by `physics.trace_air` (GEN.524 part 1); rows m5 and m6 retired, HCl and HF come from the halogen budget (GEN.524 part 2) |
 | row | 6.10:RV2 | by design | `radius_valley.CORE_MASS_SIGMA`, a width of the simulated survey, read by the tuning tests |
 | row | 6.10:RV3 | by design | `radius_valley.ENVELOPE_SIGMA`, a width of the simulated survey, read by the tuning tests |
 | module | planetgen.physics.planet_occurrence | by design | the reader of the observed occurrence bands; the architecture and the census read it (read by the tuning tests and the census harness; the architecture was fitted to it, GEN.728 built) |
