@@ -5725,11 +5725,6 @@ p.hint a {
   text-decoration: underline;
   color: #fff;
 }
-.map-labels[data-light] .map-label[data-hot] { color: #000; }
-.map-labels[data-light] .map-label {
-  color: #10131f;
-  text-shadow: 0 0 2px #fff, 0 0 4px #fff, 0 0 8px rgba(255, 255, 255, 0.9);
-}
 .map-label[data-kind="nebula"] { font-style: italic; }
 .map-label[data-kind="sector"] { font-weight: 600; }
 @media (prefers-reduced-motion: reduce) {
