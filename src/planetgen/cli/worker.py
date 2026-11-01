@@ -43,25 +43,19 @@ def warm(queues=None):
     """
     PERF.42: loads in the worker, before RQ forks a horse per job, what every
     job would otherwise rebuild in its own process: the generation modules
-    (about 2.4 s each job) and, for the generation queue, the bright-star
-    sampling tables (`star_population._bright_table`, one per luminosity
-    floor and population) at the scatter's floor. Nothing
-    here opens a database or Redis connection, so the horses share it safely.
+    (about 2.4 s each job). Nothing here opens a database or Redis connection, so the horses share it safely.
+    PERF.226: the bright-star sampling tables (`star_population._bright_table`, about 1.4 GB with the datasets they read) are not
+    built here any more: a worker built them at its start for every stage, and a worker of a stage that draws no star
+    (a link, a settle, a re-score) took 1.5 GB of the host for nothing. A unit that draws stars builds them in the worker before
+    its horse forks (`units.warm_unit`, `units.warm_star_tables`), and a worker that holds them starts itself over before a
+    unit that does not (`WarmWorker.prepare_execution`).
 
     Args:
-        queues (iterable, optional): The queue names served; the tables are
-            built when the generation queue is among them (or none are
-            given).
+        queues (iterable, optional): The queue names served (not used now).
     """
     import importlib
     for name in WARM_MODULES:
         importlib.import_module(name)
-    if queues and not {redisqueue.GENERATION_QUEUE, redisqueue.BULK_QUEUE} & set(queues):
-        return
-    from planetgen import tuning
-    from planetgen.generation import star_population
-    for population in star_population.POPULATIONS:
-        star_population.warm_bins(tuning.BRIGHT_STAR_MIN_LUMINOSITY_SOL, population)
 
 
 def code_version_on_disk():
@@ -107,10 +101,21 @@ def worker_class():
             workers.registered(self.connection, self.queue_names())
 
         def prepare_execution(self, job):
+            if units.sheds_tables_for(job):
+                self._start_over_with(job)
             units.warm_unit(job)
             gc.collect()
             gc.freeze()      # PERF.226: the collector would write the header of every object the worker holds in each horse, copying
             return super().prepare_execution(job)           # the pages of its tables (a worker and its horse took 2.2 GB for 1.5 of tables)
+
+        def _start_over_with(self, job):
+            """PERF.226: a worker that holds the star tables and is given a unit that needs none puts the unit back at the front of its
+            queue and starts itself over, so the unit runs in a worker of its own size. The unit is only queued still (RQ starts it
+            after this), so it is not lost."""
+            log.debug("worker restarts itself: it holds the star tables and %s needs none", job.id, area="queue")
+            next(queue for queue in self.queues if queue.name == job.origin).push_job_id(job.id, at_front=True)
+            self.register_death()
+            os.execv(sys.executable, [sys.executable, "-m", "planetgen.cli.worker", *sys.argv[1:]])
 
         def _wait_while_paused(self):
             if not any(pause.holds(name) for name in self.queue_names()):

@@ -262,6 +262,35 @@ def _short(value, limit=300):
     return text if len(text) <= limit else text[:limit] + f"... ({len(text)} chars)"
 
 
+TABLE_KINDS = frozenset({"scatter-mass", "scatter-luminosity", "scatter-backfill", "scatter-band", "generate-start-sector",
+                         "generate-neighborhood", "generate-sectors", "generate-unplaced-sector", "generate-system"})
+"""frozenset: The commands whose units draw stars from the bright-star sampling tables (PERF.226), so a worker builds the tables
+before it forks a horse for one (`warm_unit`) and keeps them; any other unit runs in a worker without them."""
+
+
+def tables_held():
+    """Whether this process holds bright-star sampling tables (`star_population._bright_table`)."""
+    import sys
+    module = sys.modules.get("planetgen.generation.star_population")
+    return module is not None and module._bright_table.cache_info().currsize > 0
+
+
+def sheds_tables_for(job):
+    """Whether `job` is a unit that needs no star tables and this worker holds them: the worker starts itself over for it (PERF.226)."""
+    if job.func_name != UNIT_FUNCTION:
+        return False
+    return job.args[3] not in TABLE_KINDS and tables_held()
+
+
+def warm_star_tables():
+    """Builds in the worker the sampling table of every population at the sectors' floor (PERF.42, PERF.226), which each horse it forks
+    starts with, for the units that draw stars (`TABLE_KINDS`, `warm_unit`). Opens no connection."""
+    from planetgen import tuning
+    from planetgen.generation import star_population
+    for population in star_population.POPULATIONS:
+        star_population.warm_bins(tuning.BRIGHT_STAR_MIN_LUMINOSITY_SOL, population)
+
+
 def warm_unit(job):
     """
     PERF.146: runs the command's `warm` function, if it has one, in the worker before RQ forks the horse for `job`.
@@ -276,10 +305,11 @@ def warm_unit(job):
         return
     kind, args = job.args[3], job.args[4]
     spec = commands.spec(kind)
-    if spec.warm is None:
-        return
     try:
-        commands.warm_function(kind)(args)
+        if kind in TABLE_KINDS:
+            warm_star_tables()
+        if spec.warm is not None:
+            commands.warm_function(kind)(args)
     except Exception:
         pass
 
