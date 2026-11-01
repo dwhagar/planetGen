@@ -15111,6 +15111,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   full-suite thread will confirm it is real. Done: all four types
   generate in seconds and the test passes. Owner: Bug 1, queued behind
   the train 8 stored-tree fix (GEN.951).
+  Full-suite addition (as the lane reported) (2026-11-01 12:10 AM EDT):
+  More 900 s timeouts on main 7eef24a: test_fuzz_system_generation [IV]
+  and [V] as well as the supergiant types, test_extreme_orbit_counts,
+  test_every_forced_flag_on_together (1,628 s),
+  test_prevalence.py::test_measured_base_shares_still_hold and
+  test_a_measured_feature_moves_by_the_percentage[habitable_world-50,
+  habitable_world--50, asteroid_belt--60], and
+  test_bright_star_scatter.py::test_backfilled_cells_get_band_stars_in_their_own_cell.
+  The alone re-run at the end of the run will say which are slow
+  generation and which are load.
   Prerequisites: none.
 
 ## DB: Database and schema
@@ -16860,6 +16870,27 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   the stack. The new test in test_run_line.py was not run (no gate on
   that lane); it goes in the next changed-files gate.
   Prerequisites: none. Related: ADM.95, PERF.227.
+  Prerequisites: none.
+
+- [ ] **ADM.137 Plan operations crash: admin/plans.py calls stabilize_star_system with a pinned keyword it no longer accepts, so 14 test_plans tests fail (bug)**
+  The full-suite thread (as the lane reported, 12:08 AM EDT 2026-11-01,
+  run on main 7eef24a) re-ran these alone, so they are real.
+  src/planetgen/admin/plans.py line 208 (_settle) calls
+  validation.stabilize_star_system(system, pinned=pinned), but the
+  function takes only (system, allow_removal=False); the keyword was
+  dropped when the class of a planet became derived from its stored
+  conditions (epoch 121, GEN.646), leaving only the docstring mention.
+  Every move, add, regenerate and rebase plan operation raises
+  TypeError. Fourteen tests in tests/test_plans.py fail (moving a
+  planet, a crowding move, a belt move, a moon move, adding a planet,
+  moon and belt, rebasing an approved plan, a plan through JSON, a
+  regeneration that keeps the class, and others). Do: decide whether a
+  moved body must keep its class (then the keep mark has to go through
+  the derived-class path) or the pin is meaningless now (then drop the
+  argument and the pinned parameter of _settle, and say so in the
+  tests); fix the docstring; run tests/test_plans.py and the admin
+  tests. Done: test_plans.py passes. Lock-free unless the class
+  derivation changes. Owner: none yet.
   Prerequisites: none.
 
 ## SEC: Security
@@ -19429,6 +19460,18 @@ clears each one.
   restore the level if the row is still hand-tuned; the register and the
   test must agree with the stand-in values file. Done: the test passes
   on main. Lock-free, docs and test side. Owner: none yet.
+  Prerequisites: none.
+
+- [ ] **TEST.552 test_plan_outline expects the outline crest at 3.32 times and the density model now gives 3.18 (bug)**
+  The full-suite thread (as the lane reported, 12:08 AM EDT 2026-11-01,
+  run on main 7eef24a):
+  tests/test_plan_outline.py::test_the_line_gives_the_crest_the_share_and_the_size_of_the_outline
+  fails because the outline says 'crest is 3.18 times' and the test
+  expects '3.32 times'; the density model changed and the test was not
+  updated. Do: confirm the 3.18 comes from a sourced density change
+  (name the epoch or item), then update the expected figure with that
+  reason, or find the bug if the change was not intended. Done: the test
+  passes on main. Lock-free, test side. Owner: none yet.
   Prerequisites: none.
 
 ## USR: User accounts
