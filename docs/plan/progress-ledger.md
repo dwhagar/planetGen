@@ -2268,3 +2268,50 @@ Baseline: PR #1817.
 | GEN.810 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | GEN.1027 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | GEN.1025 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.809 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| DOC.87 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| DOC.95 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.538 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.526 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.539 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.540 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| DOC.88 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| DOC.96 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| PERF.225 | 8.1 | Queue, caches and performance |
+| DOC.100 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| DOC.57 | 8.6 | Help framework |
+| DOC.6 | 8.7 | Help section |
+| UX.256 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| OPS.85 | 8.2 | Robust tile caching |
+| OPS.87 | 8.2 | Robust tile caching |
+| OPS.86 | 8.2 | Robust tile caching |
+| OPS.88 | 8.2 | Robust tile caching |
+| OPS.89 | 8.2 | Robust tile caching |
+| ADM.135 | 8.9 | Remote generation |
+| TEST.544 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.542 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| OPS.90 | 8.2 | Robust tile caching |
+| OPS.91 | 8.2 | Robust tile caching |
+| OPS.92 | 8.2 | Robust tile caching |
+| OPS.93 | 8.2 | Robust tile caching |
+| GEN.1235 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.1234 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.543 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.547 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.541 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.549 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| UX.82 | 8.7 | Console look |
+| TEST.551 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.545 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| PERF.224 | 8.1 | Queue, caches and performance |
+| ADM.137 | 8.9 | Remote generation |
+| TEST.546 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.552 | 8.9 | Remote generation |
+| TEST.501 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| UX.135 | 9.4 | Family outlines |
+| UX.243 | 8.2 | Search by physical values |
+| GEN.1200 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.999 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.1137 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.996 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| UX.257 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |

@@ -156,9 +156,9 @@ def test_a_body_too_cold_to_shine_gives_no_visible_light_and_so_no_colour():
 
 
 def test_the_bolometric_correction_is_flowers_fit_with_torress_coefficients():
-    """VIEW.9: the Sun's BC_V is -0.08 (Torres 2010), the maximum is just above 0 at the F/A boundary, and the hot end falls to -4 or so."""
+    """VIEW.9: the Sun's BC_V is -0.08 [R4407], the maximum is just above 0 at the F/A boundary, and the hot end falls to -4 or so."""
     assert photometry.bolometric_correction_v(5772.0) == pytest.approx(-0.081, abs=0.005)
-    # Torres 2010 equation 7: M_bol = V + 31.572 + BC_V gives the solar M_bol this fit goes with, 4.74
+    # [R4407] equation 7: M_bol = V + 31.572 + BC_V gives the solar M_bol this fit goes with, 4.74
     assert -26.76 + 31.572 + photometry.bolometric_correction_v(5777.0) == pytest.approx(photometry.SUN_ABSOLUTE_BOLOMETRIC_MAG, abs=0.01)
     assert photometry.bolometric_correction_v(7000.0) == pytest.approx(0.031, abs=0.01)
     for kelvin, expected in ((3500.0, -2.305), (4000.0, -1.124), (5000.0, -0.286), (10000.0, -0.249), (20000.0, -1.892), (30000.0, -2.891),

@@ -15,7 +15,7 @@ code that already decides those for in-system planets, with the ejected planet's
 * **The envelope's base pressure** (`envelope_base_pressure_bar`) is the weight of the envelope on the planet's surface, `G M M_env / (4 pi R^4)`: 1,100 bar for an Earth-mass planet with a tenth of a percent
   of its mass in hydrogen, inside Stevenson's 10^2 to 10^3 bar for rogue Earths. It replaces the log-uniform draw.
 * **A gas giant** (`is_gas_giant`) is a planet whose envelope makes its radius at least `tuning.GIANT_MIN_RADIUS_KM`, the radius the generator already calls a giant (GEN.681,
-  `planet_kind.kind_of_given`), from the radius law of Lopez and Fortney 2014 (`bulk_structure.envelope_radius_earth`) with no stellar heating. The mass threshold becomes a result: at 3 Gyr the
+  `planet_kind.kind_of_given`), from the radius law of [R2741] (`bulk_structure.envelope_radius_earth`) with no stellar heating. The mass threshold becomes a result: at 3 Gyr the
   15,000 km is reached by 5 Earth masses with 5 percent of their mass in hydrogen, by 10 with 3 percent and by 17 with 1.5 percent (`smallest_giant_envelope_fraction`); above about 30 a rock core alone is that big.
 * **The water** (`water_mass_fraction`) is `delivered_water.sample_fraction` at the distance the planet formed at in units of its star's snow line: the law the in-system rocky planets take their water from.
 * **An air frozen on the surface** (`had_air`) is a planet that, at the orbit it left, held an air by the shoreline test of `atmosphere_retention` (a verdict of `HELD_AIR_VERDICTS`).
@@ -75,7 +75,7 @@ def envelope_base_pressure_bar(mass_earth, radius_earth, envelope_earth):
 
 @finite_domain()
 def envelope_radius_km(mass_earth, envelope_fraction, age_gy):
-    """The radius of a planet of `mass_earth` Earth masses holding `envelope_fraction` of its mass as hydrogen and helium, with no star to heat it, km (Lopez and Fortney 2014, for 1 to 30 Earth masses; a mass outside is held at the nearest edge)."""
+    """The radius of a planet of `mass_earth` Earth masses holding `envelope_fraction` of its mass as hydrogen and helium, with no star to heat it, km ([R2741], for 1 to 30 Earth masses; a mass outside is held at the nearest edge)."""
     if not mass_earth > 0.0 or not 0.0 <= envelope_fraction < 1.0 or not age_gy > 0.0:
         raise RogueVolatilesError("the mass and age must be positive and the envelope fraction from 0 to under 1")
     mass = min(max(mass_earth, ENVELOPE_LAW_MASS_RANGE_EARTH[0]), ENVELOPE_LAW_MASS_RANGE_EARTH[1])

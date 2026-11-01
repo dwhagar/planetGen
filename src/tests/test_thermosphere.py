@@ -1,7 +1,7 @@
 # tests/test_thermosphere.py
 
 """The thermosphere and thermal escape model (GEN.738, docs/design/composition/atmospheric-escape-model.md): Earth, Venus, Mars, Titan and the
-mass loss of a hydrogen envelope against the nine planets of Kubyshkina et al. 2018."""
+mass loss of a hydrogen envelope against the nine planets of [R2512]."""
 
 import math
 
@@ -15,7 +15,7 @@ MARS = dict(mass=0.107 * ME, radius=3.3895e6, teq=210.0)
 VENUS = dict(mass=0.815 * ME, radius=6.0518e6, teq=232.0)
 TITAN = dict(mass=1.3452e23, radius=2.575e6)
 
-# Fig. 12 of Johnstone et al. 2018 (arXiv:1806.06897), read from the figure: neutral exobase temperature of the Earth against the CO2 mixing ratio
+# Fig. 12 of [R2184], read from the figure: neutral exobase temperature of the Earth against the CO2 mixing ratio
 JOHNSTONE_EXOBASE = {4e-6: 1310.0, 4e-5: 1260.0, 4e-4: 1155.0, 4e-3: 985.0, 4e-2: 540.0, 4e-1: 290.0}
 
 EARTH_AIR = {"N2": 0.78, "O2": 0.21, "Ar": 0.01, "CO2": 4e-4, "H2": 5e-7, "He": 5e-6}
@@ -48,7 +48,7 @@ def test_the_exobase_rises_with_the_xuv_and_is_held_to_the_range_the_model_is_ch
 
 
 def test_the_earth_exobase_altitude_follows_the_upper_atmosphere_model_now_and_at_the_young_suns_xuv():
-    """Fig. 12 and 13 of Johnstone et al. 2018: 475 km at 1,155 K; about 2,000 to 2,500 km at 4,600 K (read from the figures)."""
+    """Fig. 12 and 13 of [R2184]: 475 km at 1,155 K; about 2,000 to 2,500 km at 4,600 K (read from the figures)."""
     gravity = constants.G * EARTH["mass"] / EARTH["radius"] ** 2
     mean = ts.mean_mass_kg({"N2": 0.78, "O2": 0.21, "Ar": 0.01})
     meso = ts.mesopause_temperature_k(EARTH["teq"])
@@ -78,7 +78,7 @@ def test_titan_exobase_and_hydrogen_flux_match_what_cassini_found():
     gravity = constants.G * TITAN["mass"] / TITAN["radius"] ** 2
     area = 4.0 * math.pi * TITAN["radius"] ** 2
     limit = ts.diffusion_limited_flux("H2", TITAN_AIR, gravity, TITAN_MESOPAUSE_K) * area
-    assert limit == pytest.approx(9.2e27, rel=4.0)              # the escape rate of hydrogen of Cui et al. 2008 and Strobel 2010
+    assert limit == pytest.approx(9.2e27, rel=4.0)              # the escape rate of hydrogen of [R0954, R4241]
     mean = ts.mean_mass_kg(TITAN_AIR)
     r_exo, density, _ = ts.exobase(TITAN["radius"], gravity, mean, temperature, TITAN_MESOPAUSE_K)
     mass_h2 = ts.gases.gas("H2").molar_mass / 6.02214076e23
@@ -136,7 +136,7 @@ def test_the_diffusion_limit_applies_only_to_a_gas_lighter_than_the_air():
 
 
 def test_hydrogen_in_nitrogen_diffuses_at_the_measured_rate():
-    # the binary diffusion coefficient of H2 in N2 at 273 K and 1 atm is 0.68 cm2/s (Marrero and Mason 1972)
+    # the binary diffusion coefficient of H2 in N2 at 273 K and 1 atm is 0.68 cm2/s [R2890]
     number_density = 101325.0 / (constants.BOLTZMANN * 273.0)
     coefficient = ts.binary_diffusion_parameter("H2", "N2", 273.0) / number_density
     assert coefficient * 1e4 == pytest.approx(0.68, rel=0.2)
@@ -148,7 +148,7 @@ def test_the_energy_limit_scales_as_the_flux_and_inversely_with_the_mass():
     assert ts.energy_limited_mass_loss_kg_s(4.6e-3, 7e6, 2.0 * ME) == pytest.approx(0.5 * base)
 
 
-# Table 2 of Kubyshkina et al. 2018 (arXiv:1810.06920): planet, escape parameter, radius (Earth), distance (AU), XUV flux (erg/cm2/s), published rate (g/s)
+# Table 2 of [R2512]: planet, escape parameter, radius (Earth), distance (AU), XUV flux (erg/cm2/s), published rate (g/s)
 KUBYSHKINA_TABLE_2 = [
     ("HD209458b", 90.0, 15.45, 0.047, 1086.0, 9.6e9), ("GJ436b", 58.0, 4.25, 0.02887, 1760.0, 2.3e9),
     ("Kepler-11b", 18.0, 1.97, 0.091, 278.0, 1.9e9), ("HD189733b", 179.0, 12.74, 0.03, 24778.0, 4.5e9),

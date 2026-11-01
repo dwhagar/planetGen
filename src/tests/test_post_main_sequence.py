@@ -2,10 +2,10 @@
 GEN.935: a star after its main sequence reads its luminosity, temperature and radius from the MIST tracks
 (`physics/post_main_sequence.py`, `datasets/evolved_tracks.py`) instead of drawing them, and the figures of the 2026-10-29
 star class audit (reports/star-class-audit-2026-10-29.md, sections 1 and 6) hold: the first ascent of 1 and 2 solar mass
-stars (MIST 28 Lsun at 4,507 K and 8.7 Rsun; 164 Lsun at 4,383 K and 22 Rsun) and its tip (Serenelli et al. 2017 Table 2:
+stars (MIST 28 Lsun at 4,507 K and 8.7 Rsun; 164 Lsun at 4,383 K and 22 Rsun) and its tip ([R4024: Table 2]:
 1,650 Lsun at 4,550 K for Z = 0.0001, 2,410 Lsun at 3,640 K and 123 Rsun for Z = 0.004), core helium burning at 3, 5 and 8
 solar masses (MIST 113 to 144 Lsun, 1,507 Lsun, 6,477 Lsun at 4,097 K), and no red supergiant above the Humphreys-Davidson limit
-(Davies, Crowther and Beasor 2018: log L about 5.5, about 320,000 Lsun).
+([R1013]: log L about 5.5, about 320,000 Lsun).
 """
 
 import math
@@ -86,7 +86,7 @@ def test_the_first_ascent_of_a_one_and_a_two_solar_mass_star_is_a_line_in_lumino
 
 
 def test_the_tip_of_the_giant_branch_gets_larger_and_cooler_toward_solar_metallicity():
-    """Serenelli et al. 2017, Table 2 (1 solar mass): Z = 0.0001 gives 1,650 Lsun at 4,550 K (65 Rsun), Z = 0.004 gives 2,410 Lsun at
+    """[R4024: Table 2] (1 solar mass): Z = 0.0001 gives 1,650 Lsun at 4,550 K (65 Rsun), Z = 0.004 gives 2,410 Lsun at
     3,640 K (123 Rsun). The code drew at most 54 and 65 Rsun before; the MIST tracks, at the matching [Fe/H], are within 12%."""
     poor = pm.timeline(1.0, math.log10(1.0e-4 / tuning.MS_LIFETIME_REFERENCE_Z))
     rich = pm.timeline(1.0, math.log10(4.0e-3 / tuning.MS_LIFETIME_REFERENCE_Z))

@@ -4,7 +4,7 @@
 The Hycean box: which sub-Neptunes could carry a liquid ocean under a hydrogen envelope (GEN.963, registry 6.79)
 ================================================================================================================
 
-Hycean worlds (Madhusudhan et al. 2021) are planets of 1 to 10 Earth masses and 1.4 to 2.6 Earth radii with an equilibrium temperature of 150 to 500 K and a density of
+Hycean worlds [R2804] are planets of 1 to 10 Earth masses and 1.4 to 2.6 Earth radii with an equilibrium temperature of 150 to 500 K and a density of
 1.5 to 3 g/cc: a rocky core, a water layer that can be liquid at the surface, and a hydrogen envelope. The repository already has the *state*: `hydrosphere.py` calls a
 liquid surface ocean under air that is more than half hydrogen (`HYCEAN_MIN_H2_SHARE`) `"hycean"`, and `biogenic_oxygen.py`, `habitability_world.py`, `magnetism.py` and
 `bodylook.py` read it. What was missing is the box itself, as a flag a body can be asked about, so that the bodies the box selects can be counted and compared with the
@@ -25,7 +25,7 @@ from planetgen.physics import constants, unit_registry as units
 _mearth_to_kg = units.converter("Mearth", "kg")
 
 HYCEAN_MASS_EARTH = (1.0, 10.0)
-"""tuple: The mass of a Hycean candidate, Earth masses (the item, after Madhusudhan et al. 2021; row HC1)."""
+"""tuple: The mass of a Hycean candidate, Earth masses (the item, af[R2804]; row HC1)."""
 
 HYCEAN_RADIUS_EARTH = (1.4, 2.6)
 """tuple: The radius, Earth radii (row HC1)."""

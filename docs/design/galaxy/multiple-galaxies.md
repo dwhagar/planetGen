@@ -6,12 +6,12 @@ Informs: GEN.9, VIEW.2, VIEW.3 (neighbour galaxies in the sky)
 
 Status: research, 2026-10-09; decisions marked "Boss" are his, everything else is a recommendation
 
-Evidence tags: [S] seen in a search result (mostly Wikipedia pages, URLs in Sources), [C] computed in this research, [R] recalled and not confirmed. The research environment could read search-result text but not the papers or VizieR, so no catalogue value here has been checked against McConnachie 2012 or NED; the evidence notes list what to verify.
+Evidence tags: [S] seen in a search result (mostly Wikipedia pages, URLs in Sources), [C] computed in this research, [R] recalled and not confirmed. The research environment could read search-result text but not the papers or VizieR, so no catalogue value here has been checked against [R2972] or NED; the evidence notes list what to verify.
 
 ## Summary
 
 - **Defaults for GEN.9:** (1) neighbouring galaxies are drawn from the seed by default and written into a `neighbor_galaxies` table by `planetgen plan`; the real Local Group, a hand-built table of about 25 rows, is a test reference only and is not shipped as content (Decided (Boss, contradiction sweep card, 7:30 AM EDT 2026-10-21): drawn from the seed by default, the real table for tests only); (2) no `galaxy_id` on any row, because (3) a second galaxy is a second database, which is already how the project works (`?db=`, `list_databases`, `galaxy_naming` keyed per database, Alembic per database, `galaxy_shape` a singleton). The only schema change for stage 1 or stage 2 is one new table.
-- **Do not hand-key magnitudes from memory.** Recalled apparent magnitudes were wrong by 0.7 mag (IC 1613: 9.2 recalled, 9.9 found [S]) and 1.9 mag (Fornax: 7.4 recalled, 9.3 found [S]). Store absolute magnitude and distance, compute the apparent value, and check every row against McConnachie 2012.
+- **Do not hand-key magnitudes from memory.** Recalled apparent magnitudes were wrong by 0.7 mag (IC 1613: 9.2 recalled, 9.9 found [S]) and 1.9 mag (Fornax: 7.4 recalled, 9.3 found [S]). Store absolute magnitude and distance, compute the apparent value, and check every row against [R2972].
 - M31, M33 and farther objects look the same from anywhere in the Milky Way to within 5% in size and 0.1 mag. The Magellanic Clouds and the Milky Way's other satellites change a great deal and must be 3D objects whose direction, size and brightness are recomputed per observer [C].
 - **The generated galaxy rotates the opposite way to the real one** (counterclockwise from +Z against clockwise from the real north pole, [galactic-potential.md](galactic-potential.md) section 5). Placing real neighbours by their galactic (l, b) therefore needs a defined embedding; section 2.2 gives the proper one (b flipped, longitude 90 along the rotation) and shows the plain one (b kept) is a mirror image.
 
@@ -47,7 +47,7 @@ Confirmed [S] and derived [C] values:
 | Fornax dSph | 143 +/- 3 kpc [S] | 9.3 (one source 8.1) [S] | not found | -11.5 | n/a |
 | M81 | 3.675 +/- 0.049 Mpc [S] | 6.94 [S] | not found | -20.9 | n/a |
 
-Mean surface brightness is `V + 2.5 log10(area in arcsec^2)` over the quoted ellipse. About 23 mag/arcsec^2 is the naked-eye limit for large objects [R], consistent with M33 being a famous difficult target [S, the "effective 6.6" remark]. Sagittarius dSph sits at 22 to 24.8 kpc in the sources found [S]. McConnachie (2012, AJ 144, 4) is the standard compilation: more than 100 galaxies within 3 Mpc with positions, distances, magnitudes and structure; a FITS table is on the author's page [S, arXiv 1204.1562]. VizieR was blocked from the research environment; it is the source to check against.
+Mean surface brightness is `V + 2.5 log10(area in arcsec^2)` over the quoted ellipse. About 23 mag/arcsec^2 is the naked-eye limit for large objects [R], consistent with M33 being a famous difficult target [S, the "effective 6.6" remark]. Sagittarius dSph sits at 22 to 24.8 kpc in the sources found [S]. [R2972] is the standard compilation: more than 100 galaxies within 3 Mpc with positions, distances, magnitudes and structure; a FITS table is on the author's page [S, [R2972]]. VizieR was blocked from the research environment; it is the source to check against.
 
 ### 2.2 Placing real neighbours in the generated frame
 
@@ -122,7 +122,7 @@ Suggested contents; every value is [R] unless confirmed in section 2.1:
 - Other Local Group members: NGC 6822, IC 1613, IC 10, WLM.
 - Beyond: M81, M82, NGC 253, Centaurus A, M83, IC 342, Maffei 1 (hidden behind the plane), the Virgo cluster as one extended object at about 16.5 Mpc.
 
-Enter `M_V` and distance, never apparent magnitude; check every row against McConnachie 2012's VizieR table (J/AJ/144/4) and NED. Real coordinates are galactic (l, b) from the Sun, converted with section 2.2. Beyond the Local Group the (l, b) are as seen from the Sun and the distances are large enough that the Sun's place in the galaxy does not matter.
+Enter `M_V` and distance, never apparent magnitude; check every row against [R2972]'s VizieR table (J/AJ/144/4) and NED. Real coordinates are galactic (l, b) from the Sun, converted with section 2.2. Beyond the Local Group the (l, b) are as seen from the Sun and the distances are large enough that the Sun's place in the galaxy does not matter.
 
 A generated neighbour (a fictional second galaxy, or filler beyond the catalogue) draws positions within 3 Mpc from the seed, `M_V` from a Schechter-like luminosity function and morphology from the morphology-density relation. Build that only when a second galaxy needs it. Catalogue galaxies keep their catalogue names; generated ones take a codec name.
 
@@ -174,6 +174,6 @@ Keep each galaxy's own frame (origin at its core, +Z its north, +X its zero meri
 ## Sources
 
 - Local Group and neighbours: https://en.wikipedia.org/wiki/Andromeda_Galaxy ; https://en.wikipedia.org/wiki/Large_Magellanic_Cloud ; https://en.wikipedia.org/wiki/Small_Magellanic_Cloud ; https://en.wikipedia.org/wiki/Triangulum_Galaxy ; https://en.wikipedia.org/wiki/NGC_6822 ; https://en.wikipedia.org/wiki/IC_1613 ; https://en.wikipedia.org/wiki/Fornax_Dwarf ; https://en.wikipedia.org/wiki/Messier_81
-- McConnachie 2012: https://www.arxiv.org/abs/1204.1562 ; https://www.cadc.hia.nrc-cnrc.gc.ca/en/community/nearby
-- Sagittarius dSph distance: https://ar5iv.arxiv.org/html/0903.3040 ; https://arxiv.org/abs/astro-ph/9605148
+- [R2972]: [R2972] ; https://www.cadc.hia.nrc-cnrc.gc.ca/en/community/nearby
+- Sagittarius dSph distance: [R0062, R4985]
 - Repo files read: `docs/TODO.md` (GEN.9), `docs/design/galaxy/galaxy-coordinate-system.md`, `navigation-frames.md`, `object-ids.md`, `reproducible-galaxies.md`, `galactic-potential.md`, `docs/reference/database-schema.md`, `db/schema.sql`, `db/control_schema.sql`, `db/store.py`, `db/alembic_runner.py`, `api/routes.py`, `galaxy/density.py`, `galaxy/objectref.py`, `galaxy/uid.py`, `names/object_id.py`

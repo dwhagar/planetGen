@@ -10,7 +10,7 @@ from planetgen.physics import magma_ocean_redox as mor
 
 MOON, MARS, EARTH = 0.0123, 0.107, 1.0
 
-# What the sources print (Hirschmann 2022 section 6.3 and Table 1; Deng et al. 2020), the bodies as test points only.
+# What the sources print ([R1951] section 6.3 and Table 1; [R1075]), the bodies as test points only.
 PUBLISHED_SURFACE_DIW = {MOON: (-2.2, -1.5), MARS: (-1.4, 0.2), EARTH: (-1.2, 1.8)}
 PUBLISHED_BASE_GPA = {MOON: 5.0, MARS: 14.0, EARTH: 55.0}
 

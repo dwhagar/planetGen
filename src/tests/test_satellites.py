@@ -87,7 +87,7 @@ def test_the_table_of_satellites_holds_the_clouds_at_the_distances_the_design_gi
     assert len(found) == len(satellites.MILKY_WAY_SATELLITES) == 12
     # The counts follow the stars' mass over the mean system mass, which the primary mass function (GEN.929) made 5% heavier
     # than the hand value: the design's 5.09e9, 1.07e9, 2.09e8 and 4.15e7 times 0.951.
-    # GEN.366: the distances and masses are McConnachie (2012) Tables 2 and 4 (51, 64, 26 and 147 kpc; 1.5e9, 4.6e8, 2.1e7 and 2.0e7 solar masses), so the counts
+    # GEN.366: the distances and masses are [R2972: Tables 2 and 4] (51, 64, 26 and 147 kpc; 1.5e9, 4.6e8, 2.1e7 and 2.0e7 solar masses), so the counts
     # are the design's scaled by the mass ratio: 4.84e9 x 0.6, 1.02e9 x 0.885, 1.99e8 x 0.21.
     for name, distance_kpc, systems in (("Large Magellanic Cloud", 51.0, 2.90e9), ("Small Magellanic Cloud", 64.0, 9.02e8),
                                         ("Sagittarius dwarf", 26.0, 4.18e7), ("Fornax dwarf", 147.0, 3.95e7)):

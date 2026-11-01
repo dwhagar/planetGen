@@ -96,7 +96,7 @@ def _median_speed_kms(temperature_k, mass_sol, age_gy=3.0, radius_sol=1.4, draws
 
 
 def test_a_dwarf_cooler_than_the_kraft_break_spins_in_days_not_hours():
-    # GEN.1163: a 6200 K to 6450 K dwarf was given the hot-star speed (180 km/s); the stars there turn at a few km/s (Beyer and White 2024)
+    # GEN.1163: a 6200 K to 6450 K dwarf was given the hot-star speed (180 km/s); the stars there turn at a few km/s [R0378]
     draw.set_run_seed(11)
     for temperature, mass in ((6000, 1.1), (6200, 1.15), (6300, 1.2), (6450, 1.3)):
         speed = _median_speed_kms(temperature, mass)

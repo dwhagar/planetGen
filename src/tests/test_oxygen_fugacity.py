@@ -6,7 +6,7 @@ import pytest
 
 from planetgen.physics import oxygen_fugacity as fo2
 
-# T K: Hirschmann (2021) iron-wustite log10 fO2 at 1 bar.
+# T K: [R1951] iron-wustite log10 fO2 at 1 bar.
 IW_1BAR = {1500: -11.621, 1800: -8.571, 2000: -7.054, 2200: -5.817}
 
 

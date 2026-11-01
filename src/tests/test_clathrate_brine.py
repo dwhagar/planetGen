@@ -19,7 +19,7 @@ def test_the_curves_are_the_marboeuf_table():
 
 
 def test_the_co2_curve_meets_the_measured_quadruple_point():
-    # Semenov et al. 2023: Q1 is 271.60 K at 1.044 MPa; the curve is the fit that ends there.
+    # [R4015]: Q1 is 271.60 K at 1.044 MPa; the curve is the fit that ends there.
     assert cb.dissociation_pressure_pa("CO2", 271.60) == pytest.approx(1.044e6, rel=0.03)
     assert cb.upper_temperature_k("CO2") == 271.60
 

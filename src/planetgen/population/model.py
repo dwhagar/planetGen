@@ -32,7 +32,7 @@ from planetgen import tuning
 from planetgen.population import tech
 from planetgen.util import draw
 from planetgen.util import generator_epoch
-from planetgen.util import log
+from planetgen.util import log, request_odds
 from planetgen.names.wordlists import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
 from planetgen.names.wordsalad import generate_phoneme_salad_name
 from planetgen.physics import life_classes
@@ -107,21 +107,21 @@ def species_traits(gravity_g, surface_temperature_k, rng):
     return {"build": build, "climate": climate, "size": size}
 
 
-def has_civilization(timeline, forced, rng, prevalence_percent=0.0):
+def has_civilization(timeline, requested, rng, prevalence_percent=0.0):
     """
     Whether a life world has a technological civilization now: its
-    timeline must have reached the milestone, and then either intelligent
-    life was forced on for its system (`forced`, `system_configs.
-    intelligent_life`) or a `CIVILIZATION_CHANCE` draw succeeds, that
-    chance moved by the generating run's intelligent-life prevalence
-    (`prevalence_percent`, `system_configs.prevalence_intelligent_life`,
-    GEN.52).
+    timeline must have reached the milestone, and then a `CIVILIZATION_CHANCE`
+    draw succeeds, that chance moved by the generating run's intelligent-life
+    prevalence (`prevalence_percent`, `system_configs.prevalence_intelligent_life`,
+    GEN.52). A request for intelligent life on its system (`requested`,
+    `system_configs.intelligent_life`) multiplies the odds of that draw by
+    `tuning.REQUEST_ODDS` and forces nothing (GEN.1130).
     """
     if timeline.life_stage != "technological_civilization":
         return False
-    if forced:
-        return True
     chance = min(1.0, max(0.0, tuning.CIVILIZATION_CHANCE * (1.0 + (prevalence_percent or 0.0) / 100.0)))
+    if requested:
+        chance = request_odds.raised_chance(chance)
     return rng.random() < chance
 
 

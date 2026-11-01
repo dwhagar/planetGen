@@ -3,7 +3,7 @@
  "source": "NASA Exoplanet Archive, tables pscomppars and spectra; queries in scripts/fit_jwst_selection.py",
  "retrieved": "2026-10-23",
  "label": "DATA, COMPUTED",
- "metrics": "Kempton et al. 2018, PASP 130, 114401 (arXiv:1805.03671): transmission metric equation 1 with the scale factors of Table 1, emission metric equation 4 with Tday = 1.10 Teq",
+ "metrics": "[R2315]: transmission metric equation 1 with the scale factors of Table 1, emission metric equation 4 with Tday = 1.10 Teq",
  "planets": 4618,
  "observed": 78,
  "log_likelihood": -246.473,

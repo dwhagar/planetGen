@@ -2,7 +2,7 @@
  "retrieved": "2026-10-17",
  "title": "The elements: atomic number, symbol, name and atomic weight (GEN.438)",
  "sources": [
-  "CIAAW, Standard Atomic Weights (ciaaw.org/atomic-weights.htm): the 'Atomic Weights 2021' report (Prohaska et al., Pure Appl. Chem. 94, 573, 2022, doi:10.1515/pac-2019-0603) with the 2024 revisions of Gd, Lu and Zr",
+  "CIAAW, Standard Atomic Weights (ciaaw.org/atomic-weights.htm): the 'Atomic Weights 2021' report (Prohaska et al., Pure Appl. Chem. 94, 573, 2022, [R3615]) with the 2024 revisions of Gd, Lu and Zr",
   "CIAAW, Abridged Standard Atomic Weights (ciaaw.org/abridged-atomic-weights.htm): the weight to five digits and its uncertainty, the one value an element with an interval standard weight has"
  ],
  "notes": "atomic_weight is the abridged conventional value in g/mol and atomic_weight_uncertainty its stated uncertainty; standard_weight (and standard_weight_uncertainty) is the full-precision value where the element has one, standard_interval the interval where it has that instead; an element with no stable isotope or no standard weight has neither and longest_lived_mass_number names its longest-lived isotope (NUBASE2020).",

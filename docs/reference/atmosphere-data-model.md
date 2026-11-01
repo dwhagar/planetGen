@@ -39,7 +39,7 @@ molar mass and scale height.
 | `bond_albedo` | fraction | The Bond albedo the temperature is made of | `climate_draws` (GEN.412) |
 | `greenhouse_factor` | none | The quantity `G = (T_s / T_e)^4 - 1`, 0 for no air | `climate_draws.record` |
 | `albedo_basis` | index | Where the two came from: 0 recorded at generation, 1 the exact inverse of a stored row, 2 a seeded draw from the class range | `climate_draws` (the migration of v142 filled old rows) |
-| `mantle_redox`, `mantle_delta_iw` | class, dex | The oxygen fugacity of the mantle that outgassed the air, log10 units above the iron-wuestite buffer (Hirschmann 2021 scale); `NULL` for a giant | the mixture draw (`MixtureDraw.redox_diw`, recipe rows a1 to a4, mass- and age-dependent, Sossi et al. 2020) |
+| `mantle_redox`, `mantle_delta_iw` | class, dex | The oxygen fugacity of the mantle that outgassed the air, log10 units above the iron-wuestite buffer ([R1951] scale); `NULL` for a giant | the mixture draw (`MixtureDraw.redox_diw`, recipe rows a1 to a4, mass- and age-dependent, [R4154]) |
 | `atmosphere` | text | The air in words, from the partial pressures | `atmosphere.describe` |
 | `ozone_column_du` | Dobson units | The ozone column of a body with oxygen | `ozone.draw_column_du`, called by `radiation.generate_dose` |
 | `ozone_loss_flag` | flag | True when there is ozone and the star's lethal event rate or the solar particle dose through the ozone layer is above its limit | `radiation.generate_dose` |
@@ -99,10 +99,10 @@ in a fixed order; changing the order changes every body and is a generator epoch
 2022 (A&A, Table 3) against the log10 of the oxygen mixing ratio, one for each of five hosts (G0V, Sun, K2V, K5V, M5V), valid for
 0.01 to 150 percent of the present oxygen level and held at its ends outside it. The oxygen level at another pressure or gravity
 is `(p_O2 / g)` over Earth's. Between two hosts the column is the linear mix in temperature; cooler than the M5V row takes it;
-hotter than G0V scales the G0V curve to the F7V and F0V columns of Rugheimer et al. 2015 (a labelled stand-in). The draw multiplies
+hotter than G0V scales the G0V curve to the F7V and F0V columns of [R3845, R3846] (a labelled stand-in). The draw multiplies
 the median by a structure factor log-uniform on 0.85 to 1.71, which spans the published models. Below 0.01 percent of the present
 level (abiotic oxygen) the column is 0.01 to 0.1 percent of the same host's full column, and 15 percent for an F host
-(Domagal-Goldman 2014, second-hand). No oxygen gives none. A loss event that kept a share of the air scales the column by that share
+([R1137], second-hand). No oxygen gives none. A loss event that kept a share of the air scales the column by that share
 (`column_after_air_loss`).
 
 ## 6. Cloud, haze and dust
@@ -120,7 +120,7 @@ level (abiotic oxygen) the column is 0.01 to 0.1 percent of the same host's full
   preset.
 - **Dust (stand-in).** A dry solid surface lofts dust above the threshold friction velocity; `u*/u*_t` is log-uniform on 0.3 to 3, the
   depth log-uniform on 0.5 to 1.5, grey, radius 1.2 to 1.8 micron, asymmetry 0.673 +- 0.081, and the single-scattering albedo of
-  the Wolff 2009 spectra (digitised, a labelled stand-in).
+  the [R4743] spectra (digitised, a labelled stand-in).
 
 The draws always use the same number of random numbers (four for the cloud, four for the haze, two for the dust, one for
 `aerosol_draw`), whether or not the body has the aerosol, so one body's draws never shift another's.
@@ -129,8 +129,8 @@ The draws always use the same number of random numbers (four for the cloud, four
 
 `physics/rayleigh.py`: the optical depth of the scattering is `tau_R(lambda) = sum_i N_i sigma_i(lambda)`, with `N_i = p_i N_A / (m g)`
 and `sigma = A lambda^-4 (1 + B / lambda^2)^2` fitted to the gas table's three values (450, 550, 650 nm). Dry Earth air gives 0.0970
-at 550 nm against 0.09721 for Bucholtz 1995 Table 4. The cross sections are good to 2.5 to 4 percent for N2 and Ar, 7 for CO2 and 10
-to 18 for CO, CH4 and N2O (Sneep and Ubachs 2005). The colour model (`physics/atmosphere_colour.py`) is described in
+at 550 nm against 0.09721 for [R0575: Table 4]. The cross sections are good to 2.5 to 4 percent for N2 and Ar, 7 for CO2 and 10
+to 18 for CO, CH4 and N2O [R4138]. The colour model (`physics/atmosphere_colour.py`) is described in
 [atmosphere-colour.md](atmosphere-colour.md); it reads the stored ozone column, the aerosol depths and the cloud cover, and a
 stand-in ground albedo until the ground's reflectance is stored.
 

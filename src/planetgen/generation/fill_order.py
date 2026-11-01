@@ -41,7 +41,7 @@ edges is still a neighbour step)."""
 def hilbert_index(point, bits):
     """
     The index along the three-dimensional Hilbert curve of `bits` levels of the lattice point `point` (three integers
-    in `0 .. 2**bits - 1`), by Skilling's transpose algorithm (Skilling 2004, "Programming the Hilbert curve"). Points
+    in `0 .. 2**bits - 1`), by Skilling's transpose algorithm ([R4113], "Programming the Hilbert curve"). Points
     one apart on the curve are face-adjacent.
     """
     x = [int(c) for c in point]

@@ -1,10 +1,10 @@
 > **Imported research, kept as received (banner added 2026-10-15; the text below is unchanged).** It is Boss's document, not a statement of what planetGen does. The design notes that use it: [collisions-and-mergers](../../orbits/collisions-and-mergers.md), [course-avoidance](../../orbits/course-avoidance.md), [orbital-updates](../../orbits/orbital-updates.md).
 
-To prevent the "bullet through paper" tunneling problem during large update steps ($\Delta t$), you must replace instantaneous distance checks with **Continuous Collision Detection (CCD)** based on **Swept-Sphere Capsule Intersections** and **Adaptive Time-to-Impact Bisection** (Brent, 1973; Higham, 2002).
+To prevent the "bullet through paper" tunneling problem during large update steps ($\Delta t$), you must replace instantaneous distance checks with **Continuous Collision Detection (CCD)** based on **Swept-Sphere Capsule Intersections** and **Adaptive Time-to-Impact Bisection** [R1483, R1936].
 
 ### Mathematical Foundation of Continuous Collision Detection
 
-Consider two bodies moving over the integration interval $\tau \in [0, \Delta t]$ with initial positions $\vec{p}_1(0), \vec{p}_2(0)$ and average velocities $\vec{v}_1, \vec{v}_2$ (Higham, 2002).
+Consider two bodies moving over the integration interval $\tau \in [0, \Delta t]$ with initial positions $\vec{p}_1(0), \vec{p}_2(0)$ and average velocities $\vec{v}_1, \vec{v}_2$ [R1936].
 
 1. **Relative Trajectory Vector:**
    Define the relative displacement and velocity vectors:
@@ -28,7 +28,7 @@ Consider two bodies moving over the integration interval $\tau \in [0, \Delta t]
 4. **Collision Threshold Evaluation:**
    Given physical radii $R_1$ and $R_2$, contact occurs if the minimum separation distance is less than or equal to the collision cross-section:
    $$S(\tau^*) \le (R_1 + R_2)^2$$
-   If this inequality holds and $B^2 - 4A(C - (R_1 + R_2)^2) \ge 0$, the exact moment of physical surface contact ($\tau_{\text{impact}}$) is the smallest positive real root (Brent, 1973; Ortega & Rheinboldt, 1970):
+   If this inequality holds and $B^2 - 4A(C - (R_1 + R_2)^2) \ge 0$, the exact moment of physical surface contact ($\tau_{\text{impact}}$) is the smallest positive real root [R1483, R2065]:
    $$\tau_{\text{impact}} = \frac{-B - \sqrt{B^2 - 4A(C - (R_1 + R_2)^2)}}{2A}$$
 
 ### Algorithmic Implementation
@@ -87,7 +87,7 @@ Python
 
 ### Pipeline Integration & Momentum Conservation
 
-To apply this without adding an $O(N^2)$ global check across all bodies, test for collisions **only against candidate gravitational influencers** already identified in your sector stencil query (Higham, 2002):
+To apply this without adding an $O(N^2)$ global check across all bodies, test for collisions **only against candidate gravitational influencers** already identified in your sector stencil query [R1936]:
 
 ```python
 Python
@@ -135,7 +135,7 @@ Python
         # (Execute normal half-step velocity and full-step position updates)
         target.update_verlet_trajectory(delta_t)
 
-This ensures that regardless of whether time steps are one day or ten years, objects moving faster than their own radii will cleanly trigger a collision at the exact time fraction $\tau_{\text{impact}} \in [0, \Delta t]$ rather than tunneling past each other undetected (Brent, 1973; Higham, 2002).
+This ensures that regardless of whether time steps are one day or ten years, objects moving faster than their own radii will cleanly trigger a collision at the exact time fraction $\tau_{\text{impact}} \in [0, \Delta t]$ rather than tunneling past each other undetected [R1483, R1936].
 ```
 
 ### Refrences

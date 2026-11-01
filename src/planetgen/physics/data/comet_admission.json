@@ -1,6 +1,6 @@
 {
  "title": "Which comets have a measured coma composition and at what heliocentric distance (GEN.507)",
- "source": "Robinson et al. 2024 database (doi 10.7488/ds/7723, CC BY 4.0) joined to the JPL Small-Body Database orbits; queries in scripts/fit_comet_admission.py",
+ "source": "[R3782] database ([R4972], CC BY 4.0) joined to the JPL Small-Body Database orbits; queries in scripts/fit_comet_admission.py",
  "retrieved": "2026-10-23",
  "label": "DATA, COMPUTED",
  "groups": {
@@ -12,7 +12,7 @@
   "HYP": "long_period",
   "PAR": "long_period"
  },
- "known_comets": 2422,
+ "known_comets": 2423,
  "measured_comets": 93,
  "admission": [
   {
@@ -61,7 +61,7 @@
    "group": "long_period",
    "q_min_au": 0.3,
    "q_max_au": 1.0,
-   "comets": 413,
+   "comets": 414,
    "measured": 5
   },
   {

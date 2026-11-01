@@ -1871,8 +1871,8 @@
       "x-summary": "Only for local development without TLS; never turn it on in production."
     },
     "api_base_url": {
-      "default": "http://127.0.0.1/api",
-      "description": "Base URL of the Flask API's /api mount point, used by web/lib/apiclient.py only outside the Flask app.",
+      "default": "",
+      "description": "Base URL of the Flask API's /api mount point (for example https://example.org/api). The update asks it whether the site answers, and web/lib/apiclient.py calls it outside the Flask app. There is no default: nothing guesses a loopback address, so it must be set for either to work.",
       "title": "Api Base Url",
       "type": "string",
       "x-advanced": false,
@@ -1887,7 +1887,7 @@
       "x-restart": true,
       "x-secret": false,
       "x-slider": null,
-      "x-summary": "Where the API lives, for scripts that call it from outside the web app."
+      "x-summary": "Where the API lives; the update's health check asks it. No default."
     },
     "api_log": {
       "$ref": "#/$defs/ApiLog",
@@ -2246,7 +2246,7 @@
     },
     "secret_key": {
       "default": "",
-      "description": "Signs the CSRF tokens on the pages' forms. Empty makes a random one at startup (a form open across a restart then fails once).",
+      "description": "Signs the CSRF tokens on the pages' forms. Empty makes one and keeps it in the state folder (mode 0600), so every worker and restart shares it.",
       "title": "Secret Key",
       "type": "string",
       "x-advanced": false,
@@ -2261,7 +2261,7 @@
       "x-restart": true,
       "x-secret": true,
       "x-slider": null,
-      "x-summary": "Signs the security tokens on forms; empty makes a random one at each start."
+      "x-summary": "Signs the security tokens on forms; empty makes one and keeps it in the state folder."
     },
     "seo": {
       "$ref": "#/$defs/Seo",

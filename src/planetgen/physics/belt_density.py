@@ -9,8 +9,8 @@ unit of the belt holds, and how much mass. This module is that calculation as pu
 data builder, reads it; GEN.1061's ledger will hand it the individually kept bodies).
 
 **The size law.** The population below the individually kept bodies follows a broken cumulative power law, `N(>D)` proportional to `D^-q` in each stretch between breaks,
-the two stretches joined where they meet (`SizeLaw`: the floor, the breaks and the exponents). Three laws ship as stand-ins: the main belt (Ivezic et al. 2001, differential exponents 2.3 from
-0.4 to 5 km and 4 above, so `q` 1.3 and 3.0), and the hot and cold classical Kuiper belt (Fraser et al. 2014, `q = 5 alpha`: 4.35 or 7.5 above the break and 1.0 below, the breaks 121 and 175 km at
+the two stretches joined where they meet (`SizeLaw`: the floor, the breaks and the exponents). Three laws ship as stand-ins: the main belt ([R2108], differential exponents 2.3 from
+0.4 to 5 km and 4 above, so `q` 1.3 and 3.0), and the hot and cold classical Kuiper belt ([R1439], `q = 5 alpha`: 4.35 or 7.5 above the break and 1.0 below, the breaks 121 and 175 km at
 albedo 0.10). The law gives the **shape**; the number of objects comes from the mass.
 
 **The ledger.** A belt's stored mass is the budget (`belt-evolution.md` section 3): the bodies kept one by one (every one above the cut rule's mass) are spent first, what is
@@ -79,15 +79,15 @@ class SizeLaw:
 
 
 MAIN_BELT = SizeLaw("main belt", (0.4, 5.0, 1000.0), (1.3, 3.0))
-"""SizeLaw: Ivezic et al. 2001 (abstract READ): `D^-2.3` for 0.4 to 5 km and `D^-4` for 5 to 40 km, with 530,000 objects above 1 km. The abstract does not say whether the exponents
+"""SizeLaw: [R2108] (abstract READ): `D^-2.3` for 0.4 to 5 km and `D^-4` for 5 to 40 km, with 530,000 objects above 1 km. The abstract does not say whether the exponents
 are of the cumulative or the differential distribution; the paper's section 6 defines the index for `dN/dD` (a summary of the PDF, to be checked verbatim), so here they are
 differential and the cumulative `q` is one less: 1.3 and 3.0 (the repo's size-law table took them as cumulative). Read as cumulative the law leaves 3 asteroids above 40 km
 where the belt has some hundreds; read as differential, about 130. The 3.0 is carried to the top, where the ledger takes over. Source tier T1 below 40 km, T6 above, tweak level L0."""
 KUIPER_HOT = SizeLaw("hot Kuiper belt", (1.0, 121.0, 2500.0), (1.0, 4.35))
-"""SizeLaw: Fraser et al. 2014 (READ), hot population: `alpha` 0.87 bright and about 0.2 faint, break `H` 7.7 (121 km at albedo 0.10), cumulative `q = 5 alpha`; the faint side is
-set to 1.0 from the table's note that the faint exponents are about 1.0 (Singer et al. 2019 give 0.75 below 1 to 2 km). Source tier T1 bright side, T6 faint side, tweak level L0."""
+"""SizeLaw: [R1439] (READ), hot population: `alpha` 0.87 bright and about 0.2 faint, break `H` 7.7 (121 km at albedo 0.10), cumulative `q = 5 alpha`; the faint side is
+set to 1.0 from the table's note that the faint exponents are about 1.0 ([R4107] give 0.75 below 1 to 2 km). Source tier T1 bright side, T6 faint side, tweak level L0."""
 KUIPER_COLD = SizeLaw("cold Kuiper belt", (1.0, 175.0, 1500.0), (1.0, 7.5))
-"""SizeLaw: Fraser et al. 2014 (READ), cold classical population: `alpha` 1.5, break `H` 6.9 (175 km at albedo 0.10), `q = 7.5` bright side. Source tier T1 bright side, T6 faint side, tweak level L0."""
+"""SizeLaw: [R1439] (READ), cold classical population: `alpha` 1.5, break `H` 6.9 (175 km at albedo 0.10), `q = 7.5` bright side. Source tier T1 bright side, T6 faint side, tweak level L0."""
 
 
 @dataclass(frozen=True)

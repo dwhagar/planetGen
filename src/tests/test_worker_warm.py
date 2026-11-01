@@ -14,27 +14,65 @@ from planetgen.generation import star_population
 from planetgen.queue import redisqueue
 
 
-def test_warm_imports_the_task_modules_and_builds_the_tables():
+def test_warm_imports_the_task_modules_and_builds_no_tables():
+    """PERF.226: the tables are built by the units that draw stars (`units.warm_unit`), not by every worker at its start."""
     star_population._bright_table.cache_clear()
     worker.warm([redisqueue.GENERATION_QUEUE])
     for name in worker.WARM_MODULES:
         assert name in sys.modules
-    assert star_population._bright_table.cache_info().currsize == (
-        len(star_population.POPULATIONS) * len(star_population.FE_H_BINS))
-
-
-def test_a_queue_that_is_not_generation_gets_no_tables():
-    star_population._bright_table.cache_clear()
-    worker.warm(["planetgen-api-abc"])
     assert star_population._bright_table.cache_info().currsize == 0
 
 
+def test_a_unit_that_draws_stars_builds_the_tables_in_the_worker():
+    from planetgen.queue import units
+
+    class Job:
+        func_name = units.UNIT_FUNCTION
+        args = ("run", 1, 0, "generate-sectors", {"database": None}, 1.0)
+    star_population._bright_table.cache_clear()
+    units.warm_unit(Job)
+    assert star_population._bright_table.cache_info().currsize == (
+        len(star_population.POPULATIONS) * len(star_population.FE_H_BINS))
+    assert units.tables_held()
+    Job.args = ("run", 1, 0, "link-neighbours", {}, 1.0)
+    assert units.sheds_tables_for(Job)
+    star_population._bright_table.cache_clear()
+    assert not units.sheds_tables_for(Job)
+
+
 def test_a_warm_table_is_the_table_a_cold_call_builds():
+    from planetgen.queue import units
     star_population._bright_table.cache_clear()
     cold = star_population._bright_table(1000.0, star_population.POPULATIONS[0], None, None, -0.5)
     star_population._bright_table.cache_clear()
-    worker.warm()
+    units.warm_star_tables()
     assert star_population._bright_table(1000.0, star_population.POPULATIONS[0], None, None, -0.5) == cold
+
+
+def test_a_worker_with_tables_puts_a_unit_that_needs_none_back_and_starts_over(monkeypatch):
+    from planetgen.queue import units
+    execs, deaths, pushed = [], [], []
+
+    class Queue:
+        name = "q"
+        def push_job_id(self, job_id, at_front=False):
+            pushed.append((job_id, at_front))
+
+    class Job:
+        id = "job-1"
+        origin = "q"
+        func_name = units.UNIT_FUNCTION
+        args = ("run", 1, 0, "link-neighbours", {}, 1.0)
+    cls = worker.worker_class()
+    instance = cls.__new__(cls)
+    instance.register_death = lambda: deaths.append(1)
+    instance.queues = [Queue()]
+    monkeypatch.setattr(units, "tables_held", lambda: True)
+    monkeypatch.setattr(worker.os, "execv", lambda *args: execs.append(args))
+    monkeypatch.setattr(units, "warm_unit", lambda job: None)
+    monkeypatch.setattr(rq.Worker, "prepare_execution", lambda self, job: None)
+    instance.prepare_execution(Job)
+    assert pushed == [("job-1", True)] and deaths == [1] and execs and execs[0][1][1:3] == ["-m", "planetgen.cli.worker"]
 
 
 def test_the_worker_notices_a_release_change():

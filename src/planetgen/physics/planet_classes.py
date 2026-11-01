@@ -66,6 +66,7 @@ def values_from_body(body):
         "water_mass_fraction": getattr(body, "water_mass_fraction", None),
         "flux_variation": getattr(body, "flux_variation", None),
         "ocean_ph": getattr(body, "ocean_ph", None),
+        "roundness_ratio": getattr(body, "roundness_ratio", None),
     }
     values[atmosphere.GAS_FIELD] = atmosphere.gas_partials_pa(body)
     return values
@@ -91,6 +92,7 @@ def quantities(values):
         "water_mass_fraction": values.get("water_mass_fraction") or 0.0,
         "flux_variation": values.get("flux_variation") or 0.0,
         "ocean_ph": values.get("ocean_ph"),
+        "roundness_ratio": values.get("roundness_ratio"),
     }
     for gas in GASES:
         partial_pa = atmosphere.partial_kpa(values, gas) * 1000.0
@@ -177,9 +179,33 @@ CORE_LETTERS = tuple(DOCUMENT["core"])
 VERSION = DOCUMENT["version"]
 
 
+class AsteroidType:
+    """The object type of a body under a roundness ratio of 1 (GEN.1160): not a planet class, so no letter. It can be a moon."""
+
+    __slots__ = ("letter", "name", "kind", "sentence", "basis", "when", "core")
+
+    def __init__(self, row):
+        self.letter = None
+        self.name = row["name"]
+        self.kind = row["kind"]
+        self.sentence = row["sentence"]
+        self.basis = row["basis"]
+        self.when = tuple(row["when"])
+        self.core = False
+
+    def matches(self, found):
+        return found["roundness_ratio"] is not None and holds(self.when, found, owner="the Asteroid type")
+
+
+ASTEROID = AsteroidType(DOCUMENT["asteroid"])
+"""AsteroidType: What a terrestrial body whose roundness ratio is under 1 is. `classify_values` gives it and `classify` gives `None` for it."""
+
+
 def classify_values(values):
-    """The `Class` of a body's stored `values` (a column-named mapping): the first row of its kind whose conditions hold."""
+    """The `Class` of a body's stored `values` (a column-named mapping): the first row of its kind whose conditions hold. A terrestrial body under a roundness ratio of 1 is `ASTEROID`, which has no letter."""
     found = quantities(values)
+    if found["body_type"] == TERRESTRIAL and ASTEROID.matches(found):
+        return ASTEROID
     for cls in CLASSES:
         if cls.kind == found["body_type"] and cls.matches(found):
             return cls
@@ -187,7 +213,7 @@ def classify_values(values):
 
 
 def classify(body):
-    """The class letter of a finished planet or moon (an object, or a column-named mapping of its stored values)."""
+    """The class letter of a finished planet or moon (an object, or a column-named mapping of its stored values); `None` for an Asteroid."""
     values = body if isinstance(body, Mapping) else values_from_body(body)
     return classify_values(values).letter
 

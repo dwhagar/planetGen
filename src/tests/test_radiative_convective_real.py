@@ -37,7 +37,7 @@ def earth():
 
 def test_a_doubling_of_carbon_dioxide_with_the_vapour_held_warms_by_about_a_kelvin(earth):
     """GEN.717: the model was off against this (0.3 to 0.6 K). Held vapour is the no-feedback response (about 1.2 K from the Planck response alone
-    with the stratosphere adjusted, Myhre et al. 1998 forcing 3.7 W/m2 over a Planck feedback of about 3.2 W/m2/K)."""
+    with the stratosphere adjusted, [R3229] forcing 3.7 W/m2 over a Planck feedback of about 3.2 W/m2/K)."""
     held = earth.water_fraction
     base = rc.solve(_co2(280.0), 9.81, EARTH_FLUX, water_fraction=held)
     doubled = rc.solve(_co2(560.0), 9.81, EARTH_FLUX, water_fraction=held)
@@ -92,7 +92,7 @@ def test_venus_with_the_acid_cloud_is_near_its_measured_surface_and_the_droplet_
 
 
 def test_titan_with_its_haze_takes_its_measured_surface_and_without_it_is_too_warm():
-    """GEN.718: Titan came out twice too warm with a clear sky. Its haze absorbs about 60 percent of the sunlight high up (McKay et al. 1991)."""
+    """GEN.718: Titan came out twice too warm with a clear sky. Its haze absorbs about 60 percent of the sunlight high up [R2999]."""
     clear = rc.solve(TITAN, 1.35, 2.61)
     hazy = rc.solve(TITAN, 1.35, 2.61, aloft_share=0.6, aloft_pressure_pa=3.0e3)
     assert clear.converged and hazy.converged
@@ -107,7 +107,7 @@ def test_titan_with_its_haze_takes_its_measured_surface_and_without_it_is_too_wa
 ])
 def test_the_giants_sit_near_their_measured_temperature_at_one_bar(name, partials, gravity, effective_k, measured_k, tolerance):
     """GEN.1030: the methane pseudo-adiabat and the ortho-para equilibrium of cold hydrogen bring the ice giants' 1 bar temperature down from 20 percent
-    too warm (Lindal 1981, 1987, 1992 for the measured values; the effective temperatures are the measured ones)."""
+    too warm (the effective temperatures are the measured ones)."""
     giant = rc.warming(partials, gravity, SIGMA * effective_k ** 4)
     assert giant.converged and giant.surface_temperature_k == pytest.approx(measured_k, rel=tolerance), name
 

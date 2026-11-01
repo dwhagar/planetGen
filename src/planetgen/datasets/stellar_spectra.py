@@ -5,10 +5,10 @@ Model-atmosphere spectra of stars by effective temperature and gravity (GEN.970,
 
 Two grids, both solar metallicity, read as downloaded and reduced at setup:
 
-- **Castelli and Kurucz 2003 ATLAS9 fluxes** (the `fp00k2odfnew` grid, [M/H] = 0, microturbulence 2 km/s, mixing length
-  1.25, new opacity distribution functions; in IAU Symp. 210, poster A20, arXiv:astro-ph/0405087), from Fiorella Castelli's
+- **[R0681] ATLAS9 fluxes** (the `fp00k2odfnew` grid, [M/H] = 0, microturbulence 2 km/s, mixing length
+  1.25, new opacity distribution functions; in IAU Symp. 210, poster A20, [R0681]), from Fiorella Castelli's
   page at INAF Trieste: 476 models from 3500 to 50000 K and log g 0 to 5, 1221 wavelengths from 9 nm to 160 micron.
-- **Husser et al. 2013 PHOENIX-ACES-AGSS-COND-2011** (A&A 553, A6, arXiv:1303.5632), high-resolution spectra from the
+- **[R2058] PHOENIX-ACES-AGSS-COND-2011** (A&A 553, A6, [R2058]), high-resolution spectra from the
   Goettingen server, for the stars ATLAS9 stops short of: 2300 to 3500 K at 200 K steps and log g 4.5, 5.0 and 5.5 (the
   M dwarfs), 500 A to 5.5 micron.
 
@@ -193,7 +193,7 @@ def derive(folder):
 DATASET = fetch.Dataset(
     key="stellar_spectra",
     title="Model-atmosphere spectra: Castelli and Kurucz ATLAS9 fluxes (3500 to 50000 K) and Husser et al. PHOENIX-ACES (2300 to 3500 K)",
-    source="Castelli and Kurucz 2003 (IAU Symp. 210, A20), Husser et al. 2013 (A&A 553, A6)",
+    source="[R0681] (IAU Symp. 210, A20), [R2058]",
     pieces=PIECES,
     replaces="the blackbody of the stellar spectrum with a seeded UV-C share (R17) and the BT-Settl chromaticity offsets",
     fill="SL1",

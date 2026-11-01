@@ -173,3 +173,19 @@ def test_the_albedo_range_follows_the_water_and_the_cold():
 
 def test_a_giant_backfill_takes_the_open_bracket():
     assert climate_draws.backfill_albedo_range({"body_type": "g"}, 50.0) == climate_draws.GIANT_ALBEDO_RANGE
+
+
+def test_a_body_with_no_light_is_warmed_by_its_own_heat_the_way_the_rogue_chain_has_it():
+    """GEN.1111, TEST.498: with no starlight the equilibrium temperature is the effective temperature of the heat flux
+    (`rogue_surface.effective_temperature_k`, which adds the 2.725 K background as a flux where this takes the larger, so they agree to a part in
+    ten thousand once the heat dominates it), not the floor the bound chain returned for a body far from a star."""
+    from planetgen.physics import rogue_surface
+    for flux in (0.02, 0.09, 1.5, 40.0):
+        assert climate_draws.equilibrium_temperature_k(0.3, 0.0, flux) == pytest.approx(rogue_surface.effective_temperature_k(flux), rel=1e-3)
+    assert climate_draws.equilibrium_temperature_k(0.3, 0.0, 0.0) == constants.COSMIC_BACKGROUND_TEMPERATURE_K
+
+
+def test_the_heat_of_a_rocky_planet_changes_its_temperature_under_a_star_by_less_than_a_part_in_a_thousand():
+    earth = climate_draws.equilibrium_temperature_k(0.3, 1361.0)
+    assert climate_draws.equilibrium_temperature_k(0.3, 1361.0, 0.09) == pytest.approx(earth, rel=1e-3)
+    assert climate_draws.equilibrium_temperature_k(0.3, 1361.0, 0.0) == earth, "no internal heat is the old value exactly"

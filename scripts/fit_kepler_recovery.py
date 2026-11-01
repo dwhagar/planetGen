@@ -18,7 +18,7 @@ Four things are written:
 1. `limb`: the transit's effective depth over the squared radius ratio, `g(b) = c0 + c2 b^2 + c4 b^4`, fitted so that
    `MES = g(b) k^2 sqrt(N) / CDPP(duration)` reproduces the pipeline's expected MES (limb darkening and aperture correction);
 2. `transit_count_factor`: `N = factor * span / period` (the valid transits, gaps included);
-3. `recovery`: `P = c0 GammaCDF(MES; a, b) S((N - n0) / wn) S((ln T_max - ln T) / wd)` (the form of Burke and Catanzarite 2017 with a
+3. `recovery`: `P = c0 GammaCDF(MES; a, b) S((N - n0) / wn) S((ln T_max - ln T) / wd)` (the form of [R0594] with a
    three-transit gate and a long-duration cut), fitted by maximum likelihood to the modelled MES of every injection, so the error of
    the modelled MES is part of the curve;
 4. `noise`: for each duration `ln CDPP = a0 + a1 Kp + a2 Kp^2 + a3 ln R* + scatter eps` and the quantiles of the targets' Kepler

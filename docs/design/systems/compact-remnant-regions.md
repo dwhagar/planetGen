@@ -7,20 +7,20 @@ Research of 2026-10-09 (GEN.100 rate retune; rates are in `interstellar-object-r
 ## What the sources say
 
 **Distance from the core (radial)**
-- Radio pulsars are not distributed like stars. Faucher-Giguere & Kaspi (2006) put the pulsar surface density peaking near 3 kpc from the center, born in spiral arms ([arXiv astro-ph/0512585](https://arxiv.org/abs/astro-ph/0512585)). A 2024 re-fit of 1,301 Parkes Multibeam pulsars peaks near 4 kpc ([arXiv 2402.11428](https://arxiv.org/pdf/2402.11428)). Lorimer et al. (2006) warn the inner profile depends heavily on the assumed electron model, so the inner-Galaxy dip is partly an observing effect ([arXiv astro-ph/0607640](https://arxiv.org/pdf/astro-ph/0607640)).
-- Population synthesis of all compact remnants (Sweeney et al.) finds the black-hole-to-neutron-star ratio rises toward the Galactic center, because black holes get smaller kicks ([arXiv 2210.04241](https://arxiv.org/pdf/2210.04241)).
-- The central parsecs hold a black hole cusp: Hailey et al. 2018 infer about 10,000 stellar-mass black holes within a few light years of Sgr A*, from 12 quiescent X-ray binaries. Indirect, large uncertainty ([Columbia summary](https://news.columbia.edu/node/149)).
-- The Galactic center gamma-ray excess is attributed by many to thousands of millisecond pulsars in the bulge; others dispute it ([arXiv 2106.00222](https://arxiv.org/pdf/2106.00222)).
+- Radio pulsars are not distributed like stars. [R1333] put the pulsar surface density peaking near 3 kpc from the center, born in spiral arms [R1333]. A 2024 re-fit of 1,301 Parkes Multibeam pulsars peaks near 4 kpc [R4796]. [R2750] warn the inner profile depends heavily on the assumed electron model, so the inner-Galaxy dip is partly an observing effect [R2750].
+- Population synthesis of all compact remnants (Sweeney et al.) finds the black-hole-to-neutron-star ratio rises toward the Galactic center, because black holes get smaller kicks [R4278].
+- The central parsecs hold a black hole cusp: [R1749] infer about 10,000 stellar-mass black holes within a few light years of Sgr A*, from 12 quiescent X-ray binaries. Indirect, large uncertainty ([Columbia summary](https://news.columbia.edu/node/149)).
+- The Galactic center gamma-ray excess is attributed by many to thousands of millisecond pulsars in the bulge; others dispute it [R1527].
 
 **Height above the plane (vertical)**
-- Compact remnants have a scale height about 3x that of visible stars, 1260 pc, mostly from birth kicks. About 40% of neutron stars and 2% of black holes get enough speed to leave the Galaxy ([arXiv 2210.04241](https://arxiv.org/pdf/2210.04241)).
-- A second simulation gets 786 pc for black holes against 306 pc for visible stars ([arXiv 2607.22814](https://arxiv.org/pdf/2607.22814)).
-- Neutron star X-ray binaries sit higher than black hole ones ([Repetto et al.](https://arxiv.org/pdf/1701.01347)).
-- Radio pulsars: exponential scale height about 330 pc ([Lorimer et al. 2006](https://arxiv.org/pdf/astro-ph/0607640)).
-- Magnetars: only 20 to 31 pc, far thinner than radio pulsars, consistent with the most massive young progenitors ([McGill Magnetar Catalog](https://arxiv.org/pdf/1309.4167)).
+- Compact remnants have a scale height about 3x that of visible stars, 1260 pc, mostly from birth kicks. About 40% of neutron stars and 2% of black holes get enough speed to leave the Galaxy [R4278].
+- A second simulation gets 786 pc for black holes against 306 pc for visible stars [R4581].
+- Neutron star X-ray binaries sit higher than black hole ones [R3740].
+- Radio pulsars: exponential scale height about 330 pc [R2750].
+- Magnetars: only 20 to 31 pc, far thinner than radio pulsars, consistent with the most massive young progenitors [R3346].
 
 **By type**
-- Millisecond pulsars: 340 known in 45 globular clusters; cluster MSPs are about 10x over-abundant per star against the field. Estimates of the hidden cluster population run 1,000 to 4,700. No field total was found ([arXiv 2412.05220](https://arxiv.org/pdf/2412.05220), [arXiv 2111.08153](https://arxiv.org/pdf/2111.08153)). A cluster model (density component, encounter rate, pulsar counts by `Γ`) is in [globular-clusters.md](../galaxy/globular-clusters.md).
+- Millisecond pulsars: 340 known in 45 globular clusters; cluster MSPs are about 10x over-abundant per star against the field. Estimates of the hidden cluster population run 1,000 to 4,700. No field total was found [R0094, R4782]. A cluster model (density component, encounter rate, pulsar counts by `Γ`) is in [globular-clusters.md](../galaxy/globular-clusters.md).
 - Magnetars: no total or fraction of all neutron stars was found in these searches. Only a local density of recently born ones, about 1.3e-2 per kpc^3.
 
 ## Not found
@@ -51,7 +51,7 @@ each bin's density by a factor for the kind, at the bin's centerline point:
 - **Radius.** Black holes get `1 + 1.0 * exp(-R / 2 kpc)` times the stars'
   density: twice the rate at the core, 1.02x at the Sun.
 - **Pulsars.** The share of neutron stars that are active pulsars is scaled
-  by the Lorimer et al. (2006) radial profile over the stellar exponential,
+  by the [R2750] radial profile over the stellar exponential,
   1 at the Sun, about 0.1 at 1 kpc and 0.5 at 3 kpc.
 
 These sizes are **estimates** drawn from the trends above; the sources give
