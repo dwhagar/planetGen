@@ -824,6 +824,7 @@ migrate_or_reset_db() {
 # control database's history (OPS.13; the last 10 are kept), after the
 # schemas are current. A failure only warns: the update carries on.
 record_version_key() {
+    echo "Recording the version key (it runs the generator's fixed test cases once to fingerprint the code: 5 seconds to a minute, nothing prints until it ends):"
     run_cli version_history || echo "warning: could not record the version key (see above); the update carries on." >&2
 }
 

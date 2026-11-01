@@ -935,6 +935,14 @@ def test_the_update_works_out_the_cluster_system_masses_after_the_migration():
     assert "run_cli warm_shape" in (pathlib.Path(REPO_DIR) / "scripts" / "deploy-common.sh").read_text()
 
 
+def test_the_update_says_so_before_the_silent_version_key_step():
+    """Recording the version key runs the generator battery and prints nothing until it ends: the update says what it is
+    doing first, so the gap after the migration never looks like a hang."""
+    common = (pathlib.Path(REPO_DIR) / "scripts" / "deploy-common.sh").read_text()
+    body = common[common.index("record_version_key() {"):]
+    assert body.index("Recording the version key") < body.index("run_cli version_history")
+
+
 def test_the_update_starts_the_warm_up_early_and_reloads_after_its_opening_phase():
     """The warm-up starts in the background once everything it needs is in place; the reload and the health check wait
     for its opening phase, then the probe waits for the workers to start."""
