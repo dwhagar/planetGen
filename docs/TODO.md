@@ -16821,6 +16821,25 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   ADM.133, DOC.81, API.34, MAP.313; nothing in 8.1.
   Prerequisites: DB.106, GEN.799. Related: ADM.62, ADM.130, ADM.131.
 
+- [ ] **ADM.136 A New galaxy job stalls waiting on a generation run started by another process, and the holder is not identified (bug)**
+  Boss (2026-10-31, 9:25 PM EDT, as the lane reported 01:25:37 UTC): a
+  New galaxy job stalled waiting on a generation run started by another
+  process, and the run that holds the machine is not yet identified.
+  #4675 now names the holder in the log. Do: (1) read the holder's run
+  record (title, kind, start, process) from the job log of the stalled
+  job and from the run page, and say whether it is a live run, a dead
+  run whose owner process is gone, or the same job's own earlier run;
+  (2) if the holder is dead, make the run line free it (the existing
+  dead-holder check, `_free_dead_holder`, must cover this case: a run
+  whose process no longer exists, a run killed by the host, or a run
+  left by an update); (3) if it is live, say who started it and why it
+  counts as a generation run. Done: a test that reproduces the holder
+  state found, and a New galaxy job that starts after the stale holder
+  is cleared. Lock-free, generation output unchanged. Owner: the thread
+  that built #4675 (session on the data check). Version 8.1.
+  Prerequisites: none. Related: ADM.95, PERF.227.
+  Prerequisites: none.
+
 ## SEC: Security
 
 The login protection of 2026-10-01 (SEC.1, SEC.20 to
@@ -19335,18 +19354,6 @@ clears each one.
   clears). Version 8.1.
   Prerequisites: none. Related: GEN.996.
 
-- [ ] **TEST.542 The life sweep expects 20 class letters and the rules give 19, since GEN.1135 retired Class Q (bug)**
-  The full-suite thread (reported 2026-10-31 8:58 PM EDT as the lane
-  reported) ran the suite on main 7eef24a and re-ran these alone, so
-  they are real.
-  test_sweep_life.py::test_there_are_twenty_class_letters_to_try fails:
-  rules.letters() gives 19, the test expects 20. Do: update the test and
-  any docs that say twenty to the real count, derived from the registry
-  not a literal. Done: the test passes and no literal 20 for the letters
-  is left. Lock-free, generation output unchanged. Version 8.1.
-  Prerequisites: none. Related: TEST.261. Owner: Core 4 (GEN.1135).
-  Prerequisites: none.
-
 - [ ] **TEST.543 The atmosphere sweep audit reads planetgen.physics.ozone.STRUCTURE_RANGE, which is now STRUCTURE_KNOTS, so three sweep tests fail (bug)**
   The full-suite thread (reported 2026-10-31 8:58 PM EDT as the lane
   reported) ran the suite on main 7eef24a and re-ran these alone, so
@@ -19360,22 +19367,6 @@ clears each one.
   meaning. Done: the three tests pass. Lock-free, generation output
   unchanged. Version 8.1. Prerequisites: none. Related: TEST.261. Owner:
   Aux 2 (air).
-  Prerequisites: none.
-
-- [ ] **TEST.544 The class sweep finds five rocky bodies classed T, a gas class, so the totality test fails (bug)**
-  The full-suite thread (reported 2026-10-31 8:58 PM EDT as the lane
-  reported) ran the suite on main 7eef24a and re-ran these alone, so
-  they are real.
-  test_sweep_classes.py::test_every_body_is_classed_and_classify_is_total_and_pure_on_all_of_them:
-  five rocky bodies (F5V/Tc3, F5V/Tc10, system3 Icilat Aobaris VII and
-  VIII, system6 Bisliuno II) get class T. Probably the class
-  re-derivation of GEN.1135 and GEN.1136. Do: decide for each whether
-  the class is right (then the sweep's expectation changes, with the
-  reason) or the classifier misplaces a rocky body (then fix the
-  classifier by physics, not by a patch for these names). Done: the test
-  passes and the answer is written in the item. Lock-free, generation
-  output unchanged. Version 8.1. Prerequisites: none. Related: TEST.261.
-  Owner: Core 4.
   Prerequisites: none.
 
 - [ ] **TEST.545 The table sweep raises temperature must be positive for small-body-taxa/asteroid-field at 0 K, and two rows are never reached (bug)**
@@ -19394,6 +19385,23 @@ clears each one.
   Done: both tests pass. Lock-free, generation output unchanged. Version
   8.1. Prerequisites: none. Related: TEST.261. Owner: unassigned (a
   waiting lane may take it).
+  Prerequisites: none.
+
+- [ ] **TEST.546 The object timing test finds a unit saved with the kind star where it expects system (bug)**
+  The full-suite thread (reported 2026-10-31 9:34 PM EDT as the lane
+  reported) ran the suite on main 7eef24a;
+  test_object_timing.py::test_a_unit_saves_under_its_run_and_the_run_adds_its_sectors_up
+  fails alone with "assert 'star' == 'system'": the kind saved for a
+  unit is 'star' and the test expects 'system'.
+  test_a_galaxy_run_saves_each_sectors_timings_under_its_run in the same
+  file also failed, probably the same cause. Do: find which side changed
+  (src/planetgen/generation/object_timing.py and run_galaxy.py record
+  the kind; the Seconds per object table of PERF.197 reads it), decide
+  by what the Stats page needs which kind is right, and fix the code or
+  the test with the reason in the change note. Done: both tests pass and
+  the Stats table still shows the same rows. Lock-free, generation
+  output unchanged. Owner: unassigned (a waiting lane may take it).
+  Version 8.1. Prerequisites: none. Related: TEST.261, PERF.197.
   Prerequisites: none.
 
 ## USR: User accounts

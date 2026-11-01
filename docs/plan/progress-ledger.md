@@ -2287,3 +2287,6 @@ Baseline: PR #1817.
 | OPS.86 | 8.2 | Robust tile caching |
 | OPS.88 | 8.2 | Robust tile caching |
 | OPS.89 | 8.2 | Robust tile caching |
+| ADM.135 | 8.9 | Remote generation |
+| TEST.544 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.542 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |

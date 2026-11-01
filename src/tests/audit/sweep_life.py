@@ -6,7 +6,7 @@ letter; GEN.915): a world that can hold life can hold it whatever its class lett
 
 Two checks, both on the shared body sweep (`tests.audit.sweep`):
 
-- `scores-class-blind` (a `Rule`): every terrestrial planet and moon of the sweep is given each of the 20 class letters in turn, its stored
+- `scores-class-blind` (a `Rule`): every terrestrial planet and moon of the sweep is given each class letter the rules hold in turn, its stored
   conditions unchanged, and the life model (`physics.life_classes.score_classes`) must answer the same scores for every letter. A failure
   names the body (its conditions), the letter and the life class whose score moved. Because the sweep's own bodies reach life-capable
   conditions on only a few letters, this is what proves that the conditions that host life on one class host it on every class.
