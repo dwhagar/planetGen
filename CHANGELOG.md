@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3055] - 2026-11-01
+
+**Headline:** Planets, moons and belts now take their room from one clearance ledger, so a planet after a belt keeps its distance from the planet before the belt.
+
+### Changed
+- **One ledger decides where a star's planets may sit (GEN.1014).** `StarSystem.ledger` holds the window of every star and of a close pair taken as one body: the engulfment floor, the Holman and Wiegert limits, and the tightest S-type limit at every level of the tree above it. `_orbit_floor_au`, the stars' `a_crit_au` (which `build_ledger` now writes, replacing `set_stability_limits` and the wide pair's own copy) and the planet spacing read it. A wide pair's stars and a triple's members no longer carry the 100 AU disk size as a stability limit.
+- **A planet after a belt is held to the planet before the belt too (GEN.1023).** The spacing pass checked a planet only against the body just inside it, so a giant, a belt and a small planet could stand 9.93 mutual Hill radii apart where ten is promised. `validation.min_distance_after_au` takes every inner body (the ledger's exclusions), and the two older copies of the rule are gone.
+- **A moon's stable limit follows Domingos, Winter and Yokoyama (2006).** The limit is 0.4895 of the planet's Hill radius lowered by 1.0305 times the planet's eccentricity and 0.2738 times the moon's, so a moon of an eccentric planet orbits closer in and a moon's eccentricity is cut where its orbit would leave the stable zone. `tuning.MOON_PROGRADE_STABLE_HILL_FRACTION` is retired; the retrograde limit (0.9309) is in the ledger but the generator draws no moon beyond the prograde one.
+
 ## [8.0.3054] - 2026-11-01
 
 **Headline:** Every belt's largest body now comes from the size law of small bodies, so how much of a belt survives its star's age depends on the bodies it actually has.
