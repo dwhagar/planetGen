@@ -44,7 +44,7 @@ from planetgen.admin import maintenance  # noqa: E402
 from planetgen.queue import stopall  # noqa: E402
 from planetgen.web.lib import apiclient  # noqa: E402
 from planetgen.web.lib import classref  # noqa: E402
-from planetgen.web.lib import habitability_symbols, poi_icons  # noqa: E402
+from planetgen.web.lib import galaxy_outlines, habitability_symbols, poi_icons  # noqa: E402
 from planetgen.web.lib import pagecache  # noqa: E402
 from planetgen.web.lib import pagetags  # noqa: E402
 from planetgen.web.lib.slowpages import take_notice as slow_notice  # noqa: E402
@@ -145,6 +145,15 @@ def poi_icon(icon_id, tier=None):
     return Markup(poi_icons.symbol_html(icon_id, static_url, tier))
 
 
+def galaxy_outline(outline):
+    """One galaxy family outline (UX.135) as markup, `outline` one of `galaxy_outlines.OUTLINES`' ids.
+
+    Raises:
+        ValueError: `outline` is not one of them.
+    """
+    return Markup(galaxy_outlines.outline_html(outline, static_url))
+
+
 def _habitability_help_url(link):
     """The habitability page's URL for a symbol that links there (UX.181), `None` for one that does not (`link`
     false: the page's own legend)."""
@@ -220,6 +229,8 @@ def _template_globals():
         "module_graph": module_graph,
         "icon": icon,
         "poi_icon": poi_icon,
+        "galaxy_outline": galaxy_outline,
+        "galaxy_outlines": galaxy_outlines.OUTLINES,
         "poi_icons": poi_icons.ICONS,
         "habitability_symbol": habitability_symbol,
         "habitability_symbol_row": habitability_symbol_row,
