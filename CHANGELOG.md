@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3096] - 2026-11-01
+
+**Headline:** The Life section of an object page fits a phone and its links in running text are underlined, so they clear the contrast rule.
+
+### Fixed
+- **UX.257: the life readings table was 438 px wide on a 390 px phone, and the species link in the life text was 2.49:1 (light) and 1.91:1 (dark) against the words around it.** The readings table now sits in the same focusable scroll region the page's other tables use, and the links set in running text (a prose paragraph's links and the help links in the Life paragraphs) are underlined, as the site's other in-text links already are. A new browser test (`test_life_text_a11y_browser.py`) runs axe-core on the Life section at phone width in both themes and fails without either fix. The full `test_web_a11y.py` needs the MySQL test server and was not run on this machine. Nothing generated changes.
+
 ## [8.0.3095] - 2026-11-01
 
 **Headline:** A planet or moon's page now has a Day and night panel: a clock that counts its own day at the real rate, the state of its day and night in words, and the day and night hours of each latitude band beside the band's temperature.
