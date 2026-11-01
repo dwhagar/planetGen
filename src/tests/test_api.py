@@ -198,6 +198,7 @@ def test_health_reports_the_reason_for_maintenance(mysql_config, client, tmp_pat
     assert client.get("/api/health").get_json()["maintenance"]["reason"] == MESSAGE
 
 
+@pytest.mark.fresh_database
 def test_health_reports_an_uninitialized_schema_without_erroring(client):
     """
     `client`'s own database starts completely empty -- no `schema_migrations`
