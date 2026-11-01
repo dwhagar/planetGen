@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3088] - 2026-11-01
+
+**Headline:** Every citation in the notes, code comments, data files, and tests is now a source ID like [R0123]; the names live only in the reference list.
+
+### Changed
+- **Citations moved out of the repository text (DOC.98).** About 13,000 author-and-year citations and 2,500 DOI and arXiv numbers in the design documents, scripts, source code, data files, and tests became the citation ID of the source, in the numbered bracket style of NASA documents (`[R0123]`, several as `[R0123, R0456]`, a place in the source as `[R0123: Table 2]`). The author, year, journal, volume, and page appear only in `docs/reference/references-data.json` and `docs/REFERENCES.md`. `scripts/rewrite_citations.py` does the rewrite and reports what is left; `python scripts/build_references.py add <doi or arXiv number>` lists a new source and prints the ID to write. The data files and generated tables were rebuilt from the changed sources. Where two papers share a first author and year and nothing beside the mention chooses, both IDs are cited. Display and text only: no generation change, no schema change.
+- Unverifiable pasted DOIs in one imported research note were removed (Crossref does not know them, or knows a different paper).
+
 ## [8.0.3087] - 2026-11-01
 
 **Headline:** The References pages can link every citation to its entry, and a test now stops any new citation from being written outside the reference list.
