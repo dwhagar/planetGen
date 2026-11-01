@@ -2949,7 +2949,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.79 | Python and JS round half-way values differently (bug) | none | done, PR #843 |
 | UX.80 | Negative values that round to zero print "-0" (bug) | none | done, PR #843 |
 | UX.81 | Time symbols Gyr, Myr, kyr in place of Gy, My, ky; AU from 1,000,000 km; scientific text below mantissa 1e-3 | none | done, PR #1504 |
-| UX.82 | Theme checks after PR #800: SVG currentColor, two Shoelace contrast failures, alpha in --bg-subtle | none | open |
+| UX.82 | Theme checks after PR #800: SVG currentColor, two Shoelace contrast failures, alpha in --bg-subtle | none | done, PR #4708 |
 | UX.83 | Generation steps that run long show no progress bar of their own: linking new sectors to their neighbours, the phenomenon scatter and others (bug) | none | done, PR #895 |
 | UX.84 | Every sub-step must show a progress bar that starts by itself when it is predicted to take over 15 seconds (bug) | none | done, PR #930 |
 | UX.85 | Button menus open out of sight and make the user scroll to see them (bug) | none | done, PR #932 |

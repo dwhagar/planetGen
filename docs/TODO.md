@@ -363,16 +363,6 @@ with `clamp()`.
   "coplanar-merged edge set" outline text above no longer applies.
     Prerequisites: UX.47. Related: MAP.237.
 
-- [ ] **UX.82 Theme checks after PR #800: SVG currentColor, two Shoelace contrast failures, alpha in --bg-subtle**
-  Carry into UX.43 or a small follow-up: a check that every file under
-  `vendor/shoelace/assets` and `icons.svg` uses `currentColor`; recheck
-  the two light-theme Shoelace failures measured before #800 (primary
-  hover 4.23, placeholder 4.41, both below 4.5:1); `--bg-subtle` is
-  still a colour with alpha in the dark theme. UX.76's cause was
-  `a.btn:visited` out-specifying the secondary-button rules.
-  Prerequisites: none.
-  Design: [docs/design/interface/map-ui-and-frontend-libraries.md](design/interface/map-ui-and-frontend-libraries.md)
-
 - [ ] **UX.92 A Bookmark button for planets, moons and belts**
   Foundations lane 1 (2026-10-10, after NAV.8, PR #1095): bookmarks
   cover star systems only today. Add a Bookmark button on each body's
@@ -442,7 +432,7 @@ with `clamp()`.
   and the token files use the brief, a contrast test (the project
   checker) passes on both themes for every token pair, and nothing
   outside the shell changes shape yet.
-  Prerequisites: UX.130, UX.82. Related: UX.43.
+  Prerequisites: UX.130. Related: UX.43.
 
 - [ ] **UX.132 Console look for the shared components: buttons, tables, panels, status chips, icons and the maps' chrome**
   Split from UX.43 (2026-10-16, Boss 1:07 PM EDT: look at each item for
