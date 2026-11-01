@@ -2,6 +2,15 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3034] - 2026-11-01
+
+**Headline:** The update asks only the API address set in config.json whether the site answers, and never tries localhost on its own.
+
+### Fixed
+
+- **`update.sh` no longer tries `127.0.0.1` or `localhost` unless that is the configured API address (OPS.86).** The health check after the reload asked `http://127.0.0.1/api/health` (or `http://127.0.0.1:8000/api/health`) first and then the site's name pinned to 127.0.0.1 with `curl --resolve`. It now asks one address, `api_base_url` in `config.json` plus `/health` (`PLANETGEN_HEALTH_URL` still names another address for the check alone), and a failed check names that address and the setting it came from. The pin and the second probe are gone.
+- **`api_base_url` has no default any more.** It used to default to `http://127.0.0.1/api`. With none set, the update stops right after the Python library check, before the database is touched, with a plain message saying to set `api_base_url`; the HTTP client in `apiclient.py` refuses with the same message instead of connecting. A host whose API really is at 127.0.0.1 (the macOS gunicorn daemon) says so in `config.json`. Set `api_base_url` in your `config.json` before the next update. No generated output changes.
+
 ## [8.0.3033] - 2026-11-01
 
 **Headline:** The update shows a progress bar while it records the version key, so the quiet stretch after the migration is no longer a blank wait.
