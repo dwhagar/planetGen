@@ -25,9 +25,6 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | module | planetgen.galaxy.influence | GEN.342 | the influence set of an object, read by the acceleration kernel of the orbital update |
 | module | planetgen.galaxy.influence | GEN.105 | the influence set of an object, read by the orbital update run through the acceleration kernel |
 | module | planetgen.galaxy.acceleration | GEN.105 | the acceleration kernel (influence set plus galactic gradient) and the velocity kick, read by the orbital update run |
-| module | planetgen.galaxy.stepper | GEN.105 | the kick-drift-kick star stepper on arrays, read by the orbital update run in place of the turn about the pole |
-| row | 6.159:ST1 | GEN.105 | `stepper.STEP_ETA` and `STEP_CAP_MYR`, read when the orbital update run steps stars |
-| row | 6.159:ST2 | GEN.105 | `stepper.MAX_LEVEL`, read when the orbital update run steps stars |
 | row | 6.158:AK1 | GEN.105 | `acceleration.MEMBER_SOFTENING_PC`, read when the orbital update run calls the kernel |
 | module | planetgen.physics.body_positions | MAP.253 | where every body of a system is at a time, read by the scene and the maps once they read the parent chain |
 | module | planetgen.physics.light_travel | VIEW.1 | light-travel positions for the view from a planet |

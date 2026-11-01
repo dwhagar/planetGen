@@ -18,7 +18,7 @@ import pytest
 from planetgen.db import store
 from planetgen.galaxy import cellkey
 from planetgen.galaxy.frame import galaxy_to_local_pc
-from planetgen.galaxy.galactic_orbit import calculate_galactic_orbit
+from planetgen.galaxy.galactic_orbit import circular_orbit
 from planetgen.galaxy.sector import SpaceSector
 from planetgen.galaxy.spherical import sector_address_at, sector_position_pc
 from planetgen.generation.config import SystemConfig
@@ -72,6 +72,30 @@ def _just_short_of_a_face(near, direction):
 def _years_for(distance_pc, radius_pc, period_gy):
     """The years an orbit of `period_gy` takes to carry a point at `radius_pc` along `distance_pc` of its circle."""
     return distance_pc / radius_pc * period_gy * 1e9 / (2 * math.pi)
+
+
+MOVER_SPEED_KMS = 100.0
+"""float: The speed the rows of a test that sets its own velocity are given along the tangent: the stepper carries a row by the velocity it stores (GEN.340), not by
+a period written beside it."""
+
+
+def _period_gy_at_speed(radius_pc):
+    """The period, Gy, of a circle of `radius_pc` at `MOVER_SPEED_KMS`, so `_years_for` gives the years that speed takes to cover the distance."""
+    return 2 * math.pi * radius_pc * physical_constants.PARSEC_M / (MOVER_SPEED_KMS * 1000.0) / physical_constants.SECONDS_PER_YEAR / 1e9
+
+
+def _stored_galaxy_period_gy(mysql_config):
+    """`radius_pc -> period_gy` of a circle in the potential of the galaxy the database stores, which the stepper and the circular velocity of a new point go by."""
+    conn = store.get_connection(mysql_config)
+    try:
+        pot = store._galactic_potential(conn)
+    finally:
+        conn.close()
+    return lambda radius: circular_orbit(pot, pc_to_ly(radius))[1]
+
+
+def _tangent_velocity(point):
+    return tuple(MOVER_SPEED_KMS * c for c in _tangent(point))
 
 
 def _bits(value):
@@ -185,9 +209,12 @@ def test_a_system_that_steps_over_a_cube_face_gets_the_next_cubes_key(mysql_conf
         (cross_before, stay_before) = read()
         assert math.dist(cross_before[0], cross_start) < 1e-6 and math.dist(stay_before[0], stay_start) < 1e-6
         with conn:
-            conn.execute("UPDATE stars SET galactic_orbital_period_gy = 1.0")
+            for (_before, _key), start, row_id in zip((cross_before, stay_before), (cross_start, stay_start),
+                                                       [r["id"] for r in conn.execute("SELECT id FROM star_systems ORDER BY id").fetchall()]):
+                conn.execute("UPDATE star_systems SET velocity_x_kms = ?, velocity_y_kms = ?, velocity_z_kms = ? WHERE id = ?",
+                             (*_tangent_velocity(start), row_id))
             store.advance_galactic_positions(
-                conn, store.orbit_clock(conn, _years_for(STEP_PC, math.hypot(*cross_start[:2]), 1.0)))
+                conn, store.orbit_clock(conn, _years_for(STEP_PC, math.hypot(*cross_start[:2]), _period_gy_at_speed(math.hypot(*cross_start[:2])))))
         cross_after, stay_after = read()
     finally:
         conn.close()
@@ -208,9 +235,12 @@ def test_a_nebula_and_a_facility_that_step_over_a_cube_face_get_the_next_cubes_k
     def nebula(conn, point):
         body = Nebula(SystemConfig())
         body.galactic_orbital_period_gy = 1.0
-        return store.insert_nebula(conn, body, sector_id=sector_id, placement={
+        row_id = store.insert_nebula(conn, body, sector_id=sector_id, placement={
             "center_x_pc": point[0], "center_y_pc": point[1], "center_z_pc": point[2],
             "galactic_radius_pc": math.hypot(*point)})
+        conn.execute("UPDATE nebulae SET velocity_x_kms = ?, velocity_y_kms = ?, velocity_z_kms = ? WHERE id = ?",
+                     (*_tangent_velocity(point), row_id))
+        return row_id
 
     def facility(conn, point):
         row_id = store.add_facility(conn, "Drifter", "station", "standalone", "space", sector_id)
@@ -225,9 +255,8 @@ def test_a_nebula_and_a_facility_that_step_over_a_cube_face_get_the_next_cubes_k
             return (row["center_x_pc"], row["center_y_pc"], row["center_z_pc"]), row["cell_key"]
         return one
 
-    _moved_by_orbit(mysql_config, nebula, read("nebulae"), lambda radius: 1.0, center, "nebulae")
-    _moved_by_orbit(mysql_config, facility, read("facilities"),
-                    lambda radius: calculate_galactic_orbit(pc_to_ly(radius))[1], center, "facilities")
+    _moved_by_orbit(mysql_config, nebula, read("nebulae"), _period_gy_at_speed, center, "nebulae")
+    _moved_by_orbit(mysql_config, facility, read("facilities"), _stored_galaxy_period_gy(mysql_config), center, "facilities")
 
 
 def test_scatter_points_that_step_over_a_cube_face_get_the_next_cubes_key(mysql_config):
@@ -235,8 +264,7 @@ def test_scatter_points_that_step_over_a_cube_face_get_the_next_cubes_key(mysql_
     _seed_scatter_grid(mysql_config)
     near = (RADIUS_PC, 0.1, 0.1)
 
-    def period(radius):
-        return calculate_galactic_orbit(pc_to_ly(radius))[1]
+    period = _stored_galaxy_period_gy(mysql_config)
 
     def bright_star(conn, point):
         return _insert_scatter_point(conn, "bright_stars", point)

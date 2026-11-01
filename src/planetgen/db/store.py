@@ -62,6 +62,7 @@ import unicodedata
 from types import SimpleNamespace
 from collections import namedtuple
 
+import numpy as np
 import pymysql
 import pymysql.cursors
 import sqlalchemy.event
@@ -110,7 +111,8 @@ from planetgen.generation.star import Star, compressed_heliosphere_radius
 from planetgen.generation.phenomena.quasar import Quasar
 from planetgen.generation.phenomena.supernova_remnant import SupernovaRemnant
 from planetgen.generation.system import StarSystem
-from planetgen.galaxy.galactic_orbit import calculate_galactic_orbit
+from planetgen.galaxy import potential as galacticPotential, stepper as galacticStepper
+from planetgen.galaxy.galactic_orbit import calculate_galactic_orbit, circular_orbit
 from planetgen.galaxy.straight_line import straight_line_position_pc
 from planetgen.galaxy.system_position import galactic_velocity_ms, system_velocity_ms
 from planetgen.names.wordsalad import generate_phoneme_salad_name, generate_sector_name
@@ -5466,7 +5468,7 @@ def add_facility(conn, name, kind, placement, host_type, host_id, distance_km=No
         point = local_to_galaxy_pc(center, tuple(ly_to_pc(c) for c in offset_ly))
         placement_values = (*point, math.sqrt(sum(c * c for c in point)))
         # GEN.125: on the galaxy's rotation curve at its place.
-        speed_kms, _period_gy = calculate_galactic_orbit(pc_to_ly(detmath.hypot(point[0], point[1])))
+        speed_kms, _period_gy = circular_orbit(_galactic_potential(conn), pc_to_ly(detmath.hypot(point[0], point[1])))
         velocity_kms = tuple(v / 1000.0 for v in galactic_velocity_ms(point, speed_kms))
     elif offset_ly is not None:
         raise FacilityError("only a stand-alone facility has a position in space")
@@ -5570,6 +5572,30 @@ def _galactic_turn(elapsed_years, period_gy):
     return 2 * math.pi * math.fmod(elapsed_years, period_years) / period_years
 
 
+def _galactic_potential(conn):
+    """The `galaxy.potential.Potential` of the stored galaxy (its shape and seed), the one the stepper moves every orbiting object in: the fallback seed's
+    galaxy when none is stored."""
+    info = get_galaxy_shape(conn)
+    if info is None:
+        return galacticPotential.current()
+    return galacticPotential.for_galaxy(info.shape, info.galaxy_seed)
+
+
+def _step_galactic(pot, moves):
+    """
+    `(results, capped)` for `moves`, a list of `(point_pc, velocity_kms, elapsed_years)`: each `(point, velocity)` after the stepper has carried the object
+    through its elapsed time in the galaxy's potential `pot` (GEN.340, replacing the turn about the pole), in the order given, and how many objects needed more
+    steps than `stepper.MAX_LEVEL` allows (their answer is the best the cap allows). One call moves them all, each by its own elapsed time.
+    """
+    if not moves:
+        return [], 0
+    points = np.array([m[0] for m in moves], dtype=float)
+    velocities = np.array([m[1] for m in moves], dtype=float)
+    spans = np.array([m[2] for m in moves], dtype=float) / 1.0e6
+    new_points, new_velocities, capped = galacticStepper.advance(points, velocities, spans, pot)
+    return [(tuple(p), tuple(v)) for p, v in zip(new_points.tolist(), new_velocities.tolist())], int(capped.sum())
+
+
 class _SectorIndex:
     """Every placed grid sector by address, for refiling moved objects."""
 
@@ -5599,12 +5625,11 @@ def advance_galactic_positions(conn, clock, on_progress=None, budget=None):
     """
     Moves every due star system, standalone phenomenon, stand-alone
     facility and unbuilt scatter point (`advance_scatter_points`) along its galactic orbit, from its epoch to `clock.end_unix`:
-    a system by its close pair's or primary star's period (its stars'
-    `galactic_orbital_phase_deg` and a close pair's
-    `binary_galactic_orbital_phase_deg` advance with it, each by its own
-    period), a phenomenon by its own (its `galactic_orbital_phase_deg`
-    with it), a facility by the rotation curve at its radius
-    (`galactic_orbit.calculate_galactic_orbit`). Sectors are fixed cells,
+    the position and velocity it stores are carried through the elapsed time by the star stepper (`galaxy.stepper`, GEN.340: kick-drift-kick in the stored
+    galaxy's potential, `galaxy.potential`), one call for all the objects of a table, each by its own elapsed time, so an orbit is no longer held to a circle
+    in the plane. A hypervelocity star or an ejected remnant flies a straight line, and a facility in the plane (no vertical offset) is turned about the pole
+    by its period. The phase fields (a star's `galactic_orbital_phase_deg`, a close pair's `binary_galactic_orbital_phase_deg`, a phenomenon's) still advance by
+    the period of the circular orbit they were born with. Sectors are fixed cells,
     so an object that drifts into another generated sector is refiled
     there (`sector_id`, its sector-relative position, and later its
     octant, location text, containment and nearest systems -- see
@@ -5632,7 +5657,7 @@ def advance_galactic_positions(conn, clock, on_progress=None, budget=None):
     Returns:
         dict: `moved` (objects whose galaxy position moved) and `refiled`
             counts, `sectors` -- the ids of every sector something moved
-            in or out of -- and `counts`, `{name: rows_moved}`:
+            in or out of -- `step_capped` (objects that needed more steps than the stepper allows), and `counts`, `{name: rows_moved}`:
             `"star_systems"`, `"binary_galactic_orbits"`, each orbiting
             phenomenon table and `"space_facilities"`.
     """
@@ -5659,6 +5684,8 @@ def advance_galactic_positions(conn, clock, on_progress=None, budget=None):
     ).fetchall()
     scheduled, clocks, phases, updates, refile_updates = [], [], [], [], []
     close_pairs = 0
+    pot = _galactic_potential(conn)
+    stepping, finished, capped_total = [], [], 0      # (row, center, point, velocity, elapsed) to step; (row, center, point, velocity) already moved
     for row in systems:
         ballistic = row["runaway_class"] == "hypervelocity" and row["runaway_speed_kms"]
         epoch, interval, due = _due_interval_s(
@@ -5670,21 +5697,22 @@ def advance_galactic_positions(conn, clock, on_progress=None, budget=None):
         clocks.append((elapsed_years, clock.end_unix, clock.end_unix + interval, row["id"]))
         phases.append((elapsed_years, row["id"]))
         close_pairs += row["binary_configuration"] == "close"
-        angle = _galactic_turn(elapsed_years, row["period_gy"])
-        if ballistic:
-            angle = None  # not on an orbit: a straight line (GEN.137)
-        if angle == 0.0 or row["position_x_mpc"] is None or row["sector_id"] not in index.info:
+        if (row["position_x_mpc"] is None or row["sector_id"] not in index.info
+                or (not ballistic and (elapsed_years <= 0 or _speed_kms(row) is None))):
             continue
         _name, center = index.info[row["sector_id"]]
         offset = (row["position_x_mpc"] / 1000.0, row["position_y_mpc"] / 1000.0, row["position_z_mpc"] / 1000.0)
+        velocity = (row["velocity_x_kms"], row["velocity_y_kms"], row["velocity_z_kms"])
         if ballistic:
-            point = straight_line_position_pc(
-                local_to_galaxy_pc(center, offset), (row["velocity_x_kms"], row["velocity_y_kms"], row["velocity_z_kms"]),
-                clock.end_unix - epoch)
-            velocity = (row["velocity_x_kms"], row["velocity_y_kms"], row["velocity_z_kms"])
+            point = straight_line_position_pc(local_to_galaxy_pc(center, offset), velocity, clock.end_unix - epoch)
+            finished.append((row, point, velocity))      # not on an orbit: a straight line (GEN.137)
         else:
-            point = _rotate_about_axis(local_to_galaxy_pc(center, offset), angle)
-            velocity = _rotate_about_axis((row["velocity_x_kms"], row["velocity_y_kms"], row["velocity_z_kms"]), angle)
+            stepping.append((row, local_to_galaxy_pc(center, offset), velocity, elapsed_years))
+    stepped, capped = _step_galactic(pot, [(point, velocity, elapsed) for _row, point, velocity, elapsed in stepping])
+    capped_total += capped
+    for (row, _point, _velocity, _elapsed), (point, velocity) in zip(stepping, stepped):
+        finished.append((row, point, velocity))
+    for row, point, velocity in finished:
         sector_id = index.sector_at(point, row["sector_id"])
         local_mpc = tuple(c * 1000.0 for c in galaxy_to_local_pc(index.info[sector_id][1], point))
         quadrant, _magnitudes = classify_octant(local_mpc)
@@ -5732,6 +5760,7 @@ def advance_galactic_positions(conn, clock, on_progress=None, budget=None):
         # An anchored black hole or neutron star moves with its system's star row.
         anchored = " AND star_id IS NULL" if table in ("black_holes", "neutron_stars") else ""
         scheduled, clocks, updates, refile_updates = [], [], [], []
+        stepping, finished = [], []
         for row in conn.execute(
             f"SELECT id, sector_id, center_x_pc, center_y_pc, center_z_pc, galactic_orbital_period_gy,"
             f" velocity_x_kms, velocity_y_kms, velocity_z_kms, epoch_unix, next_update_due FROM {table}"
@@ -5748,16 +5777,18 @@ def advance_galactic_positions(conn, clock, on_progress=None, budget=None):
             # a straight line, like a hypervelocity star's (GEN.137). The galaxy's own black hole has no velocity.
             ballistic = (table in ("black_holes", "neutron_stars") and not row["galactic_orbital_period_gy"]
                          and bool(_speed_kms(row)))
-            angle = None if ballistic else _galactic_turn(elapsed_years, row["galactic_orbital_period_gy"])
-            if angle == 0.0 or row["center_x_pc"] is None or (elapsed_years <= 0 and ballistic):
+            if row["center_x_pc"] is None or elapsed_years <= 0 or (not ballistic and _speed_kms(row) is None):
                 continue
             velocity = (row["velocity_x_kms"], row["velocity_y_kms"], row["velocity_z_kms"])
+            point = (row["center_x_pc"], row["center_y_pc"], row["center_z_pc"])
             if ballistic:
-                point = straight_line_position_pc((row["center_x_pc"], row["center_y_pc"], row["center_z_pc"]), velocity,
-                                                  clock.end_unix - epoch)
+                finished.append((row, straight_line_position_pc(point, velocity, clock.end_unix - epoch), velocity))
             else:
-                point = _rotate_about_axis((row["center_x_pc"], row["center_y_pc"], row["center_z_pc"]), angle)
-                velocity = _rotate_about_axis(velocity, angle)
+                stepping.append((row, point, velocity, elapsed_years))
+        stepped, capped = _step_galactic(pot, [(point, velocity, elapsed) for _row, point, velocity, elapsed in stepping])
+        capped_total += capped
+        finished.extend((row, point, velocity) for (row, _p, _v, _e), (point, velocity) in zip(stepping, stepped))
+        for row, point, velocity in finished:
             radius = math.sqrt(sum(c * c for c in point))
             moved += 1
             sector_id = index.sector_at(point, row["sector_id"]) if row["sector_id"] is not None else None
@@ -5792,24 +5823,37 @@ def advance_galactic_positions(conn, clock, on_progress=None, budget=None):
         _report(on_progress, table, done, steps)
 
     scheduled, updates, refile_updates = [], [], []
+    stepping, finished = [], []
     for row in conn.execute(
         "SELECT id, sector_id, center_x_pc, center_y_pc, center_z_pc, galactic_radius_pc,"
         " velocity_x_kms, velocity_y_kms, velocity_z_kms, epoch_unix, next_update_due FROM facilities"
         " WHERE host_type = 'space' AND center_x_pc IS NOT NULL"
         " AND (next_update_due IS NULL OR next_update_due <= ?) ORDER BY next_update_due, id", (clock.end_unix,)
     ).fetchall():
-        speed_kms, period_gy = calculate_galactic_orbit(pc_to_ly(detmath.hypot(row["center_x_pc"], row["center_y_pc"])))
+        speed_kms, period_gy = circular_orbit(pot, pc_to_ly(detmath.hypot(row["center_x_pc"], row["center_y_pc"])))
         epoch, interval, due = _due_interval_s(row, clock, speed_kms, "galactic")
         if due > clock.end_unix or (budget is not None and not budget.take("space_facilities")):
             scheduled.append((epoch, due, row["id"]))
             continue
-        angle = _galactic_turn((clock.end_unix - epoch) / seconds_per_year, period_gy)
+        elapsed_years = (clock.end_unix - epoch) / seconds_per_year
         next_due = clock.end_unix + interval
-        if angle == 0.0:
+        point = (row["center_x_pc"], row["center_y_pc"], row["center_z_pc"])
+        velocity = (row["velocity_x_kms"], row["velocity_y_kms"], row["velocity_z_kms"])
+        if elapsed_years <= 0 or None in velocity:
             scheduled.append((clock.end_unix, next_due, row["id"]))
-            continue
-        point = _rotate_about_axis((row["center_x_pc"], row["center_y_pc"], row["center_z_pc"]), angle)
-        velocity = _rotate_about_axis((row["velocity_x_kms"], row["velocity_y_kms"], row["velocity_z_kms"]), angle)
+        elif row["center_z_pc"] == 0.0:
+            # A station in the plane stays on its circle (GEN.340: the closed-form turn is kept for a facility with no vertical offset).
+            angle = _galactic_turn(elapsed_years, period_gy)
+            if angle == 0.0:
+                scheduled.append((clock.end_unix, next_due, row["id"]))
+            else:
+                finished.append((row, _rotate_about_axis(point, angle), _rotate_about_axis(velocity, angle), next_due))
+        else:
+            stepping.append((row, point, velocity, elapsed_years, next_due))
+    stepped, capped = _step_galactic(pot, [(point, velocity, elapsed) for _row, point, velocity, elapsed, _due in stepping])
+    capped_total += capped
+    finished.extend((row, point, velocity, next_due) for (row, _p, _v, _e, next_due), (point, velocity) in zip(stepping, stepped))
+    for row, point, velocity, next_due in finished:
         moved += 1
         sector_id = index.sector_at(point, row["sector_id"])
         if sector_id != row["sector_id"]:
@@ -5834,7 +5878,7 @@ def advance_galactic_positions(conn, clock, on_progress=None, budget=None):
     _report(on_progress, "facilities", steps - len(SCATTER_MOTION_TABLES), steps)
 
     points = advance_scatter_points(conn, clock, on_progress, steps=(steps - len(SCATTER_MOTION_TABLES), steps),
-                                    budget=budget)
+                                    budget=budget, pot=pot)
     counts.update(points["counts"])
     moved += points["moved"]
     refiled += points["refiled"]
@@ -5842,7 +5886,8 @@ def advance_galactic_positions(conn, clock, on_progress=None, budget=None):
     touched.discard(None)
     for sector_id in touched:
         touch_sector(conn, sector_id)
-    return {"moved": moved, "refiled": refiled, "sectors": touched, "counts": counts}
+    return {"moved": moved, "refiled": refiled, "sectors": touched, "counts": counts,
+            "step_capped": capped_total + points["step_capped"]}
 
 
 SCATTER_MOTION_TABLES = ("bright_stars", "phenomenon_scatter")
@@ -5860,7 +5905,7 @@ _SCATTER_COLUMNS = {
 }
 
 
-def advance_scatter_points(conn, clock, on_progress=None, steps=(1, 1), budget=None):
+def advance_scatter_points(conn, clock, on_progress=None, steps=(1, 1), budget=None, pot=None):
     """
     Moves every due scatter point (`SCATTER_MOTION_TABLES`) along its galactic
     orbit from its epoch to `clock.end_unix`, the way `advance_galactic_positions`
@@ -5884,13 +5929,15 @@ def advance_scatter_points(conn, clock, on_progress=None, steps=(1, 1), budget=N
             counts, so the caller's bar continues.
         budget (RowBudget, optional): The run's row ceiling (PERF.103); a
             table over its limit moves its oldest-due points.
+        pot (Potential, optional): The galaxy's potential (`_galactic_potential`), when the caller has it; read from the database otherwise.
 
     Returns:
-        dict: `moved` and `refiled` counts, and `counts`, `{table: rows_moved}`.
+        dict: `moved` and `refiled` counts, `counts`, `{table: rows_moved}`, and `step_capped`, how many points needed more steps than the stepper allows.
     """
     shape = get_galaxy_shape(conn)
     edge_pc = shape.edge_pc if shape is not None else 0.0
-    moved = refiled = 0
+    moved = refiled = capped_total = 0
+    pot = _galactic_potential(conn) if pot is None else pot
     counts = {}
     seconds_per_year = _yr_to_s(1.0)
     done, total = steps
@@ -5902,9 +5949,10 @@ def advance_scatter_points(conn, clock, on_progress=None, steps=(1, 1), budget=N
             f" FROM {table} WHERE {_SCATTER_ROWS[table]}"
             f" AND (next_update_due IS NULL OR next_update_due <= ?) ORDER BY next_update_due, id",
             (clock.end_unix,)).fetchall()
+        stepping, finished = [], []
         for row in rows:
             point = (row["position_x_mpc"] / 1000.0, row["position_y_mpc"] / 1000.0, row["position_z_mpc"] / 1000.0)
-            speed_kms, period_gy = calculate_galactic_orbit(pc_to_ly(detmath.hypot(point[0], point[1])))
+            speed_kms, period_gy = circular_orbit(pot, pc_to_ly(detmath.hypot(point[0], point[1])))
             stored = None not in (row["velocity_x_kms"], row["velocity_y_kms"], row["velocity_z_kms"])
             velocity = ((row["velocity_x_kms"], row["velocity_y_kms"], row["velocity_z_kms"]) if stored
                         else tuple(c / 1000.0 for c in galactic_velocity_ms(point, speed_kms)))
@@ -5917,12 +5965,15 @@ def advance_scatter_points(conn, clock, on_progress=None, steps=(1, 1), budget=N
             next_due = clock.end_unix + interval
             elapsed_years = (clock.end_unix - epoch) / seconds_per_year
             if ballistic:
-                new_point = straight_line_position_pc(point, velocity, clock.end_unix - epoch)
-                new_velocity = velocity
+                finished.append((row, straight_line_position_pc(point, velocity, clock.end_unix - epoch), velocity, next_due))
+            elif elapsed_years > 0:
+                stepping.append((row, point, velocity, elapsed_years, next_due))
             else:
-                angle = _galactic_turn(elapsed_years, period_gy)
-                new_point = _rotate_about_axis(point, angle)
-                new_velocity = _rotate_about_axis(velocity, angle)
+                finished.append((row, point, velocity, next_due))
+        stepped, capped = _step_galactic(pot, [(point, velocity, elapsed) for _row, point, velocity, elapsed, _due in stepping])
+        capped_total += capped
+        finished.extend((row, point, velocity, next_due) for (row, _p, _v, _e, next_due), (point, velocity) in zip(stepping, stepped))
+        for row, new_point, new_velocity, next_due in finished:
             address = (row["shell_index"], row["band_index"], row["wedge_index"])
             if edge_pc > 0:
                 found = sector_address_at(new_point, edge_pc)
@@ -5942,7 +5993,7 @@ def advance_scatter_points(conn, clock, on_progress=None, steps=(1, 1), budget=N
         counts[table] = len(updates)
         done += 1
         _report(on_progress, table, done, total)
-    return {"moved": moved, "refiled": refiled, "counts": counts}
+    return {"moved": moved, "refiled": refiled, "counts": counts, "step_capped": capped_total}
 
 
 def _refile_nearest_rows(conn, table, moves):

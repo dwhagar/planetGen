@@ -107,3 +107,20 @@ def test_an_eccentric_orbit_keeps_its_energy_to_a_part_in_a_thousand_a_gyr():
     e0 = energy(x0, v0)
     x, v, capped = S.advance(x0, v0, 1000.0, pot)
     assert not capped.any() and abs(energy(x, v) - e0) / abs(e0) < 1e-3
+
+
+def test_each_star_of_a_batch_takes_its_own_span():
+    """The rows of an orbital update have each their own epoch: an array of spans moves every star as if it were stepped alone over its span."""
+    pot = _galaxy()
+    rng = np.random.default_rng(2)
+    x0 = rng.normal(0.0, 4000.0, (5, 3))
+    v0 = rng.normal(0.0, 120.0, (5, 3))
+    spans = np.array([0.0, 0.3, 7.0, 50.0, 400.0])
+    both, both_v, capped = S.advance(x0, v0, spans, pot)
+    assert not capped.any()
+    for i, span in enumerate(spans):
+        alone, alone_v, _ = S.advance(x0[i:i + 1], v0[i:i + 1], float(span), pot)
+        assert alone[0] == pytest.approx(both[i], abs=1e-9) and alone_v[0] == pytest.approx(both_v[i], abs=1e-12)
+    assert both[0] == pytest.approx(x0[0]) and both_v[0] == pytest.approx(v0[0])      # a span of 0 leaves the star where it is
+    with pytest.raises(ValueError):
+        S.advance(x0, v0, np.array([1.0, -1.0, 1.0, 1.0, 1.0]), pot)

@@ -73,7 +73,7 @@ def block_levels(wanted_myr, span_myr, max_level=MAX_LEVEL):
     whether the star needed more than `max_level` halvings (its level is then `max_level`).
     """
     wanted = np.asarray(wanted_myr, dtype=float)
-    ratio = np.maximum(span_myr / np.maximum(wanted, TINY), 1.0)
+    ratio = np.maximum(np.asarray(span_myr, dtype=float) / np.maximum(wanted, TINY), 1.0)
     levels = np.ceil(np.log2(ratio)).astype(int)
     capped = levels > max_level
     return np.minimum(levels, max_level), capped
@@ -81,12 +81,14 @@ def block_levels(wanted_myr, span_myr, max_level=MAX_LEVEL):
 
 def kdk(positions, velocities, step_myr_, pot, extra=None, time_myr=0.0):
     """
-    One kick-drift-kick step of `step_myr_` Myr for every star: half a kick, a drift, half a kick, with the pull of `pot` plus `extra(positions, velocities,
-    time_myr)` (a callable, or `None`). Returns new `(positions, velocities)` arrays; the inputs are not changed.
+    One kick-drift-kick step of `step_myr_` Myr for every star (one number, or one for each star): half a kick, a drift, half a kick, with the pull of `pot` plus
+    `extra(positions, velocities, time_myr)` (a callable, or `None`). Returns new `(positions, velocities)` arrays; the inputs are not changed.
     """
     positions = np.array(positions, dtype=float)
     velocities = np.array(velocities, dtype=float)
-    dt = step_myr_ * galactic.KMS_TO_PC_PER_MYR
+    dt = np.asarray(step_myr_, dtype=float) * galactic.KMS_TO_PC_PER_MYR
+    if dt.ndim:
+        dt = dt.reshape(-1, 1)
 
     def pull_at(x, v, t):
         a = _pull(pot, x)
@@ -100,24 +102,29 @@ def kdk(positions, velocities, step_myr_, pot, extra=None, time_myr=0.0):
 
 def advance(positions, velocities, span_myr, pot, extra=None, eta=STEP_ETA, cap_myr=STEP_CAP_MYR, max_level=MAX_LEVEL, time_myr=0.0):
     """
-    Moves every star `span_myr` Myr along its path: each star's steps are the block step its own timescale asks for (`step_myr`, `block_levels`), and the stars
-    of one level go through their steps together. Returns `(positions, velocities, capped)`, `capped` a boolean array for the stars whose step was held at
+    Moves every star `span_myr` Myr along its path (one span for all, or an array with one for each star: a row of the orbital update has its own epoch): each
+    star's steps are the block step its own timescale asks for (`step_myr`, `block_levels`), and the stars of one level go through their steps together, each
+    star's step its own span over the level's `2^k`. Returns `(positions, velocities, capped)`, `capped` a boolean array for the stars whose step was held at
     the cap `2^max_level` steps (their answer is the best the cap allows). A span of 0 returns the stars as they were.
     """
     positions = np.array(positions, dtype=float).reshape(-1, 3)
     velocities = np.array(velocities, dtype=float).reshape(-1, 3)
     capped = np.zeros(len(positions), dtype=bool)
-    if span_myr < 0.0:
+    spans = np.broadcast_to(np.asarray(span_myr, dtype=float), (len(positions),))
+    if np.any(spans < 0.0):
         raise ValueError("the span must not be negative")
-    if span_myr == 0.0 or not len(positions):
+    if not len(positions) or not np.any(spans > 0.0):
         return positions, velocities, capped
     wanted = step_myr(positions, velocities, pot, eta, cap_myr)
-    levels, capped = block_levels(wanted, span_myr, max_level)
+    levels, capped = block_levels(wanted, spans, max_level)
+    capped &= spans > 0.0
     # `wanted` is no more than the cap, so no step is longer than the cap.
     for level in np.unique(levels):
-        picked = np.flatnonzero(levels == level)
+        picked = np.flatnonzero((levels == level) & (spans > 0.0))
+        if not len(picked):
+            continue
         count = 2 ** int(level)
-        step = span_myr / count
+        step = spans[picked] / count
         x, v = positions[picked], velocities[picked]
         for n in range(count):
             x, v = kdk(x, v, step, pot, extra, time_myr + n * step)

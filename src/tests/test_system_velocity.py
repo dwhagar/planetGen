@@ -9,7 +9,7 @@ import random
 import pytest
 
 from planetgen.db import store
-from planetgen.galaxy import spherical
+from planetgen.galaxy import potential as galactic_potential, spherical
 from planetgen.galaxy.sector import SpaceSector
 from planetgen.galaxy.system_position import galactic_velocity_ms, peculiar_velocity_ms, random_unit_vector
 from planetgen.generation import run_sector
@@ -123,18 +123,27 @@ def test_the_galactic_orbit_update_turns_the_velocity_with_the_position(mysql_co
             row = conn.execute("SELECT velocity_x_kms, velocity_y_kms, velocity_z_kms FROM star_systems").fetchone()
             return (row["velocity_x_kms"], row["velocity_y_kms"], row["velocity_z_kms"])
 
+        def place():
+            row = conn.execute("SELECT galaxy_x_pc, galaxy_y_pc, galaxy_z_pc FROM star_systems").fetchone()
+            return (row["galaxy_x_pc"], row["galaxy_y_pc"], row["galaxy_z_pc"])
+
         with conn:  # a bound star: only a hypervelocity star flies straight (GEN.137)
             conn.execute("UPDATE star_systems SET runaway_class = NULL, runaway_speed_kms = NULL")
-        start = velocity()
+        start, start_place = velocity(), place()
         period_gy = conn.execute(
             "SELECT s.galactic_orbital_period_gy AS p FROM stars s JOIN star_systems ss ON ss.id = s.star_system_id"
             " WHERE s.role IN ('single', 'primary')").fetchone()["p"]
         store.advance_galactic_positions(conn, store.orbit_clock(conn, period_gy * 1e9 / 4.0))
-        turned = velocity()
-        assert _norm(turned) == pytest.approx(_norm(start), rel=1e-9)
-        assert turned[2] == pytest.approx(start[2], rel=1e-9)  # the axis is unchanged
-        assert turned[0] == pytest.approx(-start[1], rel=1e-6, abs=1e-6)  # a quarter turn counterclockwise
-        assert turned[1] == pytest.approx(start[0], rel=1e-6, abs=1e-6)
+        turned, end_place = velocity(), place()
+        # The stepper (GEN.340) carries the star through the galaxy's potential, not a turn about the pole: the vector and the position change together and the
+        # energy per unit mass, half the speed squared plus the potential, is the same at the end (to a part in a thousand over a quarter of the circular period).
+        assert turned != pytest.approx(start, abs=1e-6) and end_place != pytest.approx(start_place, abs=1e-6)
+        pot = store._galactic_potential(conn)
+
+        def energy(position, vel):
+            return 0.5 * _norm(vel) ** 2 + galactic_potential.potential(pot, *position)
+
+        assert energy(end_place, turned) == pytest.approx(energy(start_place, start), rel=1e-3)
         assert store.load_sector(conn, sector_id).entries[0].spatial.get_velocity_vector("galactic") == pytest.approx(
             tuple(v * 1000.0 for v in turned), rel=1e-6, abs=1e-3)
     finally:
