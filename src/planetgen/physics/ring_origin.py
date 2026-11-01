@@ -19,7 +19,7 @@ history: a ring exists when something came apart inside the planet's Roche limit
 **How long a ring lasts (GEN.1171).** Two losses act on a ring together, and the heavier the ring the faster the first and the lighter the ring the faster the second.
 *Viscous spreading* ([R0920], recalled): a dense ring's viscosity grows with its surface density `Sigma`, so the time `r^2 / nu` falls as the ring gets denser, `tau = RING_SPREAD_TIME_YR (r / r_S)^2 (Sigma_S / Sigma)`
 against Saturn's rings (`r` the Roche edge, `Sigma_S` the surface density of `SATURN_RING_MASS_KG` over Saturn's annulus), and the mass that spreads past the Roche limit is gone (it feeds moons or falls on the planet).
-*Meteoroid erosion* (Cuzzi and Estrada 1998, recalled): the mass flux on the ring, `METEOROID_FLUX_KG_M2_S` at Saturn's rings, scales with the distance from the star as `(9.58 AU / a)^METEOROID_FLUX_EXPONENT` and with the gravitational focusing at the ring
+*Meteoroid erosion* ([R5001], recalled): the mass flux on the ring, `METEOROID_FLUX_KG_M2_S` at Saturn's rings, scales with the distance from the star as `(9.58 AU / a)^METEOROID_FLUX_EXPONENT` and with the gravitational focusing at the ring
 (the same encounter speed as the comets), and takes away `EROSION_YIELD` times the impactor's mass over the annulus area. The mass obeys `dM/dt = -k M^2 - B`, which has the closed form used by `spread`, so a ring of 1e13 kg lives some 1e5 years and Saturn's of 1.5e19 kg most of the age of the
 Solar System. The ring that results is the sum of the rings of every event, each spread for the time since it came to be, capped at `rings.MAX_MASS_OVER_PLANET` of the planet; it exists above
 `MIN_RING_MASS_KG`, its origin is that of the event that holds most of it, and its age that event's. The Roche limit is `rings.roche_limit_km` for the ring's own material.
@@ -47,10 +47,10 @@ SATURN_RING_MASS_KG = 1.54e19
 RING_INNER_RADII = 1.24
 """float: The inner edge of a ring in planet radii (the C ring of Saturn begins at 1.24; the D ring at 1.11). Source tier T3, tweak level L0."""
 METEOROID_FLUX_KG_M2_S = 1.0e-16
-"""float: The meteoroid mass that falls on Saturn's rings, kg per square metre per second, with the focusing of Saturn's gravity (Cuzzi and Estrada 1998 give 1e-17 g per square cm per second, recalled; the Cassini dust analyser
+"""float: The meteoroid mass that falls on Saturn's rings, kg per square metre per second, with the focusing of Saturn's gravity ([R5001] give 1e-17 g per square cm per second, recalled; the Cassini dust analyser
 measures the same order). Source tier T3, tweak level L0."""
 METEOROID_FLUX_EXPONENT = 1.5
-"""float: How the interplanetary meteoroid flux falls with the distance from the star, `(a_S / a)^exponent` (the dust flux of the outer Solar System falls faster than the first power of the distance, Poppe 2016, recalled). Source tier T6, tweak level L1."""
+"""float: How the interplanetary meteoroid flux falls with the distance from the star, `(a_S / a)^exponent` (the dust flux of the outer Solar System falls faster than the first power of the distance, [R5000], recalled). Source tier T6, tweak level L1."""
 EROSION_YIELD = 1.0
 """float: The ring mass an impactor takes away, in impactor masses (the ejecta of a hypervelocity impact on ice are tens to thousands of impactor masses, most of which falls back; 1 is the least). Source tier T4, tweak level L3."""
 COMET_PASSAGES_PER_GYR = 0.02

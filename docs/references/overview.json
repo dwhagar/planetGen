@@ -6,17 +6,17 @@
   "papers": {
     "books": 31,
     "datasets": 25,
-    "entries": 4951,
+    "entries": 4953,
     "with_arxiv": 1457,
-    "with_doi": 4738,
+    "with_doi": 4740,
     "without_doi": 213
   },
   "stand_ins": {
     "by_tier": {
-      "T1": 171,
+      "T1": 172,
       "T2": 155,
       "T3": 137,
-      "T4": 84,
+      "T4": 85,
       "T5": 66,
       "T6": 249,
       "T7": 65,
@@ -25,12 +25,12 @@
     },
     "by_tweak": {
       "L0": 590,
-      "L1": 227,
+      "L1": 228,
       "L2": 52,
-      "L3": 143,
+      "L3": 144,
       "L4": 32
     },
-    "rows": 1044
+    "rows": 1046
   },
   "tiers": [
     [
@@ -117,15 +117,15 @@
     },
     "fitted_to_a_result": {
       "percent": 22,
-      "rows": 227
+      "rows": 228
     },
     "read_from_a_source": {
       "percent": 31,
-      "rows": 326
+      "rows": 327
     },
     "unverified": {
       "percent": 21,
-      "rows": 221
+      "rows": 222
     }
   }
 }

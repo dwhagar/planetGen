@@ -53,7 +53,7 @@ def test_a_ring_loses_mass_by_spreading_and_by_meteoroid_erosion_and_never_gains
 
 
 def test_saturns_rings_lose_about_two_thirds_of_their_mass_in_the_age_of_the_solar_system():
-    """GEN.1171: the spreading time of `RING_SPREAD_TIME_YR` at Saturn's own ring mass, with the erosion of Cuzzi and Estrada's meteoroid flux added."""
+    """GEN.1171: the spreading time of `RING_SPREAD_TIME_YR` at Saturn's own ring mass, with the erosion of [R5001]'s meteoroid flux added."""
     left = ring_origin.spread(ring_origin.SATURN_RING_MASS_KG, AGE, SATURN)
     assert 0.2 < left / ring_origin.SATURN_RING_MASS_KG < 0.45
     flux = ring_origin.meteoroid_flux_kg_m2_s(SATURN)
