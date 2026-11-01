@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3038] - 2026-11-01
+
+**Headline:** The health check now says why the site is in maintenance mode.
+
+### Fixed
+- **`/api/health` left the reason for maintenance empty when the switch had none of its own.** The `maintenance` block now carries the line visitors see (the standard message when none was given), plus `eta` and `since`; existing fields are unchanged.
+
 ## [8.0.3037] - 2026-11-01
 
 **Headline:** update.sh now builds only what the Apache reload and the health check need before the reload, then runs the full cache warm-up afterwards and stays up, with a progress bar, until it finishes.
