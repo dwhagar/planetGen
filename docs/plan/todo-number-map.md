@@ -3763,9 +3763,9 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.539 | test_accreting_compact_binaries: the black-widow and redback spider cases fail on main (post-common-envelope against detached) (bug) | none | done, PR #4616 |
 | TEST.540 | test_orbit_elements: an eccentric planet is as warm as a circular one, and a moon gets the light of its parent's orbit, both fail on main (bug) | none | done, PR #4618 |
 | TEST.541 | Four star tests fail on clean main: the population model, the hot white dwarf classes O5VII and B0VII, and the forced subdwarf (bug) | none | open |
-| TEST.542 | The life sweep expects 20 class letters and the rules give 19, since GEN.1135 retired Class Q (bug) | none | open |
+| TEST.542 | The life sweep expects 20 class letters and the rules give 19, since GEN.1135 retired Class Q (bug) | none | done, PR #4677 |
 | TEST.543 | The atmosphere sweep audit reads planetgen.physics.ozone.STRUCTURE_RANGE, which is now STRUCTURE_KNOTS, so three sweep tests fail (bug) | none | open |
-| TEST.544 | The class sweep finds five rocky bodies classed T, a gas class, so the totality test fails (bug) | none | open |
+| TEST.544 | The class sweep finds five rocky bodies classed T, a gas class, so the totality test fails (bug) | none | done, PR #4677 |
 | TEST.545 | The table sweep raises temperature must be positive for small-body-taxa/asteroid-field at 0 K, and two rows are never reached (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
