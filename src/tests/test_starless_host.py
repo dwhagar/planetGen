@@ -58,3 +58,46 @@ def test_the_formation_distance_the_loss_gives_is_the_one_the_planet_keeps():
     with draw.bound("starless-host-formation"):
         planet = starless_host.build_ejected_planet(system.system_config, donor, 4.0, 2.0 * EARTH_KG, formation_au=6.0, moon_count=0)
     assert planet.formation_distance_au == pytest.approx(6.0)
+
+
+# --- the moons a thrown-out body keeps (RP4) -------------------------------------------------------------------------------------------
+
+def _thrown(**over):
+    from planetgen.physics.planet_architecture import Loss
+    fields = dict(kind="thrown", count=1, mass_kg=300.0 * EARTH_KG, core_kg=10.0 * EARTH_KG, distance_au=5.0, formation_au=5.0, time_yr=1e7,
+                  perturber_au=3.0, perturber_mass_kg=3000.0 * EARTH_KG, theta=8.0, hill_radius_au=0.35, ice_rich=True, ejected=1.0,
+                  collided=0.0, bound=0.0)
+    fields.update(over)
+    return Loss(**fields)
+
+
+def test_the_moon_limit_is_never_wider_than_the_zone_the_moons_had_before_the_ejection():
+    from planetgen.physics import clearance_ledger
+    loss = _thrown()
+    window = loss.hill_radius_au * constants.AU_TO_KM * clearance_ledger.moon_hill_fraction(0.0)[0]
+    for u in (0.0, 0.1, 0.5, 0.9, 1.0):
+        limit = starless_host.ejected_moon_limit_km(loss, loss.mass_kg, 1.99e30, u)
+        assert 0.0 < limit <= window * (1 + 1e-12)
+
+
+def test_a_closer_encounter_leaves_a_narrower_moon_system():
+    loss = _thrown()
+    limits = [starless_host.ejected_moon_limit_km(loss, loss.mass_kg, 1.99e30, u) for u in (0.05, 0.3, 0.6, 0.95)]
+    assert limits == sorted(limits) and limits[0] < limits[-1]
+
+
+def test_the_limit_is_the_survival_distance_of_the_closest_approach_drawn():
+    from planetgen.physics import rogue_moons
+    loss = _thrown()
+    mass = loss.mass_kg
+    mutual = rogue_moons.mutual_hill_radius_m(5.0 * constants.AU_TO_M, 3.0 * constants.AU_TO_M, mass, loss.perturber_mass_kg, 1.99e30)
+    r_min_m = rogue_moons.closest_approach_hill(0.2) * mutual
+    expected_km = rogue_moons.survival_distance_m(r_min_m, mass, loss.perturber_mass_kg) / 1000.0
+    window_km = loss.hill_radius_au * constants.AU_TO_KM * 0.4895
+    got = starless_host.ejected_moon_limit_km(loss, mass, 1.99e30, 0.2)
+    assert got == pytest.approx(min(expected_km, window_km), rel=1e-3)
+
+
+def test_a_loss_with_no_scatterer_has_no_moon_limit():
+    with pytest.raises(ValueError):
+        starless_host.ejected_moon_limit_km(_thrown(kind="swept", perturber_au=None, perturber_mass_kg=None), 1e25, 1.99e30, 0.5)
