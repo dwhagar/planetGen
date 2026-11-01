@@ -19092,46 +19092,6 @@ clears each one.
   Prerequisites: GEN.1111.
   Design: [docs/design/research/rogue-planet-review.md](design/research/rogue-planet-review.md)
 
-- [ ] **TEST.520 Extend the wiring guard to stored columns and shadow functions, and wire, show or drop every column only the Details sheet reads**
-  Boss, 12:03 PM EDT 2026-10-31: make sure everything built is wired in
-  and read; no more building something and not using it. Filed by the
-  TODO thread after a sweep (report
-  /mnt/project-files/reports/wiring-sweep-2026-10-31.md). The guard of
-  GEN.754 already proves that no module, dataset, data file or registry
-  row is left unread without an open item. It does not see two things.
-  (1) A stored column that is written and read by nothing but the
-  generic Details sheet (describe/sheet.py): 207 candidate columns of
-  planets, moons, stars, star systems, rogue planets, belts, fields and
-  comets are listed in the report; many are read by other physics
-  modules, so each needs a look. (2) A public function of a reachable
-  module that only tests call (a shadow function). Do: add two kinds to
-  scripts/wiring_guard.py, `column` (a column of a generated table that
-  no file outside the schema, models, column units, store, storage
-  checksum, checks and the generic sheet mentions, counting physics
-  modules that read it) and `function` (a public function of a module of
-  physics, generation or galaxy whose only callers are tests), register
-  today's findings in wiring-register.md with the open item that will
-  read them (or `by design`), and let tests/test_wiring_guard.py fail on
-  a new one. Then go through the register's new column lines and, for
-  each, file or name the item that shows it on a page or reads it
-  downstream, or file a drop item (no unused column stays stored).
-  Lock-free (scripts, tests, docs); the drops and the wiring that
-  changes stored output ride trains. Owner Core 1 (proposed; it asked
-  for a lock-free item while GEN.1138 waits for a window).
-  Merged as #4513 (Core 1); owners assigned by the TODO thread
-  (2026-10-31 1:55 PM EDT): columns: 207 candidates, 7 unread
-  (binary_epoch_unix and binary_next_update_due by design; cluster_id
-  GEN.359; dynamical_state GEN.291; formed_at and origin_event_id
-  GEN.346; host_node_id GEN.332), none dropped. Functions: 157 shadow
-  functions in 90 modules, split among seven lanes as TEST.521 for Core
-  1, TEST.522 for Core 3, TEST.523 for Star 2, TEST.524 for Aux 4,
-  TEST.525 for Aux 3, TEST.526 for Tides 1, TEST.527 for Bug 1. This
-  item stays open until none of its register lines names TEST.520 (the
-  guard fails on a line whose item is closed). Rule for every lane: a
-  public function that only tests call needs a register line in the same
-  change, like a module.
-  Prerequisites: none.
-
 - [ ] **TEST.548 Two phenomenon-scatter count tests fail on main: remnant counts moved past 1.5 times the model (bug)**
   The full-suite thread (as the lane reported, 10:36 PM EDT 2026-10-31,
   run on main 7eef24a) re-ran these alone, so they are real:
@@ -20840,6 +20800,26 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   plain-words guide and docs/design/interface/references.md. No author,
   year, journal, DOI or arXiv number outside the registry, REFERENCES.md
   and the References pages.
+
+- [ ] **DOC.101 Imported research notes: about 140 web-page, standards and fan-wiki lines in 8 notes have no home in the reference registry**
+  Found by Citations (2026-11-01 12:59 AM EDT as the lane reported)
+  while turning the imported notes' bibliographies into [R....] IDs
+  (#4738). About 140 lines in 8 imported notes are not papers: web
+  pages, standards (NFPA and similar), vendor documents (DuPont, Celery)
+  and fan-wiki pages (Memory Alpha). The registry
+  (docs/reference/references-data.json) has no kind for them, and the
+  lock test now fails on APA-form lines in Markdown. Decide per line:
+  (a) real standards and datasheets that a number rests on: add a web or
+  standard kind to the registry with its stable identifier and check
+  date, cite as [R....]; (b) lines that are fiction or game material
+  (Memory Alpha and similar): remove, since nothing fixed may come from
+  fiction (Boss rule: physics drives, no fixed Milky Way or Solar System
+  content, no game rates); (c) anything else nobody can open: remove, as
+  for unverifiable papers. Done: no APA-form line left in the 8 notes,
+  the registry and the References page show any new kind, the removed
+  lines are listed in a report. Owner: Citations. Lock-free.
+  Related: DOC.97, DOC.98.
+  Prerequisites: none.
 
 ## POP: Population and politics
 

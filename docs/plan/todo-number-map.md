@@ -25,7 +25,7 @@ release is stamped.
 | TEST | TEST.553 |
 | USR | USR.32 |
 | OPS | OPS.94 |
-| DOC | DOC.101 |
+| DOC | DOC.102 |
 | VIEW | VIEW.19 |
 | POP | POP.46 |
 
@@ -772,6 +772,7 @@ Parents marked "new parent" had no old number of their own.
 | DOC.98 | Citations live only in the central registry and references.md: move them out of every other page, design document and code comment | none | open |
 | DOC.99 | Test lock: a citation written outside the registry and references.md fails the gate | none | open |
 | DOC.100 | A stable citation ID for every paper in the registry, shown in the registry, docs/REFERENCES.md and the Papers page | none | done, PR #4648 |
+| DOC.101 | Imported research notes: about 140 web-page, standards and fan-wiki lines in 8 notes have no home in the reference registry | none | open |
 | GEN.1 | Real-world rates for interstellar objects | 5 (2026-09-30 18:14Z to 23:21Z) | done in 7.18.0, PR #136 |
 | GEN.2 | Rogue planet mass bins | 6 (2026-09-30 18:14Z to 23:21Z) | done in 7.18.0, PR #136 |
 | GEN.3 | A supermassive black hole in every galaxy | 7 (2026-09-30 18:14Z to 22:54Z) | done in 7.15.0, PR #132 |
@@ -3751,7 +3752,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.517 | test_class_pages_show_the_constants is red on main: the brown dwarf mass range text on the class page differs from the test (bug) | none | done, PR #4458 |
 | TEST.518 | test_a_body_with_a_stored_day_turns_at_the_shared_rate_and_a_tilted_one_turns_backwards fails in a whole-file run of test_web_browser_bodyview.py but passes alone (timing sensitive) (bug) | none | done, PR #4465 |
 | TEST.519 | tests/test_web_a11y.py::test_page_is_accessible_and_fits[web.galaxy-*] fails the axe rule scrollable-region-focusable on .map-key-lines (all four size and theme runs) on clean main (bug) | none | done, PR #4531 |
-| TEST.520 | Extend the wiring guard to stored columns and shadow functions, and wire, show or drop every column only the Details sheet reads | none | open |
+| TEST.520 | Extend the wiring guard to stored columns and shadow functions, and wire, show or drop every column only the Details sheet reads | none | done, PR #4738 |
 | TEST.521 | Wire, register or delete the 27 pure functions nothing calls in 13 modules (Core 1's share of the TEST.520 shadow functions) | none | done, PR #4545 |
 | TEST.522 | Wire, register or delete the 29 pure functions nothing calls in 21 modules (Core 3's share of the TEST.520 shadow functions) | none | done, PR #4528 |
 | TEST.523 | Wire, register or delete the 17 pure functions nothing calls in 12 modules (Star 2's share of the TEST.520 shadow functions) | none | done, PR #4519 |
