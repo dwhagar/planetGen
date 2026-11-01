@@ -2281,3 +2281,16 @@ Baseline: PR #1817.
 | DOC.100 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | DOC.57 | 8.6 | Help framework |
 | DOC.6 | 8.7 | Help section |
+| UX.256 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| OPS.85 | 8.2 | Robust tile caching |
+| OPS.87 | 8.2 | Robust tile caching |
+| OPS.86 | 8.2 | Robust tile caching |
+| OPS.88 | 8.2 | Robust tile caching |
+| OPS.89 | 8.2 | Robust tile caching |
+| ADM.135 | 8.9 | Remote generation |
+| TEST.544 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.542 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| OPS.90 | 8.2 | Robust tile caching |
+| OPS.91 | 8.2 | Robust tile caching |
+| OPS.92 | 8.2 | Robust tile caching |
+| OPS.93 | 8.2 | Robust tile caching |

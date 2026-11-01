@@ -258,8 +258,15 @@ def _remove(path):
 # --- The job: the warm-up's cluster-field stage ----------------------------------------------------------------------
 
 def _connect(database):
+    """A connection to `database`: its name (this host's settings), or a `store.MySQLConfig` (a run's named host, port, user)."""
     from planetgen.db import store
-    return store.get_connection(store.MySQLConfig(database=database), ensure_schema=False)
+    config = database if isinstance(database, store.MySQLConfig) else store.MySQLConfig(database=database)
+    return store.get_connection(config, ensure_schema=False)
+
+
+def _name_of(database):
+    """The database's name, whether `database` is a name or a `store.MySQLConfig`."""
+    return getattr(database, "database", database)
 
 
 def _ages_in(conn):
@@ -342,7 +349,7 @@ def conclude_field(params, plan, results, seconds):
     started = time.monotonic()
     field = assemble(plan["signature"], tuple(dataclasses.replace(c, id=None) for c in found), float(shape["edge_pc"]),
                      float(shape["expected_system_count_at_density_1"]))
-    activity_log.event("GEN", "warm.cluster_field", db=params["database"], components=len(field), parts=plan["parts"],
+    activity_log.event("GEN", "warm.cluster_field", db=_name_of(params["database"]), components=len(field), parts=plan["parts"],
                        seconds=round(seconds + time.monotonic() - started, 1))
     return {"components": len(field), "parts": plan["parts"]}
 
@@ -357,3 +364,29 @@ def warm_inline(database):
         built, cached = built + result["built"], cached + result["cached"]
     conclude_field({"database": database}, plan.plan, [], 0.0)
     return built, cached
+
+
+def ensure_file(database):
+    """
+    Makes sure the galaxy's cluster field is a file before the workers of a generation run need it, so that the process
+    that cuts the stage builds it once and every worker reads the file, instead of each worker building it for itself (a
+    minute and several hundred megabytes in each, ten workers at a time). The warm-up that normally makes the file
+    refuses to run while a generation run is live, and a new or re-planned galaxy has no file, so without this the first
+    stage of every run met a missing file in every worker.
+
+    Args:
+        database: The database's name, or a `store.MySQLConfig` (`wrapper.database_args`).
+
+    Returns:
+        tuple | None: `(parts worked out, parts that were there)` when the file was made here, `None` when it was already
+            there or the galaxy has no field to make.
+    """
+    from planetgen.db import store
+    conn = _connect(database)
+    try:
+        key = store.component_field_key(conn)
+    finally:
+        conn.close()
+    if key is None or is_published(signature(key)):
+        return None
+    return warm_inline(database)

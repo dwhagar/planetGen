@@ -152,8 +152,8 @@ sudo ${EDITOR:-nano} config.json
 At minimum set:
 
 - `mysql.host`, `mysql.user`, `mysql.password`, `mysql.database`;
-- `secret_key` to a long random string:
-  `python3 -c "import secrets; print(secrets.token_hex(32))"`;
+- `secret_key` is optional: left empty, the update makes one and keeps it in the
+  state folder (`secret_key`, mode 0600);
 - `site_name` and `base_url` for your site;
 - `proxy_fix` when a separate web server proxies to the app (nginx,
   Caddy, macOS): `{"x_for": 1, "x_proto": 1, "x_host": 0}`

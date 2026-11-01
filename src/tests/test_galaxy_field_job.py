@@ -311,3 +311,50 @@ def test_a_galaxy_without_components_has_nothing_to_make(mysql_config):
     plan = field_job.expand_field({"database": mysql_config.database})
     assert plan.plan == {"state": "empty"} and "no field" in field_job.field_unit(plan.units[0][0], None)["line"]
     assert field_job.conclude_field({"database": mysql_config.database}, plan.plan, [], 0.0) == {}
+
+
+def _plan_a_galaxy(mysql_config):
+    from planetgen.galaxy.density import build_galaxy_shape
+    import math
+    shape = build_galaxy_shape(disk_scale_length_pc=2600.0, disk_scale_height_pc=300.0, bulge_scale_radius_pc=1580.0,
+                               bulge_amplitude=3.11, arm_count=2, pitch_angle_rad=math.radians(15), arm_amplitude=0.4)
+    store.save_galaxy_shape(shape, edge_pc=EDGE, outer_shell_index=1500, expected_system_count_at_density_1=E1,
+                            config=mysql_config, galaxy_seed=bytes(range(16)))
+    conn = store.get_connection(mysql_config)
+    try:
+        store.replace_galaxy_components(conn, list(_many()))
+        conn.commit()
+        return field_job.signature(store.component_field_key(conn))
+    finally:
+        conn.close()
+
+
+def test_ensure_file_makes_the_field_once_for_every_worker_and_leaves_a_file_alone(mysql_config):
+    sig = _plan_a_galaxy(mysql_config)
+    assert not field_job.is_published(sig)
+    assert field_job.ensure_file(mysql_config) == (3, 0) and field_job.is_published(sig)       # made here, by the config's host
+    assert field_job.ensure_file(mysql_config) is None                                         # already a file: nothing to do
+    assert field_job.ensure_file(mysql_config.database) is None                                 # a database name works too
+
+
+def test_ensure_file_has_nothing_to_make_for_a_galaxy_without_clusters(mysql_config):
+    assert field_job.ensure_file(mysql_config) is None
+
+
+def test_a_stage_whose_workers_read_the_shape_gets_the_field_made_before_it_is_cut(monkeypatch):
+    from planetgen.queue import wrapper
+    made = []
+    monkeypatch.setattr(field_job, "ensure_file", lambda config: made.append(config.database))
+    named = {"host": "h", "port": 3306, "user": "u", "database": "galaxy_db"}
+    wrapper._ensure_cluster_field({"database": named})
+    assert made == ["galaxy_db"]
+    wrapper._ensure_cluster_field({})                                                           # a command with no database
+    assert made == ["galaxy_db"]
+    monkeypatch.setattr(field_job, "ensure_file", lambda config: (_ for _ in ()).throw(RuntimeError("no room")))
+    wrapper._ensure_cluster_field({"database": named})                                          # best effort: the stage goes on
+
+
+def test_only_the_stages_whose_workers_warm_the_shape_ask_for_the_field():
+    warming = {kind for kind, spec in commands.REGISTRY.items() if spec.warm is not None}
+    assert {"scatter-mass", "scatter-luminosity", "scatter-phenomena"} <= warming
+    assert "plan-skeleton" not in warming

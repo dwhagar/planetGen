@@ -247,13 +247,17 @@ ensure_apache_modules() {
 # the new code's: another virtual host owns the address, no listener on the https port; the caller warns and opens the
 # site, since the database migration has finished by then).
 reload_web_if_running() {
-    local acted=0 failed=0 unhealthy=0 unit="" verb=reload check=""
+    local acted=0 failed=0 unhealthy=0 unit="" verb=reload check="" health_url="" health_from=""
+    # The one address every health check asks: config.json's api_base_url (or PLANETGEN_HEALTH_URL). No loopback default.
+    resolve_api_health || return 1
+    health_url="$API_HEALTH_URL"
+    health_from="$API_HEALTH_FROM"
     if is_macos; then
         if launchctl print "system/$GUNICORN_LABEL" >/dev/null 2>&1; then
             if launchctl kill SIGHUP "system/$GUNICORN_LABEL" >/dev/null 2>&1; then
                 echo "reloaded gunicorn."
                 acted=1
-                wait_for_health "${PLANETGEN_HEALTH_URL:-http://127.0.0.1:8000/api/health}" gunicorn || unhealthy=1
+                wait_for_health "$health_url" gunicorn "$health_from" || unhealthy=1
             else
                 echo "warning: launchctl kill SIGHUP system/$GUNICORN_LABEL failed." >&2
                 failed=1
@@ -273,7 +277,7 @@ reload_web_if_running() {
                 failed=1
             elif systemctl "$verb" "$unit" >/dev/null 2>&1; then
                 echo "${verb}ed Apache."
-                wait_for_health "${PLANETGEN_HEALTH_URL:-http://127.0.0.1/api/health}" Apache "${PLANETGEN_HEALTH_URL:-$(site_health_target)}" || unhealthy=1
+                wait_for_health "$health_url" Apache "$health_from" || unhealthy=1
             else
                 echo "warning: systemctl $verb $unit failed." >&2
                 failed=1
@@ -283,7 +287,7 @@ reload_web_if_running() {
             acted=1
             if systemctl reload planetgen-gunicorn >/dev/null 2>&1; then
                 echo "reloaded gunicorn."
-                wait_for_health "${PLANETGEN_HEALTH_URL:-http://127.0.0.1:8000/api/health}" gunicorn || unhealthy=1
+                wait_for_health "$health_url" gunicorn "$health_from" || unhealthy=1
             else
                 echo "warning: systemctl reload planetgen-gunicorn failed." >&2
                 failed=1
@@ -322,21 +326,28 @@ apache_configtest() {
     return 0
 }
 
-# The site's own /api/health address, for a host whose Apache answers the bare loopback address with some other site
-# (OPS.77: a default or redirecting virtual host that refuses /api/health with a 403 while the site's own name answers):
-# config.json's base_url with /api/health added, then the two curl --resolve values (name:80:127.0.0.1 and name:443:127.0.0.1)
-# that point the site's name at this machine, so the check reaches this Apache whatever DNS says and follows a redirect to https. Prints nothing when base_url
-# names this machine already (localhost, a loopback address) or cannot be read.
-site_health_target() {
-    "${PYTHON:-python3}" -c '
-from urllib.parse import urlsplit
-from planetgen.util.settings import get_settings
-parts = urlsplit(get_settings().base_url)
-host = parts.hostname or ""
-if host and host not in ("localhost", "127.0.0.1", "::1"):
-    http, https = (parts.port, parts.port) if parts.port else (80, 443)
-    print(f"{parts.scheme}://{parts.netloc}{parts.path.rstrip(chr(47))}/api/health {host}:{http}:127.0.0.1 {host}:{https}:127.0.0.1")
-' 2>/dev/null || true
+# The one address the update asks whether the site answers (OPS.86): config.json's `api_base_url` (the API's /api mount,
+# `PLANETGEN_API_BASE_URL` in the environment) with /health added, or PLANETGEN_HEALTH_URL when that is given. There is no
+# loopback default and no second address to try: a host whose API is at 127.0.0.1 says so in config.json. Sets
+# API_HEALTH_URL and API_HEALTH_FROM (the setting the address came from, named in every message about it) and returns 0;
+# with no address configured it says so in plain words on stderr and returns 1, changing nothing.
+resolve_api_health() {
+    API_HEALTH_URL="" API_HEALTH_FROM=""
+    if [[ -n "${PLANETGEN_HEALTH_URL:-}" ]]; then
+        API_HEALTH_URL="$PLANETGEN_HEALTH_URL" API_HEALTH_FROM="PLANETGEN_HEALTH_URL"
+        return 0
+    fi
+    local base=""
+    base="$("${PYTHON:-python3}" -c 'from planetgen.util.settings import get_settings; print(get_settings().api_base_url)' 2>/dev/null)" || base=""
+    base="${base%/}"
+    if [[ -z "$base" ]]; then
+        echo "error: no API address is configured: set api_base_url in config.json (for example \"https://your-site/api\", the address Apache serves the API at;" >&2
+        echo "  PLANETGEN_API_BASE_URL in the environment does the same), or PLANETGEN_HEALTH_URL for the health check alone." >&2
+        echo "  The update asks only that address whether the site answers and never tries 127.0.0.1 or localhost unless it is the one configured." >&2
+        return 1
+    fi
+    API_HEALTH_URL="$base/health" API_HEALTH_FROM="api_base_url in config.json"
+    return 0
 }
 
 # What curl's exit status says when it got no HTTP answer at all (the "HTTP 000" in a warning), in plain words.
@@ -354,22 +365,17 @@ curl_failure_words() {
     esac
 }
 
-# Waits up to HEALTH_WAIT_SECONDS for $1 (an address) to answer below 400, naming $2 in the warning; true without curl.
-# $3, when given, is the site's own address and its two curl --resolve values (site_health_target), tried each round when $1
-# does not answer below 400: it passes on a 2xx answer, so a host whose bare loopback address belongs to another virtual
-# host (OPS.77) is checked through the site's own name. A passing answer by that route is said so. The site's own address
-# is pointed at this machine, so what is checked is this Apache and not DNS, NAT or the certificate (-k: a name the
-# certificate does not cover, or one that has lapsed, is not a reason to call the new code unhealthy).
-# /api/health stays open while the site is closed for the update (OPS.75), so a reload is checked while the update's
-# own maintenance mode is still on; a closed site is said so (and why), on success and in the warning alike.
-# Returns 0 when it answers, 1 when it never did.
+# Waits up to HEALTH_WAIT_SECONDS for $1 (an address) to answer below 400, naming $2 in the warning and $3 as the setting
+# the address came from (OPS.86). It asks that one address and no other. A passing answer while the site is closed for the
+# update says so (and why), on success and in the warning alike: /api/health stays open while the site is closed
+# (OPS.75), so a reload is checked while the update's own maintenance mode is still on.
+# Returns 0 when it answers, 1 when it never did (or without curl, 0).
 wait_for_health() {
     command -v curl >/dev/null 2>&1 || return 0
     # The reload has just restarted the workers: they get HEALTH_SETTLE_SECONDS (default 10) to start before the first probe.
-    echo "Giving the workers ${HEALTH_SETTLE_SECONDS:-10} seconds to start, then asking $1 for /api/health (up to ${HEALTH_WAIT_SECONDS:-20} seconds):"
+    echo "Giving the workers ${HEALTH_SETTLE_SECONDS:-10} seconds to start, then asking $1 (${3:-its setting}) for /api/health (up to ${HEALTH_WAIT_SECONDS:-20} seconds):"
     sleep "${HEALTH_SETTLE_SECONDS:-10}"
-    local end=$(( SECONDS + ${HEALTH_WAIT_SECONDS:-20} )) reply code body rc site_url="" resolve_http="" resolve_https="" site_code="" site_rc=0 site_note=""
-    if [[ -n "${3:-}" ]]; then read -r site_url resolve_http resolve_https <<<"$3"; fi
+    local end=$(( SECONDS + ${HEALTH_WAIT_SECONDS:-20} )) reply code body rc
     while :; do
         rc=0
         reply="$(curl -s --max-time 5 -w '\n%{http_code}' "$1" 2>/dev/null)" || rc=$?
@@ -379,24 +385,10 @@ wait_for_health() {
             health_maintenance_note "$body"
             return 0
         fi
-        if [[ -n "$site_url" ]]; then
-            site_rc=0
-            reply="$(curl -skL --max-time 8 --resolve "$resolve_http" --resolve "$resolve_https" -w '\n%{http_code}' "$site_url" 2>/dev/null)" || site_rc=$?
-            site_code="${reply##*$'\n'}"
-            body="${reply%$'\n'*}"
-            if [[ "$site_code" =~ ^2 ]]; then
-                echo "note: $1 answered HTTP ${code:-000} (that address reaches another site on this machine); the site answers at $site_url."
-                health_maintenance_note "$body"
-                return 0
-            fi
-            site_note=" The site's own address $site_url answered HTTP ${site_code:-000}"
-            [[ "${site_code:-000}" == 000 ]] && site_note+=" (no HTTP answer at all: $(curl_failure_words "$site_rc"))"
-            site_note+="."
-        fi
         if (( SECONDS >= end )); then
             local bare_note=""
             [[ "${code:-000}" == 000 ]] && bare_note=" (no HTTP answer at all: $(curl_failure_words "$rc"))"
-            echo "warning: the health check of $2 failed: $1 answered HTTP ${code:-000}${bare_note} for ${HEALTH_WAIT_SECONDS:-20} seconds after the reload.${site_note}$(health_maintenance_note "$body" brief)" >&2
+            echo "warning: the health check of $2 failed: $1 (${3:-its setting}) answered HTTP ${code:-000}${bare_note} for ${HEALTH_WAIT_SECONDS:-20} seconds after the reload. Only that address was asked; check ${3:-the setting} if it is not where the site is served.$(health_maintenance_note "$body" brief)" >&2
             return 1
         fi
         (( SECONDS % 5 == 0 )) && echo "  no good answer yet (HTTP ${code:-000}); asking again, $(( end - SECONDS )) s left"
@@ -667,24 +659,18 @@ finish_update_guard() {
     fi
 }
 
-# Builds the site's caches (MAP.134, PERF.104, PERF.127): the Galaxy Map's opening view,
-# the lists, every sector, system and phenomenon page (up to the warm-up cap)
-# and the search, as Apache's user (the caches belong to it). It starts as soon as
-# the code, the database, the permissions and Redis are in place (Boss, 10-30 EDT),
-# in the background, and `wait_for_warm_opening` holds the update until its first
-# phase (the opening views and the first page of each list) is built, before the
-# reload and the /api/health check; the other phases go on after the update ends.
-# `planetgen warm` builds the list of the warm-* commands (one per family) and
-# hands it to the wrapper, which runs them in order on the Redis queue and prints
-# one line per family; the update's own commands pass the update guard. At most
-# 30 minutes; the output goes to $WARM_MAP_LOG. Never fails the update: the first
-# visit builds what the warm-up did not.
-warm_galaxy_map() {
-    local user="" runner=()
+# Builds the site's caches (MAP.134, PERF.104, PERF.127) in two stages (Boss, 11-01 EDT), as Apache's user (the caches
+# belong to it), in the foreground with a progress bar (`planetgen warm --progress`; the update's own commands pass the
+# update guard). Stage 1, `opening` (the galaxy's cluster field, the object index, the opening views and the first page
+# of each list), is just what the Apache reload and the /api/health check need and runs BEFORE the reload, so the reload
+# cannot interrupt it; it starts no other phase. Stage 2, the full warm-up (the opening phase is already stored), runs
+# AFTER the reload and the health check, and update.sh stays up showing its bar until it ends. Args: the stage's
+# name, then what `planetgen warm` is asked to build (nothing: every phase). At most 30 minutes; the output also goes to
+# $WARM_MAP_LOG. A stage that fails only warns: the first visit builds what it did not.
+run_warm_stage() {
+    local name="$1" user="" runner=() limit=() status=0
+    shift
     WARM_MAP_LOG="${WARM_MAP_LOG:-/tmp/planetgen-warm-map.log}"
-    WARM_OPENING_FILE="${WARM_OPENING_FILE:-/tmp/planetgen-warm-opening.$$}"
-    WARM_PID=""
-    rm -f "$WARM_OPENING_FILE"
     if [[ -r "$SCRIPT_DIR/examples/apache/apache-identity.sh" ]]; then
         # shellcheck source=../examples/apache/apache-identity.sh
         source "$SCRIPT_DIR/examples/apache/apache-identity.sh"
@@ -695,39 +681,17 @@ warm_galaxy_map() {
     elif [[ -n "$user" ]] && id "$user" >/dev/null 2>&1 && is_macos; then
         runner=(sudo -u "$user" --)
     fi
-    local limit=()
     if command -v timeout >/dev/null 2>&1; then
         limit=(timeout 1800)
     fi
-    WARM_PID="$(cd / && nohup ${runner[@]+"${runner[@]}"} ${limit[@]+"${limit[@]}"} "$PYTHON" -m planetgen.cli.generate warm \
-        --opening-done "$WARM_OPENING_FILE" >"$WARM_MAP_LOG" 2>&1 </dev/null & echo $!)" || WARM_PID=""
-    echo "Building the site's caches in the background (log: $WARM_MAP_LOG)."
-}
-
-# Waits (at most WARM_OPENING_WAIT_SECONDS, default 1200) until the warm-up's opening phase is built, or the warm-up
-# ends, whichever comes first, so the reload and the health check come after the data the site opens with exists.
-# Says what happened and never fails the update.
-wait_for_warm_opening() {
-    [[ -n "${WARM_PID:-}" ]] || return 0
-    local end=$(( SECONDS + ${WARM_OPENING_WAIT_SECONDS:-1200} )) next=$(( SECONDS + 30 )) last
-    echo "Waiting for the cache warm-up's opening phase (the opening views and the first page of each list) before reloading the site, at most $(( ${WARM_OPENING_WAIT_SECONDS:-1200} / 60 )) minutes:"
-    while [[ ! -e "$WARM_OPENING_FILE" ]]; do
-        if ! kill -0 "$WARM_PID" 2>/dev/null; then
-            [[ -e "$WARM_OPENING_FILE" ]] || echo "warning: the cache warm-up ended before its opening phase was reported (see $WARM_MAP_LOG); the site is reloaded anyway." >&2
-            return 0
-        fi
-        if (( SECONDS >= end )); then
-            echo "warning: the cache warm-up's opening phase was not built in ${WARM_OPENING_WAIT_SECONDS:-1200} seconds; the site is reloaded anyway, the warm-up goes on." >&2
-            return 0
-        fi
-        if (( SECONDS >= next )); then
-            last="$(tail -n 1 "$WARM_MAP_LOG" 2>/dev/null | cut -c1-110)"
-            echo "  still building, $(( end - SECONDS )) s left at most${last:+; last line of the warm-up log: $last}"
-            next=$(( SECONDS + 30 ))
-        fi
-        sleep 1
-    done
-    echo "The opening phase is built; the rest of the warm-up goes on after the update."
+    echo "Building the site's caches, $name (log: $WARM_MAP_LOG):"
+    (cd / && ${runner[@]+"${runner[@]}"} ${limit[@]+"${limit[@]}"} "$PYTHON" -m planetgen.cli.generate warm "$@" --progress \
+        </dev/null 2>&1) | tee "$WARM_MAP_LOG"
+    status=${PIPESTATUS[0]}
+    if (( status != 0 )); then
+        echo "warning: the cache warm-up ($name) did not finish (see $WARM_MAP_LOG); the first visit builds what it did not." >&2
+    fi
+    return 0
 }
 
 # Tells the admin when an update changed an example config they copied
@@ -755,6 +719,22 @@ note_changed_example_configs() {
 # site runs under, as Apache's own user when that user exists, so a
 # library that's installed but unreadable to www-data (or the checkout's
 # own code failing to import) shows up here rather than as a 500.
+set_secret_key() {
+    local user="" runner=()
+    if [[ -r "$SCRIPT_DIR/examples/apache/apache-identity.sh" ]]; then
+        # shellcheck source=../examples/apache/apache-identity.sh
+        source "$SCRIPT_DIR/examples/apache/apache-identity.sh"
+        user="$(detect_apache_group 2>/dev/null | awk '{print $1}')"
+    fi
+    if [[ -n "$user" ]] && id "$user" >/dev/null 2>&1 && command -v runuser >/dev/null 2>&1; then
+        runner=(runuser -u "$user" --)
+    elif [[ -n "$user" ]] && id "$user" >/dev/null 2>&1 && is_macos; then
+        runner=(sudo -u "$user" --)
+    fi
+    (cd / && ${runner[@]+"${runner[@]}"} "$PYTHON" -m planetgen.util.secret_key) \
+        || log_warning "the secret key could not be set (see above); the web app falls back to a random key per process."
+}
+
 check_app_imports() {
     local user="" runner=()
     if [[ -r "$SCRIPT_DIR/examples/apache/apache-identity.sh" ]]; then
@@ -824,6 +804,7 @@ migrate_or_reset_db() {
 # control database's history (OPS.13; the last 10 are kept), after the
 # schemas are current. A failure only warns: the update carries on.
 record_version_key() {
+    echo "Recording the version key (it runs the generator's fixed test cases once to fingerprint the code: 5 seconds to a minute):"
     run_cli version_history || echo "warning: could not record the version key (see above); the update carries on." >&2
 }
 

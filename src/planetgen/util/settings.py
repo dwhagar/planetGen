@@ -768,12 +768,25 @@ class Settings(_Section):
                              "fragment or password)")
         return value if value.endswith("/") else value + "/"
 
-    api_base_url: str = opt("http://127.0.0.1/api", "Base URL of the Flask API's /api mount point, used by "
-                            "web/lib/apiclient.py only outside the Flask app.", env="PLANETGEN_API_BASE_URL",
+    api_base_url: str = opt("", "Base URL of the Flask API's /api mount point (for example https://example.org/api). "
+                            "The update asks it whether the site answers, and web/lib/apiclient.py calls it outside "
+                            "the Flask app. There is no default: nothing guesses a loopback address, so it must be "
+                            "set for either to work.", env="PLANETGEN_API_BASE_URL",
                             restart=True, editable=False, group="paths",
                             label="API address",
-                            summary="Where the API lives, for scripts that call it from outside the "
-                                    "web app.")
+                            summary="Where the API lives; the update's health check asks it. No default.")
+
+    @field_validator("api_base_url")
+    @classmethod
+    def _api_base_url(cls, value):
+        if not value:
+            return value
+        parts = urlsplit(value)
+        if parts.scheme not in ("http", "https") or not parts.netloc or parts.query or parts.fragment \
+                or parts.username or parts.password:
+            raise ValueError("must be empty or an absolute http or https address such as https://example.org/api "
+                             "(no query, fragment or password)")
+        return value.rstrip("/")
     debug: bool = opt(False, "Debug mode: every decision the generator makes, every "
                       "random roll, every SQL statement, queue event and request, written to the console of each "
                       "planetgen command (stdout) and to log_file. The output is large.", env="PLANETGEN_DEBUG",
@@ -846,12 +859,12 @@ class Settings(_Section):
                                       label="Admin login over plain HTTP",
                                       summary="Only for local development without TLS; never turn "
                                               "it on in production.")
-    secret_key: str = opt("", "Signs the CSRF tokens on the pages' forms. Empty makes a random one at startup (a "
-                          "form open across a restart then fails once).", env="PLANETGEN_SECRET_KEY", restart=True,
+    secret_key: str = opt("", "Signs the CSRF tokens on the pages' forms. Empty makes one and keeps it in the state folder "
+                          "(mode 0600), so every worker and restart shares it.", env="PLANETGEN_SECRET_KEY", restart=True,
                           secret=True, editable=False, group="security",
                           label="Form signing key",
-                          summary="Signs the security tokens on forms; empty makes a random one at "
-                                  "each start.")
+                          summary="Signs the security tokens on forms; empty makes one and keeps it in "
+                                  "the state folder.")
     password_hash: PasswordHash = PasswordHash()
     proxy_fix: ProxyFix = ProxyFix()
     cache: Cache = Cache()

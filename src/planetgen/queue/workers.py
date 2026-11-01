@@ -61,15 +61,20 @@ HOST_MEMORY_SHARE = 0.6
 """float: The share of the host's memory the workers may take at most; the rest is for MySQL, Redis and the web server."""
 
 BULK_WORKER_MEMORY_MB = 1700
-"""int: What one worker takes at most in any stage that is not a sector stage (PERF.226): a worker of the bulk queue holds the
-sampling tables of every star population from the moment it starts (`cli/worker.warm`, PERF.42), so a unit of any stage, the
-smallest included, runs in a pair of worker and horse of that size. Measured on a populated database, the worker's and its horse's
-memory together (`units.peak_resident_mb`, shared pages counted once): 1,456 to 1,564 MB for a link, a settle and a map-luminosity
-fill; the kernel killed the run of 2026-10-31 (36 workers, 16,285 MB on a 15,992 MB host, MySQL first at 3:22 AM EDT) with the
-scatters sized by a guess of 300 MB."""
+"""int: What one worker takes at most in a stage that draws stars from the sampling tables but is not a sector stage (PERF.226): the
+scatters. Such a worker holds the tables of every star population (about 1.4 GB with the datasets they read), and a worker and its
+horse measured 1,456 to 1,564 MB together (`units.peak_resident_mb`, shared pages counted once) before the tables moved out of the
+workers of the other stages. The kernel killed the run of 2026-10-31 (36 workers, 16,285 MB on a 15,992 MB host, MySQL first at
+3:22 AM EDT) with the scatters sized by a guess of 300 MB."""
+
+LEAN_WORKER_MEMORY_MB = 700
+"""int: What one worker takes at most in a stage that draws no star (PERF.226): a worker starts without the sampling tables
+(`cli/worker.warm`) and starts over to shed them before such a unit. Measured on a populated database, the worker and its horse
+together: 601 MB for a link, 588 for a settle, 552 for a habitability re-score and 540 for a map-luminosity fill (1,456 to 1,564 MB
+while every worker held the tables), 700 MB with the margin."""
 
 SCATTER_WORKER_MEMORY_MB = BULK_WORKER_MEMORY_MB
-"""int: What one worker takes at most while it scatters stars (PERF.220, PERF.226): a bulk worker's (`BULK_WORKER_MEMORY_MB`)."""
+"""int: What one worker takes at most while it scatters stars (PERF.220, PERF.226): a table worker's (`BULK_WORKER_MEMORY_MB`)."""
 
 SECTOR_WORKER_MEMORY_MB = 2600
 """int: What one worker takes at most while it generates sectors (PERF.226). Measured on a populated database (a galaxy of one
@@ -80,18 +85,19 @@ worker beside it), and a count by that figure let 10 workers in where 5 fit a 16
 STAGE_MEMORY_SHARE = 0.5
 """float: The share of the host's memory a stage's workers may take (less than `HOST_MEMORY_SHARE`): MySQL's buffer pool, Redis,
 the web server and the kernel keep the rest, so a stage that grows past its figure is slowed, not killed. 50 percent of a 16 GB
-host in 1,700 MB workers is 4, in 2,600 MB ones 3."""
+host in 700 MB workers is 11, in 1,700 MB ones 4, in 2,600 MB ones 3."""
 
 STAGE_WORKER_MEMORY_MB = {
     "scatter-mass": SCATTER_WORKER_MEMORY_MB, "scatter-luminosity": SCATTER_WORKER_MEMORY_MB,
     "scatter-backfill": SCATTER_WORKER_MEMORY_MB, "scatter-band": SCATTER_WORKER_MEMORY_MB,
     "generate-start-sector": SECTOR_WORKER_MEMORY_MB, "generate-neighborhood": SECTOR_WORKER_MEMORY_MB,
     "generate-sectors": SECTOR_WORKER_MEMORY_MB, "generate-unplaced-sector": SECTOR_WORKER_MEMORY_MB,
-    "scatter-phenomena": BULK_WORKER_MEMORY_MB, "fill-map-luminosity": BULK_WORKER_MEMORY_MB,
-    "rescore-habitability": BULK_WORKER_MEMORY_MB, "draw-nebula-field": BULK_WORKER_MEMORY_MB,
-    "link-neighbours": BULK_WORKER_MEMORY_MB, "settle-sector-paths": BULK_WORKER_MEMORY_MB,
-    "warm-galaxy-nodes": BULK_WORKER_MEMORY_MB, "warm-galaxy-deep-nodes": BULK_WORKER_MEMORY_MB,
-    "warm-sectors": BULK_WORKER_MEMORY_MB, "warm-systems": BULK_WORKER_MEMORY_MB, "warm-phenomena": BULK_WORKER_MEMORY_MB,
+    "scatter-phenomena": LEAN_WORKER_MEMORY_MB, "fill-map-luminosity": LEAN_WORKER_MEMORY_MB,
+    "rescore-habitability": LEAN_WORKER_MEMORY_MB, "draw-nebula-field": LEAN_WORKER_MEMORY_MB,
+    "link-neighbours": LEAN_WORKER_MEMORY_MB, "settle-sector-paths": LEAN_WORKER_MEMORY_MB,
+    "warm-galaxy-nodes": LEAN_WORKER_MEMORY_MB, "warm-galaxy-deep-nodes": LEAN_WORKER_MEMORY_MB,
+    "warm-sectors": LEAN_WORKER_MEMORY_MB, "warm-systems": LEAN_WORKER_MEMORY_MB, "warm-phenomena": LEAN_WORKER_MEMORY_MB,
+    "warm-cluster-field": BULK_WORKER_MEMORY_MB,        # not measured yet (PERF.225 cuts it into parts): the larger figure
 }
 """dict: The command kinds of the stages with units, and what one worker takes at most in MB (`stage_worker_cap`). Every other
 command is one unit by nature (`CommandSpec.whole`) or inline, so one worker and nothing to limit."""

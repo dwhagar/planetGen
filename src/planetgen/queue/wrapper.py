@@ -110,6 +110,24 @@ def queued(steps):
     return [step for step in steps if not commands.spec(step.kind).inline]
 
 
+def _ensure_cluster_field(params):
+    """
+    Before a stage whose workers read the galaxy's shape (`CommandSpec.warm`) is cut: makes the cluster field a file in the
+    state folder (`galaxy.field_job.ensure_file`) so every worker reads it instead of building it again. Best effort: when
+    it cannot be made here, the workers build it themselves, as before.
+    """
+    named = params.get("database")
+    if not isinstance(named, dict):
+        return
+    try:
+        from planetgen.db import store
+        from planetgen.galaxy import field_job
+        field_job.ensure_file(store.MySQLConfig(host=named["host"], port=named["port"], user=named["user"],
+                                                database=named["database"]))
+    except Exception as exc:  # noqa: BLE001 -- the workers meet the same problem themselves
+        log.warning(f"The cluster field could not be made ahead of the stage: {exc}")
+
+
 def _expand(conn, run_id, index):
     """
     Cuts stage `index` of the run into its units, records the cut, begins the stage and queues the units. The
@@ -128,6 +146,8 @@ def _expand(conn, run_id, index):
     if _is_referred_to(runrecord.read_steps(conn, run_id), key):
         runrecord.set_opened_clock(conn, run_id, index, _database_clock(step.params))
     params = resolve_params(conn, run_id, step.params)
+    if commands.spec(step.kind).warm is not None:       # its workers read the galaxy's shape first thing: make the field once
+        _ensure_cluster_field(params)
     prepare = commands.prepare_function(step.kind)
     if prepare is not None:
         prepare(params)
@@ -550,6 +570,22 @@ def waiting_text(holder, position):
     return f"Waiting at position {position} for run {holder}"
 
 
+def report_wait_for(conn, holder, position):
+    """`report_wait`, and under it who holds the machine (`runrecord.busy_message`: title, start, process), saying so
+    when the holder is a run this very job started, so a wait on a stale blocker can be told from a real queue."""
+    report_wait(holder, position)
+    if holder is None:
+        return
+    log.normal(runrecord.busy_message(conn, holder))
+    job = os.environ.get(JOB_ENV)
+    if job and _s(conn.hget(runrecord.run_key(holder), "job")) == job:
+        log.normal(f"Run {holder} belongs to this same job: it is not another job's run.")
+
+
+def _s(value):
+    return value.decode("utf-8") if isinstance(value, bytes) else value
+
+
 def report_wait(holder, position):
     """
     `runline.start_when_free`'s `on_wait`: shows that this run waits, where its bar is read (the Generate page's
@@ -647,9 +683,10 @@ def run(title, steps, on_plan, on_result, on_progress=None, workers_count=None, 
         kind=kind, disregard_missing_data=fetch.disregarding_missing_data(), debug=debug,
         job=os.environ.get(JOB_ENV) or None, galaxy_seed=galaxy_seed, build=build, finishes=finishes)
     if kind == runrecord.GENERATION:
-        run_id = runline.start_when_free(conn, start, get_settings().queue.wait_minutes * 60, on_wait=report_wait,
+        run_id = runline.start_when_free(conn, start, get_settings().queue.wait_minutes * 60,
+                                         on_wait=lambda holder, position: report_wait_for(conn, holder, position),
                                          title=title, who=who, database=database,
-                                         admitted=bool(os.environ.get(JOB_ENV)))
+                                         admitted=bool(os.environ.get(JOB_ENV)), nested_guard=True)
     else:
         run_id = start()
     ensures = [stage_ensure(conn, url, kind, step.kind, workers_count) for step in steps]

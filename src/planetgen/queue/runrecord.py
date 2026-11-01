@@ -302,7 +302,7 @@ def start_run(conn, title, stages, run_id=None, who=None, database=None, argv=No
     if not conn.set(active_key(kind), run_id, nx=True):
         if not (_free_dead_holder(conn, kind) and conn.set(active_key(kind), run_id, nx=True)):
             conn.delete(alive_key(run_id))
-            raise Busy(f"run {active_run(conn, kind)} is running")
+            raise Busy(busy_message(conn, active_run(conn, kind)))
     declared = [asdict(stage) for stage in stages]
     for stage in declared:
         stage["cost"] = float(stage["units"] if stage["cost"] is None else stage["cost"])
@@ -323,6 +323,31 @@ def start_run(conn, title, stages, run_id=None, who=None, database=None, argv=No
     pipe.execute()
     log(conn, run_id, f"run started: {title}", kind="run.start", now=now)
     return run_id
+
+
+def busy_message(conn, run_id):
+    """
+    What a refusal says about the run that holds the machine: `run <id> is running` and, from its record, what it is
+    (title, kind, when it started) and who follows it, so the real blocker is named instead of an id alone.
+    """
+    if not run_id:
+        return "another run is running"
+    record = {_s(k): _s(v) for k, v in (conn.hgetall(run_key(run_id)) or {}).items()}
+    if not record:
+        return f"run {run_id} is running"
+    started = record.get("started") or ""
+    try:
+        started = time.strftime("%Y-%m-%d %H:%M:%S UTC", time.gmtime(float(started)))
+    except ValueError:
+        started = "at an unknown time"
+    return (f"run {run_id} is running ({record.get('title') or 'untitled'}, {record.get('kind') or GENERATION} kind, "
+            f"started {started}, followed by {record.get('owner') or 'an unknown process'})")
+
+
+def followed_here(conn, run_id):
+    """Whether this very process follows the run `run_id` (a run started inside another run of the same process can
+    only wait for itself)."""
+    return (_s(conn.hget(run_key(run_id), "owner")) or "") == _owner() and not holder_is_dead(conn, run_id)
 
 
 def _owner():

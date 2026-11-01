@@ -1070,26 +1070,6 @@ with `clamp()`.
   waiting). Version 8.1.
   Prerequisites: none. Related: MAP.210.
 
-- [ ] **UX.256 Cancelling a job from its job page returns to the page the visitor came from, or the jobs page (bug)**
-  Boss (2026-10-31, 8:07 PM EDT, as the coordinator relayed): "if I
-  cancel a job that I'm viewing the job page for, take me back to the
-  jobs page or whatever page I got there from." Today the job page (the
-  admin Generate console's job view) stays on the cancelled job after
-  Cancel. Do: (1) find the cancel control and its handler on the job
-  page and the route it posts to; (2) after a successful cancel,
-  redirect to the page the visitor came from (a `next` or `return_to`
-  value carried from the page that linked to the job, checked to be a
-  same-site path so it cannot send anyone elsewhere), and to the jobs
-  page when none was given; (3) every link to a job page (jobs list, job
-  tree, Generate console, queue page) passes where it is. Done: a
-  browser or client test that cancels a job from its page after arriving
-  from the jobs page, from the job tree and by a direct link, and lands
-  on the jobs page, the job tree and the jobs page respectively; an
-  off-site return value is ignored. Lock-free, generation output
-  unchanged. Owner: the thread started for this bug (2026-10-31 8:07
-  PM EDT); no lane owned the Generate job pages. Version 8.1.
-  Prerequisites: none.
-
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
@@ -15040,6 +15020,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   workers for the stages that need no tables (would allow more workers),
   and peaks for scatter-phenomena and the nebula draw. The deadlock seen
   in rescore-habitability is PERF.228.
+  Part 3 merged (#4666) (2026-10-31 8:48 PM EDT): Workers no longer
+  build the star tables at start: only units that draw stars build them,
+  and a worker holding them restarts itself before a unit that needs
+  none. Measured worker plus horse: link 601 MB (was 1,564) and 2.4
+  times faster, settle 588, re-score 552, map-luminosity 540. Figures:
+  lean stages 700 MB, scatters 1,700, sector stages 2,600;
+  warm-cluster-field sits at 1,700 until PERF.225 is measured. Still
+  open: peaks for scatter-phenomena and the nebula draw need a
+  full-galaxy run (they use the lean figure; the run report warns if a
+  stage goes over), and the 1,700 MB scatter and 2,600 MB sector workers
+  can still be made leaner.
   Prerequisites: none. Related: PERF.220, PERF.222, PERF.223.
 
 - [ ] **PERF.227 Starting a single scatter part from the Generate console on a fresh download kills the web daemon: five 'Truncated or oversized response headers' errors, an error 500, and the job reads 'stopped without finishing' (bug)**
@@ -15070,6 +15061,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   to a small fixed time. Owner: the investigating thread (named by the
   coordinator); it checks the overlap with PERF.225 and PERF.226 first.
   Lock-free unless the cause needs a migration. Version 8.1.
+  Fix merged (#4667), kept open for the gate (2026-10-31 8:50 PM EDT): A
+  stage whose workers read the galaxy shape now makes the cluster field
+  file once before the stage is cut (queue/wrapper._expand to
+  galaxy/field_job.ensure_file), instead of each worker building it
+  (hal: 10 workers, 7 GB, the run crawled). No epoch, generation output
+  unchanged. The gate was partial: field, queue, wrapper and guard tests
+  151 passed, and the full changed-files set stopped at 622 passed with
+  2 failures not identified, because the lane machine was too slow.
+  Retire this item when the full-suite thread or a lane names the 2
+  failures and they are not this change's. hal needs ./update.sh (it ran
+  8.0.3021) for this, PERF.225 and PERF.226, and Boss must cancel and
+  clear the stuck run.
   Prerequisites: none. Related: PERF.220, PERF.225, PERF.226.
 
 - [ ] **PERF.228 The rescore-habitability stage fails with a MySQL deadlock (error 1213) when four workers run its units at once (bug)**
@@ -15093,6 +15096,23 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   finishes the stage. Lock-free, generation output unchanged. Owner:
   unassigned (Star 2 has PERF.226; a waiting lane may take it). Version
   8.1. Prerequisites: none. Related: PERF.226.
+  Prerequisites: none.
+
+- [ ] **PERF.229 Every supergiant and bright-giant star type times out at 900 s in the fuzz test (bug)**
+  The full-suite thread (as the lane reported, 10:36 PM EDT 2026-10-31,
+  run on main 7eef24a) saw
+  tests/test_fuzz_system_generation.py::test_every_star_type_generates_a_sane_system
+  time out at 900 s for the types IAB, IB, II, and III, the same pattern
+  as the last run. Every supergiant and bright-giant type timing out
+  suggests generating those stars is very slow or hangs on main, not
+  load; each timeout costs a worker 15 minutes, which stretches the full
+  run by many hours. Do: generate one system of each of those types by
+  hand with timing, find where the time goes (a loop, a table build, an
+  unbounded retry), fix at the cause in code, and confirm the test
+  finishes well inside its limit. The end-of-run alone re-run from the
+  full-suite thread will confirm it is real. Done: all four types
+  generate in seconds and the test passes. Owner: Bug 1, queued behind
+  the train 8 stored-tree fix (GEN.951).
   Prerequisites: none.
 
 ## DB: Database and schema
@@ -16817,6 +16837,32 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   tree: GEN.798, DB.106, GEN.799, MAP.312, UX.223, TEST.386, NAV.64,
   ADM.133, DOC.81, API.34, MAP.313; nothing in 8.1.
   Prerequisites: DB.106, GEN.799. Related: ADM.62, ADM.130, ADM.131.
+
+- [ ] **ADM.136 A New galaxy job stalls waiting on a generation run started by another process, and the holder is not identified (bug)**
+  Boss (2026-10-31, 9:25 PM EDT, as the lane reported 01:25:37 UTC): a
+  New galaxy job stalled waiting on a generation run started by another
+  process, and the run that holds the machine is not yet identified.
+  #4675 now names the holder in the log. Do: (1) read the holder's run
+  record (title, kind, start, process) from the job log of the stalled
+  job and from the run page, and say whether it is a live run, a dead
+  run whose owner process is gone, or the same job's own earlier run;
+  (2) if the holder is dead, make the run line free it (the existing
+  dead-holder check, `_free_dead_holder`, must cover this case: a run
+  whose process no longer exists, a run killed by the host, or a run
+  left by an update); (3) if it is live, say who started it and why it
+  counts as a generation run. Done: a test that reproduces the holder
+  state found, and a New galaxy job that starts after the stale holder
+  is cleared. Lock-free, generation output unchanged. Owner: the thread
+  that built #4675 (session on the data check). Version 8.1.
+  Partial fix merged (#4680) (2026-10-31 9:40 PM EDT): wrapper.run now
+  passes nested_guard=True to runline.start_when_free, so a run started
+  inside a run that the same process follows fails at once with Busy
+  naming the holder, and logs a stack. The root caller that nests runs
+  is not found yet: keep this item open until Boss's next job log shows
+  the stack. The new test in test_run_line.py was not run (no gate on
+  that lane); it goes in the next changed-files gate.
+  Prerequisites: none. Related: ADM.95, PERF.227.
+  Prerequisites: none.
 
 ## SEC: Security
 
@@ -19331,6 +19377,81 @@ clears each one.
   for now (pool; the Train Manager proposes a star lane once train 8
   clears). Version 8.1.
   Prerequisites: none. Related: GEN.996.
+
+- [ ] **TEST.543 The atmosphere sweep audit reads planetgen.physics.ozone.STRUCTURE_RANGE, which is now STRUCTURE_KNOTS, so three sweep tests fail (bug)**
+  The full-suite thread (reported 2026-10-31 8:58 PM EDT as the lane
+  reported) ran the suite on main 7eef24a and re-ran these alone, so
+  they are real. tests/audit/sweep_atmosphere.py line 154 uses
+  STRUCTURE_RANGE, which no longer exists;
+  test_every_body_of_the_sweep_obeys_every_rule,
+  test_every_rule_is_exercised_by_air_that_the_sweep_holds and
+  test_the_ozone_rule_holds_for_earth_air_and_fails_outside_the_fits_spread
+  fail. Do: express the ozone rule's allowed spread from STRUCTURE_KNOTS
+  (the range of its knots), say why in a comment, and keep the rule's
+  meaning. Done: the three tests pass. Lock-free, generation output
+  unchanged. Version 8.1. Prerequisites: none. Related: TEST.261. Owner:
+  Aux 2 (air).
+  Prerequisites: none.
+
+- [ ] **TEST.545 The table sweep raises temperature must be positive for small-body-taxa/asteroid-field at 0 K, and two rows are never reached (bug)**
+  The full-suite thread (reported 2026-10-31 8:58 PM EDT as the lane
+  reported) ran the suite on main 7eef24a and re-ran these alone, so
+  they are real.
+  test_sweep_tables.py::test_every_class_of_every_table_reaches_a_row_and_every_gated_sum_is_one
+  raises 'temperature must be positive' for
+  small-body-taxa/asteroid-field at temperature_k 0.0, and
+  test_every_row_is_reached_for_every_class_it_names_or_has_a_note finds
+  small-body-taxa/taxon-E/asteroid-field and /belt never reached (likely
+  the same cause). Do: find which taxon function takes the temperature
+  (planetgen/physics/taxon_kernel.py raises it), make the sweep pass a
+  physical temperature or the table decline a 0 K asteroid field with a
+  plain rule, and add a sweep note if the row is unreachable on purpose.
+  Done: both tests pass. Lock-free, generation output unchanged. Version
+  8.1. Prerequisites: none. Related: TEST.261. Owner: unassigned (a
+  waiting lane may take it).
+  Prerequisites: none.
+
+- [ ] **TEST.546 The object timing test finds a unit saved with the kind star where it expects system (bug)**
+  The full-suite thread (reported 2026-10-31 9:34 PM EDT as the lane
+  reported) ran the suite on main 7eef24a;
+  test_object_timing.py::test_a_unit_saves_under_its_run_and_the_run_adds_its_sectors_up
+  fails alone with "assert 'star' == 'system'": the kind saved for a
+  unit is 'star' and the test expects 'system'.
+  test_a_galaxy_run_saves_each_sectors_timings_under_its_run in the same
+  file also failed, probably the same cause. Do: find which side changed
+  (src/planetgen/generation/object_timing.py and run_galaxy.py record
+  the kind; the Seconds per object table of PERF.197 reads it), decide
+  by what the Stats page needs which kind is right, and fix the code or
+  the test with the reason in the change note. Done: both tests pass and
+  the Stats table still shows the same rows. Lock-free, generation
+  output unchanged. Owner: unassigned (a waiting lane may take it).
+  Version 8.1. Prerequisites: none. Related: TEST.261, PERF.197.
+  Prerequisites: none.
+
+- [ ] **TEST.547 Dry-class carbon bracket test is red on main after GEN.1005 (bug)**
+  src/tests/test_volatile_inventory_totals.py::test_the_dry_class_carbon_is_the_bulk_silicate_earths_not_sixteen_times_it
+  fails on main: the dry carbon bracket's log middle is 153 ppm C
+  against the bulk silicate Earth's 99 ppm, after GEN.1005. Found by
+  Core 4 (not from its branch). Decide whether the bracket or the test
+  bound moves (a sourced reading, not a hand tune), then fix and re-run
+  that file. Owner: none yet; Bug 1 or the next lane with room.
+  Prerequisites: none.
+
+- [ ] **TEST.548 Two phenomenon-scatter count tests fail on main: remnant counts moved past 1.5 times the model (bug)**
+  The full-suite thread (as the lane reported, 10:36 PM EDT 2026-10-31,
+  run on main 7eef24a) re-ran these alone, so they are real:
+  tests/test_phenomenon_scatter.py::test_each_kind_follows_its_rate_per_star
+  (line 95) and
+  ::test_gen677_with_every_mass_scattered_both_remnant_classes_follow_their_model_counts
+  (line 536) both fail on assert 29689 > 1.5 * 20059. A remnant count
+  ratio moved, probably from the star mass function epoch (Bug 1);
+  TEST.541 covers different tests, not these. Do: find which epoch moved
+  the remnant count, then either fix a generator defect (rides an epoch)
+  or, if the model counts are what changed, update the expected counts
+  from the sourced model with the reason stated; never loosen the 1.5
+  factor to pass. Done: both tests pass on main. Owner: Bug 1, queued
+  behind the train 8 stored-tree fix (GEN.951).
+  Prerequisites: none.
 
 ## USR: User accounts
 

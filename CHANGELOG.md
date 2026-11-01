@@ -2,6 +2,158 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3047] - 2026-11-01
+
+**Headline:** The form signing key's one-line summary now says an empty key is made once and kept, not made at each start.
+
+### Fixed
+- The settings page's summary for `secret_key` still said an empty key makes a random one at each start; since the key is kept in the state folder, it now says so.
+
+## [8.0.3046] - 2026-11-01
+
+**Headline:** The warm-up now says which chunk of how many it is on, and shows a timed progress bar on a terminal.
+
+### Changed
+- `planetgen warm --progress` (update.sh stages 1 and 2): a stage cut into chunks, such as `galaxy-deep-nodes`, shows `chunk N of M` with the total known up front, and the overall bar advances with the chunks instead of standing still until the stage ends.
+- With a terminal the rich bars show elapsed time, time left and seconds per chunk. In a log (`/tmp/planetgen-warm-map.log`, cron) each chunk leaves one line with its number, the nodes it held (the 64 is per chunk), the built and already stored counts so far, elapsed and time left, one line per chunk up to 20 chunks and every few chunks beyond that, then one summary line for the stage.
+
+## [8.0.3045] - 2026-11-01
+
+**Headline:** The version-key step of an update no longer spends minutes building bounds nobody reads.
+
+### Fixed
+- **The bright-star scatter test case of the version key took minutes (case 5 of 8 in the update's progress bar).**
+  The share of a population's stars that are bright was read from a full sampling table, whose per-cell bounds are most
+  of the cost of a table and are never used for a share. It is now worked out from the quadrature alone
+  (`star_population._bright_fraction`), to the same numbers, so every case digest and every version key is unchanged.
+
+## [8.0.3044] - 2026-11-01
+
+**Headline:** A missing secret key is now generated and kept, instead of a new random one for every process.
+
+### Changed
+- With no `secret_key` in `config.json` or `PLANETGEN_SECRET_KEY`, the update (and, as a fallback, the app at start) says a key is missing, makes one, and keeps it in the state folder (`secret_key`, mode 0600). Every worker and restart reads the same key, so forms left open across a restart keep working. The key is never printed or logged. An explicit setting still wins.
+
+## [8.0.3043] - 2026-11-01
+
+**Headline:** The update's cache warm-up no longer fails on the Galaxy Map page while the site is held in maintenance mode.
+
+### Changed
+- **Warm-up stage 1 failed with "/galaxy answered 302".** The update holds the site closed while it warms the caches, and `/galaxy` sent the warm-up's own visit to the maintenance page, which counted as a failed page. The warm-up's visits are now let through, so stage 1 gets through on an empty galaxy and with maintenance mode on. Visitors are still sent to the maintenance page.
+
+## [8.0.3042] - 2026-11-01
+
+**Headline:** The data check in front of every Generate job no longer fails because another check holds the check place, and a refusal now names the run that holds it.
+
+### Fixed
+- **The data check failed with "run ... is running".** The check only reads files, so when the check place is taken it now logs a warning naming the holder and checks the data without a run record, instead of stopping the whole job.
+- **A refused run now says who blocks it.** The message gives the holder's run id, title, kind, start time (UTC) and the process that follows it, instead of the id alone.
+- **A job waiting for the machine now says who it waits for.** Under "Waiting at position N for run ..." the job log gives that run's title, kind, start time and process, and says so when the run belongs to the same job.
+- **A run started inside a run of the same process no longer waits for itself.** It fails at once, naming the holder and logging where it was started from, instead of printing "Waiting at position 1" for ever (ADM.136).
+
+## [8.0.3041] - 2026-11-01
+
+**Headline:** The class sweep accepts a letter whose rule rows include one of the body's kind, so rocky gas dwarfs pass.
+
+### Fixed
+- **TEST.544: the class sweep reported five rocky bodies classed T.** Class T has a giant row and, since GEN.1142, a terrestrial one for a small rocky body whose air is 30 percent or more hydrogen; the sweep compared the body's kind only with the letter's first row. The class of the five bodies (hydrogen-air worlds of 0.5 to 3.6 Earth masses) is right by the rule file; the check now asks whether any row of the letter is of the body's kind.
+
+## [8.0.3040] - 2026-11-01
+
+**Headline:** The life sweep follows the class registry instead of a fixed count of twenty letters.
+
+### Fixed
+- **TEST.542: the life sweep expected 20 class letters and the rules give 19, since Class Q was retired (GEN.1135).** `test_sweep_life.py` now checks that the letters tried are exactly the classes of the registry, and its text and the audit's no longer name a literal count.
+
+## [8.0.3039] - 2026-11-01
+
+**Headline:** The data check in front of every Generate job no longer fails because another check holds the check place, and a refusal now names the run that holds it.
+
+### Fixed
+- **The data check failed with "run ... is running".** The check only reads files, so when the check place is taken it now logs a warning naming the holder and checks the data without a run record, instead of stopping the whole job.
+- **A refused run now says who blocks it.** The message gives the holder's run id, title, kind, start time (UTC) and the process that follows it, instead of the id alone.
+- **A job waiting for the machine now says who it waits for.** Under "Waiting at position N for run ..." the job log gives that run's title, kind, start time and process, and says so when the run belongs to the same job.
+
+## [8.0.3038] - 2026-11-01
+
+**Headline:** The health check now says why the site is in maintenance mode.
+
+### Fixed
+- **`/api/health` left the reason for maintenance empty when the switch had none of its own.** The `maintenance` block now carries the line visitors see (the standard message when none was given), plus `eta` and `since`; existing fields are unchanged.
+
+## [8.0.3037] - 2026-11-01
+
+**Headline:** update.sh now builds only what the Apache reload and the health check need before the reload, then runs the full cache warm-up afterwards and stays up, with a progress bar, until it finishes.
+
+### Changed
+- Stage 1 runs `planetgen warm opening --progress` in the foreground before the reload (the cluster field, the object index, the opening views and the first page of each list), so the reload can no longer interrupt a warm-up that is still running. After the reload and the /api/health check (at config.json's api_base_url only) the update releases its guard, so the site opens, and stage 2 runs the full warm-up with a progress bar; update.sh ends when it does.
+- `planetgen warm` has a new `--progress` option (a bar after each family) and no longer has `--opening-done`.
+
+generation-output: unchanged
+TODO items resolved: none (new item, filed by the TODO thread)
+
+## [8.0.3036] - 2026-11-01
+
+**Headline:** A scatter or generation stage now makes the galaxy's cluster field once before its workers start, instead of every worker building it for itself.
+
+### Changed
+- Before it is cut into units, a stage whose workers read the galaxy's shape first thing (the massive-star, bright-star and phenomena scatters and the other stages that warm the shape) makes the cluster field a file in the state folder (`galaxy.field_job.ensure_file`, called from `queue.wrapper._expand`). The warm-up that normally makes that file refuses to run while a generation run is live, and a new or re-planned galaxy has none, so every worker used to build the field itself: a minute of work and several hundred megabytes in each, ten at a time.
+
+### Fixed
+- Starting a scatter on a galaxy with many clusters no longer leaves the run at "Massive stars, 2 of 456 units" for tens of minutes with ten workers holding about 7 GB between them, which also kept every job started after it waiting at position 1.
+
+generation-output: unchanged
+TODO items resolved: PERF.227
+
+## [8.0.3035] - 2026-11-01
+
+**Headline:** a worker holds the star sampling tables only for the stages that draw stars
+
+### Changed
+
+A worker used to build the sampling tables of every star population when it started, about 1.4 GB, so the stages that draw no star (the link, the settle, the map-luminosity fill, the habitability re-score) ran in workers of 1.5 GB each. Now the units that draw stars build the tables in the worker before their horse forks, and a worker that holds them starts itself over, putting the unit back at the front of its queue, before a unit that needs none. A worker and its horse measured 601 MB for a link (1,564 MB before), 588 for a settle, 552 for a re-score and 540 for a map-luminosity fill, and the link ran in 57 s instead of 138 s. The memory figures that hold a stage to what the host's memory holds are now 700 MB for these stages (11 workers on a 16 GB host, 4 before), 1,700 MB for the scatters and 2,600 MB for the sector stages. No generated output changes.
+
+## [8.0.3034] - 2026-11-01
+
+**Headline:** The update asks only the API address set in config.json whether the site answers, and never tries localhost on its own.
+
+### Fixed
+
+- **`update.sh` no longer tries `127.0.0.1` or `localhost` unless that is the configured API address (OPS.86).** The health check after the reload asked `http://127.0.0.1/api/health` (or `http://127.0.0.1:8000/api/health`) first and then the site's name pinned to 127.0.0.1 with `curl --resolve`. It now asks one address, `api_base_url` in `config.json` plus `/health` (`PLANETGEN_HEALTH_URL` still names another address for the check alone), and a failed check names that address and the setting it came from. The pin and the second probe are gone.
+- **`api_base_url` has no default any more.** It used to default to `http://127.0.0.1/api`. With none set, the update stops right after the Python library check, before the database is touched, with a plain message saying to set `api_base_url`; the HTTP client in `apiclient.py` refuses with the same message instead of connecting. A host whose API really is at 127.0.0.1 (the macOS gunicorn daemon) says so in `config.json`. Set `api_base_url` in your `config.json` before the next update. No generated output changes.
+
+## [8.0.3033] - 2026-11-01
+
+**Headline:** The update shows a progress bar while it records the version key, so the quiet stretch after the migration is no longer a blank wait.
+
+### Changed
+
+Recording the version key runs the generator's fixed test cases once to fingerprint the code, and the update printed nothing while it did. It now shows a bar with the cases done and the time left on a terminal, and one line per case without one. No generated output changes.
+
+## [8.0.3032] - 2026-11-01
+
+**Headline:** The update says what it is doing while it records the version key, so the quiet stretch after the migration no longer looks hung.
+
+### Fixed
+
+After the databases were migrated, `update.sh` printed nothing while it recorded the version key, which runs the generator's fixed test cases once to fingerprint the code (about 5 seconds, longer on a slow host). It now prints a line saying so before it starts. No generated output changes.
+
+## [8.0.3031] - 2026-11-01
+
+**Headline:** Cancelling a job from its own page takes you back to the page you came from.
+
+### Fixed
+
+Cancel on a Generate job page (or on a work queue run page) used to leave you on that page, or send you to the Generate page. It now returns to the page you opened the job from (the Generate page's jobs list, the work queue, a run, or any other page of the admin site), and to the Generate page when there is no earlier page. Only pages of this site are ever returned to. UX.256. No generated output changes.
+
+## [8.0.3030] - 2026-11-01
+
+**Headline:** every stage with units now holds its workers to what a worker and its horse really take of the host's memory
+
+### Changed
+
+A worker and its horse measured 2.4 GB for a sector and 1.5 to 1.6 GB for a link, a settle or a map-luminosity fill (the horse alone showed 1.5 GB for a sector, because its resident size counts the worker's tables but not the worker beside it). The largest-worker figure in the run report is now the two together, shared pages counted once, and the figures are 2,600 MB for the sector stages and 1,700 MB for every other stage with units, the scatters included, so a 16 GB host runs 3 sector workers or 4 of the others at once where it ran 36 and was killed. A worker freezes what it holds before it forks a horse, so the garbage collector does not write to every page of its warm tables in each horse. No generated output changes.
+
 ## [8.0.3029] - 2026-10-31
 
 **Headline:** The Help menu now has an index page that lists every help page, the class types, and the life topics and classes, all read from the program's own tables.

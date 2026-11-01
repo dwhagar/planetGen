@@ -6,7 +6,7 @@ letter; GEN.915): a world that can hold life can hold it whatever its class lett
 
 Two checks, both on the shared body sweep (`tests.audit.sweep`):
 
-- `scores-class-blind` (a `Rule`): every terrestrial planet and moon of the sweep is given each of the class letters in turn, its stored
+- `scores-class-blind` (a `Rule`): every terrestrial planet and moon of the sweep is given each class letter the rules hold in turn, its stored
   conditions unchanged, and the life model (`physics.life_classes.score_classes`) must answer the same scores for every letter. A failure
   names the body (its conditions), the letter and the life class whose score moved. Because the sweep's own bodies reach life-capable
   conditions on only a few letters, this is what proves that the conditions that host life on one class host it on every class.
@@ -66,8 +66,8 @@ def _scores(body):
 
 def _check_scores_class_blind(entry):
     body = entry.body
-    if getattr(body, "body_type", None) != "t" or getattr(body, "planet_class", None) is None:
-        return []                   # an Asteroid (GEN.1160) has no class letter to swap
+    if getattr(body, "body_type", None) != "t":
+        return []
     reference = _scores(body)
     problems = []
     for letter in letters():
@@ -95,7 +95,7 @@ def capable_by_class(entries):
     out = {}
     for entry in entries:
         body = entry.body
-        if getattr(body, "body_type", None) != "t" or body.planet_class is None:
+        if getattr(body, "body_type", None) != "t":
             continue
         total, capable = out.get(body.planet_class, (0, 0))
         out[body.planet_class] = (total + 1, capable + (1 if _scores(body)[1] else 0))
@@ -210,7 +210,7 @@ def _run_life(planet, letter=None):
 def draw_problems(planet, other_letters=None):
     """The problems of one planet: a supported world without life, life on an unsupported one, a class that lives where the model
     does not support it, and any difference in the outcome when the same conditions carry another class letter (`other_letters`, default all)."""
-    if getattr(planet, "body_type", None) != "t" or planet.planet_class is None:
+    if getattr(planet, "body_type", None) != "t":
         return []
     supported = _supported(planet)
     letter = planet.planet_class
@@ -237,7 +237,7 @@ def draw_rates(planets):
     over `[(label, planet), ...]`."""
     out = {}
     for _, planet in planets:
-        if getattr(planet, "body_type", None) != "t" or planet.planet_class is None:
+        if getattr(planet, "body_type", None) != "t":
             continue
         total, supported, drawn, waiting = out.get(planet.planet_class, (0, 0, 0, 0))
         has = bool(_supported(planet))

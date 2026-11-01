@@ -20,6 +20,7 @@ from planetgen.admin import maintenance
 from planetgen.api.config import Config
 from planetgen.cli import generate as generate_cli
 from planetgen.cli import warm as warm_cli
+from planetgen.cli import warm_progress
 from planetgen.db import block_stats, dataversion, store
 from planetgen.galaxy import spherical
 from planetgen.galaxy.sector import SpaceSector
@@ -148,6 +149,24 @@ def test_the_galaxy_map_family_builds_the_opening_view_and_the_page(galaxy, spy)
     del spy[:]
     assert web.get("/galaxy").status_code == 200
     assert [call for call in spy if call.startswith(("/galaxy/sectors", "/galaxy/shape", "/galaxy/phenomena"))] == []
+
+
+def test_the_galaxy_map_family_warms_while_the_site_is_held_in_maintenance(galaxy, tmp_path, monkeypatch):
+    """The update warms the caches with the site closed; the page's maintenance redirect is not the warm-up's failure."""
+    monkeypatch.setenv(maintenance.FILE_ENV, str(tmp_path / "maintenance.json"))
+    maintenance.turn_on(by="update")
+    assert _web_worker(galaxy.config).get("/galaxy").status_code == 302, "a visitor is still sent to the maintenance page"
+    result = _warm(galaxy, "galaxy-map")
+    assert result["warmed"] > 0
+
+
+def test_the_galaxy_map_family_warms_an_empty_galaxy_in_maintenance(mysql_config, redis_server, tmp_path, monkeypatch):
+    """After a reset the galaxy holds nothing and the update still has to get through stage 1."""
+    monkeypatch.setenv(maintenance.FILE_ENV, str(tmp_path / "maintenance.json"))
+    monkeypatch.setenv("PLANETGEN_TILE_CACHE_DIR", str(tmp_path / "tiles"))
+    maintenance.turn_on(by="update")
+    result = warmup.warm_family(mysql_config.database, "galaxy-map", app=warmup.build_app(mysql_config))
+    assert result["family"] == "galaxy-map"
 
 
 def test_a_second_warm_up_finds_it_all_built(galaxy):
@@ -914,13 +933,10 @@ def test_the_warm_up_the_update_runs_does_not_wait_for_the_update(monkeypatch):
     warm_cli._wait_for_update()
 
 
-def test_the_opening_done_file_is_created(tmp_path):
-    """update.sh waits for this file before it reloads Apache."""
-    path = tmp_path / "opening"
-    warm_cli._mark_opening_done(None)
-    warm_cli._mark_opening_done(str(path))
-    assert path.exists()
-    warm_cli._mark_opening_done(str(tmp_path / "no" / "such" / "opening"))
+def test_the_progress_bar_counts_families():
+    """update.sh shows this line while it waits for the warm-up."""
+    assert warm_progress.text_bar(1, 4, "lists", width=8) == "[##------] 1/4 lists"
+    assert warm_progress.text_bar(4, 4, "search", width=8) == "[########] 4/4 search"
 
 
 def test_a_sigterm_ends_the_run_as_cancelled_not_stranded(script, redis_server, monkeypatch):

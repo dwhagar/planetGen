@@ -245,15 +245,23 @@ def case_value(name):
     return _BUILDERS[name]()
 
 
-def generator_battery_digest():
+def generator_battery_digest(progress=None):
     """
-    Runs the battery and returns its `BatteryDigest`. No database, no network, no clock; about 3 to 5 seconds, most
-    of it the first sector.
+    Runs the battery and returns its `BatteryDigest`. No database, no network, no clock; most of the time is the bright-star scatter
+    case, which builds the sampling tables of the stellar populations.
+
+    Args:
+        progress (callable, optional): Called as `progress(done, total)` before the first case (`done` 0) and after each
+            case, so the update can show a bar.
     """
     cases = {}
-    for name in CASES:
+    if progress:
+        progress(0, len(CASES))
+    for done, name in enumerate(CASES, 1):
         found = encoding.digests(case_value(name))
         cases[name] = CaseDigest(found.full, found.structural, found.floats)
+        if progress:
+            progress(done, len(CASES))
     overall = encoding.digest({"battery": [[name, cases[name].full] for name in CASES]})
     return BatteryDigest(overall, cases)
 
@@ -262,22 +270,27 @@ _running = None
 """BatteryDigest or None: What `running_digest` has worked out in this process (or `start_running_digest` was handed)."""
 
 
-def running_digest():
+def running_digest(progress=None):
     """
     The running code's `BatteryDigest`, worked out once a process: what a plan records with the galaxy and an update
     records in the version history (OPS.58), so the five seconds are paid once however many call it.
+
+    Args:
+        progress (callable, optional): `progress(done, total)` after each case, when the digest is worked out here.
     """
     global _running
     if _running is None:
-        _running = kept_battery_digest()
+        _running = kept_battery_digest(progress)
     return _running
 
 
-def kept_battery_digest():
+def kept_battery_digest(progress=None):
     """`generator_battery_digest()`, or the copy a test run kept for the same code and data (`battery_digest_cache`, PERF.209)."""
+    import functools
+
     from planetgen.generation import battery_digest_cache
 
-    return battery_digest_cache.digest(generator_battery_digest, BatteryDigest, CaseDigest)
+    return battery_digest_cache.digest(functools.partial(generator_battery_digest, progress), BatteryDigest, CaseDigest)
 
 
 def start_running_digest():

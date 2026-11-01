@@ -267,6 +267,24 @@ def test_every_control_is_confirmed_first(web_app, admin_client, control_config,
     assert "The queue is paused" not in admin_client.get("/admin/queue").get_data(as_text=True)
 
 
+def test_cancel_on_a_run_page_returns_to_the_page_it_was_opened_from(web_app, admin_client, control_config, conn):
+    """UX.256: Cancel on a run's page goes back to the page it was opened from (same site only), else the run's page."""
+    run_id = _run(conn)
+    page = admin_client.get(f"/admin/queue/{run_id}", headers={"Referer": "http://localhost/admin/generate/jobs/x"}).get_data(as_text=True)
+    assert f"/admin/queue/confirm/cancel?run={run_id}&amp;next=/admin/generate/jobs/x" in page.replace("%2F", "/")
+    page = admin_client.get(f"/admin/queue/{run_id}", headers={"Referer": "http://localhost/admin/queue/confirm/cancel"}).get_data(as_text=True)
+    assert "next=" not in page
+    confirm = admin_client.get(f"/admin/queue/confirm/cancel?run={run_id}&next=/admin/queue").get_data(as_text=True)
+    assert 'name="next" value="/admin/queue"' in confirm
+    hostile = admin_client.get(f"/admin/queue/confirm/cancel?run={run_id}&next=//evil.example").get_data(as_text=True)
+    assert 'name="next"' not in hostile
+    response = _post(web_app, admin_client, action="cancel", run=run_id, next="/admin/queue")
+    assert response.status_code == 303 and response.headers["Location"].endswith("/admin/queue")
+    other = _run(conn, title="Another")
+    response = _post(web_app, admin_client, action="cancel", run=other, next="https://evil.example/")
+    assert response.headers["Location"].endswith(f"/admin/queue/{other}")
+
+
 def test_a_run_that_stopped_answering_is_offered_a_clear(web_app, admin_client, conn):
     run_id = _run(conn, queued=False)
     conn.hset(runrecord.run_key(run_id), "updated", 1.0)                  # not heard from for a long time

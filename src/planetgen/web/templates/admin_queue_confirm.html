@@ -9,6 +9,7 @@ control before it runs (ADM.10, PERF.99). -#}
     {{ csrf_field() }}
     <input type="hidden" name="action" value="{{ action }}">
     <input type="hidden" name="run" value="{{ run_id }}">
+    {%- if next_url %}<input type="hidden" name="next" value="{{ next_url }}">{% endif %}
     <button type="submit" class="btn{% if action in ('cancel', 'clear', 'delete', 'queue-pause', 'queue-stop-all', 'clear-finished') %} btn-danger{% endif %}">{{ button }}</button>
     <a href="{{ back }}">Go back</a>
   </form>

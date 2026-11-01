@@ -33,8 +33,10 @@ Keys (`runrecord.PREFIX` first):
 * `line:<ticket>:alive`  a run's sign of life.
 """
 
+import logging
 import secrets
 import time
+import traceback
 
 from planetgen.queue import runrecord
 from planetgen.util.settings import get_settings
@@ -206,7 +208,8 @@ def sign_of_life(conn, ticket):
 
 
 def start_when_free(conn, take, limit_seconds, on_wait=None, kind=runrecord.GENERATION, title=None, who=None,
-                    database=None, admitted=False, clock=time.time, sleep=time.sleep):
+                    database=None, admitted=False, clock=time.time, sleep=time.sleep,
+                    nested_guard=False):
     """
     Takes the machine with `take()` (it returns the run id, or raises `runrecord.Busy`), waiting in the line for it
     when another run holds it.
@@ -222,6 +225,8 @@ def start_when_free(conn, take, limit_seconds, on_wait=None, kind=runrecord.GENE
             machine, and the place among the waiting runs, 1 being next), and `on_wait(None, None)` once it is over.
         kind (str): The kind of run, to name the holder.
         title, who, database (str, optional): What the line shows for this run.
+        nested_guard (bool): Fail at once when the run holding the machine is followed by this very process (a run started
+            inside a run would wait for itself for ever; ADM.136).
         admitted (bool): The run belongs to the job that is running (its step started it): it gets a place in a full
             line.
 
@@ -255,7 +260,12 @@ def start_when_free(conn, take, limit_seconds, on_wait=None, kind=runrecord.GENE
                     holder = runrecord.active_run(conn, kind) or holder
                     last = busy
             else:
-                last = runrecord.Busy(f"run {holder} is running")
+                last = runrecord.Busy(runrecord.busy_message(conn, holder))
+            if nested_guard and holder and runrecord.followed_here(conn, holder):
+                logging.getLogger("planetgen").error("A run was started inside a run of the same process; where from:\n"
+                                                     + "".join(traceback.format_stack(limit=25)))
+                raise runrecord.Busy(f"{runrecord.busy_message(conn, holder)}; this run is started by the same process "
+                                     f"that follows it, so it would wait for itself for ever (a run started inside a run)")
             if clock() >= deadline:
                 raise runrecord.Busy(f"{last}; waited {limit_seconds / 60:g} minutes for it")
             if on_wait is not None and (holder, position) != shown:

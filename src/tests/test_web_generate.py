@@ -1187,6 +1187,29 @@ def test_cancel_of_a_job_cancels_the_runs_it_started_at_once(site, client, jobs_
     assert _wait_finished(job_id, jobs_root)["status"] == "cancelled"
 
 
+def test_cancel_on_a_job_page_returns_to_the_page_it_was_opened_from(site, client, jobs_root, redis_server):
+    """UX.256: the job page's Cancel carries the page the admin came from (`?next=` or the referrer, same site only) and
+    returns there; a job page opened with nothing, or from off site, falls back to the Generate page."""
+    job_id = jobs.start_job("galaxy", "Slow", [_step("x", "pass")], spawn=False)
+    page = f"/admin/generate/jobs/{job_id}"
+    html = client.get(page, headers={"Referer": "http://localhost/admin/queue?page=2"}).get_data(as_text=True)
+    assert 'name="next" value="/admin/queue?page=2"' in html
+    html = client.get(page + "?next=/admin/stats", headers={"Referer": "http://localhost/admin/queue"}).get_data(as_text=True)
+    assert 'name="next" value="/admin/stats"' in html
+    for hostile in ("http://evil.example/admin", "//evil.example/x", page):
+        html = client.get(page, headers={"Referer": hostile}).get_data(as_text=True)
+        assert 'name="next"' not in html
+    html = client.get(page + "?next=//evil.example", headers={"Referer": "http://localhost" + page}).get_data(as_text=True)
+    assert 'name="next"' not in html
+    token = _token(client)
+    resp = client.post("/admin/generate", data={"action": "cancel", "job": job_id, "next": "/admin/queue?page=2", "csrf_token": token})
+    assert resp.status_code == 303 and resp.headers["Location"].endswith("/admin/queue?page=2")
+    resp = client.post("/admin/generate", data={"action": "cancel", "job": job_id, "next": "https://evil.example/", "csrf_token": token})
+    assert resp.headers["Location"].endswith("/admin/generate#current-job")
+    resp = client.post("/admin/generate", data={"action": "cancel", "job": job_id, "csrf_token": token})
+    assert resp.headers["Location"].endswith("/admin/generate#current-job")
+
+
 def test_the_job_page_lists_the_runs_the_job_started(site, client, jobs_root, redis_server):
     from planetgen.queue import runrecord
     from planetgen.queue.runrecord import Stage

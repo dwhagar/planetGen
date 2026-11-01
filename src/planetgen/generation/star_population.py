@@ -324,56 +324,68 @@ def _decoder(window, population):
 
 
 @functools.lru_cache(maxsize=None)
-def _bright_table(min_luminosity_sol, population, mass_range=None, window=None, fe_bin=0.0, reference=False):
+def _bright_table(min_luminosity_sol, population, mass_range=None, window=None, fe_bin=0.0):
     """
     The cached per-(threshold, population, mass range, [Fe/H] bin) sampling table: cell
-    edges, slopes and continuity factors, each cell's measure bound, the
-    running total of cell weights (IMF share times bound), and the bright
-    fraction. `mass_range` (`(low, high)` initial masses in solar masses,
-    either end `None`) keeps only the stars born in it: the fraction is
-    still the share of ALL living stars, so a mass pass and a luminosity
-    pass below it add up to the share that one threshold gives. `window` is the population's `AgeLaw` (an even spread
+    edges, slopes and continuity factors, each cell's measure bound, and the
+    running total of cell weights (IMF share times bound). `mass_range` (`(low, high)` initial masses in solar masses,
+    either end `None`) keeps only the stars born in it. `window` is the population's `AgeLaw` (an even spread
     across its window when `None`). `fe_bin` is the birth [Fe/H] the table is built at (`fe_h_bin`; a star's lifetimes
     and giant branch follow its own, GEN.651), so a star is drawn from the table of its own bin and the bounds are
-    valid for it. The `fraction` is worked out only for a `reference` table, built at the population's own mean
-    composition (`reference_fe_h`, `fe_bin` the composition itself, GEN.661), the one the counts use; a sampling table's is
-    `None`.
+    valid for it. The share of stars that are bright is not in it (`_bright_fraction` works it out without the bounds,
+    which are most of a table's cost).
     Worked out by `_build_bright_table`; a test run keeps each across processes (`band_table_cache`, PERF.218).
     """
     check_threshold(min_luminosity_sol)
     if window is None:
         window = _law(population, None)
     return band_table_cache.kept(
-        "bright", (min_luminosity_sol, population, mass_range, window, fe_bin, reference),
-        lambda: _build_bright_table(min_luminosity_sol, population, mass_range, window, fe_bin, reference),
+        "bright", (min_luminosity_sol, population, mass_range, window, fe_bin),
+        lambda: _build_bright_table(min_luminosity_sol, population, mass_range, window, fe_bin),
         _encode_table, _decoder(window, population))
 
 
-def _build_bright_table(min_luminosity_sol, population, mass_range, window, fe_bin, reference):
+def _build_bright_table(min_luminosity_sol, population, mass_range, window, fe_bin):
     """The sampling table `_bright_table` describes, for the age law `window` (never `None`)."""
     cells, cumulative = [], []
-    running = bright = living = 0.0
+    running = 0.0
     mass_low, mass_high = mass_range if mass_range is not None else (None, None)
-    with_fraction = reference
     for a, b, alpha, norm in _mass_grid(tuple(edge for edge in (mass_low, mass_high) if edge is not None),
-                                        _grid_cells(fe_bin, reference)):
-        count = norm * imf.power_law_integral(a, b, alpha)
-        if with_fraction:
-            # E[measure] over the cell by stratified IMF quantiles.
-            points = [_power_law_quantile(a, b, alpha, (j + 0.5) / _FRACTION_POINTS_PER_CELL)
-                      for j in range(_FRACTION_POINTS_PER_CELL)]
-            living += count * sum(_living_measure(m, window, fe_bin) for m in points) / len(points)
+                                        _grid_cells(fe_bin)):
         if (mass_low is not None and b <= mass_low) or (mass_high is not None and a >= mass_high):
             continue
-        if with_fraction:
-            bright += count * sum(_bright_measure(m, min_luminosity_sol, window, fe_bin) for m in points) / len(points)
+        count = norm * imf.power_law_integral(a, b, alpha)
         bound = _bright_measure_bound(a, b, min_luminosity_sol, window, _bin_fe_hs(fe_bin)) * tuning.BRIGHT_TABLE_BOUND_MARGIN
         if bound > 0:
             running += count * bound
             cells.append((a, b, alpha, bound))
             cumulative.append(running)
     return {"window": window.window, "law": window, "cells": cells, "cumulative": cumulative, "population": population,
-            "fraction": (bright / living if living > 0 else 0.0) if with_fraction else None}
+            "fraction": None}
+
+
+@functools.lru_cache(maxsize=None)
+def _bright_fraction(min_luminosity_sol, population, mass_range, window, fe_bin):
+    """
+    The share of ALL of a population's living stars, of the age law `window` and birth [Fe/H] `fe_bin` (a population's own
+    mean composition, `reference_fe_h`, GEN.661), that are at least `min_luminosity_sol` bright and born in `mass_range`:
+    the mean of each cell's measure over stratified IMF quantiles. It reads the measure of a few stars a cell and no
+    bound, which is most of what a sampling table spends its time on.
+    """
+    check_threshold(min_luminosity_sol)
+    mass_low, mass_high = mass_range if mass_range is not None else (None, None)
+    bright = living = 0.0
+    for a, b, alpha, norm in _mass_grid(tuple(edge for edge in (mass_low, mass_high) if edge is not None),
+                                        _grid_cells(fe_bin, True)):
+        count = norm * imf.power_law_integral(a, b, alpha)
+        # E[measure] over the cell by stratified IMF quantiles.
+        points = [_power_law_quantile(a, b, alpha, (j + 0.5) / _FRACTION_POINTS_PER_CELL)
+                  for j in range(_FRACTION_POINTS_PER_CELL)]
+        living += count * sum(_living_measure(m, window, fe_bin) for m in points) / len(points)
+        if (mass_low is not None and b <= mass_low) or (mass_high is not None and a >= mass_high):
+            continue
+        bright += count * sum(_bright_measure(m, min_luminosity_sol, window, fe_bin) for m in points) / len(points)
+    return bright / living if living > 0 else 0.0
 
 
 def _power_law_quantile(a, b, alpha, u):
@@ -403,8 +415,8 @@ def bright_star_fraction(min_luminosity_sol, population=None, mass_range=None, a
     Returns:
         float: The fraction, in `[0, 1]`.
     """
-    return _bright_table(float(min_luminosity_sol), population, _check_mass_range(mass_range),
-                         _law(population, age_laws), reference_fe_h(population), True)["fraction"]
+    return _bright_fraction(float(min_luminosity_sol), population, _check_mass_range(mass_range),
+                            _law(population, age_laws), reference_fe_h(population))
 
 
 def massive_star_fraction(min_mass_sol, population=None, age_laws=None):

@@ -2,7 +2,7 @@
 
 """
 TEST.452: the class-blind life test (GEN.915, Boss 2:46 PM EDT 2026-10-29: life depends only on the conditions, never on the class
-letter). Every terrestrial body of the shared sweep is given each of the class letters with its conditions unchanged, and the life model
+letter). Every terrestrial body of the shared sweep is given each class letter the rules hold (one for every class in the registry) with its conditions unchanged, and the life model
 and the habitability index must answer the same on every letter; the life code is scanned for reads of the class letter and each one must be
 listed with its reason. The harness is proved able to fail by breaking the life model so that one letter changes a score.
 
@@ -44,8 +44,9 @@ def notes():
 # --- The rule on bodies made for it ----------------------------------------------------------------------------------------
 
 
-def test_every_class_letter_is_tried():
-    assert len(rules.letters()) == len(tuning.PLANET_CLASSES) == 19      # 20 until GEN.1135 retired Class Q
+def test_every_class_letter_of_the_registry_is_tried():
+    assert len(rules.letters()) == len(tuning.PLANET_CLASSES) > 1       # the count follows the registry (Class Q was retired, GEN.1135)
+    assert set(rules.letters()) == set(tuning.PLANET_CLASSES)
 
 
 def test_an_earth_like_body_scores_the_same_on_every_letter():
