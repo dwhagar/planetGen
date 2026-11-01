@@ -11,7 +11,7 @@ right on average but not by region. The research in
   holes about two and a half times (smaller kicks), so each is rarer in the
   plane and commoner above it than the stars.
 - Black holes are a larger share of the remnants toward the core.
-- Active radio pulsars follow the Lorimer et al. (2006) radial profile, which
+- Active radio pulsars follow the [R2750] radial profile, which
   peaks near 3 to 4 kpc and is far thinner than the stars in the inner galaxy.
 
 Each factor multiplies the density a remnant is placed by, so it moves where
@@ -98,7 +98,7 @@ def radial_factor_array(kind, radius_pc):
 def pulsar_radial_factor(radius_pc):
     """
     Active radio pulsars against stars at galactocentric `radius_pc`, 1 at
-    the reference radius: the Lorimer et al. (2006) profile `(R/R0)^a exp(-b (R-R0)/R0)`
+    the reference radius: the [R2750] profile `(R/R0)^a exp(-b (R-R0)/R0)`
     (`tuning.PULSAR_RADIAL_A`, `_B`) over the stellar disk's own exponential, with R0 the galaxy's reference radius
     and the disk's scale length the galaxy's (`galaxy.scales`, GEN.404). For the Milky Way's scales: about 0.1 at
     1 kpc, 0.4 at 3 kpc, 0.8 near 15 kpc. Capped at 2.

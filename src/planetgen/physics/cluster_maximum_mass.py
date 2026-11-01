@@ -1,7 +1,7 @@
 # planetgen/physics/cluster_maximum_mass.py
 
 """
-The most massive cluster a ring of gas can form (GEN.1195; Reina-Campos and Kruijssen 2017, MNRAS 469, 1282, arXiv:1704.00732).
+The most massive cluster a ring of gas can form (GEN.1195; [R3720]).
 Pure functions of the gas surface density `Sigma_g`, the epicyclic frequency `kappa` and the one-dimensional velocity
 dispersion `sigma` of the gas (the Toomre parameter is `Q = kappa sigma / (pi G Sigma_g)`, Eq 5):
 
@@ -30,9 +30,14 @@ _G_PC3_MSUN_MYR2 = constants.G * units.converter("Msun", "kg")(1.0) * _MYR_S ** 
 _CM2_S3_TO_PC2_MYR3 = 1.0e-4 * _MYR_S ** 3 / _PC_M ** 2
 
 
-def epicyclic_frequency_per_myr(circular_speed_kms, radius_pc):
-    """`kappa` for a flat rotation curve (Eq 11): `sqrt(2) V / R`, per Myr."""
-    return math.sqrt(2.0) * circular_speed_kms * 1.0e3 * _MYR_S / (_PC_M * radius_pc)
+def epicyclic_frequency_per_myr(circular_speed_kms, radius_pc, speed_slope_kms_per_pc=0.0):
+    """
+    `kappa` per Myr: `sqrt(2 V^2 / R^2 + 2 V V' / R)` for a circular speed `V` with slope `V' = dV/dR` at `R` (`speed_slope_kms_per_pc`, GEN.339: the
+    slope of the galaxy's own rotation curve); with no slope, a flat curve (Eq 11 of the paper), `sqrt(2) V / R`.
+    """
+    v, r = circular_speed_kms, radius_pc
+    square = 2.0 * v * v / (r * r) + 2.0 * v * speed_slope_kms_per_pc / r
+    return math.sqrt(max(square, 0.0)) * 1.0e3 * _MYR_S / _PC_M
 
 
 def toomre_mass_sol(gas_surface_density_msun_pc2, kappa_per_myr):

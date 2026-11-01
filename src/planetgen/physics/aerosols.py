@@ -30,7 +30,7 @@ the body before its air (its mass, radius and distance), so the fixed point and 
 
 **Dust (10.3, stand-in).** A dry solid surface lofts dust when the friction velocity is above the threshold; the wind has no source,
 so `u*/u*_t` is log-uniform on 0.3 to 3 and dust exists above 1, with a depth log-uniform on 0.5 to 1.5, grey, a radius of 1.2 to
-1.8 micron, an asymmetry of 0.673 +- 0.081 and the single-scattering albedo of the Wolff 2009 spectra (digitised from its Figures 12
+1.8 micron, an asymmetry of 0.673 +- 0.081 and the single-scattering albedo of the [R4743] spectra (digitised from its Figures 12
 to 14, a labelled stand-in until a table is read).
 
 `aerosol_draw` is one number in [0, 1) that picks every within-bracket optical property (the dust radius and asymmetry, the haze
@@ -55,7 +55,7 @@ SKIN_FACTOR = 2.0 ** -0.25
 CLOUD_Q_EXT = 2.0
 """float: The extinction efficiency of droplets above a micron (part 06 3.5)."""
 CLOUD_RADIUS_UM = (1.0, 20.0)
-"""tuple: The cloud droplet effective radius range, micron (open; Earth model droplets 10 to 17.5, Groot 2020)."""
+"""tuple: The cloud droplet effective radius range, micron (open; Earth model droplets 10 to 17.5, [R1697])."""
 CLOUD_TAU_FLOOR = 0.1
 """float: The lowest drawn cloud depth (atmosphere-colour.md 10.1)."""
 CLOUD_COVER_RANGE = (0.1, 1.0)
@@ -75,15 +75,15 @@ CONDENSATE_DENSITY_KG_M3 = {
 row in part 06 2.8 and form no cloud until GEN.452 adds the condensate registry."""
 
 HAZE_ONSET_CH4_CO2 = 0.1
-"""float: The CH4/CO2 ratio above which a methane haze forms (Arney 2016; part 06 2.9)."""
+"""float: The CH4/CO2 ratio above which a methane haze forms ([R0156]; part 06 2.9)."""
 HAZE_THICK_CH4_CO2 = 0.2
 HAZE_H2_CUT = 0.1
-"""float: The share of the production left in hydrogen-rich air (DeWitt 2009, about a tenth)."""
+"""float: The share of the production left in hydrogen-rich air ([R1097], about a tenth)."""
 HAZE_H2_FRACTION = 0.3
 """float: The H2 mole fraction above which the air counts as hydrogen-rich (open)."""
 HAZE_YIELD_RANGE = (0.01, 1.0)
 HAZE_KZZ_RANGE_M2_S = (1e2, 1e6)
-"""tuple: K_zz, 1e6 to 1e10 cm2/s (Gao 2018: 1e6 to 1e8; Adams 2019: 1e8 to 1e10)."""
+"""tuple: K_zz, 1e6 to 1e10 cm2/s ([R1512]: 1e6 to 1e8; [R0027]: 1e8 to 1e10)."""
 HAZE_RADIUS_UM = (0.05, 0.3)
 HAZE_DENSITY_KG_M3 = 1000.0
 """float: Titan tholin, 1 g/cm3 (assumed by the haze papers; part 06 2.8)."""
@@ -113,11 +113,11 @@ DUST_DENSITY_KG_M3 = 2500.0
 """float: The density of a dust grain, kg/m3 (DESIGN: basaltic dust, Mars's is measured at about 2,500 to 3,000)."""
 DUST_Q_EXT = 2.5
 """float: The extinction efficiency of a micrometre grain at 550 nm (DESIGN; 2 to 3 for the sizes of `DUST_RADIUS_UM`)."""
-"""tuple: The dust asymmetry factor and its spread (Wolff 2009)."""
+"""tuple: The dust asymmetry factor and its spread [R4743]."""
 DUST_OMEGA_NM = (300.0, 380.0, 440.0, 460.0, 500.0, 600.0, 700.0, 800.0, 2480.0)
 DUST_OMEGA_R12 = (0.705, 0.705, 0.765, 0.780, 0.825, 0.941, 0.968, 0.965, 0.965)
 DUST_OMEGA_R18 = (0.705, 0.705, 0.772, 0.788, 0.831, 0.945, 0.971, 0.972, 0.972)
-"""The Wolff 2009 single-scattering albedo for a dust radius of 1.2 and 1.8 micron, digitised from its Figures 12 to 14
+"""The [R4743] single-scattering albedo for a dust radius of 1.2 and 1.8 micron, digitised from its Figures 12 to 14
 (accuracy 0.0005 to 0.001); under 440 nm the UV-band mean of 0.67 to 0.74 (partly verified)."""
 
 

@@ -7,20 +7,20 @@ Rings of small bodies beyond the Roche limit, and the gate against rings close t
 Two pure functions of the rings family (`rings.py`); `rings.apply` calls `resonance_ring` for a dwarf planet that orbits a star and has no ring from its history (GEN.1057). `ring_survives` is the same gate as `ring_origin.RING_MIN_DISTANCE_AU`.
 
 R4, a resonance ring. Quaoar has a ring at 4 100 km (7.4 of its radii, well past its Roche limit), Haumea one at 2 290 km and Chariklo two at 391 and 405 km. In each the ring's
-orbital period is close to three times the body's rotation period: Quaoar's ring is at the 1/3 spin-orbit resonance (Morgado et al. 2023) and Haumea's at the 3:1 (Ortiz et al.
+orbital period is close to three times the body's rotation period: Quaoar's ring is at the 1/3 spin-orbit resonance [R3155] and Haumea's at the 3:1 (Ortiz et al.
 2017), which is the same ratio read from the other side. A resonance of that order lets a body that is not round pull on ring material at a place where the Roche limit would let it
 gather into a moon, so the ring survives where an ordinary ring could not. [2ND-HAND: these are the cases of the design note; no paper was read.] The place follows from Kepler's
 third law, `a = (G M (n P / 2 pi)^2)^(1/3)` for a ring that goes round `n` times slower than the body turns (`resonance_radius_km`). The ring is held to the places where it can exist:
 
 * **Past the Roche limit** of its own material (`rings.roche_limit_km`); inside it the ordinary rings of `rings.py` are the case.
-* **Inside the stable zone of the body's orbit round its star**, `HILL_FRACTION_MAX` of its Hill radius (Hamilton and Burns 1991; Domingos et al. 2006: 0.49 for prograde orbits).
+* **Inside the stable zone of the body's orbit round its star**, `HILL_FRACTION_MAX` of its Hill radius ([R1138, R1771]: 0.49 for prograde orbits).
 * **Round a small body** (under `moon_composition.DWARF_PLANET_MAX_MASS_KG`); a larger body has a ring by the rule of `rings.py`.
 
 A body that meets the conditions has the ring with probability `RESONANCE_RING_RATE` (RR1; no survey of ring searches gives a rate, three of the well observed bodies have one, so it is a
 stand-in with the source's falsifier). The ring is narrow and thin: `rings.Ring` of kind `narrow`, its origin a `disrupted_moon` (the cause named for Quaoar's), its width a few percent of its radius and its
 mass from the stand-in range of `RESONANCE_RING_MASS_KG` (RR4); the optical depth is an output of the mass and the width, as in `rings.py`.
 
-R9, no ring close to a star (`ring_survives`): a planet inside `INNER_RING_LIMIT_AU` keeps no ring (Schlichting and Chang 2011, via the design note, 2ND-HAND: the rings of close planets are short lived against
+R9, no ring close to a star (`ring_survives`): a planet inside `INNER_RING_LIMIT_AU` keeps no ring ([R3957], via the design note, 2ND-HAND: the rings of close planets are short lived against
 the star's tides and heat). The function is a gate, the rate is zero inside the limit and the caller's own outside it.
 
 Use:
@@ -47,10 +47,10 @@ RESONANCE_RING_RATE = 0.10
 a selection-biased count. [Stand-in RR1, tier T4, tweak L3.]"""
 
 HILL_FRACTION_MAX = 0.5
-"""float: The widest circular prograde orbit that stays bound to a body, in its Hill radii (Hamilton and Burns 1991; Domingos et al. 2006: 0.49). [Stand-in RR3, tier T2, tweak L0.]"""
+"""float: The widest circular prograde orbit that stays bound to a body, in its Hill radii ([R1138, R1771]: 0.49). [Stand-in RR3, tier T2, tweak L0.]"""
 
 INNER_RING_LIMIT_AU = 0.1
-"""float: Inside this distance from its star a planet holds no ring (R9; Schlichting and Chang 2011 via the design note, 2ND-HAND, 'about 0.1 AU'). [Stand-in RR2, tier T3, tweak L0.]"""
+"""float: Inside this distance from its star a planet holds no ring (R9; [R3957] via the design note, 2ND-HAND, 'about 0.1 AU'). [Stand-in RR2, tier T3, tweak L0.]"""
 
 RESONANCE_RING_MASS_KG = (1.0e10, 1.0e14)
 """tuple: The ring's mass, log-uniform, kg: the range that gives a mean optical depth from about 0.001 to 10 over the covered share of a thin ring at a few thousand km, the span of the dense

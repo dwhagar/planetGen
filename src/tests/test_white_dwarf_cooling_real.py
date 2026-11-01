@@ -1,7 +1,7 @@
 # tests/test_white_dwarf_cooling_real.py
 
 """
-GEN.742 on the real Bedard et al. 2020 sequences, against white dwarfs measured in the sky. Skipped on a machine whose cache folder
+GEN.742 on the re[R0308] sequences, against white dwarfs measured in the sky. Skipped on a machine whose cache folder
 does not hold the sequences (`python3 -m planetgen.cli.datasets fetch white_dwarf_models`); the offline fixture tests of
 `test_white_dwarf_cooling.py` cover the code.
 """
@@ -15,7 +15,7 @@ pytestmark = [pytest.mark.real_datasets, pytest.mark.skipif(
 
 
 def test_a_point_six_solar_mass_white_dwarf_is_near_eight_thousand_kelvin_after_one_gigayear():
-    """Bergeron et al. 1995 and Fontaine et al. 2001 put the cooling age of a 0.6 solar-mass carbon-oxygen white dwarf of
+    """[R0356, R1406] put the cooling age of a 0.6 solar-mass carbon-oxygen white dwarf of
     8,000 K at 1.0 to 1.4 Gyr."""
     assert white_dwarf_models.cooling_state(0.6, 1.0).teff_k == pytest.approx(8400.0, rel=0.08)
 

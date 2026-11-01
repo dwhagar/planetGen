@@ -259,6 +259,10 @@ SECTIONS = (
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.156", "6.156 Stand-ins of the two cuts of the body type",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.164", "6.164 Stand-ins of the mass ratio of a companion",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.163", "6.163 Stand-ins of the helium-core white dwarf",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.162", "6.162 Stand-ins of the temperature a body took its shape at",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.161", "6.161 Stand-ins of the mass of an asteroid field",
@@ -287,8 +291,6 @@ SECTIONS = (
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.128", "6.128 Stand-ins of the class lines of the train 6 epoch",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
-    ("6.104", "6.104 Stand-ins of the dwarf planet population",
-     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.105", "6.105 Stand-ins of the field dispersal",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.106", "6.106 Stand-ins of the field rates",
@@ -310,6 +312,8 @@ SECTIONS = (
     ("6.132", "6.132 Stand-ins of the reference black hole draw",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.133", "6.133 Stand-ins of the day-and-night state",
+     ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
+    ("6.134", "6.134 Stand-ins of the ocean cover law and the mantle's water store",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
     ("6.146", "6.146 Stand-ins of the thick disc's ages",
      ("fill_id", "kind", "tier", "tweak", "constant", "knobs", "validity", "falsifier", "replaced_by", "evidence")),
@@ -506,7 +510,7 @@ def render(plan_text, wiring_text="", burn_down_text=""):
         " size, T6 or T7. Rows whose parts differ list each part.",
         "- **Tweak** is L0 unless the value was moved after the fact. The L3 rows (hand-tuned against a sweep) are the mantle redox"
         " laws AT.a1 and a2, the atmosphere draw AT.b5, BC6 and AM19 (the exobase ratios); the L2 row is AM10 (the alkali"
-        " activity, tuned to Kite et al. 2016); L1 rows are nudged inside the source's error bar. No row is L4: a row at L4 needs the"
+        " activity, tuned to [R2380]); L1 rows are nudged inside the source's error bar. No row is L4: a row at L4 needs the"
         " item that justified it.",
         "- The recipe rows of the atmosphere draw (`atmosphere_recipes_data.py`) are not rows here one by one. Those that carry a"
         " tuning target in `tuning_targets.json` (a3, a4, e1, f5, f7, k1 to k5, k7, o2) are L2: their weights were tuned to a published"

@@ -104,7 +104,7 @@ const {
   approachLimit, calibrationLimit, dimmestShown, histogramLimit, limitingMagnitude, magnitudeShare, RAMP,
 } = await import(`./starmagnitude.js${VERSION_QUERY}`);
 const {
-  cssVar, entriesNearScreenPoint, fitRendererToCanvas, formatAddress, isLightBackground, makeRingTexture,
+  entriesNearScreenPoint, fitRendererToCanvas, formatAddress, isLightBackground, makeRingTexture, mapVar,
   niceScaleValue, readSceneData, watchResize, worldUnitsPerPixel,
 } = await import(`./mapcore.js${VERSION_QUERY}`);
 const { watchWindowFit } = await import(`./mapfit.js${VERSION_QUERY}`);
@@ -850,7 +850,7 @@ function ensureTextures(accentColor) {
 
 function initGalaxyMap3d(canvasEl, data) {
   var viewport = canvasEl.closest(".starmap-viewport");
-  var accentColor = cssVar("--accent", "#4f5fe8");
+  var accentColor = mapVar("--accent", "#4f5fe8");
   ensureTextures(accentColor);
 
   var renderer = new THREE.WebGLRenderer({ canvas: canvasEl, antialias: true, alpha: true, logarithmicDepthBuffer: true });

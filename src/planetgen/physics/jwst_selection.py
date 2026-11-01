@@ -8,7 +8,7 @@ Which planets JWST has observed for their atmospheres, so that a tuned share of 
 observed list and not with the population. JWST chooses for signal: a nearby, hot, large-scale-height planet around a bright host.
 
 The model is a logistic regression of the label "has a published JWST transmission or emission spectrum" on the transmission
-spectroscopy metric `TSM` (Kempton et al. 2018, equation 1, scale factors of its Table 1), the emission metric `ESM` (equation 4) and an
+spectroscopy metric `TSM` ([R2315], equation 1, scale factors of its Table 1), the emission metric `ESM` (equation 4) and an
 offset for each radius class (under 1.5, 1.5 to 4, 4 to 10 and over 10 Earth radii), fitted to the NASA Exoplanet Archive's 4,618
 transiting planets with the needed quantities, 78 of which have such a spectrum (`scripts/fit_jwst_selection.py`). The offsets make the
 model reproduce the number observed in each class, which is how the programs were chosen (rocky planets, sub-Neptunes, giants).
@@ -48,7 +48,7 @@ MODEL_ID = "jwst-target-selection"
 """str: The id of the selection model in `tuning_harness.SELECTION_MODEL_ITEMS`."""
 
 TSM_SCALE = ((1.5, 0.190), (2.75, 1.26), (4.0, 1.28), (float("inf"), 1.15))
-"""tuple: `(upper radius in Earth radii, scale factor)` of Kempton et al. 2018 Table 1."""
+"""tuple: `(upper radius in Earth radii, scale factor)` of [R2315: Table 1]."""
 
 ESM_PREFACTOR = 4.29e6
 DAYSIDE_OVER_EQUILIBRIUM = 1.10
@@ -161,7 +161,7 @@ def radius_class(radius_earth):
 
 
 def tsm(item):
-    """The transmission spectroscopy metric of Kempton et al. 2018 (a mapping with `radius_earth`, `mass_earth`, `teq_k`,
+    """The transmission spectroscopy metric of [R2315] (a mapping with `radius_earth`, `mass_earth`, `teq_k`,
     `host_radius_solar` and `j_mag`)."""
     scale = next(s for limit, s in TSM_SCALE if item["radius_earth"] < limit)
     return (scale * item["radius_earth"] ** 3 * item["teq_k"] / (item["mass_earth"] * item["host_radius_solar"] ** 2)
@@ -169,7 +169,7 @@ def tsm(item):
 
 
 def esm(item):
-    """The emission spectroscopy metric of Kempton et al. 2018 (`radius_earth`, `teq_k`, `host_radius_solar`, `host_teff_k`, `k_mag`)."""
+    """The emission spectroscopy metric of [R2315] (`radius_earth`, `teq_k`, `host_radius_solar`, `host_teff_k`, `k_mag`)."""
     return (ESM_PREFACTOR * _planck_7_5(DAYSIDE_OVER_EQUILIBRIUM * item["teq_k"]) / _planck_7_5(item["host_teff_k"])
             * (item["radius_earth"] / item["host_radius_solar"] * RADIUS_RATIO) ** 2 * 10.0 ** (-item["k_mag"] / 5.0))
 

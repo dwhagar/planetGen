@@ -1,5 +1,6 @@
 """MAP.271: the look record `planetgen/web/maps/bodylook.py` builds for each body on the System Map."""
 
+import math
 import json
 
 from planetgen.web.maps import bodylook as bl
@@ -352,3 +353,31 @@ def test_a_solid_body_carries_its_stored_roundness_and_a_giant_does_not():
     assert bl.planet_look(_planet(roundness_ratio=0.31234567))["roundness"] == 0.3123
     assert "roundness" not in bl.planet_look(_planet())
     assert "roundness" not in bl.planet_look(_planet(body_type="g", roundness_ratio=None))
+
+
+def test_giant_look_carries_the_cloud_gas_fractions_of_its_stored_mixture():
+    row = fold_air(_planet(body_type="g", planet_class="j", gravity_g=2.5, atmosphere="Hydrogen-Helium", atmospheric_pressure_pa=1e5,
+                           surface_temperature_k=165.0, p_h2_kpa=85.0, p_ch4_kpa=0.5, p_h2s_kpa=0.03))
+    row["gas_partials_pa"]["NH3"] = 1.0e3
+    row["gas_partials_pa"]["He"] = 13.0e3
+    look = bl.planet_look(row)
+    assert set(look["gas"]) == {"CH4", "NH3", "H2S"}          # a gas the mixture lacks is left out
+    assert abs(look["gas"]["NH3"] - 0.01) < 1e-4
+    assert "gas" not in bl.planet_look(_planet())              # a solid world has none
+    assert "gas" not in bl.planet_look(_planet(body_type="g"))  # no stored mixture: left out, the painter goes by temperature
+
+
+def test_the_air_veils_the_ground_by_its_optical_depth_and_stored_haze_and_cloud():
+    """MAP.350: a thicker air veils more; haze and cloud fields appear only when stored; an airless or giant body has none."""
+    from types import SimpleNamespace
+    thin, thick = {}, {}
+    bl._put_veil(thin, {}, SimpleNamespace(tau_550=0.1))
+    bl._put_veil(thick, {}, SimpleNamespace(tau_550=5.0))
+    assert 0.0 < thin["veil"] < thick["veil"] <= 1.0
+    assert not {"haze", "cloudCover", "cloudTau"} & set(thin)
+    hazy = {}
+    bl._put_veil(hazy, {"tau_haze": 1.0, "tau_dust": 0.5, "cloud_cover": 0.6, "tau_cloud": 8.0}, SimpleNamespace(tau_550=0.1))
+    assert hazy["haze"] == round(1 - math.exp(-1.5), 3) and hazy["cloudCover"] == 0.6 and hazy["cloudTau"] == 8.0
+    airless = bl.planet_look(_planet(atmosphere="None", atmospheric_pressure_pa=None, cloud_cover=0.5, tau_cloud=3.0))
+    assert not {"veil", "haze", "cloudCover"} & set(airless)
+    assert "veil" not in bl.planet_look(_planet(body_type="g"))

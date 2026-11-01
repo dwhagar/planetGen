@@ -1,6 +1,6 @@
 # tests/test_belt_mass.py
 
-"""GEN.477 E2: the mass left in a planetesimal belt after collisional grinding (`physics/belt_mass.py`; Wyatt et al. 2007)."""
+"""GEN.477 E2: the mass left in a planetesimal belt after collisional grinding (`physics/belt_mass.py`; [R4785])."""
 
 import math
 
@@ -11,7 +11,7 @@ from planetgen.util import draw
 
 SUN_KG = constants.SOLAR_MASS_TO_KG
 SUN_W = 3.828e26
-KRASINSKY_2002_EARTH = 0.6e-3      # the inferred mass of the Solar System's belt, as Wyatt et al. 2007 quote it: a test point only
+KRASINSKY_2002_EARTH = 0.6e-3      # the inferred mass of the Solar System's belt, as [R4785] quote it: a test point only
 
 
 def disc_mass(lower, upper, star_kg=SUN_KG):
@@ -75,23 +75,21 @@ def test_the_density_word_follows_the_mass_per_area_against_its_reference():
     assert math.isclose(bm.surface_density_earth_per_au2(math.pi * (9 - 1), 1.0, 3.0), 1.0)
 
 
-def test_a_belts_largest_body_is_drawn_inside_its_range_from_its_own_stream():
-    sizes = [bm.draw_largest_km(draw.Stream(f"belt:{i}")) for i in range(400)]
-    low, high = bm.LARGEST_BODY_RANGE_KM
-    assert low <= min(sizes) and max(sizes) <= high
-    assert sum(size < math.sqrt(low * high) for size in sizes) == pytest.approx(200, abs=40), "log-uniform: half below the geometric mean"
-    assert bm.draw_largest_km(draw.Stream("belt:7")) == bm.draw_largest_km(draw.Stream("belt:7"))
-
-
 def test_a_belt_state_gives_the_mass_in_kilograms_and_the_word_against_the_median_largest_body():
+    """GEN.1000: the largest body comes from the size law and is settled with the mass (`belt_ledger.belt_state`)."""
+    from planetgen.physics import belt_ledger as bl
+
     line = formation.snow_line_au(SUN_W)
-    median = math.sqrt(bm.LARGEST_BODY_RANGE_KM[0] * bm.LARGEST_BODY_RANGE_KM[1])
-    mass_kg, word = bm.belt_state(2.2, 3.4, SUN_KG, line, 1.0, 4.5, median)
-    assert word == "typical" and 1e-4 < mass_kg / constants.EARTH_MASS_TO_KG < 1e-2
-    assert bm.belt_state(2.2, 3.4, SUN_KG, line, 1.0, 4.5, bm.LARGEST_BODY_RANGE_KM[1])[1] == "dense"
-    assert bm.belt_state(2.2, 3.4, SUN_KG, line, 1.0, 4.5, bm.LARGEST_BODY_RANGE_KM[0])[1] == "sparse"
-    assert bm.belt_state(2.2, 3.4, SUN_KG, line, 1.0, 0.01, median)[0] > mass_kg, "a young belt has not been ground down"
-    assert bm.belt_state(2.2, 3.4, SUN_KG, line, 2.0, 4.5, median)[0] >= mass_kg, "a metal-rich disc leaves no less"
+    states = [bl.belt_state(2.2, 3.4, SUN_KG, line, 1.0, 4.5, bl.ROCKY_LAW, draw.Stream(f"belt:{i}")) for i in range(30)]
+    masses = sorted(state[0] / constants.EARTH_MASS_TO_KG for state in states)
+    assert 1e-4 < masses[len(masses) // 2] < 1e-2
+    assert {state[1] for state in states} <= {"dense", "typical", "sparse"} and "typical" in {state[1] for state in states}
+    mass_kg, _, settled = states[0]
+    assert mass_kg == pytest.approx(settled.mass_earth * constants.EARTH_MASS_TO_KG) and settled.largest_km > 0.0
+    assert bl.belt_state(2.2, 3.4, SUN_KG, line, 1.0, 4.5, bl.ROCKY_LAW, draw.Stream("belt:0"))[0] == mass_kg, "the belt's own stream: the same belt, the same mass"
+    young = bl.belt_state(2.2, 3.4, SUN_KG, line, 1.0, 0.01, bl.ROCKY_LAW, draw.Stream("belt:0"))[0]
+    assert young > mass_kg, "a young belt has not been ground down"
+    assert bl.belt_state(2.2, 3.4, SUN_KG, line, 2.0, 4.5, bl.ROCKY_LAW, draw.Stream("belt:0"))[0] >= mass_kg * 0.999, "a metal-rich disc leaves no less"
 
 
 def test_bad_inputs_raise():

@@ -4,7 +4,7 @@
 GEN.742: a white dwarf's temperature, luminosity, radius and crystallised core come from cooling sequences by mass and
 atmosphere (`datasets.white_dwarf_models.cooling_state`), not from a power law of the cooling age.
 
-The tests read the downloaded Bedard et al. 2020 sequences from the machine's cache folder (like the MIST isochrones, a generator that
+The tests read the downloaded [R0308] sequences from the machine's cache folder (like the MIST isochrones, a generator that
 makes a white dwarf needs them) and skip on a machine that has not downloaded them; the last two tests are about the files being absent.
 """
 

@@ -57,11 +57,11 @@ WR_CHUNK = 30000
 _STATE = {}
 
 MILKY_WAY_STELLAR_MASS_SOLAR = 5.2e10
-"""float: The Milky Way's stellar mass, solar masses (Licquia and Newman 2015, 5.17e10 +- 1.1e10, recalled)."""
+"""float: The Milky Way's stellar mass, solar masses ([R2680], 5.17e10 +- 1.1e10, recalled)."""
 MILKY_WAY_BULGE_TO_TOTAL = 0.2
-"""float: The share of the Milky Way's stars in its bulge and bar (Bland-Hawthorn and Gerhard 2016: about 1e10 of 5e10, recalled)."""
+"""float: The share of the Milky Way's stars in its bulge and bar ([R0422]: about 1e10 of 5e10, recalled)."""
 MILKY_WAY_STELLAR_HALO_SHARE = 0.02
-"""float: The share of the Milky Way's stars in its stellar halo (Bland-Hawthorn and Gerhard 2016: 4 to 7e8 of 5e10, recalled)."""
+"""float: The share of the Milky Way's stars in its stellar halo ([R0422]: 4 to 7e8 of 5e10, recalled)."""
 
 
 @functools.lru_cache(maxsize=1)
@@ -148,9 +148,8 @@ def _wolf_rayets_of_system(primary, rng):
 
     found = 1 if primary["yerkes_class"] == wolf_rayet.CLASS else 0
     birth, age_gy = primary["initial_mass_sol"], primary["age_gy"]
-    low, high = multistar.companion_ratio_range(birth)
     for _companion in range(hosts.draw_star_count(multistar.companion_class(birth), 1.0, rng) - 1):
-        state = stellar_evolution.evolve_star(birth * rng.uniform(low, high), age_gy, rng, fe_h=primary["metallicity_fe_h"])
+        state = stellar_evolution.evolve_star(multistar.companion_mass(birth, rng), age_gy, rng, fe_h=primary["metallicity_fe_h"])
         found += 1 if state is not None and state["yerkes_class"] == wolf_rayet.CLASS else 0
     return found
 

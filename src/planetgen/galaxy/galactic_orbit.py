@@ -10,8 +10,7 @@ period and phase.
 
 import math
 
-from planetgen.galaxy import scales
-from planetgen.physics import constants as physical_constants
+from planetgen.galaxy import potential, scales
 from planetgen.physics.orbits import minimum_update_interval_years
 from planetgen.physics.units import ly_to_pc
 from planetgen.util import draw
@@ -28,43 +27,26 @@ _yr_to_gyr = units.converter("yr", "Gyr")
 @finite_domain(allow_inf=("distance_ly",))
 def calculate_galactic_orbit(distance_ly):
     """
-    Estimates a star system's circular orbital speed and orbital period
-    around the galactic center, given its distance from it.
-
-    Uses `physical_constants.GALACTIC_ROTATION_FLAT_VELOCITY_KMS`/
-    `GALACTIC_ROTATION_CORE_RADIUS_PC`'s simple rotation-curve model (see
-    that module's comment for the physical justification and calibration
-    against Sol's own distance) rather than a Keplerian point-mass orbit
-    around the galaxy's virial mass (`mass_chain`) -- the latter would put a
-    Sol-distance orbit at nearly 800 km/s, ~4x the real value, since most
-    of the galaxy's mass isn't actually enclosed within that radius the way
-    a naive point-mass calculation assumes. This function is deliberately
-    independent of the orbiting body's own mass (unlike
-    `calculate_hill_sphere`), matching real orbital mechanics at galactic
-    scale: essentially every star's mass is negligible next to the
-    galaxy's, so orbital speed at a given radius is the same for any star
-    there, not a function of that star's own mass.
+    A star system's circular orbital speed and orbital period around the galactic center, given its distance from it, in the potential of the galaxy the
+    running unit belongs to (`galaxy.potential.current`: the Hernquist spheres, Miyamoto-Nagai disks, NFW halo and central black hole its density model and
+    mass chain give, GEN.338; the fallback seed's galaxy outside any unit). The speed is the potential's own, `sqrt(R |a_R|)` in the plane, so it differs from
+    galaxy to galaxy and with radius and holds no Milky Way value (GEN.339: the 220 km/s curve with a 3 kpc core this used to give every galaxy is gone). This
+    function is independent of the orbiting body's own mass, as essentially every star's mass is negligible next to the galaxy's.
 
     Args:
-        distance_ly (float): The star system's distance from the galactic
-                             center, in light-years.
+        distance_ly (float): The star system's distance from the galactic center, in light-years.
 
     Returns:
-        tuple: `(orbital_speed_kms, orbital_period_gy)` -- circular orbital
-              speed in km/s, and orbital period in billions of years (Gy),
-              the same unit `Star.age`/`lifespan` already use. Both `0.0`
-              for a system placed exactly at the galactic center (r = 0,
-              where a circular orbit is degenerate).
+        tuple: `(orbital_speed_kms, orbital_period_gy)` -- circular orbital speed in km/s, and orbital period in billions of years (Gy), the same unit
+              `Star.age`/`lifespan` already use. Both `0.0` for a system placed exactly at the galactic center (r = 0, where a circular orbit is degenerate).
     """
     if distance_ly <= 0:
         return 0.0, 0.0
 
     distance_pc = ly_to_pc(distance_ly)
-    core_radius_pc = physical_constants.GALACTIC_ROTATION_CORE_RADIUS_PC
-    orbital_speed_kms = (
-        physical_constants.GALACTIC_ROTATION_FLAT_VELOCITY_KMS
-        * distance_pc / math.sqrt(distance_pc ** 2 + core_radius_pc ** 2)
-    )
+    orbital_speed_kms = potential.current_circular_speed_kms(distance_pc)
+    if orbital_speed_kms <= 0.0:
+        return 0.0, 0.0
 
     circumference_m = _ly_to_m(2 * math.pi * distance_ly)
     orbital_period_s = circumference_m / _km_to_m(orbital_speed_kms)

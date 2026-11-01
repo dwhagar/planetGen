@@ -111,3 +111,42 @@ def test_the_angular_radius_of_the_star_comes_back_from_the_stored_share_of_time
     share = (1.0 + math.sin(math.radians(ALPHA_EARTH_DEG))) / 2.0
     assert lb.alpha_deg_of({"day_share_mean": share}) == pytest.approx(ALPHA_EARTH_DEG)
     assert lb.RING_STATES == (lb.DAY_SIDE, lb.TERMINATOR, lb.NIGHT_SIDE)
+
+
+RING = dict(ring_inner_km=1.2 * 6371.0, ring_outer_km=2.3 * 6371.0, ring_optical_depth=1.0, radius_km=6371.0)
+
+
+def test_a_ring_shades_the_bands_behind_it_and_leaves_the_poles_alone():
+    """GEN.1055 R8: a tilted world with a broad ring keeps less sunlight in its tropic and equator bands; a pole sees the Sun above the ring."""
+    shade = lb.ring_shade(dict(EARTH, **RING), 26.7)
+    assert len(shade) == 7 and shade == pytest.approx(list(reversed(shade)))
+    assert shade[0] == pytest.approx(1.0) and shade[-1] == pytest.approx(1.0)
+    assert shade[3] < shade[2] < shade[1] <= 1.0 and 0.6 < shade[3] < 0.9
+
+
+def test_the_ring_cools_the_shaded_bands_and_the_mean_of_the_world_stays():
+    plain = lb.compute(dict(EARTH, axial_tilt_deg=26.7), ALPHA_EARTH_DEG)
+    ringed = lb.compute(dict(EARTH, axial_tilt_deg=26.7, **RING), ALPHA_EARTH_DEG)
+    assert ringed[3].mean_k < plain[3].mean_k and ringed[0].mean_k > plain[0].mean_k
+    mean = lambda bands: sum(b.area_share * b.mean_k for b in bands)
+    assert mean(ringed) == pytest.approx(mean(plain), rel=1e-6)
+
+
+def test_a_thicker_ring_shades_more_and_no_ring_or_no_tilt_shades_nothing():
+    thin = lb.ring_shade(dict(EARTH, **dict(RING, ring_optical_depth=0.1)), 26.7)
+    thick = lb.ring_shade(dict(EARTH, **RING), 26.7)
+    assert thick[3] < thin[3] < 1.0
+    assert lb.ring_shade(EARTH, 26.7) is None
+    assert lb.ring_shade(dict(EARTH, **dict(RING, ring_optical_depth=0.0)), 26.7) is None
+    assert lb.ring_shade(dict(EARTH, **RING), 0.0) is None
+    # a world that turns once an orbit has rings of its own (the day side to the night side), and its ring is not asked for
+    assert [b.mean_k for b in lb.compute(dict(LOCKED, **RING), 0.0)] == [b.mean_k for b in lb.compute(LOCKED, 0.0)]
+
+
+def test_the_climate_values_of_a_body_carry_its_ring():
+    from planetgen.physics import habitability_world
+
+    class Body:
+        ring_inner_km, ring_outer_km, ring_optical_depth = 8000.0, 14000.0, 0.5
+    values = habitability_world.values_from_body(Body())
+    assert (values["ring_inner_km"], values["ring_outer_km"], values["ring_optical_depth"]) == (8000.0, 14000.0, 0.5)

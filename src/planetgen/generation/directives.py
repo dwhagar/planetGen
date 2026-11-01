@@ -7,8 +7,8 @@ A sector is drawn as usual; when it misses a directive it is thrown away
 and drawn again from a fresh stream, up to `DEFAULT_ATTEMPTS` (K) times, and
 only the winner is saved (docs/design/generation/sampling-backfill-and-resume.md,
 section 8). A habitable-worlds minimum still missed after K draws takes the
-forced fill (GEN.180): the sector is built once more with that many systems each
-forced to hold a habitable world, and is marked `met_forced`. A request that
+fill (GEN.180): the sector is built once more with that many systems each
+asking for a habitable world (the odds raised, nothing forced, GEN.1130), and is marked `met_forced`. A request that
 cannot occur at all is refused before any drawing (`impossible`). Attempt 0 uses the sector's plain seed, so a sector that
 meets its directives first time is the sector a run with none would have
 made. Attempt `a` >= 1 uses a seed from the galaxy seed, the sector's
@@ -139,8 +139,8 @@ class Outcome:
         if self.status == MET_AFTER_ATTEMPTS:
             return f"directives met after {self.attempts} draws"
         if self.status == MET_FORCED:
-            return (f"directives not met in {self.attempts - 1} draws, so a forced fill put a habitable world in each of "
-                    f"the systems it needed (met_forced)")
+            return (f"directives not met in {self.attempts - 1} draws, so a fill asked for a habitable world in each of "
+                    f"the systems it needed, which raises the odds and forces none (met_forced)")
         misses = ", ".join(f"{key} {got}/{want}" for key, (want, got) in sorted(self.missed.items()))
         return f"directives not met after {self.attempts} draws ({misses}); the closest draw was kept"
 

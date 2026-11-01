@@ -2,7 +2,7 @@
 
 """
 The metallicity trend of the close companions (GEN.103, Boss 2026-10-16): metal-poor stars have more companions inside
-10 AU than metal-rich ones (Moe, Kratter and Badenes 2019). The factor is a leaf of its own, so the tree draw
+10 AU than metal-rich ones [R3109]. The factor is a leaf of its own, so the tree draw
 (`generation.multistar`) and the place's terms (`generation.place_terms`) can both read it.
 """
 
@@ -24,7 +24,7 @@ def scaled_close_chance(chance, fe_h):
     A close-companion chance moved by the star's [Fe/H] (Boss, 2026-10-16, 7:19 PM EDT): the factor
     `close_companion_factor` multiplies the *odds* `p / (1 - p)`, not `p`, for every primary mass. The result never passes 1,
     and a star already likely to have a companion rises less in absolute terms: a G dwarf (0.22) goes 0.43, 0.36, 0.25
-    and 0.12 at [Fe/H] -3.0, -1.0, -0.2 and +0.5, inside Moe, Kratter and Badenes 2019's ranges, and an O star (0.45)
+    and 0.12 at [Fe/H] -3.0, -1.0, -0.2 and +0.5, insi[R3109]'s ranges, and an O star (0.45)
     goes to 0.58 at -0.7, inside the "no change within about 30%" the O and early-B surveys find.
     """
     if chance <= 0.0 or chance >= 1.0:

@@ -7,8 +7,8 @@ How the colour of the star changes the Bond albedo of a bright surface (GEN.912,
 The Bond albedo draw of `climate_draws.albedo_range` was the same for every star. Ice, snow and the ocean under its clouds reflect the blue
 and visible light of a hot star well and the near-infrared light of a cool star badly (snow falls from about 0.8 in the visible to 0.3 to 0.5
 beyond 1 micron), and Rayleigh scattering is weaker in the red; so a planet of a K or M dwarf reflects less of the light it gets than the same
-planet of a G star and is warmer at the same flux. Joshi and Haberle 2012 (arXiv:1110.4525) find the broadband albedo of snow 0.8 in the Sun's
-light and 0.6 in the light of a 3300 K black body, and of ice 0.5 and 0.3. Shields et al. 2013 (arXiv:1305.6926) give three measures for the
+planet of a G star and is warmer at the same flux. [R2202] find the broadband albedo of snow 0.8 in the Sun's
+light and 0.6 in the light of a 3300 K black body, and of ice 0.5 and 0.3. [R4065] give three measures for the
 Sun-like G star, the F2V HD128167, the K2V HD22049 and the M3V AD Leo:
 
 * Table 2 (a 1-D column with an Earth-like air, clouds and Rayleigh scattering, read from a text extraction): the broadband planetary albedo of
@@ -32,14 +32,14 @@ Use:
 """
 
 SPECTRAL_TEMPERATURES_K = (3410.0, 5040.0, 5770.0, 6900.0)
-"""tuple: The effective temperatures of the M3V, K2V, G2V and F2V stars of Shields et al. 2013, K (main-sequence values of the types; the paper gives none, row SAB1)."""
+"""tuple: The effective temperatures of the M3V, K2V, G2V and F2V stars of [R4065], K (main-sequence values of the types; the paper gives none, row SAB1)."""
 
 SPECTRAL_FACTOR = {
     "frozen": (0.79, 0.935, 1.0, 1.05),
     "wet": (0.234 / 0.319, 0.302 / 0.319, 1.0, 0.329 / 0.319),
 }
 """dict: The Bond albedo of a bright world of each star of `SPECTRAL_TEMPERATURES_K` over the Sun-like one. `frozen`: M 0.79 and F 1.05 from the freezing
-lines of Shields et al. 2013 (19 percent less flux for M, 6 percent more for F; the GCM mean albedos 0.51 and 0.58 over 0.55 and Table 2's snow row 0.398 over
+lines of [R4065] (19 percent less flux for M, 6 percent more for F; the GCM mean albedos 0.51 and 0.58 over 0.55 and Table 2's snow row 0.398 over
 0.646 bracket the M one), K 0.935 from Table 2's snow row (0.604 over 0.646). `wet`: the ocean row of Table 2 over the G entry (row SAB1)."""
 
 WET_SHARE = 0.5

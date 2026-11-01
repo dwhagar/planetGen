@@ -195,12 +195,12 @@ Operating safely in these conditions requires transitioning to a fully encapsula
 
 ## References
 
-- Beuther, D. A., & Martin, R. J. (2006). Efficacy of a heat exchanger mask in cold exercise-induced asthma. *Chest*, 129(5), 1188–1193. [https://doi.org/10.1378/chest.129.5.1188](https://doi.org/10.1378/chest.129.5.1188)
+- Beuther, D. A., & Martin, R. J. (2006). Efficacy of a heat exchanger mask in cold exercise-induced asthma. *Chest*, 129(5), 1188–1193. [R0377]
 - Drägerwerk AG & Co. KGaA. (2019). *Dräger PSS BG 4 plus: Closed-circuit breathing apparatus instructions for use* (Publication No. 9021728). Lübeck, Germany: Drägerwerk AG.
-- McFadden, E. R., Jr., Pichurko, B. M., Bowman, H. F., Ingenito, E., Burns, S., Dowling, N., & Solway, J. (1985). Thermal mapping of the airways in humans. *Journal of Applied Physiology*, 58(2), 564–570. [https://doi.org/10.1152/jappl.1985.58.2.564](https://doi.org/10.1152/jappl.1985.58.2.564)
+- McFadden, E. R., Jr., Pichurko, B. M., Bowman, H. F., Ingenito, E., Burns, S., Dowling, N., & Solway, J. (1985). Thermal mapping of the airways in humans. *Journal of Applied Physiology*, 58(2), 564–570. [R2989]
 - Moritz, A. R., Henriques, F. C., Jr., & McLean, R. (1945). The effects of inhaled heat on the air passages and lungs: An experimental investigation. *The American Journal of Pathology*, 21(2), 311–331.
 - National Fire Protection Association. (2013). *NFPA 1981: Standard on open-circuit self-contained breathing apparatus (SCBA) for emergency services* (2013 ed.). Quincy, MA: National Fire Protection Association.
 - National Institute for Occupational Safety and Health. (2016). *Criteria for a recommended standard: Occupational exposure to heat and hot environments* (DHHS/NIOSH Publication No. 2016-106). Cincinnati, OH: Centers for Disease Control and Prevention.
 - National Institute for Occupational Safety and Health. (2023). *Lieutenant and probationary firefighter die after experiencing thermal degradation of self-contained breathing apparatus facepiece lenses – Maryland* (Fatality Assessment and Control Evaluation Report F2023-11). Morgantown, WV: NIOSH.
-- Putorti, A. D., Jr., Mensch, A., Bryner, N. P., & Braga, G. (2013). *Thermal performance of self-contained breathing apparatus facepiece lenses exposed to radiant heat flux* (NIST Technical Note 1785). Gaithersburg, MD: National Institute of Standards and Technology. [https://doi.org/10.6028/NIST.TN.1785](https://doi.org/10.6028/NIST.TN.1785)
+- Putorti, A. D., Jr., Mensch, A., Bryner, N. P., & Braga, G. (2013). *Thermal performance of self-contained breathing apparatus facepiece lenses exposed to radiant heat flux* (NIST Technical Note 1785). Gaithersburg, MD: National Institute of Standards and Technology. [R3630]
 - Stenfors, N., Persson, H., Tutt, A., Tufvesson, E., & Andersson, E. P. (2022). A breathing mask attenuates acute airway responses to exercise in sub-zero environment in healthy subjects. *European Journal of Applied Physiology*, 122(6), 1469–14

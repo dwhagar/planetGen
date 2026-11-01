@@ -5,9 +5,9 @@ Potassium depletion of a rocky body against CI chondrites (GEN.492, row o3 of th
 ===============================================================================================================================
 
 K/U of a body over K/U of CI chondrites measures how much of the moderately volatile potassium the body lost; uranium is refractory, so the
-ratio does not move with magmatic differentiation (Halliday and Porcelli 2001). `radiogenic` drew the depletion log-uniform from 0.03 to 1,
-a placeholder. Dauphas et al. 2022 (Planetary Science Journal 3:29, Table 1, READ) re-derive K/U for six differentiated bodies, with CI
-chondrites from Barrat et al. 2012 (K 550 ppm, U 0.0077 ppm, K/U 71,429):
+ratio does not move with magmatic differentiation [R1762]. `radiogenic` drew the depletion log-uniform from 0.03 to 1,
+a placeholder. [R1003] (Planetary Science Journal 3:29, Table 1, READ) re-derive K/U for six differentiated bodies, with CI
+chondrites from [R0270] (K 550 ppm, U 0.0077 ppm, K/U 71,429):
 
     bulk silicate Earth 0.136, Mars 0.243, Mercury surface 0.200 (0.055 to 1 Earth masses),
     Moon 0.034, Vesta 0.058, the angrite parent body 0.0018 (0.012 Earth masses down to a planetesimal).
@@ -20,7 +20,7 @@ enstatite groups; a body that kept all its potassium has 1).
 Limits, kept as registry rows (GEN.725, section 6.61): three bodies per class; the heliocentric trend the earlier recalled rule used
 (depletion rising as `a^1.2`) is not in these six bodies (Mercury is more depleted than a trend from Earth to Mars would give), so none is
 drawn; polluted white dwarfs say a majority of pollutants (38 of the 50 with sodium measured) are not depleted in sodium, a moderately volatile
-element of nearly the same volatility as potassium (Harrison et al. 2021, arXiv 2103.05713, READ), which the six differentiated bodies do not
+element of nearly the same volatility as potassium ([R1832], READ), which the six differentiated bodies do not
 show, so the undepleted channel is a falsifier and a later item, not a draw. Nothing in generation calls this yet: the wiring step is
 `radiogenic.draw_content` taking the depletion from here with the body's mass, and CI K/U from `ci_k_over_u` (it carried 67,407).
 """
@@ -70,7 +70,7 @@ CI_K_OVER_U, BODIES, CLASS_MASS_EARTH, SOURCE = load()
 
 
 def ci_k_over_u():
-    """The mass ratio of potassium to uranium in CI chondrites (Barrat et al. 2012: K 550 ppm, U 0.0077 ppm)."""
+    """The mass ratio of potassium to uranium in CI chondrites ([R0270]: K 550 ppm, U 0.0077 ppm)."""
     return CI_K_OVER_U
 
 

@@ -6,7 +6,7 @@
  "cut": {
   "mass_error_share": 0.25,
   "radius_error_share": 0.08,
-  "source": "Luque and Palle 2022, Science 377, 1211 (the planets with mass better than 25 percent and radius better than 8 percent)"
+  "source": "[R2774] (the planets with mass better than 25 percent and radius better than 8 percent)"
  },
  "k_per_earth_mass_ms": 0.08945945945945946,
  "subsamples": {

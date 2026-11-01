@@ -104,7 +104,7 @@ class Henry:
     The Henry constant of one gas in water (part 01 section 8): `kH(T) = kH(298.15 K) exp(d (1/T - 1/298.15))`.
 
     Attributes:
-        kh_298 (float): mol/(kg bar) at 298.15 K, the median of the NIST WebBook compilation (Sander 2015).
+        kh_298 (float): mol/(kg bar) at 298.15 K, the median of the NIST WebBook compilation [R3909].
         kh_range (tuple): The lowest and highest compiled values, and `kh_n` how many there are.
         d_k (float): -dln kH/d(1/T), K, the compilation's median.
         thermo_kh_298, thermo_d_k (float): The independent fit of the `thermo` package, for the audit.
@@ -200,7 +200,7 @@ class Infrared:
     Attributes:
         bands (tuple[Band]): The fundamentals and the other bands the research lists; empty for a gas with none (the noble gases,
             N2, O2 and H2 have only collision-induced bands, the metals and oxides electronic ones, and HNO3 has none written).
-        saturated_rank (int or None): The gas's place in the Byrne and Goldblatt 2014b ranking of saturated blackbody absorption
+        saturated_rank (int or None): The gas's place in the [R0620] ranking of saturated blackbody absorption
             (1 is the strongest per molecule), where the research states it.
         strength_text, fundamentals_text (str): The research's own strength and band cells, kept whole because they carry what
             is not a number (forcing statements, overlaps, broadening).
@@ -232,7 +232,7 @@ class UvAbsorption:
             zero there, as the source package does) and `0.0` where the file holds zero.
         partial_bin (tuple): One flag per bin: under half of the bin is covered, so the mean is of less than half of it.
         coverage_nm (tuple): The wavelengths the data cover, `(low, high)`.
-        origin (str): Where the data come from (the research names it where it differs from Heays 2017 or Huebner 2015).
+        origin (str): Where the data come from (the research names it where it differs from [R1873] or [R2040]).
         state (str), limit (str): How far the bins are checked (the structured O2 and the CH4 visible bins carry a limit).
     """
 

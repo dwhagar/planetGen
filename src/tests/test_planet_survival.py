@@ -140,7 +140,7 @@ def test_no_planet_of_a_dense_core_lies_past_the_survival_limit_and_the_sun_s_ne
 
 def test_a_metal_poor_cluster_thins_its_giants_by_the_metallicity_factor_as_well():
     # GEN.236 (the factor), the metallicity exponent of the gas outcome (GEN.828) and GEN.325 (the cut) act together: the giants of a
-    # metal-poor star are fewer, by about a hundredth at [Fe/H] -1 (giants go as 10^(2 [Fe/H]), Fischer and Valenti 2005). The same streams
+    # metal-poor star are fewer, by about a hundredth at [Fe/H] -1 (giants go as 10^(2 [Fe/H]), [R1377]). The same streams
     # draw the same cores, so a star that keeps a giant at lower [Fe/H] keeps it at the Sun's too.
     from planetgen.physics import planet_mass
 

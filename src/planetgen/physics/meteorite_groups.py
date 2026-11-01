@@ -12,7 +12,7 @@ space whose axes are what sets a chondrite's kind:
 * the **refractory** inclusions' volume percent (CAIs and amoeboid olivine aggregates), from its refractory (Ca, Al) enrichment;
 * the **matrix**, the volume percent of fine grains, which carries the water and organics: high in the aqueously altered CI and CM and in the ice-bearing bodies.
 
-`CHONDRITE_GROUPS` is Table 1 of Weisberg, McCoy and Krot 2006 (Meteorites and the Early Solar System II), the averages of the chondrite groups (the table is held in
+`CHONDRITE_GROUPS` is Table 1 of [R4658] (Meteorites and the Early Solar System II), the averages of the chondrite groups (the table is held in
 `/mnt/project-files/design-drafts/gen465-second-pass/weisberg2006_table1_chondrite_groups.txt`); the CI to CK carbonaceous groups, the enstatite chondrites (EH, EL) and the
 ordinary chondrites (H, L, LL) are the same table's columns. `nearest_group` returns the group with the smallest scaled distance and the distance, which the caller can compare with `NEAREST_LIMIT`:
 a body far from every group (a metal-rich or ice-rich one, a differentiated one) is labelled `none`, not forced into one.
@@ -27,7 +27,7 @@ import math
 
 from planetgen.util.checks import finite_domain
 
-# name: (fayalite mol percent or None, metal vol percent, refractory (CAI and AOA) vol percent, matrix vol percent): Weisberg et al. 2006 Table 1
+# name: (fayalite mol percent or None, metal vol percent, refractory (CAI and AOA) vol percent, matrix vol percent): [R4658: Table 1]
 CHONDRITE_GROUPS = {
     "CI": (None, 0.0, 0.0, 99.5),
     "CM": (None, 0.1, 5.0, 70.0),
