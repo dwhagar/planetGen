@@ -941,21 +941,6 @@ with `clamp()`.
   Prerequisites: GEN.1070, GEN.1069.
   Design: [docs/design/systems/belt-evolution.md](design/systems/belt-evolution.md)
 
-- [ ] **UX.243 Day-and-night counter on every object page: a clock counting the object's own day at its real rate, with the state word, shown separately from the spin animation speed (spin.js compresses periods onto 20 s to 10 min per turn, stand-in SP1, L4)**
-  Boss, 4:47 PM EDT 2026-10-30. The counter reads the state of the
-  day-and-night item and counts the object's own day in real time (time
-  of day, day number), or states "tidally locked: permanent day side" or
-  "no night"; the spin display speed stays a labelled display choice and
-  the page says the sphere is shown spinning faster than real. Done:
-  page and API tests, a11y check, the unit shown beside every number.
-  Where we think it belongs (best guess, can move): Core 2 (pages),
-  after the day-and-night state item; lock work (API field).
-  Boss addition, 4:52 PM EDT (2026-10-30 4:53 PM EDT): The counter also
-  shows the day and night hours of each latitude band beside its
-  temperature (from GEN.1108), and the spin-speed fix for slow and
-  locked bodies is UX.244.
-  Prerequisites: none. Related: MAP.277, VIEW.14.
-
 - [ ] **UX.252 Readability rewrite of ALL planet, moon and belt text: summary sentences, descriptions, notes, labels, class pages**
   Boss, 10:07 AM EDT 2026-10-31 (and 10:08 AM EDT for the help pages):
   build and ship all the life recommendations, a full readability
@@ -1034,6 +1019,19 @@ with `clamp()`.
   change, so lock-free. Owner: none for now (pool; any web lane that is
   waiting). Version 8.1.
   Prerequisites: none. Related: MAP.210.
+
+- [ ] **UX.257 Object page life text: the life readings table overflows a phone and the species link fails contrast (bug)**
+  Found by Planets 1 in the axe check of the object page (UX.243,
+  2026-11-01 12:46 AM EDT as the lane reported), neither caused by that
+  panel. (1) table.life-readings is 438 px wide on a 390 px phone: wrap
+  it in a focusable scroll region like the other tables or let its
+  columns wrap. (2) The species link inside the life text fails
+  link-in-text-block contrast: 2.49:1 in the light theme and 1.91:1 in
+  the dark theme; give it the theme link colour or an underline plus
+  enough contrast. Done when src/tests/test_web_a11y.py passes the
+  object page of a body with life text in both themes at phone width.
+  Related: UX.252.
+  Prerequisites: none.
 
 ## MAP: Galaxy Map, Sector Map, System Map
 
