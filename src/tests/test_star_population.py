@@ -22,6 +22,7 @@ from planetgen.generation import star_population as sp
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.star import STAR_TYPE_PATTERN, Star
 from planetgen.generation.system import StarSystem
+from planetgen.util import draw
 
 SAMPLE_SIZE = 200_000
 
@@ -198,13 +199,19 @@ def test_planets_respect_their_stars_age_and_history():
                     assert all(moon.life_class is None for moon in body.moons)
 
 
-def test_a_required_habitable_world_gets_an_old_enough_living_star():
-    cfg = SystemConfig()
-    cfg.HABITABLE_WORLD = True
-    for _ in range(100):
-        star = Star(cfg)
-        assert star.age >= prog_c.LIFE_MIN_STAR_AGE_GY
-        assert star.yerkes_class != "VII"
+def test_a_requested_habitable_world_makes_a_star_too_young_or_dead_for_life_rarer_not_impossible():
+    """A request only raises the odds (GEN.1130): a star younger than life needs, or a white dwarf, is kept one time in `REQUEST_ODDS`, so the share
+    of them falls to a fraction of what the plain draw gives, and is not forced to zero."""
+    def unfit_share(requested):
+        draw.set_run_seed(5)
+        cfg = SystemConfig()
+        cfg.HABITABLE_WORLD = requested
+        stars = [Star(cfg) for _ in range(600)]
+        return sum(star.age < prog_c.LIFE_MIN_STAR_AGE_GY or star.yerkes_class == "VII" for star in stars) / len(stars)
+
+    plain, requested = unfit_share(False), unfit_share(True)
+    assert plain > 0.0
+    assert requested <= 0.5 * plain
 
 
 def test_from_params_rebuilds_a_star_without_rolling():
