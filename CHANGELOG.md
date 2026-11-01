@@ -2,6 +2,21 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3063] - 2026-11-01
+
+**Headline:** The 23 flavour lines a system can carry are rewritten in plain words: short sentences, one idea each, and no claim about a world the data could contradict.
+
+### Changed
+- **System flavour lines (GEN.1212).** `tuning.SYSTEM_FLAVOR` keeps its 23 lines in the same order, so the draw lands on the same line as before, but each line is now one or two short sentences ("Sensors show a derelict chain of deep-space platforms. They fire strong energy beams into the void for no known reason."). A line that called a world "now-dead" no longer does. A test reads every line after "Sensors show" against the style guide. A system's stored `system_flavor_text` is the new wording.
+
+No change to which systems get a line or which line they get.
+
+generation-output: changed
+
+The stored `system_flavor_text` wording is the only output that changes (epoch affects: fill). It rides a merge train, which takes the epoch.
+
+TODO items resolved: GEN.1212 (system flavour lines; the stored planet description copy is decided separately with Core 5).
+
 ## [8.0.3062] - 2026-11-01
 
 **Headline:** A small body is now an Asteroid or a round Class D or C world by whether its own weight beats its strength, not by how much ice it holds.
