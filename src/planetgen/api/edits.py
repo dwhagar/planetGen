@@ -328,9 +328,9 @@ def regenerate_phenomenon_job(config, phenomenon_type, phenomenon_id):
 @require_admin(fresh=True)
 def delete_sector_with_contents(sector_id):
     """`DELETE /api/sectors/<id>/contents` -- deletes the sector together
-    with its star systems, the phenomena filed under it and facilities
-    parked in it, leaving its cell in the galaxy unfilled so it can be
-    generated again. (`DELETE /api/sectors/<id>` deletes only the sector
+    with its star systems, the phenomena born in it and the space
+    facilities born in it (GEN.1127), leaving its cell in the galaxy unfilled so it can be
+    generated again. 409 while objects born in other sectors are filed in it. (`DELETE /api/sectors/<id>` deletes only the sector
     row and keeps its systems as standalone ones.)"""
     _options()
     return _queued_edit("sector.delete", f"sector:{sector_id}", delete_sector_job,
@@ -346,7 +346,10 @@ def delete_sector_job(config, sector_id):
         around = [other for other in sector_paths.sectors_to_settle(conn, [sector_id]) if other != sector_id] \
             if conn.execute("SELECT 1 FROM sectors WHERE id = ?", (sector_id,)).fetchone() else []
         with conn:
-            counts = editStore.delete_sector_with_contents(conn, sector_id)
+            try:
+                counts = editStore.delete_sector_with_contents(conn, sector_id)
+            except editStore.SectorHasResidents as exc:
+                raise ApiError(str(exc), status_code=409) from exc
         if counts is None:
             raise ApiError(f"no such sector: {sector_id}", status_code=404)
         sector_paths.settle_sectors(conn, around, expand=False)

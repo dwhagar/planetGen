@@ -101,6 +101,7 @@ from planetgen.names import naming_key
 from planetgen.db import cloudcontents, containers as containersDb, nodes, objectlist
 from planetgen.db import stats as dbStats
 from planetgen.db import scatter_systems, store
+from planetgen.db import edits as dbEdits
 from planetgen.generation import bright_stars as brightStars, limits as generationLimits, stored_trees
 from planetgen import tuning
 from planetgen.admin import maintenance
@@ -1988,12 +1989,18 @@ def delete_sector(sector_id):
     """`DELETE /api/sectors/<id>` -- no request body. Its systems are
     detached, not deleted (`star_systems.sector_id` is `ON DELETE SET
     NULL`, per `schema.sql`), matching how a system can already exist
-    with no sector at all."""
+    with no sector at all. 409 while a rogue planet, interstellar comet, supernova remnant or facility is filed in it (GEN.1127:
+    those keys no longer cascade, since a filed object may have drifted in from another sector); delete or move them first, or use
+    `DELETE .../contents`, which takes only what was born there."""
     conn = _write_conn()
     try:
         with conn:
             address = conn.execute("SELECT shell_index, band_index, wedge_index FROM sectors WHERE id = ?",
                                    (sector_id,)).fetchone()
+            filed = dbEdits.restricting_rows(conn, sector_id) if address is not None else {}
+            if filed:
+                found = ", ".join(f"{count} in {table}" for table, count in filed.items())
+                raise ApiError(f"the sector still holds objects ({found}); move or delete them first", status_code=409)
             deleted = conn.execute("DELETE FROM sectors WHERE id = ?", (sector_id,)).rowcount > 0
             if deleted:
                 store.note_sector_deleted(conn)

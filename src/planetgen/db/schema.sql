@@ -1585,6 +1585,10 @@
 --     and `utf8mb4`/`utf8mb4_unicode_ci` (full Unicode, including
 --     generated names/flavor text outside the Basic Multilingual Plane,
 --     rather than MySQL's legacy 3-byte `utf8`).
+-- v197 (GEN.1127): `chart_ledger`, one row for each sector cell that has been charted (generated): the cell's address, the run and generator epoch that charted it, when, and when its
+--   rogue top-up ran (`topped_up_at`, NULL until it does); it replaces `sector_stats.filled_at` and is written by the same save, so a cell's charted state is a row here, not a column of the
+--   stats. The `ON DELETE CASCADE` of `rogue_planets`, `interstellar_comets`, `supernova_remnants` and `facilities` on `sector_id` became `RESTRICT`: `sector_id` is the sector that holds an object
+--   now (the orbital update refiles it), so a sector row cannot vanish while a resident points at it, and deleting or regenerating a sector removes only what was born there (the first 56 bits of `uid`).
 
 
 -- v39: star_systems and several phenomenon tables point at nebulae and
@@ -3629,7 +3633,7 @@ CREATE TABLE IF NOT EXISTS supernova_remnants (
     ),
 
     CONSTRAINT fk_supernova_remnants_sector
-        FOREIGN KEY (sector_id) REFERENCES sectors(id) ON DELETE CASCADE,
+        FOREIGN KEY (sector_id) REFERENCES sectors(id) ON DELETE RESTRICT,  -- v197 (GEN.1127): a sector row cannot go while a resident points at it
     CONSTRAINT fk_supernova_remnants_black_hole
         FOREIGN KEY (compact_remnant_black_hole_id) REFERENCES black_holes(id) ON DELETE SET NULL,
     CONSTRAINT fk_supernova_remnants_neutron_star
@@ -3836,7 +3840,7 @@ CREATE TABLE IF NOT EXISTS rogue_planets (
     ),
 
     CONSTRAINT fk_rogue_planets_sector
-        FOREIGN KEY (sector_id) REFERENCES sectors(id) ON DELETE CASCADE,
+        FOREIGN KEY (sector_id) REFERENCES sectors(id) ON DELETE RESTRICT,  -- v197 (GEN.1127): a sector row cannot go while a resident points at it
     KEY idx_rogue_planets_sector_id (sector_id),
     -- v28: see the header comment's "v28" note.
     KEY idx_rogue_planets_galactic_radius_pc (galactic_radius_pc),
@@ -3925,7 +3929,7 @@ CREATE TABLE IF NOT EXISTS interstellar_comets (
     ),
 
     CONSTRAINT fk_interstellar_comets_sector
-        FOREIGN KEY (sector_id) REFERENCES sectors(id) ON DELETE CASCADE,
+        FOREIGN KEY (sector_id) REFERENCES sectors(id) ON DELETE RESTRICT,  -- v197 (GEN.1127): a sector row cannot go while a resident points at it
     KEY idx_interstellar_comets_sector_id (sector_id),
     KEY idx_interstellar_comets_next_update_due (next_update_due),
     -- v28: see the header comment's "v28" note.
@@ -4244,11 +4248,33 @@ CREATE TABLE IF NOT EXISTS sector_stats (
     total_luminosity_sol   DOUBLE,
     habitable_worlds       INT,   -- v139 (MAP.143): planets and moons in the sector's systems that are Blue or Green overall (PHI-6)
     total_mass_kg          DOUBLE,   -- v168 (DB.108): the mass of the sector's stars, planets, moons, belts, comets and phenomena (not nebulae), NULL when a body has no stored mass
-    filled_at              TIMESTAMP(3) NULL,
     updated_at             TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
     PRIMARY KEY (shell_index, band_index, wedge_index),
     KEY idx_sector_stats_level (bright_level_sol)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+-- ---------------------------------------------------------------------
+-- chart_ledger (v197, GEN.1127): which sector cells have been charted. A cell is a whole sector (the unit of randomness,
+-- docs/design/systems/region-object-store.md), so it is charted or it is not, and the uncharted remainder is the cells with no row.
+-- `run_id` is the generation run that charted it and `generator_epoch` the epoch it was charted under (a cell charted under an older
+-- epoch is stale, `galaxy/epoch_record.py`), `charted_at` when, `topped_up_at` when the rogue top-up of its region run filled it (NULL
+-- until it does; a cell keeps one top-up, GEN.1120). Keyed by the address, not by `sectors.id`, so it outlives a sector row that is
+-- replaced. Written by the save of a sector (`store.save_sector`); a deleted sector's row goes with it (`store.forget_sector_fill`).
+CREATE TABLE IF NOT EXISTS chart_ledger (
+    shell_index       INT NOT NULL,
+    band_index        INT NOT NULL,
+    wedge_index       INT NOT NULL,
+    run_id            BIGINT UNSIGNED NULL,
+    generator_epoch   SMALLINT UNSIGNED NULL,
+    charted_at        TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+    topped_up_at      TIMESTAMP(3) NULL,
+
+    PRIMARY KEY (shell_index, band_index, wedge_index),
+    KEY idx_chart_ledger_run (run_id),
+    CONSTRAINT fk_chart_ledger_run
+        FOREIGN KEY (run_id) REFERENCES generation_runs(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 
@@ -5042,7 +5068,7 @@ CREATE TABLE IF NOT EXISTS facilities (
     CONSTRAINT fk_facilities_asteroid_field
         FOREIGN KEY (asteroid_field_id) REFERENCES asteroid_fields(id) ON DELETE CASCADE,
     CONSTRAINT fk_facilities_sector
-        FOREIGN KEY (sector_id) REFERENCES sectors(id) ON DELETE CASCADE,
+        FOREIGN KEY (sector_id) REFERENCES sectors(id) ON DELETE RESTRICT,  -- v197 (GEN.1127): a sector row cannot go while a resident points at it
     CONSTRAINT fk_facilities_type
         FOREIGN KEY (type_id) REFERENCES facility_types(id) ON DELETE RESTRICT,
     CONSTRAINT fk_facilities_affiliation_polity

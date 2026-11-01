@@ -16,6 +16,7 @@ its row (with what points at it).
 import uuid
 
 from planetgen.db import kind_tables, object_rows, storage_checksum, store
+from planetgen.galaxy import object_uid as objectUid
 from planetgen.physics import insolation, unit_registry as units
 
 _au_to_km = units.converter("au", "km")
@@ -335,37 +336,150 @@ def sector_address(conn, sector_id):
     return row["shell_index"], row["band_index"], row["wedge_index"]
 
 
-def delete_sector_with_contents(conn, sector_id):
+class SectorHasResidents(EditError):
+    """A sector cannot be deleted while objects born in other sectors are filed in it (GEN.1127). `residents` is `{table: count}`."""
+
+    def __init__(self, residents):
+        self.residents = residents
+        found = ", ".join(f"{count} in {table}" for table, count in residents.items())
+        super().__init__(f"the sector still holds objects born in other sectors ({found}); move or delete them first")
+
+
+_BIRTH_TABLES = tuple(table for table in kind_tables.tables("sector_filed") if table != "facilities")
+"""tuple: The tables whose rows a sector files by `sector_id` and whose rows a deleted sector takes with it when it was their birth sector
+(a system takes its bodies and hosted facilities with it, by their own foreign keys)."""
+
+_BIRTH_ONLY = {"black_holes": "star_id IS NULL", "neutron_stars": "star_id IS NULL"}
+"""dict: A table whose rows are owned by the sector only in part: a black hole or neutron star of a star system belongs to the system."""
+
+
+def _born_here(conn, sector_id):
     """
-    Deletes a sector and everything filed under it: its star systems
-    (with their bodies and facilities), the standalone phenomena whose
-    home is this sector, and facilities parked in it. Its grid cell is
-    left unfilled, so it can be generated again. The neighboring
-    sectors' nearest-system lists are refreshed.
+    `(sql, params)` selecting the rows of a kind table that were born in the sector `sector_id`: the first 56 bits of an object's `uid`
+    are its birth sector's address (`galaxy/object_uid.py`), a range of the unique `uid` key; a row with no `uid` yet, and any row of a
+    sector with no grid address, is born where it is filed.
+    """
+    row = conn.execute("SELECT shell_index, band_index, wedge_index FROM sectors WHERE id = ?", (sector_id,)).fetchone()
+    if row is None or row["shell_index"] is None:
+        return "sector_id = ?", (sector_id,)
+    prefix = objectUid.sector_bytes(row["shell_index"], row["band_index"], row["wedge_index"])
+    low, high = prefix + bytes(5), prefix + b"\xff" * 5
+    return "(uid BETWEEN ? AND ? OR (uid IS NULL AND sector_id = ?))", (low, high, sector_id)
+
+
+def sector_residents(conn, sector_id):
+    """
+    The objects filed in a sector that were born in another (they drifted in, `store.advance_galactic_positions`), as `{table: count}`
+    for the tables that have any; empty when the sector holds only its own. A hosted facility belongs to its host, so only the space
+    facilities count.
+    """
+    born, params = _born_here(conn, sector_id)
+    found = {}
+    for table in (*_BIRTH_TABLES, "facilities"):
+        where = f"sector_id = ? AND NOT {born}"
+        if table in _BIRTH_ONLY:
+            where += f" AND {_BIRTH_ONLY[table]}"
+        if table == "facilities":
+            where += " AND host_type = 'space'"
+        count = conn.execute(f"SELECT COUNT(*) AS n FROM {table} WHERE {where}", (sector_id, *params)).fetchone()["n"]
+        if count:
+            found[table] = count
+    return found
+
+
+def delete_sector_birth_contents(conn, sector_id):
+    """
+    Deletes what was born in a sector (GEN.1127): its star systems with their bodies and hosted facilities, the standalone phenomena,
+    rogue planets and comets, and the space facilities whose birth sector it is, wherever they are filed now. Objects filed in it that
+    were born elsewhere stay. The rows the sector's row owns by key (nearest systems, the names it took, its paths and timings) go too,
+    since a sector made again makes them again. The sector row stays, its stats and chart ledger row are reset.
 
     Returns:
-        dict: `{"systems": n, "phenomena": n}` deleted, or `None` when
-        there was no such sector.
+        dict: `{"systems": n, "phenomena": n, "facilities": n}` deleted.
+    """
+    born, params = _born_here(conn, sector_id)
+    systems = conn.execute(f"DELETE FROM star_systems WHERE {born}", params).rowcount
+    phenomena = 0
+    for table in _BIRTH_TABLES:
+        if table == "star_systems":
+            continue
+        where = born + (f" AND {_BIRTH_ONLY[table]}" if table in _BIRTH_ONLY else "")
+        phenomena += conn.execute(f"DELETE FROM {table} WHERE {where}", params).rowcount
+    facilities = conn.execute(f"DELETE FROM facilities WHERE {born} AND host_type = 'space'", params).rowcount
+    for table, column in (("nearest_systems", "sector_id"), ("sector_name_registry", "first_sector_id"), ("sector_paths", "sector_id"),
+                          ("object_timing_stats", "sector_id"), ("object_timing_samples", "sector_id")):
+        conn.execute(f"DELETE FROM {table} WHERE {column} = ?", (sector_id,))
+    return {"systems": systems, "phenomena": phenomena, "facilities": facilities}
+
+
+def empty_sector(conn, sector_id):
+    """
+    Empties a sector to be generated again (GEN.1127): `delete_sector_birth_contents`, then the sector row goes when nothing is filed in
+    it, and stays when residents born elsewhere are (they keep pointing at it, and the fill that charts the cell again writes into the
+    same row). The cell is unfilled either way, and the neighbours' nearest-system lists are refreshed.
+
+    Returns:
+        dict or None: The counts of `delete_sector_birth_contents` with `kept` (whether the row stayed), or `None` when there was no such
+            sector.
     """
     row = conn.execute("SELECT center_x_pc, center_y_pc, center_z_pc, shell_index, band_index, wedge_index"
                        " FROM sectors WHERE id = ?", (sector_id,)).fetchone()
     if row is None:
         return None
     conn.parity_touch("id = ?", (sector_id,))        # DB.46: once this commits, the parity file lets the sector go
-    systems = conn.execute("DELETE FROM star_systems WHERE sector_id = ?", (sector_id,)).rowcount
-    phenomena = 0
-    for table in PHENOMENON_TABLES.values():
-        where = "sector_id = ?" + (" AND star_id IS NULL" if table in ("black_holes", "neutron_stars") else "")
-        phenomena += conn.execute(f"DELETE FROM {table} WHERE {where}", (sector_id,)).rowcount
-    conn.execute("DELETE FROM facilities WHERE sector_id = ?", (sector_id,))
-    conn.execute("DELETE FROM nearest_systems WHERE sector_id = ?", (sector_id,))
-    conn.execute("DELETE FROM sectors WHERE id = ?", (sector_id,))
+    counts = delete_sector_birth_contents(conn, sector_id)
+    kept = bool(sector_residents(conn, sector_id)) or _filed_anywhere(conn, sector_id)
+    if kept:
+        storage_checksum.mark_sector(conn, sector_id)    # the row stays, its contents are gone: its checksum is out of date
+    else:
+        conn.execute("DELETE FROM sectors WHERE id = ?", (sector_id,))
     store.note_sector_deleted(conn)
-    # GEN.44: the cell goes back to the bright-star level it had unfilled.
+    # GEN.44: the cell goes back to the bright-star level it had unfilled (and is uncharted: `chart_ledger.forget`).
     store.forget_sector_fill(conn, (row["shell_index"], row["band_index"], row["wedge_index"]))
     if row["center_x_pc"] is not None:
         refresh_nearest_around(conn, (row["center_x_pc"], row["center_y_pc"], row["center_z_pc"]))
-    return {"systems": systems, "phenomena": phenomena}
+    return {**counts, "kept": kept}
+
+
+RESTRICTING_TABLES = ("rogue_planets", "interstellar_comets", "supernova_remnants", "facilities")
+"""tuple: The tables whose `sector_id` key is `ON DELETE RESTRICT` (v197): a sector row cannot be deleted while one of their rows is filed in it."""
+
+
+def restricting_rows(conn, sector_id):
+    """The rows that stop a sector row being deleted (`RESTRICTING_TABLES`), as `{table: count}`; empty when none do."""
+    found = {}
+    for table in RESTRICTING_TABLES:
+        count = conn.execute(f"SELECT COUNT(*) AS n FROM {table} WHERE sector_id = ?", (sector_id,)).fetchone()["n"]
+        if count:
+            found[table] = count
+    return found
+
+
+def _filed_anywhere(conn, sector_id):
+    """Whether any row of a table whose key would stop the delete still points at the sector."""
+    return bool(restricting_rows(conn, sector_id))
+
+
+def delete_sector_with_contents(conn, sector_id):
+    """
+    Deletes a sector and what was born in it (GEN.1127, `delete_sector_birth_contents`). Its grid cell is left unfilled, so it can be
+    generated again. The neighboring sectors' nearest-system lists are refreshed. A sector that still holds objects born elsewhere is
+    not deleted: they would be detached or lost, so it raises `SectorHasResidents` before anything is changed.
+
+    Returns:
+        dict: `{"systems": n, "phenomena": n}` deleted (and `facilities`), or `None` when there was no such sector.
+
+    Raises:
+        SectorHasResidents: Objects born in other sectors are filed here.
+    """
+    if conn.execute("SELECT 1 FROM sectors WHERE id = ?", (sector_id,)).fetchone() is None:
+        return None
+    residents = sector_residents(conn, sector_id)
+    if residents:
+        raise SectorHasResidents(residents)
+    counts = empty_sector(conn, sector_id)
+    counts.pop("kept")
+    return counts
 
 
 def refresh_nearest_around(conn, center_pc):

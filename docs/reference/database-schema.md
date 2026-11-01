@@ -1902,8 +1902,19 @@ row per sector address a backfill reached or a fill generated. See
 | `total_luminosity_sol` | DOUBLE | nullable | The summed luminosity (L_sun) of its stars; NULL with no stars (v55, DB.14). The Galaxy Map's brightness comes from it. No color is stored: the page works it out (MAP.128). |
 | `habitable_worlds` | INT | nullable | The planets and moons in its systems that are potentially habitable (overall PHI-6 Blue or Green); NULL before a fill (v135, MAP.143). The Galaxy Map's Habitable worlds color comes from it. |
 | `total_mass_kg` | DOUBLE | nullable | The summed mass (kg) of the bodies in it (v162, DB.108); 0 for a generated sector with none, NULL before a fill or when a body has no stored mass. See "v168 (DB.108)". |
-| `filled_at` | TIMESTAMP(3) | nullable | When the fill saved it. |
 | `updated_at` | TIMESTAMP | NOT NULL | |
+
+### `chart_ledger`
+
+Added in v197 (GEN.1127). One row for each sector cell that has been charted, keyed by the cell's address (`shell_index`, `band_index`, `wedge_index`, not `sectors.id`, so a row survives a sector row that is replaced). A cell is a whole sector, so it is charted or it is not; the uncharted remainder is every cell with no row. It replaces `sector_stats.filled_at` (dropped in v197), so there is one record of the charted state. Written by the save of a sector, cleared when a sector is deleted (`db/chart_ledger.py`).
+
+| Column | Type | Null | Notes |
+|---|---|---|---|
+| `shell_index`, `band_index`, `wedge_index` | INT | NOT NULL | Primary key together: the cell's address in the galaxy grid. |
+| `run_id` | BIGINT UNSIGNED | nullable | The `generation_runs` row that charted the cell; `ON DELETE SET NULL`. |
+| `generator_epoch` | SMALLINT UNSIGNED | nullable | The generator epoch it was charted under; a cell charted under an older epoch is stale. |
+| `charted_at` | TIMESTAMP(3) | NOT NULL | When the fill saved the sector (the old `sector_stats.filled_at`). |
+| `topped_up_at` | TIMESTAMP(3) | nullable | When the rogue top-up of its region run filled the cell (GEN.1120); NULL until it does. A cell keeps one top-up. |
 
 ### `sector_paths`
 
@@ -2216,6 +2227,10 @@ Migration 0179 adds no column. `planets.hydrosphere` and `moons.hydrosphere` tak
 ### v176 (MAP.351): the life class reasons
 
 Migration 0176 adds no column. It fills `system_interests` with one reason for each life class, `lifeclass-1a` to `lifeclass-9` (`interests.LIFE_CLASS_REASONS`): a system has a row for each life class that lives on one of its planets or moons (`life_class` and `life_class_variant`), `n` how many, no score. It is filled from the planets and moons already stored; a body whose life class is NULL gives none. Nothing a generator draws changes, so there is no epoch. Since GEN.1001 a body counts only when it also has a `life_stage` (a world that suits a class but whose life has not started gives none); a database migrated before that keeps the rows of such bodies until its systems are saved again.
+
+### v197 (GEN.1127): the chart ledger, and a sector row that cannot vanish under its residents
+
+Migration 0197 creates `chart_ledger` and copies every filled cell into it from `sector_stats.filled_at` (the run and the epoch from the cell's `sectors` row, the time from `filled_at`), then drops `sector_stats.filled_at`. It also changes `ON DELETE CASCADE` to `ON DELETE RESTRICT` on the `sector_id` keys of `rogue_planets`, `interstellar_comets`, `supernova_remnants` and `facilities`: `sector_id` is the sector that holds an object now (the nightly orbital update refiles it), not the one it was born in, so a cascade deleted every resident that had drifted in. The keys are changed in place with `foreign_key_checks` off, since the rows already satisfy the rule. A key that already has the rule, or a table that does not exist yet, is skipped, so a stopped run can be started again. Deleting or regenerating a sector now removes only what was born there (`db/edits.delete_sector_birth_contents`, read from the first 56 bits of the `uid`); a sector that still holds objects born elsewhere is not deleted (409), and a regenerated one keeps its row.
 
 ### v192 (GEN.1057): the age of a ring
 

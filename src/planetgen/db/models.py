@@ -259,6 +259,22 @@ bright_stars = sa.Table(
 )
 
 
+chart_ledger = sa.Table(
+    'chart_ledger',
+    metadata,
+    sa.Column('shell_index', mysql.INTEGER(), primary_key=True, nullable=False),
+    sa.Column('band_index', mysql.INTEGER(), primary_key=True, nullable=False),
+    sa.Column('wedge_index', mysql.INTEGER(), primary_key=True, nullable=False),
+    sa.Column('run_id', mysql.BIGINT(unsigned=True), nullable=True),
+    sa.Column('generator_epoch', mysql.SMALLINT(unsigned=True), nullable=True),
+    sa.Column('charted_at', mysql.TIMESTAMP(fsp=3), server_default=sa.text('CURRENT_TIMESTAMP(3)'), nullable=False),
+    sa.Column('topped_up_at', mysql.TIMESTAMP(fsp=3), nullable=True),
+    sa.Index('idx_chart_ledger_run', 'run_id'),
+    sa.ForeignKeyConstraint(['run_id'], ['generation_runs.id'], name='fk_chart_ledger_run', ondelete='SET NULL'),
+    mysql_engine="InnoDB",
+)
+
+
 change_plan_ops = sa.Table(
     'change_plan_ops',
     metadata,
@@ -503,7 +519,7 @@ facilities = sa.Table(
     sa.ForeignKeyConstraint(['asteroid_field_id'], ['asteroid_fields.id'], name='fk_facilities_asteroid_field', ondelete='CASCADE'),
     sa.ForeignKeyConstraint(['moon_id'], ['moons.id'], name='fk_facilities_moon', ondelete='CASCADE'),
     sa.ForeignKeyConstraint(['planet_id'], ['planets.id'], name='fk_facilities_planet', ondelete='CASCADE'),
-    sa.ForeignKeyConstraint(['sector_id'], ['sectors.id'], name='fk_facilities_sector', ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['sector_id'], ['sectors.id'], name='fk_facilities_sector', ondelete='RESTRICT'),
     sa.ForeignKeyConstraint(['star_id'], ['stars.id'], name='fk_facilities_star', ondelete='CASCADE'),
     sa.ForeignKeyConstraint(['star_system_id'], ['star_systems.id'], name='fk_facilities_star_system', ondelete='CASCADE'),
     sa.ForeignKeyConstraint(['type_id'], ['facility_types.id'], name='fk_facilities_type', ondelete='RESTRICT'),
@@ -889,7 +905,7 @@ interstellar_comets = sa.Table(
     sa.CheckConstraint('(((`center_x_pc` is null) = (`center_y_pc` is null)) and ((`center_y_pc` is null) = (`center_z_pc` is null)) and ((`center_z_pc` is null) = (`galactic_radius_pc` is null)))', name='chk_interstellar_comets_placement'),
     sa.ForeignKeyConstraint(['inside_nebula_id'], ['nebulae.id'], name='fk_interstellar_comets_inside_nebula', ondelete='SET NULL'),
     sa.ForeignKeyConstraint(['inside_remnant_id'], ['supernova_remnants.id'], name='fk_interstellar_comets_inside_remnant', ondelete='SET NULL'),
-    sa.ForeignKeyConstraint(['sector_id'], ['sectors.id'], name='fk_interstellar_comets_sector', ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['sector_id'], ['sectors.id'], name='fk_interstellar_comets_sector', ondelete='RESTRICT'),
     sa.CheckConstraint('(`is_active` in (0,1))', name='interstellar_comets_chk_1'),
     sa.CheckConstraint("(`quadrant` in (_utf8mb4'I',_utf8mb4'II',_utf8mb4'III',_utf8mb4'IV',_utf8mb4'V',_utf8mb4'VI',_utf8mb4'VII',_utf8mb4'VIII'))", name='interstellar_comets_chk_2'),
     mysql_engine="InnoDB",
@@ -2432,7 +2448,7 @@ rogue_planets = sa.Table(
     sa.CheckConstraint('(((`center_x_pc` is null) = (`center_y_pc` is null)) and ((`center_y_pc` is null) = (`center_z_pc` is null)) and ((`center_z_pc` is null) = (`galactic_radius_pc` is null)))', name='chk_rogue_planets_placement'),
     sa.ForeignKeyConstraint(['inside_nebula_id'], ['nebulae.id'], name='fk_rogue_planets_inside_nebula', ondelete='SET NULL'),
     sa.ForeignKeyConstraint(['inside_remnant_id'], ['supernova_remnants.id'], name='fk_rogue_planets_inside_remnant', ondelete='SET NULL'),
-    sa.ForeignKeyConstraint(['sector_id'], ['sectors.id'], name='fk_rogue_planets_sector', ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['sector_id'], ['sectors.id'], name='fk_rogue_planets_sector', ondelete='RESTRICT'),
     sa.CheckConstraint("(`planet_type` in (_utf8mb4't',_utf8mb4'g'))", name='rogue_planets_chk_1'),
     sa.CheckConstraint('(`has_internal_heat` in (0,1))', name='rogue_planets_chk_2'),
     sa.CheckConstraint('(`has_moons` in (0,1))', name='rogue_planets_chk_3'),
@@ -2594,7 +2610,6 @@ sector_stats = sa.Table(
     sa.Column('total_luminosity_sol', mysql.DOUBLE(), nullable=True),
     sa.Column('habitable_worlds', mysql.INTEGER(), nullable=True),
     sa.Column('total_mass_kg', mysql.DOUBLE(), nullable=True),
-    sa.Column('filled_at', mysql.TIMESTAMP(fsp=3), nullable=True),
     sa.Column('updated_at', mysql.TIMESTAMP(), server_default=sa.text('CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP'), nullable=False),
     sa.Index('idx_sector_stats_level', 'bright_level_sol'),
     mysql_engine="InnoDB",
@@ -2954,7 +2969,7 @@ supernova_remnants = sa.Table(
     sa.CheckConstraint('(((`center_x_pc` is null) = (`center_y_pc` is null)) and ((`center_y_pc` is null) = (`center_z_pc` is null)) and ((`center_z_pc` is null) = (`galactic_radius_pc` is null)))', name='chk_supernova_remnants_placement'),
     sa.ForeignKeyConstraint(['compact_remnant_black_hole_id'], ['black_holes.id'], name='fk_supernova_remnants_black_hole', ondelete='SET NULL'),
     sa.ForeignKeyConstraint(['compact_remnant_neutron_star_id'], ['neutron_stars.id'], name='fk_supernova_remnants_neutron_star', ondelete='SET NULL'),
-    sa.ForeignKeyConstraint(['sector_id'], ['sectors.id'], name='fk_supernova_remnants_sector', ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['sector_id'], ['sectors.id'], name='fk_supernova_remnants_sector', ondelete='RESTRICT'),
     sa.CheckConstraint("(`morphology` in (_utf8mb4'shell',_utf8mb4'plerion',_utf8mb4'composite'))", name='supernova_remnants_chk_1'),
     sa.CheckConstraint("(`progenitor_type` in (_utf8mb4'Type Ia',_utf8mb4'core-collapse'))", name='supernova_remnants_chk_2'),
     sa.CheckConstraint("(`compact_remnant_kind` in (_utf8mb4'black_hole',_utf8mb4'neutron_star'))", name='supernova_remnants_chk_3'),

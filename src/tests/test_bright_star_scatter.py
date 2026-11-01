@@ -19,7 +19,8 @@ from planetgen.generation import run_common
 from planetgen.generation import run_galaxy
 from planetgen.generation import run_plan
 from planetgen.util import log
-from planetgen.db import store
+from planetgen.db import chart_ledger, store
+from planetgen.util import generator_epoch as generatorEpoch
 from planetgen.generation import bright_stars as brightStars
 from planetgen.generation.star_population import bright_star_fraction
 from planetgen.physics import constants
@@ -761,7 +762,7 @@ def test_a_filled_sector_records_its_stats_and_a_delete_puts_its_level_back(mysq
         assert stats["mean_temperature_k"] == pytest.approx(sum(row["temperature_k"] for row in stars) / len(stars))
         assert stats["mean_luminosity_sol"] == pytest.approx(
             sum(row["luminosity_w"] for row in stars) / len(stars) / constants.SOLAR_LUMINOSITY)
-        assert stats["filled_at"] is not None
+        assert chart_ledger.state(conn, address, generatorEpoch.generator_epoch()) == chart_ledger.CHARTED
         # DB.14: the raw facts the map colors from, not a baked color.
         ages = conn.execute("SELECT st.age_gy FROM stars st JOIN star_systems ss ON ss.id = st.star_system_id"
                             " WHERE ss.sector_id = ?", (sector_id,)).fetchall()

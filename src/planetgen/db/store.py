@@ -69,7 +69,7 @@ import sqlalchemy.exc
 import sqlalchemy.pool
 
 from planetgen.admin import activity_log
-from planetgen.db import alembic_runner, kind_tables, login, object_rows, orbit_trees, parity, point_columns, scatter_systems, sector_mass, storage_checksum
+from planetgen.db import alembic_runner, chart_ledger, kind_tables, login, object_rows, orbit_trees, parity, point_columns, scatter_systems, sector_mass, storage_checksum
 from planetgen.db import fingerprint_tree as fingerprintTree
 from planetgen.names import object_id as objectId
 from planetgen import tuning
@@ -6926,12 +6926,12 @@ def record_sector_stats(conn, sector_id, address, center_pc):
     conn.execute(
         "INSERT INTO sector_stats (shell_index, band_index, wedge_index, bright_level_sol, level_before_fill_sol,"
         " relative_density, expected_systems, actual_systems, actual_stars, mean_temperature_k, mean_luminosity_sol,"
-        " mean_age_gy, total_luminosity_sol, habitable_worlds, total_mass_kg, filled_at)"
-        " VALUES (?, ?, ?, 0, -1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP(3))"
+        " mean_age_gy, total_luminosity_sol, habitable_worlds, total_mass_kg)"
+        " VALUES (?, ?, ?, 0, -1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
         " ON DUPLICATE KEY UPDATE level_before_fill_sol = IF(bright_level_sol = 0, level_before_fill_sol,"
         " bright_level_sol), bright_level_sol = 0, relative_density = ?, expected_systems = ?, actual_systems = ?,"
         " actual_stars = ?, mean_temperature_k = ?, mean_luminosity_sol = ?, mean_age_gy = ?,"
-        " total_luminosity_sol = ?, habitable_worlds = ?, total_mass_kg = ?, filled_at = CURRENT_TIMESTAMP(3)",
+        " total_luminosity_sol = ?, habitable_worlds = ?, total_mass_kg = ?",
         (*address, *(2 * (density, expected, systems, star_count, temperature, luminosity, age, total_luminosity,
                           habitable, mass))),
     )
@@ -6957,10 +6957,11 @@ def forget_sector_fill(conn, address):
     conn.execute(
         "UPDATE sector_stats SET bright_level_sol = COALESCE(level_before_fill_sol, -1), level_before_fill_sol = NULL,"
         " actual_systems = NULL, actual_stars = NULL, mean_temperature_k = NULL, mean_luminosity_sol = NULL,"
-        " mean_age_gy = NULL, total_luminosity_sol = NULL, habitable_worlds = NULL, total_mass_kg = NULL,"
-        " filled_at = NULL WHERE shell_index = ? AND band_index = ? AND wedge_index = ? AND bright_level_sol = 0",
+        " mean_age_gy = NULL, total_luminosity_sol = NULL, habitable_worlds = NULL, total_mass_kg = NULL"
+        " WHERE shell_index = ? AND band_index = ? AND wedge_index = ? AND bright_level_sol = 0",
         tuple(address),
     )
+    chart_ledger.forget(conn, address)    # GEN.1127: the cell is uncharted again
     from planetgen.db import block_lights, block_stats    # DB.25: the blocks above it no longer count it
 
     block_stats.refresh_chain(conn, address)
@@ -7098,13 +7099,8 @@ def sector_centers_since(conn, since):
 
 
 def filled_sector_addresses(conn):
-    """The `(shell, band, wedge)` of every galaxy sector already filled."""
-    return {
-        (row["shell_index"], row["band_index"], row["wedge_index"])
-        for row in conn.execute(
-            "SELECT shell_index, band_index, wedge_index FROM sectors WHERE shell_index IS NOT NULL"
-        ).fetchall()
-    }
+    """The `(shell, band, wedge)` of every galaxy sector already filled: the cells of the chart ledger (GEN.1127)."""
+    return chart_ledger.charted_addresses(conn)
 
 
 def mark_bright_star_filled(conn, bright_star_id, star_system_id):
@@ -7195,6 +7191,7 @@ def insert_sector(conn, sector: SpaceSector, galaxy_position=None, link_neighbor
     if address is not None and None not in address:
         record_sector_stats(conn, sector_id, address, (galaxy_position["center_x_pc"], galaxy_position["center_y_pc"],
                                                        galaxy_position["center_z_pc"]))
+        chart_ledger.record(conn, address, sector_run_id(conn, run_id), generatorEpoch.generator_epoch())    # GEN.1127: the cell is charted
     conn.parity_touch("id = ?", (sector_id,))
     return sector_id
 
@@ -7252,7 +7249,20 @@ def sector_run_id(conn, run_id=None):
 def _insert_sector_rows(conn, sector, galaxy_position, link_neighbors=True, run_id=None):
     run_id = sector_run_id(conn, run_id)  # DB.16: the run (and so the code) generating this sector
     epoch = generatorEpoch.generator_epoch()
-    if galaxy_position is not None:
+    kept_id = None
+    if galaxy_position is not None and None not in (galaxy_position.get("shell_index"), galaxy_position.get("band_index"),
+                                                    galaxy_position.get("wedge_index")):
+        kept_id = kept_sector_id_at(conn, galaxy_position["shell_index"], galaxy_position["band_index"], galaxy_position["wedge_index"])
+    if kept_id is not None:
+        # GEN.1127: the row of a regenerated sector kept for its residents is filled again, so they keep pointing at it.
+        conn.execute(
+            "UPDATE sectors SET name = ?, edge_mpc = ?, center_x_pc = ?, center_y_pc = ?, center_z_pc = ?, galactic_radius_pc = ?,"
+            " generator_epoch = ?, run_id = ?, max_mass_kg = NULL, max_mass_id = NULL, storage_checksum = NULL, leaf_digest = NULL,"
+            " density_multiplier_used = NULL, override_id = NULL, parity_dirty = 1 WHERE id = ?",
+            (sector.name, ly_to_milliparsecs(sector.edge_ly), galaxy_position["center_x_pc"], galaxy_position["center_y_pc"],
+             galaxy_position["center_z_pc"], galaxy_position["galactic_radius_pc"], epoch, run_id, kept_id))
+        cur = None
+    elif galaxy_position is not None:
         cur = conn.execute(
             """
             INSERT INTO sectors (
@@ -7274,7 +7284,7 @@ def _insert_sector_rows(conn, sector, galaxy_position, link_neighbors=True, run_
             "INSERT INTO sectors (name, edge_mpc, generator_epoch, run_id) VALUES (?, ?, ?, ?)",
             (sector.name, ly_to_milliparsecs(sector.edge_ly), epoch, run_id),
         )
-    sector_id = cur.lastrowid
+    sector_id = kept_id if cur is None else cur.lastrowid
 
     # Name-uniqueness (v24, names/uniqueness.py) -- reserved right after the
     # INSERT (the registry row points at it), mutating sector.name in
@@ -7881,15 +7891,31 @@ def _sector_cell(row, edge_ly):
 def get_sector_id_at(conn, shell_index, band_index, wedge_index):
     """
     Looks up the `sectors.id` already generated at one grid address, if
-    any -- used to check one address at a time.
+    any -- used to check one address at a time. A cell is generated when the chart ledger holds it (GEN.1127): a sector row that
+    was emptied and kept for the residents that point at it (`kept_sector_id_at`) is not.
 
     Returns:
         int or None: The existing `sectors.id`, or `None`.
     """
     row = conn.execute(
-        "SELECT id FROM sectors WHERE shell_index = ? AND band_index = ? AND wedge_index = ?",
+        "SELECT s.id FROM sectors s JOIN chart_ledger c ON c.shell_index = s.shell_index AND c.band_index = s.band_index"
+        " AND c.wedge_index = s.wedge_index WHERE s.shell_index = ? AND s.band_index = ? AND s.wedge_index = ?",
         (shell_index, band_index, wedge_index),
     ).fetchone()
+    return row["id"] if row is not None else None
+
+
+def kept_sector_id_at(conn, shell_index, band_index, wedge_index):
+    """
+    The `sectors.id` at a grid address whether or not the cell is charted (GEN.1127): the row of a sector emptied for regeneration
+    and kept, because residents born elsewhere still point at it. The fill that charts the cell again writes into this row.
+
+    Returns:
+        int or None: The `sectors.id`, or `None` when no row holds the address.
+    """
+    row = conn.execute(
+        "SELECT id FROM sectors WHERE shell_index = ? AND band_index = ? AND wedge_index = ? ORDER BY id LIMIT 1",
+        (shell_index, band_index, wedge_index)).fetchone()
     return row["id"] if row is not None else None
 
 
