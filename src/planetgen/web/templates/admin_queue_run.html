@@ -19,7 +19,7 @@
   {%- if run.stale %}<p class="error">This run has not been heard from for too long: it has stopped answering.</p>{% endif %}
   <p class="queue-actions">
     {%- for action, label in run.actions %}
-    <a class="btn{% if action in ('cancel', 'clear', 'delete') %} btn-danger{% endif %}" href="{{ url_for('web.admin_queue_confirm', action=action, run=run.id) }}">{{ label }}</a>
+    <a class="btn{% if action in ('cancel', 'clear', 'delete') %} btn-danger{% endif %}" href="{{ url_for('web.admin_queue_confirm', action=action, run=run.id, next=back_url or none) }}">{{ label }}</a>
     {%- endfor %}
     <a class="btn btn-secondary" href="{{ run.log_url }}">Download the log</a>
   </p>
