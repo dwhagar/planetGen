@@ -19354,18 +19354,6 @@ clears each one.
   clears). Version 8.1.
   Prerequisites: none. Related: GEN.996.
 
-- [ ] **TEST.542 The life sweep expects 20 class letters and the rules give 19, since GEN.1135 retired Class Q (bug)**
-  The full-suite thread (reported 2026-10-31 8:58 PM EDT as the lane
-  reported) ran the suite on main 7eef24a and re-ran these alone, so
-  they are real.
-  test_sweep_life.py::test_there_are_twenty_class_letters_to_try fails:
-  rules.letters() gives 19, the test expects 20. Do: update the test and
-  any docs that say twenty to the real count, derived from the registry
-  not a literal. Done: the test passes and no literal 20 for the letters
-  is left. Lock-free, generation output unchanged. Version 8.1.
-  Prerequisites: none. Related: TEST.261. Owner: Core 4 (GEN.1135).
-  Prerequisites: none.
-
 - [ ] **TEST.543 The atmosphere sweep audit reads planetgen.physics.ozone.STRUCTURE_RANGE, which is now STRUCTURE_KNOTS, so three sweep tests fail (bug)**
   The full-suite thread (reported 2026-10-31 8:58 PM EDT as the lane
   reported) ran the suite on main 7eef24a and re-ran these alone, so
@@ -19379,22 +19367,6 @@ clears each one.
   meaning. Done: the three tests pass. Lock-free, generation output
   unchanged. Version 8.1. Prerequisites: none. Related: TEST.261. Owner:
   Aux 2 (air).
-  Prerequisites: none.
-
-- [ ] **TEST.544 The class sweep finds five rocky bodies classed T, a gas class, so the totality test fails (bug)**
-  The full-suite thread (reported 2026-10-31 8:58 PM EDT as the lane
-  reported) ran the suite on main 7eef24a and re-ran these alone, so
-  they are real.
-  test_sweep_classes.py::test_every_body_is_classed_and_classify_is_total_and_pure_on_all_of_them:
-  five rocky bodies (F5V/Tc3, F5V/Tc10, system3 Icilat Aobaris VII and
-  VIII, system6 Bisliuno II) get class T. Probably the class
-  re-derivation of GEN.1135 and GEN.1136. Do: decide for each whether
-  the class is right (then the sweep's expectation changes, with the
-  reason) or the classifier misplaces a rocky body (then fix the
-  classifier by physics, not by a patch for these names). Done: the test
-  passes and the answer is written in the item. Lock-free, generation
-  output unchanged. Version 8.1. Prerequisites: none. Related: TEST.261.
-  Owner: Core 4.
   Prerequisites: none.
 
 - [ ] **TEST.545 The table sweep raises temperature must be positive for small-body-taxa/asteroid-field at 0 K, and two rows are never reached (bug)**
