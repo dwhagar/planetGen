@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3066] - 2026-11-01
+
+**Headline:** A Titan-like air now gets its nitrogen from the ammonia ice of its body, so a Titan-sized ice moon holds an air of the order of Titan's.
+
+### Changed
+- **Ammonia nitrogen for the Titan-like air (GEN.821).** The nitrogen of a nitrogen-methane air was the little the rock degasses. It now adds the nitrogen of the body's ammonia ice, after Erkaev et al. 2020: 0.81 to 4.8 percent of the ammonia is outgassed and 10 to 100 percent of that ends as N2. A moon whose makeup holds only water takes the ammonia as 0.2 to 1.5 percent of its water (the comet value). A Titan-sized moon with 30 percent water comes out at 1e17 to 3e19 kg of N2 (Titan's air is about 9e18 kg). Moons rarely reach this air, because the retention rows of the recipe tables decide that first.
+- generation-output: changed
+
 ## [8.0.3065] - 2026-11-01
 
 **Headline:** The air of a rocky planet now holds the carbon and nitrogen that the late accretion brought and did not blow away, so an Earth twin's nitrogen comes out near the Earth's.
