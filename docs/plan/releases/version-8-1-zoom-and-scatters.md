@@ -691,7 +691,6 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | TEST.550 | Five census tests stay red on main until the census re-tag for epochs 129 and 130 (bug) |  |  |
 | TEST.549 | test_star_population passes the removed bounds_only argument to _bright_table and is red on main (bug) |  |  |
 | TEST.548 | Two phenomenon-scatter count tests fail on main: remnant counts moved past 1.5 times the model (bug) |  |  |
-| TEST.547 | Dry-class carbon bracket test is red on main after GEN.1005 (bug) |  |  |
 | TEST.546 | The object timing test finds a unit saved with the kind star where it expects system (bug) |  |  |
 | TEST.545 | The table sweep raises temperature must be positive for small-body-taxa/asteroid-field at 0 K, and two rows are never reached (bug) |  |  |
 | DB.101 | Storage and units for every physics rectification output: a column, a column_units entry and a migration shipped with its item |  |  |

@@ -19413,15 +19413,6 @@ clears each one.
   Version 8.1. Prerequisites: none. Related: TEST.261, PERF.197.
   Prerequisites: none.
 
-- [ ] **TEST.547 Dry-class carbon bracket test is red on main after GEN.1005 (bug)**
-  src/tests/test_volatile_inventory_totals.py::test_the_dry_class_carbon_is_the_bulk_silicate_earths_not_sixteen_times_it
-  fails on main: the dry carbon bracket's log middle is 153 ppm C
-  against the bulk silicate Earth's 99 ppm, after GEN.1005. Found by
-  Core 4 (not from its branch). Decide whether the bracket or the test
-  bound moves (a sourced reading, not a hand tune), then fix and re-run
-  that file. Owner: none yet; Bug 1 or the next lane with room.
-  Prerequisites: none.
-
 - [ ] **TEST.548 Two phenomenon-scatter count tests fail on main: remnant counts moved past 1.5 times the model (bug)**
   The full-suite thread (as the lane reported, 10:36 PM EDT 2026-10-31,
   run on main 7eef24a) re-ran these alone, so they are real:
