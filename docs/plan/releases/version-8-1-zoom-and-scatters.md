@@ -687,6 +687,7 @@ Boss accepted the physics fix plan (reports/physics-fix-plan-2026-10-24.md) and 
 | GEN.835 | The tidal heat flux (tidal_flux_w_m2) is wired into the ground draw's sulfur rule |  |  |
 | TEST.391 | Two tests red on a clean main: the surface water a planet keeps (runaway_history) and the 95 percent abiotic oxygen bound (atmosphere_mixture_escape) (bug) |  |  |
 | TEST.541 | Four star tests fail on clean main: the population model, the hot white dwarf classes O5VII and B0VII, and the forced subdwarf (bug) |  | Bug 1 report; red on main. |
+| TEST.546 | The object timing test finds a unit saved with the kind star where it expects system (bug) |  |  |
 | TEST.545 | The table sweep raises temperature must be positive for small-body-taxa/asteroid-field at 0 K, and two rows are never reached (bug) |  |  |
 | TEST.543 | The atmosphere sweep audit reads planetgen.physics.ozone.STRUCTURE_RANGE, which is now STRUCTURE_KNOTS, so three sweep tests fail (bug) |  |  |
 | DB.101 | Storage and units for every physics rectification output: a column, a column_units entry and a migration shipped with its item |  |  |

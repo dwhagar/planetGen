@@ -19387,6 +19387,23 @@ clears each one.
   waiting lane may take it).
   Prerequisites: none.
 
+- [ ] **TEST.546 The object timing test finds a unit saved with the kind star where it expects system (bug)**
+  The full-suite thread (reported 2026-10-31 9:34 PM EDT as the lane
+  reported) ran the suite on main 7eef24a;
+  test_object_timing.py::test_a_unit_saves_under_its_run_and_the_run_adds_its_sectors_up
+  fails alone with "assert 'star' == 'system'": the kind saved for a
+  unit is 'star' and the test expects 'system'.
+  test_a_galaxy_run_saves_each_sectors_timings_under_its_run in the same
+  file also failed, probably the same cause. Do: find which side changed
+  (src/planetgen/generation/object_timing.py and run_galaxy.py record
+  the kind; the Seconds per object table of PERF.197 reads it), decide
+  by what the Stats page needs which kind is right, and fix the code or
+  the test with the reason in the change note. Done: both tests pass and
+  the Stats table still shows the same rows. Lock-free, generation
+  output unchanged. Owner: unassigned (a waiting lane may take it).
+  Version 8.1. Prerequisites: none. Related: TEST.261, PERF.197.
+  Prerequisites: none.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
