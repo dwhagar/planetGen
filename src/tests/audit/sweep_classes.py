@@ -44,9 +44,11 @@ def _check_assigned(entry):
         return ["no class"]
     if letter not in planet_classes.BY_LETTER:
         return [f"class {letter!r} is not one of the rule file's"]
-    kind = planet_classes.BY_LETTER[letter].kind
-    if kind != body.body_type:
-        return [f"class {letter!r} is a {kind!r} class and the body is {body.body_type!r}"]
+    # GEN.1142: a letter can have a row of each kind (class T is the giant "gas dwarf" and, for a rocky body whose air is mostly hydrogen, a
+    # terrestrial one), so the letter fits the body when any of its rows is of the body's kind.
+    kinds = sorted({cls.kind for cls in planet_classes.CLASSES if cls.letter == letter})
+    if body.body_type not in kinds:
+        return [f"class {letter!r} is a {'/'.join(kinds)!r} class and the body is {body.body_type!r}"]
     return []
 
 
