@@ -344,6 +344,12 @@ def busy_message(conn, run_id):
             f"started {started}, followed by {record.get('owner') or 'an unknown process'})")
 
 
+def followed_here(conn, run_id):
+    """Whether this very process follows the run `run_id` (a run started inside another run of the same process can
+    only wait for itself)."""
+    return (_s(conn.hget(run_key(run_id), "owner")) or "") == _owner() and not holder_is_dead(conn, run_id)
+
+
 def _owner():
     """Who follows a run started here: `host:process id`."""
     return f"{socket.gethostname()}:{os.getpid()}"

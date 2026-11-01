@@ -686,7 +686,7 @@ def run(title, steps, on_plan, on_result, on_progress=None, workers_count=None, 
         run_id = runline.start_when_free(conn, start, get_settings().queue.wait_minutes * 60,
                                          on_wait=lambda holder, position: report_wait_for(conn, holder, position),
                                          title=title, who=who, database=database,
-                                         admitted=bool(os.environ.get(JOB_ENV)))
+                                         admitted=bool(os.environ.get(JOB_ENV)), nested_guard=True)
     else:
         run_id = start()
     ensures = [stage_ensure(conn, url, kind, step.kind, workers_count) for step in steps]
