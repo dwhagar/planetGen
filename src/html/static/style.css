@@ -2208,6 +2208,18 @@ a.btn.btn-secondary.btn-active:visited {
   stroke-linejoin: round;
 }
 
+/* UX.135: a galaxy family outline (`galaxy_outline(id)`, static/galaxy/<id>.svg): a plain line drawing in the text colour, one
+   stroke weight, no fill. The paint is set here as well as in the file (the Content-Security-Policy refuses inline styles) and is
+   inherited into the <use> content. */
+.galaxy-outline {
+  width: 4em;
+  height: 4em;
+  flex: none;
+  color: var(--text);
+  fill: none;
+  stroke: currentColor;
+}
+
 /* MAP.320: a point-of-interest symbol (`poi_icon(id, tier)`, static/poi/<id>.svg), a solid silhouette in the colour of
    its token; the paint is set here and not in the file, as `.icon`'s is (the Content-Security-Policy refuses inline
    styles) and inherited into the <use> content. A world the habitability score colours takes `poi-tier-N`. */
