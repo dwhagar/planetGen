@@ -180,7 +180,8 @@ class Species:
 
     Attributes:
         formula, name (str): As the gas table writes them.
-        form (str): The solid's: `"fray-schmitt"`, `"feistel-wagner"`, `"span-wagner"` or `"clausius-clapeyron"`.
+        form (str): The solid's: `"fray-schmitt"`, `"feistel-wagner"`, `"span-wagner"`, `"clausius-clapeyron"` or `"edmister"` (the critical-point
+            correlation of a species with no triple point in the gas table, GEN.524).
         selection (str): How a second fit was placed (`"single"` or `"crossing"`).
         curves (tuple): The `Curve`s, coldest first (empty for water and carbon dioxide).
         cold_end (ColdEnd or None): The laboratory-corrected cold end that serves below the polynomial.
@@ -230,7 +231,7 @@ def _load():
                 raise ValueError(f"saturation_pressure.json: {formula} curves must start at 0 K and switch upwards")
             if any(len(curve.coefficients) != 7 for curve in curves):
                 raise ValueError(f"saturation_pressure.json: {formula} needs the seven coefficients A0 to A6")
-        elif row["form"] not in ("feistel-wagner", "clausius-clapeyron", "span-wagner"):
+        elif row["form"] not in ("feistel-wagner", "clausius-clapeyron", "span-wagner", "edmister"):
             raise ValueError(f"saturation_pressure.json: {formula} has an unknown form {row['form']!r}")
         cold_end = None
         if row.get("cold_end"):
@@ -344,6 +345,16 @@ def _clausius_clapeyron_pa(formula, sublimation_kj_mol, temperature_k):
         -sublimation_kj_mol * 1000.0 / GAS_CONSTANT_J_MOL_K * (1.0 / temperature_k - 1.0 / row.triple_point_k))
 
 
+EDMISTER_COEFFICIENT = 5.373
+"""float: Edmister 1958: `ln(P/Pc) = 5.373 (1 + omega) (1 - Tc/T)`, the vapour pressure from the critical point and the acentric factor."""
+
+
+def _edmister_pa(formula, temperature_k):
+    row = gases.gas(formula)
+    return row.critical_pressure_pa * math.exp(
+        EDMISTER_COEFFICIENT * (1.0 + row.acentric_factor) * (1.0 - row.critical_temperature_k / temperature_k))
+
+
 def _liquid_pa(liquid, temperature_k):
     if liquid.form == "wagner":
         a, b, c, d = liquid.coefficients
@@ -401,6 +412,9 @@ def saturation(formula, temperature_k):
     elif row.form == "clausius-clapeyron":
         pressure = _clausius_clapeyron_pa(formula, row.sublimation_kj_mol, temperature_k)
         curve_id = f"{formula}-CC"
+    elif row.form == "edmister":
+        pressure = _edmister_pa(formula, temperature_k)
+        curve_id = f"{formula}-Edmister"
     else:
         curve = curve_at(formula, temperature_k)
         floor = curve.floor_k

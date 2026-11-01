@@ -13,7 +13,7 @@ made again.
 
 Rows m3, m4 and m11 are design flags (GEN.525, `physics.design_flags`): off unless life or lightning or stellar energetic particles allow them,
 and never tuned. No code models lightning or the stellar energetic particle flux of an air yet, so both are false here and the rows run only
-through the life stage; a sourced rate would replace them. HCl and HF (rows m5 and m6) are left out until GEN.524 part 2.
+through the life stage; a sourced rate would replace them. HCl and HF are not rows of the table (GEN.524 part 2): the halogen budget of the outgassing gives them.
 
 The words of the rows are read from the air without a number of their own: an air is *CO2-rich* when carbon dioxide is its largest gas and
 *H2-poor* when hydrogen is below the share the air's text calls a trace (`atmosphere.TRACE_FRACTION`).

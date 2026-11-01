@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1031 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1037 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -37,15 +37,15 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
 | T1 | 145 | 14 | 8 | 1 | 0 | 168 |
-| T2 | 113 | 39 | 0 | 1 | 0 | 153 |
-| T3 | 88 | 38 | 8 | 10 | 0 | 144 |
+| T2 | 115 | 39 | 0 | 1 | 0 | 155 |
+| T3 | 89 | 38 | 8 | 10 | 0 | 145 |
 | T4 | 42 | 5 | 0 | 15 | 10 | 72 |
 | T5 | 48 | 19 | 1 | 1 | 0 | 69 |
-| T6 | 98 | 80 | 20 | 51 | 0 | 249 |
+| T6 | 101 | 80 | 20 | 51 | 0 | 252 |
 | T7 | 29 | 13 | 7 | 12 | 0 | 61 |
 | T8 | 0 | 1 | 1 | 5 | 1 | 8 |
 | T9 | 21 | 14 | 5 | 46 | 21 | 107 |
-| All | 584 | 223 | 50 | 142 | 32 | 1031 |
+| All | 590 | 223 | 50 | 142 | 32 | 1037 |
 
 ## How the labels were given
 
@@ -190,7 +190,7 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | AM15 | B | T2 | L0 | mixture_rocky.MAGMATIC_TEMPERATURE_K | 1100 to 1500 K, uniform | volcanic gas | test_atmosphere_mixture_rocky::test_an_earth_like_oxidised_volcano_gas_is_water_carbon_dioxide_and_sulfur_dioxide_at_the_vent | GEN.482 | READ (part 05 section 3.4: basalt erupts at 1450 to 1550 K) | - | - |
 | AM16 | B | T2 | L0 | mixture_rocky.QUENCH_TEMPERATURE_K | 400 to 900 K, log | cool bodies | test_atmosphere_mixture_rocky::test_the_equilibrium_temperature_is_the_surface_one_above_the_quench_and_the_quench_below_it | GEN.482 | READ (Zahnle and Marley 2014: 400 to 600 K; Liggins 2022: 800 K) | - | - |
 | AM17 | B | T3 | L0 | mixture_rocky.OXIDATION_TIME_GY | 0.1 to 1.5 Gy, log | bodies with long-lived geology | test_atmosphere_mixture_rocky::test_the_redox_of_a_young_or_inert_body_is_the_magma_ocean_stage_and_of_an_old_tectonic_one_the_later_mantle | GEN.482 | READ (Aulbach and Stagno 2016: present upper-mantle redox by about 3.5 Ga) | - | - |
-| AM18 | P | T7 | L0 | mixture_trace.ABUNDANCES | N2O 1e-8 to 1e-6, PH3 1e-10 to 2e-8, HCl 1e-6 to 1e-2, HF 1e-7 to 1e-3, NO2 1e-11 to 1e-8, CH3Cl 1e-11 to 1e-9, all log | rows m3, m4 and m11 when drawn present into a finished air (`physics.trace_air`, GEN.524 part 1); m5 and m6 are not drawn into any air until GEN.524 part 2 | test_atmosphere_mixture_evolved::test_the_trace_gases_follow_the_rows_drawn_after_the_life_stage | the photochemistry and biosignature items | design | GEN.524 | - |
+| AM18 | P | T7 | L0 | mixture_trace.ABUNDANCES | N2O 1e-8 to 1e-6, PH3 1e-10 to 2e-8, NO2 1e-11 to 1e-8, CH3Cl 1e-11 to 1e-9, all log | rows m3, m4 and m11 when drawn present into a finished air (`physics.trace_air`, GEN.524 part 1); rows m5 and m6 are retired, HCl and HF come from the halogen budget (AM85 to AM90, GEN.524 part 2) | test_atmosphere_mixture_evolved::test_the_trace_gases_follow_the_rows_drawn_after_the_life_stage | the photochemistry and biosignature items | design | GEN.524 | - |
 | AM22 | P | T7 | L0 | mixture_escape.LOST_BELOW | 1e-3 of a species | the escape filter (GEN.738: a numerical cutoff) | test_atmosphere_mixture_escape::test_a_small_warm_body_loses_the_hydrogen_it_would_outgas | a numerical cutoff stays | numerical cutoff (GEN.738) | - | - |
 | AM23 | P | T7 | L0 | mixture_escape.LOST_TOTAL | 1e-2 of the gas | the escape filter (GEN.738: a numerical cutoff) | test_atmosphere_mixture_escape::test_a_small_warm_body_loses_the_hydrogen_it_would_outgas | a numerical cutoff stays | numerical cutoff (GEN.738) | - | - |
 | AM24 | P | T7 | L0 | mixture_evolved.TITAN_MAX_METHANE | 0.5 of the gas | nitrogen-methane air when the saturation exceeds the pressure | test_atmosphere_mixture_evolved::test_a_titan_like_air_is_nitrogen_with_methane_at_the_saturation_and_a_hydrogen_trace | a methane cycle model | design | - | - |
@@ -252,6 +252,12 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | AM82 | P | T7 | L0 | envelope_escape.BARE_BELOW | 0.002 of the planet's mass, fixed | the rows e1 and e2 | test_envelope_escape::test_a_planet_under_strong_irradiation_is_stripped_to_its_bare_core | a numerical cutoff stays | design (an envelope under 0.2 percent of the planet's mass counts as gone: a numerical cutoff of the integration) | - | - |
 | AM83 | B | T3 | L0 | envelope_escape.MAX_ENVELOPE | 0.5 of the planet's mass, fixed | the starting envelope | test_envelope_escape::test_the_starting_envelope_is_held_to_the_range_of_the_radius_law | the mass-radius law of a giant | READ from memory, not re-checked (the radius law of Lopez and Fortney 2014 covers envelopes of a few percent to tens of percent of the mass) | - | - |
 | AM84 | D | T5 | L0 | envelope_escape.TEQ_OVER_INSOLATION_FOURTH | 255 K, fixed | the survey of the valley (the rows pass the stored equilibrium temperature) | test_envelope_escape::test_the_equilibrium_temperature_is_255_kelvin_at_one_earth_insolation | the stored albedo | COMPUTED (the equilibrium temperature of a body of Bond albedo 0.3 at one Earth insolation is 255 K) | - | - |
+| AM85 | B | T3 | L0 | mixture_rocky.INVENTORY | chlorine_wt_percent 0.004 to 0.07, fluorine_wt_percent 0.002 to 0.006, both log (GEN.524 part 2) | rocky bodies, before the host's scaling | test_halogen_budget::test_the_inventory_holds_chlorine_and_fluorine_inside_their_brackets_and_follows_the_hosts_iron | a Cl and F depletion curve against formation temperature (Clay et al. 2017 full text, Lodders 2003) | 2ND-HAND (the bulk silicate Earth, Cl 0.004 and F 0.002 weight percent, Schaefer, Lodders and Fegley 2012 Table 2, read; the CI chondrites, Cl about 0.07 and F about 0.006, Lodders 2003, recalled; source tier 3, tweak level 0) | - | - |
+| AM86 | D | T2 | L0 | mixture_rocky.STELLAR_CL_OVER_FE_DEX | -0.10 dex, fixed | hosts of -0.7 to 0.2 in [Fe/H] | test_halogen_budget::test_the_inventory_holds_chlorine_and_fluorine_inside_their_brackets_and_follows_the_hosts_iron | a chemical-evolution relation for Cl in dwarfs | READ (abstract: [35Cl/Fe] = -0.10 plus or minus 0.15 over -0.72 < [Fe/H] < 0.20, 15 giants and one M dwarf, Maas, Pilachowski and Hinkle 2016; source tier 2, tweak level 0) | - | - |
+| AM87 | P | T6 | L0 | mixture_rocky.STELLAR_F_OVER_FE_DEX | 0.0 dex, fixed | hosts like the K giants | test_halogen_budget::test_the_inventory_holds_chlorine_and_fluorine_inside_their_brackets_and_follows_the_hosts_iron | a fluorine abundance of main-sequence stars | design (source tier 6, tweak level 0; the 49 K giants of Jonsson et al. 2017, abstract read, show no neutrino-process excess, so fluorine follows iron) | - | - |
+| AM88 | B | T6 | L0 | mixture_rocky.INVENTORY | halogen_per_hydrogen_max 1e-3 to 1e-1, log (the most Cl and F atoms the air holds per hydrogen atom) | rocky bodies with hydrogen in the air | test_halogen_budget::test_the_halogens_are_cut_to_the_hydrogen_they_can_pair_with_in_proportion | a crust halogen reservoir with chlorides and fluorides (NaCl, KCl and a salt sink) | design (source tier 6, tweak level 0; arc volcanic gas holds about 0.001 to 0.05 HCl per H2O, recalled, and the Venus air about 0.017, a test point only) | - | - |
+| AM89 | B | T6 | L0 | surface_pressure.DEGAS_EFFICIENCY_HALOGEN | 0.05 to 0.5, log, drawn for each of Cl and F | rocky bodies | test_halogen_budget::test_the_degassing_efficiencies_carry_chlorine_and_fluorine_inside_the_bracket | halogen solubility in basalt (a melt model) | design (source tier 6, tweak level 0; chlorine and fluorine dissolve in a silicate melt far better than carbon dioxide and leave it with the water, the bracket of hydrogen's) | - | - |
+| AM90 | D | T2 | L0 | saturation.EDMISTER_COEFFICIENT | 5.373, fixed (hydrogen fluoride; the gas table has no HF triple point) | HF from 68 K to its critical point, HCl up to its triple point (above it the solid's curve is carried on) | test_saturation::test_the_halide_curves_sit_near_their_normal_boiling_points_and_condense_a_trace_gas_in_the_cold | measured vapour-pressure curves of HF and HCl (NIST fits) | 2ND-HAND (Edmister 1958, ln(P/Pc) = 5.373 (1 + omega) (1 - Tc/T), recalled; the HCl curve is Clausius-Clapeyron from the gas table's triple point with its sublimation heat 19.65 kJ/mol; source tier 2, tweak level 0) | - | - |
 
 ## 6.8 Stand-ins of the hours outside in a day
 

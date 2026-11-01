@@ -81,12 +81,12 @@ INVENTORY = {
     # The share of the 40Ar produced that has reached the air (part 05 section 3.6: 0.05 to 0.7).
     "argon_degassed": (0.05, 0.7, "uniform"),
     # GEN.524 part 2: the chlorine and fluorine of the rock (weight percent) before the star's scaling: the bulk silicate Earth (Cl 0.004, F 0.002,
-    # Schaefer, Lodders and Fegley 2012 Table 2) to the CI chondrites (Cl about 0.07, F about 0.006, Lodders 2003); open, registered in GEN.725 (AM30).
+    # Schaefer, Lodders and Fegley 2012 Table 2) to the CI chondrites (Cl about 0.07, F about 0.006, Lodders 2003); open, registered in GEN.725 (AM85).
     "chlorine_wt_percent": (0.004, 0.07, "log"),
     "fluorine_wt_percent": (0.002, 0.006, "log"),
     # The most chlorine and fluorine atoms the air holds per hydrogen atom (GEN.524 part 2): a halogen leaves the rock as HCl or HF, so it needs
     # hydrogen to pair with, and the rest stays in the crust as chlorides and fluorides. Arc volcanic gas holds about 0.001 to 0.05 HCl per H2O
-    # (stand-in, registered in GEN.725 AM31).
+    # (stand-in, registered in GEN.725 AM88).
     "halogen_per_hydrogen_max": (1e-3, 1e-1, "log"),
 }
 """dict: name -> (low, high, shape), the draws of the inventory that no table of the recipes holds."""
