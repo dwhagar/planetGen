@@ -83,6 +83,18 @@ def safe_next(value, default=None):
     return value
 
 
+def came_from(own_path):
+    """
+    The admin page the visitor opened this page from (the referrer, when it is a page of this site under `/admin`
+    and not `own_path` itself, e.g. after a Refresh link), else `""`. A button that ends the page's own subject
+    (cancelling the job it shows) returns here as `next`, through `safe_next`.
+    """
+    parts = urlsplit(request.referrer or "")
+    if parts.netloc != request.host or not parts.path.startswith("/admin") or parts.path == own_path:
+        return ""
+    return safe_next(parts.path + (f"?{parts.query}" if parts.query else ""), default="")
+
+
 def _here():
     """This request's path and query, for a `?next=` back to it."""
     query = request.query_string.decode("utf-8", errors="replace")

@@ -81,6 +81,7 @@ from planetgen.generation.limits import (
 )
 
 from . import bp, jobs
+from .admin_pages import came_from, safe_next
 from .helpers import crumb, current_admin, db_name, page_url, pager, render_page, trusted_html
 
 # ---------------------------------------------------------------------
@@ -1471,7 +1472,9 @@ def generate():
                 activity_log.event("GEN", "job.cancel", user=admin.get("username"), job=job_id)
         except OSError as exc:
             log.error(f"Could not cancel job {job_id}: {exc}")
-        return _no_store(redirect(url_for("web.generate", _anchor="current-job"), code=303))
+        # Cancel on a job's own page returns to the page the admin came from (`next`, set by `generate_job`).
+        target = safe_next(request.form.get("next"), default=url_for("web.generate", _anchor="current-job"))
+        return _no_store(redirect(target, code=303))
 
     if action in ("discard_queued", "start_queued"):
         ticket = request.form.get("ticket") or None
@@ -1885,6 +1888,7 @@ def generate_job(job_id):
         breadcrumbs=[crumb("Admin", "admin"), crumb("Generate", "generate"), crumb(job["title"] or "Job")],
         admin=admin,
         job=_job_view(job),
+        back_url=safe_next(request.args.get("next"), default="") or came_from(request.path),
         runs=job_runs(job_id),
         output=jobs.log_tail(job_id, max_bytes=256 * 1024, root=root),
     ))

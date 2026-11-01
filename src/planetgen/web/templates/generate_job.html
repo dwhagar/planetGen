@@ -9,7 +9,7 @@
   data-job-url-template="{{ url_for('web.generate_job', job_id='__JOB__') }}"
   data-job="{{ job.id }}" data-job-pinned{% if job.finished %} data-job-finished{% endif %}>
   <div data-job-body>
-  {{ job_status(job, output, link=False) }}
+  {{ job_status(job, output, link=False, back=back_url) }}
   </div>
 </section>
 {%- if runs %}
