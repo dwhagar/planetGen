@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Refits the generated stellar [X/Fe] to the Brewer and Fischer 2016 table of 1,615 FGK dwarfs (GEN.988, GEN.989, GEN.990, GEN.991).
+Refits the generated stellar [X/Fe] to the [R0535] table of 1,615 FGK dwarfs (GEN.988, GEN.989, GEN.990, GEN.991).
 
     python scripts/fit_stellar_xfe_refit.py brewer2016_vizier_J_ApJS_225_32.tsv
 
@@ -45,7 +45,7 @@ DRAWS = 20000
 MIN_STARS = 100
 FIRST_SIGMA = {"thin": {"C": 0.044, "O": 0.052, "Mg": 0.066, "Si": 0.042, "Ca": 0.040},
                "high-alpha": {"C": 0.050, "O": 0.065, "Mg": 0.073, "Si": 0.073, "Ca": 0.040 * 0.073 / 0.066}}
-"""dict: The scatter the branches had before this refit (Bensby 2014 and Nissen 2014's residuals) and calcium's start, Mg's thick-to-thin ratio on
+"""dict: The scatter the branches had before this refit ([R0349, R3294]'s residuals) and calcium's start, Mg's thick-to-thin ratio on
 an arbitrary 0.04: only the ratio between the branches of an element is kept, the scale is solved for."""
 
 

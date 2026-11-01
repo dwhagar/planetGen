@@ -1,9 +1,9 @@
 # tests/test_cluster_maximum_mass.py
 
 """
-GEN.1195: the most massive cluster a ring of gas forms (`physics/cluster_maximum_mass.py`, Reina-Campos and Kruijssen 2017) and
-the clouds that disrupt a ring's clusters (`open_cluster_evolution.cloud_shock_mass_lost_sol`, Gieles et al. 2006 as
-Kruijssen et al. 2014 put it in the central molecular zone).
+GEN.1195: the most massive cluster a ring of gas forms (`physics/cluster_maximum_mass.py`, [R3720]) and
+the clouds that disrupt a ring's clusters (`open_cluster_evolution.cloud_shock_mass_lost_sol`, [R1555] as
+[R2505] put it in the central molecular zone).
 """
 
 import math
@@ -16,7 +16,7 @@ from planetgen.physics import cluster_maximum_mass as cmm
 from planetgen.physics import open_cluster_evolution as evolution
 
 CMZ_KAPPA = cmm.epicyclic_frequency_per_myr(180.5, 100.0)      # 2.61 per Myr
-SIGMA = 5.0         # km/s, the gas of the central ring (Henshaw et al. 2016)
+SIGMA = 5.0         # km/s, the gas of the central ring [R1911]
 
 
 def test_the_central_rings_toomre_mass_and_cluster_maximum_are_the_papers():
@@ -62,7 +62,7 @@ def test_the_cluster_maximum_is_a_tenth_of_the_bound_share_of_the_cloud_and_held
 
 
 def test_a_cloud_takes_five_point_seven_myr_to_take_ten_thousand_solar_masses_in_the_central_ring():
-    # Kruijssen et al. 2014: a cluster of 1e4 solar masses and half-mass radius 0.5 pc lives 5.7 Myr among the ring's clouds
+    # [R2504, R2505]: a cluster of 1e4 solar masses and half-mass radius 0.5 pc lives 5.7 Myr among the ring's clouds
     lost = evolution.cloud_shock_mass_lost_sol(0.5, 1.0, 5.7e-3, tuning.CORE_RING_CLOUD_SURFACE_DENSITY_MSUN_PC2,
                                                tuning.CORE_RING_CLOUD_DENSITY_MSUN_PC3)
     assert lost == pytest.approx(1.0e4, rel=0.03)

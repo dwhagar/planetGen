@@ -6,11 +6,11 @@ How a young open cluster forms, loses mass and sizes itself (GEN.244; docs/desig
 clusters"): `generation/open_clusters.py` draws the clusters with them.
 
 * **Formation.** The share of the star formation that ends up in bound clusters, the cluster formation efficiency
-  (`cluster_formation_efficiency`, Kruijssen 2012), and the initial masses, a power law of slope -2
-  (`initial_masses`, Lamers et al. 2005).
-* **Loss.** Stellar evolution (`mass_lost_by_evolution`, Lamers et al. 2005 Table 1) and tidal disruption on a timescale
+  (`cluster_formation_efficiency`, [R2502]), and the initial masses, a power law of slope -2
+  (`initial_masses`, [R2542]).
+* **Loss.** Stellar evolution (`mass_lost_by_evolution`, [R2542: Table 1]) and tidal disruption on a timescale
   `t_dis = t0 (M / Msun) ** gamma` (`disruption_t0_yr`, `present_masses`), the mass a cluster holds at an age.
-* **Size.** A half-mass radius from a half-mass density (`half_mass_radii_pc`, Portegies Zwart et al. 2010), grown by a
+* **Size.** A half-mass radius from a half-mass density (`half_mass_radii_pc`, Portegies [R3580]), grown by a
   factor of 5 to 10 over the first 100 Myr and held inside the cluster's Jacobi radius (`jacobi_radii_pc`).
 """
 
@@ -25,7 +25,7 @@ _YEAR_PER_MYR = 1.0e6
 
 def cluster_formation_efficiency(sigma_sfr_msun_yr_kpc2):
     """
-    The share of star formation that ends up in bound clusters (Kruijssen 2012, equation 45, a fit to his model for a
+    The share of star formation that ends up in bound clusters ([R2502], equation 45, a fit to his model for a
     typical parameter set): `1 / (1.15 + 0.6 S ** -0.4 + 0.05 S ** -1)` for the star formation rate density `S` in
     solar masses per year per kpc2. Rises from 1% where the gas is thin to about 0.7 in the densest galaxies; 0 where
     there is no star formation.
@@ -114,7 +114,7 @@ def disruption_t0_yr(rho_amb_msun_pc3, c_env_myr):
 
 def present_masses(initial_sol, age_yr, t0_yr, z):
     """
-    The mass (solar masses) each cluster holds at `age_yr`, 0 for one disrupted (Lamers et al. 2005, equation 6):
+    The mass (solar masses) each cluster holds at `age_yr`, 0 for one disrupted ([R2542], equation 6):
     `mu ** gamma = mu_ev ** gamma - gamma t Msun ** gamma / (t0 Mi ** gamma)`, `mu_ev` what stellar evolution alone
     leaves of the initial mass.
     """
@@ -154,8 +154,8 @@ def half_mass_radii_pc(mass_sol, age_gy, density_z, expansion_unit):
 
 def cloud_shock_mass_lost_sol(born_radius_pc, factor, age_gy, cloud_surface_density_msun_pc2, cloud_density_msun_pc3):
     """
-    The mass (solar masses) passing molecular clouds have taken from clusters by `age_gy` (Gieles et al. 2006, Eq 24, as
-    Kruijssen et al. 2014 put it in the central ring): the disruption time `t_dis = 2.0 S (M / 1e4) (3.75 pc / r_h) ** 3` Gyr
+    The mass (solar masses) passing molecular clouds have taken from clusters by `age_gy` ([R1555], Eq 24, as
+    [R2505] put it in the central ring): the disruption time `t_dis = 2.0 S (M / 1e4) (3.75 pc / r_h) ** 3` Gyr
     with `S = 5.1 / (Sigma_n rho_n)` makes the loss rate `M / t_dis = 1e4 (r_h / 3.75 pc) ** 3 Sigma_n rho_n / (2.0 x 5.1)` per
     Gyr, the same for every mass, so it is integrated along the half-mass radius `r_h` each cluster has had: `born_radius_pc`
     growing by `factor` over `tuning.OPEN_CLUSTER_EXPANSION_AGE_GY` and staying (`half_mass_radii_pc`). Loss on top of the tidal

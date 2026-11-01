@@ -4,7 +4,7 @@
 The structure of a neutron star from an equation of state (GEN.968, parent GEN.743).
 
 The Tolman-Oppenheimer-Volkoff equations of a static, spherical star in general relativity, integrated over the
-twenty-one tabulated cold-matter equations of state of `datasets.neutron_star_matter` (Malik, Pais and Providência 2024):
+twenty-one tabulated cold-matter equations of state of `datasets.neutron_star_matter` [R2834]:
 
     dP/dr = -(e + P) (m + 4 pi r^3 P) / (r (r - 2 m)),        dm/dr = 4 pi r^2 e,
 
@@ -21,8 +21,7 @@ the mass-radius curve of one equation of state (`integrated_curve`) and the heav
 What generation reads is the reduced table those make (`scripts/build_neutron_star_table.py` writes `data/neutron_star_curves.json`: 25
 stars of each equation of state): the largest mass an equation of state supports (`maximum_mass_solar`), the radius and the crust of a
 star of a given mass (`radius_km`, `crust_thickness_km`), the equations of state that hold a star (`supporting`) and the band the
-twenty-one span at a mass (`radius_band_km`). `physics.neutron_star` (GEN.969) draws a star's radius from them, weighted by the NICER
-and Miller et al. 2021 constraints; the crust thickness (`crust_thickness_km`) is not read by generation yet.
+twenty-one span at a mass (`radius_band_km`). `physics.neutron_star` (GEN.969) draws a star's radius from them, weighted by the [R3075] constraints; the crust thickness (`crust_thickness_km`) is not read by generation yet.
 
 Layers. The crust ends at the density where the matter is uniform (crust-core transition, `CRUST_CORE_DENSITY_FM3`,
 a stand-in: the tables do not mark it, the literature range is 0.07 to 0.10 fm^-3) and its outer part ends at neutron
@@ -53,12 +52,12 @@ SOLAR_MASS_KM = _msun_to_kg(constants.G) / constants.SPEED_OF_LIGHT_M_S ** 2 / 1
 
 CRUST_CORE_DENSITY_FM3 = 0.08
 """float: The baryon density, fm^-3, at the bottom of the crust. [Stand-in, GEN.725 NS1: the tables do not mark the
-transition; 0.07 to 0.10 is the range of the compressible-liquid-drop and RMF calculations, Malik et al. 2024 Table 1 and
+transition; 0.07 to 0.10 is the range of the compressible-liquid-drop and RMF calculations, [R2834: Table 1] and
 their references.]"""
 
 NEUTRON_DRIP_DENSITY_FM3 = 2.6e-4
 """float: The baryon density, fm^-3, at neutron drip, the bottom of the outer crust of the BSk22 crust all tables share
-(Chamel and Haensel 2008, Living Rev. Relativ. 11, 10)."""
+([R0722], Living Rev. Relativ. 11, 10)."""
 
 _START_FRACTION = 1e-7
 _RESAMPLE_POINTS = 6000

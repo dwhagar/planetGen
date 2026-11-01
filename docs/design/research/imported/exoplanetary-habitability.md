@@ -2,7 +2,7 @@
 
 # Exoplanetary Habitability and Human Sustainability: An Ecological and Physiological Classification Architecture
 
-The assessment of extrasolar planetary habitability requires a rigorous analytical division between microbial viability and human sustainability. While astrobiological metrics such as the Earth Similarity Index (ESI) and the Planetary Habitability Index (PHI) evaluate whether a planetary body can sustain liquid surface water or host carbon-based extremophiles, human physiological requirements impose far narrower physical, atmospheric, and biochemical boundaries (Cockell et al., 2016; Schulze-Makuch et al., 2011).
+The assessment of extrasolar planetary habitability requires a rigorous analytical division between microbial viability and human sustainability. While astrobiological metrics such as the Earth Similarity Index (ESI) and the Planetary Habitability Index (PHI) evaluate whether a planetary body can sustain liquid surface water or host carbon-based extremophiles, human physiological requirements impose far narrower physical, atmospheric, and biochemical boundaries [R0841, R3979].
 
 Human metabolic homeostasis requires a precise partial pressure envelope of oxygen and inert buffer gases, tight thermodynamic bounds, continuous hydration, protection from acute and chronic ionizing radiation, and biochemically compatible caloric input.
 
@@ -22,7 +22,7 @@ Thermal tolerance is dictated by the thermodynamic limits of metabolic heat reje
 
 At the cold extreme, dry-bulb temperatures below $0^\circ\text{C}$ trigger peripheral vasoconstriction, rapid caloric depletion, tissue ischemia, and lethal systemic hypothermia unless continuous external thermal management and insulation are maintained.
 
-Ionizing radiation presents another fundamental barrier to long-term survival. Baseline terrestrial exposure averages under $1\text{ mSv/year}$, with standard industrial occupational limits set between $20\text{ mSv}$ and $50\text{ mSv/year}$. Acute surface exposures exceeding $0.75\text{--}1.0\text{ Sv}$ trigger acute radiation syndrome (ARS), resulting in bone marrow destruction, mucosal sloughing, and systemic immune collapse (Cucinotta et al., 2013). Doses exceeding $4.5\text{--}5.0\text{ Sv}$ represent an unassisted lethal dose for fifty percent of an exposed cohort ($LD_{50/30}$).
+Ionizing radiation presents another fundamental barrier to long-term survival. Baseline terrestrial exposure averages under $1\text{ mSv/year}$, with standard industrial occupational limits set between $20\text{ mSv}$ and $50\text{ mSv/year}$. Acute surface exposures exceeding $0.75\text{--}1.0\text{ Sv}$ trigger acute radiation syndrome (ARS), resulting in bone marrow destruction, mucosal sloughing, and systemic immune collapse [R0952]. Doses exceeding $4.5\text{--}5.0\text{ Sv}$ represent an unassisted lethal dose for fifty percent of an exposed cohort ($LD_{50/30}$).
 
 Multi-generational colonial settlement requires annual background exposure to remain below $50\text{--}100\text{ mSv/year}$ to prevent reproductive sterility, elevated teratogenesis, and embryonic lethality, necessitating substantial mass shielding against both galactic cosmic rays (GCR) and stellar energetic particles (SEP).
 
@@ -36,14 +36,14 @@ The transition between complete environmental non-viability and ecological optim
 
 | Parameter | Red Tier (Hostile) | Yellow Tier (Marginal) | Green Tier (Viable) | Blue Tier (Optimal) |
 | :--- | :--- | :--- | :--- | :--- |
-| **Earth Similarity Index (ESI)**<br>(Schulze-Makuch et al., 2011) | $< 0.40$ | $0.40\text{--}0.74$ | $0.75\text{--}0.89$ | $\ge 0.90$ |
+| **Earth Similarity Index (ESI)**<br>[R3979] | $< 0.40$ | $0.40\text{--}0.74$ | $0.75\text{--}0.89$ | $\ge 0.90$ |
 | **Total Surface Pressure**<br> | $< 6.3\text{ kPa}$ or $> 500\text{ kPa}$ | $20\text{--}70\text{ kPa}$ or $150\text{--}300\text{ kPa}$ | $70\text{--}150\text{ kPa}$ | $90\text{--}120\text{ kPa}$ |
-| **$pO_2$ Availability**<br>(Cockell et al., 2016) | $0.0\text{ kPa}$ (Trace) | $< 6.0\text{ kPa}$ | $12.0\text{--}18.0\text{ kPa}$ | $19.0\text{--}24.0\text{ kPa}$ |
-| **$pCO_2$ Concentration**<br>(Cockell et al., 2016) | Unbounded / $> 10\text{ kPa}$ | $0.5\text{--}5.0\text{ kPa}$ | $0.04\text{--}0.5\text{ kPa}$ | $< 0.05\text{ kPa}$ |
-| **Mean Surface Temperature**<br>(Cockell et al., 2016) | $<-80^\circ\text{C}$ or $>+70^\circ\text{C}$ | $-50^\circ\text{C}\text{ to }+45^\circ\text{C}$ | $-10^\circ\text{C}\text{ to }+35^\circ\text{C}$ | $+10^\circ\text{C}\text{ to }+25^\circ\text{C}$ |
-| **Surface Radiation Flux**<br>(Cucinotta et al., 2013; Sauro et al., 2020) | $> 1.0\text{ Sv/yr}$ (Unshielded) | $0.1\text{--}1.0\text{ Sv/yr}$ | $5\text{--}50\text{ mSv/yr}$ | $< 5\text{ mSv/yr}$ |
-| **Host Stellar Spectral Class**<br>(Luger & Barnes, 2015; Shields et al., 2016; Tarter et al., 2007) | Active Flare M-dwarf, O, B, A | Active M-dwarf, Early F | Late K-dwarf, Inactive M | Stable K-dwarf, G-dwarf |
-| **Hydrosphere State**<br>(Cockell et al., 2016; Kasting et al., 1993) | Cryogenic ice, perchlorates, vapor | Permafrost, sub-ice ocean, brine | Open rivers, lakes, active rain | Pervasive oceans, shallow seas |
+| **$pO_2$ Availability**<br>[R0841] | $0.0\text{ kPa}$ (Trace) | $< 6.0\text{ kPa}$ | $12.0\text{--}18.0\text{ kPa}$ | $19.0\text{--}24.0\text{ kPa}$ |
+| **$pCO_2$ Concentration**<br>[R0841] | Unbounded / $> 10\text{ kPa}$ | $0.5\text{--}5.0\text{ kPa}$ | $0.04\text{--}0.5\text{ kPa}$ | $< 0.05\text{ kPa}$ |
+| **Mean Surface Temperature**<br>[R0841] | $<-80^\circ\text{C}$ or $>+70^\circ\text{C}$ | $-50^\circ\text{C}\text{ to }+45^\circ\text{C}$ | $-10^\circ\text{C}\text{ to }+35^\circ\text{C}$ | $+10^\circ\text{C}\text{ to }+25^\circ\text{C}$ |
+| **Surface Radiation Flux**<br>[R0952, R3933] | $> 1.0\text{ Sv/yr}$ (Unshielded) | $0.1\text{--}1.0\text{ Sv/yr}$ | $5\text{--}50\text{ mSv/yr}$ | $< 5\text{ mSv/yr}$ |
+| **Host Stellar Spectral Class**<br>[R2769, R4064, R4308] | Active Flare M-dwarf, O, B, A | Active M-dwarf, Early F | Late K-dwarf, Inactive M | Stable K-dwarf, G-dwarf |
+| **Hydrosphere State**<br>[R0841, R2281] | Cryogenic ice, perchlorates, vapor | Permafrost, sub-ice ocean, brine | Open rivers, lakes, active rain | Pervasive oceans, shallow seas |
 
 ### Red Tier: Non-Sustainable and Completely Hostile Environments
 Red-tier worlds represent environments completely devoid of biological survivability. These planets are characterized by atmospheric pressures falling below the Armstrong limit or exceeding hundreds of bars of superheated, corrosive greenhouse gases. Solar system analogues include Mercury, Venus, Mars, and Jupiter’s moon Io.
@@ -63,7 +63,7 @@ Photosynthetic primary producers actively maintain a global carbon-oxygen-nitrog
 Indigenous autotrophic life includes complex multicellular algae, mats of bryophyte analogues, and primitive vascular flora. Heterotrophic fauna is predominantly invertebrate-grade, marine, or primitive detritivorous organisms. Human beings can traverse the surface of Green-tier worlds without heavy pressure suits, requiring only lightweight respiratory assist systems, particulate filters, or localized oxygen enrichment masks.
 
 ### Blue Tier: Optimal and Superhabitable Habitats
-Blue-tier worlds match or exceed Earth’s baseline ecological carrying capacity, often meeting the criteria for superhabitability established by Heller and Armstrong (2014). These planets are typically super-Earths ($1.2\text{--}2.0\text{ }M_\oplus$, $1.1\text{--}1.3\text{ }R_\oplus$) orbiting long-lived, quiescent K-type dwarf stars.
+Blue-tier worlds match or exceed Earth’s baseline ecological carrying capacity, often meeting the criteria for superhabitability established by [R1897]. These planets are typically super-Earths ($1.2\text{--}2.0\text{ }M_\oplus$, $1.1\text{--}1.3\text{ }R_\oplus$) orbiting long-lived, quiescent K-type dwarf stars.
 
 Their greater planetary mass sustains internal radiogenic heat engines longer than Earth, driving stable plate tectonics and preserving magnetic field protection over $5\text{--}8\text{ billion years}$. Their surface topography is dominated by distributed continental archipelagos and warm, shallow epicontinental seas rather than deep ocean basins, promoting exceptional biological diversity and stable climate feedback loops.
 
@@ -87,18 +87,18 @@ Blue-tier worlds possess an ideal hydrologic system, offering clean, naturally f
 ### Geomorphological Shelter and Radiative Attenuation
 Planetary shelter availability is determined by the presence of natural landforms that mitigate extreme thermal swings and ambient radiation. In Red and early Yellow environments, the absence of thick atmospheres and strong magnetospheres leaves the surface vulnerable to primary galactic cosmic rays and dangerous solar particle events.
 
-Survival on these worlds depends on using geological formations as passive radiation shields. Subsurface basaltic lava tubes—formed during ancient effusive volcanic eruptions—provide cavernous void spaces beneath roof layers several meters to dozens of meters thick (Haruyama et al., 2009; Sauro et al., 2020; Theinat et al., 2020). These subterranean caverns provide natural protection, reducing radiation levels to safe, earth-normal limits while providing stable ambient temperatures that isolate habitats from surface thermal extremes. In areas lacking volcanic tubes, surface habitats require mechanical burial under $300\text{--}500\text{ g/cm}^2$ of excavated regolith.
+Survival on these worlds depends on using geological formations as passive radiation shields. Subsurface basaltic lava tubes—formed during ancient effusive volcanic eruptions—provide cavernous void spaces beneath roof layers several meters to dozens of meters thick [R1840, R3933, R4332]. These subterranean caverns provide natural protection, reducing radiation levels to safe, earth-normal limits while providing stable ambient temperatures that isolate habitats from surface thermal extremes. In areas lacking volcanic tubes, surface habitats require mechanical burial under $300\text{--}500\text{ g/cm}^2$ of excavated regolith.
 
 On Green-tier worlds, an atmospheric mass column exceeding $1000\text{ g/cm}^2$ shields the surface from cosmic particles, while an active stratospheric ozone layer filters harmful ultraviolet radiation. Human shelters can be constructed directly on the surface using locally sourced stone, earth, and structural timber analogues.
 
 Blue-tier planets provide complete natural environmental protection, permitting unshielded above-ground habitation across most latitudes.
 
 ### Autotrophic Dynamics, Xenobiology, and Caloric Viability
-The presence of native flora and fauna introduces the critical challenge of biological compatibility. Terrestrial biology is defined by strict homochirality: functional enzymatic proteins rely on left-handed (L-enantiomer) amino acids, while metabolic sugars and nucleic acids use right-handed (D-enantiomer) conformations (Bada, 2004; Joyce et al., 1984; Meierhenrich, 2008).
+The presence of native flora and fauna introduces the critical challenge of biological compatibility. Terrestrial biology is defined by strict homochirality: functional enzymatic proteins rely on left-handed (L-enantiomer) amino acids, while metabolic sugars and nucleic acids use right-handed (D-enantiomer) conformations [R0220, R2207, R3024].
 
 On independently evolved Yellow and Green exoplanets, native life is equally likely to exhibit reversed chirality (D-amino acids and L-sugars). Ingesting mirrored organic matter provides zero nutritional value; human digestive enzymes cannot hydrolyze D-peptide bonds, and metabolic processing of foreign enantiomers can produce toxic byproducts. Even when chiral symmetry matches Earth biology, foreign flora may incorporate non-canonical amino acids outside the 22 utilized by terrestrial life, or synthesize defensive xenobiotic alkaloids and accumulate toxic metalloproteins.
 
-Photosynthetic processes on planets orbiting M-dwarf stars adapt to spectral energy distributions dominated by long-wavelength photons (Shields et al., 2016). Autotrophs on these worlds use specialized pigments such as chlorophyll d and chlorophyll f, shifting their absorption spectra into the far-red and near-infrared bands ($700\text{--}750\text{ nm}$) (Chen et al., 2010; Kiang et al., 2007a, 2007b). This spectral adaptation alters the characteristic "vegetation red edge" seen in reflectance spectroscopy. While these autotrophs can produce substantial atmospheric oxygen, their thermodynamic efficiency and protein profiles make them poor nutritional substitutes for terrestrial crops without secondary refining.
+Photosynthetic processes on planets orbiting M-dwarf stars adapt to spectral energy distributions dominated by long-wavelength photons [R4064]. Autotrophs on these worlds use specialized pigments such as chlorophyll d and chlorophyll f, shifting their absorption spectra into the far-red and near-infrared bands ($700\text{--}750\text{ nm}$) ([R0760, R2344], 2007b). This spectral adaptation alters the characteristic "vegetation red edge" seen in reflectance spectroscopy. While these autotrophs can produce substantial atmospheric oxygen, their thermodynamic efficiency and protein profiles make them poor nutritional substitutes for terrestrial crops without secondary refining.
 
 Only on Blue-tier worlds—where evolutionary history has converged on compatible organic structures or where planetary engineering has established terrestrial biomes—can human beings forage native flora and fauna safely without risking severe immunological rejection or fatal metabolic toxicity.
 
@@ -106,11 +106,11 @@ Only on Blue-tier worlds—where evolutionary history has converged on compatibl
 
 | Resource Dimension | Red Tier (Hostile) | Yellow Tier (Marginal) | Green Tier (Viable) | Blue Tier (Optimal) |
 | :--- | :--- | :--- | :--- | :--- |
-| **Water Accessibility**<br>(Cockell et al., 2016; Cucinotta et al., 2013) | Deep hydration bounds; perchlorate brines; sublimation | Glacial ice sheets; subglacial liquid reservoirs | Flowing rivers; freshwater lakes; rain cycles | Global freshwater networks; optimal precipitation |
-| **Shelter Geomorphology**<br>(Haruyama et al., 2009; Sauro et al., 2020; Theinat et al., 2020) | Deep basalt lava tubes; sintered regolith mounds | Volcanic tubes; deep tectonic rift valleys | Natural caves; rock overhangs; surface construction | Unrestricted surface terrain; structural timber |
-| **Flora & Autotrophs**<br>(Chen et al., 2010; Kiang et al., 2007a, 2007b) | Completely abiotic surface | Chemosynthetic mats; far-red/NIR cyanobacteria | Multicellular bryophytes; red-edge shifted canopies | Fully developed forest canopies; high biomass yield |
-| **Biochemical Compatibility**<br>(Bada, 2004; Joyce et al., 1984; Meierhenrich, 2008) | Sterile mineral substrate | Incompatible enantiomers; abiotic xenotoxins | Enantiomeric divergence; novel secondary metabolites | Homochiral convergence (L-amino acids, D-sugars) |
-| **Fauna & Heterotrophs**<br>(Cockell et al., 2016; Shields et al., 2016; Ward & Brownlee, 2000) | None | Sub-surface anaerobic extremophiles | Invertebrate-grade detritivores; marine macrofauna | Complex ecological trophic webs; vertebrate analogues |
+| **Water Accessibility**<br>[R0841, R0952] | Deep hydration bounds; perchlorate brines; sublimation | Glacial ice sheets; subglacial liquid reservoirs | Flowing rivers; freshwater lakes; rain cycles | Global freshwater networks; optimal precipitation |
+| **Shelter Geomorphology**<br>[R1840, R3933, R4332] | Deep basalt lava tubes; sintered regolith mounds | Volcanic tubes; deep tectonic rift valleys | Natural caves; rock overhangs; surface construction | Unrestricted surface terrain; structural timber |
+| **Flora & Autotrophs**<br>([R0760, R2344], 2007b) | Completely abiotic surface | Chemosynthetic mats; far-red/NIR cyanobacteria | Multicellular bryophytes; red-edge shifted canopies | Fully developed forest canopies; high biomass yield |
+| **Biochemical Compatibility**<br>[R0220, R2207, R3024] | Sterile mineral substrate | Incompatible enantiomers; abiotic xenotoxins | Enantiomeric divergence; novel secondary metabolites | Homochiral convergence (L-amino acids, D-sugars) |
+| **Fauna & Heterotrophs**<br>[R0841, R4064, R4621] | None | Sub-surface anaerobic extremophiles | Invertebrate-grade detritivores; marine macrofauna | Complex ecological trophic webs; vertebrate analogues |
 
 ---
 
@@ -121,7 +121,7 @@ The duration of human survival across different planetary environments depends o
 ### Individual Exposure: Unassisted Decompression Versus Technical Augmentation
 An unprotected human exposed to the surface of a Red-tier world experiences immediate physiological failure. In a near-vacuum environment below the Armstrong limit, the Time of Useful Consciousness (TUC) is limited to $9\text{--}15\text{ seconds}$. Because the partial pressure of ambient oxygen is zero, the concentration gradient across the pulmonary alveolar-capillary membrane reverses, stripping oxygen from venous blood and venting it directly into the environment. Deoxygenated blood circulates to the brain within seconds, inducing loss of consciousness.
 
-Simultaneously, ebullism causes rapid vapor bubble formation within the bloodstream and soft tissues, leading to circulatory collapse and irreversible cerebral anoxia within $90\text{ to }180\text{ seconds}$ (Seedhouse, 2010). When equipped with a high-pressure extravehicular activity (EVA) suit, survival is extended to $6\text{--}8\text{ hours}$, governed by the chemical saturation of carbon dioxide scrubbers, battery reserves, and water sublimation cooling loops (Wheeler, 2017).
+Simultaneously, ebullism causes rapid vapor bubble formation within the bloodstream and soft tissues, leading to circulatory collapse and irreversible cerebral anoxia within $90\text{ to }180\text{ seconds}$ [R3997]. When equipped with a high-pressure extravehicular activity (EVA) suit, survival is extended to $6\text{--}8\text{ hours}$, governed by the chemical saturation of carbon dioxide scrubbers, battery reserves, and water sublimation cooling loops [R4685].
 
 On Yellow-tier planets where total atmospheric pressure exceeds the Armstrong limit but lacks oxygen (such as a cold $CO_2\text{--}N_2$ atmosphere), ebullism does not occur. However, inhaling gas with a high $pCO_2$ causes rapid hypercapnic narcosis and asphyxia, producing unconsciousness within $30\text{--}60\text{ seconds}$ and death from respiratory acidosis within minutes. Equipped with a basic closed-circuit rebreather or an oxygen concentrator and thermal protective garments, an individual can operate without heavy, pressurized suits. In this mode, individual survival extends to days or weeks, limited only by the availability of rations and clean water.
 
@@ -134,18 +134,18 @@ A small expeditionary group of four to twelve individuals requires complex envir
 
 Because each crew member requires approximately $2.5\text{--}3.0\text{ kg}$ of water daily for hydration and metabolic support, missions without closed-loop recycling face a hard logistics limit of $30\text{ to }90\text{ days}$. Extending mission duration beyond this threshold requires active In-Situ Resource Utilization (ISRU) to mine surface permafrost or hydrated minerals for habitat water and oxygen replenishment.
 
-On Yellow-tier worlds, expeditionary teams face lower structural and logistical mass requirements. Because the ambient atmospheric pressure prevents rapid explosive decompression, habitats can be constructed using deployable, lightweight membrane structures rather than high-mass pressure shells. Oxygen generation does not require recycling internal metabolic waste; compressors can harvest ambient carbon dioxide directly from the atmosphere and crack it into breathable oxygen using solid-oxide electrolysis systems. The primary barrier to multi-month missions shifts from atmospheric support to nutritional autonomy, as foreign soil chemistry and a lack of bio-available nitrogen necessitate importing fertilizers or maintaining closed hydroponic systems (Wheeler, 2017).
+On Yellow-tier worlds, expeditionary teams face lower structural and logistical mass requirements. Because the ambient atmospheric pressure prevents rapid explosive decompression, habitats can be constructed using deployable, lightweight membrane structures rather than high-mass pressure shells. Oxygen generation does not require recycling internal metabolic waste; compressors can harvest ambient carbon dioxide directly from the atmosphere and crack it into breathable oxygen using solid-oxide electrolysis systems. The primary barrier to multi-month missions shifts from atmospheric support to nutritional autonomy, as foreign soil chemistry and a lack of bio-available nitrogen necessitate importing fertilizers or maintaining closed hydroponic systems [R4685].
 
 On Green-tier planets, an expeditionary team can achieve continuous survival across months and years. Natural caves or basic surface structures built from native stone provide sufficient shelter without radiation-shielding berms. Water is directly sourced from surface rivers and lakes, requiring only microbial sterilization. Small-scale agriculture can be initiated by treating local soils to remove novel plant toxins and inoculating the substrate with terrestrial mycorrhizal fungi and nitrogen-fixing bacteria, providing sustainable caloric replenishment.
 
 On Blue-tier worlds, an expeditionary group operates with complete environmental autonomy from arrival, utilizing standard field equipment and foraging native biomes directly.
 
 ### Multi-Generational Colonial Settlement: Closed-Loop BLSS and Biome Integration
-Long-term planetary colonization involving hundreds to thousands of individuals shifts the survival model from open supply chains to fully closed Bioregenerative Life Support Systems (BLSS) (Drysdale et al., 2003). On Red and Yellow worlds, life support cannot rely indefinitely on mechanical consumables and replacement parts; it requires biological cycles to process waste and produce food.
+Long-term planetary colonization involving hundreds to thousands of individuals shifts the survival model from open supply chains to fully closed Bioregenerative Life Support Systems (BLSS) [R1166]. On Red and Yellow worlds, life support cannot rely indefinitely on mechanical consumables and replacement parts; it requires biological cycles to process waste and produce food.
 
-Higher plants consume carbon dioxide and human metabolic wastes, producing oxygen, purifying water through transpiration, and generating edible biomass (Wheeler, 2017). Life-support models show that nutritional and atmospheric autonomy requires approximately $40\text{--}50\text{ m}^2$ of illuminated crop growing area per person, alongside $15\text{--}20\text{ m}^2$ for respiratory gas balancing (Drysdale et al., 2003). A self-sustaining colony of 1,000 people on a Yellow-tier world requires at least $50,000\text{ m}^2$ (5 hectares) of high-yield hydroponic or aeroponic growing surfaces protected within subterranean lava tubes or heavily shielded surface domes. Aquaculture systems (such as tilapia, carp, or microalgae) are integrated into these loops to achieve higher feed conversion efficiency than traditional terrestrial livestock. The colony's long-term survival is limited by mechanical failure rates, degradation of synthetic polymers, trace heavy metal accumulation in recycled water loops, and the long-term genetic viability of closed agricultural crops.
+Higher plants consume carbon dioxide and human metabolic wastes, producing oxygen, purifying water through transpiration, and generating edible biomass [R4685]. Life-support models show that nutritional and atmospheric autonomy requires approximately $40\text{--}50\text{ m}^2$ of illuminated crop growing area per person, alongside $15\text{--}20\text{ m}^2$ for respiratory gas balancing [R1166]. A self-sustaining colony of 1,000 people on a Yellow-tier world requires at least $50,000\text{ m}^2$ (5 hectares) of high-yield hydroponic or aeroponic growing surfaces protected within subterranean lava tubes or heavily shielded surface domes. Aquaculture systems (such as tilapia, carp, or microalgae) are integrated into these loops to achieve higher feed conversion efficiency than traditional terrestrial livestock. The colony's long-term survival is limited by mechanical failure rates, degradation of synthetic polymers, trace heavy metal accumulation in recycled water loops, and the long-term genetic viability of closed agricultural crops.
 
-On Green-tier planets, a permanent colony avoids the severe mass penalties of hermetic pressure hulls and subterranean living. Colonists can build standard surface housing using local timber, stone, and bio-composites. Agriculture can be conducted outdoors, provided the native soil microbiome is pre-treated or outcompeted with terrestrial microbes. The primary threat to generational survival is biological: novel planetary allergens, cross-reactive toxins, and xenobiotic parasites that bypass terrestrial immune defenses (Horneck et al., 2010).
+On Green-tier planets, a permanent colony avoids the severe mass penalties of hermetic pressure hulls and subterranean living. Colonists can build standard surface housing using local timber, stone, and bio-composites. Agriculture can be conducted outdoors, provided the native soil microbiome is pre-treated or outcompeted with terrestrial microbes. The primary threat to generational survival is biological: novel planetary allergens, cross-reactive toxins, and xenobiotic parasites that bypass terrestrial immune defenses [R2006].
 
 On Blue-tier worlds, colonies can expand openly across the landscape. Agriculture, ecological management, and urban development mirror terrestrial patterns without the structural mass, power consumption, or life-support overhead required on harsher planets.
 
@@ -153,11 +153,11 @@ On Blue-tier worlds, colonies can expand openly across the landscape. Agricultur
 
 | Population Scale | Red Tier (Hostile) | Yellow Tier (Marginal) | Green Tier (Viable) | Blue Tier (Optimal) |
 | :--- | :--- | :--- | :--- | :--- |
-| **Individual (Unassisted)**<br>(Seedhouse, 2010) | 9–15 seconds (TUC); fatal ebullism/asphyxia in 3 min | 1–10 minutes; hypercapnic narcosis; acute anoxia; thermal shock | 2–4 weeks; chronic hypoxia/hypercapnia; chiral food starvation | Full Natural Lifespan ($70\text{--}90\text{ years}$); ambient equilibrium |
-| **Individual (Assisted)**<br>(Wheeler, 2017) | 6–8 hours; EVA life-support limits (scrubber, $O_2$, power) | Days to Weeks; limited by $O_2$ concentrates, battery storage, and rations | Months to Years; requires simple respiratory filters and micro-rations | Indefinite; technology serves as comfort enhancement rather than life support |
-| **Expeditionary Group**<br>(Wheeler, 2017) | 1–3 months; requires rigid ECLSS modules; rapid consumable depletion | 6–12 months; deployable habitats; ISRU gas cracking; water ice melting | Indefinite (Years); field cabins; surface water sourcing; basic farming | Indefinite; immediate autonomous survival and field foraging |
-| **Permanent Colony**<br>(Drysdale et al., 2003; Wheeler, 2017) | Fragile / Finite; dependent on $100\%$ closed-loop BLSS and structural hulls | Sustainable with Heavy ISRU; $50\text{ m}^2$ crop area/person; lava tube city | Highly Autonomous; open-air agriculture; simple soil bio-remediation | Fully Autonomous; open biome expansion; multi-generational growth |
-| **Primary Mode of Mortality**<br>(Cucinotta et al., 2013; Horneck et al., 2010; Seedhouse, 2010) | Explosive decompression; ebullism; acute lethal radiation | Suffocation ($CO_2/N_2$); hypothermia; mechanical ECLSS failure | Xenobiotic toxicity; allergic shock; novel pathobiology | Terrestrial senescence; ecological predation; standard pathology |
+| **Individual (Unassisted)**<br>[R3997] | 9–15 seconds (TUC); fatal ebullism/asphyxia in 3 min | 1–10 minutes; hypercapnic narcosis; acute anoxia; thermal shock | 2–4 weeks; chronic hypoxia/hypercapnia; chiral food starvation | Full Natural Lifespan ($70\text{--}90\text{ years}$); ambient equilibrium |
+| **Individual (Assisted)**<br>[R4685] | 6–8 hours; EVA life-support limits (scrubber, $O_2$, power) | Days to Weeks; limited by $O_2$ concentrates, battery storage, and rations | Months to Years; requires simple respiratory filters and micro-rations | Indefinite; technology serves as comfort enhancement rather than life support |
+| **Expeditionary Group**<br>[R4685] | 1–3 months; requires rigid ECLSS modules; rapid consumable depletion | 6–12 months; deployable habitats; ISRU gas cracking; water ice melting | Indefinite (Years); field cabins; surface water sourcing; basic farming | Indefinite; immediate autonomous survival and field foraging |
+| **Permanent Colony**<br>[R1166, R4685] | Fragile / Finite; dependent on $100\%$ closed-loop BLSS and structural hulls | Sustainable with Heavy ISRU; $50\text{ m}^2$ crop area/person; lava tube city | Highly Autonomous; open-air agriculture; simple soil bio-remediation | Fully Autonomous; open biome expansion; multi-generational growth |
+| **Primary Mode of Mortality**<br>[R0952, R2006, R3997] | Explosive decompression; ebullism; acute lethal radiation | Suffocation ($CO_2/N_2$); hypothermia; mechanical ECLSS failure | Xenobiotic toxicity; allergic shock; novel pathobiology | Terrestrial senescence; ecological predation; standard pathology |
 
 ---
 
@@ -181,55 +181,55 @@ Anderson, M. S., Ewert, M. K., & Keener, J. F. (2018). *Life support baseline va
 
 Armstrong, H. G. (1953). *Principles and practice of aviation medicine* (3rd ed.). Williams & Wilkins.
 
-Bada, J. L. (2004). How life began on Earth: A status report. *Earth and Planetary Science Letters*, 226(1–2), 1–15. https://doi.org/10.1016/j.epsl.2004.07.029
+Bada, J. L. (2004). How life began on Earth: A status report. *Earth and Planetary Science Letters*, 226(1–2), 1–15. [R4408]
 
-Chen, M., Schliep, M., Willows, R. D., Cai, Z. L., Neilan, B. A., & Scheer, H. (2010). A red-shifted chlorophyll. *Science*, 329(5997), 1318–1319. https://doi.org/10.1126/science.1191127
+Chen, M., Schliep, M., Willows, R. D., Cai, Z. L., Neilan, B. A., & Scheer, H. (2010). A red-shifted chlorophyll. *Science*, 329(5997), 1318–1319. [R0760]
 
-Cockell, C. S., Bush, T., Bryce, C., Direktorenko, S., Stevens, D. H., Payne, R., Haley, J., Mann, C., & Wacey, D. (2016). Habitability: A review. *Astrobiology*, 16(1), 89–117. https://doi.org/10.1089/ast.2015.1325
+Cockell, C. S., Bush, T., Bryce, C., Direktorenko, S., Stevens, D. H., Payne, R., Haley, J., Mann, C., & Wacey, D. (2016). Habitability: A review. *Astrobiology*, 16(1), 89–117. [R1159]
 
 Cucinotta, F. A., Kim, M. Y., & Chappell, L. J. (2013). *Space radiation cancer risk projections and uncertainties—2012* (NASA/TP-2013-217375). National Aeronautics and Space Administration.
 
 Davis, J. R., Johnson, R., Stepanek, J., & Fogarty, J. A. (Eds.). (2008). *Fundamentals of aerospace medicine* (4th ed.). Lippincott Williams & Wilkins.
 
-Drysdale, A. E., Ewert, M. K., & Hanford, A. J. (2003). *Life support systems analysis of a Mars base* (SAE Technical Paper 2003-01-2550). SAE International. https://doi.org/10.4271/2003-01-2550
+Drysdale, A. E., Ewert, M. K., & Hanford, A. J. (2003). *Life support systems analysis of a Mars base* (SAE Technic[R3423, R3424]-01-2550). SAE International. [R4092]
 
 Ernsting, J., Nicholson, A. N., & Rainford, D. J. (Eds.). (2003). *Ernsting's aviation medicine* (4th ed.). Hodder Arnold.
 
 Hanford, A. J. (2004). *Advanced life support baseline values and assumptions document* (NASA/CR-2004-208941). National Aeronautics and Space Administration.
 
-Haruyama, J., Hioki, K., Shirao, M., Morota, T., Hiesinger, H., van der Bogert, C. H., Miyamoto, H., Iwasaki, A., Yokota, Y., Ohtake, M., Matsunaga, T., Hara, S., Omake, N., & Tada, H. (2009). Possible lunar lava tube skylight observed by SELENE cameras. *Geophysical Research Letters*, 36(21), L21206. https://doi.org/10.1029/2009GL040635
+Haruyama, J., Hioki, K., Shirao, M., Morota, T., Hiesinger, H., van der Bogert, C. H., Miyamoto, H., Iwasaki, A., Yokota, Y., Ohtake, M., Matsunaga, T., Hara, S., Omake, N., & Tada, H. (2009). Possible lunar lava tube skylight observed by SELENE cameras. *Geophysical Research Letters*, 36(21), L21206. [R1840]
 
-Heller, R., & Armstrong, J. (2014). Superhabitable worlds. *Astrobiology*, 14(1), 50–66. https://doi.org/10.1089/ast.2013.1088
+Heller, R., & Armstrong, J. (2014). Superhabitable worlds. *Astrobiology*, 14(1), 50–66. [R1897]
 
-Horneck, G., Klaus, D. M., & Mancinelli, R. L. (2010). Space microbiology. *Microbiology and Molecular Biology Reviews*, 74(1), 121–156. https://doi.org/10.1128/MMBR.00016-09
+Horneck, G., Klaus, D. M., & Mancinelli, R. L. (2010). Space microbiology. *Microbiology and Molecular Biology Reviews*, 74(1), 121–156. [R2006]
 
-Joyce, G. F., Visser, G. M., van Boeckel, C. A. A., van Boom, J. H., Orgel, L. E., & van Westrenen, J. (1984). Chiral selection in poly(C)-directed synthesis of oligo(G). *Nature*, 310(5978), 602–604. https://doi.org/10.1038/310602a0
+Joyce, G. F., Visser, G. M., van Boeckel, C. A. A., van Boom, J. H., Orgel, L. E., & van Westrenen, J. (1984). Chiral selection in poly(C)-directed synthesis of oligo(G). *Nature*, 310(5978), 602–604. [R2207]
 
-Kasting, J. F., Whitmire, D. P., & Reynolds, R. T. (1993). Habitable zones around main sequence stars. *Icarus*, 101(1), 108–128. https://doi.org/10.1006/icar.1993.1010
+Kasting, J. F., Whitmire, D. P., & Reynolds, R. T. (1993). Habitable zones around main sequence stars. *Icarus*, 101(1), 108–128. [R2281]
 
-Kiang, N. Y., Segura, A., Tinetti, G., Govindjee, Blankenship, R. E., Cohen, M., Siefert, J., Crisp, D., & Meadows, V. S. (2007b). Spectral signatures of photosynthesis. II. Coevolution with other stars and the atmosphere on extrasolar worlds. *Astrobiology*, 7(1), 252–274. https://doi.org/10.1089/ast.2006.0108
+Kiang, N. Y., Segura, A., Tinetti, G., Govindjee, Blankenship, R. E., Cohen, M., Siefert, J., Crisp, D., & Meadows, V. S. (2007b). Spectral signatures of photosynthesis. II. Coevolution with other stars and the atmosphere on extrasolar worlds. *Astrobiology*, 7(1), 252–274. [R2344]
 
-Kiang, N. Y., Siefert, J., Govindjee, & Blankenship, R. E. (2007a). Spectral signatures of photosynthesis. I. Review of Earth organisms. *Astrobiology*, 7(1), 222–251. https://doi.org/10.1089/ast.2006.0105
+Kiang, N. Y., Siefert, J., Govindjee, & Blankenship, R. E. (2007a). Spectral signatures of photosynthesis. I. Review of Earth organisms. *Astrobiology*, 7(1), 222–251. [R2345]
 
-Luger, R., & Barnes, R. (2015). Extreme water loss and chemical evolution of gaseous envelopes of sub-Neptunes and super-Earths in the habitable zone of M dwarfs. *Astrobiology*, 15(2), 119–143. https://doi.org/10.1089/ast.2014.1231
+Luger, R., & Barnes, R. (2015). Extreme water loss and chemical evolution of gaseous envelopes of sub-Neptunes and super-Earths in the habitable zone of M dwarfs. *Astrobiology*, 15(2), 119–143. [R2769]
 
-Meierhenrich, U. (2008). *Amino acids and the asymmetry of life: Caught in the act of formation*. Springer. https://doi.org/10.1007/978-3-540-76886-9
+Meierhenrich, U. (2008). *Amino acids and the asymmetry of life: Caught in the act of formation*. Springer. [R3024]
 
 Méndez, A. (2011). *The Earth Similarity Index (ESI)*. Planetary Habitability Laboratory, University of Puerto Rico at Arecibo.
 
 Roth, E. M. (1968). *Compendium of human responses to the aerospace environment* (NASA-CR-1205). National Aeronautics and Space Administration.
 
-Sauro, F., Pozzobon, R., Massironi, M., De Berardinis, P., Santagata, T., & De Waele, J. (2020). Lava tubes on Earth, Moon and Mars: A review on their size and morphology mitigation potential for planetary exploration. *Earth-Science Reviews*, 209, 103288. https://doi.org/10.1016/j.earscirev.2020.103288
+Sauro, F., Pozzobon, R., Massironi, M., De Berardinis, P., Santagata, T., & De Waele, J. (2020). Lava tubes on Earth, Moon and Mars: A review on their size and morphology mitigation potential for planetary exploration. *Earth-Science Reviews*, 209, 103288. [R3933]
 
-Schulze-Makuch, D., Méndez, A., Fairén, A. G., von Paris, P., Turse, C., Boyce, G., Sommers, M., Catling, D., Irwin, L. N., & McKay, C. P. (2011). A two-tiered approach to assessing the habitability of exoplanets. *Astrobiology*, 11(10), 1041–1052. https://doi.org/10.1089/ast.2010.0592
+Schulze-Makuch, D., Méndez, A., Fairén, A. G., von Paris, P., Turse, C., Boyce, G., Sommers, M., Catling, D., Irwin, L. N., & McKay, C. P. (2011). A two-tiered approach to assessing the habitability of exoplanets. *Astrobiology*, 11(10), 1041–1052. [R3979]
 
-Seedhouse, E. (2010). *Ocean outpost: The future of humans living underwater and in space*. Springer. https://doi.org/10.1007/978-1-4419-6357-4
+Seedhouse, E. (2010). *Ocean outpost: The future of humans living underwater and in space*. Springer. [R3997]
 
-Shields, A. L., Ballard, S., & Johnson, J. A. (2016). The habitability of planets orbiting M-dwarf stars. *Physics Reports*, 663, 1–49. https://doi.org/10.1016/j.physrep.2016.10.003
+Shields, A. L., Ballard, S., & Johnson, J. A. (2016). The habitability of planets orbiting M-dwarf stars. *Physics Reports*, 663, 1–49. [R4064]
 
-Tarter, J. C., Backus, P. R., Mancinelli, R. L., Aurnou, J. M., Backman, D. E., Basri, G. S., Boss, A. P., Clarke, A., Deming, D., Doyle, L. R., Feigelson, E. D., Freund, F., Grinspoon, D. H., Haberle, R. M., Hauck, S. A., Heath, M. J., Henry, T. J., Hollingsworth, J. L., Joshi, M. M., ... Young, P. A. (2007). A reappraisal of the habitability of planets around M dwarf stars. *Astrobiology*, 7(1), 30–65. https://doi.org/10.1089/ast.2006.0124
+Tarter, J. C., Backus, P. R., Mancinelli, R. L., Aurnou, J. M., Backman, D. E., Basri, G. S., Boss, A. P., Clarke, A., Deming, D., Doyle, L. R., Feigelson, E. D., Freund, F., Grinspoon, D. H., Haberle, R. M., Hauck, S. A., Heath, M. J., Henry, T. J., Hollingsworth, J. L., Joshi, M. M., ... Young, P. A. (2007). A reappraisal of the habitability of planets around M dwarf stars. *Astrobiology*, 7(1), 30–65. [R4308]
 
-Theinat, A. K., Modiriasari, A., Bobet, A., Melosh, H. J., Dyke, S. J., Ramirez, J., & Maghareh, A. (2020). Structural stability of lunar lava tubes. *Icarus*, 338, 113442. https://doi.org/10.1016/j.icarus.2019.113442
+Theinat, A. K., Modiriasari, A., Bobet, A., Melosh, H. J., Dyke, S. J., Ramirez, J., & Maghareh, A. (2020). Structural stability of lunar lava tubes. *Icarus*, 338, 113442. [R4332]
 
 Thomas, K. S., & McMann, H. J. (2006). *US spacesuits*. Springer Science & Business Media.
 
@@ -237,4 +237,4 @@ Ward, P. D., & Brownlee, D. (2000). *Rare Earth: Why complex life is uncommon in
 
 West, J. B. (2009). *High altitude medicine and physiology* (4th ed.). Hodder Arnold.
 
-Wheeler, R. M. (2017). Agriculture for space: People and places paving the way. *Open Agriculture*, 2(1), 14–32. https://doi.org/10.1515/opag-2017-0002
+Wheeler, R. M. (2017). Agriculture for space: People and places paving the way. *Open Agriculture*, 2(1), 14–32. [R4685]

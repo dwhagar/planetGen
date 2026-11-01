@@ -1,7 +1,7 @@
 {
  "version": 1,
  "title": "Infrared optics of sulfuric acid cloud droplets on the infrared model's bands",
- "description": "Derived by scripts/build_acid_cloud_optics.py from the HITRAN aerosol refractive indices of Myhre and others 2003 (76 and 81 percent H2SO4 at 298 K, 400 to 7500 cm-1, held at the ends) and Palmer and Williams 1975 (the 550 nm index), with Mie spheres in a gamma size distribution of effective variance 0.2. Per band: extinction efficiency over the 550 nm one of the same droplets, single-scattering albedo, asymmetry factor.",
+ "description": "Derived by scripts/build_acid_cloud_optics.py from the HITRAN aerosol refractive indices of Myhre and others 2003 (76 and 81 percent H2SO4 at 298 K, 400 to 7500 cm-1, held at the ends) and [R3418] (the 550 nm index), with Mie spheres in a gamma size distribution of effective variance 0.2. Per band: extinction efficiency over the 550 nm one of the same droplets, single-scattering albedo, asymmetry factor.",
  "variance": 0.2,
  "radii_um": [
   0.3,

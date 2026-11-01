@@ -1,7 +1,7 @@
 # tests/test_impact_spin.py
 
 """
-GEN.978: the birth spin of a rocky planet from the mass ratio of its last impacts (`planetgen.physics.impact_spin`, Kokubo and Genda 2010 equation 4
+GEN.978: the birth spin of a rocky planet from the mass ratio of its last impacts (`planetgen.physics.impact_spin`, [R2431] equation 4
 with a stand-in distribution of the ratio by planet mass).
 """
 
@@ -92,7 +92,7 @@ def test_the_median_free_day_is_in_the_range_of_vesta_ceres_and_the_earth_moon_s
 
 
 def test_the_range_is_the_widest_of_the_two_sources_in_question():
-    """Kokubo and Genda: 2 to 3 hours; Miguel and Brunini 2010: 10 to 10,000 hours for most planets. The draws cover both ends."""
+    """Kokubo and Genda: 2 to 3 hours; [R3058]: 10 to 10,000 hours for most planets. The draws cover both ends."""
     rng = random.Random(4)
     days = sorted(_period_hours(10 ** rng.uniform(-1.3, 0.7), rng) for _ in range(8000))
     assert days[int(0.02 * len(days))] < 2.6

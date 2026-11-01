@@ -67,7 +67,7 @@ were rerun while writing this document.
 - **Close (P-type) pair.** `BinaryStarProxy` (`generation/binary.py`) merges two
   stars into one effective star: separation `uniform(0.05, 0.25)` AU plus both
   radii, eccentricity 0, circular position, random orientation, mass ratio
-  from the law of Moe and Di Stefano 2017 over 0.1 to 1 (`generation/mass_ratio.py`, GEN.951, with `tuning.BINARY_MASS_RATIO_RANGE` the ends), same age as the primary
+  from the law of [R3108] over 0.1 to 1 (`generation/mass_ratio.py`, GEN.951, with `tuning.BINARY_MASS_RATIO_RANGE` the ends), same age as the primary
   (GEN.53). The orbit lives in `binary_*` columns on `star_systems`; the proxy has
   no `stars` row ([database-schema.md](../../reference/database-schema.md), "Binary
   configuration").
@@ -144,19 +144,19 @@ in hours, so a next-due column would fire constantly.
 
 | Quantity | Value | Tag and source |
 |---|---|---|
-| FGK dwarfs within 25 pc, single / double / triple / higher | 56% / 33% / 8% / 3% (454 stars) | [S] Raghavan et al. 2010 |
-| F and G dwarfs within 67 pc, n = 1 to 5 | 54 : 33 : 8 : 4 : 1; 2+2 quadruples 4% | [S] Tokovinin 2014 |
-| Bright systems (about V < 6), 1 to 7 components | 2718, 1437, 285, 86, 20, 11, 2 | [S] Eggleton and Tokovinin 2008 |
-| Updated Multiple Star Catalog | 17 systems with 6 components, 4 with 7, none of the 7s certain (65 UMa best) | [S] Tokovinin 2018 |
-| Companions per primary (q > 0.1, log P < 8) | 0.50 solar-type, 2.1 O-type; single most probable below about 2 Msun, triple above about 12, quadruple above about 23 | [S] Moe and Di Stefano 2017 |
-| M dwarfs | multiplicity about 26%, higher order about 3% of systems | [S] Winters et al. 2019 summary; 26% is in `tuning.py` |
-| O stars | 91 +- 3% multiple; over 70% exchange mass with a companion | [S] Sana et al. 2012, SMaSH+ |
-| O/B companion peak | log P (days) near 3.5 (about 10 AU) | [S] Moe and Di Stefano 2017 |
-| Solar-type period law | log-normal in log10 P (days), mean 5.03, sigma 2.28 | [R] Raghavan 2010; every period share below depends on it |
-| Close-binary fraction (a < 10 AU) against metallicity | about 10% at [Fe/H] +0.5, 24% at -0.5, 40% at -1, 53% at -3 | [R] Moe, Kratter and Badenes 2019 |
+| FGK dwarfs within 25 pc, single / double / triple / higher | 56% / 33% / 8% / 3% (454 stars) | [S] [R3646] |
+| F and G dwarfs within 67 pc, n = 1 to 5 | 54 : 33 : 8 : 4 : 1; 2+2 quadruples 4% | [S] [R4384] |
+| Bright systems (about V < 6), 1 to 7 components | 2718, 1437, 285, 86, 20, 11, 2 | [S] [R1223] |
+| Updated Multiple Star Catalog | 17 systems with 6 components, 4 with 7, none of the 7s certain (65 UMa best) | [S] [R4385] |
+| Companions per primary (q > 0.1, log P < 8) | 0.50 solar-type, 2.1 O-type; single most probable below about 2 Msun, triple above about 12, quadruple above about 23 | [S] [R3108] |
+| M dwarfs | multiplicity about 26%, higher order about 3% of systems | [S] [R4724] summary; 26% is in `tuning.py` |
+| O stars | 91 +- 3% multiple; over 70% exchange mass with a companion | [S] [R3892], SMaSH+ |
+| O/B companion peak | log P (days) near 3.5 (about 10 AU) | [S] [R3108] |
+| Solar-type period law | log-normal in log10 P (days), mean 5.03, sigma 2.28 | [R] [R3646]; every period share below depends on it |
+| Close-binary fraction (a < 10 AU) against metallicity | about 10% at [Fe/H] +0.5, 24% at -0.5, 40% at -1, 53% at -3 | [R] [R3109] |
 
 Theory allows several hundred components and observation confirms at most seven
-[S, Gebrehiwot et al. 2016]. The single fraction counts systems; by star count
+[S, [R1529]]. The single fraction counts systems; by star count
 about half of Sun-like stars sit in multiples (singles outnumber primaries of
 multiples 1.28 to 1, arxiv.org/pdf/1502.04018 [S]). The generator draws a primary
 from a per-star census and then adds companions, which slightly over-produces
@@ -271,10 +271,10 @@ m3 in its parent's orbit (a_out, e_out). q_out = m3 / m_in, q_in = m1 / m2, and 
 is the mutual inclination of the two orbital planes (0 coplanar prograde, pi
 coplanar retrograde).
 
-- **Mardling and Aarseth 2001** [S]: `a_out (1 - e_out) / a_in > 2.8 *
+- **[R2868]** [S]: `a_out (1 - e_out) / a_in > 2.8 *
   [(1 + q_out)(1 + e_out) / sqrt(1 - e_out)]^(2/5) * (1 - 0.3 i / pi)`. Valid for
   m3 / m_in below about 5.
-- **Eggleton and Kiseleva 1995** [S, as quoted in arxiv.org/pdf/1408.5431]:
+- **[R1221]** [S, as quoted in arxiv.org/pdf/1408.5431]:
   `a_out (1 - e_out) / (a_in (1 + e_in)) > Y`, `Y = 1 + 3.7 / q^(1/3) - 2.2 /
   (1 + q^(1/3)) + 1.4 / q_in^(1/3) * (q^(1/3) - 1) / (q^(1/3) + 1)` with q = q_out.
 - **Observed period ratios** [R]: P_out / P_in above about 5, mostly above 10; the
@@ -286,13 +286,13 @@ coplanar retrograde).
 - **Several levels:** test every node against its own parent (the parent's orbit
   and the sibling's total mass), deeper subsystems as point masses. Per-level
   triples and whole-system integrations agree (5.4).
-- **Holman and Wiegert 1999** [S]: S-type `a_c / a_b = 0.464 - 0.380 mu - 0.631 e +
+- **[R1990]** [S]: S-type `a_c / a_b = 0.464 - 0.380 mu - 0.631 e +
   0.586 mu e + 0.150 e^2 - 0.198 mu e^2` (mu = perturbing companion's mass
   fraction); P-type `a_c / a_b = 1.60 + 5.10 e - 2.22 e^2 + 4.12 mu - 4.27 e mu -
   5.09 mu^2 + 4.61 e^2 mu^2` (mu = the lighter star's fraction). Quoted accuracy:
   S-type about 4% typical and 11% worst for 0.1 <= mu <= 0.9, 0 <= e <= 0.8; P-type
   about 3% and 6%, with resonance "islands" of instability. 
-- **Mardling and Aarseth, verified; updated criterion read from the paper.** The formula above was checked by Boss's engine on 2026-10-09 (18:45Z): P-type coplanar circular gives 2.80; S-type with `m1 = m3 = 1`, `e_out = 0.5` gives `R_p/a_in = 4.99` and `a_out/a_in = 9.98` (use as unit tests). Vynatheya et al. 2022 (MNRAS 516, 4146) refine it (Equations 3 and 4 of the paper: an effective inner eccentricity `e~_in` and a new inclination bracket; 93% accuracy against 90%). Their equations were read from the paper Boss supplied at 18:51Z and are written out, with unit tests and the decided use (Boss, 18:56Z: Equation 4 for star-only triples inside the fitted mass-ratio range, this formula for planets), in [exotic-environments-planets-and-compact-binaries.md](exotic-environments-planets-and-compact-binaries.md) 2.3.
+- **Mardling and Aarseth, verified; updated criterion read from the paper.** The formula above was checked by Boss's engine on 2026-10-09 (18:45Z): P-type coplanar circular gives 2.80; S-type with `m1 = m3 = 1`, `e_out = 0.5` gives `R_p/a_in = 4.99` and `a_out/a_in = 9.98` (use as unit tests). [R4574] refine it (Equations 3 and 4 of the paper: an effective inner eccentricity `e~_in` and a new inclination bracket; 93% accuracy against 90%). Their equations were read from the paper Boss supplied at 18:51Z and are written out, with unit tests and the decided use (Boss, 18:56Z: Equation 4 for star-only triples inside the fitted mass-ratio range, this formula for planets), in [exotic-environments-planets-and-compact-binaries.md](exotic-environments-planets-and-compact-binaries.md) 2.3.
 
 ### 5.2 The criteria alone are not enough
 
@@ -494,7 +494,7 @@ agree).
 As built (TEST.477, the overlap verifier): `physics/clearance.py` `audit(rows)` reads only what a finished system stores (its stars,
 the nodes of its tree, planets, moons and belts, `stored_rows` reads them with plain SELECTs) and lists every place two bodies
 overlap or a limit the generator promises is broken (a **hard** violation: Roche fill at pericentre, overlap of a node's two sides,
-stability by Mardling and Aarseth, Eggleton and Kiseleva and Vynatheya et al. 2022 together, node masses, a planet inside its
+stability by Mardling and [R4574] together, node masses, a planet inside its
 star, the Holman and Wiegert S-type and P-type axes, planets crossing or under 10 mutual Hill radii apart, moons outside 0.4895 of
 the Hill radius or touching their planet, a belt over a planet's orbit) and the physical limits it does not promise today (an
 **advisory**: the rigid-body Roche limit of a planet or moon). It imports no placement or screening code and re-derives every form;
@@ -603,14 +603,12 @@ GEN.100's densities.
 
 **Research supplied (Boss, 2026-10-16, 5:55 PM EDT, for GEN.103).** Two constants Core 4 could not look up
 arrived as research, and they are written here as rules the type draw derives, not as values it stores. The
-sources Boss named are Badenes et al. 2018, Moe, Kratter and Badenes 2019, El-Badry and Rix 2018, El-Badry, Rix
-and Kratter and Lodato 2016, Bate 2018, Heggie 1975, Bahcall, Hut and Tremaine 1985, Jiang and
-Tremaine 2010 and Stegmann et al. 2024. **The reference list is unverified; Core 4 checks each source and each
+sources Boss named are [R0223, R0229, R0281, R1235, R1880, R2166, R2474, R3109, R4204]. **The reference list is unverified; Core 4 checks each source and each
 number before any of it is coded.**
 
 1. **Close-binary fraction against metallicity.** For solar-type primaries (about 0.6 to 1.2 Msun) the fraction
    inside about 10 AU (P below about 10^3.5 days) falls as [Fe/H] rises: about 50% to 60% at [Fe/H] below -1
-   and about 10% to 15% above +0.3 (the table in section 2 gives the finer steps; Core 4 reads the Moe et al. 2019
+   and about 10% to 15% above +0.3 (the table in section 2 gives the finer steps; Core 4 reads the [R3109]
    points as 53%, 40%, 24% and 10% at [Fe/H] -3.0, -1.0, -0.2 and +0.5, and El-Badry and Rix as 2019, so the
    rounder figures here are summaries to be replaced by the points). The dependence vanishes
    for separations above about 200 AU. The cause is disk fragmentation: low metallicity means low dust
@@ -623,8 +621,7 @@ number before any of it is coded.**
    tide. **Rule:** the survival limit is computed from the cell's own environment, never read from a table.
    (a) The diffusive limit: the largest separation whose binding energy survives the summed impulses of
    perturbers over the age of the population, from the local stellar number density, the mean perturber
-   mass, the velocity dispersion, the Coulomb logarithm and the age (Bahcall et al. 1985; Jiang and
-   Tremaine 2010; Core 4 found the formula as Boss typed it dimensionally inconsistent, so it is re-derived from those papers before it is coded). (b) The tidal limit:
+   mass, the velocity dispersion, the Coulomb logarithm and the age ([R0229, R2166]; Core 4 found the formula as Boss typed it dimensionally inconsistent, so it is re-derived from those papers before it is coded). (b) The tidal limit:
    the Jacobi radius from the galactic potential at the cell, (G M / (4 Omega^2 - kappa^2))^(1/3) = (G M /
    (2 A (A - B)))^(1/3) for a pair of total mass M, which the generator evaluates from the same potential
    as the orbital update. A pair is kept only below the smaller of the two. **Check values, not inputs:** the
@@ -675,7 +672,7 @@ the mass-loss ratio.
 | White dwarfs | about 22% of field white dwarfs in wide binaries; 25 to 50% of cool ones show metals (pollution) | [S] |
 | Pulsar planets | PSR B1257+12: three planets at about 0.19, 0.36, 0.46 AU, about 0.02, 4.3, 3.9 Earth masses; PSR B1620-26 b in M4 (probably captured); PSR J1719-1438 b (about 1 Jupiter mass, stripped white dwarf companion); about 1% of millisecond pulsars have planets, 0 of 151 young pulsars surveyed | [S] existence and rates; [R] B1257 orbits and masses |
 | WD 1856+534 b | transiting, P = 1.4 d, Jupiter-sized, at most about 6 Jupiter masses, about 186 K | [S]; host in a wide triple [R] |
-| Compact triple | PSR J0337+1715: millisecond pulsar with 1.6 d and 327 d white dwarfs (ratio about 200) | [R] Ransom et al. 2014 |
+| Compact triple | PSR J0337+1715: millisecond pulsar with 1.6 d and 327 d white dwarfs (ratio about 200) | [R] [R3664] |
 
 ### 7.3 Companion fractions, conditional on a compact primary
 
@@ -717,7 +714,7 @@ The black hole fraction rests on the three Gaia systems and is low confidence.
   Teff 10,000 K; 0.013 to 0.023 at 6,000 K; 0.0058 to 0.010 at 4,000 K; 0.0032 to
   0.0058 at 3,000 K. The zone moves inward as the star cools, reaches the Roche
   limit near 3,000 to 4,000 K, and has periods of 0.3 to 5 days, so planets there are
-  tidally locked (Agol 2011 and Heller et al. 2011: continuously habitable within
+  tidally locked ([R0038, R1898]: continuously habitable within
   about 0.02 AU, locking in 10 to 1,000 years [S]).
 - **Gaia-type stable zones** (Holman and Wiegert on the measured orbits, mass
   fraction clamped to the fit's range): BH1's Sun-like star keeps planets only
@@ -807,7 +804,7 @@ still [R], to verify when paper access is allowed:
 
 - Log-normal period law for solar-type stars (mean 5.03, sigma 2.28 in log10 days);
   every period share in section 4 depends on it.
-- Close-binary fraction against metallicity (Moe, Kratter and Badenes 2019).
+- Close-binary fraction against metallicity [R3109].
 - Per-mass-bin companion, triple and quadruple fractions (Moe and Di Stefano table,): the table in 3.3 is a design blend, and its A, B and O rows and every
   N >= 4 split are the least certain.
 - Tokovinin's "ratio above 5" rule; the WDS/WMC/MSC notation (6.3).
@@ -827,33 +824,30 @@ outside the repository; GEN.129 step 4 recreates the generator from 5.1 to 5.3.
 
 Seen in search results (summaries only; no paper text was read):
 
-- Raghavan et al. 2010: https://arxiv.org/pdf/1007.0414; 2015 reanalysis
-  https://arxiv.org/pdf/1502.04018
-- Duchene and Kraus 2013: https://arxiv.org/pdf/1303.3028
-- Moe and Di Stefano 2017: https://arxiv.org/pdf/1606.05347; Offner et al. 2023:
-  https://arxiv.org/pdf/2203.10066
-- Tokovinin 2014: https://arxiv.org/pdf/1401.6827; 2018 catalogue
-  https://arxiv.org/pdf/1712.04750; 2021 review https://arxiv.org/pdf/2109.09118
-- Eggleton and Tokovinin 2008: https://arxiv.org/pdf/0806.2878; Gebrehiwot et al.
-  2016: https://arxiv.org/pdf/1701.01135
+- [R3646]: [R3646]; 2015 reanalysis
+  [R4693]
+- [R1175]: [R1175]
+- [R3108]: [R3108, R3334]:
+  [R3333]
+- [R4384]: [R4384]; 2018 catalogue
+  [R4385]; 2021 review [R4386]
+- [R1223]: [R1223]; Gebrehiwot et al.
+  2016: [R1529]
 - Nu Scorpii and Mizar/Alcor (Wikipedia); HD 98800
-  https://arxiv.org/pdf/astro-ph/0011135; TIC 168789840
-  https://ar5iv.labs.arxiv.org/html/2101.03433
-- Stability: https://arxiv.org/pdf/1408.5431 (Eggleton and Kiseleva form); Mardling
-  and Aarseth forms quoted in https://arxiv.org/pdf/2006.11872,
-  https://arxiv.org/pdf/2306.09400, https://arxiv.org/pdf/2209.08487; Holman and
-  Wiegert coefficients quoted in https://arxiv.org/pdf/2407.13901 and
-  https://arxiv.org/pdf/2108.07815; Quarles et al. refit
-  https://ar5iv.arxiv.org/html/1802.08868
-- Gaia black holes: https://arxiv.org/abs/2209.06833 (BH1),
-  https://arxiv.org/pdf/2404.17568 (BH3)
-- Pulsars: https://arxiv.org/pdf/2011.08075, https://arxiv.org/pdf/1609.06409,
-  https://arxiv.org/pdf/1709.09434, https://arxiv.org/pdf/2109.10362 (natal kicks);
-  X-ray binaries: https://arxiv.org/pdf/1510.08869, https://arxiv.org/pdf/2304.09368
-- White dwarfs: https://arxiv.org/pdf/1103.2791, https://arxiv.org/pdf/2501.06613,
+  [R3603]; TIC 168789840
+  [R4989]
+- Stability: [R1537] (Eggleton and Kiseleva form); Mardling
+  and Aarseth forms quoted in [R1855, R2519, R3864]; Holman and
+  Wiegert coefficients quoted in [R0243, R3631]; Quarles et al. refit
+  [R3633]
+- Gaia black holes: [R1238] (BH1),
+  [R2091] (BH3)
+- Pulsars: [R0126, R2078, R2849, R2902] (natal kicks);
+  X-ray binaries: [R0893, R2797]
+- White dwarfs: [R0038, R4493],
   https://astrobites.org/2020/09/22/the-first-planet-found-orbiting-a-white-dwarf/,
   https://doaj.org/article/6ee22a7610b842f98a9ddef9f43c063e (WD 1856+534 b),
-  https://arxiv.org/pdf/2403.08870 (pollution)
+  [R3306] (pollution)
 - Package page: https://pypi.org/pypi/rebound/json (rebound 5.2.2)
 - Repo files read: `generation/binary.py`, `wide_binary.py`, `system.py`, `star.py`,
   `phenomena/compact_remnant.py`, `physics/orbits.py`, `physics/kepler.py`,

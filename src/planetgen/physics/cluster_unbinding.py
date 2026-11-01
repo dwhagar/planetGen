@@ -7,7 +7,7 @@ Planets a birth cluster strips from their stars (GEN.1112, RP7; GEN.291)
 Most stars are born in clusters, and a planet on a wide orbit can be pulled off its star by a passing one. Nothing in the generator did this (`rogue-planet-review.md` row 16): the rogues
 were drawn from a rate, and the planets of a cluster star kept every orbit they were given. This module gives the share of planets of a given orbit that a cluster has unbound by an age.
 
-**The rate.** Spurzem, Giersz, Heggie and Lin 2009 (ApJ 697:458, arXiv:astro-ph/0612757) integrate the cross section for an impulsive encounter to change a planet's binding energy by its own
+**The rate.** [R4184] (ApJ 697:458, [R4184]) integrate the cross section for an impulsive encounter to change a planet's binding energy by its own
 size, which unbinds it, and get (their eqs. 36 and 37, equal-mass stars):
 
     sigma = (40 pi / 3) G m a / V^2        and        tau = 1 / (n sigma V) = 3 V / (40 pi G rho a)
@@ -70,7 +70,7 @@ def soft(semi_major_axis_au, host_mass_msun, speed_km_s):
 
 @finite_domain()
 def cross_section_au2(semi_major_axis_au, star_mass_msun, speed_km_s):
-    """The cross section to unbind a planet, AU^2: `(40 pi / 3) G m a / V^2` (Spurzem et al. 2009 eq. 36)."""
+    """The cross section to unbind a planet, AU^2: `(40 pi / 3) G m a / V^2` ([R4184] eq. 36)."""
     if not semi_major_axis_au > 0.0 or not star_mass_msun > 0.0 or not speed_km_s > 0.0:
         raise ClusterUnbindingError("the axis, mass and speed must be positive")
     sigma_pc2 = 40.0 * math.pi / 3.0 * _G_PC_KM2_S2_PER_MSUN * star_mass_msun * (semi_major_axis_au * _AU_PC) / speed_km_s ** 2
@@ -79,7 +79,7 @@ def cross_section_au2(semi_major_axis_au, star_mass_msun, speed_km_s):
 
 @finite_domain()
 def unbinding_time_myr(semi_major_axis_au, density_msun_pc3, speed_km_s):
-    """The time for a cluster to unbind a planet, Myr: `3 V / (40 pi G rho a)` (Spurzem et al. 2009 eq. 37)."""
+    """The time for a cluster to unbind a planet, Myr: `3 V / (40 pi G rho a)` ([R4184] eq. 37)."""
     if not semi_major_axis_au > 0.0 or not density_msun_pc3 > 0.0 or not speed_km_s > 0.0:
         raise ClusterUnbindingError("the axis, density and speed must be positive")
     time = 3.0 * speed_km_s / (40.0 * math.pi * _G_PC_KM2_S2_PER_MSUN * density_msun_pc3 * semi_major_axis_au * _AU_PC)

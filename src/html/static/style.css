@@ -2208,6 +2208,18 @@ a.btn.btn-secondary.btn-active:visited {
   stroke-linejoin: round;
 }
 
+/* UX.135: a galaxy family outline (`galaxy_outline(id)`, static/galaxy/<id>.svg): a plain line drawing in the text colour, one
+   stroke weight, no fill. The paint is set here as well as in the file (the Content-Security-Policy refuses inline styles) and is
+   inherited into the <use> content. */
+.galaxy-outline {
+  width: 4em;
+  height: 4em;
+  flex: none;
+  color: var(--text);
+  fill: none;
+  stroke: currentColor;
+}
+
 /* MAP.320: a point-of-interest symbol (`poi_icon(id, tier)`, static/poi/<id>.svg), a solid silhouette in the colour of
    its token; the paint is set here and not in the file, as `.icon`'s is (the Content-Security-Policy refuses inline
    styles) and inherited into the <use> content. A world the habitability score colours takes `poi-tier-N`. */
@@ -6304,3 +6316,11 @@ a.help-mark {
 .preference-option { display: block; margin: 0.25rem 0; }
 .preference-controls input[type="number"] { margin-left: 0.5rem; max-width: 8rem; }
 .preferences-status { min-height: 1.5em; }
+
+/* UX.243: the day-and-night counter of an object page */
+.day-counter-line { margin: 0.2rem 0; font-variant-numeric: tabular-nums; }
+.day-counter-note, .day-counter-year { margin: 0.4rem 0; color: var(--muted, inherit); }
+.day-counter-bands { border-collapse: collapse; margin: 0.5rem 0; max-width: 100%; }
+.day-counter-bands caption { text-align: left; font-weight: 600; padding-bottom: 0.25rem; }
+.day-counter-bands th, .day-counter-bands td { padding: 0.2rem 0.6rem; text-align: left; vertical-align: top; }
+.day-counter-bands tbody tr + tr { border-top: 1px solid var(--border, rgba(128, 128, 128, 0.3)); }

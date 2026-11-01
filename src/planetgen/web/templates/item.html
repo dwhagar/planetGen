@@ -4,6 +4,7 @@
 {% from "partials/admin_menu.html" import admin_menu_button, admin_dialogs, add_edit_actions with context %}
 {% from "partials/action_bar.html" import action_bar %}
 {% from "partials/poi_key.html" import poi_key_panel with context %}
+{% from "partials/day_counter.html" import day_counter_panel %}
 {#- The Admin menu of this one body (Regenerate, Delete), as the system page's per-body menu was (ADM.8, ADM.6). -#}
 {%- set groups = [] %}
 {%- if edit %}
@@ -19,6 +20,7 @@
 <script type="module" src="{{ static_url('bookmarks.js') }}"></script>
 <script type="module" src="{{ static_url('objecttree.js') }}"></script>
 {% if example %}<script type="module" src="{{ static_url('bodyview.js') }}"></script>{% endif %}
+{% if day_counter and day_counter.ticks %}<script type="module" src="{{ static_url('daycounter.js') }}"></script>{% endif %}
 {% endblock %}
 {% block subhead %}
 <div class="page-subhead">
@@ -95,6 +97,7 @@
   </figure>
 </section>
 {%- endif %}
+{{ day_counter_panel(day_counter) if day_counter else "" }}
 {%- set symbols = habitability_symbol_row(habitability, page=page_url('object_page', ref=object_ref)) if habitability else "" %}
 {%- if planet %}
 <section class="panel" id="item-facts" aria-labelledby="item-facts-heading">

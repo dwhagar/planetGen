@@ -12,10 +12,10 @@ measured value as its TEST anchor:
 
 | row | gas | mole fraction bracket | TEST anchor |
 |---|---|---|---|
-| m3 | N2O | 1e-8 to 1e-6 | Earth, about 3.3e-7 (Airapetian 2020: ~400 ppbv) |
-| m4 | PH3 | 1e-10 to 2e-8 | the 20 ppb Venus claim (Greaves 2020), a lifetime of hours (Sousa-Silva 2020) |
-| m5 | HCl | 1e-6 to 1e-2 | 1.4 percent at 1000 K and 100 bar over crust composition (Schaefer 2012) |
-| m6 | HF | 1e-7 to 1e-3 | 4.5 percent at 1000 K and 1e-6 bar (Schaefer 2012) |
+| m3 | N2O | 1e-8 to 1e-6 | Earth, about 3.3e-7 ([R0052]: ~400 ppbv) |
+| m4 | PH3 | 1e-10 to 2e-8 | the 20 ppb Venus claim [R1672], a lifetime of hours [R4163] |
+| m5 | HCl | 1e-6 to 1e-2 | 1.4 percent at 1000 K and 100 bar over crust composition [R3945] |
+| m6 | HF | 1e-7 to 1e-3 | 4.5 percent at 1000 K and 1e-6 bar [R3945] |
 | m11 | NO2, CH3Cl | 1e-11 to 1e-8, 1e-11 to 1e-9 | none on any exoplanet |
 
 The rows that are not abundances of this module: the ozone rows m1 and m2 are the ozone column's (GEN.413: the draw is in the result,

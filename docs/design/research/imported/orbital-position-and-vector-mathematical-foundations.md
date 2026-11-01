@@ -7,17 +7,17 @@ Mathematical Foundations, Theoretical Mechanics, and Numerical Stability Boundar
 
 ### Mathematical Mechanics of Newton-Raphson and Newton-Kantorovich Frameworks
 
-The classical Newton-Raphson method addresses the fundamental problem of identifying a zero $x^* \in \mathbb{R}^n$ of a continuously differentiable mapping $F: \mathbb{R}^n \to \mathbb{R}^n$ (Ortega & Rheinboldt, 1970; Polyak, 2007). The foundation of this technique rests on a local first-order Taylor expansion about a given iterate $x_k$:
+The classical Newton-Raphson method addresses the fundamental problem of identifying a zero $x^* \in \mathbb{R}^n$ of a continuously differentiable mapping $F: \mathbb{R}^n \to \mathbb{R}^n$ [R2065, R3570]. The foundation of this technique rests on a local first-order Taylor expansion about a given iterate $x_k$:
 
 $$F(x) = F(x_k) + F'(x_k)(x - x_k) + \mathcal{R}_1(x)$$
 
-Neglecting the integral remainder term $\mathcal{R}_1(x) = \int_0^1 (1-t) F''(x_k + t(x - x_k))(x - x_k)^2 \, dt$ yields an affine model of the operator, denoted $M_k(x) = F(x_k) + F'(x_k)(x - x_k)$ (Argyros, 1998). Enforcing the condition $M_k(x_{k+1}) = 0$ yields the iterative scheme:
+Neglecting the integral remainder term $\mathcal{R}_1(x) = \int_0^1 (1-t) F''(x_k + t(x - x_k))(x - x_k)^2 \, dt$ yields an affine model of the operator, denoted $M_k(x) = F(x_k) + F'(x_k)(x - x_k)$ [R0139]. Enforcing the condition $M_k(x_{k+1}) = 0$ yields the iterative scheme:
 
 $$x_{k+1} = x_k - [F'(x_k)]^{-1} F(x_k)$$
 
-This iteration requires the resolution of the linear system $F'(x_k) s_k = -F(x_k)$ followed by the update $x_{k+1} = x_k + s_k$ at every discrete stage (Polyak, 2007).
+This iteration requires the resolution of the linear system $F'(x_k) s_k = -F(x_k)$ followed by the update $x_{k+1} = x_k + s_k$ at every discrete stage [R3570].
 
-In infinite-dimensional functional analysis, this concept generalizes to the Newton-Kantorovich framework, which solves operator equations $F(x) = 0$ defined on open subsets $\Omega$ of a Banach space $X$ with values in a Banach space $Y$ (Kantorovich & Akilov, 1982). Originating from Leonid Kantorovich's 1948 contributions, this formulation avoids the circular assumption that an exact solution $x^*$ exists prior to convergence analysis (Polyak, 2007). Instead, semi-local convergence conditions rely exclusively on structural quantities measured at the initial point $x_0 \in \Omega$ (Argyros, 1998; Ferreira & Svaiter, 2012).
+In infinite-dimensional functional analysis, this concept generalizes to the Newton-Kantorovich framework, which solves operator equations $F(x) = 0$ defined on open subsets $\Omega$ of a Banach space $X$ with values in a Banach space $Y$ [R2240]. Originating from Leonid Kantorovich's 1948 contributions, this formulation avoids the circular assumption that an exact solution $x^*$ exists prior to convergence analysis [R3570]. Instead, semi-local convergence conditions rely exclusively on structural quantities measured at the initial point $x_0 \in \Omega$ [R0139, R1365].
 
 Theorem (Newton-Kantorovich):
 
@@ -33,37 +33,37 @@ Define the dimensionless Kantorovich parameter:
 
 $$h = \beta \eta L$$
 
-If $h \le \frac{1}{2}$ and the closed ball $\bar{B}(x_0, r_-) \subseteq \Omega$, where the radius is defined by the minor root of the scalar quadratic majorant $p(t) = \frac{1}{2} \beta L t^2 - t + \eta$ (Argyros, 1998):
+If $h \le \frac{1}{2}$ and the closed ball $\bar{B}(x_0, r_-) \subseteq \Omega$, where the radius is defined by the minor root of the scalar quadratic majorant $p(t) = \frac{1}{2} \beta L t^2 - t + \eta$ [R0139]:
 
 $$r_- = \frac{1 - \sqrt{1 - 2h}}{\beta L} = \frac{2\eta}{1 + \sqrt{1 - 2h}}$$
 
-then the sequence of Newton iterates $\{x_k\}$ is well-defined, remains entirely within the closed domain $\bar{B}(x_0, r_-)$, and converges strongly to a unique solution $x^* \in \bar{B}(x_0, r_-)$ (Kantorovich & Akilov, 1982). Furthermore, this solution is geometrically unique within the larger open ball $B(x_0, r_+)$, where $r_+ = \frac{1 + \sqrt{1 - 2h}}{\beta L}$, collapsing to uniqueness in $\bar{B}(x_0, r_-)$ precisely at the critical threshold $h = \frac{1}{2}$.
+then the sequence of Newton iterates $\{x_k\}$ is well-defined, remains entirely within the closed domain $\bar{B}(x_0, r_-)$, and converges strongly to a unique solution $x^* \in \bar{B}(x_0, r_-)$ [R2240]. Furthermore, this solution is geometrically unique within the larger open ball $B(x_0, r_+)$, where $r_+ = \frac{1 + \sqrt{1 - 2h}}{\beta L}$, collapsing to uniqueness in $\bar{B}(x_0, r_-)$ precisely at the critical threshold $h = \frac{1}{2}$.
 
-The mechanism underlying this proof depends on constructing the scalar majorizing sequence $t_{k+1} = t_k - \frac{p(t_k)}{p'(t_k)}$, initialized at $t_0 = 0$ (Argyros, 1998; Ferreira & Svaiter, 2012). By invoking the Banach Lemma on invertible operators, whenever $\|I - \Gamma_0 F'(x)\| < 1$, the operator $F'(x)$ remains invertible with its norm controlled by the scalar derivative $|p'(t)|^{-1}$ (Argyros, 1998; Kantorovich & Akilov, 1982). An induction argument confirms the componentwise domination:
+The mechanism underlying this proof depends on constructing the scalar majorizing sequence $t_{k+1} = t_k - \frac{p(t_k)}{p'(t_k)}$, initialized at $t_0 = 0$ [R0139, R1365]. By invoking the Banach Lemma on invertible operators, whenever $\|I - \Gamma_0 F'(x)\| < 1$, the operator $F'(x)$ remains invertible with its norm controlled by the scalar derivative $|p'(t)|^{-1}$ [R0139, R2240]. An induction argument confirms the componentwise domination:
 
 $$\|x_{k+1} - x_k\| \le t_{k+1} - t_k$$
 
-Because $p(t)$ is convex, the scalar iterates converge monotonically to $r_-$, forcing $\{x_k\}$ to form a Cauchy sequence in $X$ that converges to $x^*$ at an asymptotic quadratic rate (Argyros, 1998; Ferreira & Svaiter, 2012):
+Because $p(t)$ is convex, the scalar iterates converge monotonically to $r_-$, forcing $\{x_k\}$ to form a Cauchy sequence in $X$ that converges to $x^*$ at an asymptotic quadratic rate [R0139, R1365]:
 
 $$\|x_{k+1} - x^*\| \le \frac{\beta L}{2(1 - \beta L r_-)} \|x_k - x^*\|^2$$
 
 ### Brent's Hybrid Root-Finding Architecture
 
-The van Wijngaarden-Dekker-Brent algorithm provides root containment for continuous scalar functions $f: [a, b] \to \mathbb{R}$ where $f(a)f(b) \le 0$ without requiring evaluation of the derivative $f'(x)$ (Brent, 1973). The method couples the linear reliability of bisection with the superlinear acceleration of open interpolation schemes (Brent, 1973).
+The van Wijngaarden-Dekker-Brent algorithm provides root containment for continuous scalar functions $f: [a, b] \to \mathbb{R}$ where $f(a)f(b) \le 0$ without requiring evaluation of the derivative $f'(x)$ [R1483]. The method couples the linear reliability of bisection with the superlinear acceleration of open interpolation schemes [R1483].
 
-The primary acceleration step is Inverse Quadratic Interpolation (IQI) (Brent, 1973). Given three distinct historical support coordinates $(a_k, f(a_k))$, $(b_k, f(b_k))$, and $(c_k, f(c_k))$, where $b_k$ denotes the current best approximation such that $|f(b_k)| \le |f(a_k)|$, the inverse relationship $x = f^{-1}(y)$ is modeled via a second-order Lagrange polynomial:
+The primary acceleration step is Inverse Quadratic Interpolation (IQI) [R1483]. Given three distinct historical support coordinates $(a_k, f(a_k))$, $(b_k, f(b_k))$, and $(c_k, f(c_k))$, where $b_k$ denotes the current best approximation such that $|f(b_k)| \le |f(a_k)|$, the inverse relationship $x = f^{-1}(y)$ is modeled via a second-order Lagrange polynomial:
 
 $$x = \frac{(y - f(b_k))(y - f(c_k))}{(f(a_k) - f(b_k))(f(a_k) - f(c_k))} a_k + \frac{(y - f(a_k))(y - f(c_k))}{(f(b_k) - f(a_k))(f(b_k) - f(c_k))} b_k + \frac{(y - f(a_k))(y - f(b_k))}{(f(c_k) - f(a_k))(f(c_k) - f(b_k))} c_k$$
 
-Setting the target value $y = 0$ yields the unconstrained root estimate (Brent, 1973):
+Setting the target value $y = 0$ yields the unconstrained root estimate [R1483]:
 
 $$s = \frac{a_k f(b_k) f(c_k)}{(f(a_k) - f(b_k))(f(a_k) - f(c_k))} + \frac{b_k f(a_k) f(c_k)}{(f(b_k) - f(a_k))(f(b_k) - f(c_k))} + \frac{c_k f(a_k) f(b_k)}{(f(c_k) - f(a_k))(f(c_k) - f(b_k))}$$
 
-When two ordinate values coincide, IQI degenerates via division by zero, prompting the algorithm to switch to a linear secant interpolation step between $a_k$ and $b_k$ (Brent, 1973):
+When two ordinate values coincide, IQI degenerates via division by zero, prompting the algorithm to switch to a linear secant interpolation step between $a_k$ and $b_k$ [R1483]:
 
 $$s = b_k - f(b_k) \frac{b_k - a_k}{f(b_k) - f(a_k)}$$
 
-To prevent slow asymptotic convergence or numerical instability, Brent introduced five bounding checks that dictate whether the interpolated candidate $s$ is accepted or rejected in favor of an exact interval bisection step $m = \frac{a_k + b_k}{2}$ (Brent, 1973):
+To prevent slow asymptotic convergence or numerical instability, Brent introduced five bounding checks that dictate whether the interpolated candidate $s$ is accepted or rejected in favor of an exact interval bisection step $m = \frac{a_k + b_k}{2}$ [R1483]:
 
 1. The candidate point $s$ must fall strictly within the interior interval bounded by $\frac{3a_k + b_k}{4}$ and $b_k$.
 
@@ -75,35 +75,35 @@ To prevent slow asymptotic convergence or numerical instability, Brent introduce
 
 5. If the previous iteration executed an interpolation step, the previous historical interval must also satisfy this criterion: $|b_{k-1} - b_{k-2}| > \delta$.
 
-These safeguards ensure that whenever an interpolation step stalls or exhibits erratic behavior, a bisection step is forced, guaranteeing that the enclosing interval shrinks by at least a factor of two over successive steps (Brent, 1973).
+These safeguards ensure that whenever an interpolation step stalls or exhibits erratic behavior, a bisection step is forced, guaranteeing that the enclosing interval shrinks by at least a factor of two over successive steps [R1483].
 
 ### Breakdown Modes, Singularities, and Pathologies
 
 Newton-type algorithms can fail under several distinct mathematical conditions:
 
-* Derivative Singularities: The Jacobian operator $F'(x_k)$ becomes singular, meaning $\det(F'(x_k)) = 0$, or its condition number diverges to infinity (Polyak, 2007). In this limit, the affine model loses uniqueness, and the inverse operator $[F'(x_k)]^{-1}$ is unbounded.
+* Derivative Singularities: The Jacobian operator $F'(x_k)$ becomes singular, meaning $\det(F'(x_k)) = 0$, or its condition number diverges to infinity [R3570]. In this limit, the affine model loses uniqueness, and the inverse operator $[F'(x_k)]^{-1}$ is unbounded.
 
-* Violation of the Semi-Local Criterion: When the Kantorovich parameter satisfies $h = \beta \eta L > \frac{1}{2}$, the discriminant of the majorizing polynomial $p(t)$ becomes strictly negative. The contraction mapping property of the step fails, leading to periodic limit cycles, chaotic orbits, or divergence (Polyak, 2007).
+* Violation of the Semi-Local Criterion: When the Kantorovich parameter satisfies $h = \beta \eta L > \frac{1}{2}$, the discriminant of the majorizing polynomial $p(t)$ becomes strictly negative. The contraction mapping property of the step fails, leading to periodic limit cycles, chaotic orbits, or divergence [R3570].
 
-* Basin Boundary Instability: In nonlinear systems with multiple isolated zeros, the basins of attraction $\mathcal{B}(x^*_i) = \{x_0 \mid \lim_{k\to\infty} x_k = x^*_i\}$ form fractal boundaries (Polyak, 2007). Initial guesses placed near these Julia sets exhibit extreme sensitivity to roundoff errors, producing large pseudo-random displacements.
+* Basin Boundary Instability: In nonlinear systems with multiple isolated zeros, the basins of attraction $\mathcal{B}(x^*_i) = \{x_0 \mid \lim_{k\to\infty} x_k = x^*_i\}$ form fractal boundaries [R3570]. Initial guesses placed near these Julia sets exhibit extreme sensitivity to roundoff errors, producing large pseudo-random displacements.
 
 * Root Multiplicity Degeneracy: When evaluating a root of multiplicity $m > 1$, the first derivative vanishes at the solution: $F'(x^*) = 0$. The asymptotic rate of convergence drops from quadratic to linear, with an asymptotic error constant $C = 1 - \frac{1}{m}$.
 
 Brent's method can also encounter specific failure modes:
 
-* Discontinuous Functions: If $f(x)$ contains an essential, step, or pole discontinuity across which its sign alternates, the algorithm converges directly to the singularity rather than a root (Brent, 1973).
+* Discontinuous Functions: If $f(x)$ contains an essential, step, or pole discontinuity across which its sign alternates, the algorithm converges directly to the singularity rather than a root [R1483].
 
-* Even Multiplicities: Roots with an even integer multiplicity ($f(x^*) = 0$ with $f(x) \ge 0$ locally) violate the sign change condition $f(a)f(b) \le 0$, preventing algorithm initialization unless the global search detects the minimum (Brent, 1973).
+* Even Multiplicities: Roots with an even integer multiplicity ($f(x^*) = 0$ with $f(x) \ge 0$ locally) violate the sign change condition $f(a)f(b) \le 0$, preventing algorithm initialization unless the global search detects the minimum [R1483].
 
 ### Recovery Protocols and Algorithmic Fallbacks
 
 When the pure Newton iteration encounters a singular or ill-conditioned Jacobian, several stabilization techniques can be applied:
 
-* Levenberg-Marquardt Regularization: The singular linear system is replaced with a damped least-squares problem parameterized by a dynamic Tikhonov factor $\lambda_k > 0$ (Polyak, 2007):
+* Levenberg-Marquardt Regularization: The singular linear system is replaced with a damped least-squares problem parameterized by a dynamic Tikhonov factor $\lambda_k > 0$ [R3570]:
 
 $$(F'(x_k)^T F'(x_k) + \lambda_k I) s_k = -F'(x_k)^T F(x_k)$$
 
-As $\lambda_k \to \infty$, the search vector shifts toward the steepest descent direction $s_k \to -\frac{1}{\lambda_k} F'(x_k)^T F(x_k)$, restoring well-posedness when the Jacobian loses rank (Polyak, 2007).
+As $\lambda_k \to \infty$, the search vector shifts toward the steepest descent direction $s_k \to -\frac{1}{\lambda_k} F'(x_k)^T F(x_k)$, restoring well-posedness when the Jacobian loses rank [R3570].
 
 * Armijo Line Search Backtracking: The full step is scaled by an adaptive parameter $\alpha_k \in (0, 1]$ satisfying the sufficient decrease condition on the merit function $\theta(x) = \frac{1}{2} \Vert{}F(x)\Vert{}_2^2$:
 
@@ -113,7 +113,7 @@ $$\theta(x_k + \alpha_k s_k) \le \theta(x_k) + c_1 \alpha_k \nabla \theta(x_k)^T
 
 $$m \approx \left(1 - \frac{\|x_{k+1} - x_k\|}{\|x_k - x_{k-1}\|}\right)^{-1}$$
 
-In Brent's method, if a proposed interpolation step fails any of the five safeguard checks, the algorithm immediately executes a bisection step (Brent, 1973). If roundoff errors prevent the brackets from narrowing before the function values reach zero, the algorithm terminates cleanly using the floating-point tolerance check:
+In Brent's method, if a proposed interpolation step fails any of the five safeguard checks, the algorithm immediately executes a bisection step [R1483]. If roundoff errors prevent the brackets from narrowing before the function values reach zero, the algorithm terminates cleanly using the floating-point tolerance check:
 
 $$|b_k - a_k| \le 2 \varepsilon_{\text{mach}} |b_k| + t_{\text{abs}}$$
 
@@ -133,23 +133,23 @@ For Brent's method, the search interval cannot be contracted beyond the machine 
 
 $$|b - a| \le \varepsilon_{\text{mach}} |b|$$
 
-Below this threshold, the floating-point midpoint evaluates identically to one of the interval endpoints ($fl((a+b)/2) \in \{a, b\}$), causing the algorithm to stall in an infinite loop unless the step tolerance check is enforced (Brent, 1973).
+Below this threshold, the floating-point midpoint evaluates identically to one of the interval endpoints ($fl((a+b)/2) \in \{a, b\}$), causing the algorithm to stall in an infinite loop unless the step tolerance check is enforced [R1483].
 
 ## Unconstrained Nonlinear Optimization: The BFGS Quasi-Newton Framework
 
 ### Variational Foundations and Dual Space Formulations
 
-Unconstrained optimization addresses the minimization of an objective function $f: \mathbb{R}^n \to \mathbb{R}$, where $f \in \mathcal{C}^2$ (Nocedal & Wright, 2006). Classical Newton optimization uses the inverse Hessian $[\nabla^2 f(x_k)]^{-1}$ to adjust the search direction based on local curvature:
+Unconstrained optimization addresses the minimization of an objective function $f: \mathbb{R}^n \to \mathbb{R}$, where $f \in \mathcal{C}^2$ [R3301]. Classical Newton optimization uses the inverse Hessian $[\nabla^2 f(x_k)]^{-1}$ to adjust the search direction based on local curvature:
 
 $$p_k = -[\nabla^2 f(x_k)]^{-1} \nabla f(x_k)$$
 
-Because assembling and factorizing the exact Hessian requires $\mathcal{O}(n^3)$ operations and does not guarantee positive definiteness in non-convex regions, quasi-Newton methods maintain a symmetric positive definite approximation $B_k \approx \nabla^2 f(x_k)$, or its direct inverse $H_k = B_k^{-1}$ (Broyden, 1970; Fletcher, 1970; Goldfarb, 1970; Shanno, 1970).
+Because assembling and factorizing the exact Hessian requires $\mathcal{O}(n^3)$ operations and does not guarantee positive definiteness in non-convex regions, quasi-Newton methods maintain a symmetric positive definite approximation $B_k \approx \nabla^2 f(x_k)$, or its direct inverse $H_k = B_k^{-1}$ [R0557, R1390, R1609, R4038].
 
-Let the spatial displacement vector be $s_k = x_{k+1} - x_k = \alpha_k p_k$, and let the gradient variation vector be $y_k = \nabla f(x_{k+1}) - \nabla f(x_k)$. The updated operator $B_{k+1}$ must satisfy the secant equation (Nocedal & Wright, 2006):
+Let the spatial displacement vector be $s_k = x_{k+1} - x_k = \alpha_k p_k$, and let the gradient variation vector be $y_k = \nabla f(x_{k+1}) - \nabla f(x_k)$. The updated operator $B_{k+1}$ must satisfy the secant equation [R3301]:
 
 $$B_{k+1} s_k = y_k \quad \Longleftrightarrow \quad H_{k+1} y_k = s_k$$
 
-The Broyden-Fletcher-Goldfarb-Shanno (BFGS) update is derived variationally by finding the minimal symmetric perturbation from $B_k$ that satisfies the secant condition, measured under a weighted Frobenius norm (Goldfarb, 1970; Nocedal & Wright, 2006):
+The Broyden-Fletcher-Goldfarb-Shanno (BFGS) update is derived variationally by finding the minimal symmetric perturbation from $B_k$ that satisfies the secant condition, measured under a weighted Frobenius norm [R1609, R3301]:
 
 $$\min_{B} \|W^{-1/2} (B - B_k) W^{-1/2}\|_F^2 \quad \text{subject to} \quad B = B^T, \quad B s_k = y_k$$
 
@@ -157,19 +157,19 @@ Choosing the weighting matrix as the average Hessian $W = \int_0^1 \nabla^2 f(x_
 
 $$B_{k+1} = B_k - \frac{B_k s_k s_k^T B_k}{s_k^T B_k s_k} + \frac{y_k y_k^T}{y_k^T s_k}$$
 
-Applying the Sherman-Morrison-Woodbury inversion theorem produces the inverse update formula, which computes $H_{k+1} \approx [\nabla^2 f(x_{k+1})]^{-1}$ in $\mathcal{O}(n^2)$ operations (Nocedal & Wright, 2006):
+Applying the Sherman-Morrison-Woodbury inversion theorem produces the inverse update formula, which computes $H_{k+1} \approx [\nabla^2 f(x_{k+1})]^{-1}$ in $\mathcal{O}(n^2)$ operations [R3301]:
 
 $$H_{k+1} = (I - \rho_k s_k y_k^T) H_k (I - \rho_k y_k s_k^T) + \rho_k s_k s_k^T, \quad \text{where} \quad \rho_k = \frac{1}{y_k^T s_k}$$
 
 ### Curvature Preservation and the Wolfe Invariant
 
-To ensure that every quasi-Newton direction $p_{k+1} = -H_{k+1} \nabla f(x_{k+1})$ remains a valid descent direction ($\nabla f(x_{k+1})^T p_{k+1} < 0$), the operator $H_{k+1}$ must remain strictly positive definite (Nocedal & Wright, 2006). This property holds if and only if the curvature condition is satisfied:
+To ensure that every quasi-Newton direction $p_{k+1} = -H_{k+1} \nabla f(x_{k+1})$ remains a valid descent direction ($\nabla f(x_{k+1})^T p_{k+1} < 0$), the operator $H_{k+1}$ must remain strictly positive definite [R3301]. This property holds if and only if the curvature condition is satisfied:
 
 $$y_k^T s_k > 0$$
 
 Theorem (Preservation of Positive Definiteness):
 
-Let $H_k$ be a real, symmetric, positive definite matrix ($H_k \succ 0$). If the spatial increment $s_k$ and the gradient change $y_k$ satisfy the curvature inequality $y_k^T s_k > 0$, then the updated matrix $H_{k+1}$ generated by the BFGS formula is symmetric and strictly positive definite ($H_{k+1} \succ 0$) (Nocedal & Wright, 2006).
+Let $H_k$ be a real, symmetric, positive definite matrix ($H_k \succ 0$). If the spatial increment $s_k$ and the gradient change $y_k$ satisfy the curvature inequality $y_k^T s_k > 0$, then the updated matrix $H_{k+1}$ generated by the BFGS formula is symmetric and strictly positive definite ($H_{k+1} \succ 0$) [R3301].
 
 Proof:
 
@@ -197,7 +197,7 @@ $$z^T H_{k+1} z = 0 + \rho_k (s_k^T z)^2 > 0$$
 
 Thus, $z^T H_{k+1} z > 0$ for all nonzero vectors $z \in \mathbb{R}^n \setminus \{0\}$, confirming that $H_{k+1} \succ 0$. $\blacksquare$
 
-To enforce $y_k^T s_k > 0$ automatically during numerical line search, the step length $\alpha_k$ must satisfy the Wolfe conditions (Nocedal & Wright, 2006):
+To enforce $y_k^T s_k > 0$ automatically during numerical line search, the step length $\alpha_k$ must satisfy the Wolfe conditions [R3301]:
 
 1. Armijo Sufficient Decrease:
 
@@ -219,7 +219,7 @@ Because $p_k$ is a descent direction, $\nabla f(x_k)^T p_k < 0$. Because $c_2 < 
 
 $$y_k^T s_k > 0$$
 
-The Wolfe curvature condition thus enforces positive definiteness at every update step (Nocedal & Wright, 2006).
+The Wolfe curvature condition thus enforces positive definiteness at every update step [R3301].
 
 ### Breakdown Modes, Indefiniteness, and Remediation Protocols
 
@@ -233,7 +233,7 @@ The BFGS algorithm can degrade or fail under several specific conditions:
 
 These issues are resolved through specific algorithmic modifications:
 
-* Powell's Damped BFGS Update: When $y_k^T s_k$ becomes too small, $y_k$ is modified to preserve positive definiteness (Powell, 1978):
+* Powell's Damped BFGS Update: When $y_k^T s_k$ becomes too small, $y_k$ is modified to preserve positive definiteness [R3595]:
 
 $$r_k = \theta_k y_k + (1 - \theta_k) B_k s_k$$
 
@@ -247,7 +247,7 @@ Replacing $y_k$ with $r_k$ in the update guarantees that $s_k^T r_k \ge 0.2 \, s
 
 $$H_k \leftarrow \frac{1}{2} (H_k + H_k^T)$$
 
-* Limited-Memory BFGS (L-BFGS): Rather than forming $H_k$ explicitly, the L-BFGS variant retains only the $m$ most recent vector pairs $\{s_i, y_i\}_{i=k-m}^{k-1}$ (typically $m \in [5, 30]$). The product $H_k \nabla f(x_k)$ is evaluated via the two-loop recursion algorithm in $\mathcal{O}(mn)$ operations and memory (Nocedal & Wright, 2006).
+* Limited-Memory BFGS (L-BFGS): Rather than forming $H_k$ explicitly, the L-BFGS variant retains only the $m$ most recent vector pairs $\{s_i, y_i\}_{i=k-m}^{k-1}$ (typically $m \in [5, 30]$). The product $H_k \nabla f(x_k)$ is evaluated via the two-loop recursion algorithm in $\mathcal{O}(mn)$ operations and memory [R3301].
 
 * Descent Safeguard and Directional Reset: If the computed search direction fails the descent condition:
 
@@ -257,7 +257,7 @@ the current inverse Hessian approximation is discarded and reset to the identity
 
 ### Condition Limits and Superlinear Stagnation
 
-Under the standard Dennis-Moré characterization, the BFGS sequence converges superlinearly if and only if the search direction asymptotically matches the true Newton step (Nocedal & Wright, 2006):
+Under the standard Dennis-Moré characterization, the BFGS sequence converges superlinearly if and only if the search direction asymptotically matches the true Newton step [R3301]:
 
 $$\lim_{k \to \infty} \frac{\|(B_k - \nabla^2 f(x^*)) p_k\|}{\|p_k\|} = 0$$
 
@@ -271,7 +271,7 @@ When $\kappa(B_k) \ge \varepsilon_{\text{mach}}^{-1} \approx 10^{16}$, the searc
 
 ### Error Mechanics and the Gaussian Growth Factor
 
-Gaussian Elimination with Partial Pivoting (GEPP) computes the factorization of a row-permuted square matrix $A \in \mathbb{R}^{n \times n}$ into a unit lower triangular matrix $L$ and an upper triangular matrix $U$ (Higham, 2002):
+Gaussian Elimination with Partial Pivoting (GEPP) computes the factorization of a row-permuted square matrix $A \in \mathbb{R}^{n \times n}$ into a unit lower triangular matrix $L$ and an upper triangular matrix $U$ [R1936]:
 
 $$P A = L U$$
 
@@ -287,19 +287,19 @@ The active submatrix elements are updated via outer products:
 
 $$a_{ij}^{(k+1)} = a_{ij}^{(k)} - \ell_{ik} a_{kj}^{(k)}, \quad \forall i, j \ge k+1$$
 
-In finite-precision arithmetic, Wilkinson's backward error analysis demonstrates that the computed factors $\hat{L}$ and $\hat{U}$ satisfy the perturbed system (Higham, 2002; Wilkinson, 1961):
+In finite-precision arithmetic, Wilkinson's backward error analysis demonstrates that the computed factors $\hat{L}$ and $\hat{U}$ satisfy the perturbed system [R1936, R4701]:
 
 $$\hat{L} \hat{U} = P A + \Delta A$$
 
-where the backward perturbation matrix $\Delta A$ satisfies the componentwise bound (Higham, 2002):
+where the backward perturbation matrix $\Delta A$ satisfies the componentwise bound [R1936]:
 
 $$|\Delta A| \le \frac{n \varepsilon_{\text{mach}}}{1 - n \varepsilon_{\text{mach}}} |\hat{L}| |\hat{U}|$$
 
-Taking matrix infinity-norms yields the standard backward error estimate (Higham, 2002):
+Taking matrix infinity-norms yields the standard backward error estimate [R1936]:
 
 $$\|\Delta A\|_\infty \le \gamma_n \rho_n(A) \|A\|_\infty$$
 
-where $\gamma_n = \frac{n \varepsilon_{\text{mach}}}{1 - n \varepsilon_{\text{mach}}} = n \varepsilon_{\text{mach}} + \mathcal{O}(\varepsilon_{\text{mach}}^2)$, and $\rho_n(A)$ is the element growth factor (Higham, 2002; Wilkinson, 1961):
+where $\gamma_n = \frac{n \varepsilon_{\text{mach}}}{1 - n \varepsilon_{\text{mach}}} = n \varepsilon_{\text{mach}} + \mathcal{O}(\varepsilon_{\text{mach}}^2)$, and $\rho_n(A)$ is the element growth factor [R1936, R4701]:
 
 $$\rho_n(A) = \frac{\max_{i, j, k} |a_{ij}^{(k)}|}{\max_{i, j} |a_{ij}^{(1)}|}$$
 
@@ -307,21 +307,21 @@ Because $|\ell_{ik}| \le 1$, the magnitude of updated submatrix elements is boun
 
 $$|a_{ij}^{(k+1)}| \le |a_{ij}^{(k)}| + |\ell_{ik}| |a_{kj}^{(k)}| \le |a_{ij}^{(k)}| + |a_{kj}^{(k)}| \le 2 \max_{r, c} |a_{rc}^{(k)}|$$
 
-Applying this bound inductively across $n - 1$ elimination stages yields the theoretical upper bound on element growth under partial pivoting (Wilkinson, 1961):
+Applying this bound inductively across $n - 1$ elimination stages yields the theoretical upper bound on element growth under partial pivoting [R4701]:
 
 $$\rho_n(A) \le 2^{n-1}$$
 
 ### Pathological Instability: The Wilkinson Matrix
 
-The theoretical upper bound $\rho_n(A) = 2^{n-1}$ is tight and is achieved by the Wilkinson matrix (Higham, Higham, & Pranesh, 2021; Wilkinson, 1961):
+The theoretical upper bound $\rho_n(A) = 2^{n-1}$ is tight and is achieved by the Wilkinson matrix [R1935, R4701]:
 
 $$W_n = \begin{bmatrix}1 & 0 & 0 & \cdots & 0 & 1 \\-1 & 1 & 0 & \cdots & 0 & 1 \\-1 & -1 & 1 & \cdots & 0 & 1 \\\vdots & \vdots & \vdots & \ddots & \vdots & \vdots \\-1 & -1 & -1 & \cdots & 1 & 1 \\-1 & -1 & -1 & \cdots & -1 & 1\end{bmatrix}$$
 
-Because the magnitude of the diagonal element in the active column is already tied for the maximum value ($\vert{}a_{kk}\vert{} = 1$), partial pivoting triggers no row interchanges ($P = I$) (Wilkinson, 1961). During elimination, the entries in the final column double at each stage:
+Because the magnitude of the diagonal element in the active column is already tied for the maximum value ($\vert{}a_{kk}\vert{} = 1$), partial pivoting triggers no row interchanges ($P = I$) [R4701]. During elimination, the entries in the final column double at each stage:
 
 $$a_{i, n}^{(k)} = 2^{k-1}, \quad \forall i \ge k$$
 
-At the final elimination step $k = n$, the entry reaches $a_{nn}^{(n)} = 2^{n-1}$ (Wilkinson, 1961).
+At the final elimination step $k = n$, the entry reaches $a_{nn}^{(n)} = 2^{n-1}$ [R4701].
 
 For dimension $n = 64$, the growth factor evaluates to $\rho_{64} = 2^{63} \approx 9.22 \times 10^{18}$. In IEEE double precision ($\varepsilon_{\text{mach}} \approx 2.22 \times 10^{-16}$), the backward error satisfies:
 
@@ -337,7 +337,7 @@ When partial pivoting produces excessive element growth, alternative pivoting ar
 
 $$|a_{p, q}^{(k)}| = \max_{i, j \ge k} |a_{ij}^{(k)}| \implies P A Q = L U$$
 
-Wilkinson proved that complete pivoting significantly restricts element growth (Wilkinson, 1961):
+Wilkinson proved that complete pivoting significantly restricts element growth [R4701]:
 
 $$\rho_n^{CP} \le \sqrt{n} \left( 2^1 3^{1/2} 4^{1/3} \cdots n^{1/(n-1)} \right)^{1/2} \sim \mathcal{O}(n^{\frac{1}{4} \log n})$$
 
@@ -347,13 +347,13 @@ This stability comes at the expense of an increased search cost of $\mathcal{O}(
 
 $$|a_{rs}^{(k)}| \ge \max_{i \ge k} |a_{is}^{(k)}| \quad \text{and} \quad |a_{rs}^{(k)}| \ge \max_{j \ge k} |a_{rj}^{(k)}|$$
 
-Rook pivoting limits element growth to small polynomial bounds while running in $\mathcal{O}(n^2)$ average comparisons (Higham, 2002).
+Rook pivoting limits element growth to small polynomial bounds while running in $\mathcal{O}(n^2)$ average comparisons [R1936].
 
 * Householder QR Factorization: For problems where element growth cannot be permitted, the system $A x = b$ is solved using orthogonal transformations:
 
 $$Q A = R \implies R x = Q^T b$$
 
-Because orthogonal transformations preserve the Euclidean norm ($\Vert{}Q\Vert{}_2 = 1$), the growth factor is strictly bounded (Higham, 2002):
+Because orthogonal transformations preserve the Euclidean norm ($\Vert{}Q\Vert{}_2 = 1$), the growth factor is strictly bounded [R1936]:
 
 $$\rho_n^{QR} = 1$$
 
@@ -373,17 +373,17 @@ The correction equation $A d_k = r_k$ is solved using the existing LU factors, a
 
 $$\hat{x}_{k+1} = \hat{x}_k + d_k$$
 
-Iterative refinement restores forward accuracy to the machine precision level, provided $\kappa(A) \varepsilon_{\text{mach}} < 1$ (Higham, 2002).
+Iterative refinement restores forward accuracy to the machine precision level, provided $\kappa(A) \varepsilon_{\text{mach}} < 1$ [R1936].
 
 ## Large-Scale Spectral and Krylov Subspace Computations: The Lanczos Iteration
 
 ### Tridiagonalization Mechanics and Kaniel-Paige Convergence Theory
 
-The Lanczos algorithm computes the extremal eigenvalues and eigenvectors of a large, sparse, real symmetric matrix $A = A^T \in \mathbb{R}^{n \times n}$ (Lanczos, 1950; Parlett, 1998). Initialized with a unit vector $v_1$ ($\Vert{}v_1\Vert{}_2 = 1$), the method constructs an orthonormal basis for the Krylov subspace:
+The Lanczos algorithm computes the extremal eigenvalues and eigenvectors of a large, sparse, real symmetric matrix $A = A^T \in \mathbb{R}^{n \times n}$ [R2551, R3435]. Initialized with a unit vector $v_1$ ($\Vert{}v_1\Vert{}_2 = 1$), the method constructs an orthonormal basis for the Krylov subspace:
 
 $$\mathcal{K}_m(A, v_1) = \text{span}\{v_1, A v_1, A^2 v_1, \dots, A^{m-1} v_1\}$$
 
-Because $A$ is symmetric, the Gram-Schmidt orthogonalization process reduces to a three-term recurrence (Lanczos, 1950; Parlett, 1998):
+Because $A$ is symmetric, the Gram-Schmidt orthogonalization process reduces to a three-term recurrence [R2551, R3435]:
 
 $$\beta_{j+1} v_{j+1} = w_j = A v_j - \alpha_j v_j - \beta_j v_{j-1}$$
 
@@ -391,7 +391,7 @@ where $v_0 = 0$, and the scalar coefficients are determined by the orthogonality
 
 $$\alpha_j = v_j^T A v_j, \quad \beta_{j+1} = \|w_j\|_2$$
 
-In matrix form, after $m$ iterations, the recurrence reads (Parlett, 1998):
+In matrix form, after $m$ iterations, the recurrence reads [R3435]:
 
 $$A V_m = V_m T_m + \beta_{m+1} v_{m+1} e_m^T$$
 
@@ -399,13 +399,13 @@ where $V_m = [v_1, \dots, v_m] \in \mathbb{R}^{n \times m}$ has orthonormal colu
 
 $$T_m = \begin{bmatrix}\alpha_1 & \beta_2 & & \\\beta_2 & \alpha_2 & \ddots & \\& \ddots & \ddots & \beta_m \\& & \beta_m & \alpha_m\end{bmatrix}$$
 
-The eigenvalues $\theta_1^{(m)} > \theta_2^{(m)} > \dots > \theta_m^{(m)}$ of $T_m$ are the Ritz values, and the vectors $x_i = V_m y_i$ (where $T_m y_i = \theta_i y_i$ and $\|y_i\|_2 = 1$) are the Ritz vectors (Parlett, 1998).
+The eigenvalues $\theta_1^{(m)} > \theta_2^{(m)} > \dots > \theta_m^{(m)}$ of $T_m$ are the Ritz values, and the vectors $x_i = V_m y_i$ (where $T_m y_i = \theta_i y_i$ and $\|y_i\|_2 = 1$) are the Ritz vectors [R3435].
 
-The convergence of Ritz values to the true eigenvalues $\lambda_1 \ge \lambda_2 \ge \dots \ge \lambda_n$ of $A$ is governed by the Kaniel-Paige-Saad convergence theory, which expresses the projection error through Chebyshev polynomials (Saad, 1980).
+The convergence of Ritz values to the true eigenvalues $\lambda_1 \ge \lambda_2 \ge \dots \ge \lambda_n$ of $A$ is governed by the Kaniel-Paige-Saad convergence theory, which expresses the projection error through Chebyshev polynomials [R3859].
 
 Theorem (Kaniel-Paige Bounds):
 
-Let $\lambda_1$ be the maximal eigenvalue of $A$, and let $\phi_1 = \angle(v_1, u_1)$ denote the angle between the initial Lanczos vector $v_1$ and the normalized eigenvector $u_1$ corresponding to $\lambda_1$ (Saad, 1980). The error in the maximal Ritz value $\theta_1^{(m)}$ after $m$ iterations satisfies:
+Let $\lambda_1$ be the maximal eigenvalue of $A$, and let $\phi_1 = \angle(v_1, u_1)$ denote the angle between the initial Lanczos vector $v_1$ and the normalized eigenvector $u_1$ corresponding to $\lambda_1$ [R3859]. The error in the maximal Ritz value $\theta_1^{(m)}$ after $m$ iterations satisfies:
 
 $$0 \le \lambda_1 - \theta_1^{(m)} \le (\lambda_1 - \lambda_n) \left( \frac{\tan \phi_1}{C_{m-1}(1 + 2 \gamma_1)} \right)^2$$
 
@@ -413,11 +413,11 @@ where $C_{m-1}(x)$ is the Chebyshev polynomial of the first kind of degree $m-1$
 
 $$\gamma_1 = \frac{\lambda_1 - \lambda_2}{\lambda_2 - \lambda_n}$$
 
-Using the explicit representation $C_{m-1}(1 + 2\gamma_1) = \frac{1}{2} \left[ R_1^{m-1} + R_1^{-(m-1)} \right]$, where $R_1 = 1 + 2\gamma_1 + 2\sqrt{\gamma_1^2 + \gamma_1} > 1$, the convergence bound simplifies to (Saad, 1980):
+Using the explicit representation $C_{m-1}(1 + 2\gamma_1) = \frac{1}{2} \left[ R_1^{m-1} + R_1^{-(m-1)} \right]$, where $R_1 = 1 + 2\gamma_1 + 2\sqrt{\gamma_1^2 + \gamma_1} > 1$, the convergence bound simplifies to [R3859]:
 
 $$\lambda_1 - \theta_1^{(m)} \le 4 (\lambda_1 - \lambda_n) \tan^2(\phi_1) \cdot R_1^{-2(m-1)}$$
 
-The Ritz values converge exponentially to isolated extreme eigenvalues, with the rate determined by the spectral gap ratio $\gamma_1$ (Saad, 1980).
+The Ritz values converge exponentially to isolated extreme eigenvalues, with the rate determined by the spectral gap ratio $\gamma_1$ [R3859].
 
 ### Finite Precision and Paige's Loss of Orthogonality Theorem
 
@@ -449,7 +449,7 @@ The newly generated vector $\hat{v}_{m+1}$ loses linear independence and begins 
 
 ### Ghost Eigenvalues and Reorthogonalization Architectures
 
-This alignment causes the algorithm to restart a secondary, spurious Krylov recurrence along that eigenvector (Parlett, 1998). As a result, duplicate copies of the converged eigenvalue—known as ghost eigenvalues—appear in the spectrum of the tridiagonal matrix $\hat{T}_m$ (Cullum & Willoughby, 1985; Parlett & Scott, 1979). These ghost eigenvalues do not reflect true multiplicity in $A$; they are numerical artifacts of lost orthogonality.
+This alignment causes the algorithm to restart a secondary, spurious Krylov recurrence along that eigenvector [R3435]. As a result, duplicate copies of the converged eigenvalue—known as ghost eigenvalues—appear in the spectrum of the tridiagonal matrix $\hat{T}_m$ [R0959, R3436]. These ghost eigenvalues do not reflect true multiplicity in $A$; they are numerical artifacts of lost orthogonality.
 
 Four main architectures are used to stabilize the Lanczos iteration:
 
@@ -459,17 +459,17 @@ $$w_j \leftarrow w_j - (v_i^T w_j) v_i, \quad \forall i = 1, \dots, j$$
 
 This maintains machine-level orthogonality ($\Vert{}V_m^T V_m - I\Vert{}_2 \le \mathcal{O}(m \varepsilon_{\text{mach}})$) but requires storing all basis vectors and incurs an $\mathcal{O}(m^2 n)$ computational cost.
 
-* Selective Orthogonalization (SO - Parlett & Scott): Instead of orthogonalizing against all historical vectors, the algorithm tracks the Ritz residuals $\beta_{j+1} \vert{}e_j^T y_i^{(j)}\vert{}$. When a Ritz pair converges to within $\sqrt{\varepsilon_{\text{mach}}} \Vert{}A\Vert{}_2$, the next vector $v_{j+1}$ is orthogonalized exclusively against that specific Ritz vector $x_i = V_j y_i$. This maintains semi-orthogonality ($\Vert{}V_m^T V_m - I\Vert{}_2 \le \sqrt{\varepsilon_{\text{mach}}}$) with minimal overhead (Parlett & Scott, 1979).
+* Selective Orthogonalization (SO - Parlett & Scott): Instead of orthogonalizing against all historical vectors, the algorithm tracks the Ritz residuals $\beta_{j+1} \vert{}e_j^T y_i^{(j)}\vert{}$. When a Ritz pair converges to within $\sqrt{\varepsilon_{\text{mach}}} \Vert{}A\Vert{}_2$, the next vector $v_{j+1}$ is orthogonalized exclusively against that specific Ritz vector $x_i = V_j y_i$. This maintains semi-orthogonality ($\Vert{}V_m^T V_m - I\Vert{}_2 \le \sqrt{\varepsilon_{\text{mach}}}$) with minimal overhead [R3436].
 
-* Partial Reorthogonalization (PRO - Simon): Maintains a scalar recurrence relation that bounds the inner products $\omega_{i, j} = v_i^T v_j$ in floating-point arithmetic. When $\max_i \vert{}\omega_{i, j+1}\vert{}$ exceeds a threshold $\tau \approx \sqrt{\varepsilon_{\text{mach}}}$, a full Gram-Schmidt reorthogonalization is triggered for that step (Simon, 1984).
+* Partial Reorthogonalization (PRO - Simon): Maintains a scalar recurrence relation that bounds the inner products $\omega_{i, j} = v_i^T v_j$ in floating-point arithmetic. When $\max_i \vert{}\omega_{i, j+1}\vert{}$ exceeds a threshold $\tau \approx \sqrt{\varepsilon_{\text{mach}}}$, a full Gram-Schmidt reorthogonalization is triggered for that step [R4095].
 
-* Cullum-Willoughby Identification Test: Executes the three-term recurrence without any reorthogonalization. The spectrum of $T_m$ is compared against the spectrum of the submatrix $\tilde{T}_{m-1}$ formed by deleting the first row and column of $T_m$. By the properties of Sturm sequences, any eigenvalue that appears in both $T_m$ and $\tilde{T}_{m-1}$ to within machine precision is identified as a ghost eigenvalue and discarded, isolating the true physical spectrum without storing the basis vectors (Cullum & Willoughby, 1985).
+* Cullum-Willoughby Identification Test: Executes the three-term recurrence without any reorthogonalization. The spectrum of $T_m$ is compared against the spectrum of the submatrix $\tilde{T}_{m-1}$ formed by deleting the first row and column of $T_m$. By the properties of Sturm sequences, any eigenvalue that appears in both $T_m$ and $\tilde{T}_{m-1}$ to within machine precision is identified as a ghost eigenvalue and discarded, isolating the true physical spectrum without storing the basis vectors [R0959].
 
 ## Dense Eigenvalue and Singular Value Decompositions
 
 ### The Shifted QR Algorithm and the Wilkinson Shift
 
-For dense, non-symmetric matrices, computing the Schur decomposition $A = Q T Q^T$ is carried out using the shifted QR algorithm (Francis, 1961; Wilkinson, 1965). The matrix is first reduced to upper Hessenberg form (or symmetric tridiagonal form if $A = A^T$) using Householder reflections (Wilkinson, 1965). The unshifted QR iteration factors $A_k = Q_k R_k$ and computes $A_{k+1} = R_k Q_k = Q_k^T A_k Q_k$, which preserves the Hessenberg structure (Francis, 1961).
+For dense, non-symmetric matrices, computing the Schur decomposition $A = Q T Q^T$ is carried out using the shifted QR algorithm [R1436, R4702]. The matrix is first reduced to upper Hessenberg form (or symmetric tridiagonal form if $A = A^T$) using Householder reflections [R4702]. The unshifted QR iteration factors $A_k = Q_k R_k$ and computes $A_{k+1} = R_k Q_k = Q_k^T A_k Q_k$, which preserves the Hessenberg structure [R1436].
 
 To accelerate convergence, shifts $\mu_k$ are introduced:
 
@@ -483,7 +483,7 @@ the Wilkinson shift selects the eigenvalue of the trailing $2 \times 2$ principa
 
 $$B_n = \begin{bmatrix} a_{n-1} & b_{n-1} \\ b_{n-1} & a_n \end{bmatrix}$$
 
-that is closest to the corner element $a_n$ (Wilkinson, 1965). Let $d = \frac{a_{n-1} - a_n}{2}$. The shift is given by:
+that is closest to the corner element $a_n$ [R4702]. Let $d = \frac{a_{n-1} - a_n}{2}$. The shift is given by:
 
 $$\mu = a_n - \frac{\text{sign}(d) b_{n-1}^2}{\vert{}d\vert{} + \sqrt{d^2 + b_{n-1}^2}}$$
 
@@ -491,17 +491,17 @@ where $\text{sign}(0) = 1$.
 
 Convergence Rate and Asymptotic Behavior:
 
-The Wilkinson shift guarantees global convergence for symmetric tridiagonal matrices and achieves asymptotic cubic convergence ($q = 3$) (Parlett, 1998; Wilkinson, 1965):
+The Wilkinson shift guarantees global convergence for symmetric tridiagonal matrices and achieves asymptotic cubic convergence ($q = 3$) [R3435, R4702]:
 
 $$\vert{}b_{n-1}^{(k+1)}\vert{} \le \frac{\vert{}b_{n-1}^{(k)}\vert{}^3 \vert{}b_{n-2}^{(k)}\vert{}^2}{\vert{}d_k\vert{}^4} \implies \vert{}b_{n-1}^{(k+1)}\vert{} = \mathcal{O}\left(\vert{}b_{n-1}^{(k)}\vert{}^3\right)$$
 
-The off-diagonal element $b_{n-1}$ vanishes within 2 to 3 iterations per eigenvalue, allowing deflation to isolate $a_n$ as an eigenvalue and reduce the active matrix dimension (Parlett, 1998).
+The off-diagonal element $b_{n-1}$ vanishes within 2 to 3 iterations per eigenvalue, allowing deflation to isolate $a_n$ as an eigenvalue and reduce the active matrix dimension [R3435].
 
-For non-symmetric matrices with complex conjugate eigenvalues, a single real shift can stall convergence. The Francis Implicit Double-Shift algorithm avoids complex arithmetic by combining two conjugate shifts $\mu_1, \bar{\mu}_2$ into a single real degree-two polynomial step (Francis, 1961):
+For non-symmetric matrices with complex conjugate eigenvalues, a single real shift can stall convergence. The Francis Implicit Double-Shift algorithm avoids complex arithmetic by combining two conjugate shifts $\mu_1, \bar{\mu}_2$ into a single real degree-two polynomial step [R1436]:
 
 $$(A - \mu_1 I)(A - \bar{\mu}_2 I) = A^2 - 2 \text{Re}(\mu_1) A + \vert{}\mu_1\vert{}^2 I = Q R$$
 
-By the Implicit Q Theorem, computing only the first column of this matrix product and chasing the resulting bulge down the Hessenberg form using orthogonal similarity transforms maintains real arithmetic while preserving quadratic convergence (Francis, 1961).
+By the Implicit Q Theorem, computing only the first column of this matrix product and chasing the resulting bulge down the Hessenberg form using orthogonal similarity transforms maintains real arithmetic while preserving quadratic convergence [R1436].
 
 ### Golub-Kahan Bidiagonalization and Demmel-Kahan High-Accuracy SVD
 
@@ -509,15 +509,15 @@ To compute the singular value decomposition (SVD) $A = U \Sigma V^T$ of a genera
 
 $$\kappa(A^T A) = (\kappa(A))^2$$
 
-If $\kappa(A) \ge \varepsilon_{\text{mach}}^{-1/2} \approx 10^8$, singular values smaller than $\sqrt{\varepsilon_{\text{mach}}} \sigma_{\max}$ are lost to subtractive cancellation (Demmel & Kahan, 1990).
+If $\kappa(A) \ge \varepsilon_{\text{mach}}^{-1/2} \approx 10^8$, singular values smaller than $\sqrt{\varepsilon_{\text{mach}}} \sigma_{\max}$ are lost to subtractive cancellation [R1072].
 
-The Golub-Kahan algorithm avoids this by applying alternating Householder reflections from the left and right directly to $A$ (Golub & Kahan, 1965):
+The Golub-Kahan algorithm avoids this by applying alternating Householder reflections from the left and right directly to $A$ [R1622]:
 
 $$U_0^T A V_0 = B = \begin{bmatrix} \alpha_1 & \beta_1 & & \\ & \alpha_2 & \ddots & \\ & & \ddots & \beta_{n-1} \\ & & & \alpha_n \\ \hline & & 0 & \end{bmatrix}$$
 
-Computing the singular values of $B$ is mathematically equivalent to computing the eigenvalues of $B^T B$ (Golub & Kahan, 1965). However, applying an explicit shift $\mu^2$ to $B^T B$ requires evaluating differences of squares, which introduces subtractive cancellation for small singular values (Demmel & Kahan, 1990).
+Computing the singular values of $B$ is mathematically equivalent to computing the eigenvalues of $B^T B$ [R1622]. However, applying an explicit shift $\mu^2$ to $B^T B$ requires evaluating differences of squares, which introduces subtractive cancellation for small singular values [R1072].
 
-The Demmel-Kahan Zero-Shift QR algorithm addresses this by setting the shift to zero ($\mu = 0$) (Demmel & Kahan, 1990). In this case, the QR transformation corresponds to an implicit Cholesky factorization:
+The Demmel-Kahan Zero-Shift QR algorithm addresses this by setting the shift to zero ($\mu = 0$) [R1072]. In this case, the QR transformation corresponds to an implicit Cholesky factorization:
 
 $$B^T B = R^T Q^T Q R = R^T R \implies R = \text{Cholesky}(B^T B)$$
 
@@ -525,27 +525,27 @@ Demmel and Kahan showed that computing this step using Givens rotations from top
 
 $$\begin{aligned} & \text{Initialize } c_0 = 1, \quad s_0 = 0 \\ & \text{For } i = 1 \text{ to } n-1: \\ & \quad \begin{bmatrix} c_i & s_i \\ -s_i & c_i \end{bmatrix} \begin{bmatrix} \alpha_i c_{i-1} \\ \beta_i \end{bmatrix} = \begin{bmatrix} \bar{\alpha}_i \\ 0 \end{bmatrix} \implies c_i = \frac{\alpha_i c_{i-1}}{\sqrt{(\alpha_i c_{i-1})^2 + \beta_i^2}}, \quad s_i = \frac{\beta_i}{\sqrt{(\alpha_i c_{i-1})^2 + \beta_i^2}} \\ & \quad \bar{\beta}_i = s_i \alpha_{i+1}, \quad \alpha_{i+1} \leftarrow c_i \alpha_{i+1} \end{aligned}$$
 
-Because this update involves only products, quotients, and square roots of positive sums, it introduces no subtractive cancellation (Demmel & Kahan, 1990).
+Because this update involves only products, quotients, and square roots of positive sums, it introduces no subtractive cancellation [R1072].
 
 Theorem (Demmel-Kahan High Relative Accuracy):
 
-Let $\sigma_1 \ge \sigma_2 \ge \dots \ge \sigma_n$ be the exact singular values of the bidiagonal matrix $B$, and let $\hat{\sigma}_i$ be the singular values computed by the zero-shift QR algorithm in floating-point arithmetic with machine precision $\varepsilon_{\text{mach}}$ (Demmel & Kahan, 1990). Every computed singular value satisfies the componentwise relative error bound:
+Let $\sigma_1 \ge \sigma_2 \ge \dots \ge \sigma_n$ be the exact singular values of the bidiagonal matrix $B$, and let $\hat{\sigma}_i$ be the singular values computed by the zero-shift QR algorithm in floating-point arithmetic with machine precision $\varepsilon_{\text{mach}}$ [R1072]. Every computed singular value satisfies the componentwise relative error bound:
 
 $$\frac{\vert{}\hat{\sigma}_i - \sigma_i\vert{}}{\sigma_i} \le c \cdot n \cdot \varepsilon_{\text{mach}} + \mathcal{O}(\varepsilon_{\text{mach}}^2)$$
 
 where $c$ is a small integer constant independent of the matrix condition number $\kappa(B)$.
 
-This bound ensures that tiny singular values near the floating-point underflow threshold are computed with the same relative accuracy as the largest singular values (Demmel & Kahan, 1990).
+This bound ensures that tiny singular values near the floating-point underflow threshold are computed with the same relative accuracy as the largest singular values [R1072].
 
 ### Deflation Dynamics and Eigenvector Sensitivity
 
-The QR algorithm for eigenvalues and the SVD rely on deflation to decouple submatrices (Francis, 1961; Parlett, 1998). A subdiagonal element $b_j$ is set to zero when it satisfies the threshold criterion:
+The QR algorithm for eigenvalues and the SVD rely on deflation to decouple submatrices [R1436, R3435]. A subdiagonal element $b_j$ is set to zero when it satisfies the threshold criterion:
 
 $$\vert{}b_j\vert{} \le \text{tol} \cdot (\vert{}a_j\vert{} + \vert{}a_{j+1}\vert{})$$
 
 If the deflation threshold is set below machine precision ($\text{tol} < \varepsilon_{\text{mach}}$), roundoff prevents the condition from triggering, causing stagnation. If $\text{tol}$ is set too large, deflation introduces an uncontrolled perturbation of order $\vert{}b_j\vert{}$ into the spectrum.
 
-For non-normal matrices, eigenvalue sensitivity is governed by the Bauer-Fike Theorem (Bauer & Fike, 1960).
+For non-normal matrices, eigenvalue sensitivity is governed by the Bauer-Fike Theorem [R0287].
 
 Theorem (Bauer-Fike):
 
@@ -555,17 +555,17 @@ $$\min_{\lambda \in \Lambda(A)} \vert{}\hat{\lambda} - \lambda\vert{} \le \kappa
 
 where $\kappa_p(X) = \Vert{}X\Vert{}_p \Vert{}X^{-1}\Vert{}_p$ is the condition number of the eigenvector matrix $X$.
 
-When the eigenvectors are nearly linearly dependent ($\kappa_p(X) \gg 1$), small backward errors $\Vert{}E\Vert{} \sim \varepsilon_{\text{mach}}$ can produce large perturbations in the computed eigenvalues, even though the QR algorithm itself is backward stable (Bauer & Fike, 1960).
+When the eigenvectors are nearly linearly dependent ($\kappa_p(X) \gg 1$), small backward errors $\Vert{}E\Vert{} \sim \varepsilon_{\text{mach}}$ can produce large perturbations in the computed eigenvalues, even though the QR algorithm itself is backward stable [R0287].
 
 | **Algorithmic Class**          | **Representative Algorithm** | **Asymptotic Convergence Rate**                             | **Dominant Breakdown Mode**                                                   | **Fallback / Remediation Architecture**                                                  | **Reliability Bound Threshold**                 |
 | ------------------------------ | ---------------------------- | ----------------------------------------------------------- | ----------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- | ----------------------------------------------- |
-| Nonlinear Root-Finding         | Newton-Kantorovich           | Quadratic (q = 2) (Argyros, 1998)        | Derivative singularity or h > 0.5 (Polyak, 2007)           | Levenberg-Marquardt regularization, Line search (Polyak, 2007)                           | cond(F'(x_k)) >= 1 / eps_mach                   |
-| Bracketed Root-Finding         | Brent's Method               | Superlinear (q approx 1.839) (Brent, 1973)                  | Essential discontinuities or even multiplicities (Brent, 1973)                | Automatic fallback to bisection (Brent, 1973)                                            |                                                 |
-| Unconstrained Optimization     | BFGS Quasi-Newton            | Superlinear (q > 1) (Nocedal & Wright, 2006)                | Curvature violation (y^T s <= 0) or loss of symmetry (Nocedal & Wright, 2006) | Powell damping, L-BFGS two-loop recursion (Nocedal & Wright, 2006; Powell, 1978)         | cond(B_k) >= 1 / eps_mach                       |
-| Direct Linear Solvers          | GEPP (PA = LU)               | Finite ((2/3) n^3 operations) (Higham, 2002)                | Exponential element growth (rho_n -> 2^(n-1)) (Wilkinson, 1961)               | Rook pivoting, Complete pivoting, Householder QR (Higham, 2002; Wilkinson, 1961)         | cond(A) * rho_n(A) >= 1 / eps_mach              |
-| Sparse Hermitian Eigensolvers  | Symmetric Lanczos            | Exponential (Chebyshev-bounded) | Loss of orthogonality, Ghost eigenvalues                  | Selective (SO) or Partial (PRO) reorthogonalization (Parlett & Scott, 1979; Simon, 1984) | Residual <= eps_mach *                          |
-| Dense Tridiagonal Eigensolvers | QR with Wilkinson Shift      | Cubic (q = 3) (Parlett, 1998; Wilkinson, 1965)              | Stagnation on complex pairs (non-Hermitian) (Francis, 1961; Wilkinson, 1965)  | Francis Implicit Double-Shift, Deflation safeguards (Francis, 1961; Parlett, 1998)       | Subdiagonal                                     |
-| Bidiagonal SVD Solvers         | Demmel-Kahan QR              | Linear (zero-shift Cholesky) (Demmel & Kahan, 1990)         | Slow convergence for large singular values (Golub & Kahan, 1965)              | Hybrid differential quotient-difference with shifts (dqds) (Fernando & Parlett, 1994)    | sigma_min <= Underflow Limit (approx 10^(-308)) |
+| Nonlinear Root-Finding         | Newton-Kantorovich           | Quadratic (q = 2) [R0139]        | Derivative singularity or h > 0.5 [R3570]           | Levenberg-Marquardt regularization, Line search [R3570]                           | cond(F'(x_k)) >= 1 / eps_mach                   |
+| Bracketed Root-Finding         | Brent's Method               | Superlinear (q approx 1.839) [R1483]                  | Essential discontinuities or even multiplicities [R1483]                | Automatic fallback to bisection [R1483]                                            |                                                 |
+| Unconstrained Optimization     | BFGS Quasi-Newton            | Superlinear (q > 1) [R3301]                | Curvature violation (y^T s <= 0) or loss of symmetry [R3301] | Powell damping, L-BFGS two-loop recursion [R3301, R3595]         | cond(B_k) >= 1 / eps_mach                       |
+| Direct Linear Solvers          | GEPP (PA = LU)               | Finite ((2/3) n^3 operations) [R1936]                | Exponential element growth (rho_n -> 2^(n-1)) [R4701]               | Rook pivoting, Complete pivoting, Householder QR [R1936, R4701]         | cond(A) * rho_n(A) >= 1 / eps_mach              |
+| Sparse Hermitian Eigensolvers  | Symmetric Lanczos            | Exponential (Chebyshev-bounded) | Loss of orthogonality, Ghost eigenvalues                  | Selective (SO) or Partial (PRO) reorthogonalization [R3436, R4095] | Residual <= eps_mach *                          |
+| Dense Tridiagonal Eigensolvers | QR with Wilkinson Shift      | Cubic (q = 3) [R3435, R4702]              | Stagnation on complex pairs (non-Hermitian) [R1436, R4702]  | Francis Implicit Double-Shift, Deflation safeguards [R1436, R3435]       | Subdiagonal                                     |
+| Bidiagonal SVD Solvers         | Demmel-Kahan QR              | Linear (zero-shift Cholesky) [R1072]         | Slow convergence for large singular values [R1622]              | Hybrid differential quotient-difference with shifts (dqds) [R1356]    | sigma_min <= Underflow Limit (approx 10^(-308)) |
 
 ## Synthesis: Error Regimes, Precision Limits, and Fallback Hierarchies
 
@@ -577,9 +577,9 @@ $$\text{Forward Error} \le \text{Condition Number} \times \text{Backward Error}$
 
 Numerical methods fall into three broad stability categories:
 
-* Backward Stable Algorithms: Methods where the computed solution satisfies an exactly perturbed problem $(A + \Delta A)\hat{x} = b$ with $\Vert{}\Delta A\Vert{} / \Vert{}A\Vert{} \le c_n \varepsilon_{\text{mach}}$. Householder QR factorization, Givens rotations, and the shifted QR algorithm are backward stable (Higham, 2002; Wilkinson, 1965). For these methods, errors are driven entirely by the problem's conditioning, not by the accumulation of roundoff errors.
+* Backward Stable Algorithms: Methods where the computed solution satisfies an exactly perturbed problem $(A + \Delta A)\hat{x} = b$ with $\Vert{}\Delta A\Vert{} / \Vert{}A\Vert{} \le c_n \varepsilon_{\text{mach}}$. Householder QR factorization, Givens rotations, and the shifted QR algorithm are backward stable [R1936, R4702]. For these methods, errors are driven entirely by the problem's conditioning, not by the accumulation of roundoff errors.
 
-* Conditionally Stable Algorithms: Methods where backward stability depends on problem-specific parameters. In Gaussian elimination with partial pivoting, backward stability requires that the element growth factor satisfy $\rho_n(A) = \mathcal{O}(1)$ or $\mathcal{O}(n^{1/2})$ (Higham, 2002; Wilkinson, 1961). If $\rho_n(A)$ approaches its theoretical limit of $2^{n-1}$, backward stability is lost.
+* Conditionally Stable Algorithms: Methods where backward stability depends on problem-specific parameters. In Gaussian elimination with partial pivoting, backward stability requires that the element growth factor satisfy $\rho_n(A) = \mathcal{O}(1)$ or $\mathcal{O}(n^{1/2})$ [R1936, R4701]. If $\rho_n(A)$ approaches its theoretical limit of $2^{n-1}$, backward stability is lost.
 
 * Structurally Unstable Algorithms: Methods where finite-precision roundoff alters the underlying mathematical structure. In the three-term symmetric Lanczos algorithm, roundoff errors break the theoretical orthogonality of the basis vectors. Without active stabilization (such as reorthogonalization or ghost-filtering), the method cannot be run reliably over many iterations.
 
@@ -593,11 +593,11 @@ $$x_\lambda = (A^T A + \lambda^2 I)^{-1} A^T b$$
 
 where the parameter $\lambda$ is selected via the L-curve criterion to bound the effective condition number to $\kappa_{\text{eff}} \le \frac{\sigma_{\max}}{\lambda}$.
 
-When Gaussian elimination exhibits large element growth ($\rho_n \gg 1$), partial pivoting should be aborted in favor of rook pivoting or complete pivoting (Higham, 2002; Wilkinson, 1961). If the active submatrix entries continue to grow, the linear solve should fall back to Householder QR factorization, which guarantees a growth factor of $\rho_n = 1$.
+When Gaussian elimination exhibits large element growth ($\rho_n \gg 1$), partial pivoting should be aborted in favor of rook pivoting or complete pivoting [R1936, R4701]. If the active submatrix entries continue to grow, the linear solve should fall back to Householder QR factorization, which guarantees a growth factor of $\rho_n = 1$.
 
-When the Lanczos algorithm experiences loss of orthogonality, tracking the Ritz residuals $\beta_{j+1} \vert{}e_j^T y_i\vert{}$ identifies when a Ritz pair converges to within $\sqrt{\varepsilon_{\text{mach}}} \Vert{}A\Vert{}_2$ (Parlett & Scott, 1979). At this threshold, selective reorthogonalization (SO) against the converged Ritz vectors prevents basis corruption. If memory limits prevent storing previous vectors, the Cullum-Willoughby test can be used to identify and remove ghost eigenvalues by comparing the spectrum of $T_m$ to that of its submatrix $\tilde{T}_{m-1}$ (Cullum & Willoughby, 1985).
+When the Lanczos algorithm experiences loss of orthogonality, tracking the Ritz residuals $\beta_{j+1} \vert{}e_j^T y_i\vert{}$ identifies when a Ritz pair converges to within $\sqrt{\varepsilon_{\text{mach}}} \Vert{}A\Vert{}_2$ [R3436]. At this threshold, selective reorthogonalization (SO) against the converged Ritz vectors prevents basis corruption. If memory limits prevent storing previous vectors, the Cullum-Willoughby test can be used to identify and remove ghost eigenvalues by comparing the spectrum of $T_m$ to that of its submatrix $\tilde{T}_{m-1}$ [R0959].
 
-When quasi-Newton optimization encounters non-positive curvature ($y_k^T s_k \le 0$), Powell's damped update should be engaged to scale the gradient change vector $y_k$ toward $B_k s_k$ (Powell, 1978). If the search direction fails to satisfy the descent property, the Hessian approximation should be reset to the identity matrix ($H_k \leftarrow I$), restarting the optimization along the steepest descent direction with an Armijo line search.
+When quasi-Newton optimization encounters non-positive curvature ($y_k^T s_k \le 0$), Powell's damped update should be engaged to scale the gradient change vector $y_k$ toward $B_k s_k$ [R3595]. If the search direction fails to satisfy the descent property, the Hessian approximation should be reset to the identity matrix ($H_k \leftarrow I$), restarting the optimization along the steepest descent direction with an Armijo line search.
 
 Finally, for problems with closely spaced eigenvalues or singular values that cannot be resolved within standard floating-point precision ($\Delta \lambda < \varepsilon_{\text{mach}} \Vert{}A\Vert{}$), computations should transition to arbitrary-precision arithmetic engines (such as MPFR) or interval arithmetic. By maintaining certified upper and lower bounds $[x_{\text{lower}}, x_{\text{upper}}]$ using directed rounding modes, interval methods provide guaranteed enclosures for the true mathematical solutions.
 

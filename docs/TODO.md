@@ -469,33 +469,8 @@ with `clamp()`.
   item then fills that same dropdown with the families and their
   outlines; it does not build a second control, and the pin flag is
   `--shape`.
-  Prerequisites: GEN.389, UX.135. Related: UX.116, UX.125,
+  Prerequisites: GEN.389. Related: UX.116, UX.125,
   DOC.13, ADM.110.
-  Design: [docs/design/galaxy/galaxy-types.md](design/galaxy/galaxy-types.md)
-
-- [ ] **UX.135 One simple vector outline per galaxy family in the icon library: spiral, barred spiral, lenticular, elliptical, irregular and dwarf spheroid**
-  Boss (2026-10-16, 9:00 PM EDT, for 9.4): each galaxy type should have
-  an image of that model as a simple vector outline, so the user knows
-  approximately what it should look like. Default (stands as Decided
-  unless Boss says otherwise): one hand-drawn static SVG per family key
-  docs/design/galaxy/galaxy-types.md lists (today: spiral, barred spiral,
-  lenticular, elliptical, irregular, dwarf spheroid), kept in the repo
-  with the other icon-library shapes, so it works on the offline page
-  and needs no generation step. Each is a plain outline, one stroke
-  weight, no fill or a light fill, drawn in the view that tells the
-  family apart: the arms and bar face-on for the spirals, the smooth
-  lens for the lenticular, the ellipse for the elliptical, the ragged
-  body for the irregular, the faint round blob for the dwarf spheroid;
-  the stroke uses the current text colour so both themes work. Done: the
-  outlines are in the icon library, one per family key; a test fails
-  when a family has no outline or an outline has a script, an external
-  reference, no viewBox or more than 4 KB; a screenshot test shows each
-  on both themes; the Generate page (UX.134) and the Galaxy Map key
-  (MAP.242) use them. Boss sees the drawings in the PR. The art can be
-  drawn any time now that the galaxy types design (GEN.378, merged
-  #2368) fixes the family list; the outlines are not a copy of any named
-  galaxy.
-  Prerequisites: none. Related: UX.134, MAP.242, UX.101, GEN.608.
   Design: [docs/design/galaxy/galaxy-types.md](design/galaxy/galaxy-types.md)
 
 - [ ] **UX.137 The Generate page, the settings and the command line set the halo and the satellite galaxies switches, each through its own command, and say what they are**
@@ -966,21 +941,6 @@ with `clamp()`.
   Prerequisites: GEN.1070, GEN.1069.
   Design: [docs/design/systems/belt-evolution.md](design/systems/belt-evolution.md)
 
-- [ ] **UX.243 Day-and-night counter on every object page: a clock counting the object's own day at its real rate, with the state word, shown separately from the spin animation speed (spin.js compresses periods onto 20 s to 10 min per turn, stand-in SP1, L4)**
-  Boss, 4:47 PM EDT 2026-10-30. The counter reads the state of the
-  day-and-night item and counts the object's own day in real time (time
-  of day, day number), or states "tidally locked: permanent day side" or
-  "no night"; the spin display speed stays a labelled display choice and
-  the page says the sphere is shown spinning faster than real. Done:
-  page and API tests, a11y check, the unit shown beside every number.
-  Where we think it belongs (best guess, can move): Core 2 (pages),
-  after the day-and-night state item; lock work (API field).
-  Boss addition, 4:52 PM EDT (2026-10-30 4:53 PM EDT): The counter also
-  shows the day and night hours of each latitude band beside its
-  temperature (from GEN.1108), and the spin-speed fix for slow and
-  locked bodies is UX.244.
-  Prerequisites: none. Related: MAP.277, VIEW.14.
-
 - [ ] **UX.252 Readability rewrite of ALL planet, moon and belt text: summary sentences, descriptions, notes, labels, class pages**
   Boss, 10:07 AM EDT 2026-10-31 (and 10:08 AM EDT for the help pages):
   build and ship all the life recommendations, a full readability
@@ -1059,6 +1019,19 @@ with `clamp()`.
   change, so lock-free. Owner: none for now (pool; any web lane that is
   waiting). Version 8.1.
   Prerequisites: none. Related: MAP.210.
+
+- [ ] **UX.257 Object page life text: the life readings table overflows a phone and the species link fails contrast (bug)**
+  Found by Planets 1 in the axe check of the object page (UX.243,
+  2026-11-01 12:46 AM EDT as the lane reported), neither caused by that
+  panel. (1) table.life-readings is 438 px wide on a 390 px phone: wrap
+  it in a focusable scroll region like the other tables or let its
+  columns wrap. (2) The species link inside the life text fails
+  link-in-text-block contrast: 2.49:1 in the light theme and 1.91:1 in
+  the dark theme; give it the theme link colour or an underline plus
+  enough contrast. Done when src/tests/test_web_a11y.py passes the
+  object page of a body with life text in both themes at phone width.
+  Related: UX.252.
+  Prerequisites: none.
 
 ## MAP: Galaxy Map, Sector Map, System Map
 
@@ -1783,7 +1756,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   on an elliptical and the family's name in the key.
   Outlines (Boss, 2026-10-16, 9:00 PM EDT): the key row for the family
   shows its outline from UX.135 beside the family's name.
-  Prerequisites: GEN.389, UX.135. Related: MAP.232, MAP.234, MAP.235.
+  Prerequisites: GEN.389. Related: MAP.232, MAP.234, MAP.235.
   Design: [docs/design/galaxy/galaxy-types.md](design/galaxy/galaxy-types.md)
 
 - [ ] **MAP.248 The maps and pages follow the plan configuration: with the halo or the satellite galaxies off, nothing is drawn, picked or offered beyond the configured boundaries**
@@ -2793,8 +2766,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     Decided (2026-10-09): Boss (2026-10-09 18:37Z): the defaults are
     accepted, including the swallowed-giant flag. The orbit-expansion
     law for adiabatic mass loss is verified: a (M_star + M_planet) =
-    constant with the eccentricity unchanged (Jeans 1924; Hadjidemetriou
-    1963; Veras et al. 2011), valid when the mass-loss time is much
+    constant with the eccentricity unchanged ([R2149]; Hadjidemetriou
+    1963; [R4534]), valid when the mass-loss time is much
     longer than the orbital period and the loss is isotropic; impulsive
     loss uses vis-viva and unbinds an orbit when more than half the mass
     goes; engulfment overrides. Worked example: 1 AU round a 1 Msun star
@@ -3226,15 +3199,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   precession period.
   Verified (2026-10-09,
   exotic-environments-planets-and-compact-binaries.md): Boss's engine
-  verified the triple-stability criteria (2026-10-09): Mardling and Aarseth 2001
-  and Eggleton and Kiseleva 1995 stay the implemented
+  verified the triple-stability criteria (2026-10-09): [R1221, R2868] stay the implemented
   forms. Acceptance tests: (1) P-type, m1 = m2 = 1, m3 close to 0, outer
   eccentricity 0, inclination 0 gives R_p / a_in = 2.80; (2) S-type, m1
   = 1, m2 close to 0, m3 = 1, outer eccentricity 0.5, inclination 0
   gives R_p / a_in = 2.8 x 2^0.4 x (1.5 / sqrt(0.5))^0.4 = 4.99 and
   a_out / a_in = 9.98.
   Update (2026-10-09, after Boss supplied the paper): the implementable
-  Vynatheya et al. 2022 form (MNRAS 516, 4146; arXiv 2207.03151v2) is
+  [R4574] form (MNRAS 516, 4146; [R4574]) is
   its Equation 4: q_out = m3 / (m1 + m2); e_in,max = sqrt(1 - 5/3 cos^2
   i); e_in,avg = 0.5 e_in,max^2; the effective inner eccentricity is
   max(e_in, e_in,avg), and equals e_in where cos^2 i > 3/5 (our choice;
@@ -3366,7 +3338,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
 
 - [ ] **GEN.157 The `neighbor_galaxies` table and a verified data file of about 25 real galaxies**
   One Alembic revision, no change to existing tables, and the data file
-  checked against McConnachie 2012 (VizieR J/AJ/144/4) and NED. Hold
+  checked against [R2972] (VizieR J/AJ/144/4) and NED. Hold
   absolute magnitude and distance, never a hand-keyed apparent magnitude
   (the draft's recalled values were off by 0.7 to 1.9 mag). The layout
   already has Mpc and Gpc units, so a galaxy's centre fits the 76-bit position ID (the position part of the 96-bit object ID); add type code 13 `galaxy` in `names/object_id.py` only if
@@ -3695,7 +3667,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   sector fill linking cluster stars and naming the cluster at its first
   fill (child b), and the cluster pages and the Galaxy Map using the
   link (child c).
-  Data we hold (2026-10-29 8:55 PM EDT): Harris 1996 (2010 edition), 157
+  Data we hold (2026-10-29 8:55 PM EDT): [R1827] (2010 edition), 157
   globular clusters and about 50 columns, is held in
   /mnt/project-files/data/harris/mwgc.dat and read by nothing (Sources 1
   is building its setup entry); galaxy tables from Courteau, Comeron,
@@ -4400,7 +4372,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the mass-to-light assumption. There is no Milky Way option and no real
   cluster (47 Tuc, Omega Centauri, M13) appears by name. Owner: Core 3,
   in the cluster line. The file arrived 2026-10-16, 3:04 PM EDT. The
-  file: Harris 1996 (2010 edition), December 2010 revision, 157 clusters
+  file: [R1827] (2010 edition), December 2010 revision, 157 clusters
   in three parts. Part I has the name, RA and Dec, galactic longitude
   and latitude, the distance from the Sun and from the Galactic centre
   (R0 = 8.0 kpc) and X, Y, Z; Part II the [Fe/H], reddening, V magnitude
@@ -4412,7 +4384,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   mass and no age: the reader takes mass from M_V with a stated
   mass-to-light ratio and says so; gaps in a column fall back to the
   generator's own laws. Licence: free to use if the original source is
-  named; cite "Harris 1996 (2010 edition)" in the design note and the
+  named; cite "[R1827] (2010 edition)" in the design note and the
   file header. GEN.237 merged (#1851, 2026-10-16, 3:15 PM EDT): the
   component table exists.
   Boss (2026-10-16, 4:14 PM EDT, in the TODO thread): "I want to
@@ -4429,7 +4401,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   clock reported; docs/design/research/gemini-batch1-check.md): cluster
   half-light radius 2.7 ± 0.35 pc after correction for galactocentric
   radius, surface brightness and host colour, red about 17 percent
-  smaller than blue (Jordan 2005); invariance holds over a factor of
+  smaller than blue [R2193]; invariance holds over a factor of
   about 350 in host luminosity, not 10^5.
   Decided (Boss, contradiction sweep card, tapped 7:28 AM EDT 2026-10-21
   and "Halo mass only", as the coordinator reported it): the cluster
@@ -4448,7 +4420,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Setup entry (2026-10-29 8:35 PM EDT): The setup catalogue entry for
   the Harris file is built by Sources 1 (with the NOAA and Baraffe
   entries), then the reader and the calibration test are Core 4's.
-  Data we hold (2026-10-29 8:55 PM EDT): Harris 1996 (2010 edition), 157
+  Data we hold (2026-10-29 8:55 PM EDT): [R1827] (2010 edition), 157
   globular clusters and about 50 columns, is held in
   /mnt/project-files/data/harris/mwgc.dat and read by nothing (Sources 1
   is building its setup entry); galaxy tables from Courteau, Comeron,
@@ -5024,7 +4996,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   A catalogue cluster (GEN.297) keeps its catalogue name. Done: the link
   and the once-only name, with tests for a first fill, a second sector
   of the same cluster, a resumed fill and two workers filling at once.
-  Data we hold (2026-10-29 8:55 PM EDT): Harris 1996 (2010 edition), 157
+  Data we hold (2026-10-29 8:55 PM EDT): [R1827] (2010 edition), 157
   globular clusters and about 50 columns, is held in
   /mnt/project-files/data/harris/mwgc.dat and read by nothing (Sources 1
   is building its setup entry); galaxy tables from Courteau, Comeron,
@@ -5139,7 +5111,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   concentrated than the dark matter) -> stellar mass from the
   stellar-to-halo mass relation (abundance matching) with a low-mass
   cutoff for reionization -> size from the size-mass relation -> [Fe/H]
-  from the mass-metallicity relation (Kirby 2013) -> age and profile
+  from the mass-metallicity relation [R2368] -> age and profile
   from the mass and gas fraction, with tidal stripping near the disk.
   Each link names its source in the doc and the code. The real Milky Way
   rows serve only as a check that the derived population looks
@@ -5244,7 +5216,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   section 12): the top mass limit is 2e11 solar masses for every family
   (the Scale dial still cuts it to 1.55e11).
   Data we hold (2026-10-29 8:55 PM EDT): VizieR galaxy tables (Courteau
-  and Comeron c18, Pizzella 2005, digitised occupation, size and cluster
+  and Comeron c18, [R3540], digitised occupation, size and cluster
   figures) and the Harris file are held under
   reports/vizier-courteau-comeron-2026-10-17-files and data/harris; the
   galaxy-laws research is in docs/design/galaxy/galaxy-laws-research.md.
@@ -5269,7 +5241,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   galaxy, preset or hand-set value; reference galaxies only check the
   result.
   Data we hold (2026-10-29 8:55 PM EDT): VizieR galaxy tables (Courteau
-  and Comeron c18, Pizzella 2005, digitised occupation, size and cluster
+  and Comeron c18, [R3540], digitised occupation, size and cluster
   figures) and the Harris file are held under
   reports/vizier-courteau-comeron-2026-10-17-files and data/harris; the
   galaxy-laws research is in docs/design/galaxy/galaxy-laws-research.md.
@@ -5303,7 +5275,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.604, GEN.611. Design merged (GEN.378, #2368): this item replaces
   the Kelvin Table 1 stage stand-in in shape_draw.py with the
   single-Schechter fractions of docs/design/galaxy/galaxy-types.md section 5.
-  Section 6.3 records a probable misprint in Shen 2003 Table 1 (the
+  Section 6.3 records a probable misprint in [R4048: Table 1] (the
   early-type b is printed 3.47e-5 and should be about 3.47e-6); it is
   not used. How the Auto window of the shape dials (GEN.603) combines
   with the family's mass range is decided in GEN.380.
@@ -5313,7 +5285,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   family draw uses 0.55 for the lenticular share of the S0 to Sa class;
   requests R3 and R7 of the S0 to Sa report stay open.
   Data we hold (2026-10-29 8:55 PM EDT): VizieR galaxy tables (Courteau
-  and Comeron c18, Pizzella 2005, digitised occupation, size and cluster
+  and Comeron c18, [R3540], digitised occupation, size and cluster
   figures) and the Harris file are held under
   reports/vizier-courteau-comeron-2026-10-17-files and data/harris; the
   galaxy-laws research is in docs/design/galaxy/galaxy-laws-research.md.
@@ -5338,7 +5310,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   galaxy, preset or hand-set value; reference galaxies only check the
   result.
   Data we hold (2026-10-29 8:55 PM EDT): VizieR galaxy tables (Courteau
-  and Comeron c18, Pizzella 2005, digitised occupation, size and cluster
+  and Comeron c18, [R3540], digitised occupation, size and cluster
   figures) and the Harris file are held under
   reports/vizier-courteau-comeron-2026-10-17-files and data/harris; the
   galaxy-laws research is in docs/design/galaxy/galaxy-laws-research.md.
@@ -5364,7 +5336,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   0.55 lenticular, constant in mass. Requests R3 and R7 of the S0 to Sa
   research report stay open.
   Data we hold (2026-10-29 8:55 PM EDT): VizieR galaxy tables (Courteau
-  and Comeron c18, Pizzella 2005, digitised occupation, size and cluster
+  and Comeron c18, [R3540], digitised occupation, size and cluster
   figures) and the Harris file are held under
   reports/vizier-courteau-comeron-2026-10-17-files and data/harris; the
   galaxy-laws research is in docs/design/galaxy/galaxy-laws-research.md.
@@ -5397,7 +5369,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   solar masses and none from 1e7 to 1e9.
   Q2 is recorded as merged in docs/design/galaxy/galaxy-types.md (#2377).
   Data we hold (2026-10-29 8:55 PM EDT): VizieR galaxy tables (Courteau
-  and Comeron c18, Pizzella 2005, digitised occupation, size and cluster
+  and Comeron c18, [R3540], digitised occupation, size and cluster
   figures) and the Harris file are held under
   reports/vizier-courteau-comeron-2026-10-17-files and data/harris; the
   galaxy-laws research is in docs/design/galaxy/galaxy-laws-research.md.
@@ -5449,18 +5421,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Papers list (2026-10-17, filed by the TODO thread;
   docs/design/research/papers-to-fetch.md; Boss asked at 11:24 AM EDT for the
   papers he can download himself, the coordinator posted the list at
-  11:32 AM EDT as it reported): Haywood 2013 (arXiv:1305.4663), Bensby
-  2014 (arXiv:1309.2631) and Pinna 2019a and b (arXiv:1901.04310,
+  11:32 AM EDT as it reported): [R1863], Bensby
+  2014 [R0349, R3531] and b ([R3532],
   1904.01260) are readable by a thread, so the thick-disc start (GR6)
   moves from class B to class A; the labelled placeholder stays until
   they are read.
   Gemini batch 1 check (2026-10-17, finished 11:49 AM EDT as the lane
   clock reported; docs/design/research/gemini-batch1-check.md): thick-disc ages
-  (R6, partly): Pinna 2019b has 12 to 13 Gyr for FCC 153 and FCC 177,
+  (R6, partly): [R3532] has 12 to 13 Gyr for FCC 153 and FCC 177,
   FCC 170 peaking near 14 Gyr and stopping about 11 Gyr (three Fornax S0
-  galaxies); Sattler 2024 has mean thick-disc ages mostly below 8 Gyr,
+  galaxies); [R3928] has mean thick-disc ages mostly below 8 Gyr,
   about 4 Gyr on average, in eight star-forming discs of 4e9 to 6e10;
-  Comeron 2021 predicts the youngest thick-disc stars at 4 to 6 Gyr
+  [R0860] predicts the youngest thick-disc stars at 4 to 6 Gyr
   below 1e10 and about 10 Gyr at Milky Way mass. Gemini's start
   independent of host mass is contradicted. The oldest thick-disc age
   against host mass for low-mass star-forming discs stays open (needs
@@ -5468,7 +5440,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Boss's papers (uploaded 12:10 to 12:13 PM EDT on 2026-10-17, read by
   the paper-filing thread; report docs/design/research/boss-papers-2026-10-17.md,
   summary in the gap plan section 4.10; V read, R recomputed, D
-  digitized, FIG read off a plot): GR6 for the Milky Way: Haywood 2013:
+  digitized, FIG read off a plot): GR6 for the Milky Way: [R1863]:
   the thick disc forms from about 13 to about 8 Gyr ago (4 to 5 Gyr
   long, age scale uncertain by 1 to 1.5 Gyr); the inner thin disc starts
   about 8 Gyr ago and the outer thin disc 9 to 10 Gyr ago, so 'thin-disc
@@ -5476,8 +5448,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   2019a covers one galaxy (FCC 170): star formation peaks at the 14 Gyr
   edge of its age grid (resolution about 3 Gyr), thick-disc history has
   a second bump near 10 Gyr and stops about 11 Gyr. The plan's FCC 153,
-  FCC 177 and '2 to 4 Gyr first phase' statements need Pinna 2019b and
-  Bensby 2014 (not uploaded) and stay unverified.
+  FCC 177 and '2 to 4 Gyr first phase' statements need [R0349, R3532] (not uploaded) and stay unverified.
   Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
   newer note wins, report todo-contradictions-2026-10-18.md): GEN.406 is
   retired (2026-10-17, about 10:42 AM EDT): the age ranges are in
@@ -5510,7 +5481,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.384,
   GEN.280.
   Data we hold (2026-10-29 8:55 PM EDT): VizieR galaxy tables (Courteau
-  and Comeron c18, Pizzella 2005, digitised occupation, size and cluster
+  and Comeron c18, [R3540], digitised occupation, size and cluster
   figures) and the Harris file are held under
   reports/vizier-courteau-comeron-2026-10-17-files and data/harris; the
   galaxy-laws research is in docs/design/galaxy/galaxy-laws-research.md.
@@ -5731,7 +5702,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
 
 - [ ] **GEN.405 Metallicity and rates by position from the galaxy's own model: the mass-metallicity relation and the local rates replace the fixed gradient and the quoted-at-the-Sun values**
   GEN.368's table (Boss approved it 2026-10-16, 10:11 PM EDT: size
-  source Shen et al. 2003, approximation for the halo mass, no home
+  source [R4048], approximation for the halo mass, no home
   position, every derived law draws its natural scatter from the seed,
   the first family covers 3e9 to 2e11 solar stellar mass; paper check
   /mnt/project-files/reports/gen368-paper-check-2026-10-17.md; table
@@ -5740,7 +5711,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   /mnt/project-files/reports/gen368-laws-table-2026-10-17.md). Rows 13
   and 14. The central metallicity and the gradient come from the stellar
   mass by the mass-metallicity relation (the numbers are an open
-  research request in the table: Gallazzi 2005 and the star-forming main
+  research request in the table: [R1499] and the star-forming main
   sequence have no numbers read yet), the halo metallicity from the same
   relation less an offset; each rate (supernova, gamma-ray burst, active
   nucleus, the phenomenon densities of `tuning.py:3007-3055`, the nebula
@@ -5775,18 +5746,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.254.
   Body composition research lane finding F6 (2026-10-17):
   `METALLICITY_DISC_FALL_DEX_PER_KPC = 0.06` (tuning.py, marked
-  recalled) is 0.01 above the 0.053 dex/kpc computed from Hayden 2015
-  Table 1 (R > 6 kpc); the position-dependent metallicity of this item
+  recalled) is 0.01 above the 0.053 dex/kpc computed from [R1856: Table 1] (R > 6 kpc); the position-dependent metallicity of this item
   derives the gradient from the galaxy's laws, and the comment and
   constant go with it.
   Research landed (GEN.406 retired, 2026-10-17, about 10:42 AM EDT;
   docs/design/galaxy/galaxy-laws-research.md, sections Q2 and Q4): the halo
-  metallicity law and its offset (Harmsen 2017: about -0.6 dex against
+  metallicity law and its offset ([R1816]: about -0.6 dex against
   the relation at the halo mass, about -0.9 dex against the host's own
-  centre, derived there; D'Souza and Bell 2018 give a physical
+  centre, derived there; [R1168] give a physical
   alternative) and the ages of the components for the rates by
   population. Conflicts 9 (halo age: the code's 10 to 13 Gyr against
-  Harmsen 2023's younger massive haloes) and 10 (the metallicity
+  [R1815]'s younger massive haloes) and 10 (the metallicity
   baseline) need a default. GEN.406 no longer blocks this item.
   Fills (2026-10-17, gap-filling plan, docs/design/research/gap-filling-plan.md):
   the values this item cannot source from a read paper are filled by the
@@ -5798,7 +5768,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   bracket, and on a contradiction the verified source wins. A stand-in
   replaced later changes stored output and rides the pending epoch.
   Galaxy gaps for this item: the thick-to-thin bound GR3 (plan 4.4) and
-  the star abundance regression BC2 (plan 4.7, Brewer 2016
+  the star abundance regression BC2 (plan 4.7, [R0535]
   whole-catalogue fit; the builder applies the quality cut).
 
 - [ ] **GEN.421 Headline of 9.0: what every body and atmosphere is made of, and the atmosphere colour that follows from it**
@@ -5900,7 +5870,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Boss's papers (uploaded 12:10 to 12:13 PM EDT on 2026-10-17, read by
   the paper-filing thread; report docs/design/research/boss-papers-2026-10-17.md,
   summary in the gap plan section 4.10; V read, R recomputed, D
-  digitized, FIG read off a plot): AD5 and BC13: Hassler 2014 Mars
+  digitized, FIG read off a plot): AD5 and BC13: [R1843] Mars
   surface, galactic cosmic rays only, about 300 sols (Table 1): 0.21
   +-0.04 mGy/day, quality factor 3.05 +-0.26, 0.64 +-0.12 mSv/day;
   cruise 0.48 mGy/day, Q 3.82, 1.84 mSv/day; Table 3: 76 mGy/yr and 232
@@ -6002,8 +5972,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   exospheres (sputtering, impact vaporisation, thermal release,
   photon-stimulated desorption), the sodium and potassium data, the
   exospheric columns of airless bodies and the comet coma abundances and
-  production rates (Mumma and Charnley 2011, Bockelee-Morvan 2004, Dello
-  Russo 2016, A'Hearn 2012 and Combi and Meech rates are on the research
+  production rates ([R0436, R3206], Dello
+  [R0048, R1063] and Combi and Meech rates are on the research
   list, section 6 item 10). Today an airless body has no atmosphere data
   at all and a comet carries no abundance table. Do: from the stored
   surface composition (GEN.441, GEN.442), surface temperature and the
@@ -6030,13 +6000,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   research lane to verify): comet volatile ratios to water: CO 0.15 to
   30 percent, CO2 2 to 30, CH4 0.2 to 1.5, NH3 0.2 to 1.0, production
   rate Q(H2O) 1e26 to 1e31 molecules per second (Mumma and Charnley
-  2011, Bockelee-Morvan 2004, Dello Russo 2016, A'Hearn 2012), and the
+  2011, [R0436], Dello [R0048, R1063]), and the
   advice to sample a distribution and never an average composition.
   Boss-supplied and since checked by the lanes (sections 3c and 10 of docs/design/composition/atmosphere-composition.md); every number stays labelled by what the lane read.
   Checked by the Body composition research lane (part F, 1:28 AM EDT as
   the lane reported): Boss's comet ranges are consistent with what part
   D read (CO/H2O median 3.3 with range 0.3 to 26 and CO2/H2O median 12
-  with range 2 to 30 in Harrington Pinto 2022; 67P CH4 0.34 and NH3 0.67
+  with range 2 to 30 in Harrington [R3535]; 67P CH4 0.34 and NH3 0.67
   percent), but the lower CO bound of 0.15 percent was not found.
   Boss's gated possibility-table rule (1:38 AM EDT, section 4b of
   docs/design/composition/composition-model.md; format and loader GEN.472, the sum
@@ -6072,7 +6042,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   per finding 27.
   Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
   newer note wins, report todo-contradictions-2026-10-18.md): the NH3
-  range 0.1 to 3.6 percent is superseded by the Mumma and Charnley 2011
+  range 0.1 to 3.6 percent is superseded by the [R3206]
   values (1.5, 0.5, 0.7 and under 0.3 percent in four comets; Boss's
   papers, GEN.488 and GEN.495, 2026-10-17, 12:10 to 12:13 PM EDT; the
   3.6 percent bound is unsupported), flagged a stand-in at the widest
@@ -6091,8 +6061,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Part F of the Body composition research lane
   (docs/design/composition/body-composition-parts/F-boss-note-check.md; 2026-10-17,
   1:28 AM EDT as the lane reported; checks Boss's research note of 1:22
-  AM EDT), filed by the TODO thread. Item F4 (the note names Sloan and Koh 2007
-  and Choukroun 2010 for clathrates, and perchlorate and
+  AM EDT), filed by the TODO thread. Item F4 (the note names [R0779, R4242] for clathrates, and perchlorate and
   sulfate eutectics for brines; neither paper was read). In icy crusts
   clathrate hydrates hold CH4, CO2 and N2 in water-ice cages and buffer
   an atmosphere's methane supply over gigayears (Titan-type crusts), and
@@ -6125,31 +6094,29 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   of docs/design/composition/body-composition-research.md; the earlier 'awaiting
   verification' note on this item is superseded for the body-related
   claims): (part G4) the CO2 hydrate Q1 of 271.60 K and 1.044 MPa is
-  Semenov 2023 with +/- 0.021 MPa (not +/- 0.002), and Q2 is 283.13 K at
-  4.494 MPa; the deliquescence relative humidity sources (Gough 2011,
-  Nuding 2014) and the JPL copyright page were not reached.
+  [R4015] with +/- 0.021 MPa (not +/- 0.002), and Q2 is 283.13 K at
+  4.494 MPa; the deliquescence relative humidity sources [R1642, R3320] and the JPL copyright page were not reached.
   Checked against Boss's 2:11 AM EDT note by the Atmosphere research
   lane (about 2:55 AM EDT as the lane reported; findings 21 to 30, part
   10A to 10D of atmosphere-composition.md): the CO2 hydrate quadruple
   point Q1 271.60 K at 1.044 MPa is confirmed; the brine and H2SO4-H2O
-  remarks carry no constants and stay unadopted until Tabazadeh 1997,
-  Zeleznik 1991 and Ayers 1980 are read.
+  remarks carry no constants and stay unadopted until [R0210, R4289, R4877] are read.
   Decided (Boss, 2026-10-17, between 11:19 AM and 11:23 AM EDT, card
   answers relayed in words by the coordinator;
   docs/design/research/gap-filling-plan.md section 8): AD7 vapour pressure:
-  Tabazadeh 1997 and Zeleznik 1991 are on Boss's own list; the nearest
+  [R4289, R4877] are on Boss's own list; the nearest
   reachable fits stay meanwhile.
   Papers list (2026-10-17, filed by the TODO thread;
   docs/design/research/papers-to-fetch.md; Boss asked at 11:24 AM EDT for the
   papers he can download himself, the coordinator posted the list at
   11:32 AM EDT as it reported): AD7: Tabazadeh, Toon, Clegg and Hamill
-  1997 is bronze open access at Wiley, Zeleznik 1991 and Ayers et al.
+  1997 is bronze open access at [R4877] and Ayers et al.
   1980 are closed (Boss fetches).
   Boss's papers (uploaded 12:10 to 12:13 PM EDT on 2026-10-17, read by
   the paper-filing thread; report docs/design/research/boss-papers-2026-10-17.md,
   summary in the gap plan section 4.10; V read, R recomputed, D
   digitized, FIG read off a plot): AD7: water side filled, acid side
-  partly. Tabazadeh 1997 Eq. 1: ln P0_H2O = 18.452406985 -
+  partly. [R4289: Eq. 1]: ln P0_H2O = 18.452406985 -
   3505.1578807/T - 330918.55082/T^2 + 12725068.262/T^3 (mbar, 185 to 260
   K); Table 1: P_H2O = exp(a + b/T + c/T^2) for 15 compositions of 10 to
   80 weight percent H2SO4 (40 percent: a 20.379, b -4828.5, c -112550;
@@ -6158,14 +6125,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   3 and Table 2 (acid weight percent against water activity) have three
   branches discontinuous at a_w 0.05 and 0.85 (steps of 0.2 to 1 weight
   percent); test at 200 K and 60 weight percent: P0 3.165e-3 mbar and
-  a_w 0.0735 [R]. Zeleznik 1991 gives the Gibbs energy function (Eq. 12
+  a_w 0.0735 [R]. [R4877] gives the Gibbs energy function (Eq. 12
   to 13, 50 parameters, Table 6A) and activities and osmotic
   coefficients at 200 to 350 K: no vapour phase and no partial
   pressures; against Tabazadeh the water activity differs by 10 to 22
   percent at 60 to 70 weight percent and 200 to 220 K and under 5
   percent at 40 to 50 percent and 250 K. Printing faults: Zeleznik Eq.
   12 should read ln x_j and Eq. 11 lacks a minus sign. No paper here
-  prints the acid vapour pressure: it needs Ayers 1980 (paid) or the
+  prints the acid vapour pressure: it needs [R0210] (paid) or the
   Kulmala-Laaksonen form already in the files; the stand-in stays.
   Decided (Boss, contradiction sweep cards, taps 6:08 to 6:10 PM EDT
   2026-10-18, as the coordinator reported them): fork 1, "One bump for
@@ -6220,7 +6187,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   lane's words: the replacement research is planetesimal composition as
   a function of formation temperature (the condensation sequence of
   parts C and D), then dynamical mixing by giant-planet migration and
-  scattering (Walsh 2011 and Raymond and Izidoro 2017 type models, none
+  scattering ([R3681, R4603] type models, none
   read yet); fit a general kernel P(taxon | a / a_snow, giant-planet
   history) and test that it returns the measured zone mix as one
   realisation, not as the input. Output: a drawable, derived kernel with
@@ -6270,9 +6237,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   by TODO). Nothing fixed from the Solar System or the Milky Way
   (standing rule).
   Data we hold (2026-10-29 8:55 PM EDT): Second-hand citation files
-  (Frost 1991 buffers, JPL 19-5 rate lines, Leiden photo rates, Vainio
-  2017 SEP bands) and the gap plan scripts are held; Lodders 2003,
-  Weisberg 2006 and UNSCEAR 2008 extracts are in
+  ([R1464] buffers, JPL 19-5 rate lines, Leiden photo rates, Vainio
+  2017 SEP bands) and the gap plan scripts are held; [R2726, R4658] and UNSCEAR 2008 extracts are in
   design-drafts/gen465-second-pass; the stand-in registry
   (stand-in-values.md, 316 rows) lists every constant with its source.
   Catalog sections 3 and 4.
@@ -6334,9 +6300,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   by TODO). Nothing fixed from the Solar System or the Milky Way
   (standing rule).
   Data we hold (2026-10-29 8:55 PM EDT): Second-hand citation files
-  (Frost 1991 buffers, JPL 19-5 rate lines, Leiden photo rates, Vainio
-  2017 SEP bands) and the gap plan scripts are held; Lodders 2003,
-  Weisberg 2006 and UNSCEAR 2008 extracts are in
+  ([R1464] buffers, JPL 19-5 rate lines, Leiden photo rates, Vainio
+  2017 SEP bands) and the gap plan scripts are held; [R2726, R4658] and UNSCEAR 2008 extracts are in
   design-drafts/gen465-second-pass; the stand-in registry
   (stand-in-values.md, 316 rows) lists every constant with its source.
   Catalog sections 3 and 4.
@@ -6373,9 +6338,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   by TODO). Nothing fixed from the Solar System or the Milky Way
   (standing rule).
   Data we hold (2026-10-29 8:55 PM EDT): Second-hand citation files
-  (Frost 1991 buffers, JPL 19-5 rate lines, Leiden photo rates, Vainio
-  2017 SEP bands) and the gap plan scripts are held; Lodders 2003,
-  Weisberg 2006 and UNSCEAR 2008 extracts are in
+  ([R1464] buffers, JPL 19-5 rate lines, Leiden photo rates, Vainio
+  2017 SEP bands) and the gap plan scripts are held; [R2726, R4658] and UNSCEAR 2008 extracts are in
   design-drafts/gen465-second-pass; the stand-in registry
   (stand-in-values.md, 316 rows) lists every constant with its source.
   Catalog sections 3 and 4.
@@ -6422,9 +6386,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   by TODO). Nothing fixed from the Solar System or the Milky Way
   (standing rule).
   Data we hold (2026-10-29 8:55 PM EDT): Second-hand citation files
-  (Frost 1991 buffers, JPL 19-5 rate lines, Leiden photo rates, Vainio
-  2017 SEP bands) and the gap plan scripts are held; Lodders 2003,
-  Weisberg 2006 and UNSCEAR 2008 extracts are in
+  ([R1464] buffers, JPL 19-5 rate lines, Leiden photo rates, Vainio
+  2017 SEP bands) and the gap plan scripts are held; [R2726, R4658] and UNSCEAR 2008 extracts are in
   design-drafts/gen465-second-pass; the stand-in registry
   (stand-in-values.md, 316 rows) lists every constant with its source.
   Catalog sections 3 and 4.
@@ -6546,9 +6509,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   by TODO). Nothing fixed from the Solar System or the Milky Way
   (standing rule).
   Data we hold (2026-10-29 8:55 PM EDT): Second-hand citation files
-  (Frost 1991 buffers, JPL 19-5 rate lines, Leiden photo rates, Vainio
-  2017 SEP bands) and the gap plan scripts are held; Lodders 2003,
-  Weisberg 2006 and UNSCEAR 2008 extracts are in
+  ([R1464] buffers, JPL 19-5 rate lines, Leiden photo rates, Vainio
+  2017 SEP bands) and the gap plan scripts are held; [R2726, R4658] and UNSCEAR 2008 extracts are in
   design-drafts/gen465-second-pass; the stand-in registry
   (stand-in-values.md, 316 rows) lists every constant with its source.
   Catalog sections 3 and 4.
@@ -6572,9 +6534,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   lane's R1 to R5 are GEN.473 to GEN.476 and TEST.215) of section 4 of
   docs/design/composition/atmosphere-composition-parts/09-weighted-composition-tables.md,
   rows d6 of the weighted atmosphere tables: Cosmic-shoreline constants
-  and pressure caps by regime: Zahnle and Catling 2017 arXiv:1702.03386
-  (fetch from export.arxiv.org), Meni-Gallardo and Palle 2025 and the
-  XUV histories (Johnstone 2021, part 04). The project's K window and r
+  and pressure caps by regime: [R4862]
+  (fetch from export.arxiv.org), [R3037] and the
+  XUV histories ([R2183], part 04). The project's K window and r
   thresholds are fitted to 13 Solar System bodies and the cited paper is
   only a snippet, so table d is derived from a calibration and the
   constants are a flagged `stand-in` until this lands. Until it lands
@@ -6589,9 +6551,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   docs/design/composition/tunable-gaps.md): the K window fitted to 13 Solar System
   bodies is contradicted by two verified exoplanet papers and by 55 Cnc
   e and TOI-561 b (K 12 to 190 times higher); Meni-Gallardo and Palle
-  have slope 5.77, intercept -4.35 (arXiv:2508.12865), not 'keep slope
-  4'; Berta-Thompson 2025 gives log10 f0 = 2.62 (+0.45/-0.31), p = 5.9,
-  q = 1.17, width 0.247 dex (arXiv:2507.02136); Zahnle and Catling draw
+  have slope 5.77, intercept -4.35 [R3037], not 'keep slope
+  4'; [R0364] gives log10 f0 = 2.62 (+0.45/-0.31), p = 5.9,
+  q = 1.17, width 0.247 dex [R0364]; Zahnle and Catling draw
   the line by eye and give no K; 'TRAPPIST-1 b and c under 0.1 bar' is
   in no paper read (at or above 1 bar disfavoured). Builder GEN.511.
   Owner (2026-10-09): Boss 1:45 AM EDT 2026-10-25: idle or blocked lanes
@@ -6606,9 +6568,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   by TODO). Nothing fixed from the Solar System or the Milky Way
   (standing rule).
   Data we hold (2026-10-29 8:55 PM EDT): Second-hand citation files
-  (Frost 1991 buffers, JPL 19-5 rate lines, Leiden photo rates, Vainio
-  2017 SEP bands) and the gap plan scripts are held; Lodders 2003,
-  Weisberg 2006 and UNSCEAR 2008 extracts are in
+  ([R1464] buffers, JPL 19-5 rate lines, Leiden photo rates, Vainio
+  2017 SEP bands) and the gap plan scripts are held; [R2726, R4658] and UNSCEAR 2008 extracts are in
   design-drafts/gen465-second-pass; the stand-in registry
   (stand-in-values.md, 316 rows) lists every constant with its source.
   Catalog sections 3 and 4.
@@ -6624,7 +6585,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   docs/design/composition/atmosphere-composition-parts/09-weighted-composition-tables.md,
   rows o2, o3, o4, o6 of the weighted atmosphere tables: Radioisotopes:
   Th, U and K against [Fe/H] and the Galactic population (the Frebel and
-  Hill cosmochronometers), K volatile depletion by body class, White and Klein 2014
+  Hill cosmochronometers), K volatile depletion by body class, [R4687]
   oceanic crust and the 26Al abundance spread between
   systems. It meets GEN.459, GEN.444 and GEN.476. Until it lands those
   rows are `DESIGN` rows: the generator draws a seeded value inside the
@@ -6640,7 +6601,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   0.19 for the thin disc; o3 K/U depletion has only Solar System bodies
   (Moon 0.032, Earth 0.18, Mercury 0.18, Mars 0.28) unless Boss accepts
   Na in 202 DZ white dwarfs as a proxy for formation temperature
-  (Harrison 2021, arXiv:2103.05713): Solar System K/U must not be the
+  [R1832]: Solar System K/U must not be the
   tuning target; o4 Th/U U[3.8, 4.5] is an age-4.5 Gyr value to derive
   from the production ratio, birth epoch and decay; o6 Al-26 is a
   mixture, not log-uniform. Builder GEN.514.
@@ -6648,7 +6609,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (his message cmsg_01RuNTFUNB92A8cm5CbojQAiU83tW6veVQcjmJFouq4Gva,
   relayed by the coordinator)), answer 7, option 1: the o3 potassium and
   uranium depletion row keeps its stand-in (no sodium proxy from white
-  dwarfs, Harrison 2021, for now); the stand-in stays labelled in the
+  dwarfs, [R1832], for now); the stand-in stays labelled in the
   gap plan registry until a verified source exists.
   Stand-in (2026-10-09): Best-guess stand-in (Update 4:12 PM EDT
   2026-10-24, from reports/best-guess-standins-2026-10-24.md, written about 4:15 PM EDT as the lane reported; relayed by the stand-ins thread): section 13:
@@ -6666,9 +6627,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   by TODO). Nothing fixed from the Solar System or the Milky Way
   (standing rule).
   Data we hold (2026-10-29 8:55 PM EDT): Second-hand citation files
-  (Frost 1991 buffers, JPL 19-5 rate lines, Leiden photo rates, Vainio
-  2017 SEP bands) and the gap plan scripts are held; Lodders 2003,
-  Weisberg 2006 and UNSCEAR 2008 extracts are in
+  ([R1464] buffers, JPL 19-5 rate lines, Leiden photo rates, Vainio
+  2017 SEP bands) and the gap plan scripts are held; [R2726, R4658] and UNSCEAR 2008 extracts are in
   design-drafts/gen465-second-pass; the stand-in registry
   (stand-in-values.md, 316 rows) lists every constant with its source.
   Catalog sections 3 and 4.
@@ -6682,8 +6642,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Sources 2 keeps the GEN.473/474/475/477/493/494/595 wiring on train 6.
   Sources 1 (step 1 merged as #4046, as the lane reported) (2026-10-30
   11:46 AM EDT): Lock-free step done: physics/potassium_depletion.py
-  draws potassium depletion by body class from Dauphas et al. 2022 Table
-  1 (planets of 0.03 Earth masses or more centre on 0.19 with 0.15 dex,
+  draws potassium depletion by body class from [R1003: Table 1] (planets of 0.03 Earth masses or more centre on 0.19 with 0.15 dex,
   smaller bodies on 0.015 with 0.94 dex); rows KD1 to KD4 in section
   6.61; report
   /mnt/project-files/reports/gen492-potassium-depletion-2026-10-30.md.
@@ -6719,13 +6678,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Tunable gaps investigation (3:36 AM EDT as the coordinator reported;
   docs/design/composition/tunable-gaps.md): p4 tau_sat LU[0.162, 2] Gyr is mass
   dependent (0.16 Gyr for 0.5 to 0.6 solar masses, 0.6 +/- 0.3 for 0.2
-  to 0.3, 2.3 +/- 1.3 for 0.1 to 0.2; arXiv:1111.0031, 2205.02331) and
-  p6 becomes a percentile draw (arXiv:2009.07695). Builder GEN.523.
+  to 0.3, 2.3 +/- 1.3 for 0.1 to 0.2; [R2118], 2205.02331) and
+  p6 becomes a percentile draw [R2183]. Builder GEN.523.
   Open-gaps report (docs/design/research/open-gaps-closest-laws-2026-10-17.md,
   filed 2026-10-17 about 1:16 PM EDT; summary in the gap plan section
   4.11): Nearest law: activity constant below saturation and falling as
-  Rossby^-2.2 beyond (Wright 2011), spin-down t^-1/2, rotation tracks of
-  Johnstone 2021. Saturation times (0.16 Gyr at 0.5 to 0.6 solar masses,
+  Rossby^-2.2 beyond [R4780], spin-down t^-1/2, rotation tracks of
+  [R2183]. Saturation times (0.16 Gyr at 0.5 to 0.6 solar masses,
   0.6 +- 0.3 at 0.2 to 0.3, 2.3 +- 1.3 at 0.1 to 0.2) are one author's
   pair: never mix Rossby saturation values of different authors. Rule V.
   Rescoped (2026-10-29 8:30 PM EDT): Boss, 8:16 PM EDT 2026-10-29 (full
@@ -6736,9 +6695,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   by TODO). Nothing fixed from the Solar System or the Milky Way
   (standing rule).
   Data we hold (2026-10-29 8:55 PM EDT): Second-hand citation files
-  (Frost 1991 buffers, JPL 19-5 rate lines, Leiden photo rates, Vainio
-  2017 SEP bands) and the gap plan scripts are held; Lodders 2003,
-  Weisberg 2006 and UNSCEAR 2008 extracts are in
+  ([R1464] buffers, JPL 19-5 rate lines, Leiden photo rates, Vainio
+  2017 SEP bands) and the gap plan scripts are held; [R2726, R4658] and UNSCEAR 2008 extracts are in
   design-drafts/gen465-second-pass; the stand-in registry
   (stand-in-values.md, 316 rows) lists every constant with its source.
   Catalog sections 3 and 4.
@@ -6775,18 +6733,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (brown-dwarf and exoplanet cloud regimes by kinetic grain growth).
   Tunable gaps investigation (3:36 AM EDT as the coordinator reported;
   docs/design/composition/tunable-gaps.md): the 500 to 700 K range is T8 to T9; Y0
-  is 371 to 510 K (Kirkpatrick 2021 Table 13; Beiler 2024); g1 to g5 are
+  is 371 to 510 K ([R2374: Table 13]; [R0323]); g1 to g5 are
   one Teff map and rows g1 and g4 are derivations. Builder GEN.517.
   Open-gaps report (docs/design/research/open-gaps-closest-laws-2026-10-17.md,
   filed 2026-10-17 about 1:16 PM EDT; summary in the gap plan section
   4.11): Nearest law: spectral type is a monotone function of Teff with
-  scatter; Kirkpatrick 2021 Table 13 (RMS 134, 79, 79 K; Y0 at 371 to
+  scatter; [R2374: Table 13] (RMS 134, 79, 79 K; Y0 at 371 to
   510 K) wins over 'T/Y gap 500 to 700 K', which is T8 to T9. Rule V.
   Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
   newer note wins, report todo-contradictions-2026-10-18.md): the brown
   dwarf range is corrected (2026-10-17, 3:36 AM EDT and 1:16 PM EDT):
   500 to 700 K is T8 to T9, not a T/Y gap, and Y0 begins at 371 to 510 K
-  (Kirkpatrick 2021 Table 13). The title's "T/Y boundary near 500 to 700
+  ([R2374: Table 13]). The title's "T/Y boundary near 500 to 700
   K" and GEN.454's "uncovered range of 500 to 700 K" are superseded.
   Rescoped (2026-10-29 8:30 PM EDT): Boss, 8:16 PM EDT 2026-10-29 (full
   build in 8.1): this is no longer a research-only item waiting for Boss
@@ -6796,9 +6754,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   by TODO). Nothing fixed from the Solar System or the Milky Way
   (standing rule).
   Data we hold (2026-10-29 8:55 PM EDT): Second-hand citation files
-  (Frost 1991 buffers, JPL 19-5 rate lines, Leiden photo rates, Vainio
-  2017 SEP bands) and the gap plan scripts are held; Lodders 2003,
-  Weisberg 2006 and UNSCEAR 2008 extracts are in
+  ([R1464] buffers, JPL 19-5 rate lines, Leiden photo rates, Vainio
+  2017 SEP bands) and the gap plan scripts are held; [R2726, R4658] and UNSCEAR 2008 extracts are in
   design-drafts/gen465-second-pass; the stand-in registry
   (stand-in-values.md, 316 rows) lists every constant with its source.
   Catalog sections 3 and 4.
@@ -6847,7 +6804,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (GEN.725) in the same PR that uses the value. Nothing changes a
   generated world until the owning item uses it.
   Data we hold (2026-10-29 8:55 PM EDT): Bern population synthesis
-  (Venturini 2024) as ngpps_formation_water.json is the validation
+  [R4529] as ngpps_formation_water.json is the validation
   target for delivered water; bulk composition source checks are in
   reports/bulk-composition-sources-check-2026-10-17; materials.json and
   elements.json are in the repo. Catalog sections 3 and 4.
@@ -6883,8 +6840,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Tunable gaps investigation (a read-only thread, finished 3:36 AM EDT
   as the coordinator reported; docs/design/composition/tunable-gaps.md), filed by
   the TODO thread. Builder group B11 of section 4 (one worker). Rows:
-  h4, n6, n7. Shared data and fit: Fu 2017 (N=34), Estrela 2022 (N=62),
-  Brande 2024 (N=15), UHJ TiO/VO list. Needs: decision D5. Decision D5
+  h4, n6, n7. Shared data and fit: Fu 2017 (N=34), [R1300] (N=62),
+  [R0516] (N=15), UHJ TiO/VO list. Needs: decision D5. Decision D5
   (default): Kzz and haze yield are nuisance parameters with the Brande
   scatter as prior; drop the LU[1e7, 1e11] Kzz draw in favour of a Teq
   threshold. Finding: Ti-bearing gas is kept only at Teq 2641 K and
@@ -6984,8 +6941,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Tunable gaps investigation (a read-only thread, finished 3:36 AM EDT
   as the coordinator reported; docs/design/composition/tunable-gaps.md), filed by
   the TODO thread. Builder group B15 of section 4 (one worker). Rows:
-  p4, p6 (and p3, p5). Shared data and fit: Jackson 2012, Medina 2022,
-  Wright 2011 and 2018, Johnstone 2021 tracks. Needs: the Mors
+  p4, p6 (and p3, p5). Shared data and fit: [R2118, R3017, R4780] and 2018, [R2183] tracks. Needs: the Mors
   percentile data. Bracket correction: tau_sat LU[0.162, 2] Gyr is mass
   dependent (0.16 Gyr for 0.5 to 0.6 solar masses, 0.6 +/- 0.3 for 0.2
   to 0.3, 2.3 +/- 1.3 for 0.1 to 0.2) and p6 becomes a percentile draw.
@@ -7017,10 +6973,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Tunable gaps investigation (a read-only thread, finished 3:36 AM EDT
   as the coordinator reported; docs/design/composition/tunable-gaps.md), filed by
   the TODO thread. Builder group B16 of section 4 (one worker). Rows:
-  m5, m6, m2 look-up. Shared data and fit: Schaefer 2012, Asplund 2021,
+  m5, m6, m2 look-up. Shared data and fit: [R0168, R3945],
   Maas, Jonsson. Needs: Cl and F depletion source. Finding: m2's 'O3
   about 10 percent of Earth' is 0.01 to 0.1 percent for G, K and M hosts
-  and 15 percent for an F host (Domagal-Goldman 2014); HCl and HF are
+  and 15 percent for an F host [R1137]; HCl and HF are
   percent level only for crust composition, below 0.1 percent for the
   bulk silicate Earth. Do: replace the seeded bracket of each DESIGN row
   of GEN.478 in these rows by a seeded draw whose knobs are tuned
@@ -7058,12 +7014,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   each names the paper or dataset and the quantity, and until it is
   answered the build items carry the labelled placeholders or proposed
   defaults of the note. R1: observed stellar halo mass against M* for
-  3e9 to 3e10 (GEN.401). R2: numeric curves from Rodriguez-Gomez 2016
-  Fig 3, D'Souza 2014 Fig 16 and Benitez-Llambay and Frenk 2020 Fig 10.
-  R3: the thick/thin mass and length ratios as formulas (Comeron 2018
+  3e9 to 3e10 (GEN.401). R2: numeric curves from [R3790]
+  Fig 3, [R1169] Fig 16 and [R0338] Fig 10.
+  R3: the thick/thin mass and length ratios as formulas ([R0865]
   and the S4G papers), to settle conflicts 5 and 6. R4: the age-velocity
   relation normalisation for other galaxies (GEN.447, GEN.401). R5: the
-  scatter of the Courteau 2007 Vc-sigma0 relation. R6: the oldest thick
+  scatter of the [R0908] Vc-sigma0 relation. R6: the oldest thick
   disk age against host mass (GEN.386). R7: the radius ratio of
   metal-poor to metal-rich cluster systems (GEN.403). R8: cluster system
   radii at stellar masses 10^8.5 to 10^10.3. R9: extragalactic cluster
@@ -7073,7 +7029,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and its scatter (Fitts 0.5 dex against Nadler 0.19 dex). R12: the
   reionization redshift spread. R13: the ultrafaint size relation. R14:
   the halo mass law above 1e11. R15: the occupation fraction and its
-  width against halo mass (Graus 2019, Fitts 2018). Done: each request
+  width against halo mass [R1386, R1670]. Done: each request
   is answered by a read source (or Boss says to keep the placeholder),
   the number goes to the item named and the note's status moves from
   placeholder to verified. It does not gate GEN.301: the placeholders
@@ -7112,8 +7068,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   slope) and 5 are unsupported, misattributed or internally
   inconsistent. A separate checking thread for the other 25 checkable
   claims is recommended and waits on Boss's card answer. Already
-  answered by reading: R4 for the Milky Way (age-velocity values, Sharma
-  and Hayden 2020, arXiv:2004.06556, Table 2; other galaxies stay a
+  answered by reading: R4 for the Milky Way (age-velocity values, [R4043: Table 2]; other galaxies stay a
   derived or bracketed fill) and R9a (cluster half-light radius, Jordan
   2005, astro-ph/0508219, abstract read). Of the 17 lines (R9 splits in
   three): 2 done (R4 for the Milky Way, R9a), 10 are class A reading
@@ -7128,7 +7083,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   downloaded line lists and star catalogues (HITRAN, ExoMol, Brewer
   2016, Hypatia); 5 papers behind refused publishers; 6 the Courteau
   2007 64-galaxy table and the Comeron fit equations; 7 external-galaxy
-  thick-disc histories (Pinna 2019 and similar). Boss (11:17 AM EDT,
+  thick-disc histories ([R3531, R3532] and similar). Boss (11:17 AM EDT,
   card tap "One checking thread" as the coordinator reported) chose a
   single read-only thread to check the other checkable claims of Gemini
   batch 1; "Gemini batch 1 check (2026-10-17)" started at 11:19 AM EDT
@@ -7146,46 +7101,42 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   log-uniform from 1.0 to the largest printed ratio (1.5 until read). 3
   Placeholders BC11, AT.b5, AT.n7 ship as labelled placeholders (BC11
   uniform 0 to 1 loss fraction, the draw is the fill; the others
-  log-uniform). 4 Licences (HITRAN, ExoMol, Brewer 2016, Hypatia):
+  log-uniform). 4 Licences ([R0535], Hypatia):
   downloaded at build time, no derived tables stored; builds need the
   network, so the design states how tests run offline and group X9 is
   gated on that design (plan 6.5). 5 Boss fetches the papers behind
   refused publishers himself; the stand-ins stay meanwhile and the items
-  that need the originals wait for his files. 6 Courteau 2007 (GR5) and
-  Comeron 2011, 2012, 2014 (GR3): ship the fills and run the quick
+  that need the originals wait for his files. 6 [R0908] (GR5) and
+  [R0861], 2012, 2014 (GR3): ship the fills and run the quick
   VizieR search first (a short read-only thread; GEN.401 carries both
   gaps and GEN.402 carries GR5, so a result lands as a replacement after
   GEN.401 merges). 7 Thick-disc start in other galaxies (GR6): the halo
   formation epoch plus a 0 to 1 Gyr delay, a labelled placeholder until
   S0 histories are found. Papers for Boss's own research list (decision
   5; titles from the Crossref record unless marked; stand-ins stay until
-  a thread reads the file): BC3 Stixrude and Lithgow-Bertelloni 2024,
+  a thread reads the file): BC3 [R4233],
   "Thermodynamics of mantle minerals III: the role of iron", GJI 237,
-  1699, doi 10.1093/gji/ggae126 (base paper: 2005, "Thermodynamics of
-  mantle minerals I. Physical properties"); BC4 Palme and O'Neill 2014,
+  1699, [R4233] (base paper: 2005, "Thermodynamics of
+  mantle minerals I. Physical properties"); BC4 [R3417],
   "Cosmochemical Estimates of Mantle Composition", Treatise on
-  Geochemistry 2nd ed., doi 10.1016/b978-0-08-095975-7.00201-1, and
-  Rudnick and Gao 2014, "Composition of the Continental Crust", doi
-  10.1016/b978-0-08-095975-7.00301-6; BC7 and BC12 Fray and Schmitt
+  Geochemistry 2nd ed., [R3417], and
+  [R3842], "Composition of the Continental Crust", [R3842]; BC7 and BC12 Fray and Schmitt
   2009, "Sublimation of ices of astrophysical interest: A bibliographic
-  review", Planetary and Space Science 57, 2053, doi
-  10.1016/j.pss.2009.09.011; BC7 Bierson and Nimmo 2019, "Using the
+  review", Planetary and Space Science 57, 2053, [R1445]; BC7 [R0390], "Using the
   density of Kuiper Belt Objects to constrain their composition and
-  formation history", Icarus 326, 10, doi 10.1016/j.icarus.2019.01.027;
+  formation history", Icarus 326, 10, [R0390];
   BC13 ICRP Publication 103, "The 2007 Recommendations of the
   International Commission on Radiological Protection", Annals of the
-  ICRP 37 (2-4), 2007 (citation not confirmed in Crossref); AD4 Bogaard,
-  Buckingham and Pierens 1978, "Rayleigh scattering depolarization ratio
+  ICRP 37 (2-4), 2007 (citation not confirmed in Crossref); AD4 [R0443], "Rayleigh scattering depolarization ratio
   and molecular polarizability anisotropy for gases", J. Chem. Soc.
-  Faraday Trans. 2, doi 10.1039/f19787403008, with Sneep and Ubachs
+  Faraday Trans. 2, [R0443], with Sneep and Ubachs
   2005, "Direct measurement of the Rayleigh scattering cross section in
-  various gases", JQSRT 92, 293, doi 10.1016/j.jqsrt.2004.07.025, Bates
+  various gases", JQSRT 92, 293, [R4138], Bates
   1984, "Rayleigh scattering by air", Planetary and Space Science 32,
-  785, doi 10.1016/0032-0633(84)90102-8, and Bucholtz 1995 (title not
-  checked); AD7 Tabazadeh, Toon and Clegg 1997, "A new parameterization
-  of H2SO4/H2O aerosol composition: Atmospheric implications", GRL, doi
-  10.1029/97GL01879, and Zeleznik 1991, "Thermodynamic Properties of the
-  Aqueous Sulfuric Acid System to 350 K", JPCRD, doi 10.1063/1.555899;
+  785, [R0282], and [R0575] (title not
+  checked); AD7 [R4289], "A new parameterization
+  of H2SO4/H2O aerosol composition: Atmospheric implications", GRL, [R4289], and [R4877], "Thermodynamic Properties of the
+  Aqueous Sulfuric Acid System to 350 K", JPCRD, [R4877];
   AD8 JPL Publication 19-5, "Chemical Kinetics and Photochemical Data
   for Use in Atmospheric Studies, Evaluation No. 19" (title from memory,
   not found in Crossref). Papers list (2026-10-17, filed by the TODO
@@ -7199,55 +7150,53 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Corrections to that note: Stixrude and Lithgow-Bertelloni has Part I
   (GJI 162, 610, 2005, bronze open access) and Part II (GJI 184, 1180,
   2011); Palme and O'Neill and Rudnick and Gao have 2014 second editions
-  (prefer them); the AD4 numbers are in Bogaard et al. 1978 (J. Chem.
-  Soc., Faraday Trans. 1, not Trans. 2) with King 1923 the origin of the
+  (prefer them); the AD4 numbers are in [R0443] (J. Chem.
+  Soc., Faraday Trans. 1, not Trans. 2) with [R2360, R2361] the origin of the
   factor, so the item names both; Tabazadeh has four authors (Tabazadeh,
   Toon, Clegg and Hamill, GRL 24, 1931); JPL 19-5 is Burkholder et al.
   2020; the ICRP 103 free extract stops before the wR and wT tables
   (section 4, pages 61 to 78). Not for Boss: these are on arXiv, so a
-  research thread reads them and R4 (beyond the Milky Way), R6 and R15 move from class B to class A: Aumer and Binney 2009 (0905.2512), Haywood 2013 (1305.4663),
-  Bensby 2014 (1309.2631), Pinna 2019a and b (1901.04310, 1904.01260),
-  Graus 2019 (1808.03654, an inference) and Graus's FIRE age-gradient
-  paper (1901.05487). Free copies exist for Lodders 2003 (IOP, BC1),
-  Bierson and Nimmo 2019 (PMC7058130) and Sossi 2020 (already read). The
+  research thread reads them and R4 (beyond the Milky Way), R6 and R15 move from class B to class A: [R0202] (0905.2512), [R1863] (1305.4663),
+  [R0349] (1309.2631), [R3531] and b (1901.04310, 1904.01260),
+  [R1669] (1808.03654, an inference) and Graus's FIRE age-gradient
+  paper (1901.05487). Free copies exist for [R2726] (IOP, BC1),
+  [R0390] (PMC7058130) and [R4154] (already read). The
   VizieR table search for GR5 and GR3 started at 11:29 AM EDT as the
   coordinator reported (reports file
   vizier-courteau-comeron-2026-10-17.md). VizieR search result
   (2026-10-17, finished 11:39 AM EDT as the coordinator reported;
-  docs/design/research/vizier-courteau-comeron.md): R5 (Courteau 2007 scatter) is
+  docs/design/research/vizier-courteau-comeron.md): R5 ([R0908] scatter) is
   not answerable from VizieR: the data table is not there, the authors'
   file is refused, and the paper is ApJ 655, L21 (astro-ph/0610721; its
   samples are 154, 24, 54 and 11 galaxies, there is no "64"). The raw
   scatter of log10(Vc/sigma0) of two source samples is 0.104 to 0.123
-  dex (Prugniel, Maubon and Simien 2001 J/A+A/366/68; Pizzella 2005),
+  dex ([R3619] J/A+A/366/68; [R3540]),
   inside or at the top of the plan's 0.06 to 0.12 bracket, so the fill
-  stays. R3 (thick-disc formulas) is answered by the Comeron, Salo and
-  Knapen 2018 table J/A+A/610/A5 (arXiv:1709.00457):
+  stays. R3 (thick-disc formulas) is answered by the [R0865] table J/A+A/610/A5 [R0865]:
   log10(M_thick/M_thin) = 2.113 - 1.086 log10(Vc), scatter 0.27 dex,
   median height ratio 4.2, median length ratio 1.46. Corrections: A&A
   562, A121 is the ARRAKIS ring atlas, the 2014 thick-disc paper is A&A
-  571, A58 (arXiv:1409.0466); the Comeron 2011 and 2012 tables are not
+  571, A58 [R0864]; the [R0861] and 2012 tables are not
   on VizieR (superseded by 2018). Gemini batch 1 check (2026-10-17,
   finished 11:49 AM EDT as the lane clock reported;
   docs/design/research/gemini-batch1-check.md): 51 claims checked: 10 agree, 17
   partly, 16 contradicted by a read source, 4 unsupported, 4
   misattributed (the theory section of the paste was not screened).
-  Answered by a usable table: R2 (digitised Rodriguez-Gomez 2016 Fig 3,
-  D'Souza 2014 Figs 13(b) and 16(b), Benitez-Llambay and Frenk 2020 Figs
+  Answered by a usable table: R2 (digitised [R3790] Fig 3,
+  [R1169] Figs 13(b) and 16(b), [R0338] Figs
   10 and 11), R5 (Courteau scatter 0.097 dex about the paper's own line,
   79 markers digitised from its Fig 2; this supersedes the raw 0.104 to
   0.123 of the VizieR note as the centre candidate inside the plan's
   0.06 to 0.12 bracket), R12 (the z_re table with Busha's spread of 6.3
-  to 11.6), R13 (Munoz 2018 ultra-faint sizes: 15 objects, 27.7 to 234
+  to 11.6), R13 ([R3209] ultra-faint sizes: 15 objects, 27.7 to 234
   pc, geometric mean 58 pc, sigma 0.29 dex, r_h rises with brightness)
-  and parts of R3 (Comeron 2018 fit), R6 (Pinna 2019, Sattler 2024,
-  Comeron 2021), R10 (Correa 2015 analytic z50). Still open for Boss's
+  and parts of R3 ([R0865] fit), R6 [R0860, R3531, R3928], R10 ([R0894] analytic z50). Still open for Boss's
   list: R1, R4 beyond the Milky Way, R7, R8, R14, and parts of R6 (the
   oldest thick-disc ages), R9 (cluster ages), R10 (a simulation fit),
   R11 (the dwarf relation's scatter). Corrections carried on the items:
   the occupation centre is 10^9.33 Msun/h with width 0.21 dex (Gemini's
   10^8.6 is the no-reionization limit); the 1.9 stellar-to-halo slope is
-  Garrison-Kimmel 2014 (1.92), not UniverseMachine; halo formation z50
+  [R1522, R1523] (1.92), not UniverseMachine; halo formation z50
   is 1.02 at 1e10 (not 1.9); the age-velocity normalisations are 21.1
   and 39.4 km/s (not 38.5 and 62.0); the nuclear cluster slope is 0.48
   (Neumayer), not 0.65; the cluster half-light radius invariance holds
@@ -7255,10 +7204,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   conflicts between two verified sources are DECIDED, widen and keep
   both (Boss's cards, tapped 12:02 PM EDT (read from the session log and
   relayed in words by the coordinator)): thick-to-thin height ratio 2.5
-  (Yoachim and Dalcanton) against a median 4.24 (Comeron 2018);
+  (Yoachim and Dalcanton) against a median 4.24 [R0865];
   thick-to-thin mass ratio against Vc, 0.53 (Vc/100)^-2.3 against 0.87
   (Vc/100)^-1.09; cluster system radius about 3.5 (Hudson and Robison,
-  Forbes) against about 6 (Kartha 2016) times the galaxy's.
+  Forbes) against about 6 [R2268] times the galaxy's.
   Boss's papers (uploaded 12:10 to 12:13 PM EDT on 2026-10-17, read by
   the paper-filing thread; report docs/design/research/boss-papers-2026-10-17.md,
   summary in the gap plan section 4.10; V read, R recomputed, D
@@ -7270,23 +7219,22 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   continental crust (Rudnick and Gao matches every value in our files),
   BC7 ice compaction, BC3 Part II Table A1, GR4 and GR6 and GR3 for the
   Milky Way (plus one other galaxy), GR15 form and width. Still open,
-  labelled stand-ins stay: AD4 for SO2, H2S, H2, He, NH3 (Bogaard 1978),
+  labelled stand-ins stay: AD4 for SO2, H2S, H2, He, NH3 [R0443],
   AD1 (Karkoschka, paid), AD2 Titan (Tomasko, paid), AD8 (JPL 19 not
   uploaded), BC12 (Fray and Schmitt, paid), BC13 (ICRP tables missing
   from the extract), comet N2, O2, Ar, Kr, Xe, the mantle redox mass
-  law, the acid vapour pressure (Ayers 1980), GR1, GR10, GR12, GR14, GX5
+  law, the acid vapour pressure [R0210], GR1, GR10, GR12, GR14, GX5
   and the rows the Knapen book and Gowanlock leave untouched. Twelve
   places where the paper wins over our files are listed on the items
   that use them (report section 3). Wolff's Mars dust spectra are
   digitized from Figures 12 to 14: label them that way. The Irwin Uranus
   H2S numbers (0.4 to 0.8 ppm at the cloud top, deep S/N 4.4 to 5.0
-  times solar) carry nothing to compare. The Knapen book's Merritt 2016
+  times solar) carry nothing to compare. The Knapen book's [R3041]
   halo-fraction scatter (1.01 dex, 8 galaxies) is about three times the
   Harmsen 0.33 dex in the plan: two sources in conflict, widened and
   kept once the primary paper is read. Missing and still on the fetch
-  list: Bogaard 1978, JPL Evaluation 19, Stixrude Part I, Palme and O'Neill 2014,
-  Lodders 2003, Hirschmann 2012, Gaillard 2021 and 2022,
-  Bensby 2014, Pinna 2019b.
+  list: [R0443], JPL Evaluation 19, Stixrude Part I, [R1489, R1953, R2726, R3417] and 2022,
+  [R0349, R3532].
   Boss's general rules (typed in the project chat at 12:39 PM EDT on
   2026-10-17, relayed by the coordinator): when in doubt, verified wins;
   when two verified sources are in doubt, the newest wins; when two
@@ -7306,13 +7254,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   range of the two sources (Decided). The one outcome it changes today
   is the halo scatter: where both sources are in doubt the Dragonfly
   1.01 dex applies, not Harmsen's 0.33 dex (R1). No free source exists
-  for the visible methane and ammonia bands (AD1). Lodders 2003 is
+  for the visible methane and ammonia bands (AD1). [R2726] is
   behind a captcha (nothing blocked). BC13 weights and limits are free
   from IAEA GSR Part 3, and the SO2 and H2S Rayleigh numbers can be
-  computed, so Bogaard 1978 leaves the fetch list.
+  computed, so [R0443] leaves the fetch list.
   Boss, 1:23 PM EDT (typed in the project chat, relayed by the
   coordinator): AD1 (the visible methane and ammonia absorption of the
-  giants, GEN.422) he will research himself (Karkoschka and Tomasko 2010
+  giants, GEN.422) he will research himself ([R2265]
   and the related papers, B5 and B6 of papers-to-fetch.md); the stand-in
   stays until then. The lines where math cannot help (GR7, BC6, BC11,
   BC18, AT.b5, AT.n7, AT.m3, m4 and m11, AT.k7, T15) he reads as having
@@ -7322,9 +7270,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   AD1 update (1:55 PM EDT as the coordinator relayed;
   docs/design/research/ad1-methane-sources-check-2026-10-17.md, gap plan section
   4.11): methane is filled from free data, partly verified: the Oxford
-  k-tables built from Karkoschka and Tomasko 2010 (3,689 wavelengths,
-  400 nm to 5.0 micron, 100, 198 and 296 K; Collins 2018 prints the
-  temperature formula) and the PDS volume gbat_0001 (Karkoschka 1994 and
+  k-tables built from [R2265] (3,689 wavelengths,
+  400 nm to 5.0 micron, 100, 198 and 296 K; [R0855] prints the
+  temperature formula) and the PDS volume gbat_0001 ([R2258] and
   1998, 300 to 1050 nm). Still open, each a labelled stand-in in the gap
   registry: ammonia in the visible (four equivalent widths read from a
   figure), water in the visible, methane 5.0 to 5.5 micron, and the 1e-5
@@ -7334,7 +7282,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   The Oxford page says 'not yet fully verified' and states no licence.
   Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT; the
   newer note wins, report todo-contradictions-2026-10-18.md): the
-  "missing and still on the fetch list" lines are stale: Bogaard 1978
+  "missing and still on the fetch list" lines are stale: [R0443]
   leaves the fetch list (SO2 and H2S Rayleigh numbers can be computed,
   open-gaps report 2026-10-17, 1:16 PM EDT), BC13 weights and limits are
   free from IAEA GSR Part 3 (only the neutron weighting function stays
@@ -7359,7 +7307,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   The class B search list reads R4 beyond the Milky Way (R4 for the
   Milky Way is already done), so the second list says "R4 (beyond the
   Milky Way), R6 and R15 move from class B to class A".
-  Data we hold (2026-10-29 8:55 PM EDT): Harris 1996 (2010 edition), 157
+  Data we hold (2026-10-29 8:55 PM EDT): [R1827] (2010 edition), 157
   globular clusters and about 50 columns, is held in
   /mnt/project-files/data/harris/mwgc.dat and read by nothing (Sources 1
   is building its setup entry); galaxy tables from Courteau, Comeron,
@@ -8052,7 +8000,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   pattern); intermediate and supermassive black holes keep their own
   origin rows. The progenitor ranges 8 to 30 and 20 to 100 and the
   explosion maps need verified sources first (recalled and unverified:
-  O'Connor and Ott 2011, Sukhbold et al. 2016, Fryer et al. 2012).
+  [R1466, R3327, R4251]).
   Decided (card D2): derive the counts from the mass function and the
   verified explosion maps, Boss's densities become test targets, and the
   black hole share needs a verified source first. Done: counts are
@@ -8078,8 +8026,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   item stay in 8.4; the neutron star count already matches and does not
   change. Contradiction sweep (Boss's request, 2026-10-18, 5:44 PM EDT;
   the newer note wins, report todo-contradictions-2026-10-18.md):
-  O'Connor and Ott 2011 (ApJ 730, 70), Sukhbold et al. 2016 (ApJ 821,
-  38) and Fryer et al. 2012 (ApJ 749, 91) are verified (GEN.560 finding,
+  [R1466, R3327, R4251] are verified (GEN.560 finding,
   2026-10-17, 11:55 PM EDT); "recalled and unverified" no longer applies
   to them. The kick-escape share stays unverified.
   Decided (Boss, contradiction sweep card, tapped 7:31 AM EDT 2026-10-21
@@ -8111,7 +8058,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   on main by GEN.544 (8.0.1855), so it renumbers at merge to the next
   free one. Stand-ins for the gap registry that this slice adds: nesting
   of failure windows above the verified islands (stand-in); kick sigma
-  265 km/s (recalled, Hobbs 2005, unverified); black hole unbound share
+  265 km/s (recalled, [R1966], unverified); black hole unbound share
   2 percent (placeholder); a single Maxwellian instead of two
   components; birth only in the thin disc; ejecta speed not yet the kick
   tail above escape; `remnant_distribution` placement still empirical;
@@ -8132,7 +8079,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   The stand-ins this slice adds are labelled in
   docs/design/systems/explosion-islands.md and docs/design/systems/natal-kick.md:
   nesting of failure windows above the verified islands [stand-in]; kick
-  sigma 265 km/s [recalled, Hobbs 2005]; black hole unbound share 2
+  sigma 265 km/s [recalled, [R1966]]; black hole unbound share 2
   percent [placeholder]; one Maxwellian [stand-in]; birth in the thin
   disc only [stand-in]; the black hole ejecta speed range [stand-in].
   Still open in this item: the neutron star mass function, the placement
@@ -8252,8 +8199,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the bodies whose origin row says 'ejected from a system' or 'formed in
   isolation', counted per star as in the code (Poisson, mean rate per
   star times the realised star count times a factor; the cited 5.8 rogue
-  planets and 0.214 brown dwarfs per star stay as inputs: Mroz 2017 and
-  2020, Johnson 2020). Do: an origin table by mass bin (weights where a
+  planets and 0.214 brown dwarfs per star stay as inputs: [R3191] and
+  2020, [R2178]). Do: an origin table by mass bin (weights where a
   kernel is sourced, a Dirichlet draw where only a range is known); a
   notional formation host for an ejected planet (a host mass from the
   IMF at its population, a formation distance, a snow line, abundances
@@ -8330,7 +8277,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   moon of a free planet is the ordinary moon routine with a different
   outer limit. For an ejected planet only moons that were inside a
   smaller fraction of the Hill radius at ejection survive (recalled and
-  unverified: Debes and Sigurdsson 2007; Hong et al. 2018), so the draw
+  unverified: [R1032, R1998]), so the draw
   takes the notional formation distance and gives a smaller zone and
   fewer, tighter moons; for a planet formed in isolation the zone comes
   from its circumplanetary disk (size limit from its rotation and tidal
@@ -8375,7 +8322,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   cut: a lowest size, rows above it drawn at fill from the cell's
   stream, the count below it stays a computed figure on the sector page
   (`interstellar_debris_count` exists). The size-frequency law and the
-  cut are a research item (candidates: Jewitt and Seligman 2023, already
+  cut are a research item (candidates: [R2159], already
   cited in `tuning.py`); the 0.007 rate is a labelled placeholder until then. A
   comet is a small body with a parent or none: origin 'ejected from a
   system' (most) or 'formed in isolation' (weight 0 until a source says
@@ -8408,7 +8355,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   K, reports/gen713-comet-size-law-2026-10-24.md, about 2:30 PM EDT
   2026-10-24 as the lane reported). Findings: (1) the design text's real
   rate of 1e12 per pc^3 disagrees with the sources by about three orders
-  of magnitude: Do et al. 2018 and Jewitt and Seligman 2023 give 0.1 to
+  of magnitude: Do et al. 2018 and [R2159] give 0.1 to
   0.2 per au^3 for objects of about 100 m, which is about 1e15 per pc^3;
   the 1e12 has no source, so a verified source wins. (2) The size index
   is not measured: -2.5 (collisional cascade), -3 (broad), -3.8
@@ -8417,12 +8364,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   labelled stand-in (widest range rule). (3) Keep the remnant-mass-cut
   device: choose a lowest size by how many rows a sector may hold (with
   index 3 there are 8.8e14 per pc^3 above 100 m and about 1 above 10^4
-  km). (4) Bound long-period comets (Oort cloud, Boe et al. 2019:
+  km). (4) Bound long-period comets (Oort cloud, [R0440]:
   cumulative index about 3.6 above 1 km, nearly flat from 100 m to 1 km)
   are a different population from the unbound ones this item covers. (5)
   Dryness: the cometary fraction must be below 2.4e-4 per au^3, so dry
   objects like Oumuamua need a rocky share above 0.9988 if the comet
-  density is the limit. Not read: the body of Boe 2019 and the Fig. 19
+  density is the limit. Not read: the body of [R0440] and the Fig. 19
   caption limits.
   Data we hold (2026-10-29 8:55 PM EDT): comet_population.json and
   comet_admission.json are in the repo; the Exoplanet Archive and JWST
@@ -9344,7 +9291,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.594 stays open and the lane takes one dataset's fallback at a time
   as each lands in the catalogue, checking that nobody has started it.
   Data we hold (2026-10-29 8:55 PM EDT): AD1 methane and ammonia tables
-  are held in /mnt/project-files/data/ad1-methane (Karkoschka and Tomasko 2010
+  are held in /mnt/project-files/data/ad1-methane ([R2265]
   k-tables at 100, 198, 296 K, PDS gbat_0001, NMSU
   planetary datasets) and read by nothing; the licence entry is Boss's.
   Catalog sections 1 and 3.
@@ -9370,9 +9317,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   by TODO). Nothing fixed from the Solar System or the Milky Way
   (standing rule).
   Data we hold (2026-10-29 8:55 PM EDT): Second-hand citation files
-  (Frost 1991 buffers, JPL 19-5 rate lines, Leiden photo rates, Vainio
-  2017 SEP bands) and the gap plan scripts are held; Lodders 2003,
-  Weisberg 2006 and UNSCEAR 2008 extracts are in
+  ([R1464] buffers, JPL 19-5 rate lines, Leiden photo rates, Vainio
+  2017 SEP bands) and the gap plan scripts are held; [R2726, R4658] and UNSCEAR 2008 extracts are in
   design-drafts/gen465-second-pass; the stand-in registry
   (stand-in-values.md, 316 rows) lists every constant with its source.
   Catalog sections 3 and 4.
@@ -9404,13 +9350,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   same missing laws. Sources found since (report
   /mnt/project-files/reports/galaxy-size-sources-2026-10-21.md): dwarf
   size-mass law log(r_e/pc) = 1.071 + 0.247 log(M*/Msun), scatter 0.181
-  dex, fitted 5.5 < log M* < 8.5 (Carlsten 2021 arXiv:2105.03435, V);
-  dwarf size by halo size (Nadler 2020 arXiv:1912.03303); the halo
+  dex, fitted 5.5 < log M* < 8.5 ([R0655], V);
+  dwarf size by halo size [R3232]; the halo
   occupation (50 percent of halos host galaxies at log M50 7.5 to 7.93;
-  Nadler 2020); the stellar-to-halo relation for 5e5 to 1e8 solar masses
-  is monotonic with little scatter (Read 2017 arXiv:1607.03127); halo
-  concentration down to 1e6 solar masses (Wang 2020 arXiv:1911.09720, a
-  fit with six coefficients). Do not use the Behroozi 2019 fit below
+  [R3232]); the stellar-to-halo relation for 5e5 to 1e8 solar masses
+  is monotonic with little scatter [R3689]; halo
+  concentration down to 1e6 solar masses ([R4611], a
+  fit with six coefficients). Do not use the [R0319] fit below
   1e10.5 or extend the Dutton and Macciò concentration below its fitted
   range. Still unsourced: a size law below log M* 5.5 (ultra-faint
   dwarfs fall below the power law: Segue 1 is 0.37 dex under it), a
@@ -9435,13 +9381,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   stellar mass 281 solar masses (about 1,000 stars), scale length 7.1
   pc, scale height 4.8 pc (report
   /mnt/project-files/reports/galaxy-size-sources-2026-10-21.md, sections
-  4 and 7; Segue 1 from the Local Volume Database v1.1.1 and Simon 2011,
-  a confirmed dwarf galaxy; the example's M_V -1.30, 562 solar masses,
+  4 and 7; Segue 1 from the Local Volume Database v1.1.1 and [R4098] confirmed dwarf galaxy; the example's M_V -1.30, 562 solar masses,
   half-light radius 23.9 pc, ellipticity 0.33). Open flag: the floor's
   half-light radius, 12 pc, sits in the extended star cluster range
   (report section 4); the lane decides whether that needs a warning.
   This item's lower end is therefore 281 solar masses (log M* 2.45),
-  well below the Carlsten 2021 law's fitted range (log M* 5.5 to 8.5):
+  well below the [R0655] law's fitted range (log M* 5.5 to 8.5):
   Segue 1 sits 0.37 dex under that power law, and a size law for
   ultra-faint dwarfs below log M* 5.5 is still unsourced.
   Decided (Boss, 2026-10-21, 7:33 PM EDT, via the coordinator):
@@ -9460,7 +9405,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   dial accepts the whole range down to 281 solar masses, below the
   threshold with no halo function run.
   Dwarf-mass laws already worked out in docs/design/galaxy/galaxy-types.md
-  sections 6.4 and 6.5 (the Carlsten 2021 fits, GEN.378, #2368): reuse
+  sections 6.4 and 6.5 (the [R0655] fits, GEN.378, #2368): reuse
   them.
   Decided (Boss, 7:58 PM EDT 2026-10-21, on the low-mass cut card,
   relayed by the galaxy size research thread): the thick disc, the bar,
@@ -9489,7 +9434,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
   owner line).
   Data we hold (2026-10-29 8:55 PM EDT): VizieR galaxy tables (Courteau
-  and Comeron c18, Pizzella 2005, digitised occupation, size and cluster
+  and Comeron c18, [R3540], digitised occupation, size and cluster
   figures) and the Harris file are held under
   reports/vizier-courteau-comeron-2026-10-17-files and data/harris; the
   galaxy-laws research is in docs/design/galaxy/galaxy-laws-research.md.
@@ -9528,7 +9473,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
   owner line).
   Data we hold (2026-10-29 8:55 PM EDT): VizieR galaxy tables (Courteau
-  and Comeron c18, Pizzella 2005, digitised occupation, size and cluster
+  and Comeron c18, [R3540], digitised occupation, size and cluster
   figures) and the Harris file are held under
   reports/vizier-courteau-comeron-2026-10-17-files and data/harris; the
   galaxy-laws research is in docs/design/galaxy/galaxy-laws-research.md.
@@ -9552,7 +9497,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
   owner line).
   Data we hold (2026-10-29 8:55 PM EDT): VizieR galaxy tables (Courteau
-  and Comeron c18, Pizzella 2005, digitised occupation, size and cluster
+  and Comeron c18, [R3540], digitised occupation, size and cluster
   figures) and the Harris file are held under
   reports/vizier-courteau-comeron-2026-10-17-files and data/harris; the
   galaxy-laws research is in docs/design/galaxy/galaxy-laws-research.md.
@@ -9583,7 +9528,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
   owner line).
   Data we hold (2026-10-29 8:55 PM EDT): VizieR galaxy tables (Courteau
-  and Comeron c18, Pizzella 2005, digitised occupation, size and cluster
+  and Comeron c18, [R3540], digitised occupation, size and cluster
   figures) and the Harris file are held under
   reports/vizier-courteau-comeron-2026-10-17-files and data/harris; the
   galaxy-laws research is in docs/design/galaxy/galaxy-laws-research.md.
@@ -9607,7 +9552,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   in reports/8-1-core-queues-2026-10-22.md; this replaces any earlier
   owner line).
   Data we hold (2026-10-29 8:55 PM EDT): VizieR galaxy tables (Courteau
-  and Comeron c18, Pizzella 2005, digitised occupation, size and cluster
+  and Comeron c18, [R3540], digitised occupation, size and cluster
   figures) and the Harris file are held under
   reports/vizier-courteau-comeron-2026-10-17-files and data/harris; the
   galaxy-laws research is in docs/design/galaxy/galaxy-laws-research.md.
@@ -9718,8 +9663,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (the item said it stays a stated research request:
   docs/design/galaxy/galaxy-laws-research.md sections Q3 and Q4, the Hudson and
   Robison R200^2.63 against Forbes R200^1 conflict, requests R7 to R9 on
-  GEN.531) and the dwarf-end occupation draw with the Carlsten 2021 fits
-  (arXiv:2105.03435, log M* 5.5 to 8.5). Do: draw each cluster's
+  GEN.531) and the dwarf-end occupation draw with the [R0655] fits
+  ([R0655], log M* 5.5 to 8.5). Do: draw each cluster's
   position from a radial profile with a sourced law and its scatter, and
   give the dwarf end an occupation draw below the massive range, both
   through unit_seed and the one random wrapper, each law with its source
@@ -9936,7 +9881,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Sources (2026-10-09): Update 4:22 PM EDT 2026-10-24, from
   reports/secondhand-citations-2026-10-24.md (written 4:25 PM EDT as the
   lane reported; second-hand citations thread): ExoMol CoYuTe ammonia
-  (Irwin 2019) is open first-hand and resolves the visible-ammonia gap
+  [R2098] is open first-hand and resolves the visible-ammonia gap
   of D2; a data job at setup, licence note only in DATA-LICENSE.md.
   Research (2026-10-09, Owner 6:36 PM EDT): Owner (TODO, 6:36 PM EDT
   2026-10-24, coordinator request): Aux 10 (Map nodes) after MAP.287
@@ -10150,7 +10095,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.969 (wiring, rides a train); GEN.743 closes when both are done.
   Owner: Star 2 (new lane, proposed by TODO).
   Data we hold (2026-10-29 8:55 PM EDT): 21 neutron star equations of
-  state (Malik 2024) and 20 outer-crust models (Servais and Chamel 2026)
+  state [R2834] and 20 outer-crust models [R4028]
   are downloaded at setup and read by tests only
   (datasets/neutron_star_matter.py); Bedard white dwarf sequences are
   carbon-oxygen only. Catalog sections 1 and 2.
@@ -10266,7 +10211,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   build in 8.1): the 'after 8.1' and 'pool' wording is revoked; this is
   built in 8.1. Secondary sources are accepted; where the source is not
   reachable use a second-hand value (for GEN.794 the second-hand Huebner
-  rates, or compute from the Cheng 2006 cross section).
+  rates, or compute from the [R0767] cross section).
   Owner (full build) (2026-10-29 8:30 PM EDT): Air 1. This replaces any
   earlier owner line (pool, unowned, retired lane or 'after 8.1'). If it
   is already started elsewhere, the lane tells TODO before taking it.
@@ -10301,7 +10246,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   build in 8.1): the 'after 8.1' and 'pool' wording is revoked; this is
   built in 8.1. Secondary sources are accepted; where the source is not
   reachable use a second-hand value (for GEN.794 the second-hand Huebner
-  rates, or compute from the Cheng 2006 cross section).
+  rates, or compute from the [R0767] cross section).
   Owner (full build) (2026-10-29 8:30 PM EDT): Bug 2. This replaces any
   earlier owner line (pool, unowned, retired lane or 'after 8.1'). If it
   is already started elsewhere, the lane tells TODO before taking it.
@@ -10445,9 +10390,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   is already started elsewhere, the lane tells TODO before taking it.
   Lock-free parts first; the part that changes generated output rides a
   train.
-  Data we hold (2026-10-29 8:55 PM EDT): Fortney 2007 giant radii are
-  transcribed in full (physics/giant_radius_tables.py); Lopez and
-  Fortney 2014 and Zeng and Sasselov 2013 enter as laws; Core 4's parked
+  Data we hold (2026-10-29 8:55 PM EDT): [R1429] giant radii are
+  transcribed in full (physics/giant_radius_tables.py); [R2741, R4881] enter as laws; Core 4's parked
   branch holds the H-He table reader. Hydrogen-helium EOS tables are not
   held otherwise. Catalog sections 3 and 4.
   Prerequisites: GEN.809. Related: GEN.733, GEN.736, GEN.642, GEN.809, GEN.810, GEN.811.
@@ -10569,7 +10513,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.739 (#3246) added physics/impact_history.py and
   surface_pressure.impact_inventory (H, C and N atoms per 100 g of
   mantle from late accretion, impact delivery and impact erosion,
-  Sakuraba et al. 2019, Brasser et al. 2016) with registry rows AM36 to
+  [R0518, R3872]) with registry rows AM36 to
   AM44; nothing in the generator calls it. Once the air fixed point
   (GEN.411, GEN.422) lands, make the supply law read impact_inventory
   for rocky planets and moons and take the generator epoch with
@@ -10590,7 +10534,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Lock-free parts first; the part that changes generated output rides a
   train.
   Data we hold (2026-10-29 8:55 PM EDT): Bern population synthesis
-  (Venturini 2024) as ngpps_formation_water.json is the validation
+  [R4529] as ngpps_formation_water.json is the validation
   target for delivered water; bulk composition source checks are in
   reports/bulk-composition-sources-check-2026-10-17; materials.json and
   elements.json are in the repo. Catalog sections 3 and 4.
@@ -10610,7 +10554,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   `tests.golden_update --reason ... --affects <stage>` and the next
   epoch.
   Data we hold (2026-10-29 8:55 PM EDT): Bern population synthesis
-  (Venturini 2024) as ngpps_formation_water.json is the validation
+  [R4529] as ngpps_formation_water.json is the validation
   target for delivered water; bulk composition source checks are in
   reports/bulk-composition-sources-check-2026-10-17; materials.json and
   elements.json are in the repo. Catalog sections 3 and 4.
@@ -10620,7 +10564,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   The GEN.813 lane (Citations, 11:09 PM EDT 2026-10-24 as the lane
   reported) found that Titan has no volatile inventory in the code: the
   titan family takes its pressure. Add an ice-moon nitrogen inventory
-  from ammonia ice (Erkaev et al. 2020 Table 2) so the supply law and
+  from ammonia ice ([R1282: Table 2]) so the supply law and
   the air fixed point (GEN.411, GEN.422) derive a Titan-like moon's
   nitrogen and methane. Done: a Titan sample lands near 1.5 bar of N2
   with methane, with the source and tier in the GEN.725 registry. Owner:
@@ -10633,7 +10577,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Lock-free parts first; the part that changes generated output rides a
   train.
   Data we hold (2026-10-29 8:55 PM EDT): Bern population synthesis
-  (Venturini 2024) as ngpps_formation_water.json is the validation
+  [R4529] as ngpps_formation_water.json is the validation
   target for delivered water; bulk composition source checks are in
   reports/bulk-composition-sources-check-2026-10-17; materials.json and
   elements.json are in the repo. Catalog sections 3 and 4.
@@ -10641,7 +10585,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
 
 - [ ] **GEN.824 The class O CO2 and H2O inventory bracket stops at 0.1 of the water mass, not 0.2**
   Found by GEN.814 (Aux 8, 1:02 AM EDT 2026-10-25): the class O CO2/H2O
-  inventory bracket reaches 0.2, above the 0.1 in Kite and Ford 2018.
+  inventory bracket reaches 0.2, above the 0.1 in [R2381].
   Either cap it at 0.1 with the source or document why 0.2 holds (a
   verified source or a registry row with its tier and tweak level).
   Done: the bracket matches its cited source or carries a GEN.725 row
@@ -10654,7 +10598,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Lock-free parts first; the part that changes generated output rides a
   train.
   Data we hold (2026-10-29 8:55 PM EDT): Bern population synthesis
-  (Venturini 2024) as ngpps_formation_water.json is the validation
+  [R4529] as ngpps_formation_water.json is the validation
   target for delivered water; bulk composition source checks are in
   reports/bulk-composition-sources-check-2026-10-17; materials.json and
   elements.json are in the repo. Catalog sections 3 and 4.
@@ -10711,7 +10655,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Data we hold (2026-10-29 8:55 PM EDT): No dataset of rocky-planet
   rotations or tides is held (none exists); the measurement scripts and
   censuses are in reports/gen842-tides-2026-10-29, reports/gen842 and
-  reports/gen842-eccentricity-first-2026-10-29-files; Fortney 2007 radii
+  reports/gen842-eccentricity-first-2026-10-29-files; [R1429] radii
   serve the giant radius; Solar System statistics may check, never copy
   (NO FIXED CONTENT). Catalog section 3.
   Update (Aux 7, train 3 #3984) (2026-10-30 7:31 AM EDT): Parts 1 and 3
@@ -10963,8 +10907,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   reports/life-chemistry-review-2026-10-28.md). Section 7.1, fix 4. On
   main an M star can only draw Bacteriochlorophylls, Melanin, Zinc or
   Retinal and none leads to animals; M dwarfs are about 75 percent of
-  stars. Chl d (Acaryochloris marina, 710 nm), Chl f (Chen 2010,
-  recalled), Wolstencroft and Raven 2002, Kiang 2007 and Gale and Wandel
+  stars. Chl d (Acaryochloris marina, 710 nm), Chl f ([R0760],
+  recalled), [R2344, R4749] and Gale and Wandel
   (2017) support oxygenic photosynthesis there. Tier T5 for the
   chemistry, T7 for the efficiency penalty, L3. The single change that
   adds the most animal-capable worlds. Follows the chemistry-specific
@@ -11014,7 +10958,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Life chemistry review (research thread, 2026-10-28,
   reports/life-chemistry-review-2026-10-28.md). Section 5, 6.3, fix 7.
   Retinal makes ATP, not biomass; Melanin as a radiotroph is speculative
-  (T8 to T9, Dadachova 2007 power budget about 70 times too small) while
+  (T8 to T9, [R0973] power budget about 70 times too small) while
   melanin as a shield is verified. The retinal gate share_o2 below 0.1
   is already ruled out by Boss (7:43 PM EDT 2026-10-28) and belongs to
   GEN.861. Scope (Boss, 7:41 PM EDT 2026-10-28): near-Earth worlds,
@@ -11344,17 +11288,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Air 1 (after GEN.850/851; the same atmosphere opacity data path).
   Version 8.4.
   Data we hold (2026-10-29 8:55 PM EDT): AD1 methane and ammonia tables
-  are held in /mnt/project-files/data/ad1-methane (Karkoschka and Tomasko 2010
+  are held in /mnt/project-files/data/ad1-methane ([R2265]
   k-tables at 100, 198, 296 K, PDS gbat_0001, NMSU
   planetary datasets) and read by nothing; the licence entry is Boss's.
   Catalog sections 1 and 3.
   Prerequisites: none. Related: GEN.944.
 
-- [ ] **GEN.951 Companion mass ratio depends on the primary mass and the orbital period, with the twin excess (Moe and Di Stefano 2017 Table 13) instead of a flat 0.1 to 1 (low priority)**
+- [ ] **GEN.951 Companion mass ratio depends on the primary mass and the orbital period, with the twin excess ([R3108: Table 13]) instead of a flat 0.1 to 1 (low priority)**
   Audit finding L7 (low priority; item 12 of the star class audit,
   /mnt/project-files/reports/star-class-audit-2026-10-29.md). Today the
   companion mass ratio is flat 0.1 to 1 for every system. Do: draw it
-  from the Moe and Di Stefano 2017 Table 13 distribution, which depends
+  from the [R3108: Table 13] distribution, which depends
   on the primary mass and the orbital period and carries a twin excess
   at short periods. The multiplicity table itself matches exactly
   (checked in the audit); this is the mass-ratio input of the GEN.922
@@ -11386,7 +11330,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Data we hold (2026-10-29 8:55 PM EDT): No dataset of rocky-planet
   rotations or tides is held (none exists); the measurement scripts and
   censuses are in reports/gen842-tides-2026-10-29, reports/gen842 and
-  reports/gen842-eccentricity-first-2026-10-29-files; Fortney 2007 radii
+  reports/gen842-eccentricity-first-2026-10-29-files; [R1429] radii
   serve the giant radius; Solar System statistics may check, never copy
   (NO FIXED CONTENT). Catalog section 3.
   Prerequisites: none. Related: GEN.921, GEN.522, GEN.725.
@@ -11402,7 +11346,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   stand-in it adds gets a GEN.725 registry row with tier and tweak level
   (L0 to L4). Owner: Star 2 (new lane, proposed by TODO). Version 8.1.
   Data we hold (2026-10-29 8:55 PM EDT): 21 neutron star equations of
-  state (Malik 2024) and 20 outer-crust models (Servais and Chamel 2026)
+  state [R2834] and 20 outer-crust models [R4028]
   are downloaded at setup and read by tests only
   (datasets/neutron_star_matter.py); Bedard white dwarf sequences are
   carbon-oxygen only. Catalog sections 1 and 2.
@@ -11492,7 +11436,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   docs/design/composition/cloud-albedo.md (#4378): cloud thinning with
   warming sized to the AR6 cloud feedback (+0.42 W/m2 per K at 288 K,
   beta 1.2e-3 per K) and a substellar deck for a body locked 1:1 to its
-  star (Yang 2013 table 1). With the ice law of GEN.972 the Earth twin
+  star ([R4814] table 1). With the ice law of GEN.972 the Earth twin
   sweep response is 0.58 against the 0.54 bound. Stand-in rows CL1 to
   CL4 are proposed (none L3 or L4) and enter GEN.725 with the build. The
   build is lock work, waits for GEN.972, and may share an epoch with
@@ -11590,7 +11534,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
 - [ ] **GEN.996 Draw binary-made low-mass white dwarfs so the white dwarf mean mass reaches the accepted range (bug)**
   Bug 1's star-epoch census note (as the lane reported 10:53 PM EDT
   2026-10-29). The white dwarf mean mass is 0.703 solar masses against
-  an accepted 0.55 to 0.70, a 0.4 percent miss: the Cummings 2018
+  an accepted 0.55 to 0.70, a 0.4 percent miss: the [R0961]
   initial-final mass relation applied to the generator's age mix gives
   0.703. The generator has no binary-made low-mass white dwarfs (helium
   cores near 0.4 solar masses, made when a companion strips the giant
@@ -11601,10 +11545,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the star-side train after GEN.932. Owner: Bug 1 (reassignable to Star
   1). Version 8.1.
   Sources 2 finding (GEN.1168) (2026-10-30 11:14 PM EDT): The 20 pc
-  sample (Giammichele 2012 Table 4, 136 rows; Tremblay 2016 counts 8 of
+  sample ([R1547: Table 4], 136 rows; [R4421] counts 8 of
   105 under 0.45) has 7.4 percent of white dwarfs under 0.45 solar
   masses and 10 percent from 0.45 to 0.56; the generator has 0.3 percent
-  under 0.57 and its floor is the Cummings 2018 relation (0.555 at the
+  under 0.57 and its floor is the [R0961] relation (0.555 at the
   lightest progenitor 0.83). Target the shares, not only the mean: about
   7 percent helium-core white dwarfs near 0.4 (a cap, since some are
   unresolved double degenerates with underestimated mass) and a thinner
@@ -11752,14 +11696,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   against the paper (fit range mu 0.1 to 0.9, e to 0.8); the moon code
   lacks the Domingos eccentricity terms and the retrograde limit
   (carried in GEN.1014); the repo white-dwarf engulfment constants sit
-  below Mustill and Villaver 2012 (GEN.725 row in GEN.1012). GEN.1007
+  below [R3225] (GEN.725 row in GEN.1012). GEN.1007
   and GEN.1008 stay dropped, P0 replaces the first.
   Design note (2026-10-30 2:45 PM EDT): The overlap-free design is
   merged as docs/design/systems/overlap-free-systems.md (#4085, as the
-  research thread reported 2:45 PM EDT): Domingos 2006 coefficients and
-  the Veras 2011 adiabatic mass loss are read and Verified, the mutual
-  Hill separation of 10 is consistent with Obertas 2017, Roche (Eggleton
-  1983) and Mardling and Aarseth 2001 Equation 90 match the repo (the
+  research thread reported 2:45 PM EDT): [R1138] coefficients and
+  the [R4534] adiabatic mass loss are read and Verified, the mutual
+  Hill separation of 10 is consistent with [R3323], Roche (Eggleton
+  1983) and [R2868] Equation 90 match the repo (the
   MA01 q_out <= 5 range is GEN.1028). Registry rows GM5 (T1), GM9 to
   GM12 added. Only Jeans/Hadjidemetriou remain second-hand.
   Build plan (2026-10-30 2:48 PM EDT): Boss, 2:47 PM EDT 2026-10-30:
@@ -11777,7 +11721,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   every body's Hill and mutual-Hill extent, and sampling of planets,
   moons and belts from it, replacing _orbit_floor_au, the per-star
   a_crit and the min_orbit_distance reads. Moon Hill fractions 0.49 and
-  0.93 are registered stand-ins (check Domingos 2006). Done: the
+  0.93 are registered stand-ins (check [R1138]). Done: the
   verifier finds no planet, moon or belt overlap. Design:
   /mnt/project-files/design-drafts/overlap-free-systems-gen1006-2026-10-30.md
   (section 4 and 10; sources recalled, not opened, so registry rows stay
@@ -11787,7 +11731,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.1011. Related: GEN.1006, GEN.1004,
   TEST.476.
   Revised design (11:14 AM EDT) (2026-10-30 11:15 AM EDT): The moon code
-  lacks the Domingos et al. 2006 eccentricity terms and the retrograde
+  lacks the [R1138] eccentricity terms and the retrograde
   stability limit; the ledger part adds them (stand-in tier until the
   paper is read by the research part).
   Owner (full build) (2026-10-30 2:48 PM EDT): Boss, 2:47 PM EDT
@@ -11946,7 +11890,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   1:46 PM EDT): research done, report
   reports/gen1021-comet-species-second-comet-2026-10-30.md. The 67P-only
   calibration was wrong by a lot for argon (Hale-Bopp Ar per water about
-  1500 times 67P, 3.2 decades, Stern 2000); N2 per CO in C/2016 R2 is 2
+  1500 times 67P, 3.2 decades, [R4215]); N2 per CO in C/2016 R2 is 2
   to 3 times 67P, OCS and SO2 vary 0.9 decades across comets, O2 in
   Halley agrees with 67P. A laboratory trapping table by temperature
   cannot be built from open text. Chosen design (option A): per-species
@@ -12287,8 +12231,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   builds it. The Solar System belt, Kuiper belt, Ceres, Pluto and Eris
   are test targets, never inputs. Lock work, train 7. Design section
   2.1 and 10 item 12: the outer disc beyond the last giant, its mass and
-  size law (hot and cold populations, Fraser 2014), the cold-disc
-  occurrence from Sibthorpe 2018, one belt record replacing the separate
+  size law (hot and cold populations, [R1439]), the cold-disc
+  occurrence from [R4081], one belt record replacing the separate
   descriptor. New epoch. Done: tests, census share of systems with an
   outer disc matches the descriptor's occurrence. Where we think it
   belongs (best guess, can move): Sources 2, train 7 (after the belt birth in the same train).
@@ -12787,7 +12731,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the ejection yield of the donor systems, never a game rate; the
   physics still decides each rogue) with the four values: None = 0,
   Normal = the calibrated low-leaning value against microlensing (Sumi
-  2023, Mroz 2017, Barclay 2017 as in
+  2023, [R0258, R3191] as in
   docs/design/research/rogue-planet-review.md), Few between None and
   Normal, Many = the top of the observed range; the option reaches the
   CLI (planetgen galaxy and sector), the web create forms and the API,
@@ -13061,7 +13005,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   layer, full cover at about two Earth oceans) and the Bern water prior
   is two-humped (46 percent hold under one Earth ocean, 43 percent over
   ten, only the 1 to 10 ocean window, 11 percent, is Earth-like). Side
-  calculations: a two-level hypsometry (Cowan and Abbot 2014) lifts 20
+  calculations: a two-level hypsometry [R0914] lifts 20
   to 80 percent only from 24 to 26 percent, a late-delivery term for dry
   bodies leaves it at 19 to 22, the mantle cap by mass changes nothing.
   No physics lever makes Earth types common. Option 1 (Aux 2
@@ -13246,19 +13190,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   fixture, API version, sheet rules; the pure binding-energy formulas
   for every structure live in the roundness engine GEN.1158 (uniform
   sphere, two-shell, polytrope for stars, brown dwarfs and giants,
-  degenerate white dwarf, neutron star from Lattimer and Prakash 2001
+  degenerate white dwarf, neutron star from [R2573]
   eq. 33). GEN.1159 stays planets, moons, asteroids, comets, rogue
   bodies and belt or field members. Lock work, rides the GEN.1159
   window.
   Prerequisites: GEN.1158. Related: GEN.1158, GEN.1159, GEN.1068.
 
-- [ ] **GEN.1167 The stellar-to-halo relation (Moster 2013) has 0.3 to 0.4 dex more stars than Behroozi 2019 in halos of 1e10.75 to 1e11.5 and 0.06 to 0.26 dex fewer in halos of 1e12.5 to 1e14.5: compare the published fits and pick the best-supported relation**
+- [ ] **GEN.1167 The stellar-to-halo relation [R3181] has 0.3 to 0.4 dex more stars than [R0319] in halos of 1e10.75 to 1e11.5 and 0.06 to 0.26 dex fewer in halos of 1e12.5 to 1e14.5: compare the published fits and pick the best-supported relation**
   Found by the GEN.753 stars and galaxy validation sweep (Sources 2,
   reports/gen753-stars-galaxy-validation-2026-10-31.md; PR #4329 added
   the agreeing statistics as tests). The first range matches Leauthaud
   2012 to 0.1 dex, and the automatic galaxy range draws from there.
-  Sources 2 compares the published fits (Moster 2013, Behroozi 2019,
-  Leauthaud 2012, Girelli 2020), says which one the source rules pick
+  Sources 2 compares the published fits [R0319, R1578, R2598, R3181], says which one the source rules pick
   (verified wins; two in doubt newest; two in question widest range),
   and either keeps the relation with a stated tier or replaces it. A
   replacement changes galaxy output and rides a train with GEN.1154,
@@ -13274,7 +13217,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Gyr). The 1/e per 0.5 Gyr decay is registered stand-in RO2 (L3).
   Replace it with a ring lifetime that depends on ring mass and the
   planet (viscous spreading, Poynting-Robertson drag, meteoroid
-  bombardment; Crida and Charnoz 2012 for the spreading and re-accretion
+  bombardment; [R0920] for the spreading and re-accretion
   side), register the new rows in GEN.725 with tier and tweak level, and
   re-run the 60-system sweep. Output changes, so train-bound after
   GEN.1057 merges. Owner Tides 1.
@@ -13309,7 +13252,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   resting on recalled ceramics coefficients; Pohl and Britt
   2020 find no usable porosity trend in meteorites and with the
   exponential on Proteus (porous, ice-rich, 210 km, not round) comes out
-  round. Find a rock-mechanics or ceramics source (Grott 2019 Ryugu
+  round. Find a rock-mechanics or ceramics source ([R1700] Ryugu
   boulders at 200 to 280 kPa are a whole-body data point), choose the
   law, and register it in GEN.725 with tier and tweak level. Owner Aux
   5. Source: reports/planetary-material-strength-2026-10-31.md section
@@ -13319,15 +13262,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Sources 1 finding
   (reports/strength-followup-gen1180-gen1175-2026-10-31.md) (2026-10-30
   11:33 PM EDT): One fitted law found, strength times (1 - phi/0.5)^1.67
-  from Alomari, Ng and Khatri 2025, from a summary only, so the paper
+  from Alomari, Ng and [R2337], from a summary only, so the paper
   must be read; it sits inside the placeholder's b 4 to 7 band for
   porosity 0.1 to 0.4. It is a carbonate rock law: ice-rich bodies have
-  no sourced porosity law. Boss uploads that matter: Alomari 2025 (open
+  no sourced porosity law. Boss uploads that matter: [R0083] (open
   access, mdpi.com/1996-1944/18/6/1211) and Yamashita, Kato and Arakawa
   2010 (Icarus 207:972). Keep open until the Alomari paper is read.
   Boss uploads read (Sources 1) (9:38 AM EDT 2026-10-31, as Sources 1
-  reported): Alomari, Ng and Khatri 2025 (Materials 18:1211, doi
-  10.3390/ma18061211) is CONFIRMED: UCS = 60.251 (1 - 0.02 n)^1.67 MPa
+  reported): Alomari, Ng and [R2337] (Materials 18:1211, [R0083]) is CONFIRMED: UCS = 60.251 (1 - 0.02 n)^1.67 MPa
   with n in percent, which is (1 - phi/n*)^1.67 with n* = 0.5 assumed,
   not fitted; also E = 30.31 (1 - 0.02 n)^1.82 GPa. Data: 178 training
   and 75 test points, porosity 0.4 to 50 percent, carbonate rocks and
@@ -13414,7 +13356,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   From Sources 1
   (reports/gen1187-strength-constant-sources-2026-10-31.md): sourced
   values exist for the partial-melt factor exp(-alpha x melt) (alpha 30
-  for diffusion creep, 30 to 45 for dislocation creep, Hirth and Kohlstedt 2003;
+  for diffusion creep, 30 to 45 for dislocation creep, [R1956];
   ice melt law B 22), the Andrade exponent 0.2 to 0.4
   and the Andrade over Maxwell ratio near 1 at low stress (the repo's
   0.3 and 1.0 stay; the rock ratio has a source conflict, record it),
@@ -13423,29 +13365,26 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   melting curves for Ih, III, V, VI and VII with all coefficients (IAPWS
   2011). Not found and still open: the ammonia dihydrate 1993 constants
   and the solid-solid ice boundaries (Boss uploads, in order of value:
-  Durham, Kirby and Stern 1993 JGR 98:17667, Goldsby and Kohlstedt 2001
-  JGR 106:11017, Choukroun and Grasset 2007 J. Chem. Phys. 127:124506).
+  [R1189]:17667, [R1614]:11017, [R0777]:124506).
   Replace the matching stand-ins in the tidal rheology and the ice-type
   strength table (GEN.1183) with these values and update their registry
   rows (tier and tweak level) in GEN.725. Changes tidal heating inputs,
   so it rides a Tides 1 lock window. Owner Tides 1.
   Boss uploads read (Sources 1) (9:38 AM EDT 2026-10-31, as Sources 1
-  reported): Goldsby and Kohlstedt 1997 (Scripta Mater. 37:1399-1406)
+  reported): [R1613] (Scripta Mater. 37:1399-1406)
   read: dislocation n 4, Q 64; grain-boundary sliding n 1.8, grain
-  exponent 1.4, Q 49; basal-limited n 2.4, Q 55 to 62. The GBS and basal
-  Mitri 2010 numbers are now verified; the Mitri diffusion row is not in
+  exponent 1.4, Q 49; basal-limited n 2.4, Q 55 to 62. The GBS and bas[R3099] numbers are now verified; the Mitri diffusion row is not in
   this paper. No prefactor A in the text (it is in Goldsby and Kohlstedt
-  2001, JGR 106:11017, not in hand). Morison, Labrosse and Choblet 2021
-  (Nature 600:419): N2 ice n = 2.1 (Yamashita 2010, Icarus 207:972,
+  2001, JGR 106:11017, not in hand). [R3161]
+  (Nature 600:419): N2 ice n = 2.1 ([R4806]:972,
   confirmed; correct an earlier 2.2), Q 3.5 kJ/mol non-Newtonian or 8.6
-  kJ/mol Newtonian (Eluszkiewicz and Stevenson 1990), viscosity 1e10
+  kJ/mol Newtonian [R1265], viscosity 1e10
   (non-Newtonian) to 1e16 to 1e19 Pa s (diffusion), 1e16 to 1e17 from
-  pit relaxation. Still needed: Goldsby and Kohlstedt 2001, Durham,
-  Kirby and Stern 1993 (JGR 98:17667) and Durham, Kirby and Stern 1997
+  pit relaxation. Still needed: [R1189, R1614] (JGR 98:17667) and [R1190]
   (JGR 102:16293, for ice types IT1 to IT3). The 'Rheology of Water and
   Ammonia-Water Ices' upload is only the 1993 LPSC abstract with no
   constants.
-  Sources 1 read Goldsby and Kohlstedt 2001 (2026-10-31 9:47 AM EDT):
+  Sources 1 read [R1614] (2026-10-31 9:47 AM EDT):
   Boss uploaded the paper; Sources 1 read Table 5 from the page image
   (report
   /mnt/project-files/reports/goldsby-2001-and-durham-planetary-ices-2026-10-31.md).
@@ -13461,7 +13400,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   boundary D0 of about 6e-4 m2/s is an estimate (upper bounds 5.8e-4 to
   8.4e-4). The paper has no melt law or melting curves. The authors
   print only initials (D. L. Goldsby, D. L. Kohlstedt). Also read: the
-  Durham, Kirby and Stern 1996 preprint Rheology of Planetary Ices
+  [R1190] preprint Rheology of Planetary Ices
   (UCRL-JC-123734); its Table 1 has the 1993 ammonia dihydrate law (log
   A 21.55, n 5.81, E* 107.5 kJ/mol, tested 130 to 176 K). The dihydrate
   to ice I strength ratio is 1.7 at 135 K, 0.91 at 143 K, 0.57 at 150 K,
@@ -13470,18 +13409,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   1997 row, log A -3.8, n 6.0, E* 39, is the right one). Our IT6 point at
   170 K (0.3) is above the law, 135 K (1.0) is below it, and 110 K (2.0)
   is outside the tested range. Ice II, III, V and VI constants are
-  already held in Durham, Kirby and Stern 1997 Table 2 (same as the 1996
-  preprint; Durham, Stern and Kirby 1996 JGR 101:2989 confirms V and VI);
-  Echelmeyer and Kamb 1986 (GRL 13:693) gives ice II about 10 times ice
+  already held in [R1190: Table 2] (same as the 1996
+  preprint; [R1196]:2989 confirms V and VI);
+  [R1211] (GRL 13:693) gives ice II about 10 times ice
   I viscosity and ice III about 0.01 times near 240 K. The high-pressure
   ratios depend strongly on depth: at lab rate ice II, V and VI come out
   1 to 2 times ice I and ice III 0.4 to 0.6, at 1e-15 per s ice II, V and
   VI 3 to 7. The ice VI row above 250 K jumps 50 times across 250 K, so
-  do not use it as it stands. Not found: Choukroun and Grasset 2007 and
+  do not use it as it stands. Not found: [R0777] and
   the solid-solid boundary equations. Melting curves are covered by
-  Wagner 2011. Report: reports/ice-high-pressure-sources-held-2026-10-31.md.
+  [R4585]. Report: reports/ice-high-pressure-sources-held-2026-10-31.md.
   Sources 1: solid-solid ice boundaries from a tertiary source
-  (2026-10-31 10:03 AM EDT): Choukroun and Grasset 2007 cannot be had
+  (2026-10-31 10:03 AM EDT): [R0777] cannot be had
   (Boss cannot get it), so the boundaries below 0.7 GPa come from one
   TERTIARY source: Martin Chaplin, Water Phase Diagram, water.lsbu.ac.uk
   (updated 5 Nov 2021; its references are by number only and the list is
@@ -13492,20 +13431,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   quadratic version fails its own triple point, 166 against 209.9, do
   not use); III-V 344.3 - 0.275 d - 0.01099 d^2; V-VI 625.9 + 0.06086 d
   - 0.0008571 d^2. Triple points: L-Ih-III 251.165 K, 209.9 MPa; L-III-V
-  256.164 K, 350.1 MPa; L-V-VI 273.31 K, 632.4 MPa (Wagner 2011, also
-  Journaux et al. arXiv 1907.09598 Table 4); Ih-II-III 238.45 K, 212.9
+  256.164 K, 350.1 MPa; L-V-VI 273.31 K, 632.4 MPa ([R4585], also
+  Journaux et al. [R2204: Table 4]); Ih-II-III 238.45 K, 212.9
   MPa; II-III-V 248.85 K, 344.3 MPa; II-V-VI about 218 K, 620 MPa
   (approximate; the printed II-V line gives 559 there, so do not extend
   a line past its triple points); VI-VII-L 2216 MPa, 355 K. Sources 1
   checked that every line meets its triple points within 1 MPa except
   III-V at the liquid point (345.8 against 350.1). Chaplin's short Simon
   form for ice VII melting is 10 percent off at 550 K: use the exact
-  IAPWS form already held. AQUA (A&A 2020, arXiv 2009.10098) Eq. 22
+  IAPWS form already held. AQUA (A&A 2020, [R1754]) Eq. 22
   gives a VI-VII fit; the extraction is garbled, verify before use. No
-  equation found for II-VI, VI-VII-VIII or VII-VIII. Fortes 2009 (J.
+  equation found for II-VI, VI-VII-VIII or VII-VIII. [R1425] (J.
   Appl. Cryst. 42:846) says Choukroun and Grasset's ice Ih K0' is wrong
   by 10 times and their ice VI density has no pressure term, so do not
-  trust their equation of state for volumes. Still missing: Dunaeva 2010
+  trust their equation of state for volumes. Still missing: [R1181]
   (Solar System Research 44:202) or Choukroun and Grasset by upload.
   Report: reports/ice-phase-boundaries-secondary-sources-2026-10-31.md.
   Prerequisites: none. Related: GEN.1183, GEN.1185, GEN.725.
@@ -13581,7 +13520,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the generator's disc gas at 8 kpc is 4.3 solar masses per pc2 against
   about 13 measured (neutral plus molecular gas near the solar circle);
   the cluster maximum goes steeply with gas surface density, so with the
-  sourced relation of Reina-Campos and Kruijssen 2017 the heaviest Milky
+  sourced relation of [R3720] the heaviest Milky
   Way shape disc cluster comes out at 4.1e3 solar masses, below the 1e4
   to 4e4 observed. Do: find the source of the 13 figure and the gas
   profile it belongs to (atomic plus molecular gas by radius), say why
@@ -13703,8 +13642,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.1224 research done: corrects the GEN.1223 note (Sources 1)
   (2026-10-31 11:48 AM EDT): report
   /mnt/project-files/reports/gen1224-giant-heavy-element-and-envelope-share-2026-10-31.md.
-  A newer paper supersedes Thorngren 2016: Chachan, Fortney, Ohno,
-  Thorngren, Murray-Clay, arXiv 2509.20428 (Sep 2025, preprint), 147
+  A newer paper supersedes [R4352]: Chachan, Fortney, Ohno,
+  Thorngren, Murray-Clay, [R0710] (Sep 2025, preprint), 147
   planets; law M_Z = 14.7 + 0.09 (M_p - 14.7) Earth masses, H/He share =
   1 - M_Z/M_p, half H/He at 32.6 Earth masses. So the ice giant to gas
   giant cut near 35 Earth masses is sourced after all (the earlier idea
@@ -14112,7 +14051,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   of composition against conditions, so the generator must build the law
   (solubility, saturation, equilibrium) and use the anchors as checks.
   Sourced: TEOS-10 seawater ion table; Mars perchlorate and chloride
-  eutectics (Marion 2010, Toner 2014); Enceladus Na-Cl-CO3 at pH 11 to
+  eutectics [R2878, R4397]; Enceladus Na-Cl-CO3 at pH 11 to
   12 and Europa MgSO4 1.1 to 96.8 g/kg; H2SO4-H2O eutectics 211 K at 36
   wt percent and 199 K at 38; ammonia-water eutectic 176 K at 33 wt
   percent plus 7 liquidus points; CO2 triple point and saturated density
@@ -14456,7 +14395,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Found by Core 3 while closing TEST.533 (#4575, 2:55 PM EDT 10-31 as
   the lane reported). Present star formation over its ten-Gy mean for
   the model disc is 0.49 (0.55 after GEN.999) against 0.20 to 0.3
-  measured for the Milky Way (Licquia and Newman 2015). Cause is not the
+  measured for the Milky Way [R2680]. Cause is not the
   gas law: the inflow in disk_history follows the halo's stellar growth,
   and for a light halo that rises to the present, while the Milky Way's
   own history declines. Measured for the test's disc by halo mass:
@@ -14478,7 +14417,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   dwarf with a belt carries a polluted flag when the belt's scattered
   rate, read from the belt the generator drew, gives a pollution rate
   above the detection limit, and the share of white dwarfs flagged falls
-  in the observed 25 to 50 percent band (Koester 2014 and Zuckerman 2010
+  in the observed 25 to 50 percent band ([R2415, R4918]
   give the share; a census test checks it); the flag shows on the star's
   page. Needs the belt birth chain, so a belt exists to scatter. Changes
   generated output (stored flag), so it rides a train after GEN.1068.
@@ -16863,31 +16802,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   the stack. The new test in test_run_line.py was not run (no gate on
   that lane); it goes in the next changed-files gate.
   Prerequisites: none. Related: ADM.95, PERF.227.
-  Prerequisites: none.
-
-- [ ] **ADM.137 Plan operations crash: admin/plans.py calls stabilize_star_system with a pinned keyword it no longer accepts, so 14 test_plans tests fail (bug)**
-  The full-suite thread (as the lane reported, 12:08 AM EDT 2026-11-01,
-  run on main 7eef24a) re-ran these alone, so they are real.
-  src/planetgen/admin/plans.py line 208 (_settle) calls
-  validation.stabilize_star_system(system, pinned=pinned), but the
-  function takes only (system, allow_removal=False); the keyword was
-  dropped when the class of a planet became derived from its stored
-  conditions (epoch 121, GEN.646), leaving only the docstring mention.
-  Every move, add, regenerate and rebase plan operation raises
-  TypeError. Fourteen tests in tests/test_plans.py fail (moving a
-  planet, a crowding move, a belt move, a moon move, adding a planet,
-  moon and belt, rebasing an approved plan, a plan through JSON, a
-  regeneration that keeps the class, and others). Do: decide whether a
-  moved body must keep its class (then the keep mark has to go through
-  the derived-class path) or the pin is meaningless now (then drop the
-  argument and the pinned parameter of _settle, and say so in the
-  tests); fix the docstring; run tests/test_plans.py and the admin
-  tests. Done: test_plans.py passes. Lock-free unless the class
-  derivation changes. Owner: none yet.
-  Owner (2026-11-01 12:12 AM EDT): Core 2, after UX.255 (assigned by
-  TODO).
-  Owner change (2026-11-01 12:15 AM EDT): Owner is now Star 2 (was Core
-  2); TODO reassigned it at 12:15 AM EDT.
   Prerequisites: none.
 
 ## SEC: Security
@@ -19314,37 +19228,21 @@ clears each one.
   carries it.
   Prerequisites: GEN.1111.
 
-- [ ] **TEST.499 RP9: rogue yield calibration against microlensing and the terrestrial scale: rogues per star against Sumi 2023 (central 21, lower 1 sigma 8 over the probed range), the Mroz 2017 Jupiter limit and Barclay 2017's 2.5 terrestrial bodies per star**
+- [ ] **TEST.499 RP9: rogue yield calibration against microlensing and the terrestrial scale: rogues per star against [R4254, R4255] (central 21, lower 1 sigma 8 over the probed range), the [R3191] Jupiter limit and [R0258]'s 2.5 terrestrial bodies per star**
   Rogue planet physics (goal #4130, review report
   docs/design/research/rogue-planet-review.md, GEN.1109 merged).
   Measured on 1500 stars: the architecture ejects only about 0.3 bodies
   (about 9 Earth masses, almost all giants) per star while the flat rate
-  gives about 2.7 per star over the range microlensing probes (Sumi 2023
-  central value 21, lower 1 sigma 8; Mroz 2017 Jupiter limit holds);
+  gives about 2.7 per star over the range microlensing probes ([R4254, R4255]
+  central value 21, lower 1 sigma 8; [R3191] Jupiter limit holds);
   about 125 sub-minimum bodies per star are deleted and merges lose 10
-  percent of mass; Barclay 2017's 2.5 terrestrial bodies per star is the
+  percent of mass; [R0258]'s 2.5 terrestrial bodies per star is the
   target scale. Do: a census check after the rogue rows are wired
   (GEN.1111), bands wide because the observations are loose; fails if
   the yield leaves them. Where we think it belongs (best guess, can
   move): Bug 2 (census) after train 8.
   Prerequisites: GEN.1111.
   Design: [docs/design/research/rogue-planet-review.md](design/research/rogue-planet-review.md)
-
-- [ ] **TEST.501 Order-independence test: chart region A then B and B then A and compare the union of real-donor objects and each sector's made-here digest; chart a region twice and nothing changes; the top-up checked as "same stored state in, same objects out"**
-  Region object store (Boss, 5:15 to 5:42 PM EDT 2026-10-30; study
-  GEN.1118, design draft region-object-store-gen1118-2026-10-30.md, goal
-  #4130). Defaults taken until Boss changes them: whole sectors are the
-  unit of randomness and a region is rounded up to whole sectors (no
-  partial sectors); work units are the galaxy's own (shell, band) arcs;
-  a moved rogue keeps the ID of its birth position, with history; the
-  top-up fills the shortfall only up to the Rogues level. Study sections
-  5 and 8.2. The sector digest is split into "made here" and "arrived
-  here" so an unrelated region being charted never changes a sector's
-  own digest. Done: the test on a small sphere, run in the merge gate of
-  the sector fill. Lock-free (test). Where we think it belongs (best
-  guess, can move): Core 1 (reproducible galaxies), after the region run
-  command.
-  Prerequisites: none. Related: GEN.1118.
 
 - [ ] **TEST.520 Extend the wiring guard to stored columns and shadow functions, and wire, show or drop every column only the Details sheet reads**
   Boss, 12:03 PM EDT 2026-10-31: make sure everything built is wired in
@@ -19386,23 +19284,6 @@ clears each one.
   change, like a module.
   Prerequisites: none.
 
-- [ ] **TEST.546 The object timing test finds a unit saved with the kind star where it expects system (bug)**
-  The full-suite thread (reported 2026-10-31 9:34 PM EDT as the lane
-  reported) ran the suite on main 7eef24a;
-  test_object_timing.py::test_a_unit_saves_under_its_run_and_the_run_adds_its_sectors_up
-  fails alone with "assert 'star' == 'system'": the kind saved for a
-  unit is 'star' and the test expects 'system'.
-  test_a_galaxy_run_saves_each_sectors_timings_under_its_run in the same
-  file also failed, probably the same cause. Do: find which side changed
-  (src/planetgen/generation/object_timing.py and run_galaxy.py record
-  the kind; the Seconds per object table of PERF.197 reads it), decide
-  by what the Stats page needs which kind is right, and fix the code or
-  the test with the reason in the change note. Done: both tests pass and
-  the Stats table still shows the same rows. Lock-free, generation
-  output unchanged. Owner: unassigned (a waiting lane may take it).
-  Version 8.1. Prerequisites: none. Related: TEST.261, PERF.197.
-  Prerequisites: none.
-
 - [ ] **TEST.548 Two phenomenon-scatter count tests fail on main: remnant counts moved past 1.5 times the model (bug)**
   The full-suite thread (as the lane reported, 10:36 PM EDT 2026-10-31,
   run on main 7eef24a) re-ran these alone, so they are real:
@@ -19427,18 +19308,6 @@ clears each one.
   after the merge), then re-baselines; check the five go green and that
   no other test moved. Done: the five census tests pass on main after
   the re-tag. Owner: Train Manager.
-  Prerequisites: none.
-
-- [ ] **TEST.552 test_plan_outline expects the outline crest at 3.32 times and the density model now gives 3.18 (bug)**
-  The full-suite thread (as the lane reported, 12:08 AM EDT 2026-11-01,
-  run on main 7eef24a):
-  tests/test_plan_outline.py::test_the_line_gives_the_crest_the_share_and_the_size_of_the_outline
-  fails because the outline says 'crest is 3.18 times' and the test
-  expects '3.32 times'; the density model changed and the test was not
-  updated. Do: confirm the 3.18 comes from a sourced density change
-  (name the epoch or item), then update the expected figure with that
-  reason, or find the bug if the change was not intended. Done: the test
-  passes on main. Lock-free, test side. Owner: none yet.
   Prerequisites: none.
 
 ## USR: User accounts
@@ -20895,8 +20764,8 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   calibration test is VIEW.12's (VIEW.10 was folded into VIEW.12, Boss,
   2026-10-16, 11:58 PM EDT), not VIEW.10's.
   VIEW.9 merged as #4508 (Star 2, as the lane reported) (2026-10-31 1:30
-  PM EDT): physics/photometry.bolometric_correction_v (Flower 1996 with
-  Torres 2010 coefficients, read from the paper) answers 3,500 to 50,000
+  PM EDT): physics/photometry.bolometric_correction_v ([R1392] with
+  [R4407] coefficients, read from the paper) answers 3,500 to 50,000
   K and raises outside; M_bol of the Sun 4.74 goes with it. Nothing
   reads it yet: this item wires it, and decides what a star cooler than
   3,500 K gets (no value is invented in the library). The wiring guard

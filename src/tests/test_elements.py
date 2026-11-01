@@ -27,7 +27,7 @@ def test_every_data_file_states_its_sources_and_when_it_was_read(name):
         data = json.load(handle)
     assert data["title"] and data["retrieved"] and "licence" not in data
     assert data["sources"] and all(len(source) > 30 for source in data["sources"])
-    assert any("doi" in source or "ciaaw" in source.lower() or "nist" in source.lower() for source in data["sources"])
+    assert any("doi" in source or "[R" in source or "ciaaw" in source.lower() or "nist" in source.lower() for source in data["sources"])
 
 
 @pytest.mark.parametrize("field", ["sources", "retrieved"])

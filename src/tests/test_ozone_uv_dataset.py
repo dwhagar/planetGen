@@ -60,7 +60,7 @@ def test_the_temperature_is_linear_between_the_three_tables_and_held_outside_the
 
 
 def test_the_chappuis_band_is_weaker_in_the_cold_at_its_blue_edge_and_the_ratio_is_linear_between_the_tables(installed):
-    """GEN.748: the five tables of Burkholder and Talukdar (1994) give the band's temperature dependence as a ratio to the 298 K one."""
+    """GEN.748: the five tables of [R0599] give the band's temperature dependence as a ratio to the 298 K one."""
     edges = uvx.standard_edges()
     blue, peak = _index(edges, 425.0), _index(edges, 605.0)
     located = fetch.locate(ozone_uv.DATASET)

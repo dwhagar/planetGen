@@ -9,13 +9,13 @@ holds, against the disk's own average (GEN.134, `docs/design/galaxy/star-types-b
 galaxy's own shape, with no value taken from the Milky Way's star-formation profile (those are the test targets of
 `tests/test_star_formation_profile.py`, never inputs):
 
-1. The star-formation law (Kennicutt 1998): the rate per area follows the gas per area to a power `n` (1.4). The
+1. The star-formation law [R2321]: the rate per area follows the gas per area to a power `n` (1.4). The
    thin disk's stars are the sum of its past rates, so their surface density is `exp(-R / L)` (`L` the disk scale
    length). With a gas disk of scale length `g * L` the present rate falls as `exp(-n R / (g L))`, and the share
    of the stars that are recent as `exp(-(n / g - 1) R / L)`: the outer disk has fewer young stars per star.
    Where the gas thins the index rises (GEN.450): molecular gas forms stars at a constant efficiency and atomic gas,
-   which dominates where the gas is under about 9 solar masses per pc2, at a falling one (Bigiel et al. 2008, Leroy et
-   al. 2008, Schaye 2004), so the rate is `A gas^n (gas / (gas + gas_s))^(m - n)` with `gas_s` the saturation density
+   which dominates where the gas is under about 9 solar masses per pc2, at a falling one ([R0392], Leroy et
+   al. 2008, [R3951]), so the rate is `A gas^n (gas / (gas + gas_s))^(m - n)` with `gas_s` the saturation density
    (`tuning.STAR_FORMATION_SATURATION_GAS_MSUN_PC2`) and `m` the steeper index
    (`tuning.STAR_FORMATION_LOW_DENSITY_EXPONENT`), and the gas at each radius is the disk's own, from the rings of its
    star-formation history (`galaxy.disk_history`). The extra factor is 1 where the gas is dense and

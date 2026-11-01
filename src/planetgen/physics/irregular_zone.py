@@ -5,10 +5,10 @@ Where an irregular moon can stay round a planet (GEN.1076; docs/design/systems/c
 =======================================================================================================================
 
 The irregular satellites of the giants are captured small bodies on distant, eccentric, inclined orbits. Four rules, each from the numerical orbit surveys quoted by
-Jewitt and Haghighipour 2007 (ARA&A 45, 261) and Vokrouhlicky, Nesvorny and Levison 2008 (AJ 136, 1463), say where one can stay:
+[R2158, R3147], say where one can stay:
 
 * **The Hill sphere.** `r_H = a_p (m_p / 3 M_star)^(1/3)` (JH07 equation 1): 0.35, 0.43, 0.47 and 0.77 AU for Jupiter, Saturn, Uranus and Neptune. Nothing beyond a share of it stays.
-* **Stable limits.** A prograde orbit is stable out to about `PROGRADE_STABLE_FRACTION` of `r_H` and a retrograde one out to about `RETROGRADE_STABLE_FRACTION` (0.5 to 0.6; Nesvorny et al. 2003, quoted in
+* **Stable limits.** A prograde orbit is stable out to about `PROGRADE_STABLE_FRACTION` of `r_H` and a retrograde one out to about `RETROGRADE_STABLE_FRACTION` (0.5 to 0.6; [R3263], quoted in
   VNL08), which is why retrograde bodies outnumber prograde ones 88 to 19 among the known irregulars with no bias of capture. Both are limits on the semi-major axis, time averaged.
 * **The Kozai band.** An orbit inclined from `KOZAI_FORBIDDEN_DEG[0]` to `KOZAI_FORBIDDEN_DEG[1]` to the planet's orbit has its eccentricity driven up by the star within 65 to 180 years and strikes the planet or the regular
   moons: no irregular is found there (`moon_composition.KOZAI_FORBIDDEN_DEG`).
@@ -23,10 +23,10 @@ from dataclasses import dataclass
 from planetgen.physics import constants, moon_composition, orbits
 
 PROGRADE_STABLE_FRACTION = 0.4
-"""float: The share of the Hill radius out to which a prograde orbit is stable, time averaged (the numerical surveys give 0.4 to 0.5; the Hamilton and Burns 1991 figure the moon code keeps is 0.4895 for a circular
+"""float: The share of the Hill radius out to which a prograde orbit is stable, time averaged (the numerical surveys give 0.4 to 0.5; the [R1771] figure the moon code keeps is 0.4895 for a circular
 regular moon). Source tier T2, tweak level L1."""
 RETROGRADE_STABLE_FRACTION = 0.55
-"""float: The share of the Hill radius out to which a retrograde orbit is stable, the middle of the range of 0.5 to 0.6 of Nesvorny et al. 2003 as quoted by VNL08. Source tier T1, tweak level L0."""
+"""float: The share of the Hill radius out to which a retrograde orbit is stable, the middle of the range of 0.5 to 0.6 of [R3263] as quoted by VNL08. Source tier T1, tweak level L0."""
 RETROGRADE_INCLINATION_DEG = 90.0
 """float: An orbit inclined more than this to the planet's orbit goes round the other way."""
 INNER_EDGE_FACTOR = 1.0

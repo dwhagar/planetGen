@@ -34,11 +34,11 @@ def _row(**changes):
     row = {
         "id": "W10", "name": "Iron-rich core", "kind": "planet",
         "requires": [{"quantity": "mass_earth", "lt": 5.0}, {"quantity": "collision_count", "min": 1}],
-        "rate": {"value": 0.03, "source": "Plotnykov and Valencia 2020, recalled", "label": "RECALLED", "tier": "T2", "tweak": "L0",
+        "rate": {"value": 0.03, "source": "[R3545], recalled", "label": "RECALLED", "tier": "T2", "tweak": "L0",
                  "registry": "OD1"},
         "apply": {"lever": "L3", "input": "core_mass_fraction", "effect": "strip_mantle", "params": {"max_fraction": 0.85}},
         "limits": [{"quantity": "core_mass_fraction", "lt": 0.85}],
-        "source": "Marcus et al. 2010; Benz et al. 2007",
+        "source": "[R0351, R2866]",
         "text": "Its mantle was knocked off by a giant impact, so it is mostly iron.",
     }
     row.update(changes)

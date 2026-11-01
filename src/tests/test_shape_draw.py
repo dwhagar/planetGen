@@ -262,9 +262,9 @@ def test_a_galaxy_with_nothing_pinned_is_a_small_spiral(auto_draws):
 
 MILKY_WAY_DISK_SCALE_LENGTH_PC = 2600.0
 """float: A test-only yardstick for Boss's "no more than half as big as the Milky Way": the thin disc's scale length
-(Bland-Hawthorn and Gerhard 2016); no generator code reads it."""
+[R0422]; no generator code reads it."""
 MILKY_WAY_STELLAR_MASS_SOLAR = 5.4e10
-"""float: The same yardstick for the stellar mass (Bland-Hawthorn and Gerhard 2016, test only)."""
+"""float: The same yardstick for the stellar mass ([R0422], test only)."""
 
 AUTO_SEEDS = range(10_001, 10_151)
 

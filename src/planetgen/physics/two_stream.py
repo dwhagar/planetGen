@@ -10,8 +10,7 @@ star at cosine `mu0`, and for diffuse light from above and from below. Layers ar
 `ground_flux` closes the stack with a Lambertian ground. All fluxes are fractions of the flux the star puts on a
 horizontal surface at the top of the atmosphere (`mu0` times the flux through a surface facing the star).
 
-* **A scattering layer** (`scattering_layer`) is solved in the delta-Eddington two-stream approximation (Joseph,
-  Wiscombe and Weinman 1976; coefficients of Meador and Weaver 1980): optical depth, single-scattering albedo and
+* **A scattering layer** (`scattering_layer`) is solved in the delta-Eddington two-stream approximation ([R2199]; coefficients of [R3013]): optical depth, single-scattering albedo and
   asymmetry factor per wavelength. With no absorption, no asymmetry and no ground it gives the research's closed form
   `T = [(2/3 + mu0) + (2/3 - mu0) exp(-tau/mu0)] / (4/3 + tau)`, which the research checked against a Monte Carlo run
   within 1.3 percent for `mu0` of 0.5 and 1 (part 02 2.8). The equations are solved exactly for the layer (not

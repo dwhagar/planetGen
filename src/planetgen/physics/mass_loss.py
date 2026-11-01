@@ -8,10 +8,10 @@ A star of M_initial solar masses that becomes a white dwarf of M_final loses the
 and in every direction. Two things follow for a planet that was there:
 
 * **Engulfment.** The giant's envelope took, or drove off, every planet inside `engulfment_radius_au` of the progenitor: a lookup through
-  `WD_ENGULFMENT_POINTS_AU`, the Jovian-planet points of Mustill and Villaver (2012), ApJ 761, 121 (2.7 AU for a
+  `WD_ENGULFMENT_POINTS_AU`, the Jovian-planet points of [R3225], ApJ 761, 121 (2.7 AU for a
   solar-mass star, 10 AU for five solar masses).
 * **Expansion.** A planet outside it keeps its angular momentum while the star loses mass adiabatically, so
-  `a (M_star + M_p)` is constant (Jeans 1924; Hadjidemetriou 1963; Veras et al. 2011, MNRAS 417, 2104; section 1.2 of the
+  `a (M_star + M_p)` is constant ([R1745, R2149, R4534]; section 1.2 of the
   note): the orbit grows by `(M_initial + M_p) / (M_final + M_p)`, 1.85 for a star of one solar mass that leaves 0.54.
 
 The drawn distances of a white dwarf's planets are the ones the planets formed at; this is what happens to them.

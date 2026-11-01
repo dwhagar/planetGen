@@ -92,26 +92,26 @@ def test_the_table_holds_all_21_equations_of_state_with_curves_that_rise():
 
 
 def test_nearly_every_equation_of_state_holds_up_a_two_solar_mass_pulsar():
-    """PSR J0740+6620 weighs 2.08 +- 0.07 solar masses (Fonseca et al. 2021); the compilation is built to hold it."""
+    """PSR J0740+6620 weighs 2.08 +- 0.07 solar masses [R1404]; the compilation is built to hold it."""
     assert len([i for i in INDICES if ns.maximum_mass_solar(i) >= 2.0]) >= 19
     assert all(ns.maximum_mass_solar(i) < 3.0 for i in INDICES)
     assert len(ns.supporting(2.08)) == 19 and ns.supporting(2.9) == ()
 
 
 def test_the_radius_of_a_one_point_four_solar_mass_star_spans_the_nicer_band():
-    """Miller et al. 2021: R(1.4) = 12.45 +- 0.65 km. The 21 tables run from the soft ones near 11.8 km to the stiff ones near 13.8."""
+    """[R3075]: R(1.4) = 12.45 +- 0.65 km. The 21 tables run from the soft ones near 11.8 km to the stiff ones near 13.8."""
     low, median, high = ns.radius_band_km(1.4)
     assert 11.5 < low < 12.3 and 13.3 < high < 14.2
     assert 12.45 - 0.65 < median < 12.45 + 1.0
 
 
 def test_the_radii_agree_with_the_two_nicer_pulsars():
-    """J0030+0451, 1.34 solar masses: 12.71 +1.14 -1.19 km (Riley et al. 2019). J0740+6620, 2.08: 13.7 +2.6 -1.5 km (Miller et al. 2021)."""
+    """J0030+0451, 1.34 solar masses: 12.71 +1.14 -1.19 km [R3766]. J0740+6620, 2.08: 13.7 +2.6 -1.5 km [R3075]."""
     low, median, high = ns.radius_band_km(1.34)
     assert 12.71 - 1.19 < median < 12.71 + 1.14
     low, median, high = ns.radius_band_km(2.08)
     assert 13.7 - 1.5 < median < 13.7 + 2.6
-    assert 12.35 - 0.75 < median < 12.35 + 0.75    # the combined band of Miller et al. 2021 at 2.08 solar masses
+    assert 12.35 - 0.75 < median < 12.35 + 0.75    # the combined band of [R3075] at 2.08 solar masses
 
 
 def test_a_one_point_four_solar_mass_star_has_a_crust_about_a_kilometre_thick():

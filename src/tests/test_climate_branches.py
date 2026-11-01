@@ -46,7 +46,7 @@ def test_a_law_that_is_not_a_ramp_from_dark_to_bright_and_warm_to_cold_is_refuse
 
 
 FAINT_SUN_FLUX = 1150.0
-"""float: A flux 15 percent under the Earth's, inside the bistable window of the toy (a faint young Sun, as in the snowball Earth of Hoffman 1998)."""
+"""float: A flux 15 percent under the Earth's, inside the bistable window of the toy (a faint young Sun, as in the snowball Earth of [R1969])."""
 
 
 def test_an_earth_twin_under_a_fainter_sun_holds_a_snowball_a_warm_world_and_an_unstable_one_between():

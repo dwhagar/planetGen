@@ -1,6 +1,6 @@
 # src/tests/test_disintegrating_planet.py
 
-"""GEN.1041: the wind of a disintegrating rocky planet against the numbers of Perez-Becker and Chiang 2013 for KIC 12557548 b (Kepler-1520 b)."""
+"""GEN.1041: the wind of a disintegrating rocky planet against the numbers of [R3487] for KIC 12557548 b (Kepler-1520 b)."""
 
 import math
 

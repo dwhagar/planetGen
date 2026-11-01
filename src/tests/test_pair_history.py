@@ -61,7 +61,7 @@ def test_the_forced_limit_is_one_axis_that_widens_with_eccentricity_and_the_prog
 
 
 def test_the_rule_reaches_past_the_lookup_it_replaces_for_a_solar_mass_progenitor():
-    """The lookup's 1.5 AU was the distance inside which a planet was cleared; a star with a lobe of its own is cleared out to a few AU (Mustill and Villaver 2012 print 2.7 AU for a Jovian planet)."""
+    """The lookup's 1.5 AU was the distance inside which a planet was cleared; a star with a lobe of its own is cleared out to a few AU ([R3225] print 2.7 AU for a Jovian planet)."""
     limit = pair_history.widest_forced_axis_au(0.0, _white_dwarf(), _dwarf())
     assert mass_loss.engulfment_radius_au(1.0) < limit < 10.0
 

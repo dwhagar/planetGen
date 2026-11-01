@@ -60,12 +60,12 @@ they sit in `tuning.py` with a source.
 
 ### 3.1 Close pairs rise as metallicity falls
 
-Moe, Kratter and Badenes (2019, ApJ 875, 61; arXiv 1808.02116) corrected five surveys for their selection biases and found
+[R3109] corrected five surveys for their selection biases and found
 one consistent trend: the intrinsic fraction of solar-type primaries (about 0.6 to 1.5 solar masses) with a companion inside
 10 AU (periods under 10^4 days) is **53% +-12% at [Fe/H] -3.0, 40% +-6% at -1.0, 24% +-4% at -0.2 and 10% +-3% at +0.5**
 [S: the abstract, read through search results; the paper's full text could not be opened from this environment].
-Badenes et al. (2018, ApJ 854, 147) found the same direction in APOGEE: metal-poor stars ([Fe/H] below about -0.5) are
-two to three times as often in multiples as metal-rich ones (above about 0). Bate (2019) reproduces it in
+[R0223] found the same direction in APOGEE: metal-poor stars ([Fe/H] below about -0.5) are
+two to three times as often in multiples as metal-rich ones (above about 0). [R0281] reproduces it in
 radiation-hydrodynamic simulations, where low opacity lets the disc fragment more and the companions migrate inside
 10 AU [R].
 
@@ -104,16 +104,16 @@ What the sources limit:
   Kepler and APOGEE, so the line between them is an interpolation of a pooled trend, not a measurement per population. Boss chose
   the pooled line (answer 1) over a per-population one, which no source gives.
 - **Mass: all masses, which the sources do not support above about 1.5 solar masses.** The points are for 0.6 to 1.5 solar masses.
-  Moe, Kratter and Badenes argue the close fraction of massive stars does not change with metallicity [R]; the BLOeM survey (arXiv 2503.21936) finds early-B stars at the Small Cloud's
+  Moe, Kratter and Badenes argue the close fraction of massive stars does not change with metallicity [R]; the BLOeM survey [R4551] finds early-B stars at the Small Cloud's
   metallicity ([Fe/H] about -0.7) *more* often close than in the Milky Way, so early B may follow the trend while O stars do not.
   Boss's decision is to apply the line to every mass, on the odds, and let the check (3.1b) show where the numbers leave the published ranges.
   What the line does to a massive star is in the table below: the plain factor would have pushed O stars below [Fe/H] about -0.7 past the observed
   ceiling (0.77 at -0.7 against 0.69 +-0.09), which is why Boss chose the odds form.
-- **Wide pairs.** Answer 3: no metallicity dependence, so the rule moves the close share only. El-Badry and Rix (2019, MNRAS Letters; arXiv 1809.06860)
-  say the wide fraction is flat in [Fe/H] beyond about 250 AU and anticorrelated below about 200 AU; Hwang et al. 2021 (arXiv 2010.02920) find it peaks
-  near [Fe/H] 0 and falls to both sides for 10^3 to 10^4 AU, and Niu et al. 2022 (arXiv 2205.04444) say the sign depends on separation range
+- **Wide pairs.** Answer 3: no metallicity dependence, so the rule moves the close share only. [R1235]
+  say the wide fraction is flat in [Fe/H] beyond about 250 AU and anticorrelated below about 200 AU; [R2062] find it peaks
+  near [Fe/H] 0 and falls to both sides for 10^3 to 10^4 AU, and [R3298] say the sign depends on separation range
   and temperature. Wide pairs start at 0.25 AU (`WIDE_BINARY_SEPARATION_MIN_AU`, GEN.448); the outer range, 10 AU and out, carries no trend, and the inner range carries the close-binary one, so the 10 to 200 AU anticorrelation is left out; that is Boss's rule.
-- **Iron or alpha.** Mazzola et al. (2020, MNRAS 499, 1607; arXiv 2007.09059) find the close fraction follows the alpha abundance more
+- **Iron or alpha.** [R2965] find the close fraction follows the alpha abundance more
   steeply than iron, with a high alpha abundance suppressing it at most [Fe/H]. The generator has no alpha abundance. Used with [Fe/H] alone the rule would give the thick disc
   more close pairs than a high-alpha sample shows. [R: from the abstract only]
 
@@ -140,11 +140,11 @@ and are never read by the draw.
 
 | Primary mass bin | Expected close share (inside 10 AU) | Source | What the check does |
 |---|---|---|---|
-| 0.6 to 1.5 Msun (G, late F, early K) | the shape: 53 +-12% at [Fe/H] -3.0, 40 +-6% at -1.0, 24 +-4% at -0.2, 10 +-3% at +0.5, as ratios to the value at 0 (2.65, 2.0, 1.2, 0.5); the level at [Fe/H] 0: 0.15 +-0.03 companions inside log P 3.7 | Moe, Kratter and Badenes 2019 [S: abstract]; Moe and Di Stefano 2017 Table 13 | fails when a ratio is outside its range widened by the sampling error, or the level outside Table 13's |
-| 7 +-2 Msun (mid B) | at least 23 +-7% (companions at periods 100 to 1500 d only, mass ratio 0.1 to 1); [Fe/H] about 0 | Moe and Di Stefano 2017 [S: search summary of the abstract] | fails below the lower bound at [Fe/H] -0.2 to 0 |
-| 28 +-8 Msun (O) | between 35 +-12% (periods 100 to 1500 d) and about 69 +-9% (Sana et al. 2012, periods to about 3000 d, intrinsic binary fraction) | Moe and Di Stefano 2017; Sana et al. 2012 [S: search summaries] | fails outside the span at [Fe/H] -0.2 to 0 |
+| 0.6 to 1.5 Msun (G, late F, early K) | the shape: 53 +-12% at [Fe/H] -3.0, 40 +-6% at -1.0, 24 +-4% at -0.2, 10 +-3% at +0.5, as ratios to the value at 0 (2.65, 2.0, 1.2, 0.5); the level at [Fe/H] 0: 0.15 +-0.03 companions inside log P 3.7 | [R3109] [S: abstract]; [R3108: Table 13] | fails when a ratio is outside its range widened by the sampling error, or the level outside Table 13's |
+| 7 +-2 Msun (mid B) | at least 23 +-7% (companions at periods 100 to 1500 d only, mass ratio 0.1 to 1); [Fe/H] about 0 | [R3108] [S: search summary of the abstract] | fails below the lower bound at [Fe/H] -0.2 to 0 |
+| 28 +-8 Msun (O) | between 35 +-12% (periods 100 to 1500 d) and about 69 +-9% ([R3892], periods to about 3000 d, intrinsic binary fraction) | [R3108, R3892] [S: search summaries] | fails outside the span at [Fe/H] -0.2 to 0 |
 | O and early B across [Fe/H] -0.7 to +0.1 | the same value within about 30% (no trend) | no source | fails when the ratio of the lowest to the highest [Fe/H] bin leaves 0.7 to 1.3 (the odds form gave 1.29 for O at -0.7 before GEN.448 and gives 1.32 now, see below) |
-| below 0.6 Msun, 1.5 to 5 Msun | no number verified in this environment; the close fraction rises with mass | Moe and Di Stefano 2017 (not opened) | printed, never fails, until Boss does the research |
+| below 0.6 Msun, 1.5 to 5 Msun | no number verified in this environment; the close fraction rises with mass | [R3108] (not opened) | printed, never fails, until Boss does the research |
 | outer share (10 AU and out), all masses | no change with [Fe/H] (answer 3) | the rule itself | fails when two [Fe/H] bins differ by more than the allowance; skips the O and B bins where the companion chance saturates (see above) |
 
 Predicted first-run result, from the table above (GEN.448 changed the levels): the G-dwarf bins keep the pooled line's shape (the odds ratios equal `F / F(0)`) at a level of
@@ -170,8 +170,7 @@ The five-or-more columns are the ones that scale, which is how the knob works to
 
 Two limits cut the widest axis a pair can keep. Both are functions of the cell and the second also of the stars' age.
 
-**The encounter limit.** Passing stars and clouds unbind soft pairs (Heggie 1975; Bahcall, Hut and Tremaine 1985). Jiang and
-Tremaine (2010, MNRAS 401, 977; arXiv 0907.2952) restate the 1985 result: the semi-major axis at which **half of
+**The encounter limit.** Passing stars and clouds unbind soft pairs [R0229, R1880]. [R2166] restate the 1985 result: the semi-major axis at which **half of
 the pairs of age t survive** is
 
     a_1/2 = 0.002 * (M_1 + M_2) * sigma / (G * rho_2 * t)
@@ -193,7 +192,7 @@ dispersion and used 0.4 solar masses for the perturber mass: `place_terms.RELATI
 population's one-axis dispersion (the profile's three-axis total over root 3, GEN.284), and `place_terms.mass_weighted_perturber_mass_solar`
 computes `<M^2> / <M>` from the generator's own initial mass function (`tuning.IMF_BREAKS_SOL`, `IMF_SLOPES`), aged to each
 population's age range at a steady rate (`tuning.STELLAR_POPULATION_AGE_RANGES_GY`), with the remnants of what has left the main
-sequence: stars up to the turn-off where the main-sequence lifetime of Hurley, Pols and Tout 2000 (`ms_lifetime.mass_for_lifetime_gy`) reaches the age, white dwarfs from the
+sequence: stars up to the turn-off where the main-sequence lifetime of [R2055] (`ms_lifetime.mass_for_lifetime_gy`) reaches the age, white dwarfs from the
 `WHITE_DWARF_PROGENITOR_SOL` range by the initial-final relation (`WD_IFMR_*`), neutron stars and black holes from the windows of initial mass the generator draws them from (`remnant_progenitors`,
 `explosion-islands.md`) above the white dwarf range, the last two uniform over their mass ranges as the generator draws them. A cell takes the share-weighted mix of the populations it holds (`from_profile`). The two corrections go
 opposite ways: root 2 makes the limit 1.41 times longer, and the perturber mass, 1.44 solar masses for the whole disk against
@@ -208,16 +207,16 @@ perturbers should include the dark remnants; the stars-only value is `remnants=F
 
 **GEN.554 (2026-10-21): the black holes follow the failed share.** The neutron stars and black holes of the cohort now come from the windows of initial mass of the failed share of the middle draw at solar metallicity (13.6% of the 8 to 150 solar mass stars, `explosion-islands.md`; the natal kick of `natal-kick.md` ejects 16% of the neutron stars, which lets the cap on the black hole share rise), not from the old 20 to 100 solar mass range (29% of them). The perturber mass of the whole disk falls from 1.44 to 1.01 solar masses (the stars alone stay 0.553), the encounter limits lengthen by 1.4 times (the table of limits by place below is the new one), and the black holes' count falls to 7e7 for 5e10 solar masses of stars, under the published 1e8 to 1e9 (the shares a galaxy can draw, up to 45%, give 2.4e8 and are inside it). The figures below this paragraph (1.44, 175, the 0.61 share, the 0.29 of core-collapse stars) are the GEN.541 check as it was made.
 
-**GEN.927 and GEN.928 (2026-10-30): the mass function is Chabrier's, and the placed stars are its primaries.** The single-star function is now the Chabrier (2003) log-normal below one solar mass and a 2.3 power law above it (`docs/design/galaxy/stellar-mass-function.md`), which has fewer very light stars than the Kroupa broken line: the mass-weighted perturber mass of the stars alone rises from 0.553 to 0.568 and of the whole disk from 1.01 to 1.19, the black holes' count for 5e10 solar masses of stars from 7e7 to 1.0e8 (the lower end of the published 1e8 to 1e9, so the gap the test used to record is closed), and the mean mass of a system from 0.50 to 0.52 solar masses (the placed stars are the primaries, each system's companions are the rest of the stars). The encounter limits shorten by 15% (the table below).
+**GEN.927 and GEN.928 (2026-10-30): the mass function is Chabrier's, and the placed stars are its primaries.** The single-star function is now the [R0705] log-normal below one solar mass and a 2.3 power law above it (`docs/design/galaxy/stellar-mass-function.md`), which has fewer very light stars than the Kroupa broken line: the mass-weighted perturber mass of the stars alone rises from 0.553 to 0.568 and of the whole disk from 1.01 to 1.19, the black holes' count for 5e10 solar masses of stars from 7e7 to 1.0e8 (the lower end of the published 1e8 to 1e9, so the gap the test used to record is closed), and the mean mass of a system from 0.50 to 0.52 solar masses (the placed stars are the primaries, each system's companions are the rest of the stars). The encounter limits shorten by 15% (the table below).
 
 **GEN.541 (checked 2026-10-18): the black hole inputs hold, so the remnants stay in.** Four sources, read in full where quoted:
 
 | Input | The generator | Source |
 |---|---|---|
-| Black holes among core-collapse stars | 0.29 of the stars from 8 to 150 solar masses (those from 20 up) | Sukhbold et al. 2016 (ApJ 821, 38; arXiv 1510.04643) Table 4, read: the share of stars from 9 to 120 solar masses that explode is 55 to 74% for the four calibrated engines, so 26 to 45% leave a hole |
-| Mean hole mass | 12.5 solar masses (uniform from 5 to 20) | the same paper, section 5.2: 9 solar masses if only the helium core collapses, 14 if the whole star does; Olejak et al. 2020 (A&A 638, A94; arXiv 1908.08775) Table 10, single holes in the disk 14.2 and the bulge 11.7; Ozel et al. 2010 (ApJ 725, 1918; arXiv 1006.2834) 7.8 +- 1.2 for the 16 holes of transient X-ray binaries, a sample chosen by flux |
-| Number in the Galaxy | 1.6e8 holes for 5e10 solar masses of stars (2.5e8 for 5e10 of stars after the return fraction 0.37) | Olejak et al. 2020: 1.2e8 single holes and 9.3e6 in binaries; the older estimates they list run from 1e8 to 1e9 (Shapiro and Teukolsky 1983 to Timmes et al. 1996) |
-| The shape of the mass function | uniform from 5 to 20 | Olejak: a peak at 10 to 15 solar masses falling to a tail (to 113 for one merger product); Farr et al. 2011 (ApJ 741, 103; arXiv 1011.1459): 15 of 20 holes in a low peak, the rest in a high peak (13.5 to 28) |
+| Black holes among core-collapse stars | 0.29 of the stars from 8 to 150 solar masses (those from 20 up) | [R4251: Table 4], read: the share of stars from 9 to 120 solar masses that explode is 55 to 74% for the four calibrated engines, so 26 to 45% leave a hole |
+| Mean hole mass | 12.5 solar masses (uniform from 5 to 20) | the same paper, section 5.2: 9 solar masses if only the helium core collapses, 14 if the whole star does; [R3348: Table 10], single holes in the disk 14.2 and the bulge 11.7; [R3397] 7.8 +- 1.2 for the 16 holes of transient X-ray binaries, a sample chosen by flux |
+| Number in the Galaxy | 1.6e8 holes for 5e10 solar masses of stars (2.5e8 for 5e10 of stars after the return fraction 0.37) | [R3348]: 1.2e8 single holes and 9.3e6 in binaries; the older estimates they list run from 1e8 to 1e9 ([R4040] to [R4366]) |
+| The shape of the mass function | uniform from 5 to 20 | Olejak: a peak at 10 to 15 solar masses falling to a tail (to 113 for one merger product); [R1328]: 15 of 20 holes in a low peak, the rest in a high peak (13.5 to 28) |
 
 Every one of the generator's inputs lies inside the published range, so by the source rule (the widest range stands
 when sources disagree) the draw stays as it is. Its effect on the perturber mass, the disk's 10 Gy of star formation, with the
@@ -290,16 +289,16 @@ result appear together in at least one source result; numbers that rest on a sec
 
 | Pasted citation | Result | What was found |
 |---|---|---|
-| Moe, Kratter and Badenes 2019, ApJ 875, 61 | confirmed | Title "The Close Binary Fraction of Solar-type Stars Is Strongly Anticorrelated with Metallicity", arXiv 1808.02116. Points 53, 40, 24, 10% (section 3.1). Periods under 10^4 d and 0.6 to 1.5 solar masses, not 10^3.5 d and 0.6 to 1.2. |
-| Badenes et al. 2018, ApJ 854, 147 | corrected | Volume and page right. The title is "Stellar Multiplicity Meets Stellar Evolution and Metallicity: The APOGEE View", with Mazzola among the authors; the pasted title, "Stellar multiplicity in the APOGEE survey. I. ...", and the author list (Maoz, Ciotti, Krajnovic, Shen, Simon) are wrong. Finding: metal-poor stars have 2 to 3 times the multiplicity of metal-rich. |
-| El-Badry and Rix 2018, MNRAS 480, 4884 | corrected | The metallicity paper is El-Badry and Rix 2019, MNRAS Letters, "The wide binary fraction of solar-type stars: emergence of metallicity dependence at a < 200 AU" (arXiv 1809.06860). MNRAS 480, 4884 (2018) (DOI sty2186) is a different 2018 Gaia wide-binary paper; its authors were not checked. The pasted title is wrong. |
-| El-Badry, Rix and Heintz 2021, MNRAS 506, 2269 | corrected | Journal right. Title is "A million binaries from Gaia eDR3: sample selection and validation of Gaia parallax uncertainties" (arXiv 2101.05282), not "...validation of theoretical models". Its sample runs to 1 pc. A truncation of the separation distribution at 2 to 5 x 10^4 AU was not found in it: one review says chance alignments dominate beyond about 30,000 AU, and a different study finds a break near 0.1 pc. Could not confirm. |
-| Kratter and Lodato 2016, ARA&A 54, 271 | confirmed | "Gravitational Instabilities in Circumstellar Disks", pages 271-311, arXiv 1603.01280. |
-| Bate 2018, MNRAS 484, 2341 | corrected | The metallicity work is Bate (2019), "The statistical properties of stars and their dependence on metallicity" (arXiv 1901.03713; the 2014 "effects of opacity" paper is MNRAS 442, 285). It found low metallicity gives more small-scale fragmentation, matching the close-binary trend. The pasted year and title are wrong, and 484, 2341 could not be confirmed. |
-| Heggie 1975, MNRAS 173, 729 | confirmed in substance | The result ("soft binaries widen and dissolve, hard ones harden") is cited as Heggie's law in the search results; the volume and page were not seen. |
-| Bahcall, Hut and Tremaine 1985, ApJ 290, 15 | corrected | Volume and page right. The title is "Maximum mass of objects that constitute unseen disk material", not "Maximum sizes of compact perturbations in the Galaxy". |
-| Jiang and Tremaine 2010, MNRAS 401, 977 | confirmed | "The Evolution of Wide Binary Stars", arXiv 0907.2952. 1.7 pc Jacobi radius for a solar-mass pair confirmed; 50% survival near 30,000 AU is a secondary source's reading. |
-| Stegmann et al. 2024 | corrected | Astrophysical Journal Letters 972, L19, "Close Encounters of Wide Binaries Induced by the Galactic Tide: Implications for Stellar Mergers and Gravitational-wave Sources" (arXiv 2405.02912), by Stegmann, Vigna-Gomez, Rantala, Wagg, Zwick, Renzo, van Son, de Mink and White; not Physical Review D, and Antonini and Perets are not authors. It finds pairs wider than about 10^5 AU are torn apart by the tide, which does not support "natal cluster dissolution". |
+| [R3109] | confirmed | Title "The Close Binary Fraction of Solar-type Stars Is Strongly Anticorrelated with Metallicity", [R3109]. Points 53, 40, 24, 10% (section 3.1). Periods under 10^4 d and 0.6 to 1.5 solar masses, not 10^3.5 d and 0.6 to 1.2. |
+| [R0223] | corrected | Volume and page right. The title is "Stellar Multiplicity Meets Stellar Evolution and Metallicity: The APOGEE View", with Mazzola among the authors; the pasted title, "Stellar multiplicity in the APOGEE survey. I. ...", and the author list (Maoz, Ciotti, Krajnovic, Shen, Simon) are wrong. Finding: metal-poor stars have 2 to 3 times the multiplicity of metal-rich. |
+| [R1235] | corrected | The metallicity paper is [R1235], MNRAS Letters, "The wide binary fraction of solar-type stars: emergence of metallicity dependence at a < 200 AU" [R1235]. MNRAS 480, 4884 (2018) (DOI sty2186) is a different 2018 Gaia wide-binary paper; its authors were not checked. The pasted title is wrong. |
+| [R1236] | corrected | Journal right. Title is "A million binaries from Gaia eDR3: sample selection and validation of Gaia parallax uncertainties" [R1236], not "...validation of theoretical models". Its sample runs to 1 pc. A truncation of the separation distribution at 2 to 5 x 10^4 AU was not found in it: one review says chance alignments dominate beyond about 30,000 AU, and a different study finds a break near 0.1 pc. Could not confirm. |
+| [R2474] | confirmed | "Gravitational Instabilities in Circumstellar Disks", pages 271-311, [R2474]. |
+| [R0281] | corrected | The metallicity work is [R0281], "The statistical properties of stars and their dependence on metallicity" ([R0281]; the 2014 "effects of opacity" paper is MNRAS 442, 285). It found low metallicity gives more small-scale fragmentation, matching the close-binary trend. The pasted year and title are wrong, and 484, 2341 could not be confirmed. |
+| [R1880] | confirmed in substance | The result ("soft binaries widen and dissolve, hard ones harden") is cited as Heggie's law in the search results; the volume and page were not seen. |
+| [R0229] | corrected | Volume and page right. The title is "Maximum mass of objects that constitute unseen disk material", not "Maximum sizes of compact perturbations in the Galaxy". |
+| [R2166] | confirmed | "The Evolution of Wide Binary Stars", [R2166]. 1.7 pc Jacobi radius for a solar-mass pair confirmed; 50% survival near 30,000 AU is a secondary source's reading. |
+| [R4204] | corrected | Astrophysical Journal Letters 972, L19, "Close Encounters of Wide Binaries Induced by the Galactic Tide: Implications for Stellar Mergers and Gravitational-wave Sources" [R4204], by Stegmann, Vigna-Gomez, Rantala, Wagg, Zwick, Renzo, van Son, de Mink and White; not Physical Review D, and Antonini and Perets are not authors. It finds pairs wider than about 10^5 AU are torn apart by the tide, which does not support "natal cluster dissolution". |
 | Gammie criterion, t_cool under 3 / Omega | not checked | Standard disc-fragmentation criterion; no source needed for the rule. |
 | Boss's diffusive formula | wrong as typed | a = (G M^2 / (8 pi G^2 n M_*^2 ln Lambda T))^(1/2) is not a length (units of mass times time) and holds no velocity dispersion; replaced by the form in 3.3. |
 | Jacobi form "2 A (A - B)" | wrong as typed | The first form, 4 Omega^2 - kappa^2, equals 4 A (A - B) (section 3.3). |
@@ -308,10 +307,10 @@ Sources added for the TEST.196 ranges (2026-10-16, 6:28 PM EDT; same method: sea
 
 | Citation | Result | What was found |
 |---|---|---|
-| Moe and Di Stefano 2017, ApJS 230, 15 | confirmed | "Mind Your Ps and Qs" (arXiv 1606.05347). Binary fraction for periods 100 to 1500 d and mass ratio 0.1 to 1: 23 +-7% for mid-B primaries (7 +-2 Msun), 35 +-12% for O primaries (28 +-8 Msun). The companion count rises from 0.48 +-0.04 (solar-type) to 2.1 +-0.3 (O), but that counts all separations. Table 13 holds the per-mass multiplicity statistics; its close-fraction rows could not be read. |
-| Sana et al. 2012, Science 337, 444 | confirmed | Intrinsic binary fraction 0.69 +-0.09 for Galactic O stars, periods up to about 3000 d. |
-| Sana et al. 2013 (VLT-FLAMES Tarantula Survey VIII, A&A) | confirmed in substance | 0.51 +-0.04 for log P 0.15 to 3.5 in 30 Doradus; volume and page not seen. |
-| BLOeM (arXiv 2503.21936) | confirmed in substance | Early-B close fraction at the Small Cloud's metallicity higher than the Milky Way's and the Large Cloud's, hinting at an anticorrelation for B stars; O stars constant (observed 45 +-4%, modelled about 0.70). |
+| [R3108] | confirmed | "Mind Your Ps and Qs" [R3108]. Binary fraction for periods 100 to 1500 d and mass ratio 0.1 to 1: 23 +-7% for mid-B primaries (7 +-2 Msun), 35 +-12% for O primaries (28 +-8 Msun). The companion count rises from 0.48 +-0.04 (solar-type) to 2.1 +-0.3 (O), but that counts all separations. Table 13 holds the per-mass multiplicity statistics; its close-fraction rows could not be read. |
+| [R3892] | confirmed | Intrinsic binary fraction 0.69 +-0.09 for Galactic O stars, periods up to about 3000 d. |
+| [R3892] (VLT-FLAMES Tarantula Survey VIII, A&A) | confirmed in substance | 0.51 +-0.04 for log P 0.15 to 3.5 in 30 Doradus; volume and page not seen. |
+| BLOeM [R4551] | confirmed in substance | Early-B close fraction at the Small Cloud's metallicity higher than the Milky Way's and the Large Cloud's, hinting at an anticorrelation for B stars; O stars constant (observed 45 +-4%, modelled about 0.70). |
 
 ## 7. Boss's answers (6:12 to 6:15 PM EDT, 2026-10-16)
 

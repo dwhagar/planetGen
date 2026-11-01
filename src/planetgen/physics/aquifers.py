@@ -19,7 +19,7 @@ interior puts the temperature in the liquid range. The model is one column of cr
   large one fills every pore of the liquid range and the water table is at its top.
 
 The result is the depth to the top of the water-bearing layer and its thickness, in km; a body with none keeps `None` in both.
-Every parameter is a DESIGN stand-in (`tuning`), the Martian ones from Clifford 1993, read at second hand.
+Every parameter is a DESIGN stand-in (`tuning`), the Martian ones from [R0824], read at second hand.
 """
 
 import math

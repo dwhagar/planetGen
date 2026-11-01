@@ -15,7 +15,7 @@ age:
    too: a remnant is the placed object of the system it left.
 2. **The other stars.** The number of stars of its system is the `star-count` table's, by the placed star's class and
    with the 8 to 12 tail (`multistar.expected_star_count`); each further star has a birth mass of the placed star's
-   times a ratio from the law of Moe and Di Stefano 2017 (`mass_ratio.py`, GEN.951), no lower than 0.08 solar masses
+   times a ratio from the law of [R3108] (`mass_ratio.py`, GEN.951), no lower than 0.08 solar masses
    (`multistar.companion_ratio_range`), and is taken to its own state at the same age.
 
 Not counted: a brown dwarf companion (3% of the drawn trees, GEN.899, about 0.04 solar masses: under 0.1% of a system's

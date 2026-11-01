@@ -49,7 +49,7 @@ def test_the_shares_of_a_scattered_body_sum_to_one_and_ejection_rises_with_the_s
 def test_a_giant_throws_out_what_it_scatters_and_a_rocky_planet_does_not():
     jupiter = scatter.safronov_number(318.0, JUPITER_R, 5.2, 1.0)
     earth = scatter.safronov_number(1.0, 1.0, 1.0, 1.0)
-    assert jupiter == pytest.approx(10.0, rel=0.3)         # Jupiter's Safronov number is near 10 (Safronov 1972)
+    assert jupiter == pytest.approx(10.0, rel=0.3)         # Jupiter's Safronov number is near 10 [R3867]
     assert earth == pytest.approx(0.07, rel=0.3)
     assert scatter.loss_fates(jupiter)[0] > 0.95
     assert scatter.loss_fates(earth)[0] < 0.01

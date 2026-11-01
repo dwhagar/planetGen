@@ -1,12 +1,12 @@
 # tests/test_dry_carbon.py
 
-"""GEN.1005: the carbon of a dry body's mantle from its building blocks and the core's share (`physics/dry_carbon.py`; Blanchard et al. 2022). The bulk silicate Earth is a check, never an input."""
+"""GEN.1005: the carbon of a dry body's mantle from its building blocks and the core's share (`physics/dry_carbon.py`; [R0419]). The bulk silicate Earth is a check, never an input."""
 
 import pytest
 
 from planetgen.physics import dry_carbon as dc
 
-BSE_CARBON_PPM = (100.0, 180.0)      # 140 +/- 40 of the mantle (Blanchard et al. 2022, Li et al. 2021); a test point only
+BSE_CARBON_PPM = (100.0, 180.0)      # 140 +/- 40 of the mantle ([R0419], Li et al. 2021); a test point only
 
 
 def test_a_body_that_took_only_undifferentiated_material_holds_what_the_table_says():

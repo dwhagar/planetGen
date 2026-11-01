@@ -76,7 +76,7 @@ holds at least 10 percent (the nested events of `ngpps_formation_water.json`, he
 WATER_LIMIT = ("a MODEL label: the shares are the Bern population synthesis against the distance the planet formed at (a_form / a_snow, with the orbit "
                "standing for it because the generator does not migrate planets) and its mass, not an observation; the class thresholds mapping to Ortenzi's "
                "cases are an assumption; the plateau c_b4 (1 is the law as fitted; the water-rich planets it removes become 'high') is bracketed 0 to 1 because "
-               "published water-rich shares run from at most 3 percent (Rogers 2025) to 87 percent; the law is not tuned to the Luque and Palle densities (GEN.510)")
+               "published water-rich shares run from at most 3 percent [R3801] to 87 percent; the law is not tuned to the Luque and Palle densities (GEN.510)")
 WATER_CORRECTION = ("Replaced 2026-10-25 (GEN.802): the weights (1-s)^2, 2s(1-s), s^2 with s = 1/(1 + exp(-ln x/0.4)) and the water-rich mass logistic of GEN.510 "
                     "(centre 6.1 Earth masses) with the gate x >= 1 are one law now: the planets of the population that formed inside the snow line are 26 to 60 percent "
                     "water-rich at x = 0.55 to 0.75, and the mass dependence at fixed x is weak (the mass law was a migration effect, counted once here).")
@@ -105,7 +105,7 @@ GROUPS = {
     "p": {"rows": ["p1", "p2", "p3", "p4", "p5"], "fallback": None},
 }
 
-# The Berta-Thompson, Wachiraphan and Murray 2025 shoreline (arXiv:2507.02136), posteriors of the main sample, read in
+# The [R0364] shoreline [R0364], posteriors of the main sample, read in
 # docs/design/composition/tunable-gaps-sources/group2-delivery-retention.md: log10 f0 2.62, p 5.9, q 1.17, w 0.247 dex.
 _DELTA = "log10(insolation) - (2.62 + 5.9*log10(v_esc_kms/11.186) + 1.17*log10(luminosity_solar))"
 _P_ATM = "1/(1 + 10**(delta/0.247))"
@@ -116,9 +116,9 @@ MACHINE = {
     "a1": dict(state="partly verified", kind="param", classes=ROCKY, sets="redox_diw",
                limit="the surface redox of the magma ocean from physics.magma_ocean_redox (stand-in rows MR1 to MR7): the base pressure is a power of the mass, held at the 140 GPa where the "
                      "first-principles calculations end (5.4 Earth masses; no source above), the ferric-share power (0.5 to 1.0) and the offset are read from two papers whose equations were not "
-                     "available when it was built, there is no temperature or composition term, and the graphite-flotation alternative of Gaillard 2022 is not drawn (GEN.482, GEN.1005)",
-               source="Hirschmann 2022 (GCA 328, section 6.3 and Table 1): Fe3+/FeT of the ocean surface 0.034 to 0.103 and the dIW it gives; Deng 2020: the ferric share of the melt against the "
-                      "pressure at the base of the ocean (factor of two from 55 to 25 GPa) and the base pressures; Sossi 2020 0.037 Fe3+/sumFe (READ, COMPUTED); the form, the pressure "
+                     "available when it was built, there is no temperature or composition term, and the graphite-flotation alternative of [R1488] is not drawn (GEN.482, GEN.1005)",
+               source="[R1951] (GCA 328, section 6.3 and Table 1): Fe3+/FeT of the ocean surface 0.034 to 0.103 and the dIW it gives; [R1075]: the ferric share of the melt against the "
+                      "pressure at the base of the ocean (factor of two from 55 to 25 GPa) and the base pressures; [R4154] 0.037 Fe3+/sumFe (READ, COMPUTED); the form, the pressure "
                       "scaling and the width are DESIGN brackets of docs/design/composition/magma-ocean-redox-model.md",
                correction="Corrected 2026-10-23 (GEN.479): the gate M >= 0.01 left a body under 0.01 Earth masses with no redox row at all. GEN.1005 (2026-10-30): the mean and width are the "
                           "model of physics.magma_ocean_redox in place of the line through three Solar System bodies, which are now tests of the model.",
@@ -128,24 +128,24 @@ MACHINE = {
                limit="the magma-ocean surface of the body (physics.magma_ocean_redox, at most that of one Earth mass) plus an oxidation increment of 1.2 to 2.4 that grows with the mass: a "
                      "line between two numbers (stand-in row MR7), not a model of the oxidation (hydrogen loss, lower-mantle disproportionation, recycling); the sources give a gap of 0 to 3 "
                      "that grows with mass; the later mantle is never below the magma-ocean surface of the same body (GEN.482, GEN.482b, GEN.1005)",
-               source="the later upper mantle of the rocky bodies measured: dIW +3.5 for the one with plate tectonics (Deng 2020 with its refs 37, 6, 7; Hirschmann 2022 section 4: above IW+3), "
-                      "IW to IW+1 for the primitive mantle of the next lighter one and IW to IW-2 for the lightest (Hirschmann 2022 introduction and section 4; Deng 2020 refs 8 to 10); the "
+               source="the later upper mantle of the rocky bodies measured: dIW +3.5 for the one with plate tectonics ([R1075] with its refs 37, 6, 7; [R1951] section 4: above IW+3), "
+                      "IW to IW+1 for the primitive mantle of the next lighter one and IW to IW-2 for the lightest ([R1951] introduction and section 4; [R1075] refs 8 to 10); the "
                       "increment, its growth with mass and the width 1.0 are DESIGN (READ, COMPUTED; docs/design/composition/magma-ocean-redox-model.md)",
                dist={"kind": "normal", "mu": "later_mantle_diw(mass_earth)", "sigma": 1.0, "range": [-6, 6]},
                correction="GEN.1005 (2026-10-30): the mean is the magma-ocean model's surface value plus the increment, in place of the straight line through three Solar System bodies; GEN.482b takes the larger of a2 and a1 in `draw_redox`."),
     "a3": dict(state="partly verified", limit="22 polluted white dwarf values (READ, COMPUTED), a selection-biased sample of core-formation redox; the scale differs from a1; the width 0.22 is tuned with the detection model (GEN.513)", kind="param", classes=["asteroid"], sets="redox_diw", tunable=True,
                dist={"kind": "normal", "mu": -1.25, "sigma": 0.22},
-               source="22 polluted white dwarf values: median -1.26, mean -1.25, sample sd 0.45 of the reported medians (Doyle 2020 Table "
-                      "1, Doyle 2023 Table 4, via docs/design/composition/tunable-gaps-sources/group3-redox-wd-radio.md; READ, COMPUTED); "
+               source="22 polluted white dwarf values: median -1.26, mean -1.25, sample sd 0.45 of the reported medians ([R1152: Table "
+                      "1], [R1153: Table 4], via docs/design/composition/tunable-gaps-sources/group3-redox-wd-radio.md; READ, COMPUTED); "
                       "the width 0.22 is the intrinsic spread of the 13 well-constrained stars (COMPUTED) and lies inside the "
                       "0 to 0.38 the detection model accepts (GEN.513, docs/design/composition/wd-redox-tuning.md); the meteoritic bracket "
-                      "-1.4 to 0 (Schaefer and Fegley 2017 Table 2, READ) is kept as a check",
+                      "-1.4 to 0 ([R3944: Table 2], READ) is kept as a check",
                correction="Corrected 2026-10-18 (tunable-gaps 3.2): the uniform U[-1.4, 0] has its mean 0.55 dex above the "
                           "white dwarf ensemble; the core-formation scale differs from the surface magma-ocean scale of a1."),
     "a4": dict(state="partly verified", limit="22 polluted white dwarf values (READ, COMPUTED), a selection-biased sample; the width 0.22 is tuned with the detection model, the settling is not modelled (GEN.513)", kind="param", classes=ROCKY, when=[c("host_type", equals="WD")], sets="redox_diw", tunable=True,
                dist={"kind": "normal", "mu": -1.25, "sigma": 0.22},
                source="22 polluted white dwarf values: mean -1.25 (standard error 0.10), sample sd 0.45 of the reported medians "
-                      "(Doyle 2020, Doyle 2023; READ, COMPUTED); the width 0.22 is the intrinsic spread of the 13 "
+                      "([R1152, R1153]; READ, COMPUTED); the width 0.22 is the intrinsic spread of the 13 "
                       "well-constrained stars and lies inside the 0 to 0.38 the detection model accepts (GEN.513)",
                correction="Corrected 2026-10-18 (tunable-gaps 3.2): the centre -1.0 came from the first six stars; the "
                           "22-value mean is -1.25 +/- 0.10 and the bracket [-1.37, -0.6] of six stars is dropped."),
@@ -180,15 +180,15 @@ MACHINE = {
 
     # ---- d. retention regime ----
     "d1": dict(kind="option", group="d", classes=ROCKY + ["asteroid"], weight="1 - p_atm", lets=_SHORE,
-               source="Berta-Thompson, Wachiraphan and Murray 2025 (arXiv:2507.02136): the logistic shoreline "
+               source="[R0364]: the logistic shoreline "
                       "P(atmosphere) = 1/(1 + 10^(delta/w)), log10 f0 2.62, p 5.9, q 1.17, w 0.247 dex, 917 labelled "
-                      "planets (READ); the Meni-Gallardo and Palle 2025 line, slope 5.77, agrees (READ)",
+                      "planets (READ); the [R3037] line, slope 5.77, agrees (READ)",
                correction="Corrected 2026-10-18 (tunable-gaps 3.3): the K window LU[3.0e-4, 6.6e-4] with slope 4 rests on 13 "
                           "Solar System bodies and is contradicted by 55 Cnc e and TOI-561 b; the two-class probability of an "
                           "atmosphere now follows the published logistic, and the K window is no longer used."),
     "d2": dict(kind="option", group="d", classes=ROCKY + ["asteroid"], lets=_SHORE,
                weight="p_atm*window(delta, -0.3, None, 0.247)",
-               source="share of P(atmosphere) (Berta-Thompson 2025, READ) by distance below the shoreline; the edges "
+               source="share of P(atmosphere) ([R0364], READ) by distance below the shoreline; the edges "
                       "-0.3, -0.8, -1.4 dex and the width 0.247 are DESIGN",
                correction="The five-way split of the atmosphere cases is constrained by no measurement (tunable-gaps 3.3); "
                           "the four windows add up to 1, so together they carry P(atmosphere)."),
@@ -207,14 +207,14 @@ MACHINE = {
                weight="1 if 2.016*AMU_KG*(v_esc_kms*1000)**2/(2*K_B*(teq_k + min(1500, 750*sqrt(xuv_index)))) >= 30 else 0"),
 
     # ---- e. sub-Neptune and super-Earth envelope ----
-    "e1": dict(state="partly verified", limit="f_env0 and the onset age of the loss are tuned to the radius valley (slope -0.11 and 1.84 Earth radii at 10 d); the loss itself is the hydro-based rate of Kubyshkina et al. 2018 over the star's XUV history (GEN.822); the core-mass width, the envelope width and the host sample are design choices; the mechanism (photoevaporation or core-powered loss) is not chosen (GEN.509, GEN.722)", tunable=True, kind="option", group="e", classes=GIANT, when=[c("mass_earth", minimum=1, maximum=30)],
+    "e1": dict(state="partly verified", limit="f_env0 and the onset age of the loss are tuned to the radius valley (slope -0.11 and 1.84 Earth radii at 10 d); the loss itself is the hydro-based rate of [R2512] over the star's XUV history (GEN.822); the core-mass width, the envelope width and the host sample are design choices; the mechanism (photoevaporation or core-powered loss) is not chosen (GEN.509, GEN.722)", tunable=True, kind="option", group="e", classes=GIANT, when=[c("mass_earth", minimum=1, maximum=30)],
                weight="(1 - p('b4'))*f_lost", lets={"f_lost": "envelope_lost_fraction(mass_earth, f_env0, insolation, host_mass_solar, luminosity_solar, age_gy, teq_k)"}),
     "e2": dict(kind="option", group="e", classes=GIANT, when=[c("mass_earth", minimum=1, maximum=30)],
                weight="(1 - p('b4'))*(1 - f_lost)",
                lets={"f_lost": "envelope_lost_fraction(mass_earth, f_env0, insolation, host_mass_solar, luminosity_solar, age_gy, teq_k)"}),
-    "e3": dict(state="partly verified", limit="the gate is Madhusudhan 2021 (READ); the share is the b4 stand-in (GEN.510)", kind="option", group="e", classes=GIANT, when=[c("mass_earth", minimum=1, maximum=30)],
+    "e3": dict(state="partly verified", limit="the gate is [R2804] (READ); the share is the b4 stand-in (GEN.510)", kind="option", group="e", classes=GIANT, when=[c("mass_earth", minimum=1, maximum=30)],
                weight="p('b4')*(1 - eta)"),
-    "e4": dict(state="partly verified", limit="the gate is Madhusudhan 2021 (READ); the share is the b4 stand-in (GEN.510)", kind="option", group="e", classes=GIANT, when=[c("mass_earth", minimum=1, maximum=30)],
+    "e4": dict(state="partly verified", limit="the gate is [R2804] (READ); the share is the b4 stand-in (GEN.510)", kind="option", group="e", classes=GIANT, when=[c("mass_earth", minimum=1, maximum=30)],
                weight="p('b4')*eta"),
     "e5": dict(state="partly verified", limit="bracket edges from about 8 JWST retrievals and one 15-planet fit; no population mean exists (GEN.509)", kind="param", classes=GIANT, when=[drawn("e", "e2")],
                dist={"kind": "loguniform", "lo": 0.01, "hi": 0.6}, bins=[0.01, 0.03, 0.1, 0.3, 0.6],
@@ -231,9 +231,9 @@ MACHINE = {
                dist={"kind": "normal", "log10": True, "mu": "log10(2.6/mass_jupiter + 3.3)", "sigma": 0.26,
                      "range": [-0.5, 2.0]},
                source="147 warm giants: Zp/Z* = 2.6/M + 3.3 (M in Jupiter masses; a +/- 0.3, b +/- 0.5), 0.03 to 12 Jupiter masses "
-                      "(Chachan 2025, arXiv 2509.20428; READ); intrinsic scatter of the heavy-element mass 0.26 dex, band 0.25 to "
-                      "0.27 (Thorngren 2016, N=47; READ, COMPUTED)",
-               correction="Retuned 2026-10-23 (GEN.516): the centre 9.7 M^-0.45 (Thorngren 2016) is 1.6 times the 147-giant fit at one "
+                      "([R0710]; READ); intrinsic scatter of the heavy-element mass 0.26 dex, band 0.25 to "
+                      "0.27 ([R4352], N=47; READ, COMPUTED)",
+               correction="Retuned 2026-10-23 (GEN.516): the centre 9.7 M^-0.45 [R4352] is 1.6 times the 147-giant fit at one "
                           "Jupiter mass (9.7 against 5.9) and the two meet at 0.1 and 10 Jupiter masses; the later, larger sample "
                           "wins. The width 0.3 was a recalled design value, the fit gives 0.26 dex."),
     "f6": dict(kind="bins", classes=GIANT, of="f5", bins=["10**-0.5", 1, "10**0.5", 10, "10**1.5", 100]),
@@ -258,7 +258,7 @@ MACHINE = {
     "g1": dict(state="partly verified", limit="late M is the extension of the map above L0 (2238 K); the map has no M-type fit (Table 13) and the 2950 K cap is the BHAC15 temperature of the hydrogen-burning limit at its peak (GEN.494)", kind="option", group="g", classes=BD, weight="phi((2950 - teff_k)/100) - phi((2238 - teff_k)/134)"),
     "g2": dict(kind="option", group="g", classes=BD, weight="phi((2238 - teff_k)/134) - phi((1273 - teff_k)/79)"),
     "g3": dict(kind="option", group="g", classes=BD, weight="phi((1273 - teff_k)/79) - phi((686 - teff_k)/79)"),
-    "g4": dict(state="partly verified", limit="late T (T8 to T9) is a subclass of T, not a type of its own; its edges are the map's T8 and Y0 values (Kirkpatrick 2021 Table 13, GEN.494)", kind="option", group="g", classes=BD, weight="phi((686 - teff_k)/79) - phi((460 - teff_k)/79)"),
+    "g4": dict(state="partly verified", limit="late T (T8 to T9) is a subclass of T, not a type of its own; its edges are the map's T8 and Y0 values ([R2374: Table 13], GEN.494)", kind="option", group="g", classes=BD, weight="phi((686 - teff_k)/79) - phi((460 - teff_k)/79)"),
     "g5": dict(kind="option", group="g", classes=BD, weight="phi((460 - teff_k)/79)"),
     "g6": dict(kind="binary", classes=BD, weight="phi((1100 - teff_k)/100)"),
 
@@ -288,7 +288,7 @@ MACHINE = {
                values={"p_eq_bar": "10**(-34.7*exp(-0.00112*tp_k))"}),
 
     # ---- j. frost-equilibrium and evolved atmospheres ----
-    "j1": dict(state="partly verified", limit="the runaway gate is Kopparapu 2013 (READ); the retained fraction is a design residual that must allow 0, since 0 of 2 bare M-dwarf planets (TRAPPIST-1 b, c) cannot be forbidden (GEN.511)", kind="option", group="j", classes=ROCKY,
+    "j1": dict(state="partly verified", limit="the runaway gate is [R2446] (READ); the retained fraction is a design residual that must allow 0, since 0 of 2 bare M-dwarf planets (TRAPPIST-1 b, c) cannot be forbidden (GEN.511)", kind="option", group="j", classes=ROCKY,
                when=[c("redox_diw", minimum=1), c("water_lost", equals=True), c("runaway_ratio", minimum=1.0)],
                weight="c_j1"),
     "j2": dict(kind="option", group="j", classes=ROCKY,
@@ -387,15 +387,15 @@ MACHINE = {
     "o2": dict(state="partly verified", limit="thick-disc [Th/Mg] from Hypatia (N=32, moved onto the solar-twin scale of o1 by the Hypatia thick-thin offset of -0.019 dex, GEN.664); halo, young and M hosts have no Th data (GEN.514)", kind="param", classes=ROCKY, when=[c("thin_disc_fgk", equals=False)], tunable=True,
                dist={"kind": "normal", "log10": True, "mu": 0.061, "sigma": 0.19, "range": [-0.56, 0.60]},
                source="Hypatia (open API, retrieved 2026-10): [Th/Mg] of thick-disc stars mean -0.063, sd 0.193 (N=32); thin disc -0.044, sd 0.153 "
-                      "(N=215): the offset inside the one catalogue is -0.019 +/- 0.036 dex, put on the solar-twin scale of o1 (+0.08, Botelho 2019) "
+                      "(N=215): the offset inside the one catalogue is -0.019 +/- 0.036 dex, put on the solar-twin scale of o1 (+0.08, [R0479]) "
                       "as 0.08 - 0.019 = 0.061 (DATA, COMPUTED; tunable-gaps 3.2; docs/design/composition/radioisotope-tuning.md section 1)",
                correction="Retuned 2026-10-23 (GEN.514): the log-uniform bracket 59 to 251 percent was the range of 14 solar twins; "
                           "the 32 thick-disc stars give a centre of 86 percent of the solar ratio and a spread of 0.19 dex, the widest "
-                          "of the intrinsic 0.056 (Botelho 2019) and the catalogue's 0.15 to 0.19."),
+                          "of the intrinsic 0.056 [R0479] and the catalogue's 0.15 to 0.19."),
     "o3": dict(state="stand-in", replacement="GEN.514", kind="param", classes=ROCKY, dist={"kind": "loguniform", "lo": 8.9e3, "hi": 1.4e4}),
     "o4": dict(state="partly verified", limit="the production ratio 1.667 to 2.0 and the decay constants are published; the enrichment factor F comes from the disc's star formation history and a 1/tau merger delay law whose 30 Myr floor is a RECALLED stand-in; the gas before the disc began is left out, so F is a lower bound for old stars (GEN.663)", kind="param", classes=ROCKY,
                dist={"kind": "uniform", "lo": "0.97483*1.667*th_u_f*exp(0.105802*age_gy)", "hi": "0.97483*2.0*th_u_f*exp(0.105802*age_gy)"},
-               source="Th/U (mass) = 0.97483 PR F(T) exp[(l238 - l232) age], PR = 1.667 to 2.0 (Frebel 2007 Table 1, READ), "
+               source="Th/U (mass) = 0.97483 PR F(T) exp[(l238 - l232) age], PR = 1.667 to 2.0 ([R1447: Table 1], READ), "
                       "F = th_u_f, the thorium-232 over uranium-238 left of the disc's r-process input at the star's birth: the disc's star formation "
                       "(galaxy.disk_history) convolved with a 1/tau merger delay law, each ejecta decayed with half-lives 14.05 and 4.468 Gyr "
                       "(physics/rprocess_enrichment.py, GEN.663; COMPUTED, tunable-gaps 2.6). A constant input of T Gyr gives F(3) = 1.16254 and F(13) = 1.71724",
@@ -418,20 +418,20 @@ MACHINE = {
                weight="phi((log10(loglog(host_mass_solar, 0.55, 0.162, 0.25, 0.6, 0.15, 2.3)) - log10(age_gy))/0.25)",
                values={"tau_sat_gy": "loglog(host_mass_solar, 0.55, 0.162, 0.25, 0.6, 0.15, 2.3)",
                        "lx_over_lbol": "10**-3.14*(age_gy/loglog(host_mass_solar, 0.55, 0.162, 0.25, 0.6, 0.15, 2.3))**-1.18"},
-               source="saturation 10^-3.14 and time 0.162 Gyr for early M (Jackson 2012 Table 2, READ); 0.6 +/- 0.3 Gyr "
-                      "for 0.2 to 0.3 and 2.3 +/- 1.3 Gyr for 0.1 to 0.2 solar masses (Medina 2022, READ); the width of "
+               source="saturation 10^-3.14 and time 0.162 Gyr for early M ([R2118: Table 2], READ); 0.6 +/- 0.3 Gyr "
+                      "for 0.2 to 0.3 and 2.3 +/- 1.3 Gyr for 0.1 to 0.2 solar masses ([R3017], READ); the width of "
                       "0.25 dex on log tau is DESIGN",
                correction="Corrected 2026-10-18 (tunable-gaps 3.3): tau_sat depends on stellar mass (0.16 Gyr at 0.5 to 0.6 "
                           "solar masses, 0.6 at 0.2 to 0.3, 2.3 at 0.1 to 0.2), interpolated in log mass, and replaces "
                           "LU[0.162, 2]."),
     "p5": dict(kind="option", group="p", classes=ANY, when=[c("age_gy", maximum=0.1)], weight=1),
-    "p6": dict(state="partly verified", limit="the percentile of an observed rotation distribution is uniform by construction (drawn 0.02 to 0.98, the range Johnstone 2021 offers); the saturation time against mass is read off Johnstone 2021 Fig. 10 (`saturation_time.py`, registry RS1, GEN.493) and is held to 0.1 to 1.2 solar masses; the generator's own star draws its percentile in `activity.generate_activity`, and this row does not yet read that star's value", kind="param", classes=ANY, when=[drawn("p", "p4", "p5")],
+    "p6": dict(state="partly verified", limit="the percentile of an observed rotation distribution is uniform by construction (drawn 0.02 to 0.98, the range [R2183] offers); the saturation time against mass is read off [R2183: Fig. 10] (`saturation_time.py`, registry RS1, GEN.493) and is held to 0.1 to 1.2 solar masses; the generator's own star draws its percentile in `activity.generate_activity`, and this row does not yet read that star's value", kind="param", classes=ANY, when=[drawn("p", "p4", "p5")],
                dist={"kind": "uniform", "lo": 0.02, "hi": 0.98}, sets="rotation_percentile",
                values={"t_sat_myr": "saturation_time_myr(host_mass_solar, 100*value)"},
-               source="Johnstone, Bartel and Guedel 2021 (arXiv:2009.07695, READ): the saturation age against mass for the 5th, 50th and 95th "
+               source="[R2183] ([R2183], READ): the saturation age against mass for the 5th, 50th and 95th "
                       "percentiles of the 150 Myr rotation distribution of the clusters (Fig. 10, read off by pixel position), which is the "
                       "observed distribution, so the percentile is uniform; at one solar mass the curves agree with Tu et al. 2015 "
-                      "(arXiv:1504.04546, READ: 5.7, 23 and 226 Myr at the 10th, 50th and 90th percentiles)"),
+                      "([R4443], READ: 5.7, 23 and 226 Myr at the 10th, 50th and 90th percentiles)"),
 }
 
 # The group a row belongs to carries its fallback; these rows sit in no group (independent draws).

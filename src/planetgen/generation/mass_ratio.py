@@ -4,7 +4,7 @@
 The Mass Ratio of a Companion (GEN.951)
 =======================================
 
-The mass of another star of a system, as a share `q` of its primary's, drawn from the law Moe and Di Stefano (2017, ApJS 230:15,
+The mass of another star of a system, as a share `q` of its primary's, drawn from the law [R3108] (ApJS 230:15,
 Sec. 2 and Table 13) measured and not from a flat one. At one orbital period the density of `q` is a power law, `q ** gamma_smallq`
 over 0.1 to 0.3 and `q ** gamma_largeq` over 0.3 to 1 (continuous at 0.3), with an excess fraction `F_twin` of the companions
 with q > 0.3 spread evenly over 0.95 to 1 on top of it (the twins). The three numbers fall with the orbital period and the

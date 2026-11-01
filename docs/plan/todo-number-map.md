@@ -13,7 +13,7 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.257 |
+| UX | UX.258 |
 | MAP | MAP.364 |
 | NAV | NAV.65 |
 | GEN | GEN.1236 |
@@ -525,7 +525,7 @@ Parents marked "new parent" had no old number of their own.
 | ADM.134 | /admin/queue/<run_id>/log answers 302 to a visitor, but the auth sweep expects 403 for a json_only view: test_admin_pages_send_an_admin_on_seeded_credentials_to_account and test_admin_pages_send_anonymous_visitors_to_login fail on clean main (bug) | none | done, already fixed on main (admin_queue_log aborts 403 for a visitor; Core 5 confirmed, no change) |
 | ADM.135 | The data check in front of a Generate job no longer fails because another check holds the check place, and a refusal names the run that holds it (bug) | none | done, PR #4675 |
 | ADM.136 | A New galaxy job stalls waiting on a generation run started by another process, and the holder is not identified (bug) | none | open |
-| ADM.137 | Plan operations crash: admin/plans.py calls stabilize_star_system with a pinned keyword it no longer accepts, so 14 test_plans tests fail (bug) | none | open |
+| ADM.137 | Plan operations crash: admin/plans.py calls stabilize_star_system with a pinned keyword it no longer accepts, so 14 test_plans tests fail (bug) | none | done, PR #4723 |
 | API.1 | Create a system inside an existing sector | 10 (2026-09-24 01:32Z to 02:18Z); 7 (2026-09-24 01:57Z to 02:02Z); 5 (2026-09-24 02:25Z to 05:38Z); 4 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 13 (2026-09-30 16:44Z); 14 (2026-09-30 16:49Z); 15 (2026-09-30 16:51Z to 18:09Z); 32 (2026-09-30 18:14Z); 37 (2026-09-30 18:39Z to 2026-10-01 04:24Z) | done in 7.43.0, PR #170 |
 | API.2 | Edit a system's generated content | 11 (2026-09-24 01:32Z to 02:18Z); 8 (2026-09-24 01:57Z to 02:02Z); 6 (2026-09-24 02:25Z to 05:38Z); 5 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 14 (2026-09-30 16:44Z); 15 (2026-09-30 16:49Z); 16 (2026-09-30 16:51Z to 18:09Z); 33 (2026-09-30 18:14Z); 38 (2026-09-30 18:39Z to 2026-10-01 04:24Z) | done in 7.43.0, PR #170 |
 | API.3 | Remote generate: generate on a local machine, upload through the API | none | open |
@@ -927,7 +927,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.153 | Magnetar subtype of neutron star, and an age-dependent pulsar fraction | none | done, PR #1792 |
 | GEN.154 | Show the Einstein radius on compact-object pages | none | done, PR #1799 |
 | GEN.155 | A nuclear-cluster object for the Sgr A* sector (optional) | none | dropped (not built; decision note, PR #1716) |
-| GEN.156 | Pin astropy to CODATA 2018 and IAU 2015 constants before its first import (GEN.66 follow-up) | none | done, PR #1310 |
+| GEN.156 | Pin astropy to [R4361] and IAU 2015 constants before its first import (GEN.66 follow-up) | none | done, PR #1310 |
 | GEN.157 | The `neighbor_galaxies` table and a verified data file of about 25 real galaxies | none | open |
 | GEN.158 | Add a metallicity value to stars | none | done, PR #1789 |
 | GEN.159 | Globular clusters: cluster table, King tables and the Milky Way catalogue | none | done, PR #1810 |
@@ -1137,7 +1137,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.363 | Belt bodies move on the GPU: the vertex shader solves Kepler from per-instance elements | none | open |
 | GEN.364 | Adaptive per-cell system cap: above the cap the luminosity floor rises per cell until what is resolved fits, brightest stars first, with no step at the ceiling | none | done, PR #1868 |
 | GEN.365 | Hot white dwarf and planetary-nebula central star radius disagrees with the radius that its luminosity and temperature imply (bug) | none | done, PR #4385 |
-| GEN.366 | Check the reference satellite table against McConnachie 2012: it only tests that the derived population looks plausible | none | done, PR #4357 |
+| GEN.366 | Check the reference satellite table against [R2972]: it only tests that the derived population looks plausible | none | done, PR #4357 |
 | GEN.367 | The Magellanic Clouds' gas is not in `kind_factors` and `nebula_field`: the Clouds hold stars but no nebulae | none | open |
 | GEN.368 | Plan the appearance rates of everything the Milky Way supplies as fixed content: the count, place and size laws, with sources, so a random galaxy draws them from its seed | none | done, PR #1960 |
 | GEN.369 | Satellites drawn from the galaxy seed: count, distance, mass, size, profile, [Fe/H] and age are calculated from stated laws, with no Milky Way option | none | done, PR #2638 |
@@ -1431,7 +1431,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.657 | Toxic-species rows in the equipment limits table, wired to the stored gases: required gas filter grade by IDLH, with every recalled limit checked against NIOSH and ACGIH | none | done, PR #3702 |
 | GEN.658 | Dust loading and dust toxicity feed the dust filter and seals level of the equipment needs | none | done, PR #2970 |
 | GEN.659 | The interstellar debris density stand-in of 1e12 per pc^3 is 700 to 1,800 times too low: the measured value is 7e14 to 1.8e15 per pc^3 (bug) | none | done, PR #2801 |
-| GEN.660 | The complex_organics row of the materials table has a density of 1.5 g/cm3 while Choukroun 2020, used by the comet draw, has about 2 g/cm3 (bug) | none | done, PR #4310 |
+| GEN.660 | The complex_organics row of the materials table has a density of 1.5 g/cm3 while [R0776], used by the comet draw, has about 2 g/cm3 (bug) | none | done, PR #4310 |
 | GEN.661 | Bright-star counts still use the reference-composition fraction (stand-in, bug) | none | done, PR #3920 |
 | GEN.662 | Cluster and satellite stars draw a halo [Fe/H] for their lifetimes (stand-in, bug) | none | done, PR #3920 |
 | GEN.663 | A chemical-evolution birth-epoch model for thorium and uranium: row o4 draws the formation time from 3 to 13 Gyr | none | done, PR #2822 |
@@ -1483,7 +1483,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.709 | Stored close-pair star positions disagree with the orbit_nodes tree after the multi-star work: a circular pair keeps a random arg_periapsis, and deeper trees are far off (bug) | none | done, PR #3017 |
 | GEN.710 | A pre-placed row with a stored tree can have a member heavier than the row star at stars[0], so the nebula it lights and the star page disagree with the built sector (bug) | none | done, PR #3033 |
 | GEN.711 | Register the planet mass law stand-ins in the gap plan registry: kind, evidence label, knobs, validity range and falsifier test for each | none | done, PR #3596 |
-| GEN.712 | The materials row complex_organics has a density of 1.5 g/cm3 but Choukroun 2020 gives about 2 g/cm3 (bug) | none | done, PR #2995 |
+| GEN.712 | The materials row complex_organics has a density of 1.5 g/cm3 but [R0776] gives about 2 g/cm3 (bug) | none | done, PR #2995 |
 | GEN.713 | Research the size law and the cut for long-period and interstellar comets (blocks GEN.559) | none | done, report reports/gen713-comet-size-law-2026-10-24.md (Lane K, about 2:30 PM EDT 2026-10-24 as the lane reported) |
 | GEN.714 | Moon inclination is drawn from 0 to 25 degrees, so captured moons (retrograde, high inclination) are unreachable (bug) | none | done, PR #3084 |
 | GEN.715 | Real infrared absorption tables (k-tables or line lists) for the greenhouse opacity, replacing the labelled band-strength stand-ins of GEN.703 | none | done, PR #3507 |
@@ -1564,8 +1564,8 @@ Parents marked "new parent" had no old number of their own.
 | GEN.790 | Write the sheet rule for the comet columns mean_anomaly_deg, orbital_period_years and period_class (54 of 234 comets empty) | none | done, PR #4317 |
 | GEN.791 | Generator switch that forces a planet or moon class so a sample can hold at least 30 of every class (random generation gives under 30 of classes O, P, T, V, E, K, L, N, F, G) | none | done, PR #3592 |
 | GEN.792 | File the GEN.725 registry rows from the second-hand citations report: first-hand sources, second-hand fallbacks and the final open list | none | done, PR #3212 |
-| GEN.793 | Settle two source flags in the registry: CFC-12 forcing coefficient 0.32 (IPCC TAR) against 0.33 (gap plan), and the NH3 1.078 factor against Irwin 2019 | none | done, PR #3212 |
-| GEN.794 | Replace the NH3 photolysis activity factor 1.078 (GEN.501, registry stand-in 1.05 to 1.10) with the Huebner and Mukherjee 2015 quiet and active NH3 rates, or a computation from the Cheng 2006 cross section and measured solar spectra | none | done, PR #4069 |
+| GEN.793 | Settle two source flags in the registry: CFC-12 forcing coefficient 0.32 (IPCC TAR) against 0.33 (gap plan), and the NH3 1.078 factor against [R2098] | none | done, PR #3212 |
+| GEN.794 | Replace the NH3 photolysis activity factor 1.078 (GEN.501, registry stand-in 1.05 to 1.10) with the [R2040] quiet and active NH3 rates, or a computation from the [R0767] cross section and measured solar spectra | none | done, PR #4069 |
 | GEN.795 | The day and night temperature swing reads as a range: "±9.07 K" (or "±9.07 C degrees") or the full low to high temperatures, never a bare difference (bug) | none | done, PR #3487 |
 | GEN.796 | Each regional temperature (polar, northern, equatorial, southern, mean and the rest) shows its actual range: the low and the high with the stated value at the middle | none | done, PR #3487 |
 | GEN.797 | Register the GEN.327 young group stand-ins in the GEN.725 registry: member count weights, group radius, 2.5 km/s velocity dispersion, 300 AU remnant cap, with tier and tweak level | none | done, PR #3384 |
@@ -1670,10 +1670,10 @@ Parents marked "new parent" had no old number of their own.
 | GEN.896 | Since 4c (epoch 106) hot-zone planets and moons almost never score Yellow: the Yellow share fell to 0 for M2V, G2V and F5V (bug) | none | done, PR #3700 |
 | GEN.897 | K dwarfs are 19.4% of stars against 11.6% to 12.9% observed (G 3.1% against 4.1% to 5.0%): the K class range reaches down to 3700 K (bug) | none | done, PR #3920 |
 | GEN.898 | A and B stars are far too rare at the reference position: A is 0.11% of stars against 0.6% to 1.1% observed, B 0.01% against 0.04% (bug) | none | done, PR #3920 |
-| GEN.899 | An M2V primary has a companion star in 15.8% of systems; the star-count table says 27% and Duchene and Kraus 2013 give 26% +/- 3% (bug) | none | done, PR #3920 |
-| GEN.900 | Supernova remnants: the reference galaxy gets 260 while 294 are already catalogued (Green 2019) and the design target in tuning.py is 400 to 3000 (bug) | none | done, PR #3920 |
+| GEN.899 | An M2V primary has a companion star in 15.8% of systems; the star-count table says 27% and [R1175] give 26% +/- 3% (bug) | none | done, PR #3920 |
+| GEN.900 | Supernova remnants: the reference galaxy gets 260 while 294 are already catalogued [R1675] and the design target in tuning.py is 400 to 3000 (bug) | none | done, PR #3920 |
 | GEN.901 | Magnetars: the reference galaxy gets 22 while 26 are known (McGill catalog) and tuning.py (GEN.278) aims at about 100 active (30 to 600) (bug) | none | done, PR #3920 |
-| GEN.902 | Wolf-Rayet stars: the reference galaxy gets about 590 while Rosslowe and Crowther 2015 estimate 1200 (+300, -100) (bug) | none | done, PR #3920 |
+| GEN.902 | Wolf-Rayet stars: the reference galaxy gets about 590 while [R3821] estimate 1200 (+300, -100) (bug) | none | done, PR #3920 |
 | GEN.903 | Atmosphere possibility table e: rows e1 and e2 (bare rock, retained H/He envelope) are never reached for class I because group b has only row b4 for class I (low priority) (bug) | none | done, PR #3729 |
 | GEN.904 | Daylight columns stay stale or empty after an orbit move: re-run daylight after generate_spin in the reconcile (bug) | none | done, PR #3920 |
 | GEN.905 | Mantle redox and delta-IW are empty on class V ocean worlds (bug) | none | done, PR #3920 |
@@ -1707,7 +1707,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.933 | One mass-boundary table (brown dwarf/star, planet/brown dwarf, spectral-class mass edges, Chandrasekhar, neutron star/black hole) with sources and tiers, read by the mass function, companions, rogue bodies and the display ladders | none | done, PR #3777 |
 | GEN.934 | Replace the hand-written mass conversions in about 47 modules with the unit registry helper (do not rename _sol/_solar) | none | done, PR #4281 |
 | GEN.935 | Evolved stars from the real post-main-sequence tracks: read the MIST post-main-sequence rows at setup for subgiant, giant, core-helium-burning, asymptotic giant and supergiant luminosity, temperature, radius and duration; red supergiants stop at about 300,000 Lsun; a Cepheid and yellow-star flag | none | done, PR #3984 |
-| GEN.936 | The 0.08 to 0.1 solar mass main sequence comes from the Baraffe 2015 table instead of an extrapolation, and the star/brown-dwarf boundary depends on [Fe/H] (no gap and no overlap) | none | done, PR #4105 |
+| GEN.936 | The 0.08 to 0.1 solar mass main sequence comes from the [R0254] table instead of an extrapolation, and the star/brown-dwarf boundary depends on [Fe/H] (no gap and no overlap) | none | done, PR #4105 |
 | GEN.937 | Neutron star masses from the sourced Gaussians in tuning (two populations) and black hole masses from a progenitor-mass and metallicity law | none | absorbed by GEN.930 (remnant masses, Bug 1 triage 5:47 PM EDT 2026-10-29) |
 | GEN.938 | One white dwarf initial-final mass relation, read by the star model, the multi-star roster, the disk history and mass_loss | none | absorbed by GEN.930 (one white dwarf initial-final relation, Bug 1 triage) |
 | GEN.939 | Wolf-Rayet luminosity follows the present mass by the helium-star mass-luminosity relation (low priority) | none | done, PR #3984 |
@@ -1719,10 +1719,10 @@ Parents marked "new parent" had no old number of their own.
 | GEN.945 | Audit every numeric constant the generator uses against the data we already download or hold: which are registered stand-ins, which come from a table, and which are unregistered hand-tuned numbers; ranked findings with a data source named for each | none | open |
 | GEN.946 | Burn down the hand-tuned constants: replace each L3 or L4 registry row and each unregistered constant the audit ranks high with the data we hold, or record why no data exists | none | done, PRs #4319 and #4320; rest kept as no data |
 | GEN.947 | Pre-main-sequence contraction times are calibrated to MIST (about 2 times too short at 1.5 solar masses and up and at 0.2 solar masses) (low priority) | none | done, PR #3984 |
-| GEN.948 | Brown dwarf radius from an age-dependent table (Baraffe 2015) instead of nine hard-coded points | none | done, PR #4105 |
+| GEN.948 | Brown dwarf radius from an age-dependent table [R0254] instead of nine hard-coded points | none | done, PR #4105 |
 | GEN.949 | Wire the held methane absorption tables (AD1 Karkoschka k-tables, PDS, NMSU) into the visible colour of giant planets | none | open |
-| GEN.950 | Water share of solids by distance from Lodders 2003 Table 11 and its condensation temperatures, replacing the fixed 170 K snow line (low priority) | none | done, PR #4105 |
-| GEN.951 | Companion mass ratio depends on the primary mass and the orbital period, with the twin excess (Moe and Di Stefano 2017 Table 13) instead of a flat 0.1 to 1 (low priority) | none | open |
+| GEN.950 | Water share of solids by distance from [R2726: Table 11] and its condensation temperatures, replacing the fixed 170 K snow line (low priority) | none | done, PR #4105 |
+| GEN.951 | Companion mass ratio depends on the primary mass and the orbital period, with the twin excess ([R3108: Table 13]) instead of a flat 0.1 to 1 (low priority) | none | open |
 | GEN.952 | Store each scatter member's radius (scatter_members.radius_au) so a page can show the X-ray luminosity of an accreting pair without guessing | none | done, PR #3984 |
 | GEN.953 | Birth spin retune: a scale on the rocky planet birth rotation so free days fall in the Solar System range | none | done, PR #3973 |
 | GEN.954 | Tides stage 1a (lock-free): a rheology module giving k2 and Q from temperature, melt fraction and tide frequency | none | done, PR #3799 |
@@ -1760,9 +1760,9 @@ Parents marked "new parent" had no old number of their own.
 | GEN.986 | Measure how far the rocky planets' dose, surface ages and magnetism move when read at the final star age | none | done, measured in reports/gen986-final-age-rocky-planets-2026-10-30.md |
 | GEN.987 | Read a moon's tidal heat from the settled giant's radius | none | done, PR #3984 |
 | GEN.988 | Give Ca, S and Ar a star-to-star scatter like the other generated [X/Fe] abundances (bug) | none | done, PR #3984 |
-| GEN.989 | Lower generated [Mg/Fe] by 0.05 to 0.07 dex for [Fe/H] above -0.2 to match Brewer and Fischer 2016 (bug) | none | done, PR #3984 |
-| GEN.990 | Raise the C, O and Si abundance scatter, now about half the Brewer and Fischer 2016 scatter (bug) | none | done, PR #3984 |
-| GEN.991 | Raise generated [O/Fe] by 0.03 to 0.09 dex to the Brewer and Fischer 2016 table in every [Fe/H] bin | none | done, PR #3984 |
+| GEN.989 | Lower generated [Mg/Fe] by 0.05 to 0.07 dex for [Fe/H] above -0.2 to match [R0535] (bug) | none | done, PR #3984 |
+| GEN.990 | Raise the C, O and Si abundance scatter, now about half the [R0535] scatter (bug) | none | done, PR #3984 |
+| GEN.991 | Raise generated [O/Fe] by 0.03 to 0.09 dex to the [R0535] table in every [Fe/H] bin | none | done, PR #3984 |
 | GEN.992 | Re-finish every rocky planet and moon after the star's age is final, then re-judge the forced requests with the retry round | none | done, PR #4105 |
 | GEN.993 | Widen the core light-element total in bulk_draw to 0.02 to 0.25 (0.25 dex) instead of the uniform 0.03 to 0.12 | none | open |
 | GEN.994 | Wire the hot-giant regime edges (equilibrium_edges) into the atmosphere row for hot giants | none | open |
@@ -1799,24 +1799,24 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1025 | GEN.944 part 1b: the 10 to 13 Gyr thick-disc window in the galaxy density and age-law tables | none | done, PR #4436 |
 | GEN.1026 | Carbon star and S star flags on the star sheet from the thermal-pulse and dredge-up count of the post-main-sequence track | none | done, PR #4399 |
 | GEN.1027 | Ap and Am stars: a chemically peculiar branch of the A-star draw with rotation and magnetic field | none | done, PR #4436 |
-| GEN.1028 | The Mardling and Aarseth 2001 stability criterion holds only for an outer mass ratio q_out of 5 or less and the code does not enforce it (bug) | none | done, PR #4276 |
-| GEN.1029 | Research: port a 3+1 quadruple stability criterion without a machine-learning dependency (Vynatheya, Mardling and Hamers 2023 model files) | none | done, PR #4098 |
+| GEN.1028 | The [R2868] stability criterion holds only for an outer mass ratio q_out of 5 or less and the code does not enforce it (bug) | none | done, PR #4276 |
+| GEN.1029 | Research: port a 3+1 quadruple stability criterion without a machine-learning dependency ([R4575] model files) | none | done, PR #4098 |
 | GEN.1030 | Methane pseudo-adiabat in the giant planet column, so Uranus-like and Neptune-like one-bar temperatures match Voyager (GEN.852 tropopause and condensables family) | none | done, PR #4436 |
-| GEN.1031 | Port the 2+2 quadruple stability network of Vynatheya, Mardling and Hamers 2023 the same way as the 3+1 one (about 8,300 numbers, plain numpy forward pass, no machine-learning dependency) | none | done, PR #4129 |
+| GEN.1031 | Port the 2+2 quadruple stability network of [R4575] the same way as the 3+1 one (about 8,300 numbers, plain numpy forward pass, no machine-learning dependency) | none | done, PR #4129 |
 | GEN.1032 | Refit the greenhouse table on the far-wing and acid-cloud model that GEN.1019 and GEN.1020 landed, and move the tropopause-jump sweep (GEN.852 family) | none | done, PR #4436 |
 | GEN.1033 | Ice-giant internal heat: the law goes through Jupiter and Neptune, so a Uranus-mass giant gets Neptune's 0.33 W/m2 instead of Uranus's 0.04 (the Uranus anomaly), and giants draw their Bond albedo from the rock range 0.12 to 0.35 | none | open |
 | GEN.1034 | Ocean tide data: the open-ocean equilibrium tide height and range at a world's surface from each moon and the star, for worlds with a surface ocean | none | done, PR #4385 |
 | GEN.1035 | Surface liquid inventory: which liquid a cold or hot world holds as a sea (methane-ethane-nitrogen, liquid nitrogen, liquid CO2, ammonia-water, sulfur) from its temperature, pressure, ice and air, so non-water oceans can have tides | none | done, PR #4321 |
 | GEN.1036 | Oddity table and loader: physics/oddities.py, physics/data/oddities.json, the row schema (requires, rate with source, tier and tweak, named input effect, limits, text) and the GEN.725 registry rows, no wiring | none | done, PR #4126 |
 | GEN.1037 | Confirm the oddity rates and thresholds marked [R] (W3, W4, W5, W10, W14, W15, W20 first) against papers, write the literature table with sources, register the stand-ins | none | done, PR #4145 |
-| GEN.1038 | W2 module: the Venus-type retrograde slow rotator, the spin equilibrium of a thick-air planet from the thermal tide against core-mantle friction (Correia and Laskar 2001, 2003), pure function | none | done, PR #4133 |
+| GEN.1038 | W2 module: the Venus-type retrograde slow rotator, the spin equilibrium of a thick-air planet from the thermal tide against core-mantle friction ([R0896], 2003), pure function | none | done, PR #4133 |
 | GEN.1039 | W1 module: a seasonal temperature swing from the stored obliquity in the regional temperature (tilt-driven climate), polar summer hotter than the equator, ice and wet-bulb limits by season | none | done, PR #4141 |
-| GEN.1040 | W10 module: collisional mantle stripping to an iron-rich (Mercury type) core fraction, pure function (Marcus 2010, Benz 2007 scaling) | none | done, PR #4152 |
-| GEN.1041 | W14 module: mass loss and lifetime of a disintegrating rocky planet (Perez-Becker and Chiang 2013), pure function | none | done, PR #4128 |
-| GEN.1042 | W15 module: super-puff radius and its fade with age (Lee and Chiang 2016, Millholland 2019), pure function | none | done, PR #4143 |
+| GEN.1040 | W10 module: collisional mantle stripping to an iron-rich (Mercury type) core fraction, pure function ([R0351, R2866] scaling) | none | done, PR #4152 |
+| GEN.1041 | W14 module: mass loss and lifetime of a disintegrating rocky planet [R3487], pure function | none | done, PR #4128 |
+| GEN.1042 | W15 module: super-puff radius and its fade with age [R2609, R3079], pure function | none | done, PR #4143 |
 | GEN.1043 | W5 module: detect resonant chains from the stored periods and compute the forced eccentricity and the resulting tidal heating (Goldreich and Soter, Murray and Dermott), pure function | none | done, PR #4144 |
-| GEN.1044 | W19 module: the nightside collapse threshold of a thin-air locked planet (Wordsworth 2011, Leconte 2013), pure function | none | done, PR #4131 |
-| GEN.1045 | W16 audit: does envelope_escape fractionate helium (hydrogen escapes first, leaving a helium-dominated air; Hu 2015, Malsky and Rogers 2020)? Add the fractionation if not | none | done, PR #4146 |
+| GEN.1044 | W19 module: the nightside collapse threshold of a thin-air locked planet [R2605, R4772], pure function | none | done, PR #4131 |
+| GEN.1045 | W16 audit: does envelope_escape fractionate helium (hydrogen escapes first, leaving a helium-dominated air; Hu 2015, [R2840])? Add the fractionation if not | none | done, PR #4146 |
 | GEN.1046 | W20 design: the two-branch climate output (snowball or warm, runaway or temperate) from the ice-albedo feedback and the CO2 exit rule, as a history draw between branches | none | done, PR #4290 |
 | GEN.1047 | Wire the oddity table and the weirdness dial: epoch, stored oddities text column and numeric columns (db/column_units.py), the "Odd: ..." line with its cause sentence on the object page, the API field, an admin force-oddity like FORCE_CLASS, the dial in settings (default 1, 0 turns all off) | none | open |
 | GEN.1048 | Wire W1 (tilt-driven seasonal climate), W2 (Venus-type spin), W10 (iron-rich cores) and W15 (super-puffs) into the bulk, spin and climate inputs | none | open |
@@ -1824,14 +1824,14 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1050 | Wire W14 (the dying-planet flag) and W9 (rings from decayed moons) | none | open |
 | GEN.1051 | Wire the W19 nightside collapse and the W20 bistable branches (the history draw between branches) | none | open |
 | GEN.1052 | Heavy-liquid layers and mercury (from GEN.1034): the deep global heavy-liquid path with the fluid Love number, the thin-layer refusal, and mercury and other liquid metals as rows of the surface liquid table | none | open |
-| GEN.1053 | G1 module: the giant-impact tilt of an ice giant (Uranus 98 degrees), a tail row on the spin lever with its ring and moon plane following the equator (Slattery 1992, Morbidelli 2012, Kegerreis 2018), pure function | none | done, PR #4149 |
-| GEN.1054 | Ring origin from history: a ring comes from a moon decayed inside the Roche limit (R1, Canup 2010, Hesselbrock and Minton 2017) or a comet passing inside it (R2, Dones 1991), pure function; the always-a-ring rule for giants is what it replaces | none | done, PR #4124 |
+| GEN.1053 | G1 module: the giant-impact tilt of an ice giant (Uranus 98 degrees), a tail row on the spin lever with its ring and moon plane following the equator [R2300, R3149, R4118], pure function | none | done, PR #4149 |
+| GEN.1054 | Ring origin from history: a ring comes from a moon decayed inside the Roche limit (R1, [R0637, R1927]) or a comet passing inside it (R2, [R1140]), pure function; the always-a-ring rule for giants is what it replaces | none | done, PR #4124 |
 | GEN.1055 | Ring age and pollution darkening: a ring stores its age and its ice share and darkness follow from pollution over time (R6); ring shadow climate hook (R8) | none | open |
 | GEN.1056 | Resonance rings of small bodies: rings beyond the Roche limit held by a spin-orbit resonance with a satellite or fast spin (Quaoar 7.4 radii, Haumea, Chariklo, Chiron; R4), pure function, plus R9 (no ring inside about 0.1 AU) | none | done, PR #4127 |
 | GEN.1057 | Wire conditional rings: a ring follows from moon decay or comet passage and a giant with neither has none, so Saturn-like broad rings are the tail (epoch, replaces the BC20 draw), plus ring age, R4 and R9 | none | done, PR #4385 |
 | GEN.1058 | Wire the G1 giant-impact tilt and the ring plane following the equator | none | open |
 | GEN.1059 | The GEN.412 inversion of a stored giant row ignores the giant's own heat, so its stored albedo and greenhouse factor no longer reproduce its temperature from starlight alone (bug) | none | open |
-| GEN.1060 | Belt research read: open the nine sources of design section 8 (Bottke 2006, Wisdom 1980 and 1982, Moons and Morbidelli 1995, Walsh 2011, Raymond and Izidoro 2017, Stern and Levison 2002, Soter 2006, Margot 2015, Kenyon and Bromley 2008, Debes and Sigurdsson 2002, Zuckerman 2010, Koester 2014, Ida and Guillot 2016, Gladman and Volk 2021), one register row per number used | none | done, PR #4180 |
+| GEN.1060 | Belt research read: open the nine sources of design section 8 ([R0484, R4727] and 1982, Moons and Morbidelli 1995, [R3681, R4603], [R4213, R4214], [R4159], [R2871, R2874], [R1031, R1585, R2074, R2324, R2415, R4918]), one register row per number used | none | done, PR #4180 |
 | GEN.1061 | physics/belt_ledger.py: the size-law top-end order statistic, the individual-object draw by the cut rule with mass conserved, and the Dc iteration with belt_mass | none | done, PR #4180 |
 | GEN.1062 | physics/resonance_gaps.py: the resonance and chaotic-zone map from the giants' orbits and the size-dependent Yarkovsky cut | none | done, PR #4217 |
 | GEN.1063 | physics/body_status.py: roundness mass by composition, Soter mu, Stern-Levison Lambda, Margot Pi, and the status words (planet, dwarf planet, minor body, moon), both words and numbers stored | none | done, PR #4193 |
@@ -1846,7 +1846,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1072 | White dwarf and giant-branch belt events wired into remnant_orbits and the engulfment step, replacing the uniform expansion factor of belts | none | open |
 | GEN.1073 | Bring-to-epoch for belts: grinding recomputed from the stored age, members above the grinding scale kept | none | open |
 | GEN.1074 | Captured asteroid moons: a giant near a belt captures bodies from it as irregular moons; research the capture mechanisms and rates, then plan the build | none | dropped (research done in the captured asteroid moons draft; the build items are GEN.1075 to GEN.1087) |
-| GEN.1075 | Captured moons read list and register rows: Nesvorny et al. 2003 and 2007, Hamilton and Burns 1991, Agnor and Hamilton 2006, Bottke 2010, Sheppard and Jewitt 2003 and 2005, Granvik 2012, Rosenblatt 2016 | none | done, PR #4175 |
+| GEN.1075 | Captured moons read list and register rows: [R3263] and 2007, [R0037, R0483, R1771, R4054] and 2005, [R1666, R3814] | none | done, PR #4175 |
 | GEN.1076 | physics/irregular_zone.py: Hill radius, stable limits (prograde and retrograde), the inner edge from the outermost regular moon, the Kozai exclusion | none | done, PR #4155 |
 | GEN.1077 | physics/irregular_population.py: capture windows, the cumulative count N0(>R), grinding, and the order-statistic draw into individual, on-demand and population tiers | none | done, PR #4239 |
 | GEN.1078 | physics/irregular_orbits.py: a/r_H, e, i, survival and families (parent breakup with a velocity spread) | none | done, PR #4164 |
@@ -1865,7 +1865,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1091 | Rewrite the Class D wording in tuning.PLANET_CLASSES["D"] and the docs to match the conditions rule plus the ledger scope (docs only) | none | done, PR #4188 |
 | GEN.1092 | Wire the scatter phase and the belt origin: scatter tag on stored members, the outer disc fed from the scatter step, origin and formation shown on the belt page | none | open |
 | GEN.1093 | physics/belt_density.py: the belt density factor (objects per square AU above a stated diameter, plus mass per square AU) from the size law, the belt annulus and the ledger | none | done, PR #4166 |
-| GEN.1094 | Read Goldberg and Batygin 2023 for the librating share of near-resonant pairs (the share of pairs that are heating-capable, W5), and register the number | none | done, PR #4153 |
+| GEN.1094 | Read [R1605] for the librating share of near-resonant pairs (the share of pairs that are heating-capable, W5), and register the number | none | done, PR #4153 |
 | GEN.1095 | Confirm the remaining [R] oddity rates (W6, W7, W9, W12, W16, W21 to W26, G1, G7) against papers and register the stand-ins | none | done, PR #4183 |
 | GEN.1096 | planet_mass.gas_outcome returns max(runaway, core) and the core is capped at 0.01 of the star, not at the 13 Jupiter-mass edge: a 1.5 to 2 solar-mass host at twice solar metals draws 15 to 21 Jupiter masses (4 in 3,000 draws) (bug) | none | done, PR #4321 |
 | GEN.1097 | Every object has a day-and-night state and counter: solar day length, day and night hours, and an explicit state for tidally locked, non-rotating, polar-day and no-solid-surface bodies, stored for planets, moons, belt bodies and (where meaningful) stars (bug) | none | done, PR #4385 |
@@ -1893,7 +1893,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1119 | RP1: classify every architecture loss as ejected, collided or bound by the Safronov number and return an ejection record (mass, composition, kept moons, orbit at ejection, time), counting the small bodies the chain deletes today | none | done, PR #4389 |
 | GEN.1120 | Rogue planet abundance option: a None, Few, Normal, Many dropdown in the galaxy and the sector generation options, with Normal the target and the physics-based spread tweaked to the low side of the observed range | none | open |
 | GEN.1121 | Designation history: an object may change its name and ID, keeps a stored history of its previous designations, and its current ID is always completely unique across the whole galaxy | none | done (split into GEN.1138 to GEN.1141 after the design note (#4234) and Boss answers) |
-| GEN.1122 | Read Pollack 1979 and Cuk and Burns 2004 for the gas-drag capture window strength and register the number (CM14) | none | done, PR #4192 |
+| GEN.1122 | Read [R0956, R3560] for the gas-drag capture window strength and register the number (CM14) | none | done, PR #4192 |
 | GEN.1123 | Audit every table that carries sector_id and its ON DELETE rule, and every path that deletes or regenerates a sector, and report which objects would be lost when a sector is deleted though they drifted in | none | done, PR #report sector-delete-audit-gen1123-2026-10-30 |
 | GEN.1124 | Resident-mass subtraction: a pure function giving a sector's remaining mass budget after what it already holds (arrived rogues, pre-placed bright stars, scattered phenomena, extended objects whose centre lies there) | none | done, PR #4207 |
 | GEN.1125 | Rogue top-up planner: a pure module that, from a sector's mass shortfall and the Rogues level cap, says how many rogues to place, their masses by the existing mass bins (96 percent terrestrial, 4 percent gas giant), and gives each a placement inside the sector, a realistic velocity and an apparent origin marked "apparent" | none | done, PR #4204 |
@@ -1925,7 +1925,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1151 | Lagrange trojans T3: whole planets and moons (Class M and Class J allowed by the mass rule) at L4 and L5 from the disc formation model only; no forced rate, the observed 5 percent upper bound (WR10) is a plausibility test only; folds in the weird-worlds W7 row | none | open |
 | GEN.1152 | Mass literals that differ from constants.py (changing them changes output): moon_composition JUPITER_MASS_KG 1.89813e27, ring_origin star_mass_kg 1.989e30, giant_interior 317.8 and EARTH_MASS_JUPITER 317.83, stellar_abundances JUPITER_MASS_SOL, tuning 317.8; use the constants.py values with an epoch | none | open |
 | GEN.1153 | Day and night state for stars and rogue planets (follow-up to GEN.1097, which covers planets and moons): a star stores the constant "no night"; a rogue planet gets the same state, night hours and solar days as an in-system planet from its own spin, with no star the answer is no solar day | none | open |
-| GEN.1154 | Halo mass of galaxies above 3e10 solar masses of stars is drawn too heavy by GEN.368 (0.17 dex at 6e10, 0.27 at 1e11, 0.34 at 2e11 against a Tinker 2008 halo function): replace median_halo_mass plus the Gaussian with a precomputed Tinker-based conditional drawn by inverse CDF | none | done, PR #4385 |
+| GEN.1154 | Halo mass of galaxies above 3e10 solar masses of stars is drawn too heavy by GEN.368 (0.17 dex at 6e10, 0.27 at 1e11, 0.34 at 2e11 against a [R4367] halo function): replace median_halo_mass plus the Gaussian with a precomputed Tinker-based conditional drawn by inverse CDF | none | done, PR #4385 |
 | GEN.1155 | A REBOUND N-body sample of 2+2 quadruple systems to replace the 2+2 stability margin GM14 that has no N-body sample behind it (the 3+1 margin GM13 was tuned on the 331 systems of GEN.1029) | none | done, PR #4343 |
 | GEN.1156 | Raise the belt share after the GEN.728 disc architecture (3 to 12 percent of systems) toward the documented 4 to 14 percent with a physics-driven change | none | open |
 | GEN.1157 | Earth-type moons around gas giants: how often a giant has a moon the size of a planet, and how big, from the physics of moon formation and capture | none | open |
@@ -1938,7 +1938,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1164 | About 3 percent of moons (70 of 2,273) sit in a 3:2 or 2:1 spin-orbit state, all captured moons with eccentricity 0.2 to 0.5, where real moons have none apart from chaotic Hyperion: find out whether the tide damps the eccentricity before the spin settles | none | done, answered by Tides 1 (GEN.1172) |
 | GEN.1165 | Giant planet obliquity never exceeds 60 degrees (312 giants) and locked planets have exactly 0 degrees tilt: draw a wider, physically derived obliquity and a small non-zero tilt for locked bodies | none | done, PR #4385 |
 | GEN.1166 | A forced F5V star gets 1.24 to 1.69 solar masses at a fixed 6500 K: the forced-type temperature override overrules the mass, as GEN.365 found for hot types (bug) | none | dropped (withdrawn by Aux 7: a forced F5V is an exact model star; the 6500 K was rounding and the mass spread is main-sequence evolution) |
-| GEN.1167 | The stellar-to-halo relation (Moster 2013) has 0.3 to 0.4 dex more stars than Behroozi 2019 in halos of 1e10.75 to 1e11.5 and 0.06 to 0.26 dex fewer in halos of 1e12.5 to 1e14.5: compare the published fits and pick the best-supported relation | none | open |
+| GEN.1167 | The stellar-to-halo relation [R3181] has 0.3 to 0.4 dex more stars than [R0319] in halos of 1e10.75 to 1e11.5 and 0.06 to 0.26 dex fewer in halos of 1e12.5 to 1e14.5: compare the published fits and pick the best-supported relation | none | open |
 | GEN.1168 | No white dwarf is lighter than 0.56 solar masses in the generated population while field samples go down to 0.45: check whether the low-mass white dwarf channel is missing | none | done, report gen1168 (GEN.996 targets the shares) |
 | GEN.1169 | Pre-main-sequence stars are 2.5 percent of living stars at the Sun's position (late M dwarfs, median age 0.45 Gy): check the share against the contraction times of the tracks and a published fraction | none | done, report gen1169 (GEN.1173, GEN.1174) |
 | GEN.1170 | Spin of A and B stars follows mass: the fast-rotator mode rises from 160 km/s at 1.6 to 2 solar masses to 238 km/s at 3.15 to 3.85 (about 46 km/s per solar mass), where the generator keeps one 180 km/s median for every hot star from 1.8 solar masses up | none | done, PR #4385 |
@@ -1954,7 +1954,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1180 | Follow-up strength research: peridotite and olivine, rock fracture toughness, solid N2 and CO ices, ices VII and X, methane hydrate constants at low temperature | none | done, report strength-followup-gen1180 (olivine flow constants read; no data exists for the rest and none is needed for rounding) |
 | GEN.1181 | Set the molecular gas velocity dispersion to 7.0 km/s (range 5 to 9) from four read sources and record it in GEN.725 and the structure.py comment | none | dropped (Replaced by the item that keeps 6.5 km/s and records its sources: the young-star scale height sources (GEN.1182) put 66 pc inside the sourced Milky Way band and 73 pc (7.0 km/s) just outside it.) |
 | GEN.1182 | Sourced scale height of young stars: the 'observed about 50 pc' figure has no source in anything read and no CO velocity dispersion reaches it | none | done, report gen1182 (sourced Milky Way band 35 to 70 pc; kept in GEN.1188) |
-| GEN.1183 | Ice-type strength ratios (IT1 to IT3) become a ratio-by-temperature table from Durham 1997 Table 2 instead of constants | none | done, PR #4383 |
+| GEN.1183 | Ice-type strength ratios (IT1 to IT3) become a ratio-by-temperature table from [R1190: Table 2] instead of constants | none | done, PR #4383 |
 | GEN.1184 | Rock strength follows olivine creep in the roundness temperature rules, and the hot rubble strength RN9 is re-tiered to olivine creep at about 1300 K | none | done, PR #4359 |
 | GEN.1185 | Interior activation energy range 260 to 390 kJ/mol instead of 200 to 300, with the reference viscosity retuned | none | open |
 | GEN.1186 | Small evidence updates to registered stand-ins from the strength papers review | none | open |
@@ -1995,7 +1995,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.1221 | Class-by-domain matrix as data: six domains plus regional, day and night temperature and wet bulb, stored relative humidity and a groundwater flag, and a phase gate per solvent | none | open |
 | GEN.1222 | Tiny airless moons hold a water surface ocean at 20 to 33 K: 60 of 2,071 bodies in one sample (39 class D, 20 class C, 1 class T), all moons (bug) | none | open |
 | GEN.1223 | Research: the gas and Transitional class lists from sources (Sudarsky-style temperature classes, sub-Neptune, ice giant, sub-Saturn, water world) | none | done, research report written (reports/gen1223-giant-and-transitional-classes-2026-10-31.md) |
-| GEN.1224 | Research: envelope share against mass and metallicity (Thorngren 2016 mass-metallicity relation) to replace the envelope-share guesses of the giant and transitional class rows | none | done, research report written (reports/gen1224-giant-heavy-element-and-envelope-share-2026-10-31.md) |
+| GEN.1224 | Research: envelope share against mass and metallicity ([R4352] mass-metallicity relation) to replace the envelope-share guesses of the giant and transitional class rows | none | done, research report written (reports/gen1224-giant-heavy-element-and-envelope-share-2026-10-31.md) |
 | GEN.1225 | Research: tune the ammonia life gate and the nitrogen ice amount from physics and chemistry (instead of guesses) | none | done, research report written (reports/gen1225-ammonia-gate-and-nitrogen-ice-2026-10-31.md) |
 | GEN.1226 | Store the envelope share for EVERY body, so hydrogen-air dwarfs (about 400 class T bodies) are typed and classed correctly | none | open |
 | GEN.1227 | Store the coma class and the dominant volatiles of an interstellar comet, so the map can colour its coma | none | open |
@@ -3004,7 +3004,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.132 | Console look for the shared components: buttons, tables, panels, status chips, icons and the maps' chrome | none | open |
 | UX.133 | `GET /polities` and `GET /species` answer 404 before the population pass has run: show an empty page instead (bug) | none | done, PR #2124 |
 | UX.134 | Generate page: the galaxy type shows what the seed drew and can be pinned | none | open |
-| UX.135 | One simple vector outline per galaxy family in the icon library: spiral, barred spiral, lenticular, elliptical, irregular and dwarf spheroid | none | open |
+| UX.135 | One simple vector outline per galaxy family in the icon library: spiral, barred spiral, lenticular, elliptical, irregular and dwarf spheroid | none | done, PR #4721 |
 | UX.136 | The data tables' own row fetches (scroll and sort) wait on a page job when the answer is slow, like the pages do | none | done, PR #2999 |
 | UX.137 | The Generate page, the settings and the command line set the halo and the satellite galaxies switches, each through its own command, and say what they are | none | open |
 | UX.138 | Pages, symbols and descriptions for the new rows: moons of wanderers, free brown dwarfs as stars, unbound comets | none | open |
@@ -3112,7 +3112,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.240 | Belt page data builder: the designated individual bodies (designation, mass, size, status, composition), the size table of the rest of the belt mass (counts, mass share and typical composition by diameter bin), and the density factor, as one pure structure | none | done, PR #4259 |
 | UX.241 | Asteroid belt information page: route, template and API field showing the individually tracked bodies (by designation, each linked to its member page), the contents and sizes of the rest of the belt mass, and the density factor with its unit; link from the system page and the belt row | none | open |
 | UX.242 | Systems tables: Stars, Objects and Habitable world columns replace the Binary column (All systems table and the search Systems panel) | none | done, PR #4216 |
-| UX.243 | Day-and-night counter on every object page: a clock counting the object's own day at its real rate, with the state word, shown separately from the spin animation speed (spin.js compresses periods onto 20 s to 10 min per turn, stand-in SP1, L4) | none | open |
+| UX.243 | Day-and-night counter on every object page: a clock counting the object's own day at its real rate, with the state word, shown separately from the spin animation speed (spin.js compresses periods onto 20 s to 10 min per turn, stand-in SP1, L4) | none | done, PR #4729 |
 | UX.244 | Slow and tidally locked bodies look frozen on screen: spin.js clamps every period over 1000 h to one turn per 600 s (stand-in SP1, L4), so Eakkar IV (class V, rotation 46.8 days, locked to its orbit) never visibly turns (bug) | none | done, PR #4254 |
 | UX.245 | Tidally locked moon faces its planet in the System Map, and the locked label is drawn on the sensor view picture itself (follow-up to UX.244) (bug) | none | done, PR #4266 |
 | UX.246 | Search page Star: Spectral Class and Star: Luminosity Class tags list only the types already stored, so a small database offered 2 types; list every class the generator produces with a count of 0 for a type no star holds yet (bug) | none | done, PR #4261 |
@@ -3126,6 +3126,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.254 | Show a star's chemistry on its page: thin or thick disc branch, alpha enhancement, metal fraction and the dredge-up shift, from stored values with stellar_composition.star_makeup | none | done, PR #4540 |
 | UX.255 | Remove the light-theme branches in the map scripts that black map backgrounds left unused | none | open |
 | UX.256 | Cancelling a job from its job page returns to the page the visitor came from, or the jobs page (bug) | none | done, PR #4656 |
+| UX.257 | Object page life text: the life readings table overflows a phone and the species link fails contrast (bug) | none | open |
 | VIEW.1 | View from a planet | none | open |
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG, with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |
@@ -3134,7 +3135,7 @@ Parents marked "new parent" had no old number of their own.
 | VIEW.6 | Settle the handedness of the generated galaxy before mapping real sky coordinates | none | open |
 | VIEW.7 | Sky tiers and the backfill cost measurement | none | open |
 | VIEW.8 | A dust model for the sky: the galactic extinction law and `nebulae.extinction_av` | none | open |
-| VIEW.9 | Replace the BC_V table with a published relation (Flower 1996 or Torres 2010) | none | done, PR #4508 |
+| VIEW.9 | Replace the BC_V table with a published relation ([R1392] or [R4407]) | none | done, PR #4508 |
 | VIEW.10 | A HYG calibration test: a generated sky has about 9,000 stars at V <= 6.5 | none | merged into VIEW.12 (Boss, 2026-10-16, 11:58 PM EDT: consolidation sweep) |
 | VIEW.11 | Photometry library: apparent magnitude, bolometric correction, blackbody colour and the extinction law | none | open |
 | VIEW.12 | Sky catalogue: the stars an observer sees, with direction, brightness and light-time | none | open |
@@ -3686,7 +3687,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.453 | Five tests are red on a clean main: the query near test (NAV.61, expects exit 2), two item_pages planet-page tests, the moon tidal flux migration test, and the fuzz O-star timeout in gas_equilibrium (bug) | none | done, PR #3920 |
 | TEST.454 | The observed star mass-function curve as data, with a per-bin harness that measures the generator against it (segments from 0.01 to 150 solar masses by object type) | none | done, PR #3764 |
 | TEST.455 | A completeness gate: every numeric constant in the generation and physics modules has a stand-in registry row or is read from a table; the list of unregistered constants may only shrink | none | open |
-| TEST.456 | A test that the generated [X/Fe] abundances match the Brewer and Fischer 2016 table, not only its trend and scatter (low priority) | none | done, PR #3817 |
+| TEST.456 | A test that the generated [X/Fe] abundances match the [R0535] table, not only its trend and scatter (low priority) | none | done, PR #3817 |
 | TEST.457 | test_no_todo_codes_shown fails on main: util/settings.py shows the item code PERF.154 to users (bug) | none | done, PR #3761 |
 | TEST.458 | test_sector_map_scale_line_follows_the_zoom fails on main (bug) | none | done, PR #3771 |
 | TEST.459 | The point_phenomena links browser test is red on clean main (bug) | none | done, already green on main (repaired by MAP.349 and MAP.337 step 2) |
@@ -3721,7 +3722,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.488 | test_migration_albedo_greenhouse is red on clean main (bug) | none | dropped (duplicate of TEST.472 (albedo_greenhouse migration is named there)) |
 | TEST.489 | Reds on clean main found by Core 3: test_cache_warmup (nodes_to_warm, full_cache_leaves, nodes_family: insert_bright_stars column count mismatch), test_satellites (2), test_activity (stored field and exposure), test_sector_gen research rates per star (black-hole rate 0.00123 over the 0.0012 cap) (bug) | none | done, PR #4230 |
 | TEST.490 | Oddity plausibility harness (src/tests/oddity_plausibility_cli.py): force each oddity on 200 bodies with a fixed seed and assert the general invariants (energy, structure, stability, air, class derived, no NaN) and each row's own | none | done, PR #4147 |
-| TEST.491 | W21 audit: check end to end that M dwarf water loss can leave an oxygen air and that the life scores never read oxygen alone (Luger and Barnes 2015, Wordsworth and Pierrehumbert 2014) | none | done, PR #4135 |
+| TEST.491 | W21 audit: check end to end that M dwarf water loss can leave an oxygen air and that the life scores never read oxygen alone [R2769, R4771] | none | done, PR #4135 |
 | TEST.492 | Census re-baseline for every oddity share and the prevalence suite rows (one pass after each of trains 12, 13 and 14) | none | open |
 | TEST.493 | Giant oddity audit: the super-Jupiter mass ceiling (G9), the hot Neptune desert survivors (G7, LTT 9779 b), and which G rows are derived outputs only (G2 to G6, G8, G10, G11); file bugs for any that are not | none | done, PR #4138 |
 | TEST.494 | Ring invariants in the plausibility harness: ring mass under 1e-4 of the planet, ring inside the Roche limit unless R4 names its resonance, optical depth an output, no ring inside 0.1 AU, ring plane in the equator | none | done, PR #4147 |
@@ -3729,9 +3730,9 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.496 | test_the_wheel_carries_the_map_from_the_whole_galaxy_into_a_system fails on main in its wheel-out leg (the URL keeps sector= after wheeling out) (bug) | none | done, PR #4444 |
 | TEST.497 | test_planet_physical_properties e-3 fails on an unseeded star (air pressure 0.99999 Pa against a floor of 1.0), the same cause as TEST.486 (bug) | none | done, PR #4165 |
 | TEST.498 | A rogue planet is functionally and programmatically identical to a bound planet: the same columns, the same moon and composition generation, the same classes, differing only in the rogue note and having no host star | none | open |
-| TEST.499 | RP9: rogue yield calibration against microlensing and the terrestrial scale: rogues per star against Sumi 2023 (central 21, lower 1 sigma 8 over the probed range), the Mroz 2017 Jupiter limit and Barclay 2017's 2.5 terrestrial bodies per star | none | open |
+| TEST.499 | RP9: rogue yield calibration against microlensing and the terrestrial scale: rogues per star against [R4254, R4255] (central 21, lower 1 sigma 8 over the probed range), the [R3191] Jupiter limit and [R0258]'s 2.5 terrestrial bodies per star | none | open |
 | TEST.500 | test_moon_composition::test_a_disk_moon_gains_ice_past_its_disks_ice_line fails on a clean main (reported by Aux 4 on PR #4184) (bug) | none | done, PR #4230 |
-| TEST.501 | Order-independence test: chart region A then B and B then A and compare the union of real-donor objects and each sector's made-here digest; chart a region twice and nothing changes; the top-up checked as "same stored state in, same objects out" | none | open |
+| TEST.501 | Order-independence test: chart region A then B and B then A and compare the union of real-donor objects and each sector's made-here digest; chart a region twice and nothing changes; the top-up checked as "same stored state in, same objects out" | none | done, PR #4725 |
 | TEST.502 | test_orbital_motion::test_moon_having_planet_reflex_offset_matches_manual_formula fails on a clean main: settle_orbit moves captured moons without refreshing the planet offset (bug) | none | done, PR #4385 |
 | TEST.503 | Four tests are red on a clean main: test_db_column_round_trip::test_every_column_is_written (moons.magnetopause_rp is NULL in every row), the test_object_rows star read-back (columns state and decay_age_yr), test_gen_hosting_wiring directed moon count, and test_reproducible_draws hypot/BLAS (bug) | none | done, PR #4385 |
 | TEST.504 | test_runaway_history::test_the_surface_water_a_planet_keeps_is_what_its_class_gave_less_what_it_lost fails on main (the M3V case sees no loss) (bug) | none | done, PR #4283 |
@@ -3776,13 +3777,13 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.543 | The atmosphere sweep audit reads planetgen.physics.ozone.STRUCTURE_RANGE, which is now STRUCTURE_KNOTS, so three sweep tests fail (bug) | none | done, PR #4699 |
 | TEST.544 | The class sweep finds five rocky bodies classed T, a gas class, so the totality test fails (bug) | none | done, PR #4677 |
 | TEST.545 | The table sweep raises temperature must be positive for small-body-taxa/asteroid-field at 0 K, and two rows are never reached (bug) | none | done, PR #4714 |
-| TEST.546 | The object timing test finds a unit saved with the kind star where it expects system (bug) | none | open |
+| TEST.546 | The object timing test finds a unit saved with the kind star where it expects system (bug) | none | done, PR #4719 |
 | TEST.547 | Dry-class carbon bracket test is red on main after GEN.1005 (bug) | none | done, PR #4701 |
 | TEST.548 | Two phenomenon-scatter count tests fail on main: remnant counts moved past 1.5 times the model (bug) | none | open |
 | TEST.549 | test_star_population passes the removed bounds_only argument to _bright_table and is red on main (bug) | none | done, PR #4704 |
 | TEST.550 | Five census tests stay red on main until the census re-tag for epochs 129 and 130 (bug) | none | open |
 | TEST.551 | test_burn_down_register::BR20 is red on main: row 6.95:BR20 has a line but is no longer L3 or L4 (bug) | none | done, PR #4710 |
-| TEST.552 | test_plan_outline expects the outline crest at 3.32 times and the density model now gives 3.18 (bug) | none | open |
+| TEST.552 | test_plan_outline expects the outline crest at 3.32 times and the density model now gives 3.18 (bug) | none | done, PR #4726 |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

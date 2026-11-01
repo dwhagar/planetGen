@@ -1,7 +1,7 @@
 """
-The generated stellar [X/Fe] against the Brewer and Fischer 2016 table, not only its trend and scatter (TEST.456).
+The generated stellar [X/Fe] against the [R0535] table, not only its trend and scatter (TEST.456).
 
-The fits of `tuning.STELLAR_XFE_FITS` were made to Bensby 2014 and Nissen 2014 and only the residual correlation of C, O, Mg and Si comes
+The fits of `tuning.STELLAR_XFE_FITS` were made to [R0349, R3294] and only the residual correlation of C, O, Mg and Si comes
 from Brewer and Fischer (1,615 FGK dwarfs, VizieR J/ApJS/225/32). `tests/data/brewer_fischer_xfe_bands.json` holds that table reduced to
 bands by [Fe/H] (built by `scripts/build_brewer_fischer_bands.py`; the stars are not kept). The generator is asked, bin by bin, for the
 [X/Fe] of stars drawn across the bin with the table's share of thick-disc ages, and its median and scatter are held to the table's.

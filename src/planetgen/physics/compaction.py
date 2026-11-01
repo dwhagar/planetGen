@@ -12,7 +12,7 @@ with the void share taken out:
 with `w_i` the mass fractions (adding to 1) and `rho_i` the grain densities of the shared materials table (GEN.427; a
 caller may state a density the table does not hold, for example the silicate dust of a comet).
 
-How much of the void a body keeps depends on its size. Bierson and Nimmo (2019, Icarus 326, 10, Table 1 and Eqs. 1 and 2)
+How much of the void a body keeps depends on its size. [R0390] (Icarus 326, 10, Table 1 and Eqs. 1 and 2)
 give the brittle law, with the pressure `P` in megapascals: ice grains close their pores as `max(0.60 exp(-0.1 P), 0.20)` and
 silicate grains as `min(0.6 P^-0.11, 0.6)`. The paper's own text says the law is a lower bound on the density above about 200
 to 500 km radius, where viscous compaction decides, and the law alone leaves the density 1.3 to 1.8 times low up to 3e23 kg
@@ -47,7 +47,7 @@ DATA_FILE = os.path.join(elements.DATA_DIRECTORY, "compaction_table.json")
 
 ICE_GRAIN_KG_M3 = 920.0
 SILICATE_GRAIN_KG_M3 = 3500.0
-"""float: The grain densities of Bierson and Nimmo (2019) Table 1."""
+"""float: The grain densities of [R0390: Table 1]."""
 
 TAPER_START_KG = 1e19
 TAPER_END_KG = 1e21

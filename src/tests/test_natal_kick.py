@@ -56,7 +56,7 @@ def test_the_escape_speed_falls_outward_and_a_deeper_halo_holds_more():
 
 
 def test_a_galaxy_of_the_milky_ways_masses_has_the_escape_speed_the_milky_way_is_measured_to_have():
-    """About 550 km/s at the solar circle (Piffl et al. 2014, 533 +54/-41), a derived check and no input."""
+    """About 550 km/s at the solar circle ([R3523], 533 +54/-41), a derived check and no input."""
     speed = natal_kick.escape_speed_kms(_chain(MILKY_WAY_STARS, MILKY_WAY_HALO), 2.6, 8.2)
     assert 490.0 < speed < 600.0
 

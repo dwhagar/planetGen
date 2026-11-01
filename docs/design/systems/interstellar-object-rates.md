@@ -137,10 +137,10 @@ so it is read per logarithm of mass.
 
 | Bin | Mass | Per star | Check against |
 |---|---|---|---|
-| Terrestrial | 0.1-2 M⊕ | 5.6 | 2-10: Johnson et al. 2020; Mróz et al. 2020 (OGLE-2016-BLG-1928, 0.3-2 M⊕) |
-| Sub-Neptune / ice giant | 2-20 M⊕ | 0.72 | Sumi et al. 2023 find Neptune-mass candidates; no rate given |
+| Terrestrial | 0.1-2 M⊕ | 5.6 | 2-10: [R2178, R3190] (OGLE-2016-BLG-1928, 0.3-2 M⊕) |
+| Sub-Neptune / ice giant | 2-20 M⊕ | 0.72 | [R4254, R4255] find Neptune-mass candidates; no rate given |
 | Saturn-class | 20 M⊕-1 Mjup | 0.17 | no rate in the research |
-| Jupiter-mass | 1-13 Mjup | 0.028 | under Mróz et al. 2017's upper limit of 0.25 |
+| Jupiter-mass | 1-13 Mjup | 0.028 | un[R3191]'s upper limit of 0.25 |
 
 That is about 95% terrestrial and 5% giants (past
 `ROGUE_PLANET_GAS_GIANT_MASS_THRESHOLD_JUPITER`, 10 M⊕, the core mass that holds an envelope; GEN.1133 moved it from 16). The
@@ -148,15 +148,14 @@ hand-set rates before it (5, 1, 0.25 and 0.25 per star, a log-uniform
 mass in each bin) gave 91% and 9%. Above 13 Mjup is a brown dwarf, its
 own row in the density table.
 
-A steeper law doesn't fit both ends: `dN/dlogM ∝ M^-0.96` (the Sumi 2023
+A steeper law doesn't fit both ends: `dN/dlogM ∝ M^-0.96` (the [R4254, R4255]
 slope) normalized to 0.25 per star above 1 Mjup gives about 575 per star
 above 0.1 M⊕, a hundred times the terrestrial estimate.
 
 ## Checks
 
 - **Comet separation column (GEN.659).** The old research table gave 1e11-1e14 pc⁻³ (1e-4 to 1e-2 AU⁻³, a spacing of
-  45 to 4.5 AU). The papers say more: Do, Tucker and Tonry 2018 find about 0.2 AU⁻³ for objects like 'Oumuamua and
-  Jewitt and Seligman 2023 about 0.1 AU⁻³ (1 pc³ = 8.8e15 AU³), so 7e14 to 1.8e15 pc⁻³, a spacing `n^(-1/3)` of about
+  45 to 4.5 AU). The papers say more: Do, [R1124] find about 0.2 AU⁻³ for objects like '[R2159] about 0.1 AU⁻³ (1 pc³ = 8.8e15 AU³), so 7e14 to 1.8e15 pc⁻³, a spacing `n^(-1/3)` of about
   2.2 to 1.7 AU. The constant takes 1e15, the middle of that range, for objects of about 100 m and up.
 - **Hypervelocity stars.** With `n ∝ r_GC⁻²`, the count inside radius R
   is `4π n0 r0² R`. Using 5e-9 pc⁻³ at 8 kpc gives about 30,000 inside
@@ -209,22 +208,22 @@ rarer are fine as rows; most sectors simply get none.
 
 ## References (short form)
 
-Rogue planets: Mróz et al. 2017
-(Nature 548:183); Johnson et al. 2020 (AJ 160:123); Mróz et al. 2020
-(ApJL 903:L11); Sumi et al. 2023 (AJ
-166:109); Liu et al. 2013 (ApJL 777:L20); Miret-Roig et al. 2022 (Nat.
-Astron. 6:89); Pearson & McCaughrean 2023 (arXiv:2310.01231).
+Rogue planets: [R3191]
+(Nature 548:183); [R2178] (AJ 160:123); [R3190]
+(ApJL 903:L11); [R4254, R4255] (AJ
+166:109); [R2717, R2720] (ApJL 777:L20); [R3095] (Nat.
+Astron. 6:89); [R3467].
 
-Other objects: Kirkpatrick et al. 2021 (ApJS 253:7) and Mužić et al.
-2017 (MNRAS 471:3699), brown dwarfs; Tauris 2015 (MNRAS 448:L6), runaways
-and kicks; Brown 2015 (ARA&A 53:15) and Koposov et al. 2020 (MNRAS
-491:2465), hypervelocity stars; Agol & Kamionkowski 2002 (MNRAS 334:553),
-Olejak et al. 2020 (A&A 638:A94), Lam et al. 2022 (ApJL 933:L23) and Sahu
+Other objects: [R2374] (ApJS 253:7) and Mužić et al.
+2017 (MNRAS 471:3699), brown dwarfs; [R4310] (MNRAS 448:L6), runaways
+and kicks; [R0556] (ARA&A 53:15) and [R2444] (MNRAS
+491:2465), hypervelocity stars; [R0040] (MNRAS 334:553),
+[R3348] (A&A 638:A94), [R2538] (ApJL 933:L23) and Sahu
 et al. 2022 (ApJ 933:83), isolated compact remnants; Engelhardt et al.
-2017 (AJ 153:133), Seligman & Laughlin 2020 (ApJL 896:L8) and Raymond et
+2017 (AJ 153:133), [R4005] (ApJL 896:L8) and Raymond et
 al. 2020 (ApJL 894:L22), interstellar comets and the absence of free
-asteroid fields; Kennicutt & Evans 2012 (ARA&A 50:531),
-nebulae and remnants; Sand et al. 2011 and McGee &, intracluster supernovae.
+asteroid fields; [R2320] (ARA&A 50:531),
+nebulae and remnants; [R3907] and McGee &, intracluster supernovae.
 
 ## Why it works this way
 

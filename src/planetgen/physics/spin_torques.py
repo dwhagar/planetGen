@@ -7,7 +7,7 @@ The torques on a planet's spin: its star's tide, each moon's tide and the therma
 A constant-Q despinning by the tide of what a body orbits (the form this module's gravitational torque reduces to for one raiser and a constant `Q`) is the
 simplest case. A planet's spin has three more things acting on it: the tide each of its **moons** raises in it (the Moon slows the Earth and drives itself outward; a moon inside the planet's
 corotation radius is dragged in), the **thermal tide** of a thick atmosphere, whose heated bulge is pulled by the star the other way and can
-hold a planet away from synchronous rotation (Venus, the non-synchronous planets of Leconte et al. 2015), and the planet's own **rheology**,
+hold a planet away from synchronous rotation (Venus, the non-synchronous planets of [R2606]), and the planet's own **rheology**,
 which makes the gravitational torque depend on frequency (`tidal_rheology`). This module is the sum of those torques and the evolution of a spin
 under it. `body_spin` fills it from a body's stored fields and `planets.generate_spin` runs it (GEN.957).
 
@@ -16,13 +16,13 @@ semi-diurnal frequency `sigma = 2 (omega - n)`:
 
     N_g = - F K_g b_g(sigma),      K_g = G M^2 R^5 / a^6,      b_g(sigma) = sign(sigma) k2/Q (|sigma|)
 
-`F` is `GRAVITATIONAL_TORQUE_FACTOR`: 3 as the despinning has had it since GEN.731 (after Gladman et al. 1996; SP7) and 3/2 in Murray and Dermott and in
-Leconte et al. 2015 (the same constant-Q result written for a different definition of Q). `k2/Q` comes from a callable, so it can be constant
+`F` is `GRAVITATIONAL_TORQUE_FACTOR`: 3 as the despinning has had it since GEN.731 (af[R1584]; SP7) and 3/2 in Murray and Dermott and in
+[R2606] (the same constant-Q result written for a different definition of Q). `k2/Q` comes from a callable, so it can be constant
 (`constant_dissipation`, today's behaviour: a torque that does not depend on the spin, flipping sign at synchronous rotation) or the
 frequency-dependent rheology of the body (`rheology_dissipation`, which has no discontinuity at synchronism and, at low frequency, a torque
 proportional to it, so that asynchronous states can exist).
 
-**Thermal torque** (Leconte, Wu, Menou and Murray 2015, Science 347:632, arXiv:1502.01952, equations 1 to 3, read in full):
+**Thermal torque** (Leconte, Wu, [R2606]:632, [R2606], equations 1 to 3, read in full):
 
     N_a = + F K_a q0 x / (1 + x^2),      K_a = 3 M R^3 / (5 rho a^3),      x = (omega - n) / omega0
 
@@ -30,20 +30,19 @@ with `q0` the amplitude of the degree-2 surface pressure field of the tide at ze
 atmosphere and surface take to come to thermal equilibrium: a Debye (Maxwell-like) response, positive for a prograde spin, opposite to the
 gravitational torque. The paper has no scaling law for either, only its Table 1 of 3D climate runs (Venus 92 bar, 2610 W/m2: 201 Pa and 3.77e-7 /s;
 Earth-like air at 1366 W/m2: 1,180 Pa and 2.30e-6 /s at 1 bar, 4,050 Pa and 1.46e-6 /s at 10 bar; at 450 W/m2: 890 and 2,960 Pa, 1.18e-6 and
-7.17e-7 /s): `thermal_pressure_amplitude_pa` and `thermal_relaxation_rate` interpolate that table (stand-ins, registry rows TQ1 to TQ3). Auclair-Desrotour,
-Mathis and Laskar 2017 (arXiv:1709.10148, read in full) give the same Debye shape, `sigma/(sigma^2 + sigma0^2)` for a convective atmosphere, and
+7.17e-7 /s): `thermal_pressure_amplitude_pa` and `thermal_relaxation_rate` interpolate that table (stand-ins, registry rows TQ1 to TQ3). [R0199] ([R0199], read in full) give the same Debye shape, `sigma/(sigma^2 + sigma0^2)` for a convective atmosphere, and
 find that a stably stratified one flattens the torque to nothing: the sum here is the convective (maximum) case, and a stratified air is the
 caller's to switch off.
 
 **Equilibria.** The spin obeys `I d omega/dt = sum of the torques`. It is a one-dimensional flow, so it runs from its birth value in the
 direction of the net torque until it meets an attractor: a synchronous state (torque changing sign at the orbital rate), a spin-orbit
-resonance whose window of eccentricity holds the orbit's (`tidal_spin.RESONANCES`, Makarov 2012) that takes the spin with the chance `tidal_spin.RESONANCE_CAPTURE_PROBABILITY` (a uniform the body carries, GEN.1172), or a zero of the smooth torque where the
+resonance whose window of eccentricity holds the orbit's (`tidal_spin.RESONANCES`, [R2823]) that takes the spin with the chance `tidal_spin.RESONANCE_CAPTURE_PROBABILITY` (a uniform the body carries, GEN.1172), or a zero of the smooth torque where the
 thermal and gravitational tides balance (an asynchronous state, prograde or retrograde: `equilibria`). With constant `Q` those zeros are at
 `x = (1 +- sqrt(1 - 4 c^2)) / (2 c)`, `c = K_g (k2/Q) / (K_a q0)`, which exist when `c <= 1/2`, the `gamma_Q >= 1` of Leconte et al.'s equation 12 (their
 equation 13), the outer one stable.
 
 **What this does not do.** The planet's obliquity is taken as zero for the torques; one orbit of each raiser, circular for the torque (the eccentricity only
-selects resonances); no core-mantle friction (the second half of Venus's story, Correia and Laskar 2003); the thermal torque is that of a
+selects resonances); no core-mantle friction (the second half of Venus's story, [R0895]); the thermal torque is that of a
 convective atmosphere with a fitted amplitude; moons act on the spin only, and `moon_orbits` (GEN.958) moves the moons. Stand-ins are in
 `docs/design/research/gap-filling-plan.md` section 6.24.
 """
@@ -57,7 +56,7 @@ from scipy import integrate, optimize
 from planetgen.physics import constants, tidal_rheology, tidal_spin
 
 GRAVITATIONAL_TORQUE_FACTOR = 3.0
-"""float: `F` of the gravitational torque as the despinning has had it since GEN.731 (Gladman et al. 1996); Leconte et al. 2015 and Murray and
+"""float: `F` of the gravitational torque as the despinning has had it since GEN.731 [R1584, R2606] and Murray and
 Dermott write 3/2 for the same constant-Q result. The thermal torque is scaled with it, so the ratio of the two stays the paper's. Source tier T3,
 tweak level L0."""
 THERMAL_TABLE = (
@@ -66,7 +65,7 @@ THERMAL_TABLE = (
     (10.0, 4050.0, 1.0 / 1.46e-6),
     (92.0, 201.0 / 1.19, 1.62 / 3.77e-7),
 )
-"""tuple: Leconte et al. 2015 Table 1 brought to the flux of 1366 W/m2 by `FLUX_EXPONENT_Q0` and `FLUX_EXPONENT_OMEGA0`: the pressure amplitude and
+"""tuple: [R2606: Table 1] brought to the flux of 1366 W/m2 by `FLUX_EXPONENT_Q0` and `FLUX_EXPONENT_OMEGA0`: the pressure amplitude and
 the thermal time of Earth-like air at 1 and 10 bar and of Venus's 92 bar (2,610 W/m2). Source tier T2 (read in the paper), tweak level L1 (the
 Venus row is moved to the common flux with the fitted exponent)."""
 FLUX_EXPONENT_Q0 = 0.27
@@ -245,7 +244,7 @@ class Torques:
         thermal (ThermalTide, optional): The air's thermal tide.
         factor (float): `GRAVITATIONAL_TORQUE_FACTOR`.
         softness (float): 0 for the sharp sign flip of a constant-Q torque at each raiser's orbital rate; above 0 the sign is replaced by
-            `tanh(sigma / (2 softness |n|))` (the regularisation of Auclair-Desrotour et al. 2017 equation 77, which uses 1e-2 of the orbital rate), for
+            `tanh(sigma / (2 softness |n|))` (the regularisation of [R0198] equation 77, which uses 1e-2 of the orbital rate), for
             integrations that cannot step across a jump (`moon_orbits`).
     """
 

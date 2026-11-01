@@ -5,7 +5,7 @@ The mass of a remnant, in one place (GEN.562)
 =============================================
 
 A white dwarf's mass comes from its progenitor's initial mass through the initial-final relation
-(`tuning.WD_IFMR_PIECES`, Cummings et al. 2018, held inside `WD_MASS_RANGE_SOL`; `progenitor_mass_sol` is its inverse); a neutron star's and a stellar black hole's
+(`tuning.WD_IFMR_PIECES`, [R0961], held inside `WD_MASS_RANGE_SOL`; `progenitor_mass_sol` is its inverse); a neutron star's and a stellar black hole's
 mass is a Gaussian of the observed slow pulsars held to its range (`tuning.STELLAR_NS_MASS_GAUSSIANS`, `NEUTRON_STAR_MASS_RANGE_SOLAR`) and a black hole's uniform over its range (`BLACK_HOLE_MASS_RANGE_SOLAR`). The
 star model, the multi-star member draw, the scatter's companions, the compact objects and the placement terms each held
 their own copy of these lines; they all call this module. The numbers stay in `tuning`. A derived mass function
@@ -87,7 +87,7 @@ def _neutron_star_normal():
 
 def draw_mass_sol(kind, mass_range=None, rng=draw):
     """A neutron star's or stellar black hole's mass in solar masses, truncated to `mass_range` when given: a neutron star's
-    from the Gaussian of the slow pulsars (Ozel and Freire 2016: 1.49 +- 0.19) held to the kind's range, a black hole's
+    from the Gaussian of the slow pulsars ([R3396]: 1.49 +- 0.19) held to the kind's range, a black hole's
     uniform over its range (the widest of the published ranges stands, `docs/design/galaxy/stellar-mass-function.md`).
     One draw from `rng`."""
     low, high = within(mass_range_sol(kind), mass_range)

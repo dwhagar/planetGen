@@ -3,7 +3,7 @@
 """
 What has condensed at a disk temperature, and the water share of the solids (GEN.950, part 1).
 
-Lodders 2003 (ApJ 591, 1220) computes the equilibrium condensation of a gas of solar composition at 10^-4 bar. Table 10 gives the
+[R2726] computes the equilibrium condensation of a gas of solar composition at 10^-4 bar. Table 10 gives the
 temperatures at which the ices come out (water at 182 K, ammonia hydrate at 131 K, methane at 41 K) and Table 11 the mass that
 each condensate makes, in percent of the nebula, for the Solar System abundances: rock 0.489 (silicates and oxides 0.303, metal and
 troilite 0.186), water ice 0.571, ammonia ice 0.097 and methane ice 0.330. Rock is whole below the troilite line (704 K) and 22.75
@@ -20,7 +20,7 @@ its fixed line.
 
 Limits. The table is for a gas of solar C/O at 10^-4 bar with every carbon atom in methane and every nitrogen atom in ammonia; the
 kinetic models of Lodders's Table 10 (graphite kept, methane and ammonia not formed) are not read here. The ice mass of a comet
-(Marboeuf et al. 2014, ice over rock near 1) is half of this equilibrium (about 2); which one planetesimals follow is open. The snow line
+([R2865], ice over rock near 1) is half of this equilibrium (about 2); which one planetesimals follow is open. The snow line
 (`formation.snow_line_au`), the ice boost of the surface density (`WATER_ICE_SOLID_BOOST`), the temperature below which a ring is cold
 and the water share an icy body can reach (`bulk_draw`) read it (GEN.950); the star's oxygen over its rock-forming metals is not
 passed on, so the ice masses are those of the Sun's composition.
@@ -32,16 +32,15 @@ from planetgen.physics import constants as physical_constants, unit_registry as 
 from planetgen.util.checks import finite_domain
 
 ICE_CONDENSATION_K = {"H2O": 182.0, "NH3": 131.0, "CH4": 41.0}
-"""dict: The temperature (K) below which each ice condenses, complete equilibrium at 10^-4 bar, Solar System composition (Lodders 2003
-Table 10: water ice 182, ammonia hydrate 131, pure methane ice 41; the methane clathrate at 78 K takes about 9 percent of the carbon
+"""dict: The temperature (K) below which each ice condenses, complete equilibrium at 10^-4 bar, Solar System composition ([R2726: Table 10]: water ice 182, ammonia hydrate 131, pure methane ice 41; the methane clathrate at 78 K takes about 9 percent of the carbon
 and is left out). [Stand-in CS1, tier T1, tweak L0.]"""
 
 TABLE_11_MASS_PERCENT = {"rock": 0.489, "H2O": 0.571, "NH3": 0.097, "CH4": 0.330}
-"""dict: The mass each condensate makes, in percent of the nebula, for the Solar System composition (Lodders 2003 Table 11; rock is
+"""dict: The mass each condensate makes, in percent of the nebula, for the Solar System composition ([R2726: Table 11]; rock is
 the silicates and oxides 0.303 plus metal and FeS 0.186). [Stand-in CS2, tier T1, tweak L0.]"""
 
 ROCK_OXYGEN_SHARE = 0.2275
-"""float: The share of the Sun's oxygen that is bound in rock before water ice condenses (Lodders 2003 Table 11 note: 22.75 percent);
+"""float: The share of the Sun's oxygen that is bound in rock before water ice condenses ([R2726: Table 11] note: 22.75 percent);
 the rest becomes water. [Stand-in CS3, tier T1, tweak L0.]"""
 
 ROCK = "rock"
@@ -103,14 +102,14 @@ def ice_over_rock(temperature_k, oxygen=1.0, carbon=1.0, nitrogen=1.0):
 def solid_boost(temperature_k, oxygen=1.0, carbon=1.0, nitrogen=1.0):
     """
     How many times the rock's surface density the solids make at `temperature_k`: `1 + ice_over_rock`. The jump of the minimum-mass
-    nebula at the snow line (Hayashi 1981 puts it at 30 / 7 = 4.3 where Lodders's water alone gives 2.17).
+    nebula at the snow line ([R1854] puts it at 30 / 7 = 4.3 where Lodders's water alone gives 2.17).
     """
     return 1.0 + ice_over_rock(temperature_k, oxygen, carbon, nitrogen)
 
 
 WATER_ICE_SOLID_BOOST = solid_boost(0.5 * (ICE_CONDENSATION_K["H2O"] + ICE_CONDENSATION_K["NH3"]))
 """float: How many times the rock's surface density the solids make just beyond the water line, between the water and ammonia lines (2.17 for
-the Sun's composition; Hayashi 1981 has 30 / 7 = 4.3). The jump of the minimum-mass nebula at the snow line (`formation.mmsn_surface_density_gcm2`)."""
+the Sun's composition; [R1854] has 30 / 7 = 4.3). The jump of the minimum-mass nebula at the snow line (`formation.mmsn_surface_density_gcm2`)."""
 
 
 @finite_domain()

@@ -39,7 +39,7 @@ def test_the_heat_is_the_isotope_wise_sum_of_the_four_parents():
 
 
 def test_a_bulk_silicate_earth_gives_the_calibration_heat():
-    """Palme and O'Neill 2003 edition: 21.0 TW for 4.042e24 kg (radiation-model.md section 6), within 3 percent; the older 19.8 TW
+    """[R3416] edition: 21.0 TW for 4.042e24 kg (radiation-model.md section 6), within 3 percent; the older 19.8 TW
     (McDonough and Sun) and the repository's former 29.8 TW (Turcotte and Schubert) are outside what the model is calibrated to."""
     heat_tw = radiogenic.heat_w(_content(*radiogenic.BULK_SILICATE_EARTH), 4.042e24, EARTH_AGE_GY) / 1e12
     assert heat_tw == pytest.approx(21.0, rel=0.03)
@@ -54,7 +54,7 @@ def test_a_chondrite_gives_the_calibration_heat():
 def test_the_heat_falls_with_age_as_the_calibration_says():
     content = _content(*radiogenic.BULK_SILICATE_EARTH)
     now = radiogenic.heat_w_per_kg(content, EARTH_AGE_GY)
-    # 3.5 times higher 4 Gyr ago (Nimmo et al. 2020; the lane's 3.67 at 0.567 Gyr)
+    # 3.5 times higher 4 Gyr ago ([R3293]; the lane's 3.67 at 0.567 Gyr)
     assert radiogenic.heat_w_per_kg(content, 0.567) / now == pytest.approx(3.67, rel=0.05)
     ages = [0.1, 0.5, 1.0, 2.0, 4.0, 8.0, 12.0]
     heats = [radiogenic.heat_w_per_kg(content, age) for age in ages]

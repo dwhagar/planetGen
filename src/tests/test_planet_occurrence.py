@@ -31,7 +31,7 @@ def refused(tmp_path, match, mutate):
 def test_every_band_names_its_paper_its_label_and_a_known_host():
     assert len(po.BANDS) >= 30
     for band in po.BANDS.values():
-        assert band.host in (*po.HOSTS, "all") and band.label in po.LABELS and "arXiv" in band.source
+        assert band.host in (*po.HOSTS, "all") and band.label in po.LABELS and "[R" in band.source
         assert band.tier in ("T1", "T2") and band.unit and band.definition
         assert band.minus >= 0.0 and band.plus >= 0.0 and band.value > 0.0
     assert {b.label for b in po.BANDS.values()} == {"READ", "2ND-HAND"}

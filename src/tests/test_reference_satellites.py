@@ -1,7 +1,7 @@
 # tests/test_reference_satellites.py
 
 """
-GEN.366: the reference table of the Milky Way's satellites is checked against McConnachie (2012, AJ 144, 4; arXiv:1204.1562): position and distance from
+GEN.366: the reference table of the Milky Way's satellites is checked against [R2972]: position and distance from
 Table 2, half-light radius (pc, semi-major axis) from Table 3, stellar mass from Table 4 (a stellar mass-to-light ratio of 1) and mean [Fe/H] from Table 5.
 The numbers below are transcribed from the paper's tables, not from the table under test.
 """
@@ -44,7 +44,7 @@ def test_the_row_matches_the_paper(row):
 
 
 def test_the_table_holds_the_twelve_satellites_above_a_hundred_thousand_solar_masses_and_not_canis_major():
-    """TEST.507: McConnachie 2012 lists 27 satellites within 300 kpc, 12 above 1e5 solar masses (Canis Major, 4.9e7, a disputed disk substructure, is not one of the table's rows)."""
+    """TEST.507: [R2972] lists 27 satellites within 300 kpc, 12 above 1e5 solar masses (Canis Major, 4.9e7, a disputed disk substructure, is not one of the table's rows)."""
     assert len(MILKY_WAY_SATELLITES) == 12
     assert all(row.stellar_mass_sol > 1.0e5 for row in MILKY_WAY_SATELLITES)
     assert "Canis Major" not in {row.name for row in MILKY_WAY_SATELLITES}

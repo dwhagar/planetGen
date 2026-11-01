@@ -14,9 +14,9 @@ Operations (`OPERATIONS`), each aimed at an object by a `Ref` (system, star, pla
 
 * `Move`: a planet's or belt's distance from its star, a moon's distance from its planet, or a system's position in
   its sector.
-* `SetAspect`: one aspect of an object (`ASPECTS`: the name, a planet's or moon's class, a single star's type).
+* `SetAspect`: one aspect of an object (`ASPECTS`: the name, a single star's type; a body's class is derived from its conditions, so it is not set).
   The aspect catalogue (ADM.62) widens the list; `register_aspect` is where an aspect joins it.
-* `Regenerate`: redraw a planet, moon or belt, with a keep set (`KEEPABLE`: the name, the orbit, the class).
+* `Regenerate`: redraw a planet, moon or belt, with a keep set (`KEEPABLE`: the name, the orbit).
 * `Add`: a planet, a moon or a belt. It gets a provisional id (`new-1`, ...) that later operations of the same plan
   may name.
 * `Remove`: a planet (with its moons), a moon or a belt.
@@ -97,7 +97,7 @@ APPROVER_ROLES = (ROLE_ADMIN,)
 SYSTEM, STAR, PLANET, MOON, BELT, COMET = "system", "star", "planet", "moon", "belt", "comet"
 KINDS = (SYSTEM, STAR, PLANET, MOON, BELT, COMET)
 
-KEEPABLE = ("name", "orbit", "class")
+KEEPABLE = ("name", "orbit")
 """tuple: The aspects a regeneration may be told to keep. The edit functions regenerate a body at its own orbit under
 its own name, so those two are always kept for now; redrawing them comes with the rearranger (ADM.75)."""
 
@@ -203,9 +203,9 @@ def _locate(sim, ref):
     raise PlanError(f"{ref.kind} objects cannot be the target of an operation")
 
 
-def _settle(system, summary, pinned=()):
+def _settle(system, summary):
     """Stabilises the changed system (`validation.stabilize_star_system`) and wraps up the result."""
-    report = validation.stabilize_star_system(system, pinned=pinned)
+    report = validation.stabilize_star_system(system)
     warnings = [f"{p.body}: {p.message}." for p in report.problems]
     return edits.EditResult(summary, report.moved, report.reclassified, report.removed, warnings)
 
@@ -317,8 +317,8 @@ class Regenerate(Operation):
 class Add(Operation):
     """
     Adds a `planet` or a `belt` to the system `target`, or a `moon` to the planet `target`, at `distance_au`. A
-    planet needs a `name`; a belt its `lower_au` and `upper_au`; `planet_class` is the class asked for (any,
-    where it fits, if left out). `new_id` is the provisional id the new object goes by in the plan.
+    planet needs a `name`; a belt its `lower_au` and `upper_au`. A new body's class is derived from its conditions
+    (epoch 121), not asked for. `new_id` is the provisional id the new object goes by in the plan.
     """
 
     OP: ClassVar[str] = "add"
@@ -326,7 +326,6 @@ class Add(Operation):
     what: str = PLANET
     distance_au: float = None
     name: str = None
-    planet_class: str = None
     lower_au: float = None
     upper_au: float = None
     new_id: str = None
@@ -428,9 +427,9 @@ def _move_orbit(sim, op):
         raise PlanError(f"{distance:.4g} AU is inside the star")
     owner.sort(key=lambda item: item.distance)
     if op.target.kind == PLANET:
-        validation.reconcile_moved_planet(body, keep_class=True)
+        validation.reconcile_moved_planet(body)
     label = body.name if getattr(body, "name", None) else "the asteroid belt"
-    result = _settle(system, f"Moved {label} to {distance:.4g} AU.", pinned=[body] if op.target.kind == PLANET else ())
+    result = _settle(system, f"Moved {label} to {distance:.4g} AU.")
     if not math.isclose(body.distance, distance, rel_tol=1e-9):      # the spacing pass moves a body that crowds the one before it
         result = result._replace(summary=f"{result.summary[:-1]}, then to {body.distance:.4g} AU to keep the orbits spaced.")
     return result
@@ -466,13 +465,6 @@ def _set_name(sim, op, system, obj, owner):
     return edits.EditResult(f"Renamed {old} to {value}.", [], [], [], [])
 
 
-def _set_class(sim, op, system, obj, owner):
-    try:
-        return edits.change_class(system, obj, owner, str(op.value), force=op.forced)
-    except ValueError as exc:
-        raise PlanError(str(exc)) from exc
-
-
 def _set_star_type(sim, op, system, obj, owner):
     try:
         result, _star = edits.change_star(system, str(op.value))
@@ -483,7 +475,6 @@ def _set_star_type(sim, op, system, obj, owner):
 
 ASPECTS = {
     "name": Aspect("name", (SYSTEM, STAR, PLANET, MOON), _set_name),
-    "planet_class": Aspect("planet_class", (PLANET, MOON), _set_class),
     "star_type": Aspect("star_type", (STAR,), _set_star_type),
 }
 """dict: The aspects `SetAspect` can set, by name. The aspect catalogue (ADM.62) grows it with `register_aspect`."""
@@ -523,17 +514,8 @@ def _apply_regenerate(sim, op):
     if "name" not in keep or "orbit" not in keep:
         raise PlanError("a regeneration keeps the name and the orbit for now; redrawing them comes later"
                         "rearranger")
-    if "class" in keep and op.target.kind == BELT:
-        raise PlanError("a belt has no class to keep")
     system, body, owner = _locate(sim, op.target)
-    old_class = getattr(body, "planet_class", None)
-    result = edits.regenerate_body(system, op.target.kind, body, owner)
-    if "class" in keep and old_class is not None:
-        fresh, fresh_owner = edits.find_body(system, op.target.kind, op.target.id)
-        if fresh.planet_class != old_class:
-            result = edits.change_class(system, fresh, fresh_owner, old_class, force=True)
-            result = result._replace(summary=f"Regenerated {fresh.name}, keeping class {old_class}.")
-    return result
+    return edits.regenerate_body(system, op.target.kind, body, owner)
 
 
 def _apply_remove(sim, op):
@@ -557,7 +539,7 @@ def _add_planet(sim, op, system):
     planet = Planet(system.system_config, star, star.habitable_zone, distance)
     if planet.distance != distance:
         planet.distance = distance
-        validation.reconcile_moved_planet(planet, keep_class=True)
+        validation.reconcile_moved_planet(planet)
     planet.name, planet.db_id = name, op.new_id
     system.planets.append(planet)
     system.planets.sort(key=lambda item: item.distance)
@@ -570,12 +552,7 @@ def _add_planet(sim, op, system):
     for moon in planet.moons:
         moon.db_id = f"{op.new_id}-{moon.name}"
         magnetism.generate_induced_field(moon, planet)
-    if op.planet_class and op.planet_class != planet.planet_class:
-        try:
-            edits.change_class(system, planet, system.planets, op.planet_class, force=op.forced)
-        except ValueError as exc:
-            raise PlanError(str(exc)) from exc
-    return _settle(system, f"Added {name} at {distance:.4g} AU.", pinned=[planet])
+    return _settle(system, f"Added {name} at {distance:.4g} AU.")
 
 
 def _add_moon(sim, op, system):
@@ -587,14 +564,9 @@ def _add_moon(sim, op, system):
     if not _km_to_au(low_km) <= distance <= _km_to_au(high_km) and not op.forced:
         raise PlanError(f"a moon of {planet.name} can sit {_km_to_au(low_km):.3g} to {_km_to_au(high_km):.3g} AU "
                         f"from it, not {distance:.3g}")
-    classes = edits.moon_classes(planet)
-    if not classes:
-        raise PlanError(f"no moon class fits {planet.name}")
-    moon_class = op.planet_class or draw.choice(classes)
-    if moon_class not in classes and not op.forced:
-        raise PlanError(f"{planet.name} cannot hold a class {moon_class} moon; the classes that fit are "
-                        f"{', '.join(sorted(classes))}")
-    moon = edits.make_moon(planet, distance, moon_class)
+    moon = edits.make_moon(planet, distance)
+    if moon is None:
+        raise PlanError(f"{planet.name} can hold no moon")
     moon.db_id = op.new_id
     planet.moons.append(moon)
     _letter_moons(planet)

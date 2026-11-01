@@ -10,11 +10,11 @@ left is the vapour pressure at the night side's temperature: the air is lost to 
 This module answers that, as a pure function of the pressure, the starlight, the gravity and the gas. It draws nothing and
 changes nothing a world stores; the wiring is GEN.1051.
 
-1. **Critical pressure of CO2** (`fit_critical_pressure_pa`). The empirical fit of Wordsworth 2015 (arXiv 1412.5575, Eq. 43 and
+1. **Critical pressure of CO2** (`fit_critical_pressure_pa`). The empirical fit of [R4767] ([R4767: Eq. 43] and
    Table 2): `log10(p_crit / 1 Pa)` is a cubic in the stellar flux, from a grid of 3D climate runs of a pure CO2 air over
    0.2 to 3.0 times Earth's flux and 0.01 to 10 bar, for one and ten Earth masses, surface albedo 0.2. About 0.14 bar at Earth's
    flux for an Earth-mass planet, falling to about 0.03 bar at three times it. The paper calls it a conservative upper limit.
-   Joshi, Haberle and Reynolds 1997 found 0.03 bar with a grey gas (the 0.1 bar figure is Wordsworth's own).
+   [R2201] found 0.03 bar with a grey gas (the 0.1 bar figure is Wordsworth's own).
 2. **Night-side temperature** (`night_side_temperature_k`). The thin-air radiative result of the same paper (Eq. 10, 25): the
    night side receives the share `tau / (2 - tau)` of a quarter of the absorbed flux, `tau = kappa p / (g cos(alpha))`,
    kappa 5e-5 m2/kg, cos(alpha) 0.5, no warmer than the planet's own equilibrium temperature from tau of 1 up [stand-in NC3].
@@ -46,7 +46,7 @@ from planetgen.physics import saturation
 from planetgen.util.checks import finite_domain
 
 SOLAR_CONSTANT_W_M2 = 1366.0
-"""float: Earth's stellar flux, W/m2, the unit of the paper's flux range (Wordsworth 2015, Table 1)."""
+"""float: Earth's stellar flux, W/m2, the unit of the paper's flux range ([R4767: Table 1])."""
 
 FIT_FLUX_RANGE_W_M2 = (0.2 * SOLAR_CONSTANT_W_M2, 3.0 * SOLAR_CONSTANT_W_M2)
 """tuple: The stellar flux range of the paper's runs, 273.2 to 4098 W/m2 (Table 1: 0.2 to 3.0 times 1366). The fit is held at either
@@ -109,7 +109,7 @@ def _fit_coefficients(mass_earth):
 @finite_domain()
 def fit_critical_pressure_pa(flux_w_m2, mass_earth=1.0, albedo=FIT_ALBEDO):
     """
-    The CO2 collapse pressure of Wordsworth 2015's fit, Pa, and whether it had to be held at the edge of what the paper ran.
+    The CO2 collapse pressure of [R4767]'s fit, Pa, and whether it had to be held at the edge of what the paper ran.
 
     Args:
         flux_w_m2 (float): The stellar flux at the planet, W/m2, above zero.
@@ -132,7 +132,7 @@ def fit_critical_pressure_pa(flux_w_m2, mass_earth=1.0, albedo=FIT_ALBEDO):
 @finite_domain()
 def night_side_temperature_k(pressure_pa, gravity_ms2, flux_w_m2, albedo=FIT_ALBEDO):
     """
-    The night side's temperature under a thin air, kelvin (Wordsworth 2015, Eq. 10 and 25): `tau = kappa p / (g cos(alpha))`,
+    The night side's temperature under a thin air, kelvin ([R4767: Eq. 10 and 25]): `tau = kappa p / (g cos(alpha))`,
     the night side radiates the share `tau / (2 - tau)` of `(1 - A) F / 4`, held at the planet's equilibrium temperature from
     `tau` of 1 up.
     """

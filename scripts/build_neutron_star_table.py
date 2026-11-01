@@ -42,8 +42,8 @@ def build():
             "crust_mass_solar": [round(float(x), 5) for x in crust_masses],
         }
     return {
-        "source": "TOV integration (physics/neutron_star_structure.py) over the 21 equations of state of Malik, Pais and Providencia 2024 "
-                  "(A&A 689, A242, Zenodo 10.5281/zenodo.10950421)",
+        "source": "TOV integration (physics/neutron_star_structure.py) over the 21 equations of state of [R2834] "
+                  "(A&A 689, A242, Zenodo [R2834])",
         "crust_core_density_fm3": structure.CRUST_CORE_DENSITY_FM3,
         "models": models,
     }

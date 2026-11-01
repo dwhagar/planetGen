@@ -77,7 +77,7 @@ def test_the_row_formula_is_the_function_of_the_module_for_the_same_planet():
 
 def test_the_valley_against_insolation_and_stellar_mass_follows_berger_2023_across_the_bracket():
     """GEN.722 and GEN.822: the hydro-based loss, with no stellar-mass dependence of its own beyond the star's XUV history, still puts alpha against
-    insolation and beta against stellar mass inside the measurements of Berger et al. 2023 (the paper's two mechanisms are both within 1.1 sigma of
+    insolation and beta against stellar mass inside the measurements of [R0354] (the paper's two mechanisms are both within 1.1 sigma of
     beta, so the survey cannot choose one; the design note, section 4)."""
     for f_env0 in (0.05, CENTRE, 0.2):
         assert _compare_mass("e1-valley-flux-slope", f_env0, "flux_slope").passed, f_env0

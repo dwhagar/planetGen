@@ -890,7 +890,7 @@ def hosting_population(planet):
     """
     What the hosting gate (`physics.hosting_gate`) calls `planet`: a small body (under `tuning.HOSTING_SMALL_BODY_MAX_RADIUS_KM` in
     radius) is a `trans-neptunian-cold` or `trans-neptunian-hot` body past `tuning.HOSTING_TRANS_NEPTUNIAN_MIN_SNOW_LINES`
-    snow lines of its star (cold under `tuning.HOSTING_COLD_MAX_INCLINATION_DEG` of inclination, Stephens and Noll 2006), a
+    snow lines of its star (cold under `tuning.HOSTING_COLD_MAX_INCLINATION_DEG` of inclination, [R4207]), a
     `belt-small-body` in the cold zone short of that, and an `inner-small-body` in the hot or habitable zone; every other
     planet is a `planet`, which the gate's share table has no rows for (its host-class table decides).
     """
@@ -928,7 +928,7 @@ def moon_orbit_bounds_km(planet):
     past the rigid-body Roche limit of ~1.26 planet radii for similar
     densities), plus 15 atmospheric scale heights (or 100 km with no
     atmosphere) of drag-free margin. Outermost: the prograde stability
-    limit of Domingos, Winter and Yokoyama (2006), a fraction of the Hill radius that the planet's eccentricity lowers
+    limit of [R1138], a fraction of the Hill radius that the planet's eccentricity lowers
     (0.4895 on a circular orbit, `clearance_ledger.moon_bounds_km`); past it the star strips the moon.
 
     Returns:
@@ -942,7 +942,7 @@ def moon_orbit_bounds_km(planet):
 
 
 def moon_stable_limit_km(planet, moon_eccentricity=0.0):
-    """The farthest semi-major axis, km from `planet`'s centre, a moon of this eccentricity keeps (Domingos, Winter and Yokoyama 2006: the
+    """The farthest semi-major axis, km from `planet`'s centre, a moon of this eccentricity keeps ([R1138]: the
     fit is for the semi-major axis, and the moon's own eccentricity lowers it)."""
     return clearance_ledger.moon_bounds_km(planet.radius, planet.hill_radius, getattr(planet, "eccentricity", None) or 0.0,
                                            moon_eccentricity or 0.0)[1]

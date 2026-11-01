@@ -8,18 +8,18 @@ The radiogenic module drew the aluminium-26 ratio log-uniform from 0.1 to 10 tim
 taken from the Solar System's own value and range). Here the ratio is built from what makes it:
 
 1. **The yield per mass of stars formed.** The gamma-ray lines of 26Al (1809 keV) and 60Fe (1173 and 1332 keV) measure the mass of each
-   in the Galaxy: 1.7 to 3 solar masses of 26Al, best 2.0 (Diehl et al. 2021, review, arXiv:2109.08558, section 2.4; Limongi and Chieffi
+   in the Galaxy: 1.7 to 3 solar masses of 26Al, best 2.0 ([R1110], review, [R1110], section 2.4; Limongi and Chieffi
    2006 give 2.0), and 60Fe from the line ratio 0.15 (flux, 60Fe over 26Al; the same review). The stars of the Galaxy form at 1.65 +- 0.19
-   solar masses a year (Licquia and Newman 2015, arXiv:1407.1078), and each isotope is in steady state: its mass is the yield times the
+   solar masses a year [R2680, R2681], and each isotope is in steady state: its mass is the yield times the
    rate times its mean life. So the yield per solar mass of stars formed is `mass / (rate * mean_life)`, about 1.2e-6 for 26Al and
    4e-7 for 60Fe. That is a property of massive-star nucleosynthesis, not of the Milky Way as a place; the Milky Way is only where it
    was measured, and the metallicity dependence of the yield (stronger Wolf-Rayet winds at high Z) is left out.
 2. **The mean ratio in a region.** The 26Al mass fraction of the gas is `yield * mean_life / depletion_time` (the gas mass over the star
    formation rate of the region), and the ratio to stable 27Al is that over the aluminium mass fraction (27/26 for number). For the
-   Galaxy's 0.7e10 solar masses of cold gas (Bland-Hawthorn and Gerhard 2016, arXiv:1602.07702, the value they adopt) the depletion
-   time is 4.2 Gyr and the mean 26Al/27Al comes to about 5e-6, ten times under the Solar System's 5.23e-5 (Jacobsen et al. 2008, via
-   Lugaro et al. 2018, arXiv:1808.00233, Table 1); the Solar System is a test point and never an input.
-3. **Granularity.** The sources are discrete: Lugaro et al. 2018 (section 3.4, Eq. 12, READ) show that when the recurrence time delta
+   Galaxy's 0.7e10 solar masses of cold gas ([R0422], the value they adopt) the depletion
+   time is 4.2 Gyr and the mean 26Al/27Al comes to about 5e-6, ten times under the Solar System's 5.23e-5 ([R2128], via
+   [R2768: Table 1]); the Solar System is a test point and never an input.
+3. **Granularity.** The sources are discrete: [R2768] (section 3.4, Eq. 12, READ) show that when the recurrence time delta
    between additions is longer than the mean life tau the abundance at a random moment is dominated by the last addition and its decay,
    not by the steady-state mean. `sample_ratio` draws the events backward from the star's birth (Poisson in time with recurrence
    `delta`, 5 to 10 Myr for core-collapse events, from Lugaro et al.), gives each a yield that keeps the
@@ -40,25 +40,25 @@ from planetgen.util import draw
 from planetgen.util.checks import finite_domain
 
 MEAN_LIFE_YR = {"Al26": 1.035e6, "Fe60": 3.78e6}
-"""dict: The mean life of each isotope, years (Lugaro et al. 2018 Table 1: 26Al half-life 0.717 Myr, mean life 1.035; 60Fe 2.62 and 3.78).
+"""dict: The mean life of each isotope, years ([R2768: Table 1]: 26Al half-life 0.717 Myr, mean life 1.035; 60Fe 2.62 and 3.78).
 [Stand-in BR1, tier T1, tweak L0.]"""
 
 ATOMIC_MASS = {"Al26": 26.0, "Al27": 27.0, "Fe60": 60.0, "Fe56": 56.0}
 """dict: Mass numbers used to turn a mass ratio into a number ratio."""
 
 GALAXY_AL26_MASS_SOLAR = 2.0
-"""float: The mass of 26Al in the Galaxy, solar masses (Diehl et al. 2021 section 2.4: 1.7 to 3 from the 1809 keV line, with 30 percent from the
-assumed source distribution; Limongi and Chieffi 2006: 2.0). [Stand-in BR2, tier T1, tweak L0.]"""
+"""float: The mass of 26Al in the Galaxy, solar masses ([R1110] section 2.4: 1.7 to 3 from the 1809 keV line, with 30 percent from the
+assumed source distribution; [R2689]: 2.0). [Stand-in BR2, tier T1, tweak L0.]"""
 
 FE60_AL26_FLUX_RATIO = 0.15
-"""float: The gamma-ray line flux ratio 60Fe over 26Al of the Galaxy (Diehl et al. 2021, 60Fe section; the ratio of the yields by number once
+"""float: The gamma-ray line flux ratio 60Fe over 26Al of the Galaxy ([R1110], 60Fe section; the ratio of the yields by number once
 converted). [Stand-in BR2, tier T1, tweak L0.]"""
 
 GALAXY_STAR_FORMATION_SOLAR_MASSES_PER_YR = 1.65
-"""float: The Galaxy's star formation rate, solar masses a year (Licquia and Newman 2015: 1.65 +- 0.19). [Stand-in BR3, tier T1, tweak L0.]"""
+"""float: The Galaxy's star formation rate, solar masses a year ([R2680, R2681]: 1.65 +- 0.19). [Stand-in BR3, tier T1, tweak L0.]"""
 
 RECURRENCE_RANGE_YR = (5.0e6, 1.0e7)
-"""tuple: The recurrence time between core-collapse additions to a region's gas, years (Lugaro et al. 2018, section 3.4: 5 to 10 Myr; 2ND-HAND). A star draws one value log-uniformly. [Stand-in BR4, tier T2, tweak L0.]"""
+"""tuple: The recurrence time between core-collapse additions to a region's gas, years ([R2768], section 3.4: 5 to 10 Myr; 2ND-HAND). A star draws one value log-uniformly. [Stand-in BR4, tier T2, tweak L0.]"""
 
 EVENT_YIELD_SIGMA_LN = 1.0
 """float: The log-normal spread of the yield of one addition about the mean yield, the richness of the cluster that made it (tuned so the

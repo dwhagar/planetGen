@@ -10,15 +10,14 @@ from, READ in the source or 2ND-HAND in a paper that quotes it, with its tier, G
 held to the published 1-sigma interval and the sampling error of `n` systems added in quadrature, two sigma either side. A range the
 generator misses is a real gap against observation and carries the item that will close it. The checks per host group:
 
-* `inner_fraction` the share of stars with a planet of 1 to 20 Earth radii and a period under 400 days (Zhu et al. 2018; Yang et al. 2020);
+* `inner_fraction` the share of stars with a planet of 1 to 20 Earth radii and a period under 400 days [R4812, R4898];
 * `inner_multiplicity` the mean number of such planets among those stars (the same papers);
-* `planets_per_star` the mean number of such planets per star (Zhu and Dong 2021);
-* `small_planets_per_star` planets of 1 to 4 Earth radii with a period under 200 days, per star (Dressing and Charbonneau 2015, M dwarfs);
-* `giants_2_8_au` the share of stars with a giant (0.1 to 20 Jupiter masses) at 2 to 8 AU (Fulton et al. 2021);
-* `hot_jupiter_rate` the share with a planet of 8 to 20 Earth radii and a period under 10 days (Zhu and Dong 2021; Wright et al. 2012;
-  Gan et al. 2023);
-* `earth_in_hz` planets of 0.5 to 1.5 Earth radii inside the star's habitable zone, per star (Bryson et al. 2021);
-* `pairs_over_10_hill_radii` the share of adjacent pairs at least 10 mutual Hill radii apart (Weiss et al. 2018).
+* `planets_per_star` the mean number of such planets per star [R4897];
+* `small_planets_per_star` planets of 1 to 4 Earth radii with a period under 200 days, per star ([R1156], M dwarfs);
+* `giants_2_8_au` the share of stars with a giant (0.1 to 20 Jupiter masses) at 2 to 8 AU [R1479];
+* `hot_jupiter_rate` the share with a planet of 8 to 20 Earth radii and a period under 10 days [R1504, R4779, R4897];
+* `earth_in_hz` planets of 0.5 to 1.5 Earth radii inside the star's habitable zone, per star [R0572];
+* `pairs_over_10_hill_radii` the share of adjacent pairs at least 10 mutual Hill radii apart [R4660].
 
 A planet's period comes from its distance and the star's mass, and its radius from the planet's own, so the figures follow the same
 cuts the surveys used. The count of planets per star by mass bin of the class census stays in `tests/test_prevalence_census.py`.
@@ -57,7 +56,7 @@ BAND_MEASURES = {
 """dict: Each measure of this census and the measure of `planet_occurrence` whose bands it is checked against."""
 
 GIANT_MIN_EARTH_MASSES = 31.8
-"""float: 0.1 Jupiter masses, the lightest planet of Fulton et al. 2021's giants."""
+"""float: 0.1 Jupiter masses, the lightest planet of [R1479]'s giants."""
 SIGMAS = 2.0
 SAMPLING_PAD = 0.05
 """float: The share of the observed value added to the range on both sides (the generator is not the survey: its planets are the

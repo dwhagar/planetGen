@@ -7,9 +7,9 @@ axes (AU), eccentricities and angles (radians, except where a name says
 `_deg`).
 
 - **Triple stability** -- one function, `is_triple_stable`, with a switch:
-  Mardling and Aarseth 2001 (`"ma01"`, for planets and wherever the mass
+  [R2868] (`"ma01"`, for planets and wherever the mass
   ratios leave the fitted range of the newer fit), Eggleton and Kiseleva
-  1995 (`"ek95"`, a cross-check) and Vynatheya et al. 2022, Equation 4
+  1995 (`"ek95"`, a cross-check) and [R4574], Equation 4
   (`"eq4"`, for star-only triples inside its fitted range). `"auto"` picks
   Equation 4 inside its range, Mardling and Aarseth outside it where their
   `q_out <= 5` holds, and Eggleton and Kiseleva beyond that (GEN.1028). The
@@ -47,7 +47,7 @@ METHODS = ("auto", "ma01", "ek95", "eq4")
 """tuple: The criteria `is_triple_stable` accepts."""
 
 MA01_Q_OUT_MAX = 5.0
-"""float: The largest `q_out` Mardling and Aarseth 2001 give their criterion for (Equation 90: "holds for q_out <= 5"; beyond it the failure is
+"""float: The largest `q_out` [R2868] give their criterion for (Equation 90: "holds for q_out <= 5"; beyond it the failure is
 exchange, not escape). `required_axis_ratio` refuses `"ma01"` past it and `"auto"` takes `"ek95"` there (GEN.1028, registry row GM12)."""
 
 KOZAI_WINDOW_COS2 = 3.0 / 5.0
@@ -75,7 +75,7 @@ def _q_out(m1, m2, m3):
 
 
 def mardling_aarseth_pericentre_ratio(q_out, e_out, i):
-    """Mardling and Aarseth 2001 (Equation 2 of Vynatheya et al.): the smallest `a_out (1 - e_out) / a_in` that is stable."""
+    """[R2868] (Equation 2 of Vynatheya et al.): the smallest `a_out (1 - e_out) / a_in` that is stable."""
     return 2.8 * ((1.0 + q_out) * (1.0 + e_out) / math.sqrt(1.0 - e_out)) ** 0.4 * (1.0 - 0.3 * i / math.pi)
 
 
@@ -85,7 +85,7 @@ def mardling_aarseth_axis_ratio(q_out, e_out, i):
 
 
 def eggleton_kiseleva_ycrit(q_out, q_in):
-    """Eggleton and Kiseleva 1995: the critical `Y = a_out (1 - e_out) / (a_in (1 + e_in))`, with `q = q_out`."""
+    """[R1221]: the critical `Y = a_out (1 - e_out) / (a_in (1 + e_in))`, with `q = q_out`."""
     q13 = q_out ** (1.0 / 3.0)
     return 1.0 + 3.7 / q13 - 2.2 / (1.0 + q13) + 1.4 / q_in ** (1.0 / 3.0) * (q13 - 1.0) / (q13 + 1.0)
 
@@ -99,7 +99,7 @@ def effective_inner_eccentricity(e_in, i):
 
 
 def eq4_ycrit(q_out, e_in, e_out, i):
-    """Equation 4 of Vynatheya et al. 2022: the critical `Y~` (with the effective inner eccentricity)."""
+    """Equation 4 of [R4574]: the critical `Y~` (with the effective inner eccentricity)."""
     e_eff = effective_inner_eccentricity(e_in, i)
     base = 2.4 * ((1.0 + q_out) / ((1.0 + e_eff) * math.sqrt(1.0 - e_out))) ** 0.4
     return base * (((1.0 - 0.2 * e_eff + e_out) / 8.0) * (math.cos(i) - 1.0) + 1.0)
@@ -149,7 +149,7 @@ def required_axis_ratio(m1, m2, m3, e_in, e_out, i, method="auto", alpha=None):
         method = criterion(m1, m2, m3, alpha)
     if method == "ma01":
         if not ma01_in_range(q_out):
-            raise ValueError(f"Mardling and Aarseth 2001 holds for q_out <= {MA01_Q_OUT_MAX:g}, got {q_out:.4g}; use method='auto'")
+            raise ValueError(f"[R2868] holds for q_out <= {MA01_Q_OUT_MAX:g}, got {q_out:.4g}; use method='auto'")
         return mardling_aarseth_axis_ratio(q_out, e_out, i)
     if method == "eq4":
         return eq4_axis_ratio(q_out, e_in, e_out, i)

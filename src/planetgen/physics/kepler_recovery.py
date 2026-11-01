@@ -15,7 +15,7 @@ the planets that exist. Three factors multiply:
    duration (log-linear between the tabulated 1.5, 3, 6, 12 and 15 hours). A host with no measured CDPP gets one from the host's Kepler
    magnitude and radius: `ln CDPP = a0 + a1 Kp + a2 Kp^2 + a3 ln R* + scatter z` with `z` one standard normal for all durations.
 3. **Recovery.** The pipeline found `c0 GammaCDF(MES; a, b) S((N - n0) / wn) S((ln Tmax - ln T) / wd)` of the injected planets: the form of
-   Burke and Catanzarite 2017, with a three-transit gate and a long-duration cut.
+   [R0594], with a three-transit gate and a long-duration cut.
 
 All of it is fitted by `scripts/fit_kepler_recovery.py` to the 146,257 Kepler DR25 on-target injections (INJ1) joined to the DR25 stellar
 table. It conditions on a Kepler target star, circular orbits and the pipeline's detection, not on vetting (the Robovetter removes more),

@@ -67,7 +67,7 @@ def test_the_co_oxidation_constant_is_the_value_of_the_research(temperature, exp
 
 
 def test_the_methane_constant_is_zahnle_and_marleys():
-    # Zahnle and Marley 2014: K = pCH4 pH2O / (pCO pH2^3) = 5.24e-14 exp(27285/T), in atm^-2; our log10 K is in bar^-2.
+    # [R4863]: K = pCH4 pH2O / (pCO pH2^3) = 5.24e-14 exp(27285/T), in atm^-2; our log10 K is in bar^-2.
     for temperature in (700.0, 1000.0, 1300.0):
         ours = st.log10_k({"CH4": 1.0, "H2O": 1.0, "CO": -1.0, "H2": -3.0}, temperature)
         theirs = math.log10(5.24e-14 * math.exp(27285.0 / temperature) * 1.01325 ** 2)   # atm^-2 to bar^-2

@@ -10,7 +10,7 @@ two shapes of four stars need more than that:
 - **A triple level** is a node with a sub-node for one child: the sub-node's two sides are the inner pair, the other child
   is the third body. It must clear `level_margin` times the axis ratio the triple criterion asks for (`stability.criterion`
   picks Equation 4, Mardling and Aarseth or Eggleton and Kiseleva by the masses). The margin is 1.0, none, until a 2+2
-  network is ported: the nested test is right for 88 percent of 2+2 systems (Vynatheya, Mardling and Hamers 2023, Table 3).
+  network is ported: the nested test is right for 88 percent of 2+2 systems ([R4575: Table 3]).
 - **A 3+1 quadruple** is an inner pair, a third star about it and a fourth star about all three. Two nested triples
   are right for 66 percent of such systems and call too many of them stable, because the outer star pumps the eccentricity of
   the middle orbit. Both of its triple levels must pass at their own margin, and then the network of the same paper

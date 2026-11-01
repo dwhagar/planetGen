@@ -1,6 +1,6 @@
 # tests/test_giant_tilt.py
 
-"""The giant-impact tilt of an ice giant (GEN.1053): Uranus-like and Neptune-like cases, Kegerreis et al. 2018 angular momenta."""
+"""The giant-impact tilt of an ice giant (GEN.1053): Uranus-like and Neptune-like cases, [R2300] angular momenta."""
 
 import math
 

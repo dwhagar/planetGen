@@ -53,7 +53,7 @@ def _hours(rate):
 
 
 def test_the_accretion_spin_follows_the_published_law():
-    """Kokubo and Genda 2010 equation 4 with the last impacts' mass ratio (GEN.979): a planet of a mass the paper's runs reached, after a giant impact, has
+    """[R2431] equation 4 with the last impacts' mass ratio (GEN.979): a planet of a mass the paper's runs reached, after a giant impact, has
     its rms spin at `impact_spin.mean_rms_breakup_fraction` of breakup (0.71 of it at the paper's mass ratio of 0.28), and an isotropic axis."""
     draw.set_run_seed(731)
     mass = 1.0e25

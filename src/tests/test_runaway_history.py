@@ -1,7 +1,7 @@
 # tests/test_runaway_history.py
 
 """
-GEN.639: the runaway greenhouse limit depends on the planet's mass (the three Kopparapu et al. 2014 sets), and a body that was
+GEN.639: the runaway greenhouse limit depends on the planet's mass (the three [R2447] sets), and a body that was
 past the limit while its star was young and bright loses water to the energy-limited escape of its steam, deterministically.
 """
 
@@ -73,7 +73,7 @@ def test_a_cool_star_dries_the_planets_of_its_present_zone():
     star = _star(0.3, 0.011, 3416.0, 5.0)     # a 0.3 solar mass star on the MIST main sequence at 5 Gy (GEN.652)
     zone = orbits.hz_limits(star.luminosity, star.temperature)
     # GEN.1174: the star is pre-main-sequence for the 130 Myr its radius takes (BHAC15), not MIST's 417, so the middle of the zone loses a fraction of an ocean and its
-    # hot edge a few (Luger and Barnes 2015: the habitable zone of a 0.1 to 0.3 solar mass star loses from one to several oceans while the star contracts)
+    # hot edge a few ([R2769]: the habitable zone of a 0.1 to 0.3 solar mass star loses from one to several oceans while the star contracts)
     assert runaway_history.loss_kg(star, zone[0], *EARTH) > 1 * EARTH_OCEAN_KG
     assert runaway_history.loss_kg(star, zone[1] * 0.5 + zone[0] * 0.5, *EARTH) > 0.0
     assert runaway_history.loss_kg(star, 1.0, *EARTH) == 0.0

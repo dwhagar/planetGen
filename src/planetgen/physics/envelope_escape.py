@@ -7,7 +7,7 @@ How much of a hydrogen-helium envelope a close-in planet loses to its star's XUV
 The share of its starting envelope that a planet of 1 to 30 Earth masses has lost by its age is the number rows e1 (the planet is a bare
 core) and e2 (it keeps an envelope) of the atmosphere recipes weigh by. It comes from the hydro-based mass-loss rate of Kubyshkina et al.
 2018 (`thermosphere.hydro_based_mass_loss_g_s`, GEN.738), integrated over the star's XUV history (`activity.coronal_xuv_at`) while the envelope
-shrinks and the planet contracts with it (the radius is the law of Lopez and Fortney 2014, `bulk_structure.envelope_radius_earth`): as the
+shrinks and the planet contracts with it (the radius is the law of [R2741], `bulk_structure.envelope_radius_earth`): as the
 envelope thins, the radius falls, the escape parameter rises and the rate drops steeply, so a planet either loses its envelope early or
 settles.
 

@@ -158,7 +158,7 @@ def test_an_earth_twin_at_its_own_fixed_point_lands_within_two_kelvin_of_the_mea
 
 def test_the_water_runaway_starts_between_the_earths_flux_and_the_published_limits():
     """The Earth keeps its ocean at 239 W/m2 absorbed; the spectrally resolved limit of a saturated air is 282 W/m2 (Goldblatt et al.
-    2013), the inner edge of the habitable zone at 1.1 times the present flux, 262 W/m2 absorbed (Kopparapu et al. 2013). The table
+    2013), the inner edge of the habitable zone at 1.1 times the present flux, 262 W/m2 absorbed [R2446]. The table
     steps from the temperate branch to the steam one between them."""
     temperate = _at_the_fixed_point_of_its_own_vapour(239.0)
     assert _at_the_fixed_point_of_its_own_vapour(255.0) < 300.0 < _at_the_fixed_point_of_its_own_vapour(285.0)

@@ -10,22 +10,20 @@ there after the star's XUV history (`kept_shares`), plus the mass-loss rate of a
 
 1. *The exobase temperature* (`exobase_temperature_k`). A thermosphere heated by the star's XUV and cooled by the infrared emission of
    carbon dioxide: the mesopause temperature plus a rise that goes as the XUV flux and falls with the carbon dioxide of the air. Its
-   form and constants are fitted to the 1-D hydrodynamic upper-atmosphere model of Johnstone, Guedel, Lammer and Kislyakova 2018
-   (arXiv:1806.06897): the Earth's exobase temperature over a hundred-fold range of CO2 (Fig. 12) and the rise at 4.9 times the present
+   form and constants are fitted to the 1-D hydrodynamic upper-atmosphere model of [R2184]: the Earth's exobase temperature over a hundred-fold range of CO2 (Fig. 12) and the rise at 4.9 times the present
    XUV (section 4.2). Venus, Mars and Titan are not fitted; they are the checks (the tests).
 2. *The exobase* (`exobase`): the height where the mean free path equals the scale height, of the air rising from the mesopause on a
    Bates temperature profile; it gives the density of the gas that can leave.
-3. *The flux of a species.* The Jeans flux from the exobase (`jeans_flux`), at most the diffusion-limited flux of Hunten 1973 for a
+3. *The flux of a species.* The Jeans flux from the exobase (`jeans_flux`), at most the diffusion-limited flux of [R2050] for a
    species lighter than the air (`diffusion_limited_flux`: its binary diffusion coefficients are the hard-sphere kinetic theory of
    Chapman and Enskog, which reproduces the diffusion of H2 in N2 to 16 percent and the 1e28 s-1 H2 flux of Titan to a factor of four).
-   The total mass loss is at most the energy-limited rate (`energy_limited_mass_loss_kg_s`, Watson et al. 1981; Erkaev et al. 2007).
+   The total mass loss is at most the energy-limited rate (`energy_limited_mass_loss_kg_s`, [R1280, R4637]).
 4. *The XUV history* (`kept_shares`): the star's `L_XUV` over its life from `activity` (saturated, then decaying), the flux of the body at
    each age, the exobase temperature at each age, and each species lost at a first-order rate set by its flux over its column. The flux
    is held at `XUV_FLUX_MAX_EARTH` before the star decays to it: the model is not validated above it, and the loss of the hotter early
    phase belongs to the retention rows of the pressure stage (the cosmic shoreline, GEN.511), which `mixture_escape` does not repeat.
 
-*Envelopes.* The mass-loss rate of a hydrogen-dominated planet of 1 to 40 Earth masses is the analytic fit of Kubyshkina et al. 2018
-(arXiv:1810.06920) to a grid of 7000 hydrodynamic models; it is checked against the nine planets of its Table 2.
+*Envelopes.* The mass-loss rate of a hydrogen-dominated planet of 1 to 40 Earth masses is the analytic fit of [R2512] to a grid of 7000 hydrodynamic models; it is checked against the nine planets of its Table 2.
 
 Not modelled: non-thermal escape (sputtering, photochemical and ion escape, which dominate Mars's and Venus's loss of hydrogen), the day
 and night difference of a slowly rotating body (the temperature here is the dayside of a fast rotator, the Earth model's global mean),
@@ -42,11 +40,11 @@ from planetgen.physics import activity, constants, gases, ion_escape
 
 MESOPAUSE_OVER_TEQ = 0.78
 """float: The temperature of the mesopause over the equilibrium temperature (Earth: the 200 K minimum of the thermal structure of
-Johnstone et al. 2018 over the equilibrium 255 K). A stand-in for the thermal structure of the lower air, tier 5, tweak level 0."""
+[R2184] over the equilibrium 255 K). A stand-in for the thermal structure of the lower air, tier 5, tweak level 0."""
 
 EXOBASE_RISE_K = 1095.0
 """float: The rise of the exobase temperature above the mesopause at the present XUV flux of the Earth and no CO2, K (fitted to the
-neutral exobase temperatures of Fig. 12 of Johnstone et al. 2018 read from the figure: 1310, 1260, 1155, 985, 540 and 290 K for CO2
+neutral exobase temperatures of Fig. 12 of [R2184] read from the figure: 1310, 1260, 1155, 985, 540 and 290 K for CO2
 mixing ratios at 65 km of 4e-6 to 0.4; tier 3 for the figure's reading, tweak level 3)."""
 
 CO2_COOLING_HALF = 0.0126
@@ -56,7 +54,7 @@ CO2_COOLING_EXPONENT = 0.70
 """float: The sharpness of the CO2 cooling, the rise going as `1 / (1 + (x / CO2_COOLING_HALF)^p)` (the same fit)."""
 
 XUV_EXPONENT = 0.96
-"""float: The rise goes as the XUV flux to this power: the Earth of Johnstone et al. 2018 at 4.9 times the present XUV (their text: their
+"""float: The rise goes as the XUV flux to this power: the Earth of [R2184] at 4.9 times the present XUV (their text: their
 model 3 Gyr ago corresponds to the 4.9 times) has a neutral exobase temperature of 4600 K against 1155 K now, which is
 `((4600 - 200) / (1155 - 200))^(1 / ln 4.9) = 0.96`. Tier 3, tweak level 3."""
 
@@ -67,16 +65,16 @@ younger star (see the module text)."""
 # --- the exobase and the flux of a species ---------------------------------------------------------------------------------
 
 MESOPAUSE_PRESSURE_PA = 1.0
-"""float: The pressure at the bottom of the thermosphere, 1e-2 mbar, where the thermosphere model of Johnstone et al. 2018 starts its own
+"""float: The pressure at the bottom of the thermosphere, 1e-2 mbar, where the thermosphere model of [R2184] starts its own
 exobase estimate (their boundary conditions use 200 K and 1e-2 mbar). Tier 3, tweak level 0."""
 
 BATES_LENGTH_SCALE_HEIGHTS = 2.0
 """float: The length over which the temperature rises from the mesopause to the exobase value, in scale heights of the mesopause (Earth:
-12 km). Fitted to the exobase altitudes of Johnstone et al. 2018, Fig. 12 and 13 (475 km now, about 2,000 to 2,500 km at 4,600 K; the profile gives
+12 km). Fitted to the exobase altitudes of [R2184: Fig. 12 and 13] (475 km now, about 2,000 to 2,500 km at 4,600 K; the profile gives
 440 and 2,160 km; read from the figures, tier 3), tweak level 3."""
 
 COLLISION_CROSS_SECTION_M2 = 2e-19
-"""float: The cross section of the exobase condition, `n sigma H = 1` (Chamberlain 1963: 2e-15 cm2 is the usual value). Tier 3, level 0."""
+"""float: The cross section of the exobase condition, `n sigma H = 1` ([R0719]: 2e-15 cm2 is the usual value). Tier 3, level 0."""
 
 MAX_EXOBASE_RADII = 10.0
 """float: The exobase is held inside this many body radii (a numerical bound for a hot air over a small body)."""
@@ -97,11 +95,11 @@ DEFAULT_KINETIC_DIAMETER_PM = 360.0
 # --- the energy-limited and hydrodynamic rates -----------------------------------------------------------------------------
 
 ENERGY_LIMITED_EFFICIENCY = 0.15
-"""float: The share of the absorbed XUV that drives the escape (the grid of Kubyshkina et al. 2018 takes 0.15: 0.10 to
+"""float: The share of the absorbed XUV that drives the escape (the grid of [R2512] takes 0.15: 0.10 to
 0.20). The water-loss history of GEN.639 keeps its own, lower DESIGN value (`tuning.ENERGY_LIMITED_EFFICIENCY`). Tier 2, tweak level 0."""
 
 HYDRO_BASED_LOW = {"beta": 32.0199, "alpha1": 0.4222, "alpha2": -1.7489, "alpha3": 3.7679, "zeta": -6.8618, "theta": 0.0095}
-"""dict: Table 1 of Kubyshkina et al. 2018, for the escape parameter below `exp(Sigma)`: boil-off, driven by the planet's heat and low gravity."""
+"""dict: Table 1 of [R2512], for the escape parameter below `exp(Sigma)`: boil-off, driven by the planet's heat and low gravity."""
 
 HYDRO_BASED_HIGH = {"beta": 16.4084, "alpha1": 1.0000, "alpha2": -3.2861, "alpha3": 2.7500, "zeta": -1.2978, "theta": 0.8846}
 """dict: Table 1, at or above `exp(Sigma)`: the XUV-driven, near energy-limited branch."""
@@ -217,7 +215,7 @@ def binary_diffusion_parameter(formula_a, formula_b, temperature_k):
 
 def diffusion_limited_flux(formula, fractions, gravity_ms2, temperature_k, mean=None):
     """
-    The most of a species lighter than the air that the air can carry up, m-2 s-1 (Hunten 1973): `b f g (m_air - m) / (k T)` with the
+    The most of a species lighter than the air that the air can carry up, m-2 s-1 [R2050]: `b f g (m_air - m) / (k T)` with the
     binary diffusion parameter `b` of the species in the rest of the air (Blanc's law). `math.inf` for a species that is not lighter.
     `mean` is `mean_mass_kg(fractions)` when the caller has it already (it asks for every species of one air).
     """
@@ -237,7 +235,7 @@ def diffusion_limited_flux(formula, fractions, gravity_ms2, temperature_k, mean=
 
 
 def energy_limited_mass_loss_kg_s(xuv_flux_w_m2, absorbing_radius_m, mass_kg, efficiency=ENERGY_LIMITED_EFFICIENCY):
-    """The most mass the absorbed XUV can lift out of the planet's well, kg/s: `eps pi F R_xuv^3 / (G M)` (Watson et al. 1981; Erkaev et al. 2007)."""
+    """The most mass the absorbed XUV can lift out of the planet's well, kg/s: `eps pi F R_xuv^3 / (G M)` [R1280, R4637]."""
     return efficiency * math.pi * xuv_flux_w_m2 * absorbing_radius_m ** 3 / (_G * mass_kg)
 
 
@@ -359,7 +357,7 @@ def kept_shares(fractions, mass_kg, radius_m, teq_k, pressure_pa, age_gy, xuv_fl
 
 def hydro_based_mass_loss_g_s(mass_earth, radius_earth, teq_k, distance_au, xuv_flux_erg_cm2_s):
     """
-    The mass-loss rate of a planet with a hydrogen-dominated envelope, g/s (Kubyshkina et al. 2018, Eq. 9 and Table 1): a power law in
+    The mass-loss rate of a planet with a hydrogen-dominated envelope, g/s ([R2512: Eq. 9] and Table 1): a power law in
     the XUV flux, the distance and the radius times the escape parameter `Lambda = G M m_H / (k T_eq R)` to a power that depends on the
     distance, with one set of constants where `Lambda < exp(Sigma)` (boil-off) and another above it.
     """

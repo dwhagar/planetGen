@@ -6,17 +6,17 @@ Resonant chains: which planets lock their periods in a row, and the eccentricity
 
 Three or more planets whose neighbouring periods sit near ratios of small whole numbers form a chain: TRAPPIST-1's seven planets (8:5, 5:3, 3:2, 3:2, 4:3, 3:2), the four
 of Kepler-223 (4:3, 3:2, 4:3), Io, Europa and Ganymede (2:1, 2:1). A planet that a neighbour tugs at near a resonance does not keep a circular orbit: it is given a
-**forced eccentricity**, and a planet on an eccentric orbit is flexed by its star's tide (`tidal_heating`, the Peale, Cassen and Reynolds 1979 power Io shows). This module
+**forced eccentricity**, and a planet on an eccentric orbit is flexed by its star's tide (`tidal_heating`, the [R3464] power Io shows). This module
 finds the chains in a set of periods and gives the forced eccentricity and the orbits for `tidal_heating` to flex. Nothing calls it yet (GEN.1049 wires it into the
 architecture and the interior heat, `weird-worlds.md` W5).
 
 **The pair.** Planets in order of period; for the period ratio `P'/P` of a neighbouring pair the nearest of `TARGET_RATIOS` (2:1, 3:2, 4:3, 5:3) is taken if the ratio is within
 `RESONANCE_TOLERANCE` (5 percent) of it. The distance from exact resonance is `Delta = (P'/P) (q/p) - 1` for the ratio `p:q`; the Kepler multis cluster just wide of exact,
-`Delta` of about +0.01 to +0.02 (Fabrycky et al. 2014, ApJ 790:146; Goldberg and Batygin 2022, AJ 163:201; recalled, not opened). A **chain** is a run of three or more planets all
+`Delta` of about +0.01 to +0.02 ([R1311]:146; [R1605]:201; recalled, not opened). A **chain** is a run of three or more planets all
 of whose neighbouring pairs are resonant.
 
 **The forced eccentricity** of a first-order resonance (p - q = 1: 2:1, 3:2, 4:3), the planets not yet in the resonance's own libration, from the secular-free resonant terms of the
-disturbing function (Murray and Dermott 1999, *Solar System Dynamics*, section 8.8 and Appendix B; Lithwick, Xie and Wu 2012, ApJ 761:122; recalled, derived here):
+disturbing function ([R3220], *Solar System Dynamics*, section 8.8 and Appendix B; Lithwick, Xie and Wu 2012, ApJ 761:122; recalled, derived here):
 
     e_inner = mu' alpha |f_27| / ((p - 1) |Delta|),      e_outer = mu |f_31| / (p |Delta|)
 

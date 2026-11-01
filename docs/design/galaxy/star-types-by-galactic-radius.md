@@ -70,14 +70,14 @@ fractions of B, A and white dwarfs change, and M, K and G stay flat (M 74-75%, K
 
 | Quantity | Generator | Observed | Source |
 |---|---|---|---|
-| M dwarfs, solar neighborhood | 74-75% | 69% (10 pc census) to 75-78% | [RECONS](https://arxiv.org/pdf/1206.1022), [Mamajek](https://www.pas.rochester.edu/~emamajek/memo_star_dens.html) |
+| M dwarfs, solar neighborhood | 74-75% | 69% (10 pc census) to 75-78% | [R1112], [Mamajek](https://www.pas.rochester.edu/~emamajek/memo_star_dens.html) |
 | B stars, solar neighborhood | 0.13% between arms, 0.37% in an arm | about 0.04% | [Mamajek](https://www.pas.rochester.edu/~emamajek/memo_star_dens.html) |
 | A stars | 0.8-1.3% | about 0.6% | same |
 | O stars | 7e-5% to 9e-4% | about 5e-5% | same |
-| Bulge stars younger than 5 Gyr | 0% (bulge ages 8-12 Gyr) | 3% (HST) to 16-23% (microlensing, disputed) | [Valle et al. 2015](https://arxiv.org/pdf/1503.04570), [Bensby 2017](https://arxiv.org/pdf/1702.02971) |
-| Star formation across the disk | young share flat from 2 to 15 kpc | rate peaks near 5 kpc, falls about 0.28 dex per kpc beyond; 84% inside the solar circle, 1% beyond 13.5 kpc | [Herschel Hi-GAL study](https://www.arxiv.org/pdf/2211.05573) |
-| Galactic center star formation | none (bulge is old) | Central Molecular Zone holds ~5% of the Galaxy's rate | same, [Galactic center review](https://arxiv.org/pdf/1905.01309) |
-| Iron gradient | none | -0.06 dex/kpc for young stars, flatter (-0.03) for 6-10 Gyr | [Anders et al. 2017](https://arxiv.org/pdf/1608.04951.pdf) |
+| Bulge stars younger than 5 Gyr | 0% (bulge ages 8-12 Gyr) | 3% (HST) to 16-23% (microlensing, disputed) | [R0346, R4483] |
+| Star formation across the disk | young share flat from 2 to 15 kpc | rate peaks near 5 kpc, falls about 0.28 dex per kpc beyond; 84% inside the solar circle, 1% beyond 13.5 kpc | [Herschel Hi-GAL study][R1241] |
+| Galactic center star formation | none (bulge is old) | Central Molecular Zone holds ~5% of the Galaxy's rate | same, [R0141] |
+| Iron gradient | none | -0.06 dex/kpc for young stars, flatter (-0.03) for 6-10 Gyr | [R0101] |
 
 ## Findings
 
@@ -126,19 +126,19 @@ and bulge scale radius. The Milky Way's figures are test targets in `tests/test_
 
 **The chain.**
 
-1. *The star-formation law.* Rate per area goes as the gas per area to the power n = 1.4 (Kennicutt 1998: 1.4 +/- 0.15
+1. *The star-formation law.* Rate per area goes as the gas per area to the power n = 1.4 ([R2321]: 1.4 +/- 0.15
    over 61 spirals and 36 starbursts, gas 10 to 1e5 solar masses per pc2; other fits 1.3 +/- 0.3 and 1.65 +/- 0.16;
    resolved data give 1.5 to 2.7 for total gas). The thin disk's stars are the sum of its past rates, so their surface
    density is `exp(-R/L)`. A gas disk of scale length `g L` makes the present rate fall as `exp(-n R / (g L))` and the
    *share* of the stars that are recent as `exp(-(n/g - 1) R / L)`. `g` is 1 (`GAS_TO_STELLAR_SCALE_LENGTH_RATIO`, an
    assumption: the observed gas disk is more extended, which would make the outer disk younger). The Milky Way's own Kennicutt-Schmidt index
-   is lower than the classic one: 1.2 +-0.2 (Luna et al. 2006, molecular gas) and 1.12 +-0.05 (Sofue and Nakanishi 2017), as the
+   is lower than the classic one: 1.2 +-0.2 ([R2770], molecular gas) and 1.12 +-0.05 [R4140], as the
    Herschel paper below reports them [P: as that paper quotes them]; with them the outer fall would be -0.19 dex per kpc, and the observed -0.28 needs an index of 1.65.
    *The index rises where the gas thins (GEN.450, Boss's answer to the card of 12:27 PM EDT 2026-10-23).* Instead of one index of 1.65, which is
-   chosen to hit the observed figure (a test target, never an input), the index steepens where the disk's own gas is thin: [Bigiel et al. 2008](https://arxiv.org/pdf/0810.2541)
+   chosen to hit the observed figure (a test target, never an input), the index steepens where the disk's own gas is thin: [R0392]
    find that molecular gas forms stars at a constant efficiency (index 1.0) while atomic gas, which dominates the outskirts, saturates near 9
-   solar masses per pc2 and shows a weak total-gas relation; [Leroy et al. 2008](https://arxiv.org/pdf/0810.2556) find the efficiency in the atomic-dominated
-   disk falls exponentially with radius; [Schaye 2004](https://arxiv.org/pdf/astro-ph/0205125) gives a cold-phase threshold. The rate is
+   solar masses per pc2 and shows a weak total-gas relation; [R2651] find the efficiency in the atomic-dominated
+   disk falls exponentially with radius; [R3951] gives a cold-phase threshold. The rate is
    `A gas^n (gas / (gas + gas_s))^(m - n)`: `n` stays 1.4, `gas_s` is 9 solar masses per pc2 (`tuning.STAR_FORMATION_SATURATION_GAS_MSUN_PC2`) and `m`
    is 2.1 (`tuning.STAR_FORMATION_LOW_DENSITY_EXPONENT`), the middle of the 1.5 to 2.7 that resolved total-gas fits give. The gas is the rings' gas now
    (`disk_history.history_of`), about 4 solar masses per pc2 at 8 kpc for a Milky Way-like galaxy (the observed total is higher, about 13, so the
@@ -149,16 +149,16 @@ and bulge scale radius. The Milky Way's figures are test targets in `tests/test_
 2. *The bar gap.* A bar drives the gas inside its corotation inward, and what is left is sheared and made turbulent by the bar's
    shocks, so the star-forming gas in the region the bar sweeps is depleted. What the papers say [P: each read in the paper, 2026-10-17]:
    in six zoom-in simulations the star formation "desert" either side of the bar lacks stars younger than 10 Myr because, after
-   the bar forms, "gas in these regions is removed on 1 Gyr timescales" ([Donohoe-Keyes et al. 2019](https://arxiv.org/pdf/1908.11119));
+   the bar forms, "gas in these regions is removed on 1 Gyr timescales" [R1142];
    bars drive gas inflow inside the corotation radius, which raises the central rate, yet disc galaxies with a suppressed centre often host
-   a bar, and the causes are discussed, not settled ([Wang et al. 2020](https://arxiv.org/pdf/2003.05190)); galaxies with bar-driven radial gas flows have
+   a bar, and the causes are discussed, not settled [R4610]; galaxies with bar-driven radial gas flows have
    suppressed star-formation efficiency with "no indication of depleted gas mass fractions", so gas exhaustion is not the cause there
-   ([ALMaQUEST XIV](https://arxiv.org/pdf/2312.14702)). Observed in the Milky Way: the molecular gas shows "a pronounced deficit at R about 0.5 to 3.5 kpc (a bar gap)", an outer boundary at
+   [R1973]. Observed in the Milky Way: the molecular gas shows "a pronounced deficit at R about 0.5 to 3.5 kpc (a bar gap)", an outer boundary at
    3.5 kpc that "is consistent with the dynamical estimate of the Galactic bar half-length", with the caveat that axisymmetric distance
-   inversions can partly fill such a gap ([Bar-Informed Kinematic-Distance Mapping](https://arxiv.org/pdf/2603.17341)); the long bar's half-length is
-   5.0 +-0.2 kpc in [Wegg, Gerhard and Portail 2015](https://arxiv.org/pdf/1504.01401), so the estimates differ. The Central Molecular Zone forms stars at
-   a rate at least ten times below what its dense gas predicts ([Kruijssen et al. 2014](https://arxiv.org/pdf/1303.6286), after [Longmore et al.
-   2013](https://arxiv.org/pdf/1208.4256)): episodic, with a raised critical density from the turbulent pressure. The generator's rate is scaled by
+   inversions can partly fill such a gap [R0215]; the long bar's half-length is
+   5.0 +-0.2 kpc in [R4650], so the estimates differ. The Central Molecular Zone forms stars at
+   a rate at least ten times below what its dense gas predicts ([R2505], after [Longmore et al.
+   2013][R2737]): episodic, with a raised critical density from the turbulent pressure. The generator's rate is scaled by
    `S(R) = f + (1 - f) u^p / (1 + u^p)`, `u = R / R_gap`. **The gap radius** is 2.2 bulge scale radii (`BAR_GAP_RADIUS_RATIO`), 3.5 kpc for the default shape, which
    is the gap's outer edge over the bulge's 1.58 kpc [P for the 3.5 kpc]; **the floor** `f` (0.03) is what 1 Gyr removal leaves after 3.5 Gyr
    (`exp(-3.5)`), the young and intermediate stars being under 3 Gyr old; that bar epoch is an assumption and the 1 Gyr is a simulated galaxy's, so the floor stays an open default;
@@ -191,8 +191,8 @@ star-formation *history* from the same gas law (the rate falls as the gas is use
 an inflow rate that nothing in the shape sets; filed as a follow-up. The 0.04% target also rests on a source this note has
 not opened at the time (Mamajek's memo; read since, see Citations), and is his figure from Hipparcos B types.
 
-**Citations (re-checked against the papers, 2026-10-17, 12:40 AM EDT).** [Kennicutt 1998](https://arxiv.org/pdf/astro-ph/9712213): 61 normal spirals and 36 starbursts, index 1.4 +-0.15, confirmed.
-[The Herschel Hi-GAL study](https://arxiv.org/pdf/2211.05573) (Milky Way star formation 2.0 +-0.7 solar masses per year; a peak at the Central Molecular Zone and another near 5 kpc; beyond 5 kpc
+**Citations (re-checked against the papers, 2026-10-17, 12:40 AM EDT).** [R2321]: 61 normal spirals and 36 starbursts, index 1.4 +-0.15, confirmed.
+[R1241] (Milky Way star formation 2.0 +-0.7 solar masses per year; a peak at the Central Molecular Zone and another near 5 kpc; beyond 5 kpc
 log(rate per area) falls with a = -0.28 +-0.01 per kpc, an exponential scale length of 1.55 kpc, shorter than the stellar disk's 2.6 kpc; 84% inside the solar circle and 1% beyond 13.5 kpc; half of the star formation in the Molecular Ring): all confirmed, and the 1.55 kpc against 2.6 kpc is the same
 sign as the derived 2.6 / 1.4 = 1.86 kpc. The remaining papers are listed in the chain above with what each says. The B-star target is [Mamajek's memo](https://www.pas.rochester.edu/~emamajek/memo_star_dens.html), read: B stars 3.9e-4 of the stars (1 in 2600; calculated from the Hipparcos (HIP2) B types), A 6.0e-3, O about 5e-7, M dwarfs
 72.5% (RECONS 10 pc, N = 283); the 0.04% is confirmed as his figure, and its completeness limits are his. The numbers marked recalled in `tuning.py` stay so, except the gap edge (3.5 kpc, read).

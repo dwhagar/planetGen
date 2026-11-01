@@ -10,7 +10,7 @@ JWST observes planets chosen for signal: nearby, hot, large scale height, bright
 
 A logistic regression of the label "has a published JWST transmission or emission spectrum" (the NASA Exoplanet Archive `spectra` table; direct images are not counted) on three things:
 
-- log10 of the transmission spectroscopy metric `TSM = S Rp^3 Teq / (Mp R*^2) 10^(-mJ/5)` (Kempton et al. 2018, equation 1; `S` = 0.190, 1.26, 1.28, 1.15 for under 1.5, 1.5 to 2.75, 2.75 to 4 and over 4 Earth radii; arXiv:1805.03671 read);
+- log10 of the transmission spectroscopy metric `TSM = S Rp^3 Teq / (Mp R*^2) 10^(-mJ/5)` ([R2315], equation 1; `S` = 0.190, 1.26, 1.28, 1.15 for under 1.5, 1.5 to 2.75, 2.75 to 4 and over 4 Earth radii; [R2315] read);
 - log10 of the emission metric `ESM = 4.29e6 B7.5(1.1 Teq) / B7.5(T*) (Rp/R*)^2 10^(-mK/5)` (equation 4);
 - an offset for each of four radius classes (under 1.5, 1.5 to 4, 4 to 10, over 10 Earth radii).
 

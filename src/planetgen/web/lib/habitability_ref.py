@@ -355,7 +355,7 @@ def zone_text():
         "A star's habitable zone is the ring of orbits where a planet like Earth could keep liquid water on its "
         "surface. Its inner edge is the runaway greenhouse limit, where a planet loses its water to space, and its "
         "outer edge is the maximum greenhouse limit, beyond which a carbon dioxide atmosphere can no longer keep the "
-        "surface warm (Kopparapu et al., 2014). Both edges are a flux, in units of the sunlight Earth gets, that "
+        "surface warm [R2447]. Both edges are a flux, in units of the sunlight Earth gets, that "
         "depends on the star's temperature: a cool star's light is redder, so a planet takes more of it at the same "
         "flux and the zone lies nearer in than the star's brightness alone says. "
         f"For the Sun the edges are {inner:.2f} and {outer:.2f} AU. The inner edge moves with the planet's mass, because a "

@@ -12,8 +12,8 @@ shares of a lit body's star, in place of the seeded share and the family built o
 What the library does against the sky (the tests, `test_stellar_library_real.py`):
 
 - The Sun (5777 K, log g 4.44): the photosphere gives the shares of the blackbody's power in UV-C, UV-B and UV-A of 0.29, 0.71 and 0.77;
-  the measured values (ATLAS-1, Thuillier et al. 2004, `stellar_spectrum.UV_B_EXPONENT`) are 0.256, 0.625 and 0.787.
-- The eleven M and K stars of MUSCLES (France et al. 2016, ApJ 820, 89, Tables 1 and 3, `MUSCLES_STARS`): the photosphere gives
+  the measured values (ATLAS-1, [R4354], `stellar_spectrum.UV_B_EXPONENT`) are 0.256, 0.625 and 0.787.
+- The eleven M and K stars of MUSCLES ([R1435: Tables 1 and 3], `MUSCLES_STARS`): the photosphere gives
   the near-ultraviolet (170 to 320 nm) to within 0.3 dex of the measured for all eleven, and it gives almost nothing in the far
   ultraviolet (91.2 to 170 nm; 1e-8 to 1e-15 of the bolometric power for the M dwarfs against the measured 1e-4.2 to 1e-4.8):
   that light is the chromosphere's and transition region's, and it follows the star's X-ray and extreme-ultraviolet output.
@@ -37,7 +37,7 @@ from planetgen.datasets import fetch, stellar_spectra
 from planetgen.physics import constants, photometry, stellar_spectrum
 
 MUSCLES_STARS = (
-    # name, T_eff K (France et al. 2016 Table 1), then log10 of the share of the bolometric luminosity (Table 3) in
+    # name, T_eff K ([R1435: Table 1]), then log10 of the share of the bolometric luminosity (Table 3) in
     # XUV (5 to 911 A), FUV (912 to 1700 A, with Lyman alpha) and NUV (1700 to 3200 A)
     ("GJ 1214", 2935, -4.50, -4.45, -4.20),
     ("GJ 876", 3062, -4.04, -4.53, -4.33),
@@ -51,7 +51,7 @@ MUSCLES_STARS = (
     ("eps Eri", 5162, -4.15, -4.10, -1.97),
     ("HD 97658", 5156, -4.61, -4.36, -2.05),
 )
-"""tuple: The eleven stars of the MUSCLES Treasury Survey (France et al. 2016, ApJ 820, 89), read from the paper's tables."""
+"""tuple: The eleven stars of the MUSCLES Treasury Survey [R1435], read from the paper's tables."""
 
 FUV_OVER_XUV = 1.12
 """float: The far-ultraviolet (912 to 1700 A) power of a star's chromosphere over its XUV (5 to 911 A) power: the median of

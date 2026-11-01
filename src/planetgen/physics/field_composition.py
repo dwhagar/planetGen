@@ -12,7 +12,7 @@ Pure functions of two differentiated parents and a collision, no draw. The old `
 * **What leaves.** The pieces that fly free are the outermost ones: each parent gives up its own fraction of mass, the unbound share of `rogue_collision.unbound_fraction`, from the
   surface in, ice first, then mantle, then core (`escaping_layers`). The cores are two thirds of the way down, so at the 11 to 14 percent that leaves, a field is ice and silicate
   and holds no iron (`CORE_LEAK_SHARE` 0, row IF23). The cores go into the largest remnant or into the bound debris round it (`remnant_core_fraction`, the average of the two idealised models
-  of Marcus et al. 2010 through Stewart and Leinhardt 2012, IF8).
+  of [R2866] through [R4226], IF8).
 * **A collision.** `collision_field` runs the pair through the law of `rogue_collision` (speed to the energy ratio, to the largest remnant, to the unbound share) and gives the field, the
   remnant planet that stays as its own rogue (Boss, 4:54 PM EDT 2026-10-30) and the bound debris. Nothing is a field when the largest remnant keeps over half of the mass: a merger, a hit-and-run or an erosion leaves a remnant and
   what falls back, and `collision_field` gives `None` for the field.

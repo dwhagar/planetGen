@@ -11,17 +11,16 @@ star. The Sun appears as the zero point of the reference scale and as a test tar
 
 The chain:
 
-1. **The scale.** Asplund, Amarsi and Grevesse 2021 log eps (`tuning.STELLAR_SOLAR_LOG_EPS`) moved to the proto-solar Sun give
+1. **The scale.** [R0168] log eps (`tuning.STELLAR_SOLAR_LOG_EPS`) moved to the proto-solar Sun give
    the mass fraction of each element at [Fe/H] = 0 (`PROTO_MASS_FRACTION`), the proto-solar X, Y, Z and the helium-to-metal
-   ratio `HELIUM_PER_METAL` that carries the scale from primordial helium (Planck 2018) to the proto-solar value.
+   ratio `HELIUM_PER_METAL` that carries the scale from primordial helium [R3544] to the proto-solar value.
 2. **The branch.** A star younger than `tuning.STELLAR_THICK_START_GY` is thin-disc; an older one is high-alpha with the
-   logistic probability of [Fe/H] (`high_alpha_probability`, Bensby 2014). `BRANCH_TABLE` is that choice as a row of the
+   logistic probability of [Fe/H] (`high_alpha_probability`, [R0349]). `BRANCH_TABLE` is that choice as a row of the
    gated possibility-table loader (GEN.472), in the order that lets one fixed uniform number decide it: it falls to
    high-alpha when the number is below the probability, so the branch flips at most once as [Fe/H] falls and an edited
    [Fe/H] never makes a star flicker.
-3. **The offsets.** The [X/Fe] of C, O, Mg, Si and Ca are the branch's mean at [Fe/H] (`mean_xfe`, hinge fits of Bensby 2014
-   and Nissen 2014) plus, for C, O, Mg and Si, a residual: four standard normals through the Cholesky factor of the residual
-   correlation (Brewer and Fischer 2016) times the branch's scatter. S and Ar follow Ca; Ne follows O (or Mg, a switch);
+3. **The offsets.** The [X/Fe] of C, O, Mg, Si and Ca are the branch's mean at [Fe/H] (`mean_xfe`, hinge fits of [R0349, R3294]) plus, for C, O, Mg and Si, a residual: four standard normals through the Cholesky factor of the residual
+   correlation [R0535] times the branch's scatter. S and Ar follow Ca; Ne follows O (or Mg, a switch);
    everything else is 0. Below [Fe/H] -2 a carbon-enhanced share of stars has [C/Fe] of 0.7 or more.
 4. **The fractions.** `composition` turns [Fe/H] and the offsets into X, Y, Z and each element's mass fraction, and
    `mass_ratio` and `number_ratio` give Fe/Si, Mg/Si, C/O and O/Si, which the planets inherit (GEN.428).
@@ -29,8 +28,8 @@ The chain:
    dwarf core type, the neutron-star constants, the black hole's formulas and the brown dwarf's limits and radius.
 
 What the downloaded data files give (GEN.548, wired in by GEN.590) is not here: the main-sequence luminosity, temperature,
-radius and lifetime (MIST), the white dwarf's radius and layers (Bedard et al. 2020) and the neutron star's outer crust
-(Servais and Chamel 2026) are read in `stellar_composition` from `planetgen.datasets`, which refuses to answer when the files
+radius and lifetime (MIST), the white dwarf's radius and layers [R0308] and the neutron star's outer crust
+[R4028] are read in `stellar_composition` from `planetgen.datasets`, which refuses to answer when the files
 were not downloaded (bulk generation refuses to start in that case, `run_galaxy.require_datasets`).
 
 `RELATIONS` lists every relation with its source and its verification state (verified, partly verified, open or stand-in),
@@ -93,59 +92,59 @@ class Relation:
 
 
 RELATIONS = (
-    Relation("reference scale: proto-solar X, Y, Z and per-element mass fractions", "Asplund, Amarsi and Grevesse 2021 Table 2 "
+    Relation("reference scale: proto-solar X, Y, Z and per-element mass fractions", "[R0168: Table 2] "
              "and section 5 (diffusion offsets +0.064 dex metals, +0.070 dex helium)", VERIFIED),
-    Relation("primordial helium", "Planck 2018 VI eq. 72a, arXiv:1807.06209", VERIFIED),
+    Relation("primordial helium", "[R3544] VI eq. 72a, [R3544]", VERIFIED),
     Relation("helium-to-metal ratio dY/dZ", "derived from the proto-solar and primordial values; observed "
              "2.1 +- 0.9", VERIFIED),
-    Relation("thin-disc age gate", "Haywood et al. 2013: the thick disc formed from about 13 to about 8 Gy ago", PARTLY_VERIFIED,
+    Relation("thin-disc age gate", "[R1863]: the thick disc formed from about 13 to about 8 Gy ago", PARTLY_VERIFIED,
              "the age scale is uncertain by 1 to 1.5 Gy; range 6.5 to 9.5 Gy"),
-    Relation("high-alpha probability logistic in [Fe/H]", "Bensby, Feltzing and Oey 2014", PARTLY_VERIFIED,
+    Relation("high-alpha probability logistic in [Fe/H]", "[R0349]", PARTLY_VERIFIED,
              "the paper is not among the repository's papers; the fit is part A 2.6's"),
-    Relation("[X/Fe] means of Mg, Si, Ca, Al by branch", "Bensby, Feltzing and Oey 2014, hinge fits (part A 2.7)",
+    Relation("[X/Fe] means of Mg, Si, Ca, Al by branch", "[R0349], hinge fits (part A 2.7)",
              PARTLY_VERIFIED, "valid inside the fitted [Fe/H] ranges; the paper is not among the repository's papers"),
-    Relation("[X/Fe] means of C and O by branch", "Nissen et al. 2014 NLTE (part A 2.7)", PARTLY_VERIFIED,
+    Relation("[X/Fe] means of C and O by branch", "[R3294] NLTE (part A 2.7)", PARTLY_VERIFIED,
              "the two oxygen sets differ by up to 0.1 dex on the plateau; neon's physics is open"),
-    Relation("[X/Fe] residual scatter and correlation", "Brewer and Fischer 2016 (844 dwarfs)", VERIFIED),
-    Relation("carbon-enhanced metal-poor share", "Frebel and Norris 2015: 20 to 30 percent below [Fe/H] -2", VERIFIED),
+    Relation("[X/Fe] residual scatter and correlation", "[R0535] (844 dwarfs)", VERIFIED),
+    Relation("carbon-enhanced metal-poor share", "[R1448]: 20 to 30 percent below [Fe/H] -2", VERIFIED),
     Relation("neon follows oxygen (or magnesium)", "the solids-law filing prefers oxygen; part A 3.2 step 4 prefers magnesium", OPEN,
              "neon is not measured in photospheres (set values 7.93 to 8.15); both options are kept, 8 percent apart in Z"),
-    Relation("[Eu/Fe] by branch", "Battistini and Bensby 2016 (part A 2.7)", PARTLY_VERIFIED, "paper not among the papers"),
-    Relation("[Th/Eu] at zero age", "Botelho et al. 2019 Table 4", PARTLY_VERIFIED,
+    Relation("[Eu/Fe] by branch", "[R0285] (part A 2.7)", PARTLY_VERIFIED, "paper not among the papers"),
+    Relation("[Th/Eu] at zero age", "[R0478, R0479] Table 4", PARTLY_VERIFIED,
              "Th is measured near solar [Fe/H] only (+-0.1 dex), so Th elsewhere is inferred through Eu"),
-    Relation("first dredge-up", "Boothroyd and Sackmann 1999 Tables 2 and 4", PARTLY_VERIFIED,
+    Relation("first dredge-up", "[R0467: Tables 2 and 4]", PARTLY_VERIFIED,
              "1 to 2.5 solar masses, Z 0.001 to 0.02; nitrogen at low Z not extracted, held at the Z = 0.02 factor"),
-    Relation("Wolf-Rayet surface fractions", "Crowther 2007 section 3.5", PARTLY_VERIFIED, "the helium and oxygen split is open"),
-    Relation("main-sequence luminosity, temperature, radius and lifetime", "MIST v1.2 basic isochrones, v/vcrit 0.4 (Choi et al. "
-             "2016; Dotter 2016), downloaded at setup (SC1, datasets.isochrones)", PARTLY_VERIFIED,
+    Relation("Wolf-Rayet surface fractions", "[R0948] section 3.5", PARTLY_VERIFIED, "the helium and oxygen split is open"),
+    Relation("main-sequence luminosity, temperature, radius and lifetime", "MIST v1.2 basic isochrones, v/vcrit 0.4 ([R0773]; "
+             "[R1150]), downloaded at setup (SC1, datasets.isochrones)", PARTLY_VERIFIED,
              "solar-scaled, 0.1 solar masses and up, 0.1 Myr to about 20 Gy; a star's present mass stands for its initial one"),
-    Relation("white dwarf radius against mass and temperature", "Bedard et al. 2020 cooling sequences, downloaded at setup (SC2, "
+    Relation("white dwarf radius against mass and temperature", "[R0308] cooling sequences, downloaded at setup (SC2, "
              "datasets.white_dwarf_models)", PARTLY_VERIFIED,
              "carbon-oxygen cores, 0.20 to 1.30 solar masses; a helium-core or oxygen-neon white dwarf takes the same sequences"),
     Relation("white dwarf radius without the downloaded sequences", "Chandrasekhar equation of state integrated by "
-             "scripts/build_white_dwarf_table.py; Sirius B (Joyce et al. 2018)", STAND_IN,
+             "scripts/build_white_dwarf_table.py; Sirius B [R2208]", STAND_IN,
              "taken only by a run told to disregard missing data; no Coulomb or temperature correction: 3 to 5 percent"),
-    Relation("white dwarf core type by mass", "Althaus et al. 2010 (oxygen-neon above 1.05 solar masses)", PARTLY_VERIFIED,
+    Relation("white dwarf core type by mass", "[R0085] (oxygen-neon above 1.05 solar masses)", PARTLY_VERIFIED,
              "the helium-core limit of 0.45 is recalled; the carbon-oxygen split and the layer masses are open"),
-    Relation("white dwarf atmosphere shares and pollution", "Xu, Rogers and Blouin 2024", VERIFIED),
-    Relation("white dwarf layers", "Bedard et al. 2020 (thick: q_H 1e-4, thin: q_H 1e-10, q_He 1e-2; SC2)", PARTLY_VERIFIED,
+    Relation("white dwarf atmosphere shares and pollution", "Xu, [R4798]", VERIFIED),
+    Relation("white dwarf layers", "[R0308] (thick: q_H 1e-4, thin: q_H 1e-10, q_He 1e-2; SC2)", PARTLY_VERIFIED,
              "the sequences assume an even C:O core, not a measured split; none for a helium-core or oxygen-neon white dwarf"),
-    Relation("neutron star mass populations", "Ozel and Freire 2016; Romani 2022", VERIFIED),
-    Relation("neutron star radius band", "Miller et al. 2021 (hull of the 1-sigma intervals)", VERIFIED),
-    Relation("neutron star outer crust sequence", "Servais and Chamel 2026, 20 nuclear mass models, downloaded at setup (SC3, "
-             "datasets.neutron_star_matter); it replaced Chamel and Haensel 2008 Table 2", PARTLY_VERIFIED,
+    Relation("neutron star mass populations", "[R3396, R3804]", VERIFIED),
+    Relation("neutron star radius band", "[R3075] (hull of the 1-sigma intervals)", VERIFIED),
+    Relation("neutron star outer crust sequence", "[R4028], 20 nuclear mass models, downloaded at setup (SC3, "
+             "datasets.neutron_star_matter); it replaced [R0722: Table 2]", PARTLY_VERIFIED,
              "one mass model is drawn per star; the unmagnetised files only"),
-    Relation("neutron star outer crust without the downloaded tables", "Chamel and Haensel 2008 Table 2", STAND_IN,
+    Relation("neutron star outer crust without the downloaded tables", "[R0722: Table 2]", STAND_IN,
              "taken only by a run told to disregard missing data; one sequence instead of 20 nuclear mass models"),
-    Relation("neutron star inner crust and core", "Malik, Pais and Providencia 2024, 21 equations of state, downloaded (SC3)",
+    Relation("neutron star inner crust and core", "[R2834], 21 equations of state, downloaded (SC3)",
              OPEN, "a star's radius is read from the integrated mass-radius curves of the 21 tables, weighted by NICER (physics/neutron_star.py); the inner crust and core composition is not drawn from them yet"),
     Relation("black hole quantities", "Kerr-Newman formulas (Bardeen, Press and Teukolsky 1972); the no-hair theorem "
-             "(Chrusciel, Costa and Heusler 2012)", VERIFIED),
-    Relation("brown dwarf deuterium limit", "Spiegel, Burrows and Milsom 2011 Table 1", VERIFIED),
-    Relation("brown dwarf lithium and hydrogen limits", "Burrows et al. 2001", VERIFIED, "at solar metallicity"),
-    Relation("brown dwarf hydrogen limit against metallicity", "Burrows et al. 2001 (0.092 at Z = 0)", STAND_IN,
+             "[R0790]", VERIFIED),
+    Relation("brown dwarf deuterium limit", "[R4170: Table 1]", VERIFIED),
+    Relation("brown dwarf lithium and hydrogen limits", "[R0606]", VERIFIED, "at solar metallicity"),
+    Relation("brown dwarf hydrogen limit against metallicity", "[R0606] (0.092 at Z = 0)", STAND_IN,
              "linear in Z between the two values; the MIST grid (SC1) starts at 0.1 solar masses and cannot give it"),
-    Relation("brown dwarf radius", "Baraffe et al. 2015 (BHAC15) track at 1 Gyr, solar Z", STAND_IN,
+    Relation("brown dwarf radius", "[R0254] (BHAC15) track at 1 Gyr, solar Z", STAND_IN,
              "one age and one metallicity; the MIST grid (SC1) starts at 0.1 solar masses, above every brown dwarf"),
 )
 
@@ -181,7 +180,7 @@ UNLISTED_METAL_FRACTION = PROTO_Z - sum(PROTO_MASS_FRACTION.values())
 # --- The branch --------------------------------------------------------------------------------------------------------
 
 def high_alpha_probability(fe_h):
-    """P(high-alpha) for a star old enough to be thick-disc, a logistic in [Fe/H] (Bensby, Feltzing and Oey 2014): 0.5 at
+    """P(high-alpha) for a star old enough to be thick-disc, a logistic in [Fe/H] [R0349]: 0.5 at
     -0.35, 0.76 at -0.5, 0.97 at -0.8 and 0.9999 at -1.6."""
     f0, width = tuning.STELLAR_HIGH_ALPHA_LOGISTIC
     return 1.0 / (1.0 + math.exp((fe_h - f0) / width))
@@ -205,12 +204,12 @@ def _thin_weight(subject):
 BRANCH_TABLE = pt.REGISTRY.register(pt.Table(
     "stellar-abundance-branch", 1,
     (pt.Row("high-alpha sequence", (pt.ANY_CLASS,), _high_alpha_weight,
-            "Bensby, Feltzing and Oey 2014 (logistic in [Fe/H]); Haywood et al. 2013 (age gate)",
+            "[R0349] (logistic in [Fe/H]); [R1863] (age gate)",
             state=pt.PARTLY_VERIFIED, limit="the Bensby fit is part A 2.6's; the age gate is uncertain by 1 to 1.5 Gy",
             conditions=(pt.Condition("age_gy", minimum=tuning.STELLAR_THICK_START_GY),),
             notes="alpha-rich: thick disc and halo stars"),
      pt.Row("thin sequence", (pt.ANY_CLASS,), _thin_weight,
-            "Bensby, Feltzing and Oey 2014 (logistic in [Fe/H]); Haywood et al. 2013 (age gate)",
+            "[R0349] (logistic in [Fe/H]); [R1863] (age gate)",
             state=pt.PARTLY_VERIFIED, limit="the Bensby fit is part A 2.6's; the age gate is uncertain by 1 to 1.5 Gy",
             notes="every star younger than the age gate, and the old ones the logistic leaves")),
     description="Which abundance sequence a star belongs to (stellar-composition.md section 3 step 2). The high-alpha row comes "
@@ -302,7 +301,7 @@ def residual_offsets(branch, normals):
 def carbon_enhanced(fe_h, u_enhanced, u_carbon):
     """[C/Fe] of a carbon-enhanced metal-poor star, or `None` when the star is not one: below [Fe/H] -2 a star is one when
     `u_enhanced` is under 0.25 (and always below -4, which the stored [Fe/H] floor never reaches), and its [C/Fe] is 0.7 plus
-    `u_carbon` times 1.3 (Frebel and Norris 2015)."""
+    `u_carbon` times 1.3 [R1448]."""
     cemp = tuning.STELLAR_CEMP
     if fe_h >= cemp["fe_h_below"]:
         return None
@@ -452,7 +451,7 @@ def _interpolate(xs, ys, x):
 def first_dredge_up(mass_sol, z):
     """
     The surface change of the first dredge-up for a star of `mass_sol` solar masses and metal fraction `z` 
-    (Boothroyd and Sackmann 1999): the rise in helium, the factors on C/Z and N/Z, linear in mass between the table's rows (1, 1.5, 2, 2.5)
+    [R0467]: the rise in helium, the factors on C/Z and N/Z, linear in mass between the table's rows (1, 1.5, 2, 2.5)
     and in log Z between its two metallicities (0.001 and 0.02). Outside either range the table's edge is held (`mass_held`,
     `z_held`). Nitrogen at low Z is not tabulated, so its factor is the Z = 0.02 one at every Z (partly verified).
     """
@@ -530,7 +529,7 @@ def birth_radiogenic(star, branch, eu_normal=0.0, th_eu_normal=0.0):
     The birth abundances of Eu, Th and U of `star` (a `StellarComposition`), for GEN.459: `{"abundances": {symbol: atoms per
     hydrogen atom}, "mass_fractions": {symbol: mass fraction}, "eu_fe", "th_eu"}`. [Eu/Fe] is the branch's mean plus
     `eu_normal` times its scatter; Th is Eu times the solar birth Th/Eu times 10^[Th/Eu] with [Th/Eu] = 0.014 plus
-    `th_eu_normal` times 0.045 (Botelho et al. 2019); U is Th times the solar birth U/Th. Th is measured near solar [Fe/H]
+    `th_eu_normal` times 0.045 [R0478, R0479]; U is Th times the solar birth U/Th. Th is measured near solar [Fe/H]
     only, so away from it Th is inferred through Eu (partly verified). Potassium is not fitted.
     """
     logs = tuning.STELLAR_SOLAR_LOG_EPS
@@ -577,7 +576,7 @@ def white_dwarf_radius_solar(mass_sol):
 
 def white_dwarf_core(mass_sol):
     """The core type of a white dwarf: "helium" below `tuning.STELLAR_WD_HELIUM_CORE_MAX_SOL` (recalled, open), "oxygen-neon"
-    above `tuning.STELLAR_WD_ONE_CORE_MIN_SOL` (Althaus et al. 2010), "carbon-oxygen" between. The downloaded sequences are
+    above `tuning.STELLAR_WD_ONE_CORE_MIN_SOL` [R0085], "carbon-oxygen" between. The downloaded sequences are
     carbon-oxygen only (`datasets.white_dwarf_models`), so the other two cores have no layers."""
     if mass_sol < tuning.STELLAR_WD_HELIUM_CORE_MAX_SOL:
         return "helium"
@@ -593,8 +592,7 @@ NEUTRON_STAR_OUTER_CRUST = (
     ("Fe-56", 8.02e6), ("Ni-62", 2.71e8), ("Ni-64", 1.33e9), ("Ni-66", 1.50e9), ("Kr-86", 3.09e9), ("Se-84", 1.06e10),
     ("Ge-82", 2.79e10), ("Zn-80", 6.07e10), ("Zn-82", 8.46e10), ("Pd-128", 9.67e10), ("Ru-126", 1.47e11), ("Mo-124", 2.11e11),
     ("Zr-122", 2.89e11), ("Sr-120", 3.97e11), ("Kr-118", 4.27e11))
-"""tuple: `(nucleus, density at which it stops being the ground state, g/cm3)` from the surface inward (Chamel and Haensel 2008
-Table 2, Ruster et al. data and BSk8). The stand-in a run that disregards missing data (GEN.599) takes in place of the 20
+"""tuple: `(nucleus, density at which it stops being the ground state, g/cm3)` from the surface inward ([R0722: Table 2], Ruster et al. data and BSk8). The stand-in a run that disregards missing data (GEN.599) takes in place of the 20
 downloaded nuclear mass models; neutron drip follows at about 4e11 g/cm3."""
 
 NEUTRON_DRIP_DENSITY_G_CM3 = 4.0e11
@@ -647,7 +645,7 @@ JUPITER_MASS_SOL = _kg_to_msun(1.89813e27)
 
 def deuterium_burning_limit_mj(z, y=None):
     """The mass (Jupiter masses) above which a brown dwarf burns deuterium: 13.55 - 0.9 log10(Z / 0.0189) - 0.2 (Y - 0.25) / 0.01
-    (a linear fit of Spiegel, Burrows and Milsom 2011 Table 1, whose solar Z is 0.0189 and not the scale's). The published
+    (a linear fit of [R4170: Table 1], whose solar Z is 0.0189 and not the scale's). The published
     range is 11.0 to 16.3 Jupiter masses; the fit is held inside it. `y` defaults to the helium the scale gives at `z`."""
     law = tuning.STELLAR_BROWN_DWARF
     helium = PRIMORDIAL_Y + HELIUM_PER_METAL * z if y is None else y
@@ -658,12 +656,12 @@ def deuterium_burning_limit_mj(z, y=None):
 
 
 def lithium_burning_limit_sol():
-    """The mass (solar masses) above which a brown dwarf burns lithium, 0.06 (63 Jupiter masses; Burrows et al. 2001)."""
+    """The mass (solar masses) above which a brown dwarf burns lithium, 0.06 (63 Jupiter masses; [R0606])."""
     return tuning.STELLAR_BROWN_DWARF["lithium_sol"]
 
 
 def hydrogen_burning_limit_sol(z):
-    """The mass (solar masses) above which a star burns hydrogen: 0.074 at solar Z (the upper of Burrows et al. 2001's
+    """The mass (solar masses) above which a star burns hydrogen: 0.074 at solar Z (the upper of [R0606]'s
     0.070 to 0.074) and 0.092 at Z = 0, linear in Z between and held at 0.074 above the scale's solar Z. The dependence on Z is a
     parametrisation (stand-in), not a source's law."""
     law = tuning.STELLAR_BROWN_DWARF
@@ -679,7 +677,7 @@ def hydrogen_burning_limit_for_fe_h(fe_h):
 
 
 def brown_dwarf_radius_solar(mass_sol, age_gy=1.0):
-    """The radius (solar radii) of a brown dwarf or low-mass star at an age, solar metallicity, from the Baraffe et al. 2015 table, continued
+    """The radius (solar radii) of a brown dwarf or low-mass star at an age, solar metallicity, from the [R0254] table, continued
     past the age it loses the mass (`baraffe_isochrones.cooling_track`; GEN.948: it was nine points at 1 Gyr).
 
     Raises:

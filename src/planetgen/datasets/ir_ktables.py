@@ -4,13 +4,13 @@
 Correlated-k absorption tables of the infrared-active gases (GEN.715, AD10): the opacity of water vapour, carbon dioxide and methane
 from line lists, at every pressure and temperature the greenhouse model needs.
 
-Source: the ExoMolOP opacity tables of the ExoMol project (Chubb et al. 2021, A&A 646, A21, doi:10.1051/0004-6361/202038350), the
+Source: the ExoMolOP opacity tables of the ExoMol project [R0795], the
 ARCiS-format correlated-k tables at resolving power 1000 from 0.3 to 50 micron, 22 pressures (1e-5 to 100 bar), 27 temperatures
 (100 to 3400 K) and 20 Gauss-Legendre g points per wavelength:
 
-- H2O from the POKAZATEL line list (Polyansky et al. 2018, MNRAS 480, 2597),
-- CO2 from the UCL-4000 line list (Yurchenko et al. 2020, MNRAS 496, 5282),
-- CH4 from the YT34to10 line list (Yurchenko et al. 2014, MNRAS 440, 1649).
+- H2O from the POKAZATEL line list [R3571],
+- CO2 from the UCL-4000 line list [R4854],
+- CH4 from the YT34to10 line list [R4855].
 
 Each file is 370 to 465 MB. The three are transient pieces: setup downloads them once, checks their sha256, reduces them to the
 129 bands of `BAND_EDGES_CM1` (20 cm-1 wide from 10 to 5 micron, then 50, 100 and 250 cm-1 wide) and 10 g points (six under
@@ -41,7 +41,7 @@ BLOCK_BYTES = 2880
 """int: The size of a FITS block."""
 
 DERIVED = "ir_ktables.npz"
-SOURCE = "ExoMolOP R1000 correlated-k tables (Chubb et al. 2021)"
+SOURCE = "ExoMolOP R1000 correlated-k tables [R0795]"
 
 GASES = {
     "H2O": ("ir_ktable_h2o.fits.gz", "https://exomol.com/db/H2O/1H2-16O/POKAZATEL/1H2-16O__POKAZATEL__R1000_0.3-50mu.ktable.ARCiS.fits.gz",
@@ -223,7 +223,7 @@ def derive(folder):
 DATASET = fetch.Dataset(
     key="ir_ktables",
     title="Infrared correlated-k tables of H2O, CO2 and CH4 (ExoMolOP, R1000, line lists POKAZATEL, UCL-4000 and YT34to10)",
-    source="Chubb et al. 2021 (A&A 646, A21), ExoMolOP R1000 ARCiS k-tables from exomol.com",
+    source="[R0795], ExoMolOP R1000 ARCiS k-tables from exomol.com",
     pieces=tuple(fetch.Piece(name, url, sha, size, transient=True) for name, url, sha, size in GASES.values()),
     replaces="the band-strength and wing stand-ins of the grey infrared opacity: plateau opacities per band centre of the gas table",
     fill="AD10",

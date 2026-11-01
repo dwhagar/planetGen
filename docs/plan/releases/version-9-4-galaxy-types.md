@@ -32,7 +32,6 @@ The type draw and the Sérsic spheroid component, which every family reads.
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| UX.135 | One simple vector outline per galaxy family in the icon library: spiral, barred spiral, lenticular, elliptical, irregular and dwarf spheroid |  | Boss 9:00 PM EDT: an outline image per galaxy type. |
 
 ## Phase 2: The families
 
@@ -98,13 +97,13 @@ The seed draws the family and the galaxy stores it.
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| UX.134 | Generate page: the galaxy type shows what the seed drew and can be pinned | GEN.389, UX.135 | Step 8 of the galaxy types chain. |
+| UX.134 | Generate page: the galaxy type shows what the seed drew and can be pinned | GEN.389 | Step 8 of the galaxy types chain. |
 
 ### Galaxy Map
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| MAP.242 | The Galaxy Map and its key draw what the family has: arms and bar only where they exist, a spheroid shell, a lens or a clumpy body | GEN.389, UX.135 | Step 8 of the galaxy types chain. |
+| MAP.242 | The Galaxy Map and its key draw what the family has: arms and bar only where they exist, a spheroid shell, a lens or a clumpy body | GEN.389 | Step 8 of the galaxy types chain. |
 
 ### Plausibility tests
 

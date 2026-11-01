@@ -1,7 +1,7 @@
 # tests/test_neutron_star_structure_real.py
 
 """
-GEN.968 on the 21 real equations of state of Malik, Pais and Providência 2024, against what NICER and the pulsar timing
+GEN.968 on the 21 real equations of state of [R2834], against what NICER and the pulsar timing
 measured. Skipped on a machine whose cache folder does not hold them (`python3 -m planetgen.cli.datasets fetch
 neutron_star_matter`); `test_neutron_star_structure.py` covers the integration on equations of state built there.
 """

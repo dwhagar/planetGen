@@ -155,7 +155,7 @@ def test_the_fit_script_reads_a_saved_query_and_reproduces_the_file(tmp_path):
 
 def target(**overrides):
     raw = {"id": "mr-mean", "row": "tab:r", "statistic": "mean measured density of the precisely measured planets", "kind": "mean",
-           "value": 5.0, "sigma": 1.0, "n": 50, "source": "Luque and Palle 2022", "label": "READ", "selection_model": mr.MODEL_ID,
+           "value": 5.0, "sigma": 1.0, "n": 50, "source": "[R2774]", "label": "READ", "selection_model": mr.MODEL_ID,
            "field": "measured_density_g_cm3", "validity": {"radius_earth": [None, 4.0]}}
     raw.update(overrides)
     return th.TargetTable({"version": 1, "targets": [raw]}).get("mr-mean")

@@ -52,7 +52,7 @@ def test_the_default_galaxy_reaches_shell_3438_with_the_core_first(milky_way):
     for the same mass, so the edge sat at shell 3596; GEN.545 derived the mean system mass (0.483 solar masses a system
     where 0.4 had been recalled), so the galaxy holds a sixth fewer systems and the edge sat at shell 3473; the primary mass
     function of GEN.928 makes the mean system mass 0.508 (the Chabrier function and the companions it leaves out of the
-    primaries, GEN.927), 5% fewer systems again, and the edge sat at shell 3441; the companions' mass ratios of GEN.951 (Moe and Di Stefano 2017,
+    primaries, GEN.927), 5% fewer systems again, and the edge sat at shell 3441; the companions' mass ratios of GEN.951 ([R3108],
     lighter companions for massive primaries and twins for close pairs) move the systems per solar mass by 0.3 percent, and the edge sits at shell 3438."""
     extents, outer, confirmed = milky_way
     assert outer == 3438 and confirmed

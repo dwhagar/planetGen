@@ -87,7 +87,7 @@ def _chappuis_295k_cm2():
 def chappuis_cross_section_cm2(temperature_k=None):
     """
     The ozone cross section on `WAVELENGTHS_NM` at `temperature_k` (`radiation.DEFAULT_OZONE_TEMPERATURE_K` when `None`), cm2 per molecule: the
-    295 K table of the Brion-team data of the MPI-Mainz atlas (DATA-LICENSE.md) times the ratio of Burkholder and Talukdar (1994) at that
+    295 K table of the Brion-team data of the MPI-Mainz atlas (DATA-LICENSE.md) times the ratio of [R0599] at that
     temperature, linear between 220, 240, 260, 280 and 298 K and held outside (GEN.748).
     """
     document = _chappuis_document()
