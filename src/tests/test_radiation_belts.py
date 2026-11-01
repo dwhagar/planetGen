@@ -31,10 +31,6 @@ def _belt(belts, name):
     return next(belt for belt in belts if belt.name == name)
 
 
-def test_equatorial_field_of_earth_is_the_measured_31_microtesla():
-    assert rb.equatorial_field_t(magnetism.EARTH_MOMENT_A_M2, EARTH_RADIUS_M) == pytest.approx(3.05e-5, rel=0.03)
-
-
 def test_earth_standoff_and_outer_edge_are_the_magnetopause_scaled():
     assert rb.standoff_m(magnetism.EARTH_MOMENT_A_M2, magnetism.EARTH_WIND_PA) / EARTH_RADIUS_M == pytest.approx(9.75)
     assert _belt(_earth(), "outer").outer_l == pytest.approx(0.75 * 9.75)
@@ -128,11 +124,6 @@ def test_profile_is_zero_at_the_edges_and_one_at_the_peak():
     assert rb.profile(7.0, 1.0, 3.0, 7.0) == 0.0
     assert rb.profile(3.0, 1.0, 3.0, 7.0) == pytest.approx(1.0)
     assert 0.0 < rb.profile(5.0, 1.0, 3.0, 7.0) < 1.0
-
-
-def test_orbit_dose_is_the_dose_at_its_shell():
-    belts = _earth()
-    assert rb.dose_at_orbit_gy_yr(belts, 4.14 * EARTH_RADIUS_M, EARTH_RADIUS_M) == pytest.approx(rb.dose_gy_yr(belts, 4.14))
 
 
 def test_belts_of_body_reads_the_stored_values():

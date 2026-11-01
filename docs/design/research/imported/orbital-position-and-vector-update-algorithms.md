@@ -823,10 +823,6 @@ Python
 
 ### References
 
-* Archinal, B. A., A'Hearn, M. F., Bowell, E., Conrad, A., Consolmagno, G. J., Courtin, R., ... & Williams, I. P. (2011). Report of the IAU Working Group on Cartographic Coordinates and Rotational Elements: 2009. _Celestial Mechanics and Dynamical Astronomy_, 109(2), 101–135.
+* [R0135]
 
-* Higham, N. J. (2002). _Accuracy and Stability of Numerical Algorithms_ (2nd ed.). Society for Industrial and Applied Mathematics.
-
-* Kim, B., Cooper, A. P., Koposov, S. E., et al. (2025). Kinematic analysis of Galactic halo and disk stars in DESI and Gaia DR3. _Monthly Notices of the Royal Astronomical Society_, 540(1), 264–288.
-
-* Ortega, J. M., & Rheinboldt, W. C. (1970). _Iterative Solution of Nonlinear Equations in Several Variables_. Academic Press.
+* [R1936]

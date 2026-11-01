@@ -117,7 +117,7 @@
   {%- if planet.life_class %}
   {%- if planet.life_class.paragraph %}<p class="life-summary">{{ planet.life_class.paragraph }}</p>{% endif %}
   {%- if planet.life_class.readings %}
-  <table class="life-readings">
+  <div class="table-scroll" tabindex="0"><table class="life-readings">
     <caption class="sr-only">Each kind of life on this {{ kind_label|lower }}</caption>
     <thead><tr><th scope="col">Kind <a class="help-link help-mark" href="{{ page_url('life_help_page') }}" aria-label="What the kinds of life are">?</a></th><th scope="col">How much <a class="help-link help-mark" href="{{ page_url('life_help_topic', topic='abundance') }}" aria-label="What the words for how much mean">?</a></th><th scope="col">Trend <a class="help-link help-mark" href="{{ page_url('life_help_topic', topic='trend') }}" aria-label="What the words for trend mean">?</a></th><th scope="col">Security <a class="help-link help-mark" href="{{ page_url('life_help_topic', topic='security') }}" aria-label="What the words for security mean">?</a></th>{% if planet.life_class.readings|selectattr("left")|list %}<th scope="col">Conditions last</th>{% endif %}</tr></thead>
     <tbody>
@@ -125,7 +125,7 @@
       <tr><th scope="row">{{ r.kind }}</th><td>{{ r.abundance }}</td><td>{{ r.trend }}</td><td>{{ r.security }}</td>{% if planet.life_class.readings|selectattr("left")|list %}<td>{{ r.left }}</td>{% endif %}</tr>
       {%- endfor %}
     </tbody>
-  </table>
+  </table></div>
   {%- endif %}
   {%- if planet.life_class.facts %}
   <dl class="life-facts">

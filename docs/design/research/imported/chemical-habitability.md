@@ -172,84 +172,44 @@ Conversely, technological human survival depends on energy availability and raw 
 References
 ----------
 
-* Ball, P., & Hallsworth, J. E. (2015). Water structure and chaotropicity: Their uses, abuses and biological implications. _Physical Chemistry Chemical Physics_, 17(13), 8297–8305.
+* [R0242]
 
-* Belilla, J., Moreira, D., Jardillier, L., Reboul, G., Benzerara, K., López-García, J. M., ... & López-García, P. (2019). Two physicochemical boundaries, liquid water and chaotropicity, limit life at Dallol. _Nature Ecology & Evolution_, 3(11), 1552–1561.
+* [R0631]
 
-* Canfield, D. E., & Thamdrup, B. (1994). The production of 34S-depleted sulfide during bacterial disproportionation of elemental sulfur. _Science_, 266(5193), 1973–1975.
+* [R0692]
 
-* Catling, D. C., & Kasting, J. F. (2017). _Atmospheric Evolution on Inhabited and Lifeless Worlds_. Cambridge University Press.
+* [R0690]
 
-* Catling, D. C., Claire, M. W., Zahnle, K. J., Quinn, R. C., Clark, B. C., Hecht, M. H., & Kounaves, S. P. (2010). Atmospheric origins of perchlorate on Mars: Indications for a global cycle. _Journal of Geophysical Research: Planets_, 115(E10).
+* [R5000]
 
-* Choukroun, M., & Grasset, O. (2007). Thermodynamic model for aqueous systems under high pressure and low temperature: Application to the large icy satellites of Jupiter and Saturn. _Chemical Geology_, 241(3-4), 302–315.
-
-* Clarke, A., Morris, G. J., Fonfe, F., Murray, B. J., McMinn, A., & Lane, K. P. (2013). Freezing and vitrification in biological systems: Astrobiological implications. _Cryobiology_, 66(3), 250–261.
-
-* Cockell, C. S., Bush, T., Bryce, C., Direktorenko, S., Fox-Powell, M., Harrison, J. P., ... & Payler, S. J. (2024). Sustained and comparative habitability beyond Earth. _Nature Astronomy_, 8(1), 30–38.
-
-* Cray, J. A., Russell, J. A., Timson, D. J., Singhal, R. S., & Hallsworth, J. E. (2013). A universal measure of chaotropicity and kosmotropicity. _Environmental Microbiology_, 15(1), 287–296.
-
-* Cray, J. A., Stevenson, A., Ball, P., Bankar, S. B., Eleutherio, E. C., Ezeji, T. C., ... & Hallsworth, J. E. (2020). Chaotropicity: A key environmental parameter determining the habitability of extreme aqueous environments. _Frontiers in Microbiology_, 10, 1478.
+* [R0915]
 
 * Current Trends in Biological Science. (2025). Microbial biofilms and perchlorate reduction for Martian regolith detoxification and agriculture. _Current Trends in Biological Science_, 1(1), 1–9.
 
-* Dalmasso, C., Oger, P., Selva, M. A., Courtine, D., L'Haridon, S., & Jebbar, M. (2016). _Thermococcus piezophilus_ sp. nov., a novel hyperthermophilic and piezophilic archaeon isolated from a deep-sea hydrothermal vent. _International Journal of Systematic and Evolutionary Microbiology_, 66(11), 4307–4312.
+* [R0989]
 
-* Damer, B., & Deamer, D. (2020). The hot spring hypothesis for an origin of life. _Astrobiology_, 20(4), 429–452.
+* [R1019]
 
-* Daswani, M. M. (2020). Geochemical modeling of Europa's interior and volatile inventory: Ocean formation and composition. In _Goldschmidt Abstracts_, 2020, 563.
+* [R2085]
 
-* Davila, A. F., Willson, D., Coates, J. D., & McKay, C. P. (2013). Perchlorate on Mars: A chemical hazard and a resource for humans. _International Journal of Astrobiology_, 12(4), 321–325.
+* [R2313]
 
-* Gaillard, F., Bouhifd, M. A., Furi, E., Malavergne, V., Marrocchi, Y., Noack, L., ... & Ruzié-Hamilton, L. (2022). Mantle oxidation state and the chemical diversity of outgassed volcanic atmospheres on terrestrial exoplanets. _Space Science Reviews_, 218(8), 65.
+* [R2381]
 
-* Glein, C. R. (2023). Phosphorus in Enceladus' soda ocean: Geochemical disequilibrium and prebiotic abundance. _Planetary Radio / PNAS_, 120(26), e2216036120.
+* [R2488]
 
-* Goldblatt, C., & Watson, A. J. (2012). The runaway greenhouse effect: Radiation limits, climate tipping points, and the fate of the terrestrial atmosphere. _Philosophical Transactions of the Royal Society A_, 370(1974), 4197–4216.
+* [R2626]
 
-* Hallsworth, J. E., Heim, S., & Timmis, K. N. (2007). Limits of life in hostile environments: Chaotropic compounds and macromolecular flexibility. _Environmental Microbiology_, 9(3), 801–813.
+* [R2880]
 
-* Ingersoll, A. P. (1969). The runaway greenhouse: A history of water on Venus. _Journal of the Atmospheric Sciences_, 26(6), 1191–1198.
-
-* Kempe, S., & Degens, E. T. (1985). An early soda ocean?. _Chemical Geology_, 53(1-2), 95–108.
-
-* Kite, E. S., & Ford, E. B. (2018). Habitability of exoplanet waterworlds. _The Astrophysical Journal_, 864(1), 75.
-
-* Komabayashi, M. (1967). Liquid water and the maximum outgoing longwave radiation of planetary atmospheres. _Journal of the Meteorological Society of Japan_, 45(1), 137–139.
-
-* Krissansen-Totton, J., Arney, G. N., & Catling, D. C. (2018). Constraining the climate and ocean pH of the early Earth with a geological carbon cycle model. _Proceedings of the National Academy of Sciences_, 115(16), 4105–4110.
-
-* Krissansen-Totton, J., Garland, R., & Fortney, J. J. (2021). Carbon dioxide condensation and planetary climate hysteresis at the outer edge of the habitable zone. _AGU Advances_, 2(2), e2020AV000320.
-
-* Léger, A., Selsis, F., Sotin, C., Guillot, T., Despois, D., Mawet, D., ... & Barge, P. (2004). A new family of planets? "Ocean-Planets". _Icarus_, 169(2), 499–504.
-
-* Lichtenberg, T., Golabek, G. J., Burn, R., Meyer, M. R., Alibert, Y., Gerya, T. V., & Mordasini, C. (2019). Bifurcation of planetesimal oxidation state and water content by radioisotope heating. _Nature Astronomy_, 3(4), 307–313.
-
-* Liu, J., Ren, C., & Zhang, Y. (2021). Molybdenum-catalyzed reduction of perchlorates under ambient conditions for planetary environmental remediation. _Journal of the American Chemical Society_, 143(22), 8410–8417.
-
-* Marion, G. M., Fritsen, C. H., Eicken, H., & Payne, M. C. (2003). The search for life on Europa: Limiting environmental factors, potential habitats, and biosignatures. _Astrobiology_, 3(4), 785–811.
-
-* Nakajima, S., Hayashi, Y. Y., & Abe, Y. (1992). A study on the runaway greenhouse effect with a one-dimensional radiative-convective equilibrium model. _Journal of the Atmospheric Sciences_, 49(23), 2256–2266.
+* [R3236]
 
 * NASA. (2024). Detoxifying Mars: Assessing perchlorate and chlorate health hazards. _NASA Technical Reports Server_.
 
-* Puiu, T. (2017). Mars surface toxicity and perchlorate photoactivation under ultraviolet flux. _ZME Science / Scientific Reports_, 7, 4662.
+* [R3986]
 
-* Rettberg, P., et al. (2022). The archaeal class Halobacteria and astrobiology: Knowledge gaps and research opportunities. _Frontiers in Microbiology_, 13, 856012.
+* [R5001]
 
-* Russell, M. J., Nitschke, W., & Branscomb, E. (2015). The inevitable journey to being: Early metabolisms in alkaline soda environments. _Astrobiology_, 15(12), 1084–1098.
+* [R4399]
 
-* Schwieterman, E. W., Reinhard, C. T., Olson, S. L., Harman, C. E., & Lyons, T. W. (2019). A limited habitable zone for complex life. _The Astrophysical Journal_, 878(1), 19.
-
-* Stevenson, A., Cray, J. A., Williams, J. P., Santos, R., Sahay, R., Neuenkirchen, N., ... & Hallsworth, J. E. (2015). Multiplication of microbes below 0.690 water activity: Implications for terrestrial and extraterrestrial life. _The ISME Journal_, 9(8), 1333–1345.
-
-* Toner, J. D., & Catling, D. C. (2020). A carbonate-rich lake solution to the phosphate problem of the origin of life. _Proceedings of the National Academy of Sciences_, 117(2), 883–888.
-
-* Toner, J. D., Catling, D. C., & Sletten, R. S. (2017). The geochemistry of Don Juan Pond: Evidence for cryogenic brine concentration and implications for martian recurring slope lineae. _Water Resources Research_, 53(3), 2133–2150.
-
-* Wadsworth, J., & Cockell, C. S. (2017). Perchlorates on Mars enhance the bacteriocidal effects of UV light. _Scientific Reports_, 7(1), 4662.
-
-* Wong, M. L., Bartlett, S., Chen, H., & Stern, J. (2025). Distinguishing conditions for habitability from mechanisms of abiogenesis in planetary system science. _Frontiers in Astronomy and Space Sciences_, 12, 1544426.
-
-* Wordsworth, R., Kalugina, Y., Lokshtanov, S., Vigasin, A., Ehlmann, B., Head, J., ... & Wang, C. (2018). Transient heat retention in reducing early planetary atmospheres. _Geophysical Research Letters_, 44(2), 665–671.
+* [R4580]
