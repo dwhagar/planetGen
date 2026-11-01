@@ -21,12 +21,12 @@
       "eff7c132b383a41b6530cf718d779f1494f98e94ebd91cff0fe795e1356692e4"
     ],
     "sector-a": [
-      "39898d898a4413c1a6055089a0226bb92818e499b8da976c904ed85130a3aac0",
-      "d4192dc3e91919a54cb8657a4c69f316294dea90e307f59042ec81700049bb83"
+      "cfc57cef317c1f115dee97d6da2ef16f966b25dee0337306df170468469bb4ae",
+      "d591c08dfabd432850c009aeeb2ca15dad6185e9378acc533acc56eaebac2467"
     ],
     "sector-b": [
-      "e89eaeba054aa415fc534cd1c312aa3b0917209ee1b21888615a48edbf9cdee9",
-      "613667d170e274c0cb80983945606b808d8317204ae9dfa4b67c3521ce725eff"
+      "188ba02ad8bbff579664822e5492afe00076fe71b816f24a5fab466fe9753bb7",
+      "a393b80a6eaf14cc47283ed3a23e892c2c4b164d5c6dec0d09cd78a198ea132f"
     ],
     "unit-seed": [
       "2b777a442eac9286c4b45163a3eb4d94298a1afd37c69dc201aa4e6ea13470fd",
@@ -35,9 +35,9 @@
   },
   "made_on": {
     "astropy": "8.0.2",
-    "numpy": "2.5.4",
+    "numpy": "2.5.3",
     "platform": "Linux-6.18.44-fc-v185-x86_64-with-glibc2.39",
     "python": "3.13.17"
   },
-  "overall": "67cea144640ada9549be49a2db035e9c8c60a2ff64e8cb442de755a66fa8b0aa"
+  "overall": "fb0d4a8df98d22b490d78847aa3ddc05caf0c83748110eb9116ecb4e1df5e673"
 }

@@ -291,8 +291,7 @@ What counts as read: the app is every module outside `physics`, `generation`, `g
 | function | planetgen.generation.run_galaxy.backfill_bright_stars_around | by design | the bright-star backfill (GEN.23) as one call with its own progress bar and shell log (PERF.28); a run does the same draw in `scatter-backfill` units (`expand_backfill_bright_stars`), so this form is what the tests and `tests/sector_support.make_sector` call to backfill one sector |
 | function | planetgen.generation.stats.job_shells_per_second | PERF.147 | the stored whole-job rate that starts the ETA of a task that takes over 15 seconds |
 | function | planetgen.generation.tuning_harness.check_target | by design | the entry of the tuning harness: draws a shipped recipe at a target's subject and compares it; the tests hold every recipe to its target through it, the generator never runs it |
-| function | planetgen.physics.belt_history.giant_event | GEN.1232 | the giant event and the companion limit of a belt, for the belt page |
-| function | planetgen.physics.belt_history.history_text | GEN.1232 | the belt history sentences shown on the belt page |
+| function | planetgen.physics.belt_history.giant_event | GEN.1232 | the giant event and the companion limit of a belt (GEN.1232b, after GEN.1068 belt birth) |
 | function | planetgen.physics.belt_history.is_polluted | GEN.1231 | the pollution flag of a white dwarf from the rate of its belt (GEN.1068 gives the belts that see the giants) |
 | function | planetgen.physics.birth_radioisotopes.fraction_above | by design | the observed share of a fixed-stream sampler, read by test_birth_radioisotopes and the research note, never by the generator |
 | function | planetgen.physics.brown_dwarf_types.type_probabilities | by design | the expected share of each class, read by test_brown_dwarf_types against the sampler it describes |

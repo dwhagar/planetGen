@@ -75,7 +75,7 @@ from planetgen.names import object_id as objectId
 from planetgen import tuning
 from planetgen.galaxy import component_field as componentField, components as galaxyComponents, containment, mass_chain as massChain, nebula_field as nebulaField, object_uid as objectUid, scales, scatter_limits as scatterLimits, seed as galaxySeed, shape_draw, uid as galaxyUid, version_key as versionKey
 from planetgen.physics import activity, atmosphere, bulk_mass, constants as physical_constants, climate_draws, habitability, habitability_world, hydrosphere, insolation, interior_heat, kepler, magnetism, pre_main_sequence, radiation, radiogenic, spin
-from planetgen.physics import aerosols, body_colour, body_strength, bulk_composition, daylight, giant_interior, life_classes, moon_composition, ocean_tides, orbit_elements, rings, surface_composition
+from planetgen.physics import aerosols, body_colour, belt_history, body_strength, bulk_composition, daylight, giant_interior, life_classes, moon_composition, ocean_tides, orbit_elements, rings, surface_composition
 from planetgen.generation import generator_battery as generatorBattery
 from planetgen.util import fingerprint_encoding as fingerprintEncoding, generator_epoch as generatorEpoch, log
 from planetgen.util.settings import env_name, get_settings
@@ -3289,6 +3289,9 @@ BELT_FIELDS = (
     object_rows.computed(("position_x_km", "position_y_km", "position_z_km", "velocity_x_kms", "velocity_y_kms",
                           "velocity_z_kms"), lambda belt, context: (0.0,) * 6),
     object_rows.computed(body_strength.POPULATION_FIELDS, lambda belt, context: body_strength.population_values(belt)),
+    # GEN.1232: what the star's evolution did to the belt, as one paragraph (NULL when nothing did), read back as the sentences' one line.
+    object_rows.computed("history_text", lambda belt, context: belt_history.history_text(belt) or None,
+                         load=lambda row: {"history": [row["history_text"]] if row["history_text"] else []}),
 )
 """tuple: The `Field`s of an `asteroid_belts` row."""
 

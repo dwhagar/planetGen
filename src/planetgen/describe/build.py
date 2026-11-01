@@ -565,9 +565,10 @@ def _belt_section(belt):
     ]
     rows.append(meteorite_group_fact(belt))
     parts = [{"name": component, "level": level} for component, level in belt.composition]
-    return section("belt", _ref("belt", belt), "Asteroid Belt",
-                   [facts("Asteroid belt", rows),
-                    model.composition("Composition", parts, format_composition_summary(belt.composition))])
+    blocks = [facts("Asteroid belt", rows), model.composition("Composition", parts, format_composition_summary(belt.composition))]
+    if belt.history:
+        blocks.append(prose("history", *belt.history))     # GEN.1232: what the giant branch and the mass loss did to it
+    return section("belt", _ref("belt", belt), "Asteroid Belt", blocks)
 
 
 def _comet_section(comet):

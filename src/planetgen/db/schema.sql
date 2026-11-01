@@ -1525,6 +1525,8 @@
 --   heat, cold, air, uv or vehicle; `physics/outside_hours.py`). NULL for a gas giant, an unscored body, a world whose daylight is not stored and a row made before v187, which gets them when the galaxy is regenerated.
 -- v199 (GEN.1159): `planets` and `moons` keep the roundness ratio (`roundness_ratio`, DOUBLE: mean radius over round radius, 1 or more is round), the yield strength (`yield_strength_pa`, DOUBLE, Pa) and the binding energy
 --   (`binding_energy_j`, DOUBLE, J) of the body (`physics/body_strength.py`), and `comets` keep those three with `density_g_cm3` and `ice_mass_fraction`, which `asteroid_belts` and `asteroid_fields` keep as the mean of their members. A gas giant keeps only the binding energy. NULL for a row made before v199, which gets them when the galaxy is regenerated.
+-- v200 (GEN.1232): `asteroid_belts.history_text` (TEXT, NULL), what the star's evolution did to the belt (engulfed in part by the giant branch, thrown inward by the mass loss; `physics/belt_history.py`), as one paragraph
+--   of plain sentences for the belt page. NULL for a belt nothing happened to and for a row made before v200, nothing is backfilled.
 -- v189 (GEN.1009): `scatter_members.radius_max_au` and `mass_max_solar` (DOUBLE, NULL), the largest radius and mass a member has had (a white dwarf's red-giant tip and birth mass), so the history rule and the build read what the tree drew from; NULL on a row made before v187, nothing is backfilled.
 -- v190 (GEN.474): `planets` and `moons` gain `ground_intermediate_fraction`, the areal share of intermediate (andesitic) ground, a ground type the volcanic crust of a body takes when the melt of its mantle
 --   is 52 to 63 percent silica; NULL on a row made before v190 (the regenerated galaxy replaces it; see `migrations/versions/0190_ground_intermediate.py`). (v190, GEN.475) `asteroid_belts` and `asteroid_fields`
@@ -3119,6 +3121,7 @@ CREATE TABLE IF NOT EXISTS asteroid_belts (
     parent_type                 VARCHAR(16) NOT NULL DEFAULT 'system',  -- v140 (DB.73): what it orbits, see the v140 note
     parent_id                   BIGINT UNSIGNED NULL,  -- v140 (DB.73)
     chondrite_group             VARCHAR(4) NULL,  -- v190 (GEN.475): the nearest chondrite group of the belt's mean composition (CI, CM, H, L ...), `none` far from every group, NULL before v190
+    history_text                TEXT NULL,  -- v200 (GEN.1232): what the star's evolution did to the belt (the giant branch, the mass loss), one paragraph, NULL for a belt nothing happened to and for a row made before v200
 
     UNIQUE KEY uq_asteroid_belts_uid (uid),
     KEY idx_asteroid_belts_parent (parent_type, parent_id),

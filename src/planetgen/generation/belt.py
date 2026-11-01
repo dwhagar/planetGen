@@ -118,7 +118,7 @@ class AsteroidBelt:
 
     SERIALIZABLE_FIELDS = ["distance", "lower_limit", "upper_limit", "body_type", "density", "mass_kg", "chondrite_group", "origin", "co_causes",
                            "formation_snow_line_au", "primordial_mass_earth", "cleared_mass_earth", "scattered_mass_earth", "stirred", "origin_history",
-                           "origin_sentence", "scatter_fates"]
+                           "origin_sentence", "scatter_fates", "history"]
     """
     Every attribute set by `__init__`, excluding `system_config` (a shared
     back-reference), `composition` (handled separately in `to_dict`/
@@ -138,6 +138,9 @@ class AsteroidBelt:
     """Where the belt came from (GEN.1068, `physics/belt_origin.py`): the formation cause (`gap`, `tail`, `snow-line-bump`, `outer-disc`, `destroyed-planet`, `collisional-debris`), the causes that
     coincide with it, the snow line when the system formed, the mass the belt formed with, what the giants cleared from it and what an instability scattered (Earth masses), whether a giant stirs it,
     the sentences of what shaped it, its sentence for the page and, for an outer disc, the shares the scatter step gave each population (`physics/scatter.py`). All empty for a belt a `SLOTS` entry asked for."""
+    history = ()
+    """tuple: What the star's evolution did to the belt, one sentence per event, in order (GEN.1232: `physics/belt_history`, run by `remnant_orbits` for the giant branch and the mass loss). Stored as one
+    paragraph (`asteroid_belts.history_text`) and shown on the belt's page; empty for a belt nothing has happened to."""
 
     def __init__(self, system_config: SystemConfig, star, distance, lower_limit, upper_limit, origin=None, scatter_fates=None): # Added system_config
         """

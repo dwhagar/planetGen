@@ -282,6 +282,7 @@ _BODY_GROUPS = (
 _PLANET = _MOON = _BODY_GROUPS
 
 _BELT = (
+    *_rows("identity", ("history_text", "What the star did to it", TEXT)),
     *_rows("orbit", ("distance_km", "Distance from its star"), ("lower_limit_km", "Inner edge"),
            ("upper_limit_km", "Outer edge")),
     *_rows("physical", ("density", "Density", TEXT), ("mass_kg", "Mass"), ("density_g_cm3", "Mean bulk density of its members")),
