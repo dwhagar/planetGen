@@ -2261,7 +2261,7 @@
       "x-restart": true,
       "x-secret": true,
       "x-slider": null,
-      "x-summary": "Signs the security tokens on forms; empty makes a random one at each start."
+      "x-summary": "Signs the security tokens on forms; empty makes one and keeps it in the state folder."
     },
     "seo": {
       "$ref": "#/$defs/Seo",

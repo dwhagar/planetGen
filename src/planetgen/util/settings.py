@@ -863,8 +863,8 @@ class Settings(_Section):
                           "(mode 0600), so every worker and restart shares it.", env="PLANETGEN_SECRET_KEY", restart=True,
                           secret=True, editable=False, group="security",
                           label="Form signing key",
-                          summary="Signs the security tokens on forms; empty makes a random one at "
-                                  "each start.")
+                          summary="Signs the security tokens on forms; empty makes one and keeps it in "
+                                  "the state folder.")
     password_hash: PasswordHash = PasswordHash()
     proxy_fix: ProxyFix = ProxyFix()
     cache: Cache = Cache()
