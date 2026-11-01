@@ -63,16 +63,16 @@ To generate a whole sector of star systems at once, see [Sector Generation](#sec
 
 ### Options
 
-Most `system` options use a `+name`/`-name` tri-state syntax (these forcing options are for a single system only; `sector` and `galaxy` refuse them): `+name` forces that feature to be present, `-name` forces it to be absent, and leaving it off the command line leaves it up to chance.
+Most `system` options use a `+name`/`-name` tri-state syntax (these forcing options are for a single system only; `sector` and `galaxy` refuse them): `+name` forces that feature to be present, `-name` forces it to be absent, and leaving it off the command line leaves it up to chance. Two options are the exception: `+habitable_world` and `+intelligent_life` only raise the odds of their outcome (the draws that lead to it are kept more often) and never force it, so a system may come out without one and says so.
 
 *   `--version`: Prints the program's version, repository URL, and license, then exits immediately.
-*   `+habitable_world` / `-habitable_world`: Force / forbid the generation of a habitable world in the system.
+*   `+habitable_world` / `-habitable_world`: Raise the odds of / forbid a habitable world in the system. The option raises the odds, never forces: no planet is placed or adapted for it, and the system's `habitable_request` says `unmet` when none came out.
 *   `+asteroid_belt` / `-asteroid_belt`: Force / forbid the generation of an asteroid belt in the system.
 *   `+comets` / `-comets`: Force / forbid comets in the system.
 *   `+large_star` / `-large_star`: Force / forbid the generation of a large star.
 *   `+moons` / `-moons`: Force / forbid moons on the system's planets.
 *   `+max_planets` / `-max_planets`: Force the system to the maximum, or the minimum, number of orbital objects it can support.
-*   `+intelligent_life` / `-intelligent_life`: Ensure a planet with intelligent life is (or is not) generated. Either implies `+habitable_world`.
+*   `+intelligent_life` / `-intelligent_life`: Raise the odds of a planet with intelligent life / forbid one. The option raises the odds, never forces: a civilization is never forced, and one needs a world whose timeline reaches it. Either implies `+habitable_world`.
 *   `+binary_system` / `-binary_system`: Force / forbid a binary star system.
 *   `+wide_binary` / `-wide_binary`: Force an S-type (wide) binary, or force a P-type (close) one instead. Only meaningful together with `+binary_system`; if omitted, one of the two is chosen at random.
 *   `+planets` / `-planets`: Ensure the system has at least one planet or asteroid belt, or none at all (star only).

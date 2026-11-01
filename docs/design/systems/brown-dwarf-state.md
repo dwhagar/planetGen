@@ -9,7 +9,7 @@ temperature and the radius its mass and age give.
 | Piece | Value | Source (read) |
 |---|---|---|
 | Cooling track | Teff and radius for every mass of the table (0.01 to 1.4 solar masses) at its 30 ages from 0.5 Myr to 10 Gy, linear in log mass and log age (`datasets/baraffe_isochrones.py`, `cooling_track`; GEN.948 replaced `tuning.BROWN_DWARF_TRACKS`, eleven thinned rows) | [R0254], the BHAC15 isochrones (`BHAC15_iso.2mass`) |
-| Past a track's last age | a track that reaches 10 Gy holds its last values (the hydrogen-burning plateau); a shorter one cools at `Teff ~ t^-0.32` with the last radius | [R0606], eq. 2 [R0606] |
+| Past a track's last age | a track that reaches 10 Gy holds its last values (the hydrogen-burning plateau); a shorter one cools at `Teff ~ t^-0.32` with the last radius at the lightest mass of the table of its last age; between that mass and the next heavier mass the table holds longer, the continuation goes straight in mass from that power law to the heavier mass's own change since the same age, so the track has no jump in mass (GEN.1137: 0.0699 solar masses at 5 Gy was 1,220 K beside 1,627 K at 0.07, now 1,620 K) | [R0606], eq. 2 [R0606] |
 | Temperature | the track's, no hotter than the temperature of the hydrogen-burning limit at the age (`substellar_ceiling.cap_k`: 2,950 K at the peak, 2,050 K at 1 Gy, 1,630 K at 5 Gy; a body at or above 0.07 solar masses only the 2,950 K peak) | [R0254] section 3.3 and the BHAC15 table (GEN.494) |
 | Radius | the track's, 0.09 to 0.16 solar radii old, larger when young | as above |
 | Luminosity | `L = R^2 (Teff / Teff_sun)^4` of the two | Stefan-Boltzmann |

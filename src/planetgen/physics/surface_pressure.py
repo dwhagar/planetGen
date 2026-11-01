@@ -21,7 +21,7 @@ surface, and the sinks that take gas back.
   have the temperature).
 
 * *Impacts.* The late accretion delivers and erodes gas before the degassing has done much (`impact_history`, GEN.739); `impact_inventory`
-  turns its balance into the same element budget and the caller adds it.
+  turns its balance into the same element budget and the caller adds it (`surface_air` adds the carbon and the nitrogen, GEN.819).
 
 Escape is not subtracted: the retention rows (`d1` to `d5`) and the Jeans filter of `mixture_escape` own it.
 

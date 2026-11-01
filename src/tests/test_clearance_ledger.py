@@ -68,14 +68,14 @@ def test_a_draw_with_no_probability_in_the_spans_says_so():
 # --- exclusions ---------------------------------------------------------------------------------------------------------------------------
 
 def _stub(distance, mass, eccentricity, star_mass):
-    return SimpleNamespace(distance=distance, mass=mass, eccentricity=eccentricity, star=SimpleNamespace(mass=star_mass))
+    return SimpleNamespace(body_type="t", distance=distance, mass=mass, eccentricity=eccentricity, star=SimpleNamespace(mass=star_mass))
 
 
 @pytest.mark.parametrize("e_in,e_out,m_in,m_out", [(0.0, 0.0, 6e24, 6e24), (0.1, 0.05, 1.9e27, 3e25), (0.3, 0.4, 5e26, 5e26), (0.02, 0.6, 1e23, 2e28)])
 def test_the_outer_edge_of_a_planet_exclusion_is_the_generators_closed_form(e_in, e_out, m_in, m_out):
     star = 1.0 * SOLAR
     _inner, outer = ledger.planet_exclusion(1.3, e_in, m_in, star, m_out, e_out)
-    assert outer == pytest.approx(validation.mutual_min_distance_au(_stub(2.0, m_out, e_out, star), _stub(1.3, m_in, e_in, star)), rel=1e-12)
+    assert outer == pytest.approx(validation.min_distance_after_au(_stub(2.0, m_out, e_out, star), [_stub(1.3, m_in, e_in, star)]), rel=1e-12)
 
 
 @pytest.mark.parametrize("e_in,e_out", [(0.0, 0.0), (0.1, 0.05), (0.3, 0.4)])
@@ -97,13 +97,13 @@ def test_a_planet_too_heavy_to_leave_room_inside_leaves_none():
 @pytest.mark.parametrize("mass,e", [(6e24, 0.0), (1.9e27, 0.2), (1e23, 0.5)])
 def test_the_outer_edge_of_a_belt_exclusion_is_the_generators_closed_form(mass, e):
     star = 1.0 * SOLAR
-    planet = _stub(0.0, mass, e, star)
-    belt = SimpleNamespace(upper_limit=2.3)
-    # the generator reads the planet's own Hill radius at the distance it sits at; the closed form divides by that distance, so any value agrees
-    planet.distance = 4.0
-    planet.hill_radius = orbits.calculate_hill_sphere(4.0 * constants.AU_TO_M, mass, star) / 1000.0
+    planet = _stub(4.0, mass, e, star)
+    belt = SimpleNamespace(body_type="a", lower_limit=1.9, upper_limit=2.3)
     _inner, outer = ledger.belt_exclusion(1.9, 2.3, mass, star, e)
-    assert outer == pytest.approx(validation.min_distance_past_belt_au(planet, belt), rel=1e-9)
+    assert outer == pytest.approx(validation.min_distance_after_au(planet, [belt]), rel=1e-12)
+    # and the closed form is the one the old rule solved: x (1 - e - 5c) = upper + gap, c = (m / 3 (M + m))^(1/3)
+    share = 5.0 * (mass / (3.0 * (star + mass))) ** (1.0 / 3.0)
+    assert outer == pytest.approx((2.3 + tuning.MIN_ASTEROID_BELT_SEPARATION) / (1.0 - share - e), rel=1e-12)
 
 
 def test_a_planet_inside_a_belt_exclusion_keeps_five_hill_radii_from_the_belts_inner_edge():
@@ -116,7 +116,7 @@ def test_a_planet_inside_a_belt_exclusion_keeps_five_hill_radii_from_the_belts_i
 # --- moons --------------------------------------------------------------------------------------------------------------------------------
 
 def test_the_domingos_limits_at_zero_eccentricity_are_the_papers_and_the_generators():
-    assert ledger.moon_hill_fraction(0.0)[0] == pytest.approx(tuning.MOON_PROGRADE_STABLE_HILL_FRACTION) == pytest.approx(0.4895)
+    assert ledger.moon_hill_fraction(0.0)[0] == pytest.approx(0.4895)
     assert ledger.moon_hill_fraction(0.0, retrograde=True)[0] == pytest.approx(0.9309)
 
 
@@ -130,10 +130,12 @@ def test_the_domingos_limits_fall_with_each_eccentricity_and_never_go_negative()
 
 
 def test_a_moon_window_runs_from_the_planet_and_its_largest_moon_to_the_hill_limit():
-    window, extrapolated = ledger.moon_window_km(6371.0, 1.5e6, 0.0, margin_km=300.0, largest_moon_radius_km=3000.0)
-    assert not extrapolated and [(s.low, s.high) for s in window] == [(pytest.approx(9671.0), pytest.approx(0.4895 * 1.5e6))]
-    assert ledger.moon_window_km(6371.0, 1.5e6, 0.0, retrograde=True)[0].width > window.width
-    assert not ledger.moon_window_km(6371.0, 1.0e4, 0.0)[0]
+    low, high, extrapolated = ledger.moon_bounds_km(6371.0, 1.5e6, 0.0, margin_km=300.0, largest_moon_radius_km=3000.0)
+    assert not extrapolated and (low, high) == (pytest.approx(9671.0), pytest.approx(0.4895 * 1.5e6))
+    retro_low, retro_high, _ = ledger.moon_bounds_km(6371.0, 1.5e6, 0.0, retrograde=True)
+    assert retro_high - retro_low > high - low
+    low, high, _ = ledger.moon_bounds_km(6371.0, 1.0e4, 0.0)
+    assert low >= high, "no room"
 
 
 # --- the windows of a tree ----------------------------------------------------------------------------------------------------------------
@@ -289,3 +291,35 @@ def test_planets_and_belts_drawn_from_the_ledger_pass_the_independent_verifier(k
             assert central > 0.0
         found = [v for v in clearance.hard_violations(rows)]
         assert not found, f"{kind} trial {trial}: " + "; ".join(str(v) for v in found)
+
+
+def test_the_spacing_pass_holds_a_planet_after_a_belt_to_the_planet_before_it():
+    # GEN.1023, triple seed 208: a giant, a belt, a small planet. The planet had cleared the belt but stood 9.93 mutual Hill radii from the giant.
+    star = SimpleNamespace(mass=0.5369 * SOLAR)
+    giant = SimpleNamespace(body_type="t", distance=0.8195, eccentricity=0.1597, mass=1.557e27, star=star, min_orbit_distance=0.05)
+    belt = SimpleNamespace(body_type="a", lower_limit=1.2725, upper_limit=1.6321, distance=1.2725)
+    small = SimpleNamespace(body_type="t", distance=1.8745, eccentricity=0.0232, mass=1.284e25, star=star)
+    needed = validation.min_distance_after_au(small, [giant, belt])
+    from_giant = validation.min_distance_after_au(small, [giant])
+    from_belt = validation.min_distance_after_au(small, [belt])
+    assert needed == max(from_giant, from_belt) and from_giant > from_belt
+    hill = orbits.mutual_hill_radius_au(giant.mass, small.mass, giant.distance, needed, star.mass)
+    gap = needed * (1.0 - small.eccentricity) - giant.distance * (1.0 + giant.eccentricity)
+    assert gap / hill >= tuning.MUTUAL_HILL_RADII_SEPARATION * (1.0 - 1e-9)
+
+
+def test_a_moons_largest_eccentricity_is_the_domingos_fit_solved_for_it():
+    hill = 0.01
+    for e_planet in (0.0, 0.2, 0.5):
+        for e_moon in (0.0, 0.1, 0.3):
+            a = 0.4895 * hill * (1.0 - 1.0305 * e_planet - 0.2738 * e_moon)
+            if a > 0.0:
+                assert ledger.moon_max_eccentricity(a, hill, e_planet) == pytest.approx(e_moon, abs=1e-12)
+    assert ledger.moon_max_eccentricity(1.0, hill) == 0.0 and ledger.moon_max_eccentricity(1.0, None) is None
+    retro = 0.9309 * hill * (1.0 - 1.0764 * 0.1 - 0.9812 * 0.05)
+    assert ledger.moon_max_eccentricity(retro, hill, 0.1, retrograde=True) == pytest.approx(0.05, abs=1e-12)
+
+
+def test_the_moon_bounds_are_the_window_as_numbers():
+    low, high, extrapolated = ledger.moon_bounds_km(6371.0, 1.5e6, 0.3, margin_km=100.0, largest_moon_radius_km=2000.0)
+    assert (low, high, extrapolated) == (pytest.approx(8471.0), pytest.approx(1.5e6 * 0.4895 * (1 - 1.0305 * 0.3)), False)

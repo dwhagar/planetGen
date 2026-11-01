@@ -21,11 +21,11 @@ The Solar System's belt is a test and never an input: at 4.5 Gyr, 2.2 to 3.4 AU,
 inferred mass is 0.6 thousandths ([R2471], as Wyatt et al. quote it, whose own estimate for their belt is 0.4 thousandths).
 
 Limits. One size, `Dc`, stands for the whole top of the cascade; `M_max` goes as `Dc` to a power near 2.3 here (the strength grows with size), so the mass is only as good as the largest
-body. No size law is built in the generator yet (GEN.566), so `Dc` is a stand-in drawn from `LARGEST_BODY_RANGE_KM` until GEN.1000 draws each belt's largest body from the law
-(`small-body-size-laws.md`). A belt stirred by a giant has a larger `e` than its width gives. The grains lost to radiation forces and the belt's early mass loss by sweeping are not
+body. `Dc` is each belt's own: `belt_ledger.belt_state` draws the largest body of the belt from the size law and settles it with this mass (`belt_ledger.solve_belt`, GEN.1061 and GEN.1000;
+no stand-in largest body is left). A belt stirred by a giant has a larger `e` than its width gives. The grains lost to radiation forces and the belt's early mass loss by sweeping are not
 in the law.
 
-Wired (GEN.477): `AsteroidBelt` takes its mass (`asteroid_belts.mass_kg`, a stated zero before) and its density word from `belt_state`, which replaced the uniform draw of the
+Wired (GEN.477, GEN.1000): `AsteroidBelt` takes its mass (`asteroid_belts.mass_kg`, a stated zero before) and its density word from `belt_ledger.belt_state`, which replaced the uniform draw of the
 word. The belt's composition thresholds still take the Dirichlet draw's shares; the mass is not yet an input there.
 """
 
@@ -46,10 +46,6 @@ STRENGTH_FLOOR_J_PER_KG = 200.0
 
 DENSE_FACTOR = 3.0
 """float: A belt with this many times the reference mass per area is called dense and one with its inverse sparse; between them it is typical. [Stand-in BM2, tier T9, tweak L4.]"""
-
-LARGEST_BODY_RANGE_KM = (100.0, 1000.0)
-"""tuple: The range, km, a belt's largest planetesimal `Dc` is drawn log-uniformly from until the size law (GEN.566) gives it: the hundreds of kilometres that planetesimal growth
-reaches in the belts [R4785] model, a factor of 10 each side of a few hundred. [Stand-in LB1, tier T9, tweak L3.]"""
 
 _Q = 11.0 / 6.0
 _SQRT_COEFFICIENT = (12.0 * _Q - 20.0) / (18.0 - 9.0 * _Q)     # 2 / 1.5 for the size law q = 11/6
@@ -112,29 +108,8 @@ def surface_density_earth_per_au2(mass_earth, lower_au, upper_au):
     return mass_earth / (math.pi * (upper_au ** 2 - lower_au ** 2))
 
 
-def draw_largest_km(stream):
-    """A belt's largest planetesimal, km: log-uniform over `LARGEST_BODY_RANGE_KM`, drawn from the belt's own stream."""
-    low, high = LARGEST_BODY_RANGE_KM
-    return math.exp(stream.uniform(math.log(low), math.log(high)))
-
-
-def belt_state(lower_au, upper_au, star_mass_kg, snow_line_au, metal_ratio, age_gy, largest_km):
-    """
-    `(mass_kg, density word)` of a belt: what its disc's solids leave after `age_gy` of collisions (`belt_mass_earth`), and the word that mass per area earns against the same belt of the
-    median largest body (the geometric mean of `LARGEST_BODY_RANGE_KM`) around a star of the Sun's metals.
-    """
-    star_solar = _kg_to_msun(star_mass_kg)
-    age_myr = age_gy * 1000.0
-    primordial = primordial_mass_earth(lower_au, upper_au, star_mass_kg, snow_line_au, metal_ratio)
-    mass = belt_mass_earth(primordial, lower_au, upper_au, star_solar, age_myr, largest_km)
-    median_km = math.sqrt(LARGEST_BODY_RANGE_KM[0] * LARGEST_BODY_RANGE_KM[1])
-    reference = belt_mass_earth(primordial_mass_earth(lower_au, upper_au, star_mass_kg, snow_line_au), lower_au, upper_au, star_solar, age_myr, median_km)
-    word = density_word(surface_density_earth_per_au2(mass, lower_au, upper_au), surface_density_earth_per_au2(reference, lower_au, upper_au))
-    return _mearth_to_kg(mass), word
-
-
 def density_word(mass_per_area, reference_mass_per_area):
-    """`dense`, `sparse` or `typical`: the belt's mass per area against a reference (`belt_state` gives the median belt of the same age), `DENSE_FACTOR` each way."""
+    """`dense`, `sparse` or `typical`: the belt's mass per area against a reference (`belt_ledger.belt_state` gives the median belt of the same age), `DENSE_FACTOR` each way."""
     if not (mass_per_area > 0.0 and reference_mass_per_area > 0.0):
         raise ValueError("both surface densities must be positive")
     ratio = mass_per_area / reference_mass_per_area

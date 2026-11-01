@@ -30,7 +30,7 @@ dispersion of that law, so the planet-to-plane dispersion is the mutual dispersi
 that keep it from circularising, drawn log-uniform from `REGULAR_MOON_ECCENTRICITY_RANGE` (source tier T3, tweak L0: the regular
 satellites of the giants lie between 0.001 and 0.03, the Moon at 0.055; the range is the middle of that). A captured moon starts on
 an orbit with the thermal distribution of eccentricities, `f(e) = 2 e`, cut at the largest value that keeps its apoapsis inside the
-stable part of its parent's Hill sphere (`MOON_PROGRADE_STABLE_HILL_FRACTION`, tier T5, tweak L0).
+stable part of its parent's Hill sphere ([R1138], `clearance_ledger.moon_max_eccentricity`, tier T1, tweak L0).
 
 **Tides.** Raised in the body by what it orbits, they circularise the orbit of a planet or a captured moon (a regular moon's forced
 eccentricity is renewed by its neighbours and stays, so the tide it raises keeps heating it, GEN.737) on `circularisation_time_yr`,
@@ -50,7 +50,7 @@ import math
 from scipy import special
 
 from planetgen import tuning
-from planetgen.physics import constants, interior_heat, tidal_rheology
+from planetgen.physics import clearance_ledger, constants, interior_heat, tidal_rheology
 from planetgen.util import draw
 
 MULTI_SIGMA = 0.083
@@ -183,12 +183,13 @@ def max_planet_eccentricity(semi_major_axis_au, star, planet):
     return min(max(1.0 - limit / semi_major_axis_au, 0.0), MAX_ECCENTRICITY)
 
 
-def max_moon_eccentricity(semi_major_axis_au, hill_radius_au):
-    """The largest eccentricity that keeps a moon's apoapsis inside the stable part of the parent's Hill sphere; 0 for a moon already at the edge."""
-    if hill_radius_au is None or semi_major_axis_au <= 0.0:
-        return MAX_ECCENTRICITY
-    reach = tuning.MOON_PROGRADE_STABLE_HILL_FRACTION * hill_radius_au
-    return min(max(reach / semi_major_axis_au - 1.0, 0.0), MAX_ECCENTRICITY)
+def max_moon_eccentricity(semi_major_axis_au, hill_radius_au, planet_eccentricity=0.0):
+    """
+    The largest eccentricity that keeps a moon inside the stable part of the parent's Hill sphere, from the [R1138]
+    limit (`clearance_ledger.moon_max_eccentricity`, which the planet's own eccentricity lowers); 0 for a moon already at the edge.
+    """
+    limit = clearance_ledger.moon_max_eccentricity(semi_major_axis_au, hill_radius_au, planet_eccentricity)
+    return MAX_ECCENTRICITY if limit is None else min(limit, MAX_ECCENTRICITY)
 
 
 def circularisation_time_yr(body, primary_mass_kg, semi_major_axis_au):

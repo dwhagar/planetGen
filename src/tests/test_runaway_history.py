@@ -72,7 +72,10 @@ def test_a_planet_well_inside_the_zone_of_a_sun_like_star_loses_oceans():
 def test_a_cool_star_dries_the_planets_of_its_present_zone():
     star = _star(0.3, 0.011, 3416.0, 5.0)     # a 0.3 solar mass star on the MIST main sequence at 5 Gy (GEN.652)
     zone = orbits.hz_limits(star.luminosity, star.temperature)
-    assert runaway_history.loss_kg(star, zone[1] * 0.5 + zone[0] * 0.5, *EARTH) > 1 * EARTH_OCEAN_KG
+    # GEN.1174: the star is pre-main-sequence for the 130 Myr its radius takes (BHAC15), not MIST's 417, so the middle of the zone loses a fraction of an ocean and its
+    # hot edge a few ([R2769]: the habitable zone of a 0.1 to 0.3 solar mass star loses from one to several oceans while the star contracts)
+    assert runaway_history.loss_kg(star, zone[0], *EARTH) > 1 * EARTH_OCEAN_KG
+    assert runaway_history.loss_kg(star, zone[1] * 0.5 + zone[0] * 0.5, *EARTH) > 0.0
     assert runaway_history.loss_kg(star, 1.0, *EARTH) == 0.0
 
 
@@ -84,9 +87,9 @@ def test_the_loss_grows_as_the_planet_moves_in():
 
 def test_a_heavier_planet_loses_less_of_its_water_fraction():
     star = _star(0.3, 0.013, 3400.0, 5.0)
-    small = runaway_history.loss_kg(star, 0.2, 0.5 * constants.EARTH_MASS_TO_KG, 5000.0) / (0.5 * constants.EARTH_MASS_TO_KG)
-    big = runaway_history.loss_kg(star, 0.2, 4.0 * constants.EARTH_MASS_TO_KG, 9500.0) / (4.0 * constants.EARTH_MASS_TO_KG)
-    assert big < small
+    small = runaway_history.loss_kg(star, 0.12, 0.5 * constants.EARTH_MASS_TO_KG, 5000.0) / (0.5 * constants.EARTH_MASS_TO_KG)
+    big = runaway_history.loss_kg(star, 0.12, 4.0 * constants.EARTH_MASS_TO_KG, 9500.0) / (4.0 * constants.EARTH_MASS_TO_KG)
+    assert 0.0 < big < small
 
 
 def test_no_loss_where_the_past_is_not_followed():
@@ -131,10 +134,10 @@ def test_the_surface_water_a_planet_keeps_is_what_its_class_gave_less_what_it_lo
             patch.setattr(hydrosphere.runaway_history, "loss_kg", lambda *args: 0.0)
             _, sunlike_untouched = _planet("G2V", 1.0, seed)
         assert sunlike.ocean_fraction == sunlike_untouched.ocean_fraction  # the Sun-like zone loses nothing
-        _, cool = _planet("M3V", 1.0, seed)
+        _, cool = _planet("M5V", 1.0, seed)      # GEN.1174: an M3V habitable zone now loses too little to show in all six draws; an M5V one does
         with monkeypatch.context() as patch:
             patch.setattr(hydrosphere.runaway_history, "loss_kg", lambda *args: 0.0)
-            _, untouched = _planet("M3V", 1.0, seed)
+            _, untouched = _planet("M5V", 1.0, seed)      # GEN.1174: an M3V habitable zone now loses too little to show in all six draws; an M5V one does
         assert cool.water_mass_fraction == untouched.water_mass_fraction  # the bulk water of the composition stays
         assert cool.ocean_fraction <= untouched.ocean_fraction  # the escape takes surface water, never makes it
         # the cover is 1.0 on a world that holds many oceans, so the loss shows in the surface water itself (TEST.504)
@@ -145,7 +148,7 @@ def test_the_surface_water_a_planet_keeps_is_what_its_class_gave_less_what_it_lo
             surface_untouched = hydrosphere.draw_surface_water(cool)
         assert surface <= surface_untouched
         lost_any = lost_any or surface < surface_untouched
-    assert lost_any  # the zone of a 0.3 solar-mass star lost some of its surface water while the star was young
+    assert lost_any  # the zone of a 0.15 solar-mass star lost some of its surface water while the star was young
 
 
 def test_the_loss_comes_off_the_surface_first_and_the_mantle_gives_part_back(monkeypatch):

@@ -7,7 +7,8 @@ from planetgen.db import store
 
 DEFAULTS = {"population": "young", "star_type": "B", "yerkes_class": "III", "mass_kg": 1e31, "radius_km": 1e7,
             "temperature_k": 15000.0, "luminosity_w": 1e28, "age_gy": 0.05, "lifespan_gy": 0.1, "initial_mass_sol": 8.0,
-            "phase_end_age_gy": None, "seed": 1, "metallicity_fe_h": None, "rotation_period_hours": None}
+            "phase_end_age_gy": None, "seed": 1, "metallicity_fe_h": None, "rotation_period_hours": None,
+            "nuclear_arrival_age_gy": None}
 """dict: A scattered star's values by `store.BRIGHT_STAR_COLUMNS` name, less its address and position; `star_row` fills the rest from it."""
 
 B2V = {"star_type": "B2V", "yerkes_class": "V", "mass_kg": 1.4e31, "radius_km": 3.0e6, "temperature_k": 22000.0, "age_gy": 0.02,

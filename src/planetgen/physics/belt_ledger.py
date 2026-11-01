@@ -287,3 +287,40 @@ def solve_belt(primordial_earth, lower_au, upper_au, star_mass_solar, age_myr, l
             high = middle
     ledger = ledger_for(math.sqrt(low * high))
     return BeltLedger(ledger, ledger.belt_mass_kg / kg_per_earth, ledger.largest_km, passes)
+
+
+class _MedianStream:
+    """A stream whose every draw is the median, 0.5: the ledger of a belt whose largest body is the median one (`reference_ledger`)."""
+
+    @staticmethod
+    def random():
+        return 0.5
+
+
+@lru_cache(maxsize=2048)
+def _reference_mass_earth(lower_au, upper_au, star_mass_kg, snow_line_au, age_myr, law):
+    """What the whole disc's solids of a star of the Sun's metals leave after `age_myr` when the belt's largest body is the median one: the mass per area every belt of the same stretch and age is called dense or sparse against."""
+    star_solar = star_mass_kg / constants.SOLAR_MASS_TO_KG
+    primordial = belt_mass.primordial_mass_earth(lower_au, upper_au, star_mass_kg, snow_line_au)
+    return solve_belt(primordial, lower_au, upper_au, star_solar, age_myr, law, _MedianStream()).mass_earth
+
+
+def belt_state(lower_au, upper_au, star_mass_kg, snow_line_au, metal_ratio, age_gy, law, stream, primordial_earth=None):
+    """
+    `(mass_kg, density word, BeltLedger)` of a belt (`(0.0, "sparse", None)` where the giants took all of its solids): what its disc's solids leave after `age_gy` of collisions with the belt's largest body drawn from the size law `law` and settled with
+    the collisional mass (`solve_belt`, GEN.1000: no stand-in largest body), and the word (`belt_mass.density_word`) that mass per area earns against the belt of the same stretch and age
+    around a star of the Sun's metals whose largest body is the median one. `primordial_earth` is the mass the belt began with once the giants had acted on it (`belt_origin`, GEN.1068);
+    left out, the disc's solids over the whole stretch (`belt_mass.primordial_mass_earth`, with `metal_ratio`).
+
+    Args:
+        stream: A `draw.Stream` of the belt's own; `LEDGER_MAX_BODIES` draws are taken, whatever the belt.
+    """
+    star_solar = star_mass_kg / constants.SOLAR_MASS_TO_KG
+    age_myr = age_gy * 1000.0
+    primordial = belt_mass.primordial_mass_earth(lower_au, upper_au, star_mass_kg, snow_line_au, metal_ratio) if primordial_earth is None else primordial_earth
+    if not primordial > 0.0:       # the giants took all of it: no belt, no largest body
+        return 0.0, "sparse", None
+    settled = solve_belt(primordial, lower_au, upper_au, star_solar, age_myr, law, stream)
+    reference = _reference_mass_earth(lower_au, upper_au, star_mass_kg, snow_line_au, age_myr, law)
+    word = belt_mass.density_word(belt_mass.surface_density_earth_per_au2(settled.mass_earth, lower_au, upper_au), belt_mass.surface_density_earth_per_au2(reference, lower_au, upper_au))
+    return settled.mass_earth * constants.EARTH_MASS_TO_KG, word, settled

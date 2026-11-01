@@ -25,19 +25,27 @@ Every number that is not a published value is a stand-in in the gap registry (do
 
 import math
 
-from planetgen.physics import constants, hydrosphere, ice_species, mixture, saturation, surface_liquids
+from planetgen.physics import acid_medium, constants, hydrosphere, ice_species, mixture, saturation, strange_solvents, surface_liquids
 
-COLUMN_FIELDS = ("surface_liquid", "surface_liquid_fraction", "surface_liquid_depth_km")
-"""tuple: What a body stores of its surface liquid (columns of `planets` and `moons`): the liquid's id in `surface_liquids` (`None` for none), the
-share of the surface it covers, and its mean depth over that share, km (`None` when not known)."""
+LIQUID_FIELDS = ("surface_liquid", "surface_liquid_fraction", "surface_liquid_depth_km")
+"""tuple: What a body stores of the liquid itself: its id in `surface_liquids` (`None` for none), the share of the surface it covers, and its mean depth over
+that share, km (`None` when not known)."""
+
+SOLUTE_FIELDS = ("surface_liquid_acid_wt", "surface_liquid_acid_layer", "surface_liquid_ammonia_wt")
+"""tuple: What a body stores of what its liquids hold (GEN.1215, docs/design/composition/surface-liquid-composition.md): the strength of liquid sulfuric acid,
+percent of its mass, and where it is (`pool` at the ground or `cloud`), and the ammonia of a water ocean, percent of the liquid's mass. `None` where the
+body has no such liquid."""
+
+COLUMN_FIELDS = LIQUID_FIELDS + SOLUTE_FIELDS
+"""tuple: Everything a body stores about its surface liquids (columns of `planets` and `moons`)."""
 
 WATER_ID = "water"
 WATER_STATES = ("surface ocean", "brine seep", "hycean")
 """tuple: The hydrosphere states whose water is a liquid at the surface."""
 
-SURFACE_SHARE_OF_ICE = 3.0e-4
+SURFACE_SHARE_OF_ICE = 1.3e-3
 """float: STAND-IN LQ11 (L2): the share of a body's ice of a volatile that lies on the surface as its liquid. Tuned so that a Titan-like body with 1 percent of its
-mass as methane ice (a guess, the ices are drawn) covers 1.7 percent of its surface, against the 1.6 percent the lakes and seas of Titan cover [R1857]."""
+mass as methane ice (a guess, the ices are drawn) covers 1.7 percent of its surface, against the 1.6 percent the lakes and seas of Titan cover [R1857]. Retuned from 3e-4 when GEN.1147's two-level hypsometry replaced the cover law: it covers less of the surface for the same layer."""
 
 ICE_LIQUID = {"CH4": "methane", "N2": "nitrogen", "CO2": "carbon_dioxide", "CO": "carbon_monoxide", "HCN": "hydrogen_cyanide",
               "SO2": "sulfur_dioxide", "NH3": "ammonia"}
@@ -102,6 +110,52 @@ def generate(body):
         setattr(body, field, None)
     if body.body_type == "g":
         return
+    _main_liquid(body)
+    _solutes(body)
+
+
+def acid_level(values):
+    """`acid_medium`'s level (`NONE`, `CLOUD`, `POOL`) of a body's column-named `values`: read from the stored layer when the body has one, else worked out
+    from its air."""
+    layer = values.get("surface_liquid_acid_layer")
+    if layer is None:
+        return acid_medium.level(values)
+    return acid_medium.POOL if layer == POOL_LAYER else acid_medium.CLOUD
+
+
+def ammonia_water_mass_fraction(values):
+    """The ammonia of a body's water as a share of the water's mass: read from the stored percent of the liquid when the body has one, else worked out
+    from its bulk composition (`strange_solvents`)."""
+    percent = values.get("surface_liquid_ammonia_wt")
+    if percent is None:
+        return strange_solvents.ammonia_water_mass_fraction(values)
+    return percent / (100.0 - percent)
+
+
+POOL_LAYER, CLOUD_LAYER = "pool", "cloud"
+"""str: The places `surface_liquid_acid_layer` says liquid sulfuric acid is."""
+
+AMMONIA_OCEAN_STATES = ("surface ocean", "brine seep", "ice-covered ocean", "hycean")
+"""tuple: The hydrospheres whose water is a liquid ocean (under a lid or not), the ones that hold the body's ammonia as a solute."""
+
+
+def _solutes(body):
+    """Sets `SOLUTE_FIELDS`: the strength and place of the liquid sulfuric acid the air makes (`acid_medium`, GEN.888), and the ammonia in a liquid water
+    ocean (`strange_solvents`, GEN.894), as a percent of the liquid's mass."""
+    from planetgen.physics import habitability_world        # imported here: it reads this module's chain
+    found = acid_medium.medium(habitability_world.values_from_body(body))
+    if found.level != acid_medium.NONE:
+        body.surface_liquid_acid_wt = found.weight_percent
+        body.surface_liquid_acid_layer = POOL_LAYER if found.level == acid_medium.POOL else CLOUD_LAYER
+    if getattr(body, "hydrosphere", None) in AMMONIA_OCEAN_STATES:
+        share = strange_solvents.ammonia_water_mass_fraction({"ice_mass_fraction": getattr(body, "ice_mass_fraction", None),
+                                                              "water_mass_fraction": getattr(body, "water_mass_fraction", None)})
+        if share:
+            body.surface_liquid_ammonia_wt = 100.0 * share / (1.0 + share)
+
+
+def _main_liquid(body):
+    """Sets `LIQUID_FIELDS`: water, lava, or the sea of a volatile."""
     if getattr(body, "hydrosphere", None) in WATER_STATES:
         _liquid_water(body)
         return

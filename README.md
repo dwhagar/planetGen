@@ -1,6 +1,6 @@
 # planetGen
 
-**Version:** 8.0.3042 &middot; [Changelog](CHANGELOG.md) &middot; [Repository](https://github.com/dwhagar/planetGen) &middot; License: [CC0 1.0 Universal](LICENSE.md)
+**Version:** 8.0.3073 &middot; [Changelog](CHANGELOG.md) &middot; [Repository](https://github.com/dwhagar/planetGen) &middot; License: [CC0 1.0 Universal](LICENSE.md)
 
 planetGen generates a galaxy: stars, star systems, planets, moons,
 asteroid belts and exotic phenomena, placed in a physically modeled
@@ -381,7 +381,7 @@ planetgen galaxy --shells 10:12 --bands=-2:2 --limit 500
 planetgen scatter --mass --bright-star-min-luminosity 5000
 planetgen scatter --luminosity
 
-# A single system with a habitable world, printed as Markdown on request, not saved
+# A single system with the odds of a habitable world raised (it may come out without one), printed as Markdown on request, not saved
 planetgen system +habitable_world --format markdown --output -
 
 # A system built from a specification file

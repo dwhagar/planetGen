@@ -719,6 +719,22 @@ note_changed_example_configs() {
 # site runs under, as Apache's own user when that user exists, so a
 # library that's installed but unreadable to www-data (or the checkout's
 # own code failing to import) shows up here rather than as a 500.
+set_secret_key() {
+    local user="" runner=()
+    if [[ -r "$SCRIPT_DIR/examples/apache/apache-identity.sh" ]]; then
+        # shellcheck source=../examples/apache/apache-identity.sh
+        source "$SCRIPT_DIR/examples/apache/apache-identity.sh"
+        user="$(detect_apache_group 2>/dev/null | awk '{print $1}')"
+    fi
+    if [[ -n "$user" ]] && id "$user" >/dev/null 2>&1 && command -v runuser >/dev/null 2>&1; then
+        runner=(runuser -u "$user" --)
+    elif [[ -n "$user" ]] && id "$user" >/dev/null 2>&1 && is_macos; then
+        runner=(sudo -u "$user" --)
+    fi
+    (cd / && ${runner[@]+"${runner[@]}"} "$PYTHON" -m planetgen.util.secret_key) \
+        || log_warning "the secret key could not be set (see above); the web app falls back to a random key per process."
+}
+
 check_app_imports() {
     local user="" runner=()
     if [[ -r "$SCRIPT_DIR/examples/apache/apache-identity.sh" ]]; then

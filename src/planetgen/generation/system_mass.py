@@ -15,7 +15,8 @@ age:
    too: a remnant is the placed object of the system it left.
 2. **The other stars.** The number of stars of its system is the `star-count` table's, by the placed star's class and
    with the 8 to 12 tail (`multistar.expected_star_count`); each further star has a birth mass of the placed star's
-   times a uniform 0.1 to 1, no lower than 0.08 solar masses (`multistar.companion_ratio_range`), and is taken to its own state at the same age.
+   times a ratio from the law of [R3108] (`mass_ratio.py`, GEN.951), no lower than 0.08 solar masses
+   (`multistar.companion_ratio_range`), and is taken to its own state at the same age.
 
 Not counted: a brown dwarf companion (3% of the drawn trees, GEN.899, about 0.04 solar masses: under 0.1% of a system's
 mass), a compact companion added to a massive star's tree (1% of the stars of 2 to 14 solar masses a white dwarf,
@@ -38,7 +39,7 @@ import numpy as np
 
 from planetgen import tuning
 from planetgen._version import __version__
-from planetgen.generation import multistar
+from planetgen.generation import mass_ratio, multistar
 from planetgen.datasets import fetch
 from planetgen.physics import imf, mass_boundaries, ms_lifetime, remnant_mass, remnant_progenitors, stellar_evolution
 
@@ -52,7 +53,7 @@ MASS_BINS = 1200
 """int: Bins of the log grid of placed-star masses the companions are summed over (about 0.6% of the mass each)."""
 
 COMPANION_MASS_STEPS = 32
-"""int: Midpoints of the uniform draw of a further star's birth mass over the placed star's."""
+"""int: Midpoints of the law of a further star's birth mass as a share of the placed star's (`mass_ratio.py`)."""
 
 COMPACT_COMPANION_SHARE_BOUND = 0.002
 """float: The most the compact companions of the massive stars' trees add to the mean mass, as a share of it (see the
@@ -169,11 +170,10 @@ def _placed_bins():
 
 
 def companion_fractions(birth_mass_sol):
-    """`(len(birth_mass_sol), COMPANION_MASS_STEPS)` midpoints of the uniform draw of a further star's birth mass over the
-    placed star's, for each placed star of `birth_mass_sol` (`multistar.companion_ratio_range`)."""
-    ranges = np.array([multistar.companion_ratio_range(float(m)) for m in np.atleast_1d(birth_mass_sol)])
+    """`(len(birth_mass_sol), COMPANION_MASS_STEPS)` midpoints of the law of a further star's birth mass as a share of the
+    placed star's (`mass_ratio.Ratios.quantiles`), for each placed star of `birth_mass_sol`."""
     steps = (np.arange(COMPANION_MASS_STEPS) + 0.5) / COMPANION_MASS_STEPS
-    return ranges[:, :1] + (ranges[:, 1:] - ranges[:, :1]) * steps[None, :]
+    return mass_ratio.Ratios(np.atleast_1d(birth_mass_sol)).quantiles(steps)
 
 
 @functools.lru_cache(maxsize=1)

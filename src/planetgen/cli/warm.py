@@ -42,6 +42,7 @@ import sys
 import time
 
 from planetgen.admin import updateguard
+from planetgen.cli import warm_progress
 from planetgen.queue import redisqueue, runrecord, units, warmphases, warmstart, wrapper
 from planetgen.util import log
 
@@ -61,8 +62,8 @@ def add_warm_arguments(parser):
     parser.add_argument("--cap", type=int, default=None,
                         help="most sector, system and phenomenon pages to warm (default page_cache.warm_max_objects)")
     parser.add_argument("--progress", action="store_true",
-                        help="print a progress bar after each family (update.sh shows it while it waits for the "
-                             "warm-up)")
+                        help="show progress: rich bars with a terminal (the stage's chunk N of M, elapsed, time left), "
+                             "otherwise one line per chunk (update.sh shows it while it waits for the warm-up)")
     parser.add_argument("--on-change", metavar="DATABASE", default=None,
                         help="what a change starts (warmstart.request): wait cache.warm_settle_seconds, then warm once "
                              "for each time DATABASE was changed meanwhile; does nothing when DATABASE is not the one "
@@ -96,12 +97,6 @@ def _stop_on_sigterm():
     signal.signal(signal.SIGTERM, on_term)
 
 
-def progress_bar(done, total, label, width=30):
-    """One line of the `--progress` bar: `[#####-----] 3/10 label`."""
-    filled = width * done // total if total else width
-    return f"[{'#' * filled}{'-' * (width - filled)}] {done}/{total} {label}"
-
-
 def _warm_once(args, reason=None):
     """
     Builds the list of cache-warming commands the arguments ask for and runs it through the wrapper, printing each
@@ -123,29 +118,32 @@ def _warm_once(args, reason=None):
             tally = warmup.PhaseTally([step.key for step in steps])
             phases = [name for name, _text, families in warmup.PHASES if any(step.key in families for step in steps)]
             warmphases.begin(args.database, phases, reason)
+            bars = warm_progress.WarmProgress(
+                [step.key for step in steps], log.normal, show=getattr(args, "progress", False),
+                rich_bars=warm_progress.stdout_is_terminal())
 
             def report_ended():
                 for name in tally.ended:
                     warmphases.finish_phase(args.database, name, tally.result(name))
 
-            def on_plan(index, _plan):
+            def on_plan(index, plan):
                 for line in tally.start(steps[index].key):
-                    log.normal(line)
+                    bars.say(line)
                 report_ended()
                 if steps[index].key in warmup.FAMILIES:
                     warmphases.start_phase(args.database, warmup.phase_of(steps[index].key))
+                bars.plan(index, plan)
 
             def on_result(index, _unit, result):
                 if steps[index].key in tally.totals:
                     tally.add(steps[index].key, result)
-                log.normal(result["line"])
-                if getattr(args, "progress", False):
-                    log.normal(progress_bar(index + 1, len(steps), steps[index].key))
+                bars.result(result)
 
-            wrapper.run("Cache warm-up", steps, on_plan, on_result, database=args.database,
-                        argv=sys.argv[1:], kind=runrecord.MAINTENANCE)
-            for line in tally.finish():
-                log.normal(line)
+            with bars:
+                wrapper.run("Cache warm-up", steps, on_plan, on_result, database=args.database,
+                            argv=sys.argv[1:], kind=runrecord.MAINTENANCE)
+                for line in tally.finish():
+                    bars.say(line)
             report_ended()
             warmphases.end(args.database)
         except (redisqueue.Unavailable, runrecord.Busy, units.RunStopped) as exc:

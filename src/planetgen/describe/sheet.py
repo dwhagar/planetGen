@@ -158,7 +158,8 @@ _STAR = (
     *_rows("physical", ("mass_kg", "Mass", AUTO, True), ("radius_km", "Radius", "radius"),
            ("temperature_k", "Temperature"), ("luminosity_w", "Luminosity", "luminosity", True),
            ("age_gy", "Age"), ("lifespan_gy", "Main-sequence lifetime"), ("metallicity_fe_h", "Metallicity [Fe/H]"),
-           ("decay_age_yr", "Age since it stopped burning")),
+           ("decay_age_yr", "Age since it stopped burning"),
+           ("nuclear_arrival_age_gy", "Age it reaches hydrogen burning")),
     *_rows("zones", ("habitable_zone_inner_km", "Habitable zone, inner edge"),
            ("habitable_zone_outer_km", "Habitable zone, outer edge"), ("snow_line_km", "Snow line"),
            ("heliosphere_radius_km", "Heliosphere radius"), ("system_perimeter_km", "System perimeter"),
@@ -191,7 +192,9 @@ _BODY_GROUPS = (
            ("moon_disk_f_inf", "Moon-forming disk ice fraction far past its ice line"),
            ("moon_disk_ice_line_km", "Moon-forming disk ice line")),
     *_rows("physical", ("radius_km", "Radius", "radius"), ("mass_kg", "Mass"), ("volume_km3", "Volume"),
-           ("density_g_cm3", "Density"), ("gravity_g", "Surface gravity")),
+           ("density_g_cm3", "Density"), ("gravity_g", "Surface gravity"),
+           ("roundness_ratio", "Roundness ratio (radius over the radius at which its own weight beats its strength; 1 or more is round)"),
+           ("yield_strength_pa", "Strength of its material"), ("binding_energy_j", "Binding energy")),
     *_rows("rotation", ("rotation_period_hours", "Rotation period"), ("axial_tilt_deg", "Axial tilt"),
            ("outside_hours", "Hours a person can work outside per year (dose limit)"),
            ("outside_hours_day", "Hours a person can be outside in a day"), ("outside_hours_limit", "What limits those hours", LIMIT),
@@ -228,6 +231,8 @@ _BODY_GROUPS = (
            ("ocean_depth_km", "Ocean depth"), ("ice_shell_km", "Ice shell thickness"),
            ("surface_liquid", "Surface liquid", TEXT), ("surface_liquid_fraction", "Surface under that liquid"),
            ("surface_liquid_depth_km", "Depth of that liquid"),
+           ("surface_liquid_acid_wt", "Sulfuric acid strength (liquid acid)"), ("surface_liquid_acid_layer", "Where the liquid acid is", TEXT),
+           ("surface_liquid_ammonia_wt", "Ammonia in the ocean (share of the liquid)"),
            ("hp_ice_km", "High-pressure ice thickness"), ("ocean_class", "Ocean chemistry", TEXT),
            ("ocean_ph", "Ocean pH"), ("water_activity", "Water activity"),
            ("water_base_pressure_pa", "Pressure at the bottom of the water layer"),
@@ -279,8 +284,9 @@ _PLANET = _MOON = _BODY_GROUPS
 _BELT = (
     *_rows("orbit", ("distance_km", "Distance from its star"), ("lower_limit_km", "Inner edge"),
            ("upper_limit_km", "Outer edge")),
-    *_rows("physical", ("density", "Density", TEXT), ("mass_kg", "Mass")),
-    *_rows("composition", ("composition_summary", "Composition", TEXT), ("chondrite_group", "Nearest meteorite group", TEXT)),
+    *_rows("physical", ("density", "Density", TEXT), ("mass_kg", "Mass"), ("density_g_cm3", "Mean bulk density of its members")),
+    *_rows("composition", ("composition_summary", "Composition", TEXT), ("ice_mass_fraction", "Mean ice share of the mass of its members"),
+           ("chondrite_group", "Nearest meteorite group", TEXT)),
 )
 
 _COMET = (
@@ -291,9 +297,11 @@ _COMET = (
            ("arg_periapsis_deg", "Argument of periapsis"), ("ascending_node_deg", "Longitude of the ascending node"),
            ("mean_anomaly_deg", "Mean anomaly"), ("orbital_period_years", "Orbital period"),
            ("orbital_speed_kms", "Orbital speed"), ("primary_mass_solar", "Mass of the star it orbits")),
-    *_rows("physical", ("nucleus_diameter_km", "Nucleus diameter"), ("mass_kg", "Mass")),
+    *_rows("physical", ("nucleus_diameter_km", "Nucleus diameter"), ("mass_kg", "Mass"), ("density_g_cm3", "Density"),
+           ("roundness_ratio", "Roundness ratio (radius over the radius at which its own weight beats its strength; 1 or more is round)"),
+           ("yield_strength_pa", "Strength of its material"), ("binding_energy_j", "Binding energy")),
     *_rows("rotation", ("rotation_period_hours", "Rotation period"), ("axial_tilt_deg", "Axial tilt")),
-    *_rows("composition", ("composition_summary", "Composition", TEXT)),
+    *_rows("composition", ("composition_summary", "Composition", TEXT), ("ice_mass_fraction", "Ice share of its mass")),
 )
 
 _GALACTIC_ORBIT = _rows("galactic", ("galactic_orbital_period_gy", "Galactic orbital period"),
@@ -312,9 +320,10 @@ _NEBULA = (
 
 _ASTEROID_FIELD = (
     *_rows("identity", ("field_class", "Class", TEXT), ("density", "Density", TEXT)),
-    *_rows("physical", ("radius_ly", "Radius"), ("mass_kg", "Mass")),
+    *_rows("physical", ("radius_ly", "Radius"), ("mass_kg", "Mass"), ("density_g_cm3", "Mean bulk density of its members")),
     *_rows("composition", ("composition_family", "Composition family", TEXT),
-           ("composition_summary", "Composition", TEXT), ("chondrite_group", "Nearest meteorite group", TEXT)),
+           ("composition_summary", "Composition", TEXT), ("ice_mass_fraction", "Mean ice share of the mass of its members"),
+           ("chondrite_group", "Nearest meteorite group", TEXT)),
     *_GALACTIC_ORBIT, *_DISTANCE,
 )
 
@@ -755,7 +764,7 @@ _GIANT_ONLY = ("interior_kind", "core_mass_earth", "dilute_core_mass_earth", "me
 _MEAN_SWING = ("temp_mean_swing_k",)
 _SURFACE = (
     "hydrosphere", "ocean_fraction", "land_fraction", "ocean_depth_km", "ocean_class", "ocean_ph", "water_activity",
-    "water_base_pressure_pa", "ice_shell_km", "hp_ice_km", "surface_liquid", "surface_liquid_fraction", "surface_liquid_depth_km", "ocean_liquid", "tide_range_spring_m", "tide_range_neap_m",
+    "water_base_pressure_pa", "ice_shell_km", "hp_ice_km", "surface_liquid", "surface_liquid_fraction", "surface_liquid_depth_km", *surface_liquid_world.SOLUTE_FIELDS, "ocean_liquid", "tide_range_spring_m", "tide_range_neap_m",
     "mantle_redox", "mantle_delta_iw", "rock_feo_fraction", "rock_al2o3_fraction", "rock_mg_si_ratio",
     "ozone_column_du", "ozone_loss_flag", "surface_dose_msv_yr", "dose_gcr_msv_yr", "dose_sep_msv_yr",
     "dose_ground_msv_yr", "dose_belt_msv_yr", "dose_helio_mult", "uv_surface_index", "shelter_column_g_cm2", "outside_hours", "outside_hours_day", "outside_hours_limit",
@@ -796,6 +805,8 @@ def _locked(row):
 
 _DISK_COLUMNS = ("moon_disk_lifetime_myr", "moon_disk_alpha_over_f", "moon_disk_f_inf", "moon_disk_ice_line_km")
 _BODY_RULES = [
+    (("planet_class",), lambda klass, row: row is None or row.get("roundness_ratio") is None or row["roundness_ratio"] >= 1.0,
+     "a body under a roundness ratio of 1 is an Asteroid and has no class letter (GEN.1160)"),
     (_GIANT_ONLY, lambda klass, row: klass in GIANT_CLASSES and (row is None or row.get("body_type") != "t"),
      "only a giant has a deep envelope over a core, so these describe nothing on a rocky or icy world, nor on a gas dwarf that is a rocky body "
      "under a hydrogen air (class T)"),
@@ -806,6 +817,8 @@ _BODY_RULES = [
     (("energy_flux_w_m2", "flux_variation"), lambda klass, row: klass not in GIANT_CLASSES,
      "a giant is not scored for habitability, so it keeps no starlight or seasonal swing of its own (`insolation` and `habitability_world` leave them none); "
      "its moons, which are scored in its light, store the flux they receive and the swing"),
+    (("roundness_ratio", "yield_strength_pa"), lambda klass, row: klass not in GIANT_CLASSES,
+     "a giant is a fluid held up by its own pressure, so it has no strength to measure against its weight and no round radius"),
     (("lid_regime",), lambda klass, row: klass not in GIANT_CLASSES,
      "a giant has no lid: only a rocky or icy body has a crust over a mantle"),
     (("tidal_flux_w_m2",), lambda klass, row: klass not in GIANT_CLASSES,
@@ -828,6 +841,10 @@ _BODY_RULES = [
      "a ring has an age only when a moon that fell or a comet that passed made it; the narrow ring of a small body's spin-orbit resonance has none"),
     (_SURFACE_LIQUID_COLUMNS, lambda klass, row: row is None or any(row.get(key) is not None for key in _SURFACE_LIQUID_COLUMNS),
      "only a body with a liquid at its surface (an ocean, a lava sea, a sea of a volatile) stores one; a dry, frozen or airless body has none"),
+    (("surface_liquid_acid_wt", "surface_liquid_acid_layer"), lambda klass, row: row is None or row.get("surface_liquid_acid_wt") is not None,
+     "only a body whose air holds sulfur dioxide, an oxidiser and some water makes liquid sulfuric acid, as a cloud layer or a pool; a body without that air has none"),
+    (("surface_liquid_ammonia_wt",), lambda klass, row: row is None or row.get("surface_liquid_ammonia_wt") is not None,
+     "only a body with a liquid water ocean and ice besides water holds ammonia in it; a dry or frozen body, or one with no other ice, has none"),
     (("surface_liquid_depth_km",), lambda klass, row: row is None or row.get("surface_liquid") not in surface_liquid_world.LAVA_IDS,
      "the depth of a lava sea is not known: the rules that give a molten surface say nothing of how deep it goes"),
     (_AQUIFER_COLUMNS, lambda klass, row: row is None or any(row.get(key) is not None for key in _AQUIFER_COLUMNS),
@@ -866,6 +883,8 @@ _STAR_RULES = [
     (("decay_age_yr",), lambda klass, row: row is None or row.get("yerkes_class") == "VII",
      "a star that is still burning has not stopped, so it has no age since it did; only a white dwarf, which cooled from the end of its "
      "progenitor's life, has one"),
+    (("nuclear_arrival_age_gy",), lambda klass, row: row is None or row.get("nuclear_arrival_age_gy") is not None,
+     "only a star still contracting toward the main sequence has an age at which hydrogen burning arrives; every other star is past it, or never had one"),
     (("disk_kind", "disk_inner_au", "disk_outer_au"), lambda klass, row: row is None or row.get("disk_kind") is not None,
      "most stars hold no disk: only a young star (class 0 to II), a main-sequence star with a cold debris belt (about one in seven "
      "to one in four) and the pair inside a planetary nebula do"),

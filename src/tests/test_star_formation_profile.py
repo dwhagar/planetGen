@@ -175,7 +175,7 @@ def test_the_thin_gas_factor_is_one_in_dense_gas_and_a_power_of_the_gas_where_it
     power = tuning.STAR_FORMATION_LOW_DENSITY_EXPONENT - tuning.STAR_FORMATION_LAW_EXPONENT
     assert gas[0] > 2.0 * saturation and factor[0] > 0.75     # dense gas: the factor is near 1 (at twice the saturation it is (2/3)^0.7 = 0.75)
     assert factor[1] == pytest.approx((gas[1] / (gas[1] + saturation)) ** power)
-    assert factor[1] < 0.2
+    assert factor[1] < 0.3     # thin gas: the factor falls well below 1 (0.21 once the history keeps the thin gas the law gives, GEN.999)
 
 
 def test_the_closed_form_log_slope_matches_the_slope_of_the_factor():

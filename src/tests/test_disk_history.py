@@ -154,6 +154,36 @@ def test_the_present_rate_over_the_mean_is_within_a_factor_of_three_of_the_milky
     assert 0.5 * observed <= found.present_over_mean() <= 3.0 * observed
 
 
+def _depletion_time_gy(found):
+    """The disk's gas over its star formation now, rings weighted by area, Gy (what `radiogenic` reads as the host's depletion time)."""
+    radii = found.radius_scale_lengths
+    area = radii * (radii[1] - radii[0])
+    return float((found.gas_now * area).sum() / ((found.rate[:, -1] * area).sum() * 1.0e-9) / 1.0e9)
+
+
+def test_a_milky_way_mass_disc_keeps_its_gas_for_the_measured_depletion_time_and_the_local_gas():
+    """GEN.999: with the law steepening where the gas thins (GEN.450) the disc of 3e10 solar masses of stars depletes its gas in 2.5
+    to 4.2 Gy (1.0 to 4.2 Gy is the measured range, Sources 2 on GEN.998; the plain Kennicutt law gave 1.8) and holds a local gas of the order of
+    the measured 11.9 +- 1.6 solar masses per pc2 of atomic and molecular gas with helium (McKee, Parravano and
+    Hollenbach 2015, Table 2: 10.9 + 1.0), at least half of it (the plain law gave 6.0 here)."""
+    found = disk_history.history(MILKY_WAY_MASS * 0.6, 2600.0, HALO)
+    assert 2.5 <= _depletion_time_gy(found) <= 4.2
+    solar = int(np.argmin(np.abs(found.radius_scale_lengths * 2600.0 - 8000.0)))
+    assert 0.5 * 11.9 <= found.gas_now[solar] <= 1.5 * 11.9
+
+
+def test_the_steepening_leaves_a_thin_ring_more_gas_than_the_plain_law(monkeypatch):
+    """The plain law (no steepening: a saturation of zero) lets a thin ring spend its gas as fast as a dense one; the
+    steepened law keeps more of it, and a dense ring (whose gas is far over the saturation) hardly changes."""
+    flat = np.ones(201)
+    stars = np.array([2.0, 400.0])
+    steep = disk_history._solve_rings(stars, flat, 10.0)[1]
+    monkeypatch.setattr(tuning, "STAR_FORMATION_SATURATION_GAS_MSUN_PC2", 1.0e-12)
+    plain = disk_history._solve_rings(stars, flat, 10.0)[1]
+    assert steep[0] > 1.3 * plain[0]
+    assert steep[1] == pytest.approx(plain[1], rel=0.1)
+
+
 def _b_share_between_arms_at_the_sun(shape=SHAPE, draws=100_000, spread_ages=True, seed=469):
     """The share of the stars between the arms at the solar radius that are B dwarfs: each disk population's B share
     (drawn from the generator's own sampler, with the ages spread by the history's rate inside each window unless

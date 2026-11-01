@@ -52,12 +52,13 @@ from dataclasses import dataclass
 from statistics import NormalDist
 
 from planetgen import tuning
+from planetgen.generation import mass_ratio
 from planetgen.generation import member_record
 from planetgen.generation import close_binary_trend
 from planetgen.generation.phenomena import hosts, system_types
 from planetgen.physics import (
-    accretion, alpha_tracks, brown_dwarf, constants, imf, mass_boundaries, ms_lifetime, neutron_star, pair_history, remnant_mass, remnant_progenitors,
-    roche, stability, stellar_abundances, stellar_composition)
+    accretion, alpha_tracks, brown_dwarf, constants, helium_core_white_dwarf, imf, mass_boundaries, ms_lifetime, neutron_star, pair_history,
+    remnant_mass, remnant_progenitors, roche, stability, stellar_abundances, stellar_composition)
 from planetgen.physics import stellar_evolution as evolution
 from planetgen.util import draw
 from planetgen.physics import unit_registry as units
@@ -492,6 +493,9 @@ class _Leaf:
     larger past than its present, which reads as the present radius and the larger of its birth and present mass."""
     seed: int | None = None
     """int or None: The seed the member's record was made under, which its `Member` keeps; None draws one from the tree's source."""
+    circular: bool = False
+    """bool: The pair this member is in has a circular orbit and is `post-common-envelope`: the companion of a helium-core white
+    dwarf the star draw made (GEN.996, `helium_core_draw`), on the axis its giant filled its lobe at."""
 
     @property
     def largest_radius_au(self):
@@ -872,14 +876,59 @@ def classify_pair(a, b, axis_au, e):
     return _detached_or_post_common_envelope(a, b, axis_au, e)
 
 
+def period_days(law, mass, a_lo, a_hi, massive, inside_weight=1.0, u=0.5):
+    """The period, days, of a pair of total mass `mass` (solar masses) from its law cut to the axes `a_lo` to `a_hi` (AU), drawn from
+    the unit `u`; None when the cut leaves no period. `massive` and `inside_weight` are the primary's (the law of a massive primary;
+    `close_trend`'s weight on an axis inside `CLOSE_COMPANION_AXIS_AU`)."""
+    lo = _yr_to_d(math.sqrt(a_lo ** 3 / mass))
+    hi = _yr_to_d(math.sqrt(a_hi ** 3 / mass)) if math.isfinite(a_hi) else math.inf
+    if law == "compact-pair":
+        lo = max(lo, _yr_to_d(math.sqrt(COMPACT_PAIR_AXIS_AU[0] ** 3 / mass)))
+        hi = min(hi, _yr_to_d(math.sqrt(COMPACT_PAIR_AXIS_AU[1] ** 3 / mass)))
+    elif law == "interacted":
+        lo, hi = max(lo, INTERACTED_PERIOD_DAYS[0]), min(hi, INTERACTED_PERIOD_DAYS[1])
+    elif law == "stripped":
+        lo, hi = max(lo, tuning.STRIPPED_PAIR_PERIOD_DAYS[0]), min(hi, tuning.STRIPPED_PAIR_PERIOD_DAYS[1])
+    if not lo < hi:
+        return None
+    log_lo, log_hi = math.log10(lo), math.log10(hi) if math.isfinite(hi) else 12.0
+    if law != "star":
+        return 10.0 ** (log_lo + u * (log_hi - log_lo))
+    mu, sigma = PERIOD_LAWS_LOG10_DAYS["massive" if massive else "solar"]
+    dist = NormalDist(mu, sigma)
+    p_lo, p_hi = dist.cdf(log_lo), dist.cdf(log_hi)
+    if p_hi - p_lo < 1.0e-12:
+        return 10.0 ** (log_lo + u * (log_hi - log_lo))
+    # The tight-tail weight (design note 13.7) multiplies the density under a day of the pairs of solar-type
+    # primaries; at 1 this is the plain draw, and the massive law is never weighted.
+    weight = 1.0 if massive else system_types.TUNING_KNOBS["tight_tail_weight"]
+    split = min(max(dist.cdf(0.0), p_lo), p_hi)
+    tail, rest = (split - p_lo) * weight, p_hi - split
+    if inside_weight != 1.0:
+        # The odds of an axis inside `CLOSE_COMPANION_AXIS_AU` follow the star's [Fe/H] (`close_trend`): the draw's
+        # inside part grows or shrinks, the outside part keeps its shape.
+        edge = min(max(math.log10(_yr_to_d(math.sqrt(CLOSE_COMPANION_AXIS_AU ** 3 / mass))), log_lo), log_hi)
+        reach = min(max(dist.cdf(edge), p_lo), p_hi)
+        inside = (reach - p_lo) * weight if reach <= split else tail + (reach - split)
+        u = _tilted(u, inside / (tail + rest), inside_weight)
+    target = u * (tail + rest)
+    point = p_lo + target / weight if target < tail else split + (target - tail)
+    return 10.0 ** dist.inv_cdf(min(max(point, 1.0e-15), 1.0 - 1.0e-15))
+
+
 class _Builder:
     """Draws the orbits of one tree shape, top down."""
 
-    def __init__(self, leaves, age_yr, rng, fixed=None, max_axis_au=math.inf, inside_weight=1.0):
+    def __init__(self, leaves, age_yr, rng, fixed=None, max_axis_au=math.inf, inside_weight=1.0, fe_h=0.0):
         self.max_axis_au = max_axis_au
+        self.fe_h = fe_h
+        """float: The birth [Fe/H] of the tree's members (the placed star's), which sets how large a giant of a given core is
+        (`helium_core_white_dwarf`)."""
         self.inside_weight = inside_weight
         """float: The weight on the odds that the root pair is inside `CLOSE_COMPANION_AXIS_AU` (`close_trend`)."""
-        self.leaves = leaves
+        self.leaves = [dataclasses.replace(leaf) for leaf in leaves]
+        """list: This draw's own copies of the roster's leaves: a white dwarf that proves to be a helium core (`helium_core`) is
+        replaced in them, and a draw that restarts leaves the roster as it was."""
         self.age_yr = age_yr
         self.rng = rng
         self.nodes = []
@@ -964,41 +1013,7 @@ class _Builder:
         return math.inf
 
     def period_days(self, law, mass, a_lo, a_hi, massive, inside_weight=1.0):
-        lo = _yr_to_d(math.sqrt(a_lo ** 3 / mass))
-        hi = _yr_to_d(math.sqrt(a_hi ** 3 / mass)) if math.isfinite(a_hi) else math.inf
-        u = self.rng.random()
-        if law == "compact-pair":
-            lo = max(lo, _yr_to_d(math.sqrt(COMPACT_PAIR_AXIS_AU[0] ** 3 / mass)))
-            hi = min(hi, _yr_to_d(math.sqrt(COMPACT_PAIR_AXIS_AU[1] ** 3 / mass)))
-        elif law == "interacted":
-            lo, hi = max(lo, INTERACTED_PERIOD_DAYS[0]), min(hi, INTERACTED_PERIOD_DAYS[1])
-        elif law == "stripped":
-            lo, hi = max(lo, tuning.STRIPPED_PAIR_PERIOD_DAYS[0]), min(hi, tuning.STRIPPED_PAIR_PERIOD_DAYS[1])
-        if not lo < hi:
-            return None
-        log_lo, log_hi = math.log10(lo), math.log10(hi) if math.isfinite(hi) else 12.0
-        if law != "star":
-            return 10.0 ** (log_lo + u * (log_hi - log_lo))
-        mu, sigma = PERIOD_LAWS_LOG10_DAYS["massive" if massive else "solar"]
-        dist = NormalDist(mu, sigma)
-        p_lo, p_hi = dist.cdf(log_lo), dist.cdf(log_hi)
-        if p_hi - p_lo < 1.0e-12:
-            return 10.0 ** (log_lo + u * (log_hi - log_lo))
-        # The tight-tail weight (design note 13.7) multiplies the density under a day of the pairs of solar-type
-        # primaries; at 1 this is the plain draw, and the massive law is never weighted.
-        weight = 1.0 if massive else system_types.TUNING_KNOBS["tight_tail_weight"]
-        split = min(max(dist.cdf(0.0), p_lo), p_hi)
-        tail, rest = (split - p_lo) * weight, p_hi - split
-        if inside_weight != 1.0:
-            # The odds of an axis inside `CLOSE_COMPANION_AXIS_AU` follow the star's [Fe/H] (`close_trend`): the draw's
-            # inside part grows or shrinks, the outside part keeps its shape.
-            edge = min(max(math.log10(_yr_to_d(math.sqrt(CLOSE_COMPANION_AXIS_AU ** 3 / mass))), log_lo), log_hi)
-            reach = min(max(dist.cdf(edge), p_lo), p_hi)
-            inside = (reach - p_lo) * weight if reach <= split else tail + (reach - split)
-            u = _tilted(u, inside / (tail + rest), inside_weight)
-        target = u * (tail + rest)
-        point = p_lo + target / weight if target < tail else split + (target - tail)
-        return 10.0 ** dist.inv_cdf(min(max(point, 1.0e-15), 1.0 - 1.0e-15))
+        return period_days(law, mass, a_lo, a_hi, massive, inside_weight, self.rng.random())
 
     def eccentricity(self, law, period_d, a_au, root, limit=math.inf):
         """The pair's eccentricity from the law of its kind cut at `limit`, the largest the room it has allows (GEN.1011): the
@@ -1059,6 +1074,8 @@ class _Builder:
             left, right = right, left
         m_left, m_right = self.mass(left), self.mass(right)
         total = m_left + m_right
+        drawn = left, right, m_left, m_right, total
+        core = None
         law = self.law(left, right)
         extent = self.extent(left) + self.extent(right)
         sides = self.side(left), self.side(right)
@@ -1072,6 +1089,8 @@ class _Builder:
         span = self.orbit_span(left, right)
         double_dwarf = self.double_white_dwarf(left, right)
         for _ in range(PAIR_RETRIES):
+            left, right, m_left, m_right, total = drawn
+            core = None
             rng = self.rng
             inclination = math.acos(1.0 - 2.0 * rng.random())
             node = 2.0 * math.pi * rng.random()
@@ -1117,7 +1136,24 @@ class _Builder:
             if not pair_clears(axis, e, *sides):
                 draw.redrawn("pair.overlap")         # cannot happen from a cut draw; counted so TEST.476 can hold it at zero
                 continue
+            circular = (lambda both: both is not None and any(leaf.circular for leaf in both))(self.pair_leaves(left, right))
+            if circular:
+                e = 0.0                      # the companion of a helium-core white dwarf the star draw made (GEN.996)
             interaction, member_flags = self.interaction(left, right, axis, e)
+            if circular:
+                interaction = "post-common-envelope"
+            core = self.helium_core(left, right, axis, e, interaction)
+            if core is not None:
+                # The giant that left this white dwarf filled its lobe on the red giant branch (GEN.996): the white dwarf is the
+                # lighter helium core, so the pair is lighter, may swap its heavier member, and has a longer period.
+                index, replaced = core
+                m_left, m_right = (m_left - self.leaves[index].mass + replaced.mass if left == index else m_left,
+                                   m_right - self.leaves[index].mass + replaced.mass if right == index else m_right)
+                total = m_left + m_right
+                period_d = 365.25 * math.sqrt(axis ** 3 / total)
+                e = 0.0                      # the overflow circularised the orbit: the lobe was filled at this axis
+                if m_left < m_right:
+                    left, right, m_left, m_right = right, left, m_right, m_left
             pair = self.pair_leaves(left, right)
             accretes = None if pair is None else next((leaf.accretes for leaf in pair if leaf.accretes), None)
             if accretes is not None:
@@ -1157,6 +1193,8 @@ class _Builder:
             raise _Failed
         for leaf_index, flag in member_flags.items():
             self.extra_flags[leaf_index] = self.extra_flags.get(leaf_index, 0) | flag
+        if core is not None:
+            self._replace_helium_core(*core, parent_no)
         node_no = len(self.nodes) + 1
         kind = "compact" if law in ("compact-pair", "interacted") else "close" if axis < 50.0 else "wide"
         record = {"node_no": node_no, "parent_node_no": parent_no, "slot": slot, "mass_solar": total,
@@ -1180,6 +1218,48 @@ class _Builder:
                 room = min(room, budget - apocentre * self.mass(sibling) / total)
             self.place(child, (axis, e, inclination, node, self.mass(sibling)), child_slot, node_no, room)
         return node_no
+
+    def helium_core(self, left, right, axis, e, interaction):
+        """
+        `(index, replacement)` when the pair is a post-common-envelope pair whose white dwarf is a helium core (GEN.996), else None:
+        the white dwarf's giant filled its Roche lobe at the pair's axis before it reached the helium flash, so the white dwarf is
+        the core it had then (`helium_core_white_dwarf.overflow_core_mass_sol`), and `replacement` is the leaf made from the member's
+        own record with that mass. Only a white dwarf the roster drew from a record (it has a seed), not the placed object, which is
+        built before the tree. The companion's mass is the one it had when the giant overflowed: its birth mass when it evolves
+        later, its present one when it is a remnant already. Of a pair of two such white dwarfs the one that evolved first.
+        """
+        pair = self.pair_leaves(left, right)
+        if pair is None or interaction != "post-common-envelope":
+            return None
+        candidates = [(index, other) for index, other in ((left, right), (right, left))
+                      if index != 0 and self.leaves[index].kind == "white-dwarf" and self.leaves[index].seed is not None
+                      and self.leaves[index].orbit_au is None
+                      and self.leaves[index].mass >= tuning.HELIUM_FLASH_CORE_MASS_SOL]
+        if not candidates:
+            return None
+        index, other = max(candidates, key=lambda c: self.leaves[c[0]].initial)
+        leaf, partner = self.leaves[index], self.leaves[other]
+        partner_mass = partner.initial if partner.initial <= leaf.initial else partner.mass
+        mass = helium_core_white_dwarf.overflow_core_mass_sol(leaf.initial, partner_mass, axis, 0.0, self.fe_h)
+        if mass is None:
+            return None
+        record = member_record.make(leaf.seed, leaf.initial, self.age_yr, self.fe_h, lighten=False, white_dwarf_mass_sol=mass)
+        if record.kind != "white-dwarf":
+            return None
+        replacement = _leaf_of(record)
+        replacement.flags, replacement.effective_age_yr = leaf.flags, leaf.effective_age_yr
+        return index, replacement
+
+    def _replace_helium_core(self, index, replacement, parent_no):
+        """Puts the helium core white dwarf `replacement` in place of leaf `index` and takes its mass off the nodes above it, whose
+        periods follow (an orbit keeps its axis when the mass in it changes)."""
+        lost = self.leaves[index].mass - replacement.mass
+        self.leaves[index] = replacement
+        while parent_no is not None:
+            node = self.nodes[parent_no - 1]
+            node["mass_solar"] -= lost
+            node["period_years"] = math.sqrt(node["separation_au"] ** 3 / node["mass_solar"])
+            parent_no = node["parent_node_no"]
 
     def _in_desert(self, left, right, axis):
         if axis >= BROWN_DWARF_DESERT_AU or not (isinstance(left, int) and isinstance(right, int)):
@@ -1596,19 +1676,38 @@ def companion_floor_solar(fe_h=None):
 
 
 def companion_ratio_range(birth, fe_h=None):
-    """The range `(low, high)` the birth mass of another star of a tree is drawn over, as a share of the primary's `birth`
-    solar masses, uniform: `tuning.BINARY_MASS_RATIO_RANGE`, the low end no lower than puts the star under the floor
-    (`companion_floor_solar`): the `star-count` table counts stars, so a lighter object would use up one of its
-    places (GEN.899). The brown dwarfs of a tree are a member of their own (`tuning.BROWN_DWARF_COMPANION_CHANCE`); lighter
-    objects than they are planets, filled in as planets are, not members of a tree (GEN.596)."""
-    low_ratio, high_ratio = tuning.BINARY_MASS_RATIO_RANGE
-    return min(max(low_ratio, companion_floor_solar(fe_h) / birth), high_ratio), high_ratio
+    """The range `(low, high)` a star of a tree's birth mass is drawn over as a share of the primary's `birth` solar masses
+    (`mass_ratio.floor_ratio`: `tuning.BINARY_MASS_RATIO_RANGE`, the low end no lower than puts the star under the floor
+    (`companion_floor_solar`, the hydrogen-burning limit of the place's [Fe/H]), because the `star-count` table counts stars and a
+    lighter object would use up one of its places, GEN.899). The law over it is `mass_ratio.py`'s (GEN.951). The brown dwarfs of a
+    tree are a member of their own (`tuning.BROWN_DWARF_COMPANION_CHANCE`); lighter objects than they are planets, filled in as
+    planets are, not members of a tree (GEN.596)."""
+    return float(mass_ratio.floor_ratio(birth, companion_floor_solar(fe_h))), tuning.BINARY_MASS_RATIO_RANGE[1]
 
 
-def _companion_mass(birth, rng, fe_h=None):
-    """The initial mass of another star of a tree whose primary was born with `birth` solar masses: `birth * U(low, high)`
-    over `companion_ratio_range`."""
-    return birth * rng.uniform(*companion_ratio_range(birth, fe_h))
+def companion_mass(birth, rng, fe_h=None):
+    """The initial mass of another star of a tree whose primary was born with `birth` solar masses: `birth` times a ratio from the
+    law of `mass_ratio.py` ([R3108]: a power law by primary mass and period, with a twin excess), no lighter than the
+    floor of the place's [Fe/H] (`companion_floor_solar`)."""
+    return float(birth * mass_ratio.draw(birth, rng.random(), companion_floor_solar(fe_h)))
+
+
+def _is_helium_core(leaf):
+    """Whether a roster leaf is a helium-core white dwarf (GEN.996): a white dwarf lighter than the helium flash core, which the
+    initial-final relation gives none of (`tuning.WD_MASS_RANGE_SOL`), so only a companion's overflow made it."""
+    return leaf.kind == "white-dwarf" and leaf.mass < tuning.HELIUM_FLASH_CORE_MASS_SOL
+
+
+def _bind_helium_core_companion(dwarf, companion, fe_h):
+    """Puts `companion` on the circular orbit at which the giant of the helium-core white dwarf `dwarf` filled its lobe with that
+    core (`helium_core_white_dwarf.overflow_axis_au`; the companion's mass is its birth mass when it evolves after the giant, its
+    present one when it is a remnant already), and gives the white dwarf the giant's radius at the overflow as its largest."""
+    partner = companion.initial if companion.initial <= dwarf.initial else companion.mass
+    axis = helium_core_white_dwarf.overflow_axis_au(dwarf.mass, dwarf.initial, partner, fe_h)
+    companion.orbit_au, companion.circular = (axis, axis), True
+    dwarf.radius_max_au = max(dwarf.radius_au, _m_to_au(helium_core_white_dwarf.giant_radius_rsun(dwarf.mass, fe_h)
+                                                          * constants.SOLAR_RADIUS_M))
+    dwarf.mass_max_solar = max(dwarf.initial, dwarf.mass)
 
 
 def _roster(placed, age_yr, rng, max_stars, n_stars, prevalence, companion=_DRAW_COMPANION, bound_runaway=False,
@@ -1660,8 +1759,10 @@ def _roster(placed, age_yr, rng, max_stars, n_stars, prevalence, companion=_DRAW
                 count = max(count, 2)
         else:
             count = max(1, min(n_stars, max_stars - (compact is not None)))
+        if n_stars is None and compact is None and _is_helium_core(leaf):
+            count = max(count, 2)            # the companion that stripped it (GEN.996)
         for _ in range(count - 1):
-            leaves.append(_star_leaf(_companion_mass(birth, rng, placed.fe_h), age_yr, rng, fe_h=placed.tree_fe_h))
+            leaves.append(_star_leaf(companion_mass(birth, rng, placed.fe_h), age_yr, rng, fe_h=placed.tree_fe_h))
         # A brown dwarf is no star of the table's count: a drawn tree may hold one more member (a directive's count is
         # of stars, so it adds none).
         brown = (n_stars is None and birth > mass_boundaries.sol("hydrogen_burning_limit") and len(leaves) < max_stars - (compact is not None)
@@ -1674,6 +1775,13 @@ def _roster(placed, age_yr, rng, max_stars, n_stars, prevalence, companion=_DRAW
         if compact is not None:
             leaves.append(compact)
             units[0] = (0, len(leaves) - 1)
+        if compact is None and count >= 2 and _is_helium_core(leaf):
+            # A helium-core white dwarf (GEN.996, `helium_core_draw`) was made by a companion: it is in a pair with the first star
+            # of the roster, on the axis at which its giant filled its lobe with this core, on a circle.
+            _bind_helium_core_companion(leaf, leaves[1], placed.tree_fe_h)
+            units[0] = (0, 1)
+            units.extend(range(2, count + brown))
+            return leaves, units
         units.extend(range(1, count + brown))
         return leaves, units
     base = {"black-hole": lambda: _remnant_leaf("black-hole", birth, placed.mass_solar, _placed_direct_collapse(placed)),
@@ -1686,6 +1794,12 @@ def _roster(placed, age_yr, rng, max_stars, n_stars, prevalence, companion=_DRAW
         base.effective_age_yr = rejuvenated_age_yr(age_yr, rng)
     if n_stars is not None and n_stars <= 1:     # a directive for a single object (no binaries, GEN.719)
         return leaves, [0]
+    if companion is _DRAW_COMPANION and _is_helium_core(base):
+        # A helium-core white dwarf (GEN.996, `helium_core_draw`) was made by its companion: a star of the tree's mass law on the
+        # axis its giant filled its lobe at.
+        stripper = _star_leaf(companion_mass(birth, rng, placed.fe_h), age_yr, rng, fe_h=placed.tree_fe_h)
+        _bind_helium_core_companion(base, stripper, placed.tree_fe_h)
+        return [base, stripper], [(0, 1)]
     state = companion_state(placed, rng) if companion is _DRAW_COMPANION else companion
     if state is None:
         return leaves, [0]
@@ -1990,10 +2104,10 @@ def draw_member_tree(placed, age_yr, rng=draw, max_stars=MAX_MEMBERS, n_stars=No
             return group
     weights, inside_weight = close_trend(placed.birth_mass_solar, placed.fe_h, prevalence) if placed.kind == "star" else (None, 1.0)
     leaves, units = _roster(placed, age_yr, rng, max_stars, n_stars, prevalence, companion, bound_runaway, weights)
-    return _grow_tree(leaves, units, age_yr, rng, n_stars, max_axis_au, pair_placed, inside_weight)
+    return _grow_tree(leaves, units, age_yr, rng, n_stars, max_axis_au, pair_placed, inside_weight, placed.tree_fe_h)
 
 
-def _grow_tree(leaves, units, age_yr, rng, n_stars, max_axis_au, pair_placed, inside_weight=1.0):
+def _grow_tree(leaves, units, age_yr, rng, n_stars, max_axis_au, pair_placed, inside_weight=1.0, fe_h=0.0):
     """The `MemberTree` of the `leaves` in the shape `units` names (the placed leaf first): hierarchies are drawn until one
     clears the stability and extent screens, and when none does the lightest loose member is dropped and the draw tries again."""
     dropped = 0
@@ -2006,7 +2120,7 @@ def _grow_tree(leaves, units, age_yr, rng, n_stars, max_axis_au, pair_placed, in
         if len(units) == 1 and isinstance(units[0], int):
             return _single(leaves[units[0]], age_yr, dropped, rng)
         for _ in range(TREE_RESTARTS):
-            builder = _Builder(leaves, age_yr, rng, max_axis_au=max_axis_au, inside_weight=inside_weight)
+            builder = _Builder(leaves, age_yr, rng, max_axis_au=max_axis_au, inside_weight=inside_weight, fe_h=fe_h)
             try:
                 builder.place(shape_of(units, rng), None, 0, None)
             except _Failed:
@@ -2016,10 +2130,10 @@ def _grow_tree(leaves, units, age_yr, rng, n_stars, max_axis_au, pair_placed, in
                 draw.redrawn("tree.restart_overlap")
                 continue
             builder.finish()
-            alone = _contact_pair_alone(leaves, builder, n_stars, rng)
+            alone = _contact_pair_alone(builder.leaves, builder, n_stars, rng)
             if alone is not None:
-                leaves, builder = alone
-            return _assemble(leaves, builder, age_yr, dropped, rng)
+                builder = alone[1]
+            return _assemble(builder.leaves, builder, age_yr, dropped, rng)
         loose = [u for u in units[1:] if isinstance(u, int)]
         if loose:
             drop = min(loose, key=lambda i: leaves[i].mass)

@@ -43,7 +43,7 @@ def test_the_deepest_liquid_at_earth_gravity_is_about_seventy_kilometres():
 def test_earths_water_covers_seven_tenths():
     layer = hy.water_layer_depth_km(EARTH, 6371.0, hy.EARTH_OCEAN_FRACTION)
     assert layer == pytest.approx(2.74, rel=0.03)
-    assert hy.ocean_fraction(layer, constants.EARTH_GRAVITY) == pytest.approx(0.72, abs=0.02)
+    assert hy.ocean_fraction(layer, constants.EARTH_GRAVITY) == pytest.approx(0.71, abs=0.02)
     assert hy.ocean_fraction(hy.water_layer_depth_km(EARTH, 6371.0, 2e-3), constants.EARTH_GRAVITY) == 1.0
 
 
@@ -249,7 +249,50 @@ def test_gen833_the_cover_follows_the_water_the_body_holds():
 def test_gen833_below_earths_gravity_ice_relief_does_not_grow_but_a_rock_basins_does():
     layer_km = 5.0
     small = 0.05 * constants.EARTH_GRAVITY
-    assert hy.ocean_fraction(layer_km, small, icy=True) == pytest.approx(min(1.0, (2 * layer_km / hy.EARTH_RELIEF_KM) ** 0.5))
+    assert hy.ocean_fraction(layer_km, small, icy=True) == hy.ocean_fraction(layer_km, constants.EARTH_GRAVITY)
     assert hy.ocean_fraction(layer_km, small, icy=True) > hy.ocean_fraction(layer_km, small)
     heavy = 3.0 * constants.EARTH_GRAVITY
     assert hy.ocean_fraction(layer_km, heavy, icy=True) == hy.ocean_fraction(layer_km, heavy)
+
+
+def test_gen1222_a_thick_cold_lid_does_not_melt_its_own_base_under_the_surface_temperature():
+    """GEN.1222: the pressure of a lid lowers its base melting point, but not past the ice III triple point; with no floor a cold, low-heat
+    body's thick lid pulled its base under 25 K, the shell came out 0 and the body a liquid ocean at the surface."""
+    gravity = 0.1
+    for flux in (1e-6, 1e-5, 1e-4, 1e-3):
+        shell = hy.pressure_melted_shell_km(flux, 25.0, gravity)
+        assert shell > 0.0
+        assert shell >= hy.ice_shell_thickness_km(flux, 25.0, 251.2)
+    # the Earth-like case stays where it was: a warm top under a thin lid is untouched by the floor
+    assert hy.pressure_melted_shell_km(0.06, 273.0 - 1.0, 9.8) == pytest.approx(hy.ice_shell_thickness_km(0.06, 272.0, hy.WATER_MELTING_K), rel=0.2)
+
+
+def test_gen1222_a_warm_world_under_a_crushing_air_has_no_surface_ocean():
+    """GEN.1222: at 278 K under 4.5 GPa the water is high-pressure ice all the way down, so the state is `ice` and no ocean column is stored (it was
+    `surface ocean` with no ocean depth, chemistry or pH)."""
+    draw.set_run_seed(1222)
+    crushed = _body("O", 278.0, 4.5e9, mass_earth=3.6, radius_km=9000.0)
+    _generate_hydrosphere(crushed, 0.087)
+    assert crushed.hydrosphere == "ice" and crushed.ocean_depth_km is None and crushed.ocean_class is None
+    assert crushed.ice_shell_km and crushed.ice_shell_km == crushed.hp_ice_km
+
+
+def test_gen1147_the_cover_rises_with_the_water_through_the_two_level_surface():
+    """GEN.1147: no land only when the water is a few kilometres deep, the continents come up over the first kilometre, Earth's layer covers 0.71 and
+    the cover is one only past about two Earth oceans; heavier gravity flattens the relief, so the same water covers more."""
+    g = constants.EARTH_GRAVITY
+    covers = [hy.ocean_fraction(layer, g) for layer in (0.0, 0.01, 0.2, 0.64, 1.3, 2.7, 3.4, 5.0, 12.0)]
+    assert covers == sorted(covers) and covers[0] == 0.0 and covers[-1] == 1.0
+    assert hy.ocean_fraction(0.64, g) == pytest.approx(0.5, abs=0.02) and hy.ocean_fraction(0.2, g) == pytest.approx(0.27, abs=0.02)
+    assert 0.55 < hy.ocean_fraction(1.3, g) < 0.65     # the shelf between the continents and the basins: a real range of partial land
+    assert hy.ocean_fraction(2.0, 3.0 * g) > hy.ocean_fraction(2.0, g) > hy.ocean_fraction(2.0, g / 3.0)
+
+
+def test_gen1147_the_mantle_stores_two_oceans_at_half_an_earth_mass_and_eight_at_five():
+    earth = constants.EARTH_MASS_TO_KG
+    ocean = hy.EARTH_OCEAN_FRACTION
+    assert hy.mantle_max_water_fraction(0.5 * earth) == pytest.approx(2 * ocean) and hy.mantle_max_water_fraction(5.0 * earth) == pytest.approx(8 * ocean)
+    assert hy.mantle_max_water_fraction(0.01 * earth) == pytest.approx(2 * ocean) and hy.mantle_max_water_fraction(50.0 * earth) == pytest.approx(8 * ocean)
+    assert 2 * ocean < hy.mantle_max_water_fraction(earth) < 4 * ocean
+    # a water world keeps the rest at the surface: 40 oceans of water, the mantle keeps 8 of them at five Earth masses
+    assert hy.surface_water_fraction(40 * ocean, 5.0 * earth, rng=types.SimpleNamespace(uniform=lambda low, high: high)) == pytest.approx(32 * ocean)

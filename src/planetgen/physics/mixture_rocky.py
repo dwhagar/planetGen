@@ -68,6 +68,8 @@ INVENTORY = {
     "h2o_dry_wt_percent": (1e-4, 5e-3, "log"),
     "co2_dry_wt_percent": (*dry_carbon.co2_wt_percent_bracket(), "log"),
     # The water-rich class (b4: at least 10 weight percent water): the carbon share is open.
+    # CO2 over H2O: [R2381] give c_C/f_W 1e-6 to about 0.1 (Sec 3.1) and 0.3 to 30 percent of the water (Sec 4.3), which disagree
+    # inside the paper; the widest is kept, so the top of 0.2 is inside the second (GEN.824, AM14).
     "h2o_rich_wt_percent": (10.0, 50.0, "log"),
     "co2_over_h2o_rich": (5e-3, 0.2, "log"),
     # The nitrogen and sulfur per carbon atom: the bulk silicate Earth ([R2251] via Schaefer, Lodders and Fegley

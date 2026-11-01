@@ -386,6 +386,6 @@ def init_app(app, limiter=None):
     _install_page_cache(app)
     if app.config.get("SECRET_KEY_IS_EPHEMERAL"):
         app.logger.warning(
-            "No secret_key in config.json (or PLANETGEN_SECRET_KEY): using a random key for this "
+            "The secret key could not be kept in the state folder: using a random key for this "
             "process. Forms still work, but ones left open across a restart must be resubmitted."
         )

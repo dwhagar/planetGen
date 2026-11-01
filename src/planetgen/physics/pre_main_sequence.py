@@ -18,10 +18,12 @@ Three inputs (`tuning`, GEN.529) are fitted to the published BHAC15 tracks [R025
 Hayashi temperature and its mass slope, the birthline radius and its slope, and the energy factor above. Past the
 table's 1.4 solar masses they are extended by the same power laws.
 
-GEN.947: the model's time to the main sequence is about half MIST's from 1.5 solar masses up and at 0.2 solar masses, and the
-star's arrival is MIST's own: setup keeps the heaviest star still in phase -1 of each isochrone age
-(`isochrones.pre_main_sequence_arrival_yr`), and the model's clock is stretched by the ratio of MIST's arrival to its own, so the
-track keeps its shape and ends when MIST's does. Where the rows do not reach the mass the model's own time stands.
+Two times (GEN.1174, Boss 5:25 AM EDT 2026-10-31: both times, the class by the radius). `radius_settled_yr` is the age at which the radius
+has settled to within 5 percent of its main-sequence value in the BHAC15 tracks, the time a star stops contracting; the model's clock
+is stretched onto it, the star is pre-main-sequence until then, and its track ends on the main sequence at that age.
+`nuclear_arrival_yr` is MIST's arrival (GEN.947: the heaviest star still in phase -1 of each isochrone age,
+`isochrones.pre_main_sequence_arrival_yr`, a nuclear criterion that comes later than the radius for the lightest stars), kept beside it;
+where MIST's rows do not reach the mass it is the model's own Kelvin-Helmholtz time.
 """
 
 import functools
@@ -33,6 +35,15 @@ from planetgen.physics import constants, main_sequence, unit_registry as units
 from planetgen.util import draw
 
 _msun_to_kg = units.converter("Msun", "kg")
+
+RADIUS_SETTLED_MYR = (
+    (0.07, 1010.4), (0.08, 830.5), (0.09, 506.6), (0.10, 402.4), (0.11, 355.5), (0.13, 279.2), (0.15, 240.1), (0.17, 216.1),
+    (0.20, 187.5), (0.30, 130.2), (0.40, 105.5), (0.50, 88.2), (0.60, 74.8), (0.70, 62.2), (0.80, 50.3),
+)
+"""tuple: `(initial mass in solar masses, Myr)`: the age at which the radius of the BHAC15 track ([R0254], solar metallicity,
+`BHAC15_tracks+structure`) first falls within 5 percent of its value at 5 Gyr, read for GEN.1174 (the report `gen1169-pre-main-sequence-share-2026-10-31.md`
+and its script). Above 0.8 solar masses the radius of the track goes through a minimum and the criterion stops meaning the same thing, so the model's
+own Kelvin-Helmholtz time is carried on at the 0.8 ratio (`radius_settled_yr`); registry row LM6 of 6.66."""
 
 PROTOSTAR = "protostar"
 PRE_MAIN_SEQUENCE = "PMS"
@@ -65,29 +76,12 @@ def _binding(mass_sol):
     return tuning.PRE_MAIN_SEQUENCE_ENERGY_SOURCE_FACTOR * constants.G * (_msun_to_kg(mass_sol)) ** 2
 
 
-MIST_FADE_TOP_SOL = 0.15
-"""float: The mass, solar masses, from which MIST's stretch of the clock is whole (GEN.1173). Between the lightest mass MIST's rows hold a contracting star for (about 0.107)
-and this, the stretch passes smoothly from none to MIST's, so the time runs on the model's own curve below the rows and on MIST's from here, with no step at the rows' edge
-(718 Myr at 0.105 solar masses against 1358 Myr at 0.11 before). A stand-in, registry row LM5 of 6.66."""
-
-
-def _fade_in(mass_sol, fe_h):
-    """How much of MIST's stretch a star of this mass takes: 0 at the lightest mass the rows hold a contracting star for, 1 from `MIST_FADE_TOP_SOL` up, a smoothstep of the mass
-    between."""
-    edge = isochrones.lowest_arrival_mass_sol(fe_h)
-    if edge is None or edge >= MIST_FADE_TOP_SOL:
-        return 1.0
-    x = min(max((mass_sol - edge) / (MIST_FADE_TOP_SOL - edge), 0.0), 1.0)
-    return x * x * (3.0 - 2.0 * x)
-
-
 @functools.lru_cache(maxsize=4096)
-def _track(mass_sol, fe_h=0.0):
+def _track_constants(mass_sol, fe_h=0.0):
     """
-    The constants of the contraction: `r0` (birthline radius), `r_h` (where the Hayashi phase ends), `r_ms`, the
+    The constants of the contraction before any stretch: `r0` (birthline radius), `r_h` (where the Hayashi phase ends), `r_ms`, the
     temperature `t_h` of the Hayashi phase, the main-sequence luminosity `l_ms` (W), the two phase lengths `t1`
-    and `t2` (s), the rate `k4` of the convective phase and `scale`, the factor that stretches the model's time onto
-    MIST's arrival (GEN.947: 1 where MIST's rows do not reach the mass).
+    and `t2` (s) and the rate `k4` of the convective phase.
     """
     arrival = main_sequence.zams_state(mass_sol, fe_h)     # GEN.652: the MIST row the star contracts onto
     r_ms = arrival.radius_sol * constants.SOLAR_RADIUS_M
@@ -103,17 +97,56 @@ def _track(mass_sol, fe_h=0.0):
     start = min(r0, r_h)
     t2 = tuning.RADIATIVE_BINDING_COEFFICIENT * binding * (1.0 / r_ms - 1.0 / start) / l_ms
     t2 = max(t2, 0.0)
+    return {"r0": r0, "r_h": r_h, "r_ms": r_ms, "t_h": t_h, "l_ms": l_ms, "t1": t1, "t2": t2, "k4": k4, "start": start}
+
+
+@functools.lru_cache(maxsize=4096)
+def _track(mass_sol, fe_h=0.0):
+    """The constants of `_track_constants` and `scale`, the factor that stretches the model's time onto the radius-settled time (GEN.1174)."""
+    track = dict(_track_constants(mass_sol, fe_h))
+    own_yr = _s_to_yr(track["t1"] + track["t2"])
+    track["scale"] = radius_settled_yr(mass_sol, fe_h, own_yr=own_yr) / own_yr if own_yr > 0.0 else 1.0
+    return track
+
+
+def radius_settled_yr(mass_sol, fe_h=0.0, own_yr=None):
+    """
+    The age at which a star of this initial mass has contracted to the main sequence, years (GEN.1174): the BHAC15 age at which its radius settles
+    to within 5 percent (`RADIUS_SETTLED_MYR`, log-log between the masses, flat below 0.07 solar masses); above 0.8 solar masses the model's own
+    Kelvin-Helmholtz time (`own_yr`, worked out when not given) scaled by the ratio the two have at 0.8. The tracks are for solar metallicity; the
+    time is taken for every [Fe/H] (`fe_h` is only here for the callers' sake).
+    """
+    masses = [m for m, _ in RADIUS_SETTLED_MYR]
+    if mass_sol <= masses[-1]:
+        ln_m = math.log(max(mass_sol, masses[0]))
+        for (m0, t0), (m1, t1) in zip(RADIUS_SETTLED_MYR, RADIUS_SETTLED_MYR[1:]):
+            if mass_sol <= m1:
+                share = (ln_m - math.log(m0)) / (math.log(m1) - math.log(m0))
+                return 1e6 * math.exp(math.log(t0) + share * (math.log(t1) - math.log(t0)))
+    edge = _track_own_yr(masses[-1], fe_h)
+    if own_yr is None:
+        own_yr = _track_own_yr(mass_sol, fe_h)
+    return RADIUS_SETTLED_MYR[-1][1] * 1e6 / edge * own_yr
+
+
+def _track_own_yr(mass_sol, fe_h):
+    """The model's own Kelvin-Helmholtz time, years, before any stretch."""
+    track = _track_constants(mass_sol, fe_h)
+    return _s_to_yr(track["t1"] + track["t2"])
+
+
+def nuclear_arrival_yr(mass_sol, fe_h=0.0):
+    """
+    The age at which a star of this initial mass reaches MIST's main sequence, years (GEN.947): the age at which the isochrone rows hold no contracting star
+    of it, where they reach the mass, else the Kelvin-Helmholtz time of the model. A nuclear criterion; it comes later than `radius_settled_yr` for
+    the lightest stars (0.73 against 0.19 Gyr at 0.2 solar masses) and the star is called pre-main-sequence by the radius, not by this.
+    """
     mist_yr = isochrones.pre_main_sequence_arrival_yr(mass_sol, fe_h)
-    scale = _yr_to_s(mist_yr) / (t1 + t2) if mist_yr is not None and t1 + t2 > 0.0 else 1.0
-    if scale != 1.0 and mass_sol < MIST_FADE_TOP_SOL:
-        scale = 1.0 + (scale - 1.0) * _fade_in(mass_sol, fe_h)
-    return {"r0": r0, "r_h": r_h, "r_ms": r_ms, "t_h": t_h, "l_ms": l_ms, "t1": t1, "t2": t2, "k4": k4,
-            "start": start, "scale": scale}
+    return mist_yr if mist_yr is not None else _track_own_yr(mass_sol, fe_h)
 
 
 def contraction_time_yr(mass_sol, fe_h=0.0):
-    """The age at which a star of this mass reaches the main sequence, years: MIST's arrival where its rows reach the mass
-    (GEN.947), else the Kelvin-Helmholtz time of the model."""
+    """The age at which a star of this mass has contracted to the main sequence, years: when its radius has settled (`radius_settled_yr`, GEN.1174)."""
     track = _track(mass_sol, fe_h)
     return _s_to_yr((track["t1"] + track["t2"]) * track["scale"])
 
@@ -158,7 +191,7 @@ def state(mass_sol, age_yr, fe_h=0.0):
     Returns:
         dict: `yerkes_class` (`PROTOSTAR` or `PRE_MAIN_SEQUENCE`), `luminosity_sol`, `temperature_k`, `radius_km`
             (None: it follows from the first two, like every other star's), `phase_end_gy` (the age it leaves the
-            state: the contraction time), and `disk_class` ("0",
+            state: the radius-settled time), `nuclear_arrival_gy` (MIST's, GEN.1174), and `disk_class` ("0",
             "I", "II" or "III").
     """
     which = stage(mass_sol, age_yr, fe_h)
@@ -168,6 +201,7 @@ def state(mass_sol, age_yr, fe_h=0.0):
     return {"yerkes_class": which, "luminosity_sol": on_track["luminosity_sol"],
             "temperature_k": on_track["temperature_k"], "radius_km": None,
             "phase_end_gy": contraction_time_yr(mass_sol, fe_h) / 1.0e9,
+            "nuclear_arrival_gy": nuclear_arrival_yr(mass_sol, fe_h) / 1.0e9,
             "disk_class": disk_class(age_yr)}
 
 

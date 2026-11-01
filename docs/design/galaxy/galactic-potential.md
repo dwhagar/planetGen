@@ -544,15 +544,13 @@ For the GEN.115 tests at the default shape:
 
 ## 10. How this fits planetGen
 
-- `galaxy/galactic_orbit.py::calculate_galactic_orbit(distance_ly)` and the
-  constants `GALACTIC_ROTATION_FLAT_VELOCITY_KMS = 220` and
-  `GALACTIC_ROTATION_CORE_RADIUS_PC = 3000` in `physics/constants.py` are what
-  GEN.115 replaces. Their comment claims "~206 km/s and a ~236 million-year
-  orbit" at Sol's 25,800 ly (7.91 kpc); the new potential gives 229.6 km/s and
-  212 Myr there [C]. The old curve gives 70 km/s at 1 kpc where the potential
-  gives 168. The function is called from `generate_galactic_orbit_fields`,
-  i.e. by every star, remnant and phenomenon at generation, so the potential's
-  circular speed must feed the same function.
+- `galaxy/galactic_orbit.py::calculate_galactic_orbit(distance_ly)` now takes the speed from `galaxy/potential.py` (GEN.338, GEN.339): the circular speed of
+  the generated galaxy's own potential at the distance, `sqrt(R |a_R|)`, and the period from it. The flat 220 km/s curve with a 3 kpc core
+  (`GALACTIC_ROTATION_FLAT_VELOCITY_KMS`, `GALACTIC_ROTATION_CORE_RADIUS_PC`) is gone, and with it `tuning.CLUSTER_HALO_CIRCULAR_KMS`: a metal-rich globular
+  cluster and an open cluster rotate at the potential's speed at their radius, and a cluster's Jacobi radius uses the galaxy's own enclosed mass
+  (`galaxy/enclosed_mass.py`), not an isothermal halo. The function is called from `generate_galactic_orbit_fields`, i.e. by every star, remnant and
+  phenomenon at generation, so every body is born on its galaxy's own curve. (The old comment's "~206 km/s and ~236 Myr" at the Sun's radius, and the
+  70 km/s the old curve gave at 1 kpc, are history.)
 - `db/store.py::advance_galactic_positions` rotates each system, phenomenon
   and stand-alone facility about Z by `_galactic_turn(elapsed_years,
   period_gy)` and rotates the stored velocity by the same angle: the GEN.6

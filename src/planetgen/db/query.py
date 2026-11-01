@@ -5000,7 +5000,7 @@ def _uncharted_item(row, edge_pc):
 def uncharted_system_detail(conn, bright_star_id):
     """
     One scattered star as its page needs it (UX.114): `list_uncharted_systems`'s item, plus `system_id` (the system
-    built around it, or `None` while it is uncharted), `rotation_period_hours` (GEN.846; `None` on a row made before v185), `hosted_nebula` (the nebula it lights, as
+    built around it, or `None` while it is uncharted), `rotation_period_hours` (GEN.846; `None` on a row made before v185), `nuclear_arrival_age_gy` (GEN.1174; the age MIST's tracks put a pre-main-sequence star on the main sequence, `None` for every other star), `hosted_nebula` (the nebula it lights, as
     `hostednebula.summary`, or `None`: the one its sector builds, GEN.530) and, for a star with company, its `members` and `nodes`
     (`scatter_member_tree`). A star already built into a system lists no members: its members are the system's stars.
 
@@ -5010,7 +5010,7 @@ def uncharted_system_detail(conn, bright_star_id):
     row = conn.execute(
         "SELECT id, shell_index, band_index, wedge_index, position_x_mpc, position_y_mpc, position_z_mpc,"
         " population, star_type, yerkes_class, mass_kg, radius_km, temperature_k, luminosity_w, age_gy,"
-        " member_count, system_mass_solar, star_system_id, rotation_period_hours FROM bright_stars WHERE id = ?",
+        " member_count, system_mass_solar, star_system_id, rotation_period_hours, nuclear_arrival_age_gy FROM bright_stars WHERE id = ?",
         (int(bright_star_id),)).fetchone()
     if row is None:
         raise ValueError(f"no bright_stars row with id {bright_star_id}")
@@ -5018,6 +5018,7 @@ def uncharted_system_detail(conn, bright_star_id):
     detail = _uncharted_item(row, skeleton.edge_pc if skeleton else float(tuning.DEFAULT_SECTOR_EDGE_PC))
     detail["system_id"] = row["star_system_id"]
     detail["rotation_period_hours"] = row["rotation_period_hours"]
+    detail["nuclear_arrival_age_gy"] = row["nuclear_arrival_age_gy"]
     detail["hosted_nebula"] = None if row["star_system_id"] is not None else hostednebula.hosted_by_rows(
         conn, [row]).get(row["id"])
     if detail["member_count"] and row["star_system_id"] is None:

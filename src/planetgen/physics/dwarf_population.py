@@ -10,14 +10,14 @@ on the outer disc; the system page lists the dwarf planets as members of their b
 
 1. **How many.** `count_above_km` is `N(>D)` of the belt's size law for the belt's mass, `typical_largest` the body with `N(>m) = 1` (the order statistic) and `chance_of_body_above` the chance that a belt holds any body above a mass
    (`1 - exp(-N)`, a Poisson process). Nothing is typed in per belt: the count follows from the mass.
-2. **Round.** A body is a dwarf planet candidate when its mass is above the mass of a fully relaxed hydrostatic body of its composition: `ROUND_MASS_ICE_KG` for ice and `ROUND_MASS_ROCK_KG` for rock, the geometric centres of the
-   dwarf-planet bands (1e20 to 1e21 kg for ice, 1e21 to 1e22 kg for rock, `belt-sources.md` BR9), mixed log-linearly in the ice fraction up to `ICE_BODY_FRACTION` (`round_mass_kg`).
+2. **Round.** A body is a dwarf planet candidate when its roundness ratio is 1 or more: its own weight beats the strength of its material (`roundness.py`, GEN.1158). `round_mass_kg` is the mass at which that happens for the
+   body's ice share at the median strength, the grains mixed by volume (`body_strength.round_mass_for`); it replaces the two typed round masses of the first version (GEN.1160).
 3. **Cleared.** The body is a planet if it has cleared its orbit, a dwarf planet if not. Soter's `mu = M / m` (the body over the mass of everything else in its zone, here the rest of the belt) above `SOTER_MU_PLANET` (100) is a
    planet ([R4159], READ); Margot's `Pi = M / M_clear` with `M_clear = 1.9e-4 C^(3/2) (a / au)^(9/8) (M* / Msun)^(5/2)` Earth masses and `C = 2 sqrt 3` ([R2871, R2874], READ) is the cross-check and is reported with every
    member (`Member.margot_pi`; Jupiter 4.0e4, Mars 54, as the paper prints). `status` is `minor body` below the round mass, `dwarf planet` if round and not cleared, `planet` if round and cleared.
-4. **Class D.** The class is the conditions rule of `physics/data/planet_classes.json` run on the body, not a table here: a body of a belt that holds no air (`AIRLESS_MAX_MASS_KG`, the mass under which the generator already
-   treats a body as dwarf-sized, 5e22 kg) and at least 1 percent ice is Class D (`class_letter`). Bodies below `belt_ledger.L1_MASS_KG` are not stored and have no letter; the other letters a rocky member could take
-   (C, A) need a temperature and a gravity the wiring step has.
+4. **Class D.** The class is the conditions rule of `physics/data/planet_classes.json` run on the body, not a table here: a stored body of a belt that holds no air (under `AIRLESS_MAX_MASS_KG`, the mass under which the generator
+   already treats a body as dwarf-sized, 5e22 kg) and is round is Class D (`class_letter`; the water rule is gone, GEN.1160). A body under a roundness ratio of 1 is an Asteroid and has no letter. Bodies below `belt_ledger.L1_MASS_KG` are
+   not stored and have no letter.
 
 The Solar System's main belt (Ceres a dwarf planet, Soter's mu about 0.6) and the Kuiper belt (Pluto, Eris, Haumea, Makemake, Quaoar and Gonggong as dwarf candidates, 15 to 20 in the design note) are test targets, never inputs.
 In `tests/test_dwarf_population.py` the model's median counts are within a factor of three of them; Ceres (9.4e20 kg, 39 percent of the belt) is a rare draw, not the median, because a power law's order statistic puts
@@ -33,19 +33,10 @@ Use:
 import math
 from dataclasses import dataclass
 
-from planetgen.physics import belt_ledger, moon_composition, planet_classes, unit_registry as units
+from planetgen.physics import belt_ledger, body_strength, moon_composition, planet_classes, unit_registry as units
 from planetgen.util.checks import finite_domain
 
 _kg_to_mearth = units.converter("kg", "Mearth")
-
-ROUND_MASS_ICE_KG = 3.2e20
-"""float: The mass above which an ice body is in hydrostatic equilibrium: the geometric centre of the band 1e20 to 1e21 kg. [Stand-in DWP1, tier T4, tweak L1.]"""
-
-ROUND_MASS_ROCK_KG = 3.2e21
-"""float: The same for a rock body: the geometric centre of 1e21 to 1e22 kg. [Stand-in DWP1, tier T4, tweak L1.]"""
-
-ICE_BODY_FRACTION = 0.5
-"""float: The ice mass fraction at and above which a body is as weak as pure ice (the round mass is the ice value); between zero and this it is mixed log-linearly. [Stand-in DWP2, tier T6, tweak L1.]"""
 
 SOTER_MU_PLANET = 100.0
 """float: Soter's discriminant above which a body has cleared its zone and is a planet ([R4159], READ; the gap between planets and the rest is four to five orders of magnitude). [Stand-in BR6, tier T1, tweak L0.]"""
@@ -88,11 +79,10 @@ def chance_of_body_above(law, belt_mass_kg, mass_kg):
 
 @finite_domain()
 def round_mass_kg(ice_fraction):
-    """The mass above which a body of this ice mass fraction is in hydrostatic equilibrium (ice and rock mixed log-linearly in the fraction, up to `ICE_BODY_FRACTION`)."""
+    """The mass above which a body of this ice mass fraction turns round: the roundness engine's round mass at the median strength (`body_strength.round_mass_for`, GEN.1160), with the grains mixed by volume."""
     if not 0.0 <= ice_fraction <= 1.0:
         raise ValueError("the ice fraction is a share between 0 and 1")
-    weight = min(1.0, ice_fraction / ICE_BODY_FRACTION)
-    return math.exp((1.0 - weight) * math.log(ROUND_MASS_ROCK_KG) + weight * math.log(ROUND_MASS_ICE_KG))
+    return body_strength.round_mass_for(ice_fraction)
 
 
 @finite_domain()
@@ -127,13 +117,13 @@ def status(mass_kg, ice_fraction, others_kg):
 
 def class_letter(mass_kg, ice_fraction):
     """
-    `D` for a stored belt member that holds no air and is at least 1 percent ice, by the conditions rule of the planet classes; `None` for a body under the ledger's cut (not stored) or over
-    `AIRLESS_MAX_MASS_KG` (it has its own pipeline), or for a rocky one (its letter needs the temperature and gravity the wiring step has).
+    `D` for a stored belt member that holds no air, is round (a roundness ratio of 1 or more) and is under `AIRLESS_MAX_MASS_KG`, by the conditions rule of the planet classes (GEN.1160); `None` for a body under the ledger's cut (not
+    stored), over `AIRLESS_MAX_MASS_KG` (it has its own pipeline), or under a roundness ratio of 1 (an Asteroid, which has no class letter).
     """
     if not (belt_ledger.L1_MASS_KG <= mass_kg < AIRLESS_MAX_MASS_KG):
         return None
-    letter = planet_classes.classify_values({"body_type": planet_classes.TERRESTRIAL, "mass_kg": mass_kg, "atmospheric_pressure_pa": 0.0, "water_mass_fraction": ice_fraction}).letter
-    return letter if letter == "D" else None
+    ratio = body_strength.ratio_for(mass_kg, ice_fraction)
+    return planet_classes.classify_values({"body_type": planet_classes.TERRESTRIAL, "mass_kg": mass_kg, "atmospheric_pressure_pa": 0.0, "roundness_ratio": ratio}).letter
 
 
 @dataclass(frozen=True)
@@ -145,7 +135,7 @@ class Member:
         rank (int): The ledger rank (0 is the heaviest), stable for the belt.
         mass_kg, diameter_km (float): Its mass and diameter.
         status (str): `minor body`, `dwarf planet` or `planet`.
-        class_letter (str or None): `D` if it holds no air and is at least 1 percent ice, else `None`.
+        class_letter (str or None): `D` if it holds no air and is round, else `None` (an Asteroid).
         soter_mu, margot_pi (float): The two clearing numbers.
     """
 

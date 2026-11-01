@@ -15098,6 +15098,23 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   8.1. Prerequisites: none. Related: PERF.226.
   Prerequisites: none.
 
+- [ ] **PERF.229 Every supergiant and bright-giant star type times out at 900 s in the fuzz test (bug)**
+  The full-suite thread (as the lane reported, 10:36 PM EDT 2026-10-31,
+  run on main 7eef24a) saw
+  tests/test_fuzz_system_generation.py::test_every_star_type_generates_a_sane_system
+  time out at 900 s for the types IAB, IB, II, and III, the same pattern
+  as the last run. Every supergiant and bright-giant type timing out
+  suggests generating those stars is very slow or hangs on main, not
+  load; each timeout costs a worker 15 minutes, which stretches the full
+  run by many hours. Do: generate one system of each of those types by
+  hand with timing, find where the time goes (a loop, a table build, an
+  unbounded retry), fix at the cause in code, and confirm the test
+  finishes well inside its limit. The end-of-run alone re-run from the
+  full-suite thread will confirm it is real. Done: all four types
+  generate in seconds and the test passes. Owner: Bug 1, queued behind
+  the train 8 stored-tree fix (GEN.951).
+  Prerequisites: none.
+
 ## DB: Database and schema
 
 DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
@@ -19361,21 +19378,6 @@ clears each one.
   clears). Version 8.1.
   Prerequisites: none. Related: GEN.996.
 
-- [ ] **TEST.543 The atmosphere sweep audit reads planetgen.physics.ozone.STRUCTURE_RANGE, which is now STRUCTURE_KNOTS, so three sweep tests fail (bug)**
-  The full-suite thread (reported 2026-10-31 8:58 PM EDT as the lane
-  reported) ran the suite on main 7eef24a and re-ran these alone, so
-  they are real. tests/audit/sweep_atmosphere.py line 154 uses
-  STRUCTURE_RANGE, which no longer exists;
-  test_every_body_of_the_sweep_obeys_every_rule,
-  test_every_rule_is_exercised_by_air_that_the_sweep_holds and
-  test_the_ozone_rule_holds_for_earth_air_and_fails_outside_the_fits_spread
-  fail. Do: express the ozone rule's allowed spread from STRUCTURE_KNOTS
-  (the range of its knots), say why in a comment, and keep the rule's
-  meaning. Done: the three tests pass. Lock-free, generation output
-  unchanged. Version 8.1. Prerequisites: none. Related: TEST.261. Owner:
-  Aux 2 (air).
-  Prerequisites: none.
-
 - [ ] **TEST.545 The table sweep raises temperature must be positive for small-body-taxa/asteroid-field at 0 K, and two rows are never reached (bug)**
   The full-suite thread (reported 2026-10-31 8:58 PM EDT as the lane
   reported) ran the suite on main 7eef24a and re-ran these alone, so
@@ -19409,6 +19411,53 @@ clears each one.
   the Stats table still shows the same rows. Lock-free, generation
   output unchanged. Owner: unassigned (a waiting lane may take it).
   Version 8.1. Prerequisites: none. Related: TEST.261, PERF.197.
+  Prerequisites: none.
+
+- [ ] **TEST.547 Dry-class carbon bracket test is red on main after GEN.1005 (bug)**
+  src/tests/test_volatile_inventory_totals.py::test_the_dry_class_carbon_is_the_bulk_silicate_earths_not_sixteen_times_it
+  fails on main: the dry carbon bracket's log middle is 153 ppm C
+  against the bulk silicate Earth's 99 ppm, after GEN.1005. Found by
+  Core 4 (not from its branch). Decide whether the bracket or the test
+  bound moves (a sourced reading, not a hand tune), then fix and re-run
+  that file. Owner: none yet; Bug 1 or the next lane with room.
+  Prerequisites: none.
+
+- [ ] **TEST.548 Two phenomenon-scatter count tests fail on main: remnant counts moved past 1.5 times the model (bug)**
+  The full-suite thread (as the lane reported, 10:36 PM EDT 2026-10-31,
+  run on main 7eef24a) re-ran these alone, so they are real:
+  tests/test_phenomenon_scatter.py::test_each_kind_follows_its_rate_per_star
+  (line 95) and
+  ::test_gen677_with_every_mass_scattered_both_remnant_classes_follow_their_model_counts
+  (line 536) both fail on assert 29689 > 1.5 * 20059. A remnant count
+  ratio moved, probably from the star mass function epoch (Bug 1);
+  TEST.541 covers different tests, not these. Do: find which epoch moved
+  the remnant count, then either fix a generator defect (rides an epoch)
+  or, if the model counts are what changed, update the expected counts
+  from the sourced model with the reason stated; never loosen the 1.5
+  factor to pass. Done: both tests pass on main. Owner: Bug 1, queued
+  behind the train 8 stored-tree fix (GEN.951).
+  Prerequisites: none.
+
+- [ ] **TEST.549 test_star_population passes the removed bounds_only argument to _bright_table and is red on main (bug)**
+  The Train Manager reported (as the lane reported, 11:59 PM EDT
+  2026-10-31) that
+  tests/test_star_population.py::test_a_populations_counts_are_worked_out_at_its_own_composition_not_the_suns
+  (line about 293) still passes 6 arguments to
+  star_population._bright_table, whose bounds_only argument PR #4688
+  removed. Do: update the test to the new signature and keep what it
+  checks (counts at the population's own composition, not the Sun's).
+  Done: the test passes on main. Lock-free, test-only. Owner: Star 2,
+  with TEST.541.
+  Prerequisites: none.
+
+- [ ] **TEST.550 Five census tests stay red on main until the census re-tag for epochs 129 and 130 (bug)**
+  Train 8 (#4655, merged 11:59 PM EDT 2026-10-31 by GitHub's stamp) left
+  five prevalence census tests red on main on purpose: their baselines
+  are for epoch 128 and the one census re-tag covers epochs 129 and 130.
+  Do: the Train Manager runs the re-tag (as the lane reported, next
+  after the merge), then re-baselines; check the five go green and that
+  no other test moved. Done: the five census tests pass on main after
+  the re-tag. Owner: Train Manager.
   Prerequisites: none.
 
 ## USR: User accounts

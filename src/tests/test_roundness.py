@@ -483,6 +483,7 @@ def test_a_material_with_no_range_does_not_move(monkeypatch):
     document = copy.deepcopy(_document())
     del document["materials"]["metal"]["range_pa"]
     monkeypatch.setattr(rn, "TABLE", rn.load_table(document))
+    monkeypatch.setattr(rn, "RANGES_PA", rn.TABLE.ranges_pa)       # the draw reads the module's ranges (GEN.1178)
     assert rn.drawn_strengths_pa(0.0)["metal"] == rn.drawn_strengths_pa(1.0)["metal"] == rn.TABLE.strengths_pa["metal"]
 
 
@@ -569,3 +570,9 @@ def test_a_table_may_leave_rock_without_a_temperature_rule(monkeypatch):
     del document["temperature"]["rock"]
     monkeypatch.setattr(rn, "TABLE", rn.load_table(document))
     assert _rock(1300.0) == pytest.approx(rn.ROCK_STRENGTH_PA / 1e6)
+
+
+def test_a_creep_law_at_a_few_kelvin_does_not_overflow():
+    rule = rn.TABLE.temperature["rock"]
+    assert all(rn._creep_stress_mpa(column, rule["rate_per_s"], 18.0) == float("inf") for column in rule["columns"])
+    assert rn.yield_strength_pa(0.0, temperature_k=18.0) == rn.yield_strength_pa(0.0)       # cold rock keeps its whole-body strength

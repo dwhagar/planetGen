@@ -2290,3 +2290,10 @@ Baseline: PR #1817.
 | ADM.135 | 8.9 | Remote generation |
 | TEST.544 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | TEST.542 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| OPS.90 | 8.2 | Robust tile caching |
+| OPS.91 | 8.2 | Robust tile caching |
+| OPS.92 | 8.2 | Robust tile caching |
+| OPS.93 | 8.2 | Robust tile caching |
+| GEN.1235 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| GEN.1234 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| TEST.543 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |

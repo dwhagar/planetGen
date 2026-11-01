@@ -21,7 +21,9 @@ rocky family and gives the pieces their own seeded design brackets, each a stand
   hydrogen of the water escapes (the fraction `WATER_PHOTOLYSED`) and the oxygen it leaves behind stays in the closed gas, except for
   the share `OXYGEN_SINK` that the crust takes up ([R2769]: the O2 builds to tens or hundreds of bar around a late M
   dwarf). Nothing holds the oxygen fugacity here: the gas is free to have O2.
-* **Titan-like (`j3`): nitrogen and methane at the methane's saturation.** The nitrogen is the balance; the methane is the
+* **Titan-like (`j3`): nitrogen and methane at the methane's saturation.** The nitrogen is the balance, and it is the nitrogen of the
+  body's ammonia ice (GEN.821): the share `AMMONIA_OUTGASSED` of the ammonia leaves the interior and the share `AMMONIA_TO_N2` of
+  that is converted to N2 ([R1282], section 4.2), added to what the rocky inventory degasses; the methane is the
   surface's humidity `TITAN_HUMIDITY` of the saturation pressure at the surface temperature over the pressure of the air (the
   lakes and the damp ground are the reservoir), hydrogen a trace of the methane's photolysis (`TITAN_HYDROGEN`).
 * **Frost equilibrium (`j4`, Pluto and Triton).** Each gas stands over the surface ice at the pressure of an ideal solution,
@@ -63,6 +65,22 @@ the measured humidity is about 0.5; [R3289])."""
 
 TITAN_HYDROGEN = (3e-4, 3e-3, "log")
 """tuple: The hydrogen mole fraction of a methane atmosphere (Titan 1.0e-3 +/- 0.16e-3, [R3289], TEST); design bracket around it."""
+
+AMMONIA_OUTGASSED = (0.0081, 0.048, "log")
+"""tuple: The share of a body's ammonia that leaves its interior as a gas, epsilon of [R1282] (Planetary and Space Science, section
+4.2, Table 2): 0.81 to 4.80 percent across the interior models of Fortes (methane clathrate, pure water ice, light and dense ocean, FeS and iron
+core), for the nitrogen Titan's air holds."""
+
+AMMONIA_PER_WATER = (0.002, 0.015, "log")
+"""tuple: The ammonia in the ice of a body that drew none, mole per mole of its water: the 0.2 to 1.5 percent that [R1282] (section 4.2)
+take from the comets (NH3/H2O of the cometary ice)."""
+
+AMMONIA_TO_N2 = (0.1, 1.0, "log")
+"""tuple: The share of the outgassed ammonia that ends as N2, xi of [R1282] (at most 1, the paper gives no best estimate; the 0.1 floor is
+a design bound, registry row AM87)."""
+
+NH3_G_MOL = 17.03052
+"""float: The molar mass of ammonia, g/mol."""
 
 FROST_ICE = {"CH4": (3e-3, 0.3, "log"), "CO": (1e-3, 0.1, "log")}
 """dict: The mole fraction of each minor gas in the surface ice (the rest is nitrogen), stand-ins for the research item on the ice
@@ -136,6 +154,26 @@ def evolved_oxidised(subject, recipe, row, supply=None):
     return draw_result
 
 
+def _ammonia_nitrogen(subject, constants):
+    """
+    The nitrogen atoms per 100 g of mantle that the body's ammonia ice has outgassed as N2 (GEN.821; [R1282] equation 41, with the
+    ammonia read off the body, or the cometary share of its water when the makeup holds none): `AMMONIA_OUTGASSED` times `AMMONIA_TO_N2` of the ammonia, one nitrogen atom per
+    molecule. 0 for a body whose subject carries no ammonia or no rock.
+    """
+    rock = subject.get("rock_mass_fraction")
+    if not rock or rock <= 0.0:
+        return 0.0
+    ammonia = subject.get("nh3_mass_fraction") or 0.0
+    if ammonia <= 0.0:       # a body whose makeup drew no ices but water (a moon's): the ammonia is the cometary share of its water
+        water = subject.get("water_mass_fraction") or 0.0
+        ammonia = bracket(constants, "ammonia_per_water", AMMONIA_PER_WATER) * water * NH3_G_MOL / mixture_rocky.AMU_G_MOL["H2O"]
+    if ammonia <= 0.0:
+        return 0.0
+    outgassed = bracket(constants, "ammonia_outgassed", AMMONIA_OUTGASSED)
+    converted = bracket(constants, "ammonia_to_n2", AMMONIA_TO_N2)
+    return 100.0 * outgassed * converted * ammonia / (NH3_G_MOL * rock)
+
+
 def titan_like(subject, recipe, supply=None):
     """
     The nitrogen-methane gas of a cold body with a thick air (`j3`), from the surface temperature and the pressure of the air; its
@@ -144,7 +182,7 @@ def titan_like(subject, recipe, supply=None):
     require(subject, ("ts_k", "pressure_bar", "age_gy"))
     constants = {}
     inventory = mixture_rocky.rocky_inventory(subject, recipe, constants)
-    nitrogen = mixture_rocky.surface_budget(inventory, supply).get("N", 0.0)
+    nitrogen = mixture_rocky.surface_budget(inventory, supply).get("N", 0.0) + _ammonia_nitrogen(subject, constants)
     if nitrogen <= 0.0:
         raise NotApplicable("no nitrogen has reached the surface")
     temperature, pressure = subject["ts_k"], subject["pressure_bar"]

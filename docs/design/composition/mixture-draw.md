@@ -175,7 +175,7 @@ class letter (`mixture_draw` module text has the table). Each family is one modu
 | `giant`, `brown-dwarf`, `hot-jupiter`, `envelope` | `mixture_giant` | [R0168] budget at the drawn metallicity and C/O, Visscher condensation (clouds, NH4SH, ice caps) removing what the layer's temperature takes out, adiabat to the layer, Zahnle and Marley quench |
 | `venus`, `mars` (`j1`, `j2`) | `mixture_evolved` | the outgassed gas minus its water (`WATER_RESIDUAL`) and most of its sulfur, cooled to the surface temperature (not quenched) over a crust that holds the body's redox: CO2 with a few percent N2 (Mars-like 0.978 CO2, 0.016 N2; the TEST values are 0.96 and 0.019) |
 | `abiotic-oxygen` (`j5`) | `mixture_evolved` | the outgassed gas rescaled to a carbon of 0.01 to 0.2 per molecule of an ocean of one to ten Earth oceans, the hydrogen of 30 to 100 percent of it lost and the crust taking up to 90 percent of the oxygen left: nothing holds the oxygen, so the gas has O2 |
-| `titan` (`j3`) | `mixture_evolved` | N2 balance, CH4 at 30 to 100 percent of its saturation pressure over the pressure of the air, H2 a trace |
+| `titan` (`j3`) | `mixture_evolved` | N2 balance (the nitrogen of the rock plus the ammonia ice's: GEN.821), CH4 at 30 to 100 percent of its saturation pressure over the pressure of the air, H2 a trace |
 | `frost` (`j4`) | `mixture_evolved` | Raoult over a surface of N2, CH4 and CO ice: `p_i = chi_i p_sat,i(T)`, the nitrogen setting the total |
 | `coma` (`k`) | `mixture_coma` | the ice's composition: CO2/H2O, CO/H2O, CH3OH, NH3, HCN and the 67P species as drawn ratios to water, the class row ordering CO2 and CO |
 | `lava` (`i` at `tp_k >= 1400 K`, `l1`) | `mixture_lava` | the vapour over an ideal-solution BSE melt: element potentials from the melt's oxides and the held oxygen fugacity, every gas of those elements at its own partial pressure, no iteration |
@@ -227,7 +227,7 @@ mean molar mass 33 g/mol at 2000 K and 42 g/mol at 3000 K. It does so only with 
   abstract only), added AlO, Al2O, AlO2 and Al2O2 and the liquid Al2O3 to the species table (99 species), and put Al in the vapour's
   elements: a BSE melt at 2500 K now has about 2e-7 of its vapour as aluminium, mostly AlO and Al (Al is refractory), 6e-5 at 3000 K.
 - Design brackets this module added, each to be replaced by the research item named: `WATER_RESIDUAL`, `SULFUR_SINK`,
-  `WATER_PHOTOLYSED`, `OCEAN_WATER_WT_PERCENT`, `CARBON_PER_OCEAN_WATER`, `OXYGEN_SINK`, `TITAN_HUMIDITY`, `TITAN_HYDROGEN`, `FROST_ICE`
+  `WATER_PHOTOLYSED`, `OCEAN_WATER_WT_PERCENT`, `CARBON_PER_OCEAN_WATER`, `OXYGEN_SINK`, `TITAN_HUMIDITY`, `TITAN_HYDROGEN`, `AMMONIA_OUTGASSED`, `AMMONIA_PER_WATER`, `AMMONIA_TO_N2`, `FROST_ICE`
   (`mixture_evolved`; GEN.481 and the ice composition item), `ALKALI_ACTIVITY_COEFFICIENT` and `COMPOSITION_SCATTER` (`mixture_lava`; the
   melt activity model of GEN.499 and the bulk composition of lane J), the k1 to k3 ordering rule of the coma.
 

@@ -162,3 +162,15 @@ def test_a_generated_body_gives_a_subject_the_draw_accepts(host, mass_earth, zon
         result = mixture_draw.draw_mixture(subject)
     assert result.mole_fractions and sum(result.mole_fractions.values()) == pytest.approx(1.0)
     assert all(math.isfinite(float(value)) for value in subject.quantities.values() if not isinstance(value, (str, bool)))
+
+
+def test_the_stored_makeup_gives_the_ammonia_the_water_and_the_rock_a_titan_like_air_reads_and_a_body_without_makeup_gives_none():
+    """GEN.821: the ammonia ice, the water and the rock as shares of the whole body, for the nitrogen of `mixture_evolved.titan_like`."""
+    moon = _earth(mass=0.0225 * EARTH_MASS_KG, radius=2575.0, is_moon=True, metal_mass_fraction=0.0, rock_mass_fraction=0.55,
+                  water_mass_fraction=0.3, ice_mass_fraction=0.15, envelope_mass_fraction=0.0, ice_co2_mass_fraction=0.0,
+                  ice_ch4_mass_fraction=0.0, ice_nh3_mass_fraction=0.012, ice_n2_mass_fraction=0.0, ice_so2_mass_fraction=0.0,
+                  ice_co_mass_fraction=0.0, ice_hcn_mass_fraction=0.0, ice_other_mass_fraction=0.138)
+    q = ms.quantities_of_body(moon, ts_k=94.0, pressure_bar=1.5)
+    assert q["nh3_mass_fraction"] == pytest.approx(0.012) and q["water_mass_fraction"] == pytest.approx(0.3) and q["rock_mass_fraction"] == pytest.approx(0.55)
+    bare = ms.quantities_of_body(_earth(), ts_k=288.0, pressure_bar=1.0)
+    assert "nh3_mass_fraction" not in bare and "rock_mass_fraction" not in bare

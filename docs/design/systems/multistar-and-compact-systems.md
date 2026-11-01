@@ -67,7 +67,7 @@ were rerun while writing this document.
 - **Close (P-type) pair.** `BinaryStarProxy` (`generation/binary.py`) merges two
   stars into one effective star: separation `uniform(0.05, 0.25)` AU plus both
   radii, eccentricity 0, circular position, random orientation, mass ratio
-  `uniform(0.1, 1.0)` (`tuning.BINARY_MASS_RATIO_RANGE`), same age as the primary
+  from the law of [R3108] over 0.1 to 1 (`generation/mass_ratio.py`, GEN.951, with `tuning.BINARY_MASS_RATIO_RANGE` the ends), same age as the primary
   (GEN.53). The orbit lives in `binary_*` columns on `star_systems`; the proxy has
   no `stars` row ([database-schema.md](../../reference/database-schema.md), "Binary
   configuration").

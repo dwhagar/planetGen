@@ -83,10 +83,12 @@ def test_the_nearest_w0_inverts_a_concentration():
 
 
 def test_the_jacobi_radius_grows_with_mass_and_distance():
-    assert king.jacobi_radius_pc(2.0e5, 8000.0) < king.jacobi_radius_pc(2.0e6, 8000.0)
-    assert king.jacobi_radius_pc(2.0e5, 8000.0) < king.jacobi_radius_pc(2.0e5, 16000.0)
-    # 2e5 solar masses at the Sun's distance keep about 60 pc, as globular clusters do (tens of parsecs).
-    assert 30.0 < king.jacobi_radius_pc(2.0e5, 8000.0) < 120.0
+    # The galaxy's mass inside 8 and 16 kpc: 9e10 and 1.8e11 solar masses, an isothermal halo of 220 km/s (M = v^2 R / G).
+    assert king.jacobi_radius_pc(2.0e5, 8000.0, 9.0e10) < king.jacobi_radius_pc(2.0e6, 8000.0, 9.0e10)
+    assert king.jacobi_radius_pc(2.0e5, 8000.0, 9.0e10) < king.jacobi_radius_pc(2.0e5, 16000.0, 1.8e11)
+    # 2e5 solar masses at 8 kpc keep about 80 pc, as globular clusters do (tens of parsecs); a heavier galaxy squeezes the cluster.
+    assert 30.0 < king.jacobi_radius_pc(2.0e5, 8000.0, 9.0e10) < 120.0
+    assert king.jacobi_radius_pc(2.0e5, 8000.0, 2.0e11) < king.jacobi_radius_pc(2.0e5, 8000.0, 9.0e10)
 
 
 def test_limit_w0_lowers_the_potential_until_the_edge_fits():

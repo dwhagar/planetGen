@@ -88,13 +88,20 @@ def test_a_regular_moon_takes_a_small_forced_eccentricity_and_a_captured_one_the
 
 
 def test_a_moon_at_the_edge_of_the_stable_sphere_has_no_room_for_an_eccentricity():
+    # [R1138]: a_moon <= 0.4895 R_H (1 - 1.0305 e_planet - 0.2738 e_moon)
     hill = 0.001
-    stable = tuning.MOON_PROGRADE_STABLE_HILL_FRACTION * hill
+    stable = 0.4895 * hill
     assert oe.max_moon_eccentricity(stable, hill) == 0.0
     assert oe.max_moon_eccentricity(stable * 1.2, hill) == 0.0
-    assert oe.max_moon_eccentricity(stable / 1.5, hill) == pytest.approx(0.5)
+    assert oe.max_moon_eccentricity(stable / 1.2, hill) == pytest.approx((1.0 - 1.0 / 1.2) / 0.2738)
     assert oe.max_moon_eccentricity(stable / 4.0, hill) == oe.MAX_ECCENTRICITY
     assert oe.max_moon_eccentricity(stable, None) == oe.MAX_ECCENTRICITY
+    # the planet's own eccentricity takes room from the moon's
+    assert oe.max_moon_eccentricity(stable / 1.5, hill, 0.2) < oe.max_moon_eccentricity(stable / 1.5, hill, 0.0)
+    assert oe.max_moon_eccentricity(stable / 1.5, hill, 0.2) == pytest.approx(
+        (1.0 - 1.0305 * 0.2 - 1.0 / 1.5) / 0.2738)
+    assert oe.max_moon_eccentricity(stable / 1.2, hill, 0.2) == 0.0   # the planet's eccentricity leaves no room at all
+    assert oe.max_moon_eccentricity(stable * 0.9, hill, 0.5) == 0.0
 
 
 def test_a_planet_cannot_pass_the_roche_limit_of_its_star():
@@ -304,15 +311,15 @@ def test_the_spacing_leaves_room_for_the_ellipses_and_is_the_old_one_for_circles
     star = types.SimpleNamespace(mass=1.989e30)
 
     def pair(e_in, e_out):
-        inner = types.SimpleNamespace(mass=6e24, star=star, distance=1.0, eccentricity=e_in)
-        outer = types.SimpleNamespace(mass=6e24, star=star, distance=1.5, eccentricity=e_out)
+        inner = types.SimpleNamespace(body_type="t", mass=6e24, star=star, distance=1.0, eccentricity=e_in)
+        outer = types.SimpleNamespace(body_type="t", mass=6e24, star=star, distance=1.5, eccentricity=e_out)
         return outer, inner
 
     kappa = tuning.MUTUAL_HILL_RADII_SEPARATION * (2 * 6e24 / (3 * 1.989e30)) ** (1 / 3)
     outer, inner = pair(0.0, 0.0)
-    assert validation.mutual_min_distance_au(outer, inner) == pytest.approx((1 + kappa / 2) / (1 - kappa / 2))
+    assert validation.min_distance_after_au(outer, [inner]) == pytest.approx((1 + kappa / 2) / (1 - kappa / 2))
     outer, inner = pair(0.1, 0.05)
-    needed = validation.mutual_min_distance_au(outer, inner)
+    needed = validation.min_distance_after_au(outer, [inner])
     # the gap from the inner apoapsis to the outer periapsis holds the separation
     assert needed * (1 - 0.05) - 1.0 * (1 + 0.1) == pytest.approx(kappa * (needed + 1.0) / 2.0)
     assert needed * (1 - 0.05) > 1.0 * (1 + 0.1)
@@ -323,12 +330,12 @@ def test_a_belt_clears_the_apoapsis_of_a_planet_inside_it_and_a_planet_the_belt_
     planet = types.SimpleNamespace(body_type="t", distance=1.0, eccentricity=0.2, min_orbit_distance=0.05, hill_radius=3e5, mass=6e24,
                                    star=star)
     belt = types.SimpleNamespace(body_type="a", lower_limit=1.0, upper_limit=1.4, distance=1.0)
-    assert validation.min_distance_after_au(belt, planet) == pytest.approx(1.2 + 0.05)
+    assert validation.min_distance_after_au(belt, [planet]) == pytest.approx(1.2 + 0.05)
     outer = types.SimpleNamespace(body_type="t", distance=2.0, eccentricity=0.3, hill_radius=3e5, mass=6e24, star=star)
-    needed = validation.min_distance_after_au(outer, belt)
+    needed = validation.min_distance_after_au(outer, [belt])
     assert needed * (1 - 0.3) > belt.upper_limit
     circle = types.SimpleNamespace(**{**outer.__dict__, "eccentricity": 0.0})
-    assert validation.min_distance_after_au(circle, belt) < needed
+    assert validation.min_distance_after_au(circle, [belt]) < needed
 
 
 def test_the_reach_of_a_planet_is_its_apoapsis_and_its_hill_sphere():

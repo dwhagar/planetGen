@@ -26,7 +26,7 @@ import math
 
 from planetgen import tuning
 from planetgen.generation.possibility_table import Subject
-from planetgen.physics import activity, bulk_structure, climate_draws, constants, giant_draw, giant_interior, mixture_draw, orbit_elements, orbits, unit_registry as units
+from planetgen.physics import activity, bulk_composition, bulk_structure, climate_draws, constants, giant_draw, giant_interior, ice_species, mixture_draw, orbit_elements, orbits, unit_registry as units
 from planetgen.physics.mixture_base import MixtureError
 
 _kg_to_mearth = units.converter("kg", "Mearth")
@@ -108,6 +108,12 @@ def quantities_of_body(body, *, ts_k, pressure_bar, ocean_present=False, long_li
         "is_moon": bool(getattr(body, "is_moon", False)),
         "photosphere_bar": PHOTOSPHERE_BAR,
     }
+    fractions = bulk_composition.bulk_fractions(body)
+    if fractions is not None and fractions.rock > 0.0:   # GEN.821: the ammonia ice a Titan-like air takes its nitrogen from
+        shares = fractions.ice_shares or ice_species.median_shares()
+        quantities["nh3_mass_fraction"] = fractions.ice * shares.get("NH3", 0.0)
+        quantities["water_mass_fraction"] = fractions.water
+        quantities["rock_mass_fraction"] = fractions.rock
     core = getattr(body, "core_mass_earth", None)
     envelope = getattr(body, "envelope_mass_fraction", None)
     if not core and envelope is not None:  # a rocky planet's core is the mass its envelope (none, for a stripped one) leaves
@@ -156,10 +162,12 @@ def quantities_of_body(body, *, ts_k, pressure_bar, ocean_present=False, long_li
     return quantities
 
 
-OPTIONAL_INPUTS = ("log_lx_lbol", "host_mass_solar")
+OPTIONAL_INPUTS = ("log_lx_lbol", "host_mass_solar", "nh3_mass_fraction", "water_mass_fraction", "rock_mass_fraction")
 """tuple: The quantities the escape filter reads when the body has them (GEN.804): the star's own activity at its age, which the XUV history follows
 (the table's nominal decay without it). The magnetopause (`mixture_escape` reads `magnetopause_rp` when a subject carries it, 0 for no field) is not built here: the
-field is drawn after the air until GEN.967 orders it first, and a pass that ran after it would close the air to the wind for some bodies and not others."""
+field is drawn after the air until GEN.967 orders it first, and a pass that ran after it would close the air to the wind for some bodies and not others.
+`nh3_mass_fraction`, `water_mass_fraction` and `rock_mass_fraction` (GEN.821) are the ammonia ice, the water and the rock of the stored bulk composition, as shares
+of the whole body's mass: the nitrogen of a Titan-like air (`mixture_evolved.titan_like`)."""
 
 
 KIND_OF_BODY_TYPE = {"t": "terrestrial", "g": "giant"}

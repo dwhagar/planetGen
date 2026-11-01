@@ -2246,7 +2246,7 @@
     },
     "secret_key": {
       "default": "",
-      "description": "Signs the CSRF tokens on the pages' forms. Empty makes a random one at startup (a form open across a restart then fails once).",
+      "description": "Signs the CSRF tokens on the pages' forms. Empty makes one and keeps it in the state folder (mode 0600), so every worker and restart shares it.",
       "title": "Secret Key",
       "type": "string",
       "x-advanced": false,
@@ -2261,7 +2261,7 @@
       "x-restart": true,
       "x-secret": true,
       "x-slider": null,
-      "x-summary": "Signs the security tokens on forms; empty makes a random one at each start."
+      "x-summary": "Signs the security tokens on forms; empty makes one and keeps it in the state folder."
     },
     "seo": {
       "$ref": "#/$defs/Seo",

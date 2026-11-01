@@ -395,19 +395,6 @@ def pre_main_sequence_arrival_yr(mass_sol, fe_h):
     return 10.0 ** (found[0] + (found[1] - found[0]) * weight)
 
 
-def lowest_arrival_mass_sol(fe_h):
-    """The lightest initial mass, solar masses, for which `pre_main_sequence_arrival_yr` has an age at `fe_h`: the lightest star still contracting in the
-    oldest isochrone that has one, the larger of the two grid metallicities' (GEN.1173), or None when the rows have no contracting star."""
-    below, above, _ = _bracket(_grid(), fe_h)
-    lowest = []
-    for isochrone in (below, above):
-        edge = isochrone.pre_edge
-        if edge is None or len(edge) < 2:
-            return None
-        lowest.append(float(np.log10(edge[:, 1]).min()))
-    return float(10.0 ** max(lowest)) * (1.0 + 1e-9)
-
-
 def main_sequence_point(mass_sol, age_gy, fe_h, clamp=False):
     """`(log10 L/Lsun, log10 Teff/K, log10 R/Rsun, present mass in Msun)` of a main-sequence star of initial mass `mass_sol` solar masses
     and `age_gy` Gy at `fe_h`, or None when it has left the main sequence, is not yet on it, or its age is outside

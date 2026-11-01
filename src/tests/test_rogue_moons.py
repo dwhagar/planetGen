@@ -68,7 +68,7 @@ def test_the_circularisation_heat_of_the_debes_and_sigurdsson_median_pair():
 def test_the_default_rheology_is_the_rock_of_tidal_heating_and_the_flux_scales_with_the_square_of_the_eccentricity():
     a = 30.0 * R_EARTH
     flux = rm.circularisation_flux_w_m2(EARTH, R_EARTH, MOON, a)
-    assert flux == pytest.approx(rm.circularisation_flux_w_m2(EARTH, R_EARTH, MOON, a, k2_over_q=tidal_heating.rigid_k2(EARTH, R_EARTH) / tidal_heating.ROCK_TIDAL_Q))
+    assert flux == pytest.approx(rm.circularisation_flux_w_m2(EARTH, R_EARTH, MOON, a, k2_over_q=tidal_heating.rigid_k2(EARTH, R_EARTH) / rm.ROCK_TIDAL_Q))
     assert rm.circularisation_flux_w_m2(EARTH, R_EARTH, MOON, a, 0.26) == pytest.approx(4.0 * flux)
     assert rm.circularisation_flux_w_m2(EARTH, R_EARTH, MOON, a, 0.0) == 0.0
     assert rm.circularisation_flux_w_m2(EARTH, R_EARTH, MOON, 2.0 * a) < flux

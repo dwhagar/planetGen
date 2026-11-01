@@ -24,7 +24,7 @@ What the spans are made of, each rule one read:
   `validation.mutual_min_distance_au` solves, now in both directions, so the new body may go inside an existing one too).
 - **Each belt** excludes its annulus, widened on the planet's side by the planet's own five Hill radii and `MIN_ASTEROID_BELT_SEPARATION`
   (`belt_exclusion`). A belt adds no spacing between the planets either side of it: both of those exclusions stay.
-- **A moon's window** is the same idea one level down (`moon_window_km`): outside the planet and the largest moon it could hold, inside the
+- **A moon's window** is the same idea one level down (`moon_bounds_km`): outside the planet and the largest moon it could hold, inside the
   fraction of the planet's Hill radius that [R1138] (MNRAS 373, 1227, read in the paper) fit to the restricted
   elliptic three-body problem, with the planet's and the moon's eccentricity terms and the retrograde limit.
 
@@ -251,18 +251,33 @@ def moon_hill_fraction(planet_eccentricity, moon_eccentricity=0.0, retrograde=Fa
     return max(a * (1.0 - b * e_planet - c * max(moon_eccentricity, 0.0)), 0.0), extrapolated
 
 
-def moon_window_km(planet_radius_km, hill_radius_km, planet_eccentricity, moon_eccentricity=0.0, retrograde=False, margin_km=0.0, largest_moon_radius_km=0.0):
+def moon_max_eccentricity(semi_major_axis_au, hill_radius_au, planet_eccentricity=0.0, retrograde=False):
     """
-    Where a moon may orbit its planet, as a `SpanSet` in km from the planet's centre: outside the planet, the largest moon it could hold and the
-    caller's margin (the air's drag-free height), and inside the Domingos limit for the planet's and the moon's eccentricity (the fit is for the
-    moon's semi-major axis, its own eccentricity term already making the limit lower).
+    The largest eccentricity a moon at `semi_major_axis_au` may have: the Domingos fit solved for the moon's term, `a_moon <= R_H a (1 - b e_planet
+    - c e_moon)`. Zero for a moon already at the limit.
 
     Returns:
-        tuple: `(SpanSet, extrapolated)`; empty when the limit is inside the floor.
+        float or None: `None` when the moon's eccentricity does not enter the limit (it has none to give) or the Hill radius is unknown.
+    """
+    if hill_radius_au is None or semi_major_axis_au <= 0.0:
+        return None
+    a, b, c = DOMINGOS_RETROGRADE if retrograde else DOMINGOS_PROGRADE
+    e_planet = min(max(planet_eccentricity, 0.0), DOMINGOS_PLANET_E_MAX)
+    return max((1.0 - b * e_planet - semi_major_axis_au / (a * hill_radius_au)) / c, 0.0)
+
+
+def moon_bounds_km(planet_radius_km, hill_radius_km, planet_eccentricity, moon_eccentricity=0.0, retrograde=False, margin_km=0.0,
+                   largest_moon_radius_km=0.0):
+    """
+    The edges `(low_km, high_km)` of where a moon may orbit its planet, km from the planet's centre: outside the planet, the largest moon it could
+    hold and the caller's margin (the air's drag-free height), and inside the Domingos limit for the planet's and the moon's eccentricity (the fit
+    is for the moon's semi-major axis, its own eccentricity term already making the limit lower). `low_km >= high_km` means no room.
+
+    Returns:
+        tuple: `(low_km, high_km, extrapolated)`.
     """
     fraction, extrapolated = moon_hill_fraction(planet_eccentricity, moon_eccentricity, retrograde)
-    low = planet_radius_km + largest_moon_radius_km + margin_km
-    return SpanSet([(low, hill_radius_km * fraction)]), extrapolated
+    return planet_radius_km + largest_moon_radius_km + margin_km, hill_radius_km * fraction, extrapolated
 
 
 # --- the ledger of one system ----------------------------------------------------------------------------------------------------------
@@ -305,15 +320,31 @@ class Ledger:
     def zone(self, host):
         return self._zones[host]
 
+    def zones(self):
+        """Every window of the tree as `planet_zones.Zone`, the S-type ones first."""
+        return [self._zones[host] for host in self.hosts()]
+
     def central_mass_kg(self, host):
         """The mass a body of `host` goes round, kg."""
         return _msun_to_kg(planet_zones.host_mass_solar(self._zones[host], self.nodes, self.members))
 
+    def outer_au(self, host):
+        """The outermost orbit the host holds: the tightest of its window's limit, the caller's ceiling and every S-type limit above it."""
+        zone = self._zones[host]
+        return min([zone.outer_au, self._ceilings.get(host, math.inf)] + planet_zones.ancestor_limits_au(zone, self.nodes, self.members))
+
+    def stability_limit_au(self, host):
+        """
+        The tightest S-type limit above the host (Holman and Wiegert against the stars beside it at every level, or the host's Hill radius
+        in the pair), or None for a host nothing hangs beside (a lone star, the root of the tree). Unlike `outer_au` it holds no disk size and
+        no caller ceiling: it is the distance past which no orbit is stable, which `Star.a_crit_au` stores.
+        """
+        limits = planet_zones.ancestor_limits_au(self._zones[host], self.nodes, self.members)
+        return min(limits) if limits else None
+
     def window(self, host):
         """The host's own window, with its ceiling, as a `SpanSet` (empty when the limits leave none)."""
-        zone = self._zones[host]
-        high = min([zone.outer_au, self._ceilings.get(host, math.inf)] + planet_zones.ancestor_limits_au(zone, self.nodes, self.members))
-        return SpanSet([(zone.inner_au, high)])
+        return SpanSet([(self._zones[host].inner_au, self.outer_au(host))])
 
     def extrapolated(self, host):
         """True if the host's window rests on a Holman and Wiegert fit outside the range it was made on (applied at the edge of that range)."""

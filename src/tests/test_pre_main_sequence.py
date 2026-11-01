@@ -28,21 +28,21 @@ MYR = 1.0e6
     (0.2, (708.0, 794.0)), (0.3, (398.0, 447.0)), (0.5, (141.0, 158.0)), (1.0, (40.0, 45.0)), (1.5, (14.0, 16.0)),
     (2.0, (8.9, 10.0)), (3.0, (3.2, 3.6)), (5.0, (0.9, 1.0)),
 ])
-def test_the_contraction_time_is_the_age_mist_leaves_the_pre_main_sequence(mass, mist_myr):
+def test_the_nuclear_arrival_is_the_age_mist_leaves_the_pre_main_sequence(mass, mist_myr):
     """GEN.947: the age at which the MIST isochrones (solar metallicity) hold no contracting star of this mass; the isochrone ages
     are 0.05 dex apart, so the two ends are the ages either side of the arrival and the model is within 0.06 dex of them."""
     low, high = mist_myr
-    assert abs(math.log10(pms.contraction_time_yr(mass) / MYR / math.sqrt(low * high))) < 0.06
+    assert abs(math.log10(pms.nuclear_arrival_yr(mass) / MYR / math.sqrt(low * high))) < 0.06
 
 
 @pytest.mark.parametrize("mass, bhac15_myr", [
     (0.1, 554.0), (0.08, 700.0),
 ])
-def test_below_the_isochrones_the_contraction_time_is_the_models_own(mass, bhac15_myr):
-    """GEN.529: where MIST's rows do not reach the mass the model's time stands, within 0.5 dex of the BHAC15 tracks' (the age
+def test_below_the_isochrones_the_nuclear_arrival_is_the_models_own(mass, bhac15_myr):
+    """GEN.529: where MIST's rows do not reach the mass the nuclear arrival is the model's own time, within 0.5 dex of the BHAC15 tracks' (the age
     at which the radius is within 2% of its minimum, [R0254], solar metallicity)."""
-    assert pms._track(mass)["scale"] == 1.0
-    assert abs(math.log10(pms.contraction_time_yr(mass) / MYR / bhac15_myr)) < 0.5
+    assert pms.nuclear_arrival_yr(mass) == pytest.approx(pms._track_own_yr(mass, 0.0))
+    assert abs(math.log10(pms.nuclear_arrival_yr(mass) / MYR / bhac15_myr)) < 0.5
 
 
 @pytest.mark.parametrize("mass, teff_1_myr, radius_first_rsun", [
@@ -87,13 +87,13 @@ def test_the_stage_follows_the_mass_and_the_age():
     assert pms.stage(1.0, 11.0 * MYR) == pms.PRE_MAIN_SEQUENCE  # GEN.529: no 10 Myr cap, the track takes 37 Myr
     assert pms.stage(1.0, 45.0 * MYR) is None
     assert pms.stage(0.2, 100.0 * MYR) == pms.PRE_MAIN_SEQUENCE  # a red dwarf is still shrinking at 100 Myr
-    assert pms.stage(0.2, 400.0 * MYR) == pms.PRE_MAIN_SEQUENCE   # GEN.947: MIST's 0.2 solar mass star arrives at 700 to 800 Myr
-    assert pms.stage(0.2, 900.0 * MYR) is None
-    assert pms.stage(0.1, 600.0 * MYR) == pms.PRE_MAIN_SEQUENCE
-    assert pms.stage(0.1, 1100.0 * MYR) is None
+    assert pms.stage(0.2, 150.0 * MYR) == pms.PRE_MAIN_SEQUENCE   # GEN.1174: the 0.2 solar mass radius settles at 188 Myr (BHAC15), not at MIST's 700 to 800
+    assert pms.stage(0.2, 400.0 * MYR) is None
+    assert pms.stage(0.1, 350.0 * MYR) == pms.PRE_MAIN_SEQUENCE
+    assert pms.stage(0.1, 450.0 * MYR) is None
     assert pms.stage(20.0, 0.1 * MYR) is None  # 8 solar masses or more have none
     assert pms.stage(3.0, 1.0 * MYR) == pms.PRE_MAIN_SEQUENCE
-    assert pms.stage(3.0, 2.0 * MYR) == pms.PRE_MAIN_SEQUENCE  # GEN.947: MIST takes 3.2 to 3.6 Myr
+    assert pms.stage(3.0, 1.0 * MYR) == pms.PRE_MAIN_SEQUENCE  # GEN.1174: the radius time of 3 solar masses is 1.2 Myr (MIST's nuclear arrival 3.2 to 3.6)
     assert pms.stage(3.0, 4.0 * MYR) is None  # contracted already
     assert pms.stage(5.0, 0.2 * MYR) == pms.PROTOSTAR
 
@@ -103,9 +103,9 @@ def test_evolve_star_gives_a_young_star_its_state_and_leaves_older_ones_alone():
     assert young["yerkes_class"] == "protostar" and young["disk_class"] == "I" and young["radius_km"] is None
     assert young["lifespan_gy"] > 5.0  # the lifespan of the star it will be
     assert evolution.evolve_star(1.0, 0.005, fe_h=0.0)["yerkes_class"] == "PMS"
-    for mass, age in ((1.0, 0.5), (1.0, 0.05), (0.2, 0.9), (10.0, 0.0001)):
+    for mass, age in ((1.0, 0.5), (1.0, 0.05), (0.2, 0.3), (10.0, 0.0001)):
         assert evolution.evolve_star(mass, age, fe_h=0.0)["yerkes_class"] == "V"
-    for mass, age in ((1.0, 0.011), (0.2, 0.1), (0.2, 0.4)):
+    for mass, age in ((1.0, 0.011), (0.2, 0.1), (0.2, 0.15)):
         assert evolution.evolve_star(mass, age, fe_h=0.0)["yerkes_class"] == "PMS"
 
 
@@ -229,21 +229,32 @@ def test_a_population_draw_is_rarely_young():
     assert statistics.median(masses) < 0.5
 
 
-def test_the_contraction_time_has_no_step_at_the_edge_of_the_isochrone_rows():
-    """GEN.1173: MIST's rows end at about 0.107 solar masses; the time was 718 Myr at 0.105 and 1358 at 0.11 (the stretch of GEN.947 stopped with the rows). It is now continuous
-    there, at every metallicity, and whole from MIST_FADE_TOP_SOL up."""
-    for fe_h in (-1.0, 0.0, 0.3):
-        edge = pms.isochrones.lowest_arrival_mass_sol(fe_h)
-        assert edge is not None and 0.1 < edge < 0.12
-        masses = [0.095 + 0.0005 * i for i in range(120)]
-        times = [pms.contraction_time_yr(m, fe_h) for m in masses]
-        assert max(abs(math.log(b / a)) for a, b in zip(times, times[1:])) < 0.02
-        assert pms.contraction_time_yr(pms.MIST_FADE_TOP_SOL, fe_h) == pytest.approx(
-            pms.isochrones.pre_main_sequence_arrival_yr(pms.MIST_FADE_TOP_SOL, fe_h), rel=1e-6)
-        assert pms._track(edge * 0.999, fe_h)["scale"] == 1.0
+@pytest.mark.parametrize("mass, bhac15_myr", [
+    (0.08, 830.5), (0.1, 402.4), (0.15, 240.1), (0.2, 187.5), (0.3, 130.2), (0.5, 88.2), (0.8, 50.3),
+])
+def test_the_contraction_time_is_the_age_the_bhac15_radius_settles(mass, bhac15_myr):
+    """GEN.1174: the age at which the radius of the BHAC15 track ([R0254], solar metallicity) is within 5 percent of its value at 5 Gyr."""
+    assert pms.contraction_time_yr(mass) / MYR == pytest.approx(bhac15_myr, rel=1e-6)
+    assert pms.radius_settled_yr(mass) == pytest.approx(pms.contraction_time_yr(mass))
 
 
-def test_the_contraction_time_below_the_rows_is_still_the_models_own():
-    assert pms._track(0.1)["scale"] == 1.0
-    assert pms._track(0.11)["scale"] > 1.0
-    assert pms._track(0.11)["scale"] < pms._track(0.13)["scale"] < pms._track(0.15)["scale"]
+def test_the_radius_settled_time_falls_with_the_mass_without_a_step():
+    masses = [0.07 + 0.005 * i for i in range(190)]      # to 1.0; past it the model's own time (MIST rows) has small bumps
+    times = [pms.radius_settled_yr(m) for m in masses]
+    assert all(later <= earlier * (1 + 1e-12) for earlier, later in zip(times, times[1:]))
+    assert max(math.log(a / b) for a, b in zip(times, times[1:])) < 0.3      # the steepest is the BHAC15 fall from 830 to 507 Myr between 0.08 and 0.09
+
+
+def test_the_track_ends_on_the_main_sequence_when_the_radius_settles():
+    for mass in (0.1, 0.3, 1.0):
+        end = pms._track_state(mass, pms.contraction_time_yr(mass))
+        arrival = main_sequence.zams_state(mass, 0.0)
+        assert end["luminosity_sol"] == pytest.approx(arrival.luminosity_sol, rel=0.02)
+        assert end["radius_sol"] == pytest.approx(arrival.radius_sol, rel=0.02)
+
+
+def test_the_nuclear_arrival_is_kept_beside_the_radius_time():
+    state = pms.state(0.2, 100.0 * MYR)
+    assert state["phase_end_gy"] == pytest.approx(pms.contraction_time_yr(0.2) / 1e9)
+    assert state["nuclear_arrival_gy"] == pytest.approx(pms.nuclear_arrival_yr(0.2) / 1e9)
+    assert state["nuclear_arrival_gy"] > 3.0 * state["phase_end_gy"]      # 0.73 Gyr against 0.19 at 0.2 solar masses

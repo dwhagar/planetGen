@@ -19,9 +19,6 @@ import math
 import numpy as np
 
 from planetgen import tuning
-from planetgen.physics import constants, unit_registry as units
-
-_kg_to_msun = units.converter("kg", "Msun")
 
 _YEAR_PER_MYR = 1.0e6
 
@@ -179,11 +176,8 @@ def cloud_shock_mass_lost_sol(born_radius_pc, factor, age_gy, cloud_surface_dens
     return rate * (growing + steady)
 
 
-def jacobi_radii_pc(mass_sol, galactocentric_pc):
-    """`physics.king.jacobi_radius_pc` on arrays: the largest radius a cluster can keep, `R (M / (2 M_gal(<R))) ** (1/3)`
-    in an isothermal halo of circular speed `tuning.CLUSTER_HALO_CIRCULAR_KMS`."""
-    speed = tuning.CLUSTER_HALO_CIRCULAR_KMS * 1.0e3
+def jacobi_radii_pc(mass_sol, galactocentric_pc, galaxy_mass_sol):
+    """`physics.king.jacobi_radius_pc` on arrays: the largest radius a cluster can keep, `R (M / (2 M_gal(<R))) ** (1/3)`, with `galaxy_mass_sol`
+    the galaxy's own mass inside each cluster's radius (`galaxy.enclosed_mass.enclosed_mass_solar`, GEN.339)."""
     radius_pc = np.maximum(np.asarray(galactocentric_pc, dtype=float), 1.0)
-    galaxy_mass = _kg_to_msun(speed * speed * radius_pc * constants.PARSEC_M / constants.G)
-    return radius_pc * (np.asarray(mass_sol, dtype=float) / (2.0 * galaxy_mass)) ** (1.0 / 3.0)
-
+    return radius_pc * (np.asarray(mass_sol, dtype=float) / (2.0 * np.asarray(galaxy_mass_sol, dtype=float))) ** (1.0 / 3.0)

@@ -11,7 +11,7 @@ import statistics
 import pytest
 
 from planetgen import tuning
-from planetgen.galaxy import components
+from planetgen.galaxy import components, enclosed_mass, shape_draw
 from planetgen.generation import clusters
 from planetgen.physics import king
 
@@ -63,7 +63,7 @@ def test_every_cluster_is_a_well_formed_king_component(system):
 def test_a_clusters_edge_fits_inside_its_jacobi_radius_unless_it_is_already_at_the_lowest_potential(system):
     for c in system:
         distance = math.sqrt(sum(v * v for v in c.center_pc))
-        jacobi = king.jacobi_radius_pc(c.mass_solar, distance)
+        jacobi = king.jacobi_radius_pc(c.mass_solar, distance, enclosed_mass.enclosed_mass_solar(shape_draw.default_shape(SEED), SEED, max(distance, 1.0)))
         assert c.tidal_radius_pc <= jacobi * (1 + 1e-9) or c.king_w0 == tuning.KING_W0_RANGE[0], c
 
 

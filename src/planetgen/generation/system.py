@@ -27,20 +27,20 @@ from planetgen.generation.comet import Comet
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.binary import BinaryStarProxy
 from planetgen.generation import (
-    cloud as cloudContext, life as planetLife, member_record, multistar, place_terms, prevalence, stored_trees, validation,
+    cloud as cloudContext, life as planetLife, mass_ratio, member_record, multistar, place_terms, prevalence, stored_trees, validation,
 )
 from planetgen.physics import stellar_evolution as evolution
 from planetgen.physics import habitability, insolation, interior_heat, magnetism, mass_loss, ocean_tides, pre_main_sequence, radiation, rings, wolf_rayet
 from planetgen.physics import planets as planetPhysics
 from planetgen import tuning
-from planetgen.util import draw
+from planetgen.util import draw, request_odds
 from planetgen.util import log
-from planetgen.generation import habitable_request, pulsar_planets, remnant_orbits
+from planetgen.generation import belt_birth, habitable_request, pulsar_planets, remnant_orbits
 from planetgen.generation.planet import DEFER_MOONS, Planet
 from planetgen.generation.star import Star, adjust_pair_age_for_planets
-from planetgen.physics import bulk_draw, planet_architecture, planet_zones
+from planetgen.physics import bulk_draw, clearance_ledger, planet_architecture, planet_zones
 from planetgen.physics.system_tree import OrbitNode, TreeMember
-from planetgen.physics.orbits import calculate_reflex_offset, holman_wiegert_circumbinary_a_crit_au
+from planetgen.physics.orbits import calculate_reflex_offset
 from planetgen.generation.wide_binary import WideBinaryPair
 from planetgen.physics import unit_registry as units
 
@@ -166,6 +166,9 @@ class StarSystem:
     a loaded system has the tree that was stored. A system built from a tree (drawn, GEN.631, or a stored row's,
     `member_tree`) has its nodes from the start, a drawn tree's at `stored_trees.GENERATED_EPOCH_UNIX` until the save."""
 
+    _ledger = None
+    """Ledger or None: The clearance ledger of the stars as they are now (`ledger`); reset whenever the companions change."""
+
     placed_star = None
     """Star: The star the system was built around, the one a pre-placed row or a sector's draw made first (the tree's member 0).
     It is `stars[0]` unless a companion outweighs it, when the heavier takes the primary's place (GEN.631) and the placed star
@@ -240,8 +243,8 @@ class StarSystem:
 
         The generation logic can be influenced by several parameters, allowing for
         fine-tuned control over the final system's characteristics. For example,
-        `config.HABITABLE_WORLD = True` ensures that at least one habitable planet
-        is generated, while `config.PLANETS = False` can be used to create a star
+        `config.HABITABLE_WORLD = True` raises the odds that a habitable planet
+        is generated (it never forces one, GEN.1130), while `config.PLANETS = False` can be used to create a star
         with no orbiting bodies. `config.NUM_ORBITS` and `config.SLOTS` allow the
         number of orbits and the exact contents of specific orbital slots to be
         specified explicitly, overriding the random placement logic for those
@@ -369,7 +372,7 @@ class StarSystem:
         # For an S-type binary, the primary and secondary are each generated
         # independently via their own `_generate_planets` call -- the
         # secondary always gets `apply_guarantees=False` (see that method's
-        # docstring), so a HABITABLE_WORLD/ASTEROID_BELT guarantee or an
+        # docstring), so a HABITABLE_WORLD request/ASTEROID_BELT guarantee or an
         # explicit SLOTS spec unambiguously describes the primary's own
         # list only. `_validate_cross_star_clearance` then prunes either
         # list's outermost planet if the two stars' own disks would
@@ -378,8 +381,9 @@ class StarSystem:
         # TEST.313: the age settled below only rises, and the survival limit falls with age (GEN.325), so the final
         # trim can take the forced belt or habitable world that the attempts above kept. The attempts then run again
         # once, placing under the settled age, before the request is given up as unmet.
-        self.set_stability_limits()
+        self.build_ledger()
         self._request_unreachable = False
+        self._request_draws_left = tuning.REQUEST_PLANET_DRAW_BUDGET
         for _round in range(2):
             for _attempt in range(tuning.MAX_SYSTEM_GENERATION_ATTEMPTS):
                 with log.timed_phase(f"planet generation attempt {_attempt + 1}"):
@@ -395,6 +399,7 @@ class StarSystem:
                     # makes it a real possibility, so re-trim afterward using each
                     # body's own final position.
                     self._trim_to_orbit_ceiling(self.planets, primary_ceiling_au)
+                    self._add_belts(self.planets, self.star, primary_ceiling_au)
                     self._apply_star_history(self.planets, self.star)
                     # GEN.318: a white dwarf's survivors move out; the Hill spacing is over the lighter star now
                     if remnant_orbits.widen_for_mass_loss(self.planets, self.star, self._explicit_request()):
@@ -410,6 +415,7 @@ class StarSystem:
                         )
                         self.validate_system(self.secondary_planets)
                         self._trim_to_orbit_ceiling(self.secondary_planets, secondary_ceiling_au)
+                        self._add_belts(self.secondary_planets, self.secondary_star, secondary_ceiling_au, apply_guarantees=False)
                         self._apply_star_history(self.secondary_planets, self.secondary_star)
                         if remnant_orbits.widen_for_mass_loss(self.secondary_planets, self.secondary_star,
                                                               self._explicit_request()):
@@ -425,7 +431,8 @@ class StarSystem:
                     habitable_satisfied = self.system_config.HABITABLE_WORLD is not True or habitable_request.count(self.planets) > 0
                     belt_satisfied = self.system_config.ASTEROID_BELT is not True or self.count_objects(self.planets)[1] > 0
                     class_satisfied = self._forced_class_present()
-                if habitable_satisfied and belt_satisfied and class_satisfied:
+                    habitable_stands = self._habitable_request_stands()
+                if habitable_stands and belt_satisfied and class_satisfied:
                     log.debug(f"Planet generation attempt {_attempt + 1}: kept ({len(self.planets)} primary + "
                               f"{len(self.secondary_planets)} secondary bodies; HABITABLE_WORLD="
                               f"{self.system_config.HABITABLE_WORLD}, ASTEROID_BELT={self.system_config.ASTEROID_BELT})")
@@ -458,16 +465,19 @@ class StarSystem:
                 self._trim_to_orbit_ceiling(self.secondary_planets, self._orbit_ceiling_au(self.secondary_star))
             for member, bodies in self.member_hosts():
                 self._trim_to_orbit_ceiling(bodies, self._orbit_ceiling_au(member))
+            if self.system_config.ASTEROID_BELT is True and not self.count_objects(self.planets)[1]:
+                # The star's final age lowered its orbit ceiling past the belts the attempts built: a belt asked for is made again under the final ceiling (GEN.1068)
+                self._add_belts(self.planets, self.star, self._orbit_ceiling_au(self.star))
             self._settle_to_final_age()
             habitable_satisfied = self.system_config.HABITABLE_WORLD is not True or habitable_request.count(self.planets) > 0
             belt_satisfied = self.system_config.ASTEROID_BELT is not True or self.count_objects(self.planets)[1] > 0
             class_satisfied = self._forced_class_present()
-            if (habitable_satisfied and belt_satisfied and class_satisfied) or _round or self._request_unreachable:
+            # A request for a habitable world is not drawn a second time under the settled age: it only raises odds, and a system that did
+            # not stand has had its tries.
+            if (belt_satisfied and class_satisfied) or _round or self._request_unreachable:
                 break
             draw.redrawn("system.planets_regenerated_after_age")
         self.unmet_requirements = []
-        if not habitable_satisfied:
-            self.unmet_requirements.append("a habitable world")
         if not belt_satisfied:
             self.unmet_requirements.append("an asteroid belt")
         if not class_satisfied:
@@ -599,16 +609,6 @@ class StarSystem:
                 self.unmet_requirements.append(wanted)
             elif present and wanted in self.unmet_requirements:
                 self.unmet_requirements.remove(wanted)
-            # The same for a habitable world (GEN.916): life changes the air of a body after the retry judged it, and with it the
-            # temperature and the water, so the request is judged again on the finished bodies.
-            if self.system_config.HABITABLE_WORLD is True:
-                wanted = "a habitable world"
-                present = habitable_request.count(self.planets) > 0
-                if not present and wanted not in self.unmet_requirements:
-                    self.unmet_requirements.append(wanted)
-                elif present and wanted in self.unmet_requirements:
-                    self.unmet_requirements.remove(wanted)
-
         # The system takes the name the star was generated (or configured)
         # with; every star, planet and moon inside it is named from that --
         # see names/bodies.py.
@@ -676,6 +676,8 @@ class StarSystem:
     def _tree_members(self):
         """The `TreeMember`s of the system's tree: each star of `stars` (the member number is its index there), then each of
         `dark_members` (numbered on from the stars), which weigh in the tree and give no light."""
+        if not self.orbit_nodes:
+            return [TreeMember(0, None, 0, _kg_to_msun(self.star.mass))]
         slots = self.star_slots or ((0, 0), (0, 1))
         members = [TreeMember(number, node_no, slot, _kg_to_msun(star.mass))
                    for number, (star, (node_no, slot)) in enumerate(zip(self.stars, slots))]
@@ -683,13 +685,31 @@ class StarSystem:
                     for index, dark in enumerate(self.dark_members)]
         return members
 
+    @property
+    def ledger(self):
+        """
+        The clearance ledger of the stars as they are now (`clearance_ledger.Ledger`, GEN.1014): the window of every host (each star
+        of a wide pair or a further member, and a close pair's merged proxy), from the engulfment floor and the Holman and Wiegert
+        limits of the tree to the tightest S-type limit above it. It is the one place the floor and the ceiling of a star's planets
+        come from; derived from the tree and the stars, never stored. Built when first read after the companions change.
+        """
+        if self._ledger is None:
+            explicit = self._explicit_request()
+            self._ledger = clearance_ledger.Ledger(
+                self.orbit_nodes, self._tree_members(),
+                {number: self._engulfment_radius_au(star, explicit) for number, star in enumerate(self.stars)})
+        return self._ledger
+
+    def _ledger_host(self, star):
+        """The `(kind, number)` of the ledger host that is `star`: a close pair's proxy is its pair node, any other star its number."""
+        if self.binary_type == "close" and star is self.star:
+            return planet_zones.P_TYPE, self.pair_node_no()
+        return planet_zones.S_TYPE, next((number for number, other in enumerate(self.stars) if other is star), 0)
+
     def _planet_zones(self):
-        """`planet_zones.planet_zones` of the system's tree: the S-type window of every star in `stars` order (the member
-        number is the index in `stars`) and the P-type window of every node, each a `Zone`. A dark member has a window
-        too (`Zone.host_no` from `len(stars)` on), which holds no planets."""
-        members = self._tree_members()
-        return planet_zones.planet_zones(self.orbit_nodes, members,
-                                         {number: self._engulfment_radius_au(star) for number, star in enumerate(self.stars)})
+        """The windows of the ledger: the S-type window of every star in `stars` order and the P-type window of every node, each a
+        `planet_zones.Zone`. A dark member has a window too (`Zone.host_no` from `len(stars)` on), which holds no planets."""
+        return self.ledger.zones()
 
     def sibling_stars(self, number):
         """`(node, star numbers)`: the node star `number` of `stars` hangs from and the stars of the subtree beside it (a
@@ -697,23 +717,26 @@ class StarSystem:
         node, beside = planet_zones.sibling_of(self.orbit_nodes, self._tree_members(), number)
         return node, sorted(index for index in beside if index < len(self.stars))
 
-    def set_stability_limits(self):
+    def build_ledger(self):
         """
-        Gives each member star and a close pair's proxy the outer limit of its window in the tree (GEN.332): a member's
-        S-type window against its sibling, and a close pair's P-type window up to the S-type limit of the pair against
-        the stars beside it. Both are `a_crit_au`, which `validation.orbit_ceiling_au` reads like a wide pair's. A
-        system of one or two stars has nothing to set (a wide pair's stars were given theirs by `WideBinaryPair`).
+        Builds the clearance ledger again and gives each star that has a companion above it, and a close pair's proxy, the outer limit
+        of its window (GEN.332, GEN.1014): a member's S-type window against what hangs beside it, and a close pair's P-type window up
+        to the S-type limit of the pair against the stars beside it, each held by every level above. Both are `a_crit_au`, which
+        `validation.orbit_ceiling_au` reads for a wide pair's stars as well; the ledger is the only place that works it out. A lone
+        star has none.
         """
-        if not self.member_stars and not self.dark_members:
+        self._ledger = None
+        if not self.orbit_nodes or (len(self.stars) < 2 and not self.dark_members):
             return
-        zones = self._planet_zones()
-        by_host = {(zone.kind, zone.host_no): zone for zone in zones}
-        if self.dark_members and self.binary_type is None:
-            self.star.a_crit_au = by_host[(planet_zones.S_TYPE, 0)].outer_au
-        for number, star in enumerate(self.member_stars, start=2):
-            star.a_crit_au = by_host[(planet_zones.S_TYPE, number)].outer_au
+        ledger = self.ledger
+        hosts = [(planet_zones.S_TYPE, number, star) for number, star in enumerate(self.stars)
+                 if self.binary_type != "close" or number >= 2]
         if self.binary_type == "close":
-            self.star.a_crit_au = by_host[(planet_zones.P_TYPE, self.pair_node_no())].outer_au
+            hosts.append((planet_zones.P_TYPE, self.pair_node_no(), self.star))
+        for kind, number, star in hosts:
+            limit = ledger.stability_limit_au((kind, number))
+            if limit is not None:
+                star.a_crit_au = limit
 
     def pair_node_no(self):
         """The node of the pair (`primary_star` and `secondary_star`): the root of a plain pair, else the lowest node above both
@@ -934,7 +957,7 @@ class StarSystem:
         # The widest axis the place keeps (GEN.103), for a pair of the primary and a companion of the mean mass ratio.
         terms = getattr(config, "PLACE_TERMS", None) or place_terms.SOLAR_NEIGHBOURHOOD
         limit_au = place_terms.wide_axis_limit_au(
-            terms, placed.birth_mass_solar * (1.0 + sum(tuning.BINARY_MASS_RATIO_RANGE) / 2.0), primary.age)
+            terms, placed.birth_mass_solar * (1.0 + mass_ratio.mean_ratio(placed.birth_mass_solar)), primary.age)
 
         # A star of a type the directives named can be older than the model's lifetime for its mass: the tree is drawn at
         # the end of that lifetime, the star itself keeps its age.
@@ -980,8 +1003,9 @@ class StarSystem:
             draw.redrawn("companions.overlap")
             return False
         # A close pair whose whole habitable zone lies inside its circumbinary stability limit can't host a habitable world.
+        # (a request for a habitable world keeps such a pair one time in `tuning.REQUEST_ODDS`, GEN.1130).
         if (self.binary_type == "close" and config.HABITABLE_WORLD is True and config.WIDE_BINARY is None
-                and self._orbit_floor_au(self.star) >= self.star.habitable_zone[1]):
+                and self._orbit_floor_au(self.star) >= self.star.habitable_zone[1] and not request_odds.keeps(False)):
             draw.redrawn("companions.circumbinary_floor")
             return False
         return True
@@ -1007,6 +1031,7 @@ class StarSystem:
         self.__dict__.pop("secondary_star", None)
         self.binary_type = None
         self.wide_binary = None
+        self._ledger = None
         self.member_stars = ()
         self.dark_members = ()
         self.star_slots = None
@@ -1034,7 +1059,8 @@ class StarSystem:
         built = {0: placed}
         for member in plan.lit_members[1:]:
             record = member_record.make(member.seed, member.initial_mass_solar,
-                                        member.age_yr or placed.age * 1.0e9, placed.metallicity_fe_h)
+                                        member.age_yr or placed.age * 1.0e9, placed.metallicity_fe_h,
+                                        white_dwarf_mass_sol=stored_trees.helium_core_mass_sol(member))
             with log.timed_phase("companion star generation"), draw.bound(member.seed):
                 built[member.member_no] = Star.from_record(
                     record, config, name=placed.name, galactic_center_dist_ly=galactic_center_dist_ly,
@@ -1093,6 +1119,7 @@ class StarSystem:
         self.member_stars = tuple(built[member.member_no] for member in others)
         self.stars = [primary, secondary, *self.member_stars]
         self.orbit_nodes = tuple(nodes)
+        self._ledger = None
         if others or self.dark_members or not direct:
             self.star_slots = tuple(slots[member_no] for member_no in (first, second, *(m.member_no for m in others)))
         # Which of the two real binary configurations the pair is was drawn with its node.
@@ -1128,20 +1155,12 @@ class StarSystem:
 
     def _orbit_floor_au(self, star):
         """
-        The innermost stable orbit around `star`, in AU: for a P-type
-        (close) binary's merged proxy, Holman & Wiegert's circumbinary
-        critical semi-major axis (`orbits.holman_wiegert_circumbinary_a_crit_au`,
-        about 2-2.4 times the pair's separation), since anything closer is
-        inside, or torn apart by, the two stars' own orbit. At least
-        `_engulfment_radius_au` for any star, since a giant (or a white
+        The innermost stable orbit around `star`, in AU, from the ledger's window of it: for a P-type (close) binary's merged proxy,
+        Holman & Wiegert's circumbinary critical semi-major axis (about 2-2.4 times the pair's separation), since anything closer is
+        inside, or torn apart by, the two stars' own orbit; at least `_engulfment_radius_au` for any star, since a giant (or a white
         dwarf's progenitor) has removed everything inside that.
         """
-        floor_au = self._engulfment_radius_au(star, self._explicit_request())
-        separation_au = getattr(star, "binary_separation_au", None)
-        if separation_au is not None:
-            masses = [s.mass for s in star.stars]
-            floor_au = max(floor_au, holman_wiegert_circumbinary_a_crit_au(separation_au, min(masses) / sum(masses)))
-        return floor_au
+        return self.ledger.zone(self._ledger_host(star)).inner_au
 
     def _clear_circumbinary_floor(self, planets):
         """
@@ -1174,8 +1193,8 @@ class StarSystem:
         Builds a fresh, sequentially-placed list of planets/asteroid belts
         around `star` -- extracted out of `__init__` so it can be retried
         wholesale (same star, fresh positions) when the result doesn't
-        satisfy an explicitly requested `HABITABLE_WORLD`/`ASTEROID_BELT`
-        guarantee (see `__init__`'s own retry loop), and so it can be
+        satisfy an explicitly requested `ASTEROID_BELT` guarantee or
+        `HABITABLE_WORLD` request (see `__init__`'s own retry loop), and so it can be
         called independently for each star of an S-type (wide) binary.
 
         Args:
@@ -1195,15 +1214,15 @@ class StarSystem:
                 tighter of that and its companion-driven
                 `a_crit_au`). This method itself doesn't need to know
                 binaries exist at all.
-            apply_guarantees (bool): Whether `system_config.HABITABLE_WORLD`/
-                `ASTEROID_BELT`'s forced placement and `system_config.SLOTS`'s
+            apply_guarantees (bool): Whether `system_config.HABITABLE_WORLD`'s
+                odds, `ASTEROID_BELT`'s forced placement and `system_config.SLOTS`'s
                 explicit per-orbit spec apply to this call. True (the
                 default) for a single star, a P-type proxy, and an S-type
                 binary's primary. False only for an S-type binary's
                 SECONDARY: its list is always fully, independently random,
-                never a `SLOTS` override or a forced habitable-world/
+                never a `SLOTS` override, a habitable-world request or a forced
                 asteroid-belt placement -- otherwise a hand-authored
-                `SLOTS` scenario or `HABITABLE_WORLD=True` guarantee would
+                `SLOTS` scenario or `HABITABLE_WORLD=True` request would
                 be ambiguous between "the primary's Nth slot" and "the
                 secondary's Nth slot".
 
@@ -1221,15 +1240,6 @@ class StarSystem:
         planets = []
         plan, system_objects = self._plan_architecture(star, orbit_ceiling_au)
 
-        required_objects = 0
-        if apply_guarantees and self.system_config.HABITABLE_WORLD is True:
-            required_objects += 1
-        if apply_guarantees and self.system_config.ASTEROID_BELT is True:
-            required_objects += 1
-
-        if system_objects < required_objects:
-            system_objects = required_objects
-
         forced_class = self.system_config.FORCE_CLASS if apply_guarantees else None
         if forced_class and self.system_config.SLOTS:
             raise ValueError("FORCE_CLASS cannot be combined with SLOTS: a slot already names its class.")
@@ -1243,17 +1253,10 @@ class StarSystem:
         disk_edge_au = self._disk_outer_edge_au(star)
 
         if system_objects > 0:
-            belt_index = draw.randint(0, system_objects - 1) if self.system_config.ASTEROID_BELT is True else -1
-            if belt_index != -1:
-                log.choice("Guaranteed asteroid belt slot", belt_index,
-                           f"random slot in [0, {system_objects - 1}] (ASTEROID_BELT is forced True)")
-            found_hab = False
-            found_belt = False
             i = -1
 
             while i < system_objects - 1:
                 i += 1
-                last_asteroid = False
                 slot_spec = slots[i] if i < len(slots) else None
                 prev_slot_explicit = i > 0 and (i - 1) < len(slots) and slots[i - 1] is not None
 
@@ -1262,12 +1265,11 @@ class StarSystem:
                     last_planet = planets[i - 1]
                     # The planet architecture (GEN.728, GEN.729, GEN.730) gives each slot its distance and mass: oligarchs
                     # spaced in mutual Hill radii and thinned by instability, so the gaps are what the disc built
-                    # (`validate_system` keeps the stable spacing of the whole). A belt takes the place of a light planet
-                    # in its slot (`BELT_REPLACES_BELOW_EARTH`).
+                    # (`validate_system` keeps the stable spacing of the whole). The belts are added afterwards, in the
+                    # gaps the planets leave (`_add_belts`, GEN.1068).
                     if last_planet.body_type == 'a':
                         estimated_distance = max(seed.distance_au,
                                                  last_planet.upper_limit * tuning.ASTEROID_BELT_MAX_DISTANCE_FACTOR_MIN)
-                        last_asteroid = True
                     else:
                         estimated_distance = max(last_planet.distance, seed.distance_au)
 
@@ -1292,9 +1294,7 @@ class StarSystem:
                         break
                     # Nothing forms past the disk's outer edge (GEN.37), but a
                     # slot a guarantee or SLOTS still needs is placed anyway.
-                    pending = (slot_spec is not None or (apply_guarantees and (
-                        (self.system_config.HABITABLE_WORLD is True and not found_hab)
-                        or (self.system_config.ASTEROID_BELT is True and not found_belt))))
+                    pending = slot_spec is not None
                     if estimated_distance > disk_edge_au and not pending:
                         break
                 else:
@@ -1308,97 +1308,18 @@ class StarSystem:
                 # normal random/forced generation logic below.
                 if slot_spec is not None:
                     obj = self.generate_slot_object(star, slot_spec, estimated_distance, planets=planets)
-                    if getattr(obj, 'body_type', None) != 'a' and habitable_request.meets_with_moons(obj):
-                        found_hab = True
-                    if getattr(obj, 'body_type', None) == 'a':
-                        found_belt = True
                     planets.append(obj)
                     if _exceeds_orbit_ceiling(planets[-1], orbit_ceiling_au):
                         planets.pop()
                         break
                     continue
 
-                if apply_guarantees and self.system_config.HABITABLE_WORLD is True and not found_hab:
-                    if not hz and i == 0:
-                        if (estimated_distance > habitable_zone[1] or
-                                0 < habitable_zone[0] - estimated_distance < 0.2 or system_objects == 1):
-                            estimated_distance = self._forced_habitable_distance(planets)
-                            hz = True
-                    elif not hz and i > 0:
-                        last_planet = planets[i - 1]
-                        beyond_hz = last_planet.body_type == 'a' and last_planet.upper_limit > habitable_zone[1] or \
-                                    last_planet.body_type != 'a' and (last_planet.distance + last_planet.min_orbit_distance >
-                                                                 habitable_zone[1])
-
-                        # Never retroactively overwrite a belt if ASTEROID_BELT is
-                        # required: this could be the belt satisfying that guarantee
-                        # (found_belt is set the moment it's placed, not re-checked
-                        # here), and this mechanism has no way to know whether another
-                        # one exists elsewhere to fall back on.
-                        belt_is_protected = last_planet.body_type == 'a' and self.system_config.ASTEROID_BELT is True
-
-                        if beyond_hz and not prev_slot_explicit and not belt_is_protected:
-                            # planets[i - 1] itself is about to be discarded and
-                            # replaced below -- exclude it from belt-avoidance so
-                            # a belt being overwritten here doesn't spuriously
-                            # constrain where its own replacement can land.
-                            estimated_distance = self._forced_habitable_distance(planets[:i - 1])
-                            planet = self.build_planet(star, habitable_zone, estimated_distance, life=True, planned_objects=system_objects)
-                            planets[i - 1] = planet
-                            i -= 1
-                            found_hab = True
-                            if _exceeds_orbit_ceiling(planets[-1], orbit_ceiling_au):
-                                planets.pop()
-                                break
-                            continue
-                        elif i == system_objects - 1:
-                            estimated_distance = self._forced_habitable_distance(planets)
-                            hz = True
-
-                    if hz:
-                        planet = self.build_planet(star, habitable_zone, estimated_distance, life=True, planned_objects=system_objects)
-                        found_hab = True
-                        planets.append(planet)
-                        if _exceeds_orbit_ceiling(planets[-1], orbit_ceiling_au):
-                            planets.pop()
-                            break
-                        continue
-
-                # Guaranteed last-resort fallback, mirroring HABITABLE_WORLD's own
-                # end-of-loop guarantee: if a belt is still required and hasn't
-                # happened yet by the trailing slot(s), force it there regardless of
-                # the soft hz/last_asteroid avoidance below (validate_system corrects
-                # any resulting spacing/overlap afterward). When HABITABLE_WORLD is
-                # ALSO still pending, that claims the very last slot for itself (its
-                # own unconditional `continue` above would otherwise steal this one
-                # out from under the belt), so the belt's fallback claims the slot
-                # just before it instead, guaranteeing each requirement its own slot.
-                hab_still_pending = apply_guarantees and self.system_config.HABITABLE_WORLD is True and not found_hab
-                belt_fallback_index = (system_objects - 2) if hab_still_pending else (system_objects - 1)
-                force_belt = apply_guarantees and self.system_config.ASTEROID_BELT is True and not found_belt and i >= belt_fallback_index
-
-                belt_fits_slot = not seed.runaway and seed.mass_kg < _mearth_to_kg(tuning.BELT_REPLACES_BELOW_EARTH)
-                if self.system_config.ASTEROID_BELT is not False and (
-                    force_belt or i == belt_index
-                    or (belt_fits_slot and not last_asteroid and not hz and draw.random() < tuning.ASTEROID_BELT_PROBABILITY)
-                ):
-                    if force_belt:
-                        belt_reason = "forced (last-resort fallback: ASTEROID_BELT required but not yet placed)"
-                    elif i == belt_index:
-                        belt_reason = "matched the pre-selected guaranteed belt slot"
-                    else:
-                        belt_reason = f"random roll passed ASTEROID_BELT_PROBABILITY ({tuning.ASTEROID_BELT_PROBABILITY})"
-                    log.choice("Orbital slot object", "asteroid belt", f"slot {i}: {belt_reason}")
-                    min_distance = estimated_distance
-                    max_distance = estimated_distance * draw.uniform(tuning.ASTEROID_BELT_MAX_DISTANCE_FACTOR_MIN, tuning.ASTEROID_BELT_MAX_DISTANCE_FACTOR_MAX)
-                    planets.append(AsteroidBelt(self.system_config, star, estimated_distance, min_distance, max_distance)) # Pass system_config
-                    found_belt = True
+                given = dict(planned_objects=system_objects, mass=seed.mass_kg, formation_distance_au=seed.formation_au)
+                if apply_guarantees and hz and self.system_config.HABITABLE_WORLD is True:
+                    planet = self._planet_in_ecosphere(star, habitable_zone, estimated_distance, **given)
                 else:
-                    planet = Planet(self.system_config, star, habitable_zone, estimated_distance, # Pass system_config
-                                    planned_objects=system_objects, mass=seed.mass_kg, formation_distance_au=seed.formation_au)
-                    if habitable_request.meets_with_moons(planet):
-                        found_hab = True
-                    planets.append(planet)
+                    planet = Planet(self.system_config, star, habitable_zone, estimated_distance, **given) # Pass system_config
+                planets.append(planet)
 
                 if _exceeds_orbit_ceiling(planets[-1], orbit_ceiling_au):
                     planets.pop()
@@ -1406,15 +1327,61 @@ class StarSystem:
 
         return planets
 
+    def _add_belts(self, bodies, star, orbit_ceiling_au, apply_guarantees=True):
+        """
+        Adds the belts of `star`'s finished, spaced planets to `bodies` in place (GEN.1068, `belt_birth`): the stretches the chain leaves unfinished, not slots rolled for. It runs once
+        `validate_system` has settled the planets, so a belt stands in the gap the planets really leave, and the spacing is checked again with the belts in. A `SLOTS` list names its belts
+        itself, `NUM_ORBITS` is the whole count of bodies and `MAX_PLANETS` False the fewest (both give way to `ASTEROID_BELT` True: a belt asked for is added), `ASTEROID_BELT` False has
+        none, `PLANETS` False has no bodies, and a pulsar's disc or a planetary nebula's pair holds none.
+        """
+        config = self.system_config
+        counted = (apply_guarantees and bool(config.SLOTS)) or ((config.NUM_ORBITS is not None or config.MAX_PLANETS is False) and config.ASTEROID_BELT is not True)
+        if (config.PLANETS is False or counted or config.ASTEROID_BELT is False or pulsar_planets.applies(star) or remnant_orbits.is_post_agb_pair(star)):
+            return
+        belts = belt_birth.build(config, star, bodies, self._orbit_floor_au(star), orbit_ceiling_au, self._disk_outer_edge_au(star))
+        if not belts and config.ASTEROID_BELT is True and not any(body.body_type == 'a' for body in bodies):
+            belts = self._requested_belt(bodies, star, orbit_ceiling_au)
+        if not belts:
+            return
+        for belt in belts:
+            log.choice("Asteroid belt", belt.origin, f"{belt.lower_limit:.3g} to {belt.upper_limit:.3g} AU, {belt.origin_sentence}")
+        bodies[:] = sorted([*bodies, *belts], key=lambda body: body.distance)
+        self.validate_system(bodies)
+        self._trim_to_orbit_ceiling(bodies, orbit_ceiling_au)
+
+    def _requested_belt(self, bodies, star, orbit_ceiling_au):
+        """
+        The belt a request for one (`ASTEROID_BELT` True) is owed where the planets' chain leaves no stretch for one (a star whose disc, between its orbit floor and its edge, is too
+        narrow to hold any): one belt just outside the outermost body (innermost, where the planets fill the room), `ASTEROID_BELT_MAX_DISTANCE_FACTOR_MIN` to `_MAX` times as far out as its inner edge, as the
+        old slot did. It has no origin, as a belt a `SLOTS` entry names has none. An empty list where the star holds no room for any belt (the request is then unmet).
+        """
+        if bodies:
+            last = bodies[-1]
+            lower = last.upper_limit + tuning.MIN_ASTEROID_BELT_SEPARATION if last.body_type == 'a' else validation.apoapsis_au(last) + last.min_orbit_distance
+        else:
+            lower = 0.0
+        lower = max(lower, self._orbit_floor_au(star))
+        if lower <= 0.0:
+            lower = star.snow_line_au                  # nothing orbits it and nothing bounds it: where the disc's ice begins
+        factor = draw.uniform(tuning.ASTEROID_BELT_MAX_DISTANCE_FACTOR_MIN, tuning.ASTEROID_BELT_MAX_DISTANCE_FACTOR_MAX)
+        if lower * tuning.ASTEROID_BELT_MAX_DISTANCE_FACTOR_MIN > orbit_ceiling_au:
+            lower = self._orbit_floor_au(star) or star.snow_line_au       # the planets fill the star's room: the belt takes the innermost orbit and the spacing pass moves them out (the outermost are trimmed)
+        upper = min(lower * factor, orbit_ceiling_au)
+        if upper < lower * tuning.ASTEROID_BELT_MAX_DISTANCE_FACTOR_MIN:
+            return []
+        log.choice("Asteroid belt", "requested", f"{lower:.3g} to {upper:.3g} AU: ASTEROID_BELT is True and the chain leaves no stretch for one")
+        return [AsteroidBelt(self.system_config, star, lower, lower, upper)]
+
     def _generate_member_planets(self, star):
         """
         The planets and belts of a member star (GEN.332): the same draw as a wide pair's secondary's, inside the S-type
-        window of the tree (`set_stability_limits`), never under a `SLOTS` list or a forced habitable world.
+        window of the tree (`build_ledger`), never under a `SLOTS` list or a forced habitable world.
         """
         ceiling_au = self._orbit_ceiling_au(star)
         bodies = self._generate_planets(star, star.habitable_zone, ceiling_au, apply_guarantees=False)
         self.validate_system(bodies)
         self._trim_to_orbit_ceiling(bodies, ceiling_au)
+        self._add_belts(bodies, star, ceiling_au, apply_guarantees=False)
         self._apply_star_history(bodies, star)
         if remnant_orbits.widen_for_mass_loss(bodies, star, self._explicit_request()):
             self.validate_system(bodies)
@@ -1474,9 +1441,21 @@ class StarSystem:
         return radius_au
 
     def _explicit_request(self):
-        """Whether the config asks for a habitable world or a class, or lists its slots."""
-        return (self.system_config.HABITABLE_WORLD is True or bool(self.system_config.SLOTS)
-                or bool(self.system_config.FORCE_CLASS))
+        """Whether the config asks for a class, or lists its slots."""
+        return bool(self.system_config.SLOTS) or bool(self.system_config.FORCE_CLASS)
+
+    def _habitable_request_stands(self):
+        """
+        Whether the planets just drawn stand under the system's request for a habitable world (GEN.1130): always without a request or when
+        a rocky planet is in the ecosphere (where `_planet_in_ecosphere` has already kept the draws that meet the request's conditions
+        and raised their odds), else one time in `tuning.REQUEST_ODDS` (`util.request_odds.keeps`; one draw under a request, none without). A
+        system with no rocky planet in the ecosphere is drawn again; the one that is left when the draws are spent stands whatever it holds,
+        and `habitable_request_status` says `"unmet"` when it holds no habitable world.
+        """
+        if self.system_config.HABITABLE_WORLD is not True:
+            return True
+        in_ecosphere = any(planet.body_type == "t" and getattr(planet, "zone", None) == "e" for planet in self.planets)
+        return request_odds.keeps(in_ecosphere or habitable_request.count(self.planets) > 0)
 
     def _forced_class_present(self):
         """Whether the system holds a planet of `system_config.FORCE_CLASS` (True when none is forced)."""
@@ -1488,7 +1467,7 @@ class StarSystem:
         Removes, in place, the bodies `star`'s age and history rule out: a
         star younger than `PLANET_MIN_STAR_AGE_GY` keeps its belts (a debris
         disk) but no planets yet, and every body whose inner edge lies
-        inside `_engulfment_radius_au` is gone. An explicitly required
+        inside `_engulfment_radius_au` is gone (a belt that reaches past it keeps the part outside, `remnant_orbits.engulf_belt`). An explicitly required
         habitable world or `SLOTS` list overrides the age rule: a random
         star is never that young when a habitable world is required
         (`stellarEvolution.sample_living_star`), so this only lets a
@@ -1500,6 +1479,8 @@ class StarSystem:
                      and not explicit_request)
         kept = []
         for body in planets:
+            if body.body_type == 'a':
+                remnant_orbits.engulf_belt(body, engulfed_au)    # GEN.1072: the part of a belt outside the envelope's reach survives
             inner_edge = body.lower_limit if body.body_type == 'a' else body.distance
             if inner_edge < engulfed_au or (too_young and body.body_type != 'a'):
                 continue
@@ -1805,7 +1786,7 @@ class StarSystem:
         system.dark_members = tuple(stored_trees.DarkMember(**member) for member in data.get("dark_members", ()))
         system.member_planets = [_load_objects(bodies, member) for member, bodies in zip(
             system.member_stars, data.get("member_planets") or [[] for _ in system.member_stars])]
-        system.set_stability_limits()
+        system.build_ledger()
         system.system_flavor_text = data.get("system_flavor_text")
         system.runaway_class = data.get("runaway_class")
         system.runaway_speed_kms = data.get("runaway_speed_kms")
@@ -1895,21 +1876,19 @@ class StarSystem:
             return estimated_distance
         return self._distance_within_zone_with_margin(inner, outer, planets=planets)
 
-    def build_planet(self, star, habitable_zone, distance, planet_class=None, life=False, moon_count=None, planned_objects=None):
+    def build_planet(self, star, habitable_zone, distance, planet_class=None, moon_count=None, planned_objects=None):
         """
-        A planet at `distance`, drawn again until it is the one a request names (GEN.688): its derived class is `planet_class`, or,
-        for `life`, its solved conditions are the ones a habitable request asks for (GEN.916, `habitable_request.meets`: temperate,
-        at least 10 kPa of air, a surface ocean), never a class letter. After `HABITABLE_REQUEST_AIM_AFTER_ATTEMPTS` misses each next
-        draw is aimed by the temperature the last one solved, inside the zone (GEN.911, `habitable_request.aimed_distance`). Each draw is a
-        whole planet (a new mass, make and air from the stream). With no request this is one `Planet`. The last draw is kept when
-        `REQUEST_MAX_PLANET_ATTEMPTS` draws miss, and the system's own retry (`MAX_SYSTEM_GENERATION_ATTEMPTS`) then judges the request.
+        A planet at `distance`, drawn again until it is the one a slot names (GEN.688): its derived class is `planet_class`. Each draw is a
+        whole planet (a new mass, make and air from the stream); after `CLASS_REQUEST_FREE_ATTEMPTS` misses the mass is drawn log-uniformly
+        over all the masses a planet has. With no class this is one `Planet`. The last draw is kept when `REQUEST_MAX_PLANET_ATTEMPTS` draws
+        miss, and the system's own retry (`MAX_SYSTEM_GENERATION_ATTEMPTS`) then judges the request. A request for a habitable world is no
+        class and is not built here: it only raises the odds (`_planet_in_ecosphere`, GEN.1130).
 
         Args:
             star (Star): The star the planet orbits.
             habitable_zone (tuple): `(inner_au, outer_au)`.
             distance (float): Its orbital distance in AU.
             planet_class (str, optional): The class the finished planet must have.
-            life (bool): The finished planet must have a class that can carry life.
             moon_count (int, optional): As `Planet`'s; the moons are added to the planet that is kept, not to every draw.
 
         Returns:
@@ -1919,34 +1898,42 @@ class StarSystem:
             raise ValueError(f"Unknown planet class {planet_class!r}; expected one of {''.join(sorted(tuning.PLANET_CLASSES))}.")
         if planet_class in tuning.HABITABLE_PLANET_CLASSES and self.system_config.HABITABLE_WORLD is False:
             raise ValueError(f"A slot asks for a class {planet_class} planet, which can carry life, but HABITABLE_WORLD is False.")
-        if planet_class is None and not life:
+        if planet_class is None:
             return Planet(self.system_config, star, habitable_zone, distance, moon_count=moon_count, planned_objects=planned_objects)
-        inner, outer = habitable_zone
-        floor_au = self._orbit_floor_au(star)
-        if floor_au < outer:
-            inner = max(inner, floor_au)
         for attempt in range(tuning.REQUEST_MAX_PLANET_ATTEMPTS):
-            # A request for a habitable world is first left to chance; where chance does not give one (a dim star's ecosphere, a heavy
-            # one's) the draws that follow are of an Earth-sized planet, the mass at which a world holds its air and its water. A request
-            # for a class is left to chance too, and then draws a mass log-uniformly over all the masses a planet has (the architecture's
-            # disc makes few ice giants at a cold slot, so chance alone can miss that class for the whole run of draws).
+            # A request for a class is left to chance, and then draws a mass log-uniformly over all the masses a planet has (the
+            # architecture's disc makes few ice giants at a cold slot, so chance alone can miss that class for the whole run of draws).
             given = {}
-            if life and attempt >= tuning.HABITABLE_REQUEST_FREE_ATTEMPTS:
-                given["mass"] = _mearth_to_kg(math.exp(draw.uniform(*(math.log(m) for m in tuning.HABITABLE_REQUEST_MASS_EARTH))))
-            elif planet_class is not None and attempt >= tuning.CLASS_REQUEST_FREE_ATTEMPTS:
+            if attempt >= tuning.CLASS_REQUEST_FREE_ATTEMPTS:
                 given["mass"] = _mearth_to_kg(math.exp(draw.uniform(*(math.log(m) for m in tuning.CLASS_REQUEST_MASS_EARTH))))
             planet = Planet(self.system_config, star, habitable_zone, distance, moon_count=DEFER_MOONS, planned_objects=planned_objects, **given)
-            if (planet_class is not None and planet.planet_class == planet_class) or (life and habitable_request.meets_with_moons(planet)):
+            if planet.planet_class == planet_class:
                 break
             draw.redrawn("planet.request_missed")
-            if life and attempt + 1 >= tuning.HABITABLE_REQUEST_AIM_AFTER_ATTEMPTS:
-                # GEN.911: the next draw goes where the light would give the temperature this one solved the target
-                distance = habitable_request.aimed_distance(distance, getattr(planet, "surface_temperature", None), inner, outer)
         else:
-            # No draw at this place made what was asked (a white dwarf's ecosphere holds no air): drawing the whole system again
-            # at the same star would miss the same way, so the request is left unmet.
+            # No draw at this place made what was asked: drawing the whole system again at the same star would miss the same way, so the
+            # request is left unmet.
             self._request_unreachable = True
         planet.add_moons(moon_count)
+        return planet
+
+    def _planet_in_ecosphere(self, star, habitable_zone, distance, **given):
+        """
+        A planet drawn at `distance` in the star's ecosphere under a request for a habitable world (GEN.1130): the draw as it would be
+        without the request, kept when it has the conditions the request asks for (`habitable_request.meets`) and otherwise one time in
+        `tuning.REQUEST_ODDS` (`util.request_odds.keeps`), else drawn again (the mass the architecture gave the slot stays), up to
+        `REQUEST_MAX_PLANET_ATTEMPTS` draws for one place and `REQUEST_PLANET_DRAW_BUDGET` for the whole system (a star that never gives such a world, as a hot one, would otherwise draw planets for ever); the last stands. A giant, which can have no surface, is kept as drawn. The moons are added to
+        the planet that is kept.
+        """
+        for _ in range(tuning.REQUEST_MAX_PLANET_ATTEMPTS):
+            planet = Planet(self.system_config, star, habitable_zone, distance, moon_count=DEFER_MOONS, **given)
+            if planet.body_type != "t" or request_odds.keeps(habitable_request.meets(planet)):
+                break
+            if self._request_draws_left <= 0:
+                break
+            self._request_draws_left -= 1
+            draw.redrawn("planet.request_missed")
+        planet.add_moons(None)
         return planet
 
     def _distance_within_zone_with_margin(self, inner, outer, planets=None):
@@ -2052,30 +2039,6 @@ class StarSystem:
             pick -= weight
         return draw.uniform(*free_spans[-1])
 
-    def _forced_habitable_distance(self, planets=None):
-        """
-        Draws a distance for a planet the generation loop is forcing into
-        the habitable zone (`HABITABLE_WORLD=True`), via
-        `_distance_within_zone_with_margin`.
-
-        Args:
-            planets (list, optional): Already-placed objects in this same
-                loop -- passed through so the draw avoids landing inside
-                an already-placed belt (see
-                `_distance_within_zone_with_margin`).
-
-        Returns:
-            float: A distance in AU, safely inside the star's
-                  `habitable_zone`.
-        """
-        inner, outer = self.star.habitable_zone
-        # A close binary's habitable zone can start inside its circumbinary
-        # stability limit; only the stable part of the zone is usable.
-        floor_au = self._orbit_floor_au(self.star)
-        if floor_au < outer:
-            inner = max(inner, floor_au)
-        return self._distance_within_zone_with_margin(inner, outer, planets=planets)
-
     def count_objects(self, planets=None):
         """
         Counts the number of planets, asteroid belts, and moons in the system.
@@ -2143,8 +2106,8 @@ class StarSystem:
         How the system answers a request for a habitable world (`system_config.HABITABLE_WORLD`), `None` when none was made:
         `"aim"` when a planet or moon is habitable (overall PHI-6 Blue or Green), `"fallback"` when the best it has is overall
         Yellow with Suitability at least Yellow (Boss, 2026-10-23: accepted when the request must fall short), else
-        `"unmet"`. The generation retry still steers by life class (`count_habitable_class_worlds`), so `"unmet"` is possible
-        until the world is regenerated under restricted draws.
+        `"unmet"`. A report only (GEN.1130): the request raises the odds of a world that meets its conditions
+        (`habitable_request.meets`) and steers by no score, so `"unmet"` is an ordinary answer.
         """
         if getattr(getattr(self, "system_config", None), "HABITABLE_WORLD", None) is not True:
             return None
@@ -2292,13 +2255,13 @@ class StarSystem:
         and asteroid belts, and applies appropriate corrections to ensure that
         their orbits are not just non-overlapping, but also realistically spaced.
         Two adjacent planets' minimum separation is enforced via their
-        *mutual* Hill radius (`_mutual_min_separation_au`), not either
+        *mutual* Hill radius (`validation.min_distance_after_au`), not either
         one's own individual Hill radius alone -- see
         `tuning.MUTUAL_HILL_RADII_SEPARATION`'s docstring for
         why. A belt has no mass/Hill-radius concept of its own, so any
         correction involving one uses the single real planet's own
         `min_orbit_distance` (5 Hill radii) on whichever side of the belt
-        the planet is (`_min_distance_past_belt_au` for a planet after a
+        the planet is (`validation.min_distance_after_au` for a planet after a
         belt), or the fixed `MIN_ASTEROID_BELT_SEPARATION` between two
         belts.
         If an adjustment is made to a planet (as opposed to an asteroid belt,
@@ -2318,71 +2281,6 @@ class StarSystem:
         if planets is None:
             planets = self.planets
         validation.space_orbits(planets)
-
-    @staticmethod
-    def _min_distance_past_belt_au(planet, belt):
-        """
-        The closest `planet` can sit outside `belt`: its own Hill sphere
-        must clear the belt's outer edge by the same 5 Hill radii
-        (`min_orbit_distance`) a belt placed after a planet must keep, plus
-        `MIN_ASTEROID_BELT_SEPARATION`.
-
-        The Hill radius scales linearly with distance (`r_H = x * c`, with
-        `c = (m / 3M)^(1/3)`), so this solves `x - 5*c*x >= edge + gap` in
-        closed form: `x >= (edge + gap) / (1 - 5c)`. `5c` is clamped to 0.9
-        so a body heavy enough to make that unsolvable still gets a large
-        but finite distance.
-        """
-        return validation.min_distance_past_belt_au(planet, belt)
-
-    def _mutual_min_distance_au(self, planet, last_planet):
-        """
-        The closest `planet` (the later/farther of the pair) can stably
-        sit to `last_planet` (fixed -- it's already been placed and
-        won't move again this pass), via their *mutual* Hill radius
-        (`orbits.mutual_hill_radius_m`) rather than either one's own
-        individual Hill radius alone -- see
-        `tuning.MUTUAL_HILL_RADII_SEPARATION`'s docstring for
-        the stability-literature basis.
-
-        Solved in closed form for `planet`'s own distance rather than
-        evaluated once at the current (pre-correction) positions and
-        added on top: the mutual Hill radius depends on the *average* of
-        the two distances, so a naive "compute now, then push `planet`
-        out by that much" approximation understates the requirement --
-        moving `planet` out raises the average, which raises the
-        requirement further, and `MUTUAL_HILL_RADII_SEPARATION`'s margin
-        (10x) is large enough that this understatement is measurable, not
-        just a rounding-level slip (confirmed by a real
-        `assert_no_orbital_overlap` failure before this closed form
-        replaced the naive version).
-
-        Derivation: let d = `last_planet.distance` (fixed this pass), x =
-        `planet`'s target distance, and kappa =
-        `MUTUAL_HILL_RADII_SEPARATION * ((m_planet + m_last) / (3 *
-        M_star)) ** (1/3)`. The stability requirement `x - d >= kappa *
-        (x + d) / 2` rearranges to `x >= d * (1 + kappa/2) / (1 -
-        kappa/2)`.
-
-        `M_star` is `planet.star.mass` rather than `self.star.mass` --
-        for a single star or a P-type (close) binary's merged proxy both
-        planets' own `.star` already *is* `self.star`, so this is a no-op
-        change there, but for an S-type (wide) binary's secondary list
-        `self.star` is still the *primary* (see `StarSystem.__init__`'s
-        "an S-type pair never merges" branch) -- using it here would
-        derive the secondary's own planet spacing against the wrong
-        star's mass entirely.
-
-        Args:
-            planet (Planet): The planet whose distance may need raising.
-            last_planet (Planet): The fixed reference planet, closer to
-                                  the star.
-
-        Returns:
-            float: The minimum distance (AU) `planet` can sit at,
-                  measured from the star -- not a gap.
-        """
-        return validation.mutual_min_distance_au(planet, last_planet)
 
     def _reconcile_moved_planet(self, planet):
         """

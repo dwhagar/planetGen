@@ -66,8 +66,8 @@ def _scores(body):
 
 def _check_scores_class_blind(entry):
     body = entry.body
-    if getattr(body, "body_type", None) != "t":
-        return []
+    if getattr(body, "body_type", None) != "t" or getattr(body, "planet_class", None) is None:
+        return []                   # an Asteroid (GEN.1160) has no class letter to swap
     reference = _scores(body)
     problems = []
     for letter in letters():
@@ -95,7 +95,7 @@ def capable_by_class(entries):
     out = {}
     for entry in entries:
         body = entry.body
-        if getattr(body, "body_type", None) != "t":
+        if getattr(body, "body_type", None) != "t" or body.planet_class is None:
             continue
         total, capable = out.get(body.planet_class, (0, 0))
         out[body.planet_class] = (total + 1, capable + (1 if _scores(body)[1] else 0))
@@ -210,7 +210,7 @@ def _run_life(planet, letter=None):
 def draw_problems(planet, other_letters=None):
     """The problems of one planet: a supported world without life, life on an unsupported one, a class that lives where the model
     does not support it, and any difference in the outcome when the same conditions carry another class letter (`other_letters`, default all)."""
-    if getattr(planet, "body_type", None) != "t":
+    if getattr(planet, "body_type", None) != "t" or planet.planet_class is None:
         return []
     supported = _supported(planet)
     letter = planet.planet_class
@@ -237,7 +237,7 @@ def draw_rates(planets):
     over `[(label, planet), ...]`."""
     out = {}
     for _, planet in planets:
-        if getattr(planet, "body_type", None) != "t":
+        if getattr(planet, "body_type", None) != "t" or planet.planet_class is None:
             continue
         total, supported, drawn, waiting = out.get(planet.planet_class, (0, 0, 0, 0))
         has = bool(_supported(planet))

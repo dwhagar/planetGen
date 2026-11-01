@@ -38,7 +38,7 @@ from planetgen.physics import (
     age_metallicity, alpha_tracks, constants, imf, main_sequence, metallicity, ms_lifetime, post_main_sequence, remnant_mass,
     stellar_abundances, wolf_rayet)
 from planetgen import tuning
-from planetgen.util import draw
+from planetgen.util import draw, request_odds
 from planetgen.physics import unit_registry as units
 
 _km_to_m = units.converter("km", "m")
@@ -425,7 +425,7 @@ def _evolved_state(line, age_gy, mass_sol, fe_h, rng):
 
 
 def evolve_star(mass_sol, age_gy, rng=draw, min_luminosity_sol=None, fe_h=None, population=None, fe_h_peaks=None,
-                galactic_center_dist_ly=None):
+                galactic_center_dist_ly=None, white_dwarf_mass_sol=None):
     """
     The present state of a star of initial mass `mass_sol` at `age_gy`.
 
@@ -458,6 +458,10 @@ def evolve_star(mass_sol, age_gy, rng=draw, min_luminosity_sol=None, fe_h=None, 
         Myr) or a `"PMS"` (pre-main-sequence) class, with `disk_class` ("0",
         "I", "II" or "III") in place of a Yerkes numeral, and `phase_end_gy`
         the age it reaches the main sequence.
+
+    `white_dwarf_mass_sol` is the mass of the white dwarf the star leaves when a close companion stripped its giant of its envelope
+    on the red giant branch (a helium core, GEN.996, `helium_core_white_dwarf`), in place of the initial-final relation's; it
+    applies only to a star that has become a white dwarf.
     """
     pc = tuning
     if fe_h is None:
@@ -487,7 +491,7 @@ def evolve_star(mass_sol, age_gy, rng=draw, min_luminosity_sol=None, fe_h=None, 
     elif massive:
         return None
     else:
-        final_mass = remnant_mass.white_dwarf_mass_sol(mass_sol)
+        final_mass = remnant_mass.white_dwarf_mass_sol(mass_sol) if white_dwarf_mass_sol is None else white_dwarf_mass_sol
         cooling_age = cooling_age_gy(mass_sol, age_gy, fe_h)
         state.update(_white_dwarf_state(final_mass, cooling_age, rng))
     return state
@@ -498,6 +502,13 @@ def cooling_age_gy(initial_mass_sol, age_gy, fe_h):
     `tuning.WD_MIN_COOLING_AGE_GY`."""
     track = alpha_tracks.track_fe_h(fe_h, age_gy)    # GEN.1024: the track the progenitor read, as `evolve_star` does
     return max(age_gy - post_main_sequence.timeline(initial_mass_sol, track).end_gy, tuning.WD_MIN_COOLING_AGE_GY)
+
+
+def helium_core_state(initial_mass_sol, age_gy, fe_h, core_mass_sol, rng):
+    """The state fields of the white dwarf a star of `initial_mass_sol` solar masses has become at `age_gy` when it is a helium core of
+    `core_mass_sol` solar masses (GEN.996): `evolve_star`'s white dwarf fields (mass, luminosity, temperature, radius, atmosphere), to
+    update the state of the same star with. It cools from the end of its progenitor's life like any other white dwarf of it."""
+    return _white_dwarf_state(core_mass_sol, cooling_age_gy(initial_mass_sol, age_gy, fe_h), rng)
 
 
 def _white_dwarf_state(final_mass_sol, cooling_age_gy, rng):
@@ -534,9 +545,10 @@ def sample_living_star(age_bias=None, large_star=None, rng=draw, habitable_host=
     and the age drawn inside the star's own lifetime (and the default
     star-formation window), so a large star is always still shining;
     `large_star=False` (`-large_star`) redraws any star born that massive.
-    With `habitable_host` (a habitable world is required), the star must
-    be at least `LIFE_MIN_STAR_AGE_GY` old and not a white dwarf, whose
-    progenitor would have engulfed its habitable zone.
+    With `habitable_host` (a habitable world is requested), a star younger
+    than `LIFE_MIN_STAR_AGE_GY` or a white dwarf, whose progenitor would have
+    engulfed its habitable zone, is kept one time in `REQUEST_ODDS`
+    (`util.request_odds.keeps`, GEN.1130) and otherwise drawn again.
 
     `population` draws the age from that population's range instead of the
     whole disk's (see `population_age_range_gy`), and `max_luminosity_sol`
@@ -559,8 +571,6 @@ def sample_living_star(age_bias=None, large_star=None, rng=draw, habitable_host=
             # large star is asked for anyway (+large_star), so it keeps the
             # whole disk's ages rather than fail.
             population, age_law = None, None
-    if habitable_host and population is not None and population_age_range_gy(population)[1] <= pc.LIFE_MIN_STAR_AGE_GY:
-        population, age_law = None, None  # likewise, no star this young can host life yet
     for _ in range(pc.STAR_MODEL_MAX_REDRAWS):
         birth = fe_h if fe_h is not None else birth_fe_h(rng, population, fe_h_peaks, galactic_center_dist_ly)
         if large_star:
@@ -587,11 +597,11 @@ def sample_living_star(age_bias=None, large_star=None, rng=draw, habitable_host=
                 draw.redrawn("star.model_redraw")
                 continue
             age = age_metallicity.tilted_age(birth, population, lambda: sample_star_age_gy(age_bias, rng, population, age_law), rng)
-        if habitable_host and age < pc.LIFE_MIN_STAR_AGE_GY:
+        if habitable_host and age < pc.LIFE_MIN_STAR_AGE_GY and not request_odds.keeps(False, rng):
             draw.redrawn("star.model_redraw")
             continue
         state = evolve_star(mass, age, rng, fe_h=birth, population=population, fe_h_peaks=fe_h_peaks)
-        if state is None or (habitable_host and state["yerkes_class"] == "VII"):
+        if state is None or (habitable_host and state["yerkes_class"] == "VII" and not request_odds.keeps(False, rng)):
             draw.redrawn("star.model_redraw")
             continue
         # A white dwarf is never pre-placed, so the cap never removes one
@@ -618,7 +628,8 @@ def star_params(initial_mass_sol, age_gy, state):
         dict: `type` (e.g. "G2V Yellow Main Sequence Star"),
         `yerkes_class`, `mass_kg`, `radius_km`, `temperature_k`,
         `luminosity_w`, `age_gy`, `lifespan_gy`, `initial_mass_sol` and
-        `phase_end_age_gy`; and `metallicity_fe_h`, the birth [Fe/H] the star keeps (GEN.651).
+        `phase_end_age_gy`; `nuclear_arrival_age_gy` (GEN.1174: the age MIST's tracks put a pre-main-sequence star on the main sequence, later than its
+        `phase_end_age_gy`, the age its radius settles; None for every other star); and `metallicity_fe_h`, the birth [Fe/H] the star keeps (GEN.651).
     """
     temperature = int(round(state["temperature_k"], tuning.ROUND_TEMPERATURE_NEAREST_HUNDRED))
     spectral_class, subclass = spectral_letter_and_subclass(state["temperature_k"])
@@ -657,6 +668,7 @@ def star_params(initial_mass_sol, age_gy, state):
         "lifespan_gy": state["lifespan_gy"],
         "initial_mass_sol": initial_mass_sol,
         "phase_end_age_gy": state["phase_end_gy"],
+        "nuclear_arrival_age_gy": state.get("nuclear_arrival_gy"),
         "metallicity_fe_h": state["metallicity_fe_h"],
     }
 
