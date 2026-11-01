@@ -4,7 +4,7 @@ Status: generated from the stand-in registry of [gap-filling-plan.md](gap-fillin
 
 A stand-in is any value that is not a verified measurement of the thing it stands for. Every one carries two labels (Boss, 3:40 PM EDT on 2026-10-24; the tweak scale decided 4:01 PM EDT): **where its number came from** (the source tier) and **how far it was bent to give the outcome wanted** (the tweak level). Any change that adds a stand-in adds its row to the registry with both labels in the same pull request.
 
-There are 1030 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
+There are 1044 rows below. A row may be a family of values (a recipe table, a set of bands); its tier cell then names the tier of each part, and its tweak is the highest level any part has.
 
 ## The source tiers
 
@@ -36,16 +36,16 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 
 | Tier | L0 | L1 | L2 | L3 | L4 | All |
 |---|---|---|---|---|---|---|
-| T1 | 147 | 12 | 8 | 1 | 0 | 168 |
-| T2 | 106 | 42 | 0 | 1 | 0 | 149 |
+| T1 | 149 | 13 | 8 | 1 | 0 | 171 |
+| T2 | 112 | 42 | 0 | 1 | 0 | 155 |
 | T3 | 83 | 38 | 7 | 9 | 0 | 137 |
-| T4 | 50 | 5 | 1 | 17 | 10 | 83 |
+| T4 | 51 | 5 | 1 | 17 | 10 | 84 |
 | T5 | 44 | 18 | 3 | 1 | 0 | 66 |
 | T6 | 96 | 82 | 20 | 51 | 0 | 249 |
 | T7 | 32 | 14 | 7 | 12 | 0 | 65 |
 | T8 | 0 | 1 | 1 | 5 | 1 | 8 |
-| T9 | 20 | 14 | 5 | 45 | 21 | 105 |
-| All | 578 | 226 | 52 | 142 | 32 | 1030 |
+| T9 | 23 | 14 | 5 | 46 | 21 | 109 |
+| All | 590 | 227 | 52 | 143 | 32 | 1044 |
 
 ## How the labels were given
 
@@ -1774,6 +1774,20 @@ Unverified and guessed tiers may be tweaked to hit target probabilities (Boss, 3
 | BR6 | P | T1 | L0 | dwarf_population.SOTER_MU_PLANET 100: Soter's planet discriminant: a body with mu = M over the mass of the others in its zone above 100 is a planet | threshold 10 to 1000 (the gap is 4 to 5 orders) | bodies orbiting a star in a mature system | a system whose bodies fill the gap between mu 1 and 100 | Margot's discriminant (BR7) as the cross-check | [R4159] ([R4159], READ) | GEN.1092 | - |
 | BR7 | P | T1 | L0 | dwarf_population.MARGOT_COEFFICIENT_EARTH 1.9e-4 and dwarf_population.MARGOT_C 2 sqrt 3: Margot's orbit-clearing mass: 1.9e-4 C^(3/2) (a over 1 au)^(9/8) (M* over Msun)^(5/2) Earth masses with C = 2 sqrt 3; planet if Pi = M over this is at least 1 | none (printed) | bodies orbiting a main-sequence star | a body with Pi above 1 that has not cleared its zone in the star's lifetime | the same with the star's own lifetime (exponent 5/8 and 3/4 form) | [R2871, R2874] ([R2871], READ) | GEN.1092 | - |
 | BR8 | P | T2 | L0 | the radius where a solid body turns round (potato radius): 200 km for ice, 300 km for rock (3.3e19 kg and 3.4e20 kg) | 150 to 400 km | icy and rocky small bodies | a measured round body well below the radius or a lumpy one well above | the roundness engine's strengths (`physics/roundness.py`, GEN.1158; the BR9 band is retired, GEN.1160) | [R2703] ([R2703], READ); stands for [R4343] | - | - |
+| BR10 | P | T2 | L0 | the largest body a young icy disc grows: radius about 1 750 km, at most 3 to 4 percent of the initial solids, nearly independent of disc mass, stellar mass and age | 1 000 to 2 500 km | icy discs at 30 to 150 au round 1 to 3 solar mass stars | a Kuiper-type disc whose largest body is outside this radius | the order statistic of the size law (GEN.1061) checked against it | [R2324] ([R2324], READ) | - | - |
+| BR11 | P | T1 | L0 | the Kuiper belt size law: cold bright-end slope 1.5 (+0.4 -0.2), break H_B 6.9; hot slope 0.87, break 7.7; faint-end slope near 0.2; masses hot 0.01 and cold 3e-4 Earth masses; classical belt 0.010 Earth masses, mostly near 100 km, its largest 2 percent of its mass | measured errors | Kuiper-type discs | a belt whose size law is outside the errors | a size law derived from the disc's own collisional equilibrium | [R1439] ([R1439], READ); [R0362] ([R0362], READ) | - | - |
+| BR12 | P | T2 | L0 | post-main-sequence survival of a planet or belt: inside about 5 au it is lost, beyond it survives and its orbit widens by M_initial over M_final | 3 to 8 au | stars of 1 to 8 solar masses | a planet or belt measured near a white dwarf inside 3 au | the engulfment radius of the star's own giant branch (built for white dwarfs: widen_for_mass_loss) | [R1031] ([R1031], READ) | - | - |
+| BR13 | P | T2 | L0 | instability after mass loss: of the unstable pairs 8 percent collide, 92 percent do not, 40 percent of the latter settle on a closer eccentric orbit; about 2 percent of young white dwarfs show a disrupted planet | collide 5 to 15 percent | two- and three-planet systems round a star that loses mass | a survey of white dwarf systems with these fractions outside the range | N-body runs of the system's own planets | [R1031] (READ) | - | - |
+| BR14 | P | T2 | L0 | white dwarfs polluted by debris: at least 27 percent accreting now (up to 50 percent), 56 percent with heavy elements, rates a few 1e5 to a few 1e8 g/s (cooling ages 20 to 200 My) | 27 to 50 percent; rate range as printed | DA white dwarfs of 17 000 to 27 000 K | a larger unbiased survey outside the fractions | the rate from the belt and planet architecture of the system (GEN.1061 ledger) | [R2415] ([R2415], READ); [R4918] not reached (20 to 30 percent) | - | - |
+| BR15 | P | T1 | L0 | debris disc incidence round F to K stars: 17.1 (+2.6 -2.3) percent of 275 stars, 20.2 +/- 2.0 in DUNES, 29 +/- 9 among exoplanet hosts; most discs at fractional luminosity 1e-5, blackbody radius 7 to 40 au | measured errors | Sun-like stars within 25 pc | a population census whose share of belts with an excess is outside the range | a belt census from the generator's own ledgers | [R4081] ([R4081], READ); [R2894] ([R2894], READ) | - | - |
+| BR16 | P | T4 | L0 | a belt at the snow line (a pressure bump where rock-rich planetesimals form when the pebble flux is above a critical value in a low-viscosity disc): no rate is read; the origin table keeps its own weight | none | discs with alpha under 1e-3 | a survey of belt radii against the snow line | a disc model with the pebble flux (GEN.1054) | [R2074] ([R2074], READ), qualitative | - | - |
+| BR17 | P | T9 | L0 | belt_ledger.L1_MASS_KG 1e19: individual bodies above 1e19 kg (about 200 km of rock); the 1e15 kg floor of the reproducible tier is not built yet | 1e18 to 1e20 kg; 1e14 to 1e16 kg | every belt and outer disc | not applicable (a storage rule) | a cut from the cost of storing a belt | Boss's rule of 4:27 PM EDT 2026-10-30 (belt-evolution.md section 11) | - | - |
+| BR18 | P | T9 | L0 | belt_ledger.LEDGER_COVERAGE 0.9 and belt_ledger.LEDGER_MAX_BODIES 300: store the heaviest bodies until 90 percent of the belt mass is covered, at most 300 bodies per belt | 80 to 95 percent; 100 to 1000 | every belt and outer disc | not applicable (a storage rule) | a cut from the cost of storing a belt | Boss's rule of 4:27 PM EDT 2026-10-30 (belt-evolution.md section 11) | - | - |
+| BR19 | P | T1 | L1 | belt_ledger.ICY_LAW: the hot Kuiper belt's cumulative size law, q 1.0 below and 4.35 above a break of 121 km (alpha1 = 0.87, faint alpha2 near 0.2, H_B = 7.7; 121 km is for an albedo of 0.10 and 1 g/cm3) | break 99 to 192 km (albedo 0.15 to 0.04); bright slope 4.15 to 4.42 | Kuiper-type discs, hot population | a Kuiper-type belt whose largest bodies are far outside the law's order statistic at its mass | a size law from the disc's own collisional equilibrium; DEEP V's tapered fit [R3241] | [R1439] ([R1439], READ); the albedo is an assumption | - | - |
+| BR20 | P | T9 | L3 | belt_ledger.ROCKY_LAW: a rocky belt's cumulative size law, q 1.3 below 5 km and 3.0 from 5 km (Ivezic: differential 2.3 and 4), and q 4 above a break of 200 km | break 100 to 400 km; steep slope 3.5 to 5 | rocky belts, bodies of 0.4 km and up | a census of a rocky belt with the number above 1e19 kg far from tens at the main belt's mass | [R0484] and the size-frequency of large asteroids (not reached) | q 1.3 and 3.0: [R2108] (astro-ph/0105511, READ); 200 km and 4: educated guess from needed output (a stretch of q = 3 holds equal mass per doubling of size, so the law must steepen) | - | no data |
+| BR21 | P | T9 | L0 | belt_ledger.LEDGER_MAX_SHARE 0.95, belt_ledger.SOLVE_TOLERANCE 1e-3 and belt_ledger.SOLVE_MIN_KM 1e-3: the most of the belt's mass the stored bodies may hold, and the stopping test and bracket of the search for the belt's largest body | share 0.9 to 0.99 | every belt and outer disc | not applicable (a guard and a numerical bracket) | a guard from the cost of a draw | needed output (mass is conserved) | - | - |
+| BR22 | P | T2 | L0 | body_status.ZONE_HILL_RADII 2 sqrt 3: the half-width of the zone of a body, in its Hill radii, within which Soter's mu counts the other bodies (Margot's C, so the two discriminants use one zone) | 2 to 5 Hill radii | bodies orbiting a star | a zone width at which a Solar System planet's mu falls below 100 or a dwarf planet's rises above it | the zone from the chaotic-zone width of BR2 | [R2871, R2874] ([R2871], READ) | GEN.1092 | - |
+| BR23 | P | T2 | L0 | body_status.LAMBDA_K: the k of Stern and Levison's Lambda = k m^2 / P, fixed so that Lambda is 1 at Margot's clearing mass at 1 au round the Sun (6.7e5 per Earth mass squared per year); their own k was not read | none (a normalisation) | bodies orbiting a star | a Lambda that puts a Solar System dwarf planet above 1 or a planet below it | Stern and Levison's printed k | [R4159] ([R4159], READ) quoting [R4213, R4214] | GEN.1092 | - |
 
 ## 6.96 Stand-ins of the irregular orbits
 

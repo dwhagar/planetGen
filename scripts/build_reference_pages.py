@@ -125,7 +125,7 @@ def build_overview():
 
 
 def source_label(e, suffix):
-    """The words a citation link shows for a paper or a book: as `Family et al. 2019a`, `Family and Other 2017` or `Family 2005`."""
+    """The words a citation link shows for a paper or a book: family name or names, a year and a letter where two share one."""
     names = [family.title() if family.isupper() and len(family) > 3 else family for family, _ in e["authors"]]
     if not names:
         who = (e.get("title") or "").strip()

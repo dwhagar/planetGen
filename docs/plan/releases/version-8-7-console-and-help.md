@@ -38,9 +38,8 @@ Release gate (standing, Boss, 2026-10-21, 5:10 PM EDT): this version is not stam
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| UX.82 | Theme checks after PR #800: SVG currentColor, two Shoelace contrast failures, alpha in --bg-subtle |  | Research follow-up to UX.76 (built). |
 | UX.130 | Console design brief: colours, type, panel shapes and iconography, approved by Boss |  | Split from UX.43. |
-| UX.131 | Console tokens, type and base template in both themes | UX.130, UX.82 | Split from UX.43. |
+| UX.131 | Console tokens, type and base template in both themes | UX.130 | Split from UX.43. |
 | UX.132 | Console look for the shared components: buttons, tables, panels, status chips, icons and the maps' chrome | UX.131 | Split from UX.43. |
 | UX.43 | A visual design built like a pilot's starmap and navigation console | UX.130, UX.131, UX.132 |  |
 
