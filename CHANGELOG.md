@@ -2,6 +2,17 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3082] - 2026-11-01
+
+**Headline:** The words a body sheet shows for the roundness rule no longer carry an item code.
+
+### Changed
+- **The roundness rule text on the body sheet (GEN.1160).** The plain-words line for a body under a roundness ratio of 1 ended with the item code; the code is gone, as no text the code shows may carry one.
+
+generation-output: unchanged
+
+TODO items resolved: none.
+
 ## [8.0.3081] - 2026-11-01
 
 **Headline:** The table sweep now tests belts and asteroid fields at a physical disk temperature, and the two taxon E rows that no belt reaches are marked unreachable on purpose.
