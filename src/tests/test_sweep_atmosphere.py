@@ -97,6 +97,32 @@ def _oxygen_entry(column_du, p_o2_pa=21200.0, teff=5800.0):
     return sweep.Entry(body, None, star, "oxygen")
 
 
+def test_the_temperature_rule_stops_a_runaway_greenhouse_at_the_molten_surface_limit(monkeypatch):
+    """Stand-in CC7: the air solve holds the surface at `MAX_SURFACE_TEMPERATURE_K`, so a hotter greenhouse still gives that, not the Stefan-Boltzmann value."""
+    from planetgen.physics import surface_air
+
+    monkeypatch.setattr(rules, "_starlight_w_m2", lambda entry: 1.0e5)
+    entry = _entry("hot", bond_albedo=0.1, greenhouse_factor=100.0, surface_temperature=surface_air.MAX_SURFACE_TEMPERATURE_K, gas_partials_pa={"N2": 1.0e5})
+    assert rules._check_temperature(entry) == []
+    entry.body.surface_temperature = surface_air.MAX_SURFACE_TEMPERATURE_K * 1.1
+    assert rules._check_temperature(entry)
+
+
+def test_the_ozone_rule_lets_a_body_that_flares_hold_the_flag_keep_a_tenth_of_the_least_column():
+    """GEN.808: a world whose star's flares hold the ozone flag keeps `OZONE_LOSS_REMAINING` of its column, so the least the rule allows falls by that."""
+    from planetgen.physics import ozone, radiation
+
+    median = ozone.median_column_du(5800.0, 1.0)
+    low, _high = ozone.structure_range(ozone.o2_level_pal(21200.0, 1.0))
+    column = median * low * radiation.OZONE_LOSS_REMAINING * 1.05
+    plain = _oxygen_entry(column)
+    flagged = _oxygen_entry(column)
+    flagged.body.ozone_loss_flag = True
+    assert rules._check_ozone(plain) and rules._check_ozone(flagged) == []
+    flagged.body.ozone_column_du = median * low * radiation.OZONE_LOSS_REMAINING * 0.9
+    assert rules._check_ozone(flagged)
+
+
 def test_the_ozone_rule_holds_for_earth_air_and_fails_outside_the_fits_spread():
     """The sweep's bodies hold no free oxygen since the air solve of 4c (GEN.855), so the rule's oxygen branch is tried on a body
     made for it: Earth's oxygen under the Sun gives a column in the fit's spread, 100 times that and none at all do not."""
