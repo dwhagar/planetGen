@@ -16,7 +16,7 @@ input to the chemistry: it only gates which rows of the recipe tables apply.
     draw.mole_fractions       # {"H2O": 0.78, "CO2": 0.16, ...}, gas-table formulas, sums to 1
     draw.family               # "rocky", "giant", "brown-dwarf", "hot-jupiter", "envelope", ...
     draw.drawn                # {"a": "a6", "b": "b2", "c": "c3", ...}
-    draw.redox_diw            # log10 fO2 above the iron-wuestite buffer (Hirschmann 2021 scale); None for a giant
+    draw.redox_diw            # log10 fO2 above the iron-wuestite buffer ([R1951] scale); None for a giant
 
 It is a pure function of the subject and the seeded stream (`util/draw.py`): no pressure logic and no storage. The total pressure of
 the air (the retention row `d`), the freeze-out of what the surface temperature condenses, the sum of the partial pressures and the

@@ -2,7 +2,7 @@
 
 """
 TEST.452: the class-blind life test (GEN.915, Boss 2:46 PM EDT 2026-10-29: life depends only on the conditions, never on the class
-letter). Every terrestrial body of the shared sweep is given each of the 20 class letters with its conditions unchanged, and the life model
+letter). Every terrestrial body of the shared sweep is given each class letter the rules hold (one for every class in the registry) with its conditions unchanged, and the life model
 and the habitability index must answer the same on every letter; the life code is scanned for reads of the class letter and each one must be
 listed with its reason. The harness is proved able to fail by breaking the life model so that one letter changes a score.
 
@@ -44,8 +44,9 @@ def notes():
 # --- The rule on bodies made for it ----------------------------------------------------------------------------------------
 
 
-def test_there_are_twenty_class_letters_to_try():
-    assert len(rules.letters()) == 20 == len(tuning.PLANET_CLASSES)
+def test_every_class_letter_of_the_registry_is_tried():
+    assert len(rules.letters()) == len(tuning.PLANET_CLASSES) > 1       # the count follows the registry (Class Q was retired, GEN.1135)
+    assert set(rules.letters()) == set(tuning.PLANET_CLASSES)
 
 
 def test_an_earth_like_body_scores_the_same_on_every_letter():
@@ -231,7 +232,7 @@ def test_a_generator_that_skips_life_for_one_letter_is_reported(monkeypatch, sup
 def test_a_supported_world_whose_life_has_not_begun_yet_is_not_reported(monkeypatch, supported_planet):
     from planetgen.generation import life
 
-    monkeypatch.setattr(life, "_life_has_begun", lambda planet: False)     # GEN.1001: the first step comes after the star's age
+    monkeypatch.setattr(life, "_begun", lambda planet, cand: False)     # GEN.1001: the first step comes after the star's age
     assert not any("drew no life" in problem for problem in rules.draw_problems(supported_planet, other_letters=[]))
     total, supported, drawn, waiting = rules.draw_rates([("planet", supported_planet)])[supported_planet.planet_class]
     assert (supported, drawn, waiting) == (1, 0, 1)

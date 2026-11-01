@@ -26,7 +26,7 @@ brightest channel is always full); the brightness is kept separately, as the sky
 2. Thin air (optical depth at 550 nm under 0.2) takes the single-scatter hue of the zenith sky; thick air (over 0.4) takes the
    delta-Eddington two-stream diffuse light at the ground; between them the two are blended so the colour never steps. The ozone and
    the ground's bounce enter as the ratio of two-stream runs with and without them.
-3. The spectrum goes through the CIE 1931 colour matching functions (the Wyman, Sloan and Shirley 2013 fit), the sRGB matrix, the
+3. The spectrum goes through the CIE 1931 colour matching functions (the [R4788] fit), the sRGB matrix, the
    brightest channel is scaled to 1, then the sRGB transfer curve gives the hex colour.
 4. The word comes from the hue and saturation of the hex colour. When the aerosols alone move the colour by 0.03 or more in CIE xy
    the label says "(aerosol-dominated)".
@@ -46,9 +46,9 @@ of the air, not the surface.
 
 ## Sources
 
-Rayleigh depth: Bucholtz 1995 (Table 4), Sneep and Ubachs 2005 (532 nm cross sections), the gas table's King factors. Ozone column:
-Kozakis et al. 2022. Chappuis band: Brion, Daumont, Malicet and Jenouvrier data in the MPI-Mainz UV/VIS Spectral Atlas (CC BY 4.0, see
-`DATA-LICENSE.md`). Two-stream: Joseph, Wiscombe and Weinman 1976; Meador and Weaver 1980. Colour: Wyman, Sloan and Shirley 2013; IEC
-61966-2-1 (sRGB). Cool stars: BT-Settl chromaticity offsets. Dust: Wolff et al. 2009 (digitized, see the design note). Giants:
-Ackerman and Marley 2001 for the cloud top; Cahoy, Marley and Fortney 2010 as the comparison. Every number and the rule that picked it
+Rayleigh depth: [R0575: Table 4], [R4138] (532 nm cross sections), the gas table's King factors. Ozone column:
+[R2466]. Chappuis band: Brion, Daumont, Malicet and Jenouvrier data in the MPI-Mainz UV/VIS Spectral Atlas (CC BY 4.0, see
+`DATA-LICENSE.md`). Two-stream: [R2199, R3013]. Colour: [R4788]; IEC
+61966-2-1 (sRGB). Cool stars: BT-Settl chromaticity offsets. Dust: [R4743] (digitized, see the design note). Giants:
+[R0024] for the cloud top; [R0622] as the comparison. Every number and the rule that picked it
 is in [docs/design/composition/atmosphere-colour.md](../design/composition/atmosphere-colour.md).

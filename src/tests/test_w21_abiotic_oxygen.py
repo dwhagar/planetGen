@@ -2,7 +2,7 @@
 
 """
 TEST.491, the W21 audit of docs/design/systems/weird-worlds.md: an M dwarf world that lost its water leaves an oxygen air with no life, and the life
-scores never read oxygen alone (Luger and Barnes 2015; Wordsworth and Pierrehumbert 2014).
+scores never read oxygen alone [R2769, R4771].
 
 Two links, each end to end over a sample: the air draw (`mixture_draw.draw_mixture`, the `j5` abiotic-oxygen row, the escape filter and the abiotic cap)
 and the life scoring of a finished body (`life_classes.score_classes`). A whole generated system needs the stellar spectra dataset, which a test machine

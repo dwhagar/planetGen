@@ -1,7 +1,7 @@
 # tests/test_king.py
 
 """
-GEN.159: the King (1966) solver. Its concentrations match the textbook values, a cluster's expected number of systems is
+GEN.159: the [R2359] solver. Its concentrations match the textbook values, a cluster's expected number of systems is
 its mass over the mean system mass, a radius drawn by inverse transform lands where the table says, and a cluster whose
 King edge would pass its Jacobi radius is given a lower central potential.
 """
@@ -83,10 +83,12 @@ def test_the_nearest_w0_inverts_a_concentration():
 
 
 def test_the_jacobi_radius_grows_with_mass_and_distance():
-    assert king.jacobi_radius_pc(2.0e5, 8000.0) < king.jacobi_radius_pc(2.0e6, 8000.0)
-    assert king.jacobi_radius_pc(2.0e5, 8000.0) < king.jacobi_radius_pc(2.0e5, 16000.0)
-    # 2e5 solar masses at the Sun's distance keep about 60 pc, as globular clusters do (tens of parsecs).
-    assert 30.0 < king.jacobi_radius_pc(2.0e5, 8000.0) < 120.0
+    # The galaxy's mass inside 8 and 16 kpc: 9e10 and 1.8e11 solar masses, an isothermal halo of 220 km/s (M = v^2 R / G).
+    assert king.jacobi_radius_pc(2.0e5, 8000.0, 9.0e10) < king.jacobi_radius_pc(2.0e6, 8000.0, 9.0e10)
+    assert king.jacobi_radius_pc(2.0e5, 8000.0, 9.0e10) < king.jacobi_radius_pc(2.0e5, 16000.0, 1.8e11)
+    # 2e5 solar masses at 8 kpc keep about 80 pc, as globular clusters do (tens of parsecs); a heavier galaxy squeezes the cluster.
+    assert 30.0 < king.jacobi_radius_pc(2.0e5, 8000.0, 9.0e10) < 120.0
+    assert king.jacobi_radius_pc(2.0e5, 8000.0, 2.0e11) < king.jacobi_radius_pc(2.0e5, 8000.0, 9.0e10)
 
 
 def test_limit_w0_lowers_the_potential_until_the_edge_fits():

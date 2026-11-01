@@ -24,14 +24,14 @@ The draws (`draw_content`), in a fixed order so none moves another:
    `abundance:{key}`), taken against the solar-scale star and truncated at plus or minus 0.5 dex (R15; verified for the range, partly
    verified for Th away from solar [Fe/H], which is inferred through Eu). A body with no host composition (a rogue planet, a star
    with no stored [Fe/H]) draws the offset from a normal of 0.22 dex truncated at 0.5 dex (R15, the 1 to 99 percent range of the
-   Hypatia catalogue in Nimmo et al. 2020; a stand-in for the unknown host). Uranium is then worked out from the
+   Hypatia catalogue in [R3293]; a stand-in for the unknown host). Uranium is then worked out from the
    thorium by the r-process (GEN.759, `rprocess_enrichment`): the star's Th/U at its birth is the production ratio of the r-process
-   (one draw from 1.667 to 2.0, Frebel 2007) times the factor `F` the decay of the galaxy's earlier ejecta gives (the disc's star formation
+   (one draw from 1.667 to 2.0, [R1447]) times the factor `F` the decay of the galaxy's earlier ejecta gives (the disc's star formation
    history, GEN.469, and the host's age; a body with no host takes the typical star of the galaxy), and the ratio today is that
    decayed to the Solar System's age. The old uranium scatter of 0.05 dex is gone.
 2. **Potassium** is not fitted to the star (it is volatile; Th and U are refractory lithophiles, condensation temperatures in part E
    2.8b): `d_K`, log-uniform 0.03 to 1 of the CI K/U of 67407, times the body's uranium (R15; a placeholder tied to the large K
-   differences of Solar System bodies, Nimmo et al. 2020, until the K depletion survey of the research list is read).
+   differences of Solar System bodies, [R3293], until the K depletion survey of the research list is read).
 3. **Aluminium-26** is the star's birth ratio (GEN.476, `birth_radioisotopes`): the steady-state mean of its galaxy's gas (the yield of
    massive stars from the gamma-ray mass, over the disc's gas depletion time and the star's aluminium) as a sum of discrete decayed
    additions, so most stars are born with far less than the mean and a few with a great deal. The Solar System's 5.23e-5 (Lugaro et al.
@@ -39,8 +39,8 @@ The draws (`draw_content`), in a fixed order so none moves another:
 
 The Urey ratio is not drawn: it is the radiogenic share of the heat an interior gives, an output of `interior_heat` (GEN.699).
 
-Reference abundances are Palme and O'Neill 2003 edition, Table 4 for the bulk silicate Earth (the 2014 values of our files cannot be
-confirmed from a paper; Rule applied: verified) and Rudnick and Gao 2014 Table 11 for the upper crust. Solar System bodies are targets
+Reference abundances are [R3416] edition, Table 4 for the bulk silicate Earth (the 2014 values of our files cannot be
+confirmed from a paper; Rule applied: verified) and [R3842: Table 11] for the upper crust. Solar System bodies are targets
 only: the bulk silicate Earth is the reference the star's offset scales, never a preset.
 
 Stand-ins this module labels (until the item that replaces each): the bulk silicate share of a body's mass
@@ -83,7 +83,7 @@ ELEMENTS = ("K", "Th", "U")
 """tuple: The heat-producing elements, in the order of `BULK_SILICATE_EARTH`."""
 
 BULK_SILICATE_EARTH = (260.0, 0.0834, 0.0218)
-"""tuple: `(K, Th, U)` ppm of the bulk silicate Earth, Palme and O'Neill 2003 edition Table 4 (260 ppm, 83.4 ppb, 21.8 ppb; read twice,
+"""tuple: `(K, Th, U)` ppm of the bulk silicate [R3416] edition Table 4 (260 ppm, 83.4 ppb, 21.8 ppb; read twice,
 radiation-model.md section 6). The Th and U of the 2014 edition in our files (84.9 and 22.9 ppb) cannot be confirmed from a paper."""
 
 CI_CHONDRITE_K_OVER_U = 546.0 / 0.0081
@@ -95,7 +95,7 @@ BULK_SILICATE_EARTH_AL_MASS_FRACTION = 0.0238
 (`rock_of` scales it by the body's own)."""
 
 SOLAR_AL26_RATIO = 5.23e-5
-"""float: 26Al/27Al at formation of the Solar System, (5.23 +- 0.13)e-5 (Lugaro et al. 2018, arXiv:1808.00233 Table 2; READ). A test point and a
+"""float: 26Al/27Al at formation of the Solar System, (5.23 +- 0.13)e-5 ([R2768: Table 2]; READ). A test point and a
 reference for the tests: the generator does not draw from it."""
 
 # --- Dose coefficients: air kerma at 1 m over a flat infinite source ---------------------------------------------------
@@ -176,7 +176,7 @@ def isotope_mass_fractions(content, age_gy):
 
 def heat_terms(content, aluminium=BULK_SILICATE_EARTH_AL_MASS_FRACTION):
     """The heat of a kilogram of the bulk silicate as a sum of decays, `((W/kg at formation, decay constant per Gy), ...)`: the four
-    long-lived parents (`elements.heat_per_kg_of_isotope`, Dye 2012 equation 6, with the whole chain's energy for U and Th) and 26Al.
+    long-lived parents (`elements.heat_per_kg_of_isotope`, [R1203] equation 6, with the whole chain's energy for U and Th) and 26Al.
     `heat_w_per_kg` is `sum(a * exp(-lambda t))` over them, and the thermal history (`interior_heat`) integrates the same terms."""
     terms = []
     for name in HEAT_PARENTS:
@@ -259,7 +259,7 @@ def host_offset_dex(fe_h, age_gy, key):
     The thorium and uranium offset of a star's rock from the solar scale, dex: log10 of the star's birth Th/Mg over the Th/Mg of the
     solar-scale star (`stellar_abundances.birth_radiogenic`, the star's draws from `abundance:{key}`), truncated at plus or minus
     `tuning.RADIOGENIC_OFFSET_LIMIT_DEX`. Th and U are r-process products that scatter from star to star; Mg is the rock former they
-    are reckoned against (Nimmo et al. 2020).
+    are reckoned against [R3293].
 
     Args:
         fe_h (float): The star's [Fe/H].

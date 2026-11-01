@@ -16,7 +16,7 @@ the galaxy's star-forming past and not a flat range. The window starts no younge
 
 **The ejection delay** has the density `p(t)` proportional to `t^-DELAY_INDEX` between `EJECTION_DELAY_MIN_GY` and the parent's age: embryos and the planets of a crowded
 disc are thrown out early (within the first few tens of Myr), and planet-planet scattering goes on at every later time with a roughly even share of each decade of time
-(Chatterjee et al. 2008, ApJ 686:580, whose scattering times span 10^6 to 10^9 yr and beyond; recalled, not opened here). Index 1 is that logarithmic spread; 0 would be
+([R0747]:580, whose scattering times span 10^6 to 10^9 yr and beyond; recalled, not opened here). Index 1 is that logarithmic spread; 0 would be
 uniform in time. When the ejection record (RP1, GEN.1119) gives the time of the loss itself the delay is read from it (`from_record`) and the index is not used.
 
 Everything is a pure function of the numbers it is given; the random numbers come from the caller (one uniform number for the parent's age, one for the delay), so the draw is

@@ -71,7 +71,7 @@ layered_structure(mass_earth, metal, rock, water, x_fe, core_scale, ...) -> dict
 radius_fit_earth(mass_earth, cmf, x_fe, core_scale) -> float                              # part B closed form, 0.1 to 20 Earth masses
 water_world_radius_earth(mass_earth, cmf, water) -> float                                 # part C closed form, 0.3 to 20
 small_body_radius_earth(mass_earth, cmf, water) -> float                                  # fit over 1.5e-4 to 0.3 Earth masses
-envelope_radius_earth(mass_earth, envelope, flux_earth, age_gy, ...) -> float             # Lopez and Fortney 2014, 1 to 20
+envelope_radius_earth(mass_earth, envelope, flux_earth, age_gy, ...) -> float             # [R2741], 1 to 20
 mixing_density_kg_m3(metal, rock, water, ice, porosity) -> float                          # below 1e21 kg
 cmf_from_mass_radius(mass_earth, radius_earth, ...)                                  # route 1 inverse (the water fraction's inverse was deleted unused, TEST.525)
 x_fe_from_feo_mass_fraction(feo) -> float                                                 # the mantle's Fe/(Fe+Mg) from FeO

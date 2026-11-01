@@ -211,3 +211,14 @@ def test_the_guide_names_every_rule_and_the_two_rewrite_items():
     text = GUIDE.read_text(encoding="utf-8")
     for needle in ("`MAX_WORDS`", "`MAX_SEMICOLONS`", "`BANNED`", "Class 3a", "sentence case", "American", "UX.252", "UX.253", "KNOWN"):
         assert needle in text, needle
+
+
+def test_the_stored_system_flavour_lines_are_in_plain_words():
+    """GEN.1212: `tuning.SYSTEM_FLAVOR` is drawn by index and stored as the line, so its length and order are fixed (the draw
+    must not move) and every line, read after "Sensors show", meets the guide."""
+    from planetgen import tuning
+    lines = tuning.SYSTEM_FLAVOR
+    assert len(lines) == 23 and len(set(lines)) == 23
+    for line in lines:
+        for sentence in plainwords.sentences("Sensors show " + line):
+            assert not plainwords.check_sentence(sentence), (sentence, plainwords.check_sentence(sentence))

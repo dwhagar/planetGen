@@ -76,7 +76,7 @@ ASTROPY_VALUES = [
     ("EARTH_MASS_TO_KG", lambda c, u: c.M_earth.value, 1e-12),
     ("JUPITER_MASS_TO_KG", lambda c, u: c.M_jup.value, 1e-12),
     ("JUPITER_RADIUS_KM", lambda c, u: c.R_jup.to_value(u.km), 0),
-    # CODATA 2018 (astropy 8 defaults to CODATA 2022, which moves this by 1.35e-9; GEN.211).
+    # [R4361] (astropy 8 defaults to [R3117], which moves this by 1.35e-9; GEN.211).
     ("HYDROGEN_ATOM_MASS_KG", lambda c, u: c.m_p.value + c.m_e.value, 2e-9),
     ("SOLAR_RADIUS_M", lambda c, u: c.R_sun.value, 0),
     ("SECONDS_PER_YEAR", lambda c, u: u.year.to(u.s), 0),

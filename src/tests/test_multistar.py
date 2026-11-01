@@ -13,7 +13,7 @@ from collections import Counter
 import pytest
 
 from planetgen import tuning
-from planetgen.generation import close_binary_trend, multistar
+from planetgen.generation import close_binary_trend, mass_ratio, multistar
 from planetgen.generation.phenomena import hosts
 from planetgen.physics import brown_dwarf, mass_boundaries, ms_lifetime, stability, stellar_evolution as evolution
 from planetgen.util import draw
@@ -385,7 +385,7 @@ def test_a_primary_near_the_hydrogen_burning_limit_never_draws_a_companion_under
         assert _tree_draw_ok(multistar.Placed("star", 0.085), rng, n)
     for birth in (0.015, floor, 0.02, 0.085, 0.124, 0.5):
         rng = draw.Stream(596)
-        masses = [multistar._companion_mass(birth, rng) for _ in range(200)]
+        masses = [multistar.companion_mass(birth, rng) for _ in range(200)]
         assert all(min(birth, floor) <= mass <= birth for mass in masses)
         assert all(mass >= 0.1 * birth - 1e-12 for mass in masses)
 
@@ -395,10 +395,11 @@ def _tree_draw_ok(placed, rng, n):
     return tree.member_count >= 1 and all(member.mass_solar >= 0.0 for member in tree.members)
 
 
-def test_a_heavier_primary_keeps_the_whole_mass_ratio_range():
-    low_ratio, high_ratio = tuning.BINARY_MASS_RATIO_RANGE
+def test_a_companion_is_the_primarys_mass_times_a_ratio_of_the_mass_ratio_law():
+    """GEN.951: the draw takes one random number and gives it to `mass_ratio.draw`; a heavier primary keeps the whole range."""
     rng, again = draw.Stream(1), draw.Stream(1)
-    assert multistar._companion_mass(1.0, rng) == 1.0 * again.uniform(low_ratio, high_ratio)
+    assert multistar.companion_mass(1.0, rng) == 1.0 * mass_ratio.draw(1.0, again.random())
+    assert multistar.companion_ratio_range(1.0) == tuning.BINARY_MASS_RATIO_RANGE
 
 
 # GEN.705: the [Fe/H] factor on the close companions reaches the tree draw.

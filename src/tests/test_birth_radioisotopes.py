@@ -10,9 +10,9 @@ import pytest
 from planetgen.physics import birth_radioisotopes as birth
 from planetgen.util import draw
 
-SOLAR_SYSTEM_AL26 = 5.23e-5      # Jacobsen et al. 2008, via Lugaro et al. 2018: a test point only
-SOLAR_SYSTEM_FE60 = 1.01e-8      # Tang and Dauphas 2012, via Lugaro et al. 2018
-MILKY_WAY_DEPLETION_YR = 0.7e10 / 1.65   # cold gas over the star formation rate (Bland-Hawthorn and Gerhard 2016; Licquia and Newman 2015)
+SOLAR_SYSTEM_AL26 = 5.23e-5      # [R2128], via [R2768]: a test point only
+SOLAR_SYSTEM_FE60 = 1.01e-8      # [R4307], via [R2768]
+MILKY_WAY_DEPLETION_YR = 0.7e10 / 1.65   # cold gas over the star formation rate [R0422, R2680]
 AL_MASS_FRACTION = 6.0e-5        # a solar-scale gas; the generator passes the star's own
 
 

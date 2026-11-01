@@ -3,9 +3,9 @@
  "title": "The isotopes: masses, natural abundance, half-lives, decay modes and decay energies (GEN.438)",
  "sources": [
   "NIST, Atomic Weights and Isotopic Compositions with Relative Atomic Masses (physics.nist.gov/Comp): the relative atomic mass (u) of each isotope and its natural isotopic composition (IUPAC)",
-  "NUBASE2020 (Kondev et al., Chin. Phys. C 45, 030001, 2021, doi:10.1088/1674-1137/abddae), www-nds.iaea.org/amdc/ame2020/nubase_4.mas20.txt: ground-state half-lives (the year is the Julian year of 365.25 days), decay modes and their branchings in percent",
-  "Lugaro, Ott and Kereszturi, Prog. Part. Nucl. Phys. 102, 1 (2018), doi:10.1016/j.ppnp.2018.05.002, Table 4: decay_energy_j, the energy released per decay (the whole chain for a parent that has one), without the neutrinos",
-  "Dye, Rev. Geophys. 50, RG3007 (2012), doi:10.1029/2012RG000400, Table 2: dye_2012, the heat constants of 238U, 235U, 232Th and 40K (kept as the cross-check: the newer evaluation wins where they differ)"
+  "NUBASE2020 (Kondev et al., Chin. Phys. C 45, 030001, 2021, [R2443]), www-nds.iaea.org/amdc/ame2020/nubase_4.mas20.txt: ground-state half-lives (the year is the Julian year of 365.25 days), decay modes and their branchings in percent",
+  "Lugaro, Ott and Kereszturi, Prog. Part. Nucl. Phys. 102, 1 (2018), [R2768: Table 4]: decay_energy_j, the energy released per decay (the whole chain for a parent that has one), without the neutrinos",
+  "Dye, Rev. Geophys. 50, RG3007 (2012), [R1203: Table 2]: dye_2012, the heat constants of 238U, 235U, 232Th and 40K (kept as the cross-check: the newer evaluation wins where they differ)"
  ],
  "notes": "abundance is an atom fraction of the element in normal material, null for an isotope that is not primordial; modes are NUBASE2020's [mode, percent] pairs; masses are of the neutral atom.",
  "isotopes": [

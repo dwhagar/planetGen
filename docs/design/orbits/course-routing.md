@@ -2,7 +2,7 @@
 
 How the NAV page finds a route from one system to another, how routing and
 the "what is within N pc" search read the galaxy database quickly, how a
-route crosses unfilled space, and how a course is shown. Recorded 2026-10-02
+route crosses unfilled space, and how a course is shown. Recorded on 2026-10-02
 from Boss's decision on hop length (NAV.12) and the hop-length study
 (`nav-hop-length/report.md` in the project's shared files); extended
 2026-10-09 with the measured routing and spatial-index research. The frames a

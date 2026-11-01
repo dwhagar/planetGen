@@ -40,12 +40,12 @@ relative_density = k_norm * (bulge + thin * arm_factor + thick)
   carries the arms. The nuclear stellar disc keeps the isothermal sheet (`_sech_vertical`).
 - **Thick disk** (`shape.structure`, `galaxy/structure_draw.py`, GEN.532). Its mass, scale length and scale height are
   ratios to the thin disk's drawn from the galaxy seed: the mass (0.14 to 0.99 at the circular speeds of 3e9 to 2e11
-  solar masses of stars) between the fits of Yoachim and Dalcanton 2006 and Comeron et al. 2018, the length by Comeron
+  solar masses of stars) between the fits of [R0865, R4824], the length by Comeron
   2018 and the height from 2.5 to 4.2. The amplitude is derived from the mass ratio:
   `a_T = ratio * arm_level / (length_ratio^2 * height_ratio)`. The Milky Way's published values (900 pc, 2.0 kpc, 4% of
   the thin disk's density at the Sun, 18% of its mass; BHG16) are `structure.REFERENCE_STRUCTURE`, a check target.
 - **Bulge** (`tuning.BULGE_*`). The bar's boxy/peanut core as COBE/DIRBE
-  sees it edge on: Dwek et al. 1995's G2 model. `bulge_amplitude` is its
+  sees it edge on: [R1202]'s G2 model. `bulge_amplitude` is its
   central density over the thin disk's. Its long axis angle is drawn per
   galaxy, uniform on [0, 180) degrees, with the axis ratios (GEN.533,
   `galaxy/structure_draw.py` `draw_bar`); the Milky Way's 27 degrees leading
@@ -112,7 +112,7 @@ masses a system against 3.0e11 systems) of the visible components'
 stars (`density.halo_terms`). It replaces the flat floor GEN.78 put under the density (0.1% of the local density
 everywhere, which was half the real halo at the Sun and 200 to 340,000 times too much at 50 to 262 kpc). The halo is
 0.19% of the local density at the Sun and 3e-9 at 262 kpc, and no cell beyond 8.7 kpc from the center expects more than
-about 0.01 systems from it. The alternative normalisation to the local density (Juric et al. 2008, 0.5%, about 2.7 times
+about 0.01 systems from it. The alternative normalisation to the local density ([R2211], 0.5%, about 2.7 times
 higher) is `tuning.HALO_LOCAL_DENSITY_FRACTION`; `density.halo_local_density_scale` gives the factor. The outline
 (`galaxy/skeleton.py`) reads the disk, the bulge and the components (the clusters and satellites of `galaxy_components`,
 added to the bound by `ComponentField.bound`, GEN.160 and GEN.237) but not the halo, so the halo adds no cell to it. The
@@ -130,11 +130,11 @@ given; an option given replaces its draw, and the bulge's amplitude is solved fo
 
 | Parameter | Where it comes from |
 |---|---|
-| `--disk-scale-length-pc` | Size-mass relation of late-type galaxies (Shen et al. 2003), `R_d = R_50 / 1.678`, log-normal scatter |
-| `--disk-scale-height-pc` | Length over `q = 7.3` with a 0.13 dex scatter (Kregel et al. 2002) |
-| `--bulge-scale-radius-pc` | A third of the bar's length, which is drawn in disk scale lengths by stage (Erwin 2005) |
-| `--bulge-amplitude` | Solved so the bulge's mass is the drawn bulge-to-total of the bulge and disks (Graham and Worley 2008, by stage) |
-| `--arm-count` | Shares of Hart et al. 2017 (two arms in 64.5 percent) |
+| `--disk-scale-length-pc` | Size-mass relation of late-type galaxies [R4048], `R_d = R_50 / 1.678`, log-normal scatter |
+| `--disk-scale-height-pc` | Length over `q = 7.3` with a 0.13 dex scatter [R2484] |
+| `--bulge-scale-radius-pc` | A third of the bar's length, which is drawn in disk scale lengths by stage [R1289] |
+| `--bulge-amplitude` | Solved so the bulge's mass is the drawn bulge-to-total of the bulge and disks ([R1656], by stage) |
+| `--arm-count` | Shares of [R1836] (two arms in 64.5 percent) |
 | `--pitch-angle-deg` | Falls with stellar mass between Yu and Ho 2019's two binned means (earlier notes say 2018; Crossref gives ApJ 871, 194, 2019 for the pitch-angle paper), 5.5 degrees of scatter |
 | `--arm-density`, `--interarm-density` | 1.4 and 0.6, the arm contrast (not drawn; no source) |
 
@@ -143,8 +143,8 @@ reference the math check measures the model's machinery against (`physics/mathch
 
 The shape is stored in `galaxy_shape` with `k_norm`.
 
-Sources: Bland-Hawthorn & Gerhard 2016, ARA&A 54:529 ("BHG16"); Dwek et
-al. 1995, ApJ 445:716; Wegg & Gerhard 2013, MNRAS 435:1874.
+Sources: [R0422]:529 ("BHG16"); Dwek et
+al. 1995, ApJ 445:716; [R4649]:1874.
 `tests/test_galaxy_milky_way.py` and the math check
 (`galaxy_bulge_to_total`, `galaxy_thick_to_thin_disk`) compare the
 model with them on the reference shape.
@@ -179,7 +179,7 @@ density. The thin disk is shared by each population's share of star
 formation, its own scale height (`structure.population_height_ratios`, GEN.532: the squared vertical
 dispersion of the population over the old disc's, thinner for younger stars) and its own arm contrast
 (`STELLAR_POPULATION_ARM_AMPLITUDE`, strongest for young stars: 0.75, 0.42 and 0.10 for the young, intermediate and old,
-GEN.931; the old disk is the observed contrast of about 10% (Eilers et al. 2020; Drimmel and Spergel 2001), the young one the
+GEN.931; the old disk is the observed contrast of about 10% [R1158, R1231], the young one the
 gas ratio of 4 to the Kennicutt-Schmidt index 1.4, and the intermediate one falls with the log of the age between them;
 registry 6.65). The parts
 always sum to `relative_density`. Each system in a galaxy sector draws its
@@ -236,7 +236,7 @@ rejected, and what the backfill and a fill of the sparse outer rim cost, are in
 - Metallicity gradients: listed as an open question in revision 2 and
   never built. (Its other open question, thin and thick disks as separate
   components, is built: GEN.119.)
-- A spherical or oblate bulge (McMillan 2017's axisymmetric model was
+- A spherical or oblate bulge ([R3009]'s axisymmetric model was
   the other candidate for GEN.118): the observed bulge is a bar, boxy
   edge on, so the COBE fit was used. Not modelled: the long thin bar
   beyond the bulge and the stellar halo's inner structure. The nuclear star
@@ -260,8 +260,8 @@ The thin disk's arm factor is `arm_level * (1 + arm_amplitude * cos(m (theta - t
 
 ## GEN.625: the all-Auto window of the size and the flatness
 
-A galaxy with the mass, size (or compactness), flatness, bulge share and bulge size all on Auto draws its disc size and flatness through `shape_draw._auto_size`: the seed's draws of the size-mass relation (Shen et al. 2003, median half-light radius over 1.678 for the scale length, scatter 0.47 falling to 0.34 in ln) and of the flatness (Kregel et al. 2002, median 7.3, 0.13 dex), and then again from the same two streams, one more draw each, until the shape raises none of `dials.shape_warnings` (the thin disc's crest at least 20 times the one-star density, a scale height of at least 8 pc, a bulge of at least 4 pc) and the flatness is inside the Structure dial's 3 to 20. The crest tested is the plan's own (`plan_figures.crest`, GEN.626) of the shape built at every dial's Auto value and the default sector edge, which costs one density normalization a draw (the disc history is cached, so the accepted draw's build is free). At most 32 draws are made; the shape with the best crest is kept if none passes (it does not happen at the Auto masses). The first draw is the unchanged one, so a seed that did not warn keeps its galaxy; one seed in five drew a shape that warned and gets a later draw. Pin any of the five and the draws are the seed's own first ones, as before, and the grid's warnings fire for what the pin makes.
+A galaxy with the mass, size (or compactness), flatness, bulge share and bulge size all on Auto draws its disc size and flatness through `shape_draw._auto_size`: the seed's draws of the size-mass relation ([R4048], median half-light radius over 1.678 for the scale length, scatter 0.47 falling to 0.34 in ln) and of the flatness ([R2484], median 7.3, 0.13 dex), and then again from the same two streams, one more draw each, until the shape raises none of `dials.shape_warnings` (the thin disc's crest at least 20 times the one-star density, a scale height of at least 8 pc, a bulge of at least 4 pc) and the flatness is inside the Structure dial's 3 to 20. The crest tested is the plan's own (`plan_figures.crest`, GEN.626) of the shape built at every dial's Auto value and the default sector edge, which costs one density normalization a draw (the disc history is cached, so the accepted draw's build is free). At most 32 draws are made; the shape with the best crest is kept if none passes (it does not happen at the Auto masses). The first draw is the unchanged one, so a seed that did not warn keeps its galaxy; one seed in five drew a shape that warned and gets a later draw. Pin any of the five and the draws are the seed's own first ones, as before, and the grid's warnings fire for what the pin makes.
 
 Why a window and not a shifted law: the crest goes as the mass over the scale length cubed times the flatness, and the size-mass scatter is a log-normal with no upper bound, so a bounded sourced law cannot keep every draw clear of the warning; the Auto mass is already a window (3e9 to 6e9, Boss, 10-21) and this is the same kind of statement, the galaxies the 4 pc plan represents well. The sourced medians and scatters are untouched; the window removes the large, thick tail the plan cannot hold.
 
-Measured over 1,000 seeds before and after, against the plan's own crest (with the nuclear disc of GEN.628): the share of Auto draws that warn 17.5 percent to 0, the mean disc scale length 1,470 pc to 1,224 pc (47 percent of the 2.6 kpc a Milky Way disc has, Bland-Hawthorn and Gerhard 2016, used only as a test yardstick), the mean stellar mass 4.3e9 solar masses (8 percent of a Milky Way's 5.4e10), the mean flatness 7.6 to 7.8, the 5th percentile of the crest 6.1 to 23.6.
+Measured over 1,000 seeds before and after, against the plan's own crest (with the nuclear disc of GEN.628): the share of Auto draws that warn 17.5 percent to 0, the mean disc scale length 1,470 pc to 1,224 pc (47 percent of the 2.6 kpc a Milky Way disc has, [R0422], used only as a test yardstick), the mean stellar mass 4.3e9 solar masses (8 percent of a Milky Way's 5.4e10), the mean flatness 7.6 to 7.8, the 5th percentile of the crest 6.1 to 23.6.

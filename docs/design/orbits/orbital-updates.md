@@ -256,7 +256,7 @@ document's cascade:
 | Small bodies over 200 m | period log-normal, never below the 2.2-hour spin barrier |
 | Black holes | spin a* from Beta(1.4, 3.6), or about 0.69 for merger remnants |
 | Stellar tilt | Rayleigh, sigma 15 degrees |
-| Planet tilt | isotropic, from the giant impacts that built a rocky planet (Kokubo and Genda 2010) |
+| Planet tilt | isotropic, from the giant impacts that built a rocky planet [R2431] |
 | Asteroid tilt | near 10 or 170 degrees (YORP; two Gaussians, sigma 8 degrees, equal probability) |
 
 The axis is the orbit normal tilted by the obliquity at a random
@@ -268,7 +268,7 @@ Points to settle before GEN.104 is built, found in the kinetics document
 obliquity toward 90 degrees but its procedure (and the table above) says near 10
 or 170 degrees, which is the usual finding, so the procedure stands; the
 small-body period distribution is given twice with different medians (8.2 h and
-13 h); the gyrochronology constants credited to Barnes (2007) look like
+13 h); the gyrochronology constants credited to [R1429] look like
 Mamajek and Hillenbrand's (2008), and its worked solar period is 26.3 days, not
 25.4; and the tidal-locking example does not reproduce (about 80 years, not 1.2
 Myr), so the coefficient (4/9 or 1/3) needs checking before the "system age past

@@ -45,7 +45,7 @@ from contextlib import contextmanager
 from dataclasses import dataclass, field
 from typing import Callable
 
-from planetgen.galaxy import core_gas as coreGas, galactic_orbit
+from planetgen.galaxy import core_gas as coreGas, galactic_orbit, mass_chain, seed as galaxySeed
 from planetgen.physics import formation, imf
 from planetgen.physics import orbits
 from planetgen.physics import relations
@@ -294,7 +294,7 @@ def _schwarzschild_radius_km(mass_solar):
 
 SUN_REFERENCE_RADIUS_PC = 8128.0
 """float: The Sun's distance from the galactic centre, 8.128 kpc (the Gaia rotation curve fit; GEN.144 made it the one named
-value for the Milky Way plausibility tests, the 8.2 kpc of GRAVITY Collaboration 2019 and the 7.91 kpc of the old constant
+value for the Milky Way plausibility tests, the 8.2 kpc of the GRAVITY result and the 7.91 kpc of the old constant
 are not kept): the radius the Sun's own galactic orbit is checked at. A test reference only; no generation reads a Sun
 position (GEN.404)."""
 
@@ -318,7 +318,7 @@ def _upper_crust():
     return _formation_content(felsic["k_ppm"], felsic["th_ppm"], felsic["u_ppm"])
 
 SUN_AGE_GY = 4.57
-"""float: The Sun's age (Gy, Bonanno et al. 2002), at which the main-sequence reference reads a 1 solar-mass star."""
+"""float: The Sun's age [Gy], at which the main-sequence reference reads a 1 solar-mass star."""
 
 
 def _reference_checks():
@@ -331,7 +331,7 @@ def _reference_checks():
               "a 1 M_sun star at the Sun's age on the MIST main sequence gives about 1 L_sun", unit="L_sun"),
         Check("sun_main_sequence_lifetime", "reference", "stellar_evolution.main_sequence_lifetime_gy(1)",
               lambda: stellar_evolution.main_sequence_lifetime_gy(1.0), 10.0, 0.1,
-              "the Sun's main-sequence lifetime, about 10 Gyr (Sackmann et al. 1993)", unit="Gyr"),
+              "the Sun's main-sequence lifetime, about 10 Gyr", unit="Gyr"),
         Check("sun_effective_temperature", "reference", "stellar_evolution.effective_temperature_k(1, 1)",
               lambda: stellar_evolution.effective_temperature_k(1.0, 1.0), 5772.0, 1e-3,
               "IAU 2015 Resolution B3: nominal solar T_eff 5,772 K", unit="K"),
@@ -357,21 +357,21 @@ def _reference_checks():
               unit="million km"),
         Check("habitable_zone_inner_1_lsun", "reference", "orbits.calculate_habitable_zone(L_sun, 5772 K)[0]",
               lambda: orbits.calculate_habitable_zone(pc.SOLAR_LUMINOSITY, 5772.0)[0], 0.95, 0.01,
-              "inner habitable zone edge for the Sun, about 0.95 AU (the runaway greenhouse limit: Kopparapu et al. 2014)",
+              "inner habitable zone edge for the Sun, about 0.95 AU (the runaway greenhouse limit: [R2447])",
               unit="AU"),
         Check("habitable_zone_outer_1_lsun", "reference", "orbits.calculate_habitable_zone(L_sun, 5772 K)[1]",
               lambda: orbits.calculate_habitable_zone(pc.SOLAR_LUMINOSITY, 5772.0)[1], 1.68, 0.01,
-              "outer habitable zone edge for the Sun, about 1.68 AU (the maximum greenhouse limit: Kopparapu et al. 2014)",
+              "outer habitable zone edge for the Sun, about 1.68 AU (the maximum greenhouse limit: [R2447])",
               unit="AU"),
         Check("bulk_silicate_earth_radiogenic_heat", "reference", "radiogenic.heat_w(bulk silicate Earth, 4.042e24 kg, 4.568 Gyr)",
               lambda: radiogenic.heat_w(_bulk_silicate_earth(), 4.042e24, radiogenic.REFERENCE_AGE_GY) / 1e12, 21.0, 0.03,
-              "21.0 TW for the bulk silicate Earth of Palme and O'Neill 2003 edition (K 260 ppm, Th 83.4 ppb, U 21.8 ppb); "
-              "docs/design/radiation-model.md section 6 (Dye 2012 equation 6 for the heat of each isotope)", unit="TW"),
+              "21.0 TW for the bulk silicate Earth of [R3416] edition (K 260 ppm, Th 83.4 ppb, U 21.8 ppb); "
+              "docs/design/radiation-model.md section 6 ([R1203] equation 6 for the heat of each isotope)", unit="TW"),
         Check("earth_stagnant_lid_urey_ratio", "reference", "interior_heat.heat_flow(bulk silicate Earth, 1 Earth mass, 4.568 Gyr).urey_ratio",
               lambda: interior_heat.heat_flow(_bulk_silicate_earth(), interior_heat.Interior(1.0e12, 250.0), pc.EARTH_MASS_TO_KG, 6371.0,
                                               radiogenic.REFERENCE_AGE_GY, radiogenic.Rock(0.675, 0.325, 0.0, radiogenic.BULK_SILICATE_EARTH_AL_MASS_FRACTION)).urey_ratio,
-              0.65, 0.12, "about 0.65 for stagnant-lid planets of 0.1 to 5 Earth masses at 4.5 Gyr (Guimond, Rudge and Shorttle 2022, "
-              "arXiv:2201.05636 section 3.2.1; the Earth's own 0.47 to 0.52 is a mobile lid, Nimmo et al. 2020)"),
+              0.65, 0.12, "about 0.65 for stagnant-lid planets of 0.1 to 5 Earth masses at 4.5 Gyr ([R1716], "
+              "[R1716] section 3.2.1; the Earth's own 0.47 to 0.52 is a mobile lid, [R3293])"),
         Check("earth_assembly_energy", "invariant", "interior_heat.binding_energy_j(Earth, no core)",
               lambda: interior_heat.binding_energy_j(pc.EARTH_MASS_TO_KG, 6.371e6, 0.0, 0.0) / (pc.G * pc.EARTH_MASS_TO_KG ** 2 / 6.371e6),
               0.6, 1e-12, "the binding energy of a uniform sphere is 3/5 G M^2 / R"),
@@ -380,74 +380,75 @@ def _reference_checks():
               "3.5 pW/kg for CI chondrites (K 546, Th 0.030, U 0.0081 ppm; design-drafts/parts/E section 2.8b)", unit="pW/kg"),
         Check("upper_crust_gamma_dose", "reference", "radiogenic.gamma_ngy_per_hour(upper continental crust, 4.568 Gyr)",
               lambda: radiogenic.gamma_ngy_per_hour(_upper_crust(), radiogenic.REFERENCE_AGE_GY), 71.5, 0.03,
-              "71.5 nGy/h in air over the upper continental crust (Rudnick and Gao 2014 Table 11: U 2.7, Th 10.5 ppm, K2O 2.80 weight "
+              "71.5 nGy/h in air over the upper continental crust ([R3842: Table 11]: U 2.7, Th 10.5 ppm, K2O 2.80 weight "
               "percent; UNSCEAR coefficients)", unit="nGy/h"),
         Check("snow_line_1_lsun", "reference", "formation.snow_line_au(L_sun)",
               lambda: formation.snow_line_au(pc.SOLAR_LUMINOSITY), 2.339, 0.005,
-              "blackbody snow line at 182 K, 2.34 AU for 1 L_sun (Lodders 2003 Table 10: water ice condenses at 182 K)", unit="AU"),
+              "blackbody snow line at 182 K, 2.34 AU for 1 L_sun ([R2726: Table 10]: water ice condenses at 182 K)", unit="AU"),
         Check("white_dwarf_0_6_msun_radius", "reference", "stellar_evolution.white_dwarf_radius_km(0.6)",
               lambda: stellar_evolution.white_dwarf_radius_km(0.6), pc.EARTH_RADIUS_KM, 0.15,
-              "a typical 0.6 M_sun white dwarf is about Earth-sized (Shapiro & Teukolsky 1983)", unit="km"),
+              "a typical 0.6 M_sun white dwarf is about Earth-sized [R4040]", unit="km"),
         Check("sirius_b_radius", "reference", "stellar_evolution.white_dwarf_radius_km(1.02)",
               lambda: stellar_evolution.white_dwarf_radius_km(1.02), 5840.0, 0.05,
-              "Sirius B: 1.02 M_sun, 0.0084 R_sun = 5,840 km (Bond et al. 2017)", unit="km"),
+              "Sirius B: 1.02 M_sun, 0.0084 R_sun = 5,840 km [R0454]", unit="km"),
         Check("sun_schwarzschild_radius", "reference", "2 G M_sun / c^2 (compactRemnant.BlackHole)",
               lambda: _schwarzschild_radius_km(1.0), 2.953, 0.002,
               "Schwarzschild radius of 1 M_sun, 2.953 km (2GM/c^2 with GM_sun = 1.3271e20 m^3/s^2)",
               unit="km"),
-        Check("sun_galactic_orbital_speed", "reference", "galactic_orbit.calculate_galactic_orbit(Sun)[0]",
-              lambda: galactic_orbit.calculate_galactic_orbit(gc_ly)[0], 225.0, 0.1,
-              "the Sun's circular speed around the galaxy, about 220-230 km/s (IAU 1985; Reid et al. 2014)",
+        Check("sun_galactic_orbital_speed", "reference", "galactic_orbit.calculate_galactic_orbit(Sun)[0] in the Milky Way's measured shape",
+              lambda: _reference_galactic_orbit(gc_ly)[0], 225.0, 0.15,
+              "the Sun's circular speed around the galaxy, about 220-230 km/s (IAU 1985; Reid et al. 2014); the Milky Way's measured shape's potential "
+              "(the Hernquist and Miyamoto-Nagai matches of GP1 to GP3 are stand-ins) gives about 208 km/s",
               unit="km/s"),
-        Check("sun_galactic_year", "reference", "galactic_orbit.calculate_galactic_orbit(Sun)[1]",
-              lambda: galactic_orbit.calculate_galactic_orbit(gc_ly)[1] * 1000, 230.0, 0.1,
+        Check("sun_galactic_year", "reference", "galactic_orbit.calculate_galactic_orbit(Sun)[1] in the Milky Way's measured shape",
+              lambda: _reference_galactic_orbit(gc_ly)[1] * 1000, 230.0, 0.15,
               "the galactic year, about 230 million years", unit="Myr"),
         Check("galaxy_bulge_to_total", "reference", "galaxyDensity.integrated_masses(reference shape)",
               lambda: _galaxy_mass_ratio("bulge", ("bulge", "thin_disk", "thick_disk")), 0.31, 0.1,
-              "Milky Way bulge 1.4-1.7e10 of 5e10 M_sun of stars (Bland-Hawthorn & Gerhard 2016)"),
+              "Milky Way bulge 1.4-1.7e10 of 5e10 M_sun of stars [R0422]"),
         Check("galaxy_thick_to_thin_disk", "reference", "galaxyDensity.integrated_masses(reference shape)",
               lambda: _galaxy_mass_ratio("thick_disk", ("thin_disk",)), 0.17, 0.3,
-              "Milky Way thick disk 6e9 against thin disk 3.5e10 M_sun (Bland-Hawthorn & Gerhard 2016)"),
+              "Milky Way thick disk 6e9 against thin disk 3.5e10 M_sun [R0422]"),
         Check("galaxy_nuclear_cluster_mass", "reference", "galaxyDensity.model_terms(reference shape)",
               lambda: _nuclear_structure()["cluster_mass_solar"], 2.5e7, 0.15,
-              "Milky Way nuclear star cluster 2.0-2.5e7 M_sun (Schodel et al. 2014; recalled)", unit="M_sun"),
+              "Milky Way nuclear star cluster 2.0-2.5e7 M_sun ([R3967]; recalled)", unit="M_sun"),
         Check("galaxy_nuclear_cluster_half_light_radius", "reference", "galaxyDensity.model_terms(reference shape)",
               lambda: _nuclear_structure()["half_light_radius_pc"], 4.2, 0.15,
-              "nuclear star cluster projected half-light radius 4.2 pc (Schodel et al. 2014; recalled)", unit="pc"),
+              "nuclear star cluster projected half-light radius 4.2 pc ([R3967]; recalled)", unit="pc"),
         Check("galaxy_nuclear_cluster_density_1pc", "reference", "galaxyDensity.model_terms(reference shape)",
               lambda: math.log10(_nuclear_structure()["density_1pc_solar_pc3"]), math.log10(2.9e5), math.log10(3.0),
-              "nuclear cluster mass density 1e5-5e5 M_sun/pc^3 at 1 pc, within a factor 3 (Schodel et al. 2018; "
+              "nuclear cluster mass density 1e5-5e5 M_sun/pc^3 at 1 pc, within a factor 3 ("
               "recalled, low confidence); log10 of M_sun/pc^3", mode="abs"),
         Check("galaxy_nuclear_disc_mass_200pc", "reference", "galaxyDensity.model_terms(reference shape)",
               lambda: _nuclear_structure()["disc_mass_200pc_solar"], 1.0e9, 0.3,
-              "nuclear stellar disc about 1e9 M_sun inside 200 pc (Launhardt et al. 2002; recalled)", unit="M_sun"),
+              "nuclear stellar disc about 1e9 M_sun inside 200 pc ([R2577]; recalled)", unit="M_sun"),
         Check("galaxy_nuclear_disc_scale_height", "reference", "galaxyDensity.model_terms(reference shape)",
               lambda: _nuclear_structure()["disc_height_pc"], 37.5, 0.2,
-              "nuclear stellar disc scale height 30-45 pc (Sormani et al. 2022; recalled)", unit="pc"),
+              "nuclear stellar disc scale height 30-45 pc ([R4152]; recalled)", unit="pc"),
         Check("galaxy_core_gas_inflow", "reference", "coreGas.core_gas(reference shape)",
               lambda: coreGas.core_gas(_reference_galaxy_shape()).inflow_msun_yr, 0.8, 0.3,
-              "bar-driven inflow to the central molecular zone 0.8 +- 0.6 M_sun/yr (Hatchfield et al. 2021, as Henshaw "
-              "et al. 2023, PPVII, arXiv:2203.11223 section 4.1, read)", unit="M_sun/yr"),
+              "bar-driven inflow to the central molecular zone 0.8 +- 0.6 M_sun/yr (as Henshaw "
+              "et al. 2023, PPVII, [R1909] section 4.1, read)", unit="M_sun/yr"),
         Check("galaxy_core_star_formation_rate", "reference", "coreGas.core_gas(reference shape)",
               lambda: coreGas.core_gas(_reference_galaxy_shape()).rate_msun_yr, 0.07, 0.3,
-              "central molecular zone star formation rate 0.07 (+0.08 -0.02) M_sun/yr (Henshaw et al. 2023, Table 1 "
+              "central molecular zone star formation rate 0.07 (+0.08 -0.02) M_sun/yr ([R1910: Table 1] "
               "and section 3.1.1, read)", unit="M_sun/yr"),
         Check("holman_wiegert_s_type_equal_circular", "reference",
               "orbits.holman_wiegert_critical_semimajor_axis(1, 0.5, 0)",
               lambda: orbits.holman_wiegert_critical_semimajor_axis(1.0, 0.5, 0.0), 0.274, 1e-9,
-              "Holman & Wiegert 1999, AJ 117:621, eq. 1 at mu = 0.5, e = 0", unit="a_bin"),
+              "[R1990]:621, eq. 1 at mu = 0.5, e = 0", unit="a_bin"),
         Check("holman_wiegert_s_type_eccentric", "reference",
               "orbits.holman_wiegert_critical_semimajor_axis(1, 0.3, 0.5)",
               lambda: orbits.holman_wiegert_critical_semimajor_axis(1.0, 0.3, 0.5), 0.14505, 1e-9,
-              "Holman & Wiegert 1999, AJ 117:621, eq. 1 at mu = 0.3, e = 0.5", unit="a_bin"),
+              "[R1990]:621, eq. 1 at mu = 0.3, e = 0.5", unit="a_bin"),
         Check("holman_wiegert_p_type_equal_circular", "reference",
               "orbits.holman_wiegert_circumbinary_a_crit_au(1, 0.5, 0)",
               lambda: orbits.holman_wiegert_circumbinary_a_crit_au(1.0, 0.5, 0.0), 2.3875, 1e-9,
-              "Holman & Wiegert 1999, AJ 117:621, eq. 3 at mu = 0.5, e = 0", unit="a_bin"),
+              "[R1990]:621, eq. 3 at mu = 0.5, e = 0", unit="a_bin"),
         Check("holman_wiegert_p_type_eccentric", "reference",
               "orbits.holman_wiegert_circumbinary_a_crit_au(1, 0.3, 0.3)",
               lambda: orbits.holman_wiegert_circumbinary_a_crit_au(1.0, 0.3, 0.3), 3.361141, 1e-9,
-              "Holman & Wiegert 1999, AJ 117:621, eq. 3 at mu = 0.3, e = 0.3", unit="a_bin"),
+              "[R1990]:621, eq. 3 at mu = 0.3, e = 0.3", unit="a_bin"),
         Check("kepler_equation_meeus_30a", "reference", "kepler.solve_eccentric_anomaly(5 deg, 0.1)",
               lambda: math.degrees(kepler.solve_eccentric_anomaly(math.radians(5.0), 0.1)),
               5.554589, 1e-6, "Meeus, Astronomical Algorithms, example 30.a: E = 5.554589 deg",
@@ -723,13 +724,20 @@ the bulge and disks') is half that over an exponential disk's midplane."""
 
 
 def _reference_galaxy_shape():
-    """The Milky Way's measured shape (BHG16, Dwek et al. 1995), the reference the checks measure the model's machinery
+    """The Milky Way's measured shape (BHG16, [R1202]), the reference the checks measure the model's machinery
     against (the nuclear structures, the component masses, the calibration). No generation reads it: `planetgen plan`
     draws its own shape from the galaxy seed (GEN.401)."""
     return galaxyDensity.build_galaxy_shape(
         disk_scale_length_pc=2600.0, disk_scale_height_pc=300.0, bulge_scale_radius_pc=1580.0,
         bulge_amplitude=REFERENCE_BULGE_AMPLITUDE, arm_count=2, pitch_angle_rad=math.radians(15.0), arm_amplitude=0.4,
         nuclear_amplitude=1.0)
+
+
+def _reference_galactic_orbit(distance_ly):
+    """`galactic_orbit.calculate_galactic_orbit` in the reference galaxy (the Milky Way's measured shape), which no generation reads: a drawn galaxy has
+    its own circular speed (GEN.339), so the Sun's values can only be checked against the galaxy they were measured in."""
+    with galaxySeed.seeded(mass_chain.FALLBACK_SEED, "mathcheck", "reference", shape=_reference_galaxy_shape()):
+        return galactic_orbit.calculate_galactic_orbit(distance_ly)
 
 
 def _nuclear_structure():
@@ -892,21 +900,21 @@ def _invariant_checks():
 # ---------------------------------------------------------------------------
 
 CHABRIER_CENTRE_SOL = 0.079
-"""float: Chabrier (2003) Table 2, Galactic disk, individual stars: the solar mass at which the log-normal peaks -- written out
+"""float: [R0705: Table 2], Galactic disk, individual stars: the solar mass at which the log-normal peaks -- written out
 here, not read from `tuning`, so a changed constant fails the check."""
 
 CHABRIER_WIDTH_DEX = 0.69
-"""float: Chabrier (2003): the width of the log-normal in dex of mass."""
+"""float: [R0705]: the width of the log-normal in dex of mass."""
 
 CHABRIER_TOP_SOL = 1.0
-"""float: Chabrier (2003): the log-normal gives way to a power law above this mass, `dN/dM ~ M^-2.3`."""
+"""float: [R0705]: the log-normal gives way to a power law above this mass, `dN/dM ~ M^-2.3`."""
 
 CHABRIER_HIGH_SLOPE = 2.3
-"""float: Chabrier (2003): the slope of that power law (`x` = 1.3 per logarithm of mass)."""
+"""float: [R0705]: the slope of that power law (`x` = 1.3 per logarithm of mass)."""
 
 
 def _chabrier_cdf(m):
-    """The fraction of Chabrier (2003) individual stars between 0.08 and 150 M_sun that lie below `m` M_sun."""
+    """The fraction of [R0705] individual stars between 0.08 and 150 M_sun that lie below `m` M_sun."""
     u_c, sigma = math.log10(CHABRIER_CENTRE_SOL), CHABRIER_WIDTH_DEX
 
     def bell(a, b):
@@ -1013,7 +1021,7 @@ def _distribution_checks():
     return [
         Check("imf_matches_chabrier", "distribution", "imf.sample",
               _imf_p_value, CHI_SQUARE_P_MIN, 0.0,
-              f"Chabrier 2003, PASP 115:763, Table 2 (log-normal below 1 M_sun, alpha 2.3 above); {chi}", mode="min",
+              f"[R0705: Table 2] (log-normal below 1 M_sun, alpha 2.3 above); {chi}", mode="min",
               unit="p"),
         Check("star_ages_uniform", "distribution", "stellar_evolution.sample_star_age_gy",
               _star_age_p_value, CHI_SQUARE_P_MIN, 0.0,

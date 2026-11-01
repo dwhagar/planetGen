@@ -137,7 +137,7 @@ def test_the_events_in_order_keep_the_history_and_conserve_mass():
 
 
 def test_scattered_rock_makes_the_observed_pollution_rates():
-    """Koester et al. 2014: a few 1e5 to a few 1e8 g/s. A belt of 4e17 to 3e20 kg scattered over 100 Myr spans it."""
+    """[R2415]: a few 1e5 to a few 1e8 g/s. A belt of 4e17 to 3e20 kg scattered over 100 Myr spans it."""
     assert bh.pollution_rate_g_s(1.0e18) == pytest.approx(1.0e21 / (100.0 * 3.15576e13), rel=1e-9)
     assert bh.is_polluted(bh.pollution_rate_g_s(1.0e18))
     assert not bh.is_polluted(bh.pollution_rate_g_s(1.0e14))

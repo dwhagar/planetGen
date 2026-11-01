@@ -5,7 +5,7 @@ Absorption cross sections on the wavelength grid of the radiation model (GEN.443
 
 The grid (`standard_edges`) has 1 nm cells from 100 to 400 nm, 10 nm cells from 400 to 1100 nm and 100 nm cells from 1100 to
 4000 nm. A gas's cross section in a cell is read from the gas table's 35 coarse bins (`physics/gases.py`,
-`Gas.uv`, part 02 section 2.3: Heays 2017 and Huebner 2015 band means, 10 to 1100 nm), and is zero where the table has no data
+`Gas.uv`, part 02 section 2.3: [R1873, R2040] band means, 10 to 1100 nm), and is zero where the table has no data
 (beyond 1100 nm the near infrared bands of H2O, CO2 and CH4 are not in the table: the near infrared band is Rayleigh and
 aerosol only, a labelled stand-in until the correlated-k grids of R2 are built).
 
@@ -13,7 +13,7 @@ aerosol only, a labelled stand-in until the correlated-k grids of R2 are built).
 (300 to 320 nm), and the UV index is made there. So `ozone_cross_section_cm2` reads the high-resolution cross sections
 of the Brion, Daumont, Malicet and Jenouvrier group from the MPI-Mainz UV/VIS Spectral Atlas (`datasets/ozone_uv.py`,
 218, 243 and 295 K between 195 and 345 nm at 0.01 nm, and 295 K between 195 and 830 nm at 1 nm; Zenodo record 6951,
-CC BY 4.0, Keller-Rudek et al. 2013) when the setup step has downloaded them, interpolated linearly in temperature between
+CC BY 4.0, [R2302, R2303]) when the setup step has downloaded them, interpolated linearly in temperature between
 the three, and the gas table's bins when it has not and the run disregards missing data.
 """
 

@@ -59,6 +59,7 @@ subhead (badges or actions under the <h1>). -#}
   <button slot="trigger" type="button" class="site-help-trigger" aria-haspopup="menu"{% if section in help_sections %} aria-current="page"{% endif %}><span class="site-help-text">Help</span><sl-icon class="site-help-icon" name="book" aria-hidden="true"></sl-icon></button>
   <sl-menu aria-label="Help">
     {%- for page, page_text in help_menu %}
+    {%- if page == 'references_page' %}<sl-divider></sl-divider>{% endif %}
     <sl-menu-item data-href="{{ page_url(page) }}"{% if request.endpoint == 'web.' ~ page or (page == 'classes' and section == 'classes') or (page == 'life_help_page' and request.endpoint in ('web.life_help_topic', 'web.life_help_class')) %} aria-current="page"{% endif %}>{{ page_text }}</sl-menu-item>
     {%- endfor %}
   </sl-menu>
@@ -149,7 +150,7 @@ subhead (badges or actions under the <h1>). -#}
 {%- endif %}
 {%- block head %}{% endblock %}
 </head>
-<body class="app">
+<body class="app{% block body_class %}{% endblock %}">
 <a class="skip-link" href="#main">Skip to content</a>
 {#- The top bar: the sections as buttons while they fit, else a Menu; the
     Help and search buttons; everything else under the gear. Container queries in

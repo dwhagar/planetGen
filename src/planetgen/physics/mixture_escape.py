@@ -31,7 +31,7 @@ _mearth_to_kg = units.converter("Mearth", "kg")
 
 FAMILIES = ("rocky", "venus", "mars", "abiotic-oxygen")
 """tuple: The families that are filtered. Not `titan` (its hydrogen trace is the steady state of photochemical production and escape,
-measured by Niemann et al. 2010, which a loss-only filter would remove) and not `frost` (an air held by the vapour pressure of its ice,
+measured by [R3289], which a loss-only filter would remove) and not `frost` (an air held by the vapour pressure of its ice,
 which the ice resupplies faster than it leaves)."""
 
 LOST_BELOW = 1e-3

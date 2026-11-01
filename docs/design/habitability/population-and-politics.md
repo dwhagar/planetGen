@@ -956,7 +956,7 @@ papers or pages themselves. Items to verify when paper access is allowed:
 - [R] Traveller and GURPS levels (TL0 stone age, TL10 to 11 interstellar)
   were not verified; no mapping to TA is offered. Star Trek and
   Civilization tech trees were not reviewed.
-- [R] The colour-blindness distances used Machado et al. (2009) matrices
+- [R] The colour-blindness distances used matrices
   typed from memory, applied in linear RGB; they are indicative. Contrast
   ratios are exact WCAG computations [C].
 - [R] That a MySQL CHECK cannot use a column in an `ON DELETE SET NULL` or

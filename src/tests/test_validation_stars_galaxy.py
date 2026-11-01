@@ -11,7 +11,7 @@ from planetgen.galaxy import mass_chain
 from planetgen.physics import imf
 
 STAR_FORMATION_SOL_PER_YR = 1.9
-"""float: The Galaxy's star formation rate, Chomiuk and Povich 2011 (quoted in Rosslowe and Crowther 2015 section 4.4)."""
+"""float: The Galaxy's star formation rate, [R0774] (quoted in [R3821] section 4.4)."""
 H = 0.671
 OMEGA_MATTER = 0.3175
 
@@ -21,7 +21,7 @@ def _per_solar_mass_formed(low_sol):
 
 
 def _chabrier(mass_sol):
-    """Chabrier 2003, individual stars of the disk, per unit of ln mass (any scale; parameters recalled)."""
+    """[R0705], individual stars of the disk, per unit of ln mass (any scale; parameters recalled)."""
     inside = math.exp(-(math.log10(min(mass_sol, 1.0)) - math.log10(0.079)) ** 2 / (2 * 0.69 ** 2))
     return inside * (mass_sol ** -1.3 if mass_sol > 1.0 else 1.0)
 
@@ -52,9 +52,9 @@ def test_the_core_collapse_rate_is_inside_diehl_2006_from_26_aluminium():
     assert 0.8 <= rate <= 3.0, rate
 
 
-# Leauthaud et al. 2012 Eq. 13, Table 5 SIG_MOD1 z1: halos at 200 times the mean density (M200b)
+# [R2598: Eq. 13], Table 5 SIG_MOD1 z1: halos at 200 times the mean density (M200b)
 _LEAUTHAUD = dict(log_m1=12.520, log_ms0=10.916, beta=0.457, delta=0.566, gamma=1.53)
-# Behroozi et al. 2019 Eq. J1, Table J1 (observed stellar mass, central galaxies, no intrahalo light, z = 0): virial halos
+# [R0319: Eq. J1], Table J1 (observed stellar mass, central galaxies, no intrahalo light, z = 0): virial halos
 _BEHROOZI = dict(eps=-1.435, m1=12.081, alpha=1.957, beta=0.474, delta=0.386, log_gamma=-1.065)
 
 
@@ -99,7 +99,7 @@ def _behroozi_log_stellar(log_mvir):
 
 
 def test_the_halo_relation_is_within_the_stellar_mass_systematics_of_two_independent_fits_from_1e12():
-    """Stellar masses differ by 0.25 dex between surveys before the IMF (Leauthaud et al. 2012); the generator sits 0.04 to 0.26 dex
+    """Stellar masses differ by 0.25 dex between surveys before the IMF [R2598]; the generator sits 0.04 to 0.26 dex
     under both from 1e12.5 up, 0.13 under Leauthaud and 0.12 over Behroozi at 1e12, so 0.30 dex is the line a later change must not cross."""
     virial_overdensity = 18 * math.pi ** 2 + 82 * (OMEGA_MATTER - 1.0) - 39 * (OMEGA_MATTER - 1.0) ** 2
     for log_halo in (12.0, 12.5, 13.0, 13.5, 14.0, 14.5):

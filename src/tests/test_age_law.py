@@ -132,13 +132,14 @@ def test_a_living_star_of_a_front_loaded_law_is_younger_than_one_of_an_even_spre
     assert np.mean(spread) < np.mean(even) - 0.8
 
 
-def test_a_fallback_to_the_whole_disk_drops_the_law():
-    """A habitable host needs a star older than the young window: the draw falls back to the whole disk's ages, and
-    the young window's law must not follow it there."""
+def test_a_habitable_host_request_keeps_the_young_window_and_its_law():
+    """A request for a habitable host only raises the odds (GEN.1130): a star younger than the minimum age is kept one time in
+    `REQUEST_ODDS`, not swapped for the whole disk's ages, so the young window and its law stay."""
     law = LAWS["young"]
+    top = stellar_evolution.population_age_range_gy("young")[1]
     ages = [stellar_evolution.sample_living_star(rng=draw.Stream(i), population="young", habitable_host=True,
                                                  age_law=law)[1] for i in range(20)]
-    assert min(ages) >= tuning.LIFE_MIN_STAR_AGE_GY
+    assert max(ages) <= top
 
 
 FRONT_LOADED = AgeLaw((0.1, 3.0), (1.0, 0.0))

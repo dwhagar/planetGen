@@ -4,7 +4,7 @@ Status: built 2026-10-23 by lane M (builder B3). Rows d1 (the cosmic shoreline),
 
 ## 1. d1: the shoreline
 
-Row d1 already draws the published logistic: the chance a planet keeps an atmosphere is `1 / (1 + 10^-(z))` with `z = (log10 f0 - log10 S) / 0.247`, where `log10 f0 = 2.62` at the Earth's escape velocity and a solar luminosity (Berta-Thompson 2025), the escape velocity enters with `p = 5.9` and the luminosity with `q = 1.17`. The builder found nothing to retune; it pinned the row with a test of the four cases (half at the line, one width above, the escape velocity slope, the luminosity slope) so a later edit cannot move it silently.
+Row d1 already draws the published logistic: the chance a planet keeps an atmosphere is `1 / (1 + 10^-(z))` with `z = (log10 f0 - log10 S) / 0.247`, where `log10 f0 = 2.62` at the Earth's escape velocity and a solar luminosity [R0364], the escape velocity enters with `p = 5.9` and the luminosity with `q = 1.17`. The builder found nothing to retune; it pinned the row with a test of the four cases (half at the line, one width above, the escape velocity slope, the luminosity slope) so a later edit cannot move it silently.
 
 ## 2. i6: the molten-dayside share
 
@@ -12,7 +12,7 @@ The row's evidence is 2 of 2 molten-dayside ultra-short-period planets that keep
 
 ## 3. j1: the retained fraction
 
-The runaway gate is Kopparapu 2013 and is not tuned. The retained fraction was drawn log-uniform from 0.1 to 1. Of the two bare M-dwarf planets of the sample (TRAPPIST-1 b and c), none kept an atmosphere, so a lower bound of 0.1 forbids what is observed. The draw is now uniform on 0 to 1, which allows a bare planet and every retained fraction up to all of it.
+The runaway gate is [R2446] and is not tuned. The retained fraction was drawn log-uniform from 0.1 to 1. Of the two bare M-dwarf planets of the sample (TRAPPIST-1 b and c), none kept an atmosphere, so a lower bound of 0.1 forbids what is observed. The draw is now uniform on 0 to 1, which allows a bare planet and every retained fraction up to all of it.
 
 ## 4. What it does not do
 

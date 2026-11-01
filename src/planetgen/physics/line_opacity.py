@@ -75,7 +75,7 @@ STANDIN_SUBSAMPLES = 25
 """int: How many wavenumbers a band is sampled at to turn a stand-in opacity into a distribution."""
 STANDIN_WING_E_FOLD_CM1 = 10.0
 """float: STAND-IN (IR1, tier T6, L1): the e-folding distance of a band's wing. Set in GEN.703 from the logarithm of the carbon dioxide
-forcing law (Byrne and Goldblatt 2014a, `F = 5.32 ln(C/C0)`): about 19 cm-1 of saturated width per e-fold of the column, 10 cm-1 on each side."""
+forcing law ([R0620], `F = 5.32 ln(C/C0)`): about 19 cm-1 of saturated width per e-fold of the column, 10 cm-1 on each side."""
 STANDIN_KAPPA0_M2_KG = 1.0e3
 """float: STAND-IN (IR1, tier T7, L0): the plateau opacity of a fundamental band of a gas the table flags `"ir"`, m2/kg at one bar (a strong
 band; it enters the width only as a logarithm)."""
@@ -88,7 +88,7 @@ STANDIN_DYAD_BAND_FACTOR = 1.0e-5
 STANDIN_GENERIC_BAND_CM1 = (600.0, 1500.0)
 """tuple: STAND-IN (IR1, tier T7, L0): the plateau of a gas flagged `"ir"` whose table lists no band."""
 STANDIN_FAR_WING_M2_KG = {"CO": 1.0e-5}
-"""dict: STAND-IN (IR2, tier T5, L0): the far-wing mass opacity at one bar of a gas without a table, m2/kg, read from Koll 2019's statement (CO
+"""dict: STAND-IN (IR2, tier T5, L0): the far-wing mass opacity at one bar of a gas without a table, m2/kg, read from [R2435]'s statement (CO
 thin even at one bar). A gas flagged `"ir"` without an entry takes `STANDIN_GENERIC_WING_M2_KG`, one flagged `"weak"`
 `STANDIN_WEAK_WING_M2_KG`."""
 STANDIN_GENERIC_WING_M2_KG = 1.0e-4

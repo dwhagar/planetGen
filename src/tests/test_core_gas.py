@@ -11,7 +11,7 @@ import numpy as np
 import pytest
 
 from planetgen import tuning
-from planetgen.galaxy import components, core_gas, nebula_field, profile
+from planetgen.galaxy import components, core_gas, nebula_field, potential, profile
 from planetgen.galaxy import density as galaxyDensity
 from planetgen.generation import open_clusters
 
@@ -34,8 +34,8 @@ def _without_ring(monkeypatch):
 
 def test_the_milky_ways_ring_matches_the_measured_inflow_and_star_formation_rate():
     ring = core_gas.core_gas(_shape())
-    assert ring.inflow_msun_yr == pytest.approx(0.8, rel=0.3)          # 0.8 +- 0.6 (Hatchfield et al. 2021)
-    assert ring.rate_msun_yr == pytest.approx(0.07, rel=0.3)           # 0.07 (Henshaw et al. 2023, Table 1)
+    assert ring.inflow_msun_yr == pytest.approx(0.8, rel=0.3)          # 0.8 +- 0.6
+    assert ring.rate_msun_yr == pytest.approx(0.07, rel=0.3)           # 0.07 ([R1910: Table 1])
     assert ring.rate_msun_yr == pytest.approx(tuning.CORE_STAR_FORMATION_PER_INFLOW * ring.inflow_msun_yr)
     assert 0.0 < ring.bound_share < 1.0
     assert ring.radius_pc == pytest.approx(100.0)
@@ -121,10 +121,13 @@ def test_without_the_ring_the_galaxy_draws_no_cluster_near_its_centre(monkeypatc
     assert not [c for c in found if math.hypot(c.center_pc[0], c.center_pc[1]) < 300.0 and c.mass_solar > 5.0e3]
 
 
-def test_the_circular_speed_of_the_centre_is_that_of_the_nucleus_inside_the_radius():
-    speed = open_clusters._circular_speed_kms(np.array([10.0, 100.0, 200.0]), _shape())
+def test_the_circular_speed_of_the_centre_is_that_of_the_galaxys_potential():
+    from planetgen.galaxy import potential
+    pot = potential.for_galaxy(_shape(), None)
+    radius = np.array([10.0, 100.0, 200.0])
+    speed = potential.circular_speed_kms(pot, radius)
     assert np.all(speed > 30.0) and np.all(speed < 250.0)
-    assert speed[1] == pytest.approx(150.0, rel=0.4)
+    assert speed == pytest.approx(np.sqrt(-radius * potential.acceleration(pot, radius, 0.0, 0.0)[0]))
 
 
 def test_the_young_stars_bound_covers_the_rings_young_stars():
@@ -144,14 +147,14 @@ def test_the_young_stars_bound_covers_the_rings_young_stars():
 
 def test_the_rings_gas_is_the_inflow_over_its_residence_and_its_cluster_maximum_is_a_few_ten_thousand_solar_masses():
     """GEN.1195: the central molecular zone's gas is about 3e7 to 5e7 solar masses at about 1e3 per pc2, and its most massive
-    cluster is a few 1e4 (the Arches and the Quintuplet 2e4), certainly under 1e5 (Reina-Campos and Kruijssen 2017)."""
+    cluster is a few 1e4 (the Arches and the Quintuplet 2e4), certainly under 1e5 [R3720]."""
     shape = _shape()
     ring = core_gas.core_gas(shape)
     area = 2.0 * math.pi * ring.radius_pc * 2.0 * math.sqrt(2.0 * math.log(2.0)) * ring.sigma_pc
     assert ring.gas_surface_density_msun_pc2 * area == pytest.approx(ring.inflow_msun_yr * tuning.CORE_RING_GAS_RESIDENCE_MYR * 1.0e6)
     assert 2.0e7 < ring.gas_surface_density_msun_pc2 * area < 6.0e7 and 300.0 < ring.gas_surface_density_msun_pc2 < 2000.0
-    assert 5.0e3 < open_clusters._ring_maximum_mass_sol(shape, ring) < tuning.CLUSTER_MAX_MASS_CEILING_SOL
-    assert open_clusters._ring_maximum_mass_sol(shape, core_gas.NO_RING) == tuning.OPEN_CLUSTER_MASS_RANGE_SOL[1]
+    assert 5.0e3 < open_clusters._ring_maximum_mass_sol(potential.for_galaxy(shape, None), ring) < tuning.CLUSTER_MAX_MASS_CEILING_SOL
+    assert open_clusters._ring_maximum_mass_sol(potential.for_galaxy(shape, None), core_gas.NO_RING) == tuning.OPEN_CLUSTER_MASS_RANGE_SOL[1]
 
 
 def test_the_rings_young_clusters_are_a_few_not_dozens_and_none_of_the_old_ones_is_heavy():
@@ -171,16 +174,18 @@ def test_the_rings_young_clusters_are_a_few_not_dozens_and_none_of_the_old_ones_
 
 
 def test_the_milky_way_shapes_disc_rings_change_from_shear_to_feedback_limited_at_about_four_kiloparsecs():
-    """GEN.1196: Reina-Campos and Kruijssen 2017 (section 4.1) find the Milky Way's disc shear-limited inside 4.3 (3.5 to 6.3)
+    """GEN.1196: [R3720] (section 4.1) find the Milky Way's disc shear-limited inside 4.3 (3.5 to 6.3)
     kpc and feedback-limited beyond, the cloud maximum there about 1e6; the rings of the Milky Way's shape, with their own
     gas and the flat curve, change over in the same band, and the cluster maximum stays under the observed 1e4 to 4e4."""
     from planetgen.galaxy import disk_history
     from planetgen.physics import cluster_maximum_mass as cmm
 
     shape = _shape()
-    _ages, _step, radii, _width, _formed, efficiency, maximum = open_clusters._formation_table(shape)
+    _ages, _step, radii, _width, _formed, efficiency, maximum = open_clusters._formation_table(shape, potential.for_galaxy(shape, None))
     gas = disk_history.history_of(shape).gas_now
-    kappa = np.array([cmm.epicyclic_frequency_per_myr(tuning.CLUSTER_HALO_CIRCULAR_KMS, r) for r in radii])
+    pot = potential.for_galaxy(shape, None)
+    kappa = np.array([cmm.epicyclic_frequency_per_myr(potential.circular_speed_kms(pot, r), r, potential.circular_speed_slope_kms_per_pc(pot, r))
+                      for r in radii])
     fraction = np.array([cmm.collapsed_fraction(g, k, tuning.DISC_GAS_DISPERSION_KMS) for g, k in zip(gas, kappa)])
     assert np.all(fraction[(radii > 1000.0) & (radii < 3500.0)] == 1.0)
     far = (radii > 6300.0) & (radii < 15000.0)

@@ -68,12 +68,12 @@ EARTH_DYNAMO_W = 2.4e12
 4.568 Gy, 2.4 TW): the unit of `Core.dipole_scale`."""
 
 BOUNDARY_RAYLEIGH = 450.0
-"""float: The critical Rayleigh number of the lower boundary layer: the mantle box's (Thiriet et al. 2019, second-hand)."""
+"""float: The critical Rayleigh number of the lower boundary layer: the mantle box's ([R4339], second-hand)."""
 MANTLE_CONDUCTIVITY = 4.0
 MANTLE_EXPANSIVITY = 2.5e-5
 MANTLE_DIFFUSIVITY = 1.0e-6
 CORE_SPECIFIC_HEAT = 840.0
-"""float: The mantle box's table (Thiriet et al. 2019 via Guimond et al. 2022 Table 2): W/(m K), 1/K, m2/s, J/(kg K)."""
+"""float: The mantle box's table ([R4339] via [R1716: Table 2]): W/(m K), 1/K, m2/s, J/(kg K)."""
 
 
 @dataclass(frozen=True)
