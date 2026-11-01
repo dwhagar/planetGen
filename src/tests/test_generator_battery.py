@@ -126,3 +126,22 @@ def test_a_digest_that_cannot_be_started_elsewhere_is_worked_out_where_it_is_ask
     battery.start_running_digest()()
     assert battery._running is None
     assert battery.running_digest() == baseline
+
+
+def test_the_progress_callback_reports_every_case_and_changes_nothing(monkeypatch):
+    """The update shows a bar: `progress(done, total)` before the first case and after each, with the digest unchanged."""
+    monkeypatch.setattr(battery, "case_value", lambda name: {"case": name})
+    seen = []
+    with_bar = battery.generator_battery_digest(lambda done, total: seen.append((done, total)))
+    total = len(battery.CASES)
+    assert seen == [(done, total) for done in range(total + 1)]
+    assert with_bar == battery.generator_battery_digest()
+
+
+def test_the_running_digest_passes_the_progress_callback_on(monkeypatch):
+    monkeypatch.setattr(battery, "_running", None)
+    monkeypatch.setattr(battery, "case_value", lambda name: {"case": name})
+    monkeypatch.delenv("PLANETGEN_BATTERY_DIGEST_CACHE", raising=False)
+    seen = []
+    battery.running_digest(lambda done, total: seen.append(done))
+    assert seen[-1] == len(battery.CASES)

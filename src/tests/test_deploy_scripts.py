@@ -610,11 +610,16 @@ def test_an_unknown_apache_identity_is_an_error_not_a_silent_exit(name):
 
 # --- reload_web_if_running (OPS.8, OPS.29) -----------------------------------
 
-def _run_reload(tmp_path, active=("apache2",), restart=0, fail=(), configtest=True, health=True, reply="", curl=None, site=None):
+API = "https://starmap.example/api"
+
+
+def _run_reload(tmp_path, active=("apache2",), restart=0, fail=(), configtest=True, health=True, reply="", curl=None,
+                api=API, health_url=None):
     """Runs the helper with fake `systemctl`, `apache2ctl` and `curl` that log their calls; returns
     `(process, calls)`. `fail` names the systemctl verbs that fail. `curl` is the body of the fake `curl` (it sees the
-    address as its last argument) when the test needs different answers for different addresses; `site` is what a fake
-    python prints for `site_health_target` (the site's own address and its two --resolve values)."""
+    address as its last argument) when the test needs different answers for different addresses. `api` is what the
+    fake python prints for `get_settings().api_base_url` ("" is an unset api_base_url); `health_url` sets
+    PLANETGEN_HEALTH_URL."""
     bin_dir = tmp_path / "bin"
     bin_dir.mkdir()
     log = tmp_path / "calls"
@@ -628,15 +633,16 @@ def _run_reload(tmp_path, active=("apache2",), restart=0, fail=(), configtest=Tr
          'case " %s " in *" $1 "*) exit 1;; esac\nexit 0\n' % (" ".join(active), " ".join(fail)))
     fake("apache2ctl", "exit %d\n" % (0 if configtest else 1))
     fake("curl", curl or "printf '%%s\\n%%s' '%s' %d\n" % (reply, 200 if health else 503))
-    if site is not None:
-        fake_python = bin_dir / "fakepython"
-        fake_python.write_text(f"#!/bin/bash\necho '{site}'\n")
-        fake_python.chmod(0o755)
+    fake_python = bin_dir / "fakepython"
+    fake_python.write_text(f"#!/bin/bash\necho '{api}'\n")
+    fake_python.chmod(0o755)
     script = (f'source "{REPO_DIR}/scripts/deploy-common.sh"; APACHE_NEEDS_RESTART={restart}; '
               'reload_web_if_running')
-    env = dict(os.environ, PATH=f"{bin_dir}:{os.environ['PATH']}", HEALTH_WAIT_SECONDS="1", HEALTH_SETTLE_SECONDS="0")
-    if site is not None:
-        env["PYTHON"] = str(bin_dir / "fakepython")
+    env = dict(os.environ, PATH=f"{bin_dir}:{os.environ['PATH']}", HEALTH_WAIT_SECONDS="1", HEALTH_SETTLE_SECONDS="0",
+               PYTHON=str(fake_python))
+    env.pop("PLANETGEN_HEALTH_URL", None)
+    if health_url:
+        env["PLANETGEN_HEALTH_URL"] = health_url
     proc = subprocess.run(["bash", "-c", script], env=env, capture_output=True, text=True)
     calls = log.read_text().splitlines() if log.exists() else []
     return proc, calls
@@ -648,7 +654,7 @@ def test_the_update_reloads_a_running_apache_after_its_config_test_and_checks_th
     assert [c for c in calls if not c.startswith("curl")] == [
         "systemctl is-active --quiet apache2", "apache2ctl configtest", "systemctl reload apache2",
         "systemctl is-active --quiet planetgen-gunicorn"]
-    assert any(c.startswith("curl") and "/api/health" in c for c in calls)
+    assert [c.rsplit(" ", 1)[1] for c in calls if c.startswith("curl")] == [f"{API}/health"]
 
 
 def test_the_update_restarts_apache_only_when_mod_wsgi_was_just_installed(tmp_path):
@@ -678,7 +684,7 @@ def test_a_gunicorn_host_with_no_apache_reloads_the_unit(tmp_path):
     proc, calls = _run_reload(tmp_path, active=("planetgen-gunicorn",))
     assert proc.returncode == 0 and "reloaded gunicorn" in proc.stdout
     assert "systemctl reload planetgen-gunicorn" in calls and "apache2ctl configtest" not in calls
-    assert any(c.startswith("curl") and ":8000/api/health" in c for c in calls)
+    assert [c.rsplit(" ", 1)[1] for c in calls if c.startswith("curl")] == [f"{API}/health"]
 
 
 def test_a_reload_that_the_site_does_not_answer_after_is_a_warning_not_a_failed_reload(tmp_path):
@@ -701,70 +707,59 @@ def test_a_failed_health_check_names_the_check_the_answer_and_the_maintenance_st
     proc, _calls = _run_reload(tmp_path, health=False, reply='{"maintenance":true,"error":"closed"}')
     assert proc.returncode == 3
     assert "health check of Apache failed" in proc.stderr and "HTTP 503" in proc.stderr
-    assert "http://127.0.0.1/api/health" in proc.stderr and "The site is in maintenance mode" in proc.stderr
+    assert f"{API}/health" in proc.stderr and "The site is in maintenance mode" in proc.stderr
 
 
-SITE = "https://starmap.example/api/health starmap.example:80:127.0.0.1 starmap.example:443:127.0.0.1"
-OTHER_VHOST = ("for last; do :; done\ncase \"$last\" in\n"
-               "  http://127.0.0.1/*) printf '<html>403</html>\\n403';;\n"
-               "  https://starmap.example/*) printf '{\"status\":\"ok\"}\\n%s' \"$SITE_CODE\";;\nesac\n")
+def test_the_health_check_asks_only_the_configured_api_address_and_names_the_setting(tmp_path):
+    """OPS.86: a non-loopback api_base_url is the only address curl is given; the warning names it and its setting
+    and no second address is tried (no 127.0.0.1, no --resolve pin)."""
+    proc, calls = _run_reload(tmp_path, health=False)
+    curls = [c for c in calls if c.startswith("curl")]
+    assert proc.returncode == 3 and curls
+    assert all(c.endswith(f" {API}/health") for c in curls)
+    assert not any("127.0.0.1" in c or "localhost" in c or "--resolve" in c for c in calls)
+    assert f"{API}/health (api_base_url in config.json) answered HTTP 503" in proc.stderr
+    assert "127.0.0.1" not in proc.stdout + proc.stderr
 
 
-def test_a_bare_loopback_address_that_belongs_to_another_virtual_host_is_checked_through_the_sites_own_name(tmp_path):
-    """OPS.77: Apache refused http://127.0.0.1/api/health with its own 403 (another virtual host answers the bare
-    address) while the site's name answered; the check asks the site's name, pointed at this machine."""
-    os.environ["SITE_CODE"] = "200"
-    try:
-        proc, calls = _run_reload(tmp_path, curl=OTHER_VHOST, site=SITE)
-    finally:
-        del os.environ["SITE_CODE"]
-    assert proc.returncode == 0, proc.stderr
-    assert "answered HTTP 403" in proc.stdout and "the site answers at https://starmap.example/api/health" in proc.stdout
-    site_calls = [c for c in calls if c.startswith("curl") and "starmap.example/api/health" in c]
-    assert site_calls and "--resolve starmap.example:443:127.0.0.1" in site_calls[0] and "--resolve starmap.example:80:127.0.0.1" in site_calls[0]
+def test_a_gunicorn_only_host_asks_the_configured_api_address_too(tmp_path):
+    _proc, calls = _run_reload(tmp_path, active=("planetgen-gunicorn",), api="http://127.0.0.1:8000/api")
+    assert [c.rsplit(" ", 1)[1] for c in calls if c.startswith("curl")] == ["http://127.0.0.1:8000/api/health"]
 
 
-def test_a_failed_check_names_both_addresses_when_neither_answers(tmp_path):
-    os.environ["SITE_CODE"] = "503"
-    try:
-        proc, _calls = _run_reload(tmp_path, curl=OTHER_VHOST, site=SITE)
-    finally:
-        del os.environ["SITE_CODE"]
-    assert proc.returncode == 3
-    assert "http://127.0.0.1/api/health answered HTTP 403" in proc.stderr
-    assert "own address https://starmap.example/api/health answered HTTP 503" in proc.stderr
+def test_a_trailing_slash_on_the_api_address_does_not_double_up(tmp_path):
+    _proc, calls = _run_reload(tmp_path, api=API + "/")
+    assert [c.rsplit(" ", 1)[1] for c in calls if c.startswith("curl")] == [f"{API}/health"]
 
 
-def test_the_sites_own_name_is_not_taken_for_an_answer_unless_it_is_a_2xx(tmp_path):
-    os.environ["SITE_CODE"] = "301"
-    try:
-        proc, _calls = _run_reload(tmp_path, curl=OTHER_VHOST, site=SITE)
-    finally:
-        del os.environ["SITE_CODE"]
-    assert proc.returncode == 3 and "answered HTTP 301" in proc.stderr
+def test_health_url_names_another_address_for_the_check_alone(tmp_path):
+    proc, calls = _run_reload(tmp_path, api="", health_url="https://other.example/api/health")
+    assert proc.returncode == 0
+    assert [c.rsplit(" ", 1)[1] for c in calls if c.startswith("curl")] == ["https://other.example/api/health"]
 
 
-NO_ANSWER = ("for last; do :; done\ncase \"$last\" in\n"
-             "  http://127.0.0.1/*) printf '<html>403</html>\\n403';;\n"
-             "  https://starmap.example/*) printf '\\n000'; exit 7;;\nesac\n")
+def test_no_api_address_configured_stops_with_a_plain_message_and_asks_nothing(tmp_path):
+    """OPS.86: no silent fallback to a loopback address: the reload is not even started, nothing is asked."""
+    proc, calls = _run_reload(tmp_path, api="")
+    assert proc.returncode == 1
+    assert "no API address is configured" in proc.stderr and "api_base_url in config.json" in proc.stderr
+    assert not calls
 
 
-def test_an_https_probe_with_no_http_answer_says_why_and_the_reload_still_counts_as_done(tmp_path):
-    """A live update ended with "answered HTTP 000" and the site closed. 000 is no status code: curl got no
-    answer. The warning now names the reason, and the update opens the migrated site."""
-    proc, _calls = _run_reload(tmp_path, curl=NO_ANSWER, site=SITE)
-    assert proc.returncode == 3
-    assert "answered HTTP 000 (no HTTP answer at all: the connection was refused" in proc.stderr
-    assert "reloaded Apache" in proc.stdout
-
-
-def test_the_site_probe_does_not_fail_on_a_certificate_the_loopback_check_cannot_judge(tmp_path):
-    os.environ["SITE_CODE"] = "200"
-    try:
-        _proc, calls = _run_reload(tmp_path, curl=OTHER_VHOST, site=SITE)
-    finally:
-        del os.environ["SITE_CODE"]
-    assert any(c.startswith("curl -skL") and "starmap.example/api/health" in c for c in calls)
+def test_no_deploy_script_reaches_the_api_on_a_literal_loopback_address():
+    """OPS.86: no executable line of update.sh, install.sh or the shared functions that asks the site or the API
+    (curl, a health check, a URL) names a loopback address; the address comes from api_base_url. Comments, Redis and
+    gunicorn's own bind are not the API address."""
+    loopback = re.compile(r"127\.0\.0\.1|localhost|::1")
+    for name in ("update.sh", "install.sh", "scripts/deploy-common.sh"):
+        for number, line in enumerate((pathlib.Path(REPO_DIR) / name).read_text().splitlines(), 1):
+            if line.lstrip().startswith("#") or not loopback.search(line):
+                continue
+            asks = re.search(r"curl|health|http://|https://|--resolve", line)
+            is_other = re.search(r"redis|Redis|host ==|gunicorn serves|\(check: curl", line)
+            assert not asks or is_other, f"{name}:{number}: {line.strip()}"
+    common = (pathlib.Path(REPO_DIR) / "scripts" / "deploy-common.sh").read_text()
+    assert "site_health_target" not in common and "--resolve" not in common and "PLANETGEN_HEALTH_URL:-http" not in common
 
 
 def test_update_sh_opens_the_site_when_only_the_health_probe_failed():
@@ -933,6 +928,14 @@ def test_the_update_works_out_the_cluster_system_masses_after_the_migration():
     update = (pathlib.Path(REPO_DIR) / "update.sh").read_text()
     assert update.index("migrate_or_reset_db\nrecord_version_key\nwarm_shape_means") < update.index("log_stage 6 9")
     assert "run_cli warm_shape" in (pathlib.Path(REPO_DIR) / "scripts" / "deploy-common.sh").read_text()
+
+
+def test_the_update_says_so_before_the_silent_version_key_step():
+    """Recording the version key runs the generator battery and prints nothing until it ends: the update says what it is
+    doing first, so the gap after the migration never looks like a hang."""
+    common = (pathlib.Path(REPO_DIR) / "scripts" / "deploy-common.sh").read_text()
+    body = common[common.index("record_version_key() {"):]
+    assert body.index("Recording the version key") < body.index("run_cli version_history")
 
 
 def test_the_update_starts_the_warm_up_early_and_reloads_after_its_opening_phase():

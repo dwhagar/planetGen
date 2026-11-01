@@ -15011,6 +15011,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   stage's data before the next, fewer workers when the free memory is
   low at start). Nothing in the fix may ask the user to change an
   operating system setting.
+  Progress (2026-10-31 8:10 PM EDT): #4637 (first cut) and #4652 merged.
+  Every stage with units now has a figure, measured as worker plus horse
+  together (Pss): sector stages 2,600 MB, every other stage 1,700 MB, so
+  a 16 GB host runs 3 sector workers or 4 of the others where it ran 36.
+  The cause is that every bulk worker holds about 1.4 GB of sampling
+  tables and datasets from the moment it starts. Still open here: leaner
+  workers for the stages that need no tables (would allow more workers),
+  and peaks for scatter-phenomena and the nebula draw. The deadlock seen
+  in rescore-habitability is PERF.228.
   Prerequisites: none. Related: PERF.220, PERF.222, PERF.223.
 
 - [ ] **PERF.227 Starting a single scatter part from the Generate console on a fresh download kills the web daemon: five 'Truncated or oversized response headers' errors, an error 500, and the job reads 'stopped without finishing' (bug)**
@@ -15042,6 +15051,29 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   coordinator); it checks the overlap with PERF.225 and PERF.226 first.
   Lock-free unless the cause needs a migration. Version 8.1.
   Prerequisites: none. Related: PERF.220, PERF.225, PERF.226.
+
+- [ ] **PERF.228 The rescore-habitability stage fails with a MySQL deadlock (error 1213) when four workers run its units at once (bug)**
+  Star 2 (reported 2026-10-31 8:04 PM EDT as the lane reported): while
+  measuring PERF.226 on its populated test database, the
+  rescore-habitability stage failed with a MySQL deadlock (error 1213,
+  'Deadlock found when trying to get lock; try restarting transaction')
+  in unit 4, with 4 workers running at once. A deadlock between units of
+  one stage means two workers update overlapping rows in a different
+  order, or one holds a range lock the other needs. Do: (1) reproduce on
+  a populated database with 4 workers and capture `SHOW ENGINE INNODB
+  STATUS` for the latest detected deadlock, naming the two statements
+  and the index; (2) make the units touch disjoint rows in one fixed
+  order (update by primary key in ascending order, or per-unit key
+  ranges that do not share a gap lock), or retry the unit transaction on
+  1213 a bounded number of times as the repository's other stages do,
+  whichever the statements show is the cause; (3) check the other stages
+  that update stored rows from several workers for the same pattern.
+  Done: a test that runs two overlapping units against one database and
+  finishes without error, and a populated run with 4 workers that
+  finishes the stage. Lock-free, generation output unchanged. Owner:
+  unassigned (Star 2 has PERF.226; a waiting lane may take it). Version
+  8.1. Prerequisites: none. Related: PERF.226.
+  Prerequisites: none.
 
 ## DB: Database and schema
 

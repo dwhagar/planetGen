@@ -24,7 +24,7 @@ from planetgen.util import log, logrecord
 from planetgen.util.format import counted
 
 from . import bp, jobs, tables
-from .admin_pages import format_bytes, _api_message, _cookie_header, _flash, _render, _require_admin, _see_other, _take_flash
+from .admin_pages import came_from, format_bytes, safe_next, _api_message, _cookie_header, _flash, _render, _require_admin, _see_other, _take_flash
 from .helpers import crumb, db_name
 
 KIND_LABELS = {"generation": "Generation", "maintenance": "Maintenance", "check": "Database check"}
@@ -352,6 +352,12 @@ def _stage_rows(run):
     } for number, stage in enumerate(run["stages"], 1)]
 
 
+def _run_back_url():
+    """Where Cancel returns to: the page the run's page was opened from, not a confirmation step or the page itself."""
+    back = came_from(request.path)
+    return "" if back.startswith("/admin/queue/confirm/") else back
+
+
 @bp.route("/admin/queue/<run_id>")
 def admin_queue_run(run_id):
     """One run: its facts, its stages and the last lines of its log."""
@@ -368,6 +374,7 @@ def admin_queue_run(run_id):
         "admin_queue_run.html", flashed=True, title=run["title"][:80] or "Run", section="admin_queue",
         breadcrumbs=[crumb("Admin", "admin"), crumb("Queue", "admin_queue"), crumb("Run")],
         admin=admin, run=run_view(run), stages=_stage_rows(run), events=[_event_view(event) for event in body["events"]],
+        back_url=_run_back_url(),
         error=flashed.get("error"), message=flashed.get("message"),
     )
 
@@ -431,7 +438,7 @@ def admin_queue_confirm(action):
         "admin_queue_confirm.html", title="Confirm", section="admin_queue",
         breadcrumbs=[crumb("Admin", "admin"), crumb("Queue", "admin_queue"), crumb("Confirm")],
         admin=admin, heading=heading, explanation=explanation, action=action, run_id=run_id,
-        button=ACTION_TEXT[action][0], back=back,
+        button=ACTION_TEXT[action][0], back=back, next_url=safe_next(request.args.get("next"), default=""),
     )
 
 
@@ -546,6 +553,8 @@ def admin_queue_action():
                 ok = apiclient.admin_work_control(cookie_header, run_id, action)
                 if ok:
                     message = f"{'Cancelled' if action == 'cancel' else 'Cleared'} “{run['title']}”."
+                    if action == "cancel":     # back to the page the run's page was opened from, as the Generate job page does
+                        target = safe_next(request.form.get("next"), default=target)
                 elif action == "clear":
                     error = f"“{run['title']}” is still answering, or has finished. Cancel it instead."
                 else:
