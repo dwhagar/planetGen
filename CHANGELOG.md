@@ -2,6 +2,20 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3057] - 2026-11-01
+
+**Headline:** A planet's ring is now as icy as its age and the dust that fell on it leave it: Saturn-like rings stay bright, thin old rings go dark.
+
+### Changed
+- **The stored ring ice share is the share the ring has now (GEN.1055, R6).** `rings.apply` runs `rings.darken` after the ring is built: the dark dust that falls on the ring over its age (`physics/ring_darkening.py`, scaled from Saturn's infall by distance from the star and the planet's pull) lowers the ice share the ring began with, much further for a thin ring than for a massive one. A ring with no age (a resonance ring of a small body) and a ring with no ice are unchanged. No draw is added or moved; the values change.
+- The ring shadow (R8, `ring_darkening.shadow_transmission`) stays unread until the latitude-band climate (GEN.1108) is stored.
+
+generation-output: changed
+
+The stored ring ice share (and so the ring's albedo) changes; no new draw, no migration. Epoch affects: fill.
+
+TODO items resolved: GEN.1055 part R6 (R8 stays open until the climate reads the shadow).
+
 ## [8.0.3056] - 2026-11-01
 
 **Headline:** A tilted rocky planet with a broad ring has cooler bands behind the ring and warmer bands at its poles, because the ring now takes sunlight off the latitudes it shades.
