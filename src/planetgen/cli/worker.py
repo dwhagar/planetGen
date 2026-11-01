@@ -12,6 +12,7 @@ Usage:
 """
 
 import argparse
+import gc
 import os
 import re
 import sys
@@ -107,7 +108,9 @@ def worker_class():
 
         def prepare_execution(self, job):
             units.warm_unit(job)
-            return super().prepare_execution(job)
+            gc.collect()
+            gc.freeze()      # PERF.226: the collector would write the header of every object the worker holds in each horse, copying
+            return super().prepare_execution(job)           # the pages of its tables (a worker and its horse took 2.2 GB for 1.5 of tables)
 
         def _wait_while_paused(self):
             if not any(pause.holds(name) for name in self.queue_names()):
