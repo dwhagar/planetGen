@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3040] - 2026-11-01
+
+**Headline:** The life sweep follows the class registry instead of a fixed count of twenty letters.
+
+### Fixed
+- **TEST.542: the life sweep expected 20 class letters and the rules give 19, since Class Q was retired (GEN.1135).** `test_sweep_life.py` now checks that the letters tried are exactly the classes of the registry, and its text and the audit's no longer name a literal count.
+
 ## [8.0.3039] - 2026-11-01
 
 **Headline:** The data check in front of every Generate job no longer fails because another check holds the check place, and a refusal now names the run that holds it.
