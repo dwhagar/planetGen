@@ -15061,6 +15061,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   to a small fixed time. Owner: the investigating thread (named by the
   coordinator); it checks the overlap with PERF.225 and PERF.226 first.
   Lock-free unless the cause needs a migration. Version 8.1.
+  Fix merged (#4667), kept open for the gate (2026-10-31 8:50 PM EDT): A
+  stage whose workers read the galaxy shape now makes the cluster field
+  file once before the stage is cut (queue/wrapper._expand to
+  galaxy/field_job.ensure_file), instead of each worker building it
+  (hal: 10 workers, 7 GB, the run crawled). No epoch, generation output
+  unchanged. The gate was partial: field, queue, wrapper and guard tests
+  151 passed, and the full changed-files set stopped at 622 passed with
+  2 failures not identified, because the lane machine was too slow.
+  Retire this item when the full-suite thread or a lane names the 2
+  failures and they are not this change's. hal needs ./update.sh (it ran
+  8.0.3021) for this, PERF.225 and PERF.226, and Boss must cancel and
+  clear the stuck run.
   Prerequisites: none. Related: PERF.220, PERF.225, PERF.226.
 
 - [ ] **PERF.228 The rescore-habitability stage fails with a MySQL deadlock (error 1213) when four workers run its units at once (bug)**
