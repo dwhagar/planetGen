@@ -186,10 +186,11 @@ def running_dir():
 
 
 @contextlib.contextmanager
-def running(kind, title):
+def running(kind, title, **extra):
     """
     Registers this process as running `kind` (`"orbits"`, `"warm-map"`) for the guard to list and cancel, for the
-    length of the block. A folder that can't be written only means the guard does not see this run.
+    length of the block. A folder that can't be written only means the guard does not see this run. `extra` is kept in
+    the marker (`admin/cachebuild.py` reads `refuse`).
     """
     path = None
     try:
@@ -199,7 +200,7 @@ def running(kind, title):
             os.chmod(folder, 0o1777)    # every user a run starts as may register
         path = os.path.join(folder, f"{kind}-{os.getpid()}.json")
         with open(path, "w", encoding="utf-8") as handle:
-            json.dump({"kind": kind, "title": title, "pid": os.getpid(), "since": _now()}, handle)
+            json.dump({"kind": kind, "title": title, "pid": os.getpid(), "since": _now(), **extra}, handle)
         os.chmod(path, 0o644)
     except OSError:
         path = None

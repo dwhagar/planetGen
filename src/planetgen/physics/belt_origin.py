@@ -25,7 +25,7 @@ in as `u` arguments) and moves nothing. GEN.1068 gives it the final chain in pla
 **Shaping causes** (what took mass afterwards; the stored `history`), applied in this order to each belt, solids weighted by the disc's own
 surface density (`belt_mass.primordial_mass_earth`):
 
-- `giant-stirring`: the chaotic zone of each giant, half-width `1.3 a mu^(2/7)` each side (Wisdom 1980), and for a belt inside the giant the
+- `giant-stirring`: the chaotic zone of each giant, half-width `1.3 a mu^(2/7)` each side [R4727], and for a belt inside the giant the
   gaps at the resonances 4:1, 3:1, 5:2, 7:3 and 2:1 (`a_g (q/p)^(2/3)`), half-width `RESONANCE_HALF_WIDTH` of the resonance's distance for a
   Jupiter-mass giant and as the square root of the giant's mass ratio. What is in them is gone: `cleared_earth`. A belt within
   `STIR_ZONE_WIDTHS` chaotic half-widths of a giant is stirred whether or not mass is cleared, and says so.
@@ -73,7 +73,7 @@ SNOW_BUMP_WIDTH = 0.15
 """float: The snow-line bump spans the formation snow line divided and multiplied by `1 + SNOW_BUMP_WIDTH` (BG4)."""
 
 CHAOTIC_ZONE_COEFFICIENT = 1.3
-"""float: The half-width of a planet's chaotic zone is this times `a mu^(2/7)` (Wisdom 1980, READ in Morrison and Malhotra 2015 and Mustill and Wyatt 2012, row BR2) (BG5)."""
+"""float: The half-width of a planet's chaotic zone is this times `a mu^(2/7)` ([R4727], READ in [R3175, R3226], row BR2) (BG5)."""
 
 RESONANCES = ((4, 1), (3, 1), (5, 2), (7, 3), (2, 1))
 """tuple: The period ratios `p:q` (giant : body) of the gaps a giant cuts in a belt inside its orbit, `a_g (q/p)^(2/3)` (BG6)."""
@@ -89,7 +89,7 @@ STIR_ZONE_WIDTHS = 3.0
 
 INSTABILITY_SURVIVAL_RANGE = (0.002, 0.01)
 """tuple: The share of a belt a giant that migrated through it leaves, the least and the most: a Grand Tack type event leaves a few thousandths to a
-hundredth of the mass (Walsh et al. 2011, registry row BR4); a Nice type instability alone leaves 0.1 to 0.5 (BR5), which waits for the
+hundredth of the mass ([R4603], registry row BR4); a Nice type instability alone leaves 0.1 to 0.5 (BR5), which waits for the
 architecture to record instabilities (GEN.1082) (BG9)."""
 
 DESTROYED_RETAINED_SHARE = 0.5
@@ -186,7 +186,7 @@ def keep_out(body, star_mass_kg):
 
 
 def chaotic_half_width_au(body, star_mass_kg):
-    """The half-width of the chaotic zone of a planet, each side of its orbit (Wisdom 1980), in AU."""
+    """The half-width of the chaotic zone of a planet, each side of its orbit [R4727], in AU."""
     return CHAOTIC_ZONE_COEFFICIENT * body.distance_au * (body.mass_kg / star_mass_kg) ** (2.0 / 7.0)
 
 

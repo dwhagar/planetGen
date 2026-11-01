@@ -277,12 +277,14 @@ def test_a_close_pass_is_a_collision_a_disruption_a_capture_or_a_flyby():
 # --- The galactic centre -------------------------------------------------------------------
 
 def test_the_galactic_centre_gives_no_infinite_turn():
-    core_pc = pc.GALACTIC_ROTATION_CORE_RADIUS_PC
-    speed = pc.GALACTIC_ROTATION_FLAT_VELOCITY_KMS
-    core_period_gy = 2 * math.pi * core_pc * pc.PARSEC_M / (speed * 1000) / pc.SECONDS_PER_YEAR / 1e9
+    """Every pull is finite at the centre (the black hole is softened to 1 pc and the bulge's cusp pulls with a finite force), so the speed tends to 0
+    and the period to a finite, positive number at any radius a system can have (it shortens as the square root of the radius under the cusp)."""
+    previous = None
     for distance_ly in (1e-6, 1e-3, 1.0):
         speed_kms, period_gy = calculate_galactic_orbit(distance_ly)
-        assert speed_kms < speed * ly_to_pc(distance_ly) / core_pc * 1.0001
-        assert period_gy == pytest.approx(core_period_gy, rel=1e-6)
+        assert 0.0 < speed_kms < 50.0
+        assert math.isfinite(period_gy) and period_gy > 0.0
+        assert previous is None or period_gy > previous
+        previous = period_gy
     assert calculate_galactic_orbit(0.0) == (0.0, 0.0)
     assert store._galactic_turn(1e6, 0.0) == 0.0  # the exact centre doesn't turn

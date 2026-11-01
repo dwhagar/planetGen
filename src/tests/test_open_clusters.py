@@ -12,7 +12,7 @@ import numpy as np
 import pytest
 
 from planetgen import tuning
-from planetgen.galaxy import component_field, components, core_gas, profile
+from planetgen.galaxy import component_field, components, core_gas, potential, profile
 from planetgen.galaxy import density as galaxyDensity
 from planetgen.generation import component_pass, open_clusters
 from planetgen.physics import open_cluster_evolution as evolution
@@ -68,7 +68,8 @@ def test_the_clusters_lie_in_the_disk_on_circular_orbits(drawn):
     assert np.median(height) < shape.disk_scale_height_pc
     assert radius.max() < 10.0 * shape.disk_scale_length_pc
     speed = np.array([math.hypot(*c.velocity_kms[:2]) for c in found])
-    assert abs(np.median(speed) - tuning.CLUSTER_HALO_CIRCULAR_KMS) < 15.0
+    circular = potential.circular_speed_kms(potential.for_galaxy(shape, b"gen244-test-seed"), radius)
+    assert abs(np.median(speed / circular) - 1.0) < 0.1
 
 
 def test_the_formation_efficiency_rises_with_the_rate_density():
@@ -76,7 +77,7 @@ def test_the_formation_efficiency_rises_with_the_rate_density():
     efficiency = evolution.cluster_formation_efficiency(sigma)
     assert np.all(np.diff(efficiency[:-1]) > 0.0)
     assert efficiency[-1] == 0.0 and efficiency[-2] < 1.0
-    assert efficiency[0] < 0.05      # Kruijssen 2012: a few per cent where the gas is thin
+    assert efficiency[0] < 0.05      # [R2502]: a few per cent where the gas is thin
 
 
 def test_the_initial_masses_follow_a_power_law_of_slope_minus_two():
@@ -112,7 +113,7 @@ def test_the_half_mass_radius_grows_over_the_first_100_myr_and_stays_inside_the_
     grown = evolution.half_mass_radii_pc(1.0e3, 0.1, 0.0, 0.5)
     assert grown == pytest.approx(young * 7.5, rel=1e-9)
     assert evolution.half_mass_radii_pc(1.0e3, 1.0, 0.0, 0.5) == pytest.approx(grown)
-    assert evolution.jacobi_radii_pc(1.0e3, 8000.0) == pytest.approx(14.17, abs=0.3)
+    assert evolution.jacobi_radii_pc(1.0e3, 8000.0, 9.0e10) == pytest.approx(14.17, abs=0.3)
 
 
 def test_the_population_of_an_age_is_its_quarter_decade_bin():
@@ -233,3 +234,17 @@ def test_a_galaxy_that_would_form_millions_draws_the_cap_and_keeps_the_heavier_o
     monkeypatch.setattr(core_gas, "core_gas", lambda shape: core_gas.NO_RING)      # the ring's clusters are not capped
     found = open_clusters.generate_open_clusters(b"capped-seed", _shape(), EDGE, E1)
     assert 0 < len(found) <= 2_000 + 5 * 2_000 ** 0.5
+
+
+# --- GEN.1196: the disc's clusters are held to the most massive cluster each ring's gas can form ---------------------------
+
+
+def test_no_disc_cluster_is_heavier_than_the_most_massive_its_rings_can_form(drawn):
+    shape, found = drawn
+    table = open_clusters._formation_table(shape, potential.for_galaxy(shape, b"gen244-test-seed"))
+    maximum, efficiency = table[6], table[5]
+    assert maximum.shape == efficiency.shape and np.all(maximum >= 0.0)
+    assert np.all(maximum <= tuning.CLUSTER_MAX_MASS_CEILING_SOL)
+    disc = [c for c in found if np.hypot(c.center_pc[0], c.center_pc[1]) > 1000.0]
+    assert disc and max(c.mass_solar for c in disc) <= float(maximum.max()) * (1.0 + 1.0e-9)
+    assert max(c.mass_solar for c in disc) < 1.0e5      # not the mass function's 1e6: the Milky Way's heaviest are near 1e4

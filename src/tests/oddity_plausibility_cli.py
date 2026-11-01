@@ -353,7 +353,7 @@ def general_failures(body, star):
 RING_OUTER_OVER_ROCHE = rings.RANGES["outer_over_roche"][1]
 """float: The outer edge of a ring in Roche limits of its own material that the ring law allows (Saturn's is 1.05 with the planet's volumetric radius)."""
 MIN_RING_DISTANCE_AU = 0.1
-"""float: A planet nearer its star than this keeps no ring (R9, Schlichting and Chang 2011)."""
+"""float: A planet nearer its star than this keeps no ring (R9, [R3957])."""
 RING_RESONANCE_ROWS = ("R4",)
 """tuple: The oddity ids that name a spin-orbit resonance, which may put a ring beyond the Roche limit (R4: Quaoar, Haumea)."""
 

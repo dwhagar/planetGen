@@ -480,6 +480,8 @@ def _radiation_block(planet):
         fact("radiation-cosmic", "Cosmic rays", dose(terms.gcr_msv_yr), shield + field),
         fact("radiation-stellar", "Stellar particles", dose(terms.sep_msv_yr), ", from the star's flares, cut by the same air and field"),
         fact("radiation-ground", "Ground", dose(terms.ground_msv_yr), ground),
+        *([fact("radiation-belts", "Parent planet's radiation belts", dose(terms.belt_msv_yr),
+                ", trapped particles of the parent's field at this moon's orbit, cut by its air")] if terms.belt_msv_yr > 0.0 else []),
         fact("radiation-uv", "Ultraviolet", qty("ratio", terms.uv_index, note="times Earth's DNA-damaging dose"), ozone),
     ]
     return facts("Radiation", rows)

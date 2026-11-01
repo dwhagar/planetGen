@@ -16,7 +16,7 @@ import pytest
 from planetgen import tuning
 from planetgen.generation import star_population as sp
 from planetgen.generation.bright_stars import star_fe_h
-from planetgen.physics import giant_branch, ms_lifetime, post_main_sequence
+from planetgen.physics import alpha_tracks, giant_branch, ms_lifetime, post_main_sequence
 from planetgen.physics import stellar_evolution as se
 
 MASS = 0.95
@@ -30,12 +30,12 @@ at the Hurley, Pols and Tout helium ignition, the horizontal branch lasts a fixe
 
 SALARIS_R = 1.47
 """float: The weighted mean of the horizontal-branch to red-giant ratio R of 57 Galactic globular clusters, +-0.025 (its
-standard error; the clusters scatter by 0.36 around it): Salaris et al. 2004, A&A 420, 911, Table 2
+standard error; the clusters scatter by 0.36 around it): [R3879: Table 2]
 (astro-ph/0403600)."""
 
 FLUX_PER_YEAR_PER_LSUN = 1.7e-11
 """float: The specific evolutionary flux of an old population, stars leaving the main sequence each year for each
-solar luminosity of the population's light: 1.7 +- 0.4e-11 (Buzzoni 1989, quoted by Renzini 1997, astro-ph/9711072)."""
+solar luminosity of the population's light: 1.7 +- 0.4e-11 ([R0617], quoted by [R3734], astro-ph/9711072)."""
 
 
 def _state_at(fraction, **kwargs):
@@ -45,10 +45,14 @@ def _state_at(fraction, **kwargs):
 
 def _horizontal_branch_age(fe_h, share):
     """The age, Gy, `share` of the way through the horizontal branch of the test star of birth [Fe/H] `fe_h`
-    (lifetimes follow the composition, GEN.651)."""
-    t_ms = se.main_sequence_lifetime_gy(MASS, fe_h)
-    start = giant_branch.giant_end_fraction(MASS, fe_h)
-    return t_ms * (start + share * tuning.HORIZONTAL_BRANCH_DURATION_GY / t_ms)
+    (lifetimes follow the composition, GEN.651, on the track of the star's branch, GEN.1024: the piece of the age axis the age falls in)."""
+    for start, end, track in alpha_tracks.track_segments(fe_h):
+        t_ms = se.main_sequence_lifetime_gy(MASS, track)
+        first = giant_branch.giant_end_fraction(MASS, track)
+        age = t_ms * (first + share * tuning.HORIZONTAL_BRANCH_DURATION_GY / t_ms)
+        if start <= age < end:
+            return age
+    raise AssertionError(fe_h)
 
 
 def test_a_light_star_has_a_horizontal_branch_and_an_asymptotic_branch_between_its_giant_branch_and_its_white_dwarf():
@@ -175,7 +179,7 @@ def test_a_horizontal_branch_star_sits_in_the_luminosity_range_below_every_scatt
 
 
 def test_the_giant_branch_is_the_hurley_pols_tout_branch_of_the_star():
-    """Table 1 of Hurley, Pols and Tout 2000 gives the branch's duration, (t_HeI - t_BGB) / t_BGB, as 6.4e-2 at one solar
+    """Table 1 of [R2055] gives the branch's duration, (t_HeI - t_BGB) / t_BGB, as 6.4e-2 at one solar
     mass, 2.0e-2 at two and 2.4e-3 at five (the two heavier ones only through the same formulae, which the module
     shares with the light star's)."""
     branch = giant_branch.branch(1.0)
@@ -201,7 +205,7 @@ def test_the_giant_branch_is_the_hurley_pols_tout_branch_of_the_star():
 
 
 def test_the_tip_is_lower_at_low_metallicity_as_the_models_of_a_metal_poor_star_have_it():
-    """Serenelli et al. 2017 (arXiv:1706.07564) find the tip of an old, metal-poor star at 1,650 to 1,780 Lsun; the
+    """[R1744, R4024] find the tip of an old, metal-poor star at 1,650 to 1,780 Lsun; the
     paper's fit lands within 20% of them at Z = 1e-4 ([Fe/H] = -2.19 against the reference Z of 0.0154)."""
     tip = giant_branch.tip_luminosity_sol(0.8, fe_h=math.log10(1.0e-4 / tuning.MS_LIFETIME_REFERENCE_Z))
     assert 1500.0 < tip < 2100.0
@@ -224,7 +228,7 @@ def test_the_time_a_star_spends_above_a_luminosity_on_the_mist_branch_follows_th
 def test_the_horizontal_branch_to_red_giants_above_it_ratio_is_the_observed_one():
     """The horizontal branch lasts 100 Myr and the red giant branch spends 69 Myr above its luminosity, a ratio of
     1.45 for every star that ignites its helium in a flash and whose base of the giant branch lies below it; the 57
-    Galactic globular clusters of Salaris et al. 2004 have a weighted mean of 1.47 +- 0.025."""
+    Galactic globular clusters of [R3879] have a weighted mean of 1.47 +- 0.025."""
     level = sum(tuning.HORIZONTAL_BRANCH_LUMINOSITY_RANGE_SOL) / 2.0
     for mass in (0.8, MASS, 1.0):
         branch = giant_branch.branch(mass)
@@ -258,8 +262,9 @@ def test_the_halo_counts_match_the_evolutionary_flux_of_an_old_population(floor,
     # test took the Sun's composition for the mean and the track while the count moved to the halo's, which left the model's count
     # 1.2 to 1.5 times the flux's, and a mean of too few draws moved it as much again (TEST.481).
     per_lsun = sp.bright_star_fraction(floor, "halo") / halo_mean_luminosity
-    turnoff = ms_lifetime.mass_for_lifetime_gy(T_MS, HALO_FE_H)
-    line = post_main_sequence.timeline(turnoff, HALO_FE_H)
+    track = alpha_tracks.track_fe_h(HALO_FE_H, T_MS)      # GEN.1024: the halo is alpha-enhanced and reads the track of its branch
+    turnoff = ms_lifetime.mass_for_lifetime_gy(T_MS, track)
+    line = post_main_sequence.timeline(turnoff, track)
     years = 1.0e9 * sum(end - start for _, start, end in line.bright_pieces(floor, skip=("horizontal-branch",)))
     expected = FLUX_PER_YEAR_PER_LSUN * years
     assert expected * 0.65 < per_lsun < expected * 1.35, (per_lsun, expected)

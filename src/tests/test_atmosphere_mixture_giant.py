@@ -73,7 +73,7 @@ def test_clouds_take_iron_silicates_and_about_a_fifth_of_the_oxygen():
     assert {"iron", "forsterite", "enstatite", "oxides"} <= set(clouds)
     for symbol in ("Fe", "Mg", "Si", "Ca", "Ti", "V", "Cr"):
         assert cold[symbol] == 0.0
-    assert 0.15 < 1.0 - cold["O"] / budget["O"] < 0.3               # Visscher et al. 2010: about 20 percent
+    assert 0.15 < 1.0 - cold["O"] / budget["O"] < 0.3               # [R4561]: about 20 percent
     hot, none = mg.remove_clouds(budget, 2500.0, 0.3, 0.0)
     assert hot == budget and not none
     trapped, _ = mg.remove_clouds(budget, 2500.0, 0.3, 0.0, keep_titanium_vanadium=False)
@@ -93,14 +93,6 @@ def test_ammonium_hydrosulfide_forms_where_the_fit_says_and_leaves_the_gas_at_it
     assert math.log10(0.3) + 0.5 * math.log10(nitrogen_over) + 0.5 * math.log10(sulfur_over) == pytest.approx(boundary, abs=1e-6)
 
 
-def test_the_carbon_monoxide_time_is_zahnle_and_marleys():
-    t1 = 1.5e-6 * math.exp(42000.0 / 1000.0)
-    t2 = 40.0 * math.exp(25000.0 / 1000.0)
-    assert mg.carbon_monoxide_time_s(1000.0, 1.0, 1.0) == pytest.approx(1.0 / (1.0 / t1 + 1.0 / t2))
-    assert mg.carbon_monoxide_time_s(1000.0, 1.0, 10.0) < mg.carbon_monoxide_time_s(1000.0, 1.0, 1.0)     # m^-0.7
-    assert mg.carbon_monoxide_time_s(1000.0, 10.0, 1.0) < mg.carbon_monoxide_time_s(1000.0, 1.0, 1.0)
-
-
 def carbon_monoxide_share(temperature_k, pressure_bar, metallicity, gravity, kzz):
     quench = mg.quench_level(temperature_k, pressure_bar, metallicity, 2.3e-3, gravity, kzz)
     if quench is None:
@@ -110,7 +102,7 @@ def carbon_monoxide_share(temperature_k, pressure_bar, metallicity, gravity, kzz
 
 
 def test_the_methane_to_carbon_monoxide_crossover_of_a_planet_is_near_500_k():
-    # Zahnle and Marley 2014: about 500 K, 400 K with strong mixing, up to 600 K with sluggish mixing (Jupiter's gravity, 0.3 bar).
+    # [R4863]: about 500 K, 400 K with strong mixing, up to 600 K with sluggish mixing (Jupiter's gravity, 0.3 bar).
     def crossover(metallicity, kzz):
         for temperature in range(300, 1100, 10):
             share = carbon_monoxide_share(float(temperature), 0.3, metallicity, 25.0, kzz)

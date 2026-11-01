@@ -9,7 +9,7 @@ spectrum into the CIE 1931 tristimulus values X, Y and Z, into linear sRGB (D65)
 chain is what the atmosphere colour work (GEN.418, GEN.419) and the view from a planet (VIEW.11) run a spectrum
 through, so every step takes a spectrum and a wavelength grid, not only a blackbody.
 
-* **The CIE curves** are the Wyman, Sloan and Shirley (2013, J. Computer Graphics Techniques 2(2)) multi-lobe fit of
+* **The CIE curves** are the [R4788] (J. Computer Graphics Techniques 2(2)) multi-lobe fit of
   the 1931 two-degree observer (docs/design/orbits/sky-view.md section 4). Against the tabulated curves the fit is within
   0.015, 0.007 and 0.024 of peaks 1.06, 1.00 and 1.78, and the chromaticity of a blackbody is within 0.001 of the
   table of docs/design/composition/atmosphere-composition-parts/02-gas-optics-uv-visible.md section 2.9 from 3000 K up (0.0025 at
@@ -22,7 +22,7 @@ through, so every step takes a spectrum and a wavelength grid, not only a blackb
 * **Absolute colour.** No adaptation to the star: the white point is D65 and a cool star is orange.
 
 * **The bolometric correction** (VIEW.9, `bolometric_correction_v`) is Flower's (1996) polynomial fit of BC_V against log Teff in three
-  ranges, with the coefficients as Torres (2010, AJ 140, 1158, arXiv:1008.3913, Table 1) reprinted them (the original had misprints). Its
+  ranges, with the coefficients as [R4407: Table 1] reprinted them (the original had misprints). Its
   zero point is the one the fit carries, BC_V of the Sun -0.08 and so M_bol of the Sun 4.74 (`SUN_ABSOLUTE_BOLOMETRIC_MAG`), which the
   caller must use with it (Torres's point: the two go together). It replaces the blackbody table of sky-view.md section 2.4.
 
@@ -125,7 +125,7 @@ def _lobe(lam, mu, sigma_low, sigma_high):
 
 
 def cie_xyz_bar(wavelength_nm):
-    """The CIE 1931 colour matching functions `(xbar, ybar, zbar)` at `wavelength_nm` (Wyman, Sloan and Shirley 2013)."""
+    """The CIE 1931 colour matching functions `(xbar, ybar, zbar)` at `wavelength_nm` [R4788]."""
     lam = float(wavelength_nm)
     xbar = 1.056 * _lobe(lam, 599.8, 37.9, 31.0) + 0.362 * _lobe(lam, 442.0, 16.0, 26.7) - 0.065 * _lobe(lam, 501.1, 20.4, 26.2)
     ybar = 0.821 * _lobe(lam, 568.8, 46.9, 40.5) + 0.286 * _lobe(lam, 530.9, 16.3, 31.1)
@@ -277,7 +277,7 @@ FLOWER_COEFFICIENTS = (
                 0.788731721804990e+02)),
 )
 """tuple: `(upper log Teff, coefficients a, b, c, ...)` of Flower's (1996) fit `BC_V = a + b (log Teff) + c (log Teff)^2 + ...` for log Teff below
-3.70, from 3.70 to 3.90 and above 3.90, as Torres (2010, Table 1) corrects them. [Verified, read from the paper.]"""
+3.70, from 3.70 to 3.90 and above 3.90, as [R4407: Table 1] corrects them. [Verified, read from the paper.]"""
 
 BOLOMETRIC_CORRECTION_RANGE_K = (3500.0, 50000.0)
 """tuple: The effective temperatures, K, `bolometric_correction_v` answers for. Below 3500 K the polynomial runs away (-24 at 2000 K) and Torres says
@@ -285,7 +285,7 @@ the fit "breaks down completely for the M dwarfs"; the hot end is where the fit'
 or hotter star gets; none is invented here."""
 
 SUN_ABSOLUTE_BOLOMETRIC_MAG = 4.74
-"""float: M_bol of the Sun that goes with Flower's zero point (Torres 2010: BC_V of the Sun -0.08, M_bol 4.74, which with V = -26.76 and the 1 au
+"""float: M_bol of the Sun that goes with Flower's zero point ([R4407]: BC_V of the Sun -0.08, M_bol 4.74, which with V = -26.76 and the 1 au
 distance modulus 31.572 gives BC_V of the Sun -0.068)."""
 
 

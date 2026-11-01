@@ -111,6 +111,45 @@ def test_a_saturated_air_cools_more_slowly_with_height_than_a_dry_one():
     assert np.all(np.isfinite(wet_profile)) and np.all(np.diff(wet_profile) > 0.0)
 
 
+def test_methane_condenses_in_a_cold_hydrogen_air_and_slows_its_cooling_with_height():
+    """GEN.1030: with no water in the air the condensable is methane, whose condensation near 80 K (the clouds of Uranus and Neptune) shallows the adiabat."""
+    methane = rc.Column({"H2": 0.80e5, "He": 0.175e5, "CH4": 0.025e5}, 11.15)
+    plain = rc.Column({"H2": 0.8205e5, "He": 0.1795e5}, 11.15)
+    assert methane.condensable_surface == pytest.approx(0.025) and plain.condensable_surface == 0.0
+    assert methane._saturated(80.0, 1.0e5) and not methane._saturated(100.0, 1.0e5)
+    wet_profile, dry_profile = methane.adiabat(80.0), plain.adiabat(80.0)
+    assert wet_profile[-1] > dry_profile[-1] + 1.0e-6 and np.all(np.isfinite(wet_profile)) and np.all(np.diff(wet_profile) > 0.0)
+
+
+def test_water_takes_the_adiabat_before_methane_in_an_air_with_both():
+    both = rc.Column({"N2": 0.7e5, "H2O": 0.2e5, "CH4": 0.1e5}, 9.81)
+    assert both.condensable_surface == pytest.approx(0.2) and both._saturation is rc.saturation_pressure_pa
+
+
+def test_the_methane_curve_is_the_saturation_module_and_ends_below_the_critical_point():
+    from planetgen.physics import saturation
+    assert float(rc.methane_saturation_pressure_pa(100.0)) == pytest.approx(saturation.pressure_pa("CH4", 100.0), rel=1.0e-3)
+    assert np.isinf(rc.methane_saturation_pressure_pa(rc.METHANE_TABLE_TOP_K + 1.0))
+    assert float(rc.methane_latent_heat_j_mol(110.0)) == pytest.approx(8.2e3, rel=0.05)          # about 8.2 kJ/mol at its boiling point
+
+
+def test_cold_hydrogen_in_ortho_and_para_equilibrium_holds_more_heat_than_hot_hydrogen():
+    cp = rc.equilibrium_hydrogen_cp_over_r
+    assert float(cp(5.0)) == pytest.approx(2.5, abs=1.0e-6)          # all para, no rotation: translation alone
+    assert 4.3 < float(cp(60.0)) < 4.5                                # the rotational bump of the ortho-para conversion
+    assert float(cp(60.0)) > float(cp(100.0)) > float(cp(200.0))
+    assert float(cp(2000.0)) == pytest.approx(3.5, abs=0.02)          # rotation fully excited
+    assert float(cp(200.0)) == pytest.approx(rc.species_thermo.gas("H2").cp_over_r(200.0), rel=0.01)          # joins the NASA fit
+
+
+def test_the_heat_capacity_of_hydrogen_on_the_grid_is_the_equilibrium_one_below_200_k_and_the_fit_above():
+    values = rc._cp_over_r("H2")
+    cold = rc._CP_GRID < rc.EQUILIBRIUM_HYDROGEN_BELOW_K
+    assert values[cold].max() > 4.0 and np.all(np.diff(values[~cold][:20]) > 0.0)
+    assert values[~cold][0] == pytest.approx(rc.species_thermo.gas("H2").cp_over_r(200.0))
+    assert np.all(rc._cp_over_r("N2") == rc._cp_over_r.__wrapped__("N2"))          # no other gas is touched
+
+
 def test_the_adiabat_is_continuous_and_rises_with_the_surface_temperature_across_the_saturation_corner():
     """A step that started on the dry branch and crossed into saturation used to take the saturated slope for its whole length (the top of
     the column came out 10 K too warm just below the corner and then fell). The slope of the top temperature has a kink at the corner, nothing more."""
@@ -288,14 +327,16 @@ def test_a_gas_the_database_writes_under_another_name_takes_its_nasa_fit():
     from planetgen.physics import species_thermo
     ocs = species_thermo.species("COS")
     low, high = ocs.range_k
-    assert rc._cp_over_r("OCS")[10] == pytest.approx(ocs.cp_over_r(min(max(rc._CP_GRID[10], low), high)))
-    assert rc._cp_over_r("C2H2")[10] == pytest.approx(species_thermo.species("C2H2,acetylene").cp_over_r(rc._CP_GRID[10]))
+    at = int(np.searchsorted(rc._CP_GRID, 300.0))
+    assert rc._cp_over_r("OCS")[at] == pytest.approx(ocs.cp_over_r(min(max(rc._CP_GRID[at], low), high)))
+    assert rc._cp_over_r("C2H2")[at] == pytest.approx(species_thermo.species("C2H2,acetylene").cp_over_r(rc._CP_GRID[at]))
 
 
 def test_a_gas_without_a_fit_takes_the_table_heat_capacities_held_at_the_ends():
     cp = rc._cp_over_r("HCl")
-    assert rc._CP_GRID[10] == pytest.approx(300.0)
-    assert cp[10] * rc.R == pytest.approx(29.14, rel=1e-3)
+    at = int(np.searchsorted(rc._CP_GRID, 300.0))
+    assert rc._CP_GRID[at] == pytest.approx(300.0)
+    assert cp[at] * rc.R == pytest.approx(29.14, rel=1e-3)
     assert cp[-1] * rc.R == pytest.approx(31.63, rel=1e-3)
     assert cp[0] * rc.R == pytest.approx(29.12, rel=1e-3)
 

@@ -115,7 +115,7 @@ COD_DENSITY = {
     "h2s_ice": (1.2, "COD crystal cell, one entry, about"),
 }
 
-# Seager et al. 2007 (ApJ 669, 1279; arXiv:0707.2895) Table 1: K0 and K0' of the Vinet (V) or Birch-Murnaghan (BME) fits at
+# [R3992: Table 1]: K0 and K0' of the Vinet (V) or Birch-Murnaghan (BME) fits at
 # zero pressure and 300 K, with the rho0 of the table. id: (model, order, rho0 kg/m3, K0 GPa, +-, K0', +-, note)
 SEAGER_TABLE_1 = {
     "carbon_graphite": ("bme", 3, 2250.0, 33.8, 3.0, 8.9, 1.0, "Table 1, references 1 and 2"),
@@ -154,24 +154,24 @@ SEAGER_TABLE_2 = (
     (937.585, 5861.450), (1260.182, 6503.954), (1673.049, 7216.474), (2188.301, 8006.625), (2853.712, 8884.186),
     (3691.387, 9858.497), (4737.211, 10938.603), (6040.611, 12134.882), (7686.171, 13467.635),
 )
-"""tuple: Seager et al. 2007 Table 2. The table prints the density in kg per cubic metre but its numbers are in Mg/m3; they are
+"""tuple: [R3992: Table 2]. The table prints the density in kg per cubic metre but its numbers are in Mg/m3; they are
 multiplied by 1000 here (the table at 2.32 GPa reads 1.6366)."""
 
 # Part B table 2.1b, the other iron and light-element EOS rows. id: (model, rho0 kg/m3, K0 GPa, K0', source key, label, note)
 PART_B_IRON = (
     ("iron_epsilon", "vinet", 8264.2, 157.07, 5.6167, "part-b-fit",
      "the single Vinet fit the solver uses, 0.3 percent over 1 to 1000 GPa and 1.9 percent to 20 TPa (COMPUTED in part B)"),
-    ("iron_epsilon", "vinet", 8270.0, 163.4, 5.38, "hakim2018", "room-temperature Vinet below 234.4 GPa (Dewaele et al., as in Hakim 2018)"),
-    ("iron_epsilon", "vinet", 8300.0, 160.2, 5.82, "hakim2018", "the Valencia parameters, Hakim 2018 Table F.7"),
-    ("iron_epsilon", "bme", 8341.0, 173.98, 5.297, "hakim2018", "the Dorn parameters, Hakim 2018 Table F.7"),
-    ("iron_epsilon", "bme", 8269.0, 172.7, 4.79, "hakim2018", "the Fei parameters, Hakim 2018 Table F.7"),
-    ("troilite", "holzapfel", 6118.0, 144.3, 4.79, "hakim2018", "Sata 2010 refit, Hakim 2018 Table D.5; the high-pressure phase"),
-    ("fesi", "holzapfel", 6522.0, 219.5, 4.29, "hakim2018", "Sata 2010 refit, Hakim 2018 Table D.5"),
-    ("cohenite", "holzapfel", 7980.0, 289.4, 3.81, "hakim2018", "Fe3C, Sata 2010 refit, Hakim 2018 Table D.5"),
-    ("wustite", "holzapfel", 5764.0, 152.7, 4.13, "hakim2018", "Fe0.95O, Sata 2010 refit, Hakim 2018 Table D.5"),
+    ("iron_epsilon", "vinet", 8270.0, 163.4, 5.38, "hakim2018", "room-temperature Vinet below 234.4 GPa (Dewaele et al., as in [R1752])"),
+    ("iron_epsilon", "vinet", 8300.0, 160.2, 5.82, "hakim2018", "the Valencia parameters, [R1752] Table F.7"),
+    ("iron_epsilon", "bme", 8341.0, 173.98, 5.297, "hakim2018", "the Dorn parameters, [R1752] Table F.7"),
+    ("iron_epsilon", "bme", 8269.0, 172.7, 4.79, "hakim2018", "the Fei parameters, [R1752] Table F.7"),
+    ("troilite", "holzapfel", 6118.0, 144.3, 4.79, "hakim2018", "[R3923] refit, [R1752] Table D.5; the high-pressure phase"),
+    ("fesi", "holzapfel", 6522.0, 219.5, 4.29, "hakim2018", "[R3923] refit, [R1752] Table D.5"),
+    ("cohenite", "holzapfel", 7980.0, 289.4, 3.81, "hakim2018", "Fe3C, [R3923] refit, [R1752] Table D.5"),
+    ("wustite", "holzapfel", 5764.0, 152.7, 4.13, "hakim2018", "Fe0.95O, [R3923] refit, [R1752] Table D.5"),
 )
 
-# The ice phases of part C table 2.3 (Journaux et al. 2020 Gibbs splines, evaluated). Each row of the part's table is
+# The ice phases of part C table 2.3 ([R2204] Gibbs splines, evaluated). Each row of the part's table is
 # (phase id, P MPa, T K, rho kg/m3, K_T GPa, dK/dP, alpha 1/K) in the order the part prints them.
 ICE_POINTS = (
     ("water_ice", 0.1, 273.15, 916.72, 8.49, 4.89, 1.60e-4),

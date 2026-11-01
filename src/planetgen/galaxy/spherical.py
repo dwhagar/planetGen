@@ -968,23 +968,27 @@ widest corner of the first shells' wide cells is 1.22 edges away (shell 1's
 equatorial wedges; from shell 8 out none is past 1.13), a cap's rim 1.08."""
 
 
-def cells_touching_sphere(center, radius_pc, edge_pc):
+def cells_touching_sphere(center, radius_pc, edge_pc, reach_edges=CELL_REACH_EDGES):
     """
     Every sector address whose cell can hold part of the sphere of
     `radius_pc` around `center` (NAV.53): `enumerate_sectors_within_radius`
-    with the radius padded by `CELL_REACH_EDGES` edges, more than any cell's
-    farthest point from its center. A superset: a few cells it lists may miss
-    the sphere by a hair. Same tuples and, like it, in no particular order;
-    `distance_pc` is the cell center's distance from `center`.
+    with the radius padded by `reach_edges` edges (`CELL_REACH_EDGES`: more
+    than any cell's farthest point from its center). A superset: a few cells
+    it lists may miss the sphere by a hair. Same tuples and, like it, in no
+    particular order; `distance_pc` is the cell center's distance from
+    `center`. The orbital update's influence set (`influence.influence_set`)
+    searches with it.
 
     Raises:
-        ValueError: As `enumerate_sectors_within_radius`.
+        ValueError: As `enumerate_sectors_within_radius`, or a negative `reach_edges`.
     """
     if radius_pc < 0:
         raise ValueError(f"radius_pc must be >= 0, got {radius_pc}")
     if edge_pc <= 0:
         raise ValueError(f"edge_pc must be > 0, got {edge_pc}")
-    return enumerate_sectors_within_radius(center, radius_pc + CELL_REACH_EDGES * edge_pc, edge_pc)
+    if reach_edges < 0:
+        raise ValueError(f"reach_edges must be >= 0, got {reach_edges}")
+    return enumerate_sectors_within_radius(center, radius_pc + reach_edges * edge_pc, edge_pc)
 
 
 def _quadratic_roots(a, b, c):

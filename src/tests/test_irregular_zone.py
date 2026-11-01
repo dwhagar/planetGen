@@ -2,7 +2,7 @@
 
 """
 GEN.1076: where an irregular moon can stay (`planetgen.physics.irregular_zone`): the Hill radii of the four giants, the stable limits of both senses, the Kozai band and the inner edge from the
-outermost regular moon, Jewitt and Haghighipour 2007 and Vokrouhlicky, Nesvorny and Levison 2008.
+outermost regular moon, [R2158, R3147].
 """
 
 import pytest

@@ -235,7 +235,7 @@ From PR #431's red CI (coordinator, 2026-10-03): PERF.27, DB.12, OPS.25, MAP.114
 | MAP.95 | 1 → 0 | With the map engine in phase 0: the 2026-10-03 map bugs fold into it. |
 | NAV.13 | 1 → 0 | With the map engine in phase 0: the 2026-10-03 map bugs fold into it. |
 | NAV.14 | 1 → 0 | Its breadcrumb fixes MAP.106. |
-| PERF.19 | 1 → 0 | Moved into phase 0 as the first step of PERF.24 (Boss chose Redis, 2026-10-03). |
+| PERF.19 | 1 → 0 | Moved into phase 0 as the first step of PERF.24 (Boss chose Redis on 2026-10-03). |
 | MAP.65 | 2 → 0 | Moved into phase 0: fixes MAP.108, MAP.107, MAP.112 and NAV.46. |
 | MAP.79 | 2 → 0 | Moved into phase 0 (bug); its nebula toggle closes MAP.113. |
 | NAV.15 | 2 → 0 | With the map engine in phase 0: the 2026-10-03 map bugs fold into it. |
@@ -261,7 +261,7 @@ Boss (2026-10-07 17:11Z, answering the open decisions; 2026-10-09 07:48Z, confir
 - **Lane order**: "When one thread is idle waiting for CI we can start another thread on something else, the idea being to always have at least 1 thread going without even going tover the 2 dev 1 todo limit." So up to two build threads and the TODO thread; a thread waiting on CI may hand off to another.
 - **Redis on Windows (OPS.21)**: "Let's say Redis in WSL". OPS.27 dropped Memurai from the installer and docs (done, PR #475).
 - **Habitability score structure (GEN.84)**: approved (PHI-4's domains and tiers for display, the Xenobiology doc's three tiers as the scores behind them).
-- **Wide-binary names under the codec (GEN.71)**: "No, we should never have A I or such for planet names.  Adjust the algorithm to produce 2 words from the name.  A says word 1 I, word 1 II, etc...  B planets say word 2 I, word 2 II, etc..." In GEN.71. Confirmed 2026-10-08 04:00Z: planets keep the "<star> I" pattern, so this rule stays in force.
+- **Wide-binary names under the codec (GEN.71)**: "No, we should never have A I or such for planet names.  Adjust the algorithm to produce 2 words from the name.  A says word 1 I, word 1 II, etc...  B planets say word 2 I, word 2 II, etc..." In GEN.71. Confirmed on 2026-10-08 at 04:00Z: planets keep the "<star> I" pattern, so this rule stays in force.
 - **GEN.29 outside phase 0**: approved (stays in phase 2 with the class refactor).
 - **Front-end build (UX.40, UX.41, MAP.102)**: approved (vendored ES module builds served by Flask, no bundler).
 - **Hilbert fill order (GEN.101)**: approved (keep the Hilbert order, allow a logged jump where the ball cuts the curve).

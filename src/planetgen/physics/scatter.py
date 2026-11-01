@@ -10,7 +10,7 @@ mass shares and no N-body run (Boss, 2026-10-30). The Solar System is a test tar
 
 **The rule.**
 
-1. *Swept band.* A giant of mass ratio `q = m / M*` at `a` has a chaotic zone of half-width `w = ZONE_COEFFICIENT a q^(2/7)` (Wisdom 1980, [R] recalled) in which bodies are
+1. *Swept band.* A giant of mass ratio `q = m / M*` at `a` has a chaotic zone of half-width `w = ZONE_COEFFICIENT a q^(2/7)` ([R4727], [R] recalled) in which bodies are
    scattered in a few orbits. An outward-migrating giant sweeps the band it crossed, from its starting `a - migration` to `a`, and the zone with it: the disc inside
    `[a - migration - w, a + w]` is the swept mass. A giant that never moved sweeps only its zone.
 2. *Resonances.* The giant's outward migration carries its exterior resonances `P:1` outward through the disc (Malhotra): the 3:2 at `a (3/2)^(2/3)` = 1.31 `a` and the 2:1 at 1.59 `a`.
@@ -27,7 +27,7 @@ A giant-free disc keeps all its mass cold. The shares sum to 1. Defaults pending
 5. *Losses of the architecture* (GEN.1119, registry 6.98). Every body the architecture loses, the chain's sub-minimum bodies, the planets a giant sweeps or throws out and the mass a
    merge does not keep, is shared among `ejected`, `collided` and `bound` by `loss_fates` from the Safronov number at the place of the encounter, `Theta = q d / R` with the
    perturber's mass ratio `q`, its radius `R` and the body's own distance `d` (the escape speed over the orbital speed there: Theta far below 1 a scattered body mostly collides or
-   stays, far above it is thrown out; Safronov 1972, recalled). The ratio of ejection to collision goes as `Theta^EJECTION_THETA_EXPONENT`, and a body the perturber does not reach (outside
+   stays, far above it is thrown out; [R3867], recalled). The ratio of ejection to collision goes as `Theta^EJECTION_THETA_EXPONENT`, and a body the perturber does not reach (outside
    `reach_band_au`) stays bound. No draw is made: the shares are expected values and the rogue builder (GEN.1111) draws the discrete fate.
 
 Use:
@@ -44,10 +44,10 @@ _mearth_to_kg = units.converter("Mearth", "kg")
 _msun_to_kg = units.converter("Msun", "kg")
 
 ZONE_COEFFICIENT = 1.3
-"""float: The half-width of the chaotic zone over `a q^(2/7)` (Wisdom 1980, recalled from the design's table, row SX1)."""
+"""float: The half-width of the chaotic zone over `a q^(2/7)` ([R4727], recalled from the design's table, row SX1)."""
 
 DISC_SLOPE = 1.5
-"""float: The surface density of the disc goes as `a^-DISC_SLOPE` (the minimum-mass nebula, Hayashi 1981, recalled; row SX1)."""
+"""float: The surface density of the disc goes as `a^-DISC_SLOPE` (the minimum-mass nebula, [R1854], recalled; row SX1)."""
 
 RESONANCES = ((3, 2), (2, 1))
 """tuple: The exterior resonances `(p, q)` that capture (row SX2)."""
@@ -65,13 +65,13 @@ SWEPT_SPLIT = (("scattered_disc", 0.62), ("centaurs", 0.25), ("detached", 0.10),
 """tuple: How the swept mass that is not ejected is shared (sums to 1, row SX5, a stand-in)."""
 
 EJECTION_THETA_EXPONENT = 2.0
-"""float: Ejection to collision goes as Theta to this power (Safronov 1972, recalled; the cross-section for a hit grows as 1 + Theta, a throw-out needs the escape speed, row EJ1)."""
+"""float: Ejection to collision goes as Theta to this power ([R3867], recalled; the cross-section for a hit grows as 1 + Theta, a throw-out needs the escape speed, row EJ1)."""
 
 LOSS_BOUND_WEIGHT = 1.0
 """float: The weight of a scattered body that is neither hit nor thrown out, against a collision weight of 1 (row EJ1, a stand-in)."""
 
 DISC_LIFETIME_YR = 3.0e6
-"""float: The age at which the gas disc is gone and the giants have finished moving, the time of an architecture loss (Haisch et al. 2001, recalled; row EJ2)."""
+"""float: The age at which the gas disc is gone and the giants have finished moving, the time of an architecture loss ([R1750], recalled; row EJ2)."""
 
 POPULATIONS = ("cold_classical", "hot_classical", "resonant", "scattered_disc", "centaurs", "detached", "trojans", "ejected", "implanted_inner_belt", "captured_moons")
 """tuple: The keys of `scatter_shares`."""

@@ -3,15 +3,14 @@
 """
 Ozone absorption cross sections at high resolution, 195 to 830 nm, at three temperatures (GEN.443, AD9).
 
-Source: the MPI-Mainz UV/VIS Spectral Atlas of Gaseous Molecules, the frozen snapshot of 2013-06-24 (Keller-Rudek, Moortgat,
-Sander and Soerensen 2013, Earth Syst. Sci. Data 5, 365, doi:10.5194/essd-5-365-2013; Zenodo record 6951,
-doi:10.5281/zenodo.6951, CC BY 4.0; 126 MB). Nine of its 5,756 files are read, four of the Brion, Daumont, Malicet and
-Jenouvrier group (Daumont et al. 1992, Malicet et al. 1995, Brion et al. 1998) and five of Burkholder and Talukdar (1994):
+Source: the MPI-Mainz UV/VIS Spectral Atlas of Gaseous Molecules, the frozen snapshot of 2013-06-24 ([R2303], Earth Syst. Sci. Data 5, 365, [R2303]; Zenodo record 6951,
+[R2302], CC BY 4.0; 126 MB). Nine of its 5,756 files are read, four of the Brion, Daumont, Malicet and
+Jenouvrier group [R0543, R1000, R2832] and five of [R0599]:
 
 - 218 K, 243 K and 295 K from 195 to 345 nm at 0.01 nm (the Hartley and Huggins bands; the temperature changes the UV-B
   cross section by a factor of three at 330 nm), and
 - 295 K from 195 to 830 nm at 1 nm (the Chappuis band, 410 to 760 nm, peak 5.1e-21 cm2 near 602 nm), and
-- 220, 240, 260, 280 and 298 K from 407 to 762 nm (Burkholder and Talukdar 1994, GRL 21, 581; GEN.748): the Chappuis band changes with the
+- 220, 240, 260, 280 and 298 K from 407 to 762 nm ([R0599]; GEN.748): the Chappuis band changes with the
   temperature by up to a third at its blue edge, and these five tables give the change as a ratio to the 298 K one.
 
 The archive is a transient piece: setup downloads it once, checks its sha256, writes `ozone_uv.npz` with the four tables and
@@ -50,7 +49,7 @@ MEMBERS = {
 TEMPERATURES_K = (218.0, 243.0, 295.0)
 """tuple: The temperatures of the three ultraviolet tables."""
 CHAPPUIS_TEMPERATURES_K = (220.0, 240.0, 260.0, 280.0, 298.0)
-"""tuple: The temperatures of the five Chappuis tables of Burkholder and Talukdar (1994), keys `bt220` to `bt298`."""
+"""tuple: The temperatures of the five Chappuis tables of [R0599], keys `bt220` to `bt298`."""
 CHAPPUIS_RANGE_NM = (407.0, 762.0)
 """tuple: What those tables cover; the ratio to the 298 K table is 1 outside it."""
 
@@ -78,7 +77,7 @@ def derive(folder):
 DATASET = fetch.Dataset(
     key="ozone_uv",
     title="Ozone absorption cross sections, 195 to 830 nm at 218, 243 and 295 K, and the Chappuis band at 220 to 298 K (Brion, Daumont, Malicet; Burkholder and Talukdar; MPI-Mainz atlas)",
-    source="Keller-Rudek et al. 2013 (ESSD 5, 365), MPI-Mainz UV/VIS Spectral Atlas snapshot 2013-06-24, Zenodo 10.5281/zenodo.6951, CC BY 4.0",
+    source="[R2303] (ESSD 5, 365), MPI-Mainz UV/VIS Spectral Atlas snapshot 2013-06-24, Zenodo [R2302], CC BY 4.0",
     pieces=(fetch.Piece(ARCHIVE, "https://zenodo.org/records/6951/files/" + ARCHIVE + "?download=1",
                         "bea06f6f390b774b5f0aeffda1b912a6446ba287578d66486414c728c148e6c6", 126277969, transient=True),),
     replaces="the 20 nm band means of the gas table for ozone, which understate the transmission in the UV-B and misplace the UV index",
@@ -113,7 +112,7 @@ def _cell_means(nm, sigma, edges):
 def chappuis_ratio(located, edges, temperature_k):
     """
     The cross section of the Chappuis band at `temperature_k` over the 298 K one, on the cells of `edges` (GEN.748): the ratio of the cell
-    means of the tables of Burkholder and Talukdar (1994), linear in temperature between 220, 240, 260, 280 and 298 K, held outside that range,
+    means of the tables of [R0599], linear in temperature between 220, 240, 260, 280 and 298 K, held outside that range,
     and 1 where the tables do not reach (under 407 nm, over 762 nm) or hold no ozone absorption.
     """
     edges = np.asarray(edges, dtype=float)

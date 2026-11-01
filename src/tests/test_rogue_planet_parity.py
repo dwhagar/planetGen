@@ -33,7 +33,7 @@ ROGUE_ONLY_PREFIXES = ("rogue_", "galactic_", "ejection_", "parent_system")
 """tuple: The columns only a rogue planet has: its note (`rogue_note`), its motion round the galaxy in place of an orbit, and the system it was
 ejected from (GEN.1111)."""
 
-MISSING_CEILING = 160
+MISSING_CEILING = 202
 """int: Planet columns (net of `HOST_ONLY`) the rogue planet does not carry under the same name: 148 when the test was written (TEST.498), plus the
 columns the planet gained while the rogue is still a generator of its own (below). It falls to zero when the rogue is built through the planet code
 (GEN.1111 and the rogue train, where every one of them comes with the planet); until then it rises only by the planet columns a lane adds, named in
@@ -41,12 +41,20 @@ columns the planet gained while the rogue is still a generator of its own (below
 
 TEST.512 (found red on main at 8:48 AM EDT 2026-10-31): the gap was 160, not 148, and no change to the rogue path had opened it. Twelve planet
 columns were added by the planet items listed in `PLANET_COLUMNS_ADDED`; the rogue's own columns are the same as when the test was written."""
+ORIGINAL_GAP = 134
+"""int: The 148 columns of TEST.498, less the 14 old latitude temperature columns (`temp_polar_k` to `temp_terminator_swing_k`) that GEN.1108 part B dropped from
+the planet: the gap of the columns that were there when the test was written and still are."""
 PLANET_COLUMNS_ADDED = {
     "GEN.474 (intermediate ground)": ("ground_intermediate_fraction",),
     "GEN.768 (hours outside)": ("outside_hours_day", "outside_hours_limit"),
     "GEN.1034 (open-ocean tide)": ("ocean_liquid", "tide_range_neap_m", "tide_range_spring_m"),
     "GEN.1035 (stored surface liquid)": ("surface_liquid", "surface_liquid_depth_km", "surface_liquid_fraction"),
+    "GEN.1215 (what the surface liquids hold)": ("surface_liquid_acid_wt", "surface_liquid_acid_layer", "surface_liquid_ammonia_wt"),
+    "GEN.1159 (roundness, strength and binding energy)": ("roundness_ratio", "yield_strength_pa", "binding_energy_j"),
     "GEN.1097 (day and night state)": ("day_night_state", "days_per_year", "night_hours"),
+    "GEN.983 (belt dose of a moon)": ("dose_belt_msv_yr",),
+    "GEN.1108 (seven latitude bands)": tuple(f"band{n}_{name}" for n in range(1, 8) for name in (
+        "mean_k", "swing_k", "day_hours", "night_hours", "longest_day_days", "longest_night_days", "state")),
 }
 """dict: The planet columns added since TEST.498 was written, by the item that added them. A lane that adds a planet column raises
 `MISSING_CEILING` by its count and lists the names here; `test_the_columns_added_since_the_test_was_written_are_all_missing_from_the_rogue` checks
@@ -88,7 +96,7 @@ def test_the_gap_between_a_rogue_and_a_bound_planet_never_grows():
 
 def test_the_columns_added_since_the_test_was_written_are_all_missing_from_the_rogue():
     added = {name for names in PLANET_COLUMNS_ADDED.values() for name in names}
-    assert len(added) == MISSING_CEILING - 148, "the ceiling rises by exactly the columns named"
+    assert len(added) == MISSING_CEILING - ORIGINAL_GAP, "the ceiling rises by exactly the columns named"
     assert added <= set(missing_columns()), sorted(added - set(missing_columns()))
 
 
@@ -128,3 +136,54 @@ def test_a_rogue_planet_takes_its_class_from_the_same_classifier_as_a_bound_plan
     """`planetPhysics.apply_class` is the one place a body's class is set; the rogue has its own `rogue_class` wrapper."""
     from planetgen.generation.phenomena import rogue
     assert not hasattr(rogue, "rogue_class")
+
+
+# --- the matched draw (TEST.498: draw matched planets with and without a host and compare what the two chains make) ---------------------
+# Until a starless host exists (GEN.1111) the bound side is a `Planet` built `FAR_AU` from a G2 star with the rogue's own mass: the host's light
+# is then the ambient floor, which is the only thing a rogue has in its place.
+
+FAR_AU = 1.0e5
+BINS = ("terrestrial", "sub-neptune", "saturn", "jupiter")
+"""tuple: The rogue mass bins matched (the brown dwarf is a star's track, not a planet's)."""
+
+
+def _matched(mass_bin, seed):
+    """`(rogue, bound)`: a `RoguePlanet` of the bin and a `Planet` of the same mass far from a star, or the test is skipped where a dataset the
+    giant needs is not on this machine."""
+    from planetgen.datasets.fetch import DataMissing
+    from planetgen.util import draw
+    from tests.test_gen_builder_internals import make_system
+    system = make_system()
+    star = system.star
+    try:
+        with draw.bound(f"rogue-parity-{mass_bin}-{seed}"):
+            rogue = RoguePlanet(system.system_config, mass_bin=mass_bin)
+        with draw.bound(f"rogue-parity-bound-{mass_bin}-{seed}"):
+            bound = Planet(system.system_config, star, star.habitable_zone, FAR_AU, mass=rogue.mass_kg, moon_count=0)
+    except DataMissing as missing:
+        pytest.skip(f"a dataset the {mass_bin} needs is not on this machine: {missing}")
+    return rogue, bound
+
+
+@pytest.mark.parametrize("mass_bin", BINS)
+@pytest.mark.parametrize("seed", range(3))
+def test_a_rogue_and_a_bound_planet_of_one_mass_are_one_kind_of_body_of_one_size(mass_bin, seed):
+    from planetgen.physics import constants
+    rogue, bound = _matched(mass_bin, seed)
+    assert rogue.mass_kg == bound.mass
+    assert rogue.planet_type == bound.body_type
+    if rogue.planet_type == "t":
+        # a rocky body's radius follows its density, drawn from the same range in both chains
+        low, high = (value * 1000.0 for value in constants.PLANET_DENSITY["t"])
+        radii = [(rogue.mass_kg / (4.0 / 3.0 * 3.141592653589793 * density)) ** (1.0 / 3.0) / 1000.0 for density in (high, low)]
+        assert radii[0] * 0.8 <= bound.radius <= radii[1] * 1.2, (bound.radius, radii)
+
+
+@pytest.mark.xfail(strict=True, reason="the bound chain's equilibrium temperature has no internal heat in it (GEN.1111 slice: the starless host)")
+@pytest.mark.parametrize("mass_bin", BINS)
+def test_a_rogue_and_a_bound_planet_far_from_light_have_the_same_surface_temperature(mass_bin):
+    """The one quantity the rogue and the bound chain should differ in is starlight; with none, the surface is the internal heat's over the ambient
+    floor in both. Found (TEST.498, 2026-10-31): the bound chain returns the 2.725 K floor for a 5 Earth-mass body at 1e5 AU and the rogue chain 270 K."""
+    rogue, bound = _matched(mass_bin, 0)
+    assert abs(bound.surface_temperature - rogue.surface_temperature_k) <= 0.1 * rogue.surface_temperature_k, (
+        bound.surface_temperature, rogue.surface_temperature_k)

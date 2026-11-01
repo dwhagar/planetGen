@@ -17,11 +17,12 @@ import pytest
 
 from planetgen.physics import constants as phys_c, imf, main_sequence
 from planetgen import tuning as prog_c
-from planetgen.physics import stellar_abundances, stellar_evolution as se
+from planetgen.physics import alpha_tracks, stellar_abundances, stellar_evolution as se
 from planetgen.generation import star_population as sp
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.star import STAR_TYPE_PATTERN, Star
 from planetgen.generation.system import StarSystem
+from planetgen.util import draw
 
 SAMPLE_SIZE = 200_000
 
@@ -70,7 +71,9 @@ EXPECTED_SHARES = [
     ("white dwarf", 4.0, 7.0),
     ("subgiant", 0.08, 0.3),  # GEN.502: a light star's subgiant phase is 5% of its main sequence, not 10%
     ("giant", 0.12, 0.5),
-    ("pre-main-sequence", 2.0, 6.0),  # GEN.529: a red dwarf is still contracting for 0.1 to 0.7 Gy
+    # GEN.1174: a star is pre-main-sequence until its radius has settled (BHAC15, [R0254]): 0.19 Gy at 0.2 solar masses, 0.40 at 0.1, 0.05 at 0.8, no longer
+    # the 0.1 to 0.7 Gy of MIST's nuclear arrival (GEN.529, kept as `nuclear_arrival_yr`). The share is the part of the stars younger than that, 1.8 to 1.9% of this sample.
+    ("pre-main-sequence", 1.2, 6.0),
 ]
 
 
@@ -91,14 +94,14 @@ def test_main_sequence_luminosity_follows_mass(population):
     _, states = population
     for mass, age, state in states:
         if state["yerkes_class"] == "V":
-            row = main_sequence.state(mass, age, state["metallicity_fe_h"])
+            row = main_sequence.state(mass, age, alpha_tracks.track_fe_h(state["metallicity_fe_h"], age))
             assert state["luminosity_sol"] == pytest.approx(row.luminosity_sol)
 
 
 def test_every_state_is_in_its_own_phase(population):
     _, states = population
     for mass, age, state in states:
-        t_ms = se.main_sequence_lifetime_gy(mass, state["metallicity_fe_h"])
+        t_ms = se.main_sequence_lifetime_gy(mass, alpha_tracks.track_fe_h(state["metallicity_fe_h"], age))
         if state["yerkes_class"] in ("V", "PMS", "protostar"):
             assert age < t_ms
         else:
@@ -111,7 +114,7 @@ def test_white_dwarfs_are_earth_sized_and_dim(population):
     white_dwarfs = [state for _, _, state in states if state["yerkes_class"] == "VII"]
     assert white_dwarfs
     low, high = prog_c.WD_MASS_RANGE_SOL
-    # The heaviest the initial-final mass relation makes (1.33 solar masses, Cummings et al. 2018) is smaller than the
+    # The heaviest the initial-final mass relation makes (1.33 solar masses, [R0961]) is smaller than the
     # zero-temperature radius at the top of the range (2,700 km); a cold star is never smaller than that.
     smallest = stellar_abundances.white_dwarf_radius_solar(high) * phys_c.SOLAR_RADIUS_M / 1000.0
     for state in white_dwarfs:
@@ -151,7 +154,7 @@ def test_random_stars_are_self_consistent():
         if star.yerkes_class == "V":
             mass_sol = star.mass / phys_c.SOLAR_MASS_TO_KG
             luminosity_sol = star.luminosity / phys_c.SOLAR_LUMINOSITY
-            row = main_sequence.state(star.initial_mass_sol, star.age, star.metallicity_fe_h)
+            row = main_sequence.state(star.initial_mass_sol, star.age, alpha_tracks.track_fe_h(star.metallicity_fe_h, star.age))
             assert luminosity_sol == pytest.approx(row.luminosity_sol, rel=1e-6)
 
 
@@ -178,7 +181,7 @@ def test_binary_companions_share_the_primarys_age_and_are_dimmer():
 
 
 def test_planets_respect_their_stars_age_and_history():
-    for _ in range(400):
+    for _ in range(150):      # a whole system with moons, the air and the heat costs about 4 s, so 400 of them passed 900 s
         system = StarSystem(system_config=SystemConfig())
         hosts = [(system.star, system.planets)]
         if system.binary_type == "wide":
@@ -196,13 +199,19 @@ def test_planets_respect_their_stars_age_and_history():
                     assert all(moon.life_class is None for moon in body.moons)
 
 
-def test_a_required_habitable_world_gets_an_old_enough_living_star():
-    cfg = SystemConfig()
-    cfg.HABITABLE_WORLD = True
-    for _ in range(100):
-        star = Star(cfg)
-        assert star.age >= prog_c.LIFE_MIN_STAR_AGE_GY
-        assert star.yerkes_class != "VII"
+def test_a_requested_habitable_world_makes_a_star_too_young_or_dead_for_life_rarer_not_impossible():
+    """A request only raises the odds (GEN.1130): a star younger than life needs, or a white dwarf, is kept one time in `REQUEST_ODDS`, so the share
+    of them falls to a fraction of what the plain draw gives, and is not forced to zero."""
+    def unfit_share(requested):
+        draw.set_run_seed(5)
+        cfg = SystemConfig()
+        cfg.HABITABLE_WORLD = requested
+        stars = [Star(cfg) for _ in range(600)]
+        return sum(star.age < prog_c.LIFE_MIN_STAR_AGE_GY or star.yerkes_class == "VII" for star in stars) / len(stars)
+
+    plain, requested = unfit_share(False), unfit_share(True)
+    assert plain > 0.0
+    assert requested <= 0.5 * plain
 
 
 def test_from_params_rebuilds_a_star_without_rolling():
@@ -290,7 +299,19 @@ def test_a_populations_counts_are_worked_out_at_its_own_composition_not_the_suns
     assert sp.reference_fe_h("cluster") < -0.5 and sp.reference_fe_h(None) == sp.reference_fe_h("intermediate")
     # GEN.935: on the MIST tracks the halo's own-composition gain in bright stars is 1.09 (it was over 1.2 on the hand-set giants)
     for population, least in (("old", 1.02), ("halo", 1.05)):
-        solar = sp._bright_table(500.0, population, None, sp._law(population, None), 0.0, True)["fraction"]
+        solar = sp._bright_fraction(500.0, population, None, sp._law(population, None), 0.0)       # the share at the Sun's composition
         own = sp.bright_star_fraction(500.0, population)
         assert own > least * solar, (population, own, solar)
     assert sp.massive_star_fraction(8.0, "young") > 0.0
+
+
+def test_a_bright_share_is_worked_out_without_a_sampling_tables_bounds(monkeypatch):
+    """The share of stars that are bright needs the measure of a few stars a cell and no bound: the version-key battery
+    asks it of 23 populations, and building a table's bounds for each took minutes."""
+    def refuse(*_args, **_kwargs):
+        raise AssertionError("a bright share read a measure bound")
+    monkeypatch.setattr(sp, "_bright_measure_bound", refuse)
+    sp._bright_fraction.cache_clear()
+    share = sp.bright_star_fraction(2500.0, "old")
+    assert 0.0 < share < 1.0
+    assert sp.bright_star_fraction(2500.0, "old", mass_range=(8.0, None)) <= share

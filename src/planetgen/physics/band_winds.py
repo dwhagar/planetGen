@@ -16,7 +16,7 @@ of a slowly turning world and of the flow from the day side to the night side of
 `u_g = (R_s / f) (dT_ep / L) ln(P_s / P_top)` with `f = 2 Omega sin(latitude)`, `L` the distance from the equator to the pole `pi a / 2` and `ln(P_s / P_top)`
 `THERMAL_WIND_LOG_PRESSURE` (the surface to the tropopause). The band takes the smooth minimum of the two, `u0 u_g / sqrt(u0^2 + u_g^2)`: the thermal wind where `u_g < u0`
 (rapid rotation, a small thermal Rossby number `R_s dT_ep / (Omega a)^2`), the heat-engine speed where it is not (the equator, where `f` goes to zero, and the slow rotators).
-Each band is named for the regime it is in: **overturning** for a world with a thermal Rossby number of 1 or more (the Hadley cell reaches the poles, Held and Hou 1980);
+Each band is named for the regime it is in: **overturning** for a world with a thermal Rossby number of 1 or more (the Hadley cell reaches the poles, [R1888]);
 otherwise **trades** inside the Hadley cell's edge `sqrt(5/3 Ro_T)` radians, **westerlies** out to 60 degrees and **polar** beyond.
 
 **The surface.** Winds aloft reach the ground at a share of their speed (`SURFACE_COUPLING`, the boundary layer's drag), and at night, when the layer at the ground is
@@ -141,7 +141,7 @@ def _smooth_minimum(a, b):
 
 
 def hadley_edge_deg(thermal_rossby_number):
-    """The latitude, degrees, where the Hadley cell ends: `sqrt(5/3 Ro_T)` radians (Held and Hou 1980), the pole for a thermal Rossby number of 1 or more."""
+    """The latitude, degrees, where the Hadley cell ends: `sqrt(5/3 Ro_T)` radians [R1888], the pole for a thermal Rossby number of 1 or more."""
     if thermal_rossby_number >= 1.0:
         return 90.0
     return min(90.0, math.degrees(math.sqrt(5.0 / 3.0 * thermal_rossby_number)))

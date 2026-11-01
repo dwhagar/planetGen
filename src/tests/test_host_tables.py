@@ -3,6 +3,8 @@
 """GEN.552: the host classes and their gated tables. The tables only move what the code did into rows, so every draw is
 checked against the formula it replaced (`random() < odds`, `choices(range(1, 8), weights)`) over many seeds."""
 
+from dataclasses import replace
+
 import pytest
 
 from planetgen.generation import possibility_table as pt
@@ -14,6 +16,18 @@ ORIGINAL_MILLISECOND_PULSAR_PLANETS = 0.007
 ORIGINAL_ROGUE_MOON = 0.2
 
 
+def host_of(kind):
+    """The `HostClass` of the registry kind `kind`, or `None` for a kind that hosts nothing (a nebula, a comet)."""
+    name = registry.BY_KIND[kind].host
+    return None if name is None else hosts.BY_NAME[name]
+
+
+def reweighted(table, row_name, weight):
+    """A copy of `table` with the row `row_name` given `weight`; the other tests use it to move one row of a host table."""
+    rows = [replace(row, weight=weight) if row.name == row_name else row for row in table.rows]
+    return pt.Table(table.name, table.version, rows, table.components, table.description)
+
+
 def test_every_kind_names_a_host_class_or_none_and_every_class_has_its_tables():
     for row in registry.KINDS:
         assert row.host is None or row.host in hosts.BY_NAME, row.kind
@@ -22,7 +36,7 @@ def test_every_kind_names_a_host_class_or_none_and_every_class_has_its_tables():
         for name in (host.companions, host.satellites):
             assert name is None or name in pt.REGISTRY, (host.name, name)
     assert hosts.BY_NAME["moon"].companions is None and hosts.BY_NAME["moon"].satellites == "moon-satellites"
-    assert hosts.host_of("nebula") is None and hosts.host_of("neutron-star").name == "remnant"
+    assert host_of("nebula") is None and host_of("neutron-star").name == "remnant"
 
 
 def test_a_moon_and_a_small_body_have_host_rows_gated_by_may_host():
@@ -30,7 +44,7 @@ def test_a_moon_and_a_small_body_have_host_rows_gated_by_may_host():
     moon's table has only the empty row until GEN.579's tidal-survival row, so neither holds anything today."""
     small = hosts.BY_NAME["small-body"]
     assert not small.may_host and small.satellites is None
-    assert hosts.host_of("comet") is small and hosts.host_of("asteroid-field") is small
+    assert host_of("comet") is small and host_of("asteroid-field") is small
     moon = hosts.BY_NAME["moon"]
     assert moon.may_host
     assert [row.name for row in hosts.REGISTRY_TABLES["moon-satellites"].rows] == [hosts.NO_SATELLITES]
@@ -104,7 +118,7 @@ def test_the_no_satellites_row_is_the_rest_of_the_chance():
 
 
 def test_a_reweighted_table_changes_only_the_named_row():
-    table = hosts.reweighted(hosts.REMNANT_SATELLITES, "planets", 0.5)
+    table = reweighted(hosts.REMNANT_SATELLITES, "planets", 0.5)
     assert table.row("planets").weight == 0.5
     assert table.row(hosts.NO_SATELLITES) == hosts.REMNANT_SATELLITES.row(hosts.NO_SATELLITES)
     assert table.digest() != hosts.REMNANT_SATELLITES.digest()

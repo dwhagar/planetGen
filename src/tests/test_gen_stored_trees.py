@@ -330,10 +330,13 @@ def test_a_fill_builds_each_row_from_its_stored_tree_and_spends_the_rows_of_the_
             nodes = conn.execute("SELECT * FROM orbit_nodes WHERE star_system_id = ?", (system_id,)).fetchall()
             left = scatter_systems.read_stored_trees(conn, "bright_stars", [row["id"]])
             if plan.members:
-                assert sorted(s["role"] for s in stars) == sorted(
-                    ["primary", "secondary"] + ["member"] * (len(plan.members) - 2))
-                expected = sorted((m.mass_solar for m in trees[row["id"]].members), reverse=True)
+                # a dark member (GEN.1013: a brown dwarf, a remnant) hangs in the tree and is no star row
+                lit = plan.lit_members
+                assert sorted(s["role"] for s in stars) == (
+                    ["single"] if len(lit) == 1 else sorted(["primary", "secondary"] + ["member"] * (len(lit) - 2)))
+                expected = sorted((m.mass_solar for m in lit), reverse=True)
                 assert [s["mass_kg"] / SOLAR for s in stars] == pytest.approx(expected, rel=1e-6)
+                assert orbit_trees.read_dark_members(conn, system_id) == plan.dark_members
                 assert len(nodes) == len(plan.nodes)
                 for node, planned in zip(sorted(nodes, key=lambda n: n["node_no"]), plan.nodes):
                     for field in ("separation_km", "eccentricity", "inclination_deg", "ascending_node_deg", "period_years",

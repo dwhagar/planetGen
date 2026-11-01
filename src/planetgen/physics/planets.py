@@ -22,8 +22,8 @@ and moon in a system after all of them have been generated.
 import math
 import re
 
-from planetgen.physics import moon_history, body_state, bulk_draw, constants, giant_draw, giant_interior, giant_tilt, kepler, metallicity, moon_composition, orbit_elements, planet_classes, planet_kind, planet_mass, rings
-from planetgen.physics import aerosols, atmosphere, body_colour, body_spin, daylight, spin_torques, climate_draws, habitability_world, hosting_gate, hydrosphere, interior_heat, magnetism, ocean_tides, radiation, radiogenic, relations, spin, surface_air, surface_composition, tidal_spin
+from planetgen.physics import moon_history, body_state, bulk_draw, clearance_ledger, constants, giant_draw, giant_interior, giant_tilt, kepler, metallicity, moon_composition, orbit_elements, planet_classes, planet_kind, planet_mass, rings
+from planetgen.physics import aerosols, atmosphere, body_colour, body_spin, body_strength, daylight, spin_torques, climate_draws, habitability_world, hosting_gate, hydrosphere, interior_heat, magnetism, ocean_tides, radiation, radiogenic, relations, spin, surface_air, surface_composition, tidal_spin
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.util import log
@@ -124,7 +124,14 @@ def apply_class(planet):
     text of that class (the composition text is written from the stored fractions, GEN.430). Called when the body is built (so a
     request can test it) and again once the system is final (the seasonal swing of its starlight, `flux_variation`, is known only then).
     """
+    planet.planet_class = None
+    body_strength.generate(planet)      # GEN.1159: the roundness ratio the class reads (a giant body type has none)
     planet.planet_class = planet_classes.classify(planet)
+    if planet.planet_class is None:
+        # GEN.1160: a body whose roundness ratio is under 1 is an Asteroid, which is an object type and has no class letter
+        planet.description = planet_classes.ASTEROID.sentence
+        return
+    body_strength.generate(planet)      # again with the class: a terrestrial body of a giant class (an ice giant of rock and water) has no strength to measure
     data = tuning.PLANET_CLASSES[planet.planet_class]
     planet.description = data["description"]
     if planet.is_moon:
@@ -516,6 +523,7 @@ def calculate_atmospheric_conditions(planet, distance_override=None, host_eccent
     heat = interior_heat.update_heat(planet)
     giant = planet.body_type == "g"
     surface_w = None if giant else hydrosphere.draw_surface_water(planet)
+    planet._surface_w = surface_w                   # GEN.839: kept for `refresh_at_final_age`, not stored
     water_lost = (not giant) and hydrosphere.water_loss_kg(planet) > 0.0
 
     planet.surface_temperature = surface_temperature_no_atmosphere
@@ -533,7 +541,13 @@ def calculate_atmospheric_conditions(planet, distance_override=None, host_eccent
         planet.atm_molar_density = air.state.mean_molar_mass_kg_mol
         planet.atm_density = air.state.density_kg_m3
         planet.scale_height = _m_to_km(air.state.scale_height_m)
-        climate_draws.record(planet, albedo, air.greenhouse_factor)     # GEN.412: the two numbers the temperature is made of
+        factor = air.greenhouse_factor
+        if giant:
+            # GEN.412 reads the temperature as starlight alone times (1 + G)^(1/4); a giant also radiates its own heat, which the air's factor
+            # leaves out of T_e, so the stored G is taken against the starlight alone (GEN.1030) and the pair reproduces the temperature
+            factor = climate_draws.greenhouse_from_temperature(air.temperature_k, albedo, solar_output_at_orbit)
+            factor = air.greenhouse_factor if factor is None else max(factor, 0.0)
+        climate_draws.record(planet, albedo, factor)     # GEN.412: the two numbers the temperature is made of
         atmosphere.store_air(planet, air.partials_pa, None if giant else _mantle_redox(planet, air, distance, water_lost))
 
     # GEN.88: water, land, ice and the ocean's chemistry.
@@ -546,6 +560,29 @@ def calculate_atmospheric_conditions(planet, distance_override=None, host_eccent
     surface_composition.generate_surface(planet)
     # GEN.414: cloud, haze and dust depths, on the body's own stream (no draw of the run's moves).
     aerosols.generate_aerosols(planet)
+
+
+def refresh_at_final_age(body):
+    """
+    GEN.839: makes again, at the heat of the star's final age, what read the heat of the provisional one: the ice shell and the rest of
+    the hydrosphere (`hydrosphere.generate_hydrosphere`), the ground with its volcanism gate (`surface_composition.generate_surface`),
+    the ground dose when the ground changed (`radiation.update_ground_dose`), and the habitability score that reads them all. Called in the life pass, after
+    `interior_heat.update_heat` has run again at the final age. The draws these make (the brine, the ocean chemistry, the ground and its
+    gates) come from the body's own stream (`util.draw.Stream`, seeded from what is final about it), so no draw of the run's stream moves;
+    a body with no water drawn (a giant, a belt, or one loaded from the database) is left as it is.
+    """
+    surface_w = getattr(body, "_surface_w", None)
+    if body.body_type in ("g", "a") or surface_w is None:
+        return
+    seed = f"final-age:{body.is_moon}:{body.planet_class}:{body.mass!r}:{body.radius!r}:{body.distance!r}:{getattr(body.star, 'age', None)!r}"
+    flux = internal_heat_flux_w_m2(body)            # the heat at the star's age now (no draws; the life pass has run it already)
+    ground = surface_composition.mix_of(body)
+    with draw.bound(draw.Stream(seed)):
+        hydrosphere.generate_hydrosphere(body, flux, surface_w)
+        surface_composition.generate_surface(body)
+        if surface_composition.mix_of(body) != ground:
+            radiation.update_ground_dose(body)
+    habitability_world.generate(body, flux)
 
 
 def _mantle_redox(planet, air, distance, water_lost):
@@ -585,7 +622,7 @@ def generate_orbit_shape(planet, primary_mass_kg, planned_objects=None, parent_d
         hill_au = None
         if parent_distance_au is not None and primary_mass_kg and planet.star.mass:
             hill_au = _km_to_au(_m_to_km(calculate_hill_sphere(_au_to_m(parent_distance_au), primary_mass_kg, planet.star.mass)))
-        e_max = orbit_elements.max_moon_eccentricity(planet.distance, hill_au)
+        e_max = orbit_elements.max_moon_eccentricity(planet.distance, hill_au, getattr(planet, "host_eccentricity", None) or 0.0)
         birth = orbit_elements.draw_moon_eccentricity(planet.moon_origin, e_max)
     else:
         e_max = orbit_elements.max_planet_eccentricity(planet.distance, planet.star, planet)
@@ -721,7 +758,7 @@ def generate_spin(planet, primary_mass_kg, birth=None, found=None):
     if not planet.is_moon:
         daylight.generate(planet)
     # GEN.86: the field depends on the rotation just set.
-    magnetism.generate_field(planet)
+    magnetism.generate_field(planet, None if planet.body_type == "g" else interior_heat.core_of(planet))
     # GEN.87: the surface dose, from the air, water and field above.
     radiation.generate_dose(planet)
     # DB.96: the atmosphere colour, from the air, the ozone and the aerosols above.
@@ -853,7 +890,7 @@ def hosting_population(planet):
     """
     What the hosting gate (`physics.hosting_gate`) calls `planet`: a small body (under `tuning.HOSTING_SMALL_BODY_MAX_RADIUS_KM` in
     radius) is a `trans-neptunian-cold` or `trans-neptunian-hot` body past `tuning.HOSTING_TRANS_NEPTUNIAN_MIN_SNOW_LINES`
-    snow lines of its star (cold under `tuning.HOSTING_COLD_MAX_INCLINATION_DEG` of inclination, Stephens and Noll 2006), a
+    snow lines of its star (cold under `tuning.HOSTING_COLD_MAX_INCLINATION_DEG` of inclination, [R4207]), a
     `belt-small-body` in the cold zone short of that, and an `inner-small-body` in the hot or habitable zone; every other
     planet is a `planet`, which the gate's share table has no rows for (its host-class table decides).
     """
@@ -891,8 +928,8 @@ def moon_orbit_bounds_km(planet):
     past the rigid-body Roche limit of ~1.26 planet radii for similar
     densities), plus 15 atmospheric scale heights (or 100 km with no
     atmosphere) of drag-free margin. Outermost: the prograde stability
-    limit, `MOON_PROGRADE_STABLE_HILL_FRACTION` of the Hill radius; past it
-    the star strips the moon.
+    limit of [R1138], a fraction of the Hill radius that the planet's eccentricity lowers
+    (0.4895 on a circular orbit, `clearance_ledger.moon_bounds_km`); past it the star strips the moon.
 
     Returns:
         tuple: `(low_km, high_km)`; `low_km >= high_km` means no room.
@@ -900,8 +937,15 @@ def moon_orbit_bounds_km(planet):
     max_moon_radius = planet.radius / (10 ** (1 / 3))
     atmosphere_margin_km = planet.scale_height * 15 if planet.scale_height else 100
     low_km = planet.radius + max_moon_radius + atmosphere_margin_km
-    high_km = planet.hill_radius * tuning.MOON_PROGRADE_STABLE_HILL_FRACTION
+    high_km = clearance_ledger.moon_bounds_km(planet.radius, planet.hill_radius, getattr(planet, "eccentricity", None) or 0.0)[1]
     return low_km, high_km
+
+
+def moon_stable_limit_km(planet, moon_eccentricity=0.0):
+    """The farthest semi-major axis, km from `planet`'s centre, a moon of this eccentricity keeps ([R1138]: the
+    fit is for the semi-major axis, and the moon's own eccentricity lowers it)."""
+    return clearance_ledger.moon_bounds_km(planet.radius, planet.hill_radius, getattr(planet, "eccentricity", None) or 0.0,
+                                           moon_eccentricity or 0.0)[1]
 
 
 def drop_unstable_moons(planet):
@@ -916,10 +960,10 @@ def drop_unstable_moons(planet):
     Returns:
         int: How many moons were dropped.
     """
-    low_km, high_km = moon_orbit_bounds_km(planet)
+    low_km, _high_km = moon_orbit_bounds_km(planet)
     max_moon_radius, max_moon_mass = moon_size_limits(planet)
     kept = [moon for moon in planet.moons
-            if low_km <= _au_to_km(moon.distance) and _au_to_km(orbit_elements.apoapsis_au(moon.distance, moon.eccentricity)) <= high_km
+            if low_km <= _au_to_km(moon.distance) <= moon_stable_limit_km(planet, moon.eccentricity)
             and moon.radius <= max_moon_radius and moon.mass <= max_moon_mass]
     dropped = len(planet.moons) - len(kept)
     planet.moons[:] = kept

@@ -58,7 +58,7 @@ from planetgen.util.settings import get_settings  # noqa: E402
 from planetgen.util import chem, settings_view  # noqa: E402
 
 from . import adminregistry, csrf, errors, seo, transport  # noqa: E402
-from .helpers import HELP_MENU, HELP_SECTIONS, NAV_MENU, current_admin, page_url, visible_sections  # noqa: E402
+from .helpers import HELP_SECTIONS, NAV_MENU, current_admin, help_menu, page_url, reference_link, visible_sections  # noqa: E402
 
 # `default-src 'self'` covers scripts, styles, images, fonts and fetch():
 # the pages only load same-origin `static/` files, the map pages build
@@ -214,7 +214,7 @@ def _template_globals():
         "privacy_note": get_settings().seo.privacy_note,
         "sections": visible_sections,
         "nav_menu": NAV_MENU,
-        "help_menu": HELP_MENU,
+        "help_menu": help_menu(),
         "help_sections": HELP_SECTIONS,
         "static_url": static_url,
         "module_graph": module_graph,
@@ -225,6 +225,7 @@ def _template_globals():
         "habitability_symbol_row": habitability_symbol_row,
         "habitability_life": habitability_life,
         "page_url": page_url,
+        "reference_link": reference_link,
         "current_admin": current_admin,
         "admin_shell": lambda section: adminregistry.shell(section, page_url, current_admin()),
         "admin_job": lambda: generate_page.strip_view(),
@@ -275,6 +276,7 @@ from . import facility_type_pages  # noqa: E402,F401 -- /admin/facility-types
 from . import system_page  # noqa: E402,F401 -- /admin/generate/system
 from . import population_pages  # noqa: E402,F401 -- /species, /polities
 from . import class_pages  # noqa: E402,F401 -- /classes, /classes/<type>, /classes/<type>/<code>
+from . import references_pages  # noqa: E402,F401 -- /references (DOC.88), the one section that speaks out of universe
 from . import maintenance_page  # noqa: E402,F401 -- /maintenance (UX.112)
 from . import galaxy_status_page  # noqa: E402,F401 -- /galaxy-status (UX.3)
 from . import object_lists  # noqa: E402,F401 -- /lists, /lists/<kind> (UX.141)
@@ -384,6 +386,6 @@ def init_app(app, limiter=None):
     _install_page_cache(app)
     if app.config.get("SECRET_KEY_IS_EPHEMERAL"):
         app.logger.warning(
-            "No secret_key in config.json (or PLANETGEN_SECRET_KEY): using a random key for this "
+            "The secret key could not be kept in the state folder: using a random key for this "
             "process. Forms still work, but ones left open across a restart must be resubmitted."
         )

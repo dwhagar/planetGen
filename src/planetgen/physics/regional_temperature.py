@@ -1,31 +1,32 @@
 # planetgen/physics/regional_temperature.py
 
 """
-Regional temperatures and the day and night swing (GEN.656; docs/design/habitability/survival-equipment-fields.md,
+Regional temperatures and the day and night swing (GEN.656, GEN.1108; docs/design/habitability/survival-equipment-fields.md,
 section 5.5, Boss's decision C of 2026-10-23).
 
 The PHI-6 score and the required survival gear read one average surface temperature. This module spreads that mean
 over the world so the detail text can say where it is colder or hotter than the mean, and by how much the day and the
-night differ. Everything is a pure function of stored columns (no draws, no epoch):
+night differ. Everything is a pure function of stored columns (no draws, no epoch). Since GEN.1108 the places are the seven
+bands of `physics/latitude_bands.py` (the equator band, three on each side of it, the poles inside the outermost): for each
+`band1` (north pole) to `band7` (south pole) the stored columns are `bandN_mean_k`, `bandN_swing_k`, `bandN_day_hours`,
+`bandN_night_hours`, `bandN_longest_day_days`, `bandN_longest_night_days` and `bandN_state` (`column`), and the world's mean
+swing is `temp_mean_swing_k`. A tidally locked world has no latitude day: its seven bands are the rings from the point under
+its star to the point away from it (`band1` the day centre, `band7` the night centre), with no hours.
 
-* **Latitude bands** (a world that turns on its own): Polar (60 degrees and over, 13 percent of the surface),
-  Northern (20 to 60 N, 26 percent), Equatorial (20 S to 20 N, 34 percent), Southern (20 to 60 S, 26 percent). Each
-  takes the annual-mean insolation of its band on a circular orbit for the stored axial tilt (`band_insolation`),
-  turned into a temperature by the fourth-root law and scaled so the area-weighted mean of the bands is the world's
-  mean. The air then carries heat poleward (`transport_share`): the share `x / (x + TRANSPORT_X0)` of the contrast
+* **Temperatures**: each band takes the annual-mean insolation of its band on a circular orbit for the stored axial tilt
+  (`band_insolation`), turned into a temperature by the fourth-root law and scaled so the area-weighted mean of the bands is the
+  world's mean. The air then carries heat poleward (`transport_share`): the share `x / (x + TRANSPORT_X0)` of the contrast
   is removed, `x` being the air column (pressure over gravity) in Earth's.
-* **Tidally locked worlds** (the rotation period is the orbital period): the day side, the terminator ring and the
-  night side take the place of the bands, and the same transport share pulls them toward the mean.
 * **The swing**: a damped-oscillator estimate. Without damping the equatorial noon is `sqrt(2)` times the mean and
   the night is cold; the heat capacity of the air column (`c_p P / g`) plus the skin of the ground
   (`I sqrt(period / pi)`) against the radiative loss `4 sigma T^3` gives a time constant `tau`, and the swing is cut
-  by `sqrt(1 + (omega tau)^2)` and by the share of the contrast the air carries away.
+  by `sqrt(1 + (omega tau)^2)` and by the share of the contrast the air carries away; a band's is the equator's times the
+  cosine of its latitude.
 
-The orbits here are circular, so Northern and Southern are equal; the columns stay separate for the eccentric orbit
+The orbits here are circular, so a north band and its south twin are equal; the columns stay separate for the eccentric orbit
 the model will gain.
 """
 
-import functools
 import math
 
 import numpy as np
@@ -36,28 +37,25 @@ from planetgen.physics import unit_registry as units
 _yr_to_s = units.converter("yr", "s")
 _s_to_h = units.converter("s", "h")
 
-FIELDS = (
-    "temp_polar_k", "temp_north_k", "temp_equator_k", "temp_south_k", "temp_swing_k",
-    "temp_day_side_k", "temp_terminator_k", "temp_night_side_k",
-    "temp_polar_swing_k", "temp_north_swing_k", "temp_south_swing_k", "temp_mean_swing_k",
-    "temp_day_side_swing_k", "temp_terminator_swing_k", "temp_night_side_swing_k",
-)
-"""tuple: The stored columns on `planets` and `moons`: the four latitude bands and the swing for a world that turns on
-its own, the three zones for a tidally locked one (the other group is `None`), all in kelvin. The swings (GEN.848) are
-differences, not places: `temp_swing_k` is the equator's, the other bands, the mean of the world and the three zones have
-a swing of their own."""
+BAND_COUNT = 7
+"""int: How many bands a body's climate is stored in (`latitude_bands`)."""
 
-SWING_OF = {
-    "temp_polar_k": "temp_polar_swing_k", "temp_north_k": "temp_north_swing_k", "temp_equator_k": "temp_swing_k",
-    "temp_south_k": "temp_south_swing_k", "surface_temperature_k": "temp_mean_swing_k",
-    "temp_day_side_k": "temp_day_side_swing_k", "temp_terminator_k": "temp_terminator_swing_k",
-    "temp_night_side_k": "temp_night_side_swing_k",
-}
-"""dict: For each stored temperature, the column of its day and night swing, peak to peak (GEN.848)."""
+BAND_FIELDS = ("mean_k", "swing_k", "day_hours", "night_hours", "longest_day_days", "longest_night_days", "state")
+"""tuple: What is stored for each band: the mean temperature (K), the day and night swing, peak to peak (K), the hours of day and of night in a solar day, the longest
+polar day and night of the year (days) at the poleward edge, and the state word."""
 
-BANDS = (("polar", 60.0, 90.0), ("north", 20.0, 60.0), ("equator", -20.0, 20.0), ("south", -60.0, -20.0))
-"""tuple: `(name, from latitude, to latitude)` of the bands, degrees. Polar is the cap above 60 degrees at either pole
-(the same on a circular orbit)."""
+
+def column(number, field):
+    """The stored column of band `number` (1, the north pole, to 7, the south pole; for a locked world 1 the day centre to 7 the night centre) and `field` of `BAND_FIELDS`."""
+    return f"band{number}_{field}"
+
+
+BAND_COLUMNS = tuple(column(number, field) for number in range(1, BAND_COUNT + 1) for field in BAND_FIELDS)
+"""tuple: Every band column, band by band."""
+
+FIELDS = (*BAND_COLUMNS, "temp_mean_swing_k")
+"""tuple: The stored columns on `planets` and `moons` (kelvin, hours, days and a state word): the seven bands, and the mean swing of the world (the area-weighted mean of
+the bands'). All `None` for a body with no temperature or rotation period."""
 
 TRANSPORT_X0 = 20.0
 """float: The air column, in Earth's, at which the air removes half of the pole to equator contrast (DESIGN). Fitted
@@ -96,7 +94,6 @@ fourth root of the cosine of the angle from the sub-stellar point is 4/5, times 
 SUBSTELLAR_RATIO = math.sqrt(2.0)
 """float: The noon equator over the mean for a world that cools completely at night (`4^(1/4)`)."""
 
-_LATITUDE_STEPS = 24
 _SEASON_STEPS = 72
 
 
@@ -115,54 +112,6 @@ def _annual_insolation(latitude, tilt):
     longitude = (np.arange(_SEASON_STEPS) + 0.5) / _SEASON_STEPS * 2.0 * math.pi
     declination = np.arcsin(math.sin(tilt) * np.sin(longitude))
     return _daily_insolation(np.asarray(latitude)[:, None], declination[None, :]).mean(axis=1)
-
-
-def band_insolation(tilt_deg):
-    """`_band_insolation` as a new dict each time (PERF.201: a tilt seen again is not worked out again)."""
-    return dict(_band_insolation(tilt_deg))
-
-
-@functools.lru_cache(maxsize=256)
-def _band_insolation(tilt_deg):
-    """
-    `{band: annual-mean insolation over the planet's mean}` for the four bands of `BANDS` (area-weighted over the
-    band's latitudes, so a sphere averages 1). The south pole's cap and the north pole's are the same by symmetry of
-    the circular orbit, so the Polar band is the north cap. Worked out for every band's latitudes at once (TEST.392:
-    this was a Python loop of 24 by 72 steps a band and most of the time of drawing a planet).
-    """
-    tilt = math.radians(min(max(tilt_deg or 0.0, 0.0), 180.0))
-    out = {}
-    for name, low, high in BANDS:
-        latitude = np.radians(low + (np.arange(_LATITUDE_STEPS) + 0.5) / _LATITUDE_STEPS * (high - low))
-        weight = np.cos(latitude)
-        out[name] = float(4.0 * np.sum(weight * _annual_insolation(np.abs(latitude), tilt)) / np.sum(weight))
-    return out
-
-
-@functools.lru_cache(maxsize=1)
-def _band_swing_ratios():
-    """
-    `{band: its day and night swing over the equator's}` (GEN.848). The day and night swing of a place is driven by the daily
-    variation of its insolation, whose first harmonic is proportional to the cosine of the latitude (the Sun's elevation swings by
-    `cos(latitude) cos(declination)` of a degree-turn a day) and which the thermal response of the ground and air carries
-    linearly, so a band's swing over the equator band's is the area-weighted mean of `cos(latitude)` over the band over the
-    equator band's. A pole has no day to speak of; the equator band is 1 by construction.
-    """
-    out = {}
-    for name, low, high in BANDS:
-        latitude = np.radians(low + (np.arange(_LATITUDE_STEPS) + 0.5) / _LATITUDE_STEPS * (high - low))
-        weight = np.cos(latitude)
-        out[name] = float(np.sum(weight * np.cos(latitude)) / np.sum(weight))
-    return {name: value / out["equator"] for name, value in out.items()}
-
-
-def band_areas():
-    """`{band: share of the surface}`: the Polar cap counts both poles (13 percent)."""
-    shares = {}
-    for name, low, high in BANDS:
-        share = (math.sin(math.radians(high)) - math.sin(math.radians(low))) / 2.0
-        shares[name] = share * (2.0 if name == "polar" else 1.0)
-    return shares
 
 
 def column_in_earths(pressure_pa, gravity_ms2):
@@ -199,15 +148,6 @@ def swing_k(mean_k, pressure_pa, gravity_ms2, rotation_period_hours):
     return SUBSTELLAR_RATIO * mean_k / math.sqrt(1.0 + (omega * time_constant) ** 2)
 
 
-TEMPERATURE_FIELDS = ("surface_temperature_k", "temp_polar_k", "temp_north_k", "temp_equator_k", "temp_south_k",
-                      "temp_day_side_k", "temp_terminator_k", "temp_night_side_k")
-"""tuple: The stored temperatures of a planet or moon that are places on the scale (the swing is a difference)."""
-
-RANGE_FIELDS = tuple(SWING_OF)
-"""tuple: The stored temperatures that have a day and night range (GEN.796, GEN.848): each has a swing column of its own
-(`SWING_OF`), the peak to peak of its place (the equator's is `swing_k`)."""
-
-
 def daily_range(value_k, swing_k):
     """
     `(low, high)` kelvin: the coldest and hottest hour of a place whose stored temperature is `value_k` and whose day and
@@ -224,45 +164,35 @@ def daily_range(value_k, swing_k):
 def compute(values):
     """
     The `FIELDS` of a rocky body from its column-named `values` (`habitability_world.values_from_body`, or a row):
-    `surface_temperature_k`, `atmospheric_pressure_pa`, `gravity_g`, `rotation_period_hours`, `axial_tilt_deg` and
-    `period_years`. Everything is `None` for a body without a temperature or a rotation period.
+    `surface_temperature_k`, `atmospheric_pressure_pa`, `gravity_g`, `rotation_period_hours`, `axial_tilt_deg`, `period_years` and the
+    mean share of the time the star is up, `day_share_mean`, from which the angular radius of the star is worked out. Everything is
+    `None` for a body without a temperature or a rotation period.
     """
+    from planetgen.physics import latitude_bands       # here: it reads this module's laws
     out = dict.fromkeys(FIELDS)
-    mean = values.get("surface_temperature_k")
-    rotation = values.get("rotation_period_hours")
-    if not mean or mean <= 0.0 or not rotation or rotation <= 0.0:
+    bands = latitude_bands.compute(values, latitude_bands.alpha_deg_of(values))
+    if not bands:
         return out
-    pressure = values.get("atmospheric_pressure_pa") or 0.0
-    gravity = (values.get("gravity_g") or 0.0) * constants.EARTH_GRAVITY
-    column = column_in_earths(pressure, gravity)
-    locked = is_locked(rotation, values.get("period_years"))
-    share = transport_share(column, locked)
-    if locked:
-        zones = {"day_side": DAY_SIDE_RADIATIVE, "terminator": TERMINATOR_RADIATIVE, "night_side": 0.0}
-        for name, radiative in zones.items():
-            temperature = mean + (radiative * mean - mean) * (1.0 - share)
-            out[f"temp_{name}_k"] = max(temperature, NIGHT_FLOOR_K)
-            out[f"temp_{name}_swing_k"] = 0.0    # GEN.848: a locked world turns once an orbit, so no place on it has a day
-        out["temp_mean_swing_k"] = 0.0
-        return out
-    insolation = band_insolation(values.get("axial_tilt_deg"))
-    areas = band_areas()
-    ratios = {name: insolation[name] ** 0.25 for name in insolation}
-    scale = sum(areas[name] * ratios[name] for name in ratios) / sum(areas.values())
-    for name in ratios:
-        radiative = ratios[name] / scale
-        out[f"temp_{name}_k"] = mean + (radiative * mean - mean) * (1.0 - share)
-    equator_swing = swing_k(mean, pressure, gravity, rotation) * (1.0 - share)
-    out["temp_swing_k"] = equator_swing
-    swing_ratios = _band_swing_ratios()
-    for name in ("polar", "north", "south"):
-        out[f"temp_{name}_swing_k"] = equator_swing * swing_ratios[name]    # GEN.848
-    out["temp_mean_swing_k"] = sum(areas[name] * equator_swing * swing_ratios[name] for name in swing_ratios) / sum(areas.values())
+    for number, band in enumerate(bands, 1):
+        for field in BAND_FIELDS:
+            out[column(number, field)] = getattr(band, field)
+    out["temp_mean_swing_k"] = sum(band.area_share * (band.swing_k or 0.0) for band in bands) / sum(band.area_share for band in bands)
     return out
 
 
 def summary(values):
-    """The regions object the API serves, kelvin by short name (`polar`, `north`, `equator`, `south`, `swing`, `day_side`,
-    `terminator`, `night_side`; only the ones the body has), or `None` for a body that has none."""
-    out = {field[len("temp_"):-len("_k")]: values[field] for field in FIELDS if values.get(field) is not None}
-    return out or None
+    """
+    The regions object the API serves (`None` for a body that has none): `bands`, the seven bands from the north pole to the south pole (the day centre to the night centre
+    for a world that turns once an orbit), each `{"name", "mean_k", "swing_k", "day_hours", "night_hours", "longest_day_days", "longest_night_days", "state"}` with the
+    fields the body has, and `mean_swing_k`. Names are `latitude_bands.NAMES`, or `RING_NAMES` for a locked world.
+    """
+    from planetgen.physics import latitude_bands
+    bands = []
+    for number in range(1, BAND_COUNT + 1):
+        entry = {field: values.get(column(number, field)) for field in BAND_FIELDS}
+        if entry["mean_k"] is None:
+            return None
+        state = entry["state"]
+        names = latitude_bands.RING_NAMES if state in latitude_bands.RING_STATES else latitude_bands.NAMES
+        bands.append({"name": names[number - 1], **{key: value for key, value in entry.items() if value is not None}})
+    return {"bands": bands, "mean_swing_k": values.get("temp_mean_swing_k")}

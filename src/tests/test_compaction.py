@@ -29,11 +29,13 @@ def _density(mass_kg, rock):
 # --- the laws ----------------------------------------------------------------------------------------------------
 
 def test_the_brittle_laws_are_bierson_and_nimmo_table_1():
-    assert cp.ice_porosity(0.0) == pytest.approx(0.60)
-    assert cp.ice_porosity(5e6) == pytest.approx(0.60 * math.exp(-0.5))
-    assert cp.ice_porosity(1e9) == pytest.approx(0.20)
-    assert cp.silicate_porosity(1e5) == pytest.approx(0.6)
-    assert cp.silicate_porosity(1e8) == pytest.approx(0.6 * 100.0 ** -0.11)
+    # the laws are in the table builder (the table cannot be read before it is built); the module keeps the grain densities
+    build = _builder()
+    assert build.ice_porosity(0.0) == pytest.approx(0.60)
+    assert build.ice_porosity(5e6) == pytest.approx(0.60 * math.exp(-0.5))
+    assert build.ice_porosity(1e9) == pytest.approx(0.20)
+    assert build.silicate_porosity(1e5) == pytest.approx(0.6)
+    assert build.silicate_porosity(1e8) == pytest.approx(0.6 * 100.0 ** -0.11)
     assert cp.ICE_GRAIN_KG_M3 == 920.0 and cp.SILICATE_GRAIN_KG_M3 == 3500.0
 
 
@@ -49,7 +51,6 @@ def test_the_taper_is_one_below_1e19_zero_above_1e21_and_linear_in_log_mass():
 def test_the_mixing_rule_is_one_over_the_sum_of_fractions_over_densities():
     rho = cp.grain_density_kg_m3({"water ice": 0.3, "forsterite": 0.7})
     assert rho == pytest.approx(1.0 / (0.3 / 917.0 + 0.7 / 3271.0))
-    assert cp.small_body_density_kg_m3({"water ice": 0.3, "forsterite": 0.7}, 0.25) == pytest.approx(0.75 * rho)
     # fractions are scaled, a stated density overrides the table, and the result lies between the grains
     assert cp.grain_density_kg_m3({"water ice": 3.0, "forsterite": 7.0}) == pytest.approx(rho)
     assert cp.grain_density_kg_m3({"complex organics": 1.0}, densities={"complex organics": 2000.0}) == pytest.approx(2000.0)
@@ -58,7 +59,7 @@ def test_the_mixing_rule_is_one_over_the_sum_of_fractions_over_densities():
 
 def test_a_bad_mixture_is_refused():
     for call in (lambda: cp.grain_density_kg_m3({}), lambda: cp.grain_density_kg_m3({"forsterite": -1.0, "iron": 2.0}),
-                 lambda: cp.grain_density_kg_m3({"olivine": 1.0}), lambda: cp.small_body_density_kg_m3({"iron": 1.0}, 1.0)):
+                 lambda: cp.grain_density_kg_m3({"olivine": 1.0})):
         with pytest.raises(ValueError):
             call()
     with pytest.raises(KeyError):

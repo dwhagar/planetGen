@@ -20,6 +20,7 @@ from planetgen.admin import maintenance
 from planetgen.api.config import Config
 from planetgen.cli import generate as generate_cli
 from planetgen.cli import warm as warm_cli
+from planetgen.cli import warm_progress
 from planetgen.db import block_stats, dataversion, store
 from planetgen.galaxy import spherical
 from planetgen.galaxy.sector import SpaceSector
@@ -150,6 +151,24 @@ def test_the_galaxy_map_family_builds_the_opening_view_and_the_page(galaxy, spy)
     assert [call for call in spy if call.startswith(("/galaxy/sectors", "/galaxy/shape", "/galaxy/phenomena"))] == []
 
 
+def test_the_galaxy_map_family_warms_while_the_site_is_held_in_maintenance(galaxy, tmp_path, monkeypatch):
+    """The update warms the caches with the site closed; the page's maintenance redirect is not the warm-up's failure."""
+    monkeypatch.setenv(maintenance.FILE_ENV, str(tmp_path / "maintenance.json"))
+    maintenance.turn_on(by="update")
+    assert _web_worker(galaxy.config).get("/galaxy").status_code == 302, "a visitor is still sent to the maintenance page"
+    result = _warm(galaxy, "galaxy-map")
+    assert result["warmed"] > 0
+
+
+def test_the_galaxy_map_family_warms_an_empty_galaxy_in_maintenance(mysql_config, redis_server, tmp_path, monkeypatch):
+    """After a reset the galaxy holds nothing and the update still has to get through stage 1."""
+    monkeypatch.setenv(maintenance.FILE_ENV, str(tmp_path / "maintenance.json"))
+    monkeypatch.setenv("PLANETGEN_TILE_CACHE_DIR", str(tmp_path / "tiles"))
+    maintenance.turn_on(by="update")
+    result = warmup.warm_family(mysql_config.database, "galaxy-map", app=warmup.build_app(mysql_config))
+    assert result["family"] == "galaxy-map"
+
+
 def test_a_second_warm_up_finds_it_all_built(galaxy):
     first = _warm(galaxy, "sectors")
     second = _warm(galaxy, "sectors")
@@ -208,8 +227,8 @@ def test_every_cache_family_is_its_own_registered_command_with_one_unit():
     assert list(commands.KIND_OF_WARM_FAMILY) == list(warmup.FAMILIES)
     for family, kind in commands.KIND_OF_WARM_FAMILY.items():
         assert not commands.spec(kind).inline
-        if family in ("galaxy-nodes", "galaxy-deep-nodes", "sectors", "systems", "phenomena"):
-            continue   # many units, one a chunk of nodes or a slice of a listing: their own tests
+        if family in ("cluster-field", "galaxy-nodes", "galaxy-deep-nodes", "sectors", "systems", "phenomena"):
+            continue   # many units, one a part of the cluster field, a chunk of nodes or a slice of a listing: their own tests
         expansion = commands.expand_function(kind)({"database": "x", "cap": 4})
         assert expansion.units == [({"database": "x", "cap": 4}, 1.0)], "one unit that warms that family and no other"
     assert commands.spec(commands.END_MAP_REBUILD).summary
@@ -532,7 +551,7 @@ def test_a_phase_name_stands_for_all_its_families_in_the_order_of_the_run():
     assert warmup.expand_phases(["search", "lists", "deep-nodes", "lists"]) == [
         "lists", "galaxy-deep-nodes", "search"]
     steps = wrapper.steps_for("warm", _args("deep-nodes", "opening"))
-    assert [step.kind for step in steps] == ["warm-object-index", "warm-galaxy-map", "warm-lists",
+    assert [step.kind for step in steps] == ["warm-cluster-field", "warm-object-index", "warm-galaxy-map", "warm-lists",
                                                   "warm-galaxy-deep-nodes"]
     with pytest.raises(ValueError, match="no such cache family or phase"):
         warmup.expand_phases(["phase-seven"])
@@ -803,6 +822,11 @@ def script(monkeypatch, redis_server):
             [({"database": params["database"], "cap": params.get("cap")}, 1.0)], {}))
     # The object index is built on the database itself, not through the site; here it is one more faked family.
     monkeypatch.setattr(warmup, "warm_object_index_unit", lambda args, report: warmup._warm_unit("object-index", args))
+    # The cluster field is made from the database's own rows (PERF.225); here it is one more faked family.
+    from planetgen.galaxy import field_job
+    monkeypatch.setattr(field_job, "expand_field", lambda params: commands.Expansion(
+        [({"database": params["database"], "cap": params.get("cap")}, 1.0)], {}))
+    monkeypatch.setattr(field_job, "field_unit", lambda args, report: warmup._warm_unit("cluster-field", args))
     Plan.ran, Plan.failing, Plan.owners = [], {}, []
     return Plan
 
@@ -823,8 +847,8 @@ def test_a_failing_command_stops_the_list_exits_non_zero_and_is_named(script, ca
         warm_cli.run_warm(_args())
     assert exit_info.value.code == 1
     err = caplog.text
-    assert "the cache warm-up stopped: unit 0 of stage 6 failed: WarmupFailed: 2 of 9 pages did not answer" in err
-    assert [family for family, _cap, _db in script.ran] == ["object-index", "galaxy-map", "lists",
+    assert "the cache warm-up stopped: unit 0 of stage Warm systems: every system page failed: WarmupFailed: 2 of 9 pages did not answer" in err
+    assert [family for family, _cap, _db in script.ran] == ["cluster-field", "object-index", "galaxy-map", "lists",
                                                             "galaxy-nodes", "galaxy-deep-nodes", "sectors", "systems"], \
         "the wrapper's list stops at the failing command"
 
@@ -909,13 +933,10 @@ def test_the_warm_up_the_update_runs_does_not_wait_for_the_update(monkeypatch):
     warm_cli._wait_for_update()
 
 
-def test_the_opening_done_file_is_created(tmp_path):
-    """update.sh waits for this file before it reloads Apache."""
-    path = tmp_path / "opening"
-    warm_cli._mark_opening_done(None)
-    warm_cli._mark_opening_done(str(path))
-    assert path.exists()
-    warm_cli._mark_opening_done(str(tmp_path / "no" / "such" / "opening"))
+def test_the_progress_bar_counts_families():
+    """update.sh shows this line while it waits for the warm-up."""
+    assert warm_progress.text_bar(1, 4, "lists", width=8) == "[##------] 1/4 lists"
+    assert warm_progress.text_bar(4, 4, "search", width=8) == "[########] 4/4 search"
 
 
 def test_a_sigterm_ends_the_run_as_cancelled_not_stranded(script, redis_server, monkeypatch):

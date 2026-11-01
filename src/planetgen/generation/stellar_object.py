@@ -59,7 +59,7 @@ class StellarObject(LazySaladName, MassObject):
         "heliosphere_radius": "au", **GALACTIC_MOTION_UNITS,
         "a_crit_au": "au", "reflex_offset_x": "au", "reflex_offset_y": "au", "reflex_offset_z": "au",
         "rotation_period_hours": "h", **spin.SPIN_UNITS, **activity.STAR_ACTIVITY_UNITS, "metallicity_fe_h": "dex",
-        "snow_line_au": "au", **pre_main_sequence.DISK_UNITS,
+        "snow_line_au": "au", "nuclear_arrival_age_gy": "Gyr", **pre_main_sequence.DISK_UNITS,
     }
     """
     Every attribute set by `__init__`/`generate_star`, excluding `system_config` (a shared back-reference threaded
@@ -96,7 +96,7 @@ class StellarObject(LazySaladName, MassObject):
     `serialization.fields_from_dict`) -- still reads back `None` for any
     system saved before this field existed, rather than raising
     `AttributeError`. Populated only for a star that is one constituent of
-    an S-type (wide) binary: this star's own Holman & Wiegert (1999)
+    an S-type (wide) binary: this star's own [R1990]
     critical semi-major axis (see
     `orbits.holman_wiegert_critical_semimajor_axis`), the maximum orbit
     distance that stays long-term stable against its companion's
@@ -120,6 +120,12 @@ class StellarObject(LazySaladName, MassObject):
     """float or None: The age (Gy) at which a population-model star leaves
     its present evolutionary phase; `adjust_age_for_planets` keeps its age
     below it so the star's class stays true. None otherwise."""
+
+    nuclear_arrival_age_gy = None
+    """float or None: For a pre-main-sequence star of the population model,
+    the age (Gy) at which MIST's tracks put it on the main sequence (GEN.1174),
+    later than its `phase_end_age_gy`, the age its radius settles. None for
+    every other star."""
 
     _model_age_lifespan = None
     _model_fe_h = None
@@ -348,25 +354,6 @@ class StellarObject(LazySaladName, MassObject):
         if galactic_center_dist_ly is None:
             galactic_center_dist_ly = scales.default_galactocentric_ly()
         return calculate_galactic_orbit(galactic_center_dist_ly)
-
-
-def get_star_spectral_class(star):
-    """
-    Returns the uppercase spectral class character (e.g. 'G') for a star.
-
-    Works for both a plain `Star` and a `BinaryStarProxy`, without importing
-    `BinaryStarProxy` here (which would create a circular import) — a proxy
-    is detected by duck-typing on its `_primary` attribute, and its primary
-    star's type is used as the representative spectral class.
-
-    Args:
-        star: A `Star` or `BinaryStarProxy` instance.
-
-    Returns:
-        str: The uppercase spectral class character.
-    """
-    reference_star = star._primary if hasattr(star, '_primary') else star
-    return reference_star.type[0].upper()
 
 
 SPECTRAL_LETTERS = "OBAFGKM"

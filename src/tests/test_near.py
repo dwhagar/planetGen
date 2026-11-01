@@ -155,6 +155,14 @@ def test_a_stand_alone_facility_is_found_by_its_own_position(galaxy):
         conn.close()
 
 
+def _row_of(columns, **values):
+    """One row for `store.insert_*` built by column name from `columns` (the store's own list), so a column added to the table later is
+    `None` here and a name that is not a column fails the test, instead of every value after it shifting."""
+    unknown = set(values) - set(columns)
+    assert not unknown, f"not columns: {sorted(unknown)}"
+    return tuple(values.get(column) for column in columns)
+
+
 def _scatter_rows(config, center):
     """Two pre-placed bright stars (one built into a system) and an unbuilt scattered black hole near `center`, and
     a bright star and a black hole 40 pc away."""
@@ -163,13 +171,19 @@ def _scatter_rows(config, center):
     try:
         for offset in (0.0, 1.0, 40.0):
             point = (center[0] + offset, center[1], center[2])
-            store.insert_bright_stars(conn, [(*sector_address_at(point, EDGE_PC), *(int(round(v * 1000)) for v in point),
-                                              "young", "B", "III", 1e31, 1e7, 15000.0, 1e28, 0.05, 0.1, 8.0, None, 1, None)])
+            shell, band, wedge = sector_address_at(point, EDGE_PC)
+            x, y, z = (int(round(v * 1000)) for v in point)
+            store.insert_bright_stars(conn, [_row_of(
+                store.BRIGHT_STAR_COLUMNS, shell_index=shell, band_index=band, wedge_index=wedge,
+                position_x_mpc=x, position_y_mpc=y, position_z_mpc=z, population="young", star_type="B", yerkes_class="III",
+                mass_kg=1e31, radius_km=1e7, temperature_k=15000.0, luminosity_w=1e28, age_gy=0.05, lifespan_gy=0.1,
+                initial_mass_sol=8.0, seed=1)])
         for offset in (2.0, 40.0):
             point = (center[0] + offset, center[1], center[2])
-            store.insert_phenomenon_scatter(conn, [(7, 2, 3, "black-hole", "stellar",
-                                                    *(int(round(v * 1000)) for v in point), None, None, None, 99,
-                                                    None, None)])
+            x, y, z = (int(round(v * 1000)) for v in point)
+            store.insert_phenomenon_scatter(conn, [_row_of(
+                store.PHENOMENON_SCATTER_COLUMNS, shell_index=7, band_index=2, wedge_index=3, kind="black-hole", subtype="stellar",
+                position_x_mpc=x, position_y_mpc=y, position_z_mpc=z, seed=99)])
         conn.commit()
     finally:
         conn.close()

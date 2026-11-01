@@ -243,7 +243,7 @@ def test_a_finished_sector_job_gives_its_made_window():
     window = api_jobs._made_window(_fake_job(api_jobs.generate_neighborhood, start, end))
     assert window == {"since": 1791604800, "until": 1791605131}
     assert api_jobs._made_window(_fake_job(api_jobs.regenerate_sector, start, end))
-    assert api_jobs._made_window(_fake_job(api_jobs.settle_sectors, start, end)) is None
+    assert api_jobs._made_window(_fake_job(api_jobs.empty_sector, start, end)) is None
     assert api_jobs._made_window(_fake_job(api_jobs.generate_neighborhood, start, None)) is None
 
 

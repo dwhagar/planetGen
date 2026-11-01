@@ -49,23 +49,35 @@ def _item(row):
 HABITABILITY_KINDS = {"planet": "planets", "moon": "moons"}
 """dict: The kinds whose items carry their PHI-6 rating (UX.100), and the table that stores it."""
 
+PHYSICS_COLUMNS = {
+    "star": ("temperature_k", "luminosity_w", "age_gy"),
+    "planet": ("distance_km", "eccentricity", "surface_temperature_k"),
+    "moon": ("distance_km", "eccentricity", "surface_temperature_k"),
+}
+"""dict: The stored physics values each kind's items carry beside the index's own (UX.187: a star's temperature, luminosity
+and age; a planet's or moon's orbit size, eccentricity and surface temperature), read from the kind's table. The lists show
+them; they are not sorts (the index holds no column to order by)."""
+
+_TABLES = {"star": "stars", "planet": "planets", "moon": "moons"}
+
 HABITABILITY_COLUMNS = query._tier_columns()
 """tuple: The stored overall score and the six domain tiers (0 Blue to 3 Red) a planet or moon item carries."""
 
 
-def _with_habitability(conn, kind, items):
-    """Adds `HABITABILITY_COLUMNS` to each planet or moon item (`None` for a body that was not scored), read from the
-    kind's table by `source_id` in one query for the page."""
-    table = HABITABILITY_KINDS.get(kind)
-    if table is None or not items:
+def _with_table_values(conn, kind, items):
+    """Adds the kind's table values to each item (`None` for a row the table lacks), read by `source_id` in one query for
+    the page: a planet's or moon's `HABITABILITY_COLUMNS` (UX.100, `None` for a body that was not scored) and the
+    `PHYSICS_COLUMNS` of a star, planet or moon (UX.187)."""
+    table = _TABLES.get(kind)
+    columns = (*(HABITABILITY_COLUMNS if kind in HABITABILITY_KINDS else ()), *PHYSICS_COLUMNS.get(kind, ()))
+    if table is None or not columns or not items:
         return items
     ids = [item["source_id"] for item in items]
-    rows = conn.execute(f"SELECT id, {', '.join(HABITABILITY_COLUMNS)} FROM {table} WHERE id IN ({','.join('?' * len(ids))})",
-                        ids).fetchall()
+    rows = conn.execute(f"SELECT id, {', '.join(columns)} FROM {table} WHERE id IN ({','.join('?' * len(ids))})", ids).fetchall()
     found = {row["id"]: row for row in rows}
     for item in items:
         row = found.get(item["source_id"])
-        item.update({column: row[column] if row is not None else None for column in HABITABILITY_COLUMNS})
+        item.update({column: row[column] if row is not None else None for column in columns})
     return items
 
 
@@ -125,7 +137,7 @@ def list_objects(conn, kind, limit=DEFAULT_LIMIT, sort="name", descending=False,
             `past_end` true. `total` still counts the whole list.
 
     Returns:
-        dict: `items` (as `_item`; a planet's or moon's also with `phi4` and the six `tier_<domain>` ratings, UX.100), `next` (the printed ID to pass as `after`, `None` at the end), `total` (a
+        dict: `items` (as `_item`; a planet's or moon's also with `phi4` and the six `tier_<domain>` ratings, UX.100; a star's with its `temperature_k`, `luminosity_w` and `age_gy`, a planet's or moon's with its `distance_km`, `eccentricity` and `surface_temperature_k`, UX.187), `next` (the printed ID to pass as `after`, `None` at the end), `total` (a
         `CappedCount` past `query.COUNT_FALLBACK_CAP`) and, with a `start`, `past_end`.
 
     Raises:
@@ -161,7 +173,7 @@ def list_objects(conn, kind, limit=DEFAULT_LIMIT, sort="name", descending=False,
         last["items"].reverse()
         return {**last, "next": None, "total": total, "past_end": True}
     more = len(rows) > limit
-    items = _with_habitability(conn, kind, [_item(row) for row in rows[:limit]])
+    items = _with_table_values(conn, kind, [_item(row) for row in rows[:limit]])
     page = {"items": items, "next": items[-1]["id"] if more and items else None, "total": total}
     if start:
         page["past_end"] = False

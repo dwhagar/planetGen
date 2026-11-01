@@ -1,6 +1,6 @@
 # tests/test_giant_tilt.py
 
-"""The giant-impact tilt of an ice giant (GEN.1053): Uranus-like and Neptune-like cases, Kegerreis et al. 2018 angular momenta."""
+"""The giant-impact tilt of an ice giant (GEN.1053): Uranus-like and Neptune-like cases, [R2300] angular momenta."""
 
 import math
 
@@ -71,10 +71,6 @@ def test_the_draw_maps_unit_numbers_to_a_tilt():
     # the impactor mass runs over its share of the planet's
     assert math.isclose(gt.impactor_mass_earth(URANUS_M, 0.0), 0.02 * URANUS_M)
     assert math.isclose(gt.impactor_mass_earth(URANUS_M, 1.0), 0.25 * URANUS_M)
-
-
-def test_the_rings_and_moons_lie_in_the_equator():
-    assert gt.ring_plane_tilt_deg(97.8) == 97.8
 
 
 def test_a_turn_adds_to_the_tilt_before_it_by_the_spherical_triangle():

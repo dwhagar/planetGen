@@ -12,7 +12,7 @@ with the void share taken out:
 with `w_i` the mass fractions (adding to 1) and `rho_i` the grain densities of the shared materials table (GEN.427; a
 caller may state a density the table does not hold, for example the silicate dust of a comet).
 
-How much of the void a body keeps depends on its size. Bierson and Nimmo (2019, Icarus 326, 10, Table 1 and Eqs. 1 and 2)
+How much of the void a body keeps depends on its size. [R0390] (Icarus 326, 10, Table 1 and Eqs. 1 and 2)
 give the brittle law, with the pressure `P` in megapascals: ice grains close their pores as `max(0.60 exp(-0.1 P), 0.20)` and
 silicate grains as `min(0.6 P^-0.11, 0.6)`. The paper's own text says the law is a lower bound on the density above about 200
 to 500 km radius, where viscous compaction decides, and the law alone leaves the density 1.3 to 1.8 times low up to 3e23 kg
@@ -29,7 +29,7 @@ takes over with the same grains.
 
 Use:
 
-    small_body_density_kg_m3({"water ice": 0.3, "forsterite": 0.7}, porosity=0.3)
+    grain_density_kg_m3({"water ice": 0.3, "forsterite": 0.7})          # kg/m3 of the grains; times (1 - porosity) for the heap
     compacted_density_kg_m3(radius_km=400.0, rock_fraction=0.7)        # kg/m3, the tapered brittle law
     compacted_radius_km(mass_kg=6.3e20, rock_fraction=0.7)
 """
@@ -47,7 +47,7 @@ DATA_FILE = os.path.join(elements.DATA_DIRECTORY, "compaction_table.json")
 
 ICE_GRAIN_KG_M3 = 920.0
 SILICATE_GRAIN_KG_M3 = 3500.0
-"""float: The grain densities of Bierson and Nimmo (2019) Table 1."""
+"""float: The grain densities of [R0390: Table 1]."""
 
 TAPER_START_KG = 1e19
 TAPER_END_KG = 1e21
@@ -61,14 +61,8 @@ class OutOfRange(ValueError):
     """A body outside the table: heavier than `TAPER_END_KG`, where the structure solver (GEN.429) decides."""
 
 
-def ice_porosity(pressure_pa):
-    """The brittle porosity of ice grains at `pressure_pa` (Bierson and Nimmo Table 1 and Eq. 1): max(0.60 exp(-0.1 P), 0.20), P in MPa."""
-    return max(0.60 * math.exp(-0.1 * pressure_pa / 1e6), 0.20)
 
 
-def silicate_porosity(pressure_pa):
-    """The brittle porosity of silicate grains at `pressure_pa` (Bierson and Nimmo Table 1 and Eq. 2): min(0.6 P^-0.11, 0.6), P in MPa."""
-    return min(0.6 * (max(pressure_pa, 1.0) / 1e6) ** -0.11, 0.6)
 
 
 def taper_weight(mass_kg):
@@ -115,11 +109,6 @@ def grain_density_kg_m3(fractions, densities=None):
     return 1.0 / volume
 
 
-def small_body_density_kg_m3(fractions, porosity, densities=None):
-    """The bulk density of a heap of these grains with this void share: `grain_density_kg_m3 (1 - porosity)`."""
-    if not 0.0 <= porosity < 1.0:
-        raise ValueError(f"the porosity {porosity!r} is not in [0, 1)")
-    return grain_density_kg_m3(fractions, densities) * (1.0 - porosity)
 
 
 def _load():

@@ -16,8 +16,8 @@ Boss's decision of 4:01 PM EDT on 2026-10-24 was to use the public line-list dat
 
 | Dataset | Fill | What | Source |
 |---|---|---|---|
-| `ir_ktables` | AD10 | Correlated-k tables of H2O, CO2 and CH4 at resolving power 1000, 0.3 to 50 micron, 22 pressures (1e-5 to 100 bar), 27 temperatures (100 to 3400 K), 20 g points | ExoMolOP (Chubb et al. 2021) from POKAZATEL, UCL-4000 and YT34to10 |
-| `ir_cia` | AD11 | Collision-induced absorption of 11 pairs: N2-N2, O2-O2, N2-O2, CO2-CO2, N2-CH4, N2-H2, CO2-CH4, CO2-H2, H2-H2, H2-CH4, H2-He | HITRAN CIA (Karman et al. 2019) |
+| `ir_ktables` | AD10 | Correlated-k tables of H2O, CO2 and CH4 at resolving power 1000, 0.3 to 50 micron, 22 pressures (1e-5 to 100 bar), 27 temperatures (100 to 3400 K), 20 g points | ExoMolOP [R0795] from POKAZATEL, UCL-4000 and YT34to10 |
+| `ir_cia` | AD11 | Collision-induced absorption of 11 pairs: N2-N2, O2-O2, N2-O2, CO2-CO2, N2-CH4, N2-H2, CO2-CH4, CO2-H2, H2-H2, H2-CH4, H2-He | HITRAN CIA [R2267] |
 
 Setup downloads each file, checks its sha256, reduces it and deletes it (`transient` pieces). The reduction keeps the band mean of the k-distribution:
 all the (wavenumber, g) values of a band are sorted by k, cut at the new g edges, and each interval's mean is the new k. The result is 129 bands (20 cm-1
@@ -36,7 +36,7 @@ is 0 to 200 cm-1, below the tables) by 10 g points:
 4. **Collision-induced absorption**: `k(T) x1 x2 n N` for each pair of the air, k the band mean at the layer's temperature.
 5. **Gases without a table** (stand-ins IR1, IR2): a plateau at each band of the gas table with exponential wings, sorted into a distribution.
 6. **The far wings** (rows FW1 to FW7): the tables cut every line at 25 cm-1, and a Venus-like air needs what lies beyond.
-   `physics/co2_far_wing.py` (GEN.1019, rows FW1 to FW5; it replaced the flat stand-in IR3): each carbon dioxide band's Lorentz tail beyond 25 cm-1 times the Perrin and Hartmann 1989 sub-Lorentzian factor, out to 500 cm-1, with the band strengths taken from the carbon dioxide table at its lowest pressure.
+   `physics/co2_far_wing.py` (GEN.1019, rows FW1 to FW5; it replaced the flat stand-in IR3): each carbon dioxide band's Lorentz tail beyond 25 cm-1 times the [R3490] sub-Lorentzian factor, out to 500 cm-1, with the band strengths taken from the carbon dioxide table at its lowest pressure.
    GEN.1020, wired into the column through `solve(..., cloud=(tau_550, radius_um))`: the acid cloud's infrared opacity (`cloud_infrared`, Mie droplets from the HITRAN sulfuric acid indices, rows CF1 to CF5) and the far wings of water, sulfur dioxide and carbon monoxide in a carbon dioxide air (rows FW6, FW7). With both, the clear-sky Venus-like test air reaches 757 K (measured 735 K); the wing alone gave 539 K.
 
 ## The column
@@ -45,13 +45,20 @@ is 0 to 200 cm-1, below the tables) by 10 g points:
 from a ten-thousandth of the surface pressure, and finds the surface temperature at which
 
 * the profile follows the adiabat of the mixture (heat capacity from `species_thermo` at each temperature; the water pseudo-adiabat once the vapour
-  saturates) up to the tropopause, and is in radiative equilibrium above it, and
+  saturates, or in an air with no water the methane pseudo-adiabat, IR14; cold hydrogen at its ortho and para equilibrium, IR15) up to the tropopause,
+  and is in radiative equilibrium above it, and
 * the infrared flux to space equals the absorbed flux.
 
 The flux is the two-stream form with a diffusivity factor of 1.66 and a source linear in optical depth between level temperatures, solved band by band and
 g point by g point. The water vapour has Manabe and Wetherald's (1967) relative humidity, `RH = RH_s (p/p_s - 0.02) / 0.98`, with the surface humidity the
 mixture's own vapour over the saturation pressure, and none above the coldest level below (the cold trap). `aloft_share` puts that share of the absorbed flux
 at `aloft_pressure_pa` as a Gaussian in ln P instead of at the ground: the sunlight a haze takes (the anti-greenhouse).
+
+GEN.1030: with the dry adiabat alone the ice giants came out 20 percent too warm at 1 bar. Methane condenses near 80 K and 1.3 bar there and the
+condensation shallows the lapse rate, and the heat capacity of hydrogen below 200 K is the equilibrium one (4.4 R at 60 K against the 3.5 R the fit of
+`species_thermo` holds from 200 K up), which shallows it again. At the measured effective temperatures the column gives Uranus 79 K (76 measured), Neptune 78 K
+(72) and Jupiter 167 K (166); Saturn comes out 149 K against 134 K measured, a miss this change does not close. The check is
+`test_the_giants_sit_near_their_measured_temperature_at_one_bar` (Jupiter, Uranus, Neptune).
 
 A step of the adiabat that began unsaturated and crossed the saturation corner used to take the saturated slope for its whole length; the branch is now
 fixed for a step and the step is cut at the crossing (`test_the_adiabat_is_continuous_and_rises_with_the_surface_temperature_across_the_saturation_corner`).

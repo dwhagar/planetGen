@@ -3,6 +3,8 @@
 """UX.171: `static/bodyview.js` in a real browser: a look record in a canvas's `data-look` is painted (lit sphere, clear corners)
 and the hidden figure around it is shown. Skipped without Playwright and Chromium."""
 
+import json
+
 import flask
 import pytest
 
@@ -13,6 +15,14 @@ from tests.served import served  # noqa: E402
 from tests.test_bodyview import PLANET, STAR  # noqa: E402
 from tests.test_web_browser_object_tree import browser  # noqa: E402,F401 -- fixture
 from planetgen.web.lib import bodyview  # noqa: E402
+
+
+AIRS = {
+    "noair": {},
+    "thinair": {"atm": True, "glow": "#88aaff", "glowStrength": 0.02, "glowWidth": 0.03, "twilight": 0.005},
+    "thickair": {"atm": True, "glow": "#88aaff", "glowStrength": 0.8, "glowWidth": 0.2, "twilight": 0.2},
+}
+"""The air of a still world in `_app`: none has no glow fields, a thin one almost none and a thick one the most (MAP.277)."""
 
 
 def _app():
@@ -35,8 +45,15 @@ def _app():
         if kind in ("tilted", "upright"):
             row = dict(PLANET, rotation_period_hours=17.2, period_years=84.0, axial_tilt_deg=97.8 if kind == "tilted" else 0.0)
         shown = bodyview.view("star" if kind in ("star", "starspin") else "planet", row, [STAR])
+        look = shown["look"]
+        if kind in AIRS:     # MAP.277: the same still world with each kind of air (the glow fields the look record gets from `bodylook.air_glow`)
+            record = json.loads(look)
+            for key in ("glow", "glowStrength", "glowWidth", "twilight", "atm"):
+                record.pop(key, None)
+            record.update(AIRS[kind])
+            look = json.dumps(record)
         return ('<!doctype html><title>t</title><figure hidden><canvas width="320" height="320" data-look="'
-                + shown["look"].replace('"', "&quot;")
+                + look.replace('"', "&quot;")
                 + '"></canvas><button type="button" data-spin aria-pressed="true" hidden>Spin</button></figure>'
                 + '<script type="module" src="/static/bodyview.js"></script>')
 
@@ -285,3 +302,30 @@ def test_a_locked_world_holds_its_day_side_toward_the_star_and_says_so(browser, 
     row = dict(PLANET, rotation_period_hours=0.1 * 365.25 * 24.0, period_years=0.1)
     assert "Tidally locked" in bodyview.view("planet", row, [STAR])["note"]
     assert "turning much faster" in bodyview.view("planet", dict(row, rotation_period_hours=17.0), [STAR])["note"]
+
+
+def _rim_and_dusk(page):
+    """`(alpha just outside the limb on the lit side, brightness a little past the day and night line)` of the picture."""
+    return page.evaluate("""() => {
+        const c = document.querySelector('canvas'), disc = JSON.parse(c.dataset.disc), d = c.getContext('2d').getImageData(0, 0, c.width, c.height).data;
+        const px = (nx, ny) => { const x = Math.round(disc.x + nx * disc.radius), y = Math.round(disc.y + ny * disc.radius); return (y * c.width + x) * 4; };
+        const outside = d[px(-1.03, 0) + 3];
+        const t = px(0.6, 0);                        // right of the centre: past the line, in the night side (the star is to the left and in front)
+        return [outside, d[t] + d[t + 1] + d[t + 2]];
+    }""")
+
+
+def test_the_glow_and_the_dusk_follow_the_air_of_the_world(browser, url):
+    """MAP.277: with no air there is no glow past the limb and the day and night line is hard; a thin air has hardly any glow; a thick air glows and
+    carries the light a little past the line, so the night side just past it is brighter."""
+    seen = {}
+    for kind in AIRS:
+        page, errors = _opened(browser, url, kind)
+        try:
+            seen[kind] = _rim_and_dusk(page)
+        finally:
+            page.context.close()
+        assert not errors, errors
+    assert seen["noair"][0] == 0, seen
+    assert seen["thinair"][0] < 10 and seen["thickair"][0] > 40, seen
+    assert seen["thickair"][1] > 1.5 * seen["noair"][1], seen

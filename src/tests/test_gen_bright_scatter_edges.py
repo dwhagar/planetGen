@@ -32,6 +32,7 @@ from planetgen.galaxy.spherical import sector_position_pc
 from planetgen import tuning
 
 from tests import first_fill, worker_patches
+from tests.sector_support import backfill_bright_stars
 from tests.test_bright_star_scatter import (
     light_steps,  # noqa: F401  (autouse: quick backfill steps)
     E_VALUE, EDGE_PC, EXTENTS, SHAPE, THRESHOLD, _scatter_args, _seed_galaxy,
@@ -348,7 +349,7 @@ def _fill(mysql_config, address):
 def _backfill_around(mysql_config, address):
     """The backfill a `galaxy --wedge` run of `address` ends with
     (`backfill_after_run`, GEN.30): around that sector, the default mass steps."""
-    return run_galaxy.backfill_bright_stars(mysql_config, sector_position_pc(*address, EDGE_PC))
+    return backfill_bright_stars(mysql_config, sector_position_pc(*address, EDGE_PC))
 
 
 def _unbuilt_leftover_cells(mysql_config, last_leftover):

@@ -51,11 +51,13 @@ The network has three hidden layers (128, 128, 64 tanh units) and was fitted in 
 
 | Surface temperature | Airs | Median error | 90th percentile | 99th percentile |
 |---|---|---|---|---|
-| 0 to 300 K | 987 | 0.2 K (0.18 %) | 4.8 K (2.9 %) | 17.7 K (8.6 %) |
-| 300 to 500 K | 226 | 6.3 K (1.7 %) | 31.7 K (7.6 %) | 64.0 K (14 %) |
-| 500 to 1000 K | 50 | 20.7 K (3.4 %) | 196 K (26 %) | 280 K (31 %) |
-| over 1000 K | 43 | 72.8 K (4.7 %) | 216 K (14 %) | 244 K (19 %) |
-| all | 1,306 | 0.56 K (0.39 %) | 16.1 K (4.7 %) | 178 K (17 %) |
+| 0 to 300 K | 1,000 | 0.2 K (0.20 %) | 5.6 K (3.3 %) | 20.5 K (9 %) |
+| 300 to 500 K | 213 | 7.1 K (2.1 %) | 35.4 K (9.1 %) | 78.2 K (17 %) |
+| 500 to 1000 K | 50 | 62.6 K (11 %) | 256 K (28 %) | 319 K (49 %) |
+| over 1000 K | 43 | 39.3 K (3.5 %) | 156 K (13 %) | 270 K (23 %) |
+| all | 1,306 | 0.54 K (0.41 %) | 16.8 K (5.3 %) | 170 K (18 %) |
+
+The table was fitted again for GEN.1030 and GEN.1032, on the model with the methane pseudo-adiabat, the ortho-para heat capacity of cold hydrogen (IR14, IR15) and the sourced far wings of carbon dioxide (GEN.1019): about 22,000 training airs. Against the model it stands, in a clear-sky carbon dioxide and nitrogen air at Venus's gravity, 2 to 8 percent warm from 5 to 92 bar (336 K against 329 K at 5 bar and 160 W/m2; 20 bar and 300 W/m2 is the worst, 509 K against 475 K), on the Earth-like airs between 225 and 255 W/m2 within about 3 K, and 1 to 2 percent warm on the three giants at their measured effective temperatures. It is blind to the methane share of a hydrogen air: the model cools by 7 percent as methane goes from 0.5 to 4 percent of a Uranus-like air (condensation shallows the lapse rate), and the table by under 1, so a drawn ice giant with a few percent of methane is read about 5 percent warm. A further round with 3,000 designed one-bar hydrogen and methane airs did not teach it, and it moved the Earth-like airs 5 to 8 K cold (a fit of this size is sensitive to its seed there), so it was not shipped. The 500 to 1000 K row is dominated by a few dense steam and carbon dioxide airs at 10 to 200 bar; the table is weakest there.
 
 The loss weights (an error floor of 0.003 on `ln(T_s/T_e)` and a relative term of 0.025) make the fit follow the cool airs the habitability and the life read; the hot dense airs (over 500 K: runaway greenhouses and
 Venus-like airs) are the model's own weakest and the table's: a hot dense air is right to the first tens of kelvin, not to the degree. The weights are stated in `scripts/fit_greenhouse_table.py` (`NOISE_FLOOR`, `RELATIVE_ERROR`).

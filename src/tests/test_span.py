@@ -121,11 +121,11 @@ def test_page_builds_span_argv():
             generate_page.span_argv(bad)
 
 
-def test_ball_extent_holds_the_face_neighbours_at_one_sector():
+def test_a_reach_of_one_sector_holds_the_face_neighbours():
     import math
-    from planetgen.generation import run_galaxy
+    from planetgen.galaxy import region_run
     edge = 4.0
-    radius = run_galaxy.ball_extent(1, edge)
+    radius = region_run.reach_pc(edge, edge)
     assert radius == pytest.approx(1.75 * edge)
     for shell, band, wedge in ((5, 0, 0), (5, 2, 3), (20, 0, 3), (60, 2, 0)):
         center = spherical.sector_position_pc(shell, band, wedge, edge)

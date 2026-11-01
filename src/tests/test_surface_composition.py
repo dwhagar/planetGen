@@ -229,13 +229,11 @@ def test_albedo_is_between_the_ground_types():
 
 def test_reservoir_orders_heat_producers():
     def reservoir(name):
-        mix = {name: 1.0}
-        return sc.crust_reservoir(sc.SurfaceComposition(name, mix, {"olivine": 1.0}, sc.POWDER))[0]
+        return sc.land_rock_ppm(types.SimpleNamespace(**{f"ground_{name}_fraction": 1.0}))
 
     ultramafic, basaltic, felsic = (reservoir(n) for n in ("ultramafic", "basaltic", "felsic"))
-    for key in ("k_ppm", "th_ppm", "u_ppm"):
-        assert ultramafic[key] < basaltic[key] < felsic[key]
-    assert sc.crust_reservoir(sc.SurfaceComposition("ice", {sc.ICE: 1.0}, {"water_ice": 1.0}, sc.POWDER)) == (None, 0.0)
+    for index in range(3):      # K, Th, U
+        assert ultramafic[index] < basaltic[index] < felsic[index]
 
 
 def _bodies(count=25):

@@ -199,7 +199,7 @@ def _sky(mass_solar, fe_h, n, seed, spread=0.0):
 
 
 def _radius_earth(mass_earth):
-    """Chen and Kipping 2017 mean mass-radius law (the three branches), Earth radii: the sky's size without the envelope loss."""
+    """[R0758] mean mass-radius law (the three branches), Earth radii: the sky's size without the envelope loss."""
     if mass_earth < 2.04:
         return 1.008 * mass_earth ** 0.279
     if mass_earth < 131.6:

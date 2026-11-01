@@ -14,7 +14,7 @@ present); the ozone rows are lane F's.
 | The equilibrium gas of an element budget at T and P, optionally over a mantle of a given fO2 | this | `physics/gas_equilibrium.py` |
 | Regimes to mole fractions of the gases of the table | this | `physics/mixture_draw.py`, `draw_mixture` |
 | The subject of a generated body: the quantities the tables and the chemistry read, built from its stored fields and its star | GEN.756 | `physics/mixture_subject.py`, `subject_of_body` |
-| What an ocean takes out of the drawn air: the water vapour cap and the sulfur uptake | GEN.757 | `physics/mixture_sinks.py`, `apply_ocean_sinks` |
+| What an ocean takes out of the drawn air: the sulfur uptake (the water vapour cap is the air solve's saturation) | GEN.757 | `physics/mixture_sinks.py`, `sulfur_remaining_fraction` |
 | Total pressure, freeze-out of what the surface condenses, sum of partials = pressure, storage, accessor | lane I | GEN.411, GEN.422: `physics/surface_air.py`, `physics/atmosphere.py` (built 2026-10-24) |
 | Clouds, hazes, ozone | lanes G and F | GEN.414, GEN.413 |
 
@@ -27,7 +27,7 @@ are the test of the solver, not a table the generator reads.
     draw = mixture_draw.draw_mixture(Subject("A", {...}))         # any class
     draw.mole_fractions      # gas-table formulas, sums to 1
     draw.drawn               # the recipe rows: {"a": "a6", "b": "b2", "c": "c3", "c-after": "c5"}
-    draw.redox_diw           # log10 fO2 above the iron-wuestite buffer (Hirschmann 2021)
+    draw.redox_diw           # log10 fO2 above the iron-wuestite buffer [R1951]
     draw.inventory           # atoms per 100 g of body: H, C, N, S, Ar
     draw.constants           # every design constant this draw took, for the record
     mixture_draw.required_inputs("A")   # the quantities the subject must carry
@@ -52,13 +52,7 @@ bound (`DAYSIDE_OVER_EQUILIBRIUM`, `(8/3)^(1/4)`: the generator has no redistrib
 (`PHOTOSPHERE_BAR`), a hot A, B or O star takes the F rows and a brown dwarf the M rows, and the snow ratio uses the body's present
 distance because no formation distance is stored.
 
-`mixture_sinks.apply_ocean_sinks(mole_fractions, pressure_pa, ts_k, gravity, ocean_present=, ocean_column_kg_m2=)` caps the water
-vapour at its saturation pressure over the ocean (none above the critical point or with no ocean) and keeps `1 / (1 + kH m g M / P0)`
-of each sulfur gas (SO2, H2S: Henry's law over `m` kg of ocean per square metre). It returns the renormalised mixture, the new total
-pressure and what left. The outgassed inventory and the ocean and carbonate sinks of the carbon, water and nitrogen are GEN.726's;
-this only limits what the drawn air can show. Limits: the physical solubility only (both gases dissociate in water, so a real ocean
-takes more), the Henry law's 273.15 to 323.15 K with the nearest end standing in outside, and full saturation (a bound, not Earth's
-0.6 to 0.8 relative humidity).
+`mixture_sinks.sulfur_remaining_fraction(formula, ts_k, gravity, ocean_column_kg_m2)` keeps `1 / (1 + kH m g M / P0)` of each sulfur gas (SO2, H2S: Henry's law over `m` kg of ocean per square metre). The water vapour cap over an ocean is the saturation of the air solve, and the outgassed inventory and the ocean and carbonate sinks of the carbon, water and nitrogen are GEN.726's. A function that capped the whole drawn mixture in one call (`apply_ocean_sinks`) was removed by TEST.524: nothing called it. Limits: the physical solubility only (both gases dissociate in water, so a real ocean takes more) and the Henry law's 273.15 to 323.15 K with the nearest end standing in outside.
 
 ## Where the degassed sulfur goes (GEN.815)
 
@@ -75,7 +69,7 @@ the sulfur that is bonded to oxygen from the equilibrium gas of the outgassing s
 * **Rate.** The sulfur that goes to the sinks arrived at its mean rate; the air holds `min(1, tau / age)` of it (the steady state of
   outgassing against removal, as the carbonate balance is). `tau` is the lifetime against rain-out and oxidation over liquid water
   (`WET_LIFETIME_DAYS`, 0.5 to 7 days) and against sulfation of the surface rock on a dry surface (`DRY_LIFETIME_YEARS`, 0.5 to 5 million
-  years, Fegley and Prinn 1989 for Venus).
+  years, [R1343] for Venus).
 * **Output.** `balance(...)` returns the sulfur in the air, in the sulfate sink and in the sulfide sink, mol per square metre; they
   sum to the degassed sulfur. The air's sulfur is what the caller puts into the closed system for the equilibrium, and the ocean's
   Henry's-law uptake (`mixture_sinks`) acts on it afterwards.
@@ -89,7 +83,7 @@ temperature; the share of the sulfur the melt keeps is `surface_pressure.DEGAS_E
 
 Silicate weathering (`surface_pressure.carbonate_pco2_bar`) needs land, and an ocean world has none, so its carbon dioxide had no sink: the
 findings of `reports/air-fixed-point-findings-2026-10-24.md` (finding 3) have 31 of 40 water-rich worlds hot (median 1470 K). The model is
-`physics/waterworld_carbon.py`, after Kite and Ford 2018 (ApJ 864, 75) and Krissansen-Totton and Catling 2017 (Nat. Commun. 8, 15423).
+`physics/waterworld_carbon.py`, af[R2381, R2489] (Nat. Commun. 8, 15423).
 `sink_kind(sealed, land_fraction)` is the dispatch the air solve takes: sealed seafloor, then ocean chemistry; else land, then the
 continental balance; else seafloor weathering.
 
@@ -100,8 +94,7 @@ continental balance; else seafloor weathering.
   carbonate, and calcite, by the carbonate equilibria (`CARBONATE_FITS`, fresh water) and the charge balance of the cations the early ocean
   leached from `ALTERED_CRUST_KM` (0.1 to 50 km) of basalt (`leached_cations_mol_m2`: sodium 2.8 wt% and calcium 8.5 wt% of the rock). More
   cations than carbon holds the carbon as carbonate and leaves the air nearly empty (the floor `MIN_PCO2_BAR`); more carbon than cations
-  leaves the rest to the air at tens of bar. `sealed_state` solves the pCO2 and the temperature together (the ocean degasses as it warms,
-  so the coolest crossing of the scan is taken) with the greenhouse of `atmosphere_state` and the saturated vapour.
+  leaves the rest to the air at tens of bar. The air solve (`surface_air`) takes this pCO2 at the temperature of its climate loop; a stand-alone solver of the pCO2 and the temperature together (`sealed_state`, the coolest crossing of a temperature scan) was removed by TEST.524: nothing called it.
 * **An unsealed world with no land** has working volcanoes and a seafloor that dissolves and precipitates carbonate (`seafloor_pco2_bar`):
   the rate is Arrhenius in the pore-water temperature (`SEAFLOOR_ACTIVATION_KJ_MOL`, 40 to 110), a power of the pCO2
   (`SEAFLOOR_PH_EXPONENT / 1.34`) and of the heat flow, and it is 0.45 of 6.6 Tmol C per year (`SEAFLOOR_SHARE_OF_OUTGASSING`) at the modern
@@ -111,8 +104,8 @@ continental balance; else seafloor weathering.
 What the sweep of Kite and Ford's prior shows (tested): at 300 K, carbon 1e-6 to 1e-1 of the ocean's mass and a rock layer of 0.1 to 50 km, a
 sixth of the worlds sit at 0.2 to 20 bar (their "frequent" range), nearly three quarters hold their carbon whole in the ocean (under a
 micro-bar), and 7 percent are above 20 bar. The water-world temperatures of the findings report are not recomputed here: that needs Lane I's solve (4c), and
-the greenhouse module's water-vapour feedback is too strong (finding 1), so the cold end of `sealed_state` sits at the freezing point
-(274 K for 240 W/m2) and not under it. With the real greenhouse a carbon-rich ocean (CO2 a tenth of the water's mass) has no balance below water's
+the greenhouse module's water-vapour feedback is too strong (finding 1), so the cold end of the stand-alone solve (removed by TEST.524) sat at the freezing point
+(274 K for 240 W/m2) and not under it. With the real greenhouse a carbon-rich ocean (CO2 a tenth of the water's mass) had no balance below water's
 critical point, as for Kite and Ford, who find the high-carbon end hot.
 
 Limits (stated): the ocean is an ideal solution with fresh-water constants (seawater's first dissociation constant is about three times the
@@ -157,16 +150,15 @@ ocean worlds. The class of such a world is a matter of GEN.646 (class from condi
 
 ## Rocky outgassing
 
-1. **Redox.** `a1` (magma-ocean stage: Sossi 2020) for a body without long-lived geology; for a tectonic body it moves to `a2` (the
+1. **Redox.** `a1` (magma-ocean stage: [R4154]) for a body without long-lived geology; for a tectonic body it moves to `a2` (the
    later upper mantle) as `1 - exp(-age / tau)` with `tau` seeded in 0.1 to 1.5 Gyr. A white-dwarf host takes `a4`, a small body `a3`.
    The recipe's class row `a5`/`a6`/`a7` describes the magma-ocean stage only; the chemistry reads the blended number.
-2. **Inventory.** Delivered water and CO2 from the `b` class (Ortenzi 2020 Table 1: CO2/H2O = 0.2 for the wet classes, dry class
+2. **Inventory.** Delivered water and CO2 from the `b` class ([R3378: Table 1]: CO2/H2O = 0.2 for the wet classes, dry class
    CO2 0.018 to 0.1 wt%, GEN.813), N and S per carbon in design brackets (BSE and CI chondrite values inside them), 40Ar from the potassium of the rock
    and the age.
 3. **The volcano's gas**: equilibrium with the mantle at the magmatic temperature (1100 to 1500 K) and the pressure of the layer, with
    the oxygen fugacity held.
-4. **Cooling** in a closed system to the surface temperature, or to the quench temperature (400 to 900 K, Zahnle and Marley 2014,
-   Liggins 2022) when the surface is colder. Water, sulfur and the other condensables a cool surface takes out are the pressure
+4. **Cooling** in a closed system to the surface temperature, or to the quench temperature (400 to 900 K, [R2686, R4863]) when the surface is colder. Water, sulfur and the other condensables a cool surface takes out are the pressure
    bookkeeping's (GEN.422): this is the gas before that.
 
 Holding fO2 at the surface temperature instead of at the vent was tried first and is wrong: below about 900 K the buffer pins fO2 at
@@ -180,10 +172,10 @@ class letter (`mixture_draw` module text has the table). Each family is one modu
 | family | module | chemistry |
 |---|---|---|
 | `rocky` | `mixture_rocky` | the volcano's gas over the mantle, cooled in a closed system (above) |
-| `giant`, `brown-dwarf`, `hot-jupiter`, `envelope` | `mixture_giant` | Asplund 2021 budget at the drawn metallicity and C/O, Visscher condensation (clouds, NH4SH, ice caps) removing what the layer's temperature takes out, adiabat to the layer, Zahnle and Marley quench |
+| `giant`, `brown-dwarf`, `hot-jupiter`, `envelope` | `mixture_giant` | [R0168] budget at the drawn metallicity and C/O, Visscher condensation (clouds, NH4SH, ice caps) removing what the layer's temperature takes out, adiabat to the layer, Zahnle and Marley quench |
 | `venus`, `mars` (`j1`, `j2`) | `mixture_evolved` | the outgassed gas minus its water (`WATER_RESIDUAL`) and most of its sulfur, cooled to the surface temperature (not quenched) over a crust that holds the body's redox: CO2 with a few percent N2 (Mars-like 0.978 CO2, 0.016 N2; the TEST values are 0.96 and 0.019) |
 | `abiotic-oxygen` (`j5`) | `mixture_evolved` | the outgassed gas rescaled to a carbon of 0.01 to 0.2 per molecule of an ocean of one to ten Earth oceans, the hydrogen of 30 to 100 percent of it lost and the crust taking up to 90 percent of the oxygen left: nothing holds the oxygen, so the gas has O2 |
-| `titan` (`j3`) | `mixture_evolved` | N2 balance, CH4 at 30 to 100 percent of its saturation pressure over the pressure of the air, H2 a trace |
+| `titan` (`j3`) | `mixture_evolved` | N2 balance (the nitrogen of the rock plus the ammonia ice's: GEN.821), CH4 at 30 to 100 percent of its saturation pressure over the pressure of the air, H2 a trace |
 | `frost` (`j4`) | `mixture_evolved` | Raoult over a surface of N2, CH4 and CO ice: `p_i = chi_i p_sat,i(T)`, the nitrogen setting the total |
 | `coma` (`k`) | `mixture_coma` | the ice's composition: CO2/H2O, CO/H2O, CH3OH, NH3, HCN and the 67P species as drawn ratios to water, the class row ordering CO2 and CO |
 | `lava` (`i` at `tp_k >= 1400 K`, `l1`) | `mixture_lava` | the vapour over an ideal-solution BSE melt: element potentials from the melt's oxides and the held oxygen fugacity, every gas of those elements at its own partial pressure, no iteration |
@@ -205,8 +197,8 @@ capped at 95 percent oxygen with at least 0.5 percent nitrogen plus argon; a liv
 Phanerozoic peak and the fire limit), for the life stage that sets the oxygen of a living world to apply with `cap_oxygen`. The analysis is
 in `/mnt/project-files/reports/pure-oxygen-atmosphere-2026-10-24.md`.
 
-The lava vapour reproduces Kite et al. 2016's vapour pressure over a BSE melt (1.8e-4 bar at 2000 K, 1.1e-2 bar at 2500 K against 2e-4
-and 8e-3) and the sequence of Miguel et al. 2011: Na and K first, then SiO, Mg and Fe from 2000 to 2500 K, SiO above O2 beyond about 2900 K,
+The lava vapour reproduces [R2380]'s vapour pressure over a BSE melt (1.8e-4 bar at 2000 K, 1.1e-2 bar at 2500 K against 2e-4
+and 8e-3) and the sequence of [R3059]: Na and K first, then SiO, Mg and Fe from 2000 to 2500 K, SiO above O2 beyond about 2900 K,
 mean molar mass 33 g/mol at 2000 K and 42 g/mol at 3000 K. It does so only with the alkali oxides' activity coefficient of 3e-9 to 3e-8
 (an ideal solution puts 1 to 6 bar of sodium and potassium over the melt at 2000 K), which is a stand-in (below).
 
@@ -231,17 +223,16 @@ mean molar mass 33 g/mol at 2000 K and 42 g/mol at 3000 K. It does so only with 
   these families are an output of the escape and retention physics; the retention physics of cold volatile bodies (the sublimation
   supply against hydrodynamic escape) is not built, and changing the gate without it would be a design flag, which he ruled out. GEN.751
   added K2, KO, K2O and Na2O to the gas table and the species table (research part 01 section 5, computed from the NASA fits, no
-  phase data; the file spells aluminium `AL`), so the lava vapour lists them (KO is about 4e-7 bar over a BSE melt at 2500 K). GEN.818 then gave the melt an Al2O3 activity (its mole fraction, `mixture_lava.ALUMINA_ACTIVITY_COEFFICIENT` = 1, tier 3: Fegley,
-  Lodders and Jacobson 2023 find the activity-coefficient models of the BSE melt agree with an ideal solution except for the alkalis,
+  phase data; the file spells aluminium `AL`), so the lava vapour lists them (KO is about 4e-7 bar over a BSE melt at 2500 K). GEN.818 then gave the melt an Al2O3 activity (its mole fraction, `mixture_lava.ALUMINA_ACTIVITY_COEFFICIENT` = 1, tier 3: [R1341] find the activity-coefficient models of the BSE melt agree with an ideal solution except for the alkalis,
   abstract only), added AlO, Al2O, AlO2 and Al2O2 and the liquid Al2O3 to the species table (99 species), and put Al in the vapour's
   elements: a BSE melt at 2500 K now has about 2e-7 of its vapour as aluminium, mostly AlO and Al (Al is refractory), 6e-5 at 3000 K.
 - Design brackets this module added, each to be replaced by the research item named: `WATER_RESIDUAL`, `SULFUR_SINK`,
-  `WATER_PHOTOLYSED`, `OCEAN_WATER_WT_PERCENT`, `CARBON_PER_OCEAN_WATER`, `OXYGEN_SINK`, `TITAN_HUMIDITY`, `TITAN_HYDROGEN`, `FROST_ICE`
+  `WATER_PHOTOLYSED`, `OCEAN_WATER_WT_PERCENT`, `CARBON_PER_OCEAN_WATER`, `OXYGEN_SINK`, `TITAN_HUMIDITY`, `TITAN_HYDROGEN`, `AMMONIA_OUTGASSED`, `AMMONIA_PER_WATER`, `AMMONIA_TO_N2`, `FROST_ICE`
   (`mixture_evolved`; GEN.481 and the ice composition item), `ALKALI_ACTIVITY_COEFFICIENT` and `COMPOSITION_SCATTER` (`mixture_lava`; the
   melt activity model of GEN.499 and the bulk composition of lane J), the k1 to k3 ordering rule of the coma.
 
 - N/C, S/C, K and the 40Ar degassing fraction are design brackets (`INVENTORY`), replaced by GEN.481 (volcanic delivery) and GEN.492
-  (radioisotopes) when they land. The delivered water classes are research values (Ortenzi 2020).
+  (radioisotopes) when they land. The delivered water classes are research values [R3378].
 - Sulfur is S2 in the gas; the solver has no S8 or S3, and sulfur condenses below about 700 K anyway (GEN.422).
 - Above about 1600 K at low pressure the gas holds atoms and radicals (H, O, OH, C, N, S) that the gas table does not list: the draw
   refuses with `MixtureError` when they exceed `UNLISTED_LIMIT`. Those bodies are lava worlds (GEN.499); the gas table additions are

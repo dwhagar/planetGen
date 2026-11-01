@@ -332,7 +332,7 @@ SYSTEM_TYPE_RATES = {
         "13.6", "Runaway star", "O stars", 0.20, "S", ("young", "cluster"), "draw_runaway_origin", 274,
         "S+F", (10, 11), low=0.10, high=0.30,
         by_class={"B": 0.075, "supernova channel": 2 / 3, "dynamical channel": 1 / 3},
-        note="10% to 30% of O stars and 5% to 10% of B stars (Gies 1987); a bow-shock survey finds 23%. The "
+        note="10% to 30% of O stars and 5% to 10% of B stars [R1558]; a bow-shock survey finds 23%. The "
              "supernova channel leaves a compact companion behind at the rate the survival rule gives."),
     "hypervelocity-star": _t(
         "13.6", "Hypervelocity star", "Galaxy count", None, "S", ("halo",),

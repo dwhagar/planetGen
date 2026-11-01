@@ -46,7 +46,7 @@ def test_a_saved_system_keeps_the_shares_of_every_body(mysql_config):
     for seed in range(60):
         with draw.bound(seed):
             system = StarSystem(system_config=cfg)
-        if any(planet.moons for planet in system.planets):
+        if any(getattr(planet, "moons", None) for planet in system.planets):
             break
     conn = store.get_connection(mysql_config)
     try:

@@ -46,20 +46,22 @@ resembling our own solar system.
 ## Tri-state options
 
 Most of the boolean-ish options above are **tri-state**: `true` forces the
-feature to be present, `false` forces it to be absent, and omitting the key
+feature to be present (except `habitable_world` and `intelligent_life`, where it
+only raises the odds and never forces; the system may come out without and says so),
+`false` forces it to be absent, and omitting the key
 (or, in JSON, setting it to `null`) leaves it up to chance. This mirrors the
 command line's `+name` / `-name` flags (`+habitable_world` sets it `true`,
 `-habitable_world` sets it `false`).
 
 | Key | `true` forces... | `false` forces... |
 |---|---|---|
-| `habitable_world` | At least one habitable world exists. | No habitable world is generated. |
+| `habitable_world` | Raises the odds of a habitable world; never forces one. | No habitable world is generated. |
 | `asteroid_belt` | At least one asteroid belt exists. | No asteroid belt is generated. |
 | `comets` | At least one star-bound comet exists. | No star-bound comet is generated. |
 | `large_star` | A large, massive star is generated (only matters when `star_type` is omitted). | Nothing beyond the normal default population — included for symmetry/explicitness. |
 | `moons` | Every planet gets a chance at moons. | No planet in the system gets moons (unless a slot gives it an explicit `moons` count — see below). |
 | `max_planets` | The system generates the maximum number of orbital objects its star can support. | The system generates the minimum (0, or whatever `habitable_world`/`asteroid_belt`/`planets` require). |
-| `intelligent_life` | At least one planet reaches a technological civilization. Also forces `habitable_world` to `true`. | No planet reaches a technological civilization. Also forces `habitable_world` to `true` (a world can still be habitable without intelligent life). |
+| `intelligent_life` | Raises the odds of a planet with a technological civilization; never forces one. Also sets `habitable_world` to `true`. | No planet reaches a technological civilization. Also forces `habitable_world` to `true` (a world can still be habitable without intelligent life). |
 | `binary_system` | A binary star system is generated instead of a single star (which of the two real configurations below is used is decided by `wide_binary`). | A single star (the default). |
 | `wide_binary` | An S-type (wide) binary is generated: the two stars stay tens to thousands of AU apart, each keeping its own identity and independently-generated planets, with each star's maximum stable orbit limited by the companion's gravity. | A P-type (close/circumbinary) binary is generated instead: the two stars merge into one effective star for planet placement. If omitted, one of the two is chosen at random. Ignored entirely unless `binary_system` is also `true`. |
 | `planets` | The system has at least one planet or asteroid belt (count won't be forced down to 0). | The system has no planets or asteroid belts at all — just the star. |
@@ -99,7 +101,7 @@ Notes on how slots interact with the rest of generation:
   the star's mass and the previous object's size. The one request that moves
   an orbit is a class that can carry life (see [Planet classes](#planet-classes)):
   if the orbit would land outside the habitable zone, the generator snaps it
-  into the zone, the same way a forced habitable world is placed. Any other
+  into the zone, the way the orbit of a requested habitable world is placed. Any other
   class keeps the orbit's own distance, and the planet is drawn again there
   until it comes out as that class.
 - **`moons` is best-effort.** A planet only has so much stable orbital room

@@ -9,13 +9,13 @@ sections 2.1 to 2.4; every rate here is a design default good to about
    `SATURATED_LX_LBOL` (7.4e-4 for G, K and M; falling through F to the
    1e-7 of A, B and O stars, whose X-rays come from wind shocks). After the
    saturation age `t_sat` it decays as `(t / t_sat)^-b`. `t_sat` comes from
-   `saturation_time` (GEN.493, Johnstone et al. 2021) by the star's mass and
+   `saturation_time` (GEN.493, [R2183]) by the star's mass and
    its own draw of the initial-rotation percentile: fully convective M dwarfs
    stay saturated for billions of years. `b` depends on mass
    (`DECAY_EXPONENTS`), and each star draws a log-normal scatter on its
    decayed level (`DECAY_SIGMA_DEX`).
 2. **XUV.** The EUV (100 to 920 A) follows the X-rays,
-   `log L_EUV = 4.80 + 0.860 log L_X` (erg/s; Sanz-Forcada 2011), and
+   `log L_EUV = 4.80 + 0.860 log L_X` (erg/s), and
    `L_XUV = L_X + L_EUV`. A hot photosphere adds its own blackbody output
    above 13.6 eV (`blackbody_fraction_above`), which dominates for O and B
    stars and hot white dwarfs.
@@ -27,7 +27,7 @@ sections 2.1 to 2.4; every rate here is a design default good to about
    neutron star's is its thermal X-rays or a thousandth of its spin-down
    power (magnetic dipole), whichever is larger; a black hole's is its
    accretion disk's luminosity (or its Hawking glow without one).
-5. **Rotation (GEN.807).** The activity-rotation relation (Wright et al. 2011): X-rays saturate while the Rossby number `Ro = P_rot / tau_conv` is
+5. **Rotation (GEN.807).** The activity-rotation relation [R4780]: X-rays saturate while the Rossby number `Ro = P_rot / tau_conv` is
    under 0.13 and fall as `Ro^-2.7` after, so a star that spins faster than a star of its mass and age spins stays saturated longer by the factor
    `(P_nominal / P)^(2.7 / b)` of its saturation age (`rotation_saturation_scale`), and flares correspondingly more often. The saturation
    age of 1 stays the mean (it is the observed one of M dwarfs, whose spin-down the gyrochronology law does not follow); a star's own
@@ -72,17 +72,17 @@ SN_MAX_BOOST = 250.0
 
 # Gamma-ray bursts (GEN.189): a beamed long burst within about 2 kpc whose
 # fluence at the planet is 30 to 100 kJ/m2 strips about a third of the ozone
-# (Thomas et al. 2005, ApJ 634:509), about one per 0.5 Gyr at the Sun
-# (Melott et al. 2004, Int. J. Astrobiol. 3:55). Long bursts need low-metal
+# ([R4340]:509), about one per 0.5 Gyr at the Sun
+# ([R3026], Int. J. Astrobiol. 3:55). Long bursts need low-metal
 # massive stars and follow star formation outward, so the rate falls
 # off beyond the Sun with the supernova scale length but is not raised
-# inside it, where metal-rich stars rarely make one (Stanek et al. 2006).
+# inside it, where metal-rich stars rarely make one.
 GRB_LETHAL_RATE_AT_SUN_PER_GYR = 2.0
 
 # Active galactic nucleus (GEN.189): there is no catalogued rate, so this is a
 # design estimate, not a measurement. Sgr A* is quiet now, but the Fermi
 # bubbles and the X-ray echoes of the molecular clouds (Su et al. 2010;
-# Ponti et al. 2013) show Seyfert-like episodes in the last few Myr. Take
+# [R3573]) show Seyfert-like episodes in the last few Myr. Take
 # 1e44 erg/s for 1 Myr every 100 Myr: the fluence 1e44 * 3.15e13 s / (4 pi r^2)
 # is 30 kJ/m2 at 2.9 kpc, so a planet that close to the centre loses its
 # ozone once per episode.
@@ -101,22 +101,22 @@ DECAY_EXPONENTS = (
 )
 """tuple: Section 2.1's decay exponent after saturation by mass, linear in
 between and held at the ends. Fully convective stars (0.3 and below) decline
-slowly (Wright 2018). From 0.45 up the exponent is the one that holds each
+slowly [R4781]. From 0.45 up the exponent is the one that holds each
 mass's `L_X/L_bol` at `REFERENCE_AGE_GY` where the earlier table put it, now
-that `t_sat` is the median of Johnstone et al. 2021 and not the table's own:
+that `t_sat` is the median of [R2183] and not the table's own:
 1.45 at 1 solar mass is the Skumanich band (1.35 to 1.5) and gives the Sun
 1.3e27 erg/s today. [Stand-in AB1, tier T9, tweak L3.]"""
 
 PERCENTILE_RANGE = (2.0, 98.0)
 """tuple: The initial-rotation percentiles a star draws uniformly between: the range
-the tracks of Johnstone et al. 2021 offer, uniform because the distribution is the
+the tracks of [R2183] offer, uniform because the distribution is the
 observed one (row p6)."""
 
 MEDIAN_PERCENTILE = 50.0
 
 SATURATED_LX_LBOL = ((1.0, 7.4e-4), (1.4, 5e-5), (2.0, 1e-7))
 """tuple: `(mass, saturated L_X/L_bol)`: 7.4e-4 up to 1 solar mass (Wright
-2011, Jackson 2012), log-linear to 5e-5 at 1.4 and to the 1e-7 of hot stars'
+2011, [R2118]), log-linear to 5e-5 at 1.4 and to the 1e-7 of hot stars'
 wind shocks at 2, held beyond."""
 
 DECAY_SIGMA_DEX = 0.4
@@ -145,7 +145,7 @@ FLARE_SCATTER_DEX = 0.5
 FLARE_ALPHA_RANGE = (1.8, 2.2)
 
 ROTATION_SLOPE = 2.7
-"""float: The exponent of the Rossby number in the unsaturated `L_X/L_bol` (Wright et al. 2011: -2.70 +/- 0.13), which sets how far a star's
+"""float: The exponent of the Rossby number in the unsaturated `L_X/L_bol` ([R4780]: -2.70 +/- 0.13), which sets how far a star's
 own spin moves its saturation age (GEN.807)."""
 
 XUV_EDGE_EV = 13.6
@@ -155,8 +155,7 @@ REFERENCE_AGE_GY = 5.0
 FLUENCE_STEPS = 64
 
 DIPOLE_EDOT_TO_LX = 1e-3
-"""float: A rotation-powered pulsar's X-ray efficiency (Becker and
-Truemper 1997)."""
+"""float: A rotation-powered pulsar's X-ray efficiency."""
 
 
 def decay_exponent(mass_sol):
@@ -398,6 +397,36 @@ def uv_shares_of(star):
     log_ratio = getattr(star, "log_lx_lbol", None)
     corona = 0.0 if log_ratio is None else coronal_xuv_w(10 ** log_ratio * luminosity) / luminosity
     return stellar_library.uv_shares(mass, radius, temperature, corona)
+
+
+SUN_AGE_GY = 4.57
+"""float: The age of the Sun the far-ultraviolet flux of `far_uv_flux_ratio` is measured against."""
+SUN_TEMPERATURE_K = 5772.0
+SUN_LOGG = 4.438
+"""float: The effective temperature (IAU 2015) and the surface gravity of the Sun, the model atmosphere that stands for the reference star."""
+
+
+def _sun_far_uv_flux_w_m2():
+    """The 91.2 to 200 nm flux the Sun gives at 1 AU in the same model as any other star (`far_uv_flux_ratio` is 1 there by construction)."""
+    luminosity = constants.SOLAR_LUMINOSITY
+    corona = coronal_xuv_at(1.0, SUN_AGE_GY, luminosity) / luminosity
+    return stellar_library.far_uv_power_w(SUN_TEMPERATURE_K, SUN_LOGG, luminosity, corona) / (4.0 * math.pi * constants.AU_M ** 2)
+
+
+def far_uv_flux_ratio(star, distance_au):
+    """
+    The 91.2 to 200 nm flux of `star` at `distance_au`, relative to the quiet Sun at 1 AU (GEN.982): the number `physics.photolysis.rate_per_s`
+    takes as `flux_ratio`. The star's model-atmosphere share plus its corona's far ultraviolet (`stellar_library.far_uv_power_w`) over the
+    area of the sphere at that distance, over the Sun's own flux in the same model. `None` when the star lacks a mass, radius, temperature
+    or luminosity, or the distance is not above zero.
+    """
+    temperature, luminosity = getattr(star, "temperature", None), getattr(star, "luminosity", None)
+    if not (getattr(star, "mass", None) and getattr(star, "radius", None) and temperature and luminosity and distance_au and distance_au > 0.0):
+        return None
+    log_ratio = getattr(star, "log_lx_lbol", None)
+    corona = 0.0 if log_ratio is None else coronal_xuv_w(10 ** log_ratio * luminosity) / luminosity
+    power = stellar_library.far_uv_power_w(temperature, stellar_library.surface_logg(star.mass, star.radius), luminosity, corona)
+    return power / (4.0 * math.pi * (distance_au * constants.AU_M) ** 2) / _sun_far_uv_flux_w_m2()
 
 
 def _uv_c_share(star):

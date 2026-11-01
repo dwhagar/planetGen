@@ -47,7 +47,7 @@ raises `fetch.DataMissing` when they were not downloaded, and bulk generation do
 exception is a run told in so many words to disregard missing data (GEN.599, `fetch.set_disregard_missing_data`): each kind
 then takes its dataset's labelled fallback, says so in its `open_items` and is listed in `fetch.stand_ins_used()`. A main-sequence
 star has no fallback value (no luminosity, temperature, radius or lifetime), a white dwarf the radius of the zero-temperature
-Chandrasekhar table and no layers, a neutron star the Chamel and Haensel 2008 outer crust.
+Chandrasekhar table and no layers, a neutron star the [R0722] outer crust.
 """
 
 import math
@@ -56,7 +56,7 @@ from dataclasses import dataclass, field
 
 from planetgen import tuning
 from planetgen.datasets import baraffe_isochrones, fetch, isochrones, neutron_star_matter, white_dwarf_models
-from planetgen.physics import constants, elements, main_sequence, wolf_rayet
+from planetgen.physics import alpha_tracks, constants, elements, main_sequence, wolf_rayet
 from planetgen.physics import stellar_abundances as sa
 from planetgen.util import draw
 
@@ -83,15 +83,15 @@ SUPERGIANT_CLASSES = ("0", "IA+", "IA", "IAB", "IB")
 """tuple: The Yerkes classes of the supergiants and hypergiants (`generation.star`)."""
 
 DA_SHARE = tuning.STELLAR_WD_DA_SHARE
-"""float: The share of white dwarfs with a hydrogen atmosphere (DA), Xu, Rogers and Blouin 2024."""
+"""float: The share of white dwarfs with a hydrogen atmosphere (DA), Xu, [R4798]."""
 
 POLLUTED_SHARE = sum(tuning.STELLAR_WD_POLLUTED_SHARE) / 2.0
 """float: The share of cool white dwarfs polluted by accreted rocky debris (GEN.253): the middle of the 25 to 50 percent the
 observations give (`tuning.STELLAR_WD_POLLUTED_SHARE`), which is also the registry's default for `white-dwarf-pollution`."""
 
 CARBON_STAR_MINIMUM_MASS_SOL = ((0.010, 1.4), (0.020, 1.5))
-"""tuple: `(Z, least initial mass in solar masses)` for third dredge-up to make C/O above 1 (Karakas and Lugaro 2016, second-hand,
-Cristallo 2011); linear in Z between, 1.425 at Z 0.0125. Whether a given AGB star has run enough thermal pulses is the carbon-star
+"""tuple: `(Z, least initial mass in solar masses)` for third dredge-up to make C/O above 1 ([R2244], second-hand,
+[R0925]); linear in Z between, 1.425 at Z 0.0125. Whether a given AGB star has run enough thermal pulses is the carbon-star
 flag's (GEN.249), and the C/O it reaches is open."""
 
 
@@ -105,7 +105,6 @@ class StarDraws:
     A star's draws, in the fixed order they are consumed in; every one is always drawn.
 
     Attributes:
-        u_branch (float): Decides the branch (`stellar_abundances.branch_from_uniform`).
         normals (tuple): Five standard normals for the C, O, Mg, Si and Ca residuals (the calcium one is drawn last of all, so no earlier draw moved
             when calcium gained its scatter, GEN.988).
         u_enhanced (float): Decides a carbon-enhanced metal-poor star.
@@ -118,7 +117,6 @@ class StarDraws:
         u_pollution (float): Decides whether a cool white dwarf is polluted (`white_dwarf_polluted`).
     """
 
-    u_branch: float
     normals: tuple
     u_enhanced: float
     u_carbon: float
@@ -151,20 +149,14 @@ def abundance_key(uid=None, mass=None, distance_ly=None, bright_seed=None, group
     return f"{mass!r}:{distance_ly!r}"
 
 
-def cluster_key(seed):
-    """The key a cluster's stars share (`abundance:cluster:{seed}`): the draws are shared, so only the [Fe/H]-dependent means move
-    from one star to the next."""
-    return f"cluster:{seed}"
-
-
 def key_draws(key):
     """The draws of `key`: a stream of its own, `abundance:{key}`, drawn in the order of `StarDraws`."""
     stream = draw.Stream(f"abundance:{key}")
-    u_branch = stream.random()
+    stream.random()    # unread: the branch left the key (`stellar_abundances.branch_of`) and every later draw keeps its place
     normals = tuple(stream.gauss(0.0, 1.0) for _ in range(4))
     rest = (stream.random(), stream.random(), stream.gauss(0.0, 1.0), stream.gauss(0.0, 1.0),
             stream.random(), stream.random(), stream.random(), stream.random())
-    return StarDraws(u_branch, normals + (stream.gauss(0.0, 1.0),), *rest)
+    return StarDraws(normals + (stream.gauss(0.0, 1.0),), *rest)
 
 
 def white_dwarf_polluted(teff_k, u_pollution, share=POLLUTED_SHARE):
@@ -279,8 +271,8 @@ def wolf_rayet_surface(subtype, u, teff_k=None):
 def _neutron_star_crust(draws):
     """The outer crust of a neutron star: the nuclei, surface inward, of the nuclear mass model `draws.u_crust_model` picks among
     the downloaded ones (the 20 models are the spread of the theory, so one is drawn per star), and the density at which
-    neutron drip ends it. A run that disregards missing data takes the one sequence of Chamel and Haensel 2008 instead."""
-    if fetch.locate(neutron_star_matter.DATASET).use_stand_in("the Chamel and Haensel 2008 outer crust"):
+    neutron drip ends it. A run that disregards missing data takes the one sequence of [R0722] instead."""
+    if fetch.locate(neutron_star_matter.DATASET).use_stand_in("the [R0722] outer crust"):
         return {"crust_model": None, "outer_crust": tuple(nucleus for nucleus, _density in sa.NEUTRON_STAR_OUTER_CRUST),
                 "neutron_drip_g_cm3": sa.NEUTRON_DRIP_DENSITY_G_CM3, "radius_band_km": tuning.STELLAR_NS_RADIUS_BAND_KM}
     models = neutron_star_matter.crust_models()
@@ -339,7 +331,7 @@ def star_makeup(kind, fe_h, age_gy, mass_sol, key, wolf_rayet_subtype=None, spin
         return StarMakeup(kind, None, None, None, draws, crust, open_items=open_items)
     if fe_h is None:
         raise StarMakeupError(f"a {kind} needs a [Fe/H]")
-    branch = sa.branch_from_uniform(fe_h, age_gy, draws.u_branch)
+    branch = sa.branch_of(fe_h, age_gy)
     offsets = sa.abundance_offsets(fe_h, branch, draws.normals, draws.u_enhanced, draws.u_carbon)
     birth = sa.composition(fe_h, offsets)
     surface, detail, open_items = birth, {}, ()
@@ -355,11 +347,12 @@ def star_makeup(kind, fe_h, age_gy, mass_sol, key, wolf_rayet_subtype=None, spin
             point, detail["main_sequence_lifetime_gy"] = None, None
             open_items = (f"the isochrones are missing: {isochrones.DATASET.fallback}",)
         else:
-            point = isochrones.main_sequence_point(mass_sol, age_gy, fe_h)
-            detail["main_sequence_lifetime_gy"] = isochrones.main_sequence_lifetime_gy(mass_sol, fe_h)
+            track = alpha_tracks.track_fe_h(fe_h, age_gy)    # the track the star's own record reads (GEN.1024)
+            point = isochrones.main_sequence_point(mass_sol, age_gy, track)
+            detail["main_sequence_lifetime_gy"] = isochrones.main_sequence_lifetime_gy(mass_sol, track)
             if point is None and tuning.IMF_BREAKS_SOL[0] <= mass_sol < tuning.MAIN_SEQUENCE_GRID_MASS_RANGE_SOL[0]:
                 # GEN.652: a mass under the grid reads the extension the star's own record reads (`main_sequence.state`).
-                row = main_sequence.state(mass_sol, age_gy, fe_h)
+                row = main_sequence.state(mass_sol, age_gy, track)
                 point = (math.log10(row.luminosity_sol), math.log10(row.temperature_k), math.log10(row.radius_sol))
             elif point is None:
                 open_items = ("the track does not cover this mass or age (0.1 solar masses and up, 0.1 Myr to about 20 Gy)",)

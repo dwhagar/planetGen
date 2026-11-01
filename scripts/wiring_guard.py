@@ -17,7 +17,7 @@ runs without the datasets or a database):
 - a `data` file: a `physics/data/*.json` whose file name no reachable module mentions;
 - a `row`: a registry row (GEN.725, `gap-filling-plan.md` section 6) whose `module.CONSTANT` names are all unread, so a stand-in
   that nothing in the generator uses;
-- a `column` (TEST.520): a column of a table that holds objects (the tables of the `uid` group of `db/kind_tables.py`) that no file
+- a `column` (TEST.520): a column of a table that holds objects (the tables of the `uid` group of `planetgen/db/kind_tables.py`) that no file
   outside `PLUMBING` (the schema, models, column units, store, storage checksum, checks and the other code that handles every
   column alike, and the generic Details sheet) reads, by name, as an attribute, a name, a dictionary key or a word of a SQL string.
   A module of physics or generation that loads the value counts as a reader, so a column read downstream is not listed; one that
@@ -63,7 +63,7 @@ PLUMBING = (
 the repair and export code, the generic Details sheet): a mention there is not a reader of the value (TEST.520)."""
 
 OBJECT_GROUP = "uid"
-"""str: The `db/kind_tables.py` group whose tables hold the objects the sheet describes; their columns are the ones the guard follows."""
+"""str: The `planetgen/db/kind_tables.py` group whose tables hold the objects the sheet describes; their columns are the ones the guard follows."""
 
 SHADOW_PACKAGES = ("planetgen.physics.", "planetgen.generation.", "planetgen.galaxy.")
 """tuple: The packages whose public functions must be called by something other than a test (TEST.520)."""
@@ -253,8 +253,8 @@ class Code:
         return found
 
     def object_columns(self):
-        """`{column: [tables]}` of the tables that hold objects (the `uid` group of `db/kind_tables.py`), read from the source of
-        `db/kind_tables.py` and `db/models.py`."""
+        """`{column: [tables]}` of the tables that hold objects (the `uid` group of `planetgen/db/kind_tables.py`), read from the source of
+        `planetgen/db/kind_tables.py` and `planetgen/db/models.py`."""
         tables = []
         for node in ast.walk(self.trees["planetgen.db.kind_tables"]):
             if isinstance(node, ast.Call) and isinstance(node.func, ast.Name) and node.func.id == "_row" and node.args:
@@ -273,7 +273,7 @@ class Code:
 
     def column_aliases(self):
         """`{column: {attribute}}`: the names the store gives a column when it loads the row, so a module that reads the attribute reads
-        the column. Found in `db/store.py`: `object_rows.attr/optional/scaled("column", "attribute", ...)` and a dictionary or keyword
+        the column. Found in `planetgen/db/store.py`: `object_rows.attr/optional/scaled("column", "attribute", ...)` and a dictionary or keyword
         whose value subscripts a row with the column (`{"age": row["binary_age_gy"]}`), or an attribute assigned from one
         (`system.binary_planetary_wobble_x = row["binary_planetary_wobble_x_km"]`)."""
         columns = set(self.object_columns())

@@ -110,6 +110,24 @@ def queued(steps):
     return [step for step in steps if not commands.spec(step.kind).inline]
 
 
+def _ensure_cluster_field(params):
+    """
+    Before a stage whose workers read the galaxy's shape (`CommandSpec.warm`) is cut: makes the cluster field a file in the
+    state folder (`galaxy.field_job.ensure_file`) so every worker reads it instead of building it again. Best effort: when
+    it cannot be made here, the workers build it themselves, as before.
+    """
+    named = params.get("database")
+    if not isinstance(named, dict):
+        return
+    try:
+        from planetgen.db import store
+        from planetgen.galaxy import field_job
+        field_job.ensure_file(store.MySQLConfig(host=named["host"], port=named["port"], user=named["user"],
+                                                database=named["database"]))
+    except Exception as exc:  # noqa: BLE001 -- the workers meet the same problem themselves
+        log.warning(f"The cluster field could not be made ahead of the stage: {exc}")
+
+
 def _expand(conn, run_id, index):
     """
     Cuts stage `index` of the run into its units, records the cut, begins the stage and queues the units. The
@@ -128,6 +146,8 @@ def _expand(conn, run_id, index):
     if _is_referred_to(runrecord.read_steps(conn, run_id), key):
         runrecord.set_opened_clock(conn, run_id, index, _database_clock(step.params))
     params = resolve_params(conn, run_id, step.params)
+    if commands.spec(step.kind).warm is not None:       # its workers read the galaxy's shape first thing: make the field once
+        _ensure_cluster_field(params)
     prepare = commands.prepare_function(step.kind)
     if prepare is not None:
         prepare(params)
@@ -334,6 +354,16 @@ def stage_label(conn, run_id, index):
     return runrecord._s(declared[index]["label"]) if 0 <= index < len(declared) else None
 
 
+def stage_name(conn, run_id, index):
+    """What a message calls stage `index` (PERF.221): the label the page shows for it, not the internal number; the
+    number only where the run record cannot say (a run already gone from Redis)."""
+    try:
+        label = stage_label(conn, run_id, index)
+    except Exception:  # noqa: BLE001 -- naming the stage must never hide the failure being reported
+        label = None
+    return label or str(index)
+
+
 def _stage_step(conn, run_id, index):
     """`(declared, step)` of stage `index`: how the run declared it and the step the run record holds for it."""
     declared = json.loads(runrecord._s(conn.hget(runrecord.run_key(run_id), "stages")))[index]
@@ -392,6 +422,7 @@ def finish_stage(conn, run_id, index, concluded_seconds=0.0):
         record = {runrecord._s(name): runrecord._s(value)
                   for name, value in conn.hgetall(runrecord.stage_key(run_id, index)).items()}
         _log_long_unit(conn, run_id, index, step, declared, float(record.get("longest_unit") or 0.0))
+        _log_peak_memory(conn, run_id, index, step, declared, float(record.get("peak_mb") or 0.0))
         seconds = max(float(record["ended"]) - float(record["started"]), 0.0) + concluded_seconds
         hook = commands.finish_function(step.kind)
         plan = runrecord.read_plan(conn, run_id, index)
@@ -423,6 +454,26 @@ def _log_long_unit(conn, run_id, index, step, declared, longest):
     runrecord.log(conn, run_id, f"stage {declared['label']}: its longest unit ran {longest:,.0f} s, over the "
                   f"{ceiling:,.0f} s unit ceiling; the stage was cut into {declared.get('units', 1):,} units",
                   level="warning", kind="unit.long", stage=index)
+
+
+def _log_peak_memory(conn, run_id, index, step, declared, peak_mb):
+    """
+    PERF.226: writes the most memory one worker of the stage that just ended held to the run's log, beside the figure the stage's
+    workers are sized by (`workers.STAGE_WORKER_MEMORY_MB`), so the next growth shows before it kills a run; a warning when it is
+    over the figure (then the cap lets too many workers run). A stage that is one worker by nature says so.
+    """
+    if not peak_mb:
+        return
+    figure = workers.stage_worker_mb(step.kind)
+    text = f"stage {declared['label']}: the largest worker held {peak_mb:,.0f} MB"
+    if figure is None:
+        text += " (one worker by nature, so there is nothing to size)"
+    elif peak_mb > figure:
+        text += f", over the {figure:,} MB its workers are sized by (workers.STAGE_WORKER_MEMORY_MB); raise the figure"
+    else:
+        text += f" of the {figure:,} MB its workers are sized by"
+    runrecord.log(conn, run_id, text, level="warning" if figure is not None and peak_mb > figure else "info", kind="stage.memory",
+                  stage=index, peak_mb=round(peak_mb))
 
 
 def _mysql_config(named):
@@ -519,6 +570,22 @@ def waiting_text(holder, position):
     return f"Waiting at position {position} for run {holder}"
 
 
+def report_wait_for(conn, holder, position):
+    """`report_wait`, and under it who holds the machine (`runrecord.busy_message`: title, start, process), saying so
+    when the holder is a run this very job started, so a wait on a stale blocker can be told from a real queue."""
+    report_wait(holder, position)
+    if holder is None:
+        return
+    log.normal(runrecord.busy_message(conn, holder))
+    job = os.environ.get(JOB_ENV)
+    if job and _s(conn.hget(runrecord.run_key(holder), "job")) == job:
+        log.normal(f"Run {holder} belongs to this same job: it is not another job's run.")
+
+
+def _s(value):
+    return value.decode("utf-8") if isinstance(value, bytes) else value
+
+
 def report_wait(holder, position):
     """
     `runline.start_when_free`'s `on_wait`: shows that this run waits, where its bar is read (the Generate page's
@@ -537,6 +604,23 @@ def report_wait(holder, position):
             job.save_meta()
     except Exception:  # noqa: BLE001 -- showing the wait is a nicety, never a reason to fail the run
         pass
+
+
+def stage_ensure(conn, url, kind, step_kind, workers_count=None):
+    """
+    The `ensure` for one stage of a run (PERF.220): `workers.ensure_workers` with the run's worker count held to what
+    the stage's workers can take in memory (`workers.stage_worker_cap`), and, on the bulk queue, the live workers over
+    that asked to finish their unit and exit (`workers.shed_bulk`), so the workers an earlier stage left do not all
+    scatter at once. A stage with ordinary workers is not limited.
+    """
+    cap = workers.stage_worker_cap(step_kind)
+    count = workers_count if cap is None else min(workers_count or cap, cap)
+
+    def ensure():
+        if cap is not None and queue_of(kind) == redisqueue.BULK_QUEUE:
+            workers.shed_bulk(conn, cap)
+        return workers.ensure_workers(queue_of(kind), conn, url, count=count)
+    return ensure
 
 
 def run(title, steps, on_plan, on_result, on_progress=None, workers_count=None, who=None, database=None, argv=None,
@@ -599,12 +683,13 @@ def run(title, steps, on_plan, on_result, on_progress=None, workers_count=None, 
         kind=kind, disregard_missing_data=fetch.disregarding_missing_data(), debug=debug,
         job=os.environ.get(JOB_ENV) or None, galaxy_seed=galaxy_seed, build=build, finishes=finishes)
     if kind == runrecord.GENERATION:
-        run_id = runline.start_when_free(conn, start, get_settings().queue.wait_minutes * 60, on_wait=report_wait,
+        run_id = runline.start_when_free(conn, start, get_settings().queue.wait_minutes * 60,
+                                         on_wait=lambda holder, position: report_wait_for(conn, holder, position),
                                          title=title, who=who, database=database,
-                                         admitted=bool(os.environ.get(JOB_ENV)))
+                                         admitted=bool(os.environ.get(JOB_ENV)), nested_guard=True)
     else:
         run_id = start()
-    ensure = lambda: workers.ensure_workers(queue_of(kind), conn, url, count=workers_count)  # noqa: E731
+    ensures = [stage_ensure(conn, url, kind, step.kind, workers_count) for step in steps]
     relay = log.RelayReader(conn, runrecord.debug_key(run_id)) if debug else None
     on_debug = relay.drain if relay else None
     log.trace(f"run {run_id} ({title}) started: {len(steps)} stage(s) on the {queue_of(kind)} queue, "
@@ -615,6 +700,7 @@ def run(title, steps, on_plan, on_result, on_progress=None, workers_count=None, 
     try:
         advance(conn, run_id, 0)
         for index in range(len(steps)):
+            ensure = ensures[index]
             plan = _await_plan(conn, run_id, index, ensure, on_debug=on_debug)
             log.trace(f"run {run_id}: stage {index} ({steps[index].label}) queued as {plan['units']} unit(s) of total "
                       f"cost {plan['cost']}", area="queue")

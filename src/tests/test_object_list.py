@@ -114,6 +114,26 @@ def test_a_planet_or_moon_item_carries_its_stored_habitability(indexed):
     assert stars and all("phi4" not in star for star in stars)
 
 
+def test_a_star_planet_or_moon_item_carries_its_stored_physics_values(indexed):
+    """UX.187: a star's temperature, luminosity and age and a planet's or moon's orbit size, eccentricity and surface
+    temperature come from the kind's own table, as stored; the other kinds carry none."""
+    config, _sector = indexed
+    for kind, table in (("star", "stars"), ("planet", "planets"), ("moon", "moons")):
+        columns = objectlist.PHYSICS_COLUMNS[kind]
+        items, _pages, _total = _walk(config, kind, 50)
+        conn = store.get_connection(config)
+        try:
+            stored = {row["id"]: row for row in conn.execute(f"SELECT id, {', '.join(columns)} FROM {table}").fetchall()}
+        finally:
+            conn.close()
+        assert items
+        for item in items:
+            assert {column: item[column] for column in columns} == {column: stored[item["source_id"]][column]
+                                                                   for column in columns}
+    belts, _pages, _total = _walk(config, "belt", 50)
+    assert all("temperature_k" not in belt and "eccentricity" not in belt for belt in belts)
+
+
 def test_a_cursor_for_a_gone_object_starts_from_the_top_and_a_bad_one_is_refused(indexed):
     config, _sector = indexed
     conn = store.get_connection(config)

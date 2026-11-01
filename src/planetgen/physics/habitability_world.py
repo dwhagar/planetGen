@@ -46,13 +46,16 @@ section 8):
   the heaviest survival equipment and a note naming the host. No X-ray binaries
   are generated yet; the rule is by the host's class.
 
-A gas giant has no surface and no score (every field `None`).
+A gas giant has no surface and no score (every field `None`), except the two energy inputs the sheet shows for every body (GEN.784):
+`energy_flux_w_m2` is the energy a giant radiates through its 1 bar level, the starlight it absorbs (its Bond albedo, `giant_draw.BOND_ALBEDO`)
+plus the heat of its own interior (`giant_draw.own_flux_w_m2`), which is `sigma T_eff^4`; `flux_variation` is the swing of its starlight that
+`insolation` gives every planet.
 """
 
 import math
 
 from planetgen import tuning
-from planetgen.physics import aerosols, aquifers, atmosphere, constants, equipment, habitability, life_scores, magnetism, outside_hours, protection_limits, radiation, regional_temperature
+from planetgen.physics import aerosols, aquifers, atmosphere, constants, equipment, giant_draw, habitability, life_scores, magnetism, outside_hours, protection_limits, radiation, regional_temperature
 from planetgen.physics import unit_registry as units
 
 _pa_to_kpa = units.converter("Pa", "kPa")
@@ -165,6 +168,7 @@ def values_from_body(body):
         "dose_ground_msv_yr": getattr(body, "dose_ground_msv_yr", None),
         "dose_gcr_msv_yr": getattr(body, "dose_gcr_msv_yr", None),
         "dose_sep_msv_yr": getattr(body, "dose_sep_msv_yr", None),
+        "dose_belt_msv_yr": getattr(body, "dose_belt_msv_yr", None),
         "dose_helio_mult": getattr(body, "dose_helio_mult", None),
         "uv_surface_index": getattr(body, "uv_surface_index", None),
         "tau_dust": getattr(body, "tau_dust", None),
@@ -174,11 +178,16 @@ def values_from_body(body):
         "daylight_hours": getattr(body, "daylight_hours", None),
         "axial_tilt_deg": getattr(body, "axial_tilt_deg", None),
         "period_years": getattr(body, "period", None),
+        "ring_inner_km": getattr(body, "ring_inner_km", None),                    # GEN.1055 R8: the ring shades the latitude bands behind it
+        "ring_outer_km": getattr(body, "ring_outer_km", None),
+        "ring_optical_depth": getattr(body, "ring_optical_depth", None),
         "is_moon": bool(getattr(body, "is_moon", False)),
         "energy_flux_w_m2": getattr(body, "energy_flux_w_m2", None),
         "native_life": native_life(getattr(body, "life_class", None), getattr(body, "life_stage", None),
                                    getattr(body, "life_system_age_gyr", None) is not None),
         "flux_variation": getattr(body, "flux_variation", None),
+        "surface_liquid_acid_layer": getattr(body, "surface_liquid_acid_layer", None),
+        "surface_liquid_ammonia_wt": getattr(body, "surface_liquid_ammonia_wt", None),
         "life_class": getattr(body, "life_class", None),
         "life_class_variant": getattr(body, "life_class_variant", None),
         "life_animal_grade": getattr(body, "life_animal_grade", None),
@@ -296,6 +305,14 @@ def inventories(values):
             "N": max(hydrogen, nitrogen / EARTH_NITROGEN_KG)}
 
 
+def giant_energy_flux_w_m2(body):
+    """The energy a giant radiates through its 1 bar level, W/m2 (GEN.784): `sigma T_eff^4` of the starlight it absorbs and the heat of its own
+    interior (`giant_draw.effective_temperature_k`). A giant that is a moon has no starlight of its own here (`giant_draw.starlight_w_m2`) and
+    radiates its own heat."""
+    starlight = giant_draw.starlight_w_m2(body) or 0.0
+    return constants.STEFAN_BOLTZMANN_CONSTANT * giant_draw.effective_temperature_k(starlight, giant_draw.own_flux_w_m2(body)) ** 4
+
+
 def energy_flux_w_m2(values, luminosity_w, distance_au, internal_flux_w_m2):
     """The light or chemical power available to life, W/m2 (see the module
     docstring). `luminosity_w` and `distance_au` describe the star (either
@@ -352,6 +369,7 @@ def world_from(values, lethal_host=None):
         life_stage=values.get("native_life") or "none",
         life_on_surface=values.get("hydrosphere") != "ice-covered ocean" and underground != "deep",
         dose_gcr_sv_yr=parts[0], dose_sep_sv_yr=parts[1], dose_ground_sv_yr=parts[2],
+        dose_belt_sv_yr=(values.get("dose_belt_msv_yr") or 0.0) / 1000.0 if parts[0] is not None else None,
         cutoff_gv=cutoff_gv(values), uv_index=values.get("uv_surface_index") or 0.0,
         dust_mg_m3=aerosols.dust_loading_mg_m3(values.get("tau_dust"), values.get("scale_height_km")),
     )
@@ -368,11 +386,9 @@ def _dose_parts_sv(values):
 
 
 def cutoff_gv(values):
-    """The equatorial cutoff rigidity of the body's dipole, GV (0 without a field): the moment, times the dipole's
-    share for a slow-rotating planet (a moon keeps its dipole), over the radius squared (`radiation.cutoff_rigidity_gv`)."""
-    share = 1.0 if values.get("is_moon") or values.get("body_type") == "g" else magnetism.dipole_share(
-        values.get("rotation_period_hours"))
-    return radiation.cutoff_rigidity_gv((values.get("magnetic_moment_a_m2") or 0.0) * share, values.get("radius_km") or 0.0)
+    """The equatorial cutoff rigidity of the body's dipole, GV (0 without a field): the stored dipole moment over the radius squared
+    (`radiation.cutoff_rigidity_gv`)."""
+    return radiation.cutoff_rigidity_gv(values.get("magnetic_moment_a_m2") or 0.0, values.get("radius_km") or 0.0)
 
 
 def compute(values, compact_host=None):
@@ -480,6 +496,8 @@ def generate(body, internal_flux_w_m2):
     swing = getattr(body, "flux_variation", None)
     _clear(body)
     if body.body_type == "g":
+        body.flux_variation = swing
+        body.energy_flux_w_m2 = giant_energy_flux_w_m2(body)
         return
     body.flux_variation = swing
     values = values_from_body(body)

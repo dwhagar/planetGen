@@ -17,7 +17,7 @@ is a Solar System preset: the ground is the one the body's own inputs allow.
    ice-rich all through (water and other ices at least half the rock's mass) and frozen is ice from pole to pole.
 2. *The dominant ground of the rest* (`DOMINANT_TABLE`, a gated possibility table): metal-rich where the mantle is stripped
    (a metal share of 0.7 or more, Hu et al. 2012), carbon where the rock is carbon rock, otherwise by the primary and
-   secondary crust rules of Hu, Ehlmann and Seager 2012 (part E section 3.2): basaltic where decompression melting still
+   secondary crust rules of Hu, [R2024] (part E section 3.2): basaltic where decompression melting still
    resurfaces (the heat flow is over a floor `q_min`, log-uniform), else the primary crust of the magma ocean, ultramafic
    where the mantle overturned (more likely the more FeO) and anorthositic where it did not.
 3. *Modifiers*, each an areal share of the land and drawn only when the inputs allow it: granitoid (`felsic`) with plate
@@ -35,7 +35,7 @@ Use:
     composition.components                      # {materials row: mass share}, adds up to 1
     composition.mix                             # {ground type: areal share}, adds up to 1
     band_albedo(composition)                    # the albedo by band, area-weighted over the rows that have one
-    crust_reservoir(composition)                # K, Th, U of the crust, for the radiogenic heat of GEN.459
+    land_rock_ppm(body)                         # K, Th, U of the rock of the land, for the ground dose
 """
 
 import math
@@ -48,13 +48,13 @@ from planetgen.util import draw
 from planetgen.util.random import log_uniform
 
 SOURCES = {
-    "hu2012": "Hu, Ehlmann and Seager 2012, ApJ 752, 7 (arXiv:1204.1544), Table 2: mineral assemblages of airless-planet crusts",
+    "hu2012": "Hu, [R2024] [R2024: Table 2]: mineral assemblages of airless-planet crusts",
     "partE": "part E of the body composition research (docs/design/composition/body-composition-parts/E-ground-radiogenic-"
              "shielding.md) section 3.2, the ground-type decision rules",
-    "palme2014": "Palme and O'Neill 2014 via pyrolite; Workman and Hart 2005; Gale et al. 2013; Rudnick and Gao 2014 "
+    "palme2014": "[R3417] via pyrolite; [R1494, R3842, R4775] "
                  "(part E table 2.8b, second-hand)",
-    "rock_types": "physics/rock_types.py: the CIPW norm and the total alkali-silica bands (Le Bas et al. 1986) applied to a melt of the stored mantle",
-    "millero": "mean ocean salinity 35 g/kg (Millero et al. 2008, Deep-Sea Research I 55, 50)",
+    "rock_types": "physics/rock_types.py: the CIPW norm and the total alkali-silica bands [R0277] applied to a melt of the stored mantle",
+    "millero": "mean ocean salinity 35 g/kg ([R3078], Deep-Sea Research I 55, 50)",
 }
 
 RANGES = {
@@ -184,9 +184,9 @@ DOMINANT_TABLE = pt.REGISTRY.register(pt.Table(
 
 # K, Th and U (ppm by mass) of the reservoirs that model a ground type (part E table 2.8b; second-hand, via pyrolite).
 RESERVOIRS = {
-    "ultramafic": {"k_ppm": 51.0, "th_ppm": 0.0079, "u_ppm": 0.0032, "model": "depleted mantle (Workman and Hart 2005)"},
-    "basaltic": {"k_ppm": 1162.0, "th_ppm": 0.252, "u_ppm": 0.083, "model": "N-MORB (Gale et al. 2013)"},
-    "felsic": {"k_ppm": 23244.0, "th_ppm": 10.5, "u_ppm": 2.7, "model": "upper continental crust (Rudnick and Gao 2014)"},
+    "ultramafic": {"k_ppm": 51.0, "th_ppm": 0.0079, "u_ppm": 0.0032, "model": "depleted mantle [R4775]"},
+    "basaltic": {"k_ppm": 1162.0, "th_ppm": 0.252, "u_ppm": 0.083, "model": "N-MORB [R1494]"},
+    "felsic": {"k_ppm": 23244.0, "th_ppm": 10.5, "u_ppm": 2.7, "model": "upper continental crust [R3842]"},
 }
 """dict: The K, Th and U of the ground types that have a measured reservoir model."""
 
@@ -494,17 +494,6 @@ def band_albedo(composition):
     return result, covered
 
 
-def crust_reservoir(composition):
-    """
-    The K, Th and U (ppm by mass) of the crust, area-weighted over the land types that have a reservoir (`RESERVOIR_OF`), and the
-    share of the land they cover.
-
-    Returns:
-        tuple: `({k_ppm, th_ppm, u_ppm} or None, covered share of the land)`.
-    """
-    return _reservoir_of_mix(composition.mix)
-
-
 def _reservoir_of_mix(mix):
     land = {name: share for name, share in mix.items() if name not in (OCEAN, ICE) and share}
     total_land = math.fsum(land.values())
@@ -524,7 +513,7 @@ def _reservoir_of_mix(mix):
 def land_rock_ppm(body):
     """
     `(K, Th, U)` ppm of the rock a body's land is made of, for the ground dose: the area-weighted reservoirs of its stored ground
-    (`crust_reservoir`), with the land that has no reservoir of its own taking basalt's (the secondary crust of any body that was
+    (`_reservoir_of_mix`), with the land that has no reservoir of its own taking basalt's (the secondary crust of any body that was
     still melting, part E 3.2 rule 4). A body with no stored ground, or no land, is basalt.
     """
     basalt = RESERVOIRS["basaltic"]

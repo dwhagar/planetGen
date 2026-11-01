@@ -32,7 +32,6 @@ from dataclasses import dataclass
 
 from planetgen.physics import (
     constants,
-    gases,
     greenhouse_table,
     mixture,
 )
@@ -72,15 +71,6 @@ def air_state(partial_pressures_pa, temperature_k, gravity_m_s2):
                     density_kg_m3=total * molar_mass / (constants.R * temperature_k),
                     scale_height_m=constants.R * temperature_k / (molar_mass * gravity_m_s2),
                     column_mass_kg_m2=total / gravity_m_s2)
-
-
-def gas_column_mass_kg_m2(partial_pressures_pa, gravity_m_s2):
-    """Each gas's mass above one square metre of a well-mixed hydrostatic column, `x_i M_i P / (M g)`, kg/m2 (they add up to `P / g`)."""
-    _check_positive(gravity_m_s2=gravity_m_s2)
-    total = mixture.total_pressure_pa(partial_pressures_pa)
-    molar_mass = mixture.mean_molar_mass_kg_mol(partial_pressures_pa)
-    return {formula: (pressure / total) * gases.gas(formula).molar_mass * total / (molar_mass * gravity_m_s2)
-            for formula, pressure in partial_pressures_pa.items()}
 
 
 def greenhouse_warming(partial_pressures_pa, gravity_m_s2, absorbed_flux_w_m2, aloft_share=0.0, aloft_pressure_pa=None):

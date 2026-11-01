@@ -4,7 +4,7 @@
 Effective temperature against spectral type of brown dwarfs (GEN.517, docs/design/composition/brown-dwarf-types.md)
 =====================================================================================================
 
-The empirical map of Kirkpatrick et al. 2021, Table 13 (525 L, T and Y dwarfs within 20 pc), in the data file
+The empirical map of [R2374: Table 13] (525 L, T and Y dwarfs within 20 pc), in the data file
 `brown_dwarf_teff_map.json`: three polynomials in the spectral type `s` (L0 = 0, T0 = 10, Y0 = 20) with their scatter in Kelvin. The
 type is a function of the effective temperature with that scatter, not a weighted draw; the soft windows of rows g1 to g5 of the
 atmosphere recipes (`scripts/atmosphere_recipes_data.py`) are the same map seen from the temperature, and their edges are the
@@ -157,7 +157,7 @@ def number_of_teff(teff_k):
 def drawn_number(teff_k, rng):
     """
     The type of one brown dwarf at `teff_k`, as `(number, temperature_k)`: the temperature it reads on the map is its own
-    plus a Gaussian offset of the scatter of the piece its mean type is on (Kirkpatrick et al. 2021: the dwarfs of one type
+    plus a Gaussian offset of the scatter of the piece its mean type is on ([R2374]: the dwarfs of one type
     spread by that many Kelvin), and the number is the map read backwards at that temperature. `number` is None when that
     temperature is the one of a late-M dwarf; `temperature_k` is the temperature the type was read at. The L/T transition,
     where the map is nearly flat, spreads a type over several subtypes, as the census does.

@@ -8,13 +8,12 @@ star's place in that stretch and lets the third dredge-up carry carbon to the su
 and how far along the branch it is. It is a derived value, as `variability.kind_of` is: the sheet computes it from the stored initial mass, mass,
 age, [Fe/H] and `state`, and nothing is stored.
 
-**Pulses.** `pulses_in_branch` is the number of thermal pulses over the whole branch for a star of the initial mass: the table of Karakas and
-Lugaro 2016 (Table 1, Z 0.007 and 0.014, 17 to 25 pulses from 1.5 to 3.75 solar masses). The star has run that many times its share of the
+**Pulses.** `pulses_in_branch` is the number of thermal pulses over the whole branch for a star of the initial mass: the table of [R2244] (Table 1, Z 0.007 and 0.014, 17 to 25 pulses from 1.5 to 3.75 solar masses). The star has run that many times its share of the
 branch's age window.
 
 **Dredge-up.** From the first pulse a star above `tdu_minimum_mass_sol` brings carbon up: at pulse `n` the dredged share of the core growth is
-`lambda(n) = lambda_max (1 - exp(-n / DREDGE_RISE_PULSES))` (the form of Karakas et al. 2002 as written in the population-synthesis papers),
-`lambda_max` the table of Karakas and Lugaro 2016 by mass. Each pulse grows the core by `CORE_GROWTH_PER_PULSE_SOL`; the dredged mass is
+`lambda(n) = lambda_max (1 - exp(-n / DREDGE_RISE_PULSES))` (the form of [R2243] as written in the population-synthesis papers),
+`lambda_max` the table of [R2244] by mass. Each pulse grows the core by `CORE_GROWTH_PER_PULSE_SOL`; the dredged mass is
 `lambda` times that, of which `INTERSHELL_CARBON_FRACTION` is carbon. The surface C/O is that carbon (and the envelope's own) over the envelope's
 oxygen, with the envelope the mean of its mass at the start of the branch and its mass now, less the core. Above `HBB_MIN_MASS_SOL` the base of the
 envelope burns the carbon again (hot bottom burning) and the star stays oxygen-rich.
@@ -33,16 +32,15 @@ S_STAR = "S star"
 KINDS = (CARBON_STAR, S_STAR)
 
 PULSES_BY_MASS_SOL = ((1.5, 17.0), (1.75, 19.0), (2.75, 25.0), (3.25, 22.0), (3.75, 22.5))
-"""tuple: `(initial mass, thermal pulses over the asymptotic branch)`, linear between, held outside. [Stand-in CS1, tier T3, tweak L0: Karakas and
-Lugaro 2016 Table 1 (arXiv:1604.02178; Z 0.007 and 0.014 rows; 1.5 solar masses has 18 and 16, 1.75 has 17 and 20, 2.75 25, 3.25 22, 3.75 22 and 23).]"""
+"""tuple: `(initial mass, thermal pulses over the asymptotic branch)`, linear between, held outside. [Stand-in CS1, tier T3, tweak L0: [R2244: Table 1] ([R2244]; Z 0.007 and 0.014 rows; 1.5 solar masses has 18 and 16, 1.75 has 17 and 20, 2.75 25, 3.25 22, 3.75 22 and 23).]"""
 
 LAMBDA_MAX_BY_MASS_SOL = ((1.5, 0.41), (1.75, 0.50), (2.75, 0.80), (3.25, 0.92), (3.75, 0.96))
 """tuple: `(initial mass, largest dredge-up share of the core growth)`, linear between, held outside. [Stand-in CS2, tier T3, tweak L0: the
-lambda_max column of Karakas and Lugaro 2016 Table 1 (1.5: 0.31 at Z 0.007 and 0.51 at 0.014; 1.75: 0.51 and 0.50; 2.75: 0.80; 3.25: 0.92; 3.75: 0.97
+lambda_max column of [R2244: Table 1] (1.5: 0.31 at Z 0.007 and 0.51 at 0.014; 1.75: 0.51 and 0.50; 2.75: 0.80; 3.25: 0.92; 3.75: 0.97
 and 0.95).]"""
 
 DREDGE_RISE_PULSES = 4.0
-"""float: Pulses over which the dredge-up share rises to 63 percent of its largest. [Stand-in CS3, tier T6, tweak L1: Karakas et al. 2002 fit it to
+"""float: Pulses over which the dredge-up share rises to 63 percent of its largest. [Stand-in CS3, tier T6, tweak L1: [R2243] fit it to
 models; their coefficients are not at hand, and a handful of pulses is what the published lambda-against-pulse curves show.]"""
 
 CORE_GROWTH_PER_PULSE_SOL = 0.004
@@ -58,8 +56,8 @@ CORE_MASS_SOL = 0.6
 to 0.7.]"""
 
 TDU_MIN_MASS_AT_SOLAR_SOL = 1.5
-"""float: The lightest star at solar [Fe/H] that dredges carbon up. [Stand-in CS7, tier T3, tweak L1: Karakas and Lugaro 2016 (1.5 solar masses
-becomes carbon-rich at Z 0.007 and 0.014 in their models with overshoot); Cristallo et al. 2011 find 1.5 at Z 0.02 and 1.4 at 0.01; the models
+"""float: The lightest star at solar [Fe/H] that dredges carbon up. [Stand-in CS7, tier T3, tweak L1: [R2244] (1.5 solar masses
+becomes carbon-rich at Z 0.007 and 0.014 in their models with overshoot); [R0925] find 1.5 at Z 0.02 and 1.4 at 0.01; the models
 without overshoot put the solar minimum at 2.]"""
 
 TDU_MIN_MASS_SLOPE_PER_DEX = 0.2
@@ -72,7 +70,7 @@ TDU_MIN_MASS_FLOOR_SOL = 1.0
 
 HBB_MIN_MASS_SOL = 4.0
 """float: A star of this mass or more burns its dredged carbon at the base of its envelope and stays oxygen-rich. [Stand-in CS10, tier T3, tweak L0:
-Karakas and Lugaro 2016 (hot bottom burning from about 4 solar masses); Izzard-style synthesis (arXiv:0808.2112) takes the same 4.0 as the
+[R2244] (hot bottom burning from about 4 solar masses); Izzard-style synthesis [R0796] takes the same 4.0 as the
 upper edge of the carbon stars.]"""
 
 S_STAR_MIN_C_TO_O = 0.9

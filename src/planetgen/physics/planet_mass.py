@@ -8,9 +8,9 @@ How heavy a planet is when no class letter supplies the mass: the disc's solids 
 oligarchs a feeding zone merges into one planet, and the core-accretion rule that turns a heavy enough core into a gas
 giant. A pure law over the star and the formation distance; it reads no class and writes none.
 
-1. **Solids.** The isolation mass at the formation distance (`formation.isolation_mass_kg`, Lissauer 1993; Kokubo & Ida
+1. **Solids.** The isolation mass at the formation distance (`formation.isolation_mass_kg`, [R2709]; Kokubo & Ida
    2000) for a feeding zone `OLIGARCH_SEPARATION_MEDIAN` mutual Hill radii wide, from the minimum-mass nebula scaled for the star's
-   mass (`PLANET_SOLIDS_STELLAR_MASS_EXPONENT`), [Fe/H] and the disc's own scatter (`DISC_SOLIDS_SCATTER_DEX`, Andrews et al. 2013),
+   mass (`PLANET_SOLIDS_STELLAR_MASS_EXPONENT`), [Fe/H] and the disc's own scatter (`DISC_SOLIDS_SCATTER_DEX`, [R0114]),
    boosted beyond the snow line and steeper inside 1 AU (`PLANET_INNER_DISC_STEEPENING`). Beyond `PLANET_OUTER_GROWTH_AU` the slow
    outer disc has built less: the mass falls as a power of the distance. `planet_architecture` builds a whole chain of these
    (`oligarch_core_kg`) and thins it; a planet asked for alone at a distance draws one.
@@ -158,6 +158,7 @@ def gas_outcome(core_kg, distance_au, star_mass_kg, snow_line_au, fe_h=0.0, stre
                  * metallicity.giant_occurrence_factor(fe_h))
         found *= min(1.0, (tuning.GIANT_GAS_SURVIVAL_CUT_AU / distance_au) ** 2)
         if source.random() < found:
+            core = min(core, _BROWN_DWARF_LIMIT_KG)      # two giants' cores that merged past the deuterium limit leave a planet of at most the limit
             return PlanetMass(max(runaway_mass_kg(star_mass_kg, source), core), core, True)
     cap = tuning.GIANT_NO_GAS_CORE_MAX_EARTH if distance_au >= snow_line_au else tuning.PLANET_INNER_CORE_MAX_EARTH
     core = saturate_kg(core, cap * _EARTH_KG)

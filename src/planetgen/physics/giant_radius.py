@@ -2,9 +2,9 @@
 
 """
 The radius of a giant planet from its mass, heavy elements, irradiation and age (GEN.460), and the heavy-element mass of
-a giant (Chachan et al. 2025).
+a giant [R0710].
 
-**Radius.** The tables of Fortney, Marley and Barnes 2007 (`giant_radius_tables`, Tables 2 to 4 of ApJ 659:1661) give a
+**Radius.** The tables of [R1429] (`giant_radius_tables`, Tables 2 to 4 of ApJ 659:1661) give a
 cool-start radius for masses from 17 to 3,594 Earth masses, five distances from a one-solar-luminosity star, five core
 masses and three ages. `radius_rj` interpolates them: linearly in the core mass, and in the logarithms of mass, distance
 (the flux, `d = 1/sqrt(S)` for a flux `S` in Earth units) and age. Outside the grid the nearest edge is held, in flux
@@ -17,14 +17,14 @@ Earth masses of heavy elements, comes out at 0.95 Jupiter radii. A planet that i
 is outside the tables, and `covers` says so.
 
 **Inflation.** The tables do not inflate. Above a threshold flux a giant of 0.37 Jupiter masses or more is larger than
-a cool one, and `inflation_rj` adds the population relation of Sestovic, Demory and Queloz 2018 (A&A 612:A74, Table 1),
+a cool one, and `inflation_rj` adds the population relation of [R4029] (A&A 612:A74, Table 1),
 `Delta R = A (log10 F - log10 F_s)` Jupiter radii for a flux `F` in W/m^2 above `F_s`, in three mass bins. It is an
-empirical fit to 286 transiting giants, not an interior model: the physical efficiency of Thorngren and Fortney 2018
+empirical fit to 286 transiting giants, not an interior model: the physical efficiency of [R4351]
 (ApJ 155:214, 2.4 percent of the flux at 1,500 K, falling to 0.2 percent at 2,500 K) needs a thermal evolution code the
 project does not have, so it stays a stand-in (marked in the gap plan). The relation is the median; the fraction of
 hot giants that are not inflated is not drawn.
 
-**Heavy elements.** `heavy_mass_earth` draws `M_Z = M_core + f_Z (M - M_core)` (Chachan et al. 2025, arXiv:2509.20428,
+**Heavy elements.** `heavy_mass_earth` draws `M_Z = M_core + f_Z (M - M_core)` ([R0710],
 equation 6; `giant-heavy-element-law.md`) with the paper's multiplicative scatter, and `M_Z = M` below `M_core`, kept
 below `MAX_HEAVY_FRACTION` of the mass so every giant keeps an envelope.
 """
@@ -53,17 +53,17 @@ INFLATION_BINS = (
     (0.98, 0.52, 5.82),
     (2.50, 0.22, 5.20),
 )
-"""tuple: Sestovic et al. 2018, Table 1: the mass bins from 0.37 Jupiter masses, with `A` and `log10 F_s`. Below 0.37
+"""tuple: [R4029: Table 1]: the mass bins from 0.37 Jupiter masses, with `A` and `log10 F_s`. Below 0.37
 Jupiter masses the paper's `A` is -0.33 (+0.51, -0.91), no inflation within its error, so none is applied."""
 
 CHACHAN_CORE_MASS_EARTH = 14.7
-"""float: `M_core` of Chachan et al. 2025 (+1.8, -1.6 Earth masses)."""
+"""float: `M_core` of [R0710] (+1.8, -1.6 Earth masses)."""
 
 CHACHAN_ENVELOPE_HEAVY_SHARE = 0.09
-"""float: `f_Z` of Chachan et al. 2025 (+-0.01): the heavy-element share of the mass accreted beyond `M_core`."""
+"""float: `f_Z` of [R0710] (+-0.01): the heavy-element share of the mass accreted beyond `M_core`."""
 
 CHACHAN_SCATTER = 0.66
-"""float: `sigma_mult` of Chachan et al. 2025 (+-0.08): the spread of `M_Z` as a fraction of its predicted value."""
+"""float: `sigma_mult` of [R0710] (+-0.08): the spread of `M_Z` as a fraction of its predicted value."""
 
 MAX_HEAVY_FRACTION = 0.9
 """float: The most of a giant's mass that is heavy elements; the rest is hydrogen and helium."""
@@ -168,7 +168,7 @@ def radius_rj(mass_earth, core_mass_earth, flux_earth, age_gy):
 
 
 def inflation_rj(mass_earth, flux_w_m2):
-    """The radius a hot giant gains, in Jupiter radii, from the population relation of Sestovic et al. 2018 (see the
+    """The radius a hot giant gains, in Jupiter radii, from the population relation of [R4029] (see the
     module text); 0 below 0.37 Jupiter masses and below the mass bin's threshold flux."""
     mass_mj = _kg_to_mjup(_mearth_to_kg(mass_earth))
     bin_ = None
@@ -193,7 +193,7 @@ def radius_km(mass_earth, core_mass_earth, flux_earth, age_gy):
 
 
 def predicted_heavy_mass_earth(mass_earth):
-    """Chachan et al. 2025's heavy-element mass of a giant of `mass_earth`, before scatter: `M_Z = M_core + f_Z (M -
+    """[R0710]'s heavy-element mass of a giant of `mass_earth`, before scatter: `M_Z = M_core + f_Z (M -
     M_core)`, and all of the mass below `M_core`."""
     if mass_earth <= CHACHAN_CORE_MASS_EARTH:
         return mass_earth

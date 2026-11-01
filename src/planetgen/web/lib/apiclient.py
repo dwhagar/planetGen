@@ -38,8 +38,8 @@ from planetgen.util.settings import get_settings
 from planetgen.web.lib import pagecache, slowpages
 
 API_BASE_URL = get_settings().api_base_url
-"""str: Base URL of the planetGen API's `/api` mount point. Defaults to
-the same host (see `examples/apache/planetgen.conf.example`) -- only used
+"""str: Base URL of the planetGen API's `/api` mount point, empty when none is configured (there is no default, OPS.86:
+the HTTP transport then refuses instead of trying 127.0.0.1). Only used
 by the HTTP transport, not by the Flask pages' in-process one --
 override via the `PLANETGEN_API_BASE_URL` Apache `SetEnv` (or shell env,
 for local testing), or `config.json`'s `api_base_url` (see
@@ -171,7 +171,11 @@ def _cache_db(params):
 
 
 def _http_transport(method, target, data, headers, timeout):
-    """The default transport: a real HTTP request to `API_BASE_URL`."""
+    """The default transport: a real HTTP request to `API_BASE_URL` (OPS.86: with none configured it raises `ApiError`,
+    never reaching for a loopback address)."""
+    if not API_BASE_URL:
+        raise ApiError("No API address is configured: set api_base_url in config.json (or PLANETGEN_API_BASE_URL), "
+                       "for example https://example.org/api. Nothing is tried until it is set.")
     request = urllib.request.Request(f"{API_BASE_URL}{target}", data=data, headers={"User-Agent": user_agent(), **headers},
                                      method=method)
     try:
@@ -204,6 +208,9 @@ def _send(method, target, json_body=None, cookie_header=None, timeout=_TIMEOUT_S
         ApiError: On any other error status (with `.status_code` set), or
             if the API can't be reached.
     """
+    if method == "GET":
+        from planetgen.web import rebuild_gate
+        rebuild_gate.check(target)    # a visitor's heavy read while the caches are rebuilt: CacheRebuilding, a 503
     data = None
     headers = {}
     if json_body is not None:
@@ -884,7 +891,7 @@ def get_object_children(db, ref, limit=None, after=None):
     return _request(f"/objects/{ref}/children", {"db": db, "limit": limit, "after": after})
 
 
-def get_search(db, texts, tags, sizes=None, limit=None, offsets=None, panels=None, sorts=None, stars=None):
+def get_search(db, texts, tags, sizes=None, limit=None, offsets=None, panels=None, sorts=None, stars=None, ranges=None):
     """
     Runs `GET /api/search` and returns its response dict -- see
     `db.query.search`'s docstring for the full shape.
@@ -907,9 +914,12 @@ def get_search(db, texts, tags, sizes=None, limit=None, offsets=None, panels=Non
             `<panel>_offset`, one page per result panel.
         panels (iterable, optional): Run just these result panels; an empty one runs none, which still answers
             the facets and the name suggestions.
-        sorts (dict, optional): `{"planet", "moon"} -> sort key` (`-` in front for the best first), sent as
-            `planet_sort`/`moon_sort` (UX.214).
+        sorts (dict, optional): `{"star", "planet", "moon"} -> sort key` (`-` in front for the best first), sent as
+            `star_sort`/`planet_sort`/`moon_sort` (UX.214; the keys of the physical values, UX.226).
         stars (str, optional): The stars filter (UX.239), sent as `stars`: a count, a count and a plus, or a name.
+        ranges (dict, optional): `{entity: {key: (least, most, unit)}}`, the range filters on the physical values (UX.226), sent as
+            `<entity>_min_<key>`, `<entity>_max_<key>` and `<entity>_<key>_unit`; either bound `None` is left out, and a `None` unit
+            is the key's own.
     """
     _require_db(db)
     pairs = [("db", db)]
@@ -933,6 +943,14 @@ def get_search(db, texts, tags, sizes=None, limit=None, offsets=None, panels=Non
             pairs.append((f"{entity}_sort", sort))
     if stars:
         pairs.append(("stars", stars))
+    for entity, by_key in (ranges or {}).items():
+        for key, (least, most, unit) in by_key.items():
+            if least is not None:
+                pairs.append((f"{entity}_min_{key}", least))
+            if most is not None:
+                pairs.append((f"{entity}_max_{key}", most))
+            if unit:
+                pairs.append((f"{entity}_{key}_unit", unit))
     if panels is not None:
         pairs.append(("panels", ",".join(panels) or "none"))
     return _request("/search", pairs)

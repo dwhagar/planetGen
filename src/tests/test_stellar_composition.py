@@ -17,7 +17,7 @@ import pytest
 
 from planetgen import tuning
 from planetgen.datasets import fetch, isochrones, neutron_star_matter, white_dwarf_models
-from planetgen.physics import elements, wolf_rayet
+from planetgen.physics import alpha_tracks, elements, wolf_rayet
 from planetgen.physics import stellar_abundances as sa
 from planetgen.physics import stellar_composition as sc
 from planetgen.physics.stellar_evolution import evolve_star, main_sequence_lifetime_gy
@@ -43,7 +43,6 @@ def test_the_key_prefers_the_group_then_the_bright_seed_then_the_uid_then_the_qu
     assert sc.abundance_key(uid=5, mass=1.0, distance_ly=3.0, bright_seed=7) == "bright:7"
     assert sc.abundance_key(uid=5, mass=1.0, distance_ly=3.0) == "5"
     assert sc.abundance_key(mass=1.0, distance_ly=3.0) == "1.0:3.0"
-    assert sc.cluster_key(11) == "cluster:11"
     with pytest.raises(sc.StarMakeupError):
         sc.abundance_key(mass=1.0)
 
@@ -62,10 +61,11 @@ def test_a_stars_key_does_not_move_when_its_age_rises_after_its_planets_are_made
 def test_the_draws_are_a_function_of_the_key_alone_and_all_are_always_drawn():
     one, two = sc.key_draws("42"), sc.key_draws("42")
     assert one == two and one != sc.key_draws("43")
-    assert 0.0 <= one.u_branch < 1.0 and len(one.normals) == 5 and 0.0 <= one.u_crust_model < 1.0
+    assert len(one.normals) == 5 and 0.0 <= one.u_crust_model < 1.0
     # The fixed order: changing only what is drawn last cannot move what is drawn first.
     stream = draw.Stream("abundance:42")
-    assert stream.random() == one.u_branch and tuple(stream.gauss(0.0, 1.0) for _ in range(4)) == one.normals[:4]
+    stream.random()      # the draw the branch used to take, kept unread so no later draw moved (GEN.1024)
+    assert tuple(stream.gauss(0.0, 1.0) for _ in range(4)) == one.normals[:4]
     assert stream.random() == one.u_enhanced and stream.random() == one.u_carbon
     assert stream.gauss(0.0, 1.0) == one.eu_normal and stream.gauss(0.0, 1.0) == one.th_eu_normal
     assert stream.random() == one.u_atmosphere and stream.random() == one.u_wolf_rayet
@@ -99,7 +99,7 @@ def _main_sequence_makeup(star):
 def test_a_main_sequence_star_follows_the_relations_with_its_own_draws():
     makeup = sc.star_makeup(sc.MAIN_SEQUENCE, -0.45, 9.5, 0.9, "uid-1")
     draws = sc.key_draws("uid-1")
-    branch = sa.branch_from_uniform(-0.45, 9.5, draws.u_branch)
+    branch = sa.branch_of(-0.45, 9.5)
     expected = sa.composition(-0.45, sa.abundance_offsets(-0.45, branch, draws.normals, draws.u_enhanced, draws.u_carbon))
     assert makeup.branch == branch and makeup.birth == expected and makeup.surface == makeup.birth
     assert total(makeup.birth) == pytest.approx(1.0, abs=1e-12)
@@ -111,11 +111,13 @@ def test_a_young_star_is_thin_disc_whatever_its_number_says():
         assert sc.star_makeup(sc.MAIN_SEQUENCE, -1.0, 2.0, 1.0, key).branch == sa.BRANCH_THIN
 
 
-def test_editing_the_metallicity_re_derives_the_composition_with_the_branch_flipping_at_most_once():
-    for key in ("bright:1", "bright:2", "bright:3", "bright:4", "bright:5", "bright:6"):
-        branches = [sc.star_makeup(sc.MAIN_SEQUENCE, 0.5 - 0.01 * step, 11.0, 0.8, key).branch for step in range(200)]
-        flips = sum(a != b for a, b in zip(branches, branches[1:]))
-        assert flips <= 1 and (flips == 0 or branches[0] == sa.BRANCH_THIN), key
+def test_editing_the_metallicity_re_derives_the_composition_with_the_branch_of_the_new_feh_and_age():
+    """GEN.1024: the branch is a function of the star's [Fe/H] and age (the two numbers a stored star keeps, so its track agrees with its
+    composition), so an edited [Fe/H] has the branch that [Fe/H] gives and not the one the star had; the key leaves it alone."""
+    for key in ("bright:1", "bright:2", "bright:3"):
+        for step in range(40):
+            fe_h = 0.5 - 0.05 * step
+            assert sc.star_makeup(sc.MAIN_SEQUENCE, fe_h, 11.0, 0.8, key).branch == sa.branch_of(fe_h, 11.0), (key, fe_h)
 
 
 def test_the_members_of_a_group_share_the_branch_and_the_offsets_and_take_their_own_phase():
@@ -129,7 +131,7 @@ def test_the_members_of_a_group_share_the_branch_and_the_offsets_and_take_their_
 
 
 def test_the_stars_of_a_cluster_share_their_residuals_and_only_the_means_move():
-    key = sc.cluster_key(33)
+    key = "cluster:33"  # the key a cluster's stars share: the draws are shared, only the [Fe/H]-dependent means move
     one = sc.star_makeup(sc.MAIN_SEQUENCE, -1.5, 12.0, 0.8, key)
     other = sc.star_makeup(sc.MAIN_SEQUENCE, -1.6, 12.0, 0.7, key)
     assert one.draws == other.draws and one.branch == other.branch == sa.BRANCH_HIGH_ALPHA
@@ -274,10 +276,11 @@ def test_a_white_dwarf_needs_its_temperature():
 
 def test_a_main_sequence_star_gets_its_track_from_the_downloaded_isochrones():
     makeup = sc.star_makeup(sc.MAIN_SEQUENCE, -0.45, 1.0, 1.5, "ms")
-    point = isochrones.main_sequence_point(1.5, 1.0, -0.45)
+    track = alpha_tracks.track_fe_h(-0.45, 1.0)          # GEN.1024: the track of the star's branch
+    point = isochrones.main_sequence_point(1.5, 1.0, track)
     assert makeup.detail["main_sequence"] == dict(zip(("log_luminosity_sol", "log_teff_k", "log_radius_sol"), point))
     assert makeup.detail["main_sequence"]["log_luminosity_sol"] == pytest.approx(4 * math.log10(1.5) - 0.045, abs=0.03)
-    assert makeup.detail["main_sequence_lifetime_gy"] == isochrones.main_sequence_lifetime_gy(1.5, -0.45) > 1.0
+    assert makeup.detail["main_sequence_lifetime_gy"] == isochrones.main_sequence_lifetime_gy(1.5, track) > 1.0
     assert not makeup.open_items
 
 
@@ -388,7 +391,7 @@ def test_a_sweep_of_every_kind_of_star_the_generator_makes_adds_up_and_follows_t
                 makeup = sc.star_makeup(kind, fe_h, age, state["mass_sol"], key, wolf_rayet_subtype=state.get("wr_subtype"),
                                         teff_k=state["temperature_k"])
                 draws = sc.key_draws(key)
-                branch = sa.branch_from_uniform(fe_h, age, draws.u_branch)
+                branch = sa.branch_of(fe_h, age)
                 expected = sa.composition(fe_h, sa.abundance_offsets(fe_h, branch, draws.normals, draws.u_enhanced,
                                                                      draws.u_carbon))
                 assert makeup.branch == branch and makeup.birth == expected, (mass, age)

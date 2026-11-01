@@ -6,7 +6,7 @@ The kind of ice a body is made of, and how strong that ice is next to ice Ih (GE
 
 The roundness engine (`roundness.py`) has one ice: water ice Ih at its creep strength (about 1 MPa near 158 K). The strength research
 (`reports/planetary-material-strength-2026-10-31.md` sections 2b, 9, 11c, 14) gives the other ices of an icy body as ratios to that ice: the
-high-pressure phases of water (ratios by temperature from the creep laws of Durham, Kirby and Stern 1997, GEN.1183: II 1.7 to 6.5, III about 0.5, V about 8, VI 1.3 to 5.5), methane clathrate hydrate (20 to 30 times), solid
+high-pressure phases of water (ratios by temperature from the creep laws of [R1190], GEN.1183: II 1.7 to 6.5, III about 0.5, V about 8, VI 1.3 to 5.5), methane clathrate hydrate (20 to 30 times), solid
 carbon dioxide (0.1 to 0.5 MPa) and ammonia dihydrate (weaker than water ice near its melting point, stronger below 135 K). The numbers are
 in `data/roundness_strengths.json` under `ice_types`; this module reads them and names a body's ice type from its components. Nothing else reads
 this module yet, so no generated world changes; the engine will take `strength_ratio(...)` as a factor on its ice strength when the types are wired.

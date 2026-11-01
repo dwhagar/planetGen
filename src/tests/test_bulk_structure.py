@@ -29,7 +29,7 @@ def test_the_solver_limits_are_the_coreless_and_the_pure_iron_planet():
 
 
 def test_the_solver_water_layer_matches_part_cs_integration():
-    # C 2.4: pure water at 1 Earth mass 1.401 (Zeng 2016: 1.41); 50 percent water on CMF 0.325 rock 1.2301
+    # C 2.4: pure water at 1 Earth mass 1.401 ([R4882]: 1.41); 50 percent water on CMF 0.325 rock 1.2301
     assert bs.layered_structure(1.0, 0.0, 0.0, 1.0)["radius"] == pytest.approx(1.401, rel=0.01)
     assert bs.layered_structure(1.0, 0.1625, 0.3375, 0.5)["radius"] == pytest.approx(1.2301, rel=0.01)
 
@@ -63,12 +63,6 @@ def test_the_water_closed_form_reproduces_part_cs_limits():
     for mass, cmf, water in ((0.5, 0.325, 0.25), (2.0, 0.325, 0.1), (8.0, 0.1, 0.5)):
         solver = bs.layered_structure(mass, cmf * (1 - water), (1 - cmf) * (1 - water), water)["radius"]
         assert bs.water_world_radius_earth(mass, cmf, water) == pytest.approx(solver, rel=0.036)
-
-
-def test_the_water_fraction_inverse_round_trips():
-    radius = bs.water_world_radius_earth(3.0, 0.3, 0.4)
-    assert bs.water_fraction_from_mass_radius(3.0, radius, 0.3) == pytest.approx(0.4, abs=1e-3)
-    assert bs.water_fraction_from_mass_radius(3.0, 0.5, 0.3) is None
 
 
 def test_the_envelope_form_is_near_lopez_and_fortneys_table():

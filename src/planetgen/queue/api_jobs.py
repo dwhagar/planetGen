@@ -45,8 +45,8 @@ RESULT_TTL_SECONDS = 86400
 """int: How long a finished job's result or error is kept."""
 
 UNESTIMATED_SECONDS = 3600
-"""int: The time limit of a job with no estimate (PERF.144): a one-system edit, a settle of
-the sectors around a change. A fixed ceiling, not an estimate."""
+"""int: The time limit of a job with no estimate (PERF.144): a one-system edit, a
+regenerate of one sector. A fixed ceiling, not an estimate."""
 
 ESTIMATED_CEILING_SECONDS = 7 * 86400
 """int: The longest limit of a job with an estimate (a neighbourhood of a great many sectors can run for days)."""
@@ -317,15 +317,6 @@ def _made_window(job):
     if getattr(function, "__name__", None) not in MAKES_SECTORS or job.started_at is None or job.ended_at is None:
         return None
     return {"since": calendar.timegm(job.started_at.timetuple()), "until": calendar.timegm(job.ended_at.timetuple()) + 1}
-
-
-def settle_sectors(sector_ids, config):
-    """The queued body of a settle (GEN.126): saves the sector paths of
-    `sector_ids` and the sectors around them as a run of `settle-sector-paths` (PERF.119).
-    Returns `{"saved": n}`."""
-    from planetgen.db import store
-    from planetgen.generation import run_galaxy
-    return {"saved": run_galaxy.settle_named_sectors(sector_ids, config or store.DEFAULT_MYSQL_CONFIG)}
 
 
 def generate_neighborhood(sector_id, radius_ly, config, disregard_missing_data=False):

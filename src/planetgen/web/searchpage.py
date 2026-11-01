@@ -15,6 +15,10 @@ bookmarkable URL:
 - `sector_q`, `system_q`, `star_q`, `planet_q`, `moon_q`: a name search
   for one kind of object.
 - `<star|planet|moon>_<min|max>_radius_km`: a size range.
+- `<star|planet|moon>_<min|max>_<key>` and `<entity>_<key>_unit`: a range on a physical value in the unit named (UX.227, the keys of
+  `planetgen.db.search_values`: gravity, surface temperature, pressure, dose, orbit distance, mass, the partial pressure of a gas, ...), and
+  `<entity>_value_sort` (`gravity` or `-gravity`) to order that kind of object by one. `planet_other_gas` with `planet_other_gas_min`,
+  `_max` and `_unit` (likewise `moon_`) is the form's way to range any gas outside its short list: it turns into the key of that gas.
 - `stars`: how many stars a system holds (UX.239): `3` exactly three, `3+` three or more, or `single`, `binary`, `trinary`, `quaternary`,
   `quintenary` (five or more). A `stars:<value>` word typed into the main search `q` (the header search box) is the same filter.
 - One repeated parameter per tag facet (`type=star&spectral=G&spectral=K`),
@@ -26,12 +30,14 @@ The query logic itself lives in `planetgen.db.query.search`, behind `GET /api/se
 (`apiclient.get_search`, called in-process).
 """
 
+import functools
 import math
 import re
 from urllib.parse import urlencode
 
 from flask import g, request, url_for
 
+from planetgen.db import search_values
 from planetgen.physics import equipment, score_filters
 from planetgen.physics.habitability_world import TIER_NAMES
 from planetgen.util import star_count
@@ -112,11 +118,33 @@ SIZE_ENTITIES = (
     ("moon", "Moon", "e.g. 1737 (Moon)"),
 )
 SIZE_FIELDS = tuple(f"{entity}_{bound}_radius_km" for entity, _l, _p in SIZE_ENTITIES for bound in ("min", "max"))
+
+VALUE_ENTITIES = (("planet", "Planet"), ("moon", "Moon"), ("star", "Star"))
+"""tuple: The kinds of object that take ranges on physical values (UX.227), `(entity, label)`, in the order the form shows them."""
+VALUE_KEYS = {entity: tuple(key for key, value in search_values.KEYS.items() if entity in value.entities) for entity, _label in VALUE_ENTITIES}
+"""dict: Entity -> the keys of `planetgen.db.search_values` it has."""
+DEFAULT_GASES = ("N2", "O2", "CO2", "H2O", "CH4", "Ar", "H2", "He", "NH3", "SO2")
+"""tuple: The gases the form shows a row for; any other gas is ranged through the "another gas" row (or the URL)."""
+OTHER_GAS = "other_gas"
+"""str: The form's "another gas" row is `<entity>_other_gas` (the formula) with `_min`, `_max` and `_unit`."""
+GAS_ENTITIES = ("planet", "moon")
+
+
+def value_field_names(entity, key):
+    """`(minimum, maximum, unit)` parameter names of `key` for `entity`."""
+    return (f"{entity}_min_{key}", f"{entity}_max_{key}", f"{entity}_{key}_unit")
+
+
+VALUE_FIELDS = tuple(name for entity, _label in VALUE_ENTITIES for key in VALUE_KEYS[entity] for name in value_field_names(entity, key))
+"""tuple: Every range parameter of a physical value (UX.227)."""
+VALUE_SORT_FIELDS = tuple(f"{entity}_value_sort" for entity, _label in VALUE_ENTITIES)
+"""tuple: The parameters that order a kind of object by a physical value."""
+_OTHER_GAS_FIELDS = tuple(f"{entity}_{OTHER_GAS}{part}" for entity in GAS_ENTITIES for part in ("", "_min", "_max", "_unit"))
 STAR_COUNT_CHOICES = star_count.STAR_COUNT_CHOICES
 """tuple: The stars filter's choices, `(value, label)`, for the form's menu."""
 STARS_FIELD = "stars"
 """str: The stars filter's parameter (UX.239); it is kept with the other text fields of a state."""
-TEXT_FIELDS = tuple(f[0] for f in NAME_FIELDS) + SIZE_FIELDS + (STARS_FIELD,)
+TEXT_FIELDS = tuple(f[0] for f in NAME_FIELDS) + SIZE_FIELDS + VALUE_FIELDS + VALUE_SORT_FIELDS + (STARS_FIELD,)
 """tuple: Every parameter a state holds as text."""
 _Q_STARS = re.compile(r"(?:^|\s)stars:(\S+)", re.IGNORECASE)
 
@@ -145,6 +173,50 @@ def _valid_stars(text):
     return text.strip().lower()
 
 
+def _finite(text):
+    """The number a range box holds, or `None` for an empty box or anything that is not a finite number (a hand-edited URL is ignored, not an error)."""
+    try:
+        value = float(text) if text else None
+    except ValueError:
+        return None
+    return value if value is not None and math.isfinite(value) else None
+
+
+def _plain(number):
+    """A number as the range boxes and chips write it: the shortest form that reads back the same to six figures."""
+    return f"{number:.6g}"
+
+
+def _key_label(entity, key):
+    """What a chip or a sort menu calls `key`: the registry's label with its first letter lowered ("surface gravity")."""
+    label = search_values.KEYS[key].label.split(" (")[0]
+    return label[:1].lower() + label[1:]
+
+
+@functools.lru_cache(maxsize=None)
+def _unit_symbol(unit):
+    return search_values.symbol(unit)
+
+
+def _tidy_units(texts):
+    """Drops a unit that says nothing: the form sends every row's unit, so one with no bound beside it or the key's own unit is left out of the URL."""
+    for entity, _label in VALUE_ENTITIES:
+        for key in VALUE_KEYS[entity]:
+            least_name, most_name, unit_name = value_field_names(entity, key)
+            if texts.get(unit_name) and (not (texts.get(least_name) or texts.get(most_name))
+                                         or texts[unit_name] == search_values.KEYS[key].default_unit(entity)):
+                texts[unit_name] = ""
+
+
+def _unit_ok(entity, key, unit):
+    """True when `unit` measures what `key` measures for `entity` (any unit of its kind in the registry, as the API takes)."""
+    try:
+        search_values.convert(1.0, unit, search_values.KEYS[key].default_unit(entity))
+    except (ValueError, KeyError, TypeError):
+        return False
+    return True
+
+
 class SearchState:
     """One search: the request's filters, parsed and cleaned."""
 
@@ -171,6 +243,12 @@ class SearchState:
             q = _Q_STARS.sub("", q, count=1).strip()
             texts[STARS_FIELD] = texts[STARS_FIELD] or found.group(1)
         texts[STARS_FIELD] = _valid_stars(texts[STARS_FIELD])
+        for entity in GAS_ENTITIES:      # the form's "another gas" row is the range of that gas's own key
+            key = search_values.GAS_PREFIX + first(f"{entity}_{OTHER_GAS}")
+            if key in search_values.KEYS and entity in search_values.KEYS[key].entities:
+                for part, name in zip(("min", "max", "unit"), value_field_names(entity, key)):
+                    texts[name] = texts[name] or first(f"{entity}_{OTHER_GAS}_{part}")
+        _tidy_units(texts)
         tags = {}
         for facet in TAG_FACETS:
             values = {value.strip() for value in args.getlist(facet) if value.strip()}
@@ -229,13 +307,45 @@ class SearchState:
         """The stars filter as `apiclient.get_search` sends it (`stars=`), or `None` for no filter."""
         return self.texts.get(STARS_FIELD) or None
 
+    def value_ranges(self):
+        """
+        The ranges on physical values as `apiclient.get_search` sends them (UX.227): `{entity: {key: (least, most, unit)}}`, each bound
+        a number or `None` and `unit` the unit key or `None` for the key's own. A box that is not a finite number, an inverted range and
+        a unit that does not measure the key are ignored, like a size range from a hand-edited URL.
+        """
+        ranges = {}
+        for entity, _label in VALUE_ENTITIES:
+            for key in VALUE_KEYS[entity]:
+                least_name, most_name, unit_name = value_field_names(entity, key)
+                least, most = _finite(self.texts.get(least_name)), _finite(self.texts.get(most_name))
+                if least is None and most is None or (least is not None and most is not None and least > most):
+                    continue
+                unit = self.texts.get(unit_name) or None
+                if unit is not None and (unit == search_values.KEYS[key].default_unit(entity) or not _unit_ok(entity, key, unit)):
+                    unit = None
+                ranges.setdefault(entity, {})[key] = (least, most, unit)
+        return ranges
+
+    def value_sorts(self):
+        """The order a kind of object is asked for by a physical value, `{entity: "gravity" or "-gravity"}`; a key it does not have is ignored."""
+        sorts = {}
+        for entity, _label in VALUE_ENTITIES:
+            sort = self.texts.get(f"{entity}_value_sort", "")
+            if sort and search_values.sorts_in(sort, entity) is not None:
+                sorts[entity] = sort
+        return sorts
+
     def active(self):
-        """True when anything at all is being searched for."""
-        return bool(self.q or any(self.texts.values()) or any(self.tags.values()))
+        """True when anything at all is being searched for (an order by a value alone is not)."""
+        return bool(self.q or any(value for key, value in self.texts.items() if key not in VALUE_SORT_FIELDS) or any(self.tags.values()))
 
     def advanced_open(self):
         """Open the per-object fields when one of them is in use (the stars filter sits in the main form)."""
-        return any(value for key, value in self.texts.items() if key != STARS_FIELD)
+        return any(value for key, value in self.texts.items() if key != STARS_FIELD and key not in VALUE_FIELDS and key not in VALUE_SORT_FIELDS)
+
+    def values_open(self):
+        """Open the physical values when one range or order is in use."""
+        return any(self.texts.get(key) for key in VALUE_FIELDS + VALUE_SORT_FIELDS)
 
     # -- URLs ----------------------------------------------------------------
 
@@ -270,7 +380,10 @@ def needs_canonical_redirect(args):
     for key, value in args.items(multi=True):
         if key not in _ALL_PARAMS or not value.strip():
             return True
-    return False
+    sent = {key: (args.get(key) or "").strip() for key in VALUE_FIELDS}
+    tidy = dict(sent)
+    _tidy_units(tidy)
+    return tidy != sent
 
 
 # ---------------------------------------------------------------------
@@ -334,10 +447,71 @@ def active_filters(state, facet_labels):
             text = f"≤ {_km(high)}"
         texts = dict(state.texts, **{f"{entity}_min_radius_km": "", f"{entity}_max_radius_km": ""})
         chips.append({"label": f"{label} size: {text}", "url": state.copy(texts=texts).url()})
+    entity_labels = dict(VALUE_ENTITIES)
+    for entity, by_key in state.value_ranges().items():
+        for key, (least, most, unit) in by_key.items():
+            symbol = _unit_symbol(unit or search_values.KEYS[key].default_unit(entity))
+            tail = f" {symbol}" if symbol else ""
+            if least is not None and most is not None:
+                text = f"{_plain(least)}–{_plain(most)}{tail}"
+            elif least is not None:
+                text = f"≥ {_plain(least)}{tail}"
+            else:
+                text = f"≤ {_plain(most)}{tail}"
+            texts = dict(state.texts, **{name: "" for name in value_field_names(entity, key)})
+            chips.append({"label": f"{entity_labels[entity]} {_key_label(entity, key)}: {text}", "url": state.copy(texts=texts).url()})
+    for entity, sort in state.value_sorts().items():
+        texts = dict(state.texts, **{f"{entity}_value_sort": ""})
+        chips.append({"label": f"{entity_labels[entity]}s ordered by {_key_label(entity, sort.lstrip('-'))}, "
+                               f"{'high to low' if sort.startswith('-') else 'low to high'}",
+                      "url": state.copy(texts=texts).url()})
     for facet in TAG_FACETS:
         for value in sorted(state.tags[facet]):
             chips.append({"label": facet_labels.get(f"{facet}:{value}", value), "url": _toggle(state, facet, value)})
     return chips
+
+
+def value_form(state):
+    """
+    The physical-value rows of the form (UX.227), one group per kind of object: `[{"entity", "label", "rows", "other_gas", "sort"}]`. A row is a key with its
+    two boxes, its unit menu and what the state holds; the gas rows are the short list (`DEFAULT_GASES`) and any gas in use, and
+    `other_gas` is the row for the rest. `sort` is the menu that orders that kind of object by a value.
+    """
+    ranges, sorts = state.value_ranges(), state.value_sorts()
+    groups = []
+    for entity, label in VALUE_ENTITIES:
+        in_use = set(ranges.get(entity, {})) | ({sorts[entity].lstrip("-")} if entity in sorts else set())
+        keys = [key for key in VALUE_KEYS[entity]
+                if not key.startswith(search_values.GAS_PREFIX) or key[len(search_values.GAS_PREFIX):] in DEFAULT_GASES or key in in_use]
+        rows = []
+        for key in keys:
+            least_name, most_name, unit_name = value_field_names(entity, key)
+            default = search_values.KEYS[key].default_unit(entity)
+            chosen = (ranges.get(entity, {}).get(key) or (None, None, None))[2] or default
+            rows.append({
+                "key": key, "label": search_values.KEYS[key].label, "min_name": least_name, "max_name": most_name, "unit_name": unit_name,
+                "min": state.texts.get(least_name, ""), "max": state.texts.get(most_name, ""), "symbol": _unit_symbol(default),
+                "units": [{"value": unit, "label": _unit_symbol(unit), "selected": unit == chosen} for unit in search_values.unit_choices(entity, key)],
+            })
+        other = None
+        if entity in GAS_ENTITIES:
+            shown = set(keys)
+            other = {
+                "name": f"{entity}_{OTHER_GAS}", "min_name": f"{entity}_{OTHER_GAS}_min", "max_name": f"{entity}_{OTHER_GAS}_max",
+                "unit_name": f"{entity}_{OTHER_GAS}_unit",
+                "gases": [key[len(search_values.GAS_PREFIX):] for key in VALUE_KEYS[entity]
+                          if key.startswith(search_values.GAS_PREFIX) and key not in shown],
+                "units": [{"value": unit, "label": _unit_symbol(unit), "selected": unit == "bar"}
+                          for unit in search_values.unit_choices(entity, search_values.GAS_PREFIX + DEFAULT_GASES[0])],
+            }
+        options = [{"value": "", "label": "The page's own order", "selected": entity not in sorts}]
+        for key in keys:
+            name = search_values.KEYS[key].label.split(" (")[0]
+            options.append({"value": key, "label": f"{name}, low to high", "selected": sorts.get(entity) == key})
+            options.append({"value": f"-{key}", "label": f"{name}, high to low", "selected": sorts.get(entity) == f"-{key}"})
+        groups.append({"entity": entity, "label": label, "rows": rows, "other_gas": other,
+                       "sort": {"name": f"{entity}_value_sort", "options": options}})
+    return groups
 
 
 def _sector_cell(sector_id):
@@ -405,10 +579,10 @@ SORT_KEYS = {"Habitability": "phi4", "Suitability": "suitability", "Microbes": "
 _PANEL_COLUMNS = {
     "sectors": ["Name", "Edge", "Galaxy Map"],
     "systems": ["Name", "Sector", "Stars", "Objects", "Habitable world", "Star type", "Galaxy Map"],
-    "stars": ["Name", "Role", "Type", "Radius", "System", "Sector"],
-    "planets": ["Name", "Class", "Body", "Radius", "Life Class", "Equipment", "Habitability", *SCORE_COLUMNS,
+    "stars": ["Name", "Role", "Type", "Radius", "Values", "System", "Sector"],
+    "planets": ["Name", "Class", "Body", "Radius", "Life Class", "Equipment", "Habitability", *SCORE_COLUMNS, "Values",
                 "System", "Sector"],
-    "moons": ["Name", "Class", "Body", "Radius", "Life Class", "Equipment", "Habitability", *SCORE_COLUMNS, "Orbits",
+    "moons": ["Name", "Class", "Body", "Radius", "Life Class", "Equipment", "Habitability", *SCORE_COLUMNS, "Values", "Orbits",
               "System", "Sector"],
     "belts": ["Density", "Composition", "System", "Sector"],
     "phenomena": ["Name", "Type", "Class", "Sector"],
@@ -432,6 +606,13 @@ def _score_cells(row):
     return cells
 
 
+def _values_cell(row):
+    """The physical values the search asked for (UX.227), each with its unit, in one cell; a dash when it asked for none."""
+    shown = [f"{search_values.KEYS[key].label.split(' (')[0]} {item['value']:.4g}" + (f" {item['symbol']}" if item["symbol"] else "")
+             for key, item in (row.get("values") or {}).items() if item.get("value") is not None]
+    return {"text": "; ".join(shown)} if shown else {"text": "—", "muted": True}
+
+
 def _cells(panel, row):
     """One search result row as the data table's cells (the columns of `_PANEL_COLUMNS`)."""
     if panel == "sectors":
@@ -442,13 +623,13 @@ def _cells(panel, row):
                 {"text": str(row["object_count"])}, {"text": "Yes" if row["has_habitable_world"] else "No"},
                 {"text": row["star_summary"]}, _show_on_map(row)]
     if panel == "stars":
-        return [_link(row["name"], row["url"]), {"text": row["role"]}, {"text": row["star_type"]}, _radius(row),
+        return [_link(row["name"], row["url"]), {"text": row["role"]}, {"text": row["star_type"]}, _radius(row), _values_cell(row),
                 _link(row["system_name"], row["system_url"]), _sector_link(row)]
     if panel in ("planets", "moons"):
         cells = [_link(row["name"], row["url"]), {"text": row["planet_class"] or "—"}, {"text": row["body"]}, _radius(row),
                  {"text": row["life_class_id"] or "—"},
                  equipment_cell(row),
-                 habitability_cell(row, row["url"]), *_score_cells(row)]
+                 habitability_cell(row, row["url"]), *_score_cells(row), _values_cell(row)]
         if panel == "moons":
             cells.append({"text": row["planet_name"]})
         return cells + [_link(row["system_name"], row["system_url"]), _sector_link(row)]
@@ -466,15 +647,18 @@ TIMED_OUT_MESSAGE = "This took too long; try again or narrow the search."
 """str: What a panel that timed out says."""
 
 
-def api_sorts(args):
+def api_sorts(args, state=None):
     """The `planet_sort`/`moon_sort` the request's table sorts ask the API for (UX.214): the column's key, `-` in front
-    when the table runs best first (descending); the page's own order sends none."""
+    when the table runs best first (descending); the page's own order sends none. Where a table is not sorted, the order the form
+    asked for by a physical value (`SearchState.value_sorts`, UX.227) stands, for the stars too."""
     sorts = {}
     for panel, entity in (("planets", "planet"), ("moons", "moon")):
         table_state = datatable.parse_state(PANEL_TABLES[panel], args)
         key = table_state.sort
         if key and key != "system":
             sorts[entity] = ("-" if table_state.descending else "") + key
+    for entity, sort in (state or SearchState.from_args(args)).value_sorts().items():
+        sorts.setdefault(entity, sort)
     return sorts
 
 
@@ -498,7 +682,8 @@ def fetch(state):
     waiting = []
     try:
         data = apiclient.get_search(db_name(), state.name_terms(), state.tags, sizes=state.sizes(), limit=PAGE_SIZE,
-                                    offsets=api_offsets(state), panels=[], sorts=api_sorts(request.args), stars=state.stars())
+                                    offsets=api_offsets(state), panels=[], sorts=api_sorts(request.args, state), stars=state.stars(),
+                                    ranges=state.value_ranges())
     except slowpages.Pending as pending:
         data = None
         waiting.append(pending)
@@ -507,7 +692,8 @@ def fetch(state):
         try:
             answer = apiclient.get_search(
                 db_name(), state.name_terms(), state.tags, sizes=state.sizes(), limit=PAGE_SIZE,
-                offsets={panel: api_offsets(state).get(panel, 0)}, panels=[panel], sorts=api_sorts(request.args), stars=state.stars())
+                offsets={panel: api_offsets(state).get(panel, 0)}, panels=[panel], sorts=api_sorts(request.args, state), stars=state.stars(),
+                ranges=state.value_ranges())
             results[panel] = answer["results"].get(panel)
         except slowpages.Pending as pending:
             waiting.append(pending)
@@ -528,7 +714,8 @@ def _panel_loader(panel):
             state = SearchState.from_args(request.args)
             data = apiclient.get_search(
                 db_name(), state.name_terms(), state.tags, sizes=state.sizes(), limit=limit,
-                offsets={panel: offset}, panels=[panel], sorts=api_sorts(request.args), stars=state.stars())
+                offsets={panel: offset}, panels=[panel], sorts=api_sorts(request.args, state), stars=state.stars(),
+                ranges=state.value_ranges())
             cached = data["results"][panel]
         if cached is None:
             return Result([], 0)
@@ -588,5 +775,5 @@ def api_offsets(state):
 
 __all__ = [
     "PAGE_SIZE", "NAME_FIELDS", "SIZE_ENTITIES", "SearchState", "needs_canonical_redirect",
-    "tag_groups", "active_filters", "result_panels", "api_offsets",
+    "tag_groups", "active_filters", "result_panels", "api_offsets", "value_form", "VALUE_FIELDS",
 ]

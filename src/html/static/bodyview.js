@@ -12,8 +12,11 @@
 const VERSION_QUERY = new URL(import.meta.url).search;
 const { parseLook, parseHex } = await import(`./bodytexture.js${VERSION_QUERY}`);
 const { paintSolid } = await import(`./solidpaint.js${VERSION_QUERY}`);
+const { paintGiant } = await import(`./giantpaint.js${VERSION_QUERY}`);
 const { glowFor, paintStar } = await import(`./starpaint.js${VERSION_QUERY}`);
 const Spin = await import(`./spin.js${VERSION_QUERY}`);
+const { isLumpy } = await import(`./lumpymesh.js${VERSION_QUERY}`);
+const { lumpMesh, rasterise } = await import(`./lumpyview.js${VERSION_QUERY}`);
 
 const TEXTURE = [512, 256];
 // UX.250: a world is lit from the left and a little from the front: the star is PHASE_DEG round from the line of sight toward the left, so the lit part is
@@ -29,6 +32,7 @@ function rgba(color, alpha) {
 function texture(look) {
   if (look.body === "star") return paintStar(look, TEXTURE[0], TEXTURE[1]);
   if (look.body === "solid") return paintSolid(look, TEXTURE[0], TEXTURE[1]);
+  if (look.body === "gas") return paintGiant(look, TEXTURE[0], TEXTURE[1]);
   return null;
 }
 
@@ -45,8 +49,12 @@ function drawHalo(context, centreX, centreY, radius, outer, color, strength) {
 // UX.250: how lit a point is from the cosine of the light on it: 0 at the day and night line and full from TERMINATOR_WIDTH of a cosine past it, so the
 // line is a clear curve and most of the lit side is bright, not a slope that fades across half the disc.
 const TERMINATOR_WIDTH = 0.4;
-function lit(cosine) {
-  const t = Math.min(1, Math.max(0, cosine / TERMINATOR_WIDTH));
+// MAP.277: how far the glow of an air reaches past the limb, in radii, when the look record does not say (the composition of the air is not stored).
+const DEFAULT_GLOW_WIDTH = 0.08;
+// MAP.277: the air carries the star's light past the line: `look.twilight` (0 for no air) moves the line that far onto the night side and softens it by the
+// same amount, so a world with a thick air has a wide dusk and a world with none has a hard edge.
+function lit(cosine, twilight) {
+  const t = Math.min(1, Math.max(0, (cosine + twilight) / (TERMINATOR_WIDTH + twilight)));
   return t * t * (3 - 2 * t);
 }
 
@@ -98,7 +106,7 @@ function drawLockLabel(context, size, look, arrowY) {
 function prepare(canvas, look) {
   const size = canvas.width;
   const star = look.body === "star";
-  const halfWidth = star ? glowFor(look.lumSolar).scale : look.glow ? 1.12 : 1.04;
+  const halfWidth = star ? glowFor(look.lumSolar).scale : 1.04 + (look.glow ? look.glowWidth || DEFAULT_GLOW_WIDTH : 0);
   const pixels = texture(look);
   const locked = Spin.isLocked(look) && !star;
   // The square the disc and its halo fill: the whole canvas, or for a locked world what the arrow and the label leave.
@@ -110,9 +118,11 @@ function prepare(canvas, look) {
   const radius = box / 2 / halfWidth;
   canvas.dataset.disc = JSON.stringify({ x: centreX, y: centreY, radius: radius });
   const base = parseHex(look.color);
+  const twilight = look.twilight || 0;
   const light = Math.hypot(LIGHT[0], LIGHT[1], LIGHT[2]);
+  const lumpy = isLumpy(look);       // MAP.363: a body its weight has not made round is the lump the System Map draws, not a disc
   const places = [];
-  for (let y = 0; y < size; y++) {
+  for (let y = 0; y < size && !lumpy; y++) {
     for (let x = 0; x < size; x++) {
       const nx = (x + 0.5 - centreX) / radius;
       const ny = (y + 0.5 - centreY) / radius;
@@ -120,7 +130,7 @@ function prepare(canvas, look) {
       if (r2 >= 1) continue;
       const nz = Math.sqrt(1 - r2);
       // A star is its own light; a world is lit from the left, with a little ambient on the night side.
-      const shade = star ? 0.75 + 0.25 * nz : 0.12 + 0.88 * lit((nx * LIGHT[0] + ny * LIGHT[1] + nz * LIGHT[2]) / light);
+      const shade = star ? 0.75 + 0.25 * nz : 0.12 + 0.88 * lit((nx * LIGHT[0] + ny * LIGHT[1] + nz * LIGHT[2]) / light, twilight);
       // Orthographic sphere to the texture's longitude and latitude in the body's own frame (north up, leaned by its tilt).
       const [lon, lat] = Spin.bodyPoint(look, nx, -ny, nz);
       places.push({
@@ -139,13 +149,54 @@ function prepare(canvas, look) {
   const halo = document.createElement("canvas");
   halo.width = halo.height = size;
   const rim = star ? look.color : look.glow;
-  if (rim) drawHalo(halo.getContext("2d"), centreX, centreY, radius, box / 2, rim, star ? glowFor(look.lumSolar).strength * 0.8 : 0.55);
+  if (rim) drawHalo(halo.getContext("2d"), centreX, centreY, radius, box / 2, rim, star ? glowFor(look.lumSolar).strength * 0.8 : look.glowStrength);
   // The sphere is drawn on a scratch canvas so its soft edge blends with what is behind it.
   const scratch = document.createElement("canvas");
   scratch.width = scratch.height = size;
   const scratchContext = scratch.getContext("2d");
   const image = scratchContext.createImageData(size, size);
   const context = canvas.getContext("2d");
+
+  if (lumpy) {
+    // The lump is turned with the body, so the silhouette and the light on it change every frame; the picture is filled from the grid of points of `lumpyview.js`.
+    const mesh = lumpMesh(look);
+    const scale = radius / mesh.extent;
+    const covered = new Uint8Array(size * size);
+    const depth = new Float32Array(size * size);
+    const view = { angle: 0, tiltDeg: look.tiltDeg };
+    const lightLength = Math.hypot(LIGHT[0], LIGHT[1], LIGHT[2]);
+    const data = image.data;
+    const width = TEXTURE[0];
+    const paint = (pixel, longitude, latitude, nx, ny, nz) => {
+      let r = base[0];
+      let g = base[1];
+      let b = base[2];
+      if (pixels) {
+        let u = longitude / (2 * Math.PI) + 0.5;
+        u -= Math.floor(u);
+        const t = (Math.min(TEXTURE[1] - 1, Math.floor((0.5 - latitude / Math.PI) * TEXTURE[1])) * width + Math.min(width - 1, Math.floor(u * width))) * 4;
+        r = pixels[t];
+        g = pixels[t + 1];
+        b = pixels[t + 2];
+      }
+      const shade = 0.12 + 0.88 * lit((nx * LIGHT[0] + ny * LIGHT[1] + nz * LIGHT[2]) / lightLength, twilight);
+      const at = pixel * 4;
+      data[at] = Math.min(255, r * shade);
+      data[at + 1] = Math.min(255, g * shade);
+      data[at + 2] = Math.min(255, b * shade);
+      data[at + 3] = 255;
+    };
+    return function lumpFrame(angle) {
+      view.angle = angle;
+      data.fill(0);
+      rasterise(mesh, view, size, centreX, centreY, scale, covered, depth, paint);
+      scratchContext.putImageData(image, 0, 0);
+      context.clearRect(0, 0, size, size);
+      context.drawImage(halo, 0, 0);
+      context.drawImage(scratch, 0, 0);
+      if (locked) drawLockLabel(context, size, look, centreY);
+    };
+  }
 
   // Draws the body turned `angle` radians (see `Spin.angleAt`).
   return function frame(angle) {

@@ -6,10 +6,10 @@ for the plausibility checks of the drawn population (`test_satellite_law.py`) an
 the sector gate, the profile and the store do with `catalogue` satellites. The generator reads none of it: its
 satellites are drawn from the galaxy's seed and halo (`generation/satellites.py`).
 
-Checked against McConnachie (2012, AJ 144, 4; arXiv:1204.1562) on 2026-10-31 (GEN.366): the position and distance of each row are Table 2
+Checked against [R2972] on 2026-10-31 (GEN.366): the position and distance of each row are Table 2
 (l, b, D), the half-light radius is the semi-major axis radius of Table 3 in parsecs, the stellar mass is Table 4 (a stellar mass-to-light ratio of
 1) and [Fe/H] is Table 5. The paper gives no half-light radius for the two Magellanic Clouds (they are not fitted by a single profile): 2700 and 1100 pc are
-not from it. The stellar ages are not in the paper either (the ages are the table's own estimates, unchecked; Leo I's was 5 Gy, which asks for a rising history and so for gas, and Leo I has none: Grcevich and Putman 2009 (arXiv:0901.4975) find the Milky Way's dwarfs within about 270 kpc under 1e5 solar masses of HI, and a limit of under 3e4 for Leo I, TEST.508; it is 9 Gy here so the row forms no stars, and the age is a choice, not a measurement). Canes Venatici I (TEST.507) is Tables 2 to 5 as well, its age is a choice (an old dwarf: 11 Gy, as Draco and Sculptor). The table holds the 12 satellites of the paper above 1e5 solar masses; Canis Major (4.9e7 solar masses) is left out: the paper lists its type as unknown (Table 1, "MW disk substructure?") and says there is "considerable debate as to whether it is a dwarf galaxy or an unrelated disk substructure", so it is not a settled satellite for a table that checks a drawn population.
+not from it. The stellar ages are not in the paper either (the ages are the table's own estimates, unchecked; Leo I's was 5 Gy, which asks for a rising history and so for gas, and Leo I has none: [R1671] find the Milky Way's dwarfs within about 270 kpc under 1e5 solar masses of HI, and a limit of under 3e4 for Leo I, TEST.508; it is 9 Gy here so the row forms no stars, and the age is a choice, not a measurement). Canes Venatici I (TEST.507) is Tables 2 to 5 as well, its age is a choice (an old dwarf: 11 Gy, as Draco and Sculptor). The table holds the 12 satellites of the paper above 1e5 solar masses; Canis Major (4.9e7 solar masses) is left out: the paper lists its type as unknown (Table 1, "MW disk substructure?") and says there is "considerable debate as to whether it is a dwarf galaxy or an unrelated disk substructure", so it is not a settled satellite for a table that checks a drawn population.
 `test_reference_satellites.py` pins
 the checked values. The half-light radius stands in for the half-mass radius. The velocities are zero.
 """
@@ -39,7 +39,7 @@ MILKY_WAY_SATELLITES = (
     Satellite("Leo II", 220.2, 67.2, 233.0, 7.4e5, 176.0, "plummer", -1.62, 9.0),
     Satellite("Canes Venatici I", 74.3, 79.8, 218.0, 2.3e5, 564.0, "plummer", -1.98, 11.0),
 )
-"""tuple: The Milky Way's satellites (checked against McConnachie 2012: see the module docstring)."""
+"""tuple: The Milky Way's satellites (checked against [R2972]: see the module docstring)."""
 
 
 def sun_frame(frame_radius_pc, frame_angle_rad):

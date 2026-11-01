@@ -813,7 +813,7 @@ the Web Awesome migration guide.
 - Web Awesome Pro pricing and the exact `sl-` to `wa-` renames.
 - Licences of the packages inside the Shoelace bundle (Lit, floating-ui,
   tinycolor).
-- Okabe and Ito (2008) as the palette origin, and "below delta E 10 is hard to
+- The accessible palette as the palette origin, and "below delta E 10 is hard to
   tell apart".
 - Autofill behaviour inside shadow roots; Playwright piercing of open shadow
   roots.
@@ -839,7 +839,7 @@ the Web Awesome migration guide.
   https://sbcode.net/threejs/importmap/ ;
   https://celestiaproject.space/forum/viewtopic.php?p=86447 ;
   https://tonisagrista.com/blog/2024/rendering-aurorae-nebulae/ ;
-  https://arxiv.org/pdf/1609.05344 ; Frontier forum HUD colour threads ;
+  [R4381] ; Frontier forum HUD colour threads ;
   https://www.faa.gov/sites/faa.gov/files/AC25-11.pdf and EASA alerting documents ;
   https://dequeuniversity.com/resources/wcag-2.2 ;
   https://www.boia.org/blog/whats-new-in-wcag-2.2-new-success-criteria-for-digital-accessibility ;

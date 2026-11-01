@@ -6,7 +6,7 @@ Ideal-gas chemical equilibrium at a given temperature and pressure (GEN.451, GEN
 
 The one equilibrium solver of the atmosphere chain: the mole fractions of every gas of `physics/species_thermo.py` that can
 be made of the given elements, at the temperature and total pressure of the layer. It minimises the Gibbs energy of an ideal gas
-at constant temperature and pressure under the element balance by the method of Gordon and McBride (1994, NASA RP-1311,
+at constant temperature and pressure under the element balance by the method, NASA RP-1311,
 section 2): Newton's method on the element potentials, with the step damped so that no species changes by more than a factor
 of e^2 per iteration and a negligible species stays negligible. Two things beyond their problem are added: an element whose
 potential is held (the oxygen of a mantle whose oxygen fugacity is given, `fixed_o2_log_fugacity`), and a result that carries
@@ -55,6 +55,11 @@ CONVERGED_FRACTION = 1e-12
 """float: Species rarer than this are not waited for: the trace species of a stiff system jitter at 1e-8 in the Newton step while
 the rest has converged to 1e-12, and they are recomputed exactly from the converged element potentials at the end."""
 
+TRACE_ELEMENT_FRACTION = 1e-12
+"""float: An element rarer than this against the commonest one is left out of a second try when the first does not settle: the
+Newton step of a gas that is all one element (a nitrogen air with 1e-15 of everything else) can stall with the rarest elements
+in, and what they would add is below the precision of the rest."""
+
 MOLES_FLOOR = 1e-290
 """float: The least moles a species is allowed, so that no logarithm is minus infinity."""
 
@@ -95,6 +100,23 @@ class Equilibrium:
 
 
 def solve(abundances, temperature_k, pressure_bar, *, fixed_o2_log_fugacity=None, species=None):
+    """
+    The equilibrium gas of `abundances`, tried again without the trace elements (`TRACE_ELEMENT_FRACTION`) when it does not settle
+    with them in.  See `_solve` for the arguments.
+    """
+    try:
+        return _solve(abundances, temperature_k, pressure_bar, fixed_o2_log_fugacity=fixed_o2_log_fugacity, species=species)
+    except EquilibriumError:
+        given = {symbol: float(value) for symbol, value in abundances.items() if value and value > 0}
+        if not given:
+            raise
+        kept = {symbol: value for symbol, value in given.items() if value >= TRACE_ELEMENT_FRACTION * max(given.values())}
+        if len(kept) == len(given):
+            raise
+        return _solve(kept, temperature_k, pressure_bar, fixed_o2_log_fugacity=fixed_o2_log_fugacity, species=species)
+
+
+def _solve(abundances, temperature_k, pressure_bar, *, fixed_o2_log_fugacity=None, species=None):
     """
     The equilibrium gas of `abundances` at `temperature_k` and `pressure_bar`.
 
