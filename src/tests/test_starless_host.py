@@ -101,3 +101,51 @@ def test_the_limit_is_the_survival_distance_of_the_closest_approach_drawn():
 def test_a_loss_with_no_scatterer_has_no_moon_limit():
     with pytest.raises(ValueError):
         starless_host.ejected_moon_limit_km(_thrown(kind="swept", perturber_au=None, perturber_mass_kg=None), 1e25, 1.99e30, 0.5)
+
+
+# --- the rogue body of an ejection event (part 3) -------------------------------------------------------------------------------------
+
+def _event(donor, **over):
+    from planetgen.generation import ejection_events
+    fields = dict(donor_uid="u", index=0, mass_kg=300.0 * EARTH_KG, core_kg=10.0 * EARTH_KG, formation_au=5.0, distance_au=5.0, perturber_au=3.0,
+                  perturber_mass_kg=3000.0 * EARTH_KG, ice_rich=True, delay_gy=0.5, age_gy=donor.age, since_ejection_gy=donor.age - 0.5,
+                  kick_km_s=(1.0, 0.0, 0.0), orbital_velocity_km_s=(0.0, 1.0, 0.0), moon_limit_km=2.0e6)
+    fields.update(over)
+    return ejection_events.EjectionEvent(**fields)
+
+
+def test_the_host_of_an_event_is_the_donor_with_the_rogues_age():
+    _system, donor = _donor()
+    event = _event(donor, age_gy=4.0)
+    host = starless_host.host_of(donor, event)
+    assert host.age == 4.0 and host.luminosity == 0.0 and host.mass == donor.mass
+
+
+def _moon_distances_km(donor, system, limit_km, seeds=6):
+    found = []
+    for seed in range(seeds):
+        event = _event(donor, mass_kg=5.0 * EARTH_KG, core_kg=5.0 * EARTH_KG, moon_limit_km=limit_km)
+        with draw.bound(f"rogue-body-moons-{seed}"):
+            # a real star as host: the atmosphere table cannot read a body with no light yet
+            planet = starless_host.build_rogue_body(system.system_config, donor, event, moon_count=2)
+        found.extend(moon.distance * constants.AU_TO_KM for moon in planet.moons)   # a moon's distance is in AU
+    return found
+
+
+def test_the_moons_of_a_rogue_body_stay_inside_the_edge_the_ejection_left():
+    from planetgen.physics import clearance_ledger
+    system, donor = _donor()
+    event = _event(donor, mass_kg=5.0 * EARTH_KG, core_kg=5.0 * EARTH_KG, moon_limit_km=2.0e5)
+    with draw.bound("rogue-body-hill"):
+        planet = starless_host.build_rogue_body(system.system_config, donor, event, moon_count=2)
+    assert planet.hill_radius == pytest.approx(event.moon_limit_km / clearance_ledger.moon_hill_fraction(0.0)[0])
+    distances = _moon_distances_km(donor, system, 2.0e5)
+    assert distances, "a limit of 2e5 km leaves room for moons"
+    assert max(distances) <= 2.0e5 * (1 + 1e-9)
+
+
+def test_an_ejection_that_left_no_room_leaves_no_moons_and_a_wide_one_lets_them_be_wider():
+    system, donor = _donor()
+    assert _moon_distances_km(donor, system, 4.0e4) == [], "inside the planet's own clearance there is no room for a moon"
+    narrow, wide = _moon_distances_km(donor, system, 2.0e5), _moon_distances_km(donor, system, 2.0e6)
+    assert max(wide) > max(narrow)

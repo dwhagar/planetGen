@@ -88,3 +88,29 @@ def ejected_moon_limit_km(loss, planet_mass_kg, donor_mass_kg, u, eccentricity=0
     r_min_km = rogue_moons.closest_approach_hill(u) * mutual_m / 1000.0
     fraction = clearance_ledger.moon_hill_fraction(eccentricity)[0]
     return rogue_moons.moon_limit_km(loss.hill_radius_au * constants.AU_TO_KM, fraction, r_min_km, planet_mass_kg, loss.perturber_mass_kg)
+
+
+def host_of(donor, event):
+    """The `StarlessHost` of the rogue an `ejection_events.EjectionEvent` made: the donor with the rogue's age."""
+    return StarlessHost(donor, event.age_gy)
+
+
+def build_rogue_body(system_config, host, event, moon_count=None):
+    """
+    The planet an ejection event made, through the planet chain: the event's mass and formation distance against `host` (`host_of`), no moons while it
+    is made, then the Hill radius of its moon window set to what the ejection left (`event.moon_limit_km` is the outer edge of that window, the
+    Domingos fraction of this radius), then its moons drawn inside it.
+
+    Args:
+        system_config (SystemConfig): The shared settings.
+        host: `host_of(donor, event)`; a real star gives the same chain with light on it (the tests use it where the table cannot yet read a body with no light).
+        event (ejection_events.EjectionEvent): What was thrown out.
+        moon_count (int, optional): Exactly this many moons; `None` lets the chain draw them.
+
+    Returns:
+        Planet: The body. Its `hill_radius` is the effective radius above, not a host's.
+    """
+    planet = Planet(system_config, host, host.habitable_zone, FAR_AU, mass=event.mass_kg, moon_count=0, formation_distance_au=event.formation_au)
+    planet.hill_radius = event.moon_limit_km / clearance_ledger.moon_hill_fraction(0.0)[0]
+    planet.add_moons(moon_count)
+    return planet

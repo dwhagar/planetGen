@@ -152,8 +152,10 @@ def _matched(mass_bin, seed):
     giant needs is not on this machine."""
     from planetgen.datasets.fetch import DataMissing
     from planetgen.util import draw
+    from tests.fuzz_support import deterministic_entropy
     from tests.test_gen_builder_internals import make_system
-    system = make_system()
+    with deterministic_entropy(498):     # the same star every run, so a bin's strict expected failure does not depend on which star was drawn
+        system = make_system()
     star = system.star
     try:
         with draw.bound(f"rogue-parity-{mass_bin}-{seed}"):
@@ -179,8 +181,16 @@ def test_a_rogue_and_a_bound_planet_of_one_mass_are_one_kind_of_body_of_one_size
         assert radii[0] * 0.8 <= bound.radius <= radii[1] * 1.2, (bound.radius, radii)
 
 
+@pytest.mark.parametrize("mass_bin", ("saturn", "jupiter"))
+def test_a_giant_far_from_light_is_already_warmed_by_its_own_heat_in_the_bound_chain(mass_bin):
+    """A giant's temperature adds its own heat flux (`giant_draw.effective_temperature_k`), so unlike a rocky body it is nowhere near the 2.725 K floor
+    far from a star. The two chains still differ in the cooling law they use for it (a Saturn-mass body differed by a third when this was written)."""
+    rogue, bound = _matched(mass_bin, 0)
+    assert bound.surface_temperature > 10.0 * 2.725 and rogue.surface_temperature_k > 10.0 * 2.725
+
+
 @pytest.mark.xfail(strict=True, reason="the bound chain's equilibrium temperature has no internal heat in it (GEN.1111 slice: the starless host)")
-@pytest.mark.parametrize("mass_bin", BINS)
+@pytest.mark.parametrize("mass_bin", ("terrestrial", "sub-neptune"))
 def test_a_rogue_and_a_bound_planet_far_from_light_have_the_same_surface_temperature(mass_bin):
     """The one quantity the rogue and the bound chain should differ in is starlight; with none, the surface is the internal heat's over the ambient
     floor in both. Found (TEST.498, 2026-10-31): the bound chain returns the 2.725 K floor for a 5 Earth-mass body at 1e5 AU and the rogue chain 270 K."""
