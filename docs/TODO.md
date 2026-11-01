@@ -1020,19 +1020,6 @@ with `clamp()`.
   waiting). Version 8.1.
   Prerequisites: none. Related: MAP.210.
 
-- [ ] **UX.257 Object page life text: the life readings table overflows a phone and the species link fails contrast (bug)**
-  Found by Planets 1 in the axe check of the object page (UX.243,
-  2026-11-01 12:46 AM EDT as the lane reported), neither caused by that
-  panel. (1) table.life-readings is 438 px wide on a 390 px phone: wrap
-  it in a focusable scroll region like the other tables or let its
-  columns wrap. (2) The species link inside the life text fails
-  link-in-text-block contrast: 2.49:1 in the light theme and 1.91:1 in
-  the dark theme; give it the theme link colour or an underline plus
-  enough contrast. Done when src/tests/test_web_a11y.py passes the
-  object page of a body with life text in both themes at phone width.
-  Related: UX.252.
-  Prerequisites: none.
-
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
