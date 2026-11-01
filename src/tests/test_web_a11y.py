@@ -155,7 +155,7 @@ def _add_bright_stars(config, count=300):
             point = (r * math.cos(theta), r * math.sin(theta), rng.uniform(-30.0, 30.0))
             rows.append((*sector_address_at(point, edge_pc), *(int(round(v * 1000)) for v in point), "young", "B",
                          "III", 2e31, 1e7, rng.uniform(3000.0, 30000.0), rng.uniform(500.0, 1e6) * 3.82e26,
-                         0.05, 0.1, 10.0, None, 1, None, None))
+                         0.05, 0.1, 10.0, None, 1, None, None, None))
         store.insert_bright_stars(conn, rows)
         conn.commit()
     finally:

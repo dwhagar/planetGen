@@ -1,0 +1,36 @@
+{#- planetgen/web/templates/partials/day_counter.html -- the day-and-night counter of an object page (UX.243).
+
+    `day_counter_panel(counter)`: `counter` is web.lib.day_counter.counter (None leaves the panel out). A body whose day is counted gets the clock
+    (static/daycounter.js fills the three lines below the heading and keeps them moving); a tidally locked one gets its sentence instead. The
+    bands table lays the day and night hours of each latitude band beside its temperature (GEN.1108). -#}
+{%- macro day_counter_panel(counter) -%}
+{%- if counter %}
+<section class="panel day-counter" id="item-day-night" aria-labelledby="item-day-night-heading"
+  {%- if counter.ticks %} data-day-counter data-day-hours="{{ counter.day_hours }}"{% if counter.night_hours is not none %} data-night-hours="{{ counter.night_hours }}"{% endif %} data-epoch-ms="{{ counter.epoch_ms }}"{% endif %}>
+  <div class="panel-header"><h2 id="item-day-night-heading">Day and night</h2></div>
+  <p class="day-counter-state"><strong>{{ counter.state | capitalize }}.</strong> {{ counter.text }}</p>
+  {%- if counter.ticks %}
+  <div class="day-counter-clock" role="timer" aria-live="off" aria-label="This object's own day, counted at the real rate">
+    <p class="day-counter-line" data-day-counter-day>Day counted from 1 January 2000, 12:00 UTC.</p>
+    <p class="day-counter-line" data-day-counter-in-day>A solar day here is {{ counter.day_hours | round(2) }} hours.</p>
+    <p class="day-counter-line" data-day-counter-phase></p>
+  </div>
+  {%- if counter.days_per_year is not none %}<p class="day-counter-year">A year holds {{ counter.days_per_year | round(2) }} of these days.</p>{% endif %}
+  {%- endif %}
+  <p class="day-counter-note">{{ counter.note }}</p>
+  {%- if counter.bands %}
+  <div class="table-scroll" tabindex="0" role="region" aria-label="Day and night by latitude band">
+  <table class="day-counter-bands">
+    <caption>Day and night by latitude band</caption>
+    <thead><tr><th scope="col">Band</th>{% for heading in counter.band_headings %}<th scope="col">{{ heading }}</th>{% endfor %}</tr></thead>
+    <tbody>
+    {%- for band in counter.bands %}
+      <tr><th scope="row">{{ band.label }}</th>{% for cell in band.cells %}<td>{{ cell if cell is not none else "–" }}</td>{% endfor %}<td>{{ band.state or "–" }}</td></tr>
+    {%- endfor %}
+    </tbody>
+  </table>
+  </div>
+  {%- endif %}
+</section>
+{%- endif %}
+{%- endmacro %}
