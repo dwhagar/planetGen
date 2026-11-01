@@ -467,6 +467,8 @@ def _shares(setting, efficiencies, cycle, sulfur, ocean, weathers, temperature_k
 
     def shares(inventory):
         shares_ = {element: base * efficiency for element, efficiency in efficiencies.items()}
+        if ocean:   # GEN.524 part 2: hydrogen chloride and fluoride are so soluble that an ocean takes all the volcanoes give (the air keeps none)
+            shares_["Cl"] = shares_["F"] = 0.0
         degassed_sulfur = inventory.get("S", 0.0) * shares_.get("S", 0.0) * moles_per_100_g
         if degassed_sulfur > 0.0:
             lifetimes, age_s, oxidised_share = sulfur

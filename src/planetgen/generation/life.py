@@ -26,7 +26,7 @@ the life model no longer re-rolls the names and flavour text of every later body
 
 from planetgen import tuning
 from planetgen.generation import evolution
-from planetgen.physics import aerosols, atmosphere, biogenic_oxygen, body_colour, habitability_world, life_air, life_classes, life_complexity, life_supply, life_timeline, planet_classes, radiation, surface_liquid_world
+from planetgen.physics import aerosols, atmosphere, biogenic_oxygen, body_colour, habitability_world, life_air, life_classes, life_complexity, life_supply, life_timeline, planet_classes, radiation, surface_liquid_world, trace_air
 from planetgen.util import draw
 from planetgen.util import log
 
@@ -96,6 +96,7 @@ def _apply(planet, keep_stored):
     log.choice("Life complexity", f"{complexity.index:.3g} x Earth's net primary production",
                f"oxidant yield {complexity.oxidant_yield:.2f} of 1, temperature rate factor {complexity.rate_factor:.2f}, "
                f"animal grade {complexity.grade} of 3, highest stage {complexity.top_stage}")
+    trace_air.apply(planet)             # GEN.524: the trace gases of table m read the life stage just stored
     habitability_world.rescore(planet)  # GEN.207: Suitability reads the life that was just drawn
 
 
@@ -107,6 +108,7 @@ def _lifeless(planet, scores, why):
     _set_schedule(planet, None, None)
     _set_evolutionary_state(planet, None)
     planet.life_animal_grade = planet.life_complexity = None
+    trace_air.apply(planet)             # GEN.524: a lifeless world loses the trace gases a drawn life had given it
     habitability_world.rescore(planet)
     log.debug(f"Life class: none, {why}")
 
