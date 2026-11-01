@@ -15020,6 +15020,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   workers for the stages that need no tables (would allow more workers),
   and peaks for scatter-phenomena and the nebula draw. The deadlock seen
   in rescore-habitability is PERF.228.
+  Part 3 merged (#4666) (2026-10-31 8:48 PM EDT): Workers no longer
+  build the star tables at start: only units that draw stars build them,
+  and a worker holding them restarts itself before a unit that needs
+  none. Measured worker plus horse: link 601 MB (was 1,564) and 2.4
+  times faster, settle 588, re-score 552, map-luminosity 540. Figures:
+  lean stages 700 MB, scatters 1,700, sector stages 2,600;
+  warm-cluster-field sits at 1,700 until PERF.225 is measured. Still
+  open: peaks for scatter-phenomena and the nebula draw need a
+  full-galaxy run (they use the lean figure; the run report warns if a
+  stage goes over), and the 1,700 MB scatter and 2,600 MB sector workers
+  can still be made leaner.
   Prerequisites: none. Related: PERF.220, PERF.222, PERF.223.
 
 - [ ] **PERF.227 Starting a single scatter part from the Generate console on a fresh download kills the web daemon: five 'Truncated or oversized response headers' errors, an error 500, and the job reads 'stopped without finishing' (bug)**
