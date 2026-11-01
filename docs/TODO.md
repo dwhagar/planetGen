@@ -469,33 +469,8 @@ with `clamp()`.
   item then fills that same dropdown with the families and their
   outlines; it does not build a second control, and the pin flag is
   `--shape`.
-  Prerequisites: GEN.389, UX.135. Related: UX.116, UX.125,
+  Prerequisites: GEN.389. Related: UX.116, UX.125,
   DOC.13, ADM.110.
-  Design: [docs/design/galaxy/galaxy-types.md](design/galaxy/galaxy-types.md)
-
-- [ ] **UX.135 One simple vector outline per galaxy family in the icon library: spiral, barred spiral, lenticular, elliptical, irregular and dwarf spheroid**
-  Boss (2026-10-16, 9:00 PM EDT, for 9.4): each galaxy type should have
-  an image of that model as a simple vector outline, so the user knows
-  approximately what it should look like. Default (stands as Decided
-  unless Boss says otherwise): one hand-drawn static SVG per family key
-  docs/design/galaxy/galaxy-types.md lists (today: spiral, barred spiral,
-  lenticular, elliptical, irregular, dwarf spheroid), kept in the repo
-  with the other icon-library shapes, so it works on the offline page
-  and needs no generation step. Each is a plain outline, one stroke
-  weight, no fill or a light fill, drawn in the view that tells the
-  family apart: the arms and bar face-on for the spirals, the smooth
-  lens for the lenticular, the ellipse for the elliptical, the ragged
-  body for the irregular, the faint round blob for the dwarf spheroid;
-  the stroke uses the current text colour so both themes work. Done: the
-  outlines are in the icon library, one per family key; a test fails
-  when a family has no outline or an outline has a script, an external
-  reference, no viewBox or more than 4 KB; a screenshot test shows each
-  on both themes; the Generate page (UX.134) and the Galaxy Map key
-  (MAP.242) use them. Boss sees the drawings in the PR. The art can be
-  drawn any time now that the galaxy types design (GEN.378, merged
-  #2368) fixes the family list; the outlines are not a copy of any named
-  galaxy.
-  Prerequisites: none. Related: UX.134, MAP.242, UX.101, GEN.608.
   Design: [docs/design/galaxy/galaxy-types.md](design/galaxy/galaxy-types.md)
 
 - [ ] **UX.137 The Generate page, the settings and the command line set the halo and the satellite galaxies switches, each through its own command, and say what they are**
@@ -1783,7 +1758,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   on an elliptical and the family's name in the key.
   Outlines (Boss, 2026-10-16, 9:00 PM EDT): the key row for the family
   shows its outline from UX.135 beside the family's name.
-  Prerequisites: GEN.389, UX.135. Related: MAP.232, MAP.234, MAP.235.
+  Prerequisites: GEN.389. Related: MAP.232, MAP.234, MAP.235.
   Design: [docs/design/galaxy/galaxy-types.md](design/galaxy/galaxy-types.md)
 
 - [ ] **MAP.248 The maps and pages follow the plan configuration: with the halo or the satellite galaxies off, nothing is drawn, picked or offered beyond the configured boundaries**
