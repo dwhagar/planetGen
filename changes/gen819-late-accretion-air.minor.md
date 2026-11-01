@@ -1,6 +1,0 @@
-**Headline:** The air of a rocky planet now holds the carbon and nitrogen that the late accretion brought and did not blow away, so an Earth twin's nitrogen comes out near the Earth's.
-
-### Changed
-- **Late accretion in the air supply (GEN.819).** Every rocky planet or moon with a star draws how much leftover planetesimal mass it accreted after its giant impacts and how volatile it was (the veneer), balances what it delivered against what the impacts eroded (Sakuraba, Kurokawa and Genda 2019), and adds the carbon and the nitrogen to the gas the interior degasses. The carbonate cycle weathers the carbon of the impacts as it does the degassed. The Earth twin's nitrogen in the air has a median of 3.8e18 kg against 1.0e18 before (the Earth's is 3.9e18); Venus's rises from 3.3e18 to 5.2e18 kg (1.1e19 observed). The water stays the hydrosphere's, so oceans do not change. Every rocky planet's air moves a little; a planet's class can change with it.
-- **Gas solver retry.** An air that is nearly all nitrogen, with the other elements at 1e-9 to 1e-16 of it, can stall the equilibrium solve ("the element balance is off"); the solve is now tried again without the elements under 1e-12 of the commonest, so such a planet gets its nitrogen air instead of a crash.
-- generation-output: changed
