@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3102] - 2026-11-01
+
+**Headline:** A radiation sweep checks every class of planet and moon: light through the air, greenhouse against temperature, dose terms and ultraviolet.
+
+### Changed
+
+- New `src/tests/test_radiation_sweep.py` (TEST.212 part 1): generates systems with both planets and moons of every class and checks the band transmissions (0 to 1, and thicker air passes no more light), that the stored surface temperature is the one the stored albedo, greenhouse factor and starlight give (or the 2000 K cap), that the greenhouse rises with the infrared-active column, that the yearly dose is the sum of its terms and follows the column, the field and the flares, and that the ultraviolet index is the Setlow dose of the spectrum below the air. A second set of tests breaks each rule in turn and checks that it is named. The earth, moon and mars dose values and the descriptions that quote these numbers wait for GEN.444's later slices and GEN.446.
+
 ## [8.0.3101] - 2026-11-01
 
 **Headline:** A generated system now keeps the plan its planets were built from, so the bodies it threw out can be read from it: the first step of making rogue planets come from real ejections.
