@@ -61,11 +61,15 @@ def starlight_w_m2(luminosity_w, distance_km):
     return (luminosity_w / (4.0 * math.pi * distance_km ** 2)) / 1e6
 
 
-def equilibrium_temperature_k(albedo, flux_w_m2):
+def equilibrium_temperature_k(albedo, flux_w_m2, internal_flux_w_m2=0.0):
     """T_e, K: the temperature the starlight gives a body of Bond albedo `albedo` with no air, floored at the cosmic
-    microwave background."""
+    microwave background. `internal_flux_w_m2` is the body's own heat flux through its surface (`Planet.internal_heat_flux_w_m2`), added as a flux
+    to the absorbed starlight (the way `giant_draw.effective_temperature_k` adds a giant's): `T^4 = (1 - A) F / 4 sigma + F_int / sigma`. It is
+    what sets the temperature of a body with no star (GEN.1111, TEST.498: the rogue chain's `rogue_surface.effective_temperature_k`), and under the
+    light of a star it is below a part in a thousand of T^4 for a rocky planet, so a bound planet leaves it at 0."""
     return max(constants.COSMIC_BACKGROUND_TEMPERATURE_K,
-               ((1.0 - albedo) * flux_w_m2 / (4.0 * constants.STEFAN_BOLTZMANN_CONSTANT)) ** 0.25)
+               ((1.0 - albedo) * flux_w_m2 / (4.0 * constants.STEFAN_BOLTZMANN_CONSTANT)
+                + internal_flux_w_m2 / constants.STEFAN_BOLTZMANN_CONSTANT) ** 0.25)
 
 
 def surface_temperature_k(albedo, greenhouse_factor, flux_w_m2):

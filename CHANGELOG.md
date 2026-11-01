@@ -2,6 +2,47 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3082] - 2026-11-01
+
+**Headline:** The words a body sheet shows for the roundness rule no longer carry an item code.
+
+### Changed
+- **The roundness rule text on the body sheet (GEN.1160).** The plain-words line for a body under a roundness ratio of 1 ended with the item code; the code is gone, as no text the code shows may carry one.
+
+generation-output: unchanged
+
+TODO items resolved: none.
+
+## [8.0.3081] - 2026-11-01
+
+**Headline:** The table sweep now tests belts and asteroid fields at a physical disk temperature, and the two taxon E rows that no belt reaches are marked unreachable on purpose.
+
+### Changed
+- **The table sweep draws a disk temperature (TEST.545).** The sweep had no range for `temperature_k`, so the taxa table of a belt or asteroid field was tried at 0 K and raised "the temperature must be positive". It draws from 10 to 2,500 K now. The taxon E rows are never reached because the taxon kernel gives that taxon no weight at any temperature (its source is not found yet); the sweep notes say so.
+
+generation-output: unchanged
+
+TODO items resolved: TEST.545.
+
+## [8.0.3080] - 2026-11-01
+
+**Headline:** A rogue planet can now be built through the planet code against a host with no light: the first part of making a rogue the same planet as a bound one.
+
+### Changed
+- **The starless host (GEN.1111, TEST.498).** `generation/phenomena/starless_host.py` holds `StarlessHost`, the donor star a body was ejected from with no luminosity and the rogue's own age, and `build_ejected_planet`, which makes a `Planet` of a given mass against it (the donor's mass and snow line, the formation distance of the loss, where `FAR_AU` puts it). Nothing reads it yet; the rogue rows from the architecture's ejections will, after the table rule below. Two strict expected failures in `test_starless_host.py` record why a whole body cannot be built yet: the atmosphere table's shoreline row (d1) is a logistic in the log of the insolation and of the host's luminosity, which are zero for a body with no light, so the weight is not a number. The rule for the table rows that read the star (a body with no host keeps its air as the ejection left it) is the next part and changes the table, so it goes in the lock wiring.
+
+generation-output: unchanged
+
+TODO items resolved: none (GEN.1111 stays open).
+
+## [8.0.3079] - 2026-11-01
+
+**Headline:** the belt-source stand-in table is whole again, so its fourteen lost rows are counted and checked
+
+### Changed
+
+A merge had left the belt-source table (6.95 of the gap-filling plan) with a duplicate of an old BR8 row, an old BR9 row that the roundness work retired, and a blank line between them and BR10 to BR23. The registry reader stopped at the blank line, so those fourteen rows were missing from the stand-in values list and one test (the burn-down register, row BR20 at L3) saw its line as stale. The blank line and the two old rows are gone, the list is rebuilt (1,044 rows), and the two body-status rows that now show (BR22 and BR23) have wiring lines under GEN.1092. No generated output changes.
+
 ## [8.0.3078] - 2026-11-01
 
 **Headline:** The Shoelace primary-button hover and the dark theme's subtle background now meet the theme checks carried over from PR #800.
