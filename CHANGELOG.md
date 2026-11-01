@@ -2,6 +2,13 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.3092] - 2026-11-01
+
+**Headline:** The icon library has a simple vector outline for each galaxy family, ready for the Generate page's Shape row and the Galaxy Map key.
+
+### Added
+- **UX.135: one outline per galaxy family.** Six line drawings under `static/galaxy/`: spiral (a core and two arms), barred spiral (a bar with an arm leaving each end), lenticular (a smooth pointed lens with a bulge), elliptical (a tilted ellipse with an inner contour), irregular (a ragged body with three clumps) and dwarf spheroid (a faint dashed round blob). Each is a plain outline in one stroke weight with no fill, drawn in the text colour so both themes work, and none copies a named galaxy. `galaxy_outline(id)` puts one on a page; `outline_id(family, bar)` gives the drawing for a family key (a spiral with a bar takes the barred one). A test fails when a family has no outline or a file has a script, an external reference, no viewBox or more than 4 KB, and a browser test draws each in both themes. The Generate page (UX.134) and the Galaxy Map key (MAP.242) are separate items and have not been wired to them yet. Nothing generated changes.
+
 ## [8.0.3091] - 2026-11-01
 
 **Headline:** How wide a moon system a planet thrown out of its system can keep is now worked out from the ejection's own record, ready for the rogue rows.
