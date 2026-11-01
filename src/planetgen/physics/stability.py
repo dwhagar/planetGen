@@ -149,7 +149,7 @@ def required_axis_ratio(m1, m2, m3, e_in, e_out, i, method="auto", alpha=None):
         method = criterion(m1, m2, m3, alpha)
     if method == "ma01":
         if not ma01_in_range(q_out):
-            raise ValueError(f"Mardling and Aarseth 2001 holds for q_out <= {MA01_Q_OUT_MAX:g}, got {q_out:.4g}; use method='auto'")
+            raise ValueError(f"[R2868] holds for q_out <= {MA01_Q_OUT_MAX:g}, got {q_out:.4g}; use method='auto'")
         return mardling_aarseth_axis_ratio(q_out, e_out, i)
     if method == "eq4":
         return eq4_axis_ratio(q_out, e_in, e_out, i)

@@ -38,7 +38,7 @@ OUT_HTML = os.path.join(ROOT, "docs", "REFERENCES.html")
 MAILTO = "david.hagar@gmail.com"
 
 TEXT_EXT = (".md", ".py", ".js", ".mjs", ".html", ".json", ".sh", ".txt", ".csv", ".tsv", ".bib", ".yml", ".yaml", ".rst", ".toml")
-SKIP_PARTS = ("docs/REFERENCES", "docs/reference/references-data", "scripts/build_references.py", "scripts/settle_references.py", "scripts/references_curated.py", "scripts/rewrite_citations.py", "/node_modules/", "/vendor/",
+SKIP_PARTS = ("docs/REFERENCES", "docs/references/", "src/tests/test_citations_links.py", "docs/reference/references-data", "scripts/build_references.py", "scripts/settle_references.py", "scripts/references_curated.py", "scripts/rewrite_citations.py", "/node_modules/", "/vendor/",
               "three.min", ".min.js", "package-lock")
 MAX_BYTES = 4_000_000
 

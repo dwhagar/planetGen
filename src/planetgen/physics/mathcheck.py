@@ -1021,7 +1021,7 @@ def _distribution_checks():
     return [
         Check("imf_matches_chabrier", "distribution", "imf.sample",
               _imf_p_value, CHI_SQUARE_P_MIN, 0.0,
-              f"Chabrier 2003, PASP 115:763, Table 2 (log-normal below 1 M_sun, alpha 2.3 above); {chi}", mode="min",
+              f"[R0705: Table 2] (log-normal below 1 M_sun, alpha 2.3 above); {chi}", mode="min",
               unit="p"),
         Check("star_ages_uniform", "distribution", "stellar_evolution.sample_star_age_gy",
               _star_age_p_value, CHI_SQUARE_P_MIN, 0.0,

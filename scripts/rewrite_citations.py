@@ -326,6 +326,8 @@ def python_spans(text):
             kind = "comment"
         elif tk.type == tokenize.STRING:
             kind = "doc" if tk.start in docs else "string"
+        elif tk.type == getattr(tokenize, "FSTRING_MIDDLE", -1):
+            kind = "string"  # the text parts of an f-string (Python 3.12 and later read them as separate tokens)
         else:
             continue
         spans.append((offs[tk.start[0] - 1] + tk.start[1], offs[tk.end[0] - 1] + tk.end[1], kind))

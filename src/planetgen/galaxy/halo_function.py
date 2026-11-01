@@ -86,7 +86,7 @@ def tinker_parameters(delta):
     """
     rows = TINKER_TABLE
     if not rows[0][0] <= delta <= rows[-1][0]:
-        raise ValueError(f"Tinker et al. 2008 give no fit at Delta = {delta:g} (200 to 3200 times the mean density)")
+        raise ValueError(f"[R4367] give no fit at Delta = {delta:g} (200 to 3200 times the mean density)")
     for low, high in zip(rows, rows[1:]):
         if low[0] <= delta <= high[0]:
             t = (math.log(delta) - math.log(low[0])) / (math.log(high[0]) - math.log(low[0]))
