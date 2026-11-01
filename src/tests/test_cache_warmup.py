@@ -150,6 +150,24 @@ def test_the_galaxy_map_family_builds_the_opening_view_and_the_page(galaxy, spy)
     assert [call for call in spy if call.startswith(("/galaxy/sectors", "/galaxy/shape", "/galaxy/phenomena"))] == []
 
 
+def test_the_galaxy_map_family_warms_while_the_site_is_held_in_maintenance(galaxy, tmp_path, monkeypatch):
+    """The update warms the caches with the site closed; the page's maintenance redirect is not the warm-up's failure."""
+    monkeypatch.setenv(maintenance.FILE_ENV, str(tmp_path / "maintenance.json"))
+    maintenance.turn_on(by="update")
+    assert _web_worker(galaxy.config).get("/galaxy").status_code == 302, "a visitor is still sent to the maintenance page"
+    result = _warm(galaxy, "galaxy-map")
+    assert result["warmed"] > 0
+
+
+def test_the_galaxy_map_family_warms_an_empty_galaxy_in_maintenance(mysql_config, redis_server, tmp_path, monkeypatch):
+    """After a reset the galaxy holds nothing and the update still has to get through stage 1."""
+    monkeypatch.setenv(maintenance.FILE_ENV, str(tmp_path / "maintenance.json"))
+    monkeypatch.setenv("PLANETGEN_TILE_CACHE_DIR", str(tmp_path / "tiles"))
+    maintenance.turn_on(by="update")
+    result = warmup.warm_family(mysql_config.database, "galaxy-map", app=warmup.build_app(mysql_config))
+    assert result["family"] == "galaxy-map"
+
+
 def test_a_second_warm_up_finds_it_all_built(galaxy):
     first = _warm(galaxy, "sectors")
     second = _warm(galaxy, "sectors")
