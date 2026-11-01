@@ -2308,3 +2308,4 @@ Baseline: PR #1817.
 | TEST.546 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
 | TEST.552 | 8.9 | Remote generation |
 | TEST.501 | 8.1 | Physics rectification (Boss, 5:30 PM EDT 2026-10-24) |
+| UX.135 | 9.4 | Family outlines |
